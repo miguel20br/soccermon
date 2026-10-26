@@ -116,7 +116,7 @@ export function Shop() {
                 />
                 <button
                     type="button"
-                    className="btn small outline shop-buy"
+                    className="btn small confirm shop-buy"
                     disabled={!buyable(o, i)}
                     aria-pressed={chosen === i}
                     onClick={() => choose(i)}
@@ -138,7 +138,7 @@ export function Shop() {
                 </span>
                 <div className="draft-title">
                     <h1>{t('shop.title')}</h1>
-                    <Money n={money} className="shop-wallet" />
+                    <Money n={money} className="shop-wallet cb-num" />
                 </div>
                 <button
                     type="button"
@@ -300,7 +300,7 @@ export function Shop() {
                 )}
                 <button
                     type="button"
-                    className="btn primary"
+                    className="btn confirm"
                     disabled={!!shop.pack}
                     aria-describedby={shop.pack ? 'shop-leave-why' : undefined}
                     onClick={() => {

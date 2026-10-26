@@ -79,7 +79,7 @@ export function LeaveConfirm() {
                     </button>
                     <button
                         type="button"
-                        className="btn primary"
+                        className="btn danger"
                         onClick={() => {
                             close();
                             pending();

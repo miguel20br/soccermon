@@ -19,6 +19,8 @@ describe('retorno de toque: o tipo vem da classe do botão', () => {
         expect(kindOf(btn('btn ghost'))).toBe('back');
         expect(kindOf(btn('modal-close'))).toBe('back');
         expect(kindOf(btn('btn small danger'))).toBe('danger');
+        expect(kindOf(btn('btn ghost small danger'))).toBe('danger');
+        expect(kindOf(btn('btn small confirm'))).toBe('go');
         expect(kindOf(btn('btn outline'))).toBe('tap');
     });
     it('data-fx manda (e "none" cala, pra quem toca o próprio som)', () => {

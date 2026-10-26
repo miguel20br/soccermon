@@ -162,9 +162,10 @@ button.sp-slot:hover {
 }
 
 /* ---------- tela do Mercado ---------- */
-.shop-wallet {
-    font-family: "Galmuri14", var(--font, inherit);
-    font-size: 22px;
+/* o ₽ é o recurso da tela: número grande e contornado (kit, .cb-num), dourado */
+.money.shop-wallet {
+    font-size: 26px;
+    color: var(--yellow);
 }
 .shop-earned {
     display: flex;

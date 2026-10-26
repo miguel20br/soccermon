@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { closestMissions, countAt, nextBelt, routeTeam, slotFill } from './metas';
+import { closestMissions, countAt, nextBelt, routeTeam, slotFill, trainerLevel } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -78,5 +78,28 @@ describe('slots e contadores do Estádio', () => {
         // começa rápido: na metade do tempo já passou de 80%
         expect(countAt(120, 350)).toBeGreaterThan(96);
         expect(countAt(0, 100)).toBe(0);
+    });
+});
+
+describe('trainerLevel', () => {
+    it('sobe em degraus de 1, 2, 2, 3, 3… missões', () => {
+        expect(trainerLevel(0)).toEqual({ level: 1, n: 0, goal: 1 });
+        expect(trainerLevel(1)).toEqual({ level: 2, n: 0, goal: 2 });
+        expect(trainerLevel(2)).toEqual({ level: 2, n: 1, goal: 2 });
+        expect(trainerLevel(3)).toEqual({ level: 3, n: 0, goal: 2 });
+        expect(trainerLevel(5)).toEqual({ level: 4, n: 0, goal: 3 });
+        expect(trainerLevel(7)).toEqual({ level: 4, n: 2, goal: 3 });
+    });
+    it('as 63 missões fecham o nível 15 e o número nunca volta', () => {
+        expect(trainerLevel(63).level).toBe(15);
+        expect(trainerLevel(62).level).toBe(14);
+        let prev = 0;
+        for (let d = 0; d <= 80; d++) {
+            const { level, n, goal } = trainerLevel(d);
+            expect(level).toBeGreaterThanOrEqual(prev);
+            expect(n).toBeLessThan(goal);
+            prev = level;
+        }
+        expect(trainerLevel(-3)).toEqual({ level: 1, n: 0, goal: 1 });
     });
 });

@@ -100,8 +100,9 @@ export const home: typeof pt = {
         slotBadges: 'Badges',
         slotBelt: 'Belt',
         /** The top bar: titles won and the Pokédex. */
+        resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',
         resTitles: 'Titles: {n}',
-        resDex: 'Pokédex: {n} seen',
+        resDex: 'Pokédex: {n} of 151 seen',
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',

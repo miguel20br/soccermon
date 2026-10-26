@@ -239,7 +239,7 @@ export function TmTeachPanel({
                     </button>
                     <button
                         type="button"
-                        className="btn small primary"
+                        className="btn small confirm"
                         disabled={slot === null}
                         onClick={() => {
                             setTaught(true);
@@ -271,7 +271,7 @@ export function TmTeachPanel({
                         <p className={`tm-done-text tm-trained${ready ? ' show' : ''}`}>{t('reward.tm.trained')}</p>
                         <button
                             type="button"
-                            className="btn primary"
+                            className="btn confirm"
                             disabled={!ready}
                             onClick={() => onTeach(target.uid, slot)}
                         >

@@ -258,7 +258,7 @@ export function Lineup() {
                             </button>
                         </div>
                     ) : (
-                        <button type="button" className="btn ghost small" onClick={() => setAskAbandon(true)}>
+                        <button type="button" className="btn ghost small danger" onClick={() => setAskAbandon(true)}>
                             {t('team.lineup.abandon')}
                         </button>
                     )

@@ -175,7 +175,7 @@ export function CardModal() {
                                     <button
                                         key={a.label}
                                         type="button"
-                                        className={`btn${a.primary ? ' primary' : ''}`}
+                                        className={`btn${a.primary ? ' confirm' : ''}`}
                                         onClick={() => {
                                             close();
                                             a.onClick();

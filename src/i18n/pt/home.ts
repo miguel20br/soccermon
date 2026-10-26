@@ -106,8 +106,9 @@ export const home = {
         slotBadges: 'Insígnias',
         slotBelt: 'Cinturão',
         /** A barra de cima: títulos ganhos e a Pokédex. */
+        resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
         resTitles: 'Títulos: {n}',
-        resDex: 'Pokédex: {n} vistos',
+        resDex: 'Pokédex: {n} de 151 vistos',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',

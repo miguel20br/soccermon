@@ -283,7 +283,7 @@ function Balloon({
                     <button type="button" className="btn ghost small coach-skip" onClick={skip}>
                         {c.skip}
                     </button>
-                    <button type="button" className="btn primary small coach-next" onClick={advance}>
+                    <button type="button" className="btn small coach-next" onClick={advance}>
                         {last ? c.done : c.next}
                     </button>
                 </div>

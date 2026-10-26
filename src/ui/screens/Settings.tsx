@@ -579,7 +579,7 @@ function DataSettings() {
                         {user ? t('settings.data.replacesCloud') : ''}
                     </span>
                     <div className="set-actions">
-                        <button type="button" className="btn small primary" onClick={restore}>
+                        <button type="button" className="btn small confirm" onClick={restore}>
                             {t('settings.data.restoreBtn')}
                         </button>
                         <button type="button" className="btn small ghost" onClick={() => setPending(null)}>
@@ -594,7 +594,7 @@ function DataSettings() {
                     <div>
                         <button
                             type="button"
-                            className="btn small danger"
+                            className="btn small ghost danger"
                             onClick={() => {
                                 setPending(null);
                                 setMsg(null);
@@ -612,7 +612,7 @@ function DataSettings() {
                         <div className="set-actions">
                             <button
                                 type="button"
-                                className="btn small primary"
+                                className="btn small danger"
                                 disabled={wipe === 'busy'}
                                 data-fx="none"
                                 onClick={() => leaveWith('danger', () => void wipeDevice())}
@@ -666,7 +666,7 @@ function AccountSettings() {
                     <p>{rich(t('settings.account.signedAs'), { name: <b>{user?.name}</b> })}</p>
                     {step === 'confirm' || step === 'busy' ? (
                         <div className="row">
-                            <button type="button" className="btn primary" disabled={step === 'busy'} onClick={remove}>
+                            <button type="button" className="btn danger" disabled={step === 'busy'} onClick={remove}>
                                 {step === 'busy' ? t('settings.account.deleting') : t('settings.account.deleteYes')}
                             </button>
                             <button

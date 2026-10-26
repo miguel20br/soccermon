@@ -83,6 +83,7 @@ export function PlayBar({
                             </span>
                             <b>{m.title}</b>
                             <small>{m.sub}</small>
+                            <HudIcon kind="next" className="es-mode-go" />
                         </button>
                     ))}
                 </div>

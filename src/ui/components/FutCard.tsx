@@ -211,7 +211,7 @@ export function FutCard({
                 // ação repetida em grade (3 cartas, vitrine): contorno amarelo; o vermelho fica pra ação da tela
                 <button
                     type="button"
-                    className={`btn small${action.primary ? ' outline' : ''} fut-action`}
+                    className={`btn small${action.primary ? ' confirm' : ''} fut-action`}
                     onClick={action.onClick}
                 >
                     {action.label}

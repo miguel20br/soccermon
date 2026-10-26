@@ -56,14 +56,20 @@ main { min-width: 0; }
   background: var(--bc-ink); border-bottom: 2px solid var(--bc-edge); border-radius: 6px; }
 .bc-screenhead::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--yellow); border-radius: 6px 0 0 6px; }
 .bc-screenhead > .bc-tag { position: absolute; left: 18px; top: -16px; border-radius: 4px 4px 0 0; }
-.panel { background: var(--panel); border: 3px solid var(--line); border-radius: 10px; box-shadow: 0 4px 0 rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.04); padding: 16px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 10px 16px; border-radius: 8px;
-  border: 3px solid #0e1430; background: var(--panel-2); box-shadow: 0 3px 0 #0e1430; color: var(--text); font: inherit; font-weight: 700; cursor: pointer;
-  transition: transform .06s ease, filter .15s ease; }
-.btn:hover { filter: brightness(1.1); }
-.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0e1430; }
-.btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
-.btn.primary { background: var(--red); color: #fff; }
+.panel { background: var(--panel); border: 3px solid #0b0f24; border-radius: 10px; box-shadow: inset 0 0 0 2px #39447a; padding: 16px; }
+/* o botão do kit (src/ui/kit/kit.css): chanfrado, cor por função */
+.btn { --c: #2a86f0; --hi: #7fb6f6; --lo: #1d4f94; --ol: #071647; position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 8px 16px 11px; border-radius: 10px; border: 3px solid #0b0f24; background: linear-gradient(180deg, var(--hi) 0 44%, var(--c) 44%);
+  box-shadow: inset 0 -5px 0 var(--lo), inset 0 2px 0 rgb(255 255 255 / 55%), 0 4px 0 #0b0f24; color: #fff; font: inherit; font-weight: 700; cursor: pointer;
+  text-shadow: -1px -1px 0 var(--ol), 1px -1px 0 var(--ol), 1px 1px 0 var(--ol), -1px 1px 0 var(--ol), 0 2px 0 var(--ol);
+  transition: transform 180ms var(--ease-pop), box-shadow 180ms var(--ease-pop); }
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(3px) scale(.97); box-shadow: inset 0 -2px 0 var(--lo), 0 1px 0 #0b0f24; transition-duration: 60ms; }
+.btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.btn.primary { --c: var(--yellow); --hi: #ffe27a; --lo: #e58a03; --ol: #5a2a00; }
+.btn.confirm { --c: #42cb52; --hi: #8edd97; --lo: #236a2c; --ol: #06330d; }
+.btn.danger { --c: var(--red); --hi: #f08b89; --lo: #8a1c1a; --ol: #4a0b0a; }
+.btn.ghost { background: transparent; border: 2px solid var(--line); box-shadow: none; text-shadow: none; color: var(--text); padding-bottom: 8px; }
 .ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 
 /* partes e seções */
@@ -309,10 +315,10 @@ th { color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 1px
 </section>
 
 <section class="s" id="cor">
-  <span class="sob">2.2 · Cor</span><h3>Azul-noite domina, dourado é pouco de propósito</h3>
-  <div class="barra" role="img" aria-label="Proporção numa tela típica: fundo 70%, painel 20%, dourado 6%, vermelho 2%, tipos 2%">
+  <span class="sob">2.2 · Cor</span><h3>Azul-noite domina; a cor do botão é a função</h3>
+  <div class="barra" role="img" aria-label="Proporção numa tela típica: fundo 70%, painel 20%, dourado 6%, verde e azul 2%, vermelho 1%, tipos 1%">
     <span style="flex:70;background:var(--bg);color:var(--text)">fundo 70%</span><span style="flex:20;background:var(--panel);color:var(--text)">painel 20%</span>
-    <span style="flex:6;background:var(--yellow)">6%</span><span style="flex:2;background:var(--red)"></span><span style="flex:2;background:linear-gradient(90deg,#EE8130,#6390F0,#7AC74C)"></span>
+    <span style="flex:6;background:var(--yellow)">6%</span><span style="flex:2;background:linear-gradient(90deg,var(--green),var(--blue))"></span><span style="flex:1;background:var(--red)"></span><span style="flex:1;background:linear-gradient(90deg,#EE8130,#6390F0,#7AC74C)"></span>
   </div>
   <h4>Tokens (toque no hex pra copiar)</h4>
   <div class="grid" id="tokens"></div>
@@ -355,7 +361,7 @@ th { color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 1px
   <div class="grid dois">
     <div class="card"><div class="bc-surface bc-stripe" style="padding:12px 14px 12px 18px;--tc:#e8423f">Pallet FC <b style="float:right" class="g14">2</b></div><h4 style="margin-top:10px"><code>.bc-surface</code> + <code>.bc-stripe</code></h4><p>Faixa de 6 px na cor do time.</p></div>
     <div class="card"><div class="bc-screenhead" style="margin-top:16px"><span class="bc-tag">Menu</span><span class="g14" style="font-size:20px">Configurações</span></div><h4 style="margin-top:10px"><code>.bc-screenhead</code></h4><p>O título num placar, a etiqueta em cima.</p></div>
-    <div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary">Nova copa</button><button class="btn">Pallet FC</button></div><h4 style="margin-top:10px"><code>.btn</code></h4><p>Borda 3 px, sombra dura de 3 px, afunda no clique. O principal é vermelho.</p></div>
+    <div class="card"><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary">Jogar</button><button class="btn confirm">Comprar</button><button class="btn">Sortear</button><button class="btn danger">Abandonar</button><button class="btn ghost">Pular</button></div><h4 style="margin-top:10px"><code>.btn</code></h4><p>Chanfrado: contorno, faixa clara em cima, base escura, afunda e quica no toque. Cor por função: dourado joga, verde confirma ou compra, azul é secundário, vermelho é perigo ou fechar, terciário sem face. Base escura = dá pra tocar.</p></div>
     <div class="card"><div class="panel" style="padding:10px">Painel</div><h4 style="margin-top:10px"><code>.panel</code></h4><p>Raio 10, borda <code>--line</code>, sombra dura.</p></div>
   </div>
   <ul class="regras"><li>Raios: 4 etiqueta, 6 placar, 8 botão, 10 painel e carta.</li><li>Sombra sempre dura. O único brilho é o amarelo de seleção.</li></ul>
@@ -519,7 +525,7 @@ th { color: var(--muted); font-weight: 400; font-size: 10px; letter-spacing: 1px
 const TOKENS = [
   ['--bg', '#141a33', 'fundo de toda tela', '#f4f1e6'], ['--panel', '#232d57', 'painel', '#f4f1e6'], ['--panel-2', '#2c3868', 'botão comum', '#f4f1e6'],
   ['--line', '#4b5a9a', 'borda (não é texto)', '#f4f1e6'], ['--text', '#f4f1e6', 'texto', '#141a33'], ['--muted', '#a6aed6', 'texto de apoio', '#141a33'],
-  ['--yellow', '#ffcb05', 'destaque, etiqueta, ERMON', '#0e1430'], ['--red', '#e8423f', 'ação principal', '#ffffff'], ['--red-dark', '#b22b29', 'vermelho com texto pequeno', '#ffffff'],
+  ['--yellow', '#ffcb05', 'o JOGAR, etiqueta, seleção, ERMON', '#0e1430'], ['--red', '#e8423f', 'perigo e fechar', '#ffffff'], ['--red-dark', '#b22b29', 'vermelho com texto pequeno', '#ffffff'],
   ['--blue', '#3a7bd5', 'informação, ligado', '#ffffff'], ['--green', '#58c26b', 'vitória, salvo', '#0e1430'], ['--bc-ink', '#0e1430', 'placar, contorno do logo', '#ffcb05'],
   ['azul do 3D', '#2a4ea0', 'bloco do ERMON, sombra dura', '#f4f1e6'], ['dourado claro', '#fff3a0', 'filete do logo', '#0e1430'], ['laranja do lábio', '#ff8a1c', 'lábio do ERMON, lendário', '#0e1430'],
   ['noite', '#2a3a7a → #070a18', 'fundo de marca', '#f4f1e6'],

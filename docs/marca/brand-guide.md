@@ -100,8 +100,16 @@ desenhado: não ponha nada por cima.
 
 ### Cor
 
-Proporção numa tela típica: azul-noite domina (~70%), painéis ~20%, dourado ~6% (destaque e etiqueta), vermelho de
-ação ~2% (o botão principal), tipo e raridade ~2%. O dourado e o vermelho são pouco de propósito.
+Proporção numa tela típica: azul-noite domina (~70%), painéis ~20%, dourado ~6% (o JOGAR, etiqueta e seleção),
+verde e azul de botão ~2%, vermelho ~1% (só perigo e fechar), tipo e raridade ~1%. O dourado e o vermelho são pouco de
+propósito.
+
+**Cor por função** (desde a 0.9.22, `src/ui/kit/kit.css`): a cor do botão diz o que ele faz, e a pessoa aprende uma
+vez e lê a tela inteira. **Dourado joga** (o JOGAR, um por tela, `.btn.primary`); **verde confirma ou compra**
+(Comprar, Escolher, Seguir, `.btn.confirm`); **azul é secundário** (Sortear, Compartilhar, ir a um lugar, `.btn`);
+**vermelho é perigo ou fechar**, só dentro da confirmação (`.btn.danger`); o **terciário** não tem face (Pular,
+Cancelar, `.btn.ghost`; o gatilho de perigo é `.btn.ghost.danger`, texto vermelho). Seleção continua dourada, mas como
+**anel**, nunca como botão cheio.
 
 | Token | Hex | Uso |
 |---|---|---|
@@ -112,10 +120,10 @@ ação ~2% (o botão principal), tipo e raridade ~2%. O dourado e o vermelho sã
 | `--line` | `#4b5a9a` | borda de painel (não é texto) |
 | `--text` / `--bc-paper` | `#f4f1e6` | texto, caixa clara dos números do placar |
 | `--muted` | `#a6aed6` | texto de apoio |
-| `--yellow` | `#ffcb05` | destaque, etiqueta, seleção, ERMON |
-| `--red` / `--red-dark` | `#e8423f` / `#b22b29` | ação principal (Nova copa, Jogar) |
-| `--blue` | `#3a7bd5` | informação, ligado |
-| `--green` | `#58c26b` | vitória, salvo, ok |
+| `--yellow` | `#ffcb05` | o JOGAR (botão principal), etiqueta, anel de seleção, ERMON |
+| `--red` / `--red-dark` | `#e8423f` / `#b22b29` | perigo e fechar (Abandonar, Apagar, X), só na confirmação |
+| `--blue` | `#3a7bd5` | informação, ligado; base do botão secundário |
+| `--green` | `#58c26b` | vitória, salvo, ok; botão de confirmar e comprar |
 | `--bc-ink` | `#0e1430` | superfície do placar, contorno do logo |
 | `--bc-ink-2` / `--bc-ink-3` | `#1b2350` / `#10173a` | miolo do placar, faixas de baixo |
 | `--bc-edge` | `#000` | borda de baixo do placar |
@@ -144,7 +152,7 @@ Sombrio `#705746`, Aço `#B7B7CE`, Fada `#D685AD`. Cor de tipo é do tipo: não 
 | `#0e1430` | `#ffcb05` | 11,9 | etiqueta `.bc-tag` |
 | `#ffffff` | `#e8423f` | 4,0 | só em botão grande e negrito (≥ 18 px); texto pequeno vai em `#b22b29` (6,4) |
 | `#ffffff` | `#3a7bd5` | 4,2 | só negrito grande |
-| `#ffffff` | `#58c26b` | 2,2 | **não use**: em cima do verde vai `#0e1430` (8,0) |
+| `#ffffff` | `#58c26b` | 2,2 | **não use** texto branco solto: em cima do verde vai `#0e1430` (8,0), ou branco **com o contorno de pixel** do botão (`--k-out-1`/`--k-out-2`) |
 | `#0e1430` | `#c98a52` | 6,2 | número na carta bronze |
 | `#4b5a9a` | `#141a33` | 2,6 | só borda, nunca texto |
 
@@ -175,8 +183,17 @@ O site inteiro usa as peças da tela de partida (`src/ui/broadcast-kit.css`). Vi
 - **Cabeçalho de tela** (`.bc-screenhead`): o título num placar com a etiqueta da fase em cima.
 - **Rótulo de seção** (`.bc-lbl`), **peça com ícone** (`.bc-tile`), **abas** (`.bc-tabs`), **seletor
   segmentado** (`.bc-seg`), **barra do polegar** (`.bc-thumbbar`: a ação principal fixa embaixo no celular).
-- **Painel** (`.panel`): `--panel`, borda 3 px `--line`, raio 10 px, sombra dura `0 4px 0 rgba(0,0,0,.35)`.
-- **Botão** (`.btn`): borda 3 px `#0e1430`, sombra dura de 3 px, afunda 1 px no clique. O principal é vermelho.
+- **Painel** (`.panel`): `--panel`, moldura dupla (borda 3 px `--cb-ink` e filete de 2 px `--frame-in` por dentro),
+  raio 10 px, **chapado** (sem base: informação não é botão).
+- **Botão** (`.btn`, kit em `src/ui/kit/kit.css`, galeria `?lab=kit`): chanfrado, como o do Clash em pixel. Contorno
+  3 px `--cb-ink`, faixa clara na metade de cima, base escura de 5 px por dentro e sombra dura de 4 px; texto branco
+  com contorno de pixel (1 px no texto pequeno, 2 px no grande e no dourado). No toque afunda 3 px em 60 ms e volta
+  com quique (`--ease-pop`, 180 ms) e som; com Reduzir movimento, afunda sem quique. Desabilitado fica no lugar, sem
+  cor e sem base, e diz o porquê em `.btn-why`. A cor é a função (ver Cor).
+- **Regra de ouro: base escura embaixo = dá pra tocar.** Botão, `.bc-tile` e carta clicável têm base; painel, placar e
+  caixa de informação são chapados.
+- **Número com contorno** (`.cb-num`): Galmuri14 com o contorno de pixel de 2 px, pra ₽, x/151, nível, taças e placar.
+  Só a partir de 15 px. A nota da carta não muda (carta só pela galeria `?cards=1`).
 - Raios: 4 (etiqueta), 6 (placar), 8 (botão), 10 (painel e carta). Sombra é sempre dura (sem desfoque), exceto o
   brilho de seleção amarelo.
 

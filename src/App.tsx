@@ -47,6 +47,7 @@ const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ defau
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 const IconLab = lazy(() => import('./ui/screens/IconLab').then((m) => ({ default: m.IconLab })));
 const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ default: m.StoryLab })));
+const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
 const Ambientes = lazy(() => import('./ui/ambientes/Ambientes').then((m) => ({ default: m.Ambientes })));
 
@@ -81,13 +82,13 @@ export default function App() {
         throw new Error('Teste do aviso de erro (?demo=crash)');
     }
     // laboratórios: ?lab=golpes (animação de todos os golpes, público), ?lab=emotes (emotes do Duelo sem sala, público),
-    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes, ?lab=icones, ?lab=cenas e ?cards=1 só no dev e nas prévias (__SMOKE__), menos
+    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes, ?lab=icones, ?lab=cenas, ?lab=kit e ?cards=1 só no dev e nas prévias (__SMOKE__), menos
     // a revisão dos suspeitos de posição (?lab=posicoes&revisao=1), que o Miguel abre no celular
     const [lab, setLab] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
-        if (__SMOKE__ && (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas')) return q;
+        if (__SMOKE__ && (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas' || q === 'kit')) return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [ambientes] = useState(readAmbientes);
@@ -169,7 +170,8 @@ export default function App() {
                 lab === 'quadras' ||
                 lab === 'sala' ||
                 lab === 'icones' ||
-                lab === 'cenas' ? (
+                lab === 'cenas' ||
+                lab === 'kit' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
                             <MoveLab onExit={exit} />
@@ -183,6 +185,8 @@ export default function App() {
                             <IconLab onExit={exit} />
                         ) : lab === 'cenas' ? (
                             <StoryLab onExit={exit} />
+                        ) : lab === 'kit' ? (
+                            <KitLab onExit={exit} />
                         ) : (
                             <VersusLab onExit={exit} />
                         )}

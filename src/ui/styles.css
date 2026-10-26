@@ -108,98 +108,12 @@ img.pixel {
     display: none;
 }
 
-/* ---------- painéis e botões ---------- */
-.panel {
-    background: var(--panel);
-    border: 3px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow:
-        var(--shadow),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.04);
-    padding: 16px;
-}
-.panel h2,
-.panel h3 {
-    margin: 0 0 10px;
-    font-weight: 700;
-}
-.panel h2 {
-    font-size: 16px;
-}
-.panel h3 {
-    font-size: 14px;
-    color: var(--muted);
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 3px solid #0e1430;
-    background: var(--panel-2);
-    box-shadow: 0 3px 0 #0e1430;
-    cursor: pointer;
-    font-weight: 700;
-    transition:
-        transform 0.06s ease,
-        filter 0.15s ease;
-}
-.btn:hover {
-    filter: brightness(1.15);
-}
-.btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #0e1430;
-}
-.btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-.btn.primary {
-    background: var(--red);
-    border-color: var(--red-dark);
-    box-shadow: 0 3px 0 #6e1615;
-}
-/* Sistema de botões (docs/planos/pesquisa-layout-e-game-design.md §3): primário vermelho, um por tela; secundário de
-   contorno amarelo (ação repetida em grade e 2ª ação de fim; o amarelo cheio aposentou); comum; fantasma; perigo de
-   contorno. Desabilitado continua visível (45%) e diz o porquê em .btn-why logo embaixo. */
-.btn.outline {
-    border-color: var(--yellow);
-    color: var(--yellow);
-    box-shadow: 0 3px 0 var(--bc-ink);
-}
-.btn.outline:disabled {
-    border-color: var(--line);
-    color: var(--muted);
-}
+/* ---------- painéis e botões: src/ui/kit/kit.css ---------- */
 .btn-why {
     margin: 4px 0 0;
     font-size: 12px;
     color: var(--muted);
     text-align: center;
-}
-.btn.ghost {
-    background: transparent;
-    border-color: var(--line);
-    box-shadow: none;
-}
-/* perigo: só contorno, nunca na barra do polegar; o "Apagar" de verdade é o primário da confirmação */
-.btn.danger {
-    background: var(--panel);
-    border-color: #ff6b4c;
-    color: #ff6b4c;
-    box-shadow: none;
-}
-.btn.small {
-    padding: 6px 10px;
-    font-size: 12px;
-}
-.btn.active {
-    outline: 3px solid var(--yellow);
-    outline-offset: 1px;
 }
 /* só pro leitor de tela */
 .sr-only {
@@ -486,11 +400,6 @@ img.pixel {
     font-size: 12px;
     line-height: 1.35;
     color: var(--muted);
-}
-/* na 1ª copa ele é o primário: o rótulo inteiro numa linha, a instrução fica com o resto da barra */
-.bc-thumbbar > .draft-auto-go.primary {
-    flex: 0 0 auto;
-    white-space: nowrap;
 }
 @media (min-width: 701px) and (min-height: 521px) {
     .draft-auto.ask {
@@ -4545,10 +4454,6 @@ button,
     gap: 8px;
     margin-top: 6px;
 }
-.btn.big {
-    padding: 12px 26px;
-    font-size: 17px;
-}
 @media (max-width: 640px) {
     .rh-score {
         grid-template-columns: 1fr auto auto auto 1fr;
@@ -8099,5 +8004,27 @@ body {
     .fold-body,
     .fold-chev {
         transition: none;
+    }
+}
+
+/* ---------- draft no celular e tablet em pé: as 3 cartas na 1ª tela (revamp-ui §3.2) ----------
+   As opções sobem pra cima da quadra (a faixa das vagas continua fixa no topo) e ficam lado a lado. */
+@media (max-width: 1050px) and (orientation: portrait) {
+    .draft-grid > .draft-options {
+        order: -1;
+    }
+}
+@media (max-width: 700px) and (orientation: portrait) {
+    .draft-options .options {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .draft-options .fut-wrap,
+    .draft-options .cpack-stage {
+        --fut-w: min(170px, calc((100vw - 40px) / 3));
+    }
+    .draft-options .option-fit {
+        padding-inline: 6px;
+        font-size: 10px;
     }
 }

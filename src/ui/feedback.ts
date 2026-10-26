@@ -7,13 +7,13 @@ import { reduceMotionOn } from './settings-sync';
  * tipo de ação, com som (no volume de efeitos das Configurações) e, no Android, uma vibração curta (desligável):
  *
  * - `tap`: botão comum, aba, vaga, carta. O "select" de sempre.
- * - `go`: avançar/confirmar (o primário vermelho). Mais grave, e vibra.
+ * - `go`: jogar/avançar/confirmar (o dourado `.primary` e o verde `.confirm`). Mais grave, e vibra.
  * - `back`: voltar/cancelar/fechar (fantasma, voltar, X). Desce.
  * - `leave`: sair/abandonar/perder. Triste e descendo; com `leaveWith`, a tela desce, apaga e perde a cor.
  * - `danger`: destrutivo (apagar dados, bloquear). Grave e seco.
  *
  * Os botões não chamam som nenhum: um ouvinte só no documento (`startTapFeedback`) lê o tipo pela classe
- * (`.primary` = go, `.ghost`/voltar/fechar = back, `.danger` = danger) ou por `data-fx` (`data-fx="none"` cala, pra
+ * (`.danger` = danger, `.primary`/`.confirm` = go, `.ghost`/voltar/fechar = back) ou por `data-fx` (`data-fx="none"` cala, pra
  * quem toca o próprio som, como o `leaveWith`).
  */
 export type FeedbackKind = 'tap' | 'go' | 'back' | 'leave' | 'danger';
@@ -45,8 +45,8 @@ export function feedback(kind: FeedbackKind) {
 export function kindOf(el: Element): FeedbackKind | null {
     const fx = el.getAttribute('data-fx');
     if (fx) return fx === 'none' ? null : (fx as FeedbackKind);
-    if (el.matches('.primary')) return 'go';
     if (el.matches('.danger')) return 'danger';
+    if (el.matches('.primary, .confirm')) return 'go';
     if (el.matches('.ghost, .back-btn, .modal-close, .tip-close')) return 'back';
     return 'tap';
 }

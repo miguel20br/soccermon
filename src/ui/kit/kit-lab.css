@@ -1,0 +1,87 @@
+/* galeria do kit (?lab=kit) */
+.kl {
+    display: grid;
+    gap: 16px;
+    max-width: 880px;
+    margin: 0 auto;
+    width: 100%;
+}
+.kl-head {
+    justify-content: space-between;
+}
+.kl-play {
+    width: 100%;
+    max-width: 420px;
+    min-height: 80px;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    margin: 4px auto 10px;
+    border-radius: 14px;
+}
+.kl-play-verb {
+    --ol: #3d1c00;
+    font-size: 34px;
+    line-height: 1;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.kl-roles {
+    display: grid;
+    gap: 14px;
+}
+.kl-role {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 220px);
+    align-items: center;
+    gap: 12px;
+}
+.kl-role p {
+    margin: 0;
+    font-size: 12px;
+}
+.kl-btns,
+.kl-pick {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.kl-states,
+.kl-nums,
+.kl-base {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    align-items: start;
+    gap: 16px;
+}
+.kl figure {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    margin: 0;
+}
+.kl figcaption {
+    font-size: 12px;
+    color: var(--muted);
+}
+.kl-info {
+    display: grid;
+    gap: 4px;
+}
+.kl-of {
+    font-size: 0.55em;
+    color: var(--muted);
+}
+.kl-topbar {
+    display: flex;
+    padding: 12px 12px 14px 22px;
+    border-radius: 8px;
+    background: var(--bg);
+}
+@media (max-width: 560px) {
+    .kl-role {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}

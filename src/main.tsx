@@ -17,6 +17,7 @@ import { startTabSlide } from './ui/tab-slide';
 import { startScreenTransitions } from './ui/view-transition';
 import './ui/styles.css';
 import './ui/broadcast-kit.css';
+import './ui/kit/kit.css';
 
 // erros fora do React (eventos, timers, promessas): só registra no console com prefixo claro, sem esconder nada
 window.addEventListener('error', (e) => {

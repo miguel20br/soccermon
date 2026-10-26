@@ -194,7 +194,7 @@ export function Prancheta({
                         <div className="pr-actions">
                             <button
                                 type="button"
-                                className="btn small primary"
+                                className="btn small confirm"
                                 disabled={!canEdit}
                                 onClick={() => {
                                     setPick(null);

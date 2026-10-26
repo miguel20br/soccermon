@@ -1,0 +1,318 @@
+/*
+ * Kit do jogo (0.9.22, docs/planos/revamp-ui.md §2): o botão chanfrado, o painel de moldura dupla e o número com
+ * contorno, iguais em todas as telas. Nasceu nos ambientes (0.9.21) e virou global. Galeria: ?lab=kit.
+ *
+ * Cor por função (uma cor = um papel, aprende uma vez e lê a tela inteira):
+ *   dourado  .btn.primary  / .cb-gold   joga (o JOGAR, um por tela)
+ *   verde    .btn.confirm  / .cb-green  confirma, compra, segue, escolhe
+ *   azul     .btn          / .cb-blue   secundário (ir a um lugar, sortear, compartilhar); .outline é o mesmo
+ *   vermelho .btn.danger   / .cb-red    perigo e fechar, só dentro da confirmação
+ *   terciário .btn.ghost                pular, cancelar, voltar (sem face); .ghost.danger = gatilho do perigo
+ *
+ * Regra de ouro: base escura embaixo = dá pra tocar. Painel só de informação é chapado (moldura sem base).
+ */
+:root {
+    --cb-ink: #0b0f24;
+    --frame-in: #39447a;
+    --gold-hi: color-mix(in srgb, var(--yellow), #fff 42%);
+    --gold-lo: color-mix(in srgb, var(--yellow), #d24a00 52%);
+    --gold-ol: #5a2a00;
+    --blue-c: color-mix(in oklch, var(--blue), #1e8bff 55%);
+    --blue-hi: color-mix(in srgb, var(--blue-c), #fff 38%);
+    --blue-lo: color-mix(in srgb, var(--blue-c), #06154a 45%);
+    --green-c: color-mix(in oklch, var(--green), #2bd43a 50%);
+    --green-hi: color-mix(in srgb, var(--green-c), #fff 40%);
+    --green-lo: color-mix(in srgb, var(--green-c), #063a10 50%);
+    --red-hi: color-mix(in srgb, var(--red), #fff 36%);
+    --red-lo: #8a1c1a;
+    /* sombra sempre dura: plaquinha e chip / botão e cartão / telão e sheet */
+    --lift-1: 0 3px 0 var(--cb-ink);
+    --lift-2: 0 5px 0 var(--cb-ink);
+    --lift-3: 0 7px 0 3px var(--cb-ink);
+    /* tempos (ADR 0004): afundar, quique de volta, abas e seleção, troca de tela, entrada com pulo */
+    --dur-toque: 60ms;
+    --dur-solta: 180ms;
+    --dur-ui: 200ms;
+    --dur-tela: 280ms;
+    --dur-pop: 320ms;
+    /* contorno de pixel do texto "de jogo" (8 direções, sem desfoque); --ol muda a cor por botão */
+    --k-out-1:
+        -1px -1px 0 var(--ol, var(--cb-ink)), 1px -1px 0 var(--ol, var(--cb-ink)), 1px 1px 0 var(--ol, var(--cb-ink)),
+        -1px 1px 0 var(--ol, var(--cb-ink)), 0 2px 0 var(--ol, var(--cb-ink));
+    --k-out-2:
+        -2px -2px 0 var(--ol, var(--cb-ink)), 0 -2px 0 var(--ol, var(--cb-ink)), 2px -2px 0 var(--ol, var(--cb-ink)),
+        2px 0 0 var(--ol, var(--cb-ink)), 2px 2px 0 var(--ol, var(--cb-ink)), 0 2px 0 var(--ol, var(--cb-ink)),
+        -2px 2px 0 var(--ol, var(--cb-ink)), -2px 0 0 var(--ol, var(--cb-ink)), 0 4px 0 var(--ol, var(--cb-ink));
+}
+
+/* ---------- painel: moldura dupla, chapado (informação não tem base) ---------- */
+.panel {
+    background: var(--panel);
+    border: 3px solid var(--cb-ink);
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 2px var(--frame-in);
+    padding: 16px;
+}
+.panel h2,
+.panel h3 {
+    margin: 0 0 10px;
+    font-weight: 700;
+}
+.panel h2 {
+    font-size: 16px;
+}
+.panel h3 {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+/* ---------- número com contorno (₽, x/151, nível, taças): Galmuri14, só de 15 px pra cima ---------- */
+.cb-num {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    color: #fff;
+    text-shadow: var(--k-out-2);
+}
+
+/* ---------- o botão ---------- */
+.btn,
+.cb {
+    --c: var(--blue-c);
+    --hi: var(--blue-hi);
+    --lo: var(--blue-lo);
+    --ol: #071647;
+    --base: 5px;
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px calc(6px + var(--base));
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--hi) 0 44%, var(--c) 44% 100%);
+    box-shadow:
+        inset 0 calc(-1 * var(--base)) 0 var(--lo),
+        inset 0 2px 0 rgb(255 255 255 / 55%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    font-weight: 700;
+    text-shadow: var(--k-out-1);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    transition:
+        transform var(--dur-solta) var(--ease-pop),
+        box-shadow var(--dur-solta) var(--ease-pop),
+        filter 150ms var(--ease-out);
+}
+.btn .hud-icon,
+.cb .hud-icon {
+    filter: drop-shadow(1px 0 0 var(--ol)) drop-shadow(-1px 0 0 var(--ol)) drop-shadow(0 1px 0 var(--ol))
+        drop-shadow(0 -1px 0 var(--ol));
+}
+/* texto grande: contorno grosso de 2 px (o do Clash) */
+.btn.big,
+.cb {
+    text-shadow: var(--k-out-2);
+}
+.btn.big .hud-icon,
+.cb .hud-icon {
+    filter: drop-shadow(2px 0 0 var(--ol)) drop-shadow(-2px 0 0 var(--ol)) drop-shadow(0 2px 0 var(--ol))
+        drop-shadow(0 -2px 0 var(--ol));
+}
+.cb {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+.btn small,
+.cb small {
+    font-family: "Galmuri11", monospace;
+    color: #fff;
+    text-shadow: var(--k-out-1);
+}
+.btn.small {
+    --base: 4px;
+    padding: 5px 10px calc(4px + var(--base));
+    border-radius: 8px;
+    font-size: 12px;
+}
+.btn.big {
+    padding: 10px 26px calc(8px + var(--base));
+    font-size: 17px;
+}
+@media (hover: hover) {
+    .btn:hover:not(:disabled),
+    .cb:hover:not(:disabled) {
+        filter: brightness(1.08) saturate(1.1);
+    }
+}
+/* afunda ao tocar (60 ms) e quica ao soltar (a volta usa o --ease-pop, que passa do ponto) */
+.btn:active:not(:disabled),
+.cb:active:not(:disabled) {
+    transform: translateY(3px) scale(0.97);
+    box-shadow:
+        inset 0 -2px 0 var(--lo),
+        inset 0 2px 0 rgb(255 255 255 / 55%),
+        0 1px 0 var(--cb-ink);
+    transition-duration: var(--dur-toque);
+}
+.btn:focus-visible,
+.cb:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+/* selecionado: anel dourado por fora (o dourado cheio é só do JOGAR) */
+.btn.active {
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+}
+
+/* dourado: o JOGAR (texto branco com contorno marrom, as cores do ERMON do logo) */
+.btn.primary,
+.cb-gold {
+    --c: var(--yellow);
+    --hi: var(--gold-hi);
+    --lo: var(--gold-lo);
+    --ol: var(--gold-ol);
+}
+.btn.primary {
+    text-shadow: var(--k-out-2);
+}
+.btn.primary.small {
+    text-shadow: var(--k-out-1);
+}
+/* verde: confirmar, comprar, seguir, escolher */
+.btn.confirm,
+.cb-green {
+    --c: var(--green-c);
+    --hi: var(--green-hi);
+    --lo: var(--green-lo);
+    --ol: #06330d;
+}
+/* azul: o padrão; .outline (o secundário de antes) e .cb-blue dão no mesmo */
+.cb-blue {
+    --c: var(--blue-c);
+    --hi: var(--blue-hi);
+    --lo: var(--blue-lo);
+    --ol: #071647;
+}
+/* vermelho: perigo e fechar, dentro da confirmação */
+.btn.danger,
+.cb-red {
+    --c: var(--red);
+    --hi: var(--red-hi);
+    --lo: var(--red-lo);
+    --ol: #4a0b0a;
+}
+/* terciário: sem face e sem base; o toque ainda afunda */
+.btn.ghost {
+    background: transparent;
+    border: 2px solid var(--line);
+    box-shadow: none;
+    padding-bottom: 8px;
+    color: var(--text);
+    text-shadow: none;
+}
+.btn.ghost.small {
+    padding-bottom: 5px;
+}
+.btn.ghost .hud-icon {
+    filter: none;
+}
+.btn.ghost:active:not(:disabled) {
+    box-shadow: none;
+    transform: scale(0.97);
+}
+/* gatilho de perigo (Apagar, Abandonar): terciário com texto vermelho; o vermelho cheio fica na confirmação */
+.btn.ghost.danger {
+    border-color: #ff6b4c;
+    color: #ff6b4c;
+}
+/* desabilitado: continua no lugar, sem cor e sem base (não dá pra tocar); diz o porquê em .btn-why */
+.btn:disabled,
+.cb:disabled {
+    --c: var(--panel-2);
+    --hi: var(--panel-2);
+    --lo: var(--panel-2);
+    box-shadow: none;
+    color: var(--muted);
+    text-shadow: none;
+    cursor: not-allowed;
+}
+.btn:disabled .hud-icon,
+.cb:disabled .hud-icon {
+    filter: none;
+}
+.cb:disabled .cb-shine,
+.btn:disabled .cb-shine {
+    display: none;
+}
+.btn:disabled small,
+.cb:disabled small {
+    color: var(--muted);
+    text-shadow: none;
+}
+.btn.ghost:disabled {
+    background: transparent;
+    opacity: 0.55;
+}
+
+/* o brilho que passa pelo botão dourado a cada 4 s (só no principal) */
+.cb-shine {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: 7px;
+    pointer-events: none;
+}
+.cb-shine::before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    width: 22%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 70%) 40% 60%, transparent);
+    transform: translateX(-160%) skewX(-22deg);
+    animation: cb-shine 4s var(--ease-out) 1.2s infinite;
+}
+@keyframes cb-shine {
+    0% {
+        transform: translateX(-160%) skewX(-22deg);
+    }
+    22%,
+    100% {
+        transform: translateX(560%) skewX(-22deg);
+    }
+}
+
+/* peças clicáveis do kit da transmissão também quicam */
+.bc-tile {
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.bc-tile:active:not(:disabled) {
+    transform: translateY(2px) scale(0.98);
+    transition-duration: var(--dur-toque);
+}
+
+/* reduzir movimento: afunda sem quique e sem brilho */
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) :is(.btn, .cb, .bc-tile) {
+        transition-timing-function: var(--ease-out);
+    }
+    :root:not([data-reduce-motion="false"]) :is(.btn, .cb, .bc-tile):active:not(:disabled) {
+        transform: translateY(2px);
+    }
+    :root:not([data-reduce-motion="false"]) .cb-shine::before {
+        animation: none;
+        display: none;
+    }
+}
+:root[data-reduce-motion="true"] :is(.btn, .cb, .bc-tile):active:not(:disabled) {
+    transform: translateY(2px);
+}
+:root[data-reduce-motion="true"] .cb-shine::before {
+    display: none;
+}
