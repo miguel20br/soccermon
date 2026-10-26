@@ -3753,6 +3753,18 @@
     .res-me-txt b {
         font-size: 13px;
     }
+    /* o x/151 e o nível disputam lugar com o nome: placas mais justas */
+    .res-chip {
+        margin-left: 10px;
+        padding-right: 5px;
+    }
+    .res-of {
+        margin-left: -4px;
+        font-size: 10px;
+    }
+    .res-xp {
+        min-width: 44px;
+    }
 }
 /* celular estreito: o treinador vira só o avatar */
 @media (max-width: 359px) {
