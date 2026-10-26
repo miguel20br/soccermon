@@ -12,3 +12,4 @@
 - [Postar pelo Chrome](reference-postar-pelo-chrome.md) — conta pessoal + perfil Miguel, /add-dir dos vídeos, aba nova por rede, pegadinhas de IG/TikTok/YT
 - [Modo mochila](feedback-modo-mochila.md) — Claude pode desligar sozinho; on [horas]|off|status
 - [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)
+- [QA dos ambientes e conceitos](feedback-qa-ambientes-e-conceitos.md) — antes do pode subir: tocar nos Pokémon dos 5 ambientes, olhar sobreposição 390/1440; mostrar conceitos que já existem na pasta
