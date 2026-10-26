@@ -24,10 +24,10 @@ viraram prévias pra escolher: `revamp-ui/partida-variantes.jpg` e `revamp-ui/dr
 | # | Tela | Problema visto | Proposta | Recomendo |
 |---|---|---|---|---|
 | 1 | Resultado, Recompensa, Mercado | A fase aparece 2 a 3 vezes: barra da copa, etiqueta amarela ("VITÓRIA! PRÓXIMA FASE: QUARTAS") e frase ("Oitavas de final vencidas") | A barra da copa vira o único lugar da fase; sai a etiqueta repetida e a frase | sim |
-| 2 | Mercado | "₽8" grande no título e de novo na barra da copa | Fica só na barra da copa (que conta moeda por moeda quando ganha) | sim |
+| 2 | Mercado | "₽8" grande no título e de novo na barra da copa | Fica só na barra da copa | sim |
 | 3 | Draft | A mesma instrução 3 a 4 vezes: título, linha cinza embaixo dele, dica amarela e a barra de baixo | Fica o título e a frase da barra de baixo (perto do dedo); saem a linha cinza e a dica amarela | sim |
 | 4 | Recompensa | Tela quase vazia com o pacote fechado: 1 toque a mais só pra abrir | O pacote abre sozinho ao entrar (a animação continua; um toque pula) | sim |
-| 5 | Recompensa | "Escolha uma recompensa" no título e de novo na barra de baixo; "Sortear de novo" em cima e "Pular (+1 sorteio)" embaixo | Os dois botões juntos na barra de baixo (Sortear à esquerda, Pular à direita); sai a frase repetida | sim |
+| 5 | Recompensa | "Escolha uma recompensa" no título e de novo na barra de baixo; "Sortear de novo" em cima e "Pular (+1 sorteio)" embaixo | Os dois botões juntos na barra de baixo (Pular à esquerda, discreto; Sortear à direita); sai a frase repetida | sim |
 | 6 | Resultado | Conquistas novas (treinador liberado, título) só aparecem depois de rolar | Uma faixa "NOVO: Treinador Brock · Título Hat-trick" logo abaixo do placar | sim |
 | 7 | Fim de jogo | "Ver resultado · 3 s" vai sozinho e pode tirar o jogador antes de ver o placar final | Tirar o automático: o botão espera o toque (o "Ficar aqui" some) | sim |
 | 8 | Mercado | 2 telas de rolagem; os patrocínios (2 cartas grandes + 3 vagas) ocupam metade | Patrocínios viram uma linha "Patrocínios 0 de 3 ›" que abre numa sheet; as contratações sobem | sim |
