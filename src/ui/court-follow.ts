@@ -13,7 +13,7 @@ export function followOffset(ballX: number, view: number, full: number): number 
     return Math.min(0, Math.max(view - full, view / 2 - ballX));
 }
 
-/** Quanto a troca seguir ⇄ quadra inteira fica apagada (o Phaser reencaixa o canvas no meio). */
+/** Quanto a troca entre seguir a bola e a quadra inteira fica apagada (o Phaser reencaixa o canvas no meio). */
 const SWAP_MS = 180;
 
 /**
