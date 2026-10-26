@@ -94,8 +94,10 @@ export const home = {
         labTalk: 'Faltam {n} pra completar a Pokédex de Kanto. Quem aparece no draft ou no time rival já conta.',
         labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
-        /** Placa do Duelo na beira da quadra do Estádio (leva pra Arena). */
+        /** O Duelo no seletor de modos do Estádio. */
         signDuel: 'Com amigos',
+        /** Gatilho do seletor de modos, ao lado do JOGAR do Estádio. */
+        modes: 'Modos',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',

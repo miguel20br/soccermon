@@ -5,16 +5,16 @@ import { useT } from '../../i18n/react';
 import { isFirstVisit } from '../../store/coach';
 import { dailyDay, dailyStreak } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
+import type { CupMode } from '../../store/long-cup';
 import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
-import { HudIcon } from '../components/MatchHud';
+import { cupStep } from '../components/AccountLink';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { FriendChallenge } from '../profile/FriendsTab';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
-import { ResumeCard } from '../screens/Home';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import type { Tab } from './nav';
+import { type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
@@ -157,17 +157,31 @@ function Court({
     );
 }
 
+/** A Copa do Dia de hoje: o que o botão diz (jogar, continuar ou ver o resultado) e pra onde leva. */
+function useDaily() {
+    const { t } = useT();
+    const daily = useGame((s) => s.daily);
+    const go = useGame((s) => s.go);
+    useGame((s) => s.run?.status);
+    const entry = daily.find((e) => e.day === dailyDay());
+    const playing = dailyInPlay();
+    const { begin, busy } = useDailyBegin();
+    const done = !!entry && !playing;
+    return {
+        busy,
+        done,
+        label: playing ? t('liga.home.dailyContinue') : entry ? t('liga.home.dailyDone') : t('liga.home.dailyPlay'),
+        go: () => (done ? go('daily') : void begin()),
+    };
+}
+
 /** O placar eletrônico pendurado no teto: a Copa do Dia e os dias da semana acesos. */
 function Board() {
     const { t, lang } = useT();
     const daily = useGame((s) => s.daily);
-    const go = useGame((s) => s.go);
-    useGame((s) => s.run?.status);
     const today = dailyDay();
-    const entry = daily.find((e) => e.day === today);
     const streak = dailyStreak(daily, today);
-    const playing = dailyInPlay();
-    const { begin, busy } = useDailyBegin();
+    const d = useDaily();
     const days = dict(lang).liga.daily.weekDays;
     return (
         <section className="es-board" aria-label={t('liga.home.dailyTag')}>
@@ -185,15 +199,11 @@ function Board() {
                 </ol>
                 <button
                     type="button"
-                    className={`btn small es-board-go${entry && !playing ? ' ghost' : ''}`}
-                    disabled={busy}
-                    onClick={() => (entry && !playing ? go('daily') : void begin())}
+                    className={`btn small es-board-go${d.done ? ' ghost' : ''}`}
+                    disabled={d.busy}
+                    onClick={d.go}
                 >
-                    {playing
-                        ? t('liga.home.dailyContinue')
-                        : entry
-                          ? t('liga.home.dailyDone')
-                          : t('liga.home.dailyPlay')}
+                    {d.label}
                 </button>
             </div>
         </section>
@@ -208,7 +218,7 @@ const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
  * letreiro (o dorminhoco não deita em cima) e o capitão (ninguém entra no sprite dele).
  */
 const STADIUM: Blockers = {
-    ui: '.es-ui > :not(.es-signs), .es-sign, .es-wall, .es-lintel, .es-lamp',
+    ui: '.es-ui > *, .es-wall, .es-lintel, .es-lamp',
     props: '.es-banner, .es-led, .es-captain .fs-sprite',
 };
 const SCARE: Record<string, Pt[]> = {
@@ -277,47 +287,20 @@ function useLook(active: boolean): number {
 }
 
 /**
- * As placas na beira da quadra: os outros modos à vista (Rota Índigo e Duelo); tocar leva pro lugar deles.
- */
-function Signs({ goTab }: { goTab: (tab: Tab) => void }) {
-    const { t } = useT();
-    return (
-        <div className="es-signs">
-            <button type="button" className="es-sign rota" onClick={() => goTab('rota')}>
-                <span className="es-sign-ic">
-                    <HudIcon kind="map" />
-                </span>
-                <b>{t('home.longCup.title')}</b>
-                <small>{t('home.longCup.tag')}</small>
-            </button>
-            <button type="button" className="es-sign duel" onClick={() => goTab('arena')}>
-                <span className="es-sign-ic">
-                    <HudIcon kind="friends" />
-                </span>
-                <b>{t('duel.title')}</b>
-                <small>{t('home.amb.signDuel')}</small>
-            </button>
-        </div>
-    );
-}
-
-/**
  * Estádio (centro, a entrada e a vitrine do jogo): visto da boca do túnel, com a torcida na cor do clube, os
- * refletores e o letreiro de LED. Em cima, o logo e o placar da Copa do Dia (na 1ª visita, a frase); na beira da
- * quadra, as placas da Rota e do Duelo; embaixo, a copa em andamento (se tiver) e o JOGAR da Copa Relâmpago.
+ * refletores e o letreiro de LED. Em cima, o logo e o placar da Copa do Dia (na 1ª visita, a frase); embaixo, o
+ * JOGAR (copa em andamento, desafio ou Copa Relâmpago) e o seletor dos outros modos.
  */
 export function Estadio({
     active,
     enter,
     wild,
     entering,
-    goTab,
 }: {
     active: boolean;
     enter: (action: () => void) => void;
     wild: Wild[];
     entering: boolean;
-    goTab: (tab: Tab) => void;
 }) {
     const { t } = useT();
     const clock = useSceneClock(active);
@@ -340,20 +323,71 @@ export function Estadio({
     const firstVisit = useGame(isFirstVisit);
     // link de desafio (?seed=): o mesmo draft do amigo vira o botão principal
     const [challenge] = useState(seedFromUrl);
-    /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação (`null` = copa sem seed). */
-    const [confirm, setConfirm] = useState<string | null | undefined>(undefined);
+    /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
+    const [confirm, setConfirm] = useState<{ seed?: string; mode?: CupMode }>();
+    const [open, setOpen] = useState(false);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
     const captain =
         (inProgress && (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0])?.speciesId) ||
         (avatar.kind === 'pokemon' ? avatar.speciesId : 25);
-    const play = (seed: string | null = null) => {
-        if (inProgress && confirm === undefined) {
-            setConfirm(seed);
+    const play = (seed?: string, mode?: CupMode) => {
+        if (inProgress && !confirm) {
+            setConfirm({ seed, mode });
             return;
         }
         markSeen(['intro']);
-        enter(() => newRun(clubName, seed ?? undefined));
+        enter(() => newRun(clubName, seed, undefined, mode));
     };
+    const daily = useDaily();
+    const step = run && `${run.teamName} · ${cupStep({ ...run, played: run.results.length })}`;
+    const modes: Record<ModeId, Omit<Mode, 'id'>> = {
+        continue: {
+            title: t('home.resume'),
+            sub: step || '',
+            icon: 'play',
+            go: () => run && go(resumeScreenOf(run.status)),
+        },
+        challenge: {
+            title: t('home.challenge', { seed: challenge ?? '' }),
+            sub: t('home.playTag'),
+            icon: 'addFriend',
+            go: () => play(challenge ?? undefined),
+        },
+        quick: {
+            title: t('home.quickCup.title'),
+            sub: inProgress ? `${t('home.newCup')} · ${t('home.quickCup.tag')}` : t('home.quickCup.tag'),
+            icon: 'stopwatch',
+            go: () => play(),
+        },
+        long: {
+            title: t('home.longCup.title'),
+            sub: t('home.longCup.tag'),
+            icon: 'map',
+            go: () => play(undefined, 'longa'),
+        },
+        daily: { title: t('liga.home.dailyTag'), sub: daily.label, icon: 'cup', busy: daily.busy, go: daily.go },
+        duel: { title: t('duel.title'), sub: t('home.amb.signDuel'), icon: 'friends', go: () => go('duel') },
+    };
+    const mode = (id: ModeId): Mode => ({ id, ...modes[id] });
+    const plan = playModes({ inProgress, challenge, firstVisit });
+    // o JOGAR fala o que faz: "Jogar · Copa Relâmpago", "Continuar · Pallet FC · Quartas"
+    const main =
+        plan.main === 'quick' ? { ...mode('quick'), title: t('home.play'), sub: t('home.playTag') } : mode(plan.main);
+    // o seletor fecha ao sair da aba, com Esc ou com um toque fora dele
+    useEffect(() => {
+        if (!open || !active) {
+            setOpen(false);
+            return;
+        }
+        const out = (e: PointerEvent) => !(e.target as Element).closest?.('.es-go') && setOpen(false);
+        const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+        document.addEventListener('pointerdown', out);
+        document.addEventListener('keydown', esc);
+        return () => {
+            document.removeEventListener('pointerdown', out);
+            document.removeEventListener('keydown', esc);
+        };
+    }, [open, active]);
     const look = useLook(active);
     const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
     const vars = {
@@ -422,17 +456,19 @@ export function Estadio({
                         <Board />
                     )}
                 </div>
-                <Signs goTab={goTab} />
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
-                    {inProgress && <ResumeCard run={run} onClick={() => go(resumeScreenOf(run.status))} />}
                     <ParkedRuns />
-                    {confirm !== undefined ? (
+                    {confirm ? (
                         <div className="confirm-new es-confirm bc-surface">
                             <p>{t('home.confirmNew', { team: run?.teamName ?? '' })}</p>
                             <div className="row" style={{ justifyContent: 'center' }}>
-                                <button type="button" className="btn primary" onClick={() => play(confirm)}>
+                                <button
+                                    type="button"
+                                    className="btn primary"
+                                    onClick={() => play(confirm.seed, confirm.mode)}
+                                >
                                     {t('home.confirmYes')}
                                 </button>
                                 <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
@@ -441,33 +477,7 @@ export function Estadio({
                             </div>
                         </div>
                     ) : (
-                        <>
-                            {challenge && (
-                                <button
-                                    type="button"
-                                    className={`btn big cup-go es-play ${inProgress ? 'outline' : 'primary'}`}
-                                    onClick={() => play(challenge)}
-                                >
-                                    <span className="cup-go-txt">
-                                        <b>{t('home.challenge', { seed: challenge })}</b>
-                                        <small>{t('home.playTag')}</small>
-                                    </span>
-                                    <HudIcon kind="next" />
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                data-coach="quick"
-                                className={`btn big cup-go es-play ${inProgress || challenge ? 'outline' : 'primary'}`}
-                                onClick={() => play()}
-                            >
-                                <span className="cup-go-txt">
-                                    <b>{inProgress ? t('home.newCup') : t('home.play')}</b>
-                                    <small>{t('home.playTag')}</small>
-                                </span>
-                                <HudIcon kind="next" />
-                            </button>
-                        </>
+                        <PlayBar main={main} sheet={plan.sheet.map(mode)} open={open} onOpen={setOpen} />
                     )}
                 </div>
             </div>

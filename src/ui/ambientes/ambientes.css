@@ -951,29 +951,6 @@
 .es-confirm {
     padding: 14px;
 }
-/* a copa em andamento no Estádio: compacta, o botão ao lado (o elenco já está na quadra) */
-.es-actions .resume-card {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 10px 10px 10px 16px;
-}
-.es-actions .resume-card .rc-go {
-    grid-column: 2;
-    grid-row: 1 / span 4;
-    margin: 0;
-}
-.es-actions .rc-squad {
-    display: none;
-}
-.es-actions .rc-team {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 18px;
-}
-.es-actions .rc-path i {
-    width: 18px;
-}
-
 /* deitado: telão e botões numa coluna à esquerda; o capitão e as placas à direita, à vista */
 @media (orientation: landscape) and (max-height: 520px) {
     .es-ui {
@@ -1002,21 +979,6 @@
         grid-column: 1;
         grid-row: 3;
     }
-    .es-signs {
-        grid-column: 2;
-        grid-row: 3;
-        justify-self: end;
-        width: min(400px, 100%);
-        margin: 0;
-        padding-bottom: 12px;
-    }
-    .es-sign {
-        min-height: 44px;
-        padding-block: 5px 6px;
-    }
-    .es-sign small {
-        display: none;
-    }
     .es-captain {
         left: 72%;
         top: min(max(12.5cqw, 30cqh), 62cqh);
@@ -1026,11 +988,6 @@
     }
     .es-actions {
         width: 100%;
-    }
-    .es-actions .rc-path,
-    .es-actions .rc-step,
-    .es-play .cup-go-txt small {
-        display: none;
     }
     .es-board-title {
         font-size: 14px;
@@ -2426,108 +2383,6 @@
     }
 }
 
-/* as placas na beira da quadra: Rota Índigo e Duelo, de pé (duas pernas), cada uma com a cor do seu lugar */
-.es-signs {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    width: min(560px, 100%);
-    margin-top: auto;
-    padding-bottom: 12px;
-}
-/* a fileira deixa o toque passar entre as placas (os Pokémon da beira ficam ali) */
-.es-ui > .es-signs {
-    pointer-events: none;
-}
-.es-ui .es-sign {
-    pointer-events: auto;
-}
-.es-sign {
-    --sign: var(--green);
-    position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 8px;
-    width: min(47%, 210px);
-    min-height: 52px;
-    padding: 7px 10px 8px 8px;
-    font: inherit;
-    text-align: left;
-    color: var(--text);
-    background: var(--bc-ink);
-    border: 3px solid var(--bc-edge);
-    border-top: 5px solid var(--sign);
-    border-radius: 6px;
-    box-shadow: 0 4px 0 var(--bc-edge);
-    cursor: pointer;
-    transition: transform 200ms var(--ease-out);
-}
-.es-sign.duel {
-    --sign: var(--blue);
-}
-/* as pernas da placa */
-.es-sign::before,
-.es-sign::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    width: 5px;
-    height: 12px;
-    background: #0b1026;
-    border-inline: 1px solid #000;
-}
-.es-sign::before {
-    left: 22%;
-}
-.es-sign::after {
-    right: 22%;
-}
-.es-sign:hover,
-.es-sign:focus-visible {
-    transform: translateY(-3px);
-}
-.es-sign:active {
-    transform: translateY(1px);
-}
-.es-sign:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 2px;
-}
-.es-sign-ic {
-    grid-row: span 2;
-    display: grid;
-    place-items: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    background: var(--sign);
-    color: var(--bc-ink);
-}
-.es-sign.duel .es-sign-ic {
-    color: #fff;
-}
-.es-sign-ic .hud-icon {
-    width: 20px;
-    height: 20px;
-}
-.es-sign b {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
-    line-height: 1.15;
-}
-.es-sign small {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 12px;
-    color: var(--muted);
-}
 /* celular baixo em pé (320x568): telão e copa em andamento mais compactos, pra sobrar quadra pro capitão */
 @media (orientation: portrait) and (max-height: 640px) {
     .es-top {
@@ -2540,36 +2395,241 @@
     .es-top .es-board {
         padding-top: 6px;
     }
-    .es-actions .rc-path {
-        display: none;
+}
+/* o rodapé do Estádio (padrão Clash): o JOGAR grande com o modo escrito e, ao lado, o gatilho "Modos" */
+.es-go {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.es-go.has-modes {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.es-play .cup-go-txt {
+    min-width: 0;
+}
+/* o modo no JOGAR em até 2 linhas ("Pallet FC · Draft · escolha 1 de 7" não cabe numa no celular) */
+.es-play .cup-go-txt small {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.2;
+}
+.es-modes-btn {
+    flex-direction: column;
+    gap: 2px;
+    min-width: 72px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+.es-modes-btn .hud-icon {
+    width: 22px;
+    height: 22px;
+    transition: transform 250ms var(--ease-out);
+}
+.es-modes-btn.open {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.es-modes-btn.open .hud-icon {
+    transform: rotate(180deg);
+}
+.es-modes-btn:focus-visible,
+.es-mode:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* os modos: sobem de trás do JOGAR (250 ms), todos do mesmo tamanho e com cara de botão */
+.es-modes {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 10px);
+    z-index: 3;
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    box-shadow: 0 5px 0 var(--bc-edge);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out),
+        visibility 0s linear 250ms;
+}
+.es-modes.open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.es-mode {
+    --mode: var(--yellow);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 10px;
+    min-height: 54px;
+    padding: 6px 12px 6px 8px;
+    font: inherit;
+    text-align: left;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 3px solid #0e1430;
+    border-left: 6px solid var(--mode);
+    border-radius: 6px;
+    box-shadow: 0 3px 0 #0e1430;
+    cursor: pointer;
+    transition:
+        transform 200ms var(--ease-out),
+        filter 200ms var(--ease-out);
+}
+.es-mode::after {
+    content: "";
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    width: 8px;
+    height: 8px;
+    border-top: 3px solid var(--muted);
+    border-right: 3px solid var(--muted);
+    transform: rotate(45deg);
+}
+.es-mode:hover {
+    filter: brightness(1.15);
+}
+.es-mode:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #0e1430;
+}
+.es-mode:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.es-mode.m-quick {
+    --mode: var(--red);
+}
+.es-mode.m-long {
+    --mode: var(--green);
+}
+.es-mode.m-duel {
+    --mode: var(--blue);
+}
+.es-mode-ic {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: var(--mode);
+    color: var(--bc-ink);
+}
+.es-mode.m-quick .es-mode-ic,
+.es-mode.m-duel .es-mode-ic {
+    color: #fff;
+}
+.es-mode-ic .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.es-mode b,
+.es-mode small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.es-mode b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    line-height: 1.15;
+}
+.es-mode small {
+    font-size: 12px;
+    color: var(--muted);
+}
+/* celular baixo: modos mais baixos, pra caber os 6 acima do JOGAR */
+@media (max-height: 640px) {
+    .es-modes {
+        gap: 6px;
+        padding: 8px;
+    }
+    .es-mode {
+        min-height: 44px;
+        padding-block: 4px;
+    }
+    .es-mode-ic {
+        width: 28px;
+        height: 28px;
     }
 }
-/* celular estreito ou baixo em pé: a placa só com o nome */
-@media (max-width: 359px), (orientation: portrait) and (max-height: 640px) {
-    .es-sign {
-        min-height: 44px;
-        padding-block: 5px 6px;
+/* deitado: os modos em duas colunas, da largura da tela (a coluna da esquerda é estreita) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-ui {
+        container-type: inline-size;
     }
-    .es-sign small {
-        display: none;
+    .es-modes {
+        right: auto;
+        width: min(560px, 100cqw);
+        grid-template-columns: 1fr 1fr;
     }
-    .es-sign {
-        column-gap: 6px;
-        padding-inline: 6px;
+    /* tela baixa: só o nome (com a legenda, o seletor passava por baixo da ajuda e do perfil) */
+    .es-modes {
+        gap: 6px;
+        padding: 8px;
     }
-    .es-sign-ic {
+    .es-mode {
+        grid-template-rows: auto;
+        min-height: 40px;
+        padding-block: 3px;
+    }
+    .es-mode-ic {
         grid-row: auto;
         width: 26px;
         height: 26px;
     }
-    .es-sign b {
+    .es-mode::after {
+        grid-row: auto;
+    }
+    .es-mode b {
+        font-size: 13px;
+    }
+    .es-mode small {
+        display: none;
+    }
+    .es-modes-btn {
+        min-width: 60px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-mode {
+        min-height: 60px;
+    }
+    .es-mode b {
+        font-size: 17px;
+    }
+    .es-mode small {
         font-size: 13px;
     }
 }
+/* reduzir movimento: os modos só aparecem (sem subir) */
 @media (prefers-reduced-motion: reduce) {
-    :root:not([data-reduce-motion="false"]) .es-sign {
-        transition: none;
+    :root:not([data-reduce-motion="false"]) .es-modes {
+        transform: none;
     }
+}
+[data-reduce-motion="true"] .es-modes {
+    transform: none;
 }
 /* e o JOGAR chama: um anel de luz em volta, devagar (some com "reduzir movimento") */
 .es-first .es-play.primary {
@@ -2605,24 +2665,6 @@
         animation: none;
     }
 }
-/* a copa em andamento: o nome em até 2 linhas (cortava no deitado e no 320) */
-.es-actions .rc-team {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    white-space: normal;
-    overflow-wrap: break-word;
-}
-@media (orientation: landscape) and (max-height: 520px), (max-width: 359px) {
-    .es-actions .rc-team {
-        font-size: 15px;
-    }
-    .es-actions .resume-card .rc-go {
-        padding-inline: 12px;
-    }
-}
-
 /* letreiros: uma linha sempre (deitado quebrava em 2); o que não cabe ganha reticências */
 .rt-head h2,
 .rm-head h2 {
@@ -2671,43 +2713,6 @@
     }
     .es-logo {
         width: min(200px, 100%);
-    }
-    /* as placas uma em cima da outra no canto, sem pernas (não cabem lado a lado) */
-    .es-signs {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-        width: min(190px, 100%);
-    }
-    .es-sign {
-        width: 100%;
-        min-height: 40px;
-    }
-    .es-sign::before,
-    .es-sign::after {
-        display: none;
-    }
-    .es-sign-ic {
-        grid-row: auto;
-        width: 24px;
-        height: 24px;
-    }
-    .es-sign-ic .hud-icon {
-        width: 16px;
-        height: 16px;
-    }
-    .es-sign b {
-        font-size: 13px;
-    }
-    .es-actions .rc-team {
-        font-size: 13px;
-    }
-    .es-actions .resume-card {
-        padding-left: 12px;
-    }
-    .es-actions .resume-card .rc-go {
-        padding: 8px 10px;
-        font-size: 14px;
     }
     /* o quadro de missões estreito: sai a barra, fica o texto e o número */
     .sd-board .sd-bar {
@@ -3068,7 +3073,7 @@
         height: 16px;
     }
 }
-/* desktop: as placas do Estádio maiores (a quadra é grande) */
+/* desktop: a frase do Estádio e os letreiros maiores (a quadra é grande) */
 @media (min-width: 900px) and (min-height: 700px) {
     .es-tagline {
         font-size: 15px;
@@ -3076,29 +3081,5 @@
     .rt-head h2,
     .rm-head h2 {
         font-size: 26px;
-    }
-    /* o vão do meio é do capitão (2x no desktop) */
-    .es-signs {
-        width: 780px;
-    }
-    .es-sign {
-        width: 250px;
-        min-height: 66px;
-        padding: 9px 12px 10px 10px;
-        column-gap: 10px;
-    }
-    .es-sign-ic {
-        width: 42px;
-        height: 42px;
-    }
-    .es-sign-ic .hud-icon {
-        width: 26px;
-        height: 26px;
-    }
-    .es-sign b {
-        font-size: 19px;
-    }
-    .es-sign small {
-        font-size: 13px;
     }
 }
