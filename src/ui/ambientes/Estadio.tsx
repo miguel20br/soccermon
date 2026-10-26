@@ -14,6 +14,7 @@ import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ResumeCard } from '../screens/Home';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
+import type { Tab } from './nav';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
@@ -170,8 +171,6 @@ function Board() {
     const days = dict(lang).liga.daily.weekDays;
     return (
         <section className="es-board" aria-label={t('liga.home.dailyTag')}>
-            <i className="es-cable l" aria-hidden />
-            <i className="es-cable r" aria-hidden />
             <div className="es-board-in">
                 <h2 className="es-board-title">{t('liga.home.dailyTag')}</h2>
                 <ol className="es-week" aria-label={t('liga.daily.week', { n: streak.weekCount })}>
@@ -209,7 +208,7 @@ const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
  * letreiro (o dorminhoco não deita em cima) e o capitão (ninguém entra no sprite dele).
  */
 const STADIUM: Blockers = {
-    ui: '.es-ui > *, .es-wall, .es-lintel, .es-lamp',
+    ui: '.es-ui > :not(.es-signs), .es-sign, .es-wall, .es-lintel, .es-lamp',
     props: '.es-banner, .es-led, .es-captain .fs-sprite',
 };
 const SCARE: Record<string, Pt[]> = {
@@ -278,19 +277,47 @@ function useLook(active: boolean): number {
 }
 
 /**
- * Estádio (centro, a entrada): visto da boca do túnel, com a torcida na cor do clube, os refletores e o letreiro de
- * LED. Em cima, o placar com a Copa do Dia; embaixo, a copa em andamento (se tiver) e o JOGAR da Copa Relâmpago.
+ * As placas na beira da quadra: os outros modos à vista (Rota Índigo e Duelo); tocar leva pro lugar deles.
+ */
+function Signs({ goTab }: { goTab: (tab: Tab) => void }) {
+    const { t } = useT();
+    return (
+        <div className="es-signs">
+            <button type="button" className="es-sign rota" onClick={() => goTab('rota')}>
+                <span className="es-sign-ic">
+                    <HudIcon kind="map" />
+                </span>
+                <b>{t('home.longCup.title')}</b>
+                <small>{t('home.longCup.tag')}</small>
+            </button>
+            <button type="button" className="es-sign duel" onClick={() => goTab('arena')}>
+                <span className="es-sign-ic">
+                    <HudIcon kind="friends" />
+                </span>
+                <b>{t('duel.title')}</b>
+                <small>{t('home.amb.signDuel')}</small>
+            </button>
+        </div>
+    );
+}
+
+/**
+ * Estádio (centro, a entrada e a vitrine do jogo): visto da boca do túnel, com a torcida na cor do clube, os
+ * refletores e o letreiro de LED. Em cima, o logo e o placar da Copa do Dia (na 1ª visita, a frase); na beira da
+ * quadra, as placas da Rota e do Duelo; embaixo, a copa em andamento (se tiver) e o JOGAR da Copa Relâmpago.
  */
 export function Estadio({
     active,
     enter,
     wild,
     entering,
+    goTab,
 }: {
     active: boolean;
     enter: (action: () => void) => void;
     wild: Wild[];
     entering: boolean;
+    goTab: (tab: Tab) => void;
 }) {
     const { t } = useT();
     const clock = useSceneClock(active);
@@ -381,18 +408,21 @@ export function Estadio({
                 </div>
             </div>
             <div className={`amb-ui es-ui${firstVisit ? ' es-first' : ''}`}>
-                {!hydrated ? (
-                    <i className="es-top-slot" />
-                ) : firstVisit && !challenge ? (
-                    <div className="es-welcome">
-                        <h1 className="es-logo">
-                            <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
-                        </h1>
-                        <p>{t('home.tagline')}</p>
-                    </div>
-                ) : (
-                    <Board />
-                )}
+                <div className="es-top">
+                    <i className="es-cable l" aria-hidden />
+                    <i className="es-cable r" aria-hidden />
+                    <h1 className="es-logo">
+                        <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                    </h1>
+                    {!hydrated ? (
+                        <i className="es-top-slot" />
+                    ) : firstVisit && !challenge ? (
+                        <p className="es-tagline">{t('home.tagline')}</p>
+                    ) : (
+                        <Board />
+                    )}
+                </div>
+                <Signs goTab={goTab} />
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />

@@ -87,11 +87,13 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                     </div>
                 </div>
             </div>
-            <div className="amb-ui rm-ui sd-ui">
+            <div className="amb-ui rm-ui sd-ui" style={vars}>
                 <header className="rm-head">
                     <h2 title={t('home.amb.sedeOf', { club })}>
                         <Crest look={look} className="crest sd-head-crest" />
-                        {t('home.amb.sedeOf', { club })}
+                        <span className="rm-full">{t('home.amb.sedeOf', { club })}</span>
+                        {/* deitado e estreito: só o nome do clube (o escudo já diz que é a Sede) */}
+                        <span className="rm-short">{club}</span>
                     </h2>
                     <span className="rt-badges" title={tn('home.amb.sedeTitles', titles)}>
                         <PixelTrophy kind="taca" metal="ouro" ghost={!titles} className="rm-belt" />

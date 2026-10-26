@@ -166,7 +166,15 @@ export function Ambientes() {
     const view: Record<Tab, (active: boolean, wild: Wild[], near: boolean) => ReactNode> = {
         lab: (active, wild, near) => <Lab active={active} wild={wild} near={near} />,
         rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
-        estadio: (active, wild) => <Estadio active={active} enter={enter} wild={wild} entering={!!entering} />,
+        estadio: (active, wild) => (
+            <Estadio
+                active={active}
+                enter={enter}
+                wild={wild}
+                entering={!!entering}
+                goTab={(id) => setTab(TABS.indexOf(id))}
+            />
+        ),
         arena: (active, wild) => <Arena active={active} wild={wild} />,
         sede: (active, wild, near) => <Sede active={active} wild={wild} near={near} />,
     };

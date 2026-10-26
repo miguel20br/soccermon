@@ -601,7 +601,9 @@
     top: calc(var(--stand-top) + var(--stand-h) + var(--px) * 8);
     container-type: size;
     bottom: 0;
-    overflow: hidden;
+    /* sem corte: no desktop (capitão 2x) a bola sobe acima da quadra e sumia atrás do letreiro; o piso (SVG) já se
+       corta sozinho. Na frente da faixa do clube (z 1) e do dorminhoco da arquibancada (z 2) */
+    z-index: 3;
 }
 .es-floor {
     position: absolute;
@@ -649,11 +651,15 @@
         scale: 2;
     }
 }
-/* celular pequeno em pé: o capitão (1x) fica na faixa de quadra que sobra acima dos botões */
+/* celular pequeno em pé: o capitão (1x) fica na faixa de quadra entre o telão e as placas, e a bola sobe menos (não
+   passa por trás do telão) */
 @media (max-height: 700px) and (orientation: portrait) {
     .es-captain {
         z-index: 17;
-        top: min(max(12.5cqw, 30cqh), 22cqh);
+        top: min(max(12.5cqw, 30cqh), 25cqh);
+    }
+    .es-ball {
+        --juggle: calc(var(--px) * -15);
     }
 }
 .es-shadow {
@@ -694,7 +700,7 @@
         animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
     }
     50% {
-        transform: translateY(calc(var(--px) * -22)) rotate(180deg);
+        transform: translateY(var(--juggle, calc(var(--px) * -22))) rotate(180deg);
         animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3);
     }
 }
@@ -830,7 +836,7 @@
 }
 .es-cable {
     position: absolute;
-    bottom: 100%;
+    bottom: calc(100% + 3px);
     width: 3px;
     height: 100vh;
     background: #0b1026;
@@ -871,8 +877,18 @@
     grid-row: 1 / span 2;
     grid-column: 2;
 }
-/* placar estreito (320 px, deitado): o botão desce pra baixo dos dias */
+/* placar estreito: lâmpadas menores, o botão ainda ao lado */
 @container (max-width: 300px) {
+    .es-week {
+        grid-template-columns: repeat(7, 18px);
+        gap: 3px;
+    }
+    .es-week li {
+        height: 18px;
+    }
+}
+/* placar estreitíssimo: o botão desce pra baixo dos dias */
+@container (max-width: 245px) {
     .es-board-in {
         grid-template-columns: minmax(0, 1fr);
         justify-items: start;
@@ -958,12 +974,48 @@
     width: 18px;
 }
 
-/* deitado: placar e botões numa coluna à esquerda; o capitão vai pra direita, à vista */
+/* deitado: telão e botões numa coluna à esquerda; o capitão e as placas à direita, à vista */
 @media (orientation: landscape) and (max-height: 520px) {
     .es-ui {
-        width: min(380px, 52%);
-        align-items: stretch;
-        gap: 10px;
+        --es-col: min(380px, 52%);
+        display: grid;
+        grid-template-columns: var(--es-col) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px 16px;
+    }
+    .es-top {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+        width: 100%;
+        gap: 6px;
+        padding: 8px 10px;
+    }
+    .es-logo {
+        width: min(220px, 100%);
+    }
+    .es-top .es-board {
+        padding-top: 6px;
+    }
+    .es-actions {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    .es-signs {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: end;
+        width: min(400px, 100%);
+        margin: 0;
+        padding-bottom: 12px;
+    }
+    .es-sign {
+        min-height: 44px;
+        padding-block: 5px 6px;
+    }
+    .es-sign small {
+        display: none;
     }
     .es-captain {
         left: 72%;
@@ -2313,37 +2365,211 @@
 }
 
 /* ======================================================================================== revisão (0.9.21) */
-/* 1ª visita: no lugar do placar, o logo e a frase (o arquivo do logo, sem efeito; mínimo 120 px) */
+/* o telão pendurado no teto: o logo grande (o arquivo, sem efeito) e, embaixo, o placar da Copa do Dia (na 1ª visita,
+   a frase). É a vitrine: o nome do jogo e o que dá pra jogar hoje */
+.es-top {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    width: min(380px, 100%);
+    padding: 14px 14px 12px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 1px 1px, rgb(255 203 5 / 8%) 1px, transparent 1.5px) 0 0 / 4px 4px,
+        #090d22;
+    box-shadow:
+        0 0 0 3px #39447a,
+        0 7px 0 3px var(--bc-edge);
+    container-type: inline-size;
+}
 .es-top-slot {
     display: block;
     height: 1px;
 }
-.es-welcome {
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-    width: min(340px, 88%);
-    padding: 12px 16px 14px;
-    background: rgb(9 13 34 / 88%);
-    border: 3px solid var(--bc-edge);
-    border-radius: 6px;
-    box-shadow: 0 6px 0 var(--bc-edge);
-    text-align: center;
-}
 .es-logo {
     margin: 0;
-    width: min(260px, 100%);
+    width: min(330px, 100%);
 }
 .es-logo img {
     display: block;
     width: 100%;
     height: auto;
 }
-.es-welcome p {
+.es-tagline {
     margin: 0;
     font-size: 13px;
     line-height: 1.35;
+    text-align: center;
     color: var(--text);
+}
+/* o placar dentro do telão: sem moldura própria, separado do logo por uma linha */
+.es-top .es-board {
+    width: 100%;
+    padding-top: 10px;
+    border-top: 2px solid #252d5c;
+}
+.es-top .es-board-in {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-top {
+        width: 480px;
+        padding: 18px 20px 14px;
+    }
+    .es-logo {
+        width: 420px;
+    }
+}
+
+/* as placas na beira da quadra: Rota Índigo e Duelo, de pé (duas pernas), cada uma com a cor do seu lugar */
+.es-signs {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: min(560px, 100%);
+    margin-top: auto;
+    padding-bottom: 12px;
+}
+/* a fileira deixa o toque passar entre as placas (os Pokémon da beira ficam ali) */
+.es-ui > .es-signs {
+    pointer-events: none;
+}
+.es-ui .es-sign {
+    pointer-events: auto;
+}
+.es-sign {
+    --sign: var(--green);
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 8px;
+    width: min(47%, 210px);
+    min-height: 52px;
+    padding: 7px 10px 8px 8px;
+    font: inherit;
+    text-align: left;
+    color: var(--text);
+    background: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--sign);
+    border-radius: 6px;
+    box-shadow: 0 4px 0 var(--bc-edge);
+    cursor: pointer;
+    transition: transform 200ms var(--ease-out);
+}
+.es-sign.duel {
+    --sign: var(--blue);
+}
+/* as pernas da placa */
+.es-sign::before,
+.es-sign::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    width: 5px;
+    height: 12px;
+    background: #0b1026;
+    border-inline: 1px solid #000;
+}
+.es-sign::before {
+    left: 22%;
+}
+.es-sign::after {
+    right: 22%;
+}
+.es-sign:hover,
+.es-sign:focus-visible {
+    transform: translateY(-3px);
+}
+.es-sign:active {
+    transform: translateY(1px);
+}
+.es-sign:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.es-sign-ic {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    background: var(--sign);
+    color: var(--bc-ink);
+}
+.es-sign.duel .es-sign-ic {
+    color: #fff;
+}
+.es-sign-ic .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.es-sign b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    line-height: 1.15;
+}
+.es-sign small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--muted);
+}
+/* celular baixo em pé (320x568): telão e copa em andamento mais compactos, pra sobrar quadra pro capitão */
+@media (orientation: portrait) and (max-height: 640px) {
+    .es-top {
+        gap: 6px;
+        padding: 10px 10px 8px;
+    }
+    .es-logo {
+        width: min(230px, 100%);
+    }
+    .es-top .es-board {
+        padding-top: 6px;
+    }
+    .es-actions .rc-path {
+        display: none;
+    }
+}
+/* celular estreito ou baixo em pé: a placa só com o nome */
+@media (max-width: 359px), (orientation: portrait) and (max-height: 640px) {
+    .es-sign {
+        min-height: 44px;
+        padding-block: 5px 6px;
+    }
+    .es-sign small {
+        display: none;
+    }
+    .es-sign {
+        column-gap: 6px;
+        padding-inline: 6px;
+    }
+    .es-sign-ic {
+        grid-row: auto;
+        width: 26px;
+        height: 26px;
+    }
+    .es-sign b {
+        font-size: 13px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .es-sign {
+        transition: none;
+    }
 }
 /* e o JOGAR chama: um anel de luz em volta, devagar (some com "reduzir movimento") */
 .es-first .es-play.primary {
@@ -2441,7 +2667,37 @@
         display: inline;
     }
     .es-ui {
-        width: min(380px, 58%);
+        --es-col: min(380px, 60%);
+    }
+    .es-logo {
+        width: min(200px, 100%);
+    }
+    /* as placas uma em cima da outra no canto, sem pernas (não cabem lado a lado) */
+    .es-signs {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        width: min(190px, 100%);
+    }
+    .es-sign {
+        width: 100%;
+        min-height: 40px;
+    }
+    .es-sign::before,
+    .es-sign::after {
+        display: none;
+    }
+    .es-sign-ic {
+        grid-row: auto;
+        width: 24px;
+        height: 24px;
+    }
+    .es-sign-ic .hud-icon {
+        width: 16px;
+        height: 16px;
+    }
+    .es-sign b {
+        font-size: 13px;
     }
     .es-actions .rc-team {
         font-size: 13px;
@@ -2678,4 +2934,171 @@
 .wild.off {
     opacity: 0;
     pointer-events: none;
+}
+
+/* ======================================================================================== polida (0.9.21, 2ª revisão) */
+/* o letreiro de cada lugar: placa com moldura e sombra dura, a faixa de cima na cor do lugar (a mesma das placas do
+   Estádio: Rota verde, Arena azul), o nome maior e a meta numa plaquinha à direita */
+.amb-lab {
+    --place: var(--yellow);
+}
+.amb-rota {
+    --place: var(--green);
+}
+.amb-arena {
+    --place: var(--blue);
+}
+.amb-sede {
+    --place: var(--club, var(--yellow));
+}
+.rt-head,
+.rm-head {
+    padding: 9px 10px 9px 14px;
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--place, var(--yellow));
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--bc-edge);
+}
+.rt-head h2,
+.rm-head h2 {
+    font-size: 22px;
+}
+.rt-head .rt-badges,
+.rm-head .rt-badges {
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #1b2147;
+    box-shadow: inset 0 0 0 2px #2a3366;
+}
+@media (max-width: 359px) {
+    .rm-head h2 {
+        font-size: 18px;
+    }
+    /* o nome da Rota divide a placa com o selo NOVO e as insígnias */
+    .rt-head h2 {
+        font-size: 16px;
+    }
+}
+/* tela baixa: a placa mais fina, pra não cobrir a parede (o neon da Arena) */
+@media (max-height: 700px) {
+    .rt-head,
+    .rm-head {
+        padding-block: 5px;
+        border-top-width: 4px;
+        box-shadow: 0 3px 0 var(--bc-edge);
+    }
+}
+/* celular em pé: o nome curto onde o comprido não cabe (Laboratório) */
+@media (max-width: 429px) {
+    .amb-lab .rm-full {
+        display: none;
+    }
+    .amb-lab .rm-short {
+        display: inline;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .rt-head,
+    .rm-head {
+        padding-block: 6px;
+        border-top-width: 4px;
+    }
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 16px;
+    }
+    .rt-head .rt-badges,
+    .rm-head .rt-badges {
+        padding: 2px 6px;
+    }
+}
+/* o botão principal de cada lugar do mesmo tamanho do JOGAR do Estádio */
+.rm-go,
+.rt-go {
+    min-height: 68px;
+    justify-content: space-between;
+    text-align: left;
+}
+.rm-go .cup-go-txt b,
+.rt-go .cup-go-txt b {
+    font-size: 24px;
+}
+.rm-go .cup-go-txt small,
+.rt-go .cup-go-txt small {
+    font-size: 13px;
+}
+@media (max-width: 359px) {
+    .rm-go .cup-go-txt b,
+    .rt-go .cup-go-txt b {
+        font-size: 20px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .rm-go {
+        min-height: 52px;
+    }
+    .rt-go {
+        min-height: 54px;
+    }
+    .rm-go .cup-go-txt b {
+        font-size: 19px;
+    }
+    .rt-go .cup-go-txt b {
+        font-size: 16px;
+    }
+    /* o telão com o placar numa linha (o botão ao lado dos dias): a coluna é baixa */
+    .es-top .es-board-in {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .es-top .es-board-go {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rm-go .cup-go-txt b {
+        font-size: 17px;
+        white-space: nowrap;
+    }
+    .es-top .es-week {
+        grid-template-columns: repeat(7, 16px);
+        gap: 3px;
+    }
+    .es-top .es-week li {
+        height: 16px;
+    }
+}
+/* desktop: as placas do Estádio maiores (a quadra é grande) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-tagline {
+        font-size: 15px;
+    }
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 26px;
+    }
+    /* o vão do meio é do capitão (2x no desktop) */
+    .es-signs {
+        width: 780px;
+    }
+    .es-sign {
+        width: 250px;
+        min-height: 66px;
+        padding: 9px 12px 10px 10px;
+        column-gap: 10px;
+    }
+    .es-sign-ic {
+        width: 42px;
+        height: 42px;
+    }
+    .es-sign-ic .hud-icon {
+        width: 26px;
+        height: 26px;
+    }
+    .es-sign b {
+        font-size: 19px;
+    }
+    .es-sign small {
+        font-size: 13px;
+    }
 }

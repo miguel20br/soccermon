@@ -89,6 +89,7 @@ export const home: typeof pt = {
         labSeen: '{n} of {total} seen',
         labTalk: '{n} to go for the Kanto Pokédex. Anyone you meet in a draft or on a rival team counts.',
         labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
+        signDuel: 'With friends',
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',

@@ -139,9 +139,9 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         </span>
                         <HudIcon kind="next" />
                     </button>
-                    <div className="amb-tiles three">
+                    {/* o Arcade fica só no neon do muro (com o papel EM BREVE): o tile repetia */}
+                    <div className="amb-tiles">
                         <Tile icon="players" title={t('home.amb.soon2x2')} sub={t('home.soonRibbon')} soon />
-                        <Tile icon="dice" title={t('home.amb.soonArcade')} sub={t('home.soonRibbon')} soon />
                         {liga ? (
                             <Tile
                                 icon="cup"
