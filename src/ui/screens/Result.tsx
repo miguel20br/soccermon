@@ -32,6 +32,7 @@ import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
+import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
@@ -66,7 +67,7 @@ export function Result() {
     const run = useHeld(liveRun);
     const match = useHeld(liveMatch);
     const { t } = useT();
-    const [shared, setShared] = useState<string | null>(null);
+    const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -110,9 +111,11 @@ export function Result() {
     const share = async () => {
         const res = await shareRun(run, card);
         track('share', { kind: card ? 'image' : 'text', result: res, champion });
-        setShared(
-            res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
-        );
+        setShared({
+            text:
+                res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
+            ok: res === 'copied' || res === 'shared',
+        });
         // aviso em pílula que some sozinho (antes ficava como texto cinza para sempre)
         window.setTimeout(() => setShared(null), 2200);
     };
@@ -170,11 +173,7 @@ export function Result() {
                     </button>
                 )}
             </div>
-            {shared && (
-                <div className="toast-pill" role="status">
-                    {shared}
-                </div>
-            )}
+            {shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>}
             {champion && (
                 <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
                     <span className="muted">{t('result.card.download')}</span>

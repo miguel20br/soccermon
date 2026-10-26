@@ -386,10 +386,6 @@ h3.bc-lbl {
     .app:has(.bc-thumbbar) {
         padding-bottom: calc(var(--bc-thumb-h) + 16px);
     }
-    /* o aviso (toast) sobe pra cima da barra em vez de cobrir o botão */
-    body:has(.bc-thumbbar) .toast-pill {
-        bottom: calc(var(--bc-thumb-h) + 12px);
-    }
     /* rolar até algo (foco, scrollIntoView) para acima da barra, não atrás dela (o "Abandonar copa" sumia ali) */
     html:has(.bc-thumbbar) {
         scroll-padding-bottom: calc(var(--bc-thumb-h) + 16px);

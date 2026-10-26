@@ -38,14 +38,14 @@
 /* saída de modal e de `data-exit` (src/ui/exit-motion.ts): a cópia some com fade, a caixa encolhe um pouco */
 .is-leaving {
     pointer-events: none;
-    animation: leave-fade 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: leave-fade var(--dur-ui) var(--ease-out) both;
 }
 .is-leaving *:not(.modal) {
     animation: none;
     transition: none;
 }
 .is-leaving .modal {
-    animation: modal-out 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: modal-out var(--dur-ui) var(--ease-out) both;
 }
 @keyframes leave-fade {
     to {
@@ -73,7 +73,7 @@
 }
 .is-leaving[data-exit="collapse"] {
     overflow: hidden;
-    animation: leave-collapse 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: leave-collapse var(--dur-ui) var(--ease-out) both;
 }
 @keyframes leave-collapse {
     to {

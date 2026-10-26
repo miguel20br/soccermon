@@ -1,6 +1,12 @@
 import type { settings as pt } from '../pt/settings';
 
 export const settings: typeof pt = {
+    install: {
+        title: 'Play as an app',
+        hint: 'Home screen icon, full screen, no browser bar.',
+        btn: 'Install',
+        ios: 'On iPhone: Share › Add to Home Screen.',
+    },
     screen: {
         title: 'Settings',
         langLabel: 'Idioma / Language',
@@ -105,6 +111,8 @@ export const settings: typeof pt = {
         signedAs: 'Signed in as {name}. Deleting the account erases the cloud save.',
         deleting: 'Deleting…',
         deleteYes: 'Yes, delete my account',
+        deleteTitle: 'Delete your account?',
+        deleteWhat: 'Your cloud save is gone. This device keeps its own.',
         delete: 'Delete my account',
         deleteFailed: "Couldn't delete right now. Try again.",
     },

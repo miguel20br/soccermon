@@ -24,7 +24,7 @@
     line-height: 1.35;
     text-align: left;
     pointer-events: none;
-    animation: tip-in 0.12s var(--ease-out, ease-out);
+    animation: tip-in var(--dur-ui) var(--ease-out);
 }
 .tip-bubble[hidden] {
     display: none;

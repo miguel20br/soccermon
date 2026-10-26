@@ -253,8 +253,8 @@ img.pixel {
 .card.clickable {
     cursor: pointer;
     transition:
-        transform 0.12s ease,
-        box-shadow 0.12s ease;
+        transform var(--dur-solta) var(--ease-out),
+        box-shadow var(--dur-solta) var(--ease-out);
 }
 .card.clickable:hover {
     transform: translateY(-4px);
@@ -1089,7 +1089,7 @@ button,
     padding: 14px 12px;
     text-align: center;
     font: inherit;
-    transition: transform 0.12s ease;
+    transition: transform var(--dur-solta) var(--ease-pop);
 }
 .formation-option:hover {
     transform: translateY(-3px);
@@ -1646,8 +1646,8 @@ button,
     clip-path: polygon(50% 0, 100% 6%, 100% 92%, 50% 100%, 0 92%, 0 6%);
     filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
     transition:
-        transform 0.12s ease,
-        filter 0.12s ease;
+        transform var(--dur-solta) var(--ease-out),
+        filter var(--dur-solta) var(--ease-out);
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -2703,7 +2703,7 @@ button,
 }
 /* tocar na carta abre a carta completa: levanta no hover e ganha anel amarelo no foco do teclado */
 .fut-card2 {
-    transition: transform 0.15s ease;
+    transition: transform var(--dur-ui) var(--ease-out);
 }
 .fut-card2:not(.static):hover {
     transform: translateY(-3px);
@@ -2731,7 +2731,7 @@ button,
     text-align: left;
     cursor: pointer;
     transition:
-        background 0.15s ease,
+        background var(--dur-ui) var(--ease-out),
         transform 0.06s ease;
 }
 .fut-full:hover {
@@ -3554,7 +3554,7 @@ button,
     width: 80%;
     height: 80%;
     object-fit: contain;
-    transition: transform 0.12s ease;
+    transition: transform var(--dur-solta) var(--ease-out);
 }
 .evo-mon.hidden {
     visibility: hidden;
@@ -3629,7 +3629,7 @@ button,
     background: #fff;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.12s ease;
+    transition: opacity var(--dur-solta) var(--ease-out);
 }
 .evo-phase-flash .evo-flash {
     opacity: 0.95;
@@ -5500,8 +5500,8 @@ a.home-tile {
     text-align: left;
     cursor: pointer;
     transition:
-        transform 0.12s ease,
-        box-shadow 0.12s ease;
+        transform var(--dur-solta) var(--ease-out),
+        box-shadow var(--dur-solta) var(--ease-out);
 }
 .resume-card:hover {
     transform: translateY(-2px);
@@ -5615,8 +5615,8 @@ a.home-tile {
     min-height: 60px;
     font: inherit;
     transition:
-        transform 0.12s ease,
-        border-color 0.12s ease;
+        transform var(--dur-solta) var(--ease-out),
+        border-color var(--dur-solta) var(--ease-out);
 }
 .home-tile:hover {
     transform: translateY(-2px);
@@ -6686,7 +6686,7 @@ p.muted.center a {
 /* ---------- tecido entre os momentos (varredura de animação, 16/10) ---------- */
 /* tela nova entra com um fade curto (só opacidade: transform num pai quebraria os modais "fixed") */
 .app > *:not(.topbar) {
-    animation: screen-in 0.18s var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) both;
 }
 @keyframes screen-in {
     from {
@@ -6695,10 +6695,10 @@ p.muted.center a {
 }
 /* modais: fundo escurece e a caixa cresce um pouco; a saída é instantânea */
 .modal-backdrop {
-    animation: screen-in 0.18s var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) both;
 }
 .modal {
-    animation: modal-in 0.22s var(--ease-out) both;
+    animation: modal-in var(--dur-pop) var(--ease-pop) both;
 }
 @keyframes modal-in {
     from {
@@ -6711,25 +6711,25 @@ p.muted.center a {
     transition:
         left 0.28s var(--ease-out),
         top 0.28s var(--ease-out),
-        border-color 0.15s,
-        scale 0.12s ease-out;
+        border-color var(--dur-ui),
+        scale var(--dur-solta) var(--ease-pop);
 }
 /* resposta ao toque em tudo que é tocável (scale separado: a vaga já usa transform para centralizar) */
 .slot,
 .target-btn,
 .tm-move,
 .scout-btn {
-    transition: scale 0.12s ease-out;
+    transition: scale var(--dur-solta) var(--ease-pop);
 }
 /* estes já tinham transição própria: soma o scale sem perder a dela */
 .formation-option,
 .resume-card,
 .card.clickable {
     transition:
-        transform 0.12s ease,
-        box-shadow 0.12s ease,
-        border-color 0.12s ease,
-        scale 0.12s ease-out;
+        transform var(--dur-solta) var(--ease-out),
+        box-shadow var(--dur-solta) var(--ease-out),
+        border-color var(--dur-solta) var(--ease-out),
+        scale var(--dur-solta) var(--ease-pop);
 }
 .slot:active,
 .target-btn:active,
@@ -6750,10 +6750,7 @@ p.muted.center a {
         filter: none;
     }
 }
-/* intervalo chega deslizando de leve */
-.ht-panel {
-    animation: panel-in 0.24s var(--ease-out) both;
-}
+/* intervalo: a entrada com pop mora no kit (kit.css, painéis da partida) */
 @keyframes panel-in {
     from {
         opacity: 0;
@@ -6784,25 +6781,6 @@ p.muted.center a {
 }
 
 /* aviso curto (Copiado!, Compartilhado!): pílula no rodapé que some sozinha */
-.toast-pill {
-    position: fixed;
-    left: 50%;
-    bottom: max(18px, env(safe-area-inset-bottom));
-    z-index: 120;
-    padding: 8px 16px;
-    /* o material do kit: moldura preta, faixa de cima amarela, base dura */
-    border: 3px solid var(--bc-edge);
-    border-top: 5px solid var(--yellow);
-    border-radius: 8px;
-    background: var(--bc-ink);
-    box-shadow:
-        inset 0 0 0 2px var(--frame-in),
-        0 4px 0 var(--bc-edge);
-    color: var(--text);
-    font-weight: 700;
-    transform: translateX(-50%);
-    animation: panel-in 0.2s var(--ease-out) both;
-}
 
 /* missão cumprida (treinador ou título novo), com a tarefa cumprida embaixo (UnlockNotice.tsx). Na Home: pílula
    pequena fixa em cima da quadra do topo (enfeite), uma de cada vez, sem pegar toque. No Resultado: faixa no meio
@@ -7748,11 +7726,11 @@ body {
     }
 }
 :root[data-reduce-motion="true"] .soon-backdrop .soon-sheet {
-    animation: screen-in 0.2s var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) both;
 }
 @media (prefers-reduced-motion: reduce) {
     .soon-backdrop .soon-sheet {
-        animation: screen-in 0.2s var(--ease-out) both;
+        animation: screen-in var(--dur-ui) var(--ease-out) both;
     }
 }
 

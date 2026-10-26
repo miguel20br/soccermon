@@ -18,6 +18,7 @@ import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
+import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 
 const ICON: Record<Tab, HudIconKind> = {
     lab: 'flask',
@@ -88,7 +89,10 @@ export function Ambientes() {
             window.setTimeout(() => setEntering(null), 800);
         };
         setEntering(() => finish);
-        window.setTimeout(finish, ENTER_MS);
+        // a transição de momento (desenho sorteado) emenda no fim da câmera: cobre a tela e a copa troca embaixo
+        window.setTimeout(() => !done && playMoment(randomArt(), finish), ENTER_MS - WIPE_IN_MS);
+        // se o momento não vier (aba em segundo plano), a copa começa assim mesmo
+        window.setTimeout(finish, ENTER_MS + 600);
     };
 
     // teclado: setas trocam de aba quando o foco está na barra
@@ -187,7 +191,7 @@ export function Ambientes() {
             data-sky={sky}
             style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
         >
-            <div className="amb-top">
+            <div className="amb-top k-topbar">
                 <TopBar />
                 <TopActions help={() => go('help')} profile={false} />
             </div>

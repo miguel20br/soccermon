@@ -1,5 +1,11 @@
 /** Configurações, Créditos, conta, aviso de erro, sair da partida e a casca do app. */
 export const settings = {
+    install: {
+        title: 'Jogar como app',
+        hint: 'Ícone na tela inicial, tela cheia, sem a barra do navegador.',
+        btn: 'Instalar',
+        ios: 'No iPhone: Compartilhar › Adicionar à Tela de Início.',
+    },
     screen: {
         title: 'Configurações',
         langLabel: 'Idioma / Language',
@@ -104,6 +110,8 @@ export const settings = {
         signedAs: 'Conectado como {name}. Apagar a conta apaga o save da nuvem.',
         deleting: 'Apagando…',
         deleteYes: 'Sim, apagar minha conta',
+        deleteTitle: 'Apagar sua conta?',
+        deleteWhat: 'O save da nuvem some. O deste aparelho continua.',
         delete: 'Apagar minha conta',
         deleteFailed: 'Não deu pra apagar agora. Tente de novo.',
     },

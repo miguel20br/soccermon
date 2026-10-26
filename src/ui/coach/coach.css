@@ -96,5 +96,5 @@
     transition: none;
 }
 :root[data-reduce-motion="true"] .coach {
-    transition-duration: 120ms;
+    transition-duration: var(--dur-ui);
 }

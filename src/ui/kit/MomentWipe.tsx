@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
+import { create } from 'zustand';
 import { reduceMotionOn } from '../settings-sync';
 
 /**
@@ -141,4 +142,32 @@ export function MomentWipe({
             </div>
         </div>
     );
+}
+
+/** Quanto a linha leva pra cobrir a tela: quem emenda numa animação própria (a câmera do túnel) começa antes. */
+export const WIPE_IN_MS = IN_MS;
+
+const useMoment = create<{ art: WipeArt; cover: (() => void) | null; n: number }>(() => ({
+    art: 'pokebola',
+    cover: null,
+    n: 0,
+}));
+
+/**
+ * Toca a transição de momento por cima de tudo e chama `then` quando a tela estiver coberta (a hora de trocar o que
+ * tem embaixo). Se já houver um momento tocando, troca na hora (não empilha).
+ */
+export function playMoment(art: WipeArt, then: () => void) {
+    if (useMoment.getState().cover) {
+        then();
+        return;
+    }
+    useMoment.setState((s) => ({ art, cover: then, n: s.n + 1 }));
+}
+
+/** A camada dos momentos (montada uma vez no App). */
+export function MomentLayer() {
+    const { art, cover, n } = useMoment();
+    if (!cover) return null;
+    return <MomentWipe key={n} art={art} onCovered={cover} onDone={() => useMoment.setState({ cover: null })} />;
 }

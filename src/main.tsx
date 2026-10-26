@@ -11,6 +11,7 @@ import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startExitMotion } from './ui/exit-motion';
 import { startTapFeedback } from './ui/feedback';
+import { startInstall } from './ui/install';
 import { startMusicSync } from './ui/music-sync';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
@@ -37,6 +38,7 @@ startTabSlide();
 startThumbbarSpace();
 startExitMotion();
 startTapFeedback();
+startInstall();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();

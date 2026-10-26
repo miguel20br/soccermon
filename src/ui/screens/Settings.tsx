@@ -26,6 +26,8 @@ import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
 import { HudIcon } from '../components/MatchHud';
+import { iosBrowser, promptInstall, useInstall } from '../install';
+import { ConfirmSheet, Sheet } from '../kit/Sheet';
 
 /** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
 function Segmented<T extends string | number | boolean>({
@@ -66,6 +68,28 @@ function Row({ title, hint, children }: { title: string; hint?: ReactNode; child
             </div>
             {children}
         </div>
+    );
+}
+
+/** "Jogar como app": o botão de instalar (Android) ou a dica do iPhone; some quando já está instalado. */
+function InstallGroup() {
+    const { prompt, installed } = useInstall();
+    const { t } = useT();
+    if (installed || (!prompt && !iosBrowser())) return null;
+    return (
+        <Group title={t('settings.install.title')}>
+            <Row
+                title={t('settings.install.title')}
+                hint={prompt ? t('settings.install.hint') : t('settings.install.ios')}
+            >
+                {prompt && (
+                    <button type="button" className="btn confirm" onClick={() => void promptInstall()}>
+                        <HudIcon kind="download" />
+                        {t('settings.install.btn')}
+                    </button>
+                )}
+            </Row>
+        </Group>
     );
 }
 
@@ -155,6 +179,7 @@ export function Settings() {
             <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
             {/* entrar com o Google (na Home de lista ficava embaixo dos modos) */}
             <AccountBar />
+            <InstallGroup />
 
             <Group title={t('settings.screen.langLabel')}>
                 <div className="set-row">
@@ -557,79 +582,74 @@ function DataSettings() {
                 </div>
             </Row>
 
-            {summary && (
-                <div className="set-confirm" role="alert">
-                    <b>{t('settings.data.restoreTitle')}</b>
-                    <span>
-                        {dateLabel(pending.exportedAt)
-                            ? t('settings.data.savedOn', { date: dateLabel(pending.exportedAt) ?? '' })
-                            : ''}
-                        {t('settings.data.summary', {
-                            cups: summary.records.cups,
-                            titles: summary.records.titles,
-                            seen,
-                        })}
-                        {summary.run && !['eliminated', 'champion'].includes(summary.run.status)
-                            ? t('settings.data.withRun')
-                            : ''}
-                        .
-                    </span>
-                    <span>
-                        {t('settings.data.replaces')}
-                        {user ? t('settings.data.replacesCloud') : ''}
-                    </span>
-                    <div className="set-actions">
-                        <button type="button" className="btn small confirm" onClick={restore}>
-                            {t('settings.data.restoreBtn')}
-                        </button>
-                        <button type="button" className="btn small ghost" onClick={() => setPending(null)}>
-                            {t('common.ui.cancel')}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
-                {wipe === 'idle' ? (
-                    <div>
-                        <button
-                            type="button"
-                            className="btn small ghost danger"
-                            onClick={() => {
-                                setPending(null);
-                                setMsg(null);
-                                setWipe('confirm');
-                            }}
-                        >
-                            {t('settings.data.wipe')}
-                        </button>
-                    </div>
-                ) : (
-                    <div className="set-confirm danger" role="alert">
-                        <b>{t('settings.data.wipeTitle')}</b>
-                        <span>{t('settings.data.wipeWhat')}</span>
-                        {user && <span>{t('settings.data.wipeCloud')}</span>}
-                        <div className="set-actions">
-                            <button
-                                type="button"
-                                className="btn small danger"
-                                disabled={wipe === 'busy'}
-                                data-fx="none"
-                                onClick={() => leaveWith('danger', () => void wipeDevice())}
-                            >
-                                {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipeYes')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn small ghost"
-                                disabled={wipe === 'busy'}
-                                onClick={() => setWipe('idle')}
-                            >
+            {/* restaurar substitui o progresso: confirmação em sheet (verde: não é perigo, é uma troca escolhida) */}
+            <Sheet
+                open={!!summary}
+                onClose={() => setPending(null)}
+                title={t('settings.data.restoreTitle')}
+                alert
+                className="k-confirm"
+            >
+                {summary && (
+                    <>
+                        <p>
+                            {dateLabel(pending.exportedAt)
+                                ? t('settings.data.savedOn', { date: dateLabel(pending.exportedAt) ?? '' })
+                                : ''}
+                            {t('settings.data.summary', {
+                                cups: summary.records.cups,
+                                titles: summary.records.titles,
+                                seen,
+                            })}
+                            {summary.run && !['eliminated', 'champion'].includes(summary.run.status)
+                                ? t('settings.data.withRun')
+                                : ''}
+                            .
+                        </p>
+                        <p>
+                            {t('settings.data.replaces')}
+                            {user ? t('settings.data.replacesCloud') : ''}
+                        </p>
+                        <div className="k-confirm-actions">
+                            <button type="button" className="btn ghost" onClick={() => setPending(null)} data-autofocus>
                                 {t('common.ui.cancel')}
                             </button>
+                            <button type="button" className="btn confirm" onClick={restore}>
+                                {t('settings.data.restoreBtn')}
+                            </button>
                         </div>
-                    </div>
+                    </>
                 )}
+            </Sheet>
+
+            <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
+                <div>
+                    <button
+                        type="button"
+                        className="btn small ghost danger"
+                        disabled={wipe === 'busy'}
+                        onClick={() => {
+                            setPending(null);
+                            setMsg(null);
+                            setWipe('confirm');
+                        }}
+                    >
+                        {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipe')}
+                    </button>
+                </div>
+                <ConfirmSheet
+                    open={wipe === 'confirm'}
+                    onClose={() => setWipe((w) => (w === 'confirm' ? 'idle' : w))}
+                    title={t('settings.data.wipeTitle')}
+                    text={
+                        user
+                            ? `${t('settings.data.wipeWhat')} ${t('settings.data.wipeCloud')}`
+                            : t('settings.data.wipeWhat')
+                    }
+                    confirm={t('settings.data.wipeYes')}
+                    onConfirm={() => leaveWith('danger', () => void wipeDevice())}
+                    quiet
+                />
             </Row>
 
             {msg && (
@@ -664,30 +684,25 @@ function AccountSettings() {
             ) : (
                 <>
                     <p>{rich(t('settings.account.signedAs'), { name: <b>{user?.name}</b> })}</p>
-                    {step === 'confirm' || step === 'busy' ? (
-                        <div className="row">
-                            <button type="button" className="btn danger" disabled={step === 'busy'} onClick={remove}>
-                                {step === 'busy' ? t('settings.account.deleting') : t('settings.account.deleteYes')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn ghost"
-                                disabled={step === 'busy'}
-                                onClick={() => setStep('idle')}
-                            >
-                                {t('common.ui.cancel')}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="row">
-                            <button type="button" className="btn ghost small" onClick={() => setStep('confirm')}>
-                                {t('settings.account.delete')}
-                            </button>
-                            {step === 'error' && (
-                                <span className="error-text">{t('settings.account.deleteFailed')}</span>
-                            )}
-                        </div>
-                    )}
+                    <div className="row">
+                        <button
+                            type="button"
+                            className="btn ghost small danger"
+                            disabled={step === 'busy'}
+                            onClick={() => setStep('confirm')}
+                        >
+                            {step === 'busy' ? t('settings.account.deleting') : t('settings.account.delete')}
+                        </button>
+                        {step === 'error' && <span className="error-text">{t('settings.account.deleteFailed')}</span>}
+                    </div>
+                    <ConfirmSheet
+                        open={step === 'confirm'}
+                        onClose={() => setStep((x) => (x === 'confirm' ? 'idle' : x))}
+                        title={t('settings.account.deleteTitle')}
+                        text={t('settings.account.deleteWhat')}
+                        confirm={t('settings.account.deleteYes')}
+                        onConfirm={remove}
+                    />
                 </>
             )}
         </section>

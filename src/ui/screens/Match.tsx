@@ -79,6 +79,7 @@ import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { readHud } from '../hud-lab';
+import { playMoment } from '../kit/MomentWipe';
 import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, type MaxWait, maxWaitNext, roleAt, snapAt } from '../match-view';
@@ -701,7 +702,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     away={opponent}
                     stage={stage}
                     ready={sceneReady}
-                    onDone={finishIntro}
+                    onDone={() => playMoment('bola', finishIntro)}
                     onRetry={() => setSceneKey((k) => k + 1)}
                 />
             )}
@@ -956,7 +957,15 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             </button>
                         </>
                     ) : (
-                        <ResultButton label={t('match.seeResult')} onGo={() => go(liga ? 'liga' : 'result')} />
+                        <ResultButton
+                            label={t('match.seeResult')}
+                            onGo={() =>
+                                // título: o troféu cobre a quadra e a festa aparece embaixo
+                                !liga && useGame.getState().run?.status === 'champion'
+                                    ? playMoment('trofeu', () => go('result'))
+                                    : go(liga ? 'liga' : 'result')
+                            }
+                        />
                     )}
                 </div>
             </div>

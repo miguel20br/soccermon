@@ -42,29 +42,6 @@
     height: 16px;
     flex: none;
 }
-.set-confirm {
-    display: grid;
-    gap: 6px;
-    margin: 0 0 12px;
-    padding: 12px;
-    border-radius: 10px;
-    border: 2px solid var(--yellow);
-    background: var(--bg-2);
-    font-size: 13px;
-}
-.set-confirm span {
-    color: var(--muted);
-    line-height: 1.4;
-}
-.set-confirm .set-actions {
-    margin-top: 4px;
-}
-.set-row .set-confirm {
-    margin: 0;
-}
-.set-confirm.danger {
-    border-color: var(--red);
-}
 .set-ok,
 .set-group > .error-text {
     margin: 0 0 12px;

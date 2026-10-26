@@ -12,6 +12,7 @@ import { frameClass, useShowcase } from '../profile/Medals';
 import { NewDot, useNews } from '../profile/news';
 import { reduceMotionOn } from '../settings-sync';
 import { countAt, trainerLevel } from './metas';
+import '../kit/topbar.css';
 
 /** O número que sobe do 0 ao valor quando `run` liga (a aba aparece); com "reduzir movimento", já parado no valor. */
 export function useCountUp(n: number, run = true): number {

@@ -50,6 +50,7 @@ import { DuelMatch, useCountdown } from './DuelMatch';
 import { duelLink, isLocalDuel } from './link';
 import './duel.css';
 import { ConfirmSheet } from '../kit/Sheet';
+import { Toast } from '../kit/Toast';
 
 const PENDING = 'soccermon-duel-pending';
 
@@ -437,16 +438,16 @@ function RoomQr({ link }: { link: string }) {
 /** Convidar: código grande, Compartilhar (ou copiar), WhatsApp e QR. */
 function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: boolean }) {
     const { t } = useT();
-    const [note, setNote] = useState<string | null>(null);
+    const [note, setNote] = useState<{ text: string; ok: boolean } | null>(null);
     const link = duelLink(s.room, local, s.peers.host?.name);
     const text = t('duel.lobby.shareText', { code: s.room });
-    const flash = (msg: string) => {
-        setNote(msg);
+    const flash = (text: string, ok = false) => {
+        setNote({ text, ok });
         window.setTimeout(() => setNote(null), 2200);
     };
     const copy = () =>
         navigator.clipboard?.writeText(link).then(
-            () => flash(t('duel.lobby.copied')),
+            () => flash(t('duel.lobby.copied'), true),
             () => flash(link),
         ) ?? flash(link);
     const share = () => {
@@ -479,11 +480,7 @@ function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: 
                     <small className="muted">{t('duel.lobby.qrHint')}</small>
                 </details>
             )}
-            {note && (
-                <div className="toast-pill" role="status">
-                    {note}
-                </div>
-            )}
+            {note && <Toast tone={note.ok ? 'ok' : 'info'}>{note.text}</Toast>}
         </div>
     );
 }

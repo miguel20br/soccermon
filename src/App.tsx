@@ -5,6 +5,7 @@ import { duel } from './net/session';
 import { preloadGame } from './PhaserGame';
 import { type Screen, useGame } from './store/game-store';
 import { readAmbientes } from './ui/ambientes/nav';
+import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
@@ -16,6 +17,7 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
+import { MomentLayer } from './ui/kit/MomentWipe';
 import { requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal } from './ui/profile/PlayerCard';
@@ -213,6 +215,12 @@ export default function App() {
                     {/* copa acabada (Eliminado, Campeão): volta o logo, é a festa */}
                     {CUP_SCREENS.includes(screen) && run && run.status !== 'eliminated' && run.status !== 'champion' ? (
                         <CupBar onBack={() => leaveScreen(screen)} />
+                    ) : MENU_SCREENS.includes(screen) ? (
+                        // telas de menu: a mesma barra de cima da Home (treinador, títulos, x/151 e a engrenagem)
+                        <div className="k-topbar k-menubar">
+                            <TopBar />
+                            <TopActions profile={false} />
+                        </div>
                     ) : (
                         <button
                             type="button"
@@ -228,8 +236,6 @@ export default function App() {
                             <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />
                         </button>
                     )}
-                    {/* telas de menu: Configurações e Perfil no canto, como na Home (na partida e no draft, não) */}
-                    {MENU_SCREENS.includes(screen) && <TopActions />}
                 </header>
             )}
             {screen === 'home' &&
@@ -261,6 +267,7 @@ export default function App() {
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />
+            <MomentLayer />
             <CardModal />
             <FriendInvite />
             <FriendVitrine />
