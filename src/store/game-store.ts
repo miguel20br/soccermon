@@ -326,6 +326,11 @@ export interface Settings {
     cinematic: boolean;
     /** Velocidade nas chances de gol (gol, trave, defesa), mesmo no 8x. */
     chanceSpeed: ChanceSpeed;
+    /**
+     * Partida nova (?lab=hud): até que velocidade a câmera acompanha o lance de perto; acima disso a quadra aparece
+     * inteira. 0 = sempre a quadra inteira. Save sem o campo: 2.
+     */
+    camFollow?: 0 | 1 | 2 | 4 | 8;
     /** Nomes dos Pokémon na quadra. */
     namesOnField: NamesOnField;
     /** Setinha na cabeça dos Pokémon do seu time. */
@@ -358,6 +363,7 @@ export const DEFAULT_SETTINGS: Settings = {
     speed: 1,
     cinematic: true,
     chanceSpeed: 1,
+    camFollow: 2,
     namesOnField: 'all',
     arrowSize: 'medium',
     reduceMotion: 'system',

@@ -457,7 +457,7 @@
         border-radius: 3px;
         background: var(--frame-in);
     }
-    .is-leaving .k-sheet {
+    .is-leaving.is-leaving .k-sheet {
         animation: k-sheet-down 200ms var(--ease-out) both;
     }
 }

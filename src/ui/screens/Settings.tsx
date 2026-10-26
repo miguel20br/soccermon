@@ -26,6 +26,7 @@ import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
 import { HudIcon } from '../components/MatchHud';
+import { readHud } from '../hud-lab';
 import { iosBrowser, promptInstall, useInstall } from '../install';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 
@@ -171,6 +172,7 @@ const onOff = (on: string, off: string) => [
 export function Settings() {
     const { settings, updateSettings, go } = useGame();
     const [more, setMore] = useState(false);
+    const [hudOn] = useState(readHud);
     const set = updateSettings;
     const { t } = useT();
     const lang = useLang();
@@ -223,6 +225,23 @@ export function Settings() {
                         onPick={(speed) => set({ speed })}
                     />
                 </Row>
+                {/* partida nova (?lab=hud): até que velocidade a câmera fica de perto */}
+                {hudOn && (
+                    <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
+                        <Segmented
+                            label={t('settings.screen.camFollow')}
+                            value={settings.camFollow ?? 2}
+                            options={[
+                                { value: 1, label: '1x' },
+                                { value: 2, label: '2x' },
+                                { value: 4, label: '4x' },
+                                { value: 8, label: '8x' },
+                                { value: 0, label: t('settings.screen.camNever') },
+                            ]}
+                            onPick={(camFollow) => set({ camFollow })}
+                        />
+                    </Row>
+                )}
             </Group>
 
             <Group title={t('settings.screen.accessibility')}>

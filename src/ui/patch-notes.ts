@@ -18,6 +18,8 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece',
                     'A quadra da Arena ganhou as áreas, os gols e os escanteios',
+                    'Fechar uma janela (Tática, carta, confirmação) não pisca mais escuro',
+                    'As cartas do draft voltaram a mostrar os atributos como antes',
                 ],
             },
         ],
@@ -1754,6 +1756,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Tapping a Pokémon made it jump to another spot. Now it just hops, and anyone who needs to move fades out and back in',
                     'The Arena court now has the boxes, the goals and the corners',
+                    'Closing a panel (Tactics, card, confirmation) no longer flashes dark',
+                    'Draft cards show their stats like before again',
                 ],
             },
         ],

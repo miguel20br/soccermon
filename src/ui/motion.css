@@ -32,7 +32,9 @@
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* saída de modal e de `data-exit` (src/ui/exit-motion.ts): a cópia some com fade, a caixa encolhe um pouco */
-.is-leaving {
+/* `.is-leaving.is-leaving`: mais forte que a entrada de cada peça (.modal-backdrop, .k-sheet-back…). Sem isso a cópia
+   do fundo escuro rodava de novo a animação de ENTRADA ao fechar uma janela e a tela piscava escura (26/10) */
+.is-leaving.is-leaving {
     pointer-events: none;
     animation: leave-fade var(--dur-ui) var(--ease-out) both;
 }
@@ -40,7 +42,7 @@
     animation: none;
     transition: none;
 }
-.is-leaving .modal {
+.is-leaving.is-leaving .modal {
     animation: modal-out var(--dur-ui) var(--ease-out) both;
 }
 @keyframes leave-fade {

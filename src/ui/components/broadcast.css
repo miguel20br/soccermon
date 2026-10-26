@@ -1169,16 +1169,56 @@
  * mais largo que a tela, anda de lado seguindo a bola (court-follow.ts). Embaixo, 4 botões no lugar das abas, cada um
  * abre a sua sheet; o estado fica escrito no botão.
  */
+/* a partida inteira cabe na tela e não rola (26/10): o app vira uma coluna da altura da tela e a quadra fica com o que
+   sobra entre o placar e os botões; intervalo e painéis aparecem por cima da quadra */
+html:has(.bc-hud),
+body:has(.bc-hud) {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+.app:has(.bc-hud) {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+.bc.bc-hud {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.bc-hud > .bc-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.bc-hud > .bc-stage > .pitch-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.bc-hud > .bc-stage > :is(.ht-wrap, .sub-pending) {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 8px;
+    z-index: 6;
+    max-height: calc(100% - 16px);
+    overflow-y: auto;
+}
 .bc .pitch-wrap.hud-follow {
-    --hud-h: clamp(220px, calc(100svh - 330px - env(safe-area-inset-bottom)), 560px);
     position: relative;
     overflow: hidden;
 }
 .bc .pitch-wrap.hud-follow .phaser-container {
-    width: calc(var(--hud-h) * 968 / 528);
+    flex: 1 1 auto;
+    min-height: 0;
+    align-self: flex-start;
+    width: auto;
     max-width: none;
-    height: var(--hud-h);
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 968 / 528;
     will-change: transform;
 }
 /* 4x, 8x e Lances: a quadra inteira, parada; o Phaser (FIT) encaixa no meio e as sobras ficam escuras */
@@ -1187,7 +1227,9 @@
     transition: opacity 160ms var(--ease-out);
 }
 .bc .pitch-wrap.hud-follow.hud-full .phaser-container {
+    align-self: stretch;
     width: 100%;
+    aspect-ratio: auto;
 }
 .bc-hudbar {
     display: grid;

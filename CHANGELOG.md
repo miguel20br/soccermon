@@ -5,6 +5,8 @@
 ### Corrigido
 - Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece
 - A quadra da Arena ganhou as áreas, os gols e os escanteios
+- Fechar uma janela (Tática, carta, confirmação) não pisca mais escuro
+- As cartas do draft voltaram a mostrar os atributos como antes
 
 ## 0.9.23 · Vestiário (2026-10-26)
 

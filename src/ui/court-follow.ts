@@ -4,11 +4,15 @@ import { EventBus } from '../game/EventBus';
 /** O que a quadra seguindo a bola precisa da cena (a mesma interface do clipe 9:16, sem importar o Phaser). */
 interface FollowScene {
     ballOnScreen(): { x: number; y: number };
+    cameras: { main: { zoom: number } };
     setClipView(x: number, w: number): void;
     scale: { width: number; updateBounds(): void };
 }
 
-/** Deslocamento (px, ≤ 0) que centra a bola na janela, sem passar das bordas da quadra. */
+/** Quanto a câmera vai à frente do ataque: até 22% da janela, pro lado em que a bola anda. */
+export const LEAD = 0.22;
+
+/** Deslocamento (px, ≤ 0) que centra o ponto na janela, sem passar das bordas da quadra. */
 export function followOffset(ballX: number, view: number, full: number): number {
     return Math.min(0, Math.max(view - full, view / 2 - ballX));
 }
@@ -32,6 +36,10 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         let scene: FollowScene | null = null;
         let x: number | null = null;
         let mode: boolean | null = null;
+        // velocidade da bola na tela (px/s, suavizada): a câmera vai um pouco à frente, pro lado do ataque
+        let lastBall: number | null = null;
+        let lastT = 0;
+        let vel = 0;
         let swapping = false;
         let raf = 0;
         const onReady = (sc: FollowScene) => {
@@ -72,7 +80,19 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
             const full = inner.offsetWidth;
             if (!full || full <= view) return;
             const k = full / (scene.scale.width || full);
-            const target = followOffset(scene.ballOnScreen().x * k, view, full);
+            const now = performance.now();
+            const ball = scene.ballOnScreen().x * k;
+            if (lastBall !== null && now > lastT) {
+                const v = ((ball - lastBall) * 1000) / (now - lastT);
+                vel += (v - vel) * 0.06;
+            }
+            lastBall = ball;
+            lastT = now;
+            // lance especial (o jogo deu zoom: gol, golpe, defesa): segue o foco da câmera do jogo, o meio do canvas;
+            // fora disso, a bola mais um pouco à frente pro lado em que o ataque vai
+            const zoomed = scene.cameras.main.zoom > 1.02;
+            const focus = zoomed ? full / 2 : ball + Math.max(-LEAD * view, Math.min(LEAD * view, vel * 0.35));
+            const target = followOffset(focus, view, full);
             const next = x === null ? target : x + (target - x) * 0.12;
             if (x !== null && Math.abs(next - x) < 0.3) return;
             x = next;

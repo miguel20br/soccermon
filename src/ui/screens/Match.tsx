@@ -169,8 +169,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [hudSheet, setHudSheet] = useState<HudSheet | null>(null);
     const [hudFeedTab, setHudFeedTab] = useState<CoachTab>('feed');
     const pitchRef = useRef<HTMLDivElement>(null);
-    // 1x e 2x: a câmera segue a bola; 4x, 8x e Lances: a quadra inteira, parada
-    useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= 2);
+    // até a velocidade escolhida em Configurações (padrão 2x) a câmera segue o lance; acima, a quadra inteira
+    const camFollow = settings.camFollow ?? 2;
+    useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
     const latest = useRef<MatchResult | null>(match);
@@ -708,7 +709,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     onRetry={() => setSceneKey((k) => k + 1)}
                 />
             )}
-            <div className="bc">
+            <div className={`bc${hud ? ' bc-hud' : ''}`}>
                 <div className="bc-head" ref={scoreboardRef}>
                     <Scoreboard
                         names={teamNames}
