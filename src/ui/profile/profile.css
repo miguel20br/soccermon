@@ -955,9 +955,9 @@ fieldset.pf-field,
     opacity: 0.8;
 }
 .pf-chip.active {
-    border-color: var(--yellow);
-    color: var(--yellow);
-    background: var(--panel-2);
+    border-color: var(--pick-fill);
+    color: #fff;
+    background: var(--pick-fill);
 }
 .pf-types {
     display: flex;
@@ -985,7 +985,8 @@ fieldset.pf-field,
     opacity: 1;
 }
 .pf-type.active {
-    border-color: var(--yellow);
+    border-color: var(--blue-hi);
+    background: var(--pick-fill);
 }
 .pf-type .type-chip {
     background: none;

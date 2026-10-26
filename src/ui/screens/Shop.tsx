@@ -89,7 +89,7 @@ export function Shop() {
             ? t('shop.sold')
             : owned(o)
               ? t('shop.owned')
-              : money < o.price
+              : money < o.price && o.kind !== 'sponsor' // o Patrocínio já diz "₽10 · falta ₽2" no contrato da carta
                 ? t('shop.priceShort', { price: o.price, n: o.price - money })
                 : o.kind === 'sponsor'
                   ? t('shop.buyPlain') // o preço já está no contrato da carta

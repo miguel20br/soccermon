@@ -31,6 +31,9 @@
     --green-lo: color-mix(in srgb, var(--green-c), #063a10 50%);
     --red-hi: color-mix(in srgb, var(--red), #fff 36%);
     --red-lo: #8a1c1a;
+    /* ESCOLHIDO (uma forma por tamanho): pílula, aba e segmentado = azul cheio; cartão grande = anel azul claro */
+    --pick-fill: var(--blue-c);
+    --pick-ring: 0 0 0 3px var(--blue-hi), 0 3px 0 3px var(--cb-ink);
     /* sombra sempre dura: plaquinha e chip / botão e cartão / telão e sheet */
     --lift-1: 0 3px 0 var(--cb-ink);
     --lift-2: 0 5px 0 var(--cb-ink);
@@ -143,7 +146,7 @@
     color: #fff;
 }
 :is(.btn.big, .cb, .bc-thumbbar > .btn:is(.primary, .confirm)) small {
-    text-shadow: var(--k-out-1);
+    text-shadow: none; /* contorno só de 16 px pra cima: o subtítulo (13 px) é chapado */
 }
 .btn.small {
     --base: 4px;

@@ -14,6 +14,7 @@ import { startTapFeedback } from './ui/feedback';
 import { startMusicSync } from './ui/music-sync';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
+import { startThumbbarSpace } from './ui/thumbbar-space';
 import { startScreenTransitions } from './ui/view-transition';
 import './ui/styles.css';
 import './ui/broadcast-kit.css';
@@ -33,6 +34,7 @@ void importFromOldDomain();
 
 startScreenTransitions();
 startTabSlide();
+startThumbbarSpace();
 startExitMotion();
 startTapFeedback();
 

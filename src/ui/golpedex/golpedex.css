@@ -230,8 +230,8 @@
 }
 .gdx-type.on {
     opacity: 1;
-    border-color: var(--yellow);
-    background: color-mix(in srgb, var(--tc, var(--panel-2)) 45%, var(--bg-2));
+    border-color: var(--blue-hi);
+    background: var(--pick-fill);
 }
 .gdx-type:hover {
     opacity: 1;

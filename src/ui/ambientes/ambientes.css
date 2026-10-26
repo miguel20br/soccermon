@@ -4093,3 +4093,15 @@
 .rt-head h2 .bc-tag {
     text-shadow: none;
 }
+
+/* contorno de texto só de 16 px pra cima (kit B): título e subtítulo de 10 a 15 px dos botões e fichas são chapados */
+.amb .amb-tile.bc-tile b,
+.amb .amb-tile.bc-tile small,
+.amb .es-play .es-play-sub,
+.amb .es-slot-n small,
+.amb .res-me-txt b,
+.amb .res-chip b,
+.amb .res-lv .cb-num,
+.amb .amb-tab.on .amb-tab-lbl {
+    text-shadow: none;
+}
