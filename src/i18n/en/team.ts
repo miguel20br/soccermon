@@ -198,6 +198,8 @@ export const team: typeof pt = {
         item: 'Item',
     },
     inspect: {
+        /** Shortcut in the player panel (new match): opens the swap with them marked to leave. */
+        sub: 'Swap',
         buffed: 'Boosted by a move',
         debuffed: "Weakened by a rival's move",
         charged: 'Move charged for the next shot or tackle',

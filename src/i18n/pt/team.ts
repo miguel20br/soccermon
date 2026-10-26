@@ -201,6 +201,8 @@ export const team = {
         item: 'Item',
     },
     inspect: {
+        /** Atalho no painel do jogador (partida nova): abre a troca com ele marcado pra sair. */
+        sub: 'Trocar',
         buffed: 'Reforçado por um golpe',
         debuffed: 'Enfraquecido por um golpe do rival',
         charged: 'Golpe carregado pro próximo chute ou desarme',

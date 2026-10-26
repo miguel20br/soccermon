@@ -32,6 +32,7 @@ import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
+import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
@@ -168,7 +169,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [hudSheet, setHudSheet] = useState<HudSheet | null>(null);
     const [hudFeedTab, setHudFeedTab] = useState<CoachTab>('feed');
     const pitchRef = useRef<HTMLDivElement>(null);
-    useCourtFollow(hud, pitchRef);
+    // 1x e 2x: a câmera segue a bola; 4x, 8x e Lances: a quadra inteira, parada
+    useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= 2);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
     const latest = useRef<MatchResult | null>(match);
@@ -741,7 +743,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         ) : (
                             <div className="phaser-container" />
                         )}
-                        <Ticker lines={lines} colors={colors} />
+                        {/* partida nova: a caixa de texto da batalha no lugar da faixa da narração */}
+                        {hud ? (
+                            <BattleText lines={lines} colors={colors} speed={settings.speed} />
+                        ) : (
+                            <Ticker lines={lines} colors={colors} />
+                        )}
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
                         <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
@@ -755,6 +762,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             match={match}
                             setups={[lockedSetup, opponent]}
                             tactics={[currentTactic, opponent.tactic]}
+                            onSub={hud && canSub ? (uid) => openBoard(uid) : undefined}
                         />
                     </div>
                     {sceneSlow && !sceneReady && (

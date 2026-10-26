@@ -49,11 +49,14 @@ export function PlayerInspect({
     match,
     setups,
     tactics,
+    onSub,
 }: {
     match: MatchResult;
     setups: [TeamSetup, TeamSetup];
     /** Tática atual de cada time. */
     tactics: [Tactic, Tactic];
+    /** Seu Pokémon e dá pra trocar agora: o atalho "Trocar" abre a troca com ele já marcado pra sair. */
+    onSub?: (uid: string) => void;
 }) {
     const [open, setOpen] = useState<{ idx: number; tick: number } | null>(null);
     const { t, d, lang } = useT();
@@ -184,6 +187,19 @@ export function PlayerInspect({
                         </span>
                         <b>{Math.round(energy * 100)}%</b>
                     </div>
+                    {onSub && who.team === 0 && (
+                        <button
+                            type="button"
+                            className="btn inspect-sub"
+                            onClick={() => {
+                                close();
+                                onSub(inst.uid);
+                            }}
+                        >
+                            <HudIcon kind="sub" />
+                            {t('team.inspect.sub')}
+                        </button>
+                    )}
                     {target && !who.evolved && !who.transformed && (
                         <div className="inspect-energy evo">
                             <span>{t('team.inspect.evolution')}</span>
