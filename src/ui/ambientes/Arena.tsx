@@ -78,9 +78,15 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         <i className="ar-lamp" />
                     </div>
                     <div className="ar-court">
+                        {/* a quadra de rua inteira: piso pintado, linhas, as duas áreas, pênalti, escanteios e os gols */}
                         <svg className="ar-lines" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden>
+                            <rect className="ar-paint" x="4" y="4" width="192" height="92" />
                             <rect x="4" y="4" width="192" height="92" />
                             <line x1="100" y1="4" x2="100" y2="96" />
+                            <path d="M4 26 C 34 26 34 74 4 74 M196 26 C 166 26 166 74 196 74" />
+                            <path d="M4 10 A 6 6 0 0 0 10 4 M190 4 A 6 6 0 0 0 196 10 M196 90 A 6 6 0 0 0 190 96 M10 96 A 6 6 0 0 0 4 90" />
+                            <path className="ar-spot" d="M40 50 h0.01 M160 50 h0.01 M100 50 h0.01" />
+                            <path className="ar-goal" d="M4 41 H0 V59 H4 M196 41 H200 V59 H196" />
                         </svg>
                         <i className="ar-circle" />
                         <i className="ar-glow" />

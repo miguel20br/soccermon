@@ -151,7 +151,12 @@ export interface Actor extends Wild {
     shown: boolean;
     /** O chão onde ele está (`Area.ground`). */
     ground?: string;
+    /** Não cabe mais onde está: some com fade e só nessa hora (relógio da cena) muda de lugar. */
+    moveAt?: number;
 }
+
+/** Quanto o Pokémon que precisa mudar de lugar fica escondido antes de reaparecer (o fade do `.wild.off`). */
+export const HIDE_MS = 260;
 
 const WEIGHTS: Record<Mood, Partial<Record<Act, number>>> = {
     calm: { walk: 4, idle: 3, look: 2, hop: 1, emote: 1, chase: 1, sleep: 0.5 },
@@ -378,15 +383,25 @@ export function step(
         // o sprite ainda não carregou: sem tamanho, sem lugar certo
         if (area.bounds && !a.body) a.shown = false;
         else if (area.bounds && !fits(area, a.x, a.y, a.body)) {
-            const p = anySpot(a, actors, area, rand);
-            a.shown = !!p;
-            if (p) {
-                [a.x, a.y] = p;
-                a.tx = a.x;
-                a.ty = a.y;
-                if (a.act === 'walk' || a.act === 'chase' || a.act === 'flee') a.left = 0;
+            // nada teleporta: quem estava à vista some com fade aqui e só depois reaparece no lugar novo
+            if (a.shown) {
+                a.shown = false;
+                a.moveAt = now + HIDE_MS;
+            } else if (a.moveAt === undefined || now >= a.moveAt) {
+                const p = anySpot(a, actors, area, rand);
+                a.moveAt = undefined;
+                a.shown = !!p;
+                if (p) {
+                    [a.x, a.y] = p;
+                    a.tx = a.x;
+                    a.ty = a.y;
+                    if (a.act === 'walk' || a.act === 'chase' || a.act === 'flee') a.left = 0;
+                }
             }
-        } else if (area.bounds) a.shown = true;
+        } else if (area.bounds) {
+            a.shown = true;
+            a.moveAt = undefined;
+        }
         if (!a.shown) {
             if (`${a.act}${a.dir}${a.emote}${a.t0}${a.shown}` !== before) changed = true;
             continue;

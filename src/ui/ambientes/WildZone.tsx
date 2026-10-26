@@ -83,7 +83,8 @@ function measure(box: HTMLElement, area: Area, sel: Blockers, actors: Actor[], e
     for (const a of actors) {
         const el = els.get(a.key);
         const spr = el?.querySelector('.wild-mon');
-        if (!el || !spr) continue;
+        // no pulo o sprite sobe: medir aí "esticava" o corpo pra cima, ele deixava de caber e pulava de lugar no toque
+        if (!el || !spr || a.act === 'hop') continue;
         const f = el.getBoundingClientRect();
         const k = spr.getBoundingClientRect();
         if (k.width < 1) continue;

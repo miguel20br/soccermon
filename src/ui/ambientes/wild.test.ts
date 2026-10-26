@@ -7,6 +7,7 @@ import {
     CROWD,
     dirOf,
     fits,
+    HIDE_MS,
     MAX_WILD,
     POOLS,
     poke,
@@ -243,6 +244,31 @@ describe('Pokémon ambiente: ações', () => {
             }
         }
         expect(seen).toBeGreaterThan(all.length * 2000);
+    });
+
+    it('nada teleporta: quem deixa de caber (um botão apareceu em cima) some no lugar e só depois reaparece em outro', () => {
+        const rand = seeded(4);
+        const area = room();
+        const a = spawn({ key: 'a', id: 25, zone: 'floor', mood: 'calm' }, area, rand);
+        a.body = BODY;
+        step([a], { floor: area }, 50, 0, {}, rand);
+        expect(a.shown).toBe(true);
+        // um botão novo bem em cima dele
+        area.blocks = [...(area.blocks ?? []), [a.x - 0.1, a.y - 0.3, a.x + 0.1, a.y + 0.1]];
+        let t = 50;
+        let last: [number, number] = [a.x, a.y];
+        let hiddenFor = 0;
+        for (; t < 2000; t += 50) {
+            const wasShown = a.shown;
+            step([a], { floor: area }, 50, t, {}, rand);
+            // à vista nos dois quadros: a posição só pode andar um passo, nunca saltar
+            if (wasShown && a.shown) expect(Math.hypot(a.x - last[0], a.y - last[1])).toBeLessThan(0.05);
+            if (!a.shown) hiddenFor += 50;
+            last = [a.x, a.y];
+        }
+        expect(hiddenFor).toBeGreaterThanOrEqual(HIDE_MS - 50);
+        expect(a.shown).toBe(true);
+        expect(fits(area, a.x, a.y, a.body)).toBe(true);
     });
 
     it('ninguém atravessa ninguém: perseguir termina encostado, não um dentro do outro', () => {
