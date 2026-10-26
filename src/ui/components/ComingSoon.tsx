@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { ligaCountdown } from '../../league/rules';
 import { LONG_CUP_LIVE } from '../../store/long-cup';
+import { Sheet } from '../kit/Sheet';
 import { HudIcon } from './MatchHud';
 import { MenuIcon } from './MenuIcon';
 
@@ -71,6 +72,7 @@ export function ComingSoon() {
         ...d.home.soon.map((c, i) => ({ id: `soon${i}`, title: c.title, text: c.text, art: img(SOON_ART[i]) })),
     ];
     const cur = items.find((it) => it.id === open);
+    const closeSoon = () => setOpen(null);
 
     return (
         <section className="soon-strip" aria-labelledby="soon-title">
@@ -96,37 +98,14 @@ export function ComingSoon() {
                     </li>
                 ))}
             </ul>
-            {cur && (
-                // biome-ignore lint/a11y/noStaticElementInteractions: tocar fora fecha; o botão fecha pelo teclado
-                <div className="modal-backdrop soon-backdrop" onClick={() => setOpen(null)} role="presentation">
-                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o toque dentro feche */}
-                    <div
-                        className="modal panel soon-sheet"
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="soon-sheet-title"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            type="button"
-                            className="modal-close"
-                            onClick={() => setOpen(null)}
-                            aria-label={t('common.ui.close')}
-                            // biome-ignore lint/a11y/noAutofocus: o foco vai pra dentro da folha que acabou de abrir
-                            autoFocus
-                        >
-                            <HudIcon kind="close" />
-                        </button>
-                        <span className="soon-sheet-art" aria-hidden>
-                            {cur.art}
-                        </span>
-                        <span className="bc-tag">{t('home.soonRibbon')}</span>
-                        <h3 id="soon-sheet-title">{cur.title}</h3>
-                        <p>{cur.text}</p>
-                        {cur.note && <p className="soon-note">{cur.note}</p>}
-                    </div>
-                </div>
-            )}
+            <Sheet open={!!cur} onClose={closeSoon} title={cur?.title} className="soon-sheet">
+                <span className="soon-sheet-art" aria-hidden>
+                    {cur?.art}
+                </span>
+                <span className="bc-tag">{t('home.soonRibbon')}</span>
+                <p>{cur?.text}</p>
+                {cur?.note && <p className="soon-note">{cur.note}</p>}
+            </Sheet>
         </section>
     );
 }
