@@ -199,8 +199,27 @@ O site inteiro usa as peças da tela de partida (`src/ui/broadcast-kit.css`). Vi
   carta ou do item. O escolhido num seletor (`.bc-seg`) é azul: o dourado cheio fica só no JOGAR.
 - **Número com contorno** (`.cb-num`): Galmuri14 com o contorno de pixel de 2 px, pra ₽, x/151, nível, taças e placar.
   Só a partir de 15 px. A nota da carta não muda (carta só pela galeria `?cards=1`).
-- Raios: 4 (etiqueta), 6 (placar), 8 (botão), 10 (painel e carta). Sombra é sempre dura (sem desfoque), exceto o
-  brilho de seleção amarelo.
+- Raios: 4 (etiqueta), 6 (placar), 8 (botão), 10 (painel e carta), 14 (sheet, só em cima). Sombra é sempre dura (sem
+  desfoque), exceto o brilho de seleção amarelo.
+
+**Peças da 0.9.23 (Vestiário):**
+
+- **Sheet** (`src/ui/kit/Sheet.tsx`): no celular sobe de baixo (onde o dedo está), alça no topo, cantos de cima de 14 px;
+  no desktop é a janela do meio. Fecha no X **redondo e vermelho**, tocando fora ou com Esc. Toda janela nova é sheet.
+- **Confirmação** (`ConfirmSheet`): sheet curta, título com a pergunta ("Abandonar a copa?"), o que se perde numa
+  linha, "Cancelar" terciário à esquerda e o perigo vermelho à direita. Nunca confirmação no meio da página.
+- **Barra da copa** (`CupBar.tsx`): nas telas de dentro da copa, no lugar do logo. Botão-ícone de voltar (quadrado de
+  44 px, chanfrado azul-noite), a fase numa placa com faixa amarela (nome curto: Oitavas, Quartas; na Rota "Partida
+  3 de 8") e o que se tem na copa em plaquinhas com número contornado (₽, sorteios). **A fase só aparece aqui**: a tela
+  embaixo não repete. No Eliminado e no Campeão volta o logo.
+- **Lugar de tela** (o vestiário, `src/ui/vestiario.css`): a escalação fica numa lousa azul de tática (giz de X, O e
+  seta, moldura de madeira) com os quadros pendurados que abrem sheet: cortiça = a chave e a copa, quadro-branco = a
+  tática. A prancheta encosta na lousa e fica na 1ª tela.
+- **Barra de botões da partida** (`?lab=hud`): 4 botões azul-noite chanfrados (Tática, Trocar, Tempo, Lances), cada um
+  com o estado escrito embaixo, cada um abre a sua sheet. O Golpe Máximo mora na barra fixa de baixo, sempre à vista,
+  enchendo por dentro em 3 gomos; tocar antes da hora explica quando acende.
+- **Cartas do draft** (`.cards-legible`): as 3 lado a lado mostram os 6 atributos em grade 3x2, tudo com 10 px ou mais;
+  o bônus vira a cor do número (verde sobe, vermelho desce). A carta em si não muda.
 
 ### Ícones
 
@@ -232,6 +251,13 @@ muda pela galeria `?cards=1` com o ok do Miguel.
 - Durações: botão afunda em 0,06 s, hover em 0,15 s, entrada de painel em 0,2 a 0,3 s. Loop só em decoração leve
   (pacote de cartas flutuando 3,2 s, a carta da tela de carregamento 1,6 s).
 - Anime `transform` e `opacity`, não `width`, `left` nem `height`.
+- Tokens (`kit.css`): `--dur-toque` 60 ms (afundar), `--dur-solta` 180 ms (quique de volta), `--dur-ui` 200 ms (abas,
+  seleção), `--dur-tela` 280 ms (troca de tela, sheet subindo), `--dur-pop` 320 ms (entrada com pulo: o "Começar!" do
+  VS quando a quadra fica pronta). A sheet desce em 200 ms ao fechar.
+- **Momento** (protótipo no `?lab=kit`, transição de momento): uma linha amarela desce na diagonal, do canto de cima
+  à direita ao de baixo à esquerda, e revela um papel de parede com o logo numa placa; o papel sai da direita pra
+  esquerda (~1,1 s). Só pra momento (começar a copa, entrar em quadra, título), nunca em troca de tela comum.
+- Nada vai sozinho pra outra tela: o fim de jogo espera o toque em "Ver resultado".
 - Na partida (`src/game/`), o peso vem do impacto em 4 níveis (`punch()` no `MatchScene`), câmera lenta igual pra
   gol, trave e defesa, rastro do tipo na bola e flash no gol.
 - **Reduzir movimento** (Configurações > Acessibilidade: Seguir o aparelho, Ligado, Desligado):
