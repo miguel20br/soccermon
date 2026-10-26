@@ -683,7 +683,7 @@ export function ResultButton({
         <>
             <button
                 type="button"
-                className={`btn primary bc-result${counting ? ' counting' : ''}`}
+                className={`btn confirm bc-result${counting ? ' counting' : ''}`}
                 style={{ '--fill': 1 - auto.left } as CSSProperties}
                 onClick={onGo}
             >

@@ -394,6 +394,11 @@ img.pixel {
     justify-content: flex-end;
     gap: 8px;
 }
+/* "Monta pra mim" do tamanho do rótulo, sem espremer */
+.bc-thumbbar > .draft-auto-go {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 .draft-auto p {
     flex: 1 1 100%;
     margin: 0;
@@ -1087,7 +1092,8 @@ button,
 }
 .formation-option:hover {
     transform: translateY(-3px);
-    border-color: var(--yellow);
+    /* formação escolhida em azul: o dourado fica só no JOGAR */
+    border-color: var(--blue-c);
 }
 .formation-diagram {
     width: 90px;
@@ -6794,9 +6800,14 @@ p.muted.center a {
     bottom: max(18px, env(safe-area-inset-bottom));
     z-index: 120;
     padding: 8px 16px;
-    border-radius: 999px;
-    background: var(--panel-2);
-    border: 2px solid var(--yellow);
+    /* o material do kit: moldura preta, faixa de cima amarela, base dura */
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--yellow);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        0 4px 0 var(--bc-edge);
     color: var(--text);
     font-weight: 700;
     transform: translateX(-50%);

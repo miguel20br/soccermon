@@ -461,7 +461,7 @@ function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: 
             </div>
             {!compact && <p className="muted duel-invite-hint">{t('duel.lobby.inviteHint')}</p>}
             <div className="row duel-share">
-                <button type="button" className="btn primary" data-testid="duel-share" onClick={share}>
+                <button type="button" className="btn" data-testid="duel-share" onClick={share}>
                     {t('duel.lobby.share')}
                 </button>
                 <a className="btn whatsapp" href={wa} target="_blank" rel="noopener" data-testid="duel-wa">
@@ -572,7 +572,7 @@ function WaitBanner({ s, role }: { s: Shared; role: Role }) {
             ) : (
                 <>
                     <span>{t('duel.wait.can', { name })}</span>
-                    <button type="button" className="btn small primary" onClick={() => duel.dispatch({ k: 'claimWO' })}>
+                    <button type="button" className="btn small confirm" onClick={() => duel.dispatch({ k: 'claimWO' })}>
                         {t('duel.wait.claim')}
                     </button>
                 </>

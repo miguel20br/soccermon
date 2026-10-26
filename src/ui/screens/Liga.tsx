@@ -221,7 +221,7 @@ export function Liga() {
                             <p className="lg-note">{errText(finishError!)}</p>
                             <button
                                 type="button"
-                                className="btn primary"
+                                className="btn confirm"
                                 onClick={() => void useLiga.getState().finish()}
                             >
                                 {t('liga.retry')}

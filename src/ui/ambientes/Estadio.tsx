@@ -593,7 +593,7 @@ export function Estadio({
                             <div className="row" style={{ justifyContent: 'center' }}>
                                 <button
                                     type="button"
-                                    className="btn cb cb-green"
+                                    className="btn confirm"
                                     onClick={() => play(confirm.seed, confirm.mode)}
                                 >
                                     {t('home.confirmYes')}

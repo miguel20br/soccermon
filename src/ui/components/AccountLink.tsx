@@ -62,7 +62,7 @@ function SideCard({
                 {s.parked > 0 && <li>{tn('account.parked', s.parked)}</li>}
             </ul>
             {pick && (
-                <button type="button" className="btn primary link-pick" disabled={busy} onClick={pick}>
+                <button type="button" className="btn confirm link-pick" disabled={busy} onClick={pick}>
                     {pickLabel}
                 </button>
             )}
@@ -140,7 +140,7 @@ function AskDialog({ ask }: { ask: LinkAsk }) {
                     {!ask.cupChoice && (
                         <button
                             type="button"
-                            className="btn primary big"
+                            className="btn confirm big"
                             disabled={busy}
                             onClick={() => answer(ask.keep)}
                             // biome-ignore lint/a11y/noAutofocus: o foco vai para a resposta principal da janela que acabou de abrir

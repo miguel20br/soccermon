@@ -455,7 +455,7 @@ function NodeSheet({
                     </span>
                 </div>
             )}
-            <button type="button" className="btn primary wide" onClick={onGo}>
+            <button type="button" className="btn confirm wide" onClick={onGo}>
                 {t('longCup.go')}
                 <HudIcon kind="next" />
             </button>
@@ -519,7 +519,7 @@ export function Training() {
                     <p className="muted">{t('longCup.treino.itemLine')}</p>
                     <button
                         type="button"
-                        className="btn primary"
+                        className="btn confirm"
                         onClick={() => {
                             train('item');
                         }}

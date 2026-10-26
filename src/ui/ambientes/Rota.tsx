@@ -504,7 +504,7 @@ export function Rota({
                     <div className="confirm-new es-confirm bc-surface">
                         <p>{t('home.confirmNew', { team: run?.teamName ?? '' })}</p>
                         <div className="row" style={{ justifyContent: 'center' }}>
-                            <button type="button" className="btn cb cb-green" onClick={begin}>
+                            <button type="button" className="btn confirm" onClick={begin}>
                                 {t('home.confirmYes')}
                             </button>
                             <button type="button" className="btn ghost" onClick={() => setConfirm(false)}>

@@ -193,7 +193,7 @@ export function HalftimePanel({
                         {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
                     </button>
                     {ready ?? (
-                        <button type="button" className="btn primary" onClick={onContinue}>
+                        <button type="button" className="btn primary big" onClick={onContinue}>
                             {t('match.ht.continue')}
                         </button>
                     )}

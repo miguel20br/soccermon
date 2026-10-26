@@ -239,7 +239,7 @@ export function Daily() {
                         </ul>
                         <div className="row lg-actions">
                             {entry.results.length > 0 && (
-                                <button type="button" className="btn primary" onClick={share}>
+                                <button type="button" className="btn" onClick={share}>
                                     {shared ? t('liga.daily.copied') : t('liga.daily.share')}
                                 </button>
                             )}

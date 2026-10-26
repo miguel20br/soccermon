@@ -46,6 +46,6 @@ describe('botão do VERSUS', () => {
         const out = renderToStaticMarkup(
             createElement(VersusIntro, { home, away, stage: 'Quartas', ready: false, onDone: noop }),
         );
-        expect(out).toMatch(/<button[^>]*class="btn primary vs-start loading"[^>]*disabled=""/);
+        expect(out).toMatch(/<button[^>]*class="btn primary big vs-start loading"[^>]*disabled=""/);
     });
 });

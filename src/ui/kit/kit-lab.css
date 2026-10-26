@@ -85,3 +85,12 @@
         gap: 6px;
     }
 }
+.kl-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 6px;
+}
+.kl-chips .k-chip {
+    margin-top: 0;
+}

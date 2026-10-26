@@ -207,6 +207,7 @@ export function Lineup() {
                                 disabled={loading || !!outStarter}
                                 aria-describedby={outStarter ? 'lineup-play-why' : undefined}
                             >
+                                <i className="cb-shine" aria-hidden />
                                 {loading
                                     ? t('team.lineup.warming')
                                     : locked

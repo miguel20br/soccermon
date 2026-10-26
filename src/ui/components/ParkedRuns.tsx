@@ -32,7 +32,7 @@ export function ParkedRuns() {
                 <div className="row" style={{ justifyContent: 'center' }}>
                     <button
                         type="button"
-                        className="btn primary"
+                        className="btn confirm"
                         onClick={() => {
                             if (ask.kind === 'swap') resumeParked(ask.seed);
                             else discardParked(ask.seed);

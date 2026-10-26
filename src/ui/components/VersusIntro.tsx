@@ -118,14 +118,14 @@ export function VsStartButton({
         );
     if (startsIn !== undefined)
         return (
-            <div className={`btn primary vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
+            <div className={`btn primary big vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
                 {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
             </div>
         );
     return (
         <button
             type="button"
-            className={`btn primary vs-start${ready ? '' : ' loading'}`}
+            className={`btn primary big vs-start${ready ? '' : ' loading'}`}
             disabled={!ready}
             aria-busy={!ready}
             onClick={ready ? onStart : undefined}

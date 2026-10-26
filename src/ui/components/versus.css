@@ -430,7 +430,6 @@
     width: fit-content;
     min-width: 200px;
     margin: 0 auto;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     animation: vs-fade 0.4s 1.2s ease both;
 }
 /* carregando a quadra: barrinha correndo dentro do botão (o botão sozinho parecia travado) */

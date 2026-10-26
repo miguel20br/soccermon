@@ -54,8 +54,8 @@ function TeamAvg({ avg }: { avg: number }) {
 
 /**
  * "Monta pra mim": completa o draft com a melhor carta pra cada vaga (escolha do jogador, pede confirmação).
- * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho. Sempre discreto (terciário,
- * docs/planos/revamp-ui.md decisão 12): a escolha é das cartas.
+ * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho. Secundário azul baixo (o kit B
+ * aprovado em 26/10): a escolha é das cartas.
  */
 function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string }) {
     const { run, autoDraft } = useGame();
@@ -84,9 +84,9 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                     </button>
                 </>
             ) : (
-                // fantasma à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
+                // secundário à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
                 <>
-                    <button type="button" className="btn ghost draft-auto-go" onClick={() => setAsk(true)}>
+                    <button type="button" className="btn draft-auto-go" onClick={() => setAsk(true)}>
                         <HudIcon kind="skip" />
                         {t('team.draft.auto')}
                     </button>

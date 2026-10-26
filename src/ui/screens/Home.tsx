@@ -144,7 +144,7 @@ export function Home() {
             <div className="row" style={{ justifyContent: 'center' }}>
                 <button
                     type="button"
-                    className="btn primary"
+                    className="btn confirm"
                     onClick={() => newRun(name(), confirm ?? undefined, undefined, pendingMode)}
                 >
                     {t('home.confirmYes')}

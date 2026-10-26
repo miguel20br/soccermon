@@ -295,7 +295,7 @@ export function PlayerInspect({
                                 );
                             })}
                         </div>
-                        <button type="button" className="btn primary" onClick={close}>
+                        <button type="button" className="btn confirm" onClick={close}>
                             {t('team.inspect.back')}
                         </button>
                     </div>

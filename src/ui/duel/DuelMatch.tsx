@@ -878,7 +878,7 @@ function SpeedAsk({ rivalName }: { rivalName: string }) {
                 <span className="row sa-actions">
                     <button
                         type="button"
-                        className="btn small primary"
+                        className="btn small confirm"
                         data-testid="speed-yes"
                         onClick={() => duel.dispatch({ k: 'speedAnswer', yes: true })}
                     >

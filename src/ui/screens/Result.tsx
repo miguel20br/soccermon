@@ -160,7 +160,7 @@ export function Result() {
                         </button>
                     </>
                 ) : (
-                    <button type="button" className="btn primary big" onClick={advance}>
+                    <button type="button" className="btn confirm big" onClick={advance}>
                         {run.status === 'map'
                             ? t('longCup.backToMap')
                             : run.status === 'group'

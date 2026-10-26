@@ -484,7 +484,7 @@ export function TrophyRoom() {
                                 <HudIcon kind="prev" />
                             </button>
                             {card.action && (
-                                <button type="button" className="btn small primary" onClick={card.action.run}>
+                                <button type="button" className="btn small confirm" onClick={card.action.run}>
                                     {card.action.label}
                                 </button>
                             )}

@@ -245,7 +245,7 @@ export function Onboarding() {
                         ))}
                     </div>
                     {last ? (
-                        <button type="button" className="btn primary ob-go" onClick={close}>
+                        <button type="button" className="btn primary big ob-go" onClick={close}>
                             {o.go}
                         </button>
                     ) : (

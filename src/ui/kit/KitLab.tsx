@@ -3,16 +3,15 @@ import { TopBar, useCountUp } from '../ambientes/TopBar';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
 import './kit-lab.css';
-import { KitCompare } from './KitCompare';
 
 /** Um botão de cada função, do jeito que as telas usam (`.btn` + modificador). */
 const ROLES: { cls: string; name: string; use: string; label: string; icon?: HudIconKind }[] = [
-    { cls: 'primary', name: 'Dourado', use: 'joga (um por tela)', label: 'Jogar', icon: 'play' },
-    { cls: 'confirm', name: 'Verde', use: 'confirma, compra, segue, escolhe', label: 'Comprar · ₽4', icon: 'check' },
+    { cls: 'primary', name: 'Dourado', use: 'joga (o gordo da tela)', label: 'Jogar', icon: 'play' },
+    { cls: 'confirm', name: 'Verde', use: 'segue, confirma (o gordo da tela)', label: 'Seguir', icon: 'next' },
     {
         cls: '',
         name: 'Azul',
-        use: 'secundário (sortear, compartilhar, ir a um lugar)',
+        use: 'secundário, sempre baixo (sortear, compartilhar, Monta pra mim)',
         label: 'Sortear',
         icon: 'reroll',
     },
@@ -42,14 +41,12 @@ function Num({ n, of, size }: { n: number; of?: number; size: number }) {
 }
 
 /**
- * Galeria do kit (?lab=kit, só no dev e nas prévias): os 5 botões por função e seus estados, painel chapado contra
- * peça clicável (base escura = dá pra tocar), número com contorno e a barra de topo. Pra aprovar antes de espalhar.
+ * Galeria do kit (?lab=kit, só no dev e nas prévias): os botões por função e seus estados, o chip de lista, o painel com
+ * a placa, número com contorno e a barra de topo. A hierarquia é a variante B aprovada em 26/10 (um gordo por tela).
  */
 export function KitLab({ onExit }: { onExit: () => void }) {
     const [sel, setSel] = useState(1);
     const [run, setRun] = useState(0);
-    // ?lab=kit&v=comparar: as 3 variantes do kit nas telas de verdade
-    if (new URLSearchParams(window.location.search).get('v') === 'comparar') return <KitCompare />;
     return (
         <div className="kl">
             <header className="kl-head bc-screenhead">
@@ -67,7 +64,10 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                     <b className="kl-play-verb">Jogar</b>
                     <small>Copa Relâmpago · 4 jogos</small>
                 </button>
-                <p className="muted">Dourado, o maior da tela, com o brilho passando a cada 4 s. Um por tela.</p>
+                <p className="muted">
+                    Dourado, o maior da tela, com o brilho passando a cada 4 s. Cada tela tem um botão gordo só: dourado
+                    se joga, verde se segue. Contorno no texto só de 16 px pra cima.
+                </p>
             </section>
 
             <section className="panel">
@@ -98,6 +98,24 @@ export function KitLab({ onExit }: { onExit: () => void }) {
             </section>
 
             <section className="panel">
+                <h2>Ação de lista</h2>
+                <div className="kl-chips">
+                    <button type="button" className="btn small confirm k-chip">
+                        Comprar · ₽4
+                    </button>
+                    <button type="button" className="btn small k-chip">
+                        Ver carta
+                    </button>
+                    <button type="button" className="btn small confirm k-chip" disabled>
+                        Faltam ₽3
+                    </button>
+                </div>
+                <p className="muted">
+                    Comprar, Escalar, Escolher, Ensinar: o chip baixo preso na borda de baixo da carta ou do item.
+                </p>
+            </section>
+
+            <section className="panel">
                 <h2>Estados</h2>
                 <div className="kl-states">
                     <figure>
@@ -123,6 +141,16 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                         <figcaption>selecionado: anel dourado</figcaption>
                     </figure>
                     <figure>
+                        <div className="bc-seg">
+                            {['2-2', '1-2-1', '3-1'].map((f, i) => (
+                                <button key={f} type="button" aria-pressed={sel === i} onClick={() => setSel(i)}>
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                        <figcaption>escolhido no seletor: azul</figcaption>
+                    </figure>
+                    <figure>
                         <button type="button" className="btn confirm" disabled>
                             Comprar · ₽7
                         </button>
@@ -133,17 +161,17 @@ export function KitLab({ onExit }: { onExit: () => void }) {
             </section>
 
             <section className="panel">
-                <h2>Base escura = dá pra tocar</h2>
+                <h2>Painel e peça</h2>
                 <div className="kl-base">
                     <div className="panel kl-info">
-                        <b>Painel de informação</b>
-                        <span className="muted">Moldura dupla, chapado: sem base, não é botão.</span>
+                        <b>Painel</b>
+                        <span className="muted">Moldura dupla grossa e base dura; o título vai na placa, em cima.</span>
                     </div>
                     <button type="button" className="bc-tile">
                         <HudIcon kind="cup" />
                         <span>
                             <b>Peça clicável</b>
-                            <small>Tem base escura: dá pra tocar</small>
+                            <small>Afunda no toque</small>
                         </span>
                     </button>
                 </div>

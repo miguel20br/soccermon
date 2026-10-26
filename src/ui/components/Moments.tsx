@@ -210,7 +210,7 @@ export function Moments({
                                 {t('moments.download')}
                             </button>
                             {canShare && (
-                                <button type="button" className="btn primary" onClick={share}>
+                                <button type="button" className="btn" onClick={share}>
                                     {t('moments.share')}
                                 </button>
                             )}
@@ -235,12 +235,12 @@ export function Moments({
                         ) : (
                             <div className="row moments-actions">
                                 {done ? (
-                                    <button type="button" className="btn primary" onClick={() => restart(0)}>
+                                    <button type="button" className="btn confirm" onClick={() => restart(0)}>
                                         {t('moments.again')}
                                     </button>
                                 ) : (
                                     index < clips.length - 1 && (
-                                        <button type="button" className="btn primary" onClick={next}>
+                                        <button type="button" className="btn confirm" onClick={next}>
                                             {t('moments.next')}
                                         </button>
                                     )

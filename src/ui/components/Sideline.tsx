@@ -483,7 +483,7 @@ export function TimeoutPanel({
                 <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
                     {t('match.substitute')}
                 </button>
-                <button type="button" className="btn primary" onClick={onBack}>
+                <button type="button" className="btn confirm" onClick={onBack}>
                     {a.back}
                 </button>
             </div>
@@ -570,7 +570,7 @@ export function PenaltyOrderPanel({
                 </button>
                 <button
                     type="button"
-                    className="btn primary"
+                    className="btn confirm"
                     disabled={busy}
                     onClick={() => onConfirm(list.map((p) => p.uid))}
                 >

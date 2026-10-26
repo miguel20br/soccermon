@@ -124,7 +124,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                 <div className="rm-actions">
                     <button
                         type="button"
-                        className="btn big cup-go rm-go cb cb-blue"
+                        className="btn big cup-go rm-go cb cb-green"
                         onClick={() => openDoor('trophies')}
                     >
                         <span className="cup-go-txt">

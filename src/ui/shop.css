@@ -201,7 +201,8 @@ button.sp-slot:hover {
     grid-template-rows: 1fr auto;
     justify-items: center;
     align-self: stretch;
-    gap: 8px;
+    /* o chip de comprar encosta na borda de baixo da carta */
+    gap: 0;
     width: var(--fut-w);
     transition:
         opacity 250ms var(--ease-out),
@@ -213,8 +214,14 @@ button.sp-slot:hover {
     min-height: 250px;
     height: 100%;
 }
-.shop-offer > .btn {
-    width: 100%;
+.k-pack > .shop-buy {
+    margin-top: 6px;
+}
+/* patrocínio: o chip no canto de baixo do contrato */
+.k-sponsor > .shop-buy {
+    margin-top: -10px;
+    margin-right: 14px;
+    justify-self: end;
 }
 .shop-offer.sold {
     opacity: 0.45;
@@ -323,17 +330,6 @@ button.sp-slot:hover {
 /* ---------- prateleiras do Mercado (contratações, pacote e item, Patrocínio) ---------- */
 .shop-shelf {
     margin-top: 14px;
-}
-.shop-shelf-title {
-    display: inline-block;
-    margin: 0 0 8px;
-    padding: 3px 10px 2px;
-    border-radius: 4px;
-    background: var(--bc-ink);
-    color: var(--yellow);
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
 }
 .shop-shelf .shop-grid {
     margin: 0;

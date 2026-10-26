@@ -28,7 +28,7 @@ export function AddFriendButton({ peer }: { peer: { id: string; anon?: boolean }
         <div className="fr-addbtn">
             <button
                 type="button"
-                className="btn primary"
+                className="btn confirm"
                 disabled={!!blocked || state === 'busy' || done}
                 data-testid="add-friend"
                 onClick={async () => {

@@ -9,7 +9,13 @@
  *   vermelho .btn.danger   / .cb-red    perigo e fechar, só dentro da confirmação
  *   terciário .btn.ghost                pular, cancelar, voltar (sem face); .ghost.danger = gatilho do perigo
  *
- * Regra de ouro: base escura embaixo = dá pra tocar. Painel só de informação é chapado (moldura sem base).
+ * Hierarquia (variante B do ?lab=kit&v=comparar, aprovada em 26/10): cada tela tem UM botão gordo, o da barra do polegar
+ * (.bc-thumbbar) ou um .big: dourado se for jogar, verde se for seguir ou confirmar. O secundário azul é baixo e chapado.
+ * Ação repetida de lista (Comprar, Escalar, Escolher, Ensinar) é o chip baixo (.k-chip, .fut-action, .shop-buy) preso
+ * na carta ou no item. Contorno de texto só em botão de 16 px ou mais (.big, .cb e o da barra).
+ *
+ * Painel (material da variante C, sem a textura): moldura dupla grossa com base dura; o título do painel é a placa do
+ * Estádio (moldura preta, faixa amarela em cima), pendurada na borda de cima (broadcast-kit.css).
  */
 :root {
     --cb-ink: #0b0f24;
@@ -45,12 +51,15 @@
         -2px 2px 0 var(--ol, var(--cb-ink)), -2px 0 0 var(--ol, var(--cb-ink)), 0 4px 0 var(--ol, var(--cb-ink));
 }
 
-/* ---------- painel: moldura dupla, chapado (informação não tem base) ---------- */
+/* ---------- painel: moldura dupla grossa com base dura ---------- */
 .panel {
-    background: var(--panel);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 5%), var(--panel));
     border: 3px solid var(--cb-ink);
     border-radius: var(--radius);
-    box-shadow: inset 0 0 0 2px var(--frame-in);
+    box-shadow:
+        inset 0 0 0 3px var(--frame-in),
+        inset 0 0 0 5px rgb(11 15 36 / 60%),
+        0 4px 0 var(--cb-ink);
     padding: 16px;
 }
 .panel h2,
@@ -98,7 +107,6 @@
         0 4px 0 var(--cb-ink);
     color: #fff;
     font-weight: 700;
-    text-shadow: var(--k-out-1);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
@@ -107,18 +115,22 @@
         box-shadow var(--dur-solta) var(--ease-pop),
         filter 150ms var(--ease-out);
 }
-.btn .hud-icon,
-.cb .hud-icon {
-    filter: drop-shadow(1px 0 0 var(--ol)) drop-shadow(-1px 0 0 var(--ol)) drop-shadow(0 1px 0 var(--ol))
-        drop-shadow(0 -1px 0 var(--ol));
+/* o botão gordo da tela: o .big, o .cb dos ambientes e o dourado ou verde da barra do polegar */
+.bc-thumbbar > .btn:is(.primary, .confirm) {
+    --base: 6px;
+    min-height: 56px;
+    padding: 10px 22px calc(8px + var(--base));
+    font-size: 18px;
 }
-/* texto grande: contorno grosso de 2 px (o do Clash) */
+/* contorno de texto só de 16 px pra cima: grosso, de 2 px (o do Clash); o resto é texto chapado */
 .btn.big,
-.cb {
+.cb,
+.bc-thumbbar > .btn:is(.primary, .confirm) {
     text-shadow: var(--k-out-2);
 }
 .btn.big .hud-icon,
-.cb .hud-icon {
+.cb .hud-icon,
+.bc-thumbbar > .btn:is(.primary, .confirm) .hud-icon {
     filter: drop-shadow(2px 0 0 var(--ol)) drop-shadow(-2px 0 0 var(--ol)) drop-shadow(0 2px 0 var(--ol))
         drop-shadow(0 -2px 0 var(--ol));
 }
@@ -129,6 +141,8 @@
 .cb small {
     font-family: "Galmuri11", monospace;
     color: #fff;
+}
+:is(.btn.big, .cb, .bc-thumbbar > .btn:is(.primary, .confirm)) small {
     text-shadow: var(--k-out-1);
 }
 .btn.small {
@@ -176,12 +190,6 @@
     --lo: var(--gold-lo);
     --ol: var(--gold-ol);
 }
-.btn.primary {
-    text-shadow: var(--k-out-2);
-}
-.btn.primary.small {
-    text-shadow: var(--k-out-1);
-}
 /* verde: confirmar, comprar, seguir, escolher */
 .btn.confirm,
 .cb-green {
@@ -204,6 +212,59 @@
     --hi: var(--red-hi);
     --lo: var(--red-lo);
     --ol: #4a0b0a;
+}
+/* secundário azul: baixo, face lisa, base fina (o gordo é só a ação da tela) */
+.btn:not(.primary, .confirm, .danger, .ghost, .big, .cb) {
+    --base: 3px;
+    padding: 5px 12px calc(4px + var(--base));
+    border-width: 2px;
+    border-radius: 8px;
+    background: var(--c);
+    box-shadow:
+        inset 0 calc(-1 * var(--base)) 0 var(--lo),
+        0 3px 0 var(--cb-ink);
+    font-size: 12px;
+}
+/* ação repetida de lista (Comprar, Escalar, Escolher, Ensinar): chip baixo preso na borda de baixo da carta ou do item;
+   verde se escolhe ou compra (.confirm), azul se só mostra */
+.btn:is(.k-chip, .fut-action, .shop-buy) {
+    --base: 0px;
+    z-index: 2;
+    min-height: 0;
+    /* encosta só na moldura de baixo: não cobre os atributos */
+    margin-top: -6px;
+    padding: 5px 12px 6px;
+    white-space: nowrap;
+    border: 2px solid var(--blue-c);
+    border-radius: 999px;
+    background: var(--bc-ink);
+    box-shadow: 0 3px 0 var(--cb-ink);
+    color: var(--blue-hi);
+    font:
+        700 12px / 1.2 "Galmuri11",
+        monospace;
+    text-shadow: none;
+    transition: transform var(--dur-solta) var(--ease-out);
+}
+.btn.confirm:is(.k-chip, .fut-action, .shop-buy) {
+    border-color: var(--green-c);
+    color: var(--green-hi);
+}
+.btn:is(.k-chip, .fut-action, .shop-buy) .hud-icon {
+    width: 14px;
+    height: 14px;
+    filter: none;
+}
+.btn:is(.k-chip, .fut-action, .shop-buy):active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--cb-ink);
+    transition-duration: var(--dur-toque);
+}
+.btn:is(.k-chip, .fut-action, .shop-buy):disabled {
+    border-color: var(--line);
+    background: var(--bc-ink);
+    color: var(--muted);
+    box-shadow: none;
 }
 /* terciário: sem face e sem base; o toque ainda afunda */
 .btn.ghost {
