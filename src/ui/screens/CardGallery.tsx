@@ -367,17 +367,6 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         <SponsorSlots sponsors={['silph', 'cassino']} />
                     </div>
                 </section>
-                <section className="panel" id="draft-legivel">
-                    <h2>Draft: os 6 atributos em grade 3x2, 10 px ou mais (variante B, escolhida em 26/10)</h2>
-                    <div className="cg-row cards-legible" style={{ '--fut-w': '117px' } as React.CSSProperties}>
-                        {METAL_ROWS.slice(0, 3).map((s) => (
-                            <figure key={s.key} className="cg-item">
-                                <FutCard inst={withEdition(s.inst, 'none')} />
-                                <figcaption className="muted">{s.label}</figcaption>
-                            </figure>
-                        ))}
-                    </div>
-                </section>
                 <section className="panel">
                     <h2>Bronze, prata e ouro (pela nota) · fosco = comum, brilhante = raro</h2>
                     <div className="cg-row">
