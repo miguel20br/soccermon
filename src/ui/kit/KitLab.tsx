@@ -3,6 +3,7 @@ import { TopBar, useCountUp } from '../ambientes/TopBar';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
 import './kit-lab.css';
+import { KitCompare } from './KitCompare';
 
 /** Um botão de cada função, do jeito que as telas usam (`.btn` + modificador). */
 const ROLES: { cls: string; name: string; use: string; label: string; icon?: HudIconKind }[] = [
@@ -47,6 +48,8 @@ function Num({ n, of, size }: { n: number; of?: number; size: number }) {
 export function KitLab({ onExit }: { onExit: () => void }) {
     const [sel, setSel] = useState(1);
     const [run, setRun] = useState(0);
+    // ?lab=kit&v=comparar: as 3 variantes do kit nas telas de verdade
+    if (new URLSearchParams(window.location.search).get('v') === 'comparar') return <KitCompare />;
     return (
         <div className="kl">
             <header className="kl-head bc-screenhead">
