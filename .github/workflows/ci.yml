@@ -71,8 +71,9 @@ jobs:
         run: |
           npx vite preview --config vite/config.prod.mjs --port 4173 --strictPort &
           for i in $(seq 30); do curl -fs http://localhost:4173/ > /dev/null && break; sleep 1; done
-          # páginas: Home, Movedex e as da linha "Fumaça: /?demo=... /?cards=1" nos commits da branch
-          pages=$(git log --format=%B origin/main..HEAD | sed -n 's/^Fumaça: *//p' | tr '\n' ' ')
+          # páginas: Home, Movedex e as da linha "Fumaça: /?demo=... /?cards=1" nos commits da branch (só o que começa
+          # com "/": uma frase depois de "Fumaça:" virava 14 páginas inválidas)
+          pages=$(git log --format=%B origin/main..HEAD | sed -n 's/^Fumaça: *//p' | tr ' ' '\n' | grep '^/' | tr '\n' ' ')
           rc=0
           for sz in 390x844 1440x900; do
             node scripts/smoke/fumaca.mjs copa http://localhost:4173 fumaca "$sz" || rc=1

@@ -368,7 +368,7 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     </div>
                 </section>
                 <section className="panel" id="draft-legivel">
-                    <h2>Draft: os 6 atributos em grade 3x2, ≥10 px (variante B, escolhida em 26/10)</h2>
+                    <h2>Draft: os 6 atributos em grade 3x2, 10 px ou mais (variante B, escolhida em 26/10)</h2>
                     <div className="cg-row cards-legible" style={{ '--fut-w': '117px' } as React.CSSProperties}>
                         {METAL_ROWS.slice(0, 3).map((s) => (
                             <figure key={s.key} className="cg-item">
