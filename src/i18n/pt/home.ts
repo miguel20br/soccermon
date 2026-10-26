@@ -23,6 +23,8 @@ export const home = {
     tagline: 'Monte seu time com os 151 de Kanto e ganhe a Copa de Futsal.',
     confirmNew: 'Começar outra copa apaga a do {team}. Tem certeza?',
     confirmYes: 'Sim, começar outra',
+    newTitle: 'Começar outra copa?',
+    newText: 'A copa do {team} será apagada.',
     inProgress: 'Copa em andamento',
     cupPath: 'Fases da copa',
     resume: 'Continuar',

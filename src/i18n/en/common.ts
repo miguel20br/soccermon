@@ -7,6 +7,8 @@ export const common: typeof pt = {
         cancel: 'Cancel',
         back: 'Back',
         backHome: 'Back to start',
+        cupMoney: 'Cup Pokédollars: {n}',
+        cupRerolls: 'Rerolls: {n}',
         continue: 'Continue',
         yes: 'Yes',
         no: 'No',

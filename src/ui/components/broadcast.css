@@ -726,7 +726,7 @@
 .duel:has(.bc) {
     gap: 6px;
 }
-.duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+.duel:has(.bc) > .duel-top {
     position: absolute;
     top: 12px;
     right: 12px;
@@ -737,12 +737,12 @@
     font-size: 11px;
 }
 @media (max-width: 400px) {
-    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) > .muted {
+    .duel:has(.bc) > .duel-top > .muted {
         display: none;
     }
 }
 @media (min-width: 701px) {
-    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+    .duel:has(.bc) > .duel-top {
         top: 16px;
         right: 16px;
     }
@@ -1032,7 +1032,7 @@
         height: 24px;
     }
     /* duelo: o Sair da sala fica na linha do logo, em cima das abas */
-    .duel:has(.bc) > .duel-top:not(:has(.duel-leave-ask)) {
+    .duel:has(.bc) > .duel-top {
         top: 4px;
     }
     .duel .panel.bc-coach {

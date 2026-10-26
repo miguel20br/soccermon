@@ -6373,18 +6373,6 @@ p.muted.center a {
     white-space: normal;
 }
 
-/* abandonar copa: confirmação no lugar, sem o diálogo do navegador */
-.abandon-ask {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 10px;
-    border: 2px solid #ff6b4c;
-    border-radius: 10px;
-}
-
 /* ---------- Pacote de cartas (CardPack.tsx): recompensa e draft ----------
  * Um pacote só, azul-noite com o logo e lacres metálicos. Pista do conteúdo: .cpack-gold (carta ouro 75+) tem
  * lacre e borda dourados; .cpack-special (Shiny, edição) é holográfico. Abrindo: o pacote treme, a tampa rasga,

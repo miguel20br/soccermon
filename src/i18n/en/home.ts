@@ -22,6 +22,8 @@ export const home: typeof pt = {
     tagline: 'Build your team from the 151 of Kanto and win the Futsal Cup.',
     confirmNew: 'Starting a new cup erases the {team} one. Are you sure?',
     confirmYes: 'Yes, start a new one',
+    newTitle: 'Start a new cup?',
+    newText: 'The {team} cup will be erased.',
     inProgress: 'Cup in progress',
     cupPath: 'Cup stages',
     resume: 'Continue',

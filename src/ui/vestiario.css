@@ -1,0 +1,178 @@
+/*
+ * Escalação no vestiário (revamp-ui §3.3, 0.9.23): a parede de armários com os quadros (chave e tática, cada um abre
+ * a sua sheet) e a prancheta logo embaixo, na 1ª tela. Armário em pixel art de 24x44 (SVG), 2x na tela.
+ */
+.vt-room {
+    display: grid;
+    align-content: start;
+    min-width: 0;
+}
+.vt-wall {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 104px;
+    padding: 12px 10px 22px;
+    border: 3px solid var(--cb-ink);
+    border-bottom: 0;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background:
+        /* o banco de madeira na frente dos armários */
+        linear-gradient(0deg, #3d2412 0 3px, #8a5a2e 3px 9px, #b07a44 9px 12px, transparent 12px) bottom / 100% 12px
+        no-repeat,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='44' shape-rendering='crispEdges'%3E%3Crect width='24' height='44' fill='%23131a3d'/%3E%3Crect x='1' y='1' width='22' height='42' fill='%233f5fa8'/%3E%3Crect x='1' y='1' width='22' height='2' fill='%236f8fd8'/%3E%3Crect x='1' y='1' width='1' height='42' fill='%235a7ac4'/%3E%3Crect x='22' y='1' width='1' height='42' fill='%232a417c'/%3E%3Crect x='6' y='6' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='9' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='12' width='12' height='1' fill='%23172552'/%3E%3Crect x='8' y='17' width='8' height='4' fill='%23e8e4cc'/%3E%3Crect x='18' y='22' width='2' height='6' fill='%23c9d3f0'/%3E%3Crect x='6' y='34' width='12' height='1' fill='%23172552'/%3E%3Crect x='6' y='37' width='12' height='1' fill='%23172552'/%3E%3C/svg%3E")
+        center 6px / 48px 88px repeat-x,
+        #131a3d;
+    image-rendering: pixelated;
+}
+/* os quadros pendurados: cortiça (chave) e quadro-branco (tática); base escura = dá pra tocar */
+.vt-obj {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 6px 12px 9px 8px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 3px var(--vt-frame),
+        inset 0 -6px 0 3px var(--vt-frame),
+        0 4px 0 var(--cb-ink);
+    color: var(--cb-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.vt-obj:only-child {
+    margin-left: auto;
+}
+.vt-obj:active {
+    transform: translateY(2px) rotate(-1deg);
+    transition-duration: var(--dur-toque);
+}
+.vt-obj:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.vt-obj > span {
+    display: grid;
+    line-height: 1.15;
+}
+.vt-obj b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+}
+.vt-obj small {
+    font-size: 12px;
+    font-weight: 700;
+}
+.vt-obj .hud-icon {
+    flex: none;
+    box-sizing: content-box;
+    width: 18px;
+    height: 18px;
+    padding: 4px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    color: #fff;
+}
+.vt-cork {
+    --vt-frame: #6b4423;
+    background: #c99050 radial-gradient(circle, #a8733a 1px, transparent 1.5px) 0 0 / 6px 6px;
+}
+.vt-cork .hud-icon {
+    background: var(--red);
+}
+.vt-white {
+    --vt-frame: #8d97b8;
+    background: #eef0f6;
+}
+.vt-white .hud-icon {
+    background: var(--blue-c);
+}
+/* a prancheta encosta na parede */
+.panel.vt-board {
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+.vt .formation-tabs {
+    margin-bottom: 6px;
+}
+.vt-fline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin: 0 0 4px;
+    font-size: 13px;
+}
+.vt-hint {
+    margin: 0 0 6px;
+    font-size: 12px;
+}
+/* sheet da tática: as 5 seções em sequência */
+.vt-tactic-sheet section {
+    display: grid;
+    gap: 6px;
+}
+.vt-tactic-sheet h3 {
+    margin: 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.vt-tactic-sheet .tactic-desc {
+    margin: 0;
+}
+.vt-tactic-sheet .corner-taker {
+    margin: 0;
+}
+.vt-board-sheet {
+    width: min(720px, 100%);
+}
+.vt-bracket {
+    min-width: 0;
+    overflow-x: auto;
+}
+.vt-board-sheet > .btn {
+    justify-self: center;
+}
+/* celular (e deitado): as 6 formações viram ícones numa linha (o nome da escolhida fica embaixo) */
+@media (max-width: 640px), (max-height: 520px) {
+    .vt .formation-tabs {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        width: 100%;
+    }
+    .vt .formation-tabs button {
+        min-height: 40px;
+        padding-inline: 2px;
+    }
+    .vt .formation-tabs .hud-icon {
+        width: 18px;
+        height: 18px;
+    }
+    /* o botão tem aria-label com o nome */
+    .vt-fname {
+        display: none;
+    }
+}
+/* deitado: a parede mais baixa, pra prancheta aparecer */
+@media (max-height: 520px) {
+    .vt-wall {
+        min-height: 76px;
+        padding-block: 6px 16px;
+    }
+}
+@media (max-width: 359px) {
+    .vt-obj {
+        gap: 6px;
+        padding-right: 8px;
+    }
+    .vt-obj .hud-icon {
+        padding: 2px;
+    }
+}

@@ -6,6 +6,7 @@ import { currentNode, isLong } from '../../store/long-cup';
 import { KANTO_BADGES } from '../../store/missions';
 import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
+import { ConfirmSheet } from '../kit/Sheet';
 import { reduceMotionOn } from '../settings-sync';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
@@ -232,7 +233,7 @@ const zonesOf = (scale: number): Record<string, ZoneDef> => ({
  * as insígnias, quem anda contorna (quem voa passa por cima).
  */
 const ROUTE: Blockers = {
-    ui: '.rt-head, .rt-talk, .rt-go, .es-confirm, .rt-here',
+    ui: '.rt-head, .rt-talk, .rt-go, .rt-here',
     props: '.rt-gym, .rt-city, .rt-plateau',
 };
 /** Quem atravessa o mar de fundo, devagar (um por abertura). */
@@ -500,37 +501,31 @@ export function Rota({
                         <b>{story.who}</b> {story.text}
                     </p>
                 </div>
-                {confirm ? (
-                    <div className="confirm-new es-confirm bc-surface">
-                        <p>{t('home.confirmNew', { team: run?.teamName ?? '' })}</p>
-                        <div className="row" style={{ justifyContent: 'center' }}>
-                            <button type="button" className="btn confirm" onClick={begin}>
-                                {t('home.confirmYes')}
-                            </button>
-                            <button type="button" className="btn ghost" onClick={() => setConfirm(false)}>
-                                {t('common.ui.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <button
-                        type="button"
-                        className="btn big cup-go rt-go cb cb-green"
-                        onClick={longOn && run ? () => go(resumeScreenOf(run.status)) : begin}
-                    >
-                        <span className="cup-go-txt">
-                            <b>
-                                {longOn
-                                    ? where
-                                        ? t('home.amb.rotaGo', { where })
-                                        : t('home.resume')
-                                    : t('home.longCup.go')}
-                            </b>
-                            <small>{t('home.longCup.tag')}</small>
-                        </span>
-                        <HudIcon kind="next" />
-                    </button>
-                )}
+                <button
+                    type="button"
+                    className="btn big cup-go rt-go cb cb-green"
+                    onClick={longOn && run ? () => go(resumeScreenOf(run.status)) : begin}
+                >
+                    <span className="cup-go-txt">
+                        <b>
+                            {longOn
+                                ? where
+                                    ? t('home.amb.rotaGo', { where })
+                                    : t('home.resume')
+                                : t('home.longCup.go')}
+                        </b>
+                        <small>{t('home.longCup.tag')}</small>
+                    </span>
+                    <HudIcon kind="next" />
+                </button>
+                <ConfirmSheet
+                    open={confirm}
+                    onClose={() => setConfirm(false)}
+                    title={t('home.newTitle')}
+                    text={t('home.newText', { team: run?.teamName ?? '' })}
+                    confirm={t('home.confirmYes')}
+                    onConfirm={begin}
+                />
             </div>
         </ClockCtx.Provider>
     );

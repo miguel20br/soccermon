@@ -15,6 +15,7 @@ import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { ConfirmSheet } from '../kit/Sheet';
 import { missionText } from '../profile/club';
 import { FriendChallenge } from '../profile/FriendsTab';
 import { useSaveView } from '../profile/TrainerTab';
@@ -587,31 +588,15 @@ export function Estadio({
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
                     <ParkedRuns />
-                    {confirm ? (
-                        <div className="confirm-new es-confirm bc-surface">
-                            <p>{t('home.confirmNew', { team: run?.teamName ?? '' })}</p>
-                            <div className="row" style={{ justifyContent: 'center' }}>
-                                <button
-                                    type="button"
-                                    className="btn confirm"
-                                    onClick={() => play(confirm.seed, confirm.mode)}
-                                >
-                                    {t('home.confirmYes')}
-                                </button>
-                                <button type="button" className="btn ghost" onClick={() => setConfirm(undefined)}>
-                                    {t('common.ui.cancel')}
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <PlayBar
-                            main={main}
-                            sheet={plan.sheet.map(mode)}
-                            open={open}
-                            onOpen={setOpen}
-                            onPick={setChosen}
-                        />
-                    )}
+                    <PlayBar main={main} sheet={plan.sheet.map(mode)} open={open} onOpen={setOpen} onPick={setChosen} />
+                    <ConfirmSheet
+                        open={!!confirm}
+                        onClose={() => setConfirm(undefined)}
+                        title={t('home.newTitle')}
+                        text={t('home.newText', { team: run?.teamName ?? '' })}
+                        confirm={t('home.confirmYes')}
+                        onConfirm={() => confirm && play(confirm.seed, confirm.mode)}
+                    />
                 </div>
                 {hydrated && !firstVisit && <Slots active={active} goTab={goTab} />}
             </div>

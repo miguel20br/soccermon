@@ -9,6 +9,8 @@ export const common = {
         cancel: 'Cancelar',
         back: 'Voltar',
         backHome: 'Voltar ao início',
+        cupMoney: 'Pokédólares da copa: {n}',
+        cupRerolls: 'Sorteios: {n}',
         continue: 'Continuar',
         yes: 'Sim',
         no: 'Não',

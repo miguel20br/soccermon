@@ -18,11 +18,9 @@ import { FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { MenuIcon } from '../components/MenuIcon';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { Tip } from '../help/Tip';
-import { requestLeave } from '../leave-guard';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
@@ -169,7 +167,7 @@ function FormationDiagram({ id }: { id: FormationId }) {
  * vaga e saem 3 Pokémon que jogam naquela posição.
  */
 export function Draft() {
-    const { run, chooseFormation, chooseSlot, pick, reroll, go, daily } = useGame();
+    const { run, chooseFormation, chooseSlot, pick, reroll, daily } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
     const [coachOn, setCoachOn] = useState(false);
     const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
@@ -209,14 +207,6 @@ export function Draft() {
                     <span className="bc-tag">
                         {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
                     </span>
-                    <button
-                        type="button"
-                        className="btn ghost back-btn"
-                        onClick={() => requestLeave(() => go('home'))}
-                        aria-label={t('common.ui.back')}
-                    >
-                        <MenuIcon kind="back" />
-                    </button>
                     <h1>{t('team.draft.chooseFormation')}</h1>
                     <AutoDraft />
                 </div>

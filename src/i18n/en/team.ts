@@ -43,7 +43,6 @@ export const team: typeof pt = {
             counter: 'The pivot waits up front. Passing and pace +2%.',
         },
         simError: "Couldn't simulate the match. Try again or reload the page.",
-        tip: 'Tap two to swap. Same type and famous duos give synergy.',
         pens: ' (pens {a}-{b})',
         title: 'Lineup · {team}',
         swapHint: 'Tap two players to swap their slots (bench included).',
@@ -78,7 +77,9 @@ export const team: typeof pt = {
         giveTo: 'Give to another',
         giveCancel: 'Cancel',
         giveHint: 'Tap who gets {item}. If they already hold one, they swap.',
-        abandonConfirm: 'Abandon this cup? The team will be lost.',
+        cupObj: 'Cup',
+        abandonTitle: 'Abandon the cup?',
+        abandonText: '{team} will be lost.',
         abandon: 'Abandon cup',
     },
     board: {

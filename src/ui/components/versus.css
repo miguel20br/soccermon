@@ -456,10 +456,42 @@
 :root[data-reduce-motion="true"] .vsp .vs-start.loading::after {
     animation: none;
 }
-/* carregando é desligado de verdade, mas sem o apagado forte do .btn:disabled (a barrinha diz que vem aí) */
-.vsp .vs-start.loading:disabled {
-    opacity: 0.85;
+/* carregando não tem cara de botão (revamp-ui §3.4): plaquinha escura com a barra; pronto, vira o JOGAR dourado com pop */
+.vsp .vs-start.loading {
+    background: #0e1438;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        0 3px 0 var(--cb-ink);
+    color: var(--muted);
+    text-shadow: none;
+    font-size: 15px;
     cursor: progress;
+}
+.vsp .vs-start.loading:disabled {
+    opacity: 1;
+    filter: none;
+}
+.vsp .vs-start.loading::after {
+    left: 12px;
+    right: 12px;
+    bottom: 7px;
+    height: 6px;
+    border-radius: 3px;
+}
+.vsp .vs-start:not(.loading, .vs-slow) {
+    animation: vs-ready-pop var(--dur-pop) var(--ease-pop) both;
+}
+@keyframes vs-ready-pop {
+    from {
+        opacity: 0;
+        scale: 0.85;
+    }
+    60% {
+        scale: 1.04;
+    }
+}
+:root[data-reduce-motion="true"] .vsp .vs-start:not(.loading, .vs-slow) {
+    animation: screen-in 0.2s var(--ease-out) both;
 }
 /* quadra demorando: "Tentar de novo" com o aviso numa linha menor dentro do botão */
 .vsp .vs-slow {

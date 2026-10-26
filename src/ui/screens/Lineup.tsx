@@ -14,9 +14,9 @@ import { computeSynergies } from '../../engine/synergy';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
-import { isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
+import { cupLength, isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
-import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
+import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { Fold, foldOpenByDefault } from '../components/Fold';
 import { FormationBoard } from '../components/FormationBoard';
 import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
@@ -27,10 +27,10 @@ import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
-import { Tip } from '../help/Tip';
+import { ConfirmSheet, Sheet } from '../kit/Sheet';
+import '../vestiario.css';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
-import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { useHeld } from '../use-held';
 
@@ -56,6 +56,7 @@ export function Lineup() {
     const run = useHeld(live);
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
+    const [boardOpen, setBoardOpen] = useState(false);
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
@@ -95,44 +96,6 @@ export function Lineup() {
 
     return (
         <>
-            {/* Copa Relâmpago: as 4 fases (na Rota o caminho é o mapa, e os rivais só existem até a casa de agora) */}
-            {!isLong(run) && (
-                <div className="cup-bug bc-surface">
-                    <div className="cup-path">
-                        {d.common.stage.map((label, i) => {
-                            const res = run.results.find((r) => r.stage === i);
-                            const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
-                            return (
-                                <div key={label} className={`cup-step ${cls}`}>
-                                    <b>{label}</b>
-                                    <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
-                                    {res && (
-                                        <div>
-                                            {res.score[0]} x {res.score[1]}
-                                            {res.shootout &&
-                                                t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* Copa Relâmpago: a chave inteira num toque, com você na fase de agora */}
-            {!isLong(run) && (
-                <BracketPeek
-                    rounds={relampagoBracket(
-                        run.seed,
-                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
-                        bracketRivals(run.opponents),
-                        run.results,
-                    )}
-                    current={run.stage}
-                />
-            )}
-            <Tip id="lineup-synergy">{t('team.lineup.tip')}</Tip>
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}
@@ -152,11 +115,26 @@ export function Lineup() {
                 sponsors={run.sponsors}
                 rivalFormation={opponent.formation ?? '1-2-1'}
                 outOf={(u) => outOf(run, u)}
+                wall={
+                    // o quadro de cortiça: a chave (Relâmpago) ou a copa (Rota), e o Abandonar lá dentro
+                    <button
+                        type="button"
+                        className="vt-obj vt-cork"
+                        aria-haspopup="dialog"
+                        onClick={() => setBoardOpen(true)}
+                    >
+                        <HudIcon kind="cup" />
+                        <span>
+                            <b>{isLong(run) ? t('team.lineup.cupObj') : d.bracket.title}</b>
+                            <small>
+                                {run.stage + 1}/{cupLength(run)}
+                            </small>
+                        </span>
+                    </button>
+                }
                 side={
-                    <div className="panel">
-                        <h2>
-                            {cupStageName(run, run.stage, lang)}: {clubName(opponent.name, lang)}
-                        </h2>
+                    <div className="panel vt-door">
+                        <h2>{clubName(opponent.name, lang)}</h2>
                         <div className="opponent-strip">
                             {opponent.lineup.map((p) => (
                                 <button
@@ -234,36 +212,68 @@ export function Lineup() {
                         {error && <p className="error-text">{error}</p>}
                     </div>
                 }
-                footer={
-                    /* sem o confirm() do navegador: o 1º toque pergunta aqui mesmo, o 2º confirma */
-                    askAbandon ? (
-                        <div
-                            className="abandon-ask"
-                            role="alert"
-                            // a confirmação cresce pra baixo: traz ela pra cima da barra do Jogar (scroll-padding)
-                            ref={(el) =>
-                                el?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' })
-                            }
-                        >
-                            <span>{t('team.lineup.abandonConfirm')}</span>
-                            <button
-                                type="button"
-                                className="btn small danger"
-                                data-fx="none"
-                                onClick={() => leaveWith('leave', abandonRun)}
-                            >
-                                {t('team.lineup.abandon')}
-                            </button>
-                            <button type="button" className="btn ghost small" onClick={() => setAskAbandon(false)}>
-                                {t('common.ui.cancel')}
-                            </button>
+            />
+            <Sheet
+                open={boardOpen}
+                onClose={() => setBoardOpen(false)}
+                title={isLong(run) ? t('team.lineup.cupObj') : d.bracket.title}
+                className="vt-board-sheet"
+            >
+                {/* Copa Relâmpago: as 4 fases e a chave inteira (na Rota o caminho é o mapa) */}
+                {!isLong(run) && (
+                    <>
+                        <div className="cup-path">
+                            {d.common.stage.map((label, i) => {
+                                const res = run.results.find((r) => r.stage === i);
+                                const cls = res ? (res.won ? 'won' : 'lost') : i === run.stage ? 'now' : '';
+                                return (
+                                    <div key={label} className={`cup-step ${cls}`}>
+                                        <b>{label}</b>
+                                        <span className="muted">{clubName(run.opponents[i].name, lang)}</span>
+                                        {res && (
+                                            <div>
+                                                {res.score[0]} x {res.score[1]}
+                                                {res.shootout &&
+                                                    t('team.lineup.pens', { a: res.shootout[0], b: res.shootout[1] })}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ) : (
-                        <button type="button" className="btn ghost small danger" onClick={() => setAskAbandon(true)}>
-                            {t('team.lineup.abandon')}
-                        </button>
-                    )
-                }
+                        <div className="vt-bracket">
+                            <Bracket
+                                rounds={relampagoBracket(
+                                    run.seed,
+                                    bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                                    bracketRivals(run.opponents),
+                                    run.results,
+                                )}
+                                current={run.stage}
+                            />
+                        </div>
+                    </>
+                )}
+                {isLong(run) && <p>{cupStageName(run, run.stage, lang)}</p>}
+                <button
+                    type="button"
+                    className="btn ghost danger"
+                    onClick={() => {
+                        setBoardOpen(false);
+                        setAskAbandon(true);
+                    }}
+                >
+                    {t('team.lineup.abandon')}
+                </button>
+            </Sheet>
+            <ConfirmSheet
+                open={askAbandon}
+                onClose={() => setAskAbandon(false)}
+                title={t('team.lineup.abandonTitle')}
+                text={t('team.lineup.abandonText', { team: run.teamName })}
+                confirm={t('team.lineup.abandon')}
+                onConfirm={() => leaveWith('leave', abandonRun)}
+                quiet
             />
         </>
     );
@@ -293,6 +303,7 @@ export function LineupEditor({
     onTactic,
     onCorner,
     onMoveItem,
+    wall,
     side,
     footer,
     sponsors,
@@ -315,6 +326,8 @@ export function LineupEditor({
     onCorner: (patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }) => void;
     /** Só na copa (o item vai junto do time do duelo, lacrado). */
     onMoveItem?: (fromUid: string, toUid: string) => void;
+    /** Objeto a mais na parede do vestiário, à esquerda do quadro da tática (a chave, na copa). */
+    wall?: ReactNode;
     side: ReactNode;
     footer?: ReactNode;
     /** Patrocínios da copa: os de campo entram na conta da escalação (carta = campo). */
@@ -330,6 +343,7 @@ export function LineupEditor({
     const [giving, setGiving] = useState<string | null>(null);
     const givingItem = giving ? byUid.get(giving)?.item : undefined;
     const boardRef = useRef<HTMLDivElement>(null);
+    const [tacticOpen, setTacticOpen] = useState(false);
     const { t, d, lang } = useT();
     const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
     const detailInst = byUid.get(detail ?? lineup[0]) ?? picks[0];
@@ -378,193 +392,91 @@ export function LineupEditor({
     };
 
     return (
-        <div className="lineup-grid">
-            <div className="panel" ref={boardRef}>
-                <h2>{title}</h2>
-                <div className="formation-tabs bc-seg segmented">
-                    {Object.values(FORMATIONS).map((f) => (
-                        <button
-                            key={f.id}
-                            type="button"
-                            className={formation === f.id ? 'on' : undefined}
-                            aria-pressed={formation === f.id}
-                            disabled={locked}
-                            onClick={() => onFormation(f.id)}
-                        >
-                            <HudIcon kind={FORMATION_ICON[f.id]} />
-                            {formationText(f.id, lang).name}
-                        </button>
-                    ))}
+        <div className="lineup-grid vt">
+            <div className="vt-room" ref={boardRef}>
+                {/* a parede de armários com os quadros: a chave (na copa) e a tática, cada um abre a sua sheet */}
+                <div className="vt-wall">
+                    {wall}
+                    <button
+                        type="button"
+                        className="vt-obj vt-white"
+                        aria-haspopup="dialog"
+                        onClick={() => setTacticOpen(true)}
+                    >
+                        <HudIcon kind={tactic} />
+                        <span>
+                            <b>{t('team.lineup.tactic')}</b>
+                            <small>{d.common.tactic[tactic]}</small>
+                        </span>
+                    </button>
                 </div>
-                <FormationIdentity id={formation} edge={!!rivalFormation && hasEdge(formation, rivalFormation)} />
-                <p className="muted" style={{ marginTop: 8 }}>
-                    {givingItem ? t('team.lineup.giveHint', { item: itemName(givingItem) }) : t('team.lineup.swapHint')}
-                </p>
-                <FormationBoard
-                    formation={formation}
-                    lineup={lineup}
-                    bench={bench}
-                    byUid={byUid}
-                    captainUid={captainUid}
-                    projection={
-                        !giving && selected
-                            ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index])
-                            : null
-                    }
-                    stateOf={(ref, uid) =>
-                        ref.zone === 'bench' && outOf?.(uid)
-                            ? 'locked'
-                            : giving
-                              ? uid === giving
-                                  ? 'selected'
-                                  : 'target'
-                              : selected?.zone === ref.zone && selected.index === ref.index
-                                ? 'selected'
-                                : 'idle'
-                    }
-                    onSlot={onSlot}
-                    badgeOf={outOf && ((inst) => <OutBadge out={outOf(inst.uid)} />)}
-                    footer={
-                        <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                            {t('team.lineup.subHint')}
-                        </p>
-                    }
-                />
+                {/* o nome do time vira o rótulo da prancheta (a placa empurrava a quadra pra fora da 1ª tela) */}
+                <section className="panel vt-board" aria-label={title}>
+                    <div className="formation-tabs bc-seg segmented">
+                        {Object.values(FORMATIONS).map((f) => (
+                            <button
+                                key={f.id}
+                                type="button"
+                                className={formation === f.id ? 'on' : undefined}
+                                aria-pressed={formation === f.id}
+                                aria-label={formationText(f.id, lang).name}
+                                title={formationText(f.id, lang).name}
+                                disabled={locked}
+                                onClick={() => onFormation(f.id)}
+                            >
+                                <HudIcon kind={FORMATION_ICON[f.id]} />
+                                <span className="vt-fname">{formationText(f.id, lang).name}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="vt-fline">
+                        <b>{formationText(formation, lang).name}</b>
+                        <FormationIdentity
+                            id={formation}
+                            edge={!!rivalFormation && hasEdge(formation, rivalFormation)}
+                        />
+                    </p>
+                    {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
+                    <p className="muted vt-hint">
+                        {givingItem
+                            ? t('team.lineup.giveHint', { item: itemName(givingItem) })
+                            : t('team.lineup.swapHint')}
+                    </p>
+                    <FormationBoard
+                        formation={formation}
+                        lineup={lineup}
+                        bench={bench}
+                        byUid={byUid}
+                        captainUid={captainUid}
+                        projection={
+                            !giving && selected
+                                ? byUid.get((selected.zone === 'lineup' ? lineup : bench)[selected.index])
+                                : null
+                        }
+                        stateOf={(ref, uid) =>
+                            ref.zone === 'bench' && outOf?.(uid)
+                                ? 'locked'
+                                : giving
+                                  ? uid === giving
+                                      ? 'selected'
+                                      : 'target'
+                                  : selected?.zone === ref.zone && selected.index === ref.index
+                                    ? 'selected'
+                                    : 'idle'
+                        }
+                        onSlot={onSlot}
+                        badgeOf={outOf && ((inst) => <OutBadge out={outOf(inst.uid)} />)}
+                        footer={
+                            <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
+                                {t('team.lineup.subHint')}
+                            </p>
+                        }
+                    />
+                </section>
             </div>
 
             <div className="side-stack">
                 {side}
-
-                <div className="panel">
-                    <h2>{t('team.lineup.tactic')}</h2>
-                    {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
-                    <Fold
-                        label={t('match.coach.style')}
-                        summary={d.common.tactic[tactic]}
-                        defaultOpen={foldOpenByDefault()}
-                    >
-                        <div className="bc-styles">
-                            {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                                <button
-                                    key={tc}
-                                    type="button"
-                                    className={`bc-tile${tactic === tc ? ' on' : ''}`}
-                                    aria-pressed={tactic === tc}
-                                    disabled={locked}
-                                    onClick={() => onTactic(tc)}
-                                >
-                                    <HudIcon kind={tc} />
-                                    <span>
-                                        <b>{d.common.tactic[tc]}</b>
-                                        <small>{d.match.coach.styleShort[tc]}</small>
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                        <p className="tactic-desc">
-                            {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
-                        </p>
-                    </Fold>
-                    <Fold
-                        label={t('team.lineup.corner')}
-                        summary={d.common.cornerPlan[cornerPlan]}
-                        defaultOpen={foldOpenByDefault()}
-                    >
-                        <div className="bc-seg">
-                            {CORNER_PLANS.map((pl) => (
-                                <button
-                                    key={pl}
-                                    type="button"
-                                    className={cornerPlan === pl ? 'on' : undefined}
-                                    aria-pressed={cornerPlan === pl}
-                                    disabled={locked}
-                                    onClick={() => onCorner({ cornerPlan: pl })}
-                                >
-                                    {d.common.cornerPlan[pl]}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="tactic-desc">
-                            {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
-                        </p>
-                    </Fold>
-                    <Fold
-                        label={t('team.lineup.cornerTaker')}
-                        summary={
-                            chosenTaker
-                                ? viewInstance(chosenTaker).displayName
-                                : autoTaker
-                                  ? viewInstance(autoTaker).displayName
-                                  : '?'
-                        }
-                        defaultOpen={foldOpenByDefault()}
-                    >
-                        <label className="corner-taker">
-                            <span>{t('team.lineup.cornerTaker')}</span>
-                            <select
-                                value={cornerTakerUid ?? ''}
-                                disabled={locked}
-                                onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
-                            >
-                                <option value="">
-                                    {t('team.lineup.cornerAuto', {
-                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                    })}
-                                </option>
-                                {cornerField.map((f) => (
-                                    <option key={f.inst.uid} value={f.inst.uid}>
-                                        {t('team.lineup.cornerTakerOpt', {
-                                            name: viewInstance(f.inst).displayName,
-                                            pos: d.common.pos[f.role],
-                                            n: Math.round(f.passing),
-                                        })}
-                                    </option>
-                                ))}
-                                {chosenTaker && takerOff && (
-                                    <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
-                                )}
-                            </select>
-                        </label>
-                        {chosenTaker && takerOff && (
-                            <p className="tactic-desc">
-                                {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
-                            </p>
-                        )}
-                    </Fold>
-                    <Fold
-                        label={t('team.lineup.typeSynergies')}
-                        summary={synergies.length}
-                        defaultOpen={foldOpenByDefault()}
-                    >
-                        {synergies.length === 0 ? (
-                            <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
-                        ) : (
-                            <div className="row" style={{ gap: 8 }}>
-                                {synergies.map((s) => (
-                                    <span key={s.type} className="row" style={{ gap: 4 }}>
-                                        <TypeBadge type={s.type} />
-                                        <span className="tactic-desc">
-                                            ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
-                                        </span>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                    </Fold>
-                    <Fold
-                        label={t('team.lineup.storySynergies')}
-                        summary={links.length}
-                        defaultOpen={foldOpenByDefault()}
-                    >
-                        {links.length === 0 ? (
-                            <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
-                        ) : (
-                            <div className="row" style={{ gap: 6 }}>
-                                <LinkChips links={links} />
-                            </div>
-                        )}
-                    </Fold>
-                </div>
 
                 {detailInst && (
                     <>
@@ -609,6 +521,122 @@ export function LineupEditor({
 
                 {footer}
             </div>
+
+            <Sheet
+                open={tacticOpen}
+                onClose={() => setTacticOpen(false)}
+                title={t('team.lineup.tactic')}
+                className="vt-tactic-sheet"
+            >
+                <section>
+                    <h3>{t('match.coach.style')}</h3>
+                    <div className="bc-styles">
+                        {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
+                            <button
+                                key={tc}
+                                type="button"
+                                className={`bc-tile${tactic === tc ? ' on' : ''}`}
+                                aria-pressed={tactic === tc}
+                                disabled={locked}
+                                onClick={() => onTactic(tc)}
+                            >
+                                <HudIcon kind={tc} />
+                                <span>
+                                    <b>{d.common.tactic[tc]}</b>
+                                    <small>{d.match.coach.styleShort[tc]}</small>
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                    <p className="tactic-desc">
+                        {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
+                    </p>
+                </section>
+                <section>
+                    <h3>{t('team.lineup.corner')}</h3>
+                    <div className="bc-seg">
+                        {CORNER_PLANS.map((pl) => (
+                            <button
+                                key={pl}
+                                type="button"
+                                className={cornerPlan === pl ? 'on' : undefined}
+                                aria-pressed={cornerPlan === pl}
+                                disabled={locked}
+                                onClick={() => onCorner({ cornerPlan: pl })}
+                            >
+                                {d.common.cornerPlan[pl]}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="tactic-desc">
+                        {d.team.lineup.cornerDesc[cornerPlan]} {t('team.lineup.canChange')}
+                    </p>
+                </section>
+                <section>
+                    <label className="corner-taker">
+                        <h3>{t('team.lineup.cornerTaker')}</h3>
+                        <select
+                            value={cornerTakerUid ?? ''}
+                            disabled={locked}
+                            onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
+                        >
+                            <option value="">
+                                {t('team.lineup.cornerAuto', {
+                                    name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                })}
+                            </option>
+                            {cornerField.map((f) => (
+                                <option key={f.inst.uid} value={f.inst.uid}>
+                                    {t('team.lineup.cornerTakerOpt', {
+                                        name: viewInstance(f.inst).displayName,
+                                        pos: d.common.pos[f.role],
+                                        n: Math.round(f.passing),
+                                    })}
+                                </option>
+                            ))}
+                            {chosenTaker && takerOff && (
+                                <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
+                            )}
+                        </select>
+                    </label>
+                    {chosenTaker && takerOff && (
+                        <p className="tactic-desc">
+                            {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
+                        </p>
+                    )}
+                </section>
+                <section>
+                    <h3>
+                        {t('team.lineup.typeSynergies')} · {synergies.length}
+                    </h3>
+                    {synergies.length === 0 ? (
+                        <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
+                    ) : (
+                        <div className="row" style={{ gap: 8 }}>
+                            {synergies.map((s) => (
+                                <span key={s.type} className="row" style={{ gap: 4 }}>
+                                    <TypeBadge type={s.type} />
+                                    <span className="tactic-desc">
+                                        ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                    </span>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </section>
+                <section>
+                    <h3>
+                        {t('team.lineup.storySynergies')} · {links.length}
+                    </h3>
+                    {links.length === 0 ? (
+                        <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
+                    ) : (
+                        <div className="row" style={{ gap: 6 }}>
+                            <LinkChips links={links} />
+                        </div>
+                    )}
+                </section>
+            </Sheet>
         </div>
     );
 }

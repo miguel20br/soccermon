@@ -141,6 +141,22 @@ async function copa() {
         await p.locator('.btn.primary.wide').waitFor({ timeout: 15000 });
         await shot(p, '04-escalacao', true);
     });
+    await step(p, 'abandonar em sheet', async () => {
+        // a confirmação ficava atrás da barra do Jogar (0.9.22): agora é sheet e tem que estar por cima de tudo
+        await p.locator('.vt-cork').click();
+        await p.locator('.vt-board-sheet .btn.ghost.danger').click();
+        const danger = p.locator('.k-confirm .btn.danger');
+        await danger.waitFor({ timeout: 5000 });
+        await p.waitForTimeout(400);
+        const onTop = await danger.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+        });
+        if (!onTop) throw new Error('o botão de abandonar está coberto');
+        await shot(p, '04b-abandonar');
+        await p.locator('.k-confirm .btn.ghost').click();
+        await p.locator('.k-confirm').waitFor({ state: 'detached', timeout: 5000 });
+    });
     await step(p, '1ª partida', async () => {
         await p.locator('.btn.primary.wide').click();
         await p.locator('button.vs-start:not([disabled])').waitFor({ timeout: 40000 });

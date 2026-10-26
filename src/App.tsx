@@ -8,6 +8,7 @@ import { readAmbientes } from './ui/ambientes/nav';
 import { backTarget, installBackNav } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
+import { CupBar } from './ui/components/CupBar';
 import { LogoHits } from './ui/components/LogoHits';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
@@ -39,6 +40,8 @@ import { TrophyRoom } from './ui/screens/TrophyRoom';
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 /** Telas de menu: o topo tem o canto de Configurações e Perfil (partida, draft e Duelo não, pra ninguém sair sem querer). */
 const MENU_SCREENS: Screen[] = ['settings', 'credits', 'help', 'profile', 'collection', 'trophies', 'daily', 'liga'];
+/** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
+const CUP_SCREENS: Screen[] = ['draft', 'lineup', 'result', 'reward', 'shop', 'map', 'treino', 'event', 'group'];
 
 const RoomLab = lazy(() => import('./ui/screens/RoomLab').then((m) => ({ default: m.RoomLab })));
 const MoveLab = lazy(() => import('./ui/screens/MoveLab').then((m) => ({ default: m.MoveLab })));
@@ -66,7 +69,7 @@ function leaveScreen(screen: Screen, to: Screen = 'home') {
 }
 
 export default function App() {
-    const { screen, settings, tour } = useGame();
+    const { screen, settings, tour, run } = useGame();
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
@@ -204,19 +207,24 @@ export default function App() {
         <div className="app">
             {screen !== 'home' && (
                 <header className={`topbar${MENU_SCREENS.includes(screen) ? ' topbar-menu' : ''}`}>
-                    <button
-                        type="button"
-                        className="brand"
-                        onClick={() => requestLeave(() => leaveScreen(screen))}
-                        aria-label={t('common.ui.backHome')}
-                    >
-                        <span className="brand-logo logo-blink">
-                            <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
-                            <LogoHits />
-                        </span>
-                        {/* na partida o logo inteiro ficava ilegível (~40 px): lá vai o símbolo, no mínimo de 24 px do guia */}
-                        <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />
-                    </button>
+                    {/* copa acabada (Eliminado, Campeão): volta o logo, é a festa */}
+                    {CUP_SCREENS.includes(screen) && run && run.status !== 'eliminated' && run.status !== 'champion' ? (
+                        <CupBar onBack={() => leaveScreen(screen)} />
+                    ) : (
+                        <button
+                            type="button"
+                            className="brand"
+                            onClick={() => requestLeave(() => leaveScreen(screen))}
+                            aria-label={t('common.ui.backHome')}
+                        >
+                            <span className="brand-logo logo-blink">
+                                <img src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                                <LogoHits />
+                            </span>
+                            {/* na partida o logo inteiro ficava ilegível (~40 px): lá vai o símbolo, no mínimo de 24 px do guia */}
+                            <img className="brand-symbol" src="assets/ui/simbolo.svg" alt="" width="28" height="28" />
+                        </button>
+                    )}
                     {/* telas de menu: Configurações e Perfil no canto, como na Home (na partida e no draft, não) */}
                     {MENU_SCREENS.includes(screen) && <TopActions />}
                 </header>

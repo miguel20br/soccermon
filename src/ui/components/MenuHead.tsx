@@ -10,7 +10,8 @@ export function MenuHead({
 }: {
     title: string;
     icon: MenuIconKind;
-    onBack: () => void;
+    /** Sem `onBack` = sem seta (nas telas da copa o voltar é o da barra da copa). */
+    onBack?: () => void;
     /** Etiqueta amarela em cima do placar (padrão: "Menu"). */
     tag?: string;
 }) {
@@ -18,9 +19,11 @@ export function MenuHead({
     return (
         <header className="menu-head bc-screenhead">
             <span className="bc-tag">{tag ?? t('common.ui.menu')}</span>
-            <button type="button" className="btn ghost back-btn" onClick={onBack} aria-label={t('common.ui.back')}>
-                <MenuIcon kind="back" />
-            </button>
+            {onBack && (
+                <button type="button" className="btn ghost back-btn" onClick={onBack} aria-label={t('common.ui.back')}>
+                    <MenuIcon kind="back" />
+                </button>
+            )}
             <MenuIcon kind={icon} />
             <h1>{title}</h1>
         </header>

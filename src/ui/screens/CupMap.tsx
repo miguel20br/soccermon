@@ -126,7 +126,6 @@ export function CupMap() {
     const live = useGame((s) => s.run);
     const enterNode = useGame((s) => s.enterNode);
     const tell = useGame((s) => s.tell);
-    const go = useGame((s) => s.go);
     const run = useHeld(live?.status === 'map' && live.map ? live : null);
     const [pick, setPick] = useState<string | null>(null);
     const [walking, setWalking] = useState<string | null>(null);
@@ -235,7 +234,6 @@ export function CupMap() {
                 title={t('longCup.title')}
                 icon="liga"
                 tag={t('longCup.step', { n: Math.min(played + 1, cupLength(run)), total: cupLength(run) })}
-                onBack={() => go('home')}
             />
             <Coach
                 id="rota"
@@ -467,7 +465,6 @@ function NodeSheet({
 export function Training() {
     const live = useGame((s) => s.run);
     const train = useGame((s) => s.train);
-    const go = useGame((s) => s.go);
     const run = useHeld(live?.status === 'treino' ? live : null);
     const { t } = useT();
     if (!run) return null;
@@ -477,12 +474,7 @@ export function Training() {
         .filter((p) => p && evolutionTarget(p.speciesId, p.uid) !== null);
     return (
         <div className="menu-screen cm">
-            <MenuHead
-                title={t('longCup.treino.title')}
-                icon="liga"
-                tag={t('longCup.title')}
-                onBack={() => go('home')}
-            />
+            <MenuHead title={t('longCup.treino.title')} icon="liga" tag={t('longCup.title')} />
             {evolvers.length > 0 && (
                 <div className="panel cm-train">
                     <h2>{t('longCup.treino.evo')}</h2>
@@ -580,7 +572,6 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
 export function EventScreen() {
     const live = useGame((s) => s.run);
     const chooseEvent = useGame((s) => s.chooseEvent);
-    const go = useGame((s) => s.go);
     const run = useHeld(live?.status === 'event' && live.event ? live : null);
     const [choice, setChoice] = useState<string | null>(null);
     const [card, setCard] = useState(0);
@@ -639,7 +630,7 @@ export function EventScreen() {
     );
     return (
         <div className="menu-screen cm cm-ev">
-            <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} onBack={() => go('home')} />
+            <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} />
             <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
                 <span className="cm-event-emblem">
                     <HudIcon kind={EVENT_ART[ev.id].icon} />
@@ -734,7 +725,6 @@ export function GroupScreen() {
     const live = useGame((s) => s.run);
     const playNext = useGame((s) => s.playNext);
     const tell = useGame((s) => s.tell);
-    const go = useGame((s) => s.go);
     const run = useHeld(live?.status === 'group' && live.group ? live : null);
     const color = useClubColor();
     const { t, d, lang } = useT();
@@ -748,12 +738,7 @@ export function GroupScreen() {
     const untold = !run.told?.includes('planalto');
     return (
         <div className="menu-screen cm">
-            <MenuHead
-                title={t('longCup.region.planalto')}
-                icon="liga"
-                tag={t('longCup.groupTag')}
-                onBack={() => go('home')}
-            />
+            <MenuHead title={t('longCup.region.planalto')} icon="liga" tag={t('longCup.groupTag')} />
             <section className="gp-table bc-surface" aria-label={t('longCup.groupTable')}>
                 <div className="gp-row gp-head">
                     <span />

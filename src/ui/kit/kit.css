@@ -380,3 +380,197 @@
 :root[data-reduce-motion="true"] .cb-shine::before {
     display: none;
 }
+
+/* ---------- sheet (Sheet.tsx): no celular sobe de baixo; no desktop é a janela do meio ---------- */
+.k-sheet-back {
+    z-index: 300;
+}
+.k-sheet {
+    width: min(460px, 100%);
+    display: grid;
+    gap: 12px;
+    padding-top: 20px;
+}
+.k-sheet:focus {
+    outline: none;
+}
+.panel.k-sheet > h2 {
+    margin: 0 auto;
+    max-width: calc(100% - 96px);
+}
+.k-sheet > p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+    text-align: center;
+}
+/* a alça: só aparece quando a folha sai de baixo */
+.k-sheet-grab {
+    display: none;
+}
+/* fechar: redondo e vermelho (perigo e fechar são vermelhos no kit) */
+.k-sheet .k-sheet-x {
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--red-hi) 0 44%, var(--red) 44%);
+    box-shadow:
+        inset 0 -3px 0 var(--red-lo),
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+}
+.k-sheet .k-sheet-x:hover {
+    color: #fff;
+    filter: brightness(1.08);
+}
+.k-confirm {
+    width: min(380px, 100%);
+}
+.k-confirm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+@media (max-width: 640px) {
+    .modal-backdrop.k-sheet-back {
+        align-items: end;
+        padding: 0;
+    }
+    .k-sheet {
+        width: 100%;
+        max-height: 92dvh;
+        border-radius: 14px 14px 0 0;
+        border-bottom: 0;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        animation: k-sheet-up var(--dur-tela) var(--ease-out) both;
+    }
+    .k-sheet-grab {
+        display: block;
+        justify-self: center;
+        width: 44px;
+        height: 5px;
+        margin: -8px 0 -4px;
+        border-radius: 3px;
+        background: var(--frame-in);
+    }
+    .is-leaving .k-sheet {
+        animation: k-sheet-down 200ms var(--ease-out) both;
+    }
+}
+@keyframes k-sheet-up {
+    from {
+        transform: translateY(100%);
+    }
+}
+@keyframes k-sheet-down {
+    to {
+        transform: translateY(100%);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .k-sheet {
+        animation: screen-in 0.2s var(--ease-out) both;
+    }
+}
+:root[data-reduce-motion="true"] .k-sheet {
+    animation: screen-in 0.2s var(--ease-out) both;
+}
+
+/* ---------- barra da copa (CupBar.tsx): voltar, a fase em placa, ₽ e sorteios ---------- */
+.k-cupbar {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+/* botão-ícone: quadrado de 44 px, chanfrado azul-noite */
+.k-icon-btn {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0 0 3px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.k-icon-btn:active {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
+}
+.k-icon-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.k-cupbar-stage {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-right: auto;
+    padding: 5px 10px 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border: 3px solid var(--cb-ink);
+    border-top: 5px solid var(--yellow);
+    border-radius: 6px;
+    background: var(--cb-ink);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    text-transform: uppercase;
+    color: #fff;
+}
+.k-res {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    padding: 0 9px 0 5px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: #0e1438;
+    box-shadow:
+        inset 0 2px 0 rgb(255 255 255 / 10%),
+        0 3px 0 var(--cb-ink);
+}
+.k-res .cb-num {
+    font-size: 17px;
+    line-height: 1;
+}
+.k-res .hud-icon,
+.k-res-coin {
+    box-sizing: content-box;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 2px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--blue-c);
+    color: #fff;
+}
+.k-res-coin {
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    color: var(--gold-ol);
+    font-style: normal;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+}
+@media (max-width: 359px) {
+    .k-cupbar-stage {
+        font-size: 13px;
+    }
+    .k-res {
+        padding-right: 6px;
+    }
+}

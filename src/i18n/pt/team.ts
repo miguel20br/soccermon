@@ -42,7 +42,6 @@ export const team = {
             counter: 'O pivô espera na frente. Passe e velocidade +2%.',
         },
         simError: 'Não deu pra simular a partida. Tente de novo ou recarregue a página.',
-        tip: 'Toque em dois pra trocar. Mesmo tipo e duplas famosas dão sinergia.',
         pens: ' (pên. {a}x{b})',
         title: 'Escalação · {team}',
         swapHint: 'Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco).',
@@ -77,7 +76,9 @@ export const team = {
         giveTo: 'Passar pra outro',
         giveCancel: 'Cancelar',
         giveHint: 'Toque em quem recebe {item}. Se ele já tiver item, os dois trocam.',
-        abandonConfirm: 'Abandonar esta copa? O time será perdido.',
+        cupObj: 'Copa',
+        abandonTitle: 'Abandonar a copa?',
+        abandonText: 'O time do {team} será perdido.',
         abandon: 'Abandonar copa',
     },
     board: {

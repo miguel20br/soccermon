@@ -49,6 +49,7 @@ import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import { duelLink, isLocalDuel } from './link';
 import './duel.css';
+import { ConfirmSheet } from '../kit/Sheet';
 
 const PENDING = 'soccermon-duel-pending';
 
@@ -921,30 +922,22 @@ export function Duel() {
             {room && (
                 <div className="duel-top row">
                     <span className="muted">{t('duel.room', { code: room })}</span>
-                    {askLeave ? (
-                        <span className="row duel-leave-ask">
-                            <span>{t('duel.leaveAsk')}</span>
-                            <button
-                                type="button"
-                                className="btn small"
-                                data-fx="none"
-                                onClick={() => leaveWith('leave', home)}
-                            >
-                                {t('duel.leaveYes')}
-                            </button>
-                            <button type="button" className="btn small ghost" onClick={() => setAskLeave(false)}>
-                                {t('common.ui.cancel')}
-                            </button>
-                        </span>
-                    ) : (
-                        <button
-                            type="button"
-                            className="btn small ghost"
-                            onClick={() => (active ? setAskLeave(true) : home())}
-                        >
-                            {t('duel.leave')}
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        className="btn small ghost"
+                        onClick={() => (active ? setAskLeave(true) : home())}
+                    >
+                        {t('duel.leave')}
+                    </button>
+                    <ConfirmSheet
+                        open={askLeave}
+                        onClose={() => setAskLeave(false)}
+                        title={t('duel.leaveTitle')}
+                        text={t('duel.leaveText')}
+                        confirm={t('duel.leaveYes')}
+                        onConfirm={() => leaveWith('leave', home)}
+                        quiet
+                    />
                 </div>
             )}
             {s && role && <WaitBanner s={s} role={role} />}

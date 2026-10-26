@@ -948,9 +948,6 @@
 .es-play .cup-go-txt small {
     font-size: 13px;
 }
-.es-confirm {
-    padding: 14px;
-}
 /* deitado: telão e botões numa coluna à esquerda; o capitão e as placas à direita, à vista */
 @media (orientation: landscape) and (max-height: 520px) {
     .es-ui {
