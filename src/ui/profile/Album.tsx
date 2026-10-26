@@ -653,8 +653,8 @@ export function AlbumView({
                     </span>
                     <span className="pf-sr">{t('profile.dex.stickersAria', { n: total.got, total: total.total })}</span>
                 </b>
-                <div className="pf-bar" aria-hidden>
-                    <i className="played" style={{ width: `${(total.got / total.total) * 100}%` }} />
+                <div className={`k-bar${total.got >= total.total ? ' full' : ''}`} aria-hidden>
+                    <i style={{ width: `${(total.got / total.total) * 100}%` }} />
                 </div>
                 <small className="muted">{t('profile.album.help')}</small>
             </div>

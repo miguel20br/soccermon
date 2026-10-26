@@ -3850,6 +3850,14 @@ button,
 .st-table-wrap > * {
     min-width: 0;
 }
+/* as duas pastas do resultado (destaques, estatísticas): abas do kit (.k-tabs); a pasta aberta encosta na linha das
+   abas (a borda do painel vira a linha) */
+.res-folder {
+    min-width: 0;
+}
+.res-parts + .k-pane {
+    margin-top: -3px;
+}
 .st-tabs {
     border-radius: 6px;
     overflow: hidden;
@@ -4705,6 +4713,9 @@ button,
 .champ-totals span {
     text-align: center;
 }
+.champ-totals small {
+    font-size: 18px;
+}
 .champ-h {
     margin: 10px 0 0;
     font-size: 15px;
@@ -4781,19 +4792,12 @@ button,
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 6px;
+    gap: 10px 8px;
     margin: 0;
     padding: 0;
     list-style: none;
 }
-.ce-records li {
-    padding: 4px 12px;
-    border: 2px solid var(--yellow);
-    border-radius: 999px;
-    color: var(--yellow);
-    font-size: 13px;
-    font-weight: 700;
-}
+/* os recordes do título são selos do kit (.k-seal) */
 .ce-awards {
     width: min(860px, 100%);
     display: grid;

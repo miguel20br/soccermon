@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
@@ -38,8 +38,11 @@ export function TitleRecords({ run, rarity }: { run: RunState; rarity: Rarity | 
     if (rare) items.push(t('title.records.rare', { p: rare.pct, name: rare.name }));
     return (
         <ul className="ce-records">
-            {items.map((s) => (
-                <li key={s}>{s}</li>
+            {items.map((s, i) => (
+                // o 1º (o título) é o selo dourado; os outros, azul-noite
+                <li key={s} className={`k-seal${i ? ' k-seal-dark' : ''}`} style={{ '--i': i } as CSSProperties}>
+                    {s}
+                </li>
             ))}
         </ul>
     );

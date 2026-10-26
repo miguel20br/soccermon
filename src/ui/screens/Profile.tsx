@@ -133,7 +133,7 @@ export function Profile() {
             <DoorTiles which={['trophies', 'collection']} />
 
             <div
-                className="pf-tabs bc-tabs"
+                className="pf-tabs k-tabs"
                 role="tablist"
                 aria-label={t('profile.title')}
                 style={{ '--n': DOOR_TABS.profile.length } as CSSProperties}

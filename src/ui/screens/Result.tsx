@@ -21,7 +21,7 @@ import { rivalColor } from '../../store/profile';
 import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
-import { Fold, foldOpenByDefault } from '../components/Fold';
+import { foldOpenByDefault } from '../components/Fold';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
 import { LeaderQuote } from '../components/LeaderQuote';
@@ -57,6 +57,9 @@ type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 /** Abas (o rótulo vem do dicionário: result.tabs). */
 const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
 const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players', graficos: 'chart', copa: 'cup' };
+type Part = 'destaques' | 'stats';
+const PARTS: Part[] = ['destaques', 'stats'];
+const PART_ICON: Record<Part, HudIconKind> = { destaques: 'max', stats: 'chart' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 /** Copa em que o som de eliminado já tocou (voltar pro resultado não toca de novo). */
@@ -361,6 +364,8 @@ export function MatchDetails({
 }) {
     const { t, tn, d } = useT();
     const [tab, setTab] = useState<Tab>(initialTab);
+    // as duas pastas (destaques, estatísticas): no PC abre a 1ª; no celular em pé começa fechada (tocar na aberta fecha)
+    const [part, setPart] = useState<Part | null>(() => (foldOpenByDefault() ? 'destaques' : null));
     const mvp = matchMvp(match);
     const goals = match.events.filter((e) => e.type === 'goal');
     // evoluções do rival: lembrete pra quem não viu na quadra
@@ -378,9 +383,30 @@ export function MatchDetails({
     const leaderList = leaders(lines);
 
     return (
-        <>
-            <Fold label={t('result.foldHighlights')} defaultOpen={foldOpenByDefault()}>
-                <div className="two-col">
+        <div className="res-folder">
+            <div className="k-tabs res-parts" role="tablist">
+                {PARTS.map((id) => (
+                    <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        id={`res-part-${id}`}
+                        aria-selected={part === id}
+                        aria-controls={`res-pane-${id}`}
+                        onClick={() => setPart(part === id ? null : id)}
+                    >
+                        <HudIcon kind={PART_ICON[id]} />
+                        <span>{t(id === 'destaques' ? 'result.foldHighlights' : 'result.foldStats')}</span>
+                    </button>
+                ))}
+            </div>
+            {part === 'destaques' && (
+                <div
+                    className="two-col k-pane"
+                    role="tabpanel"
+                    id="res-pane-destaques"
+                    aria-labelledby="res-part-destaques"
+                >
                     <div className="panel">
                         <h2>{t('result.highlights')}</h2>
                         <div className="st-leaders">
@@ -468,10 +494,15 @@ export function MatchDetails({
                         )}
                     </div>
                 </div>
-            </Fold>
+            )}
 
-            <Fold label={t('result.foldStats')} defaultOpen={foldOpenByDefault()}>
-                <div className="panel st-panel">
+            {part === 'stats' && (
+                <div
+                    className="panel st-panel k-pane"
+                    role="tabpanel"
+                    id="res-pane-stats"
+                    aria-labelledby="res-part-stats"
+                >
                     <div className="st-tabs bc-tabs" role="tablist">
                         {TABS.filter((id) => id !== 'copa' || cupTab).map((id) => (
                             <button
@@ -570,7 +601,7 @@ export function MatchDetails({
                         </div>
                     )}
                 </div>
-            </Fold>
-        </>
+            )}
+        </div>
     );
 }

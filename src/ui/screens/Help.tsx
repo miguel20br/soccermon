@@ -135,7 +135,7 @@ export function Help() {
                 <small className="muted">{c.hint}</small>
             </section>
 
-            <label className="help-search">
+            <label className="help-search k-field">
                 <HudIcon kind="search" className="help-search-icon" />
                 <span className="help-sr-only">{tx.searchLabel}</span>
                 <input

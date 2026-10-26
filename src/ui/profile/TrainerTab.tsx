@@ -248,12 +248,12 @@ function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
                     aria-valuenow={n}
                     aria-label={t('profile.missions.progressAria', { n, goal: m.goal })}
                 >
-                    <span className="pf-mission-bar">
+                    <span className="k-bar">
                         <i style={{ width: `${(n / m.goal) * 100}%` }} />
+                        <b aria-hidden>
+                            {n}/{m.goal}
+                        </b>
                     </span>
-                    <small>
-                        {n}/{m.goal}
-                    </small>
                 </span>
             )}
         </>
@@ -299,12 +299,12 @@ export function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
                                 aria-valuenow={Math.min(i.n, i.goal)}
                                 aria-label={t('profile.missions.progressAria', { n: i.n, goal: i.goal })}
                             >
-                                <span className="pf-mission-bar">
+                                <span className={`k-bar${i.n >= i.goal ? ' full' : ''}`}>
                                     <i style={{ width: `${Math.min(1, i.n / i.goal) * 100}%` }} />
+                                    <b aria-hidden>
+                                        {Math.min(i.n, i.goal)}/{i.goal}
+                                    </b>
                                 </span>
-                                <small>
-                                    {i.n}/{i.goal}
-                                </small>
                             </span>
                         </div>
                         {i.n >= i.goal && (
@@ -334,7 +334,7 @@ export function MissionSummary() {
             aria-valuenow={done}
         >
             <b>{t('profile.missions.summary', { done, total: MISSIONS.length })}</b>
-            <span className="pf-mission-bar">
+            <span className={`k-bar${done >= MISSIONS.length ? ' full' : ''}`}>
                 <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
             </span>
         </div>

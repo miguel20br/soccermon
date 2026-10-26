@@ -105,12 +105,12 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
                     </span>
                 </div>
                 <div
-                    className="pf-bar"
+                    className={`k-bar${counts.played >= TOTAL ? ' full' : ''}`}
                     role="img"
                     aria-label={t('profile.dex.barAria', { seen: seenCount, total: TOTAL, played: counts.played })}
                 >
-                    <i className="seen" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
-                    <i className="played" style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
+                    <i className="k-bar-ghost" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
+                    <i style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
                 </div>
             </div>
 

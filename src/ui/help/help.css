@@ -480,35 +480,7 @@
     align-items: center;
     gap: 10px;
 }
-.help-search {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 12px;
-    background: var(--panel);
-    border: 3px solid var(--line);
-    border-radius: var(--radius);
-}
-.help-search:focus-within {
-    border-color: var(--yellow);
-}
-.help-search input {
-    flex: 1;
-    min-width: 0;
-    height: 44px;
-    border: 0;
-    background: transparent;
-    color: var(--text);
-    font: inherit;
-    font-size: 16px;
-    outline: none;
-}
-.help-search input::placeholder {
-    color: var(--muted);
-}
-.help-search-icon {
-    color: var(--muted);
-}
+/* a busca é o campo do kit (.k-field) */
 .help-sr-only {
     position: absolute;
     width: 1px;
@@ -521,19 +493,26 @@
     display: grid;
     gap: 8px;
 }
+/* cada seção é um cartão do kit: o painel de moldura dupla; o cabeçalho afunda no toque e a seta vai num botão-ícone */
 .panel.help-section {
     padding: 0;
+    overflow: hidden;
 }
 .help-section summary {
     display: flex;
     align-items: center;
     gap: 10px;
     min-height: 52px;
-    padding: 6px 12px;
+    padding: 6px 10px 6px 12px;
     cursor: pointer;
     list-style: none;
     font-weight: 700;
     font-size: 15px;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.help-section summary:active {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
 }
 .help-section summary::-webkit-details-marker {
     display: none;
@@ -557,14 +536,24 @@
     object-fit: contain;
 }
 .help-caret {
-    color: var(--muted);
-    transition: transform 0.2s ease;
+    box-sizing: content-box;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    padding: 5px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--bc-ink-2) 0 45%, var(--bc-ink) 45%);
+    box-shadow: var(--lift-1);
+    color: var(--yellow);
+    transition: transform var(--dur-ui) var(--ease-out);
 }
 .help-section[open] .help-caret {
     transform: rotate(180deg);
 }
 .help-section[open] summary {
-    border-bottom: 2px solid var(--line);
+    border-bottom: 3px solid var(--cb-ink);
+    background: rgb(11 15 36 / 35%);
 }
 .help-body {
     padding: 4px 14px 14px;
@@ -600,8 +589,13 @@
 .help-empty a {
     color: var(--yellow);
 }
-[data-reduce-motion="true"] .help-caret {
+[data-reduce-motion="true"] :is(.help-caret, .help-section summary) {
     transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) :is(.help-caret, .help-section summary) {
+        transition: none;
+    }
 }
 
 /* ---------- dica contextual ---------- */

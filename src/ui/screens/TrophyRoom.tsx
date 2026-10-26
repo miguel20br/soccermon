@@ -200,7 +200,8 @@ export function TrophyRoom() {
     const duelWins = duelWinsOf(records, view.duels);
     const medals = useMemo(() => medalProgress(view), [view]);
     const platinum = platinumDone(PLATINUM[0], view);
-    const lvl = roomLevel(Math.max(records.titles, hall.length));
+    const titles = Math.max(records.titles, hall.length);
+    const lvl = roomLevel(titles);
     const capOf = (h: (typeof hall)[number]) => h.squad.find((p) => p.captain) ?? h.squad[0];
     const metalName = (m: Metal) => t(`trophies.metal.${m}` as TKey);
     const date = (ms: number) => new Date(ms).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US');
@@ -504,6 +505,14 @@ export function TrophyRoom() {
                 <span>
                     <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
                     <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
+                    {lvl.next && (
+                        <span className="k-bar tr-level-bar" aria-hidden>
+                            <i style={{ width: `${(titles / lvl.next) * 100}%` }} />
+                            <b>
+                                {titles}/{lvl.next}
+                            </b>
+                        </span>
+                    )}
                 </span>
                 <span className="tr-summary-btns">
                     <button

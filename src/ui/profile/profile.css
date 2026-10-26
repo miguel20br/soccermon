@@ -445,36 +445,15 @@ button.pf-trainer:focus-visible,
 .pf-mission-reward b {
     color: var(--yellow);
 }
-.pf-mission-bar {
-    position: relative;
-    display: block;
-    height: 12px;
-    border-radius: 6px;
-    background: rgb(0 0 0 / 35%);
-    overflow: hidden;
-}
-.pf-mission-bar i {
-    position: absolute;
-    inset: 0 auto 0 0;
-    background: linear-gradient(90deg, var(--yellow), #ffe066);
-    border-radius: 6px;
-}
 .pf-mission-progress {
     display: flex;
     align-items: center;
     gap: 6px;
     width: 100%;
 }
-.pf-mission-progress .pf-mission-bar {
+.pf-mission-progress .k-bar {
     flex: 1;
     min-width: 0;
-}
-.pf-mission-progress small {
-    flex: none;
-    font-size: 10px;
-    line-height: 12px;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
 }
 .pf-mission-done {
     display: grid;
@@ -486,30 +465,11 @@ button.pf-trainer:focus-visible,
     color: #0e1430;
 }
 
-/* abas */
-/* abas com ícone (.bc-tabs do kit); "Hall da Fama" pode quebrar em duas linhas no celular */
-.pf-tabs {
-    border-radius: 6px;
-    overflow: hidden;
-}
-.pf-tabs.bc-tabs button span {
+/* abas de pasta (.k-tabs do kit); "Hall da Fama" pode quebrar em duas linhas no celular */
+.pf-tabs > [role="tab"] > span {
     white-space: normal;
     text-align: center;
     line-height: 1.2;
-}
-/* 7 abas não cabem numa fileira no celular estreito: duas de 4 (ícone em cima do nome) */
-@media (max-width: 480px) {
-    .pf-tabs.bc-tabs {
-        grid-auto-flow: row;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .pf-tabs.bc-tabs button {
-        min-height: 48px;
-        padding-inline: 2px;
-    }
-}
-.pf-tab:hover {
-    color: var(--text);
 }
 .pf-chip:focus-visible,
 .pf-chip:focus-visible,
@@ -911,25 +871,6 @@ fieldset.pf-field,
     color: var(--yellow);
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 16px;
-}
-.pf-bar {
-    position: relative;
-    height: 12px;
-    border-radius: 999px;
-    background: var(--bg-2);
-    border: 2px solid #0e1430;
-    overflow: hidden;
-}
-.pf-bar i {
-    position: absolute;
-    inset: 0 auto 0 0;
-    border-radius: 999px;
-}
-.pf-bar .seen {
-    background: color-mix(in srgb, var(--yellow) 45%, var(--panel-2));
-}
-.pf-bar .played {
-    background: var(--yellow);
 }
 .pf-filters {
     display: flex;
@@ -1621,7 +1562,7 @@ fieldset.pf-field,
     font-size: 14px;
     color: var(--muted);
 }
-.pf-album .pf-bar,
+.pf-album .k-bar,
 .pf-album > small {
     grid-column: 1 / -1;
 }
