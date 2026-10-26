@@ -70,9 +70,9 @@ import {
     TacticControls,
     TIRED_HINT,
     Ticker,
-    useAutoResult,
     useClockParts,
     useCoachTab,
+    useFinalHold,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
@@ -368,7 +368,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
-    const auto = useAutoResult(ended, onSeeResult);
+    const auto = useFinalHold(ended);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
     useEffect(() => {
         if (ended)
@@ -813,7 +813,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             </div>
                         </fieldset>
                     ) : (
-                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} auto={auto} />
+                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} />
                     )}
                     {wide ? (
                         <EmoteBar captain={captains[side]} />

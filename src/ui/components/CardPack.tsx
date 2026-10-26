@@ -57,6 +57,7 @@ type Phase = 'closed' | 'opening' | 'flip' | 'done';
 export function CardPack({
     revealKey,
     sealed = false,
+    autoOpen = false,
     compact = false,
     fast = false,
     look,
@@ -67,6 +68,8 @@ export function CardPack({
 }: {
     revealKey: string;
     sealed?: boolean;
+    /** Com `sealed`: abre sozinho ao aparecer (sem o toque a mais); cartas novas depois só viram, como no fechado. */
+    autoOpen?: boolean;
     compact?: boolean;
     fast?: boolean;
     look: PackLook;
@@ -77,7 +80,11 @@ export function CardPack({
     children: ReactNode;
 }) {
     const { t } = useT();
-    const [phase, setPhase] = useState<Phase>(sealed ? 'closed' : 'opening');
+    const [phase, setPhase] = useState<Phase>(sealed && !autoOpen ? 'closed' : 'opening');
+    // biome-ignore lint/correctness/useExhaustiveDependencies: conta a abertura uma vez, quando o pacote abre sozinho
+    useEffect(() => {
+        if (sealed && autoOpen) onOpen?.();
+    }, []);
     const [lastKey, setLastKey] = useState(revealKey);
     if (lastKey !== revealKey) {
         setLastKey(revealKey);

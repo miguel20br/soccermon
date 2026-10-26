@@ -5,7 +5,7 @@ import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
 import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
-import { clubName, itemDesc, itemName, stageName, typeName } from '../../i18n';
+import { clubName, itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
@@ -80,31 +80,16 @@ export function Reward() {
 
     return (
         <>
+            {/* a fase fica só na barra da copa; sortear e pular moram juntos na barra de baixo */}
             <div className="draft-head bc-screenhead">
-                <span className="bc-tag">
-                    {isLong(run)
-                        ? t('longCup.title')
-                        : t('reward.nextStage', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
-                </span>
                 <div className="draft-title">
                     <h1>{title}</h1>
                 </div>
-                <button
-                    type="button"
-                    className="btn small"
-                    disabled={run.rerolls <= 0}
-                    onClick={() => {
-                        rerollReward();
-                        setChosen(null);
-                    }}
-                >
-                    <HudIcon kind="reroll" />
-                    {t('reward.reroll', { n: run.rerolls })}
-                </button>
             </div>
 
             <CardPack
                 sealed
+                autoOpen
                 fast={fast}
                 look={packLookOf(mons)}
                 label={t(training ? 'reward.pack.training' : 'reward.pack.label')}
@@ -237,12 +222,23 @@ export function Reward() {
                     />
                 </div>
             )}
-            {/* pular é discreto (fantasma à esquerda da barra); à direita, o que fazer agora */}
-            <div className="bc-thumbbar">
+            {/* pular é discreto (fantasma à esquerda); sortear de novo à direita */}
+            <div className="bc-thumbbar reward-bar">
                 <button type="button" className="btn ghost" onClick={skipReward}>
                     {t('reward.skip')}
                 </button>
-                <p className="tb-hint">{title}</p>
+                <button
+                    type="button"
+                    className="btn"
+                    disabled={run.rerolls <= 0}
+                    onClick={() => {
+                        rerollReward();
+                        setChosen(null);
+                    }}
+                >
+                    <HudIcon kind="reroll" />
+                    {t('reward.reroll', { n: run.rerolls })}
+                </button>
             </div>
         </>
     );

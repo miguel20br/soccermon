@@ -28,8 +28,6 @@ export const match = {
     skip: 'Pular pro fim',
     seeResult: 'Ver resultado',
     /** Fim de jogo: o botão conta os segundos até ir sozinho. */
-    goingResult: 'Ver resultado · {s} s',
-    stay: 'Ficar aqui',
     /** Faixa do fim de jogo. */
     final: { win: 'VITÓRIA!', loss: 'DERROTA', draw: 'EMPATE' },
     feed: 'Narração',

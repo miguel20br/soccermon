@@ -606,18 +606,6 @@
 .bc-result {
     flex: 1;
 }
-/* fim de jogo: o botão enche enquanto conta os segundos pra ir sozinho */
-.bc-thumb .bc-result.counting {
-    background-image: linear-gradient(90deg, rgb(0 0 0 / 0%) calc(var(--fill, 0) * 100%), rgb(255 255 255 / 25%) 0);
-}
-.bc-thumb .bc-result.counting {
-    white-space: nowrap;
-}
-.bc-stay {
-    flex: none;
-    min-height: 44px;
-    font-size: 12px;
-}
 /* faixa grande do fim de jogo por cima da quadra */
 .final-banner {
     position: absolute;

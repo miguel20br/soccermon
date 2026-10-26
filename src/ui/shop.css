@@ -162,11 +162,6 @@ button.sp-slot:hover {
 }
 
 /* ---------- tela do Mercado ---------- */
-/* o ₽ é o recurso da tela: número grande e contornado (kit, .cb-num), dourado */
-.money.shop-wallet {
-    font-size: 26px;
-    color: var(--yellow);
-}
 .shop-earned {
     display: flex;
     flex-wrap: wrap;
@@ -335,26 +330,26 @@ button.sp-slot:hover {
     margin: 0;
 }
 /* o Patrocínio na horizontal: placa da marca à esquerda, contrato à direita, comprar embaixo */
-.shelf-sponsor .shop-offer {
+.shop-sponsor-sheet .shop-offer {
     width: 100%;
     max-width: 560px;
     grid-template-rows: auto auto;
     margin-bottom: 10px;
 }
-.shelf-sponsor .sp-card {
+.shop-sponsor-sheet .sp-card {
     width: 100%;
     min-height: 0;
     grid-template-columns: 132px 1fr;
     grid-template-rows: none;
 }
-.shelf-sponsor .sp-plate {
+.shop-sponsor-sheet .sp-plate {
     align-content: center;
 }
-.shelf-sponsor .sp-contract {
+.shop-sponsor-sheet .sp-contract {
     justify-items: start;
     text-align: left;
 }
-.shelf-sponsor .sp-sign {
+.shop-sponsor-sheet .sp-sign {
     width: 100%;
 }
 
@@ -364,8 +359,39 @@ button.sp-slot:hover {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
     gap: 0 24px;
 }
-.shelf-sponsor {
+/* a linha dos Patrocínios (abre a sheet): de ponta a ponta, embaixo das prateleiras */
+.shop-sponsor-row {
     grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    margin-top: 16px;
+    padding: 8px 14px 11px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: var(--panel-2);
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 30%),
+        0 3px 0 var(--cb-ink);
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+}
+.shop-sponsor-row b {
+    margin-right: auto;
+}
+.shop-sponsor-row:active {
+    transform: translateY(2px);
+}
+.shop-sponsor-row:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.shop-sponsor-sheet .reward-pick h3 {
+    margin: 0 0 8px;
 }
 
 /* a carta diz que é Patrocínio (não é carta de Pokémon) */
@@ -392,20 +418,6 @@ button.sp-slot:hover {
     margin: -2px 0 8px;
     color: var(--muted);
     font-size: 12px;
-}
-
-/* desktop: os 2 Patrocínios da vitrine lado a lado */
-@media (min-width: 900px) {
-    .shelf-sponsor {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 16px;
-    }
-    .shelf-sponsor > .shop-shelf-title,
-    .shelf-sponsor > .shop-shelf-hint,
-    .shelf-sponsor > .sp-slots {
-        grid-column: 1 / -1;
-    }
 }
 
 /* tocar no Patrocínio mostra o que ele faz */

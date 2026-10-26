@@ -4,17 +4,17 @@ import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { MAX_SPONSORS } from '../../engine/sponsors';
-import { itemDesc, itemName, stageName, typeName } from '../../i18n';
+import { itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { isLong } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
-import { Money, SponsorCard, SponsorSlots } from '../components/SponsorCard';
+import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
+import { Sheet } from '../kit/Sheet';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
@@ -44,6 +44,7 @@ export function Shop() {
     }, [live, leaveShop]);
     const [chosen, setChosen] = useState<number | null>(null);
     const [packPick, setPackPick] = useState<number | null>(null);
+    const [sponsorsOpen, setSponsorsOpen] = useState(false);
     const { lang, t } = useT();
     const shop = run?.shop;
     if (run?.status !== 'shop' || !shop) return null;
@@ -130,15 +131,10 @@ export function Shop() {
 
     return (
         <>
+            {/* a fase e o ₽ ficam na barra da copa (revisao-caminho.md, itens 1 e 2) */}
             <div className="draft-head bc-screenhead">
-                <span className="bc-tag">
-                    {isLong(run)
-                        ? t('longCup.title')
-                        : t('shop.before', { stage: stageName(run.stage + 1, lang) || t('reward.cup') })}
-                </span>
                 <div className="draft-title">
                     <h1>{t('shop.title')}</h1>
-                    <Money n={money} className="shop-wallet cb-num" />
                 </div>
                 <button
                     type="button"
@@ -255,29 +251,48 @@ export function Shop() {
                             <h2 className="shop-shelf-title">{t('shop.shelf.gear')}</h2>
                             <div className="shop-grid">{shelf(['pack', 'item', 'tm']).map(offerTile)}</div>
                         </section>
-                        <section className="shop-shelf shelf-sponsor">
-                            <h2 className="shop-shelf-title">
-                                {t('shop.sponsors')}{' '}
-                                <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
-                            </h2>
-                            <p className="shop-shelf-hint">{t('shop.sponsorsHint')}</p>
-                            {shelf(['sponsor']).map(offerTile)}
-                            <SponsorSlots sponsors={sponsors} />
-                        </section>
+                        {/* patrocínios ocupavam meia tela: viram uma linha que abre a sheet (revisao-caminho.md item 8) */}
+                        <button
+                            type="button"
+                            className="shop-sponsor-row"
+                            aria-haspopup="dialog"
+                            onClick={() => setSponsorsOpen(true)}
+                        >
+                            <HudIcon kind="briefcase" />
+                            <b>{t('shop.sponsors')}</b>
+                            <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
+                            <HudIcon kind="next" />
+                        </button>
                     </div>
 
-                    {offer?.kind === 'sponsor' && (
-                        <div className="panel reward-pick" data-exit>
-                            <h2>{t('shop.full')}</h2>
-                            <SponsorSlots
-                                sponsors={sponsors}
-                                onPick={(id) => {
-                                    buyOffer(chosen!, id);
-                                    setChosen(null);
-                                }}
-                            />
-                        </div>
-                    )}
+                    <Sheet
+                        open={sponsorsOpen}
+                        onClose={() => {
+                            setSponsorsOpen(false);
+                            if (offer?.kind === 'sponsor') setChosen(null);
+                        }}
+                        title={`${t('shop.sponsors')} ${t('shop.slots', { n: sponsors.length })}`}
+                        className="shop-sponsor-sheet"
+                    >
+                        <p>{t('shop.sponsorsHint')}</p>
+                        {offer?.kind === 'sponsor' ? (
+                            <div className="reward-pick">
+                                <h3>{t('shop.full')}</h3>
+                                <SponsorSlots
+                                    sponsors={sponsors}
+                                    onPick={(id) => {
+                                        buyOffer(chosen!, id);
+                                        setChosen(null);
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                {shelf(['sponsor']).map(offerTile)}
+                                <SponsorSlots sponsors={sponsors} />
+                            </>
+                        )}
+                    </Sheet>
                     {offer && offer.kind !== 'sponsor' && offer.kind !== 'pack' && (
                         <GainTarget
                             key={chosen}

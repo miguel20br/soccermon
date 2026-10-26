@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useState } from 'react';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
@@ -600,39 +600,13 @@ export function TacticControls({
     );
 }
 
-/** Fim de jogo: quanto tempo a quadra espera antes de ir sozinha pro resultado. */
-export const AUTO_RESULT_MS = 3000;
-
-/** Passo da ida automática pro resultado: esperando, já pode ir, ou o técnico segurou (fica na quadra). */
-export function autoResultStep(elapsedMs: number, held: boolean): 'wait' | 'go' | 'held' {
-    if (held) return 'held';
-    return elapsedMs >= AUTO_RESULT_MS ? 'go' : 'wait';
-}
-
 /**
- * Depois do apito final vai sozinho pro resultado em AUTO_RESULT_MS; `hold()` (um toque na quadra ou no painel)
- * segura e a tela fica esperando o "Ver resultado". `left` = fração do tempo que falta (1 → 0), pro botão encher.
+ * Fim de jogo: a faixa do placar fica por cima da quadra até um toque nela ou no painel (`hold()`), pra rever a
+ * quadra. Não vai sozinho pro resultado (revisao-caminho.md item 7: o automático tirava o jogador antes de ler).
  */
-export function useAutoResult(ended: boolean, onGo: () => void): { held: boolean; hold: () => void; left: number } {
+export function useFinalHold(ended: boolean): { held: boolean; hold: () => void } {
     const [held, setHeld] = useState(false);
-    const [left, setLeft] = useState(1);
-    const go = useRef(onGo);
-    go.current = onGo;
-    useEffect(() => {
-        if (!ended || held) return;
-        const start = performance.now();
-        let gone = false;
-        const id = window.setInterval(() => {
-            const elapsed = performance.now() - start;
-            setLeft(Math.max(0, 1 - elapsed / AUTO_RESULT_MS));
-            if (!gone && autoResultStep(elapsed, false) === 'go') {
-                gone = true;
-                go.current();
-            }
-        }, 100);
-        return () => clearInterval(id);
-    }, [ended, held]);
-    return { held, hold: () => ended && setHeld(true), left };
+    return { held, hold: () => ended && setHeld(true) };
 }
 
 /** Resultado da partida do ponto de vista de `side` (pênaltis desempatam). */
@@ -668,35 +642,11 @@ export function FinalBanner({
 }
 
 /** Botão do fim de jogo: enche enquanto conta os segundos pra ir sozinho; segurado, vira o botão de sempre. */
-export function ResultButton({
-    label,
-    onGo,
-    auto,
-}: {
-    label: string;
-    onGo: () => void;
-    auto: { held: boolean; hold: () => void; left: number };
-}) {
-    const { t } = useT();
-    const counting = !auto.held;
+export function ResultButton({ label, onGo }: { label: string; onGo: () => void }) {
     return (
-        <>
-            <button
-                type="button"
-                className={`btn confirm bc-result${counting ? ' counting' : ''}`}
-                style={{ '--fill': 1 - auto.left } as CSSProperties}
-                onClick={onGo}
-            >
-                {counting
-                    ? t('match.goingResult', { s: Math.max(1, Math.ceil((auto.left * AUTO_RESULT_MS) / 1000)) })
-                    : label}
-            </button>
-            {counting && (
-                <button type="button" className="btn ghost bc-stay" onClick={auto.hold}>
-                    {t('match.stay')}
-                </button>
-            )}
-        </>
+        <button type="button" className="btn confirm bc-result" onClick={onGo}>
+            {label}
+        </button>
     );
 }
 

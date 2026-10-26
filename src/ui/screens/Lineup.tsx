@@ -16,6 +16,7 @@ import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
+import { Coach } from '../coach/Coach';
 import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { Fold, foldOpenByDefault } from '../components/Fold';
 import { FormationBoard } from '../components/FormationBoard';
@@ -96,6 +97,12 @@ export function Lineup() {
 
     return (
         <>
+            {/* 1ª escalação da Relâmpago: trocar tocando em dois, e o que a lousa abre (a dica antiga saiu) */}
+            <Coach
+                id="relampagoVestiario"
+                targets={['.vt-wall']}
+                when={!run.daily && !isLong(run) && run.stage === 0 && !locked}
+            />
             <LineupEditor
                 title={t('team.lineup.title', { team: run.teamName })}
                 formation={run.formation}

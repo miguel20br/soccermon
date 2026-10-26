@@ -622,6 +622,7 @@ export const help = {
         relampagoDraft: [
             'Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.',
         ],
+        relampagoVestiario: ['Toque em dois jogadores pra trocar. A Tática e a Chave ficam na lousa.'],
         relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
         dueloSala: [

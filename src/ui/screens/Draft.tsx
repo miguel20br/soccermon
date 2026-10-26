@@ -7,7 +7,6 @@ import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
-import { coachSeen } from '../../store/coach';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
@@ -20,7 +19,6 @@ import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
-import { Tip } from '../help/Tip';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
@@ -169,8 +167,6 @@ function FormationDiagram({ id }: { id: FormationId }) {
 export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll, daily } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
-    const [coachOn, setCoachOn] = useState(false);
-    const coachSeenDraft = useGame((s) => coachSeen(s.profile.coach, 'relampagoDraft'));
     const tr = useT();
     const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
@@ -197,12 +193,11 @@ export function Draft() {
 
     // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
     const quick = !run.daily && !isLong(run);
-    // o balão do draft ainda vai abrir (o Coach decide no efeito, depois do 1º desenho)
-    const coachDue = quick && !coachSeenDraft;
     if (run.status === 'formation') {
         return (
             <>
-                {quick && <Coach id="relampago" targets={['.draft-head h1']} />}
+                {/* acende a lista e o balão vai pro pé da tela (em cima do título ele cobria as formações) */}
+                {quick && <Coach id="relampago" targets={['.formation-picker']} />}
                 <div className="draft-head bc-screenhead">
                     <span className="bc-tag">
                         {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
@@ -257,13 +252,8 @@ export function Draft() {
               : t('team.draft.chooseForSlot', { pos: roleLabel })
           : t('team.draft.chooseSlot');
 
-    const hint = isCaptain
-        ? chosen
-            ? t('team.draft.hintCaptainSlot')
-            : t('team.draft.hintCaptain')
-        : run.draftSlot
-          ? t('team.draft.hintOptions')
-          : t('team.draft.hintSlot');
+    // a linha cinza só quando ensina algo além do título (nas vagas ela repetia o título e a barra de baixo)
+    const hint = isCaptain ? (chosen ? t('team.draft.hintCaptainSlot') : t('team.draft.hintCaptain')) : null;
 
     const onSlot = (slot: SlotRef, uid: string) => {
         if (uid) return;
@@ -300,7 +290,7 @@ export function Draft() {
                 </span>
                 <div className="draft-title">
                     <h1>{title}</h1>
-                    <p className="muted">{hint}</p>
+                    {hint && <p className="muted">{hint}</p>}
                 </div>
                 <div className="steps" role="img" aria-label={t('team.draft.progress')}>
                     {Array.from({ length: DRAFT_PICKS }, (_, i) => (
@@ -319,17 +309,12 @@ export function Draft() {
                     id="relampagoDraft"
                     targets={['.slot.empty']}
                     when={run.status === 'drafting' && !run.draftSlot}
-                    onActive={setCoachOn}
                 />
             )}
             <DraftStrip run={run} byUid={byUid} stateOf={slotState} onSlot={onSlot} />
             <div className="draft-grid">
                 <div className="panel board-panel" ref={boardRef}>
                     <h2>{run.teamName}</h2>
-                    {/* a dica diz o mesmo que o balão: só depois dele (ou sem ele) */}
-                    {run.status === 'drafting' && !run.draftSlot && !coachOn && !coachDue && (
-                        <Tip id="draft-slot">{t('team.draft.tip')}</Tip>
-                    )}
                     <FormationBoard
                         formation={run.formation}
                         lineup={run.lineup}

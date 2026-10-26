@@ -50,9 +50,9 @@ import {
     TacticControls,
     TIRED_HINT,
     Ticker,
-    useAutoResult,
     useClockParts,
     useCoachTab,
+    useFinalHold,
 } from '../components/MatchHud';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
@@ -355,7 +355,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
-    const auto = useAutoResult(ended, () => go(liga ? 'liga' : 'result'));
+    const auto = useFinalHold(ended);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
     useEffect(() => {
         if (ended)
@@ -862,11 +862,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             </button>
                         </>
                     ) : (
-                        <ResultButton
-                            label={t('match.seeResult')}
-                            onGo={() => go(liga ? 'liga' : 'result')}
-                            auto={auto}
-                        />
+                        <ResultButton label={t('match.seeResult')} onGo={() => go(liga ? 'liga' : 'result')} />
                     )}
                 </div>
             </div>

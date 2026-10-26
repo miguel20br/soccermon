@@ -215,6 +215,7 @@ export function Result() {
                     mvpUid={ourStar?.uid ?? null}
                     stats={heroStats(match, t)}
                     foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
+                    unlocks={<UnlockStrip />}
                     actions={actions}
                 />
             )}
@@ -239,7 +240,7 @@ export function Result() {
                     color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
                 />
             )}
-            <UnlockStrip />
+            {champion && <UnlockStrip />}
             {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
             <Tip id="result-dex">{t('result.dexTip')}</Tip>
             {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}

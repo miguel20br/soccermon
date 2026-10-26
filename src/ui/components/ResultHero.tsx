@@ -64,6 +64,7 @@ export function ResultHero({
     stats = [],
     actions,
     foul,
+    unlocks,
     duel,
 }: {
     /** Duelo: sem copa (nem caminho, nem próximo rival); o título, o lado e as cores vêm daqui. */
@@ -79,6 +80,8 @@ export function ResultHero({
     actions: ReactNode;
     /** Cartão da Rota (amarelo/vermelho): a notícia da derrota fica logo abaixo do placar, antes da fala e das estatísticas. */
     foul?: ReactNode;
+    /** Desbloqueios desta partida (treinador, título): logo abaixo do placar, sem precisar rolar. */
+    unlocks?: ReactNode;
 }) {
     // um de cada vez: placar rola, as linhas entram a cada 150 ms e o craque vem por último, com batida.
     // Um toque em qualquer lugar do bloco mostra tudo na hora.
@@ -150,6 +153,11 @@ export function ResultHero({
                   : run.stage === CUP_STAGES.length - 1
                     ? t('result.hero.runnerUp')
                     : t('result.hero.eliminated', { stage: d.common.stageIn[run.stage] ?? '' }));
+    // a copa segue (a barra da copa está em cima com a fase): "Oitavas de final vencidas" / "Partida 3 de 8" repetiam
+    const barShown = !!run && !duel && run.status !== 'eliminated' && run.status !== 'champion';
+    const subRepeats =
+        sub === (duel ? duel.stage : run && champion ? cupStageName(run, run.stage) : null) ||
+        (barShown && !!run && (sub === cupStageName(run, run.stage) || sub === d.common.stageWon[run.stage]));
     // Rota: o ₽ que a vitória acabou de render (o mapa só mostra o total)
     const gain =
         run && isLong(run) && !duel && won && !champion && !groupOut
@@ -177,7 +185,10 @@ export function ResultHero({
         // biome-ignore lint/a11y/useKeyWithClickEvents: toque pra pular a contagem; o teclado chega aos botões, que também completam
         <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
-            <div className="rh-stage bc-tag">{duel ? duel.stage : run ? cupStageName(run, run.stage) : ''}</div>
+            {/* copa: a fase está na barra da copa (e no Eliminado, na linha de baixo); a etiqueta fica no Duelo e no título */}
+            {(duel || champion) && (
+                <div className="rh-stage bc-tag">{duel ? duel.stage : run ? cupStageName(run, run.stage) : ''}</div>
+            )}
             {sadCaptain && (
                 <img
                     className="rh-sad pixel"
@@ -195,10 +206,8 @@ export function ResultHero({
                     </span>
                 ))}
             </h1>
-            {/* a tag em cima já diz a partida: não repete embaixo */}
-            {sub !== (duel ? duel.stage : run ? cupStageName(run, run.stage) : '') && (
-                <div className="rh-sub">{sub}</div>
-            )}
+            {/* não repete a fase que a etiqueta ou a barra da copa já dizem */}
+            {!subRepeats && <div className="rh-sub">{sub}</div>}
 
             <div className="rh-score">
                 <div className="rh-team home">
@@ -221,6 +230,7 @@ export function ResultHero({
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
 
+            {unlocks}
             {gain && (
                 <div className="rh-gain">
                     <b>+{t('shop.money', { n: gain.total })}</b>

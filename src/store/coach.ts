@@ -13,6 +13,7 @@ export const COACH_IDS = [
     'relampago',
     'relampagoDraft',
     'relampagoJogo',
+    'relampagoVestiario',
     'duelo',
     'dueloSala',
     'dia',
@@ -20,7 +21,7 @@ export const COACH_IDS = [
 ] as const;
 export type CoachId = (typeof COACH_IDS)[number];
 
-const RELAMPAGO: readonly CoachId[] = ['relampago', 'relampagoDraft', 'relampagoJogo'];
+const RELAMPAGO: readonly CoachId[] = ['relampago', 'relampagoDraft', 'relampagoVestiario', 'relampagoJogo'];
 
 /** "Pular" vale pro grupo inteiro (os balões do mesmo modo em telas diferentes). */
 export const COACH_GROUPS: Record<CoachId, readonly CoachId[]> = {
@@ -31,6 +32,7 @@ export const COACH_GROUPS: Record<CoachId, readonly CoachId[]> = {
     relampago: RELAMPAGO,
     relampagoDraft: RELAMPAGO,
     relampagoJogo: RELAMPAGO,
+    relampagoVestiario: RELAMPAGO,
     duelo: ['duelo', 'dueloSala'],
     dueloSala: ['duelo', 'dueloSala'],
     dia: ['dia'],
