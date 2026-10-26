@@ -142,6 +142,8 @@ export const match = {
         /** Golpe máximo em 3 níveis: gomo, nota do toque na batida. */
         maxLevel: 'Nível {n}',
         maxLevelShort: 'N{n}',
+        /** Tocou no golpe máximo da barra de baixo antes de acender. */
+        maxWhen: 'Ainda não: acende na hora do capitão, perto do gol',
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
         maxWait: 'Esperar',

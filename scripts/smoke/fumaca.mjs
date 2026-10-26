@@ -170,6 +170,14 @@ async function copa() {
             .catch(() => {});
         await p.waitForTimeout(3000);
         await shot(p, '06-partida');
+        // celular: o golpe máximo tem que estar à vista sem rolar (antes ficava na aba Tática, abaixo da quadra)
+        if (mobile) {
+            const inView = await p
+                .locator('.bc-maxthumb')
+                .evaluate((el) => el.getBoundingClientRect().bottom <= window.innerHeight)
+                .catch(() => false);
+            if (!inView) throw new Error('o golpe máximo não está à vista no celular');
+        }
         await p.locator('.bc-skip:not([disabled])').click({ timeout: 15000 });
         for (let i = 0; i < 240 && !(await btn(/^Ver resultado/).isVisible()); i++) {
             if (await vis(p, '.ht-panel'))

@@ -248,6 +248,48 @@ export function SidelineControls({
 }
 
 /**
+ * O golpe máximo na barra de baixo (celular): sempre à vista, a barra enchendo por dentro e o nível. Antes ele morava
+ * só na aba Tática, abaixo da quadra: pra ver a barra o jogador descia a tela e perdia a partida (e o aviso grande, que
+ * fica na quadra). Tocar antes de acender diz quando acende, em vez de não fazer nada.
+ */
+export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: boolean; onMax: (q: MaxGrade) => void }) {
+    const { d } = useT();
+    const a = d.match.agency;
+    const lit = maxLit(view) && canAct;
+    const tap = useMaxTap(onMax);
+    const [why, setWhy] = useState(false);
+    useEffect(() => {
+        if (!why) return;
+        const id = window.setTimeout(() => setWhy(false), 2500);
+        return () => clearTimeout(id);
+    }, [why]);
+    const live = view.max.active || view.maxPending;
+    return (
+        <span className="bc-maxwrap">
+            <button
+                type="button"
+                className={`bc-maxthumb${lit ? ' ready' : ''}${live ? ' live' : ''}`}
+                aria-keyshortcuts="M"
+                aria-disabled={!lit}
+                aria-label={`${a.max}: ${live ? a.maxActive : lit ? a.maxReady : maxLevelLabel(view.max.level, a.maxLevel)}`}
+                onPointerDown={tap.onPointerDown}
+                onClick={() => (lit ? tap.tap() : !live && setWhy(true))}
+                style={{ '--fill': view.max.charge } as CSSProperties}
+            >
+                <i className="bc-maxthumb-fill" aria-hidden />
+                <HudIcon kind="max" />
+                <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
+            </button>
+            {why && (
+                <span className="bc-maxwhy" role="status" data-exit>
+                    {a.maxWhen}
+                </span>
+            )}
+        </span>
+    );
+}
+
+/**
  * O botão grande do golpe máximo em cima da quadra: só aparece na hora certa (o da aba Tática acende junto), pra
  * dar tempo de tocar de qualquer aba. `onWait` (só na copa): o "Esperar" ao lado apaga o aviso e a câmera lenta.
  */

@@ -563,3 +563,97 @@
         white-space: nowrap;
     }
 }
+
+/*
+ * Golpe máximo na barra de baixo (MaxThumb, celular): o mesmo botão sempre à vista; a barra enche por dentro em 3 gomos.
+ * Aceso = amarelo pulsando. Na aba Tática (abaixo da quadra) ele sai: um lugar só.
+ */
+.bc-coach .sl-max {
+    display: none;
+}
+.bc-maxwrap {
+    position: relative;
+    flex: none;
+    display: flex;
+}
+.bc-maxthumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 44px;
+    padding: 0 10px;
+    overflow: hidden;
+    border: 3px solid #000;
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.bc-maxthumb .hud-icon,
+.bc-maxthumb b {
+    position: relative;
+}
+.bc-maxthumb-fill {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 6px;
+    width: calc(var(--fill, 0) * 100%);
+    background: var(--yellow);
+    transition: width 0.3s ease;
+}
+.bc-maxthumb.ready {
+    background: var(--yellow);
+    color: var(--bc-ink);
+    animation: sl-pulse 0.6s ease-in-out infinite alternate;
+}
+.bc-maxthumb.live {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.bc-maxthumb:active {
+    transform: translateY(2px);
+}
+.bc-maxwhy {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: max-content;
+    max-width: min(220px, calc(100vw - 24px));
+    padding: 8px 10px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--paper, #f8f8f0);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    color: var(--bc-ink);
+    font-size: 12px;
+    line-height: 1.35;
+    animation: sl-cue-in 0.2s var(--ease-out);
+}
+[data-reduce-motion="true"] .bc-maxthumb.ready {
+    animation: none;
+}
+
+/* celular em pé: o golpe e o "Esperar" cabem na largura (no 360 o "Esperar" saía da tela) */
+@media (max-width: 420px) {
+    .sl-cue-row {
+        left: 8px;
+        right: 8px;
+        justify-content: center;
+        max-width: none;
+        transform: none;
+    }
+    .sl-cue {
+        min-width: 0;
+        gap: 6px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    .sl-cue.sl-wait {
+        flex: none;
+        padding: 8px 10px;
+    }
+}

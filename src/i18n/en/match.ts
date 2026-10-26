@@ -127,6 +127,8 @@ export const match: typeof pt = {
         maxActive: 'Live!',
         maxLevel: 'Level {n}',
         maxLevelShort: 'L{n}',
+        /** Tapped the bottom-bar max move before it lit up. */
+        maxWhen: "Not yet: it lights up at your captain's moment, near the goal",
         maxPerfect: 'PERFECT!',
         maxGood: 'GOOD',
         maxWait: 'Wait',

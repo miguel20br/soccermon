@@ -63,6 +63,7 @@ import {
     capFxType,
     MaxBars,
     MaxCueButton,
+    MaxThumb,
     maxCueAt,
     maxLit,
     PenaltyOrderPanel,
@@ -846,6 +847,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     ),
                                 )}
                             </fieldset>
+                            {/* celular: o golpe máximo sempre à vista na barra fixa (na aba Tática ficava abaixo da quadra) */}
+                            {!wide && <MaxThumb view={sideline} canAct={canAgency} onMax={sendMax} />}
                             <button
                                 type="button"
                                 className="bc-skip"
