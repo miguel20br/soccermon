@@ -26,10 +26,6 @@
     animation-duration: 250ms;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* a View Transition já faz o fade: a tela nova não repete o dela */
-.vt-screen .app > *:not(.topbar) {
-    animation: none;
-}
 /* a carta contratada voa até a vaga (src/ui/view-transition.ts, flyCard) */
 ::view-transition-group(fly-card) {
     animation-duration: 300ms;

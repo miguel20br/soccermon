@@ -6692,9 +6692,12 @@ p.muted.center a {
 }
 
 /* ---------- tecido entre os momentos (varredura de animação, 16/10) ---------- */
-/* tela nova entra com um fade curto (só opacidade: transform num pai quebraria os modais "fixed") */
-.app > *:not(.topbar) {
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+/* tela nova entra com um fade curto (só opacidade: transform num pai quebraria os modais "fixed"). Só onde não há View
+   Transition: com ela, ligar o fade de novo no fim da troca recomeçava do zero e a tela piscava preta (26/10) */
+@supports not (view-transition-name: none) {
+    .app > *:not(.topbar) {
+        animation: screen-in var(--dur-ui) var(--ease-out) both;
+    }
 }
 @keyframes screen-in {
     from {
