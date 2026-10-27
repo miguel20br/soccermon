@@ -1905,7 +1905,7 @@ button.pc2.pc2-fx:hover {
     flex-direction: column;
     gap: var(--gap);
     /* a galeria usa a largura da tela toda (até 1640px), além da coluna do app */
-    width: min(1640px, calc(100vw - 32px));
+    width: min(1640px, calc(calc(100 * var(--vw)) - 32px));
     align-self: center;
 }
 .cg-showcase {
@@ -2056,7 +2056,7 @@ button.pc2.pc2-fx:hover {
         padding: 12px 0;
     }
     .cg-stage .pc2 {
-        font-size: min(20px, calc((100vw - 72px) / 15));
+        font-size: min(20px, calc((calc(100 * var(--vw)) - 72px) / 15));
     }
     .cg-col.active {
         grid-template-columns: repeat(2, minmax(0, 1fr));

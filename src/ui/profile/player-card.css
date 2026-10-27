@@ -128,7 +128,7 @@
         padding: 14px 12px 16px 16px;
     }
     .pcard-cards {
-        --fut-w: min(150px, calc((100vw - 86px) / 2));
+        --fut-w: min(150px, calc((calc(100 * var(--vw)) - 86px) / 2));
         gap: 10px;
     }
     .pcard-head .pf-who h2 {
@@ -141,7 +141,7 @@
         width: min(760px, 100%);
     }
     .pcard-cards {
-        --fut-w: min(130px, 20vw);
+        --fut-w: min(130px, calc(20 * var(--vw)));
         flex-wrap: nowrap;
     }
 }

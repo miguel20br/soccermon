@@ -509,7 +509,7 @@
 /* ---------- celular em pé: rival em cima, você embaixo ---------- */
 @media (max-aspect-ratio: 1 / 1) {
     .vs-overlay.vsp {
-        --F: clamp(76px, 25vw, 150px);
+        --F: clamp(76px, calc(25 * var(--vw)), 150px);
         --btn: 66px;
     }
     .vsp-side.is-home {

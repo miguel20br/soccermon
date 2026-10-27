@@ -276,7 +276,7 @@
     background: var(--bc-paper);
     color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(30px, 9vw, 46px);
+    font-size: clamp(30px, calc(9 * var(--vw)), 46px);
     font-weight: 400;
     letter-spacing: 6px;
 }
@@ -873,7 +873,7 @@ button.sb-title:hover {
     line-height: 32px;
 }
 .duel-qr-svg {
-    width: min(200px, 60vw);
+    width: min(200px, calc(60 * var(--vw)));
     height: auto;
     border-radius: 8px;
     margin: 0 auto;

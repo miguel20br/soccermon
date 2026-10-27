@@ -64,7 +64,7 @@
     background: #c9a24a;
     color: #2a1d12;
     font-family: "Galmuri11", monospace;
-    font-size: clamp(8px, 1.6vw, 12px);
+    font-size: clamp(8px, calc(1.6 * var(--vw)), 12px);
     line-height: 1;
     box-shadow: 0 1px 0 #7a5a1a;
 }
@@ -180,7 +180,7 @@
     background: none;
     color: #181818;
     font-family: "Galmuri11", monospace;
-    font-size: clamp(12px, 2.4vw, 16px);
+    font-size: clamp(12px, calc(2.4 * var(--vw)), 16px);
     line-height: 1.35;
     text-align: left;
     cursor: pointer;
@@ -340,7 +340,7 @@
 }
 .k-sheet.tr-sheet-panel {
     width: min(720px, 100%);
-    max-height: min(86vh, 900px);
+    max-height: min(calc(86 * var(--vh)), 900px);
     overflow: auto;
     display: grid;
     gap: 12px;

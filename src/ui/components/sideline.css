@@ -622,7 +622,7 @@
     right: 0;
     bottom: calc(100% + 10px);
     width: max-content;
-    max-width: min(220px, calc(100vw - 24px));
+    max-width: min(220px, calc(calc(100 * var(--vw)) - 24px));
     padding: 8px 10px;
     border: 3px solid var(--bc-ink);
     border-radius: 8px;

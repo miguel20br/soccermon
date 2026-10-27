@@ -13,6 +13,7 @@ import { useT } from '../../i18n/react';
 import { COACH_GROUPS, type CoachId, coachSeen, whenHydrated } from '../../store/coach';
 import { useGame } from '../../store/game-store';
 import { reduceMotionOn } from '../reduce-motion';
+import { uiZoom } from '../ui-zoom';
 import './coach.css';
 import { type Box, needsScroll, placeBalloon, tappableUnder } from './place';
 
@@ -124,9 +125,12 @@ function Balloon({
         }
         let raf = 0;
         const tick = () => {
-            const r = el.getBoundingClientRect();
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
+            // tela grande: medidas em px da tela, estilo em px do CSS (ui-zoom.ts)
+            const z = uiZoom();
+            const d = el.getBoundingClientRect();
+            const r = { left: d.left / z, top: d.top / z, right: d.right / z, bottom: d.bottom / z };
+            const vw = window.innerWidth / z;
+            const vh = window.innerHeight / z;
             // só a parte que está na tela
             const l = Math.max(0, r.left - PAD);
             const t = Math.max(0, r.top - PAD);
@@ -237,8 +241,8 @@ function Balloon({
     };
 
     if (!rect) return null;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const vw = window.innerWidth / uiZoom();
+    const vh = window.innerHeight / uiZoom();
     const p = placeBalloon(rect, size, vw, vh);
     const right = rect.left + rect.width;
     const bottom = rect.top + rect.height;
