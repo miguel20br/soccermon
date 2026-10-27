@@ -59,6 +59,8 @@ export const settings: typeof pt = {
         confirmLeaveLabel: 'Confirm before leaving the match',
         more: 'More options',
         haptics: 'Vibration',
+        packBeat: 'Cards on the beat',
+        packBeatHint: 'When opening a pack, each card lands on a beat. Off, they come out fast without waiting.',
         hapticsHint: 'A short buzz on main buttons and when leaving (Android).',
         hapticsOn: 'On',
         hapticsOff: 'Off',

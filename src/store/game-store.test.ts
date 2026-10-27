@@ -65,6 +65,18 @@ describe('save', () => {
         expect(useGame.getState().tour).toBe(false);
     });
 
+    it('retomar copa guardada leva pra ela e não deixa a outra como "guardada" na Home (vai e volta infinito)', () => {
+        const g = useGame.getState();
+        g.newRun('Time A', 'seed-a');
+        const a = useGame.getState().run!;
+        useGame.setState({ screen: 'home', parkedRuns: [{ ...a, seed: 'seed-b', teamName: 'Time B', status: 'map' }] });
+        useGame.getState().resumeParked('seed-b');
+        const s = useGame.getState();
+        expect(s.run!.teamName).toBe('Time B');
+        expect(s.screen).toBe('map');
+        expect(s.parkedRuns.map((r) => r.teamName)).toEqual(['Time A']);
+    });
+
     it('draft marca as opções como vistas e a nova copa usa o nome do clube', () => {
         useGame.setState({ dex: {}, profile: { ...useGame.getState().profile, clubName: 'Lavender FC' } });
         useGame.getState().newRun(undefined, 'teste-dex');

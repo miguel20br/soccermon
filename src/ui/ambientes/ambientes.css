@@ -3443,3 +3443,18 @@
         display: none;
     }
 }
+
+/* "Ranking de hoje" embaixo do JOGAR (Copa do Dia ainda não jogada): só um link, sem caixa (faxina) */
+.es-rank {
+    align-self: center;
+    margin-top: 6px;
+    padding: 6px 12px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}

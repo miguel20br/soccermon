@@ -446,6 +446,12 @@ export function Estadio({
                     <FriendChallenge />
                     <ParkedRuns />
                     <PlayBar main={main} sheet={plan.sheet.map(mode)} open={open} onOpen={setOpen} onPick={setChosen} />
+                    {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva) */}
+                    {cur === 'daily' && !daily.played && (
+                        <button type="button" className="es-rank" onClick={() => go('daily')}>
+                            {t('liga.home.dailyRanking')}
+                        </button>
+                    )}
                     <ConfirmSheet
                         open={!!confirm}
                         onClose={() => setConfirm(undefined)}

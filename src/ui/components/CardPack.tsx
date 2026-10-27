@@ -156,9 +156,9 @@ export function CardPack({
             base.push(at);
             at += tm.gap + (el.classList.contains('big') ? tm.hold : 0);
         }
-        // com música, cada carta cai numa batida (colcheia, se a batida é longa) e o som dela sai nessa linha; o rápido
+        // com a opção "cartas no ritmo da música" (padrão desligada), cada carta cai numa batida (colcheia, se a batida é longa) e o som dela sai nessa linha; o rápido
         // (da 7ª recompensa em diante) fica como era. Um toque continua pulando tudo na hora.
-        const grid = fast ? null : musicLines(cards.length * 4 + 8);
+        const grid = fast || !useGame.getState().settings.packOnBeat ? null : musicLines(cards.length * 4 + 8);
         const pNow = performance.now();
         const times = grid ? onLines(base, grid.lines) : base;
         let end = 0;

@@ -325,6 +325,14 @@ export function Settings() {
                                 onPick={(goalCry) => set({ goalCry })}
                             />
                         </Row>
+                        <Row title={t('settings.screen.packBeat')} hint={t('settings.screen.packBeatHint')}>
+                            <Segmented
+                                label={t('settings.screen.packBeat')}
+                                value={!!settings.packOnBeat}
+                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                onPick={(packOnBeat) => set({ packOnBeat })}
+                            />
+                        </Row>
                         <Row title={t('settings.screen.criesStyle')}>
                             <Segmented
                                 label={t('settings.screen.criesStyle')}

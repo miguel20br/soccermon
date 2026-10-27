@@ -347,6 +347,8 @@ export interface Settings {
     lang: Lang;
     /** Vibração curta nos toques que pesam (Android; o iPhone não vibra pela web). Sem = ligada. */
     haptics?: boolean;
+    /** Abertura de pacote: as cartas caem nas batidas da música (a 3ª demorava). Sem o campo = desligado. */
+    packOnBeat?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -1911,7 +1913,13 @@ export const useGame = create<GameStore>()(
                     const rest = parkedRuns.filter((r) => r.seed !== seed);
                     // a copa atual não some: se ainda está em jogo, troca de lugar com a guardada
                     const next = isCupInProgress(run) ? [run, ...rest] : rest;
-                    setState({ run: target, parkedRuns: next.slice(0, MAX_PARKED), match: null });
+                    // vai direto pra copa retomada: sem isso a Home segue mostrando a outra como "guardada" e Retomar vira vai e volta
+                    setState({
+                        run: target,
+                        parkedRuns: next.slice(0, MAX_PARKED),
+                        match: null,
+                        screen: resumeScreenOf(target.status),
+                    });
                 },
                 discardParked: (seed) => setState({ parkedRuns: getState().parkedRuns.filter((r) => r.seed !== seed) }),
             };
