@@ -58,6 +58,8 @@ export const settings = {
         confirmLeaveLabel: 'Confirmar antes de sair da partida',
         more: 'Mais opções',
         haptics: 'Vibração',
+        packBeat: 'Cartas no ritmo da música',
+        packBeatHint: 'Na abertura de pacote, cada carta cai numa batida. Desligado, saem rápido, sem esperar.',
         hapticsHint: 'Um toque curto nos botões principais e ao sair (Android).',
         hapticsOn: 'Ligada',
         hapticsOff: 'Desligada',

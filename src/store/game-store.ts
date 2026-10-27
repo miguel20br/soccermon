@@ -347,6 +347,8 @@ export interface Settings {
     lang: Lang;
     /** Vibração curta nos toques que pesam (Android; o iPhone não vibra pela web). Sem = ligada. */
     haptics?: boolean;
+    /** Abertura de pacote: as cartas caem nas batidas da música (a 3ª demorava). Sem o campo = desligado. */
+    packOnBeat?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
