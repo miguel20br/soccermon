@@ -71,6 +71,7 @@ import {
     TIRED_HINT,
     Ticker,
     useClockParts,
+    useCoachFold,
     useCoachTab,
     useFinalHold,
 } from '../components/MatchHud';
@@ -160,6 +161,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const wide = useMedia(WIDE);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
+    const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
     /** Celular: os emotes abrem por cima da barra de baixo. */
     const [emotesOpen, setEmotesOpen] = useState(false);
     const [fulltime, setFulltime] = useState(false);
@@ -487,7 +489,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     };
     // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
     const openBoard = (uid?: string) => {
-        setTab('board');
+        showTab('board');
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
@@ -729,48 +731,56 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                     {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
-                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
-                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
-                        {tab === 'tactic' && tactics}
-                        {tab === 'board' && (
-                            <Prancheta
-                                match={match}
-                                setups={setups}
-                                side={side}
-                                tick={clock.tick}
-                                names={teamNames}
-                                selectedUid={subOut}
-                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
-                                onSub={
-                                    canSub
-                                        ? (outUid, inUid) => {
-                                              setSubOut(null);
-                                              order({ kind: 'sub', outUid, inUid });
-                                          }
-                                        : undefined
-                                }
-                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
-                                edit={{
-                                    enabled: canChange,
-                                    pending: pendingBoard,
-                                    over,
-                                    onConfirm: ({ formation, order: o }) =>
-                                        canChange && order({ kind: 'lineup', formation, order: o }),
-                                }}
-                            />
-                        )}
-                        {tab === 'team' && (
-                            <TeamPanel
-                                match={match}
-                                setups={setups}
-                                tick={clock.tick}
-                                teamNames={teamNames}
-                                interactive={sceneReady && !ended}
-                                side={side}
-                            />
-                        )}
-                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                <div
+                    className={`panel bc-coach${open ? '' : ' closed'}`}
+                    ref={coachRef}
+                    onPointerDownCapture={auto.hold}
+                >
+                    <CoachTabs tabs={tabs} active={open ? tab : null} onPick={pickTab} />
+                    <div className="bc-fold" inert={!open}>
+                        <div>
+                            <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                                {tab === 'tactic' && tactics}
+                                {tab === 'board' && (
+                                    <Prancheta
+                                        match={match}
+                                        setups={setups}
+                                        side={side}
+                                        tick={clock.tick}
+                                        names={teamNames}
+                                        selectedUid={subOut}
+                                        onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                                        onSub={
+                                            canSub
+                                                ? (outUid, inUid) => {
+                                                      setSubOut(null);
+                                                      order({ kind: 'sub', outUid, inUid });
+                                                  }
+                                                : undefined
+                                        }
+                                        subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
+                                        edit={{
+                                            enabled: canChange,
+                                            pending: pendingBoard,
+                                            over,
+                                            onConfirm: ({ formation, order: o }) =>
+                                                canChange && order({ kind: 'lineup', formation, order: o }),
+                                        }}
+                                    />
+                                )}
+                                {tab === 'team' && (
+                                    <TeamPanel
+                                        match={match}
+                                        setups={setups}
+                                        tick={clock.tick}
+                                        teamNames={teamNames}
+                                        interactive={sceneReady && !ended}
+                                        side={side}
+                                    />
+                                )}
+                                {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                            </div>
+                        </div>
                     </div>
                     {wide && tab !== 'feed' && lines.length > 0 && (
                         <div className="bc-recent">

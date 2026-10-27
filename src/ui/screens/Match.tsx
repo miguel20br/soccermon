@@ -52,6 +52,7 @@ import {
     TIRED_HINT,
     Ticker,
     useClockParts,
+    useCoachFold,
     useCoachTab,
     useFinalHold,
 } from '../components/MatchHud';
@@ -174,15 +175,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
-    // celular: o painel do técnico nasce fechado (a quadra fica com a tela) e abre quando o jogador toca numa aba;
-    // tocar na aba aberta fecha de novo. No desktop ele fica sempre aberto, na coluna da direita.
-    const [coachOpen, setCoachOpen] = useState(false);
-    const open = wide || coachOpen;
-    const showTab = (k: CoachTab) => {
-        setTab(k);
-        setCoachOpen(true);
-    };
-    const pickTab = (k: CoachTab) => (open && !wide && k === tab ? setCoachOpen(false) : showTab(k));
+    const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);

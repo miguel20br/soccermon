@@ -410,6 +410,21 @@ export function useCoachTab(tabs: readonly CoachTab[], fallback: CoachTab): [Coa
     return [pickTab(tab, tabs, fallback), pick];
 }
 
+/**
+ * Celular: o painel do técnico nasce fechado (a quadra fica com a tela), abre ao tocar numa aba e fecha ao tocar na
+ * aba aberta. No desktop fica sempre aberto. Usado pela Copa e pelo Duelo.
+ */
+export function useCoachFold(wide: boolean, tab: CoachTab, setTab: (tab: CoachTab) => void) {
+    const [coachOpen, setCoachOpen] = useState(false);
+    const open = wide || coachOpen;
+    const showTab = (k: CoachTab) => {
+        setTab(k);
+        setCoachOpen(true);
+    };
+    const pickTab = (k: CoachTab) => (open && !wide && k === tab ? setCoachOpen(false) : showTab(k));
+    return { open, showTab, pickTab };
+}
+
 export function CoachTabs({
     tabs,
     active,
