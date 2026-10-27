@@ -71,6 +71,12 @@
   border: 4px solid #0e1430; z-index: 30; opacity: 0; }
 .linhas { position: absolute; left: 0; top: 0; z-index: 11; opacity: 0; overflow: visible; }
 /* as falas: sempre no mesmo lugar (embaixo do placar) e a caixa cresce com o texto */
+#psi-tela { position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(ellipse 700px 900px at 540px 1100px, rgb(150 60 255 / 55%), rgb(60 0 120 / 35%) 70%); }
+.anel-psi { position: absolute; left: 0; top: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%; box-sizing: border-box;
+  border: 12px solid #c070ff; z-index: 11; opacity: 0; filter: drop-shadow(0 0 14px #a040ff); }
+.rastro { position: absolute; left: 0; top: 0; width: 80px; height: 80px; margin: -40px 0 0 -40px; border-radius: 50%; z-index: 11; opacity: 0;
+  background: radial-gradient(circle, rgb(220 170 255 / 90%), rgb(150 60 255 / 40%) 60%, transparent 72%); }
 #cena .fala { top: 250px; height: auto; min-height: 200px; padding: 22px 40px; font-size: 62px; letter-spacing: 2px; line-height: 1.2; z-index: 66; }
 #cena .fala img { flex: none; width: 150px; height: 150px; }
 #cena .fala span { flex: 1; }
@@ -82,10 +88,10 @@
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="63.78">
-  <div id="cena" class="clip" data-start="0" data-duration="61.05">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="67.78">
+  <div id="cena" class="clip" data-start="0" data-duration="65.05">
     <div id="cam" class="camada">
-      <div id="topo" class="camada"></div><div class="banco" id="banco"></div><div id="ceu"></div><div id="luz"></div>
+      <div id="topo" class="camada"></div><div class="banco" id="banco"></div><div id="ceu"></div><div id="luz"></div><div id="psi-tela"></div>
     </div>
     <div id="frente" class="camada" style="z-index:50"></div>
     <div id="festa" class="camada" style="z-index:58"></div>
@@ -103,19 +109,19 @@
     <div id="ep"><b>EP 2</b><small>ESCALARAM UM MAGIKARP NO GOL</small></div>
     <div id="gf"><div class="raios" id="gf-raios"></div><div id="gf-txt"><b>GRANDE<br>FINAL</b><span>COPA DE KANTO</span><i id="gf-dia">SÁBADO</i></div></div>
   </div>
-  <div id="final" class="clip palco" data-start="61.05" data-duration="2.73">
+  <div id="final" class="clip palco" data-start="65.05" data-duration="2.73">
     <div class="raios" id="raios-final"></div>
     <div id="final-cena" class="camada"></div>
   </div>
   <div class="flash" id="flash"></div>
-  <audio id="a-musica" class="clip" src="midia/som/magikarp-14.wav" data-start="0" data-duration="63.78" data-media-start="0" data-fade-out="0.8"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/magikarp-14.wav" data-start="0" data-duration="67.78" data-media-start="0" data-fade-out="0.8"></audio>
   <audio id="a-mk-chora" class="clip" src="som/129.ogg" data-start="22.16" data-duration="1.5" data-media-start="0"></audio>
   <audio id="a-sn" class="clip" src="som/143.ogg" data-start="30" data-duration="1.5" data-media-start="0"></audio>
   <audio id="a-mk-sim" class="clip" src="som/129.ogg" data-start="31.36" data-duration="1.5" data-media-start="0"></audio>
   <audio id="a-mt" class="clip" src="som/150.ogg" data-start="48.77" data-duration="1.8" data-media-start="0"></audio>
   <audio id="a-apito" class="clip" src="som/apito-curto.mp3" data-start="50.14" data-duration="1" data-media-start="0"></audio>
-  <audio id="a-mk-festa" class="clip" src="som/129.ogg" data-start="55.93" data-duration="1.5" data-media-start="0"></audio>
-  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="58.32" data-duration="1.5" data-media-start="0"></audio>
+  <audio id="a-mk-festa" class="clip" src="som/129.ogg" data-start="59.93" data-duration="1.5" data-media-start="0"></audio>
+  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="62.32" data-duration="1.5" data-media-start="0"></audio>
 
   <script>
     const { T, div, quadra, ator, anim, quadro, bola, estouro, poeira, treme, flash, torcida, torcidaAnim, torcidaPulo, fala, telaFinal, piscada } = C;
@@ -469,7 +475,7 @@
     tl.set(sn.el, { x: 110, y: 1150 }, tF);
     anim(tl, sn, 'Sleep', 0, tF, T(19, 8), { id: '143x', vel: 0.5 });
     tl.set(pk.el, { x: 150, y: 1360, opacity: 1 }, tF);
-    anim(tl, pk, 'Idle', 2, tF, T(21, 0));
+    anim(tl, pk, 'Idle', 2, tF, T(22, 0));
     tl.set(mk.el, { x: 540, y: GL }, tF);
     anim(tl, mk, 'Idle', 0, tF, T(19, 0));
     ver('#placar', T(17, 8));
@@ -481,75 +487,100 @@
     andar(mt, T(18, 0), T(18, 8), 540, 1580, 4, 1.2, 'power1.out');
     anim(tl, mt, 'Idle', 4, T(18, 8), T(19, 4));
 
-    // ===== 19 · apito, rufo: a câmera fecha, ele treme, o Snorlax abre um olho; silêncio =====
-    camera(T(19, 0), T(19, 12), 1.25, 540, 1100, 'power1.in');
+    // ===== 19 · apito, rufo e a força psíquica juntando: anéis roxos, a tela tinge, a bola levita; o Snorlax abre um olho =====
+    camera(T(19, 0), T(19, 14), 1.25, 540, 1150, 'power1.in');
     tl.to(mk.el, { keyframes: { x: [540, 534, 546, 532, 548, 536, 544, 540] }, duration: T(19, 12) - T(19, 0), ease: 'none' }, T(19, 0));
-    anim(tl, mt, 'Charge', 4, T(19, 4), T(20, 0));
-    tl.set(mt.el, { filter: PSI }, T(19, 4));
-    anim(tl, sn, 'Idle', 6, T(19, 8), T(23, 0));
+    anim(tl, mt, 'Charge', 4, T(19, 2), T(20, 0));
+    tl.set(mt.el, { filter: PSI }, T(19, 2));
+    tl.to('#psi-tela', { opacity: 0.9, duration: T(20, 0) - T(19, 2), ease: 'power1.in' }, T(19, 2));
+    [3, 6, 9, 12].forEach((r) => {
+      const a = div(cam, 'anel-psi');
+      tl.set(a, { x: 540, y: 1420 }, 0);
+      tl.fromTo(a, { scale: 0.2, opacity: 0.9 }, { scale: 2.4, opacity: 0, duration: 0.9, ease: 'power1.out', immediateRender: false }, T(19, r));
+    });
+    // a bola sobe do chão e boia, girando devagar
+    tl.set(bl.el, { filter: PSI }, T(19, 4));
+    tl.to(bl.corpo, { y: -90, duration: T(19, 10) - T(19, 4), ease: 'sine.out' }, T(19, 4));
+    tl.to(bl.corpo, { keyframes: { y: [-110, -80, -100] }, duration: T(20, 0) - T(19, 10), ease: 'sine.inOut' }, T(19, 10));
+    tl.to(bl.gira, { rotation: '+=200', duration: T(20, 0) - T(19, 4), ease: 'none' }, T(19, 4));
+    tl.to(bl.sh, { scale: 0.6, opacity: 0.6, duration: T(19, 10) - T(19, 4) }, T(19, 4));
+    anim(tl, sn, 'Idle', 6, T(19, 8), T(24, 0));
     balao('!', 150, 1000, T(19, 8), T(20, 8));
 
-    // ===== 20 · o pênalti no ângulo: ele voa de lado e defende na gaveta; congela no contato; DEFESA! =====
+    // ===== 20 · o chute em câmera lenta (o compasso inteiro): onda roxa no chute, a bola com rastro, ele mergulhando =====
     const tK = T(20, 0);
-    const tBate = T(20, 8);
+    const tBate = T(21, 0);
     const PARA = 0.3;
     const ANG = { x: POSTE_D - 80, y: GL - 10 }; // a gaveta direita (a bola chega no alto, rente ao travessão)
-    anim(tl, mt, 'Shoot', 4, tK - 3 / 60, tK + 0.6, { loop: false, vel: 0.6 });
-    tl.set(bl.el, { filter: PSI }, tK);
-    voo(tK, tBate, ANG.x, ANG.y, 300, 230, 1);
-    // o voo de lado: sobe e vai pra direita, inclinado
-    anim(tl, mk, 'Hop', 2, T(20, 2), tBate, { loop: false, vel: 0.5 });
-    tl.to(mk.el, { x: ANG.x - 40, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
-    tl.to(mk.corpo, { y: -170, rotation: 25, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
-    tl.to(mk.sh, { scale: 0.5, opacity: 0.5, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
-    camera(tK, tBate, 1.5, ANG.x - 80, 700, 'power1.in');
-    // linhas de velocidade atrás do voo
+    anim(tl, mt, 'Shoot', 4, tK - 0.1, tK + 1.2, { loop: false, vel: 0.35 });
+    const onda = div(cam, 'anel-psi');
+    tl.set(onda, { x: 540, y: 1360 }, 0);
+    tl.fromTo(onda, { scale: 0.3, opacity: 1 }, { scale: 4, opacity: 0, duration: 0.8, ease: 'power2.out', immediateRender: false }, tK);
+    tremer(tK, 0.6, 0.3);
+    // o voo lento até a gaveta, com 4 fantasmas da bola atrás (o rastro psíquico)
+    voo(tK, tBate, ANG.x, ANG.y, 320, 230, 2);
+    const rastro = [1, 2, 3, 4].map((k) => {
+      const g = div(cam, 'rastro');
+      tl.set(g, { x: 540, y: 1360 }, 0);
+      tl.set(g, { opacity: 0.85 - k * 0.15, scale: 1.4 - k * 0.15 }, tK);
+      tl.to(g, { x: ANG.x, y: ANG.y - 230, duration: tBate - tK, ease: 'none' }, tK + k * 0.09);
+      tl.set(g, { opacity: 0 }, tBate);
+      return g;
+    });
+    tl.to('#psi-tela', { opacity: 0.6, duration: tBate - tK }, tK);
+    camera(tK, tBate, 1.55, ANG.x - 90, 760, 'sine.inOut');
+    tl.set(mt.el, { filter: 'none' }, tK + 1.2);
+    // o mergulho dele (o plof subindo na música): sai na linha 6, de lado, inclinado, até a gaveta
+    anim(tl, mk, 'Hop', 2, T(20, 6), tBate, { loop: false, vel: 0.35 });
+    tl.to(mk.el, { x: ANG.x - 40, duration: tBate - T(20, 6), ease: 'power2.out' }, T(20, 6));
+    tl.to(mk.corpo, { y: -170, rotation: 25, duration: tBate - T(20, 6), ease: 'power2.out' }, T(20, 6));
+    tl.to(mk.sh, { scale: 0.5, opacity: 0.5, duration: tBate - T(20, 6), ease: 'power2.out' }, T(20, 6));
     const linhas = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     linhas.setAttribute('class', 'linhas');
     linhas.setAttribute('width', '1080');
     linhas.setAttribute('height', '1920');
     linhas.innerHTML = Array.from({ length: 5 }, (_, i) => `<line x1="${460 + i * 28}" y1="${GL - 60 - i * 30}" x2="${300 + i * 28}" y2="${GL + 20 - i * 30}" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0.6"/>`).join('');
     cam.appendChild(linhas);
-    tl.fromTo(linhas, { opacity: 0, x: 0, y: 0 }, { opacity: 1, x: 260, y: -160, duration: tBate - T(20, 3), ease: 'power2.out', immediateRender: false }, T(20, 3));
+    tl.fromTo(linhas, { opacity: 0, x: 0, y: 0 }, { opacity: 1, x: 260, y: -160, duration: tBate - T(20, 7), ease: 'power2.out', immediateRender: false }, T(20, 7));
     tl.set(linhas, { opacity: 0 }, tBate);
-    // o contato: tudo para PARA s (soco de câmera), depois a bola sai pela linha de fundo e ele cai
-    tl.to(cam, { scale: 1.58, duration: 0.06 }, tBate);
-    estouro(tl, cam, ANG.x, ANG.y - 230, tBate, { tam: 340 });
-    flash(tl, tBate, 0.6, 0.25);
-    anim(tl, mk, 'Hurt', 0, tBate, T(20, 15), { loop: false });
+
+    // ===== 21 · o contato: congela PARA s, BOING, a bola sai pela linha de fundo; DEFESA! e o SOC-CER-MON subindo =====
+    tl.to(cam, { scale: 1.63, duration: 0.06 }, tBate);
+    estouro(tl, cam, ANG.x, ANG.y - 230, tBate, { tam: 360 });
+    estouro(tl, cam, ANG.x, ANG.y - 230, tBate + 0.08, { tam: 260, cor: '#c070ff', anel: false });
+    tl.to('#psi-tela', { opacity: 0, duration: 0.5 }, tBate + PARA);
+    anim(tl, mk, 'Hurt', 0, tBate, T(21, 8), { loop: false });
     tl.to(mk.corpo, { y: 0, rotation: 0, duration: 0.45, ease: 'bounce.out' }, tBate + PARA);
     tl.to(mk.sh, { scale: 1, opacity: 1, duration: 0.45 }, tBate + PARA);
     tremer(tBate + PARA, 2, 0.45);
     voo(tBate + PARA, tBate + PARA + 0.8, 1180, 300, 420, 400, -3);
     some(tBate + PARA + 0.8);
     tl.set(bl.el, { filter: 'none' }, tBate + PARA + 0.8);
-    camera(T(20, 11), T(21, 0), 1, 540, 1100, 'power2.out');
-    carimbo('#defesa', T(20, 12));
-    tl.set('#defesa', { opacity: 0 }, T(21, 0));
-    anim(tl, mt, 'Trip', 4, T(20, 12), T(21, 8), { loop: false });
-    tl.set(mt.el, { filter: 'none' }, T(20, 12));
+    camera(T(21, 3), T(21, 9), 1, 540, 1100, 'power2.out');
+    carimbo('#defesa', T(21, 4));
+    tl.to('#defesa', { opacity: 0, duration: 0.2 }, T(22, 0) - 0.2);
+    anim(tl, mt, 'Trip', 4, T(21, 4), T(22, 8), { loop: false });
+    torcidaAnim(tl, fila, 'Hop', T(21, 4), T(24, 0), { vel: 1.3 });
+    anim(tl, mk, 'Idle', 0, T(21, 8), T(22, 0));
 
-    // ===== 21 · campeão: o time entra correndo e joga o Magikarp pro alto =====
-    const tC = T(21, 0);
+    // ===== 22 · campeão: o time entra correndo e joga o Magikarp pro alto (sem girar) =====
+    const tC = T(22, 0);
     tl.to('#placar', { opacity: 0, duration: 0.2 }, tC);
     carimbo('#campeao', tC);
-    tl.to('#campeao', { opacity: 0, duration: 0.2 }, T(21, 12));
-    torcidaAnim(tl, fila, 'Hop', tC, T(23, 0), { vel: 1.3 });
-    torcidaAnim(tl, atras, 'Hop', tC, T(23, 0), { dir: 0, vel: 1.3 });
+    tl.to('#campeao', { opacity: 0, duration: 0.2 }, T(22, 12));
     tl.set(cm.el, { x: -200, y: GL + 150, opacity: 1 }, tC);
     tl.set(sq.el, { x: 1280, y: GL + 150, opacity: 1 }, tC);
     tl.set(mk.el, { x: 700, y: GL + 60 }, tC);
-    andar(cm, tC, T(21, 4), 520, GL + 150, 2, 2.2, 'power2.out');
-    andar(sq, tC, T(21, 4), 880, GL + 150, 6, 2.2, 'power2.out');
-    andar(pk, tC, T(21, 4), 700, GL + 230, 2, 2.2, 'power2.out');
-    for (const a of [cm, sq, pk]) anim(tl, a, 'Hop', 0, T(21, 4), T(22, 0), { vel: 1.3 });
+    andar(cm, tC, T(22, 4), 520, GL + 150, 2, 2.2, 'power2.out');
+    andar(sq, tC, T(22, 4), 880, GL + 150, 6, 2.2, 'power2.out');
+    andar(pk, tC, T(22, 4), 700, GL + 230, 2, 2.2, 'power2.out');
+    for (const a of [cm, sq, pk]) anim(tl, a, 'Hop', 0, T(22, 4), T(23, 0), { vel: 1.3 });
     for (const r of [6, 10, 14]) {
-      anim(tl, mk, 'Hop', 0, T(21, r), T(21, r) + 0.5, { loop: false });
-      tl.to(mk.corpo, { keyframes: { y: [-420, 0] }, rotation: '+=360', duration: 0.5, ease: 'power1.inOut' }, T(21, r));
-      tl.to(mk.sh, { keyframes: { scale: [0.45, 1] }, duration: 0.5, ease: 'power1.inOut' }, T(21, r));
+      anim(tl, mk, 'Hop', 0, T(22, r), T(22, r) + 0.5, { loop: false });
+      salto(mk, T(22, r), 380, 0.5);
     }
     ronco(tC + 0.2, 200, 980);
-    anim(tl, sn, 'Sleep', 0, tC, T(23, 0), { id: '143x', vel: 0.5 });
+    anim(tl, sn, 'Sleep', 0, tC, T(24, 0), { id: '143x', vel: 0.5 });
     const cores = ['#ffcb05', '#e8423f', '#3a7bd5', '#4ec36b', '#f8f8f0', '#b46be0'];
     for (let i = 0; i < 70; i++) {
       const c = div(document.getElementById('festa'), 'confete', `background:${cores[i % cores.length]}`);
@@ -559,30 +590,30 @@
       tl.to(c, { y: 2000, x: x + ((i % 5) - 2) * 90, rotation: `+=${540 + (i % 4) * 120}`, duration: 2.6 + (i % 5) * 0.3, ease: 'none' }, tC);
     }
 
-    // ===== 22 · as pazes: o Pikachu vem até ele e toca aqui (sem fala) =====
-    const tP = T(22, 0);
-    camera(tP, T(22, 4), 1.4, 760, GL + 120);
-    for (const a of [cm, sq]) anim(tl, a, 'Idle', 0, tP, T(23, 0));
-    andar(pk, tP, T(22, 6), 830, GL + 70, 3, 1.1);
-    anim(tl, pk, 'Idle', 6, T(22, 6), T(22, 11));
-    anim(tl, mk, 'Idle', 2, tP, T(22, 11));
-    anim(tl, pk, 'Attack', 6, T(22, 11), T(23, 0), { loop: false });
-    splash(T(22, 11), 120, 0.3, 40);
-    estouro(tl, cam, 770, GL - 170, T(22, 12), { tam: 220 });
-    tremer(T(22, 12), 0.5, 0.2);
+    // ===== 23 · as pazes: o Pikachu vem até ele e toca aqui (sem fala) =====
+    const tP = T(23, 0);
+    camera(tP, T(23, 4), 1.4, 760, GL + 120);
+    for (const a of [cm, sq]) anim(tl, a, 'Idle', 0, tP, T(24, 0));
+    andar(pk, tP, T(23, 6), 830, GL + 70, 3, 1.1);
+    anim(tl, pk, 'Idle', 6, T(23, 6), T(23, 11));
+    anim(tl, mk, 'Idle', 2, tP, T(23, 11));
+    anim(tl, pk, 'Attack', 6, T(23, 11), T(24, 0), { loop: false });
+    splash(T(23, 11), 120, 0.3, 40);
+    estouro(tl, cam, 770, GL - 170, T(23, 12), { tam: 220 });
+    tremer(T(23, 12), 0.5, 0.2);
 
-    // ===== 23 · tela final; a roleta gira de novo e não para (EP 3?) =====
-    const FIM = T(23, 0);
+    // ===== 24 · tela final; a roleta gira de novo e não para (EP 3?) =====
+    const FIM = T(24, 0);
     telaFinal(document.getElementById('final'));
     document.getElementById('tag').textContent = 'Seu time passava?';
     const fc = document.getElementById('final-cena');
     const mk2 = ator(fc, 129, { escala: 8, z: 5, x: 440, y: 1520 });
     const pk2 = ator(fc, 25, { escala: 7, z: 5, x: 640, y: 1520 });
     for (const r of [0, 4, 8, 12]) {
-      anim(tl, mk2, 'Hop', 0, T(23, r), T(23, r) + 0.36, { loop: false, vel: 1.5 });
-      tl.to(mk2.corpo, { keyframes: { y: [-140, 0] }, duration: 0.36, ease: 'power1.inOut' }, T(23, r));
-      anim(tl, pk2, 'Hop', 0, T(23, r), T(23, r) + 0.36, { loop: false, vel: 1.5 });
-      tl.to(pk2.corpo, { keyframes: { y: [-120, 0] }, duration: 0.36, ease: 'power1.inOut' }, T(23, r));
+      anim(tl, mk2, 'Hop', 0, T(24, r), T(24, r) + 0.36, { loop: false, vel: 1.5 });
+      tl.to(mk2.corpo, { keyframes: { y: [-140, 0] }, duration: 0.36, ease: 'power1.inOut' }, T(24, r));
+      anim(tl, pk2, 'Hop', 0, T(24, r), T(24, r) + 0.36, { loop: false, vel: 1.5 });
+      tl.to(pk2.corpo, { keyframes: { y: [-120, 0] }, duration: 0.36, ease: 'power1.inOut' }, T(24, r));
     }
     fc.insertAdjacentHTML('beforeend', '<div id="teaser"><div id="fita2"></div></div><div id="teaser-txt">EP 3: ???</div>');
     document.getElementById('fita2').innerHTML = ['150', '94', '113', '95', '39', '6'].map((r) => `<img src="midia/${r}.png" alt="" />`).join('');
@@ -590,12 +621,12 @@
     tl.to('#raios-final', { rotation: 30, duration: 2.73, ease: 'none' }, FIM);
     tl.set('#logo', { opacity: 1 }, FIM);
     tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, FIM);
-    piscada(tl, [T(23, 2), T(23, 4), T(23, 6)], '#final-cena');
-    tl.set('#tag', { opacity: 1 }, T(23, 6));
-    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(23, 6));
-    tl.to(['#site', '#credito'], { opacity: 1, duration: 0.2 }, T(23, 7));
-    ver(['#teaser', '#teaser-txt'], T(23, 8));
-    tl.fromTo('#fita2', { y: 0 }, { y: -160 * 5, duration: 0.35, ease: 'none', repeat: 5, immediateRender: false }, T(23, 8));
+    piscada(tl, [T(24, 2), T(24, 4), T(24, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(24, 6));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(24, 6));
+    tl.to(['#site', '#credito'], { opacity: 1, duration: 0.2 }, T(24, 7));
+    ver(['#teaser', '#teaser-txt'], T(24, 8));
+    tl.fromTo('#fita2', { y: 0 }, { y: -160 * 5, duration: 0.35, ease: 'none', repeat: 5, immediateRender: false }, T(24, 8));
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
