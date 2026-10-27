@@ -1,31 +1,21 @@
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { isFirstVisit } from '../../store/coach';
-import { dailyDay, dailyStreak } from '../../store/daily';
-import { duelWins } from '../../store/duels';
+import { dailyDay } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import type { CupMode } from '../../store/long-cup';
-import { KANTO_BADGES } from '../../store/missions';
 import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
-import { KantoBadge } from '../components/BadgeCase';
-import { HudIcon } from '../components/MatchHud';
 import { ParkedRuns } from '../components/ParkedRuns';
-import { PixelTrophy } from '../components/PixelTrophy';
 import { ConfirmSheet } from '../kit/Sheet';
-import { missionText } from '../profile/club';
 import { FriendChallenge } from '../profile/FriendsTab';
-import { useSaveView } from '../profile/TrainerTab';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { closestMissions, nextBelt, slotFill } from './metas';
-import type { Tab } from './nav';
 import { chosenMode, type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
-import { Count } from './TopBar';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
@@ -187,147 +177,6 @@ function useDaily() {
     };
 }
 
-/** Uma meta à vista no Estádio (o "baú" do Clash): ícone, número que sobe e a barrinha (gomos até 8). */
-interface SlotView {
-    id: 'daily' | 'mission' | 'badges' | 'belt';
-    icon: ReactNode;
-    label: string;
-    /** O rótulo no celular estreito (320) e deitado. */
-    short?: string;
-    n: number;
-    goal: number;
-    /** As lâmpadas acesas (a semana da Copa do Dia); sem isso, as primeiras `n`. */
-    lit?: boolean[];
-    /** Fechou (Copa do Dia de hoje feita, as 8 insígnias, o cinturão de ouro): ganha o check e as faíscas. */
-    done: boolean;
-    /** Chama (a Copa do Dia de hoje ainda não jogada). */
-    hot?: boolean;
-    title?: string;
-    go: () => void;
-}
-
-const SPARKS = [0, 1, 2, 3, 4, 5];
-
-function SlotBtn({ s, active }: { s: SlotView; active: boolean }) {
-    const fill = slotFill(s);
-    const lit = s.lit ?? Array.from({ length: fill.segs }, (_, i) => i < s.n);
-    return (
-        <button
-            type="button"
-            className={`es-slot s-${s.id}${s.done ? ' done' : fill.full ? ' full' : ''}${s.hot ? ' hot' : ''}`}
-            onClick={s.go}
-            aria-label={`${s.label}: ${s.n}/${s.goal}`}
-            title={s.title}
-        >
-            <span className="es-slot-ic">{s.icon}</span>
-            <span className="es-slot-n">
-                <Count n={s.n} run={active} />
-                <small>/{s.goal}</small>
-            </span>
-            <span className={`es-slot-bar${fill.segs ? ' segs' : ''}`} aria-hidden>
-                {fill.segs ? (
-                    lit.map((on, i) => (
-                        // biome-ignore lint/suspicious/noArrayIndexKey: gomos fixos
-                        <i key={i} className={on ? 'on' : ''} />
-                    ))
-                ) : (
-                    <i style={{ width: `${fill.k * 100}%` }} />
-                )}
-            </span>
-            <small className="es-slot-lbl">
-                {s.short ? (
-                    <>
-                        <span className="es-slot-full">{s.label}</span>
-                        <span className="es-slot-short">{s.short}</span>
-                    </>
-                ) : (
-                    s.label
-                )}
-            </small>
-            {s.done && (
-                <>
-                    <span className="es-slot-ok" aria-hidden>
-                        <HudIcon kind="check" />
-                    </span>
-                    <i className="es-burst" aria-hidden>
-                        {SPARKS.map((k) => (
-                            <b key={k} style={{ '--k': k } as CSSProperties} />
-                        ))}
-                    </i>
-                </>
-            )}
-        </button>
-    );
-}
-
-/**
- * As metas sempre à vista no Estádio, como os baús do Clash: a Copa do Dia da semana, a missão mais perto de sair, as
- * insígnias da Rota e o próximo cinturão do Duelo. Cada uma leva pro lugar dela.
- */
-function Slots({ active, goTab }: { active: boolean; goTab: (t: Tab) => void }) {
-    const { t } = useT();
-    const daily = useGame((s) => s.daily);
-    const streak = dailyStreak(daily, dailyDay());
-    const dd = useDaily();
-    const view = useSaveView();
-    const goal = useMemo(() => closestMissions(view, 1)[0], [view]);
-    const done = useGame((s) => s.profile.missionsDone);
-    const wins = useGame((s) => duelWins(s.records, s.duels));
-    const nBadges = KANTO_BADGES.filter((id) => done.includes(id)).length;
-    const nextBadge = KANTO_BADGES.find((id) => !done.includes(id));
-    const belt = nextBelt(wins);
-    const slots: SlotView[] = [
-        {
-            id: 'daily',
-            icon: <HudIcon kind="cup" />,
-            label: t('liga.home.dailyTag'),
-            short: t('home.amb.slotDailyShort'),
-            n: streak.weekCount,
-            goal: 7,
-            lit: streak.week,
-            done: dd.played,
-            hot: !dd.played && !dd.busy,
-            title: dd.label,
-            go: dd.go,
-        },
-        {
-            id: 'mission',
-            icon: <HudIcon kind="chest" />,
-            label: t('home.amb.slotMission'),
-            n: goal ? goal.n : 1,
-            goal: goal ? goal.goal : 1,
-            done: !goal,
-            title: goal && missionText(goal.m),
-            go: () => goTab('sede'),
-        },
-        {
-            id: 'badges',
-            icon: <KantoBadge leader={nextBadge ?? 'giovanni'} earned />,
-            label: t('home.amb.slotBadges'),
-            n: nBadges,
-            goal: KANTO_BADGES.length,
-            done: !nextBadge,
-            go: () => goTab('rota'),
-        },
-        {
-            id: 'belt',
-            icon: <PixelTrophy kind="cinturao" metal={belt?.metal ?? 'ouro'} />,
-            label: t('home.amb.slotBelt'),
-            n: belt ? belt.n : wins,
-            goal: belt ? belt.goal : wins,
-            done: !belt,
-            go: () => goTab('arena'),
-        },
-    ];
-    return (
-        <nav className="es-slots" aria-label={t('home.amb.slotsAria')}>
-            {slots.map((s) => (
-                <SlotBtn key={s.id} s={s} active={active} />
-            ))}
-        </nav>
-    );
-}
-
 const SMALL = '(max-width: 359px), (max-height: 700px)';
 const BIG = '(min-width: 900px) and (min-height: 700px)';
 const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
@@ -414,13 +263,11 @@ export function Estadio({
     enter,
     wild,
     entering,
-    goTab,
 }: {
     active: boolean;
     enter: (action: () => void) => void;
     wild: Wild[];
     entering: boolean;
-    goTab: (t: Tab) => void;
 }) {
     const { t } = useT();
     const clock = useSceneClock(active);
@@ -572,18 +419,17 @@ export function Estadio({
                 </div>
             </div>
             <div className={`amb-ui es-ui${firstVisit ? ' es-first' : ''}`}>
-                <div className="es-top">
-                    <i className="es-cable l" aria-hidden />
-                    <i className="es-cable r" aria-hidden />
-                    <h1 className="es-logo">
-                        <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
-                    </h1>
-                    {!hydrated ? (
-                        <i className="es-top-slot" />
-                    ) : (
-                        firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>
-                    )}
-                </div>
+                {/* o logo grande só na 1ª visita; depois sai e a quadra ganha o espaço */}
+                {hydrated && firstVisit && (
+                    <div className="es-top">
+                        <i className="es-cable l" aria-hidden />
+                        <i className="es-cable r" aria-hidden />
+                        <h1 className="es-logo">
+                            <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                        </h1>
+                        {!challenge && <p className="es-tagline">{t('home.tagline')}</p>}
+                    </div>
+                )}
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
@@ -598,7 +444,6 @@ export function Estadio({
                         onConfirm={() => confirm && play(confirm.seed, confirm.mode)}
                     />
                 </div>
-                {hydrated && !firstVisit && <Slots active={active} goTab={goTab} />}
             </div>
         </ClockCtx.Provider>
     );

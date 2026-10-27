@@ -35,21 +35,6 @@ export function closestMissions(view: SaveView, max = 3, list: readonly Mission[
         .map(({ m, n, goal }) => ({ m, n, goal }));
 }
 
-/**
- * Nível do treinador (a barra de topo): as missões cumpridas em degraus que crescem devagar (1, 2, 2, 3, 3, 4, 4…
- * missões por nível), sem XP nem moeda nova. As 63 missões de hoje fecham o nível 15. `n` de `goal` é o caminho até o
- * próximo nível.
- */
-export function trainerLevel(done: number): { level: number; n: number; goal: number } {
-    let level = 1;
-    let left = Math.max(0, Math.floor(done));
-    for (let need = 1; left >= need; need = Math.floor(level / 2) + 1) {
-        left -= need;
-        level++;
-    }
-    return { level, n: left, goal: Math.floor(level / 2) + 1 };
-}
-
 /** O próximo cinturão do Duelo (vitórias até ele); `null` com o de ouro na mão. */
 export function nextBelt(wins: number): { metal: (typeof BELTS)[number]['metal']; n: number; goal: number } | null {
     const b = BELTS.find((x) => wins < x.wins);
@@ -78,22 +63,6 @@ export function routeTeam(run: TeamRun | null | undefined, longOn: boolean, avat
         if (run.picks[0]) return [run.picks[0].speciesId];
     }
     return [avatarId ?? 25];
-}
-
-/** Um slot de meta do Estádio (o "baú" do Clash): quanto já foi e se fechou. */
-export interface Slot {
-    n: number;
-    goal: number;
-}
-
-/**
- * A barrinha de um slot: a fração (0 a 1, sem passar) e se fechou. Meta até 8 vira gomos (as lâmpadas da semana, as 8
- * insígnias); acima disso, barra corrida.
- */
-export function slotFill({ n, goal }: Slot): { k: number; full: boolean; segs: number } {
-    const g = Math.max(1, goal);
-    const k = Math.min(1, Math.max(0, n / g));
-    return { k, full: k >= 1, segs: g <= 8 ? g : 0 };
 }
 
 /**

@@ -22,7 +22,7 @@ const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 /**
  * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro com o neon do
  * Arcade da semana (o Game Corner de Celadon) e o poste aceso. A meta é o próximo cinturão do Duelo; o botão principal
- * é Desafiar. Dupla 2x2 e Arcade chegando; a Liga com a contagem.
+ * é Desafiar. A Liga, enquanto fechada, é uma linha só com a contagem.
  */
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const { t } = useT();
@@ -146,19 +146,13 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         <HudIcon kind="next" />
                     </button>
                     {/* o Arcade fica só no neon do muro (com o papel EM BREVE): o tile repetia */}
-                    <div className="amb-tiles">
-                        <Tile icon="players" title={t('home.amb.soon2x2')} sub={t('home.soonRibbon')} soon />
-                        {liga ? (
-                            <Tile
-                                icon="cup"
-                                title={t('liga.home.ligaTag')}
-                                sub={t('home.amb.ligaOpens', { d: liga.d })}
-                                soon
-                            />
-                        ) : (
+                    {liga ? (
+                        <p className="ar-soon">{t('home.amb.ligaSoon', { d: liga.d })}</p>
+                    ) : (
+                        <div className="amb-tiles">
                             <Tile icon="cup" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </ClockCtx.Provider>

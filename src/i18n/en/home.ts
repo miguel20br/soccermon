@@ -84,7 +84,6 @@ export const home: typeof pt = {
         labShort: "Oak's Lab",
         arenaTitle: 'Arena',
         sedeTitle: 'Club house',
-        soon2x2: '2v2 Duo',
         soonArcade: 'Arcade',
         ligaSoon: 'League · opens in {d}d',
         labGo: 'Open the Pokédex',
@@ -96,19 +95,10 @@ export const home: typeof pt = {
         modePrev: 'Previous mode',
         modeNext: 'Next mode',
         /** The goals always in view at the Stadium (Clash's "chests"). */
-        slotsAria: 'Your goals',
-        slotDailyShort: 'Daily',
-        slotMission: 'Mission',
-        slotBadges: 'Badges',
-        slotBelt: 'Belt',
         /** The top bar: titles won and the Pokédex. */
-        resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',
-        resTitles: 'Titles: {n}',
-        resDex: 'Pokédex: {n} of 151 seen',
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',
-        ligaOpens: 'Opens in {d}d',
         sedeOf: '{club} club house',
         sedeBoard: 'Mission board',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
