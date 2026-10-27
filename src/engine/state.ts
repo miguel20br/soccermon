@@ -271,6 +271,9 @@ export interface ShotInfo {
     pierced?: boolean;
     /** Golpe máximo N3: alcance do goleiro rival nesse chute (`AGENCY.maxLevelShot`). */
     gkReach?: number;
+    /** Golpe máximo: fator na chance de defesa do goleiro e de bloqueio da linha (`AGENCY.maxLevelShot`). */
+    gkSave?: number;
+    blockMult?: number;
     /** Golpe máximo N3 com o efeito do tipo do capitão (`MatchConfig.maxType`): o tipo. */
     fx?: string;
     /** Psíquico: aceleração lateral da bola (m/s² em y) enquanto o chute vive. */

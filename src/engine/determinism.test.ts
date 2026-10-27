@@ -18,12 +18,12 @@ const EXPECTED_HASHES = [
     '3cd48072',
     '7c29f312',
     '46aa6dda',
-    'c3835df1',
-    '514e5d11',
-    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
-    'ed6ec28f',
-    '72b9380f',
-    'e9f23978',
+    '1cb4698d',
+    'acc18bdc',
+    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto; os N3 mudaram no motor 14
+    'a92c92db',
+    '469db5d9',
+    'e73a7000',
     'ca2f6bf9',
 ];
 

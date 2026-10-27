@@ -155,6 +155,13 @@ describe('golpe máximo por tipo (fase 1)', () => {
         expect(rock).not.toBeNull();
     });
 
+    it('N3 quase indefensável: o goleiro e a linha defendem com 15% da chance de sempre (motor 14)', () => {
+        const shot = scene('Ghost').ball.shot;
+        expect(shot?.gkSave).toBeCloseTo(AGENCY.maxLevelShot[3].save, 6);
+        expect(shot?.blockMult).toBeCloseTo(AGENCY.maxLevelShot[3].block, 6);
+        expect(AGENCY.maxLevelShot[3].save).toBeLessThan(0.3);
+    });
+
     it('Psíquico: a bola curva pro canto longe do goleiro', () => {
         // goleiro pro lado de baixo (y < 10): a curva puxa pra cima; pro lado de cima, pra baixo
         expect(scene('Psychic', { gkY: 9.3 }).ball.shot?.curve).toBeGreaterThan(0);

@@ -219,3 +219,18 @@ favorito 66,7% ⇒ 68,8% (ruído; o draft da IA não ensina MT). Formações (n=
 Pivô 15 m, ala 18 m, fixo 22 m (xG mínimo 0,05 no fixo; `AGENCY.maxZone`). Hora certa por capitão: pivô 62% ⇒ 62%, ala
 34% ⇒ 88%, fixo 6% ⇒ 67% das partidas. Técnico robô (n=400): golpe máximo random +1,3 ⇒ +1,8 pp, good +2,5 ⇒ +3,5 pp
 (dentro do erro). Números, copa com o técnico IA do rival e ressalvas em [beira-da-quadra-2.md](beira-da-quadra-2.md).
+
+## N3 quase indefensável: aprovado pelo Miguel em 26/10 (0.9.24, ENGINE_VERSION 14)
+
+Pedido dele: "o nv3 devia ser quase indefensável". Medido com `POL=n3 MAXTIPO=1 scripts/balance/maximo-tipo.ts 400`
+(~140 chutes N3, ±4 pp). A defesa máxima do goleiro rival continua parando o N3 (decisão 2 dele: "quase", não "sempre").
+
+| | Antes | Depois |
+|---|---|---|
+| `maxAim` | 0,6 | 0,35 |
+| N3 `accuracy` | 2 | 3 |
+| N3 `save` / `block` (novos) | 1 / 1 | 0,15 / 0,15 (perfeito; bom 0,4, fora 0,66) |
+| Gol / fora / defesa / bloqueio / trave | 57 / 17 / 13 / 5 / 6% | 82 / 4 / 6 / 1 / 5% |
+
+O calibrate não mede (o robô não aperta o botão); efeito estimado de +0,1 gol/jogo pra quem guarda o N3. O rival da
+copa também usa N3: vale igual contra o jogador.

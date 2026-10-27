@@ -60,8 +60,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     com `maxType`, o efeito do tipo do capitão no N3 (docs/planos/golpe-maximo-por-tipo.md).
  * 13 = assinaturas do golpe máximo (fase 2 de golpe-maximo-por-tipo.md): com `maxType`, o N3 do capitão das 12
  *     espécies de `MAX_SIGNATURE` troca o efeito do tipo por um próprio (`AGENCY.maxSig`).
+ * 14 = N3 quase indefensável: mira mais no meio e mais precisa, goleiro e linha com 15% da chance de defender
+ *     (`AGENCY.maxLevelShot`, `maxAim`).
  */
-export const ENGINE_VERSION = 13;
+export const ENGINE_VERSION = 14;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

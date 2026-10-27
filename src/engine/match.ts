@@ -1083,7 +1083,7 @@ function kick(
         ball.assistCandidate = p.idx;
         emit(s, { type: 'pass', by: p.idx, to: receiverId ?? null });
     } else {
-        const maxReach = max ? maxShot(s, p, max) : 1;
+        const maxFx = max ? maxShot(s, p, max) : null;
         const shooting = eff(s, p, 'shooting');
         const bonus = p.shotBonus;
         // Scope Lens: chute crítico
@@ -1131,7 +1131,11 @@ function kick(
         p.stats.shots++;
         const xg = expectedGoals(p.pos, goalXFor(s, p.team), s.cfg.pitch.width / 2, s.cfg.pitch.goalWidth);
         ball.shot = { by: p.idx, xg, moveId, moveType, gkChecked: false, blockedBy: [], onTarget: false };
-        if (maxReach !== 1) ball.shot.gkReach = maxReach;
+        if (maxFx) {
+            if (maxFx.reach !== 1) ball.shot.gkReach = maxFx.reach;
+            if (maxFx.save !== 1) ball.shot.gkSave = maxFx.save;
+            if (maxFx.block !== 1) ball.shot.blockMult = maxFx.block;
+        }
         emit(s, { type: 'shot', by: p.idx, xg, moveId });
         if (fx) ball.shot.fx = fx;
     }
@@ -2316,11 +2320,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             const placement = clamp(d / reach, 0, 1);
             // cobertura vem devagar, mas caindo: o goleiro "sente" um chute normal
             const felt = lob ? Math.max(speed, T.lobFeel) : speed;
-            const pSave = clamp(
-                (0.34 + (0.65 * gk) / 99 - 0.028 * (felt - 14) - 0.3 * placement) / shotTypeMult,
-                0.05,
-                0.95,
-            );
+            const pSave =
+                clamp((0.34 + (0.65 * gk) / 99 - 0.028 * (felt - 14) - 0.3 * placement) / shotTypeMult, 0.05, 0.95) *
+                (shot.gkSave ?? 1);
             setAction(p, Action.Dive, 0.5);
             const sash = p.item === 'focussash' && !p.itemUsed && shot.onTarget;
             if (sash) {
@@ -2381,7 +2383,7 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
         } else if (!sure && !lob && d < 0.5 && !shot.blockedBy.includes(p.idx)) {
             shot.blockedBy.push(p.idx);
             // leitura de jogo: quem se posiciona bem fecha o chute bem mais vezes
-            const pBlock = clamp(0.3 + (eff(s, p, 'positioning') - 62) * 0.012, 0.08, 0.6);
+            const pBlock = clamp(0.3 + (eff(s, p, 'positioning') - 62) * 0.012, 0.08, 0.6) * (shot.blockMult ?? 1);
             if (s.rng.chance(pBlock)) {
                 // Drill Peck/Cut (e o N3 Pedra): fura o primeiro bloqueio; o N3 Normal fura todos
                 if (((hasTrait(moveId, 'pierce') || fxHas(fx, 'pierce1')) && !shot.pierced) || fxHas(fx, 'pierceAll')) {
@@ -3441,8 +3443,12 @@ function maxShot(s: MatchState, p: PlayerState, max: { level: 1 | 2 | 3; q: MaxG
         timer: 1,
     };
     emit(s, { type: 'max', team: p.team, by: p.idx, phase: 'hit', moveId, ...maxTag(max) });
-    // alcance do goleiro rival nesse chute (N3)
-    return maxGraded(fx.rivalReach, max.q);
+    // alcance do goleiro rival nesse chute (N3) e as chances de defesa e de bloqueio
+    return {
+        reach: maxGraded(fx.rivalReach, max.q),
+        save: maxGraded(fx.save, max.q),
+        block: maxGraded(fx.block, max.q),
+    };
 }
 
 /** Tipos com efeito no N3 (os 15 da Gen 1 e a Fada); outro tipo (Aço) vira Normal. */

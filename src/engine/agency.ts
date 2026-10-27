@@ -32,20 +32,23 @@ export const AGENCY = {
      * toque gasta a barra toda e o golpe sai no nível dela; depois volta a encher. Índice = nível (o 0 não solta). N2 =
      * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute. Goleiro: `ticks` de defesa
      * máxima e alcance (a do N1 ficou em 0,75 s: com 2 s, soltando a cada gomo, a defesa dava +7 pp; Miguel, 23/10/2026).
+     * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
+     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a defesa máxima do goleiro rival continua parando.
      */
     maxLevelPts: 12,
     maxLevelShot: [
         null,
-        { power: 1.25, accuracy: 1.3, rivalReach: 1 },
-        { power: 1.55, accuracy: 1.6, rivalReach: 1 },
-        { power: 2.2, accuracy: 2, rivalReach: 0.7 },
+        { power: 1.25, accuracy: 1.3, rivalReach: 1, save: 1, block: 1 },
+        { power: 1.55, accuracy: 1.6, rivalReach: 1, save: 1, block: 1 },
+        { power: 2.2, accuracy: 3, rivalReach: 0.7, save: 0.15, block: 0.15 },
     ],
     maxLevelGk: [null, { ticks: 15, reach: 1.1 }, { ticks: 80, reach: 1.25 }, { ticks: 120, reach: 1.4 }],
     /**
      * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
-     * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega).
+     * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no
+     * motor 14: 17% ⇒ 4% pra fora.
      */
-    maxAim: 0.6,
+    maxAim: 0.35,
     /**
      * Efeito do tipo do capitão no chute N3 (fase 1 de golpe-maximo-por-tipo.md, `MatchConfig.maxType`): vem por cima
      * dos números do N3. `reach`: alcance do goleiro rival nesse chute, por tipo (x0,7 do N3 vezes isto).
