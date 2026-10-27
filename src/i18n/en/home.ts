@@ -96,6 +96,7 @@ export const home: typeof pt = {
         modeNext: 'Next mode',
         /** The goals always in view at the Stadium (Clash's "chests"). */
         /** The top bar: titles won and the Pokédex. */
+        resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',

@@ -110,5 +110,7 @@ export const home = {
         sedeFirst: 'Seu 1º troféu fica aqui',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
+        /** A estrela do nível na barra de cima. */
+        resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
     },
 };
