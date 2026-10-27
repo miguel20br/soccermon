@@ -245,14 +245,34 @@ const ANIM: Record<Actor['act'], FieldAnim> = {
 };
 
 /** Ícones de emote em pixel art (5x5), nada de emoji. */
-const ICON: Record<Emote, { px: string[]; c: string }> = {
+const ICON: Record<Exclude<Emote, 'goal'>, { px: string[]; c: string }> = {
     heart: { px: ['01010', '11111', '11111', '01110', '00100'], c: '#e8443a' },
     note: { px: ['00110', '00101', '00100', '11100', '11100'], c: '#3a6fd8' },
     surprise: { px: ['00100', '00100', '00100', '00000', '00100'], c: '#e8443a' },
     question: { px: ['01110', '10001', '00110', '00000', '00100'], c: '#3a6fd8' },
 };
 
-function Bubble({ kind }: { kind: Emote }) {
+/** A bola do balão do artilheiro (5x5). */
+const BALL = ['01110', '10001', '10101', '10001', '01110'];
+
+/** Balão do artilheiro: a bola e os gols dele pelo clube. */
+function GoalBubble({ n }: { n: number }) {
+    return (
+        <span className="wild-goals">
+            <svg viewBox="0 0 5 5" shapeRendering="crispEdges" aria-hidden>
+                {BALL.flatMap((row, y) =>
+                    [...row].flatMap((b, x) =>
+                        // biome-ignore lint/suspicious/noArrayIndexKey: desenho fixo, a casa é a chave
+                        b === '1' ? [<rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />] : [],
+                    ),
+                )}
+            </svg>
+            {n}
+        </span>
+    );
+}
+
+function Bubble({ kind }: { kind: Exclude<Emote, 'goal'> }) {
     const { px, c } = ICON[kind];
     return (
         <svg className="wild-bubble" viewBox="0 0 9 10" shapeRendering="crispEdges" aria-hidden>
@@ -283,13 +303,14 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                         <span
                             key={a.key}
                             ref={wild.ref(a.key, false)}
-                            className={`wild${def.fly ? ' fly' : ''}${a.act === 'sleep' ? ' asleep' : ''}${a.shown ? '' : ' off'}`}
+                            className={`wild${def.fly ? ' fly' : ''}${a.goals ? ' star' : ''}${a.act === 'sleep' ? ' asleep' : ''}${a.shown ? '' : ' off'}`}
                             style={{ left: `${a.x * 100}%`, top: `${a.y * 100}%`, zIndex: zOf(def, a.y) }}
                             onClick={() => wild.tap(a.key)}
                         >
                             <i className="wild-shadow" />
                             <FieldSprite
                                 id={a.id}
+                                shiny={a.shiny}
                                 anim={ANIM[a.act]}
                                 dir={a.dir}
                                 scale={def.scale}
@@ -303,6 +324,8 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                                         <b>z</b>
                                         <b>Z</b>
                                     </span>
+                                ) : a.emote === 'goal' ? (
+                                    <GoalBubble key={`goal${a.t0}`} n={a.goals ?? 0} />
                                 ) : a.emote ? (
                                     <Bubble key={`${a.emote}${a.t0}`} kind={a.emote} />
                                 ) : null}

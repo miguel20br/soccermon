@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { type Dex, EDITION_BIT, EMPTY_ENTRY } from '../../store/profile';
 import { TABS } from './nav';
 import {
     type Actor,
     type Area,
     type Box,
+    CLUB_MAX,
     CROWD,
+    clubWild,
     dirOf,
     fits,
     HIDE_MS,
@@ -339,5 +342,46 @@ describe('Pokémon ambiente: ações', () => {
         a.body = BODY;
         step([a], { floor: area }, 50, 50, {}, rand);
         expect(a.shown).toBe(true);
+    });
+});
+
+describe('clubWild (Sede: os mais usados do clube)', () => {
+    const e = (matches: number, goals = 0, editions = EDITION_BIT.normal) => ({
+        ...EMPTY_ENTRY,
+        matches,
+        minutes: matches * 10,
+        goals,
+        editions,
+    });
+
+    it('jogador novo (sem partida): lista vazia, a Sede sorteia como antes', () => {
+        expect(clubWild({})).toEqual([]);
+        expect(clubWild({ 25: { ...EMPTY_ENTRY } })).toEqual([]);
+    });
+
+    it('os mais usados por partidas, com o artilheiro na frente mesmo fora do top', () => {
+        const dex: Dex = { 1: e(30), 4: e(25, 2), 7: e(20), 25: e(3, 40), 6: e(18), 94: e(17), 143: e(16), 130: e(2) };
+        const list = clubWild(dex);
+        expect(list).toHaveLength(CLUB_MAX);
+        expect(list.map((w) => w.id)).toEqual([25, 1, 4, 7, 6, 94]);
+        expect(list[0].goals).toBe(40);
+        expect(list.filter((w) => w.goals !== undefined)).toHaveLength(1);
+        expect(new Set(list.map((w) => w.key)).size).toBe(list.length);
+        // o celular mostra os 3 primeiros: o artilheiro está entre eles
+        expect(clubWild(dex, 3).map((w) => w.id)).toEqual([25, 1, 4]);
+    });
+
+    it('shiny só se ele já jogou shiny por você', () => {
+        const list = clubWild({ 6: e(10, 0, EDITION_BIT.normal | EDITION_BIT.shiny), 9: e(5) });
+        expect(list.find((w) => w.id === 6)?.shiny).toBe(true);
+        expect(list.find((w) => w.id === 9)?.shiny).toBeUndefined();
+    });
+
+    it('o toque no artilheiro mostra o balão dos gols', () => {
+        const [w] = clubWild({ 25: e(10, 12) });
+        const area: Area = { aspect: 1.6, ok: () => true, speed: 0.2 };
+        const a = spawn(w, area, () => 0.5);
+        poke(a, 0);
+        expect(a.emote).toBe('goal');
     });
 });

@@ -5,6 +5,7 @@
  * Coordenadas de 0 a 1 dentro da caixa da zona; `aspect` (largura/altura da caixa) deixa a velocidade e a direção
  * iguais na horizontal e na vertical.
  */
+import { type Dex, hasSticker } from '../../store/profile';
 import { TABS, type Tab } from './nav';
 
 export type Mood = 'calm' | 'busy' | 'sleepy' | 'shy';
@@ -57,6 +58,10 @@ export interface Wild {
     id: number;
     zone: string;
     mood: Mood;
+    /** Folha shiny (Pokémon do clube que já jogou shiny por você). */
+    shiny?: boolean;
+    /** Artilheiro do clube: os gols aparecem num balão quando tocam nele. */
+    goals?: number;
 }
 
 type Rand = () => number;
@@ -83,6 +88,32 @@ export function rollAll(seen: (id: number) => boolean, rand: Rand = Math.random)
     return Object.fromEntries(TABS.map((t) => [t, rollWild(t, seen, rand)])) as Record<Tab, Wild[]>;
 }
 
+/** Pokémon do clube na Sede: no máximo esse tanto (o celular mostra menos, `Sede.tsx`). */
+export const CLUB_MAX = 6;
+
+/**
+ * Quem anda na Sede: os mais usados do jogador (Pokédex: mais partidas, desempate minutos), com o artilheiro (mais
+ * gols) sempre na frente da fila, pra sobrar até no celular. Save sem partida = lista vazia (a Sede sorteia como antes).
+ */
+export function clubWild(dex: Dex, n = CLUB_MAX): Wild[] {
+    const played = Object.entries(dex)
+        .map(([id, e]) => ({ id: Number(id), e }))
+        .filter(({ e }) => e.matches > 0);
+    const used = [...played].sort((a, b) => b.e.matches - a.e.matches || b.e.minutes - a.e.minutes || a.id - b.id);
+    const scorer = played
+        .filter(({ e }) => e.goals > 0)
+        .sort((a, b) => b.e.goals - a.e.goals || b.e.matches - a.e.matches || a.id - b.id)[0];
+    const order = scorer ? [scorer, ...used.filter((x) => x !== scorer)] : used;
+    return order.slice(0, n).map(({ id, e }) => ({
+        key: `sede-${id}`,
+        id,
+        zone: 'floor',
+        mood: 'busy',
+        ...(hasSticker(e, 'shiny') && { shiny: true }),
+        ...(scorer?.id === id && { goals: e.goals }),
+    }));
+}
+
 /**
  * Quantos sprites cada aba monta: a da tela primeiro (todos), depois a vizinha da esquerda e a da direita até o
  * teto; as longe, nenhum (nem baixam a folha).
@@ -101,7 +132,8 @@ export function wildQuota(tab: number, counts: readonly number[], max = MAX_WILD
 // ---------------------------------------------------------------------------------------------- ações
 
 export type Act = 'idle' | 'walk' | 'look' | 'sleep' | 'hop' | 'emote' | 'chase' | 'flee';
-export type Emote = 'heart' | 'note' | 'surprise' | 'question';
+/** `goal`: o balão com os gols do artilheiro (só no toque). */
+export type Emote = 'heart' | 'note' | 'surprise' | 'question' | 'goal';
 export interface Pt {
     x: number;
     y: number;
@@ -342,17 +374,20 @@ function choose(a: Actor, all: Actor[], area: Area, rand: Rand, now: number) {
     begin(a, pick, all, area, rand, now);
 }
 
-/** Tocaram nele: pula com um coração ou uma nota; quem dormia acorda assustado. Devolve se acordou. */
+/**
+ * Tocaram nele: pula com um coração ou uma nota (o artilheiro, com os gols, um pouco mais pra dar tempo de ler); quem
+ * dormia acorda assustado. Devolve se acordou.
+ */
 export function poke(a: Actor, now: number, rand: Rand = Math.random): boolean {
     const woke = a.act === 'sleep';
     a.act = 'hop';
     a.t0 = now;
-    a.left = 900;
+    a.left = a.goals && !woke ? 2000 : 900;
     a.prey = undefined;
     a.tx = a.x;
     a.ty = a.y;
     a.dir = 0;
-    a.emote = woke ? 'surprise' : rand() < 0.5 ? 'heart' : 'note';
+    a.emote = woke ? 'surprise' : a.goals ? 'goal' : rand() < 0.5 ? 'heart' : 'note';
     return woke;
 }
 
