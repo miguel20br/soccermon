@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (27/10/2026, v0.9.23.2)
+## Estado atual (27/10/2026, v0.9.23.3)
 
-No ar: 0.9.23.2 "Faxina" (kit calmo, menos coisa no celular; tela grande com `zoom` na raiz: use `calc(N * var(--vw))` e `uiZoom()`, não vw/vh). `?lab=hud` = partida nova. Motor 13 (`liga` 13). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.23.3 (N3 82%), 0.9.23.2 "Faxina" (kit calmo; tela grande com `zoom` na raiz: use `calc(N * var(--vw))` e `uiZoom()`, não vw/vh). `?lab=hud` = partida nova. Motor 14 (`liga` 14). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

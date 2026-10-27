@@ -1,5 +1,25 @@
 # Novidades
 
+## 0.9.23.3 · Pedidos dos jogadores (2026-10-27)
+
+### Golpe Máximo
+- O chute do nível 3 ficou quase indefensável: 57% ⇒ 82% de gol. A defesa máxima do goleiro ainda pode parar
+
+### Partida
+- Substituição pede confirmação e mostra a nota de quem sai e de quem entra naquela vaga
+- No Duelo, as abas de baixo também ficam fechadas até você tocar
+
+### Menus
+- A Sede tem os Pokémon que você mais usa andando pela sala. Toque no artilheiro pra ver os gols
+- Escalação no celular: o botão Carta abre a carta de quem está selecionado
+- Cartão do treinador no celular com as 3 cartas lado a lado
+- Copa do Dia: o ranking de hoje fica embaixo do JOGAR, e depois de jogar o botão leva pra ele
+- Cartas do pacote no ritmo da música virou opção em Configurações (vem desligada)
+
+### Corrigido
+- Retomar uma copa guardada ficava trocando de copa sem sair do lugar
+- Escalação com o celular deitado cabe sem rolar
+
 ## 0.9.23.2 · Faxina (2026-10-27)
 
 ### Menos coisa na tela

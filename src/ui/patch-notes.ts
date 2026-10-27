@@ -9,6 +9,43 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.23.3',
+        date: '2026-10-27',
+        title: 'Pedidos dos jogadores',
+        sections: [
+            {
+                title: 'Golpe Máximo',
+                lines: [
+                    'O chute do nível 3 ficou quase indefensável: 57% ⇒ 82% de gol. A defesa máxima do goleiro ainda pode parar',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Substituição pede confirmação e mostra a nota de quem sai e de quem entra naquela vaga',
+                    'No Duelo, as abas de baixo também ficam fechadas até você tocar',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'A Sede tem os Pokémon que você mais usa andando pela sala. Toque no artilheiro pra ver os gols',
+                    'Escalação no celular: o botão Carta abre a carta de quem está selecionado',
+                    'Cartão do treinador no celular com as 3 cartas lado a lado',
+                    'Copa do Dia: o ranking de hoje fica embaixo do JOGAR, e depois de jogar o botão leva pra ele',
+                    'Cartas do pacote no ritmo da música virou opção em Configurações (vem desligada)',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Retomar uma copa guardada ficava trocando de copa sem sair do lugar',
+                    'Escalação com o celular deitado cabe sem rolar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.23.2',
         date: '2026-10-27',
         title: 'Faxina',
@@ -1788,6 +1825,43 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.23.3',
+        date: '2026-10-27',
+        title: 'Player requests',
+        sections: [
+            {
+                title: 'Max Move',
+                lines: [
+                    'The level 3 shot is now almost unstoppable: 57% ⇒ 82% goals. The keeper max save can still stop it',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Substitutions ask for confirmation and show the rating of who leaves and who comes in at that spot',
+                    'In Duels the bottom tabs also stay closed until you tap',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'The Club has your most used Pokémon walking around. Tap the top scorer to see the goals',
+                    'Lineup on phones: the Card button opens the selected Pokémon card',
+                    'Trainer card on phones with the 3 cards side by side',
+                    "Daily Cup: today's ranking sits under PLAY, and after playing the button takes you there",
+                    'Pack cards on the music beat is now an option in Settings (off by default)',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Resuming a saved cup kept swapping cups without leaving the screen',
+                    'Lineup with the phone in landscape fits without scrolling',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.23.2',
         date: '2026-10-27',
