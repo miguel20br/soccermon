@@ -19,6 +19,7 @@ import { installTabBack } from './tab-back';
 import { rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
+import { uiZoom } from '../ui-zoom';
 
 const ICON: Record<Tab, HudIconKind> = {
     lab: 'flask',
@@ -103,7 +104,8 @@ export function Ambientes() {
         root.current?.querySelector<HTMLElement>(`#amb-tab-${TABS[i]}`)?.focus();
     };
 
-    const width = () => stage.current?.clientWidth || window.innerWidth;
+    // em px da tela, como o clientX do arrasto (zoom da tela grande)
+    const width = () => (stage.current?.clientWidth || window.innerWidth) * uiZoom();
     const onDown = (e: React.PointerEvent) => {
         if (e.button !== 0 || entering) return;
         swallowClick.current = false;

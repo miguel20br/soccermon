@@ -58,7 +58,7 @@
 html {
     zoom: var(--ui-zoom, 1);
 }
-/* 1 vw/vh de verdade com o zoom: o CSS usa calc(100 * var(--dvh)) no lugar de 100dvh (sem zoom, dá no mesmo) */
+/* 1 vw/vh de verdade com o zoom: o CSS usa calc(100 * var(--dvh)) no lugar de calc(100 * var(--dvh)) (sem zoom, dá no mesmo) */
 :root {
     --vw: calc(1vw / var(--ui-zoom, 1));
     --vh: calc(1vh / var(--ui-zoom, 1));
@@ -6811,7 +6811,7 @@ p.muted.center a {
     z-index: 70;
     display: grid;
     gap: 6px;
-    width: min(calc(100vw - 24px), 340px);
+    width: min(calc(calc(100 * var(--vw)) - 24px), 340px);
     translate: -50% 0;
     pointer-events: none;
     transition: opacity 280ms var(--ease-out);
@@ -7990,7 +7990,7 @@ body {
         gap: 4px 10px;
     }
     .draft-grid .formation-board .court {
-        width: min(100%, calc((100svh - 130px) * 0.75));
+        width: min(100%, calc((calc(100 * var(--svh)) - 130px) * 0.75));
         flex: 0 1 auto;
     }
     .draft-grid .formation-board .bench {

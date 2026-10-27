@@ -8,6 +8,7 @@ import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
 import { ConfirmSheet } from '../kit/Sheet';
 import { reduceMotionOn } from '../settings-sync';
+import { uiZoom } from '../ui-zoom';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { routeTeam } from './metas';
@@ -269,7 +270,8 @@ function useSwimLane(ui: RefObject<HTMLDivElement | null>, again: unknown): numb
                 }
                 end = Math.max(end, bottom);
             }
-            setLane(best);
+            // medido em px da tela; o `top` é px do CSS (zoom da tela grande)
+            setLane(best === null ? null : best / uiZoom());
         };
         find();
         const ro = new ResizeObserver(find);

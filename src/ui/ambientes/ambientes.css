@@ -388,26 +388,26 @@
     height: var(--px);
     background: #fff;
     box-shadow:
-        12vw 3vh #fff,
-        27vw 8vh #c9d4ff,
-        41vw 2vh #fff,
-        58vw 6vh #fff,
-        73vw 11vh #c9d4ff,
-        88vw 4vh #fff,
-        6vw 13vh #c9d4ff,
-        35vw 14vh #fff,
-        64vw 15vh #fff,
-        95vw 12vh #c9d4ff;
+        calc(12 * var(--vw)) calc(3 * var(--vh)) #fff,
+        calc(27 * var(--vw)) calc(8 * var(--vh)) #c9d4ff,
+        calc(41 * var(--vw)) calc(2 * var(--vh)) #fff,
+        calc(58 * var(--vw)) calc(6 * var(--vh)) #fff,
+        calc(73 * var(--vw)) calc(11 * var(--vh)) #c9d4ff,
+        calc(88 * var(--vw)) calc(4 * var(--vh)) #fff,
+        calc(6 * var(--vw)) calc(13 * var(--vh)) #c9d4ff,
+        calc(35 * var(--vw)) calc(14 * var(--vh)) #fff,
+        calc(64 * var(--vw)) calc(15 * var(--vh)) #fff,
+        calc(95 * var(--vw)) calc(12 * var(--vh)) #c9d4ff;
 }
 .es-stars.s2 {
-    left: 4vw;
-    top: 1vh;
+    left: calc(4 * var(--vw));
+    top: calc(1 * var(--vh));
     box-shadow:
-        18vw 6vh #fff,
-        47vw 10vh #fff,
-        69vw 2vh #c9d4ff,
-        83vw 9vh #fff,
-        22vw 15vh #fff;
+        calc(18 * var(--vw)) calc(6 * var(--vh)) #fff,
+        calc(47 * var(--vw)) calc(10 * var(--vh)) #fff,
+        calc(69 * var(--vw)) calc(2 * var(--vh)) #c9d4ff,
+        calc(83 * var(--vw)) calc(9 * var(--vh)) #fff,
+        calc(22 * var(--vw)) calc(15 * var(--vh)) #fff;
     animation: es-twinkle 6s steps(2) infinite;
 }
 @keyframes es-twinkle {
@@ -707,7 +707,7 @@
 /* a boca do túnel: paredes de bloco, a viga de cima com degraus e a luminária */
 .es-tunnel {
     --brick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' shape-rendering='crispEdges'%3E%3Crect width='16' height='8' fill='%231b2142'/%3E%3Crect x='0' y='0' width='7' height='3' fill='%23262d55'/%3E%3Crect x='8' y='0' width='8' height='3' fill='%23232a50'/%3E%3Crect x='0' y='4' width='3' height='3' fill='%23232a50'/%3E%3Crect x='4' y='4' width='8' height='3' fill='%23283060'/%3E%3Crect x='13' y='4' width='3' height='3' fill='%23262d55'/%3E%3Crect x='0' y='0' width='7' height='1' fill='%232f3768'/%3E%3Crect x='4' y='4' width='8' height='1' fill='%232f3768'/%3E%3C/svg%3E");
-    --wall: clamp(22px, 7vw, 96px);
+    --wall: clamp(22px, calc(7 * var(--vw)), 96px);
     --lintel: calc(env(safe-area-inset-top) + var(--px) * 18);
 }
 .es-wall,
@@ -779,7 +779,7 @@
     left: 50%;
     top: 100%;
     width: calc(46 * var(--vw));
-    height: 26vh;
+    height: calc(26 * var(--vh));
     transform: translateX(-50%);
     clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
     background: linear-gradient(180deg, rgb(255 236 160 / 18%), transparent);
@@ -929,7 +929,7 @@
         transform: translateX(-80px);
     }
     to {
-        transform: translateX(calc(100vw + 80px));
+        transform: translateX(calc(calc(100 * var(--vw)) + 80px));
     }
 }
 @keyframes rt-waves {
@@ -1008,7 +1008,7 @@
    Lavender fica de fora. Bem mais mapa e bem menos mar vazio em volta */
 @media (orientation: portrait) and (max-width: 700px) {
     .rt-map {
-        width: min(calc(100% + 16px), calc((100dvh - 360px) * 23 / 20));
+        width: min(calc(100% + 16px), calc((calc(100 * var(--dvh)) - 360px) * 23 / 20));
         min-width: 0;
         aspect-ratio: 23 / 20;
     }
@@ -1269,7 +1269,7 @@
         grid-column: 1;
         width: auto;
         min-width: 0;
-        height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 30px);
+        height: calc(calc(100 * var(--dvh)) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 30px);
     }
     .rt-head {
         grid-column: 2;
@@ -2571,7 +2571,7 @@
 /* Rota no celular pequeno (320x568): o mapa encolhia pouco e a tela rolava 18 px */
 @media (orientation: portrait) and (max-width: 700px) and (max-height: 640px) {
     .rt-map {
-        width: min(calc(100% + 16px), calc((100dvh - 384px) * 23 / 20));
+        width: min(calc(100% + 16px), calc((calc(100 * var(--dvh)) - 384px) * 23 / 20));
     }
 }
 

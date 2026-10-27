@@ -135,7 +135,7 @@
         gap: 4px 10px;
     }
     .vt .formation-board .court {
-        width: min(100%, calc((100svh - 140px) * 0.75));
+        width: min(100%, calc((calc(100 * var(--svh)) - 140px) * 0.75));
         flex: 0 1 auto;
     }
     .vt .formation-board .slot {
