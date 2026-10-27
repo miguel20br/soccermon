@@ -11,6 +11,7 @@ import { reduceMotionOn } from '../settings-sync';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { routeTeam } from './metas';
+import { useTalkOnce } from './Room';
 import { type Blockers, type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
 import type { Pt, Wild } from './wild';
 
@@ -366,6 +367,7 @@ export function Rota({
         ? { grass: [{ ...norm(lead.p), r: 9 }], water: [{ ...norm(lead.p), r: 9 }] }
         : { grass: near, water: near };
     const w = useWild(clock, wild, zonesOf(scale), threats, ROUTE);
+    const talk = useTalkOnce('falaRota', active);
     const story = d.longCup.story[stop === 'start' ? 'rota1' : stop];
     const where = stop === 'start' ? '' : d.longCup.region[stop];
     const got = (id: string) => done.includes(id);
@@ -493,14 +495,22 @@ export function Rota({
                         )}
                     </div>
                 </div>
-                <div className="rt-talk">
-                    <span className="rt-talk-face">
-                        <img className="pixel" src={`assets/trainers/${WHO[stop]}.png`} alt="" width="80" height="80" />
-                    </span>
-                    <p>
-                        <b>{story.who}</b> {story.text}
-                    </p>
-                </div>
+                {talk && (
+                    <div className="rt-talk">
+                        <span className="rt-talk-face">
+                            <img
+                                className="pixel"
+                                src={`assets/trainers/${WHO[stop]}.png`}
+                                alt=""
+                                width="80"
+                                height="80"
+                            />
+                        </span>
+                        <p>
+                            <b>{story.who}</b> {story.text}
+                        </p>
+                    </div>
+                )}
                 <button
                     type="button"
                     className="btn big cup-go rt-go cb cb-green"

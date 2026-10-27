@@ -87,7 +87,6 @@ export const home = {
         labShort: 'Laboratório',
         arenaTitle: 'Arena',
         sedeTitle: 'Sede do clube',
-        soon2x2: 'Dupla 2x2',
         soonArcade: 'Arcade',
         ligaSoon: 'Liga · abre em {d}d',
         /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
@@ -101,20 +100,9 @@ export const home = {
         /** As setas da pílula de modo do Estádio. */
         modePrev: 'Modo anterior',
         modeNext: 'Próximo modo',
-        /** As metas à vista no Estádio (os "baús" do Clash). */
-        slotsAria: 'Suas metas',
-        slotDailyShort: 'Diária',
-        slotMission: 'Missão',
-        slotBadges: 'Insígnias',
-        slotBelt: 'Cinturão',
-        /** A barra de cima: títulos ganhos e a Pokédex. */
-        resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
-        resTitles: 'Títulos: {n}',
-        resDex: 'Pokédex: {n} de 151 vistos',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',
-        ligaOpens: 'Abre em {d}d',
         /** Sede: o quadro de missões e a Sala de troféus. */
         sedeOf: 'Sede do {club}',
         sedeBoard: 'Quadro de missões',
@@ -122,5 +110,7 @@ export const home = {
         sedeFirst: 'Seu 1º troféu fica aqui',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
+        /** A estrela do nível na barra de cima. */
+        resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
     },
 };

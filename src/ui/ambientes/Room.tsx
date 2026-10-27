@@ -1,4 +1,6 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { useGame } from '../../store/game-store';
+import { useHydrated } from '../coach/Coach';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import type { Blockers, ZoneDef } from './WildZone';
 
@@ -95,4 +97,23 @@ export function Tile({
             {body}
         </button>
     );
+}
+
+/**
+ * A fala do Carvalho só na 1ª vez (depois é ruído): `true` se ainda não foi vista quando o save carregou. Marca como
+ * vista em `profile.coach` (o mesmo "visto" do tutorial, no save e na nuvem) assim que a aba está na tela; a fala
+ * fica até a pessoa sair da Home.
+ */
+export function useTalkOnce(id: 'falaLab' | 'falaRota', active: boolean): boolean {
+    const hydrated = useHydrated();
+    const [show, setShow] = useState(false);
+    useEffect(() => {
+        if (!hydrated || !active) return;
+        const { profile, updateProfile } = useGame.getState();
+        const have = profile.coach ?? [];
+        if (have.includes(id)) return;
+        setShow(true);
+        updateProfile({ coach: [...have, id] });
+    }, [hydrated, active, id]);
+    return show;
 }

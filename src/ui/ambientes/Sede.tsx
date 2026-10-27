@@ -2,7 +2,6 @@ import { type CSSProperties, useMemo } from 'react';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
-import { MISSIONS } from '../../store/missions';
 import { cupCounts, METALS } from '../../store/trophies';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
@@ -21,8 +20,8 @@ const FLAGS = Array.from({ length: 12 }, (_, i) => i);
 
 /**
  * Sede do clube (Perfil + Sala de troféus): a sala de madeira com o escudo na parede, o varal de bandeirinhas e o
- * tapete nas cores do clube, as taças em cima da vitrine e a lareira. A meta é o quadro de missões (as 3 mais perto de
- * sair); o botão principal abre a Sala de troféus. Treinador, Clube e Amigos ficam embaixo.
+ * tapete nas cores do clube, as taças em cima da vitrine e a lareira. A meta é o bilhete da missão mais perto de
+ * sair; o botão principal abre a Sala de troféus. Treinador, Clube e Amigos ficam embaixo.
  */
 export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; near: boolean }) {
     const { t, tn, d } = useT();
@@ -36,8 +35,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const view = useSaveView();
     const look = lookOfProfile(profile);
     const cups = useMemo(() => cupCounts(hall), [hall]);
-    const goals = useMemo(() => closestMissions(view), [view]);
-    const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
+    const goal = useMemo(() => closestMissions(view, 1)[0], [view]);
     const club = profile.clubName || 'Pallet FC';
     const vars = { '--club': hexCss(look.color), '--club2': hexCss(look.color2) } as CSSProperties;
 
@@ -100,27 +98,22 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                         {titles}
                     </span>
                 </header>
-                <button type="button" className="sd-board" onClick={() => openDoor('profile', 'treinador')}>
-                    <span className="sd-board-head">
-                        <b>{t('home.amb.sedeBoard')}</b>
+                {goal && (
+                    <button
+                        type="button"
+                        className="sd-board"
+                        aria-label={t('home.amb.sedeBoard')}
+                        onClick={() => openDoor('profile', 'treinador')}
+                    >
+                        <span>{missionText(goal.m)}</span>
                         <small>
-                            {done}/{MISSIONS.length}
+                            {goal.n}/{goal.goal}
                         </small>
-                    </span>
-                    <ul>
-                        {goals.map((g) => (
-                            <li key={g.m.id}>
-                                <span>{missionText(g.m)}</span>
-                                <span className="sd-bar" aria-hidden>
-                                    <i style={{ width: `${(g.n / g.goal) * 100}%` }} />
-                                </span>
-                                <small>
-                                    {g.n}/{g.goal}
-                                </small>
-                            </li>
-                        ))}
-                    </ul>
-                </button>
+                        <span className="sd-bar" aria-hidden>
+                            <i style={{ width: `${(goal.n / goal.goal) * 100}%` }} />
+                        </span>
+                    </button>
+                )}
                 <div className="rm-actions">
                     <button
                         type="button"

@@ -5,7 +5,7 @@ import { albumCount, gameMoveIds, movesFound, seenCount } from '../../store/prof
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
 import { ClockCtx, useSceneClock } from './clock';
-import { BIG, floorZone, Mi, ROOM, SMALL, Tile } from './Room';
+import { BIG, floorZone, Mi, ROOM, SMALL, Tile, useTalkOnce } from './Room';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
@@ -28,6 +28,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
     const album = useMemo(() => albumCount(dex), [dex]);
     const found = useMemo(() => movesFound(moves, dex), [moves, dex]);
     const left = DEX_TOTAL - seen;
+    const talk = useTalkOnce('falaLab', active);
 
     return (
         <ClockCtx.Provider value={clock}>
@@ -66,15 +67,17 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                         {seen}/{DEX_TOTAL}
                     </span>
                 </header>
-                <div className="rt-talk rm-talk">
-                    <span className="rt-talk-face">
-                        <img className="pixel" src="assets/trainers/oak.png" alt="" width="80" height="80" />
-                    </span>
-                    <p>
-                        <b>{d.longCup.story.rota1.who}</b>{' '}
-                        {left > 0 ? t('home.amb.labTalk', { n: left }) : t('home.amb.labTalkDone')}
-                    </p>
-                </div>
+                {talk && (
+                    <div className="rt-talk rm-talk">
+                        <span className="rt-talk-face">
+                            <img className="pixel" src="assets/trainers/oak.png" alt="" width="80" height="80" />
+                        </span>
+                        <p>
+                            <b>{d.longCup.story.rota1.who}</b>{' '}
+                            {left > 0 ? t('home.amb.labTalk', { n: left }) : t('home.amb.labTalkDone')}
+                        </p>
+                    </div>
+                )}
                 <div className="rm-actions">
                     <button
                         type="button"
