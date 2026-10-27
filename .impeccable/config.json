@@ -119,6 +119,15 @@
         ],
         "createdAt": "2026-10-26T23:31:45.583Z",
         "reason": "Claude: vídeo 9:16; o espaçamento largo está em rótulos curtos em maiúsculas (carimbos DIA, cartazes, placar), não em texto corrido"
+      },
+      {
+        "rule": "radial-halo",
+        "value": "*",
+        "files": [
+          "trailer/curtas/magikarp/index.html"
+        ],
+        "createdAt": "2026-10-27T02:40:39.406Z",
+        "reason": "Claude: é luz dentro da cena do vídeo (holofote noturno e a força psíquica do Mewtwo), efeito pedido pelo Miguel, não fundo decorativo de interface"
       }
     ]
   }
