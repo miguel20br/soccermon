@@ -4389,64 +4389,6 @@ button,
     font-weight: 700;
     white-space: nowrap;
 }
-.rh-path {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin: 6px 0 0;
-    padding: 0;
-    list-style: none;
-}
-.rh-path li {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: var(--bg-2);
-    border: 2px solid transparent;
-    font-size: 12px;
-    color: var(--muted);
-}
-.rh-path li.won {
-    border-color: #4fd17a;
-    color: var(--text);
-}
-.rh-path li.lost {
-    border-color: #ff7a7a;
-    color: var(--text);
-}
-.rh-path li.next {
-    border-color: var(--yellow);
-    color: var(--text);
-    border-style: dashed;
-}
-.rh-dot {
-    display: inline-grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--panel-2);
-    font-size: 10px;
-    font-weight: 700;
-}
-.rh-dot .hud-icon {
-    width: 12px;
-    height: 12px;
-}
-.rh-path li.won .rh-dot {
-    background: #4fd17a;
-    color: #0b1a10;
-}
-.rh-path li.lost .rh-dot {
-    background: #ff7a7a;
-    color: #2a0a0a;
-}
-.rh-path small {
-    color: var(--muted);
-}
 .rh-next {
     display: grid;
     justify-items: center;
@@ -6827,10 +6769,19 @@ p.muted.center a {
     line-height: 1.25;
 }
 .unlock-strip {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: 50%;
+    z-index: 70;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: 6px;
-    margin: 10px 0;
+    width: min(calc(100vw - 24px), 340px);
+    translate: -50% 0;
+    pointer-events: none;
+    transition: opacity 280ms var(--ease-out);
+}
+.unlock-strip.out {
+    opacity: 0;
 }
 .unlock-item {
     min-width: 0;
@@ -7984,5 +7935,43 @@ body {
     .draft-options .option-fit {
         padding-inline: 6px;
         font-size: 10px;
+    }
+}
+
+/* ---------- draft deitado: a quadra com o banco ao lado e centralizada enquanto não há cartas na mesa ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+    .draft-grid .board-panel > h2 {
+        display: none;
+    }
+    .draft-grid .board-panel {
+        margin-top: 0;
+    }
+    .draft-grid .formation-board {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 4px 10px;
+    }
+    .draft-grid .formation-board .court {
+        width: min(100%, calc((100svh - 130px) * 0.75));
+        flex: 0 1 auto;
+    }
+    .draft-grid .formation-board .bench {
+        flex-direction: column;
+        margin-top: 0;
+    }
+    .draft-grid .formation-board > .row {
+        flex: 1 0 100%;
+        justify-content: center;
+        margin-top: 0 !important;
+    }
+    /* sem vaga escolhida não há cartas: a quadra ocupa o meio em vez de ficar espremida à esquerda */
+    .draft-grid:not(:has(.draft-options)) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .draft-grid:not(:has(.draft-options)) .board-panel {
+        justify-self: center;
+        width: min(100%, 520px);
     }
 }

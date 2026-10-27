@@ -66,7 +66,6 @@ export const result = {
         aria: 'Resultado da partida',
         pens: 'Pênaltis {a} x {b}',
         star: 'craque',
-        path: 'Caminho da copa',
         /** Fase curta no caminho da copa. */
         stageShort: ['Oitavas', 'Quartas', 'Semifinal', 'Final'],
         next: 'Próximo: {stage} contra',

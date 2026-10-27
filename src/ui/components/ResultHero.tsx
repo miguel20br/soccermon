@@ -4,7 +4,7 @@ import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
 import { playSfx } from '../../game/audio';
-import { clubName, cupStageName, cupStageShort } from '../../i18n';
+import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { cupLength, groupTable, isFinalStage, isGroupStage, isLong, longWinEarnings } from '../../store/long-cup';
@@ -300,40 +300,6 @@ export function ResultHero({
                     </div>
                 ))}
             </div>
-
-            {run && (
-                <ol className="rh-path" aria-label={t('result.hero.path')}>
-                    {Array.from({ length: cupLength(run) }, (_, i) => CUP_STAGES[i] ?? `p${i}`).map((label, i) => {
-                        const res = run.results.find((r) => r.stage === i);
-                        const state = res
-                            ? res.won
-                                ? 'won'
-                                : 'lost'
-                            : i === run.stage + 1 && won && !groupOut
-                              ? 'next'
-                              : 'todo';
-                        return (
-                            <li key={label} className={state}>
-                                <span className="rh-dot">
-                                    {state === 'won' ? (
-                                        <HudIcon kind="check" />
-                                    ) : state === 'lost' ? (
-                                        <HudIcon kind="close" />
-                                    ) : (
-                                        i + 1
-                                    )}
-                                </span>
-                                <span>{cupStageShort(run, i, d.result.hero.stageShort)}</span>
-                                {res && (
-                                    <small>
-                                        {res.score[0]}x{res.score[1]}
-                                    </small>
-                                )}
-                            </li>
-                        );
-                    })}
-                </ol>
-            )}
 
             {run && next && (
                 <div className="rh-next">

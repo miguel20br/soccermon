@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -52,20 +53,29 @@ export function UnlockNotice() {
 }
 
 /**
- * Resultado: as conquistas da partida (gravadas no apito final, antes da tela abrir) numa faixa no meio da página,
- * embaixo do placar (fixa no topo ela cobria o placar). Ficam enquanto a tela está aberta; a fila esvazia.
+ * Resultado: as conquistas da partida (gravadas no apito final, antes da tela abrir) viram um aviso que desce do topo
+ * e some sozinho (antes era uma faixa fixa no meio do placar). A fila esvazia ao abrir.
  */
 export function UnlockStrip() {
     const [ids] = useState(() => useGame.getState().unlockQueue);
+    const [phase, setPhase] = useState<'in' | 'out' | 'gone'>('in');
     useEffect(() => {
         useGame.setState({ unlockQueue: [] });
+        const out = window.setTimeout(() => setPhase('out'), SHOW_MS + 600);
+        const gone = window.setTimeout(() => setPhase('gone'), SHOW_MS + 900);
+        return () => {
+            clearTimeout(out);
+            clearTimeout(gone);
+        };
     }, []);
-    if (!ids.length) return null;
-    return (
-        <div className="unlock-strip">
+    if (!ids.length || phase === 'gone') return null;
+    // portal: o aviso é `fixed` e a tela do resultado entra com animação (transform prenderia o `fixed`)
+    return createPortal(
+        <div className={`unlock-strip${phase === 'out' ? ' out' : ''}`}>
             {ids.map((id) => (
                 <Unlock key={id} id={id} className="unlock-item" />
             ))}
-        </div>
+        </div>,
+        document.body,
     );
 }

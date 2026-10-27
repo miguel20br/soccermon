@@ -215,7 +215,6 @@ export function Result() {
                     opponent={opponent}
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
-                    stats={heroStats(match, t)}
                     foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
                     unlocks={<UnlockStrip />}
                     actions={actions}
