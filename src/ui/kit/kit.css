@@ -14,8 +14,9 @@
  * Ação repetida de lista (Comprar, Escalar, Escolher, Ensinar) é o chip baixo (.k-chip, .fut-action, .shop-buy) preso
  * na carta ou no item. Contorno de texto só em botão de 16 px ou mais (.big, .cb e o da barra).
  *
- * Painel (material da variante C, sem a textura): moldura dupla grossa com base dura; o título do painel é a placa do
- * Estádio (moldura preta, faixa amarela em cima), pendurada na borda de cima (broadcast-kit.css).
+ * Painel calmo (faxina de 27/10, jogadores acharam o celular apertado): borda fina discreta, sem sombra dura, título
+ * do painel em texto simples. A placa (moldura preta, faixa amarela) fica só no título da tela, uma por tela: a fase
+ * na barra da copa (.k-cupbar-stage) ou o .bc-screenhead. Painel dentro de painel perde a moldura (sem caixa na caixa).
  */
 :root {
     --cb-ink: #0b0f24;
@@ -54,16 +55,22 @@
         -2px 2px 0 var(--ol, var(--cb-ink)), -2px 0 0 var(--ol, var(--cb-ink)), 0 4px 0 var(--ol, var(--cb-ink));
 }
 
-/* ---------- painel: moldura dupla grossa com base dura ---------- */
+/* ---------- painel: borda fina, sem sombra ---------- */
 .panel {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 5%), var(--panel));
-    border: 3px solid var(--cb-ink);
+    background: var(--panel);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 45%);
     border-radius: var(--radius);
-    box-shadow:
-        inset 0 0 0 3px var(--frame-in),
-        inset 0 0 0 5px rgb(11 15 36 / 60%),
-        0 4px 0 var(--cb-ink);
+    box-shadow: none;
     padding: 16px;
+}
+/* sem caixa dentro de caixa: o painel (ou a superfície) dentro de outro fica solto sobre o fundo dele */
+.panel :is(.panel, .bc-surface):not(.modal, .k-sheet, .ht-panel) {
+    border-color: transparent;
+    background: none;
+    box-shadow: none;
+}
+.panel .panel:not(.modal, .k-sheet, .ht-panel) {
+    padding-inline: 0;
 }
 .panel h2,
 .panel h3 {
@@ -216,16 +223,14 @@
     --lo: var(--red-lo);
     --ol: #4a0b0a;
 }
-/* secundário azul: baixo, face lisa, base fina (o gordo é só a ação da tela) */
+/* secundário azul: baixo, face lisa, base fina e sem contorno preto (o gordo é só a ação da tela) */
 .btn:not(.primary, .confirm, .danger, .ghost, .big, .cb) {
     --base: 3px;
     padding: 5px 12px calc(4px + var(--base));
-    border-width: 2px;
+    border-width: 0;
     border-radius: 8px;
     background: var(--c);
-    box-shadow:
-        inset 0 calc(-1 * var(--base)) 0 var(--lo),
-        0 3px 0 var(--cb-ink);
+    box-shadow: inset 0 calc(-1 * var(--base)) 0 var(--lo);
     font-size: 12px;
 }
 /* ação repetida de lista (Comprar, Escalar, Escolher, Ensinar): chip baixo preso na borda de baixo da carta ou do item;
@@ -442,7 +447,7 @@
     }
     .k-sheet {
         width: 100%;
-        max-height: 92dvh;
+        max-height: calc(92 * var(--dvh));
         border-radius: 14px 14px 0 0;
         border-bottom: 0;
         padding-bottom: calc(20px + env(safe-area-inset-bottom));
@@ -606,7 +611,7 @@
     animation: k-wipe-drift 2.4s linear infinite;
 }
 .k-wipe-mark {
-    width: min(72vw, 420px);
+    width: min(calc(72 * var(--vw)), 420px);
     height: auto;
     padding: 18px 22px;
     border: 3px solid var(--cb-ink);
@@ -628,27 +633,19 @@
     opacity: 0;
 }
 
-/* ---------- painéis da partida (intervalo, ordem dos pênaltis, banco, pedido de tempo) no material do kit ---------- */
+/* ---------- painéis da partida (intervalo, ordem dos pênaltis, banco, pedido de tempo): o painel calmo do kit ---------- */
 .ht-panel {
-    border: 3px solid var(--cb-ink);
+    border: 1px solid color-mix(in srgb, var(--line), transparent 45%);
     border-radius: var(--radius);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--panel), #fff 5%), var(--panel));
-    box-shadow:
-        inset 0 0 0 3px var(--frame-in),
-        inset 0 0 0 5px rgb(11 15 36 / 60%),
-        0 4px 0 var(--cb-ink);
+    background: var(--panel);
     animation: k-panel-pop var(--dur-pop) var(--ease-pop) both;
 }
-/* o título na placa do Estádio (moldura preta, faixa amarela em cima), como o título de painel */
+/* o título em texto simples, como o título de painel */
 .ht-panel .ht-title {
-    padding: 5px 14px 4px;
-    border: 3px solid var(--cb-ink);
-    border-top: 5px solid var(--yellow);
-    border-radius: 8px;
-    background: var(--cb-ink);
-    box-shadow: 0 3px 0 var(--cb-ink);
     color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 15px;
+    letter-spacing: 1px;
     text-transform: uppercase;
 }
 .sl-arrow {
@@ -693,7 +690,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    max-width: min(420px, calc(100vw - 24px));
+    max-width: min(420px, calc(calc(100 * var(--vw)) - 24px));
     padding: 9px 14px 9px 10px;
     border: 3px solid var(--cb-ink);
     border-left: 8px solid var(--c);

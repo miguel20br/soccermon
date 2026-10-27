@@ -186,7 +186,9 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                 <div className="kl-base">
                     <div className="panel kl-info">
                         <b>Painel</b>
-                        <span className="muted">Moldura dupla grossa e base dura; o título vai na placa, em cima.</span>
+                        <span className="muted">
+                            Borda fina e sem sombra; o título é texto simples. Dentro de outro painel, fica solto.
+                        </span>
                     </div>
                     <button type="button" className="bc-tile">
                         <HudIcon kind="cup" />
