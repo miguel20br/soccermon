@@ -58,6 +58,7 @@ import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave }
 import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { castMove, preloadMoveFx } from '../move-fx';
+import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
 
 export { GAME_H, GAME_W } from '../court';
@@ -3029,6 +3030,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     private goalBanner(stroke: string) {
+        claimOverlay('drama', PRIO_GOAL, 1700);
         const t = this.add
             .text(GAME_W / 2, GAME_H / 2, tr('battle.goalBanner'), {
                 fontFamily: 'Galmuri11, monospace',

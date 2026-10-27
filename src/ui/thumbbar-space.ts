@@ -6,8 +6,7 @@ export function startThumbbarSpace() {
     const root = document.documentElement;
     let bar: Element | null = null;
     const set = () => {
-        if (bar?.isConnected)
-            root.style.setProperty('--bc-thumb-h', `${Math.ceil(bar.getBoundingClientRect().height)}px`);
+        if (bar?.isConnected) root.style.setProperty('--bc-thumb-h', `${(bar as HTMLElement).offsetHeight}px`);
         else root.style.removeProperty('--bc-thumb-h');
     };
     const ro = new ResizeObserver(set);

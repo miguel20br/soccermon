@@ -9,7 +9,7 @@
 .ob-dialog {
     position: relative;
     width: min(420px, 100%);
-    max-height: calc(100dvh - 24px);
+    max-height: calc(calc(100 * var(--dvh)) - 24px);
     display: grid;
     grid-template-rows: auto 1fr auto;
     grid-template-columns: minmax(0, 1fr);
@@ -458,7 +458,7 @@
         gap: 16px;
     }
     .ob-visual {
-        height: min(210px, calc(100dvh - 150px));
+        height: min(210px, calc(calc(100 * var(--dvh)) - 150px));
     }
     .ob-court {
         transform: scale(0.88);

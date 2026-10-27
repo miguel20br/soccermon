@@ -9,7 +9,7 @@
 }
 .story-stage {
     position: relative;
-    width: min(100%, calc((100svh - 24px) * 9 / 16));
+    width: min(100%, calc((calc(100 * var(--svh)) - 24px) * 9 / 16));
     aspect-ratio: 9 / 16;
     margin: 0 auto;
     overflow: hidden;

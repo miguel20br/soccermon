@@ -432,7 +432,7 @@ button.gdx-cell:hover {
         right: 0;
         bottom: 0;
         z-index: 60;
-        max-height: 86dvh;
+        max-height: calc(86 * var(--dvh));
         overflow-y: auto;
         overscroll-behavior: contain;
         padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
@@ -481,7 +481,7 @@ button.gdx-cell:hover {
     .gdx-detail {
         grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
         align-items: start;
-        max-height: 92dvh;
+        max-height: calc(92 * var(--dvh));
     }
     .gdx-close {
         position: absolute;

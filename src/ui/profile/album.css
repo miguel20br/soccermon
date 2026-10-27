@@ -98,7 +98,7 @@
 }
 /* vitrine: 3 vagas do tamanho da carta pequena */
 .bd-slots {
-    --fut-w: min(110px, calc((100vw - 92px) / 3));
+    --fut-w: min(110px, calc((calc(100 * var(--vw)) - 92px) / 3));
     display: grid;
     grid-template-columns: repeat(3, var(--fut-w));
     justify-content: center;
@@ -683,7 +683,7 @@
     display: grid;
     gap: 12px;
     width: min(100%, 760px);
-    max-height: calc(100dvh - 32px);
+    max-height: calc(calc(100 * var(--dvh)) - 32px);
     overflow: auto;
 }
 .al-fan-box header {
@@ -880,7 +880,7 @@
 /* desktop: o livro aberto sai da coluna do perfil, pra carta ficar do tamanho de ler */
 @media (min-width: 1000px) and (min-height: 600px) {
     .al-book {
-        --w: min(1160px, calc(100vw - 48px));
+        --w: min(1160px, calc(calc(100 * var(--vw)) - 48px));
         width: var(--w);
         margin-inline: calc((100% - var(--w)) / 2);
     }

@@ -8,6 +8,7 @@ import { useGame } from '../../store/game-store';
 import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
+import { uiZoom } from '../ui-zoom';
 
 /** Pista do melhor conteúdo no pacote fechado: edição especial brilha holográfico, carta ouro (75+) tem borda dourada. */
 export type PackLook = '' | 'gold' | 'special';
@@ -147,6 +148,7 @@ export function CardPack({
             el.style.removeProperty('--fy');
         }
         const s = stage.getBoundingClientRect();
+        const z = uiZoom();
         // horário de cada carta: depois da tampa, uma de cada vez (a grande segura mais)
         const base: number[] = [];
         let at = lead;
@@ -163,8 +165,8 @@ export function CardPack({
         cards.forEach((el, i) => {
             const r = el.getBoundingClientRect();
             const fly = phase === 'opening';
-            el.style.setProperty('--fx', `${fly ? s.left + s.width / 2 - (r.left + r.width / 2) : 0}px`);
-            el.style.setProperty('--fy', `${fly ? s.top + s.height / 2 - (r.top + r.height / 2) : 0}px`);
+            el.style.setProperty('--fx', `${fly ? (s.left + s.width / 2 - (r.left + r.width / 2)) / z : 0}px`);
+            el.style.setProperty('--fy', `${fly ? (s.top + s.height / 2 - (r.top + r.height / 2)) / z : 0}px`);
             const d = times[i];
             el.style.setProperty('--rd', `${d}ms`);
             const walk = el.classList.contains('walk');

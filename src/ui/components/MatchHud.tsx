@@ -416,7 +416,8 @@ export function CoachTabs({
     onPick,
 }: {
     tabs: readonly CoachTab[];
-    active: CoachTab;
+    /** null: nenhuma aberta (o painel do celular nasce fechado). */
+    active: CoachTab | null;
     onPick: (tab: CoachTab) => void;
 }) {
     const { t } = useT();

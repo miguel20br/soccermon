@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import { overlayBusy } from './overlay-slot';
 
 /**
  * Caixa de texto estilo batalha Pokémon ("Pikachu usou Thunderbolt!") na parte de baixo da quadra.
@@ -55,6 +56,11 @@ export class BattleBox {
 
     /** `speed` encurta o tempo de leitura quando o jogo está acelerado. */
     update(now: number, speed: number) {
+        // celular: gol, golpe ou reação na tela; a narração espera (overlay-slot.ts)
+        if (overlayBusy()) {
+            if (this.visible) this.clear(now);
+            return;
+        }
         if (now < this.showingUntil) return;
         const next = this.queue.shift();
         if (next) {

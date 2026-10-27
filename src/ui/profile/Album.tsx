@@ -41,6 +41,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
 import { useSwapMotion } from '../swap-motion';
+import { uiZoom } from '../ui-zoom';
 import { speciesGif } from './club';
 import { DexText } from './DexText';
 import { NewBadge, useNews } from './news';
@@ -772,7 +773,7 @@ function ShowcaseEditor({
             d.el.classList.add('drag');
             setSel(null);
         }
-        d.el.style.translate = `${dx}px ${dy}px`;
+        d.el.style.translate = `${dx / uiZoom()}px ${dy / uiZoom()}px`;
         const j = slotAt(e.clientX, e.clientY);
         setOver(j >= 0 && j !== d.i && j < ids.length ? j : null);
     };

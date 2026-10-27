@@ -36,7 +36,7 @@
 }
 .coach-balloon {
     position: fixed;
-    width: min(300px, calc(100vw - 16px));
+    width: min(300px, calc(calc(100 * var(--vw)) - 16px));
     display: grid;
     gap: 8px;
     padding: 10px 14px 8px 20px;

@@ -778,7 +778,7 @@
     position: absolute;
     left: 50%;
     top: 100%;
-    width: 46vw;
+    width: calc(46 * var(--vw));
     height: 26vh;
     transform: translateX(-50%);
     clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
@@ -833,7 +833,7 @@
     position: absolute;
     bottom: calc(100% + 3px);
     width: 3px;
-    height: 100vh;
+    height: calc(100 * var(--vh));
     background: #0b1026;
 }
 .es-cable.l {
@@ -982,7 +982,7 @@
     position: relative;
     flex: none;
     container-type: inline-size;
-    width: min(100%, 760px, calc((100dvh - 372px) * 3 / 2));
+    width: min(100%, 760px, calc((calc(100 * var(--dvh)) - 372px) * 3 / 2));
     min-width: 240px;
     aspect-ratio: 3 / 2;
     overflow: hidden;
@@ -1251,7 +1251,7 @@
 }
 @media (min-width: 1000px) and (min-height: 700px) {
     .rt-map {
-        width: min(100%, 820px, calc((100dvh - 380px) * 3 / 2));
+        width: min(100%, 820px, calc((calc(100 * var(--dvh)) - 380px) * 3 / 2));
     }
 }
 /* deitado: o mapa à esquerda na altura toda, o resto numa coluna ao lado */

@@ -109,24 +109,16 @@
     letter-spacing: 1px;
 }
 
-/* ---------- título de painel e de prateleira: a placa do Estádio (moldura preta, faixa de cima na cor, base dura) ----------
+/* ---------- título de painel e de prateleira: texto simples (a placa fica só no título da tela, uma por tela) ----------
    Vale pra todo painel de fora da partida (.bc tem o desenho dela), pras prateleiras do Mercado e pros títulos das
-   telas de campeão. No painel, a placa fica pendurada na borda de cima (o painel ganha espaço em cima pra ela). */
+   telas de campeão. */
 .bc-caption,
 :where(.panel:not(.bc *, .modal)) > h2:first-child,
 .champ-h,
 .shop-shelf-title {
-    position: relative;
     display: block;
-    width: fit-content;
     max-width: 100%;
-    margin: 0 0 12px;
-    padding: 5px 14px 4px;
-    background: var(--bc-ink);
-    border: 3px solid var(--bc-edge);
-    border-top: 5px solid var(--tc, var(--yellow));
-    border-radius: 8px;
-    box-shadow: 0 3px 0 var(--bc-edge);
+    margin: 0 0 10px;
     color: var(--text);
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 15px;
@@ -134,16 +126,10 @@
     letter-spacing: 1px;
     line-height: 1.2;
     text-transform: uppercase;
-    /* a placa cabe numa linha: o que passa vira reticências (o nome do clube é o que corta) */
+    /* numa linha: o que passa vira reticências (o nome do clube é o que corta) */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-:where(.panel:not(.bc *, .modal)) > h2:first-child {
-    margin: -30px 0 12px -4px;
-}
-:where(.panel:not(.bc *, .modal)):has(> h2:first-child) {
-    margin-top: 28px;
 }
 
 /* ---------- rótulo de seção ("ESTILO DE JOGO") ---------- */
