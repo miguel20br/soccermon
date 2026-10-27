@@ -73,6 +73,8 @@ export const match: typeof pt = {
         hintMove: 'Now tap the new spot for {name}.',
         hintIn: 'Now tap who comes off for {name}.',
         subIn: 'IN',
+        subConfirmTitle: 'Confirm substitution?',
+        subConfirmText: 'Off: {out} {outN} ({pos}) · On: {in} {inN} ({pos}). Rating is for that slot.',
         tapRival: ', tap to view',
         hintMine: 'Tap a player to see their panel.',
         hintRival: "Rival's team: view only.",

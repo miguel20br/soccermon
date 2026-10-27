@@ -1,12 +1,14 @@
 import { type CSSProperties, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { SNAP_STRIDE, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
 import { formationText, statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { ConfirmSheet } from '../kit/Sheet';
 import { boardAt, snapAt, whoAt } from '../match-view';
+import { subSummary } from '../rating';
 import { FormationBoard } from './FormationBoard';
 import { cardSprite } from './PokeCard';
 
@@ -91,11 +93,12 @@ export function Prancheta({
         over?: boolean;
     };
 }) {
-    const { t, lang } = useT();
+    const { t, d, lang } = useT();
     const [team, setTeam] = useState<0 | 1>(side);
     /** Rascunho da prancheta (ainda não confirmado) e o jogador em quadra selecionado pra trocar de vaga. */
     const [draft, setDraft] = useState<BoardPlan | null>(null);
     const [pick, setPick] = useState<string | null>(selectedUid?.uid ?? null);
+    const [ask, setAsk] = useState<SubPlan | null>(null);
     useEffect(() => {
         if (selectedUid) setPick(selectedUid.uid);
     }, [selectedUid]);
@@ -156,6 +159,12 @@ export function Prancheta({
             : null;
     const pickedBench = picked && !shown.order.includes(picked) ? picked : null;
     const pickedInst = picked ? view.byUid.get(picked) : undefined;
+
+    // a substituição só vale depois do "Confirmar": mostra a nota de cada um na vaga de quem sai
+    const askOut = ask ? view.byUid.get(ask.outUid) : undefined;
+    const askIn = ask ? view.byUid.get(ask.inUid) : undefined;
+    const askRole = ask ? formationOf(shown.formation).slots[shown.order.indexOf(ask.outUid)] : undefined;
+    const sum = askOut && askIn && askRole ? subSummary(askOut, askIn, askRole) : null;
 
     return (
         <div className={`panel prancheta${horizontal ? ' horizontal' : ''}`}>
@@ -268,11 +277,11 @@ export function Prancheta({
                         if (!subbing) return;
                         if (picked && !pickedBench) {
                             setPick(null);
-                            onSub?.(picked, uid);
+                            setAsk({ outUid: picked, inUid: uid });
                         } else setPick(picked === uid ? null : uid);
                     } else if (pickedBench) {
                         setPick(null);
-                        onSub?.(uid, pickedBench);
+                        setAsk({ outUid: uid, inUid: pickedBench });
                     } else if (!picked || picked === uid) setPick(picked ? null : uid);
                     else {
                         // os dois trocam de vaga no rascunho
@@ -305,6 +314,23 @@ export function Prancheta({
                           ? t('match.board.hintOver')
                           : t('match.board.hintMine')}
             </small>
+            {ask && askOut && askIn && askRole && sum && (
+                <ConfirmSheet
+                    open
+                    calm
+                    onClose={() => setAsk(null)}
+                    title={t('match.board.subConfirmTitle')}
+                    text={t('match.board.subConfirmText', {
+                        out: viewInstance(askOut).displayName,
+                        outN: sum.out.display,
+                        in: viewInstance(askIn).displayName,
+                        inN: sum.in.display,
+                        pos: d.common.pos[askRole],
+                    })}
+                    confirm={t('match.board.confirm')}
+                    onConfirm={() => onSub?.(ask.outUid, ask.inUid)}
+                />
+            )}
         </div>
     );
 }

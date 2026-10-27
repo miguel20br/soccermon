@@ -90,6 +90,7 @@ export function ConfirmSheet({
     onConfirm,
     cancel,
     quiet,
+    calm,
 }: {
     open: boolean;
     onClose: () => void;
@@ -100,6 +101,8 @@ export function ConfirmSheet({
     cancel?: string;
     /** O `onConfirm` toca o próprio som (leaveWith): o botão fica calado. */
     quiet?: boolean;
+    /** Ação sem perigo (ex.: substituição): botão de confirmar verde em vez de vermelho. */
+    calm?: boolean;
 }) {
     const { t } = useT();
     return (
@@ -111,7 +114,7 @@ export function ConfirmSheet({
                 </button>
                 <button
                     type="button"
-                    className="btn danger"
+                    className={calm ? 'btn confirm' : 'btn danger'}
                     data-fx={quiet ? 'none' : undefined}
                     onClick={() => {
                         onClose();

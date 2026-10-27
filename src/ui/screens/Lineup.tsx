@@ -498,6 +498,11 @@ export function LineupEditor({
                     </button>
                 </div>
                 <section className="panel vt-board" aria-label={title}>
+                    {!wide && !giving && selected && detailInst && (
+                        <button type="button" className="vt-cardchip" onClick={() => setCardOpen(true)}>
+                            {t('team.lineup.cardChip')}
+                        </button>
+                    )}
                     {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
                     {(givingItem || firstCup) && (
                         <p className={`muted vt-hint${givingItem ? '' : ' vt-swaphint'}`}>

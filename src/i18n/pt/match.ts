@@ -83,6 +83,8 @@ export const match = {
         hintMove: 'Agora toque na vaga nova de {name}.',
         hintIn: 'Agora toque em quem sai pra {name} entrar.',
         subIn: 'ENTRA',
+        subConfirmTitle: 'Confirmar substituição?',
+        subConfirmText: 'Sai {out} {outN} ({pos}) · Entra {in} {inN} ({pos}). A nota é a da vaga.',
         tapRival: ', tocar pra ver',
         hintMine: 'Toque num jogador pra ver o painel dele.',
         hintRival: 'Time do rival: só pra ver.',

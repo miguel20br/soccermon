@@ -48,6 +48,7 @@ export const team: typeof pt = {
         swapHint: 'Tap two players to swap their slots (bench included). Tap the same one again to see its card.',
         cardFold: 'card',
         subHint: 'In the match, Substitute swaps a tired player right away.',
+        cardChip: 'Card',
         opponentNote: 'Opponent: {name}',
         seeCard: "See {name}'s card",
         oppLine: '{formation} · {tactic} · Average {n}',

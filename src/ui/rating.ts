@@ -37,3 +37,10 @@ export function lineupAverage(
     const ratings = lineup.flatMap((p, i) => (p ? [slotRating(p, slots[i] ?? 'ANY')] : []));
     return ratings.length ? Math.round(ratings.reduce((s, r) => s + r, 0) / ratings.length) : 0;
 }
+
+/** Resumo de uma substituição: nota de quem sai e de quem entra na MESMA vaga (`ratingAt`, a regra da carta e da prancheta). */
+export function subSummary(out: PokemonInstance, inn: PokemonInstance, role: Position) {
+    const o = ratingAt(out, role);
+    const i = ratingAt(inn, role);
+    return { out: o, in: i, diff: i.rating - o.rating };
+}

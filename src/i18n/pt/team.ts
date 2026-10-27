@@ -48,6 +48,7 @@ export const team = {
             'Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco). Toque de novo no mesmo pra ver a carta.',
         cardFold: 'carta',
         subHint: 'Na partida, Substituir troca quem cansou na hora.',
+        cardChip: 'Carta',
         opponentNote: 'Adversário: {name}',
         seeCard: 'Ver carta de {name}',
         oppLine: '{formation} · {tactic} · Média {n}',
