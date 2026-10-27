@@ -368,6 +368,26 @@
     min-width: 0;
     padding: 12px;
 }
+/* celular: o painel nasce fechado (só as abas) e desdobra ao tocar numa aba (Match.tsx) */
+.bc-fold {
+    display: grid;
+    grid-template-rows: 1fr;
+    min-width: 0;
+    transition: grid-template-rows var(--dur-tela, 280ms) var(--ease-out);
+}
+.bc-fold > div {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+.bc-coach.closed .bc-fold {
+    grid-template-rows: 0fr;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .bc-fold {
+        transition-duration: var(--dur-ui, 200ms);
+    }
+}
 /* os painéis de sempre (prancheta, time, narração) entram sem a moldura própria */
 .bc-pane > .panel,
 .bc-recent .feed {
@@ -383,7 +403,7 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    max-height: min(60svh, 520px);
+    max-height: min(calc(60 * var(--svh)), 520px);
     overflow-y: auto;
 }
 .bc-recent {
@@ -628,12 +648,12 @@
 }
 .final-banner b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(24px, 6vw, 44px);
+    font-size: clamp(24px, calc(6 * var(--vw)), 44px);
     line-height: 1.05;
     color: #f4f1e6;
 }
 .final-banner span {
-    font-size: clamp(12px, 2.2vw, 16px);
+    font-size: clamp(12px, calc(2.2 * var(--vw)), 16px);
     overflow-wrap: anywhere;
 }
 .final-banner.win {
@@ -827,7 +847,7 @@
     }
     .bc-stage > .pitch-wrap {
         /* placar (~92 px), faixa da narração (24 px) e barra de baixo (~58 px) fora: a quadra inteira na tela */
-        width: min(100%, calc((100svh - 178px - env(safe-area-inset-bottom)) * 968 / 528));
+        width: min(100%, calc((calc(100 * var(--svh)) - 178px - env(safe-area-inset-bottom)) * 968 / 528));
         margin-inline: auto;
     }
     /* intervalo por cima da quadra parada (embaixo dela não caberia na altura da tela) */
@@ -922,7 +942,7 @@
     }
     /* vestiário com várias trocas: cabe entre o placar e a barra de baixo, e rola dentro do painel */
     .bc .ht-panel {
-        max-height: calc(100svh - 108px - var(--bc-thumb-h) - env(safe-area-inset-bottom));
+        max-height: calc(calc(100 * var(--svh)) - 108px - var(--bc-thumb-h) - env(safe-area-inset-bottom));
         overflow-y: auto;
     }
     /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
@@ -951,7 +971,7 @@
     .panel.bc-coach {
         grid-area: coach;
         margin-top: 0;
-        max-height: calc(100svh - 64px - env(safe-area-inset-bottom));
+        max-height: calc(calc(100 * var(--svh)) - 64px - env(safe-area-inset-bottom));
         overflow-y: auto;
         align-content: start;
     }
@@ -1028,7 +1048,7 @@
     }
     /* o placar do duelo tem a linha dos títulos (~22 px) */
     .duel .bc-stage > .pitch-wrap {
-        width: min(100%, calc((100svh - 200px - env(safe-area-inset-bottom)) * 968 / 528));
+        width: min(100%, calc((calc(100 * var(--svh)) - 200px - env(safe-area-inset-bottom)) * 968 / 528));
     }
 }
 
@@ -1177,7 +1197,7 @@ body:has(.bc-hud) {
     overscroll-behavior: none;
 }
 .app:has(.bc-hud) {
-    height: 100dvh;
+    height: calc(100 * var(--dvh));
     min-height: 0;
     overflow: hidden;
 }

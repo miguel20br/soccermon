@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { t } from '../i18n';
 import { GAME_H, GAME_W } from './court';
+import { claimOverlay, onOverlayClaim, PRIO_GOAL, PRIO_MOVE } from './overlay-slot';
 
 /**
  * Efeitos cinematográficos da partida:
@@ -51,6 +52,23 @@ export class Cinematics {
     constructor(private readonly scene: Phaser.Scene) {
         this.dim = scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W * 2, GAME_H * 2, 0x05060f, 0).setDepth(7000);
         this.beam = scene.add.graphics().setDepth(FOCUS_DEPTH + 40);
+        // celular: outra sobreposição pegou a vaga (overlay-slot.ts) e a faixa do golpe ou o texto de drama saem
+        const off = onOverlayClaim((id) => {
+            if (id !== 'banner' && this.banner) {
+                const b = this.banner;
+                this.banner = null;
+                scene.tweens.add({ targets: b, alpha: 0, duration: 200, onComplete: () => b.destroy() });
+            }
+            if (id !== 'drama' && this.dramaHolder) {
+                const h = this.dramaHolder;
+                this.dramaHolder = null;
+                this.dramaTextUntil = 0;
+                scene.tweens.killTweensOf(h.list);
+                scene.tweens.add({ targets: h, alpha: 0, duration: 200, onComplete: () => h.destroy() });
+            }
+        });
+        scene.events.once('shutdown', off);
+        scene.events.once('destroy', off);
         if (!scene.textures.exists('spotlight')) {
             const size = 256;
             const tex = scene.textures.createCanvas('spotlight', size, size);
@@ -261,6 +279,7 @@ export class Cinematics {
     }
 
     setPieceBanner(title: string, sub: string, color: number, duration = 1600) {
+        if (!claimOverlay('banner', PRIO_MOVE, duration)) return;
         this.banner?.destroy();
         const s = Math.min(this.uiScale, 1.3);
         const style = (size: number, c: string) => ({
@@ -311,6 +330,7 @@ export class Cinematics {
         },
         duration: number,
     ) {
+        if (!claimOverlay('banner', PRIO_MOVE, duration + 200)) return;
         this.banner?.destroy();
         const { moveName, color } = opts;
         const s = Math.min(this.uiScale, 1.3);
@@ -425,6 +445,7 @@ export class Cinematics {
         top?: boolean;
     }) {
         const scene = this.scene;
+        claimOverlay('super', PRIO_GOAL, SUPER_HOLD_MS + 420);
         if (opts.top) {
             this.dramaTop = true;
             this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + 1720);
@@ -563,6 +584,7 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
+        claimOverlay('drama', PRIO_GOAL, (opts.short ? 700 : 1250) + 330);
         this.slowMotion(now, 0.25, 1100);
         this.dramaUntil = now + 1500;
         this.banner?.destroy();
