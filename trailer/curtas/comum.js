@@ -81,7 +81,7 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
      * A quadra num <svg> do tamanho da tela. `K` px por metro; `gy` = y da linha do gol; o centro da largura fica em
      * x 540. Devolve `P(X, Y)` (metros → px da tela).
      */
-    function quadra(pai, nome, { K = 90, gy = 640 } = {}) {
+    function quadra(pai, nome, { K = 90, gy = 640, fundo = 1 } = {}) {
         const t = TEMAS[nome];
         const m = (px) => px / PPM; // px do jogo → metros
         const W = 20;
@@ -111,15 +111,17 @@ html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; backgro
         o.push(`<path d="${a} Z" fill="${hex(t.area)}" fill-opacity="${t.areaAlpha}"/>`);
         o.push(`<g fill="none" stroke="#fff" stroke-opacity="0.95" stroke-width="${lw}"><rect x="0" y="0" width="${W}" height="${Lc}"/><line x1="0" y1="20" x2="${W}" y2="20"/><circle cx="${W / 2}" cy="20" r="3"/><path d="${a}"/></g>`);
         for (const y of [6, 10]) o.push(`<circle cx="${W / 2}" cy="${y}" r="${m(2.5)}" fill="#fff"/>`);
-        // gol: 3 m de boca, 1 m de fundo, rede em 6 faixas (a rede é um grupo próprio: ela estufa no gol)
+        // gol: 3 m de boca, `fundo` m de altura na tela (1 = o do jogo), rede em 6 faixas (a rede é um grupo próprio: ela
+        // estufa no gol)
         const g0 = W / 2 - 1.5;
-        let rede = `<rect x="${g0}" y="-1" width="3" height="1" fill="#fff" fill-opacity="0.25"/>`;
-        for (let i = 1; i < 6; i++) rede += `<line x1="${g0 + i * 0.5}" y1="-1" x2="${g0 + i * 0.5}" y2="0" stroke="#fff" stroke-opacity="0.5" stroke-width="${m(1)}"/>`;
-        for (let j = 1; j < 3; j++) rede += `<line x1="${g0}" y1="${-j / 3}" x2="${g0 + 3}" y2="${-j / 3}" stroke="#fff" stroke-opacity="0.35" stroke-width="${m(1)}"/>`;
+        const F = fundo;
+        let rede = `<rect x="${g0}" y="${-F}" width="3" height="${F}" fill="#fff" fill-opacity="0.25"/>`;
+        for (let i = 1; i < 6; i++) rede += `<line x1="${g0 + i * 0.5}" y1="${-F}" x2="${g0 + i * 0.5}" y2="0" stroke="#fff" stroke-opacity="0.5" stroke-width="${m(1)}"/>`;
+        for (let j = 1; j < 3; j++) rede += `<line x1="${g0}" y1="${(-j * F) / 3}" x2="${g0 + 3}" y2="${(-j * F) / 3}" stroke="#fff" stroke-opacity="0.35" stroke-width="${m(1)}"/>`;
         const svg = `<svg class="camada" viewBox="0 0 1080 1920" style="overflow:visible"><g transform="translate(${ox} ${gy}) scale(${K})">${o.join('')}
 <g id="rede" style="transform-box:fill-box;transform-origin:50% 100%">${rede}</g>
-<rect id="trave-e" x="${g0 - m(1.5)}" y="-1" width="${m(3)}" height="1" fill="#fff"/><rect id="trave-d" x="${g0 + 3 - m(1.5)}" y="-1" width="${m(3)}" height="1" fill="#fff"/>
-<rect x="${g0}" y="-1" width="3" height="1" fill="none" stroke="#fff" stroke-width="${m(3)}"/></g></svg>`;
+<rect id="trave-e" x="${g0 - m(1.5)}" y="${-F}" width="${m(3)}" height="${F}" fill="#fff"/><rect id="trave-d" x="${g0 + 3 - m(1.5)}" y="${-F}" width="${m(3)}" height="${F}" fill="#fff"/>
+<rect x="${g0}" y="${-F}" width="3" height="${F}" fill="none" stroke="#fff" stroke-width="${m(3)}"/></g></svg>`;
         pai.insertAdjacentHTML('beforeend', svg);
         return P;
     }

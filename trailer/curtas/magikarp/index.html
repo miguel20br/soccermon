@@ -25,14 +25,6 @@
   background: radial-gradient(ellipse 520px 600px at 540px 800px, rgb(255 236 170 / 60%), transparent 72%); }
 .lampada { position: absolute; left: 0; top: 0; width: 120px; height: 56px; margin: -28px 0 0 -60px; border-radius: 14px; z-index: 4;
   background: #fff6c8; border: 6px solid #2b2238; box-shadow: 0 0 40px 18px rgb(255 240 170 / 70%); }
-/* a arquibancada atrás do gol e o muro com a placa na frente da torcida de baixo */
-#arq { position: absolute; left: 0; top: 0; width: 1080px; height: 560px; z-index: 1; }
-#muro { position: absolute; left: -40px; top: 1770px; width: 1160px; height: 200px; z-index: 0;
-  background: linear-gradient(#2b2a52 0 34px, #ffcb05 34px 44px, #3a2f55 44px); }
-#poster { position: absolute; left: 340px; top: 196px; width: 400px; height: 132px; z-index: 3; box-sizing: border-box; text-align: center;
-  background: #ffcb05; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 10px 0 rgb(0 0 0 / 35%); padding-top: 12px; color: #0e1430; }
-#poster b { display: block; font-size: 54px; letter-spacing: 3px; line-height: 1; }
-#poster span { display: block; margin-top: 10px; font-size: 34px; letter-spacing: 3px; color: #8c1d1b; }
 #roleta { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; z-index: 60; background: rgb(11 18 64 / 55%); }
 .rl-txt { position: absolute; left: 0; width: 1080px; text-align: center; font-size: 84px; letter-spacing: 3px; color: #fff;
   -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 9px 0 #0e1430; }
@@ -52,6 +44,13 @@
 #gf-txt { position: absolute; left: 0; width: 1080px; top: 640px; text-align: center; color: #0e1430; }
 #gf-txt b { display: block; font-size: 190px; line-height: 1; letter-spacing: 8px; }
 #gf-txt span { display: block; margin-top: 40px; font-size: 80px; letter-spacing: 6px; color: #8c1d1b; }
+#gf-txt i { display: inline-block; margin-top: 50px; padding: 14px 40px; font-style: normal; font-size: 84px; letter-spacing: 6px; color: #fff;
+  background: #e8423f; border-radius: 18px; box-shadow: 0 0 0 10px #0e1430; }
+/* o mesmo cartaz, pequeno, nas nadadeiras do Magikarp */
+.folheto { position: absolute; left: 0; top: 0; width: 230px; height: 170px; margin: -85px 0 0 -115px; box-sizing: border-box; z-index: 16; opacity: 0;
+  background: #ffcb05; border: 7px solid #0e1430; border-radius: 8px; text-align: center; color: #0e1430; padding-top: 14px; }
+.folheto b { display: block; font-size: 36px; line-height: 1.05; letter-spacing: 2px; }
+.folheto i { display: inline-block; margin-top: 10px; padding: 4px 12px; font-style: normal; font-size: 26px; color: #fff; background: #e8423f; border-radius: 6px; }
 .dia { position: absolute; left: 70px; top: 250px; padding: 16px 34px; border-radius: 18px; background: #ffcb05; color: #0e1430; font-size: 76px;
   letter-spacing: 4px; box-shadow: 0 0 0 8px #0e1430, 0 12px 0 rgb(0 0 0 / 45%); transform: rotate(-6deg); opacity: 0; z-index: 62; }
 .cortina { position: absolute; left: -300px; top: -400px; width: 700px; height: 2800px; z-index: 63; background: #ffcb05;
@@ -62,7 +61,7 @@
   background: #10183d; border: 8px solid #f8f8f0; border-radius: 22px; box-shadow: 0 0 0 6px #0e1430, 0 14px 0 rgb(0 0 0 / 40%); color: #fff; opacity: 0; }
 .placar b { display: block; font-size: 70px; color: #ffcb05; letter-spacing: 4px; }
 .placar span { font-size: 40px; letter-spacing: 2px; color: #c8d0f0; }
-.banco { position: absolute; left: 30px; top: 1150px; width: 400px; height: 46px; border-radius: 10px; background: #3a2a4a; box-shadow: 0 10px 0 #24182e; z-index: 9; opacity: 0; }
+.banco { position: absolute; left: 20px; top: 1150px; width: 340px; height: 46px; border-radius: 10px; background: #3a2a4a; box-shadow: 0 10px 0 #24182e; z-index: 9; opacity: 0; }
 .ha { position: absolute; left: 0; top: 0; z-index: 52; font-size: 64px; color: #ffcb05; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
 .confete { position: absolute; left: 0; top: 0; width: 22px; height: 34px; z-index: 58; opacity: 0; }
 .zz { position: absolute; left: 0; top: 0; z-index: 31; font-size: 64px; color: #fff; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; opacity: 0; }
@@ -86,11 +85,9 @@
 <div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="63.78">
   <div id="cena" class="clip" data-start="0" data-duration="61.05">
     <div id="cam" class="camada">
-      <div id="arq"></div>
-      <div id="poster"><b>GRANDE FINAL</b><span>SÁBADO</span></div>
       <div id="topo" class="camada"></div><div class="banco" id="banco"></div><div id="ceu"></div><div id="luz"></div>
     </div>
-    <div id="frente" class="camada" style="z-index:50"><div id="muro"></div></div>
+    <div id="frente" class="camada" style="z-index:50"></div>
     <div id="festa" class="camada" style="z-index:58"></div>
     <div class="placar" id="placar"><b>PÊNALTIS 4 × 4</b><span>ÚLTIMA COBRANÇA</span></div>
     <div class="dia" id="dia">DIA 1</div>
@@ -104,7 +101,7 @@
       <div class="rl-txt" id="rl-gol" style="top:1040px">NO GOL</div>
     </div>
     <div id="ep"><b>EP 2</b><small>ESCALARAM UM MAGIKARP NO GOL</small></div>
-    <div id="gf"><div class="raios" id="gf-raios"></div><div id="gf-txt"><b>GRANDE<br>FINAL</b><span>COPA DE KANTO</span></div></div>
+    <div id="gf"><div class="raios" id="gf-raios"></div><div id="gf-txt"><b>GRANDE<br>FINAL</b><span>COPA DE KANTO</span><i id="gf-dia">SÁBADO</i></div></div>
   </div>
   <div id="final" class="clip palco" data-start="61.05" data-duration="2.73">
     <div class="raios" id="raios-final"></div>
@@ -125,35 +122,26 @@
     const tl = gsap.timeline({ paused: true });
     const cam = document.getElementById('cam');
     const cena = document.getElementById('cena');
-    const K = 250;
-    const GL = 800; // a linha do gol
-    const TRAVE = GL - K; // o travessão (1 m acima, na quadra girada)
+    const K = 190;
+    const FUNDO = 1.5; // o gol mais alto que o do jogo (a boca continua com 3 m)
+    const GL = 760; // a linha do gol
+    const TRAVE = GL - FUNDO * K; // o travessão
     const POSTE_D = 540 + 1.5 * K; // a trave direita
-    quadra(cam, 'madeira', { K, gy: GL });
-    // a arquibancada: três degraus de cadeiras e a placa de LED em cima do gol
-    document.getElementById('arq').innerHTML = `<svg width="1080" height="560" viewBox="0 0 1080 560">
-      <rect x="0" y="0" width="1080" height="560" fill="#2a2140"/>
-      ${[0, 1, 2].map((i) => `<rect x="0" y="${30 + i * 150}" width="1080" height="120" fill="${i % 2 ? '#3d4c86' : '#34427a'}"/><rect x="0" y="${150 + i * 150}" width="1080" height="12" fill="#1d1830"/>`).join('')}
-      <rect x="0" y="${TRAVE - 46}" width="1080" height="46" fill="#10183d"/>
-      <text x="540" y="${TRAVE - 12}" text-anchor="middle" font-family="Galmuri11, monospace" font-size="30" fill="#ffcb05" letter-spacing="6">SOCCERMON · COPA DE KANTO · SOCCERMON</text></svg>`;
+    quadra(cam, 'madeira', { K, gy: GL, fundo: FUNDO });
     const PSI = 'drop-shadow(0 0 18px #c070ff) drop-shadow(0 0 36px #a040ff)';
-    const mk = ator(cam, 129, { escala: 13, z: 13, x: 1240, y: GL });
-    const pk = ator(cam, 25, { escala: 11, z: 14, x: 540, y: 2150 });
-    const cm = ator(cam, 4, { escala: 11, z: 14, x: 300, y: 2150 });
-    const sq = ator(cam, 7, { escala: 11, z: 14, x: 780, y: 2150 });
-    const sn = ator(cam, 143, { escala: 14, z: 13, x: 1450, y: GL + 40 });
-    const mt = ator(cam, 150, { escala: 12, z: 14, x: 540, y: 2250 });
+    const mk = ator(cam, 129, { escala: 12, z: 13, x: 1240, y: GL });
+    const pk = ator(cam, 25, { escala: 10, z: 14, x: 540, y: 2150 });
+    const cm = ator(cam, 4, { escala: 10, z: 14, x: 300, y: 2150 });
+    const sq = ator(cam, 7, { escala: 10, z: 14, x: 780, y: 2150 });
+    const sn = ator(cam, 143, { escala: 13, z: 13, x: 1450, y: GL + 40 });
+    const mt = ator(cam, 150, { escala: 11, z: 14, x: 540, y: 2250 });
     // uma bola só; z 12: fica atrás de quem está mais perto da câmera
-    const bl = bola(cam, { d: 96, z: 12, x: 540, y: 2150 });
+    const bl = bola(cam, { d: 88, z: 12, x: 540, y: 2150 });
     const fila = torcida(document.getElementById('frente'));
-    const IDS = [133, 52, 39, 16, 35, 60, 113, 104, 37, 79, 19, 43, 132, 4];
-    const atras = [
-      ...torcida(document.getElementById('topo'), { y: 150, escala: 5, z: 2, ids: IDS.slice(0, 7).concat(IDS.slice(0, 7)) }),
-      ...torcida(document.getElementById('topo'), { y: 540, escala: 5, z: 2, ids: IDS.slice(7).concat(IDS.slice(7)) }),
-    ];
+    const atras = []; // só a torcida da frente
     const lampadas = [200, 540, 880].map((x) => {
       const l = div(cam, 'lampada');
-      gsap.set(l, { x, y: 30 });
+      gsap.set(l, { x, y: 120 });
       return l;
     });
 
@@ -237,8 +225,7 @@
         tl.to(z, { opacity: 0, duration: 0.35 }, t + 1.0 + 0.45 * k);
       }
     };
-    const arquibancada = (t, on) => tl.set(['#arq', '#poster', ...atras.map((a) => a.el)], { opacity: on ? 1 : 0 }, t);
-    some(0);
+        some(0);
     tl.set(lampadas, { opacity: 0 }, 0);
 
     // ===== 0 · a roleta já girando no 1º quadro; trava no Magikarp (linha 10) =====
@@ -325,26 +312,32 @@
     for (const a of [cm, sq]) anim(tl, a, 'Hop', 0, T(6, 10), T(7, 0), { vel: 1.4 });
     for (const a of [cm, sq, pk]) anim(tl, a, 'Idle', 4, T(7, 0), T(9, 0));
 
-    // ===== 7 · ele vira e olha triste pro cartaz da GRANDE FINAL =====
-    anim(tl, mk, 'Idle', 4, T(7, 0), T(8, 0), { vel: 0.5 });
-    camera(T(7, 1), T(7, 7), 1.7, 540, 262);
-    camera(T(7, 11), T(8, 0), 1.6, 540, GL - 80);
-
-    // ===== 8 · close nele chorando =====
-    anim(tl, mk, 'Hurt', 0, T(8, 0), T(9, 0), { loop: false });
+    // ===== 7 · o cartaz da GRANDE FINAL na tela; corta pro Magikarp sozinho segurando o cartaz, triste =====
+    const t7 = T(7, 0);
+    ver('#gf', t7);
+    tl.fromTo('#gf-txt', { scale: 0.5 }, { scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, t7);
+    tl.to('#gf-raios', { rotation: 12, duration: T(7, 8) - t7, ease: 'none' }, t7);
+    const tCorte = T(7, 8);
+    ver('#gf', tCorte, false);
+    ver([pk.el, cm.el, sq.el, ...fila.map((a) => a.el)], tCorte, false);
+    tl.set(cam, { scale: 1.6, transformOrigin: `540px ${GL - 80}px` }, tCorte);
+    anim(tl, mk, 'Idle', 0, tCorte, T(9, 0), { vel: 0.4 });
+    const folheto = div(cam, 'folheto');
+    folheto.innerHTML = '<b>GRANDE<br>FINAL</b><i>SÁBADO</i>';
+    tl.set(folheto, { x: 545, y: GL - 40, rotation: -6, scale: 0.85 }, 0);
+    ver(folheto, tCorte);
+    // ele baixa o cartaz devagar (o olhar vai junto)
+    tl.to(folheto, { y: GL - 10, rotation: -12, duration: T(9, 0) - T(8, 4), ease: 'sine.inOut' }, T(8, 4));
     for (let i = 0; i < 6; i++) {
       const g = div(cam, 'gota');
       const lado = i % 2 ? 1 : -1;
-      tl.set(g, { x: 540 + lado * 60, y: GL - 250 }, 0);
-      tl.fromTo(g, { opacity: 1, x: 540 + lado * 60, y: GL - 250 }, { x: 540 + lado * (120 + (i % 3) * 30), y: GL - 130, opacity: 0, duration: 0.6, ease: 'power1.in', immediateRender: false }, T(8, 1) + i * 0.35);
+      tl.set(g, { x: 540 + lado * 70, y: GL - 250 }, 0);
+      tl.fromTo(g, { opacity: 1, x: 540 + lado * 70, y: GL - 250 }, { x: 540 + lado * (130 + (i % 3) * 30), y: GL - 130, opacity: 0, duration: 0.6, ease: 'power1.in', immediateRender: false }, T(8, 1) + i * 0.35);
     }
     falar('midia/129-crying.png', '...', T(8, 3), T(9, 0) - 0.05);
 
     // ===== 9 · o sol se põe, todo mundo vai embora, os holofotes apagam um a um =====
     camera(T(9, 0), T(9, 8), 1, 540, GL - 80);
-    for (const a of [pk, cm, sq]) andar(a, T(9, 0), T(9, 6), gsap.getProperty(a.el, 'x'), 2200, 0, 1.6, 'power1.in');
-    fila.forEach((a, i) => tl.to(a.el, { y: '+=240', opacity: 0, duration: 0.6, ease: 'power1.in' }, T(9, 0) + (i % 7) * 0.12));
-    atras.forEach((a, i) => tl.to(a.el, { opacity: 0, duration: 0.4 }, T(9, 0) + (i % 7) * 0.1));
     ver(lampadas, T(9, 0));
     tl.set('#ceu', { opacity: 0, backgroundColor: '#ff8a3d' }, T(9, 0));
     tl.to('#ceu', { opacity: 0.35, duration: T(9, 4) - T(9, 0) }, T(9, 0));
@@ -376,7 +369,8 @@
     salto(mk, tBuum, 80, 0.3);
     anim(tl, mk, 'Idle', 2, tBuum + 0.3, T(12, 0));
 
-    // ===== 11 · a conversa e a virada pra montagem =====
+    // ===== 11 · a conversa e a virada pra montagem; ele larga o cartaz =====
+    tl.to(folheto, { y: GL + 40, rotation: 20, opacity: 0, duration: 0.3, ease: 'power2.in' }, T(11, 8));
     falar('midia/143-determined.png', 'Levanta. Bora treinar.', T(11, 0), T(11, 8));
     falar('midia/129-determined.png', '!', T(11, 8), T(12, 0) - 0.05);
     splash(T(11, 9), 120);
@@ -441,7 +435,7 @@
     tl.set(pk.el, { x: 280, y: 1350 }, D[3]);
     anim(tl, pk, 'Idle', 4, D[3], T(15, 12));
     anim(tl, mk, 'Idle', 0, D[3], T(15, 6));
-    splash(T(15, 6), 360, 0.5, 0);
+    splash(T(15, 6), 300, 0.5, 0);
     estouro(tl, cam, 540, TRAVE, T(15, 8), { tam: 250 });
     tl.fromTo('#trave-e, #trave-d', { fill: '#ffcb05' }, { fill: '#fff', duration: 0.5, immediateRender: false }, T(15, 8));
     tremer(T(15, 8), 0.8, 0.3);
@@ -450,25 +444,20 @@
     anim(tl, pk, 'Pose', 4, T(15, 12), T(16, 4), { loop: false });
     tl.set('#dia', { opacity: 0 }, T(16, 0));
 
-    // ===== 16 · a câmera sobe até o cartaz e ele toma a tela: GRANDE FINAL =====
+    // ===== 16 · o cartaz de novo, agora HOJE!: começa a GRANDE FINAL =====
     const tG = T(16, 0);
-    tl.set(mk.el, { opacity: 0 }, T(16, 2));
-    tl.set(mk.el, { opacity: 1 }, T(17, 0));
-    arquibancada(tG, true);
-    tl.set(atras.map((a) => a.el), { opacity: 0 }, tG);
-    camera(tG, T(16, 4), 3.4, 540, 262, 'power2.in');
+    tl.set('#gf-dia', { textContent: 'HOJE!' }, tG);
     tl.to('#ceu', { opacity: 0, duration: 0.3 }, tG);
-    ver('#gf', T(16, 4));
+    ver('#gf', tG);
     tl.fromTo('#gf-txt', { scale: 0.45 }, { scale: 1, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, T(16, 4));
-    tl.to('#gf-raios', { rotation: 25, duration: T(17, 0) - T(16, 4), ease: 'none' }, T(16, 4));
-    flash(tl, T(16, 4), 0.5, 0.25);
+    tl.fromTo('#gf-dia', { scale: 2.4, rotation: -12 }, { scale: 1, rotation: 0, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, T(16, 8));
+    tl.to('#gf-raios', { rotation: 25, duration: T(17, 0) - tG, ease: 'none' }, tG);
     tl.to('#gf', { opacity: 0, duration: 0.25, ease: 'power2.in' }, T(17, 0) - 0.25);
     tl.to('#gf-txt', { scale: 1.6, duration: 0.25, ease: 'power2.in' }, T(17, 0) - 0.25);
 
     // ===== 17 · o estádio cheio; o placar =====
     const tF = T(17, 0);
-    tl.set('#poster span', { textContent: 'HOJE!' }, tF);
-    fila.forEach((a) => tl.set(a.el, { opacity: 1, y: '-=240' }, tF));
+    tl.set(fila.map((a) => a.el), { opacity: 1 }, tF);
     tl.set(atras.map((a) => a.el), { opacity: 1 }, tF);
     torcidaAnim(tl, fila, 'Hop', tF, T(17, 8), { vel: 1.2 });
     torcidaAnim(tl, atras, 'Hop', tF, T(17, 8), { dir: 0, vel: 1.2 });
@@ -477,9 +466,9 @@
     tl.set(cam, { scale: 0.92, transformOrigin: '540px 900px' }, tF);
     camera(tF, T(17, 12), 1, 540, 900, 'power1.out');
     ver('#banco', tF);
-    tl.set(sn.el, { x: 120, y: 1150 }, tF);
+    tl.set(sn.el, { x: 110, y: 1150 }, tF);
     anim(tl, sn, 'Sleep', 0, tF, T(19, 8), { id: '143x', vel: 0.5 });
-    tl.set(pk.el, { x: 340, y: 1160 }, tF);
+    tl.set(pk.el, { x: 270, y: 1160, opacity: 1 }, tF);
     anim(tl, pk, 'Idle', 2, tF, T(21, 0));
     tl.set(mk.el, { x: 540, y: GL }, tF);
     anim(tl, mk, 'Idle', 0, tF, T(19, 0));
@@ -487,11 +476,10 @@
     tl.from('#placar', { y: -60, duration: 0.25, ease: 'back.out(2)' }, T(17, 8));
     poe(tF, 540, 1440);
 
-    // ===== 18 · o Mewtwo vai até a bola, e só então fala =====
+    // ===== 18 · o Mewtwo vai até a bola =====
     tl.set(mt.el, { x: 540, y: 2250 }, 0);
     andar(mt, T(18, 0), T(18, 8), 540, 1580, 4, 1.2, 'power1.out');
     anim(tl, mt, 'Idle', 4, T(18, 8), T(19, 4));
-    falar('midia/150-determined.png', 'Splash? Sério?', T(18, 8), T(19, 0) - 0.05);
 
     // ===== 19 · apito, rufo: a câmera fecha, ele treme, o Snorlax abre um olho; silêncio =====
     camera(T(19, 0), T(19, 12), 1.25, 540, 1100, 'power1.in');
@@ -505,14 +493,14 @@
     const tK = T(20, 0);
     const tBate = T(20, 8);
     const PARA = 0.3;
-    const ANG = { x: POSTE_D - 90, y: GL - 10 }; // a gaveta direita (a bola chega no alto, rente ao travessão)
+    const ANG = { x: POSTE_D - 80, y: GL - 10 }; // a gaveta direita (a bola chega no alto, rente ao travessão)
     anim(tl, mt, 'Shoot', 4, tK - 3 / 60, tK + 0.6, { loop: false, vel: 0.6 });
     tl.set(bl.el, { filter: PSI }, tK);
-    voo(tK, tBate, ANG.x, ANG.y, 300, 220, 1);
+    voo(tK, tBate, ANG.x, ANG.y, 300, 230, 1);
     // o voo de lado: sobe e vai pra direita, inclinado
     anim(tl, mk, 'Hop', 2, T(20, 2), tBate, { loop: false, vel: 0.5 });
     tl.to(mk.el, { x: ANG.x - 40, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
-    tl.to(mk.corpo, { y: -200, rotation: 25, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
+    tl.to(mk.corpo, { y: -170, rotation: 25, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
     tl.to(mk.sh, { scale: 0.5, opacity: 0.5, duration: tBate - T(20, 2), ease: 'power2.out' }, T(20, 2));
     camera(tK, tBate, 1.5, ANG.x - 80, 700, 'power1.in');
     // linhas de velocidade atrás do voo
@@ -560,7 +548,7 @@
       tl.to(mk.corpo, { keyframes: { y: [-420, 0] }, rotation: '+=360', duration: 0.5, ease: 'power1.inOut' }, T(21, r));
       tl.to(mk.sh, { keyframes: { scale: [0.45, 1] }, duration: 0.5, ease: 'power1.inOut' }, T(21, r));
     }
-    ronco(tC + 0.2, 210, 980);
+    ronco(tC + 0.2, 200, 980);
     anim(tl, sn, 'Sleep', 0, tC, T(23, 0), { id: '143x', vel: 0.5 });
     const cores = ['#ffcb05', '#e8423f', '#3a7bd5', '#4ec36b', '#f8f8f0', '#b46be0'];
     for (let i = 0; i < 70; i++) {
