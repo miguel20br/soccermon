@@ -13,3 +13,5 @@ On 20/10/2026 Miguel said "quero que você masterize a arte de ser meu social me
 **Why:** he wants to stop micromanaging each post, but publishing is public and per-post consent still matters.
 
 **How to apply:** send one numbered weekly plan (date, channel, clip, on-screen text, caption, cover); schedule only items he approved ("ok 1–5"). Anything outside the plan (replies to criticism, creator DMs) goes to him as a draft. He prefers the original centered trailer cover over a last-frame cover. Related: [[feedback-nao-travar-com-questionario]].
+
+**26/10 (ritmo):** "quero um curtinha, uma funcionalidade, um curtinha, uma funcionalidade". Alternar: curta de história (fórmula do Snorlax) e vídeo de funcionalidade (gameplay real da novidade). Recusou o "Quem reforma melhor?" (Pikachu × Ditto reformando a Home): animação de interface com muitos elementos não pegou. Postagem pelo Buffer (API), não pelo Chrome.

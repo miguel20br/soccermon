@@ -13,3 +13,4 @@
 - [Modo mochila](feedback-modo-mochila.md) — Claude pode desligar sozinho; on [horas]|off|status
 - [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)
 - [QA dos ambientes e conceitos](feedback-qa-ambientes-e-conceitos.md) — antes do pode subir: tocar nos Pokémon dos 5 ambientes, olhar sobreposição 390/1440; mostrar conceitos que já existem na pasta
+- [Postar pelo Buffer](reference-postar-pelo-buffer.md) — API do Buffer nas 3 redes, ids, repo soccermon-midia, canal YT é a conta de marca miguel20br

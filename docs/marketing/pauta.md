@@ -46,6 +46,9 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 | 1 | POV nível 3 (Dragonite) · Shorts (24/10 tarde) https://youtube.com/shorts/VV62k-zPieE | | | | | v4 |
 | 1 | POV nível 3 (Dragonite) · Reels (24/10 tarde) https://www.instagram.com/soccermongame/reel/De4mDSLBv0s/ | | | | | v4 |
 | 1 | POV nível 3 · Reels (24/10 ~10h, v3) https://www.instagram.com/soccermongame/reel/De4hDPWMcoB/ | | | | | APAGADO pelo Miguel (clímax do N3 picotado); refazer |
+| 2 | EP 2 · Escalaram um Magikarp no gol · YouTube (27/10 00h01, pelo Buffer) https://www.youtube.com/shorts/iPDKL_k1zrk | | | | | 64 s, música própria (livre-magikarp) |
+| 2 | EP 2 · TikTok (27/10 00h03) https://tiktok.com/@soccermongame/video/7701177387957882132 | | | | | falta o comentário com o link |
+| 2 | EP 2 · Reels (27/10 00h03) https://www.instagram.com/reel/De-2FB9BtYj/ | | | | | |
 
 ## Ouvidos (pedidos e bugs vindos dos comentários)
 

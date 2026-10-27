@@ -1,6 +1,6 @@
 ---
 name: soccermon-social
-description: Social media do Soccermon (TikTok, Instagram, YouTube Shorts, X): pauta da semana, clipes, legendas, agendamento pelo Chrome, comentários e placar. Use sempre que for planejar, preparar, agendar ou postar qualquer coisa nas redes do jogo, responder comentário, ou medir o que deu certo.
+description: Social media do Soccermon (TikTok, Instagram, YouTube Shorts, X): pauta da semana, clipes, legendas, agendamento pelo Buffer (API), comentários e placar. Use sempre que for planejar, preparar, agendar ou postar qualquer coisa nas redes do jogo, responder comentário, ou medir o que deu certo.
 ---
 
 # Social media do Soccermon
@@ -17,12 +17,22 @@ Leia antes: `docs/marca/brand-guide.md` (método de escrita, seção "O método 
 
 ## Canais
 
-| Canal | Conta | Onde o Claude mexe | Observações |
+Desde 27/10/2026 tudo sai pelo **Buffer** (plano grátis, API), sem o Claude in Chrome: `scripts/buffer.mjs`.
+
+| Canal | Conta | Buffer (id) | Observações |
 |---|---|---|---|
-| TikTok | @soccermongame | Chrome (perfil pessoal), TikTok Studio | agenda até 10 dias; link na legenda + comentário (link na bio só com 1000 seguidores) |
-| Instagram | @soccermongame (criado 20/10) | Chrome | link clicável só pelo app; agendar Reels só com conta profissional + Meta Business Suite |
-| YouTube Shorts | a decidir (o Chrome está no canal pessoal "Migueleixon") | Chrome, YouTube Studio | o Studio agenda |
-| X | conta pessoal do Miguel | não está logado no Chrome | rascunho pra ele postar |
+| TikTok | @soccermongame | `6adfc5252f1f5ed648df904e` | link na legenda + comentário fixado pelo app (link na bio só com 1000 seguidores) |
+| Instagram | @soccermongame | `6adfc4952f1f5ed648df8ab1` | Reels: `{"instagram":{"type":"reel","shouldShareToFeed":true}}`; link clicável só na bio |
+| YouTube Shorts | canal "Soccermon" (@soccermongame) | `6ae012e82f1f5ed648e3c7d8` | `{"youtube":{"title":…,"privacy":"public","categoryId":"20","madeForKids":false}}` |
+| X | conta pessoal do Miguel | não ligado | rascunho pra ele postar |
+
+**Como postar:** o vídeo vai pro repo público github.com/miguel20br/soccermon-midia (o Buffer só aceita link direto;
+use `raw.githubusercontent.com/miguel20br/soccermon-midia/main/<arquivo>`), a legenda de cada rede num `.txt`, e
+`node scripts/buffer.mjs postar <canal> <url> <legenda.txt> <ISO|fila|agora> [metadata]` (`CAPA_MS=` escolhe o quadro
+da capa no TikTok e no Instagram). `node scripts/buffer.mjs canais` confere as redes ligadas. A chave `BUFFER_API_KEY`
+fica no `.env.local` e vence a cada 30 dias (renovar em publish.buffer.com/settings/api, só ler e postar).
+**Pegadinha do YouTube:** o canal é a conta de marca "miguel20br" dentro da conta Google secundária do Miguel (a "08"). Ao ligar no Buffer,
+escolher "miguel20br · YouTube", não o e-mail (que leva a um canal pessoal vazio).
 
 Links com origem (o placar lê o `utm_source`): `soccermon.com/tt`, `/ig`, `/yt`; X e HN com `?utm_source=x|hn`.
 
@@ -61,7 +71,7 @@ pergunta ou frase de fã + o link + crédito da música se tiver. Humor de fã s
 5. **Depois de cada post (até 1 h):** comentário com o link (TikTok), olhar os comentários; responder os simples com
    textos da pauta ("valeu!", "é grátis, joga em soccermon.com"); dúvida/crítica vai pro Miguel em rascunho.
 
-## TikTok Studio pelo Chrome (aprendido em 20/10)
+## Plano B: TikTok Studio pelo Chrome (aprendido em 20/10; só se o Buffer falhar)
 
 - O upload pela extensão só aceita arquivo que a sessão pode ler: copie o MP4 e a capa pro scratchpad antes do
   `file_upload`. Limite de 10 MB por envio.
@@ -76,7 +86,7 @@ pergunta ou frase de fã + o link + crédito da música se tiver. Humor de fã s
 - **Post agendado não se edita.** Pra trocar vídeo ou capa: agendar o novo primeiro, conferir, depois apagar o antigo.
 - "Video published" aparece até pra agendado; confira em Posts o selo com a data.
 
-## Instagram pelo Chrome
+## Plano B: Instagram pelo Chrome
 
 - Perfil: `instagram.com/accounts/edit/` (foto pelo input de arquivo, bio); nome em Accounts Center → Profiles →
   Name (só 2 trocas a cada 14 dias). Site/link só no app.
