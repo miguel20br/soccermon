@@ -3391,3 +3391,55 @@
     color: var(--muted);
     text-shadow: var(--k-out-1);
 }
+
+/* 320 e 360: nada de nome cortado. O selo NOVO da Rota sai (o título vale mais), a Sede mostra só o nome do clube e a
+   pílula do modo perde o ícone (sobra espaço pro "Copa Relâmpago" inteiro) */
+@media (max-width: 359px), (orientation: landscape) and (max-height: 520px) {
+    .rt-head .rota-new {
+        display: none;
+    }
+}
+@media (max-width: 359px) {
+    .amb-sede .rm-full {
+        display: none;
+    }
+    .amb-sede .rm-short {
+        display: inline;
+    }
+    .es-pill > .es-mode-ic {
+        display: none;
+    }
+    .es-pill {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding-left: 10px;
+    }
+}
+@media (max-width: 359px) {
+    .es-pick {
+        gap: 5px;
+    }
+    .amb .es-arrow {
+        width: 36px;
+        height: 36px;
+    }
+    .es-pill-txt b {
+        font-size: 15px;
+    }
+    .es-pill-caret {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* 1ª visita deitado: só o logo, menor (a frase sai), pra não cobrir a arquibancada */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-top {
+        padding: 6px 10px;
+    }
+    .es-top .es-logo {
+        width: min(170px, 100%);
+    }
+    .es-tagline {
+        display: none;
+    }
+}
