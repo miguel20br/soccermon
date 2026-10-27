@@ -4463,11 +4463,18 @@ button,
         text-align: center;
         text-overflow: clip;
         white-space: normal;
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
+        hyphens: auto;
         line-height: 1.15;
     }
     .rh-team.away {
         flex-direction: column-reverse;
+    }
+}
+/* 320 px: "Cinnabar" inteiro numa linha (antes quebrava "Cinnaba / r") */
+@media (max-width: 360px) {
+    .rh-team {
+        font-size: 11px;
     }
 }
 @media (prefers-reduced-motion: reduce) {
