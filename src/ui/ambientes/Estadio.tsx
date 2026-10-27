@@ -128,7 +128,7 @@ function Court({
     wild,
     look,
 }: {
-    captain: number;
+    captain: { id: number; shiny?: boolean };
     play: boolean;
     small: boolean;
     wild: WildScene;
@@ -161,7 +161,15 @@ function Court({
             <WildZone wild={wild} zone="edge" />
             <div className="es-captain">
                 <i className="es-shadow" />
-                <FieldSprite id={captain} anim="Idle" dir={look} scale={small ? 1 : 2} play={play} className="es-mon" />
+                <FieldSprite
+                    id={captain.id}
+                    shiny={captain.shiny}
+                    anim="Idle"
+                    dir={look}
+                    scale={small ? 1 : 2}
+                    play={play}
+                    className="es-mon"
+                />
                 <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
             </div>
         </div>
@@ -449,9 +457,12 @@ export function Estadio({
     // o modo escolhido na pílula (vale enquanto a Home está aberta; voltar de outra tela volta pro padrão)
     const [chosen, setChosen] = useState<ModeId | null>(null);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
-    const captain =
-        (inProgress && (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0])?.speciesId) ||
-        (avatar.kind === 'pokemon' ? avatar.speciesId : 25);
+    const lead = inProgress ? (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0]) : undefined;
+    const captain = lead
+        ? { id: lead.speciesId, shiny: lead.shiny }
+        : avatar.kind === 'pokemon'
+          ? { id: avatar.speciesId, shiny: avatar.shiny === true }
+          : { id: 25 };
     const play = (seed?: string, mode?: CupMode) => {
         if (inProgress && !confirm) {
             setConfirm({ seed, mode });

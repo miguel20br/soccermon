@@ -94,7 +94,14 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         <div className="ar-duel">
                             <span className="ar-side me">
                                 <i className="es-shadow" />
-                                <FieldSprite id={mine} anim="Idle" dir={2} scale={scale} play={active} />
+                                <FieldSprite
+                                    id={mine}
+                                    shiny={avatar.kind === 'pokemon' && avatar.shiny === true}
+                                    anim="Idle"
+                                    dir={2}
+                                    scale={scale}
+                                    play={active}
+                                />
                             </span>
                             <b className="ar-vs">VS</b>
                             <span className={`ar-side rival${seen ? ' seen' : ''}`}>
