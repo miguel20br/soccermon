@@ -44,7 +44,8 @@ export const team = {
         simError: 'Não deu pra simular a partida. Tente de novo ou recarregue a página.',
         pens: ' (pên. {a}x{b})',
         title: 'Escalação · {team}',
-        swapHint: 'Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco).',
+        swapHint:
+            'Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco). Toque de novo no mesmo pra ver a carta.',
         cardFold: 'carta',
         subHint: 'Na partida, Substituir troca quem cansou na hora.',
         opponentNote: 'Adversário: {name}',

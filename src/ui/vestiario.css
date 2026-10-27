@@ -127,6 +127,14 @@
         grid-template-columns: 1fr;
         margin: 0;
     }
+    /* a carta na sheet encolhe pra caber (com o botão da carta completa) na altura deitada */
+    .vt-card-sheet .fut-wrap {
+        --fut-w: min(190px, calc((calc(100 * var(--dvh)) - 190px) / 1.41));
+    }
+    /* a dica de trocar vaga some: o goleiro tem que caber acima da barra do Jogar sem rolar */
+    .vt-swaphint {
+        display: none;
+    }
     .vt .formation-board {
         display: flex;
         flex-wrap: wrap;
@@ -135,7 +143,7 @@
         gap: 4px 10px;
     }
     .vt .formation-board .court {
-        width: min(100%, calc((calc(100 * var(--svh)) - 140px) * 0.75));
+        width: min(100%, calc((calc(100 * var(--svh)) - 166px) * 0.75));
         flex: 0 1 auto;
     }
     .vt .formation-board .slot {

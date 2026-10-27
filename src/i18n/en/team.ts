@@ -45,7 +45,7 @@ export const team: typeof pt = {
         simError: "Couldn't simulate the match. Try again or reload the page.",
         pens: ' (pens {a}-{b})',
         title: 'Lineup · {team}',
-        swapHint: 'Tap two players to swap their slots (bench included).',
+        swapHint: 'Tap two players to swap their slots (bench included). Tap the same one again to see its card.',
         cardFold: 'card',
         subHint: 'In the match, Substitute swaps a tired player right away.',
         opponentNote: 'Opponent: {name}',

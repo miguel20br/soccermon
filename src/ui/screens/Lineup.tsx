@@ -25,6 +25,7 @@ import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { useMedia, WIDE } from '../components/Prancheta';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
@@ -369,6 +370,9 @@ export function LineupEditor({
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
+    // celular: a carta abre numa sheet (na coluna de baixo ficava fora da tela); no desktop fica na coluna da direita
+    const wide = useMedia(WIDE);
+    const [cardOpen, setCardOpen] = useState(false);
     /** Passando o item: quem tem o item que vai pra outro (o próximo toque na prancheta decide quem recebe). */
     const [giving, setGiving] = useState<string | null>(null);
     const givingItem = giving ? byUid.get(giving)?.item : undefined;
@@ -419,9 +423,46 @@ export function LineupEditor({
         }
         if (selected.zone !== ref.zone || selected.index !== ref.index) {
             onSwap(selected, ref);
+        } else if (!wide) {
+            // tocar de novo no mesmo (que antes só desmarcava) abre a carta; a troca continua sendo dois toques em vagas diferentes
+            setCardOpen(true);
         }
         setSelected(null);
     };
+
+    const detailCard = detailInst && (
+        <div className="detail-card">
+            <FutCard
+                inst={detailInst}
+                captain={detailInst.uid === captainUid}
+                position={positionOf(detailInst.uid)}
+                fullButton
+            />
+        </div>
+    );
+    const itemMove = detailInst?.item && onMoveItem && (
+        <div className="panel item-move">
+            <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
+            <span>
+                <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
+            </span>
+            <button
+                type="button"
+                className={`btn small${giving === detailInst.uid ? ' ghost' : ''}`}
+                aria-pressed={giving === detailInst.uid}
+                disabled={locked}
+                onClick={() => {
+                    setSelected(null);
+                    setCardOpen(false);
+                    setGiving(giving === detailInst.uid ? null : detailInst.uid);
+                    // no celular a prancheta fica lá em cima: traz ela pra tela
+                    boardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }}
+            >
+                {giving === detailInst.uid ? t('team.lineup.giveCancel') : t('team.lineup.giveTo')}
+            </button>
+        </div>
+    );
 
     return (
         <div className="lineup-grid vt">
@@ -459,7 +500,7 @@ export function LineupEditor({
                 <section className="panel vt-board" aria-label={title}>
                     {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
                     {(givingItem || firstCup) && (
-                        <p className="muted vt-hint">
+                        <p className={`muted vt-hint${givingItem ? '' : ' vt-swaphint'}`}>
                             {givingItem
                                 ? t('team.lineup.giveHint', { item: itemName(givingItem) })
                                 : t('team.lineup.swapHint')}
@@ -503,50 +544,33 @@ export function LineupEditor({
             <div className="side-stack">
                 {side}
 
-                {detailInst && (detail !== null || foldOpenByDefault()) && (
+                {wide && detailInst && (detail !== null || foldOpenByDefault()) && (
                     <>
                         <Fold
                             label={viewInstance(detailInst).displayName}
                             summary={t('team.lineup.cardFold')}
                             defaultOpen
                         >
-                            <div className="detail-card">
-                                <FutCard
-                                    inst={detailInst}
-                                    captain={detailInst.uid === captainUid}
-                                    position={positionOf(detailInst.uid)}
-                                    fullButton
-                                />
-                            </div>
+                            {detailCard}
                         </Fold>
-                        {detailInst.item && onMoveItem && (
-                            <div className="panel item-move">
-                                <img className="pixel" src={itemSprite(detailInst.item)} alt="" />
-                                <span>
-                                    <b>{itemName(detailInst.item)}</b> — {itemDesc(detailInst.item, lang)}
-                                </span>
-                                <button
-                                    type="button"
-                                    className={`btn small${giving === detailInst.uid ? ' ghost' : ''}`}
-                                    aria-pressed={giving === detailInst.uid}
-                                    disabled={locked}
-                                    onClick={() => {
-                                        setSelected(null);
-                                        setGiving(giving === detailInst.uid ? null : detailInst.uid);
-                                        // no celular a prancheta fica lá em cima: traz ela pra tela
-                                        boardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                                    }}
-                                >
-                                    {giving === detailInst.uid ? t('team.lineup.giveCancel') : t('team.lineup.giveTo')}
-                                </button>
-                            </div>
-                        )}
+                        {itemMove}
                     </>
                 )}
 
                 {footer}
             </div>
 
+            {!wide && detailInst && (
+                <Sheet
+                    open={cardOpen}
+                    onClose={() => setCardOpen(false)}
+                    title={viewInstance(detailInst).displayName}
+                    className="vt-card-sheet"
+                >
+                    {detailCard}
+                    {itemMove}
+                </Sheet>
+            )}
             <Sheet
                 open={formationOpen}
                 onClose={() => setFormationOpen(false)}
