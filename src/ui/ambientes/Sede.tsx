@@ -28,7 +28,14 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const clock = useSceneClock(active);
     const small = useMq(SMALL);
     const big = useMq(BIG);
-    const w = useWild(clock, wild, floorZone(small ? 1 : big ? 3 : 2), undefined, ROOM);
+    // o clube: 3 no celular pequeno, 4 no médio, até 6 no PC (o resto da lista fica fora)
+    const w = useWild(
+        clock,
+        wild.slice(0, small ? 3 : big ? 6 : 4),
+        floorZone(small ? 1 : big ? 3 : 2),
+        undefined,
+        ROOM,
+    );
     const profile = useGame((s) => s.profile);
     const hall = useGame((s) => s.hall);
     const titles = useGame((s) => Math.max(s.records.titles, s.hall.length));

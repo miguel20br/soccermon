@@ -2143,6 +2143,31 @@
     animation: wild-pop 160ms var(--ease-out) both;
     transform-origin: 50% 100%;
 }
+.wild-goals {
+    position: absolute;
+    left: 0;
+    bottom: 4px;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 4px 2px 3px;
+    border: 1px solid #1d1d2c;
+    background: #f8f8f0;
+    color: #1d1d2c;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    animation: wild-pop 200ms var(--ease-out) both;
+    transform-origin: 50% 100%;
+}
+.wild-goals svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+}
 @keyframes wild-pop {
     from {
         transform: scale(0.3);

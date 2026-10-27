@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { isFirstVisit, rotaNovaDue } from '../../store/coach';
 import { useGame } from '../../store/game-store';
@@ -16,7 +16,7 @@ import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
-import { rollAll, type Wild, wildQuota } from './wild';
+import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 import { uiZoom } from '../ui-zoom';
@@ -58,11 +58,15 @@ export function Ambientes() {
         const dex = useGame.getState().dex;
         return rollAll((id) => !!dex[id]);
     });
+    // na Sede andam os mais usados do clube (sem partida jogada, o sorteio de sempre)
+    const dex = useGame((s) => s.dex);
+    const club = useMemo(() => clubWild(dex), [dex]);
+    const lists = useMemo(() => (club.length ? { ...rolled, sede: club } : rolled), [rolled, club]);
     const quota = wildQuota(
         tab,
-        TABS.map((id) => rolled[id].length),
+        TABS.map((id) => lists[id].length),
     );
-    const wildOf = (i: number) => rolled[TABS[i]].slice(0, quota[i]);
+    const wildOf = (i: number) => lists[TABS[i]].slice(0, quota[i]);
     // a arte do kit (Laboratório, Sede) só baixa quando a aba fica perto da tela, e depois fica
     const seen = useRef(new Set<number>());
     for (const i of [tab - 1, tab, tab + 1]) seen.current.add(i);

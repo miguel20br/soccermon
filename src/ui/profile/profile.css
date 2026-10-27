@@ -1890,29 +1890,33 @@ fieldset.pf-field,
     font-size: 12px;
     cursor: pointer;
 }
+/* celular (feedback de 27/10: em leque, uma carta cobria os atributos da outra): a vitrine desce pra uma linha só
+   dela, as 3 lado a lado sem sobrepor, do tamanho que couber na largura do cartão */
 @media (max-width: 560px) {
+    .pf-cards {
+        grid-column: 1 / -1;
+        container-type: inline-size;
+        justify-content: center;
+        gap: 8px;
+        padding: 0;
+    }
     .pf-cards .fut-wrap.sm {
-        --fut-w: 80px;
+        --fut-w: min(116px, calc((100cqi - 16px) / 3));
+    }
+    .pf-cards li:is(:first-child, :last-child):not(:only-child) {
+        rotate: none;
+        translate: none;
     }
     .pf-cards li + li {
-        margin-left: -48px;
+        margin-left: 0;
     }
-    .pf-cards-empty {
-        width: 76px;
-        padding: 10px 4px;
-        font-size: 11px;
-    }
-}
-/* celular estreito: o nome precisa do espaço; a vitrine desce pra uma linha só dela */
-@media (max-width: 360px) {
-    .pf-cards,
     .pf-cards-empty {
         grid-column: 1 / -1;
         justify-self: center;
-    }
-    .pf-cards-empty {
         width: auto;
         grid-auto-flow: column;
+        padding: 10px 12px;
+        font-size: 11px;
     }
 }
 /* PC (pedido do Miguel em 21/10: sem vão no meio do cartão): a vitrine ocupa o que sobra à direita, centralizada, com
