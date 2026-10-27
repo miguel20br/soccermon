@@ -468,7 +468,7 @@
     ver('#banco', tF);
     tl.set(sn.el, { x: 110, y: 1150 }, tF);
     anim(tl, sn, 'Sleep', 0, tF, T(19, 8), { id: '143x', vel: 0.5 });
-    tl.set(pk.el, { x: 270, y: 1160, opacity: 1 }, tF);
+    tl.set(pk.el, { x: 150, y: 1360, opacity: 1 }, tF);
     anim(tl, pk, 'Idle', 2, tF, T(21, 0));
     tl.set(mk.el, { x: 540, y: GL }, tF);
     anim(tl, mk, 'Idle', 0, tF, T(19, 0));
@@ -531,7 +531,7 @@
 
     // ===== 21 · campeão: o time entra correndo e joga o Magikarp pro alto =====
     const tC = T(21, 0);
-    tl.set('#placar b', { textContent: 'CAMPEÕES' }, tC);
+    tl.to('#placar', { opacity: 0, duration: 0.2 }, tC);
     carimbo('#campeao', tC);
     tl.to('#campeao', { opacity: 0, duration: 0.2 }, T(21, 12));
     torcidaAnim(tl, fila, 'Hop', tC, T(23, 0), { vel: 1.3 });
