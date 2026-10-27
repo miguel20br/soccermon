@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.23.1 · Ajustes nos lugares (26/10/2026)
+
+No ar: 0.9.23 "Vestiário" (lousa, sheets, barra da copa, momento, menus, instalável). 0.9.23.1 (sem teleporte, Arena) na `consertos-0923`. Partida nova atrás de `?lab=hud`. Motor 13 (`liga` 13). Liga fechada até `LIGA_OPENS_AT`.
+
 ## 0.9.22 · Botão de apertar (26/10/2026)
 
 No ar: 0.9.22 (kit de botões com relevo, cor por função, painel com placa; ambientes desde a 0.9.21, `?lab=off` = Home antiga; motor 13, `liga` no 13). Liga fechada até `LIGA_OPENS_AT`.

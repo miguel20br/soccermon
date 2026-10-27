@@ -9,6 +9,41 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.23.2',
+        date: '2026-10-27',
+        title: 'Faxina',
+        sections: [
+            {
+                title: 'Menos coisa na tela',
+                lines: [
+                    'Painéis mais leves: borda fina, sem moldura grossa e sem caixa dentro de caixa',
+                    'Instruções e dicas só aparecem na primeira copa. Depois elas ficam na Ajuda (?)',
+                    'A barra de cima mostra só o treinador. Troféus, Pokédex e insígnias ficam no lugar de cada um',
+                    'O Estádio perdeu os 4 quadros de metas, e o logo grande só aparece na primeira visita',
+                    'O Prof. Carvalho fala uma vez só. A Sede mostra a missão mais perto de sair, e a Arena junta a Liga numa linha',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação: a formação abre numa janela com os bônus, o rival vira uma linha e a carta só aparece quando você toca num Pokémon',
+                    'Resultado mais curto: posse, chutes e a chave ficam em Estatísticas, e o treinador desbloqueado vira um aviso que some',
+                    'Mercado: o que a vitória rendeu cabe numa frase',
+                    'Partida no celular: uma coisa por vez em cima da quadra (o gol primeiro), e as abas de baixo ficam fechadas até você tocar',
+                ],
+            },
+            {
+                title: 'Em toda tela',
+                lines: [
+                    'Monitor grande: tudo fica maior, sem a coluninha perdida no meio',
+                    'Celular deitado: a Escalação, o Draft e o Resultado cabem na tela',
+                    'Nada de nome cortado em celular pequeno',
+                    'Avatar shiny agora aparece shiny no Estádio e na Arena',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.23.1',
         date: '2026-10-26',
         title: 'Ajustes nos lugares',
@@ -1753,6 +1788,41 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.23.2',
+        date: '2026-10-27',
+        title: 'Cleanup',
+        sections: [
+            {
+                title: 'Less on screen',
+                lines: [
+                    'Lighter panels: thin borders, no heavy frames and no boxes inside boxes',
+                    'Instructions and tips only show in your first cup. After that they live in Help (?)',
+                    'The top bar shows just the trainer. Trophies, Pokédex and badges stay in their own places',
+                    'The Stadium lost the 4 goal boards, and the big logo only shows on your first visit',
+                    'Prof. Oak speaks only once. The Club shows the mission closest to done, and the Arena puts the League in one line',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Lineup: the formation opens in a sheet with its bonuses, the rival is one line and the card only shows when you tap a Pokémon',
+                    'Shorter result: possession, shots and the bracket are in Stats, and a new trainer is a notice that fades away',
+                    'Market: what the win paid fits in one sentence',
+                    'Match on phones: one thing at a time over the court (goals first), and the bottom tabs stay closed until you tap',
+                ],
+            },
+            {
+                title: 'Every screen',
+                lines: [
+                    'Big monitors: everything is bigger, no more tiny column in the middle',
+                    'Phone in landscape: Lineup, Draft and Result fit the screen',
+                    'No more cut names on small phones',
+                    'A shiny avatar now shows shiny in the Stadium and the Arena',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.23.1',
         date: '2026-10-26',

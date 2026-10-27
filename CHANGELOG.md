@@ -1,5 +1,26 @@
 # Novidades
 
+## 0.9.23.2 · Faxina (2026-10-27)
+
+### Menos coisa na tela
+- Painéis mais leves: borda fina, sem moldura grossa e sem caixa dentro de caixa
+- Instruções e dicas só aparecem na primeira copa. Depois elas ficam na Ajuda (?)
+- A barra de cima mostra só o treinador. Troféus, Pokédex e insígnias ficam no lugar de cada um
+- O Estádio perdeu os 4 quadros de metas, e o logo grande só aparece na primeira visita
+- O Prof. Carvalho fala uma vez só. A Sede mostra a missão mais perto de sair, e a Arena junta a Liga numa linha
+
+### Copa
+- Escalação: a formação abre numa janela com os bônus, o rival vira uma linha e a carta só aparece quando você toca num Pokémon
+- Resultado mais curto: posse, chutes e a chave ficam em Estatísticas, e o treinador desbloqueado vira um aviso que some
+- Mercado: o que a vitória rendeu cabe numa frase
+- Partida no celular: uma coisa por vez em cima da quadra (o gol primeiro), e as abas de baixo ficam fechadas até você tocar
+
+### Em toda tela
+- Monitor grande: tudo fica maior, sem a coluninha perdida no meio
+- Celular deitado: a Escalação, o Draft e o Resultado cabem na tela
+- Nada de nome cortado em celular pequeno
+- Avatar shiny agora aparece shiny no Estádio e na Arena
+
 ## 0.9.23.1 · Ajustes nos lugares (2026-10-26)
 
 ### Corrigido
