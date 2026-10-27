@@ -47,8 +47,19 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             {
                 list: [
                     ['Draft', 'escolha a formação, o capitão e depois 1 de 3 Pokémon por vaga.'],
-                    ['Escalação', 'ajuste titulares, banco, itens e tática antes de cada jogo.'],
-                    ['Partida', 'é simulada. Você é o técnico: tática, substituição e muita torcida.'],
+                    [
+                        'Escalação',
+                        'ajuste titulares, banco, itens e tática antes de cada jogo. Toque em dois jogadores pra trocá-los de vaga (inclusive com o banco).',
+                    ],
+                    [
+                        'Partida',
+                        'é simulada. Você é o técnico: tática, substituição e muita torcida. Substituir troca quem cansou na hora.',
+                    ],
+                    [
+                        'Recompensa e Mercado',
+                        'ganhou? Pegue um Pokémon do rival, um item ou uma MT (pular dá +1 sorteio). A vitória rende ₽ pro Mercado, e guardar rende juros: ₽1 a cada ₽5, até ₽3.',
+                    ],
+                    ['Pokédex', 'quem você viu entra na Pokédex. Entre com Google pra salvar na nuvem.'],
                     ['Copa', '{stages}. Perdeu, a copa acaba (mas a Pokédex e os recordes ficam).'],
                 ],
             },

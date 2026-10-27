@@ -163,25 +163,23 @@ button.sp-slot:hover {
 
 /* ---------- tela do Mercado ---------- */
 .shop-earned {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px 16px;
+    margin: 0;
     font-size: 13px;
 }
-.shop-earned-title {
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 10px;
+.shop-earned b {
     color: var(--yellow);
 }
-.shop-earned-line b {
-    color: var(--yellow);
-}
-.shop-earned-hint {
-    flex-basis: 100%;
+/* títulos das prateleiras: texto simples, sem placa */
+.shop-shelves .shop-shelf-title {
+    width: auto;
+    margin: 0 0 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
     font-size: 12px;
+    color: var(--muted);
 }
 .shop-grid {
     display: grid;

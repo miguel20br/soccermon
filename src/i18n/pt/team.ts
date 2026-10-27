@@ -50,6 +50,8 @@ export const team = {
         opponentNote: 'Adversário: {name}',
         seeCard: 'Ver carta de {name}',
         oppLine: '{formation} · {tactic} · Média {n}',
+        vsRival: 'vs {club} · Média {n}',
+        formation: 'Formação',
         oppTactic: '{tactic} · Média {n}',
         edgeBadge: 'Vantagem tática',
         warming: 'Aquecendo…',

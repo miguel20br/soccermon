@@ -12,8 +12,22 @@ export const help: typeof pt = {
                 {
                     list: [
                         ['Draft', 'pick a formation, a captain and then 1 of 3 Pokémon for each slot.'],
-                        ['Lineup', 'set your starters, bench, items and tactic before each match.'],
-                        ['Match', "it's simulated. You're the coach: tactics, substitutions and lots of cheering."],
+                        [
+                            'Lineup',
+                            'set your starters, bench, items and tactic before each match. Tap two players to swap their slots (bench included).',
+                        ],
+                        [
+                            'Match',
+                            "it's simulated. You're the coach: tactics, substitutions and lots of cheering. Substitute swaps a tired player right away.",
+                        ],
+                        [
+                            'Reward and Shop',
+                            'Won? Take a rival Pokémon, an item or a TM (skipping gives +1 reroll). Wins earn ₽ for the Shop, and saving earns interest: ₽1 per ₽5, up to ₽3.',
+                        ],
+                        [
+                            'Pokédex',
+                            "everyone you've seen goes into the Pokédex. Sign in with Google to save it to the cloud.",
+                        ],
                         ['Cup', '{stages}. Lose and the cup is over (but your Pokédex and records stay).'],
                     ],
                 },

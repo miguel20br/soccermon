@@ -35,12 +35,15 @@ export function resetTips() {
     }
 }
 
+/** Instruções fixas e Dicas só na 1ª copa (até terminar uma) e com "Dicas" ligado; depois, só pelo "?" (Ajuda). */
+export const useFirstCup = () => useGame((s) => s.settings.tips && s.records.cups === 0);
+
 /**
  * Dica contextual de uma linha, perto da coisa que ela explica. Aparece só na 1ª copa (até terminar uma), com "Dicas"
  * ligado nas configurações e até o jogador fechar; fechada, não volta mais neste aparelho.
  */
 export function Tip({ id, children }: { id: string; children: ReactNode }) {
-    const enabled = useGame((s) => s.settings.tips && s.records.cups === 0);
+    const enabled = useFirstCup();
     const [hidden, setHidden] = useState(() => readDismissed().includes(id));
     const { d } = useT();
     if (!enabled || hidden) return null;

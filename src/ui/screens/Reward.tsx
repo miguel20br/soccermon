@@ -16,7 +16,7 @@ import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
-import { Tip } from '../help/Tip';
+import { Tip, useFirstCup } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
 import { readCount, writeCount } from '../local-count';
 import { useHeld } from '../use-held';
@@ -46,6 +46,7 @@ export function Reward() {
     const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
     const { lang, t, tn } = useT();
+    const firstCup = useFirstCup();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
     if (run?.status !== 'reward') return null;
@@ -177,13 +178,17 @@ export function Reward() {
             {(!reward || reward.kind === 'tm') && (
                 <div className="panel reward-team">
                     <h2>{t('reward.yourTeam')}</h2>
-                    <p className="muted" style={{ marginTop: 0 }}>
-                        {t('reward.compare')}
-                    </p>
-                    <p className="muted reward-open-hint">
-                        <ExpandIcon />
-                        {t('reward.openCard')}
-                    </p>
+                    {firstCup && (
+                        <>
+                            <p className="muted" style={{ marginTop: 0 }}>
+                                {t('reward.compare')}
+                            </p>
+                            <p className="muted reward-open-hint">
+                                <ExpandIcon />
+                                {t('reward.openCard')}
+                            </p>
+                        </>
+                    )}
                     {fitItem && sampleFit && (
                         <p className="reward-fit-legend">
                             <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />

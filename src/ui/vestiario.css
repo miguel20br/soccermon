@@ -7,107 +7,83 @@
     align-content: start;
     min-width: 0;
 }
+/* a barra de cima: rival, chave, tática e formação, cada um abre a sua sheet (sem placa nem moldura) */
 .vt-wall {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    min-height: 92px;
-    padding: 12px 12px 16px;
-    border: 3px solid var(--cb-ink);
-    border-bottom: 0;
-    border-radius: var(--radius) var(--radius) 0 0;
-    /* a lousa azul de tática (escolhida em 26/10 entre armários, azulejo e lousa): X, O e a seta de giz, moldura de
-       madeira e o apoio do giz embaixo */
-    background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='90' fill='none' stroke='%23eef3ff' stroke-opacity='.32' stroke-width='3'%3E%3Cpath d='M14 20l12 12M26 20L14 32M60 60a8 8 0 1 0 0.1 0M30 70c20-30 50-40 70-30M92 34l8 6-9 5'/%3E%3C/svg%3E")
-        0 6px / 120px 90px repeat-x,
-        linear-gradient(0deg, #5a3a1c 0 6px, transparent 6px) bottom / 100% 6px no-repeat,
-        linear-gradient(180deg, #27508f, #1d3d72);
-    box-shadow: inset 0 0 0 4px #6b4423;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
 }
-/* os quadros pendurados: cortiça (chave) e quadro-branco (tática); base escura = dá pra tocar */
 .vt-obj {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 56px;
-    padding: 6px 12px 9px 8px;
-    border: 3px solid var(--cb-ink);
-    border-radius: 6px;
-    box-shadow:
-        inset 0 0 0 3px var(--vt-frame),
-        inset 0 -6px 0 3px var(--vt-frame),
-        0 4px 0 var(--cb-ink);
-    color: var(--cb-ink);
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: transform var(--dur-solta) var(--ease-pop);
-}
-.vt-obj:only-child {
-    margin-left: auto;
+    transition:
+        transform var(--dur-solta) var(--ease-pop),
+        border-color var(--dur-ui) var(--ease-out);
 }
 .vt-obj:active {
-    transform: translateY(2px) rotate(-1deg);
+    transform: scale(0.98);
     transition-duration: var(--dur-toque);
 }
 .vt-obj:focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 3px;
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
 }
 .vt-obj > span {
     display: grid;
+    min-width: 0;
     line-height: 1.15;
 }
+.vt-obj b,
+.vt-obj small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .vt-obj b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    font-size: 13px;
 }
 .vt-obj small {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11px;
+    color: var(--muted);
 }
-.vt-obj .hud-icon {
+.vt-obj > .hud-icon {
     flex: none;
-    box-sizing: content-box;
     width: 18px;
     height: 18px;
-    padding: 4px;
-    border: 2px solid var(--cb-ink);
-    border-radius: 50%;
-    color: #fff;
 }
-.vt-cork {
-    --vt-frame: #6b4423;
-    background: #c99050 radial-gradient(circle, #a8733a 1px, transparent 1.5px) 0 0 / 6px 6px;
+/* o rival e a formação ocupam a linha toda (o bônus da formação é a 2ª linha do botão) */
+.vt-rival,
+.vt-formation {
+    grid-column: 1 / -1;
 }
-.vt-cork .hud-icon {
-    background: var(--red);
+.vt-rival b {
+    font-weight: 400;
+    color: var(--muted);
 }
-.vt-white {
-    --vt-frame: #8d97b8;
-    background: #eef0f6;
+.vt-formation .fi-tags {
+    font-size: 11px;
 }
-.vt-white .hud-icon {
-    background: var(--blue-c);
+.vt-formation .hud-icon {
+    display: none;
 }
-/* a prancheta encosta na parede */
-.panel.vt-board {
-    border-radius: 0 0 var(--radius) var(--radius);
+.vt-formations {
+    display: grid;
+    gap: 6px;
 }
-.vt .formation-tabs {
-    margin-bottom: 6px;
-}
-.vt-fline {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 10px;
-    margin: 0 0 4px;
-    font-size: 13px;
+.vt-formations .bc-tile {
+    text-align: left;
 }
 .vt-hint {
     margin: 0 0 6px;
@@ -140,39 +116,36 @@
 .vt-board-sheet > .btn {
     justify-self: center;
 }
-/* celular (e deitado): as 6 formações viram ícones numa linha (o nome da escolhida fica embaixo) */
-@media (max-width: 640px), (max-height: 520px) {
-    .vt .formation-tabs {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        width: 100%;
+/* deitado: a barra vira uma coluna ao lado da prancheta, e a prancheta ganha a altura toda */
+@media (orientation: landscape) and (max-height: 520px) {
+    .vt-room {
+        grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
+        gap: 8px;
+        align-items: start;
     }
-    .vt .formation-tabs button {
-        min-height: 40px;
-        padding-inline: 2px;
-    }
-    .vt .formation-tabs .hud-icon {
-        width: 18px;
-        height: 18px;
-    }
-    /* o botão tem aria-label com o nome */
-    .vt-fname {
-        display: none;
-    }
-}
-/* deitado: a parede mais baixa, pra prancheta aparecer */
-@media (max-height: 520px) {
     .vt-wall {
-        min-height: 76px;
-        padding-block: 6px 16px;
+        grid-template-columns: 1fr;
+        margin: 0;
+    }
+    .vt .formation-board {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 4px 10px;
+    }
+    .vt .formation-board .court {
+        width: min(100%, calc((100svh - 140px) * 0.75));
+        flex: 0 1 auto;
+    }
+    .vt .formation-board .slot {
+        width: 70px;
+    }
+    .vt .formation-board .bench {
+        flex-direction: column;
+        margin-top: 0;
     }
 }
-@media (max-width: 359px) {
-    .vt-obj {
-        gap: 6px;
-        padding-right: 8px;
-    }
-    .vt-obj .hud-icon {
-        padding: 2px;
-    }
+.vt-formations .fi-tags .hud-icon {
+    display: none;
 }

@@ -65,7 +65,6 @@ export const result: typeof pt = {
         aria: 'Match result',
         pens: 'Penalties {a} x {b}',
         star: 'star',
-        path: 'Road through the cup',
         stageShort: ['R16', 'QF', 'SF', 'Final'],
         next: 'Next: {stage} against',
     },

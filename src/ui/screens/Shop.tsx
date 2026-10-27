@@ -14,6 +14,7 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
+import { useFirstCup } from '../help/Tip';
 import { Sheet } from '../kit/Sheet';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
@@ -45,6 +46,7 @@ export function Shop() {
     const [chosen, setChosen] = useState<number | null>(null);
     const [packPick, setPackPick] = useState<number | null>(null);
     const [sponsorsOpen, setSponsorsOpen] = useState(false);
+    const firstCup = useFirstCup();
     const { lang, t } = useT();
     const shop = run?.shop;
     if (run?.status !== 'shop' || !shop) return null;
@@ -150,17 +152,11 @@ export function Shop() {
                 </button>
             </div>
 
-            <div className="panel shop-earned">
-                <span className="shop-earned-title">
-                    {t(e.win > 0 ? 'shop.earned.title' : 'shop.earned.titleInterest')}
-                </span>
-                {earnedLines.map(([k, n]) => (
-                    <span key={k} className="shop-earned-line">
-                        {t(`shop.earned.${k}`)} <b>+{t('shop.money', { n })}</b>
-                    </span>
-                ))}
-                <span className="muted shop-earned-hint">{t('shop.interestHint', { cap })}</span>
-            </div>
+            <p className="shop-earned">
+                {t(e.win > 0 ? 'shop.earned.title' : 'shop.earned.titleInterest')}{' '}
+                <b>+{t('shop.money', { n: earnedLines.reduce((sum, [, n]) => sum + n, 0) })}</b>
+                {firstCup && <span className="muted"> {t('shop.interestHint', { cap })}</span>}
+            </p>
 
             {shop.pack ? (
                 <div className="panel shop-pack">
