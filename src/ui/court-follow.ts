@@ -11,6 +11,17 @@ interface FollowScene {
     scale: { width: number; updateBounds(): void };
 }
 
+/**
+ * A última cena pronta. O `current-scene-ready` sai uma vez só (no create), e girar o celular desliga e religa a quadra
+ * grande no meio da partida: sem guardar aqui, o efeito novo ficava esperando um evento que não vem mais.
+ */
+let ready: (FollowScene & { sys?: { isActive(): boolean } }) | null = null;
+EventBus.on('current-scene-ready', (sc: typeof ready) => {
+    ready = sc;
+});
+/** A cena da partida que está rodando agora (a de uma partida que já acabou não vale). */
+export const readyScene = (): FollowScene | null => (ready?.sys?.isActive() ? ready : null);
+
 /** Quanto a câmera vai à frente do ataque: até 22% da janela, pro lado em que a bola anda. */
 export const LEAD = 0.22;
 
@@ -41,7 +52,7 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
     followRef.current = follow;
     useEffect(() => {
         if (!on) return;
-        let scene: FollowScene | null = null;
+        let scene = readyScene();
         let x: number | null = null;
         let mode: boolean | null = null;
         // velocidade da bola na tela (px/s, suavizada): a câmera vai um pouco à frente, pro lado do ataque

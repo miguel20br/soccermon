@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { followOffset, HUD_ZOOM_DAMP } from './court-follow';
+import { EventBus } from '../game/EventBus';
+import { followOffset, HUD_ZOOM_DAMP, readyScene } from './court-follow';
 import { hudOn } from './hud-lab';
 
 describe('?lab=hud', () => {
@@ -22,5 +23,15 @@ describe('?lab=hud', () => {
         // Transformar (1.5) e o golpe N3 (1.35): antes fechava em ~33% (2 ou 3 Pokémon e o gol)
         expect(shown(1.5)).toBeGreaterThan(0.4);
         expect(shown(1.35)).toBeGreaterThan(0.43);
+    });
+});
+
+describe('cena pronta (girar o celular no meio da partida)', () => {
+    it('quem liga a quadra grande depois do create ainda acha a cena; a de partida acabada não vale', () => {
+        const scene = { sys: { isActive: () => true } };
+        EventBus.emit('current-scene-ready', scene);
+        expect(readyScene()).toBe(scene);
+        scene.sys.isActive = () => false;
+        expect(readyScene()).toBeNull();
     });
 });

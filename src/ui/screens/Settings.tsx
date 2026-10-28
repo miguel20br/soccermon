@@ -173,6 +173,8 @@ export function Settings() {
     const { settings, updateSettings, go } = useGame();
     const [more, setMore] = useState(false);
     const [hudOn] = useState(readHud);
+    // a quadra grande só liga no celular (o WIDE da Prancheta; importar ela puxaria o motor pra cá)
+    const [wide] = useState(() => window.matchMedia('(min-width: 1051px)').matches);
     const set = updateSettings;
     const { t } = useT();
     const lang = useLang();
@@ -226,7 +228,7 @@ export function Settings() {
                     />
                 </Row>
                 {/* partida nova (padrão; ?lab=hud-off desliga): até que velocidade a câmera fica de perto */}
-                {hudOn && (
+                {hudOn && !wide && (
                     <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
                         <Segmented
                             label={t('settings.screen.camFollow')}

@@ -828,37 +828,41 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
 function Connecting({ code, status }: { code: string; status: string }) {
     const { t } = useT();
     const newRun = useGame((g) => g.newRun);
+    const go = useGame((g) => g.go);
     const clubName = useGame((g) => g.profile.clubName);
+    // copa em andamento: começar outra por cima apaga ela (e a sequência); a Home tem Continuar e a confirmação
+    const inProgress = useGame((g) => !!g.run && !['eliminated', 'champion'].includes(g.run.status));
     const [late, setLate] = useState(false);
     useEffect(() => {
         const id = window.setTimeout(() => setLate(true), CONNECT_GIVEUP_MS);
         return () => window.clearTimeout(id);
     }, []);
-    if (!roomLooksClosed(status, late ? CONNECT_GIVEUP_MS : 0))
-        return (
-            <div className="panel duel-center">
-                <span className="duel-spinner" aria-hidden />
-                <p>{t('duel.connecting', { code })}</p>
-                <p className="muted">{t('duel.waitingHost')}</p>
-            </div>
-        );
+    // depois de um tempo continua tentando (o anfitrião pode estar mandando o link, com a aba congelada), mas mostra
+    // uma saída discreta pra quem chegou por um link antigo
+    const slow = roomLooksClosed(status, late ? CONNECT_GIVEUP_MS : 0);
     return (
-        // key: é outro painel (entra com fade em duel.css), não o da espera trocando o texto
-        <div key="closed" className="panel duel-center duel-closed" data-testid="duel-closed">
-            <h1>{t('duel.closed')}</h1>
-            <p className="muted">{t('duel.closedText')}</p>
-            <button
-                type="button"
-                className="btn primary big"
-                data-testid="duel-play-cup"
-                onClick={() => {
-                    duel.leave();
-                    setUrl(null, false);
-                    newRun(clubName || 'Pallet FC');
-                }}
-            >
-                {t('duel.playCup')}
-            </button>
+        <div className="panel duel-center">
+            <span className="duel-spinner" aria-hidden />
+            <p>{t('duel.connecting', { code })}</p>
+            <p className="muted">{t('duel.waitingHost')}</p>
+            {slow && (
+                <div className="duel-center duel-closed" data-testid="duel-closed">
+                    <p className="muted">{t('duel.closedText')}</p>
+                    <button
+                        type="button"
+                        className="btn outline"
+                        data-testid="duel-play-cup"
+                        onClick={() => {
+                            duel.leave();
+                            setUrl(null, false);
+                            if (inProgress) go('home');
+                            else newRun(clubName || 'Pallet FC');
+                        }}
+                    >
+                        {t('duel.playCup')}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

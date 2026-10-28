@@ -1873,9 +1873,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
             {
                 title: 'Duel',
-                lines: [
-                    "A link to a room nobody opened no longer waits forever: you get a Play a cup button",
-                ],
+                lines: ['A link to a room nobody opened no longer waits forever: you get a Play a cup button'],
             },
             {
                 title: 'Menus',
