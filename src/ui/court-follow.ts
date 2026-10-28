@@ -4,6 +4,8 @@ import { EventBus } from '../game/EventBus';
 /** O que a quadra seguindo a bola precisa da cena (a mesma interface do clipe 9:16, sem importar o Phaser). */
 interface FollowScene {
     ballOnScreen(): { x: number; y: number };
+    focusOnScreen(): { x: number; y: number };
+    setZoomDamp(k: number): void;
     cameras: { main: { zoom: number } };
     setClipView(x: number, w: number): void;
     scale: { width: number; updateBounds(): void };
@@ -16,6 +18,12 @@ export const LEAD = 0.22;
 export function followOffset(ballX: number, view: number, full: number): number {
     return Math.min(0, Math.max(view - full, view / 2 - ballX));
 }
+
+/**
+ * Quanto dos zooms dos lances (Transformar 1.5, golpe N3 1.35, escanteio 1.18...) vale com a quadra grande: ela já
+ * mostra ~metade da quadra; o zoom inteiro por cima fechava em 2 ou 3 Pokémon e no gol (Transformar 1.5 vira 1.2).
+ */
+export const HUD_ZOOM_DAMP = 0.4;
 
 /** Quanto a troca entre seguir a bola e a quadra inteira fica apagada (o Phaser reencaixa o canvas no meio). */
 const SWAP_MS = 180;
@@ -44,6 +52,7 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         let raf = 0;
         const onReady = (sc: FollowScene) => {
             scene = sc;
+            mode = null;
         };
         EventBus.on('current-scene-ready', onReady);
         const tick = () => {
@@ -57,6 +66,7 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
                 mode = want;
                 const apply = () => {
                     box.classList.toggle('hud-full', !want);
+                    scene?.setZoomDamp(want ? HUD_ZOOM_DAMP : 1);
                     inner.style.transform = '';
                     x = null;
                     if (!want) scene?.setClipView(0, scene.scale.width);
@@ -88,10 +98,12 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
             }
             lastBall = ball;
             lastT = now;
-            // lance especial (o jogo deu zoom: gol, golpe, defesa): segue o foco da câmera do jogo, o meio do canvas;
-            // fora disso, a bola mais um pouco à frente pro lado em que o ataque vai
+            // lance especial (o jogo deu zoom: gol, golpe, defesa): vai pra onde a câmera do jogo aponta (presa na
+            // quadra, nem sempre é o meio do canvas); fora disso, a bola mais um pouco à frente pro lado do ataque
             const zoomed = scene.cameras.main.zoom > 1.02;
-            const focus = zoomed ? full / 2 : ball + Math.max(-LEAD * view, Math.min(LEAD * view, vel * 0.35));
+            const focus = zoomed
+                ? scene.focusOnScreen().x * k
+                : ball + Math.max(-LEAD * view, Math.min(LEAD * view, vel * 0.35));
             const target = followOffset(focus, view, full);
             const next = x === null ? target : x + (target - x) * 0.12;
             if (x !== null && Math.abs(next - x) < 0.3) return;
@@ -104,6 +116,12 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         return () => {
             cancelAnimationFrame(raf);
             EventBus.off('current-scene-ready', onReady);
+            // girou pra deitado no meio do jogo: a quadra volta inteira, no lugar e com o zoom normal
+            const inner = wrap.current?.querySelector<HTMLElement>('.phaser-container');
+            if (inner) inner.style.transform = '';
+            wrap.current?.classList.remove('hud-full');
+            scene?.setZoomDamp(1);
+            scene?.setClipView(0, scene.scale.width);
         };
     }, [on, wrap]);
 }

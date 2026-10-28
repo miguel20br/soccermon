@@ -849,7 +849,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
                 {hud ? (
@@ -987,6 +986,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     )}
                 </div>
+                {/* desktop: velocidade logo embaixo da narração e a tática por último (em 1280x720 a barra caía da tela) */}
+                {wide && (
+                    <div className="bc-deskbar" onPointerDownCapture={auto.hold}>
+                        {tactics}
+                    </div>
+                )}
             </div>
         </>
     );

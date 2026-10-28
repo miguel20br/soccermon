@@ -855,6 +855,13 @@
     .bc-stage > .ht-wrap {
         grid-area: 1 / 1;
     }
+    /* a narração embaixo da quadra some com o painel por cima (aparecia cortada embaixo dele) */
+    .bc-stage .bc-ticker-wrap {
+        transition: opacity var(--dur-ui) var(--ease-out);
+    }
+    .bc-stage:has(> .ht-wrap) .bc-ticker-wrap {
+        opacity: 0;
+    }
     .bc-stage > .ht-wrap {
         z-index: 6;
         align-self: center;
@@ -862,10 +869,27 @@
         width: min(calc(100% - 16px), 470px);
     }
     /* deitado: info do intervalo na esquerda, botões e trocas na direita (numa coluna só os botões ficavam abaixo da dobra) */
+    /* a coluna dos botões mais larga: Substituir e Começar numa linha só (empilhados, as trocas do rival caíam
+       pra fora do painel); título e dica saem como no palco estreito (o placar já diz INTERVALO) */
     .bc .ht-panel:has(.ht-info) {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
         align-items: center;
         column-gap: 12px;
+    }
+    .bc .ht-info :is(.ht-title, .ht-tip) {
+        display: none;
+    }
+    .bc .ht-panel:has(.ht-info) .ht-actions {
+        flex-wrap: nowrap;
+        width: 100%;
+        gap: 6px;
+    }
+    .bc .ht-panel:has(.ht-info) .ht-actions .btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding-inline: 8px;
+        line-height: 1.15;
+        white-space: normal;
     }
     .bc .ht-info,
     .bc .ht-ctl {
@@ -1060,9 +1084,10 @@
         grid-template-areas:
             "head coach"
             "stage coach"
-            "thumb coach";
+            "thumb coach"
+            "desk coach";
         /* as abas podem ser mais altas que a quadra: a sobra vai pra última linha, não entre placar e quadra */
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto auto auto 1fr;
         gap: 12px 18px;
         align-items: start;
         padding-bottom: 0;
@@ -1083,7 +1108,7 @@
     }
     .panel.bc-coach {
         grid-area: coach;
-        grid-row: 1 / span 3;
+        grid-row: 1 / -1;
         margin-top: 0;
         align-self: start;
     }
@@ -1093,6 +1118,9 @@
     .bc-ticker {
         padding: 0 14px;
         font-size: 13px;
+    }
+    .bc-deskbar {
+        grid-area: desk;
     }
     .bc-deskbar .bc-tactic {
         grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -1226,6 +1254,13 @@ body:has(.bc-hud) {
     z-index: 6;
     max-height: calc(100% - 16px);
     overflow-y: auto;
+}
+/* intervalo, pedido de tempo e pênaltis tampam a quadra: a caixa do texto some junto (aparecia cortada embaixo) */
+.bc-hud > .bc-stage .bt-box {
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
+.bc-hud > .bc-stage:has(> .ht-wrap) .bt-box {
+    opacity: 0;
 }
 .bc .pitch-wrap.hud-follow {
     position: relative;
