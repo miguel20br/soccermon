@@ -513,6 +513,8 @@ export class MatchScene extends Phaser.Scene {
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
+    /** Quanto dos zooms dos lances vale (1 = tudo; a quadra grande do ?lab=hud já vem ampliada). */
+    private zoomDamp = 1;
     private readonly labelWidths = new Map<string, number>();
     private unbind?: () => void;
     /** O jogador tocou em "Esperar" no golpe máximo (Match.tsx, `maxWaitNext`): sem câmera lenta até a tela soltar. */
@@ -545,6 +547,11 @@ export class MatchScene extends Phaser.Scene {
         this.setTimeline(result);
         this.playTick = this.snaps[0]?.tick ?? 0;
         if (this.md.reduceMotion) this.steadyCamera();
+        const cam = this.cameras.main;
+        // panorâmica no canto (escanteio, golpe na linha) não mostra o vazio fora da quadra
+        cam.setBounds(0, 0, GAME_W, GAME_H);
+        const zoomTo = cam.zoomTo.bind(cam);
+        cam.zoomTo = (zoom, ...rest) => zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
 
         drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
         for (const team of [0, 1] as const) {
@@ -873,12 +880,24 @@ export class MatchScene extends Phaser.Scene {
 
     /** Bola na tela (px do canvas, com pan e zoom da câmera): o clipe 9:16 segue o lance. */
     ballOnScreen(): { x: number; y: number } {
+        return this.onScreen(this.ball.x, this.ball.y);
+    }
+
+    /** Pra onde a câmera do lance (gol, golpe, Transformar) aponta, na tela: a quadra grande do ?lab=hud vai junto. */
+    focusOnScreen(): { x: number; y: number } {
+        const d = this.cameras.main.panEffect.destination;
+        return this.onScreen(d.x, d.y);
+    }
+
+    /** ?lab=hud: os zooms dos lances valem só `k` (a quadra já vem ampliada; somados, mostravam 2 ou 3 Pokémon). */
+    setZoomDamp(k: number) {
+        this.zoomDamp = k;
+    }
+
+    private onScreen(x: number, y: number): { x: number; y: number } {
         const cam = this.cameras.main;
         const z = cam.zoom || 1;
-        return {
-            x: (this.ball.x - cam.midPoint.x) * z + cam.width / 2,
-            y: (this.ball.y - cam.midPoint.y) * z + cam.height / 2,
-        };
+        return { x: (x - cam.midPoint.x) * z + cam.width / 2, y: (y - cam.midPoint.y) * z + cam.height / 2 };
     }
 
     /** Em telas pequenas o canvas encolhe: textos crescem no mundo para continuarem legíveis. */
