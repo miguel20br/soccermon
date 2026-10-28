@@ -1,9 +1,8 @@
 // EP 3 (28/10/2026): as folhas do Ditto disfarçado, tiradas por código das folhas do jogo (img/):
 //   143-ditto.png  o Snorlax roxo com a cara do Ditto (tentativas 1 e 2)
 //   143-cara.png   o Snorlax perfeito, nas cores dele, com a cara do Ditto (a cara volta sozinha; o estádio)
-//   95-ditto.png   o Onix roxo com a cara do Ditto (tentativa 3)
-//   25-cara.png    o Pikachu do júri imitando a cara do Ditto
-//   25-olhos.png   o Pikachu do júri tapando os olhos (as patas pintadas em cima dos olhos, no Hurt de frente)
+//   95-ditto.png   o Onix roxo com a cara do Ditto (tentativa 2)
+// (v2 do roteiro: ninguém além do Ditto tem a cara dele, então o Pikachu imitando saiu)
 // Roxo: cada pixel opaco ganha a cor da paleta do Ditto (preto + 4 roxos, ordenada pela luz) conforme a luz dele na
 // faixa do quadro 0. Cara: nos quadros do Idle de frente (o único que os disfarces usam), uma mancha da cor da cara
 // apaga olhos e boca e entram os dois olhinhos e a boca de risco do Ditto, na posição de cada quadro.
@@ -19,15 +18,13 @@ const VARIANTES = [
     { saida: '143-ditto', id: '143', roxo: true },
     { saida: '143-cara', id: '143', roxo: false },
     { saida: '95-ditto', id: '95', roxo: true },
-    { saida: '25-cara', id: '25', roxo: false },
-    { saida: '25-olhos', id: '25', roxo: false, anim: 'Hurt', patas: true },
 ];
 
 (async () => {
     const b = await chromium.launch({ headless: true });
     const p = await b.newPage();
     for (const v of VARIANTES) {
-        const A = window.SPR[v.id].anims[v.anim ?? 'Idle'];
+        const A = window.SPR[v.id].anims.Idle;
         const png = readFileSync(join(AQUI, `../midia/sp/${v.id}.png`)).toString('base64');
         const r = await p.evaluate(
             async ({ png, v, rects, w, h }) => {
@@ -118,42 +115,11 @@ const VARIANTES = [
                         cx = (x0 + x1) / 2;
                         o = Math.round((y0 + y1) / 2);
                         mancha = [Math.round(cx - 6), Math.round(cx + 6), o - 2, o + 5];
-                    } else {
-                        // Pikachu: as bochechas vermelhas; a cara fica entre elas, os olhos 3 linhas acima do topo delas
-                        let x0 = 1e9;
-                        let x1 = -1;
-                        let y0 = 1e9;
-                        for (let Y = 0; Y < h; Y++)
-                            for (let X = 0; X < w; X++) {
-                                const i = at(fx, fy, X, Y);
-                                if (op(i) && orig[i] > 190 && orig[i + 1] < 110) {
-                                    x0 = Math.min(x0, X);
-                                    x1 = Math.max(x1, X);
-                                    y0 = Math.min(y0, Y);
-                                }
-                            }
-                        cx = (x0 + x1) / 2;
-                        o = y0 - 3;
-                        mancha = [Math.round(cx - 5), Math.round(cx + 5), o - 2, o + 4];
                     }
                     const [mx0, mx1, my0, my1] = mancha;
-                    // a cor da mancha: a mais comum ali que não é contorno nem boca (a cara do Snorlax, o amarelo do Pikachu)
+                    // a cor da mancha: a mais comum ali que não é contorno nem boca (a cara do Snorlax)
                     const cor = v.roxo && v.id === '143' ? PAL[4] : moda(fx, fy, mx0 - 2, mx1 + 2, my0, my1, (i) => lum(d, i) > 90 && !(d[i] > 190 && d[i + 1] < 110));
-                    if (!v.patas) for (let Y = my0; Y <= my1; Y++) for (let X = mx0; X <= mx1; X++) if (d[at(fx, fy, X, Y) + 3] > 200) P(X, Y, cor);
-                    if (v.patas) {
-                        // duas patas amarelas com contorno em cima dos olhos
-                        for (const [a0, a1] of [[Math.round(cx) - 7, Math.round(cx) - 2], [Math.round(cx) + 2, Math.round(cx) + 7]]) {
-                            const [y0, y1] = [o - 1, o + 4];
-                            for (let Y = y0; Y <= y1; Y++)
-                                for (let X = a0; X <= a1; X++) {
-                                    const canto = (Y === y0 || Y === y1) && (X === a0 || X === a1);
-                                    if (!canto) P(X, Y, Y === y0 || Y === y1 || X === a0 || X === a1 ? PAL[0] : cor);
-                                }
-                            for (const X of [a0 + 2, a0 + 3]) P(X, y0 + 1, PAL[0]);
-                        }
-                        pos.push([cx, o]);
-                        return;
-                    }
+                    for (let Y = my0; Y <= my1; Y++) for (let X = mx0; X <= mx1; X++) if (d[at(fx, fy, X, Y) + 3] > 200) P(X, Y, cor);
                     const e = Math.round(cx - 2.5);
                     P(e, o, PAL[0]);
                     P(e + 5, o, PAL[0]);

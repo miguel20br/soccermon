@@ -137,6 +137,24 @@
         ],
         "createdAt": "2026-10-28T19:13:23.008Z",
         "reason": "Claude: texto do vídeo tem contorno escuro de 18–28px (-webkit-text-stroke #0e1430) sobre a cortina; o detector não vê o contorno (mesma exceção do EP 2)"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "trailer/curtas/ditto/index.html"
+        ],
+        "createdAt": "2026-10-28T22:07:57.614Z",
+        "reason": "Claude: composição de vídeo 1080x1920; o quadro recorta de propósito e o brilho é das lâmpadas e do fogo dentro da cena (mesma exceção do EP 2)"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "trailer/curtas/ditto/index.html"
+        ],
+        "createdAt": "2026-10-28T22:07:57.614Z",
+        "reason": "Claude: composição de vídeo 1080x1920; o quadro recorta de propósito e o brilho é das lâmpadas e do fogo dentro da cena (mesma exceção do EP 2)"
       }
     ]
   }
