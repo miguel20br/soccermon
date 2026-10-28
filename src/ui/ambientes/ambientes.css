@@ -3456,7 +3456,7 @@
     }
 }
 
-/* 1ª visita deitado: só o logo, menor (a frase sai), pra não cobrir a arquibancada */
+/* deitado: só o logo, menor (a frase sai), pra não cobrir a arquibancada */
 @media (orientation: landscape) and (max-height: 520px) {
     .es-top {
         padding: 6px 10px;

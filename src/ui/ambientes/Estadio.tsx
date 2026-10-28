@@ -430,17 +430,15 @@ export function Estadio({
                 </div>
             </div>
             <div className={`amb-ui es-ui${firstVisit ? ' es-first' : ''}`}>
-                {/* o logo grande só na 1ª visita; depois sai e a quadra ganha o espaço */}
-                {hydrated && firstVisit && (
-                    <div className="es-top">
-                        <i className="es-cable l" aria-hidden />
-                        <i className="es-cable r" aria-hidden />
-                        <h1 className="es-logo">
-                            <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
-                        </h1>
-                        {!challenge && <p className="es-tagline">{t('home.tagline')}</p>}
-                    </div>
-                )}
+                {/* o logo fica sempre; a frase só na 1ª visita */}
+                <div className="es-top">
+                    <i className="es-cable l" aria-hidden />
+                    <i className="es-cable r" aria-hidden />
+                    <h1 className="es-logo">
+                        <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                    </h1>
+                    {hydrated && firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>}
+                </div>
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
