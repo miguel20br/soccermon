@@ -250,6 +250,27 @@ export const kazoo = voz(
     },
     { solta: 0.1 },
 );
+/** O BOING do Ditto (a mola da transformação, assinatura do EP 3): berimbau de boca. O tom entra de baixo, balança num
+ * vibrato que morre, e um passa-faixa abre e fecha no mesmo balanço (o "uóin-uóin" da gelatina). Afinado em Sol 3
+ * (`pitch` em semitons). `desce` = semitons que escorrega até o fim (o Onix derretendo); `balanco` = Hz do balanço. */
+export const mola = ({ seg = 0.75, desce = 0, balanco = 12 } = {}) =>
+    som(
+        seg,
+        (p) => {
+            let ph = 0;
+            const fl = svf(0.22);
+            return (t) => {
+                const x = Math.min(1, t / seg);
+                const bal = Math.exp(-t / (seg * 0.45)) * Math.sin(TAU * balanco * t);
+                const f = hz(55 + p - desce * x ** 1.2) * (1 - 0.35 * Math.exp(-t / 0.018)) * (1 + 0.07 * bal);
+                ph += f / SR;
+                const fase = ph % 1;
+                const env = Math.min(1, t / 0.003) * Math.exp(-t / (seg * 0.42)) * Math.min(1, (seg - t) / 0.06);
+                return (0.7 * Math.sin(TAU * fase) + fl(fase * 2 - 1, f * (3.2 + 2.2 * bal))) * env;
+            };
+        },
+        { pk: 0.5, corte: 5000 },
+    );
 /** Transformar: "blooo-op" que desce, balança e sobe. */
 export const transforma = som(
     0.5,

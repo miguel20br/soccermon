@@ -72,7 +72,7 @@ copyFileSync(`${JOGO}/public/fonts/Galmuri11-Bold.woff2`, `${OUT}/Galmuri11-Bold
 
 // música: a peça editada na partitura, normalizada pra −14 LUFS (2 passadas do loudnorm, ganho linear)
 execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`], { stdio: 'inherit' });
-for (const nome of ['snorlax', 'penaltis', 'magikarp']) {
+for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto']) {
     const wav = `${OUT}/som/${nome}.wav`;
     const err = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'], {
         encoding: 'utf8',
@@ -83,5 +83,5 @@ for (const nome of ['snorlax', 'penaltis', 'magikarp']) {
     console.log(nome, `medido ${m.input_i} LUFS → −14`);
 }
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ apontando pra cá
-for (const c of ['snorlax', 'penaltis', 'magikarp']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
+for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
 console.log('midia pronta');

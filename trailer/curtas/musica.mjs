@@ -1,12 +1,13 @@
 // Curtas promocionais (22/10/2026): a música de cada curta é a peça da categoria livre editada na partitura, não no
 // áudio. A peça roda inteira, mas cada nota cai no compasso novo do mapa (compasso dropado = nota descartada; compasso
 // repetido = nota tocada de novo). Assim o eco, o reverb e as notas longas soam naturais nas emendas, sem corte seco.
-//   node trailer/curtas/musica.mjs <pasta>   → <pasta>/snorlax.wav, penaltis.wav e <nome>.js (tempos dos compassos)
+//   node trailer/curtas/musica.mjs <pasta> [nome ...]   → <pasta>/<nome>.wav e <nome>.js (tempos dos compassos)
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import penaltis from '../../scripts/musica/pecas/livre-penaltis.mjs';
 import magikarp from '../../scripts/musica/pecas/livre-magikarp.mjs';
 import snorlax from '../../scripts/musica/pecas/livre-snorlax.mjs';
+import ditto from '../../scripts/musica/pecas/livre-ditto.mjs';
 import { SR, Song, writeWav } from '../../scripts/musica/synth.mjs';
 
 // compassos da peça original, na ordem do curta
@@ -69,8 +70,10 @@ Song.prototype.part = function (...args) {
 if (import.meta.url === `file://${process.argv[1]}`) {
     const OUT = process.argv[2] ?? '/tmp/soccermon-curtas';
     mkdirSync(OUT, { recursive: true });
-    for (const [nome, peca] of Object.entries({ snorlax, penaltis, magikarp })) {
-        MAPA = MAPAS[nome] ?? null; // o EP 2 foi composto já na ordem do curta
+    const so = process.argv.slice(3);
+    for (const [nome, peca] of Object.entries({ snorlax, penaltis, magikarp, ditto })) {
+        if (so.length && !so.includes(nome)) continue;
+        MAPA = MAPAS[nome] ?? null; // o EP 2 e o EP 3 foram compostos já na ordem do curta
         const S = peca();
         MAPA = null;
         const audio = S.render();
