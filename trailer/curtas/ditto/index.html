@@ -1,0 +1,247 @@
+<!doctype html>
+<!--
+  Curta 4 (28/10/2026): "Escalaram um Ditto no gol", EP 3 da série. RASCUNHO DE TOM: um ciclo do show de talentos
+  de transformação (o episódio inteiro repete transição → transformação → notas do júri). Música provisória: os
+  compassos 12–15 da livre-magikarp (a montagem de treino do EP 2, 104 BPM: o crash abre a cortina, o BOING da
+  barriga é o estalo da transformação, o crash do compasso seguinte é o corte pro júri, o BOING agudo é a placa do
+  Snorlax e as palmas são o Pikachu). Roteiro em compassos: 0 cortina fechada, TENTATIVA 1, a cortina abre |
+  0–1 o Ditto brilha, estica branco e vira um Snorlax roxo com a cara dele (o estalo na linha 4 do 1), ta-da |
+  2 o júri (Magikarp com a medalha do EP 2, Snorlax do EP 1 dormindo, Pikachu) levanta as notas 2, 1 e 3 |
+  3 a cortina fecha de novo: TENTATIVA 2. Uma coisa por vez; a placa sobe de trás de quem dá a nota.
+  Tempos: C.T(compasso, linha), 16 linhas por compasso. midia/ e comum.js são links; som/ tem os gritos;
+  img/143-ditto.png sai do gerar.cjs.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · Escalaram um Ditto no gol</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="midia/sprites.js"></script>
+<script>
+  // compassos 12–15 da livre-magikarp (104 BPM), contados do 0 (o áudio começa em 32,727 s da faixa)
+  window.MUSICA = { inicios: [0, 2.307692, 4.615385, 6.923077, 9.230769], swing: 0.15 };
+  // o Snorlax do Ditto: a folha do Snorlax pintada (gerar.cjs), com as mesmas animações
+  window.SPR['143d'] = { ...window.SPR['143'], folha: 'img/143-ditto.png' };
+</script>
+<script src="comum.js"></script>
+<style>
+.pano { position: absolute; top: 0; width: 600px; height: 1920px; z-index: 60; box-sizing: border-box;
+  background: repeating-linear-gradient(90deg, #8e1820 0 18px, #c42a33 18px 52px, #e0474c 52px 70px, #c42a33 70px 88px, #8e1820 88px 110px); }
+#pano-e { left: -60px; border-right: 12px solid #0e1430; }
+#pano-d { left: 540px; border-left: 12px solid #0e1430; }
+#bambinela { position: absolute; left: 0; top: 0; width: 1080px; height: 150px; z-index: 61; background: #b8242e; box-shadow: 0 10px 0 #0e1430;
+  -webkit-mask: radial-gradient(circle 60px at 60px 150px, transparent 59px, #000 60px) 0 0 / 120px 150px repeat-x;
+  mask: radial-gradient(circle 60px at 60px 150px, transparent 59px, #000 60px) 0 0 / 120px 150px repeat-x; }
+#holofote { position: absolute; left: 0; top: 0; width: 760px; height: 760px; margin: -380px 0 0 -380px; z-index: 62; border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 240 190 / 55%), rgb(255 240 190 / 18%) 55%, transparent 70%); mix-blend-mode: screen; pointer-events: none; }
+#placa { position: absolute; left: 0; width: 1080px; top: 640px; z-index: 63; text-align: center; color: #fff; }
+#placa b, #placa i { display: block; opacity: 0; font-style: normal; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; }
+#placa b { font-size: 112px; letter-spacing: 6px; }
+#placa i { font-size: 340px; line-height: 1.1; color: #ffcb05; -webkit-text-stroke: 28px #0e1430; text-shadow: 0 18px 0 #0e1430; }
+#foco { position: absolute; inset: 0; z-index: 8; pointer-events: none;
+  background: radial-gradient(ellipse 380px 560px at 540px 1000px, transparent 62%, rgb(7 10 24 / 62%) 100%); }
+#luz-chao { position: absolute; left: 290px; top: 1150px; width: 500px; height: 190px; border-radius: 50%; z-index: 9; mix-blend-mode: screen;
+  background: radial-gradient(ellipse, rgb(255 236 170 / 55%), transparent 70%); }
+.aura { position: absolute; left: 0; top: 0; width: 560px; height: 560px; margin: -280px 0 0 -280px; border-radius: 50%; z-index: 12; opacity: 0;
+  background: radial-gradient(circle, rgb(255 255 255 / 95%), rgb(230 190 255 / 55%) 45%, transparent 70%); }
+.brilho { position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; z-index: 14; opacity: 0; background: #fff;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+.branco { filter: brightness(0) invert(1); }
+/* o júri */
+#juri { position: absolute; inset: 0; z-index: 40; opacity: 0; overflow: hidden; }
+#juri .raios { opacity: 0.7; }
+#mesa { position: absolute; left: 30px; top: 1240px; width: 1020px; height: 700px; z-index: 20; box-sizing: border-box;
+  background: linear-gradient(#c98a4f 0 34px, #0e1430 34px 44px, #7a4a2a 44px 120px, #e8423f 120px 210px, #7a4a2a 210px);
+  border: 12px solid #0e1430; border-radius: 22px 22px 0 0; }
+.placa { position: absolute; left: 0; top: 0; z-index: 5; width: 0; height: 0; }
+.placa .cartao { position: absolute; left: -105px; top: -190px; width: 210px; height: 190px; box-sizing: border-box; display: flex; align-items: center;
+  justify-content: center; background: #f8f8f0; border: 12px solid #0e1430; border-radius: 18px; font-size: 150px; color: #e8423f; box-shadow: 0 10px 0 rgb(0 0 0 / 35%); }
+.placa .cabo { position: absolute; left: -13px; top: -6px; width: 26px; height: 420px; background: #a8743f; border: 8px solid #0e1430; border-top: none; }
+.medalha { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.medalha .fita { position: absolute; left: -38px; top: -70px; width: 76px; height: 70px;
+  background: linear-gradient(90deg, #e8423f 0 50%, #3a7bd5 50%); clip-path: polygon(0 0, 30% 0, 50% 70%, 70% 0, 100% 0, 62% 100%, 38% 100%); }
+.medalha .disco { position: absolute; left: -36px; top: -14px; width: 72px; height: 72px; box-sizing: border-box; border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00); border: 8px solid #0e1430; }
+.zz { position: absolute; left: 0; top: 0; z-index: 31; font-size: 64px; color: #fff; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="7.5">
+  <div id="cena" class="clip" data-start="0" data-duration="7.5">
+    <div id="cam" class="camada"><div id="foco"></div><div id="luz-chao"></div></div>
+    <div id="juri" class="palco"><div class="raios" id="juri-raios"></div><div id="mesa"></div></div>
+    <div class="pano" id="pano-e"></div><div class="pano" id="pano-d"></div><div id="bambinela"></div>
+    <div id="holofote"></div>
+    <div id="placa"><b>TENTATIVA</b><i id="placa-n">1</i></div>
+  </div>
+  <div class="flash" id="flash"></div>
+  <audio id="a-musica" class="clip" src="midia/som/magikarp-14.wav" data-start="0" data-duration="7.5" data-media-start="32.727273" data-fade-out="0.3"></audio>
+  <audio id="a-ditto" class="clip" src="som/132.ogg" data-start="1.442" data-duration="0.65" data-media-start="0"></audio>
+  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="6.346" data-duration="0.92" data-media-start="0"></audio>
+
+  <script>
+    const { T, div, quadra, ator, anim, quadro, estouro, treme, flash } = C;
+    const tl = gsap.timeline({ paused: true });
+    const cam = document.getElementById('cam');
+    const juri = document.getElementById('juri');
+    const ver = (els, t, on = true) => tl.set(els, { opacity: on ? 1 : 0 }, t);
+    const carimbo = (sel, t, s = 2.2) => {
+      tl.set(sel, { opacity: 1 }, t);
+      tl.fromTo(sel, { scale: s }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, t);
+    };
+    const salto = (a, t, h, d = 0.3) => {
+      tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t);
+      if (a.sh) tl.to(a.sh, { keyframes: { scale: [Math.max(0.45, 1 - h / 500), 1] }, duration: d, ease: 'power1.inOut' }, t);
+    };
+    const GL = 760;
+    quadra(cam, 'madeira', { K: 190, gy: GL, fundo: 1.5 });
+
+    // ---------- o palco: o Ditto e o Snorlax dele, cada um com uma cópia branca por cima (o brilho) ----------
+    const PE = 1250;
+    const E = 14;
+    const dt = ator(cam, 132, { escala: E, z: 13, x: 540, y: PE });
+    const dtB = ator(cam, 132, { escala: E, z: 14, x: 540, y: PE, sombra: false, opacity: 0 });
+    const sd = ator(cam, '143d', { escala: E, z: 13, x: 540, y: PE, opacity: 0 });
+    const sdB = ator(cam, '143d', { escala: E, z: 14, x: 540, y: PE, sombra: false, opacity: 0 });
+    dtB.spr.classList.add('branco');
+    sdB.spr.classList.add('branco');
+    const par = (a, b, ...r) => {
+      anim(tl, a, ...r);
+      anim(tl, b, ...r);
+    };
+    const parQuadro = (a, b, ...r) => {
+      quadro(tl, a, ...r);
+      quadro(tl, b, ...r);
+    };
+    const aura = div(cam, 'aura');
+    gsap.set(aura, { x: 540, y: PE - 130 });
+
+    // ===== 0 · cortina fechada com o holofote varrendo; TENTATIVA 1; a cortina abre na linha 8 =====
+    tl.fromTo('#holofote', { x: 160, y: 1100 }, { x: 540, y: 860, duration: T(0, 6), ease: 'sine.inOut', immediateRender: false }, 0);
+    tl.to('#holofote', { opacity: 0, duration: 0.2 }, T(0, 8));
+    carimbo('#placa b', T(0, 1));
+    carimbo('#placa-n', T(0, 3), 2.6);
+    flash(tl, T(0, 3), 0.35, 0.2);
+    tl.to('#placa', { scale: 0.6, opacity: 0, duration: 0.16, ease: 'power2.in' }, T(0, 8) - 0.16);
+    tl.to('#pano-e', { x: -480, duration: 0.4, ease: 'power2.out' }, T(0, 8));
+    tl.to('#pano-d', { x: 480, duration: 0.4, ease: 'power2.out' }, T(0, 8));
+    tl.fromTo('.pano', { scaleY: 1 }, { keyframes: { skewX: [0, 3, -2, 1, 0] }, duration: 0.6, ease: 'none', immediateRender: false }, T(0, 8));
+    anim(tl, dt, 'Idle', 0, 0, T(1, 3));
+
+    // ===== 0–1 · a transformação: concentra, brilha, estica branco, vira Snorlax (o estalo no BOING, T(1,4)) =====
+    // concentra (amassa)
+    tl.to([dt.corpo, dtB.corpo], { scaleX: 1.22, scaleY: 0.78, duration: 0.25, ease: 'sine.inOut' }, T(0, 12));
+    // brilha: a cópia branca acende, a aura cresce e as estrelinhas giram em volta
+    tl.to(dtB.el, { opacity: 1, duration: T(1, 0) - T(0, 13), ease: 'power1.in' }, T(0, 13));
+    tl.fromTo(aura, { opacity: 0, scale: 0.4 }, { opacity: 0.9, scale: 1, duration: T(1, 3) - T(0, 13), ease: 'power1.in', immediateRender: false }, T(0, 13));
+    for (let k = 0; k < 6; k++) {
+      const b = div(cam, 'brilho');
+      const a0 = (k / 6) * Math.PI * 2;
+      const pos = (a, r) => ({ x: 540 + Math.cos(a) * r, y: PE - 140 + Math.sin(a) * r * 0.8 });
+      tl.set(b, { ...pos(a0, 260), opacity: 0 }, 0);
+      const t0 = T(0, 13) + k * 0.06;
+      tl.fromTo(b, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1.2, duration: 0.15, immediateRender: false }, t0);
+      tl.to(b, { keyframes: [pos(a0 + 1, 220), pos(a0 + 2, 150), pos(a0 + 2.6, 60)], rotation: 180, duration: T(1, 3) - t0, ease: 'power1.in' }, t0);
+      tl.set(b, { opacity: 0 }, T(1, 3));
+    }
+    // estica pra cima, mole, do tamanho do Snorlax
+    tl.to([dt.corpo, dtB.corpo], {
+      keyframes: { scaleX: [1.05, 1.4, 1.2, 1.5], scaleY: [1.25, 1.35, 1.75, 1.95] },
+      duration: T(1, 3) - T(1, 0), ease: 'power1.in',
+    }, T(1, 0));
+    tl.to(dt.sh, { scale: 1.6, duration: T(1, 3) - T(1, 0) }, T(1, 0));
+    // troca debaixo do branco: o Snorlax branco cresce e estala
+    ver([dt.el, dtB.el], T(1, 3), false);
+    ver([sd.el, sdB.el], T(1, 3));
+    parQuadro(sd, sdB, 'Idle', 0, 0, T(1, 3));
+    tl.fromTo([sd.corpo, sdB.corpo], { scaleX: 0.8, scaleY: 1.1 }, { scaleX: 1, scaleY: 1, duration: T(1, 4) - T(1, 3), ease: 'power2.in', immediateRender: false }, T(1, 3));
+    const tPop = T(1, 4);
+    tl.to(sdB.el, { opacity: 0, duration: 0.4, ease: 'power1.in' }, tPop);
+    tl.to(aura, { opacity: 0, scale: 1.5, duration: 0.3, ease: 'power2.out' }, tPop);
+    tl.fromTo([sd.corpo, sdB.corpo], { scaleX: 1.25, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'elastic.out(1, 0.35)', immediateRender: false }, tPop);
+    const fx = estouro(tl, cam, 540, PE - 200, tPop, { tam: 520, cor: '#ffcb05' });
+    fx.style.zIndex = 12;
+    flash(tl, tPop, 0.7, 0.3);
+    treme(tl, '#cam', tPop, 1.2, 0.35);
+    // ta-da: os braços pra cima (os quadros 1–3 do Idle), segura, e volta a respirar
+    parQuadro(sd, sdB, 'Idle', 0, 1, tPop);
+    parQuadro(sd, sdB, 'Idle', 0, 2, T(1, 5));
+    parQuadro(sd, sdB, 'Idle', 0, 3, T(1, 6));
+    parQuadro(sd, sdB, 'Idle', 0, 4, T(1, 11));
+    parQuadro(sd, sdB, 'Idle', 0, 5, T(1, 12));
+    par(sd, sdB, 'Idle', 0, T(1, 13), T(2, 0));
+    // a câmera chega perto da cara (lento, pra ler)
+    tl.to(cam, { scale: 1.3, transformOrigin: `540px ${PE - 380}px`, duration: T(2, 0) - T(1, 6), ease: 'sine.inOut' }, T(1, 6));
+
+    // ===== 2 · o júri: Magikarp (medalha do EP 2) 2, Snorlax (dormindo) 1, Pikachu 3 =====
+    const tJ = T(2, 0);
+    ver(juri, tJ);
+    tl.set('.pano', { opacity: 0 }, tJ);
+    tl.set('#bambinela', { opacity: 0 }, tJ);
+    tl.to('#juri-raios', { rotation: 10, duration: T(3, 4) - tJ, ease: 'none' }, tJ);
+    const mk = ator(juri, 129, { escala: 13, z: 10, x: 200, y: 1270, sombra: false });
+    const sn = ator(juri, 143, { escala: 12, z: 10, x: 540, y: 1270, sombra: false });
+    const pk = ator(juri, 25, { escala: 12, z: 10, x: 880, y: 1270, sombra: false });
+    const md = div(mk.corpo, 'medalha');
+    md.innerHTML = '<div class="fita"></div><div class="disco"></div>';
+    gsap.set(md, { x: -26, y: -124, scale: 1.2 });
+    anim(tl, mk, 'Idle', 2, tJ, T(2, 6));
+    // dormindo: só o quadro de olho fechado, respirando (o resto do Idle boceja e abre a boca)
+    quadro(tl, sn, 'Idle', 0, 0, tJ);
+    tl.fromTo(sn.corpo, { scaleY: 1, scaleX: 1 }, { keyframes: { scaleY: [1.04, 1, 1.04, 1], scaleX: [0.98, 1, 0.98, 1] }, duration: T(3, 4) - tJ, ease: 'sine.inOut', immediateRender: false }, tJ);
+    anim(tl, pk, 'Idle', 0, tJ, T(2, 12));
+    // a mesa só começa no júri; zoom leve de entrada
+    tl.fromTo(juri, { scale: 1.08 }, { scale: 1, duration: 0.5, ease: 'power2.out', immediateRender: false }, tJ);
+    // o Snorlax ronca o tempo todo
+    for (let k = 0; k < 4; k++) {
+      const z = div(juri, 'zz');
+      z.textContent = 'Z';
+      const t = tJ + 0.1 + 0.55 * k;
+      tl.set(z, { x: 690, y: 900 }, 0);
+      tl.fromTo(z, { opacity: 0, scale: 0.6 + 0.2 * (k % 2) }, { opacity: 1, duration: 0.2, immediateRender: false }, t);
+      tl.to(z, { x: 700 + 20 * (k % 2), y: 700, duration: 1.1, ease: 'sine.out' }, t);
+      tl.to(z, { opacity: 0, duration: 0.3 }, t + 0.8);
+    }
+    // as placas sobem de trás de quem dá a nota
+    const placa = (x, n) => {
+      const p = div(juri, 'placa');
+      p.innerHTML = `<div class="cabo"></div><div class="cartao">${n}</div>`;
+      gsap.set(p, { x, y: 1480 });
+      return p;
+    };
+    const p1 = placa(200, 2);
+    const p2 = placa(540, 1);
+    const p3 = placa(880, 3);
+    tl.to(p1, { y: 950, duration: 0.24, ease: 'back.out(2)' }, T(2, 6));
+    // pula com o quadro parado (o Hop do PMD sobe dentro do quadro e a medalha ficava pra trás)
+    salto(mk, T(2, 6), 60, 0.36);
+    anim(tl, mk, 'Idle', 2, T(2, 6), T(3, 4));
+    // o do Snorlax sobe devagar, sem ele acordar
+    tl.to(p2, { y: 900, duration: 0.55, ease: 'sine.out' }, T(2, 10));
+    tl.to(p3, { y: 890, duration: 0.24, ease: 'back.out(2)' }, T(2, 12));
+    for (const r of [12, 14]) {
+      anim(tl, pk, 'Hop', 0, T(2, r), T(2, r) + 0.3, { loop: false, vel: 1.6 });
+      salto(pk, T(2, r), 50, 0.28);
+    }
+    anim(tl, pk, 'Idle', 0, T(3, 0), T(3, 4));
+
+    // ===== 3 · a cortina fecha: TENTATIVA 2 =====
+    const tF = T(3, 0);
+    tl.set('.pano', { opacity: 1, skewX: 0 }, tF - 0.01);
+    tl.set('#bambinela', { opacity: 1 }, tF - 0.01);
+    tl.fromTo('#pano-e', { x: -620 }, { x: 0, duration: 0.24, ease: 'power2.in', immediateRender: false }, tF - 0.01);
+    tl.fromTo('#pano-d', { x: 620 }, { x: 0, duration: 0.24, ease: 'power2.in', immediateRender: false }, tF - 0.01);
+    treme(tl, ['#pano-e', '#pano-d'], tF + 0.23, 0.4, 0.2);
+    tl.set('#placa', { opacity: 1, scale: 1 }, tF);
+    tl.set('#placa b, #placa-n', { opacity: 0 }, tF);
+    tl.set('#placa-n', { textContent: '2' }, tF);
+    carimbo('#placa b', T(3, 2));
+    carimbo('#placa-n', T(3, 3), 2.6);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
