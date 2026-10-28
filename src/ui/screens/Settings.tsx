@@ -225,7 +225,7 @@ export function Settings() {
                         onPick={(speed) => set({ speed })}
                     />
                 </Row>
-                {/* partida nova (?lab=hud): até que velocidade a câmera fica de perto */}
+                {/* partida nova (padrão; ?lab=hud-off desliga): até que velocidade a câmera fica de perto */}
                 {hudOn && (
                     <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
                         <Segmented

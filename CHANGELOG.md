@@ -1,5 +1,23 @@
 # Novidades
 
+## 0.9.24 · Beira da quadra (2026-10-28)
+
+### Partida nova
+- No celular em pé, a quadra ficou com o dobro do tamanho e a câmera acompanha a bola
+- Tática, Trocar, Tempo e Lances viraram 4 botões perto do polegar
+- Em Configurações você escolhe até que velocidade a câmera fica de perto
+
+### Duelo
+- Link de uma sala que ninguém abriu não fica mais esperando pra sempre: aparece o botão Jogar uma copa
+
+### Menus
+- O logo do Soccermon voltou pra tela inicial
+
+### Corrigido
+- No computador, a barra de velocidade cabe inteira na tela
+- Com o celular deitado, o intervalo cabe sem texto cortado
+- O zoom no escanteio não mostra mais o fundo escuro fora da quadra
+
 ## 0.9.23.3 · Pedidos dos jogadores (2026-10-27)
 
 ### Golpe Máximo

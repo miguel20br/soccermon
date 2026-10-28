@@ -9,6 +9,39 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.24',
+        date: '2026-10-28',
+        title: 'Beira da quadra',
+        sections: [
+            {
+                title: 'Partida nova',
+                lines: [
+                    'No celular em pé, a quadra ficou com o dobro do tamanho e a câmera acompanha a bola',
+                    'Tática, Trocar, Tempo e Lances viraram 4 botões perto do polegar',
+                    'Em Configurações você escolhe até que velocidade a câmera fica de perto',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Link de uma sala que ninguém abriu não fica mais esperando pra sempre: aparece o botão Jogar uma copa',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: ['O logo do Soccermon voltou pra tela inicial'],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'No computador, a barra de velocidade cabe inteira na tela',
+                    'Com o celular deitado, o intervalo cabe sem texto cortado',
+                    'O zoom no escanteio não mostra mais o fundo escuro fora da quadra',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.23.3',
         date: '2026-10-27',
         title: 'Pedidos dos jogadores',
@@ -1825,6 +1858,39 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.24',
+        date: '2026-10-28',
+        title: 'Courtside',
+        sections: [
+            {
+                title: 'New match screen',
+                lines: [
+                    'On a phone held upright, the court is twice as big and the camera follows the ball',
+                    'Tactics, Swap, Time and Plays are now 4 buttons near your thumb',
+                    'In Settings you pick up to which speed the camera stays close',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    "A link to a room nobody opened no longer waits forever: you get a Play a cup button",
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: ['The Soccermon logo is back on the home screen'],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'On desktop, the speed bar fits on screen',
+                    'With the phone sideways, halftime fits without cut-off text',
+                    'The corner kick zoom no longer shows the dark area outside the court',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.23.3',
         date: '2026-10-27',

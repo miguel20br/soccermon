@@ -3,11 +3,11 @@ import { followOffset, HUD_ZOOM_DAMP } from './court-follow';
 import { hudOn } from './hud-lab';
 
 describe('?lab=hud', () => {
-    it('liga pela URL, fica na aba e desliga com hud-off', () => {
-        expect(hudOn('?lab=hud', null)).toBe(true);
-        expect(hudOn('', '1')).toBe(true);
+    it('é o padrão (0.9.24); hud-off desliga e fica na aba', () => {
+        expect(hudOn('', null)).toBe(true);
+        expect(hudOn('?lab=hud', '0')).toBe(true);
         expect(hudOn('?lab=hud-off', '1')).toBe(false);
-        expect(hudOn('', null)).toBe(false);
+        expect(hudOn('', '0')).toBe(false);
     });
     it('a quadra segue a bola sem mostrar além das bordas', () => {
         // janela de 390 numa quadra de 900: bola no meio centra, nas pontas encosta na borda
