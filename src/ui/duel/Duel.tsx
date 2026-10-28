@@ -822,9 +822,9 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
 
 /**
  * Convidado esperando o anfitrião. Link velho (anfitrião já saiu) nunca responde: depois de um tempo mostra a saída,
- * com "Jogar uma copa" pra quem chegou pelo convite sem nunca ter jogado.
+ * com "Jogar uma copa" pra quem chegou pelo convite sem nunca ter jogado (o "Sair da sala" já está no topo).
  */
-function Connecting({ code, status, onHome }: { code: string; status: string; onHome: () => void }) {
+function Connecting({ code, status }: { code: string; status: string }) {
     const { t } = useT();
     const newRun = useGame((g) => g.newRun);
     const clubName = useGame((g) => g.profile.clubName);
@@ -842,7 +842,8 @@ function Connecting({ code, status, onHome }: { code: string; status: string; on
             </div>
         );
     return (
-        <div className="panel duel-center" data-testid="duel-closed">
+        // key: é outro painel (entra com fade em duel.css), não o da espera trocando o texto
+        <div key="closed" className="panel duel-center duel-closed" data-testid="duel-closed">
             <h1>{t('duel.closed')}</h1>
             <p className="muted">{t('duel.closedText')}</p>
             <button
@@ -856,9 +857,6 @@ function Connecting({ code, status, onHome }: { code: string; status: string; on
                 }}
             >
                 {t('duel.playCup')}
-            </button>
-            <button type="button" className="duel-google" onClick={onHome}>
-                {t('duel.leave')}
             </button>
         </div>
     );
@@ -944,7 +942,7 @@ export function Duel() {
     } else if (!code && !room) {
         body = <CreateRoom peer={peer} local={local} />;
     } else if (!s || !role) {
-        body = <Connecting code={code ?? room ?? ''} status={status} onHome={home} />;
+        body = <Connecting code={code ?? room ?? ''} status={status} />;
     } else if (s.phase === 'lobby') body = <Lobby />;
     else if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
     else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;

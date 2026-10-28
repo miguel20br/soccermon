@@ -1073,3 +1073,7 @@ button.sb-title:hover {
 .ready-bar.compact .ready-chips {
     max-width: 46ch;
 }
+/* sala sem anfitrião: o painel entra com fade em vez de trocar o texto da espera (nada teleporta) */
+.duel-closed {
+    animation: row-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}

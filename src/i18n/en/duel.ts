@@ -74,7 +74,7 @@ export const duel: typeof pt = {
     connecting: 'Joining room {code}…',
     waitingHost: 'Waiting for the host to open the room…',
     closed: 'Nobody opened this room',
-    closedText: 'The host may have left, or the link is old. Meanwhile, how about a cup?',
+    closedText: 'The host may have left, or the link is old.',
     playCup: 'Play a cup',
     full: 'Room full',
     fullText: 'This room already has two trainers. Ask for a new link.',
