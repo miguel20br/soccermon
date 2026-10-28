@@ -38,6 +38,13 @@ export const friends: typeof pt = {
     loadError: "Couldn't load your friends right now.",
     retry: 'Try again',
     challengingNote: 'Challenge for {name}: create the room and the invite goes out right away (valid for 15 minutes).',
+    challengeSent: {
+        enviado: 'Invite sent to {name} (valid for 15 minutes).',
+        nao_achei: "{name} isn't on your list anymore. Send the link.",
+        rapido_demais: 'You just challenged {name}. Send the link.',
+        sala: "The invite to {name} didn't go out. Send the link.",
+        offline: "No connection: the invite to {name} didn't go out. Send the link.",
+    },
     button: {
         add: 'Add friend',
         sending: 'Sending…',

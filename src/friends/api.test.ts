@@ -1,5 +1,19 @@
-import { describe, expect, it } from 'vitest';
-import { type FriendRow, formatFriendCode, groupFriends, isFriendCode, normalizeFriendCode } from './api';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
+
+import { useGame } from '../store/game-store';
+import {
+    type FriendRow,
+    type FriendsServer,
+    formatFriendCode,
+    groupFriends,
+    isFriendCode,
+    normalizeFriendCode,
+    sendPendingChallenge,
+    setFriendsServer,
+    useFriends,
+} from './api';
 
 const row = (trainer: string, status: FriendRow['status'], room?: string, roomAt?: number): FriendRow => ({
     code: `${trainer.toUpperCase().slice(0, 4).padEnd(4, 'X')}2345`,
@@ -65,5 +79,36 @@ describe('lista de amigos', () => {
         expect(g.challenges.map((r) => r.trainer)).toEqual(['Ana', 'Davi']);
         expect(g.friends.find((r) => r.trainer === 'Gabi')?.room).toBeNull();
         expect(g.friends.find((r) => r.trainer === 'Davi')?.room).toBe('K7M2QX');
+    });
+});
+
+describe('Desafiar', () => {
+    it('o amigo escolhido sobrevive à troca pro Duelo, o convite sai com a sala e a resposta fica pra sala mostrar', async () => {
+        const sent: string[] = [];
+        let answer = 'enviado';
+        setFriendsServer({
+            challenge: async (code: string, room: string) => {
+                sent.push(`${code}:${room}`);
+                return answer;
+            },
+        } as unknown as FriendsServer);
+        const gabriel = { code: 'PWTR7RCK', trainer: 'Gabriel' };
+        useGame.getState().go('profile');
+        useFriends.setState({ challenging: gabriel });
+        useGame.getState().go('duel');
+        // a troca de tela chega depois do resto do estado: antes, isso apagava o amigo e o convite nunca saía
+        expect(useFriends.getState().challenging).toEqual(gabriel);
+        expect(await sendPendingChallenge('K7M2QX')).toBe('enviado');
+        expect(sent).toEqual(['PWTR7RCK:K7M2QX']);
+        expect(useFriends.getState().challengeSent).toEqual({ trainer: 'Gabriel', status: 'enviado' });
+        // resposta estranha do servidor vira 'offline' (a sala pede o link)
+        answer = 'precisa_conta';
+        useFriends.setState({ challenging: gabriel });
+        expect(await sendPendingChallenge('ABCDEF')).toBe('offline');
+        // saiu do Duelo: nada fica pendurado
+        useFriends.setState({ challenging: gabriel });
+        useGame.getState().go('home');
+        expect(useFriends.getState().challenging).toBeNull();
+        expect(useFriends.getState().challengeSent).toBeNull();
     });
 });

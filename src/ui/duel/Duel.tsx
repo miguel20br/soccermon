@@ -509,6 +509,8 @@ function Lobby() {
     const local = useDuel((st) => st.local);
     const mismatch = s.peers.host && s.peers.guest && !versionsOk(s);
     const rivalIn = !!s.peers[other(role)];
+    // "Desafiar" na lista de amigos: o convite saiu ou não (aí o link é o caminho)
+    const sent = useFriends((f) => f.challengeSent);
     // Time pronto sem time pra levar (quem entrou pelo link num save novo): o Pronto travaria a sala na escolha do time
     const hasTeam = useHasReadyTeam();
     const noTeam = s.mode === 'ready' && !hasTeam;
@@ -531,6 +533,15 @@ function Lobby() {
                 </span>
             </div>
             <InviteBox s={s} local={local} compact={rivalIn} />
+            {sent && !rivalIn && (
+                <p
+                    className={sent.status === 'enviado' ? 'panel fr-challenging' : 'error-text'}
+                    role="status"
+                    data-testid="duel-challenge"
+                >
+                    {t(`friends.challengeSent.${sent.status}`, { name: sent.trainer })}
+                </p>
+            )}
             {local && <p className="muted small">{t('duel.lobby.local')}</p>}
             <div className="duel-peers">
                 {(['host', 'guest'] as Role[]).map((r) => (
