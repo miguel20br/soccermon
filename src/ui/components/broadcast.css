@@ -1414,3 +1414,22 @@ body:has(.bc-hud) {
 :root[data-reduce-motion="true"] .bt-next {
     animation: none;
 }
+
+/* celular em pé baixo (320x568): o Começar ficava abaixo da dobra dentro do painel do intervalo. Título e dica saem
+   (o placar já diz INTERVALO) e os botões sobem pra logo embaixo do placar */
+@media (orientation: portrait) and (max-height: 700px) {
+    .bc .ht-info :is(.ht-title, .ht-tip) {
+        display: none;
+    }
+    .bc .ht-score {
+        order: -2;
+    }
+    .bc .ht-actions {
+        order: -1;
+    }
+}
+/* a reação do rival (retrato com "Ops", "Zzz") cobria o painel do intervalo: some enquanto ele está aberto */
+.bc:has(.ht-panel) .emote-pop {
+    opacity: 0;
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
