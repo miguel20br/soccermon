@@ -12,8 +12,8 @@ const A = `${JOGO}/public/assets`;
 // 143 Snorlax e 25 Pikachu (curta 1) · pênaltis: nossos 6 Charizard, 7 Squirtle, 54 Psyduck, 1 Bulbasaur, 25 Pikachu
 // e o goleiro 107 Hitmonchan; deles 94 Gengar, 68 Machamp, 65 Alakazam, 124 Jynx, 150 Mewtwo e o goleiro 76 Golem ·
 // torcida (de costas, embaixo da tela)
-// EP 2: 129 Magikarp (e a roleta usa os retratos)
-const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4];
+// EP 2: 129 Magikarp (e a roleta usa os retratos) · EP 3: 95 Onix (a 3ª tentativa do Ditto)
+const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
 const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy'];
 
