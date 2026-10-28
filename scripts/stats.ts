@@ -386,6 +386,24 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         );
     }
 
+    // 0.9.24: convite do Duelo medido pelo Duelo (duel_join/duel_match_end), não pela copa
+    const temEv = (nome: string) => new Set(by(nome).map((e) => e.session));
+    const convite = foraDoFunil.filter((s) => grupo(s) === 'convite do Duelo');
+    if (convite.length && by('duel_join').length) {
+        const [entrou, terminou] = [temEv('duel_join'), temEv('duel_match_end')];
+        line(
+            `${MD ? '' : '  '}${bold('Convite do Duelo')}: ${fmt(convite.length)} sessões novas, ${fmt(convite.filter((s) => entrou.has(s)).length)} entraram na sala, ${fmt(convite.filter((s) => terminou.has(s)).length)} terminaram um jogo`,
+        );
+    }
+    // 0.9.24: quem toca em "Pular pro fim" (base pra decidir o ritmo da 1ª partida)
+    const pulos = by('match_skip');
+    if (pulos.length) {
+        const na1a = pulos.filter((e) => bool(e.props.first_cup));
+        line(
+            `${MD ? '' : '  '}${bold('Pular pro fim')}: ${fmt(pulos.length)} toques em ${fmt(new Set(pulos.map((e) => e.session)).size)} sessões (${fmt(na1a.length)} na 1ª copa, ${fmt(na1a.filter((e) => Number(e.props.stage) === 0).length)} na 1ª partida dela)`,
+        );
+    }
+
     // 4. Canais
     titulo('4. Canais');
     const porCanal = new Map<string, string[]>();

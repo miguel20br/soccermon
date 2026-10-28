@@ -59,6 +59,9 @@ export const EVENT_NAMES = [
     'coach_shown',
     'coach_next',
     'coach_skip',
+    'match_skip',
+    'duel_join',
+    'duel_match_end',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { track } from '../../analytics/track';
 import { FUTSAL_5 } from '../../engine/config';
 import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
@@ -969,7 +970,17 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 disabled={pending || !sceneReady}
                                 aria-label={t('match.skip')}
                                 title={t('match.skip')}
-                                onClick={() => EventBus.emit('match:skip')}
+                                onClick={() => {
+                                    // quem pula a partida e em qual (1ª copa?): base pra decidir o ritmo da 1ª partida
+                                    track('match_skip', {
+                                        stage: run.stage,
+                                        mode: run.mode ?? null,
+                                        liga,
+                                        speed: String(store.settings.speed),
+                                        first_cup: store.records.cups === 0,
+                                    });
+                                    EventBus.emit('match:skip');
+                                }}
                             >
                                 <HudIcon kind="skip" />
                                 <span>{t('match.skip')}</span>

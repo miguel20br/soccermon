@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { track } from '../../analytics/track';
 import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
@@ -884,6 +885,14 @@ export function Duel() {
     useEffect(() => {
         if (code && peer && room !== code) duel.join(code, peer, local);
     }, [code, peer?.id]);
+
+    // estatísticas: entrou na sala e terminou cada jogo (uma vez por sala/jogo; o convite não gera run_start)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: conta quando ganha o papel e quando um jogo acaba
+    useEffect(() => {
+        if (role && duel.markRecorded('ev-join')) track('duel_join', { role, invited: !!code });
+        if (s?.phase === 'done' && s.result && role && duel.markRecorded(`ev-end-${s.game}`))
+            track('duel_match_end', { role, mode: s.mode, wo: !!s.result.wo, desync: !!s.result.desync });
+    }, [role, s?.phase, s?.game]);
 
     // histórico no save de cada um (uma vez por partida)
     // biome-ignore lint/correctness/useExhaustiveDependencies: grava quando a partida da sala termina
