@@ -8,7 +8,7 @@
 - Em Configurações você escolhe até que velocidade a câmera fica de perto
 
 ### Duelo
-- Link de uma sala que ninguém abriu não fica mais esperando pra sempre: aparece o botão Jogar uma copa
+- Se a sala do link demora pra abrir, aparece o botão Jogar uma copa enquanto você espera
 
 ### Menus
 - O logo do Soccermon voltou pra tela inicial

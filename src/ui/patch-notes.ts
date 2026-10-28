@@ -23,9 +23,7 @@ export const PATCH_NOTES: PatchNotes[] = [
             },
             {
                 title: 'Duelo',
-                lines: [
-                    'Link de uma sala que ninguém abriu não fica mais esperando pra sempre: aparece o botão Jogar uma copa',
-                ],
+                lines: ['Se a sala do link demora pra abrir, aparece o botão Jogar uma copa enquanto você espera'],
             },
             {
                 title: 'Menus',
@@ -1873,7 +1871,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
             {
                 title: 'Duel',
-                lines: ['A link to a room nobody opened no longer waits forever: you get a Play a cup button'],
+                lines: ['If the room from a link takes a while to open, a Play a cup button shows up while you wait'],
             },
             {
                 title: 'Menus',
