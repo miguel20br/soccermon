@@ -306,3 +306,36 @@
         display: none;
     }
 }
+
+/* Nome de treinador que abre o perfil (TrainerName): o texto de sempre, sublinhado pra mostrar que dá pra tocar. */
+.trainer-link {
+    display: inline;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    vertical-align: baseline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--muted);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition:
+        color 200ms var(--ease-out),
+        text-decoration-color 200ms var(--ease-out);
+}
+.trainer-link:hover,
+.trainer-link:focus-visible {
+    color: var(--yellow);
+    text-decoration-color: currentColor;
+}
+.trainer-link[aria-busy="true"] {
+    opacity: 0.6;
+}

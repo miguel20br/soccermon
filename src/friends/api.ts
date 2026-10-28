@@ -348,6 +348,12 @@ export async function friendAction<T>(fn: (s: FriendsServer) => Promise<T>): Pro
     return r;
 }
 
+/** "Desafiar": guarda o amigo e abre o Duelo; a sala que nascer chama ele (sendPendingChallenge). */
+export function challengeFriend(r: { code: string; trainer: string }) {
+    useFriends.setState({ challenging: { code: r.code, trainer: r.trainer } });
+    useGame.getState().go('duel');
+}
+
 /** Depois que a sala do Duelo nasce: manda o desafio pro amigo escolhido no "Desafiar". */
 export async function sendPendingChallenge(room: string) {
     const c = useFriends.getState().challenging;

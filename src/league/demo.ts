@@ -30,11 +30,22 @@ const row = (pos: number, trainer: string, club: string, color: string, extra: P
 });
 
 const DAILY_ROWS: DailyRow[] = [
-    row(1, 'Davi', 'Viridian Verde', 'verde', { champion: true, gf: 15, ga: 3 }),
+    // os códigos de amigo (servidor com a migração 20261028200000): Davi é amigo no `?demo=amigos`, Bia te pediu, o
+    // Gary dá pra adicionar; o "Treinador" (sem código) fica só texto
+    row(1, 'Davi', 'Viridian Verde', 'verde', { champion: true, gf: 15, ga: 3, code: 'VRDN4GRN' }),
     row(2, 'Ana Clara', 'Lavender Assombro', 'roxo', { champion: true, gf: 11, ga: 5 }),
     row(3, 'Miguel', 'Pallet FC', 'vermelho', { wins: 3, gf: 10, ga: 6, me: true }),
-    row(4, 'Treinador', 'Cinnabar Chama Eterna Futebol', 'laranja', { wins: 2, gf: 7, ga: 7 }),
-    row(5, 'Bia', 'Cerulean', 'azul', { wins: 1, gf: 3, ga: 2, done: false, squad: null, captain: null }),
+    row(4, 'Gary', 'Pallet Rival', 'roxo', { wins: 3, gf: 9, ga: 7, code: 'CHAR2ZRD' }),
+    row(5, 'Treinador', 'Cinnabar Chama Eterna Futebol', 'laranja', { wins: 2, gf: 7, ga: 7 }),
+    row(6, 'Bia', 'Cerulean', 'azul', {
+        wins: 1,
+        gf: 3,
+        ga: 2,
+        done: false,
+        squad: null,
+        captain: null,
+        code: 'CRLN5BLU',
+    }),
 ];
 
 const LIGA_ROWS: LigaRow[] = [

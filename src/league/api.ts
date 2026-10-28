@@ -37,6 +37,8 @@ export interface DailyRow {
     ga: number;
     done: boolean;
     me: boolean;
+    /** Código de amigo (só pra quem entrou com o Google; servidor sem a migração 20261028200000 não manda). */
+    code?: string | null;
     /** Os 5 titulares (ids de espécie) e a vaga do capitão (0 a 4). Nulos em linha sem time (e em servidor sem a migração). */
     squad?: number[] | null;
     captain?: number | null;
@@ -61,6 +63,8 @@ export interface LigaRow {
     wins: number;
     losses: number;
     me: boolean;
+    /** Código de amigo (só pra quem entrou com o Google; servidor sem a migração 20261028200000 não manda). */
+    code?: string | null;
 }
 
 export interface GhostInfo {

@@ -16,6 +16,7 @@ import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
 import { MonIcon } from '../components/MonIcon';
 import { cardSprite } from '../components/PokeCard';
+import { TrainerName } from '../profile/TrainerName';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
 
@@ -102,6 +103,8 @@ export function RankLine({
     color,
     trainer,
     club,
+    tag,
+    code,
     me,
     squad,
     children,
@@ -110,6 +113,9 @@ export function RankLine({
     color: string;
     trainer: string;
     club: string;
+    tag?: string;
+    /** Código de amigo do treinador (o nome abre o perfil dele). */
+    code?: string | null;
     me: boolean;
     /** Time em ícones (só a Copa do Dia manda). */
     squad?: ReturnType<typeof squadOf>;
@@ -124,7 +130,7 @@ export function RankLine({
             <b className="lg-pos">{pos}</b>
             <span className="lg-who">
                 <b>
-                    {trainer}
+                    <TrainerName who={{ trainer, club, club_tag: tag, club_color: color, code, me }} />
                     {me && <em className="lg-you">{t('liga.daily.you')}</em>}
                 </b>
                 <small>{club}</small>
@@ -325,6 +331,8 @@ export function Daily() {
                                 color={r.club_color}
                                 trainer={r.trainer}
                                 club={r.club}
+                                tag={r.club_tag}
+                                code={r.code}
                                 me={r.me}
                                 squad={squadOf(r)}
                             >

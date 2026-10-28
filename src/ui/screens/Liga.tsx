@@ -5,7 +5,7 @@ import { teamFromRecipe, teamRecipe } from '../../engine/duel-validate';
 import { viewInstance } from '../../engine/instance';
 import { ligaMatchSeed, ligaTeams } from '../../engine/league';
 import { clubName, type TKey } from '../../i18n';
-import { useT } from '../../i18n/react';
+import { rich, useT } from '../../i18n/react';
 import {
     isError,
     type LigaOpen,
@@ -24,6 +24,7 @@ import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
 import { cardSprite } from '../components/PokeCard';
+import { TrainerName } from '../profile/TrainerName';
 import { simulateMatch } from '../sim-client';
 import { RankLine } from './Daily';
 import '../liga.css';
@@ -242,7 +243,17 @@ export function Liga() {
                         <small>
                             {open.ghost.house
                                 ? t('liga.league.house')
-                                : t('liga.league.ghostBy', { trainer: open.ghost.trainer ?? '' })}
+                                : rich(t('liga.league.ghostBy'), {
+                                      trainer: (
+                                          <TrainerName
+                                              who={{
+                                                  trainer: open.ghost.trainer ?? '',
+                                                  club: open.ghost.club,
+                                                  club_color: open.ghost.color ?? undefined,
+                                              }}
+                                          />
+                                      ),
+                                  })}
                         </small>
                     </div>
                     <span className="lg-squad">
@@ -322,6 +333,8 @@ export function Liga() {
                                 color={r.club_color}
                                 trainer={r.trainer}
                                 club={r.club}
+                                tag={r.club_tag}
+                                code={r.code}
                                 me={r.me}
                             >
                                 <b>{r.elo}</b>
