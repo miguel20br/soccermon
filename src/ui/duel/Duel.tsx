@@ -47,7 +47,7 @@ import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
-import { duelLink, isLocalDuel } from './link';
+import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
 import { ConfirmSheet } from '../kit/Sheet';
 import { Toast } from '../kit/Toast';
@@ -820,6 +820,50 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     );
 }
 
+/**
+ * Convidado esperando o anfitrião. Link velho (anfitrião já saiu) nunca responde: depois de um tempo mostra a saída,
+ * com "Jogar uma copa" pra quem chegou pelo convite sem nunca ter jogado.
+ */
+function Connecting({ code, status, onHome }: { code: string; status: string; onHome: () => void }) {
+    const { t } = useT();
+    const newRun = useGame((g) => g.newRun);
+    const clubName = useGame((g) => g.profile.clubName);
+    const [late, setLate] = useState(false);
+    useEffect(() => {
+        const id = window.setTimeout(() => setLate(true), CONNECT_GIVEUP_MS);
+        return () => window.clearTimeout(id);
+    }, []);
+    if (!roomLooksClosed(status, late ? CONNECT_GIVEUP_MS : 0))
+        return (
+            <div className="panel duel-center">
+                <span className="duel-spinner" aria-hidden />
+                <p>{t('duel.connecting', { code })}</p>
+                <p className="muted">{t('duel.waitingHost')}</p>
+            </div>
+        );
+    return (
+        <div className="panel duel-center" data-testid="duel-closed">
+            <h1>{t('duel.closed')}</h1>
+            <p className="muted">{t('duel.closedText')}</p>
+            <button
+                type="button"
+                className="btn primary big"
+                data-testid="duel-play-cup"
+                onClick={() => {
+                    duel.leave();
+                    setUrl(null, false);
+                    newRun(clubName || 'Pallet FC');
+                }}
+            >
+                {t('duel.playCup')}
+            </button>
+            <button type="button" className="duel-google" onClick={onHome}>
+                {t('duel.leave')}
+            </button>
+        </div>
+    );
+}
+
 /** Tela do duelo: criar sala, entrar (com login), lobby, time/draft, prévia, partida e resultado. */
 export function Duel() {
     const { t } = useT();
@@ -900,13 +944,7 @@ export function Duel() {
     } else if (!code && !room) {
         body = <CreateRoom peer={peer} local={local} />;
     } else if (!s || !role) {
-        body = (
-            <div className="panel duel-center">
-                <span className="duel-spinner" aria-hidden />
-                <p>{t('duel.connecting', { code: code ?? room ?? '' })}</p>
-                <p className="muted">{t('duel.waitingHost')}</p>
-            </div>
-        );
+        body = <Connecting code={code ?? room ?? ''} status={status} onHome={home} />;
     } else if (s.phase === 'lobby') body = <Lobby />;
     else if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
     else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;

@@ -73,6 +73,9 @@ export const duel = {
     },
     connecting: 'Entrando na sala {code}…',
     waitingHost: 'Esperando o anfitrião abrir a sala…',
+    closed: 'Ninguém abriu essa sala',
+    closedText: 'O anfitrião pode ter saído ou o link é antigo. Enquanto isso, que tal uma copa?',
+    playCup: 'Jogar uma copa',
     full: 'Sala cheia',
     fullText: 'Essa sala já tem dois treinadores. Peça um link novo.',
     lobby: {
