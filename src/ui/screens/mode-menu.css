@@ -401,23 +401,23 @@ button.mm-card,
 }
 @keyframes mm-shake {
     0%,
-    10%,
+    2%,
     100% {
         transform: none;
     }
-    14% {
+    5% {
         transform: rotate(-6deg);
     }
-    18% {
+    8% {
         transform: rotate(6deg);
     }
-    22% {
+    11% {
         transform: rotate(-4deg);
     }
-    26% {
+    14% {
         transform: rotate(3deg) scale(1.04);
     }
-    32% {
+    18% {
         transform: none;
     }
 }
@@ -440,8 +440,16 @@ button.mm-card,
 .mm-peek .m-art {
     filter: brightness(0) drop-shadow(0 0 2px rgb(255 255 255 / 60%));
 }
-.mm-peek :is(.m-types, .m-tag, .pc2-glare) {
+.mm-peek :is(.m-types, .m-tag, .pc2-glare, .m-pos, .m-name, .m-stats) {
     visibility: hidden;
+}
+/* a nota não entrega quem é: "?" no lugar */
+.mm-peek .m-ovr {
+    font-size: 0;
+}
+.mm-peek .m-ovr::after {
+    content: "?";
+    font-size: calc(86cqw / 15 * 2.9);
 }
 /* o brilho do foil passando */
 .mm-peek::after {
@@ -457,21 +465,21 @@ button.mm-card,
 }
 @keyframes mm-foil {
     0%,
-    40% {
+    30% {
         background-position: 160% 0;
     }
-    75%,
+    65%,
     100% {
         background-position: -60% 0;
     }
 }
 @keyframes mm-peek {
     0%,
-    30% {
+    16% {
         transform: translateY(6%);
     }
-    40%,
-    88% {
+    24%,
+    94% {
         transform: translateY(-38%);
     }
     100% {
@@ -614,6 +622,10 @@ button.mm-card,
     height: 30%;
     background: #c9a46a;
     clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.mm-bulba {
+    left: 52%;
+    top: 97%;
 }
 .mm-blue {
     position: absolute;
@@ -902,6 +914,31 @@ button.mm-card,
     .mm-small .mm-sign {
         font-size: 10px;
         padding: 2px 5px;
+    }
+}
+
+/* cartão pequeno no celular: pacote maior; o ginásio mais estreito, o Bulbasaur menor ao lado do caminho e o
+   balão do Blue em duas linhas por cima do sol, fora do telhado */
+@container (max-width: 240px) {
+    .mm-small .mm-pack {
+        height: 76cqh;
+        bottom: 3cqh;
+    }
+    .mm-small .mm-gym {
+        width: 52%;
+    }
+    .mm-small .mm-path {
+        left: 21%;
+    }
+    .mm-bulba {
+        left: 44%;
+        scale: 0.75;
+    }
+    .mm-small .mm-say {
+        max-width: 72px;
+        right: -10px;
+        white-space: normal;
+        text-align: center;
     }
 }
 

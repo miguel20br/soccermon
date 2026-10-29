@@ -102,7 +102,7 @@ function SceneAtual({ scale }: { scale: number }) {
     );
 }
 
-/** A carta ouro que espia do pacote: um Dragonite de verdade (carta Metal), em silhueta. */
+/** A carta ouro que espia do pacote: um Dragonite de verdade (carta Metal), em silhueta e com "?" no lugar da nota. */
 const PEEK = { ...createInstance(149, new Rng('menu-modos')), shiny: false };
 
 /** O pacote do jogo treme, a carta ouro sobe com a silhueta e o brilho do foil, e o Eevee pula de curiosidade. */
@@ -186,7 +186,7 @@ function SceneHistoria({ scale }: { scale: number }) {
                 </div>
                 <span className="mm-sign">{t('home.modes.gym')}</span>
                 <i className="mm-path" />
-                <span className="mm-pt" style={at(52, 97)}>
+                <span className="mm-pt mm-bulba">
                     <FieldSprite id={1} anim="Idle" dir={2} scale={scale} />
                 </span>
                 <span className="mm-blue" style={at(82, 97)}>
