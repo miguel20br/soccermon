@@ -1,5 +1,5 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
-import { type GameState, useGame } from '../store/game-store';
+import { type GameState, liveOf, useGame } from '../store/game-store';
 import { seenCount } from '../store/profile';
 
 /**
@@ -62,6 +62,7 @@ export const EVENT_NAMES = [
     'match_skip',
     'duel_join',
     'duel_match_end',
+    'first_leave',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 
@@ -286,6 +287,23 @@ function onChange(s: GameState, prev: GameState) {
     }
 }
 
+/**
+ * Em que passo a pessoa largou o jogo (aba escondida ou fechada) antes de chegar ao apito da 1ª partida: tela, passo da
+ * copa, quantas cartas já tinha, onde a partida estava e quanto tempo de página. Null depois da 1ª partida.
+ */
+export function firstLeave(g: Pick<GameState, 'screen' | 'run' | 'records' | 'settings'>, secs: number): Props | null {
+    const run = g.run;
+    if (g.records.cups > 0 || (run?.results.length ?? 0) > 0) return null;
+    return {
+        screen: g.screen,
+        status: run?.status ?? null,
+        picks: run?.picks.length ?? 0,
+        tick: liveOf(run)?.tick ?? null,
+        speed: String(g.settings.speed),
+        secs: Math.round(secs),
+    };
+}
+
 /** Mensagem de erro curta e sem endereços (URLs podem levar tokens ou dados da sessão). */
 const errorText = (e: unknown) =>
     String(e)
@@ -308,6 +326,17 @@ export function startAnalytics() {
             dex_seen: seenCount(g.dex),
         });
         useGame.subscribe(onChange);
+        // saída antes da 1ª partida: uma vez por sessão (quem volta e joga aparece no match_end depois)
+        let left = false;
+        const leave = () => {
+            const p = left ? null : firstLeave(useGame.getState(), performance.now() / 1000);
+            if (!p) return;
+            left = true;
+            track('first_leave', p);
+            flush(true);
+        };
+        document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && leave());
+        window.addEventListener('pagehide', leave);
     };
     // espera o save carregar (senão todo mundo parece novo)
     if (useGame.persist.hasHydrated()) begin();

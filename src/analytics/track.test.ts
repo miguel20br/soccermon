@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COACH_EVENTS, EVENT_NAMES, isBot, pickedReward, sendable } from './track';
+import { COACH_EVENTS, EVENT_NAMES, firstLeave, isBot, pickedReward, sendable } from './track';
 
 describe('nomes dos eventos', () => {
     it('a lista do cliente é a da última migração do game_events_name_check (fora dela, o lote inteiro dá 400)', () => {
@@ -86,5 +86,30 @@ describe('isBot', () => {
         ];
         for (const userAgent of real) expect(isBot({ webdriver: false, userAgent }), userAgent).toBe(false);
         expect(isBot({ userAgent: 'Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)' })).toBe(true);
+    });
+});
+
+describe('firstLeave (onde larga quem sai antes da 1ª partida)', () => {
+    const base = { screen: 'draft', records: { cups: 0, titles: 0, perfect: 0 }, settings: { speed: 1 } };
+    // biome-ignore lint/suspicious/noExplicitAny: só os campos que a função lê
+    const g = (over: object) => ({ ...base, run: null, ...over }) as any;
+
+    it('diz a tela, o passo da copa e as cartas; o evento entra no banco', () => {
+        const run = { status: 'drafting', picks: [{}, {}], results: [], stage: 0, live: null };
+        expect(firstLeave(g({ run }), 42.4)).toEqual({
+            screen: 'draft',
+            status: 'drafting',
+            picks: 2,
+            tick: null,
+            speed: '1',
+            secs: 42,
+        });
+        expect(firstLeave(g({ screen: 'home' }), 3)).toMatchObject({ screen: 'home', status: null, picks: 0 });
+        expect(sendable('first_leave')).toBe(true);
+    });
+
+    it('depois da 1ª partida (ou de uma copa inteira) não manda nada', () => {
+        expect(firstLeave(g({ run: { status: 'lineup', picks: [], results: [{}], stage: 1 } }), 9)).toBeNull();
+        expect(firstLeave(g({ records: { cups: 1, titles: 0, perfect: 0 } }), 9)).toBeNull();
     });
 });

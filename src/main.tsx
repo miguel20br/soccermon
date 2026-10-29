@@ -4,6 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { startAnalytics } from './analytics/track';
+import { startChunkReload } from './chunk-reload';
 import { startCloudSync } from './cloud/cloud';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { startFriendsLive } from './friends/api';
@@ -28,6 +29,9 @@ window.addEventListener('error', (e) => {
 window.addEventListener('unhandledrejection', (e) => {
     console.error('[Soccermon] promessa rejeitada sem tratamento:', e.reason);
 });
+
+// versão nova no ar com a aba aberta: pedaço com hash que sumiu recarrega a página uma vez
+startChunkReload();
 
 // endereço antigo (soccermon.vercel.app) leva o jogador e o save para o soccermon.com
 void moveToNewDomain();
