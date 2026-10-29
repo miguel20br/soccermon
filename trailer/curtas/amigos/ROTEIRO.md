@@ -1,4 +1,4 @@
-# Trailerzinho 0.9.25 · "Quem é esse no ranking?" (v3, 29/10/2026)
+# Trailerzinho 0.9.25 · "Quem é esse no ranking?" (v4, 29/10/2026)
 
 Conceito escolhido pelo Miguel: "Quem é esse no ranking?" com um toque do "Snorlax recebeu um desafio". Um herói (o
 Pikachu), uma situação (quem é o 1º do ranking?), um desfecho (ele desafia, perde de 0 × 1 e o Snorlax se cobre e volta
@@ -16,10 +16,20 @@ compassos (ranking / perfil / Desafiar), o Snorlax bravo ganhou um compasso inte
 Duelo foi de 3 pra 4 compassos (a bola voltando pela quadra é o trecho mais longo, e o placar vira depois de um
 respiro) e o fim (FIM DE JOGO → plim → olho → cobertor) ficou em 3 compassos com um respiro entre cada coisa.
 
-**Tempo: 100 BPM, 4/4, compasso = 2,4 s, 18 compassos = 43,2 s + 0,6 s de rabo (43,8 s).** Música própria:
+**v4 (29/10, o polimento da animação):** o Miguel aprovou o ritmo da v3 e pediu pra polir os três pontos crus. (1) O
+chute 2 ganhou um compasso (C8 e C9; tudo depois andou 2,4 s e a música foi junto): a câmera chega no Pikachu durante a
+carga (faíscas crescendo a cada tempo, a bola acende), chute no C8.8 e a câmera abre, a bola afunda na barriga no C8.11
+e a barriga segura tremendo, BOING no 1º tempo do C9 (com prato); a bola sai num lençol rápido e passa por cima da
+cabeça dele no alto do pulo (C9.4), cai atrás e ele vira e corre. Carga 1,2 s, chute → BOING 1,2 s (era 0,6), BOING →
+pulo 0,6 s. (2) A bola na travessia: cresce 35% (base) e mais até 45% no alto de cada quique (chega perto da câmera), e a
+câmera dá zoom de 1,25× seguindo; a bola vai de ~66 px pra ~110 px no chão e ~160 px no alto, com a sombra e os quiques.
+(3) O Snorlax segue respirando enquanto olha: o rosto fica no mesmo lugar nos 2 quadros do Sleep (só a barriga sobe e
+desce), então o Sleep continua rodando por baixo do olho bravo, sem o quadro parado.
+
+**Tempo: 100 BPM, 4/4, compasso = 2,4 s, 19 compassos = 45,6 s + 0,6 s de rabo (46,2 s).** Música própria:
 `scripts/musica/pecas/livre-amigos.mjs`, composta já nesta ordem (sem mapa): funk em Fá, motivo do Pikachu
 "pi-ka-CHUUU" no pulso elétrico, assinatura = o PLIM do aviso de desafio (`plim` em `scripts/musica/curtas.mjs`; o BOING
-da barriga é o `barriga` do EP 1). Sobe um tom (Sol) na 3ª frase da explicação.
+da barriga é o `barriga` do EP 1). Sobe um tom (Sol) na 3ª frase da explicação. A carga do choque (`carga`, C8) e o pulo (`pulo`, C9.4) são deslizes.
 
 | C | Tempo | Cena | Música |
 |---|---|---|---|
@@ -31,22 +41,23 @@ da barriga é o `barriga` do EP 1). Sobe um tom (Sol) na 3ª frase da explicaç�
 | 5 | 12,0 | Plim plim plim cada vez mais rápido; a bolha ESTOURA (12: gotas, estrela, a pilha voa pros lados), ele acorda de pé num pulo, olhos bravos, o sinal de bravo | plins subindo + rufo; prato e silêncio no estouro com o grito do Snorlax |
 | 6 | 14,4 | Bravo: três pisadas (0, 4, 8: sobe, desce, amassa, poeira, a tela treme, o sinal pulsa); toca **Entrar** (11) e o Duelo abre num círculo a partir do botão (13) | bumbo, tímpano e tuba subindo cromático nas pisadas, cordas; toque, metais e virada |
 | 7 | 16,8 | O Duelo na partida nova (quadra de perto, barra de 4 botões, 0 × 0). O Pikachu conduz (dois toquinhos), recua e chuta (6); a barriga estufa e devolve: BOING (10); a bola volta quicando no pé dele | groove de partida, motivo atacando, chute (6), BOING (10) |
-| 8 | 19,2 | Grito do Pikachu, carrega o choque (0–3) e chuta (4, bola elétrica); BOING mais forte (8) e a bola sobe por cima dele; ele pula, não alcança | grito no 0, zap no chute, BOING grave |
-| 9 | 21,6 | A bola volta pela quadra inteira em quiques (a câmera vai junto); o Pikachu vira e corre atrás, fica pra trás | assobio descendo o compasso todo, rufo crescendo, metais subindo |
-| 10 | 24,0 | GOL no gol dele (0: rede estufa, flash, tremida); o Pikachu chega correndo atrasado; um respiro e o placar vira 0 × 1 (8) | rede, prato, torcida; "uón-uón-uóóón" no 8 |
-| 11 | 26,4 | A câmera volta num chicote pro gol do Snorlax: ele já dorme ali; o Pikachu volta correndo; FIM DE JOGO 0 × 1 (4); a mão toca **Revanche?** (12) | groove leve, ronco, toque, motivo perguntando |
-| 12 | 28,8 | PLIM: o aviso cai no topo, a câmera chega no Snorlax (placar e barra saem) e depois no olho (3); ele abre um olho bravo (6: fresta, depois inteiro) e fica olhando | plim, tuba grave e tímpano no 6, o chimbal contando |
-| 13 | 31,2 | Ele puxa o cobertor por cima da cabeça (0, assenta com um quique); a câmera abre (3); o Pikachu murcha (6); ronco (8) | tuba "fom" no 0, breque no 6, ronco no 8 |
-| 14 | 33,6 | Explicação 1 (abre num círculo): "Toque no **nome**" + a linha do ranking, a mão toca no nome | groove inteiro, motivo com metais em terças |
-| 15 | 36,0 | Explicação 2: "Peça **amizade**" + Adicionar amigo → Amigos | Si♭, pergunta e resposta, Ré7 e virada |
-| 16 | 38,4 | Explicação 3: "Desafie pro **Duelo**" + Desafiar, o convite sobe | sobe um tom (Sol), SOC-CER-MON com palmas |
-| 17 | 40,8 | Tela final (abre num círculo): NOVO NA 0.9.25, logo (piscada SOC-CER-MON), Temos que chutar!, soccermon.com; Pikachu pulando, Snorlax dormindo | acorde de Sol, fim no PLIM (12) |
+| 8 | 19,2 | Grito do Pikachu; a câmera chega nele e ele carrega o choque (0–7, faíscas a cada tempo, a bola acende); chuta no 8 (bola elétrica, flash, a câmera abre); a bola afunda na barriga (11) e a barriga segura, tremendo | grito no 0, carga subindo e caixa a cada tempo, zap e chute no 8, tímpano rufando |
+| 9 | 21,6 | BOING mais forte (0) e a bola sai num lençol; ele pula (4) e ela passa por cima da cabeça dele; cai atrás, ele vira (8) e corre (10) | prato e BOING grave no 0, motivo subindo, pulo no 4 |
+| 10 | 24,0 | A bola volta pela quadra inteira em quiques, maior (zoom 1,25× com a câmera indo junto); o Pikachu corre atrás, fica pra trás | assobio descendo o compasso todo, rufo crescendo, metais subindo |
+| 11 | 26,4 | GOL no gol dele (0: rede estufa, flash, tremida); o Pikachu chega correndo atrasado; um respiro e o placar vira 0 × 1 (8) | rede, prato, torcida; "uón-uón-uóóón" no 8 |
+| 12 | 28,8 | A câmera volta num chicote pro gol do Snorlax: ele já dorme ali; o Pikachu volta correndo; FIM DE JOGO 0 × 1 (4); a mão toca **Revanche?** (12) | groove leve, ronco, toque, motivo perguntando |
+| 13 | 31,2 | PLIM: o aviso cai no topo, a câmera chega no Snorlax (placar e barra saem) e depois no olho (3); ele abre um olho bravo (6: fresta, depois inteiro) e fica olhando, respirando | plim, tuba grave e tímpano no 6, o chimbal contando |
+| 14 | 33,6 | Ele puxa o cobertor por cima da cabeça (0, assenta com um quique); a câmera abre (3); o Pikachu murcha (6); ronco (8) | tuba "fom" no 0, breque no 6, ronco no 8 |
+| 15 | 36,0 | Explicação 1 (abre num círculo): "Toque no **nome**" + a linha do ranking, a mão toca no nome | groove inteiro, motivo com metais em terças |
+| 16 | 38,4 | Explicação 2: "Peça **amizade**" + Adicionar amigo → Amigos | Si♭, pergunta e resposta, Ré7 e virada |
+| 17 | 40,8 | Explicação 3: "Desafie pro **Duelo**" + Desafiar, o convite sobe | sobe um tom (Sol), SOC-CER-MON com palmas |
+| 18 | 43,2 | Tela final (abre num círculo): NOVO NA 0.9.25, logo (piscada SOC-CER-MON), Temos que chutar!, soccermon.com; Pikachu pulando, Snorlax dormindo | acorde de Sol, fim no PLIM (12) |
 
-Embaixo da explicação (C14–16) o Pikachu pula e o Snorlax dorme o tempo todo.
+Embaixo da explicação (C15–17) o Pikachu pula e o Snorlax dorme o tempo todo.
 
-**Cada bloco (v2 → v3):** gancho 2,4 → 2,4 s · ranking e toque 1,4 → 2,4 s · perfil e Adicionar 1,4 → 2,4 s ·
+**Cada bloco (v2 → v3; v4 só mudou o chute 2 e a bola):** gancho 2,4 → 2,4 s · ranking e toque 1,4 → 2,4 s · perfil e Adicionar 1,4 → 2,4 s ·
 Desafiar ×4 1,8 → 2,4 s · plim × ronco 2,4 → 2,4 s · plins até o estouro 1,8 → 1,8 s · bravo até Entrar 0,3 → 2,3 s ·
-chute 1 + BOING 2,4 → 2,9 s · chute 2 + BOING 1,2 → 1,2 s · a bola voltando, o gol e o placar 2,7 → 5,6 s (o placar
+chute 1 + BOING 2,4 → 2,9 s · chute 2 + BOING 1,2 → 1,2 s (v4: 3,0 s, mais 1,8 s do lençol e do pulo) · a bola voltando, o gol e o placar 2,7 → 5,6 s (o placar
 vira 0,3 → 1,2 s depois do gol) · FIM DE JOGO e Revanche? 2,4 → 2,8 s · plim → olho 0,15 → 0,9 s · olho → cobertor
 0,45 → 1,5 s · cobertor → murcha 0,3 → 0,9 s · explicação 7,2 → 7,2 s · tela final 3,0 → 3,0 s.
 
@@ -70,7 +81,7 @@ Regras do Miguel seguidas: gancho nos 2 primeiros segundos; uma coisa por vez; c
 telas do jogo, o "ENQUANTO ISSO..." e a explicação (2–5 palavras) depois do desfecho; sem emoji; nada parado (a câmera
 de fora respira 3% por compasso); sem tela branca (flashes ≤ 0,6 e 0,3 s).
 
-**QA de quadros (`node trailer/qa-quadros.mjs trailer/curtas/amigos`):** recorte, fragmento e sombra limpos. Acusa só
+**QA de quadros (`node trailer/qa-quadros.mjs trailer/curtas/amigos`, v4: 1386 quadros):** recorte, fragmento e sombra limpos. Acusa só
 o que é da montagem: "bola visível 0 vezes" fora do Duelo (a bola mora só nele) e "aparece 2 vezes" nos 0,45 s dos
 círculos de transição (as duas cenas estão no ar de propósito).
 
@@ -81,14 +92,18 @@ e o loudnorm de 2 passadas do `preparar.mjs` pra `amigos-14.wav` (ou o `preparar
 
 ```bash
 cd trailer/curtas/amigos && HF=$(ls ~/.npm/_npx/*/node_modules/.bin/hyperframes | head -1)
-~/Projects/soccermon/scripts/pesado.sh $HF render . -o render/amigos-v5.mp4 -q looks -w 2 --quiet
-cd .. && ~/Projects/soccermon/scripts/pesado.sh ./finalizar.sh amigos/render/amigos-v5.mp4 ~/Vídeos/soccermon-postar/trailer-0925-v3
+~/Projects/soccermon/scripts/pesado.sh $HF render . -o render/amigos-v6.mp4 -q looks -w 2 --quiet
+cd .. && ~/Projects/soccermon/scripts/pesado.sh ./finalizar.sh amigos/render/amigos-v6.mp4 ~/Vídeos/soccermon-postar/trailer-0925-v4
 ```
 
 ## O que ficou cru
 
 - A partida nova está desenhada (quadra de perto + barra de 4 botões), não gravada do jogo.
-- Os olhos bravos são sobrepixels (o sprite não tem olho aberto): deitado só no quadro 0 do Sleep (ele para de
-  respirar enquanto olha), de pé só no quadro 0 do Idle (as pisadas dão o movimento).
-- O chute 2 (carga, chute, BOING) segue em 1 compasso: a carga ocupa o começo, o chute e o BOING ficam a 0,6 s.
+- Os olhos bravos são sobrepixels (o sprite não tem olho aberto). Deitado o Sleep roda por baixo (ele respira); de pé
+  só no quadro 0 do Idle (as pisadas dão o movimento).
+- Visão de cima: a bola "no alto" é desenhada pra cima na tela, então no BOING ela sobe por cima do Snorlax antes de
+  descer pro Pikachu; quem lê a altura é o tamanho e a sombra. Passa por cima da cabeça dele no alto do pulo (a bola na
+  frente do sprite), não com folga.
+- Na travessia (C10) só a bola está no quadro (o Pikachu fica pra trás e sai por cima); a quadra vazia é de propósito.
 - O céu do C0 ainda ocupa a metade de cima (estrelas, lua, estrela cadente e os Z mexem; o aviso cai em 1,2 s).
+- Loudness do final: −14,4 LUFS (o limitador em −3 dBFS segura o pico; o mesmo da v3).

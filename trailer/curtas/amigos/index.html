@@ -1,14 +1,14 @@
 <!doctype html>
 <!--
-  Trailerzinho da 0.9.25 "Amigos" (29/10/2026), 9:16, v3 (o ritmo e o polimento). Conceito "Quem é esse no ranking?" com
-  o toque do "Snorlax recebeu um desafio". Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s, 18 compassos (43,2 s)
+  Trailerzinho da 0.9.25 "Amigos" (29/10/2026), 9:16, v4 (o polimento da animação). Conceito "Quem é esse no ranking?" com
+  o toque do "Snorlax recebeu um desafio". Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s, 19 compassos (45,6 s)
   + 0,6 s.
   0 o gancho: o Snorlax dormindo, PLIM | 1 "enquanto isso": o ranking, o toque no "zzz" | 2 o perfil sobe, "!",
   Adicionar amigo vira Amigos | 3 Desafiar quatro vezes, cada vez mais insistente | 4 plim × ronco, os avisos empilham |
-  5 plim plim plim, a bolha estoura | 6 ele bravo pisando forte, toca Entrar | 7 o Duelo: chute, BOING | 8 chute com
-  choque, BOING | 9 a bola volta pela quadra inteira (a câmera vai junto) | 10 GOL, o placar vira 0 × 1 | 11 FIM DE
-  JOGO, Revanche? | 12 plim, ele abre um olho bravo | 13 o cobertor, o Pikachu murcha | 14–16 a explicação (Toque no
-  nome / Peça amizade / Desafie pro Duelo) | 17 tela final.
+  5 plim plim plim, a bolha estoura | 6 ele bravo pisando forte, toca Entrar | 7 o Duelo: chute, BOING | 8 a carga e o
+  chute com choque, a barriga segura | 9 BOING, a bola sobe por cima dele | 10 a bola volta pela quadra inteira (a câmera
+  vai junto, de perto) | 11 GOL, o placar vira 0 × 1 | 12 FIM DE JOGO, Revanche? | 13 plim, ele abre um olho bravo | 14
+  o cobertor, o Pikachu murcha | 15–17 a explicação (Toque no nome / Peça amizade / Desafie pro Duelo) | 18 tela final.
   Telas do jogo redesenhadas no visual do jogo (ranking da Copa do Dia, perfil em gaveta, aviso "te chamou pro Duelo",
   barra de 4 botões da partida nova), ampliadas pra ler no celular; os nomes são os Pokémon.
   Música própria: scripts/musica/pecas/livre-amigos.mjs (midia/som/amigos.js). Tempos: C.T(compasso, linha).
@@ -102,8 +102,8 @@
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="43.8">
-  <div id="cena" class="clip" data-start="0" data-duration="41.4">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="46.2">
+  <div id="cena" class="clip" data-start="0" data-duration="43.8">
     <!-- 0, 4–6 · o Snorlax dormindo e os avisos -->
     <div id="sono" class="cena"><div id="ceu" class="camada"><div id="lua"></div><div id="cadente"></div></div><div id="snc" class="camada"><div id="bolha"></div></div><div id="avisos" class="camada" style="z-index:60"></div></div>
 
@@ -132,7 +132,7 @@
       <div id="ei"><span>ENQUANTO ISSO...</span></div>
     </div>
 
-    <!-- 7–13 · o Duelo na partida nova (a câmera segue a bola) -->
+    <!-- 7–14 · o Duelo na partida nova (a câmera segue a bola) -->
     <div id="duelo" class="cena">
       <div id="dcam" class="camada"></div>
       <div class="placar" id="placar"><img src="midia/25.png" alt="" /><b id="pl-txt">0 × 0</b><img src="midia/143.png" alt="" /></div>
@@ -142,21 +142,21 @@
       <div id="avisos2" class="camada" style="z-index:75"></div>
     </div>
 
-    <!-- 14–16 · a explicação -->
+    <!-- 15–17 · a explicação -->
     <div id="explica" class="cena palco"><div class="raios" id="ex-raios"></div><div id="exc" class="camada"></div>
       <div class="legenda" id="lg1"><span>Toque no <b>nome</b></span></div>
       <div class="legenda" id="lg2" style="opacity:0"><span>Peça <b>amizade</b></span></div>
       <div class="legenda" id="lg3" style="opacity:0"><span>Desafie pro <b>Duelo</b></span></div>
     </div>
   </div>
-  <div id="final" class="clip palco" data-start="40.8" data-duration="3">
+  <div id="final" class="clip palco" data-start="43.2" data-duration="3">
     <div class="raios" id="raios-final"></div>
     <div id="final-cena" class="camada"></div>
     <div id="versao"><span>NOVO NA 0.9.25</span></div>
   </div>
   <div class="flash" id="flash"></div>
   <div id="mao"></div>
-  <audio id="a-musica" class="clip" src="midia/som/amigos-14.wav" data-start="0" data-duration="43.8" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/amigos-14.wav" data-start="0" data-duration="46.2" data-media-start="0" data-fade-out="0.6"></audio>
   <!-- gritos: o Pikachu vê quem é o "zzz" (C2.4), o Snorlax acorda bravo no silêncio do estouro (C5.12), o Pikachu carrega o choque (C8.0) -->
   <audio id="a-pk-ve" class="clip" src="som/25.ogg" data-start="5.4" data-duration="0.93" data-media-start="0" data-volume="0.8"></audio>
   <audio id="a-sn-bravo" class="clip" src="som/143.ogg" data-start="13.8" data-duration="0.41" data-media-start="0" data-volume="0.75"></audio>
@@ -298,8 +298,9 @@
       return el;
     };
     const COR_OLHO = { a: '#000000', h: '#ffffff', g: '#773f00', c: '#ffe79f', b: '#dfaf67' };
-    // deitado (Sleep, quadro 0): sobrancelha caída pra dentro (pro lado da boca), pálpebra preta e o olhar; meio aberto
-    // primeiro (uma fresta), depois inteiro
+    // deitado (Sleep): sobrancelha caída pra dentro (pro lado da boca), pálpebra preta e o olhar; meio aberto primeiro
+    // (uma fresta), depois inteiro. O rosto fica no mesmo lugar nos 2 quadros do Sleep (só a barriga sobe e desce), então
+    // o olho vale pros dois e ele segue respirando enquanto olha
     const OLHO_MEIO = grade(['..ggg', 'gg.c.', 'cccc.', 'aaaa.', 'cbbc.'], 26, 4);
     const OLHO = grade(['..ggg', 'gg.c.', 'aaaa.', 'haah.', 'cbbc.'], 26, 4);
     // de pé (Idle, quadro 0): os dois olhos bravos por cima dos olhos fechados
@@ -493,7 +494,7 @@
     passa('#rank', '#sono', T(4, 0), { lado: -1 });
 
     // =====================================================================================================
-    // 7–13 · o Duelo na partida nova
+    // 7–14 · o Duelo na partida nova
     // =====================================================================================================
     passa('#sono', '#duelo', T(6, 13), { tipo: 'iris', x: 905, y: 245, dur: 0.5 });
     const dcam = $('dcam');
@@ -508,11 +509,13 @@
     }
     gsap.set(dcam, { transformOrigin: '0px 0px' });
     gsap.set('#rede2', { transformOrigin: '50% 0%' });
-    const camD = (t0, t1, wy, ease = 'sine.inOut') => tl.to(dcam, { y: 960 - wy, duration: Math.max(0.001, t1 - t0), ease }, t0);
+    /** A câmera centra o ponto (wx, wy) da quadra com zoom `s`; `camD` só segue no comprimento (sem zoom). */
+    const camZ = (t0, t1, wx, wy, s, ease = 'sine.inOut') => tl.to(dcam, { x: 540 - s * wx, y: 960 - s * wy, scale: s, duration: Math.max(0.001, t1 - t0), ease }, t0);
+    const camD = (t0, t1, wy, ease) => camZ(t0, t1, 540, wy, 1, ease);
     tl.set(dcam, { y: 960 - 900 }, T(6, 13));
     const GOLX = 540;
     const snD = ator(dcam, 143, { escala: 8, z: 10, x: GOLX, y: GY + 70 });
-    anim(tl, snD, 'Idle', 0, T(6, 13), T(10, 13), { vel: 0.6 });
+    anim(tl, snD, 'Idle', 0, T(6, 13), T(11, 13), { vel: 0.6 });
     const pkD = ator(dcam, 25, { escala: 7, z: 12, x: 560, y: 1300 });
     const bl = bola(dcam, { d: 66, z: 14, x: 540, y: 1180 });
     bl.svg = bl.corpo.querySelector('svg');
@@ -526,9 +529,10 @@
     ] }, t);
     /**
      * A bola vai até (x, y) de t0 a t1 em quiques de altura `hs` (px; o tempo de cada um cresce com a raiz da altura),
-     * girando; a sombra fica no chão e encolhe e clareia com a altura; amassa a cada toque no chão.
+     * girando; a sombra fica no chão e encolhe e clareia com a altura; amassa a cada toque no chão. `perto` cresce a bola
+     * com a altura (no alto ela chega mais perto da câmera: 1 + perto no topo).
      */
-    const voo = (t0, t1, x, y, hs, { ease = 'none', voltas = 2, amassaFim = true } = {}) => {
+    const voo = (t0, t1, x, y, hs, { ease = 'none', voltas = 2, amassaFim = true, perto = 0 } = {}) => {
       const d = t1 - t0;
       tl.to(bl.el, { x, y, duration: d, ease }, t0);
       giro += 360 * voltas;
@@ -538,6 +542,7 @@
       const ys = [];
       const ss = [];
       const os = [];
+      const cs = [];
       let acc = 0;
       hs.forEach((h, k) => {
         const N = Math.max(4, Math.round((36 * w[k]) / W));
@@ -547,12 +552,13 @@
           ys.push(-hy);
           ss.push(1 - 0.55 * Math.min(1, hy / 420));
           os.push(1 - 0.6 * Math.min(1, hy / 420));
+          cs.push(1 + perto * Math.min(1, hy / 420));
         }
         acc += w[k];
         const tp = t0 + (acc / W) * d;
         if (k < hs.length - 1 || amassaFim) amassa(tp, Math.min(1, 0.4 + h / 300));
       });
-      tl.to(bl.corpo, { keyframes: { y: ys, easeEach: 'none' }, duration: d, ease: 'none' }, t0);
+      tl.to(bl.corpo, { keyframes: perto ? { y: ys, scale: cs, easeEach: 'none' } : { y: ys, easeEach: 'none' }, duration: d, ease: 'none' }, t0);
       tl.to(bl.sh, { keyframes: { scale: ss, opacity: os, easeEach: 'none' }, duration: d, ease: 'none' }, t0);
     };
     const BARRIGA = { x: GOLX, y: GY + 70 - 150 };
@@ -590,29 +596,47 @@
     camD(T(7, 11), T(8, 0), 880);
     anim(tl, pkD, 'Idle', 4, T(7, 5) + 0.62, T(8, 0));
     ronco(dcam, T(7, 13), GOLX + 120, GY - 260, 1);
-    // 8 · carrega o choque e chuta (bola elétrica); BOING mais forte e a bola sobe por cima dele
-    anim(tl, pkD, 'Charge', 4, T(8, 0), T(8, 4) - 0.1, { vel: 1.3 });
-    for (const r of [0, 1, 2, 3]) estouro(tl, dcam, 580 + ((r % 3) - 1) * 90, 1080 - r * 25, T(8, r), { tam: 100 + 15 * r, cor: '#ffcb05', anel: false, dur: 0.25 });
-    tl.set(bl.corpo, { filter: 'drop-shadow(0 0 16px #ffe14a) drop-shadow(0 0 30px #ffcb05)' }, T(8, 3));
-    chute(T(8, 4), 0.8);
-    flash(tl, T(8, 4), 0.4, 0.18);
-    voo(T(8, 4), T(8, 7) + 0.05, BARRIGA.x, BARRIGA.y + 40, [60], { ease: 'power1.in', voltas: 2, amassaFim: false });
-    camD(T(8, 2), T(8, 7), 740);
-    boing(T(8, 8), 1.3);
-    tl.set(bl.corpo, { filter: 'none' }, T(8, 8));
-    // 9 · a bola volta pela quadra inteira em quiques (a câmera vai junto, um pouco atrás); ele pula, não alcança, vira
-    // e corre atrás (sai por cima do quadro); 10 · GOL
+    // 8 · o grito e a carga do choque (a câmera chega nele, as faíscas crescem a cada tempo, a bola acende) e o chute no
+    // 8 (bola elétrica, a câmera abre); a bola afunda na barriga no 11 e a barriga segura, tremendo
+    camZ(T(8, 0), T(8, 7), 560, 1000, 1.15);
+    anim(tl, pkD, 'Charge', 4, T(8, 0), T(8, 8) - 0.1, { vel: 1.3 });
+    for (const [k, r] of [0, 2, 4, 6].entries()) estouro(tl, dcam, 580 + ((k % 3) - 1) * 100, 1080 - k * 30, T(8, r), { tam: 110 + 35 * k, cor: '#ffcb05', anel: false, dur: 0.28 });
+    tl.set(bl.corpo, { filter: 'drop-shadow(0 0 16px #ffe14a) drop-shadow(0 0 30px #ffcb05)' }, T(8, 5));
+    chute(T(8, 8), 0.8);
+    flash(tl, T(8, 8), 0.4, 0.18);
+    camZ(T(8, 8) - 0.05, T(8, 11), 540, 740, 1, 'power2.out');
+    voo(T(8, 8), T(8, 11), BARRIGA.x, BARRIGA.y + 40, [60], { ease: 'power1.in', voltas: 2, amassaFim: false });
+    {
+      const t0 = T(8, 11);
+      const t1 = T(9, 0);
+      tl.to(snD.corpo, { keyframes: [{ scaleX: 1.16, scaleY: 0.86, duration: 0.07, ease: 'power2.out' }, { scaleX: 1.2, scaleY: 0.83, duration: t1 - t0 - 0.3, ease: 'sine.inOut' }] }, t0);
+      tl.to(bl.svg, { scaleX: 1.3, scaleY: 0.74, duration: 0.07, ease: 'power2.out' }, t0);
+      tl.to(bl.el, { y: BARRIGA.y + 18, duration: 0.12, ease: 'power2.out' }, t0);
+      tl.to(bl.el, { keyframes: { x: [GOLX + 6, GOLX - 6, GOLX + 5, GOLX - 5, GOLX + 4, GOLX - 3, GOLX], easeEach: 'sine.inOut' }, duration: t1 - t0 - 0.12, ease: 'none' }, t0 + 0.08);
+      estouro(tl, dcam, BARRIGA.x, BARRIGA.y + 10, t0, { tam: 150, cor: '#ffcb05', anel: false, dur: 0.3 });
+    }
+    // 9 · BOING mais forte no 0 e a bola sobe por cima dele (ela cresce no alto: chega perto da câmera); ele pula no 4,
+    // não alcança, vira e corre atrás
+    boing(T(9, 0), 1.3);
+    tl.set(bl.corpo, { filter: 'none' }, T(9, 0));
+    // 10 · a bola volta pela quadra inteira em quiques, maior (a câmera chega mais perto e vai junto, um pouco atrás);
+    // 11 · GOL
     const GOL2 = P(10, 40);
-    const tGol = T(10, 0);
-    voo(T(8, 8), tGol, GOL2.x - 20, GOL2.y + 30, [560, 300, 150, 60], { voltas: 6, amassaFim: false });
-    camD(T(8, 9), tGol + 0.15, GOL2.y - 60, 'sine.inOut');
-    anim(tl, pkD, 'Idle', 4, T(8, 4) + 0.6, T(8, 13));
-    salto(pkD, T(8, 10), 80, 0.34);
-    anim(tl, pkD, 'Walk', 0, T(8, 13), T(10, 10), { vel: 2.3 });
+    const tGol = T(11, 0);
+    tl.fromTo(bl.el, { scale: 1 }, { scale: 1.35, duration: 0.6, ease: 'sine.out', immediateRender: false }, T(9, 0));
+    // um lençol rápido por cima da cabeça dele (cai atrás dele) e depois os quiques até o gol
+    const tCai = T(9, 0) + 1.2;
+    voo(T(9, 0), tCai, GOL2.x - 10, 2000, [480], { ease: 'none', voltas: 2, perto: 0.45 });
+    voo(tCai, tGol, GOL2.x - 20, GOL2.y + 30, [260, 160, 90, 45], { voltas: 5, amassaFim: false, perto: 0.45 });
+    camZ(T(9, 1), tGol + 0.15, 540, GOL2.y - 60, 1.25);
+    anim(tl, pkD, 'Idle', 4, T(8, 8) + 0.6, T(9, 8));
+    salto(pkD, T(9, 4), 130, 0.42);
+    anim(tl, pkD, 'Idle', 0, T(9, 8), T(9, 10));
+    anim(tl, pkD, 'Walk', 0, T(9, 10), T(11, 10), { vel: 2.3 });
     const yPk = 3820;
-    tl.to(pkD.el, { y: yPk - 260, duration: T(10, 6) - T(8, 13), ease: 'none' }, T(8, 13));
-    tl.to(pkD.el, { y: yPk, duration: T(10, 10) - T(10, 6), ease: 'power2.out' }, T(10, 6));
-    anim(tl, pkD, 'Idle', 0, T(10, 10), T(11, 0));
+    tl.to(pkD.el, { y: yPk - 260, duration: T(11, 6) - T(9, 10), ease: 'none' }, T(9, 10));
+    tl.to(pkD.el, { y: yPk, duration: T(11, 10) - T(11, 6), ease: 'power2.out' }, T(11, 6));
+    anim(tl, pkD, 'Idle', 0, T(11, 10), T(12, 0));
     // a bola entra, estufa a rede e assenta lá dentro
     tl.to(bl.el, { y: GOL2.y + 52, duration: 0.3, ease: 'power2.out' }, tGol);
     tl.fromTo('#rede2', { scaleY: 1 }, { keyframes: [{ scaleY: 1.55, duration: 0.1, ease: 'power2.out' }, { scaleY: 0.88, duration: 0.15, ease: 'sine.inOut' }, { scaleY: 1.08, duration: 0.15, ease: 'sine.inOut' }, { scaleY: 1, duration: 0.2, ease: 'sine.out' }], immediateRender: false }, tGol);
@@ -620,130 +644,129 @@
     treme(tl, '#duelo', tGol, 1, 0.32);
     estouro(tl, dcam, GOL2.x, GOL2.y + 40, tGol, { tam: 320 });
     // um respiro e o placar vira 0 × 1 (cresce, troca e assenta)
-    tl.to('#placar', { scale: 1.25, duration: 0.14, ease: 'power2.out' }, T(10, 8) - 0.14);
-    tl.set('#pl-txt', { innerHTML: '0 × 1', color: '#fff' }, T(10, 8));
-    tl.to('#placar', { scale: 1, duration: 0.4, ease: 'back.out(3)' }, T(10, 8));
-    tl.to('#pl-txt', { color: '#ffcb05', duration: 0.5, ease: 'power1.in' }, T(10, 8) + 0.1);
-    salto(pkD, T(10, 12), 40, 0.24);
-    // 11 · a câmera volta num chicote pro gol do Snorlax: ele já dorme ali; o Pikachu volta correndo; FIM DE JOGO; ele
+    tl.to('#placar', { scale: 1.25, duration: 0.14, ease: 'power2.out' }, T(11, 8) - 0.14);
+    tl.set('#pl-txt', { innerHTML: '0 × 1', color: '#fff' }, T(11, 8));
+    tl.to('#placar', { scale: 1, duration: 0.4, ease: 'back.out(3)' }, T(11, 8));
+    tl.to('#pl-txt', { color: '#ffcb05', duration: 0.5, ease: 'power1.in' }, T(11, 8) + 0.1);
+    salto(pkD, T(11, 12), 40, 0.24);
+    // 12 · a câmera volta num chicote pro gol do Snorlax: ele já dorme ali; o Pikachu volta correndo; FIM DE JOGO; ele
     // toca Revanche?
-    camD(T(10, 13), T(11, 0) + 0.1, 900, 'expo.inOut');
-    op(snD.el, T(10, 13), false);
+    camD(T(11, 13), T(12, 0) + 0.1, 900, 'expo.inOut');
+    op(snD.el, T(11, 13), false);
     const snZ = ator(dcam, '143x', { escala: 11, z: 10, x: GOLX, y: GY + 120, opacity: 0 });
-    op(snZ.el, T(10, 13));
-    anim(tl, snZ, 'Sleep', 0, T(10, 13), T(12, 2), { vel: 0.5 });
-    tl.fromTo(snZ.corpo, { scaleY: 1 }, { keyframes: { scaleY: [1.05, 1, 1.05, 1, 1.05, 1], easeEach: 'sine.inOut' }, duration: T(13, 0) - T(10, 13), ease: 'none', immediateRender: false }, T(10, 13));
-    tl.to(snZ.corpo, { keyframes: { scaleY: [1.05, 1, 1.05, 1], easeEach: 'sine.inOut' }, duration: T(14, 0) + 0.5 - T(13, 0) - 0.7, ease: 'none' }, T(13, 0) + 0.7);
-    ronco(dcam, T(11, 1), GOLX + 160, GY - 120, 3, 0.5);
-    tl.set(pkD.el, { x: 600, y: 2080 }, T(10, 13));
-    anim(tl, pkD, 'Walk', 4, T(10, 13), T(11, 6), { vel: 2.2 });
-    tl.to(pkD.el, { y: 1240, duration: T(11, 6) - T(10, 13), ease: 'power1.out' }, T(10, 13));
-    anim(tl, pkD, 'Idle', 0, T(11, 6), T(13, 6));
-    tl.to(['#escurece', '#fim'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(11, 4));
-    pop('#fim', T(11, 4), 0.5, 0.4);
-    toca(140 + 150 + 250, 760 + 340 + 75, T(11, 12), { fica: 0.3 });
-    aperta('#revanche', T(11, 12));
-    // 12 · PLIM: o aviso cai no topo; a câmera chega no Snorlax (placar e barra saem); ele para de respirar fundo e, um
+    op(snZ.el, T(11, 13));
+    anim(tl, snZ, 'Sleep', 0, T(11, 13), T(14, 2), { vel: 0.5 });
+    tl.fromTo(snZ.corpo, { scaleY: 1 }, { keyframes: { scaleY: [1.05, 1, 1.05, 1, 1.05, 1], easeEach: 'sine.inOut' }, duration: T(14, 0) - T(11, 13), ease: 'none', immediateRender: false }, T(11, 13));
+    tl.to(snZ.corpo, { keyframes: { scaleY: [1.05, 1, 1.05, 1], easeEach: 'sine.inOut' }, duration: T(15, 0) + 0.5 - T(14, 0) - 0.7, ease: 'none' }, T(14, 0) + 0.7);
+    ronco(dcam, T(12, 1), GOLX + 160, GY - 120, 3, 0.5);
+    tl.set(pkD.el, { x: 600, y: 2080 }, T(11, 13));
+    anim(tl, pkD, 'Walk', 4, T(11, 13), T(12, 6), { vel: 2.2 });
+    tl.to(pkD.el, { y: 1240, duration: T(12, 6) - T(11, 13), ease: 'power1.out' }, T(11, 13));
+    anim(tl, pkD, 'Idle', 0, T(12, 6), T(14, 6));
+    tl.to(['#escurece', '#fim'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(12, 4));
+    pop('#fim', T(12, 4), 0.5, 0.4);
+    toca(140 + 150 + 250, 760 + 340 + 75, T(12, 12), { fica: 0.3 });
+    aperta('#revanche', T(12, 12));
+    // 13 · PLIM: o aviso cai no topo; a câmera chega no Snorlax (placar e barra saem); ele segue respirando e, um
     // respiro depois, abre um olho bravo (uma fresta, depois inteiro)
-    tl.to(['#fim', '#escurece', '#barra', '#placar'], { opacity: 0, duration: 0.25, ease: 'power1.in' }, T(11, 15));
+    tl.to(['#fim', '#escurece', '#barra', '#placar'], { opacity: 0, duration: 0.25, ease: 'power1.in' }, T(12, 15));
     {
       const a = aviso($('avisos2'));
       tl.set(a, { y: 120 }, 0);
-      op(a, T(12, 0));
-      tl.fromTo(a, { y: -260 }, { y: 120, duration: 0.32, ease: 'back.out(1.7)', immediateRender: false }, T(12, 0));
+      op(a, T(13, 0));
+      tl.fromTo(a, { y: -260 }, { y: 120, duration: 0.32, ease: 'back.out(1.7)', immediateRender: false }, T(13, 0));
     }
-    tl.to(dcam, { x: 540 - 570 * 1.6, y: 760 - 600 * 1.6, scale: 1.6, duration: 0.6, ease: 'power2.inOut' }, T(12, 0));
+    tl.to(dcam, { x: 540 - 570 * 1.6, y: 760 - 600 * 1.6, scale: 1.6, duration: 0.6, ease: 'power2.inOut' }, T(13, 0));
     // e chega mais perto no olho (antes de ele abrir); volta pra mostrar o Pikachu antes de ele murchar
     const OLHO_W = { x: GOLX + 7 * 11, y: GY + 120 - 12 * 11 };
-    tl.to(dcam, { x: 620 - OLHO_W.x * 2, y: 820 - OLHO_W.y * 2, scale: 2, duration: 0.42, ease: 'power2.inOut' }, T(12, 3));
-    tl.to(dcam, { x: 540 - 570 * 1.6, y: 760 - 600 * 1.6, scale: 1.6, duration: 0.45, ease: 'power2.inOut' }, T(13, 3));
-    tl.to(snZ.corpo, { keyframes: [{ x: 9, duration: 0.05 }, { x: -7, duration: 0.06 }, { x: 3, duration: 0.06 }, { x: 0, duration: 0.07 }] }, T(12, 0));
-    quadro(tl, snZ, 'Sleep', 0, 0, T(12, 2));
+    tl.to(dcam, { x: 620 - OLHO_W.x * 2, y: 820 - OLHO_W.y * 2, scale: 2, duration: 0.42, ease: 'power2.inOut' }, T(13, 3));
+    tl.to(dcam, { x: 540 - 570 * 1.6, y: 760 - 600 * 1.6, scale: 1.6, duration: 0.45, ease: 'power2.inOut' }, T(14, 3));
+    tl.to(snZ.corpo, { keyframes: [{ x: 9, duration: 0.05 }, { x: -7, duration: 0.06 }, { x: 3, duration: 0.06 }, { x: 0, duration: 0.07 }] }, T(13, 0));
     const olhoM = naFolha(snZ, pixelSvg(OLHO_MEIO, COR_OLHO, 11), 'Sleep');
     const olho = naFolha(snZ, pixelSvg(OLHO, COR_OLHO, 11), 'Sleep');
     tl.set([olhoM, olho], { opacity: 0 }, 0);
-    op(olhoM, T(12, 6));
-    op(olhoM, T(12, 6) + 0.1, false);
-    op(olho, T(12, 6) + 0.1);
-    tl.to(snZ.corpo, { keyframes: [{ y: -10, duration: 0.06, ease: 'power2.out' }, { y: 0, duration: 0.18, ease: 'back.out(2)' }] }, T(12, 6));
-    // 13 · ele puxa o cobertor por cima da cabeça (passa o pano e assenta com um quique); o Pikachu murcha no breque;
+    op(olhoM, T(13, 6));
+    op(olhoM, T(13, 6) + 0.1, false);
+    op(olho, T(13, 6) + 0.1);
+    tl.to(snZ.corpo, { keyframes: [{ y: -10, duration: 0.06, ease: 'power2.out' }, { y: 0, duration: 0.18, ease: 'back.out(2)' }] }, T(13, 6));
+    // 14 · ele puxa o cobertor por cima da cabeça (passa o pano e assenta com um quique); o Pikachu murcha no breque;
     // volta a dormir e a roncar
     const cob = naFolha(snZ, cobSvg(11), 'Sleep', 4);
     tl.set(cob, { opacity: 0 }, 0);
-    op(cob, T(13, 0));
-    tl.fromTo(cob, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.32, ease: 'power2.out', immediateRender: false }, T(13, 0));
-    tl.fromTo(cob, { y: -SPR['143x'].anims.Sleep.pe * 24 * 11 - 24 }, { y: -SPR['143x'].anims.Sleep.pe * 24 * 11, duration: 0.34, ease: 'bounce.out', immediateRender: false }, T(13, 0) + 0.12);
-    op(olho, T(13, 0) + 0.14, false);
-    tl.to(snZ.corpo, { keyframes: [{ scaleX: 1.05, scaleY: 0.95, duration: 0.12, ease: 'power1.out' }, { scaleX: 1, scaleY: 1, duration: 0.25, ease: 'back.out(2)' }] }, T(13, 0) + 0.3);
-    anim(tl, snZ, 'Sleep', 0, T(13, 2), T(14, 0) + 0.5, { vel: 0.5 });
-    ronco(dcam, T(13, 8), GOLX + 200, GY - 60, 3, 0.45);
-    anim(tl, pkD, 'Hurt', 0, T(13, 6), T(14, 0) + 0.5, { vel: 0.4 });
-    tl.to(pkD.corpo, { scaleY: 0.9, scaleX: 1.05, duration: 0.4, ease: 'power2.out' }, T(13, 6));
+    op(cob, T(14, 0));
+    tl.fromTo(cob, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.32, ease: 'power2.out', immediateRender: false }, T(14, 0));
+    tl.fromTo(cob, { y: -SPR['143x'].anims.Sleep.pe * 24 * 11 - 24 }, { y: -SPR['143x'].anims.Sleep.pe * 24 * 11, duration: 0.34, ease: 'bounce.out', immediateRender: false }, T(14, 0) + 0.12);
+    op(olho, T(14, 0) + 0.14, false);
+    tl.to(snZ.corpo, { keyframes: [{ scaleX: 1.05, scaleY: 0.95, duration: 0.12, ease: 'power1.out' }, { scaleX: 1, scaleY: 1, duration: 0.25, ease: 'back.out(2)' }] }, T(14, 0) + 0.3);
+    anim(tl, snZ, 'Sleep', 0, T(14, 2), T(15, 0) + 0.5, { vel: 0.5 });
+    ronco(dcam, T(14, 8), GOLX + 200, GY - 60, 3, 0.45);
+    anim(tl, pkD, 'Hurt', 0, T(14, 6), T(15, 0) + 0.5, { vel: 0.4 });
+    tl.to(pkD.corpo, { scaleY: 0.9, scaleX: 1.05, duration: 0.4, ease: 'power2.out' }, T(14, 6));
 
     // =====================================================================================================
-    // 14–16 · a explicação: Toque no nome / Peça amizade / Desafie pro Duelo
+    // 15–17 · a explicação: Toque no nome / Peça amizade / Desafie pro Duelo
     // =====================================================================================================
-    passa('#duelo', '#explica', T(14, 0), { tipo: 'iris', x: 540, y: 960, dur: 0.45 });
-    tl.fromTo('#ex-raios', { rotation: 0 }, { rotation: 35, duration: T(17, 0) - T(14, 0), ease: 'none', immediateRender: false }, T(14, 0));
+    passa('#duelo', '#explica', T(15, 0), { tipo: 'iris', x: 540, y: 960, dur: 0.45 });
+    tl.fromTo('#ex-raios', { rotation: 0 }, { rotation: 35, duration: T(18, 0) - T(15, 0), ease: 'none', immediateRender: false }, T(15, 0));
     const exc = $('exc');
     const sai = (els, t) => tl.to(els, { opacity: 0, y: -40, duration: 0.16, ease: 'power2.in' }, t - 0.16);
-    // 14 · a linha do ranking (o nome que abre o perfil)
+    // 15 · a linha do ranking (o nome que abre o perfil)
     exc.insertAdjacentHTML('beforeend', '<div class="linha" id="ex-l" style="top:760px"><div class="faixa" style="background:#2fa59a"></div><div class="pos">1</div><div class="nome" id="ex-nome">zzz</div><div class="clube">Clube do Ronco</div></div>');
     [143, 143, 143, 143].forEach((id, i) => {
       const a = ator($('ex-l'), id, { escala: 3, z: 5, sombra: false, x: 560 + i * 90, y: 300 });
-      anim(tl, a, 'Idle', 0, T(14, 0), T(15, 0), { de: i % 4 });
+      anim(tl, a, 'Idle', 0, T(15, 0), T(16, 0), { de: i % 4 });
     });
     op('#lg1', 0, false);
-    op('#lg1', T(14, 0) + 0.15);
-    pop('#lg1', T(14, 0) + 0.15, 0.6);
+    op('#lg1', T(15, 0) + 0.15);
+    pop('#lg1', T(15, 0) + 0.15, 0.6);
     op('#ex-l', 0, false);
-    op('#ex-l', T(14, 2));
-    pop('#ex-l', T(14, 2), 0.6);
-    toca(330, 850, [T(14, 6), T(14, 13)], { fica: 0.3 });
-    for (const r of [6, 13]) tl.fromTo('#ex-nome', { color: '#ffcb05' }, { color: '#fff', duration: 0.6, immediateRender: false }, T(14, r));
-    sai(['#lg1', '#ex-l'], T(15, 0));
-    // 15 · Adicionar amigo
-    op('#lg2', T(15, 0));
-    pop('#lg2', T(15, 0), 0.6);
+    op('#ex-l', T(15, 2));
+    pop('#ex-l', T(15, 2), 0.6);
+    toca(330, 850, [T(15, 6), T(15, 13)], { fica: 0.3 });
+    for (const r of [6, 13]) tl.fromTo('#ex-nome', { color: '#ffcb05' }, { color: '#fff', duration: 0.6, immediateRender: false }, T(15, r));
+    sai(['#lg1', '#ex-l'], T(16, 0));
+    // 16 · Adicionar amigo
+    op('#lg2', T(16, 0));
+    pop('#lg2', T(16, 0), 0.6);
     exc.insertAdjacentHTML('beforeend', `<div class="btn verde" id="ex-add" style="left:60px;top:800px;width:960px;opacity:0"><span id="ex-add-1">${$('add-1').innerHTML}</span><span id="ex-add-2" style="opacity:0">${$('add-2').innerHTML}</span></div>`);
-    op('#ex-add', T(15, 1));
-    pop('#ex-add', T(15, 1), 0.4);
-    toca(540, 900, T(15, 6), { fica: 0.3 });
-    aperta('#ex-add', T(15, 6));
-    tl.set('#ex-add', { attr: { class: 'btn feito' } }, T(15, 7));
-    op('#ex-add-1', T(15, 7), false);
-    op('#ex-add-2', T(15, 7));
-    pop('#ex-add-2', T(15, 7), 0.5);
-    sai(['#lg2', '#ex-add'], T(16, 0));
-    // 16 · Desafiar: o convite sobe e vai
-    op('#lg3', T(16, 0));
-    pop('#lg3', T(16, 0), 0.6);
-    exc.insertAdjacentHTML('beforeend', '<div class="btn azul" id="ex-des" style="left:60px;top:800px;width:960px;opacity:0"><span>Desafiar</span></div>');
-    op('#ex-des', T(16, 1));
-    pop('#ex-des', T(16, 1), 0.4);
+    op('#ex-add', T(16, 1));
+    pop('#ex-add', T(16, 1), 0.4);
     toca(540, 900, T(16, 6), { fica: 0.3 });
-    aperta('#ex-des', T(16, 6));
+    aperta('#ex-add', T(16, 6));
+    tl.set('#ex-add', { attr: { class: 'btn feito' } }, T(16, 7));
+    op('#ex-add-1', T(16, 7), false);
+    op('#ex-add-2', T(16, 7));
+    pop('#ex-add-2', T(16, 7), 0.5);
+    sai(['#lg2', '#ex-add'], T(17, 0));
+    // 17 · Desafiar: o convite sobe e vai
+    op('#lg3', T(17, 0));
+    pop('#lg3', T(17, 0), 0.6);
+    exc.insertAdjacentHTML('beforeend', '<div class="btn azul" id="ex-des" style="left:60px;top:800px;width:960px;opacity:0"><span>Desafiar</span></div>');
+    op('#ex-des', T(17, 1));
+    pop('#ex-des', T(17, 1), 0.4);
+    toca(540, 900, T(17, 6), { fica: 0.3 });
+    aperta('#ex-des', T(17, 6));
     {
       const conv = aviso(exc);
       tl.set(conv, { x: 0, y: 900 - 125, scale: 0.4, transformOrigin: '50% 50%' }, 0);
-      op(conv, T(16, 7));
-      tl.fromTo(conv, { scale: 0.4 }, { scale: 0.8, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(16, 7));
-      tl.to(conv, { y: -400, rotation: -6, duration: 0.55, ease: 'power3.in' }, T(16, 7) + 0.12);
+      op(conv, T(17, 7));
+      tl.fromTo(conv, { scale: 0.4 }, { scale: 0.8, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(17, 7));
+      tl.to(conv, { y: -400, rotation: -6, duration: 0.55, ease: 'power3.in' }, T(17, 7) + 0.12);
     }
     // embaixo, os dois o tempo todo: o Pikachu pulando, o Snorlax dormindo
     const pkE = ator(exc, 25, { escala: 9, z: 5, x: 320, y: 1660 });
     const snE = ator(exc, '143x', { escala: 12, z: 5, x: 730, y: 1650 });
-    anim(tl, pkE, 'Idle', 0, T(14, 0), T(17, 0) + 0.5);
-    anim(tl, snE, 'Sleep', 0, T(14, 0), T(17, 0) + 0.5, { vel: 0.5 });
-    for (const [b, r] of [[14, 0], [14, 8], [15, 0], [15, 8], [16, 0], [16, 3], [16, 8]]) salto(pkE, T(b, r) + 0.07, 70, 0.28);
-    ronco(exc, T(14, 4), 880, 1400, 2, 0.6);
+    anim(tl, pkE, 'Idle', 0, T(15, 0), T(18, 0) + 0.5);
+    anim(tl, snE, 'Sleep', 0, T(15, 0), T(18, 0) + 0.5, { vel: 0.5 });
+    for (const [b, r] of [[15, 0], [15, 8], [16, 0], [16, 8], [17, 0], [17, 3], [17, 8]]) salto(pkE, T(b, r) + 0.07, 70, 0.28);
     ronco(exc, T(15, 4), 880, 1400, 2, 0.6);
     ronco(exc, T(16, 4), 880, 1400, 2, 0.6);
+    ronco(exc, T(17, 4), 880, 1400, 2, 0.6);
 
     // =====================================================================================================
-    // 17 · tela final: logo, NOVO NA 0.9.25, soccermon.com (abre num círculo por cima da explicação)
+    // 18 · tela final: logo, NOVO NA 0.9.25, soccermon.com (abre num círculo por cima da explicação)
     // =====================================================================================================
-    const FIM = T(17, 0);
+    const FIM = T(18, 0);
     telaFinal($('final'));
     tl.fromTo('#final', { clipPath: 'circle(0px at 540px 960px)' }, { clipPath: 'circle(2300px at 540px 960px)', duration: 0.45, ease: 'power2.inOut', immediateRender: false }, FIM);
     tl.set('#final', { clipPath: 'none' }, FIM + 0.45);
@@ -752,24 +775,24 @@
     const snF = ator(fc, '143x', { escala: 9, z: 5, x: 730, y: 1450 });
     anim(tl, pkF, 'Idle', 0, FIM, FIM + 3);
     anim(tl, snF, 'Sleep', 0, FIM, FIM + 3, { vel: 0.5 });
-    for (const r of [4, 8]) salto(pkF, T(17, r) + 0.07, 90, 0.36);
+    for (const r of [4, 8]) salto(pkF, T(18, r) + 0.07, 90, 0.36);
     ronco(fc, FIM + 0.4, 880, 1340, 3, 0.6);
     tl.fromTo('#raios-final', { rotation: 0 }, { rotation: 30, duration: 3, ease: 'none', immediateRender: false }, FIM);
     tl.set('#logo', { opacity: 1 }, FIM + 0.12);
     tl.fromTo('#logo', { scale: 0.6 }, { scale: 1, duration: 0.5, ease: 'back.out(2.6)', immediateRender: false }, FIM + 0.12);
     op('#versao', FIM + 0.2);
     pop('#versao', FIM + 0.2, 0.5);
-    piscada(tl, [T(17, 2), T(17, 4), T(17, 6)], '#final-cena');
-    tl.set('#tag', { opacity: 1 }, T(17, 6));
-    tl.from('#tag', { scale: 1.6, duration: 0.3, ease: 'back.out(2)' }, T(17, 6));
-    tl.to(['#site', '#credito'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(17, 7));
-    tl.to(['#selo'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(17, 8));
+    piscada(tl, [T(18, 2), T(18, 4), T(18, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(18, 6));
+    tl.from('#tag', { scale: 1.6, duration: 0.3, ease: 'back.out(2)' }, T(18, 6));
+    tl.to(['#site', '#credito'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(18, 7));
+    tl.to(['#selo'], { opacity: 1, duration: 0.25, ease: 'power1.out' }, T(18, 8));
 
     // nada parado: a câmera de fora respira (vai e volta 3% por compasso, em curva)
-    const nb = 17;
+    const nb = 18;
     tl.fromTo('#cena', { scale: 1 }, {
       keyframes: { scale: Array.from({ length: nb }, (_, b) => (b % 2 ? 1 : 1.03)), easeEach: 'sine.inOut' },
-      duration: T(17, 0), ease: 'none', transformOrigin: '540px 700px', immediateRender: false,
+      duration: T(18, 0), ease: 'none', transformOrigin: '540px 700px', immediateRender: false,
     }, 0);
 
     window.__timelines = window.__timelines || {};
