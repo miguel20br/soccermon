@@ -49,6 +49,9 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 | 2 | EP 2 · Escalaram um Magikarp no gol · YouTube (27/10 00h01, pelo Buffer) https://www.youtube.com/shorts/iPDKL_k1zrk | | | | | 64 s, música própria (livre-magikarp) |
 | 2 | EP 2 · TikTok (27/10 00h03) https://tiktok.com/@soccermongame/video/7701177387957882132 | | | | | falta o comentário com o link |
 | 2 | EP 2 · Reels (27/10 00h03) https://www.instagram.com/reel/De-2FB9BtYj/ | | | | | |
+| 2 | Trailer 0.9.25 Amigos "Plim. Plim. PLIM." · YouTube (29/10 14h41, pelo Buffer) https://www.youtube.com/shorts/91ttkldxrCQ | | | | | v4, 46 s, música própria (livre-amigos) |
+| 2 | Trailer 0.9.25 · TikTok (29/10 14h41) https://tiktok.com/@soccermongame/video/7702146194096590088 | | | | | falta o comentário com o link |
+| 2 | Trailer 0.9.25 · Reels (29/10 14h41) https://www.instagram.com/reel/DfFkO8KsmfW/ | | | | | |
 
 ## Ouvidos (pedidos e bugs vindos dos comentários)
 
