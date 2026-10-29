@@ -1,5 +1,5 @@
 -- Soccermon: o nome no ranking abre o perfil do treinador (pedir amizade, desafiar se já for amigo).
--- NÃO aplicar sem o ok do Miguel (Supabase de produção).
+-- Aprovada pelo Miguel e aplicada em produção em 28/10/2026.
 --
 -- Os rankings (Copa do Dia geral e de amigos, Liga) passam a devolver o código de amigo de cada linha: o mesmo código
 -- público que a pessoa já compartilha (friend_cards.code), nunca o id da conta nem o e-mail. Só quem entrou com o
