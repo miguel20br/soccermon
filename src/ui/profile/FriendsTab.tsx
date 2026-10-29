@@ -79,12 +79,7 @@ function FriendLine({ r }: { r: FriendRow }) {
         setBusy(false);
     };
     return (
-        <li
-            className={`fr-row${open ? ' open' : ''}`}
-            data-exit="collapse"
-           
-            data-testid="friend-row"
-        >
+        <li className={`fr-row${open ? ' open' : ''}`} data-exit="collapse" data-testid="friend-row">
             <button
                 type="button"
                 className="fr-open"
@@ -301,13 +296,7 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.receivedTitle')}</h2>
                     <ul className="fr-list">
                         {g.received.map((r) => (
-                            <li
-                                key={r.code}
-                                className="fr-row"
-                                data-exit="collapse"
-                               
-                                data-testid="friend-request"
-                            >
+                            <li key={r.code} className="fr-row" data-exit="collapse" data-testid="friend-request">
                                 <Who r={r} />
                                 <span className="fr-actions">
                                     <button
