@@ -37,6 +37,14 @@ export const friends = {
     loadError: 'Não deu pra carregar seus amigos agora.',
     retry: 'Tentar de novo',
     challengingNote: 'Desafio pra {name}: crie a sala e o convite chega na hora (vale 15 minutos).',
+    // na sala do Duelo, depois do "Desafiar"
+    challengeSent: {
+        enviado: 'Convite enviado pra {name} (vale 15 minutos).',
+        nao_achei: '{name} não está mais na sua lista. Mande o link.',
+        rapido_demais: 'Você acabou de chamar {name}. Mande o link.',
+        sala: 'O convite pra {name} não saiu. Mande o link.',
+        offline: 'Sem conexão: o convite pra {name} não saiu. Mande o link.',
+    },
     // botão do cartão do treinador (rival do Duelo)
     button: {
         add: 'Adicionar amigo',
