@@ -1,0 +1,800 @@
+/* Laboratório ?lab=sala-trofeus (SalaTrofeusLab.tsx): 3 conceitos da Sede com a Sala de troféus. Descartável.
+   Medidas da cena em pixels de arte (--mi), como o resto da Sede. */
+
+/* ---------- peça tocável da cena ---------- */
+.sx-spot {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: calc(var(--w) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+        filter var(--sx-ms) var(--ease-out),
+        translate 60ms var(--ease-out);
+}
+.sx-spot:active {
+    translate: 0 var(--mi);
+}
+.sx-spot:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+/* ---------- um lugar de troféu: a peça e a plaquinha com quantos ---------- */
+.sx-slot {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: end;
+    gap: var(--mi);
+}
+.sx-slot .tr-art {
+    height: auto;
+}
+.sx-taca .tr-art {
+    width: calc(var(--mi) * 14);
+}
+.sx-medalhao .tr-art {
+    width: calc(var(--mi) * 12);
+}
+.sx-cinturao .tr-art {
+    width: calc(var(--mi) * 15);
+}
+.sx-plate {
+    min-width: calc(var(--mi) * 9);
+    height: calc(var(--mi) * 6);
+    padding: 0 var(--mi);
+    background: #d9b25a;
+    box-shadow:
+        inset 0 calc(var(--mi) * -1) 0 #9a7428,
+        0 calc(var(--mi) * 0.5) 0 rgb(0 0 0 / 45%);
+    font-family: "Galmuri11", monospace;
+    font-size: max(calc(var(--mi) * 5), 9px);
+    font-weight: 700;
+    line-height: calc(var(--mi) * 6);
+    text-align: center;
+    color: #3a2418;
+}
+/* vazio: a silhueta clara num pedestal tracejado (convida, não some) */
+.sx-slot.empty .tr-art {
+    --tr-ghost: rgb(255 244 214 / 34%);
+}
+.sx-slot.empty .sx-plate {
+    background: transparent;
+    box-shadow: inset 0 0 0 calc(var(--mi) * 0.75) rgb(255 244 214 / 40%);
+}
+/* o próximo a ganhar: luz de cima, silhueta mais forte respirando */
+.sx-slot.next .tr-art {
+    --tr-ghost: rgb(255 244 214 / 72%);
+    animation: sx-breathe 2.4s ease-in-out infinite alternate;
+}
+.sx-slot.next::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: calc(var(--mi) * 20);
+    height: calc(var(--mi) * 30);
+    translate: -50% 0;
+    background: linear-gradient(180deg, rgb(255 236 170 / 0%), rgb(255 236 170 / 34%));
+    clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+}
+@keyframes sx-breathe {
+    to {
+        opacity: 0.55;
+    }
+}
+
+/* ---------- estante de pé (A) ---------- */
+.sx-shelf {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: calc(var(--mi) * 3);
+    padding: calc(var(--mi) * 4) calc(var(--mi) * 4) calc(var(--mi) * 6);
+    background: #5a3826;
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 2) #3a2418,
+        inset 0 0 0 calc(var(--mi) * 3) #7a5038,
+        0 calc(var(--mi) * 2) 0 rgb(0 0 0 / 35%);
+}
+.sx-tier {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    padding-bottom: var(--mi);
+    background: #3a2418;
+    border-bottom: calc(var(--mi) * 3) solid #9a6a45;
+    box-shadow: 0 var(--mi) 0 #2a160e;
+}
+.sx-first {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + var(--mi) * 3);
+    width: max(calc(var(--mi) * 56), 96px);
+    translate: -50% 0;
+    padding: 2px 4px;
+    background: #f1e6c4;
+    border: 2px solid #3a2418;
+    border-radius: 2px;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    color: #3a2418;
+}
+
+/* ---------- estojo das insígnias (parede) ---------- */
+.sx-badgecase {
+    background: #2b2140;
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 2) #3a2418,
+        inset 0 0 0 calc(var(--mi) * 3) #c9a24a,
+        0 calc(var(--mi) * 1.5) 0 rgb(0 0 0 / 40%);
+}
+.sx-badges {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    place-items: center;
+    height: 100%;
+    padding: calc(var(--mi) * 3) calc(var(--mi) * 4);
+}
+.sx-badges .kb-badge {
+    width: calc(var(--mi) * 9);
+    height: calc(var(--mi) * 9);
+}
+.sx-badges .kb-badge.off {
+    filter: grayscale(1) brightness(1.6);
+    opacity: 0.32;
+}
+.sx-crest {
+    left: calc(var(--mi) * 81);
+    top: calc(var(--mi) * 6);
+    width: calc(var(--mi) * 28);
+    height: calc(var(--mi) * 30);
+}
+
+/* ---------- quadro de cortiça com as medalhas ---------- */
+.sx-board {
+    background:
+        radial-gradient(circle, rgb(90 50 20 / 35%) 0 calc(var(--mi) * 0.5), transparent calc(var(--mi) * 0.6)) 0 0 /
+        calc(var(--mi) * 5) calc(var(--mi) * 5),
+        #b98450;
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 2) #3a2418,
+        inset 0 0 0 calc(var(--mi) * 3) #7a5038,
+        0 calc(var(--mi) * 1.5) 0 rgb(0 0 0 / 40%);
+}
+.sx-cork {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    place-items: center;
+    height: 100%;
+    padding: calc(var(--mi) * 4);
+}
+.sx-cork .medal {
+    --ms: calc(var(--mi) * 8);
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 0.75) var(--md-edge),
+        0 calc(var(--mi) * 0.75) 0 rgb(0 0 0 / 45%);
+}
+.sx-pin {
+    width: calc(var(--mi) * 7);
+    height: calc(var(--mi) * 7);
+    border-radius: 50%;
+    border: calc(var(--mi) * 0.75) dashed rgb(255 240 210 / 50%);
+}
+
+/* ---------- vitrine de vidro (cinturões em A, medalhões em B) ---------- */
+.sx-vitrine {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: calc(var(--mi) * 2) calc(var(--mi) * 2) calc(var(--mi) * 7);
+    background:
+        linear-gradient(
+            125deg,
+            transparent 0 30%,
+            rgb(255 255 255 / 18%) 30% 36%,
+            transparent 36% 60%,
+            rgb(255 255 255 / 10%) 60% 63%,
+            transparent 63%
+        ),
+        rgb(170 210 240 / 14%);
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 1) rgb(220 240 255 / 55%),
+        inset 0 calc(var(--mi) * -5) 0 #5a3826,
+        inset 0 calc(var(--mi) * -6) 0 #3a2418,
+        0 calc(var(--mi) * 1.5) 0 rgb(0 0 0 / 40%);
+}
+.sx-vitrine .sx-plate {
+    display: none;
+}
+.sx-fire {
+    left: calc(var(--mi) * 222);
+}
+
+/* ---------- A: a câmera chega perto do que foi tocado ---------- */
+.sx-a {
+    --ui-h: 210px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sx-a,
+    .sx-c {
+        --ui-h: 250px;
+    }
+}
+.sx-a .sx-cam {
+    transition:
+        transform var(--sx-ms) var(--ease-out),
+        transform-origin 0s;
+}
+.sx-a .rm-wall,
+.sx-a .rm-floor,
+.sx-a .rm-walk,
+.sx-a .rm-set > :not(.sx-spot) {
+    transition: filter var(--sx-ms) var(--ease-out);
+}
+.sx-zoomed .rm-wall,
+.sx-zoomed .rm-floor,
+.sx-zoomed .rm-walk,
+.sx-zoomed .rm-set > :not(.on) {
+    filter: brightness(0.4) saturate(0.6);
+}
+.sx-ui {
+    transition:
+        opacity var(--sx-ms) var(--ease-out),
+        translate var(--sx-ms) var(--ease-out);
+}
+.sx-hide {
+    opacity: 0;
+    translate: 0 24px;
+    pointer-events: none;
+}
+.sx-level {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, 38%);
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 4px;
+    background: var(--plate, #1b2147);
+    box-shadow:
+        inset 0 0 0 2px var(--plate-in, #2a3366),
+        0 3px 0 var(--bc-edge);
+}
+.sx-level > span:first-child {
+    display: grid;
+    min-width: 0;
+}
+.sx-level b {
+    font-size: 13px;
+}
+.sx-level small {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ---------- o painel do Hall (o conteúdo da Sala de troféus de hoje) ---------- */
+.sx-detail {
+    position: absolute;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 14px 16px 16px;
+    border-radius: 14px 14px 0 0;
+}
+/* (o ".amb .amb-panel > *" dos ambientes desliga animação: aqui ela volta) a câmera sai na frente, o painel vem atrás */
+.amb .amb-panel > .sx-detail {
+    animation: sx-up var(--sx-ms) var(--ease-out) calc(var(--sx-ms) * 0.35) both;
+}
+.amb .amb-panel > .sx-detail.out {
+    animation: sx-down var(--sx-ms) var(--ease-out) both;
+}
+@keyframes sx-up {
+    from {
+        transform: translateY(100%);
+    }
+}
+@keyframes sx-down {
+    to {
+        transform: translateY(100%);
+    }
+}
+.sx-detail h2 {
+    margin: 0;
+    padding-right: 52px;
+    font-size: 18px;
+}
+.sx-detail-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    margin-top: 12px;
+}
+.sx-detail-body .bc-lbl {
+    margin: 4px 0 0;
+}
+.sx-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.sx-row li {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 4px;
+    padding: 10px 6px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    text-align: center;
+}
+.sx-row .tr-art {
+    width: 48px;
+    height: auto;
+}
+.sx-row .tr-cinturao {
+    width: 60px;
+}
+.sx-row b {
+    font-size: 12px;
+}
+.sx-row small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.sx-row li.ghost .tr-art {
+    --tr-ghost: rgb(255 255 255 / 22%);
+}
+@media (min-width: 900px) {
+    .sx-detail {
+        left: auto;
+        top: calc(80px + env(safe-area-inset-top));
+        right: 24px;
+        bottom: 20px;
+        width: 440px;
+        height: auto;
+        border-radius: 10px;
+    }
+    .amb .amb-panel > .sx-detail {
+        animation-name: sx-side;
+    }
+    .amb .amb-panel > .sx-detail.out {
+        animation-name: sx-side-out;
+    }
+}
+@keyframes sx-side {
+    from {
+        transform: translateX(calc(100% + 32px));
+    }
+}
+@keyframes sx-side-out {
+    to {
+        transform: translateX(calc(100% + 32px));
+    }
+}
+
+/* ============================================================ B: dois andares (casa em corte) */
+.sx-b {
+    --mi: 2px;
+    --top: 124px;
+    --ui-h: 150px;
+    background: #0d1129;
+}
+@media (max-width: 359px), (max-height: 700px) {
+    .sx-b {
+        --mi: 1.5px;
+        --top: 112px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sx-b {
+        --mi: 3px;
+        --top: 120px;
+        --ui-h: 150px;
+    }
+}
+.sx-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--top) + var(--y0) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+}
+/* a galeria: papel de parede escuro com frisos e um rodapé */
+.sx-up-wall {
+    --y0: 0;
+    --h: 60;
+    border-top: calc(var(--mi) * 3) solid #e8dcc2;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 10),
+            rgb(255 255 255 / 5%) calc(var(--mi) * 10) calc(var(--mi) * 11)
+        ),
+        linear-gradient(180deg, #2c3a6b 0 calc(100% - var(--mi) * 4), #1b2447 calc(100% - var(--mi) * 4));
+}
+.sx-mezz {
+    --y0: 60;
+    --h: 10;
+    background: repeating-linear-gradient(
+        90deg,
+        #b5875c 0 calc(var(--mi) * 23),
+        #a3774f calc(var(--mi) * 23) calc(var(--mi) * 24)
+    );
+}
+.sx-beam {
+    --y0: 70;
+    --h: 6;
+    background: #3a2418;
+    box-shadow:
+        inset 0 var(--mi) 0 #5a3826,
+        0 var(--mi) 0 #05070f;
+}
+.sx-down-wall {
+    --y0: 76;
+    --h: 56;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 22%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        linear-gradient(180deg, #7b5240 0 calc(100% - var(--mi) * 5), #4e3226 calc(100% - var(--mi) * 5));
+}
+.sx-down-floor {
+    --y0: 132;
+    height: auto;
+    bottom: 0;
+    background:
+        linear-gradient(180deg, rgb(6 8 22 / 18%), transparent 25%, rgb(6 8 22 / 70%) 85%),
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 20%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #9a6a45 0 calc(var(--mi) * 23),
+            #8e603d calc(var(--mi) * 23) calc(var(--mi) * 24)
+        );
+}
+.sx-house {
+    position: absolute;
+    left: 50%;
+    top: var(--top);
+    width: calc(var(--mi) * 190);
+    height: calc(var(--mi) * 200);
+    transform: translateX(-50%);
+}
+.sx-lights {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--mi) * 62);
+    height: calc(var(--mi) * 60);
+    background:
+        radial-gradient(ellipse 18% 90% at 23% 0, rgb(255 240 190 / 26%), transparent),
+        radial-gradient(ellipse 18% 90% at 52% 0, rgb(255 240 190 / 26%), transparent),
+        radial-gradient(ellipse 18% 90% at 81% 0, rgb(255 240 190 / 26%), transparent);
+}
+.sx-pedestal .sx-slot {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--mi) * 16);
+    translate: -50% 0;
+}
+.sx-pedestal::after {
+    content: "";
+    position: absolute;
+    left: var(--mi);
+    right: var(--mi);
+    bottom: 0;
+    height: calc(var(--mi) * 16);
+    background: linear-gradient(90deg, #d8cdb2, #efe6d0 40%, #b8ab8e);
+    box-shadow:
+        inset 0 calc(var(--mi) * 2) 0 #fff8e6,
+        inset 0 calc(var(--mi) * -2) 0 #8a7c60;
+}
+.sx-pedestal .sx-slot.next::before {
+    bottom: calc(var(--mi) * -16);
+}
+.sx-vitrine.low {
+    padding-bottom: calc(var(--mi) * 6);
+}
+.sx-rail {
+    position: absolute;
+    z-index: 4;
+    top: calc(var(--mi) * 56);
+    left: calc(var(--mi) * -400);
+    width: calc(var(--mi) * 542);
+    height: calc(var(--mi) * 14);
+    background:
+        linear-gradient(#e8dcc2, #e8dcc2) 0 0 / 100% calc(var(--mi) * 2) no-repeat,
+        linear-gradient(#a3774f, #a3774f) 0 100% / 100% calc(var(--mi) * 2) no-repeat,
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 4),
+            #c9b48e calc(var(--mi) * 4) calc(var(--mi) * 6)
+        );
+    pointer-events: none;
+}
+.sx-rail.r {
+    left: calc(var(--mi) * 168);
+    width: calc(var(--mi) * 400);
+}
+.sx-stairs {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+}
+.sx-stairs i {
+    position: absolute;
+    left: calc((144 + var(--k) * 3) * var(--mi));
+    top: calc((70 + var(--k) * 8.4) * var(--mi));
+    width: calc(var(--mi) * 20);
+    height: calc(var(--mi) * 8.4);
+    background: linear-gradient(180deg, #c99a6a 0 calc(var(--mi) * 2.5), #7a5038 calc(var(--mi) * 2.5));
+    box-shadow: 0 var(--mi) 0 #2a160e;
+}
+.sx-stairs-foot {
+    position: absolute;
+    left: calc(var(--mi) * 150);
+    top: calc(var(--mi) * 132);
+    width: calc(var(--mi) * 44);
+    height: calc(var(--mi) * 30);
+}
+.sx-flags {
+    top: calc(var(--mi) * 78);
+    left: 0;
+    right: calc(var(--mi) * 46);
+}
+.sx-crest-b {
+    position: absolute;
+    left: calc(var(--mi) * 40);
+    top: calc(var(--mi) * 92);
+    width: calc(var(--mi) * 26);
+    height: calc(var(--mi) * 29);
+    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 40%));
+}
+.sx-frame-b {
+    left: calc(var(--mi) * 74);
+    top: calc(var(--mi) * 90);
+}
+.sx-rug-b {
+    left: calc(var(--mi) * 28);
+    top: calc(var(--mi) * 150);
+    width: calc(var(--mi) * 96);
+}
+.sx-visitor {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: 0;
+    height: 0;
+}
+.sx-b-walk {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--top) + var(--mi) * 138);
+    bottom: var(--ui-h);
+}
+
+/* ============================================================ C: o pódio */
+.sx-c {
+    --ui-h: 260px;
+}
+.sx-crest-c {
+    position: absolute;
+    left: calc(var(--mi) * 10);
+    top: calc(var(--mi) * 14);
+    width: calc(var(--mi) * 32);
+    height: calc(var(--mi) * 35);
+    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 40%));
+}
+.sx-plaque {
+    position: absolute;
+    z-index: 2;
+    left: calc(var(--mi) * 52);
+    top: calc(var(--mi) * 14);
+    width: calc(var(--mi) * 70);
+    display: grid;
+    gap: 2px;
+    padding: calc(var(--mi) * 2) calc(var(--mi) * 3);
+    background: linear-gradient(180deg, #f3d77a, #d9b25a);
+    border: calc(var(--mi) * 1) solid #3a2418;
+    box-shadow:
+        inset 0 calc(var(--mi) * -1) 0 #9a7428,
+        0 calc(var(--mi) * 1) 0 rgb(0 0 0 / 40%);
+    text-align: center;
+    color: #3a2418;
+}
+.sx-plaque b {
+    font-family: "Galmuri11", monospace;
+    font-size: max(calc(var(--mi) * 6), 12px);
+    line-height: 1.1;
+}
+.sx-plaque small {
+    font-family: "Galmuri11", monospace;
+    font-size: max(calc(var(--mi) * 4.5), 10px);
+    line-height: 1.2;
+}
+.sx-spot-light {
+    position: absolute;
+    z-index: 70;
+    left: calc(var(--mi) * 60);
+    top: calc(var(--mi) * 34);
+    width: calc(var(--mi) * 70);
+    height: calc(var(--mi) * 70);
+    background: linear-gradient(180deg, rgb(255 240 190 / 0%), rgb(255 240 190 / 30%));
+    clip-path: polygon(36% 0, 64% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+}
+.sx-podium {
+    position: absolute;
+    z-index: 104;
+    left: calc(var(--mi) * 65);
+    top: calc(var(--mi) * 83);
+    width: calc(var(--mi) * 60);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.sx-podium i {
+    display: block;
+    height: calc(var(--mi) * 7);
+    background: linear-gradient(
+        180deg,
+        #f2e6c8 0 calc(var(--mi) * 2),
+        #cdbb92 calc(var(--mi) * 2) calc(100% - var(--mi)),
+        #8a7c60 calc(100% - var(--mi))
+    );
+    box-shadow: 0 var(--mi) 0 rgb(0 0 0 / 35%);
+}
+.sx-podium i:nth-child(1) {
+    width: 56%;
+}
+.sx-podium i:nth-child(2) {
+    width: 78%;
+    background: linear-gradient(180deg, #f2e6c8 0 calc(var(--mi) * 2), var(--club) calc(var(--mi) * 2));
+}
+.sx-podium i:nth-child(3) {
+    width: 100%;
+}
+.sx-hero {
+    position: absolute;
+    z-index: 105;
+    left: calc(var(--mi) * 95);
+    top: calc(var(--mi) * 82);
+    display: grid;
+    place-items: center;
+    transform: translate(-50%, -100%);
+    animation:
+        sx-pop 320ms var(--ease-pop) both,
+        sx-bob 1.6s ease-in-out 320ms infinite alternate;
+}
+.sx-hero .tr-taca {
+    width: calc(var(--mi) * 30);
+    height: auto;
+}
+.sx-hero .tr-medalhao {
+    width: calc(var(--mi) * 26);
+    height: auto;
+}
+.sx-hero .tr-cinturao {
+    width: calc(var(--mi) * 38);
+    height: auto;
+}
+.sx-hero .kb-badge {
+    width: calc(var(--mi) * 24);
+    height: calc(var(--mi) * 24);
+}
+.sx-hero .medal {
+    --ms: calc(var(--mi) * 24);
+}
+.sx-hero .ghost {
+    --tr-ghost: rgb(255 244 214 / 55%);
+}
+@keyframes sx-pop {
+    from {
+        scale: 0.6;
+        opacity: 0;
+    }
+}
+@keyframes sx-bob {
+    to {
+        translate: 0 calc(var(--mi) * -2);
+    }
+}
+.sx-cap {
+    position: absolute;
+    z-index: 104;
+    left: calc(var(--mi) * 140);
+    top: calc(var(--mi) * 104);
+    width: 0;
+    height: 0;
+}
+.sx-shelf-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+}
+.sx-chip {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 60px;
+    padding: 6px 2px 5px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--plate, #1b2147);
+    box-shadow:
+        inset 0 0 0 2px var(--plate-in, #2a3366),
+        0 4px 0 var(--bc-edge);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    transition:
+        box-shadow 200ms var(--ease-out),
+        translate 60ms var(--ease-out);
+}
+.sx-chip:active {
+    translate: 0 2px;
+}
+.sx-chip.on {
+    box-shadow:
+        inset 0 0 0 2px var(--plate-in, #2a3366),
+        0 0 0 3px var(--yellow),
+        0 4px 0 var(--bc-edge);
+}
+.sx-chip .tr-art {
+    width: auto;
+    height: 24px;
+}
+.sx-chip .tr-cinturao {
+    width: 44px;
+    height: auto;
+}
+.sx-chip .kb-badge {
+    width: 24px;
+    height: 24px;
+}
+.sx-chip .medal {
+    --ms: 24px;
+}
+.sx-chip b {
+    font-size: 14px;
+    line-height: 1;
+}
+.sx-chip.ghost {
+    color: var(--muted);
+}
+.sx-chip.ghost .tr-art {
+    --tr-ghost: rgb(255 255 255 / 30%);
+}

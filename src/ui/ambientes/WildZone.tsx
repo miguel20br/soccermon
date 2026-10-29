@@ -272,7 +272,7 @@ function GoalBubble({ n }: { n: number }) {
     );
 }
 
-function Bubble({ kind }: { kind: Exclude<Emote, 'goal'> }) {
+export function Bubble({ kind }: { kind: Exclude<Emote, 'goal'> }) {
     const { px, c } = ICON[kind];
     return (
         <svg className="wild-bubble" viewBox="0 0 9 10" shapeRendering="crispEdges" aria-hidden>
