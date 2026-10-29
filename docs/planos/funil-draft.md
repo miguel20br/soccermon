@@ -106,7 +106,7 @@ só **15 sessões**; **3 sessões fazem 125 deles** (67, 33 e 25 abandonos).
 
 **29/10 (branch `conserto-funil`):** a C virou o evento `first_leave` (aba escondida ou fechada antes do apito da 1ª
 partida: tela, passo da copa, cartas, ponto da partida, velocidade e tempo de página; uma vez por sessão), na migração
-`20261029120000_evento_saida_antes_da_1a.sql` e na linha "Saiu antes da 1ª partida" do `stats.ts`. A 1ª partida não
+`20261029130000_evento_saida_antes_da_1a.sql` e na linha "Saiu antes da 1ª partida" do `stats.ts`. A 1ª partida não
 muda: só medir.
 
 **Ordem que eu seguiria:** D agora (a leitura do funil melhora sem mexer no jogo), B junto (não muda regra), C em
