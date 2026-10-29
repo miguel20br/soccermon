@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signInWithGoogle, useCloud } from '../../cloud/cloud';
 import {
     buildVitrine,
@@ -17,17 +17,21 @@ import {
 } from '../../friends/api';
 import { playSfx } from '../../game/audio';
 import { rich, useT } from '../../i18n/react';
+import { lookOfPeer } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { duelLink, isLocalDuel } from '../duel/link';
 import { useAskText } from './AddFriendButton';
-import { hexCss } from './club';
+import { Crest } from './Crest';
 import { usePublicPeer } from './PlayerCard';
 import { openTrainer, TrainerName } from './TrainerName';
 import './friends.css';
 
-const stripe = (color: string) => ({ '--tc': hexCss(clubColorHex(color)) }) as CSSProperties;
+/** O escudo do clube do amigo na cor dele (o símbolo é o padrão: o cartão de amigo ainda não guarda o escudo). */
+const ClubBadge = ({ color }: { color: string }) => (
+    <Crest look={lookOfPeer({ clubColor: clubColorHex(color) })} className="crest fr-crest" />
+);
 
 /** Recarrega a lista ao abrir e a cada 30 s enquanto a tela estiver aberta (o desafio vale 15 min). */
 function useFriendsPoll() {
@@ -51,6 +55,7 @@ function Who({ r, link = true }: { r: FriendRow; link?: boolean }) {
     const { t } = useT();
     return (
         <span className="fr-who">
+            <ClubBadge color={r.club_color} />
             <b>
                 {r.online && <i className="fr-online" role="img" aria-label={t('friends.online')} />}
                 {link ? <TrainerName who={r} /> : r.trainer}
@@ -77,7 +82,7 @@ function FriendLine({ r }: { r: FriendRow }) {
         <li
             className={`fr-row${open ? ' open' : ''}`}
             data-exit="collapse"
-            style={stripe(r.club_color)}
+           
             data-testid="friend-row"
         >
             <button
@@ -274,8 +279,9 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.challengesTitle')}</h2>
                     <ul className="fr-list">
                         {g.challenges.map((r) => (
-                            <li key={r.code} className="fr-row" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row" data-exit="collapse">
                                 <span className="fr-who">
+                                    <ClubBadge color={r.club_color} />
                                     <b>{rich(t('friends.challengeLine'), { name: <TrainerName who={r} /> })}</b>
                                     <small>
                                         {r.club} · {r.club_tag}
@@ -299,7 +305,7 @@ export function FriendsTab() {
                                 key={r.code}
                                 className="fr-row"
                                 data-exit="collapse"
-                                style={stripe(r.club_color)}
+                               
                                 data-testid="friend-request"
                             >
                                 <Who r={r} />
@@ -345,7 +351,7 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.sentTitle')}</h2>
                     <ul className="fr-list">
                         {g.sent.map((r) => (
-                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse">
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -365,7 +371,7 @@ export function FriendsTab() {
                     <summary className="bc-lbl">{t('friends.blockedTitle', { n: g.blocked.length })}</summary>
                     <ul className="fr-list">
                         {g.blocked.map((r) => (
-                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse">
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -391,8 +397,8 @@ export function FriendChallenge() {
     const first = groupFriends(rows ?? [], Date.now()).challenges[0];
     if (!first) return null;
     return (
-        <div className="fr-home" style={stripe(first.club_color)} data-testid="friend-challenge">
-            <HudIcon kind="friends" />
+        <div className="fr-home" data-testid="friend-challenge">
+            <ClubBadge color={first.club_color} />
             <span>{rich(t('friends.challengeLine'), { name: <TrainerName who={first} /> })}</span>
             <button type="button" className="btn outline" onClick={() => joinRoom(first.room!)}>
                 {t('friends.enter')}
@@ -428,8 +434,8 @@ export function FriendInvite() {
     if (!first || !shown) return null;
     const close = () => useFriends.setState((s) => ({ dismissed: [...s.dismissed, first.room!] }));
     return (
-        <div className="fr-toast" style={stripe(first.club_color)} role="alert" data-testid="friend-invite" data-exit>
-            <HudIcon kind="friends" />
+        <div className="fr-toast" role="alert" data-testid="friend-invite" data-exit>
+            <ClubBadge color={first.club_color} />
             <span className="fr-who">
                 <b>{rich(t('friends.challengeLine'), { name: <TrainerName who={first} /> })}</b>
                 <small>
