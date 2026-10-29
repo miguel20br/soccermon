@@ -8,6 +8,7 @@ import penaltis from '../../scripts/musica/pecas/livre-penaltis.mjs';
 import magikarp from '../../scripts/musica/pecas/livre-magikarp.mjs';
 import snorlax from '../../scripts/musica/pecas/livre-snorlax.mjs';
 import ditto from '../../scripts/musica/pecas/livre-ditto.mjs';
+import amigos from '../../scripts/musica/pecas/livre-amigos.mjs';
 import { SR, Song, writeWav } from '../../scripts/musica/synth.mjs';
 
 // compassos da peça original, na ordem do curta
@@ -71,9 +72,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const OUT = process.argv[2] ?? '/tmp/soccermon-curtas';
     mkdirSync(OUT, { recursive: true });
     const so = process.argv.slice(3);
-    for (const [nome, peca] of Object.entries({ snorlax, penaltis, magikarp, ditto })) {
+    for (const [nome, peca] of Object.entries({ snorlax, penaltis, magikarp, ditto, amigos })) {
         if (so.length && !so.includes(nome)) continue;
-        MAPA = MAPAS[nome] ?? null; // o EP 2 e o EP 3 foram compostos já na ordem do curta
+        MAPA = MAPAS[nome] ?? null; // o EP 2, o EP 3 e o Amigos foram compostos já na ordem do curta
         const S = peca();
         MAPA = null;
         const audio = S.render();

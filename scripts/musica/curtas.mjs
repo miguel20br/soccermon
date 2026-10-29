@@ -372,3 +372,31 @@ export const fogo = (dur = 1.2) =>
         },
         { pk: 0.45, corte: 6000 },
     );
+
+// ---------- Amigos (trailer da 0.9.25) ----------
+/** O "plim" do aviso de desafio (assinatura do trailer Amigos): duas notas de sino subindo uma quarta (Dó6 → Fá6 com
+ * `pitch` 0), cada uma com um parcial inarmônico de sino e um estalinho no ataque. `pitch` em semitons. */
+export const plim = som(
+    0.7,
+    (p, r) => {
+        const notas = [
+            [0, hz(84 + p)],
+            [0.075, hz(89 + p)],
+        ];
+        const ph = [0, 0, 0, 0];
+        return (t) => {
+            let y = 0;
+            notas.forEach(([t0, f], k) => {
+                if (t < t0) return;
+                const u = t - t0;
+                ph[2 * k] += (TAU * f) / SR;
+                ph[2 * k + 1] += (TAU * f * 2.76) / SR;
+                const env = Math.min(1, u / 0.002) * Math.exp(-u / (k ? 0.22 : 0.09));
+                y += (Math.sin(ph[2 * k]) + 0.25 * Math.sin(ph[2 * k + 1]) * Math.exp(-u / 0.05)) * env;
+            });
+            const clic = t < 0.004 ? (r() * 2 - 1) * (1 - t / 0.004) * 0.4 : 0;
+            return y + clic;
+        };
+    },
+    { pk: 0.45, corte: 9000 },
+);

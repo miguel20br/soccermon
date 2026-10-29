@@ -1,0 +1,552 @@
+<!doctype html>
+<!--
+  Trailerzinho da 0.9.25 "Amigos" (29/10/2026), 9:16, RASCUNHO. Conceito "Quem é esse no ranking?" com o toque do
+  "Snorlax recebeu um desafio". Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s, 16 compassos (38,4 s) + 0,6 s.
+  0 o Pikachu em 2º no ranking | 1 a câmera sobe: em 1º, "zzz", um clube de Snorlax | 2 toca no nome, o perfil sobe e a
+  silhueta revela o Snorlax | 3 Adicionar amigo | 4 Desafiar | 5 o Snorlax dormindo, plim | 6 plim × ronco, os avisos
+  empilham | 7 plim plim plim, a bolha estoura, ele toca Entrar | 8 o Duelo (partida nova): chute, BOING | 9 chute com
+  choque, BOING, a bola volta por cima | 10 a câmera segue a bola até o outro gol: 0 × 1 | 11 ele volta a dormir,
+  Revanche? | 12 plim, ele cobre a cabeça | 13–14 a explicação | 15 tela final.
+  Telas do jogo redesenhadas no visual do jogo (o ranking da Copa do Dia, o perfil em gaveta, o aviso "te chamou pro
+  Duelo" e a barra de 4 botões da partida nova), com os textos de verdade do jogo; os nomes são os Pokémon.
+  Música própria: scripts/musica/pecas/livre-amigos.mjs (midia/som/amigos.js). Tempos: C.T(compasso, linha).
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<title>Soccermon · Amigos (0.9.25)</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script src="midia/sprites.js"></script>
+<script src="midia/som/amigos.js"></script>
+<script src="comum.js"></script>
+<style>
+.cena { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; visibility: hidden; }
+/* o visual das telas do jogo (aumentado ~2,8x do celular) */
+.ui { background: #151c46; }
+.painel { position: absolute; box-sizing: border-box; background: #1f2758; border: 5px solid #2f3a74; border-radius: 30px; }
+.hdr { position: absolute; left: 40px; top: 60px; width: 1000px; height: 190px; box-sizing: border-box; display: flex; align-items: center; gap: 40px; padding: 0 40px;
+  background: #10163a; border: 6px solid #2f3a74; border-radius: 22px; box-shadow: 0 -10px 0 #ffcb05; color: #e8ecff; font-size: 84px; letter-spacing: 4px; }
+.voltar { width: 110px; height: 110px; border-radius: 20px; background: #2b3a8a; box-shadow: 0 8px 0 #1a2460; display: flex; align-items: center; justify-content: center; }
+.titulo-sec { position: absolute; color: #c8d0f0; font-size: 60px; letter-spacing: 5px; }
+.abas { position: absolute; display: flex; gap: 10px; padding: 10px; border: 4px solid #2f3a74; border-radius: 22px; }
+.abas span { padding: 22px 34px; border-radius: 16px; font-size: 44px; color: #9aa6d8; }
+.abas .on { background: #2563c0; color: #fff; }
+.linha { position: absolute; left: 60px; width: 960px; height: 330px; box-sizing: border-box; background: #1f2758; border-radius: 26px; overflow: visible; }
+.linha .faixa { position: absolute; left: 0; top: 0; bottom: 0; width: 16px; border-radius: 26px 0 0 26px; }
+.linha .pos { position: absolute; left: 44px; top: 70px; font-size: 120px; color: #ffcb05; }
+.linha .nome { position: absolute; left: 180px; top: 34px; font-size: 84px; color: #fff; text-decoration: underline; text-decoration-thickness: 6px; text-underline-offset: 12px; }
+.linha .clube { position: absolute; left: 180px; top: 140px; font-size: 50px; color: #9aa6d8; }
+.linha .saldo { position: absolute; right: 40px; top: 150px; font-size: 44px; color: #9aa6d8; }
+.linha .taca { position: absolute; right: 50px; top: 36px; width: 60px; height: 80px; }
+.linha.eu { border: 8px solid #ffcb05; box-shadow: 0 0 0 6px #0e1430; }
+.linha .voce { position: absolute; right: 30px; top: -34px; padding: 8px 22px; border-radius: 14px; background: #ffcb05; color: #0e1430; font-size: 40px; letter-spacing: 2px; }
+.cap { position: absolute; width: 50px; height: 50px; border-radius: 10px; background: #e0a800; color: #0e1430; font-size: 38px; display: flex; align-items: center; justify-content: center; z-index: 20; }
+/* a gaveta do perfil */
+#perfil { position: absolute; left: 0; top: 500px; width: 1080px; height: 1500px; z-index: 30; box-sizing: border-box; border-radius: 56px 56px 0 0;
+  background: linear-gradient(160deg, #3a2470, #161d48 40%); border-top: 6px solid #3a4890; box-shadow: 0 -20px 60px rgb(0 0 0 / 50%); }
+#perfil .faixa { position: absolute; left: 0; top: 40px; bottom: 0; width: 16px; background: #2fa59a; }
+#perfil .alca { position: absolute; left: 480px; top: 24px; width: 120px; height: 14px; border-radius: 7px; background: #4a5aa0; }
+#perfil .pnome { position: absolute; left: 0; width: 1080px; top: 70px; text-align: center; font-size: 90px; color: #fff; }
+#perfil .x { position: absolute; right: 50px; top: 50px; width: 120px; height: 120px; border-radius: 50%; background: #e8423f; box-shadow: 0 8px 0 #8c1d1b;
+  display: flex; align-items: center; justify-content: center; }
+#avatar { position: absolute; left: 70px; top: 210px; width: 400px; height: 330px; overflow: hidden; border-radius: 34px; background: #2a3a7a; border: 8px solid #0e1430; }
+#avatar .raios { opacity: 0.7; }
+#perfil .ptit { position: absolute; left: 510px; top: 250px; font-size: 62px; color: #ffcb05; line-height: 1.1; }
+#perfil .pclube { position: absolute; left: 510px; top: 420px; font-size: 48px; color: #c8d0f0; display: flex; align-items: center; gap: 18px; }
+#perfil .pclube b { color: #fff; }
+#perfil .vit { position: absolute; left: 70px; top: 590px; font-size: 54px; color: #b8c0e8; letter-spacing: 4px; }
+.carta { position: absolute; top: 680px; width: 250px; height: 330px; box-sizing: border-box; border-radius: 22px; border: 8px solid #0e1430; overflow: hidden;
+  background: linear-gradient(160deg, #fff3a0, #ffcb05 45%, #c98a00); box-shadow: 0 10px 0 rgb(0 0 0 / 35%); }
+.carta .nota { position: absolute; left: 18px; top: 8px; font-size: 76px; color: #0e1430; }
+.carta .cnome { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: #0e1430; color: #ffcb05; font-size: 34px; text-align: center; line-height: 56px; letter-spacing: 2px; }
+#perfil .div { position: absolute; left: 70px; width: 940px; top: 1050px; height: 4px; background: #3a4890; }
+.btn { position: absolute; top: 1090px; height: 150px; box-sizing: border-box; border-radius: 26px; display: flex; align-items: center; justify-content: center; gap: 22px;
+  font-size: 56px; color: #fff; transform-origin: 50% 50%; }
+.btn > span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 20px; }
+.btn.verde { background: linear-gradient(#6fe07a, #3fbf55); box-shadow: 0 12px 0 #23863a; }
+.btn.azul { background: linear-gradient(#4f9cf5, #2a78e0); box-shadow: 0 12px 0 #1a4fa0; }
+.btn.feito { background: #1f2758; box-shadow: none; border: 6px solid #4ec36b; color: #6fe07a; }
+/* o aviso de desafio (o de verdade: borda amarela, escudo, "te chamou pro Duelo", Entrar) */
+.aviso { position: absolute; left: 50px; top: 0; width: 980px; height: 250px; box-sizing: border-box; display: flex; align-items: center; gap: 26px; padding: 0 30px;
+  background: #1e2654; border: 7px solid #ffcb05; border-radius: 30px; box-shadow: 0 0 0 5px #0e1430, 0 14px 0 rgb(0 0 0 / 40%); opacity: 0; z-index: 60; }
+.aviso .txt { flex: 1; color: #fff; font-size: 52px; line-height: 1.12; }
+.aviso .txt small { display: block; margin-top: 8px; color: #9aa6d8; font-size: 38px; }
+.aviso .entrar { padding: 26px 30px; border-radius: 20px; background: linear-gradient(#4f9cf5, #2a78e0); box-shadow: 0 8px 0 #1a4fa0; color: #fff; font-size: 48px; }
+/* a mão que toca */
+#mao { position: absolute; left: 0; top: 0; width: 130px; height: 130px; z-index: 95; opacity: 0; transform-origin: 45px 0px; filter: drop-shadow(0 10px 0 rgb(0 0 0 / 35%)); }
+.toque { position: absolute; left: 0; top: 0; width: 160px; height: 160px; margin: -80px 0 0 -80px; box-sizing: border-box; border-radius: 50%; border: 12px solid #fff; z-index: 94; opacity: 0; }
+.balao { position: absolute; left: 0; top: 0; z-index: 46; width: 130px; height: 150px; margin: -150px 0 0 -65px; box-sizing: border-box; border-radius: 24px;
+  background: #f8f8f0; border: 8px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 96px; color: #e8423f; opacity: 0; }
+.zz { position: absolute; left: 0; top: 0; z-index: 31; font-size: 80px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
+/* o quarto do Snorlax, à noite */
+#sono { background: linear-gradient(#0d1436 0 1180px, #1b2350 1180px); }
+.estrela-c { position: absolute; width: 14px; height: 14px; background: #fff6c8; }
+#lua { position: absolute; left: 760px; top: 760px; width: 180px; height: 180px; border-radius: 50%; background: #fff6c8; box-shadow: -40px 0 0 0 #0d1436 inset, 0 0 60px rgb(255 246 200 / 40%); }
+#bolha { position: absolute; left: 0; top: 0; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; z-index: 40; opacity: 0;
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 95%) 0 12%, rgb(170 220 255 / 55%) 13% 60%, rgb(120 190 255 / 75%)); border: 6px solid #0e1430; }
+.bravo { position: absolute; left: 0; top: 0; width: 120px; height: 120px; margin: -60px 0 0 -60px; z-index: 45; opacity: 0; }
+/* o Duelo na partida nova */
+.placar { position: absolute; left: 190px; width: 700px; top: 40px; height: 140px; z-index: 55; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 26px;
+  background: #10183d; border: 6px solid #f8f8f0; border-radius: 26px; box-shadow: 0 0 0 5px #0e1430, 0 12px 0 rgb(0 0 0 / 40%); color: #fff; font-size: 64px; letter-spacing: 3px; }
+.placar img { width: 96px; height: 96px; image-rendering: pixelated; border-radius: 14px; background: #2a3a7a; }
+.placar b { color: #ffcb05; font-size: 80px; font-weight: 700; min-width: 230px; text-align: center; }
+.barra { position: absolute; left: 30px; width: 1020px; top: 1450px; height: 150px; z-index: 55; display: flex; gap: 16px; }
+.barra span { flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 22px; background: #1f2758; border: 5px solid #3a4890; color: #e8ecff; font-size: 44px;
+  box-shadow: 0 10px 0 rgb(0 0 0 / 40%); }
+#fim { position: absolute; left: 140px; width: 800px; top: 760px; height: 560px; z-index: 70; box-sizing: border-box; opacity: 0; text-align: center;
+  background: #10183d; border: 8px solid #ffcb05; border-radius: 34px; box-shadow: 0 0 0 6px #0e1430, 0 18px 0 rgb(0 0 0 / 45%); color: #fff; }
+#fim em { display: block; margin-top: 50px; font-style: normal; font-size: 60px; letter-spacing: 4px; color: #c8d0f0; }
+#fim b { display: block; font-size: 170px; color: #ffcb05; line-height: 1.2; font-weight: 700; }
+#revanche { left: 170px; top: 360px; width: 460px; height: 140px; font-size: 64px; }
+#escurece { position: absolute; inset: 0; z-index: 65; background: rgb(7 10 24 / 60%); opacity: 0; }
+#coberta { position: absolute; left: 0; top: 0; width: 560px; height: 300px; margin: -260px 0 0 -280px; z-index: 35; opacity: 0; box-sizing: border-box; border-radius: 60px 60px 40px 40px;
+  border: 10px solid #0e1430; background: repeating-linear-gradient(45deg, #e8423f 0 40px, #f8f8f0 40px 80px); }
+/* explicação */
+.legenda { top: 230px; height: 360px; font-size: 80px; }
+#versao { position: absolute; left: 0; width: 1080px; top: 330px; text-align: center; opacity: 0; z-index: 3; }
+#versao span { display: inline-block; padding: 18px 40px; border-radius: 20px; background: #ffcb05; color: #0e1430; font-size: 56px; letter-spacing: 3px; box-shadow: 0 0 0 8px #0e1430, 0 14px 0 #8a6a00; }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="39">
+  <div id="cena" class="clip" data-start="0" data-duration="36">
+    <!-- 0–4 · o ranking da Copa do Dia e o perfil -->
+    <div id="rank" class="cena ui">
+      <div id="rkcam" class="camada">
+        <div class="hdr"><div class="voltar"><svg width="44" height="60" viewBox="0 0 11 15"><path d="M8 1 L2 7.5 L8 14" fill="none" stroke="#c8d0f0" stroke-width="2.6"/></svg></div>
+          <svg width="96" height="96" viewBox="0 0 12 12"><rect x="1" y="2" width="10" height="9" fill="#c8d0f0"/><rect x="1" y="2" width="10" height="3" fill="#e8423f"/><rect x="3" y="1" width="1.5" height="3" fill="#0e1430"/><rect x="7.5" y="1" width="1.5" height="3" fill="#0e1430"/><rect x="5" y="7" width="2.5" height="2.5" fill="#0e1430"/></svg>
+          <span>Copa do Dia</span></div>
+        <div class="titulo-sec" style="left:80px;top:320px">RANKING DO DIA</div>
+        <div class="abas" style="left:70px;top:405px"><span class="on">Todos</span><span>Amigos</span></div>
+        <div class="linha" id="l1" style="top:560px"><div class="faixa" style="background:#2fa59a"></div><div class="pos">1</div>
+          <div class="nome" id="nome-zzz">zzz</div><div class="clube">Clube do Ronco</div><div class="saldo">saldo +15</div>
+          <svg class="taca" viewBox="0 0 6 8"><path d="M0 0h6v1.5C6 3.5 4.5 4.5 3.6 4.6V6h1.4v2H1V6h1.4V4.6C1.5 4.5 0 3.5 0 1.5Z" fill="#ffcb05"/></svg></div>
+        <div class="linha eu" id="l2" style="top:930px"><div class="faixa" style="background:#e8423f"></div><div class="pos">2</div>
+          <div class="nome">Pikachu</div><div class="clube">Pallet FC</div><div class="saldo">saldo +12</div><div class="voce">VOCÊ</div></div>
+        <div class="linha" id="l3" style="top:1300px;opacity:0.55"><div class="faixa" style="background:#8a3fc8"></div><div class="pos">3</div>
+          <div class="nome">Gengar</div><div class="clube">Lavender</div><div class="saldo">saldo +9</div></div>
+        <div id="perfil"><div class="faixa"></div><div class="alca"></div><div class="pnome">zzz</div>
+          <div class="x"><svg width="56" height="56" viewBox="0 0 10 10"><path d="M2 2L8 8M8 2L2 8" stroke="#fff" stroke-width="2.2"/></svg></div>
+          <div id="avatar"><div class="raios" id="av-raios"></div></div>
+          <div class="ptit">Campeão<br>do Dia</div>
+          <div class="pclube"><svg width="54" height="62" viewBox="0 0 10 12"><path d="M0 1L5 0L10 1V6C10 9 7 11 5 12C3 11 0 9 0 6Z" fill="#2fa59a" stroke="#0e1430" stroke-width="0.8"/><circle cx="5" cy="5.5" r="2.2" fill="#f8f8f0"/></svg><span>Clube do Ronco · <b>RON</b></span></div>
+          <div class="vit">CARTAS DA VITRINE</div>
+          <div class="carta" id="c1" style="left:70px"><div class="nota">91</div><div class="cnome">SNORLAX</div></div>
+          <div class="carta" id="c2" style="left:345px"><div class="nota">90</div><div class="cnome">SNORLAX</div></div>
+          <div class="carta" id="c3" style="left:620px"><div class="nota">89</div><div class="cnome">SNORLAX</div></div>
+          <div class="div"></div>
+          <div class="btn verde" id="b-add" style="left:70px;width:560px"><span id="add-1"><svg width="70" height="60" viewBox="0 0 14 12"><circle cx="5" cy="3.2" r="2.6" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M0.8 11.5C0.8 8 2.8 6.8 5 6.8S9.2 8 9.2 11.5" fill="none" stroke="#fff" stroke-width="1.4"/><path d="M11.5 3v5M9 5.5h5" stroke="#fff" stroke-width="1.4"/></svg>Adicionar amigo</span>
+            <span id="add-2" style="opacity:0"><svg width="60" height="50" viewBox="0 0 12 10"><path d="M1 5l3.5 3.5L11 1.5" fill="none" stroke="#6fe07a" stroke-width="2"/></svg>Amigos</span></div>
+          <div class="btn azul" id="b-des" style="left:660px;width:350px;opacity:0"><span id="des-1">Desafiar</span><span id="des-2" style="opacity:0;font-size:40px;line-height:1.1;text-align:center">Convite<br>enviado</span></div>
+        </div>
+      </div>
+      <div id="rkfrente" class="camada" style="z-index:40"></div>
+    </div>
+
+    <!-- 5–7 · o Snorlax dormindo e os avisos -->
+    <div id="sono" class="cena"><div id="lua"></div><div id="ceu" class="camada"></div><div id="snc" class="camada"><div id="bolha"></div></div><div id="avisos" class="camada" style="z-index:60"></div></div>
+
+    <!-- 8–12 · o Duelo na partida nova (a câmera segue a bola) -->
+    <div id="duelo" class="cena">
+      <div id="dcam" class="camada"></div>
+      <div class="placar" id="placar"><img src="midia/25.png" alt="" /><b id="pl-txt">0 × 0</b><img src="midia/143.png" alt="" /></div>
+      <div class="barra"><span>Tática</span><span>Trocar</span><span>Tempo</span><span>Lances</span></div>
+      <div id="coberta"></div><div id="escurece"></div>
+      <div id="fim"><em>FIM DE JOGO</em><b>0 × 1</b><div class="btn azul" id="revanche"><span>Revanche?</span></div></div>
+      <div id="avisos2" class="camada" style="z-index:75"></div>
+    </div>
+
+    <!-- 13–14 · a explicação -->
+    <div id="explica" class="cena palco"><div class="raios" id="ex-raios"></div><div id="exc" class="camada"></div>
+      <div class="legenda" id="lg1"><span>Toque no nome de <b>qualquer treinador</b></span></div>
+      <div class="legenda" id="lg2" style="opacity:0"><span>Peça amizade e <b>desafie pro Duelo</b></span></div>
+    </div>
+  </div>
+  <div id="final" class="clip palco" data-start="36" data-duration="3">
+    <div class="raios" id="raios-final"></div>
+    <div id="final-cena" class="camada"></div>
+    <div id="versao"><span>NOVO NA 0.9.25</span></div>
+  </div>
+  <div class="flash" id="flash"></div>
+  <div id="mao"></div>
+  <audio id="a-musica" class="clip" src="midia/som/amigos-14.wav" data-start="0" data-duration="39" data-media-start="0" data-fade-out="0.6"></audio>
+
+  <script>
+    const { T, div, quadra, ator, anim, quadro, bola, estouro, treme, flash, telaFinal, piscada } = C;
+    const tl = gsap.timeline({ paused: true });
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- utilidades ----------
+    const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
+    const op = (els, t, on = true) => tl.set(els, { opacity: on ? 1 : 0 }, t);
+    const salto = (a, t, h, d = 0.3) => tl.to(a.corpo, { keyframes: { y: [-h, 0] }, duration: d, ease: 'power1.inOut' }, t);
+    const pop = (el, t, s = 0.4) => tl.fromTo(el, { scale: s }, { scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, t);
+    // câmera: o ponto (wx, wy) do mundo vai pra (sx, sy) da tela, com escala s
+    const camera = (el, t0, t1, wx, wy, sx, sy, s, ease = 'sine.inOut') =>
+      tl.to(el, { x: sx - wx * s, y: sy - wy * s, scale: s, duration: Math.max(0.001, t1 - t0), ease }, t0);
+    const balao = (pai, txt, x, y, t0, t1) => {
+      const b = div(pai, 'balao');
+      b.textContent = txt;
+      tl.set(b, { x, y }, 0);
+      op(b, t0);
+      pop(b, t0, 0.3);
+      op(b, t1, false);
+    };
+    const ronco = (pai, t, x, y, n = 2, gap = 0.45) => {
+      for (let k = 0; k < n; k++) {
+        const z = div(pai, 'zz');
+        z.textContent = 'Z';
+        tl.set(z, { x, y }, 0);
+        tl.fromTo(z, { opacity: 0, scale: 0.6 + 0.3 * (k % 2) }, { opacity: 1, duration: 0.2, immediateRender: false }, t + gap * k);
+        tl.to(z, { x: x + 70 + 30 * (k % 2), y: y - 190 - 40 * (k % 2), duration: 1.2, ease: 'sine.out' }, t + gap * k);
+        tl.to(z, { opacity: 0, duration: 0.3 }, t + 0.9 + gap * k);
+      }
+    };
+    // a mão (pixel, desenhada na grade): a ponta do dedo fica no (45, 0)
+    const MAO = ['....XX.......', '...XooX......', '...XooX......', '...XooXXX....', '...XooXooXX..', '.XXXooXooXoX.', 'XooXooooooooX', 'XoooooooooooX',
+      '.XooooooooooX', '..XoooooooooX', '..XooooooooX.', '...XoooooooX.', '...XXXXXXXXX.'];
+    $('mao').innerHTML = `<svg width="130" height="130" viewBox="0 0 13 13" shape-rendering="crispEdges">${MAO.flatMap((l, y) => [...l].map((c, x) =>
+      c === '.' ? '' : `<rect x="${x}" y="${y}" width="1.02" height="1.02" fill="${c === 'X' ? '#0e1430' : '#f8f8f0'}"/>`)).join('')}</svg>`;
+    /** A mão entra, toca em (x, y) da tela no instante t (anel branco) e sai. */
+    const toca = (x, y, t, { fica = 0.45 } = {}) => {
+      op('#mao', t - 0.45);
+      tl.fromTo('#mao', { x: x - 45 + 160, y: y + 300 }, { x: x - 45, y, duration: 0.38, ease: 'power2.out', immediateRender: false }, t - 0.45);
+      tl.fromTo('#mao', { scale: 1 }, { keyframes: { scale: [0.82, 1] }, duration: 0.2, ease: 'none', immediateRender: false }, t);
+      const r = div($('root'), 'toque');
+      tl.set(r, { x, y }, 0);
+      tl.fromTo(r, { scale: 0.3, opacity: 1 }, { scale: 1.5, opacity: 0, duration: 0.4, ease: 'power2.out', immediateRender: false }, t);
+      tl.to('#mao', { opacity: 0, duration: 0.15 }, t + fica);
+    };
+    const aperta = (el, t) => tl.fromTo(el, { scale: 1 }, { keyframes: { scale: [0.9, 1.06, 1] }, duration: 0.3, ease: 'none', immediateRender: false }, t);
+    /** O aviso de desafio do jogo. */
+    const aviso = (pai) => {
+      const a = div(pai, 'aviso');
+      a.innerHTML = `<svg width="96" height="112" viewBox="0 0 10 12"><path d="M0 1L5 0L10 1V6C10 9 7 11 5 12C3 11 0 9 0 6Z" fill="#e8423f" stroke="#0e1430" stroke-width="0.8"/><circle cx="5" cy="5.5" r="2.2" fill="#f8f8f0"/><path d="M2.8 5.5h4.4" stroke="#0e1430" stroke-width="0.6"/></svg>`
+        + '<div class="txt"><b>Pikachu</b> te chamou pro Duelo<small>Pallet FC · PAL</small></div><div class="entrar">Entrar</div>';
+      return a;
+    };
+
+    // =====================================================================================================
+    // 0–4 · o ranking e o perfil
+    // =====================================================================================================
+    ver('#rank', 0);
+    const rkcam = $('rkcam');
+    const rkf = $('rkfrente');
+    gsap.set(rkcam, { transformOrigin: '0px 0px' });
+    // os times: 5 Snorlax no 1º, o do Pikachu no 2º, o do Gengar no 3º (Idle de frente, cada um num quadro)
+    const time = (linha, ids, cap) => ids.map((id, i) => {
+      const a = ator($(linha), id, { escala: 3, z: 5, sombra: false, x: 230 + i * 150, y: 318 });
+      anim(tl, a, 'Idle', 0, 0, T(5, 0), { de: i % 4 });
+      if (i === cap) { const c = div($(linha), 'cap'); c.textContent = 'C'; c.style.left = `${250 + i * 150}px`; c.style.top = '200px'; }
+      return a;
+    });
+    time('l1', [143, 143, 143, 143, 143], 2);
+    time('l2', [25, 7, 1, 4, 54], 0);
+    time('l3', [94, 124, 65, 150, 68], 0);
+    // o Pikachu de verdade, na frente (tela), de costas olhando o ranking
+    const pk = ator(rkf, 25, { escala: 8, z: 40, x: 540, y: 1890 });
+    anim(tl, pk, 'Idle', 4, 0, T(1, 12));
+    // 0 · fechado no 2º lugar (o dele): ele pula de orgulho
+    tl.set(rkcam, { x: 540 - 540 * 1.1, y: 860 - 1095 * 1.1, scale: 1.1 }, 0);
+    camera(rkcam, 0, T(1, 0), 540, 1095, 540, 900, 1.13, 'none');
+    salto(pk, T(0, 4), 70);
+    salto(pk, T(0, 8), 70);
+    // 1 · a câmera sobe pro 1º: "zzz", um clube de Snorlax. Ele olha e pergunta
+    camera(rkcam, T(1, 0), T(1, 4), 540, 725, 540, 820, 1.1);
+    camera(rkcam, T(1, 4), T(1, 14), 540, 725, 540, 840, 1.13, 'none');
+    anim(tl, pk, 'Idle', 0, T(1, 12), T(2, 0));
+    anim(tl, pk, 'Walk', 2, T(2, 0), T(2, 3), { vel: 1.6 });
+    tl.to(pk.el, { x: 930, duration: T(2, 3) - T(2, 0), ease: 'power1.inOut' }, T(2, 0));
+    anim(tl, pk, 'Idle', 0, T(2, 3), T(5, 0));
+    balao(rkf, '?', 640, 1500, T(1, 6), T(2, 0));
+    // 2 · toca no nome, a gaveta do perfil sobe, e a silhueta vira o Snorlax ("quem é esse?")
+    camera(rkcam, T(1, 14), T(2, 0) - 0.05, 540, 960, 540, 960, 1, 'power2.inOut');
+    toca(270, 640, T(2, 0));
+    tl.fromTo('#nome-zzz', { color: '#fff' }, { color: '#ffcb05', duration: 0.1, immediateRender: false }, T(2, 0));
+    tl.fromTo('#perfil', { y: 1500 }, { y: 0, duration: 0.35, ease: 'power3.out', immediateRender: false }, T(2, 1));
+    gsap.set('#perfil', { y: 1500 });
+    tl.fromTo('#av-raios', { rotation: 0 }, { rotation: 40, duration: 7, ease: 'none', immediateRender: false }, T(2, 0));
+    const av = ator($('avatar'), '143x', { escala: 8, z: 2, sombra: false, x: 200, y: 245 });
+    anim(tl, av, 'Sleep', 0, T(2, 0), T(5, 0), { vel: 0.5 });
+    tl.set(av.corpo, { filter: 'brightness(0)' }, 0);
+    tl.set(av.corpo, { filter: 'none' }, T(2, 4));
+    flash(tl, T(2, 4), 0.7, 0.3);
+    pop('#avatar', T(2, 4), 0.85);
+    // as cartas da vitrine: o Snorlax de pé, cada um num quadro
+    ['c1', 'c2', 'c3'].forEach((c, i) => {
+      const a = ator($(c), 143, { escala: 3, z: 2, sombra: false, x: 117, y: 262 });
+      anim(tl, a, 'Idle', 0, 0, T(5, 0), { de: i * 2 });
+    });
+    ronco(rkcam, T(2, 6), 420, 820, 2, 0.5);
+    salto(pk, T(2, 4), 90, 0.35);
+    balao(rkf, '!', 860, 1500, T(2, 4), T(3, 0));
+    // 3 · Adicionar amigo (a câmera chega nos botões)
+    camera(rkcam, T(2, 14), T(3, 2), 540, 1665, 540, 1180, 1.1, 'power2.inOut');
+    toca(540 + (350 - 540) * 1.1, 1180, T(3, 4));
+    aperta('#b-add', T(3, 4));
+    tl.set('#b-add', { attr: { class: 'btn feito' } }, T(3, 5));
+    op('#add-1', T(3, 5), false);
+    op('#add-2', T(3, 5));
+    salto(pk, T(3, 6), 60);
+    // 4 · Desafiar aparece e ele toca; o convite sobe e vai
+    op('#b-des', T(3, 12));
+    pop('#b-des', T(3, 12), 0.3);
+    toca(540 + (835 - 540) * 1.1, 1180, T(4, 4));
+    aperta('#b-des', T(4, 4));
+    op('#des-1', T(4, 5), false);
+    op('#des-2', T(4, 5));
+    {
+      const conv = aviso(rkf);
+      tl.set(conv, { x: 324, y: 1180 - 125, scale: 0.3, transformOrigin: '50% 50%' }, 0);
+      op(conv, T(4, 7));
+      tl.to(conv, { x: 0, y: -400, scale: 0.7, rotation: -8, duration: 0.8, ease: 'power2.in' }, T(4, 7));
+      salto(pk, T(4, 8), 90);
+    }
+    ver('#rank', T(5, 0), false);
+
+    // =====================================================================================================
+    // 5–7 · o Snorlax dormindo; os avisos empilham; a bolha estoura; Entrar
+    // =====================================================================================================
+    ver('#sono', T(5, 0));
+    flash(tl, T(5, 0), 0.5, 0.2);
+    for (let i = 0; i < 26; i++) {
+      const e = div($('ceu'), 'estrela-c');
+      e.style.left = `${(i * 263) % 1040 + 20}px`;
+      e.style.top = `${(i * 137) % 1100 + 40}px`;
+      tl.fromTo(e, { opacity: 0.3 }, { keyframes: { opacity: [1, 0.3, 1, 0.3] }, duration: 7.2, ease: 'none', immediateRender: false }, T(5, 0) + (i % 5) * 0.1);
+    }
+    const SNX = 540;
+    const SNY = 1500;
+    const E = 14;
+    const sn = ator($('snc'), '143x', { escala: E, z: 10, x: SNX, y: SNY });
+    anim(tl, sn, 'Sleep', 0, T(5, 0), T(7, 12), { vel: 0.5 });
+    tl.fromTo(sn.corpo, { scaleY: 1 }, { keyframes: { scaleY: [1.05, 1, 1.05, 1, 1.05, 1] }, duration: T(7, 12) - T(5, 0), ease: 'sine.inOut', immediateRender: false }, T(5, 0));
+    // a câmera chega devagar no Snorlax
+    gsap.set('#snc', { transformOrigin: `${SNX}px ${SNY}px` });
+    tl.fromTo('#snc', { scale: 1 }, { scale: 1.12, duration: T(7, 12) - T(5, 0), ease: 'none', immediateRender: false }, T(5, 0));
+    ronco($('snc'), T(5, 1), SNX + 180, SNY - 330, 2, 0.5);
+    ronco($('snc'), T(6, 1), SNX + 180, SNY - 330, 2, 0.5);
+    // a bolha do nariz: cresce a cada plim e estoura no 7.12
+    const NX = SNX + 11.5 * E;
+    const NY = SNY - 10.5 * E;
+    const bol = $('bolha');
+    $('snc').appendChild(bol);
+    tl.set(bol, { x: NX + 40, y: NY, opacity: 1, scale: 0.3, transformOrigin: '0% 50%' }, T(5, 0));
+    // os avisos: cada plim um aviso novo no topo, os de antes descem
+    const PLINS = [T(5, 11), T(6, 8), T(6, 12), T(6, 14), ...[0, 2, 4, 6, 7, 8, 9, 10, 11].map((r) => T(7, r))];
+    const avs = [];
+    PLINS.forEach((t, k) => {
+      const a = aviso($('avisos'));
+      avs.push(a);
+      tl.set(a, { y: 120, opacity: 0 }, 0);
+      op(a, t);
+      tl.fromTo(a, { y: -260 }, { y: 120, duration: 0.18, ease: 'power2.out', immediateRender: false }, t);
+      // os de antes descem um degrau (grandes no começo, apertados no fim: a pilha)
+      avs.slice(0, -1).forEach((b, j) => {
+        const n = k - j;
+        const yv = 120 + Math.min(3, n) * 250 + Math.max(0, n - 3) * 14;
+        tl.to(b, { y: yv, scale: n > 3 ? 0.96 : 1, duration: 0.12, ease: 'power2.out' }, t);
+      });
+      tl.to(bol, { scale: 0.3 + 0.13 * (k + 1), duration: 0.15, ease: 'back.out(2)' }, t);
+      tl.to(sn.corpo, { keyframes: { x: [6, -6, 0] }, duration: 0.15, ease: 'none' }, t);
+    });
+    // estoura: ele acorda bravo
+    const tPop = T(7, 12);
+    op(bol, tPop, false);
+    estouro(tl, $('snc'), NX + 60, NY, tPop, { tam: 300, cor: '#aaddff' });
+    treme(tl, '#sono', tPop, 1.2, 0.35);
+    op(sn.el, tPop, false);
+    const sn2 = ator($('snc'), 143, { escala: 10, z: 10, x: SNX, y: SNY + 20, opacity: 0 });
+    op(sn2.el, tPop);
+    anim(tl, sn2, 'Idle', 0, tPop, T(8, 0) + 0.1);
+    salto(sn2, tPop, 120, 0.3);
+    const bravo = div($('snc'), 'bravo');
+    bravo.innerHTML = '<svg viewBox="0 0 12 12" width="120" height="120" shape-rendering="crispEdges"><path d="M5 0h2v4h-2zM8 5h4v2h-4zM5 8h2v4h-2zM0 5h4v2h-4z" fill="#e8423f" stroke="#0e1430" stroke-width="0.6"/></svg>';
+    tl.set(bravo, { x: SNX + 250, y: SNY - 300 }, 0);
+    op(bravo, tPop + 0.05);
+    tl.fromTo(bravo, { scale: 0.4 }, { keyframes: { scale: [1.2, 0.9, 1.15, 1] }, duration: 0.45, ease: 'none', immediateRender: false }, tPop + 0.05);
+    // ele toca Entrar no aviso de cima
+    toca(910, 245, T(7, 14), { fica: 0.3 });
+    aperta(avs.at(-1).querySelector('.entrar'), T(7, 14));
+    ver('#sono', T(8, 0), false);
+
+    // =====================================================================================================
+    // 8–12 · o Duelo na partida nova
+    // =====================================================================================================
+    ver('#duelo', T(8, 0));
+    flash(tl, T(8, 0), 0.8, 0.25);
+    const dcam = $('dcam');
+    const GY = 560;
+    const P = quadra(dcam, 'madeira', { K: 90, gy: GY, fundo: 1 });
+    // o outro gol (o do Pikachu), lá embaixo: a quadra tem 40 m
+    {
+      const g = P(8.5, 40);
+      dcam.insertAdjacentHTML('beforeend', `<svg class="camada" viewBox="0 0 1080 1920" style="overflow:visible;z-index:2"><g id="rede2" style="transform-box:fill-box;transform-origin:50% 0%">
+        <rect x="${g.x}" y="${g.y}" width="270" height="90" fill="#fff" fill-opacity="0.25"/>${[1, 2, 3, 4, 5].map((i) => `<line x1="${g.x + i * 45}" y1="${g.y}" x2="${g.x + i * 45}" y2="${g.y + 90}" stroke="#fff" stroke-opacity="0.5" stroke-width="2"/>`).join('')}</g>
+        <rect x="${g.x}" y="${g.y}" width="270" height="90" fill="none" stroke="#fff" stroke-width="8"/></svg>`);
+    }
+    gsap.set(dcam, { transformOrigin: '0px 0px' });
+    const camD = (t0, t1, wy, ease = 'sine.inOut') => tl.to(dcam, { y: 960 - wy, duration: Math.max(0.001, t1 - t0), ease }, t0);
+    tl.set(dcam, { y: 960 - 900 }, T(8, 0));
+    const GOLX = 540;
+    const snD = ator(dcam, 143, { escala: 8, z: 10, x: GOLX, y: GY + 70 });
+    anim(tl, snD, 'Idle', 0, T(8, 0), T(11, 0), { vel: 0.6 });
+    const pkD = ator(dcam, 25, { escala: 7, z: 12, x: 560, y: 1300 });
+    const bl = bola(dcam, { d: 66, z: 14, x: 540, y: 1180 });
+    const BARRIGA = { x: GOLX, y: GY + 70 - 150 };
+    /** a barriga: amassa (a bola afunda) e devolve no BOING */
+    const boing = (t, f = 1) => {
+      tl.to(snD.corpo, { keyframes: { scaleX: [1 + 0.25 * f, 0.9, 1.08, 0.97, 1], scaleY: [1 - 0.2 * f, 1.12, 0.95, 1.03, 1] }, duration: 0.6, ease: 'none' }, t);
+      estouro(tl, dcam, BARRIGA.x, BARRIGA.y, t, { tam: 200 * f, cor: '#f8f8f0' });
+    };
+    // 8 · ele conduz e chuta; a barriga devolve (BOING)
+    anim(tl, pkD, 'Walk', 4, T(8, 0), T(8, 5), { vel: 1.4 });
+    tl.to(pkD.el, { y: 1160, duration: T(8, 5) - T(8, 0), ease: 'none' }, T(8, 0));
+    tl.to(bl.el, { y: 1060, duration: T(8, 5) - T(8, 0), ease: 'none' }, T(8, 0));
+    tl.to(bl.gira, { rotation: -720, duration: T(8, 5) - T(8, 0), ease: 'none' }, T(8, 0));
+    anim(tl, pkD, 'Shoot', 4, T(8, 5), T(8, 10), { loop: false });
+    tl.to(bl.el, { x: BARRIGA.x, y: BARRIGA.y + 40, duration: T(8, 10) - T(8, 6), ease: 'power1.in' }, T(8, 6));
+    tl.to(bl.corpo, { keyframes: { y: [-80, 0] }, duration: T(8, 10) - T(8, 6), ease: 'sine.inOut' }, T(8, 6));
+    camD(T(8, 5), T(8, 10), 760);
+    boing(T(8, 10));
+    tl.to(bl.el, { x: 600, y: 1100, duration: T(8, 15) - T(8, 10), ease: 'power2.out' }, T(8, 10));
+    tl.to(bl.corpo, { keyframes: { y: [-120, 0] }, duration: T(8, 15) - T(8, 10), ease: 'sine.inOut' }, T(8, 10));
+    camD(T(8, 11), T(9, 0), 880);
+    anim(tl, pkD, 'Idle', 4, T(8, 10), T(9, 0));
+    ronco(dcam, T(8, 12), GOLX + 120, GY - 260, 1);
+    // 9 · carrega o choque e chuta; BOING mais forte e a bola volta por cima dele
+    anim(tl, pkD, 'Charge', 4, T(9, 0), T(9, 3), { vel: 1.3 });
+    for (const r of [0, 1, 2]) estouro(tl, dcam, 560 + (r - 1) * 90, 1080 - r * 30, T(9, r), { tam: 110, cor: '#ffcb05', anel: false, dur: 0.25 });
+    anim(tl, pkD, 'Shoot', 4, T(9, 3), T(9, 8), { loop: false });
+    tl.set(bl.corpo, { filter: 'drop-shadow(0 0 16px #ffe14a) drop-shadow(0 0 30px #ffcb05)' }, T(9, 4));
+    flash(tl, T(9, 4), 0.5, 0.2);
+    tl.to(bl.el, { x: BARRIGA.x, y: BARRIGA.y + 40, duration: T(9, 7) - T(9, 4), ease: 'power1.in' }, T(9, 4));
+    camD(T(9, 3), T(9, 7), 740);
+    tl.to(snD.corpo, { scaleX: 1.3, scaleY: 0.78, duration: T(9, 8) - T(9, 7), ease: 'power2.out' }, T(9, 7));
+    boing(T(9, 8), 1.3);
+    tl.set(bl.corpo, { filter: 'none' }, T(9, 8));
+    // a bola sobe por cima do Pikachu e atravessa a quadra (a câmera vai junto) até o outro gol
+    const GOL2 = P(10, 40);
+    const tGol = T(10, 8);
+    tl.to(bl.el, { x: GOL2.x - 20, y: GOL2.y + 40, duration: tGol - T(9, 8), ease: 'none' }, T(9, 8));
+    tl.to(bl.corpo, { keyframes: { y: [-420, 0, -200, 0, -80, 0] }, duration: tGol - T(9, 8), ease: 'none' }, T(9, 8));
+    tl.to(bl.gira, { rotation: 1440, duration: tGol - T(9, 8), ease: 'none' }, T(9, 8));
+    anim(tl, pkD, 'Idle', 0, T(9, 8), T(11, 0));
+    salto(pkD, T(9, 10), 60);
+    camD(T(9, 9), tGol, GOL2.y - 80, 'power1.inOut');
+    tl.fromTo('#rede2', { scaleY: 1 }, { keyframes: { scaleY: [1.5, 0.9, 1.1, 1] }, duration: 0.5, ease: 'none', immediateRender: false }, tGol);
+    flash(tl, tGol, 0.7, 0.3);
+    treme(tl, '#duelo', tGol, 1, 0.3);
+    tl.set('#pl-txt', { innerHTML: '0 × 1' }, T(10, 10));
+    pop('#placar', T(10, 10), 1.4);
+    // 11 · de volta no gol: ele dorme ali mesmo; o fim de jogo e o Revanche?
+    flash(tl, T(11, 0), 0.6, 0.2);
+    tl.set(dcam, { y: 960 - 900 }, T(11, 0));
+    op(snD.el, T(11, 0), false);
+    const snZ = ator(dcam, '143x', { escala: 11, z: 10, x: GOLX, y: GY + 120, opacity: 0 });
+    op(snZ.el, T(11, 0));
+    anim(tl, snZ, 'Sleep', 0, T(11, 0), T(13, 0), { vel: 0.5 });
+    ronco(dcam, T(11, 1), GOLX + 160, GY - 120, 3, 0.5);
+    tl.set(bl.el, { opacity: 0 }, T(11, 0));
+    tl.set(pkD.el, { x: 560, y: 1380 }, T(11, 0));
+    op('#escurece', T(11, 3));
+    op('#fim', T(11, 3));
+    pop('#fim', T(11, 3), 0.5);
+    toca(140 + 170 + 230, 760 + 360 + 70, T(11, 10));
+    aperta('#revanche', T(11, 10));
+    // 12 · plim: o aviso no topo; ele cobre a cabeça e volta a roncar
+    tl.to(['#fim', '#escurece'], { opacity: 0, duration: 0.2 }, T(12, 0) - 0.15);
+    {
+      const a = aviso($('avisos2'));
+      tl.set(a, { y: 220 }, 0);
+      op(a, T(12, 0));
+      tl.fromTo(a, { y: -260 }, { y: 220, duration: 0.2, ease: 'power2.out', immediateRender: false }, T(12, 0));
+    }
+    tl.to(snZ.corpo, { keyframes: { x: [8, -8, 0] }, duration: 0.2, ease: 'none' }, T(12, 0));
+    const cob = $('coberta');
+    dcam.appendChild(cob);
+    tl.set(cob, { x: GOLX, y: GY + 120 }, 0);
+    op(cob, T(12, 4));
+    tl.fromTo(cob, { y: GY - 500, rotation: -12 }, { y: GY + 120, rotation: 0, duration: 0.3, ease: 'bounce.out', immediateRender: false }, T(12, 4));
+    ronco(dcam, T(12, 8), GOLX + 160, GY - 160, 2, 0.45);
+    anim(tl, pkD, 'Hurt', 0, T(12, 6), T(13, 0), { vel: 0.4 });
+    ver('#duelo', T(13, 0), false);
+
+    // =====================================================================================================
+    // 13–14 · a explicação
+    // =====================================================================================================
+    ver('#explica', T(13, 0));
+    flash(tl, T(13, 0), 0.6, 0.25);
+    tl.fromTo('#ex-raios', { rotation: 0 }, { rotation: 25, duration: 4.8, ease: 'none', immediateRender: false }, T(13, 0));
+    const exc = $('exc');
+    // 13 · a linha do ranking (o nome que abre o perfil)
+    exc.insertAdjacentHTML('beforeend', '<div class="linha" id="ex-l" style="top:820px"><div class="faixa" style="background:#2fa59a"></div><div class="pos">1</div><div class="nome" id="ex-nome">zzz</div><div class="clube">Clube do Ronco</div><div class="saldo">saldo +15</div></div>');
+    [143, 143, 143, 143, 143].forEach((id, i) => {
+      const a = ator($('ex-l'), id, { escala: 3, z: 5, sombra: false, x: 230 + i * 150, y: 318 });
+      anim(tl, a, 'Idle', 0, T(13, 0), T(14, 0), { de: i % 4 });
+    });
+    pop('#lg1', T(13, 0), 0.6);
+    pop('#ex-l', T(13, 2), 0.6);
+    op('#ex-l', 0, false);
+    op('#ex-l', T(13, 2));
+    for (const r of [6, 13]) {
+      toca(270, 900, T(13, r), { fica: 0.3 });
+      tl.fromTo('#ex-nome', { color: '#ffcb05' }, { color: '#fff', duration: 0.6, immediateRender: false }, T(13, r));
+    }
+    op(['#lg1', '#ex-l'], T(14, 0), false);
+    // 14 · os dois botões: Adicionar amigo e Desafiar
+    op('#lg2', T(14, 0));
+    pop('#lg2', T(14, 0), 0.6);
+    exc.insertAdjacentHTML('beforeend', `<div class="btn verde" id="ex-add" style="left:190px;top:820px;width:700px;opacity:0">${$('add-1').innerHTML}</div>
+      <div class="btn azul" id="ex-des" style="left:290px;top:1040px;width:500px;opacity:0">Desafiar</div>`);
+    op('#ex-add', T(14, 2));
+    pop('#ex-add', T(14, 2), 0.4);
+    op('#ex-des', T(14, 6));
+    pop('#ex-des', T(14, 6), 0.4);
+    const pkE = ator(exc, 25, { escala: 8, z: 5, x: 380, y: 1560, opacity: 0 });
+    const snE = ator(exc, '143x', { escala: 10, z: 5, x: 720, y: 1540, opacity: 0 });
+    op([pkE.el, snE.el], T(14, 0));
+    anim(tl, pkE, 'Idle', 0, T(14, 0), T(15, 0));
+    anim(tl, snE, 'Sleep', 0, T(14, 0), T(15, 0), { vel: 0.5 });
+    for (const r of [0, 3, 6]) salto(pkE, T(14, r), 70, 0.25);
+    ronco(exc, T(14, 2), 860, 1300, 2, 0.6);
+
+    // =====================================================================================================
+    // 15 · tela final: logo, NOVO NA 0.9.25, soccermon.com
+    // =====================================================================================================
+    const FIM = T(15, 0);
+    telaFinal($('final'));
+    const fc = $('final-cena');
+    const pkF = ator(fc, 25, { escala: 7, z: 5, x: 330, y: 1460, opacity: 0 });
+    const snF = ator(fc, '143x', { escala: 9, z: 5, x: 730, y: 1450, opacity: 0 });
+    op([pkF.el, snF.el], FIM);
+    anim(tl, pkF, 'Idle', 0, FIM, FIM + 3);
+    anim(tl, snF, 'Sleep', 0, FIM, FIM + 3, { vel: 0.5 });
+    for (const r of [0, 4, 8]) salto(pkF, T(15, r), 90, 0.36);
+    ronco(fc, FIM + 0.4, 880, 1340, 3, 0.6);
+    tl.to('#raios-final', { rotation: 30, duration: 3, ease: 'none' }, FIM);
+    flash(tl, FIM, 0.6, 0.3);
+    tl.set('#logo', { opacity: 1 }, FIM);
+    tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, FIM);
+    op('#versao', FIM + 0.1);
+    pop('#versao', FIM + 0.1, 0.5);
+    piscada(tl, [T(15, 2), T(15, 4), T(15, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(15, 6));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(15, 6));
+    tl.to(['#site', '#credito'], { opacity: 1, duration: 0.2 }, T(15, 7));
+    tl.to(['#selo'], { opacity: 1, duration: 0.2 }, T(15, 8));
+
+    // nada parado: a câmera de fora respira (vai e volta 3% por compasso)
+    const nb = 14;
+    tl.fromTo('#cena', { scale: 1 }, {
+      keyframes: { scale: Array.from({ length: nb }, (_, b) => (b % 2 ? 1 : 1.03)) },
+      duration: T(15, 0) - T(1, 0), ease: 'none', easeEach: 'none', transformOrigin: '540px 700px', immediateRender: false,
+    }, T(1, 0));
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines.root = tl;
+  </script>
+</div>
+</body>
+</html>
