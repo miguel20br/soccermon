@@ -1,12 +1,12 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signInWithGoogle, useCloud } from '../../cloud/cloud';
 import {
     buildVitrine,
     CHALLENGE_MS,
+    challengeFriend,
     type FriendRow,
     formatFriendCode,
     friendAction,
-    friends,
     friendsOnline,
     groupFriends,
     isFriendCode,
@@ -16,17 +16,22 @@ import {
     useFriends,
 } from '../../friends/api';
 import { playSfx } from '../../game/audio';
-import { useT } from '../../i18n/react';
+import { rich, useT } from '../../i18n/react';
+import { lookOfPeer } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { duelLink, isLocalDuel } from '../duel/link';
 import { useAskText } from './AddFriendButton';
-import { hexCss } from './club';
-import { friendInfo, usePlayerCard, usePublicPeer } from './PlayerCard';
+import { Crest } from './Crest';
+import { usePublicPeer } from './PlayerCard';
+import { openTrainer, TrainerName } from './TrainerName';
 import './friends.css';
 
-const stripe = (color: string) => ({ '--tc': hexCss(clubColorHex(color)) }) as CSSProperties;
+/** O escudo do clube do amigo na cor dele (o símbolo é o padrão: o cartão de amigo ainda não guarda o escudo). */
+const ClubBadge = ({ color }: { color: string }) => (
+    <Crest look={lookOfPeer({ clubColor: clubColorHex(color) })} className="crest fr-crest" />
+);
 
 /** Recarrega a lista ao abrir e a cada 30 s enquanto a tela estiver aberta (o desafio vale 15 min). */
 function useFriendsPoll() {
@@ -43,21 +48,17 @@ function useFriendsPoll() {
     }, [user]);
 }
 
-/** "Desafiar": guarda o amigo e abre o Duelo; a sala que nascer chama ele (sendPendingChallenge). */
-function startChallenge(r: FriendRow) {
-    useFriends.setState({ challenging: { code: r.code, trainer: r.trainer } });
-    useGame.getState().go('duel');
-}
-
 const joinRoom = (room: string) => window.location.assign(duelLink(room, isLocalDuel()));
 
-function Who({ r }: { r: FriendRow }) {
+/** `link`: o nome abre o perfil (na linha do amigo é a linha inteira que abre, não dá botão dentro de botão). */
+function Who({ r, link = true }: { r: FriendRow; link?: boolean }) {
     const { t } = useT();
     return (
         <span className="fr-who">
+            <ClubBadge color={r.club_color} />
             <b>
                 {r.online && <i className="fr-online" role="img" aria-label={t('friends.online')} />}
-                {r.trainer}
+                {link ? <TrainerName who={r} /> : r.trainer}
             </b>
             <small>
                 {r.club} · {r.club_tag}
@@ -74,15 +75,14 @@ function FriendLine({ r }: { r: FriendRow }) {
     const openProfile = async () => {
         if (busy) return;
         setBusy(true);
-        const raw = await friends().profile(r.code);
+        await openTrainer(r);
         setBusy(false);
-        usePlayerCard.getState().open(friendInfo(r, raw));
     };
     return (
         <li
             className={`fr-row${open ? ' open' : ''}`}
             data-exit="collapse"
-            style={stripe(r.club_color)}
+           
             data-testid="friend-row"
         >
             <button
@@ -92,7 +92,7 @@ function FriendLine({ r }: { r: FriendRow }) {
                 aria-label={t('profile.card.openAria', { name: r.trainer })}
                 onClick={() => void openProfile()}
             >
-                <Who r={r} />
+                <Who r={r} link={false} />
             </button>
             <span className="fr-actions">
                 {r.room ? (
@@ -100,7 +100,7 @@ function FriendLine({ r }: { r: FriendRow }) {
                         {t('friends.enter')}
                     </button>
                 ) : (
-                    <button type="button" className="btn outline" onClick={() => startChallenge(r)}>
+                    <button type="button" className="btn outline" onClick={() => challengeFriend(r)}>
                         <HudIcon kind="play" /> {t('friends.challenge')}
                     </button>
                 )}
@@ -279,9 +279,10 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.challengesTitle')}</h2>
                     <ul className="fr-list">
                         {g.challenges.map((r) => (
-                            <li key={r.code} className="fr-row" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row" data-exit="collapse">
                                 <span className="fr-who">
-                                    <b>{t('friends.challengeLine', { name: r.trainer })}</b>
+                                    <ClubBadge color={r.club_color} />
+                                    <b>{rich(t('friends.challengeLine'), { name: <TrainerName who={r} /> })}</b>
                                     <small>
                                         {r.club} · {r.club_tag}
                                     </small>
@@ -304,7 +305,7 @@ export function FriendsTab() {
                                 key={r.code}
                                 className="fr-row"
                                 data-exit="collapse"
-                                style={stripe(r.club_color)}
+                               
                                 data-testid="friend-request"
                             >
                                 <Who r={r} />
@@ -350,7 +351,7 @@ export function FriendsTab() {
                     <h2 className="bc-caption">{t('friends.sentTitle')}</h2>
                     <ul className="fr-list">
                         {g.sent.map((r) => (
-                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse">
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -370,7 +371,7 @@ export function FriendsTab() {
                     <summary className="bc-lbl">{t('friends.blockedTitle', { n: g.blocked.length })}</summary>
                     <ul className="fr-list">
                         {g.blocked.map((r) => (
-                            <li key={r.code} className="fr-row dim" data-exit="collapse" style={stripe(r.club_color)}>
+                            <li key={r.code} className="fr-row dim" data-exit="collapse">
                                 <Who r={r} />
                                 <button
                                     type="button"
@@ -396,9 +397,9 @@ export function FriendChallenge() {
     const first = groupFriends(rows ?? [], Date.now()).challenges[0];
     if (!first) return null;
     return (
-        <div className="fr-home" style={stripe(first.club_color)} data-testid="friend-challenge">
-            <HudIcon kind="friends" />
-            <span>{t('friends.challengeLine', { name: first.trainer })}</span>
+        <div className="fr-home" data-testid="friend-challenge">
+            <ClubBadge color={first.club_color} />
+            <span>{rich(t('friends.challengeLine'), { name: <TrainerName who={first} /> })}</span>
             <button type="button" className="btn outline" onClick={() => joinRoom(first.room!)}>
                 {t('friends.enter')}
             </button>
@@ -433,10 +434,10 @@ export function FriendInvite() {
     if (!first || !shown) return null;
     const close = () => useFriends.setState((s) => ({ dismissed: [...s.dismissed, first.room!] }));
     return (
-        <div className="fr-toast" style={stripe(first.club_color)} role="alert" data-testid="friend-invite" data-exit>
-            <HudIcon kind="friends" />
+        <div className="fr-toast" role="alert" data-testid="friend-invite" data-exit>
+            <ClubBadge color={first.club_color} />
             <span className="fr-who">
-                <b>{t('friends.challengeLine', { name: first.trainer })}</b>
+                <b>{rich(t('friends.challengeLine'), { name: <TrainerName who={first} /> })}</b>
                 <small>
                     {first.club} · {first.club_tag}
                 </small>

@@ -2,7 +2,14 @@ import { useCloud } from '../cloud/cloud';
 import type { Peer } from '../net/duel-state';
 import { useGame } from '../store/game-store';
 import { peerInfo, usePlayerCard } from '../ui/profile/PlayerCard';
-import { type AskResult, type FriendRow, type FriendsServer, setFriendsServer, useFriends } from './api';
+import {
+    type AskResult,
+    type FriendRow,
+    type FriendsServer,
+    refreshFriends,
+    setFriendsServer,
+    useFriends,
+} from './api';
 
 /**
  * Servidor de mentira pro `?demo=amigos` (só no dev): lista com amigos (Davi e Ana online), um pedido recebido, um
@@ -12,6 +19,7 @@ import { type AskResult, type FriendRow, type FriendsServer, setFriendsServer, u
  * - `&tela=home`: abre na Home (o convite do Davi no cartão do Duelo).
  * - `&tela=config`: abre em Configurações e, 2 s depois, a Ana chama pro Duelo "na hora" (o aviso por cima da tela).
  * - `&cartao=1` (ou `anon`): o cartão do treinador do rival (o de verdade) com o "Adicionar amigo".
+ * - `&tela=dia`: o ranking da Copa do Dia (o de mentira, src/league/demo.ts) com os nomes que abrem o perfil.
  */
 const ago = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
 const row = (
@@ -114,13 +122,18 @@ export function startFriendsDemo(params: URLSearchParams) {
         card: async () => 'K7M2QXAB',
         list: async () => rows.map((r) => ({ ...r })),
         ask: async (target): Promise<AskResult> => {
-            const card = 'code' in target ? KNOWN[target.code] : BY_USER[target.user];
+            const card = 'code' in target ? (KNOWN[target.code] ?? old.get(target.code)) : BY_USER[target.user];
             if ('code' in target && target.code === 'K7M2QXAB') return { status: 'voce_mesmo' };
             if (!card) return { status: 'nao_achei' };
             const cur = rows.find((r) => r.code === card.code);
             const who = { trainer: card.trainer, club: card.club };
             if (cur?.status === 'amigo') return { status: 'ja_amigos', ...who };
             if (cur?.status === 'enviado') return { status: 'ja_pediu', ...who };
+            // ele já tinha pedido: viram amigos
+            if (cur?.status === 'recebido') {
+                set(card.code, 'amigo');
+                return { status: 'amigos', ...who };
+            }
             set(card.code, 'enviado');
             return { status: 'enviado', ...who };
         },
@@ -153,6 +166,11 @@ export function startFriendsDemo(params: URLSearchParams) {
     });
 
     if (tela === 'home') return;
+    if (tela === 'dia') {
+        void refreshFriends();
+        void import('../league/demo').then((m) => m.startLeagueDemo('dia', null));
+        return;
+    }
     if (tela === 'config') {
         // o convite antigo do Davi já foi visto: o aviso que aparece é o da Ana, que chega agora
         useFriends.setState({ dismissed: ['K7M2QX'] });

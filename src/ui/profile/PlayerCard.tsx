@@ -3,7 +3,15 @@ import { create } from 'zustand';
 import { useCloud } from '../../cloud/cloud';
 import { SPECIES } from '../../engine/data';
 import type { PokemonInstance } from '../../engine/instance';
-import { type FriendNumbers, type FriendRow, type FriendTitle, type PublicPeer, useFriends } from '../../friends/api';
+import {
+    challengeFriend,
+    type FriendNumbers,
+    type FriendRow,
+    type FriendTitle,
+    isFriendCode,
+    type PublicPeer,
+    useFriends,
+} from '../../friends/api';
 import { useT } from '../../i18n/react';
 import type { Peer } from '../../net/duel-state';
 import { parseCardShowcase } from '../../store/binder';
@@ -17,6 +25,7 @@ import { titleClass } from '../../store/title-codes';
 import { cupCounts, cupList, METALS } from '../../store/trophies';
 import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
+import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { Sheet } from '../kit/Sheet';
 import { AddFriendButton } from './AddFriendButton';
@@ -56,6 +65,10 @@ export interface PlayerInfo {
     other: boolean;
     /** Id da conta de quem está na sala (o servidor de amigos acha o cartão dele por aqui). */
     id?: string;
+    /** Código de amigo (pedir amizade por ele; o botão sabe se já são amigos ou se o pedido já foi). */
+    code?: string;
+    /** Quem não é amigo, aberto de um ranking: só nome e clube (a vitrine só amigo lê). */
+    bare?: boolean;
     anon?: boolean;
     /** Taças da Copa por metal (bronze, prata, ouro): o pedaço da sala de troféus. */
     cups: [number, number, number];
@@ -88,6 +101,7 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         cups: parseCups(p.cups),
         other,
         id: str(p.id, 64),
+        code: typeof p.code === 'string' && isFriendCode(p.code) ? p.code : undefined,
         anon: p.anon === true,
     };
 }
@@ -241,15 +255,17 @@ export function PlayerCardModal() {
             className={`pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
         >
             <header className="pcard-head">
-                <div className="pf-duo">
-                    <TrainerSprite id={info.trainer} className="pf-duo-trainer" />
-                    <img
-                        className={`pf-avatar${info.avatar.google ? '' : ' pixel'}${frameClass(info.frame)}`}
-                        src={info.avatar.src}
-                        alt=""
-                        referrerPolicy="no-referrer"
-                    />
-                </div>
+                {!info.bare && (
+                    <div className="pf-duo">
+                        <TrainerSprite id={info.trainer} className="pf-duo-trainer" />
+                        <img
+                            className={`pf-avatar${info.avatar.google ? '' : ' pixel'}${frameClass(info.frame)}`}
+                            src={info.avatar.src}
+                            alt=""
+                            referrerPolicy="no-referrer"
+                        />
+                    </div>
+                )}
                 <div className="pf-who">
                     {info.title.name && (
                         <span className={`pf-title-line${info.title.look ? ` ${info.title.look}` : ''}`}>
@@ -263,7 +279,8 @@ export function PlayerCardModal() {
                     {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
                 </div>
             </header>
-            <ShowcaseRow items={info.showcase} className="pcard-medals" />
+            {info.bare && <p className="muted pcard-empty">{t('profile.card.notFriend')}</p>}
+            {!info.bare && <ShowcaseRow items={info.showcase} className="pcard-medals" />}
             {info.cups.some((n) => n > 0) && (
                 <div
                     className="pcard-cups"
@@ -280,8 +297,8 @@ export function PlayerCardModal() {
                     )}
                 </div>
             )}
-            <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>
-            {info.cards.length ? (
+            {!info.bare && <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>}
+            {info.bare ? null : info.cards.length ? (
                 <ul className="pcard-cards">
                     {info.cards.map((p) => (
                         <li key={p.uid}>
@@ -293,9 +310,9 @@ export function PlayerCardModal() {
                 <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
             )}
             {info.friend && <FriendPart f={info.friend} name={info.name} />}
-            {info.other && info.id && (
+            {info.other && !info.friend && (info.id || info.code) && (
                 <div className="pcard-friend">
-                    <AddFriendButton peer={{ id: info.id, anon: info.anon }} />
+                    <AddFriendButton peer={{ id: info.id, code: info.code, anon: info.anon }} />
                 </div>
             )}
         </Sheet>
@@ -345,6 +362,18 @@ function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: s
             <p className="pcard-h2h" data-testid="friend-h2h">
                 {total ? t('profile.card.h2hLine', { w: vs.win, d: vs.draw, l: vs.loss }) : t('profile.card.h2hNone')}
             </p>
+            <div className="pcard-friend">
+                <button
+                    type="button"
+                    className="btn outline"
+                    onClick={() => {
+                        usePlayerCard.getState().close();
+                        challengeFriend({ code: f.code, trainer: name });
+                    }}
+                >
+                    <HudIcon kind="play" /> {t('friends.challenge')}
+                </button>
+            </div>
         </>
     );
 }

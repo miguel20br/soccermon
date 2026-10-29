@@ -40,6 +40,7 @@ export const profile = {
         h2h: 'Vocês no Duelo',
         h2hLine: 'Você: {w} V · {d} E · {l} D',
         h2hNone: 'Vocês ainda não se enfrentaram.',
+        notFriend: 'O perfil completo aparece quando vocês forem amigos.',
     },
     club: {
         saved: 'Salvo',

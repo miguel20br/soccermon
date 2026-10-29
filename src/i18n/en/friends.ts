@@ -3,7 +3,7 @@ import type { friends as pt } from '../pt/friends';
 export const friends: typeof pt = {
     tab: 'Friends',
     codeTitle: 'Your friend code',
-    codeHint: 'Only people with the code can find you: nobody can search for you by name.',
+    codeHint: 'People find you by your code or your name in the rankings. Annoying request? Just block it.',
     copy: 'Copy',
     copied: 'Copied',
     share: 'Share',

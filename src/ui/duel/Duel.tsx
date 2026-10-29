@@ -5,7 +5,7 @@ import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
 import { isFriendCode, sendPendingChallenge, useFriends } from '../../friends/api';
-import { useT } from '../../i18n/react';
+import { rich, useT } from '../../i18n/react';
 import {
     bestOfOf,
     DUEL_BEST_OF,
@@ -43,6 +43,7 @@ import { LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
 import { hexCss, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
+import { TrainerName } from '../profile/TrainerName';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
@@ -818,7 +819,13 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                                         ? t('duel.result.voidShort')
                                         : t('duel.result.drawShort')}
                             </i>
-                            <span>{t('duel.result.vs', { name: h.rival })}</span>
+                            <span>
+                                {rich(t('duel.result.vs'), {
+                                    name: (
+                                        <TrainerName who={{ trainer: h.rival, club: h.rivalClub, code: h.rivalCode }} />
+                                    ),
+                                })}
+                            </span>
                             <b>
                                 {h.bestOf === 3 && `${t('duel.series.short')} `}
                                 {h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}

@@ -2,7 +2,7 @@
 export const friends = {
     tab: 'Amigos',
     codeTitle: 'Seu código de amigo',
-    codeHint: 'Só quem tem o código te acha: ninguém te procura pelo nome.',
+    codeHint: 'Te acham pelo código ou pelo teu nome nos rankings. Pedido chato? É só bloquear.',
     copy: 'Copiar',
     copied: 'Copiado',
     share: 'Compartilhar',
