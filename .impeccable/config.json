@@ -101,6 +101,15 @@
         ],
         "createdAt": "2026-10-22T18:10:47.168Z",
         "reason": "Claude: faixa lateral na cor do clube é padrão do brand guide (docs/marca, .bc-stripe); no curta dos pênaltis marca o time pra quem torcer"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/ui/screens/mode-menu.css"
+        ],
+        "createdAt": "2026-10-29T18:44:03.623Z",
+        "reason": "Claude: divisória de tinta escura (--cb-ink) entre cena e texto no card deitado, contorno do kit, não acento colorido"
       }
     ]
   }
