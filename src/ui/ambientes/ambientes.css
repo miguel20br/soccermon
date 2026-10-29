@@ -568,7 +568,8 @@
     height: calc(var(--px) * 8);
     display: flex;
     align-items: center;
-    overflow: hidden;
+    /* corta só dos lados (o letreiro corre): o acento do Í pode passar por cima da borda no celular baixo */
+    overflow: clip visible;
     background: #070a1a;
     border-top: var(--px) solid #000;
     border-bottom: var(--px) solid #000;

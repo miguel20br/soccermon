@@ -25,7 +25,10 @@ const browserEnv = (): ReloadEnv => ({
     now: Date.now(),
     online: navigator.onLine,
     entry: document.querySelector('script[type="module"][src]')?.getAttribute('src') ?? null,
-    serverHtml: () => fetch('/', { cache: 'no-store' }).then((r) => (r.ok ? r.text() : Promise.reject(r.status))),
+    serverHtml: () =>
+        fetch('/', { cache: 'no-store', signal: AbortSignal.timeout(5000) }).then((r) =>
+            r.ok ? r.text() : Promise.reject(r.status),
+        ),
     reload: () => window.location.reload(),
 });
 

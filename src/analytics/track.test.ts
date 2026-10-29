@@ -90,7 +90,12 @@ describe('isBot', () => {
 });
 
 describe('firstLeave (onde larga quem sai antes da 1ª partida)', () => {
-    const base = { screen: 'draft', records: { cups: 0, titles: 0, perfect: 0 }, settings: { speed: 1 } };
+    const base = {
+        screen: 'draft',
+        records: { cups: 0, titles: 0, perfect: 0 },
+        settings: { speed: 1 },
+        career: { matches: 0 },
+    };
     // biome-ignore lint/suspicious/noExplicitAny: só os campos que a função lê
     const g = (over: object) => ({ ...base, run: null, ...over }) as any;
 
@@ -111,5 +116,7 @@ describe('firstLeave (onde larga quem sai antes da 1ª partida)', () => {
     it('depois da 1ª partida (ou de uma copa inteira) não manda nada', () => {
         expect(firstLeave(g({ run: { status: 'lineup', picks: [], results: [{}], stage: 1 } }), 9)).toBeNull();
         expect(firstLeave(g({ records: { cups: 1, titles: 0, perfect: 0 } }), 9)).toBeNull();
+        // jogou e abandonou a copa: cups 0 e sem copa aberta, mas já jogou
+        expect(firstLeave(g({ screen: 'home', career: { matches: 2 } }), 9)).toBeNull();
     });
 });

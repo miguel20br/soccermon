@@ -291,9 +291,13 @@ function onChange(s: GameState, prev: GameState) {
  * Em que passo a pessoa largou o jogo (aba escondida ou fechada) antes de chegar ao apito da 1ª partida: tela, passo da
  * copa, quantas cartas já tinha, onde a partida estava e quanto tempo de página. Null depois da 1ª partida.
  */
-export function firstLeave(g: Pick<GameState, 'screen' | 'run' | 'records' | 'settings'>, secs: number): Props | null {
+export function firstLeave(
+    g: Pick<GameState, 'screen' | 'run' | 'records' | 'settings' | 'career'>,
+    secs: number,
+): Props | null {
     const run = g.run;
-    if (g.records.cups > 0 || (run?.results.length ?? 0) > 0) return null;
+    // career.matches conta até partida de copa abandonada (cups só sobe no fim da copa)
+    if (g.records.cups > 0 || g.career.matches > 0 || (run?.results.length ?? 0) > 0) return null;
     return {
         screen: g.screen,
         status: run?.status ?? null,

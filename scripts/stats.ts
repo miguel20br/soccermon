@@ -404,8 +404,16 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         );
     }
 
-    // first_leave: onde largou quem saiu antes do apito da 1ª partida (tela/passo da copa, uma vez por sessão)
-    const largou = by('first_leave');
+    // first_leave: onde largou quem saiu antes do apito da 1ª partida (tela/passo da copa). Trocar de aba e voltar
+    // também manda o evento: conta só sessões sem match_end, e o último passo de cada uma.
+    const jogou = new Set(by('match_end').map((e) => e.session));
+    const largou = [
+        ...new Map(
+            by('first_leave')
+                .filter((e) => !jogou.has(e.session))
+                .map((e) => [e.session, e]),
+        ).values(),
+    ];
     if (largou.length) {
         const passo = (e: (typeof largou)[number]) =>
             [str(e.props.screen), str(e.props.status)].filter(Boolean).join('/') || '?';
