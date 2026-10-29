@@ -456,7 +456,13 @@
         border-radius: 14px 14px 0 0;
         border-bottom: 0;
         padding-bottom: calc(20px + env(safe-area-inset-bottom));
-        animation: k-sheet-up var(--dur-tela) var(--ease-out) both;
+        /* curva de folha (a do iOS): a --ease-out já percorria metade do caminho em 30 ms e, no celular, o 1º quadro
+           visível mostrava a folha no meio, como se ela pulasse e freasse */
+        animation: k-sheet-up var(--dur-tela) cubic-bezier(0.32, 0.72, 0, 1) both;
+    }
+    /* uma coisa se mexe por vez: o conteúdo não entra deslizando enquanto a folha sobe (tremia junto) */
+    .k-sheet .fi {
+        animation: none;
     }
     .k-sheet-grab {
         display: block;
