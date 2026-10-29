@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel } from './net/session';
@@ -61,7 +61,19 @@ const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({
 const loadAmbientes = () => import('./ui/ambientes/Ambientes');
 const Ambientes = lazy(() => loadAmbientes().then((m) => ({ default: m.Ambientes })));
 // o menu de modos (antes da Home, pra quem já jogou): pedaço à parte também
-const ModeMenu = lazy(() => import('./ui/screens/ModeMenu').then((m) => ({ default: m.ModeMenu })));
+// pedaço que não chega (rede ruim, versão nova no ar): no lugar do menu, um "JOGAR" que sai sozinho pra Home (o
+// chunk-reload cuida da versão nova). ponytail: o lazy guarda a falha; o botão de modos da Home só volta pra ela até recarregar
+function NoMenu({ onPlay }: { phase: 'in' | 'on' | 'out'; onPlay: () => void }): ReactNode {
+    // biome-ignore lint/correctness/useExhaustiveDependencies: sai uma vez, na montagem
+    useEffect(() => onPlay(), []);
+    return null;
+}
+const ModeMenu = lazy(() =>
+    import('./ui/screens/ModeMenu').then(
+        (m) => ({ default: m.ModeMenu }),
+        () => ({ default: NoMenu }),
+    ),
+);
 /** Fade do menu de modos (entrar por cima da Home, sair pro JOGAR): ADR 0004. */
 const MENU_FADE_MS = 280; // --dur-tela
 
@@ -131,8 +143,20 @@ export default function App() {
     const fadeMenu = (from: 'in' | 'out', to: 'on' | null) => {
         window.clearTimeout(fadeTimer.current); // tocou de novo no meio do fade: vale o último
         setMenu(from);
-        fadeTimer.current = window.setTimeout(() => setMenu(to), MENU_FADE_MS);
+        fadeTimer.current = window.setTimeout(() => {
+            setMenu(to);
+            // saiu pro JOGAR: o foco vai pro JOGAR da Home (teclado e leitor de tela não ficam no nada)
+            if (!to) requestAnimationFrame(() => document.querySelector<HTMLElement>('.amb .es-play')?.focus());
+        }, MENU_FADE_MS);
     };
+    useEffect(() => () => window.clearTimeout(fadeTimer.current), []);
+    // o menu é só da Home: saiu dela (Perfil, Configurações, copa), ele não volta no meio da sessão
+    useEffect(() => {
+        if (screen !== 'home') {
+            window.clearTimeout(fadeTimer.current);
+            setMenu(null);
+        }
+    }, [screen]);
     // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
     useState(readHud);
     const [cards, setCards] = useState(

@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { weeklyEventType } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -110,6 +110,75 @@ function Floodlight({ side }: { side: 'l' | 'r' }) {
     );
 }
 
+/** O piso da quadra: tábuas em perspectiva e as linhas (o Estádio e o herói do menu de modos). */
+export function CourtFloor() {
+    return (
+        <svg
+            className="es-floor"
+            viewBox="0 0 240 100"
+            preserveAspectRatio="xMidYMin slice"
+            shapeRendering="crispEdges"
+            aria-hidden
+        >
+            {PLANKS.map(([y, h], i) => (
+                <rect key={y} x="0" y={y} width="240" height={h} fill={i % 2 ? '#b8773f' : '#c7864b'} />
+            ))}
+            <g className="es-lines" fill="none">
+                <line x1="0" y1="3" x2="240" y2="3" />
+                <line x1="0" y1="97" x2="240" y2="97" />
+                <line x1="120" y1="3" x2="120" y2="97" />
+                <ellipse cx="120" cy="30" rx="25" ry="10" />
+                <path d="M0 9 Q34 11 36 30 Q34 52 0 58" />
+                <path d="M240 9 Q206 11 204 30 Q206 52 240 58" />
+            </g>
+            <rect x="119" y="29.4" width="2" height="1.2" fill="#f4f1e6" />
+        </svg>
+    );
+}
+
+/** As cores do clube que a torcida, a faixa e o letreiro usam (`style` da cena). */
+export const clubVars = (club: number) =>
+    ({ '--club': css(club), '--club-ink': css(bannerInk(club)), '--crowd': crowdTile(club) }) as CSSProperties;
+
+/**
+ * A arquibancada do outro lado (torcida na cor do clube, flashes, a faixa) e o letreiro de LED embaixo dela: a mesma
+ * peça no Estádio e no herói do menu de modos. `children` entra na arquibancada (o dorminhoco do Estádio).
+ */
+export function Stands({ clubName, children }: { clubName: string; children?: ReactNode }) {
+    const { t } = useT();
+    const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
+    const led = `${week} · ${t('home.amb.board')}`.repeat(3);
+    return (
+        <>
+            <div className="es-stand">
+                {Array.from({ length: ROWS }, (_, i) => (
+                    <i
+                        // biome-ignore lint/suspicious/noArrayIndexKey: fileiras fixas
+                        key={i}
+                        className="es-row"
+                        style={{ '--r': i } as CSSProperties}
+                    />
+                ))}
+                {FLASHES.map((f) => (
+                    <i
+                        key={`${f.x}-${f.y}`}
+                        className="es-flash"
+                        style={{ left: `${f.x}%`, top: `${f.y}%`, animationDuration: `${f.d}s` }}
+                    />
+                ))}
+                <span className="es-banner">{clubName}</span>
+                {children}
+            </div>
+            <div className="es-led">
+                <span>
+                    {led}
+                    {led}
+                </span>
+            </div>
+        </>
+    );
+}
+
 /** A quadra vista do túnel: tábuas, linhas em perspectiva, o capitão fazendo embaixadinha e quem está em volta. */
 function Court({
     captain,
@@ -126,26 +195,7 @@ function Court({
 }) {
     return (
         <div className="es-court">
-            <svg
-                className="es-floor"
-                viewBox="0 0 240 100"
-                preserveAspectRatio="xMidYMin slice"
-                shapeRendering="crispEdges"
-                aria-hidden
-            >
-                {PLANKS.map(([y, h], i) => (
-                    <rect key={y} x="0" y={y} width="240" height={h} fill={i % 2 ? '#b8773f' : '#c7864b'} />
-                ))}
-                <g className="es-lines" fill="none">
-                    <line x1="0" y1="3" x2="240" y2="3" />
-                    <line x1="0" y1="97" x2="240" y2="97" />
-                    <line x1="120" y1="3" x2="120" y2="97" />
-                    <ellipse cx="120" cy="30" rx="25" ry="10" />
-                    <path d="M0 9 Q34 11 36 30 Q34 52 0 58" />
-                    <path d="M240 9 Q206 11 204 30 Q206 52 240 58" />
-                </g>
-                <rect x="119" y="29.4" width="2" height="1.2" fill="#f4f1e6" />
-            </svg>
+            <CourtFloor />
             <i className="es-spot" />
             <WildZone wild={wild} zone="ball" />
             <WildZone wild={wild} zone="edge" />
@@ -377,12 +427,7 @@ export function Estadio({
         };
     }, [open, active]);
     const look = useLook(active);
-    const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
-    const vars = {
-        '--club': css(club),
-        '--club-ink': css(bannerInk(club)),
-        '--crowd': crowdTile(club),
-    } as CSSProperties;
+    const vars = clubVars(club);
 
     return (
         <ClockCtx.Provider value={clock}>
@@ -394,31 +439,9 @@ export function Estadio({
                     <Floodlight side="r" />
                 </div>
                 <div className="amb-layer es-arena" style={{ '--depth': 0.3 } as CSSProperties}>
-                    <div className="es-stand">
-                        {Array.from({ length: ROWS }, (_, i) => (
-                            <i
-                                // biome-ignore lint/suspicious/noArrayIndexKey: fileiras fixas
-                                key={i}
-                                className="es-row"
-                                style={{ '--r': i } as CSSProperties}
-                            />
-                        ))}
-                        {FLASHES.map((f) => (
-                            <i
-                                key={`${f.x}-${f.y}`}
-                                className="es-flash"
-                                style={{ left: `${f.x}%`, top: `${f.y}%`, animationDuration: `${f.d}s` }}
-                            />
-                        ))}
-                        <span className="es-banner">{clubName}</span>
+                    <Stands clubName={clubName}>
                         <WildZone wild={w} zone="stand" />
-                    </div>
-                    <div className="es-led">
-                        <span>
-                            {`${week} · ${t('home.amb.board')}`.repeat(3)}
-                            {`${week} · ${t('home.amb.board')}`.repeat(3)}
-                        </span>
-                    </div>
+                    </Stands>
                     <Court captain={captain} play={active} small={small} wild={w} look={look} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>

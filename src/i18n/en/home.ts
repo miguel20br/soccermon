@@ -116,14 +116,17 @@ export const home: typeof pt = {
         ultimate: {
             name: 'Ultimate',
             when: 'Coming late November',
+            tag: 'Open packs, build your team of the season',
             topics: ['Team of the season', 'Open packs', 'Resets every season'],
         },
         historia: {
             name: 'Story Mode',
             when: 'Coming in 2027',
+            tag: 'The 8 gyms, with Blue as your rival',
             topics: ['The 8 gyms', 'Kanto badges', 'Blue as your rival'],
         },
         rival: 'Smell ya later!',
+        countdown: '{n} day left|{n} days left',
         gym: 'GYM',
     },
 };

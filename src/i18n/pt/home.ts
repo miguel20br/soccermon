@@ -127,15 +127,19 @@ export const home = {
         ultimate: {
             name: 'Ultimate',
             when: 'Chega fim de novembro',
+            tag: 'Abra pacotes e monte o time da temporada',
             topics: ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'],
         },
         historia: {
             name: 'Modo História',
             when: 'Chega em 2027',
+            tag: 'Os 8 ginásios, com o Blue de rival',
             topics: ['Os 8 ginásios', 'Insígnias de Kanto', 'Blue de rival'],
         },
         /** A provocação do Blue na cena do Modo História. */
         rival: 'Até mais, perdedor!',
+        /** Contagem do cartão do Ultimate (até `ULTIMATE_AT`, ModeMenu.tsx). */
+        countdown: 'Falta {n} dia|Faltam {n} dias',
         gym: 'GINÁSIO',
     },
 };
