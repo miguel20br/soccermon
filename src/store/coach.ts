@@ -76,6 +76,17 @@ export function whenHydrated(
 /** 1ª visita: nada jogado em modo nenhum (nem copa começada). A Home mostra só o "Jogar". */
 export const isFirstVisit = (s: History) => coachPlayed(s).length === 0;
 
+/**
+ * Menu de modos na abertura (antes da Home): só pra quem já terminou uma partida (copa, Rota ou Duelo) antes de abrir o
+ * jogo agora. O App decide uma vez, quando o save carrega: quem termina a 1ª partida nesta visita não ganha o menu no
+ * meio da sessão. Link de duelo e demo abrem a tela deles direto.
+ */
+export function modeMenuDue(s: Pick<PersistedSave, 'career' | 'records' | 'duels'>, search = ''): boolean {
+    const q = new URLSearchParams(search);
+    if (q.has('duelo') || q.has('demo')) return false;
+    return s.career.matches > 0 || s.records.cups > 0 || s.duels.length > 0;
+}
+
 /** "Agora tem a Rota Índigo": só na Home completa logo depois da 1ª copa, pra quem ainda não jogou a Rota. */
 export const rotaNovaDue = (records: { cups: number; longCups?: number }, coach: readonly string[] | undefined) =>
     records.cups === 1 && !records.longCups && coachSeen(coach, 'intro') && !coachSeen(coach, 'rotaNova');

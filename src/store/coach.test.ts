@@ -4,7 +4,16 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { placeBalloon } from '../ui/coach/place';
-import { COACH_GROUPS, COACH_IDS, coachSeen, isFirstVisit, relampagoJogoDue, rotaNovaDue, whenHydrated } from './coach';
+import {
+    COACH_GROUPS,
+    COACH_IDS,
+    coachSeen,
+    isFirstVisit,
+    modeMenuDue,
+    relampagoJogoDue,
+    rotaNovaDue,
+    whenHydrated,
+} from './coach';
 import { DEFAULT_SETTINGS, migrateSave, type PersistedSave, withUnlocks } from './game-store';
 import { mergeProfileUnlocks } from './missions';
 import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
@@ -124,6 +133,24 @@ describe('Home da 1ª visita (só o "Jogar")', () => {
             delete old.onboarded; // save de antes do campo: vale o histórico
             expect(isFirstVisit(migrateSave(old, backup.version))).toBe(false);
         }
+    });
+});
+
+describe('menu de modos na abertura', () => {
+    it('só pra quem já terminou uma partida; save novo e copa só começada vão direto pra Home', () => {
+        expect(modeMenuDue(save())).toBe(false);
+        expect(modeMenuDue(save({ onboarded: true }))).toBe(false);
+        expect(modeMenuDue(save({ career: { ...EMPTY_CAREER, matches: 1 } }))).toBe(true);
+        // save de antes da carreira: a copa jogada conta
+        expect(modeMenuDue(save({ records: { cups: 1, titles: 0, perfect: 0 } }))).toBe(true);
+        expect(modeMenuDue(save({ duels: [{ id: 'x' } as PersistedSave['duels'][number]] }))).toBe(true);
+    });
+
+    it('link de duelo e demo abrem a tela deles, sem o menu', () => {
+        const played = save({ career: { ...EMPTY_CAREER, matches: 3 } });
+        expect(modeMenuDue(played, '?duelo=K7M2QX')).toBe(false);
+        expect(modeMenuDue(played, '?demo=campeao')).toBe(false);
+        expect(modeMenuDue(played, '?vel=8')).toBe(true);
     });
 });
 

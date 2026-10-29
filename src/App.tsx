@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel } from './net/session';
 import { preloadGame } from './PhaserGame';
+import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { readAmbientes } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
@@ -57,7 +58,12 @@ const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.Ki
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
 const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
 // a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
-const Ambientes = lazy(() => import('./ui/ambientes/Ambientes').then((m) => ({ default: m.Ambientes })));
+const loadAmbientes = () => import('./ui/ambientes/Ambientes');
+const Ambientes = lazy(() => loadAmbientes().then((m) => ({ default: m.Ambientes })));
+// o menu de modos (antes da Home, pra quem já jogou): pedaço à parte também
+const ModeMenu = lazy(() => import('./ui/screens/ModeMenu').then((m) => ({ default: m.ModeMenu })));
+/** Fade do menu de modos (entrar por cima da Home, sair pro JOGAR): ADR 0004. */
+const MENU_FADE_MS = 280; // --dur-tela
 
 /** Sai da tela atual (para a Home, ou `to`); sair do duelo guarda a sala (dá pra voltar pelo link). */
 function leaveScreen(screen: Screen, to: Screen = 'home') {
@@ -104,6 +110,29 @@ export default function App() {
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [ambientes] = useState(readAmbientes);
+    // menu de modos: decidido uma vez, quando o save carrega (modeMenuDue); 'in'/'out' = fade com a Home embaixo
+    const [menu, setMenu] = useState<'in' | 'on' | 'out' | null>(null);
+    const menuDecided = useRef(false);
+    useEffect(
+        () =>
+            whenHydrated(useGame.persist, () => {
+                // só na abertura: restaurar backup (carrega o save de novo) não abre o menu no meio da sessão
+                if (menuDecided.current) return;
+                menuDecided.current = true;
+                const s = useGame.getState();
+                if (ambientes && s.screen === 'home' && modeMenuDue(s, window.location.search)) {
+                    setMenu('on');
+                    void loadAmbientes(); // o JOGAR não espera a rede
+                }
+            }),
+        [ambientes],
+    );
+    const fadeTimer = useRef(0);
+    const fadeMenu = (from: 'in' | 'out', to: 'on' | null) => {
+        window.clearTimeout(fadeTimer.current); // tocou de novo no meio do fade: vale o último
+        setMenu(from);
+        fadeTimer.current = window.setTimeout(() => setMenu(to), MENU_FADE_MS);
+    };
     // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
     useState(readHud);
     const [cards, setCards] = useState(
@@ -249,9 +278,15 @@ export default function App() {
             )}
             {screen === 'home' &&
                 (ambientes ? (
-                    <Suspense fallback={null}>
-                        <Ambientes />
-                    </Suspense>
+                    <>
+                        {/* cada um no seu Suspense: a Home carregando embaixo não tira o menu da tela no fade */}
+                        <Suspense fallback={null}>
+                            {menu !== 'on' && <Ambientes onModes={() => fadeMenu('in', 'on')} />}
+                        </Suspense>
+                        <Suspense fallback={null}>
+                            {menu && <ModeMenu phase={menu} onPlay={() => fadeMenu('out', null)} />}
+                        </Suspense>
+                    </>
                 ) : (
                     <Home />
                 ))}

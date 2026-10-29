@@ -1,217 +1,23 @@
 import { type CSSProperties, useLayoutEffect, useRef, useState } from 'react';
-import { KANTO_BADGES } from '../../store/missions';
-import { ClockCtx, useSceneClock } from '../ambientes/clock';
-import { FieldSprite } from '../ambientes/FieldSprite';
-import { TopBar } from '../ambientes/TopBar';
-import { KantoBadge } from '../components/BadgeCase';
+import { useT } from '../../i18n/react';
+import { ClockCtx } from '../ambientes/clock';
 import { HudIcon } from '../components/MatchHud';
-import '../ambientes/ambientes.css';
-import '../components/badges.css';
+import { Chips, Head, LAST, ModeGrid, type ModeId, Play, Scene, useMenuScene, useMode, When } from './ModeMenu';
 import './mode-menu-lab.css';
 
 /*
- * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias): a tela que vem ANTES da Home dos ambientes,
- * a partir da 2ª visita. Três jeitos (&v=a|b|c). Rascunho pra decidir com o Miguel; nada aqui vai pro jogo assim.
+ * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias), &v=a|b|c. O A virou o menu de verdade
+ * (ModeMenu.tsx); B e C ficam aqui de reserva, com as mesmas cenas e textos.
  */
 
-type ModeId = 'atual' | 'ultimate' | 'historia';
-const MODE: Record<ModeId, { name: string; when?: string; topics: string[] }> = {
-    atual: { name: 'MODO ATUAL', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
-    ultimate: {
-        name: 'ULTIMATE',
-        when: 'Fim de novembro',
-        topics: ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'],
-    },
-    historia: { name: 'MODO HISTÓRIA', when: '2027', topics: ['Os 8 ginásios', 'Insígnias de Kanto', 'Blue de rival'] },
-};
-const LAST: ModeId = 'atual';
-
-/** Ponto da cena (em %): o pé do sprite fica nele. */
-const at = (x: number, y: number): CSSProperties => ({ left: `${x}%`, top: `${y}%` });
-
-/*
- * Cada cena: o fundo enche o cartão e o "palco" (16:10, preso embaixo, `.mm-stage`) leva o desenho e os Pokémon. Assim
- * a mesma cena serve no cartão pequeno, no pôster alto e na fatia larga sem esticar nada.
- */
-
-/** Quadra de futsal viva: torcida, o Pikachu conduz a bola de um lado ao outro, a dupla respira, o refletor passeia. */
-function SceneAtual({ scale }: { scale: number }) {
-    return (
-        <div className="mm-sc mm-sc-atual" aria-hidden>
-            <i className="mm-stand" />
-            <i className="mm-half" />
-            <div className="mm-stage">
-                <i className="mm-circle" />
-                <i className="mm-spot" />
-                <span className="mm-pt" style={at(22, 64)}>
-                    <FieldSprite id={4} anim="Idle" dir={2} scale={scale} />
-                </span>
-                <span className="mm-pt" style={at(78, 58)}>
-                    <FieldSprite id={7} anim="Idle" dir={6} scale={scale} />
-                </span>
-                <span className="mm-run">
-                    <span className="mm-pt" style={at(0, 90)}>
-                        <FieldSprite id={25} anim="Walk" dir={2} scale={scale} />
-                    </span>
-                    <img className="mm-ball" src="assets/ui/ball.svg" alt="" style={at(0, 90)} />
-                </span>
-            </div>
-        </div>
-    );
+/** Nome do modo pra quem não é componente (os pontos do carrossel). */
+function useNames(): Record<ModeId, string> {
+    const m = useT().d.home.modes;
+    return { atual: m.atual.name, ultimate: m.ultimate.name, historia: m.historia.name };
 }
 
-/** Pacote fechado que treme, uma carta dourada espia com a silhueta e o Eevee pula de curiosidade. */
-function SceneUltimate({ scale }: { scale: number }) {
-    return (
-        <div className="mm-sc mm-sc-ult" aria-hidden>
-            <i className="mm-rays" />
-            <div className="mm-stage">
-                <div className="mm-pack">
-                    <span className="mm-peek">
-                        <img className="mm-peek-mon pixel" src="assets/cards/150.gif" alt="" />
-                    </span>
-                    <span className="mm-pack-body">
-                        <img src="assets/ui/simbolo.svg" alt="" />
-                    </span>
-                </div>
-                <span className="mm-pt" style={at(22, 92)}>
-                    <FieldSprite id={133} anim="Hop" dir={2} scale={scale} />
-                </span>
-            </div>
-        </div>
-    );
-}
-
-/** Fim de tarde na frente do ginásio: o Blue provoca, as 8 insígnias acendem uma por uma. */
-function SceneHistoria({ scale }: { scale: number }) {
-    return (
-        <div className="mm-sc mm-sc-his" aria-hidden>
-            <i className="mm-ground" />
-            <div className="mm-stage">
-                <i className="mm-sun" />
-                <div className="mm-gym">
-                    <i className="mm-gym-roof" />
-                    <span className="mm-gym-sign">GINÁSIO</span>
-                    <i className="mm-gym-door" />
-                </div>
-                <i className="mm-path" />
-                <span className="mm-pt" style={at(24, 94)}>
-                    <FieldSprite id={1} anim="Idle" dir={2} scale={scale} />
-                </span>
-                <span className="mm-blue" style={at(74, 96)}>
-                    <img className="pixel" src="assets/trainers/blue.png" alt="" />
-                    <span className="mm-say">Até mais, perdedor!</span>
-                </span>
-            </div>
-            <span className="mm-badges">
-                {KANTO_BADGES.map((id, i) => (
-                    <span key={id} style={{ '--i': i } as CSSProperties}>
-                        <KantoBadge leader={id} earned />
-                    </span>
-                ))}
-            </span>
-        </div>
-    );
-}
-
-function Scene({ id, scale }: { id: ModeId; scale: number }) {
-    if (id === 'atual') return <SceneAtual scale={scale} />;
-    if (id === 'ultimate') return <SceneUltimate scale={scale} />;
-    return <SceneHistoria scale={scale} />;
-}
-
-/** "Chega em…": placa com o relógio, nunca cadeado. */
-function When({ id }: { id: ModeId }) {
-    const w = MODE[id].when;
-    if (!w) return null;
-    return (
-        <span className="mm-when">
-            <HudIcon kind="stopwatch" />
-            {id === 'historia' ? `Chega em ${w}` : `Chega ${w.toLowerCase()}`}
-        </span>
-    );
-}
-
-function Play({ sub }: { sub?: string }) {
-    return (
-        <button type="button" className="btn cb cb-gold mm-play">
-            <i className="cb-shine" aria-hidden />
-            <b>JOGAR</b>
-            {sub && <small>{sub}</small>}
-        </button>
-    );
-}
-
-function Chips({ id }: { id: ModeId }) {
-    return (
-        <span className="mm-chips">
-            {MODE[id].topics.map((t) => (
-                <span key={t}>{t}</span>
-            ))}
-        </span>
-    );
-}
-
-/** Toque num modo trancado: balança e troca a dica (vivo, sem "Em breve"). */
-function useWiggle() {
-    const [w, setW] = useState<ModeId | null>(null);
-    return [
-        w,
-        (id: ModeId) => {
-            setW(null);
-            requestAnimationFrame(() => setW(id));
-        },
-    ] as const;
-}
-
-function Head() {
-    return (
-        <header className="mm-top">
-            <img className="mm-logo" src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
-            <TopBar />
-        </header>
-    );
-}
-
-/* ---------------------------------------------------------------- A: herói + dois menores (FIFA) */
-function ConceptA({ big }: { big: boolean }) {
-    const [wig, wiggle] = useWiggle();
-    return (
-        <div className="mm-a">
-            <Head />
-            <div className="mm-a-grid">
-                <article className="mm-card mm-hero" style={{ '--n': 0 } as CSSProperties}>
-                    <SceneAtual scale={big ? 3 : 2} />
-                    <span className="mm-ribbon">ÚLTIMO JOGADO</span>
-                    <div className="mm-hero-txt">
-                        <h2 className="cb-num">{MODE.atual.name}</h2>
-                        <Chips id="atual" />
-                        <Play sub="Copa Relâmpago · 4 jogos" />
-                    </div>
-                </article>
-                {(['ultimate', 'historia'] as const).map((id, n) => (
-                    <button
-                        type="button"
-                        key={id}
-                        className={`mm-card mm-small${wig === id ? ' wiggle' : ''}`}
-                        style={{ '--n': n + 1 } as CSSProperties}
-                        onClick={() => wiggle(id)}
-                    >
-                        <Scene id={id} scale={2} />
-                        <span className="mm-small-txt">
-                            <When id={id} />
-                            <b className="cb-num">{MODE[id].name}</b>
-                            <span className="mm-list">
-                                {MODE[id].topics.map((t) => (
-                                    <span key={t}>{t}</span>
-                                ))}
-                            </span>
-                        </span>
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
+function Name({ id }: { id: ModeId }) {
+    return <b className="cb-num">{useMode(id).name}</b>;
 }
 
 /* ---------------------------------------------------------------- B: carrossel de pôsteres (Fortnite antigo) */
@@ -247,6 +53,8 @@ function ConceptB({ big }: { big: boolean }) {
             behavior: 'smooth',
         });
     const id = ORDER_B[cur];
+    const names = useNames();
+    const { t } = useT();
     return (
         <div className="mm-b">
             <Head />
@@ -260,10 +68,10 @@ function ConceptB({ big }: { big: boolean }) {
                         onClick={() => goTo(i)}
                     >
                         <Scene id={m} scale={big ? 3 : 2} />
-                        {m === LAST && <span className="mm-ribbon">ÚLTIMO JOGADO</span>}
+                        {m === LAST && <span className="mm-ribbon">{t('home.modes.last')}</span>}
                         <span className="mm-poster-txt">
                             <When id={m} />
-                            <b className="cb-num">{MODE[m].name}</b>
+                            <Name id={m} />
                             <Chips id={m} />
                         </span>
                     </button>
@@ -275,7 +83,7 @@ function ConceptB({ big }: { big: boolean }) {
                         type="button"
                         key={m}
                         className={i === cur ? 'on' : ''}
-                        aria-label={MODE[m].name}
+                        aria-label={names[m]}
                         onClick={() => goTo(i)}
                     />
                 ))}
@@ -287,7 +95,7 @@ function ConceptB({ big }: { big: boolean }) {
                 <div className={`mm-swap${id !== 'atual' ? ' on' : ''}`}>
                     <span className="mm-b-soon">
                         <HudIcon kind="stopwatch" />
-                        {id === 'historia' ? 'Chega em 2027' : 'Chega fim de novembro'}
+                        {id === 'historia' ? t('home.modes.historia.when') : t('home.modes.ultimate.when')}
                     </span>
                 </div>
             </div>
@@ -299,6 +107,8 @@ function ConceptB({ big }: { big: boolean }) {
 const ORDER_C: ModeId[] = ['atual', 'ultimate', 'historia'];
 function ConceptC({ big }: { big: boolean }) {
     const [sel, setSel] = useState<ModeId>(LAST);
+    const names = useNames();
+    const { t } = useT();
     return (
         <div className="mm-c">
             <Head />
@@ -314,9 +124,9 @@ function ConceptC({ big }: { big: boolean }) {
                     >
                         <Scene id={m} scale={big ? 3 : 2} />
                         <span className="mm-slice-txt">
-                            {m === LAST && <span className="mm-tag">ÚLTIMO JOGADO</span>}
+                            {m === LAST && <span className="mm-tag">{t('home.modes.last')}</span>}
                             <When id={m} />
-                            <b className="cb-num">{MODE[m].name}</b>
+                            <Name id={m} />
                             <span className="mm-slice-more">
                                 <Chips id={m} />
                             </span>
@@ -326,7 +136,7 @@ function ConceptC({ big }: { big: boolean }) {
             </div>
             {/* o polegar sempre joga o último modo; tocar numa fatia só abre a prévia dela */}
             <div className="mm-c-cta">
-                <Play sub={sel === 'atual' ? 'Copa Relâmpago · 4 jogos' : `${MODE.atual.name} · último jogado`} />
+                <Play sub={sel === 'atual' ? undefined : `${names.atual} · ${t('home.modes.last').toLowerCase()}`} />
             </div>
         </div>
     );
@@ -336,12 +146,11 @@ export function ModeMenuLab({ onExit }: { onExit: () => void }) {
     const params = new URLSearchParams(window.location.search);
     const fixed = params.get('v');
     const [v, setV] = useState(fixed === 'b' || fixed === 'c' ? fixed : 'a');
-    const clock = useSceneClock(true);
-    const [big] = useState(() => window.matchMedia('(min-width: 900px)').matches);
+    const { clock, big } = useMenuScene();
     return (
         <ClockCtx.Provider value={clock}>
-            <div className={`mm-lab mm-v-${v}`}>
-                {v === 'a' ? <ConceptA big={big} /> : v === 'b' ? <ConceptB big={big} /> : <ConceptC big={big} />}
+            <div className={`mm-root mm-lab mm-v-${v}`}>
+                {v === 'a' ? <ModeGrid big={big} /> : v === 'b' ? <ConceptB big={big} /> : <ConceptC big={big} />}
                 {!fixed && (
                     <div className="mm-switch bc-seg">
                         {(['a', 'b', 'c'] as const).map((k) => (

@@ -113,4 +113,29 @@ export const home = {
         /** A estrela do nível na barra de cima. */
         resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
     },
+    /**
+     * Menu de modos (antes da Home, pra quem já jogou): os nomes ainda não estão fechados, trocar aqui troca no jogo.
+     * `when` é a placa do modo trancado; `topics`, os itens do cartão.
+     */
+    modes: {
+        aria: 'Modos de jogo',
+        /** Botão de voltar da Home pro menu de modos. */
+        back: 'Modos de jogo',
+        last: 'ÚLTIMO JOGADO',
+        play: 'JOGAR',
+        atual: { name: 'Modo Copa', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
+        ultimate: {
+            name: 'Ultimate',
+            when: 'Chega fim de novembro',
+            topics: ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'],
+        },
+        historia: {
+            name: 'Modo História',
+            when: 'Chega em 2027',
+            topics: ['Os 8 ginásios', 'Insígnias de Kanto', 'Blue de rival'],
+        },
+        /** A provocação do Blue na cena do Modo História. */
+        rival: 'Até mais, perdedor!',
+        gym: 'GINÁSIO',
+    },
 };

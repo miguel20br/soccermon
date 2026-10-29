@@ -107,4 +107,23 @@ export const home: typeof pt = {
         sedeTitles: '{n} title|{n} titles',
         sedeKit: 'Crest and kit',
     },
+    modes: {
+        aria: 'Game modes',
+        back: 'Game modes',
+        last: 'LAST PLAYED',
+        play: 'PLAY',
+        atual: { name: 'Cup Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
+        ultimate: {
+            name: 'Ultimate',
+            when: 'Coming late November',
+            topics: ['Team of the season', 'Open packs', 'Resets every season'],
+        },
+        historia: {
+            name: 'Story Mode',
+            when: 'Coming in 2027',
+            topics: ['The 8 gyms', 'Kanto badges', 'Blue as your rival'],
+        },
+        rival: 'Smell ya later!',
+        gym: 'GYM',
+    },
 };

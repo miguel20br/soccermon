@@ -5,6 +5,7 @@ import { useGame } from '../../store/game-store';
 import { LONG_CUP_LIVE } from '../../store/long-cup';
 import { Coach, useHydrated } from '../coach/Coach';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
+import { MenuIcon } from '../components/MenuIcon';
 import { TopActions } from '../components/TopActions';
 import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
@@ -38,7 +39,7 @@ let lastTab = START;
  * o celular deitado) e o arrasto de lado entre eles. Abre no Estádio. A troca anda 280 ms com o fundo em camadas
  * (céu devagar, cenário médio, botões junto do dedo); com "reduzir movimento", só um fade.
  */
-export function Ambientes() {
+export function Ambientes({ onModes }: { onModes?: () => void }) {
     const { t, d } = useT();
     const go = useGame((s) => s.go);
     const hydrated = useHydrated();
@@ -190,6 +191,18 @@ export function Ambientes() {
             style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
         >
             <div className="amb-top k-topbar">
+                {/* volta pro menu de modos (quem já jogou: o menu abre antes da Home) */}
+                {onModes && !firstVisit && (
+                    <button
+                        type="button"
+                        className="help-fab amb-modes"
+                        aria-label={t('home.modes.back')}
+                        title={t('home.modes.back')}
+                        onClick={onModes}
+                    >
+                        <MenuIcon kind="back" />
+                    </button>
+                )}
                 <TopBar />
                 <TopActions help={() => go('help')} profile={false} />
             </div>
