@@ -576,7 +576,8 @@
 .es-led span {
     flex: none;
     white-space: pre;
-    font-size: max(10px, calc(var(--px) * 4.4));
+    /* 12 px = a grade da Galmuri11 (1 pixel da fonte = 1 px): fora dela o acento de 1 pixel (Í, Â) sumia no LED */
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     color: rgb(255 203 5 / 62%);
@@ -1343,6 +1344,13 @@
     .rm-scene {
         --wall-top: 170px;
         --ui-h: 270px;
+    }
+}
+/* PC: o kit em 4 px, pra sala encher a tela larga (em 3 px sobrava chão vazio dos lados e embaixo do tapete) */
+@media (min-width: 1200px) and (min-height: 860px) {
+    .rm-scene {
+        --mi: 4px;
+        --wall-top: 140px;
     }
 }
 .rm-room {

@@ -15,6 +15,17 @@
     src: url("/fonts/Galmuri14.woff2") format("woff2");
     font-display: swap;
 }
+/* O acento da maiúscula da Galmuri (Í, Â, É) passa 0,2em da ascendente da fonte: numa linha com reticências
+   (overflow: hidden) e line-height curto, ele era cortado ("Rota Indigo", "Icaro"). Folga em cima só pro desenho; a
+   caixa fica no mesmo lugar. Texto novo que corta com reticências e pode ter maiúscula acentuada entra aqui. */
+:root .rt-head h2,
+:root .rm-head h2,
+:root .rt-title,
+:root .res-me-txt b,
+:root .pf-who h2 {
+    padding-top: 0.3em;
+    margin-top: -0.3em;
+}
 
 :root {
     /* curvas do jogo: --ease-out para tudo; --ease-pop só para "pop" de jogo (carta, número, selo) */
