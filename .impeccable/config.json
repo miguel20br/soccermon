@@ -110,6 +110,15 @@
         ],
         "createdAt": "2026-10-29T18:44:03.623Z",
         "reason": "Claude: divisória de tinta escura (--cb-ink) entre cena e texto no card deitado, contorno do kit, não acento colorido"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "src/ui/screens/mode-menu.css"
+        ],
+        "createdAt": "2026-10-29T19:12:27.377Z",
+        "reason": "Claude: poeira de luz em pontinhos radiais (partículas do fundo do menu), não grade de linhas"
       }
     ]
   }
