@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.24 · Beira da quadra (28/10/2026)
+
+No ar: 0.9.24 "Beira da quadra": a partida nova é a padrão (`?lab=hud-off` volta a antiga), eventos `match_skip`, `duel_join` e `duel_match_end` (migração em produção), logo de volta na tela inicial. Motor 14 (`liga` 14).
+
 ## 0.9.23.3 · Pedidos dos jogadores (27/10/2026)
 
 No ar: 0.9.23.3 (N3 82%), 0.9.23.2 "Faxina" (kit calmo; tela grande com `zoom` na raiz: use `calc(N * var(--vw))` e `uiZoom()`, não vw/vh). `?lab=hud` = partida nova. Motor 14 (`liga` 14). Liga fechada até `LIGA_OPENS_AT`.

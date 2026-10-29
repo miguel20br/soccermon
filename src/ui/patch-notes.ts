@@ -9,6 +9,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.25',
+        date: '2026-10-29',
+        title: 'Amigos',
+        sections: [
+            {
+                title: 'Amigos',
+                lines: [
+                    'Toque no nome de qualquer treinador (rankings, Liga, Duelo, lista de amigos) pra ver o perfil, pedir amizade ou desafiar',
+                    'O escudo do clube aparece ao lado do nome dos seus amigos',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['O Desafiar da lista de amigos voltou a mandar o convite. Na sala aparece se ele chegou'],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['As gavetas sobem mais suaves no celular'],
+            },
+        ],
+    },
+    {
         version: '0.9.24',
         date: '2026-10-28',
         title: 'Beira da quadra',
@@ -1856,6 +1878,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.25',
+        date: '2026-10-29',
+        title: 'Friends',
+        sections: [
+            {
+                title: 'Friends',
+                lines: [
+                    "Tap any trainer's name (rankings, League, Duel, friends list) to see their profile, add them or challenge them",
+                    "Your friends' club crest shows next to their name",
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ['Challenge from the friends list sends the invite again. The room shows whether it arrived'],
+            },
+            {
+                title: 'Fixed',
+                lines: ['Sheets slide up more smoothly on phones'],
+            },
+        ],
+    },
     {
         version: '0.9.24',
         date: '2026-10-28',

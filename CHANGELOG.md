@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.25 · Amigos (2026-10-29)
+
+### Amigos
+- Toque no nome de qualquer treinador (rankings, Liga, Duelo, lista de amigos) pra ver o perfil, pedir amizade ou desafiar
+- O escudo do clube aparece ao lado do nome dos seus amigos
+
+### Duelo
+- O Desafiar da lista de amigos voltou a mandar o convite. Na sala aparece se ele chegou
+
+### Corrigido
+- As gavetas sobem mais suaves no celular
+
 ## 0.9.24 · Beira da quadra (2026-10-28)
 
 ### Partida nova
