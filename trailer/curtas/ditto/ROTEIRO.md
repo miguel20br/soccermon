@@ -49,3 +49,20 @@ rival da final (Charizard 6 por padrão).
 Regras: uma coisa por vez na tela; cada ideia nova ≥ 2 s legível; quem anda, anda com a animação; o clímax (21–22)
 é o trecho mais longo e legível; nada parado nem tela branca; texto na tela 2 a 5 palavras, sem emoji; ninguém além
 do Ditto tem a cara do Ditto. Exagero do vídeo: a cara do Ditto e a gelatina; no jogo a transformação real é a do apito.
+
+## v3 (29/10/2026, pedido do Miguel: "uma gag com o Ditto no fim, corrigir a medalha na cara do Magikarp, tirar os textos cafonas desnecessários e acertar o ritmo")
+
+- **Textos:** saem os que narravam a imagem (TESTE NO GOL, MAIOR É MELHOR, o DITTO! amarelo, o cartão FINAL 1 × 1 no
+  meio da tela). Ficam o título da série na roleta e o selo EP 3, a lousa, a placa PRECISAMOS DE GOLEIRO, o carimbo
+  TENTATIVA, as plaquinhas de nota, os balões ?/!, os HAHA (pedido do Miguel), o placar pequeno do estádio e a tela final.
+- **Ritmo:** roleta + selo dentro do C0; o vestiário começa no C1 (lousa legível C1–C2). As transformações 1 e 2 são de
+  perto (o Ditto e o disfarce em ~1/3 da largura) e a câmera abre pro chute. Sem confete na transformação perfeita
+  (só no 10·10·10 e no fim). C17: o Snorlax acorda e levanta o 10 sozinho (~0,8 s), depois os três 10 (~1,6 s).
+- **Buraco do Onix:** a gelatina de verdade (gerar.cjs → 95-buraco.png): os gomos de baixo derretem numa bola mole, o
+  buraco abre no meio com borda mole e fios escorrendo, o fundo do gol aparece; a bola passa por dentro (a câmera chega
+  perto) e o buraco fecha devagar.
+- **Medalha:** pendurada logo abaixo da boca do Magikarp, seguindo o quadro; no júri ele senta em cima da mesa pra ela
+  aparecer.
+- **C26, a gag:** depois do abraço o Snorlax pega no sono em cima do Ditto; o Ditto olha e, por reflexo, vira um Snorlax
+  pequenininho com a cara dele e dorme também no colo; os dois soltam Z; o Magikarp e o Pikachu se olham. O C27 é a
+  única tela com EP 4?.
