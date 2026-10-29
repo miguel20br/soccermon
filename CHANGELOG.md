@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.9.26 · Escudos (2026-10-29)
+
+### Amigos
+- Cada amigo aparece com o escudo de verdade do clube dele: formato, símbolo e cores
+
+### Corrigido
+- O acento de letras como o Í de Índigo não fica mais cortado nos letreiros e nos nomes
+- No computador, a Sede e o Laboratório preenchem a tela
+- Depois de uma atualização, o jogo aberto há muito tempo recarrega sozinho em vez de dar erro
+
 ## 0.9.25 · Amigos (2026-10-29)
 
 ### Amigos

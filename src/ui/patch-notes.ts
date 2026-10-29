@@ -9,6 +9,25 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.26',
+        date: '2026-10-29',
+        title: 'Escudos',
+        sections: [
+            {
+                title: 'Amigos',
+                lines: ['Cada amigo aparece com o escudo de verdade do clube dele: formato, símbolo e cores'],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'O acento de letras como o Í de Índigo não fica mais cortado nos letreiros e nos nomes',
+                    'No computador, a Sede e o Laboratório preenchem a tela',
+                    'Depois de uma atualização, o jogo aberto há muito tempo recarrega sozinho em vez de dar erro',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.25',
         date: '2026-10-29',
         title: 'Amigos',
@@ -1878,6 +1897,25 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.26',
+        date: '2026-10-29',
+        title: 'Crests',
+        sections: [
+            {
+                title: 'Friends',
+                lines: ["Each friend shows their club's real crest: shape, symbol and colors"],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Accents on capital letters are no longer cut off on signs and names',
+                    'On desktop, the Club and the Lab fill the screen',
+                    'After an update, a game left open for a long time reloads by itself instead of showing an error',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.25',
         date: '2026-10-29',
