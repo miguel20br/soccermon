@@ -144,7 +144,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
 
 ## Estado atual (29/10/2026, v0.9.25)
 
-No ar: 0.9.25 "Amigos" (nome de treinador abre o perfil, ranking com código de amigo), 0.9.24 "Beira da quadra" (partida nova padrão; `?lab=hud-off` volta a antiga). Tela grande com `zoom` na raiz: use `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 14 (`liga` 14). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.25 "Amigos" (nome de treinador abre o perfil). Partida nova é a padrão (`?lab=hud-off` volta a antiga). Tela grande com `zoom` na raiz: use `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 14 (`liga` 14). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 
