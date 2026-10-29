@@ -11,7 +11,7 @@ import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { routeTeam } from './metas';
+import { avatarMon, routeTeam } from './metas';
 import { useTalkOnce } from './Room';
 import { type Blockers, type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
 import type { Pt, Wild } from './wild';
@@ -315,10 +315,7 @@ export function Rota({
     const otherCup = !!run && !isLong(run) && !['eliminated', 'champion'].includes(run.status);
 
     // o time: os 3 primeiros da escalação (o capitão na frente) na Rota aberta; senão o seu avatar sozinho em Pallet
-    const team = useMemo(
-        () => routeTeam(run, longOn, avatar.kind === 'pokemon' ? avatar.speciesId : null),
-        [longOn, run, avatar],
-    );
+    const team = useMemo(() => routeTeam(run, longOn, avatarMon(avatar)), [longOn, run, avatar]);
 
     // a caminhada: na 1ª vez que a aba aparece, da parada anterior até a atual (reduzir movimento: já parado lá)
     const target = ARC[STOP_AT[stop]];
@@ -469,7 +466,7 @@ export function Rota({
                         <i className="rt-cloud k2" />
                         <i className="rt-cloud k3" />
                         <WildZone wild={w} zone="sky" />
-                        {team.map((id, i) => {
+                        {team.map((mon, i) => {
                             const at = along(s - i * 2);
                             const still = !walking;
                             return (
@@ -480,7 +477,8 @@ export function Rota({
                                     style={{ ...pct(at.p), zIndex: 10 + Math.round(at.p[1] * 2) - i }}
                                 >
                                     <FieldSprite
-                                        id={id}
+                                        id={mon.id}
+                                        shiny={mon.shiny}
                                         anim={still ? 'Idle' : 'Walk'}
                                         dir={still ? 0 : at.dir}
                                         scale={scale}

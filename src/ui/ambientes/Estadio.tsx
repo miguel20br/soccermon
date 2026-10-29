@@ -15,6 +15,7 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
+import { avatarMon } from './metas';
 import { chosenMode, type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
@@ -305,11 +306,7 @@ export function Estadio({
     const [chosen, setChosen] = useState<ModeId | null>(null);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
     const lead = inProgress ? (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0]) : undefined;
-    const captain = lead
-        ? { id: lead.speciesId, shiny: lead.shiny }
-        : avatar.kind === 'pokemon'
-          ? { id: avatar.speciesId, shiny: avatar.shiny === true }
-          : { id: 25 };
+    const captain = lead ? { id: lead.speciesId, shiny: lead.shiny } : avatarMon(avatar);
     const play = (seed?: string, mode?: CupMode) => {
         if (inProgress && !confirm) {
             setConfirm({ seed, mode });

@@ -3,6 +3,7 @@
  * Arena. Só conta, sem tela.
  */
 import { MISSIONS, type Mission, missionCount, type SaveView } from '../../store/missions';
+import type { Avatar } from '../../store/profile';
 import { BELTS } from '../../store/trophies';
 
 export interface Goal {
@@ -56,9 +57,22 @@ export function nextBelt(wins: number): { metal: (typeof BELTS)[number]['metal']
     return b ? { metal: b.metal, n: wins, goal: b.wins } : null;
 }
 
+/** Um Pokémon desenhado num ambiente: a espécie e a folha (shiny ou normal). */
+export interface Mon {
+    id: number;
+    shiny?: boolean;
+}
+
+/**
+ * O seu avatar como Pokémon dos ambientes (Pikachu pra quem usa a foto do Google), com o brilho: todo lugar que
+ * desenha o avatar passa por aqui, senão o shiny some (o Mew shiny aparecia rosa no mapa da Rota).
+ */
+export const avatarMon = (avatar: Avatar): Mon =>
+    avatar.kind === 'pokemon' ? { id: avatar.speciesId, shiny: avatar.shiny === true } : { id: 25 };
+
 /** O pedaço da copa que a Rota usa pra montar o time no mapa. */
 interface TeamRun {
-    picks: readonly { uid: string; speciesId: number }[];
+    picks: readonly { uid: string; speciesId: number; shiny?: boolean }[];
     lineup: readonly string[];
     captainUid?: string | null;
 }
@@ -68,16 +82,17 @@ interface TeamRun {
  * existe (formação, draft sem escalação), o mesmo de fallback do Estádio: o 1º escolhido ou o seu avatar (Pikachu
  * sem avatar de Pokémon). Nunca vazio: o mapa sem ninguém parecia quebrado.
  */
-export function routeTeam(run: TeamRun | null | undefined, longOn: boolean, avatarId: number | null): number[] {
+export function routeTeam(run: TeamRun | null | undefined, longOn: boolean, avatar: Mon): Mon[] {
+    const mon = (p: TeamRun['picks'][number]): Mon => ({ id: p.speciesId, shiny: p.shiny === true });
     if (longOn && run) {
         const byUid = new Map(run.picks.map((p) => [p.uid, p]));
         const cap = run.picks.find((p) => p.uid === run.captainUid);
         const rest = run.lineup.flatMap((u) => (u === run.captainUid ? [] : (byUid.get(u) ?? [])));
-        const team = [cap, ...rest].flatMap((p) => (p ? [p.speciesId] : [])).slice(0, 3);
+        const team = [cap, ...rest].flatMap((p) => (p ? [mon(p)] : [])).slice(0, 3);
         if (team.length) return team;
-        if (run.picks[0]) return [run.picks[0].speciesId];
+        if (run.picks[0]) return [mon(run.picks[0])];
     }
-    return [avatarId ?? 25];
+    return [avatar];
 }
 
 /**
