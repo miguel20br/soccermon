@@ -14,6 +14,7 @@ import {
 } from '../../friends/api';
 import { useT } from '../../i18n/react';
 import type { Peer } from '../../net/duel-state';
+import { useDuel } from '../../net/session';
 import { parseCardShowcase } from '../../store/binder';
 import { type ClubLook, lookOfPeer, lookOfProfile, peerLookFields } from '../../store/club-kit';
 import { headToHead } from '../../store/duels';
@@ -28,6 +29,7 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { Sheet } from '../kit/Sheet';
+import { requestLeave } from '../leave-guard';
 import { AddFriendButton } from './AddFriendButton';
 import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
@@ -322,6 +324,7 @@ export function PlayerCardModal() {
 /** O que só o perfil do amigo tem: números, os últimos títulos e "vocês no Duelo". */
 function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: string }) {
     const { t, lang } = useT();
+    const inRoom = useGame((g) => g.screen === 'duel') && !!useDuel.getState().room;
     const duels = useGame((s) => s.duels);
     const vs = headToHead(duels, { code: f.code, trainer: name, club: f.club });
     const total = vs.win + vs.draw + vs.loss;
@@ -362,18 +365,22 @@ function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: s
             <p className="pcard-h2h" data-testid="friend-h2h">
                 {total ? t('profile.card.h2hLine', { w: vs.win, d: vs.draw, l: vs.loss }) : t('profile.card.h2hNone')}
             </p>
-            <div className="pcard-friend">
-                <button
-                    type="button"
-                    className="btn outline"
-                    onClick={() => {
-                        usePlayerCard.getState().close();
-                        challengeFriend({ code: f.code, trainer: name });
-                    }}
-                >
-                    <HudIcon kind="play" /> {t('friends.challenge')}
-                </button>
-            </div>
+            {/* já dentro de uma sala do Duelo o convite não teria sala nova pra ir: sem o botão */}
+            {!inRoom && (
+                <div className="pcard-friend">
+                    <button
+                        type="button"
+                        className="btn outline"
+                        onClick={() => {
+                            usePlayerCard.getState().close();
+                            // no meio de uma partida, pergunta antes de sair (como o voltar)
+                            requestLeave(() => challengeFriend({ code: f.code, trainer: name }));
+                        }}
+                    >
+                        <HudIcon kind="play" /> {t('friends.challenge')}
+                    </button>
+                </div>
+            )}
         </>
     );
 }

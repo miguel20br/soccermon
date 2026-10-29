@@ -23,10 +23,18 @@ export interface TrainerRef {
     me?: boolean;
 }
 
-/** O código do nome: o que veio no dado ou, sem ele, alguém da sua lista com o mesmo nome e clube (como o headToHead). */
+/** Nome e clube que ninguém trocou: muita gente igual, não dá pra saber quem é pelo nome. */
+const DEFAULT_NAMES = (who: TrainerRef) => who.trainer === 'Treinador' || who.club === 'Pallet FC';
+
+/**
+ * O código do nome: o que veio no dado. Só quando o dado não traz o campo (`undefined`: fantasma da Liga, histórico
+ * antigo do Duelo) procura alguém da sua lista com o mesmo nome e clube (como o headToHead), e nunca com o nome
+ * padrão. `null` quer dizer "essa pessoa não tem cartão de amigo": fica só o texto (senão "Treinador / Pallet FC" do
+ * ranking abria o perfil de um amigo seu com o mesmo nome, e o Desafiar chamava ele).
+ */
 export function trainerCode(who: TrainerRef, rows: FriendRow[] | null): string | null {
     if (who.code && isFriendCode(who.code)) return who.code;
-    if (!who.club) return null;
+    if (who.code !== undefined || !who.club || DEFAULT_NAMES(who)) return null;
     return rows?.find((r) => r.trainer === who.trainer && r.club === who.club)?.code ?? null;
 }
 
@@ -71,8 +79,11 @@ export function TrainerName({ who }: { who: TrainerRef }) {
                 e.stopPropagation();
                 if (busy) return;
                 setBusy(true);
-                await openTrainer(who);
-                setBusy(false);
+                try {
+                    await openTrainer(who);
+                } finally {
+                    setBusy(false);
+                }
             }}
         >
             {who.trainer}

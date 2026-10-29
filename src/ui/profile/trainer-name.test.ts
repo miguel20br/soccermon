@@ -30,6 +30,12 @@ describe('nome de treinador que abre o perfil', () => {
         expect(trainerCode({ trainer: 'Davi', club: 'Viridian Verde' }, null)).toBeNull();
     });
 
+    it('code null (a pessoa não tem cartão) e nome padrão nunca viram um amigo seu com o mesmo nome', () => {
+        expect(trainerCode({ trainer: 'Davi', club: 'Viridian Verde', code: null }, [davi])).toBeNull();
+        const padrao = { ...davi, code: 'PLLT4FCX', trainer: 'Treinador', club: 'Pallet FC' };
+        expect(trainerCode({ trainer: 'Treinador', club: 'Pallet FC' }, [padrao])).toBeNull();
+    });
+
     it('quem não é amigo abre só com nome e clube, pedindo amizade pelo código (nunca o id da conta)', () => {
         const info = strangerInfo(
             { trainer: 'Gary', club: 'Pallet Rival', club_tag: 'RIV', club_color: 'roxo' },
