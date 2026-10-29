@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import { reloadForNewVersion } from './chunk-reload';
 import type { MatchSceneData } from './game/scenes/MatchScene';
 
 /**
@@ -6,21 +7,10 @@ import type { MatchSceneData } from './game/scenes/MatchScene';
  * abre, ou antes, em segundo plano, quando a Home fica ociosa (preloadGame), pra não atrasar o "Jogar".
  */
 const load = () => import('./game/PhaserCanvas');
-const RELOAD_KEY = 'soccermon-chunk-reload';
 const Canvas = lazy(() =>
-    load().catch((e) => {
-        // pedaço que sumiu (versão nova no ar com a aba aberta): recarrega uma vez pra pegar a versão nova; sem rede,
-        // ou se já recarregou há pouco, cai no aviso de erro
-        try {
-            const last = Number(sessionStorage.getItem(RELOAD_KEY)) || 0;
-            if (navigator.onLine && Date.now() - last > 60_000) {
-                sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
-                window.location.reload();
-                return new Promise<never>(() => {});
-            }
-        } catch {
-            // sem sessionStorage: não arrisca recarregar em loop
-        }
+    load().catch(async (e) => {
+        // pedaço que sumiu (versão nova no ar com a aba aberta): recarrega pra pegar a versão nova; senão, aviso de erro
+        if (await reloadForNewVersion()) return new Promise<never>(() => {});
         throw e;
     }),
 );

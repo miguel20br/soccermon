@@ -404,6 +404,22 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         );
     }
 
+    // first_leave: onde largou quem saiu antes do apito da 1ª partida (tela/passo da copa, uma vez por sessão)
+    const largou = by('first_leave');
+    if (largou.length) {
+        const passo = (e: (typeof largou)[number]) =>
+            [str(e.props.screen), str(e.props.status)].filter(Boolean).join('/') || '?';
+        line(
+            `${MD ? '' : '  '}${bold('Saiu antes da 1ª partida')}: ${fmt(new Set(largou.map((e) => e.session)).size)} sessões · ${count(
+                largou,
+                passo,
+            )
+                .slice(0, 6)
+                .map(([p, n]) => `${p} ${n}`)
+                .join(' · ')}`,
+        );
+    }
+
     // 4. Canais
     titulo('4. Canais');
     const porCanal = new Map<string, string[]>();

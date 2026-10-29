@@ -104,6 +104,11 @@ só **15 sessões**; **3 sessões fazem 125 deles** (67, 33 e 25 abandonos).
 | **C. Medir a partida (antes de mexer em A)** | Evento novo (ex.: `match_leave` ou `match_progress`: minuto, velocidade, se tocou no Pular), disparado em `visibilitychange=hidden`. O nome entra em `EVENT_NAMES`, mas o banco exige **migração antes** (`game_events_name_check`) | 1–2 h + **migração de produção (ok do Miguel)**; 1 a 2 semanas de dados (~10 novas/dia) | Miguel (Supabase de produção) |
 | D. Renomear a etapa | `stats.ts`: "Jogou a 1ª partida" vira "Chegou ao apito da 1ª partida", e tirar maratonas (≥10 copas) e versão antiga do funil; 2º vazamento mostra "saiu na partida" separado | 1 h, sem migração; sobe sem perguntar | pode subir |
 
+**29/10 (branch `conserto-funil`):** a C virou o evento `first_leave` (aba escondida ou fechada antes do apito da 1ª
+partida: tela, passo da copa, cartas, ponto da partida, velocidade e tempo de página; uma vez por sessão), na migração
+`20261029130000_evento_saida_antes_da_1a.sql` e na linha "Saiu antes da 1ª partida" do `stats.ts`. A 1ª partida não
+muda: só medir.
+
 **Ordem que eu seguiria:** D agora (a leitura do funil melhora sem mexer no jogo), B junto (não muda regra), C em
 paralelo pra decidir A com dado. A só com o ok do Miguel e depois de ver `match_progress`: a decisão de 1x foi dele, e
 a hipótese 1 sozinha tem contra-evidência.
