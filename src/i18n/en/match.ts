@@ -132,6 +132,8 @@ export const match: typeof pt = {
         maxLevelShort: 'L{n}',
         /** Tapped the bottom-bar max move before it lit up. */
         maxWhen: "Not yet: it lights up at your captain's moment, near the goal",
+        maxCaptainOnly: 'Only the captain unleashes the max move',
+        maxMissShort: 'No shot: half the bar back',
         maxPerfect: 'PERFECT!',
         maxGood: 'GOOD',
         maxWait: 'Wait',

@@ -64,6 +64,7 @@ import {
     agencyView,
     CharangaCue,
     capFxType,
+    capTypeAt,
     MaxBars,
     MaxCueButton,
     MaxThumb,
@@ -86,7 +87,7 @@ import { playMoment } from '../kit/MomentWipe';
 import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
 import { captainAt, clockExtrasAt, type MaxWait, maxWaitNext, roleAt, snapAt } from '../match-view';
-import { maxGradeNow } from '../max-beat';
+import { maxTap } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
@@ -476,7 +477,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
     const wait = maxWaitNext(maxWait, agency.max.level, cue);
     if (wait !== maxWait) setMaxWait(wait);
-    const sideline = { ...agency, fxType: capFxType(match, setups, 0, clock.tick), maxWaiting: wait !== null };
+    const sideline = {
+        ...agency,
+        fxType: capFxType(match, setups, 0, clock.tick),
+        capType: capTypeAt(match, setups, 0, clock.tick),
+        maxWaiting: wait !== null,
+    };
     const canAgency = canChangeTactic && penPick === null;
     // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
     // passava; a quadra espera a partida nova; é um lance, não um plano)
@@ -486,7 +492,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const waitMax = () => setMaxWait({ level: sideline.max.level });
     maxKey.current = (key) => {
         if (!lit) return;
-        if (key === 'm') sendMax(maxGradeNow());
+        if (key === 'm') sendMax(maxTap());
         else if (key === d.match.agency.maxWaitKey.toLowerCase()) waitMax();
     };
     const sidelineControls = (

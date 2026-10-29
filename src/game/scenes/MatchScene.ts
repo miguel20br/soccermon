@@ -29,7 +29,9 @@ import { dir8 } from '../../engine/vec';
 import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
+import { readCount, writeCount } from '../../ui/local-count';
 import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
+import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -46,7 +48,7 @@ import {
     shadowSize,
     skinOf,
 } from '../animation-manager';
-import { playCrowd, playCry, playGoalCry, playSample, playSfx } from '../audio';
+import { playCrowd, playCry, playGoalCry, playMax, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
@@ -57,6 +59,7 @@ import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
+import { MAX_MOVE, MAX_PEAK } from '../max-sfx';
 import { castMove, preloadMoveFx } from '../move-fx';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
@@ -179,11 +182,16 @@ const TICK_RATE = FUTSAL_5.tickRate;
 const MAX_CUE_SLOW = 0.25;
 const MAX_CUE_LEAD = 12;
 /**
- * Assim que o botão acende, a quadra quase para (bullet time) por esse tempo real, em qualquer velocidade: dá pra ver e
- * tocar mesmo no 8x (antes acendia e sumia). Depois segue na câmera lenta de `MAX_CUE_SLOW` até a hora certa passar.
+ * Assim que o botão acende, a quadra quase para (bullet time) até o anel do QTE fechar (`maxRing`, mais a janela do
+ * "bom"), em qualquer velocidade: dá pra ver e tocar mesmo no 8x. Antes do anel nascer, e no Duelo (as duas telas
+ * seguram igual), por `MAX_CUE_HOLD_MS` real. Depois segue na câmera lenta de `MAX_CUE_SLOW` até a hora certa passar.
  */
 const MAX_CUE_HOLD = 0.04;
 const MAX_CUE_HOLD_MS = 2500;
+/** Laranja do N2 (o `color-mix` de --yellow com 40% de --red do sideline.css). */
+const MAX_N2_COLOR = 0xf6941c;
+/** Dica "só o capitão solta" (A1): uma vez por aparelho (`local-count`). */
+const MAX_CAP_HINT = 'soccermon-max-capitao';
 /** O golpe saiu: a bola voa em câmera lenta até o desfecho (gol, defesa, trave, fora), em qualquer velocidade. */
 const MAX_SHOT_SLOW = { n3: 0.2, other: 0.35 };
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
@@ -468,7 +476,7 @@ export class MatchScene extends Phaser.Scene {
     /** Golpe máximo no ar: câmera lenta até o desfecho e o brilho na bola (cor do tipo no N3). */
     private maxSlow: { until: number; factor: number; color: number } | null = null;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
-    /** Hora (relógio da cena) em que o botão do golpe máximo acendeu, pro bullet time. */
+    /** Hora (`performance.now`) em que o botão do golpe máximo acendeu, pro bullet time. */
     private cueSince: number | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
     private ballShadow!: Phaser.GameObjects.Ellipse;
@@ -707,7 +715,7 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
         }
-        if ((this.maxSpans.length || this.flySpans.length) && !this.agencyG)
+        if ((this.maxSpans.length || this.flySpans.length || this.md.agency) && !this.agencyG)
             this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     }
 
@@ -734,6 +742,35 @@ export class MatchScene extends Phaser.Scene {
         });
     }
 
+    /**
+     * Outro jogador seu chutou com a barra pronta: uma vez por aparelho, a dica em cima do capitão de que só ele solta o
+     * golpe máximo (o botão não acende no chute dos outros).
+     */
+    private maxCaptainHint(by: number) {
+        const shooter = this.players[by];
+        if (!this.md.agency || this.md.replay || !shooter || shooter.team !== this.mine || shooter.captain) return;
+        const ready = this.maxReady();
+        if (!ready || readCount(MAX_CAP_HINT) !== null) return;
+        writeCount(MAX_CAP_HINT, 1);
+        this.popText(ready.idx, dict().match.agency.maxCaptainOnly, '#ffd447', 22, 3200);
+    }
+
+    /** Seu capitão com a barra pronta (N1+, sem golpe no ar): quem é, o nível e a cor do nível. */
+    private maxReady(): { idx: number; level: number; color: number } | null {
+        const c = maxCharge(this.matchEvents, this.mine as 0 | 1, this.playTick, 5);
+        if (c.level < 1 || c.active) return null;
+        const idx = this.players.findIndex((v) => v.team === this.mine && v.captain);
+        const cap = this.players[idx];
+        if (!cap) return null;
+        const color =
+            c.level >= 3
+                ? hexToNumber(TYPE_COLOR[species(cap.speciesId).types[0]] ?? '#ffcb05')
+                : c.level === 2
+                  ? MAX_N2_COLOR
+                  : 0xffcb05;
+        return { idx, level: c.level, color };
+    }
+
     /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
     private drawAgency(pxOf: { x: number; y: number }[]) {
         const g = this.agencyG;
@@ -751,6 +788,14 @@ export class MatchScene extends Phaser.Scene {
             const px = pxOf[sp.idx];
             if (!px || t < sp.from || t >= sp.to) continue;
             g.lineStyle(3, 0xffcb05, 0.55 + 0.4 * pulse).strokeEllipse(px.x, px.y + 1, 34, 13);
+        }
+        // A1: barra pronta (N1+) = aura no seu capitão, na cor do nível (N3 no tipo dele): só ele solta o golpe
+        const ready = this.md.agency && !this.md.replay ? this.maxReady() : null;
+        const px = ready && pxOf[ready.idx];
+        if (ready && px) {
+            const k = this.md.reduceMotion ? 1 : 0.75 + 0.25 * pulse;
+            g.lineStyle(2 + ready.level, ready.color, 0.8 * k).strokeEllipse(px.x, px.y + 1, 40 + 4 * ready.level, 15);
+            g.fillStyle(ready.color, 0.12 * k).fillEllipse(px.x, px.y - 14, 56, 70);
         }
         g.setDepth(1);
     }
@@ -1459,8 +1504,15 @@ export class MatchScene extends Phaser.Scene {
         // o bullet time começa quando o BOTÃO acende (a mesma conta da tela, `MAX_CUE_EARLY` antes da hora certa): o
         // toque nele arma o golpe antes do chute do capitão. Antes disso, só a câmera lenta chegando (`MAX_CUE_LEAD`)
         if (this.maxCueNow(MAX_CUE_EARLY)) {
-            this.cueSince ??= now;
-            base = Math.min(base, now - this.cueSince < MAX_CUE_HOLD_MS ? MAX_CUE_HOLD : MAX_CUE_SLOW);
+            const t = performance.now();
+            this.cueSince ??= t;
+            // o anel desta hora (nasce no mesmo quadro ou logo depois do botão acender)
+            const ring = maxRing();
+            const hold =
+                !this.md.duel && ring && ring.start >= this.cueSince - 300
+                    ? t < ring.at + MAX_BEAT.goodMs
+                    : t - this.cueSince < MAX_CUE_HOLD_MS;
+            base = Math.min(base, hold ? MAX_CUE_HOLD : MAX_CUE_SLOW);
         } else {
             this.cueSince = null;
             if (this.maxCueNow()) base = Math.min(base, MAX_CUE_SLOW);
@@ -1891,6 +1943,7 @@ export class MatchScene extends Phaser.Scene {
                 break;
             case 'shot':
                 playSfx('shot');
+                this.maxCaptainHint(e.by);
                 // chute: estalo maior, mais poeira e um toque na câmera quando é chute forte
                 this.kickPop(this.ball.x, this.ball.y + 4, 1.45, 6);
                 if (e.xg >= 0.25) this.punch('touch');
@@ -2344,11 +2397,16 @@ export class MatchScene extends Phaser.Scene {
                         (x) => x.type === 'max' && x.team === e.team && x.phase === 'start' && x.tick <= e.tick,
                     );
                 const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
-                if (e.phase === 'start' || (e.phase === 'hit' && !gkSave)) {
-                    playSfx('move');
+                // o som próprio de cada nível sai no golpe (o chute, ou a defesa que saiu); a defesa que só começou
+                // fica na aura, sem som nem texto (E1: não promete o que pode não sair)
+                if (e.phase === 'hit') playMax(MAX_MOVE[e.level ?? 1], MAX_PEAK.move);
+                if (e.phase === 'miss') {
+                    this.popText(e.by, dict().match.agency.maxMissShort, '#a6aed6');
+                    break;
                 }
+                if (e.phase === 'start') this.highlight('max', cap);
                 // no N3 a faixa do especial leva tudo (golpe, efeito do tipo e a nota do toque): sem os textos de cima
-                if (e.phase === 'start' || (e.phase === 'hit' && !gkSave && !n3)) {
+                if (e.phase === 'hit' && !n3) {
                     const a = dict().match.agency;
                     // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
                     const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
@@ -2694,7 +2752,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /** Texto que sobe do jogador; `dy` põe mais alto (um segundo texto no mesmo lance) e entra com um pulo de 250 ms. */
-    private popText(idx: number, text: string, color: string, dy = 0) {
+    private popText(idx: number, text: string, color: string, dy = 0, ms = 1100) {
         const view = this.players[idx];
         if (!view) return;
         const s = Math.min(this.uiScale, 2);
@@ -2722,8 +2780,8 @@ export class MatchScene extends Phaser.Scene {
             targets: t,
             y: t.y - 22,
             alpha: 0,
-            duration: 1100,
-            ease: 'Cubic.easeOut',
+            duration: ms,
+            ease: ms > 1100 ? 'Quart.easeIn' : 'Cubic.easeOut',
             onComplete: () => t.destroy(),
         });
     }
