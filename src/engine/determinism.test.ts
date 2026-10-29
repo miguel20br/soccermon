@@ -16,14 +16,16 @@ const EXPECTED_HASHES = [
     '45ed92f6',
     '650fe49f',
     '3cd48072',
-    '7c29f312',
-    '46aa6dda',
-    '1cb4698d',
-    'acc18bdc',
-    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto; os N3 mudaram no motor 14
-    'a92c92db',
-    '469db5d9',
-    'e73a7000',
+    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 15: defesa máxima vale o lance e a zona do
+    // pivô foi pra 18 m; as partidas sem ordem de golpe máximo acima não mudaram)
+    'de25e2b6',
+    'f9d64578',
+    '5e710dc3',
+    '38fc98e0',
+    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
+    '7dd4045b',
+    '7b1af0ed',
+    '27f55d5f',
     'ca2f6bf9',
 ];
 

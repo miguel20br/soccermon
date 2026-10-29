@@ -3402,7 +3402,8 @@ const maxTag = (max: { level: 1 | 2 | 3; q: MaxGrade }) => ({ level: max.level, 
 
 /**
  * A cada tick com golpe máximo pedido: o goleiro arma a defesa máxima quando o rival com a bola entra na zona; o pedido
- * que passou sem a hora certa some sem gastar nada; a defesa máxima sem chute volta pela metade.
+ * que passou sem a hora certa some sem gastar nada. A defesa máxima vale o lance: a gente recuperou a bola ou ela
+ * parou, desarma sem gastar (a barra volta inteira, `maxCharge`).
  */
 function updateMax(s: MatchState) {
     for (const team of [0, 1] as const) {
@@ -3410,7 +3411,9 @@ function updateMax(s: MatchState) {
         const max = ag.max;
         if (!max) continue;
         const cap = s.players[max.idx];
-        if (!cap.captain || s.tick >= max.until) {
+        const lanceOver =
+            max.live && (s.phase !== 'play' || (s.ball.owner !== null && s.players[s.ball.owner].team === team));
+        if (!cap.captain || s.tick >= max.until || lanceOver) {
             ag.max = null;
             if (max.live) emit(s, { type: 'max', team, by: max.idx, phase: 'miss', ...maxTag(max) });
             continue;
@@ -3423,7 +3426,7 @@ function updateMax(s: MatchState) {
             s.ball.owner !== null ? s.players[s.ball.owner] : shot && !shot.gkChecked ? s.players[shot.by] : null;
         if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) continue;
         max.live = true;
-        max.until = s.tick + AGENCY.maxLevelGk[max.level].ticks;
+        max.until = s.tick + AGENCY.maxGkTicks;
         emit(s, { type: 'max', team, by: cap.idx, phase: 'start', moveId: null, ...maxTag(max) });
         const gkSig = gkSigOf(s, cap, max);
         if (gkSig) emit(s, { type: 'maxFx', by: cap.idx, fx: gkSig, step: 'shot', target: null });

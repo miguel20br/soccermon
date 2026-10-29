@@ -23,15 +23,19 @@ export const AGENCY = {
      * acontece e a barra continua como estava.
      */
     maxArmTicks: 100,
-    /** Defesa máxima sem chute: volta metade do nível que saiu. */
-    maxRefund: 0.5,
+    /**
+     * Defesa máxima (motor 15, Miguel 29/10/2026: 75% delas acabavam em "ninguém chutou" e a barra voltava pela
+     * metade): vale o lance todo e só gasta a barra quando defende. A gente recuperou a bola, a bola parou ou passou
+     * esse tanto sem chute: desarma e a barra volta inteira. O nível dá o alcance (`maxLevelGk`), não a duração.
+     */
+    maxGkTicks: 120,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
     maxBehind: [1, 1.5, 2],
     /**
      * Golpe máximo em 3 níveis (motor 11, docs/planos/golpe-maximo-niveis.md): a barra tem 3 gomos de `maxLevelPts`, o
      * toque gasta a barra toda e o golpe sai no nível dela; depois volta a encher. Índice = nível (o 0 não solta). N2 =
-     * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute. Goleiro: `ticks` de defesa
-     * máxima e alcance (a do N1 ficou em 0,75 s: com 2 s, soltando a cada gomo, a defesa dava +7 pp; Miguel, 23/10/2026).
+     * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute. Goleiro: alcance da defesa
+     * máxima (até o motor 14 o nível dava também a duração: N1 0,75 s, N2 4 s, N3 6 s; agora vale o lance, `maxGkTicks`).
      * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
      * Miguel 26/10/2026): 57% ⇒ 82% de gol; a defesa máxima do goleiro rival continua parando.
      */
@@ -42,7 +46,7 @@ export const AGENCY = {
         { power: 1.55, accuracy: 1.6, rivalReach: 1, save: 1, block: 1 },
         { power: 2.2, accuracy: 3, rivalReach: 0.7, save: 0.15, block: 0.15 },
     ],
-    maxLevelGk: [null, { ticks: 15, reach: 1.1 }, { ticks: 80, reach: 1.25 }, { ticks: 120, reach: 1.4 }],
+    maxLevelGk: [null, { reach: 1.1 }, { reach: 1.25 }, { reach: 1.4 }],
     /**
      * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
      * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no
@@ -137,11 +141,12 @@ export const AGENCY = {
     /**
      * Zona do golpe máximo pela posição do capitão (Miguel, 22/10/2026: com 15 m pra todos o fixo quase nunca tinha a
      * hora certa): até `range` metros do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). O xG de 0,06 só
-     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro é a zona do rival na defesa máxima.
+     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro é a zona do rival na defesa máxima. Pivô 15 ⇒ 18 m
+     * no motor 15: a IA dele chuta de ~16 m e 61% dos chutes ficavam fora da zona (o botão não acendia).
      */
     maxZone: {
         GK: { range: 15, xg: 0.06 },
-        PIVO: { range: 15, xg: 0.06 },
+        PIVO: { range: 18, xg: 0.06 },
         ALA: { range: 18, xg: 0.06 },
         FIXO: { range: 22, xg: 0.05 },
     },
@@ -256,6 +261,24 @@ export function maxCue(
     return inMaxZone(x, y, ownerTeam, pitch, capRole);
 }
 
+/**
+ * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
+ * ataque), não só na hora certa. O toque arma a ordem (`AGENCY.maxArmTicks`), a bola procura o capitão e o golpe sai no
+ * chute dele da zona: o motor é o mesmo de sempre. A câmera lenta continua só na hora certa (`maxCue`).
+ */
+export function maxCallCue(
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
+    team: 0 | 1,
+    capRole: Position,
+    pitch: Pitch,
+    teamSize = 5,
+): boolean {
+    if (capRole === 'GK' || snap.phase !== 'play' || snap.owner < 0) return false;
+    if ((snap.owner < teamSize ? 0 : 1) !== team) return false;
+    const x = snap.p[snap.owner * SNAP_STRIDE];
+    return team === 0 ? x > pitch.length / 2 : x < pitch.length / 2;
+}
+
 /** Lances que enchem a barra do golpe máximo (pontos por lance do time). */
 const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5, goal: 1 } as const;
 
@@ -279,6 +302,8 @@ export function maxCharge(
     teamSize = 5,
 ): MaxCharge {
     let pts = 0;
+    /** A barra de antes da defesa máxima: desarmou sem defender, ela volta inteira. */
+    let held = 0;
     let active = false;
     let behind = 0;
     const per = AGENCY.maxLevelPts;
@@ -291,6 +316,7 @@ export function maxCharge(
             if (e.team !== team) continue;
             if (e.phase === 'start') {
                 active = true;
+                held = pts;
                 pts = 0;
             } else if (e.phase === 'hit') {
                 // o toque gasta a barra toda e ela volta a encher
@@ -298,7 +324,7 @@ export function maxCharge(
                 pts = 0;
             } else {
                 active = false;
-                pts = (e.level ?? 1) * per * AGENCY.maxRefund;
+                pts = held;
             }
             continue;
         }

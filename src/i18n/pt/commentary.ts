@@ -160,7 +160,7 @@ export const commentary = {
     maxStart: '{x} fecha o gol: defesa máxima!',
     maxHit: 'GOLPE MÁXIMO! {x} solta {m} no limite!',
     maxGk: 'DEFESA MÁXIMA! {x} pega e já sai jogando.',
-    maxMiss: 'Ninguém chutou na defesa máxima de {x}: a barra volta pela metade.',
+    maxMiss: 'A defesa máxima de {x} fica pra próxima: a barra volta inteira.',
     /** Técnico rival que reage (beira da quadra): o aviso sai antes de a ordem valer. */
     coach: {
         timeout: '{leader} pediu tempo! A quadra para na próxima bola parada.',

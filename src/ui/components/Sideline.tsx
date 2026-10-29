@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { AGENCY, fxTypeOf, type MaxCharge, maxCharge } from '../../engine/agency';
+import { AGENCY, fxTypeOf, type MaxCharge, maxCallCue, maxCharge } from '../../engine/agency';
+import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -7,7 +8,7 @@ import { MAX_SIGNATURE } from '../../engine/signature-moves';
 import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
+import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt, snapAt } from '../match-view';
 import { beatPhase, maxGradeNow } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { HudIcon, hex } from './MatchHud';
@@ -27,6 +28,7 @@ export interface AgencyView {
     /** Troca do goleiro-linha mandada que ainda não entrou (o valor novo), ou null. */
     flyPending: boolean | null;
     max: MaxCharge;
+    /** Golpe máximo pedido que ainda não saiu: a ordem não entrou ou está armada ("chamando" o capitão). */
     maxPending: boolean;
     /** Hora do golpe máximo no quadro da tela (`maxCueAt`). */
     maxCue: boolean;
@@ -61,21 +63,30 @@ export function agencyView(
         flyOn,
         flyPending: flyWant !== flyOn ? flyWant : null,
         max: maxCharge(events, side, tick, 5),
-        maxPending: mine.some((o) => o.kind === 'max' && o.tick > tick),
+        // armada até sair (qualquer evento `max` do time depois da ordem) ou passar `maxArmTicks`
+        maxPending: mine.some(
+            (o) =>
+                o.kind === 'max' &&
+                tick < o.tick + AGENCY.maxArmTicks &&
+                !past.some((e) => e.type === 'max' && e.team === side && e.tick >= o.tick),
+        ),
         maxCue: cue,
     };
 }
 
 /**
- * É a hora do golpe máximo do time `side` no quadro `tick`: capitão de linha com a bola na zona, ou rival na zona do
- * goleiro capitão. Acende `MAX_CUE_EARLY` antes (o toque um pouco cedo não se perde: a ordem fica armada e o golpe sai
- * no próximo chute ou defesa da zona) e fica `MAX_CUE_LATCH` depois (a quadra entra em câmera lenta antes ainda,
+ * O botão do golpe máximo do time `side` acende no quadro `tick`: em todo ataque com capitão de linha ("chamar o
+ * capitão", `maxCallCue`), ou na hora certa: capitão de linha com a bola na zona, ou rival na zona do goleiro capitão.
+ * A hora certa acende `MAX_CUE_EARLY` antes (o toque um pouco cedo não se perde: a ordem fica armada e o golpe sai no
+ * próximo chute ou defesa da zona) e fica `MAX_CUE_LATCH` depois (a quadra entra em câmera lenta antes ainda,
  * MatchScene `maxCueNow`).
  */
 export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): boolean {
     const cap = captainAt(m, setups, side, tick).idx;
-    if (cap === null) return false;
-    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, roleAt(m, setups, cap, tick));
+    if (cap === null || !m.snapshots.length) return false;
+    const role = roleAt(m, setups, cap, tick);
+    if (maxCallCue(snapAt(m.snapshots, tick), side, role, FUTSAL_5.pitch)) return true;
+    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role);
 }
 
 /** Efeito do N3 do capitão do time `side`: a mesma regra do motor (a assinatura dos 12 ou `maxFxType`). */
@@ -220,11 +231,13 @@ export function SidelineControls({
                     <span>
                         <b>{a.max}</b>
                         <small>
-                            {view.max.active || view.maxPending
+                            {view.max.active
                                 ? a.maxActive
-                                : lit
-                                  ? a.maxReady
-                                  : maxLevelLabel(view.max.level, a.maxLevel)}
+                                : view.maxPending
+                                  ? a.maxCalling
+                                  : lit
+                                    ? a.maxReady
+                                    : maxLevelLabel(view.max.level, a.maxLevel)}
                         </small>
                     </span>
                     <FxBadge view={view} />

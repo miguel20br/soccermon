@@ -158,5 +158,5 @@ export const commentary: typeof pt = {
         max: '{leader} shouts: max move!',
         tactic: '{leader} switches {team} to {tactic}.',
     },
-    maxMiss: "Nobody shot at {x}'s max save: the bar drops back to half.",
+    maxMiss: "{x}'s max save waits for the next one: the bar comes back full.",
 };
