@@ -54,6 +54,8 @@ const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default:
 const IconLab = lazy(() => import('./ui/screens/IconLab').then((m) => ({ default: m.IconLab })));
 const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ default: m.StoryLab })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
+// conceitos do menu de modos (antes da Home), só no dev e nas prévias
+const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
 // a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
 const Ambientes = lazy(() => import('./ui/ambientes/Ambientes').then((m) => ({ default: m.Ambientes })));
 
@@ -94,7 +96,11 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
-        if (__SMOKE__ && (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas' || q === 'kit')) return q;
+        if (
+            __SMOKE__ &&
+            (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas' || q === 'kit' || q === 'menu-modos')
+        )
+            return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [ambientes] = useState(readAmbientes);
@@ -179,7 +185,8 @@ export default function App() {
                 lab === 'sala' ||
                 lab === 'icones' ||
                 lab === 'cenas' ||
-                lab === 'kit' ? (
+                lab === 'kit' ||
+                lab === 'menu-modos' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
                             <MoveLab onExit={exit} />
@@ -195,6 +202,8 @@ export default function App() {
                             <StoryLab onExit={exit} />
                         ) : lab === 'kit' ? (
                             <KitLab onExit={exit} />
+                        ) : lab === 'menu-modos' ? (
+                            <ModeMenuLab onExit={exit} />
                         ) : (
                             <VersusLab onExit={exit} />
                         )}
