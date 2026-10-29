@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { type PublicInfo, publicInfo } from '../league/api';
 import type { Peer } from '../net/duel-state';
+import { type ClubLook, lookOfPeer } from '../store/club-kit';
 import { duelWins } from '../store/duels';
 import { type GameState, useGame } from '../store/game-store';
-import { playedCount } from '../store/profile';
+import { clubColorHex, playedCount } from '../store/profile';
 
 /**
  * Amigos (docs/planos/amigos.md): código de amigo, pedido → aceite, lista, desafiar pro Duelo, remover e bloquear.
@@ -28,7 +29,16 @@ export interface FriendRow {
     room_at: string | null;
     /** Amigo com o jogo aberto nos últimos 150 s (só vem pra amigo aceito). */
     online?: boolean;
+    /** Formato, símbolo, 2ª cor e uniforme, tirados da vitrine dele (20261029120000_escudo_do_amigo.sql). Dado de fora. */
+    escudo?: unknown;
 }
+
+/** O escudo do amigo: o de verdade quando vem `escudo` (lookOfPeer valida cada campo); sem ele, o padrão na cor dele. */
+export const friendLook = (r: Pick<FriendRow, 'club_color' | 'escudo'>): ClubLook =>
+    lookOfPeer({
+        ...(r.escudo && typeof r.escudo === 'object' ? r.escudo : {}),
+        clubColor: clubColorHex(r.club_color),
+    });
 
 export type AskStatus =
     | 'enviado'
