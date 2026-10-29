@@ -2,11 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { DEFAULT_LOOK } from '../store/club-kit';
 import { useGame } from '../store/game-store';
+import { clubColorHex } from '../store/profile';
 import {
     type FriendRow,
     type FriendsServer,
     formatFriendCode,
+    friendLook,
     groupFriends,
     isFriendCode,
     normalizeFriendCode,
@@ -110,5 +113,31 @@ describe('Desafiar', () => {
         useGame.getState().go('home');
         expect(useFriends.getState().challenging).toBeNull();
         expect(useFriends.getState().challengeSent).toBeNull();
+    });
+});
+
+describe('escudo do amigo', () => {
+    it('usa o escudo de verdade que vem da vitrine e valida cada campo (dado de fora)', () => {
+        const base = row('Ana', 'amigo');
+        // sem `escudo` (cliente antigo, ou sem vitrine): o padrão na cor do clube
+        expect(friendLook(base)).toEqual({ ...DEFAULT_LOOK, color: clubColorHex('vermelho') });
+        expect(friendLook({ ...base, escudo: null })).toEqual(friendLook(base));
+        expect(
+            friendLook({
+                ...base,
+                escudo: { color2: 0x3a3f4b, kitPattern: 'meio', crestShape: 'hexagono', crestSymbol: 'lua' },
+            }),
+        ).toEqual({
+            color: clubColorHex('vermelho'),
+            color2: 0x3a3f4b,
+            pattern: 'meio',
+            shape: 'hexagono',
+            symbol: 'lua',
+        });
+        // campo estragado vira o padrão; o escudo não troca a cor do clube
+        expect(
+            friendLook({ ...base, escudo: { color2: 'x', crestShape: '<b>', crestSymbol: 7, clubColor: 0x000000 } }),
+        ).toEqual({ ...DEFAULT_LOOK, color: clubColorHex('vermelho') });
+        expect(friendLook({ ...base, escudo: 'hexagono' })).toEqual(friendLook(base));
     });
 });

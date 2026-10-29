@@ -104,11 +104,26 @@ const DAVI = {
 
 export function startFriendsDemo(params: URLSearchParams) {
     let rows: FriendRow[] = [
-        { ...row('VRDN4GRN', 'Davi', 'Viridian Verde', 'verde', 'amigo', true), room: 'K7M2QX', room_at: ago(2) },
-        row('LVND3RXQ', 'Ana Clara', 'Lavender Assombro', 'roxo', 'amigo', true),
+        // o escudo de cada um vem da vitrine (o Gabriel, sem vitrine, fica com o padrão na cor do clube)
+        {
+            ...row('VRDN4GRN', 'Davi', 'Viridian Verde', 'verde', 'amigo', true),
+            room: 'K7M2QX',
+            room_at: ago(2),
+            escudo: { color2: 0xf2f2f2, crestShape: 'escudo', crestSymbol: 'folha' },
+        },
+        {
+            ...row('LVND3RXQ', 'Ana Clara', 'Lavender Assombro', 'roxo', 'amigo', true),
+            escudo: { color2: 0xf2c230, crestShape: 'hexagono', crestSymbol: 'lua' },
+        },
         row('PWTR7RCK', 'Gabriel', 'Pewter Rochedo', 'grafite', 'amigo'),
-        row('CRLN5BLU', 'Bia', 'Cerulean', 'azul', 'recebido'),
-        row('VRML8YLW', 'Lucas', 'Vermilion Voltagem', 'amarelo', 'enviado'),
+        {
+            ...row('CRLN5BLU', 'Bia', 'Cerulean', 'azul', 'recebido'),
+            escudo: { crestShape: 'redondo', crestSymbol: 'gota' },
+        },
+        {
+            ...row('VRML8YLW', 'Lucas', 'Vermilion Voltagem', 'amarelo', 'enviado'),
+            escudo: { color2: 0x3a3f4b, crestShape: 'diamante', crestSymbol: 'raio' },
+        },
     ];
     // quem saiu da lista (pra bloquear/desbloquear lembrar o nome)
     const old = new Map<string, Card>(rows.map((r) => [r.code, r]));
