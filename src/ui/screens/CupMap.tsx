@@ -35,6 +35,7 @@ import { SponsorSlots } from '../components/SponsorCard';
 import { TypeIcons } from '../components/TypeIcon';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
+import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
 import { useHeld } from '../use-held';
@@ -404,9 +405,8 @@ function NodeSheet({
         [node, seed, faced, shift],
     );
     const trainer = rival ? rivalTrainer(rival.name) : undefined;
-    const avg = rival
-        ? Math.round(rival.lineup.reduce((s, p) => s + viewInstance(p).overall, 0) / (rival.lineup.length || 1))
-        : 0;
+    // a mesma conta da escalação e do VERSUS (nota na vaga): a ficha dizia 55 e a escalação 54
+    const avg = rival ? lineupAverage(rival.lineup, rival.formation) : 0;
     return (
         <div
             className={`cm-sheet bc-surface bc-stripe k-${node.kind}`}
