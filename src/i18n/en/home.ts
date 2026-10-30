@@ -78,7 +78,6 @@ export const home: typeof pt = {
         tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
         skip: 'Tap to skip',
         board: 'LIGHTNING CUP · DAILY CUP · INDIGO ROAD · LIVE DUEL · ',
-        rotaGo: 'Continue · {where}',
         labTitle: "Oak's Lab",
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
         labShort: "Oak's Lab",

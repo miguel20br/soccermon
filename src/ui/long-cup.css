@@ -680,18 +680,105 @@
     animation-delay: 0ms !important;
 }
 
-/* ---------- evento "?" ---------- */
-.cm-event {
+/* ---------- evento "?": a cena no meio (quem fala, grande, e o texto), as escolhas na barra do polegar ---------- */
+.menu-screen.cm-ev {
     display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    padding: 14px 14px 14px 20px;
+    flex-direction: column;
+}
+.cm-event {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 220px;
+    padding: 20px 18px 20px 24px;
     margin-bottom: 12px;
+    text-align: center;
 }
 .cm-event p {
     margin: 0;
-    font-size: 15px;
+    max-width: 34ch;
+    font-size: 17px;
     line-height: 1.4;
+    text-wrap: balance;
+}
+.cm-ev .cm-story-who {
+    width: 128px;
+}
+/* com o "Quem?" aberto a cena encolhe: quem escolhe precisa ver o time */
+.cm-ev.asking .cm-event {
+    flex: none;
+    min-height: 0;
+    flex-direction: row;
+    text-align: left;
+    padding-block: 12px;
+}
+@media (max-width: 380px) {
+    .cm-event {
+        min-height: 160px;
+        padding-block: 14px;
+    }
+    .cm-ev .cm-story-who {
+        width: 96px;
+    }
+    .cm-event p {
+        font-size: 15px;
+    }
+}
+.cm-ev.asking .cm-story-who {
+    width: 56px;
+}
+/* os rostos do carrinho já estão no "Quem?" */
+.cm-ev.asking .cm-event-faces {
+    display: none;
+}
+.cm-who h2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    margin-top: 0;
+}
+.cm-who h2 small {
+    display: block;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--muted);
+}
+.cm-who h3 {
+    margin: 10px 0 6px;
+    font-size: 13px;
+}
+.cm-bar-in {
+    animation: tb-hint-in 220ms var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-bar-in {
+        animation-name: tb-hint-fade;
+    }
+}
+:root[data-reduce-motion="true"] .cm-bar-in {
+    animation-name: tb-hint-fade;
+}
+/* tocar marca (azul), o botão confirma: o mesmo azul do escolhido nas escolhas */
+.target-btn {
+    transition:
+        border-color 200ms var(--ease-out),
+        box-shadow 200ms var(--ease-out),
+        background-color 200ms var(--ease-out),
+        scale var(--dur-solta) var(--ease-pop);
+}
+.target-btn[aria-pressed="true"],
+.target-btn[aria-pressed="true"]:hover {
+    border-color: var(--blue-hi);
+    background: #3a3f5f;
+    box-shadow: var(--pick-ring);
+}
+.cm-train-go {
+    margin-top: 12px;
 }
 .cm-event-cards {
     display: flex;
@@ -704,6 +791,26 @@
 .cm-choices {
     display: grid;
     gap: 8px;
+}
+@media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
+    /* a cena ocupa a altura até a barra (a metade de baixo ficava vazia) */
+    .menu-screen.cm-ev {
+        min-height: calc(100 * var(--vh) - var(--bc-thumb-h) - 48px);
+    }
+    .bc-thumbbar.cm-choices {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bc-thumbbar.cm-choices > * {
+        flex: none;
+    }
+    /* Voltar · Confirmar lado a lado */
+    .cm-ev.asking .bc-thumbbar.cm-choices {
+        flex-direction: row;
+    }
+    .cm-ev.asking .bc-thumbbar.cm-choices > .btn.primary {
+        flex: 1 1 0;
+    }
 }
 .cm-choice.bc-tile {
     justify-content: space-between;
@@ -769,39 +876,6 @@
 .cm-event {
     --tc: var(--ev);
 }
-.cm-event-emblem {
-    flex: none;
-    align-self: center;
-    display: grid;
-    place-items: center;
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    border: 3px solid var(--bc-ink);
-    background: var(--ev);
-    color: #fff;
-    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
-    animation: ev-pop 320ms var(--ease-pop) both;
-}
-.cm-event-emblem .hud-icon {
-    width: 36px;
-    height: 36px;
-}
-@keyframes ev-pop {
-    from {
-        opacity: 0;
-        scale: 0.6;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .cm-event-emblem {
-        animation: none;
-    }
-}
-:root[data-reduce-motion="true"] .cm-event-emblem {
-    animation: none;
-}
-
 /* ---------- fase de grupos no Planalto ---------- */
 .gp-table {
     display: grid;
@@ -939,7 +1013,6 @@
     display: flex;
     flex: none;
     gap: 6px;
-    margin-left: auto;
     animation: cm-rival-in 240ms 120ms var(--ease-out) both;
 }
 .cm-event-faces .cm-face {
@@ -955,30 +1028,6 @@
 :root[data-reduce-motion="true"] .cm-event-faces {
     animation-name: cm-fade-in;
 }
-/* celular: os dois rostos sobem pro canto de cima da caixa (do lado do texto não cabem) */
-@media (max-width: 560px) {
-    .cm-event:has(.cm-event-faces) {
-        position: relative;
-        padding-top: 58px;
-    }
-    .cm-event-faces {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-    }
-    .cm-event-faces .cm-face {
-        width: 40px;
-        height: 40px;
-    }
-}
-/* 320: emblema, treinador e texto lado a lado deixavam o texto com uma palavra por linha; o ícone do evento já está no
-   cabeçalho da tela */
-@media (max-width: 380px) {
-    .cm-event-emblem {
-        display: none;
-    }
-}
-
 /* ---------- desktop: o mapa ocupa a altura da tela e o painel do lado tem o status, a ficha da casa e as falas ---------- */
 @media (min-width: 1000px), (min-width: 700px) and (max-height: 500px) {
     .menu-screen.cm-route {
@@ -1070,16 +1119,17 @@
         width: min(1040px, 100% - 48px);
     }
     .cm-ev .cm-event {
-        gap: 24px;
-        padding: 20px 28px 20px 32px;
+        gap: 16px;
+        padding: 28px 28px 28px 32px;
     }
     .cm-ev .cm-event p {
-        font-size: 18px;
+        font-size: 19px;
     }
     .cm-ev .cm-story-who {
-        width: 144px;
+        width: 160px;
     }
     .cm-ev .cm-choices {
+        width: 100%;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 12px;
     }

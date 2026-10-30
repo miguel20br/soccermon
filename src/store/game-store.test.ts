@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
+import { type Prize, ROTA_RULES } from '../engine/cup-map';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
 import { evolutionTarget, evolveInstance } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
@@ -843,6 +844,75 @@ describe('Copa longa', () => {
             expect(useGame.getState().run!.picks.find((p) => p.uid === 'd1')!.item).toBeTruthy();
         } else useGame.getState().skipReward();
         expect(useGame.getState().run!.status).toBe('group');
+    });
+
+    /** Vence o 1º Jogo com o prêmio `prize` (procura a seed em que o time pronto ganha). */
+    const winFirstJogo = (prize: Prize) => {
+        for (let s = 0; s < 30; s++) {
+            const run = start(`longa-rival-${s}`);
+            const first = run.map!.nodes.find((n) => n.row === 0)!;
+            const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize } : n)) };
+            useGame.setState({ run: { ...run, map } });
+            useGame.getState().enterNode(first.id);
+            const cur = useGame.getState().run!;
+            const team = playerTeam(cur, 15221311);
+            useGame.getState().lockMatch(team);
+            const m = runMatch(FUTSAL_5, team, cur.opponents[0], `${cur.seed}-stage-0`);
+            useGame.getState().recordResult(m);
+            if (m.winner === 0) return { m, rival: cur.opponents[0].name };
+        }
+        throw new Error('nenhuma vitória');
+    };
+
+    it('todo Jogo vencido (regra ligada): 1 de 3 do rival, depois o prêmio da casa', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            const { rival } = winFirstJogo('tm');
+            let now = useGame.getState().run!;
+            expect(now.status).toBe('reward');
+            expect(now.rivalPick).toBe(true);
+            expect(now.rewards).toHaveLength(3);
+            expect(now.rewards.every((r) => r.kind === 'pokemon')).toBe(true);
+            expect(now.rewards.some((r) => r.kind === 'pokemon' && r.from === rival)).toBe(true);
+            // pular o rival não dá sorteio e abre o prêmio (MT) na mesma tela
+            const rerolls = now.rerolls;
+            useGame.getState().skipReward();
+            now = useGame.getState().run!;
+            expect(now.status).toBe('reward');
+            expect(now.rivalPick).toBe(false);
+            expect(now.rerolls).toBe(rerolls);
+            expect(now.rewards.some((r) => r.kind === 'tm')).toBe(true);
+            expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+            useGame.getState().skipReward();
+            expect(useGame.getState().run!.status).toBe('map');
+            expect(useGame.getState().run!.rerolls).toBe(rerolls + 1);
+
+            // ₽ em dobro: o ₽ entra na vitória, o rival vem igual, e depois volta pro mapa
+            const { m } = winFirstJogo('money');
+            now = useGame.getState().run!;
+            expect(now.results[0].bonus?.prize).toBeGreaterThan(0);
+            expect(now.status).toBe('reward');
+            expect(now.rewards.every((r) => r.kind === 'pokemon')).toBe(true);
+            const w = now.rewards.findIndex((r) => r.kind === 'pokemon');
+            const leaving = now.bench.find((u) => u !== now.captainUid)!;
+            useGame.getState().claimReward(w, leaving);
+            expect(useGame.getState().run!.status).toBe('map');
+            expect(m.winner).toBe(0);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('regra desligada: ₽ em dobro volta direto pro mapa (sem recompensa)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = false;
+        try {
+            winFirstJogo('money');
+            expect(useGame.getState().run!.status).toBe('map');
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
     });
 });
 

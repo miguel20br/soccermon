@@ -205,3 +205,103 @@ Ordem que eu seguiria: 1 e 2 juntos (mexem no mapa e na recompensa), depois 4 e 
 8. **Pedras evolutivas** (redesenho 3): mexe na regra da evolução. Recomendo sim, mas só depois das etapas 4 a 7, e
    com você jogando umas Rotas na prévia.
 9. **O robô de caminhos** (`scripts/balance/rota-caminhos.sim.test.ts`) vira a régua de cada etapa? Recomendo sim.
+
+## O que entrou (30/10/2026, branch `rota-redesenho`)
+
+O Miguel disse "sim em tudo" pras 9 decisões. Entraram a 1 a 7; a 8 ficou de fora (abaixo).
+
+1. **Textos:** amarelo curto, "DERROTA" no vermelho, "0/8 insígnias", "MT rara", a fala da Misty, e o Continuar da
+   Rota com a região na linha de baixo (não quebra "Mt. Moon"). A 320, a dica do titular fora sobe pra cima do Jogar.
+2. **Tela do evento:** a cena no meio, as escolhas na barra do polegar.
+3. **Tocar marca, botão confirma** no Treino e no "Quem?" do evento (a barra vira Voltar · Confirmar).
+4. **Ramos com tipo:** 3 ramos por mapa (de `BRANCHES` em `cup-map.ts`), um por coluna; rival, Baú, Mercado e item de
+   tipo puxam eles. **Prêmio à vista:** todo Jogo mostra o prêmio no mapa (Pokémon do rival, MT, item de tipo ou ₽ em
+   dobro), cada um diferente na mesma linha.
+5. **Ginásio elite:** rival +2 (era +1 com teto), desde a 2ª partida, e o prêmio é a carta do líder (Onix, Starmie,
+   Raichu, Vileplume, Weezing, Alakazam, Arcanine, Rhydon, Gengar), a MT dele e um item. O Onix é prata (70), os outros
+   ouro. A insígnia já saía da vitória no ginásio.
+6. **Escassez:** no máximo 1 Mercado por caminho e nunca Mercado e Treino no mesmo caminho (a casa que sobra vira
+   Evento). A linha do Baú vira Baú ou Centro Pokémon (tira o amarelo ou traz de volta quem está fora). O Ginásio
+   nessa linha ficou de fora: mudaria o número de partidas por caminho (hoje são sempre 8).
+7. **Eventos:** saíram Olheiro, Pokémon perdido, Treino puxado e Creche; a trombada é só entre titulares. Entraram
+   Fósseis do Mt. Moon (na linha antes do Mt. Moon), Pássaro lendário (Zapdos, na linha de Cerulean), Assalto da Equipe
+   Rocket, Aposta do Blue, Juiz da Liga (só com amarelo) e Ovo da Creche. Save com evento cortado aberto sorteia outro.
+
+**Fora:** a 8 (pedras evolutivas) mexe no motor: quem evolui e quando é decidido dentro da partida (`match.ts`). Pela
+regra do projeto, pede `ENGINE_VERSION` novo e decisão do Miguel. Também ficaram de fora o "?" puxando o tipo de evento
+que não saiu e as propostas 8 e 9 de "Feio e incoerente" (rostos no Patrocinador, status no celular).
+
+### O robô, antes e depois (decisões 4 a 7 juntas)
+
+150 Rotas por política, mesmas seeds, mesmo robô (ele aprendeu os eventos novos e a olhar o prêmio: `ouro` vai no ₽ em
+dobro, `pokemon` no Pokémon do rival). Erro do título: ±3 pp. Antes = `964cddf4`; depois = esta branch.
+
+| Política | Título antes | Título depois | Chega ao grupo antes → depois | Time no grupo antes → depois | Pokémon novos antes → depois | ₽ ganho antes → depois |
+|---|---|---|---|---|---|---|
+| Sempre à esquerda | 15,3% | 16,0% | 43% → 50% | 83,7 → 82,9 | 1,95 → 1,15 | 24 → 25 |
+| Sempre à direita | 15,3% | 14,0% | 45% → 50% | 83,5 → 82,5 | 1,99 → 1,35 | 25 → 26 |
+| Atrás de ₽ | 14,0% | 16,0% | 39% → 49% | 83,1 → 81,9 | 1,49 → 1,11 | 22 → 30 |
+| Atrás de Pokémon | 11,3% | 13,3% | 39% → 47% | 83,8 → 83,2 | 1,88 → 1,50 | 23 → 23 |
+| Sempre Ginásio | 17,3% | 12,0% | 39% → 47% | 83,7 → 82,9 | 1,83 → 1,22 | 23 → 24 |
+| Aleatório | 14,7% | 11,3% | 43% → 46% | 83,4 → 82,4 | 1,98 → 1,13 | 25 → 24 |
+| Só as vitórias | 10,0% | 6,7% | 33% → 38% | 82,8 → 82,7 | 1,05 → 0,50 | 20 → 22 |
+| Nada (recusa tudo) | 9,3% | 10,7% | 30% → 36% | 82,3 → 82,0 | 0,13 → 0 | 20 → 22 |
+
+O que os números dizem:
+- **No geral não ficou mais difícil:** título médio das 6 políticas que jogam 14,7% → 13,8% (dentro do erro), e mais
+  gente chega ao grupo (o Centro Pokémon tira o amarelo).
+- **A meta não foi batida.** O time no grupo entre as políticas varia 1,3 ponto (era 0,7; a meta era ~3), e jogar contra
+  recusar tudo dá ~0,6 ponto de time e ~3 pp de título (era 1,3 ponto e ~5 pp).
+- **Por quê:** a escassez cortou o que entra no time (Pokémon novos 1,9 → 1,1 a 1,5: menos Mercado e Baú), e a
+  evolução continua dando uns 19 dos 20 pontos que o time cresce. O robô não usa MT, então o prêmio MT e a MT do líder
+  valem zero pra ele. O ₽ em dobro aparece (o `ouro` sobe de 22 pra 30), mas o `ouro` não compra.
+- **Sempre Ginásio** caiu de 17,3% pra 12,0%: o +2 virou aposta de verdade (o robô não sabe recusar).
+
+Alavancas, se o Miguel quiser (não mexi): a escassez mais leve (Mercado limitado só a 1 por caminho, sem cortar o
+Treino), o Pokémon do rival como prêmio de todo Jogo com outro prêmio junto, e a decisão 8 (pedras), que é a única
+que mexe no que mais pesa (a evolução), mas pede motor novo.
+
+### Alavancas medidas (30/10): escassez mais leve (a) e o Pokémon do rival em todo Jogo (b)
+
+O Miguel aprovou testar duas alavancas. As duas ficam em `ROTA_RULES` (`src/engine/cup-map.ts`), que o robô liga e
+desliga (`MAX_SHOPS`, `SHOP_TREINO`, `SPARE`, `RIVAL`); não mexem no motor de partida.
+
+- **(a) Escassez mais leve:** até 2 Mercados por caminho, e Mercado e Treino podem cair no mesmo caminho. Em N=50 testei
+  também "2 Mercados, Treino separado" (quase igual a hoje) e "a casa que a escassez tira vira Baú" (mais Pokémon, mas
+  o caminho pesa menos ainda). Fica a de 2 Mercados com Treino: no mapa, 69% dos caminhos têm Mercado (hoje 43%).
+- **(b) Pokémon do rival em todo Jogo:** vitória num Jogo abre primeiro o 1 de 3 do time rival e depois o prêmio da casa
+  (MT ou item; o ₽ em dobro entra na vitória). O prêmio "Pokémon do rival" sai do mapa, que sorteia MT, item ou ₽ em
+  dobro. Pular o rival não dá sorteio (o prêmio ainda vem); pular o prêmio dá, como sempre.
+
+150 Rotas por política, mesmas seeds. Antes = esta branch antes das alavancas (a tabela de cima, coluna "depois").
+
+| Política | Título antes / (a) / (b) / (a+b) | Chega ao grupo | Time no grupo | Pokémon novos | ₽ ganho |
+|---|---|---|---|---|---|
+| Sempre à esquerda | 16,0 / 16,0 / 16,0 / 18,0% | 50 / 50 / 50 / 52% | 82,9 / 83,1 / 83,4 / 83,3 | 1,15 / 1,26 / 1,74 / 1,90 | 25 / 26 / 26 / 28 |
+| Sempre à direita | 14,0 / 12,7 / 15,3 / 16,7% | 50 / 47 / 55 / 51% | 82,5 / 82,4 / 83,3 / 83,3 | 1,35 / 1,24 / 2,17 / 2,15 | 26 / 27 / 29 / 30 |
+| Atrás de ₽ | 16,0 / 16,7 / 10,0 / 14,7% | 49 / 47 / 39 / 43% | 81,9 / 82,2 / 82,8 / 82,8 | 1,11 / 1,01 / 1,67 / 1,75 | 30 / 31 / 26 / 29 |
+| Atrás de Pokémon | 13,3 / 15,3 / 16,0 / 16,7% | 47 / 43 / 45 / 40% | 83,2 / 83,2 / 83,9 / 84,0 | 1,50 / 1,59 / 1,80 / 1,91 | 23 / 24 / 25 / 24 |
+| Sempre Ginásio | 12,0 / 15,3 / 14,0 / 15,3% | 47 / 46 / 50 / 49% | 82,9 / 82,3 / 83,4 / 84,0 | 1,22 / 1,23 / 1,84 / 1,89 | 24 / 24 / 25 / 26 |
+| Aleatório | 11,3 / 14,0 / 6,7 / 13,3% | 46 / 43 / 43 / 44% | 82,4 / 82,6 / 83,0 / 83,4 | 1,13 / 1,15 / 1,67 / 1,87 | 24 / 25 / 23 / 26 |
+| Só as vitórias | 6,7 / 6,7 / 7,3 / 7,3% | 38 / 38 / 37 / 37% | 82,7 / 82,7 / 83,5 / 83,5 | 0,50 / 0,50 / 1,09 / 1,09 | 22 / 23 / 22 / 23 |
+| Nada (recusa tudo) | 10,7 / 10,7 / 10,7 / 10,7% | 36% | 82,0 | 0 | 22 / 23 / 22 / 23 |
+
+| Métrica (6 políticas que jogam) | Antes | (a) | (b) | (a+b) | Meta |
+|---|---|---|---|---|---|
+| Título médio | 13,8% | 15,0% | 13,0% | 15,8% | até ~18% |
+| Variação do time entre políticas | 1,3 | 1,0 | 1,1 | 1,3 | ~3 |
+| Jogar − recusar tudo (time) | 0,6 | 0,6 | 1,3 | 1,5 | quanto maior melhor |
+| Jogar − recusar tudo (título) | 3,1 pp | 4,3 pp | 2,3 pp | 5,1 pp | quanto maior melhor |
+
+O que os números dizem (erro do título ±3 pp):
+- **(a+b) é a que chega mais perto:** jogar contra recusar tudo vai de 0,6 pra 1,5 ponto de time e de 3,1 pra 5,1 pp de
+  título (a meta antiga de ~5 pp), com o título médio em 15,8% (dentro do teto de 18%). Pokémon novos voltam a 1,8–2,2
+  por Rota (eram 1,9 antes da escassez).
+- **A variação entre políticas não sai de ~1,3.** As duas alavancas dão mais pra todo caminho: o rival vem em todo Jogo
+  de todo caminho, e o Mercado a mais esbarra no ₽ (o robô ganha ~25 ₽ por Rota e compra pouco). Um Pokémon novo melhora
+  uma vaga em uns 2 a 4 pontos, ou seja, ~0,5 na média do time; pra abrir 3 pontos entre caminhos, um caminho teria que
+  dar uns 6 Pokémon a mais que outro. O que mais pesa continua sendo a evolução, igual em todo caminho.
+- **(b) sozinha** sobe o time de todo mundo (+0,5 a +1) mas o título não acompanha; **(a) sozinha** quase não muda o time
+  (o robô não tem ₽ pra usar o Mercado a mais).
+- Pra variação chegar a ~3, a alavanca que falta é a que mexe na evolução por caminho: a decisão 8 (pedras como prêmio de
+  região), com o motor 17.
