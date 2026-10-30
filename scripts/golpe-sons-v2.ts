@@ -697,7 +697,7 @@ const EXTRAS: Record<Extra, { som: () => Stereo; alvo: number; max: number }> = 
     },
     especial: {
         alvo: -11,
-        max: 0.85,
+        max: 0.9,
         som: () => {
             // o clarão: sinos agudos juntos e o brilho; depois o vento subindo até o chute (sem bumbo: o N3 traz o dele)
             const b = new Bus();
