@@ -65,7 +65,6 @@ export const liga: typeof pt = {
         },
     },
     league: {
-        tag: 'League',
         title: 'Ranked League',
         line: "You face another trainer's saved team, coached by the AI. No need to be online together. Elo rated.",
         needCloud: 'The League needs the game server: play at soccermon.com.',

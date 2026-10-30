@@ -130,9 +130,7 @@ export function Liga() {
         void refresh();
     };
 
-    const head = (
-        <MenuHead title={t('liga.league.title')} tag={t('liga.league.tag')} hud="crown" onBack={() => go('home')} />
-    );
+    const head = <MenuHead title={t('liga.league.title')} hud="crown" onBack={() => go('home')} />;
     if (!leagueOnline() || !user)
         return (
             <div className="menu-screen lg">

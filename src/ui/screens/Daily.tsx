@@ -206,7 +206,7 @@ export function Daily() {
 
     return (
         <div className="menu-screen lg">
-            <MenuHead title={t('liga.daily.tag')} tag={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
+            <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
             <Coach id="dia" targets={['.lg-hero .lg-line', '.lg-start .btn']} when={!entry} />
 
             <section className="panel lg-hero bc-surface bc-stripe">
