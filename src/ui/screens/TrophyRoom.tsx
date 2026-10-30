@@ -407,7 +407,7 @@ export function TrophyRoom() {
         <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
             <MenuHead
                 title={t('trophies.title')}
-                icon="liga"
+                hud="cup"
                 onBack={() => (backTarget('trophies') === 'home' ? playDoor(() => go('home')) : go('profile'))}
             />
 

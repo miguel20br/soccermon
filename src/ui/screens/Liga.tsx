@@ -131,7 +131,7 @@ export function Liga() {
     };
 
     const head = (
-        <MenuHead title={t('liga.league.title')} tag={t('liga.league.tag')} icon="liga" onBack={() => go('home')} />
+        <MenuHead title={t('liga.league.title')} tag={t('liga.league.tag')} hud="crown" onBack={() => go('home')} />
     );
     if (!leagueOnline() || !user)
         return (
