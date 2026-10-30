@@ -3,7 +3,7 @@
 - [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
-- [Retomar (estado 26/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.22 no ar (kit B), próximo 0.9.23 Vestiário do revamp-ui, lembretes, redes e pendências
+- [Retomar (estado 29/10)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.26 Escudos no ar; trailer 0.9.25 esperando legenda; séries só animadas
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
 - [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
 - [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
@@ -14,3 +14,6 @@
 - [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)
 - [QA dos ambientes e conceitos](feedback-qa-ambientes-e-conceitos.md) — antes do pode subir: tocar nos Pokémon dos 5 ambientes, olhar sobreposição 390/1440; mostrar conceitos que já existem na pasta
 - [Postar pelo Buffer](reference-postar-pelo-buffer.md) — API do Buffer nas 3 redes, ids, repo soccermon-midia, canal YT é a conta de marca miguel20br
+- [Sem Hacker News](feedback-sem-hacker-news.md) — Show HN cancelado em 28/10; não sugerir HN de novo
+- [Música animada é o padrão](feedback-musica-animada-ditto.md) — livre-ditto (EP 3) aprovada como novo padrão: funk animado, motivo do protagonista, BOING de assinatura
+- [Menu de modos](project-menu-de-modos.md) — 29/10: menu antes do Estádio, UT fim de nov/2026, Natal em dez, Modo História 2027; nomes Copa · Treinador · História

@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.26 · Escudos (29/10/2026)
+
+No ar: 0.9.26 "Escudos" (escudo de verdade do clube dos amigos; 0.9.25 "Amigos": perfil de qualquer treinador, pedir amizade e desafiar). Partida nova padrão (`?lab=hud-off` volta a antiga). Motor 14 (`liga` 14). Liga fechada até `LIGA_OPENS_AT`.
+
 ## 0.9.24 · Beira da quadra (28/10/2026)
 
 No ar: 0.9.24 "Beira da quadra": a partida nova é a padrão (`?lab=hud-off` volta a antiga), eventos `match_skip`, `duel_join` e `duel_match_end` (migração em produção), logo de volta na tela inicial. Motor 14 (`liga` 14).
