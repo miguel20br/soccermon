@@ -1,0 +1,294 @@
+/* Conceitos B e C do menu de modos (?lab=menu-modos); o A é o menu de verdade (mode-menu.css). */
+/* ========================================================================== B: carrossel de pôsteres */
+.mm-b-track {
+    --pw: min(calc(74 * var(--vw)), 360px);
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    margin: 0 -16px;
+    padding: 10px calc((100% - var(--pw)) / 2 + 16px) 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+.mm-b-track::-webkit-scrollbar {
+    display: none;
+}
+.mm-poster {
+    flex: none;
+    width: var(--pw);
+    min-height: 460px;
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transform: scale(0.9);
+    filter: brightness(0.6) saturate(0.8);
+    transition:
+        transform var(--dur-tela) var(--ease-out),
+        filter var(--dur-tela) var(--ease-out);
+}
+.mm-poster.on {
+    transform: none;
+    filter: none;
+}
+.mm-poster-txt {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px 14px;
+}
+.mm-poster .cb-num {
+    font-size: 28px;
+}
+.mm-b-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.mm-b-dots button {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 2px solid var(--cb-ink);
+    border-radius: 2px;
+    background: var(--line);
+    transition:
+        width var(--dur-ui) var(--ease-out),
+        background var(--dur-ui) var(--ease-out);
+}
+.mm-b-dots button.on {
+    width: 26px;
+    background: var(--yellow);
+}
+.mm-b-cta {
+    display: grid;
+    width: min(100%, 420px);
+    margin: 0 auto;
+}
+.mm-swap {
+    grid-area: 1 / 1;
+    display: grid;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    pointer-events: none;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-ui) var(--ease-out);
+}
+.mm-swap.on {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+.mm-b-soon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 64px;
+    border: 3px dashed var(--line);
+    border-radius: 10px;
+    background: #1b2147;
+    color: var(--yellow);
+    font:
+        700 15px / 1 "Galmuri11",
+        monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.mm-b-soon .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+@media (min-width: 900px) {
+    .mm-b-track {
+        --pw: 380px;
+    }
+    .mm-poster {
+        min-height: 560px;
+    }
+    .mm-poster .cb-num {
+        font-size: 34px;
+    }
+}
+
+/* ========================================================================== C: fatias na diagonal */
+.mm-c-stack {
+    --cut: 26px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+}
+.mm-slice {
+    flex: 1 1 0;
+    min-height: 0;
+    margin-top: calc(-1 * var(--cut) + 6px);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    clip-path: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    transition: flex-grow var(--dur-tela) var(--ease-out);
+}
+.mm-slice:first-child {
+    margin-top: 0;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+}
+.mm-slice:last-child {
+    clip-path: polygon(0 var(--cut), 100% 0, 100% 100%, 0 100%);
+}
+.mm-slice.on {
+    flex-grow: 3.2;
+}
+.mm-slice .mm-sc {
+    filter: brightness(0.55) saturate(0.85);
+    transition: filter var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .mm-sc {
+    filter: none;
+}
+.mm-slice-txt {
+    position: absolute;
+    z-index: 4;
+    left: 14px;
+    right: 14px;
+    bottom: calc(var(--cut) + 8px);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.mm-slice:last-child .mm-slice-txt {
+    bottom: 12px;
+}
+.mm-slice .cb-num {
+    font-size: 22px;
+    transition: font-size var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .cb-num {
+    font-size: 30px;
+}
+.mm-slice-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+        grid-template-rows var(--dur-tela) var(--ease-out),
+        opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice-more > * {
+    overflow: hidden;
+}
+.mm-slice.on .mm-slice-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+.mm-slice.on .mm-slice-txt::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -40px -200px -12px -40px;
+    background: linear-gradient(180deg, transparent, rgb(11 15 36 / 80%) 45%);
+}
+.mm-tag {
+    align-self: flex-start;
+    padding: 3px 7px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    font:
+        700 10px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+}
+/* palco acima do texto na fatia aberta; nas fechadas, o desenho vai pra direita e o nome fica à esquerda */
+.mm-slice.on {
+    --sb: 124px;
+    --sw: min(100cqw, calc((85cqh - 124px) * 1.6));
+}
+.mm-slice:not(.on) {
+    --sw: min(58cqw, 170cqh);
+}
+.mm-slice:not(.on) .mm-stage {
+    left: auto;
+    right: 0;
+    translate: none;
+}
+.mm-slice:not(.on) .mm-slice-txt {
+    right: 45%;
+}
+.mm-slice .mm-badges {
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice:not(.on) .mm-badges {
+    opacity: 0;
+}
+.mm-c-cta {
+    width: min(100%, 460px);
+    margin: 0 auto;
+}
+@media (min-width: 900px) {
+    .mm-c-stack {
+        --cut: 70px;
+        flex-direction: row;
+        min-height: 600px;
+    }
+    .mm-slice,
+    .mm-slice:first-child,
+    .mm-slice:last-child {
+        margin: 0 0 0 calc(-1 * var(--cut) + 8px);
+        clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+    }
+    .mm-slice:first-child {
+        margin-left: 0;
+        clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+    }
+    .mm-slice:last-child {
+        clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .mm-slice.on {
+        flex-grow: 2.4;
+    }
+    .mm-slice-txt,
+    .mm-slice:last-child .mm-slice-txt {
+        left: calc(var(--cut) * 0.3 + 14px);
+        right: calc(var(--cut) + 14px);
+        bottom: 18px;
+    }
+    .mm-slice:first-child .mm-slice-txt {
+        left: 18px;
+    }
+    .mm-slice,
+    .mm-slice:not(.on) {
+        --sb: 90px;
+        --sw: min(150cqw, 110cqh);
+    }
+    .mm-slice.on {
+        --sb: 140px;
+        --sw: min(100cqw, 130cqh);
+    }
+    .mm-slice:not(.on) .mm-stage {
+        left: 50%;
+        right: auto;
+        translate: -50% 0;
+    }
+    .mm-slice:not(.on) .mm-slice-txt {
+        right: calc(var(--cut) + 14px);
+    }
+    .mm-slice.on .cb-num {
+        font-size: 44px;
+    }
+}
+
+/* ---------- seletor do laboratório ---------- */
+.mm-switch {
+    position: fixed;
+    z-index: 20;
+    right: 12px;
+    bottom: 12px;
+}

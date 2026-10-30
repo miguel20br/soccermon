@@ -2,7 +2,7 @@
 export const home = {
     soon: [
         { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
-        { title: 'Ultimate Team', text: 'Abra pacotes e monte o time da temporada' },
+        { title: 'Modo Treinador', text: 'Abra pacotes e monte o time da temporada' },
         { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],
@@ -112,5 +112,34 @@ export const home = {
         sedeKit: 'Escudo e uniforme',
         /** A estrela do nível na barra de cima. */
         resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
+    },
+    /**
+     * Menu de modos (antes da Home, pra quem já jogou): nomes fechados em 29/10/2026 (Copa, Treinador, História).
+     * `when` é a placa do modo trancado; `topics`, os itens do cartão.
+     */
+    modes: {
+        aria: 'Modos de jogo',
+        /** Botão de voltar da Home pro menu de modos. */
+        back: 'Modos de jogo',
+        last: 'ÚLTIMO JOGADO',
+        play: 'JOGAR',
+        atual: { name: 'Modo Copa', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
+        ultimate: {
+            name: 'Modo Treinador',
+            when: 'Chega fim de novembro',
+            tag: 'Abra pacotes e monte o time da temporada',
+            topics: ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'],
+        },
+        historia: {
+            name: 'Modo História',
+            when: 'Chega em 2027',
+            tag: 'Os 8 ginásios, com o Blue de rival',
+            topics: ['Os 8 ginásios', 'Insígnias de Kanto', 'Blue de rival'],
+        },
+        /** A provocação do Blue na cena do Modo História. */
+        rival: 'Até mais, perdedor!',
+        /** Contagem do cartão do Ultimate (até `ULTIMATE_AT`, ModeMenu.tsx). */
+        countdown: 'Falta {n} dia|Faltam {n} dias',
+        gym: 'GINÁSIO',
     },
 };
