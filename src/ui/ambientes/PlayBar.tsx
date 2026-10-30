@@ -34,96 +34,34 @@ export function playModes(s: { inProgress: boolean; challenge: string | null; fi
 export const chosenMode = (plan: { main: ModeId; sheet: ModeId[] }, chosen: ModeId | null): ModeId =>
     chosen && plan.sheet.includes(chosen) ? chosen : plan.main;
 
-/** As setas da pílula: o modo vizinho na lista, dando a volta nas pontas. */
-export function stepMode(sheet: readonly ModeId[], cur: ModeId, dir: 1 | -1): ModeId {
-    const i = sheet.indexOf(cur);
-    if (i < 0) return sheet[0] ?? cur;
-    return sheet[(i + dir + sheet.length) % sheet.length];
-}
-
 /**
- * O rodapé do Estádio (padrão Clash): a pílula do modo escolhido (setas dos lados, toque no meio abre a lista de modos)
- * em cima do JOGAR dourado. Escolher na lista só troca o modo (a lista fecha e a pílula quica); quem joga é o JOGAR.
+ * O rodapé do Estádio: cada modo com o seu lugar (pedido do Miguel, 30/10: o seletor de pílula com setas e lista era
+ * burocrático), uma fileira de placas com ícone e nome em cima do JOGAR dourado. Tocar numa placa só escolhe o modo
+ * (ela sobe e acende); quem joga é o JOGAR, que diz o modo escolhido embaixo.
  */
-export function PlayBar({
-    main,
-    sheet,
-    open,
-    onOpen,
-    onPick,
-}: {
-    main: Mode;
-    sheet: Mode[];
-    open: boolean;
-    onOpen: (open: boolean) => void;
-    onPick: (id: ModeId) => void;
-}) {
+export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; onPick: (id: ModeId) => void }) {
     const { t } = useT();
-    const ids = sheet.map((m) => m.id);
-    const pick = (id: ModeId) => {
-        onOpen(false);
-        onPick(id);
-    };
-    const pill = sheet.length > 0;
+    const rail = sheet.length > 0;
     return (
-        <div className={`es-go${pill ? ' has-modes' : ''}`}>
-            {pill && (
-                <div id="es-modes" className={`es-modes${open ? ' open' : ''}`} inert={!open}>
+        <div className={`es-go${rail ? ' has-modes' : ''}`}>
+            {rail && (
+                <div className="es-rail" role="radiogroup" aria-label={t('home.amb.modesAria')}>
                     {sheet.map((m) => (
                         <button
                             key={m.id}
                             type="button"
-                            className={`es-mode m-${m.id}${m.id === main.id ? ' on' : ''}`}
-                            aria-current={m.id === main.id}
+                            role="radio"
+                            aria-checked={m.id === main.id}
+                            className={`es-tile m-${m.id}${m.id === main.id ? ' on' : ''}`}
                             disabled={m.busy}
-                            onClick={() => pick(m.id)}
+                            onClick={() => onPick(m.id)}
                         >
                             <span className="es-mode-ic">
                                 <HudIcon kind={m.icon} />
                             </span>
                             <b>{m.title}</b>
-                            <small>{m.sub}</small>
-                            <HudIcon kind="next" className="es-mode-go" />
                         </button>
                     ))}
-                </div>
-            )}
-            {pill && (
-                <div className="es-pick">
-                    <button
-                        type="button"
-                        className="es-arrow cb cb-blue"
-                        aria-label={t('home.amb.modePrev')}
-                        onClick={() => pick(stepMode(ids, main.id, -1))}
-                    >
-                        <HudIcon kind="prev" />
-                    </button>
-                    <button
-                        // a key troca com o modo: a pílula nova entra com o quique
-                        key={main.id}
-                        type="button"
-                        className={`es-pill m-${main.id}${open ? ' open' : ''}`}
-                        aria-expanded={open}
-                        aria-controls="es-modes"
-                        onClick={() => onOpen(!open)}
-                    >
-                        <span className="es-mode-ic">
-                            <HudIcon kind={main.icon} />
-                        </span>
-                        <span className="es-pill-txt">
-                            <b>{main.title}</b>
-                            <small>{main.sub}</small>
-                        </span>
-                        <HudIcon kind="up" className="es-pill-caret" />
-                    </button>
-                    <button
-                        type="button"
-                        className="es-arrow cb cb-blue"
-                        aria-label={t('home.amb.modeNext')}
-                        onClick={() => pick(stepMode(ids, main.id, 1))}
-                    >
-                        <HudIcon kind="next" />
-                    </button>
                 </div>
             )}
             <button
@@ -131,17 +69,11 @@ export function PlayBar({
                 data-coach="quick"
                 className="btn cb cb-gold es-play"
                 disabled={main.busy}
-                onClick={() => {
-                    onOpen(false);
-                    main.go();
-                }}
+                onClick={main.go}
             >
                 <i className="cb-shine" aria-hidden />
                 <b className="es-play-verb">{main.verb ?? t('home.play')}</b>
-                {/* com a pílula, o modo fica nela (e aqui só pro leitor de tela); sem ela, embaixo do JOGAR */}
-                <small className={pill ? 'sr-only' : 'es-play-sub'}>
-                    {pill ? `${main.title} · ${main.sub}` : main.sub}
-                </small>
+                <small className="es-play-sub">{rail ? `${main.title} · ${main.sub}` : main.sub}</small>
             </button>
         </div>
     );

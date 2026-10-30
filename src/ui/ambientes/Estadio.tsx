@@ -352,7 +352,6 @@ export function Estadio({
     const [challenge] = useState(seedFromUrl);
     /** Começar outra copa apaga a atual: com uma em andamento, pede confirmação antes. */
     const [confirm, setConfirm] = useState<{ seed?: string; mode?: CupMode }>();
-    const [open, setOpen] = useState(false);
     // o modo escolhido na pílula (vale enquanto a Home está aberta; voltar de outra tela volta pro padrão)
     const [chosen, setChosen] = useState<ModeId | null>(null);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
@@ -409,21 +408,6 @@ export function Estadio({
     const cur = chosenMode(plan, chosen);
     // sem pílula (1ª visita), o JOGAR diz o modo embaixo: "Jogar · Copa Relâmpago · 4 jogos"
     const main = !plan.sheet.length && cur === 'quick' ? { ...mode('quick'), sub: t('home.playTag') } : mode(cur);
-    // o seletor fecha ao sair da aba, com Esc ou com um toque fora dele
-    useEffect(() => {
-        if (!open || !active) {
-            setOpen(false);
-            return;
-        }
-        const out = (e: PointerEvent) => !(e.target as Element).closest?.('.es-go') && setOpen(false);
-        const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-        document.addEventListener('pointerdown', out);
-        document.addEventListener('keydown', esc);
-        return () => {
-            document.removeEventListener('pointerdown', out);
-            document.removeEventListener('keydown', esc);
-        };
-    }, [open, active]);
     const look = useLook(active);
     const vars = clubVars(club);
 
@@ -464,7 +448,7 @@ export function Estadio({
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
                     <ParkedRuns />
-                    <PlayBar main={main} sheet={plan.sheet.map(mode)} open={open} onOpen={setOpen} onPick={setChosen} />
+                    <PlayBar main={main} sheet={plan.sheet.map(mode)} onPick={setChosen} />
                     {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva) */}
                     {cur === 'daily' && !daily.played && (
                         <button type="button" className="es-rank" onClick={() => go('daily')}>

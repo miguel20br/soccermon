@@ -100,6 +100,7 @@ export const home = {
         /** As setas da pílula de modo do Estádio. */
         modePrev: 'Modo anterior',
         modeNext: 'Próximo modo',
+        modesAria: 'Modos de jogo',
         arenaGo: 'Desafiar',
         arenaLine: 'Duelo ao vivo com um amigo',
         neonWeek: 'da semana',

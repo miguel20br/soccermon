@@ -1,7 +1,7 @@
 import type { MaxGrade } from '../engine/state';
 import { t } from '../i18n';
 import { useGame } from '../store/game-store';
-import { reduceMotionOn } from './settings-sync';
+import { reduceMotionOn } from './reduce-motion';
 import { uiZoom } from './ui-zoom';
 
 /**

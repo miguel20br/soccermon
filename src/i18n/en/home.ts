@@ -94,6 +94,7 @@ export const home: typeof pt = {
         /** The arrows on the Stadium mode pill. */
         modePrev: 'Previous mode',
         modeNext: 'Next mode',
+        modesAria: 'Game modes',
         /** The goals always in view at the Stadium (Clash's "chests"). */
         /** The top bar: titles won and the Pokédex. */
         resLevel: 'Trainer level {n} ({x} of {y} missions to the next)',
