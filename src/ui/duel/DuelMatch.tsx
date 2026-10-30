@@ -714,6 +714,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                         name: nameOf(uid),
                                         sprite: inst ? cardSprite(inst) : '',
                                         gk: slots[i] === 'GK',
+                                        shot: inst ? viewInstance(inst).attributes.shooting : undefined,
                                     };
                                 })}
                                 onKeep={() => setPensOpen(false)}
