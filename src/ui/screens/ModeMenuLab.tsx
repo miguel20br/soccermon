@@ -2,12 +2,13 @@ import { type CSSProperties, useLayoutEffect, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { ClockCtx } from '../ambientes/clock';
 import { HudIcon } from '../components/MatchHud';
-import { Chips, Head, LAST, ModeGrid, type ModeId, Play, Scene, useMenuScene, useMode, When } from './ModeMenu';
+import { Chips, Head, LAST, type ModeId, ModeSlices, Play, Scene, useMenuScene, useMode, When } from './ModeMenu';
 import './mode-menu-lab.css';
 
 /*
- * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias), &v=a|b|c. O A virou o menu de verdade
- * (ModeMenu.tsx); B e C ficam aqui de reserva, com as mesmas cenas e textos.
+ * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias), &v=b|c. O C (fatias, estilo Smash) virou o
+ * menu de verdade (ModeMenu.tsx); o B fica aqui de reserva, com as mesmas cenas e textos. O A (herói + dois cartões)
+ * saiu em 30/10/2026.
  */
 
 /** Nome do modo pra quem não é componente (os pontos do carrossel). */
@@ -103,57 +104,18 @@ function ConceptB({ big }: { big: boolean }) {
     );
 }
 
-/* ---------------------------------------------------------------- C: fatias na diagonal (Smash) */
-const ORDER_C: ModeId[] = ['atual', 'ultimate', 'historia'];
-function ConceptC({ big }: { big: boolean }) {
-    const [sel, setSel] = useState<ModeId>(LAST);
-    const names = useNames();
-    const { t } = useT();
-    return (
-        <div className="mm-c">
-            <Head />
-            <div className="mm-c-stack">
-                {ORDER_C.map((m, n) => (
-                    <button
-                        type="button"
-                        key={m}
-                        className={`mm-slice mm-s-${m}${sel === m ? ' on' : ''}`}
-                        style={{ '--n': n } as CSSProperties}
-                        onClick={() => setSel(m)}
-                        aria-pressed={sel === m}
-                    >
-                        <Scene id={m} scale={big ? 3 : 2} />
-                        <span className="mm-slice-txt">
-                            {m === LAST && <span className="mm-tag">{t('home.modes.last')}</span>}
-                            <When id={m} />
-                            <Name id={m} />
-                            <span className="mm-slice-more">
-                                <Chips id={m} />
-                            </span>
-                        </span>
-                    </button>
-                ))}
-            </div>
-            {/* o polegar sempre joga o último modo; tocar numa fatia só abre a prévia dela */}
-            <div className="mm-c-cta">
-                <Play sub={sel === 'atual' ? undefined : `${names.atual} · ${t('home.modes.last').toLowerCase()}`} />
-            </div>
-        </div>
-    );
-}
-
 export function ModeMenuLab({ onExit }: { onExit: () => void }) {
     const params = new URLSearchParams(window.location.search);
     const fixed = params.get('v');
-    const [v, setV] = useState(fixed === 'b' || fixed === 'c' ? fixed : 'a');
+    const [v, setV] = useState(fixed === 'b' ? 'b' : 'c');
     const { clock, big } = useMenuScene();
     return (
         <ClockCtx.Provider value={clock}>
             <div className={`mm-root mm-lab mm-v-${v}`}>
-                {v === 'a' ? <ModeGrid big={big} /> : v === 'b' ? <ConceptB big={big} /> : <ConceptC big={big} />}
+                {v === 'b' ? <ConceptB big={big} /> : <ModeSlices big={big} />}
                 {!fixed && (
                     <div className="mm-switch bc-seg">
-                        {(['a', 'b', 'c'] as const).map((k) => (
+                        {(['b', 'c'] as const).map((k) => (
                             <button type="button" key={k} className={v === k ? 'active' : ''} onClick={() => setV(k)}>
                                 {k.toUpperCase()}
                             </button>

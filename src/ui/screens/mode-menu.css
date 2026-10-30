@@ -392,9 +392,10 @@ button.mm-card,
 .mm-pack {
     position: absolute;
     left: 60%;
-    /* pelo cartão (cqh), não pelo palco: no cartão pequeno o pacote e a carta ficam grandes */
+    /* pela fatia (cq), não pelo palco: na fatia fechada o pacote e a carta ficam grandes; nunca mais alto que o espaço
+       acima do texto (--sb) com a carta subindo (um terço a mais), nem mais largo que a fatia */
     bottom: 6cqh;
-    height: 64cqh;
+    height: min(64cqh, calc((94cqh - var(--sb, 0px) - 8px) * 0.75), 110cqw);
     aspect-ratio: 63 / 88;
     translate: -50% 0;
     container-type: inline-size;
@@ -696,56 +697,157 @@ button.mm-card,
     }
 }
 
-/* ========================================================================== A: herói + dois menores */
-.mm-a-grid {
+/* ========================================================================== fatias na diagonal (estilo Smash) */
+/* celular em pé: as três empilhadas e inclinadas, a aberta (o Modo Copa, de início) maior. Fechada com 140 px no mínimo
+   (cena, nome e data), aberta com 320 px; na tela baixa a lista rola e o JOGAR fica preso embaixo */
+.mm-c-stack {
+    --cut: 22px;
     flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: minmax(420px, 1fr) auto;
-    gap: 12px;
-}
-.mm-hero,
-.mm-poster {
     display: flex;
     flex-direction: column;
 }
-/* o único que joga: moldura dourada por fora (os trancados ficam apagados) */
-.mm-hero {
-    grid-column: 1 / -1;
-    box-shadow:
-        inset 0 0 0 3px var(--frame-in),
-        0 0 0 3px var(--yellow),
-        0 7px 0 3px var(--cb-ink);
+.mm-slice {
+    flex: 1 1 0;
+    min-height: 140px;
+    margin-top: calc(-1 * var(--cut) + 6px);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    clip-path: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    transition:
+        flex-grow var(--dur-tela) var(--ease-out),
+        min-height var(--dur-tela) var(--ease-out);
 }
-/* o desenho em cima, o texto embaixo num painel (nada de texto por cima do Pokémon) */
-:is(.mm-hero, .mm-poster) .mm-sc {
-    position: relative;
-    inset: auto;
-    flex: 1;
-    min-height: 0;
-    border-bottom: 3px solid var(--cb-ink);
+.mm-slice:first-child {
+    margin-top: 0;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
 }
-.mm-hero-txt {
-    position: relative;
+.mm-slice:last-child {
+    clip-path: polygon(0 var(--cut), 100% 0, 100% 100%, 0 100%);
+}
+.mm-slice.on {
+    flex-grow: 3.2;
+    min-height: 320px;
+}
+/* fechada: a cena apagada; aberta (ou com o mouse em cima), acesa */
+.mm-slice .mm-sc {
+    filter: brightness(0.55) saturate(0.85);
+    transition: filter var(--dur-tela) var(--ease-out);
+}
+.mm-slice:is(.on, :hover, :focus-visible) .mm-sc {
+    filter: none;
+}
+.mm-slice-txt {
+    position: absolute;
     z-index: 4;
+    left: 14px;
+    right: 14px;
+    bottom: calc(var(--cut) + 8px);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 10px 14px 14px;
-    background: linear-gradient(180deg, rgb(255 255 255 / 5%), transparent 40%), var(--panel);
+    gap: 6px;
 }
-.mm-hero-name {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.mm-slice:last-child .mm-slice-txt {
+    bottom: 12px;
 }
-.mm-hero h2 {
-    margin: 0;
-    font-size: 35px;
+.mm-slice .cb-num {
+    font-size: 21px;
+    transition: font-size var(--dur-tela) var(--ease-out);
 }
-@media (max-height: 700px), (max-width: 359px) {
-    .mm-hero h2 {
-        font-size: 28px;
+.mm-slice.on .cb-num {
+    font-size: 28px;
+}
+/* os itens do modo só na fatia aberta */
+.mm-slice-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+        grid-template-rows var(--dur-tela) var(--ease-out),
+        opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice-more > * {
+    overflow: hidden;
+}
+.mm-slice.on .mm-slice-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+/* sombra embaixo do texto: o nome se lê por cima de qualquer cena */
+.mm-slice-txt::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -40px -200px -40px -40px;
+    background: linear-gradient(180deg, transparent, rgb(11 15 36 / 80%) 45%);
+}
+.mm-tag {
+    align-self: flex-start;
+    padding: 3px 7px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    font:
+        700 10px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+}
+/* tocar num trancado: a placa da data acende */
+.mm-slice .mm-when {
+    transition:
+        background-color var(--dur-ui) var(--ease-out),
+        color var(--dur-ui) var(--ease-out);
+}
+.mm-slice.on .mm-when {
+    background: var(--yellow);
+    color: var(--cb-ink);
+    animation: mm-when-pop 320ms var(--ease-pop);
+}
+@keyframes mm-when-pop {
+    40% {
+        transform: scale(1.12);
+    }
+}
+/* palco acima do texto na fatia aberta; nas fechadas, o desenho vai pra direita e o nome fica à esquerda */
+.mm-slice.on {
+    --sb: 124px;
+    --sw: min(100cqw, calc((85cqh - 124px) * 1.6));
+}
+.mm-slice:not(.on) {
+    --sw: min(58cqw, 170cqh);
+}
+.mm-slice:not(.on) .mm-stage {
+    left: auto;
+    right: 0;
+    translate: none;
+}
+.mm-slice:not(.on) .mm-slice-txt {
+    right: 45%;
+}
+.mm-slice .mm-badges {
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice:not(.on) .mm-badges {
+    opacity: 0;
+}
+/* o JOGAR fica no polegar: preso embaixo quando a tela é baixa e as fatias rolam */
+.mm-c-cta {
+    position: sticky;
+    z-index: 6;
+    bottom: 12px;
+    width: min(100%, 460px);
+    margin: 0 auto;
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
+}
+/* celular baixo (320 x 640): um pouco menores, pras três caberem com o JOGAR sem rolar */
+@media (max-height: 700px) {
+    .mm-slice {
+        min-height: 124px;
+    }
+    .mm-slice.on {
+        min-height: 262px;
     }
 }
 /* 320: os quatro itens numa linha só */
@@ -761,213 +863,81 @@ button.mm-card,
     .mm-chips .hud-icon {
         display: none;
     }
-    /* "MODO TREINADOR" no cartão de 320 (mais forte que o .mm-small .cb-num de baixo) */
-    .mm-card.mm-small .cb-num {
-        font-size: 17.5px;
+    /* o ginásio fica pequeno: o Bulbasaur em 1x (pixel inteiro) e o Blue menor, senão cobrem a placa */
+    .mm-sc-his .mm-pt {
+        scale: 0.5;
+    }
+    .mm-blue img {
+        left: -28px;
+        width: 56px;
+        height: 56px;
+    }
+    .mm-say {
+        bottom: 58px;
+        font-size: 10px;
     }
 }
-.mm-small {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-}
-.mm-small .mm-sc {
-    position: relative;
-    inset: auto;
-    flex: 1 0 150px;
-    border-bottom: 3px solid var(--cb-ink);
-    /* trancado: a cena apagada, acende no toque ou com o mouse em cima */
-    filter: saturate(0.5) brightness(0.72);
-    transition: filter var(--dur-ui) var(--ease-out);
-}
-.mm-small:is(:hover, :focus-visible, .wiggle) .mm-sc {
-    filter: none;
-}
-.mm-small-txt {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 9px 10px 11px;
-}
-.mm-small .cb-num {
-    font-size: 21px;
-}
-.mm-tagline {
-    color: var(--muted);
-    font:
-        12px / 1.3 "Galmuri11",
-        monospace;
-}
-/* a placa da data vira fita no canto da cena (uma linha só, mesmo no cartão de 320) */
-.mm-small > .mm-when {
-    position: absolute;
-    z-index: 4;
-    top: 10px;
-    left: -3px;
-    padding: 4px 8px 4px 9px;
-    border: 3px solid var(--cb-ink);
-    border-left: 0;
-    border-radius: 0 6px 6px 0;
-    background: #141a3d;
-    box-shadow: var(--lift-1);
-    font-size: 10px;
-    letter-spacing: 0.04em;
-    transition:
-        background-color var(--dur-ui) var(--ease-out),
-        color var(--dur-ui) var(--ease-out);
-}
-.mm-small > .mm-when .hud-icon {
-    width: 12px;
-    height: 12px;
-}
-.mm-small .mm-say {
-    font-size: 10px;
-    bottom: 66px;
-    right: -20px;
-    transform-origin: calc(100% - 20px) 100%;
-}
-.mm-small .mm-say::after {
-    right: 14px;
-}
-.mm-small .mm-blue img {
-    width: 64px;
-    height: 64px;
-    left: -32px;
-}
-.mm-small .mm-sign {
-    font-size: 8px;
-    padding: 1px 3px;
-}
-/* toque num modo trancado: o cartão balança (sem reiniciar a entrada mm-in) e a placa da data acende */
-.mm-card.wiggle {
-    animation:
-        mm-in var(--dur-pop) var(--ease-pop) both,
-        mm-wiggle 280ms var(--ease-out);
-    animation-delay: calc(var(--n, 0) * 70ms), 0ms;
-}
-.mm-small.wiggle .mm-when {
-    background: var(--yellow);
-    color: var(--cb-ink);
-    animation: mm-when-pop 320ms var(--ease-pop);
-}
-@keyframes mm-when-pop {
-    40% {
-        transform: scale(1.12);
+/* PC e celular deitado: as fatias lado a lado, cortadas na diagonal (o Smash) */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
+    .mm-c-stack {
+        --cut: 70px;
+        flex-direction: row;
     }
-}
-@keyframes mm-wiggle {
-    25% {
-        transform: rotate(-2deg);
+    .mm-slice,
+    .mm-slice.on,
+    .mm-slice:first-child,
+    .mm-slice:last-child {
+        min-height: 0;
+        margin: 0 0 0 calc(-1 * var(--cut) + 8px);
+        clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
     }
-    50% {
-        transform: rotate(2deg);
+    .mm-slice:first-child {
+        margin-left: 0;
+        clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
     }
-    75% {
-        transform: rotate(-1deg);
+    .mm-slice:last-child {
+        clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .mm-slice.on {
+        flex-grow: 2.4;
+    }
+    .mm-slice-txt,
+    .mm-slice:last-child .mm-slice-txt,
+    .mm-slice:not(.on) .mm-slice-txt {
+        left: calc(var(--cut) * 0.3 + 14px);
+        right: calc(var(--cut) + 14px);
+        bottom: 18px;
+    }
+    .mm-slice:first-child .mm-slice-txt {
+        left: 18px;
+    }
+    .mm-slice,
+    .mm-slice:not(.on) {
+        --sb: 90px;
+        --sw: min(150cqw, 110cqh);
+    }
+    .mm-slice.on {
+        --sb: 140px;
+        --sw: min(100cqw, 130cqh);
+    }
+    .mm-slice:not(.on) .mm-stage {
+        left: 50%;
+        right: auto;
+        translate: -50% 0;
     }
 }
 @media (min-width: 900px) {
-    .mm-a-grid {
-        grid-template-columns: 2fr 1fr;
-        grid-template-rows: 1fr 1fr;
-        gap: 16px;
+    .mm-c-stack {
+        min-height: 560px;
     }
-    .mm-hero {
-        grid-column: 1;
-        grid-row: 1 / -1;
-    }
-    .mm-hero h2 {
-        font-size: 56px;
-    }
-    /* deitado no PC: nome e itens à esquerda, o JOGAR à direita (nada de painel vazio) */
-    .mm-hero-txt {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 16px 20px 18px;
-    }
-    .mm-hero .mm-play {
-        width: auto;
-        min-width: 300px;
-        min-height: 76px;
-        flex: none;
-    }
-    .mm-hero .mm-play b {
-        font-size: 42px;
-    }
-    .mm-small .mm-sc {
-        height: auto;
-        flex: 1;
-        min-height: 180px;
-    }
-    .mm-small .cb-num {
+    .mm-slice .cb-num {
         font-size: 28px;
     }
-    .mm-small-txt {
-        padding: 12px 14px 14px;
-    }
-    .mm-tagline {
-        font-size: 13px;
-    }
-    .mm-small > .mm-when {
-        top: 14px;
-        font-size: 11px;
-    }
-    .mm-small .mm-say {
-        font-size: 12px;
-        bottom: 84px;
-        right: -26px;
-    }
-    .mm-small .mm-blue img {
-        width: 80px;
-        height: 80px;
-        left: -40px;
-    }
-    .mm-small .mm-sign {
-        font-size: 10px;
-        padding: 2px 5px;
+    .mm-slice.on .cb-num {
+        font-size: 42px;
     }
 }
-
-/* cartão pequeno no celular: pacote maior; o ginásio mais estreito, o Bulbasaur menor ao lado do caminho e o
-   balão do Blue em duas linhas por cima do sol, fora do telhado */
-@container (max-width: 240px) {
-    .mm-small .mm-pack {
-        height: 76cqh;
-        bottom: 3cqh;
-    }
-    .mm-small .mm-gym {
-        width: 52%;
-    }
-    .mm-small .mm-path {
-        left: 21%;
-    }
-    .mm-bulba {
-        left: 44%;
-        scale: 0.75;
-    }
-    .mm-small .mm-say {
-        max-width: 72px;
-        right: -10px;
-        white-space: normal;
-        text-align: center;
-    }
-}
-
-/* cena estreita (cartão no celular de 320 e deitado): Pokémon pela metade (o 2x vira 1x, pixel inteiro), senão o
-   Bulbasaur cobre a placa do ginásio; o balão do Blue quebra a linha em vez de sair do cartão */
-@container (max-width: 160px) {
-    .mm-pt {
-        scale: 0.5;
-    }
-    .mm-small .mm-say {
-        max-width: 70cqw;
-        white-space: normal;
-    }
-}
-
-/* celular deitado: o herói à esquerda e os dois trancados empilhados à direita, tudo numa tela (o JOGAR sem rolar) */
+/* celular deitado: tudo numa tela, o JOGAR sem rolar */
 @media (orientation: landscape) and (max-height: 560px) {
     .mm-root > div:first-child {
         gap: 8px;
@@ -979,70 +949,24 @@ button.mm-card,
     .mm-logo {
         width: 130px;
     }
-    .mm-a-grid {
-        grid-template-columns: 3fr 2fr;
-        grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 10px;
+    .mm-c-stack {
+        --cut: 36px;
     }
-    .mm-hero {
-        grid-column: 1;
-        grid-row: 1 / -1;
+    /* fatia baixa (uns 250 px): o palco desce pra cena caber inteira acima do nome */
+    .mm-slice,
+    .mm-slice:not(.on) {
+        --sb: 70px;
+        --sw: min(150cqw, calc((96cqh - 70px) * 1.6));
     }
-    .mm-hero-txt {
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
-        padding: 8px 12px 10px;
+    .mm-slice.on {
+        --sb: 60px;
+        --sw: min(100cqw, calc((96cqh - 60px) * 1.6));
     }
-    .mm-hero-name {
-        flex: 1;
-        min-width: 0;
-        gap: 4px;
-    }
-    .mm-hero h2 {
-        font-size: 28px;
-    }
-    .mm-hero .mm-chips {
-        display: none;
-    }
-    .mm-hero .mm-play {
-        width: auto;
-        min-width: 150px;
+    .mm-play {
         min-height: 50px;
     }
     .mm-play b {
         font-size: 22px;
-    }
-    .mm-small {
-        flex-direction: row;
-    }
-    .mm-small .mm-sc {
-        flex: none;
-        height: auto;
-        width: 46%;
-        border-bottom: 0;
-        border-right: 3px solid var(--cb-ink);
-    }
-    .mm-small-txt {
-        flex: 1;
-        min-width: 0;
-        justify-content: center;
-        gap: 4px;
-        padding: 26px 8px 8px;
-    }
-    .mm-small > .mm-when {
-        top: 6px;
-        left: auto;
-        right: 6px;
-        border: 2px solid var(--cb-ink);
-        border-radius: 4px;
-        padding: 3px 6px;
-    }
-    .mm-small .cb-num {
-        font-size: 15px;
-    }
-    .mm-tagline {
-        font-size: 11px;
     }
 }
 
@@ -1058,7 +982,7 @@ button.mm-card,
         opacity: 0;
     }
 }
-/* JOGAR: o corte pro Estádio. A quadra do herói cresce até encher a tela (--cut-*, ModeMenu.tsx) e o menu some por
+/* JOGAR: o corte pro Estádio. A quadra do Modo Copa cresce até encher a tela (--cut-*, ModeMenu.tsx) e o menu some por
    cima do Estádio, que já está embaixo e tem a mesma torcida, o LED e a quadra */
 .mm-menu.mm-out {
     overflow: hidden;
@@ -1094,7 +1018,7 @@ button.mm-card,
 :root[data-reduce-motion="true"] .mm-root :is(.mm-card, .mm-poster, .mm-slice, .mm-top) {
     animation: mm-fade var(--dur-tela) var(--ease-out) both;
 }
-:root[data-reduce-motion="true"] .mm-small .mm-sc {
+:root[data-reduce-motion="true"] .mm-slice .mm-sc {
     transition: none;
 }
 /* celular em pé: logo, treinador (maior desde 30/10) e 2 botões dividem a linha; logo e vãos menores pro nome caber */

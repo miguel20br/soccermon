@@ -26,13 +26,12 @@ import './mode-menu.css';
 
 /*
  * Menu de modos: a tela que vem ANTES da Home dos ambientes pra quem já jogou (regra em `modeMenuDue`, store/coach.ts).
- * É o conceito A do ?lab=menu-modos (herói + dois cartões, estilo FIFA); o laboratório usa as mesmas cenas nos
- * conceitos B e C. Nomes e textos em `home.modes` (src/i18n): ainda não estão fechados.
+ * É o conceito C do ?lab=menu-modos (fatias na diagonal, estilo Smash, escolhido em 30/10/2026); o laboratório guarda
+ * o B com as mesmas cenas. Nomes e textos em `home.modes` (src/i18n).
  */
 
 export type ModeId = 'atual' | 'ultimate' | 'historia';
 export const LAST: ModeId = 'atual';
-const LOCKED = ['ultimate', 'historia'] as const;
 
 /** Estreia do Ultimate: a contagem do cartão ("faltam N dias") sai só daqui. */
 export const ULTIMATE_AT = new Date('2026-11-27T00:00:00-03:00');
@@ -52,7 +51,7 @@ const at = (x: number, y: number): CSSProperties => ({ left: `${x}%`, top: `${y}
  * a mesma cena serve no cartão pequeno, no pôster alto e na fatia larga sem esticar nada.
  */
 
-/** Quem toca a bola no herói: o seu Pokémon do avatar (shiny, se for) puxa o triângulo de passes, com Charmander e Squirtle. */
+/** Quem toca a bola no Modo Copa: o seu Pokémon do avatar (shiny, se for) puxa o triângulo de passes, com Charmander e Squirtle. */
 export function passers(avatar: Avatar): Mon[] {
     const lead = avatarMon(avatar);
     return [lead, ...[4, 7, 1].filter((id) => id !== lead.id).map((id) => ({ id }))].slice(0, 3);
@@ -267,71 +266,49 @@ export function Head() {
     );
 }
 
-/** Toque num modo trancado: o cartão balança e a placa da data acende (some sozinha); não navega. */
-function useWiggle() {
-    const [w, setW] = useState<ModeId | null>(null);
-    const timer = useRef(0);
-    const raf = useRef(0);
-    useEffect(
-        () => () => {
-            window.clearTimeout(timer.current);
-            cancelAnimationFrame(raf.current);
-        },
-        [],
-    );
-    return [
-        w,
-        (id: ModeId) => {
-            setW(null);
-            window.clearTimeout(timer.current);
-            cancelAnimationFrame(raf.current);
-            raf.current = requestAnimationFrame(() => setW(id));
-            timer.current = window.setTimeout(() => setW(null), 1600);
-        },
-    ] as const;
-}
+/** A ordem das fatias: o Modo Copa (o que joga) primeiro, os trancados depois. */
+const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
 
-function LockedCard({ id, n, wiggle, on }: { id: ModeId; n: number; wiggle: (id: ModeId) => void; on: boolean }) {
-    const m = useMode(id);
+/**
+ * Fatias na diagonal, estilo Smash (conceito C do ?lab=menu-modos): no PC lado a lado, no celular em pé empilhadas e
+ * inclinadas, cada uma alta o bastante pra cena, o nome e a data. Tocar abre a fatia (cresce, acende, mostra os
+ * itens); o JOGAR embaixo joga sempre o Modo Copa.
+ */
+export function ModeSlices({ big, onPlay }: { big: boolean; onPlay?: () => void }) {
+    const { t, d } = useT();
+    const [sel, setSel] = useState<ModeId>(LAST);
     return (
-        <button
-            type="button"
-            className={`mm-card mm-small mm-${id}${on ? ' wiggle' : ''}`}
-            style={{ '--n': n } as CSSProperties}
-            onClick={() => wiggle(id)}
-        >
-            <Scene id={id} scale={2} />
-            <When id={id} />
-            <span className="mm-small-txt">
-                <b className="cb-num">{m.name}</b>
-                {'tag' in m && <span className="mm-tagline">{m.tag}</span>}
-            </span>
-        </button>
-    );
-}
-
-/** Conceito A: o modo atual no herói (o Estádio, ÚLTIMO JOGADO e o JOGAR) e os dois trancados embaixo ou ao lado. */
-export function ModeGrid({ big, onPlay }: { big: boolean; onPlay?: () => void }) {
-    const { t } = useT();
-    const [wig, wiggle] = useWiggle();
-    return (
-        <div className="mm-a">
+        <div className="mm-c">
             <Head />
-            <div className="mm-a-grid">
-                <article className="mm-card mm-hero" style={{ '--n': 1 } as CSSProperties}>
-                    <SceneAtual scale={big ? 3 : 2} />
-                    <span className="mm-ribbon">{t('home.modes.last')}</span>
-                    <div className="mm-hero-txt">
-                        <div className="mm-hero-name">
-                            <h2 className="cb-num">{useMode(LAST).name}</h2>
-                            <Chips id={LAST} />
-                        </div>
-                        <Play onClick={onPlay} />
-                    </div>
-                </article>
-                {LOCKED.map((id, n) => (
-                    <LockedCard key={id} id={id} n={n + 2} wiggle={wiggle} on={wig === id} />
+            <div className="mm-c-stack">
+                {ORDER.map((m, n) => (
+                    <button
+                        type="button"
+                        key={m}
+                        className={`mm-slice mm-s-${m}${sel === m ? ' on' : ''}`}
+                        style={{ '--n': n + 1 } as CSSProperties}
+                        onClick={() => setSel(m)}
+                        aria-pressed={sel === m}
+                    >
+                        <Scene id={m} scale={big ? 3 : 2} />
+                        <span className="mm-slice-txt">
+                            {m === LAST && <span className="mm-tag">{t('home.modes.last')}</span>}
+                            <When id={m} />
+                            <b className="cb-num">{d.home.modes[m].name}</b>
+                            <span className="mm-slice-more">
+                                <Chips id={m} />
+                            </span>
+                        </span>
+                    </button>
                 ))}
+            </div>
+            <div className="mm-c-cta" style={{ '--n': 4 } as CSSProperties}>
+                <Play
+                    sub={
+                        sel === LAST ? undefined : `${d.home.modes[LAST].name} · ${t('home.modes.last').toLowerCase()}`
+                    }
+                    onClick={onPlay}
+                />
             </div>
         </div>
     );
@@ -345,7 +322,7 @@ export function useMenuScene() {
 }
 
 /**
- * Corte pro Estádio: a conta da câmera que leva a quadra do herói a encher a tela (escala e deslocamento, origem no
+ * Corte pro Estádio: a conta da câmera que leva a quadra do Modo Copa a encher a tela (escala e deslocamento, origem no
  * canto do conteúdo). Tudo em px da tela; quem escreve no estilo divide o deslocamento pelo `uiZoom()`.
  */
 type Box = Pick<DOMRect, 'left' | 'top' | 'width' | 'height'>;
@@ -362,7 +339,7 @@ export function cutTo(scene: Box, view: Box, origin: Box) {
 
 /**
  * O menu de verdade (App.tsx): `phase` 'in' entra com fade por cima da Home; 'out' (JOGAR) é o corte: a quadra do
- * herói cresce até encher a tela e some no Estádio, que já está embaixo; 'on' parado.
+ * fatia do Modo Copa cresce até encher a tela e some no Estádio, que já está embaixo; 'on' parado.
  */
 export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay: () => void }) {
     const { t } = useT();
@@ -376,7 +353,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     const play = () => {
         const r = root.current;
         const inner = r?.firstElementChild;
-        const scene = r?.querySelector('.mm-hero .mm-sc');
+        const scene = r?.querySelector('.mm-s-atual .mm-sc');
         if (r && inner && scene) {
             const z = uiZoom();
             const c = cutTo(scene.getBoundingClientRect(), r.getBoundingClientRect(), inner.getBoundingClientRect());
@@ -389,7 +366,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     return (
         <ClockCtx.Provider value={clock}>
             <section ref={root} className={`mm-root mm-menu mm-${phase}`} aria-label={t('home.modes.aria')}>
-                <ModeGrid big={big} onPlay={play} />
+                <ModeSlices big={big} onPlay={play} />
             </section>
         </ClockCtx.Provider>
     );
