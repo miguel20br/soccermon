@@ -11,10 +11,32 @@ export const GAME_H = W * PPM + MARGIN * 2;
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
 /**
- * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
- * court-themes.ts). Um Graphics só, desenhado uma vez.
+ * Quadra da partida: o Graphics (~26 mil comandos) vira textura uma vez e entra como imagem; desenhado direto, o
+ * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem o dobro da resolução pros
+ * zooms dos lances (até 1.6) continuarem nítidos.
  */
 export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+    const g = courtGraphics(scene, theme).setScale(COURT_RES);
+    const key = 'court-baked';
+    if (scene.textures.exists(key)) scene.textures.remove(key);
+    scene.textures
+        .addDynamicTexture(key, GAME_W * COURT_RES, GAME_H * COURT_RES)
+        ?.draw(g)
+        .render();
+    g.destroy();
+    return scene.add
+        .image(0, 0, key)
+        .setOrigin(0)
+        .setScale(1 / COURT_RES)
+        .setDepth(-1000);
+}
+const COURT_RES = 2;
+
+/**
+ * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
+ * court-themes.ts). Um Graphics só (o lab de quadras tira foto dele; a partida usa `drawCourt`).
+ */
+export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
     const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
@@ -59,7 +81,6 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         }
         g.lineStyle(3, 0xffffff, 1).strokeRect(top.x, top.y, PPM, GW * PPM);
     }
-    g.setDepth(-1000);
     return g;
 }
 
