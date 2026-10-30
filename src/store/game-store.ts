@@ -13,6 +13,7 @@ import {
     longOpponent,
     matchIndexOfRow,
     nextNodes,
+    ROTA_RULES,
 } from '../engine/cup-map';
 import {
     BENCH_SIZE,
@@ -599,18 +600,19 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
     // prêmio da casa: o do Jogo (à vista no mapa) ou o do Ginásio; desafio de evento vale a recompensa de sempre com o
     // garantido dele. No grupo `at` ainda é o Treino: recompensa de sempre.
     const fight = run.fight;
-    const prize =
-        run.group || fight || !node
-            ? undefined
-            : node.kind === 'ginasio' && node.types
-              ? ('gym' as const)
-              : node.kind === 'jogo' && node.prize !== 'money'
-                ? node.prize
-                : undefined;
+    const prize = run.rivalPick
+        ? ('pokemon' as const)
+        : run.group || fight || !node
+          ? undefined
+          : node.kind === 'ginasio' && node.types
+            ? ('gym' as const)
+            : node.kind === 'jogo' && node.prize !== 'money'
+              ? node.prize
+              : undefined;
     const opp = run.opponents[run.stage];
     const long = isLong(run)
         ? {
-              key: training ? `${run.at}-treino` : (run.at ?? `m${run.stage}`),
+              key: training ? `${run.at}-treino` : run.rivalPick ? `${run.at}-rival` : (run.at ?? `m${run.stage}`),
               round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
               prize,
               types: run.group ? undefined : node?.types,
@@ -1126,8 +1128,14 @@ export const useGame = create<GameStore>()(
             };
             /** Saindo da recompensa: Mercado (com o ₽ da vitória) ou direto pra escalação da próxima fase. */
             const afterReward = (run: RunState): Partial<GameStore> => {
-                const done = { ...run, rewards: [] };
-                if (isLong(run)) return { ...backToRoute(done), match: null };
+                const done = { ...run, rewards: [], rivalPick: false };
+                if (isLong(run)) {
+                    // depois do 1 de 3 do rival, o prêmio da casa (MT ou item; o ₽ em dobro já entrou na vitória)
+                    const prize = run.rivalPick ? currentNode(run)?.prize : undefined;
+                    if (prize === 'tm' || prize === 'item')
+                        return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
+                    return { ...backToRoute(done), match: null };
+                }
                 const res = run.results.find((r) => r.stage === run.stage);
                 if (!hasShop(run) || !res) return { run: toLineup(done), match: null, screen: 'lineup' };
                 const sponsors = run.sponsors ?? [];
@@ -1528,6 +1536,14 @@ export const useGame = create<GameStore>()(
                     // Rota: prêmio "₽ em dobro" (sem a tela da recompensa), Equipe Rocket vencida e a aposta do Blue
                     const bonus = isLong(run) ? longMatchBonus(run, m.score, won) : {};
                     if (Object.keys(bonus).length) result.bonus = bonus;
+                    // Jogo vencido (ROTA_RULES.rivalEveryJogo): primeiro o 1 de 3 do time rival, depois o prêmio da casa
+                    const rivalPick =
+                        won &&
+                        ROTA_RULES.rivalEveryJogo &&
+                        isLong(run) &&
+                        !run.fight &&
+                        run.stage < GROUP_START &&
+                        currentNode(run)?.kind === 'jogo';
                     // Rota Índigo: nas eliminatórias (mapa) a 1ª derrota é um cartão amarelo (volta pro mapa) e a 2ª, o
                     // vermelho; no grupo a derrota só dá menos pontos, e quem não fica entre os 2 primeiros sai na 3ª rodada
                     const longRun = isLong(run);
@@ -1542,7 +1558,7 @@ export const useGame = create<GameStore>()(
                         : won
                           ? last
                               ? 'champion'
-                              : bonus.prize !== undefined
+                              : bonus.prize !== undefined && !rivalPick
                                 ? 'map'
                                 : 'reward'
                           : yellow
@@ -1558,7 +1574,7 @@ export const useGame = create<GameStore>()(
                         lockedTeam: null,
                         live: null,
                         ...(yellow && { cards: (run.cards ?? 0) + 1 }),
-                        ...(isLong(run) && { out: tickOut(run.out), bet: null }),
+                        ...(isLong(run) && { out: tickOut(run.out), bet: null, rivalPick }),
                         // na longa o ₽ da vitória entra na hora (os juros só quando você entra num Mercado)
                         ...(isLong(run) && {
                             money: Math.max(
@@ -1715,7 +1731,8 @@ export const useGame = create<GameStore>()(
                 skipReward: () => {
                     const run = getState().run;
                     if (run?.status !== 'reward') return;
-                    setState(afterReward({ ...run, rerolls: run.rerolls + 1 }));
+                    // pular o rival não dá sorteio: o prêmio da casa ainda vem
+                    setState(afterReward({ ...run, rerolls: run.rerolls + (run.rivalPick ? 0 : 1) }));
                 },
 
                 buyOffer: (index, targetUid, forgetSlot, passTo) => {

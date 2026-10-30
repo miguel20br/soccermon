@@ -11,9 +11,11 @@ import {
     longOpponent,
     MAP_MATCHES,
     type MapNode,
+    mapPrizes,
     nextNodes,
     nodeById,
     PRIZES,
+    ROTA_RULES,
     ROUTE_TEAMS,
     ROUTE_THEME_MIN,
     rivalTypes,
@@ -50,10 +52,11 @@ describe('mapa da Copa longa', () => {
                 expect(p.filter((n) => isMatchKind(n.kind))).toHaveLength(MAP_MATCHES);
                 expect(p.at(-1)!.kind).toBe('treino');
                 expect(p.some((n) => n.kind === 'bau' || n.kind === 'centro')).toBe(true);
-                // escassez: no máximo 1 Mercado por caminho, e nunca Mercado e Treino de parada no mesmo caminho
+                // escassez: no máximo `maxShops` Mercados por caminho (e, sem `shopWithTreino`, nunca com Treino de parada)
                 const shops = p.filter((n) => n.kind === 'mercado').length;
-                expect(shops).toBeLessThanOrEqual(1);
-                if (shops) expect(p.slice(0, -1).some((n) => n.kind === 'treino')).toBe(false);
+                expect(shops).toBeLessThanOrEqual(ROTA_RULES.maxShops);
+                if (shops && !ROTA_RULES.shopWithTreino)
+                    expect(p.slice(0, -1).some((n) => n.kind === 'treino')).toBe(false);
             }
             // toda casa tem entrada (menos a 1ª linha) e saída (menos a Final)
             const reached = new Set(map.nodes.flatMap((n) => n.next));
@@ -74,6 +77,37 @@ describe('mapa da Copa longa', () => {
                 if (gyms.length) expect(line.some((n) => n.kind === 'jogo')).toBe(true);
                 if (row < 2) expect(gyms).toHaveLength(0);
             }
+        }
+    });
+
+    it('escassez ajustável: 1 ou 2 Mercados por caminho, com ou sem Treino junto', () => {
+        const rules = { ...ROTA_RULES };
+        try {
+            for (const [maxShops, shopWithTreino] of [
+                [1, false],
+                [2, false],
+                [2, true],
+            ] as const) {
+                Object.assign(ROTA_RULES, { maxShops, shopWithTreino });
+                let most = 0;
+                let together = false;
+                for (let s = 0; s < 200; s++)
+                    for (const p of paths(buildCupMap(`escassez-${s}`))) {
+                        const shops = p.filter((n) => n.kind === 'mercado').length;
+                        most = Math.max(most, shops);
+                        together ||= shops > 0 && p.slice(0, -1).some((n) => n.kind === 'treino');
+                    }
+                expect(most).toBe(maxShops);
+                expect(together).toBe(shopWithTreino);
+            }
+            // a casa que sobra pode virar Baú (fora da linha do Baú)
+            Object.assign(ROTA_RULES, { maxShops: 1, shopWithTreino: false, spare: 'bau' });
+            const bauRows = new Set<number>();
+            for (let s = 0; s < 50; s++)
+                for (const n of buildCupMap(`escassez-${s}`).nodes) if (n.kind === 'bau') bauRows.add(n.row);
+            expect(bauRows.size).toBeGreaterThan(1);
+        } finally {
+            Object.assign(ROTA_RULES, rules);
         }
     });
 
@@ -100,10 +134,24 @@ describe('ramos e prêmios (revisão da Rota)', () => {
             expect(new Set(row0.map((n) => n.types!.join())).size).toBe(3);
             for (let row = 0; row < map.rows; row++) {
                 const jogos = map.nodes.filter((n) => n.row === row && n.kind === 'jogo');
-                for (const j of jogos) expect(PRIZES).toContain(j.prize);
+                for (const j of jogos) expect(mapPrizes()).toContain(j.prize);
                 expect(new Set(jogos.map((j) => j.prize)).size).toBe(jogos.length);
             }
             for (const n of map.nodes.filter((x) => x.kind !== 'jogo')) expect(n.prize).toBeUndefined();
+        }
+    });
+
+    it('com o Pokémon do rival em todo Jogo, o prêmio do mapa é MT, item ou ₽ em dobro (nunca o Pokémon de novo)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        try {
+            ROTA_RULES.rivalEveryJogo = true;
+            expect([...mapPrizes()].sort()).toEqual(['item', 'money', 'tm']);
+            for (let s = 0; s < 100; s++)
+                for (const n of buildCupMap(`rival-${s}`).nodes) expect(n.prize).not.toBe('pokemon');
+            ROTA_RULES.rivalEveryJogo = false;
+            expect(mapPrizes()).toEqual(PRIZES);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
         }
     });
 

@@ -2,14 +2,14 @@
 // 1) Mapa (rápido, sem partida): de cada casa, quais tipos de casa dá pra alcançar na próxima parada.
 // 2) Robô por política de caminho, mesmas seeds pra todas (comparação pareada): time, Pokémon novos, itens, ₽, título.
 // Uso: SIM=100 [POL=esquerda,direita,ouro,pokemon,ginasio,aleatorio] SIM_OUT=saida.json \
-//      scripts/pesado.sh npx vitest run scripts/balance/rota-caminhos.sim.test.ts --maxWorkers=1   (sem SIM, pulado)
+//      [MAX_SHOPS=2 SHOP_TREINO=1 SPARE=bau RIVAL=1] (as regras de ROTA_RULES, pra medir cada uma) scripts/pesado.sh npx vitest run scripts/balance/rota-caminhos.sim.test.ts --maxWorkers=1   (sem SIM, pulado)
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { FUTSAL_5 } from '../../src/engine/config';
-import { buildCupMap, type CupMap, type MapNode, nextNodes, nodeById } from '../../src/engine/cup-map';
+import { buildCupMap, type CupMap, type MapNode, nextNodes, nodeById, ROTA_RULES } from '../../src/engine/cup-map';
 import { evolutionTarget } from '../../src/engine/evolution';
 import { formationOf } from '../../src/engine/formations';
 import { type PokemonInstance, slotRating } from '../../src/engine/instance';
@@ -19,6 +19,11 @@ import { playerTeam, type RunState, useGame } from '../../src/store/game-store';
 import { choiceTargets, eventChoices } from '../../src/store/long-events';
 
 const N = Number(process.env.SIM ?? 0);
+const env = process.env;
+if (env.MAX_SHOPS) ROTA_RULES.maxShops = Number(env.MAX_SHOPS);
+if (env.SHOP_TREINO) ROTA_RULES.shopWithTreino = env.SHOP_TREINO === '1';
+if (env.RIVAL) ROTA_RULES.rivalEveryJogo = env.RIVAL === '1';
+if (env.SPARE) ROTA_RULES.spare = env.SPARE as 'evento' | 'bau';
 /** A recompensa aberta é a de uma vitória (casa de partida, ou o grupo), não o Baú nem o Treino. */
 const isMatchAt = (run: RunState) =>
     !!run.group || ['jogo', 'ginasio'].includes(nodeById(run.map!, run.at ?? '')?.kind ?? '');

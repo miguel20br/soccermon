@@ -80,6 +80,8 @@ export interface LongRunFields {
     fight?: Challenge | null;
     /** Aposta do Blue na próxima partida: vitória por 2+ gols ganha esse ₽; senão perde. */
     bet?: number | null;
+    /** A recompensa aberta é o 1 de 3 do time rival (ROTA_RULES.rivalEveryJogo); o prêmio da casa vem depois. */
+    rivalPick?: boolean;
     /** Ovo da Creche: nasce no banco depois de `left` partidas. */
     egg?: { left: number; speciesId: number } | null;
 }

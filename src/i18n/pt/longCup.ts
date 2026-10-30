@@ -17,6 +17,8 @@ export const longCup = {
     },
     desc: {
         jogo: 'Vitória dá ₽ e o prêmio.',
+        /** Com o Pokémon do rival em todo Jogo (ROTA_RULES.rivalEveryJogo). */
+        jogoRival: 'Vitória dá ₽, 1 de 3 do time rival e o prêmio.',
         ginasio: 'Rival bem mais forte. Vencendo: a carta do líder, a MT dele e a insígnia.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
@@ -38,6 +40,7 @@ export const longCup = {
         tm: 'Escolha 1 de 3 MTs.',
         item: 'Escolha 1 de 3 itens, os do tipo do caminho primeiro.',
         money: 'O ₽ da vitória vem em dobro, sem recompensa.',
+        moneyRival: 'O ₽ da vitória vem em dobro.',
     },
     prizeLabel: 'Prêmio',
     branch: 'Caminho',

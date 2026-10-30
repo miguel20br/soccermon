@@ -9,6 +9,7 @@ import {
     type MapRegion,
     type NodeKind,
     nextNodes,
+    ROTA_RULES,
     regionOfRow,
     rivalTrainer,
     rivalTypes,
@@ -431,7 +432,13 @@ function NodeSheet({
                 )}
                 <span>
                     <b>{t(`longCup.kind.${node.kind}`)}</b>
-                    <small>{t(`longCup.desc.${node.kind}`)}</small>
+                    <small>
+                        {t(
+                            node.kind === 'jogo' && ROTA_RULES.rivalEveryJogo
+                                ? 'longCup.desc.jogoRival'
+                                : `longCup.desc.${node.kind}`,
+                        )}
+                    </small>
                 </span>
             </div>
             {node.kind === 'jogo' && node.prize && (
@@ -439,7 +446,13 @@ function NodeSheet({
                     <b>
                         {t('longCup.prizeLabel')}: {t(`longCup.prize.${node.prize}`)}
                     </b>{' '}
-                    <span className="muted">{t(`longCup.prizeDesc.${node.prize}`)}</span>
+                    <span className="muted">
+                        {t(
+                            node.prize === 'money' && ROTA_RULES.rivalEveryJogo
+                                ? 'longCup.prizeDesc.moneyRival'
+                                : `longCup.prizeDesc.${node.prize}`,
+                        )}
+                    </span>
                 </p>
             )}
             {node.types && node.kind !== 'final' && (

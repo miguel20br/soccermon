@@ -77,7 +77,7 @@ export function Reward() {
             : reward.kind === 'tm'
               ? t('reward.whoLearns')
               : t('reward.whoHolds')
-        : t('reward.choose');
+        : t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose');
 
     return (
         <>
@@ -164,14 +164,18 @@ export function Reward() {
                 </div>
             </CardPack>
             {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
-            {!reward && !training && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
+            {!reward && !training && <Tip id="reward-pick">{t(run.rivalPick ? 'reward.tipRival' : 'reward.tip')}</Tip>}
 
             {reward && (
                 <GainTarget
                     key={chosen}
                     gain={reward}
                     run={run}
-                    onClaim={(uid, slot, passTo) => claimReward(chosen!, uid, slot, passTo)}
+                    onClaim={(uid, slot, passTo) => {
+                        claimReward(chosen!, uid, slot, passTo);
+                        // Rota: depois do rival vem o prêmio da casa na mesma tela
+                        setChosen(null);
+                    }}
                 />
             )}
             {/* com Pokémon ou item escolhido, a prancheta de escolher fica no lugar desta */}
@@ -229,8 +233,15 @@ export function Reward() {
             )}
             {/* pular é discreto (fantasma à esquerda); sortear de novo à direita */}
             <div className="bc-thumbbar reward-bar">
-                <button type="button" className="btn ghost" onClick={skipReward}>
-                    {t('reward.skip')}
+                <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                        skipReward();
+                        setChosen(null);
+                    }}
+                >
+                    {t(run.rivalPick ? 'reward.skipRival' : 'reward.skip')}
                 </button>
                 <button
                     type="button"

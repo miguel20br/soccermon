@@ -19,6 +19,7 @@ export const longCup: typeof pt = {
     },
     desc: {
         jogo: 'A win pays ₽ and the prize.',
+        jogoRival: 'A win pays ₽, 1 of 3 from the rival team and the prize.',
         ginasio: "Much tougher rival. Win: the leader's card, their TM and the badge.",
         mercado: 'Spend your ₽. What you saved earns interest.',
         evento: 'Something happens on the road.',
@@ -39,6 +40,7 @@ export const longCup: typeof pt = {
         tm: 'Pick 1 of 3 TMs.',
         item: "Pick 1 of 3 items, the path's type first.",
         money: 'The win pays double ₽, no reward.',
+        moneyRival: 'The win pays double ₽.',
     },
     prizeLabel: 'Prize',
     branch: 'Path',

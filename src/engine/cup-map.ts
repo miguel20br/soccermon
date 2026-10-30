@@ -21,6 +21,24 @@ export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'b
 export type Prize = 'pokemon' | 'tm' | 'item' | 'money';
 export const PRIZES: readonly Prize[] = ['pokemon', 'tm', 'item', 'money'];
 
+/**
+ * Regras da Rota que o robô de caminhos (scripts/balance/rota-caminhos.sim.test.ts) liga e desliga pra medir. Mexer
+ * aqui muda o mapa e a recompensa das Rotas novas (o save guarda o mapa); não muda partida nenhuma.
+ */
+export const ROTA_RULES = {
+    /** Escassez: no máximo tantos Mercados por caminho. */
+    maxShops: 2,
+    /** Mercado e Treino de parada podem cair no mesmo caminho. */
+    shopWithTreino: true,
+    /** O que vira a casa que a escassez tira (Mercado a mais, ou o Treino junto do Mercado). */
+    spare: 'evento' as 'evento' | 'bau',
+    /** Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa (que deixa de ser "Pokémon do rival"). */
+    rivalEveryJogo: true,
+};
+/** Prêmios que o mapa sorteia agora. */
+export const mapPrizes = (): readonly Prize[] =>
+    ROTA_RULES.rivalEveryJogo ? PRIZES.filter((p) => p !== 'pokemon') : PRIZES;
+
 export interface MapNode {
     /** `r<linha>c<coluna>`. */
     id: string;
@@ -151,23 +169,24 @@ export function buildCupMap(seed: string): CupMap {
         }
     }
     const nodes = rows.flat();
-    // Escassez: no máximo 1 Mercado por caminho, e Mercado e Treino nunca no mesmo caminho. A casa que sobra (a mais
-    // de cima) vira Evento. Sem sorteio: o resto do mapa não muda.
+    // Escassez: no máximo `maxShops` Mercados por caminho e (sem `shopWithTreino`) Mercado e Treino nunca no mesmo
+    // caminho. A casa que sobra (a mais de cima) vira `spare` (Evento ou Baú). Sem sorteio: o resto do mapa não muda.
     const stopTreino = (n: MapNode) => n.kind === 'treino' && LAYOUT[n.row] === 'S';
+    const { maxShops, shopWithTreino } = ROTA_RULES;
     for (let guard = 0; guard < 50; guard++) {
         const bad = mapPaths(nodes).find((p) => {
             const shops = p.filter((n) => n.kind === 'mercado').length;
-            return shops > 1 || (shops === 1 && p.some(stopTreino));
+            return shops > maxShops || (shops > 0 && !shopWithTreino && p.some(stopTreino));
         });
         if (!bad) break;
-        bad.filter((n) => n.kind === 'mercado' || stopTreino(n)).at(-1)!.kind = 'evento';
+        bad.filter((n) => n.kind === 'mercado' || stopTreino(n)).at(-1)!.kind = ROTA_RULES.spare;
     }
     // ramos e prêmios: sorteios próprios (o resto do mapa não muda)
     const br = new Rng(seed, 'long-map-branch');
     const lanes = br.shuffle([...BRANCHES]).slice(0, 3);
     const pz = new Rng(seed, 'long-map-prize');
     for (const line of rows) {
-        const prizes = pz.shuffle([...PRIZES]);
+        const prizes = pz.shuffle([...mapPrizes()]);
         let k = 0;
         for (const n of line) {
             n.types = [...lanes[laneOf(n.col, line.length)]];
