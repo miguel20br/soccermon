@@ -31,7 +31,7 @@ for (let i = 0; i < N; i++) {
             inMaxZoneOf(s, cap)
         ) {
             const c = maxCharge(s.events, 0, s.tick, 5);
-            if (c.level >= MIN && !c.active) {
+            if (c.level >= MIN) {
                 const x = g.next();
                 r.addOrder({ tick: s.tick, team: 0, kind: 'max', q: x < 0.4 ? 2 : x < 0.8 ? 1 : 0 });
             }

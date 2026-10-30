@@ -2,8 +2,9 @@
  * Calibração headless: roda N partidas entre times sorteados pelo draft da IA e imprime métricas.
  * Metas: 5–7 gols/jogo · time mais forte vence ~60–65% · nenhum tipo > 55% de vitórias.
  *
- * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia]
+ * Uso: npm run calibrate -- --n 2000 [--csv out.csv] [--agencia [--sem-parry]]
  * --agencia: os dois times com o técnico IA da beira da quadra (src/engine/rival-coach.ts), líderes em rodízio.
+ * --sem-parry: o técnico IA não pede o parry (pra medir quanto o parry tira do golpe máximo).
  */
 import { writeFileSync } from 'node:fs';
 import { FUTSAL_5, withConfig } from '../src/engine/config';
@@ -11,7 +12,7 @@ import { species } from '../src/engine/data';
 import { aiDraftTeam } from '../src/engine/draft';
 import { FORMATIONS, type FormationId } from '../src/engine/formations';
 import { viewInstance } from '../src/engine/instance';
-import { COACH_LEADERS } from '../src/engine/rival-coach';
+import { COACH_LEADERS, RivalCoach } from '../src/engine/rival-coach';
 import { Rng } from '../src/engine/rng';
 import { runMatch } from '../src/engine/runners/batch-runner';
 import type { MatchEventType, Tactic, TeamSetup } from '../src/engine/state';
@@ -21,6 +22,7 @@ const N = Number(args[args.indexOf('--n') + 1]) || 500;
 const csvPath = args.includes('--csv') ? args[args.indexOf('--csv') + 1] : null;
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 const AGENCIA = args.includes('--agencia');
+if (args.includes('--sem-parry')) RivalCoach.prototype.parry = () => null;
 // --tipo: golpe máximo com o efeito do tipo do capitão no N3 (`maxType`; golpe-maximo-por-tipo.md)
 const CFG = args.includes('--tipo') ? withConfig({ maxType: true }) : FUTSAL_5;
 
@@ -197,6 +199,12 @@ let gkMax = 0;
 /** Golpes máximos por nível (N1, N2, N3; o de 1 nível conta como N2) e notas (fora, bom, perfeito). */
 const maxByLevel = [0, 0, 0];
 const maxByGrade = [0, 0, 0];
+/** Gols do golpe máximo de linha por nível; bicudas por nível e gol do time em até 4 s; parries por nota. */
+const goalsByLevel = [0, 0, 0];
+const bicudaByLevel = [0, 0, 0];
+const bicudaGoals = [0, 0, 0];
+const parryByGrade = [0, 0, 0];
+const parryGoals = [0, 0, 0];
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -223,17 +231,34 @@ for (let i = 0; i < N; i++) {
         if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
     }
 
-    let hit: { tick: number; by: number } | null = null;
+    let hit: { tick: number; by: number; lv: number; gk: boolean; team: 0 | 1 } | null = null;
+    let parried: { tick: number; q: number; team: 0 | 1 } | null = null;
     for (const e of r.events) {
         if (e.type === 'max' && e.phase === 'hit') {
             maxHits++;
-            maxByLevel[(e.level ?? 2) - 1]++;
+            const lv = (e.level ?? 2) - 1;
+            maxByLevel[lv]++;
             if (e.q !== undefined) maxByGrade[e.q]++;
-            if (r.roster[e.by]?.role === 'GK') gkMax++;
-            hit = { tick: e.tick, by: e.by };
-        } else if (e.type === 'goal' && hit) {
-            if (e.by === hit.by && e.tick - hit.tick < 80) maxGoals++;
+            const gk = r.roster[e.by]?.role === 'GK';
+            if (gk) {
+                gkMax++;
+                bicudaByLevel[lv]++;
+            }
+            hit = { tick: e.tick, by: e.by, lv, gk, team: e.team };
+        } else if (e.type === 'parry') {
+            parryByGrade[e.q]++;
+            parried = { tick: e.tick, q: e.q, team: e.team };
+        } else if (e.type === 'goal') {
+            if (hit && e.tick - hit.tick < 80) {
+                if (hit.gk ? e.team === hit.team : e.by === hit.by) {
+                    maxGoals++;
+                    if (hit.gk) bicudaGoals[hit.lv]++;
+                    else goalsByLevel[hit.lv]++;
+                }
+            }
+            if (parried && e.team !== parried.team && e.tick - parried.tick < 80) parryGoals[parried.q]++;
             hit = null;
+            parried = null;
         }
     }
     const goalEvs = r.events.filter((e) => e.type === 'goal');
@@ -334,4 +359,18 @@ if (AGENCIA)
     console.log(
         `golpe máximo: ${per(maxHits)} saíram/jogo (${per(gkMax)} de goleiro), ${per(maxGoals)} viraram gol/jogo; N1/N2/N3 ${maxByLevel.map(per).join('/')}; fora/bom/perfeito ${maxByGrade.map(per).join('/')}`,
     );
+if (AGENCIA) {
+    const pct = (a: number, b: number) => `${b ? ((a / b) * 100).toFixed(0) : '-'}%`;
+    const line = [0, 1, 2].map((k) => maxByLevel[k] - bicudaByLevel[k]);
+    console.log(
+        `golpe de linha que virou gol (do capitão, 4 s): N1 ${pct(goalsByLevel[0], line[0])} N2 ${pct(goalsByLevel[1], line[1])} N3 ${pct(goalsByLevel[2], line[2])} · total ${pct(goalsByLevel[0] + goalsByLevel[1] + goalsByLevel[2], line[0] + line[1] + line[2])}`,
+    );
+    console.log(
+        `bicudas/jogo N1/N2/N3 ${bicudaByLevel.map(per).join('/')}; gol do time em 4 s: ${[0, 1, 2].map((k) => pct(bicudaGoals[k], bicudaByLevel[k])).join('/')}`,
+    );
+    const parries = parryByGrade[0] + parryByGrade[1] + parryByGrade[2];
+    console.log(
+        `parry: ${per(parries)}/jogo (fora/bom/perfeito ${parryByGrade.map(per).join('/')}); gol do rival em 4 s depois: ${[0, 1, 2].map((k) => pct(parryGoals[k], parryByGrade[k])).join('/')}`,
+    );
+}
 if (csvPath) writeFileSync(csvPath, rows.join('\n'));
