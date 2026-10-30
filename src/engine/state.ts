@@ -486,7 +486,7 @@ export type MatchEvent = MatchEventBase &
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
         /**
          * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a defesa máxima do goleiro); `start` = a defesa
-         * máxima começou a valer (goleiro); `miss` = ninguém chutou nela (a barra volta pela metade).
+         * máxima começou a valer (goleiro); `miss` = o lance acabou sem defesa (a barra volta inteira).
          */
         | {
               type: 'max';

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, inMaxZone, maxCharge, maxCue, maxGraded } from './agency';
+import { AGENCY, inMaxZone, maxCallCue, maxCharge, maxCue, maxGraded } from './agency';
 import { FUTSAL_5, withConfig } from './config';
+import { AIController } from './controllers/ai-controller';
 import { matchHash } from './determinism';
 import { aiDraftTeam } from './draft';
 import { eff } from './effective';
@@ -97,11 +98,11 @@ describe('agência do técnico (experimento)', () => {
     });
 
     /** Primeiro tick (com o 1º gomo cheio) em que `cue` vale, andando a partida sem ordem nenhuma. */
-    function firstCue(home: TeamSetup, seed: string, cue: (live: LiveRunner) => boolean, from = 0) {
+    function firstCue(home: TeamSetup, seed: string, cue: (live: LiveRunner) => boolean, from = 0, minLevel = 1) {
         const live = new LiveRunner(FUTSAL_5, home, B, seed);
         while (!live.finished) {
             const s = live.state;
-            if (s.tick >= from && s.phase === 'play' && maxCharge(s.events, 0, s.tick).level >= 1 && cue(live))
+            if (s.tick >= from && s.phase === 'play' && maxCharge(s.events, 0, s.tick).level >= minLevel && cue(live))
                 return s.tick;
             live.step();
         }
@@ -109,13 +110,15 @@ describe('agência do técnico (experimento)', () => {
     }
     const capOf = (live: LiveRunner) => live.state.players.find((p) => p.team === 0 && p.captain)!;
 
-    it('zona do golpe máximo pela posição do capitão: pivô 15 m, ala 18 m, fixo 22 m (o goleiro, 15 m do rival)', () => {
+    it('zona do golpe máximo pela posição do capitão: pivô e ala 18 m, fixo 22 m (o goleiro, 15 m do rival)', () => {
         const { pitch } = FUTSAL_5;
         const y = pitch.width / 2;
         // time 0 ataca o gol de x = 40: d metros do gol, de frente
         const at = (d: number, role: Parameters<typeof inMaxZone>[4]) => inMaxZone(pitch.length - d, y, 0, pitch, role);
         expect([at(14, 'PIVO'), at(14, 'ALA'), at(14, 'FIXO'), at(14, 'GK')]).toEqual([true, true, true, true]);
-        expect([at(17, 'PIVO'), at(17, 'ALA'), at(17, 'FIXO'), at(17, 'GK')]).toEqual([false, true, true, false]);
+        expect([at(17, 'PIVO'), at(17, 'ALA'), at(17, 'FIXO'), at(17, 'GK')]).toEqual([true, true, true, false]);
+        // pivô 15 ⇒ 18 m (motor 15): a IA dele chuta de ~16 m
+        expect([at(16, 'PIVO'), at(18.5, 'PIVO')]).toEqual([true, false]);
         expect([at(21, 'PIVO'), at(21, 'ALA'), at(21, 'FIXO')]).toEqual([false, false, true]);
         expect(at(22.5, 'FIXO')).toBe(false);
         // o ângulo continua valendo: da linha de fundo, colado na lateral, nada acende
@@ -127,6 +130,24 @@ describe('agência do técnico (experimento)', () => {
         const snap = { owner: 3, p, phase: 'play' as const };
         expect(maxCue(snap, 0, 3, 'FIXO', pitch)).toBe(true);
         expect(maxCue(snap, 0, 3, 'PIVO', pitch)).toBe(false);
+    });
+
+    it('chamar o capitão: o botão do capitão de linha acende em todo ataque do time, não no do rival nem no goleiro', () => {
+        const { pitch } = FUTSAL_5;
+        const p: number[] = new Array(10 * SNAP_STRIDE).fill(0);
+        const snap = (owner: number, x: number) => {
+            p[owner * SNAP_STRIDE] = x;
+            return { owner, p, phase: 'play' as const };
+        };
+        // time 0 ataca o gol de x = 40: um companheiro (não o capitão) com a bola no campo de ataque
+        expect(maxCallCue(snap(2, 25), 0, 'FIXO', pitch)).toBe(true);
+        expect(maxCallCue(snap(2, 15), 0, 'FIXO', pitch)).toBe(false);
+        // bola do rival, capitão goleiro, bola parada
+        expect(maxCallCue(snap(7, 25), 0, 'PIVO', pitch)).toBe(false);
+        expect(maxCallCue(snap(2, 25), 0, 'GK', pitch)).toBe(false);
+        expect(maxCallCue({ ...snap(2, 25), phase: 'restart' }, 0, 'ALA', pitch)).toBe(false);
+        // o time 1 ataca o gol de x = 0
+        expect(maxCallCue(snap(7, 15), 1, 'ALA', pitch)).toBe(true);
     });
 
     it('golpe máximo de linha: na hora certa sai na hora, com o golpe do capitão; fora dela não sai sozinho', () => {
@@ -181,11 +202,17 @@ describe('agência do técnico (experimento)', () => {
         let saves = 0;
         for (let k = 0; k < 30 && saves < 2; k++) {
             const seed = `ag-gk-${k}`;
-            const at = firstCue(H, seed, (live) => {
-                const s = live.state;
-                const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
-                return !!owner && owner.team === 1 && inMaxZoneOf(s, owner, 'GK');
-            });
+            const at = firstCue(
+                H,
+                seed,
+                (live) => {
+                    const s = live.state;
+                    const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
+                    return !!owner && owner.team === 1 && inMaxZoneOf(s, owner, 'GK');
+                },
+                0,
+                AGENCY.maxGkMinLevel,
+            );
             if (at === null) continue;
             // toque perfeito: segura e sai jogando (bom e fora espalmam)
             const r = runMatch(FUTSAL_5, H, B, seed, {
@@ -196,8 +223,7 @@ describe('agência do técnico (experimento)', () => {
             expect(evs[0]?.phase).toBe('start');
             expect(r.roster[evs[0].by].uid).toBe(gkUid);
             const end = evs[1];
-            const level = evs[0].level!;
-            expect(end && end.tick - evs[0].tick).toBeLessThanOrEqual(AGENCY.maxLevelGk[level].ticks);
+            expect(end && end.tick - evs[0].tick).toBeLessThanOrEqual(AGENCY.maxGkTicks);
             // nada de gol do rival enquanto ela vale
             expect(
                 r.events.some((e) => e.type === 'goal' && e.team === 1 && e.tick > evs[0].tick && e.tick < end.tick),
@@ -208,11 +234,66 @@ describe('agência do técnico (experimento)', () => {
                 expect(save?.type === 'save' && save.caught).toBe(true);
                 expect(maxCharge(r.events, 0, end.tick).charge).toBe(0);
             } else {
+                // o lance acabou sem defesa: a barra volta inteira (motor 15)
                 expect(end.phase).toBe('miss');
-                expect(maxCharge(r.events, 0, end.tick).charge).toBeCloseTo((level * AGENCY.maxRefund) / 3, 10);
+                const before = maxCharge(r.events.slice(0, r.events.indexOf(evs[0])), 0).charge;
+                expect(maxCharge(r.events, 0, end.tick).charge).toBeCloseTo(before, 10);
             }
         }
         expect(saves).toBeGreaterThan(0);
+    });
+
+    it('goleiro capitão só arma a defesa máxima no N3 (do N1 dava +7,8 pp de vitória)', () => {
+        const H = { ...A, captainUid: A.lineup[0].uid };
+        const live = new LiveRunner(FUTSAL_5, H, B, 'ag-gk-n3');
+        let low = 0;
+        while (!live.finished && low < 1) {
+            const s = live.state;
+            const { level, active } = maxCharge(s.events, 0, s.tick);
+            if (s.phase === 'play' && !active && level >= 1 && level < AGENCY.maxGkMinLevel && !s.teams[0].agency.max) {
+                applyAgencyOrder(s, { tick: s.tick, team: 0, kind: 'max' });
+                expect(s.teams[0].agency.max).toBeNull();
+                low++;
+            }
+            live.step();
+        }
+        expect(low).toBe(1);
+    });
+
+    it('fixo capitão chamado com a bola fora da zona: conduz pro gol em vez de tocar', () => {
+        const probe = new LiveRunner(FUTSAL_5, A, B, 'ag-fixo');
+        const fixoUid = probe.state.players.find((p) => p.team === 0 && p.role === 'FIXO')!.inst.uid;
+        const live = new LiveRunner(FUTSAL_5, { ...A, captainUid: fixoUid }, B, 'ag-fixo');
+        let checked = 0;
+        while (!live.finished && checked < 3) {
+            const s = live.state;
+            const cap = capOf(live);
+            if (
+                s.phase === 'play' &&
+                s.ball.owner === cap.idx &&
+                cap.role === 'FIXO' &&
+                !inMaxZoneOf(s, cap) &&
+                !s.teams[0].agency.max &&
+                maxCharge(s.events, 0, s.tick).level >= 1
+            ) {
+                const last = (c: ReturnType<AIController['decide']>) => (Array.isArray(c) ? c.at(-1)?.type : c.type);
+                // cópia do estado (o structuredClone perde a classe do Rng)
+                const clone = () => {
+                    const c = structuredClone(s);
+                    Object.setPrototypeOf(c.rng, Object.getPrototypeOf(s.rng));
+                    return c;
+                };
+                // só os momentos em que, sem a ordem, ele tocaria (a bola voltava pro fixo e o time perdia 6,8 pp)
+                if (last(new AIController(clone()).decide(cap.idx)) === 'pass') {
+                    const st = clone();
+                    applyAgencyOrder(st, { tick: st.tick, team: 0, kind: 'max' });
+                    expect(last(new AIController(st).decide(cap.idx))).toBe('move');
+                    checked++;
+                }
+            }
+            live.step();
+        }
+        expect(checked).toBe(3);
     });
 
     it('defesa máxima tocada na folga do botão, com o chute do rival já no ar: pega esse chute', () => {
@@ -221,13 +302,19 @@ describe('agência do técnico (experimento)', () => {
         for (let k = 0; k < 40 && checked < 2; k++) {
             const seed = `ag-gk-air-${k}`;
             // o rival chutou da zona e a bola ainda não passou pelo goleiro
-            const at = firstCue(H, seed, (live) => {
-                const s = live.state;
-                const shot = s.ball.owner === null ? s.ball.shot : null;
-                if (!shot || shot.gkChecked) return false;
-                const by = s.players[shot.by];
-                return by.team === 1 && inMaxZoneOf(s, by, 'GK');
-            });
+            const at = firstCue(
+                H,
+                seed,
+                (live) => {
+                    const s = live.state;
+                    const shot = s.ball.owner === null ? s.ball.shot : null;
+                    if (!shot || shot.gkChecked) return false;
+                    const by = s.players[shot.by];
+                    return by.team === 1 && inMaxZoneOf(s, by, 'GK');
+                },
+                0,
+                AGENCY.maxGkMinLevel,
+            );
             if (at === null) continue;
             checked++;
             const r = runMatch(FUTSAL_5, H, B, seed, {
@@ -306,7 +393,7 @@ describe('golpe máximo em 3 níveis (golpe-maximo-niveis.md)', () => {
     const tackles = (n: number, from: number) =>
         Array.from({ length: n }, (_, i) => at(from + i, { type: 'tackle', by: 1, victim: 6, success: true }));
 
-    it('barra: 3 gomos de 12, o toque gasta tudo e ela volta a encher; sem chute, metade do nível de volta', () => {
+    it('barra: 3 gomos de 12, o toque gasta tudo e ela volta a encher; defesa máxima sem defesa volta inteira', () => {
         const per = AGENCY.maxLevelPts;
         // só lances do meu time; perdendo enche mais rápido
         expect(maxCharge(tackles(4, 10), 1).charge).toBe(0);
@@ -326,7 +413,14 @@ describe('golpe máximo em 3 níveis (golpe-maximo-niveis.md)', () => {
             at(100, { type: 'max', team: 0, by: 0, phase: 'start', level: 3, q: 1 }),
             at(200, { type: 'max', team: 0, by: 0, phase: 'miss', level: 3, q: 1 }),
         ];
-        expect(maxCharge(miss, 0).charge).toBeCloseTo(AGENCY.maxRefund, 10);
+        expect(maxCharge(miss, 0)).toMatchObject({ charge: 1, level: 3, active: false });
+        // com a barra no meio do gomo, volta o mesmo tanto
+        const half = [
+            ...tackles(per + 6, 10),
+            at(100, { type: 'max', team: 0, by: 0, phase: 'start', level: 1, q: 1 }),
+            at(150, { type: 'max', team: 0, by: 0, phase: 'miss', level: 1, q: 1 }),
+        ];
+        expect(maxCharge(half, 0).charge).toBeCloseTo((per + 6) / (3 * per), 10);
     });
 
     it('a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%) e o N3 é o mais forte', () => {

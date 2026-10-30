@@ -62,8 +62,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     espécies de `MAX_SIGNATURE` troca o efeito do tipo por um próprio (`AGENCY.maxSig`).
  * 14 = N3 quase indefensável: mira mais no meio e mais precisa, goleiro e linha com 15% da chance de defender
  *     (`AGENCY.maxLevelShot`, `maxAim`).
+ * 15 = defesa máxima vale o lance e só gasta quando defende (sem chute, a barra volta inteira; `AGENCY.maxGkTicks`) e
+ *     zona do golpe máximo do pivô 15 ⇒ 18 m (`AGENCY.maxZone`).
  */
-export const ENGINE_VERSION = 14;
+export const ENGINE_VERSION = 15;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
