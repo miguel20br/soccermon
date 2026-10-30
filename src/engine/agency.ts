@@ -47,6 +47,8 @@ export const AGENCY = {
         { power: 2.2, accuracy: 3, rivalReach: 0.7, save: 0.15, block: 0.15 },
     ],
     maxLevelGk: [null, { reach: 1.1 }, { reach: 1.25 }, { reach: 1.4 }],
+    /** Gomos pro goleiro capitão armar a defesa máxima (motor 15: do N1 dava +7,8 pp de vitória; só no N3, +3,0). */
+    maxGkMinLevel: 3,
     /**
      * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
      * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no

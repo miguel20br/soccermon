@@ -125,7 +125,7 @@ export const match: typeof pt = {
         max: 'Max move',
         charanga: 'THE DRUMS KICK IN',
         maxHint:
-            "Fills with your team's plays. Lights up from L1 when your team attacks: tap and the ball looks for your captain, who unleashes it near goal. Keeper captain: when the rival gets there. Shortcut: M.",
+            "Fills with your team's plays. Lights up from L1 when your team attacks: tap and the ball looks for your captain, who unleashes it near goal. Keeper captain: only at L3, when the rival gets there. Shortcut: M.",
         maxReady: 'Now!',
         maxActive: 'Live!',
         maxCalling: 'Calling…',

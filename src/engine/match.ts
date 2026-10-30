@@ -3393,7 +3393,7 @@ function startMax(s: MatchState, team: 0 | 1, q: MaxGrade) {
     const cap = s.players.find((p) => p.team === team && p.captain);
     if (!cap || ag.max) return;
     const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
-    if (c.active || c.level < 1) return;
+    if (c.active || c.level < (cap.role === 'GK' ? AGENCY.maxGkMinLevel : 1)) return;
     ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, live: false, level: c.level as 1 | 2 | 3, q };
 }
 

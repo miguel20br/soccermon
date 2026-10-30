@@ -139,7 +139,7 @@ export const match = {
         /** Charanga de Pewter ligou (o time passou a perder): aviso curto na quadra. */
         charanga: 'A CHARANGA ENTROU',
         maxHint:
-            'Enche com os lances do time. Acende já no N1, no ataque do seu time: toque e a bola procura o capitão, que solta o golpe perto do gol. Capitão goleiro: quando o rival chega. Atalho: M.',
+            'Enche com os lances do time. Acende já no N1, no ataque do seu time: toque e a bola procura o capitão, que solta o golpe perto do gol. Capitão goleiro: só no N3, quando o rival chega. Atalho: M.',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
         /** Tocou e o golpe ainda não saiu: a bola procura o capitão. */

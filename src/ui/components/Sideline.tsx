@@ -85,6 +85,7 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
+    if (role === 'GK' && maxCharge(m.events, side, tick, 5).level < AGENCY.maxGkMinLevel) return false;
     if (maxCallCue(snapAt(m.snapshots, tick), side, role, FUTSAL_5.pitch)) return true;
     return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role);
 }
