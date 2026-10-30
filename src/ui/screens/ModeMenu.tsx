@@ -456,8 +456,10 @@ function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void)
                     go(
                         c,
                         flipFrames((e) => {
-                            const ix = 1 / lerp(e, sx);
-                            const iy = 1 / lerp(e, sy);
+                            // fatia que encolhe (escala > 1): a cena não pode ficar menor que o fundo, senão aparece a cor do
+                            // modo na sobra; nesse eixo ela acompanha o fundo (estica um tico nos primeiros quadros)
+                            const ix = Math.max(1, 1 / lerp(e, sx));
+                            const iy = Math.max(1, 1 / lerp(e, sy));
                             return `translate(${ax * (1 - ix)}px, ${ay * (1 - iy)}px) scale(${ix}, ${iy})`;
                         }, 8),
                     );
