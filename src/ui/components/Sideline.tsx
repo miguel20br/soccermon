@@ -103,7 +103,7 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
     if (chargeAt(m.events, side, tick).level < 1) return false;
-    if (maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
+    if (maxCueNear(m.snapshots, m.events, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
     return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }
 

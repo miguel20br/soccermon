@@ -269,22 +269,32 @@ export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch, role:
 
 /**
  * Hora do golpe máximo no quadro (a tela acende o botão por aqui; o motor usa a mesma zona): o capitão de linha com a
- * bola na zona, ou, com o capitão no gol, o chute do rival vindo no gol (a bicuda).
+ * bola na zona. A do goleiro capitão (a bicuda) sai dos eventos: `bicudaCueNear`.
  */
 export function maxCue(
-    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase' | 'shot'>,
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
     team: 0 | 1,
     capIdx: number | null,
     capRole: Position,
     pitch: Pitch,
-    teamSize = 5,
 ): boolean {
-    if (capIdx === null || snap.phase !== 'play') return false;
-    if (capRole === 'GK') return !!snap.shot && (snap.shot.by < teamSize ? 0 : 1) !== team;
-    if (snap.owner !== capIdx) return false;
+    if (capIdx === null || snap.phase !== 'play' || capRole === 'GK' || snap.owner !== capIdx) return false;
     const x = snap.p[snap.owner * SNAP_STRIDE];
     const y = snap.p[snap.owner * SNAP_STRIDE + 1];
     return inMaxZone(x, y, team, pitch, capRole);
+}
+
+/**
+ * Hora da bicuda em algum tick de `from` a `to`: só o chute que o goleiro capitão `capIdx` vai alcançar mesmo (evento
+ * `gkReach`), do chute até um tick antes do toque nele (a ordem vale no começo do tick dela). Chute bloqueado, pra fora,
+ * na trave ou que passa longe dele não acende (Miguel, 30/10/2026).
+ */
+export function bicudaCueNear(events: readonly MatchEvent[], from: number, to: number, capIdx: number): boolean {
+    for (const e of events) {
+        if (e.type === 'gkReach' && e.by === capIdx && e.from <= to && e.tick > from) return true;
+        if (e.tick > to + 200) return false;
+    }
+    return false;
 }
 
 /**

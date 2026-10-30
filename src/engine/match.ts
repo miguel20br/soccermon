@@ -1133,7 +1133,16 @@ function kick(
         setAction(p, bonus ? Action.Shoot : Action.Kick, 0.4);
         p.stats.shots++;
         const xg = expectedGoals(p.pos, goalXFor(s, p.team), s.cfg.pitch.width / 2, s.cfg.pitch.goalWidth);
-        ball.shot = { by: p.idx, xg, moveId, moveType, gkChecked: false, blockedBy: [], onTarget: false };
+        ball.shot = {
+            by: p.idx,
+            tick: s.tick,
+            xg,
+            moveId,
+            moveType,
+            gkChecked: false,
+            blockedBy: [],
+            onTarget: false,
+        };
         if (max && maxFx) {
             if (maxFx.reach !== 1) ball.shot.gkReach = maxFx.reach;
             if (maxFx.save !== 1) ball.shot.gkSave = maxFx.save;
@@ -2317,10 +2326,18 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 fxHit(s, shooter, 'Bug', p.idx);
                 continue;
             }
-            // goleiro capitão com o golpe máximo armado: a bicuda (o parry) devolve a bola; o toque fora gasta a
-            // barra e vira a defesa de sempre desse chute
+            // goleiro capitão: a tela acende a bicuda só nos chutes que ele alcança (este evento). Com o golpe máximo
+            // armado pra este chute, a bicuda (o parry) devolve a bola; o toque fora gasta a barra e vira a defesa de
+            // sempre desse chute
+            if (p.captain) emit(s, { type: 'gkReach', by: p.idx, shooter: shooter.idx, from: shot.tick });
             const arm = s.teams[p.team].agency.max;
-            if (arm?.idx === p.idx && p.captain && bicuda(s, p, shooter, shot, arm)) return;
+            if (
+                arm?.idx === p.idx &&
+                p.captain &&
+                (arm.shot ?? shot.tick) === shot.tick &&
+                bicuda(s, p, shooter, shot, arm)
+            )
+                return;
             const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
             const shotTypeMult = fixed
                 ? 1
@@ -3398,25 +3415,48 @@ export const inMaxZoneOf = (s: MatchState, p: PlayerState, role: Position = p.ro
 
 /**
  * Pede o golpe máximo: com a barra no N1 ou mais, fica armado `maxArmTicks`. O de linha sai no chute da zona (a IA chuta
- * na hora, `AIController.carrier`); o do goleiro vira a bicuda no próximo chute no gol que ele alcança.
+ * na hora, `AIController.carrier`). O do goleiro (a bicuda) só vale na hora dela (o chute do rival no ar, ou o rival com
+ * a bola na zona do goleiro, o chute que vem) e só pra esse chute (`updateMax`): o toque que chega depois do goleiro
+ * alcançar a bola não fica armado pro chute seguinte (Miguel, 30/10/2026).
  */
 function startMax(s: MatchState, team: 0 | 1, q: MaxGrade) {
     const ag = s.teams[team].agency;
     const cap = s.players.find((p) => p.team === team && p.captain);
     if (!cap || ag.max) return;
+    if (cap.role === 'GK' && !rivalShot(s, team)) {
+        const carrier = s.ball.owner === null ? null : s.players[s.ball.owner];
+        if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) return;
+    }
     const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
     if (c.level < 1) return;
     ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, level: c.level as 1 | 2 | 3, q };
 }
 
+/** Chute do rival do time `team` no ar. */
+function rivalShot(s: MatchState, team: 0 | 1): ShotInfo | null {
+    const shot = s.ball.owner === null ? s.ball.shot : null;
+    return shot && s.players[shot.by].team !== team ? shot : null;
+}
+
 /** Nível e nota no evento `max` (a tela mostra "PERFEITO!"). */
 const maxTag = (max: { level: 1 | 2 | 3; q: MaxGrade }) => ({ level: max.level, q: max.q });
 
-/** O pedido que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. */
+/**
+ * O pedido que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. A bicuda prende no 1º chute do rival
+ * e some com ele (bloqueado, pra fora, na trave ou gol sem o goleiro chegar nele).
+ */
 function updateMax(s: MatchState) {
     for (const team of [0, 1] as const) {
         const ag = s.teams[team].agency;
-        if (ag.max && (!s.players[ag.max.idx].captain || s.tick >= ag.max.until)) ag.max = null;
+        const arm = ag.max;
+        if (!arm) continue;
+        const cap = s.players[arm.idx];
+        if (!cap.captain) ag.max = null;
+        else if (cap.role === 'GK' && (arm.shot !== undefined || rivalShot(s, team))) {
+            const shot = rivalShot(s, team);
+            arm.shot ??= shot?.tick;
+            if (shot?.tick !== arm.shot) ag.max = null;
+        } else if (s.tick >= arm.until) ag.max = null;
     }
 }
 
@@ -3895,7 +3935,6 @@ export function snapshot(s: MatchState): MatchSnapshot {
         minute: minuteOf(s),
         phase: s.phase,
         bfx: s.ball.shot?.fx ? fxTypeOf(s.ball.shot.fx) : s.ball.shot?.moveId ? s.ball.shot.moveType : '',
-        ...incoming(s),
         bx: Math.round(s.ball.pos.x * 100) / 100,
         by: Math.round(s.ball.pos.y * 100) / 100,
         bz: Math.round(s.ball.z * 100) / 100,
@@ -3903,12 +3942,6 @@ export function snapshot(s: MatchState): MatchSnapshot {
         score: [s.score[0], s.score[1]],
         p,
     };
-}
-
-/** Chute no alvo que o goleiro ainda não alcançou (a bicuda acende por ele). */
-function incoming(s: MatchState): { shot?: { by: number; max: boolean } } {
-    const shot = s.ball.owner === null ? s.ball.shot : null;
-    return shot?.onTarget && !shot.gkChecked ? { shot: { by: shot.by, max: !!shot.max } } : {};
 }
 
 export { fatigueFactor };

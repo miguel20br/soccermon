@@ -516,21 +516,15 @@ export function runDevDemo() {
             const live = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
             const s = live.state;
             let at: number | null = null;
-            /** Bicuda: o chute do rival vindo no gol (a hora certa), à espera de o goleiro chegar nele. */
-            let incoming: number | null = null;
             while (!live.finished && at === null && s.tick < 6000) {
                 const seen = s.events.length;
                 live.step();
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
                 const cap = s.players.find((p) => p.team === 0 && p.captain);
                 if (gk) {
-                    // vale o chute que o goleiro alcança (sem a bicuda, ele defende: a mesma conta de alcance)
-                    if (incoming !== null && s.events.slice(seen).some((e) => e.type === 'save' && e.by === cap?.idx))
-                        at = incoming;
-                    const shot = s.ball.owner === null ? s.ball.shot : null;
-                    const on = !!shot?.onTarget && !shot.gkChecked && s.players[shot.by].team === 1;
-                    if (!on) incoming = null;
-                    else if (incoming === null && maxCharge(s.events, 0, s.tick, 5).level >= nivel) incoming = s.tick;
+                    // a bicuda: o chute do rival que o goleiro capitão alcança (a hora dela vai do chute até ele)
+                    for (const e of s.events.slice(seen))
+                        if (e.type === 'gkReach' && maxCharge(s.events, 0, e.from, 5).level >= nivel) at = e.from;
                     continue;
                 }
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;

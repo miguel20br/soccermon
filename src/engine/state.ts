@@ -261,6 +261,8 @@ export interface PlayerState {
 
 export interface ShotInfo {
     by: number;
+    /** Tick do chute (a bicuda do goleiro capitão vale só pra ele: `MaxArm.shot`). */
+    tick: number;
     xg: number;
     moveId: string | null;
     moveType: string;
@@ -357,6 +359,8 @@ export interface TeamRuntime {
 export interface MaxArm {
     idx: number;
     until: number;
+    /** Bicuda: o chute do rival (`ShotInfo.tick`) a que o toque vale; acabou o chute, o pedido some sem gastar. */
+    shot?: number;
     level: 1 | 2 | 3;
     q: MaxGrade;
 }
@@ -392,6 +396,11 @@ export type MatchEvent = MatchEventBase &
         | { type: 'skill'; by: number }
         | { type: 'shot'; by: number; xg: number; moveId: string | null }
         | { type: 'save'; by: number; shooter: number; caught: boolean }
+        /**
+         * O goleiro capitão `by` alcançou o chute que saiu no tick `from` (defendendo, com a bicuda ou não): a hora da
+         * bicuda na tela vai de `from` até aqui (`bicudaCueNear`).
+         */
+        | { type: 'gkReach'; by: number; shooter: number; from: number }
         | { type: 'block'; by: number; shooter: number }
         | { type: 'post'; shooter: number }
         | { type: 'wide'; shooter: number }
@@ -598,11 +607,6 @@ export interface MatchSnapshot {
     owner: number;
     /** Tipo do golpe do chute em andamento (rastro colorido na bola), ou ''. */
     bfx: string;
-    /**
-     * Chute no alvo a caminho do goleiro (ele ainda não chegou nela): quem chutou e se é golpe máximo. A bicuda
-     * acende por aqui (`maxCue`).
-     */
-    shot?: { by: number; max: boolean };
     score: [number, number];
     p: number[];
 }

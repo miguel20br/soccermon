@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, maxCharge, maxCue } from './agency';
+import { AGENCY, bicudaCueNear, maxCharge } from './agency';
 import { type Command, IDLE } from './commands';
 import { FUTSAL_5 } from './config';
 import { SPECIES } from './data';
 import { aiDraftTeam } from './draft';
 import { createInstance } from './instance';
-import { applyAgencyOrder, createMatch, maxFxType, snapshot, step } from './match';
+import { applyAgencyOrder, createMatch, maxFxType, step } from './match';
 import { Rng } from './rng';
 import { validOrder } from './runners/live-runner';
 import type { MatchEvent, MatchState, TeamSetup } from './state';
@@ -152,7 +152,7 @@ describe('golpe máximo universal (motor 17)', () => {
  * Bicuda: o rival (idx 9) chuta de 8 m no gol do time 0; o goleiro capitão (idx 0) tem o golpe armado no nível e na nota
  * pedidos (`level` null: sem nada armado). `cap`: quem é o capitão do time 0 (0 = o goleiro).
  */
-function bicudaScene(level: 1 | 2 | 3 | null, seed: string, q: 0 | 1 | 2 = 2, cap = 0) {
+function bicudaScene(level: 1 | 2 | 3 | null, seed: string, q: 0 | 1 | 2 = 2, cap = 0, wall = false) {
     const A = team('gu-bi-a');
     const B = team('gu-bi-b');
     const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[cap].uid }, B, seed);
@@ -162,15 +162,27 @@ function bicudaScene(level: 1 | 2 | 3 | null, seed: string, q: 0 | 1 | 2 = 2, ca
         p.pos = spots[i] ?? v(8, 10);
         p.vel = v(0, 0);
     });
+    // `wall`: o fixo (idx 1) na frente do chute, pra bloquear
+    if (wall) s.players[1].pos = v(4, 10);
+    if (level) s.teams[0].agency.max = { idx: cap, until: 200, level, q };
+    rivalShoots(s);
+    return s;
+}
+
+/** O rival (idx 9) chuta de 8 m no meio do gol do time 0 e o lance roda até o desfecho (bicuda, defesa, gol ou bloqueio). */
+function rivalShoots(s: MatchState) {
+    const seen = s.events.length;
+    const done = () => s.events.slice(seen).some((e) => ['max', 'save', 'goal', 'block'].includes(e.type));
     s.players[9].pos = v(8, 10);
+    s.players[9].kickCooldown = 0;
     s.ball.owner = 9;
     s.ball.pos = v(7.7, 10);
-    if (level) s.teams[0].agency.max = { idx: cap, until: 200, level, q };
+    s.ball.vel = v(0, 0);
+    s.ball.shot = null;
     const cmds = IDLE_ALL(s);
     cmds[9] = { type: 'shoot', target: v(0, 10), power: 1 };
     step(s, cmds);
-    for (let i = 0; i < 30 && !of(s, 'max').length && !of(s, 'save').length && !of(s, 'goal').length; i++) idle(s, 1);
-    return s;
+    for (let i = 0; i < 30 && !done(); i++) idle(s, 1);
 }
 
 /** Lances (seeds) em que o goleiro alcançou o chute: defendeu, deu a bicuda ou tentou. */
@@ -268,14 +280,67 @@ describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)
         expect(of(s, 'max')).toHaveLength(0);
     });
 
-    it('botão: a hora da bicuda acende com qualquer chute do rival vindo no gol (golpe máximo ou não)', () => {
-        const s = shoot({ level: 1, seed: 'gu-cue' });
-        const snap = snapshot(s);
-        expect(snap.shot).toEqual({ by: 4, max: true });
-        expect(maxCue(snap, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(true);
-        expect(maxCue(snap, 0, 0, 'GK', FUTSAL_5.pitch)).toBe(false);
-        expect(maxCue({ ...snap, shot: { by: 4, max: false } }, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(true);
-        // depois do goleiro, nada aceso
-        expect(maxCue({ ...snap, shot: undefined }, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(false);
+    it('botão: a bicuda acende só no chute que o goleiro capitão vai alcançar, do chute até o toque nele', () => {
+        // alcançou (golpe máximo do rival ou não): o evento `gkReach` marca a hora, do chute até um tick antes do toque
+        for (const s of reached(null, 'cue', 2, 0, 10)) {
+            const reach = of(s, 'gkReach')[0];
+            const shot = of(s, 'shot').find((e) => e.by === 9)!;
+            expect(reach).toMatchObject({ by: 0, shooter: 9, from: shot.tick });
+            expect(bicudaCueNear(s.events, shot.tick, shot.tick, 0)).toBe(true);
+            expect(bicudaCueNear(s.events, reach.tick - 1, reach.tick - 1, 0)).toBe(true);
+            // depois do toque, e antes do chute, apagado; e nunca pro goleiro do rival
+            expect(bicudaCueNear(s.events, reach.tick, reach.tick + 20, 0)).toBe(false);
+            expect(bicudaCueNear(s.events, 0, shot.tick - 1, 0)).toBe(false);
+            expect(bicudaCueNear(s.events, 0, 999, 5)).toBe(false);
+        }
+        // bloqueado antes de chegar nele: não acende
+        let blocked = 0;
+        for (let k = 0; k < 40; k++) {
+            const s = bicudaScene(null, `gu-bi-wall-${k}`, 2, 0, true);
+            if (!of(s, 'block').some((e) => e.by === 1)) continue;
+            blocked++;
+            expect(of(s, 'gkReach')).toHaveLength(0);
+            expect(bicudaCueNear(s.events, 0, s.tick, 0)).toBe(false);
+        }
+        expect(blocked).toBeGreaterThan(0);
+        // goleiro que não é capitão: sem o evento
+        for (let k = 0; k < 5; k++) expect(of(bicudaScene(null, `gu-bi-nc-${k}`, 2, 4), 'gkReach')).toHaveLength(0);
+    });
+
+    it('o toque vale só pra aquele chute: bloqueado, o pedido some sem gastar e o chute seguinte é defesa normal', () => {
+        let seen = 0;
+        for (let k = 0; k < 40 && seen < 3; k++) {
+            const s = bicudaScene(2, `gu-bi-once-${k}`, 2, 0, true);
+            if (!of(s, 'block').some((e) => e.by === 1)) continue;
+            seen++;
+            idle(s, 1);
+            expect(s.teams[0].agency.max).toBeNull();
+            // o fixo sai da frente; o 2º chute chega no goleiro sem bicuda (antes ficava armada 5 s e saía aqui)
+            s.players[1].pos = v(30, 3);
+            for (let n = 0; n < 10 && !of(s, 'gkReach').length; n++) rivalShoots(s);
+            expect(of(s, 'gkReach').length).toBeGreaterThan(0);
+            expect(of(s, 'max')).toHaveLength(0);
+        }
+        expect(seen).toBeGreaterThan(0);
+    });
+
+    it('a ordem da bicuda só arma na hora dela (o chute do rival no ar ou o rival com a bola na zona do goleiro)', () => {
+        const A = team('gu-bi-a');
+        const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[0].uid }, team('gu-bi-b'), 'gu-bi-hora');
+        s.phase = 'play';
+        // barra no N1 (10 defesas do time 0)
+        for (let i = 0; i < 10; i++)
+            s.events.push({ tick: 0, half: 1, minute: 0, type: 'save', by: 0, shooter: 9, caught: true });
+        expect(maxCharge(s.events, 0, 0).level).toBe(1);
+        const order = { tick: 0, team: 0 as const, kind: 'max' as const, q: 2 as const };
+        // bola do rival longe do gol do time 0: o toque (atrasado) não arma nada pro próximo chute
+        s.ball.owner = 9;
+        s.players[9].pos = v(30, 10);
+        applyAgencyOrder(s, order);
+        expect(s.teams[0].agency.max).toBeNull();
+        // o rival na zona do goleiro: arma
+        s.players[9].pos = v(8, 10);
+        applyAgencyOrder(s, order);
+        expect(s.teams[0].agency.max).toMatchObject({ idx: 0, level: 1 });
     });
 });

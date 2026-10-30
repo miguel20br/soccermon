@@ -731,6 +731,7 @@ export class MatchScene extends Phaser.Scene {
             if (c.level < 1) return false;
             return maxCueNear(
                 this.snaps,
+                this.matchEvents,
                 Math.floor(this.playTick) - MAX_CUE_LATCH,
                 Math.floor(this.playTick) + ahead,
                 team,
