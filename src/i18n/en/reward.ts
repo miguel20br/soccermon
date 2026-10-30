@@ -10,6 +10,7 @@ export const reward: typeof pt = {
     chooseRival: 'Sign 1 from the rival',
     skipRival: 'Skip',
     tipRival: 'You won! Sign 1 from the rival. The prize comes next.',
+    tipPrize: "Now the space's prize. Skipping gives +1 reroll.",
     reroll: 'Reroll ({n})',
     skip: 'Skip (+1 reroll)',
     tip: 'You won! Take a rival Pokémon, an item or a TM. Skipping gives +1 reroll.',

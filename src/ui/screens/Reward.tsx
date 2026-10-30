@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ROTA_RULES } from '../../engine/cup-map';
 import { formationOf } from '../../engine/formations';
 import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
@@ -54,6 +55,8 @@ export function Reward() {
     const mons = run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []));
     // treino de técnica da Rota (ninguém evolui): pacote do treino, só itens
     const training = isLong(run) && !run.group && currentNode(run)?.kind === 'treino';
+    // Rota: depois do 1 de 3 do rival vem o prêmio da casa (MT, item), sem Pokémon do rival
+    const rotaPrize = isLong(run) && !run.group && ROTA_RULES.rivalEveryJogo && !run.rivalPick;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
@@ -164,7 +167,11 @@ export function Reward() {
                 </div>
             </CardPack>
             {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
-            {!reward && !training && <Tip id="reward-pick">{t(run.rivalPick ? 'reward.tipRival' : 'reward.tip')}</Tip>}
+            {!reward && !training && (
+                <Tip id="reward-pick">
+                    {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
+                </Tip>
+            )}
 
             {reward && (
                 <GainTarget

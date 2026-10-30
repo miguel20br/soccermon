@@ -11,6 +11,7 @@ export const reward = {
     chooseRival: 'Contrate 1 do rival',
     skipRival: 'Pular',
     tipRival: 'Ganhou! Contrate 1 do rival. Depois vem o prêmio da casa.',
+    tipPrize: 'Agora o prêmio da casa. Pular dá +1 sorteio.',
     reroll: 'Sortear de novo ({n})',
     skip: 'Pular (+1 sorteio)',
     tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',

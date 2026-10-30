@@ -9,6 +9,38 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.29',
+        date: '2026-10-31',
+        title: 'Rota nova',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Cada ramo do mapa tem os seus tipos, e todo Jogo mostra o prêmio antes de você ir',
+                    'Toda vitória num Jogo contrata 1 de 3 do time rival, e depois vem o prêmio da casa',
+                    'Ginásio mais difícil (rival +2), com a carta do líder garantida, a MT dele e um item',
+                    'Até 2 Mercados por caminho, e a linha do Baú pode ser um Centro Pokémon, que tira o amarelo ou traz de volta quem estava fora',
+                    'Eventos novos: Fósseis do Mt. Moon, Pássaro lendário, Assalto da Equipe Rocket, Aposta do Blue, Juiz da Liga e Ovo da Creche',
+                    'Nos eventos e no Treino, tocar marca e um botão confirma',
+                ],
+            },
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Os três modos em fatias, estilo tela de seleção de luta, com o seu capitão saindo da borda',
+                    'O Modo Treinador agora se chama Time Ultimate, e os modos que ainda não chegaram mostram a data',
+                ],
+            },
+            {
+                title: 'Pênaltis',
+                lines: [
+                    'Na ordem dos cobradores, cada um mostra o chute',
+                    'No celular, a câmera da disputa não corta mais o gol',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.28',
         date: '2026-10-30',
         title: 'Golpe caprichado',
@@ -1978,6 +2010,38 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.29',
+        date: '2026-10-31',
+        title: 'New Route',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Each branch of the map has its own types, and every Match shows its prize before you go',
+                    "Every Match win signs 1 of 3 from the rival team, then comes the space's prize",
+                    "Tougher Gym (rival +2), with the leader's card guaranteed, their TM and an item",
+                    'Up to 2 Markets per path, and the Chest row can be a Pokémon Center that clears the yellow card or brings back who was out',
+                    "New events: Mt. Moon Fossils, Legendary bird, Team Rocket ambush, Blue's bet, League referee and Day Care Egg",
+                    'In events and Training, a tap selects and a button confirms',
+                ],
+            },
+            {
+                title: 'Mode menu',
+                lines: [
+                    'The three modes as slices, fighting-game select style, with your captain popping out',
+                    'Trainer Mode is now Team Ultimate, and the modes that are not out yet show their date',
+                ],
+            },
+            {
+                title: 'Penalties',
+                lines: [
+                    "The taker order shows each one's shooting",
+                    'On phones, the shootout camera no longer cuts off the goal',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.28',
         date: '2026-10-30',

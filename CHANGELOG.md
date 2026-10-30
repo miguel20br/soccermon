@@ -1,5 +1,23 @@
 # Novidades
 
+## 0.9.29 · Rota nova (2026-10-31)
+
+### Rota Índigo
+- Cada ramo do mapa tem os seus tipos, e todo Jogo mostra o prêmio antes de você ir
+- Toda vitória num Jogo contrata 1 de 3 do time rival, e depois vem o prêmio da casa
+- Ginásio mais difícil (rival +2), com a carta do líder garantida, a MT dele e um item
+- Até 2 Mercados por caminho, e a linha do Baú pode ser um Centro Pokémon, que tira o amarelo ou traz de volta quem estava fora
+- Eventos novos: Fósseis do Mt. Moon, Pássaro lendário, Assalto da Equipe Rocket, Aposta do Blue, Juiz da Liga e Ovo da Creche
+- Nos eventos e no Treino, tocar marca e um botão confirma
+
+### Menu de modos
+- Os três modos em fatias, estilo tela de seleção de luta, com o seu capitão saindo da borda
+- O Modo Treinador agora se chama Time Ultimate, e os modos que ainda não chegaram mostram a data
+
+### Pênaltis
+- Na ordem dos cobradores, cada um mostra o chute
+- No celular, a câmera da disputa não corta mais o gol
+
 ## 0.9.28 · Golpe caprichado (2026-10-30)
 
 ### Golpe máximo
