@@ -956,6 +956,10 @@ button.mm-card,
     inset: 0;
     z-index: 5;
     pointer-events: none;
+}
+/* só o do Blue é contêiner (o balão mede a fatia): no capitão e no pacote, contêiner que muda de tamanho ao abrir a
+   fatia refazia o estilo do pacote e da carta inteiros; as medidas deles vão em % da caixa do herói (= a fatia) */
+.mm-hero-historia {
     container-type: size;
 }
 .mm-cap {
@@ -976,7 +980,7 @@ button.mm-card,
     left: var(--hx, 70%);
     top: auto;
     bottom: var(--hb, 10%);
-    height: var(--hh, 60cqh);
+    height: var(--hh, 60%);
 }
 .mm-hero .mm-blue {
     left: var(--hx, 80%);
@@ -1080,7 +1084,7 @@ button.mm-card,
 .mm-c1 .mm-s-ultimate {
     --hx: 80%;
     --hb: calc(var(--cut) * 0.6);
-    --hh: min(calc(100cqh - var(--cut) * 0.3), 150px);
+    --hh: min(calc(100% - var(--cut) * 0.3), 150px);
 }
 .mm-c1 .mm-s-historia {
     --hx: 86%;
@@ -1134,7 +1138,7 @@ button.mm-card,
 .mm-c2 .mm-s-ultimate {
     margin-right: calc(-1 * var(--sl));
     /* o pacote mais a carta subindo (um terço a mais) cabem na fatia: a ponta da carta só encosta na divisória */
-    --hh: min(calc((100cqh - var(--hb)) / 1.3), 170px);
+    --hh: min(calc((100% - var(--hb)) / 1.3), 170px);
     --clip: polygon(
         0 calc(var(--cut) + var(--g)),
         calc(100% - var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
@@ -1232,7 +1236,7 @@ button.mm-card,
     }
     .mm-c2 .mm-s-ultimate {
         --hb: 84px;
-        --hh: min(calc((100cqh - var(--hb)) / 1.3), 120px);
+        --hh: min(calc((100% - var(--hb)) / 1.3), 120px);
     }
     .mm-c2 .mm-s-ultimate.on {
         --hb: 150px;
@@ -1342,14 +1346,14 @@ button.mm-card,
     .mm-c2 .mm-s-ultimate,
     .mm-c2 .mm-s-ultimate.on {
         --hx: 50%;
-        --hb: calc(var(--sb) + 4cqh);
-        --hh: min(42cqh, calc((96cqh - var(--sb)) * 0.75));
+        --hb: calc(var(--sb) + 4%);
+        --hh: min(42%, calc((96% - var(--sb)) * 0.75));
     }
     /* aberta (larga), o pacote vai pra direita do nome e dos itens, com os raios atrás */
     .mm-c1 .mm-s-ultimate.on,
     .mm-c2 .mm-s-ultimate.on {
         --hx: 74%;
-        --hh: min(56cqh, calc((96cqh - var(--sb)) * 0.75));
+        --hh: min(56%, calc((96% - var(--sb)) * 0.75));
     }
     .mm-c1 .mm-s-atual .mm-sc-atual,
     .mm-c2 .mm-s-atual .mm-sc-atual {

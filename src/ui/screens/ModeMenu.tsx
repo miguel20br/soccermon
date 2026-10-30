@@ -373,8 +373,8 @@ export function Chips({ id }: { id: ModeId }) {
     );
 }
 
-/** O topo: logo, o treinador, Novidades, Ajuda e a engrenagem (o mesmo canto da Home). */
-export function Head() {
+/** O topo: logo, o treinador, Novidades, Ajuda e a engrenagem (o mesmo canto da Home). Memo: abrir uma fatia não refaz o topo. */
+export const Head = memo(function Head() {
     return (
         <header className="mm-top k-topbar" style={{ '--n': 0 } as CSSProperties}>
             {/* celular em pé: o logo inteiro ficaria abaixo dos 120 px do guia; lá vai o símbolo */}
@@ -386,12 +386,16 @@ export function Head() {
             <TopActions help={() => openPage('help')} profile={false} />
         </header>
     );
-}
+});
 
-/** Quadros de uma animação FLIP: `at(e)` com `e` de 1 (a foto velha) a 0 (o layout novo), no ease-out do jogo. */
-const FLIP_STEPS = 12;
-function flipFrames(at: (e: number) => string): Keyframe[] {
-    return Array.from({ length: FLIP_STEPS + 1 }, (_, k) => ({ transform: at((1 - k / FLIP_STEPS) ** 4) }));
+/**
+ * Quadros de uma animação FLIP: `at(e)` com `e` de 1 (a posição velha) a 0 (o layout novo), em ease-out quártico. Com
+ * `steps`, a curva vai amostrada nos quadros (a escala inversa da cena só fecha conta assim); sem, dois quadros e a
+ * mesma curva no `easing` (QUART).
+ */
+const QUART = 'cubic-bezier(0.25, 1, 0.5, 1)';
+function flipFrames(at: (e: number) => string, steps = 1): Keyframe[] {
+    return Array.from({ length: steps + 1 }, (_, k) => ({ transform: at((1 - k / steps) ** (steps > 1 ? 4 : 1)) }));
 }
 
 /**
@@ -423,16 +427,17 @@ function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void)
     const before = parts.map((p) => ({ bg: box(p.bg), mark: box(p.mark), plate: box(p.plate) }));
     for (const a of running) a.cancel();
     apply();
+    // todas as medidas antes de criar qualquer animação (ler depois de um animate() refaz o estilo a cada leitura)
+    const after = parts.map((p) => ({ bg: box(p.bg), mark: box(p.mark), hero: box(p.hero), plate: box(p.plate) }));
     const out: Animation[] = [];
-    const opts: KeyframeAnimationOptions = { duration: 280, easing: 'linear' };
     const go = (el: HTMLElement, frames: Keyframe[], origin = '0 0') => {
         frames[0].transformOrigin = origin;
         frames[frames.length - 1].transformOrigin = origin;
-        out.push(el.animate(frames, opts));
+        out.push(el.animate(frames, { duration: 280, easing: frames.length > 2 ? 'linear' : QUART }));
     };
     for (const p of parts) {
         const a = before[p.i];
-        const bg = box(p.bg);
+        const { bg, mark, hero, plate } = after[p.i];
         if (p.bg && a.bg && bg?.width && bg.height) {
             const sx = a.bg.width / bg.width;
             const sy = a.bg.height / bg.height;
@@ -442,7 +447,7 @@ function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void)
                 const lerp = (e: number, v: number) => 1 + (v - 1) * e;
                 go(
                     p.bg,
-                    flipFrames((e) => `translate(${dx * e}px, ${dy * e}px) scale(${lerp(e, sx)}, ${lerp(e, sy)})`),
+                    flipFrames((e) => `translate(${dx * e}px, ${dy * e}px) scale(${lerp(e, sx)}, ${lerp(e, sy)})`, 8),
                 );
                 // a cena presa no canto de fora: o Copa em cima e à esquerda, o do meio embaixo, o último embaixo e à direita
                 const ax = ([0, 0.5, 1][p.i] ?? 0.5) * (bg.width / z);
@@ -454,12 +459,10 @@ function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void)
                             const ix = 1 / lerp(e, sx);
                             const iy = 1 / lerp(e, sy);
                             return `translate(${ax * (1 - ix)}px, ${ay * (1 - iy)}px) scale(${ix}, ${iy})`;
-                        }),
+                        }, 8),
                     );
             }
         }
-        const mark = box(p.mark);
-        const hero = box(p.hero);
         if (p.hero && a.mark && mark && hero) {
             // o herói vai de onde estava: a marca (o pé do capitão, o pacote, o Blue) volta pro lugar e tamanho velhos
             const s = mark.height && a.mark.height ? a.mark.height / mark.height : 1;
@@ -471,7 +474,6 @@ function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void)
                     flipFrames((e) => `translate(${tx * e}px, ${ty * e}px) scale(${1 + (s - 1) * e})`),
                 );
         }
-        const plate = box(p.plate);
         if (p.txt && p.plate && a.plate && plate) {
             // o nome: a placa (pelo centro) volta pro lugar e tamanho velhos; o resto do texto vai junto
             const dx = (a.plate.left + a.plate.width / 2 - plate.left - plate.width / 2) / z;
