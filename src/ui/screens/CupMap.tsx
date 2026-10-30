@@ -703,11 +703,12 @@ export function EventScreen() {
                     </h2>
                     <h3>{t(sale ? 'longCup.pickSub' : 'longCup.pickWho')}</h3>
                     {strip(targets, setWho, who, face)}
+                    {/* o novo capitão entra animado (e de novo a cada troca de reserva: a escalação muda) */}
                     {sale && who && (
-                        <>
+                        <div key={who} className="cm-bar-in">
                             <h3>{t('longCup.pickCaptain')}</h3>
                             {strip(lineupAfter, setCaptain, captain)}
-                        </>
+                        </div>
                     )}
                 </div>
             )}
