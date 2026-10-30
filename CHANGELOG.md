@@ -26,6 +26,9 @@
 - O mapa da Rota contava a partida de dois jeitos diferentes
 - A barra da copa não some mais ao rolar o mapa
 - A Ajuda e os Créditos voltam pra tela de onde você abriu
+- Vender o capitão que estava no banco deixava um fantasma no time
+- Com o celular deitado, o botão de ir pra casa do mapa da Rota ficava fora da tela
+- A Final mostrava o nome do Planalto Índigo em inglês
 
 ## 0.9.27 · Modos de jogo (2026-10-30)
 
