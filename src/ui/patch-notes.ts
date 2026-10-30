@@ -9,6 +9,40 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.27',
+        date: '2026-10-30',
+        title: 'Modos de jogo',
+        sections: [
+            {
+                title: 'Modos de jogo',
+                lines: [
+                    'Quem já jogou começa num menu de modos: Modo Copa (tudo o que já existe), Modo Treinador (chega no fim de novembro) e Modo História (2027)',
+                ],
+            },
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Um anel fecha uma vez no ritmo da música: toque quando ele encostar. Cada nível tem cara e som próprios, e o perfeito tem som de perfeito',
+                    'Na hora do golpe a música abaixa e a quadra desacelera',
+                    'Chame o capitão: o botão acende em todo ataque do seu time e a bola procura ele. O fixo chamado conduz até a zona e chuta de lá',
+                    'O pivô solta o golpe de mais longe, igual ao ala',
+                    'A defesa máxima só gasta a barra quando defende: sem chute, a barra volta inteira. O goleiro capitão usa no N3',
+                ],
+            },
+            {
+                title: 'Sede e Laboratório',
+                lines: [
+                    'Os Pokémon desviam dos móveis e param de vez em quando',
+                    'Toque várias vezes seguidas num Pokémon e ele cai de costas',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['O Mew shiny do seu treinador aparece shiny no mapa da Rota'],
+            },
+        ],
+    },
+    {
         version: '0.9.26',
         date: '2026-10-29',
         title: 'Escudos',
@@ -1897,6 +1931,40 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.27',
+        date: '2026-10-30',
+        title: 'Game modes',
+        sections: [
+            {
+                title: 'Game modes',
+                lines: [
+                    'If you have played before, you start at a mode menu: Cup Mode (everything that exists today), Trainer Mode (coming late November) and Story Mode (2027)',
+                ],
+            },
+            {
+                title: 'Max move',
+                lines: [
+                    'A ring closes once to the beat of the music: tap when it lands. Each level has its own look and sound, and a perfect sounds like one',
+                    'When the max move comes, the music dips and the court slows down',
+                    'Call your captain: the button lights up on every attack and the ball looks for them. A called fixo carries the ball to their zone and shoots from there',
+                    'The pivô unleashes it from farther out, like the ala',
+                    'The max save only spends the bar when it saves: with no shot, the bar comes back full. A keeper captain uses it at L3',
+                ],
+            },
+            {
+                title: 'Club and Lab',
+                lines: [
+                    'Pokémon walk around the furniture and stop now and then',
+                    'Tap a Pokémon many times in a row and it falls on its back',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: ["Your trainer's shiny Mew shows up shiny on the Road map"],
+            },
+        ],
+    },
     {
         version: '0.9.26',
         date: '2026-10-29',

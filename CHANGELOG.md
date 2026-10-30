@@ -1,5 +1,24 @@
 # Novidades
 
+## 0.9.27 · Modos de jogo (2026-10-30)
+
+### Modos de jogo
+- Quem já jogou começa num menu de modos: Modo Copa (tudo o que já existe), Modo Treinador (chega no fim de novembro) e Modo História (2027)
+
+### Golpe máximo
+- Um anel fecha uma vez no ritmo da música: toque quando ele encostar. Cada nível tem cara e som próprios, e o perfeito tem som de perfeito
+- Na hora do golpe a música abaixa e a quadra desacelera
+- Chame o capitão: o botão acende em todo ataque do seu time e a bola procura ele. O fixo chamado conduz até a zona e chuta de lá
+- O pivô solta o golpe de mais longe, igual ao ala
+- A defesa máxima só gasta a barra quando defende: sem chute, a barra volta inteira. O goleiro capitão usa no N3
+
+### Sede e Laboratório
+- Os Pokémon desviam dos móveis e param de vez em quando
+- Toque várias vezes seguidas num Pokémon e ele cai de costas
+
+### Corrigido
+- O Mew shiny do seu treinador aparece shiny no mapa da Rota
+
 ## 0.9.26 · Escudos (2026-10-29)
 
 ### Amigos
