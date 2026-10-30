@@ -9,6 +9,50 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.28',
+        date: '2026-10-30',
+        title: 'Golpe caprichado',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'O anel agora fecha em cima de um anel-alvo parado, que acende na hora do perfeito',
+                    'O toque responde na hora: no perfeito, clarão, estrelas, moedas e a quadra treme',
+                    'Sons novos para o toque e para cada nível',
+                    'O N3 chega mais rápido: cada nível da barra pede 10 pontos em vez de 12',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Música nova nos menus, mais calma e com o SOC-CER-MON de leve',
+                    'O logo pisca o SOC-CER-MON no ritmo da música em todas as telas',
+                    'Toda tela de menu tem a mesma barra em cima, com o voltar sempre no mesmo lugar, e o treinador ficou maior',
+                    'As Novidades ficam no canto de cima, com um pontinho quando sai versão nova',
+                    'No Estádio, cada modo tem a sua placa em cima do JOGAR',
+                    'Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede',
+                    'O Duelo ganhou a cara das outras telas de menu',
+                    'A bola de futsal virou o símbolo das taças e dos escudos',
+                ],
+            },
+            {
+                title: 'Mais leve',
+                lines: [
+                    'A partida e a Rota gastam bem menos processador no celular, e os menus usam metade da memória',
+                    'O jogo abre mais rápido',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'O mapa da Rota contava a partida de dois jeitos diferentes',
+                    'A barra da copa não some mais ao rolar o mapa',
+                    'A Ajuda e os Créditos voltam pra tela de onde você abriu',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.27',
         date: '2026-10-30',
         title: 'Modos de jogo',
@@ -1931,6 +1975,50 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.28',
+        date: '2026-10-30',
+        title: 'Polished max move',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'The ring now closes onto a fixed target ring that lights up at the perfect moment',
+                    'Your tap answers right away: on a perfect, a flash, stars, coins and the court shakes',
+                    'New sounds for the tap and for each level',
+                    'L3 comes sooner: each level of the bar takes 10 points instead of 12',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'New menu music, calmer, with a light SOC-CER-MON',
+                    'The logo flashes SOC-CER-MON to the beat on every screen',
+                    'Every menu screen has the same top bar, with back always in the same spot, and the trainer badge is bigger',
+                    'News lives in the top corner, with a dot when a new version is out',
+                    'In the Stadium, each mode has its own tile above PLAY',
+                    'From the Club, a door opens to the Trophy room, and back returns to the Club',
+                    'Duel now looks like the other menu screens',
+                    'The futsal ball is now the symbol on trophies and crests',
+                ],
+            },
+            {
+                title: 'Lighter',
+                lines: [
+                    'Matches and the Indigo Road use much less CPU on phones, and the menus use half the memory',
+                    'The game opens faster',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The Indigo Road map counted the match in two different ways',
+                    'The cup bar no longer scrolls away on the map',
+                    'Help and Credits go back to the screen you opened them from',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.27',
         date: '2026-10-30',

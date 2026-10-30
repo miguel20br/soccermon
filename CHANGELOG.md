@@ -1,5 +1,32 @@
 # Novidades
 
+## 0.9.28 · Golpe caprichado (2026-10-30)
+
+### Golpe máximo
+- O anel agora fecha em cima de um anel-alvo parado, que acende na hora do perfeito
+- O toque responde na hora: no perfeito, clarão, estrelas, moedas e a quadra treme
+- Sons novos para o toque e para cada nível
+- O N3 chega mais rápido: cada nível da barra pede 10 pontos em vez de 12
+
+### Menus
+- Música nova nos menus, mais calma e com o SOC-CER-MON de leve
+- O logo pisca o SOC-CER-MON no ritmo da música em todas as telas
+- Toda tela de menu tem a mesma barra em cima, com o voltar sempre no mesmo lugar, e o treinador ficou maior
+- As Novidades ficam no canto de cima, com um pontinho quando sai versão nova
+- No Estádio, cada modo tem a sua placa em cima do JOGAR
+- Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede
+- O Duelo ganhou a cara das outras telas de menu
+- A bola de futsal virou o símbolo das taças e dos escudos
+
+### Mais leve
+- A partida e a Rota gastam bem menos processador no celular, e os menus usam metade da memória
+- O jogo abre mais rápido
+
+### Corrigido
+- O mapa da Rota contava a partida de dois jeitos diferentes
+- A barra da copa não some mais ao rolar o mapa
+- A Ajuda e os Créditos voltam pra tela de onde você abriu
+
 ## 0.9.27 · Modos de jogo (2026-10-30)
 
 ### Modos de jogo
