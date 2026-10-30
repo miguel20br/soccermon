@@ -31,7 +31,7 @@ export const AGENCY = {
      * toque gasta a barra toda e o golpe sai no nível dela; depois volta a encher. Índice = nível (o 0 não solta). N2 =
      * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute.
      * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
-     * Miguel 26/10/2026): 57% ⇒ 82% de gol; o parry do goleiro rival ainda tira (motor 17). Gomo de 12 ⇒ 10 (motor
+     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a bicuda do goleiro capitão rival ainda tira (motor 17). Gomo de 12 ⇒ 10 (motor
      * 16, Miguel 30/10/2026: "raramente chega no N3"): N3 por jogo 0,16 ⇒ 0,36, gols 8,16 ⇒ 8,20 (`calibrate --agencia`).
      */
     maxLevelPts: 10,
@@ -75,11 +75,6 @@ export const AGENCY = {
      * fração da curva do Psíquico (`maxType.curve`). O N3 Psíquico fica com a curva dele, sem somar.
      */
     maxCurve: 0.5,
-    /**
-     * Parry (motor 17): o goleiro rebate o golpe máximo do rival. Perfeito toca pro companheiro mais à frente; bom
-     * espalma pra frente e pro lado, sem dono, a `parrySpeed` m/s. Sem recarga: o golpe máximo já é raro (~1 por jogo).
-     */
-    parrySpeed: 10,
     /**
      * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
      * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no
@@ -291,10 +286,6 @@ export function maxCue(
     const y = snap.p[snap.owner * SNAP_STRIDE + 1];
     return inMaxZone(x, y, team, pitch, capRole);
 }
-
-/** Botão do parry (qualquer goleiro, motor 17): aceso enquanto o golpe máximo do rival vem no nosso gol. */
-export const parryCue = (snap: Pick<MatchSnapshot, 'phase' | 'shot'>, team: 0 | 1, teamSize = 5) =>
-    snap.phase === 'play' && !!snap.shot?.max && (snap.shot.by < teamSize ? 0 : 1) !== team;
 
 /**
  * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de

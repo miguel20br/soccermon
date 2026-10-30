@@ -106,12 +106,10 @@ export type AgencyOrder =
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
     /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
     | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
-    /** Parry do goleiro contra o golpe máximo do rival que vem no gol (motor 17; `q` como no `max`). */
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'parry'; q?: MaxGrade }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
 export type AgencyKind = AgencyOrder['kind'];
 export type MaxGrade = 0 | 1 | 2;
-export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'parry', 'penalties'];
+export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties'];
 
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
 export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder | AgencyOrder;
@@ -284,8 +282,6 @@ export interface ShotInfo {
     decoy?: boolean;
     /** Golpe máximo (motor 17): o nível e o tipo do status que ele passa em quem bloqueia ou defende (`AGENCY.maxStatus`). */
     max?: { level: 1 | 2 | 3; status: string | null };
-    /** Parry pedido pelo goleiro rival contra este golpe máximo (a nota do toque). */
-    parry?: MaxGrade;
     /** Dragão: sem vantagem de tipo pra nenhum lado. */
     typeless?: boolean;
 }
@@ -498,8 +494,9 @@ export type MatchEvent = MatchEventBase &
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
         /**
-         * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a bicuda do goleiro). Desde o motor 17 o motor só
-         * solta `hit`: `start` e `miss` eram da defesa máxima, que saiu (a tela ainda lê; TODO tirar na fase da tela).
+         * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a bicuda do goleiro). Desde o motor 17 o motor solta
+         * `hit` e `miss` (a bicuda com o toque fora: gasta a barra e vira a defesa de sempre); `start` era da defesa
+         * máxima, que saiu (a tela ainda lê; TODO tirar na fase da tela).
          */
         | {
               type: 'max';
@@ -516,11 +513,6 @@ export type MatchEvent = MatchEventBase &
          * pega alguém (`target`: o goleiro na isca, quem levou o raio, o capitão em fúria…).
          */
         | { type: 'maxFx'; by: number; fx: string; step: 'shot' | 'hit'; target: number | null }
-        /**
-         * Parry do goleiro `by` no golpe máximo de `shooter` (motor 17): `q` 2 rebate pro companheiro `to`, 1 pra frente
-         * sem dono, 0 vira a defesa de sempre.
-         */
-        | { type: 'parry'; team: 0 | 1; by: number; shooter: number; q: MaxGrade; to: number | null }
         /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
         | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );
@@ -607,8 +599,8 @@ export interface MatchSnapshot {
     /** Tipo do golpe do chute em andamento (rastro colorido na bola), ou ''. */
     bfx: string;
     /**
-     * Chute no alvo a caminho do goleiro (ele ainda não chegou nela): quem chutou e se é golpe máximo. A bicuda e o
-     * parry acendem por aqui (`maxCue`, `parryCue`).
+     * Chute no alvo a caminho do goleiro (ele ainda não chegou nela): quem chutou e se é golpe máximo. A bicuda
+     * acende por aqui (`maxCue`).
      */
     shot?: { by: number; max: boolean };
     score: [number, number];

@@ -2317,14 +2317,10 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 fxHit(s, shooter, 'Bug', p.idx);
                 continue;
             }
-            // goleiro capitão com o golpe máximo armado: a bicuda devolve a bola
+            // goleiro capitão com o golpe máximo armado: a bicuda (o parry) devolve a bola; o toque fora gasta a
+            // barra e vira a defesa de sempre desse chute
             const arm = s.teams[p.team].agency.max;
-            if (arm?.idx === p.idx && p.captain) {
-                bicuda(s, p, shooter, shot, arm);
-                return;
-            }
-            // parry no golpe máximo do rival: perfeito e bom rebatem; fora vira a defesa de sempre
-            if (shot.parry !== undefined && parry(s, p, shooter, shot, contact)) return;
+            if (arm?.idx === p.idx && p.captain && bicuda(s, p, shooter, shot, arm)) return;
             const gkTypeMult = fixed ? 1 : typeMultiplier(typesOf(p), [shot.moveType]);
             const shotTypeMult = fixed
                 ? 1
@@ -3356,15 +3352,6 @@ export function applyAgencyOrder(s: MatchState, o: AgencyOrder) {
         case 'max':
             startMax(s, o.team, o.q ?? 1);
             return;
-        case 'parry': {
-            // só com o golpe máximo do rival vindo no gol, antes do goleiro chegar nele
-            const shot = s.ball.owner === null ? s.ball.shot : null;
-            if (s.phase !== 'play' || !shot?.max || !shot.onTarget || shot.gkChecked || shot.parry !== undefined)
-                return;
-            if (s.players[shot.by].team === o.team) return;
-            shot.parry = o.q ?? 1;
-            return;
-        }
         case 'penalties':
             ag.penaltyOrder = [...o.order];
             return;
@@ -3434,13 +3421,19 @@ function updateMax(s: MatchState) {
 }
 
 /**
- * Bicuda do goleiro capitão (motor 17, no lugar da defesa máxima): ele alcançou o chute do rival e devolve com o golpe
- * máximo. N3 é um chute N3 de verdade no gol rival (sempre no alvo, derruba a linha, efeito do tipo); N1 e N2 são um
- * lançamento forte pro companheiro mais à frente no campo rival (sem ninguém lá, pro espaço), e o N2 derruba quem está
- * no caminho. Vale como defesa.
+ * Bicuda do goleiro capitão (motor 17, o golpe máximo dele; é o parry: uma mecânica só, Miguel 30/10/2026): ele alcançou
+ * um chute no gol do rival (qualquer um, golpe máximo inclusive) e devolve com o golpe máximo. N3 é um chute N3 no gol
+ * rival (sempre no alvo, derruba a linha, efeito do tipo), mas o goleiro rival defende como num chute normal; N1 e N2 são
+ * um lançamento forte pro companheiro mais à frente no campo rival (sem ninguém lá, pro espaço), e o N2 derruba quem
+ * está no caminho. Vale como defesa. Toque fora (`q` 0): gasta a barra e devolve false (a defesa de sempre desse chute).
  */
-function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: ShotInfo, arm: MaxArm) {
+function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: ShotInfo, arm: MaxArm): boolean {
     const ball = s.ball;
+    if (arm.q === 0) {
+        s.teams[gk.team].agency.max = null;
+        emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'miss', ...maxTag(arm) });
+        return false;
+    }
     gk.stats.saves++;
     emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: false });
     ball.shot = null;
@@ -3451,7 +3444,14 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     const gy = s.cfg.pitch.width / 2;
     if (arm.level === 3) {
         kick(s, gk, 'shot', v(goalXFor(s, gk.team), gy), 1, undefined, 1, arm);
-        return;
+        // o goleiro rival defende como num chute normal (alcance, chance e a isca do Inseto)
+        const out = s.ball.shot;
+        if (out) {
+            out.gkReach = undefined;
+            out.gkSave = undefined;
+            out.decoy = undefined;
+        }
+        return true;
     }
     s.teams[gk.team].agency.max = null;
     emit(s, {
@@ -3466,6 +3466,7 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     const to = mate ? mate.pos : toWorld(s, gk.team, s.cfg.pitch.length * 0.7, gy);
     kick(s, gk, 'pass', to, 1.3, mate?.idx);
     if (arm.level === 2) maxKnock(s, gk, to);
+    return true;
 }
 
 /** Companheiro de linha mais à frente (de pé), além de `minX` metros do próprio gol. */
@@ -3481,39 +3482,6 @@ function aheadMate(s: MatchState, p: PlayerState, minX = 0): PlayerState | null 
         }
     }
     return best;
-}
-
-/**
- * Parry do goleiro no golpe máximo do rival (motor 17). Perfeito toca pro companheiro mais à frente (contra-ataque);
- * bom espalma pra frente e pro lado, sem dono; fora devolve false e segue a defesa de sempre desse chute. O status do
- * golpe pega quem rebateu.
- */
-function parry(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: ShotInfo, contact: Vec2): boolean {
-    const q = shot.parry ?? 0;
-    const mate = q === 2 ? aheadMate(s, gk) : null;
-    emit(s, { type: 'parry', team: gk.team, by: gk.idx, shooter: shooter.idx, q, to: mate?.idx ?? null });
-    if (q === 0) return false;
-    const ball = s.ball;
-    gk.stats.saves++;
-    emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: false });
-    ball.shot = null;
-    ball.z = 0;
-    ball.vz = 0;
-    setAction(gk, Action.Dive, 0.5);
-    maxStatusOn(s, shot, gk);
-    if (mate) {
-        kick(s, gk, 'pass', mate.pos, 1, mate.idx);
-        return true;
-    }
-    // pra frente e pro lado de onde a bola veio (longe do meio do gol)
-    const front = attackSign(gk.team);
-    const side = contact.y >= s.cfg.pitch.width / 2 ? 1 : -1;
-    ball.pos = (contact.x - gk.pos.x) * front < 0.2 ? v(gk.pos.x + front * 0.2, contact.y) : contact;
-    ball.vel = scale(norm(v(front, side * 0.6)), AGENCY.parrySpeed);
-    ball.lastTouch = gk.idx;
-    ball.lastKick = { by: gk.idx, kind: 'clear', tick: s.tick };
-    gk.kickCooldown = Math.max(gk.kickCooldown, 0.4);
-    return true;
 }
 
 /** O chute do capitão armado na zona: a versão máxima do golpe dele (bem mais forte e mais certeiro). */
@@ -3937,7 +3905,7 @@ export function snapshot(s: MatchState): MatchSnapshot {
     };
 }
 
-/** Chute no alvo que o goleiro ainda não alcançou (a bicuda e o parry acendem por ele). */
+/** Chute no alvo que o goleiro ainda não alcançou (a bicuda acende por ele). */
 function incoming(s: MatchState): { shot?: { by: number; max: boolean } } {
     const shot = s.ball.owner === null ? s.ball.shot : null;
     return shot?.onTarget && !shot.gkChecked ? { shot: { by: shot.by, max: !!shot.max } } : {};

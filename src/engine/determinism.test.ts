@@ -17,16 +17,16 @@ const EXPECTED_HASHES = [
     '7ecb71ce',
     'bdf6eb8d',
     '3cd48072',
-    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal, bicuda e parry
-    // do técnico IA)
-    '87f2f81b',
+    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro
+    // capitão)
+    '3ba2503a',
     '4f9135c7',
-    '44c9a882',
-    'd3b0a16f',
+    '9281fae9',
+    '04e9e6a7',
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
-    '48c5fc83',
-    '57839e94',
-    'bf04e4fa',
+    '998b80e4',
+    'e86182e5',
+    'f8d0e978',
     '49a32103',
 ];
 

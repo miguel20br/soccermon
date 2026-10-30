@@ -1,6 +1,6 @@
 /**
  * Técnico rival que reage (M10 de docs/planos/pesquisas/agencia.md): na Copa (`cupRival`), o líder do clube rival
- * usa as mesmas armas que você (pedido de tempo, goleiro-linha, golpe máximo, parry e tática) por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
+ * usa as mesmas armas que você (pedido de tempo, goleiro-linha, golpe máximo e tática) por uma regra simples com a personalidade dele. Só lê o estado da partida e gera ordens normais
  * (`AgencyOrder`/`TacticChange`) um pouco à frente, pelo mesmo caminho das ordens do técnico: o motor aplica os
  * mesmos limites (1 tempo por tempo, barra cheia...). Determinístico: o único sorteio (o "humor" do dia, que mexe uns
  * minutos nos gatilhos) sai de um Rng próprio da seed da partida, então o resto da partida não muda de sorteio.
@@ -246,18 +246,6 @@ export class RivalCoach {
             emit(s, { type: 'coach', team, leader: this.leader, ...c });
             return toOrder(c, team, c.call === 'max' ? s.tick : tick);
         });
-    }
-
-    /**
-     * Parry (motor 17): o golpe máximo do rival vem no gol e o goleiro ainda não chegou nele. A cada tick (o chute voa
-     * menos que o `everyTicks`), na hora, com a nota sorteada como a do golpe máximo.
-     */
-    parry(s: MatchState): MatchOrder | null {
-        const shot = s.ball.owner === null ? s.ball.shot : null;
-        if (s.phase !== 'play' || !shot?.max || !shot.onTarget || shot.gkChecked || shot.parry !== undefined)
-            return null;
-        if (s.players[shot.by].team === this.team) return null;
-        return { tick: s.tick, team: this.team, kind: 'parry', q: this.grade() };
     }
 
     /** Nota do toque do técnico IA (perfeito, bom ou fora), pela tabela do líder. */

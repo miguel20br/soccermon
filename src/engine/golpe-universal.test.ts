@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, maxCue, parryCue } from './agency';
+import { AGENCY, maxCharge, maxCue } from './agency';
 import { type Command, IDLE } from './commands';
 import { FUTSAL_5 } from './config';
 import { SPECIES } from './data';
 import { aiDraftTeam } from './draft';
 import { createInstance } from './instance';
 import { applyAgencyOrder, createMatch, maxFxType, snapshot, step } from './match';
-import { RivalCoach } from './rival-coach';
 import { Rng } from './rng';
+import { validOrder } from './runners/live-runner';
 import type { MatchEvent, MatchState, TeamSetup } from './state';
 import { v } from './vec';
 
 /**
- * Golpe máximo universal, bicuda e parry (motor 17, docs/planos/golpe-universal.md), no lance montado na mão como em
+ * Golpe máximo universal e a bicuda do goleiro capitão (o parry dele; motor 17, docs/planos/golpe-universal.md), no lance montado na mão como em
  * max-type.test.ts: capitão (pivô, idx 4) a 10 m do gol com o golpe armado; goleiro rival (idx 5) no gol; zagueiro
  * (idx 6) onde o teste pedir; o resto longe.
  */
@@ -149,12 +149,13 @@ describe('golpe máximo universal (motor 17)', () => {
 });
 
 /**
- * Bicuda: o rival (idx 9) chuta de 8 m no gol do time 0; o goleiro capitão (idx 0) tem o golpe armado no nível pedido.
+ * Bicuda: o rival (idx 9) chuta de 8 m no gol do time 0; o goleiro capitão (idx 0) tem o golpe armado no nível e na nota
+ * pedidos (`level` null: sem nada armado). `cap`: quem é o capitão do time 0 (0 = o goleiro).
  */
-function bicudaScene(level: 1 | 2 | 3, seed: string) {
+function bicudaScene(level: 1 | 2 | 3 | null, seed: string, q: 0 | 1 | 2 = 2, cap = 0) {
     const A = team('gu-bi-a');
     const B = team('gu-bi-b');
-    const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[0].uid }, B, seed);
+    const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[cap].uid }, B, seed);
     s.phase = 'play';
     const spots = [v(0.7, 10), v(30, 3), v(30, 17), v(25, 10), v(34, 10), v(39.3, 10), v(20, 3), v(20, 17), v(14, 10)];
     s.players.forEach((p, i) => {
@@ -164,23 +165,30 @@ function bicudaScene(level: 1 | 2 | 3, seed: string) {
     s.players[9].pos = v(8, 10);
     s.ball.owner = 9;
     s.ball.pos = v(7.7, 10);
-    s.teams[0].agency.max = { idx: 0, until: 200, level, q: 2 };
+    if (level) s.teams[0].agency.max = { idx: cap, until: 200, level, q };
     const cmds = IDLE_ALL(s);
     cmds[9] = { type: 'shoot', target: v(0, 10), power: 1 };
     step(s, cmds);
-    for (let i = 0; i < 30 && !of(s, 'max').length; i++) idle(s, 1);
+    for (let i = 0; i < 30 && !of(s, 'max').length && !of(s, 'save').length && !of(s, 'goal').length; i++) idle(s, 1);
     return s;
 }
 
-describe('bicuda do goleiro capitão (motor 17)', () => {
+/** Lances (seeds) em que o goleiro alcançou o chute: defendeu, deu a bicuda ou tentou. */
+function reached(level: 1 | 2 | 3 | null, tag: string, q: 0 | 1 | 2 = 2, cap = 0, n = 10) {
+    const out: MatchState[] = [];
+    for (let k = 0; k < n; k++) {
+        const s = bicudaScene(level, `gu-bi-${tag}-${k}`, q, cap);
+        if (of(s, 'max').length || of(s, 'save').some((e) => e.by === 0)) out.push(s);
+    }
+    expect(out.length).toBeGreaterThan(0);
+    return out;
+}
+
+describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)', () => {
     it('N1 e N2: lançamento pro companheiro no campo rival, sem chute no gol; N3: chute no alvo', () => {
         for (const level of [1, 2, 3] as const) {
-            let seen = 0;
-            for (let k = 0; k < 10; k++) {
-                const s = bicudaScene(level, `gu-bi-${level}-${k}`);
+            for (const s of reached(level, String(level))) {
                 const hit = of(s, 'max')[0];
-                if (!hit) continue;
-                seen++;
                 expect(hit).toMatchObject({ by: 0, team: 0, phase: 'hit', level });
                 const gkShot = of(s, 'shot').some((e) => e.by === 0);
                 if (level === 3) {
@@ -192,88 +200,82 @@ describe('bicuda do goleiro capitão (motor 17)', () => {
                     expect(s.players[s.ball.lastKick!.receiverId!].pos.x).toBeGreaterThan(20);
                 }
             }
-            expect(seen).toBeGreaterThan(0);
-        }
-    });
-});
-
-/** O capitão (time 0) solta o golpe máximo e o goleiro rival (time 1) pede o parry com a nota `q`. */
-function parryScene(q: 0 | 1 | 2 | null, seed: string, level: 1 | 2 | 3 = 1) {
-    const s = shoot({ level, seed, gkY: 10 });
-    if (q !== null) applyAgencyOrder(s, { tick: s.tick, team: 1, kind: 'parry', q });
-    idle(s, 15);
-    return s;
-}
-
-describe('parry (motor 17)', () => {
-    it('perfeito rebate pro companheiro, bom pra frente sem dono, fora é a defesa de sempre', () => {
-        for (const q of [2, 1, 0] as const) {
-            let seen = 0;
-            for (let k = 0; k < 30 && seen < 3; k++) {
-                const s = parryScene(q, `gu-pa-${q}-${k}`);
-                const ev = of(s, 'parry')[0];
-                if (!ev) continue;
-                seen++;
-                expect(ev).toMatchObject({ team: 1, by: 5, shooter: 4, q });
-                if (q === 2) {
-                    expect(ev.to).not.toBeNull();
-                    expect(s.players[ev.to!].team).toBe(1);
-                    expect(of(s, 'pass').some((e) => e.by === 5 && e.to === ev.to)).toBe(true);
-                } else if (q === 1) {
-                    expect(ev.to).toBeNull();
-                    expect(of(s, 'goal')).toHaveLength(0);
-                    // pra frente: o time 1 ataca o gol de x = 0
-                    const kick = of(s, 'save').find((e) => e.by === 5);
-                    expect(kick).toBeDefined();
-                    expect(s.ball.pos.x).toBeLessThan(39.3);
-                } else {
-                    // a defesa de sempre desse chute: defende ou leva o gol
-                    expect(of(s, 'save').length + of(s, 'goal').length).toBeGreaterThan(0);
-                }
-            }
-            expect(seen).toBeGreaterThan(0);
         }
     });
 
-    it('só vale contra o golpe máximo do rival no gol (chute comum ou o do próprio time ignora a ordem)', () => {
-        // chute comum: sem golpe máximo armado
-        const s = setup({ seed: 'gu-pa-common' });
-        s.teams[0].agency.max = null;
-        const cmds = IDLE_ALL(s);
-        cmds[4] = { type: 'shoot', target: v(40, 10), power: 1 };
-        step(s, cmds);
-        applyAgencyOrder(s, { tick: s.tick, team: 1, kind: 'parry', q: 2 });
-        expect(s.ball.shot?.parry).toBeUndefined();
-        // o golpe máximo do meu time: o meu parry não vale
-        const own = shoot({ level: 1, seed: 'gu-pa-own' });
-        applyAgencyOrder(own, { tick: own.tick, team: 0, kind: 'parry', q: 2 });
-        expect(own.ball.shot?.parry).toBeUndefined();
-        applyAgencyOrder(own, { tick: own.tick, team: 1, kind: 'parry', q: 1 });
-        expect(own.ball.shot?.parry).toBe(1);
+    it('N3: o goleiro rival defende como num chute normal (sem o alcance e a chance do N3)', () => {
+        // a % de gol de verdade (goleiro se mexendo) sai do `calibrate --agencia`
+        for (const s of reached(3, 'n3')) {
+            expect(s.ball.shot).toMatchObject({ by: 0, max: { level: 3 } });
+            expect(s.ball.shot?.gkReach).toBeUndefined();
+            expect(s.ball.shot?.gkSave).toBeUndefined();
+            expect(s.ball.shot?.decoy).toBeUndefined();
+        }
     });
 
-    it('botões: o parry e a bicuda acendem com o chute vindo no gol (só o golpe máximo acende o parry)', () => {
+    it('toque fora: gasta a barra (max "miss") e vira a defesa de sempre daquele chute, sem bicuda', () => {
+        for (const s of reached(2, 'fora', 0)) {
+            idle(s, 20);
+            expect(of(s, 'max')).toEqual([expect.objectContaining({ by: 0, team: 0, phase: 'miss', level: 2, q: 0 })]);
+            expect(s.teams[0].agency.max).toBeNull();
+            expect(of(s, 'shot').some((e) => e.by === 0)).toBe(false);
+            expect(s.ball.lastKick?.kind === 'pass' && s.ball.lastKick.by === 0).toBe(false);
+            expect(of(s, 'save').some((e) => e.by === 0) || of(s, 'goal').length > 0).toBe(true);
+        }
+    });
+
+    it('vale contra o golpe máximo do rival também (não existe parry à parte)', () => {
+        // o capitão do time 0 solta o golpe máximo N1; o goleiro do time 1 é o capitão, com a bicuda armada
+        let seen = 0;
+        for (let k = 0; k < 20 && seen < 3; k++) {
+            const s = setup({ level: 1, seed: `gu-vs-${k}` });
+            for (const p of s.players) if (p.team === 1) p.captain = p.idx === 5;
+            s.teams[1].agency.max = { idx: 5, until: 200, level: 1, q: 2 };
+            const cmds = IDLE_ALL(s);
+            cmds[4] = { type: 'shoot', target: v(40, 10), power: 1 };
+            step(s, cmds);
+            idle(s, 20);
+            const gk = of(s, 'max').find((e) => e.team === 1);
+            if (!gk) continue;
+            seen++;
+            expect(gk).toMatchObject({ by: 5, phase: 'hit', level: 1 });
+            expect(of(s, 'max').find((e) => e.team === 0)).toMatchObject({ by: 4, phase: 'hit' });
+        }
+        expect(seen).toBeGreaterThan(0);
+    });
+
+    it('goleiro que não é capitão não tem bicuda: o golpe armado do capitão de linha fica pro chute dele', () => {
+        for (const s of reached(1, 'linha', 2, 4)) {
+            expect(of(s, 'max')).toHaveLength(0);
+            expect(s.teams[0].agency.max).toMatchObject({ idx: 4 });
+        }
+        // e a ordem `parry` não existe mais (a Liga e o Duelo recusam)
+        expect(validOrder({ tick: 1, team: 0, kind: 'parry', q: 2 } as never)).toBe(false);
+    });
+
+    it('sem barra não tem bicuda: o pedido não arma e o goleiro defende normal', () => {
+        const s = bicudaScene(null, 'gu-bi-vazia');
+        expect(maxCharge(s.events, 0, 0).level).toBe(0);
+        const fresh = createMatch(
+            FUTSAL_5,
+            { ...team('gu-bi-a'), captainUid: team('gu-bi-a').lineup[0].uid },
+            team('gu-bi-b'),
+            'x',
+        );
+        fresh.phase = 'play';
+        applyAgencyOrder(fresh, { tick: 0, team: 0, kind: 'max', q: 2 });
+        expect(fresh.teams[0].agency.max).toBeNull();
+        expect(of(s, 'max')).toHaveLength(0);
+    });
+
+    it('botão: a hora da bicuda acende com qualquer chute do rival vindo no gol (golpe máximo ou não)', () => {
         const s = shoot({ level: 1, seed: 'gu-cue' });
         const snap = snapshot(s);
         expect(snap.shot).toEqual({ by: 4, max: true });
-        expect(parryCue(snap, 1)).toBe(true);
-        expect(parryCue(snap, 0)).toBe(false);
         expect(maxCue(snap, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(true);
         expect(maxCue(snap, 0, 0, 'GK', FUTSAL_5.pitch)).toBe(false);
-        const plain = { ...snap, shot: { by: 4, max: false } };
-        expect(parryCue(plain, 1)).toBe(false);
-        expect(maxCue(plain, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(true);
+        expect(maxCue({ ...snap, shot: { by: 4, max: false } }, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(true);
         // depois do goleiro, nada aceso
-        expect(parryCue({ ...snap, shot: undefined }, 1)).toBe(false);
-    });
-
-    it('o técnico IA pede o parry na hora, com a nota sorteada, só contra o golpe máximo do rival', () => {
-        const coach = new RivalCoach('lance', 1, 'gu-coach', 'balanced');
-        const s = shoot({ level: 1, seed: 'gu-coach' });
-        const o = coach.parry(s);
-        expect(o).toMatchObject({ tick: s.tick, team: 1, kind: 'parry' });
-        expect(new RivalCoach('lance', 0, 'gu-coach', 'balanced').parry(s)).toBeNull();
-        idle(s, 20);
-        expect(coach.parry(s)).toBeNull();
+        expect(maxCue({ ...snap, shot: undefined }, 1, 5, 'GK', FUTSAL_5.pitch)).toBe(false);
     });
 });

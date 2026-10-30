@@ -66,8 +66,8 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     zona do golpe máximo do pivô 15 ⇒ 18 m (`AGENCY.maxZone`).
  * 16 = gomo do golpe máximo 12 ⇒ 10 pontos (`AGENCY.maxLevelPts`): o N3 chega mais (Miguel, 30/10/2026).
  * 17 = golpe máximo universal (docs/planos/golpe-universal.md): N1 passa o status do tipo, N2 derruba a linha, N3 sempre
- *     no alvo, curva sozinha pro canto longe do goleiro; o goleiro capitão dá a bicuda e a defesa máxima sai; parry
- *     (ordem nova) contra o golpe máximo do rival, também pelo técnico IA.
+ *     no alvo, curva sozinha pro canto longe do goleiro; o goleiro capitão dá a bicuda (o parry dele: qualquer chute no
+ *     gol, toque fora = defesa de sempre; N3 passa pela defesa normal do goleiro rival) e a defesa máxima sai.
  */
 export const ENGINE_VERSION = 17;
 

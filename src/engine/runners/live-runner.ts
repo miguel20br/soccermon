@@ -69,7 +69,6 @@ function validAgency(o: AgencyOrder): boolean {
         case 'timeout':
             return true;
         case 'max':
-        case 'parry':
             // nota do toque na batida: só 0, 1 ou 2 (a Liga aceita a do cliente; golpe-maximo-niveis.md, decisão 8)
             return o.q === undefined || o.q === 0 || o.q === 1 || o.q === 2;
         default:
@@ -158,8 +157,6 @@ export class LiveRunner {
         // o técnico IA manda as ordens dele pela mesma agenda (valem um pouco à frente, como as do jogador)
         for (const c of this.coaches) {
             if (s.tick % RIVAL_COACH.everyTicks === 0) for (const o of c.decide(s)) this.addOrder(o);
-            const parry = c.parry(s);
-            if (parry) this.addOrder(parry);
         }
         while (this.schedule.length && this.schedule[0].tick <= s.tick) {
             const order = this.schedule.shift()!;
