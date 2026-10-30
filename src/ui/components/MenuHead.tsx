@@ -1,16 +1,19 @@
 import { useT } from '../../i18n/react';
-import { HudIcon } from './MatchHud';
+import { HudIcon, type HudIconKind } from './MatchHud';
 import { MenuIcon, type MenuIconKind } from './MenuIcon';
 
 /** Cabeçalho das telas de menu em forma de placar: etiqueta em cima, voltar, ícone e título. */
 export function MenuHead({
     title,
     icon,
+    hud,
     onBack,
     tag,
 }: {
     title: string;
-    icon: MenuIconKind;
+    /** Ilustração do menu; ou `hud`, o mesmo ícone de traço que a tela tem na Home (Liga, Duelo, Rota…). */
+    icon?: MenuIconKind;
+    hud?: HudIconKind;
     /** Sem `onBack` = sem seta (nas telas da copa o voltar é o da barra da copa). */
     onBack?: () => void;
     /** Etiqueta amarela em cima do placar (sem = nenhuma). */
@@ -26,7 +29,7 @@ export function MenuHead({
                     <HudIcon kind="prev" />
                 </button>
             )}
-            <MenuIcon kind={icon} />
+            {hud ? <HudIcon kind={hud} className="menu-head-ic" /> : icon && <MenuIcon kind={icon} />}
             <h1>{title}</h1>
         </header>
     );

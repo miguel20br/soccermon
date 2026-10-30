@@ -5744,6 +5744,13 @@ a.home-tile {
     height: 32px;
     flex: none;
 }
+/* o ícone de traço da tela (o mesmo da Home: Liga = coroa, Duelo = amigos, Rota = mapa), dourado como o selo */
+.menu-head .menu-head-ic {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    color: var(--yellow);
+}
 .back-btn {
     display: inline-grid;
     place-items: center;

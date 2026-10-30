@@ -1,7 +1,7 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
-import { duel } from './net/session';
+import { duel, useDuel } from './net/session';
 import { preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
@@ -20,7 +20,7 @@ import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
 import { DoorLayer } from './ui/kit/DoorWipe';
 import { MomentLayer } from './ui/kit/MomentWipe';
-import { requestBack, requestLeave } from './ui/leave-guard';
+import { duelInPlay, requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
@@ -43,8 +43,21 @@ import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
-/** Telas de menu: o topo tem o canto de Configurações e Perfil (partida, draft e Duelo não, pra ninguém sair sem querer). */
-const MENU_SCREENS: Screen[] = ['settings', 'credits', 'help', 'profile', 'collection', 'trophies', 'daily', 'liga'];
+/**
+ * Telas de menu: o topo tem o canto de Configurações e Perfil (partida e draft não, pra ninguém sair sem querer). O
+ * Duelo também, menos com o jogo rolando (escolha do time, draft, partida): aí só o Sair da sala, que confirma.
+ */
+const MENU_SCREENS: Screen[] = [
+    'settings',
+    'credits',
+    'help',
+    'profile',
+    'collection',
+    'trophies',
+    'daily',
+    'liga',
+    'duel',
+];
 /** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
 const CUP_SCREENS: Screen[] = ['draft', 'lineup', 'result', 'reward', 'shop', 'map', 'treino', 'event', 'group'];
 
@@ -94,6 +107,7 @@ function leaveScreen(screen: Screen, to: Screen = 'home') {
 
 export default function App() {
     const { screen, settings, tour, run } = useGame();
+    const duelLive = useDuel((d) => duelInPlay(d.shared?.phase));
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
@@ -273,7 +287,7 @@ export default function App() {
 
     return (
         <div className="app">
-            {screen !== 'home' && (
+            {screen !== 'home' && !(screen === 'duel' && duelLive) && (
                 <header className={`topbar${MENU_SCREENS.includes(screen) ? ' topbar-menu' : ''}`}>
                     {/* copa acabada (Eliminado, Campeão): volta o logo, é a festa */}
                     {CUP_SCREENS.includes(screen) && run && run.status !== 'eliminated' && run.status !== 'champion' ? (
