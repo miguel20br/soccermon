@@ -148,7 +148,6 @@ export const commentary: typeof pt = {
     timeout: '{team} call a time-out! Everyone to the touchline.',
     flyGkOn: '{team} go with a flying keeper! {x} pushes up and leaves the goal empty.',
     flyGkOff: '{x} heads back to goal: {team} drop the flying keeper.',
-    maxStart: '{x} shuts the goal: max save!',
     maxHit: 'MAX MOVE! {x} unleashes {m} at full power!',
     maxGk: 'MAX SAVE! {x} holds it and plays it out fast.',
     coach: {
@@ -158,5 +157,4 @@ export const commentary: typeof pt = {
         max: '{leader} shouts: max move!',
         tactic: '{leader} switches {team} to {tactic}.',
     },
-    maxMiss: "Nobody shot at {x}'s max save: the bar drops back to half.",
 };

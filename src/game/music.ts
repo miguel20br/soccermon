@@ -431,6 +431,63 @@ function fillBuffer(o: Parameters<typeof mixVirada>[0]): AudioBuffer {
     return b;
 }
 
+/**
+ * Golpe máximo (29/10/2026): no bullet time a faixa vai pro fundo (passa-baixa + volume) e volta com a virada no
+ * toque. `DUCK.hz`/`gain` = o fundo; `tau` = constante da descida e da volta sem toque.
+ * ponytail: troca de trecho no meio (minuto, pressão) entra aberta e solta o fundo; segurar o fundo no trecho novo se incomodar.
+ */
+export const DUCK = { hz: 650, gain: 0.5, tau: 0.08, back: 0.15 };
+let ducked: Playing | null = null;
+let duckClap: Float32Array | null = null;
+
+/** A faixa vai pro fundo (a quadra parou no golpe máximo). */
+export function duckMusic() {
+    if (!zz || !current || ducked || ctx().state !== 'running') return;
+    void loadClap().then((c) => {
+        duckClap = c;
+    });
+    const p = current;
+    const now = ctx().currentTime;
+    p.lp.frequency.cancelScheduledValues(now);
+    p.lp.frequency.setTargetAtTime(DUCK.hz, now, DUCK.tau);
+    p.gain.gain.cancelScheduledValues(now);
+    p.gain.gain.setTargetAtTime(DUCK.gain, now, DUCK.tau);
+    ducked = p;
+}
+
+/**
+ * A faixa volta. `fill` (o toque): a virada da troca de tela da próxima batida até o 1 do compasso seguinte, e a faixa
+ * abre no 1. Sem toque (passou, "Esperar"): volta devagar já.
+ */
+export function unduckMusic(fill: boolean) {
+    const p = ducked;
+    ducked = null;
+    if (!zz || !p || p !== current) return;
+    const c = ctx();
+    const now = c.currentTime;
+    let open = now;
+    let tau = DUCK.back;
+    if (fill && sounding(p, now)) {
+        const g = gridOf(p.loaded, p.sec);
+        const w = fillWindow(gridX(p, now), g);
+        const four = (p.loaded.meta.linhasPorCompasso ?? 16) % 3 !== 0;
+        shot(
+            fillBuffer({
+                beats: w.beats,
+                pulse: g.pulse,
+                swing: four ? ((SWING[p.id] ?? 0) * g.pulse) / 4 : 0,
+                crash: true,
+                clap: duckClap,
+            }),
+            now + w.at,
+        );
+        open = now + w.end;
+        tau = 0.01;
+    }
+    p.lp.frequency.setTargetAtTime(c.sampleRate / 2, open, tau);
+    p.gain.gain.setTargetAtTime(1, open, tau);
+}
+
 /** Próxima batida (s a partir de `now`) do que está soando: a ponte, ou a faixa que sai (durante a virada). */
 function nextBeat(now: number): number {
     const p = trans?.ponte;

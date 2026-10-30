@@ -77,12 +77,11 @@
     transition: width 0.3s ease;
 }
 .sl-max.ready {
-    background: var(--yellow);
-    color: var(--bc-ink);
-    animation: sl-pulse 0.9s ease-in-out infinite alternate;
+    background: var(--lvc, var(--yellow));
+    color: var(--lvink, var(--bc-ink));
 }
 .sl-max.ready small {
-    color: var(--bc-ink);
+    color: var(--lvink, var(--bc-ink));
 }
 .sl-max.full {
     outline: 2px dashed var(--yellow);
@@ -114,17 +113,16 @@
     padding: 8px 18px;
     border: 3px solid var(--bc-ink);
     border-radius: 10px;
-    background: var(--yellow);
+    background: var(--lvc, var(--yellow));
     box-shadow: 0 4px 0 var(--bc-ink);
-    color: var(--bc-ink);
+    color: var(--lvink, var(--bc-ink));
     font: inherit;
     font-size: 15px;
     text-transform: uppercase;
     white-space: nowrap;
     cursor: pointer;
-    animation:
-        sl-cue-in 0.2s var(--ease-out),
-        sl-pulse 0.6s ease-in-out 0.2s infinite alternate;
+    /* sem pulso próprio: o ritmo é o do anel (um tiro só) */
+    animation: sl-cue-in 0.2s var(--ease-out);
 }
 .sl-cue:active {
     transform: translateY(2px);
@@ -146,28 +144,113 @@
         transform: scale(0.8);
     }
 }
-@keyframes sl-pulse {
-    to {
-        box-shadow:
-            0 3px 0 var(--bc-ink),
-            0 0 14px 2px var(--yellow);
-    }
-}
 
 /* golpe máximo em 3 níveis: anel da batida que fecha no botão, o nível ao lado e a barra em 3 gomos */
 .sl-cue.lv3 {
     overflow: visible;
 }
+.sl-ring-at {
+    position: relative;
+    display: inline-flex;
+}
+/* QTE de um tiro só: o círculo nasce 4x maior e fecha uma vez (--q de 0 a 1), encostando no 1 do compasso */
 .sl-ring {
+    --ring-d: 40px;
     position: absolute;
-    inset: -6px;
-    border: 3px solid #fff;
-    border-radius: 14px;
+    left: 50%;
+    top: 50%;
+    width: var(--ring-d);
+    height: var(--ring-d);
+    margin: calc(var(--ring-d) / -2) 0 0 calc(var(--ring-d) / -2);
+    border: var(--ring-w, 2px) solid #fff;
+    border-radius: 50%;
     pointer-events: none;
-    /* --beat: 0 logo depois da batida, 1 na próxima (o anel encosta no botão) */
-    transform: scale(calc(1 + (1 - var(--beat, 0)) * 0.55));
-    opacity: calc(0.25 + var(--beat, 0) * 0.75);
-    box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.6);
+    transform: scale(calc(1 + (1 - var(--q, 0)) * 3));
+    opacity: calc(0.35 + var(--q, 0) * 0.65);
+    box-shadow:
+        0 0 0 2px var(--bc-ink),
+        inset 0 0 0 2px var(--bc-ink);
+}
+/* encostou: acende na cor do nível e se desfaz */
+.sl-ring.hit {
+    border-color: var(--lvc, var(--yellow));
+    animation: sl-ring-hit 300ms var(--ease-out) forwards;
+}
+@keyframes sl-ring-hit {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+@keyframes sl-ring-fade {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+/* no celular, em volta do botão da barra de baixo */
+.bc-maxwrap > .sl-ring {
+    --ring-d: 58px;
+}
+/*
+ * Cara por nível (C1): N1 amarelo e quieto; N2 laranja, tremida leve e anel mais grosso; N3 na cor do tipo
+ * (--lvc/--lvink no estilo, Sideline.tsx), tremida forte e contorno duplo. Sem movimento: só a cor.
+ */
+.sl-cue[data-lv="2"],
+.sl-max.ready[data-lv="2"],
+.bc-maxthumb.ready[data-lv="2"] {
+    --lvc: color-mix(in srgb, var(--yellow), var(--red) 40%);
+    --ring-w: 3px;
+    --sh: 1px;
+}
+.sl-cue[data-lv="3"],
+.sl-max.ready[data-lv="3"],
+.bc-maxthumb.ready[data-lv="3"] {
+    --ring-w: 4px;
+    --sh: 2px;
+    outline: 3px solid var(--lvc, var(--yellow));
+    outline-offset: 2px;
+}
+.sl-cue[data-lv="2"] {
+    animation:
+        sl-cue-in 0.2s var(--ease-out),
+        sl-shake 0.14s linear 0.2s infinite;
+}
+.sl-cue[data-lv="3"] {
+    animation:
+        sl-cue-in 0.2s var(--ease-out),
+        sl-shake 0.09s linear 0.2s infinite;
+}
+.bc-maxthumb.ready[data-lv="2"] {
+    animation: sl-shake 0.14s linear infinite;
+}
+.bc-maxthumb.ready[data-lv="3"] {
+    animation: sl-shake 0.09s linear infinite;
+}
+/* o anel do celular mora fora do botão: pega o nível do irmão */
+.bc-maxthumb.ready[data-lv="2"] + .sl-ring {
+    --lvc: color-mix(in srgb, var(--yellow), var(--red) 40%);
+    --ring-w: 3px;
+}
+.bc-maxthumb.ready[data-lv="3"] + .sl-ring {
+    --ring-w: 4px;
+}
+@keyframes sl-shake {
+    25% {
+        translate: var(--sh) calc(var(--sh) * -0.5);
+    }
+    50% {
+        translate: calc(var(--sh) * -1) 0;
+    }
+    75% {
+        translate: 0 var(--sh);
+    }
 }
 .sl-cue-lv {
     padding: 1px 5px;
@@ -498,17 +581,24 @@
     animation-name: sl-charanga-fade;
 }
 
-[data-reduce-motion="true"] .sl-cue {
+[data-reduce-motion="true"] .sl-cue,
+[data-reduce-motion="true"] .sl-cue[data-lv] {
     animation: sl-fade-in 0.2s var(--ease-out);
+}
+[data-reduce-motion="true"] .bc-maxthumb[data-lv] {
+    animation: none;
 }
 @keyframes sl-fade-in {
     from {
         opacity: 0;
     }
 }
-/* sem movimento: o anel não cresce, só acende na batida */
+/* sem movimento: o anel não fecha, só vai acendendo até a hora e some */
 [data-reduce-motion="true"] .sl-ring {
     transform: none;
+}
+[data-reduce-motion="true"] .sl-ring.hit {
+    animation-name: sl-ring-fade;
 }
 [data-reduce-motion="true"] .sl-max.ready,
 [data-reduce-motion="true"] .sl-maxbar i,
@@ -542,7 +632,7 @@
         font-size: 11px;
     }
     .sl-cue .sl-ring {
-        border-radius: 26px;
+        --ring-d: 30px;
     }
     .sl-cue .hud-icon {
         width: 16px;
@@ -606,9 +696,8 @@
     transition: width 0.3s ease;
 }
 .bc-maxthumb.ready {
-    background: var(--yellow);
-    color: var(--bc-ink);
-    animation: sl-pulse 0.6s ease-in-out infinite alternate;
+    background: var(--lvc, var(--yellow));
+    color: var(--lvink, var(--bc-ink));
 }
 .bc-maxthumb.live {
     border-color: var(--yellow);
@@ -632,9 +721,6 @@
     font-size: 12px;
     line-height: 1.35;
     animation: sl-cue-in 0.2s var(--ease-out);
-}
-[data-reduce-motion="true"] .bc-maxthumb.ready {
-    animation: none;
 }
 
 /* celular em pé: o golpe e o "Esperar" cabem na largura (no 360 o "Esperar" saía da tela) */

@@ -8,8 +8,9 @@ import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt } from '../match-view';
-import { beatPhase, maxGradeNow } from '../max-beat';
+import { holdRing, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
+import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
 import { HudIcon, hex } from './MatchHud';
 import { TypeIcon } from './TypeIcon';
 import './sideline.css';
@@ -34,6 +35,8 @@ export interface AgencyView {
     fxType?: string;
     /** O jogador tocou em "Esperar" (`maxWaitNext`): o aviso fica apagado. */
     maxWaiting?: boolean;
+    /** Tipo do capitão (`capTypeAt`): a cor do botão no N3. */
+    capType?: string;
 }
 
 /** Estado da beira da quadra de um time no tick da tela. `cue`: é a hora do golpe máximo (`maxCueAt`). */
@@ -91,6 +94,12 @@ export function capFxType(
     return MAX_SIGNATURE[inst.speciesId] ?? maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
 }
 
+/** Tipo (o 1º) do capitão do time `side`: a cor do golpe máximo no N3, igual à aura dele na quadra. */
+export function capTypeAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number) {
+    const id = captainAt(m, setups, side, tick).speciesId;
+    return id ? species(id).types[0] : undefined;
+}
+
 /**
  * Prévia do efeito do tipo no botão (decisão 1: só vale no N3; no N1 e no N2 o ícone fica apagado, pra o jogador saber
  * o que está esperando).
@@ -114,20 +123,39 @@ export const maxLit = (v: AgencyView) =>
     v.maxCue && v.max.level >= 1 && !v.max.active && !v.maxPending && !v.maxWaiting;
 
 /**
- * Toque no golpe máximo: a nota sai da distância até a batida no `pointerdown` (o `click` chega depois de soltar o dedo
- * e comeria a janela); teclado e leitor de tela tocam no `click`.
+ * Toque no golpe máximo: a nota (e o som dela) sai da distância até o anel encostar no `pointerdown` (o `click` chega
+ * depois de soltar o dedo e comeria a janela); teclado e leitor de tela tocam no `click`.
  */
-function useMaxTap(onMax: (q: MaxGrade) => void) {
+function useMaxTap(onMax: (q: MaxGrade) => void, lit: boolean) {
     const down = useRef<MaxGrade | null>(null);
     return {
         onPointerDown: () => {
-            down.current = maxGradeNow();
+            if (lit) down.current = maxTap();
         },
         tap: () => {
-            const q = down.current ?? maxGradeNow();
+            const q = down.current ?? maxTap();
             down.current = null;
             onMax(q);
         },
+    };
+}
+
+/**
+ * Cara do botão por nível (C1): o N1 fica no amarelo; o N2 é laranja (no CSS, `data-lv`); o N3 vai na cor do tipo do
+ * capitão (a mesma da aura dele na quadra), com a tinta legível por cima.
+ */
+function levelLook(view: AgencyView): { 'data-lv': number; style?: CSSProperties } {
+    const lv = view.max.level;
+    const type = lv >= 3 ? (view.capType ?? null) : null;
+    const c = type ? TYPE_COLOR[type] : undefined;
+    return {
+        'data-lv': lv,
+        style: c
+            ? ({
+                  '--lvc': c,
+                  '--lvink': TYPE_DARK_TEXT.has(type as string) ? 'var(--bc-ink)' : '#fff',
+              } as CSSProperties)
+            : undefined,
     };
 }
 
@@ -154,7 +182,8 @@ export function SidelineControls({
     const { d } = useT();
     const a = d.match.agency;
     const lit = maxLit(view) && canAct;
-    const tap = useMaxTap(onMax);
+    const tap = useMaxTap(onMax, lit);
+    const look = levelLook(view);
     return (
         <div className="sl">
             <div className="bc-row">
@@ -214,7 +243,8 @@ export function SidelineControls({
                     aria-disabled={!lit}
                     onPointerDown={tap.onPointerDown}
                     onClick={() => lit && tap.tap()}
-                    style={{ '--fill': view.max.charge } as CSSProperties}
+                    data-lv={look['data-lv']}
+                    style={{ ...look.style, '--fill': view.max.charge } as CSSProperties}
                 >
                     <HudIcon kind="max" />
                     <span>
@@ -256,7 +286,8 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
     const { d } = useT();
     const a = d.match.agency;
     const lit = maxLit(view) && canAct;
-    const tap = useMaxTap(onMax);
+    const tap = useMaxTap(onMax, lit);
+    const look = levelLook(view);
     const [why, setWhy] = useState(false);
     useEffect(() => {
         if (!why) return;
@@ -265,7 +296,8 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
     }, [why]);
     const live = view.max.active || view.maxPending;
     return (
-        <span className="bc-maxwrap">
+        // a cor do N3 no invólucro: o botão e o anel (irmão dele) herdam
+        <span className="bc-maxwrap" style={look.style}>
             <button
                 type="button"
                 className={`bc-maxthumb${lit ? ' ready' : ''}${live ? ' live' : ''}`}
@@ -274,12 +306,14 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
                 aria-label={`${a.max}: ${live ? a.maxActive : lit ? a.maxReady : maxLevelLabel(view.max.level, a.maxLevel)}`}
                 onPointerDown={tap.onPointerDown}
                 onClick={() => (lit ? tap.tap() : !live && setWhy(true))}
+                data-lv={look['data-lv']}
                 style={{ '--fill': view.max.charge } as CSSProperties}
             >
                 <i className="bc-maxthumb-fill" aria-hidden />
                 <HudIcon kind="max" />
                 <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
             </button>
+            {lit && <QteRing />}
             {why && (
                 <span className="bc-maxwhy" role="status" data-exit>
                     {a.maxWhen}
@@ -306,8 +340,9 @@ export function MaxCueButton({
 }) {
     const { d } = useT();
     const a = d.match.agency;
-    const tap = useMaxTap(onMax);
-    if (!canAct || !maxLit(view)) return null;
+    const lit = canAct && maxLit(view);
+    const tap = useMaxTap(onMax, lit);
+    if (!lit) return null;
     return (
         <div className="sl-cue-row" data-exit>
             <button
@@ -317,9 +352,12 @@ export function MaxCueButton({
                 title={a.maxBeatHint}
                 onPointerDown={tap.onPointerDown}
                 onClick={tap.tap}
+                {...levelLook(view)}
             >
-                <BeatRing />
-                <HudIcon kind="max" />
+                <span className="sl-ring-at">
+                    <QteRing />
+                    <HudIcon kind="max" />
+                </span>
                 <b className="sl-cue-name">{a.max}</b>
                 <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
                 <FxBadge view={view} />
@@ -340,19 +378,29 @@ export function MaxCueButton({
 }
 
 /**
- * Anel da batida em volta do botão: fecha no ritmo da música (ou do pulso fixo sem som) e encosta no botão na
- * batida, a hora do toque perfeito. Anda por `requestAnimationFrame` direto no estilo (nada de render do React).
+ * Anel do QTE (um tiro só): nasce grande quando o botão acende e fecha UMA vez, encostando no 1 do compasso (a hora
+ * do perfeito, `holdRing`); depois some. Anda por `requestAnimationFrame` direto no estilo (nada de render do React):
+ * `--q` vai de 0 (nasceu) a 1 (encostou).
  */
-function BeatRing() {
+function QteRing() {
     const ref = useRef<HTMLSpanElement>(null);
     useEffect(() => {
+        const r = holdRing();
         let raf = 0;
         const loop = () => {
-            ref.current?.style.setProperty('--beat', beatPhase().phase.toFixed(3));
-            raf = requestAnimationFrame(loop);
+            const now = performance.now();
+            const el = ref.current;
+            if (el) {
+                el.style.setProperty('--q', Math.min(1, (now - r.start) / Math.max(1, r.at - r.start)).toFixed(3));
+                if (now >= r.at) el.classList.add('hit');
+            }
+            if (now < r.at + 400) raf = requestAnimationFrame(loop);
         };
         loop();
-        return () => cancelAnimationFrame(raf);
+        return () => {
+            cancelAnimationFrame(raf);
+            r.release();
+        };
     }, []);
     return <span ref={ref} className="sl-ring" aria-hidden />;
 }

@@ -147,6 +147,10 @@ export const match = {
         maxLevelShort: 'N{n}',
         /** Tocou no golpe máximo da barra de baixo antes de acender. */
         maxWhen: 'Ainda não: acende na hora do capitão, perto do gol',
+        /** Um jogador seu chutou com a barra pronta (dica de uma vez só, em cima do capitão). */
+        maxCaptainOnly: 'Só o capitão solta o golpe máximo',
+        /** A defesa máxima acabou sem chute no gol (no goleiro, curto). */
+        maxMissShort: 'Sem chute: meia barra volta',
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
         maxWait: 'Esperar',

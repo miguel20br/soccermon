@@ -29,3 +29,26 @@ describe('narração do rival que reage', () => {
         expect(n).toBeGreaterThan(0);
     });
 });
+
+describe('narração da defesa máxima (E1)', () => {
+    it('só fala quando a defesa sai: o começo e o "sem chute" ficam mudos', () => {
+        const r = runMatch(FUTSAL_5, team('cm-a', 'A'), team('cm-b', 'B'), 'cm-max', { snapshots: false });
+        const c = new Commentator(r, ['Casa', 'Fora']);
+        const max = (phase: 'start' | 'hit' | 'miss') =>
+            c.lineFor({
+                type: 'max',
+                tick: 10,
+                minute: 1,
+                half: 1,
+                team: 0,
+                by: 0,
+                phase,
+                moveId: null,
+                level: 1,
+                q: 2,
+            });
+        expect(max('start')).toBeNull();
+        expect(max('miss')).toBeNull();
+        expect(max('hit')?.text).toBeTruthy();
+    });
+});

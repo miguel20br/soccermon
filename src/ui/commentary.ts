@@ -412,15 +412,10 @@ export class Commentator {
                     e.team,
                 );
             case 'max': {
+                // a defesa máxima só vira fala quando sai (E1): o começo fica na aura e o "sem chute" no goleiro
+                if (e.phase !== 'hit') return null;
                 const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
-                const text =
-                    e.phase === 'start'
-                        ? c.maxStart
-                        : e.phase === 'miss'
-                          ? c.maxMiss
-                          : this.roles[e.by] === 'GK'
-                            ? c.maxGk
-                            : c.maxHit;
+                const text = this.roles[e.by] === 'GK' ? c.maxGk : c.maxHit;
                 return line(say(text, { x: this.n(e.by), m }), 'big', e.team);
             }
             case 'end':

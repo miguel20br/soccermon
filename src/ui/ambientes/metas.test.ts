@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { closestMissions, countAt, nextBelt, routeTeam, trainerLevel } from './metas';
+import { avatarMon, closestMissions, countAt, nextBelt, routeTeam, trainerLevel } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -42,22 +42,37 @@ describe('nextBelt', () => {
 });
 
 describe('routeTeam (quem anda no mapa da Rota)', () => {
-    const pick = (uid: string, speciesId: number) => ({ uid, speciesId });
+    const pick = (uid: string, speciesId: number, shiny?: boolean) => ({ uid, speciesId, shiny });
+    const ids = (team: { id: number }[]) => team.map((m) => m.id);
     it('Rota aberta ainda na formação (sem ninguém escolhido): o avatar no ponto de partida, nunca o mapa vazio', () => {
-        expect(routeTeam({ picks: [], lineup: [], captainUid: null }, true, 6)).toEqual([6]);
-        expect(routeTeam({ picks: [], lineup: [], captainUid: null }, true, null)).toEqual([25]);
+        expect(ids(routeTeam({ picks: [], lineup: [], captainUid: null }, true, { id: 6 }))).toEqual([6]);
+        expect(routeTeam({ picks: [], lineup: [], captainUid: null }, true, avatarMon({ kind: 'google' }))).toEqual([
+            { id: 25 },
+        ]);
     });
     it('draft sem escalação: o 1º escolhido; com escalação: capitão na frente e mais 2', () => {
-        expect(routeTeam({ picks: [pick('a', 4)], lineup: [], captainUid: null }, true, 6)).toEqual([4]);
+        expect(ids(routeTeam({ picks: [pick('a', 4)], lineup: [], captainUid: null }, true, { id: 6 }))).toEqual([4]);
         const run = {
             picks: [pick('a', 4), pick('b', 7), pick('c', 1), pick('d', 25)],
             lineup: ['b', 'a', 'c', 'd'],
             captainUid: 'a',
         };
-        expect(routeTeam(run, true, 6)).toEqual([4, 7, 1]);
+        expect(ids(routeTeam(run, true, { id: 6 }))).toEqual([4, 7, 1]);
     });
     it('sem Rota aberta: o avatar sozinho em Pallet', () => {
-        expect(routeTeam({ picks: [pick('a', 4)], lineup: ['a'], captainUid: 'a' }, false, 133)).toEqual([133]);
+        expect(ids(routeTeam({ picks: [pick('a', 4)], lineup: ['a'], captainUid: 'a' }, false, { id: 133 }))).toEqual([
+            133,
+        ]);
+    });
+    it('o shiny não some no mapa: avatar shiny e capitão shiny andam com a folha shiny', () => {
+        const mew = avatarMon({ kind: 'pokemon', speciesId: 151, shiny: true });
+        expect(routeTeam(null, false, mew)).toEqual([{ id: 151, shiny: true }]);
+        const run = { picks: [pick('a', 6, true), pick('b', 7)], lineup: ['a', 'b'], captainUid: 'a' };
+        expect(routeTeam(run, true, mew)).toEqual([
+            { id: 6, shiny: true },
+            { id: 7, shiny: false },
+        ]);
+        expect(avatarMon({ kind: 'pokemon', speciesId: 151 })).toEqual({ id: 151, shiny: false });
     });
 });
 

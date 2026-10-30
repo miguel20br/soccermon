@@ -7,12 +7,17 @@ import {
     type Box,
     CLUB_MAX,
     CROWD,
+    clear,
     clubWild,
     dirOf,
+    FALL_MS,
     fits,
     HIDE_MS,
+    KO_TAPS,
+    KO_WINDOW,
     MAX_WILD,
     POOLS,
+    planWalk,
     poke,
     rollAll,
     rollWild,
@@ -147,14 +152,14 @@ describe('Pokémon ambiente: ações', () => {
         const rand = seeded(9);
         const a = spawn({ key: 's', id: 143, zone: 'stand', mood: 'sleepy' }, stand, rand);
         expect(a.act).toBe('sleep');
-        expect(poke(a, 1000, rand)).toBe(true);
+        expect(poke(a, 1000, rand)).toBe('woke');
         expect([a.act, a.emote, a.t0]).toEqual(['hop', 'surprise', 1000]);
         const at = [a.x, a.y];
         step([a], { stand }, 950, 1950, {}, rand);
         expect(a.act).not.toBe('hop');
         expect([a.x, a.y]).toEqual(at);
         const b = spawn({ key: 'b', id: 25, zone: 'grass', mood: 'busy' }, grass, rand);
-        expect(poke(b, 0, rand)).toBe(false);
+        expect(poke(b, 0, rand)).toBe('hop');
         expect(['heart', 'note']).toContain(b.emote);
     });
 
@@ -342,6 +347,125 @@ describe('Pokémon ambiente: ações', () => {
         a.body = BODY;
         step([a], { floor: area }, 50, 50, {}, rand);
         expect(a.shown).toBe(true);
+    });
+});
+
+describe('Pokémon ambiente na sala: passeio em volta dos móveis', () => {
+    // o chão da Sede medido: a lareira e a vitrine descem da parede e invadem o chão (a base delas fica no chão)
+    const BODY: Box = [-0.04, -0.2, 0.04, 0.01];
+    const fireplace: Box = [0.35, -0.6, 0.55, 0.4];
+    const cabinet: Box = [0.7, -0.5, 0.82, 0.3];
+    const room = (): Area => ({
+        aspect: 1.6,
+        ok: (_x, y) => y > 0.12 && y < 0.9,
+        speed: 0.25,
+        bounds: [0, -1, 1, 1],
+        furniture: [fireplace, cabinet],
+    });
+    const inside = (x: number, y: number, k: Box) =>
+        x + BODY[2] > k[0] && x + BODY[0] < k[2] && y > k[1] && y - 0.01 < k[3];
+
+    it('nunca fica em cima nem atrás de um móvel; passar na frente pode', () => {
+        const area = room();
+        expect(fits(area, 0.45, 0.3, BODY)).toBe(false); // "em cima" da lareira
+        expect(fits(area, 0.45, 0.5, BODY)).toBe(true); // na frente dela (a cabeça cobre a base: profundidade certa)
+        expect(fits(area, 0.2, 0.3, BODY)).toBe(true);
+    });
+
+    it('o caminho contorna o móvel em vez de atravessar (e para no meio do caminho nunca)', () => {
+        const area = room();
+        expect(clear(area, 0.2, 0.25, 0.65, 0.25, BODY)).toBe(false);
+        const rand = seeded(21);
+        for (let i = 0; i < 50; i++) {
+            const path = planWalk(area, 0.2, 0.25, 0.62, 0.2, BODY, rand);
+            expect(path).not.toBeNull();
+            let [x, y] = [0.2, 0.25];
+            for (const [tx, ty] of path ?? []) {
+                expect(clear(area, x, y, tx, ty, BODY)).toBe(true);
+                [x, y] = [tx, ty];
+            }
+            expect([x, y]).toEqual([0.62, 0.2]);
+        }
+        // destino dentro do móvel: não tem caminho
+        expect(planWalk(area, 0.2, 0.25, 0.45, 0.3, BODY, rand)).toBeNull();
+    });
+
+    it('passeia de verdade: anda pela sala toda, para entre um passeio e outro e olha pra onde anda', () => {
+        const rand = seeded(22);
+        const area = room();
+        const all = ['a', 'b', 'c'].map((key, i) => {
+            const a = spawn({ key, id: 52 + i, zone: 'floor', mood: 'busy' }, area, rand);
+            a.body = BODY;
+            return a;
+        });
+        let walks = 0;
+        let rests = 0;
+        let steps = 0;
+        let wrongDir = 0;
+        const xs = new Set<number>();
+        for (let t = 0; t < 120_000; t += 50) {
+            const before = all.map((a) => [a.x, a.y, a.act] as const);
+            step(all, { floor: area }, 50, t, {}, rand);
+            all.forEach((a, i) => {
+                const [x, y, act] = before[i];
+                if (!a.shown) return;
+                for (const k of [fireplace, cabinet]) expect(inside(a.x, a.y, k)).toBe(false);
+                if (act === 'walk' && a.act !== 'walk') {
+                    walks++;
+                    if (a.act === 'idle' || a.act === 'look') rests++;
+                }
+                if (a.act === 'walk' && (a.x !== x || a.y !== y)) {
+                    steps++;
+                    if (a.dir !== dirOf((a.x - x) * area.aspect, a.y - y)) wrongDir++;
+                }
+                xs.add(Math.floor(a.x * 10));
+            });
+        }
+        expect(walks).toBeGreaterThan(30);
+        // quase todo passeio termina parado um pouco (o resto vira toque, perseguição ou susto)
+        expect(rests / walks).toBeGreaterThan(0.9);
+        expect(wrongDir).toBe(0);
+        expect(steps).toBeGreaterThan(1000);
+        // a sala inteira, de um lado ao outro (passando pelos dois lados da lareira)
+        expect(xs.size).toBeGreaterThanOrEqual(8);
+    });
+});
+
+describe('Pokémon ambiente: cai de costas depois de muito toque', () => {
+    const floor: Area = { aspect: 1.6, ok: () => true, speed: 0.2 };
+    const fresh = () => {
+        const a = spawn({ key: 'm', id: 52, zone: 'floor', mood: 'calm' }, floor, () => 0.5);
+        a.shown = true;
+        return a;
+    };
+
+    it(`o ${KO_TAPS}º toque em até ${KO_WINDOW / 1000} s derruba; toques espaçados não`, () => {
+        const a = fresh();
+        for (let i = 0; i < KO_TAPS - 1; i++) expect(poke(a, i * 300, Math.random)).toBe('hop');
+        expect(poke(a, 1200, Math.random)).toBe('fall');
+        expect(a.act).toBe('fall');
+        expect(a.left).toBe(FALL_MS);
+        const b = fresh();
+        for (let i = 0; i < KO_TAPS * 2; i++) expect(poke(b, i * 600, Math.random)).toBe('hop');
+    });
+
+    it('caído, toque não faz nada; depois levanta e sai andando', () => {
+        const rand = seeded(23);
+        const a = fresh();
+        for (let i = 0; i < KO_TAPS; i++) poke(a, i * 100, rand);
+        const at = [a.x, a.y];
+        expect(poke(a, 600, rand)).toBe('fall');
+        expect(a.left).toBe(FALL_MS);
+        let t = 400;
+        for (; t < 400 + FALL_MS - 100; t += 50) {
+            step([a], { floor }, 50, t, {}, rand);
+            expect(a.act).toBe('fall');
+            expect([a.x, a.y]).toEqual(at);
+        }
+        for (; t < 400 + FALL_MS + 100; t += 50) step([a], { floor }, 50, t, {}, rand);
+        expect(a.act).toBe('walk');
+        // e o contador zerou: o próximo toque é só um pulo
+        expect(poke(a, t, rand)).toBe('hop');
     });
 });
 

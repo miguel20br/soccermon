@@ -8,7 +8,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { nextBelt } from './metas';
+import { avatarMon, nextBelt } from './metas';
 import { BIG, floorZone, SMALL, Tile } from './Room';
 import { type Blockers, useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
@@ -48,7 +48,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const avatar = useGame((s) => s.profile.avatar);
     const wins = useGame((s) => duelWins(s.records, s.duels));
     const [rival] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
-    const mine = avatar.kind === 'pokemon' ? avatar.speciesId : 25;
+    const mine = avatarMon(avatar);
     const belt = nextBelt(wins);
     const liga = ligaCountdown();
     // os dois do duelo maiores que os de volta: no desktop, 4x (com 3x o meio da quadra ficava vazio)
@@ -95,8 +95,8 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                             <span className="ar-side me">
                                 <i className="es-shadow" />
                                 <FieldSprite
-                                    id={mine}
-                                    shiny={avatar.kind === 'pokemon' && avatar.shiny === true}
+                                    id={mine.id}
+                                    shiny={mine.shiny}
                                     anim="Idle"
                                     dir={2}
                                     scale={scale}

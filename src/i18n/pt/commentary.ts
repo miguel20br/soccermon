@@ -157,10 +157,8 @@ export const commentary = {
     timeout: '{team} pede tempo! Todo mundo na beira da quadra.',
     flyGkOn: 'Goleiro-linha no {team}! {x} sobe pro ataque e deixa o gol vazio.',
     flyGkOff: '{x} volta pro gol: acabou o goleiro-linha do {team}.',
-    maxStart: '{x} fecha o gol: defesa máxima!',
     maxHit: 'GOLPE MÁXIMO! {x} solta {m} no limite!',
     maxGk: 'DEFESA MÁXIMA! {x} pega e já sai jogando.',
-    maxMiss: 'Ninguém chutou na defesa máxima de {x}: a barra volta pela metade.',
     /** Técnico rival que reage (beira da quadra): o aviso sai antes de a ordem valer. */
     coach: {
         timeout: '{leader} pediu tempo! A quadra para na próxima bola parada.',

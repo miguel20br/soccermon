@@ -1,9 +1,21 @@
 import { type RefObject, useEffect, useReducer, useRef, useState } from 'react';
-import { playCry } from '../../game/audio';
+import { playCry, playSfx } from '../../game/audio';
 import { useGame } from '../../store/game-store';
 import type { SceneClock } from './clock';
 import { type FieldAnim, FieldSprite } from './FieldSprite';
-import { type Actor, type Area, type Box, type Emote, type Pt, poke, spawn, step, type Wild } from './wild';
+import {
+    type Actor,
+    type Area,
+    type Box,
+    type Emote,
+    FALL_MS,
+    getUp,
+    type Pt,
+    poke,
+    spawn,
+    step,
+    type Wild,
+} from './wild';
 
 /** Uma zona da cena: onde dá pra pisar, velocidade, tamanho do sprite e a camada (z-index pela altura do pé). */
 export interface ZoneDef extends Omit<Area, 'aspect'> {
@@ -73,18 +85,14 @@ function measure(box: HTMLElement, area: Area, sel: Blockers, actors: Actor[], e
               })
             : [];
     area.blocks = [...rects('.amb-top > *', document), ...rects(sel.ui ?? '.amb-ui > *', panel)].map((k) => norm(k));
-    area.props = [
-        ...rects(sel.props, panel).map((k) => norm(k)),
-        // a base do móvel: o terço de baixo e um pouco pra frente (o pé fica na frente dele ou longe)
-        ...rects(sel.feet, panel).map(
-            (k): Box => [nx(k.left), ny(k.bottom - k.height / 3), nx(k.right), ny(k.bottom + GAP)],
-        ),
-    ];
+    area.props = rects(sel.props, panel).map((k) => norm(k));
+    // o móvel inteiro e um pouco pra frente: o pé fica sempre na frente dele (nunca em cima nem atrás)
+    area.furniture = rects(sel.feet, panel).map((k): Box => [nx(k.left), ny(k.top), nx(k.right), ny(k.bottom + GAP)]);
     for (const a of actors) {
         const el = els.get(a.key);
         const spr = el?.querySelector('.wild-mon');
         // no pulo o sprite sobe: medir aí "esticava" o corpo pra cima, ele deixava de caber e pulava de lugar no toque
-        if (!el || !spr || a.act === 'hop') continue;
+        if (!el || !spr || a.act === 'hop' || a.act === 'fall') continue;
         const f = el.getBoundingClientRect();
         const k = spr.getBoundingClientRect();
         if (k.width < 1) continue;
@@ -159,6 +167,7 @@ export function useWild(
             bounds: old?.bounds,
             blocks: old?.blocks,
             props: old?.props,
+            furniture: old?.furniture,
             ground: old?.ground,
             head: old?.head,
         };
@@ -221,13 +230,26 @@ export function useWild(
         }
         return f;
     };
-    /** Toque num Pokémon ambiente: ele pula e solta o grito, baixinho. */
+    /**
+     * Toque num Pokémon ambiente: ele pula e solta o grito, baixinho. O 5º toque seguido derruba (cai de costas com um
+     * baque). Com "reduzir movimento" o relógio da cena fica parado: quem caiu levanta por um timer.
+     */
     const tap = (key: string) => {
         const a = actors.current.get(key);
-        if (!a) return;
-        poke(a, clock.t);
+        if (!a || a.act === 'fall') return;
+        const r = poke(a, clock.t, Math.random, performance.now());
         redraw();
         playCry(a.id, useGame.getState().settings.cries, 0.5);
+        if (r !== 'fall') return;
+        window.setTimeout(() => playSfx('thud'), FALL_HIT_MS);
+        if (clock.running) return;
+        const t0 = a.t0;
+        window.setTimeout(() => {
+            const area = areas.current[a.zone];
+            if (a.act !== 'fall' || a.t0 !== t0 || !area) return;
+            getUp(a, [...actors.current.values()], area, clock.t);
+            redraw();
+        }, FALL_MS);
     };
     return { actors: [...actors.current.values()], zones, ref, tap };
 }
@@ -242,7 +264,10 @@ const ANIM: Record<Actor['act'], FieldAnim> = {
     flee: 'Walk',
     hop: 'Hop',
     emote: 'Pose',
+    fall: 'Idle',
 };
+/** Quando o corpo bate no chão na animação `wild-fall` (ms): a hora do baque. */
+const FALL_HIT_MS = 240;
 
 /** Ícones de emote em pixel art (5x5), nada de emoji. */
 const ICON: Record<Exclude<Emote, 'goal'>, { px: string[]; c: string }> = {
@@ -303,7 +328,7 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                         <span
                             key={a.key}
                             ref={wild.ref(a.key, false)}
-                            className={`wild${def.fly ? ' fly' : ''}${a.goals ? ' star' : ''}${a.act === 'sleep' ? ' asleep' : ''}${a.shown ? '' : ' off'}`}
+                            className={`wild${def.fly ? ' fly' : ''}${a.goals ? ' star' : ''}${a.act === 'sleep' ? ' asleep' : ''}${a.act === 'fall' ? ' fallen' : ''}${a.shown ? '' : ' off'}`}
                             style={{ left: `${a.x * 100}%`, top: `${a.y * 100}%`, zIndex: zOf(def, a.y) }}
                             onClick={() => wild.tap(a.key)}
                         >
@@ -314,11 +339,18 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
                                 anim={ANIM[a.act]}
                                 dir={a.dir}
                                 scale={def.scale}
-                                play={a.act !== 'sleep'}
+                                play={a.act !== 'sleep' && a.act !== 'fall'}
                                 start={a.act === 'hop' || a.act === 'emote' ? a.t0 : 0}
                                 className="wild-mon"
                             >
-                                {a.act === 'sleep' ? (
+                                {a.act === 'fall' ? (
+                                    // tonto no chão: três estrelinhas rodando em volta da cabeça
+                                    <span key={`ko${a.t0}`} className="wild-dizzy">
+                                        <i />
+                                        <i />
+                                        <i />
+                                    </span>
+                                ) : a.act === 'sleep' ? (
                                     <span className="wild-zzz">
                                         <b>z</b>
                                         <b>z</b>

@@ -131,7 +131,7 @@ export function wildQuota(tab: number, counts: readonly number[], max = MAX_WILD
 
 // ---------------------------------------------------------------------------------------------- ações
 
-export type Act = 'idle' | 'walk' | 'look' | 'sleep' | 'hop' | 'emote' | 'chase' | 'flee';
+export type Act = 'idle' | 'walk' | 'look' | 'sleep' | 'hop' | 'emote' | 'chase' | 'flee' | 'fall';
 /** `goal`: o balão com os gols do artilheiro (só no toque). */
 export type Emote = 'heart' | 'note' | 'surprise' | 'question' | 'goal';
 export interface Pt {
@@ -157,6 +157,9 @@ export interface Area {
     bounds?: Box;
     blocks?: Box[];
     props?: Box[];
+    /** Os móveis inteiros (do alto do móvel até a base, com folga embaixo): quem anda nunca pisa dentro nem atrás de
+     * um (o pé fica sempre na frente, então desenhar o Pokémon por cima do móvel é a profundidade certa). */
+    furniture?: Box[];
     /** Zonas de chão com a mesma caixa na tela (o mato e a água do mapa, a linha de fundo e a beira da quadra) têm a
      * mesma chave: quem está numa não atravessa quem está na outra. */
     ground?: string;
@@ -185,7 +188,16 @@ export interface Actor extends Wild {
     ground?: string;
     /** Não cabe mais onde está: some com fade e só nessa hora (relógio da cena) muda de lugar. */
     moveAt?: number;
+    /** Os próximos pontos da caminhada, depois de (tx, ty) (o desvio em volta de um móvel). */
+    path?: [number, number][];
+    /** Hora dos últimos toques (o 5º seguido derruba). */
+    taps?: number[];
 }
+
+/** Toques seguidos que derrubam (o 5º em até 2 s) e quanto tempo ele fica no chão (a animação `wild-fall` do CSS). */
+export const KO_TAPS = 5;
+export const KO_WINDOW = 2000;
+export const FALL_MS = 1900;
 
 /** Quanto o Pokémon que precisa mudar de lugar fica escondido antes de reaparecer (o fade do `.wild.off`). */
 export const HIDE_MS = 260;
@@ -219,7 +231,106 @@ export function fits(area: Area, x: number, y: number, body?: Box): boolean {
     const [l, t, r, bot] = area.bounds ?? [0, 0, 1, 1];
     if (b[0] < l || b[1] < t || b[2] > r || b[3] > bot) return false;
     if (area.blocks?.some((k) => hit(b, k))) return false;
-    return area.fly || !area.props?.some((k) => hit(b, k));
+    if (area.fly) return true;
+    // o pé (na largura do corpo) fora de qualquer móvel: nada de ficar em cima nem atrás de um
+    const foot: Box = [x + body[0], y - 0.01, x + body[2], y];
+    return !area.props?.some((k) => hit(b, k)) && !area.furniture?.some((k) => hit(foot, k));
+}
+
+/** Dá pra andar reto de (x, y) a (tx, ty)? Confere o caminho a cada 0,02 altura da caixa. */
+export function clear(area: Area, x: number, y: number, tx: number, ty: number, body?: Box): boolean {
+    const n = Math.ceil(Math.hypot((tx - x) * area.aspect, ty - y) / 0.02);
+    for (let i = 1; i <= n; i++) if (!fits(area, x + ((tx - x) * i) / n, y + ((ty - y) * i) / n, body)) return false;
+    return true;
+}
+
+/**
+ * O caminho de uma caminhada (pontos depois do de partida, o último é o destino), sem atravessar nada: quase sempre
+ * com uma curva leve (um ponto no meio, um pouco pro lado, pra não andar feito régua), senão reto; se os dois batem
+ * num móvel, o desvio por uma grade grossa do chão. `null` = não tem como chegar lá.
+ */
+export function planWalk(
+    area: Area,
+    x: number,
+    y: number,
+    tx: number,
+    ty: number,
+    body?: Box,
+    rand: Rand = Math.random,
+): [number, number][] | null {
+    if (!fits(area, tx, ty, body)) return null;
+    // a perpendicular do caminho (em alturas da caixa), pra entortar
+    const dx = (tx - x) * area.aspect;
+    const dy = ty - y;
+    const d = Math.hypot(dx, dy) || 1;
+    const off = (0.1 + rand() * 0.15) * (rand() < 0.5 ? 1 : -1) * d;
+    const mx = (x + tx) / 2 + ((-dy / d) * off) / area.aspect;
+    const my = (y + ty) / 2 + (dx / d) * off;
+    if (clear(area, x, y, mx, my, body) && clear(area, mx, my, tx, ty, body))
+        return [
+            [mx, my],
+            [tx, ty],
+        ];
+    if (clear(area, x, y, tx, ty, body)) return [[tx, ty]];
+    return gridPath(area, x, y, tx, ty, body);
+}
+
+/** Linhas da grade do desvio (as colunas seguem o formato da caixa): 12 x ~20 casas, uma busca por caminhada. */
+const GRID_ROWS = 12;
+
+/**
+ * Desvio pela grade: busca em largura entre os centros das casas livres (vizinhas ligadas só se der pra andar reto
+ * de uma à outra) e depois corta caminho (de cada ponto, o mais longe que dá pra ver em linha reta).
+ */
+function gridPath(area: Area, x: number, y: number, tx: number, ty: number, body?: Box): [number, number][] | null {
+    const rows = GRID_ROWS;
+    const cols = Math.max(4, Math.round(rows * area.aspect));
+    const at = (i: number): [number, number] => [((i % cols) + 0.5) / cols, (Math.floor(i / cols) + 0.5) / rows];
+    const free = Array.from({ length: cols * rows }, (_, i) => fits(area, ...at(i), body));
+    // as casas em volta de um ponto que ele alcança em linha reta
+    const around = (px: number, py: number) => {
+        const out: number[] = [];
+        const [c0, r0] = [Math.floor(px * cols), Math.floor(py * rows)];
+        for (let r = r0 - 1; r <= r0 + 1; r++)
+            for (let c = c0 - 1; c <= c0 + 1; c++) {
+                const i = r * cols + c;
+                if (c >= 0 && c < cols && r >= 0 && r < rows && free[i] && clear(area, px, py, ...at(i), body))
+                    out.push(i);
+            }
+        return out;
+    };
+    const goal = new Set(around(tx, ty));
+    const prev = new Map<number, number>();
+    const queue = around(x, y);
+    for (const i of queue) prev.set(i, -1);
+    for (let q = 0; q < queue.length; q++) {
+        const i = queue[q];
+        if (goal.has(i)) {
+            const cells: [number, number][] = [[tx, ty]];
+            for (let k = i; k >= 0; k = prev.get(k) ?? -1) cells.unshift(at(k));
+            // corta caminho: de onde está, vai direto ao ponto mais adiante que ele enxerga
+            const out: [number, number][] = [];
+            let [cx, cy] = [x, y];
+            for (let k = 0; k < cells.length; ) {
+                let far = k;
+                while (far + 1 < cells.length && clear(area, cx, cy, ...cells[far + 1], body)) far++;
+                out.push(cells[far]);
+                [cx, cy] = cells[far];
+                k = far + 1;
+            }
+            return out;
+        }
+        const [c, r] = [i % cols, Math.floor(i / cols)];
+        for (let dr = -1; dr <= 1; dr++)
+            for (let dc = -1; dc <= 1; dc++) {
+                const j = (r + dr) * cols + c + dc;
+                if (c + dc < 0 || c + dc >= cols || r + dr < 0 || r + dr >= rows || prev.has(j) || !free[j]) continue;
+                if (!clear(area, ...at(i), ...at(j), body)) continue;
+                prev.set(j, i);
+                queue.push(j);
+            }
+    }
+    return null;
 }
 
 /** Quanto o corpo de `a` em (x, y) cobre o de `o` (0 a 1, pela área do menor). */
@@ -289,11 +400,26 @@ function begin(a: Actor, act: Act, all: Actor[], area: Area, rand: Rand, now: nu
     a.t0 = now;
     a.emote = undefined;
     a.prey = undefined;
+    a.path = undefined;
     if (act === 'walk') {
-        const p = area.fly ? anySpot(a, [], area, rand) : spotNear(a, all, area, 0.3, rand);
-        if (!p) return begin(a, 'idle', all, area, rand, now);
-        [a.tx, a.ty] = p;
-        a.left = area.fly ? 9000 : 5000;
+        if (area.fly) {
+            const p = anySpot(a, [], area, rand);
+            if (!p) return begin(a, 'idle', all, area, rand, now);
+            [a.tx, a.ty] = p;
+            a.left = 9000;
+            return;
+        }
+        // um passeio de verdade (perto ou atravessando a sala), por um caminho que não bate em móvel
+        for (let i = 0; i < 4; i++) {
+            const p = spotNear(a, all, area, rand() < 0.4 ? 0.6 : 0.3, rand);
+            const path = p && planWalk(area, a.x, a.y, p[0], p[1], a.body, rand);
+            if (!path) continue;
+            [a.tx, a.ty] = path[0];
+            a.path = path.slice(1);
+            a.left = 8000;
+            return;
+        }
+        return begin(a, 'idle', all, area, rand, now);
     } else if (act === 'chase') {
         const prey = all.filter(
             (o) => o !== a && o.zone === a.zone && o.shown && o.act !== 'sleep' && o.act !== 'flee',
@@ -313,6 +439,11 @@ function begin(a: Actor, act: Act, all: Actor[], area: Area, rand: Rand, now: nu
         a.left = between(rand, 1400, 2000);
     } else if (act === 'look') {
         a.left = between(rand, 1400, 2400);
+    } else if (act === 'fall') {
+        a.dir = 0;
+        a.tx = a.x;
+        a.ty = a.y;
+        a.left = FALL_MS;
     } else {
         a.left = between(rand, 1000, 2600);
     }
@@ -320,6 +451,7 @@ function begin(a: Actor, act: Act, all: Actor[], area: Area, rand: Rand, now: nu
 
 /** Foge de `from`: corre pro lado oposto até onde der pisar. */
 function flee(a: Actor, from: Pt, area: Area, now: number) {
+    a.path = undefined;
     a.act = 'flee';
     a.t0 = now;
     a.prey = undefined;
@@ -338,7 +470,7 @@ function flee(a: Actor, from: Pt, area: Area, now: number) {
         for (const len of [0.35, 0.22, 0.12]) {
             const nx = a.x + (ux * len) / area.aspect;
             const ny = a.y + uy * len;
-            if (fits(area, nx, ny, a.body)) {
+            if (clear(area, a.x, a.y, nx, ny, a.body)) {
                 a.tx = nx;
                 a.ty = ny;
                 return;
@@ -376,22 +508,48 @@ function choose(a: Actor, all: Actor[], area: Area, rand: Rand, now: number) {
 
 /**
  * Tocaram nele: pula com um coração ou uma nota (o artilheiro, com os gols, um pouco mais pra dar tempo de ler); quem
- * dormia acorda assustado. Devolve se acordou.
+ * dormia acorda assustado. O 5º toque seguido (em até 2 s, contados em `at`, o relógio de verdade) derruba: cai de
+ * costas, fica tonto um pouco no chão e levanta andando (o `step`). Caído, toque não faz nada.
  */
-export function poke(a: Actor, now: number, rand: Rand = Math.random): boolean {
-    const woke = a.act === 'sleep';
-    a.act = 'hop';
-    a.t0 = now;
-    a.left = a.goals && !woke ? 2000 : 900;
+export function poke(a: Actor, now: number, rand: Rand = Math.random, at = now): 'hop' | 'woke' | 'fall' {
+    if (a.act === 'fall') return 'fall';
+    a.taps = [...(a.taps ?? []).filter((t) => at - t < KO_WINDOW), at];
     a.prey = undefined;
+    a.path = undefined;
     a.tx = a.x;
     a.ty = a.y;
     a.dir = 0;
+    a.t0 = now;
+    if (a.taps.length >= KO_TAPS) {
+        a.taps = [];
+        a.act = 'fall';
+        a.emote = undefined;
+        a.left = FALL_MS;
+        return 'fall';
+    }
+    const woke = a.act === 'sleep';
+    a.act = 'hop';
+    a.left = a.goals && !woke ? 2000 : 900;
     a.emote = woke ? 'surprise' : a.goals ? 'goal' : rand() < 0.5 ? 'heart' : 'note';
-    return woke;
+    return woke ? 'woke' : 'hop';
+}
+
+/** Depois de cair: levanta e sai andando (quem fica parado no lugar, só levanta). */
+export function getUp(a: Actor, all: Actor[], area: Area, now: number, rand: Rand = Math.random) {
+    begin(a, area.still ? 'idle' : 'walk', all, area, rand, now);
 }
 
 const LOOK = [2, 0, 6, 0];
+
+/** Fim de uma caminhada (chegou ou deu de cara com alguém): para e respira, ou olha em volta, antes da próxima. */
+function rest(a: Actor, rand: Rand, now: number) {
+    a.act = rand() < 0.6 ? 'idle' : 'look';
+    a.t0 = now;
+    a.path = undefined;
+    a.tx = a.x;
+    a.ty = a.y;
+    a.left = between(rand, 700, 2200);
+}
 
 /**
  * Um passo de todos (dt em ms, `now` = hora do relógio da cena). Mexe nos atores no lugar e devolve `true` se
@@ -442,7 +600,7 @@ export function step(
             continue;
         }
         for (const t of threats[a.zone] ?? []) {
-            if (a.act === 'flee' || area.fly) break;
+            if (a.act === 'flee' || a.act === 'fall' || area.fly) break;
             if (Math.hypot((t.x - a.x) * area.aspect, t.y - a.y) > (t.r ?? 0.16)) continue;
             if (area.still) {
                 if (a.emote !== 'surprise') begin(a, 'emote', actors, area, rand, now);
@@ -477,13 +635,23 @@ export function step(
                 if (fits(area, nx, ny, a.body) && (!o || cover(a, nx, ny, o) < cover(a, a.x, a.y, o))) {
                     a.x = nx;
                     a.y = ny;
-                    if (d <= len && a.act !== 'chase') a.left = 0;
-                } else a.left = 0;
+                    // chegou num ponto do caminho: segue pro próximo; no fim, para um pouco antes de decidir de novo
+                    if (d <= len && a.act !== 'chase') {
+                        const next = a.path?.shift();
+                        if (next) [a.tx, a.ty] = next;
+                        else if (a.act === 'walk' && !area.fly) rest(a, rand, now);
+                        else a.left = 0;
+                    }
+                } else if (a.act === 'walk' && !area.fly) rest(a, rand, now);
+                else a.left = 0;
             }
         } else if (a.act === 'look') {
             a.dir = LOOK[Math.floor(a.left / 600) & 3];
         }
-        if (a.left <= 0) choose(a, actors, area, rand, now);
+        if (a.left <= 0) {
+            if (a.act === 'fall') getUp(a, actors, area, now, rand);
+            else choose(a, actors, area, rand, now);
+        }
         if (`${a.act}${a.dir}${a.emote}${a.t0}${a.shown}` !== before) changed = true;
     }
     return changed;

@@ -1,6 +1,8 @@
 import { ZZFX, zzfx } from 'zzfx';
 import type { CryStyle } from '../store/game-store';
 import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
+import { type BuildSamples, type Layer, mixMax } from './max-sfx';
+import { wavMono } from './virada';
 
 /**
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
@@ -80,6 +82,49 @@ export function playSfx(name: SfxName, pitch = 1, at?: number): AudioBufferSourc
     } catch {
         // contexto de áudio ainda bloqueado pelo navegador (antes da primeira interação)
     }
+}
+
+/** O clap 808 (`public/music/clap-808.wav`) dos sons do golpe máximo. Sem ele, a camada fica muda. */
+let clapP: Promise<Float32Array | null> | null = null;
+export const loadMaxSfx = () =>
+    (clapP ??= fetch('music/clap-808.wav')
+        .then((r) => r.arrayBuffer())
+        .then(wavMono)
+        .catch(() => {
+            clapP = null;
+            return null;
+        }));
+const maxMixes = new Map<readonly Layer[], Float32Array<ArrayBuffer>>();
+
+/** Som do golpe máximo (`MAX_TAP`/`MAX_MOVE` em `max-sfx.ts`) no canal de efeitos; `at` como no `playSfx`. */
+export function playMax(layers: readonly Layer[], peak: number, at?: number) {
+    if (vol.master * vol.sfx <= 0) return;
+    void loadMaxSfx().then((clap) => {
+        try {
+            let s = maxMixes.get(layers);
+            if (!s) {
+                s = mixMax(
+                    layers,
+                    ZZFX.buildSamples.bind(ZZFX) as unknown as BuildSamples,
+                    clap,
+                    peak,
+                    ZZFX.sampleRate,
+                );
+                if (clap) maxMixes.set(layers, s);
+            }
+            const c = ZZFX.audioContext;
+            const b = c.createBuffer(1, s.length, ZZFX.sampleRate);
+            b.copyToChannel(s, 0);
+            const src = c.createBufferSource();
+            src.buffer = b;
+            const g = c.createGain();
+            g.gain.value = ZZFX.volume;
+            src.connect(g).connect(c.destination);
+            src.start(Math.max(at ?? 0, c.currentTime));
+        } catch {
+            // sem áudio
+        }
+    });
 }
 
 /** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`. */
