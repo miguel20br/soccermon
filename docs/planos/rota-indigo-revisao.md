@@ -205,3 +205,28 @@ Ordem que eu seguiria: 1 e 2 juntos (mexem no mapa e na recompensa), depois 4 e 
 8. **Pedras evolutivas** (redesenho 3): mexe na regra da evolução. Recomendo sim, mas só depois das etapas 4 a 7, e
    com você jogando umas Rotas na prévia.
 9. **O robô de caminhos** (`scripts/balance/rota-caminhos.sim.test.ts`) vira a régua de cada etapa? Recomendo sim.
+
+## O que entrou (30/10/2026, branch `rota-redesenho`)
+
+O Miguel disse "sim em tudo" pras 9 decisões. Entraram a 1 a 7; a 8 ficou de fora (abaixo).
+
+1. **Textos:** amarelo curto, "DERROTA" no vermelho, "0/8 insígnias", "MT rara", a fala da Misty, e o Continuar da
+   Rota com a região na linha de baixo (não quebra "Mt. Moon"). A 320, a dica do titular fora sobe pra cima do Jogar.
+2. **Tela do evento:** a cena no meio, as escolhas na barra do polegar.
+3. **Tocar marca, botão confirma** no Treino e no "Quem?" do evento (a barra vira Voltar · Confirmar).
+4. **Ramos com tipo:** 3 ramos por mapa (de `BRANCHES` em `cup-map.ts`), um por coluna; rival, Baú, Mercado e item de
+   tipo puxam eles. **Prêmio à vista:** todo Jogo mostra o prêmio no mapa (Pokémon do rival, MT, item de tipo ou ₽ em
+   dobro), cada um diferente na mesma linha.
+5. **Ginásio elite:** rival +2 (era +1 com teto), desde a 2ª partida, e o prêmio é a carta do líder (Onix, Starmie,
+   Raichu, Vileplume, Weezing, Alakazam, Arcanine, Rhydon, Gengar), a MT dele e um item. O Onix é prata (70), os outros
+   ouro. A insígnia já saía da vitória no ginásio.
+6. **Escassez:** no máximo 1 Mercado por caminho e nunca Mercado e Treino no mesmo caminho (a casa que sobra vira
+   Evento). A linha do Baú vira Baú ou Centro Pokémon (tira o amarelo ou traz de volta quem está fora). O Ginásio
+   nessa linha ficou de fora: mudaria o número de partidas por caminho (hoje são sempre 8).
+7. **Eventos:** saíram Olheiro, Pokémon perdido, Treino puxado e Creche; a trombada é só entre titulares. Entraram
+   Fósseis do Mt. Moon (na linha antes do Mt. Moon), Pássaro lendário (Zapdos, na linha de Cerulean), Assalto da Equipe
+   Rocket, Aposta do Blue, Juiz da Liga (só com amarelo) e Ovo da Creche. Save com evento cortado aberto sorteia outro.
+
+**Fora:** a 8 (pedras evolutivas) mexe no motor: quem evolui e quando é decidido dentro da partida (`match.ts`). Pela
+regra do projeto, pede `ENGINE_VERSION` novo e decisão do Miguel. Também ficaram de fora o "?" puxando o tipo de evento
+que não saiu e as propostas 8 e 9 de "Feio e incoerente" (rostos no Patrocinador, status no celular).

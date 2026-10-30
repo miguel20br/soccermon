@@ -251,7 +251,9 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
         if (has('reserva') && ev.id === 'rocket') return go('reserva', weakest);
         return go('encarar');
     };
-    if (ev.id === 'centro') return go(has('amarelo') ? 'amarelo' : has('voltar') ? 'voltar' : 'seguir');
+    // o Centro também conta como escolha: quem recusa tudo segue viagem
+    if (ev.id === 'centro' && !idle(policy))
+        return go(has('amarelo') ? 'amarelo' : has('voltar') ? 'voltar' : 'seguir');
     if (idle(policy)) {
         const exit = ok.find((c) => EXITS.includes(c.id));
         return exit ? go(exit.id) : forced();
