@@ -20,14 +20,7 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import {
-    cupLength,
-    groupOthers,
-    groupTable,
-    isGroupStage,
-    type LongRunFields,
-    YELLOW_CARDS,
-} from '../../store/long-cup';
+import { groupOthers, groupTable, isGroupStage, type LongRunFields, YELLOW_CARDS } from '../../store/long-cup';
 import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
@@ -230,11 +223,8 @@ export function CupMap() {
 
     return (
         <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}${story ? ' has-story' : ''}`}>
-            <MenuHead
-                title={t('longCup.title')}
-                icon="liga"
-                tag={t('longCup.step', { n: Math.min(played + 1, cupLength(run)), total: cupLength(run) })}
-            />
+            {/* a fase ("Partida 3 de 8") só na barra da copa (brand guide): aqui ela contava de outro jeito e brigava */}
+            <MenuHead title={t('longCup.title')} hud="map" />
             <Coach
                 id="rota"
                 targets={['.cm-node.open', '.cm-cards', '.cm-money']}
@@ -474,7 +464,7 @@ export function Training() {
         .filter((p) => p && evolutionTarget(p.speciesId, p.uid) !== null);
     return (
         <div className="menu-screen cm">
-            <MenuHead title={t('longCup.treino.title')} icon="liga" tag={t('longCup.title')} />
+            <MenuHead title={t('longCup.treino.title')} hud="dumbbell" />
             {evolvers.length > 0 && (
                 <div className="panel cm-train">
                     <h2>{t('longCup.treino.evo')}</h2>
@@ -630,7 +620,7 @@ export function EventScreen() {
     );
     return (
         <div className="menu-screen cm cm-ev">
-            <MenuHead title={txt.title} icon="liga" tag={t('longCup.title')} />
+            <MenuHead title={txt.title} hud={EVENT_ART[ev.id].icon} />
             <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
                 <span className="cm-event-emblem">
                     <HudIcon kind={EVENT_ART[ev.id].icon} />
@@ -738,7 +728,7 @@ export function GroupScreen() {
     const untold = !run.told?.includes('planalto');
     return (
         <div className="menu-screen cm">
-            <MenuHead title={t('longCup.region.planalto')} icon="liga" tag={t('longCup.groupTag')} />
+            <MenuHead title={t('longCup.region.planalto')} hud="players" />
             <section className="gp-table bc-surface" aria-label={t('longCup.groupTable')}>
                 <div className="gp-row gp-head">
                     <span />

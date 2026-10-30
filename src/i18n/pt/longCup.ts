@@ -49,7 +49,6 @@ export const longCup = {
     },
     outLeft: '{n} jogo|{n} jogos',
     outAria: '{tag}, volta em {n} partida|{tag}, volta em {n} partidas',
-    groupTag: 'Rota Índigo · Fase de grupos',
     groupTable: 'Grupo',
     colPlayed: 'J',
     colGd: 'SG',

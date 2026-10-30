@@ -50,7 +50,6 @@ export const longCup: typeof pt = {
     },
     outLeft: '{n} match|{n} matches',
     outAria: '{tag}, back in {n} match|{tag}, back in {n} matches',
-    groupTag: 'Indigo Road · Group stage',
     groupTable: 'Group',
     colPlayed: 'P',
     colGd: 'GD',
