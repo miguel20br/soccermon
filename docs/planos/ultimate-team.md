@@ -138,3 +138,18 @@ Evoluções sim, sem mercado na 1ª versão, UT entra na 1.0, nome "Ultimate Tea
 - [Marvel Snap series drops (esports.gg)](https://esports.gg/news/gaming/marvel-snap-february-series-drop/)
 - [The design philosophy behind PoE 2's seasonal model (Game-Wisdom)](https://game-wisdom.com/general/design-philosophy-behind-poe-2s-seasonal-model-resetting-everything-works)
 - [Diablo 4: new character every season? (GameStar)](https://www.gamestar.de/artikel/diablo-4-neuer-charakter-fuer-jede-season-gutes-feature-oder-zeitverschwendung,3396269.html)
+
+## Decidido com o Miguel (30/10/2026): Time Ultimate
+
+- **Nome:** "Time Ultimate" (EN "Team Ultimate"); id interno `ultimate`. Modo História continua o de 2027.
+- **Lançamento 27/11:** coleção da temporada, pacotes (1 grátis a cada 12 h + objetivos + 1 por título da Copa),
+  química, Evoluções, jogos contra IA e líderes, objetivos diários/semanais, reset no fim. Ranking, desafios de
+  montagem, Duelo com o time e troca entre amigos ficam pra dez/jan. Antes do plano final: pesquisa do Ultimate
+  Team do FC 27.
+- **Liga separada** no lançamento (abre 01/12; servidor não confere posse de cartas); ranking do Time Ultimate na
+  temporada 2 (janeiro).
+- **Temporada 1 atravessa o Natal** (27/11 a ~08/01), com pacote natalino sem reset.
+- **Sem limite duro de time; a dificuldade é o limite:** rival acompanha a média do seu time, você escolhe o nível de
+  cada jogo (mais difícil = prêmio maior) e objetivos com restrição ("time todo prata") pagam a mais.
+- **Moeda: Fichas** (as do Game Corner de Celadon).
+- **Equilíbrio:** meta "prata com química cheia empata com ouro sem química"; números antes de aplicar.
