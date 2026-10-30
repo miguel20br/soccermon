@@ -1,8 +1,9 @@
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { onBeat } from '../../game/music';
 import { plural } from '../../i18n';
+import type { Lang } from '../../i18n/lang';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
@@ -39,6 +40,14 @@ export const LAST: ModeId = 'atual';
 export const ULTIMATE_AT = new Date('2026-11-27T00:00:00-03:00');
 /** Dias inteiros até `at` (arredonda pra cima: falta meio dia = falta 1); 0 quando já chegou. */
 export const daysUntil = (at: Date, now: Date) => Math.max(0, Math.ceil((at.getTime() - now.getTime()) / 86_400_000));
+/** A data do selo "EM BREVE": o dia da estreia do Ultimate (de `ULTIMATE_AT`, "27/11" / "Nov 27") ou o ano do Modo História. */
+export const soonDate = (id: ModeId, lang: Lang) =>
+    id === 'ultimate'
+        ? ULTIMATE_AT.toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
+              timeZone: 'America/Sao_Paulo',
+              ...(lang === 'pt' ? { day: '2-digit', month: '2-digit' } : { day: 'numeric', month: 'short' }),
+          })
+        : '2027';
 
 /** Nome e itens do modo (i18n). */
 export function useMode(id: ModeId) {
@@ -239,17 +248,17 @@ function SceneHistoria({ scale, bare }: { scale: number; bare?: boolean }) {
 }
 
 /** A cena do modo; `bare` (nas fatias) deixa de fora o herói, que vai por cima e fura a borda (`Hero`). */
-export function Scene({ id, scale, bare }: { id: ModeId; scale: number; bare?: boolean }) {
+export const Scene = memo(function Scene({ id, scale, bare }: { id: ModeId; scale: number; bare?: boolean }) {
     if (id === 'atual') return <SceneAtual scale={scale} bare={bare} />;
     if (id === 'ultimate') return <SceneUltimate scale={scale} bare={bare} />;
     return <SceneHistoria scale={scale} bare={bare} />;
-}
+});
 
 /**
  * O herói da fatia, grande e fora do recorte (fura a borda, como a arte de lutador do Smash): o capitão do clube, o
  * pacote com a carta ouro e o Blue. Atrás dele (no fundo da fatia), raios girando quando ela está aberta.
  */
-function Hero({ id, scale }: { id: ModeId; scale: number }) {
+const Hero = memo(function Hero({ id, scale }: { id: ModeId; scale: number }) {
     const cap = useCaptain();
     return (
         <span className={`mm-hero mm-hero-${id}`} aria-hidden>
@@ -265,7 +274,7 @@ function Hero({ id, scale }: { id: ModeId; scale: number }) {
             )}
         </span>
     );
-}
+});
 
 /** "Chega em…": placa com o relógio, nunca cadeado. No Ultimate, a contagem dos dias até `ULTIMATE_AT`. */
 export function When({ id }: { id: ModeId }) {
@@ -281,8 +290,44 @@ export function When({ id }: { id: ModeId }) {
     );
 }
 
-/** O JOGAR pulsa na batida da música do menu (sem música, o pulso do CSS segue sozinho). */
-export function Play({ sub, onClick }: { sub?: string; onClick?: () => void }) {
+/** Selo do modo que ainda não chegou: "EM BREVE" e a data grande, na cor do jogo (nunca cadeado). */
+export function Soon({ id }: { id: ModeId }) {
+    const { t, lang } = useT();
+    return (
+        <span className="mm-soon">
+            <span>{t('home.modes.soon')}</span>
+            <b>{soonDate(id, lang)}</b>
+        </span>
+    );
+}
+
+/**
+ * O botão de baixo com um trancado aberto: diz quando chega (não é JOGAR, então não é dourado) e um toque volta pro
+ * Modo Copa, onde o JOGAR reaparece.
+ */
+function SoonCta({ id, on, onBack }: { id: ModeId; on: boolean; onBack: () => void }) {
+    const { t, lang } = useT();
+    return (
+        <button
+            type="button"
+            className={`btn cb mm-soon-cta mm-cta-${id}${on ? '' : ' off'}`}
+            inert={!on}
+            onClick={onBack}
+        >
+            <b>
+                <HudIcon kind="stopwatch" />
+                {t('home.modes.arrives', { date: soonDate(id, lang) })}
+            </b>
+            <small>
+                <HudIcon kind="prev" />
+                {t('home.modes.backTo', { name: t('home.modes.atual.name') })}
+            </small>
+        </button>
+    );
+}
+
+/** O JOGAR pulsa na batida da música do menu (sem música, o pulso do CSS segue sozinho). `off`: some (um trancado aberto). */
+export function Play({ sub, off, onClick }: { sub?: string; off?: boolean; onClick?: () => void }) {
     const { t } = useT();
     const ring = useRef<HTMLElement>(null);
     useEffect(
@@ -300,8 +345,9 @@ export function Play({ sub, onClick }: { sub?: string; onClick?: () => void }) {
         [],
     );
     return (
-        <button type="button" className="btn cb cb-gold mm-play" onClick={onClick}>
+        <button type="button" className={`btn cb cb-gold mm-play${off ? ' off' : ''}`} inert={off} onClick={onClick}>
             <i ref={ring} className="mm-play-ring" aria-hidden />
+            <i className="mm-play-glow" aria-hidden />
             <i className="cb-shine" aria-hidden />
             <b>{t('home.modes.play')}</b>
             {sub && <small>{sub}</small>}
@@ -346,13 +392,16 @@ const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
 /**
  * Fatias na diagonal, estilo Smash (conceito C do ?lab=menu-modos): no PC e deitado lado a lado; no celular em pé,
  * `look` c2 (padrão, 30/10/2026: o Copa grande em cima e os dois trancados lado a lado embaixo, cada um com a cena
- * inteira) ou c1 (as três empilhadas). Tocar abre a fatia (cresce, acende, mostra os itens); o JOGAR embaixo joga
- * sempre o Modo Copa.
+ * inteira) ou c1 (as três empilhadas). Tocar abre a fatia (cresce, acende, mostra os itens). Os trancados têm o selo
+ * "EM BREVE" com a data; abertos, o JOGAR dá lugar a "Chega em…" (um toque volta pro Modo Copa).
  */
 export type SliceLook = 'c1' | 'c2';
 export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: SliceLook; onPlay?: () => void }) {
     const { t, d } = useT();
     const [sel, setSel] = useState<ModeId>(LAST);
+    // o "Chega em…" guarda o último trancado aberto: voltando pro Copa, ele some com o texto certo
+    const locked = useRef<ModeId>('ultimate');
+    if (sel !== LAST) locked.current = sel;
     return (
         <div className={`mm-c mm-${look}`}>
             <Head />
@@ -372,25 +421,23 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
                         </span>
                         <Hero id={m} scale={big ? 5 : 3} />
                         <span className="mm-slice-txt">
-                            {m === LAST && <span className="mm-tag">{t('home.modes.last')}</span>}
-                            <When id={m} />
+                            {m === LAST ? <span className="mm-tag">{t('home.modes.last')}</span> : <Soon id={m} />}
                             <b className="cb-num mm-plate">
                                 <span>{d.home.modes[m].name}</span>
                             </b>
                             <span className="mm-slice-more">
-                                <Chips id={m} />
+                                <span>
+                                    {m === 'ultimate' && <When id={m} />}
+                                    <Chips id={m} />
+                                </span>
                             </span>
                         </span>
                     </button>
                 ))}
             </div>
             <div className="mm-c-cta" style={{ '--n': 4 } as CSSProperties}>
-                <Play
-                    sub={
-                        sel === LAST ? undefined : `${d.home.modes[LAST].name} · ${t('home.modes.last').toLowerCase()}`
-                    }
-                    onClick={onPlay}
-                />
+                <Play off={sel !== LAST} onClick={onPlay} />
+                <SoonCta id={locked.current} on={sel !== LAST} onBack={() => setSel(LAST)} />
             </div>
         </div>
     );

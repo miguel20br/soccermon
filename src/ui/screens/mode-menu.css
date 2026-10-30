@@ -13,7 +13,8 @@
         radial-gradient(60% 40% at 0% 100%, rgb(30 139 255 / 18%), transparent 70%), var(--bg);
     color: var(--text);
 }
-/* raios girando devagar atrás de tudo (bem fracos, presos ao centro) */
+/* raios parados atrás de tudo (bem fracos, presos ao centro). Não giram: a camada tem 240vw e, girando, era
+   recomposta a cada quadro (no celular, o maior peso do menu parado) */
 .mm-root::before {
     content: "";
     position: fixed;
@@ -26,7 +27,6 @@
     background: repeating-conic-gradient(rgb(255 203 5 / 7%) 0 7deg, transparent 7deg 20deg);
     mask: radial-gradient(closest-side, #000 10%, transparent 70%);
     pointer-events: none;
-    animation: mm-spin 90s linear infinite;
 }
 /* poeira de luz subindo devagar: pontinhos dourados e azuis num ladrilho de 240 px */
 .mm-root::after {
@@ -461,26 +461,27 @@ button.mm-card,
     content: "?";
     font-size: calc(86cqw / 15 * 2.9);
 }
-/* o brilho do foil passando */
+/* o brilho do foil passando (só transform: o background-position com blend repintava a carta a cada quadro) */
 .mm-peek::after {
     content: "";
     position: absolute;
-    inset: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 60%;
     z-index: 3;
-    background:
-        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 70%) 47%, transparent 58%) 160% 0 / 300% 100%
-        no-repeat;
-    mix-blend-mode: overlay;
+    background: linear-gradient(115deg, transparent 20%, rgb(255 255 255 / 38%) 50%, transparent 80%);
+    transform: translateX(-110%);
     animation: mm-foil 3.2s linear infinite;
 }
 @keyframes mm-foil {
     0%,
     30% {
-        background-position: 160% 0;
+        transform: translateX(-110%);
     }
     65%,
     100% {
-        background-position: -60% 0;
+        transform: translateX(180%);
     }
 }
 @keyframes mm-peek {
@@ -522,11 +523,20 @@ button.mm-card,
     border-radius: 50%;
     background: #ffd27a;
     box-shadow: 0 0 0 6px rgb(255 210 122 / 30%);
+}
+/* o halo respira por transform/opacity (box-shadow animado repintava a cena) */
+.mm-sun::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: rgb(255 210 122 / 18%);
     animation: mm-sun 5s ease-in-out infinite alternate;
 }
 @keyframes mm-sun {
-    to {
-        box-shadow: 0 0 0 12px rgb(255 210 122 / 18%);
+    from {
+        transform: scale(0.75);
+        opacity: 0.4;
     }
 }
 .mm-gym {
@@ -747,13 +757,19 @@ button.mm-card,
     background: var(--mc2);
     clip-path: var(--clip);
 }
-/* fechada um tico mais calma que a aberta, nunca apagada */
-.mm-slice .mm-sc {
-    filter: brightness(0.86) saturate(1.1);
-    transition: filter var(--dur-tela) var(--ease-out);
+/* fechada um tico mais calma que a aberta, nunca apagada: um véu escuro por cima (filtro na cena inteira fazia cada
+   quadro de sprite repintar a fatia toda) */
+.mm-slice-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: rgb(0 0 0 / 15%);
+    pointer-events: none;
+    transition: opacity var(--dur-tela) var(--ease-out);
 }
-.mm-slice:is(.on, :hover, :focus-visible) .mm-sc {
-    filter: saturate(1.1);
+.mm-slice:is(.on, :hover, :focus-visible) .mm-slice-bg::before {
+    opacity: 0;
 }
 /* o banho da cor do modo por cima da cena (onde vai o nome) */
 .mm-slice-bg::after {
@@ -780,11 +796,19 @@ button.mm-card,
     background: repeating-conic-gradient(rgb(255 255 255 / 30%) 0 7deg, transparent 7deg 20deg);
     mask: radial-gradient(closest-side, #000 8%, transparent 60%);
     opacity: 0;
-    animation: mm-spin 30s linear infinite;
     transition: opacity var(--dur-tela) var(--ease-out);
 }
 .mm-slice.on .mm-burst {
     opacity: 1;
+    animation: mm-spin 30s linear infinite;
+}
+/* na fatia, quem gira é o .mm-burst (só na aberta): dois raios girando juntos dobravam a conta */
+.mm-slice .mm-rays {
+    animation: none;
+}
+/* as insígnias só acendem com a fatia aberta (fechada, elas nem aparecem) */
+.mm-slice:not(.on) .mm-badges .kb-badge {
+    animation: none;
 }
 .mm-slice-txt {
     position: absolute;
@@ -835,6 +859,10 @@ button.mm-card,
 }
 .mm-slice-more > * {
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
 }
 .mm-slice.on .mm-slice-more {
     grid-template-rows: 1fr;
@@ -850,6 +878,40 @@ button.mm-card,
         700 10px / 1 "Galmuri11",
         monospace;
     letter-spacing: 0.06em;
+}
+/* o selo do trancado: "EM BREVE" na tinta e a data grande no dourado, inclinado como a placa do nome */
+.mm-soon {
+    display: inline-flex;
+    align-items: stretch;
+    margin-left: 4px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--cb-ink);
+    rotate: -3deg;
+    white-space: nowrap;
+}
+.mm-soon > span {
+    display: flex;
+    align-items: center;
+    padding: 2px 6px 1px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font:
+        700 10px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+}
+.mm-soon > b {
+    padding: 3px 7px 2px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    font:
+        700 14px / 1 "Galmuri14",
+        monospace;
+}
+.mm-slice.on .mm-soon {
+    animation: mm-when-pop 320ms var(--ease-pop);
 }
 /* tocar num trancado: a placa da data acende */
 .mm-slice .mm-when {
@@ -936,12 +998,20 @@ button.mm-card,
     opacity: 0;
     pointer-events: none;
 }
-.mm-play {
+/* o brilho em volta: sombra pintada uma vez, só a opacidade anima (filtro animado repintava o botão a cada quadro) */
+.mm-play-glow {
+    position: absolute;
+    z-index: -3;
+    inset: 0;
+    border-radius: 10px;
+    box-shadow: 0 0 14px 3px rgb(255 203 5 / 55%);
+    opacity: 0;
+    pointer-events: none;
     animation: mm-glow 1.6s ease-in-out infinite;
 }
 @keyframes mm-glow {
     50% {
-        filter: brightness(1.12) drop-shadow(0 0 10px rgb(255 203 5 / 55%));
+        opacity: 1;
     }
 }
 
@@ -1062,6 +1132,8 @@ button.mm-card,
 }
 .mm-c2 .mm-s-ultimate {
     margin-right: calc(-1 * var(--sl));
+    /* o pacote mais a carta subindo (um terço a mais) cabem na fatia: a ponta da carta só encosta na divisória */
+    --hh: min(calc((100cqh - var(--hb)) / 1.3), 170px);
     --clip: polygon(
         0 calc(var(--cut) + var(--g)),
         calc(100% - var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
@@ -1070,7 +1142,6 @@ button.mm-card,
     );
     --hx: 50%;
     --hb: 104px;
-    --hh: min(calc(100cqh - 104px + 30px), 170px);
 }
 .mm-c2 .mm-s-historia {
     margin-left: calc(-1 * var(--sl));
@@ -1107,6 +1178,11 @@ button.mm-card,
     white-space: normal;
     font-size: 11px;
 }
+/* aberta, o palco sobe acima do nome e dos itens (eles cobriam o ginásio) */
+.mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on {
+    --sb: 150px;
+    --sw: min(100cqw, calc((100cqh - 150px) * 1.6));
+}
 /* aberta, o pacote e o Blue sobem pros itens caberem embaixo deles */
 .mm-c2 .mm-s-ultimate.on {
     --hb: 176px;
@@ -1116,6 +1192,7 @@ button.mm-card,
 }
 .mm-hero .mm-pack {
     transition:
+        left var(--dur-tela) var(--ease-out),
         bottom var(--dur-tela) var(--ease-out),
         height var(--dur-tela) var(--ease-out);
 }
@@ -1145,14 +1222,22 @@ button.mm-card,
     }
     .mm-c2 .mm-c-stack.mm-sel-ultimate,
     .mm-c2 .mm-c-stack.mm-sel-historia {
-        grid-template-rows: 1.1fr 1fr;
+        grid-template-rows: 0.8fr 1fr;
+    }
+    /* a contagem fica de fora (a data está no selo e no botão de baixo): o nome e os itens cabem na fatia */
+    .mm-c2 .mm-slice-more .mm-when {
+        display: none;
+    }
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on {
+        --sb: 130px;
+        --sw: min(100cqw, calc((100cqh - 130px) * 1.6));
     }
     .mm-c2 .mm-s-atual .mm-sc-atual {
         --stand-top: 112px;
     }
     .mm-c2 .mm-s-ultimate {
         --hb: 84px;
-        --hh: min(calc(100cqh - 84px + 16px), 120px);
+        --hh: min(calc((100cqh - var(--hb)) / 1.3), 120px);
     }
     .mm-c2 .mm-s-ultimate.on {
         --hb: 150px;
@@ -1266,8 +1351,10 @@ button.mm-card,
         --hb: calc(var(--sb) + 4cqh);
         --hh: min(42cqh, calc((96cqh - var(--sb)) * 0.75));
     }
+    /* aberta (larga), o pacote vai pra direita do nome e dos itens, com os raios atrás */
     .mm-c1 .mm-s-ultimate.on,
     .mm-c2 .mm-s-ultimate.on {
+        --hx: 74%;
         --hh: min(56cqh, calc((96cqh - var(--sb)) * 0.75));
     }
     .mm-c1 .mm-s-atual .mm-sc-atual,
@@ -1286,6 +1373,12 @@ button.mm-card,
 @media (min-width: 900px) {
     .mm-c-stack {
         min-height: 560px;
+    }
+    .mm-soon > span {
+        font-size: 12px;
+    }
+    .mm-soon > b {
+        font-size: 21px;
     }
     .mm-slice .cb-num {
         font-size: 28px;
@@ -1331,22 +1424,82 @@ button.mm-card,
     .mm-c2 .mm-s-atual {
         --hy: calc(100% - 70px);
     }
-    .mm-play {
+    .mm-play,
+    .mm-soon-cta {
         min-height: 50px;
     }
     .mm-play b {
         font-size: 22px;
     }
 }
-/* o JOGAR fica no polegar */
+/* o JOGAR fica no polegar; com um trancado aberto, o "Chega em…" toma o lugar dele (os dois na mesma célula) */
 .mm-c-cta {
     position: sticky;
     z-index: 6;
     bottom: 12px;
+    display: grid;
     width: min(100%, 460px);
     margin: 0 auto;
     animation: mm-in var(--dur-pop) var(--ease-pop) both;
     animation-delay: calc(var(--n, 0) * 70ms);
+}
+.mm-c-cta > .btn {
+    grid-area: 1 / 1;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-solta) var(--ease-pop),
+        box-shadow var(--dur-solta) var(--ease-pop),
+        visibility 0s;
+}
+.mm-c-cta > .btn.off {
+    opacity: 0;
+    transform: scale(0.94);
+    visibility: hidden;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-ui) var(--ease-out),
+        visibility 0s var(--dur-ui);
+}
+/* não joga: face escura (o dourado é só do JOGAR), a data em amarelo e a faixa da cor do modo embaixo */
+.mm-soon-cta {
+    --c: #1f2752;
+    --hi: #2b3570;
+    --lo: #121838;
+    width: 100%;
+    min-height: 64px;
+    flex-direction: column;
+    gap: 3px;
+}
+.mm-cta-ultimate {
+    --lo: #5b22c9;
+}
+.mm-cta-historia {
+    --lo: #c23a52;
+}
+.mm-soon-cta b {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--yellow);
+    font-size: 21px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+.mm-soon-cta b .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.mm-soon-cta small {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #c9d4ff;
+}
+.mm-soon-cta small .hud-icon {
+    width: 13px;
+    height: 13px;
+    stroke-width: 3;
 }
 
 /* ---------- o menu de verdade: por cima da Home (abaixo de avisos e modais) ---------- */

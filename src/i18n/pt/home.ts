@@ -142,5 +142,9 @@ export const home = {
         /** Contagem do cartão do Ultimate (até `ULTIMATE_AT`, ModeMenu.tsx). */
         countdown: 'Falta {n} dia|Faltam {n} dias',
         gym: 'GINÁSIO',
+        /** Selo dos modos trancados (com a data, `soonDate` em ModeMenu.tsx) e o botão de baixo com um deles aberto. */
+        soon: 'EM BREVE',
+        arrives: 'Chega em {date}',
+        backTo: 'Voltar pro {name}',
     },
 };

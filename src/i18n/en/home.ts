@@ -129,5 +129,8 @@ export const home: typeof pt = {
         rival: 'Smell ya later!',
         countdown: '{n} day left|{n} days left',
         gym: 'GYM',
+        soon: 'COMING SOON',
+        arrives: 'Coming {date}',
+        backTo: 'Back to {name}',
     },
 };
