@@ -33,5 +33,7 @@ describe('quem toca a bola no Modo Copa', () => {
         ]);
         expect(passers({ kind: 'pokemon', speciesId: 4 }).map((m) => m.id)).toEqual([4, 7, 1]);
         expect(passers({ kind: 'google' })[0]).toEqual({ id: 25 });
+        // na fatia o capitão vai grande na frente: sai da roda e o próximo entra
+        expect(passers({ kind: 'pokemon', speciesId: 151 }, 151).map((m) => m.id)).toEqual([4, 7, 1]);
     });
 });

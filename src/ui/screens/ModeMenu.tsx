@@ -1,6 +1,7 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { onBeat } from '../../game/music';
 import { plural } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -12,6 +13,7 @@ import { CourtFloor, clubVars, Stands } from '../ambientes/Estadio';
 import { FieldSprite } from '../ambientes/FieldSprite';
 import { avatarMon, type Mon } from '../ambientes/metas';
 import { TopBar } from '../ambientes/TopBar';
+import { clubWild } from '../ambientes/wild';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
 import { Logo } from '../components/LogoHits';
@@ -52,9 +54,11 @@ const at = (x: number, y: number): CSSProperties => ({ left: `${x}%`, top: `${y}
  */
 
 /** Quem toca a bola no Modo Copa: o seu Pokémon do avatar (shiny, se for) puxa o triângulo de passes, com Charmander e Squirtle. */
-export function passers(avatar: Avatar): Mon[] {
+export function passers(avatar: Avatar, skip?: number): Mon[] {
     const lead = avatarMon(avatar);
-    return [lead, ...[4, 7, 1].filter((id) => id !== lead.id).map((id) => ({ id }))].slice(0, 3);
+    return [lead, ...[4, 7, 1].filter((id) => id !== lead.id).map((id) => ({ id }))]
+        .filter((m) => m.id !== skip)
+        .slice(0, 3);
 }
 /** Os três do triângulo (pé em % da quadra) e pra onde cada um olha: pro próximo da roda de passes. */
 const PASS = [
@@ -73,10 +77,15 @@ const KEEPERS = [
  * O Estádio de verdade num cartão: a torcida na cor do clube com a faixa, o letreiro de LED e a
  * quadra com a roda de passes (a bola corre entre os três e quem toca dá o bote).
  */
-function SceneAtual({ scale }: { scale: number }) {
+function SceneAtual({ scale, bare }: { scale: number; bare?: boolean }) {
     const clubName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const club = useGame((s) => clubColorHex(s.profile.clubColor));
-    const ids = passers(useGame((s) => s.profile.avatar));
+    const cap = useCaptain();
+    // na fatia o capitão vai grande na frente (Hero): na roda de passes entra outro no lugar dele
+    const ids = passers(
+        useGame((s) => s.profile.avatar),
+        bare ? cap.id : undefined,
+    );
     return (
         <div className="mm-sc mm-sc-atual" style={clubVars(club)} aria-hidden>
             <Stands clubName={clubName} />
@@ -108,21 +117,38 @@ function SceneAtual({ scale }: { scale: number }) {
     );
 }
 
+/**
+ * O capitão do clube (o herói da fatia do Modo Copa): o artilheiro ou o mais usado (`clubWild`, o mesmo da Sede);
+ * quem nunca jogou, o Pokémon do avatar.
+ */
+function useCaptain(): Mon {
+    const dex = useGame((s) => s.dex);
+    const avatar = useGame((s) => s.profile.avatar);
+    return useMemo(() => clubWild(dex, 1)[0] ?? avatarMon(avatar), [dex, avatar]);
+}
+
 /** A carta ouro que espia do pacote: um Dragonite de verdade (carta Metal), em silhueta e com "?" no lugar da nota. */
 const PEEK = { ...createInstance(149, new Rng('menu-modos')), shiny: false };
 
-/** O pacote do jogo treme, a carta ouro sobe com a silhueta e o brilho do foil, e o Eevee pula de curiosidade. */
-function SceneUltimate({ scale }: { scale: number }) {
+/** O pacote do jogo treme e a carta ouro sobe com a silhueta e o brilho do foil. */
+function Pack() {
+    return (
+        <div className="mm-pack">
+            <span className="mm-peek">
+                <PokeCard2 inst={PEEK} variant="metal" />
+            </span>
+            <PackArt look="gold" />
+        </div>
+    );
+}
+
+/** O pacote (fora da cena quando é o herói da fatia, `bare`) e o Eevee pulando de curiosidade. */
+function SceneUltimate({ scale, bare }: { scale: number; bare?: boolean }) {
     return (
         <div className="mm-sc mm-sc-ult" aria-hidden>
             <i className="mm-rays" />
             <div className="mm-stage">
-                <div className="mm-pack">
-                    <span className="mm-peek">
-                        <PokeCard2 inst={PEEK} variant="metal" />
-                    </span>
-                    <PackArt look="gold" />
-                </div>
+                {!bare && <Pack />}
                 <span className="mm-pt" style={at(20, 92)}>
                     <FieldSprite id={133} anim="Hop" dir={2} scale={scale} />
                 </span>
@@ -169,8 +195,19 @@ function Gym() {
     );
 }
 
+/** O Blue provocando, com o balão. */
+function Blue({ style }: { style?: CSSProperties }) {
+    const { t } = useT();
+    return (
+        <span className="mm-blue" style={style}>
+            <img className="pixel" src="assets/trainers/blue.png" alt="" />
+            <span className="mm-say">{t('home.modes.rival')}</span>
+        </span>
+    );
+}
+
 /** Fim de tarde na frente do ginásio de Kanto: a placa, as insígnias acendendo na fachada e o Blue provocando. */
-function SceneHistoria({ scale }: { scale: number }) {
+function SceneHistoria({ scale, bare }: { scale: number; bare?: boolean }) {
     const { t } = useT();
     return (
         <div className="mm-sc mm-sc-his" aria-hidden>
@@ -195,19 +232,39 @@ function SceneHistoria({ scale }: { scale: number }) {
                 <span className="mm-pt mm-bulba">
                     <FieldSprite id={1} anim="Idle" dir={2} scale={scale} />
                 </span>
-                <span className="mm-blue" style={at(82, 97)}>
-                    <img className="pixel" src="assets/trainers/blue.png" alt="" />
-                    <span className="mm-say">{t('home.modes.rival')}</span>
-                </span>
+                {!bare && <Blue style={at(82, 97)} />}
             </div>
         </div>
     );
 }
 
-export function Scene({ id, scale }: { id: ModeId; scale: number }) {
-    if (id === 'atual') return <SceneAtual scale={scale} />;
-    if (id === 'ultimate') return <SceneUltimate scale={scale} />;
-    return <SceneHistoria scale={scale} />;
+/** A cena do modo; `bare` (nas fatias) deixa de fora o herói, que vai por cima e fura a borda (`Hero`). */
+export function Scene({ id, scale, bare }: { id: ModeId; scale: number; bare?: boolean }) {
+    if (id === 'atual') return <SceneAtual scale={scale} bare={bare} />;
+    if (id === 'ultimate') return <SceneUltimate scale={scale} bare={bare} />;
+    return <SceneHistoria scale={scale} bare={bare} />;
+}
+
+/**
+ * O herói da fatia, grande e fora do recorte (fura a borda, como a arte de lutador do Smash): o capitão do clube, o
+ * pacote com a carta ouro e o Blue. Atrás dele (no fundo da fatia), raios girando quando ela está aberta.
+ */
+function Hero({ id, scale }: { id: ModeId; scale: number }) {
+    const cap = useCaptain();
+    return (
+        <span className={`mm-hero mm-hero-${id}`} aria-hidden>
+            {id === 'atual' ? (
+                <span className="mm-pt mm-cap">
+                    <i className="mm-shadow" />
+                    <FieldSprite id={cap.id} shiny={cap.shiny} anim="Idle" dir={6} scale={scale} />
+                </span>
+            ) : id === 'ultimate' ? (
+                <Pack />
+            ) : (
+                <Blue />
+            )}
+        </span>
+    );
 }
 
 /** "Chega em…": placa com o relógio, nunca cadeado. No Ultimate, a contagem dos dias até `ULTIMATE_AT`. */
@@ -224,10 +281,27 @@ export function When({ id }: { id: ModeId }) {
     );
 }
 
+/** O JOGAR pulsa na batida da música do menu (sem música, o pulso do CSS segue sozinho). */
 export function Play({ sub, onClick }: { sub?: string; onClick?: () => void }) {
     const { t } = useT();
+    const ring = useRef<HTMLElement>(null);
+    useEffect(
+        () =>
+            onBeat((beat) => {
+                if (document.documentElement.dataset.reduceMotion === 'true') return;
+                ring.current?.animate(
+                    [
+                        { opacity: beat === 0 ? 0.9 : 0.5, transform: 'scale(1)' },
+                        { opacity: 0, transform: 'scale(1.08, 1.35)' },
+                    ],
+                    { duration: 300, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+                );
+            }),
+        [],
+    );
     return (
         <button type="button" className="btn cb cb-gold mm-play" onClick={onClick}>
+            <i ref={ring} className="mm-play-ring" aria-hidden />
             <i className="cb-shine" aria-hidden />
             <b>{t('home.modes.play')}</b>
             {sub && <small>{sub}</small>}
@@ -270,17 +344,19 @@ export function Head() {
 const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
 
 /**
- * Fatias na diagonal, estilo Smash (conceito C do ?lab=menu-modos): no PC lado a lado, no celular em pé empilhadas e
- * inclinadas, cada uma alta o bastante pra cena, o nome e a data. Tocar abre a fatia (cresce, acende, mostra os
- * itens); o JOGAR embaixo joga sempre o Modo Copa.
+ * Fatias na diagonal, estilo Smash (conceito C do ?lab=menu-modos): no PC e deitado lado a lado; no celular em pé,
+ * `look` c2 (padrão, 30/10/2026: o Copa grande em cima e os dois trancados lado a lado embaixo, cada um com a cena
+ * inteira) ou c1 (as três empilhadas). Tocar abre a fatia (cresce, acende, mostra os itens); o JOGAR embaixo joga
+ * sempre o Modo Copa.
  */
-export function ModeSlices({ big, onPlay }: { big: boolean; onPlay?: () => void }) {
+export type SliceLook = 'c1' | 'c2';
+export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: SliceLook; onPlay?: () => void }) {
     const { t, d } = useT();
     const [sel, setSel] = useState<ModeId>(LAST);
     return (
-        <div className="mm-c">
+        <div className={`mm-c mm-${look}`}>
             <Head />
-            <div className="mm-c-stack">
+            <div className={`mm-c-stack mm-sel-${sel}`}>
                 {ORDER.map((m, n) => (
                     <button
                         type="button"
@@ -290,11 +366,17 @@ export function ModeSlices({ big, onPlay }: { big: boolean; onPlay?: () => void 
                         onClick={() => setSel(m)}
                         aria-pressed={sel === m}
                     >
-                        <Scene id={m} scale={big ? 3 : 2} />
+                        <span className="mm-slice-bg">
+                            <Scene id={m} scale={big ? 3 : 2} bare />
+                            <i className="mm-burst" />
+                        </span>
+                        <Hero id={m} scale={big ? 5 : 3} />
                         <span className="mm-slice-txt">
                             {m === LAST && <span className="mm-tag">{t('home.modes.last')}</span>}
                             <When id={m} />
-                            <b className="cb-num">{d.home.modes[m].name}</b>
+                            <b className="cb-num mm-plate">
+                                <span>{d.home.modes[m].name}</span>
+                            </b>
                             <span className="mm-slice-more">
                                 <Chips id={m} />
                             </span>

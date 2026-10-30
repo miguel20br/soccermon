@@ -698,61 +698,128 @@ button.mm-card,
 }
 
 /* ========================================================================== fatias na diagonal (estilo Smash) */
-/* celular em pé: as três empilhadas e inclinadas, a aberta (o Modo Copa, de início) maior. Fechada com 140 px no mínimo
-   (cena, nome e data), aberta com 320 px; na tela baixa a lista rola e o JOGAR fica preso embaixo */
-.mm-c-stack {
-    --cut: 22px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
+/*
+ * Cada fatia: o fundo recortado na diagonal (.mm-slice-bg, com a cena), o herói por cima e fora do recorte (fura a
+ * borda, como a arte de lutador) e o nome numa placa inclinada. As fatias ficam sobre o fundo creme da pilha: o vão
+ * entre os recortes vira a divisória grossa. A fatia não tem transform nem filtro parado (senão vira camada própria e o
+ * herói de uma passa por cima do nome da outra): os nomes ficam sempre por cima dos heróis.
+ */
 .mm-slice {
-    flex: 1 1 0;
-    min-height: 140px;
-    margin-top: calc(-1 * var(--cut) + 6px);
+    --g: 5px;
+    pointer-events: none;
+    overflow: visible;
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    clip-path: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
-    transition:
-        flex-grow var(--dur-tela) var(--ease-out),
-        min-height var(--dur-tela) var(--ease-out);
+    background: none;
+    animation: mm-slide var(--dur-tela) var(--ease-out) backwards;
+    animation-delay: calc(var(--n, 0) * 70ms);
 }
-.mm-slice:first-child {
-    margin-top: 0;
-    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+.mm-slice > :is(.mm-slice-bg, .mm-slice-txt) {
+    pointer-events: auto;
 }
-.mm-slice:last-child {
-    clip-path: polygon(0 var(--cut), 100% 0, 100% 100%, 0 100%);
+@keyframes mm-slide {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--from, -1) * 48px));
+    }
 }
-.mm-slice.on {
-    flex-grow: 3.2;
-    min-height: 320px;
+.mm-s-historia {
+    --from: 1;
 }
-/* fechada: a cena apagada; aberta (ou com o mouse em cima), acesa */
+/* a cor de cada modo: Copa na quadra e no dourado, Ultimate no roxo do pacote, História no pôr do sol */
+.mm-s-atual {
+    --mc: #ffb31a;
+    --mc2: #f0641e;
+}
+.mm-s-ultimate {
+    --mc: #a56bff;
+    --mc2: #5b22c9;
+}
+.mm-s-historia {
+    --mc: #ff6f91;
+    --mc2: #e84a3c;
+}
+.mm-slice-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--mc2);
+    clip-path: var(--clip);
+}
+/* fechada um tico mais calma que a aberta, nunca apagada */
 .mm-slice .mm-sc {
-    filter: brightness(0.55) saturate(0.85);
+    filter: brightness(0.86) saturate(1.1);
     transition: filter var(--dur-tela) var(--ease-out);
 }
 .mm-slice:is(.on, :hover, :focus-visible) .mm-sc {
-    filter: none;
+    filter: saturate(1.1);
+}
+/* o banho da cor do modo por cima da cena (onde vai o nome) */
+.mm-slice-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: linear-gradient(var(--wash-dir, 0deg), var(--mc2) 0%, transparent var(--wash, 42%));
+    opacity: 0.92;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .mm-slice-bg::after {
+    opacity: 0.7;
+}
+/* raios girando atrás do herói, só na aberta */
+.mm-burst {
+    position: absolute;
+    z-index: 2;
+    left: var(--hx, 70%);
+    top: var(--hy, 50%);
+    width: 150%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(rgb(255 255 255 / 30%) 0 7deg, transparent 7deg 20deg);
+    mask: radial-gradient(closest-side, #000 8%, transparent 60%);
+    opacity: 0;
+    animation: mm-spin 30s linear infinite;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .mm-burst {
+    opacity: 1;
 }
 .mm-slice-txt {
     position: absolute;
-    z-index: 4;
+    z-index: 6;
     left: 14px;
     right: 14px;
-    bottom: calc(var(--cut) + 8px);
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 6px;
 }
-.mm-slice:last-child .mm-slice-txt {
-    bottom: 12px;
+/* o nome numa placa de luta: inclinada, na cor do modo, com o contorno e a sombra dura */
+.mm-plate {
+    position: relative;
+    z-index: 0;
+    /* embaixo, a ponta esquerda desce com a inclinação: a margem segura os itens */
+    margin: 2px 0 8px 4px;
+    padding: 3px 12px 5px;
+    rotate: -3deg;
+}
+.mm-plate::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(180deg, var(--mc) 0 50%, var(--mc2) 50% 100%);
+    border: 3px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow:
+        inset 0 3px 0 rgb(255 255 255 / 35%),
+        4px 4px 0 var(--cb-ink);
+    transform: skewX(-14deg);
 }
 .mm-slice .cb-num {
     font-size: 21px;
-    transition: font-size var(--dur-tela) var(--ease-out);
 }
 .mm-slice.on .cb-num {
     font-size: 28px;
@@ -773,16 +840,7 @@ button.mm-card,
     grid-template-rows: 1fr;
     opacity: 1;
 }
-/* sombra embaixo do texto: o nome se lê por cima de qualquer cena */
-.mm-slice-txt::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset: -40px -200px -40px -40px;
-    background: linear-gradient(180deg, transparent, rgb(11 15 36 / 80%) 45%);
-}
 .mm-tag {
-    align-self: flex-start;
     padding: 3px 7px;
     border: 2px solid var(--cb-ink);
     border-radius: 4px;
@@ -809,45 +867,302 @@ button.mm-card,
         transform: scale(1.12);
     }
 }
-/* palco acima do texto na fatia aberta; nas fechadas, o desenho vai pra direita e o nome fica à esquerda */
-.mm-slice.on {
-    --sb: 124px;
-    --sw: min(100cqw, calc((85cqh - 124px) * 1.6));
-}
-.mm-slice:not(.on) {
-    --sw: min(58cqw, 170cqh);
-}
-.mm-slice:not(.on) .mm-stage {
-    left: auto;
-    right: 0;
-    translate: none;
-}
-.mm-slice:not(.on) .mm-slice-txt {
-    right: 45%;
-}
 .mm-slice .mm-badges {
     transition: opacity var(--dur-tela) var(--ease-out);
 }
 .mm-slice:not(.on) .mm-badges {
     opacity: 0;
 }
-/* o JOGAR fica no polegar: preso embaixo quando a tela é baixa e as fatias rolam */
-.mm-c-cta {
-    position: sticky;
-    z-index: 6;
-    bottom: 12px;
-    width: min(100%, 460px);
-    margin: 0 auto;
-    animation: mm-in var(--dur-pop) var(--ease-pop) both;
-    animation-delay: calc(var(--n, 0) * 70ms);
+/* a faixa do clube vai pra direita (o nome do modo fica à esquerda) */
+.mm-slice .es-banner {
+    left: auto;
+    right: 8%;
+    transform: none;
 }
-/* celular baixo (320 x 640): um pouco menores, pras três caberem com o JOGAR sem rolar */
-@media (max-height: 700px) {
-    .mm-slice {
-        min-height: 124px;
+
+/* ---------- o herói: fora do recorte, por cima da cena e embaixo dos nomes ---------- */
+.mm-hero {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    container-type: size;
+}
+.mm-cap {
+    left: var(--hx, 70%);
+    top: var(--hy, 80%);
+    z-index: 1;
+    animation: mm-bob 1.2s ease-in-out infinite alternate;
+}
+.mm-cap .mm-shadow {
+    --px: 3px;
+}
+@keyframes mm-bob {
+    to {
+        translate: 0 -3px;
     }
-    .mm-slice.on {
-        min-height: 262px;
+}
+.mm-hero .mm-pack {
+    left: var(--hx, 70%);
+    top: auto;
+    bottom: var(--hb, 10%);
+    height: var(--hh, 60cqh);
+}
+.mm-hero .mm-blue {
+    left: var(--hx, 80%);
+    top: var(--hy, 90%);
+    transition: top var(--dur-tela) var(--ease-out);
+}
+.mm-hero .mm-blue img {
+    left: calc(var(--bs, 80px) / -2);
+    width: var(--bs, 80px);
+    height: var(--bs, 80px);
+    transition:
+        left var(--dur-tela) var(--ease-out),
+        width var(--dur-tela) var(--ease-out),
+        height var(--dur-tela) var(--ease-out);
+}
+.mm-hero .mm-say {
+    bottom: calc(var(--bs, 80px) * 0.95);
+}
+
+/* ---------- JOGAR: o brilho pulsa (na batida da música do menu, ModeMenu.tsx; sem música, sozinho) ---------- */
+.mm-play-ring {
+    position: absolute;
+    z-index: -2;
+    inset: -7px;
+    border: 3px solid var(--yellow);
+    border-radius: 13px;
+    opacity: 0;
+    pointer-events: none;
+}
+.mm-play {
+    animation: mm-glow 1.6s ease-in-out infinite;
+}
+@keyframes mm-glow {
+    50% {
+        filter: brightness(1.12) drop-shadow(0 0 10px rgb(255 203 5 / 55%));
+    }
+}
+
+/* ========================================================================== celular em pé */
+.mm-c-stack {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    /* o herói fura a borda de cima e de baixo, nunca o lado da tela */
+    overflow-x: clip;
+    background: #fff3d1;
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px var(--cb-ink);
+}
+.mm-slice-txt {
+    top: calc(var(--tt, 0px) + 10px);
+}
+/* palco: na largura toda, preso embaixo */
+.mm-slice {
+    --sb: 0px;
+    --sw: min(100cqw, calc(100cqh * 1.6));
+}
+
+/* ---------- c1: as três empilhadas, cortes fortes, a aberta maior ---------- */
+.mm-c1 .mm-c-stack {
+    --cut: 46px;
+    display: flex;
+    flex-direction: column;
+}
+.mm-c1 .mm-slice {
+    flex: 1 1 0;
+    min-height: 150px;
+    margin-top: calc(-1 * var(--cut) + var(--g));
+    --clip: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --tt: var(--cut);
+    transition: flex-grow var(--dur-tela) var(--ease-out);
+}
+.mm-c1 .mm-slice:first-child {
+    margin-top: 0;
+    --clip: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --tt: 0px;
+}
+.mm-c1 .mm-slice:last-child {
+    --clip: polygon(0 var(--cut), 100% 0, 100% 100%, 0 100%);
+}
+.mm-c1 .mm-slice.on {
+    flex-grow: 2.3;
+}
+.mm-c1 .mm-slice {
+    --wash-dir: 180deg;
+}
+.mm-c1 .mm-slice:not(.on) {
+    --sw: min(62cqw, calc((100cqh - var(--cut)) * 1.6));
+}
+.mm-c1 .mm-slice:not(.on) .mm-stage {
+    left: auto;
+    right: 0;
+    translate: none;
+}
+.mm-c1 .mm-s-atual {
+    --hx: 74%;
+    --hy: 86%;
+}
+.mm-c1 .mm-s-ultimate {
+    --hx: 80%;
+    --hb: calc(var(--cut) * 0.6);
+    --hh: min(calc(100cqh - var(--cut) * 0.3), 150px);
+}
+.mm-c1 .mm-s-historia {
+    --hx: 86%;
+    --hy: 98%;
+    --bs: 80px;
+}
+.mm-c1 .mm-slice.on.mm-s-historia {
+    --bs: 160px;
+}
+
+/* ---------- c2: o Copa grande em cima e os dois trancados lado a lado embaixo (o padrão) ---------- */
+/*
+ * A divisória de cima é uma reta só, de ponta a ponta (cai k da largura W): no Copa é a borda de baixo; nas duas de
+ * baixo, a de cima. A do meio também é inclinada (sl pra cada lado). Contas em cqw (a pilha é o contêiner).
+ */
+.mm-c2 .mm-c-stack {
+    --k: 0.12;
+    --cut: calc(var(--k) * 100cqw);
+    --sl: 18px;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1.45fr 1fr;
+    transition: grid-template-rows var(--dur-tela) var(--ease-out);
+}
+.mm-c2 .mm-c-stack.mm-sel-ultimate,
+.mm-c2 .mm-c-stack.mm-sel-historia {
+    grid-template-rows: 0.9fr 1fr;
+}
+.mm-c2 .mm-slice {
+    --g: 6px;
+    min-height: 0;
+}
+.mm-c2 .mm-s-atual {
+    grid-column: 1 / 3;
+    --clip: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --wash-dir: 180deg;
+    --wash: 30%;
+    --hx: 82%;
+    --hy: calc(100% - var(--cut) - 14px);
+}
+/* a torcida desce pra baixo do nome (o nome fica no céu, na cor do modo) */
+.mm-c1 .mm-s-atual .mm-sc-atual,
+.mm-c2 .mm-s-atual .mm-sc-atual {
+    --stand-top: 122px;
+}
+.mm-c2 .mm-s-ultimate,
+.mm-c2 .mm-s-historia {
+    margin-top: calc(-1 * var(--cut));
+    --tt: auto;
+}
+.mm-c2 .mm-s-ultimate {
+    margin-right: calc(-1 * var(--sl));
+    --clip: polygon(
+        0 calc(var(--cut) + var(--g)),
+        calc(100% - var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
+        calc(100% - 2 * var(--sl) - var(--g)) 100%,
+        0 100%
+    );
+    --hx: 50%;
+    --hb: 104px;
+    --hh: min(calc(100cqh - 104px + 30px), 170px);
+}
+.mm-c2 .mm-s-historia {
+    margin-left: calc(-1 * var(--sl));
+    --clip: polygon(
+        calc(2 * var(--sl) + var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
+        100% var(--g),
+        100% 100%,
+        var(--g) 100%
+    );
+    --hx: 72%;
+    --hy: calc(100% - 92px);
+    --bs: 160px;
+}
+/* nome embaixo nas duas de baixo; o palco sobe pra cena caber acima dele */
+.mm-c2 .mm-s-ultimate .mm-slice-txt,
+.mm-c2 .mm-s-historia .mm-slice-txt {
+    top: auto;
+    bottom: 12px;
+}
+.mm-c2 .mm-s-historia .mm-slice-txt {
+    left: calc(var(--sl) + 12px);
+}
+.mm-c2 .mm-s-ultimate .mm-slice-txt {
+    right: calc(var(--sl) + 12px);
+}
+.mm-c2 .mm-s-ultimate,
+.mm-c2 .mm-s-historia {
+    --sb: 64px;
+    --sw: min(100cqw, calc((100cqh - 64px) * 1.6));
+}
+.mm-c2 .mm-s-historia .mm-say {
+    width: max-content;
+    max-width: calc(100cqw - 48px);
+    white-space: normal;
+    font-size: 11px;
+}
+/* aberta, o pacote e o Blue sobem pros itens caberem embaixo deles */
+.mm-c2 .mm-s-ultimate.on {
+    --hb: 176px;
+}
+.mm-c2 .mm-s-historia.on {
+    --hy: calc(100% - 168px);
+}
+.mm-hero .mm-pack {
+    transition:
+        bottom var(--dur-tela) var(--ease-out),
+        height var(--dur-tela) var(--ease-out);
+}
+.mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-chips > span {
+    white-space: normal;
+}
+
+/* celular em pé: itens um tico menores (a Galmuri11 no tamanho dela) e, nas duas de baixo, o nome aberto cabe na fatia */
+@media (max-width: 899px) and (orientation: portrait) {
+    .mm-slice .mm-chips > span {
+        font-size: 11px;
+    }
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on .cb-num {
+        font-size: 21px;
+    }
+}
+/* celular baixo (320 x 640) */
+@media (max-height: 700px) and (orientation: portrait) {
+    .mm-c1 .mm-slice {
+        min-height: 128px;
+    }
+    .mm-c1 .mm-c-stack {
+        --cut: 36px;
+    }
+    .mm-c2 .mm-c-stack {
+        grid-template-rows: 1.6fr 1fr;
+    }
+    .mm-c2 .mm-c-stack.mm-sel-ultimate,
+    .mm-c2 .mm-c-stack.mm-sel-historia {
+        grid-template-rows: 1.1fr 1fr;
+    }
+    .mm-c2 .mm-s-atual .mm-sc-atual {
+        --stand-top: 112px;
+    }
+    .mm-c2 .mm-s-ultimate {
+        --hb: 84px;
+        --hh: min(calc(100cqh - 84px + 16px), 120px);
+    }
+    .mm-c2 .mm-s-ultimate.on {
+        --hb: 150px;
+    }
+    .mm-c2 .mm-s-historia {
+        --bs: 80px;
+        --hy: calc(100% - 80px);
+    }
+    .mm-c2 .mm-s-historia.on {
+        --hy: calc(100% - 146px);
     }
 }
 /* 320: os quatro itens numa linha só */
@@ -863,47 +1178,56 @@ button.mm-card,
     .mm-chips .hud-icon {
         display: none;
     }
-    /* o ginásio fica pequeno: o Bulbasaur em 1x (pixel inteiro) e o Blue menor, senão cobrem a placa */
     .mm-sc-his .mm-pt {
         scale: 0.5;
     }
-    .mm-blue img {
-        left: -28px;
-        width: 56px;
-        height: 56px;
+    .mm-slice .cb-num {
+        font-size: 14px;
     }
-    .mm-say {
-        bottom: 58px;
-        font-size: 10px;
+    .mm-slice.on .cb-num {
+        font-size: 21px;
+    }
+    .mm-plate {
+        padding: 2px 8px 4px;
     }
 }
-/* PC e celular deitado: as fatias lado a lado, cortadas na diagonal (o Smash) */
+
+/* ========================================================================== PC e celular deitado: lado a lado */
 @media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
-    .mm-c-stack {
+    .mm-c-stack,
+    .mm-c1 .mm-c-stack,
+    .mm-c2 .mm-c-stack {
         --cut: 70px;
+        display: flex;
         flex-direction: row;
+        grid-template-rows: none;
+        container-type: normal;
     }
-    .mm-slice,
-    .mm-slice.on,
-    .mm-slice:first-child,
-    .mm-slice:last-child {
+    .mm-c1 .mm-slice,
+    .mm-c2 .mm-slice {
+        flex: 1 1 0;
         min-height: 0;
-        margin: 0 0 0 calc(-1 * var(--cut) + 8px);
-        clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+        margin: 0 0 0 calc(-1 * var(--cut) + var(--g));
+        --clip: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+        --wash-dir: 0deg;
+        --wash: 42%;
+        transition: flex-grow var(--dur-tela) var(--ease-out);
     }
-    .mm-slice:first-child {
+    .mm-c1 .mm-slice:first-child,
+    .mm-c2 .mm-slice:first-child {
         margin-left: 0;
-        clip-path: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+        --clip: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
     }
-    .mm-slice:last-child {
-        clip-path: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
+    .mm-c1 .mm-slice:last-child,
+    .mm-c2 .mm-slice:last-child {
+        --clip: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
     }
     .mm-slice.on {
         flex-grow: 2.4;
     }
     .mm-slice-txt,
-    .mm-slice:last-child .mm-slice-txt,
-    .mm-slice:not(.on) .mm-slice-txt {
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
+        top: auto;
         left: calc(var(--cut) * 0.3 + 14px);
         right: calc(var(--cut) + 14px);
         bottom: 18px;
@@ -912,18 +1236,51 @@ button.mm-card,
         left: 18px;
     }
     .mm-slice,
-    .mm-slice:not(.on) {
+    .mm-c1 .mm-slice:not(.on),
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) {
         --sb: 90px;
         --sw: min(150cqw, 110cqh);
     }
-    .mm-slice.on {
+    .mm-slice.on,
+    .mm-c2 .mm-slice.on {
         --sb: 140px;
         --sw: min(100cqw, 130cqh);
     }
-    .mm-slice:not(.on) .mm-stage {
+    .mm-c1 .mm-slice:not(.on) .mm-stage,
+    .mm-c2 .mm-s-historia .mm-stage {
         left: 50%;
         right: auto;
+        width: var(--sw);
         translate: -50% 0;
+    }
+    /* heróis: o capitão na quadra, o pacote no meio da fatia, o Blue na frente do ginásio */
+    .mm-c1 .mm-s-atual,
+    .mm-c2 .mm-s-atual {
+        --hx: 62%;
+        --hy: calc(100% - 150px);
+    }
+    .mm-c1 .mm-s-ultimate,
+    .mm-c2 .mm-s-ultimate,
+    .mm-c2 .mm-s-ultimate.on {
+        --hx: 50%;
+        --hb: calc(var(--sb) + 4cqh);
+        --hh: min(42cqh, calc((96cqh - var(--sb)) * 0.75));
+    }
+    .mm-c1 .mm-s-ultimate.on,
+    .mm-c2 .mm-s-ultimate.on {
+        --hh: min(56cqh, calc((96cqh - var(--sb)) * 0.75));
+    }
+    .mm-c1 .mm-s-atual .mm-sc-atual,
+    .mm-c2 .mm-s-atual .mm-sc-atual {
+        --stand-top: calc(var(--px) * 6);
+    }
+    .mm-c1 .mm-s-historia,
+    .mm-c2 .mm-s-historia,
+    .mm-c1 .mm-slice.on.mm-s-historia,
+    .mm-c2 .mm-s-historia.on {
+        --hx: 70%;
+        --hy: calc(100% - var(--sb) + 4px);
+        --bs: 80px;
     }
 }
 @media (min-width: 900px) {
@@ -935,6 +1292,11 @@ button.mm-card,
     }
     .mm-slice.on .cb-num {
         font-size: 42px;
+    }
+    .mm-c1 .mm-s-historia,
+    .mm-c2 .mm-s-historia,
+    .mm-c1 .mm-slice.on.mm-s-historia {
+        --bs: 160px;
     }
 }
 /* celular deitado: tudo numa tela, o JOGAR sem rolar */
@@ -949,18 +1311,25 @@ button.mm-card,
     .mm-logo {
         width: 130px;
     }
-    .mm-c-stack {
+    .mm-c-stack,
+    .mm-c1 .mm-c-stack,
+    .mm-c2 .mm-c-stack {
         --cut: 36px;
     }
-    /* fatia baixa (uns 250 px): o palco desce pra cena caber inteira acima do nome */
     .mm-slice,
-    .mm-slice:not(.on) {
+    .mm-c1 .mm-slice:not(.on),
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) {
         --sb: 70px;
         --sw: min(150cqw, calc((96cqh - 70px) * 1.6));
     }
-    .mm-slice.on {
+    .mm-slice.on,
+    .mm-c2 .mm-slice.on {
         --sb: 60px;
         --sw: min(100cqw, calc((96cqh - 60px) * 1.6));
+    }
+    .mm-c1 .mm-s-atual,
+    .mm-c2 .mm-s-atual {
+        --hy: calc(100% - 70px);
     }
     .mm-play {
         min-height: 50px;
@@ -968,6 +1337,16 @@ button.mm-card,
     .mm-play b {
         font-size: 22px;
     }
+}
+/* o JOGAR fica no polegar */
+.mm-c-cta {
+    position: sticky;
+    z-index: 6;
+    bottom: 12px;
+    width: min(100%, 460px);
+    margin: 0 auto;
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
 }
 
 /* ---------- o menu de verdade: por cima da Home (abaixo de avisos e modais) ---------- */
@@ -1017,6 +1396,9 @@ button.mm-card,
 }
 :root[data-reduce-motion="true"] .mm-root :is(.mm-card, .mm-poster, .mm-slice, .mm-top) {
     animation: mm-fade var(--dur-tela) var(--ease-out) both;
+}
+:root[data-reduce-motion="true"] .mm-root .mm-slice {
+    animation: mm-fade var(--dur-tela) var(--ease-out) backwards;
 }
 :root[data-reduce-motion="true"] .mm-slice .mm-sc {
     transition: none;

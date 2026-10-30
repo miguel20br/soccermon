@@ -2,12 +2,25 @@ import { type CSSProperties, useLayoutEffect, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { ClockCtx } from '../ambientes/clock';
 import { HudIcon } from '../components/MatchHud';
-import { Chips, Head, LAST, type ModeId, ModeSlices, Play, Scene, useMenuScene, useMode, When } from './ModeMenu';
+import {
+    Chips,
+    Head,
+    LAST,
+    type ModeId,
+    ModeSlices,
+    Play,
+    Scene,
+    type SliceLook,
+    useMenuScene,
+    useMode,
+    When,
+} from './ModeMenu';
 import './mode-menu-lab.css';
 
 /*
- * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias), &v=b|c. O C (fatias, estilo Smash) virou o
- * menu de verdade (ModeMenu.tsx); o B fica aqui de reserva, com as mesmas cenas e textos. O A (herói + dois cartões)
+ * Conceitos do menu de modos (?lab=menu-modos, só no dev e nas prévias), &v=b|c1|c2. O C (fatias, estilo Smash) virou o
+ * menu de verdade (ModeMenu.tsx), em dois jeitos no celular em pé: c1 (as três empilhadas) e c2 (o Copa grande em cima e
+ * os dois trancados lado a lado embaixo, o padrão). O B fica aqui de reserva, com as mesmas cenas e textos. O A (herói + dois cartões)
  * saiu em 30/10/2026.
  */
 
@@ -107,15 +120,15 @@ function ConceptB({ big }: { big: boolean }) {
 export function ModeMenuLab({ onExit }: { onExit: () => void }) {
     const params = new URLSearchParams(window.location.search);
     const fixed = params.get('v');
-    const [v, setV] = useState(fixed === 'b' ? 'b' : 'c');
+    const [v, setV] = useState<'b' | SliceLook>(fixed === 'b' || fixed === 'c1' ? fixed : 'c2');
     const { clock, big } = useMenuScene();
     return (
         <ClockCtx.Provider value={clock}>
             <div className={`mm-root mm-lab mm-v-${v}`}>
-                {v === 'b' ? <ConceptB big={big} /> : <ModeSlices big={big} />}
+                {v === 'b' ? <ConceptB big={big} /> : <ModeSlices big={big} look={v} />}
                 {!fixed && (
                     <div className="mm-switch bc-seg">
-                        {(['b', 'c'] as const).map((k) => (
+                        {(['b', 'c1', 'c2'] as const).map((k) => (
                             <button type="button" key={k} className={v === k ? 'active' : ''} onClick={() => setV(k)}>
                                 {k.toUpperCase()}
                             </button>
