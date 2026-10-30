@@ -64,8 +64,9 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     (`AGENCY.maxLevelShot`, `maxAim`).
  * 15 = defesa máxima vale o lance e só gasta quando defende (sem chute, a barra volta inteira; `AGENCY.maxGkTicks`) e
  *     zona do golpe máximo do pivô 15 ⇒ 18 m (`AGENCY.maxZone`).
+ * 16 = gomo do golpe máximo 12 ⇒ 10 pontos (`AGENCY.maxLevelPts`): o N3 chega mais (Miguel, 30/10/2026).
  */
-export const ENGINE_VERSION = 15;
+export const ENGINE_VERSION = 16;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

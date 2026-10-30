@@ -37,9 +37,10 @@ export const AGENCY = {
      * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute. Goleiro: alcance da defesa
      * máxima (até o motor 14 o nível dava também a duração: N1 0,75 s, N2 4 s, N3 6 s; agora vale o lance, `maxGkTicks`).
      * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
-     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a defesa máxima do goleiro rival continua parando.
+     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a defesa máxima do goleiro rival continua parando. Gomo de 12 ⇒ 10 (motor
+     * 16, Miguel 30/10/2026: "raramente chega no N3"): N3 por jogo 0,16 ⇒ 0,36, gols 8,16 ⇒ 8,20 (`calibrate --agencia`).
      */
-    maxLevelPts: 12,
+    maxLevelPts: 10,
     maxLevelShot: [
         null,
         { power: 1.25, accuracy: 1.3, rivalReach: 1, save: 1, block: 1 },

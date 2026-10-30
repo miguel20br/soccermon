@@ -16,16 +16,16 @@ const EXPECTED_HASHES = [
     '45ed92f6',
     '650fe49f',
     '3cd48072',
-    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 15: defesa máxima vale o lance e a zona do
-    // pivô foi pra 18 m; as partidas sem ordem de golpe máximo acima não mudaram)
+    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 16: gomo de 10 pontos, o nível chega mais
+    // cedo; as partidas sem ordem de golpe máximo acima não mudaram)
     'de25e2b6',
-    'f9d64578',
-    '5e710dc3',
-    '38fc98e0',
+    '4893ad8b',
+    'd658775b',
+    '6b296881',
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
-    '7dd4045b',
-    '7b1af0ed',
-    '27f55d5f',
+    '2e72a59c',
+    '92eaa3f2',
+    'acc0830d',
     'ca2f6bf9',
 ];
 
