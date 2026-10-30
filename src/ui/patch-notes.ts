@@ -32,7 +32,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'No Estádio, cada modo tem a sua placa em cima do JOGAR',
                     'Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede',
                     'O Duelo ganhou a cara das outras telas de menu',
-                    'A bola de futsal virou o símbolo das taças e dos escudos',
+                    'O símbolo do Soccermon entrou no lugar da pokébola nas taças e nos escudos',
                 ],
             },
             {
@@ -2002,7 +2002,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'In the Stadium, each mode has its own tile above PLAY',
                     'From the Club, a door opens to the Trophy room, and back returns to the Club',
                     'Duel now looks like the other menu screens',
-                    'The futsal ball is now the symbol on trophies and crests',
+                    'The Soccermon symbol replaces the Poké Ball on trophies and crests',
                 ],
             },
             {

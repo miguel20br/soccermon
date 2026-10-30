@@ -23,20 +23,8 @@ export function symbolArt(s: CrestSymbol, c: string, b: string): ReactNode {
     } as const;
     switch (s) {
         case 'pokebola':
-            // o id ficou (saves), o desenho virou a bola de futsal em contorno: pokébola como símbolo não (brand guide).
-            // A 'bola' (da medalha) é a cheia
-            return (
-                <>
-                    <circle cx="12" cy="12" r="9" {...line} />
-                    <path
-                        d="M12 8.3 L15.5 10.8 L14.2 14.9 H9.8 L8.5 10.8 Z M12 8.3 V3.6 M15.5 10.8 L19.9 9.4 M14.2 14.9 L16.9 18.6 M9.8 14.9 L7.1 18.6 M8.5 10.8 L4.1 9.4"
-                        fill={c}
-                        stroke={c}
-                        strokeWidth="1.6"
-                        strokeLinejoin="round"
-                    />
-                </>
-            );
+            // o id ficou (saves); o desenho é o símbolo do Soccermon (Miguel, 30/10: pokébola como símbolo não, brand guide)
+            return <image href="assets/ui/simbolo.svg" x="3" y="0" width="18" height="23" />;
         case 'raio':
             return <path d="M14 1.5 L4.5 13.5 H11 L9 22.5 L19.5 9.5 H13 Z" fill={c} />;
         case 'chama':

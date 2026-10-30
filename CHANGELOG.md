@@ -16,7 +16,7 @@
 - No Estádio, cada modo tem a sua placa em cima do JOGAR
 - Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede
 - O Duelo ganhou a cara das outras telas de menu
-- A bola de futsal virou o símbolo das taças e dos escudos
+- O símbolo do Soccermon entrou no lugar da pokébola nas taças e nos escudos
 
 ### Mais leve
 - A partida e a Rota gastam bem menos processador no celular, e os menus usam metade da memória

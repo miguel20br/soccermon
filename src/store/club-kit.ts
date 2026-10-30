@@ -121,7 +121,7 @@ export function lookOfPeer(p: {
     };
 }
 
-/** Escudo dos clubes da copa: o símbolo do tipo do ginásio (os outros, a bola de futsal, id `pokebola`). */
+/** Escudo dos clubes da copa: o símbolo do tipo do ginásio (os outros, o símbolo do Soccermon, id `pokebola`). */
 const CUP_SYMBOL: Record<string, CrestSymbol> = {
     'Pewter Rochedo': 'rocha',
     'Cerulean Cascata': 'gota',

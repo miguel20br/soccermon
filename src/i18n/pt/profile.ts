@@ -82,7 +82,7 @@ export const profile = {
             flamula: 'Flâmula',
         } as Record<string, string>,
         symbols: {
-            pokebola: 'Bola de futsal',
+            pokebola: 'Soccermon',
             raio: 'Raio',
             chama: 'Chama',
             gota: 'Gota',
