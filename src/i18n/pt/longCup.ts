@@ -28,12 +28,11 @@ export const longCup = {
     rival: 'Rival',
     choose: 'Escolha o caminho',
     cards: 'Cartão amarelo',
-    cardsHint:
-        'Na Rota Índigo, você tem 2 chances e pode perder uma única vez, ganhando um cartão amarelo. Na sua segunda derrota, você está fora.',
+    cardsHint: 'Primeira derrota no mapa. Mais uma e a Rota acaba.',
     yellowTitle: 'Cartão amarelo',
     out: 'Fim da linha na partida {n}',
     outHero: 'Fora na partida {n} de {total}',
-    redCardTitle: 'CARTÃO VERMELHO',
+    redCardTitle: 'DERROTA',
     runnerUpTitle: 'VICE',
     runnerUpLine: 'Perdeu a Final da Rota Índigo',
     redTitle: 'Cartão vermelho',
@@ -89,7 +88,7 @@ export const longCup = {
         },
         cerulean: {
             who: 'Misty',
-            text: 'Hmph, mais um treinador de passagem. Não gaste todo o seu ₽ no primeiro Mercado, viu?',
+            text: 'O ₽ que você guarda rende no próximo Mercado. Não torra tudo, viu?',
         },
         vitoria: {
             who: 'Blue',

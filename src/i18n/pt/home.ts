@@ -81,7 +81,6 @@ export const home = {
         skip: 'Toque pra pular',
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
         board: 'COPA RELÂMPAGO · COPA DO DIA · ROTA ÍNDIGO · DUELO AO VIVO · ',
-        rotaGo: 'Continuar · {where}',
         labTitle: 'Laboratório do Carvalho',
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
         labShort: 'Laboratório',

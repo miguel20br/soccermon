@@ -46,7 +46,7 @@ export const reward: typeof pt = {
         hm: 'HM',
         rareMove: 'Rare move',
         fromLeader: 'From {leader}',
-        rareChest: 'Rare chest',
+        rareChest: 'Rare TM',
         learners: '{n} on your team can learn it|{n} on your team can learn it',
         rarelyUsed: ' · almost nobody uses it',
         taughtTitle: 'Trained move (TM): +1 use and 30% stronger',

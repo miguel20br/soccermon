@@ -30,12 +30,11 @@ export const longCup: typeof pt = {
     rival: 'Rival',
     choose: 'Pick your path',
     cards: 'Yellow card',
-    cardsHint:
-        "On the Indigo Road you get 2 chances and can lose only once, earning a yellow card. On your second loss, you're out.",
+    cardsHint: 'First loss on the map. One more and the Road is over.',
     yellowTitle: 'Yellow card',
     out: 'The road ends at match {n}',
     outHero: 'Out at match {n} of {total}',
-    redCardTitle: 'RED CARD',
+    redCardTitle: 'DEFEAT',
     runnerUpTitle: 'RUNNER-UP',
     runnerUpLine: 'Lost the Indigo Road Final',
     redTitle: 'Red card',
@@ -88,7 +87,7 @@ export const longCup: typeof pt = {
         },
         cerulean: {
             who: 'Misty',
-            text: "Hmph, another trainer passing through. Don't spend all your ₽ at the first Market, OK?",
+            text: "The ₽ you save earns interest at the next Market. Don't blow it all, OK?",
         },
         vitoria: {
             who: 'Blue',

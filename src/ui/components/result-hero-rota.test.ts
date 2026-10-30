@@ -49,13 +49,15 @@ describe('resultado da Rota Índigo', () => {
         expect(out).toContain('Vale a tabela do grupo');
         expect(out).not.toMatch(/FIM DA LINHA|Fim da linha|Oitavas|Semifinal/);
     });
-    it('eliminado de verdade (vermelho): Fim da linha', () => {
+    it('eliminado de verdade (vermelho): DERROTA no título, o cartão vermelho fica no cartão de baixo', () => {
         const out = html({
             status: 'eliminated',
             stage: 2,
             results: [res(0, false), res(1, true), res(2, false)] as never,
         });
-        expect(out).toContain('CARTÃO VERMELHO');
+        // "CARTÃO VERMELHO" no título repetia o cartão "Cartão vermelho. Segundo amarelo" logo embaixo
+        expect(out).toContain('aria-label="DERROTA"');
+        expect(out).not.toContain('CARTÃO VERMELHO');
         expect(out).toContain('Fora na partida 3 de 8');
         expect(out).not.toMatch(/FIM DA LINHA|Fim da linha/);
     });

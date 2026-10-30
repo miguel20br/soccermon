@@ -54,7 +54,7 @@ export const reward = {
         hm: 'MO',
         rareMove: 'Golpe raro',
         fromLeader: 'Do {leader}',
-        rareChest: 'Baú raro',
+        rareChest: 'MT rara',
         learners: '{n} do seu time aprende|{n} do seu time aprendem',
         rarelyUsed: ' · quase ninguém usa',
         taughtTitle: 'Golpe treinado (MT): +1 uso e 30% mais forte',
