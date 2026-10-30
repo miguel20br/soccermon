@@ -22,7 +22,7 @@ export const longCup: typeof pt = {
         mercado: 'Spend your ₽. What you saved earns interest.',
         evento: 'Something happens on the road.',
         treino: 'Half an evolution bar for one Pokémon (or an item, if nobody evolves), or +1 reroll.',
-        bau: 'A free pack, one rarity higher.',
+        bau: 'A free reward, one rarity higher.',
         final: 'One match against the Indigo League.',
     },
     go: 'Go',
