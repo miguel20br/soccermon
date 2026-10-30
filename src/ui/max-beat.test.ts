@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 const music = vi.hoisted(() => ({ duck: vi.fn(), unduck: vi.fn() }));
-vi.mock('../game/music', async (orig) => ({
-    ...(await orig<object>()),
+vi.mock('../game/music', () => ({
+    beatNow: () => null,
+    nextBarIn: () => null,
+    heardAt: () => 0,
     duckMusic: music.duck,
     unduckMusic: music.unduck,
 }));
