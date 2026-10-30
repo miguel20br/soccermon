@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildCupMap } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
+import { rivalLabel } from '../i18n';
 import { type RunState, resumeScreenOf } from '../store/game-store';
 import { cupMatchNow, foulOf, nextCupMode } from '../store/long-cup';
 import { cupStep } from './components/AccountLink';
@@ -161,5 +162,14 @@ describe('a partida da Rota é a mesma na barra da copa e no Continuar', () => {
             'Final',
         );
         expect(cupMatchNow({ status: 'map', stage: 2, played: 3 })).toBe(2);
+    });
+});
+
+describe('o rival na escalação', () => {
+    it('a Final contra a Liga Índigo não aparece em inglês, e o time da Rota sai no idioma do jogo', () => {
+        expect(rivalLabel('Liga Índigo', 'pt')).toBe('Liga Índigo');
+        expect(rivalLabel('Liga Índigo', 'en')).toBe('Indigo League');
+        expect(rivalLabel('Ornitólogos', 'en')).toBe('Bird Keepers');
+        expect(rivalLabel('Pewter Rochedo', 'pt')).toBe('Pewter');
     });
 });

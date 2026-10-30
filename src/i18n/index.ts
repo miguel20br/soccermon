@@ -1,3 +1,4 @@
+import { CLUBS } from '../engine/cup';
 import { ABILITIES, MOVES } from '../engine/data';
 import { ITEMS } from '../engine/items';
 import type { AttrModifier, MoveModifier } from '../engine/modifiers';
@@ -152,6 +153,15 @@ export function cupStageShort(run: { mode?: CupMode }, stage: number, short: rea
 
 /** Nome do clube rival (o save guarda o nome em português do motor). */
 export const clubName = (name: string, lang: Lang = current): string => DICTS[lang].common.club[name] ?? name;
+
+/**
+ * Rival na escalação: o clube de ginásio pela cidade ("vs Pewter"); a Liga Índigo e os times da Rota pelo nome, no
+ * idioma do jogo (a cidade da Liga é "Indigo Plateau" no motor e aparecia em inglês na Final).
+ */
+export const rivalLabel = (name: string, lang: Lang = current): string => {
+    const club = CLUBS.find((c) => c.name === name);
+    return club && club !== CLUBS.at(-1) ? club.city : clubName(name, lang);
+};
 
 /** Título da carta Ícone pela espécie (o save guarda o título em português). */
 export const iconTitle = (speciesId: number, saved?: string, lang: Lang = current): string =>

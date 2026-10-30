@@ -1,7 +1,7 @@
 import { type ReactNode, useRef, useState } from 'react';
 import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
-import { CLUBS, cupRival } from '../../engine/cup';
+import { cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
@@ -11,7 +11,7 @@ import { pickCornerTaker } from '../../engine/match';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
-import { clubName, cupStageName, dict, formationText, itemDesc, itemName, tn } from '../../i18n';
+import { clubName, cupStageName, dict, formationText, itemDesc, itemName, rivalLabel, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
@@ -136,7 +136,7 @@ export function Lineup() {
                             <span>
                                 <b>
                                     {t('team.lineup.vsRival', {
-                                        club: clubCity(opponent.name),
+                                        club: rivalLabel(opponent.name, lang),
                                         n: lineupAverage(opponent.lineup, opponent.formation),
                                     })}
                                 </b>
@@ -228,7 +228,7 @@ export function Lineup() {
                 </div>
                 <p className="fi-rival">
                     <span>
-                        {clubCity(opponent.name)} → {formationText(opponent.formation ?? '1-2-1', lang).name}
+                        {rivalLabel(opponent.name, lang)} → {formationText(opponent.formation ?? '1-2-1', lang).name}
                     </span>
                     {edgeAgainst(opponent.formation ?? '1-2-1') && (
                         <span className="fi-rival-edge">
@@ -316,8 +316,6 @@ export function Lineup() {
  * (rival, botão de jogar, abandonar) entra por `side` e `footer`.
  */
 /** "Pewter" em vez de "Pewter Rochedo" na linha curta do rival. */
-const clubCity = (name: string) => CLUBS.find((c) => c.name === name)?.city ?? name;
-
 export function LineupEditor({
     title,
     formation,
