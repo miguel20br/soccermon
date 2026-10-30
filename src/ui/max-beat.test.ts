@@ -10,6 +10,8 @@ vi.mock('../game/music', () => ({
 }));
 
 vi.mock('../game/audio', () => ({ loadMaxSfx: vi.fn(), playMax: vi.fn() }));
+// o ZzFX cria um AudioContext ao carregar (o Node não tem)
+vi.mock('zzfx', () => ({ ZZFX: {}, zzfx: () => {} }));
 
 import { gradeDelta, holdRing } from './max-beat';
 
