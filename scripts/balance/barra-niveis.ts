@@ -7,7 +7,7 @@ import { baseTeams } from './lib';
 
 const N = Number(process.argv[2]) || 100;
 const P: Record<string, number> = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5, goal: 1 };
-const TH = [6, 9, 12, 18, 24, 27, 36];
+const TH = (process.env.TH ?? "6,9,12,18,24,27,36").split(",").map(Number);
 const hit: Record<number, number[]> = Object.fromEntries(TH.map((t) => [t, []]));
 const totals: number[] = [];
 const totalsRaw: number[] = [];
