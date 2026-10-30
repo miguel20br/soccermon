@@ -1,9 +1,9 @@
 import type Phaser from 'phaser';
 import pmdAnims from '../data/pmd-anims.json';
-import shinyMissing from '../data/pmd-shiny-missing.json';
 import spriteFeet from '../data/sprite-feet.json';
 import { species } from '../engine/data';
 import { Action } from '../engine/state';
+import { baseOf, isShinySkin } from './skin';
 
 /**
  * Animações dos sprites PMD (inspirado no animation-manager do Pokémon Auto Chess).
@@ -35,17 +35,7 @@ const FALLBACK: Record<string, string[]> = {
 
 const LOOPING = new Set(['Idle', 'Walk', 'Hop', 'Charge', 'Sleep', 'Sit', 'Eat']);
 
-/**
- * "Skin" do sprite em campo: o número da espécie, ou espécie + SHINY_SKIN para a folha shiny de verdade
- * (scripts/build-pmd-shiny.ts; mesma disposição da normal, então reusa o JSON). Espécie sem shiny no PMDCollab
- * fica com a normal (e a tinta amarelada de antes).
- */
-export const SHINY_SKIN = 10000;
-const NO_SHINY = new Set(shinyMissing as number[]);
-export const skinOf = (speciesId: number, shiny: boolean) =>
-    shiny && !NO_SHINY.has(speciesId) ? speciesId + SHINY_SKIN : speciesId;
-export const baseOf = (skin: number) => skin % SHINY_SKIN;
-export const isShinySkin = (skin: number) => skin >= SHINY_SKIN;
+export { baseOf, isShinySkin, SHINY_SKIN, skinOf } from './skin';
 
 export const atlasKey = (skin: number) => `pmd-${skin}`;
 

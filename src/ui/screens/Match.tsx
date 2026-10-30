@@ -18,7 +18,7 @@ import {
     type Tactic,
     type TeamSetup,
 } from '../../engine/state';
-import { skinOf } from '../../game/animation-manager';
+import { skinOf } from '../../game/skin';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
