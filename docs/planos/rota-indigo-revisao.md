@@ -260,3 +260,48 @@ O que os números dizem:
 Alavancas, se o Miguel quiser (não mexi): a escassez mais leve (Mercado limitado só a 1 por caminho, sem cortar o
 Treino), o Pokémon do rival como prêmio de todo Jogo com outro prêmio junto, e a decisão 8 (pedras), que é a única
 que mexe no que mais pesa (a evolução), mas pede motor novo.
+
+### Alavancas medidas (30/10): escassez mais leve (a) e o Pokémon do rival em todo Jogo (b)
+
+O Miguel aprovou testar duas alavancas. As duas ficam em `ROTA_RULES` (`src/engine/cup-map.ts`), que o robô liga e
+desliga (`MAX_SHOPS`, `SHOP_TREINO`, `SPARE`, `RIVAL`); não mexem no motor de partida.
+
+- **(a) Escassez mais leve:** até 2 Mercados por caminho, e Mercado e Treino podem cair no mesmo caminho. Em N=50 testei
+  também "2 Mercados, Treino separado" (quase igual a hoje) e "a casa que a escassez tira vira Baú" (mais Pokémon, mas
+  o caminho pesa menos ainda). Fica a de 2 Mercados com Treino: no mapa, 69% dos caminhos têm Mercado (hoje 43%).
+- **(b) Pokémon do rival em todo Jogo:** vitória num Jogo abre primeiro o 1 de 3 do time rival e depois o prêmio da casa
+  (MT ou item; o ₽ em dobro entra na vitória). O prêmio "Pokémon do rival" sai do mapa, que sorteia MT, item ou ₽ em
+  dobro. Pular o rival não dá sorteio (o prêmio ainda vem); pular o prêmio dá, como sempre.
+
+150 Rotas por política, mesmas seeds. Antes = esta branch antes das alavancas (a tabela de cima, coluna "depois").
+
+| Política | Título antes / (a) / (b) / (a+b) | Chega ao grupo | Time no grupo | Pokémon novos | ₽ ganho |
+|---|---|---|---|---|---|
+| Sempre à esquerda | 16,0 / 16,0 / 16,0 / 18,0% | 50 / 50 / 50 / 52% | 82,9 / 83,1 / 83,4 / 83,3 | 1,15 / 1,26 / 1,74 / 1,90 | 25 / 26 / 26 / 28 |
+| Sempre à direita | 14,0 / 12,7 / 15,3 / 16,7% | 50 / 47 / 55 / 51% | 82,5 / 82,4 / 83,3 / 83,3 | 1,35 / 1,24 / 2,17 / 2,15 | 26 / 27 / 29 / 30 |
+| Atrás de ₽ | 16,0 / 16,7 / 10,0 / 14,7% | 49 / 47 / 39 / 43% | 81,9 / 82,2 / 82,8 / 82,8 | 1,11 / 1,01 / 1,67 / 1,75 | 30 / 31 / 26 / 29 |
+| Atrás de Pokémon | 13,3 / 15,3 / 16,0 / 16,7% | 47 / 43 / 45 / 40% | 83,2 / 83,2 / 83,9 / 84,0 | 1,50 / 1,59 / 1,80 / 1,91 | 23 / 24 / 25 / 24 |
+| Sempre Ginásio | 12,0 / 15,3 / 14,0 / 15,3% | 47 / 46 / 50 / 49% | 82,9 / 82,3 / 83,4 / 84,0 | 1,22 / 1,23 / 1,84 / 1,89 | 24 / 24 / 25 / 26 |
+| Aleatório | 11,3 / 14,0 / 6,7 / 13,3% | 46 / 43 / 43 / 44% | 82,4 / 82,6 / 83,0 / 83,4 | 1,13 / 1,15 / 1,67 / 1,87 | 24 / 25 / 23 / 26 |
+| Só as vitórias | 6,7 / 6,7 / 7,3 / 7,3% | 38 / 38 / 37 / 37% | 82,7 / 82,7 / 83,5 / 83,5 | 0,50 / 0,50 / 1,09 / 1,09 | 22 / 23 / 22 / 23 |
+| Nada (recusa tudo) | 10,7 / 10,7 / 10,7 / 10,7% | 36% | 82,0 | 0 | 22 / 23 / 22 / 23 |
+
+| Métrica (6 políticas que jogam) | Antes | (a) | (b) | (a+b) | Meta |
+|---|---|---|---|---|---|
+| Título médio | 13,8% | 15,0% | 13,0% | 15,8% | até ~18% |
+| Variação do time entre políticas | 1,3 | 1,0 | 1,1 | 1,3 | ~3 |
+| Jogar − recusar tudo (time) | 0,6 | 0,6 | 1,3 | 1,5 | quanto maior melhor |
+| Jogar − recusar tudo (título) | 3,1 pp | 4,3 pp | 2,3 pp | 5,1 pp | quanto maior melhor |
+
+O que os números dizem (erro do título ±3 pp):
+- **(a+b) é a que chega mais perto:** jogar contra recusar tudo vai de 0,6 pra 1,5 ponto de time e de 3,1 pra 5,1 pp de
+  título (a meta antiga de ~5 pp), com o título médio em 15,8% (dentro do teto de 18%). Pokémon novos voltam a 1,8–2,2
+  por Rota (eram 1,9 antes da escassez).
+- **A variação entre políticas não sai de ~1,3.** As duas alavancas dão mais pra todo caminho: o rival vem em todo Jogo
+  de todo caminho, e o Mercado a mais esbarra no ₽ (o robô ganha ~25 ₽ por Rota e compra pouco). Um Pokémon novo melhora
+  uma vaga em uns 2 a 4 pontos, ou seja, ~0,5 na média do time; pra abrir 3 pontos entre caminhos, um caminho teria que
+  dar uns 6 Pokémon a mais que outro. O que mais pesa continua sendo a evolução, igual em todo caminho.
+- **(b) sozinha** sobe o time de todo mundo (+0,5 a +1) mas o título não acompanha; **(a) sozinha** quase não muda o time
+  (o robô não tem ₽ pra usar o Mercado a mais).
+- Pra variação chegar a ~3, a alavanca que falta é a que mexe na evolução por caminho: a decisão 8 (pedras como prêmio de
+  região), com o motor 17.
