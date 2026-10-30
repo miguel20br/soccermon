@@ -47,7 +47,7 @@ const ICON: Record<NodeKind, HudIconKind> = {
     ginasio: 'medal',
     mercado: 'bag',
     evento: 'question',
-    treino: 'up',
+    treino: 'dumbbell',
     bau: 'chest',
     final: 'cup',
 };
