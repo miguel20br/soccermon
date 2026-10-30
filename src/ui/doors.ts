@@ -1,5 +1,5 @@
 import { type Screen, useGame } from '../store/game-store';
-import { setDoorOrigin } from './back-nav';
+import { setDoorOrigin, setPageOrigin } from './back-nav';
 
 /**
  * As três portas (docs/planos/menus-e-sala.md): Perfil (quem eu sou), Coleção (o que eu coleciono) e Sala de troféus
@@ -42,6 +42,13 @@ export function openDoor(door: Door, tab?: string) {
     const g = useGame.getState();
     if (g.screen !== door) setDoorOrigin(g.screen);
     g.go(door);
+}
+
+/** Abre a Ajuda ou os Créditos; o voltar (o `‹` e o do Android) leva pra tela de onde abriu (`backTarget`). */
+export function openPage(page: Extract<Screen, 'help' | 'credits'>) {
+    const g = useGame.getState();
+    if (g.screen !== page) setPageOrigin(g.screen);
+    g.go(page);
 }
 
 /** A aba com que a porta abre: `?aba=`, ou o `?perfil=` antigo que aponta pra ela. */

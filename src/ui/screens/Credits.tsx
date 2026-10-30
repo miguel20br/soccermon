@@ -1,5 +1,6 @@
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { backTarget } from '../back-nav';
 import { MenuHead } from '../components/MenuHead';
 
 export function Credits() {
@@ -7,7 +8,11 @@ export function Credits() {
     const { t } = useT();
     return (
         <div className="menu-screen">
-            <MenuHead title={t('settings.credits.title')} icon="credits" onBack={() => go('home')} />
+            <MenuHead
+                title={t('settings.credits.title')}
+                icon="credits"
+                onBack={() => go(backTarget('credits') ?? 'home')}
+            />
             <section className="panel setting-card credits-card credits-hero">
                 <img className="pixel" src="assets/cards/25.gif" alt="" />
                 <div>

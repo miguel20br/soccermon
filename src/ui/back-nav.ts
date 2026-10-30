@@ -13,9 +13,17 @@ export const setDoorOrigin = (from: Screen) => {
     doorOrigin = from === 'home' ? 'home' : 'profile';
 };
 
+/** Ajuda e Créditos abrem da Home ou das Configurações (rodapé): voltam pra lá (`openPage`). */
+const UNDER_SETTINGS: Screen[] = ['help', 'credits'];
+let pageOrigin: Screen = 'home';
+export const setPageOrigin = (from: Screen) => {
+    pageOrigin = from === 'settings' ? 'settings' : 'home';
+};
+
 /** Para onde o voltar leva. `null` = Home (sai do app). */
 export function backTarget(screen: Screen): Screen | null {
     if (screen === 'home') return null;
+    if (UNDER_SETTINGS.includes(screen)) return pageOrigin;
     return UNDER_PROFILE.includes(screen) ? doorOrigin : 'home';
 }
 

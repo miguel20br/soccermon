@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { openPage } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
@@ -130,15 +131,14 @@ export function NewsButton() {
  */
 export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
     const { t, d } = useT();
-    const go = useGame((s) => s.go);
     return (
         <>
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
-                    <button type="button" className="link-btn" onClick={() => go('help')}>
+                    <button type="button" className="link-btn" onClick={() => openPage('help')}>
                         {d.home.tiles.help}
                     </button>
-                    <button type="button" className="link-btn" onClick={() => go('credits')}>
+                    <button type="button" className="link-btn" onClick={() => openPage('credits')}>
                         {d.home.tiles.credits}
                     </button>
                     <a href={FEEDBACK_URL} target="_blank" rel="noopener">

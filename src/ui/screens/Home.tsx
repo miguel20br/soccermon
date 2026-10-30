@@ -25,6 +25,7 @@ import { ComingSoon } from '../components/ComingSoon';
 import { DoorTiles } from '../components/DoorTiles';
 import { HudIcon } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
+import { openPage } from '../doors';
 
 const DEX_KEY = 'soccermon-dex-last';
 /** Os 8 líderes de ginásio de Kanto, a arte do cartão da Rota Índigo. */
@@ -168,7 +169,7 @@ export function Home() {
             className={`home${entering ? ' home-enter' : ''}${more ? ' home-more' : ''}${HOME_FORTE ? ' home-forte' : ''}`}
         >
             <div className="home-top">
-                <TopActions help={() => go('help')} />
+                <TopActions help={() => openPage('help')} />
             </div>
 
             <section className="home-hero">
