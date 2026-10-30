@@ -5,6 +5,7 @@ import {
     FINAL_MATCH,
     GROUP_GAMES,
     GROUP_START,
+    isMatchKind,
     LONG_MATCHES,
     type MapNode,
     nodeById,
@@ -117,6 +118,24 @@ export const newLongFields = (seed: string): LongRunFields => ({
 
 export const currentNode = (run: LongRunFields): MapNode | undefined =>
     run.map && run.at ? nodeById(run.map, run.at) : undefined;
+
+/**
+ * A partida que a barra da copa e o "Continuar" mostram ("Partida 4 de 8"). Na Rota a próxima a jogar é sempre a conta
+ * das jogadas (`played` = `results.length`; o mapa e o grupo contam assim) e `stage` é a última em que você entrou: ela
+ * só vale enquanto é a de agora (escalação) e no resultado e na recompensa dela (`onResult`, ou a recompensa aberta numa
+ * casa de partida ou no grupo). Na Relâmpago, a fase (`stage`).
+ */
+export function cupMatchNow(
+    run: { mode?: CupMode; status: string; stage: number; played?: number } & Pick<
+        LongRunFields,
+        'at' | 'map' | 'group'
+    >,
+    onResult = false,
+): number {
+    if (!isLong(run)) return run.stage;
+    const ofMatch = run.status === 'reward' && (!!run.group || isMatchKind(currentNode(run)?.kind ?? 'bau'));
+    return onResult || ofMatch ? run.stage : Math.min(run.played ?? run.stage, LONG_MATCHES - 1);
+}
 
 /** A partida `stage` é da fase de grupos? */
 export const isGroupStage = (stage: number) => stage >= GROUP_START && stage < FINAL_MATCH;

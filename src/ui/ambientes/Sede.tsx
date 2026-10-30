@@ -111,7 +111,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                         type="button"
                         className="sd-board"
                         aria-label={t('home.amb.sedeBoard')}
-                        onClick={() => openDoor('profile', 'treinador')}
+                        onClick={() => openDoor('profile', 'missoes')}
                     >
                         <span>{missionText(goal.m)}</span>
                         <small>

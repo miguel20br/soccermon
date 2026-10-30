@@ -27,3 +27,8 @@ tem as decisões em aberto.
 **Why:** organizar o jogo e dar propósito ([[project-menus-ambientes]]); a data é um desafio que ele mesmo propôs.
 **How to apply:** o UT precisa caber até o fim de novembro; puxe as decisões do ultimate-team.md logo, e não ocupe
 dezembro com outra coisa além do Natal.
+
+**30/10/2026:** ele quer trocar o nome do Modo Treinador pra **Modo História** (falta confirmar o que acontece com o
+Modo História de 2027). Está inclinado a trocar o menu de modos pro conceito **C (fatias na diagonal, estilo Smash)**
+no lugar do A; prints em scratchpad/alvo/conc-*-{390,1440}.png da sessão 152ccaaa.
+

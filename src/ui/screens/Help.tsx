@@ -8,6 +8,7 @@ import { blockText, faqEntries, type HelpBlock, helpSections, normalize } from '
 import { resetTips } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import '../help/help.css';
+import { backTarget } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
 
 /** `**negrito**` → <b>. */
@@ -87,7 +88,7 @@ export function Help() {
 
     return (
         <div className="menu-screen help-screen">
-            <MenuHead title={tx.title} icon="help" onBack={() => go('home')} />
+            <MenuHead title={tx.title} icon="help" onBack={() => go(backTarget('help') ?? 'home')} />
 
             <div className="help-actions">
                 <button

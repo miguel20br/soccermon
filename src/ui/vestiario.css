@@ -78,6 +78,14 @@
 .vt-formation .hud-icon {
     display: none;
 }
+/* a seta de "abre a lista" ao lado do nome da formação (era um caractere de triângulo) */
+.vt-formation .hud-icon.vt-caret {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+    vertical-align: -2px;
+}
 .vt-formations {
     display: grid;
     gap: 6px;

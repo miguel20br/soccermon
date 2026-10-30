@@ -12,6 +12,7 @@ import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
 import { MonIcon } from '../components/MonIcon';
@@ -205,7 +206,7 @@ export function Daily() {
 
     return (
         <div className="menu-screen lg">
-            <MenuHead title={t('liga.daily.tag')} tag={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
+            <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
             <Coach id="dia" targets={['.lg-hero .lg-line', '.lg-start .btn']} when={!entry} />
 
             <section className="panel lg-hero bc-surface bc-stripe">
@@ -444,7 +445,7 @@ function LigaHomeRow() {
     return (
         <div className="dc-row">
             <span className="dc-icon" aria-hidden>
-                <MenuIcon kind="liga" />
+                <HudIcon kind="crown" />
             </span>
             <div className="mode-head">
                 <b>{t('liga.home.ligaTag')}</b>

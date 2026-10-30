@@ -11,11 +11,13 @@ import { ConfirmSheet } from './kit/Sheet';
  */
 const useLeave = create<{ pending: (() => void) | null }>(() => ({ pending: null }));
 
+/** Jogo do Duelo rolando (escolha do time, draft, prévia, partida): sair da sala no meio pede confirmação. */
+export const duelInPlay = (phase: string | undefined) => ['team', 'draft', 'preview', 'match'].includes(phase ?? '');
+
 /** Partida rolando: tela da partida, time travado e sem resultado gravado. */
 function matchInProgress() {
     const { screen, run } = useGame.getState();
-    if (screen === 'duel')
-        return ['team', 'draft', 'preview', 'match'].includes(useDuel.getState().shared?.phase ?? '');
+    if (screen === 'duel') return duelInPlay(useDuel.getState().shared?.phase);
     return screen === 'match' && run?.status === 'lineup' && !!run.lockedTeam;
 }
 

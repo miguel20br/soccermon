@@ -6,7 +6,6 @@ export const duel = {
     betaLink: 'conta pra gente.',
     line: 'Mande o link pra um amigo e joguem ao vivo',
     createRoom: 'Criar sala',
-    newDuel: 'Novo duelo',
     newHint: 'Escolha o modo e a velocidade e mande o link pro rival.',
     modeLabel: 'Modo',
     speedLabel: 'Velocidade inicial',

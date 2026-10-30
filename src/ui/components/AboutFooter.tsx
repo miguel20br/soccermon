@@ -1,10 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { reloadForNewVersion } from '../../chunk-reload';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { openPage } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
-import { readCount, writeCount } from '../local-count';
-import { type PatchNotes, patchNotes } from '../patch-notes';
+import { writeCount } from '../local-count';
+import type { PatchNotes } from '../patch-notes';
 import { NewDot } from '../profile/news';
 import { HudIcon } from './MatchHud';
 import { MenuIcon } from './MenuIcon';
@@ -85,6 +87,14 @@ function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lan
 /** "0.9.27" vira 9027: a última versão aberta nas Novidades fica guardada como número (`local-count`). */
 const versionNum = (v: string) => v.split('.').reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
 const NEWS_SEEN = 'soccermon.newsSeen';
+/** Última versão aberta; sem a chave (quem nunca abriu) é 0 e o pontinho acende; null só sem onde guardar. */
+export function readSeen(): number | null {
+    try {
+        return Number(localStorage.getItem(NEWS_SEEN) ?? 0) || 0;
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Novidades no canto de cima (TopActions), em toda tela de menu: abre as notas de versão; o pontinho acende enquanto
@@ -92,29 +102,46 @@ const NEWS_SEEN = 'soccermon.newsSeen';
  */
 export function NewsButton() {
     const { t, d, lang } = useT();
-    const notes = patchNotes(lang);
-    const latest = versionNum(notes[0].version);
-    const [seen, setSeen] = useState(() => readCount(NEWS_SEEN));
+    // as notas (~50 KB gzip) só baixam ao abrir; o botão e o pontinho só precisam da versão (a 1ª das notas, testado)
+    const [mod, setMod] = useState<typeof import('../patch-notes') | null>(null);
+    const notes = mod?.patchNotes(lang) ?? [];
+    const latest = versionNum(__APP_VERSION__);
+    const [seen, setSeen] = useState(readSeen);
     const [open, setOpen] = useState(false);
     const close = useCallback(() => setOpen(false), []);
+    // a versão conta como vista quando as notas abrem de verdade (falhou o download, o pontinho fica)
+    useEffect(() => {
+        if (!open || !mod) return;
+        setSeen(latest);
+        writeCount(NEWS_SEEN, latest);
+    }, [open, mod, latest]);
+    // sem rede ou com o pedaço de uma versão velha (404), recarrega pra versão nova como os outros pedaços preguiçosos
+    const load = () => {
+        if (!mod)
+            void import('../patch-notes').then(setMod, () => {
+                setOpen(false);
+                void reloadForNewVersion();
+            });
+    };
     return (
         <>
             <button
                 type="button"
                 className="help-fab news-fab"
-                aria-label={`${d.home.tiles.news} v${notes[0].version}`}
-                title={`${d.home.tiles.news} v${notes[0].version}`}
+                aria-label={`${d.home.tiles.news} v${__APP_VERSION__}`}
+                title={`${d.home.tiles.news} v${__APP_VERSION__}`}
+                onPointerDown={load}
                 onClick={() => {
+                    load();
                     setOpen(true);
-                    setSeen(latest);
-                    writeCount(NEWS_SEEN, latest);
                 }}
             >
                 <MenuIcon kind="news" />
                 {/* sem onde guardar (aba anônima): sem pontinho, ele não apagaria nunca */}
                 <NewDot on={seen !== null && seen < latest} />
             </button>
-            <Sheet open={open} onClose={close} title={t('home.news')} className="patch-notes">
+            {/* abre quando as notas chegam: a folha não nasce vazia */}
+            <Sheet open={open && !!mod} onClose={close} title={t('home.news')} className="patch-notes">
                 {notes.map((n, i) => (
                     <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
                 ))}
@@ -130,15 +157,14 @@ export function NewsButton() {
  */
 export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
     const { t, d } = useT();
-    const go = useGame((s) => s.go);
     return (
         <>
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
-                    <button type="button" className="link-btn" onClick={() => go('help')}>
+                    <button type="button" className="link-btn" onClick={() => openPage('help')}>
                         {d.home.tiles.help}
                     </button>
-                    <button type="button" className="link-btn" onClick={() => go('credits')}>
+                    <button type="button" className="link-btn" onClick={() => openPage('credits')}>
                         {d.home.tiles.credits}
                     </button>
                     <a href={FEEDBACK_URL} target="_blank" rel="noopener">

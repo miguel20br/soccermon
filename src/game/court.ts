@@ -11,10 +11,45 @@ export const GAME_H = W * PPM + MARGIN * 2;
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
 /**
- * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
- * court-themes.ts). Um Graphics só, desenhado uma vez.
+ * Quadra da partida: o Graphics (~26 mil comandos) vira textura uma vez e entra como imagem; desenhado direto, o
+ * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem o dobro da resolução pros
+ * zooms dos lances (até 1.6) continuarem nítidos.
  */
 export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+    const key = 'court-baked';
+    const bake = () => {
+        const g = courtGraphics(scene, theme).setScale(COURT_RES);
+        if (scene.textures.exists(key)) scene.textures.remove(key);
+        scene.textures
+            .addDynamicTexture(key, GAME_W * COURT_RES, GAME_H * COURT_RES)
+            ?.draw(g)
+            .render();
+        g.destroy();
+    };
+    bake();
+    const img = scene.add
+        .image(0, 0, key)
+        .setOrigin(0)
+        .setScale(1 / COURT_RES)
+        .setDepth(-1000);
+    // o contexto WebGL perdido (celular em segundo plano, memória) apaga a textura desenhada: refaz quando ele volta
+    const renderer = scene.renderer;
+    const restore = () => {
+        bake();
+        img.setTexture(key);
+    };
+    renderer.on('restorewebgl', restore);
+    scene.events.once('shutdown', () => renderer.off('restorewebgl', restore));
+    return img;
+}
+const COURT_RES = 2;
+
+/**
+ * Quadra de futsal com a bola no círculo central (a pokébola como símbolo saiu, brand guide): madeira por padrão,
+ * ou a do ginásio (`COURTS` em court-themes.ts). Um Graphics só (o lab de quadras tira foto dele; a partida usa
+ * `drawCourt`).
+ */
+export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
     const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
@@ -34,15 +69,17 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const mid = toPx(L / 2, W / 2);
     g.lineBetween(mid.x, tl.y, mid.x, tl.y + W * PPM);
     g.strokeCircle(mid.x, mid.y, 3 * PPM);
-    g.fillStyle(0xe8423f, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, Math.PI, 0, false)
-        .fillPath();
-    g.fillStyle(0xffffff, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, 0, Math.PI, false)
-        .fillPath();
-    g.lineStyle(2, 0xffffff, 0.95).lineBetween(mid.x - 2.2 * PPM, mid.y, mid.x + 2.2 * PPM, mid.y);
-    g.fillStyle(0xffffff, 1).fillCircle(mid.x, mid.y, 0.55 * PPM);
-    g.lineStyle(2, 0x333333, 0.6).strokeCircle(mid.x, mid.y, 0.55 * PPM);
+    // a bola de futsal pintada no meio: disco claro, o pentágono do centro e as 5 costuras
+    const R = 2.2 * PPM;
+    const vx = (i: number, r: number) => mid.x + r * Math.sin((i * 2 * Math.PI) / 5);
+    const vy = (i: number, r: number) => mid.y - r * Math.cos((i * 2 * Math.PI) / 5);
+    g.fillStyle(0xffffff, 0.35).fillCircle(mid.x, mid.y, R);
+    g.fillStyle(0x0e1430, 0.4).beginPath();
+    for (let i = 0; i < 5; i++) g[i ? 'lineTo' : 'moveTo'](vx(i, 0.42 * R), vy(i, 0.42 * R));
+    g.closePath().fillPath();
+    g.lineStyle(2, 0x0e1430, 0.4);
+    for (let i = 0; i < 5; i++) g.lineBetween(vx(i, 0.42 * R), vy(i, 0.42 * R), vx(i, R), vy(i, R));
+    g.lineStyle(2, 0xffffff, 0.95).strokeCircle(mid.x, mid.y, R);
 
     g.lineStyle(2, 0xffffff, 0.95);
     areaPath(g, 0, false);
@@ -59,7 +96,6 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         }
         g.lineStyle(3, 0xffffff, 1).strokeRect(top.x, top.y, PPM, GW * PPM);
     }
-    g.setDepth(-1000);
     return g;
 }
 

@@ -1,6 +1,6 @@
 ---
 name: retomar-frentes-21-10
-description: "LER PRIMEIRO: estado atual do Soccermon pra retomar depois de limpar o contexto (atualizado 29/10/2026)"
+description: "LER PRIMEIRO: estado atual do Soccermon pra retomar depois de limpar o contexto (atualizado 30/10/2026)"
 metadata:
   node_type: memory
   type: project
@@ -39,3 +39,7 @@ metadata:
 - Miguel quer séries SÓ animadas à mão (não gameplay); propostas: Escalaram (Onix, Jigglypuff, Gengar), "Vestiário do Pallet FC" (sitcom com elenco fixo), "O juiz é um Mr. Mime", "Primeira vez no futsal". Esperando ele escolher.
 - Juntar versões em updates maiores: proposta 0.9.27 "Loja e Sede" (Poké Mart + Sede/Caminho + Resultado), 0.9.28 Lab/Arena + faxina. Esperando ok.
 - Trailer 0.9.25 (Snorlax + plim) pronto: ~/Vídeos/soccermon-postar/trailer-0925.mp4 (branch curtas dce14f30). Vai ser o próximo post; falta ele escolher legenda e horário. EP 3 v3 ele vai ver ("deixa assim mesmo" no final), posta depois.
+
+**30/10 madrugada (Miguel dormiu e autorizou "ir dando deploy até precisar de mim"; modo mochila até 08:08):** no ar **0.9.27 "Modos de jogo"** (tag/release v0.9.27; motor 15 e Edge Function `liga` republicada com o 15). Entrou: menu de modos pra quem já jogou (Modo Copa · Modo Treinador 27/11 · Modo História 2027, ver [[project-menu-de-modos]]), consertos do playtest (Mew shiny na Rota e no menu, Pokémon desviam dos móveis, cai de costas após 5 toques), golpe máximo com QTE de um tiro (anel fecha no 1 do compasso, renasce na hora certa), sons por nível (clap 808), música abaixa só na hora certa; regras aprovadas: defesa máxima só gasta quando defende (barra volta inteira), goleiro capitão só no N3 (+3,0 pp), zona do pivô 18 m, "chamar o capitão" (fixo chamado conduz até a zona, passe +0,08).
+- **Pendente com o Miguel:** ouvir os sons do golpe no ar; decisões 1–6 do Modo Treinador (UT); Sala do time + troféus fica pra depois da 0.9.27 (`sala-trofeus`, recomendei A + fileira de botões da C); roteiro do trailerzinho 0.9.27 em `curtas` (trailer/curtas/modos/ROTEIRO.md, herói Machamp fixo); séries (BIBLIA.md); comentário com link do TikTok do trailer 0.9.25.
+- **Faxina não feita (classificador bloqueou):** o checkout principal está em 58b5f596 e a origin/main tem o mesmo commit da pauta como 57677e0a: rodar `git reset --hard origin/main` no checkout principal; remover worktrees menu-modos, playtest-2910, golpe-regra, v0927, v0927-fix e apagar essas branches (locais e remotas), todas já na main.

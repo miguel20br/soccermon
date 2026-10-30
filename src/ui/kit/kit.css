@@ -504,6 +504,16 @@
     align-items: center;
     gap: 8px;
 }
+/* no mapa da Rota a tela rola até a casa de agora: a barra (voltar, ₽) fica presa em cima */
+.app:has(.cm-route) > .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    margin: -16px -16px 0;
+    padding: 10px 16px;
+    background: var(--bg);
+    box-shadow: 0 3px 0 var(--cb-ink);
+}
 /* botão-ícone: quadrado de 44 px, chanfrado azul-noite */
 .k-icon-btn {
     flex: none;
@@ -586,9 +596,18 @@
     font-size: 13px;
     line-height: 1;
 }
+.k-cupbar-short {
+    display: none;
+}
 @media (max-width: 359px) {
     .k-cupbar-stage {
         font-size: 13px;
+    }
+    .k-cupbar-full {
+        display: none;
+    }
+    .k-cupbar-short {
+        display: inline;
     }
     .k-res {
         padding-right: 6px;

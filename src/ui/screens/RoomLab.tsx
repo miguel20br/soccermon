@@ -259,7 +259,7 @@ export function RoomLab({ onExit }: { onExit: () => void }) {
     const { d } = useT();
     return (
         <div className="menu-screen room-lab">
-            <MenuHead title="Sala de troféus · direções" icon="liga" onBack={onExit} />
+            <MenuHead title="Sala de troféus · direções" hud="cup" onBack={onExit} />
             <p className="muted">
                 Os mesmos números nas 4 direções (9 títulos, 12 vitórias no Duelo). Toque nas coisas: cada uma responde
                 no lugar, sem levar a página pra baixo. São esboços de direção, não a arte final.

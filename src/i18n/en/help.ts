@@ -621,7 +621,7 @@ export const help: typeof pt = {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',
             done: 'Will show again',
-            intro: 'Home',
+            intro: 'Stadium',
             rota: 'Indigo Road',
             rotaGrupo: 'Plateau',
             relampago: 'Lightning Cup',

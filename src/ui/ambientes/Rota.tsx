@@ -513,7 +513,7 @@ export function Rota({
                 )}
                 <button
                     type="button"
-                    className="btn big cup-go rt-go cb cb-green"
+                    className="btn big cup-go rt-go cb cb-gold"
                     onClick={longOn && run ? () => go(resumeScreenOf(run.status)) : begin}
                 >
                     <span className="cup-go-txt">

@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { type AgencyView, SidelineControls } from './Sideline';
+import { maxCharge } from '../../engine/agency';
+import type { MatchEvent } from '../../engine/state';
+import { type AgencyView, chargeAt, SidelineControls } from './Sideline';
 
 const view = (cue: boolean): AgencyView => ({
     timeoutUsed: false,
@@ -31,5 +33,17 @@ describe('golpe máximo no teclado e no leitor de tela', () => {
     it('aceso: o aviso fala a hora', () => {
         expect(maxButton(html(true))).toContain('aria-disabled="false"');
         expect(html(true)).toMatch(/aria-live="polite">Golpe máximo: Agora! \(Nível 1\)</);
+    });
+});
+
+describe('chargeAt', () => {
+    it('o mesmo maxCharge, guardado por time/tick; evento novo no fim conta', () => {
+        const events = [{ type: 'save', tick: 100, by: 0 }] as MatchEvent[];
+        const a = chargeAt(events, 0, 120);
+        expect(a).toEqual(maxCharge(events, 0, 120, 5));
+        expect(chargeAt(events, 0, 120)).toBe(a);
+        expect(a.charge).toBeGreaterThan(0);
+        events.push({ type: 'max', tick: 110, team: 0, by: 0, phase: 'hit', level: 1, q: 1 } as MatchEvent);
+        expect(chargeAt(events, 0, 120).charge).toBe(0);
     });
 });

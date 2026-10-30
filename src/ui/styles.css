@@ -4279,6 +4279,12 @@ button,
     display: inline-block;
     animation: rh-pop 0.45s calc(var(--i) * 0.05s) cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
 }
+/* a palavra inteira numa linha (as letras dela caem uma a uma lá dentro) */
+.rh-title .rh-word,
+.rh-loss .rh-title .rh-word {
+    white-space: nowrap;
+    animation: none;
+}
 @keyframes rh-pop {
     from {
         transform: scale(0.2) translateY(30px);
@@ -5743,6 +5749,13 @@ a.home-tile {
     width: 32px;
     height: 32px;
     flex: none;
+}
+/* o ícone de traço da tela (o mesmo da Home: Liga = coroa, Duelo = amigos, Rota = mapa), dourado como o selo */
+.menu-head .menu-head-ic {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    color: var(--yellow);
 }
 .back-btn {
     display: inline-grid;
@@ -7553,10 +7566,20 @@ body {
 .home-footer .disclaimer {
     text-align: center;
 }
-/* nas telas de menu o topo (logo e o canto de Configurações/Perfil) acompanha a coluna do conteúdo */
+/* nas telas de menu a barra de cima flutua no mesmo lugar da dos ambientes (.k-menubar, topbar.css); aqui só o
+   espaço dela, pro conteúdo começar embaixo (10 px do topo + a altura do treinador, menos o respiro da página) */
 .topbar.topbar-menu {
-    width: min(720px, 100%);
-    margin-inline: auto;
+    min-height: 50px;
+}
+@media (max-width: 429px) {
+    .topbar.topbar-menu {
+        min-height: 46px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .topbar.topbar-menu {
+        min-height: 42px;
+    }
 }
 
 /* carta completa: a nota em campo (com capitão, sinergias e Patrocínios) */

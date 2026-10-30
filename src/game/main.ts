@@ -19,6 +19,18 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         },
         scene: [MatchScene],
     });
+    // o Phaser guarda num estático a última cena que fez generateTexture (a bola): sem soltar, o jogo inteiro e a
+    // cena da partida que acabou ficavam na memória
+    game.events.once(Phaser.Core.Events.DESTROY, () => {
+        if (Phaser.GameObjects.Graphics.TargetCamera.sceneManager === game.scene)
+            // (os tipos dizem Camera; no Phaser é uma BaseCamera)
+            Phaser.GameObjects.Graphics.TargetCamera = new Phaser.Cameras.Scene2D.BaseCamera(
+                0,
+                0,
+                0,
+                0,
+            ) as Phaser.Cameras.Scene2D.Camera;
+    });
     // só no dev: a gravação do trailer (trailer/) pausa o loop e avança quadro a quadro com game.step
     if (import.meta.env.DEV) (window as unknown as { __soccermonGame?: Phaser.Game }).__soccermonGame = game;
     return game;

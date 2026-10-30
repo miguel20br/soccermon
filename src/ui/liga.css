@@ -477,6 +477,12 @@
     width: 34px;
     height: 34px;
 }
+/* a Liga com a coroa (a mesma do menu de modos, da Arena e da tela da Liga) */
+.dc-icon .hud-icon {
+    width: 30px;
+    height: 30px;
+    color: var(--yellow);
+}
 .daily-card .mode-head {
     display: grid;
     gap: 2px;

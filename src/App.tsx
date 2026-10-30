@@ -2,7 +2,7 @@ import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'rea
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel } from './net/session';
-import { preloadGame } from './PhaserGame';
+import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { readAmbientes } from './ui/ambientes/nav';
@@ -12,10 +12,13 @@ import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { CupBar } from './ui/components/CupBar';
 import { LogoHits } from './ui/components/LogoHits';
+import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
+import { MenuIcon } from './ui/components/MenuIcon';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
+import { openPage } from './ui/doors';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
 import { DoorLayer } from './ui/kit/DoorWipe';
@@ -43,8 +46,6 @@ import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
-/** Telas de menu: o topo tem o canto de Configurações e Perfil (partida, draft e Duelo não, pra ninguém sair sem querer). */
-const MENU_SCREENS: Screen[] = ['settings', 'credits', 'help', 'profile', 'collection', 'trophies', 'daily', 'liga'];
 /** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
 const CUP_SCREENS: Screen[] = ['draft', 'lineup', 'result', 'reward', 'shop', 'map', 'treino', 'event', 'group'];
 
@@ -90,6 +91,26 @@ function leaveScreen(screen: Screen, to: Screen = 'home') {
         }
     }
     useGame.getState().go(to);
+}
+
+/**
+ * O voltar da barra de cima das telas de menu: o da tela (MenuHead), ou o mesmo do voltar do Android (`backTarget`,
+ * com a confirmação do Duelo rolando).
+ */
+function MenuBack({ screen }: { screen: Screen }) {
+    const { t } = useT();
+    const back = useMenuBack((s) => s.back);
+    return (
+        <button
+            type="button"
+            className="help-fab amb-modes"
+            aria-label={t('common.ui.back')}
+            title={t('common.ui.back')}
+            onClick={() => (back ? back() : requestBack(() => leaveScreen(screen, backTarget(screen) ?? 'home')))}
+        >
+            <MenuIcon kind="back" />
+        </button>
+    );
 }
 
 export default function App() {
@@ -179,15 +200,19 @@ export default function App() {
         setVolume(settings.volume);
     }, [settings.volume]);
 
-    // com a primeira tela já carregada (imagens inclusive), baixa a partida (Phaser) em segundo plano: o "Jogar" não
-    // espera a rede e o pedaço não disputa banda com a Home
+    // com a primeira tela já carregada (imagens inclusive), baixa a partida (Phaser) em segundo plano sem rodar: o
+    // "Jogar" não espera a rede e o pedaço não disputa banda com a Home
     useEffect(() => {
         const idle = () =>
-            (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(preloadGame);
+            (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(prefetchGame);
         if (document.readyState === 'complete') idle();
         else window.addEventListener('load', idle, { once: true });
         return () => window.removeEventListener('load', idle);
     }, []);
+    // na Escalação a partida está perto: roda o pedaço (já baixado) aqui, não no "Jogar"
+    useEffect(() => {
+        if (screen === 'lineup') preloadGame();
+    }, [screen]);
 
     // tela nova abre no topo (sem isso a partida abria rolada lá embaixo, onde ficava o "Jogar")
     // biome-ignore lint/correctness/useExhaustiveDependencies: roda a cada troca de tela
@@ -279,10 +304,17 @@ export default function App() {
                     {CUP_SCREENS.includes(screen) && run && run.status !== 'eliminated' && run.status !== 'champion' ? (
                         <CupBar onBack={() => leaveScreen(screen)} />
                     ) : MENU_SCREENS.includes(screen) ? (
-                        // telas de menu: a mesma barra de cima da Home (treinador, títulos, x/151 e a engrenagem)
+                        // telas de menu: a mesma barra de cima dos ambientes (voltar, treinador, Novidades, Ajuda e a
+                        // engrenagem), no mesmo lugar. No Duelo só o voltar, no mesmo lugar: ele larga a sala (e pede
+                        // confirmação com o jogo rolando); a engrenagem e o treinador saíam sem largar
                         <div className="k-topbar k-menubar">
-                            <TopBar />
-                            <TopActions profile={false} />
+                            <MenuBack screen={screen} />
+                            {screen !== 'duel' && (
+                                <>
+                                    <TopBar />
+                                    <TopActions help={() => openPage('help')} profile={false} />
+                                </>
+                            )}
                         </div>
                     ) : (
                         <button

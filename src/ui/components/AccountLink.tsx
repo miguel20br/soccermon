@@ -3,7 +3,7 @@ import { answerLink, declineLink, dismissNotice, type LinkAsk, useCloud } from '
 import type { CupSummary, SaveSummary, Side } from '../../cloud/reconcile-plan';
 import { cupStageName, stageName, t } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { isLong } from '../../store/long-cup';
+import { cupMatchNow, isLong } from '../../store/long-cup';
 import { Sheet } from '../kit/Sheet';
 import './account-link.css';
 
@@ -16,10 +16,7 @@ export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound' 
         return t('home.draftStep', { n: Math.min(cup.draftRound + 1, 7) });
     if (cup.status === 'reward') return t('home.choosingReward');
     if (cup.status === 'shop') return t('home.atMarket');
-    if (isLong(cup)) {
-        const at = cup.status === 'lineup' ? cup.stage : (cup.played ?? cup.stage);
-        return `${t('longCup.title')} · ${cupStageName(cup, at)}`;
-    }
+    if (isLong(cup)) return `${t('longCup.title')} · ${cupStageName(cup, cupMatchNow(cup))}`;
     return stageName(cup.stage);
 }
 

@@ -71,10 +71,19 @@
 .mm-top .top-actions {
     margin-left: auto;
 }
+.mm-brand {
+    flex: none;
+    display: flex;
+}
 .mm-logo {
-    width: clamp(110px, calc(34 * var(--vw)), 220px);
+    width: clamp(120px, calc(34 * var(--vw)), 220px);
     height: auto;
     flex: none;
+}
+.mm-symbol {
+    display: none;
+    width: 40px;
+    height: 40px;
 }
 .mm-top .k-chip,
 .mm-top > :nth-child(2) {
@@ -1094,7 +1103,24 @@ button.mm-card,
         gap: 6px;
     }
     .mm-top .mm-logo {
-        width: 104px;
+        display: none;
+    }
+    .mm-top .mm-symbol {
+        display: block;
+    }
+}
+/* 320: com o símbolo no lugar do logo sobra lugar pro nome do treinador (nos ambientes ele vira só o avatar) */
+@media (max-width: 359px) {
+    .mm-top .res-me-txt {
+        display: grid;
+    }
+    .mm-top .res-me {
+        padding-right: 8px;
+        border-radius: 26px 10px 10px 26px;
+    }
+    .mm-top .res-me .pf-avatar {
+        width: 40px;
+        height: 40px;
     }
     .mm-top .top-actions {
         gap: 4px;

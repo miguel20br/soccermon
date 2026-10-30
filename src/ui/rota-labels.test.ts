@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { buildCupMap } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
+import { rivalLabel } from '../i18n';
 import { type RunState, resumeScreenOf } from '../store/game-store';
-import { foulOf, nextCupMode } from '../store/long-cup';
+import { cupMatchNow, foulOf, nextCupMode } from '../store/long-cup';
 import { cupStep } from './components/AccountLink';
+import { cupBarStage } from './components/CupBar';
 import { buildShareText } from './share';
 import { shareCardData } from './share-card';
 
@@ -109,5 +112,64 @@ describe('Rota Índigo: fim da copa', () => {
         expect(buildShareText(run, 'pt')).toContain('Vice da Rota Índigo');
         expect(buildShareText(run, 'en')).toContain('Indigo Road runner-up');
         expect(buildShareText(run, 'pt')).not.toContain('Fim da linha');
+    });
+});
+
+describe('a fase só na barra da copa', () => {
+    // a placa do mapa contava `results.length` e a barra `run.stage`: depois de uma derrota de cartão amarelo uma dizia
+    // "Partida 3 de 8" e a outra "Partida 4 de 8". O brand guide manda a fase só na barra (CupBar)
+    it('as telas da Rota (mapa, treino, evento, grupo) não põem etiqueta no cabeçalho', async () => {
+        const { readFileSync } = await import('node:fs');
+        const src = readFileSync('src/ui/screens/CupMap.tsx', 'utf8');
+        const heads = src.match(/<MenuHead[^>]*\/>/gs) ?? [];
+        expect(heads.length).toBeGreaterThanOrEqual(4);
+        expect(heads.filter((h) => h.includes('tag='))).toEqual([]);
+    });
+});
+
+describe('a partida da Rota é a mesma na barra da copa e no Continuar', () => {
+    // a barra contava `run.stage` (a última partida em que você entrou) e o Continuar `results.length` (a próxima):
+    // no mapa depois da 3ª partida, de amarelo ou não, uma dizia "Partida 3 de 8" e a outra "Partida 4 de 8"
+    const three = [result(0, true), result(1, true), result(2, false)];
+    const between = rota({ status: 'map', stage: 2, results: three as never });
+    it('fora de uma partida (mapa, evento, treino, Mercado, grupo) é a próxima a jogar', () => {
+        for (const status of ['map', 'event', 'treino', 'shop', 'group'] as const) {
+            const run = rota({ status, stage: 2, results: three as never });
+            expect(cupMatchNow({ ...run, played: 3 })).toBe(3);
+            expect(cupBarStage(run, status === 'shop' ? 'shop' : 'map', 'pt').full).toBe('Partida 4 de 8');
+        }
+        expect(cupStep({ ...between, played: 3 })).toBe('Rota Índigo · Partida 4 de 8');
+    });
+    it('no resultado e na recompensa da vitória é a que acabou; na escalação, a de agora', () => {
+        expect(cupBarStage(between, 'result', 'pt').full).toBe('Partida 3 de 8');
+        const lineup = rota({ status: 'lineup', stage: 3, results: three as never });
+        expect(cupBarStage(lineup, 'lineup', 'pt')).toEqual({ full: 'Partida 4 de 8', short: '4/8' });
+        expect(cupMatchNow({ ...lineup, played: 3 })).toBe(3);
+        // recompensa: a da vitória (casa de partida) é da que acabou; a do Baú já é do caminho, a próxima
+        const map = buildCupMap('rota');
+        const at = (kind: string) => map.nodes.find((n) => n.kind === kind)!.id;
+        const two = [result(0, true), result(1, true)] as never;
+        expect(
+            cupBarStage(rota({ status: 'reward', stage: 1, results: two, map, at: at('jogo') }), 'reward', 'pt').short,
+        ).toBe('2/8');
+        expect(
+            cupBarStage(rota({ status: 'reward', stage: 1, results: two, map, at: at('bau') }), 'reward', 'pt').short,
+        ).toBe('3/8');
+    });
+    it('a Final continua "Final" e a Relâmpago continua com a fase', () => {
+        const all = [0, 1, 2, 3, 4, 5, 6].map((s) => result(s, true));
+        expect(cupBarStage(rota({ status: 'group', stage: 6, results: all as never }), 'group', 'pt').full).toBe(
+            'Final',
+        );
+        expect(cupMatchNow({ status: 'map', stage: 2, played: 3 })).toBe(2);
+    });
+});
+
+describe('o rival na escalação', () => {
+    it('a Final contra a Liga Índigo não aparece em inglês, e o time da Rota sai no idioma do jogo', () => {
+        expect(rivalLabel('Liga Índigo', 'pt')).toBe('Liga Índigo');
+        expect(rivalLabel('Liga Índigo', 'en')).toBe('Indigo League');
+        expect(rivalLabel('Ornitólogos', 'en')).toBe('Bird Keepers');
+        expect(rivalLabel('Pewter Rochedo', 'pt')).toBe('Pewter');
     });
 });

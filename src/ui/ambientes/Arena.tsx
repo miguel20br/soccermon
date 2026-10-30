@@ -145,7 +145,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                     </span>
                 </header>
                 <div className="rm-actions">
-                    <button type="button" className="btn big cup-go rm-go cb cb-green" onClick={() => go('duel')}>
+                    <button type="button" className="btn big cup-go rm-go cb cb-gold" onClick={() => go('duel')}>
                         <span className="cup-go-txt">
                             <b>{t('home.amb.arenaGo')}</b>
                             <small>{t('home.amb.arenaLine')}</small>
@@ -157,7 +157,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         <p className="ar-soon">{t('home.amb.ligaSoon', { d: liga.d })}</p>
                     ) : (
                         <div className="amb-tiles">
-                            <Tile icon="cup" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
+                            <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
                         </div>
                     )}
                 </div>

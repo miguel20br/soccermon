@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { backTarget, guardAction, installBackNav, setDoorOrigin } from './back-nav';
+import { backTarget, guardAction, installBackNav, setDoorOrigin, setPageOrigin } from './back-nav';
 
 describe('voltar do sistema', () => {
     it('mapeia a tela para o destino do voltar', () => {
@@ -14,6 +14,18 @@ describe('voltar do sistema', () => {
         expect(backTarget('trophies')).toBe('home');
         setDoorOrigin('collection');
         expect(backTarget('trophies')).toBe('profile');
+    });
+    it('Ajuda e Créditos abertos das Configurações voltam pras Configurações (iam pro Estádio)', () => {
+        setPageOrigin('settings');
+        expect(backTarget('credits')).toBe('settings');
+        expect(backTarget('help')).toBe('settings');
+        setPageOrigin('home');
+        expect(backTarget('help')).toBe('home');
+        // o "?" mora na barra de cima de toda tela de menu: volta pra ela; de fora dos menus (copa), a Home
+        setPageOrigin('profile');
+        expect(backTarget('help')).toBe('profile');
+        setPageOrigin('draft');
+        expect(backTarget('credits')).toBe('home');
     });
     it('uma só entrada de guarda: empurra fora da Home, tira na Home', () => {
         expect(guardAction('draft', false)).toBe('push');

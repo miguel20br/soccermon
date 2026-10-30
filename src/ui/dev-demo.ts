@@ -370,8 +370,6 @@ export function runDevDemo() {
             run: {
                 ...cur,
                 picks: [...lineup, ...cur.picks.filter((p) => cur.bench.includes(p.uid))],
-                // o mapa do demo já traz um resultado nesta partida: sai, pra ela contar
-                results: cur.results.filter((r) => r.stage < cur.stage),
                 lineup: lineup.map((p) => p.uid),
                 captainUid: lineup[4].uid,
             },
@@ -1059,7 +1057,8 @@ function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean
         path.push(node.id);
         node = map.nodes.find((n) => n.id === node.next[node.next.length - 1])!;
     }
-    const results = [0, 1, 2].map((stage) => ({
+    // as linhas 0 a 4 têm 2 partidas (a 2ª foi o amarelo): com 3 resultados a barra dizia "Partida 4" e a casa era a 3ª
+    const results = [0, 1].map((stage) => ({
         stage,
         opponent: 'Montanhistas',
         score: (stage === 1 ? [1, 2] : [3, 1]) as [number, number],
@@ -1072,7 +1071,7 @@ function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean
             ...run,
             at: path.at(-1)!,
             path,
-            stage: 2,
+            stage: 1,
             results,
             cards: 1,
             money: 18,

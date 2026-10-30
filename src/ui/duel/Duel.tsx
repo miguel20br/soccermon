@@ -39,7 +39,7 @@ import { Coach } from '../coach/Coach';
 import { MenuHead } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
-import { LeaveConfirm } from '../leave-guard';
+import { duelInPlay, LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
 import { hexCss, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
@@ -128,7 +128,6 @@ function DuelEntry({ code }: { code: string | null }) {
     const { t } = useT();
     const profile = useGame((g) => g.profile);
     const updateProfile = useGame((g) => g.updateProfile);
-    const go = useGame((g) => g.go);
     const [name, setName] = useState(profile.trainerName);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<'disabled' | 'error' | null>(null);
@@ -146,8 +145,6 @@ function DuelEntry({ code }: { code: string | null }) {
     };
     return (
         <>
-            {/* mesmo cabeçalho das outras telas de menu: voltar pra Home e a etiqueta de beta */}
-            <MenuHead title={t('duel.title')} icon="liga" tag={t('duel.beta')} onBack={() => go('home')} />
             <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />
             <div className="panel duel-center duel-entry">
                 {code ? (
@@ -216,10 +213,6 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     return (
         <div className="duel-create">
             <Coach id="dueloSala" targets={['[data-testid="duel-bestof-3"]', '.duel-create > .btn.primary.big']} />
-            <header className="bc-screenhead">
-                <span className="bc-tag">{t('duel.title')}</span>
-                <h1>{t('duel.newDuel')}</h1>
-            </header>
             <p className="muted">{t('duel.newHint')}</p>
             {challenging && (
                 <p className="panel fr-challenging">{t('friends.challengingNote', { name: challenging.trainer })}</p>
@@ -900,7 +893,7 @@ export function Duel() {
     const role = useDuel((st) => st.role);
     const [seen, setSeen] = useState(0);
     const [askLeave, setAskLeave] = useState(false);
-    const active = !!s && ['team', 'draft', 'preview', 'match'].includes(s.phase);
+    const active = duelInPlay(s?.phase);
 
     // entra na sala do link (de novo ao voltar de outra tela ou recarregar)
     // biome-ignore lint/correctness/useExhaustiveDependencies: entra uma vez por sala/conta
@@ -981,16 +974,16 @@ export function Duel() {
     else if (showMatch) body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
     else body = <DuelResultView onHome={home} />;
 
+    const back = () => (active ? setAskLeave(true) : home());
+
     return (
         <div className="duel" data-phase={s?.phase ?? 'none'}>
+            {/* o cabeçalho das outras telas de menu; na partida o placar já diz onde se está */}
+            {step !== 'match' && <MenuHead title={t('duel.title')} hud="friends" onBack={back} />}
             {room && (
                 <div className="duel-top row">
                     <span className="muted">{t('duel.room', { code: room })}</span>
-                    <button
-                        type="button"
-                        className="btn small ghost"
-                        onClick={() => (active ? setAskLeave(true) : home())}
-                    >
+                    <button type="button" className="btn small ghost" onClick={back}>
                         {t('duel.leave')}
                     </button>
                     <ConfirmSheet

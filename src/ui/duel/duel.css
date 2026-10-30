@@ -185,6 +185,12 @@
     display: grid;
     gap: 14px;
 }
+/* o cabeçalho e a linha da sala na largura das telas de menu (a partida usa a tela toda) */
+.duel > .menu-head,
+.duel > .duel-top {
+    width: min(720px, 100%);
+    margin-inline: auto;
+}
 .duel-top {
     justify-content: space-between;
     gap: 8px;

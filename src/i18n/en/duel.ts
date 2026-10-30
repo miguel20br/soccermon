@@ -7,7 +7,6 @@ export const duel: typeof pt = {
     betaLink: 'let us know.',
     line: 'Send a friend the link and play live',
     createRoom: 'Create room',
-    newDuel: 'New duel',
     newHint: 'Pick the mode and speed, then send the link to your rival.',
     modeLabel: 'Mode',
     speedLabel: 'Starting speed',

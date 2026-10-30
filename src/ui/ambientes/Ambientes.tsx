@@ -11,6 +11,7 @@ import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
 import { Arena } from './Arena';
 import { Estadio } from './Estadio';
+import { SpriteNearCtx } from './FieldSprite';
 import { Lab } from './Lab';
 import { dragPos, START, skyOf, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
@@ -19,6 +20,7 @@ import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
+import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 import { uiZoom } from '../ui-zoom';
 
@@ -41,7 +43,6 @@ let lastTab = START;
  */
 export function Ambientes({ onModes }: { onModes?: () => void }) {
     const { t, d } = useT();
-    const go = useGame((s) => s.go);
     const hydrated = useHydrated();
     const firstVisit = useGame(isFirstVisit);
     const records = useGame((s) => s.records);
@@ -204,7 +205,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                     </button>
                 )}
                 <TopBar />
-                <TopActions help={() => go('help')} profile={false} />
+                <TopActions help={() => openPage('help')} profile={false} />
             </div>
             <div
                 ref={stage}
@@ -230,7 +231,9 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                         style={{ '--i': i } as CSSProperties}
                         inert={i !== tab}
                     >
-                        {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                        <SpriteNearCtx.Provider value={seen.current.has(i)}>
+                            {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                        </SpriteNearCtx.Provider>
                     </section>
                 ))}
             </div>

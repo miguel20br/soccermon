@@ -64,7 +64,6 @@ export const liga = {
         },
     },
     league: {
-        tag: 'Liga',
         title: 'Liga ranqueada',
         line: 'Você enfrenta o time salvo de outro treinador, comandado pela IA. Não precisa estar online junto. Vale Elo.',
         needCloud: 'A Liga precisa do servidor do jogo: jogue em soccermon.com.',

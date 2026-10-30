@@ -16,10 +16,10 @@ import {
     type Tactic,
     type TacticChange,
 } from '../../engine/state';
-import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { skinOf } from '../../game/skin';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
