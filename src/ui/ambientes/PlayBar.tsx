@@ -45,13 +45,12 @@ export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; on
     return (
         <div className={`es-go${rail ? ' has-modes' : ''}`}>
             {rail && (
-                <div className="es-rail" role="radiogroup" aria-label={t('home.amb.modesAria')}>
+                <fieldset className="es-rail" aria-label={t('home.amb.modesAria')}>
                     {sheet.map((m) => (
                         <button
                             key={m.id}
                             type="button"
-                            role="radio"
-                            aria-checked={m.id === main.id}
+                            aria-pressed={m.id === main.id}
                             className={`es-tile m-${m.id}${m.id === main.id ? ' on' : ''}`}
                             disabled={m.busy}
                             onClick={() => onPick(m.id)}
@@ -62,7 +61,7 @@ export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; on
                             <b>{m.title}</b>
                         </button>
                     ))}
-                </div>
+                </fieldset>
             )}
             <button
                 type="button"

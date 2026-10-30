@@ -59,8 +59,8 @@ describe('JOGAR e placas de modos do Estádio', () => {
         const sheet = [cont, m('quick', 'Copa Relâmpago'), m('long', 'Rota Índigo'), m('duel', 'Duelo')];
         const out = html(cont, sheet);
         expect(out.match(/class="es-tile /g)).toHaveLength(4);
-        expect(out).toMatch(/aria-checked="true" class="es-tile m-continue on"/);
-        expect(out.match(/aria-checked="true"/g)).toHaveLength(1);
+        expect(out).toMatch(/aria-pressed="true" class="es-tile m-continue on"/);
+        expect(out.match(/aria-pressed="true"/g)).toHaveLength(1);
         expect(out).toMatch(/es-play-verb">Continuar<.*es-play-sub">Continuar · Pallet FC · Quartas de final/);
     });
 });
