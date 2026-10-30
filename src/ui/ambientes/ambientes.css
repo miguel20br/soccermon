@@ -3018,6 +3018,10 @@
 .rt-go .cup-go-txt small {
     font-size: 13px;
 }
+/* no dourado (Começar a Rota, Desafiar) o subtítulo vai em negrito, como o do JOGAR: o fino sumia no amarelo */
+.cb-gold.cup-go .cup-go-txt small {
+    font-weight: 700;
+}
 @media (max-width: 359px) {
     .rm-go .cup-go-txt b,
     .rt-go .cup-go-txt b {

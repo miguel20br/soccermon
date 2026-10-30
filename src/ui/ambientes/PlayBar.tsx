@@ -35,6 +35,15 @@ export const chosenMode = (plan: { main: ModeId; sheet: ModeId[] }, chosen: Mode
     chosen && plan.sheet.includes(chosen) ? chosen : plan.main;
 
 /**
+ * A linha de baixo do JOGAR: o modo (com o seletor) e o detalhe, sem repetir o verbo do botão ("JOGAR HOJE" com
+ * "Copa do Dia · Jogar hoje" embaixo, "CONTINUAR" com "Continuar · …").
+ */
+export function playSub(main: Pick<Mode, 'title' | 'sub' | 'verb'>, rail: boolean): string {
+    const verb = main.verb?.toLocaleLowerCase();
+    return (rail ? [main.title, main.sub] : [main.sub]).filter((x) => x && x.toLocaleLowerCase() !== verb).join(' · ');
+}
+
+/**
  * O rodapé do Estádio: cada modo com o seu lugar (pedido do Miguel, 30/10: o seletor de pílula com setas e lista era
  * burocrático), uma fileira de placas com ícone e nome em cima do JOGAR dourado. Tocar numa placa só escolhe o modo
  * (ela sobe e acende); quem joga é o JOGAR, que diz o modo escolhido embaixo.
@@ -72,7 +81,7 @@ export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; on
             >
                 <i className="cb-shine" aria-hidden />
                 <b className="es-play-verb">{main.verb ?? t('home.play')}</b>
-                <small className="es-play-sub">{rail ? `${main.title} · ${main.sub}` : main.sub}</small>
+                <small className="es-play-sub">{playSub(main, rail)}</small>
             </button>
         </div>
     );

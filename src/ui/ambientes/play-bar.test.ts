@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { chosenMode, type Mode, PlayBar, playModes } from './PlayBar';
+import { chosenMode, type Mode, PlayBar, playModes, playSub } from './PlayBar';
 
 const noop = () => {};
 const m = (id: Mode['id'], title: string, sub = ''): Mode => ({ id, title, sub, icon: 'next', go: noop });
@@ -61,6 +61,15 @@ describe('JOGAR e placas de modos do Estádio', () => {
         expect(out.match(/class="es-tile /g)).toHaveLength(4);
         expect(out).toMatch(/aria-pressed="true" class="es-tile m-continue on"/);
         expect(out.match(/aria-pressed="true"/g)).toHaveLength(1);
-        expect(out).toMatch(/es-play-verb">Continuar<.*es-play-sub">Continuar · Pallet FC · Quartas de final/);
+        expect(out).toMatch(/es-play-verb">Continuar<.*es-play-sub">Pallet FC · Quartas de final</);
+    });
+
+    it('a linha de baixo do JOGAR não repete o verbo do botão', () => {
+        expect(playSub({ title: 'Copa do Dia', sub: 'Jogar hoje', verb: 'Jogar hoje' }, true)).toBe('Copa do Dia');
+        expect(playSub({ title: 'Continuar', sub: 'Pallet FC · Partida 3 de 8', verb: 'Continuar' }, true)).toBe(
+            'Pallet FC · Partida 3 de 8',
+        );
+        expect(playSub({ title: 'Duelo', sub: 'Com amigos' }, true)).toBe('Duelo · Com amigos');
+        expect(playSub({ title: 'Copa Relâmpago', sub: '4 jogos' }, false)).toBe('4 jogos');
     });
 });
