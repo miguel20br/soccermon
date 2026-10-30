@@ -224,8 +224,9 @@ O site inteiro usa as peças da tela de partida (`src/ui/broadcast-kit.css`). Vi
 - **Selo e fita** (`.k-seal`, `.k-ribbon`): recorde e conquista (o 1º dourado, os outros azul-noite), batem com pop.
 - **Campo** (`.k-field`): borda de 3 px `--cb-ink`, foco dourado (a busca da Ajuda).
 - **Aviso rápido** (`Toast`): desce do topo; verde deu certo, vermelho deu errado, azul só informa; ícone à esquerda.
-- **Telas de menu**: a mesma barra de cima da Home (treinador, títulos, x/151, engrenagem) no lugar do logo; a placa do
-  título sem etiqueta e com o voltar quadrado do kit.
+- **Telas de menu**: a mesma barra de cima dos ambientes, no mesmo lugar: voltar quadrado no canto de cima à esquerda,
+  o treinador logo depois, Novidades, Ajuda e Configurações à direita (sempre os três, na mesma ordem). A placa do
+  título fica só com o ícone da tela (o mesmo da Home: Liga = coroa, Duelo = amigos) e o nome, sem voltar nem etiqueta.
 - **Painéis da partida** (intervalo, ordem dos pênaltis, banco, pedido de tempo): moldura do kit, título na placa.
 - **Cartas do draft** (`.cards-legible`): as 3 lado a lado mostram os 6 atributos em grade 3x2, tudo com 10 px ou mais;
   o bônus vira a cor do número (verde sobe, vermelho desce). A carta em si não muda.
