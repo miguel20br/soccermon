@@ -7560,10 +7560,20 @@ body {
 .home-footer .disclaimer {
     text-align: center;
 }
-/* nas telas de menu o topo (logo e o canto de Configurações/Perfil) acompanha a coluna do conteúdo */
+/* nas telas de menu a barra de cima flutua no mesmo lugar da dos ambientes (.k-menubar, topbar.css); aqui só o
+   espaço dela, pro conteúdo começar embaixo (10 px do topo + a altura do treinador, menos o respiro da página) */
 .topbar.topbar-menu {
-    width: min(720px, 100%);
-    margin-inline: auto;
+    min-height: 50px;
+}
+@media (max-width: 429px) {
+    .topbar.topbar-menu {
+        min-height: 46px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .topbar.topbar-menu {
+        min-height: 42px;
+    }
 }
 
 /* carta completa: a nota em campo (com capitão, sinergias e Patrocínios) */

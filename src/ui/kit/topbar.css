@@ -266,9 +266,18 @@
     }
 }
 
-/* em cima das telas de menu (App.tsx): ocupa a linha do cabeçalho, sem flutuar */
+/* em cima das telas de menu (App.tsx): a mesma barra dos ambientes, no mesmo lugar (.amb-top): voltar no canto de
+   cima à esquerda, o treinador logo depois e Novidades, Ajuda e Configurações à direita */
 .k-menubar {
-    flex: 1 1 auto;
-    min-width: 0;
-    justify-content: space-between;
+    position: absolute;
+    z-index: 20;
+    top: calc(10px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+}
+/* deitado: nos ambientes a barra vai pro canto direito (a coluna da esquerda é do telão); no menu não há telão, o
+   voltar fica no canto esquerdo */
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-menubar.k-topbar {
+        left: calc(12px + env(safe-area-inset-left));
+    }
 }

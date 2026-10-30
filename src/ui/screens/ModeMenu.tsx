@@ -18,6 +18,7 @@ import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
+import { openPage } from '../doors';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
@@ -251,13 +252,17 @@ export function Chips({ id }: { id: ModeId }) {
     );
 }
 
-/** O topo: logo, o treinador e a engrenagem (o mesmo canto da Home). */
+/** O topo: logo, o treinador, Novidades, Ajuda e a engrenagem (o mesmo canto da Home). */
 export function Head() {
     return (
-        <header className="mm-top" style={{ '--n': 0 } as CSSProperties}>
-            <Logo className="mm-logo" alt="Soccermon" idle />
+        <header className="mm-top k-topbar" style={{ '--n': 0 } as CSSProperties}>
+            {/* celular em pé: o logo inteiro ficaria abaixo dos 120 px do guia; lá vai o símbolo */}
+            <span className="mm-brand">
+                <Logo className="mm-logo" alt="Soccermon" idle />
+                <img className="mm-symbol" src="assets/ui/simbolo.svg" alt="Soccermon" width="40" height="40" />
+            </span>
             <TopBar />
-            <TopActions profile={false} />
+            <TopActions help={() => openPage('help')} profile={false} />
         </header>
     );
 }
