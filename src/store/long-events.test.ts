@@ -4,7 +4,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { FUTSAL_5 } from '../engine/config';
 import { nextNodes } from '../engine/cup-map';
-import { createInstance } from '../engine/instance';
+import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { playerTeam, type RunState, useGame } from './game-store';
@@ -200,6 +200,11 @@ describe('eventos novos da revisão da Rota', () => {
         expect(best.bench).toHaveLength(1);
         expect(best.bench).not.toContain(ev.uids![0]);
         expect(eventChoices({ ...run, money: 9 }, ev).find((c) => c.id === 'pagar')!.ok).toBe(false);
+        // a nota do mapa guarda o nome de quem saiu ("{a} vai embora"): ele não está mais no time
+        const name = viewInstance(run.picks.find((p) => p.uid === ev.uids![0])!).displayName;
+        useGame.setState({ run: { ...run, status: 'event', event: ev } });
+        useGame.getState().chooseEvent('reserva');
+        expect(useGame.getState().run!.eventNote).toMatchObject({ id: 'juiz', choice: 'reserva', names: [name] });
     });
 
     it('Centro Pokémon: tira o amarelo ou traz de volta quem está fora', () => {

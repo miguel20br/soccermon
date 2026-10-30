@@ -380,7 +380,9 @@ function EventNote({
     const { t, d } = useT();
     const ev = d.longCup.events[note.id];
     const art = EVENT_ART[note.id as EventId];
-    const [label, effect] = ev?.choices[note.choice] ?? ['', ''];
+    const [rawLabel, rawEffect] = ev?.choices[note.choice] ?? ['', ''];
+    const label = fmtNames(rawLabel, note.names ?? []);
+    const effect = fmtNames(rawEffect, note.names ?? []);
     const mon = note.target ? picks.find((p) => p.uid === note.target) : undefined;
     const who = mon && AFFECTS_TARGET.has(`${note.id}:${note.choice}`) ? viewInstance(mon).displayName : label;
     const money = note.cost ? ` ${note.cost > 0 ? '−' : '+'}${t('shop.money', { n: Math.abs(note.cost) })}` : '';
@@ -696,7 +698,7 @@ export function EventScreen() {
             {picked && (
                 <div key={picked.id} className="panel reward-pick cm-who" data-exit>
                     <h2>
-                        {pickedLabel}
+                        {fmtNames(pickedLabel, names)}
                         {pickedEffect && <small>{fmtNames(pickedEffect, names)}</small>}
                     </h2>
                     <h3>{t(sale ? 'longCup.pickSub' : 'longCup.pickWho')}</h3>
@@ -747,7 +749,7 @@ export function EventScreen() {
                                 onClick={() => pick(c.id)}
                             >
                                 <span>
-                                    <b>{label}</b>
+                                    <b>{fmtNames(label, names)}</b>
                                     {effect && <small>{fmtNames(effect, names)}</small>}
                                 </span>
                                 {c.cost !== 0 && (

@@ -71,7 +71,7 @@ export interface LongRunFields {
     /** Fase de grupos no Planalto: os 3 rivais do seu grupo, na ordem das rodadas. */
     group?: { rivals: TeamSetup[] } | null;
     /** O que a última escolha de evento fez (a nota no mapa até a próxima casa). */
-    eventNote?: { id: string; choice: string; target?: string; cost: number } | null;
+    eventNote?: { id: string; choice: string; target?: string; cost: number; names?: string[] } | null;
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
     /** Desafio de evento pra próxima partida do mapa (Pássaro lendário, Equipe Rocket): rival +2 com prêmio próprio. */

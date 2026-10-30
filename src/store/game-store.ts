@@ -1883,6 +1883,13 @@ export const useGame = create<GameStore>()(
                                 choice,
                                 ...(target && { target }),
                                 cost: (run.money ?? 0) - (next.money ?? 0),
+                                // os nomes do texto ("{a} vai embora"): quem sai do time não está mais em `picks`
+                                ...(run.event.uids?.length && {
+                                    names: run.event.uids.map((u) => {
+                                        const p = run.picks.find((x) => x.uid === u);
+                                        return p ? viewInstance(p).displayName : '';
+                                    }),
+                                }),
                             },
                         },
                         screen: 'map',
