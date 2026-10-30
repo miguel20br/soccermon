@@ -230,3 +230,33 @@ O Miguel disse "sim em tudo" pras 9 decisões. Entraram a 1 a 7; a 8 ficou de fo
 **Fora:** a 8 (pedras evolutivas) mexe no motor: quem evolui e quando é decidido dentro da partida (`match.ts`). Pela
 regra do projeto, pede `ENGINE_VERSION` novo e decisão do Miguel. Também ficaram de fora o "?" puxando o tipo de evento
 que não saiu e as propostas 8 e 9 de "Feio e incoerente" (rostos no Patrocinador, status no celular).
+
+### O robô, antes e depois (decisões 4 a 7 juntas)
+
+150 Rotas por política, mesmas seeds, mesmo robô (ele aprendeu os eventos novos e a olhar o prêmio: `ouro` vai no ₽ em
+dobro, `pokemon` no Pokémon do rival). Erro do título: ±3 pp. Antes = `964cddf4`; depois = esta branch.
+
+| Política | Título antes | Título depois | Chega ao grupo antes → depois | Time no grupo antes → depois | Pokémon novos antes → depois | ₽ ganho antes → depois |
+|---|---|---|---|---|---|---|
+| Sempre à esquerda | 15,3% | 16,0% | 43% → 50% | 83,7 → 82,9 | 1,95 → 1,15 | 24 → 25 |
+| Sempre à direita | 15,3% | 14,0% | 45% → 50% | 83,5 → 82,5 | 1,99 → 1,35 | 25 → 26 |
+| Atrás de ₽ | 14,0% | 16,0% | 39% → 49% | 83,1 → 81,9 | 1,49 → 1,11 | 22 → 30 |
+| Atrás de Pokémon | 11,3% | 13,3% | 39% → 47% | 83,8 → 83,2 | 1,88 → 1,50 | 23 → 23 |
+| Sempre Ginásio | 17,3% | 12,0% | 39% → 47% | 83,7 → 82,9 | 1,83 → 1,22 | 23 → 24 |
+| Aleatório | 14,7% | 11,3% | 43% → 46% | 83,4 → 82,4 | 1,98 → 1,13 | 25 → 24 |
+| Só as vitórias | 10,0% | 6,7% | 33% → 38% | 82,8 → 82,7 | 1,05 → 0,50 | 20 → 22 |
+| Nada (recusa tudo) | 9,3% | 10,7% | 30% → 36% | 82,3 → 82,0 | 0,13 → 0 | 20 → 22 |
+
+O que os números dizem:
+- **No geral não ficou mais difícil:** título médio das 6 políticas que jogam 14,7% → 13,8% (dentro do erro), e mais
+  gente chega ao grupo (o Centro Pokémon tira o amarelo).
+- **A meta não foi batida.** O time no grupo entre as políticas varia 1,3 ponto (era 0,7; a meta era ~3), e jogar contra
+  recusar tudo dá ~0,6 ponto de time e ~3 pp de título (era 1,3 ponto e ~5 pp).
+- **Por quê:** a escassez cortou o que entra no time (Pokémon novos 1,9 → 1,1 a 1,5: menos Mercado e Baú), e a
+  evolução continua dando uns 19 dos 20 pontos que o time cresce. O robô não usa MT, então o prêmio MT e a MT do líder
+  valem zero pra ele. O ₽ em dobro aparece (o `ouro` sobe de 22 pra 30), mas o `ouro` não compra.
+- **Sempre Ginásio** caiu de 17,3% pra 12,0%: o +2 virou aposta de verdade (o robô não sabe recusar).
+
+Alavancas, se o Miguel quiser (não mexi): a escassez mais leve (Mercado limitado só a 1 por caminho, sem cortar o
+Treino), o Pokémon do rival como prêmio de todo Jogo com outro prêmio junto, e a decisão 8 (pedras), que é a única
+que mexe no que mais pesa (a evolução), mas pede motor novo.
