@@ -752,6 +752,10 @@ button.mm-card,
     .mm-chips .hud-icon {
         display: none;
     }
+    /* "MODO TREINADOR" no cartão de 320 (mais forte que o .mm-small .cb-num de baixo) */
+    .mm-card.mm-small .cb-num {
+        font-size: 17.5px;
+    }
 }
 .mm-small {
     display: flex;
