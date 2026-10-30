@@ -1088,3 +1088,15 @@ button.mm-card,
 :root[data-reduce-motion="true"] .mm-small .mm-sc {
     transition: none;
 }
+/* celular em pé: logo, treinador (maior desde 30/10) e 2 botões dividem a linha; logo e vãos menores pro nome caber */
+@media (max-width: 429px) {
+    .mm-top {
+        gap: 6px;
+    }
+    .mm-top .mm-logo {
+        width: 104px;
+    }
+    .mm-top .top-actions {
+        gap: 4px;
+    }
+}
