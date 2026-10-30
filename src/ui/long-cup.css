@@ -1084,6 +1084,18 @@
         gap: 12px;
     }
 }
+/* celular deitado: status (₽, cartão, 3 Patrocínios) + ficha não cabem na altura, e o "Ir" ficava abaixo da tela sem
+   rolagem (o painel é preso). A ficha e a fala vêm primeiro e o painel rola */
+@media (min-width: 700px) and (max-height: 500px) {
+    .cm-side {
+        max-height: calc(calc(100 * var(--vh)) - 90px);
+        overflow-y: auto;
+    }
+    .cm-side .cm-sheet,
+    .cm-side .cm-story {
+        order: -1;
+    }
+}
 /* celular deitado: painel mais estreito e a janela do mapa com a altura da tela */
 @media (max-height: 500px) and (min-width: 700px) and (max-width: 999px) {
     .cm-body {
