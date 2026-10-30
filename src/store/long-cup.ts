@@ -1,13 +1,17 @@
 import { CUP_STAGES } from '../engine/cup';
 import {
     buildCupMap,
+    CHALLENGE_SHIFT,
     type CupMap,
     FINAL_MATCH,
     GROUP_GAMES,
     GROUP_START,
     isMatchKind,
+    LEGENDARY_BIRD,
     LONG_MATCHES,
+    longOpponent,
     type MapNode,
+    matchIndexOfRow,
     nodeById,
 } from '../engine/cup-map';
 import { Rng } from '../engine/rng';
@@ -70,7 +74,58 @@ export interface LongRunFields {
     eventNote?: { id: string; choice: string; target?: string; cost: number } | null;
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
+    /** Desafio de evento pra próxima partida do mapa (Pássaro lendário, Equipe Rocket): rival +2 com prêmio próprio. */
+    challenge?: Challenge | null;
+    /** O desafio da partida de agora (até voltar pro mapa): o prêmio da vitória sai dele. */
+    fight?: Challenge | null;
+    /** Aposta do Blue na próxima partida: vitória por 2+ gols ganha esse ₽; senão perde. */
+    bet?: number | null;
+    /** Ovo da Creche: nasce no banco depois de `left` partidas. */
+    egg?: { left: number; speciesId: number } | null;
 }
+
+export type Challenge = 'lendario' | 'rocket';
+/** ₽ a mais por vencer a Equipe Rocket do assalto. */
+export const ROCKET_BOUNTY = 8;
+
+/** Rival da casa de partida (a prévia do mapa e a partida usam esta conta: o mesmo time). */
+export function nodeOpponent(
+    run: { seed: string; opponents: readonly (TeamSetup | null | undefined)[] } & Pick<
+        LongRunFields,
+        'rivalShift' | 'challenge'
+    >,
+    node: MapNode,
+): TeamSetup {
+    const faced = run.opponents.flatMap((o) => (o ? [o.name] : []));
+    const ch = node.kind === 'final' ? null : run.challenge;
+    return longOpponent(run.seed, matchIndexOfRow(node.row), node.kind, faced, {
+        shift: (run.rivalShift ?? 0) + (ch ? CHALLENGE_SHIFT : 0),
+        types: node.types,
+        ...(ch === 'rocket' && { club: 'Equipe Rocket' }),
+        ...(ch === 'lendario' && { boss: LEGENDARY_BIRD }),
+    });
+}
+
+/** O ₽ a mais desta partida da Rota: prêmio "₽ em dobro", recompensa da Equipe Rocket e a aposta do Blue. */
+export interface MatchBonus {
+    prize?: number;
+    rocket?: number;
+    bet?: number;
+}
+export function longMatchBonus(
+    run: LongRunFields & { sponsors?: string[] },
+    score: readonly number[],
+    won: boolean,
+): MatchBonus {
+    const out: MatchBonus = {};
+    const node = currentNode(run);
+    if (won && node?.kind === 'jogo' && node.prize === 'money' && !run.fight)
+        out.prize = longWinEarnings(score, run.sponsors).total;
+    if (won && run.fight === 'rocket') out.rocket = ROCKET_BOUNTY;
+    if (run.bet) out.bet = won && score[0] - score[1] >= 2 ? run.bet : -run.bet;
+    return out;
+}
+export const bonusTotal = (b: MatchBonus | undefined) => (b?.prize ?? 0) + (b?.rocket ?? 0) + (b?.bet ?? 0);
 
 /** "Nova copa" no fim de uma copa: o mesmo modo (Rota começa outra Rota; Relâmpago e Copa do Dia, a Relâmpago). */
 export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | undefined =>

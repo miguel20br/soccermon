@@ -4,11 +4,9 @@ import {
     FINAL_MATCH,
     GROUP_START,
     isMatchKind,
-    longOpponent,
     MAP_REGIONS,
     type MapNode,
     type MapRegion,
-    matchIndexOfRow,
     type NodeKind,
     nextNodes,
     regionOfRow,
@@ -20,7 +18,14 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { groupOthers, groupTable, isGroupStage, type LongRunFields, YELLOW_CARDS } from '../../store/long-cup';
+import {
+    groupOthers,
+    groupTable,
+    isGroupStage,
+    type LongRunFields,
+    nodeOpponent,
+    YELLOW_CARDS,
+} from '../../store/long-cup';
 import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
@@ -49,6 +54,7 @@ const ICON: Record<NodeKind, HudIconKind> = {
     evento: 'question',
     treino: 'dumbbell',
     bau: 'chest',
+    centro: 'heart',
     final: 'cup',
 };
 /** Altura de cada linha do mapa (px): cabe na altura da tela, entre o mínimo que dá pra tocar e o máximo que respira. */
@@ -133,10 +139,9 @@ export function CupMap() {
     const rivalIcons = useMemo(() => {
         const out = new Map<string, PokemonInstance>();
         if (!map || !run) return out;
-        const faced = run.opponents.filter(Boolean).map((o) => o.name);
         for (const n of map.nodes) {
             if (!open.has(n.id) || !isMatchKind(n.kind)) continue;
-            const r = longOpponent(run.seed, matchIndexOfRow(n.row), n.kind, faced, run.rivalShift ?? 0);
+            const r = nodeOpponent(run, n);
             const c = r.lineup.find((p) => p.uid === r.captainUid) ?? r.lineup[0];
             if (c) out.set(n.id, c);
         }
@@ -201,15 +206,7 @@ export function CupMap() {
     const cards = run.cards ?? 0;
     // no desktop a ficha e a fala ficam no painel ao lado; no celular, presas embaixo da tela
     const sheet = chosen && !walking && (
-        <NodeSheet
-            key={chosen.id}
-            node={chosen}
-            seed={run.seed}
-            faced={run.opponents.filter(Boolean).map((o) => o.name)}
-            shift={run.rivalShift ?? 0}
-            lang={lang}
-            onGo={() => go2(chosen.id)}
-        />
+        <NodeSheet key={chosen.id} node={chosen} run={run} lang={lang} onGo={() => go2(chosen.id)} />
     );
     const story = untold && !chosen && (
         <div key={untold.id} className={`cm-story who-${untold.who}`}>
@@ -311,7 +308,11 @@ export function CupMap() {
                                     className={`cm-node k-${n.kind}${state}${pick === n.id ? ' picked' : ''}`}
                                     style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
                                     disabled={!isOpen}
-                                    aria-label={t(`longCup.kind.${n.kind}`)}
+                                    aria-label={
+                                        n.prize
+                                            ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.prize.${n.prize}`)}`
+                                            : t(`longCup.kind.${n.kind}`)
+                                    }
                                     onClick={() => {
                                         setPick(pick === n.id ? null : n.id);
                                         // quem já escolheu o caminho não precisa mais da fala por cima do mapa
@@ -326,7 +327,17 @@ export function CupMap() {
                                             shiny={rivalIcons.get(n.id)!.shiny}
                                         />
                                     )}
-                                    <span className="cm-label">{t(`longCup.kind.${n.kind}`)}</span>
+                                    {/* o Jogo mostra o prêmio no lugar do nome; as casas abertas, os tipos do caminho */}
+                                    <span className="cm-label">
+                                        {n.prize && n.kind === 'jogo'
+                                            ? t(`longCup.prizeShort.${n.prize}`)
+                                            : t(`longCup.kind.${n.kind}`)}
+                                    </span>
+                                    {isOpen && n.types && (
+                                        <span className="cm-node-types">
+                                            <TypeIcons types={n.types} size={12} />
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -356,7 +367,7 @@ export function CupMap() {
 }
 
 /** Escolhas de evento em que o alvo é quem sofre o efeito (o nome dele abre a linha). */
-const AFFECTS_TARGET = new Set(['carrinho:parar', 'treinoPuxado:puxado', 'creche:deixar']);
+const AFFECTS_TARGET = new Set(['carrinho:parar', 'fosseis:pedra', 'ovo:nasceu']);
 
 /** O que a última escolha de evento fez, numa linha acima do mapa, até a próxima casa. */
 function EventNote({
@@ -368,15 +379,16 @@ function EventNote({
 }) {
     const { t, d } = useT();
     const ev = d.longCup.events[note.id];
+    const art = EVENT_ART[note.id as EventId];
     const [label, effect] = ev?.choices[note.choice] ?? ['', ''];
     const mon = note.target ? picks.find((p) => p.uid === note.target) : undefined;
     const who = mon && AFFECTS_TARGET.has(`${note.id}:${note.choice}`) ? viewInstance(mon).displayName : label;
     const money = note.cost ? ` ${note.cost > 0 ? '−' : '+'}${t('shop.money', { n: Math.abs(note.cost) })}` : '';
-    if (!effect && !money) return null;
+    if ((!effect && !money) || !art) return null;
     return (
         <div className="cm-note bc-surface" role="status">
-            <span className="cm-note-icon" style={{ '--ev': EVENT_ART[note.id as EventId].color } as CSSProperties}>
-                <HudIcon kind={EVENT_ART[note.id as EventId].icon} />
+            <span className="cm-note-icon" style={{ '--ev': art.color } as CSSProperties}>
+                <HudIcon kind={art.icon} />
             </span>
             <span>{`${who}${effect ? `: ${effect}` : ''}${money}`}</span>
         </div>
@@ -386,24 +398,17 @@ function EventNote({
 /** O que a casa escolhida é (e o rival, se for partida, com o treinador dele), com o "Ir". */
 function NodeSheet({
     node,
-    seed,
-    faced,
-    shift,
+    run,
     lang,
     onGo,
 }: {
     node: MapNode;
-    seed: string;
-    faced: string[];
-    shift: number;
+    run: Parameters<typeof nodeOpponent>[0];
     lang: 'pt' | 'en';
     onGo: () => void;
 }) {
     const { t } = useT();
-    const rival = useMemo(
-        () => (isMatchKind(node.kind) ? longOpponent(seed, matchIndexOfRow(node.row), node.kind, faced, shift) : null),
-        [node, seed, faced, shift],
-    );
+    const rival = useMemo(() => (isMatchKind(node.kind) ? nodeOpponent(run, node) : null), [node, run]);
     const trainer = rival ? rivalTrainer(rival.name) : undefined;
     // a mesma conta da escalação e do VERSUS (nota na vaga): a ficha dizia 55 e a escalação 54
     const avg = rival ? lineupAverage(rival.lineup, rival.formation) : 0;
@@ -427,6 +432,20 @@ function NodeSheet({
                     <small>{t(`longCup.desc.${node.kind}`)}</small>
                 </span>
             </div>
+            {node.kind === 'jogo' && node.prize && (
+                <p className="cm-prize">
+                    <b>
+                        {t('longCup.prizeLabel')}: {t(`longCup.prize.${node.prize}`)}
+                    </b>{' '}
+                    <span className="muted">{t(`longCup.prizeDesc.${node.prize}`)}</span>
+                </p>
+            )}
+            {node.types && node.kind !== 'final' && (
+                <span className="cm-branch muted">
+                    {t('longCup.branch')}
+                    <TypeIcons types={node.types} label size={16} />
+                </span>
+            )}
             {rival && (
                 <div className="cm-rival">
                     <span className="muted cm-rival-name">
@@ -567,11 +586,14 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     carrinho: { icon: 'medkit', color: '#d9452f' },
     patrocinador: { icon: 'briefcase', color: '#3a3a46' },
     capitao: { icon: 'armband', color: '#c9871c' },
-    olheiro: { icon: 'binoculars', color: '#2f7fc4' },
     entrevista: { icon: 'mic', color: '#7a4bc4' },
-    perdido: { icon: 'paw', color: '#4e8c43' },
-    treinoPuxado: { icon: 'dumbbell', color: '#d1652a' },
-    creche: { icon: 'egg', color: '#c9a23a' },
+    fosseis: { icon: 'search', color: '#8e7c68' },
+    lendario: { icon: 'crown', color: '#d9b42a' },
+    rocket: { icon: 'flag', color: '#b8322e' },
+    aposta: { icon: 'dice', color: '#2f7fc4' },
+    juiz: { icon: 'yellow', color: '#c9a23a' },
+    ovo: { icon: 'egg', color: '#e0a860' },
+    centro: { icon: 'heart', color: '#e06a8a' },
 };
 
 /**
@@ -583,7 +605,6 @@ export function EventScreen() {
     const chooseEvent = useGame((s) => s.chooseEvent);
     const run = useHeld(live?.status === 'event' && live.event ? live : null);
     const [choice, setChoice] = useState<string | null>(null);
-    const [card, setCard] = useState(0);
     const [who, setWho] = useState<string | null>(null);
     const [captain, setCaptain] = useState<string | null>(null);
     const { t, d } = useT();
@@ -609,9 +630,8 @@ export function EventScreen() {
     const sale = picked?.need === 'captainSale';
     const lineupAfter = sale && who ? run.lineup.map((u) => (u === run.captainUid ? who : u)) : [];
     const ready = !!who && (!sale || !!captain);
-    // carrinho: quem pode parar aparece com cara de dor; quem treina pesado, com cara de tonto
-    const face =
-        picked?.need === 'involved' ? ['pain', 'dizzy'] : picked?.need === 'evolver' ? ['dizzy', 'sigh'] : null;
+    // carrinho: quem pode parar aparece com cara de dor
+    const face = picked?.need === 'involved' ? ['pain', 'dizzy'] : null;
     const strip = (uids: string[], onPick: (u: string) => void, active: string | null, faces?: string[] | null) => (
         <div className="squad-strip">
             {uids.map((u) => (
@@ -668,18 +688,8 @@ export function EventScreen() {
             </div>
             {!!ev.cards?.length && (
                 <div className="cm-event-cards">
-                    {ev.cards.map((c, i) => (
-                        <FutCard
-                            key={c.uid}
-                            inst={c}
-                            size="sm"
-                            selected={ev.cards!.length > 1 && card === i}
-                            action={
-                                ev.cards!.length > 1
-                                    ? { label: t('longCup.pickCard'), onClick: () => setCard(i) }
-                                    : undefined
-                            }
-                        />
+                    {ev.cards.map((c) => (
+                        <FutCard key={c.uid} inst={c} size="sm" />
                     ))}
                 </div>
             )}
@@ -719,7 +729,7 @@ export function EventScreen() {
                             className="btn primary cm-bar-in"
                             disabled={!ready}
                             onClick={() => {
-                                if (who) chooseEvent(picked.id, who, card, captain ?? undefined);
+                                if (who) chooseEvent(picked.id, who, captain ?? undefined);
                             }}
                         >
                             {t('longCup.confirm')}

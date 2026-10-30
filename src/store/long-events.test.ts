@@ -2,11 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { FUTSAL_5 } from '../engine/config';
+import { nextNodes } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
-import { type RunState, useGame } from './game-store';
+import { runMatch } from '../engine/runners/batch-runner';
+import { playerTeam, type RunState, useGame } from './game-store';
 import { outOf } from './long-cup';
-import { EVENT_IDS, eventChoices, type LongEvent, resolveEvent, rollEvent } from './long-events';
+import { EVENT_IDS, eventChoices, type LongEvent, resolveEvent, rollEvent, withKnownEvents } from './long-events';
 
 /** Copa longa pronta, com um Charmander (evolui) no banco. */
 function longRun(seed: string): RunState {
@@ -34,6 +37,19 @@ describe('eventos da Copa longa', () => {
         }
     });
 
+    it('eventos de região só na região deles; o Juiz só com amarelo', () => {
+        const run = longRun('ev-reg');
+        const only = (id: string, at: string, extra: Partial<RunState> = {}) =>
+            rollEvent({ ...run, ...extra, at, eventsSeen: EVENT_IDS.filter((x) => x !== id) }).id;
+        const nodeAt = (row: number) => run.map!.nodes.find((n) => n.row === row)!.id;
+        expect(only('fosseis', nodeAt(1))).toBe('entrevista');
+        expect(only('fosseis', nodeAt(3))).toBe('fosseis');
+        expect(only('lendario', nodeAt(3))).toBe('entrevista');
+        expect(only('lendario', nodeAt(6))).toBe('lendario');
+        expect(only('juiz', nodeAt(1), { cards: 0 })).toBe('entrevista');
+        expect(only('juiz', nodeAt(1), { cards: 1 })).toBe('juiz');
+    });
+
     it('todo evento tem uma escolha possível mesmo sem ₽, e nenhuma deixa o ₽ negativo', () => {
         const run = longRun('ev-2');
         for (const id of EVENT_IDS) {
@@ -46,6 +62,10 @@ describe('eventos da Copa longa', () => {
 
     it('carrinho: você escolhe quem para (2 partidas) ou paga o fisioterapeuta', () => {
         const run = longRun('ev-3');
+        // a trombada é sempre entre dois titulares (com reserva, parar saía de graça)
+        for (let k = 0; k < 20; k++)
+            for (const u of rollEvent({ ...run, at: `r1c${k % 3}`, seed: `tromba-${k}` }, 'carrinho').uids!)
+                expect(run.lineup).toContain(u);
         const ev: LongEvent = { id: 'carrinho', uids: [run.lineup[1], run.lineup[2]] };
         expect(resolveEvent(run, ev, 'parar')).toBeNull();
         expect(resolveEvent(run, ev, 'parar', run.lineup[3])).toBeNull();
@@ -65,7 +85,7 @@ describe('eventos da Copa longa', () => {
         const sub = run.bench[0];
         const newCap = run.lineup.find((u) => u !== run.captainUid)!;
         expect(resolveEvent(run, ev, 'vender', sub)).toBeNull();
-        const sold = resolveEvent(run, ev, 'vender', sub, 0, newCap)!;
+        const sold = resolveEvent(run, ev, 'vender', sub, newCap)!;
         expect(sold.money).toBe(25);
         expect(sold.captainUid).toBe(newCap);
         expect(sold.picks.some((p) => p.uid === run.captainUid)).toBe(false);
@@ -80,18 +100,15 @@ describe('eventos da Copa longa', () => {
             lineup: base.lineup.map((u, i) => (i === k ? base.bench[0] : u)),
             bench: [base.captainUid!, 'charm'],
         };
-        const sold = resolveEvent(run, { id: 'capitao' }, 'vender', 'charm', 0, run.lineup[0])!;
+        const sold = resolveEvent(run, { id: 'capitao' }, 'vender', 'charm', run.lineup[0])!;
         const uids = new Set(sold.picks.map((p) => p.uid));
         expect([...sold.lineup, ...sold.bench].filter((u) => !uids.has(u))).toEqual([]);
         expect(sold.bench).toEqual(['charm']);
         expect(sold.lineup).toEqual(run.lineup);
     });
 
-    it('creche e treino puxado: barra de evolução e fica fora; entrevista muda o próximo rival', () => {
+    it('entrevista muda o próximo rival', () => {
         const run = longRun('ev-5');
-        const creche = resolveEvent(run, { id: 'creche' }, 'deixar', 'charm')!;
-        expect(creche.picks.find((p) => p.uid === 'charm')!.evo).toBe(14);
-        expect(creche.out).toEqual({ charm: 2 });
         expect(resolveEvent(run, { id: 'entrevista' }, 'provocar')!).toMatchObject({ rivalShift: 1, money: 14 });
         expect(resolveEvent(run, { id: 'entrevista' }, 'respeito')!.rivalShift).toBe(-1);
     });
@@ -115,7 +132,7 @@ describe('eventos da Copa longa', () => {
 
     it('quem está fora tem selo com o motivo e as partidas, e não entra em quadra pela escalação', () => {
         const run = longRun('ev-out');
-        const creche = resolveEvent(run, { id: 'creche' }, 'deixar', 'charm')!;
+        const creche: RunState = { ...run, out: { charm: 2 }, outWhy: { charm: 'creche' } };
         expect(outOf(creche, 'charm')).toEqual({ why: 'creche', n: 2 });
         const ev: LongEvent = { id: 'carrinho', uids: [run.lineup[1], run.lineup[2]] };
         const hurt = resolveEvent(creche, ev, 'parar', run.lineup[2])!;
@@ -136,5 +153,129 @@ describe('eventos da Copa longa', () => {
         useGame.getState().swapSlots({ zone: 'lineup', index: 2 }, free);
         expect(useGame.getState().run!.bench).toContain(run.lineup[2]);
         expect(useGame.getState().run!.lineup).not.toContain(run.lineup[2]);
+    });
+});
+
+describe('eventos novos da revisão da Rota', () => {
+    it('Fósseis: Omanyte ou Kabuto no lugar do reserva escolhido; a Pedra da Lua enche a barra de quem evolui com ela', () => {
+        const base = longRun('ev-fossil');
+        const ev = rollEvent(base, 'fosseis');
+        expect(ev.cards!.map((c) => c.speciesId)).toEqual([138, 140]);
+        const helix = resolveEvent(base, ev, 'helix', base.bench[0])!;
+        expect(helix.picks.some((p) => p.speciesId === 138)).toBe(true);
+        expect(helix.picks.some((p) => p.uid === base.bench[0])).toBe(false);
+        // sem Clefairy/Jigglypuff/Nidorina/Nidorino a Pedra fica desligada
+        expect(eventChoices(base, ev).find((c) => c.id === 'pedra')!.ok).toBe(false);
+        const clef = { ...createInstance(35, new Rng('p', 'c')), uid: 'clef' };
+        const run = {
+            ...base,
+            picks: [...base.picks.filter((p) => p.uid !== 'charm'), clef],
+            bench: [base.bench[0], 'clef'],
+        };
+        const stone = resolveEvent(run, ev, 'pedra', 'clef')!;
+        expect(stone.picks.find((p) => p.uid === 'clef')!.evo).toBe(14);
+    });
+
+    it('Pássaro lendário e Equipe Rocket: o desafio vale pra próxima partida do mapa, com o rival +2', () => {
+        const run = longRun('ev-desafio');
+        expect(resolveEvent(run, { id: 'lendario' }, 'desafiar')!.challenge).toBe('lendario');
+        expect(resolveEvent(run, { id: 'lendario' }, 'deixar')!.challenge).toBeUndefined();
+        const holder = run.lineup[1];
+        const withItem = { ...run, picks: run.picks.map((p) => (p.uid === holder ? { ...p, item: 'leftovers' } : p)) };
+        const lost = resolveEvent(withItem, { id: 'rocket' }, 'item', holder)!;
+        expect(lost.picks.find((p) => p.uid === holder)!.item).toBeNull();
+        const gone = resolveEvent(run, { id: 'rocket' }, 'reserva', run.bench[0])!;
+        expect(gone.bench).toEqual(['charm']);
+        expect(resolveEvent(run, { id: 'rocket' }, 'encarar')!.challenge).toBe('rocket');
+        // o assalto não tem saída de graça
+        expect(eventChoices(run, { id: 'rocket' }).every((c) => c.id !== 'seguir')).toBe(true);
+    });
+
+    it('Juiz: paga ₽10 ou o melhor reserva vai embora pra tirar o amarelo', () => {
+        const run = { ...longRun('ev-juiz'), cards: 1, money: 12 };
+        const ev = rollEvent(run, 'juiz');
+        expect(resolveEvent(run, ev, 'pagar')).toMatchObject({ cards: 0, money: 2 });
+        const best = resolveEvent(run, ev, 'reserva')!;
+        expect(best.cards).toBe(0);
+        expect(best.bench).toHaveLength(1);
+        expect(best.bench).not.toContain(ev.uids![0]);
+        expect(eventChoices({ ...run, money: 9 }, ev).find((c) => c.id === 'pagar')!.ok).toBe(false);
+    });
+
+    it('Centro Pokémon: tira o amarelo ou traz de volta quem está fora', () => {
+        const run = { ...longRun('ev-centro'), cards: 1, out: { charm: 2 }, outWhy: { charm: 'lesao' as const } };
+        expect(resolveEvent(run, { id: 'centro' }, 'amarelo')!.cards).toBe(0);
+        expect(resolveEvent(run, { id: 'centro' }, 'voltar')!.out).toBeUndefined();
+        const fresh = { ...run, cards: 0, out: undefined };
+        expect(
+            eventChoices(fresh, { id: 'centro' })
+                .filter((c) => c.ok)
+                .map((c) => c.id),
+        ).toEqual(['seguir']);
+    });
+
+    it('no store: Ovo choca no banco depois de 2 partidas; a aposta do Blue paga ou cobra na partida seguinte', () => {
+        const run = longRun('ev-ovo');
+        const egg = resolveEvent(run, { id: 'ovo', egg: 147 }, 'ficar', run.bench[0])!;
+        expect(egg.bench).toEqual(['charm']);
+        expect(egg.egg).toEqual({ left: 2, speciesId: 147 });
+        const bet = resolveEvent({ ...egg, money: 10 }, { id: 'aposta' }, 'topar')!;
+        expect(bet.bet).toBe(6);
+        // duas partidas pelo mapa: a 1ª ganha por 1 (perde a aposta), a 2ª o Ovo choca
+        const map = bet.map!;
+        const jogo = map.nodes.find((n) => n.row === 0 && n.kind === 'jogo')!;
+        useGame.setState({ run: { ...bet, status: 'map', at: null, path: [] } });
+        useGame.getState().enterNode(jogo.id);
+        const team = useGame.getState().run!;
+        const play = () => {
+            const r = useGame.getState().run!;
+            const locked = playerTeam(r, 0xe8423f);
+            useGame.setState({ run: { ...r, lockedTeam: locked } });
+            const m = runMatch(FUTSAL_5, locked, r.opponents[r.stage], `${r.seed}-stage-${r.stage}`);
+            useGame.getState().recordResult(m);
+            return m.score;
+        };
+        expect(team.status).toBe('lineup');
+        const [a, b] = play();
+        const after1 = useGame.getState().run!;
+        expect(after1.results.at(-1)!.bonus?.bet).toBe(a - b >= 2 ? 6 : -6);
+        expect(after1.bet).toBeNull();
+        expect(after1.egg).toEqual({ left: 1, speciesId: 147 });
+        // volta pro mapa e joga a próxima partida
+        useGame.setState({ run: { ...after1, status: 'map', rewards: [] } });
+        const next = nextNodes(map, after1.at!).find((n) => n.kind !== 'jogo')!;
+        useGame.getState().enterNode(next.id);
+        let r = useGame.getState().run!;
+        useGame.setState({ run: { ...r, status: 'map', shop: null, event: null, rewards: [] } });
+        const m2 = nextNodes(map, next.id).find((n) => n.kind === 'jogo' || n.kind === 'ginasio')!;
+        useGame.getState().enterNode(m2.id);
+        play();
+        r = useGame.getState().run!;
+        expect(r.egg).toBeNull();
+        expect(r.picks.some((p) => p.speciesId === 147)).toBe(true);
+        expect(r.bench.some((u) => r.picks.find((p) => p.uid === u)?.speciesId === 147)).toBe(true);
+        expect(r.eventNote).toMatchObject({ id: 'ovo', choice: 'nasceu' });
+    });
+});
+
+describe('save de antes da revisão da Rota', () => {
+    it('evento cortado aberto vira um sorteio novo; a nota dele some; o resto fica igual', async () => {
+        const run = longRun('ev-velho');
+        const old = {
+            ...run,
+            status: 'event' as const,
+            event: { id: 'olheiro', cards: [] } as unknown as LongEvent,
+            eventNote: { id: 'creche', choice: 'deixar', cost: 0 },
+        };
+        const fixed = withKnownEvents(old);
+        expect(EVENT_IDS as readonly string[]).toContain(fixed.event!.id);
+        expect(fixed.eventNote).toBeNull();
+        expect(fixed.picks).toBe(old.picks);
+        const ok = { ...run, status: 'event' as const, event: rollEvent(run, 'aposta') };
+        expect(withKnownEvents(ok)).toBe(ok);
+        // o save v6 de verdade passa pela mesma porta sem mudar
+        const { readFileSync } = await import('node:fs');
+        const backup = JSON.parse(readFileSync('scripts/fixtures/backup-v6-pt.json', 'utf8'));
+        expect(withKnownEvents(backup.save.run)).toEqual(backup.save.run);
     });
 });

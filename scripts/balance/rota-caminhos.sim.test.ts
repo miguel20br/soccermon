@@ -223,14 +223,17 @@ function shop(policy: Policy, acq: Set<number>) {
     g().leaveShop();
 }
 
+/** Escolhas que não dão nem tiram nada (o robô `nada` sempre sai por elas). */
+const EXITS = ['recusar', 'seguir', 'sair', 'deixar', 'nemvem', 'deixa'];
+
 function event(policy: Policy, rng: Rng, acq: Set<number>) {
     const run = g().run!;
     const ev = run.event!;
     const ok = eventChoices(run, ev).filter((c) => c.ok);
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const before = new Set(run.picks.map((p) => p.speciesId));
-    const go = (id: string, target?: string, card = 0, captain?: string) => {
-        g().chooseEvent(id, target, card, captain);
+    const go = (id: string, target?: string, captain?: string) => {
+        g().chooseEvent(id, target, captain);
         for (const p of g().run!.picks)
             if (!before.has(p.speciesId)) {
                 acq.add(p.speciesId);
@@ -238,34 +241,40 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
             }
     };
     const has = (id: string) => ok.some((c) => c.id === id);
-    if (idle(policy)) return go(ok.find((c) => c.need === 'none' && c.cost >= 0)?.id ?? ok[0].id);
-    const benchEvolver = () =>
-        choiceTargets(run, ev, 'evolver').find((u) => run.bench.includes(u)) ??
-        choiceTargets(run, ev, 'evolver').find((u) => u !== run.captainUid);
+    const weakest = weakestBench(run);
+    const holderOf = () =>
+        choiceTargets(run, ev, 'holder').find((u) => run.bench.includes(u)) ?? choiceTargets(run, ev, 'holder')[0];
+    // sem saída de graça (trombada, assalto): o mais barato
+    const forced = () => {
+        if (ev.id === 'carrinho') return has('fisio') ? go('fisio') : go('parar', ev.uids![0]);
+        if (has('item')) return go('item', holderOf());
+        if (has('reserva') && ev.id === 'rocket') return go('reserva', weakest);
+        return go('encarar');
+    };
+    if (ev.id === 'centro') return go(has('amarelo') ? 'amarelo' : has('voltar') ? 'voltar' : 'seguir');
+    if (idle(policy)) {
+        const exit = ok.find((c) => EXITS.includes(c.id));
+        return exit ? go(exit.id) : forced();
+    }
     if (policy === 'aleatorio') {
         const c = rng.pick(ok);
         const t = choiceTargets(run, ev, c.need);
         if (c.need === 'captainSale') {
             const sub = rng.pick(t);
             const lineup = run.lineup.map((u) => (u === run.captainUid ? sub : u));
-            return go(c.id, sub, 0, rng.pick(lineup));
+            return go(c.id, sub, rng.pick(lineup));
         }
-        return go(
-            c.id,
-            c.need === 'none' ? undefined : rng.pick(t),
-            ev.cards?.length ? rng.int(0, ev.cards.length - 1) : 0,
-        );
+        return go(c.id, c.need === 'none' ? undefined : rng.pick(t));
     }
     const better = (inst?: PokemonInstance) => {
         const w = weakestBench(run);
         return inst && w && anyRating(inst) > anyRating(byUid.get(w)!) ? w : undefined;
     };
+    const bold = policy === 'ouro' || policy === 'ginasio';
     switch (ev.id) {
         case 'carrinho': {
             if (has('fisio') && policy !== 'ouro') return go('fisio');
-            const [a, b] = ev.uids ?? [];
-            const benchOne = [a, b].find((u) => run.bench.includes(u)) ?? a;
-            return go('parar', benchOne);
+            return go('parar', ev.uids![0]);
         }
         case 'patrocinador': {
             const leaving = run.bench.filter((u) => u && u !== run.captainUid).slice(0, 2);
@@ -279,29 +288,30 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
                 const cap = lineup
                     .filter((u) => u !== sub)
                     .sort((a, b) => anyRating(byUid.get(b)!) - anyRating(byUid.get(a)!))[0];
-                return go('vender', sub, 0, cap);
+                return go('vender', sub, cap);
             }
             return go('recusar');
-        case 'olheiro': {
-            if (policy === 'ouro' || !has('contratar')) return go('seguir');
-            const k = ev.cards!.map((c, i) => ({ i, r: anyRating(c) })).sort((a, b) => b.r - a.r)[0].i;
-            const w = better(ev.cards![k]);
-            return w ? go('contratar', w, k) : go('seguir');
-        }
         case 'entrevista':
             return go(policy === 'ouro' ? 'provocar' : 'respeito');
-        case 'perdido': {
-            const w = policy === 'ouro' ? undefined : better(ev.cards![0]);
-            return w && has('contratar') ? go('contratar', w) : go('soltar');
+        case 'fosseis': {
+            const k = ev.cards!.map((c, i) => ({ i, r: anyRating(c) })).sort((a, b) => b.r - a.r)[0].i;
+            const id = k === 0 ? 'helix' : 'domo';
+            const w = better(ev.cards![k]);
+            if (w && has(id)) return go(id, w);
+            if (has('pedra')) return go('pedra', choiceTargets(run, ev, 'stone')[0]);
+            return go('seguir');
         }
-        case 'treinoPuxado': {
-            const u = benchEvolver();
-            return u && policy !== 'ouro' ? go('puxado', u) : go('leve');
-        }
-        case 'creche': {
-            const u = choiceTargets(run, ev, 'evolver').find((x) => run.bench.includes(x));
-            return u && policy !== 'ouro' ? go('deixar', u) : go('recusar');
-        }
+        case 'lendario':
+            return go(policy === 'ouro' ? 'deixar' : 'desafiar');
+        case 'rocket':
+            return bold ? go('encarar') : forced();
+        case 'aposta':
+            return go(bold && has('topar') ? 'topar' : 'nemvem');
+        case 'juiz':
+            if (has('pagar') && policy !== 'ouro') return go('pagar');
+            return go(has('reserva') ? 'reserva' : 'deixa');
+        case 'ovo':
+            return has('ficar') && weakest ? go('ficar', weakest) : go('deixar');
     }
 }
 
@@ -311,18 +321,21 @@ function pickNode(policy: Policy, open: MapNode[], rng: Rng): MapNode {
     if (policy === 'direita') return byCol.at(-1)!;
     if (policy === 'aleatorio') return rng.pick(open);
     const rank: Record<Policy, Record<string, number>> = {
-        // ₽: vitória rende, Mercado paga juros (sem comprar), evento pode vender o capitão/provocar
-        ouro: { jogo: 0, final: 0, evento: 1, mercado: 2, treino: 3, bau: 0, ginasio: 1 },
-        // Pokémon novos: Ginásio (contrata do líder), Baú, Mercado, Evento (olheiro, perdido)
-        pokemon: { ginasio: 0, final: 0, bau: 0, mercado: 1, evento: 2, jogo: 3, treino: 4 },
-        ginasio: { ginasio: 0, final: 0, bau: 0, jogo: 1, treino: 2, mercado: 3, evento: 4 },
+        // ₽: o Jogo de "₽ em dobro", vitória rende, Mercado paga juros (sem comprar), evento pode vender o capitão
+        ouro: { jogo: 0, final: 0, evento: 1, mercado: 2, treino: 3, bau: 0, centro: 1, ginasio: 1 },
+        // Pokémon novos: Ginásio (a carta do líder), o Jogo de "Pokémon do rival", Baú, Mercado, Evento
+        pokemon: { ginasio: 0, final: 0, bau: 0, centro: 1, mercado: 1, evento: 2, jogo: 3, treino: 4 },
+        ginasio: { ginasio: 0, final: 0, bau: 0, centro: 0, jogo: 1, treino: 2, mercado: 3, evento: 4 },
         esquerda: {},
         nada: {},
         partidas: {},
         direita: {},
         aleatorio: {},
     };
-    return [...open].sort((a, b) => (rank[policy][a.kind] ?? 9) - (rank[policy][b.kind] ?? 9) || a.col - b.col)[0];
+    // o prêmio à vista desempata entre Jogos (e pesa pro ouro e pro pokemon)
+    const want: Partial<Record<Policy, string>> = { ouro: 'money', pokemon: 'pokemon', ginasio: 'item' };
+    const score = (n: MapNode) => (rank[policy][n.kind] ?? 9) - (n.prize && n.prize === want[policy] ? 3.5 : 0);
+    return [...open].sort((a, b) => score(a) - score(b) || a.col - b.col)[0];
 }
 
 function play(seed: string, policy: Policy) {

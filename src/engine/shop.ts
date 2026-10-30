@@ -123,8 +123,8 @@ interface ShopInput {
     sponsors: readonly string[];
     eventType: string | null;
     captain: PokemonInstance | null;
-    /** Copa longa: chave própria do sorteio (a casa do mapa) e raridade pelo andar. Sem = Copa rápida. */
-    long?: { key: string; round: number };
+    /** Copa longa: chave própria do sorteio (a casa do mapa), raridade pelo andar e os tipos do ramo. Sem = Copa rápida. */
+    long?: { key: string; round: number; types?: readonly string[] };
     /**
      * Partidas que ainda faltam. Com 1 (o Mercado antes da Final) só aparecem Patrocínios de campo: os de ₽ e de
      * Mercado não teriam mais onde valer.
@@ -150,17 +150,24 @@ export function shopOffers({
     const rng = new Rng(seed, long ? `shop-${long.key}-r${reroll}` : `shop-${stage}-r${reroll}`);
     const taken = new Set(team.map((p) => p.speciesId));
     const count = 2 + (has(sponsors, 'loja') ? 1 : 0);
-    const mons: ShopOffer[] = draftOptions(rng, shopRound(stage, sponsors, long?.round), taken, count, [], 'ANY').map(
-        (m) => {
-            const inst = rollSpecial(m, eventType);
-            return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
-        },
-    );
+    const mons: ShopOffer[] = draftOptions(
+        rng,
+        shopRound(stage, sponsors, long?.round),
+        taken,
+        count,
+        long?.types ?? [],
+        'ANY',
+    ).map((m) => {
+        const inst = rollSpecial(m, eventType);
+        return { kind: 'pokemon', inst, price: PRICES.pokemon[metalOf(viewInstance(inst).overall)] };
+    });
 
-    // o tipo da semana, o do capitão ou um sorteado, desde que ainda tenha carta fora do seu time (pacote vazio travava)
+    // o tipo do ramo (Rota), o da semana, o do capitão ou um sorteado, desde que ainda tenha carta fora do seu time
+    // (pacote vazio travava)
     const capType = captain ? species(captain.speciesId).types[0] : null;
     const left = (t: string) => SPECIES.filter((sp) => sp.types.includes(t) && !taken.has(sp.id)).length;
-    const packType = [eventType, capType, ...rng.shuffle(SPECIES.map((sp) => sp.types[0]))].find(
+    const branch = long?.types?.length ? [rng.pick([...long.types])] : [];
+    const packType = [...branch, eventType, capType, ...rng.shuffle(SPECIES.map((sp) => sp.types[0]))].find(
         (t): t is TypeName => !!t && left(t) >= 3,
     );
 
