@@ -5,10 +5,12 @@ import { plural } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
+import type { Avatar } from '../../store/profile';
 import { clubColorHex } from '../../store/profile';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { CourtFloor, clubVars, Stands } from '../ambientes/Estadio';
 import { FieldSprite } from '../ambientes/FieldSprite';
+import { avatarMon, type Mon } from '../ambientes/metas';
 import { TopBar } from '../ambientes/TopBar';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
@@ -48,11 +50,10 @@ const at = (x: number, y: number): CSSProperties => ({ left: `${x}%`, top: `${y}
  * a mesma cena serve no cartão pequeno, no pôster alto e na fatia larga sem esticar nada.
  */
 
-/** Quem toca a bola no herói: o seu Pokémon do avatar puxa o triângulo de passes, com Charmander e Squirtle. */
-function usePassers(): number[] {
-    const avatar = useGame((s) => s.profile.avatar);
-    const lead = avatar.kind === 'pokemon' ? avatar.speciesId : 25;
-    return [lead, ...[4, 7, 1].filter((id) => id !== lead).slice(0, 2)];
+/** Quem toca a bola no herói: o seu Pokémon do avatar (shiny, se for) puxa o triângulo de passes, com Charmander e Squirtle. */
+export function passers(avatar: Avatar): Mon[] {
+    const lead = avatarMon(avatar);
+    return [lead, ...[4, 7, 1].filter((id) => id !== lead.id).map((id) => ({ id }))].slice(0, 3);
 }
 /** Os três do triângulo (pé em % da quadra) e pra onde cada um olha: pro próximo da roda de passes. */
 const PASS = [
@@ -74,7 +75,7 @@ const KEEPERS = [
 function SceneAtual({ scale }: { scale: number }) {
     const clubName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const club = useGame((s) => clubColorHex(s.profile.clubColor));
-    const ids = usePassers();
+    const ids = passers(useGame((s) => s.profile.avatar));
     return (
         <div className="mm-sc mm-sc-atual" style={clubVars(club)} aria-hidden>
             <Stands clubName={clubName} />
@@ -82,9 +83,13 @@ function SceneAtual({ scale }: { scale: number }) {
                 <CourtFloor />
                 <i className="es-spot" />
                 {PASS.map((p, i) => (
-                    <span key={ids[i]} className="mm-pt mm-kick" style={{ ...at(p.x, p.y), '--k': i } as CSSProperties}>
+                    <span
+                        key={ids[i].id}
+                        className="mm-pt mm-kick"
+                        style={{ ...at(p.x, p.y), '--k': i } as CSSProperties}
+                    >
                         <i className="mm-shadow" />
-                        <FieldSprite id={ids[i]} anim="Idle" dir={p.dir} scale={scale} />
+                        <FieldSprite id={ids[i].id} shiny={ids[i].shiny} anim="Idle" dir={p.dir} scale={scale} />
                     </span>
                 ))}
                 {KEEPERS.map((k) => (

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {}, playCry: () => {} }));
 
-import { cutTo, daysUntil, ULTIMATE_AT } from './ModeMenu';
+import { cutTo, daysUntil, passers, ULTIMATE_AT } from './ModeMenu';
 
 describe('menu de modos', () => {
     it('conta os dias até o Ultimate pra cima e para no zero', () => {
@@ -21,5 +21,17 @@ describe('menu de modos', () => {
         // o centro da quadra (195, 220 na tela = 195, 320 no conteúdo) cai no centro da tela
         expect(0 + 195 * c.s + c.x).toBeCloseTo(195);
         expect(-100 + 320 * c.s + c.y).toBeCloseTo(422);
+    });
+});
+
+describe('quem toca a bola no Modo Copa', () => {
+    it('o Pokémon do avatar puxa o triângulo e continua shiny (o menu mostrava o Mew shiny rosa)', () => {
+        expect(passers({ kind: 'pokemon', speciesId: 151, shiny: true })).toEqual([
+            { id: 151, shiny: true },
+            { id: 4 },
+            { id: 7 },
+        ]);
+        expect(passers({ kind: 'pokemon', speciesId: 4 }).map((m) => m.id)).toEqual([4, 7, 1]);
+        expect(passers({ kind: 'google' })[0]).toEqual({ id: 25 });
     });
 });

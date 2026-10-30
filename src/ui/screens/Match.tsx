@@ -673,6 +673,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 !run.daily &&
                 !isLong(run) &&
                 run.results.length === 0 &&
+                // não abre por cima do botão do golpe máximo aceso
+                !cue &&
                 relampagoJogoDue(clock.score, halftime)
             }
         />
