@@ -426,7 +426,7 @@ export const profile: typeof pt = {
     badges: {
         title: 'Kanto badges',
         count: '{n} of {total}',
-        countShort: '{n}/{total} badges',
+        countShort: '{n}/{total}',
         ariaGot: '{name}: earned',
         ariaMissing: '{name}: missing (beat the {city} club in a cup)',
         help: 'Each badge comes from beating the leader’s club in a cup.',

@@ -430,7 +430,7 @@ export const profile = {
         title: 'Insígnias de Kanto',
         count: '{n} de {total}',
         /** Ao lado do título da Rota ("0 de 8" parecia o progresso dos 8 jogos). */
-        countShort: '{n}/{total} insígnias',
+        countShort: '{n}/{total}',
         ariaGot: '{name}: conquistada',
         ariaMissing: '{name}: falta (vença o clube de {city} numa copa)',
         help: 'Cada insígnia sai quando você vence o clube do líder numa copa.',
