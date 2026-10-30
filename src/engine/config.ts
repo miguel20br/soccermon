@@ -65,8 +65,11 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 15 = defesa máxima vale o lance e só gasta quando defende (sem chute, a barra volta inteira; `AGENCY.maxGkTicks`) e
  *     zona do golpe máximo do pivô 15 ⇒ 18 m (`AGENCY.maxZone`).
  * 16 = gomo do golpe máximo 12 ⇒ 10 pontos (`AGENCY.maxLevelPts`): o N3 chega mais (Miguel, 30/10/2026).
+ * 17 = golpe máximo universal (docs/planos/golpe-universal.md): N1 passa o status do tipo, N2 derruba a linha, N3 sempre
+ *     no alvo, curva sozinha pro canto longe do goleiro; o goleiro capitão dá a bicuda e a defesa máxima sai; parry
+ *     (ordem nova) contra o golpe máximo do rival, também pelo técnico IA.
  */
-export const ENGINE_VERSION = 16;
+export const ENGINE_VERSION = 17;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

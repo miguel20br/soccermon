@@ -38,6 +38,11 @@ interface Opts {
     /** Onde fica o zagueiro (padrão: na linha do chute, a 4 m do gol). */
     defAt?: { x: number; y: number };
     gkY?: number;
+    /**
+     * O zagueiro entra na linha do chute depois que a bola sai (motor 17: o N3 derruba quem já está na linha; assim o
+     * bloqueio ainda acontece e dá pra ver as peças de bloqueio do tipo).
+     */
+    stepIn?: boolean;
 }
 
 function scene(fx: string, o: Opts = {}) {
@@ -62,13 +67,14 @@ function scene(fx: string, o: Opts = {}) {
     const c = s.players[4];
     c.pos = v(30, 10);
     s.players[5].pos = v(39.3, o.gkY ?? 10);
-    s.players[6].pos = o.defAt ? v(o.defAt.x, o.defAt.y) : v(36, 10.15);
+    s.players[6].pos = o.defAt ? v(o.defAt.x, o.defAt.y) : o.stepIn ? v(36, 13) : v(36, 10.15);
     s.ball.owner = 4;
     s.ball.pos = v(30.3, 10);
-    s.teams[0].agency.max = { idx: 4, until: 100, live: false, level: 3, q: 2 };
+    s.teams[0].agency.max = { idx: 4, until: 100, level: 3, q: 2 };
     const cmds = s.players.map(() => IDLE);
     cmds[4] = { type: 'shoot', target: v(40, 10.6), power: 1 };
     step(s, cmds);
+    if (o.stepIn) s.players[6].pos = v(36, 10.15);
     return s;
 }
 
@@ -128,7 +134,9 @@ describe('golpe máximo por tipo (fase 1)', () => {
 
     it('Gelo: congela quem está na linha; Terrestre derruba quem está perto do gol, menos Voador', () => {
         expect(scene('Ice').players[6].status?.kind).toBe('frz');
-        const quake = scene('Ground');
+        // fora da linha do chute (o N3 derruba quem está nela), mas perto do gol
+        const near = { x: 36, y: 12.5 };
+        const quake = scene('Ground', { defAt: near });
         expect(quake.players[6].stun).toBeGreaterThan(0);
         expect(quake.players[5].stun).toBe(0);
         expect(quake.ball.shot?.gkReach).toBeCloseTo(
@@ -136,13 +144,13 @@ describe('golpe máximo por tipo (fase 1)', () => {
             6,
         );
         // Pidgeot (Voador) não cai
-        expect(scene('Ground', { def: 18 }).players[6].stun).toBe(0);
+        expect(scene('Ground', { def: 18, defAt: near }).players[6].stun).toBe(0);
     });
 
     it('Fantasma e Normal atravessam o zagueiro; Pedra fura o 1º; Voador vai por cima', () => {
         for (const fx of ['Ghost', 'Normal', 'Flying']) {
             for (let k = 0; k < 20; k++) {
-                const s = scene(fx, { seed: `mt-thru-${k}` });
+                const s = scene(fx, { seed: `mt-thru-${k}`, stepIn: true });
                 idle(s, 30);
                 expect(of(s, 'block').filter((e) => e.by === 6)).toHaveLength(0);
             }
@@ -151,7 +159,7 @@ describe('golpe máximo por tipo (fase 1)', () => {
         // goleiro Normal (Snorlax) não se assusta com a bola fantasma
         expect(scene('Ghost', { gk: 143 }).ball.shot?.gkReach).toBeCloseTo(AGENCY.maxLevelShot[3].rivalReach, 6);
         expect(scene('Ghost').ball.shot?.gkReach).toBeCloseTo(AGENCY.maxLevelShot[3].rivalReach * 0.8, 6);
-        const rock = until('Rock', (s) => of(s, 'trait').some((e) => e.fx === 'pierce'));
+        const rock = until('Rock', (s) => of(s, 'trait').some((e) => e.fx === 'pierce'), { stepIn: true });
         expect(rock).not.toBeNull();
     });
 
@@ -213,7 +221,7 @@ describe('golpe máximo por tipo (fase 1)', () => {
     });
 
     it('Lutador: bloqueado, a bola volta pro capitão e ele emenda de primeira', () => {
-        const s = until('Fighting', (x) => of(x, 'block').some((e) => e.by === 6), {}, 300);
+        const s = until('Fighting', (x) => of(x, 'block').some((e) => e.by === 6), { stepIn: true }, 300);
         expect(s).not.toBeNull();
         idle(s!, 40);
         const shots = of(s!, 'shot').filter((e) => e.by === 4);

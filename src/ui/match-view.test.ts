@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { AGENCY, maxCallCue, maxCharge } from '../engine/agency';
+import { maxCallCue, maxCharge } from '../engine/agency';
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { maxCueAt } from './components/Sideline';
-import { captainAt, halftimeEnd, type MaxWait, maxCallCueNear, maxCueNear, maxWaitNext, whoAt } from './match-view';
+import { captainAt, halftimeEnd, type MaxWait, maxCallCueNear, maxWaitNext, whoAt } from './match-view';
 
 const team = (seed: string, name: string): TeamSetup => ({
     name,
@@ -123,16 +123,16 @@ describe('botão do golpe máximo (chamar o capitão e a hora certa)', () => {
         expect(rival && maxCallCueNear(r.snapshots, rival.tick, 0, 'FIXO')).toBe(false);
     });
 
-    it('goleiro capitão: o botão não acende abaixo do N3; o de linha diz se é "chamando" ou a hora certa', () => {
+    it('goleiro capitão: a bicuda acende do N1 com o chute do rival vindo no gol; o de linha diz se é "chamando" ou a hora certa', () => {
         const gk = { ...home, captainUid: home.lineup[0].uid };
         const r = runMatch(FUTSAL_5, gk, away, 'cue-gk');
         const setups: [TeamSetup, TeamSetup] = [gk, away];
-        const low = r.snapshots.filter((s) => {
-            const lv = maxCharge(r.events, 0, s.tick, 5).level;
-            return lv >= 1 && lv < AGENCY.maxGkMinLevel && maxCueNear(r.snapshots, s.tick, s.tick, 0, 0, 'GK');
-        });
-        expect(low.length).toBeGreaterThan(0);
-        for (const s of low) expect(maxCueAt(r, setups, 0, s.tick)).toBe(false);
+        const ready = r.snapshots.filter((s) => maxCharge(r.events, 0, s.tick, 5).level >= 1);
+        const shots = ready.filter((s) => s.shot && s.shot.by >= 5);
+        expect(shots.length).toBeGreaterThan(0);
+        for (const s of shots) expect(maxCueAt(r, setups, 0, s.tick)).toBe('hora');
+        // o goleiro não "chama": fora do chute vindo, apagado
+        expect(new Set(ready.map((s) => maxCueAt(r, setups, 0, s.tick)))).toEqual(new Set([false, 'hora']));
 
         const line = { ...home, captainUid: home.lineup[3].uid };
         const r2 = runMatch(FUTSAL_5, line, away, 'cue-line');

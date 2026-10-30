@@ -11,7 +11,7 @@ const view = (cue: boolean): AgencyView => ({
     timeoutPending: false,
     flyOn: false,
     flyPending: null,
-    max: { charge: 1, level: 1, active: false },
+    max: { charge: 1, level: 1 },
     maxPending: false,
     maxCue: cue && 'hora',
 });

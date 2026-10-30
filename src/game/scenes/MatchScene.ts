@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AGENCY, fxTypeOf, maxCharge, maxMinLevel } from '../../engine/agency';
+import { AGENCY, fxTypeOf, maxCharge } from '../../engine/agency';
 import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -730,7 +730,7 @@ export class MatchScene extends Phaser.Scene {
             if (cap < 0) return false;
             const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
             const c = maxCharge(this.matchEvents, team, this.playTick, 5);
-            if (c.level < maxMinLevel(role) || c.active) return false;
+            if (c.level < 1) return false;
             return maxCueNear(
                 this.snaps,
                 Math.floor(this.playTick) - MAX_CUE_LATCH,
@@ -761,7 +761,7 @@ export class MatchScene extends Phaser.Scene {
         const cap = this.players[idx];
         if (!cap) return null;
         const c = maxCharge(this.matchEvents, this.mine as 0 | 1, this.playTick, 5);
-        if (c.level < maxMinLevel((this.md.result.roster[idx]?.role ?? 'PIVO') as Position) || c.active) return null;
+        if (c.level < 1) return null;
         const color =
             c.level >= 3
                 ? hexToNumber(TYPE_COLOR[species(cap.speciesId).types[0]] ?? '#ffcb05')

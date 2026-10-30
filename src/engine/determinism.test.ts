@@ -10,23 +10,24 @@ import { Rng } from './rng';
  * no mesmo commit. `npm run determinismo` confere os mesmos hashes no Chromium, Firefox e WebKit.
  */
 const EXPECTED_HASHES = [
-    'df10813c',
-    '94093615',
-    '1b2ef9e5',
-    '45ed92f6',
-    '650fe49f',
+    // motor 17: os quadros ganharam o chute que vem no gol (`MatchSnapshot.shot`), então mudam até as partidas sem ordem
+    '45d01cf9',
+    '7769b53b',
+    '80d1a366',
+    '7ecb71ce',
+    'bdf6eb8d',
     '3cd48072',
-    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 16: gomo de 10 pontos, o nível chega mais
-    // cedo; as partidas sem ordem de golpe máximo acima não mudaram)
-    'de25e2b6',
-    '4893ad8b',
-    'd658775b',
-    '6b296881',
+    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal, bicuda e parry
+    // do técnico IA)
+    '87f2f81b',
+    '4f9135c7',
+    '44c9a882',
+    'd3b0a16f',
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
-    '2e72a59c',
-    '92eaa3f2',
-    'acc0830d',
-    'ca2f6bf9',
+    '48c5fc83',
+    '57839e94',
+    'bf04e4fa',
+    '49a32103',
 ];
 
 describe('determinismo entre navegadores', () => {

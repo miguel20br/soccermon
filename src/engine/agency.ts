@@ -8,6 +8,7 @@
  * `scripts/balance/goleiro-linha.ts`.
  */
 import type { Position } from './attributes';
+import type { StatusKind } from './moves';
 import { type MatchEvent, type MatchSnapshot, SNAP_STRIDE } from './state';
 import { expectedGoals } from './xg';
 
@@ -18,26 +19,19 @@ export const AGENCY = {
     timeoutTicks: 60,
     /**
      * Golpe máximo (21/10/2026): o botão só acende na hora certa (capitão de linha com a bola na zona de chute; capitão
-     * goleiro com um rival na zona) e o toque solta na hora. A ordem fica armada esse tanto (o Duelo e o rival mandam
-     * a ordem um pouco à frente, e o toque um pouco antes de acender também vale); passou sem a hora certa, nada
-     * acontece e a barra continua como estava.
+     * goleiro com o chute do rival vindo no gol, a bicuda) e o toque solta na hora. A ordem fica armada esse tanto (o
+     * Duelo e o rival mandam a ordem um pouco à frente, e o toque um pouco antes de acender também vale); passou sem a
+     * hora certa, nada acontece e a barra continua como estava.
      */
     maxArmTicks: 100,
-    /**
-     * Defesa máxima (motor 15, Miguel 29/10/2026: 75% delas acabavam em "ninguém chutou" e a barra voltava pela
-     * metade): vale o lance todo e só gasta a barra quando defende. A gente recuperou a bola, a bola parou ou passou
-     * esse tanto sem chute: desarma e a barra volta inteira. O nível dá o alcance (`maxLevelGk`), não a duração.
-     */
-    maxGkTicks: 120,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
     maxBehind: [1, 1.5, 2],
     /**
      * Golpe máximo em 3 níveis (motor 11, docs/planos/golpe-maximo-niveis.md): a barra tem 3 gomos de `maxLevelPts`, o
      * toque gasta a barra toda e o golpe sai no nível dela; depois volta a encher. Índice = nível (o 0 não solta). N2 =
-     * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute. Goleiro: alcance da defesa
-     * máxima (até o motor 14 o nível dava também a duração: N1 0,75 s, N2 4 s, N3 6 s; agora vale o lance, `maxGkTicks`).
+     * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute.
      * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
-     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a defesa máxima do goleiro rival continua parando. Gomo de 12 ⇒ 10 (motor
+     * Miguel 26/10/2026): 57% ⇒ 82% de gol; o parry do goleiro rival ainda tira (motor 17). Gomo de 12 ⇒ 10 (motor
      * 16, Miguel 30/10/2026: "raramente chega no N3"): N3 por jogo 0,16 ⇒ 0,36, gols 8,16 ⇒ 8,20 (`calibrate --agencia`).
      */
     maxLevelPts: 10,
@@ -47,9 +41,45 @@ export const AGENCY = {
         { power: 1.55, accuracy: 1.6, rivalReach: 1, save: 1, block: 1 },
         { power: 2.2, accuracy: 3, rivalReach: 0.7, save: 0.15, block: 0.15 },
     ],
-    maxLevelGk: [null, { reach: 1.1 }, { reach: 1.25 }, { reach: 1.4 }],
-    /** Gomos pro goleiro capitão armar a defesa máxima (motor 15: do N1 dava +7,8 pp de vitória; só no N3, +3,0). */
-    maxGkMinLevel: 3,
+    /**
+     * Golpe máximo universal (motor 17, docs/planos/golpe-universal.md), por cima dos números do nível: N1 passa o
+     * status do tipo do capitão (`maxFxType`, com `MatchConfig.maxType`) em quem bloqueia ou defende; `[status, s]`, sem
+     * `s` dura o de sempre; 'stun' = cai. Fogo, Elétrico, Venenoso, Gelo, Psíquico e Normal vêm do plano; os outros são
+     * a 1ª proposta (fechar com o Miguel).
+     */
+    maxStatus: {
+        Fire: ['brn'],
+        Electric: ['par', 1.5],
+        Poison: ['psn'],
+        Ice: ['frz', 1],
+        Psychic: ['confusion'],
+        Normal: ['stun', 0.6],
+        Water: ['stun', 0.6],
+        Grass: ['slp', 1],
+        Fighting: ['stun', 0.8],
+        Ground: ['stun', 0.6],
+        Flying: ['confusion'],
+        Bug: ['psn'],
+        Rock: ['stun', 0.8],
+        Ghost: ['confusion'],
+        Dragon: ['par', 1.5],
+        Fairy: ['infatuation'],
+    } as Record<string, readonly [StatusKind | 'infatuation' | 'stun', number?]>,
+    /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
+    knockR: 1.5,
+    knockStun: 1,
+    /** N3 sempre no alvo: a bola entra pelo menos tanto (m) pra dentro da trave. */
+    maxPost: 0.3,
+    /**
+     * Efeito na bola (todo golpe máximo, Miguel 30/10/2026): curva sozinha pro canto longe do goleiro, com teto desta
+     * fração da curva do Psíquico (`maxType.curve`). O N3 Psíquico fica com a curva dele, sem somar.
+     */
+    maxCurve: 0.5,
+    /**
+     * Parry (motor 17): o goleiro rebate o golpe máximo do rival. Perfeito toca pro companheiro mais à frente; bom
+     * espalma pra frente e pro lado, sem dono, a `parrySpeed` m/s. Sem recarga: o golpe máximo já é raro (~1 por jogo).
+     */
+    parrySpeed: 10,
     /**
      * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
      * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no
@@ -133,8 +163,6 @@ export const AGENCY = {
          * a bola volta pro Blastoise e quem defendeu ou bloqueou fica `cannonStun` s sem reação.
          */
         cannonStun: 0.5,
-        /** Snorlax no gol (defesa máxima N3): deita na frente do gol, alcance `wallReach` em vez do x1,4. */
-        wallReach: 1.8,
     },
     /**
      * Nota do toque na batida (`q` da ordem: 0 fora, 1 bom, 2 perfeito): quanto da parte extra do nível vale. Fora nunca
@@ -144,7 +172,7 @@ export const AGENCY = {
     /**
      * Zona do golpe máximo pela posição do capitão (Miguel, 22/10/2026: com 15 m pra todos o fixo quase nunca tinha a
      * hora certa): até `range` metros do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). O xG de 0,06 só
-     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro é a zona do rival na defesa máxima. Pivô 15 ⇒ 18 m
+     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro: a zona do rival (o técnico IA arma a bicuda). Pivô 15 ⇒ 18 m
      * no motor 15: a IA dele chuta de ~16 m e 61% dos chutes ficavam fora da zona (o botão não acendia).
      */
     maxZone: {
@@ -246,26 +274,27 @@ export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch, role:
 
 /**
  * Hora do golpe máximo no quadro (a tela acende o botão por aqui; o motor usa a mesma zona): o capitão de linha com a
- * bola na zona, ou, com o capitão no gol, um rival com a bola na zona do gol dele.
+ * bola na zona, ou, com o capitão no gol, o chute do rival vindo no gol (a bicuda).
  */
 export function maxCue(
-    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase' | 'shot'>,
     team: 0 | 1,
     capIdx: number | null,
     capRole: Position,
     pitch: Pitch,
     teamSize = 5,
 ): boolean {
-    if (capIdx === null || snap.phase !== 'play' || snap.owner < 0) return false;
-    const ownerTeam = snap.owner < teamSize ? 0 : 1;
-    if (capRole === 'GK' ? ownerTeam === team : snap.owner !== capIdx) return false;
+    if (capIdx === null || snap.phase !== 'play') return false;
+    if (capRole === 'GK') return !!snap.shot && (snap.shot.by < teamSize ? 0 : 1) !== team;
+    if (snap.owner !== capIdx) return false;
     const x = snap.p[snap.owner * SNAP_STRIDE];
     const y = snap.p[snap.owner * SNAP_STRIDE + 1];
-    return inMaxZone(x, y, ownerTeam, pitch, capRole);
+    return inMaxZone(x, y, team, pitch, capRole);
 }
 
-/** Gomos pra o capitão pedir o golpe máximo: o goleiro só no N3 (`maxGkMinLevel`), o de linha já no N1. */
-export const maxMinLevel = (role: Position) => (role === 'GK' ? AGENCY.maxGkMinLevel : 1);
+/** Botão do parry (qualquer goleiro, motor 17): aceso enquanto o golpe máximo do rival vem no nosso gol. */
+export const parryCue = (snap: Pick<MatchSnapshot, 'phase' | 'shot'>, team: 0 | 1, teamSize = 5) =>
+    snap.phase === 'play' && !!snap.shot?.max && (snap.shot.by < teamSize ? 0 : 1) !== team;
 
 /**
  * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
@@ -293,8 +322,6 @@ export interface MaxCharge {
     charge: number;
     /** Gomos cheios (0–3). */
     level: number;
-    /** Defesa máxima valendo (o goleiro espera o chute). */
-    active: boolean;
 }
 
 /**
@@ -308,9 +335,6 @@ export function maxCharge(
     teamSize = 5,
 ): MaxCharge {
     let pts = 0;
-    /** A barra de antes da defesa máxima: desarmou sem defender, ela volta inteira. */
-    let held = 0;
-    let active = false;
     let behind = 0;
     const per = AGENCY.maxLevelPts;
     const full = 3 * per;
@@ -318,24 +342,12 @@ export function maxCharge(
     const teamOf = (idx: number) => (idx < teamSize ? 0 : 1);
     for (const e of events) {
         if (e.tick > upTo) break;
+        // o golpe gasta a barra toda e ela volta a encher
         if (e.type === 'max') {
-            if (e.team !== team) continue;
-            if (e.phase === 'start') {
-                active = true;
-                held = pts;
-                pts = 0;
-            } else if (e.phase === 'hit') {
-                // o toque gasta a barra toda e ela volta a encher
-                active = false;
-                pts = 0;
-            } else {
-                active = false;
-                pts = held;
-            }
+            if (e.team === team) pts = 0;
             continue;
         }
         if (e.type === 'goal') behind = e.team === team ? behind - 1 : behind + 1;
-        if (active) continue;
         let p = 0;
         if (e.type === 'tackle' && e.success && teamOf(e.by) === team) p = MAX_POINTS.tackle;
         else if (e.type === 'interception' && teamOf(e.by) === team) p = MAX_POINTS.interception;
@@ -347,7 +359,7 @@ export function maxCharge(
         const k = AGENCY.maxBehind[Math.min(2, Math.max(0, behind))];
         pts = Math.min(full, pts + p * k);
     }
-    return { charge: pts / full, level: Math.floor(pts / per), active };
+    return { charge: pts / full, level: Math.floor(pts / per) };
 }
 
 /** Força do efeito no nível e na nota do toque: a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%). */

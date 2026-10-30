@@ -1,5 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { AGENCY, fxTypeOf, type MaxCharge, maxCharge, maxMinLevel } from '../../engine/agency';
+import { AGENCY, fxTypeOf, type MaxCharge, maxCharge } from '../../engine/agency';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -87,7 +87,7 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
-    if (maxCharge(m.events, side, tick, 5).level < maxMinLevel(role)) return false;
+    if (maxCharge(m.events, side, tick, 5).level < 1) return false;
     if (maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
     return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }
@@ -133,8 +133,7 @@ function FxBadge({ view }: { view: AgencyView }) {
 }
 
 /** Golpe máximo pronto e na hora certa (o botão acende). */
-export const maxLit = (v: AgencyView) =>
-    v.maxCue && v.max.level >= 1 && !v.max.active && !v.maxPending && !v.maxWaiting;
+export const maxLit = (v: AgencyView) => v.maxCue && v.max.level >= 1 && !v.maxPending && !v.maxWaiting;
 
 /**
  * Toque no golpe máximo: a nota (e o som dela) sai da distância até o anel encostar no `pointerdown` (o `click` chega
@@ -250,7 +249,7 @@ export function SidelineControls({
                 </button>
                 <button
                     type="button"
-                    className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}${view.max.active ? ' live' : ''}`}
+                    className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}`}
                     title={`${a.maxHint} ${a.maxBeatHint}`}
                     aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
@@ -264,13 +263,11 @@ export function SidelineControls({
                     <span>
                         <b>{a.max}</b>
                         <small>
-                            {view.max.active
-                                ? a.maxActive
-                                : view.maxPending
-                                  ? a.maxCalling
-                                  : lit
-                                    ? a.maxReady
-                                    : maxLevelLabel(view.max.level, a.maxLevel)}
+                            {view.maxPending
+                                ? a.maxCalling
+                                : lit
+                                  ? a.maxReady
+                                  : maxLevelLabel(view.max.level, a.maxLevel)}
                         </small>
                     </span>
                     <FxBadge view={view} />
@@ -310,7 +307,7 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
         const id = window.setTimeout(() => setWhy(false), 2500);
         return () => clearTimeout(id);
     }, [why]);
-    const live = view.max.active || view.maxPending;
+    const live = view.maxPending;
     return (
         // a cor do N3 no invólucro: o botão e o anel (irmão dele) herdam
         <span className="bc-maxwrap" style={look.style}>
@@ -445,7 +442,7 @@ export function MaxBars({
         <div className="sl-maxbars" title={t('match.agency.maxHint')}>
             {([0, 1] as const).map((team) => {
                 const c = maxCharge(events, team, tick, 5);
-                const state = c.active ? 'live' : c.charge >= 1 ? 'full' : '';
+                const state = c.charge >= 1 ? 'full' : '';
                 return (
                     <div
                         key={team}
@@ -481,20 +478,12 @@ export function SidelineOverlay({
         <div className="sl-overlay" aria-hidden>
             {([0, 1] as const).map((team) => {
                 const fly = past.filter((e) => e.type === 'flyGk' && e.team === team).at(-1);
-                const max = maxCharge(events, team, tick, 5);
                 const tags: ReactNode[] = [];
                 if (fly?.type === 'flyGk' && fly.on)
                     tags.push(
                         <span key="fly" className="sl-tag">
                             <HudIcon kind="flyGk" />
                             {a.flyGk}
-                        </span>,
-                    );
-                if (max.active)
-                    tags.push(
-                        <span key="max" className="sl-tag sl-tag-max">
-                            <HudIcon kind="max" />
-                            {a.max}
                         </span>,
                     );
                 if (!tags.length) return null;

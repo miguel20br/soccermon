@@ -175,6 +175,3 @@ export const MAX_SIGNATURE: Record<number, string> = {
     151: 'metronome',
     132: 'transform',
 };
-
-/** Capitão no gol (defesa máxima N3) com assinatura própria: o Snorlax deita na frente do gol. */
-export const MAX_SIGNATURE_GK: Record<number, string> = { 143: 'rest' };

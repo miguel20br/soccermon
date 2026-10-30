@@ -30,6 +30,8 @@ interface Opts {
     gkY?: number;
     /** Pra onde o capitão chuta (padrão: no gol). */
     aim?: { x: number; y: number };
+    /** Sem o efeito na bola (motor 17: a curva leva o N3 pra longe do goleiro), pra ver o que vem depois da defesa. */
+    straight?: boolean;
 }
 
 function scene(id: number, o: Opts = {}) {
@@ -58,10 +60,17 @@ function scene(id: number, o: Opts = {}) {
     s.players[6].pos = o.defAt ? v(o.defAt.x, o.defAt.y) : v(36, 10.15);
     s.ball.owner = 4;
     s.ball.pos = v(30.3, 10);
-    s.teams[0].agency.max = { idx: 4, until: 100, live: false, level: 3, q: 2 };
+    s.teams[0].agency.max = { idx: 4, until: 100, level: 3, q: 2 };
     const cmds = s.players.map(() => IDLE);
     cmds[4] = { type: 'shoot', target: o.aim ? v(o.aim.x, o.aim.y) : v(40, 10.6), power: 1 };
-    step(s, cmds);
+    const tune = AGENCY as { maxCurve: number };
+    const curve = tune.maxCurve;
+    if (o.straight) tune.maxCurve = 0;
+    try {
+        step(s, cmds);
+    } finally {
+        tune.maxCurve = curve;
+    }
     return s;
 }
 
@@ -129,25 +138,6 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
         expect(of(s!, 'maxFx').some((e) => e.step === 'hit' && e.target === 5)).toBe(true);
     });
 
-    it('Snorlax no gol: na defesa máxima N3 deita na frente do gol (aviso e alcance x1,8)', () => {
-        const A = team('ms-a');
-        const B = team('ms-b');
-        const snorlax = createInstance(143, new Rng('ms-gk-cap'));
-        const home = { ...A, lineup: A.lineup.map((p, i) => (i === 0 ? snorlax : p)), captainUid: snorlax.uid };
-        const s = createMatch(FUTSAL_5, home, B, 'ms-wall');
-        s.phase = 'play';
-        s.players[9].pos = v(8, 10);
-        s.ball.owner = 9;
-        s.ball.pos = v(7.7, 10);
-        s.teams[0].agency.max = { idx: 0, until: 100, live: false, level: 3, q: 2 };
-        step(
-            s,
-            s.players.map(() => IDLE),
-        );
-        expect(of(s, 'maxFx')).toEqual([expect.objectContaining({ fx: 'rest', by: 0, step: 'shot' })]);
-        expect(AGENCY.maxSigFx.wallReach).toBeGreaterThan(AGENCY.maxLevelGk[3].reach);
-    });
-
     it('Arcanine (Fire Blast): a estrela derruba e queima o zagueiro perto do gol', () => {
         const s = scene(59);
         expect(s.players[6].stun).toBeGreaterThan(0);
@@ -163,15 +153,12 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
 
     it('Blastoise (Hydro Pump): a onda empurra e, se o goleiro espalma, ele emenda de primeira', () => {
         expect(Math.abs(scene(9).players[6].pos.y - 10.15)).toBeGreaterThanOrEqual(AGENCY.maxType.push - 0.01);
-        const s = until(9, (x) => saved(x) && !of(x, 'save').some((e) => e.caught), noDef);
+        const s = until(9, (x) => saved(x) && !of(x, 'save').some((e) => e.caught), { ...noDef, straight: true });
         expect(s).not.toBeNull();
         idle(s!, 40);
         expect(of(s!, 'shot').filter((e) => e.by === 4).length).toBeGreaterThanOrEqual(2);
-        // a sobra: o chute pra fora também volta pro Blastoise (sem tiro de meta)
-        const wide = until(9, (x) => of(x, 'wide').length > 0, { ...noDef, aim: { x: 40, y: 15 } });
-        expect(wide).not.toBeNull();
-        expect(of(wide!, 'goalkick')).toHaveLength(0);
-        expect(of(wide!, 'maxFx').some((e) => e.step === 'hit' && e.target === 4)).toBe(true);
+        // a sobra pra fora sumiu no motor 17: o N3 vai sempre no alvo, mesmo mirando fora
+        expect(scene(9, { ...noDef, aim: { x: 40, y: 15 } }).ball.shot?.onTarget).toBe(true);
     });
 
     it('Charizard (Flamethrower): voa 2 m rumo ao gol, chuta por cima e queima o goleiro que defende', () => {

@@ -258,10 +258,10 @@ export class AIController implements Controller {
         }
         // golpe máximo armado (beira da quadra): o capitão na zona solta na hora, sem esperar a próxima decisão
         const max = s.teams[p.team].agency.max;
-        if (max && !max.live && max.idx === p.idx && p.role !== 'GK' && inMaxZoneOf(s, p))
+        if (max && max.idx === p.idx && p.role !== 'GK' && inMaxZoneOf(s, p))
             return { type: 'shoot', target: this.shotTarget(p), power: 1 };
         // fixo capitão chamado: lá de trás, conduz até a zona em vez de tocar (tocar pra trás custava 6,8 pp chamando)
-        if (max && !max.live && max.idx === p.idx && p.role === 'FIXO') return this.dribbleCommand(p, goal, true);
+        if (max && max.idx === p.idx && p.role === 'FIXO') return this.dribbleCommand(p, goal, true);
         // segura a bola um instante depois de dominar (e na saída de bola)
         if (s.tick < p.ai.holdUntil) return this.dribbleCommand(p, goal, false);
         // decisões a cada ~0.3s, ou já se estiver sob pressão
@@ -446,8 +446,7 @@ export class AIController implements Controller {
             if (keeper) score -= 0.4;
             // golpe máximo armado: a bola procura o capitão de linha
             const max = s.teams[p.team].agency.max;
-            if (max && !max.live && max.idx === mate.idx && mate.role !== 'GK')
-                score += mate.role === 'FIXO' ? 0.08 : 0.35;
+            if (max && max.idx === mate.idx && mate.role !== 'GK') score += mate.role === 'FIXO' ? 0.08 : 0.35;
             if (TACTIC_SHIFT[s.teams[p.team].tactic].pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
             if (mate.role === 'PIVO') score += style.pivotPass ?? 0;
             // recebeu a parede: vai pra cima, não devolve pro pivô (virava pingue-pongue)
