@@ -21,6 +21,7 @@ import { FriendsTab } from '../profile/FriendsTab';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NewDot, newsCount, useNews } from '../profile/news';
 import { TrainerSprite } from '../profile/TrainerTab';
+import { reduceMotionOn } from '../settings-sync';
 import '../profile/profile.css';
 
 type Tab = DoorTab<'profile'>;
@@ -48,6 +49,16 @@ export function Profile() {
     useEffect(() => {
         const to = legacyDoor();
         if (to) openDoor(...to);
+        // o quadro de missões da Sede: abre já nas missões (as abas em cima, o resumo logo embaixo). No quadro seguinte,
+        // depois do "tela nova abre no topo" do App
+        if (new URLSearchParams(window.location.search).get('aba') === 'missoes') {
+            const id = requestAnimationFrame(() =>
+                document
+                    .querySelector('.pf-tabs')
+                    ?.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
+            );
+            return () => cancelAnimationFrame(id);
+        }
     }, []);
 
     return (

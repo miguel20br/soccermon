@@ -649,7 +649,7 @@ export const help = {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',
             done: 'Vai aparecer de novo',
-            intro: 'Home',
+            intro: 'Estádio',
             rota: 'Rota Índigo',
             rotaGrupo: 'Planalto',
             relampago: 'Copa Relâmpago',

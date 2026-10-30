@@ -489,7 +489,9 @@ export function LineupEditor({
                         onClick={() => setFormationOpen(true)}
                     >
                         <span>
-                            <b>{formationText(formation, lang).name} &#9662;</b>
+                            <b>
+                                {formationText(formation, lang).name} <HudIcon kind="down" className="vt-caret" />
+                            </b>
                             <FormationIdentity
                                 id={formation}
                                 edge={!!rivalFormation && hasEdge(formation, rivalFormation)}

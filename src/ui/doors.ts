@@ -57,7 +57,8 @@ export function initialTab<D extends Door>(door: D): DoorTab<D> {
     const tabs = DOOR_TABS[door] as readonly string[];
     const aba = q.get('aba');
     if (aba && tabs.includes(aba)) return aba as DoorTab<D>;
-    const legacy = LEGACY[q.get('perfil') ?? ''];
+    // `?aba=missoes` (o quadro da Sede): a aba Treinador, rolada até as missões (Perfil)
+    const legacy = LEGACY[q.get('perfil') ?? aba ?? ''];
     if (legacy?.[0] === door) return legacy[1] as DoorTab<D>;
     return tabs[0] as DoorTab<D>;
 }
