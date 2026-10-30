@@ -81,7 +81,7 @@ export function maxGradeNow(now = performance.now()): MaxGrade {
  * O toque valeu: a nota, o som dela (o perfeito cai na batida, quando o toque vem antes do anel encostar) e a música
  * volta com a virada.
  */
-export function maxTap(now = performance.now()): MaxGrade {
+export function maxTap(now = performance.now(), from?: HTMLElement): MaxGrade {
     const q = maxGradeNow(now);
     if (users > 0 && !tapped) {
         tapped = true;
@@ -89,7 +89,7 @@ export function maxTap(now = performance.now()): MaxGrade {
         const at = wait ? heardAt(wait) : undefined;
         void sfx().then((a) => a.playMax(MAX_TAP[q], at));
         unduckMusic(true);
-        maxBurst(q);
+        maxBurst(q, from);
     }
     return q;
 }

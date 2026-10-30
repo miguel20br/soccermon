@@ -16,19 +16,31 @@ export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN 
  * zooms dos lances (até 1.6) continuarem nítidos.
  */
 export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
-    const g = courtGraphics(scene, theme).setScale(COURT_RES);
     const key = 'court-baked';
-    if (scene.textures.exists(key)) scene.textures.remove(key);
-    scene.textures
-        .addDynamicTexture(key, GAME_W * COURT_RES, GAME_H * COURT_RES)
-        ?.draw(g)
-        .render();
-    g.destroy();
-    return scene.add
+    const bake = () => {
+        const g = courtGraphics(scene, theme).setScale(COURT_RES);
+        if (scene.textures.exists(key)) scene.textures.remove(key);
+        scene.textures
+            .addDynamicTexture(key, GAME_W * COURT_RES, GAME_H * COURT_RES)
+            ?.draw(g)
+            .render();
+        g.destroy();
+    };
+    bake();
+    const img = scene.add
         .image(0, 0, key)
         .setOrigin(0)
         .setScale(1 / COURT_RES)
         .setDepth(-1000);
+    // o contexto WebGL perdido (celular em segundo plano, memória) apaga a textura desenhada: refaz quando ele volta
+    const renderer = scene.renderer;
+    const restore = () => {
+        bake();
+        img.setTexture(key);
+    };
+    renderer.on('restorewebgl', restore);
+    scene.events.once('shutdown', () => renderer.off('restorewebgl', restore));
+    return img;
 }
 const COURT_RES = 2;
 

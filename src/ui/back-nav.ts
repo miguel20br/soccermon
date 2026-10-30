@@ -16,8 +16,10 @@ export const setDoorOrigin = (from: Screen) => {
 /** Ajuda e Créditos abrem da Home ou das Configurações (rodapé): voltam pra lá (`openPage`). */
 const UNDER_SETTINGS: Screen[] = ['help', 'credits'];
 let pageOrigin: Screen = 'home';
+/** Telas de menu que têm o "?" na barra de cima: a Ajuda (e os Créditos) abertas delas voltam pra elas. */
+const PAGE_FROM: Screen[] = ['settings', 'profile', 'collection', 'trophies', 'liga', 'daily'];
 export const setPageOrigin = (from: Screen) => {
-    pageOrigin = from === 'settings' ? 'settings' : 'home';
+    pageOrigin = PAGE_FROM.includes(from) ? from : 'home';
 };
 
 /** Para onde o voltar leva. `null` = Home (sai do app). */

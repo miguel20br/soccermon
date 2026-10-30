@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { reloadForNewVersion } from '../../chunk-reload';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { openPage } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
-import { readCount, writeCount } from '../local-count';
+import { writeCount } from '../local-count';
 import type { PatchNotes } from '../patch-notes';
 import { NewDot } from '../profile/news';
 import { HudIcon } from './MatchHud';
@@ -86,6 +87,14 @@ function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lan
 /** "0.9.27" vira 9027: a última versão aberta nas Novidades fica guardada como número (`local-count`). */
 const versionNum = (v: string) => v.split('.').reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
 const NEWS_SEEN = 'soccermon.newsSeen';
+/** Última versão aberta; sem a chave (quem nunca abriu) é 0 e o pontinho acende; null só sem onde guardar. */
+export function readSeen(): number | null {
+    try {
+        return Number(localStorage.getItem(NEWS_SEEN) ?? 0) || 0;
+    } catch {
+        return null;
+    }
+}
 
 /**
  * Novidades no canto de cima (TopActions), em toda tela de menu: abre as notas de versão; o pontinho acende enquanto
@@ -97,11 +106,22 @@ export function NewsButton() {
     const [mod, setMod] = useState<typeof import('../patch-notes') | null>(null);
     const notes = mod?.patchNotes(lang) ?? [];
     const latest = versionNum(__APP_VERSION__);
-    const [seen, setSeen] = useState(() => readCount(NEWS_SEEN));
+    const [seen, setSeen] = useState(readSeen);
     const [open, setOpen] = useState(false);
     const close = useCallback(() => setOpen(false), []);
+    // a versão conta como vista quando as notas abrem de verdade (falhou o download, o pontinho fica)
+    useEffect(() => {
+        if (!open || !mod) return;
+        setSeen(latest);
+        writeCount(NEWS_SEEN, latest);
+    }, [open, mod, latest]);
+    // sem rede ou com o pedaço de uma versão velha (404), recarrega pra versão nova como os outros pedaços preguiçosos
     const load = () => {
-        if (!mod) void import('../patch-notes').then(setMod);
+        if (!mod)
+            void import('../patch-notes').then(setMod, () => {
+                setOpen(false);
+                void reloadForNewVersion();
+            });
     };
     return (
         <>
@@ -114,8 +134,6 @@ export function NewsButton() {
                 onClick={() => {
                     load();
                     setOpen(true);
-                    setSeen(latest);
-                    writeCount(NEWS_SEEN, latest);
                 }}
             >
                 <MenuIcon kind="news" />

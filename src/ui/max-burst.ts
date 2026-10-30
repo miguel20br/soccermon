@@ -32,8 +32,9 @@ const node = (cls: string, parent: HTMLElement) => {
 
 const LABEL = { 2: 'match.agency.maxPerfect', 1: 'match.agency.maxGood', 0: 'match.agency.maxOff' } as const;
 
-export function maxBurst(q: MaxGrade) {
-    const btn = litButton();
+/** `from`: o botão tocado (no celular o da quadra e o da barra de baixo acendem juntos); sem ele (tecla M), o aceso. */
+export function maxBurst(q: MaxGrade, from?: HTMLElement) {
+    const btn = from ?? litButton();
     if (!btn) return;
     // o estouro sai do anel (o ícone do botão grande), não do meio do botão
     const r = (btn.querySelector('.sl-ring-at') ?? btn).getBoundingClientRect();

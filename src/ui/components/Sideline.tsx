@@ -156,8 +156,8 @@ export const maxLit = (v: AgencyView) =>
 function useMaxTap(onMax: (q: MaxGrade) => void, lit: boolean) {
     const down = useRef<MaxGrade | null>(null);
     return {
-        onPointerDown: () => {
-            if (lit) down.current = maxTap();
+        onPointerDown: (e: React.PointerEvent<HTMLElement>) => {
+            if (lit) down.current = maxTap(undefined, e.currentTarget);
         },
         tap: () => {
             const q = down.current ?? maxTap();

@@ -1,7 +1,7 @@
 import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
-import { duel, useDuel } from './net/session';
+import { duel } from './net/session';
 import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
@@ -23,7 +23,7 @@ import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
 import { DoorLayer } from './ui/kit/DoorWipe';
 import { MomentLayer } from './ui/kit/MomentWipe';
-import { duelInPlay, requestBack, requestLeave } from './ui/leave-guard';
+import { requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal } from './ui/profile/PlayerCard';
 import { CardGallery } from './ui/screens/CardGallery';
@@ -115,7 +115,6 @@ function MenuBack({ screen }: { screen: Screen }) {
 
 export default function App() {
     const { screen, settings, tour, run } = useGame();
-    const duelLive = useDuel((d) => duelInPlay(d.shared?.phase));
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
@@ -306,10 +305,11 @@ export default function App() {
                         <CupBar onBack={() => leaveScreen(screen)} />
                     ) : MENU_SCREENS.includes(screen) ? (
                         // telas de menu: a mesma barra de cima dos ambientes (voltar, treinador, Novidades, Ajuda e a
-                        // engrenagem), no mesmo lugar. Duelo com o jogo rolando: só o voltar, que pede confirmação
+                        // engrenagem), no mesmo lugar. No Duelo só o voltar, no mesmo lugar: ele larga a sala (e pede
+                        // confirmação com o jogo rolando); a engrenagem e o treinador saíam sem largar
                         <div className="k-topbar k-menubar">
                             <MenuBack screen={screen} />
-                            {!duelLive && (
+                            {screen !== 'duel' && (
                                 <>
                                     <TopBar />
                                     <TopActions help={() => openPage('help')} profile={false} />

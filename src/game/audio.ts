@@ -98,16 +98,21 @@ export function leadIn(ch: ArrayLike<number>, sampleRate: number): number {
 export const loadMaxSfx = () =>
     (maxP ??= Promise.all(
         [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE)].map(async (name) => {
-            const data = await fetch(`sfx/max-${name}.mp3`).then((r) => r.arrayBuffer());
-            const buf = await ZZFX.audioContext.decodeAudioData(data);
-            return [name, { buf, skip: leadIn(buf.getChannelData(0), buf.sampleRate) }] as const;
+            // um arquivo que falha fica mudo sozinho (os outros tocam); se algum falhou, a próxima chamada tenta de novo
+            try {
+                const r = await fetch(`sfx/max-${name}.mp3`);
+                if (!r.ok) return null;
+                const buf = await ZZFX.audioContext.decodeAudioData(await r.arrayBuffer());
+                return [name, { buf, skip: leadIn(buf.getChannelData(0), buf.sampleRate) }] as const;
+            } catch {
+                return null;
+            }
         }),
-    )
-        .then((e) => new Map(e))
-        .catch(() => {
-            maxP = null;
-            return null;
-        }));
+    ).then((e) => {
+        const ok = e.filter((x) => x !== null);
+        if (ok.length < e.length) maxP = null;
+        return ok.length ? new Map(ok) : null;
+    }));
 
 /** Som do golpe máximo (`MAX_TAP`/`MAX_MOVE` em `max-sfx.ts`) no canal de efeitos; `at` como no `playSfx`. */
 export function playMax(name: MaxSound, at?: number) {

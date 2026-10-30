@@ -77,6 +77,8 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         const onDown = () => scene?.scale.updateBounds();
         const host = wrap.current;
         host?.addEventListener('pointerdown', onDown, true);
+        // o Phaser lê o toque no touchstart: no Safari ele pode vir antes do pointerdown
+        host?.addEventListener('touchstart', onDown, { capture: true, passive: true });
         const onReady = (sc: FollowScene) => {
             scene = sc;
             mode = null;
@@ -144,6 +146,7 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
             cancelAnimationFrame(raf);
             EventBus.off('current-scene-ready', onReady);
             host?.removeEventListener('pointerdown', onDown, true);
+            host?.removeEventListener('touchstart', onDown, true);
             // girou pra deitado no meio do jogo: a quadra volta inteira, no lugar e com o zoom normal
             if (inner) inner.style.transform = '';
             wrap.current?.classList.remove('hud-full');

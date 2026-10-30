@@ -21,8 +21,10 @@ describe('voltar do sistema', () => {
         expect(backTarget('help')).toBe('settings');
         setPageOrigin('home');
         expect(backTarget('help')).toBe('home');
-        // de qualquer outra tela (copa, Perfil) o voltar é a Home, como antes
+        // o "?" mora na barra de cima de toda tela de menu: volta pra ela; de fora dos menus (copa), a Home
         setPageOrigin('profile');
+        expect(backTarget('help')).toBe('profile');
+        setPageOrigin('draft');
         expect(backTarget('credits')).toBe('home');
     });
     it('uma só entrada de guarda: empurra fora da Home, tira na Home', () => {

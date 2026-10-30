@@ -90,12 +90,9 @@ function DoorWipe({ onCovered, onDone }: { onCovered: () => void; onDone: () => 
 
 const useDoor = create<{ cover: (() => void) | null; n: number }>(() => ({ cover: null, n: 0 }));
 
-/** Passa pela porta: `then` troca a tela quando a porta cobre tudo. Uma porta tocando já: troca na hora. */
+/** Passa pela porta: `then` troca a tela quando a porta cobre tudo. Uma porta já tocando: o 2º toque não conta. */
 export function playDoor(then: () => void) {
-    if (useDoor.getState().cover) {
-        then();
-        return;
-    }
+    if (useDoor.getState().cover) return;
     useDoor.setState((s) => ({ cover: then, n: s.n + 1 }));
 }
 
