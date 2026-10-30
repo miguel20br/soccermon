@@ -835,19 +835,29 @@
     color: var(--yellow);
 }
 .gp-team {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    /* bloco (não flex): o "…" só aparece em texto de bloco; em flex o nome era cortado seco ("Lavender As") */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 .gp-team i {
-    flex: none;
+    display: inline-block;
     width: 6px;
     height: 20px;
+    margin-right: 8px;
     border-radius: 2px;
+    vertical-align: middle;
     background: var(--tc);
+}
+/* 320: as colunas de número cedem espaço pro nome do time */
+@media (max-width: 380px) {
+    .gp-row {
+        grid-template-columns: 18px 1fr 22px 30px 28px;
+        gap: 4px;
+    }
+    .gp-table {
+        padding: 8px;
+    }
 }
 .gp-note {
     margin-top: 8px;
@@ -959,6 +969,13 @@
     .cm-event-faces .cm-face {
         width: 40px;
         height: 40px;
+    }
+}
+/* 320: emblema, treinador e texto lado a lado deixavam o texto com uma palavra por linha; o ícone do evento já está no
+   cabeçalho da tela */
+@media (max-width: 380px) {
+    .cm-event-emblem {
+        display: none;
     }
 }
 
