@@ -1,5 +1,5 @@
 ---
-description: Golpe máximo universal (todo capitão chuta, o goleiro dá a bicuda), parry do goleiro no lugar da defesa máxima, efeito na bola e o N3 com cena de especial; decisões de 30/10/2026.
+description: Golpe máximo universal (todo capitão chuta, o goleiro dá a bicuda), parry do goleiro contra o golpe máximo do rival, efeito na bola automático e o N3 com cena de especial; decisões de 30/10/2026.
 ---
 
 # Golpe máximo universal + parry (30/10/2026)
@@ -27,13 +27,16 @@ no N1 e no N2 é um lançamento forte pro ataque.
 
 **Parry (botão novo, qualquer goleiro do time):**
 - Substitui a defesa máxima.
-- Acende quando um chute vem no gol e usa o mesmo anel na batida.
-- O perfeito rebate pra um companheiro (contra-ataque); o bom rebate pra frente, sem dono; o fora vira a defesa normal.
-- Recarga de uns 20 s de partida.
-- O rival também tem parry e bicuda, usados pela IA.
+- **Só contra o golpe máximo do rival** (Miguel, 30/10/2026): acende quando um golpe máximo do rival vem no gol (qualquer
+  nível, e a bicuda N3 também) e usa o mesmo anel na batida.
+- O perfeito rebate pra um companheiro (contra-ataque); o bom rebate pra frente, sem dono; o fora vira a defesa normal
+  daquele golpe máximo.
+- **Sem recarga:** o golpe máximo do rival já é raro (~1 por jogo) e um parry vale só pra aquele chute.
+- O rival também tem parry e bicuda, usados pela IA (a nota sorteada como a do golpe máximo).
 
-**Efeito na bola (pedido do Miguel):** no toque do golpe máximo, arrastar pro lado curva o chute de leve. Usa a mesma conta da
-curva do Psíquico, com um teto menor. Sem arrastar, o chute sai reto.
+**Efeito na bola (pedido do Miguel, automático desde 30/10/2026):** todo golpe máximo, em qualquer nível, curva sozinho
+pro canto longe do goleiro, sem arrastar. Usa a mesma conta da curva do Psíquico, com metade do teto. O N3 Psíquico fica
+com a curva dele, mais forte, sem somar.
 
 ## Polimento (pedido do Miguel: "tudo bem polido, a música na medida, efeitos especiais legais")
 
@@ -46,3 +49,22 @@ curva do Psíquico, com um teto menor. Sem arrastar, o chute sai reto.
 - Muda o resultado das partidas: motor 17 e republicar a `liga`.
 - Os números de antes e depois vão pro Miguel antes de valer. Medir com `npm run calibrate -- --n 400 --agencia` e
   `scripts/balance/coach.ts`.
+
+## Números do motor 17 (protótipo, n=400, 30/10/2026; nada aprovado)
+
+`calibrate --agencia` (os dois times com o técnico IA) e `scripts/balance/coach.ts` (técnico robô).
+
+| Medida | Motor 16 | Motor 17 | Motor 17 sem parry |
+|---|---:|---:|---:|
+| Gols/jogo | 8,10 | 7,77 | 8,30 |
+| Golpe máximo por jogo (N1/N2/N3) | 0,86 (0,04/0,48/0,34) | 0,96 (0,05/0,56/0,34) | 0,95 |
+| Golpe de linha que vira gol (N1/N2/N3) | 55% (24/36/93) | **15%** (16/11/24) | 72% (43/63/92) |
+| Bicudas por jogo (N1/N2/N3) | — | 0,15 (0/0,07/0,08) | 0,15 |
+| Bicuda N3 que vira gol | — | 6% | **100%** |
+| Parry por jogo (fora/bom/perfeito) | — | 0,76 (0,08/0,19/0,49) | — |
+| Técnico robô de linha, Δ vitória (contra rival sem parry) | +2,3 a +5,3 pp | +6,3 a +11,5 pp | — |
+| Técnico robô goleiro, Δ vitória | +3,3 a +4,3 pp | +9,0 a +12,8 pp | — |
+| Técnico robô contra o técnico IA (bom / n3) | +2,5 / +4,8 pp | +5,0 / +4,3 pp | — |
+
+Pra decidir: o parry do técnico IA pega quase todo golpe máximo (90% das notas rebatem) e o golpe de linha cai de 55% pra
+15% de gol; sem parry, a bicuda N3 é gol certo.
