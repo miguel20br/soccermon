@@ -329,7 +329,7 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
                 <HudIcon kind="max" />
                 <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
             </button>
-            {lit && <QteRing key={view.maxCue || ''} />}
+            {lit && <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />}
             {why && (
                 <span className="bc-maxwhy" role="status" data-exit>
                     {a.maxWhen}
@@ -371,7 +371,7 @@ export function MaxCueButton({
                 {...levelLook(view)}
             >
                 <span className="sl-ring-at">
-                    <QteRing key={view.maxCue || ''} />
+                    <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />
                     <HudIcon kind="max" />
                 </span>
                 <b className="sl-cue-name">{a.max}</b>
@@ -398,10 +398,10 @@ export function MaxCueButton({
  * do perfeito, `holdRing`); depois some. Anda por `requestAnimationFrame` direto no estilo (nada de render do React):
  * `--q` vai de 0 (nasceu) a 1 (encostou).
  */
-function QteRing() {
+function QteRing({ duck }: { duck: boolean }) {
     const ref = useRef<HTMLSpanElement>(null);
     useEffect(() => {
-        const r = holdRing();
+        const r = holdRing(duck);
         let raf = 0;
         const loop = () => {
             const now = performance.now();
@@ -417,7 +417,7 @@ function QteRing() {
             cancelAnimationFrame(raf);
             r.release();
         };
-    }, []);
+    }, [duck]);
     return <span ref={ref} className="sl-ring" aria-hidden />;
 }
 

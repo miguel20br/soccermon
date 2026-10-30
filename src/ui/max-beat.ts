@@ -24,6 +24,8 @@ const sfx = () => import('../game/audio');
 let ring: { start: number; at: number } | null = null;
 let users = 0;
 let tapped = false;
+/** O anel da vez abaixou a música (só na hora certa). */
+let ducking = false;
 
 /** Espera (ms) até o 1 de compasso que se ouve a pelo menos `minLeadMs`; sem música, `silentMs`. */
 function leadMs(): number {
@@ -37,15 +39,17 @@ function leadMs(): number {
 }
 
 /**
- * Um anel na tela (o botão grande e o da barra de baixo dividem o mesmo): o primeiro arma o anel e põe a música no
- * fundo; o último a sair solta a música (sem toque, devagar). Devolve a hora em que o anel nasceu e encosta.
+ * Um anel na tela (o botão grande e o da barra de baixo dividem o mesmo): o primeiro arma o anel e, na hora certa
+ * (`duck`), põe a música no fundo; o último a sair solta a música (sem toque, devagar). No "chamar o capitão" a música
+ * fica: abaixar em todo ataque cansava. Devolve a hora em que o anel nasceu e encosta.
  */
-export function holdRing(): { start: number; at: number; release: () => void } {
+export function holdRing(duck = true): { start: number; at: number; release: () => void } {
     if (users++ === 0) {
         const now = performance.now();
         ring = { start: now, at: now + leadMs() };
         tapped = false;
-        duckMusic();
+        ducking = duck;
+        if (duck) duckMusic();
         void sfx().then((a) => a.loadMaxSfx());
     }
     const r = ring as { start: number; at: number };
@@ -53,7 +57,7 @@ export function holdRing(): { start: number; at: number; release: () => void } {
         ...r,
         release: () => {
             if (--users > 0) return;
-            if (!tapped) unduckMusic(false);
+            if (!tapped && ducking) unduckMusic(false);
         },
     };
 }
