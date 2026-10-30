@@ -11,7 +11,7 @@ export const GAME_H = W * PPM + MARGIN * 2;
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
 /**
- * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
+ * Quadra de futsal com a bola no círculo central (a pokébola como símbolo saiu, brand guide): madeira por padrão, ou a do ginásio (`COURTS` em
  * court-themes.ts). Um Graphics só, desenhado uma vez.
  */
 export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
@@ -34,15 +34,17 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const mid = toPx(L / 2, W / 2);
     g.lineBetween(mid.x, tl.y, mid.x, tl.y + W * PPM);
     g.strokeCircle(mid.x, mid.y, 3 * PPM);
-    g.fillStyle(0xe8423f, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, Math.PI, 0, false)
-        .fillPath();
-    g.fillStyle(0xffffff, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, 0, Math.PI, false)
-        .fillPath();
-    g.lineStyle(2, 0xffffff, 0.95).lineBetween(mid.x - 2.2 * PPM, mid.y, mid.x + 2.2 * PPM, mid.y);
-    g.fillStyle(0xffffff, 1).fillCircle(mid.x, mid.y, 0.55 * PPM);
-    g.lineStyle(2, 0x333333, 0.6).strokeCircle(mid.x, mid.y, 0.55 * PPM);
+    // a bola de futsal pintada no meio: disco claro, o pentágono do centro e as 5 costuras
+    const R = 2.2 * PPM;
+    const vx = (i: number, r: number) => mid.x + r * Math.sin((i * 2 * Math.PI) / 5);
+    const vy = (i: number, r: number) => mid.y - r * Math.cos((i * 2 * Math.PI) / 5);
+    g.fillStyle(0xffffff, 0.35).fillCircle(mid.x, mid.y, R);
+    g.fillStyle(0x0e1430, 0.4).beginPath();
+    for (let i = 0; i < 5; i++) g[i ? 'lineTo' : 'moveTo'](vx(i, 0.42 * R), vy(i, 0.42 * R));
+    g.closePath().fillPath();
+    g.lineStyle(2, 0x0e1430, 0.4);
+    for (let i = 0; i < 5; i++) g.lineBetween(vx(i, 0.42 * R), vy(i, 0.42 * R), vx(i, R), vy(i, R));
+    g.lineStyle(2, 0xffffff, 0.95).strokeCircle(mid.x, mid.y, R);
 
     g.lineStyle(2, 0xffffff, 0.95);
     areaPath(g, 0, false);

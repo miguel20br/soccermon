@@ -14,10 +14,6 @@ import { reduceMotionOn } from '../settings-sync';
  * sua cor de fundo; o desenho é pixel (grade 24), em 3 tons do mesmo fundo.
  */
 export const WIPE_ART = {
-    pokebola: {
-        bg: '#24398a',
-        art: "<circle cx='12' cy='12' r='10' fill='#172a6e'/><path d='M3 12a9 9 0 0 1 18 0z' fill='#5f7fe0'/><path d='M3 12a9 9 0 0 0 18 0z' fill='#c3d1ff'/><rect x='2' y='11' width='20' height='2' fill='#172a6e'/><circle cx='12' cy='12' r='3.4' fill='#172a6e'/><circle cx='12' cy='12' r='1.8' fill='#c3d1ff'/>",
-    },
     bola: {
         bg: '#1d5a3a',
         art: "<circle cx='12' cy='12' r='10' fill='#0e3322'/><circle cx='12' cy='12' r='8.6' fill='#d4f5e0'/><path d='M12 8.2l3.4 2.5-1.3 4h-4.2l-1.3-4z' fill='#0e3322'/><path d='M12 3.4v4.8M15.4 10.7l4.5-1.4M14.1 14.7l2.8 3.9M9.9 14.7l-2.8 3.9M8.6 10.7L4.1 9.3' stroke='#0e3322' stroke-width='1.2'/>",
@@ -62,7 +58,7 @@ const diag = (c: number) => `polygon(${c - 100}% -100%, ${c + 200}% 200%, 300% 2
 const left = (e: number) => `polygon(-1% -1%, ${e}% -1%, ${e}% 101%, -1% 101%)`;
 
 export function MomentWipe({
-    art = 'pokebola',
+    art = 'bola',
     onCovered,
     onDone,
 }: {
@@ -151,7 +147,7 @@ export function MomentWipe({
 export const WIPE_IN_MS = IN_MS;
 
 const useMoment = create<{ art: WipeArt; cover: (() => void) | null; n: number }>(() => ({
-    art: 'pokebola',
+    art: 'bola',
     cover: null,
     n: 0,
 }));

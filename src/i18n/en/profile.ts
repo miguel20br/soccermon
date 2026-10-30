@@ -82,7 +82,7 @@ export const profile: typeof pt = {
             flamula: 'Pennant',
         } as Record<string, string>,
         symbols: {
-            pokebola: 'Poké Ball',
+            pokebola: 'Futsal ball',
             raio: 'Bolt',
             chama: 'Flame',
             gota: 'Drop',

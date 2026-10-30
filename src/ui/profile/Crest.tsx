@@ -23,12 +23,18 @@ export function symbolArt(s: CrestSymbol, c: string, b: string): ReactNode {
     } as const;
     switch (s) {
         case 'pokebola':
+            // o id ficou (saves), o desenho virou a bola de futsal em contorno: pokébola como símbolo não (brand guide).
+            // A 'bola' (da medalha) é a cheia
             return (
                 <>
-                    <path d="M3 12 A9 9 0 0 1 21 12 Z" fill={c} />
                     <circle cx="12" cy="12" r="9" {...line} />
-                    <path d="M3 12 H21" {...line} />
-                    <circle cx="12" cy="12" r="3.2" fill={b} stroke={c} strokeWidth="2.2" />
+                    <path
+                        d="M12 8.3 L15.5 10.8 L14.2 14.9 H9.8 L8.5 10.8 Z M12 8.3 V3.6 M15.5 10.8 L19.9 9.4 M14.2 14.9 L16.9 18.6 M9.8 14.9 L7.1 18.6 M8.5 10.8 L4.1 9.4"
+                        fill={c}
+                        stroke={c}
+                        strokeWidth="1.6"
+                        strokeLinejoin="round"
+                    />
                 </>
             );
         case 'raio':
