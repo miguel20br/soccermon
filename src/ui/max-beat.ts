@@ -1,6 +1,7 @@
 import type { MaxGrade } from '../engine/state';
 import { MAX_PEAK, MAX_TAP } from '../game/max-sfx';
 import { beatNow, duckMusic, heardAt, nextBarIn, unduckMusic } from '../game/music';
+import { maxBurst } from './max-burst';
 
 /**
  * QTE de um tiro só do golpe máximo (29/10/2026, B2 + B3 da proposta): quando o botão acende, um anel nasce grande e
@@ -88,6 +89,7 @@ export function maxTap(now = performance.now()): MaxGrade {
         const at = wait ? heardAt(wait) : undefined;
         void sfx().then((a) => a.playMax(MAX_TAP[q], MAX_PEAK.tap, at));
         unduckMusic(true);
+        maxBurst(q);
     }
     return q;
 }

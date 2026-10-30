@@ -765,3 +765,69 @@
         padding: 8px 10px;
     }
 }
+
+/* a resposta do toque no golpe máximo (max-burst.ts): camada fixa no centro do botão, por cima de tudo */
+.max-burst {
+    position: fixed;
+    z-index: 600;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+.max-burst > i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+}
+.mb-text {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 30px;
+    white-space: nowrap;
+    color: var(--yellow);
+    --ol: var(--bc-ink);
+    text-shadow: var(--k-out-2);
+}
+.q1 .mb-text {
+    font-size: 22px;
+    color: #fff;
+}
+.q0 .mb-text {
+    font-size: 18px;
+    color: #b9c0d8;
+}
+.mb-ring {
+    width: 44px;
+    height: 44px;
+    border: 4px solid var(--bc);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bc-ink);
+}
+.mb-ring + .mb-ring {
+    border-color: #fff;
+    border-width: 3px;
+}
+.mb-bit.star {
+    width: 16px;
+    height: 16px;
+    background: var(--bc);
+    clip-path: polygon(50% 0, 63% 33%, 98% 36%, 71% 58%, 80% 94%, 50% 75%, 20% 94%, 29% 58%, 2% 36%, 37% 33%);
+}
+.q1 .mb-bit.star {
+    background: #fff;
+}
+.mb-bit.coin {
+    width: 13px;
+    height: 13px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--gold-hi, #fff2a8) 0 45%, var(--yellow) 45%);
+}
+/* o clarão cobre a tela toda (a camada é fixa e sem transform: o fixo do filho volta pra janela) */
+.mb-flash {
+    position: fixed !important;
+    inset: 0;
+    background: #fff;
+}

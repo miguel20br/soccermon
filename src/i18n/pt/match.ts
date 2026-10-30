@@ -155,6 +155,8 @@ export const match = {
         maxMissShort: 'Sem chute: a barra volta inteira',
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
+        /** O toque fora do anel (a resposta na tela, `max-burst.ts`). */
+        maxOff: 'FORA',
         maxWait: 'Esperar',
         maxWaitKey: 'E',
         maxWaitHint: 'Guarda pro próximo nível: o aviso e a câmera lenta voltam quando a barra subir. Atalho: E.',

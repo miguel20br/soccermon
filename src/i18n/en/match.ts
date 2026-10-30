@@ -137,6 +137,8 @@ export const match: typeof pt = {
         maxMissShort: 'No shot: full bar back',
         maxPerfect: 'PERFECT!',
         maxGood: 'GOOD',
+        /** O toque fora do anel (a resposta na tela, `max-burst.ts`). */
+        maxOff: 'MISS',
         maxWait: 'Wait',
         maxWaitKey: 'W',
         maxWaitHint:
