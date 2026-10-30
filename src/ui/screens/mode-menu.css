@@ -431,6 +431,16 @@ button.mm-card,
         transform: none;
     }
 }
+/* o brilho do pacote e o da carta de verdade correm por background-position com blend (repintam a cada quadro): no
+   menu eles ficam parados e quem passa é o foil do .mm-peek::after, só com transform */
+.mm-pack .cpack *,
+.mm-pack .cpack *::before,
+.mm-pack .cpack *::after,
+.mm-pack .pc2 *,
+.mm-pack .pc2 *::before,
+.mm-pack .pc2 *::after {
+    animation: none;
+}
 /* depois do tremor, a carta ouro sobe do pacote: a carta Metal do jogo, com o Pokémon em silhueta (quem é?) */
 .mm-peek {
     position: absolute;
