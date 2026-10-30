@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, Fragment, type ReactNode, useEffect, useState } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -199,12 +199,24 @@ export function ResultHero({
                 />
             )}
             <h1 className="rh-title" aria-label={title}>
-                {[...title].map((ch, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
-                    <span key={i} style={{ '--i': i } as CSSProperties}>
-                        {ch === ' ' ? ' ' : ch}
-                    </span>
-                ))}
+                {/* letra por letra (cada uma cai na sua vez), mas a linha só quebra entre palavras: "CARTÃO VERMELH / O" */}
+                {title.split(' ').map((word, w, words) => {
+                    const from = words.slice(0, w).join(' ').length + (w ? 1 : 0);
+                    return (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: palavras do título
+                        <Fragment key={w}>
+                            {w > 0 && ' '}
+                            <span className="rh-word">
+                                {[...word].map((ch, i) => (
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
+                                    <span key={i} style={{ '--i': from + i } as CSSProperties}>
+                                        {ch}
+                                    </span>
+                                ))}
+                            </span>
+                        </Fragment>
+                    );
+                })}
             </h1>
             {/* não repete a fase que a etiqueta ou a barra da copa já dizem */}
             {!subRepeats && <div className="rh-sub">{sub}</div>}

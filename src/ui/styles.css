@@ -4279,6 +4279,12 @@ button,
     display: inline-block;
     animation: rh-pop 0.45s calc(var(--i) * 0.05s) cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
 }
+/* a palavra inteira numa linha (as letras dela caem uma a uma lá dentro) */
+.rh-title .rh-word,
+.rh-loss .rh-title .rh-word {
+    white-space: nowrap;
+    animation: none;
+}
 @keyframes rh-pop {
     from {
         transform: scale(0.2) translateY(30px);
