@@ -2,7 +2,7 @@
 export const home = {
     soon: [
         { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
-        { title: 'Modo Treinador', text: 'Abra pacotes e monte o time da temporada' },
+        { title: 'Time Ultimate', text: 'Abra pacotes e monte o time da temporada' },
         { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
         { title: 'Geração 2', text: 'Os Pokémon de Johto' },
     ],
@@ -115,7 +115,7 @@ export const home = {
         resLevel: 'Nível {n} do treinador ({x} de {y} missões pro próximo)',
     },
     /**
-     * Menu de modos (antes da Home, pra quem já jogou): nomes fechados em 29/10/2026 (Copa, Treinador, História).
+     * Menu de modos (antes da Home, pra quem já jogou): nomes fechados em 29/10/2026 (Copa, Treinador, História); o Treinador virou Time Ultimate em 30/10.
      * `when` é a placa do modo trancado; `topics`, os itens do cartão.
      */
     modes: {
@@ -126,7 +126,7 @@ export const home = {
         play: 'JOGAR',
         atual: { name: 'Modo Copa', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
         ultimate: {
-            name: 'Modo Treinador',
+            name: 'Time Ultimate',
             when: 'Chega fim de novembro',
             tag: 'Abra pacotes e monte o time da temporada',
             topics: ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'],
