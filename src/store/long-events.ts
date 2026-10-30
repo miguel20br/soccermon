@@ -60,8 +60,11 @@ const evolvers = (run: RunState) =>
     run.picks.filter((p) => evolutionTarget(p.speciesId, p.uid) !== null && !isOut(run, p.uid));
 const benchFree = (run: RunState) => run.bench.filter((u) => u && u !== run.captainUid);
 
-/** Sorteia o evento da casa `run.at` (sem repetir os já vistos e só os que fazem sentido agora). */
-export function rollEvent(run: RunState): LongEvent {
+/**
+ * Sorteia o evento da casa `run.at` (sem repetir os já vistos e só os que fazem sentido agora). `only` = esse evento,
+ * sem sorteio (demos e testes).
+ */
+export function rollEvent(run: RunState, only?: EventId): LongEvent {
     const rng = new Rng(run.seed, `event-${run.at}`);
     const seen = new Set(run.eventsSeen ?? []);
     const can = (id: EventId) =>
@@ -70,7 +73,7 @@ export function rollEvent(run: RunState): LongEvent {
         (id !== 'capitao' || benchFree(run).length >= 1) &&
         ((id !== 'treinoPuxado' && id !== 'creche') || evolvers(run).length > 0);
     const pool = EVENT_IDS.filter(can);
-    const id = pool.length ? rng.weighted(pool, (e) => WEIGHT[e]) : 'entrevista';
+    const id = only ?? (pool.length ? rng.weighted(pool, (e) => WEIGHT[e]) : 'entrevista');
     const taken = new Set(run.picks.map((p) => p.speciesId));
     // as melhores `n` de um sorteio maior (o patrocinador promete uma carta "muito boa": sai a melhor de 5)
     const offer = (round: number, n: number, of = n) =>

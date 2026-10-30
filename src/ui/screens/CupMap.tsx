@@ -456,6 +456,7 @@ export function Training() {
     const live = useGame((s) => s.run);
     const train = useGame((s) => s.train);
     const run = useHeld(live?.status === 'treino' ? live : null);
+    const [mark, setMark] = useState<string | null>(null);
     const { t } = useT();
     if (!run) return null;
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
@@ -477,8 +478,9 @@ export function Training() {
                                     key={p!.uid}
                                     type="button"
                                     className="mini target-btn"
+                                    aria-pressed={mark === p!.uid}
                                     onClick={() => {
-                                        train('evo', p!.uid);
+                                        setMark(p!.uid);
                                     }}
                                 >
                                     <img className="pixel" src={cardSprite(p!)} alt="" />
@@ -492,6 +494,20 @@ export function Training() {
                             );
                         })}
                     </div>
+                    {/* tocar marca, o botão treina (tocar já aplicava, sem volta) */}
+                    <button
+                        type="button"
+                        className="btn confirm cm-train-go"
+                        disabled={!mark}
+                        onClick={() => {
+                            if (mark) train('evo', mark);
+                        }}
+                    >
+                        <HudIcon kind="dumbbell" />
+                        {mark
+                            ? t('longCup.treino.go', { name: viewInstance(byUid.get(mark)!).displayName })
+                            : t('longCup.treino.pick')}
+                    </button>
                 </div>
             )}
             {/* ninguém evolui: treino de técnica, 1 de 2 itens (sem ele, o último Treino era um clique morto) */}
@@ -558,37 +574,45 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     creche: { icon: 'egg', color: '#c9a23a' },
 };
 
-/** Evento "?" da Copa longa: quem fala, o que aconteceu, as escolhas e, se a escolha pede, com quem. */
+/**
+ * Evento "?" da Copa longa: a cena (quem fala, grande, e o texto) no meio e as escolhas na barra do polegar. Escolha que
+ * pede alguém do time abre o "Quem?": tocar marca e o Confirmar aplica (nada sai do time num toque só).
+ */
 export function EventScreen() {
     const live = useGame((s) => s.run);
     const chooseEvent = useGame((s) => s.chooseEvent);
     const run = useHeld(live?.status === 'event' && live.event ? live : null);
     const [choice, setChoice] = useState<string | null>(null);
     const [card, setCard] = useState(0);
-    const [sub, setSub] = useState<string | null>(null);
+    const [who, setWho] = useState<string | null>(null);
+    const [captain, setCaptain] = useState<string | null>(null);
     const { t, d } = useT();
     if (!run?.event) return null;
     const ev = run.event;
     const txt = d.longCup.events[ev.id];
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const nameOf = (u: string) => (byUid.get(u) ? viewInstance(byUid.get(u)!).displayName : '');
+    const names = ev.uids?.map(nameOf) ?? [];
     const choices = eventChoices(run, ev);
-    const picked = choices.find((c) => c.id === choice);
+    const picked = choices.find((c) => c.id === choice && c.need !== 'none');
     const targets = picked ? choiceTargets(run, ev, picked.need) : [];
     const pick = (id: string) => {
         const c = choices.find((x) => x.id === id)!;
         if (c.need === 'none') chooseEvent(id);
         else {
-            setChoice(choice === id ? null : id);
-            setSub(null);
+            setChoice(id);
+            setWho(null);
+            setCaptain(null);
         }
     };
     // venda do capitão: depois do reserva, o novo capitão sai da escalação com ele na vaga
-    const lineupAfter = sub ? run.lineup.map((u) => (u === run.captainUid ? sub : u)) : [];
-    // carrinho: quem pode parar aparece com cara de dor; treino puxado: com cara de tonto (fica 1 partida fora)
+    const sale = picked?.need === 'captainSale';
+    const lineupAfter = sale && who ? run.lineup.map((u) => (u === run.captainUid ? who : u)) : [];
+    const ready = !!who && (!sale || !!captain);
+    // carrinho: quem pode parar aparece com cara de dor; quem treina pesado, com cara de tonto
     const face =
         picked?.need === 'involved' ? ['pain', 'dizzy'] : picked?.need === 'evolver' ? ['dizzy', 'sigh'] : null;
-    const strip = (uids: string[], onPick: (u: string) => void, active?: string | null, faces?: string[] | null) => (
+    const strip = (uids: string[], onPick: (u: string) => void, active: string | null, faces?: string[] | null) => (
         <div className="squad-strip">
             {uids.map((u) => (
                 <button
@@ -618,15 +642,13 @@ export function EventScreen() {
             ))}
         </div>
     );
+    const [pickedLabel, pickedEffect] = picked ? (txt.choices[picked.id] ?? [picked.id, '']) : ['', ''];
     return (
-        <div className="menu-screen cm cm-ev">
+        <div className={`menu-screen cm cm-ev${picked ? ' asking' : ''}`}>
             <MenuHead title={txt.title} hud={EVENT_ART[ev.id].icon} />
             <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
-                <span className="cm-event-emblem">
-                    <HudIcon kind={EVENT_ART[ev.id].icon} />
-                </span>
                 <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
-                <p>{fmtNames(txt.text, ev.uids?.map(nameOf) ?? [])}</p>
+                <p>{fmtNames(txt.text, names)}</p>
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
                     <span className="cm-event-faces" aria-hidden>
                         {ev.uids.map((u) =>
@@ -661,45 +683,74 @@ export function EventScreen() {
                     ))}
                 </div>
             )}
-            <div className="cm-choices">
-                {choices.map((c) => {
-                    const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
-                    return (
-                        <button
-                            key={c.id}
-                            type="button"
-                            className={`cm-choice bc-tile${choice === c.id ? ' on' : ''}`}
-                            disabled={!c.ok}
-                            onClick={() => pick(c.id)}
-                        >
-                            <span>
-                                <b>{label}</b>
-                                {effect && <small>{effect}</small>}
-                            </span>
-                            {c.cost !== 0 && (
-                                <span className={`money ${c.cost > 0 ? 'cost' : 'gain'}`}>
-                                    {c.cost > 0 ? '−' : '+'}
-                                    {t('shop.money', { n: Math.abs(c.cost) })}
-                                </span>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
             {picked && (
-                <div className="panel reward-pick" data-exit>
-                    <h2>{t(picked.need === 'captainSale' ? 'longCup.pickSub' : 'longCup.pickWho')}</h2>
-                    {picked.need === 'captainSale'
-                        ? strip(targets, setSub, sub)
-                        : strip(targets, (u) => chooseEvent(picked.id, u, card), null, face)}
-                    {picked.need === 'captainSale' && sub && (
+                <div key={picked.id} className="panel reward-pick cm-who" data-exit>
+                    <h2>
+                        {pickedLabel}
+                        {pickedEffect && <small>{fmtNames(pickedEffect, names)}</small>}
+                    </h2>
+                    <h3>{t(sale ? 'longCup.pickSub' : 'longCup.pickWho')}</h3>
+                    {strip(targets, setWho, who, face)}
+                    {sale && who && (
                         <>
-                            <h2>{t('longCup.pickCaptain')}</h2>
-                            {strip(lineupAfter, (u) => chooseEvent(picked.id, sub, 0, u))}
+                            <h3>{t('longCup.pickCaptain')}</h3>
+                            {strip(lineupAfter, setCaptain, captain)}
                         </>
                     )}
                 </div>
             )}
+            {/* as escolhas na barra do polegar; escolhida a que pede alguém, a barra vira Voltar · Confirmar */}
+            <div className="bc-thumbbar cm-choices">
+                {picked ? (
+                    <>
+                        <button
+                            key="back"
+                            type="button"
+                            className="btn ghost cm-bar-in"
+                            onClick={() => {
+                                setChoice(null);
+                            }}
+                        >
+                            {t('common.ui.back')}
+                        </button>
+                        <button
+                            key="ok"
+                            type="button"
+                            className="btn primary cm-bar-in"
+                            disabled={!ready}
+                            onClick={() => {
+                                if (who) chooseEvent(picked.id, who, card, captain ?? undefined);
+                            }}
+                        >
+                            {t('longCup.confirm')}
+                        </button>
+                    </>
+                ) : (
+                    choices.map((c) => {
+                        const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
+                        return (
+                            <button
+                                key={c.id}
+                                type="button"
+                                className="cm-choice bc-tile cm-bar-in"
+                                disabled={!c.ok}
+                                onClick={() => pick(c.id)}
+                            >
+                                <span>
+                                    <b>{label}</b>
+                                    {effect && <small>{fmtNames(effect, names)}</small>}
+                                </span>
+                                {c.cost !== 0 && (
+                                    <span className={`money ${c.cost > 0 ? 'cost' : 'gain'}`}>
+                                        {c.cost > 0 ? '−' : '+'}
+                                        {t('shop.money', { n: Math.abs(c.cost) })}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })
+                )}
+            </div>
         </div>
     );
 }

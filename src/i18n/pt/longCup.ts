@@ -181,6 +181,7 @@ export const longCup = {
     pickCard: 'Escolher',
     pickCaptain: 'Novo capitão',
     pickSub: 'Quem entra no lugar do capitão?',
+    confirm: 'Confirmar',
     treino: {
         title: 'Treino',
         evo: 'Treino de evolução',
@@ -192,5 +193,7 @@ export const longCup = {
         restLine: '+1 sorteio.',
         restGo: 'Descansar',
         none: 'Ninguém do time evolui.',
+        pick: 'Toque em quem treina',
+        go: 'Treinar {name}',
     },
 };

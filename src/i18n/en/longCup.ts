@@ -179,6 +179,7 @@ export const longCup: typeof pt = {
     pickCard: 'Pick',
     pickCaptain: 'New captain',
     pickSub: "Who takes the captain's spot?",
+    confirm: 'Confirm',
     treino: {
         title: 'Training',
         evo: 'Evolution training',
@@ -190,5 +191,7 @@ export const longCup: typeof pt = {
         restLine: '+1 reroll.',
         restGo: 'Rest',
         none: 'Nobody on the team evolves.',
+        pick: 'Tap who trains',
+        go: 'Train {name}',
     },
 };
