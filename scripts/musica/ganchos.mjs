@@ -62,6 +62,7 @@ export function ganchosDe(song, { notas = false } = {}) {
 /** Faixa do jogo (`public/music/<faixa>.json`) → peça e, se a peça devolve vários Songs, a chave. */
 export const FAIXAS = {
     'abertura-gancho': ['abertura-gancho'],
+    'menu-balanco': ['menu-balanco'],
     campeao: ['campeao'],
     cerulean: ['extra-cerulean'],
     derrota: ['derrota'],

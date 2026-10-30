@@ -1,0 +1,60 @@
+{
+ "faixa": "menu-balanco",
+ "titulo": "Menu: Só o balanço (groove)",
+ "tela": "Home",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 81.6,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.8,
+   "amostras": [
+    0,
+    211680
+   ],
+   "bpm": 100,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.8,
+   "fim": 81.6,
+   "amostras": [
+    211680,
+    3598560
+   ],
+   "bpm": 100,
+   "compassos": 32
+  }
+ ],
+ "swing": 0.1,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    0,
+    0.465,
+    0.9
+   ],
+   [
+    24,
+    24.465,
+    24.9
+   ],
+   [
+    43.2,
+    43.665,
+    44.1
+   ],
+   [
+    62.4,
+    62.865,
+    63.3
+   ]
+  ]
+ }
+}

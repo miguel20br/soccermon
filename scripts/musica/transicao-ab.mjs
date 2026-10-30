@@ -20,7 +20,7 @@ const IN_S = 0.03;
 const OUT_TAU = 0.06;
 const LEAD_S = 0.03;
 // swing de cada peça (scripts/musica/pecas), pra virada balançar junto
-const SWING = { 'abertura-gancho': 0.15, draft: 0.1, escalacao: 0.04, 'partida-2t': 0.06 };
+const SWING = { 'abertura-gancho': 0.15, 'menu-balanco': 0.1, draft: 0.1, escalacao: 0.04, 'partida-2t': 0.06 };
 
 const tracks = new Map();
 function track(id) {
@@ -266,7 +266,7 @@ function ponte(id, bpm, swing) {
  * resultado vem 3 s depois (AUTO_RESULT_MS), como no jogo.
  */
 const PARES = [
-    { nome: 'home-draft', de: ['abertura-gancho', 'loop', 8], toque: 3.65, para: 'draft', c: 'ponte' },
+    { nome: 'home-draft', de: ['menu-balanco', 'loop', 8], toque: 3.65, para: 'draft', c: 'ponte' },
     { nome: 'draft-escalacao', de: ['draft', 'loop', 4], toque: 3.4, para: 'escalacao', c: 'ponte' },
     { nome: 'escalacao-partida', de: ['escalacao', 'loop', 4], toque: 3.4, para: 'partida-1t', c: 'riser' },
     {

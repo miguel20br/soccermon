@@ -6,22 +6,22 @@ import { type Screen, useGame } from '../store/game-store';
 
 /** Faixa de cada tela (sem entrada = silêncio). A partida escolhe a dela por `matchMusic`. */
 const TRACK: Partial<Record<Screen, TrackId>> = {
-    home: 'abertura-gancho',
-    settings: 'abertura-gancho',
+    home: 'menu-balanco',
+    settings: 'menu-balanco',
     credits: 'ultima-partida',
-    help: 'abertura-gancho',
-    profile: 'abertura-gancho',
-    collection: 'abertura-gancho',
+    help: 'menu-balanco',
+    profile: 'menu-balanco',
+    collection: 'menu-balanco',
     trophies: 'sala',
-    daily: 'abertura-gancho',
-    liga: 'abertura-gancho',
+    daily: 'menu-balanco',
+    liga: 'menu-balanco',
     shop: 'mercado-funk',
     draft: 'draft',
     lineup: 'escalacao',
     reward: 'recompensa',
 };
 
-/** Telas da copa (a ida por elas é "avançar"). Menus (Configurações, Ajuda, Perfil…) dividem a Abertura com a Home. */
+/** Telas da copa (a ida por elas é "avançar"). Menus (Configurações, Ajuda, Perfil…) dividem a música do menu (Só o balanço) com a Home. */
 const RUN: readonly Screen[] = [
     'draft',
     'lineup',
