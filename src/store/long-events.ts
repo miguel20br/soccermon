@@ -165,15 +165,18 @@ export function resolveEvent(
             };
         }
         case 'capitao:vender': {
-            // o capitão vai embora; o reserva escolhido entra na vaga dele; você escolhe o novo capitão
+            // o capitão vai embora; o reserva escolhido entra na vaga dele (na quadra ou no banco, onde ele estiver) e a
+            // vaga do reserva some; você escolhe o novo capitão
             const old = run.captainUid;
-            const lineup = next.lineup.map((u) => (u === old ? target! : u));
-            if (!captain || !lineup.includes(captain)) return null;
+            if (!old) return null;
+            const swap = (u: string) => (u === old ? target! : u === target ? old : u);
+            const lineup = next.lineup.map(swap);
+            if (!captain || !lineup.includes(captain) || captain === old) return null;
             return {
                 ...next,
                 picks: next.picks.filter((p) => p.uid !== old),
                 lineup,
-                bench: next.bench.filter((u) => u !== target),
+                bench: next.bench.map(swap).filter((u) => u !== old),
                 captainUid: captain,
             };
         }

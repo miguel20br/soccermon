@@ -72,6 +72,21 @@ describe('eventos da Copa longa', () => {
         expect(sold.lineup).toContain(sub);
     });
 
+    it('vender o capitão que está no banco não deixa ninguém fantasma no time (a próxima partida quebrava)', () => {
+        const base = longRun('ev-cap');
+        const k = base.lineup.indexOf(base.captainUid!);
+        const run = {
+            ...base,
+            lineup: base.lineup.map((u, i) => (i === k ? base.bench[0] : u)),
+            bench: [base.captainUid!, 'charm'],
+        };
+        const sold = resolveEvent(run, { id: 'capitao' }, 'vender', 'charm', 0, run.lineup[0])!;
+        const uids = new Set(sold.picks.map((p) => p.uid));
+        expect([...sold.lineup, ...sold.bench].filter((u) => !uids.has(u))).toEqual([]);
+        expect(sold.bench).toEqual(['charm']);
+        expect(sold.lineup).toEqual(run.lineup);
+    });
+
     it('creche e treino puxado: barra de evolução e fica fora; entrevista muda o próximo rival', () => {
         const run = longRun('ev-5');
         const creche = resolveEvent(run, { id: 'creche' }, 'deixar', 'charm')!;
