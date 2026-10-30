@@ -405,7 +405,7 @@ export function Settings() {
 
             <DataSettings />
             <AccountSettings />
-            {/* a Home de ambientes não tem rodapé: Novidades, Ajuda, Créditos e o aviso de direitos moram aqui */}
+            {/* a Home de ambientes não tem rodapé: Ajuda, Créditos e o aviso de direitos moram aqui (Novidades no canto de cima) */}
             <AboutFooter lang={false} />
         </div>
     );

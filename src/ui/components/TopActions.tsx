@@ -1,11 +1,12 @@
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { ProfileChip } from '../profile/PlayerCard';
+import { NewsButton } from './AboutFooter';
 import { MenuIcon } from './MenuIcon';
 
 /**
- * Canto de cima à direita, igual em toda tela de menu (Home inclusive): Ajuda ("?", só na Home: o Como jogar),
- * Configurações (engrenagem) e o seu Perfil (`profile={false}`: a Home dos ambientes tem o treinador na barra de cima).
+ * Canto de cima à direita, igual em toda tela de menu (Home inclusive): Novidades, Ajuda ("?", só na Home: o Como
+ * jogar), Configurações (engrenagem) e o seu Perfil (`profile={false}`: a Home dos ambientes tem o treinador na barra de cima).
  */
 export function TopActions({ help, profile = true }: { help?: () => void; profile?: boolean }) {
     const { t, d } = useT();
@@ -13,6 +14,7 @@ export function TopActions({ help, profile = true }: { help?: () => void; profil
     const go = useGame((s) => s.go);
     return (
         <div className="top-actions">
+            <NewsButton />
             {help && (
                 <button
                     type="button"

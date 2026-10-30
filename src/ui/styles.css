@@ -8029,3 +8029,11 @@ body {
         width: min(100%, 520px);
     }
 }
+/* o pontinho das Novidades no canto do botão */
+.news-fab {
+    position: relative;
+}
+.news-fab > .new-dot {
+    top: 2px;
+    right: 2px;
+}

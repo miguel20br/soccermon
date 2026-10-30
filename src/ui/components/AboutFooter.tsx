@@ -3,8 +3,11 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
+import { readCount, writeCount } from '../local-count';
 import { type PatchNotes, patchNotes } from '../patch-notes';
+import { NewDot } from '../profile/news';
 import { HudIcon } from './MatchHud';
+import { MenuIcon } from './MenuIcon';
 
 /** Troca rápida de idioma no rodapé (as Configurações também têm). */
 function LangToggle() {
@@ -79,29 +82,59 @@ function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lan
     );
 }
 
+/** "0.9.27" vira 9027: a última versão aberta nas Novidades fica guardada como número (`local-count`). */
+const versionNum = (v: string) => v.split('.').reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
+const NEWS_SEEN = 'soccermon.newsSeen';
+
 /**
- * O rodapé do jogo: Novidades (abre as notas de versão), Ajuda, Créditos, Feedback, Privacidade, GitHub, o idioma e o
- * aviso de direitos. Na Home de lista fica no fim da tela; com os ambientes, no fim das Configurações (`lang={false}`:
- * lá o idioma já tem o seu grupo).
+ * Novidades no canto de cima (TopActions), em toda tela de menu: abre as notas de versão; o pontinho acende enquanto
+ * a versão nova não foi aberta neste navegador (o Miguel, 30/10: nas Configurações ficava estranho).
  */
-export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
+export function NewsButton() {
     const { t, d, lang } = useT();
-    const go = useGame((s) => s.go);
     const notes = patchNotes(lang);
-    const [notesOpen, setNotesOpen] = useState(false);
-    const closeNotes = useCallback(() => setNotesOpen(false), []);
+    const latest = versionNum(notes[0].version);
+    const [seen, setSeen] = useState(() => readCount(NEWS_SEEN));
+    const [open, setOpen] = useState(false);
+    const close = useCallback(() => setOpen(false), []);
     return (
         <>
-            <Sheet open={notesOpen} onClose={closeNotes} title={t('home.news')} className="patch-notes">
+            <button
+                type="button"
+                className="help-fab news-fab"
+                aria-label={`${d.home.tiles.news} v${notes[0].version}`}
+                title={`${d.home.tiles.news} v${notes[0].version}`}
+                onClick={() => {
+                    setOpen(true);
+                    setSeen(latest);
+                    writeCount(NEWS_SEEN, latest);
+                }}
+            >
+                <MenuIcon kind="news" />
+                {/* sem onde guardar (aba anônima): sem pontinho, ele não apagaria nunca */}
+                <NewDot on={seen !== null && seen < latest} />
+            </button>
+            <Sheet open={open} onClose={close} title={t('home.news')} className="patch-notes">
                 {notes.map((n, i) => (
                     <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
                 ))}
             </Sheet>
+        </>
+    );
+}
+
+/**
+ * O rodapé do jogo: Ajuda, Créditos, Feedback, Privacidade, GitHub, o idioma e o aviso de direitos (as Novidades
+ * moram no canto de cima, `NewsButton`). Na Home de lista fica no fim da tela; com os ambientes, no fim das
+ * Configurações (`lang={false}`: lá o idioma já tem o seu grupo).
+ */
+export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
+    const { t, d } = useT();
+    const go = useGame((s) => s.go);
+    return (
+        <>
             <footer className="home-footer">
                 <nav className="footer-links" aria-label={t('home.footerAria')}>
-                    <button type="button" className="link-btn" onClick={() => setNotesOpen(true)}>
-                        {d.home.tiles.news} <em className="tile-badge">v{notes[0].version}</em>
-                    </button>
                     <button type="button" className="link-btn" onClick={() => go('help')}>
                         {d.home.tiles.help}
                     </button>

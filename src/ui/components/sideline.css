@@ -150,26 +150,50 @@
     overflow: visible;
 }
 .sl-ring-at {
+    --ring-d: 40px;
     position: relative;
     display: inline-flex;
 }
-/* QTE de um tiro só: o círculo nasce 4x maior e fecha uma vez (--q de 0 a 1), encostando no 1 do compasso */
-.sl-ring {
-    --ring-d: 40px;
+/* QTE de um tiro só: o círculo nasce 4x maior e fecha uma vez (--q de 0 a 1) em cima do alvo, no 1 do compasso */
+.sl-ring,
+.sl-ring-target {
     position: absolute;
     left: 50%;
     top: 50%;
     width: var(--ring-d);
     height: var(--ring-d);
     margin: calc(var(--ring-d) / -2) 0 0 calc(var(--ring-d) / -2);
-    border: var(--ring-w, 2px) solid #fff;
     border-radius: 50%;
     pointer-events: none;
+}
+.sl-ring {
+    border: var(--ring-w, 2px) solid #fff;
     transform: scale(calc(1 + (1 - var(--q, 0)) * 3));
     opacity: calc(0.35 + var(--q, 0) * 0.65);
     box-shadow:
         0 0 0 2px var(--bc-ink),
         inset 0 0 0 2px var(--bc-ink);
+}
+/* o alvo: parado no tamanho final, tracejado escuro com fio branco (lê no botão amarelo e na quadra); na janela do
+   perfeito acende branco e incha um pouco */
+.sl-ring-target {
+    border: 3px dashed var(--bc-ink);
+    box-shadow:
+        0 0 0 1px #fff,
+        inset 0 0 0 1px #fff;
+    transition:
+        transform 0.08s,
+        opacity 0.2s;
+}
+.sl-ring-target.now {
+    border: 3px solid #fff;
+    transform: scale(1.15);
+    box-shadow:
+        0 0 0 2px var(--bc-ink),
+        0 0 14px 6px var(--lvc, var(--yellow));
+}
+.sl-ring-target.hit {
+    opacity: 0;
 }
 /* encostou: acende na cor do nível e se desfaz */
 .sl-ring.hit {
@@ -193,10 +217,6 @@
     to {
         opacity: 0;
     }
-}
-/* no celular, em volta do botão da barra de baixo */
-.bc-maxwrap > .sl-ring {
-    --ring-d: 58px;
 }
 /*
  * Cara por nível (C1): N1 amarelo e quieto; N2 laranja, tremida leve e anel mais grosso; N3 na cor do tipo
@@ -234,11 +254,11 @@
     animation: sl-shake 0.09s linear infinite;
 }
 /* o anel do celular mora fora do botão: pega o nível do irmão */
-.bc-maxthumb.ready[data-lv="2"] + .sl-ring {
+.bc-maxthumb.ready[data-lv="2"] ~ :is(.sl-ring, .sl-ring-target) {
     --lvc: color-mix(in srgb, var(--yellow), var(--red) 40%);
     --ring-w: 3px;
 }
-.bc-maxthumb.ready[data-lv="3"] + .sl-ring {
+.bc-maxthumb.ready[data-lv="3"] ~ .sl-ring {
     --ring-w: 4px;
 }
 @keyframes sl-shake {
@@ -631,7 +651,7 @@
         box-shadow: 0 3px 0 var(--bc-ink);
         font-size: 11px;
     }
-    .sl-cue .sl-ring {
+    .sl-cue .sl-ring-at {
         --ring-d: 30px;
     }
     .sl-cue .hud-icon {
@@ -661,7 +681,9 @@
 .bc-coach .sl-max {
     display: none;
 }
+/* o anel do celular mora em volta do botão da barra de baixo */
 .bc-maxwrap {
+    --ring-d: 58px;
     position: relative;
     flex: none;
     display: flex;

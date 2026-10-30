@@ -8,7 +8,7 @@ import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
 import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCallCueNear, maxCueNear, roleAt } from '../match-view';
-import { holdRing, maxTap } from '../max-beat';
+import { gradeDelta, holdRing, MAX_BEAT, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
 import { HudIcon, hex } from './MatchHud';
@@ -394,12 +394,14 @@ export function MaxCueButton({
 }
 
 /**
- * Anel do QTE (um tiro só): nasce grande quando o botão acende e fecha UMA vez, encostando no 1 do compasso (a hora
- * do perfeito, `holdRing`); depois some. Anda por `requestAnimationFrame` direto no estilo (nada de render do React):
- * `--q` vai de 0 (nasceu) a 1 (encostou).
+ * Anel do QTE (um tiro só): nasce grande quando o botão acende e fecha UMA vez em cima do anel-alvo parado, encostando
+ * no 1 do compasso (a hora do perfeito, `holdRing`); depois os dois somem. O alvo acende na janela do perfeito (o
+ * Miguel, 30/10: "o círculo tinha que fechar em outro círculo"). Anda por `requestAnimationFrame` direto no estilo
+ * (nada de render do React): `--q` vai de 0 (nasceu) a 1 (encostou).
  */
 function QteRing({ duck }: { duck: boolean }) {
     const ref = useRef<HTMLSpanElement>(null);
+    const target = useRef<HTMLSpanElement>(null);
     useEffect(() => {
         const r = holdRing(duck);
         let raf = 0;
@@ -410,6 +412,8 @@ function QteRing({ duck }: { duck: boolean }) {
                 el.style.setProperty('--q', Math.min(1, (now - r.start) / Math.max(1, r.at - r.start)).toFixed(3));
                 if (now >= r.at) el.classList.add('hit');
             }
+            target.current?.classList.toggle('now', gradeDelta(now - MAX_BEAT.offsetMs - r.at) === 2);
+            if (now > r.at + MAX_BEAT.perfectAfter) target.current?.classList.add('hit');
             if (now < r.at + 400) raf = requestAnimationFrame(loop);
         };
         loop();
@@ -418,7 +422,12 @@ function QteRing({ duck }: { duck: boolean }) {
             r.release();
         };
     }, [duck]);
-    return <span ref={ref} className="sl-ring" aria-hidden />;
+    return (
+        <>
+            <span ref={target} className="sl-ring-target" aria-hidden />
+            <span ref={ref} className="sl-ring" aria-hidden />
+        </>
+    );
 }
 
 /** Barrinha do golpe máximo de cada time, embaixo do placar (os dois lados veem a do rival). */
