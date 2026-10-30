@@ -38,6 +38,8 @@ export interface AgencyView {
     maxWaiting?: boolean;
     /** Tipo do capitão (`capTypeAt`): a cor do botão no N3. */
     capType?: string;
+    /** Capitão no gol (`capIsGk`): o golpe máximo dele é a bicuda (nome e ícone próprios no botão). */
+    bicuda?: boolean;
 }
 
 /**
@@ -121,6 +123,12 @@ export function capFxType(
     return MAX_SIGNATURE[inst.speciesId] ?? maxFxType(inst.moves, cap.speciesId, species(cap.speciesId).types);
 }
 
+/** O capitão do time `side` está no gol: o golpe máximo dele é a bicuda (motor 17). */
+export function capIsGk(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number) {
+    const cap = captainAt(m, setups, side, tick).idx;
+    return cap !== null && roleAt(m, setups, cap, tick) === 'GK';
+}
+
 /** Tipo (o 1º) do capitão do time `side`: a cor do golpe máximo no N3, igual à aura dele na quadra. */
 export function capTypeAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number) {
     const id = captainAt(m, setups, side, tick).speciesId;
@@ -188,6 +196,13 @@ function levelLook(view: AgencyView): { 'data-lv': number; style?: CSSProperties
 /** Gomos da barra (o rótulo do botão mostra o nível). */
 const maxLevelLabel = (lv: number, tpl: string) => tpl.replace('{n}', String(lv));
 
+/** Nome, ícone e dica do botão: o golpe máximo, ou a bicuda com o capitão no gol. */
+function maxFace(view: AgencyView, a: ReturnType<typeof useT>['d']['match']['agency']) {
+    return view.bicuda
+        ? { name: a.bicuda, icon: 'bicuda' as const, hint: a.bicudaHint }
+        : { name: a.max, icon: 'max' as const, hint: a.maxBeatHint };
+}
+
 /** Os botões do técnico (na aba Tática e na barra do desktop). */
 export function SidelineControls({
     view,
@@ -210,6 +225,7 @@ export function SidelineControls({
     const lit = maxLit(view) && canAct;
     const tap = useMaxTap(onMax, lit);
     const look = levelLook(view);
+    const face = maxFace(view, a);
     return (
         <div className="sl">
             <div className="bc-row">
@@ -263,7 +279,7 @@ export function SidelineControls({
                 <button
                     type="button"
                     className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}`}
-                    title={`${a.maxHint} ${a.maxBeatHint}`}
+                    title={`${a.maxHint} ${face.hint}`}
                     aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
                     aria-disabled={!lit}
@@ -272,9 +288,9 @@ export function SidelineControls({
                     data-lv={look['data-lv']}
                     style={{ ...look.style, '--fill': view.max.charge } as CSSProperties}
                 >
-                    <HudIcon kind="max" />
+                    <HudIcon kind={face.icon} />
                     <span>
-                        <b>{a.max}</b>
+                        <b>{face.name}</b>
                         <small>
                             {view.maxPending
                                 ? a.maxCalling
@@ -288,7 +304,7 @@ export function SidelineControls({
                 </button>
                 {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
                 <span className="sr-only" aria-live="polite">
-                    {lit ? `${a.max}: ${a.maxReady} (${maxLevelLabel(view.max.level, a.maxLevel)})` : ''}
+                    {lit ? `${face.name}: ${a.maxReady} (${maxLevelLabel(view.max.level, a.maxLevel)})` : ''}
                 </span>
                 {onPens && (
                     <button type="button" className="sl-btn" disabled={!canAct} onClick={onPens}>
@@ -321,6 +337,7 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
         return () => clearTimeout(id);
     }, [why]);
     const live = view.maxPending;
+    const face = maxFace(view, a);
     return (
         // a cor do N3 no invólucro: o botão e o anel (irmão dele) herdam
         <span className="bc-maxwrap" style={look.style}>
@@ -329,14 +346,14 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
                 className={`bc-maxthumb${lit ? ' ready' : ''}${live ? ' live' : ''}`}
                 aria-keyshortcuts="M"
                 aria-disabled={!lit}
-                aria-label={`${a.max}: ${live ? a.maxActive : lit ? a.maxReady : maxLevelLabel(view.max.level, a.maxLevel)}`}
+                aria-label={`${face.name}: ${live ? a.maxActive : lit ? a.maxReady : maxLevelLabel(view.max.level, a.maxLevel)}`}
                 onPointerDown={tap.onPointerDown}
                 onClick={() => (lit ? tap.tap() : !live && setWhy(true))}
                 data-lv={look['data-lv']}
                 style={{ '--fill': view.max.charge } as CSSProperties}
             >
                 <i className="bc-maxthumb-fill" aria-hidden />
-                <HudIcon kind="max" />
+                <HudIcon kind={face.icon} />
                 <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
             </button>
             {lit && <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />}
@@ -369,22 +386,23 @@ export function MaxCueButton({
     const lit = canAct && maxLit(view);
     const tap = useMaxTap(onMax, lit);
     if (!lit) return null;
+    const face = maxFace(view, a);
     return (
         <div className="sl-cue-row" data-exit>
             <button
                 type="button"
                 className="sl-cue lv3"
                 aria-keyshortcuts="M"
-                title={a.maxBeatHint}
+                title={face.hint}
                 onPointerDown={tap.onPointerDown}
                 onClick={tap.tap}
                 {...levelLook(view)}
             >
                 <span className="sl-ring-at">
                     <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />
-                    <HudIcon kind="max" />
+                    <HudIcon kind={face.icon} />
                 </span>
-                <b className="sl-cue-name">{a.max}</b>
+                <b className="sl-cue-name">{face.name}</b>
                 <small className="sl-cue-lv">{maxLevelLabel(view.max.level, a.maxLevelShort)}</small>
                 <FxBadge view={view} />
             </button>
@@ -470,7 +488,7 @@ export function MaxBars({
     );
 }
 
-/** Na quadra: goleiro-linha, defesa máxima valendo e a faixa do tempo pedido (dura o efeito todo). */
+/** Na quadra: goleiro-linha e a faixa do tempo pedido (dura o efeito todo). */
 export function SidelineOverlay({
     events,
     tick,

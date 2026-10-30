@@ -51,7 +51,7 @@ com a curva dele, mais forte, sem somar.
 - Os números de antes e depois vão pro Miguel antes de valer. Medir com `npm run calibrate -- --n 400 --agencia` e
   `scripts/balance/coach.ts`.
 
-## Números do motor 17 (protótipo, n=400, 30/10/2026; nada aprovado)
+## Números do motor 17 (n=400, 30/10/2026; aprovados em 30/10)
 
 Bicuda = parry (regra corrigida de 30/10). `calibrate --agencia` (os dois times com o técnico IA) e
 `scripts/balance/coach.ts` (técnico robô, 400 partidas por política). O motor 16 é o da `main` (o motor não mudou nos 38
@@ -71,7 +71,10 @@ parte, já removido).
 | Técnico robô contra o técnico IA (good / n3) | +2,5 / +4,8 pp | +5,0 / +4,3 pp | +8,5 / +6,5 pp |
 | Robô goleiro: bicudas por jogo (good), gol do time depois | — | — | 0,86 (N1/N2/N3 0,50/0,20/0,16), 0,14 gol |
 
-Pra decidir (Miguel):
+**Aprovado em 30/10 (Miguel):** a bicuda N3 fica como está (92% de gol); o golpe de linha fica mais forte como está
+(72%); o toque fora da bicuda gasta a barra. Os números do motor 17 valem assim.
+
+O que estava em aberto antes da decisão:
 - **Bicuda N3 ainda é quase gol certo (92%; robô goleiro n3: 85%)**, mesmo passando pela defesa normal do goleiro rival:
   hipótese (não medida): o chute N3 sai a ~2,2x de força, a conta de defesa do goleiro cai pro piso (5%) com bola tão
   rápida, e a curva automática leva pro canto (no teste com o goleiro parado, a curva sozinha já tira a bola do alcance). Pra ficar defensável de verdade, opções: a bicuda N3 com menos força (ex.: a do N2), ou

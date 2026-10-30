@@ -149,7 +149,7 @@ export const commentary: typeof pt = {
     flyGkOn: '{team} go with a flying keeper! {x} pushes up and leaves the goal empty.',
     flyGkOff: '{x} heads back to goal: {team} drop the flying keeper.',
     maxHit: 'MAX MOVE! {x} unleashes {m} at full power!',
-    maxGk: 'MAX SAVE! {x} holds it and plays it out fast.',
+    maxGk: 'BIG BOOT! {x} fires it right back.',
     coach: {
         timeout: '{leader} called a time-out! Play stops at the next dead ball.',
         flyGkOn: '{leader} sends the keeper forward: flying keeper incoming!',

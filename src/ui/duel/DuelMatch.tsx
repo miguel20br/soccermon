@@ -81,6 +81,7 @@ import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Pranche
 import {
     agencyView,
     capFxType,
+    capIsGk,
     capTypeAt,
     MaxBars,
     MaxCueButton,
@@ -539,6 +540,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueAt(match, setups, side, clock.tick)),
         fxType: capFxType(match, setups, side, clock.tick),
         capType: capTypeAt(match, setups, side, clock.tick),
+        bicuda: capIsGk(match, setups, side, clock.tick),
     };
     // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });

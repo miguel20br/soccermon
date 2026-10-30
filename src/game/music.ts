@@ -440,6 +440,11 @@ function fillBuffer(o: Parameters<typeof mixVirada>[0]): AudioBuffer {
  */
 export const DUCK = { hz: 650, gain: 0.5, tau: 0.08, back: 0.15 };
 let ducked: Playing | null = null;
+/** Quando (relógio do áudio) a faixa abre de novo depois do último `unduckMusic`. */
+let openAt = 0;
+
+/** A faixa está no fundo: abaixada, ou esperando a virada pra abrir. */
+export const musicDucked = () => !!ducked || (!!zz && ctx().currentTime < openAt);
 let duckClap: Float32Array | null = null;
 
 /** A faixa vai pro fundo (a quadra parou no golpe máximo). */
@@ -486,6 +491,7 @@ export function unduckMusic(fill: boolean) {
         open = now + w.end;
         tau = 0.01;
     }
+    openAt = open;
     p.lp.frequency.setTargetAtTime(c.sampleRate / 2, open, tau);
     p.gain.gain.setTargetAtTime(1, open, tau);
 }

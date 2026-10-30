@@ -30,8 +30,8 @@ describe('narração do rival que reage', () => {
     });
 });
 
-describe('narração da defesa máxima (E1)', () => {
-    it('só fala quando a defesa sai: o começo e o "sem chute" ficam mudos', () => {
+describe('narração do golpe máximo', () => {
+    it('só fala quando o golpe sai: o toque fora fica mudo', () => {
         const r = runMatch(FUTSAL_5, team('cm-a', 'A'), team('cm-b', 'B'), 'cm-max', { snapshots: false });
         const c = new Commentator(r, ['Casa', 'Fora']);
         const max = (phase: 'start' | 'hit' | 'miss') =>
@@ -50,5 +50,29 @@ describe('narração da defesa máxima (E1)', () => {
         expect(max('start')).toBeNull();
         expect(max('miss')).toBeNull();
         expect(max('hit')?.text).toBeTruthy();
+    });
+});
+
+describe('narração da bicuda', () => {
+    it('a defesa do mesmo tick fica muda: a fala é a da bicuda', () => {
+        const r = runMatch(FUTSAL_5, team('cm-a', 'A'), team('cm-b', 'B'), 'cm-bic', { snapshots: false });
+        const gk = r.roster.findIndex((p) => p.role === 'GK');
+        const at = { tick: 99999, minute: 40, half: 2 as const };
+        const save = { type: 'save' as const, ...at, by: gk, shooter: 7, caught: false };
+        const hit = {
+            type: 'max' as const,
+            ...at,
+            team: r.roster[gk].team,
+            by: gk,
+            phase: 'hit' as const,
+            moveId: null,
+            level: 2 as const,
+            q: 2 as const,
+        };
+        const c = new Commentator({ ...r, events: [...r.events, save, hit] }, ['Casa', 'Fora']);
+        expect(c.lineFor(save)).toBeNull();
+        expect(c.lineFor(hit)?.text).toContain('BICUDA');
+        // sem bicuda no tick, a defesa fala como sempre
+        expect(new Commentator(r, ['Casa', 'Fora']).lineFor(save)?.text).toBeTruthy();
     });
 });

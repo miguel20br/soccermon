@@ -426,6 +426,54 @@ export class Cinematics {
     }
 
     /**
+     * Fundo da cena do especial N3 (estilo Super de jogo de luta): a quadra some atrás da cor do tipo (escurecida) e
+     * linhas de velocidade saem do capitão (`x`, `y`, no mundo), piscando a cada 60 ms; somem no fim (`ms`). Fica entre
+     * o escurecimento e quem está em foco (`focused`): o capitão e a bola aparecem por cima. "Reduzir movimento": as
+     * linhas ficam paradas e mais fracas.
+     */
+    superScene(opts: { x: number; y: number; color: number; ms: number; reduce: boolean }) {
+        const scene = this.scene;
+        const depth = FOCUS_DEPTH - 60;
+        const dark = Phaser.Display.Color.IntegerToColor(opts.color).darken(35).color;
+        const bg = scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W * 3, GAME_H * 3, dark, 0).setDepth(depth);
+        const lines = scene.add.graphics().setDepth(depth + 1);
+        const draw = () => {
+            lines.clear();
+            for (let i = 0; i < 36; i++) {
+                const a = (i / 36) * Math.PI * 2 + Math.random() * 0.12;
+                const w = 0.012 + Math.random() * 0.03;
+                const r0 = 70 + Math.random() * 60;
+                const r1 = GAME_W * 1.2;
+                lines.fillStyle(i % 3 ? 0xffffff : opts.color, opts.reduce ? 0.25 : 0.55 + Math.random() * 0.35);
+                lines.fillTriangle(
+                    opts.x + Math.cos(a) * r0,
+                    opts.y + Math.sin(a) * r0,
+                    opts.x + Math.cos(a - w) * r1,
+                    opts.y + Math.sin(a - w) * r1,
+                    opts.x + Math.cos(a + w) * r1,
+                    opts.y + Math.sin(a + w) * r1,
+                );
+            }
+        };
+        draw();
+        const flicker = opts.reduce ? null : scene.time.addEvent({ delay: 60, loop: true, callback: draw });
+        lines.setAlpha(0);
+        scene.tweens.add({ targets: bg, fillAlpha: 0.88, duration: 90 });
+        scene.tweens.add({ targets: lines, alpha: 1, duration: 90 });
+        scene.tweens.add({
+            targets: [bg, lines],
+            alpha: 0,
+            delay: Math.max(0, opts.ms - 140),
+            duration: 160,
+            onComplete: () => {
+                flicker?.remove();
+                bg.destroy();
+                lines.destroy();
+            },
+        });
+    }
+
+    /**
      * Faixa do especial (N3, estilo Super de jogo de luta): diagonal atravessando a tela com o retrato PMD do capitão, o
      * nome do golpe e o tipo em letra grande. Entra deslizando em 200 ms, fica ~0,6 s e sai pro outro lado em 220 ms
      * ("Reduzir movimento": só aparece e some). Abaixo da bola (`depth`): ela nunca some atrás da faixa.
@@ -452,7 +500,7 @@ export class Cinematics {
         }
         const s = Math.min(this.uiScale, 1.6);
         const W = (GAME_W * 1.6) / s;
-        const h = 74;
+        const h = 84;
         const k = 18;
         const band = scene.add.graphics();
         const para = (dx: number, dy: number, hh: number) => [
@@ -483,9 +531,9 @@ export class Cinematics {
             x = size + 16;
         }
         const big = scene.add
-            .text(x, -11, opts.move.toUpperCase(), {
+            .text(x, -15, opts.move.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
-                fontSize: '36px',
+                fontSize: '44px',
                 fontStyle: 'bold',
                 color: '#ffffff',
                 stroke: '#0d1024',
@@ -494,7 +542,7 @@ export class Cinematics {
             .setOrigin(0, 0.5)
             .setResolution(2);
         const tag = scene.add
-            .text(x + 10, 24, opts.typeLabel.toUpperCase(), {
+            .text(x + 10, 27, opts.typeLabel.toUpperCase(), {
                 fontFamily: 'Galmuri11, monospace',
                 fontSize: '22px',
                 fontStyle: 'bold',
@@ -503,12 +551,12 @@ export class Cinematics {
             .setOrigin(0, 0.5)
             .setResolution(2);
         const tagBg = scene.add.graphics();
-        tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 24 - 14, tag.width + 20, 28, 4);
+        tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 27 - 14, tag.width + 20, 28, 4);
         content.push(big, tagBg, tag);
         let tagEnd = tag.width + 20;
         if (opts.note) {
             const note = scene.add
-                .text(x + tagEnd + 18, 24, opts.note.text, {
+                .text(x + tagEnd + 18, 27, opts.note.text, {
                     fontFamily: 'Galmuri11, monospace',
                     fontSize: '22px',
                     fontStyle: 'bold',

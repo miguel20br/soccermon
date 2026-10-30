@@ -660,6 +660,77 @@ const mistura: Pack = {
     },
 };
 
+/**
+ * Sons a mais do pacote D (golpe universal, 30/10/2026; só vão pro jogo, sem comparar com os outros pacotes): a bicuda
+ * do goleiro capitão (o couro estalando no bumbo, o "fuuu" da bola indo embora e moedas subindo) e a entrada da cena do
+ * especial N3 (o "tchiiing" de sinos com o vento subindo; o golpe N3 cai no fim da cena, ~0,8 s depois).
+ */
+type Extra = 'bicuda' | 'especial';
+const EXTRAS: Record<Extra, { som: () => Stereo; alvo: number; max: number }> = {
+    bicuda: {
+        alvo: -9,
+        max: 0.95,
+        som: () => {
+            const b = new Bus()
+                .add(kick({ f0: 200, f1: 42, pt: 0.03, tau: 0.12, click: 1, drive: 2.2 }), 0, 1)
+                .add(sat(sub(80, 42, 0.22, 0.8), 1.8), 0, 0.55)
+                .add(punch(200, 0.06), 0, 0.5)
+                .add(clap(), 0, 0.5)
+                .add(tchak(71, 2200), 0, 0.8)
+                .add(brass([64, 71, 76], 0.05, 0.09, 3000), 0.004, 0.35);
+            // a bola indo embora: ruído em faixa subindo, da esquerda pra direita
+            const whoosh = (seed: number) =>
+                env(
+                    svf(noise(0.45, seed), (t) => 500 + 5000 * (t / 0.45) ** 1.5, 2.2, 'bp'),
+                    0.12,
+                    0.08,
+                    0.15,
+                );
+            b.add(whoosh(72), 0.02, 0.32, -0.5).add(whoosh(73), 0.07, 0.28, 0.5);
+            [
+                [88, 93, 0.06, -0.4],
+                [93, 98, 0.1, 0.1],
+                [98, 105, 0.14, 0.5],
+            ].forEach(([a, z, t, p]) => void b.add(coin(a, z, 0.08), t, 0.24, p));
+            return b.room(0.24, 1).done(0.95);
+        },
+    },
+    especial: {
+        alvo: -11,
+        max: 0.85,
+        som: () => {
+            // o clarão: sinos agudos juntos e o brilho; depois o vento subindo até o chute (sem bumbo: o N3 traz o dele)
+            const b = new Bus();
+            [93, 100, 105, 112].forEach((m, i) => void b.add(bell(m, 0.3, 2.2), i * 0.008, 0.3, -0.45 + i * 0.3));
+            b.add(sparkle(0.12, 74, 7000), 0, 0.35, -0.4).add(sparkle(0.12, 75, 7000), 0.01, 0.35, 0.4);
+            const riser = (seed: number) =>
+                env(
+                    svf(noise(0.8, seed), (t) => 300 + 6500 * (t / 0.8) ** 2, 3, 'bp'),
+                    0.62,
+                    0.05,
+                    0.08,
+                );
+            b.add(riser(76), 0.05, 0.55, -0.35).add(riser(77), 0.05, 0.55, 0.35);
+            // grave subindo junto (o "uuuum" de carga), saturado pro celular ouvir
+            b.add(
+                sat(
+                    env(
+                        osc(0.8, (t) => 45 + 70 * (t / 0.8) ** 2, 'tri', 9),
+                        0.5,
+                        0.05,
+                        0.2,
+                    ),
+                    1.6,
+                ),
+                0.05,
+                0.35,
+            );
+            shimmer(b, 0.1, 0.6, [100, 105, 107, 112], 10, 0.05, 78);
+            return b.room(0.3, 1.2).done(0.9);
+        },
+    },
+};
+
 // ---------- volume e números ----------
 /** Volume momentâneo: o RMS (mono) da janela de 100 ms mais alta, em dBFS. */
 function momentary([L, R]: Stereo) {
@@ -882,6 +953,25 @@ for (const p of [atual, moedas, cristal, estadio, mistura]) {
     }
     seqs.push([p.id, sequence(got['tap-perfeito'], got['golpe-n3'])]);
 }
+if (process.argv.includes('--jogo'))
+    for (const [snd, x] of Object.entries(EXTRAS)) {
+        const raw = x.som();
+        const g = 10 ** ((x.alvo - momentary(raw)) / 20);
+        const s = raw.map((c) => c.map((v) => MAX_PEAK.move * Math.tanh((v * g) / MAX_PEAK.move))) as Stereo;
+        if (s[0].length > N(x.max)) console.warn(`${snd}: passou de ${x.max} s`);
+        console.log(snd, stats(s));
+        wav(`${snd}-jogo.wav`, s);
+        spawnSync('ffmpeg', [
+            '-v',
+            'error',
+            '-y',
+            '-i',
+            join(out, `${snd}-jogo.wav`),
+            '-b:a',
+            '112k',
+            `public/sfx/max-${snd}.mp3`,
+        ]);
+    }
 // as sequências com o mesmo ganho (a mais alta no pico 0,9): a diferença de volume entre pacotes fica
 const seqPk = Math.max(...seqs.map(([, s]) => peakOf(s)));
 for (const [id, s] of seqs) wav(join(id, 'sequencia.wav'), s.map((c) => c.map((v) => (v * 0.9) / seqPk)) as Stereo);

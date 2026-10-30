@@ -1,7 +1,7 @@
 import { ZZFX, zzfx } from 'zzfx';
 import type { CryStyle } from '../store/game-store';
 import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
-import { MAX_MOVE, MAX_TAP, type MaxSound } from './max-sfx';
+import { MAX_EXTRA, MAX_MOVE, MAX_TAP, type MaxSound } from './max-sfx';
 
 /**
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
@@ -97,7 +97,7 @@ export function leadIn(ch: ArrayLike<number>, sampleRate: number): number {
 }
 export const loadMaxSfx = () =>
     (maxP ??= Promise.all(
-        [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE)].map(async (name) => {
+        [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE), ...MAX_EXTRA].map(async (name) => {
             // um arquivo que falha fica mudo sozinho (os outros tocam); se algum falhou, a próxima chamada tenta de novo
             try {
                 const r = await fetch(`sfx/max-${name}.mp3`);

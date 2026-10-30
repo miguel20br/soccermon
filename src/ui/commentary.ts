@@ -97,6 +97,8 @@ export class Commentator {
     private olympicShot = false;
     /** Time com técnico IA (rival que reage): o aviso dele já narra o grito e a tática, sem repetir. */
     private coached: [boolean, boolean];
+    /** Bicudas (`tick:goleiro`): a defesa do mesmo tick fica muda, a fala é a da bicuda. */
+    private bicudas: Set<string>;
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -105,6 +107,11 @@ export class Commentator {
         this.roles = result.roster.map((p) => p.role);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
+        this.bicudas = new Set(
+            result.events
+                .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
+                .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
+        );
         this.coached = [0, 1].map((t) => result.events.some((e) => e.type === 'coach' && e.team === t)) as [
             boolean,
             boolean,
@@ -174,6 +181,7 @@ export class Commentator {
                 return line(this.pick(c.shots, { w }), 'normal', this.teams[e.by]);
             }
             case 'save':
+                if (this.bicudas.has(`${e.tick}:${e.by}`)) return null;
                 return line(
                     this.pick(e.caught ? c.saveCaught : c.saveParried, { x: this.n(e.by) }),
                     'big',
@@ -412,7 +420,7 @@ export class Commentator {
                     e.team,
                 );
             case 'max': {
-                // a defesa máxima só vira fala quando sai (E1): o começo fica na aura e o "sem chute" no goleiro
+                // só o golpe que saiu vira fala (a bicuda com o toque fora fica no goleiro)
                 if (e.phase !== 'hit') return null;
                 const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
                 const text = this.roles[e.by] === 'GK' ? c.maxGk : c.maxHit;

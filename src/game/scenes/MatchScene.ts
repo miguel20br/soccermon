@@ -61,6 +61,7 @@ import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { MAX_MOVE } from '../max-sfx';
 import { castMove, preloadMoveFx } from '../move-fx';
+import { duckMusic, musicDucked, unduckMusic } from '../music';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
 
@@ -203,10 +204,18 @@ const DRAMA_LEAD = 12;
 const BALL_DEPTH = FOCUS_DEPTH + 200;
 /** Reação do atingido (ícone, estrelinhas, palavra) e faixa do especial: acima do escurecimento, abaixo da bola. */
 const REACT_DEPTH = BALL_DEPTH - 6;
-/** Hitstop do N3: a quadra congela no toque (tempo real), em qualquer velocidade (o momento grande da partida). */
-const N3_HITSTOP_MS = 650;
+/**
+ * Cena do especial N3 (linha e bicuda): a quadra congela no toque por esse tempo real (o momento grande da partida). No
+ * 4x, metade; no 8x, nada (só o clarão do tipo).
+ */
+const N3_SCENE_MS = 800;
+const n3SceneMs = (speed: PlaybackSpeed) => (speed === 8 ? 0 : speed === 4 ? N3_SCENE_MS / 2 : N3_SCENE_MS);
 /** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
 const TRAIL_TICKS = 5;
+/** Rastro do golpe máximo no ar (mais longo: a curva pro canto tem que aparecer). */
+const MAX_TRAIL_TICKS = 16;
+/** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
+const MAX_BICUDA_SLOW_TICKS = 24;
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
 const DIVE_LEAD = 6;
 const DIVE_TAIL = 10;
@@ -226,7 +235,7 @@ export interface MatchEvolution {
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
 export interface MatchHighlight {
-    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic' | 'timeout' | 'flyGk' | 'max';
+    kind: 'goal' | 'owngoal' | 'save' | 'sub' | 'rivalEvolve' | 'tactic' | 'timeout' | 'flyGk' | 'max' | 'bicuda';
     team: 0 | 1;
     speciesId: number;
     shiny: boolean;
@@ -475,6 +484,8 @@ export class MatchScene extends Phaser.Scene {
     private n3Shot: { tick: number; type: string } | null = null;
     /** Golpe máximo no ar: câmera lenta até o desfecho e o brilho na bola (cor do tipo no N3). */
     private maxSlow: { until: number; factor: number; color: number } | null = null;
+    /** Até quando (tempo real) a cena do especial N3 está na tela. */
+    private n3SceneUntil = 0;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
     /** Hora (`performance.now`) em que o botão do golpe máximo acendeu, pro bullet time. */
     private cueSince: number | null = null;
@@ -515,7 +526,6 @@ export class MatchScene extends Phaser.Scene {
     private penaltyStage: number[] = [];
     /** Já parou pra escolher a ordem dos pênaltis (uma vez por partida). */
     private penPicked = false;
-    private maxSpans: AgencySpan[] = [];
     private flySpans: AgencySpan[] = [];
     private agencyG?: Phaser.GameObjects.Graphics;
     private linePos = new Map<number, { x: number; y: number }>();
@@ -687,24 +697,12 @@ export class MatchScene extends Phaser.Scene {
         this.agencySpans();
     }
 
-    /** Aura do golpe máximo (da abertura da janela até sair) e do goleiro-linha (ligado até desligar). */
+    /** Aura do goleiro-linha (ligado até desligar). */
     private agencySpans() {
-        this.maxSpans = [];
         this.flySpans = [];
-        const openMax = new Map<number, AgencySpan>();
         const openFly = new Map<number, AgencySpan>();
         for (const e of this.matchEvents) {
-            if (e.type === 'max') {
-                if (e.phase === 'start') {
-                    const span = { idx: e.by, from: e.tick, to: Number.POSITIVE_INFINITY };
-                    openMax.set(e.team, span);
-                    this.maxSpans.push(span);
-                } else {
-                    const span = openMax.get(e.team);
-                    if (span) span.to = e.tick;
-                    openMax.delete(e.team);
-                }
-            } else if (e.type === 'flyGk') {
+            if (e.type === 'flyGk') {
                 const open = openFly.get(e.team);
                 if (open) open.to = e.tick;
                 openFly.delete(e.team);
@@ -715,7 +713,7 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
         }
-        if ((this.maxSpans.length || this.flySpans.length || this.md.agency) && !this.agencyG)
+        if ((this.flySpans.length || this.md.agency) && !this.agencyG)
             this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     }
 
@@ -771,19 +769,13 @@ export class MatchScene extends Phaser.Scene {
         return { idx, level: c.level, color };
     }
 
-    /** Desenha as auras (a cada quadro, embaixo do jogador): dourada pulsando no golpe máximo, amarela no goleiro-linha. */
+    /** Desenha as auras (a cada quadro, embaixo do jogador): amarela no goleiro-linha, a da barra pronta no capitão. */
     private drawAgency(pxOf: { x: number; y: number }[]) {
         const g = this.agencyG;
         if (!g) return;
         g.clear();
         const t = this.playTick;
         const pulse = 0.5 + 0.5 * Math.sin(this.time.now / 90);
-        for (const sp of this.maxSpans) {
-            const px = pxOf[sp.idx];
-            if (!px || t < sp.from || t >= sp.to) continue;
-            g.fillStyle(0xffd447, 0.3 + 0.2 * pulse).fillEllipse(px.x, px.y - 16, 84 + 14 * pulse, 92 + 14 * pulse);
-            g.lineStyle(5, 0xfff2a8, 1).strokeEllipse(px.x, px.y + 1, 48 + 10 * pulse, 19 + 4 * pulse);
-        }
         for (const sp of this.flySpans) {
             const px = pxOf[sp.idx];
             if (!px || t < sp.from || t >= sp.to) continue;
@@ -913,6 +905,7 @@ export class MatchScene extends Phaser.Scene {
         this.clip++;
         // o que segurava a quadra no trecho anterior não vale no próximo
         this.holdReal = 0;
+        this.n3SceneUntil = 0;
         this.seekTo(clips[this.clip].from);
         if (!this.md.reduceMotion) this.cameras.main.fadeIn(220, 7, 10, 24);
         EventBus.emit('replay:clip', this.clip);
@@ -1778,15 +1771,20 @@ export class MatchScene extends Phaser.Scene {
         // bola dominada ou "teleporte" (saída depois do gol): sem rastro
         if (!free || (last && Math.hypot(x - last.x, y - last.y) > 90)) this.trail.length = 0;
         if (free && (!last || last.x !== x || last.y !== y)) this.trail.push({ x, y, tick: this.playTick });
-        while (this.trail.length && this.playTick - this.trail[0].tick > TRAIL_TICKS) this.trail.shift();
+        // golpe máximo no ar: rastro longo e grosso na cor dele (a curva automática pro canto aparece nele)
+        const max = this.maxSlow && this.playTick <= this.maxSlow.until ? this.maxSlow : null;
+        const len = max ? MAX_TRAIL_TICKS : TRAIL_TICKS;
+        while (this.trail.length && this.playTick - this.trail[0].tick > len) this.trail.shift();
 
         const g = this.trailG.clear();
         const n = this.trail.length;
         if (n < 2) return;
         g.setDepth(BALL_DEPTH - 2);
+        const color = max && this.ballColor === 0xffffff ? max.color : this.ballColor;
+        const w = max ? 9 : 5;
         for (let i = 1; i < n; i++) {
             const k = i / (n - 1);
-            g.lineStyle(1.5 + 5 * k, this.ballColor, 0.08 + 0.42 * k);
+            g.lineStyle(1.5 + w * k, color, 0.08 + (max ? 0.6 : 0.42) * k);
             g.lineBetween(this.trail[i - 1].x, this.trail[i - 1].y, this.trail[i].x, this.trail[i].y);
         }
     }
@@ -1905,7 +1903,14 @@ export class MatchScene extends Phaser.Scene {
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
         const reaction = reactionFor(e, this.reactCtx);
-        if (reaction) this.react(reaction, e.tick, showsWord(reaction, this.reactionsAt(e.tick), this.spritePos));
+        if (reaction) {
+            const show = () =>
+                this.react(reaction, e.tick, showsWord(reaction, this.reactionsAt(e.tick), this.spritePos));
+            // na cena do especial N3 quem caiu reage depois dela (a palavra cobria o capitão no close)
+            const wait = this.n3SceneUntil - this.time.now;
+            if (wait > 0) this.time.delayedCall(wait, show);
+            else show();
+        }
         // o chute N3 chegou (gol, defesa, bloqueio, trave): onda de choque do tipo onde a bola está
         // o golpe máximo chegou a um desfecho: a câmera lenta acaba logo depois (o tempo de ver a bola no gol/na mão)
         if (
@@ -1949,6 +1954,13 @@ export class MatchScene extends Phaser.Scene {
                 if (e.xg >= 0.25) this.punch('touch');
                 break;
             case 'save': {
+                // a bicuda do goleiro capitão sai no mesmo tick como 'save': a cena é dela (o caso 'max')
+                if (
+                    this.matchEvents.some(
+                        (x) => x.type === 'max' && x.phase === 'hit' && x.by === e.by && x.tick === e.tick,
+                    )
+                )
+                    break;
                 playSfx('save');
                 // a torcida é sua: "uuuh" quando o goleiro rival pega o seu chute
                 if (this.players[e.by]?.team !== this.mine) playCrowd('uuh', 0.8);
@@ -2389,71 +2401,63 @@ export class MatchScene extends Phaser.Scene {
             case 'max': {
                 const cap = this.players[e.by];
                 if (!cap) break;
-                // 'start' = a defesa máxima do goleiro começou a valer; o chute máximo vem direto no 'hit'
-                // a defesa máxima abre com 'start'; o chute máximo não (é um lance só)
-                const gkSave =
-                    e.phase === 'hit' &&
-                    this.matchEvents.some(
-                        (x) => x.type === 'max' && x.team === e.team && x.phase === 'start' && x.tick <= e.tick,
-                    );
-                const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
-                // o som próprio de cada nível sai no golpe (o chute, ou a defesa que saiu); a defesa que só começou
-                // fica na aura, sem som nem texto (E1: não promete o que pode não sair)
-                if (e.phase === 'hit') playMax(MAX_MOVE[e.level ?? 1]);
+                const a = dict().match.agency;
+                // motor 17: o golpe máximo do goleiro capitão é a bicuda (devolve o chute do rival)
+                const bicuda = this.md.result.roster[e.by]?.role === 'GK';
                 if (e.phase === 'miss') {
-                    this.popText(e.by, dict().match.agency.maxMissShort, '#a6aed6');
+                    // a bicuda com o toque fora: a defesa de sempre, a barra se foi
+                    this.popText(e.by, a.maxMissShort, '#a6aed6');
                     break;
                 }
-                if (e.phase === 'start') this.highlight('max', cap);
-                // no N3 a faixa do especial leva tudo (golpe, efeito do tipo e a nota do toque): sem os textos de cima
-                if (e.phase === 'hit' && !n3) {
-                    const a = dict().match.agency;
+                if (e.phase !== 'hit') break;
+                const n3 = e.level === 3;
+                const name = bicuda ? a.bicuda : a.max;
+                // golpe máximo por tipo: a faixa grande leva o nome do efeito, na cor do tipo
+                const fx = this.matchEvents.find(
+                    (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
+                );
+                const fxType = fx?.type === 'maxFx' ? fx.fx : null;
+                if (n3) {
+                    // o especial: a cena congela a quadra, toca a entrada e o golpe cai no fim dela (superMove)
+                    this.superMove(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0, bicuda);
+                } else {
+                    // no N3 a faixa do especial leva tudo (o card do canto ficava por baixo dela)
+                    this.highlight(bicuda ? 'bicuda' : 'max', cap);
+                    playMax(bicuda ? 'bicuda' : MAX_MOVE[e.level ?? 1]);
                     // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
                     const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
-                    this.popText(e.by, `${a.max.toUpperCase()}${lv}`, '#ffd447');
+                    this.popText(e.by, `${name.toUpperCase()}${lv}`, '#ffd447');
                     if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
                     else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
-                    this.highlight('max', cap);
-                }
-                if (e.phase === 'start') this.punch('hit');
-                else if (e.phase === 'hit') {
-                    // N3: o hitstop com a cor do tipo entra no lugar da pausa e do clarão branco
-                    this.punch(n3 ? 'whisper' : 'boom');
-                    // golpe máximo por tipo: a faixa grande leva o nome do efeito, na cor do tipo
-                    const fx = this.matchEvents.find(
-                        (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
-                    );
-                    const fxType = fx?.type === 'maxFx' ? fx.fx : null;
-                    if (cinematic && !n3) {
+                    this.punch('boom');
+                    // a bicuda: o chutão levanta poeira no pé do goleiro
+                    if (bicuda) this.kickPop(cap.sprite.x, cap.sprite.y, 2.2, 12);
+                    if (cinematic) {
                         this.cine.drama(
-                            fxType
-                                ? `${(dict().match.agency.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
-                                : `${dict().match.agency.max.toUpperCase()}!`,
+                            fxType ? `${(a.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!` : `${name.toUpperCase()}!`,
                             {
                                 color: fxType ? (TYPE_COLOR[fxTypeOf(fxType)] ?? '#ffd447') : '#ffd447',
                                 stroke: '#1a1030',
                                 at: { x: cap.sprite.x, y: cap.sprite.y },
                                 // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
-                                sub: `${e.q === 2 ? `${dict().match.agency.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
+                                sub: `${e.q === 2 ? `${a.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
                                 // a assinatura vence as outras faixas do lance (o combo do Pikachu cobria a dele)
                                 top: !!fxType && fxType in AGENCY.maxSig,
                             },
                         );
-                    }
-                    if (!gkSave)
-                        this.maxSlow = {
-                            until: e.tick + TICK_RATE * 3,
-                            factor: n3 ? MAX_SHOT_SLOW.n3 : MAX_SHOT_SLOW.other,
-                            color: n3
-                                ? hexToNumber(
-                                      TYPE_COLOR[fxType ? fxTypeOf(fxType) : species(cap.speciesId).types[0]] ??
-                                          '#ffd447',
-                                  )
-                                : 0xffd447,
-                        };
-                    if (n3) this.superMove(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0);
-                    else if (!gkSave && !cinematic) this.lightZoom(cap);
+                    } else this.lightZoom(cap);
                 }
+                // a bola voa em câmera lenta até o desfecho, com o rastro na cor do golpe (a curva aparece nele); a
+                // bicuda N1/N2 é um lançamento: a câmera lenta dura só a saída
+                this.maxSlow = {
+                    until: e.tick + (bicuda && !n3 ? MAX_BICUDA_SLOW_TICKS : TICK_RATE * 3),
+                    factor: n3 ? MAX_SHOT_SLOW.n3 : MAX_SHOT_SLOW.other,
+                    color: n3
+                        ? hexToNumber(
+                              TYPE_COLOR[fxType ? fxTypeOf(fxType) : species(cap.speciesId).types[0]] ?? '#ffd447',
+                          )
+                        : 0xffd447,
+                };
                 break;
             }
             case 'maxFx': {
@@ -2978,27 +2982,65 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * N3 com cara de especial de luta: hitstop (a quadra congela 0,3 s com a tela na cor do tipo; não em 8x), faixa
-     * diagonal com o retrato do capitão, o golpe e o tipo, zoom forte e tremida no chute. O rastro do tipo vai na bola
-     * (bfx do motor) e a onda de choque sai no impacto (`n3Shot`).
+     * N3 com cara de especial de luta (o da bicuda também): a quadra congela (`N3_SCENE_MS`, tempo real; metade no 4x,
+     * nada no 8x), close no capitão com o fundo na cor do tipo e linhas de velocidade, a faixa com o retrato, o golpe e
+     * o tipo, e a música no fundo; no fim da cena, o chute (som do N3, tremida). Só tela: o motor já decidiu o lance. O
+     * rastro do tipo vai na bola (bfx do motor) e a onda de choque sai no impacto (`n3Shot`).
      */
-    private superMove(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number, q: number) {
+    private superMove(
+        cap: PlayerView,
+        moveId: string | null,
+        fxType: string | null,
+        tick: number,
+        q: number,
+        bicuda: boolean,
+    ) {
         const move = moveId ? MOVES[moveId] : undefined;
         const type = fxType ? fxTypeOf(fxType) : (move?.type ?? species(cap.speciesId).types[0]);
         // assinatura (Hyper Beam, Blizzard…): o nome dela na faixa no lugar do golpe, e a faixa vence as outras
         const sig = !!fxType && fxType in AGENCY.maxSig;
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const reduce = !!this.md.reduceMotion;
-        this.holdReal = Math.max(this.holdReal, this.time.now + N3_HITSTOP_MS);
-        this.cine.hitTint(color, N3_HITSTOP_MS + 120, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
+        const ms = n3SceneMs(this.speed);
+        const now = this.time.now;
+        const cam = this.cameras.main;
+        const kick = () => {
+            playMax(MAX_MOVE[3]);
+            if (!reduce) cam.shake(420, 0.014);
+            cam.zoomTo(1.35, 160, 'Cubic.easeOut', true);
+        };
+        if (ms > 0) {
+            this.holdReal = Math.max(this.holdReal, now + ms);
+            this.n3SceneUntil = now + ms;
+            playMax('especial');
+            // o capitão fica acima do fundo da cena (como no holofote dos golpes)
+            const idx = this.players.indexOf(cap);
+            this.cine.focused.add(idx);
+            this.cine.superScene({ x: cap.sprite.x, y: cap.sprite.y - 16, color, ms, reduce });
+            cam.pan(cap.sprite.x, cap.sprite.y - 14, 140, 'Sine.easeOut', true);
+            cam.zoomTo(reduce ? 1.35 : 1.75, 140, 'Cubic.easeOut', true);
+            // a música abaixa só na cena (se o toque já não a deixou no fundo) e volta com a virada
+            const duck = !musicDucked();
+            if (duck) duckMusic();
+            this.time.delayedCall(ms, () => {
+                if (!this.cine.spotlightActive) this.cine.focused.delete(idx);
+                if (duck) unduckMusic(true);
+                kick();
+            });
+        } else {
+            // 8x: sem cena, só o clarão do tipo e o chute
+            this.cine.hitTint(color, 320, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
+            kick();
+        }
         // a faixa entra: a caixa de batalha sai e o "foi paralisado!" do mesmo lance espera ela passar
-        this.battleBox.clear(this.time.now, 1720);
+        this.battleBox.clear(now, ms + 1100);
         const a = dict().match.agency;
+        const typeLabel = (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type));
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${cap.speciesId}`),
             move: sig && fxType ? (a.maxFx[fxType]?.[0] ?? fxType) : (move?.name ?? a.max),
             // o golpe pode ser Normal (Hyper Beam) e o efeito, do tipo do capitão: "efeito Dragão"
-            typeLabel: (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type)),
+            typeLabel: bicuda ? `${a.bicuda} · ${typeLabel}` : typeLabel,
             top: sig,
             note:
                 q === 2
@@ -3012,12 +3054,8 @@ export class MatchScene extends Phaser.Scene {
             reduce,
             depth: REACT_DEPTH + 2,
         });
-        const cam = this.cameras.main;
-        cam.pan(cap.sprite.x, cap.sprite.y - 14, 160, 'Sine.easeOut', true);
-        cam.zoomTo(1.35, 160, 'Cubic.easeOut', true);
-        cam.shake(420, 0.014);
         // sem "Efeitos cinematográficos" o drama não devolve a câmera: devolve aqui
-        if (!this.md.cinematic) this.time.delayedCall(N3_HITSTOP_MS + 600, () => this.cameraHome());
+        if (!this.md.cinematic) this.time.delayedCall(ms + 600, () => this.cameraHome());
         this.n3Shot = { tick, type };
     }
 

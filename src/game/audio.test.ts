@@ -71,8 +71,8 @@ describe('golpe máximo', () => {
     });
 
     it('todo som do toque e do golpe tem o arquivo em public/sfx', async () => {
-        const { MAX_MOVE, MAX_TAP } = await import('./max-sfx');
-        for (const name of [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE)])
+        const { MAX_EXTRA, MAX_MOVE, MAX_TAP } = await import('./max-sfx');
+        for (const name of [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE), ...MAX_EXTRA])
             expect(readFileSync(`public/sfx/max-${name}.mp3`).length).toBeGreaterThan(1000);
     });
 });

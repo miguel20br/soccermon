@@ -122,6 +122,7 @@ export const match = {
         timeout: 'TEMPO!',
         flyGk: 'GOLEIRO-LINHA',
         max: 'GOLPE MÁXIMO',
+        bicuda: 'BICUDA',
     },
     /** Agência do técnico (beira da quadra). */
     agency: {
@@ -139,7 +140,7 @@ export const match = {
         /** Charanga de Pewter ligou (o time passou a perder): aviso curto na quadra. */
         charanga: 'A CHARANGA ENTROU',
         maxHint:
-            'Enche com os lances do time. Acende já no N1, no ataque do seu time: toque e a bola procura o capitão, que solta o golpe perto do gol. Capitão goleiro: só no N3, quando o rival chega. Atalho: M.',
+            'Enche com os lances do time. Acende já no N1, no ataque do seu time: toque e a bola procura o capitão, que solta o golpe perto do gol. Capitão goleiro: acende no chute do rival e ele devolve de bicuda. Atalho: M.',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
         /** Tocou e o golpe ainda não saiu: a bola procura o capitão. */
@@ -148,11 +149,15 @@ export const match = {
         maxLevel: 'Nível {n}',
         maxLevelShort: 'N{n}',
         /** Tocou no golpe máximo da barra de baixo antes de acender. */
-        maxWhen: 'Ainda não: acende no ataque do seu time (goleiro capitão: no N3, quando o rival chega)',
+        maxWhen: 'Ainda não: acende no ataque do seu time (goleiro capitão: no chute do rival)',
         /** Um jogador seu chutou com a barra pronta (dica de uma vez só, em cima do capitão). */
         maxCaptainOnly: 'Só o capitão solta o golpe máximo',
-        /** A defesa máxima acabou sem chute no gol (no goleiro, curto). */
-        maxMissShort: 'Sem chute: a barra volta inteira',
+        /** Bicuda com o toque fora: o goleiro faz a defesa de sempre e a barra se vai (no goleiro, curto). */
+        maxMissShort: 'Fora: defesa normal',
+        /** Golpe máximo do goleiro capitão: devolve o chute do rival de bicuda. */
+        bicuda: 'Bicuda',
+        bicudaHint:
+            'Toque quando o anel fechar: o goleiro devolve o chute de bicuda e derruba quem estiver no caminho.',
         maxPerfect: 'PERFEITO!',
         maxGood: 'BOM',
         /** O toque fora do anel (a resposta na tela, `max-burst.ts`). */

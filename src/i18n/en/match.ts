@@ -110,6 +110,7 @@ export const match: typeof pt = {
         timeout: 'TIME-OUT!',
         flyGk: 'FLYING KEEPER',
         max: 'MAX MOVE',
+        bicuda: 'BIG BOOT',
     },
     agency: {
         title: 'Touchline',
@@ -125,16 +126,18 @@ export const match: typeof pt = {
         max: 'Max move',
         charanga: 'THE DRUMS KICK IN',
         maxHint:
-            "Fills with your team's plays. Lights up from L1 when your team attacks: tap and the ball looks for your captain, who unleashes it near goal. Keeper captain: only at L3, when the rival gets there. Shortcut: M.",
+            "Fills with your team's plays. Lights up from L1 when your team attacks: tap and the ball looks for your captain, who unleashes it near goal. Keeper captain: lights up on the rival's shot and he boots it back. Shortcut: M.",
         maxReady: 'Now!',
         maxActive: 'Live!',
         maxCalling: 'Calling…',
         maxLevel: 'Level {n}',
         maxLevelShort: 'L{n}',
         /** Tapped the bottom-bar max move before it lit up. */
-        maxWhen: 'Not yet: it lights up when your team attacks (keeper captain: at L3, when the rival gets there)',
+        maxWhen: "Not yet: it lights up when your team attacks (keeper captain: on the rival's shot)",
         maxCaptainOnly: 'Only the captain unleashes the max move',
-        maxMissShort: 'No shot: full bar back',
+        maxMissShort: 'Miss: normal save',
+        bicuda: 'Big boot',
+        bicudaHint: 'Tap when the ring closes: the keeper boots the shot back and knocks down anyone in the way.',
         maxPerfect: 'PERFECT!',
         maxGood: 'GOOD',
         /** O toque fora do anel (a resposta na tela, `max-burst.ts`). */

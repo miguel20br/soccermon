@@ -5,9 +5,19 @@
  */
 import type { MaxGrade } from '../engine/state';
 
-export type MaxSound = 'tap-perfeito' | 'tap-bom' | 'tap-fora' | 'golpe-n1' | 'golpe-n2' | 'golpe-n3';
+export type MaxSound =
+    | 'tap-perfeito'
+    | 'tap-bom'
+    | 'tap-fora'
+    | 'golpe-n1'
+    | 'golpe-n2'
+    | 'golpe-n3'
+    | 'bicuda'
+    | 'especial';
 
 /** Toque por nota: perfeito (na batida), bom, fora. */
 export const MAX_TAP: Record<MaxGrade, MaxSound> = { 2: 'tap-perfeito', 1: 'tap-bom', 0: 'tap-fora' };
 /** O golpe por nível. */
 export const MAX_MOVE: Record<1 | 2 | 3, MaxSound> = { 1: 'golpe-n1', 2: 'golpe-n2', 3: 'golpe-n3' };
+/** Golpe universal (motor 17): a bicuda do goleiro capitão (N1 e N2) e a entrada da cena do especial N3. */
+export const MAX_EXTRA: readonly MaxSound[] = ['bicuda', 'especial'];

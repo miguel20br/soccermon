@@ -64,6 +64,7 @@ import {
     agencyView,
     CharangaCue,
     capFxType,
+    capIsGk,
     capTypeAt,
     MaxBars,
     MaxCueButton,
@@ -488,6 +489,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         ...agency,
         fxType: capFxType(match, setups, 0, clock.tick),
         capType: capTypeAt(match, setups, 0, clock.tick),
+        bicuda: capIsGk(match, setups, 0, clock.tick),
         maxWaiting: wait !== null,
     };
     const canAgency = canChangeTactic && penPick === null;

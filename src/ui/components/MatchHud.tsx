@@ -289,6 +289,8 @@ export const ICONS = {
     timeout: 'M4 5h16M12 5v15M8 20h8',
     flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
     max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
+    // bicuda do goleiro capitão: a chuteira e a bola saindo
+    bicuda: 'M4 3v11a2 2 0 0 0 2 2h9a2.5 2.5 0 0 0 0-5H9V3M6 19v2M10 19v2M14 19v2M18.5 3.5a2 2 0 1 0 0 4 2 2 0 1 0 0-4M13 7h2',
     // duas cartas, uma atrás da outra (aba Fichário do Perfil)
     cards: 'M9 7h10v14H9zM5 17V3h10',
     // medalha com fita (aba Medalhas do Perfil)

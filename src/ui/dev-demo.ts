@@ -47,9 +47,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
- * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (defesa máxima);
+ * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (a bicuda, no chute do rival);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 3 Grama, 68 Lutador; os 12 de
- * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1` o Snorlax deita no gol).
+ * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1&nivel=3`, a bicuda N3).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
@@ -516,13 +516,25 @@ export function runDevDemo() {
             const live = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
             const s = live.state;
             let at: number | null = null;
+            /** Bicuda: o chute do rival vindo no gol (a hora certa), à espera de o goleiro chegar nele. */
+            let incoming: number | null = null;
             while (!live.finished && at === null && s.tick < 6000) {
+                const seen = s.events.length;
                 live.step();
                 const owner = s.ball.owner === null ? null : s.players[s.ball.owner];
                 const cap = s.players.find((p) => p.team === 0 && p.captain);
+                if (gk) {
+                    // vale o chute que o goleiro alcança (sem a bicuda, ele defende: a mesma conta de alcance)
+                    if (incoming !== null && s.events.slice(seen).some((e) => e.type === 'save' && e.by === cap?.idx))
+                        at = incoming;
+                    const shot = s.ball.owner === null ? s.ball.shot : null;
+                    const on = !!shot?.onTarget && !shot.gkChecked && s.players[shot.by].team === 1;
+                    if (!on) incoming = null;
+                    else if (incoming === null && maxCharge(s.events, 0, s.tick, 5).level >= nivel) incoming = s.tick;
+                    continue;
+                }
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
-                if (gk ? owner.team === 1 && inMaxZoneOf(s, owner, 'GK') : owner === cap && inMaxZoneOf(s, cap))
-                    at = s.tick;
+                if (owner === cap && inMaxZoneOf(s, cap)) at = s.tick;
             }
             if (at === null || at < 200) continue;
             const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };
