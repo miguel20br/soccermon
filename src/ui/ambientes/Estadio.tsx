@@ -10,6 +10,7 @@ import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
 import { Logo } from '../components/LogoHits';
+import { HudIcon } from '../components/MatchHud';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { ConfirmSheet } from '../kit/Sheet';
 import { FriendChallenge } from '../profile/FriendsTab';
@@ -449,9 +450,17 @@ export function Estadio({
                     <FriendChallenge />
                     <ParkedRuns />
                     <PlayBar main={main} sheet={plan.sheet.map(mode)} onPick={setChosen} />
-                    {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva) */}
-                    {cur === 'daily' && !daily.played && (
-                        <button type="button" className="es-rank" onClick={() => go('daily')}>
+                    {/* quem ainda não jogou hoje também acha o ranking (depois de jogar, o botão principal já leva). Fica
+                        sempre montado e por cima da quadra: aparecer não empurra as placas pra cima */}
+                    {!daily.played && plan.sheet.includes('daily') && (
+                        <button
+                            type="button"
+                            className={`es-rank${cur === 'daily' ? ' on' : ''}`}
+                            aria-hidden={cur !== 'daily'}
+                            tabIndex={cur === 'daily' ? 0 : -1}
+                            onClick={() => go('daily')}
+                        >
+                            <HudIcon kind="chart" />
                             {t('liga.home.dailyRanking')}
                         </button>
                     )}

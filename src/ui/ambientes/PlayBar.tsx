@@ -54,7 +54,7 @@ export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; on
     return (
         <div className={`es-go${rail ? ' has-modes' : ''}`}>
             {rail && (
-                <fieldset className="es-rail" aria-label={t('home.amb.modesAria')}>
+                <fieldset className={`es-rail${sheet.length > 4 ? ' many' : ''}`} aria-label={t('home.amb.modesAria')}>
                     {sheet.map((m) => (
                         <button
                             key={m.id}

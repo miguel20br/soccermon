@@ -3603,19 +3603,47 @@
     }
 }
 
-/* "Ranking de hoje" embaixo do JOGAR (Copa do Dia ainda não jogada): só um link, sem caixa (faxina) */
+/* "Ranking de hoje" (Copa do Dia ainda não jogada): chip por cima da quadra, à direita, acima das placas. Sempre
+   montado: entra e sai com fade e não mexe no layout (antes empurrava a fileira ~48 px pra cima) */
+.es-actions {
+    position: relative;
+}
 .es-rank {
-    align-self: center;
-    margin-top: 6px;
-    padding: 6px 12px;
-    border: 0;
-    background: none;
-    color: var(--muted);
-    font: inherit;
-    font-size: 13px;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 4px 10px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 3px 0 var(--cb-ink);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 6px;
+    transition:
+        opacity 220ms var(--ease-out),
+        translate 220ms var(--ease-out),
+        visibility 0s linear 220ms;
+}
+.es-rank.on {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition-delay: 0s;
+}
+.es-rank .hud-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
 }
 
 /* ---------- uma placa por modo, em cima do JOGAR (PlayBar.tsx, 30/10) ---------- */
@@ -3677,21 +3705,40 @@
     line-height: 1.15;
     text-align: center;
 }
-/* 320: "Relâmpago" inteiro numa linha da placa */
+/* 320: nome em 10 px (o mínimo do guia), em até 2 linhas; a placa perde 1 px de borda e quase todo o respiro do lado
+   pra "Relâmpago" caber inteiro. Com 5 placas (copa em andamento) não cabe: a escolhida alarga com o nome e as outras
+   ficam só com o ícone (o nome vai no leitor de tela e embaixo do JOGAR quando ela é escolhida) */
 @media (max-width: 359px) {
     .es-rail {
-        gap: 4px;
+        gap: 3px;
+    }
+    .es-tile {
+        padding: 6px 1px 7px;
+        border-width: 2px;
     }
     .es-tile b {
-        font-size: 9px;
+        font-size: 10px;
+    }
+    .es-rail.many .es-tile {
+        transition-property: transform, filter, background-color, color, flex-grow;
+    }
+    .es-rail.many .es-tile.on {
+        flex-grow: 2;
+    }
+    .es-rail.many .es-tile:not(.on) b {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
     }
 }
-/* a escolhida sobe, acende e ganha a borda da cor do modo */
+/* a escolhida sobe, acende e ganha a borda azul (escolhido = azul, brand guide); a cor do modo fica só no ícone */
 .es-tile.on {
     transform: translateY(-5px);
     color: #fff;
     background: #2f3d82;
-    border-color: var(--mode);
+    border-color: var(--blue-hi);
     box-shadow:
         inset 0 -4px 0 rgb(0 0 0 / 22%),
         0 0 0 2px var(--cb-ink),
