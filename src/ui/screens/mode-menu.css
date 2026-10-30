@@ -863,9 +863,7 @@ button.mm-card,
     display: grid;
     grid-template-rows: 0fr;
     opacity: 0;
-    transition:
-        grid-template-rows var(--dur-tela) var(--ease-out),
-        opacity var(--dur-tela) var(--ease-out);
+    transition: opacity var(--dur-tela) var(--ease-out);
 }
 .mm-slice-more > * {
     overflow: hidden;
@@ -983,16 +981,11 @@ button.mm-card,
 .mm-hero .mm-blue {
     left: var(--hx, 80%);
     top: var(--hy, 90%);
-    transition: top var(--dur-tela) var(--ease-out);
 }
 .mm-hero .mm-blue img {
     left: calc(var(--bs, 80px) / -2);
     width: var(--bs, 80px);
     height: var(--bs, 80px);
-    transition:
-        left var(--dur-tela) var(--ease-out),
-        width var(--dur-tela) var(--ease-out),
-        height var(--dur-tela) var(--ease-out);
 }
 .mm-hero .mm-say {
     bottom: calc(var(--bs, 80px) * 0.95);
@@ -1057,7 +1050,6 @@ button.mm-card,
     margin-top: calc(-1 * var(--cut) + var(--g));
     --clip: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
     --tt: var(--cut);
-    transition: flex-grow var(--dur-tela) var(--ease-out);
 }
 .mm-c1 .mm-slice:first-child {
     margin-top: 0;
@@ -1112,7 +1104,6 @@ button.mm-card,
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1.45fr 1fr;
-    transition: grid-template-rows var(--dur-tela) var(--ease-out);
 }
 .mm-c2 .mm-c-stack.mm-sel-ultimate,
 .mm-c2 .mm-c-stack.mm-sel-historia {
@@ -1199,12 +1190,6 @@ button.mm-card,
 }
 .mm-c2 .mm-s-historia.on {
     --hy: calc(100% - 168px);
-}
-.mm-hero .mm-pack {
-    transition:
-        left var(--dur-tela) var(--ease-out),
-        bottom var(--dur-tela) var(--ease-out),
-        height var(--dur-tela) var(--ease-out);
 }
 .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-chips > span {
     white-space: normal;
@@ -1306,7 +1291,6 @@ button.mm-card,
         --clip: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
         --wash-dir: 0deg;
         --wash: 42%;
-        transition: flex-grow var(--dur-tela) var(--ease-out);
     }
     .mm-c1 .mm-slice:first-child,
     .mm-c2 .mm-slice:first-child {

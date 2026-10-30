@@ -1,4 +1,5 @@
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { onBeat } from '../../game/music';
@@ -22,6 +23,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
+import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
@@ -386,6 +388,111 @@ export function Head() {
     );
 }
 
+/** Quadros de uma animação FLIP: `at(e)` com `e` de 1 (a foto velha) a 0 (o layout novo), no ease-out do jogo. */
+const FLIP_STEPS = 12;
+function flipFrames(at: (e: number) => string): Keyframe[] {
+    return Array.from({ length: FLIP_STEPS + 1 }, (_, k) => ({ transform: at((1 - k / FLIP_STEPS) ** 4) }));
+}
+
+/**
+ * Abrir a fatia sem relayout por quadro (FLIP): mede cada peça antes, aplica o layout final de uma vez (`apply`) e
+ * anima só transform, no compositor, da posição velha pra nova. O fundo escala até a caixa velha e a cena dentro dele
+ * leva a escala inversa (não estica: a caixa recorta e vai revelando, presa no canto de fora de cada fatia); o herói
+ * e o nome vão de onde estavam (a placa encolhe ou cresce até o tamanho novo). Os itens e os brilhos seguem com as
+ * transições de opacidade do CSS. Animar a grade, o flex e a altura relayoutava a pilha a cada quadro e engasgava no
+ * celular (30/10). Reduzir movimento: troca direto. Devolve as animações (um toque no meio cancela e parte de onde
+ * está, a medida já inclui o transform em curso).
+ */
+function flipSlices(stack: HTMLElement, running: Animation[], apply: () => void): Animation[] {
+    if (reduceMotionOn() || typeof stack.animate !== 'function') {
+        for (const a of running) a.cancel();
+        apply();
+        return [];
+    }
+    const z = uiZoom();
+    const parts = [...stack.querySelectorAll<HTMLElement>('.mm-slice')].map((s, i) => ({
+        i,
+        bg: s.querySelector<HTMLElement>('.mm-slice-bg'),
+        inner: [...s.querySelectorAll<HTMLElement>('.mm-slice-bg > .mm-sc')],
+        hero: s.querySelector<HTMLElement>('.mm-hero'),
+        mark: s.querySelector<HTMLElement>('.mm-cap, .mm-hero .mm-pack, .mm-hero .mm-blue img'),
+        txt: s.querySelector<HTMLElement>('.mm-slice-txt'),
+        plate: s.querySelector<HTMLElement>('.mm-plate'),
+    }));
+    const box = (e: HTMLElement | null) => e?.getBoundingClientRect();
+    const before = parts.map((p) => ({ bg: box(p.bg), mark: box(p.mark), plate: box(p.plate) }));
+    for (const a of running) a.cancel();
+    apply();
+    const out: Animation[] = [];
+    const opts: KeyframeAnimationOptions = { duration: 280, easing: 'linear' };
+    const go = (el: HTMLElement, frames: Keyframe[], origin = '0 0') => {
+        frames[0].transformOrigin = origin;
+        frames[frames.length - 1].transformOrigin = origin;
+        out.push(el.animate(frames, opts));
+    };
+    for (const p of parts) {
+        const a = before[p.i];
+        const bg = box(p.bg);
+        if (p.bg && a.bg && bg?.width && bg.height) {
+            const sx = a.bg.width / bg.width;
+            const sy = a.bg.height / bg.height;
+            const dx = (a.bg.left - bg.left) / z;
+            const dy = (a.bg.top - bg.top) / z;
+            if (Math.abs(sx - 1) > 0.002 || Math.abs(sy - 1) > 0.002 || Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                const lerp = (e: number, v: number) => 1 + (v - 1) * e;
+                go(
+                    p.bg,
+                    flipFrames((e) => `translate(${dx * e}px, ${dy * e}px) scale(${lerp(e, sx)}, ${lerp(e, sy)})`),
+                );
+                // a cena presa no canto de fora: o Copa em cima e à esquerda, o do meio embaixo, o último embaixo e à direita
+                const ax = ([0, 0.5, 1][p.i] ?? 0.5) * (bg.width / z);
+                const ay = (p.i === 0 ? 0 : 1) * (bg.height / z);
+                for (const c of p.inner)
+                    go(
+                        c,
+                        flipFrames((e) => {
+                            const ix = 1 / lerp(e, sx);
+                            const iy = 1 / lerp(e, sy);
+                            return `translate(${ax * (1 - ix)}px, ${ay * (1 - iy)}px) scale(${ix}, ${iy})`;
+                        }),
+                    );
+            }
+        }
+        const mark = box(p.mark);
+        const hero = box(p.hero);
+        if (p.hero && a.mark && mark && hero) {
+            // o herói vai de onde estava: a marca (o pé do capitão, o pacote, o Blue) volta pro lugar e tamanho velhos
+            const s = mark.height && a.mark.height ? a.mark.height / mark.height : 1;
+            const tx = (a.mark.left - hero.left - s * (mark.left - hero.left)) / z;
+            const ty = (a.mark.top - hero.top - s * (mark.top - hero.top)) / z;
+            if (Math.abs(s - 1) > 0.002 || Math.abs(tx) > 0.5 || Math.abs(ty) > 0.5)
+                go(
+                    p.hero,
+                    flipFrames((e) => `translate(${tx * e}px, ${ty * e}px) scale(${1 + (s - 1) * e})`),
+                );
+        }
+        const plate = box(p.plate);
+        if (p.txt && p.plate && a.plate && plate) {
+            // o nome: a placa (pelo centro) volta pro lugar e tamanho velhos; o resto do texto vai junto
+            const dx = (a.plate.left + a.plate.width / 2 - plate.left - plate.width / 2) / z;
+            const dy = (a.plate.top + a.plate.height / 2 - plate.top - plate.height / 2) / z;
+            const k = plate.width ? a.plate.width / plate.width : 1;
+            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5)
+                go(
+                    p.txt,
+                    flipFrames((e) => `translate(${dx * e}px, ${dy * e}px)`),
+                );
+            if (Math.abs(k - 1) > 0.002)
+                go(
+                    p.plate,
+                    flipFrames((e) => `scale(${1 + (k - 1) * e})`),
+                    'center',
+                );
+        }
+    }
+    return out;
+}
+
 /** A ordem das fatias: o Modo Copa (o que joga) primeiro, os trancados depois. */
 const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
 
@@ -402,17 +509,25 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
     // o "Chega em…" guarda o último trancado aberto: voltando pro Copa, ele some com o texto certo
     const locked = useRef<ModeId>('ultimate');
     if (sel !== LAST) locked.current = sel;
+    const stack = useRef<HTMLDivElement>(null);
+    const anims = useRef<Animation[]>([]);
+    const open = (m: ModeId) => {
+        if (m === sel) return;
+        const el = stack.current;
+        if (!el) return setSel(m);
+        anims.current = flipSlices(el, anims.current, () => flushSync(() => setSel(m)));
+    };
     return (
         <div className={`mm-c mm-${look}`}>
             <Head />
-            <div className={`mm-c-stack mm-sel-${sel}`}>
+            <div ref={stack} className={`mm-c-stack mm-sel-${sel}`}>
                 {ORDER.map((m, n) => (
                     <button
                         type="button"
                         key={m}
                         className={`mm-slice mm-s-${m}${sel === m ? ' on' : ''}`}
                         style={{ '--n': n + 1 } as CSSProperties}
-                        onClick={() => setSel(m)}
+                        onClick={() => open(m)}
                         aria-pressed={sel === m}
                     >
                         <span className="mm-slice-bg">
@@ -437,7 +552,7 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
             </div>
             <div className="mm-c-cta" style={{ '--n': 4 } as CSSProperties}>
                 <Play off={sel !== LAST} onClick={onPlay} />
-                <SoonCta id={locked.current} on={sel !== LAST} onBack={() => setSel(LAST)} />
+                <SoonCta id={locked.current} on={sel !== LAST} onBack={() => open(LAST)} />
             </div>
         </div>
     );
