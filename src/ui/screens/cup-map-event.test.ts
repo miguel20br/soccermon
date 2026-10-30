@@ -33,7 +33,7 @@ describe('tela do evento e do Treino', () => {
         const event = rollEvent(run, 'entrevista');
         useGame.setState({ run: { ...run, status: 'event', event } });
         const out = renderToStaticMarkup(createElement(EventScreen));
-        expect(out).toMatch(/class="bc-thumbbar cm-choices"[^]*cm-choice/);
+        expect(out).toMatch(/class="bc-thumbbar cm-choices".*cm-choice/s);
         // a cena vem antes da barra
         expect(out.indexOf('cm-event ')).toBeLessThan(out.indexOf('bc-thumbbar'));
     });
