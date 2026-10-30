@@ -717,9 +717,6 @@
 .cm-choice.bc-tile small {
     font-size: 12px;
 }
-.cm-choice.on {
-    border-color: var(--yellow);
-}
 .cm-choice:disabled {
     opacity: 0.5;
     cursor: default;
