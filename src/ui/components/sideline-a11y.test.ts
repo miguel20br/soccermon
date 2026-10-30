@@ -13,7 +13,7 @@ const view = (cue: boolean): AgencyView => ({
     flyPending: null,
     max: { charge: 1, level: 1, active: false },
     maxPending: false,
-    maxCue: cue,
+    maxCue: cue && 'hora',
 });
 const html = (cue: boolean) =>
     renderToStaticMarkup(

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AGENCY, fxTypeOf, maxCharge } from '../../engine/agency';
+import { AGENCY, fxTypeOf, maxCharge, maxMinLevel } from '../../engine/agency';
 import { computeAttributes, type Position } from '../../engine/attributes';
 import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
@@ -726,11 +726,11 @@ export class MatchScene extends Phaser.Scene {
         // a mesma dos dois lados, só dos dados da partida), então ninguém fica pra trás
         const teams: (0 | 1)[] = this.md.duel ? [0, 1] : [this.mine as 0 | 1];
         return teams.some((team) => {
-            const c = maxCharge(this.matchEvents, team, this.playTick, 5);
-            if (c.level < 1 || c.active) return false;
             const cap = this.players.findIndex((v) => v.team === team && v.captain);
             if (cap < 0) return false;
             const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
+            const c = maxCharge(this.matchEvents, team, this.playTick, 5);
+            if (c.level < maxMinLevel(role) || c.active) return false;
             return maxCueNear(
                 this.snaps,
                 Math.floor(this.playTick) - MAX_CUE_LATCH,
@@ -755,13 +755,13 @@ export class MatchScene extends Phaser.Scene {
         this.popText(ready.idx, dict().match.agency.maxCaptainOnly, '#ffd447', 22, 3200);
     }
 
-    /** Seu capitão com a barra pronta (N1+, sem golpe no ar): quem é, o nível e a cor do nível. */
+    /** Seu capitão com a barra pronta (N1+, o goleiro N3+; sem golpe no ar): quem é, o nível e a cor do nível. */
     private maxReady(): { idx: number; level: number; color: number } | null {
-        const c = maxCharge(this.matchEvents, this.mine as 0 | 1, this.playTick, 5);
-        if (c.level < 1 || c.active) return null;
         const idx = this.players.findIndex((v) => v.team === this.mine && v.captain);
         const cap = this.players[idx];
         if (!cap) return null;
+        const c = maxCharge(this.matchEvents, this.mine as 0 | 1, this.playTick, 5);
+        if (c.level < maxMinLevel((this.md.result.roster[idx]?.role ?? 'PIVO') as Position) || c.active) return null;
         const color =
             c.level >= 3
                 ? hexToNumber(TYPE_COLOR[species(cap.speciesId).types[0]] ?? '#ffcb05')

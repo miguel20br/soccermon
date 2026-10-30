@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { AGENCY, maxCallCue, maxCharge } from '../engine/agency';
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
-import { captainAt, halftimeEnd, type MaxWait, maxWaitNext, whoAt } from './match-view';
+import { maxCueAt } from './components/Sideline';
+import { captainAt, halftimeEnd, type MaxWait, maxCallCueNear, maxCueNear, maxWaitNext, whoAt } from './match-view';
 
 const team = (seed: string, name: string): TeamSetup => ({
     name,
@@ -97,5 +99,44 @@ describe('"Esperar" no golpe máximo (maxWaitNext)', () => {
     it('golpe usado (a barra zera): o "Esperar" acaba', () => {
         expect(maxWaitNext({ level: 2 }, 0, false)).toBeNull();
         expect(maxWaitNext(null, 1, true)).toBeNull();
+    });
+});
+
+describe('botão do golpe máximo (chamar o capitão e a hora certa)', () => {
+    const home = team('cue-a', 'A');
+    const away = team('cue-b', 'B');
+    const { pitch } = FUTSAL_5;
+
+    it('o passe no ar não apaga o "chamar": vale o último dono da bola (o botão piscava a cada passe)', () => {
+        const r = runMatch(FUTSAL_5, { ...home, captainUid: home.lineup[1].uid }, away, 'cue-call');
+        let checked = 0;
+        for (let i = 1; i < r.snapshots.length && checked < 5; i++) {
+            const [prev, s] = [r.snapshots[i - 1], r.snapshots[i]];
+            if (s.phase !== 'play' || s.owner >= 0 || !maxCallCue(prev, 0, 'FIXO', pitch)) continue;
+            expect(maxCallCue(s, 0, 'FIXO', pitch)).toBe(false);
+            expect(maxCallCueNear(r.snapshots, s.tick, 0, 'FIXO')).toBe(true);
+            checked++;
+        }
+        expect(checked).toBe(5);
+        // bola do rival: apaga na hora
+        const rival = r.snapshots.find((s) => s.phase === 'play' && s.owner >= 5);
+        expect(rival && maxCallCueNear(r.snapshots, rival.tick, 0, 'FIXO')).toBe(false);
+    });
+
+    it('goleiro capitão: o botão não acende abaixo do N3; o de linha diz se é "chamando" ou a hora certa', () => {
+        const gk = { ...home, captainUid: home.lineup[0].uid };
+        const r = runMatch(FUTSAL_5, gk, away, 'cue-gk');
+        const setups: [TeamSetup, TeamSetup] = [gk, away];
+        const low = r.snapshots.filter((s) => {
+            const lv = maxCharge(r.events, 0, s.tick, 5).level;
+            return lv >= 1 && lv < AGENCY.maxGkMinLevel && maxCueNear(r.snapshots, s.tick, s.tick, 0, 0, 'GK');
+        });
+        expect(low.length).toBeGreaterThan(0);
+        for (const s of low) expect(maxCueAt(r, setups, 0, s.tick)).toBe(false);
+
+        const line = { ...home, captainUid: home.lineup[3].uid };
+        const r2 = runMatch(FUTSAL_5, line, away, 'cue-line');
+        const kinds = new Set(r2.snapshots.map((s) => maxCueAt(r2, [line, away], 0, s.tick)));
+        expect(kinds).toEqual(new Set([false, 'call', 'hora']));
     });
 });

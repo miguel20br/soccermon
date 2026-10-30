@@ -475,7 +475,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
     const cue = maxCueAt(match, setups, 0, clock.tick);
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
-    const wait = maxWaitNext(maxWait, agency.max.level, cue);
+    const wait = maxWaitNext(maxWait, agency.max.level, !!cue);
     if (wait !== maxWait) setMaxWait(wait);
     const sideline = {
         ...agency,

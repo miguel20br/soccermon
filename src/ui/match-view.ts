@@ -1,4 +1,4 @@
-import { maxCue } from '../engine/agency';
+import { maxCallCue, maxCue } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5 } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
@@ -52,6 +52,20 @@ export function maxCueNear(
     const { pitch, teamSize, snapshotEvery } = FUTSAL_5;
     for (let t = from; t <= to; t += snapshotEvery)
         if (maxCue(snapAt(snaps, t), team, capIdx, capRole, pitch, teamSize)) return true;
+    return false;
+}
+
+/** O passe no ar não apaga o "chamar o capitão": vale o último dono da bola nesse tanto de ticks (2 s). */
+export const MAX_CALL_LATCH = 40;
+
+/** `maxCallCue` no tick, com a bola no ar valendo o último dono (senão o botão piscava e a música bombeava a cada passe). */
+export function maxCallCueNear(snaps: MatchSnapshot[], tick: number, team: 0 | 1, capRole: Position): boolean {
+    const { pitch, teamSize, snapshotEvery } = FUTSAL_5;
+    for (let t = tick; t >= tick - MAX_CALL_LATCH; t -= snapshotEvery) {
+        const snap = snapAt(snaps, t);
+        if (snap.phase !== 'play') return false;
+        if (snap.owner >= 0) return maxCallCue(snap, team, capRole, pitch, teamSize);
+    }
     return false;
 }
 

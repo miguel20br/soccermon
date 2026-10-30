@@ -1,6 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { AGENCY, fxTypeOf, type MaxCharge, maxCallCue, maxCharge } from '../../engine/agency';
-import { FUTSAL_5 } from '../../engine/config';
+import { AGENCY, fxTypeOf, type MaxCharge, maxCharge, maxMinLevel } from '../../engine/agency';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -8,7 +7,7 @@ import { MAX_SIGNATURE } from '../../engine/signature-moves';
 import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear, roleAt, snapAt } from '../match-view';
+import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCallCueNear, maxCueNear, roleAt } from '../match-view';
 import { holdRing, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
@@ -31,8 +30,8 @@ export interface AgencyView {
     max: MaxCharge;
     /** Golpe máximo pedido que ainda não saiu: a ordem não entrou ou está armada ("chamando" o capitão). */
     maxPending: boolean;
-    /** Hora do golpe máximo no quadro da tela (`maxCueAt`). */
-    maxCue: boolean;
+    /** Botão do golpe máximo aceso no quadro da tela (`maxCueAt`): chamando o capitão ou na hora certa. */
+    maxCue: MaxCueKind;
     /** Golpe máximo por tipo: o efeito do N3 do capitão (a prévia no botão). */
     fxType?: string;
     /** O jogador tocou em "Esperar" (`maxWaitNext`): o aviso fica apagado. */
@@ -47,7 +46,7 @@ export function agencyView(
     orders: readonly MatchOrder[],
     side: 0 | 1,
     tick: number,
-    cue = false,
+    cue: MaxCueKind = false,
 ): AgencyView {
     const mine = orders.filter((o) => o.team === side && isAgencyOrder(o));
     const past = events.filter((e) => e.tick <= tick);
@@ -84,14 +83,17 @@ export function agencyView(
  * próximo chute ou defesa da zona) e fica `MAX_CUE_LATCH` depois (a quadra entra em câmera lenta antes ainda,
  * MatchScene `maxCueNow`).
  */
-export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): boolean {
+export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): MaxCueKind {
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
-    if (role === 'GK' && maxCharge(m.events, side, tick, 5).level < AGENCY.maxGkMinLevel) return false;
-    if (maxCallCue(snapAt(m.snapshots, tick), side, role, FUTSAL_5.pitch)) return true;
-    return maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role);
+    if (maxCharge(m.events, side, tick, 5).level < maxMinLevel(role)) return false;
+    if (maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
+    return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }
+
+/** Por que o botão acendeu: `call` (ataque do time, chamando o capitão) ou `hora` (a hora certa, com câmera lenta). */
+export type MaxCueKind = false | 'call' | 'hora';
 
 /** Efeito do N3 do capitão do time `side`: a mesma regra do motor (a assinatura dos 12 ou `maxFxType`). */
 export function capFxType(
@@ -327,7 +329,7 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
                 <HudIcon kind="max" />
                 <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
             </button>
-            {lit && <QteRing />}
+            {lit && <QteRing key={view.maxCue || ''} />}
             {why && (
                 <span className="bc-maxwhy" role="status" data-exit>
                     {a.maxWhen}
@@ -369,7 +371,7 @@ export function MaxCueButton({
                 {...levelLook(view)}
             >
                 <span className="sl-ring-at">
-                    <QteRing />
+                    <QteRing key={view.maxCue || ''} />
                     <HudIcon kind="max" />
                 </span>
                 <b className="sl-cue-name">{a.max}</b>

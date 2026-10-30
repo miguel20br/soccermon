@@ -263,6 +263,9 @@ export function maxCue(
     return inMaxZone(x, y, ownerTeam, pitch, capRole);
 }
 
+/** Gomos pra o capitão pedir o golpe máximo: o goleiro só no N3 (`maxGkMinLevel`), o de linha já no N1. */
+export const maxMinLevel = (role: Position) => (role === 'GK' ? AGENCY.maxGkMinLevel : 1);
+
 /**
  * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
  * ataque), não só na hora certa. O toque arma a ordem (`AGENCY.maxArmTicks`), a bola procura o capitão e o golpe sai no
