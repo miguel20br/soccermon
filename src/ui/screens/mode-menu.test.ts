@@ -3,13 +3,19 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {}, playCry: () => {} }));
 
-import { cutTo, daysUntil, passers, ULTIMATE_AT } from './ModeMenu';
+import { cutTo, daysUntil, passers, soonDate, ULTIMATE_AT } from './ModeMenu';
 
 describe('menu de modos', () => {
     it('conta os dias até o Ultimate pra cima e para no zero', () => {
         expect(daysUntil(ULTIMATE_AT, new Date('2026-10-29T12:00:00-03:00'))).toBe(29);
         expect(daysUntil(ULTIMATE_AT, new Date('2026-11-26T23:00:00-03:00'))).toBe(1);
         expect(daysUntil(ULTIMATE_AT, new Date('2026-12-01T00:00:00-03:00'))).toBe(0);
+    });
+
+    it('o selo EM BREVE mostra o dia da estreia do Ultimate (de ULTIMATE_AT) e o ano do Modo História', () => {
+        expect(soonDate('ultimate', 'pt')).toBe('27/11');
+        expect(soonDate('ultimate', 'en')).toBe('Nov 27');
+        expect(soonDate('historia', 'pt')).toBe('2027');
     });
 
     it('o corte do JOGAR leva o centro da quadra pro centro da tela, cobrindo tudo', () => {
@@ -33,5 +39,7 @@ describe('quem toca a bola no Modo Copa', () => {
         ]);
         expect(passers({ kind: 'pokemon', speciesId: 4 }).map((m) => m.id)).toEqual([4, 7, 1]);
         expect(passers({ kind: 'google' })[0]).toEqual({ id: 25 });
+        // na fatia o capitão vai grande na frente: sai da roda e o próximo entra
+        expect(passers({ kind: 'pokemon', speciesId: 151 }, 151).map((m) => m.id)).toEqual([4, 7, 1]);
     });
 });

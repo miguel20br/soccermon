@@ -3,7 +3,7 @@ import type { home as pt } from '../pt/home';
 export const home: typeof pt = {
     soon: [
         { title: 'Story mode', text: 'Gyms, badges and the Indigo League' },
-        { title: 'Trainer Mode', text: 'Open packs and build your season squad' },
+        { title: 'Team Ultimate', text: 'Open packs and build your season squad' },
         { title: 'Full-size football', text: '11-a-side matches' },
         { title: 'Generation 2', text: 'The Pokémon of Johto' },
     ],
@@ -115,7 +115,7 @@ export const home: typeof pt = {
         play: 'PLAY',
         atual: { name: 'Cup Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
         ultimate: {
-            name: 'Trainer Mode',
+            name: 'Team Ultimate',
             when: 'Coming late November',
             tag: 'Open packs, build your team of the season',
             topics: ['Team of the season', 'Open packs', 'Resets every season'],
@@ -129,5 +129,8 @@ export const home: typeof pt = {
         rival: 'Smell ya later!',
         countdown: '{n} day left|{n} days left',
         gym: 'GYM',
+        soon: 'COMING SOON',
+        arrives: 'Coming {date}',
+        backTo: 'Back to {name}',
     },
 };
