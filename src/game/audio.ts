@@ -1,8 +1,7 @@
 import { ZZFX, zzfx } from 'zzfx';
 import type { CryStyle } from '../store/game-store';
 import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
-import { type BuildSamples, type Layer, mixMax } from './max-sfx';
-import { wavMono } from './virada';
+import { MAX_MOVE, MAX_TAP, type MaxSound } from './max-sfx';
 
 /**
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
@@ -84,43 +83,46 @@ export function playSfx(name: SfxName, pitch = 1, at?: number): AudioBufferSourc
     }
 }
 
-/** O clap 808 (`public/music/clap-808.wav`) dos sons do golpe máximo. Sem ele, a camada fica muda. */
-let clapP: Promise<Float32Array | null> | null = null;
+/** Sons do golpe máximo (`public/sfx/max-<som>.mp3`), baixados juntos na primeira vez que o anel acende. */
+type MaxBuf = { buf: AudioBuffer; skip: number };
+let maxP: Promise<Map<MaxSound, MaxBuf> | null> | null = null;
+/**
+ * Silêncio do começo (s): o WebKit não corta o atraso do codificador do mp3 (~25 ms, `MP3_DELAY_S` no `music.ts`);
+ * pulando até o golpe, o perfeito cai na batida em todo navegador.
+ */
+export function leadIn(ch: ArrayLike<number>, sampleRate: number): number {
+    let i = 0;
+    while (i < ch.length && Math.abs(ch[i]) < 0.01) i++;
+    return Math.min(i / sampleRate, 0.05);
+}
 export const loadMaxSfx = () =>
-    (clapP ??= fetch('music/clap-808.wav')
-        .then((r) => r.arrayBuffer())
-        .then(wavMono)
+    (maxP ??= Promise.all(
+        [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE)].map(async (name) => {
+            const data = await fetch(`sfx/max-${name}.mp3`).then((r) => r.arrayBuffer());
+            const buf = await ZZFX.audioContext.decodeAudioData(data);
+            return [name, { buf, skip: leadIn(buf.getChannelData(0), buf.sampleRate) }] as const;
+        }),
+    )
+        .then((e) => new Map(e))
         .catch(() => {
-            clapP = null;
+            maxP = null;
             return null;
         }));
-const maxMixes = new Map<readonly Layer[], Float32Array<ArrayBuffer>>();
 
 /** Som do golpe máximo (`MAX_TAP`/`MAX_MOVE` em `max-sfx.ts`) no canal de efeitos; `at` como no `playSfx`. */
-export function playMax(layers: readonly Layer[], peak: number, at?: number) {
+export function playMax(name: MaxSound, at?: number) {
     if (vol.master * vol.sfx <= 0) return;
-    void loadMaxSfx().then((clap) => {
+    void loadMaxSfx().then((m) => {
+        const s = m?.get(name);
+        if (!s) return;
         try {
-            let s = maxMixes.get(layers);
-            if (!s) {
-                s = mixMax(
-                    layers,
-                    ZZFX.buildSamples.bind(ZZFX) as unknown as BuildSamples,
-                    clap,
-                    peak,
-                    ZZFX.sampleRate,
-                );
-                if (clap) maxMixes.set(layers, s);
-            }
             const c = ZZFX.audioContext;
-            const b = c.createBuffer(1, s.length, ZZFX.sampleRate);
-            b.copyToChannel(s, 0);
             const src = c.createBufferSource();
-            src.buffer = b;
+            src.buffer = s.buf;
             const g = c.createGain();
             g.gain.value = ZZFX.volume;
             src.connect(g).connect(c.destination);
-            src.start(Math.max(at ?? 0, c.currentTime));
+            src.start(Math.max(at ?? 0, c.currentTime), s.skip);
         } catch {
             // sem áudio
         }

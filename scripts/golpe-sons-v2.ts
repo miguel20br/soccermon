@@ -5,22 +5,28 @@
  * partida (no fundo no anel, perfeito no 1 do compasso, virada e o N3). Nada disso entra no jogo ainda.
  * Receita de todos: transiente seco (bumbo com clique + grave), camada brilhante que sobe (arpejo), sala curta em
  * estéreo e escada fora < bom < perfeito, N1 < N2 < N3. Notas em Lá com quinta e nona (casam com o dórico da partida).
- * Uso: scripts/pesado.sh npx tsx scripts/golpe-sons-v2.ts <pasta>   (escreve os .wav, numeros.json e index.html)
+ * Uso: scripts/pesado.sh npx tsx scripts/golpe-sons-v2.ts <pasta> [--jogo]   (os .wav, numeros.json e index.html; com
+ * --jogo, o pacote D, o que está no jogo, sai em public/sfx/max-<som>.mp3)
  */
-import { spawnSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 // o ZzFX cria um AudioContext ao ser importado: no Node basta um dublê
 (globalThis as { AudioContext?: unknown }).AudioContext ??= class {};
 const { ZZFX } = await import('zzfx');
-const { MAX_MOVE, MAX_PEAK, MAX_TAP, mixMax } = await import('../src/game/max-sfx');
 const { mixVirada, wavMono } = await import('../src/game/virada');
 const { GAIN } = await import('../src/game/audio');
 
 const out = process.argv[2];
 if (!out) throw new Error('uso: npx tsx scripts/golpe-sons-v2.ts <pasta>');
 mkdirSync(out, { recursive: true });
+/** Pico de cada som (o mesmo do pacote antigo): toque 0,8, golpe 1. */
+const MAX_PEAK = { tap: 0.8, move: 1 };
+// o pacote antigo (ZzFX, até a 0.9.27) saiu do jogo: vem do histórico do git, só pra comparar na página
+writeFileSync(join(out, 'antigo-max-sfx.ts'), execSync('git show a2225600:src/game/max-sfx.ts'));
+const old = await import(pathToFileURL(resolve(out, 'antigo-max-sfx.ts')).href);
 const SR = 44100;
 type Mono = Float32Array;
 type Stereo = [Mono, Mono];
@@ -523,19 +529,134 @@ const estadio: Pack = {
     },
 };
 
-/** O pacote no ar hoje (`max-sfx.ts`), com a mesma mistura do jogo, em estéreo pra ouvir junto. */
+/** O pacote antigo (0.9.27), com a mesma mistura que o jogo fazia, em estéreo pra ouvir junto. */
 const mono2 = (y: Mono): Stereo => [y, Float32Array.from(y)];
+const oldMix = (layers: unknown, peak: number) => mono2(old.mixMax(layers, build, clapRaw, peak, SR));
 const atual: Pack = {
     id: 'atual',
-    nome: 'Atual (no ar)',
-    ideia: 'O que está no jogo hoje: sinos e moeda do ZzFX com o clap 808, sem grave nem sala (a referência do "fino").',
+    nome: 'Antigo (0.9.27)',
+    ideia: 'O que estava no jogo: sinos e moeda do ZzFX com o clap 808, sem grave nem sala (a referência do "fino").',
     sons: {
-        'tap-perfeito': () => mono2(mixMax(MAX_TAP[2], build, clapRaw, MAX_PEAK.tap, SR)),
-        'tap-bom': () => mono2(mixMax(MAX_TAP[1], build, clapRaw, MAX_PEAK.tap, SR)),
-        'tap-fora': () => mono2(mixMax(MAX_TAP[0], build, clapRaw, MAX_PEAK.tap, SR)),
-        'golpe-n1': () => mono2(mixMax(MAX_MOVE[1], build, clapRaw, MAX_PEAK.move, SR)),
-        'golpe-n2': () => mono2(mixMax(MAX_MOVE[2], build, clapRaw, MAX_PEAK.move, SR)),
-        'golpe-n3': () => mono2(mixMax(MAX_MOVE[3], build, clapRaw, MAX_PEAK.move, SR)),
+        'tap-perfeito': () => oldMix(old.MAX_TAP[2], MAX_PEAK.tap),
+        'tap-bom': () => oldMix(old.MAX_TAP[1], MAX_PEAK.tap),
+        'tap-fora': () => oldMix(old.MAX_TAP[0], MAX_PEAK.tap),
+        'golpe-n1': () => oldMix(old.MAX_MOVE[1], MAX_PEAK.move),
+        'golpe-n2': () => oldMix(old.MAX_MOVE[2], MAX_PEAK.move),
+        'golpe-n3': () => oldMix(old.MAX_MOVE[3], MAX_PEAK.move),
+    },
+};
+
+/** Soco de corpo (150 a 400 Hz): o "pá" que o alto-falante do celular toca, onde o grave do 808 some. */
+const punch = (f: number, tau: number) =>
+    sat(
+        env(
+            osc(tau * 5, (t) => f * (0.7 + 0.3 * Math.exp(-t / 0.015)), 'tri', 7),
+            0.0005,
+            tau,
+        ),
+        2.2,
+    );
+/** O "tchak" do osu! (ruído em faixa, 6 ms). */
+const tchak = (seed: number, f = 3200) => env(svf(noise(0.04, seed), f, 1.5, 'bp'), 0.0003, 0.006);
+const mistura: Pack = {
+    id: 'd-mistura',
+    nome: 'D · Mistura (vai pro jogo)',
+    ideia: 'Os três juntos, cada um na sua faixa: o soco do C (808, clap e um "pá" de 150 a 400 Hz pro celular) no corpo, os sinos do B no meio e as moedas do A brilhando em cima. N3: explosão do C + harpa do B + jackpot de moedas do A.',
+    sons: {
+        'tap-fora': () =>
+            new Bus()
+                .add(punch(170, 0.035), 0, 0.5)
+                .add(env(svf(noise(0.05, 61), 900), 0.001, 0.01), 0, 0.2)
+                .room(0.1, 0.7)
+                .done(0.3),
+        'tap-bom': () =>
+            new Bus()
+                .add(kick({ f0: 180, f1: 65, pt: 0.02, tau: 0.05, click: 0.4 }), 0, 0.55)
+                .add(punch(220, 0.04), 0, 0.3)
+                .add(bell(88, 0.2), 0, 0.36, -0.2)
+                .add(coin(93, 98, 0.08), 0.03, 0.3, 0.3)
+                .room(0.22, 0.9)
+                .done(0.6),
+        'tap-perfeito': () => {
+            // corpo (C): bumbo, 808, clap e o "pá"; meio (B): 5 sinos em 22 ms; cima (A): moedas e brilho
+            const b = new Bus()
+                .add(kick({ f0: 235, f1: 52, pt: 0.022, tau: 0.09, click: 0.8 }), 0, 0.9)
+                .add(sat(sub(70, 50, 0.13, 0.6), 1.6), 0, 0.5)
+                .add(punch(260, 0.05), 0, 0.45)
+                .add(clap(), 0, 0.75)
+                .add(tchak(62), 0, 0.6)
+                .add(sparkle(0.05, 63, 8000), 0, 0.2, -0.5)
+                .add(sparkle(0.05, 64, 8000), 0.004, 0.2, 0.5);
+            [81, 88, 93, 95, 100].forEach(
+                (m, i) => void b.add(bell(m, 0.2 + i * 0.03), i * 0.022, 0.33, -0.6 + i * 0.3),
+            );
+            [
+                [100, 105, 0.03, -0.45],
+                [105, 107, 0.075, 0.45],
+            ].forEach(([a, z, t, p]) => void b.add(coin(a, z, 0.09), t, 0.27, p));
+            shimmer(b, 0.12, 0.3, [105, 107, 112], 7, 0.06, 65);
+            return b.room(0.3, 1.1).done(0.9);
+        },
+        'golpe-n1': () =>
+            new Bus()
+                .add(kick({ f0: 210, f1: 48, pt: 0.025, tau: 0.1, click: 0.6 }), 0, 0.9)
+                .add(sat(sub(90, 45, 0.15, 0.6), 1.6), 0, 0.5)
+                .add(punch(230, 0.05), 0, 0.4)
+                .add(clap(), 0, 0.55)
+                .add(brass([69, 76, 81], 0.06, 0.1, 3400), 0.004, 0.5)
+                .room(0.22, 1)
+                .done(0.58),
+        'golpe-n2': () => {
+            const b = new Bus()
+                .add(kick({ f0: 225, f1: 44, pt: 0.03, tau: 0.14, click: 0.7 }), 0, 1)
+                .add(sat(sub(85, 40, 0.3, 1), 1.8), 0, 0.6)
+                .add(punch(240, 0.06), 0, 0.45)
+                .add(clap(), 0, 0.6)
+                .add(env(svf(noise(1, 66), 6000), 0.002, 0.22), 0, 0.1, 0.3)
+                .add(brass([69, 76, 81], 0.07, 0.1, 3400), 0.004, 0.4);
+            [81, 83, 86, 88, 93, 95, 100].forEach(
+                (m, i) => void b.add(coin(m, m + 5, 0.07 + i * 0.012), 0.03 + i * 0.034, 0.3, i % 2 ? 0.5 : -0.5),
+            );
+            b.add(sparkle(0.08, 67), 0.06, 0.18, -0.6).add(sparkle(0.08, 68), 0.08, 0.18, 0.6);
+            return b.room(0.3, 1.1).done(1.05);
+        },
+        'golpe-n3': () => {
+            const b = new Bus()
+                .add(kick({ f0: 250, f1: 38, pt: 0.04, tau: 0.22, click: 0.9, drive: 2.4 }), 0, 1)
+                .add(sat(sub(100, 35, 0.5, 1.6), 2), 0, 0.6)
+                .add(punch(250, 0.08), 0, 0.5)
+                .add(
+                    env(
+                        svf(noise(1.4, 69), (t) => 300 + 2600 * Math.exp(-t / 0.15)),
+                        0.001,
+                        0.3,
+                    ),
+                    0,
+                    0.45,
+                ); // explosão (C)
+            [
+                [0, -0.5],
+                [0.011, 0.4],
+                [0.019, -0.2],
+                [0.027, 0.6],
+            ].forEach(([t, p], i) => void b.add(clap(6000 + i * 300), t, 0.35, p));
+            // a harpa do B subindo (A4 a A7) e, no topo, o jackpot do A: 3 moedas, acorde macio e pó de estrela
+            PENTA.forEach(
+                (m, i) => void b.add(bell(m, 0.16 + i * 0.01, 1.2), 0.03 + i * 0.036, 0.2, Math.sin(i * 0.9) * 0.75),
+            );
+            const t = 0.52;
+            for (const [m, p] of [
+                [93, -0.4],
+                [100, 0.4],
+                [105, 0],
+            ])
+                b.add(coin(m - 5, m, 0.35), t, 0.26, p);
+            for (const m of [57, 64, 69, 71])
+                b.add(env(svf(osc(1.3, hz(m), 'sq', 15), 1500), 0.01, 0.35, 0.1), t, 0.1, m === 64 ? -0.4 : 0.3);
+            b.add(kick({ f0: 160, f1: 60, pt: 0.02, tau: 0.06, click: 0.3 }), t, 0.45).add(punch(300, 0.04), t, 0.3);
+            shimmer(b, t, 0.8, [100, 105, 107], 14, 0.06, 70);
+            return b.room(0.38, 1.35).done(1.8);
+        },
     },
 };
 
@@ -731,7 +852,7 @@ const MAX_LEN: Record<Sound, number> = {
 };
 const numbers: Record<string, Record<string, ReturnType<typeof stats>>> = {};
 const seqs: [string, Stereo][] = [];
-for (const p of [atual, moedas, cristal, estadio]) {
+for (const p of [atual, moedas, cristal, estadio, mistura]) {
     mkdirSync(join(out, p.id), { recursive: true });
     numbers[p.id] = {};
     const got = {} as Record<Sound, Stereo>;
@@ -741,8 +862,23 @@ for (const p of [atual, moedas, cristal, estadio]) {
         if (s[0].length > N(MAX_LEN[snd]) && p !== atual) console.warn(`${p.id}/${snd}: passou de ${MAX_LEN[snd]} s`);
         got[snd] = s;
         numbers[p.id][snd] = stats(s);
-        // pra ouvir: no nível do jogo (efeitos × 0,6 do geral), todos levados juntos pra cima (× 3, como o golpe-sons.ts)
+        // pra ouvir: no nível do jogo (efeitos × 0,6 do geral), todos levados juntos pra cima (× 3, como o antigo golpe-sons.ts)
         wav(join(p.id, `${snd}.wav`), s.map((c) => c.map((v) => v * SFX_LVL * 3)) as Stereo);
+        if (p === mistura && process.argv.includes('--jogo')) {
+            // pro jogo: no nível do jogo (o `playMax` multiplica pelo volume de efeitos), mp3 de 112 kbps
+            wav(`${snd}-jogo.wav`, s);
+            mkdirSync('public/sfx', { recursive: true });
+            spawnSync('ffmpeg', [
+                '-v',
+                'error',
+                '-y',
+                '-i',
+                join(out, `${snd}-jogo.wav`),
+                '-b:a',
+                '112k',
+                `public/sfx/max-${snd}.mp3`,
+            ]);
+        }
     }
     seqs.push([p.id, sequence(got['tap-perfeito'], got['golpe-n3'])]);
 }
@@ -793,7 +929,7 @@ table{border-collapse:collapse;margin-top:8px;font-size:.85rem}td,th{padding:3px
 </style>
 <h1>Golpe máximo: 3 pacotes de som</h1>
 <p>Ouça de fone. Cada linha é um pacote; a de cima é o que está no ar. A sequência põe o toque perfeito no 1 do compasso da música da partida e o golpe N3 logo depois. Volume: o mesmo ganho em todos.</p>
-${[atual, moedas, cristal, estadio].map(row).join('\n')}
+${[atual, moedas, cristal, estadio, mistura].map(row).join('\n')}
 <script>
 let cur=null;
 document.querySelectorAll('button').forEach(b=>b.onclick=()=>{

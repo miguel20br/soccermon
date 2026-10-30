@@ -1,5 +1,5 @@
 import type { MaxGrade } from '../engine/state';
-import { MAX_PEAK, MAX_TAP } from '../game/max-sfx';
+import { MAX_TAP } from '../game/max-sfx';
 import { beatNow, duckMusic, heardAt, nextBarIn, unduckMusic } from '../game/music';
 import { maxBurst } from './max-burst';
 
@@ -87,7 +87,7 @@ export function maxTap(now = performance.now()): MaxGrade {
         tapped = true;
         const wait = q === 2 && ring ? Math.max(0, ring.at - now) / 1000 : 0;
         const at = wait ? heardAt(wait) : undefined;
-        void sfx().then((a) => a.playMax(MAX_TAP[q], MAX_PEAK.tap, at));
+        void sfx().then((a) => a.playMax(MAX_TAP[q], at));
         unduckMusic(true);
         maxBurst(q);
     }

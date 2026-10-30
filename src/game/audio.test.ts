@@ -58,3 +58,21 @@ describe('mistura', () => {
         }
     });
 });
+
+describe('golpe máximo', () => {
+    afterEach(() => vi.resetModules());
+
+    it('pula o silêncio do começo do mp3 (o WebKit não corta o atraso do codificador) até o golpe, no máximo 50 ms', async () => {
+        vi.doMock('zzfx', () => ({ ZZFX: { volume: 0.3 }, zzfx: () => {} }));
+        const { leadIn } = await import('./audio');
+        expect(leadIn([0, 0.001, -0.004, 0.6, 0.3], 1000)).toBe(0.003);
+        expect(leadIn([0.5], 1000)).toBe(0);
+        expect(leadIn(new Array(200).fill(0), 1000)).toBe(0.05);
+    });
+
+    it('todo som do toque e do golpe tem o arquivo em public/sfx', async () => {
+        const { MAX_MOVE, MAX_TAP } = await import('./max-sfx');
+        for (const name of [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE)])
+            expect(readFileSync(`public/sfx/max-${name}.mp3`).length).toBeGreaterThan(1000);
+    });
+});

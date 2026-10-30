@@ -59,7 +59,7 @@ import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
-import { MAX_MOVE, MAX_PEAK } from '../max-sfx';
+import { MAX_MOVE } from '../max-sfx';
 import { castMove, preloadMoveFx } from '../move-fx';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
@@ -2399,7 +2399,7 @@ export class MatchScene extends Phaser.Scene {
                 const n3 = e.phase === 'hit' && !gkSave && e.level === 3;
                 // o som próprio de cada nível sai no golpe (o chute, ou a defesa que saiu); a defesa que só começou
                 // fica na aura, sem som nem texto (E1: não promete o que pode não sair)
-                if (e.phase === 'hit') playMax(MAX_MOVE[e.level ?? 1], MAX_PEAK.move);
+                if (e.phase === 'hit') playMax(MAX_MOVE[e.level ?? 1]);
                 if (e.phase === 'miss') {
                     this.popText(e.by, dict().match.agency.maxMissShort, '#a6aed6');
                     break;
