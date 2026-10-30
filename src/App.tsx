@@ -18,6 +18,7 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
+import { DoorLayer } from './ui/kit/DoorWipe';
 import { MomentLayer } from './ui/kit/MomentWipe';
 import { requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
@@ -336,6 +337,7 @@ export default function App() {
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />
             <MomentLayer />
+            <DoorLayer />
             <CardModal />
             <FriendInvite />
             <FriendVitrine />

@@ -6,6 +6,7 @@ import { cupCounts, METALS } from '../../store/trophies';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { openDoor } from '../doors';
+import { playDoor } from '../kit/DoorWipe';
 import { Crest, KitShirt } from '../profile/Crest';
 import { hexCss, missionText } from '../profile/club';
 import { useSaveView } from '../profile/TrainerTab';
@@ -125,7 +126,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                     <button
                         type="button"
                         className="btn big cup-go rm-go cb cb-green"
-                        onClick={() => openDoor('trophies')}
+                        onClick={() => playDoor(() => openDoor('trophies'))}
                     >
                         <span className="cup-go-txt">
                             <b>{d.home.doors.trophies[0]}</b>

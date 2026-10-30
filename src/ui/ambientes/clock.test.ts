@@ -111,6 +111,22 @@ describe('voltar do Android nos ambientes', () => {
         expect(history.pushState).toHaveBeenCalledTimes(1);
     });
 
+    it('voltando da Sala aberta na Sede, a guarda de tela sai e a aba continua a Sede (ia pro Estádio)', () => {
+        // a marca da Sede embaixo, a guarda da Sala por cima; o App tira a guarda logo depois da Home montar
+        const { history, stack } = stub(null);
+        stack.push({ soccermonTab: 1 }, { soccermonBack: 1 });
+        let tab = 'sede';
+        installTabBack(
+            () => tab !== 'estadio',
+            () => {
+                tab = 'estadio';
+            },
+        );
+        history.back();
+        expect(tab).toBe('sede');
+        expect(stack).toEqual([null, { soccermonTab: 1 }]);
+    });
+
     it('trocar de aba não enche o histórico; voltar pro Estádio pela barra tira a marca', () => {
         const { stack } = stub();
         let tab = 'estadio';

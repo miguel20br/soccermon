@@ -67,6 +67,10 @@ export function TopBar() {
                 </span>
                 <span className="res-me-txt">
                     <b>{name}</b>
+                    {/* a barra até o próximo nível (missões): o nível deixa de ser só o número da estrela */}
+                    <span className="res-xp" aria-hidden>
+                        <i style={{ '--k': lv.goal ? lv.n / lv.goal : 1 } as CSSProperties} />
+                    </span>
                 </span>
                 <NewDot on={news.size > 0} className="res-dot" />
             </button>

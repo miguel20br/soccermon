@@ -9,6 +9,7 @@ import type { CupMode } from '../../store/long-cup';
 import { bannerInk, clubColorHex } from '../../store/profile';
 import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
+import { Logo } from '../components/LogoHits';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { ConfirmSheet } from '../kit/Sheet';
 import { FriendChallenge } from '../profile/FriendsTab';
@@ -455,7 +456,7 @@ export function Estadio({
                     <i className="es-cable l" aria-hidden />
                     <i className="es-cable r" aria-hidden />
                     <h1 className="es-logo">
-                        <img src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                        <Logo alt="Soccermon" idle />
                     </h1>
                     {hydrated && firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>}
                 </div>

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { backTarget, guardAction, installBackNav } from './back-nav';
+import { backTarget, guardAction, installBackNav, setDoorOrigin } from './back-nav';
 
 describe('voltar do sistema', () => {
     it('mapeia a tela para o destino do voltar', () => {
@@ -7,6 +7,12 @@ describe('voltar do sistema', () => {
         for (const s of ['draft', 'lineup', 'match', 'result', 'map', 'settings', 'duel', 'liga-match'] as const)
             expect(backTarget(s)).toBe('home');
         expect(backTarget('collection')).toBe('profile');
+        expect(backTarget('trophies')).toBe('profile');
+    });
+    it('a Sala e a Coleção voltam pra onde a porta abriu (a Sede levava pro Perfil)', () => {
+        setDoorOrigin('home');
+        expect(backTarget('trophies')).toBe('home');
+        setDoorOrigin('collection');
         expect(backTarget('trophies')).toBe('profile');
     });
     it('uma só entrada de guarda: empurra fora da Home, tira na Home', () => {

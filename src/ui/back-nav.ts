@@ -7,10 +7,16 @@ import type { Screen } from '../store/game-store';
  */
 const UNDER_PROFILE: Screen[] = ['collection', 'trophies'];
 
+/** De onde a última porta abriu: a Sede (Home) ou o Perfil. A Sala e a Coleção voltam pra lá (`openDoor`). */
+let doorOrigin: Screen = 'profile';
+export const setDoorOrigin = (from: Screen) => {
+    doorOrigin = from === 'home' ? 'home' : 'profile';
+};
+
 /** Para onde o voltar leva. `null` = Home (sai do app). */
 export function backTarget(screen: Screen): Screen | null {
     if (screen === 'home') return null;
-    return UNDER_PROFILE.includes(screen) ? 'profile' : 'home';
+    return UNDER_PROFILE.includes(screen) ? doorOrigin : 'home';
 }
 
 /** O que fazer com a entrada de guarda depois de uma troca de tela. */

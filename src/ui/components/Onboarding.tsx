@@ -2,6 +2,7 @@ import { type KeyboardEvent, type PointerEvent, type ReactNode, useEffect, useMe
 import { type Dict, fmt } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { Logo } from './LogoHits';
 import '../help/help.css';
 import { HudIcon } from './MatchHud';
 
@@ -50,7 +51,7 @@ const slides = (d: Dict): Slide[] => {
             text: rich(o.welcomeText),
             visual: (
                 <div className="ob-welcome">
-                    <img className="ob-logo" src="assets/ui/logo.svg" alt="Soccermon" draggable={false} />
+                    <Logo className="ob-logo" alt="Soccermon" />
                     <div className="ob-lineup">
                         <Sprite id={1} scale={1.3} />
                         <Sprite id={25} scale={1.3} />

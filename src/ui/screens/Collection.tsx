@@ -1,6 +1,7 @@
 import { type CSSProperties, lazy, Suspense, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { backTarget } from '../back-nav';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { DOOR_TABS, type DoorTab, initialTab } from '../doors';
@@ -21,7 +22,11 @@ export function Collection() {
     const news = useNews();
     return (
         <div className="menu-screen pf">
-            <MenuHead title={t('profile.collection')} icon="dex" onBack={() => go('profile')} />
+            <MenuHead
+                title={t('profile.collection')}
+                icon="dex"
+                onBack={() => go(backTarget('collection') ?? 'profile')}
+            />
             <div
                 className="pf-tabs k-tabs"
                 role="tablist"

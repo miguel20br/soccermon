@@ -1,4 +1,5 @@
 import { type Screen, useGame } from '../store/game-store';
+import { setDoorOrigin } from './back-nav';
 
 /**
  * As três portas (docs/planos/menus-e-sala.md): Perfil (quem eu sou), Coleção (o que eu coleciono) e Sala de troféus
@@ -31,13 +32,16 @@ const setAba = (tab?: string) => {
     url.searchParams.delete('perfil');
     if (tab) url.searchParams.set('aba', tab);
     else url.searchParams.delete('aba');
-    window.history.replaceState(null, '', url);
+    // mantém o estado (a marca da aba da Sede, `tab-back.ts`): só a URL muda
+    window.history.replaceState(window.history.state, '', url);
 };
 
-/** Abre uma porta (numa aba, se vier). */
+/** Abre uma porta (numa aba, se vier); o voltar dela leva pra tela de onde ela abriu (`backTarget`). */
 export function openDoor(door: Door, tab?: string) {
     setAba(tab);
-    useGame.getState().go(door);
+    const g = useGame.getState();
+    if (g.screen !== door) setDoorOrigin(g.screen);
+    g.go(door);
 }
 
 /** A aba com que a porta abre: `?aba=`, ou o `?perfil=` antigo que aponta pra ela. */

@@ -5,6 +5,7 @@
  */
 const MARK = { soccermonTab: 1 };
 const isMark = (s: unknown) => !!s && typeof s === 'object' && 'soccermonTab' in s;
+const isScreenGuard = (s: unknown) => !!s && typeof s === 'object' && 'soccermonBack' in s;
 
 /** `away()`: a aba atual não é o Estádio. `home()`: volta pro Estádio. Devolve `sync` (chamar a cada troca) e `off`. */
 export function installTabBack(away: () => boolean, home: () => void) {
@@ -16,7 +17,18 @@ export function installTabBack(away: () => boolean, home: () => void) {
         marked = false;
     }
     let ignore = 0;
+    let waiting = false;
     const sync = () => {
+        // voltando de uma tela (a Sala aberta da Sede), a guarda de tela (`back-nav.ts`) ainda está saindo do
+        // histórico: marcar agora empilhava por cima dela e o voltar dela caía aqui como "voltar do usuário" (ia pro
+        // Estádio). Espera ela sair; a marca da aba de antes continua embaixo
+        if (isScreenGuard(h.state)) {
+            if (!waiting) {
+                waiting = true;
+                window.addEventListener('popstate', after);
+            }
+            return;
+        }
         if (away() && !marked) {
             h.pushState(MARK, '');
             marked = true;
@@ -25,6 +37,11 @@ export function installTabBack(away: () => boolean, home: () => void) {
             ignore++;
             h.back();
         }
+    };
+    const after = () => {
+        window.removeEventListener('popstate', after);
+        waiting = false;
+        sync();
     };
     const onPop = () => {
         if (ignore > 0) {
@@ -38,6 +55,9 @@ export function installTabBack(away: () => boolean, home: () => void) {
     sync();
     return {
         sync,
-        off: () => window.removeEventListener('popstate', onPop),
+        off: () => {
+            window.removeEventListener('popstate', onPop);
+            window.removeEventListener('popstate', after);
+        },
     };
 }

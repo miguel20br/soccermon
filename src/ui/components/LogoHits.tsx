@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { musicAudible, onGanchoHit } from '../../game/music';
+import './logo-hits.css';
 
 /** Sílabas do logo (SOC, CER, MON) em % da largura; cada uma pisca na batida do gancho da faixa que toca. */
 const SYLLABLES: [number, number][] = [
@@ -134,4 +135,17 @@ export function LogoHits({ idle = false }: { idle?: boolean }) {
             />
         </span>
     ));
+}
+
+/**
+ * O logo do jogo com as sílabas piscando no SOC-CER-MON da música que toca (regra do Miguel, 30/10/2026: logo na tela
+ * com música tocando pisca, em qualquer lugar). Todo logo em HTML passa por aqui; `className` dá a largura.
+ */
+export function Logo({ className = '', alt = '', idle = false }: { className?: string; alt?: string; idle?: boolean }) {
+    return (
+        <span className={`logo-blink logo-c ${className}`}>
+            <img src="assets/ui/logo.svg" alt={alt} width="1441" height="300" draggable={false} />
+            <LogoHits idle={idle} />
+        </span>
+    );
 }

@@ -9,6 +9,7 @@ import { metalOf } from '../rarity';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
 import { uiZoom } from '../ui-zoom';
+import { Logo } from './LogoHits';
 
 /** Pista do melhor conteúdo no pacote fechado: edição especial brilha holográfico, carta ouro (75+) tem borda dourada. */
 export type PackLook = '' | 'gold' | 'special';
@@ -252,7 +253,7 @@ export function PackArt({ look, label, type }: { look: PackLook; label?: string;
                 ) : (
                     <img className="cpack-simbolo" src="assets/ui/simbolo.svg" alt="" />
                 )}
-                <img className="cpack-logo" src="assets/ui/logo.svg" alt="" />
+                <Logo className="cpack-logo" />
                 {label && <span className="cpack-label">{label}</span>}
             </span>
             <span className="cpack-top" />

@@ -17,11 +17,13 @@ import {
     METALS,
     roomLevel,
 } from '../../store/trophies';
+import { backTarget } from '../back-nav';
 import { HallList } from '../components/HallParade';
 import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
 import { initialTab, openDoor } from '../doors';
+import { playDoor } from '../kit/DoorWipe';
 import { Sheet as KitSheet } from '../kit/Sheet';
 import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
@@ -403,7 +405,11 @@ export function TrophyRoom() {
 
     return (
         <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
-            <MenuHead title={t('trophies.title')} icon="liga" onBack={() => go('profile')} />
+            <MenuHead
+                title={t('trophies.title')}
+                icon="liga"
+                onBack={() => (backTarget('trophies') === 'home' ? playDoor(() => go('home')) : go('profile'))}
+            />
 
             <div className="room-wrap">
                 <Suspense fallback={<div className="room-stage" />}>

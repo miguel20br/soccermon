@@ -10,6 +10,7 @@ import {
     useRef,
     useState,
 } from 'react';
+
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
@@ -37,6 +38,7 @@ import { toggleShowcase } from '../../store/medals';
 import { newsKey } from '../../store/news';
 import { albumCount, albumSlots, type Dex, type DexEntry, GENERATIONS, hasSticker } from '../../store/profile';
 import { useCardModal } from '../card-modal';
+import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
@@ -538,7 +540,7 @@ export function AlbumView({
                             aria-label={t('profile.album.coverAria', { gen: g.gen, region: g.region })}
                         >
                             <span className="al-cover-face">
-                                <img className="al-cover-logo" src="assets/ui/logo.svg" alt="" draggable={false} />
+                                <Logo className="al-cover-logo" />
                                 <b className="al-cover-title">{t('profile.album.coverTitle')}</b>
                                 <span className="al-cover-gen">{t('profile.album.coverGen', { gen: g.gen })}</span>
                                 <span className="al-cover-region">{g.region}</span>

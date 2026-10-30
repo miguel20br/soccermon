@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
 import { create } from 'zustand';
+import { Logo } from '../components/LogoHits';
 import { reduceMotionOn } from '../settings-sync';
 
 /**
@@ -71,7 +72,7 @@ export function MomentWipe({
 }) {
     const line = useRef<HTMLDivElement>(null);
     const paper = useRef<HTMLDivElement>(null);
-    const mark = useRef<HTMLImageElement>(null);
+    const mark = useRef<HTMLDivElement>(null);
     // biome-ignore lint/correctness/useExhaustiveDependencies: roda uma vez por montagem (cada momento monta de novo)
     useEffect(() => {
         const l = line.current;
@@ -138,7 +139,9 @@ export function MomentWipe({
                 className="k-wipe-paper"
                 style={{ '--tile': tile(WIPE_ART[art].art), backgroundColor: WIPE_ART[art].bg } as CSSProperties}
             >
-                <img ref={mark} className="k-wipe-mark" src="assets/ui/logo.svg" alt="" width="1441" height="300" />
+                <div ref={mark} className="k-wipe-mark">
+                    <Logo />
+                </div>
             </div>
         </div>
     );

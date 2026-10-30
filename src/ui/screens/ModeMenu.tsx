@@ -14,6 +14,7 @@ import { avatarMon, type Mon } from '../ambientes/metas';
 import { TopBar } from '../ambientes/TopBar';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
+import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
@@ -254,7 +255,7 @@ export function Chips({ id }: { id: ModeId }) {
 export function Head() {
     return (
         <header className="mm-top" style={{ '--n': 0 } as CSSProperties}>
-            <img className="mm-logo" src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+            <Logo className="mm-logo" alt="Soccermon" idle />
             <TopBar />
             <TopActions profile={false} />
         </header>
