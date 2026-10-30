@@ -40,6 +40,19 @@ export interface AgencyView {
     capType?: string;
 }
 
+/**
+ * `maxCharge` (que percorre todos os eventos) com o último resultado de cada time guardado: a tela pede a mesma barra
+ * várias vezes por quadro (botão, barras, faixa, `maxCueAt`). Vale enquanto eventos, tamanho e tick forem os mesmos.
+ */
+const lastCharge: { events?: readonly MatchEvent[]; len: number; tick: number; value: MaxCharge }[] = [];
+export function chargeAt(events: readonly MatchEvent[], team: 0 | 1, tick: number): MaxCharge {
+    const c = lastCharge[team];
+    if (c && c.events === events && c.len === events.length && c.tick === tick) return c.value;
+    const value = maxCharge(events, team, tick, 5);
+    lastCharge[team] = { events, len: events.length, tick, value };
+    return value;
+}
+
 /** Estado da beira da quadra de um time no tick da tela. `cue`: é a hora do golpe máximo (`maxCueAt`). */
 export function agencyView(
     events: readonly MatchEvent[],
@@ -64,7 +77,7 @@ export function agencyView(
         timeoutPending: !!lastTo && halfOf(lastTo.tick) === half && !timeouts.some((e) => e.tick >= lastTo.tick),
         flyOn,
         flyPending: flyWant !== flyOn ? flyWant : null,
-        max: maxCharge(events, side, tick, 5),
+        max: chargeAt(events, side, tick),
         // armada até sair (qualquer evento `max` do time depois da ordem) ou passar `maxArmTicks`
         maxPending: mine.some(
             (o) =>
@@ -87,7 +100,7 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
-    if (maxCharge(m.events, side, tick, 5).level < maxMinLevel(role)) return false;
+    if (chargeAt(m.events, side, tick).level < maxMinLevel(role)) return false;
     if (maxCueNear(m.snapshots, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
     return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }
@@ -444,7 +457,7 @@ export function MaxBars({
     return (
         <div className="sl-maxbars" title={t('match.agency.maxHint')}>
             {([0, 1] as const).map((team) => {
-                const c = maxCharge(events, team, tick, 5);
+                const c = chargeAt(events, team, tick);
                 const state = c.active ? 'live' : c.charge >= 1 ? 'full' : '';
                 return (
                     <div
@@ -481,7 +494,7 @@ export function SidelineOverlay({
         <div className="sl-overlay" aria-hidden>
             {([0, 1] as const).map((team) => {
                 const fly = past.filter((e) => e.type === 'flyGk' && e.team === team).at(-1);
-                const max = maxCharge(events, team, tick, 5);
+                const max = chargeAt(events, team, tick);
                 const tags: ReactNode[] = [];
                 if (fly?.type === 'flyGk' && fly.on)
                     tags.push(

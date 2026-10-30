@@ -5,7 +5,7 @@ import { openPage } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { readCount, writeCount } from '../local-count';
-import { type PatchNotes, patchNotes } from '../patch-notes';
+import type { PatchNotes } from '../patch-notes';
 import { NewDot } from '../profile/news';
 import { HudIcon } from './MatchHud';
 import { MenuIcon } from './MenuIcon';
@@ -93,19 +93,26 @@ const NEWS_SEEN = 'soccermon.newsSeen';
  */
 export function NewsButton() {
     const { t, d, lang } = useT();
-    const notes = patchNotes(lang);
-    const latest = versionNum(notes[0].version);
+    // as notas (~50 KB gzip) só baixam ao abrir; o botão e o pontinho só precisam da versão (a 1ª das notas, testado)
+    const [mod, setMod] = useState<typeof import('../patch-notes') | null>(null);
+    const notes = mod?.patchNotes(lang) ?? [];
+    const latest = versionNum(__APP_VERSION__);
     const [seen, setSeen] = useState(() => readCount(NEWS_SEEN));
     const [open, setOpen] = useState(false);
     const close = useCallback(() => setOpen(false), []);
+    const load = () => {
+        if (!mod) void import('../patch-notes').then(setMod);
+    };
     return (
         <>
             <button
                 type="button"
                 className="help-fab news-fab"
-                aria-label={`${d.home.tiles.news} v${notes[0].version}`}
-                title={`${d.home.tiles.news} v${notes[0].version}`}
+                aria-label={`${d.home.tiles.news} v${__APP_VERSION__}`}
+                title={`${d.home.tiles.news} v${__APP_VERSION__}`}
+                onPointerDown={load}
                 onClick={() => {
+                    load();
                     setOpen(true);
                     setSeen(latest);
                     writeCount(NEWS_SEEN, latest);
@@ -115,7 +122,8 @@ export function NewsButton() {
                 {/* sem onde guardar (aba anônima): sem pontinho, ele não apagaria nunca */}
                 <NewDot on={seen !== null && seen < latest} />
             </button>
-            <Sheet open={open} onClose={close} title={t('home.news')} className="patch-notes">
+            {/* abre quando as notas chegam: a folha não nasce vazia */}
+            <Sheet open={open && !!mod} onClose={close} title={t('home.news')} className="patch-notes">
                 {notes.map((n, i) => (
                     <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
                 ))}

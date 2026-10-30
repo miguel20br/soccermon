@@ -911,9 +911,18 @@
     --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect x='2' y='4' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='5' y='3' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='10' y='11' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='13' y='10' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3C/svg%3E");
 }
 .rt-sea {
-    background: var(--wave) 0 0 / calc(var(--px) * 16) calc(var(--px) * 16);
+    overflow: hidden;
     image-rendering: pixelated;
+}
+/* as ondas numa camada um ladrilho mais larga que anda com transform: o compositor move, o mar não repinta */
+.rt-sea::before,
+.rt-map::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 calc(var(--px) * -16);
+    background: var(--wave) 0 0 / var(--tile) auto;
     animation: rt-waves 4.8s linear infinite;
+    --tile: calc(var(--px) * 16);
 }
 /* o Lapras atravessando o mar de fundo, devagar */
 .rt-swim {
@@ -936,7 +945,7 @@
 }
 @keyframes rt-waves {
     to {
-        background-position-x: calc(var(--px) * 16);
+        transform: translateX(var(--tile));
     }
 }
 .rt-ui {
@@ -993,13 +1002,14 @@
     box-shadow:
         0 0 0 3px #f4f1e6,
         0 6px 0 3px var(--bc-edge);
-    background: var(--wave) 0 0 / 8% auto #3a74d0;
-    animation: rt-waves-map 4.8s linear infinite;
+    background: #3a74d0;
 }
-@keyframes rt-waves-map {
-    to {
-        background-position-x: 8%;
-    }
+/* ladrilho de 8% da largura do mapa (a camada tem 108%, daí o 8/108); a velocidade é a de antes (o fundo andava
+   7,36% em 4,8 s), agora sem o pulo no fim do ciclo */
+.rt-map::before {
+    left: -8%;
+    --tile: calc(100% * 8 / 108);
+    animation-duration: 5.2s;
 }
 /* o desenho do mapa (24 x 16 casas); a caixa (.rt-map) pode mostrar só um pedaço dele */
 .rt-world {
@@ -1025,6 +1035,10 @@
     inset: 0;
     width: 100%;
     height: 100%;
+}
+/* camada própria: o tracejado andando (.rt-next) repinta só a trilha, não o mapa embaixo */
+.rt-trail {
+    will-change: transform;
 }
 .rt-foam {
     fill: #7fb4f2;

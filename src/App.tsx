@@ -2,7 +2,7 @@ import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'rea
 import { setVolume } from './game/audio';
 import { useT } from './i18n/react';
 import { duel, useDuel } from './net/session';
-import { preloadGame } from './PhaserGame';
+import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { readAmbientes } from './ui/ambientes/nav';
@@ -201,15 +201,19 @@ export default function App() {
         setVolume(settings.volume);
     }, [settings.volume]);
 
-    // com a primeira tela já carregada (imagens inclusive), baixa a partida (Phaser) em segundo plano: o "Jogar" não
-    // espera a rede e o pedaço não disputa banda com a Home
+    // com a primeira tela já carregada (imagens inclusive), baixa a partida (Phaser) em segundo plano sem rodar: o
+    // "Jogar" não espera a rede e o pedaço não disputa banda com a Home
     useEffect(() => {
         const idle = () =>
-            (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(preloadGame);
+            (window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 300)))(prefetchGame);
         if (document.readyState === 'complete') idle();
         else window.addEventListener('load', idle, { once: true });
         return () => window.removeEventListener('load', idle);
     }, []);
+    // na Escalação a partida está perto: roda o pedaço (já baixado) aqui, não no "Jogar"
+    useEffect(() => {
+        if (screen === 'lineup') preloadGame();
+    }, [screen]);
 
     // tela nova abre no topo (sem isso a partida abria rolada lá embaixo, onde ficava o "Jogar")
     // biome-ignore lint/correctness/useExhaustiveDependencies: roda a cada troca de tela

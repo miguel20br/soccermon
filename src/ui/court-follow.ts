@@ -11,13 +11,23 @@ interface FollowScene {
     scale: { width: number; updateBounds(): void };
 }
 
+type ReadyScene = FollowScene & {
+    sys?: { isActive(): boolean; events?: { once(ev: string, fn: () => void): unknown } };
+};
+
 /**
  * A última cena pronta. O `current-scene-ready` sai uma vez só (no create), e girar o celular desliga e religa a quadra
- * grande no meio da partida: sem guardar aqui, o efeito novo ficava esperando um evento que não vem mais.
+ * grande no meio da partida: sem guardar aqui, o efeito novo ficava esperando um evento que não vem mais. Solta a cena
+ * quando ela acaba: guardada aqui, a partida inteira (Game e cena, ~12 MB) não saía da memória.
  */
-let ready: (FollowScene & { sys?: { isActive(): boolean } }) | null = null;
-EventBus.on('current-scene-ready', (sc: typeof ready) => {
+let ready: ReadyScene | null = null;
+EventBus.on('current-scene-ready', (sc: ReadyScene) => {
     ready = sc;
+    const drop = () => {
+        if (ready === sc) ready = null;
+    };
+    sc.sys?.events?.once('shutdown', drop);
+    sc.sys?.events?.once('destroy', drop);
 });
 /** A cena da partida que está rodando agora (a de uma partida que já acabou não vale). */
 export const readyScene = (): FollowScene | null => (ready?.sys?.isActive() ? ready : null);
@@ -45,7 +55,7 @@ const SWAP_MS = 180;
  * gente perde o lance) mostra a quadra inteira: a caixa volta à largura da tela (`.hud-full`) e o próprio Phaser
  * (FIT) encaixa a quadra no meio. A troca passa por um fade curto (nada salta). Encolher com `scale` não serve: o
  * Phaser mede a caixa já encolhida e encolhe o canvas de novo. Os textos presos à tela vão pra faixa visível
- * (`setClipView`) e o toque no Pokémon continua certo (`updateBounds` quando a quadra anda).
+ * (`setClipView`) e o toque no Pokémon continua certo (`updateBounds` no toque).
  */
 export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>, follow = true) {
     const followRef = useRef(follow);
@@ -61,6 +71,12 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         let vel = 0;
         let swapping = false;
         let raf = 0;
+        let inner: HTMLElement | null = null;
+        // a quadra anda com transform; o Phaser só precisa da posição nova do canvas na hora do toque (medir em todo
+        // quadro forçava um layout por quadro)
+        const onDown = () => scene?.scale.updateBounds();
+        const host = wrap.current;
+        host?.addEventListener('pointerdown', onDown, true);
         const onReady = (sc: FollowScene) => {
             scene = sc;
             mode = null;
@@ -69,27 +85,28 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
         const tick = () => {
             raf = requestAnimationFrame(tick);
             const box = wrap.current;
-            const inner = box?.querySelector<HTMLElement>('.phaser-container');
+            if (!inner?.isConnected) inner = box?.querySelector<HTMLElement>('.phaser-container') ?? null;
             if (!scene || !box || !inner || swapping) return;
             const want = followRef.current;
             if (mode !== want) {
                 const first = mode === null;
                 mode = want;
+                const el = inner;
                 const apply = () => {
                     box.classList.toggle('hud-full', !want);
                     scene?.setZoomDamp(want ? HUD_ZOOM_DAMP : 1);
-                    inner.style.transform = '';
+                    el.style.transform = '';
                     x = null;
                     if (!want) scene?.setClipView(0, scene.scale.width);
                 };
                 if (first) apply();
                 else {
                     swapping = true;
-                    inner.style.opacity = '0';
+                    el.style.opacity = '0';
                     window.setTimeout(() => {
                         apply();
                         window.setTimeout(() => {
-                            inner.style.opacity = '';
+                            el.style.opacity = '';
                             swapping = false;
                         }, 60);
                     }, SWAP_MS);
@@ -121,14 +138,13 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
             x = next;
             inner.style.transform = `translateX(${x}px)`;
             scene.setClipView(-x / k, view / k);
-            scene.scale.updateBounds();
         };
         raf = requestAnimationFrame(tick);
         return () => {
             cancelAnimationFrame(raf);
             EventBus.off('current-scene-ready', onReady);
+            host?.removeEventListener('pointerdown', onDown, true);
             // girou pra deitado no meio do jogo: a quadra volta inteira, no lugar e com o zoom normal
-            const inner = wrap.current?.querySelector<HTMLElement>('.phaser-container');
             if (inner) inner.style.transform = '';
             wrap.current?.classList.remove('hud-full');
             scene?.setZoomDamp(1);

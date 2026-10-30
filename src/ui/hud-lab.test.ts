@@ -34,4 +34,15 @@ describe('cena pronta (girar o celular no meio da partida)', () => {
         scene.sys.isActive = () => false;
         expect(readyScene()).toBeNull();
     });
+    it('a cena destruída sai da memória (não segura a partida que acabou)', () => {
+        const fns: Record<string, () => void> = {};
+        const scene = {
+            sys: { isActive: () => true, events: { once: (ev: string, fn: () => void) => (fns[ev] = fn) } },
+        };
+        EventBus.emit('current-scene-ready', scene);
+        expect(readyScene()).toBe(scene);
+        fns.destroy();
+        scene.sys.isActive = () => true;
+        expect(readyScene()).toBeNull();
+    });
 });

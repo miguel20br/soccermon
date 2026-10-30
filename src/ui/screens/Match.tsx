@@ -18,10 +18,10 @@ import {
     type Tactic,
     type TeamSetup,
 } from '../../engine/state';
-import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { skinOf } from '../../game/skin';
 import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
@@ -115,15 +115,22 @@ const SAVE_EVERY_MS = 1500;
 type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
 
 export function Match({ liga = false }: { liga?: boolean }) {
-    const store = useGame();
-    const { match, settings, updateSettings, setMatch, go } = store;
+    // seletores, não a loja inteira: qualquer mudança da loja fora da partida (perfil, missões, nuvem) redesenhava a tela
+    const match = useGame((s) => s.match);
+    const settings = useGame((s) => s.settings);
+    const updateSettings = useGame((s) => s.updateSettings);
+    const setMatch = useGame((s) => s.setMatch);
+    const go = useGame((s) => s.go);
+    const cupRun = useGame((s) => s.run);
+    const cupSaveLive = useGame((s) => s.saveLive);
+    const cupRecordResult = useGame((s) => s.recordResult);
     const ligaOpen = useLiga((s) => s.open);
     // a partida da Liga vira uma copa de 1 fase (montada uma vez: as ordens vêm do estado da tela)
     const ligaRunRef = useRef(liga && ligaOpen ? ligaRun(ligaOpen, useLiga.getState().live) : null);
-    const run = liga ? ligaRunRef.current : store.run;
-    const saveLive = liga ? useLiga.getState().saveLive : store.saveLive;
+    const run = liga ? ligaRunRef.current : cupRun;
+    const saveLive = liga ? useLiga.getState().saveLive : cupSaveLive;
     // na Liga quem grava é o servidor: o apito final manda as ordens e ele refaz a partida
-    const recordResult = liga ? useLiga.getState().finish : store.recordResult;
+    const recordResult = liga ? useLiga.getState().finish : cupRecordResult;
     const saveLiveRef = useRef(saveLive);
     saveLiveRef.current = saveLive;
     const { t, d } = useT();
@@ -983,8 +990,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                         stage: run.stage,
                                         mode: run.mode ?? null,
                                         liga,
-                                        speed: String(store.settings.speed),
-                                        first_cup: store.records.cups === 0,
+                                        speed: String(settings.speed),
+                                        first_cup: useGame.getState().records.cups === 0,
                                     });
                                     EventBus.emit('match:skip');
                                 }}

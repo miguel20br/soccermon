@@ -11,6 +11,7 @@ import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
 import { Arena } from './Arena';
 import { Estadio } from './Estadio';
+import { SpriteNearCtx } from './FieldSprite';
 import { Lab } from './Lab';
 import { dragPos, START, skyOf, snapTab, TABS, type Tab } from './nav';
 import { Rota } from './Rota';
@@ -230,7 +231,9 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                         style={{ '--i': i } as CSSProperties}
                         inert={i !== tab}
                     >
-                        {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                        <SpriteNearCtx.Provider value={seen.current.has(i)}>
+                            {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                        </SpriteNearCtx.Provider>
                     </section>
                 ))}
             </div>
