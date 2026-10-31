@@ -24,8 +24,13 @@ fecham com o Miguel.
 
 **Goleiro capitão: o golpe máximo dele é a bicuda, e a bicuda é o parry** (correção do Miguel, 30/10/2026: uma mecânica
 só, sem botão de parry à parte e sem parry pra goleiro que não é capitão).
-- Com a barra pronta, todo chute do rival no gol (golpe máximo do rival inclusive) acende a hora certa: o mesmo anel do
-  golpe máximo, na chegada da bola.
+- Com a barra pronta, o chute do rival que o goleiro vai alcançar mesmo (golpe máximo do rival inclusive) acende a hora
+  certa: o mesmo anel do golpe máximo, na chegada da bola. Chute que um zagueiro bloqueia antes, que vai pra fora ou na
+  trave, ou que passa longe do goleiro não acende (Miguel, 30/10/2026). O motor solta o evento `gkReach` quando o goleiro
+  capitão chega na bola; a tela olha à frente nos eventos (`bicudaCueNear`), do chute até um tick antes do toque.
+- O toque vale só pra aquele chute (Miguel, 30/10/2026): o pedido prende no chute do rival que está no ar (ou no que vem,
+  se o rival já está com a bola na zona do goleiro) e some com ele, sem gastar a barra, se o goleiro não chegar nela.
+  Fora dessa hora a ordem nem arma (o toque atrasado não fica 5 s esperando o chute seguinte).
 - Toque na hora (bom ou perfeito): em vez de encaixar, o goleiro devolve com a bicuda e derruba quem estiver no caminho.
   N1 e N2: lançamento forte pro companheiro mais à frente no campo rival (o N2 derruba a linha no caminho). N3: chute
   N3 no gol rival (sempre no alvo, status, efeito do tipo), mas o goleiro rival defende como num chute normal (sem o
@@ -33,7 +38,7 @@ só, sem botão de parry à parte e sem parry pra goleiro que não é capitão).
 - Toque fora: a defesa de sempre daquele chute. Gasta a barra (evento `max` `miss`, a tela mostra o "fora").
 - Gasta a barra toda, como o golpe máximo de linha.
 - O rival usa a mesma regra pelo técnico IA quando o goleiro dele é o capitão (arma quando o nosso atacante entra na
-  zona, nota sorteada como a do golpe máximo).
+  zona, nota sorteada como a do golpe máximo; o pedido vale só pro chute seguinte e some com ele).
 
 **Efeito na bola (pedido do Miguel, automático desde 30/10/2026):** todo golpe máximo, em qualquer nível, curva sozinho
 pro canto longe do goleiro, sem arrastar. Usa a mesma conta da curva do Psíquico, com metade do teto. O N3 Psíquico fica
@@ -73,6 +78,23 @@ parte, já removido).
 
 **Aprovado em 30/10 (Miguel):** a bicuda N3 fica como está (92% de gol); o golpe de linha fica mais forte como está
 (72%); o toque fora da bicuda gasta a barra. Os números do motor 17 valem assim.
+
+### Anel só no chute que chega (30/10/2026, depois da aprovação)
+
+O anel da bicuda acende só no chute que o goleiro capitão alcança e o toque vale só pra ele (regras acima). Medida com o
+mesmo `calibrate --n 400 --agencia` (mesmas seeds); só a bicuda e o golpe máximo mudam, os números não foram mexidos:
+
+| Medida | Antes (toque armado 5 s) | Depois (só aquele chute) |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,29 |
+| Golpe máximo por jogo (N1/N2/N3) | 0,94 (0,04/0,56/0,33) | 0,92 (0,04/0,55/0,33) |
+| Bicudas por jogo (N1/N2/N3) | 0,14 (0/0,07/0,07) | 0,12 (0/0,06/0,06) |
+| Bicuda N3 que vira gol (do time, em 4 s) | 92% | 92% |
+| Bicuda com toque fora | 0,01/jogo | 0,01/jogo |
+| Goleiro capitão alcança o chute (`gkReach`) | — | 4,73/jogo |
+
+Na tela (`?demo=maximo&goleiro=1&nivel=3`, headless 390x844): o botão acendeu 6 ticks antes do chute que o Snorlax
+alcançou e a bicuda N3 saiu no toque dele na bola, logo depois do toque na tela.
 
 O que estava em aberto antes da decisão:
 - **Bicuda N3 ainda é quase gol certo (92%; robô goleiro n3: 85%)**, mesmo passando pela defesa normal do goleiro rival:

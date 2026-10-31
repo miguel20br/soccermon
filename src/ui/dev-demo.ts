@@ -524,7 +524,12 @@ export function runDevDemo() {
                 if (gk) {
                     // a bicuda: o chute do rival que o goleiro capitão alcança (a hora dela vai do chute até ele)
                     for (const e of s.events.slice(seen))
-                        if (e.type === 'gkReach' && maxCharge(s.events, 0, e.from, 5).level >= nivel) at = e.from;
+                        if (
+                            e.type === 'gkReach' &&
+                            e.by === cap?.idx &&
+                            maxCharge(s.events, 0, e.from, 5).level >= nivel
+                        )
+                            at = e.from;
                     continue;
                 }
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
