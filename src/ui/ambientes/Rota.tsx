@@ -402,7 +402,7 @@ export function Rota({
                     </h2>
                     <span className="rt-badges" title={t('profile.badges.title')}>
                         <KantoBadge leader="brock" earned={nBadges > 0} />
-                        {t('profile.badges.count', { n: nBadges, total: KANTO_BADGES.length })}
+                        {t('profile.badges.countShort', { n: nBadges, total: KANTO_BADGES.length })}
                     </span>
                 </header>
                 <div className="rt-map amb-par" style={{ '--depth': 0.25 } as CSSProperties}>
@@ -517,14 +517,9 @@ export function Rota({
                     onClick={longOn && run ? () => go(resumeScreenOf(run.status)) : begin}
                 >
                     <span className="cup-go-txt">
-                        <b>
-                            {longOn
-                                ? where
-                                    ? t('home.amb.rotaGo', { where })
-                                    : t('home.resume')
-                                : t('home.longCup.go')}
-                        </b>
-                        <small>{t('home.longCup.tag')}</small>
+                        <b>{longOn ? t('home.resume') : t('home.longCup.go')}</b>
+                        {/* a região vai na linha de baixo: "Continuar · Mt. / Moon" quebrava o nome no meio a 320 */}
+                        <small>{where ? `${where} · ${t('home.longCup.tag')}` : t('home.longCup.tag')}</small>
                     </span>
                     <HudIcon kind="next" />
                 </button>

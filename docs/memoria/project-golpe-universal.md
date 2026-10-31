@@ -14,7 +14,7 @@ Em 30/10/2026 o Miguel aprovou a ideia de um amigo, com as minhas recomendaçõe
 - **N2:** N1 + derruba a linha do chute.
 - **N3:** sempre no alvo + efeito do tipo, com cena estilo Street Fighter.
 - **Goleiro capitão:** bicuda; só no N3 pode ser gol direto.
-- **Parry:** qualquer goleiro, SÓ contra golpe máximo rival (não o tempo todo); perfeito rebate pra um companheiro.
+- **Parry = bicuda (correção do Miguel, 30/10):** não existe botão de parry separado. O golpe máximo do goleiro capitão É o parry: com a barra pronta, o rival chuta no gol, você toca na hora e ele devolve com a bicuda. (Eu tinha feito um parry pra qualquer goleiro contra golpe máximo rival: errado.)
 - **Efeito na bola:** AUTOMÁTICO, curva leve que o motor escolhe (sem arrastar).
 - **Fantasma:** fica como está (30/10: "assustado não existe nos jogos"); não inventar status fora da Gen 1.
 - **Polimento:** ele pediu "tudo bem polido, música na medida, efeitos especiais legais".

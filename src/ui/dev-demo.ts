@@ -17,7 +17,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
-import { EVENT_IDS, type EventId, rollEvent } from '../store/long-events';
+import { type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
@@ -289,7 +289,7 @@ export function runDevDemo() {
         demoLongMap(store, true);
         const id = (new URLSearchParams(window.location.search).get('id') ?? 'carrinho') as EventId;
         const run = useGame.getState().run!;
-        const event = rollEvent({ ...run, eventsSeen: EVENT_IDS.filter((x) => x !== id) });
+        const event = rollEvent(run, id);
         useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
         return;
     }

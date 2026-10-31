@@ -457,37 +457,37 @@
 /* painel do tempo e dos pênaltis (o mesmo do intervalo) */
 .sl-pens {
     display: grid;
-    gap: 4px;
-    margin: 6px 0 10px;
+    gap: 6px;
+    margin: 8px 0 12px;
     padding: 0;
     list-style: none;
 }
 .sl-pens li {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
-    padding: 4px 6px;
-    border-radius: 6px;
-    background: var(--bc-ink-3);
-    opacity: 0.6;
+    opacity: 0.55;
 }
 .sl-pens li.in {
     opacity: 1;
 }
-.sl-pens img {
-    width: 28px;
-    height: 28px;
+/* o número da vez, numa bolinha: os 5 que batem em dourado */
+.sl-pen-n {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: var(--panel-2);
+    color: var(--text);
+    font-weight: 700;
 }
-.sl-pens b {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.sl-pens small {
-    color: var(--muted);
+.sl-pens li.in .sl-pen-n {
+    background: var(--yellow);
+    color: var(--bc-ink);
 }
 /* tocar em um e depois em outro troca os dois */
 .sl-pen-who {
@@ -496,31 +496,78 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    min-height: 36px;
-    padding: 0 4px;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    background: none;
+    min-height: 48px;
+    padding: 2px 8px 2px 2px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--bc-ink-3);
     color: inherit;
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.2s var(--ease-out);
+    transition:
+        background-color 0.2s var(--ease-out),
+        box-shadow 0.2s var(--ease-out);
 }
 .sl-pen-who.on {
-    border-color: var(--yellow);
+    background: var(--pick-fill);
+    box-shadow: var(--pick-ring);
 }
-.sl-pen-n {
-    width: 18px;
-    color: var(--yellow);
+.sl-pens img {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+.sl-pen-name {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.15;
+}
+.sl-pen-name b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sl-pen-name small {
+    color: var(--muted);
+}
+/* o chute da carta, na cor da faixa (bronze/prata/ouro, como a carta) */
+.sl-pen-shot {
+    display: grid;
+    flex: none;
+    place-items: center;
+    gap: 2px;
+    min-width: 40px;
+    padding: 3px 4px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 6px;
+    color: var(--bc-ink);
+    font-size: 17px;
     font-weight: 700;
-    text-align: center;
+    line-height: 1;
+}
+.sl-pen-shot small {
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+.sl-pen-shot.ouro {
+    background: linear-gradient(160deg, #fff3b8 0%, #e8c24a 48%, #b48a18 100%);
+}
+.sl-pen-shot.prata {
+    background: linear-gradient(160deg, #fbfcfe 0%, #d3d8e1 48%, #9aa2b0 100%);
+}
+.sl-pen-shot.bronze {
+    background: linear-gradient(160deg, #f0c493 0%, #c98a52 48%, #8f5a2e 100%);
 }
 .sl-arrow {
     display: grid;
+    flex: none;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border: 2px solid var(--bc-ink);
     border-radius: 6px;
     background: var(--panel-2);
@@ -528,11 +575,14 @@
     cursor: pointer;
 }
 .sl-arrow:disabled {
-    opacity: 0.3;
-    cursor: default;
+    visibility: hidden;
 }
 
 @media (max-width: 360px) {
+    /* celular estreito: as setas comiam o nome; tocar em dois já troca (e o toque funciona no teclado) */
+    .sl-pens .sl-arrow {
+        display: none;
+    }
     .sl-btn {
         gap: 4px;
         padding: 4px 5px;

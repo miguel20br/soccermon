@@ -1,6 +1,7 @@
 import { CLUBS, type ClubTemplate } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
+import { createInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import type { TeamSetup } from './state';
@@ -11,7 +12,32 @@ import { equipRivalTms, RIVAL_GYM_TM_MAX } from './tm';
  * só de partida (Jogo ou Ginásio) ou só de parada (Mercado, Evento, Treino, Baú), então **toda rota tem as mesmas 8
  * partidas** (7 na Rota + a Final contra a Liga Índigo) e o tempo da copa é previsível (~35 min).
  */
-export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'bau' | 'final';
+export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'bau' | 'centro' | 'final';
+
+/**
+ * Prêmio do Jogo, à vista no mapa (revisão da Rota, Hades): 1 de 3 Pokémon do rival, 1 de 3 MTs, 1 de 3 itens (os de
+ * tipo do ramo primeiro) ou o ₽ da vitória em dobro, sem recompensa.
+ */
+export type Prize = 'pokemon' | 'tm' | 'item' | 'money';
+export const PRIZES: readonly Prize[] = ['pokemon', 'tm', 'item', 'money'];
+
+/**
+ * Regras da Rota que o robô de caminhos (scripts/balance/rota-caminhos.sim.test.ts) liga e desliga pra medir. Mexer
+ * aqui muda o mapa e a recompensa das Rotas novas (o save guarda o mapa); não muda partida nenhuma.
+ */
+export const ROTA_RULES = {
+    /** Escassez: no máximo tantos Mercados por caminho. */
+    maxShops: 2,
+    /** Mercado e Treino de parada podem cair no mesmo caminho. */
+    shopWithTreino: true,
+    /** O que vira a casa que a escassez tira (Mercado a mais, ou o Treino junto do Mercado). */
+    spare: 'evento' as 'evento' | 'bau',
+    /** Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa (que deixa de ser "Pokémon do rival"). */
+    rivalEveryJogo: true,
+};
+/** Prêmios que o mapa sorteia agora. */
+export const mapPrizes = (): readonly Prize[] =>
+    ROTA_RULES.rivalEveryJogo ? PRIZES.filter((p) => p !== 'pokemon') : PRIZES;
 
 export interface MapNode {
     /** `r<linha>c<coluna>`. */
@@ -21,6 +47,10 @@ export interface MapNode {
     kind: NodeKind;
     /** Casas da linha de cima em que dá pra ir daqui. */
     next: string[];
+    /** Tipos do ramo (a coluna): rival, Baú, Mercado e prêmio puxam eles. Mapa de antes da revisão não tem. */
+    types?: string[];
+    /** Prêmio do Jogo. Mapa de antes da revisão não tem (a recompensa de sempre). */
+    prize?: Prize;
 }
 
 export interface CupMap {
@@ -60,6 +90,35 @@ export const isMatchKind = (k: NodeKind) => k === 'jogo' || k === 'ginasio' || k
 /** Quantas partidas vêm antes desta linha (a 1ª partida é a 0). */
 export const matchIndexOfRow = (row: number) => LAYOUT.slice(0, row).filter((r) => r === 'M').length;
 
+/**
+ * Ramos do mapa (PokéRogue): cada coluna é um caminho de Kanto com os seus tipos, sorteados 3 por mapa (esquerda, meio,
+ * direita). Linha de 2 casas tem só a esquerda e a direita.
+ */
+export const BRANCHES: readonly (readonly string[])[] = [
+    ['Water', 'Grass'],
+    ['Rock', 'Ground', 'Fighting'],
+    ['Ghost', 'Psychic'],
+    ['Electric', 'Fire'],
+    ['Normal', 'Bug'],
+    ['Poison', 'Flying'],
+];
+const laneOf = (col: number, w: number) => (w === 1 ? 1 : w === 2 ? col * 2 : col);
+
+/** Ginásio a partir desta partida (a 2ª). */
+export const GYM_FROM_MATCH = 1;
+
+/** Todos os caminhos do mapa, da 1ª linha ao Treino. */
+export function mapPaths(nodes: readonly MapNode[]): MapNode[][] {
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const out: MapNode[][] = [];
+    const walk = (n: MapNode, acc: MapNode[]) => {
+        if (!n.next.length) out.push([...acc, n]);
+        for (const id of n.next) walk(byId.get(id)!, [...acc, n]);
+    };
+    for (const n of nodes.filter((x) => x.row === 0)) walk(n, []);
+    return out;
+}
+
 export function buildCupMap(seed: string): CupMap {
     const rng = new Rng(seed, 'long-map');
     const widths = LAYOUT.map((r, i) => (r === 'T' ? 1 : i === 0 ? 3 : rng.int(2, 3)));
@@ -67,15 +126,16 @@ export function buildCupMap(seed: string): CupMap {
         const w = widths[row];
         let kinds: NodeKind[];
         if (r === 'T') kinds = ['treino'];
-        else if (r === 'B') kinds = Array(w).fill('bau');
+        // a linha do Baú vira escolha: Baú ou Centro Pokémon
+        else if (r === 'B') kinds = rng.shuffle<NodeKind>(w === 2 ? ['bau', 'centro'] : ['bau', 'centro', 'bau']);
         else if (r === 'S') {
-            // toda linha de parada tem Mercado e Evento (sempre dá pra escolher); a 3ª casa é Treino
+            // Mercado, Evento e (com 3 casas) Treino; a escassez (abaixo) tira o que um caminho não pode ter dois
             kinds = rng.shuffle<NodeKind>(w === 2 ? ['mercado', 'evento'] : ['mercado', 'evento', 'treino']);
         } else {
-            // Ginásio (elite opcional) só a partir da 3ª partida, no máximo 1 por linha, sempre com um Jogo ao lado
+            // Ginásio (elite opcional) a partir da 2ª partida, no máximo 1 por linha, sempre com um Jogo ao lado
             kinds = Array(w).fill('jogo');
             const nth = matchIndexOfRow(row);
-            if (nth >= 2 && rng.chance(0.75)) {
+            if (nth >= GYM_FROM_MATCH && rng.chance(0.75)) {
                 kinds[rng.int(0, w - 1)] = 'ginasio';
             }
         }
@@ -108,7 +168,32 @@ export function buildCupMap(seed: string): CupMap {
             else if (minR - 1 >= 0) right.next.unshift(up[minR - 1].id);
         }
     }
-    return { nodes: rows.flat(), rows: LAYOUT.length };
+    const nodes = rows.flat();
+    // Escassez: no máximo `maxShops` Mercados por caminho e (sem `shopWithTreino`) Mercado e Treino nunca no mesmo
+    // caminho. A casa que sobra (a mais de cima) vira `spare` (Evento ou Baú). Sem sorteio: o resto do mapa não muda.
+    const stopTreino = (n: MapNode) => n.kind === 'treino' && LAYOUT[n.row] === 'S';
+    const { maxShops, shopWithTreino } = ROTA_RULES;
+    for (let guard = 0; guard < 50; guard++) {
+        const bad = mapPaths(nodes).find((p) => {
+            const shops = p.filter((n) => n.kind === 'mercado').length;
+            return shops > maxShops || (shops > 0 && !shopWithTreino && p.some(stopTreino));
+        });
+        if (!bad) break;
+        bad.filter((n) => n.kind === 'mercado' || stopTreino(n)).at(-1)!.kind = ROTA_RULES.spare;
+    }
+    // ramos e prêmios: sorteios próprios (o resto do mapa não muda)
+    const br = new Rng(seed, 'long-map-branch');
+    const lanes = br.shuffle([...BRANCHES]).slice(0, 3);
+    const pz = new Rng(seed, 'long-map-prize');
+    for (const line of rows) {
+        const prizes = pz.shuffle([...mapPrizes()]);
+        let k = 0;
+        for (const n of line) {
+            n.types = [...lanes[laneOf(n.col, line.length)]];
+            if (n.kind === 'jogo') n.prize = prizes[k++];
+        }
+    }
+    return { nodes, rows: LAYOUT.length };
 }
 
 export const nodeById = (map: CupMap, id: string) => map.nodes.find((n) => n.id === id);
@@ -216,8 +301,38 @@ export const rivalTypes = (name: string): string[] =>
 /** Titulares do tipo do treinador num time da Rota (o Ornitólogo tem pássaros). */
 export const ROUTE_THEME_MIN = 3;
 
-/** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
+/** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. */
 const LONG_DIFFICULTY = [-2, -1, 0, 1, 1, 1, 1, 4];
+/** Ginásio de elite (Slay the Spire): o rival vem bem mais forte. */
+export const GYM_SHIFT = 2;
+/** Desafio de evento (Pássaro lendário, Equipe Rocket): o rival vem mais forte. */
+export const CHALLENGE_SHIFT = 2;
+/** O pássaro lendário de cada evento. */
+export const LEGENDARY_BIRD = 145;
+
+/** O Pokémon que o líder entrega na vitória do Ginásio (a carta forte dele na Gen 1). */
+export const LEADER_ACE: Readonly<Record<string, number>> = {
+    'Pewter Rochedo': 95,
+    'Cerulean Cascata': 121,
+    'Vermilion Voltagem': 26,
+    'Celadon Arco-Íris': 45,
+    'Fuchsia Ninjas': 110,
+    'Saffron Mentes': 65,
+    'Cinnabar Vulcão': 59,
+    'Viridian Terra': 112,
+    'Lavender Assombro': 94,
+};
+
+export interface OpponentOpts {
+    /** Evento (entrevista, desafio): o rival entra mais fraco (−) ou mais forte (+). */
+    shift?: number;
+    /** Tipos do ramo: o rival sai dos times que têm um deles (se ainda tiver um que você não enfrentou). */
+    types?: readonly string[];
+    /** Esse time, sem sorteio (Equipe Rocket do evento). */
+    club?: string;
+    /** Espécie que entra de titular (o pássaro lendário). */
+    boss?: number;
+}
 /** Itens do rival pela partida. */
 const LONG_ITEMS = [0, 0, 0, 1, 0, 0, 1, 3];
 
@@ -230,26 +345,36 @@ export function longOpponent(
     match: number,
     kind: NodeKind,
     faced: readonly string[],
-    /** Evento (entrevista): o próximo rival entra mais fraco (−1) ou mais forte (+1). */
-    shift = 0,
+    { shift = 0, types, club: only, boss }: OpponentOpts = {},
 ): TeamSetup {
     const rng = new Rng(seed, `long-${match}-${kind}`);
     const indigo = CLUBS[CLUBS.length - 1];
     let club: Omit<ClubTemplate, 'leader' | 'city'>;
     if (kind === 'final') club = indigo;
     else {
-        const pool = kind === 'ginasio' ? CLUBS.filter((c) => c !== indigo) : ROUTE_TEAMS;
+        const all = kind === 'ginasio' ? CLUBS.filter((c) => c !== indigo) : ROUTE_TEAMS;
+        const pool = only ? [...ROUTE_TEAMS, ...CLUBS].filter((c) => c.name === only) : all;
         const fresh = pool.filter((c) => !faced.includes(c.name));
-        club = rng.pick(fresh.length ? fresh : pool);
+        const typed = types?.length ? fresh.filter((c) => c.types.some((t) => types.includes(t))) : [];
+        club = rng.pick(typed.length ? typed : fresh.length ? fresh : pool);
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
-    const difficulty = Math.max(-2, Math.min(4, (kind === 'ginasio' ? Math.min(3, base + 1) : base) + shift));
+    const difficulty = Math.max(-2, Math.min(4, base + (kind === 'ginasio' ? GYM_SHIFT : 0) + shift));
     // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares
     const d = aiDraftTeam(rng, difficulty, club.types, club.formation, kind === 'jogo' ? ROUTE_THEME_MIN : 0);
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);
         h.item = rng.pick([...ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
+    }
+    // o pássaro lendário entra no lugar do titular mais fraco (nunca o goleiro nem o capitão)
+    if (boss !== undefined) {
+        const at = d.lineup
+            .map((p, i) => ({ i, ovr: viewInstance(p).overall }))
+            .filter(({ i }) => i > 0 && d.lineup[i].uid !== d.captainUid)
+            .sort((a, b) => a.ovr - b.ovr)[0]?.i;
+        if (at !== undefined)
+            d.lineup[at] = { ...createInstance(boss, new Rng(seed, `long-boss-${match}`)), uid: `boss-${match}` };
     }
     // só o Ginásio e a Final levam a MT do líder
     const tmRng = new Rng(seed, `long-tm-${match}`);

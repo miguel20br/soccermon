@@ -662,7 +662,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
             .sort((a, b) => Number(a.role === 'GK') - Number(b.role === 'GK') || shooting(b.uid) - shooting(a.uid))
             .map(({ uid, role }) => {
                 const inst = byUid.get(uid);
-                return { uid, name: nameOf(uid), sprite: inst ? cardSprite(inst) : '', gk: role === 'GK' };
+                return {
+                    uid,
+                    name: nameOf(uid),
+                    sprite: inst ? cardSprite(inst) : '',
+                    gk: role === 'GK',
+                    shot: shooting(uid),
+                };
             });
     };
     const resumeFromPens = () => {

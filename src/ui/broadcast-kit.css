@@ -400,6 +400,15 @@ h3.bc-lbl {
         flex: 0 1 420px;
     }
 }
+/* 320: a instrução ao lado do primário deixava "Jogar partida 3 de 8" em três linhas; ela sobe pra linha de cima */
+@media (max-width: 380px) {
+    .bc-thumbbar:has(> .tb-hint) {
+        flex-wrap: wrap;
+    }
+    .bc-thumbbar > .tb-hint {
+        flex-basis: 100%;
+    }
+}
 
 /* ---------- Nada teleporta: o marcador da opção ativa desliza (src/ui/tab-slide.ts) ---------- */
 .bc-tabs.has-ind,

@@ -32,3 +32,8 @@ dezembro com outra coisa além do Natal.
 Modo História de 2027). Está inclinado a trocar o menu de modos pro conceito **C (fatias na diagonal, estilo Smash)**
 no lugar do A; prints em scratchpad/alvo/conc-*-{390,1440}.png da sessão 152ccaaa.
 
+**30/10/2026 (2):** o Modo Treinador passa a se chamar **Time Ultimate** (EN "Team Ultimate"); Modo História continua o de 2027.
+Menu de modos: **C (Smash) aprovado, adaptado pro celular** (branch `menu-smash`). Decisões do Time Ultimate: 1 ok (mas pesquisar o
+Ultimate Team do FC 27 antes), 2 Liga separada, 3 sim (temporada atravessa o Natal), 4 sem limite duro (rival acompanha a média, nível escolhido, objetivos com restrição):
+"a dificuldade é o limite", 5 moeda = Fichas, 6 ok (prata com química empata com ouro sem química).
+

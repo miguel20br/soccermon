@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ROTA_RULES } from '../../engine/cup-map';
 import { formationOf } from '../../engine/formations';
 import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
@@ -54,6 +55,8 @@ export function Reward() {
     const mons = run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []));
     // treino de técnica da Rota (ninguém evolui): pacote do treino, só itens
     const training = isLong(run) && !run.group && currentNode(run)?.kind === 'treino';
+    // Rota: depois do 1 de 3 do rival vem o prêmio da casa (MT, item), sem Pokémon do rival
+    const rotaPrize = isLong(run) && !run.group && ROTA_RULES.rivalEveryJogo && !run.rivalPick;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const reward = chosen !== null ? run.rewards[chosen] : null;
@@ -77,7 +80,7 @@ export function Reward() {
             : reward.kind === 'tm'
               ? t('reward.whoLearns')
               : t('reward.whoHolds')
-        : t('reward.choose');
+        : t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose');
 
     return (
         <>
@@ -164,14 +167,22 @@ export function Reward() {
                 </div>
             </CardPack>
             {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
-            {!reward && !training && <Tip id="reward-pick">{t('reward.tip')}</Tip>}
+            {!reward && !training && (
+                <Tip id="reward-pick">
+                    {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
+                </Tip>
+            )}
 
             {reward && (
                 <GainTarget
                     key={chosen}
                     gain={reward}
                     run={run}
-                    onClaim={(uid, slot, passTo) => claimReward(chosen!, uid, slot, passTo)}
+                    onClaim={(uid, slot, passTo) => {
+                        claimReward(chosen!, uid, slot, passTo);
+                        // Rota: depois do rival vem o prêmio da casa na mesma tela
+                        setChosen(null);
+                    }}
                 />
             )}
             {/* com Pokémon ou item escolhido, a prancheta de escolher fica no lugar desta */}
@@ -229,8 +240,15 @@ export function Reward() {
             )}
             {/* pular é discreto (fantasma à esquerda); sortear de novo à direita */}
             <div className="bc-thumbbar reward-bar">
-                <button type="button" className="btn ghost" onClick={skipReward}>
-                    {t('reward.skip')}
+                <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                        skipReward();
+                        setChosen(null);
+                    }}
+                >
+                    {t(run.rivalPick ? 'reward.skipRival' : 'reward.skip')}
                 </button>
                 <button
                     type="button"

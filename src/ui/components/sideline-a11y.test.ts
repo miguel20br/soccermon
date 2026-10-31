@@ -6,7 +6,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { maxCharge } from '../../engine/agency';
 import type { MatchEvent } from '../../engine/state';
-import { type AgencyView, chargeAt, SidelineControls } from './Sideline';
+import { type AgencyView, chargeAt, PenaltyOrderPanel, SidelineControls } from './Sideline';
 
 const view = (cue: boolean): AgencyView => ({
     timeoutUsed: false,
@@ -45,5 +45,22 @@ describe('chargeAt', () => {
         expect(a.charge).toBeGreaterThan(0);
         events.push({ type: 'max', tick: 110, team: 0, by: 0, phase: 'hit', level: 1, q: 1 } as MatchEvent);
         expect(chargeAt(events, 0, 120).charge).toBe(0);
+    });
+});
+
+describe('ordem dos pênaltis', () => {
+    // retorno do Miguel (30/10, "o menu de quem bate tá bem cagado"): sem o chute à vista, a escolha era no escuro
+    it('mostra o chute de cada cobrador na faixa da carta', () => {
+        const takers = [
+            { uid: 'a', name: 'Aerodactyl', sprite: '', gk: false, shot: 81 },
+            { uid: 'b', name: 'Persian', sprite: '', gk: false, shot: 70 },
+            { uid: 'c', name: 'Slowbro', sprite: '', gk: true, shot: 52 },
+        ];
+        const out = renderToStaticMarkup(
+            createElement(PenaltyOrderPanel, { takers, onConfirm: () => {}, onKeep: () => {} }),
+        );
+        expect(out).toMatch(/sl-pen-shot ouro"><small>CHU<\/small>81/);
+        expect(out).toMatch(/sl-pen-shot prata"><small>CHU<\/small>70/);
+        expect(out).toMatch(/sl-pen-shot bronze"><small>CHU<\/small>52/);
     });
 });

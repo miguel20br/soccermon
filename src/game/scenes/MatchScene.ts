@@ -1385,7 +1385,9 @@ export class MatchScene extends Phaser.Scene {
             .setAlpha(0.35);
         this.ballGlow.setAlpha(0);
         const cam = this.cameras.main;
-        const center = toPx(29.5, width / 2);
+        // quadra grande do celular (zoomDamp < 1): a janela mostra só ~17 m, e centrar em 29,5 m deixava o gol (40 m)
+        // fora da tela; lá o centro é a marca do pênalti, com o gol e quem bate à vista
+        const center = toPx(this.zoomDamp < 1 ? 34 : 29.5, width / 2);
         cam.pan(center.x, center.y, 700, 'Sine.easeInOut', true);
         cam.zoomTo(1.35, 700, 'Sine.easeInOut', true);
         this.battleBox.push(tr('battle.shootout'));

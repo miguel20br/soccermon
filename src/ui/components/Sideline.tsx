@@ -631,6 +631,8 @@ export interface PenaltyTaker {
     name: string;
     sprite: string;
     gk: boolean;
+    /** Chute da carta (o que decide a cobrança), mostrado ao lado do nome. */
+    shot?: number;
 }
 
 /** Ordem dos cobradores: tocar em um e depois em outro troca os dois; as setas sobem e descem (teclado). */
@@ -675,8 +677,18 @@ export function PenaltyOrderPanel({
                             onClick={() => tap(i)}
                         >
                             <img className="pixel" src={p.sprite} alt="" />
-                            <b>{p.name}</b>
-                            {p.gk && <small>{a.gk}</small>}
+                            <span className="sl-pen-name">
+                                <b>{p.name}</b>
+                                {p.gk && <small>{a.gk}</small>}
+                            </span>
+                            {p.shot !== undefined && (
+                                <span
+                                    className={`sl-pen-shot ${p.shot >= 75 ? 'ouro' : p.shot >= 65 ? 'prata' : 'bronze'}`}
+                                >
+                                    <small>{d.common.attrShort.shooting}</small>
+                                    {p.shot}
+                                </span>
+                            )}
                         </button>
                         <button
                             type="button"
