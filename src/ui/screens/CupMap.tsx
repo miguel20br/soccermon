@@ -14,8 +14,10 @@ import {
     rivalTrainer,
     rivalTypes,
 } from '../../engine/cup-map';
-import { evolutionTarget, evoThreshold } from '../../engine/evolution';
+import { evolutionTarget, evolveInstance, evoThreshold, type Stone, stoneInto } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { EventBus } from '../../game/EventBus';
+import type { MatchEvolution } from '../../game/scenes/MatchScene';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -27,9 +29,10 @@ import {
     nodeOpponent,
     YELLOW_CARDS,
 } from '../../store/long-cup';
-import { choiceTargets, type EventId, eventChoices } from '../../store/long-events';
+import { choiceTargets, type EventId, eventChoices, stoners } from '../../store/long-events';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
+import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
@@ -44,6 +47,7 @@ import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
+import { TYPE_COLOR } from '../type-colors';
 import { useHeld } from '../use-held';
 import '../long-cup.css';
 import '../trophy-room.css';
@@ -58,6 +62,20 @@ const ICON: Record<NodeKind, HudIconKind> = {
     centro: 'heart',
     final: 'cup',
 };
+/** Cor de cada pedra: a do tipo de quem ela evolui (a da Lua, a de Fada do Clefairy). */
+const STONE_COLOR: Record<Stone, string> = {
+    lua: TYPE_COLOR.Fairy,
+    agua: TYPE_COLOR.Water,
+    trovao: TYPE_COLOR.Electric,
+    folha: TYPE_COLOR.Grass,
+    fogo: TYPE_COLOR.Fire,
+};
+/** A gema da pedra, na cor dela. */
+const StoneMark = ({ stone, className = 'cm-stone' }: { stone: Stone; className?: string }) => (
+    <span className={className} style={{ '--stone': STONE_COLOR[stone] } as CSSProperties}>
+        <HudIcon kind="stone" />
+    </span>
+);
 /** Altura de cada linha do mapa (px): cabe na altura da tela, entre o mínimo que dá pra tocar e o máximo que respira. */
 /** Altura da casa (ícone de 50 px + rótulo = 67 px) com folga: linha mais baixa que isso põe uma casa por cima da outra. */
 const ROW_MIN = 72;
@@ -310,9 +328,11 @@ export function CupMap() {
                                     style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
                                     disabled={!isOpen}
                                     aria-label={
-                                        n.prize
-                                            ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.prize.${n.prize}`)}`
-                                            : t(`longCup.kind.${n.kind}`)
+                                        n.stone
+                                            ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.stone.${n.stone}`)}`
+                                            : n.prize
+                                              ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.prize.${n.prize}`)}`
+                                              : t(`longCup.kind.${n.kind}`)
                                     }
                                     onClick={() => {
                                         setPick(pick === n.id ? null : n.id);
@@ -328,11 +348,14 @@ export function CupMap() {
                                             shiny={rivalIcons.get(n.id)!.shiny}
                                         />
                                     )}
+                                    {n.stone && <StoneMark stone={n.stone} className="cm-node-stone" />}
                                     {/* o Jogo mostra o prêmio no lugar do nome; as casas abertas, os tipos do caminho */}
                                     <span className="cm-label">
-                                        {n.prize && n.kind === 'jogo'
-                                            ? t(`longCup.prizeShort.${n.prize}`)
-                                            : t(`longCup.kind.${n.kind}`)}
+                                        {n.stone
+                                            ? t(`longCup.stoneShort.${n.stone}`)
+                                            : n.prize && n.kind === 'jogo'
+                                              ? t(`longCup.prizeShort.${n.prize}`)
+                                              : t(`longCup.kind.${n.kind}`)}
                                     </span>
                                     {isOpen && n.types && (
                                         <span className="cm-node-types">
@@ -368,7 +391,7 @@ export function CupMap() {
 }
 
 /** Escolhas de evento em que o alvo é quem sofre o efeito (o nome dele abre a linha). */
-const AFFECTS_TARGET = new Set(['carrinho:parar', 'fosseis:pedra', 'ovo:nasceu']);
+const AFFECTS_TARGET = new Set(['carrinho:parar', 'fosseis:pedra', 'pedra:usar', 'ovo:nasceu']);
 
 /** O que a última escolha de evento fez, numa linha acima do mapa, até a próxima casa. */
 function EventNote({
@@ -406,12 +429,14 @@ function NodeSheet({
     onGo,
 }: {
     node: MapNode;
-    run: Parameters<typeof nodeOpponent>[0];
+    run: Parameters<typeof nodeOpponent>[0] & Parameters<typeof stoners>[0];
     lang: 'pt' | 'en';
     onGo: () => void;
 }) {
     const { t } = useT();
     const rival = useMemo(() => (isMatchKind(node.kind) ? nodeOpponent(run, node) : null), [node, run]);
+    // a pedra: quem do seu time evolui com ela
+    const users = node.stone ? stoners(run, node.stone).map((p) => viewInstance(p).displayName) : [];
     const trainer = rival ? rivalTrainer(rival.name) : undefined;
     // a mesma conta da escalação e do VERSUS (nota na vaga): a ficha dizia 55 e a escalação 54
     const avg = rival ? lineupAverage(rival.lineup, rival.formation) : 0;
@@ -441,7 +466,19 @@ function NodeSheet({
                     </small>
                 </span>
             </div>
-            {node.kind === 'jogo' && node.prize && (
+            {node.kind === 'jogo' && node.stone && (
+                <p className="cm-prize">
+                    <StoneMark stone={node.stone} />
+                    <b>
+                        {t('longCup.prizeLabel')}: {t(`longCup.stone.${node.stone}`)}
+                    </b>{' '}
+                    <span className="muted">
+                        {t('longCup.prizeDesc.pedra')}{' '}
+                        {users.length ? t('longCup.stoneWho', { names: users.join(', ') }) : t('longCup.stoneNobody')}
+                    </span>
+                </p>
+            )}
+            {node.kind === 'jogo' && node.prize && !node.stone && (
                 <p className="cm-prize">
                     <b>
                         {t('longCup.prizeLabel')}: {t(`longCup.prize.${node.prize}`)}
@@ -608,6 +645,7 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     aposta: { icon: 'dice', color: '#2f7fc4' },
     juiz: { icon: 'yellow', color: '#c9a23a' },
     ovo: { icon: 'egg', color: '#e0a860' },
+    pedra: { icon: 'stone', color: '#8e7c68' },
     centro: { icon: 'heart', color: '#e06a8a' },
 };
 
@@ -622,13 +660,39 @@ export function EventScreen() {
     const [choice, setChoice] = useState<string | null>(null);
     const [who, setWho] = useState<string | null>(null);
     const [captain, setCaptain] = useState<string | null>(null);
+    const [evolving, setEvolving] = useState(false);
     const { t, d } = useT();
     if (!run?.event) return null;
     const ev = run.event;
     const txt = d.longCup.events[ev.id];
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const nameOf = (u: string) => (byUid.get(u) ? viewInstance(byUid.get(u)!).displayName : '');
-    const names = ev.uids?.map(nameOf) ?? [];
+    // a pedra ganha no Jogo: o nome dela no título e na fala
+    const stoneName = ev.stone ? t(`longCup.stone.${ev.stone}`) : null;
+    const names = stoneName ? [stoneName] : (ev.uids?.map(nameOf) ?? []);
+    const art = ev.stone ? { icon: EVENT_ART.pedra.icon, color: STONE_COLOR[ev.stone] } : EVENT_ART[ev.id];
+    const stone: Stone = ev.stone ?? 'lua';
+    // usar a pedra: a tela de evolução da partida (o momento dele) e, quando ela fecha, a escolha vale
+    const evolve = (choiceId: string, uid: string) => {
+        const mon = byUid.get(uid);
+        const into = mon ? stoneInto(mon.speciesId, stone) : null;
+        if (!mon || into === null) return;
+        const e: MatchEvolution = {
+            team: 0,
+            from: mon.speciesId,
+            into,
+            name: viewInstance(mon).displayName,
+            newName: viewInstance(evolveInstance(mon, into)).displayName,
+            shiny: !!mon.shiny,
+        };
+        const done = () => {
+            EventBus.off('match:evolution-done', done);
+            chooseEvent(choiceId, uid);
+        };
+        setEvolving(true);
+        EventBus.on('match:evolution-done', done);
+        EventBus.emit('match:evolution', e);
+    };
     const choices = eventChoices(run, ev);
     const picked = choices.find((c) => c.id === choice && c.need !== 'none');
     const targets = picked ? choiceTargets(run, ev, picked.need) : [];
@@ -647,6 +711,11 @@ export function EventScreen() {
     const ready = !!who && (!sale || !!captain);
     // carrinho: quem pode parar aparece com cara de dor
     const face = picked?.need === 'involved' ? ['pain', 'dizzy'] : null;
+    // a pedra: embaixo do nome, a forma nova (no Eevee, a pedra escolhe qual)
+    const intoOf = (u: string) => {
+        const into = picked?.need === 'stone' && byUid.get(u) ? stoneInto(byUid.get(u)!.speciesId, stone) : null;
+        return into === null ? null : viewInstance(evolveInstance(byUid.get(u)!, into)).displayName;
+    };
     const strip = (uids: string[], onPick: (u: string) => void, active: string | null, faces?: string[] | null) => (
         <div className="squad-strip">
             {uids.map((u) => (
@@ -672,6 +741,7 @@ export function EventScreen() {
                     )}
                     <span>
                         <b>{nameOf(u)}</b>
+                        {intoOf(u) && <small className="muted">{`→ ${intoOf(u)}`}</small>}
                     </span>
                 </button>
             ))}
@@ -680,10 +750,11 @@ export function EventScreen() {
     const [pickedLabel, pickedEffect] = picked ? (txt.choices[picked.id] ?? [picked.id, '']) : ['', ''];
     return (
         <div className={`menu-screen cm cm-ev${picked ? ' asking' : ''}`}>
-            <MenuHead title={txt.title} hud={EVENT_ART[ev.id].icon} />
-            <div className="cm-event bc-surface bc-stripe" style={{ '--ev': EVENT_ART[ev.id].color } as CSSProperties}>
+            <MenuHead title={stoneName ?? txt.title} hud={art.icon} />
+            <div className="cm-event bc-surface bc-stripe" style={{ '--ev': art.color } as CSSProperties}>
                 <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
                 <p>{fmtNames(txt.text, names)}</p>
+                {ev.stone && <StoneMark stone={ev.stone} className="cm-event-stone" />}
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
                     <span className="cm-event-faces" aria-hidden>
                         {ev.uids.map((u) =>
@@ -733,6 +804,7 @@ export function EventScreen() {
                             key="back"
                             type="button"
                             className="btn ghost cm-bar-in"
+                            disabled={evolving}
                             onClick={() => {
                                 setChoice(null);
                             }}
@@ -743,9 +815,11 @@ export function EventScreen() {
                             key="ok"
                             type="button"
                             className="btn primary cm-bar-in"
-                            disabled={!ready}
+                            disabled={!ready || evolving}
                             onClick={() => {
-                                if (who) chooseEvent(picked.id, who, captain ?? undefined);
+                                if (!who) return;
+                                if (picked.need === 'stone') evolve(picked.id, who);
+                                else chooseEvent(picked.id, who, captain ?? undefined);
                             }}
                         >
                             {t('longCup.confirm')}
@@ -777,6 +851,7 @@ export function EventScreen() {
                     })
                 )}
             </div>
+            <EvolutionOverlay />
         </div>
     );
 }

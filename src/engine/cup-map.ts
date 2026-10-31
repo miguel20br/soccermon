@@ -1,6 +1,7 @@
 import { CLUBS, type ClubTemplate } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
+import type { Stone } from './evolution';
 import { createInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
@@ -18,8 +19,21 @@ export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'b
  * Prêmio do Jogo, à vista no mapa (revisão da Rota, Hades): 1 de 3 Pokémon do rival, 1 de 3 MTs, 1 de 3 itens (os de
  * tipo do ramo primeiro) ou o ₽ da vitória em dobro, sem recompensa.
  */
-export type Prize = 'pokemon' | 'tm' | 'item' | 'money';
+export type Prize = 'pokemon' | 'tm' | 'item' | 'money' | 'pedra';
 export const PRIZES: readonly Prize[] = ['pokemon', 'tm', 'item', 'money'];
+
+/**
+ * Pedras de evolução como prêmio de região (decisão 8 da revisão da Rota): um Jogo da linha de partida de cada região
+ * dá a pedra dela (prêmio `pedra`). Usar a pedra evolui na hora quem evolui com ela. O mapa não tem Celadon nem
+ * Cinnabar: a Pedra de Fogo fica na Rota 1 (de Pallet sai o mar pra Cinnabar) e a do Trovão em Cerulean (a Usina fica
+ * na Rota 10, saindo de lá), junto da d'Água.
+ */
+export const REGION_STONES: Readonly<Partial<Record<MapRegion, readonly Stone[]>>> = {
+    rota1: ['fogo'],
+    floresta: ['folha'],
+    mtmoon: ['lua'],
+    cerulean: ['agua', 'trovao'],
+};
 
 /**
  * Regras da Rota que o robô de caminhos (scripts/balance/rota-caminhos.sim.test.ts) liga e desliga pra medir. Mexer
@@ -34,6 +48,8 @@ export const ROTA_RULES = {
     spare: 'evento' as 'evento' | 'bau',
     /** Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa (que deixa de ser "Pokémon do rival"). */
     rivalEveryJogo: true,
+    /** Pedras de evolução como prêmio de região. */
+    stones: true,
 };
 /** Prêmios que o mapa sorteia agora. */
 export const mapPrizes = (): readonly Prize[] =>
@@ -51,6 +67,8 @@ export interface MapNode {
     types?: string[];
     /** Prêmio do Jogo. Mapa de antes da revisão não tem (a recompensa de sempre). */
     prize?: Prize;
+    /** A pedra do prêmio `pedra`. */
+    stone?: Stone;
 }
 
 export interface CupMap {
@@ -192,6 +210,16 @@ export function buildCupMap(seed: string): CupMap {
             n.types = [...lanes[laneOf(n.col, line.length)]];
             if (n.kind === 'jogo') n.prize = prizes[k++];
         }
+    }
+    // pedras: um Jogo por pedra da região, sorteio próprio (o resto do mapa não muda)
+    const st = new Rng(seed, 'long-map-stone');
+    for (const line of ROTA_RULES.stones ? rows : []) {
+        const stones = REGION_STONES[regionOfRow(line[0].row).id] ?? [];
+        const jogos = st.shuffle(line.filter((n) => n.kind === 'jogo'));
+        stones.slice(0, jogos.length).forEach((stone, i) => {
+            jogos[i].prize = 'pedra';
+            jogos[i].stone = stone;
+        });
     }
     return { nodes, rows: LAYOUT.length };
 }

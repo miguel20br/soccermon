@@ -606,7 +606,7 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
           ? undefined
           : node.kind === 'ginasio' && node.types
             ? ('gym' as const)
-            : node.kind === 'jogo' && node.prize !== 'money'
+            : node.kind === 'jogo' && node.prize !== 'money' && node.prize !== 'pedra'
               ? node.prize
               : undefined;
     const opp = run.opponents[run.stage];
@@ -1131,9 +1131,24 @@ export const useGame = create<GameStore>()(
                 const done = { ...run, rewards: [], rivalPick: false };
                 if (isLong(run)) {
                     // depois do 1 de 3 do rival, o prêmio da casa (MT ou item; o ₽ em dobro já entrou na vitória)
-                    const prize = run.rivalPick ? currentNode(run)?.prize : undefined;
+                    const node = currentNode(run);
+                    const prize = run.rivalPick ? node?.prize : undefined;
                     if (prize === 'tm' || prize === 'item')
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
+                    // a pedra do Jogo (depois do rival, ou da recompensa de sempre sem ele): quem usa, na tela do evento
+                    if (
+                        node?.kind === 'jogo' &&
+                        node.prize === 'pedra' &&
+                        node.stone &&
+                        !run.fight &&
+                        !run.group &&
+                        (run.rivalPick || !ROTA_RULES.rivalEveryJogo)
+                    )
+                        return {
+                            run: { ...done, status: 'event', event: { id: 'pedra', stone: node.stone } },
+                            match: null,
+                            screen: 'event',
+                        };
                     return { ...backToRoute(done), match: null };
                 }
                 const res = run.results.find((r) => r.stage === run.stage);
@@ -1889,8 +1904,26 @@ export const useGame = create<GameStore>()(
                     const next = resolveEvent(run, run.event, choice, target, captain);
                     if (!next) return;
                     const incoming = next.picks.filter((p) => !run.picks.some((o) => o.uid === p.uid));
+                    // a pedra evoluiu alguém: Pokédex e fichário como a evolução da partida
+                    const evolved = next.picks.filter((p) =>
+                        run.picks.some((o) => o.uid === p.uid && o.speciesId !== p.speciesId),
+                    );
                     setState({
                         ...(incoming.length && gained(run, next.picks, 'recompensa')),
+                        ...(evolved.length && {
+                            dex: markOvr(
+                                markSeen(
+                                    getState().dex,
+                                    evolved.map((p) => p.speciesId),
+                                ),
+                                evolved.map(ovrOf),
+                            ),
+                            binder: binderAdd(getState().binder, evolved, {
+                                from: 'evolucao',
+                                at: Date.now(),
+                                cup: run.seed,
+                            }),
+                        }),
                         run: {
                             ...toMap(next),
                             event: null,

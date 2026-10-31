@@ -6,7 +6,7 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { type Prize, ROTA_RULES } from '../engine/cup-map';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
-import { evolutionTarget, evolveInstance } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, type Stone } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
@@ -756,7 +756,8 @@ describe('Copa longa', () => {
 
     it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota fora da Final é cartão amarelo', () => {
         const run = start('longa-partida');
-        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0)!.id);
+        // a casa sem pedra (a da pedra abre a tela dela depois do rival)
+        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0 && !n.stone)!.id);
         const cur = useGame.getState().run!;
         const team = playerTeam(cur, 15221311);
         useGame.getState().lockMatch(team);
@@ -768,6 +769,8 @@ describe('Copa longa', () => {
             expect(after.status).toBe('reward');
             expect(after.money).toBeGreaterThanOrEqual(5);
             useGame.getState().skipReward();
+            // depois do rival, o prêmio da casa (MT ou item) na mesma tela
+            if (useGame.getState().run!.status === 'reward') useGame.getState().skipReward();
             expect(useGame.getState().run!.status).toBe('map');
         } else {
             expect(after.status).toBe('map');
@@ -847,11 +850,11 @@ describe('Copa longa', () => {
     });
 
     /** Vence o 1º Jogo com o prêmio `prize` (procura a seed em que o time pronto ganha). */
-    const winFirstJogo = (prize: Prize) => {
+    const winFirstJogo = (prize: Prize, stone?: Stone) => {
         for (let s = 0; s < 30; s++) {
             const run = start(`longa-rival-${s}`);
             const first = run.map!.nodes.find((n) => n.row === 0)!;
-            const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize } : n)) };
+            const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize, stone } : n)) };
             useGame.setState({ run: { ...run, map } });
             useGame.getState().enterNode(first.id);
             const cur = useGame.getState().run!;
@@ -899,6 +902,36 @@ describe('Copa longa', () => {
             useGame.getState().claimReward(w, leaving);
             expect(useGame.getState().run!.status).toBe('map');
             expect(m.winner).toBe(0);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Jogo com pedra: depois do rival, a tela da pedra; usar evolui na hora (Eevee + Pedra de Fogo = Flareon)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('pedra', 'fogo');
+            useGame.getState().skipReward();
+            const now = useGame.getState().run!;
+            expect(useGame.getState().screen).toBe('event');
+            expect(now.event).toEqual({ id: 'pedra', stone: 'fogo' });
+            // shiny: o fichário guarda as cartas de edição (a forma nova entra como "evolução")
+            const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', shiny: true };
+            const leaving = now.bench.find((u) => u !== now.captainUid)!;
+            useGame.setState({
+                run: {
+                    ...now,
+                    picks: [...now.picks.filter((p) => p.uid !== leaving), eevee],
+                    bench: now.bench.map((u) => (u === leaving ? 'eevee' : u)),
+                },
+            });
+            useGame.getState().chooseEvent('usar', 'eevee');
+            const after = useGame.getState().run!;
+            expect(useGame.getState().screen).toBe('map');
+            expect(after.picks.find((p) => p.uid === 'eevee')!.speciesId).toBe(136);
+            expect(after.eventNote).toMatchObject({ id: 'pedra', choice: 'usar', target: 'eevee' });
+            expect(useGame.getState().binder.some((c) => c.id === '136:shiny' && c.from === 'evolucao')).toBe(true);
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
         }

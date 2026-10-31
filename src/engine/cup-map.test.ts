@@ -15,9 +15,11 @@ import {
     nextNodes,
     nodeById,
     PRIZES,
+    REGION_STONES,
     ROTA_RULES,
     ROUTE_TEAMS,
     ROUTE_THEME_MIN,
+    regionOfRow,
     rivalTypes,
 } from './cup-map';
 import { species } from './data';
@@ -134,8 +136,8 @@ describe('ramos e prêmios (revisão da Rota)', () => {
             expect(new Set(row0.map((n) => n.types!.join())).size).toBe(3);
             for (let row = 0; row < map.rows; row++) {
                 const jogos = map.nodes.filter((n) => n.row === row && n.kind === 'jogo');
-                for (const j of jogos) expect(mapPrizes()).toContain(j.prize);
-                expect(new Set(jogos.map((j) => j.prize)).size).toBe(jogos.length);
+                for (const j of jogos) expect([...mapPrizes(), 'pedra']).toContain(j.prize);
+                expect(new Set(jogos.map((j) => `${j.prize}${j.stone ?? ''}`)).size).toBe(jogos.length);
             }
             for (const n of map.nodes.filter((x) => x.kind !== 'jogo')) expect(n.prize).toBeUndefined();
         }
@@ -152,6 +154,33 @@ describe('ramos e prêmios (revisão da Rota)', () => {
             expect(mapPrizes()).toEqual(PRIZES);
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('pedras: cada região dá a pedra dela num Jogo (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)', () => {
+        const seen = new Set<string>();
+        for (let s = 0; s < 200; s++) {
+            const map = buildCupMap(`pedra-${s}`);
+            for (const n of map.nodes) {
+                expect(n.prize === 'pedra').toBe(!!n.stone);
+                if (!n.stone) continue;
+                expect(n.kind).toBe('jogo');
+                expect(REGION_STONES[regionOfRow(n.row).id]).toContain(n.stone);
+                seen.add(n.stone);
+            }
+            // toda região com Jogo tem a sua pedra
+            for (const row of [0, 2, 5]) expect(map.nodes.some((n) => n.row === row && n.stone)).toBe(true);
+            expect(map.nodes.some((n) => n.row === 7 && n.stone)).toBe(
+                map.nodes.some((n) => n.row === 7 && n.kind === 'jogo'),
+            );
+        }
+        expect([...seen].sort()).toEqual(['agua', 'fogo', 'folha', 'lua', 'trovao']);
+        const before = ROTA_RULES.stones;
+        try {
+            ROTA_RULES.stones = false;
+            expect(buildCupMap('pedra-0').nodes.some((n) => n.stone || n.prize === 'pedra')).toBe(false);
+        } finally {
+            ROTA_RULES.stones = before;
         }
     });
 
