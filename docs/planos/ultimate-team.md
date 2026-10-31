@@ -1,8 +1,11 @@
 ---
-description: Proposta do modo Ultimate Team, o segundo modo principal.
+description: Proposta do Time Ultimate (antes Ultimate Team / Modo Treinador), o segundo modo principal, lançamento em 27/11/2026.
 ---
 
-# Ultimate Team (proposta, 20/10/2026)
+# Time Ultimate (proposta de 20/10/2026, decisões até 30/10)
+
+Nome fechado em 30/10: **Time Ultimate** (EN "Team Ultimate"; id interno `ultimate`). As decisões de 30/10 estão no fim
+deste doc e valem sobre o texto da proposta.
 
 Pedido do Miguel (20/10): o Soccermon vai ter **dois modos principais**, o futsal casual (a Copa de hoje) e o
 **Ultimate Team**, igual ao FUT: você monta o time da temporada, abre pacotes, e a cada temporada tudo reseta. Ele
@@ -60,7 +63,7 @@ existem: `club-kit.ts`).
 
 ## Economia (sem dinheiro nenhum, nunca)
 
-- **Uma moeda** (nome a decidir; ex.: "fichas") que só se ganha jogando: partida do UT (vitória > empate >
+- **Uma moeda: Fichas** (decidido em 30/10, as do Game Corner de Celadon) que só se ganha jogando: partida do UT (vitória > empate >
   derrota, sempre algo), objetivos diários e semanais, ponte da Copa. Nada à venda, nem "pular espera".
 - **Pacotes:** 1 grátis a cada 12 h (acumula 2, como no TCG Pocket) + pacotes por objetivo e por ficha. Pacote de
   5 cartas com piso garantido (1 prata ou melhor) e **chances visíveis na tela** (transparência é o oposto do que
@@ -82,8 +85,9 @@ existem: `club-kit.ts`).
    Charizard cumprindo objetivos com ela (jogar X partidas, fazer gols, ganhar o MVP); mantém a edição e a vaga.
    Pokémon sem evolução (Tauros, Lapras, Snorlax) ganham **Treino**: até 3 subidas de atributo por objetivo. Isso
    faz a carta comum valer a pena e prende o jogador ao time dele.
-3. **Limites de escalação:** 1 lendário (aves, Mewtwo, Mew) e 1 Ícone por time; espécie repetida não. Número a
-   decidir junto.
+3. **Sem limite duro: a dificuldade é o limite** (decidido em 30/10, no lugar de "1 lendário e 1 Ícone"): o rival
+   acompanha a média do seu time, você escolhe o nível de cada jogo (mais difícil paga mais, o fácil nunca paga zero)
+   e objetivos com restrição ("time todo prata") pagam a mais.
 4. **Rival do mesmo tamanho:** as rodadas casam times por Elo e por nota (o Elo da Liga já existe), então quem
    abriu Ícone cedo sobe e enfrenta gente igual.
 5. **Equilibrar pela raridade primeiro** (Marvel Snap): carta que domina a temporada fica mais comum nos pacotes da
