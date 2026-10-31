@@ -1,4 +1,4 @@
-import { bicudaCueNear, maxCallCue, maxCue } from '../engine/agency';
+import { bicudaCueNear, inMaxZone, maxCallCue, maxCue } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5 } from '../engine/config';
 import { evolveInstance } from '../engine/evolution';
@@ -6,6 +6,7 @@ import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/form
 import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
+import { SNAP_STRIDE } from '../engine/state';
 
 /**
  * Leitura da partida num tick a partir do resultado já simulado (eventos + snapshots): quem está em cada vaga,
@@ -49,7 +50,21 @@ export function maxCueNear(
     capIdx: number,
     capRole: Position,
 ): boolean {
-    if (capRole === 'GK') return bicudaCueNear(events, from, to, capIdx);
+    if (capRole === 'GK') {
+        // a bicuda não tem o resto (`MAX_CUE_LATCH`, os dois chamadores passam `tick - MAX_CUE_LATCH`): apaga no toque
+        // do goleiro na bola, que é quando o toque na tela deixa de valer
+        const at = from + MAX_CUE_LATCH;
+        if (!bicudaCueNear(events, at, to, capIdx)) return false;
+        if (bicudaCueNear(events, at, at, capIdx)) return true;
+        // antes do chute, o motor só arma a bicuda com o rival com a bola na zona do goleiro (`startMax`): fora dela o
+        // botão aceso engolia o toque (o anel fechava antes do chute de longe e nada saía)
+        if (!snaps.length) return false;
+        const snap = snapAt(snaps, at);
+        const rival = (1 - team) as 0 | 1;
+        const o = snap.owner;
+        if (snap.phase !== 'play' || o < 0 || (o < FUTSAL_5.teamSize ? 0 : 1) !== rival) return false;
+        return inMaxZone(snap.p[o * SNAP_STRIDE], snap.p[o * SNAP_STRIDE + 1], rival, FUTSAL_5.pitch, 'GK');
+    }
     if (!snaps.length) return false;
     const { pitch, snapshotEvery } = FUTSAL_5;
     for (let t = from; t <= to; t += snapshotEvery)

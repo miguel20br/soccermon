@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { maxCallCue, maxCharge } from '../engine/agency';
+import { inMaxZone, maxCallCue, maxCharge } from '../engine/agency';
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
-import type { MatchEvent, TeamSetup } from '../engine/state';
+import { type MatchEvent, SNAP_STRIDE, type TeamSetup } from '../engine/state';
 import { maxCueAt } from './components/Sideline';
 import {
     captainAt,
     halftimeEnd,
     MAX_CUE_EARLY,
-    MAX_CUE_LATCH,
     type MaxWait,
     maxCallCueNear,
     maxWaitNext,
+    snapAt,
     whoAt,
 } from './match-view';
 
@@ -143,9 +143,32 @@ describe('botão do golpe máximo (chamar o capitão e a hora certa)', () => {
         const lit = reach.filter((e) => maxCharge(r.events, 0, e.from, 5).level >= 1);
         expect(lit.length).toBeGreaterThan(0);
         for (const e of lit) expect(maxCueAt(r, setups, 0, e.from)).toBe('hora');
-        // aceso só em volta de um chute que ele alcança (a tela acende um pouco antes e apaga um pouco depois)
-        const near = (t: number) => reach.some((e) => t >= e.from - MAX_CUE_EARLY && t < e.tick + MAX_CUE_LATCH);
+        // aceso só em volta de um chute que ele alcança (a tela acende um pouco antes e apaga no toque dele na bola)
+        const near = (t: number) => reach.some((e) => t >= e.from - MAX_CUE_EARLY && t < e.tick);
+        for (const e of lit) expect(maxCueAt(r, setups, 0, e.tick)).toBe(near(e.tick) && 'hora');
         for (const s of ready) if (maxCueAt(r, setups, 0, s.tick) === 'hora') expect(near(s.tick)).toBe(true);
+        // antes do chute, só com o rival com a bola na zona do goleiro (fora dela o motor não arma: o toque se perdia)
+        const early = ready.filter(
+            (s) => maxCueAt(r, setups, 0, s.tick) === 'hora' && !reach.some((e) => s.tick >= e.from && s.tick < e.tick),
+        );
+        for (const s of early) {
+            expect(s.owner).toBeGreaterThanOrEqual(5);
+            expect(inMaxZone(s.p[s.owner * SNAP_STRIDE], s.p[s.owner * SNAP_STRIDE + 1], 1, FUTSAL_5.pitch, 'GK')).toBe(
+                true,
+            );
+        }
+        // e o chute de longe (o rival fora da zona antes de chutar) acende só no chute
+        const far = lit.filter((e) => {
+            const s = snapAt(r.snapshots, e.from - 1);
+            return (
+                s.phase === 'play' &&
+                s.owner >= 5 &&
+                !reach.some((x) => e.from - 1 >= x.from && e.from - 1 < x.tick) &&
+                !inMaxZone(s.p[s.owner * SNAP_STRIDE], s.p[s.owner * SNAP_STRIDE + 1], 1, FUTSAL_5.pitch, 'GK')
+            );
+        });
+        expect(far.length).toBeGreaterThan(0);
+        for (const e of far) expect(maxCueAt(r, setups, 0, e.from - 1)).toBe(false);
         // e o chute bloqueado não acende
         const blocked = r.events.filter((e) => e.type === 'block' && e.shooter >= 5 && !near(e.tick));
         expect(blocked.length).toBeGreaterThan(0);
