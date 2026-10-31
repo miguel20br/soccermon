@@ -9,6 +9,35 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.30',
+        date: '2026-10-31',
+        title: 'Golpe universal',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Todo capitão solta o golpe máximo, e o golpe é sempre um chute',
+                    'N1: chute forte que deixa o status do tipo em quem bloqueia ou defende (Fogo queima, Elétrico paralisa, Gelo congela…)',
+                    'N2: o N1 e ainda derruba quem estiver no caminho da bola',
+                    'N3: sempre no alvo, com a cena de especial antes do chute e o efeito do tipo',
+                    'A bola curva sozinha pro canto longe do goleiro',
+                ],
+            },
+            {
+                title: 'Goleiro',
+                lines: [
+                    'A bicuda entra no lugar da defesa máxima: com a barra pronta, toque quando o chute rival vem e o goleiro capitão devolve com tudo',
+                    'No N1 e no N2 ele lança o companheiro mais à frente; no N3 a bola vai direto no gol rival',
+                    'O botão só acende no chute que o goleiro vai alcançar',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: ['PEDRAS'],
+            },
+        ],
+    },
+    {
         version: '0.9.29',
         date: '2026-10-31',
         title: 'Rota nova',
@@ -2010,6 +2039,35 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.30',
+        date: '2026-10-31',
+        title: 'Universal max move',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Every captain can use the max move, and it is always a shot',
+                    'L1: a strong shot that leaves the type status on whoever blocks or saves it (Fire burns, Electric paralyzes, Ice freezes…)',
+                    "L2: L1 plus it knocks down anyone in the ball's path",
+                    'L3: always on target, with a special-move scene before the shot and the type effect',
+                    'The ball curves on its own toward the corner away from the keeper',
+                ],
+            },
+            {
+                title: 'Goalkeeper',
+                lines: [
+                    'The big boot replaces the max save: with the bar ready, tap when the rival shot comes and your captain keeper boots it back hard',
+                    'On L1 and L2 he launches the teammate furthest forward; on L3 the ball goes straight at the rival goal',
+                    'The button only lights up on shots the keeper will reach',
+                ],
+            },
+            {
+                title: 'Indigo Route',
+                lines: ['PEDRAS'],
+            },
+        ],
+    },
     {
         version: '0.9.29',
         date: '2026-10-31',
