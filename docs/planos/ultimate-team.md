@@ -53,13 +53,27 @@ existem: `club-kit.ts`).
 
 ## A temporada
 
-- **Duração:** 6 semanas (dá pra ter 2 "Semanas do tipo" dentro e não cansa). A 1ª pode ser mais curta (4) pra testar.
-- **Zera:** time, cartas do UT, moedas, pontos de pacote, ranking.
-- **Fica (no Perfil):** medalha da temporada (posição final), título ("Campeão da Temporada 1"), a carta que mais
-  jogou vira figurinha especial no Álbum ("Lenda da T1", só enfeite), estatísticas da temporada no Hall da Fama.
-- **Tema por temporada** (a mecânica nova de cada liga do PoE): T1 Kanto clássico; T2 Ícones dos líderes de
-  ginásio; T3 temporada de um tipo (cartas Evento daquele tipo nos pacotes) etc. Muda o que sai nos pacotes e os
+**Pedido do Miguel (31/10): temporada longa, com eventos no meio, e reset anual ou semestral** (no lugar das 6
+semanas da proposta de 20/10). Falta ele escolher anual ou semestral.
+
+- **Recomendação: semestral.** Duas temporadas por ano, ex.: T1 de 27/11/2026 ao fim de maio de 2027, T2 de junho a
+  novembro. Anual é longo pra um jogo pequeno: quem chegou no começo abre tanta vantagem que quem chega no meio
+  desiste, e o "recomeço do zero", que é o que traz gente de volta, só acontece uma vez por ano. O FC é anual, mas
+  tem conteúdo novo toda semana; a gente não tem esse volume.
+- **Eventos no meio (2 a 3 semanas cada, um de cada vez):** Natal (dez), Ano Novo, Carnaval, Páscoa, "Semana do
+  tipo", Halloween, aniversário do jogo. Cada evento traz: cartas Evento com visual próprio nos pacotes, objetivos e
+  um passe do evento (grátis), um desafio de montagem com retorno, um mini ranking e um enfeite que fica no Perfil.
+  Poucos e marcados (o FC 27 cortou 5 promoções por cansaço).
+- **Pra quem chega no meio:** pacote de boas-vindas que cresce com a idade da temporada, e Evoluções e objetivos que
+  não dependem de ter jogado os eventos anteriores. A carta Evento não pode ser mais forte que a base da temporada
+  por mais que um degrau (senão o evento vira obrigação).
+- **Zera no fim da temporada:** time, cartas do Time Ultimate, Fichas, pontos de pacote, ranking.
+- **Fica (no Perfil):** medalha da temporada e de cada evento, título ("Campeão da Temporada 1"), a carta que mais
+  jogou vira figurinha especial no Álbum ("Lenda da T1", só enfeite), estatísticas no Hall da Fama.
+- **Tema por temporada:** T1 Kanto clássico; T2 Ícones dos líderes de ginásio etc. Muda o que sai nos pacotes e os
   desafios, não o motor.
+- **Muda duas decisões de 30/10:** a "temporada 1 atravessando o Natal" vira "o Natal é o 1º evento da T1"; o
+  ranking do Time Ultimate entra como evento em janeiro, sem esperar uma temporada nova.
 
 ## Economia (sem dinheiro nenhum, nunca)
 
@@ -131,8 +145,34 @@ Evoluções sim, sem mercado na 1ª versão, UT entra na 1.0, nome "Ultimate Tea
 8. **E a Copa?** Passa a se chamar "Futsal casual" na Home, ou continua "Copa"? Continua "Copa" **(recomendado:
    o nome já pegou e a Copa do Dia depende dele)** / renomear.
 
+## Pesquisa do FC 27 (30/10/2026): o que entra no plano
+
+O UT do EA FC 27 saiu em 25/09/2026. A queixa nº 1 da comunidade é a sorte de pacote; o mais elogiado são as
+Evoluções com caminhos e prévia. A pesquisa inteira (com as fontes) ficou fora do repo; o resumo:
+
+| | O quê | Liga a |
+|---|---|---|
+| Copiar | Evoluções com caminho e prévia: você vê o Charizard antes de começar. Na Gen 1 só o Eevee ramifica; nos outros o caminho é o papel em quadra (o mesmo Charizard pivô ou fixo, pelos objetivos cumpridos) | Evoluções |
+| Copiar | Pós-jogo que sempre paga (vitória > empate > derrota) | Fichas |
+| Copiar | Chances do pacote visíveis na tela | pacotes |
+| Copiar | Teto diário de pontos da temporada (o FC usa 850/dia), pra quem joga pouco não ficar pra trás | temporada |
+| Copiar | Álbum permanente: a carta continua contando depois de evoluída ou gasta (a "FUT Gallery") | Álbum |
+| Adaptar | Dificuldade escolhida com piso de prêmio: o difícil paga mais, o fácil nunca paga zero e ainda enche o pacote de 12 h e os objetivos; tabela de prêmio antes da partida | dificuldade |
+| Adaptar | Pacote Mini (3 cartas) a cada 12 h e Grande por objetivo semanal | pacotes |
+| Adaptar | Passe grátis com uma carta de abertura que cresce com os marcos da temporada | objetivos |
+| Adaptar | Desafios do líder de ginásio (regra própria, contra IA, sem servidor), como os "Live Events" solo | objetivos |
+| Adaptar | Desafio de montagem com pontuação-alvo, entrega parcial salva e sempre devolvendo um pacote pequeno | desafios |
+| Evitar | Pacote sem proteção de azar (manter "pontos de pacote compram a carta") | pacotes |
+| Evitar | Enfraquecer química ou carta no meio da temporada: fechar química e lendários antes de 27/11 | química |
+| Evitar | Várias moedas: só Fichas | Fichas |
+| Evitar | Evento toda semana | eventos |
+
 ## Fontes
 
+- [EA, Pitch Notes FC 27](https://www.ea.com/games/ea-sports-fc/fc-27/news/pitch-notes-fc27-launch-update)
+- [fut.gg, Evoluções no FC 27](https://www.fut.gg/news/how-are-evolutions-changing-in-ea-fc-27-pathways-previews-and-more/)
+- [Operation Sports, química no FC 27](https://www.operationsports.com/ea-fc-27-launch-day-pitch-notes-highlight-chemistry-changes-new-rewards-and-day-one-content/)
+- [Fórum EA, sorte de pacote no FC 27](https://forums.ea.com/discussions/fc-27-ultimate-team-en/pack-luck/13830030)
 - [EA FC 26: chemistry (Team Gullit)](https://www.teamgullit.com/ea-fc-26/chemistry)
 - [EA FC 26 Ultimate Team tips (Red Bull)](https://www.redbull.com/ke-en/ea-fc-26-ultimate-team-tips-guide)
 - [Beginner's guide to FC 26 Ultimate Team (The Xbox Hub)](https://www.thexboxhub.com/chasing-the-pros-a-beginners-guide-to-ea-sports-fc-26-ultimate-team-on-xbox/)
