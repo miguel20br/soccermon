@@ -6,6 +6,7 @@ import { clubLeader, cupRival } from '../engine/cup';
 import { isMatchKind } from '../engine/cup-map';
 import { species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
+import type { Stone } from '../engine/evolution';
 import { FORMATIONS, type FormationId } from '../engine/formations';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { inMaxZoneOf } from '../engine/match';
@@ -78,6 +79,7 @@ export function runDevDemo() {
         demo !== 'mapa' &&
         demo !== 'treino' &&
         demo !== 'evento' &&
+        demo !== 'pedra' &&
         demo !== 'grupo' &&
         demo !== 'fora' &&
         demo !== 'escanteio' &&
@@ -291,6 +293,30 @@ export function runDevDemo() {
         const run = useGame.getState().run!;
         const event = rollEvent(run, id);
         useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
+        return;
+    }
+    // ?demo=pedra&stone=trovao|agua|fogo|folha|lua: a pedra ganha num Jogo, com Eevee e Pikachu no banco
+    // (`&mapa=1`: no começo do mapa, com a Pedra de Fogo à vista na Rota 1)
+    if (demo === 'pedra') {
+        const q = new URLSearchParams(window.location.search);
+        demoLongMap(store, !q.has('mapa'));
+        const run = useGame.getState().run!;
+        const add = [133, 25].map((sp) => ({
+            ...createInstance(sp, new Rng('demo', `pedra-${sp}`)),
+            uid: `demo-${sp}`,
+        }));
+        const leaving = run.bench.filter((u) => u && u !== run.captainUid).slice(0, 2);
+        const team = {
+            ...run,
+            picks: [...run.picks.filter((p) => !leaving.includes(p.uid)), ...add],
+            bench: run.bench.map((u) => (leaving.includes(u) ? add[leaving.indexOf(u)].uid : u)),
+        };
+        const stone = (q.get('stone') ?? 'trovao') as Stone;
+        useGame.setState(
+            q.has('mapa')
+                ? { run: team }
+                : { run: { ...team, status: 'event', event: { id: 'pedra', stone } }, screen: 'event' },
+        );
         return;
     }
     // ?demo=grupo: Rota Índigo no Planalto, com a 1ª rodada do grupo jogada

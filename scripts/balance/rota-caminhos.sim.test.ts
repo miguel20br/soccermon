@@ -2,7 +2,7 @@
 // 1) Mapa (rápido, sem partida): de cada casa, quais tipos de casa dá pra alcançar na próxima parada.
 // 2) Robô por política de caminho, mesmas seeds pra todas (comparação pareada): time, Pokémon novos, itens, ₽, título.
 // Uso: SIM=100 [POL=esquerda,direita,ouro,pokemon,ginasio,aleatorio] SIM_OUT=saida.json \
-//      [MAX_SHOPS=2 SHOP_TREINO=1 SPARE=bau RIVAL=1] (as regras de ROTA_RULES, pra medir cada uma) scripts/pesado.sh npx vitest run scripts/balance/rota-caminhos.sim.test.ts --maxWorkers=1   (sem SIM, pulado)
+//      [MAX_SHOPS=2 SHOP_TREINO=1 SPARE=bau RIVAL=1 STONES=0] (as regras de ROTA_RULES, pra medir cada uma) scripts/pesado.sh npx vitest run scripts/balance/rota-caminhos.sim.test.ts --maxWorkers=1   (sem SIM, pulado)
 import { writeFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -16,7 +16,7 @@ import { type PokemonInstance, slotRating } from '../../src/engine/instance';
 import { Rng } from '../../src/engine/rng';
 import { runMatch } from '../../src/engine/runners/batch-runner';
 import { playerTeam, type RunState, useGame } from '../../src/store/game-store';
-import { choiceTargets, eventChoices } from '../../src/store/long-events';
+import { choiceTargets, eventChoices, stoners } from '../../src/store/long-events';
 
 const N = Number(process.env.SIM ?? 0);
 const env = process.env;
@@ -24,6 +24,7 @@ if (env.MAX_SHOPS) ROTA_RULES.maxShops = Number(env.MAX_SHOPS);
 if (env.SHOP_TREINO) ROTA_RULES.shopWithTreino = env.SHOP_TREINO === '1';
 if (env.RIVAL) ROTA_RULES.rivalEveryJogo = env.RIVAL === '1';
 if (env.SPARE) ROTA_RULES.spare = env.SPARE as 'evento' | 'bau';
+if (env.STONES) ROTA_RULES.stones = env.STONES === '1';
 /** A recompensa aberta é a de uma vitória (casa de partida, ou o grupo), não o Baú nem o Treino. */
 const isMatchAt = (run: RunState) =>
     !!run.group || ['jogo', 'ginasio'].includes(nodeById(run.map!, run.at ?? '')?.kind ?? '');
@@ -130,7 +131,7 @@ function mapStats(seeds: number) {
  * Réguas: `nada` = sempre à esquerda, pula toda recompensa, não compra, recusa todo evento e descansa no Treino (só a
  * evolução faz o time crescer); `partidas` = igual, mas pega a recompensa das vitórias (o que todo caminho dá igual).
  */
-type Policy = 'esquerda' | 'direita' | 'ouro' | 'pokemon' | 'ginasio' | 'aleatorio' | 'nada' | 'partidas';
+type Policy = 'esquerda' | 'direita' | 'ouro' | 'pokemon' | 'ginasio' | 'aleatorio' | 'pedras' | 'nada' | 'partidas';
 const idle = (p: Policy) => p === 'nada' || p === 'partidas';
 
 const ovrIn = (run: RunState, uid: string, k: number) => {
@@ -228,6 +229,9 @@ function shop(policy: Policy, acq: Set<number>) {
     g().leaveShop();
 }
 
+/** Pedras usadas na Rota em andamento (zera no `play`). */
+let stonesUsed = 0;
+
 /** Escolhas que não dão nem tiram nada (o robô `nada` sempre sai por elas). */
 const EXITS = ['recusar', 'seguir', 'sair', 'deixar', 'nemvem', 'deixa'];
 
@@ -265,6 +269,7 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
     }
     if (policy === 'aleatorio') {
         const c = rng.pick(ok);
+        if (c.need === 'stone') stonesUsed++;
         const t = choiceTargets(run, ev, c.need);
         if (c.need === 'captainSale') {
             const sub = rng.pick(t);
@@ -305,7 +310,10 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
             const id = k === 0 ? 'helix' : 'domo';
             const w = better(ev.cards![k]);
             if (w && has(id)) return go(id, w);
-            if (has('pedra')) return go('pedra', choiceTargets(run, ev, 'stone')[0]);
+            if (has('pedra')) {
+                stonesUsed++;
+                return go('pedra', choiceTargets(run, ev, 'stone')[0]);
+            }
             return go('seguir');
         }
         case 'lendario':
@@ -319,11 +327,27 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
             return go(has('reserva') ? 'reserva' : 'deixa');
         case 'ovo':
             return has('ficar') && weakest ? go('ficar', weakest) : go('deixar');
+        case 'pedra': {
+            // a pedra em quem ganha mais com ela (titular primeiro)
+            const t = choiceTargets(run, ev, 'stone');
+            if (!has('usar') || !t.length) return go('deixar');
+            stonesUsed++;
+            return go('usar', t.find((u) => run.lineup.includes(u)) ?? t[0]);
+        }
     }
 }
 
 function pickNode(policy: Policy, open: MapNode[], rng: Rng): MapNode {
     const byCol = [...open].sort((a, b) => a.col - b.col);
+    // caça pedras: o Jogo com a pedra que alguém do time usa; senão, o caminho que ainda chega numa pedra dessas; senão,
+    // à esquerda
+    if (policy === 'pedras') {
+        const run = g().run!;
+        const usable = (n: MapNode) => !!n.stone && stoners(run, n.stone).length > 0;
+        const reach = (n: MapNode, depth: number): boolean =>
+            usable(n) || (depth > 0 && n.next.some((id) => reach(nodeById(run.map!, id)!, depth - 1)));
+        return byCol.find(usable) ?? byCol.find((n) => reach(n, 3)) ?? byCol[0];
+    }
     if (policy === 'esquerda' || idle(policy)) return byCol[0];
     if (policy === 'direita') return byCol.at(-1)!;
     if (policy === 'aleatorio') return rng.pick(open);
@@ -338,6 +362,7 @@ function pickNode(policy: Policy, open: MapNode[], rng: Rng): MapNode {
         partidas: {},
         direita: {},
         aleatorio: {},
+        pedras: {},
     };
     // o prêmio à vista desempata entre Jogos (e pesa pro ouro e pro pokemon)
     const want: Partial<Record<Policy, string>> = { ouro: 'money', pokemon: 'pokemon', ginasio: 'item' };
@@ -349,6 +374,7 @@ function play(seed: string, policy: Policy) {
     const rng = new Rng(seed, `politica-${policy}`);
     g().newRun('Robô FC', seed, undefined, 'longa');
     g().autoDraft();
+    stonesUsed = 0;
     const acq = new Set<number>();
     const visits: string[] = [];
     const strength: number[] = [];
@@ -420,6 +446,9 @@ function play(seed: string, policy: Policy) {
         moneyEarned,
         sponsors: run.sponsors?.length ?? 0,
         visits,
+        // evoluções do seu time: jogando (nas partidas) e com a pedra
+        evoPlayed: run.results.reduce((a, r) => a + (r.stats?.digest?.evolutions.length ?? 0), 0),
+        evoStone: stonesUsed,
     };
 }
 
@@ -448,6 +477,8 @@ describe.skipIf(!N)('quanto o caminho importa na Rota', () => {
                 pokemonNovos: avg(rs.map((r) => r.acquired)).toFixed(2),
                 especiesDistintasNoTotal: species.size,
                 ganhoNoMapa: avg(rs.map((r) => r.moneyEarned)).toFixed(1),
+                evoJogando: avg(rs.map((r) => r.evoPlayed)).toFixed(2),
+                evoPedra: avg(rs.map((r) => r.evoStone)).toFixed(2),
                 visitas: Object.entries(
                     rs
                         .flatMap((r) => r.visits)

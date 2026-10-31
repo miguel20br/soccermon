@@ -234,7 +234,7 @@ export const longCup: typeof pt = {
         pedra: {
             who: 'oak',
             title: 'Evolution stone',
-            text: 'Well, a {a}! Who will use it?',
+            text: "Oh, a {a}! Who's using it?",
             choices: {
                 usar: ['Use', 'Evolves right away.'],
                 deixar: ['Leave it', ''],
