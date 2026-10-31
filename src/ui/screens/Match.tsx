@@ -346,6 +346,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         };
         EventBus.on('current-scene-ready', onReady);
         EventBus.on('match:event', onEvent);
+        EventBus.on('match:replace', commentator.replace);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
         EventBus.on('match:halftime', onHalftime);
@@ -354,6 +355,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
             EventBus.off('match:penalty-pick', onPenaltyPick);
             EventBus.off('match:halftime', onHalftime);
             EventBus.off('match:event', onEvent);
+            EventBus.off('match:replace', commentator.replace);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
             EventBus.off('current-scene-ready', onReady);
@@ -484,6 +486,17 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const cue = maxCueAt(match, setups, 0, clock.tick);
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
     const wait = maxWaitNext(maxWait, agency.max.level, !!cue);
+    // o botão aceso, o toque armado ou o golpe máximo (de qualquer time) no ar: a hora é dele, sem balão por cima
+    const maxBusy =
+        !!cue ||
+        agency.maxPending ||
+        match.events.some(
+            (e) =>
+                e.type === 'max' &&
+                e.phase === 'hit' &&
+                e.tick <= clock.tick &&
+                clock.tick < e.tick + 3 * FUTSAL_5.tickRate,
+        );
     if (wait !== maxWait) setMaxWait(wait);
     const sideline = {
         ...agency,
@@ -688,10 +701,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 !run.daily &&
                 !isLong(run) &&
                 run.results.length === 0 &&
-                // não abre por cima do botão do golpe máximo aceso
-                !cue &&
+                // não abre por cima do botão do golpe máximo aceso nem do lance dele
+                !maxBusy &&
                 relampagoJogoDue(clock.score, halftime)
             }
+            // e, já aberto, some enquanto o botão acende (golpe máximo ou bicuda) ou o golpe sai, e volta depois
+            pause={maxBusy}
         />
     );
     /** O conteúdo de cada aba do técnico (no painel ou na sheet do ?lab=hud). */

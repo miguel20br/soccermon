@@ -306,12 +306,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         const onReady = () => setSceneReady(true);
         EventBus.on('current-scene-ready', onReady);
         EventBus.on('match:event', onEvent);
+        EventBus.on('match:replace', commentator.replace);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
         EventBus.on('match:halftime', onHalftime);
         return () => {
             EventBus.off('match:halftime', onHalftime);
             EventBus.off('match:event', onEvent);
+            EventBus.off('match:replace', commentator.replace);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
             EventBus.off('current-scene-ready', onReady);

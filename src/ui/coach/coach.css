@@ -19,6 +19,10 @@
     pointer-events: auto;
     cursor: default;
 }
+.coach.paused .coach-block,
+.coach.paused .coach-balloon {
+    pointer-events: none;
+}
 .coach-hole {
     position: fixed;
     border-radius: 10px;

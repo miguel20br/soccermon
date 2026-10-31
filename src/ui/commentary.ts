@@ -107,16 +107,25 @@ export class Commentator {
         this.roles = result.roster.map((p) => p.role);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
-        this.bicudas = new Set(
-            result.events
-                .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
-                .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
-        );
+        this.bicudas = new Set();
+        this.replace(result);
         this.coached = [0, 1].map((t) => result.events.some((e) => e.type === 'coach' && e.team === t)) as [
             boolean,
             boolean,
         ];
     }
+
+    /**
+     * A partida foi refeita (ordem do técnico, `match:replace`): a narração segue a nova. Sem isso, a bicuda pedida no
+     * meio do jogo não estava na partida de antes e a defesa do mesmo tick falava ("voa e manda pra fora").
+     */
+    replace = (result: MatchResult) => {
+        this.bicudas = new Set(
+            result.events
+                .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
+                .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
+        );
+    };
 
     private n(idx: number | null | undefined): string {
         return idx === null || idx === undefined ? '???' : (this.names[idx] ?? '???');

@@ -74,5 +74,9 @@ describe('narração da bicuda', () => {
         expect(c.lineFor(hit)?.text).toContain('BICUDA');
         // sem bicuda no tick, a defesa fala como sempre
         expect(new Commentator(r, ['Casa', 'Fora']).lineFor(save)?.text).toBeTruthy();
+        // a bicuda pedida no meio do jogo: a partida é refeita (`match:replace`) e a narração segue a nova
+        const live = new Commentator(r, ['Casa', 'Fora']);
+        live.replace({ ...r, events: [...r.events, save, hit] });
+        expect(live.lineFor(save)).toBeNull();
     });
 });

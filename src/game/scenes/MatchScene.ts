@@ -2427,17 +2427,22 @@ export class MatchScene extends Phaser.Scene {
                     // no N3 a faixa do especial leva tudo (o card do canto ficava por baixo dela)
                     this.highlight(bicuda ? 'bicuda' : 'max', cap);
                     playMax(bicuda ? 'bicuda' : MAX_MOVE[e.level ?? 1]);
-                    // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados
+                    // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados; com a faixa grande
+                    // (que já leva o nome e a nota), só ela: os dois juntos repetiam "BICUDA N2" e "BICUDA! PERFEITO!"
                     const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
-                    this.popText(e.by, `${name.toUpperCase()}${lv}`, '#ffd447');
-                    if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
-                    else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
+                    if (!cinematic) {
+                        this.popText(e.by, `${name.toUpperCase()}${lv}`, '#ffd447');
+                        if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
+                        else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
+                    }
                     this.punch('boom');
                     // a bicuda: o chutão levanta poeira no pé do goleiro
                     if (bicuda) this.kickPop(cap.sprite.x, cap.sprite.y, 2.2, 12);
                     if (cinematic) {
                         this.cine.drama(
-                            fxType ? `${(a.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!` : `${name.toUpperCase()}!`,
+                            fxType
+                                ? `${(a.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
+                                : `${name.toUpperCase()}${lv}!`,
                             {
                                 color: fxType ? (TYPE_COLOR[fxTypeOf(fxType)] ?? '#ffd447') : '#ffd447',
                                 stroke: '#1a1030',

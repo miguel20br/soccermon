@@ -51,11 +51,14 @@ export function Coach({
     id,
     targets,
     when = true,
+    pause = false,
     onActive,
 }: {
     id: CoachId;
     targets: readonly string[];
     when?: boolean;
+    /** Some (com o fade) e deixa a tela tocável enquanto vale; volta depois, no mesmo passo (o golpe máximo aceso). */
+    pause?: boolean;
     /** Avisa quando o balão abre e fecha (a tela esconde a dica que diria o mesmo). */
     onActive?: (on: boolean) => void;
 }) {
@@ -76,7 +79,7 @@ export function Coach({
     useEffect(() => onActive?.(active), [active, onActive]);
 
     return active ? (
-        <Balloon id={id} targets={targets.slice(0, total)} lines={lines} onEnd={() => setActive(false)} />
+        <Balloon id={id} targets={targets.slice(0, total)} lines={lines} pause={pause} onEnd={() => setActive(false)} />
     ) : null;
 }
 
@@ -84,11 +87,13 @@ function Balloon({
     id,
     targets,
     lines,
+    pause,
     onEnd,
 }: {
     id: CoachId;
     targets: readonly string[];
     lines: readonly string[];
+    pause: boolean;
     onEnd: () => void;
 }) {
     const { d } = useT();
@@ -248,7 +253,7 @@ function Balloon({
     const bottom = rect.top + rect.height;
     const text = lines[i];
     return (
-        <div className={`coach${shown ? ' on' : ''}${moving ? ' moving' : ''}`}>
+        <div className={`coach${shown && !pause ? ' on' : ''}${pause ? ' paused' : ''}${moving ? ' moving' : ''}`}>
             {/* quatro pedaços transparentes em volta do alvo: tocar fora fecha, e o alvo continua tocável.
                 Div e não botão: fora do Tab e do leitor (o teclado pula com Esc ou "Pular"). */}
             {(
