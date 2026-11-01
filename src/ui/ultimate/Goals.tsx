@@ -104,7 +104,7 @@ function Objectives({ period }: { period: Objective['period'] }) {
 function Bar({ n: raw, of, label }: { n: number; of: number; label?: string }) {
     const n = Math.min(raw, of);
     return (
-        <span className="ut-bar" style={{ '--p': `${(100 * n) / of}%` } as CSSProperties}>
+        <span className="ut-bar" style={{ '--p': n / of } as CSSProperties}>
             <i aria-hidden />
             <small>
                 {label ? `${label} ` : ''}

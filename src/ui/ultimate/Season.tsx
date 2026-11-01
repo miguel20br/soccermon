@@ -130,7 +130,7 @@ export function Pass() {
                         </small>
                     ) : (
                         <>
-                            <span className="ut-bar" style={{ '--p': `${(100 * into) / PASS_STEP}%` } as CSSProperties}>
+                            <span className="ut-bar" style={{ '--p': into / PASS_STEP } as CSSProperties}>
                                 <i aria-hidden />
                                 <small>
                                     {into}/{PASS_STEP}

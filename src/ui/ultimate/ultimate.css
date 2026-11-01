@@ -550,9 +550,11 @@
 .ut-bar > i {
     position: absolute;
     inset: 0 auto 0 0;
-    width: var(--p);
+    width: 100%;
     background: var(--green);
-    transition: width 280ms var(--ease-out);
+    transform: scaleX(var(--p));
+    transform-origin: left;
+    transition: transform 280ms var(--ease-out);
 }
 .ut-bar > small {
     position: relative;
