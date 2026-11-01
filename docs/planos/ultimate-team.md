@@ -297,3 +297,33 @@ Decisões tomadas sem o Miguel na 0.9.33 (as mais simples que respeitam o plano)
 `&utnow=2026-12-20` pro Natal e `&utnow=2027-06-01` pra virada), decidir os 7 itens acima, `npm run calibrate` da
 meta de química, trocar `ultimateOn` (flag.ts) pra ligar em produção a partir de 27/11 e tirar o EM BREVE do menu,
 patch notes e changelog da versão.
+
+## Medição da química (falta o ok)
+
+Meta: "um time prata com química cheia empata com um ouro sem química". Medido em 01/11 com
+`scripts/pesado.sh npx tsx scripts/balance/quimica-ut.ts --n 400` (motor 16, nada mudou de número). Prata com química:
+busca completa nas 54.152 combinações de 5 Pratas com goleiro, pela química do painel (tipo × história,
+`attributeModifiers`), com a média na vaga também Prata. Ouro sem química: 5 Ouros sem tipo repetido nem história
+(química 1,00), média na vaga 75+. Times montados como o modo monta (`fillTeam`, capitão = melhor nota, Equilibrada,
+formação padrão, sem banco); resultado pelo placar do tempo normal, lados alternados.
+
+| Par | Partidas | V | E | D | Saldo/jogo | Gols (prata x ouro) |
+|---|---|---|---|---|---|---|
+| 1: Prata 65, química 1,14 (Wartortle 70, Omanyte 66, Seadra 70, Seaking 71, Kabuto 66; Água + Fósseis + Misty) x Ouro 79 (Hypno 89, Blastoise 88, Gengar 83, Moltres 85, Machamp 91) | 400 | 54,8% | 15,0% | 30,3% | +0,72 | 3,93 x 3,21 |
+| 2: Prata 66, química 1,10 (Graveler 72, Omanyte 66, Poliwhirl 67, Seadra 70, Kabuto 66; Fósseis) x Ouro 79 (Machoke 78, Flareon 78, Venomoth 77, Mew 91, Tauros 77) | 400 | 20,0% | 15,5% | 64,5% | −1,25 | 2,73 x 3,99 |
+| 3: Prata 65, química 1,09 (Wartortle 70, Omanyte 66, Charmeleon 67, Butterfree 67, Kabuto 66; Ash + Fósseis) x Ouro 79 (Snorlax 91, Cloyster 78, Clefable 82, Arcanine 87, Dragonite 89) | 400 | 30,3% | 18,8% | 51,0% | −0,58 | 3,56 x 4,14 |
+| Geral: as 6 Pratas de química mais alta (1,07 a 1,14) x 12 Ouros (75 a 84) | 2.376 | 39,1% | 17,0% | 43,9% | −0,13 | 3,42 x 3,55 |
+
+Leitura (n=200 deu o mesmo, 39,1 / 17,7 / 43,1, saldo −0,11):
+
+- **No geral a meta está quase batida:** a Prata de química alta perde por pouco (39 x 44, saldo −0,13 por jogo)
+  de um Ouro sem química com 13 pontos a mais de nota na vaga (66 x 79).
+- **A química "cheia" de verdade (1,14) passa da meta:** o único time Prata que chega perto do teto (+15%) é o de
+  Água com Fósseis e Misty, e ele **ganha** do Ouro (55 x 30). Química 1,09–1,10 já perde (20–30% de vitória).
+  Ou seja: os últimos 4–5 pontos de química valem muito.
+- **Só a Água fecha 5 do mesmo tipo em Prata:** há só 26 espécies Prata (68 Ouro, 57 Bronze) e quase todo tipo tem
+  1 ou 2 delas; o resto da química Prata vem das sinergias de história (Fósseis aparece em todos os melhores).
+  Pra muitos jogadores, "prata com química cheia" vai ser o time de Água.
+- O capitão do mesmo tipo (+6% pro time de um tipo só) entra na conta, como no modo; o painel de química não o mostra.
+
+Pro Miguel decidir (nada mudado): a meta vale assim, ou mexer (química, teto, chances de Prata/Ouro) antes de 27/11?
