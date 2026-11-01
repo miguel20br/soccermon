@@ -279,7 +279,7 @@ prévia (é a virada da temporada 0 pra 1).
 Decisões tomadas sem o Miguel na 0.9.33 (as mais simples que respeitam o plano), pra ele confirmar:
 
 1. **Evolução no meio da partida desligada no Time Ultimate** (dos dois times), sem mexer no motor: a carta entra na
-   partida com a barra de evolução em −1.000.000, então nunca enche. Copa, Duelo e Liga iguais (`ENGINE_VERSION` 16,
+   partida com a barra de evolução em −1.000.000, então nunca enche. Copa, Duelo e Liga iguais (`ENGINE_VERSION` 17,
    testes do motor iguais). Evoluir no Time Ultimate fica só pelas Evoluções. Alternativa: manter e guardar a forma
    nova na coleção (aí a Evolução perde sentido).
 2. **"Campeão da Temporada" = passe completo** (40 marcos); a medalha vem com 1 partida. O título aparece no bloco do
