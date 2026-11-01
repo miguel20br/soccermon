@@ -1,7 +1,7 @@
 import { CLUBS, type ClubTemplate } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
-import type { Stone } from './evolution';
+import { type Stone, stoneUsers } from './evolution';
 import { createInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
@@ -20,11 +20,13 @@ export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'b
  * tipo do ramo primeiro) ou o ₽ da vitória em dobro, sem recompensa.
  */
 export type Prize = 'pokemon' | 'tm' | 'item' | 'money' | 'pedra';
+// `pedra` = o prêmio da primeira versão das pedras (a pedra no lugar do prêmio): só Rota guardada antes de 01/11/2026
 export const PRIZES: readonly Prize[] = ['pokemon', 'tm', 'item', 'money'];
 
 /**
  * Pedras de evolução como prêmio de região (decisão 8 da revisão da Rota): um Jogo da linha de partida de cada região
- * dá a pedra dela (prêmio `pedra`). Usar a pedra evolui na hora quem evolui com ela. O mapa não tem Celadon nem
+ * dá a pedra dela, junto do prêmio da casa, e o rival dessa casa traz no 1 de 3 um que evolui com ela
+ * (`rivalStoneMon`). Usar a pedra evolui na hora quem evolui com ela. O mapa não tem Celadon nem
  * Cinnabar: a Pedra de Fogo fica na Rota 1 (de Pallet sai o mar pra Cinnabar) e a do Trovão em Cerulean (a Usina fica
  * na Rota 10, saindo de lá), junto da d'Água.
  */
@@ -67,7 +69,7 @@ export interface MapNode {
     types?: string[];
     /** Prêmio do Jogo. Mapa de antes da revisão não tem (a recompensa de sempre). */
     prize?: Prize;
-    /** A pedra do prêmio `pedra`. */
+    /** A pedra que o Jogo dá junto do prêmio (Rota guardada antes de 01/11/2026: no lugar dele, `prize: 'pedra'`). */
     stone?: Stone;
 }
 
@@ -211,13 +213,12 @@ export function buildCupMap(seed: string): CupMap {
             if (n.kind === 'jogo') n.prize = prizes[k++];
         }
     }
-    // pedras: um Jogo por pedra da região, sorteio próprio (o resto do mapa não muda)
+    // pedras: um Jogo por pedra da região, junto do prêmio dele; sorteio próprio (o resto do mapa não muda)
     const st = new Rng(seed, 'long-map-stone');
     for (const line of ROTA_RULES.stones ? rows : []) {
         const stones = REGION_STONES[regionOfRow(line[0].row).id] ?? [];
         const jogos = st.shuffle(line.filter((n) => n.kind === 'jogo'));
         stones.slice(0, jogos.length).forEach((stone, i) => {
-            jogos[i].prize = 'pedra';
             jogos[i].stone = stone;
         });
     }
@@ -360,6 +361,8 @@ export interface OpponentOpts {
     club?: string;
     /** Espécie que entra de titular (o pássaro lendário). */
     boss?: number;
+    /** Casa da pedra: o time traz um que evolui com ela (no banco, se ainda não tem). */
+    stone?: Stone;
 }
 /** Itens do rival pela partida. */
 const LONG_ITEMS = [0, 0, 0, 1, 0, 0, 1, 3];
@@ -373,7 +376,7 @@ export function longOpponent(
     match: number,
     kind: NodeKind,
     faced: readonly string[],
-    { shift = 0, types, club: only, boss }: OpponentOpts = {},
+    { shift = 0, types, club: only, boss, stone }: OpponentOpts = {},
 ): TeamSetup {
     const rng = new Rng(seed, `long-${match}-${kind}`);
     const indigo = CLUBS[CLUBS.length - 1];
@@ -403,6 +406,15 @@ export function longOpponent(
             .sort((a, b) => a.ovr - b.ovr)[0]?.i;
         if (at !== undefined)
             d.lineup[at] = { ...createInstance(boss, new Rng(seed, `long-boss-${match}`)), uid: `boss-${match}` };
+    }
+    // casa da pedra: um dos que evoluem com ela no lugar do reserva mais fraco (sorteio próprio, o resto não muda)
+    const users = stone ? stoneUsers(stone) : [];
+    const team = [...d.lineup, ...d.bench];
+    if (users.length && !team.some((p) => users.includes(p.speciesId))) {
+        const sr = new Rng(seed, `long-stone-${match}`);
+        const weakest = d.bench.reduce((w, p) => (viewInstance(p).overall < viewInstance(w).overall ? p : w));
+        const id = sr.pick(users.filter((u) => !team.some((p) => p.speciesId === u)));
+        d.bench[d.bench.indexOf(weakest)] = { ...createInstance(id, sr), uid: `stone-${match}` };
     }
     // só o Ginásio e a Final levam a MT do líder
     const tmRng = new Rng(seed, `long-tm-${match}`);

@@ -43,6 +43,7 @@ export const longCup: typeof pt = {
         money: 'The win pays double ₽, no reward.',
         moneyRival: 'The win pays double ₽.',
         pedra: 'Whoever evolves with it evolves right away.',
+        pedraRival: 'Whoever evolves with it evolves right away, and the rival brings one in their 1 of 3.',
     },
     prizeLabel: 'Prize',
     /** Evolution stones (the Route's region prizes). */

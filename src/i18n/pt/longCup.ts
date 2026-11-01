@@ -43,6 +43,7 @@ export const longCup = {
         money: 'O ₽ da vitória vem em dobro, sem recompensa.',
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
+        pedraRival: 'Quem evolui com ela evolui na hora, e o rival traz um deles no 1 de 3.',
     },
     prizeLabel: 'Prêmio',
     /** Pedras de evolução (prêmio de região da Rota). */

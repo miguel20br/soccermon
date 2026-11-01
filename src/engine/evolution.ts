@@ -83,6 +83,9 @@ const STONE_ITEM: Readonly<Record<string, Stone>> = {
  */
 export const stoneInto = (speciesId: number, stone: Stone): number | null =>
     species(speciesId).evolvesTo.find((e) => e.id <= MAX_ID && e.item && STONE_ITEM[e.item] === stone)?.id ?? null;
+/** Quem evolui com a pedra (Trovão: Pikachu e Eevee), por número da Pokédex. */
+export const stoneUsers = (stone: Stone): number[] =>
+    SPECIES.filter((sp) => stoneInto(sp.id, stone) !== null).map((sp) => sp.id);
 
 /**
  * Nota na vaga depois de evoluir: o que o selo da carta mostra ("vira 85"). Carta = campo: a forma nova

@@ -327,13 +327,17 @@ export function CupMap() {
                                     className={`cm-node k-${n.kind}${state}${pick === n.id ? ' picked' : ''}`}
                                     style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
                                     disabled={!isOpen}
-                                    aria-label={
-                                        n.stone
-                                            ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.stone.${n.stone}`)}`
-                                            : n.prize
-                                              ? `${t(`longCup.kind.${n.kind}`)}: ${t(`longCup.prize.${n.prize}`)}`
-                                              : t(`longCup.kind.${n.kind}`)
-                                    }
+                                    aria-label={[
+                                        t(`longCup.kind.${n.kind}`),
+                                        [
+                                            n.prize && n.prize !== 'pedra' && t(`longCup.prize.${n.prize}`),
+                                            n.stone && t(`longCup.stone.${n.stone}`),
+                                        ]
+                                            .filter(Boolean)
+                                            .join(' + '),
+                                    ]
+                                        .filter(Boolean)
+                                        .join(': ')}
                                     onClick={() => {
                                         setPick(pick === n.id ? null : n.id);
                                         // quem já escolheu o caminho não precisa mais da fala por cima do mapa
@@ -351,7 +355,7 @@ export function CupMap() {
                                     {n.stone && <StoneMark stone={n.stone} className="cm-node-stone" />}
                                     {/* o Jogo mostra o prêmio no lugar do nome; as casas abertas, os tipos do caminho */}
                                     <span className="cm-label">
-                                        {n.stone
+                                        {n.prize === 'pedra' && n.stone
                                             ? t(`longCup.stoneShort.${n.stone}`)
                                             : n.prize && n.kind === 'jogo'
                                               ? t(`longCup.prizeShort.${n.prize}`)
@@ -466,19 +470,7 @@ function NodeSheet({
                     </small>
                 </span>
             </div>
-            {node.kind === 'jogo' && node.stone && (
-                <p className="cm-prize">
-                    <StoneMark stone={node.stone} />
-                    <b>
-                        {t('longCup.prizeLabel')}: {t(`longCup.stone.${node.stone}`)}
-                    </b>{' '}
-                    <span className="muted">
-                        {t('longCup.prizeDesc.pedra')}{' '}
-                        {users.length ? t('longCup.stoneWho', { names: users.join(', ') }) : t('longCup.stoneNobody')}
-                    </span>
-                </p>
-            )}
-            {node.kind === 'jogo' && node.prize && !node.stone && (
+            {node.kind === 'jogo' && node.prize && node.prize !== 'pedra' && (
                 <p className="cm-prize">
                     <b>
                         {t('longCup.prizeLabel')}: {t(`longCup.prize.${node.prize}`)}
@@ -489,6 +481,20 @@ function NodeSheet({
                                 ? 'longCup.prizeDesc.moneyRival'
                                 : `longCup.prizeDesc.${node.prize}`,
                         )}
+                    </span>
+                </p>
+            )}
+            {/* a pedra vem junto do prêmio (Rota guardada antes: no lugar dele) */}
+            {node.kind === 'jogo' && node.stone && (
+                <p className="cm-prize">
+                    <StoneMark stone={node.stone} />
+                    <b>
+                        {node.prize === 'pedra' ? `${t('longCup.prizeLabel')}: ` : '+ '}
+                        {t(`longCup.stone.${node.stone}`)}
+                    </b>{' '}
+                    <span className="muted">
+                        {t(ROTA_RULES.rivalEveryJogo ? 'longCup.prizeDesc.pedraRival' : 'longCup.prizeDesc.pedra')}{' '}
+                        {users.length ? t('longCup.stoneWho', { names: users.join(', ') }) : t('longCup.stoneNobody')}
                     </span>
                 </p>
             )}

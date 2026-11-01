@@ -619,6 +619,8 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
               ace: prize === 'gym' && opp ? LEADER_ACE[opp.name] : undefined,
               boss: fight === 'lendario' ? LEGENDARY_BIRD : undefined,
               loot: fight === 'rocket' ? (opp?.lineup.find((p) => p.item)?.item ?? null) : null,
+              // casa da pedra: o 1 de 3 do rival traz um que evolui com ela
+              stone: run.rivalPick && node?.kind === 'jogo' ? node.stone : undefined,
           }
         : undefined;
     const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
@@ -689,6 +691,13 @@ const toGroup = (run: RunState): RunState => ({
         ),
     },
 });
+/** O Jogo vencido dá a pedra dele (junto do prêmio): a tela da pedra. Desafio de evento e grupo não dão. */
+const stoneEvent = (run: RunState): Pick<RunState, 'status' | 'event'> | null => {
+    const node = currentNode(run);
+    return node?.kind === 'jogo' && node.stone && !run.fight && !run.group
+        ? { status: 'event', event: { id: 'pedra', stone: node.stone } }
+        : null;
+};
 /** Volta pro lugar certo da Rota: o grupo (já chegou no Planalto) ou o mapa. */
 const backToRoute = (run: RunState): { run: RunState; screen: Screen } =>
     run.group || (run.map && nextNodes(run.map, run.at ?? null).length === 0)
@@ -1135,20 +1144,9 @@ export const useGame = create<GameStore>()(
                     const prize = run.rivalPick ? node?.prize : undefined;
                     if (prize === 'tm' || prize === 'item')
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
-                    // a pedra do Jogo (depois do rival, ou da recompensa de sempre sem ele): quem usa, na tela do evento
-                    if (
-                        node?.kind === 'jogo' &&
-                        node.prize === 'pedra' &&
-                        node.stone &&
-                        !run.fight &&
-                        !run.group &&
-                        (run.rivalPick || !ROTA_RULES.rivalEveryJogo)
-                    )
-                        return {
-                            run: { ...done, status: 'event', event: { id: 'pedra', stone: node.stone } },
-                            match: null,
-                            screen: 'event',
-                        };
+                    // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento
+                    const stone = stoneEvent(done);
+                    if (stone) return { run: { ...done, ...stone }, match: null, screen: 'event' };
                     return { ...backToRoute(done), match: null };
                 }
                 const res = run.results.find((r) => r.stage === run.stage);

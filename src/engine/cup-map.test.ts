@@ -23,6 +23,8 @@ import {
     rivalTypes,
 } from './cup-map';
 import { species } from './data';
+import { STONES, stoneUsers } from './evolution';
+import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 
 /** Todas as rotas do começo até a Final. */
@@ -136,8 +138,8 @@ describe('ramos e prêmios (revisão da Rota)', () => {
             expect(new Set(row0.map((n) => n.types!.join())).size).toBe(3);
             for (let row = 0; row < map.rows; row++) {
                 const jogos = map.nodes.filter((n) => n.row === row && n.kind === 'jogo');
-                for (const j of jogos) expect([...mapPrizes(), 'pedra']).toContain(j.prize);
-                expect(new Set(jogos.map((j) => `${j.prize}${j.stone ?? ''}`)).size).toBe(jogos.length);
+                for (const j of jogos) expect(mapPrizes()).toContain(j.prize);
+                expect(new Set(jogos.map((j) => j.prize)).size).toBe(jogos.length);
             }
             for (const n of map.nodes.filter((x) => x.kind !== 'jogo')) expect(n.prize).toBeUndefined();
         }
@@ -157,14 +159,15 @@ describe('ramos e prêmios (revisão da Rota)', () => {
         }
     });
 
-    it('pedras: cada região dá a pedra dela num Jogo (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)', () => {
+    it('pedras: cada região dá a pedra dela num Jogo, junto do prêmio (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)', () => {
         const seen = new Set<string>();
         for (let s = 0; s < 200; s++) {
             const map = buildCupMap(`pedra-${s}`);
             for (const n of map.nodes) {
-                expect(n.prize === 'pedra').toBe(!!n.stone);
                 if (!n.stone) continue;
                 expect(n.kind).toBe('jogo');
+                // a pedra vem além do prêmio da casa, não no lugar
+                expect(mapPrizes()).toContain(n.prize);
                 expect(REGION_STONES[regionOfRow(n.row).id]).toContain(n.stone);
                 seen.add(n.stone);
             }
@@ -182,6 +185,38 @@ describe('ramos e prêmios (revisão da Rota)', () => {
         } finally {
             ROTA_RULES.stones = before;
         }
+    });
+
+    it('casa da pedra: o rival traz um que evolui com ela e o 1 de 3 dele tem um desses (o mesmo pela seed)', () => {
+        for (let s = 0; s < 30; s++)
+            for (const stone of STONES) {
+                const seed = `rival-pedra-${s}`;
+                const users = stoneUsers(stone);
+                const opp = longOpponent(seed, 1, 'jogo', [], { stone });
+                expect(longOpponent(seed, 1, 'jogo', [], { stone })).toEqual(opp);
+                const players = [...opp.lineup, ...opp.bench];
+                expect(players.some((p) => users.includes(p.speciesId))).toBe(true);
+                // a escalação da casa sem pedra não muda
+                expect(opp.lineup).toEqual(longOpponent(seed, 1, 'jogo', []).lineup);
+                const pick = (team: typeof players) =>
+                    rewardOptions(seed, 1, 0, team, { name: opp.name, players }, 0, {
+                        key: 'r0c0-rival',
+                        round: 1,
+                        prize: 'pokemon',
+                        stone,
+                    });
+                const offered = pick([]);
+                expect(offered).toHaveLength(3);
+                const user = offered.find((r) => r.kind === 'pokemon' && users.includes(r.inst.speciesId));
+                expect(user && user.kind === 'pokemon' && user.from).toBe(opp.name);
+                expect(pick([])).toEqual(offered);
+                // você já tem o que o rival trouxe: vem outro que evolui com ela (se ainda sobra um)
+                const mine = players.filter((p) => users.includes(p.speciesId));
+                const left = users.filter((u) => !mine.some((p) => p.speciesId === u));
+                const again = pick(mine);
+                const other = again.find((r) => r.kind === 'pokemon' && left.includes(r.inst.speciesId));
+                expect(!!other).toBe(left.length > 0);
+            }
     });
 
     it('o rival puxa os tipos do ramo; o Ginásio vem +2; o pássaro lendário entra de titular', () => {

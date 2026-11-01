@@ -34,6 +34,7 @@ import {
     withSettingDefaults,
 } from './game-store';
 import { groupTable } from './long-cup';
+import { choiceTargets } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
 
 describe('save', () => {
@@ -850,8 +851,8 @@ describe('Copa longa', () => {
     });
 
     /** Vence o 1º Jogo com o prêmio `prize` (procura a seed em que o time pronto ganha). */
-    const winFirstJogo = (prize: Prize, stone?: Stone) => {
-        for (let s = 0; s < 30; s++) {
+    const winFirstJogo = (prize: Prize, stone?: Stone, from = 0) => {
+        for (let s = from; s < from + 30; s++) {
             const run = start(`longa-rival-${s}`);
             const first = run.map!.nodes.find((n) => n.row === 0)!;
             const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize, stone } : n)) };
@@ -862,7 +863,7 @@ describe('Copa longa', () => {
             useGame.getState().lockMatch(team);
             const m = runMatch(FUTSAL_5, team, cur.opponents[0], `${cur.seed}-stage-0`);
             useGame.getState().recordResult(m);
-            if (m.winner === 0) return { m, rival: cur.opponents[0].name };
+            if (m.winner === 0) return { m, rival: cur.opponents[0].name, s };
         }
         throw new Error('nenhuma vitória');
     };
@@ -907,7 +908,68 @@ describe('Copa longa', () => {
         }
     });
 
-    it('Jogo com pedra: depois do rival, a tela da pedra; usar evolui na hora (Eevee + Pedra de Fogo = Flareon)', () => {
+    it('Jogo com pedra: o rival, o prêmio da casa e depois a pedra (junto, não no lugar)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('item', 'folha');
+            expect(useGame.getState().run!.rivalPick).toBe(true);
+            useGame.getState().skipReward();
+            // o prêmio da casa continua lá
+            const prize = useGame.getState().run!;
+            expect(prize.status).toBe('reward');
+            expect(prize.rewards.length).toBeGreaterThan(0);
+            expect(prize.rewards.every((r) => r.kind === 'item')).toBe(true);
+            useGame.getState().claimReward(0, prize.lineup[1]);
+            expect(useGame.getState().screen).toBe('event');
+            expect(useGame.getState().run!.event).toEqual({ id: 'pedra', stone: 'folha' });
+            // ₽ em dobro com pedra: o ₽ na vitória, o rival e a pedra
+            winFirstJogo('money', 'lua');
+            expect(useGame.getState().run!.results[0].bonus?.prize).toBeGreaterThan(0);
+            useGame.getState().skipReward();
+            expect(useGame.getState().run!.event).toEqual({ id: 'pedra', stone: 'lua' });
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('ponta a ponta: o Pikachu do 1 de 3 do rival vira Raichu com a Pedra do Trovão da mesma casa', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            // a seed em que o rival trouxe o Pikachu (na outra ele traz o Eevee)
+            let from = 0;
+            let i = -1;
+            for (let k = 0; k < 20 && i < 0; k++) {
+                from = winFirstJogo('tm', 'trovao', from).s + 1;
+                const run = useGame.getState().run!;
+                expect(run.rewards.some((r) => r.kind === 'pokemon' && [25, 133].includes(r.inst.speciesId))).toBe(
+                    true,
+                );
+                i = run.rewards.findIndex((r) => r.kind === 'pokemon' && r.inst.speciesId === 25);
+            }
+            expect(i).toBeGreaterThanOrEqual(0);
+            const run = useGame.getState().run!;
+            const pika = run.rewards[i];
+            const leaving = run.bench.find((u) => u !== run.captainUid)!;
+            useGame.getState().claimReward(i, leaving);
+            const uid = pika.kind === 'pokemon' ? pika.inst.uid : '';
+            expect(useGame.getState().run!.bench).toContain(uid);
+            // a MT da casa, depois a pedra: quem acabou de entrar já pode usar
+            expect(useGame.getState().run!.status).toBe('reward');
+            useGame.getState().skipReward();
+            const ev = useGame.getState().run!;
+            expect(ev.event).toEqual({ id: 'pedra', stone: 'trovao' });
+            expect(choiceTargets(ev, ev.event!, 'stone')).toContain(uid);
+            useGame.getState().chooseEvent('usar', uid);
+            expect(useGame.getState().screen).toBe('map');
+            expect(useGame.getState().run!.picks.find((p) => p.uid === uid)!.speciesId).toBe(26);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Rota guardada antes (pedra no lugar do prêmio): depois do rival, a tela da pedra; usar evolui na hora (Eevee + Pedra de Fogo = Flareon)', () => {
         const before = ROTA_RULES.rivalEveryJogo;
         ROTA_RULES.rivalEveryJogo = true;
         try {
