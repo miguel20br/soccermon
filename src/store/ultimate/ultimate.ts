@@ -325,13 +325,21 @@ function legacyOf(raw: unknown): UtLegacy {
     return { seasons, ornaments: [...new Set(strs(raw.ornaments))] };
 }
 
-/** Legado dos dois lados junto (uma temporada por número; o enfeite não se perde). */
-const mergeLegacy = (a: UtLegacy, b: UtLegacy): UtLegacy => ({
-    seasons: [...a.seasons, ...b.seasons.filter((r) => !a.seasons.some((x) => x.season === r.season))].sort(
-        (x, y) => x.season - y.season,
-    ),
-    ornaments: [...new Set([...a.ornaments, ...b.ornaments])],
-});
+/**
+ * Legado dos dois lados junto: uma temporada por número (a dos dois que jogou mais; empate, a de `a`) e o enfeite não
+ * se perde.
+ */
+function mergeLegacy(a: UtLegacy, b: UtLegacy): UtLegacy {
+    const by = new Map<number, UtSeasonRecord>();
+    for (const r of [...a.seasons, ...b.seasons]) {
+        const cur = by.get(r.season);
+        if (!cur || r.played > cur.played) by.set(r.season, r);
+    }
+    return {
+        seasons: [...by.values()].sort((x, y) => x.season - y.season),
+        ornaments: [...new Set([...a.ornaments, ...b.ornaments])],
+    };
+}
 
 const progress = (u: UltimateSave) => u.opened + u.played + u.bought;
 /**
@@ -342,7 +350,13 @@ export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
     const k = ultimateOf(keep);
     const o = ultimateOf(other);
     const win = o.season > k.season || (o.season === k.season && progress(o) > progress(k)) ? o : k;
-    return { ...win, legacy: mergeLegacy(win.legacy, win === o ? k.legacy : o.legacy) };
+    const lose = win === o ? k : o;
+    // o lado de uma temporada mais velha ainda não virou: a temporada que ele jogou entra no legado (senão sumia)
+    const lost = lose.season < win.season ? seasonRecord(lose) : null;
+    return {
+        ...win,
+        legacy: mergeLegacy(win.legacy, { ...lose.legacy, seasons: [...lose.legacy.seasons, ...(lost ? [lost] : [])] }),
+    };
 }
 
 // ------------------------------------------------------------------------------------------- relógio dos pacotes
@@ -821,6 +835,19 @@ export function mostPlayed(u: Pick<UltimateSave, 'cards' | 'plays'>): PokemonIns
     return best;
 }
 
+/** O que fica da temporada que o save está jogando (null = a prévia, ou nenhuma partida nela). */
+export const seasonRecord = (u: UltimateSave): UtSeasonRecord | null =>
+    u.season >= 1 && u.played > 0
+        ? {
+              season: u.season,
+              played: u.played,
+              wins: u.wins,
+              marks: u.pass.marks,
+              champion: u.pass.marks >= PASS_MARKS,
+              legend: mostPlayed(u),
+          }
+        : null;
+
 /**
  * Virada da temporada no relógio `now`: o save de uma temporada anterior zera (time, cartas do modo, Fichas, pontos
  * de pacote, passe, insígnias, objetivos) e começa na temporada nova, com os 2 pacotes de boas-vindas. Fica o legado:
@@ -831,17 +858,7 @@ export function mostPlayed(u: Pick<UltimateSave, 'cards' | 'plays'>): PokemonIns
 export function rollSeason(u: UltimateSave, now: number): { u: UltimateSave; record: UtSeasonRecord | null } {
     const n = seasonN(now);
     if (n <= u.season || u.live) return { u, record: null };
-    const record: UtSeasonRecord | null =
-        u.season >= 1 && u.played > 0
-            ? {
-                  season: u.season,
-                  played: u.played,
-                  wins: u.wins,
-                  marks: u.pass.marks,
-                  champion: u.pass.marks >= PASS_MARKS,
-                  legend: mostPlayed(u),
-              }
-            : null;
+    const record = seasonRecord(u);
     const fresh = newUltimate(`${u.salt}.${n}`, now);
     return {
         u: {

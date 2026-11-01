@@ -394,4 +394,28 @@ describe('save da 0.9.33', () => {
             expect(m.legacy).toEqual({ seasons: [rec], ornaments: ['natal-2026'] });
         }
     });
+
+    it('nuvem x aparelho: a temporada que o lado velho jogou (e não virou) entra no legado em vez de sumir', () => {
+        // o aparelho A jogou a T1 e completou o passe; o B virou pra T2 antes de sincronizar
+        let a = { ...ready('a'), season: 1 };
+        const star = a.team.order[0];
+        a = play(a, IN_T1, [2, 0], [line(star)]);
+        a = play(a, IN_T1 + DAY, [1, 0], [line(star)]);
+        a = { ...a, pass: { ...a.pass, pts: PASS_MARKS * PASS_STEP, marks: PASS_MARKS } };
+        // B jogou 1 partida na T1 (legado pequeno); C é um aparelho novo que virou da prévia (sem legado)
+        const small = { season: 1, played: 1, wins: 0, marks: 0, champion: false, legend: null };
+        const b = { ...newUltimate('b', T2.start), season: 2, legacy: { seasons: [small], ornaments: [] } };
+        const c = { ...newUltimate('c', T2.start), season: 2 };
+        for (const side of [b, c])
+            for (const [k, o] of [
+                [a, side],
+                [side, a],
+            ]) {
+                const m = mergeUltimate(k, o);
+                expect(m.season).toBe(2);
+                expect(m.legacy.seasons).toHaveLength(1);
+                expect(m.legacy.seasons[0]).toMatchObject({ season: 1, played: 2, wins: 2, champion: true });
+                expect(m.legacy.seasons[0].legend?.uid).toBe(star);
+            }
+    });
 });
