@@ -460,6 +460,7 @@ export const profile: typeof pt = {
             evolucao: 'Evolution',
             hall: 'Hall of Fame',
             resgate: 'Card returned',
+            ultimate: 'Team Ultimate',
         },
         showcase: 'Card showcase',
         showcaseHelp: 'Up to 3 cards on your public profile (your Duel rival sees them). Tap a sticker in the album.',

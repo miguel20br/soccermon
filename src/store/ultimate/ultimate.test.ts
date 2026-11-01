@@ -3,7 +3,18 @@ import { ENGINE_VERSION } from '../../engine/config';
 import { viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { metalOf } from '../../ui/rarity';
-import { FICHAS, LEVEL_GAP, PACK_INTERVAL_MS, PACK_MAX, PACK_SIZE, REPEAT_POINTS, STARTERS, TEAM_SIZE } from './rules';
+import {
+    FICHAS,
+    LEVEL_GAP,
+    OBJECTIVES,
+    OPEN_POINTS,
+    PACK_INTERVAL_MS,
+    PACK_MAX,
+    PACK_SIZE,
+    REPEAT_POINTS,
+    STARTERS,
+    TEAM_SIZE,
+} from './rules';
 import {
     canPlay,
     finishMatch,
@@ -76,7 +87,9 @@ describe('pacote Mini', () => {
             expect(new Set(u.cards.map((c) => c.speciesId)).size).toBe(2 * PACK_SIZE);
             expect(canPlay(u)).toBe(true);
             expect(u.team.order).toHaveLength(Math.min(TEAM_SIZE, 2 * PACK_SIZE));
-            expect(u.team.captainUid).toBe(u.cards[0].uid);
+            // capitão: o de melhor nota do 1º pacote (quem chegou primeiro); depois só muda se você trocar
+            const best = Math.max(...u.cards.slice(0, PACK_SIZE).map((c) => viewInstance(c).overall));
+            expect(viewInstance(u.cards.find((c) => c.uid === u.team.captainUid)!).overall).toBe(best);
         }
     });
 
@@ -92,7 +105,7 @@ describe('pacote Mini', () => {
         );
         expect(res.pack.points).toEqual(want);
         expect(want.some((p) => p > 0)).toBe(true);
-        expect(res.u.packPoints).toBe(want.reduce((s, p) => s + p, 0));
+        expect(res.u.packPoints).toBe(OPEN_POINTS + want.reduce((s, p) => s + p, 0));
         expect(res.u.cards.length).toBe(u.cards.length + want.filter((p) => p === 0).length);
     });
 
@@ -154,8 +167,13 @@ describe('time e partida', () => {
                     tick: 0,
                     engine: ENGINE_VERSION,
                 };
-                const out = finishMatch({ ...u, live, fichas: 7 }, { score, shootout: null });
-                expect(out.fichas).toBe(7 + FICHAS[lv][outcome]);
+                const out = finishMatch({ ...u, live, fichas: 7 }, { score, shootout: null }, T0);
+                // + o que os objetivos do dia pagaram (vencer 1 paga Fichas na hora)
+                const bonus = (out.last?.objectives ?? []).reduce(
+                    (s, id) => s + OBJECTIVES.find((o) => o.id === id)!.fichas,
+                    0,
+                );
+                expect(out.fichas).toBe(7 + FICHAS[lv][outcome] + bonus);
                 expect(out.last).toMatchObject({ outcome, level: lv, fichas: FICHAS[lv][outcome], seen: false });
                 expect(out.live).toBeNull();
                 expect(out.played).toBe(1);
@@ -166,7 +184,7 @@ describe('time e partida', () => {
         expect(FICHAS.dificil.win).toBeLessThan(FICHAS.mestre.win);
         // sem partida aberta (apito final repetido), nada muda
         const u = ready();
-        expect(finishMatch(u, { score: [5, 0], shootout: null })).toBe(u);
+        expect(finishMatch(u, { score: [5, 0], shootout: null }, T0)).toBe(u);
     });
 });
 

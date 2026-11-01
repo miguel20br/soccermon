@@ -44,3 +44,48 @@ export const FICHAS: Record<Level, Record<Outcome, number>> = {
     dificil: { win: 80, draw: 40, loss: 15 },
     mestre: { win: 120, draw: 60, loss: 20 },
 };
+
+// ------------------------------------------------------------------------------------------- 0.9.32
+
+/** Pontos de pacote por pacote aberto, além das repetidas (proteção contra azar, como no TCG Pocket). */
+export const OPEN_POINTS = 5;
+/** Preço em pontos de pacote pra escolher uma carta Normal (sem Shiny). Ícone e Evento ficam fora. */
+export const PICK_PRICE: Record<Metal, number> = { bronze: 15, prata: 40, ouro: 100 };
+/** Pacote Mini extra comprado com Fichas. */
+export const FICHAS_PACK_PRICE = 150;
+/** Ponte da Copa: cada título da Copa vale 1 Pacote Mini no Time Ultimate, até isto por dia (Brasília). */
+export const CUP_BRIDGE_DAY_MAX = 2;
+
+/** Evoluções (ou Treinos) em andamento ao mesmo tempo. */
+export const EVO_ACTIVE_MAX = 2;
+/**
+ * Objetivo de cada passo da Evolução e do Treino, com a carta: partidas jogadas, gols (o goleiro conta defesas) e
+ * vezes que foi o craque do seu time na partida.
+ */
+export const EVO_STEP = { played: 3, goals: 2, saves: 6, mvp: 1 } as const;
+/** Treino (quem não evolui mais): até 3 subidas; cada uma vale o mesmo que uma evolução (+2 em tudo). */
+export const TRAIN_STEPS = 3;
+
+/** O que um objetivo conta numa partida do Time Ultimate. */
+export type ObjectiveKind = 'play' | 'win' | 'goals' | 'winHard' | 'winNoGold';
+export interface Objective {
+    id: string;
+    period: 'day' | 'week';
+    kind: ObjectiveKind;
+    goal: number;
+    fichas: number;
+    packs: number;
+}
+/**
+ * Objetivos diários e semanais (viram à meia-noite de Brasília; a semana começa na segunda). Pagam sozinhos quando
+ * completam. "Sem Ouro" (titulares sem carta Ouro) é o objetivo com restrição, que paga a mais.
+ */
+export const OBJECTIVES: Objective[] = [
+    { id: 'd-play', period: 'day', kind: 'play', goal: 2, fichas: 30, packs: 0 },
+    { id: 'd-win', period: 'day', kind: 'win', goal: 1, fichas: 40, packs: 0 },
+    { id: 'd-goals', period: 'day', kind: 'goals', goal: 4, fichas: 0, packs: 1 },
+    { id: 'w-play', period: 'week', kind: 'play', goal: 12, fichas: 100, packs: 1 },
+    { id: 'w-win', period: 'week', kind: 'win', goal: 6, fichas: 0, packs: 2 },
+    { id: 'w-hard', period: 'week', kind: 'winHard', goal: 3, fichas: 0, packs: 2 },
+    { id: 'w-nogold', period: 'week', kind: 'winNoGold', goal: 2, fichas: 100, packs: 1 },
+];

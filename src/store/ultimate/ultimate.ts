@@ -1,27 +1,38 @@
+import { computeAttributes, eligiblePositions } from '../../engine/attributes';
 import { ENGINE_VERSION } from '../../engine/config';
 import { CLUBS } from '../../engine/cup';
-import { SPECIES } from '../../engine/data';
+import { SPECIES, species } from '../../engine/data';
 import { aiDraftTeam } from '../../engine/draft';
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId } from '../../engine/formations';
-import { createInstance, DEFAULT_LEVEL, type PokemonInstance, viewInstance } from '../../engine/instance';
+import { createInstance, DEFAULT_LEVEL, type PokemonInstance, slotRating, viewInstance } from '../../engine/instance';
+import { mvpScore } from '../../engine/mvp';
 import { Rng } from '../../engine/rng';
+import type { MatchResult } from '../../engine/runners/batch-runner';
 import { editionOf, ICONS } from '../../engine/specials';
 import type { CornerPlan, MatchOrder, Tactic, TeamSetup } from '../../engine/state';
 import { type Metal, metalOf } from '../../ui/rarity';
 import { lineupAverage } from '../../ui/rating';
+import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
+import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
+import { countObjectives, newObjectives, type ObjectiveState, objectivesOf } from './objectives';
 import {
+    CUP_BRIDGE_DAY_MAX,
+    EVO_ACTIVE_MAX,
     FICHAS,
+    FICHAS_PACK_PRICE,
     FLOOR_METAL,
     ICON_ODDS,
     LEVEL_GAP,
     LEVELS,
     type Level,
     METAL_ODDS,
+    OPEN_POINTS,
     type Outcome,
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
+    PICK_PRICE,
     REPEAT_POINTS,
     SHINY_ODDS,
     STARTERS,
@@ -65,6 +76,8 @@ export interface UltimateLast {
     fichas: number;
     rival: string;
     seen: boolean;
+    /** Objetivos que completaram nesta partida (o prêmio de cada um está em OBJECTIVES). */
+    objectives?: string[];
 }
 
 export interface UltimateSave {
@@ -75,10 +88,14 @@ export interface UltimateSave {
     /** A coleção da temporada. */
     cards: PokemonInstance[];
     fichas: number;
-    /** Pontos de pacote (repetidas). Comprar carta com eles fica pra 0.9.32. */
+    /** Pontos de pacote (cada pacote aberto + repetidas): compram a carta que você escolher. */
     packPoints: number;
     /** Pacotes grátis guardados (0..PACK_MAX). */
     packs: number;
+    /** Pacotes ganhos (objetivos, título da Copa, Fichas): sem teto e sem relógio. */
+    extraPacks: number;
+    /** Cartas compradas com pontos (numera a semente da próxima). */
+    bought: number;
     /** De quando conta o relógio do próximo pacote (ms). Cheio, não conta. */
     packAt: number;
     /** Pacotes abertos (também numera a semente do próximo). */
@@ -90,6 +107,13 @@ export interface UltimateSave {
     losses: number;
     live: UltimateLive | null;
     last: UltimateLast | null;
+    objectives: ObjectiveState;
+    /** Evoluções e Treinos em andamento (até EVO_ACTIVE_MAX). */
+    evos: UtEvo[];
+    /** Cartas que já fizeram a Evolução ou o Treino até o fim (não começam outro). */
+    evoDone: string[];
+    /** Ponte da Copa: quantos títulos já pagaram pacote no dia `day`. */
+    bridge: { day: string; n: number };
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -100,6 +124,8 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     packPoints: 0,
     packs: PACK_MAX,
     packAt: now,
+    extraPacks: 0,
+    bought: 0,
     opened: 0,
     team: {
         formation: DEFAULT_FORMATION,
@@ -115,6 +141,10 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     losses: 0,
     live: null,
     last: null,
+    objectives: newObjectives(now),
+    evos: [],
+    evoDone: [],
+    bridge: { day: '', n: 0 },
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -152,6 +182,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         packPoints: num(raw.packPoints),
         packs: typeof raw.packs === 'number' ? num(raw.packs, PACK_MAX) : base.packs,
         packAt: typeof raw.packAt === 'number' && Number.isFinite(raw.packAt) ? raw.packAt : base.packAt,
+        extraPacks: num(raw.extraPacks),
+        bought: num(raw.bought),
         opened: num(raw.opened),
         team: {
             formation:
@@ -193,14 +225,24 @@ export function ultimateOf(raw: unknown): UltimateSave {
             last && Array.isArray(last.score) && LEVELS.includes(last.level as Level)
                 ? (last as unknown as UltimateLast)
                 : null,
+        objectives: objectivesOf(raw.objectives, Date.now()),
+        evos: evosOf(raw.evos, cards),
+        evoDone: Array.isArray(raw.evoDone)
+            ? raw.evoDone.filter((x): x is string => typeof x === 'string' && uids.has(x))
+            : [],
+        bridge:
+            isObj(raw.bridge) && typeof raw.bridge.day === 'string'
+                ? { day: raw.bridge.day, n: num(raw.bridge.n) }
+                : base.bridge,
     };
 }
 
-/** Nuvem x aparelho: fica o lado que andou mais (pacotes abertos + partidas); empate, o lado que vale (`keep`). */
+const progress = (u: UltimateSave) => u.opened + u.played + u.bought;
+/** Nuvem x aparelho: fica o lado que andou mais (pacotes abertos + partidas + compras); empate, o que vale (`keep`). */
 export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
     const k = ultimateOf(keep);
     const o = ultimateOf(other);
-    return o.opened + o.played > k.opened + k.played ? o : k;
+    return progress(o) > progress(k) ? o : k;
 }
 
 // ------------------------------------------------------------------------------------------- relógio dos pacotes
@@ -269,19 +311,28 @@ export function packMetals(rng: Rng): Metal[] {
     return metals;
 }
 
+/** A espécie joga no gol (o goleiro está entre as posições dela no nível 50). */
+export const isKeeperSpecies = (id: number) =>
+    eligiblePositions(computeAttributes(species(id), DEFAULT_LEVEL), id).includes('GK');
+const isKeeper = (c: PokemonInstance) => viewInstance(c).positions.includes('GK');
+
 /**
  * As cartas de um Pacote Mini. Sem espécie repetida dentro do pacote; até o time ficar cheio (TEAM_SIZE cartas), nem
- * espécie que você já tem (os 2 primeiros pacotes sempre montam um time).
+ * espécie que você já tem (os 2 primeiros pacotes sempre montam um time) e, sem goleiro na coleção, a 1ª carta é um
+ * goleiro do metal sorteado (o time nunca começa com alguém de linha no gol).
  */
 export function rollPack(u: Pick<UltimateSave, 'salt' | 'opened' | 'cards'>): PokemonInstance[] {
     const rng = new Rng(u.salt, `ut-pack-${u.opened}`);
     const owned = new Set(u.cards.map((c) => c.speciesId));
     const avoidOwned = u.cards.length < TEAM_SIZE;
+    const needKeeper = avoidOwned && !u.cards.some(isKeeper);
     const taken = new Set<number>();
     const iconIds = Object.keys(ICONS).map(Number);
     return packMetals(rng).map((metal, i) => {
         const free = (id: number) => !taken.has(id) && !(avoidOwned && owned.has(id));
-        const pool = metalPools()[metal].filter(free);
+        const open = metalPools()[metal].filter(free);
+        const keepers = i === 0 && needKeeper ? open.filter(isKeeperSpecies) : [];
+        const pool = keepers.length ? keepers : open;
         const icon = rng.chance(ICON_ODDS);
         const iconPool = icon ? iconIds.filter((id) => pool.includes(id)) : [];
         const from = iconPool.length
@@ -311,29 +362,105 @@ export interface PackOpen {
     points: number[];
 }
 
+/** Pacotes pra abrir agora: os grátis do relógio + os ganhos. */
+export const packsReady = (u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks'>, now: number) =>
+    refill(u, now).packs + u.extraPacks;
+
 /**
- * Abre um pacote grátis (se tem). As novas entram na coleção e enchem as vagas vazias do time (nunca tiram ninguém);
- * repetida vira pontos de pacote. null = sem pacote.
+ * Abre um pacote (o grátis primeiro, pra o relógio voltar a contar; depois os ganhos). As novas entram na coleção e
+ * enchem as vagas vazias do time, cada uma na vaga da posição dela (nunca tiram ninguém); repetida vira pontos de
+ * pacote, e todo pacote aberto dá OPEN_POINTS. null = sem pacote.
  */
 export function openPack(u: UltimateSave, now: number): { u: UltimateSave; pack: PackOpen } | null {
     const clock = refill(u, now);
-    if (clock.packs < 1) return null;
+    const free = clock.packs >= 1;
+    if (!free && u.extraPacks < 1) return null;
     const cards = rollPack(u);
     const points = cards.map((c) => (isRepeat(u.cards, c) ? REPEAT_POINTS[metalOf(viewInstance(c).overall)] : 0));
     const fresh = cards.filter((_, i) => points[i] === 0);
-    const order = [...u.team.order, ...fresh.map((c) => c.uid)].slice(0, TEAM_SIZE);
     return {
         u: {
-            ...u,
-            cards: [...u.cards, ...fresh],
-            packPoints: u.packPoints + points.reduce((s, p) => s + p, 0),
-            packs: clock.packs - 1,
+            ...addCards(u, fresh),
+            packPoints: u.packPoints + OPEN_POINTS + points.reduce((s, p) => s + p, 0),
+            packs: free ? clock.packs - 1 : clock.packs,
             packAt: clock.packAt,
+            extraPacks: free ? u.extraPacks : u.extraPacks - 1,
             opened: u.opened + 1,
-            team: { ...u.team, order, captainUid: u.team.captainUid ?? order[0] ?? null },
         },
         pack: { cards, points },
     };
+}
+
+/** Cartas novas na coleção, enchendo as vagas vazias do time pela posição. */
+function addCards(u: UltimateSave, fresh: PokemonInstance[]): UltimateSave {
+    const team = fillTeam(u.team, fresh);
+    const all = [...u.cards, ...fresh];
+    const best = (uids: string[]) =>
+        uids.reduce<PokemonInstance | null>((b, uid) => {
+            const c = all.find((x) => x.uid === uid);
+            return c && (!b || viewInstance(c).overall > viewInstance(b).overall) ? c : b;
+        }, null);
+    const captainUid = team.captainUid ?? best(team.order.slice(0, STARTERS))?.uid ?? null;
+    return { ...u, cards: [...u.cards, ...fresh], team: { ...team, captainUid } };
+}
+
+/**
+ * Enche as vagas vazias do time com as cartas `fresh` (quem já está fica onde está): o gol primeiro (com quem joga no
+ * gol, se tiver), depois cada vaga de linha com a melhor nota na posição dela, e o banco com as melhores notas.
+ * ponytail: guloso vaga a vaga; com no máximo 3 cartas por vez ele acerta o que uma busca completa acharia.
+ */
+export function fillTeam(team: UltimateTeam, fresh: readonly PokemonInstance[]): UltimateTeam {
+    const n = Math.min(TEAM_SIZE, team.order.length + fresh.length);
+    if (n <= team.order.length) return team;
+    const order = [...team.order];
+    const pool = [...fresh];
+    const slots = FORMATIONS[team.formation].slots;
+    const open = Array.from({ length: n - order.length }, (_, k) => order.length + k);
+    // o gol antes das outras vagas; o banco por último
+    open.sort((a, b) => Number(slots[b] === 'GK' && b < STARTERS) - Number(slots[a] === 'GK' && a < STARTERS) || a - b);
+    for (const i of open) {
+        const role = i < STARTERS ? slots[i] : 'ANY';
+        const fits = role === 'GK' && pool.some(isKeeper) ? pool.filter(isKeeper) : pool;
+        const pick = fits.reduce((b, c) => (slotRating(c, role) > slotRating(b, role) ? c : b));
+        order[i] = pick.uid;
+        pool.splice(pool.indexOf(pick), 1);
+    }
+    return { ...team, order };
+}
+
+// --------------------------------------------------------------------------------------------- loja
+
+/** As espécies que dá pra escolher com pontos naquele metal (a Normal que você ainda não tem). */
+export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
+    metalPools()[metal].filter((id) => !u.cards.some((c) => c.speciesId === id && editionOf(c) === null));
+
+/**
+ * Compra com pontos de pacote a carta da espécie escolhida: Normal (sem Shiny, sem Ícone e sem Evento), no metal
+ * dela, com o preço do metal. null = sem pontos, espécie que você já tem ou que não existe.
+ */
+export function buyCard(u: UltimateSave, speciesId: number): { u: UltimateSave; card: PokemonInstance } | null {
+    const metal = METALS.find((m) => metalPools()[m].includes(speciesId));
+    if (!metal || u.packPoints < PICK_PRICE[metal] || !pickable(u, metal).includes(speciesId)) return null;
+    const inst = createInstance(speciesId, new Rng(u.salt, `ut-buy-${u.bought}`));
+    const card: PokemonInstance = { ...inst, uid: `utb${u.bought}-${speciesId}`, shiny: false };
+    return {
+        u: { ...addCards(u, [card]), packPoints: u.packPoints - PICK_PRICE[metal], bought: u.bought + 1 },
+        card,
+    };
+}
+
+/** Pacote Mini extra com Fichas. null = Fichas não bastam. */
+export function buyPack(u: UltimateSave): UltimateSave | null {
+    if (u.fichas < FICHAS_PACK_PRICE) return null;
+    return { ...u, fichas: u.fichas - FICHAS_PACK_PRICE, extraPacks: u.extraPacks + 1 };
+}
+
+/** Ponte da Copa: título da Copa = 1 Pacote Mini aqui, até CUP_BRIDGE_DAY_MAX por dia (Brasília). */
+export function cupBridge(u: UltimateSave, now: number): UltimateSave {
+    const day = dailyDay(new Date(now));
+    const n = u.bridge.day === day ? u.bridge.n : 0;
+    if (n >= CUP_BRIDGE_DAY_MAX) return u;
+    return { ...u, extraPacks: u.extraPacks + 1, bridge: { day, n: n + 1 } };
 }
 
 // ------------------------------------------------------------------------------------------------------- time
@@ -419,17 +546,32 @@ export const outcomeOf = (score: readonly [number, number]): Outcome =>
 
 export const fichasFor = (level: Level, outcome: Outcome) => FICHAS[level][outcome];
 
-/** Apito final: paga as Fichas do nível e guarda o resultado pro painel do prêmio. Sem partida aberta, nada muda. */
-export function finishMatch(
-    u: UltimateSave,
-    m: { score: readonly [number, number]; shootout: [number, number] | null },
-): UltimateSave {
+/** O que o apito final lê da partida (a MatchResult inteira serve). */
+export type UltimateMatch = { score: readonly [number, number]; shootout: [number, number] | null } & Partial<
+    Pick<MatchResult, 'finalRoster' | 'subbedOut'>
+>;
+
+/**
+ * Apito final: paga as Fichas do nível, conta os objetivos (que pagam Fichas e pacotes na hora) e as Evoluções, e
+ * guarda o resultado pro painel do prêmio. Sem partida aberta, nada muda. `now` = relógio dos objetivos.
+ */
+export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): UltimateSave {
     if (!u.live) return u;
     const outcome = outcomeOf(m.score);
     const fichas = fichasFor(u.live.level, outcome);
+    const noGold = u.live.home.lineup.every((p) => metalOf(viewInstance(p).overall) !== 'ouro');
+    const obj = countObjectives(u.objectives, { outcome, level: u.live.level, goals: m.score[0], noGold }, now);
+    const players = [...(m.finalRoster ?? []), ...(m.subbedOut ?? [])];
+    // craque do seu time (a mesma nota do MVP da partida)
+    const mvp = players
+        .filter((p) => p.team === 0)
+        .reduce<(typeof players)[number] | null>((b, p) => (!b || mvpScore(p) > mvpScore(b) ? p : b), null);
     return {
         ...u,
-        fichas: u.fichas + fichas,
+        fichas: u.fichas + fichas + obj.completed.reduce((s, o) => s + o.fichas, 0),
+        extraPacks: u.extraPacks + obj.completed.reduce((s, o) => s + o.packs, 0),
+        objectives: obj.g,
+        evos: countEvos(u.evos, players, mvp?.uid ?? null),
         played: u.played + 1,
         wins: u.wins + (outcome === 'win' ? 1 : 0),
         draws: u.draws + (outcome === 'draw' ? 1 : 0),
@@ -443,7 +585,50 @@ export function finishMatch(
             fichas,
             rival: u.live.rival.name,
             seen: false,
+            objectives: obj.completed.map((o) => o.id),
         },
+    };
+}
+
+// ------------------------------------------------------------------------------------------------ evoluções
+
+/** Começa a Evolução (ou o Treino) da carta pelo caminho escolhido. null = não pode (cheio, já fez, caminho errado). */
+export function startEvo(u: UltimateSave, uid: string, path: readonly number[]): UltimateSave | null {
+    const card = u.cards.find((c) => c.uid === uid);
+    if (!card || u.live || u.evos.length >= EVO_ACTIVE_MAX || u.evos.some((e) => e.uid === uid)) return null;
+    if (u.evoDone.includes(uid) || !evoPaths(card).some((p) => p.join() === path.join())) return null;
+    return { ...u, evos: [...u.evos, newEvo(card, [...path])] };
+}
+
+/** Desiste da Evolução (o que a carta já evoluiu fica). */
+export const dropEvo = (u: UltimateSave, uid: string): UltimateSave => ({
+    ...u,
+    evos: u.evos.filter((e) => e.uid !== uid),
+});
+
+/**
+ * Dá o passo pronto da Evolução: a carta evolui (ou sobe no Treino) no mesmo lugar da coleção e do time, com a mesma
+ * edição. O último passo fecha a Evolução. null = nada pronto.
+ */
+export function evolveCard(
+    u: UltimateSave,
+    uid: string,
+): { u: UltimateSave; from: PokemonInstance; card: PokemonInstance } | null {
+    const e = u.evos.find((x) => x.uid === uid);
+    const from = u.cards.find((c) => c.uid === uid);
+    if (!e || !from || u.live || !evoReady(e)) return null;
+    const card = evoStep(from, e);
+    const next: UtEvo = { ...e, step: e.step + 1, prog: { played: 0, goals: 0, mvp: 0 } };
+    const end = next.step >= evoSteps(next);
+    return {
+        u: {
+            ...u,
+            cards: u.cards.map((c) => (c.uid === uid ? card : c)),
+            evos: end ? u.evos.filter((x) => x.uid !== uid) : u.evos.map((x) => (x.uid === uid ? next : x)),
+            evoDone: end ? [...u.evoDone, uid] : u.evoDone,
+        },
+        from,
+        card,
     };
 }
 

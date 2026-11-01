@@ -464,6 +464,7 @@ export const profile = {
             evolucao: 'Evolução',
             hall: 'Hall da Fama',
             resgate: 'Carta devolvida',
+            ultimate: 'Time Ultimate',
         },
         showcase: 'Vitrine de cartas',
         showcaseHelp: 'Até 3 cartas no seu perfil público (o rival vê no Duelo). Toque numa figurinha do álbum.',

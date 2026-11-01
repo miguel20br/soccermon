@@ -120,11 +120,17 @@ import {
 } from './profile';
 import { screenTransition } from './screen-transition';
 import {
+    buyCard,
+    buyPack,
+    cupBridge,
+    dropEvo,
+    evolveCard,
     finishMatch,
     newUltimate,
     openPack,
     type PackOpen,
     setMember,
+    startEvo,
     type UltimateLive,
     type UltimateSave,
     type UltimateTeam,
@@ -462,8 +468,16 @@ export interface GameStore {
     /** Começa a partida contra a IA (os dois times já montados). */
     ultimateStart(live: Omit<UltimateLive, 'orders' | 'tick' | 'engine'>): void;
     ultimateSaveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
-    /** Apito final: Fichas do nível e o painel do prêmio; a Pokédex marca como no Duelo. */
+    /** Apito final: Fichas do nível, objetivos, Evoluções e o painel do prêmio; Pokédex e Álbum marcam quem jogou. */
     ultimateFinish(m: MatchResult): void;
+    /** Compra com pontos de pacote a carta da espécie escolhida. null = não deu. */
+    ultimateBuyCard(speciesId: number): PokemonInstance | null;
+    /** Pacote Mini extra com Fichas. */
+    ultimateBuyPack(): boolean;
+    ultimateStartEvo(uid: string, path: readonly number[]): void;
+    ultimateDropEvo(uid: string): void;
+    /** Dá o passo pronto da Evolução da carta. null = nada pronto. */
+    ultimateEvolve(uid: string): { from: PokemonInstance; card: PokemonInstance } | null;
     /** O painel do prêmio já foi visto. */
     ultimateSeen(): void;
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
@@ -1217,8 +1231,43 @@ export const useGame = create<GameStore>()(
                             getState().dex,
                             r.pack.cards.map((c) => c.speciesId),
                         ),
+                        // Álbum: as especiais novas (Shiny, Ícone) contam como as da Copa
+                        binder: binderAdd(
+                            getState().binder,
+                            r.pack.cards.filter((_, i) => !r.pack.points[i]),
+                            { from: 'ultimate', at: now },
+                        ),
                     });
                     return r.pack;
+                },
+                ultimateBuyCard: (speciesId) => {
+                    const r = buyCard(getState().ultimate, speciesId);
+                    if (!r) return null;
+                    setState({ ultimate: r.u, dex: markSeen(getState().dex, [speciesId]) });
+                    return r.card;
+                },
+                ultimateBuyPack: () => {
+                    const u = buyPack(getState().ultimate);
+                    if (u) setState({ ultimate: u });
+                    return !!u;
+                },
+                ultimateStartEvo: (uid, path) => {
+                    const u = startEvo(getState().ultimate, uid, path);
+                    if (u) setState({ ultimate: u });
+                },
+                ultimateDropEvo: (uid) => setState({ ultimate: dropEvo(getState().ultimate, uid) }),
+                ultimateEvolve: (uid) => {
+                    const r = evolveCard(getState().ultimate, uid);
+                    if (!r) return null;
+                    const evolved = r.card.speciesId !== r.from.speciesId;
+                    setState({
+                        ultimate: r.u,
+                        ...(evolved && {
+                            dex: markSeen(getState().dex, [r.card.speciesId]),
+                            binder: binderAdd(getState().binder, [r.card], { from: 'evolucao', at: Date.now() }),
+                        }),
+                    });
+                    return { from: r.from, card: r.card };
                 },
                 ultimateTeam: (patch) => {
                     const u = getState().ultimate;
@@ -1249,7 +1298,16 @@ export const useGame = create<GameStore>()(
                     const u = getState().ultimate;
                     if (!u.live) return;
                     getState().recordDuelDex(m, 0);
-                    setState({ ultimate: finishMatch(getState().ultimate, m) });
+                    // Álbum da Pokédex: a edição de cada carta do modo que jogou (como na Copa)
+                    const squad = [...u.live.home.lineup, ...u.live.home.bench];
+                    const dex = recordEditions(
+                        getState().dex,
+                        dexLines(m, 0).flatMap((l) => {
+                            const card = playedLine(l) && squad.find((p) => p.uid === l.uid);
+                            return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
+                        }),
+                    );
+                    setState({ dex, ultimate: finishMatch(getState().ultimate, m, Date.now()) });
                 },
                 ultimateSeen: () => {
                     const u = getState().ultimate;
@@ -1794,8 +1852,11 @@ export const useGame = create<GameStore>()(
                         },
                         [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam, last)],
                     );
+                    // ponte da Copa: o título vale 1 Pacote Mini no Time Ultimate (com teto por dia), pra quem já começou o modo
+                    const ut = getState().ultimate;
                     setState({
                         ...saved,
+                        ...(status === 'champion' && ut.opened > 0 && { ultimate: cupBridge(ut, Date.now()) }),
                         ...(run.daily && { daily: dailyNext }),
                         ...(fresh.length && {
                             profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },
