@@ -542,7 +542,7 @@ function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }
                 )}
                 {u.evos.some(evoReady) && (
                     <button type="button" className="btn ghost small" onClick={onGoals}>
-                        <HudIcon kind="up" />
+                        <HudIcon kind="sprout" />
                         {t('ultimate.result.evoReady')}
                     </button>
                 )}

@@ -104,7 +104,7 @@ function Evolutions() {
     return (
         <section className="panel ut-evos bc-surface">
             <h2 className="bc-caption">
-                <HudIcon kind="up" />
+                <HudIcon kind="sprout" />
                 {t('ultimate.evo.title')}
             </h2>
             <small className="muted">{t('ultimate.evo.hint')}</small>
