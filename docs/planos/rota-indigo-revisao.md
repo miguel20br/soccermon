@@ -360,3 +360,48 @@ O que os números dizem (erro do título ±3 pp):
 Roda de novo: `STONES=0|1 SIM=150 POL=esquerda,direita,ouro,pokemon,ginasio,aleatorio,pedras,nada,partidas
 scripts/pesado.sh npx vitest run scripts/balance/rota-caminhos.sim.test.ts --maxWorkers=1` (~35 a 50 min cada).
 Demo: `?demo=pedra&stone=trovao|agua|fogo|folha|lua` (a tela da pedra com Eevee e Pikachu) e `?demo=pedra&mapa=1`.
+
+### Ajuste de 01/11/2026: pedra junto do prêmio e o rival trazendo quem usa
+
+O Miguel aprovou as duas alavancas de cima (a pedra continua atalho; quem evolui por pedra continua evoluindo jogando):
+- **Pedra junto do prêmio, não no lugar.** O Jogo da pedra dá o 1 de 3 do rival, o prêmio da casa (MT, item ou ₽ em
+  dobro) e por último a tela da pedra. A ficha mostra os dois ("Prêmio: MT" e "+ Pedra de Fogo"); a casa no mapa
+  mostra o prêmio no nome e a gema embaixo. Rota guardada antes (pedra no lugar do prêmio) continua abrindo igual.
+- **O rival da casa da pedra traz um que evolui com ela.** Se o time dele não tem nenhum, um deles entra no banco no
+  lugar do reserva mais fraco (sorteio próprio pela seed; a escalação não muda). O 1 de 3 dele garante um desses no
+  lugar do último; se você já tem o dele, vem outro que evolui com a pedra. Como a pedra vem depois, quem acabou de
+  entrar já pode usar (`?demo=pedra&rival=1` mostra o caminho todo: Vulpix no 1 de 3, MT, Pedra de Fogo, Ninetales).
+- Limite: com a regra `rivalEveryJogo` desligada (só o robô usa), o Jogo de ₽ em dobro volta direto pro mapa e não dá
+  a pedra.
+
+Robô (150 Rotas por política, mesmas seeds). Antes = a tabela de cima (pedra no lugar do prêmio).
+
+| Política | Título | Chega ao grupo | Time no grupo | Pokémon novos | Evoluções jogando | Pedras usadas | Rotas com pedra |
+|---|---|---|---|---|---|---|---|
+| Sempre à esquerda | 20,0 → 18,0% | 50 → 53% | 83,4 → 83,7 | 1,90 → 1,97 | 3,55 → 3,62 | 0,08 → 0,09 | 8 → 9% |
+| Sempre à direita | 18,0 → 14,7% | 51 → 50% | 83,3 → 83,4 | 2,17 → 2,07 | 3,45 → 3,50 | 0,09 → 0,09 | 9 → 9% |
+| Atrás de ₽ | 12,7 → 13,3% | 42 → 49% | 82,6 → 83,0 | 1,74 → 1,89 | 3,55 → 3,55 | 0,05 → 0,08 | 5 → 8% |
+| Atrás de Pokémon | 18,7 → 14,0% | 41 → 43% | 84,0 → 84,1 | 1,98 → 2,02 | 3,51 → 3,57 | 0,07 → 0,09 | 7 → 9% |
+| Sempre Ginásio | 15,3 → 14,0% | 47 → 45% | 83,7 → 84,1 | 1,75 → 1,78 | 3,57 → 3,53 | 0,02 → 0,04 | 2 → 4% |
+| Aleatório | 12,0 → 10,0% | 45 → 41% | 83,3 → 83,5 | 1,84 → 1,77 | 3,49 → 3,48 | 0,02 → 0,03 | 2 → 3% |
+| Caça pedras | 19,3 → 19,3% | 51 → 55% | 83,7 → 83,8 | 2,12 → 2,23 | 3,44 → 3,47 | 0,19 → 0,22 | 18 → 21% |
+| Só as vitórias | 6,0 → 10,7% | 37 → 41% | 83,5 → 83,7 | 1,09 → 1,21 | 3,75 → 3,83 | 0 | 0% |
+| Nada (recusa tudo) | 10,7 → 10,0% | 36 → 37% | 82,0 → 81,9 | 0 | 4,13 → 4,15 | 0 | 0% |
+
+| Métrica (as 6 políticas que jogam; com a `pedras`, 7) | Pedra no lugar | Pedra junto + rival | Meta |
+|---|---|---|---|
+| Título médio | 16,1% (16,6%) | 14,0% (14,8%) | até ~18% |
+| Variação do time entre políticas | 1,5 | 1,1 | ~3 |
+| Jogar − recusar tudo (time) | 1,41 (1,45) | 1,78 (1,80) | quanto maior melhor |
+| Jogar − recusar tudo (título) | 5,4 pp (5,9) | 4,0 pp (4,8) | quanto maior melhor |
+| Evoluções por Rota (jogando + pedra) | 3,57 (3,58) | 3,61 (3,62) | |
+
+O que os números dizem (erro do título ±3 pp):
+- **O time sobe** (jogar − recusar tudo: 1,41 → 1,78): quem passa na casa da pedra não perde mais o prêmio dela.
+- **A pedra quase não aparece mais do que antes** (0,19 → 0,22 por Rota caçando; 2 a 9% das Rotas nas outras). O robô
+  só contrata do rival quem melhora uma vaga em mais de 2 pontos, e o Vulpix/Pikachu de 52 nunca melhora: ele quase
+  nunca pega o que o rival traz. Quem joga e pensa "pego o Vulpix e viro Ninetales (82) agora" faz bem mais que o robô;
+  pra medir isso o robô precisaria contratar pela nota depois da pedra.
+- **Título médio caiu 2 pp** (16,1 → 14,0%), dentro do alvo e perto do erro: as políticas que não usam pedra também
+  mexeram (Só as vitórias 6 → 11%, à direita 18 → 15%), sinal de ruído do sorteio (o rival da casa da pedra mudou no
+  banco). A variação entre caminhos foi de 1,5 pra 1,1, longe de ~3. Nada ajustado além dos 2 itens.
