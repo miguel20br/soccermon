@@ -208,7 +208,7 @@ constantes num lugar só (`src/store/ultimate/rules.ts`) e só valem depois do o
 |---|---|---|
 | 0.9.31 | ~08/11 | Base: save do Time Ultimate (fatia própria, migração), coleção da temporada, Fichas, pacote Mini a cada 12 h (acumula 2) com piso e chances na tela, abrir pacote (reusa o pacote da vitória), montar o time (reusa a Escalação), jogo contra IA com nível escolhido e tabela de prêmio antes da partida |
 | 0.9.32 | ~15/11 | Química no centro (painel na escalação), objetivos diários e semanais, pontos de pacote que compram a carta, Evoluções com prévia (Charmander → Charizard por objetivo; Treino pra quem não evolui), ponte da Copa (título = 1 pacote) |
-| 0.9.33 | ~22/11 | Temporada 1 (tema Kanto clássico, reset semestral, medalha e "Lenda da T1" no Álbum), desafios dos líderes de ginásio, passe grátis com a carta de abertura, Natal preparado como 1º evento, polimento e playtest do Miguel |
+| 0.9.33 | ~22/11 | Temporada 1 (tema Kanto clássico, reset semestral, medalha e "Lenda da T1" no Álbum), desafios dos líderes de ginásio, passe grátis com a carta de abertura, Natal preparado como 1º evento, Pacote Grande nos objetivos semanais, polimento e playtest do Miguel (feito na branch `ultimate`, falta o playtest) |
 | 27/11 | | Bandeira ligada: o Time Ultimate sai do EM BREVE no menu de modos |
 | dez | | Evento de Natal (cartas Evento, objetivos, enfeite no Perfil) |
 | jan | | Ranking do Time Ultimate, desafios de montagem; Duelo com o time e troca entre amigos depois |
@@ -253,4 +253,47 @@ vaga (nunca tira ninguém); o capitão nasce com a carta de melhor nota do 1º p
 apito final (sem botão de resgatar). A Evolução dá o passo quando você toca em "Evoluir" (com a tela de evolução da
 partida), nunca sozinha; uma carta faz uma Evolução ou um Treino só, e quem já está na forma final faz Treino. O
 Treino reaproveita o bônus da evolução (+2 em tudo por subida), sem fórmula nova; por isso a ficha da carta mostra
-"Evoluiu: +2 em tudo". Pacote Grande (objetivo semanal) ficou pra 0.9.33: o semanal paga Pacotes Mini.
+"Evoluiu: +2 em tudo". Pacote Grande (objetivo semanal) ficou pra 0.9.33 (feito: o semanal paga Pacote Grande).
+
+0.9.33, ainda atrás de `?lab=ultimate`. Nas prévias, `&utnow=2026-12-20` põe o modo naquela data (pra jogar a T1 e o
+Natal antes da hora; em produção o relógio é sempre o de verdade). Atenção: entrar com uma data da T1 zera o save da
+prévia (é a virada da temporada 0 pra 1).
+
+| O quê | Proposta |
+|---|---|
+| **0.9.33** | |
+| Temporadas | T1 27/11/2026 a 01/06/2027 (meia-noite de Brasília), tema Kanto clássico; T2 01/06 a 01/12/2027 (Ícones dos líderes, só o nome por enquanto) |
+| Zera na virada | time, cartas do modo, Fichas, pontos de pacote, pacotes ganhos, passe, insígnias, objetivos; nasce com os 2 pacotes grátis |
+| Fica (Perfil, no Álbum) | medalha de cada temporada jogada (1 partida já conta), marcos do passe, título "Campeão da Temporada N" (passe completo), a Lenda (carta com mais partidas; empate, a de nota maior), enfeites dos eventos |
+| Pacote Grande | 5 cartas, pelo menos 2 Prata ou melhor (mesmas chances por carta do Mini) |
+| Objetivos da semana | os mesmos, pagando Pacote Grande no lugar do Mini (1:1): jogue 12 → 100 Fichas + 1 Grande · vença 6 → 2 Grandes · vença 3 no Difícil/Mestre → 2 Grandes · vença 2 sem Ouro → 100 Fichas + 1 Grande |
+| Passe: pontos por partida | vitória 40 · empate 25 · derrota 15 (desafio de líder vale o dobro) |
+| Passe: teto por dia | 150 pontos (Brasília); ~4 vitórias |
+| Passe: marcos | 40, um a cada 150 pontos (6.000 no total: ~40 dias no teto, ~110 dias jogando 2 por dia) |
+| Passe: prêmios | marco 1: carta de abertura (Pikachu Normal); a cada 5 marcos ela sobe +2 em tudo (8 subidas, +16 no fim) e nos de 10 ainda 1 Pacote Grande; os outros: ímpar 100 Fichas, par 1 Pacote Mini |
+| Líderes | os 8 clubes de ginásio, nível Difícil; regra pro titular: Brock 2 Pedra · Misty só Água (5) · Surge 2 Elétrico · Erika 3 Planta · Koga 3 Veneno · Sabrina time todo Prata (5) · Blaine 2 Fogo · Giovanni 3 Terra |
+| Líderes: prêmio | 2x as Fichas do Difícil (160/80/30); 1ª vitória contra cada um na temporada: insígnia + 1 Pacote Grande |
+| Natal (1º evento da T1) | 15/12/2026 a 05/01/2027; cada carta do pacote 1 em 12 (8,3%) de sair Evento (pintada de Gelo, +2 como toda Evento); objetivos: jogue 10 → 150 Fichas · faça 25 gols → 2 Mini · vença 6 → 1 Grande; os 3 = enfeite "Natal" no Perfil |
+| Evolução no meio da partida | desligada no Time Ultimate (dos dois lados) |
+
+Decisões tomadas sem o Miguel na 0.9.33 (as mais simples que respeitam o plano), pra ele confirmar:
+
+1. **Evolução no meio da partida desligada no Time Ultimate** (dos dois times), sem mexer no motor: a carta entra na
+   partida com a barra de evolução em −1.000.000, então nunca enche. Copa, Duelo e Liga iguais (`ENGINE_VERSION` 16,
+   testes do motor iguais). Evoluir no Time Ultimate fica só pelas Evoluções. Alternativa: manter e guardar a forma
+   nova na coleção (aí a Evolução perde sentido).
+2. **"Campeão da Temporada" = passe completo** (40 marcos); a medalha vem com 1 partida. O título aparece no bloco do
+   Time Ultimate no Álbum do Perfil; ainda não entra na lista de títulos do cartão do treinador (missions.ts).
+3. **A Lenda fica no Álbum como carta com a fita "Lenda da T1"**, num bloco do Time Ultimate embaixo do livro (só
+   aparece com legado). Não é uma edição nova de carta (visual novo de carta pede a galeria antes).
+4. **Carta de abertura da T1 = Pikachu** Normal; cresce pela mesma conta do Treino (+2 em tudo por subida).
+5. **Rival do líder**: o clube dele (os mesmos da Copa), com a força do Difícil sobre a média do seu time.
+6. **Natal pintado de Gelo**: a edição Evento que já existe (nenhum visual novo); qualquer espécie pode sair Evento
+   no Natal.
+7. A virada espera o apito final de uma partida aberta; relógio que volta no tempo não volta a temporada; na nuvem
+   vence a temporada mais nova e o legado dos dois lados fica junto.
+
+**Pra ligar a bandeira em 27/11:** o ok do Miguel nos números (as três tabelas), ele jogar a prévia (inclusive com
+`&utnow=2026-12-20` pro Natal e `&utnow=2027-06-01` pra virada), decidir os 7 itens acima, `npm run calibrate` da
+meta de química, trocar `ultimateOn` (flag.ts) pra ligar em produção a partir de 27/11 e tirar o EM BREVE do menu,
+patch notes e changelog da versão.
