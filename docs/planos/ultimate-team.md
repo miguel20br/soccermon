@@ -215,3 +215,25 @@ constantes num lugar só (`src/store/ultimate/rules.ts`) e só valem depois do o
 
 **Pro ok do Miguel antes de valer:** chances do pacote por metal, Fichas por resultado e por nível, preço em pontos
 de pacote, meta da química ("prata com química cheia empata com ouro sem química", medida no `calibrate`).
+
+## Proposta de números (falta o ok)
+
+0.9.31 (base), atrás de `?lab=ultimate` (só dev e prévias). Tudo em `src/store/ultimate/rules.ts`; nada aqui está
+aprovado. Mudou um número? Muda lá e aqui.
+
+| O quê | Proposta |
+|---|---|
+| Pacote Mini grátis | 1 a cada 12 h, acumula 2 (cheio, o relógio para); quem chega começa com os 2 |
+| Cartas por Pacote Mini | 3 |
+| Chance por carta | Bronze 62% · Prata 28% · Ouro 10% (metal pela nota no nível 50: ≤64 / 65–74 / 75+) |
+| Piso | todo pacote tem 1 Prata ou melhor (se não saiu, a última vira Prata) |
+| Edições por carta | Shiny 1/64 (1,6%) · Ícone 1% (só os 20 da lista); Evento fica pros eventos |
+| Repetida (mesma espécie e edição) | não entra; vira pontos de pacote: Bronze 1 · Prata 3 · Ouro 8 |
+| Primeiros pacotes | até o time ter 7 cartas, o pacote não repete espécie que você já tem (2 pacotes = time pronto) |
+| Rival da IA | clube de ginásio sorteado por partida; média dos titulares = a sua + Fácil −6 · Normal 0 · Difícil +4 · Mestre +8 (o mais perto entre 12 times sorteados) |
+| Fichas (V / E / D) | Fácil 30/15/10 · Normal 50/25/10 · Difícil 80/40/15 · Mestre 120/60/20 |
+| Empate | placar igual no tempo normal (os pênaltis do motor ficam só como festa) |
+
+Decisões tomadas sem o Miguel (as mais simples que respeitam o plano): o time novo enche só as vagas vazias na
+ordem em que as cartas chegam (nunca tira ninguém; pode começar com gente fora de posição); o capitão nasce com a
+1ª carta e se troca na aba Time; as Fichas só acumulam nesta versão (o que comprar com elas vem na 0.9.32).
