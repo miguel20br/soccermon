@@ -82,7 +82,8 @@ function Objectives({ period }: { period: Objective['period'] }) {
 }
 
 /** Barra de progresso (x/meta), que anda com transição. */
-function Bar({ n, of, label }: { n: number; of: number; label?: string }) {
+function Bar({ n: raw, of, label }: { n: number; of: number; label?: string }) {
+    const n = Math.min(raw, of);
     return (
         <span className="ut-bar" style={{ '--p': `${(100 * n) / of}%` } as CSSProperties}>
             <i aria-hidden />

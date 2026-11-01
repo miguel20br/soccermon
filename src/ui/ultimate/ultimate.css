@@ -642,8 +642,9 @@
     }
     .ut .k-tabs > [role="tab"] {
         font-size: 10px;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.8px;
         padding-inline: 0;
+        min-width: 0;
     }
 }
 [data-reduce-motion="true"] .ut-pick-list,
