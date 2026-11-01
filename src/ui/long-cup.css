@@ -228,6 +228,13 @@
     width: 18px;
     height: 18px;
 }
+/* o prêmio e a pedra da mesma casa ficam juntos (só o gap da ficha entre eles) */
+.cm-prize:has(+ .cm-prize) {
+    margin-bottom: 0;
+}
+.cm-prize + .cm-prize {
+    margin-top: 0;
+}
 .cm-sheet-head {
     display: flex;
     align-items: center;

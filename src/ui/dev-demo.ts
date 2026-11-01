@@ -18,6 +18,7 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
+import { longRound } from '../store/long-cup';
 import { type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
@@ -299,8 +300,37 @@ export function runDevDemo() {
     // (`&mapa=1`: no começo do mapa, com a Pedra de Fogo à vista na Rota 1)
     if (demo === 'pedra') {
         const q = new URLSearchParams(window.location.search);
-        demoLongMap(store, !q.has('mapa'));
+        demoLongMap(store, !q.has('mapa') && !q.has('rival'));
         const run = useGame.getState().run!;
+        // `&rival=1`: o Jogo da Pedra de Fogo (Rota 1) vencido, no 1 de 3 do rival (com um que evolui com ela); dali
+        // segue o caminho de verdade: o prêmio da casa, a tela da pedra e a evolução
+        if (q.has('rival')) {
+            const node = run.map!.nodes.find((n) => n.row === 0 && n.stone)!;
+            useGame.getState().enterNode(node.id);
+            const cur = useGame.getState().run!;
+            const opp = cur.opponents[cur.stage];
+            const rewards = rewardOptions(
+                cur.seed,
+                cur.stage,
+                0,
+                cur.picks,
+                { name: opp.name, players: [...opp.lineup, ...opp.bench] },
+                0,
+                { key: `${node.id}-rival`, round: longRound(cur.stage), prize: 'pokemon', stone: node.stone },
+            );
+            const result = { stage: cur.stage, opponent: opp.name, score: [3, 1] as [number, number] };
+            useGame.setState({
+                run: {
+                    ...cur,
+                    status: 'reward',
+                    rivalPick: true,
+                    rewards,
+                    results: [{ ...result, shootout: null, won: true, final: false }],
+                },
+                screen: 'reward',
+            });
+            return;
+        }
         const add = [133, 25].map((sp) => ({
             ...createInstance(sp, new Rng('demo', `pedra-${sp}`)),
             uid: `demo-${sp}`,
