@@ -327,3 +327,9 @@ Leitura (n=200 deu o mesmo, 39,1 / 17,7 / 43,1, saldo −0,11):
 - O capitão do mesmo tipo (+6% pro time de um tipo só) entra na conta, como no modo; o painel de química não o mostra.
 
 Pro Miguel decidir (nada mudado): a meta vale assim, ou mexer (química, teto, chances de Prata/Ouro) antes de 27/11?
+
+## Decidido com o Miguel (01/11/2026)
+
+- As 7 decisões da 0.9.33 valem como estão ("perfeito").
+- Química: a meta medida (Prata de química alta x Ouro sem química, 39/17/44 em n=400) fica assim.
+- Números das tabelas "Proposta de números": ele vai olhar e responder. A prévia ele joga depois.
