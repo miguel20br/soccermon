@@ -54,9 +54,9 @@ existem: `club-kit.ts`).
 ## A temporada
 
 **Pedido do Miguel (31/10): temporada longa, com eventos no meio, e reset anual ou semestral** (no lugar das 6
-semanas da proposta de 20/10). Falta ele escolher anual ou semestral.
+semanas da proposta de 20/10). **Decidido em 01/11: semestral.**
 
-- **Recomendação: semestral.** Duas temporadas por ano, ex.: T1 de 27/11/2026 ao fim de maio de 2027, T2 de junho a
+- **Semestral.** Duas temporadas por ano, ex.: T1 de 27/11/2026 ao fim de maio de 2027, T2 de junho a
   novembro. Anual é longo pra um jogo pequeno: quem chegou no começo abre tanta vantagem que quem chega no meio
   desiste, e o "recomeço do zero", que é o que traz gente de volta, só acontece uma vez por ano. O FC é anual, mas
   tem conteúdo novo toda semana; a gente não tem esse volume.
