@@ -405,27 +405,36 @@ function addCards(u: UltimateSave, fresh: PokemonInstance[]): UltimateSave {
 }
 
 /**
- * Enche as vagas vazias do time com as cartas `fresh` (quem já está fica onde está): o gol primeiro (com quem joga no
- * gol, se tiver), depois cada vaga de linha com a melhor nota na posição dela, e o banco com as melhores notas.
- * ponytail: guloso vaga a vaga; com no máximo 3 cartas por vez ele acerta o que uma busca completa acharia.
+ * Enche as vagas vazias do time com as cartas `fresh` (quem já está fica onde está): as vagas de titular abertas
+ * recebem a distribuição de maior soma de notas na vaga (o gol só com quem joga no gol, se tiver um), e o banco as
+ * melhores notas do que sobrar. Busca completa: chegam no máximo 3 cartas por vez (5 vagas, 3 cartas = 60 jeitos).
  */
 export function fillTeam(team: UltimateTeam, fresh: readonly PokemonInstance[]): UltimateTeam {
-    const n = Math.min(TEAM_SIZE, team.order.length + fresh.length);
-    if (n <= team.order.length) return team;
-    const order = [...team.order];
-    const pool = [...fresh];
+    const have = team.order.length;
+    if (have >= TEAM_SIZE || !fresh.length) return team;
     const slots = FORMATIONS[team.formation].slots;
-    const open = Array.from({ length: n - order.length }, (_, k) => order.length + k);
-    // o gol antes das outras vagas; o banco por último
-    open.sort((a, b) => Number(slots[b] === 'GK' && b < STARTERS) - Number(slots[a] === 'GK' && a < STARTERS) || a - b);
-    for (const i of open) {
-        const role = i < STARTERS ? slots[i] : 'ANY';
-        const fits = role === 'GK' && pool.some(isKeeper) ? pool.filter(isKeeper) : pool;
-        const pick = fits.reduce((b, c) => (slotRating(c, role) > slotRating(b, role) ? c : b));
-        order[i] = pick.uid;
-        pool.splice(pool.indexOf(pick), 1);
-    }
-    return { ...team, order };
+    const open = Array.from(
+        { length: Math.max(0, Math.min(STARTERS, have + fresh.length) - have) },
+        (_, k) => have + k,
+    );
+    const keeperOnly = fresh.some(isKeeper);
+    let best: PokemonInstance[] = [];
+    let bestScore = -1;
+    const walk = (used: PokemonInstance[], score: number) => {
+        if (used.length === open.length) {
+            if (score > bestScore) [best, bestScore] = [used, score];
+            return;
+        }
+        const role = slots[open[used.length]];
+        for (const c of fresh)
+            if (!used.includes(c) && !(role === 'GK' && keeperOnly && !isKeeper(c)))
+                walk([...used, c], score + slotRating(c, role));
+    };
+    walk([], 0);
+    const bench = fresh
+        .filter((c) => !best.includes(c))
+        .sort((a, b) => viewInstance(b).overall - viewInstance(a).overall);
+    return { ...team, order: [...team.order, ...[...best, ...bench].map((c) => c.uid)].slice(0, TEAM_SIZE) };
 }
 
 // --------------------------------------------------------------------------------------------- loja

@@ -126,8 +126,9 @@ describe('time e partida', () => {
     it('trocar com a coleção tira o capitão que saiu; trocar dentro do time só muda o lugar', () => {
         const u = ready();
         const outsider = { ...u.cards[0], uid: 'fora' };
-        const t = setMember(u.team, 0, outsider.uid);
-        expect(t.order[0]).toBe('fora');
+        const cap = u.team.order.indexOf(u.team.captainUid!);
+        const t = setMember(u.team, cap, outsider.uid);
+        expect(t.order[cap]).toBe('fora');
         expect(t.captainUid).toBeNull();
         const swapped = setMember(u.team, 0, u.team.order[3]);
         expect(swapped.order.slice(0, 4)).toEqual([u.team.order[3], u.team.order[1], u.team.order[2], u.team.order[0]]);

@@ -95,3 +95,10 @@ export function objectivesOf(raw: unknown, now: number): ObjectiveState {
         : [];
     return { day: r.day, week: r.week, prog, done };
 }
+
+/** Quando os objetivos do período recomeçam (ms): meia-noite de Brasília (UTC−3 fixo desde 2019); a semana, na segunda. */
+export function nextReset(now: number, period: Objective['period']): number {
+    const { day, week } = periodKeys(now);
+    const [y, m, d] = (period === 'day' ? day : week).split('-').map(Number);
+    return Date.UTC(y, m - 1, d + (period === 'day' ? 1 : 7), 3);
+}

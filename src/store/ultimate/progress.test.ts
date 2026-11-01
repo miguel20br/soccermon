@@ -7,7 +7,7 @@ import type { PlayerSummary } from '../../engine/runners/batch-runner';
 import { metalOf } from '../../ui/rarity';
 import { chemistry } from './chemistry';
 import { evoPaths, evoPreview, evoReady } from './evolutions';
-import { countObjectives, newObjectives, type ObjectiveMatch, objectivesAt } from './objectives';
+import { countObjectives, newObjectives, nextReset, type ObjectiveMatch, objectivesAt } from './objectives';
 import {
     CUP_BRIDGE_DAY_MAX,
     EVO_STEP,
@@ -61,14 +61,13 @@ describe('time inicial por posição', () => {
         const t = fillTeam(empty, [...field, card(gk)]);
         expect(t.order[0]).toBe(`c${gk}`);
         expect(t.order).toHaveLength(4);
-        // vaga a vaga, a carta escolhida é a de melhor nota naquela posição entre as que sobraram
+        // a distribuição é a melhor: trocar quaisquer duas de linha de vaga não soma mais nota
         const slots = FORMATIONS[empty.formation].slots;
-        const left = [...field];
-        for (let i = 1; i < 4; i++) {
-            const got = left.find((c) => c.uid === t.order[i])!;
-            for (const c of left) expect(slotRating(got, slots[i])).toBeGreaterThanOrEqual(slotRating(c, slots[i]));
-            left.splice(left.indexOf(got), 1);
-        }
+        const by = new Map(field.map((c) => [c.uid, c]));
+        const r = (i: number, uid: string) => slotRating(by.get(uid)!, slots[i]);
+        for (let i = 1; i < 4; i++)
+            for (let j = i + 1; j < 4; j++)
+                expect(r(i, t.order[i]) + r(j, t.order[j])).toBeGreaterThanOrEqual(r(i, t.order[j]) + r(j, t.order[i]));
     });
 
     it('nunca tira quem já está no time: só enche as vagas vazias', () => {
@@ -115,6 +114,12 @@ describe('objetivos diários e semanais (relógio injetado)', () => {
         // domingo ainda é a mesma semana; a segunda seguinte zera os semanais
         expect(objectivesAt(g, MON + 6 * DAY).prog['w-win']).toBe(1);
         expect(objectivesAt(g, MON + 7 * DAY).prog['w-win']).toBeUndefined();
+    });
+
+    it('a contagem pro próximo: meia-noite de Brasília e a segunda seguinte', () => {
+        expect(nextReset(MON, 'day')).toBe(Date.UTC(2026, 10, 3, 3));
+        expect(nextReset(MON + 3 * DAY, 'week')).toBe(Date.UTC(2026, 10, 9, 3));
+        expect(objectivesAt(newObjectives(MON), nextReset(MON, 'day')).day).toBe('2026-11-03');
     });
 
     it('a virada é à meia-noite de Brasília, não à do UTC', () => {

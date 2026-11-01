@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, useMemo, useState } from 'react';
 import { cupRival } from '../../engine/cup';
 import { FORMATIONS } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -6,6 +6,7 @@ import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { evoReady } from '../../store/ultimate/evolutions';
 import {
     FICHAS,
     FLOOR_METAL,
@@ -13,6 +14,8 @@ import {
     LEVELS,
     type Level,
     METAL_ODDS,
+    OBJECTIVES,
+    OPEN_POINTS,
     PACK_MAX,
     REPEAT_POINTS,
     SHINY_ODDS,
@@ -25,6 +28,7 @@ import {
     nextPackIn,
     orderIndex,
     type PackOpen,
+    packsReady,
     refill,
     teamAverage,
     ultimateRival,
@@ -32,6 +36,7 @@ import {
 } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
+import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
@@ -40,31 +45,24 @@ import { cardSprite } from '../components/PokeCard';
 import { METAL, type Metal, metalLabel, metalOf } from '../rarity';
 import { LineupEditor } from '../screens/Lineup';
 import { simulateMatch } from '../sim-client';
+import { Chemistry } from './Chemistry';
+import { hms, useNow } from './clock';
+import { Goals, useReward } from './Goals';
+import { Shop } from './Shop';
 import './ultimate.css';
 
-type Tab = 'packs' | 'collection' | 'team' | 'play';
-const TABS: Tab[] = ['packs', 'collection', 'team', 'play'];
-const TAB_ICON: Record<Tab, HudIconKind> = { packs: 'cards', collection: 'dex', team: 'team', play: 'play' };
+type Tab = 'packs' | 'collection' | 'team' | 'goals' | 'play';
+const TABS: Tab[] = ['packs', 'collection', 'team', 'goals', 'play'];
+const TAB_ICON: Record<Tab, HudIconKind> = {
+    packs: 'cards',
+    collection: 'dex',
+    team: 'team',
+    goals: 'medal',
+    play: 'play',
+};
 const METALS: Metal[] = ['bronze', 'prata', 'ouro'];
 const pct = (p: number, lang: string) =>
     `${(Math.round(p * 1000) / 10).toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US')}%`;
-
-/** O relógio da tela (pra contagem do próximo pacote): anda a cada segundo. */
-function useNow() {
-    const [now, setNow] = useState(Date.now);
-    useEffect(() => {
-        const id = window.setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(id);
-    }, []);
-    return now;
-}
-
-const hms = (ms: number) => {
-    const s = Math.ceil(ms / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m ${String(s % 60).padStart(2, '0')}s`;
-};
 
 /**
  * Time Ultimate (0.9.31, atrás de `?lab=ultimate`): pacotes, coleção, time e jogo contra a IA, numa tela de abas.
@@ -133,10 +131,13 @@ export function Ultimate() {
                     <Collection />
                 ) : tab === 'team' ? (
                     <Team onPacks={() => setTab('packs')} />
+                ) : tab === 'goals' ? (
+                    <Goals />
                 ) : (
-                    <Play onPacks={() => setTab('packs')} />
+                    <Play onPacks={() => setTab('packs')} onGoals={() => setTab('goals')} />
                 )}
             </div>
+            <EvolutionOverlay />
         </div>
     );
 }
@@ -144,13 +145,14 @@ export function Ultimate() {
 // --------------------------------------------------------------------------------------------------- pacotes
 
 function Packs() {
-    const { t } = useT();
+    const { t, tn } = useT();
     const u = useGame((s) => s.ultimate);
     const openPack = useGame((s) => s.ultimateOpenPack);
     const now = useNow();
     const [open, setOpen] = useState<PackOpen | null>(null);
     const clock = refill(u, now);
     const next = nextPackIn(u, now);
+    const ready = packsReady(u, now);
     return (
         <>
             {open ? (
@@ -197,6 +199,12 @@ function Packs() {
                             ))}
                             <small>{t('ultimate.packs.stored', { n: clock.packs, max: PACK_MAX })}</small>
                         </span>
+                        {u.extraPacks > 0 && (
+                            <small className="ut-extra">
+                                <HudIcon kind="sparkle" />
+                                {tn('ultimate.packs.extra', u.extraPacks)}
+                            </small>
+                        )}
                         <small className="ut-timer">
                             <HudIcon kind="stopwatch" />
                             {next === null ? t('ultimate.packs.full') : t('ultimate.packs.next', { time: hms(next) })}
@@ -204,14 +212,15 @@ function Packs() {
                         <button
                             type="button"
                             className="btn confirm"
-                            disabled={clock.packs < 1}
+                            disabled={ready < 1}
                             onClick={() => setOpen(openPack())}
                         >
-                            {clock.packs < 1 ? t('ultimate.packs.none') : t('ultimate.packs.open')}
+                            {ready < 1 ? t('ultimate.packs.none') : t('ultimate.packs.open')}
                         </button>
                     </div>
                 </section>
             )}
+            {!open && <Shop />}
             <Odds />
         </>
     );
@@ -249,7 +258,10 @@ function Odds() {
                 {t('ultimate.packs.repeatRule')}:{' '}
                 {METALS.map((m) => `${metalLabel(m)} ${REPEAT_POINTS[m]}`).join(' · ')}
             </p>
-            <small className="muted">{t('ultimate.packs.pointsSoon')}</small>
+            <p className="ut-rule">
+                <HudIcon kind="sparkle" />
+                {t('ultimate.packs.openRule', { n: OPEN_POINTS })}
+            </p>
         </section>
     );
 }
@@ -329,7 +341,12 @@ function Team({ onPacks }: { onPacks: () => void }) {
                     ...(p.cornerTakerUid !== undefined && { cornerTakerUid: p.cornerTakerUid }),
                 })
             }
-            side={<Reserves />}
+            side={
+                <>
+                    <Chemistry u={u} />
+                    <Reserves />
+                </>
+            }
         />
     );
 }
@@ -438,8 +455,9 @@ function Reserves() {
 
 // ----------------------------------------------------------------------------------------------------- jogar
 
-function Play({ onPacks }: { onPacks: () => void }) {
-    const { t, d, lang } = useT();
+function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }) {
+    const { t, tn, d, lang } = useT();
+    const reward = useReward();
     const u = useGame((s) => s.ultimate);
     const profile = useGame((s) => s.profile);
     const [level, setLevel] = useState<Level>(() => u.last?.level ?? 'normal');
@@ -506,6 +524,28 @@ function Play({ onPacks }: { onPacks: () => void }) {
                     <HudIcon kind="coin" />
                     <CountUp from={0} to={last.fichas} ms={700} format={(n) => t('ultimate.result.gain', { n })} />
                 </span>
+                {!!last.objectives?.length && (
+                    <div className="ut-prize-goals">
+                        <span className="bc-lbl">{t('ultimate.result.objectives')}</span>
+                        {last.objectives.map((id) => {
+                            const o = OBJECTIVES.find((x) => x.id === id);
+                            return (
+                                o && (
+                                    <small key={id}>
+                                        <HudIcon kind="check" />
+                                        {tn(`ultimate.goals.text.${o.kind}`, o.goal)} · {reward(o)}
+                                    </small>
+                                )
+                            );
+                        })}
+                    </div>
+                )}
+                {u.evos.some(evoReady) && (
+                    <button type="button" className="btn ghost small" onClick={onGoals}>
+                        <HudIcon kind="up" />
+                        {t('ultimate.result.evoReady')}
+                    </button>
+                )}
                 <button type="button" className="btn confirm wide" onClick={() => useGame.getState().ultimateSeen()}>
                     {t('ultimate.result.next')}
                 </button>
