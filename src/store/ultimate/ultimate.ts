@@ -15,13 +15,19 @@ import { lineupAverage } from '../../ui/rating';
 import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
 import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
-import { countObjectives, newObjectives, type ObjectiveState, objectivesOf } from './objectives';
+import { countObjectives, eventAt, newObjectives, type ObjectiveState, objectivesOf } from './objectives';
 import {
+    BIG_FLOOR_N,
+    BIG_PACK_SIZE,
     CUP_BRIDGE_DAY_MAX,
     EVO_ACTIVE_MAX,
     FICHAS,
     FICHAS_PACK_PRICE,
     FLOOR_METAL,
+    GYM_FICHAS_MULT,
+    GYM_FIRST_BIG,
+    GYM_LEVEL,
+    GYMS,
     ICON_ODDS,
     LEVEL_GAP,
     LEVELS,
@@ -32,12 +38,16 @@ import {
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
+    PASS_CARD,
+    PASS_MARKS,
     PICK_PRICE,
+    passReward,
     REPEAT_POINTS,
     SHINY_ODDS,
     STARTERS,
     TEAM_SIZE,
 } from './rules';
+import { gymOk, newPass, type PassState, passGain, passMarksOf, seasonN } from './season';
 
 /**
  * Time Ultimate (docs/planos/ultimate-team.md, 0.9.31): a fatia do save e as regras puras (pacote, relógio de 12 h,
@@ -65,6 +75,8 @@ export interface UltimateLive {
     tick: number;
     /** `ENGINE_VERSION` de quando começou: motor novo no meio, a partida recomeça do 0 a 0. */
     engine: number;
+    /** Desafio de líder (GYMS): o id dele. */
+    gym?: string;
 }
 
 /** A última partida, pro painel do prêmio (some no "Continuar"). */
@@ -78,10 +90,35 @@ export interface UltimateLast {
     seen: boolean;
     /** Objetivos que completaram nesta partida (o prêmio de cada um está em OBJECTIVES). */
     objectives?: string[];
+    /** Desafio de líder; `badge` = a 1ª vitória contra ele nesta temporada (insígnia + Pacote Grande). */
+    gym?: string;
+    badge?: boolean;
+    /** Pontos do passe que a partida deu e os marcos que ela alcançou. */
+    pass?: number;
+    marks?: number[];
+    /** Enfeite do evento ganho nesta partida (todos os objetivos do evento). */
+    ornament?: string;
+}
+
+/** O que fica de uma temporada que acabou (no Perfil, nunca zera). */
+export interface UtSeasonRecord {
+    season: number;
+    played: number;
+    wins: number;
+    /** Marcos do passe alcançados; todos = o título de campeão da temporada. */
+    marks: number;
+    champion: boolean;
+    /** A carta que mais jogou: a Lenda da temporada (só enfeite). */
+    legend: PokemonInstance | null;
+}
+export interface UtLegacy {
+    seasons: UtSeasonRecord[];
+    /** Enfeites dos eventos completos (id do evento). */
+    ornaments: string[];
 }
 
 export interface UltimateSave {
-    /** 0 = a prévia antes da Temporada 1 (o reset vem na 0.9.33). */
+    /** A temporada deste save (SEASONS); 0 = a prévia antes da Temporada 1. Virou a temporada, zera (`rollSeason`). */
     season: number;
     /** Semente dos pacotes e dos rivais deste save. */
     salt: string;
@@ -94,6 +131,8 @@ export interface UltimateSave {
     packs: number;
     /** Pacotes ganhos (objetivos, título da Copa, Fichas): sem teto e sem relógio. */
     extraPacks: number;
+    /** Pacotes Grandes ganhos (objetivos da semana, passe, líderes). */
+    bigPacks: number;
     /** Cartas compradas com pontos (numera a semente da próxima). */
     bought: number;
     /** De quando conta o relógio do próximo pacote (ms). Cheio, não conta. */
@@ -114,6 +153,14 @@ export interface UltimateSave {
     evoDone: string[];
     /** Ponte da Copa: quantos títulos já pagaram pacote no dia `day`. */
     bridge: { day: string; n: number };
+    /** Passe grátis da temporada. */
+    pass: PassState;
+    /** Partidas de cada carta nesta temporada (a mais jogada vira a Lenda). */
+    plays: Record<string, number>;
+    /** Líderes vencidos nesta temporada (as insígnias). */
+    gyms: string[];
+    /** O que fica das temporadas passadas: nunca zera. */
+    legacy: UtLegacy;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -125,6 +172,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     packs: PACK_MAX,
     packAt: now,
     extraPacks: 0,
+    bigPacks: 0,
     bought: 0,
     opened: 0,
     team: {
@@ -145,6 +193,10 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     evos: [],
     evoDone: [],
     bridge: { day: '', n: 0 },
+    pass: newPass(),
+    plays: {},
+    gyms: [],
+    legacy: { seasons: [], ornaments: [] },
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -183,6 +235,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
         packs: typeof raw.packs === 'number' ? num(raw.packs, PACK_MAX) : base.packs,
         packAt: typeof raw.packAt === 'number' && Number.isFinite(raw.packAt) ? raw.packAt : base.packAt,
         extraPacks: num(raw.extraPacks),
+        bigPacks: num(raw.bigPacks),
         bought: num(raw.bought),
         opened: num(raw.opened),
         team: {
@@ -219,6 +272,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
                       orders: Array.isArray(live.orders) ? (live.orders as MatchOrder[]) : [],
                       tick: num(live.tick),
                       engine: ENGINE_VERSION,
+                      ...(typeof live.gym === 'string' && GYMS.some((g) => g.id === live.gym) && { gym: live.gym }),
                   }
                 : null,
         last:
@@ -234,15 +288,61 @@ export function ultimateOf(raw: unknown): UltimateSave {
             isObj(raw.bridge) && typeof raw.bridge.day === 'string'
                 ? { day: raw.bridge.day, n: num(raw.bridge.n) }
                 : base.bridge,
+        pass:
+            isObj(raw.pass) && typeof raw.pass.day === 'string'
+                ? { day: raw.pass.day, today: num(raw.pass.today), pts: num(raw.pass.pts), marks: num(raw.pass.marks) }
+                : base.pass,
+        plays: isObj(raw.plays)
+            ? Object.fromEntries(Object.entries(raw.plays).flatMap(([k, v]) => (uids.has(k) ? [[k, num(v)]] : [])))
+            : {},
+        gyms: Array.isArray(raw.gyms)
+            ? raw.gyms.filter((g): g is string => typeof g === 'string' && GYMS.some((x) => x.id === g))
+            : [],
+        legacy: legacyOf(raw.legacy),
     };
 }
 
+const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+/** O legado do save: só as temporadas com número e a Lenda que for uma carta de verdade. */
+function legacyOf(raw: unknown): UtLegacy {
+    if (!isObj(raw)) return { seasons: [], ornaments: [] };
+    const seasons = Array.isArray(raw.seasons)
+        ? raw.seasons.flatMap((r): UtSeasonRecord[] =>
+              isObj(r) && typeof r.season === 'number'
+                  ? [
+                        {
+                            season: num(r.season),
+                            played: num(r.played),
+                            wins: num(r.wins),
+                            marks: num(r.marks),
+                            champion: r.champion === true,
+                            legend: cardOk(r.legend) ? r.legend : null,
+                        },
+                    ]
+                  : [],
+          )
+        : [];
+    return { seasons, ornaments: [...new Set(strs(raw.ornaments))] };
+}
+
+/** Legado dos dois lados junto (uma temporada por número; o enfeite não se perde). */
+const mergeLegacy = (a: UtLegacy, b: UtLegacy): UtLegacy => ({
+    seasons: [...a.seasons, ...b.seasons.filter((r) => !a.seasons.some((x) => x.season === r.season))].sort(
+        (x, y) => x.season - y.season,
+    ),
+    ornaments: [...new Set([...a.ornaments, ...b.ornaments])],
+});
+
 const progress = (u: UltimateSave) => u.opened + u.played + u.bought;
-/** Nuvem x aparelho: fica o lado que andou mais (pacotes abertos + partidas + compras); empate, o que vale (`keep`). */
+/**
+ * Nuvem x aparelho: fica o lado da temporada mais nova e, na mesma, o que andou mais (pacotes abertos + partidas +
+ * compras); empate, o que vale (`keep`). O legado (Perfil) dos dois lados fica junto.
+ */
 export function mergeUltimate(keep: unknown, other: unknown): UltimateSave {
     const k = ultimateOf(keep);
     const o = ultimateOf(other);
-    return progress(o) > progress(k) ? o : k;
+    const win = o.season > k.season || (o.season === k.season && progress(o) > progress(k)) ? o : k;
+    return { ...win, legacy: mergeLegacy(win.legacy, win === o ? k.legacy : o.legacy) };
 }
 
 // ------------------------------------------------------------------------------------------- relógio dos pacotes
@@ -304,10 +404,21 @@ const rollMetal = (rng: Rng): Metal => {
     return 'bronze';
 };
 
-/** Os metais do pacote: cada carta pela chance; sem nenhuma do piso, a última vira o piso. */
-export function packMetals(rng: Rng): Metal[] {
-    const metals = Array.from({ length: PACK_SIZE }, () => rollMetal(rng));
-    if (!metals.some((m) => rank(m) >= rank(FLOOR_METAL))) metals[metals.length - 1] = FLOOR_METAL;
+export type PackKind = 'mini' | 'big';
+
+/**
+ * Os metais do pacote: cada carta pela chance; com menos de `floorN` do piso (Mini 1, Grande BIG_FLOOR_N), as últimas
+ * abaixo dele viram o piso.
+ */
+export function packMetals(rng: Rng, kind: PackKind = 'mini'): Metal[] {
+    const [size, floorN] = kind === 'big' ? [BIG_PACK_SIZE, BIG_FLOOR_N] : [PACK_SIZE, 1];
+    const metals = Array.from({ length: size }, () => rollMetal(rng));
+    let short = floorN - metals.filter((m) => rank(m) >= rank(FLOOR_METAL)).length;
+    for (let i = metals.length - 1; i >= 0 && short > 0; i--)
+        if (rank(metals[i]) < rank(FLOOR_METAL)) {
+            metals[i] = FLOOR_METAL;
+            short--;
+        }
     return metals;
 }
 
@@ -317,18 +428,24 @@ export const isKeeperSpecies = (id: number) =>
 const isKeeper = (c: PokemonInstance) => viewInstance(c).positions.includes('GK');
 
 /**
- * As cartas de um Pacote Mini. Sem espécie repetida dentro do pacote; até o time ficar cheio (TEAM_SIZE cartas), nem
- * espécie que você já tem (os 2 primeiros pacotes sempre montam um time) e, sem goleiro na coleção, a 1ª carta é um
- * goleiro do metal sorteado (o time nunca começa com alguém de linha no gol).
+ * As cartas de um pacote (Mini ou Grande). Sem espécie repetida dentro do pacote; até o time ficar cheio (TEAM_SIZE
+ * cartas), nem espécie que você já tem (os 2 primeiros pacotes sempre montam um time) e, sem goleiro na coleção, a 1ª
+ * carta é um goleiro do metal sorteado (o time nunca começa com alguém de linha no gol). Durante um evento (`now`),
+ * cada carta que não saiu Ícone pode sair Evento (pintada do tipo do evento).
  */
-export function rollPack(u: Pick<UltimateSave, 'salt' | 'opened' | 'cards'>): PokemonInstance[] {
-    const rng = new Rng(u.salt, `ut-pack-${u.opened}`);
+export function rollPack(
+    u: Pick<UltimateSave, 'salt' | 'opened' | 'cards'>,
+    kind: PackKind = 'mini',
+    now?: number,
+): PokemonInstance[] {
+    const rng = new Rng(u.salt, `ut-${kind === 'big' ? 'big' : 'pack'}-${u.opened}`);
+    const event = now === undefined ? null : eventAt(now);
     const owned = new Set(u.cards.map((c) => c.speciesId));
     const avoidOwned = u.cards.length < TEAM_SIZE;
     const needKeeper = avoidOwned && !u.cards.some(isKeeper);
     const taken = new Set<number>();
     const iconIds = Object.keys(ICONS).map(Number);
-    return packMetals(rng).map((metal, i) => {
+    return packMetals(rng, kind).map((metal, i) => {
         const free = (id: number) => !taken.has(id) && !(avoidOwned && owned.has(id));
         const open = metalPools()[metal].filter(free);
         const keepers = i === 0 && needKeeper ? open.filter(isKeeperSpecies) : [];
@@ -343,11 +460,15 @@ export function rollPack(u: Pick<UltimateSave, 'salt' | 'opened' | 'cards'>): Po
         const id = rng.pick(from);
         taken.add(id);
         const inst = createInstance(id, rng);
+        const shiny = rng.chance(SHINY_ODDS);
+        // o sorteio do Evento só existe no evento (fora dele, o pacote é o mesmo de antes)
+        const evento = !iconPool.length && !!event && rng.chance(event.cardOdds);
         return {
             ...inst,
             uid: `ut${u.opened}-${i}-${id}`,
-            shiny: rng.chance(SHINY_ODDS),
+            shiny,
             ...(iconPool.length && { special: { kind: 'icone' as const, title: ICONS[id] } }),
+            ...(evento && { special: { kind: 'evento' as const, type: event.type } }),
         };
     });
 }
@@ -362,20 +483,25 @@ export interface PackOpen {
     points: number[];
 }
 
-/** Pacotes pra abrir agora: os grátis do relógio + os ganhos. */
+/** Pacotes Mini pra abrir agora: os grátis do relógio + os ganhos. */
 export const packsReady = (u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks'>, now: number) =>
     refill(u, now).packs + u.extraPacks;
 
 /**
- * Abre um pacote (o grátis primeiro, pra o relógio voltar a contar; depois os ganhos). As novas entram na coleção e
- * enchem as vagas vazias do time, cada uma na vaga da posição dela (nunca tiram ninguém); repetida vira pontos de
- * pacote, e todo pacote aberto dá OPEN_POINTS. null = sem pacote.
+ * Abre um pacote. Mini: o grátis primeiro, pra o relógio voltar a contar; depois os ganhos. Grande: só os ganhos. As
+ * novas entram na coleção e enchem as vagas vazias do time, cada uma na vaga da posição dela (nunca tiram ninguém);
+ * repetida vira pontos de pacote, e todo pacote aberto dá OPEN_POINTS. null = sem pacote.
  */
-export function openPack(u: UltimateSave, now: number): { u: UltimateSave; pack: PackOpen } | null {
+export function openPack(
+    u: UltimateSave,
+    now: number,
+    kind: PackKind = 'mini',
+): { u: UltimateSave; pack: PackOpen } | null {
     const clock = refill(u, now);
-    const free = clock.packs >= 1;
-    if (!free && u.extraPacks < 1) return null;
-    const cards = rollPack(u);
+    const big = kind === 'big';
+    const free = !big && clock.packs >= 1;
+    if (big ? u.bigPacks < 1 : !free && u.extraPacks < 1) return null;
+    const cards = rollPack(u, kind, now);
     const points = cards.map((c) => (isRepeat(u.cards, c) ? REPEAT_POINTS[metalOf(viewInstance(c).overall)] : 0));
     const fresh = cards.filter((_, i) => points[i] === 0);
     return {
@@ -384,7 +510,8 @@ export function openPack(u: UltimateSave, now: number): { u: UltimateSave; pack:
             packPoints: u.packPoints + OPEN_POINTS + points.reduce((s, p) => s + p, 0),
             packs: free ? clock.packs - 1 : clock.packs,
             packAt: clock.packAt,
-            extraPacks: free ? u.extraPacks : u.extraPacks - 1,
+            extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
+            bigPacks: big ? u.bigPacks - 1 : u.bigPacks,
             opened: u.opened + 1,
         },
         pack: { cards, points },
@@ -530,10 +657,12 @@ export const teamAverage = (t: Pick<TeamSetup, 'lineup' | 'formation'>) => lineu
 
 /**
  * Rival da IA da partida `n`: um clube de ginásio (a mesma quadra, líder e uniforme da Copa) com o time cuja média
- * chega mais perto da sua + LEVEL_GAP do nível. O clube depende só de `n`; o nível muda a força.
+ * chega mais perto da sua + LEVEL_GAP do nível. O clube depende só de `n` (ou é o do líder, no desafio `gym`); o nível
+ * muda a força.
  */
-export function ultimateRival(salt: string, n: number, level: Level, myAvg: number): TeamSetup {
-    const club = new Rng(salt, `ut-club-${n}`).pick(CLUBS);
+export function ultimateRival(salt: string, n: number, level: Level, myAvg: number, gym?: string): TeamSetup {
+    const gymClub = gym && CLUBS.find((c) => c.name === GYMS.find((g) => g.id === gym)?.club);
+    const club = gymClub || new Rng(salt, `ut-club-${n}`).pick(CLUBS);
     const target = myAvg + LEVEL_GAP[level];
     let best: ReturnType<typeof aiDraftTeam> | null = null;
     let bestGap = Infinity;
@@ -561,7 +690,20 @@ export function ultimateRival(salt: string, n: number, level: Level, myAvg: numb
 export const outcomeOf = (score: readonly [number, number]): Outcome =>
     score[0] > score[1] ? 'win' : score[0] < score[1] ? 'loss' : 'draw';
 
-export const fichasFor = (level: Level, outcome: Outcome) => FICHAS[level][outcome];
+/** Fichas da partida: as do nível, ou as do desafio de líder (GYM_FICHAS_MULT vezes as do Difícil). */
+export const fichasFor = (level: Level, outcome: Outcome, gym = false) =>
+    gym ? FICHAS[GYM_LEVEL][outcome] * GYM_FICHAS_MULT : FICHAS[level][outcome];
+
+/** O desafio do líder `id` pode começar com o seu time titular de agora (a regra dele). */
+export function gymReady(u: UltimateSave, id: string): boolean {
+    const gym = GYMS.find((g) => g.id === id);
+    if (!gym || !canPlay(u)) return false;
+    const by = new Map(u.cards.map((c) => [c.uid, c]));
+    return gymOk(
+        gym.rule,
+        u.team.order.slice(0, STARTERS).flatMap((x) => by.get(x) ?? []),
+    );
+}
 
 /** O que o apito final lê da partida (a MatchResult inteira serve). */
 export type UltimateMatch = { score: readonly [number, number]; shootout: [number, number] | null } & Partial<
@@ -575,7 +717,8 @@ export type UltimateMatch = { score: readonly [number, number]; shootout: [numbe
 export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): UltimateSave {
     if (!u.live) return u;
     const outcome = outcomeOf(m.score);
-    const fichas = fichasFor(u.live.level, outcome);
+    const gym = u.live.gym;
+    const fichas = fichasFor(u.live.level, outcome, !!gym);
     const noGold = u.live.home.lineup.every((p) => metalOf(viewInstance(p).overall) !== 'ouro');
     const obj = countObjectives(u.objectives, { outcome, level: u.live.level, goals: m.score[0], noGold }, now);
     const players = [...(m.finalRoster ?? []), ...(m.subbedOut ?? [])];
@@ -583,17 +726,38 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
     const mvp = players
         .filter((p) => p.team === 0)
         .reduce<(typeof players)[number] | null>((b, p) => (!b || mvpScore(p) > mvpScore(b) ? p : b), null);
-    return {
+    const plays = { ...u.plays };
+    for (const p of players)
+        if (p.team === 0 && u.cards.some((c) => c.uid === p.uid)) plays[p.uid] = (plays[p.uid] ?? 0) + 1;
+    const badge = !!gym && outcome === 'win' && !u.gyms.includes(gym);
+    // enfeite do evento: todos os objetivos dele cumpridos
+    const event = eventAt(now);
+    const ornament =
+        event && !u.legacy.ornaments.includes(event.id) && event.objectives.every((o) => obj.g.done.includes(o.id))
+            ? event.id
+            : undefined;
+    const sum = (k: 'fichas' | 'packs' | 'big') => obj.completed.reduce((s, o) => s + o[k], 0);
+    const paid: UltimateSave = {
         ...u,
-        fichas: u.fichas + fichas + obj.completed.reduce((s, o) => s + o.fichas, 0),
-        extraPacks: u.extraPacks + obj.completed.reduce((s, o) => s + o.packs, 0),
+        fichas: u.fichas + fichas + sum('fichas'),
+        extraPacks: u.extraPacks + sum('packs'),
+        bigPacks: u.bigPacks + sum('big') + (badge ? GYM_FIRST_BIG : 0),
         objectives: obj.g,
         evos: countEvos(u.evos, players, mvp?.uid ?? null),
+        plays,
+        gyms: badge ? [...u.gyms, gym] : u.gyms,
+        legacy: ornament ? { ...u.legacy, ornaments: [...u.legacy.ornaments, ornament] } : u.legacy,
         played: u.played + 1,
         wins: u.wins + (outcome === 'win' ? 1 : 0),
         draws: u.draws + (outcome === 'draw' ? 1 : 0),
         losses: u.losses + (outcome === 'loss' ? 1 : 0),
         live: null,
+    };
+    const { pass, gained } = passGain(u.pass, outcome, !!gym, now);
+    const before = u.pass.marks;
+    const out = payPass({ ...paid, pass });
+    return {
+        ...out,
         last: {
             score: [m.score[0], m.score[1]],
             shootout: m.shootout,
@@ -603,7 +767,89 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
             rival: u.live.rival.name,
             seen: false,
             objectives: obj.completed.map((o) => o.id),
+            ...(gym && { gym, badge }),
+            pass: gained,
+            marks: Array.from({ length: out.pass.marks - before }, (_, i) => before + i + 1),
+            ...(ornament && { ornament }),
         },
+    };
+}
+
+// ----------------------------------------------------------------------------------------------- passe e temporada
+
+/** uid da carta de abertura do passe da temporada. */
+export const passCardUid = (season: number) => `utp${season}-${PASS_CARD}`;
+
+/**
+ * Paga os marcos do passe que os pontos alcançaram e ainda não pagaram: Fichas, pacotes e a carta de abertura (que
+ * entra no marco 1 e sobe +2 em tudo nos marcos de crescer, a mesma conta do Treino).
+ */
+export function payPass(u: UltimateSave): UltimateSave {
+    const reach = passMarksOf(u.pass.pts);
+    let out = u;
+    for (let k = u.pass.marks + 1; k <= reach; k++) {
+        const r = passReward(k);
+        out = {
+            ...out,
+            fichas: out.fichas + r.fichas,
+            extraPacks: out.extraPacks + r.packs,
+            bigPacks: out.bigPacks + r.big,
+        };
+        const uid = passCardUid(u.season);
+        if (r.card === 'card' && !out.cards.some((c) => c.uid === uid)) {
+            const inst = createInstance(PASS_CARD, new Rng(u.salt, `ut-pass-${u.season}`));
+            out = addCards(out, [{ ...inst, uid, shiny: false }]);
+        }
+        if (r.card === 'grow')
+            out = {
+                ...out,
+                cards: out.cards.map((c) => (c.uid === uid ? { ...c, evolved: (c.evolved ?? 0) + 1 } : c)),
+            };
+    }
+    return { ...out, pass: { ...out.pass, marks: Math.max(u.pass.marks, reach) } };
+}
+
+/** A carta que mais jogou na temporada (empate: a de nota maior). */
+export function mostPlayed(u: Pick<UltimateSave, 'cards' | 'plays'>): PokemonInstance | null {
+    let best: PokemonInstance | null = null;
+    for (const c of u.cards) {
+        const n = u.plays[c.uid] ?? 0;
+        if (!n) continue;
+        const b = best ? (u.plays[best.uid] ?? 0) : -1;
+        if (n > b || (n === b && best && viewInstance(c).overall > viewInstance(best).overall)) best = c;
+    }
+    return best;
+}
+
+/**
+ * Virada da temporada no relógio `now`: o save de uma temporada anterior zera (time, cartas do modo, Fichas, pontos
+ * de pacote, passe, insígnias, objetivos) e começa na temporada nova, com os 2 pacotes de boas-vindas. Fica o legado:
+ * da temporada que acabou (se você jogou nela; a prévia não conta), a medalha, os marcos, o título de campeão (passe
+ * completo) e a Lenda (a carta que mais jogou). Com partida aberta, espera o apito final. Relógio que voltou no tempo
+ * não volta a temporada.
+ */
+export function rollSeason(u: UltimateSave, now: number): { u: UltimateSave; record: UtSeasonRecord | null } {
+    const n = seasonN(now);
+    if (n <= u.season || u.live) return { u, record: null };
+    const record: UtSeasonRecord | null =
+        u.season >= 1 && u.played > 0
+            ? {
+                  season: u.season,
+                  played: u.played,
+                  wins: u.wins,
+                  marks: u.pass.marks,
+                  champion: u.pass.marks >= PASS_MARKS,
+                  legend: mostPlayed(u),
+              }
+            : null;
+    const fresh = newUltimate(`${u.salt}.${n}`, now);
+    return {
+        u: {
+            ...fresh,
+            season: n,
+            legacy: { ...u.legacy, seasons: record ? [...u.legacy.seasons, record] : u.legacy.seasons },
+        },
+        record,
     };
 }
 

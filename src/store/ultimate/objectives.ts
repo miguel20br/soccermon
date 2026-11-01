@@ -1,5 +1,5 @@
 import { dailyDay, weekOf } from '../daily';
-import { type Level, OBJECTIVES, type Objective, type Outcome } from './rules';
+import { EVENTS, type Level, OBJECTIVES, type Objective, type Outcome, type UtEvent } from './rules';
 
 /**
  * Objetivos diários e semanais do Time Ultimate (a tabela fica em rules.ts). O dia vira à meia-noite de Brasília, como
@@ -9,27 +9,38 @@ export interface ObjectiveState {
     /** Dia ('2026-11-01') e segunda-feira da semana do progresso guardado. */
     day: string;
     week: string;
+    /** O evento do progresso guardado ('' = nenhum). */
+    event: string;
     prog: Record<string, number>;
     /** Os que já pagaram neste período. */
     done: string[];
 }
 
+/** O evento no ar no relógio `now` (desligado por data: fora da janela dele, nenhum). */
+export const eventAt = (now: number): UtEvent | null => EVENTS.find((e) => now >= e.start && now < e.end) ?? null;
+
 export const periodKeys = (now: number) => {
     const day = dailyDay(new Date(now));
-    return { day, week: weekOf(day)[0] };
+    return { day, week: weekOf(day)[0], event: eventAt(now)?.id ?? '' };
 };
+
+/** Os objetivos que valem no relógio `now`: os do dia, os da semana e, durante um evento, os dele. */
+export const objectivesNow = (now: number): Objective[] => [...OBJECTIVES, ...(eventAt(now)?.objectives ?? [])];
 
 export const newObjectives = (now: number): ObjectiveState => ({ ...periodKeys(now), prog: {}, done: [] });
 
-const byId = new Map(OBJECTIVES.map((o) => [o.id, o]));
+const byId = new Map([...OBJECTIVES, ...EVENTS.flatMap((e) => e.objectives)].map((o) => [o.id, o]));
+/** Qualquer objetivo (do dia, da semana ou de um evento) pelo id. */
+export const objectiveById = (id: string) => byId.get(id);
 
 /** O estado no relógio `now`: virou o dia (ou a semana), os objetivos daquele período recomeçam do zero. */
 export function objectivesAt(g: ObjectiveState, now: number): ObjectiveState {
     const k = periodKeys(now);
-    if (g.day === k.day && g.week === k.week) return g;
+    if (g.day === k.day && g.week === k.week && g.event === k.event) return g;
+    const same = { day: g.day === k.day, week: g.week === k.week, event: g.event === k.event };
     const keep = (id: string) => {
         const o = byId.get(id);
-        return !!o && (o.period === 'day' ? g.day === k.day : g.week === k.week);
+        return !!o && same[o.period];
     };
     return {
         ...k,
@@ -73,7 +84,7 @@ export function countObjectives(
     const cur = objectivesAt(g, now);
     const prog = { ...cur.prog };
     const completed: Objective[] = [];
-    for (const o of OBJECTIVES) {
+    for (const o of objectivesNow(now)) {
         if (cur.done.includes(o.id)) continue;
         prog[o.id] = Math.min(o.goal, (prog[o.id] ?? 0) + gain(o, m));
         if (prog[o.id] >= o.goal) completed.push(o);
@@ -93,11 +104,11 @@ export function objectivesOf(raw: unknown, now: number): ObjectiveState {
     const done = Array.isArray(r.done)
         ? r.done.filter((id): id is string => typeof id === 'string' && byId.has(id))
         : [];
-    return { day: r.day, week: r.week, prog, done };
+    return { day: r.day, week: r.week, event: typeof r.event === 'string' ? r.event : '', prog, done };
 }
 
 /** Quando os objetivos do período recomeçam (ms): meia-noite de Brasília (UTC−3 fixo desde 2019); a semana, na segunda. */
-export function nextReset(now: number, period: Objective['period']): number {
+export function nextReset(now: number, period: 'day' | 'week'): number {
     const { day, week } = periodKeys(now);
     const [y, m, d] = (period === 'day' ? day : week).split('-').map(Number);
     return Date.UTC(y, m - 1, d + (period === 'day' ? 1 : 7), 3);

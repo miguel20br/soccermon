@@ -119,6 +119,7 @@ import {
     tagFromName,
 } from './profile';
 import { screenTransition } from './screen-transition';
+import { utNow } from './ultimate/clock';
 import {
     buyCard,
     buyPack,
@@ -128,7 +129,9 @@ import {
     finishMatch,
     newUltimate,
     openPack,
+    type PackKind,
     type PackOpen,
+    rollSeason,
     setMember,
     startEvo,
     type UltimateLive,
@@ -460,8 +463,10 @@ export interface GameStore {
     binder: BinderCard[];
     /** Time Ultimate (src/store/ultimate): coleção, Fichas, pacotes, time e partida em andamento. */
     ultimate: UltimateSave;
-    /** Abre um pacote grátis (`now` = relógio, injetado nos testes). null = sem pacote. */
-    ultimateOpenPack(now?: number): PackOpen | null;
+    /** Abre um pacote (Mini: o grátis primeiro; `now` = relógio, injetado nos testes). null = sem pacote. */
+    ultimateOpenPack(now?: number, kind?: PackKind): PackOpen | null;
+    /** Virada da temporada (zera o modo e guarda o legado). */
+    ultimateSeason(now?: number): void;
     ultimateTeam(patch: Partial<UltimateTeam>): void;
     /** Põe a carta `uid` na posição `i` do time (troca com quem já está no time, ou tira quem estava pra coleção). */
     ultimateSetMember(i: number, uid: string): void;
@@ -1222,8 +1227,8 @@ export const useGame = create<GameStore>()(
                 hall: [],
                 binder: [],
                 ultimate: newUltimate(),
-                ultimateOpenPack: (now = Date.now()) => {
-                    const r = openPack(getState().ultimate, now);
+                ultimateOpenPack: (now = utNow(), kind = 'mini') => {
+                    const r = openPack(getState().ultimate, now, kind);
                     if (!r) return null;
                     setState({
                         ultimate: r.u,
@@ -1239,6 +1244,10 @@ export const useGame = create<GameStore>()(
                         ),
                     });
                     return r.pack;
+                },
+                ultimateSeason: (now = utNow()) => {
+                    const r = rollSeason(getState().ultimate, now);
+                    if (r.u !== getState().ultimate) setState({ ultimate: r.u });
                 },
                 ultimateBuyCard: (speciesId) => {
                     const r = buyCard(getState().ultimate, speciesId);
@@ -1307,7 +1316,7 @@ export const useGame = create<GameStore>()(
                             return card ? [[l.speciesId, editionBits(card)] as [number, number]] : [];
                         }),
                     );
-                    setState({ dex, ultimate: finishMatch(getState().ultimate, m, Date.now()) });
+                    setState({ dex, ultimate: finishMatch(getState().ultimate, m, utNow()) });
                 },
                 ultimateSeen: () => {
                     const u = getState().ultimate;
@@ -1856,7 +1865,7 @@ export const useGame = create<GameStore>()(
                     const ut = getState().ultimate;
                     setState({
                         ...saved,
-                        ...(status === 'champion' && ut.opened > 0 && { ultimate: cupBridge(ut, Date.now()) }),
+                        ...(status === 'champion' && ut.opened > 0 && { ultimate: cupBridge(ut, utNow()) }),
                         ...(run.daily && { daily: dailyNext }),
                         ...(fresh.length && {
                             profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },
