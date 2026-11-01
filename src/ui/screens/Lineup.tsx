@@ -51,6 +51,7 @@ export function Lineup() {
         setCorner,
         setFormation,
         moveItem,
+        setCaptain,
         setMatch,
         go,
         abandonRun,
@@ -122,6 +123,7 @@ export function Lineup() {
                 onTactic={setTactic}
                 onCorner={setCorner}
                 onMoveItem={moveItem}
+                onCaptain={setCaptain}
                 sponsors={run.sponsors}
                 rivalFormation={opponent.formation ?? '1-2-1'}
                 outOf={(u) => outOf(run, u)}
@@ -332,6 +334,7 @@ export function LineupEditor({
     onTactic,
     onCorner,
     onMoveItem,
+    onCaptain,
     wall,
     side,
     footer,
@@ -355,6 +358,8 @@ export function LineupEditor({
     onCorner: (patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }) => void;
     /** Só na copa (o item vai junto do time do duelo, lacrado). */
     onMoveItem?: (fromUid: string, toUid: string) => void;
+    /** Só na copa: outro titular vira capitão (entre as partidas; no duelo o capitão vem do draft). */
+    onCaptain?: (uid: string) => void;
     /** Objeto a mais na parede do vestiário, à esquerda do quadro da tática (a chave, na copa). */
     wall?: ReactNode;
     side: ReactNode;
@@ -634,6 +639,30 @@ export function LineupEditor({
                         {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
                     </p>
                 </section>
+                {onCaptain && (
+                    <section>
+                        <h3>{t('team.lineup.captain')}</h3>
+                        <div className="vt-captains">
+                            {lineupNow.map((inst, i) => (
+                                <button
+                                    key={inst.uid}
+                                    type="button"
+                                    className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
+                                    aria-pressed={inst.uid === captainUid}
+                                    disabled={locked}
+                                    onClick={() => onCaptain(inst.uid)}
+                                >
+                                    <img className="pixel" src={cardSprite(inst)} alt="" />
+                                    <span>
+                                        <b>{viewInstance(inst).displayName}</b>
+                                        <small>{d.common.pos[slotsNow[i]]}</small>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                        <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
+                    </section>
+                )}
                 <section>
                     <h3>{t('team.lineup.corner')}</h3>
                     <div className="bc-seg">

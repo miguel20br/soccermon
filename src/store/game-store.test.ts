@@ -1077,3 +1077,64 @@ describe('Música (configuração nova)', () => {
         expect(withSettingDefaults({ ...DEFAULT_SETTINGS, musicVolume: 0 }).musicVolume).toBe(0);
     });
 });
+
+describe('trocar o capitão na escalação', () => {
+    const g = () => useGame.getState();
+    const lineupRun = () => {
+        g().newRun('Pallet FC', 'teste-capitao');
+        g().autoDraft();
+        return g().run!;
+    };
+
+    it('outro titular vira capitão; banco, travado e fora da escalação não', () => {
+        const run = lineupRun();
+        expect(run.status).toBe('lineup');
+        const novo = run.lineup.find((u) => u !== run.captainUid)!;
+        g().setCaptain(novo);
+        expect(g().run!.captainUid).toBe(novo);
+        expect(playerTeam(g().run!).captainUid).toBe(novo);
+        // reserva não vira capitão (a aura e o golpe máximo são de quem está em quadra)
+        g().setCaptain(run.bench[0]);
+        expect(g().run!.captainUid).toBe(novo);
+        // com a partida travada (saiu no meio e voltou) não troca: a partida segue com o time que começou
+        g().lockMatch(playerTeam(g().run!));
+        g().setCaptain(run.captainUid!);
+        expect(g().run!.captainUid).toBe(novo);
+        // fora da escalação (recompensa, mapa...) também não
+        useGame.setState({ run: { ...g().run!, lockedTeam: null, status: 'reward' } });
+        g().setCaptain(run.captainUid!);
+        expect(g().run!.captainUid).toBe(novo);
+    });
+
+    it('a proteção do banco vai pro capitão novo: o antigo pode sair por um reforço, o novo não', () => {
+        const run = lineupRun();
+        const old = run.captainUid!;
+        const novo = run.lineup.find((u) => u !== old)!;
+        g().setCaptain(novo);
+        // os dois vão pro banco (troca com os dois primeiros reservas)
+        g().swapSlots({ zone: 'lineup', index: g().run!.lineup.indexOf(old) }, { zone: 'bench', index: 0 });
+        g().swapSlots({ zone: 'lineup', index: g().run!.lineup.indexOf(novo) }, { zone: 'bench', index: 1 });
+        expect(g().run!.bench.slice(0, 2)).toEqual([old, novo]);
+        const ids = new Set(g().run!.picks.map((p) => p.speciesId));
+        const sp = [1, 4, 7, 25, 133, 143].find((id) => !ids.has(id))!;
+        const inst = { ...createInstance(sp, new Rng('cap', 'reforco')), uid: 'reforco' };
+        const reward = { kind: 'pokemon' as const, inst, from: null };
+        useGame.setState({ run: { ...g().run!, status: 'reward', rewards: [reward] } });
+        g().claimReward(0, novo);
+        expect(g().run!.picks.some((p) => p.uid === novo)).toBe(true);
+        expect(g().run!.status).toBe('reward');
+        g().claimReward(0, old);
+        expect(g().run!.picks.some((p) => p.uid === old)).toBe(false);
+        expect(g().run!.bench).toContain('reforco');
+    });
+
+    // a barra do golpe máximo é contada dos eventos de cada partida (maxCharge): começa vazia, nada passa de uma pra outra
+    it('a próxima partida sai com o capitão novo', () => {
+        const run = lineupRun();
+        const novo = run.lineup.find((u) => u !== run.captainUid)!;
+        g().setCaptain(novo);
+        const team = playerTeam(g().run!);
+        const m = runMatch(FUTSAL_5, team, team, 'teste-capitao-barra');
+        expect(m.roster.find((r) => r.team === 0 && r.captain)?.uid).toBe(novo);
+    });
+});

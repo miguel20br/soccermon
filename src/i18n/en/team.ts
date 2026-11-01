@@ -63,6 +63,8 @@ export const team: typeof pt = {
         tactic: 'Tactic',
         canChange: 'You can change it during the match.',
         captainBenched: 'The captain is on the bench: its aura only works on the court.',
+        captain: 'Captain',
+        captainDesc: 'Takes the max move and boosts teammates of its type. Change it between matches only.',
         corner: 'Corners',
         cornerDesc: {
             area: 'High ball into the box: the big, strong ones fight for it in the air.',
