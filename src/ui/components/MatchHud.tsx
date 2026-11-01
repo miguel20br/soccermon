@@ -342,6 +342,10 @@ export const ICONS = {
     sprout: 'M12 21v-9M12 12C12 8 9 6 5 6c0 4 3 6 7 6zM12 10c0-4 3-6 7-6 0 4-3 6-7 6zM7 21h10',
     // Copa longa (src/ui/screens/CupMap.tsx)
     chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
+    /** Ficha do Game Corner (Time Ultimate): a moeda com o aro de dentro. */
+    coin: 'M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18M12 7.5a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9',
+    /** Pontos de pacote: a estrela de 4 pontas do brilho da carta. */
+    sparkle: 'M12 3l2 7l7 2l-7 2l-2 7l-2-7l-7-2l7-2z',
     question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',
     // eventos da Rota Índigo
     medkit: 'M4 8h16v12H4zM9 8V5h6v3M12 11v6M9 14h6',

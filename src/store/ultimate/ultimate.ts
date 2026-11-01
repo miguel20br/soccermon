@@ -9,6 +9,7 @@ import { editionOf, ICONS } from '../../engine/specials';
 import type { CornerPlan, MatchOrder, Tactic, TeamSetup } from '../../engine/state';
 import { type Metal, metalOf } from '../../ui/rarity';
 import { lineupAverage } from '../../ui/rating';
+import type { RunState } from '../game-store';
 import {
     FICHAS,
     FLOOR_METAL,
@@ -445,3 +446,38 @@ export function finishMatch(
         },
     };
 }
+
+/** A partida do Time Ultimate no formato de copa de 1 fase: a tela da partida é a mesma da Copa (como a da Liga). */
+export function ultimateRun(s: { ultimate: UltimateSave }): RunState | null {
+    const live = s.ultimate.live;
+    if (!live) return null;
+    const home = live.home;
+    return {
+        schemaVersion: 3,
+        seed: ultimateSeed(s.ultimate.salt, live.n),
+        teamName: home.name,
+        status: 'lineup',
+        formation: home.formation ?? DEFAULT_FORMATION,
+        draftRound: 7,
+        draftSlot: null,
+        options: [],
+        rerolls: 0,
+        rerollsUsed: 0,
+        picks: [...home.lineup, ...home.bench],
+        lineup: home.lineup.map((p) => p.uid),
+        bench: home.bench.map((p) => p.uid),
+        captainUid: home.captainUid ?? null,
+        tactic: home.tactic,
+        cornerPlan: home.corner,
+        cornerTakerUid: home.cornerTakerUid,
+        opponents: [live.rival],
+        stage: 0,
+        results: [],
+        rewards: [],
+        lockedTeam: home,
+        live: { stage: 0, orders: live.orders, tick: live.tick, engine: live.engine },
+    };
+}
+
+/** Seed da partida `n` no motor. */
+export const ultimateSeed = (salt: string, n: number) => `ut-${salt}-${n}`;

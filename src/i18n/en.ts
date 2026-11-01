@@ -20,6 +20,7 @@ import { stats } from './en/stats';
 import { team } from './en/team';
 import { title } from './en/title';
 import { trophies } from './en/trophies';
+import { ultimate } from './en/ultimate';
 import type { Dict } from './pt';
 
 /** English dictionary: same shape as `pt` (a missing key is a compile error). */
@@ -46,4 +47,5 @@ export const en: Dict = {
     shop,
     longCup,
     bracket,
+    ultimate,
 };

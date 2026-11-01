@@ -19,6 +19,7 @@ export const MENU_SCREENS: Screen[] = [
     'daily',
     'liga',
     'duel',
+    'ultimate',
 ];
 
 /** O voltar da tela de menu aberta: o MenuHead entrega, o botão da barra de cima chama (um voltar só, no mesmo lugar). */

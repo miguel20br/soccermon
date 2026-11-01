@@ -111,6 +111,8 @@ export const home: typeof pt = {
         aria: 'Game modes',
         back: 'Game modes',
         last: 'LAST PLAYED',
+        /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
+        preview: 'PREVIEW',
         play: 'PLAY',
         atual: { name: 'Cup Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
         ultimate: {

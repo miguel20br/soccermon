@@ -1,0 +1,343 @@
+/* Time Ultimate (0.9.31, ?lab=ultimate): kit da transmissão + o que é só desta tela */
+.menu-screen.ut:has(.lineup-grid) {
+    width: min(1180px, 100%);
+}
+.ut-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+@keyframes ut-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+[data-reduce-motion="true"] .ut-panel {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ut-panel {
+        animation: none;
+    }
+}
+
+/* o .bc-caption do kit corta o acento da maiúscula (overflow + line-height 1.2: "NÍVEL" saía "NIVEL") */
+.ut .bc-caption {
+    line-height: 1.6;
+}
+
+/* carteira: Fichas, pontos de pacote, cartas */
+.ut-wallet {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 12px;
+}
+.ut-wallet > span {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 6px;
+    min-width: 0;
+}
+.ut-wallet .hud-icon {
+    grid-row: span 2;
+    width: 22px;
+    height: 22px;
+    color: var(--yellow);
+}
+.ut-wallet b {
+    font-size: 18px;
+    line-height: 1;
+}
+.ut-wallet small {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* pacote fechado */
+.ut-pack {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+}
+.ut-pack > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 96px;
+}
+.ut-pack-info {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+.ut-pack-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+}
+.ut-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-dots i {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 2px solid var(--line);
+    transition: background-color 240ms var(--ease-out);
+}
+.ut-dots i.on {
+    background: var(--green);
+    border-color: var(--green);
+}
+.ut-dots small,
+.ut-timer {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-timer .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* pacote aberto */
+.ut-open {
+    display: grid;
+    gap: 14px;
+}
+
+/* chances */
+.ut-odds {
+    display: grid;
+    gap: 8px;
+}
+.ut-odds .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ut-odds .bc-caption .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.ut-metals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-metals li {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    border-bottom: 3px solid var(--mc);
+}
+.ut-metals i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--mc);
+}
+.ut-metals span {
+    font-size: 12px;
+}
+.ut-metals b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    color: var(--mc);
+}
+.ut-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    font-size: 12px;
+}
+.ut-rule .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+
+/* coleção */
+.ut-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    justify-items: center;
+    gap: 10px;
+}
+/* celular: 3 por linha (2 no de 320), a carta encolhe pra caber */
+@media (max-width: 520px) {
+    .ut-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .ut-cards .fut-wrap {
+        --fut-w: calc((100 * var(--vw) - 44px) / 3);
+    }
+}
+@media (max-width: 360px) {
+    .ut-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ut-cards .fut-wrap {
+        --fut-w: calc((100 * var(--vw) - 38px) / 2);
+    }
+}
+.ut-empty {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    text-align: center;
+}
+
+/* reservas */
+.ut-reserves {
+    display: grid;
+    gap: 8px;
+}
+.ut-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.btn.ut-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-left: 3px solid var(--mc, transparent);
+}
+.ut-chip small {
+    font-size: 10px;
+    opacity: 0.75;
+}
+.ut-chip b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+.ut-captain h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-captain .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* jogar */
+.ut-level {
+    display: grid;
+    gap: 10px;
+}
+.ut-level .bc-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.ut-prizes {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: center;
+}
+.ut-prizes th,
+.ut-prizes td {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--line);
+}
+.ut-prizes tbody th {
+    text-align: left;
+    font-weight: normal;
+}
+.ut-prizes tr.on {
+    background: var(--panel-2);
+    color: var(--yellow);
+    transition: background-color 240ms var(--ease-out);
+}
+.ut-prizes tr.on th {
+    font-weight: bold;
+}
+.ut-rival,
+.ut-live {
+    display: grid;
+    gap: 6px;
+}
+.ut-rival > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+}
+.ut-rival small {
+    font-size: 12px;
+}
+
+/* prêmio */
+.ut-prize {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+}
+.ut-verdict {
+    font-size: 28px;
+}
+.ut-prize.is-win .ut-verdict {
+    color: var(--green);
+}
+.ut-prize.is-loss .ut-verdict {
+    color: var(--red);
+}
+.ut-gain {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 24px;
+    color: var(--yellow);
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) 200ms both;
+}
+.ut-gain .hud-icon {
+    width: 28px;
+    height: 28px;
+}
+@keyframes ut-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+[data-reduce-motion="true"] .ut-gain {
+    animation: none;
+}
+
+@media (max-width: 380px) {
+    .ut-pack {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+    }
+    .ut-pack-info {
+        justify-items: center;
+    }
+    .ut-wallet b {
+        font-size: 15px;
+    }
+}

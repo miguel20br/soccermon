@@ -44,6 +44,7 @@ import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
+import { readUltimate } from './ui/ultimate/flag';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 /** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
@@ -56,6 +57,8 @@ const CourtLab = lazy(() => import('./ui/screens/CourtLab').then((m) => ({ defau
 const EmoteLab = lazy(() => import('./ui/duel/EmoteLab').then((m) => ({ default: m.EmoteLab })));
 const IconLab = lazy(() => import('./ui/screens/IconLab').then((m) => ({ default: m.IconLab })));
 const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ default: m.StoryLab })));
+// Time Ultimate (atrás de ?lab=ultimate, só dev e prévias): pedaço à parte
+const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ default: m.Ultimate })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
 const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
@@ -65,7 +68,7 @@ const Ambientes = lazy(() => loadAmbientes().then((m) => ({ default: m.Ambientes
 // o menu de modos (antes da Home, pra quem já jogou): pedaço à parte também
 // pedaço que não chega (rede ruim, versão nova no ar): no lugar do menu, um "JOGAR" que sai sozinho pra Home (o
 // chunk-reload cuida da versão nova). ponytail: o lazy guarda a falha; o botão de modos da Home só volta pra ela até recarregar
-function NoMenu({ onPlay }: { phase: 'in' | 'on' | 'out'; onPlay: () => void }): ReactNode {
+function NoMenu({ onPlay }: { phase: 'in' | 'on' | 'out'; onPlay: () => void; onUltimate?: () => void }): ReactNode {
     // biome-ignore lint/correctness/useExhaustiveDependencies: sai uma vez, na montagem
     useEffect(() => onPlay(), []);
     return null;
@@ -144,6 +147,7 @@ export default function App() {
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
     const [ambientes] = useState(readAmbientes);
+    const [ultimateLab] = useState(readUltimate);
     // menu de modos: decidido uma vez, quando o save carrega (modeMenuDue); 'in'/'out' = fade com a Home embaixo
     const [menu, setMenu] = useState<'in' | 'on' | 'out' | null>(null);
     const menuDecided = useRef(false);
@@ -341,7 +345,13 @@ export default function App() {
                             {menu !== 'on' && <Ambientes onModes={() => fadeMenu('in', 'on')} />}
                         </Suspense>
                         <Suspense fallback={null}>
-                            {menu && <ModeMenu phase={menu} onPlay={() => fadeMenu('out', null)} />}
+                            {menu && (
+                                <ModeMenu
+                                    phase={menu}
+                                    onPlay={() => fadeMenu('out', null)}
+                                    onUltimate={ultimateLab ? () => useGame.getState().go('ultimate') : undefined}
+                                />
+                            )}
                         </Suspense>
                     </>
                 ) : (
@@ -365,6 +375,12 @@ export default function App() {
             {screen === 'daily' && <Daily />}
             {screen === 'liga' && <Liga />}
             {screen === 'liga-match' && <Match liga />}
+            {screen === 'ultimate' && (
+                <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
+                    <Ultimate />
+                </Suspense>
+            )}
+            {screen === 'ultimate-match' && <Match ultimate />}
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />

@@ -507,12 +507,24 @@ const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
  * "EM BREVE" com a data; abertos, o JOGAR dá lugar a "Chega em…" (um toque volta pro Modo Copa).
  */
 export type SliceLook = 'c1' | 'c2';
-export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: SliceLook; onPlay?: () => void }) {
+export function ModeSlices({
+    big,
+    look = 'c2',
+    onPlay,
+    onUltimate,
+}: {
+    big: boolean;
+    look?: SliceLook;
+    onPlay?: () => void;
+    /** Com a bandeira `?lab=ultimate` (só dev e prévias): o Time Ultimate abre, com o JOGAR levando pra ele. */
+    onUltimate?: () => void;
+}) {
     const { t, d } = useT();
     const [sel, setSel] = useState<ModeId>(LAST);
+    const playable = (m: ModeId) => m === LAST || (m === 'ultimate' && !!onUltimate);
     // o "Chega em…" guarda o último trancado aberto: voltando pro Copa, ele some com o texto certo
-    const locked = useRef<ModeId>('ultimate');
-    if (sel !== LAST) locked.current = sel;
+    const locked = useRef<ModeId>(onUltimate ? 'historia' : 'ultimate');
+    if (!playable(sel)) locked.current = sel;
     const stack = useRef<HTMLDivElement>(null);
     const anims = useRef<Animation[]>([]);
     const open = (m: ModeId) => {
@@ -540,13 +552,19 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
                         </span>
                         <Hero id={m} scale={big ? 5 : 3} />
                         <span className="mm-slice-txt">
-                            {m === LAST ? <span className="mm-tag">{t('home.modes.last')}</span> : <Soon id={m} />}
+                            {m === LAST ? (
+                                <span className="mm-tag">{t('home.modes.last')}</span>
+                            ) : playable(m) ? (
+                                <span className="mm-tag">{t('home.modes.preview')}</span>
+                            ) : (
+                                <Soon id={m} />
+                            )}
                             <b className="cb-num mm-plate">
                                 <span>{d.home.modes[m].name}</span>
                             </b>
                             <span className="mm-slice-more">
                                 <span>
-                                    {m === 'ultimate' && <When id={m} />}
+                                    {m === 'ultimate' && !playable(m) && <When id={m} />}
                                     <Chips id={m} />
                                 </span>
                             </span>
@@ -555,8 +573,8 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
                 ))}
             </div>
             <div className="mm-c-cta" style={{ '--n': 4 } as CSSProperties}>
-                <Play off={sel !== LAST} onClick={onPlay} />
-                <SoonCta id={locked.current} on={sel !== LAST} onBack={() => open(LAST)} />
+                <Play off={!playable(sel)} onClick={sel === 'ultimate' ? onUltimate : onPlay} />
+                <SoonCta id={locked.current} on={!playable(sel)} onBack={() => open(LAST)} />
             </div>
         </div>
     );
@@ -589,7 +607,15 @@ export function cutTo(scene: Box, view: Box, origin: Box) {
  * O menu de verdade (App.tsx): `phase` 'in' entra com fade por cima da Home; 'out' (JOGAR) é o corte: a quadra do
  * fatia do Modo Copa cresce até encher a tela e some no Estádio, que já está embaixo; 'on' parado.
  */
-export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay: () => void }) {
+export function ModeMenu({
+    phase,
+    onPlay,
+    onUltimate,
+}: {
+    phase: 'in' | 'on' | 'out';
+    onPlay: () => void;
+    onUltimate?: () => void;
+}) {
     const { t } = useT();
     const { clock, big } = useMenuScene();
     const root = useRef<HTMLElement>(null);
@@ -614,7 +640,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     return (
         <ClockCtx.Provider value={clock}>
             <section ref={root} className={`mm-root mm-menu mm-${phase}`} aria-label={t('home.modes.aria')}>
-                <ModeSlices big={big} onPlay={play} />
+                <ModeSlices big={big} onPlay={play} onUltimate={onUltimate} />
             </section>
         </ClockCtx.Provider>
     );

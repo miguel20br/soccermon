@@ -31,6 +31,7 @@ import { relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
+import { ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
 import { BattleText } from '../components/BattleText';
@@ -115,7 +116,10 @@ const SAVE_EVERY_MS = 1500;
 /** Sheets da partida no ?lab=hud: Tática, Trocar (Posições), Tempo e Lances. */
 type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
 
-export function Match({ liga = false }: { liga?: boolean }) {
+/** `ultimate`: partida do Time Ultimate contra a IA (src/store/ultimate): a mesma tela, como a da Liga. */
+export function Match({ liga = false, ultimate = false }: { liga?: boolean; ultimate?: boolean }) {
+    /** Partida de uma fase só, fora da copa (Liga ou Time Ultimate). */
+    const solo = liga || ultimate;
     // seletores, não a loja inteira: qualquer mudança da loja fora da partida (perfil, missões, nuvem) redesenhava a tela
     const match = useGame((s) => s.match);
     const settings = useGame((s) => s.settings);
@@ -128,10 +132,15 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const ligaOpen = useLiga((s) => s.open);
     // a partida da Liga vira uma copa de 1 fase (montada uma vez: as ordens vêm do estado da tela)
     const ligaRunRef = useRef(liga && ligaOpen ? ligaRun(ligaOpen, useLiga.getState().live) : null);
-    const run = liga ? ligaRunRef.current : cupRun;
-    const saveLive = liga ? useLiga.getState().saveLive : cupSaveLive;
+    const ultimateRunRef = useRef(ultimate ? ultimateRun(useGame.getState()) : null);
+    const run = liga ? ligaRunRef.current : ultimate ? ultimateRunRef.current : cupRun;
+    const saveLive = liga ? useLiga.getState().saveLive : ultimate ? useGame.getState().ultimateSaveLive : cupSaveLive;
     // na Liga quem grava é o servidor: o apito final manda as ordens e ele refaz a partida
-    const recordResult = liga ? useLiga.getState().finish : cupRecordResult;
+    const recordResult = liga
+        ? useLiga.getState().finish
+        : ultimate
+          ? useGame.getState().ultimateFinish
+          : cupRecordResult;
     const saveLiveRef = useRef(saveLive);
     saveLiveRef.current = saveLive;
     const { t, d } = useT();
@@ -242,14 +251,14 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: !liga && !!run && isFinalStage(run),
+                      final: !solo && !!run && isFinalStage(run),
                       agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
-                      boards: liga ? undefined : sponsorBoards(run?.sponsors),
+                      boards: solo ? undefined : sponsorBoards(run?.sponsors),
                   }
                 : null,
         [match?.seed],
@@ -608,7 +617,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return p ? cardSprite(p) : '';
     };
 
-    const stage = liga ? t('liga.stage') : cupStageName(run, run.stage) || t('match.cup');
+    const stage = liga
+        ? t('liga.stage')
+        : ultimate
+          ? t('ultimate.match.stage')
+          : cupStageName(run, run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -696,7 +709,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
             id="relampagoJogo"
             targets={[hud ? '.bc-hudbar' : '.bc-coach .bc-tabs']}
             when={
-                !liga &&
+                !solo &&
                 !!run &&
                 !run.daily &&
                 !isLong(run) &&
@@ -760,7 +773,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         score={clock.score}
                         clock={clockParts}
                         pressure={pressureNow}
-                        stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
+                        stage={
+                            liga
+                                ? t('liga.stageShort')
+                                : ultimate
+                                  ? t('ultimate.match.stageShort')
+                                  : cupStageShort(run, run.stage, d.match.stageShort) || stage
+                        }
                     >
                         <RivalEmotes
                             plan={rivalPlan}
@@ -1028,9 +1047,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             label={t('match.seeResult')}
                             onGo={() =>
                                 // título: o troféu cobre a quadra e a festa aparece embaixo
-                                !liga && useGame.getState().run?.status === 'champion'
+                                !solo && useGame.getState().run?.status === 'champion'
                                     ? playMoment('trofeu', () => go('result'))
-                                    : go(liga ? 'liga' : 'result')
+                                    : go(liga ? 'liga' : ultimate ? 'ultimate' : 'result')
                             }
                         />
                     )}

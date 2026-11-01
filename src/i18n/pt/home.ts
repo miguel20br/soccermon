@@ -122,6 +122,8 @@ export const home = {
         /** Botão de voltar da Home pro menu de modos. */
         back: 'Modos de jogo',
         last: 'ÚLTIMO JOGADO',
+        /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
+        preview: 'PRÉVIA',
         play: 'JOGAR',
         atual: { name: 'Modo Copa', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
         ultimate: {
