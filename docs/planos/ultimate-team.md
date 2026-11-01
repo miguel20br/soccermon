@@ -233,7 +233,24 @@ aprovado. Mudou um número? Muda lá e aqui.
 | Rival da IA | clube de ginásio sorteado por partida; média dos titulares = a sua + Fácil −6 · Normal 0 · Difícil +4 · Mestre +8 (o mais perto entre 12 times sorteados) |
 | Fichas (V / E / D) | Fácil 30/15/10 · Normal 50/25/10 · Difícil 80/40/15 · Mestre 120/60/20 |
 | Empate | placar igual no tempo normal (os pênaltis do motor ficam só como festa) |
+| **0.9.32** | |
+| Pontos por pacote aberto | +5 (além das repetidas) |
+| Carta escolhida com pontos | Bronze 15 · Prata 40 · Ouro 100 (a Normal, sem Shiny; Ícone e Evento fora; a espécie que você ainda não tem) |
+| Pacote Mini com Fichas | 150 Fichas (sem teto) |
+| Ponte da Copa | título da Copa = 1 Pacote Mini, até 2 por dia (Brasília); só pra quem já abriu o 1º pacote do modo |
+| Objetivos do dia | jogue 2 → 30 Fichas · vença 1 → 40 Fichas · faça 4 gols → 1 Pacote Mini |
+| Objetivos da semana | jogue 12 → 100 Fichas + 1 pacote · vença 6 → 2 pacotes · vença 3 no Difícil/Mestre → 2 pacotes · vença 2 sem Ouro entre os titulares → 100 Fichas + 1 pacote |
+| Evolução: cada passo | 3 partidas com a carta + 2 gols (goleiro: 6 defesas) + 1 vez craque do seu time |
+| Evoluções ao mesmo tempo | 2 |
+| Treino (quem não evolui mais) | 3 subidas, cada uma +2 em tudo (a mesma conta da evolução, `evolved`) |
 
-Decisões tomadas sem o Miguel (as mais simples que respeitam o plano): o time novo enche só as vagas vazias na
-ordem em que as cartas chegam (nunca tira ninguém; pode começar com gente fora de posição); o capitão nasce com a
-1ª carta e se troca na aba Time; as Fichas só acumulam nesta versão (o que comprar com elas vem na 0.9.32).
+Decisões tomadas sem o Miguel (as mais simples que respeitam o plano), 0.9.31: o capitão se troca na aba Time; as
+Fichas só acumulavam (na 0.9.32 compram Pacote Mini).
+
+0.9.32: o 1º pacote sempre traz um goleiro (sem goleiro na coleção, a 1ª carta do pacote é um goleiro do metal
+sorteado; as chances de metal não mudam) e o time enche só as vagas vazias, com a melhor distribuição pela nota na
+vaga (nunca tira ninguém); o capitão nasce com a carta de melhor nota do 1º pacote. Os objetivos pagam sozinhos no
+apito final (sem botão de resgatar). A Evolução dá o passo quando você toca em "Evoluir" (com a tela de evolução da
+partida), nunca sozinha; uma carta faz uma Evolução ou um Treino só, e quem já está na forma final faz Treino. O
+Treino reaproveita o bônus da evolução (+2 em tudo por subida), sem fórmula nova; por isso a ficha da carta mostra
+"Evoluiu: +2 em tudo". Pacote Grande (objetivo semanal) ficou pra 0.9.33: o semanal paga Pacotes Mini.
