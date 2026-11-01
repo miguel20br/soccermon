@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
+import { utNow } from '../../store/ultimate/clock';
 
-/** O relógio da tela (pras contagens do próximo pacote e dos objetivos): anda a cada segundo. */
+/** O relógio da tela (pras contagens do próximo pacote, dos objetivos e da temporada): anda a cada segundo. */
 export function useNow() {
-    const [now, setNow] = useState(Date.now);
+    const [now, setNow] = useState(utNow);
     useEffect(() => {
-        const id = window.setInterval(() => setNow(Date.now()), 1000);
+        const id = window.setInterval(() => setNow(utNow()), 1000);
         return () => clearInterval(id);
     }, []);
     return now;

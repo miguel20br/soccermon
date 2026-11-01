@@ -654,3 +654,174 @@
 [data-reduce-motion="true"] .ut-note {
     animation: none;
 }
+
+/* 0.9.33: temporada, passe, Pacote Grande, evento e líderes */
+.ut-season {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 8px 12px;
+}
+.ut-season-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+.ut-season-main b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+}
+.ut-season-main small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-season .hud-icon,
+.ut-pass .bc-caption .hud-icon,
+.ut-gyms .bc-caption .hud-icon,
+.ut-event .bc-caption .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+.ut-season-main .hud-icon {
+    align-self: center;
+}
+.ut-season .ut-timer {
+    margin-left: auto;
+}
+.ut-season-event {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-basis: 100%;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.ut-pass,
+.ut-gyms {
+    display: grid;
+    gap: 8px;
+}
+.ut-pass .bc-caption,
+.ut-gyms .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ut-pass-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+}
+.ut-pass-card {
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+.ut-pass-lock {
+    display: grid;
+    place-items: center;
+    gap: 4px;
+    width: 92px;
+    aspect-ratio: 5 / 7;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 11px;
+}
+.ut-pass-lock .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+.ut-pass-info {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+.ut-pass-info > b {
+    font-size: 16px;
+}
+.ut-pass-info small {
+    font-size: 11px;
+}
+.ut-pass-done {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--green);
+    font-size: 12px;
+}
+.ut-pass-done .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+.ut-marks,
+.ut-gym-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-marks li {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    font-size: 12px;
+}
+.ut-marks li b {
+    color: var(--yellow);
+    text-align: center;
+}
+.ut-gym-list li {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    transition: opacity 240ms var(--ease-out);
+}
+.ut-gym-list .kb-badge {
+    width: 32px;
+    height: 32px;
+}
+.ut-gym-list li > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-gym-list b {
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-gym-list small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.ut-gym-list small.ok {
+    color: var(--green);
+}
+.ut-badge .kb-badge {
+    width: 28px;
+    height: 28px;
+}
+.ut-rule-event {
+    color: var(--yellow);
+}
+.ut-gain.ut-badge {
+    font-size: 14px;
+}
+[data-reduce-motion="true"] .ut-pass-card {
+    animation: none;
+}

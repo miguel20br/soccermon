@@ -5,16 +5,19 @@ import { viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import type { TrainerId } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { evoReady } from '../../store/ultimate/evolutions';
+import { eventAt, objectiveById } from '../../store/ultimate/objectives';
 import {
+    BIG_FLOOR_N,
     FICHAS,
     FLOOR_METAL,
+    GYM_LEVEL,
     ICON_ODDS,
     LEVELS,
     type Level,
     METAL_ODDS,
-    OBJECTIVES,
     OPEN_POINTS,
     PACK_MAX,
     REPEAT_POINTS,
@@ -24,9 +27,11 @@ import {
 } from '../../store/ultimate/rules';
 import {
     canPlay,
+    gymReady,
     homeTeam,
     nextPackIn,
     orderIndex,
+    type PackKind,
     type PackOpen,
     packsReady,
     refill,
@@ -34,6 +39,7 @@ import {
     ultimateRival,
     ultimateSeed,
 } from '../../store/ultimate/ultimate';
+import { KantoBadge } from '../components/BadgeCase';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -48,6 +54,7 @@ import { simulateMatch } from '../sim-client';
 import { Chemistry } from './Chemistry';
 import { hms, useNow } from './clock';
 import { Goals, useReward } from './Goals';
+import { Gyms, SeasonBar } from './Season';
 import { Shop } from './Shop';
 import './ultimate.css';
 
@@ -96,6 +103,7 @@ export function Ultimate() {
                     <small>{t('ultimate.cards')}</small>
                 </span>
             </section>
+            <SeasonBar />
             <div
                 className="pf-tabs k-tabs"
                 role="tablist"
@@ -149,10 +157,14 @@ function Packs() {
     const u = useGame((s) => s.ultimate);
     const openPack = useGame((s) => s.ultimateOpenPack);
     const now = useNow();
-    const [open, setOpen] = useState<PackOpen | null>(null);
+    const [open, setOpen] = useState<(PackOpen & { kind: PackKind }) | null>(null);
     const clock = refill(u, now);
     const next = nextPackIn(u, now);
     const ready = packsReady(u, now);
+    const openKind = (kind: PackKind) => {
+        const r = openPack(undefined, kind);
+        setOpen(r && { ...r, kind });
+    };
     return (
         <>
             {open ? (
@@ -161,7 +173,7 @@ function Packs() {
                         sealed
                         autoOpen
                         look={packLookOf(open.cards)}
-                        label={t('ultimate.packs.mini')}
+                        label={open.kind === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini')}
                         revealKey={open.cards.map((c) => c.uid).join()}
                     >
                         <div className="reward-grid">
@@ -213,10 +225,27 @@ function Packs() {
                             type="button"
                             className="btn confirm"
                             disabled={ready < 1}
-                            onClick={() => setOpen(openPack())}
+                            onClick={() => openKind('mini')}
                         >
                             {ready < 1 ? t('ultimate.packs.none') : t('ultimate.packs.open')}
                         </button>
+                    </div>
+                </section>
+            )}
+            {!open && (
+                <section className="panel ut-pack ut-big bc-surface">
+                    <PackArt look="" label={t('ultimate.packs.big')} />
+                    <div className="ut-pack-info">
+                        <b>{t('ultimate.packs.big')}</b>
+                        <small className="muted">{t('ultimate.packs.bigHint')}</small>
+                        <small className={u.bigPacks ? 'ut-extra' : 'muted'}>
+                            {u.bigPacks ? tn('ultimate.packs.bigHave', u.bigPacks) : t('ultimate.packs.bigNone')}
+                        </small>
+                        {u.bigPacks > 0 && (
+                            <button type="button" className="btn confirm" onClick={() => openKind('big')}>
+                                {t('ultimate.packs.open')}
+                            </button>
+                        )}
                     </div>
                 </section>
             )}
@@ -228,7 +257,8 @@ function Packs() {
 
 /** As chances do pacote, sempre à vista (é o contrário do pacote do FUT). */
 function Odds() {
-    const { t, lang } = useT();
+    const { t, d, lang } = useT();
+    const event = eventAt(useNow());
     return (
         <section className="panel ut-odds bc-surface">
             <h2 className="bc-caption">
@@ -262,6 +292,19 @@ function Odds() {
                 <HudIcon kind="sparkle" />
                 {t('ultimate.packs.openRule', { n: OPEN_POINTS })}
             </p>
+            <p className="ut-rule">
+                <HudIcon kind="cards" />
+                {t('ultimate.packs.bigRule', { n: BIG_FLOOR_N, metal: metalLabel(FLOOR_METAL) })}
+            </p>
+            {event && (
+                <p className="ut-rule ut-rule-event">
+                    <HudIcon kind="sparkle" />
+                    {t('ultimate.packs.eventRule', {
+                        name: d.ultimate.events[event.id] ?? event.id,
+                        pct: pct(event.cardOdds, lang),
+                    })}
+                </p>
+            )}
         </section>
     );
 }
@@ -502,6 +545,13 @@ function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }
         useGame.getState().ultimateStart({ n: u.played, level, home, rival });
         void kick();
     };
+    /** Desafio de líder: o clube dele, no Difícil, com a regra conferida na hora. */
+    const challenge = (gym: string) => {
+        if (!gymReady(u, gym)) return;
+        const r = ultimateRival(u.salt, u.played, GYM_LEVEL, avg, gym);
+        useGame.getState().ultimateStart({ n: u.played, level: GYM_LEVEL, home, rival: r, gym });
+        void kick();
+    };
 
     const last = u.last && !u.last.seen ? u.last : null;
     if (last)
@@ -517,18 +567,40 @@ function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }
                 <small className="muted">
                     {t('ultimate.result.vs', {
                         club: clubName(last.rival, lang),
-                        level: d.ultimate.play.levels[last.level],
+                        level: last.gym
+                            ? (d.profile.trainers[last.gym as TrainerId] ?? last.gym)
+                            : d.ultimate.play.levels[last.level],
                     })}
                 </small>
                 <span className="ut-gain">
                     <HudIcon kind="coin" />
                     <CountUp from={0} to={last.fichas} ms={700} format={(n) => t('ultimate.result.gain', { n })} />
                 </span>
+                {last.badge && last.gym && (
+                    <span className="ut-gain ut-badge">
+                        <KantoBadge leader={last.gym as TrainerId} earned />
+                        {t('ultimate.result.badge', { badge: d.profile.badges.names[last.gym] ?? last.gym })}
+                    </span>
+                )}
+                {last.pass !== undefined && (
+                    <small className="ut-extra">
+                        <HudIcon kind="crown" />
+                        {last.pass ? t('ultimate.result.pass', { n: last.pass }) : t('ultimate.result.passCap')}
+                        {!!last.marks?.length &&
+                            ` · ${tn('ultimate.result.marks', last.marks.length, { n: last.marks.join(', ') })}`}
+                    </small>
+                )}
+                {last.ornament && (
+                    <small className="ut-extra">
+                        <HudIcon kind="sparkle" />
+                        {t('ultimate.result.ornament', { name: d.ultimate.events[last.ornament] ?? last.ornament })}
+                    </small>
+                )}
                 {!!last.objectives?.length && (
                     <div className="ut-prize-goals">
                         <span className="bc-lbl">{t('ultimate.result.objectives')}</span>
                         {last.objectives.map((id) => {
-                            const o = OBJECTIVES.find((x) => x.id === id);
+                            const o = objectiveById(id);
                             return (
                                 o && (
                                     <small key={id}>
@@ -639,6 +711,7 @@ function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }
                 </button>
                 {error && <p className="error-text">{error}</p>}
             </div>
+            <Gyms u={u} busy={busy} onGo={challenge} />
         </>
     );
 }

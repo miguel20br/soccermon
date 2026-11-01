@@ -14,17 +14,20 @@ import {
     newEvo,
     type UtEvo,
 } from '../../store/ultimate/evolutions';
-import { nextReset, objectivesAt } from '../../store/ultimate/objectives';
+import { eventAt, nextReset, objectivesAt } from '../../store/ultimate/objectives';
 import { EVO_ACTIVE_MAX, EVO_STEP, OBJECTIVES, type Objective, TRAIN_STEPS } from '../../store/ultimate/rules';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
 import { hms, useNow } from './clock';
+import { Pass } from './Season';
 
-/** Aba Metas: objetivos do dia e da semana (pagam sozinhos) e as Evoluções com prévia. */
+/** Aba Metas: o passe da temporada, os objetivos do evento, do dia e da semana (pagam sozinhos) e as Evoluções. */
 export function Goals() {
     return (
         <>
+            <Pass />
+            <Objectives period="event" />
             <Objectives period="day" />
             <Objectives period="week" />
             <Evolutions />
@@ -39,30 +42,46 @@ export function useReward() {
         [
             o.fichas ? t('ultimate.goals.fichas', { n: o.fichas }) : '',
             o.packs ? tn('ultimate.goals.packs', o.packs) : '',
+            o.big ? tn('ultimate.goals.big', o.big) : '',
         ]
             .filter(Boolean)
             .join(' · ');
 }
 
 function Objectives({ period }: { period: Objective['period'] }) {
-    const { t, tn } = useT();
+    const { t, tn, d } = useT();
     const now = useNow();
     const g = objectivesAt(
         useGame((s) => s.ultimate.objectives),
         now,
     );
+    const ornament = useGame((s) => s.ultimate.legacy.ornaments);
     const reward = useReward();
+    const event = eventAt(now);
+    if (period === 'event' && !event) return null;
+    const list = event && period === 'event' ? event.objectives : OBJECTIVES.filter((o) => o.period === period);
     return (
-        <section className="panel ut-goals bc-surface">
+        <section className={`panel ut-goals bc-surface${period === 'event' ? ' ut-event bc-stripe' : ''}`}>
             <h2 className="bc-caption">
-                <HudIcon kind={period === 'day' ? 'stopwatch' : 'medal'} />
-                {period === 'day' ? t('ultimate.goals.daily') : t('ultimate.goals.weekly')}
+                <HudIcon kind={period === 'day' ? 'stopwatch' : period === 'week' ? 'medal' : 'sparkle'} />
+                {event && period === 'event'
+                    ? t('ultimate.event.title', { name: d.ultimate.events[event.id] ?? event.id })
+                    : period === 'day'
+                      ? t('ultimate.goals.daily')
+                      : t('ultimate.goals.weekly')}
                 <small className="ut-reset">
-                    {t('ultimate.goals.reset', { time: hms(nextReset(now, period) - now) })}
+                    {event && period === 'event'
+                        ? t('ultimate.event.ends', { time: hms(event.end - now) })
+                        : t('ultimate.goals.reset', { time: hms(nextReset(now, period as 'day' | 'week') - now) })}
                 </small>
             </h2>
+            {event && period === 'event' && (
+                <small className={ornament.includes(event.id) ? 'ut-pass-done' : 'muted'}>
+                    {ornament.includes(event.id) ? t('ultimate.event.ornament') : t('ultimate.event.hint')}
+                </small>
+            )}
             <ul className="ut-goal-list">
-                {OBJECTIVES.filter((o) => o.period === period).map((o) => {
+                {list.map((o) => {
                     const done = g.done.includes(o.id);
                     const n = Math.min(o.goal, g.prog[o.id] ?? 0);
                     return (
