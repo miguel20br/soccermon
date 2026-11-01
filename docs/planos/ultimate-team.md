@@ -197,3 +197,21 @@ Evoluções com caminhos e prévia. A pesquisa inteira (com as fontes) ficou for
   cada jogo (mais difícil = prêmio maior) e objetivos com restrição ("time todo prata") pagam a mais.
 - **Moeda: Fichas** (as do Game Corner de Celadon).
 - **Equilíbrio:** meta "prata com química cheia empata com ouro sem química"; números antes de aplicar.
+
+## Plano de versões até 27/11 (01/11/2026)
+
+Tudo atrás de `?lab=ultimate` até a bandeira ligar em 27/11 ([ADR 0005](../adr/0005-modo-novo-so-no-ar-depois-de-jogado.md));
+o Miguel joga cada etapa na prévia. Motor igual (`ENGINE_VERSION` não muda). Números de economia e química são
+constantes num lugar só (`src/store/ultimate/rules.ts`) e só valem depois do ok dele (tabela antes/depois).
+
+| Versão | Data alvo | O que entra |
+|---|---|---|
+| 0.9.31 | ~08/11 | Base: save do Time Ultimate (fatia própria, migração), coleção da temporada, Fichas, pacote Mini a cada 12 h (acumula 2) com piso e chances na tela, abrir pacote (reusa o pacote da vitória), montar o time (reusa a Escalação), jogo contra IA com nível escolhido e tabela de prêmio antes da partida |
+| 0.9.32 | ~15/11 | Química no centro (painel na escalação), objetivos diários e semanais, pontos de pacote que compram a carta, Evoluções com prévia (Charmander → Charizard por objetivo; Treino pra quem não evolui), ponte da Copa (título = 1 pacote) |
+| 0.9.33 | ~22/11 | Temporada 1 (tema Kanto clássico, reset semestral, medalha e "Lenda da T1" no Álbum), desafios dos líderes de ginásio, passe grátis com a carta de abertura, Natal preparado como 1º evento, polimento e playtest do Miguel |
+| 27/11 | | Bandeira ligada: o Time Ultimate sai do EM BREVE no menu de modos |
+| dez | | Evento de Natal (cartas Evento, objetivos, enfeite no Perfil) |
+| jan | | Ranking do Time Ultimate, desafios de montagem; Duelo com o time e troca entre amigos depois |
+
+**Pro ok do Miguel antes de valer:** chances do pacote por metal, Fichas por resultado e por nível, preço em pontos
+de pacote, meta da química ("prata com química cheia empata com ouro sem química", medida no `calibrate`).
