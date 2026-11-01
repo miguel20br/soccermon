@@ -27,6 +27,7 @@ import {
 } from './rules';
 import { gymOk, newPass, passGain, seasonN } from './season';
 import {
+    cupBridge,
     finishMatch,
     homeTeam,
     mergeUltimate,
@@ -167,6 +168,18 @@ describe('temporadas (semestrais)', () => {
         // relógio que voltou no tempo não volta a temporada
         const t2 = { ...ready(), season: 2 };
         expect(rollSeason(t2, IN_T1).u).toBe(t2);
+    });
+});
+
+describe('ponte da Copa na virada', () => {
+    it('o título da Copa no dia da temporada nova paga na temporada nova (a virada não apaga o pacote)', () => {
+        const u = { ...ready(), season: 1 };
+        const now = T2.start + DAY;
+        const v = cupBridge(u, now);
+        // entrar no modo depois faz a virada: o pacote tem que continuar lá
+        const after = rollSeason(v, now + 1000).u;
+        expect(after.season).toBe(2);
+        expect(after.extraPacks).toBe(1);
     });
 });
 

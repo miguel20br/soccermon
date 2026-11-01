@@ -605,8 +605,12 @@ export function buyPack(u: UltimateSave): UltimateSave | null {
     return { ...u, fichas: u.fichas - FICHAS_PACK_PRICE, extraPacks: u.extraPacks + 1 };
 }
 
-/** Ponte da Copa: título da Copa = 1 Pacote Mini aqui, até CUP_BRIDGE_DAY_MAX por dia (Brasília). */
-export function cupBridge(u: UltimateSave, now: number): UltimateSave {
+/**
+ * Ponte da Copa: título da Copa = 1 Pacote Mini aqui, até CUP_BRIDGE_DAY_MAX por dia (Brasília). A temporada vira
+ * antes de pagar: o pacote ganho no dia da temporada nova não pode ir pra save velho (a virada o apagaria).
+ */
+export function cupBridge(save: UltimateSave, now: number): UltimateSave {
+    const u = rollSeason(save, now).u;
     const day = dailyDay(new Date(now));
     const n = u.bridge.day === day ? u.bridge.n : 0;
     if (n >= CUP_BRIDGE_DAY_MAX) return u;
