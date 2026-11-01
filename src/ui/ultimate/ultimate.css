@@ -23,11 +23,6 @@
     }
 }
 
-/* o .bc-caption do kit corta o acento da maiúscula (overflow + line-height 1.2: "NÍVEL" saía "NIVEL") */
-.ut .bc-caption {
-    line-height: 1.6;
-}
-
 /* carteira: Fichas, pontos de pacote, cartas */
 .ut-wallet {
     display: grid;
