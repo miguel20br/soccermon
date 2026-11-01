@@ -144,18 +144,48 @@
         display: none;
     }
     .vt .formation-board {
+        max-width: none;
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
         gap: 4px 10px;
     }
+    /* a quadra deita (o gol à esquerda, o ataque à direita): em pé, com a altura do celular deitado, as vagas
+       se sobrepunham. As vagas encolhem como na prancheta da partida. */
     .vt .formation-board .court {
-        width: min(100%, calc((calc(100 * var(--svh)) - 166px) * 0.75));
+        width: min(100%, calc((calc(100 * var(--svh)) - 150px) * 1.7));
+        aspect-ratio: 1.7 / 1;
         flex: 0 1 auto;
+        background: repeating-linear-gradient(0deg, #c98a4f 0 24px, #cf9358 24px 48px);
+    }
+    .vt .formation-board .court::before {
+        left: 50%;
+        right: auto;
+        top: 0;
+        bottom: 0;
+        border-top: 0;
+        border-left: 3px solid rgba(255, 255, 255, 0.9);
     }
     .vt .formation-board .slot {
         width: 70px;
+        min-height: 0;
+        padding: 3px 2px 4px;
+    }
+    .vt .formation-board .slot img {
+        height: 22px;
+    }
+    .vt .formation-board .slot .pos-badge {
+        padding: 0 4px;
+        font-size: 9px;
+        line-height: 1.3;
+    }
+    .vt .formation-board .slot .slot-name {
+        font-size: 10px;
+    }
+    .vt .formation-board .slot .slot-item,
+    .vt .formation-board .slot .slot-evo {
+        display: none;
     }
     .vt .formation-board .bench {
         flex-direction: column;

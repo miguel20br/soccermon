@@ -26,6 +26,7 @@ import { LinkChips } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { useMedia, WIDE } from '../components/Prancheta';
+
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
@@ -36,6 +37,9 @@ import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { simulateMatch } from '../sim-client';
 import { useHeld } from '../use-held';
+
+/** Celular deitado (a mesma consulta do vestiario.css). */
+const DEITADO = '(orientation: landscape) and (max-height: 520px)';
 
 /** Descrição das táticas em português (o texto de cada idioma está em i18n: team.lineup.tacticDesc). */
 export const TACTIC_DESC: Record<Tactic, string> = dict('pt').team.lineup.tacticDesc;
@@ -370,6 +374,8 @@ export function LineupEditor({
     const [detail, setDetail] = useState<string | null>(null);
     // celular: a carta abre numa sheet (na coluna de baixo ficava fora da tela); no desktop fica na coluna da direita
     const wide = useMedia(WIDE);
+    // deitado (celular de lado): a quadra deita também; em pé, as 5 vagas não cabiam na altura e se sobrepunham
+    const deitado = useMedia(DEITADO);
     const [cardOpen, setCardOpen] = useState(false);
     /** Passando o item: quem tem o item que vai pra outro (o próximo toque na prancheta decide quem recebe). */
     const [giving, setGiving] = useState<string | null>(null);
@@ -512,6 +518,7 @@ export function LineupEditor({
                         </p>
                     )}
                     <FormationBoard
+                        horizontal={deitado}
                         formation={formation}
                         lineup={lineup}
                         bench={bench}
