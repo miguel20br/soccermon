@@ -6,7 +6,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
-    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+    /* backwards: terminada a entrada, o painel fica sem transform (com ele, a barra fixa do JOGAR grudava no
+       painel em vez do pé da tela e cobria o fim da lista) */
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) backwards;
 }
 @keyframes ut-in {
     from {

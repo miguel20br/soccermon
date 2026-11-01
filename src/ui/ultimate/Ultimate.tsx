@@ -711,6 +711,7 @@ function Play({ onPacks, onGoals }: { onPacks: () => void; onGoals: () => void }
                 </button>
                 {error && <p className="error-text">{error}</p>}
             </div>
+            {/* no celular a barra do JOGAR é fixa embaixo (o fim da página tem a folga dela) */}
             <Gyms u={u} busy={busy} onGo={challenge} />
         </>
     );
