@@ -499,10 +499,18 @@ export function setMember(team: UltimateTeam, i: number, uid: string): UltimateT
 
 export const canPlay = (u: Pick<UltimateSave, 'team'>) => u.team.order.length >= STARTERS;
 
-/** O seu time pra partida (as substituições são só suas). */
+/**
+ * Barra de evolução da partida no Time Ultimate: começa tão no negativo que nunca enche, então ninguém evolui no meio
+ * da partida (evoluía e voltava à forma de antes no apito final: aqui quem evolui é a Evolução, com a carta). É só um
+ * dado da carta na partida (`PokemonInstance.evo`): o motor e as outras partidas não mudam.
+ */
+export const NO_MID_EVO = -1e6;
+const noMidEvo = (ps: PokemonInstance[]) => ps.map((p) => ({ ...p, evo: NO_MID_EVO }));
+
+/** O seu time pra partida (as substituições são só suas; ninguém evolui no meio dela). */
 export function homeTeam(u: UltimateSave, name: string, color: number): TeamSetup {
     const by = new Map(u.cards.map((c) => [c.uid, c]));
-    const pick = (uids: string[]) => uids.flatMap((x) => by.get(x) ?? []);
+    const pick = (uids: string[]) => noMidEvo(uids.flatMap((x) => by.get(x) ?? []));
     return {
         name,
         lineup: pick(u.team.order.slice(0, STARTERS)),
@@ -538,8 +546,8 @@ export function ultimateRival(salt: string, n: number, level: Level, myAvg: numb
     const t = best!;
     return {
         name: club.name,
-        lineup: t.lineup,
-        bench: t.bench,
+        lineup: noMidEvo(t.lineup),
+        bench: noMidEvo(t.bench),
         tactic: club.tactic,
         color: club.color,
         formation: club.formation,

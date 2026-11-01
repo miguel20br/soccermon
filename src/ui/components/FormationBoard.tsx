@@ -148,7 +148,7 @@ export function FormationBoard({
                             </span>
                         )}
                         {inst?.item && <img className="pixel slot-item" src={itemSprite(inst.item)} alt="" />}
-                        {inst?.evo ? (
+                        {inst?.evo && inst.evo > 0 ? (
                             <i
                                 className="slot-evo"
                                 title={t('team.board.evo', {

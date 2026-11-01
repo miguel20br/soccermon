@@ -88,7 +88,7 @@ export function CardModal() {
     const view = viewInstance(inst);
     const sp = view.species;
     const evoTarget = evolutionTarget(inst.speciesId, inst.uid);
-    const evoPct = Math.min(100, Math.round(((inst.evo ?? 0) / evoThreshold(run?.sponsors)) * 100));
+    const evoPct = Math.max(0, Math.min(100, Math.round(((inst.evo ?? 0) / evoThreshold(run?.sponsors)) * 100)));
     const abilityWorks = Object.keys(abilityEffect(inst.ability)).length > 0;
     const item = inst.item ?? null;
     // bônus/penalidades: os da carta + os do time (se ela está no seu elenco), a mesma regra do motor

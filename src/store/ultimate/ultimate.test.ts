@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { ENGINE_VERSION } from '../../engine/config';
+import { ENGINE_VERSION, FUTSAL_5 } from '../../engine/config';
+import { EVO_THRESHOLD } from '../../engine/evolution';
 import { viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { runMatch } from '../../engine/runners/batch-runner';
 import { metalOf } from '../../ui/rarity';
 import {
     FICHAS,
@@ -21,6 +23,7 @@ import {
     homeTeam,
     isRepeat,
     mergeUltimate,
+    NO_MID_EVO,
     newUltimate,
     nextPackIn,
     openPack,
@@ -210,4 +213,26 @@ describe('save', () => {
         expect(mergeUltimate(b, a).salt).toBe('b');
         expect(mergeUltimate(a, newUltimate('c', T0)).salt).toBe('a');
     });
+});
+
+describe('sem evolução no meio da partida', () => {
+    // a mesma partida com a barra quase cheia: sem a trava, alguém do seu time evolui; com ela, ninguém
+    it('ninguém evolui na partida do Time Ultimate (dos dois lados); a mesma barra sem a trava evolui', () => {
+        let free = 0;
+        for (let i = 0; i < 3; i++) {
+            const u = openPack(openPack(newUltimate(`evo${i}`, T0), T0)!.u, T0)!.u;
+            const home = homeTeam(u, 'Eu', 0);
+            const rival = ultimateRival(u.salt, i, 'normal', teamAverage(home));
+            for (const p of [...home.lineup, ...home.bench, ...rival.lineup, ...rival.bench])
+                expect(p.evo).toBe(NO_MID_EVO);
+            const locked = runMatch(FUTSAL_5, home, rival, `ut-evo-${i}`, { snapshots: false });
+            expect(locked.events.filter((e) => e.type === 'evolve')).toEqual([]);
+            const full = (ps: typeof home.lineup) => ps.map((p) => ({ ...p, evo: EVO_THRESHOLD - 0.1 }));
+            const open = runMatch(FUTSAL_5, { ...home, lineup: full(home.lineup) }, rival, `ut-evo-${i}`, {
+                snapshots: false,
+            });
+            free += open.events.filter((e) => e.type === 'evolve' && e.team === 0).length;
+        }
+        expect(free).toBeGreaterThan(0);
+    }, 60_000);
 });
