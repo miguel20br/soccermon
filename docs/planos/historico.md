@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.29 · Rota nova (31/10/2026)
+
+No ar: 0.9.29 "Rota nova" (Rota redesenhada: ramos com tipo, prêmio à vista, rival em todo Jogo + prêmio, Ginásio +2, até 2 Mercados, Centro Pokémon, 6 eventos novos; menu de modos estilo Smash com Time Ultimate e selos EM BREVE; pênaltis com o chute no menu e a câmera com o gol). Motor 16 (`liga` 16).
+
 ## 0.9.28 · Golpe caprichado (30/10/2026)
 
 No ar: 0.9.28 "Golpe caprichado" (anel-alvo e estouro do golpe máximo, sons do pacote D, N3 a 10 pontos por nível, porta Sede→Sala, Novidades na barra de cima, logo piscando em todo lugar, música menu-balanco, coerência dos menus, símbolo do Soccermon na taça e no escudo, desempenho, consertos da Rota). Motor 16 (`liga` 16).

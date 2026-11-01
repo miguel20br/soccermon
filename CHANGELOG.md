@@ -1,5 +1,26 @@
 # Novidades
 
+## 0.9.30 · Golpe universal (2026-11-01)
+
+### Golpe máximo
+- Todo capitão solta o golpe máximo, e o golpe é sempre um chute
+- N1: chute forte que deixa o status do tipo em quem bloqueia ou defende (Fogo queima, Elétrico paralisa, Gelo congela…)
+- N2: o N1 e ainda derruba quem estiver no caminho da bola
+- N3: sempre no alvo, com a cena de especial antes do chute e o efeito do tipo
+- A bola curva sozinha pro canto longe do goleiro
+
+### Goleiro
+- A bicuda entra no lugar da defesa máxima: com a barra pronta, toque quando o chute rival vem e o goleiro capitão devolve com tudo
+- No N1 e no N2 ele lança o companheiro mais à frente; no N3 a bola vai direto no gol rival
+- O botão só acende no chute que o goleiro vai alcançar
+
+### Rota Índigo
+- Pedras de evolução: um Jogo de cada região dá a pedra dali junto do prêmio (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)
+- O rival dessa casa traz um que evolui com a pedra no 1 de 3, e quem você usar evolui na hora
+- No Eevee a pedra escolhe a forma: Vaporeon, Jolteon ou Flareon
+- A pedra é atalho: quem evolui por pedra continua evoluindo jogando
+- A Pedra da Lua dos Fósseis do Mt. Moon também evolui na hora
+
 ## 0.9.29 · Rota nova (2026-10-31)
 
 ### Rota Índigo

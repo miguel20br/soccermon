@@ -16,6 +16,7 @@ export const reward = {
     skip: 'Pular (+1 sorteio)',
     tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',
     fromClub: 'Do {club}',
+    fromClubF: 'Da {club}',
     reinforcement: 'Reforço',
     chosen: 'Escolhido',
     sign: 'Contratar',

@@ -10,7 +10,7 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.30',
-        date: '2026-10-31',
+        date: '2026-11-01',
         title: 'Golpe universal',
         sections: [
             {
@@ -33,7 +33,13 @@ export const PATCH_NOTES: PatchNotes[] = [
             },
             {
                 title: 'Rota Índigo',
-                lines: ['PEDRAS'],
+                lines: [
+                    'Pedras de evolução: um Jogo de cada região dá a pedra dali junto do prêmio (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)',
+                    'O rival dessa casa traz um que evolui com a pedra no 1 de 3, e quem você usar evolui na hora',
+                    'No Eevee a pedra escolhe a forma: Vaporeon, Jolteon ou Flareon',
+                    'A pedra é atalho: quem evolui por pedra continua evoluindo jogando',
+                    'A Pedra da Lua dos Fósseis do Mt. Moon também evolui na hora',
+                ],
             },
         ],
     },
@@ -2041,7 +2047,7 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.30',
-        date: '2026-10-31',
+        date: '2026-11-01',
         title: 'Universal max move',
         sections: [
             {
@@ -2064,7 +2070,13 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
             {
                 title: 'Indigo Route',
-                lines: ['PEDRAS'],
+                lines: [
+                    "Evolution stones: one Match in each region gives that region's stone on top of the prize (Fire on Route 1, Leaf in the Forest, Moon on Mt. Moon, Water and Thunder in Cerulean)",
+                    'The rival on that space brings one who evolves with the stone in the 1 of 3, and whoever you use it on evolves right away',
+                    'On Eevee the stone picks the form: Vaporeon, Jolteon or Flareon',
+                    'The stone is a shortcut: stone evolvers still evolve by playing',
+                    'The Moon Stone from the Mt. Moon Fossils also evolves right away',
+                ],
             },
         ],
     },

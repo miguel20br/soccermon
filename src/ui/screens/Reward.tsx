@@ -115,7 +115,14 @@ export function Reward() {
                                     selected={chosen === i}
                                     ribbon={
                                         r.from
-                                            ? t('reward.fromClub', { club: clubName(r.from, lang) })
+                                            ? t(
+                                                  /^(Equipe|Liga) /.test(r.from)
+                                                      ? 'reward.fromClubF'
+                                                      : 'reward.fromClub',
+                                                  {
+                                                      club: clubName(r.from, lang),
+                                                  },
+                                              )
                                             : t('reward.reinforcement')
                                     }
                                     action={{

@@ -15,6 +15,7 @@ export const reward: typeof pt = {
     skip: 'Skip (+1 reroll)',
     tip: 'You won! Take a rival Pokémon, an item or a TM. Skipping gives +1 reroll.',
     fromClub: 'From {club}',
+    fromClubF: 'From {club}',
     reinforcement: 'Reinforcement',
     chosen: 'Chosen',
     sign: 'Sign',
