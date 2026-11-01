@@ -15,7 +15,7 @@ export const setScreenWrap = (w: typeof wrap) => {
  * Telas com canvas WebGL (a quadra do Phaser, a Sala de troféus): a View Transition fotografa o canvas vazio por um
  * quadro e a tela pisca. Entrar ou sair delas troca direto (a partida já entra pelo VERSUS, que tem a animação dela).
  */
-const CANVAS_SCREENS = new Set<unknown>(['match', 'liga-match', 'trophies']);
+const CANVAS_SCREENS = new Set<unknown>(['match', 'liga-match', 'ultimate-match', 'trophies']);
 
 export function screenTransition<T extends { screen: unknown }, Mis extends [StoreMutatorIdentifier, unknown][] = []>(
     config: StateCreator<T, Mis, []>,

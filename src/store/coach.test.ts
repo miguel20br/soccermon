@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
+import { newUltimate } from './ultimate/ultimate';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
@@ -20,6 +21,7 @@ import { DEFAULT_PROFILE, EMPTY_CAREER } from './profile';
 
 const save = (patch: Partial<PersistedSave> = {}): PersistedSave => ({
     run: null,
+    ultimate: newUltimate('t', 0),
     settings: { ...DEFAULT_SETTINGS, lang: 'pt' },
     records: { cups: 0, titles: 0, perfect: 0 },
     profile: { ...DEFAULT_PROFILE, seen: [] },

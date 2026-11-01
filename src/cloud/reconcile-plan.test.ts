@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { newUltimate } from '../store/ultimate/ultimate';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
@@ -43,6 +44,7 @@ function cup(seed: string, opts: Partial<RunState> & { played?: number } = {}): 
 function save(patch: Partial<PersistedSave> = {}): PersistedSave {
     return {
         run: null,
+        ultimate: newUltimate('t', 0),
         settings: { ...DEFAULT_SETTINGS, lang: 'pt' },
         records: { cups: 0, titles: 0, perfect: 0 },
         profile: DEFAULT_PROFILE,

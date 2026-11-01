@@ -11,6 +11,7 @@ import {
 } from '../store/game-store';
 import { mergeProfileUnlocks } from '../store/missions';
 import { DEFAULT_PROFILE, mergeCareer, mergeDex, mergeHall, mergeMoves } from '../store/profile';
+import { mergeUltimate } from '../store/ultimate/ultimate';
 
 /**
  * O que fazer com o save do aparelho e o da conta quando alguém entra com Google. Funções puras (sem
@@ -193,6 +194,7 @@ export function mergeSaves(
         duels: mergeDuels(local.duels, cloud?.duels),
         daily: mergeDaily(local.daily, cloud?.daily),
         binder: mergeBinder(local.binder, cloud?.binder),
+        ultimate: mergeUltimate(k.ultimate, o.ultimate),
     });
 }
 

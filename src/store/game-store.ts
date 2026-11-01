@@ -119,6 +119,17 @@ import {
     tagFromName,
 } from './profile';
 import { screenTransition } from './screen-transition';
+import {
+    finishMatch,
+    newUltimate,
+    openPack,
+    type PackOpen,
+    setMember,
+    type UltimateLive,
+    type UltimateSave,
+    type UltimateTeam,
+    ultimateOf,
+} from './ultimate/ultimate';
 
 /** Edição especial só quando as cartas novas estão no jogo. */
 const rollSpecial: typeof roll = (inst, ev) => (SPECIALS_LIVE ? roll(inst, ev) : inst);
@@ -147,7 +158,9 @@ export type Screen =
     | 'map'
     | 'treino'
     | 'event'
-    | 'group';
+    | 'group'
+    | 'ultimate'
+    | 'ultimate-match';
 export type CryStyle = 'legacy' | 'latest';
 export type PlaybackSpeed = 1 | 2 | 4 | 8 | 'highlights';
 
@@ -439,6 +452,20 @@ export interface GameStore {
     hall: HallEntry[];
     /** Álbum de cartas: a melhor carta especial de cada espécie × edição, com quantas você tirou (binder.ts). */
     binder: BinderCard[];
+    /** Time Ultimate (src/store/ultimate): coleção, Fichas, pacotes, time e partida em andamento. */
+    ultimate: UltimateSave;
+    /** Abre um pacote grátis (`now` = relógio, injetado nos testes). null = sem pacote. */
+    ultimateOpenPack(now?: number): PackOpen | null;
+    ultimateTeam(patch: Partial<UltimateTeam>): void;
+    /** Põe a carta `uid` na posição `i` do time (troca com quem já está no time, ou tira quem estava pra coleção). */
+    ultimateSetMember(i: number, uid: string): void;
+    /** Começa a partida contra a IA (os dois times já montados). */
+    ultimateStart(live: Omit<UltimateLive, 'orders' | 'tick' | 'engine'>): void;
+    ultimateSaveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
+    /** Apito final: Fichas do nível e o painel do prêmio; a Pokédex marca como no Duelo. */
+    ultimateFinish(m: MatchResult): void;
+    /** O painel do prêmio já foi visto. */
+    ultimateSeen(): void;
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
@@ -868,6 +895,7 @@ export type PersistedSave = Pick<
     | 'duels'
     | 'daily'
     | 'binder'
+    | 'ultimate'
 >;
 
 /** A parte do estado que é save (IndexedDB, nuvem, backup). */
@@ -885,6 +913,7 @@ export const savePart = (s: PersistedSave): PersistedSave => ({
     duels: s.duels,
     daily: s.daily,
     binder: s.binder,
+    ultimate: s.ultimate,
 });
 
 /** Copa salva com formato aceitável (save importado ou da nuvem): senão é descartada, não trava o jogo. */
@@ -909,7 +938,7 @@ export function withSettingDefaults(settings: Settings): Settings {
 }
 
 /** Versão atual do save (a mesma do `persist`). */
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 /**
  * Álbum de edições pra quem já jogava (v9): o que dá pra saber do save. Quem jogou ganha a Normal (quase toda carta
@@ -1105,6 +1134,8 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         daily: mergeDaily(Array.isArray(old.daily) ? old.daily : []),
         // Álbum de cartas (opcional): o fichário da 0.8.8 vira álbum; save de antes dele nasce das copas e do Hall
         binder: binderOf({ ...old, run, parkedRuns, hall }),
+        // v10: Time Ultimate (fatia própria; save de antes nasce com a fatia vazia e os 2 pacotes de boas-vindas)
+        ultimate: ultimateOf(old.ultimate),
     });
 }
 
@@ -1176,6 +1207,54 @@ export const useGame = create<GameStore>()(
                 parkedRuns: [],
                 hall: [],
                 binder: [],
+                ultimate: newUltimate(),
+                ultimateOpenPack: (now = Date.now()) => {
+                    const r = openPack(getState().ultimate, now);
+                    if (!r) return null;
+                    setState({
+                        ultimate: r.u,
+                        dex: markSeen(
+                            getState().dex,
+                            r.pack.cards.map((c) => c.speciesId),
+                        ),
+                    });
+                    return r.pack;
+                },
+                ultimateTeam: (patch) => {
+                    const u = getState().ultimate;
+                    setState({ ultimate: { ...u, team: { ...u.team, ...patch } } });
+                },
+                ultimateSetMember: (i, uid) => {
+                    const u = getState().ultimate;
+                    setState({ ultimate: { ...u, team: setMember(u.team, i, uid) } });
+                },
+                ultimateStart: (live) =>
+                    setState({
+                        ultimate: {
+                            ...getState().ultimate,
+                            live: { ...live, orders: [], tick: 0, engine: ENGINE_VERSION },
+                        },
+                    }),
+                ultimateSaveLive: (patch) => {
+                    const u = getState().ultimate;
+                    if (!u.live) return;
+                    setState({
+                        ultimate: {
+                            ...u,
+                            live: { ...u.live, orders: patch.orders ?? u.live.orders, tick: patch.tick ?? u.live.tick },
+                        },
+                    });
+                },
+                ultimateFinish: (m) => {
+                    const u = getState().ultimate;
+                    if (!u.live) return;
+                    getState().recordDuelDex(m, 0);
+                    setState({ ultimate: finishMatch(getState().ultimate, m) });
+                },
+                ultimateSeen: () => {
+                    const u = getState().ultimate;
+                    if (u.last && !u.last.seen) setState({ ultimate: { ...u, last: { ...u.last, seen: true } } });
+                },
                 duels: [],
                 recordDuel: (rec) => {
                     const { duels, records } = getState();
@@ -2045,6 +2124,7 @@ export const useGame = create<GameStore>()(
             // v7: treinador, títulos e desbloqueios (retroativos: títulos, copa perfeita, Pokédex, líderes vencidos)
             // v8: histórico dos duelos amistosos
             // v9: álbum de edições na Pokédex (`DexEntry.editions`, retroativo pelo Hall e pelas copas guardadas)
+            // v10: Time Ultimate (`ultimate`, fatia própria; src/store/ultimate)
             version: SAVE_VERSION,
             storage: createJSONStorage(() => idbStorage),
             partialize: (s): PersistedSave => savePart(s),
@@ -2070,7 +2150,7 @@ export const useGame = create<GameStore>()(
                 const dex = backfillEditions(markEvolvedPlayed(p.dex ?? {}, runs), p.hall ?? [], runs, false);
                 // álbum de cartas: o fichário da 0.8.8 vira álbum; o save de antes dele ganha as copas guardadas e o Hall
                 const binder = binderOf(p);
-                const next = withUnlocks({ ...p, dex, binder });
+                const next = withUnlocks({ ...p, dex, binder, ultimate: ultimateOf(p.ultimate) });
                 // as que saíram agora ganham o aviso (na Home)
                 const fresh = (next.profile.missionsDone ?? []).slice(p.profile.missionsDone?.length ?? 0);
                 return { ...current, ...next, unlockQueue: [...current.unlockQueue, ...fresh] };
