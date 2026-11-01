@@ -1,6 +1,7 @@
 import type { Prize } from './cup-map';
 import { species } from './data';
 import { draftOptions } from './draft';
+import { type Stone, stoneInto, stoneUsers } from './evolution';
 import { createInstance, type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
@@ -37,6 +38,8 @@ export interface LongReward {
     boss?: number;
     /** Item que vem garantido (o da Equipe Rocket vencida). */
     loot?: string | null;
+    /** Casa da pedra: um dos 3 do rival evolui com ela. */
+    stone?: Stone;
 }
 
 /** As recompensas de um prêmio à vista: 3 do que ele promete (+ `extra` itens). */
@@ -83,6 +86,19 @@ function prizeOptions(
             'ANY',
         );
         out.push(...more.map((inst) => ({ kind: 'pokemon' as const, inst, from: null })));
+        // casa da pedra: um dos 3 evolui com ela, no lugar do último (o do rival; se você já tem, outro que evolui com ela)
+        const stone = long.stone;
+        const uses = (id: number) => !!stone && stoneInto(id, stone) !== null;
+        if (stone && !out.some((r) => r.kind === 'pokemon' && uses(r.inst.speciesId))) {
+            const mine = defeated?.players.find((p) => uses(p.speciesId) && !taken.has(p.speciesId));
+            const fresh = stoneUsers(stone).filter((id) => !taken.has(id));
+            const inst = mine
+                ? { ...mine, uid: `${mine.uid}-c${stage}`, item: null }
+                : fresh.length
+                  ? { ...createInstance(rng.pick(fresh), rng), uid: `pedra-${long.key}` }
+                  : null;
+            if (inst) out[Math.min(out.length, 2)] = { kind: 'pokemon', inst, from: defeated?.name ?? null };
+        }
     } else if (long.prize === 'item') out = items(3, true);
     else if (long.prize === 'tm') {
         out = rollTmOffers(tmRng, team, 3, defeated?.name).map((o) => ({ kind: 'tm' as const, ...o }));

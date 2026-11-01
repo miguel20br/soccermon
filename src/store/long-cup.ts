@@ -105,6 +105,8 @@ export function nodeOpponent(
         types: node.types,
         ...(ch === 'rocket' && { club: 'Equipe Rocket' }),
         ...(ch === 'lendario' && { boss: LEGENDARY_BIRD }),
+        // a casa da pedra (sem desafio, que não dá a pedra): o rival traz um que evolui com ela
+        ...(!ch && node.kind === 'jogo' && node.stone && { stone: node.stone }),
     });
 }
 

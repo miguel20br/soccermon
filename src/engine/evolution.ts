@@ -67,6 +67,26 @@ export function evolutionTarget(speciesId: number, uid: string): number | null {
     return options[h % options.length].id;
 }
 
+/** Pedras de evolução da Gen 1 (Rota Índigo, docs/planos/rota-indigo-revisao.md, decisão 8). */
+export const STONES = ['lua', 'agua', 'trovao', 'folha', 'fogo'] as const;
+export type Stone = (typeof STONES)[number];
+const STONE_ITEM: Readonly<Record<string, Stone>> = {
+    'Moon Stone': 'lua',
+    'Water Stone': 'agua',
+    'Thunder Stone': 'trovao',
+    'Leaf Stone': 'folha',
+    'Fire Stone': 'fogo',
+};
+/**
+ * Para quem ele evolui com essa pedra (Eevee: a pedra escolhe a forma). null = a pedra não serve nele. Na Rota a pedra
+ * é um atalho: evolui na hora, fora da partida; quem evolui por pedra continua evoluindo jogando, como todo mundo.
+ */
+export const stoneInto = (speciesId: number, stone: Stone): number | null =>
+    species(speciesId).evolvesTo.find((e) => e.id <= MAX_ID && e.item && STONE_ITEM[e.item] === stone)?.id ?? null;
+/** Quem evolui com a pedra (Trovão: Pikachu e Eevee), por número da Pokédex. */
+export const stoneUsers = (stone: Stone): number[] =>
+    SPECIES.filter((sp) => stoneInto(sp.id, stone) !== null).map((sp) => sp.id);
+
 /**
  * Nota na vaga depois de evoluir: o que o selo da carta mostra ("vira 85"). Carta = campo: a forma nova
  * continua na mesma vaga, com a mesma edição especial. null se não evolui (ou é o Ditto).

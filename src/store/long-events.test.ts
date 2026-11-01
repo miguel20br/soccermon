@@ -4,12 +4,21 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { FUTSAL_5 } from '../engine/config';
 import { nextNodes } from '../engine/cup-map';
+import { STONES, stoneInto } from '../engine/evolution';
 import { createInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { playerTeam, type RunState, useGame } from './game-store';
 import { outOf } from './long-cup';
-import { EVENT_IDS, eventChoices, type LongEvent, resolveEvent, rollEvent, withKnownEvents } from './long-events';
+import {
+    choiceTargets,
+    EVENT_IDS,
+    eventChoices,
+    type LongEvent,
+    resolveEvent,
+    rollEvent,
+    withKnownEvents,
+} from './long-events';
 
 /** Copa longa pronta, com um Charmander (evolui) no banco. */
 function longRun(seed: string): RunState {
@@ -157,7 +166,7 @@ describe('eventos da Copa longa', () => {
 });
 
 describe('eventos novos da revisão da Rota', () => {
-    it('Fósseis: Omanyte ou Kabuto no lugar do reserva escolhido; a Pedra da Lua enche a barra de quem evolui com ela', () => {
+    it('Fósseis: Omanyte ou Kabuto no lugar do reserva escolhido; a Pedra da Lua evolui na hora quem evolui com ela', () => {
         const base = longRun('ev-fossil');
         const ev = rollEvent(base, 'fosseis');
         expect(ev.cards!.map((c) => c.speciesId)).toEqual([138, 140]);
@@ -173,7 +182,45 @@ describe('eventos novos da revisão da Rota', () => {
             bench: [base.bench[0], 'clef'],
         };
         const stone = resolveEvent(run, ev, 'pedra', 'clef')!;
-        expect(stone.picks.find((p) => p.uid === 'clef')!.evo).toBe(14);
+        expect(stone.picks.find((p) => p.uid === 'clef')!.speciesId).toBe(36);
+    });
+
+    it('Pedra ganha no Jogo: só quem evolui com ela; no Eevee a pedra escolhe a forma; evolui na hora, na vaga dele', () => {
+        const raw = longRun('ev-pedra');
+        // o time pronto sem ninguém que evolua por pedra (troca por Charmander)
+        const base = {
+            ...raw,
+            picks: raw.picks.map((p) =>
+                STONES.some((st) => stoneInto(p.speciesId, st) !== null) ? { ...p, speciesId: 4 } : p,
+            ),
+        };
+        // sem ninguém que use a Pedra do Trovão, só dá pra deixar
+        const thunder: LongEvent = { id: 'pedra', stone: 'trovao' };
+        expect(eventChoices(base, thunder).map((c) => [c.id, c.ok])).toEqual([
+            ['usar', false],
+            ['deixar', true],
+        ]);
+        const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', evo: 9 };
+        const titular = base.lineup[2];
+        const run: RunState = {
+            ...base,
+            picks: [...base.picks.filter((p) => p.uid !== titular), eevee],
+            lineup: base.lineup.map((u) => (u === titular ? 'eevee' : u)),
+        };
+        expect(choiceTargets(run, thunder, 'stone')).toEqual(['eevee']);
+        // Charmander não evolui por pedra: não é alvo
+        expect(resolveEvent(run, { id: 'pedra', stone: 'fogo' }, 'usar', 'charm')).toBeNull();
+        const forms = (['agua', 'trovao', 'fogo'] as const).map(
+            (stone) =>
+                resolveEvent(run, { id: 'pedra', stone }, 'usar', 'eevee')!.picks.find((p) => p.uid === 'eevee')!,
+        );
+        expect(forms.map((p) => p.speciesId)).toEqual([134, 135, 136]);
+        expect(forms[1].evo).toBe(0);
+        expect(forms[1].evolved).toBe(1);
+        // a forma nova herda a vaga em que ele jogava
+        expect(forms[1].inherited?.length).toBe(1);
+        expect(resolveEvent(run, { id: 'pedra', stone: 'lua' }, 'usar', 'eevee')).toBeNull();
+        expect(resolveEvent(run, thunder, 'deixar')!.picks).toEqual(run.picks);
     });
 
     it('Pássaro lendário e Equipe Rocket: o desafio vale pra próxima partida do mapa, com o rival +2', () => {

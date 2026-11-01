@@ -228,6 +228,13 @@
     width: 18px;
     height: 18px;
 }
+/* o prêmio e a pedra da mesma casa ficam juntos (só o gap da ficha entre eles) */
+.cm-prize:has(+ .cm-prize) {
+    margin-bottom: 0;
+}
+.cm-prize + .cm-prize {
+    margin-top: 0;
+}
 .cm-sheet-head {
     display: flex;
     align-items: center;
@@ -1155,4 +1162,38 @@
     .cm-scroll {
         max-height: calc(calc(100 * var(--vh)) - 90px);
     }
+}
+
+/* ---------- pedras de evolução (prêmio de região) ---------- */
+.cm-stone,
+.cm-node-stone,
+.cm-event-stone {
+    display: inline-grid;
+    place-items: center;
+    color: var(--stone);
+    vertical-align: middle;
+}
+.cm-stone {
+    margin-right: 4px;
+}
+.cm-node .cm-node-stone {
+    position: absolute;
+    /* embaixo à esquerda do círculo: em cima ficam o capitão do rival e o nome da região */
+    top: 30px;
+    right: calc(50% + 12px);
+    z-index: 1;
+}
+.cm-node .cm-node-stone .hud-icon {
+    width: 14px;
+    height: 14px;
+    padding: 3px;
+    border-width: 2px;
+    background: var(--panel);
+    color: var(--stone);
+    stroke-width: 3;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+}
+.cm-event-stone .hud-icon {
+    width: 48px;
+    height: 48px;
 }

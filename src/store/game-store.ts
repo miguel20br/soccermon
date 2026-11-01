@@ -606,7 +606,7 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
           ? undefined
           : node.kind === 'ginasio' && node.types
             ? ('gym' as const)
-            : node.kind === 'jogo' && node.prize !== 'money'
+            : node.kind === 'jogo' && node.prize !== 'money' && node.prize !== 'pedra'
               ? node.prize
               : undefined;
     const opp = run.opponents[run.stage];
@@ -619,6 +619,8 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
               ace: prize === 'gym' && opp ? LEADER_ACE[opp.name] : undefined,
               boss: fight === 'lendario' ? LEGENDARY_BIRD : undefined,
               loot: fight === 'rocket' ? (opp?.lineup.find((p) => p.item)?.item ?? null) : null,
+              // casa da pedra: o 1 de 3 do rival traz um que evolui com ela
+              stone: run.rivalPick && node?.kind === 'jogo' ? node.stone : undefined,
           }
         : undefined;
     const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
@@ -689,6 +691,13 @@ const toGroup = (run: RunState): RunState => ({
         ),
     },
 });
+/** O Jogo vencido dá a pedra dele (junto do prêmio): a tela da pedra. Desafio de evento e grupo não dão. */
+const stoneEvent = (run: RunState): Pick<RunState, 'status' | 'event'> | null => {
+    const node = currentNode(run);
+    return node?.kind === 'jogo' && node.stone && !run.fight && !run.group
+        ? { status: 'event', event: { id: 'pedra', stone: node.stone } }
+        : null;
+};
 /** Volta pro lugar certo da Rota: o grupo (já chegou no Planalto) ou o mapa. */
 const backToRoute = (run: RunState): { run: RunState; screen: Screen } =>
     run.group || (run.map && nextNodes(run.map, run.at ?? null).length === 0)
@@ -1131,9 +1140,13 @@ export const useGame = create<GameStore>()(
                 const done = { ...run, rewards: [], rivalPick: false };
                 if (isLong(run)) {
                     // depois do 1 de 3 do rival, o prêmio da casa (MT ou item; o ₽ em dobro já entrou na vitória)
-                    const prize = run.rivalPick ? currentNode(run)?.prize : undefined;
+                    const node = currentNode(run);
+                    const prize = run.rivalPick ? node?.prize : undefined;
                     if (prize === 'tm' || prize === 'item')
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
+                    // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento
+                    const stone = stoneEvent(done);
+                    if (stone) return { run: { ...done, ...stone }, match: null, screen: 'event' };
                     return { ...backToRoute(done), match: null };
                 }
                 const res = run.results.find((r) => r.stage === run.stage);
@@ -1889,8 +1902,26 @@ export const useGame = create<GameStore>()(
                     const next = resolveEvent(run, run.event, choice, target, captain);
                     if (!next) return;
                     const incoming = next.picks.filter((p) => !run.picks.some((o) => o.uid === p.uid));
+                    // a pedra evoluiu alguém: Pokédex e fichário como a evolução da partida
+                    const evolved = next.picks.filter((p) =>
+                        run.picks.some((o) => o.uid === p.uid && o.speciesId !== p.speciesId),
+                    );
                     setState({
                         ...(incoming.length && gained(run, next.picks, 'recompensa')),
+                        ...(evolved.length && {
+                            dex: markOvr(
+                                markSeen(
+                                    getState().dex,
+                                    evolved.map((p) => p.speciesId),
+                                ),
+                                evolved.map(ovrOf),
+                            ),
+                            binder: binderAdd(getState().binder, evolved, {
+                                from: 'evolucao',
+                                at: Date.now(),
+                                cup: run.seed,
+                            }),
+                        }),
                         run: {
                             ...toMap(next),
                             event: null,

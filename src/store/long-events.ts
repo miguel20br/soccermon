@@ -1,6 +1,7 @@
 import { LEGENDARY_BIRD } from '../engine/cup-map';
 import { draftOptions } from '../engine/draft';
-import { evolutionTarget, evoThreshold } from '../engine/evolution';
+import { evolveInstance, type Stone, stoneInto } from '../engine/evolution';
+import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { rollSpecial } from '../engine/specials';
@@ -24,8 +25,8 @@ export const EVENT_IDS = [
     'juiz',
     'ovo',
 ] as const;
-/** `centro` = o Centro Pokémon do mapa (a mesma tela, fora do sorteio). */
-export type EventId = (typeof EVENT_IDS)[number] | 'centro';
+/** `centro` = o Centro Pokémon do mapa e `pedra` = a pedra ganha num Jogo (a mesma tela, fora do sorteio). */
+export type EventId = (typeof EVENT_IDS)[number] | 'centro' | 'pedra';
 
 export interface LongEvent {
     id: EventId;
@@ -35,9 +36,11 @@ export interface LongEvent {
     cards?: PokemonInstance[];
     /** Ovo: a espécie que vai nascer (segredo até chocar). */
     egg?: number;
+    /** A pedra ganha (prêmio `pedra` do Jogo). */
+    stone?: Stone;
 }
 
-/** O que cada escolha pede: nada, alguém do time, alguém do banco, quem segura item, quem evolui com a Pedra da Lua. */
+/** O que cada escolha pede: nada, alguém do time, alguém do banco, quem segura item, quem evolui com a pedra. */
 export type Need = 'none' | 'involved' | 'bench' | 'holder' | 'stone' | 'captainSale';
 
 export interface EventChoice {
@@ -65,8 +68,6 @@ const WEIGHT: Record<(typeof EVENT_IDS)[number], number> = {
 
 /** Linha do mapa de cada evento de região: os Fósseis na entrada do Mt. Moon, o Zapdos perto da Usina (Cerulean). */
 const REGION_ROW: Partial<Record<EventId, number>> = { fosseis: 3, lendario: 6 };
-/** Quem evolui com a Pedra da Lua: Nidorina, Nidorino, Clefairy, Jigglypuff. */
-const MOON_STONE = new Set([30, 33, 35, 39]);
 /** O Ovo choca um destes (o que você ainda não tem). */
 const EGG_POOL = [147, 133, 131, 137, 113];
 /** Partidas até o Ovo chocar. */
@@ -77,10 +78,11 @@ export const JUDGE_PRICE = 10;
 
 const squadOf = (run: RunState) => [...run.lineup, ...run.bench].filter(Boolean);
 const benchFree = (run: RunState) => run.bench.filter((u) => u && u !== run.captainUid);
-const stoners = (run: RunState) =>
-    run.picks.filter(
-        (p) => MOON_STONE.has(p.speciesId) && evolutionTarget(p.speciesId, p.uid) !== null && !isOut(run, p.uid),
-    );
+/** Quem evolui com a pedra (a Pedra da Lua: Nidorina, Nidorino, Clefairy, Jigglypuff). */
+export const stoners = (run: Pick<RunState, 'picks' | 'out'>, stone: Stone) =>
+    run.picks.filter((p) => p.ability !== 'imposter' && stoneInto(p.speciesId, stone) !== null && !isOut(run, p.uid));
+/** A pedra do evento: a ganha no Jogo ou a Pedra da Lua dos Fósseis. */
+const stoneOf = (ev: LongEvent): Stone => ev.stone ?? 'lua';
 const holders = (run: RunState) => squadOf(run).filter((u) => run.picks.find((p) => p.uid === u)?.item);
 const rating = (run: RunState, uid: string) => {
     const p = run.picks.find((x) => x.uid === uid);
@@ -162,7 +164,7 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
             return [
                 c('helix', 0, 'bench', bench >= 1 && !taken.has(138)),
                 c('domo', 0, 'bench', bench >= 1 && !taken.has(140)),
-                c('pedra', 0, 'stone', stoners(run).length > 0),
+                c('pedra', 0, 'stone', stoners(run, 'lua').length > 0),
                 c('seguir', 0, 'none'),
             ];
         case 'lendario':
@@ -184,6 +186,8 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
             ];
         case 'ovo':
             return [c('ficar', 0, 'bench', bench >= 1), c('deixar', 0, 'none')];
+        case 'pedra':
+            return [c('usar', 0, 'stone', stoners(run, stoneOf(ev)).length > 0), c('deixar', 0, 'none')];
         case 'centro':
             return [
                 c('amarelo', 0, 'none', (run.cards ?? 0) > 0),
@@ -201,7 +205,7 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
 /** Quem pode ser escolhido pra essa escolha (uids). */
 export function choiceTargets(run: RunState, ev: LongEvent, need: Need): string[] {
     if (need === 'involved') return ev.uids ?? [];
-    if (need === 'stone') return stoners(run).map((p) => p.uid);
+    if (need === 'stone') return stoners(run, stoneOf(ev)).map((p) => p.uid);
     if (need === 'holder') return holders(run);
     if (need === 'bench' || need === 'captainSale') return benchFree(run);
     return [];
@@ -226,10 +230,14 @@ export function resolveEvent(
         out: { ...(next.out ?? {}), [uid]: n },
         outWhy: { ...(next.outWhy ?? {}), [uid]: why },
     });
-    // barra cheia = o limiar do seu time (Clube Formador baixa pra 10)
-    const evoMax = evoThreshold(run.sponsors);
-    const evoFill = (uid: string, amount: number) =>
-        next.picks.map((p) => (p.uid === uid ? { ...p, evo: Math.min(evoMax, (p.evo ?? 0) + amount) } : p));
+    // a pedra evolui na hora (fora da partida); a forma nova herda a vaga em que ele joga, como na evolução em partida
+    const stoneEvolve = (uid: string) =>
+        next.picks.map((p) => {
+            const into = p.uid === uid ? stoneInto(p.speciesId, stoneOf(ev)) : null;
+            if (into === null) return p;
+            const at = run.lineup.indexOf(uid);
+            return { ...evolveInstance(p, into, at >= 0 ? formationOf(run.formation).slots[at] : undefined), evo: 0 };
+        });
     const swapIn = (inst: PokemonInstance, leaving: string): RunState => ({
         ...next,
         picks: [...next.picks.filter((p) => p.uid !== leaving), inst],
@@ -273,8 +281,8 @@ export function resolveEvent(
         case 'fosseis:domo':
             return swapIn(ev.cards![1], target!);
         case 'fosseis:pedra':
-            // a Pedra da Lua: barra cheia, evolui na próxima partida
-            return { ...next, picks: evoFill(target!, evoMax) };
+        case 'pedra:usar':
+            return { ...next, picks: stoneEvolve(target!) };
         case 'lendario:desafiar':
             return { ...next, challenge: 'lendario' };
         case 'rocket:item':
@@ -307,7 +315,7 @@ export function resolveEvent(
  */
 export function withKnownEvents<T extends RunState | null | undefined>(run: T): T {
     if (!run) return run;
-    const known = (id: string) => id === 'centro' || (EVENT_IDS as readonly string[]).includes(id);
+    const known = (id: string) => id === 'centro' || id === 'pedra' || (EVENT_IDS as readonly string[]).includes(id);
     let out: RunState = run;
     if (run.event && !known(run.event.id))
         out = { ...out, event: rollEvent({ ...run, eventsSeen: [...(run.eventsSeen ?? []), run.event.id] }) };
