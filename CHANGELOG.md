@@ -5,6 +5,7 @@
 ### Partida
 - No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado
 - O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar
+- No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)
 
 ### Copa
 - Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver

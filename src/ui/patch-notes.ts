@@ -18,6 +18,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado',
                     'O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar',
+                    'No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)',
                 ],
             },
             {
@@ -2251,6 +2252,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'On PC the full panel is back: tactics open under the court, formation and team on the side',
                     "The max move button only lights up when the ball is at the captain's feet, ready to shoot",
+                    "In Duels the max move stays armed until the captain's next shot (it used to last about 5 seconds)",
                 ],
             },
             {
