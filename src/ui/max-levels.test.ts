@@ -42,7 +42,7 @@ describe('golpe máximo explicado (max-levels)', () => {
             'N1 liberado: chute forte que queima quem bloquear ou defender',
         );
         expect(maxLevelUnlocked(charmander, 2, 'pt')).toBe('N2 liberado: derruba quem estiver no caminho');
-        expect(maxLevelUnlocked(charmander, 3, 'pt')).toBe('N3 liberado: sempre no alvo, com Bola em chamas');
+        expect(maxLevelUnlocked(charmander, 3, 'pt')).toBe('N3 liberado: sempre no alvo, com Rastro de fogo');
         expect(maxLevelText(charmander, 1, 'pt')).toContain('+25% de força');
         const pikachu = maxPlan(['thundershock', 'quickattack'], 25, false);
         expect(pikachu.fx).toBe('thunderbolt');
@@ -53,7 +53,7 @@ describe('golpe máximo explicado (max-levels)', () => {
     it('no gol o golpe é a bicuda', () => {
         const snorlax = maxPlan(['bodyslam', 'rest'], 143, true);
         expect(maxLevelUnlocked(snorlax, 2, 'pt')).toBe('N2 liberado: a bicuda derruba quem estiver no caminho');
-        expect(maxLevelText(snorlax, 3, 'pt')).toContain('Pancada do Snorlax');
+        expect(maxLevelText(snorlax, 3, 'pt')).toContain('Body Slam');
     });
 
     it('todo tipo e toda assinatura tem nome, descrição e verbo do status nos dois idiomas', () => {

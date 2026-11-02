@@ -185,6 +185,10 @@ export interface TraitState {
     typeCopy: { types: TypeName[]; t: number } | null;
     /** Roar: fugindo para o próprio campo. */
     flee: { dir: Vec2; t: number } | null;
+    /** N1 Lutador: mão dormente, a próxima defesa dele não encaixa. */
+    numb: boolean;
+    /** N1 Pedra: segundos preso no lugar (não anda, ainda defende). */
+    root: number;
 }
 
 /** Zona no chão (Smokescreen, Fire Spin, muro do Barrier). */
@@ -438,7 +442,7 @@ export type MatchEvent = MatchEventBase &
         | {
               type: 'status';
               target: number;
-              status: StatusKind | 'infatuation' | 'flinch' | 'seed';
+              status: StatusKind | 'infatuation' | 'flinch' | 'seed' | MaxN1Fx;
               by: number | null;
               source: string;
           }
@@ -527,6 +531,9 @@ export type MatchEvent = MatchEventBase &
     );
 
 export type MatchEventType = MatchEvent['type'];
+
+/** Efeitos do N1 do golpe máximo que não são status (`AGENCY.maxN1`): areia, teia, alto, mão dormente, preso, barra. */
+export type MaxN1Fx = 'blind' | 'web' | 'lift' | 'numb' | 'root' | 'drain';
 
 export type TraitFx =
     | 'crit'

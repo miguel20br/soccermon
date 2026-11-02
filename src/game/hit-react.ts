@@ -18,7 +18,14 @@ export type ReactWord =
     | 'seed'
     | 'down'
     | 'push'
-    | 'soak';
+    | 'soak'
+    // N1 do golpe máximo (AGENCY.maxN1)
+    | 'blind'
+    | 'web'
+    | 'lift'
+    | 'numb'
+    | 'root'
+    | 'drain';
 
 export interface Reaction {
     target: number;
@@ -47,6 +54,12 @@ export const WORD_TYPE: Record<ReactWord, string> = {
     down: 'Fighting',
     push: 'Normal',
     soak: 'Water',
+    blind: 'Ground',
+    web: 'Bug',
+    lift: 'Flying',
+    numb: 'Fighting',
+    root: 'Rock',
+    drain: 'Dragon',
 };
 
 /** Prioridade da palavra quando duas chegam juntas no mesmo alvo (o status vence o empurrão). */
@@ -63,7 +76,16 @@ export const WORD_RANK: Record<ReactWord, number> = {
     down: 2.5,
     push: 1,
     soak: 1,
+    blind: 3,
+    web: 3,
+    lift: 3,
+    numb: 3,
+    root: 3,
+    drain: 3,
 };
+
+/** Efeitos do N1 que não são status: a tela solta a partícula do tipo em quem levou (sem ícone preso). */
+export const N1_FX_WORDS: ReadonlySet<string> = new Set(['blind', 'web', 'lift', 'numb', 'root', 'drain']);
 
 /**
  * Segundos no chão a partir dos quais o empurrão vira tombo. Todo empurrão do motor deixa 0,45 s em Hurt; carrinho com
@@ -71,7 +93,7 @@ export const WORD_RANK: Record<ReactWord, number> = {
  */
 export const DOWN_SECONDS = 0.6;
 
-/** N3 Normal e Terrestre derrubam quem pegam (Mega Impacto no goleiro, Terremoto na defesa). */
+/** N3 Normal e Terrestre derrubam quem pegam (Giga Impact no goleiro, Earthquake na defesa). */
 const MAX_FX_DOWN = new Set(['Normal', 'Ground']);
 
 export interface ReactContext {
