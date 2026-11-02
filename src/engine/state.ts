@@ -648,6 +648,12 @@ export interface MatchState {
     lastMove: [string | null, string | null];
     /** Zonas no chão (fumaça, anel de fogo, muro). */
     zones: Zone[];
+    /**
+     * Quedas do golpe máximo N2/N3 (e da bicuda N2) esperando a bola: quem estava na linha do chute cai quando a bola
+     * chega nele (`at` metros de `from` na direção `dir`), não no chute. Valem só pra esse chute (`kick`, o
+     * `ball.lastKick` dele): a bola parada, dominada ou chutada de novo antes cancela as que faltam.
+     */
+    knocks: { idx: number; by: number; moveId: string; from: Vec2; dir: Vec2; at: number; kick: object }[];
     /** Escanteio em andamento (cobrança e disputa). */
     setPiece: SetPiece | null;
     ball: BallState;

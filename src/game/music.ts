@@ -435,10 +435,10 @@ function fillBuffer(o: Parameters<typeof mixVirada>[0]): AudioBuffer {
 
 /**
  * Golpe máximo (29/10/2026): no bullet time a faixa vai pro fundo (passa-baixa + volume) e volta com a virada no
- * toque. `DUCK.hz`/`gain` = o fundo; `tau` = constante da descida e da volta sem toque.
- * ponytail: troca de trecho no meio (minuto, pressão) entra aberta e solta o fundo; segurar o fundo no trecho novo se incomodar.
+ * toque. `DUCK.hz`/`gain` = o fundo; `tau` = constante da descida e da volta sem toque. O fundo era 650 Hz e metade do
+ * volume (~14 dB abaixo, medido no navegador): o Miguel ouvia "a música em silêncio" (01/11/2026). Agora fica ~6 dB.
  */
-export const DUCK = { hz: 650, gain: 0.5, tau: 0.08, back: 0.15 };
+export const DUCK = { hz: 1500, gain: 0.72, tau: 0.08, back: 0.15 };
 let ducked: Playing | null = null;
 /** Quando (relógio do áudio) a faixa abre de novo depois do último `unduckMusic`. */
 let openAt = 0;
@@ -467,9 +467,12 @@ export function duckMusic() {
  * abre no 1. Sem toque (passou, "Esperar"): volta devagar já.
  */
 export function unduckMusic(fill: boolean) {
-    const p = ducked;
+    const was = ducked;
     ducked = null;
-    if (!zz || !p || p !== current) return;
+    // troca de trecho no fundo (minuto, Pressão final): o trecho novo é outro objeto, mas o passa-baixa é o mesmo
+    // (`switchSection`); comparar o objeto deixava o filtro fechado até o fim da faixa (a música "em silêncio")
+    if (!zz || !was || !current || was.lp !== current.lp) return;
+    const p = current;
     const c = ctx();
     const now = c.currentTime;
     let open = now;

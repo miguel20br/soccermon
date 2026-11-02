@@ -112,11 +112,19 @@ describe('golpe máximo universal (motor 17)', () => {
             { x: 33, y: 15 },
         ];
         const n2 = shoot({ level: 2, defAt });
+        // no chute ninguém caiu ainda: cada um cai quando a bola chega nele (Miguel, 01/11: caíam antes da bola)
+        expect(of(n2, 'knockback')).toEqual([]);
+        expect(n2.players[6].stun).toBe(0);
+        idle(n2, 12);
         expect(n2.players[6].stun).toBeGreaterThan(0);
         expect(n2.players[7].stun).toBeGreaterThan(0);
         expect(n2.players[8].stun).toBe(0);
         expect(n2.players[5].stun).toBe(0);
-        expect(of(n2, 'knockback').map((e) => e.target)).toEqual([6, 7]);
+        const hits = of(n2, 'knockback');
+        expect(hits.map((e) => e.target)).toEqual([7, 6]);
+        // o da frente (3 m) antes do de trás (6 m), e a bola já perto de cada um quando ele cai
+        expect(hits[0].tick).toBeGreaterThan(1);
+        expect(hits[1].tick).toBeGreaterThan(hits[0].tick);
         // no N1 ninguém cai
         const n1 = shoot({ level: 1, defAt });
         expect([6, 7, 8].map((i) => n1.players[i].stun)).toEqual([0, 0, 0]);

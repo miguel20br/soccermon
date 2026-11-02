@@ -454,6 +454,29 @@ export class Cinematics {
                     opts.y + Math.sin(a + w) * r1,
                 );
             }
+            if (opts.reduce) return;
+            // raios saindo do capitão (em zigue-zague, redesenhados a cada piscada): a energia do especial
+            for (let b = 0; b < 4; b++) {
+                const a = Math.random() * Math.PI * 2;
+                let px = opts.x + Math.cos(a) * 26;
+                let py = opts.y + Math.sin(a) * 26;
+                const pts = [px, py];
+                for (let j = 0; j < 6; j++) {
+                    const r = 22 + Math.random() * 18;
+                    const aa = a + (Math.random() - 0.5) * 0.9;
+                    px += Math.cos(aa) * r;
+                    py += Math.sin(aa) * r;
+                    pts.push(px, py);
+                }
+                for (const [wd, c, al] of [
+                    [7, opts.color, 0.45],
+                    [2.5, 0xffffff, 1],
+                ] as const) {
+                    lines.lineStyle(wd, c, al).beginPath().moveTo(pts[0], pts[1]);
+                    for (let j = 2; j < pts.length; j += 2) lines.lineTo(pts[j], pts[j + 1]);
+                    lines.strokePath();
+                }
+            }
         };
         draw();
         const flicker = opts.reduce ? null : scene.time.addEvent({ delay: 60, loop: true, callback: draw });

@@ -68,8 +68,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 17 = golpe máximo universal (docs/planos/golpe-universal.md): N1 passa o status do tipo, N2 derruba a linha, N3 sempre
  *     no alvo, curva sozinha pro canto longe do goleiro; o goleiro capitão dá a bicuda (o parry dele: qualquer chute no
  *     gol, toque fora = defesa de sempre; N3 passa pela defesa normal do goleiro rival) e a defesa máxima sai.
+ * 18 = a queda do N2/N3 (e da bicuda N2) acontece quando a bola chega em cada um, não no chute (`maxKnock`/`landKnocks`;
+ *     Miguel, 01/11/2026: "a bicuda tá derrubando a galera antes da bola chegar"). Os números não mudaram.
  */
-export const ENGINE_VERSION = 17;
+export const ENGINE_VERSION = 18;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

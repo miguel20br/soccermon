@@ -30,6 +30,9 @@ const node = (cls: string, parent: HTMLElement) => {
     return el;
 };
 
+/** Distância mínima (px da página) do centro do estouro até a borda da janela: metade do "PERFEITO!" e uma folga. */
+const BURST_EDGE = 100;
+
 const LABEL = { 2: 'match.agency.maxPerfect', 1: 'match.agency.maxGood', 0: 'match.agency.maxOff' } as const;
 
 /** `from`: o botão tocado (no celular o da quadra e o da barra de baixo acendem juntos); sem ele (tecla M), o aceso. */
@@ -42,11 +45,14 @@ export function maxBurst(q: MaxGrade, from?: HTMLElement) {
     const layer = document.createElement('div');
     layer.className = `max-burst q${q}`;
     layer.setAttribute('aria-hidden', 'true');
-    // a cor do nível (N3 = tipo do capitão) vem do botão
-    layer.style.setProperty('--bc', cs.getPropertyValue('--lvc').trim() || 'var(--yellow)');
-    // o retângulo vem em px da tela; o estilo anda em px da página com o zoom da tela grande
+    // a cor do nível (N3 = tipo do capitão) vem do botão; o perfeito é verde (`.max-burst.q2`, a cor do alvo aceso)
+    if (q !== 2) layer.style.setProperty('--bc', cs.getPropertyValue('--lvc').trim() || 'var(--yellow)');
+    // o retângulo vem em px da tela; o estilo anda em px da página com o zoom da tela grande. O botão grande fica no
+    // canto da quadra: o "PERFEITO!" saía cortado na borda, então o centro fica a `BURST_EDGE` dela
     const z = uiZoom();
-    layer.style.left = `${(r.left + r.width / 2) / z}px`;
+    const cx = (r.left + r.width / 2) / z;
+    const vw = window.innerWidth / z;
+    layer.style.left = `${Math.min(Math.max(cx, BURST_EDGE), Math.max(BURST_EDGE, vw - BURST_EDGE))}px`;
     layer.style.top = `${(r.top + r.height / 2) / z}px`;
     document.body.appendChild(layer);
     const look = LOOK[q];

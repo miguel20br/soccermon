@@ -74,7 +74,22 @@ import {
     type TraitState,
 } from './state';
 import { typeMultiplier } from './types';
-import { add, clamp, dir8, dist, len, norm, pointSegment, rotate, scale, sub, truncate, type Vec2, v } from './vec';
+import {
+    add,
+    clamp,
+    dir8,
+    dist,
+    dot,
+    len,
+    norm,
+    pointSegment,
+    rotate,
+    scale,
+    sub,
+    truncate,
+    type Vec2,
+    v,
+} from './vec';
 import { expectedGoals } from './xg';
 
 // ---------------------------------------------------------------- constantes físicas
@@ -305,6 +320,7 @@ export function createMatch(
         pendingSubs: [],
         lastMove: [null, null],
         zones: [],
+        knocks: [],
         setPiece: null,
         nextMoveTick: 0,
         ball: {
@@ -410,6 +426,7 @@ function setupKickoff(s: MatchState, team: 0 | 1) {
         p.fx.flee = null;
     }
     s.zones = [];
+    s.knocks = [];
     s.setPiece = null;
     // quem dá a saída: o pivô vai para o círculo central
     const kicker =
@@ -2194,6 +2211,7 @@ function updateBall(s: MatchState, dt: number) {
     const ball = s.ball;
     const { length, width, goalWidth } = s.cfg.pitch;
     if (ball.owner !== null) {
+        s.knocks.length = 0;
         const o = s.players[ball.owner];
         ball.pos = add(o.pos, scale(o.heading, DRIBBLE_OFFSET));
         ball.vel = o.vel;
@@ -2226,6 +2244,8 @@ function updateBall(s: MatchState, dt: number) {
         ball.vel = v(ball.vel.x * 0.85, -ball.vel.y * WALL_DAMPING);
     }
 
+    // quem estava na linha do golpe máximo cai quando a bola chega (antes do bloqueio: caído não bloqueia)
+    if (s.knocks.length) landKnocks(s);
     // goleiro e bloqueios durante um chute (pelo trecho percorrido no tick, cortado na linha do gol)
     if (ball.shot) checkShotInteractions(s, prev);
     if (s.ball.owner !== null) return;
@@ -3816,15 +3836,37 @@ function ballAtGoalLine(s: MatchState, p: PlayerState): Vec2 {
 /** N2 e N3: os rivais de linha no caminho da bola (de `p` até `to`) caem; o goleiro não. */
 function maxKnock(s: MatchState, p: PlayerState, to: Vec2) {
     const moveId = maxMoveOf(p.inst.moves, p.inst.speciesId) ?? 'megapunch';
-    const t = AGENCY.knockStun;
+    const kick = s.ball.lastKick;
+    if (!kick) return;
+    const dir = norm(sub(to, p.pos));
     for (const o of s.players) {
         if (o.team === p.team || o.role === 'GK' || hidden(o) || pointSegment(o.pos, p.pos, to).d > AGENCY.knockR)
             continue;
+        s.knocks.push({ idx: o.idx, by: p.idx, moveId, from: p.pos, dir, at: dot(sub(o.pos, p.pos), dir), kick });
+    }
+}
+
+/**
+ * Quanto antes de chegar no rival (m, na linha do chute) a queda acontece: a bola anda até ~1,6 m por tick e o
+ * bloqueio olha 0,5 m em volta dela, então o rival cai no tick em que a bola encosta, antes de poder bloquear.
+ */
+const KNOCK_LEAD = 0.5;
+
+/** As quedas do golpe máximo que a bola alcançou neste tick (`maxKnock`); as de outro chute somem. */
+function landKnocks(s: MatchState) {
+    const ball = s.ball;
+    const t = AGENCY.knockStun;
+    s.knocks = s.knocks.filter((k) => {
+        if (ball.lastKick !== k.kick) return false;
+        if (dot(sub(ball.pos, k.from), k.dir) < k.at - KNOCK_LEAD) return true;
+        const o = s.players[k.idx];
+        if (hidden(o)) return false;
         o.stun = Math.max(o.stun, t);
         o.vel = v(0, 0);
         setAction(o, Action.Hurt, t);
-        emit(s, { type: 'knockback', target: o.idx, by: p.idx, moveId });
-    }
+        emit(s, { type: 'knockback', target: o.idx, by: k.by, moveId: k.moveId });
+        return false;
+    });
 }
 
 /** Golpe máximo: o status do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`). */

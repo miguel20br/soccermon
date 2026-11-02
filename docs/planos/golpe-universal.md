@@ -105,3 +105,24 @@ O que estava em aberto antes da decisão:
 - O técnico robô ganha +6 a +11 pp de vitória com o golpe máximo (motor 16: +2 a +5): o golpe máximo pesa mais no
   resultado.
 - Toque fora da bicuda: gasta a barra (como pedido "gasta como o golpe máximo"). Alternativa: não gastar no fora.
+
+## Ritmo do golpe (01/11/2026, branch `golpe-ritmo`, motor 18)
+
+Relato do Miguel jogando a 0.9.30, causa vista e conserto:
+
+- **Música "em silêncio"**: o fundo do anel era 650 Hz e metade do volume (~14 dB abaixo, medido no navegador) e, sem
+  toque, durava a hora certa inteira (~9 s); troca de trecho no meio (minuto, Pressão final) deixava o passa-baixa
+  fechado até o fim da faixa (`unduckMusic` comparava o objeto, o trecho novo divide o filtro). Agora: fundo de ~6 dB
+  (`DUCK`), volta quando o anel fecha sem toque e a troca de trecho não prende o filtro.
+- **Círculo verde do perfeito**: o alvo acendia branco com brilho na cor do nível por 100 ms; agora acende verde, e o
+  "PERFEITO!" e o anel do estouro também (o texto saía cortado na borda: o estouro fica a 100 px dela).
+- **Botão que aparece e some**: o "chamar o capitão" apagava a cada passe pra trás (29% das vezes aceso menos de 1 s
+  de jogo, medido em 12 partidas). Agora fica até o anel fechar e pelo menos 1,2 s (`steadyCue`); gol, saída de bola,
+  intervalo e a bicuda depois do toque do goleiro apagam na hora. Depois: 1% no 1x.
+- **N3**: a cena era metade no 4x e nada no 8x (quem joga no 8x só via a câmera lenta); agora vale em toda velocidade,
+  com raios saindo do capitão, o stinger `max-stinger` (`scripts/musica/pecas/especial-n3.mjs`: subida na cena, o
+  chute e o SOC-CER-MON em Lá menor) e, no chute, a câmera abre no gol atacado inteiro (`n3ShotFrame`).
+- **Queda antes da bola (motor 18)**: `maxKnock` derrubava todo mundo na linha no tick do chute; agora cada um cai
+  quando a bola chega nele (`landKnocks`). `calibrate --n 200 --agencia`, mesmas seeds: gols 8,31 ⇒ 8,29; golpe de
+  linha que vira gol 74% ⇒ 71% (N2 65% ⇒ 61%, N3 93% ⇒ 96%), dentro do erro. Números de equilíbrio não mexidos.
+- **Bola do golpe**: partículas do tipo mais densas, brilho e rastro maiores por nível (`MAX_BALL_FX`).
