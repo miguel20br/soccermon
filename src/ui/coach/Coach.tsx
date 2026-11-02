@@ -1,12 +1,5 @@
-import {
-    type CSSProperties,
-    type KeyboardEvent,
-    type MouseEvent,
-    useEffect,
-    useLayoutEffect,
-    useRef,
-    useState,
-} from 'react';
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { track } from '../../analytics/track';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -15,9 +8,11 @@ import { useGame } from '../../store/game-store';
 import { reduceMotionOn } from '../reduce-motion';
 import { uiZoom } from '../ui-zoom';
 import './coach.css';
-import { type Box, needsScroll, placeBalloon, tappableUnder } from './place';
+import { type Box, needsScroll, placeBalloon } from './place';
 
 const PAD = 6;
+/** Vão entre a linha e o alvo, onde mora o dedo. */
+const FINGER_GAP = 34;
 const FADE_MS = 220;
 const MOVE_MS = 260;
 
@@ -42,7 +37,8 @@ export function markSeen(ids: readonly CoachId[]) {
 }
 
 /**
- * Balões do tutorial (coach marks): apagam o resto da tela, acendem o elemento de verdade e põem uma linha ao lado.
+ * Dicas da primeira vez (coach marks, cara-de-jogo.md decisão 14): um dedo apontando pro elemento de verdade e uma
+ * linha ao lado, sem apagar a tela (dá pra tocar em tudo). Some quando a pessoa toca no elemento.
  * `targets` são seletores CSS, um por balão, na ordem; os textos vêm de `help.coach[id]`. Aparece uma vez por modo
  * (o flag vai pro save assim que o 1º balão aparece), respeita "Dicas" nas configurações, sempre dá pra pular, e
  * volta pela Ajuda. Se o elemento ainda não existe (ou sumiu), espera ele aparecer.
@@ -177,22 +173,6 @@ function Balloon({
             setSize({ width: b.offsetWidth, height: b.offsetHeight });
     });
 
-    // foco no balão e de volta pra quem tinha
-    const lit = useRef<Element | null>(null);
-    lit.current = el;
-    useEffect(() => {
-        const before = document.activeElement as HTMLElement | null;
-        return () => {
-            // ninguém tinha o foco (o balão abre sozinho na entrada): ele vai pro alvo aceso, se der pra focar
-            const target =
-                before && before !== document.body ? before : lit.current?.closest('button, a, input, [tabindex]');
-            (target as HTMLElement | null)?.focus?.({ preventScroll: true });
-        };
-    }, []);
-    useEffect(() => {
-        if (shown) balloon.current?.focus({ preventScroll: true });
-    }, [shown]);
-
     const end = () => {
         setShown(false);
         window.setTimeout(onEnd, FADE_MS);
@@ -210,13 +190,6 @@ function Balloon({
         end();
     };
 
-    // tocar fora fecha o balão E segue pro botão tocado (antes o toque morria no pedaço transparente)
-    const tapOutside = (e: MouseEvent) => {
-        const target = tappableUnder(document.elementsFromPoint(e.clientX, e.clientY));
-        skip();
-        (target as HTMLElement | null)?.click();
-    };
-
     // tocar no elemento aceso conta como "entendi": a ação dele acontece e o tutorial segue
     // biome-ignore lint/correctness/useExhaustiveDependencies: advance muda a cada render e só lê i/last
     useEffect(() => {
@@ -226,77 +199,87 @@ function Balloon({
         return () => el.removeEventListener('click', on);
     }, [el, i]);
 
-    const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Escape') {
-            e.preventDefault();
+    // sem véu a tela segue viva: Esc pula a dica sem tirar o foco de ninguém
+    // biome-ignore lint/correctness/useExhaustiveDependencies: skip muda a cada render e só lê i
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || document.querySelector('.k-sheet')) return;
             skip();
-        } else if (e.key === 'Tab') {
-            const items = balloon.current?.querySelectorAll<HTMLElement>('button');
-            if (!items?.length) return;
-            const first = items[0];
-            const lastEl = items[items.length - 1];
-            if (e.shiftKey && (document.activeElement === first || document.activeElement === balloon.current)) {
-                e.preventDefault();
-                lastEl.focus();
-            } else if (!e.shiftKey && document.activeElement === lastEl) {
-                e.preventDefault();
-                first.focus();
-            }
-        }
-    };
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [i]);
 
     if (!rect) return null;
     const vw = window.innerWidth / uiZoom();
     const vh = window.innerHeight / uiZoom();
-    const p = placeBalloon(rect, size, vw, vh);
-    const right = rect.left + rect.width;
-    const bottom = rect.top + rect.height;
+    // a barra do polegar (fixa embaixo no celular) não conta como tela livre: a linha não tapa o botão de jogar
+    const bar = document.querySelector('.bc-thumbbar');
+    const barTop = bar && getComputedStyle(bar).position === 'fixed' ? bar.getBoundingClientRect().top / uiZoom() : vh;
+    const p = placeBalloon(rect, size, vw, rect.top + rect.height <= barTop ? barTop : vh, FINGER_GAP);
     const text = lines[i];
-    return (
+    // o dedo fica no vão entre a linha e o alvo, apontando pra ele (no `inside`, a linha está dentro do alvo)
+    const finger =
+        p.side === 'below' || p.side === 'inside'
+            ? { left: p.left + p.arrow, top: p.top - FINGER_GAP / 2 }
+            : p.side === 'above'
+              ? { left: p.left + p.arrow, top: p.top + size.height + FINGER_GAP / 2 }
+              : p.side === 'right'
+                ? { left: p.left - FINGER_GAP / 2, top: p.top + p.arrow }
+                : p.side === 'left'
+                  ? { left: p.left + size.width + FINGER_GAP / 2, top: p.top + p.arrow }
+                  : { left: p.left + p.arrow, top: p.top - FINGER_GAP / 2 };
+    // portal no body: dentro do palco (zoom no PC) o `position: fixed` mediria com o zoom do palco
+    return createPortal(
         <div className={`coach${shown && !pause ? ' on' : ''}${pause ? ' paused' : ''}${moving ? ' moving' : ''}`}>
-            {/* quatro pedaços transparentes em volta do alvo: tocar fora fecha, e o alvo continua tocável.
-                Div e não botão: fora do Tab e do leitor (o teclado pula com Esc ou "Pular"). */}
-            {(
-                [
-                    ['cima', { left: 0, top: 0, width: vw, height: rect.top }],
-                    ['baixo', { left: 0, top: bottom, width: vw, height: Math.max(0, vh - bottom) }],
-                    ['esq', { left: 0, top: rect.top, width: rect.left, height: rect.height }],
-                    ['dir', { left: right, top: rect.top, width: Math.max(0, vw - right), height: rect.height }],
-                ] as const
-            ).map(([k, style]) => (
-                <div key={k} aria-hidden="true" className="coach-block" onClick={tapOutside} style={style} />
-            ))}
             <div
-                className="coach-hole"
+                className="coach-ring"
                 aria-hidden="true"
                 style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
             />
+            <i
+                className={`coach-finger to-${p.side}`}
+                aria-hidden="true"
+                style={{ left: finger.left, top: finger.top }}
+            >
+                <FingerIcon />
+            </i>
             <div
                 ref={balloon}
                 className={`coach-balloon bc-surface bc-stripe side-${p.side}`}
-                role="dialog"
-                aria-modal="true"
+                role="note"
                 aria-label={c.label}
-                aria-describedby="coach-text"
-                tabIndex={-1}
-                onKeyDown={onKeyDown}
-                style={{ left: p.left, top: p.top, '--arrow': `${p.arrow}px` } as CSSProperties}
+                style={{ left: p.left, top: p.top } as CSSProperties}
             >
-                <p id="coach-text" className="coach-text">
+                <p className="coach-text" aria-live="polite">
                     {text}
                 </p>
-                <div className="coach-foot">
-                    {targets.length > 1 && (
-                        <span className="coach-count bc-lbl">{fmt(c.count, { n: i + 1, total: targets.length })}</span>
-                    )}
-                    <button type="button" className="btn ghost small coach-skip" onClick={skip}>
-                        {c.skip}
-                    </button>
-                    <button type="button" className="btn small coach-next" onClick={advance}>
-                        {last ? c.done : c.next}
-                    </button>
-                </div>
+                {targets.length > 1 && (
+                    <span className="coach-count bc-lbl">{fmt(c.count, { n: i + 1, total: targets.length })}</span>
+                )}
+                <button type="button" className="btn ghost small coach-skip" onClick={skip}>
+                    {c.skip}
+                </button>
+                <button type="button" className="btn small coach-next" onClick={advance}>
+                    {last ? c.done : c.next}
+                </button>
             </div>
-        </div>
+        </div>,
+        document.body,
+    );
+}
+
+/** O dedo de pixel apontando pra cima (o CSS gira pro lado do alvo). */
+function FingerIcon() {
+    return (
+        <svg viewBox="0 0 16 20" width="26" height="32" shapeRendering="crispEdges" aria-hidden="true">
+            <path
+                fill="#fff"
+                stroke="#0b1030"
+                strokeWidth="1.2"
+                d="M6 1h2v1h1v6h1V7h2v1h1v1h1v1h1v6h-1v2h-1v1H5v-1H4v-2H3v-2H2v-3h1v-1h2v1h0V2h1z"
+            />
+            <path fill="#ffcb05" d="M6 2h2v5H6z" />
+        </svg>
     );
 }

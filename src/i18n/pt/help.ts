@@ -660,13 +660,11 @@ export const help = {
             'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
-        rotaNova: ['Agora tem a Rota Índigo: uma copa longa, com os ginásios de Kanto.'],
+        rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
-        relampagoDraft: [
-            'Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.',
-        ],
-        relampagoVestiario: ['Toque em dois jogadores pra trocar. A Tática e a Chave ficam na lousa.'],
-        relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],
+        relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
+        relampagoVestiario: ['Toque em dois pra trocar. Tática e Chave ficam na lousa.'],
+        relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
         dueloSala: [
             'Melhor de 3: mesmo time nos jogos, escalação ajustável entre eles.',
@@ -677,10 +675,7 @@ export const help = {
             'Ganhar sobe o Elo, perder desce.',
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
-        golpe: [
-            'Barra no N1: o golpe máximo do capitão liberou. No N2 derruba quem estiver no caminho; no N3 sai sempre no alvo.',
-            'Quando o botão acender, toque com o círculo verde fechando. Capitão no gol devolve o chute de bicuda.',
-        ],
+        golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',

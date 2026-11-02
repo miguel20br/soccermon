@@ -632,11 +632,11 @@ export const help: typeof pt = {
             'Wins pay ₽. Spend it at the Market or save it to earn interest.',
         ],
         rotaGrupo: ['Losing here costs no card.'],
-        rotaNova: ['Now there is Indigo Road: a long cup through the Kanto gyms.'],
+        rotaNova: ['New: Indigo Road, a long cup through the Kanto gyms.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
-        relampagoDraft: ['Auto-draft fills the team in one tap. Want to pick? Tap a slot: 3 show up and you keep 1.'],
-        relampagoVestiario: ['Tap two players to swap them. Tactics and the Bracket are on the board.'],
-        relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],
+        relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
+        relampagoVestiario: ['Tap two to swap. Tactics and Bracket are on the board.'],
+        relampagoJogo: ['Change tactics and make subs. Busy players evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
         dueloSala: [
             'Best of 3: same team in every game, lineup can change between them.',
@@ -647,10 +647,7 @@ export const help: typeof pt = {
             'Winning raises your Elo, losing lowers it.',
             "You face another trainer's saved team. They don't need to be online.",
         ],
-        golpe: [
-            "Bar at L1: your captain's max move is unlocked. At L2 it knocks down anyone in the way; at L3 it is always on target.",
-            'When the button lights up, tap as the green circle closes. A keeper captain boots the shot back.',
-        ],
+        golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',

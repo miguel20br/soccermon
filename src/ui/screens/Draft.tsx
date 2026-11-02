@@ -211,8 +211,8 @@ export function Draft() {
             // uma quadra por vez, nada rola; "Escolher" no polegar (cara-de-jogo.md, decisão 10)
             <>
                 <Stage className="draft-stage formation-stage" scene={<i className="k-stage-light" />}>
-                    {/* o dedo aponta o carrossel; a linha fica embaixo dele, longe do título */}
-                    {quick && <Coach id="relampago" targets={['.fc-stage']} />}
+                    {/* o dedo aponta os pontinhos do carrossel: a linha cabe entre eles e o polegar */}
+                    {quick && <Coach id="relampago" targets={['.fc-dots']} />}
                     <div className="draft-head bc-screenhead">
                         <span className="bc-tag">
                             {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
