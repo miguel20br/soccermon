@@ -3283,7 +3283,7 @@ button,
         inset 0 0 0 2px var(--frame-in, #39447a),
         0 4px 0 var(--bc-edge);
 }
-/* uma linha por número, como na TV: "10 ━━ CHUTES ━━ 4" (o rótulo em cima da barra, os números nas pontas) */
+/* uma linha por número, como na TV: "10 -- CHUTES -- 4" (o rótulo em cima da barra, os números nas pontas) */
 .ht-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
