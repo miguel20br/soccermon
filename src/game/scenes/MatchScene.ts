@@ -525,6 +525,8 @@ export class MatchScene extends Phaser.Scene {
     private n3SceneUntil = 0;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
     private maxBallPrev: { x: number; y: number } | null = null;
+    /** Para onde o projétil anda na tela (px por quadro, suavizado): a cauda vai pro lado contrário. */
+    private maxBallDir = { x: 0, y: 0 };
     /** Hora (`performance.now`) em que o botão do golpe máximo acendeu, pro bullet time. */
     private cueSince: number | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
@@ -1412,8 +1414,6 @@ export class MatchScene extends Phaser.Scene {
         dir.y += (vy - dir.y) * 0.35;
         drawProjectile(g, m.type, m.level as 1 | 2 | 3, x, y, dir.x, dir.y, time, !!this.md.reduceMotion);
     }
-    private maxBallDir = { x: 0, y: 0 };
-
     // ------------------------------------------------------------------ disputa de pênaltis
     private ticksToMs(ticks: number, factor: number) {
         return ((ticks / TICK_RATE) * 1000) / Math.max(factor, 0.2);
