@@ -1,7 +1,7 @@
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import type { FormationId } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
@@ -12,13 +12,14 @@ import { isLong } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
-import { cardLook, FormationBoard } from '../components/FormationBoard';
+import { FormationBoard } from '../components/FormationBoard';
 import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
+import { useMedia } from '../components/Prancheta';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { lineupAverage, ratingAt } from '../rating';
@@ -132,57 +133,9 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown, min = 
 type DraftTeamRun = Pick<NonNullable<ReturnType<typeof useGame.getState>['run']>, 'formation' | 'lineup' | 'bench'>;
 
 /**
- * Celular em pé: o time numa faixa de mini cartas em cima das cartas (a prancheta não cabe legível ali). Uma por vaga,
- * na ordem da formação e o banco, com o visual das vagas da escalação; vaga vazia mostra a posição, a da vez acesa.
- */
-function DraftStrip({
-    run,
-    byUid,
-    stateOf,
-}: {
-    run: DraftTeamRun;
-    byUid: Map<string, PokemonInstance>;
-    stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
-}) {
-    const { t, d } = useT();
-    const f = FORMATIONS[run.formation];
-    const card = (ref: SlotRef, uid: string) => {
-        const inst = uid ? byUid.get(uid) : undefined;
-        const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
-        // no banco a carta mostra a posição de origem; na quadra, a da vaga
-        const pos = inst && role === 'ANY' ? viewInstance(inst).positions[0] : role;
-        const label = pos === 'ANY' ? t('common.ui.bench') : d.common.posShort[pos];
-        const look = inst ? cardLook(inst) : null;
-        return (
-            <span
-                key={`${ref.zone}-${ref.index}`}
-                className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)} ${look?.className ?? ''}`}
-                style={look?.style}
-            >
-                {inst ? (
-                    <>
-                        <b className="dp-ovr">{ratingAt(inst, role).display}</b>
-                        <small className="dp-pos">{label}</small>
-                        <img className="pixel" src={cardSprite(inst)} alt="" />
-                    </>
-                ) : (
-                    <small className="dp-pos">{label}</small>
-                )}
-            </span>
-        );
-    };
-    return (
-        <span className="dp-strip" aria-hidden="true">
-            <span className="dp-court">{run.lineup.map((uid, index) => card({ zone: 'lineup', index }, uid))}</span>
-            <span className="dp-bench">{run.bench.map((uid, index) => card({ zone: 'bench', index }, uid))}</span>
-        </span>
-    );
-}
-
-/**
- * O time junto das cartas da escolha: deitado e no PC, a mesma prancheta do passo "Escolha uma posição"
- * (FormationBoard, encolhida com zoom até caber ao lado das cartas), com a vaga da vez acesa; no celular em pé, a
- * faixa de mini cartas. Só mostra; tocar abre o time inteiro (Copa e Duelo).
+ * O time junto das cartas da escolha: a mesma prancheta do passo "Escolha uma posição" (FormationBoard), encolhida
+ * com zoom até caber, com a vaga da vez acesa. No PC e deitado, em pé ao lado das cartas; no celular em pé, deitada
+ * (gol à esquerda) em cima delas. Só mostra; tocar abre o time inteiro (Copa e Duelo).
  */
 export function DraftTeam({
     run,
@@ -199,7 +152,8 @@ export function DraftTeam({
     onOpen: () => void;
 }) {
     const fitRef = useRef<HTMLDivElement>(null);
-    useFitBoard(fitRef, `${run.lineup.join()}|${run.bench.join()}`, 0.2);
+    const horizontal = useMedia('(orientation: portrait)');
+    useFitBoard(fitRef, `${run.lineup.join()}|${run.bench.join()}|${horizontal}`, 0.2);
     return (
         <div className="dp-team">
             <div className="dp-fit" ref={fitRef} aria-hidden="true">
@@ -209,9 +163,9 @@ export function DraftTeam({
                     bench={run.bench}
                     byUid={byUid}
                     stateOf={stateOf}
+                    horizontal={horizontal}
                 />
             </div>
-            <DraftStrip run={run} byUid={byUid} stateOf={stateOf} />
             <button type="button" className="dp-open" aria-haspopup="dialog" aria-label={label} onClick={onOpen}>
                 <HudIcon kind="next" />
             </button>

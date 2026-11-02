@@ -338,21 +338,17 @@
     }
 }
 
-/* o time junto das cartas (tocar abre a sheet com a quadra): no celular em pé uma faixa de mini cartas em cima
-   delas; deitado e no PC, a prancheta do passo das vagas ao lado (lá embaixo) */
+/* o time junto das cartas (tocar abre a sheet com a quadra): a prancheta do passo das vagas, no tamanho natural e
+   encolhida com zoom pelo useFitBoard (Draft.tsx) até caber na caixa (.dp-fit). Celular em pé: deitada (gol à
+   esquerda), a largura toda e a altura que sobra em cima das cartas; deitado e no PC, em pé ao lado delas (lá embaixo) */
 .dp-team {
     position: relative;
     box-sizing: border-box;
-    flex: none;
+    flex: 1 1 0;
+    min-height: 120px;
     display: flex;
-    width: min(100%, 560px);
-    padding: 6px 30px 6px 6px;
-    background: var(--panel);
-    border: 2px solid var(--line);
-    border-radius: 8px;
+    width: 100%;
     transition: transform var(--dur-solta) var(--ease-pop);
-    /* as mini cartas medem pela largura (cqi) */
-    container-type: inline-size;
 }
 .dp-team:has(> .dp-open:active) {
     transform: translateY(2px);
@@ -365,9 +361,8 @@
     inset: 0;
     z-index: 2;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: flex-end;
-    padding: 6px;
     border-radius: 8px;
     color: var(--muted);
     cursor: pointer;
@@ -377,104 +372,41 @@
     outline-offset: 2px;
 }
 .dp-fit {
-    display: none;
-}
-/* a faixa: os 5 titulares na ordem da formação numa faixa de quadra e o banco ao lado, mini cartas com o visual das
-   vagas da escalação (styles.css .sc). A carta mede pela largura (cqi) e não passa da altura que sobra (--dp-h) */
-.draft-pick {
-    --dp-h: clamp(48px, calc((100 * var(--vh) - 560px) / 3), 80px);
-}
-.dp-strip {
-    --dp-w: min(calc((100cqi - 40px) / var(--dp-cols, 7)), calc(var(--dp-h) * 0.75));
+    display: flex;
     flex: 1;
     min-width: 0;
-    display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-}
-.dp-court,
-.dp-bench {
-    flex: none;
-    display: flex;
-    gap: 3px;
-    padding: 3px;
-    border-radius: 6px;
-}
-.dp-court {
-    background: repeating-linear-gradient(90deg, #c98a4f 0 16px, #cf9358 16px 32px);
-    box-shadow:
-        inset 0 0 0 2px #fff,
-        inset 0 0 0 4px #7a4a2a;
-}
-.dp-chip {
-    --ink: var(--muted);
-    position: relative;
-    box-sizing: border-box;
-    width: var(--dp-w);
-    aspect-ratio: 3 / 4;
     overflow: hidden;
+}
+/* deitada: a quadra e o banco numa coluna ao lado (a vaga mede como a do celular) */
+.dp-fit .formation-board.horizontal {
+    flex: none;
+    width: max-content;
+    max-width: none;
+    margin: 0;
     display: grid;
-    place-items: center;
-    color: var(--ink);
-    background: rgba(14, 20, 48, 0.78);
-    border: 2px dashed var(--line);
-    border-radius: 5px;
-    transition:
-        border-color var(--dur-ui) var(--ease-out),
-        background var(--dur-ui) var(--ease-out);
+    grid-template-columns: auto auto;
+    align-items: center;
+    column-gap: 10px;
 }
-.dp-chip .dp-pos {
-    font-family: "Galmuri14", monospace;
-    font-size: max(8px, calc(var(--dp-w) * 0.22));
-    font-weight: 700;
-    line-height: 1;
+/* um pouco mais alta que a da partida (1,7): as alas nas laterais não saem da quadra */
+.dp-fit .formation-board.horizontal .court {
+    width: 360px;
+    aspect-ratio: 1.5 / 1;
 }
-/* a carta: metal (ou edição) de fundo, a nota grande e a posição no canto, o sprite embaixo à direita */
-.dp-chip.filled {
-    display: block;
-    border: 0;
-    box-shadow:
-        inset 0 0 0 2px var(--edge, var(--line)),
-        0 2px 0 rgb(0 0 0 / 30%);
-    background: var(--metal-base, var(--panel-2));
+.dp-fit .horizontal .bench {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
 }
-.dp-chip .dp-ovr {
-    position: absolute;
-    left: 9%;
-    top: 5%;
-    z-index: 1;
-    font-family: "Galmuri14", monospace;
-    font-size: calc(var(--dp-w) * 0.4);
-    line-height: 0.95;
-    text-shadow: 0.03em 0 currentColor;
+.dp-fit .horizontal .bench .slot {
+    width: 74px;
 }
-.dp-chip.filled .dp-pos {
-    position: absolute;
-    left: 9%;
-    top: calc(5% + var(--dp-w) * 0.4);
-    z-index: 1;
-    font-size: max(7px, calc(var(--dp-w) * 0.19));
-}
-.dp-chip img {
-    position: absolute;
-    right: -6%;
-    bottom: -2%;
-    width: 84%;
-    height: auto;
-}
-.dp-chip.selected {
-    --ink: var(--text);
-    border: 2px solid var(--yellow);
-    background: rgba(255, 204, 0, 0.3);
-    box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
-}
-
-/* celular alto: o banco embaixo dos titulares, 5 cartas por linha e maiores */
-@media (orientation: portrait) and (min-height: 760px) {
-    .dp-strip {
-        --dp-cols: 5;
-        flex-direction: column;
+/* 320: quadra um pouco mais curta em volta das mesmas vagas, pra elas encolherem menos (≥ 44 px) */
+@media (max-width: 380px) {
+    .dp-fit .formation-board.horizontal .court {
+        width: 300px;
     }
 }
 
@@ -556,9 +488,6 @@
         align-self: stretch;
         width: var(--dp-team-w);
         min-height: 0;
-        padding: 0;
-        background: none;
-        border: 0;
     }
     .draft-pick > .cpack-stage {
         grid-row: 2;
@@ -569,21 +498,6 @@
         grid-row: 1;
         justify-content: center;
         margin-bottom: 6px;
-    }
-    .dp-team > .dp-strip {
-        display: none;
-    }
-    .dp-fit {
-        display: flex;
-        flex: 1;
-        min-width: 0;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-    .dp-open {
-        align-items: flex-end;
-        padding: 0;
     }
     /* a largura que sobra pras cartas, resolvida aqui (registrada em @property): a carta mede de novo dentro da
        .option, que é outro container, e lá o cqi seria o da coluna */
@@ -602,17 +516,12 @@
         --dp-aspect: 1.12;
     }
 }
-/* celular baixo (320x640): vagas menores, pra as cartas caberem inteiras */
+/* celular baixo (320x640): as cartas caberem inteiras */
 @media (orientation: portrait) and (max-height: 700px) {
-    .dp-team {
-        padding: 4px 30px 4px 6px;
-    }
-    .draft-pick {
-        --dp-h: 48px;
-    }
-    /* o pacote fechado mede pela altura que sobra embaixo da faixa do time (a carta com "Ativa" cabe inteira) */
+    /* o pacote fechado mede pela altura que sobra embaixo da prancheta (a carta com "Ativa" cabe inteira); o resto
+       fica com a prancheta */
     .draft-pick .cpack-stage:has(> .k-pick3) {
-        min-height: min(300px, calc(100 * var(--vh) - 400px));
+        min-height: min(300px, calc(100 * var(--vh) - 460px));
     }
 }
 /* a instrução da vez cabe ao lado do "Monta pra mim" (só a pergunta do "Montar?" ocupa a linha inteira) */

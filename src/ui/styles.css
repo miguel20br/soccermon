@@ -2811,8 +2811,7 @@ button,
         inset 0 0 0 2px var(--rar),
         0 0 14px color-mix(in srgb, var(--rar) 70%, transparent);
 }
-/* vaga com o visual da carta (mesmos gradientes da Metal em pokecard2.css), sem os atributos; a mini carta do
-   draft (.dp-chip, draft.css) usa as mesmas classes */
+/* vaga com o visual da carta (mesmos gradientes da Metal em pokecard2.css), sem os atributos */
 .slot.sc {
     background: var(--metal-base);
     box-shadow:
@@ -2855,11 +2854,11 @@ button,
     --metal-base: linear-gradient(160deg, #fff3b8 0%, #e8c24a 48%, #b48a18 100%);
 }
 /* brilhante (raro/épico): o mesmo metal com textura de foil */
-:is(.slot, .dp-chip).sc.sc-brilhante {
+.slot.sc.sc-brilhante {
     background-image:
         repeating-linear-gradient(115deg, rgb(255 255 255 / 24%) 0 1px, transparent 1px 7px), var(--metal-base);
 }
-:is(.slot, .dp-chip).sc.sc-lendario {
+.slot.sc.sc-lendario {
     --ink: #3a2a00;
     --edge: #d9b23c;
     background:
@@ -2869,26 +2868,26 @@ button,
         inset 0 0 0 2px #d9b23c,
         0 0 12px rgb(217 178 60 / 45%);
 }
-:is(.slot, .dp-chip).sc.sc-shiny {
+.slot.sc.sc-shiny {
     --ink: #2a2140;
     --edge: #fff;
     background: linear-gradient(135deg, #ffe3f3 0%, #e3f1ff 30%, #e9ffe9 55%, #fff4dc 80%, #f3e3ff 100%);
 }
-:is(.slot, .dp-chip).sc.sc-destaque {
+.slot.sc.sc-destaque {
     --ink: #fff;
     --edge: #d9b23c;
     background:
         repeating-linear-gradient(135deg, rgb(255 215 90 / 8%) 0 1px, transparent 1px 8px),
         linear-gradient(160deg, #2b2b30 0%, #111114 60%, #000 100%);
 }
-:is(.slot, .dp-chip).sc.sc-icone {
+.slot.sc.sc-icone {
     --ink: #fff;
     --edge: #b48cff;
     background:
         radial-gradient(ellipse 70% 45% at 20% 25%, rgb(120 80 255 / 55%), transparent 70%),
         radial-gradient(ellipse 80% 40% at 60% 110%, rgb(255 80 190 / 45%), transparent 70%), #0b0726;
 }
-:is(.slot, .dp-chip).sc.sc-evento {
+.slot.sc.sc-evento {
     --ink: #fff;
     --edge: #fff;
     background:
@@ -7599,11 +7598,12 @@ body {
     aspect-ratio: 3 / 3.6;
     max-height: none;
 }
-.prancheta .horizontal .court {
+/* quadra deitada (FormationBoard horizontal: a prancheta da partida e o draft no celular em pé) */
+.formation-board.horizontal .court {
     aspect-ratio: 1.7 / 1;
     background: repeating-linear-gradient(0deg, #c98a4f 0 24px, #cf9358 24px 48px);
 }
-.prancheta .horizontal .court::before {
+.formation-board.horizontal .court::before {
     left: 50%;
     right: auto;
     top: 0;
