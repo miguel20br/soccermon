@@ -112,9 +112,12 @@ async function copa() {
             .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .click();
-        await p.locator('.formation-option').first().waitFor({ timeout: 15000 });
+        await p.locator('.fc-choose').waitFor({ timeout: 15000 });
         await shot(p, '02-formacao');
-        await p.locator('.formation-option').nth(1).click();
+        // carrossel: a 2ª formação e "Escolher"
+        await p.locator('.fc-arrow.next').click();
+        await p.waitForTimeout(400);
+        await p.locator('.fc-choose').click();
     });
     await step(p, 'draft', async () => {
         for (let round = 0; round < 30; round++) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -13,15 +13,17 @@ import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
-import { FormationIdentity } from '../components/FormationIdentity';
+import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
+import { Stage } from '../kit/Stage';
 import { lineupAverage, ratingAt } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
+import '../draft.css';
 
 /** "Média dos titulares" que rola até o valor novo e mostra o quanto a escolha mudou (+4 / −2) por 1,5 s. */
 function TeamAvg({ avg }: { avg: number }) {
@@ -53,8 +55,20 @@ function TeamAvg({ avg }: { avg: number }) {
  * No celular fica na barra do polegar (à vista o draft inteiro); no PC, no cabeçalho. Secundário azul baixo (o kit B
  * aprovado em 26/10): a escolha é das cartas.
  */
-function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string }) {
-    const { run, autoDraft } = useGame();
+function AutoDraft({
+    captainUid,
+    hint,
+    formation,
+    children,
+}: {
+    captainUid?: string;
+    hint?: string;
+    /** Na escolha da formação: a que está na tela (o carrossel), não a padrão do save. */
+    formation?: FormationId;
+    /** A ação principal ao lado (no lugar da instrução). */
+    children?: ReactNode;
+}) {
+    const { run, autoDraft, chooseFormation } = useGame();
     const { t, lang } = useT();
     const [ask, setAsk] = useState(false);
     if (!run) return null;
@@ -62,7 +76,9 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
         <div className={`bc-thumbbar draft-auto${ask ? ' ask' : ''}`}>
             {ask ? (
                 <>
-                    <p>{t('team.draft.autoAsk', { formation: formationText(run.formation, lang).name })}</p>
+                    <p>
+                        {t('team.draft.autoAsk', { formation: formationText(formation ?? run.formation, lang).name })}
+                    </p>
                     <button type="button" className="btn ghost" onClick={() => setAsk(false)}>
                         {t('team.draft.autoBack')}
                     </button>
@@ -73,6 +89,7 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                         // biome-ignore lint/a11y/noAutofocus: o diálogo acabou de abrir por um clique; o foco tem que entrar nele
                         autoFocus
                         onClick={() => {
+                            if (formation && run.status === 'formation') chooseFormation(formation);
                             autoDraft(captainUid);
                         }}
                     >
@@ -86,14 +103,13 @@ function AutoDraft({ captainUid, hint }: { captainUid?: string; hint?: string })
                         <HudIcon kind="skip" />
                         {t('team.draft.auto')}
                     </button>
-                    {hint && <p className="tb-hint draft-auto-hint">{hint}</p>}
+                    {children ?? (hint && <p className="tb-hint draft-auto-hint">{hint}</p>)}
                 </>
             )}
         </div>
     );
 }
 
-/** Desenho mini da formação (bolinhas nas posições da UI). */
 /**
  * Celular em pé: a quadra sai da tela quando as cartas sobem. Esta faixa fica fixa no topo com as vagas (titulares e
  * banco): você vê onde a carta vai cair e toca numa vaga sem rolar de volta. Só aparece nessa tela (CSS); o leitor de
@@ -147,19 +163,6 @@ function DraftStrip({
     );
 }
 
-function FormationDiagram({ id }: { id: FormationId }) {
-    const f = FORMATIONS[id];
-    return (
-        <svg viewBox="0 0 60 80" className="formation-diagram" aria-hidden>
-            <rect x="1" y="1" width="58" height="78" rx="3" />
-            <line x1="1" y1="40" x2="59" y2="40" />
-            {f.ui.map(([x, y], i) => (
-                <circle key={`${x}-${y}`} cx={(x / 100) * 60} cy={(y / 100) * 80} r={i === 0 ? 4 : 5} />
-            ))}
-        </svg>
-    );
-}
-
 /**
  * Draft estilo "7 a 0": formação → capitão (1 de 3 raros, qualquer vaga) → a cada rodada você escolhe a
  * vaga e saem 3 Pokémon que jogam naquela posição.
@@ -167,6 +170,8 @@ function FormationDiagram({ id }: { id: FormationId }) {
 export function Draft() {
     const { run, chooseFormation, chooseSlot, pick, reroll, daily } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
+    // formação que o carrossel mostra (só a tela; vale quando toca em "Escolher")
+    const [formation, setFormation] = useState<FormationId | null>(null);
     const tr = useT();
     const { t, d, lang } = tr;
     // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
@@ -194,38 +199,34 @@ export function Draft() {
     // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
     const quick = !run.daily && !isLong(run);
     if (run.status === 'formation') {
+        const shown = formation ?? run.formation;
         return (
-            <>
-                {/* acende a lista e o balão vai pro pé da tela (em cima do título ele cobria as formações) */}
-                {quick && <Coach id="relampago" targets={['.formation-picker']} />}
+            // uma quadra por vez, nada rola; "Escolher" no polegar (cara-de-jogo.md, decisão 10)
+            <Stage className="draft-stage formation-stage" scene={<i className="k-stage-light" />}>
+                {/* o dedo aponta o carrossel; a linha fica embaixo dele, longe do título */}
+                {quick && <Coach id="relampago" targets={['.fc-stage']} />}
                 <div className="draft-head bc-screenhead">
                     <span className="bc-tag">
                         {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
                     </span>
                     <h1>{t('team.draft.chooseFormation')}</h1>
-                    <AutoDraft />
                 </div>
                 {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
                     <p className="muted center">{t('liga.daily.unrankedNote')}</p>
                 )}
-                <div className="formation-picker">
-                    {Object.values(FORMATIONS).map((f) => (
-                        <button
-                            key={f.id}
-                            type="button"
-                            className="bc-tile formation-option"
-                            onClick={() => {
-                                chooseFormation(f.id);
-                            }}
-                        >
-                            <FormationDiagram id={f.id} />
-                            <b>{formationText(f.id, lang).name}</b>
-                            <span className="muted">{f.slots.map((s) => d.common.pos[s]).join(' · ')}</span>
-                            <FormationIdentity id={f.id} phrase />
-                        </button>
-                    ))}
-                </div>
-            </>
+                <FormationCarousel value={shown} onChange={setFormation} />
+                <AutoDraft formation={shown}>
+                    <button
+                        type="button"
+                        className="btn primary fc-choose"
+                        onClick={() => {
+                            chooseFormation(shown);
+                        }}
+                    >
+                        {t('team.draft.chooseThis')}
+                    </button>
+                </AutoDraft>
+            </Stage>
         );
     }
 

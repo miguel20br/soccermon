@@ -1,0 +1,245 @@
+/*
+ * Draft em palco (cara-de-jogo.md, decisões 10 e 13): a formação em carrossel e as escolhas 1 de 3 sem rolar.
+ * Tamanhos pela tela com calc(N * var(--vw/--vh)) (o Stage desconta o zoom do PC).
+ */
+
+/* ---------- formação: carrossel de quadras ---------- */
+.fc {
+    --fc-gap: clamp(14px, calc(4 * var(--vw)), 36px);
+    /* a quadra: o que sobra da altura (barra de cima, título, placa, barra de baixo) em 3:4, no máximo 60% da largura */
+    --fc-w: clamp(96px, min(calc(60 * var(--vw)), calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75)), 300px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.fc-stage {
+    position: relative;
+    width: 100%;
+}
+.fc-view {
+    position: relative;
+    height: calc(var(--fc-w) * 4 / 3 + 8px);
+    overflow: hidden;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    /* as vizinhas somem nas bordas em vez de cortar seco */
+    mask: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.fc-stage.dragging .fc-view {
+    cursor: grabbing;
+}
+.fc-track {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    display: flex;
+    gap: var(--fc-gap);
+    transform: translateX(calc(-1 * (var(--i) * (var(--fc-w) + var(--fc-gap)) + var(--fc-w) / 2) + var(--drag, 0px)));
+    transition: transform var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-stage.dragging .fc-track {
+    transition: none;
+}
+.fc-court {
+    all: unset;
+    flex: none;
+    width: var(--fc-w);
+    aspect-ratio: 3 / 4;
+    cursor: pointer;
+    scale: 0.72;
+    opacity: 0.45;
+    filter: saturate(0.6);
+    transition:
+        scale var(--dur-tela, 260ms) var(--ease-out),
+        opacity var(--dur-tela, 260ms) var(--ease-out),
+        filter var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-court.on {
+    scale: 1;
+    opacity: 1;
+    filter: none;
+    cursor: inherit;
+}
+.fc-court .formation-diagram {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.35));
+}
+.formation-diagram rect {
+    fill: #c98a4f;
+    stroke: #fff;
+    stroke-width: 1.5;
+}
+.formation-diagram line,
+.formation-diagram .fd-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-width: 1;
+}
+.formation-diagram .fd-dot {
+    fill: var(--red);
+    stroke: #fff;
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+/* os 5 pontos piscam um depois do outro na quadra da vez */
+.fc-court.on .fd-dot {
+    animation: fd-blink 1.6s var(--ease-out) calc(var(--k) * 120ms) infinite;
+}
+@keyframes fd-blink {
+    0%,
+    60%,
+    100% {
+        scale: 1;
+    }
+    30% {
+        scale: 1.25;
+    }
+}
+.fc-arrow {
+    all: unset;
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    z-index: 1;
+    color: var(--yellow);
+    background: var(--bc-ink);
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.fc-arrow.prev {
+    left: 0;
+}
+.fc-arrow.next {
+    right: 0;
+}
+.fc-arrow:active {
+    transform: scale(0.86);
+    transition-duration: var(--dur-toque);
+}
+.fc-arrow:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.fc-arrow .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+/* a placa com o nome e o "?" (frase e posições) */
+.fc-plaque {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 6px 16px;
+    background: var(--bc-ink);
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    animation: row-in var(--dur-ui) var(--ease-out) both;
+}
+.fc-name {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.fc > .fi {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+}
+.fc > .fi .fi-tags {
+    justify-content: center;
+}
+.fc-dots {
+    display: flex;
+    gap: 8px;
+}
+.fc-dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    transition:
+        background var(--dur-ui) var(--ease-out),
+        scale var(--dur-ui) var(--ease-out);
+}
+.fc-dots i.on {
+    background: var(--yellow);
+    scale: 1.3;
+}
+.formation-stage .draft-head {
+    flex: none;
+}
+/* PC: a fileira inteira em leque, a da vez maior (o zoom do palco aumenta tudo junto) */
+@media (min-width: 1100px) {
+    .fc {
+        --fc-w: clamp(120px, calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75), 200px);
+    }
+    .fc-view {
+        mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    }
+    .fc-court {
+        scale: 0.78;
+        opacity: 0.6;
+    }
+}
+/* celular deitado: o título sai (a fase está na barra da copa), placa e palavras ao lado da quadra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .formation-stage .draft-head {
+        display: none;
+    }
+    .fc {
+        --fc-reserve: 150px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr auto;
+        align-items: center;
+        justify-items: center;
+        column-gap: 12px;
+        row-gap: 8px;
+    }
+    .fc-stage {
+        grid-column: 1;
+        grid-row: 1 / -1;
+    }
+    .fc-plaque {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: end;
+    }
+    .fc > .fi {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    .fc-dots {
+        grid-column: 2;
+        grid-row: 3;
+        align-self: start;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fc-court.on .fd-dot {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .fc-court.on .fd-dot {
+    animation: none;
+}

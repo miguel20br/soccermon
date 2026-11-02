@@ -5,6 +5,7 @@ export const team: typeof pt = {
         beforeDraft: 'Before the draft',
         beforeDraftRota: 'Indigo Road · before the draft',
         chooseFormation: 'Choose your formation',
+        chooseThis: 'Choose',
         theBench: 'the bench',
         whereCaptain: 'Which slot will {name} play in?',
         chooseCaptain: 'Choose your captain',

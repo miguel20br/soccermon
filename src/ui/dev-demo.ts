@@ -71,6 +71,7 @@ export function runDevDemo() {
     const demo = new URLSearchParams(window.location.search).get('demo');
     if (
         demo !== 'penaltis' &&
+        demo !== 'draft' &&
         demo !== 'ditto' &&
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
@@ -106,6 +107,17 @@ export function runDevDemo() {
         return;
     started = true;
     const store = useGame.getState();
+    // ?demo=draft[&fase=capitao|vaga|opcoes]: o draft da Copa Relâmpago (formação em carrossel, 1 de 3)
+    if (demo === 'draft') {
+        const fase = new URLSearchParams(window.location.search).get('fase');
+        store.newRun(store.profile.clubName || 'Pallet FC', 'demo-draft');
+        const g = () => useGame.getState();
+        if (fase) g().chooseFormation('1-2-1');
+        if (fase === 'vaga' || fase === 'opcoes') g().pick(g().run!.options[0].uid, { zone: 'lineup', index: 1 });
+        if (fase === 'opcoes') g().chooseSlot({ zone: 'lineup', index: 2 });
+        g().go('draft');
+        return;
+    }
     if (demo === 'colecao') {
         demoCollection();
         return;

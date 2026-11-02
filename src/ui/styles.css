@@ -1041,11 +1041,6 @@ button,
 }
 
 /* ---------- draft: formação, capitão, vagas ---------- */
-.formation-picker {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--gap);
-}
 /* formação (FormationIdentity): ícone + forte/fraco curtos, selo de vantagem tática só com ícone.
    Trocar de formação refaz o bloco com fade (nada teleporta). */
 .fi {
@@ -1105,56 +1100,6 @@ button,
     align-items: center;
     gap: 5px;
     color: var(--yellow);
-}
-.formation-option .fi {
-    margin-top: 0;
-    font-size: 11px;
-    text-align: center;
-}
-.formation-option .fi-tags {
-    justify-content: center;
-}
-@media (max-width: 700px) {
-    .formation-option .fi {
-        text-align: left;
-    }
-    .formation-option .fi-tags {
-        justify-content: flex-start;
-    }
-}
-/* formações: peças do kit (.bc-tile) com o desenho da quadra */
-.formation-option.bc-tile {
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 8px;
-    padding: 14px 12px;
-    text-align: center;
-    font: inherit;
-    transition: transform var(--dur-solta) var(--ease-pop);
-}
-.formation-option:hover {
-    transform: translateY(-3px);
-    /* formação escolhida em azul: o dourado fica só no JOGAR */
-    border-color: var(--blue-c);
-}
-.formation-diagram {
-    width: 90px;
-    height: 120px;
-}
-.formation-diagram rect {
-    fill: #c98a4f;
-    stroke: #fff;
-    stroke-width: 1.5;
-}
-.formation-diagram line {
-    stroke: rgba(255, 255, 255, 0.85);
-    stroke-width: 1.2;
-}
-.formation-diagram circle {
-    fill: var(--red);
-    stroke: #fff;
-    stroke-width: 1.5;
 }
 .draft-grid {
     display: grid;
@@ -1484,19 +1429,8 @@ button,
         width: 16px;
     }
     .options,
-    .reward-grid,
-    .formation-picker {
+    .reward-grid {
         grid-template-columns: 1fr;
-    }
-    .formation-option.bc-tile {
-        grid-template-columns: 70px 1fr;
-        justify-items: start;
-        text-align: left;
-    }
-    .formation-diagram {
-        grid-row: span 3;
-        width: 60px;
-        height: 80px;
     }
     /* cards compactos: atributos só quando pedir */
     .attrs-toggle {
@@ -1582,8 +1516,7 @@ button,
 
 @media (prefers-reduced-motion: reduce) {
     .card.clickable,
-    .btn,
-    .formation-option {
+    .btn {
         transition: none;
     }
     .slot.target,
@@ -7100,7 +7033,6 @@ p.muted.center a {
     transition: scale var(--dur-solta) var(--ease-pop);
 }
 /* estes já tinham transição própria: soma o scale sem perder a dela */
-.formation-option,
 .resume-card,
 .card.clickable {
     transition:
@@ -7112,7 +7044,6 @@ p.muted.center a {
 .slot:active,
 .target-btn:active,
 .tm-move:active,
-.formation-option:active,
 .scout-btn:active,
 .resume-card:active,
 .card.clickable:active {

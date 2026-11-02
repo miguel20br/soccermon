@@ -19,6 +19,8 @@ const PAGES = [
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
     ['/?demo=dia&motion=1', ['.bc-seg button']],
     ['/?demo=mercado&motion=1', ['.shop-buy']],
+    // draft: o carrossel de formações e o "?" dela; o 1 de 3 (o time na sheet)
+    ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
     ['/?lab=kit&motion=1', ['.k-step-btn', '.k-option', '.k-info', '.k-sheetrow']],
 ];

@@ -4,6 +4,7 @@ export const team = {
         beforeDraft: 'Antes do draft',
         beforeDraftRota: 'Rota Índigo · antes do draft',
         chooseFormation: 'Escolha a formação',
+        chooseThis: 'Escolher',
         theBench: 'o banco',
         whereCaptain: 'Em que vaga {name} vai jogar?',
         chooseCaptain: 'Escolha seu capitão',
