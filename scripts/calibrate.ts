@@ -202,6 +202,8 @@ const goalsByLevel = [0, 0, 0];
 const bicudaByLevel = [0, 0, 0];
 const bicudaGoals = [0, 0, 0];
 let bicudaMiss = 0;
+/** Defesa do golpe máximo (qualquer nível, a bicuda que chuta inclusive): encaixe, escanteio, trave, counter (bicuda), outra espalmada. */
+const maxSaves = { caught: 0, corner: 0, post: 0, counter: 0, other: 0, gkBall: 0 };
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
 const t0 = performance.now();
 
@@ -226,6 +228,37 @@ for (let i = 0; i < N; i++) {
         eventCounts.set(e.type, (eventCounts.get(e.type) ?? 0) + 1);
         if (e.type === 'move') moveKinds.set(e.kind, (moveKinds.get(e.kind) ?? 0) + 1);
         if (e.type === 'trait') traitFx.set(e.fx, (traitFx.get(e.fx) ?? 0) + 1);
+    }
+
+    // a defesa do chute do golpe máximo: o 1º 'save' depois do hit (nada se for gol, fora ou bloqueio antes)
+    for (let k = 0; k < r.events.length; k++) {
+        const h = r.events[k];
+        if (h.type !== 'max' || h.phase !== 'hit') continue;
+        for (let j = k + 1; j < r.events.length; j++) {
+            const e = r.events[j];
+            if (e.tick - h.tick > 80) break;
+            if (e.type === 'goal' || e.type === 'block' || e.type === 'wide' || e.type === 'post') break;
+            if (e.type === 'shot' && e.by !== h.by) break;
+            if (e.type !== 'save' || e.shooter !== h.by) continue;
+            const after = r.events.slice(j + 1).filter((x) => x.tick - e.tick <= 40);
+            // o goleiro ficou com a bola: o próximo passe ou chute (em 2 s) é dele
+            if (after.find((x) => x.type === 'pass' || x.type === 'shot')?.by === e.by) maxSaves.gkBall++;
+            if (after.some((x) => x.type === 'max' && x.phase === 'hit' && x.by === e.by && x.tick === e.tick))
+                maxSaves.counter++;
+            else if (e.caught) maxSaves.caught++;
+            else if (e.parry === 'post') maxSaves.post++;
+            else if (
+                e.parry === 'corner' ||
+                r.events
+                    .slice(j + 1)
+                    .find(
+                        (x) => x.tick - e.tick <= 60 && (x.type === 'corner' || x.type === 'shot' || x.type === 'pass'),
+                    )?.type === 'corner'
+            )
+                maxSaves.corner++;
+            else maxSaves.other++;
+            break;
+        }
     }
 
     let hit: { tick: number; by: number; lv: number; gk: boolean; team: 0 | 1 } | null = null;
@@ -362,5 +395,10 @@ if (AGENCIA) {
         `bicudas/jogo N1/N2/N3 ${bicudaByLevel.map(per).join('/')}; gol do time em 4 s: ${[0, 1, 2].map((k) => pct(bicudaGoals[k], bicudaByLevel[k])).join('/')}`,
     );
     console.log(`bicuda com o toque fora (virou a defesa de sempre): ${per(bicudaMiss)}/jogo`);
+    const ms = maxSaves;
+    const tot = ms.caught + ms.corner + ms.post + ms.counter + ms.other;
+    console.log(
+        `defesa do golpe máximo: ${per(tot)}/jogo · encaixe ${pct(ms.caught, tot)} escanteio ${pct(ms.corner, tot)} trave ${pct(ms.post, tot)} counter ${pct(ms.counter, tot)} outra espalmada ${pct(ms.other, tot)} · goleiro com a bola em 2 s ${pct(ms.gkBall, tot)}`,
+    );
 }
 if (csvPath) writeFileSync(csvPath, rows.join('\n'));

@@ -2378,8 +2378,9 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou
-                const caught = felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99) && !fxHas(fx, 'cannon');
+                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou; golpe máximo nunca encaixa
+                const caught = !shot.max && felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99) && !fxHas(fx, 'cannon');
+                const saveAt = s.events.length;
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
                 // o contato nunca fica atrás do goleiro (entre ele e o gol): a bola parecia ter passado e virava
@@ -2414,6 +2415,11 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
                 if (!caught && !tryRebound(s, shooter, moveId, ball.pos)) {
                     ball.lastTouch = p.idx;
                     ball.lastKick = { by: p.idx, kind: 'clear', tick: s.tick };
+                    if (shot.max) {
+                        const ev = s.events[saveAt];
+                        if (ev.type === 'save') ev.parry = maxParry(s, p, shot);
+                        return;
+                    }
                     // chute no canto às vezes vai pra fora (escanteio); senão espalma para o lado, pra frente
                     const out = s.rng.chance(CORNER_TUNING.parryOut + CORNER_TUNING.parryOutPlacement * placement);
                     // N3 Fogo, Normal e Pedra: a espalmada sai curta e a bola fica na área
@@ -2458,6 +2464,40 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
         }
     }
+}
+
+/**
+ * Defesa do golpe máximo (Miguel 01/11/2026: "nunca encaixada"): o goleiro espalma pra escanteio ou na trave, com o
+ * rebote vivo (`AGENCY.maxParry`). A espalmada curta do N3 (Fogo, Normal, Pedra: a bola fica na área) vai sempre na
+ * trave, e a bola colada na linha, que não sai de lado (`deflectOut`), também. Quem espalmou não domina a sobra.
+ */
+function maxParry(s: MatchState, gk: PlayerState, shot: ShotInfo): 'corner' | 'post' {
+    const P = AGENCY.maxParry;
+    const ball = s.ball;
+    const corner = !fxHas(shot.fx, 'shortParry') && !s.rng.chance(P.post) && deflectOut(s, gk, ball.pos);
+    gk.kickCooldown = Math.max(gk.kickCooldown, P.gkLock);
+    if (corner) return 'corner';
+    // na trave do lado da bola: ela vai até o poste e o quique da trave (o do chute, na linha de fundo) a devolve
+    const { width, goalWidth } = s.cfg.pitch;
+    const gy = width / 2;
+    const lineX = ownGoalX(s, gk.team);
+    const front = attackSign(gk.team);
+    if ((ball.pos.x - lineX) * front < P.postMin) ball.pos = v(lineX + front * P.postMin, ball.pos.y);
+    const side = ball.pos.y > gy ? 1 : ball.pos.y < gy ? -1 : s.rng.chance(0.5) ? 1 : -1;
+    const post = v(lineX, gy + (side * goalWidth) / 2);
+    ball.vel = scale(norm(sub(post, ball.pos)), P.postSpeed);
+    // um chute "morto" até a trave: ninguém bloqueia nem defende de novo, sem curva nem efeito
+    ball.shot = {
+        by: shot.by,
+        tick: shot.tick,
+        xg: 0,
+        moveId: null,
+        moveType: shot.moveType,
+        gkChecked: true,
+        blockedBy: s.players.map((o) => o.idx),
+        onTarget: false,
+    };
+    return 'post';
 }
 
 /** F8: chute de rebote (Bonemerang, Pin Missile...): defendido ou bloqueado, a bola volta para o pé de quem chutou. */
@@ -3485,7 +3525,8 @@ function updateMax(s: MatchState) {
  * um chute no gol do rival (qualquer um, golpe máximo inclusive) e devolve com o golpe máximo. N3 é um chute N3 no gol
  * rival (sempre no alvo, derruba a linha, efeito do tipo), mas o goleiro rival defende como num chute normal; N1 e N2 são
  * um lançamento forte pro companheiro mais à frente no campo rival (sem ninguém lá, pro espaço), e o N2 derruba quem
- * está no caminho. Vale como defesa. Toque fora (`q` 0): gasta a barra e devolve false (a defesa de sempre desse chute).
+ * está no caminho. Contra o golpe máximo do rival (o counter), N1 e N2 também chutam no gol, com a força do nível. Vale
+ * como defesa. Toque fora (`q` 0): gasta a barra e devolve false (a defesa de sempre desse chute).
  */
 function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: ShotInfo, arm: MaxArm): boolean {
     const ball = s.ball;
@@ -3502,7 +3543,8 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     ball.vz = 0;
     maxStatusOn(s, shot, gk);
     const gy = s.cfg.pitch.width / 2;
-    if (arm.level === 3) {
+    // o counter (Miguel 01/11/2026): contra o golpe máximo do rival, a bicuda vai no gol em todo nível
+    if (arm.level === 3 || shot.max) {
         kick(s, gk, 'shot', v(goalXFor(s, gk.team), gy), 1, undefined, 1, arm);
         // o goleiro rival defende como num chute normal (alcance, chance e a isca do Inseto)
         const out = s.ball.shot;
