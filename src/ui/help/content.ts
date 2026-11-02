@@ -65,7 +65,7 @@ const SECTION_SPRITES = {
     itens: 143,
     sinergias: 150,
     partida: 26,
-    golpeMax: 143,
+    golpeMax: 130,
     evolucao: 4,
     copa: 149,
     recompensas: 52,

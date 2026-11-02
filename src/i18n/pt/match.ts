@@ -207,7 +207,7 @@ export const match = {
         maxSigBy: 'assinatura · {t}',
         /** Golpe máximo explicado (src/ui/max-levels.ts monta com os números do motor). */
         levels: {
-            title: 'Golpe especial',
+            title: 'Golpe máximo',
             /** Aviso na partida quando a barra sobe de nível. */
             unlocked: 'N{n} liberado: {what}',
             gain: [

@@ -112,8 +112,10 @@ Pedido do Miguel: dizer quando cada nível libera e o que ele dá. Os textos sae
 motor (`AGENCY.maxLevelPts`, `maxBehind`, `maxLevelShot`, `maxStatus`, `maxGrade`, os pontos por lance medidos no
 próprio `maxCharge`, `maxFxType` e `MAX_SIGNATURE`): número novo no motor muda o texto junto.
 - Partida: aviso curto quando a barra do seu time sobe ("N2 liberado: derruba quem estiver no caminho") e a legenda
-  "Golpe especial" (abre num toque) embaixo dos botões da beira da quadra, com os níveis já liberados acesos.
-- Carta completa: seção "Golpe especial" com o golpe, o tipo, o que N1/N2/N3 fazem pra ele (bicuda se a posição é gol)
+  "Golpe máximo" (abre num toque) embaixo dos botões da beira da quadra, com os níveis já liberados acesos.
+- Carta completa: seção "Golpe máximo" com o golpe, o tipo, o que N1/N2/N3 fazem pra ele (bicuda se a posição é gol)
   e como liberar.
-- Tutorial: balão `golpe` na 1ª vez que a barra chega no N1 (volta pela Ajuda), seção "Golpe especial do capitão" na
+- Tutorial: balão `golpe` na 1ª vez que a barra chega no N1 (volta pela Ajuda), seção "Golpe máximo do capitão" na
   Ajuda (com o status e o efeito de cada tipo) e um 4º passo no "Como jogar".
+
+O nome da seção é "Golpe máximo" (não "Golpe especial"): na carta, "Golpe especial" já é o tipo de golpe (o `blast`).

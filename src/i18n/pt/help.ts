@@ -402,10 +402,10 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
         ],
     },
     golpeMax: {
-        title: 'Golpe especial do capitão',
+        title: 'Golpe máximo do capitão',
         blocks: [
             {
-                p: 'Todo capitão tem um **golpe especial**, com 3 níveis: **N1**, **N2** e **N3**. {maxWho}',
+                p: 'Todo capitão tem um **golpe máximo**, com 3 níveis: **N1**, **N2** e **N3**. {maxWho}',
             },
             { p: '{maxFill}' },
             { dyn: 'maxLevels' },
@@ -419,7 +419,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 p: 'O status do N1 e o efeito do N3 vêm do tipo do golpe, se ele for de um tipo do Pokémon (senão, do 1º tipo dele):',
             },
             { dyn: 'maxTypes' },
-            { p: 'Na carta completa de cada Pokémon tem a seção **Golpe especial**, com o que ele faz em cada nível.' },
+            { p: 'Na carta completa de cada Pokémon tem a seção **Golpe máximo**, com o que ele faz em cada nível.' },
         ],
     },
     evolucao: {
@@ -598,7 +598,7 @@ export const help = {
         linkTerm: '{name} ({pct})',
         linkLine: '{desc} Combo: {combo}.',
         gymLine: 'tipo {types}, {formation}, {tactic}.',
-        /** Golpe especial: os 3 níveis em geral (o da carta é o de cada Pokémon). */
+        /** Golpe máximo: os 3 níveis em geral (o da carta é o de cada Pokémon). */
         maxRow: [
             'chute com {pw} de força e o status do tipo em quem bloquear ou defender.',
             'chute com {pw} e derruba quem estiver no caminho (o goleiro não cai).',
@@ -678,7 +678,7 @@ export const help = {
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
         golpe: [
-            'Barra no N1: o golpe especial do capitão liberou. No N2 derruba quem estiver no caminho; no N3 sai sempre no alvo.',
+            'Barra no N1: o golpe máximo do capitão liberou. No N2 derruba quem estiver no caminho; no N3 sai sempre no alvo.',
             'Quando o botão acender, toque com o círculo verde fechando. Capitão no gol devolve o chute de bicuda.',
         ],
         replay: {
@@ -692,7 +692,7 @@ export const help = {
             duelo: 'Duelo',
             dia: 'Copa do Dia',
             liga: 'Liga',
-            golpe: 'Golpe especial',
+            golpe: 'Golpe máximo',
         },
     },
 };

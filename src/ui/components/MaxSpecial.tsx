@@ -30,7 +30,7 @@ export function captainPlan(m: MatchResult, setups: [TeamSetup, TeamSetup], side
     return maxPlan(inst.moves, cap.speciesId, roleAt(m, setups, cap.idx, tick) === 'GK');
 }
 
-/** Seção "Golpe especial" da carta completa: o golpe, o tipo, o que N1/N2/N3 dão pra ele e como liberar. */
+/** Seção "Golpe máximo" da carta completa: o golpe, o tipo, o que N1/N2/N3 dão pra ele e como liberar. */
 export function MaxSpecialSection({
     moves,
     speciesId,
@@ -51,10 +51,12 @@ export function MaxSpecialSection({
                     <b>{plan.move ? moveName(plan.move) : species(speciesId).name}</b>
                     <span className="row" style={{ gap: 4 }}>
                         <TypeBadge type={plan.type} />
-                        <span className="pos-chip">
-                            <HudIcon kind={gk ? 'bicuda' : 'max'} />
-                            {gk ? a.bicuda : a.max}
-                        </span>
+                        {gk && (
+                            <span className="pos-chip">
+                                <HudIcon kind="bicuda" />
+                                {a.bicuda}
+                            </span>
+                        )}
                     </span>
                 </div>
                 <LevelRows plan={plan} />

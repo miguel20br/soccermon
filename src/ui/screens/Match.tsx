@@ -27,7 +27,7 @@ import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
-import { relampagoJogoDue } from '../../store/coach';
+import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
@@ -173,6 +173,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [penPick, setPenPick] = useState<number | null>(null);
     /** O balão da 1ª partida aberto: o do golpe especial espera ele fechar (um balão por vez). */
     const [jogoOn, setJogoOn] = useState(false);
+    const [golpeOn, setGolpeOn] = useState(false);
     const alive = useRef(true);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
@@ -701,18 +702,17 @@ export function Match({ liga = false }: { liga?: boolean }) {
         EventBus.emit('match:resume');
     };
 
+    // 1ª partida da Relâmpago: o balão dela vem antes do balão do golpe (um balão por vez)
+    const jogoFirst = !liga && !!run && !run.daily && !isLong(run) && run.results.length === 0;
     const jogoCoach = (
         <Coach
             id="relampagoJogo"
             targets={[hud ? '.bc-hudbar' : '.bc-coach .bc-tabs']}
             when={
-                !liga &&
-                !!run &&
-                !run.daily &&
-                !isLong(run) &&
-                run.results.length === 0 &&
+                jogoFirst &&
                 // não abre por cima do botão do golpe máximo aceso nem do lance dele
                 !maxBusy &&
+                !golpeOn &&
                 relampagoJogoDue(clock.score, halftime)
             }
             // e, já aberto, some enquanto o botão acende (golpe máximo ou bicuda) ou o golpe sai, e volta depois
@@ -724,9 +724,17 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const golpeCoach = (
         <Coach
             id="golpe"
-            targets={['.bc-maxthumb, .sl-max, .sl-maxbars', '.bc-maxthumb, .sl-max, .sl-maxbars']}
-            when={!liga && agency.max.level >= 1 && !maxBusy && !jogoOn}
+            // celular: o botão da barra de baixo; desktop: as barrinhas embaixo do placar
+            targets={wide ? ['.sl-maxbars', '.sl-maxbars'] : ['.bc-maxthumb', '.bc-maxthumb']}
+            when={
+                !liga &&
+                agency.max.level >= 1 &&
+                !maxBusy &&
+                !jogoOn &&
+                (!jogoFirst || coachSeen(profileClub.coach, 'relampagoJogo'))
+            }
             pause={maxBusy}
+            onActive={setGolpeOn}
         />
     );
     /** O conteúdo de cada aba do técnico (no painel ou na sheet do ?lab=hud). */

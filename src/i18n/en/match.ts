@@ -183,7 +183,7 @@ export const match: typeof pt = {
         maxFxBy: '{t} effect',
         maxSigBy: 'signature · {t}',
         levels: {
-            title: 'Special move',
+            title: 'Max move',
             unlocked: 'L{n} unlocked: {what}',
             gain: [
                 'a strong shot that {st} whoever blocks or saves it',

@@ -381,10 +381,10 @@ export const help: typeof pt = {
             ],
         },
         golpeMax: {
-            title: "The captain's special move",
+            title: "The captain's max move",
             blocks: [
                 {
-                    p: 'Every captain has a **special move**, with 3 levels: **L1**, **L2** and **L3**. {maxWho}',
+                    p: 'Every captain has a **max move**, with 3 levels: **L1**, **L2** and **L3**. {maxWho}',
                 },
                 { p: '{maxFill}' },
                 { dyn: 'maxLevels' },
@@ -398,7 +398,7 @@ export const help: typeof pt = {
                     p: "The L1 status and the L3 effect come from the move's type, if it is one of the Pokémon's types (otherwise, its first type):",
                 },
                 { dyn: 'maxTypes' },
-                { p: "Each Pokémon's full card has a **Special move** section with what it does at each level." },
+                { p: "Each Pokémon's full card has a **Max move** section with what it does at each level." },
             ],
         },
         evolucao: {
@@ -648,7 +648,7 @@ export const help: typeof pt = {
             "You face another trainer's saved team. They don't need to be online.",
         ],
         golpe: [
-            "Bar at L1: your captain's special move is unlocked. At L2 it knocks down anyone in the way; at L3 it is always on target.",
+            "Bar at L1: your captain's max move is unlocked. At L2 it knocks down anyone in the way; at L3 it is always on target.",
             'When the button lights up, tap as the green circle closes. A keeper captain boots the shot back.',
         ],
         replay: {
@@ -662,7 +662,7 @@ export const help: typeof pt = {
             duelo: 'Duel',
             dia: 'Daily Cup',
             liga: 'League',
-            golpe: 'Special move',
+            golpe: 'Max move',
         },
     },
 };
