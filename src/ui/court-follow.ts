@@ -4,7 +4,12 @@ import { EventBus } from '../game/EventBus';
 /** O que a quadra seguindo a bola precisa da cena (a mesma interface do clipe 9:16, sem importar o Phaser). */
 interface FollowScene {
     ballOnScreen(): { x: number; y: number };
-    camSubject(): { carrier: { x: number; y: number } | null; attack: number };
+    camSubject(): {
+        carrier: { x: number; y: number } | null;
+        attack: number;
+        /** Golpe máximo no ar: o trecho (px na tela) que não pode sair da janela, o gol atacado inteiro. */
+        keep?: { x0: number; x1: number } | null;
+    };
     focusOnScreen(): { x: number; y: number };
     setZoomDamp(k: number): void;
     cameras: { main: { zoom: number } };
@@ -56,7 +61,22 @@ export const CAM = {
     edge: 0.12,
     /** ...e pra manter isso a câmera corre no máximo este tanto de janela por segundo. */
     catchUp: 1.6,
+    /** Golpe máximo no ar: folga (fração da janela) em volta do gol atacado e a mola rápida pra chegar nele na carga. */
+    keepMargin: 0.03,
+    keepSmooth: 0.07,
 };
+
+/**
+ * Golpe máximo no ar (do chute à chegada): o alvo da janela andado o mínimo pra o trecho `keep` (o gol atacado, px)
+ * ficar inteiro nela, com `CAM.keepMargin` de folga. Sem `keep`, o alvo de sempre.
+ */
+export function keepTarget(target: number, keep: { x0: number; x1: number } | null | undefined, view: number): number {
+    if (!keep) return target;
+    const m = CAM.keepMargin * view;
+    const lo = keep.x1 + m - view / 2;
+    const hi = keep.x0 - m + view / 2;
+    return lo > hi ? (keep.x0 + keep.x1) / 2 : clamp(target, lo, hi);
+}
 
 /** Deslocamento (px, ≤ 0) que centra o ponto na janela, sem passar das bordas da quadra. */
 export function followOffset(ballX: number, view: number, full: number): number {
@@ -94,13 +114,14 @@ export function camStep(
     dt: number,
     view: number,
     full: number,
+    smooth = CAM.smooth,
 ): CamState {
     const lo = view / 2;
     const hi = Math.max(lo, full - view / 2);
     const d = target - s.x;
     const dead = CAM.dead * view;
     const goal = clamp(Math.abs(d) <= dead ? s.x : target - Math.sign(d) * dead, lo, hi);
-    const w = 2 / CAM.smooth;
+    const w = 2 / smooth;
     const k = w * dt;
     const decay = 1 / (1 + k + 0.48 * k * k + 0.235 * k * k * k);
     const change = s.x - goal;
@@ -240,9 +261,16 @@ export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>,
             const zoomed = scene.cameras.main.zoom > 1.02;
             const sub = scene.camSubject();
             const carrier = sub.carrier ? sub.carrier.x * k : null;
-            const target = zoomed ? scene.focusOnScreen().x * k : camTarget(ball, carrier, sub.attack, vel, view);
+            // golpe máximo no ar: o gol atacado não sai da janela, e a mola rápida chega nele durante a carga do chute
+            const keep = sub.keep ? { x0: sub.keep.x0 * k, x1: sub.keep.x1 * k } : null;
+            const target = keepTarget(
+                zoomed ? scene.focusOnScreen().x * k : camTarget(ball, carrier, sub.attack, vel, view),
+                keep,
+                view,
+            );
+            const smooth = keep ? CAM.keepSmooth : CAM.smooth;
             cam = cam
-                ? camStep(cam, target, zoomed ? null : (carrier ?? ball), dt, view, full)
+                ? camStep(cam, target, zoomed || keep ? null : (carrier ?? ball), dt, view, full, smooth)
                 : camStep({ x: target, v: 0 }, target, null, 0, view, full);
             const next = followOffset(cam.x, view, full);
             if (x !== null && Math.abs(next - x) < 0.1) return;

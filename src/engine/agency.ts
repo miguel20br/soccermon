@@ -65,6 +65,13 @@ export const AGENCY = {
         Dragon: ['par', 1.5],
         Fairy: ['infatuation'],
     } as Record<string, readonly [StatusKind | 'infatuation' | 'stun', number?]>,
+    /**
+     * Defesa do golpe máximo, N1 a N3 (Miguel 01/11/2026: "nunca encaixada"): o goleiro espalma, `post` das vezes na
+     * trave (a bola vai até o poste a `postSpeed` m/s e volta viva; colada na linha, sai de `postMin` m dela) e o resto
+     * pra escanteio. Quem espalmou fica `gkLock` s sem dominar a sobra (está no chão). O counter é a bicuda (`bicuda`):
+     * goleiro capitão com o golpe máximo armado pra esse chute; contra golpe máximo ela vai no gol rival em todo nível.
+     */
+    maxParry: { post: 0.35, postSpeed: 10, postMin: 0.3, gkLock: 1 },
     /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
     knockR: 1.5,
     knockStun: 1,

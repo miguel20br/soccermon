@@ -11,23 +11,6 @@ export const GAME_H = W * PPM + MARGIN * 2;
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
 /**
- * Câmera do chute N3 (px do mundo e zoom): o gol atacado inteiro no quadro (o close no capitão cortava o gol). Quadra
- * inteira: quem chuta e o gol juntos, com folga, no maior zoom que cabe (até 1,35). Quadra grande do celular (`big`, a
- * janela mostra ~17 m e anda até o foco da câmera): o foco fica 7 m na frente do gol, como nos pênaltis.
- */
-export function n3ShotFrame(sx: number, sy: number, team: 0 | 1, big: boolean): { x: number; y: number; zoom: number } {
-    const dir = team === 0 ? 1 : -1;
-    const goal = toPx(team === 0 ? L : 0, W / 2);
-    if (big) return { x: goal.x - dir * 7 * PPM, y: goal.y, zoom: 1.12 };
-    const back = sx - dir * 3 * PPM;
-    const front = goal.x + dir * 2 * PPM;
-    const spanX = Math.abs(front - back);
-    const spanY = Math.abs(sy - goal.y) + (GW / 2 + 3) * PPM * 2;
-    const zoom = Math.max(1, Math.min(1.35, GAME_W / spanX, GAME_H / spanY));
-    return { x: (back + front) / 2, y: (sy + goal.y) / 2, zoom };
-}
-
-/**
  * Quadra da partida: o Graphics (~26 mil comandos) vira textura uma vez e entra como imagem; desenhado direto, o
  * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem o dobro da resolução pros
  * zooms dos lances (até 1.6) continuarem nítidos.

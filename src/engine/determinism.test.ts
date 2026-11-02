@@ -24,9 +24,10 @@ const EXPECTED_HASHES = [
     '181cff2c',
     '3899de05',
     'fee79e53',
-    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto
-    '033a9cfe',
-    '67206244',
+    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto (motor 18: a defesa do golpe máximo espalma pra
+    // escanteio ou na trave, nunca encaixa)
+    '3f3a05f6',
+    '214efe05',
     'e2096794',
     '048ee52b',
 ];

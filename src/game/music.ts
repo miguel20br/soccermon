@@ -439,7 +439,14 @@ function fillBuffer(o: Parameters<typeof mixVirada>[0]): AudioBuffer {
  * volume (~14 dB abaixo, medido no navegador): o Miguel ouvia "a música em silêncio" (01/11/2026). Agora fica ~6 dB.
  */
 export const DUCK = { hz: 1500, gain: 0.72, tau: 0.08, back: 0.15 };
+/**
+ * Cena do especial N3 (01/11/2026, "no N3 é pra ela explodir"): a faixa quase some (~-22 dB e abafada) pra subida do
+ * stinger aparecer, e no chute volta na hora (`unduckMusic(false, true)`, `snap`), junto do impacto.
+ */
+export const DUCK_N3 = { hz: 450, gain: 0.08, tau: 0.04, snap: 0.01 };
 let ducked: Playing | null = null;
+/** A virada do toque (`unduckMusic(true)`) que ainda vai tocar: a cena do N3 cala ela (cairia por cima da subida). */
+let fillShot: Shot | null = null;
 /** Quando (relógio do áudio) a faixa abre de novo depois do último `unduckMusic`. */
 let openAt = 0;
 
@@ -447,26 +454,31 @@ let openAt = 0;
 export const musicDucked = () => !!ducked || (!!zz && ctx().currentTime < openAt);
 let duckClap: Float32Array | null = null;
 
-/** A faixa vai pro fundo (a quadra parou no golpe máximo). */
-export function duckMusic() {
-    if (!zz || !current || ducked || ctx().state !== 'running') return;
+/** A faixa vai pro fundo (a quadra parou no golpe máximo). `deep`: a cena do N3, quase sumindo (`DUCK_N3`). */
+export function duckMusic(deep = false) {
+    if (!zz || !current || (ducked && !deep) || ctx().state !== 'running') return;
     void loadClap().then((c) => {
         duckClap = c;
     });
     const p = current;
     const now = ctx().currentTime;
+    const d = deep ? DUCK_N3 : DUCK;
+    if (deep) {
+        hush(fillShot, now);
+        fillShot = null;
+    }
     p.lp.frequency.cancelScheduledValues(now);
-    p.lp.frequency.setTargetAtTime(DUCK.hz, now, DUCK.tau);
+    p.lp.frequency.setTargetAtTime(d.hz, now, d.tau);
     p.gain.gain.cancelScheduledValues(now);
-    p.gain.gain.setTargetAtTime(DUCK.gain, now, DUCK.tau);
+    p.gain.gain.setTargetAtTime(d.gain, now, d.tau);
     ducked = p;
 }
 
 /**
  * A faixa volta. `fill` (o toque): a virada da troca de tela da próxima batida até o 1 do compasso seguinte, e a faixa
- * abre no 1. Sem toque (passou, "Esperar"): volta devagar já.
+ * abre no 1. Sem toque (passou, "Esperar"): volta devagar já. `snap` (o chute do N3): abre na hora, de uma vez.
  */
-export function unduckMusic(fill: boolean) {
+export function unduckMusic(fill: boolean, snap = false) {
     const was = ducked;
     ducked = null;
     // troca de trecho no fundo (minuto, Pressão final): o trecho novo é outro objeto, mas o passa-baixa é o mesmo
@@ -476,12 +488,12 @@ export function unduckMusic(fill: boolean) {
     const c = ctx();
     const now = c.currentTime;
     let open = now;
-    let tau = DUCK.back;
-    if (fill && sounding(p, now)) {
+    let tau = snap ? DUCK_N3.snap : DUCK.back;
+    if (fill && !snap && sounding(p, now)) {
         const g = gridOf(p.loaded, p.sec);
         const w = fillWindow(gridX(p, now), g);
         const four = (p.loaded.meta.linhasPorCompasso ?? 16) % 3 !== 0;
-        shot(
+        fillShot = shot(
             fillBuffer({
                 beats: w.beats,
                 pulse: g.pulse,
