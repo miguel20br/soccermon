@@ -18,7 +18,7 @@ import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
+import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { foldOpenByDefault } from '../components/Fold';
@@ -32,8 +32,11 @@ import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
+import { cupGoal } from '../moments';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
 import { shareRun } from '../share';
@@ -71,6 +74,8 @@ export function Result() {
     const match = useHeld(liveMatch);
     const { t } = useT();
     const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
+    // o que sai da tela pra uma sheet: as estatísticas, o gol da copa (com o replay) e a chave
+    const [sheet, setSheet] = useState<'stats' | 'goal' | 'bracket' | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -119,6 +124,7 @@ export function Result() {
             initialTab={tab}
             cupTab={<CupStats results={run.results} mode={run.mode} />}
             goalsExtra={<GoalsExtra run={run} evolutions={evolutions} destaque={destaque} />}
+            openPart
         />
     );
     const share = async () => {
@@ -215,16 +221,39 @@ export function Result() {
             )}
         </>
     );
+    const bracket = run.status === 'reward' && !isLong(run);
+    const hasGoal = eliminated && !!cupGoal(run.results);
+    // resultado sem rolar (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar
     const actions = (
         <>
             {eliminated && <NearMiss run={run} />}
-            {eliminated && <CupGains run={run} />}
-            {eliminated && <CupGoalCard run={run} match={match} />}
-            <div className="row" style={{ justifyContent: 'center' }}>
+            <div className="res-icons">
                 {icons}
+                {hasGoal && (
+                    <button
+                        type="button"
+                        className="btn outline"
+                        aria-haspopup="dialog"
+                        onClick={() => setSheet('goal')}
+                    >
+                        <HudIcon kind="play" /> {t('moments.cup.h')}
+                    </button>
+                )}
+                {bracket && (
+                    <button
+                        type="button"
+                        className="btn outline"
+                        aria-haspopup="dialog"
+                        onClick={() => setSheet('bracket')}
+                    >
+                        <HudIcon kind="cup" /> {t('bracket.show')}
+                    </button>
+                )}
+                <button type="button" className="btn outline" aria-haspopup="dialog" onClick={() => setSheet('stats')}>
+                    <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
+                </button>
             </div>
             {thumb}
-            {extra}
         </>
     );
     const toast = shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>;
@@ -258,32 +287,48 @@ export function Result() {
     return (
         <>
             {toast}
-            <ResultHero
-                run={run}
-                match={match}
-                opponent={opponent}
-                names={names}
-                mvpUid={ourStar?.uid ?? null}
-                foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
-                unlocks={<UnlockStrip />}
-                actions={actions}
-            />
-            {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
-            {run.status === 'reward' && !isLong(run) && (
-                <BracketPeek
-                    rounds={relampagoBracket(
-                        run.seed,
-                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
-                        bracketRivals(run.opponents),
-                        run.results,
-                    )}
-                    current={run.stage + 1}
-                    fresh
+            <Stage className="result-stage">
+                <ResultHero
+                    run={run}
+                    match={match}
+                    opponent={opponent}
+                    names={names}
+                    mvpUid={ourStar?.uid ?? null}
+                    foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
+                    unlocks={<UnlockStrip />}
+                    actions={actions}
                 />
-            )}
-            {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
-            <Tip id="result-dex">{t('result.dexTip')}</Tip>
-            {details}
+                {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
+                <Tip id="result-dex">{t('result.dexTip')}</Tip>
+            </Stage>
+            <Sheet
+                open={sheet === 'stats'}
+                onClose={() => setSheet(null)}
+                title={t('result.champ.statsBtn')}
+                className="res-stats-sheet"
+            >
+                {eliminated && <CupGains run={run} />}
+                {details}
+                {extra}
+            </Sheet>
+            <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
+                <CupGoalCard run={run} match={match} />
+            </Sheet>
+            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
+                {bracket && (
+                    <Bracket
+                        rounds={relampagoBracket(
+                            run.seed,
+                            bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                            bracketRivals(run.opponents),
+                            run.results,
+                        )}
+                        current={run.stage + 1}
+                        fresh
+                    />
+                )}
+            </Sheet>
         </>
     );
 }
@@ -397,7 +442,10 @@ export function MatchDetails({
     cupTab,
     initialTab = 'times',
     side = 0,
+    openPart = false,
 }: {
+    /** Já abre na pasta Destaques (dentro de uma sheet, fechada não faz sentido). */
+    openPart?: boolean;
     match: MatchResult;
     names: [string, string];
     /** Seu lado (no duelo o convidado é o 1): a lista "O rival evoluiu" é do outro. */
@@ -409,7 +457,7 @@ export function MatchDetails({
     const { t, tn, d } = useT();
     const [tab, setTab] = useState<Tab>(initialTab);
     // as duas pastas (destaques, estatísticas): no PC abre a 1ª; no celular em pé começa fechada (tocar na aberta fecha)
-    const [part, setPart] = useState<Part | null>(() => (foldOpenByDefault() ? 'destaques' : null));
+    const [part, setPart] = useState<Part | null>(() => (openPart || foldOpenByDefault() ? 'destaques' : null));
     const mvp = matchMvp(match);
     const goals = match.events.filter((e) => e.type === 'goal');
     // evoluções do rival: lembrete pra quem não viu na quadra

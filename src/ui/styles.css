@@ -4344,10 +4344,12 @@ button,
     color: #fff3b0;
 }
 .rh-loss .rh-title {
-    color: #c8cde8;
-    -webkit-text-stroke-color: #3a4680;
-    text-shadow: 0.06em 0.06em 0 #141a33;
-    font-size: clamp(34px, calc(7 * var(--vw)), 64px);
+    /* o mesmo peso do VITÓRIA! (cara-de-jogo.md), em vermelho apagado */
+    color: #f2d2cf;
+    -webkit-text-stroke-color: #8a2a28;
+    text-shadow:
+        0.05em 0.05em 0 #5c1614,
+        0.1em 0.1em 0 #2a0a09;
 }
 .rh-title span {
     display: inline-block;
@@ -4803,6 +4805,59 @@ button,
     margin: 22px 0 8px;
     text-align: center;
 }
+/* resultado num palco que não rola: o herói ocupa a altura e encolhe nas telas baixas */
+.result-stage .rh {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* safe: se não couber, sobra embaixo em vez de cortar o título em cima */
+    align-content: safe center;
+    gap: 8px;
+    padding: 14px 12px;
+}
+.res-icons {
+    margin-inline: auto;
+}
+.cupgoal-lbl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+@media (max-height: 760px) {
+    .result-stage .rh-stats,
+    .result-stage .rh-sub {
+        display: none;
+    }
+    .result-stage .rh-squad {
+        min-height: 64px;
+    }
+}
+@media (max-height: 600px) {
+    .result-stage .leader-quote,
+    .result-stage .rh-next-squad,
+    .result-stage .rh-sad {
+        display: none;
+    }
+    .result-stage .rh-title {
+        font-size: 34px;
+    }
+}
+/* celular deitado: título, placar, os botões-ícone e a ação (o time e o próximo rival ficam pra tela em pé) */
+@media (max-height: 520px) {
+    .result-stage .rh-squad,
+    .result-stage .rh-next {
+        display: none;
+    }
+    .result-stage .rh-title {
+        font-size: 30px;
+    }
+    .result-stage .res-icons .btn {
+        flex-direction: row;
+        min-height: 40px;
+    }
+    .result-stage .rh-score b {
+        font-size: 30px;
+    }
+}
 /* o título em 3 batidas num palco que não rola (cara-de-jogo.md, decisão 5); o relatório mora na sheet */
 .champ-wrap .k-stage-body {
     justify-content: stretch;
@@ -4812,7 +4867,7 @@ button,
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: safe center;
     align-items: center;
     gap: 12px;
     padding: 14px 12px;
@@ -4922,15 +4977,17 @@ button,
     font-weight: 400;
     font-size: 18px;
 }
-/* botões-ícone: ícone em cima, rótulo curto embaixo, os 3 numa fileira */
-.champ-icons {
+/* botões-ícone: ícone em cima, rótulo curto embaixo, os 3 numa fileira (título e resultado) */
+.champ-icons,
+.res-icons {
     display: grid;
     grid-auto-columns: minmax(0, 1fr);
     grid-auto-flow: column;
     gap: 8px;
     width: min(420px, 100%);
 }
-.champ-icons .btn {
+.champ-icons .btn,
+.res-icons .btn {
     flex-direction: column;
     gap: 2px;
     min-height: 52px;
