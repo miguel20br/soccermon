@@ -68,6 +68,9 @@ export const settings = {
         onPl: 'Ligadas',
         offPl: 'Desligadas',
         accessibility: 'Acessibilidade',
+        /** Rótulos curtos das abas (Acessibilidade e Seus dados não cabiam no celular). */
+        accessTab: 'Acesso',
+        dataTab: 'Dados',
         motion: 'Reduzir movimento',
         motionHint: 'Menos tremida, flash e zoom.',
         motionHintSystem: 'Menos tremida, flash e zoom. Seu aparelho: {state}.',

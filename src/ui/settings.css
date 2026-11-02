@@ -187,7 +187,10 @@
         grid-template-columns: minmax(0, 1fr);
         gap: 6px;
     }
-    .set-tabs [role="tab"] > span {
-        font-size: 10px;
-    }
+}
+
+/* a placa do título em cima das abas (o corpo do palco não tem vão) */
+.settings-screen .menu-head {
+    flex: none;
+    margin-bottom: 12px;
 }

@@ -69,6 +69,8 @@ export const settings: typeof pt = {
         onPl: 'On',
         offPl: 'Off',
         accessibility: 'Accessibility',
+        accessTab: 'Access',
+        dataTab: 'Data',
         motion: 'Reduce motion',
         motionHint: 'Less shake, flash and zoom.',
         motionHintSystem: 'Less shake, flash and zoom. Your device: {state}.',

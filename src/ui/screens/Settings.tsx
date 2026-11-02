@@ -19,7 +19,7 @@ import {
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
 import { AccountBar } from '../components/AccountBar';
-import { useMenuBackOf } from '../components/MenuHead';
+import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { openPage } from '../doors';
 import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
@@ -187,11 +187,13 @@ export function Settings() {
     const tabName: Record<Tab, string> = {
         som: t('settings.screen.sound'),
         partida: t('settings.screen.match'),
-        acess: t('settings.screen.accessibility'),
-        dados: t('settings.data.title'),
+        acess: t('settings.screen.accessTab'),
+        dados: t('settings.screen.dataTab'),
     };
     return (
         <Stage className="settings-screen">
+            {/* a placa do título, como a Coleção (o voltar fica na barra de cima, pelo useMenuBackOf) */}
+            <MenuHead title={t('settings.screen.title')} icon="settings" />
             <div className="set-tabs k-tabs" role="tablist" aria-label={t('settings.screen.title')}>
                 {TABS.map(({ id, icon }) => (
                     <button
