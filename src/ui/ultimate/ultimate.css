@@ -836,7 +836,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
 }
 .ut-first .ut-goal-list li.next {
-    box-shadow: inset 3px 0 0 var(--yellow);
+    box-shadow: inset 0 0 0 2px var(--yellow);
 }
 
 /* JOGAR com o objetivo do momento embaixo */
