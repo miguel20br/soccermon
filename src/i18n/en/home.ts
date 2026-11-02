@@ -88,6 +88,7 @@ export const home: typeof pt = {
         sedeTitle: 'Club house',
         soonArcade: 'Arcade',
         ligaSoon: 'League · opens in {d}d',
+        ligaSign: 'opens in {d}d',
         labGo: 'Open the Pokédex',
         labSeen: '{n} of {total} seen',
         labTalk: '{n} to go for the Pokédex. Drafts and rivals count.',

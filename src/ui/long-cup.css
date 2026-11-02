@@ -1893,7 +1893,6 @@
     border: 0;
     border-radius: 4px;
     background: var(--bc-ink-2);
-    animation: row-in var(--dur-ui) calc(var(--k) * 60ms) var(--ease-out) both;
 }
 .gp-tv .gp-head {
     min-height: 18px;
@@ -1932,6 +1931,14 @@
 .gp-tv .gp-note {
     margin: 4px 4px 0;
 }
+.gp-note .k-seeall {
+    margin-left: auto;
+}
+/* a tabela inteira (Ver tudo): gols pró e contra entram antes do saldo */
+.gp-all .gp-row {
+    grid-template-columns: 20px minmax(0, 1fr) repeat(4, 24px) 32px;
+    gap: 4px;
+}
 /* as rodadas: placas de jogo com os dois escudos; a próxima pulsa em dourado */
 .gp-stage .gp-days {
     flex: none;
@@ -1947,14 +1954,16 @@
     box-shadow:
         inset 0 0 0 2px var(--frame-in),
         var(--lift-1);
-    animation: row-in var(--dur-ui) calc(200ms + var(--k) * 80ms) var(--ease-out) both;
 }
+/* linhas e rodadas entram pela cascata (.k-beat); a próxima rodada pulsa depois de entrar */
 .gp-stage .gp-day.now {
     box-shadow:
         inset 0 0 0 2px var(--yellow),
         var(--lift-1);
+}
+.gp-stage .gp-day.now.k-beat.on {
     animation:
-        row-in var(--dur-ui) calc(200ms + var(--k) * 80ms) var(--ease-out) both,
+        k-pop-in var(--dur-pop) var(--ease-pop) both,
         gp-now 1.6s 600ms ease-in-out infinite;
 }
 @keyframes gp-now {
@@ -2098,11 +2107,11 @@
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .gp-stage .gp-day.now {
+    .gp-stage .gp-day.now.k-beat.on {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] .gp-stage .gp-day.now {
+:root[data-reduce-motion="true"] .gp-stage .gp-day.now.k-beat.on {
     animation: none;
 }
 /* PC grande: o Pokémon a 3x pede uma área de toque maior */

@@ -55,7 +55,8 @@ import '../trophy-room.css';
 import { FORMATIONS } from '../../engine/formations';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { FieldSprite } from '../ambientes/FieldSprite';
-import { InfoSheet } from '../kit/controls';
+import { Beat, useCascade } from '../kit/Cascade';
+import { InfoSheet, SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 
@@ -981,6 +982,9 @@ export function EventScreen() {
 /** "{a} e {b}" com os nomes dos envolvidos. */
 const fmtNames = (text: string, names: string[]) => text.replace('{a}', names[0] ?? '').replace('{b}', names[1] ?? '');
 
+/** A cascata do grupo: 4 linhas da tabela e 3 rodadas, 250 ms entre uma e outra (~1,6 s). */
+const GROUP_BEATS = [100, ...Array(6).fill(250)];
+
 /**
  * Fase de grupos da Rota Índigo, no Planalto (docs/planos/campeonato.md): a tabela (os 2 primeiros vão pra Final), as
  * 3 rodadas com o seu jogo e o dos outros, e o botão da próxima partida. A fala do Lance abre o Planalto.
@@ -993,8 +997,11 @@ export function GroupScreen() {
     const color = useClubColor();
     const profile = useGame((s) => s.profile);
     const { t, d, lang } = useT();
+    // placar de TV: as 4 linhas da tabela e as 3 rodadas entram uma por vez (o toque pula pro fim)
+    const casc = useCascade(GROUP_BEATS);
     if (!run?.group) return null;
     const rows = groupTable(run, color);
+    const gd = (r: { gf: number; ga: number }) => (r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga);
     const others = groupOthers(run.seed);
     const played = run.results.filter((r) => isGroupStage(r.stage)).length;
     const toFinal = run.results.length >= FINAL_MATCH;
@@ -1027,7 +1034,7 @@ export function GroupScreen() {
                 <h1>{t('longCup.region.planalto')}</h1>
             </div>
             {/* a tabela em placar de TV: posição na placa, a cor do time, os pontos no quadro claro */}
-            <section className="gp-table gp-tv" aria-label={t('longCup.groupTable')}>
+            <section className="gp-table gp-tv" aria-label={t('longCup.groupTable')} onClick={casc.skip}>
                 <div className="gp-row gp-head">
                     <span />
                     <span />
@@ -1036,10 +1043,11 @@ export function GroupScreen() {
                     <span>{t('longCup.colPts')}</span>
                 </div>
                 {rows.map((r, i) => (
-                    <div
+                    <Beat
                         key={r.name}
+                        on={casc.step > i}
                         className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
-                        style={{ '--tc': hex(r.color), '--k': i } as CSSProperties}
+                        style={{ '--tc': hex(r.color) } as CSSProperties}
                     >
                         <b className="gp-pos">{i + 1}</b>
                         <span className="gp-team">
@@ -1047,31 +1055,63 @@ export function GroupScreen() {
                             {r.you ? r.name : clubName(r.name, lang)}
                         </span>
                         <span>{r.played}</span>
-                        <span>{r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga}</span>
+                        <span>{gd(r)}</span>
                         <b className="bc-sc gp-pts">{r.pts}</b>
-                    </div>
+                    </Beat>
                 ))}
-                {/* a conta dos pontos no "?" (decisão 13: regra na tela até ~12 palavras) */}
+                {/* a conta dos pontos no "?" (decisão 13: regra na tela até ~12 palavras); a tabela inteira no Ver tudo */}
                 <small className="gp-note">
                     {t('longCup.groupNote')}
                     <InfoSheet title={t('longCup.groupPointsTitle')}>
                         <p>{t('longCup.groupPoints')}</p>
                     </InfoSheet>
+                    <SeeAll title={t('longCup.groupTable')}>
+                        <div className="gp-table gp-tv gp-all">
+                            <div className="gp-row gp-head">
+                                <span />
+                                <span />
+                                <span>{t('longCup.colPlayed')}</span>
+                                <span>{t('longCup.colGf')}</span>
+                                <span>{t('longCup.colGa')}</span>
+                                <span>{t('longCup.colGd')}</span>
+                                <span>{t('longCup.colPts')}</span>
+                            </div>
+                            {rows.map((r, i) => (
+                                <div
+                                    key={r.name}
+                                    className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
+                                    style={{ '--tc': hex(r.color) } as CSSProperties}
+                                >
+                                    <b className="gp-pos">{i + 1}</b>
+                                    <span className="gp-team">
+                                        <i />
+                                        {r.you ? r.name : clubName(r.name, lang)}
+                                    </span>
+                                    <span>{r.played}</span>
+                                    <span>{r.gf}</span>
+                                    <span>{r.ga}</span>
+                                    <span>{gd(r)}</span>
+                                    <b className="bc-sc gp-pts">{r.pts}</b>
+                                </div>
+                            ))}
+                        </div>
+                    </SeeAll>
                 </small>
             </section>
 
             {/* as 3 rodadas como placas de jogo: os dois escudos e o placar; a próxima pulsa */}
-            <div className="gp-days">
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a cascata */}
+            <div className="gp-days" onClick={casc.skip}>
                 {run.group.rivals.map((rival, md) => {
                     const mine = run.results.find((x) => x.stage === GROUP_START + md);
                     const o = others[md];
                     const trainer = rivalTrainer(rival.name);
                     const now = md === played && !toFinal;
                     return (
-                        <div
+                        <Beat
                             key={rival.name}
+                            on={casc.step > rows.length + md}
                             className={`gp-day${now ? ' now' : ''}${mine ? ' done' : ''}`}
-                            style={{ '--k': md } as CSSProperties}
                         >
                             <span className="gp-day-head">
                                 <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
@@ -1098,7 +1138,7 @@ export function GroupScreen() {
                                 {mine && o.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
                                 {short(o.b)}
                             </span>
-                        </div>
+                        </Beat>
                     );
                 })}
             </div>

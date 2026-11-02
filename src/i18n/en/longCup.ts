@@ -88,6 +88,8 @@ export const longCup: typeof pt = {
     groupTable: 'Group',
     colPlayed: 'P',
     colGd: 'GD',
+    colGf: 'GF',
+    colGa: 'GA',
     colPts: 'Pts',
     groupNote: 'Top 2 go to the Final.',
     groupPointsTitle: 'Points',

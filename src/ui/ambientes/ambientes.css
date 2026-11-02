@@ -1923,6 +1923,77 @@
     text-shadow: none;
     rotate: -6deg;
 }
+/* o letreiro da Liga fechada: uma placa do kit pregada no muro, à direita do neon; tocar abre a Liga */
+.ar-liga {
+    all: unset;
+    position: absolute;
+    z-index: 2;
+    left: 84%;
+    top: 50%;
+    display: grid;
+    justify-items: center;
+    gap: calc(var(--mi) * 1);
+    padding: calc(var(--mi) * 2) calc(var(--mi) * 5) calc(var(--mi) * 2.5);
+    border: 2px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px var(--yellow),
+        0 3px 0 var(--cb-ink);
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: scale var(--dur-solta) var(--ease-pop);
+}
+/* a área de toque passa de 44 px por fora da placa */
+.ar-liga::before {
+    content: "";
+    position: absolute;
+    inset: -8px -6px;
+}
+.ar-liga b {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: max(14px, calc(var(--mi) * 8));
+    font-weight: 400;
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow: var(--k-out-1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.ar-liga .hud-icon {
+    width: 1em;
+    height: 1em;
+}
+.ar-liga small {
+    font-size: max(11px, calc(var(--mi) * 5.5));
+    font-weight: 700;
+    color: var(--text);
+}
+.ar-liga:active {
+    scale: 0.94;
+    transition-duration: var(--dur-toque);
+}
+.ar-liga:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+}
+/* em pé e baixo (320x640) o cabeçalho cobre o muro: o letreiro desce pra beira de baixo dele */
+@media (max-height: 700px) {
+    .ar-liga {
+        top: 100%;
+    }
+}
+/* desktop: mais perto do neon (a 84% ficava solto no muro comprido) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-liga {
+        left: 70%;
+    }
+}
 /* o poste à esquerda, com a luz caindo na quadra */
 .ar-lamp {
     position: absolute;
@@ -2119,6 +2190,10 @@
     }
     .ar-neon {
         left: 76%;
+    }
+    .ar-liga {
+        left: 92%;
+        top: 50%;
     }
     .ar-lines {
         left: 50%;
@@ -3624,20 +3699,6 @@
 }
 
 /* Arena: a Liga fechada vira uma linha discreta (era um card tracejado ao lado do "em breve" da Dupla) */
-.ar-soon {
-    margin: 0;
-    min-height: 32px;
-    padding: 0 12px;
-    border: 0;
-    background: none;
-    font: inherit;
-    cursor: pointer;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-    text-shadow: var(--k-out-1);
-}
 
 /* 320 e 360: nada de nome cortado. O selo NOVO da Rota sai (o título vale mais), a Sede mostra só o nome do clube e a
    pílula do modo perde o ícone (sobra espaço pro "Copa Relâmpago" inteiro) */

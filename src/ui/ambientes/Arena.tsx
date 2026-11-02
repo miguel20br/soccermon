@@ -22,7 +22,7 @@ export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 /**
  * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro com o neon do
  * Arcade da semana (o Game Corner de Celadon) e o poste aceso. A meta é o próximo cinturão do Duelo; o botão principal
- * é Desafiar. A Liga, enquanto fechada, é uma linha só com a contagem.
+ * é Desafiar. A Liga, enquanto fechada, é um letreiro no muro com a contagem (tocar abre a Liga).
  */
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const { t } = useT();
@@ -56,7 +56,29 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
 
     return (
         <ClockCtx.Provider value={clock}>
-            <ArenaScene me={mine} rival={rival} scale={scale} active={active}>
+            <ArenaScene
+                me={mine}
+                rival={rival}
+                scale={scale}
+                active={active}
+                sign={
+                    liga && (
+                        // o letreiro da Liga fechada: a contagem no muro, ao lado do neon do Arcade
+                        <button
+                            type="button"
+                            className="ar-liga"
+                            aria-label={t('home.amb.ligaSoon', { d: liga.d })}
+                            onClick={() => go('liga')}
+                        >
+                            <b>
+                                <HudIcon kind="crown" />
+                                {t('liga.home.ligaTag')}
+                            </b>
+                            <small>{t('home.amb.ligaSign', { d: liga.d })}</small>
+                        </button>
+                    )
+                }
+            >
                 <WildZone wild={w} zone="floor" />
             </ArenaScene>
             <div className="amb-ui rm-ui ar-ui">
@@ -75,13 +97,8 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         </span>
                         <HudIcon kind="next" />
                     </button>
-                    {/* o Arcade fica só no neon do muro (com o papel EM BREVE): o tile repetia */}
-                    {liga ? (
-                        // a contagem abre a Liga fechada (o palco com a contagem e as regras)
-                        <button type="button" className="ar-soon" onClick={() => go('liga')}>
-                            {t('home.amb.ligaSoon', { d: liga.d })}
-                        </button>
-                    ) : (
+                    {/* o Arcade e a Liga fechada ficam no muro (neon e letreiro): o tile repetia */}
+                    {!liga && (
                         <div className="amb-tiles">
                             <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
                         </div>
@@ -95,7 +112,8 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
 /**
  * A cena da Arena sem os botões: o muro com o neon, o poste e a quadra com os dois do duelo. A aba da Home põe os
  * Pokémon de volta em `children`; o Duelo e a Liga usam de fundo do palco (Backdrops.tsx). `reveal`: o rival aparece
- * (a Liga mostra o capitão do fantasma); sem ele, silhueta com "?".
+ * (a Liga mostra o capitão do fantasma); sem ele, silhueta com "?". `sign`: o letreiro da Liga no muro (só na aba);
+ * é o único pedaço da cena que o leitor de tela vê.
  */
 export function ArenaScene({
     me,
@@ -103,8 +121,10 @@ export function ArenaScene({
     reveal = false,
     scale,
     active,
+    sign,
     children,
 }: {
+    sign?: ReactNode;
     me: Mon;
     rival: number;
     reveal?: boolean;
@@ -121,21 +141,22 @@ export function ArenaScene({
         return () => window.clearTimeout(id);
     }, [seen]);
     return (
-        <div className="amb-scene ar-scene" aria-hidden>
-            <div className="amb-layer ar-sky" style={{ '--depth': 0.6 } as CSSProperties}>
+        <div className="amb-scene ar-scene">
+            <div className="amb-layer ar-sky" style={{ '--depth': 0.6 } as CSSProperties} aria-hidden>
                 <i className="es-stars" />
             </div>
             <div className="amb-layer ar-street" style={{ '--depth': 0.25 } as CSSProperties}>
                 <div className="ar-wall">
                     <i className="ar-fence" />
-                    <div className="ar-neon">
+                    <div className="ar-neon" aria-hidden>
                         <b>{t('home.amb.soonArcade')}</b>
                         <small>{t('home.amb.neonWeek')}</small>
                         <em className="ar-tape">{t('home.soonRibbon')}</em>
                     </div>
                     <i className="ar-lamp" />
+                    {sign}
                 </div>
-                <div className="ar-court">
+                <div className="ar-court" aria-hidden>
                     {/* a quadra de rua inteira: piso pintado, linhas, as duas áreas, pênalti, escanteios e os gols */}
                     <svg className="ar-lines" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden>
                         <rect className="ar-paint" x="4" y="4" width="192" height="92" />

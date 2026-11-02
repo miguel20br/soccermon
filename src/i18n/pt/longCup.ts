@@ -89,6 +89,8 @@ export const longCup = {
     groupTable: 'Grupo',
     colPlayed: 'J',
     colGd: 'SG',
+    colGf: 'GP',
+    colGa: 'GC',
     colPts: 'Pts',
     groupNote: 'Os 2 primeiros vão pra Final.',
     groupPointsTitle: 'Pontos',
