@@ -157,7 +157,7 @@ export function SheetRow({
     children,
     className = '',
 }: {
-    icon?: HudIconKind;
+    icon?: HudIconKind | ReactNode;
     label: ReactNode;
     hint?: ReactNode;
     title: string;
@@ -173,7 +173,7 @@ export function SheetRow({
                 aria-haspopup="dialog"
                 onClick={() => setOpen(true)}
             >
-                {icon && <HudIcon kind={icon} />}
+                {typeof icon === 'string' ? <HudIcon kind={icon as HudIconKind} /> : icon}
                 <b>{label}</b>
                 {hint && <span className="muted">{hint}</span>}
                 <HudIcon kind="next" />
