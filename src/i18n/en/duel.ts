@@ -38,6 +38,8 @@ export const duel: typeof pt = {
         replayBtn: 'Replay game',
         replayed: '{n} game voided and replayed|{n} games voided and replayed',
     },
+    modeShort: { ready: 'My team', disputa: 'Snake draft', pacotes: 'Own packs' },
+    rules: 'Rules',
     modes: {
         ready: ['My team', 'Each brings their cup team or a Hall of Fame champion.'],
         disputa: ['Snake draft', '4 cards per round: each takes 1, the other 2 burn.'],
@@ -57,6 +59,7 @@ export const duel: typeof pt = {
     leaveYes: 'Leave',
     room: 'Room {code}',
     noTeam: 'Play a cup or pick Snake draft / Own packs.',
+    noTeamShort: 'no team',
     join: { label: 'Got a room code?', go: 'Join' },
     entry: {
         kicker: 'Room {code}',
@@ -82,8 +85,8 @@ export const duel: typeof pt = {
         codeLabel: 'Room code',
         inviteHint: 'Send the link or the code. They join right away, no account.',
         share: 'Share',
-        whatsapp: 'Send on WhatsApp',
-        copy: 'Copy link',
+        whatsapp: 'WhatsApp',
+        copy: 'Copy',
         copied: 'Link copied!',
         qr: 'QR code (for someone next to you)',
         qrHint: 'Point the phone camera at it: it opens the room.',

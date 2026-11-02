@@ -2,6 +2,7 @@ import type { liga as pt } from '../pt/liga';
 
 export const liga: typeof pt = {
     stage: 'League',
+    ranking: 'Ranking',
     retry: 'Try again',
     stageShort: 'LEAGUE',
     home: {
@@ -70,6 +71,7 @@ export const liga: typeof pt = {
         needCloud: 'The League needs the game server: play at soccermon.com.',
         needLogin:
             'The League needs a Google account: your team becomes a ghost others play against, and the ranking shows your trainer and club names.',
+        needLoginShort: 'Sign in with Google to play the League.',
         season: '{month} season',
         daysLeft: 'ends today|{n} days left',
         division: { bronze: 'Bronze', prata: 'Silver', ouro: 'Gold', lenda: 'Legend' },
@@ -79,6 +81,8 @@ export const liga: typeof pt = {
         noGames: 'No matches this season yet',
         teamTitle: 'Your League team',
         teamNone: 'No team signed up yet.',
+        teamShort: 'Your team',
+        teamNoneShort: 'none',
         ovr: 'rating {ovr}',
         register: 'Sign up your cup team',
         update: 'Swap for your cup team',

@@ -230,18 +230,10 @@
 }
 
 /* criar sala */
-.duel-create {
-    display: grid;
-    gap: 14px;
-    width: min(640px, 100%);
-    margin: 0 auto;
-}
-.duel-create h1,
 .duel-teams h1,
 .duel-result h1 {
     margin: 0;
 }
-.duel-modes,
 .duel-speeds {
     border: 0;
     padding: 0;
@@ -249,27 +241,8 @@
     display: grid;
     gap: 8px;
 }
-/* modos: peças do kit (.bc-tile), título em cima e a explicação embaixo */
-.duel-mode.bc-tile {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 10px 14px;
-    font: inherit;
-}
-.duel-mode span {
-    color: var(--muted);
-    font-size: 13px;
-}
 
 /* lobby */
-.duel-lobby {
-    display: grid;
-    gap: 14px;
-    width: min(720px, 100%);
-    margin: 0 auto;
-    justify-items: center;
-}
 .duel-code {
     display: grid;
     justify-items: center;
@@ -832,9 +805,6 @@ button.sb-title:hover {
 }
 
 /* convite: código grande, compartilhar, WhatsApp e QR */
-.duel-lobby-head {
-    justify-self: stretch;
-}
 .duel-invite {
     position: relative;
     display: grid;
@@ -895,14 +865,6 @@ button.sb-title:hover {
     font-size: 10px;
     font-weight: 400;
     vertical-align: 2px;
-}
-.duel-mode:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-.duel-mode-off {
-    color: var(--yellow);
-    font-size: 12px;
 }
 .duel-join {
     display: flex;
@@ -1082,4 +1044,139 @@ button.sb-title:hover {
 /* sala sem anfitrião: o painel entra com fade em vez de trocar o texto da espera (nada teleporta) */
 .duel-closed {
     animation: row-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- palco da Arena (criar sala, entrar, sala de espera): cara-de-jogo.md, decisão 8 ---------- */
+.duel:has(> .k-stage) {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+/* os 3 modos lado a lado, cada um com o "?" da regra no canto */
+.duel-modes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.duel-mode {
+    position: relative;
+    display: grid;
+}
+.duel-mode > .k-info {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+}
+.duel-mode .k-option small {
+    color: var(--yellow);
+}
+.duel-rules .muted {
+    font-size: 12px;
+    white-space: nowrap;
+}
+.duel-rules-sheet {
+    display: grid;
+    gap: 14px;
+}
+.duel-rules-sheet .duel-beta {
+    font-size: 12px;
+}
+.duel-join-row > b {
+    font-weight: 400;
+}
+/* sala de espera: o título com as regras, o código grande e os dois treinadores */
+.duel-lobby-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 10px;
+    text-align: center;
+}
+.duel-lobby-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    font-weight: 400;
+    text-shadow: var(--k-out-1);
+}
+.duel-stage .duel-code b {
+    font-size: clamp(36px, calc(11 * var(--vw)), 56px);
+}
+.duel-stage .duel-local {
+    margin: 0;
+    text-align: center;
+    text-shadow: var(--k-out-1);
+}
+.duel-stage .duel-center {
+    padding: 18px 16px;
+}
+/* os dois treinadores lado a lado, enxutos: sprite, nome, título e o pronto (o cartão inteiro abre o perfil) */
+.duel-stage .duel-peers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.duel-stage .duel-peer {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 8px;
+    padding: 8px;
+}
+.duel-stage .duel-peer .avatar,
+.duel-stage .duel-club {
+    display: none;
+}
+.duel-stage .duel-trainer {
+    height: 48px;
+}
+.duel-stage .duel-ready {
+    grid-column: 2;
+    justify-self: start;
+}
+.duel-stage .duel-peer.empty {
+    flex-direction: column;
+    min-height: 0;
+    font-size: 12px;
+    text-align: center;
+}
+.duel-stage .duel-share {
+    flex-wrap: nowrap;
+    width: min(420px, 100%);
+}
+.duel-stage .duel-share .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 6px;
+}
+/* tela baixa: a frase do convite, o QR e o aviso da sala local saem (o código e os botões dizem o mesmo) */
+@media (max-height: 700px) {
+    .duel-stage :is(.duel-invite-hint, .duel-qr-row, .duel-local) {
+        display: none;
+    }
+    .duel-stage .duel-invite {
+        gap: 8px;
+        padding: 10px 12px;
+    }
+    .duel-stage .duel-code b {
+        font-size: 34px;
+    }
+    .duel-stage .duel-trainer {
+        height: 40px;
+    }
+}
+.duel-stage .duel-peer-who small {
+    font-size: 11px;
+}
+.duel-stage .duel-share .btn {
+    font-size: 13px;
+}
+@media (max-width: 359px) {
+    .duel-stage .duel-share .btn {
+        font-size: 12px;
+    }
 }

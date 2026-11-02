@@ -19,7 +19,9 @@ const PAGES = [
     ['/?demo=sala&motion=1', ['.tr-ic', '.room-wall:not(:disabled)']],
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
-    ['/?demo=dia&motion=1', ['.bc-seg button']],
+    // Copa do Dia e Liga no palco: o "?" e as linhas que abrem Sheet (ranking, seu time)
+    ['/?demo=dia&motion=1', ['.k-info', '.k-sheetrow']],
+    ['/?demo=liga&motion=1', ['.k-info', '.k-sheetrow']],
     ['/?demo=mercado&motion=1', ['.shop-buy']],
     // draft: o carrossel de formações e o "?" dela; o 1 de 3 (o time na sheet)
     ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
