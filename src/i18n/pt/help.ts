@@ -604,7 +604,7 @@ export const help = {
             'chute com {pw} e derruba quem estiver no caminho (o goleiro não cai).',
             'chute com {pw}, sempre no alvo, com a cena do especial e o efeito do tipo (12 Pokémon têm assinatura própria).',
         ],
-        maxTypeLine: 'N1 {st} · N3: {fx}.',
+        maxTypeLine: 'N1 {st} quem bloquear ou defender · N3: {fx}.',
     },
     screen: {
         title: 'Ajuda',

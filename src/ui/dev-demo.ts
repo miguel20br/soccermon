@@ -53,7 +53,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (a bicuda, no chute do rival);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 3 Grama, 68 Lutador; os 12 de
  * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1&nivel=3`, a bicuda N3).
- * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender).
+ * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender). `&efeito=1`: só a jogada em que o golpe,
+ * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
@@ -545,7 +546,8 @@ export function runDevDemo() {
         return;
     }
     if (demo === 'maximo') {
-        const gk = new URLSearchParams(window.location.search).get('goleiro') === '1';
+        const q = new URLSearchParams(window.location.search);
+        const gk = q.get('goleiro') === '1';
         // &nivel=N espera a barra chegar no gomo N (1 a 3)
         const nivel = Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1));
         // &k=N pula as N primeiras copas (outra jogada pro mesmo capitão)
@@ -553,7 +555,6 @@ export function runDevDemo() {
         // &defesa=1: o goleiro rival defende o golpe (espalma pra escanteio ou na trave); &counter=1 (com goleiro=1): o
         // rival solta o golpe máximo e o nosso goleiro capitão devolve com a bicuda. Os dois já vêm com o toque
         // perfeito na agenda (o lance é sempre o mesmo, sem depender do toque na tela)
-        const q = new URLSearchParams(window.location.search);
         const defesa = q.get('defesa') === '1';
         const counter = gk && q.get('counter') === '1';
         for (let k = k0; k < k0 + (defesa || counter ? 400 : 120); k++) {
@@ -620,6 +621,25 @@ export function runDevDemo() {
                 if (owner === cap && inMaxZoneOf(s, cap) && (!defesa || check(s.tick, s.tick))) at = s.tick;
             }
             if (at === null || at < 200) continue;
+            // &efeito=1: só a jogada em que o golpe tocado assim que o botão acende (nota fora) pega alguém com o efeito
+            // do N1 (o teste toca na hora em que acende: o anel na câmera lenta deixaria o toque longe do `at`)
+            if (q.get('efeito') === '1' && !gk) {
+                const hits = (d: number) => {
+                    const r = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
+                    while (r.state.tick < at + d && !r.finished) r.step();
+                    const seen = r.state.events.length;
+                    r.addOrder({ tick: r.state.tick, team: 0, kind: 'max', q: 0 });
+                    for (let i = 0; i < 120 && !r.finished; i++) r.step();
+                    return r.state.events
+                        .slice(seen)
+                        .some(
+                            (e) =>
+                                (e.type === 'status' && e.source === 'max') ||
+                                (e.type === 'knockback' && e.moveId === 'surf'),
+                        );
+                };
+                if (![0, 1, 2, 3].every(hits)) continue;
+            }
             const saved = { stage: 0, orders, tick: at - 40, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);

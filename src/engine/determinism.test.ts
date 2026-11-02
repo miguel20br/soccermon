@@ -25,9 +25,9 @@ const EXPECTED_HASHES = [
     '3899de05',
     'fee79e53',
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto (motor 18: a defesa do golpe máximo espalma pra
-    // escanteio ou na trave, nunca encaixa)
-    '3f3a05f6',
-    '214efe05',
+    // escanteio ou na trave, nunca encaixa; 02/11: o N1 por tipo)
+    '0af12ff6',
+    '5d2197ee',
     'e2096794',
     '048ee52b',
 ];

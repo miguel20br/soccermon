@@ -64,6 +64,7 @@ import {
     type MatchState,
     type MaxArm,
     type MaxGrade,
+    type MaxN1Fx,
     type PlayerState,
     type SetPiece,
     type ShotInfo,
@@ -137,6 +138,8 @@ export function freshTraits(): TraitState {
         curl: 0,
         typeCopy: null,
         flee: null,
+        numb: false,
+        root: 0,
     };
 }
 
@@ -732,6 +735,7 @@ function tickTraits(s: MatchState, p: PlayerState, dt: number) {
     fx.mini = Math.max(0, fx.mini - dt);
     fx.guard = Math.max(0, fx.guard - dt);
     fx.curl = Math.max(0, fx.curl - dt);
+    fx.root = Math.max(0, fx.root - dt);
     if (fx.aim) {
         fx.aim.t -= dt;
         if (fx.aim.t <= 0) fx.aim = null;
@@ -869,6 +873,8 @@ function updateAir(s: MatchState, p: PlayerState, dt: number) {
     if (air.t > 0) return;
     p.fx.air = null;
     p.vel = v(0, 0);
+    // N1 Voador: só volta pro chão (sem o pouso do Fly)
+    if (air.moveId === MAX_LIFT) return;
     traitFx(s, p.idx, 'land', air.moveId, air.prey);
     if (s.phase !== 'play') return;
     const prof = moveProfile(air.moveId);
@@ -1030,7 +1036,8 @@ function applyCommand(s: MatchState, p: PlayerState, c: Command, dt: number) {
 
 function applyMovement(s: MatchState, p: PlayerState, dir: Vec2, sprint: boolean, dt: number) {
     let desiredDir = truncate(dir, 1);
-    if (isIncapacitated(p)) desiredDir = v(0, 0);
+    // N1 Pedra: preso no lugar
+    if (isIncapacitated(p) || p.fx.root > 0) desiredDir = v(0, 0);
     if (p.status?.kind === 'confusion' && len(desiredDir) > 0.1)
         desiredDir = rotate(desiredDir, s.rng.range(-0.9, 0.9));
     const top = maxSpeed(s, p) * (sprint ? 1 : 0.72);
@@ -2378,8 +2385,15 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou; golpe máximo nunca encaixa
-                const caught = !shot.max && felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99) && !fxHas(fx, 'cannon');
+                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou; golpe máximo nunca encaixa; N1
+                // Lutador: com a mão dormente, a próxima defesa comum também não
+                const caught =
+                    !shot.max &&
+                    felt < 17 &&
+                    s.rng.chance(0.55 + (0.3 * gk) / 99) &&
+                    !fxHas(fx, 'cannon') &&
+                    !p.fx.numb;
+                if (!shot.max) p.fx.numb = false;
                 const saveAt = s.events.length;
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
@@ -3987,16 +4001,55 @@ function landKnocks(s: MatchState) {
     }
 }
 
-/** Golpe máximo: o status do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`). */
+/** N1 Voador: o voo de quem foi pro alto (o pouso não é o do Fly). */
+const MAX_LIFT = 'maxlift';
+
+/** Golpe máximo: o efeito do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`, `AGENCY.maxN1`). */
 function maxStatusOn(s: MatchState, shot: ShotInfo, o: PlayerState) {
     const st = shot.max?.status ? AGENCY.maxStatus[shot.max.status] : undefined;
     if (!st) return;
     const [kind, t] = st;
-    if (kind === 'stun') {
-        o.stun = Math.max(o.stun, t ?? 0.6);
-        setAction(o, Action.Hurt, t ?? 0.6);
-        emit(s, { type: 'status', target: o.idx, status: 'flinch', by: shot.by, source: 'max' });
-    } else if (applyStatus(s, o, kind, shot.by, 'max') && t && o.status) o.status.timer = t;
+    const N = AGENCY.maxN1;
+    const by = s.players[shot.by];
+    const mark = (status: MaxN1Fx | 'flinch' | 'seed') =>
+        emit(s, { type: 'status', target: o.idx, status, by: shot.by, source: 'max' });
+    switch (kind) {
+        case 'flinch':
+            o.stun = Math.max(o.stun, t ?? 0.6);
+            setAction(o, Action.Hurt, t ?? 0.6);
+            return mark(kind);
+        case 'seed':
+            // a regra do Leech Seed: Planta não pega, e quem já tem semente fica com a dele
+            if (o.sp.types.includes('Grass') || o.seeded) return;
+            o.seeded = { by: shot.by, timer: N.seed };
+            return mark(kind);
+        case 'blind':
+        case 'web':
+            if (o.ability.immuneDebuff) return;
+            if (kind === 'blind') o.fx.aim = { ...T.blind.sandattack };
+            else o.buffs.push({ attr: 'pace', factor: N.webPace, timer: N.web });
+            return mark(kind);
+        case 'push':
+            // a onda leva pra trás, no sentido do chute (a palavra é a do Surf: MOLHADO)
+            return knockback(s, o, by, N.push, 'surf');
+        case 'lift':
+            if (hidden(o)) return;
+            o.fx.air = { kind: 'fly', moveId: MAX_LIFT, t: N.lift, from: o.pos, to: o.pos, prey: null };
+            o.vel = v(0, 0);
+            return mark(kind);
+        case 'numb':
+            o.fx.numb = true;
+            return mark(kind);
+        case 'root':
+            o.fx.root = Math.max(o.fx.root, N.root);
+            o.vel = v(0, 0);
+            return mark(kind);
+        case 'drain':
+            // a barra sai dos eventos (`maxCharge` tira os pontos)
+            return mark(kind);
+        default:
+            if (applyStatus(s, o, kind, shot.by, 'max') && t && o.status) o.status.timer = t;
+    }
 }
 
 /**

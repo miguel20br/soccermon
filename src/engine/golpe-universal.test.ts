@@ -4,6 +4,7 @@ import { type Command, IDLE } from './commands';
 import { FUTSAL_5 } from './config';
 import { SPECIES } from './data';
 import { aiDraftTeam } from './draft';
+import { isIncapacitated } from './effective';
 import { createInstance } from './instance';
 import { applyAgencyOrder, createMatch, maxFxType, step } from './match';
 import { Rng } from './rng';
@@ -350,6 +351,131 @@ describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)
         s.players[9].pos = v(8, 10);
         applyAgencyOrder(s, order);
         expect(s.teams[0].agency.max).toMatchObject({ idx: 0, level: 1 });
+    });
+});
+
+describe('N1 por tipo (tabela do Miguel, 02/11/2026)', () => {
+    /** Para no tick em que o efeito `status` do N1 do tipo `type` pega `target` (0 = não pegou em `n` seeds). */
+    function n1Hit(type: string, status: string, target = 5, o: Opts = {}, n = 200) {
+        for (let k = 0; k < n; k++) {
+            const s = shoot({ level: 1, type, seed: `gu-n1-${k}`, ...o });
+            for (let i = 0; i < 40 && !s.finished; i++) {
+                if (of(s, 'status').some((e) => e.target === target && e.source === 'max' && e.status === status))
+                    return s;
+                step(s, IDLE_ALL(s));
+            }
+        }
+        return null;
+    }
+
+    it('Psíquico faz dormir (não confunde mais)', () => {
+        const s = n1Hit('Psychic', 'slp');
+        expect(s?.players[5].status?.kind).toBe('slp');
+    });
+
+    it('Planta: a semente do Leech Seed, o fôlego vai pro capitão que chutou', () => {
+        const s = n1Hit('Grass', 'seed', 6, { defAt: [{ x: 36, y: 10 }] }) ?? n1Hit('Grass', 'seed');
+        const target = s && of(s, 'status').find((e) => e.status === 'seed' && e.source === 'max')?.target;
+        expect(target).toBeDefined();
+        expect(s?.players[target as number].seeded).toMatchObject({ by: 4, timer: AGENCY.maxN1.seed });
+    });
+
+    it('Terrestre: areia nos olhos (o blind do Sand Attack, 6 s)', () => {
+        const s = n1Hit('Ground', 'blind');
+        expect(s?.players[5].fx.aim).toEqual({ factor: 2, t: 6, once: false });
+    });
+
+    it('Inseto: a teia deixa lento por 3 s', () => {
+        const s = n1Hit('Bug', 'web');
+        expect(s?.players[5].buffs).toContainEqual({
+            attr: 'pace',
+            factor: AGENCY.maxN1.webPace,
+            timer: AGENCY.maxN1.web,
+        });
+    });
+
+    it('Água: leva quem defende 2 m pra trás, no sentido do chute', () => {
+        for (let k = 0; k < 200; k++) {
+            const s = shoot({ level: 1, type: 'Water', seed: `gu-n1-${k}`, defAt: [{ x: 35, y: 10 }] });
+            for (let i = 0; i < 40; i++) {
+                const before = s.players[6].pos.x;
+                step(s, IDLE_ALL(s));
+                const kb = of(s, 'knockback').find((e) => e.target === 6 && e.moveId === 'surf');
+                if (!kb) continue;
+                // a onda (2 m) por cima do empurrão do bloqueio com golpe (1 m)
+                expect(s.players[6].pos.x - before).toBeGreaterThanOrEqual(AGENCY.maxN1.push);
+                return;
+            }
+        }
+        throw new Error('a onda não pegou ninguém');
+    });
+
+    it('Voador: vai pro alto 1 s, fora do lance, e volta sem o pouso do Fly', () => {
+        const s = n1Hit('Flying', 'lift');
+        expect(s?.players[5].fx.air).not.toBeNull();
+        if (!s) return;
+        const tick = s.tick;
+        idle(s, Math.round(AGENCY.maxN1.lift * 20) + 1);
+        expect(s.players[5].fx.air).toBeNull();
+        expect(of(s, 'trait').filter((e) => e.by === 5 && e.tick > tick && e.fx === 'land')).toEqual([]);
+        expect(s.players[5].tackleBonus).toBeNull();
+    });
+
+    it('Lutador: mão dormente, a próxima defesa do goleiro não encaixa', () => {
+        const s = n1Hit('Fighting', 'numb');
+        expect(s?.players[5].fx.numb).toBe(true);
+        // a próxima defesa: chute comum no goleiro, com e sem a mão dormente (mesma seed)
+        const caughtWith = (numb: boolean) => {
+            let caught = 0;
+            for (let k = 0; k < 60; k++) {
+                const t = setup({ seed: `gu-numb-${k}` });
+                t.teams[0].agency.max = null;
+                t.players[5].fx.numb = numb;
+                const cmds = IDLE_ALL(t);
+                cmds[4] = { type: 'shoot', target: v(40, 10.5), power: 0.6 };
+                step(t, cmds);
+                idle(t, 30);
+                caught += of(t, 'save').filter((e) => e.by === 5 && e.caught).length;
+                if (of(t, 'save').some((e) => e.by === 5)) expect(t.players[5].fx.numb).toBe(false);
+            }
+            return caught;
+        };
+        expect(caughtWith(false)).toBeGreaterThan(0);
+        expect(caughtWith(true)).toBe(0);
+    });
+
+    it('Pedra: preso no lugar 2 s (não anda), mas ainda defende', () => {
+        const s = n1Hit('Rock', 'root', 6, { defAt: [{ x: 36, y: 10 }] });
+        expect(s?.players[6].fx.root).toBeGreaterThan(1.9);
+        if (!s) return;
+        const at = s.players[6].pos;
+        for (let i = 0; i < 20; i++) {
+            const cmds = IDLE_ALL(s);
+            cmds[6] = { type: 'move', dir: v(0, 1), sprint: true };
+            step(s, cmds);
+        }
+        expect(s.players[6].pos).toEqual(at);
+        expect(isIncapacitated(s.players[6])).toBe(false);
+    });
+
+    it('Dragão: o time de quem defendeu perde 5 pontos da barra', () => {
+        const s = n1Hit('Dragon', 'drain');
+        expect(s).not.toBeNull();
+        const B = { tick: 0, half: 1, minute: 0 } as const;
+        const saves: MatchEvent[] = Array.from({ length: 12 }, (_, i) => ({
+            ...B,
+            tick: i,
+            type: 'save',
+            by: 5,
+            shooter: 0,
+            caught: true,
+        }));
+        const drain: MatchEvent = { ...B, tick: 20, type: 'status', target: 5, status: 'drain', by: 4, source: 'max' };
+        expect(maxCharge(saves, 1).level).toBe(1);
+        expect(maxCharge([...saves, drain], 1).level).toBe(0);
+        expect(maxCharge([...saves, drain], 1).charge * 30).toBeCloseTo(12 - AGENCY.maxN1.drain);
+        // não mexe na barra do time de quem chutou
+        expect(maxCharge([...saves, drain], 0).charge).toBe(0);
     });
 });
 

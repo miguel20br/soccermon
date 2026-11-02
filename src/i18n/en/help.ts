@@ -576,7 +576,7 @@ export const help: typeof pt = {
             'shot with {pw} and it knocks down anyone in the way (the keeper does not fall).',
             'shot with {pw}, always on target, with the special scene and the type effect (12 Pokémon have their own signature).',
         ],
-        maxTypeLine: 'L1 {st} · L3: {fx}.',
+        maxTypeLine: 'L1 {st} whoever blocks or saves it · L3: {fx}.',
     },
     screen: {
         title: 'Help',

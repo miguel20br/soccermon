@@ -57,7 +57,16 @@ import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
-import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
+import {
+    hurtSecondsAt,
+    N1_FX_WORDS,
+    type Reaction,
+    reactionFor,
+    showsWord,
+    spanAt,
+    WORD_RANK,
+    WORD_TYPE,
+} from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { MAX_MOVE } from '../max-sfx';
 import { chargeFx, drawProjectile, impactFx, MAX_CHARGE_MS, releaseFx, typeBackdrop } from '../max-show';
@@ -2288,7 +2297,9 @@ export class MatchScene extends Phaser.Scene {
                     this.battleBox.push(
                         `${view.name} ${(dict().battle.status as Record<string, string>)[e.status] ?? '!'}`,
                     );
-                    if (e.status !== 'flinch' && e.status !== 'seed') {
+                    // N1 do golpe máximo (areia, teia, alto, mão dormente, preso, barra): a partícula do tipo
+                    if (N1_FX_WORDS.has(e.status)) this.impact(view.sprite.x, view.sprite.y - 16, WORD_TYPE[e.status]);
+                    else if (e.status !== 'flinch' && e.status !== 'seed') {
                         this.applyIndicators(view, STATUS_KIND_TO_CODE[e.status] ?? 0, view.flags);
                     }
                 }

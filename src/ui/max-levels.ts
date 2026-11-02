@@ -68,10 +68,10 @@ const num = (n: number, lang: Lang) => n.toLocaleString(lang === 'pt' ? 'pt-BR' 
 const joinList = (xs: string[], lang: Lang) =>
     xs.length <= 1 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')}${dict(lang).match.agency.levels.and}${xs.at(-1)}`;
 
-/** Verbo do status que o golpe passa em quem bloqueia ou defende ("queima", "paralisa", "derruba"…). */
+/** Verbo do efeito que o N1 passa em quem bloqueia ou defende ("queima", "faz recuar", "joga areia nos olhos de"…). */
 export function maxStatusVerb(type: string, lang: Lang): string {
-    const kind = AGENCY.maxStatus[type]?.[0] ?? 'stun';
-    return dict(lang).match.agency.levels.status[kind] ?? kind;
+    const kind = AGENCY.maxStatus[type]?.[0] ?? 'flinch';
+    return fmt(dict(lang).match.agency.levels.status[kind] ?? kind, { n: AGENCY.maxN1.drain });
 }
 
 /** Nome e o que faz o efeito do N3. */

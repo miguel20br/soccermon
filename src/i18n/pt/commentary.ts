@@ -73,6 +73,12 @@ export const commentary = {
         infatuation: '{x} ficou apaixonado!{by}',
         flinch: '{x} ficou hesitante!{by}',
         seed: '{x} foi semeado!{by} Vai perdendo fôlego aos poucos.',
+        blind: '{x} levou areia nos olhos!{by}',
+        web: '{x} ficou preso na teia!{by}',
+        lift: '{x} foi pro alto e saiu do lance!{by}',
+        numb: '{x} ficou com a mão dormente!{by}',
+        root: '{x} ficou preso no lugar!{by}',
+        drain: 'O time de {x} perdeu pontos da barra do golpe máximo!{by}',
     },
     /** Status fora da lista (`{s}` = código do motor). */
     statusOther: '{x} ficou {s}!{by}',
