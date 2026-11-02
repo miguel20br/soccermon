@@ -245,6 +245,12 @@
     box-shadow: inset 0 calc(-1 * var(--base)) 0 var(--lo);
     font-size: 12px;
 }
+/* o chip tem 29 px de desenho e 44 de toque */
+.btn:is(.k-chip, .fut-action, .shop-buy)::before {
+    content: "";
+    position: absolute;
+    inset: -8px -2px;
+}
 /* ação repetida de lista (Comprar, Escalar, Escolher, Ensinar): chip baixo preso na borda de baixo da carta ou do item;
    verde se escolhe ou compra (.confirm), azul se só mostra */
 .btn:is(.k-chip, .fut-action, .shop-buy) {

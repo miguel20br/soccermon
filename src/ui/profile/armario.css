@@ -131,9 +131,12 @@
     outline-offset: 3px;
     border-radius: 4px;
 }
+/* o nome é botão: o padding leva o toque a 44 px e a margem negativa devolve o lugar */
 .pf-name {
     display: block;
     max-width: 100%;
+    padding-block: 13px;
+    margin-block: -13px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

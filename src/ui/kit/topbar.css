@@ -24,6 +24,15 @@
         0 3px 0 var(--cb-ink);
     transition: transform 320ms var(--ease-pop);
 }
+/* toque de 44 px (o desenho fica com 40) */
+.k-topbar .help-fab {
+    position: relative;
+}
+.k-topbar .help-fab::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+}
 .k-topbar .help-fab:active {
     transform: translateY(3px) scale(0.95);
     transition-duration: 60ms;
@@ -203,8 +212,8 @@
 /* celular em pé: Ajuda e Configurações menores, pra sobrar o nome do treinador */
 @media (max-width: 429px) {
     .k-topbar .help-fab {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
     .res-me {
         height: 52px;
@@ -261,8 +270,8 @@
         height: 32px;
     }
     .k-topbar .help-fab {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
 }
 

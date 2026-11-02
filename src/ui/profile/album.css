@@ -180,6 +180,12 @@
         color 150ms var(--ease-out),
         border-color 150ms var(--ease-out);
 }
+/* toque de 44 px (o x desenhado tem 28) */
+.bd-x::before {
+    content: "";
+    position: absolute;
+    inset: -8px;
+}
 .bd-x svg {
     width: 14px;
     height: 14px;

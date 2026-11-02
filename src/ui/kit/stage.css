@@ -322,12 +322,23 @@
 }
 .k-step-btn {
     all: unset;
+    position: relative;
     display: grid;
     place-items: center;
     height: 100%;
     color: var(--yellow);
     cursor: pointer;
     transition: transform var(--dur-solta) var(--ease-pop);
+}
+/* toque de 44 px sem mudar o desenho: a área invisível passa da borda (o ‹ › tem 32, o "?" de 24 a 28) */
+.k-step-btn::before,
+.k-info::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+}
+.k-info::before {
+    inset: -10px;
 }
 .k-step-btn:active:not(:disabled) {
     transform: scale(0.86);
@@ -419,6 +430,7 @@
 /* ---------- Info "?" e linha que abre Sheet ---------- */
 .k-info {
     all: unset;
+    position: relative;
     flex: none;
     display: inline-grid;
     place-items: center;
