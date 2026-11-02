@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.30.1 · Menu de modos mais claro (2026-11-01)
+
+### Menu de modos
+- Time Ultimate e Modo História com a faixa EM BREVE e a data, mais escuros que o Modo Copa
+- O menu não pisca mais ao abrir nem ao trocar de modo
+
 ## 0.9.30 · Golpe universal (2026-11-01)
 
 ### Golpe máximo
