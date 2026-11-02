@@ -18,21 +18,22 @@ import {
     useGame,
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
-import { AboutFooter } from '../components/AboutFooter';
 import { AccountBar } from '../components/AccountBar';
-import { MenuHead } from '../components/MenuHead';
+import { useMenuBackOf } from '../components/MenuHead';
+import { openPage } from '../doors';
 import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
-import { HudIcon } from '../components/MatchHud';
+import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { readHud } from '../hud-lab';
 import { iosBrowser, promptInstall, useInstall } from '../install';
-import { Stepper } from '../kit/controls';
+import { InfoSheet, Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { RedeemCode } from '../profile/TrainerTab';
 
-/** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
+/** Opção de jogo ‹ valor › (cara-de-jogo.md, decisão 12): o seletor do kit; com 2 valores, as duas setas alternam. */
 function Segmented<T extends string | number | boolean>({
     label,
     value,
@@ -44,30 +45,20 @@ function Segmented<T extends string | number | boolean>({
     options: { value: T; label: string }[];
     onPick: (v: T) => void;
 }) {
-    return (
-        <div className="bc-seg segmented" title={label}>
-            {options.map((o) => (
-                <button
-                    key={String(o.value)}
-                    type="button"
-                    aria-pressed={value === o.value}
-                    className={value === o.value ? 'on' : undefined}
-                    onClick={() => onPick(o.value)}
-                >
-                    {o.label}
-                </button>
-            ))}
-        </div>
-    );
+    return <Stepper label={label} value={value} options={options} onChange={onPick} wrap={options.length === 2} />;
 }
 
-/** Linha de configuração: nome, explicação curta e o controle embaixo. */
+/** Linha de opção: o nome à esquerda, o valor ‹ › à direita; a explicação mora no "?" (≤12 palavras na tela). */
 function Row({ title, hint, children }: { title: string; hint?: ReactNode; children: ReactNode }) {
     return (
         <div className="set-row">
             <div className="set-label">
                 <b>{title}</b>
-                {hint && <span>{hint}</span>}
+                {hint && (
+                    <InfoSheet title={title}>
+                        <p>{hint}</p>
+                    </InfoSheet>
+                )}
             </div>
             {children}
         </div>
@@ -96,10 +87,10 @@ function InstallGroup() {
     );
 }
 
+/** Bloco de linhas (o título é a aba; fica só pro leitor de tela). */
 function Group({ title, children }: { title: string; children: ReactNode }) {
     return (
-        <section className="panel set-group">
-            <h2>{title}</h2>
+        <section className="set-group" aria-label={title}>
             {children}
         </section>
     );
@@ -171,132 +162,77 @@ const onOff = (on: string, off: string) => [
     { value: false, label: off },
 ];
 
+type Tab = 'som' | 'partida' | 'acess' | 'dados';
+const TABS: { id: Tab; icon: HudIconKind }[] = [
+    { id: 'som', icon: 'drum' },
+    { id: 'partida', icon: 'play' },
+    { id: 'acess', icon: 'person' },
+    { id: 'dados', icon: 'download' },
+];
+
+/**
+ * Configurações como menu de opções de jogo (cara-de-jogo.md, decisão 12): abas Som · Partida · Acessibilidade ·
+ * Dados, cada opção uma linha com o valor ‹ ›; os links do rodapé moram nos Créditos. Nenhuma opção some.
+ */
 export function Settings() {
     const { settings, updateSettings, go } = useGame();
-    const [more, setMore] = useState(false);
+    const [tab, setTab] = useState<Tab>('som');
     const [hudOn] = useState(readHud);
     // a quadra grande só liga no celular (o WIDE da Prancheta; importar ela puxaria o motor pra cá)
     const [wide] = useState(() => window.matchMedia('(min-width: 1051px)').matches);
     const set = updateSettings;
-    const { t } = useT();
+    const { t, d } = useT();
     const lang = useLang();
+    useMenuBackOf(() => go('home'));
+    const tabName: Record<Tab, string> = {
+        som: t('settings.screen.sound'),
+        partida: t('settings.screen.match'),
+        acess: t('settings.screen.accessibility'),
+        dados: t('settings.data.title'),
+    };
     return (
-        <div className="menu-screen settings-screen">
-            <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
-            {/* entrar com o Google (na Home de lista ficava embaixo dos modos) */}
-            <AccountBar />
-            <InstallGroup />
-
-            <Group title={t('settings.screen.langLabel')}>
-                <div className="set-row">
-                    <Segmented<Lang>
-                        label={t('settings.screen.langLabel')}
-                        value={lang}
-                        options={[
-                            { value: 'pt', label: t('settings.screen.langPt') },
-                            { value: 'en', label: t('settings.screen.langEn') },
-                        ]}
-                        onPick={(l) => set({ lang: l })}
-                    />
-                </div>
-            </Group>
-
-            <Group title={t('settings.screen.sound')}>
-                <Row title={t('settings.screen.volume')}>
-                    <VolumeSlider
-                        label={t('settings.screen.volume')}
-                        value={settings.volume}
-                        onChange={(volume) => set({ volume })}
-                        preview={() => playSfx('kick')}
-                    />
-                </Row>
-                <Row title={t('settings.screen.cries')} hint={t('settings.screen.criesHint')}>
-                    <VolumeSlider
-                        label={t('settings.screen.criesVolume')}
-                        value={settings.criesVolume}
-                        onChange={(criesVolume) => set({ criesVolume })}
-                        preview={() => playCry(25, settings.cries)}
-                    />
-                </Row>
-            </Group>
-
-            <Group title={t('settings.screen.match')}>
-                <Row title={t('settings.screen.speed')} hint={t('settings.screen.speedHint')}>
-                    <Segmented
-                        label={t('settings.screen.speed')}
-                        value={settings.speed}
-                        options={speedOptions(t)}
-                        onPick={(speed) => set({ speed })}
-                    />
-                </Row>
-                {/* partida nova (padrão; ?lab=hud-off desliga): até que velocidade a câmera fica de perto */}
-                {hudOn && !wide && (
-                    <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
-                        <Segmented
-                            label={t('settings.screen.camFollow')}
-                            value={settings.camFollow ?? 2}
-                            options={[
-                                { value: 1, label: '1x' },
-                                { value: 2, label: '2x' },
-                                { value: 4, label: '4x' },
-                                { value: 8, label: '8x' },
-                                { value: 0, label: t('settings.screen.camNever') },
-                            ]}
-                            onPick={(camFollow) => set({ camFollow })}
-                        />
-                    </Row>
-                )}
-            </Group>
-
-            <Group title={t('settings.screen.accessibility')}>
-                <Row
-                    title={t('settings.screen.motion')}
-                    hint={
-                        settings.reduceMotion === 'system'
-                            ? t('settings.screen.motionHintSystem', {
-                                  state: t(
-                                      reduceMotionOn('system')
-                                          ? 'settings.screen.motionReduced'
-                                          : 'settings.screen.motionNormal',
-                                  ),
-                              })
-                            : t('settings.screen.motionHint')
-                    }
-                >
-                    <Segmented
-                        label={t('settings.screen.motion')}
-                        value={settings.reduceMotion}
-                        options={motionOptions(t)}
-                        onPick={(reduceMotion) => set({ reduceMotion })}
-                    />
-                </Row>
-            </Group>
-
-            <Group title={t('settings.screen.help')}>
-                <Row title={t('settings.screen.tips')} hint={t('settings.screen.tipsHint')}>
-                    <Segmented
-                        label={t('settings.screen.tips')}
-                        value={settings.tips}
-                        options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
-                        onPick={(tips) => set({ tips })}
-                    />
-                </Row>
-            </Group>
-
-            {/* o que pouca gente muda fica fechado (revisão de design, item 15): à vista só o essencial */}
-            <button
-                type="button"
-                className="btn ghost set-more-toggle"
-                aria-expanded={more}
-                aria-controls="set-more"
-                onClick={() => setMore(!more)}
+        <Stage className="settings-screen">
+            <div className="set-tabs k-tabs" role="tablist" aria-label={t('settings.screen.title')}>
+                {TABS.map(({ id, icon }) => (
+                    <button
+                        type="button"
+                        role="tab"
+                        key={id}
+                        id={`set-tab-${id}`}
+                        aria-selected={tab === id}
+                        aria-controls={`set-panel-${id}`}
+                        onClick={() => setTab(id)}
+                    >
+                        <HudIcon kind={icon} />
+                        <span>{tabName[id]}</span>
+                    </button>
+                ))}
+            </div>
+            <div
+                key={tab}
+                className="panel set-panel"
+                role="tabpanel"
+                id={`set-panel-${tab}`}
+                aria-labelledby={`set-tab-${tab}`}
             >
-                <HudIcon kind={more ? 'up' : 'down'} />
-                {t('settings.screen.more')}
-            </button>
-            {more && (
-                <div id="set-more" className="set-more" data-exit="collapse">
+                {tab === 'som' && (
                     <Group title={t('settings.screen.sound')}>
+                        <Row title={t('settings.screen.volume')}>
+                            <VolumeSlider
+                                label={t('settings.screen.volume')}
+                                value={settings.volume}
+                                onChange={(volume) => set({ volume })}
+                                preview={() => playSfx('kick')}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.cries')} hint={t('settings.screen.criesHint')}>
+                            <VolumeSlider
+                                label={t('settings.screen.criesVolume')}
+                                value={settings.criesVolume}
+                                onChange={(criesVolume) => set({ criesVolume })}
+                                preview={() => playCry(25, settings.cries)}
+                            />
+                        </Row>
                         <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
                             <VolumeSlider
                                 label={t('settings.screen.sfxVolume')}
@@ -352,7 +288,35 @@ export function Settings() {
                             />
                         </Row>
                     </Group>
+                )}
+
+                {tab === 'partida' && (
                     <Group title={t('settings.screen.match')}>
+                        <Row title={t('settings.screen.speed')} hint={t('settings.screen.speedHint')}>
+                            <Segmented
+                                label={t('settings.screen.speed')}
+                                value={settings.speed}
+                                options={speedOptions(t)}
+                                onPick={(speed) => set({ speed })}
+                            />
+                        </Row>
+                        {/* partida nova (padrão; ?lab=hud-off desliga): até que velocidade a câmera fica de perto */}
+                        {hudOn && !wide && (
+                            <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
+                                <Segmented
+                                    label={t('settings.screen.camFollow')}
+                                    value={settings.camFollow ?? 2}
+                                    options={[
+                                        { value: 1, label: '1x' },
+                                        { value: 2, label: '2x' },
+                                        { value: 4, label: '4x' },
+                                        { value: 8, label: '8x' },
+                                        { value: 0, label: t('settings.screen.camNever') },
+                                    ]}
+                                    onPick={(camFollow) => set({ camFollow })}
+                                />
+                            </Row>
+                        )}
                         <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
                             <Segmented
                                 label={t('settings.screen.cinematic')}
@@ -402,14 +366,70 @@ export function Settings() {
                             />
                         </Row>
                     </Group>
-                </div>
-            )}
+                )}
 
-            <DataSettings />
-            <AccountSettings />
-            {/* a Home de ambientes não tem rodapé: Ajuda, Créditos e o aviso de direitos moram aqui (Novidades no canto de cima) */}
-            <AboutFooter lang={false} />
-        </div>
+                {tab === 'acess' && (
+                    <Group title={t('settings.screen.accessibility')}>
+                        <Row title={t('settings.screen.langLabel')}>
+                            <Segmented<Lang>
+                                label={t('settings.screen.langLabel')}
+                                value={lang}
+                                options={[
+                                    { value: 'pt', label: t('settings.screen.langPt') },
+                                    { value: 'en', label: t('settings.screen.langEn') },
+                                ]}
+                                onPick={(l) => set({ lang: l })}
+                            />
+                        </Row>
+                        <Row
+                            title={t('settings.screen.motion')}
+                            hint={
+                                settings.reduceMotion === 'system'
+                                    ? t('settings.screen.motionHintSystem', {
+                                          state: t(
+                                              reduceMotionOn('system')
+                                                  ? 'settings.screen.motionReduced'
+                                                  : 'settings.screen.motionNormal',
+                                          ),
+                                      })
+                                    : t('settings.screen.motionHint')
+                            }
+                        >
+                            <Segmented
+                                label={t('settings.screen.motion')}
+                                value={settings.reduceMotion}
+                                options={motionOptions(t)}
+                                onPick={(reduceMotion) => set({ reduceMotion })}
+                            />
+                        </Row>
+                        <Row title={t('settings.screen.tips')} hint={t('settings.screen.tipsHint')}>
+                            <Segmented
+                                label={t('settings.screen.tips')}
+                                value={settings.tips}
+                                options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
+                                onPick={(tips) => set({ tips })}
+                            />
+                        </Row>
+                    </Group>
+                )}
+
+                {tab === 'dados' && (
+                    <>
+                        {/* entrar com o Google (na Home de lista ficava embaixo dos modos) */}
+                        <AccountBar />
+                        <InstallGroup />
+                        <DataSettings />
+                        <AccountSettings />
+                        {/* o rodapé de site (Ajuda, Feedback, Privacidade, GitHub, direitos) mora nos Créditos */}
+                        <button type="button" className="k-sheetrow set-about" onClick={() => openPage('credits')}>
+                            <HudIcon kind="book" />
+                            <b>{d.home.tiles.credits}</b>
+                            <HudIcon kind="next" />
+                        </button>
+                    </>
+                )}
+            </div>
+        </Stage>
     );
 }
 

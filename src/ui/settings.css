@@ -91,3 +91,103 @@
     animation-name: leave-fade;
     animation-direction: reverse;
 }
+
+/* ---------- menu de opções de jogo (cara-de-jogo.md, decisão 12): abas e linhas ‹ valor › ---------- */
+.settings-screen .k-stage-body {
+    width: min(640px, 100%);
+    margin: 0 auto;
+    gap: 0;
+    justify-content: flex-start;
+}
+.set-tabs {
+    flex: none;
+}
+.set-tabs [role="tab"] .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+/* a lista rola dentro do painel; a tela não */
+.set-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    animation: set-panel-in 220ms var(--ease-out) both;
+}
+@keyframes set-panel-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+.set-panel .set-group {
+    padding: 0;
+}
+.set-panel .set-row {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 210px);
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+}
+.set-panel .set-row:first-child {
+    border-top: 0;
+}
+.set-panel .set-label {
+    display: block;
+    line-height: 1.25;
+}
+/* o "?" vai no fim do nome, na mesma linha (o nome ganha a largura toda) */
+.set-panel .set-label .k-info {
+    width: 24px;
+    height: 24px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+.set-panel .set-row > .volume-row,
+.set-panel .set-row > .k-stepper {
+    width: 100%;
+}
+.set-panel .k-stepper .k-step-value {
+    font-size: 13px;
+}
+/* linha de botões (cópia do progresso, apagar, código): ocupa a largura toda embaixo do nome */
+.set-panel .set-row:has(> .set-actions, > div > .btn, > .pf-code) {
+    grid-template-columns: minmax(0, 1fr);
+}
+.set-about {
+    margin-top: 4px;
+}
+/* valor comprido ("Seguir o aparelho") quebra em 2 linhas dentro do seletor em vez de virar reticências */
+.set-panel .k-step-value {
+    white-space: normal;
+    line-height: 1.1;
+}
+.set-panel .k-step-value > span {
+    text-overflow: clip;
+}
+@media (max-width: 480px) {
+    .set-panel .set-row {
+        grid-template-columns: minmax(0, 1fr) minmax(150px, 54%);
+    }
+    .set-panel .k-stepper {
+        grid-template-columns: 32px minmax(0, 1fr) 32px;
+    }
+    .set-panel .k-stepper .k-step-value {
+        font-size: 12px;
+    }
+}
+/* celular pequeno: o seletor desce pra linha de baixo, com a largura toda */
+@media (max-width: 380px) {
+    .set-panel .set-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+    .set-tabs [role="tab"] > span {
+        font-size: 10px;
+    }
+}

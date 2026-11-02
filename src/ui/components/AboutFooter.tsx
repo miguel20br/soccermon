@@ -209,11 +209,12 @@ export function NewsButton() {
 
 /**
  * O rodapé do jogo: Ajuda, Créditos, Feedback, Privacidade, GitHub, o idioma e o aviso de direitos (as Novidades
- * moram no canto de cima, `NewsButton`). Na Home de lista fica no fim da tela; com os ambientes, no fim das
- * Configurações (`lang={false}`: lá o idioma já tem o seu grupo).
+ * moram no canto de cima, `NewsButton`). Na Home de lista fica no fim da tela; com os ambientes, no fim dos Créditos
+ * (`lang={false}`: o idioma mora nas Configurações).
  */
 export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
     const { t, d } = useT();
+    const inCredits = useGame((s) => s.screen === 'credits');
     return (
         <>
             <footer className="home-footer">
@@ -221,9 +222,11 @@ export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
                     <button type="button" className="link-btn" onClick={() => openPage('help')}>
                         {d.home.tiles.help}
                     </button>
-                    <button type="button" className="link-btn" onClick={() => openPage('credits')}>
-                        {d.home.tiles.credits}
-                    </button>
+                    {!inCredits && (
+                        <button type="button" className="link-btn" onClick={() => openPage('credits')}>
+                            {d.home.tiles.credits}
+                        </button>
+                    )}
                     <a href={FEEDBACK_URL} target="_blank" rel="noopener">
                         {d.home.tiles.feedback}
                     </a>
