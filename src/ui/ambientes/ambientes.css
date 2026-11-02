@@ -3842,3 +3842,17 @@
         --ui-h: 0px;
     }
 }
+/* Estádio (Copa do Dia): a arquibancada sobe pra baixo da placa e o Pokémon da figurinha fica no vão do palco */
+.amb-bd .es-scene {
+    --stand-top: 14%;
+}
+@media (max-height: 700px) {
+    .amb-bd .es-scene {
+        --stand-top: 9%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .es-captain {
+        top: 19cqh;
+    }
+}

@@ -16,7 +16,9 @@ import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MenuIcon } from '../components/MenuIcon';
 import { MonIcon } from '../components/MonIcon';
-import { cardSprite } from '../components/PokeCard';
+import { EstadioBackdrop } from '../kit/backdrop';
+import { InfoSheet, SheetRow } from '../kit/controls';
+import { Stage } from '../kit/Stage';
 import { TrainerName } from '../profile/TrainerName';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
@@ -203,23 +205,56 @@ export function Daily() {
         }
     };
     const wins = entry ? winsOf(entry) : 0;
+    // já jogou hoje (acabou, ou largou e a copa aberta é outra): o resultado no lugar do convite
+    const done = !!entry && (entry.done || !playing);
+    const date = dayLabel(today, lang);
+    const sticker = dailySticker(today);
+    const myRow = Array.isArray(rows) ? rows.find((r) => r.me) : undefined;
+    // a regra inteira mora no "?" (na tela, no máximo ~12 palavras por texto)
+    const rules = (
+        <InfoSheet title={t('liga.daily.tag')}>
+            <p>{t('liga.daily.line')}</p>
+            {!user && <p>{t('liga.daily.guestHint')}</p>}
+            <p>
+                {tn('liga.daily.total', streak.total)}
+                {nextGoal && ` ${t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}`}
+            </p>
+        </InfoSheet>
+    );
 
     return (
-        <div className="menu-screen lg">
+        <Stage
+            className="k-stage-place lg-stage dy-stage lg"
+            scene={<EstadioBackdrop mon={{ id: sticker }} led={`${t('liga.daily.tag')} · ${date}`.toUpperCase()} />}
+            action={
+                !done ? (
+                    <button
+                        type="button"
+                        className="btn primary big"
+                        data-testid="daily-play"
+                        disabled={busy}
+                        onClick={() => void begin()}
+                    >
+                        {playing ? t('liga.daily.continue') : t('liga.daily.play')}
+                    </button>
+                ) : entry.results.length > 0 ? (
+                    <button type="button" className="btn big" onClick={share}>
+                        {shared ? t('liga.daily.copied') : t('liga.daily.share')}
+                    </button>
+                ) : undefined
+            }
+        >
             <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
-            <Coach id="dia" targets={['.lg-hero .lg-line', '.lg-start .btn']} when={!entry} />
-
-            <section className="panel lg-hero bc-surface bc-stripe">
-                <span className="lg-date">{dayLabel(today, lang)}</span>
-                <p className="lg-line">{t('liga.daily.line')}</p>
-                {entry?.done || (entry && !playing) ? (
-                    <div className="lg-done">
-                        <span className="lg-path" aria-hidden>
-                            {CUP_STAGES.map((st, i) => {
-                                const r = entry.results[i];
-                                return <i key={st} className={r ? (r.won ? 'won' : 'lost') : ''} />;
-                            })}
-                        </span>
+            <Coach id="dia" targets={['.dy-panel .lg-date', '[data-testid="daily-play"]']} when={!entry} />
+            {/* o vão: a torcida, o letreiro com o dia e o Pokémon da figurinha no meio da quadra */}
+            <i className="k-stage-gap" aria-hidden />
+            <section className="panel lg-hero dy-panel bc-surface bc-stripe">
+                <div className="dy-top">
+                    <span className="lg-date">{date}</span>
+                    {rules}
+                </div>
+                {done ? (
+                    <div className="lg-done dy-done">
                         <b className="lg-verdict">
                             {entry.champion
                                 ? t('liga.daily.champion')
@@ -228,78 +263,59 @@ export function Daily() {
                                   : t('liga.daily.abandoned')}
                         </b>
                         {!entry.ranked && <span className="lg-chip">{t('liga.daily.unranked')}</span>}
-                        <ul className="lg-scores">
-                            {entry.results.map((r) => (
-                                <li key={r.opponent} className={r.won ? 'won' : 'lost'}>
-                                    <b>
-                                        {r.score[0]}x{r.score[1]}
-                                    </b>
-                                    {r.shootout && (
-                                        <small>
-                                            {' '}
-                                            ({r.shootout[0]}x{r.shootout[1]})
-                                        </small>
-                                    )}{' '}
-                                    {clubName(r.opponent)}
-                                </li>
-                            ))}
+                        <ul className="lg-scores dy-scores">
+                            {CUP_STAGES.map((st, i) => {
+                                const r = entry.results[i];
+                                return (
+                                    <li
+                                        key={st}
+                                        className={r ? (r.won ? 'won' : 'lost') : ''}
+                                        title={r ? clubName(r.opponent) : undefined}
+                                    >
+                                        <b>{r ? `${r.score[0]}x${r.score[1]}` : '·'}</b>
+                                        {r?.shootout && (
+                                            <small>
+                                                {' '}
+                                                ({r.shootout[0]}x{r.shootout[1]})
+                                            </small>
+                                        )}
+                                    </li>
+                                );
+                            })}
                         </ul>
-                        <div className="row lg-actions">
-                            {entry.results.length > 0 && (
-                                <button type="button" className="btn" onClick={share}>
-                                    {shared ? t('liga.daily.copied') : t('liga.daily.share')}
-                                </button>
-                            )}
-                            <span className="lg-next">{t('liga.daily.next', clock)}</span>
-                        </div>
                     </div>
                 ) : (
-                    <div className="lg-start">
-                        <button type="button" className="btn primary big" disabled={busy} onClick={() => void begin()}>
-                            {playing ? t('liga.daily.continue') : t('liga.daily.play')}
-                        </button>
-                        {!playing && isCupInProgress(run) && (
-                            <small className="lg-hint">{t('liga.daily.parkHint', { team: run.teamName })}</small>
-                        )}
-                        {!playing && !user && <small className="lg-hint">{t('liga.daily.guestHint')}</small>}
-                    </div>
+                    <p className="lg-line">{t('liga.home.dailyLine')}</p>
                 )}
+                <div className="dy-week">
+                    <ol className="lg-days" aria-label={t('liga.daily.week', { n: streak.weekCount })}>
+                        {streak.week.map((on, i) => (
+                            <li key={streak.days[i]} className={on ? 'on' : ''}>
+                                {dict(lang).liga.daily.weekDays[i]}
+                            </li>
+                        ))}
+                    </ol>
+                    <small>{tn('liga.daily.inARow', inARow)}</small>
+                </div>
+                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia (ele está na quadra) */}
+                <p className="dy-sticker">
+                    <b>{t('liga.daily.stickerTitle', { name: species(sticker).name })}</b>
+                    <small>{entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}</small>
+                </p>
+                {!done && !playing && isCupInProgress(run) && (
+                    <small className="lg-hint">{t('liga.daily.parkHint', { team: run.teamName })}</small>
+                )}
+                {done && <span className="lg-next">{t('liga.daily.next', clock)}</span>}
                 {note && <p className="lg-note">{note}</p>}
             </section>
 
-            <section className="panel lg-week bc-surface">
-                <span className="bc-lbl">{t('liga.daily.week', { n: streak.weekCount })}</span>
-                <ol className="lg-days">
-                    {streak.week.map((on, i) => (
-                        <li key={streak.days[i]} className={on ? 'on' : ''}>
-                            {dict(lang).liga.daily.weekDays[i]}
-                        </li>
-                    ))}
-                </ol>
-                <small>{tn('liga.daily.total', streak.total)}</small>
-                {/* dias seguidos e o próximo marco (7: título Fiel da Copa; 30: a Garota Dourada) */}
-                <p className="lg-inarow">
-                    <b>{tn('liga.daily.inARow', inARow)}</b>{' '}
-                    {nextGoal && (
-                        <span className="muted">
-                            {t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}
-                        </span>
-                    )}
-                </p>
-                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia */}
-                <div className="lg-sticker">
-                    <img className="pixel" src={cardSprite({ speciesId: dailySticker(today), shiny: false })} alt="" />
-                    <span>
-                        <b>{t('liga.daily.stickerTitle', { name: species(dailySticker(today)).name })}</b>
-                        <small className="muted">
-                            {entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}
-                        </small>
-                    </span>
-                </div>
-            </section>
-
-            <section className="panel lg-rank bc-surface">
-                <h2 className="bc-caption">{t('liga.daily.rankingTitle')}</h2>
+            <SheetRow
+                icon="chart"
+                label={t('liga.ranking')}
+                hint={myRow ? `${myRow.pos}º` : undefined}
+                title={t('liga.daily.rankingTitle')}
+                className="dy-rank-open"
+            >
                 {hasFriends && user && (
                     <div className="bc-seg segmented lg-scope">
                         {[false, true].map((f) => (
@@ -353,8 +369,8 @@ export function Daily() {
                         <AccountBar />
                     </>
                 )}
-            </section>
-        </div>
+            </SheetRow>
+        </Stage>
     );
 }
 

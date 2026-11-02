@@ -674,3 +674,73 @@
         display: none;
     }
 }
+
+/* ---------- Copa do Dia no palco do Estádio: o dia, a semana e a figurinha num painel; o ranking numa Sheet ---------- */
+.dy-panel {
+    gap: 8px;
+}
+.dy-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.dy-done {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+.dy-scores {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+.dy-scores li {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 4px;
+    border-radius: 5px;
+    background: var(--bc-ink-2);
+    text-align: center;
+    white-space: nowrap;
+}
+.dy-week {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+}
+.dy-week small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.dy-week .lg-days li {
+    width: 28px;
+    height: 28px;
+}
+.dy-sticker {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-size: 13px;
+}
+.dy-sticker small {
+    color: var(--muted);
+    font-size: 12px;
+}
+@media (max-width: 359px) {
+    .dy-week .lg-days {
+        gap: 4px;
+    }
+    .dy-week .lg-days li {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* o desafio do dia, à esquerda e maior que o resto do painel */
+.dy-panel .lg-line {
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 15px;
+}

@@ -17,7 +17,9 @@ const PAGES = [
     ['/?demo=sala&motion=1', ['.tr-summary .btn']],
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
-    ['/?demo=dia&motion=1', ['.bc-seg button']],
+    // Copa do Dia e Liga no palco: o "?" e as linhas que abrem Sheet (ranking, seu time)
+    ['/?demo=dia&motion=1', ['.k-info', '.k-sheetrow']],
+    ['/?demo=liga&motion=1', ['.k-info', '.k-sheetrow']],
     ['/?demo=mercado&motion=1', ['.shop-buy']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
     ['/?lab=kit&motion=1', ['.k-step-btn', '.k-option', '.k-info', '.k-sheetrow']],

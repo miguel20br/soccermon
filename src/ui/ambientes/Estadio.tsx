@@ -89,7 +89,7 @@ const PLANKS = Array.from({ length: 18 }, (_, i) => {
 });
 
 /** Torre de refletor (pixel art): o poste, a grade de lâmpadas e o facho. */
-function Floodlight({ side }: { side: 'l' | 'r' }) {
+export function Floodlight({ side }: { side: 'l' | 'r' }) {
     return (
         <svg className={`es-flood ${side}`} viewBox="0 0 24 40" shapeRendering="crispEdges" aria-hidden>
             <polygon className="es-beam" points="2,10 22,10 40,40 -16,40" />
@@ -145,12 +145,13 @@ export const clubVars = (club: number) =>
 
 /**
  * A arquibancada do outro lado (torcida na cor do clube, flashes, a faixa) e o letreiro de LED embaixo dela: a mesma
- * peça no Estádio e no herói do menu de modos. `children` entra na arquibancada (o dorminhoco do Estádio).
+ * peça no Estádio, no herói do menu de modos e no fundo da Copa do Dia. `children` entra na arquibancada (o dorminhoco do Estádio).
  */
-export function Stands({ clubName, children }: { clubName: string; children?: ReactNode }) {
+export function Stands({ clubName, led: text, children }: { clubName: string; led?: string; children?: ReactNode }) {
     const { t } = useT();
     const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
-    const led = `${week} · ${t('home.amb.board')}`.repeat(3);
+    // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
+    const led = (text ? `${text} · ` : `${week} · ${t('home.amb.board')}`).repeat(3);
     return (
         <>
             <div className="es-stand">
