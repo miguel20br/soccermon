@@ -1,0 +1,154 @@
+/* Golpe especial (MaxSpecial.tsx): níveis do golpe máximo na carta, na legenda da partida e o aviso de nível novo. */
+.mx-levels {
+    display: grid;
+    gap: 4px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+}
+.mx-levels li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+.mx-lv {
+    min-width: 26px;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: var(--yellow);
+    color: var(--bc-ink, #1c1c28);
+    font-size: 11px;
+    text-align: center;
+}
+/* as mesmas cores do botão: N1 amarelo, N2 laranja, N3 vermelho do tipo forte */
+.mx-lv[data-lv="2"] {
+    background: color-mix(in srgb, var(--yellow), var(--red) 40%);
+}
+.mx-lv[data-lv="3"] {
+    background: var(--red);
+    color: #fff;
+}
+.mx-special .tactic-desc {
+    margin: 0;
+}
+.mx-special .pos-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.mx-special .pos-chip .hud-icon {
+    width: 11px;
+    height: 11px;
+}
+
+/* legenda na aba da partida: fechada por padrão, abre num toque */
+.mx-legend {
+    margin-top: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+}
+.mx-legend summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.mx-legend summary .hud-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+.mx-legend[open] .mx-levels,
+.mx-legend[open] .tactic-desc {
+    animation: mx-in 220ms var(--ease-out) both;
+}
+.mx-legend .mx-levels li:not(.on) .mx-lv {
+    opacity: 0.45;
+}
+.mx-legend .mx-levels li.on {
+    color: var(--text);
+}
+.mx-legend .tactic-desc {
+    margin: 6px 0 0;
+    font-size: 11px;
+}
+@keyframes mx-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}
+
+/* "N2 liberado: …" na quadra: entra, fica e sai (como a charanga), por cima do placar da quadra */
+.mx-cue {
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 32px);
+    padding: 7px 14px;
+    border-bottom: 3px solid var(--tc, var(--yellow));
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.3;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: mx-cue 2.6s linear both;
+}
+.mx-cue .hud-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    color: var(--yellow);
+}
+@keyframes mx-cue {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+        animation-timing-function: cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+    9%,
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+@keyframes mx-cue-fade {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    9%,
+    90% {
+        opacity: 1;
+    }
+}
+[data-reduce-motion="true"] .mx-cue {
+    animation-name: mx-cue-fade;
+}
+[data-reduce-motion="true"] .mx-legend[open] .mx-levels,
+[data-reduce-motion="true"] .mx-legend[open] .tactic-desc {
+    animation: none;
+}
+@media (max-width: 360px) {
+    .mx-cue {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}

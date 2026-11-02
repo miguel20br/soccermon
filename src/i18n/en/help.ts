@@ -380,6 +380,27 @@ export const help: typeof pt = {
                 },
             ],
         },
+        golpeMax: {
+            title: "The captain's special move",
+            blocks: [
+                {
+                    p: 'Every captain has a **special move**, with 3 levels: **L1**, **L2** and **L3**. {maxWho}',
+                },
+                { p: '{maxFill}' },
+                { dyn: 'maxLevels' },
+                {
+                    p: '**At the right time:** with an outfield captain, the button lights up when your team attacks and the ball looks for the captain, who unleashes it near goal. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
+                },
+                {
+                    p: "**Keeper captain:** his move is the **big boot**. The button only lights up on a rival shot he is going to reach. On the tap, instead of saving, he sends it back: at L1 and L2 as a long ball up the pitch (L2 knocks down anyone in the way); at L3, straight at the rival's goal. A miss: the usual save, and the bar is gone.",
+                },
+                {
+                    p: "The L1 status and the L3 effect come from the move's type, if it is one of the Pokémon's types (otherwise, its first type):",
+                },
+                { dyn: 'maxTypes' },
+                { p: "Each Pokémon's full card has a **Special move** section with what it does at each level." },
+            ],
+        },
         evolucao: {
             title: 'Evolution on the court',
             blocks: [
@@ -550,6 +571,12 @@ export const help: typeof pt = {
         linkTerm: '{name} ({pct})',
         linkLine: '{desc} Combo: {combo}.',
         gymLine: '{types} type, {formation}, {tactic}.',
+        maxRow: [
+            'shot with {pw} power and the type status on whoever blocks or saves it.',
+            'shot with {pw} and it knocks down anyone in the way (the keeper does not fall).',
+            'shot with {pw}, always on target, with the special scene and the type effect (12 Pokémon have their own signature).',
+        ],
+        maxTypeLine: 'L1 {st} · L3: {fx}.',
     },
     screen: {
         title: 'Help',
@@ -583,6 +610,9 @@ export const help: typeof pt = {
         draftText: "Tap a slot: 3 Pokémon show up and you take 1. Don't like them? **Reroll**.",
         coachTitle: "You're the coach",
         coachText: 'Change the tactic and sub whoever gets tired. Players who shine **evolve mid-match**!',
+        maxTitle: "The captain's move",
+        maxText:
+            'The team bar climbs to **L3**. Tap when the **green circle** closes: the captain shoots with everything, and in goal he boots it back.',
         tactic: 'Tactic',
         sub: 'Substitute',
     },
@@ -617,6 +647,10 @@ export const help: typeof pt = {
             'Winning raises your Elo, losing lowers it.',
             "You face another trainer's saved team. They don't need to be online.",
         ],
+        golpe: [
+            "Bar at L1: your captain's special move is unlocked. At L2 it knocks down anyone in the way; at L3 it is always on target.",
+            'When the button lights up, tap as the green circle closes. A keeper captain boots the shot back.',
+        ],
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',
@@ -628,6 +662,7 @@ export const help: typeof pt = {
             duelo: 'Duel',
             dia: 'Daily Cup',
             liga: 'League',
+            golpe: 'Special move',
         },
     },
 };

@@ -75,6 +75,7 @@ import {
     useCoachTab,
     useFinalHold,
 } from '../components/MatchHud';
+import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
@@ -546,6 +547,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     };
     // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
+    const capPlan = agency ? captainPlan(match, setups, side, clock.tick) : null;
     const tactics = agency ? (
         <>
             {tacticControls}
@@ -557,6 +559,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 onMax={sendMax}
                 onPens={() => setPensOpen(true)}
             />
+            <MaxLegend plan={capPlan} level={sideline.max.level} />
         </>
     ) : (
         tacticControls
@@ -631,6 +634,15 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             />
                         )}
                         {agency && <MaxCueButton view={sideline} canAct={canChange} onMax={sendMax} />}
+                        {agency && (
+                            <MaxLevelCue
+                                events={match.events}
+                                tick={clock.tick}
+                                side={side}
+                                plan={capPlan}
+                                color={hex(colors[side])}
+                            />
+                        )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

@@ -42,7 +42,7 @@ interface Slide {
     visual: ReactNode;
 }
 
-/** Os passos, no idioma do jogo: só 3 (o resto vira dica na hora em que aparece: escalação, recompensa, Pokédex). */
+/** Os passos, no idioma do jogo: só 4 (o resto vira dica na hora em que aparece: escalação, recompensa, Pokédex). */
 const slides = (d: Dict): Slide[] => {
     const o = d.help.onboarding;
     return [
@@ -92,6 +92,22 @@ const slides = (d: Dict): Slide[] => {
                         <span className="ob-pill">{o.tactic}</span>
                         <span className="ob-pill yellow">{o.sub}</span>
                         <span className="ob-pill">2x</span>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            title: o.maxTitle,
+            text: rich(o.maxText),
+            visual: (
+                <div className="ob-evolve">
+                    <Sprite id={25} scale={1.5} className="ob-glow" />
+                    <div className="ob-controls">
+                        {[1, 2, 3].map((n) => (
+                            <span key={n} className={`ob-pill${n === 3 ? ' yellow' : ''}`}>
+                                {fmt(d.match.agency.maxLevelShort, { n })}
+                            </span>
+                        ))}
                     </div>
                 </div>
             ),

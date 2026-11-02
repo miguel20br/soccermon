@@ -57,6 +57,7 @@ import {
     useCoachTab,
     useFinalHold,
 } from '../components/MatchHud';
+import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
@@ -170,6 +171,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
     /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
     const [penPick, setPenPick] = useState<number | null>(null);
+    /** O balão da 1ª partida aberto: o do golpe especial espera ele fechar (um balão por vez). */
+    const [jogoOn, setJogoOn] = useState(false);
     const alive = useRef(true);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
@@ -517,7 +520,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         if (key === 'm') sendMax(maxTap());
         else if (key === d.match.agency.maxWaitKey.toLowerCase()) waitMax();
     };
-    const sidelineControls = (
+    const sidelineButtons = (
         <SidelineControls
             view={sideline}
             canAct={canAgency}
@@ -529,6 +532,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
             onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
             onMax={sendMax}
         />
+    );
+    const capPlan = captainPlan(match, setups, 0, clock.tick);
+    const sidelineControls = (
+        <>
+            {sidelineButtons}
+            <MaxLegend plan={capPlan} level={agency.max.level} />
+        </>
     );
 
     const changeTactic = (tactic: Tactic) => {
@@ -707,6 +717,16 @@ export function Match({ liga = false }: { liga?: boolean }) {
             }
             // e, já aberto, some enquanto o botão acende (golpe máximo ou bicuda) ou o golpe sai, e volta depois
             pause={maxBusy}
+            onActive={setJogoOn}
+        />
+    );
+    // golpe universal: a 1ª vez que a barra chega no N1, com o botão apagado (não por cima da hora de tocar)
+    const golpeCoach = (
+        <Coach
+            id="golpe"
+            targets={['.bc-maxthumb, .sl-max, .sl-maxbars', '.bc-maxthumb, .sl-max, .sl-maxbars']}
+            when={!liga && agency.max.level >= 1 && !maxBusy && !jogoOn}
+            pause={maxBusy}
         />
     );
     /** O conteúdo de cada aba do técnico (no painel ou na sheet do ?lab=hud). */
@@ -793,6 +813,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         )}
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
                         <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
+                        <MaxLevelCue
+                            events={match.events}
+                            tick={clock.tick}
+                            side={0}
+                            plan={capPlan}
+                            color={hex(colors[0])}
+                        />
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
@@ -893,6 +920,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 {hud ? (
                     <>
                         {jogoCoach}
+                        {golpeCoach}
                         {/* ?lab=hud: 4 botões no lugar das abas; cada um abre a sua sheet (o estado fica à vista) */}
                         <nav className="bc-hudbar" aria-label={t('match.coach.title')}>
                             {(
@@ -962,6 +990,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         onPointerDownCapture={auto.hold}
                     >
                         {jogoCoach}
+                        {golpeCoach}
                         <CoachTabs tabs={tabs} active={open ? tab : null} onPick={pickTab} />
                         <div className="bc-fold" inert={!open}>
                             <div>

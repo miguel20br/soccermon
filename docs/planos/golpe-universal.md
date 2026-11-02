@@ -105,3 +105,15 @@ O que estava em aberto antes da decisão:
 - O técnico robô ganha +6 a +11 pp de vitória com o golpe máximo (motor 16: +2 a +5): o golpe máximo pesa mais no
   resultado.
 - Toque fora da bicuda: gasta a barra (como pedido "gasta como o golpe máximo"). Alternativa: não gastar no fora.
+
+## Explicação na tela (01/11/2026, branch `golpe-explica`)
+
+Pedido do Miguel: dizer quando cada nível libera e o que ele dá. Os textos saem de `src/ui/max-levels.ts`, que lê o
+motor (`AGENCY.maxLevelPts`, `maxBehind`, `maxLevelShot`, `maxStatus`, `maxGrade`, os pontos por lance medidos no
+próprio `maxCharge`, `maxFxType` e `MAX_SIGNATURE`): número novo no motor muda o texto junto.
+- Partida: aviso curto quando a barra do seu time sobe ("N2 liberado: derruba quem estiver no caminho") e a legenda
+  "Golpe especial" (abre num toque) embaixo dos botões da beira da quadra, com os níveis já liberados acesos.
+- Carta completa: seção "Golpe especial" com o golpe, o tipo, o que N1/N2/N3 fazem pra ele (bicuda se a posição é gol)
+  e como liberar.
+- Tutorial: balão `golpe` na 1ª vez que a barra chega no N1 (volta pela Ajuda), seção "Golpe especial do capitão" na
+  Ajuda (com o status e o efeito de cada tipo) e um 4º passo no "Como jogar".

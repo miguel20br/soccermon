@@ -8,7 +8,7 @@
 export type HelpDictBlock =
     | { p: string }
     | { list: (string | [string, string])[] }
-    | { dyn: 'formations' | 'items' | 'links' | 'tactics' | 'gyms' }
+    | { dyn: 'formations' | 'items' | 'links' | 'tactics' | 'gyms' | 'maxLevels' | 'maxTypes' }
     | { link: string };
 
 export type HelpSectionId =
@@ -25,6 +25,7 @@ export type HelpSectionId =
     | 'itens'
     | 'sinergias'
     | 'partida'
+    | 'golpeMax'
     | 'evolucao'
     | 'copa'
     | 'recompensas'
@@ -400,6 +401,27 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
         ],
     },
+    golpeMax: {
+        title: 'Golpe especial do capitão',
+        blocks: [
+            {
+                p: 'Todo capitão tem um **golpe especial**, com 3 níveis: **N1**, **N2** e **N3**. {maxWho}',
+            },
+            { p: '{maxFill}' },
+            { dyn: 'maxLevels' },
+            {
+                p: '**Na hora certa:** com capitão de linha, o botão acende no ataque do seu time e a bola procura o capitão, que solta o golpe perto do gol. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
+            },
+            {
+                p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora: a defesa de sempre, e a barra se vai.',
+            },
+            {
+                p: 'O status do N1 e o efeito do N3 vêm do tipo do golpe, se ele for de um tipo do Pokémon (senão, do 1º tipo dele):',
+            },
+            { dyn: 'maxTypes' },
+            { p: 'Na carta completa de cada Pokémon tem a seção **Golpe especial**, com o que ele faz em cada nível.' },
+        ],
+    },
     evolucao: {
         title: 'Evolução em campo',
         blocks: [
@@ -576,6 +598,13 @@ export const help = {
         linkTerm: '{name} ({pct})',
         linkLine: '{desc} Combo: {combo}.',
         gymLine: 'tipo {types}, {formation}, {tactic}.',
+        /** Golpe especial: os 3 níveis em geral (o da carta é o de cada Pokémon). */
+        maxRow: [
+            'chute com {pw} de força e o status do tipo em quem bloquear ou defender.',
+            'chute com {pw} e derruba quem estiver no caminho (o goleiro não cai).',
+            'chute com {pw}, sempre no alvo, com a cena do especial e o efeito do tipo (12 Pokémon têm assinatura própria).',
+        ],
+        maxTypeLine: 'N1 {st} · N3: {fx}.',
     },
     screen: {
         title: 'Ajuda',
@@ -609,6 +638,9 @@ export const help = {
         draftText: 'Toque numa vaga: saem 3 Pokémon e você leva 1. Não gostou? **Sorteie de novo**.',
         coachTitle: 'Você é o técnico',
         coachText: 'Mude a tática e troque quem cansar. Quem joga muito **evolui no meio do jogo**!',
+        maxTitle: 'Golpe do capitão',
+        maxText:
+            'A barra do time sobe até o **N3**. Toque quando o **círculo verde** fechar: o capitão chuta com tudo, e no gol ele devolve de bicuda.',
         tactic: 'Tática',
         sub: 'Substituir',
     },
@@ -645,6 +677,10 @@ export const help = {
             'Ganhar sobe o Elo, perder desce.',
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
+        golpe: [
+            'Barra no N1: o golpe especial do capitão liberou. No N2 derruba quem estiver no caminho; no N3 sai sempre no alvo.',
+            'Quando o botão acender, toque com o círculo verde fechando. Capitão no gol devolve o chute de bicuda.',
+        ],
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',
@@ -656,6 +692,7 @@ export const help = {
             duelo: 'Duelo',
             dia: 'Copa do Dia',
             liga: 'Liga',
+            golpe: 'Golpe especial',
         },
     },
 };
