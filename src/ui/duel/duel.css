@@ -793,11 +793,11 @@ button.sb-title:hover {
 /* deitado: o título sai (draft.css) e a vez fica só no polegar; as cartas ganham a altura */
 @media (orientation: landscape) and (max-height: 520px) {
     .duel-draft-stage .draft-pick3 {
-        --k-pick-reserve: 250px;
+        --k-pick-reserve: 236px;
     }
 }
-/* celular baixo (320x640): a regra da linha cinza sai (o "?" das regras já explicou na sala), relógio e miniatura
-   mais baixos, pra as cartas caberem inteiras */
+/* celular baixo (320x640): a regra da linha cinza sai (o "?" das regras já explicou na sala), relógio mais baixo
+   (a quadrinha encolhe em draft.css), pra as cartas caberem inteiras */
 @media (orientation: portrait) and (max-height: 700px) {
     .duel-draft-stage .draft-title p {
         display: none;
@@ -806,13 +806,6 @@ button.sb-title:hover {
         min-width: 44px;
         padding: 2px 8px;
         font-size: 20px;
-    }
-    .duel-draft-stage .dp-chip > span {
-        display: none;
-    }
-    .duel-draft-stage .dp-chip img,
-    .duel-draft-stage .dp-chip i {
-        height: 24px;
     }
 }
 .duel-draft-clock {
