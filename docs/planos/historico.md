@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.34 · Tudo à vista (02/11/2026)
+
+O Miguel não gostou da partida de TV no PC nem de tática e formação escondidas em sheets: volta o painel antigo da partida no PC (desfaz da8cd9e4), Escalação com táticas, formações e escanteio abertos, draft com o time numa quadrinha, fim de partida rolando de novo (Destaque, evoluções, estatísticas) e o botão do golpe máximo na Copa só com a bola no pé do capitão (sem o "chamar").
+
 ## 0.9.33 · Partida de TV (02/11/2026)
 
 Cara de jogo fase 3: partida no PC com o layout do celular (barra de 4 botões, Sheets, legenda de TV), torcida em volta da quadra no 4x/8x, intervalo em placar de TV; Escalação com placas, Mercado com prateleiras, Treino/Evento/Grupo da Rota em cena; draft do Duelo no palco; Arena deitada sem rolar; Coleção com seletor; desbloqueio como selo.

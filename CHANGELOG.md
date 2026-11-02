@@ -1,5 +1,16 @@
 # Novidades
 
+## 0.9.34 · Tudo à vista (2026-11-02)
+
+### Partida
+- No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado
+- O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar
+
+### Copa
+- Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver
+- Draft mostra o seu time numa quadrinha junto das 3 escolhas
+- Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar
+
 ## 0.9.33 · Partida de TV (2026-11-02)
 
 ### Partida

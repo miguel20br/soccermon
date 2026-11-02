@@ -9,6 +9,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'Tudo à vista',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado',
+                    'O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver',
+                    'Draft mostra o seu time numa quadrinha junto das 3 escolhas',
+                    'Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.33',
         date: '2026-11-02',
         title: 'Partida de TV',
@@ -2219,6 +2241,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'All in view',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'On PC the full panel is back: tactics open under the court, formation and team on the side',
+                    "The max move button only lights up when the ball is at the captain's feet, ready to shoot",
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Lineup with tactics, formations and corners open on screen, no tapping needed',
+                    'The draft shows your team on a small court next to the 3 picks',
+                    'End of match scrolls again: Star Player card, evolutions, goals and stats right under the score',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.33',
         date: '2026-11-02',
