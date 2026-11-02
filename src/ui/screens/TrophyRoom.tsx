@@ -1,4 +1,14 @@
-import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from 'react';
+import {
+    type CSSProperties,
+    lazy,
+    type ReactNode,
+    Suspense,
+    useEffect,
+    useMemo,
+    useState,
+    useSyncExternalStore,
+} from 'react';
+import { EventBus } from '../../game/EventBus';
 import { ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../../game/room-spots';
 import type { TKey } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -20,11 +30,12 @@ import {
 import { backTarget } from '../back-nav';
 import { HallList } from '../components/HallParade';
 import { HudIcon } from '../components/MatchHud';
-import { MenuHead } from '../components/MenuHead';
+import { useMenuBackOf } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
 import { initialTab, openDoor } from '../doors';
 import { playDoor } from '../kit/DoorWipe';
 import { Sheet as KitSheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
 import { MedalsTab, useMedalView } from '../profile/Medals';
@@ -109,10 +120,35 @@ const TUTORIAL: { focus: Obj | null; key: 'step1' | 'step2' | 'step3' }[] = [
     { focus: null, key: 'step3' },
 ];
 const TUT_KEY = 'tut:sala';
-const pos = (id: RoomSpot) => {
+/** O pedaço do quarto à vista (a janela estreita do celular em pé anda de parede em parede). */
+interface View {
+    x0: number;
+    w: number;
+    start: boolean;
+    end: boolean;
+}
+const FULL: View = { x0: 0, w: ROOM_W, start: true, end: true };
+/** Celular em pé: a câmera mostra 40% do quarto, bem maior (as setas andam meia janela por vez). */
+const NARROW_W = Math.round(ROOM_W * 0.4);
+/** Onde vai o nome do objeto na tela; null se ele está fora da parede à vista. */
+const pos = (id: RoomSpot, v: View) => {
     const r = ROOM_SPOTS[id];
-    return { left: `${((r.x + r.w / 2) / ROOM_W) * 100}%`, top: `${(r.y / ROOM_H) * 100}%` };
+    const x = (r.x + r.w / 2 - v.x0) / v.w;
+    if (x < 0.04 || x > 0.96) return null;
+    return { left: `${x * 100}%`, top: `${(r.y / ROOM_H) * 100}%` };
 };
+/** Tela em pé (o quarto é deitado: em pé ele aparece pela metade, maior). */
+const portrait = () => window.matchMedia('(orientation: portrait)');
+function usePortrait() {
+    return useSyncExternalStore(
+        (fn) => {
+            const mq = portrait();
+            mq.addEventListener('change', fn);
+            return () => mq.removeEventListener('change', fn);
+        },
+        () => portrait().matches,
+    );
+}
 type Sheet = 'lista' | 'medalhas' | 'numeros' | 'hall';
 
 /** Um troféu da lista: o desenho (silhueta se falta), o nome, quantos e como ganhar. */
@@ -177,6 +213,16 @@ export function TrophyRoom() {
     const [focus, setFocus] = useState<Obj | null>(firstVisit ? TUTORIAL[0].focus : null);
     const [hover, setHover] = useState<Obj | null>(null);
     const [hold, setHold] = useState(false);
+    const viewW = usePortrait() ? NARROW_W : undefined;
+    const [seen, setSeen] = useState<View>(FULL);
+    useEffect(() => {
+        const on = (v: View) => setSeen(v);
+        EventBus.on('room:view', on);
+        return () => {
+            EventBus.off('room:view', on);
+        };
+    }, []);
+    useMenuBackOf(() => (backTarget('trophies') === 'home' ? playDoor(() => go('home')) : go('profile')));
     const news = useNews();
     const [tut, setTut] = useState<number | null>(firstVisit ? 0 : null);
     const tutNext = () => {
@@ -233,6 +279,7 @@ export function TrophyRoom() {
         profile.clubColor,
         avatar,
         night,
+        viewW,
     ]);
     // biome-ignore lint/correctness/useExhaustiveDependencies: o quarto só muda quando o que ele mostra muda (sceneKey)
     const scene = useMemo(
@@ -258,6 +305,7 @@ export function TrophyRoom() {
                 avatar.kind === 'pokemon'
                     ? { speciesId: avatar.speciesId, shiny: avatar.shiny === true }
                     : { speciesId: 25, shiny: false },
+            viewW,
         }),
         [sceneKey],
     );
@@ -393,8 +441,14 @@ export function TrophyRoom() {
     };
     // setas do teclado passam de objeto, Esc volta pro quarto inteiro
     useEffect(() => {
-        if (!focus || sheet) return;
+        if (sheet) return;
         const onKey = (e: KeyboardEvent) => {
+            // sem objeto aberto: as setas trocam de parede (celular em pé)
+            if (!focus) {
+                if (viewW && (e.key === 'ArrowRight' || e.key === 'ArrowLeft'))
+                    EventBus.emit('room:wall', e.key === 'ArrowRight' ? 1 : -1);
+                return;
+            }
             if (e.key === 'ArrowRight') step(1);
             else if (e.key === 'ArrowLeft') step(-1);
             else if (e.key === 'Escape') setFocus(null);
@@ -403,92 +457,126 @@ export function TrophyRoom() {
         return () => window.removeEventListener('keydown', onKey);
     });
 
+    const run = (f: () => void) => () => {
+        setFocus(null);
+        f();
+    };
+    const tutHow = () => {
+        setTut(0);
+        setFocus(TUTORIAL[0].focus);
+    };
+
     return (
-        <div className="menu-screen pf tr" style={clubVars(clubColorHex(profile.clubColor))}>
-            <MenuHead
-                title={t('trophies.title')}
-                hud="cup"
-                onBack={() => (backTarget('trophies') === 'home' ? playDoor(() => go('home')) : go('profile'))}
-            />
+        <Stage
+            className="pf tr tr-full"
+            style={
+                {
+                    ...clubVars(clubColorHex(profile.clubColor)),
+                    '--room-ar': `${viewW ?? ROOM_W} / ${ROOM_H}`,
+                } as CSSProperties
+            }
+            scene={<div className="k-stage-light" />}
+        >
+            <header className="tr-top">
+                <span className="tr-lvl">
+                    <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
+                    {lvl.next ? (
+                        <span className="k-bar tr-level-bar" title={t('trophies.nextLevel', { n: lvl.next })}>
+                            <i style={{ width: `${(titles / lvl.next) * 100}%` }} />
+                            <b>
+                                {titles}/{lvl.next}
+                            </b>
+                        </span>
+                    ) : (
+                        <small>{t('trophies.maxLevel')}</small>
+                    )}
+                </span>
+                <button
+                    type="button"
+                    className="k-icon-btn tr-ic"
+                    onClick={tutHow}
+                    aria-label={t('trophies.tut.how')}
+                    title={t('trophies.tut.again')}
+                    disabled={tut !== null}
+                >
+                    <HudIcon kind="question" />
+                </button>
+                <button
+                    type="button"
+                    className="k-icon-btn tr-ic"
+                    onClick={() => setSheet('lista')}
+                    aria-label={t('trophies.card.list')}
+                    title={t('trophies.card.list')}
+                >
+                    <HudIcon kind="board" />
+                </button>
+            </header>
 
             <div className="room-wrap">
-                <Suspense fallback={<div className="room-stage" />}>
-                    <RoomStage
-                        data={scene}
-                        focus={focus}
-                        onPick={(id) => {
-                            if (tut !== null) return;
-                            setFocus((cur) => (cur === id ? null : (id as Obj)));
-                        }}
-                        onHover={(id) => setHover(id as Obj | null)}
-                        onHold={setHold}
-                    />
-                </Suspense>
-                {/* nomes: de tudo ao segurar, do que está debaixo do mouse ao passar */}
-                {!focus && (hold || hover) && (
-                    <div className="room-labels" aria-hidden>
-                        {(hold ? HOLD_LABELS : hover ? [hover] : []).map((id) => (
-                            <span key={id} className="room-label" style={pos(id)}>
-                                {d.trophies.labels[LABEL_OF[id]]}
-                            </span>
-                        ))}
-                    </div>
-                )}
-                {tut !== null && (
-                    <RoomDialog
-                        key={tut}
-                        text={t(`trophies.tut.${TUTORIAL[tut].key}`)}
-                        action={{
-                            label: tut < TUTORIAL.length - 1 ? t('trophies.tut.next') : t('trophies.tut.done'),
-                            run: tutNext,
-                        }}
-                        onClose={tutNext}
-                    />
-                )}
-                {card && tut === null && (
-                    <aside className="room-card" data-exit aria-live="polite">
-                        <button
-                            type="button"
-                            className="room-card-x"
-                            onClick={() => setFocus(null)}
-                            aria-label={t('common.ui.close')}
-                        >
-                            <HudIcon kind="close" />
-                        </button>
-                        {card.badge && (
-                            <span className={`room-badge${card.metal ? ` m-${card.metal}` : ''}`}>{card.badge}</span>
-                        )}
-                        <b>{card.title}</b>
-                        {card.lines.map((l) => (
-                            <small key={l}>{l}</small>
-                        ))}
-                        <div className="room-card-row">
+                <div className="room-box">
+                    <Suspense fallback={<div className="room-stage" />}>
+                        <RoomStage
+                            data={scene}
+                            focus={focus}
+                            onPick={(id) => {
+                                if (tut !== null) return;
+                                setFocus((cur) => (cur === id ? null : (id as Obj)));
+                            }}
+                            onHover={(id) => setHover(id as Obj | null)}
+                            onHold={setHold}
+                        />
+                    </Suspense>
+                    {/* nomes: de tudo ao segurar, do que está debaixo do mouse ao passar (só o que está à vista) */}
+                    {!focus && (hold || hover) && (
+                        <div className="room-labels" aria-hidden>
+                            {(hold ? HOLD_LABELS : hover ? [hover] : []).map((id) => {
+                                const at = pos(id, seen);
+                                return at ? (
+                                    <span key={id} className="room-label" style={at}>
+                                        {d.trophies.labels[LABEL_OF[id]]}
+                                    </span>
+                                ) : null;
+                            })}
+                        </div>
+                    )}
+                    {/* celular em pé: a sala maior, uma parede por vez */}
+                    {viewW && !focus && tut === null && (
+                        <>
                             <button
                                 type="button"
-                                className="btn small"
-                                onClick={() => step(-1)}
+                                className="k-icon-btn room-wall prev"
                                 aria-label={t('trophies.card.prev')}
+                                disabled={seen.start}
+                                onClick={() => EventBus.emit('room:wall', -1)}
                             >
                                 <HudIcon kind="prev" />
                             </button>
-                            {card.action && (
-                                <button type="button" className="btn small confirm" onClick={card.action.run}>
-                                    {card.action.label}
-                                </button>
-                            )}
                             <button
                                 type="button"
-                                className="btn small"
-                                onClick={() => step(1)}
+                                className="k-icon-btn room-wall next"
                                 aria-label={t('trophies.card.next')}
+                                disabled={seen.end}
+                                onClick={() => EventBus.emit('room:wall', 1)}
                             >
                                 <HudIcon kind="next" />
                             </button>
-                        </div>
-                    </aside>
-                )}
+                        </>
+                    )}
+                    {tut !== null && (
+                        <RoomDialog
+                            key={tut}
+                            text={t(`trophies.tut.${TUTORIAL[tut].key}`)}
+                            action={{
+                                label: tut < TUTORIAL.length - 1 ? t('trophies.tut.next') : t('trophies.tut.done'),
+                                run: tutNext,
+                            }}
+                            onClose={tutNext}
+                        />
+                    )}
+                </div>
             </div>
 
+            {/* teclado e leitor de tela: os objetos em botões (aparecem ao receber o foco) */}
             <nav className="room-legend" aria-label={t('trophies.legendAria')}>
                 {LEGEND.map((l) => {
                     const on = !!focus && l.has.includes(focus);
@@ -507,36 +595,47 @@ export function TrophyRoom() {
                 })}
             </nav>
 
-            <div className="tr-summary">
-                <span>
-                    <b>{t('trophies.levelLine', { n: lvl.n, name: t(`trophies.level.${lvl.level}` as TKey) })}</b>
-                    <small>{lvl.next ? t('trophies.nextLevel', { n: lvl.next }) : t('trophies.maxLevel')}</small>
-                    {lvl.next && (
-                        <span className="k-bar tr-level-bar" aria-hidden>
-                            <i style={{ width: `${(titles / lvl.next) * 100}%` }} />
-                            <b>
-                                {titles}/{lvl.next}
-                            </b>
-                        </span>
-                    )}
-                </span>
-                <span className="tr-summary-btns">
-                    <button
-                        type="button"
-                        className="btn small"
-                        onClick={() => {
-                            setTut(0);
-                            setFocus(TUTORIAL[0].focus);
-                        }}
-                        title={t('trophies.tut.again')}
-                    >
-                        {t('trophies.tut.how')}
-                    </button>
-                    <button type="button" className="btn small" onClick={() => setSheet('lista')}>
-                        {t('trophies.card.list')}
-                    </button>
-                </span>
-            </div>
+            {/* a ficha do objeto tocado: Sheet sem escurecer a sala (a câmera chegou perto, ele fica à vista) */}
+            <KitSheet
+                open={!!card && tut === null && !sheet}
+                onClose={() => setFocus(null)}
+                title={card?.title ?? ''}
+                className="tr-ficha"
+            >
+                {card && (
+                    <div key={focus} className="tr-ficha-in">
+                        {card.badge && (
+                            <span className={`room-badge${card.metal ? ` m-${card.metal}` : ''}`}>{card.badge}</span>
+                        )}
+                        {card.lines.map((l) => (
+                            <small key={l}>{l}</small>
+                        ))}
+                        <div className="room-card-row">
+                            <button
+                                type="button"
+                                className="btn small"
+                                onClick={() => step(-1)}
+                                aria-label={t('trophies.card.prev')}
+                            >
+                                <HudIcon kind="prev" />
+                            </button>
+                            {card.action && (
+                                <button type="button" className="btn small confirm" onClick={run(card.action.run)}>
+                                    {card.action.label}
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className="btn small"
+                                onClick={() => step(1)}
+                                aria-label={t('trophies.card.next')}
+                            >
+                                <HudIcon kind="next" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </KitSheet>
 
             {sheet === 'medalhas' && (
                 <SheetPanel title={d.trophies.tabs.medalhas} onClose={() => setSheet(null)}>
@@ -614,6 +713,6 @@ export function TrophyRoom() {
                     </div>
                 </SheetPanel>
             )}
-        </div>
+        </Stage>
     );
 }

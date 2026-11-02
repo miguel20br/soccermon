@@ -63,6 +63,11 @@ export interface RoomSceneData {
     mon: { speciesId: number; shiny: boolean };
     /** Objetos com novidade (brilho piscando em cima). */
     fresh: string[];
+    /**
+     * Largura da janela da câmera (px do quarto). Celular em pé: menos que o quarto, a sala aparece maior e as setas
+     * trocam de parede (`room:wall`). Sem = o quarto inteiro.
+     */
+    viewW?: number;
 }
 
 const FLOOR_Y = 76;
@@ -80,6 +85,8 @@ export class TrophyRoomScene extends Phaser.Scene {
     private outline!: Phaser.GameObjects.Graphics;
     private held = false;
     private holdTimer: Phaser.Time.TimerEvent | null = null;
+    /** Centro da parede à vista (x do quarto): pra onde a câmera volta ao soltar o foco. */
+    private homeX = ROOM_W / 2;
 
     constructor() {
         super('TrophyRoom');
@@ -297,8 +304,13 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.add.pointlight(87, 82, 0xffd08a, 22, 0.25).setDepth(130);
         }
 
-        // a câmera nunca mostra fora do quarto (ao aproximar de um canto)
+        // a câmera nunca mostra fora do quarto (ao aproximar de um canto); janela estreita começa na parede do meio
         this.cameras.main.setBounds(0, 0, ROOM_W, ROOM_H);
+        this.cameras.main.centerOn(this.homeX, ROOM_H / 2);
+        const onWall = (dir: -1 | 1) => this.wall(dir);
+        EventBus.on('room:wall', onWall);
+        this.events.once('shutdown', () => EventBus.off('room:wall', onWall));
+        this.events.once('destroy', () => EventBus.off('room:wall', onWall));
 
         // ---- foco: o resto escurece e a câmera aproxima
         this.dim = this.add.rectangle(0, 0, ROOM_W, ROOM_H, 0x05060f, 0).setOrigin(0).setDepth(9400);
@@ -322,6 +334,28 @@ export class TrophyRoomScene extends Phaser.Scene {
             this.wander();
         }
         EventBus.emit('room:ready');
+        this.emitView();
+    }
+
+    /** Meia janela da câmera: até onde o centro anda sem mostrar fora do quarto. */
+    private get half() {
+        return Math.min(ROOM_W, this.room.viewW ?? ROOM_W) / 2;
+    }
+
+    /** Conta pra tela qual pedaço do quarto está à vista (os nomes ao segurar e as setas usam). */
+    private emitView() {
+        const x0 = this.homeX - this.half;
+        EventBus.emit('room:view', { x0, w: this.half * 2, start: x0 <= 0.5, end: x0 + this.half * 2 >= ROOM_W - 0.5 });
+    }
+
+    /** Seta de parede (janela estreita): anda meia janela pro lado, sem passar da ponta. */
+    private wall(dir: -1 | 1) {
+        if (this.focused) return;
+        const h = this.half;
+        this.homeX = Phaser.Math.Clamp(this.homeX + dir * h, h, ROOM_W - h);
+        const reduce = document.documentElement.dataset.reduceMotion === 'true';
+        this.cameras.main.pan(this.homeX, ROOM_H / 2, reduce ? 0 : 280, 'Cubic.easeOut', true);
+        this.emitView();
     }
 
     /** Contorno claro no objeto debaixo do mouse (e o nome dele na tela). */
@@ -446,10 +480,12 @@ export class TrophyRoomScene extends Phaser.Scene {
         this.tweens.add({ targets: this.dim, fillAlpha: id ? 0.62 : 0, duration: dur, ease: 'Cubic.easeOut' });
         if (bounds) {
             const zoom = Phaser.Math.Clamp(
-                Math.min(ROOM_W / (bounds.width * 2.6), ROOM_H / (bounds.height * 2.4)),
+                Math.min((this.half * 2) / (bounds.width * 2.6), ROOM_H / (bounds.height * 2.4)),
                 1.2,
                 3,
             );
+            // ao soltar, a câmera fica na parede do objeto (janela estreita)
+            this.homeX = Phaser.Math.Clamp(bounds.centerX, this.half, ROOM_W - this.half);
             cam.pan(bounds.centerX, bounds.centerY, dur, 'Cubic.easeOut', true);
             cam.zoomTo(zoom, dur, 'Cubic.easeOut', true);
             // o Pokémon vai até lá olhar
@@ -458,8 +494,9 @@ export class TrophyRoomScene extends Phaser.Scene {
                 this.walkTo(bounds.centerX + 18, bounds.bottom + 14, () => this.play('Idle', 4));
             }
         } else {
-            cam.pan(ROOM_W / 2, ROOM_H / 2, dur, 'Cubic.easeOut', true);
+            cam.pan(this.homeX, ROOM_H / 2, dur, 'Cubic.easeOut', true);
             cam.zoomTo(1, dur, 'Cubic.easeOut', true);
+            this.emitView();
             this.time.delayedCall(dur + 200, () => this.wander());
         }
     }
