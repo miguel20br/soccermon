@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -19,9 +19,9 @@ import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
+import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { lineupAverage, ratingAt } from '../rating';
-import { reduceMotionOn } from '../settings-sync';
 import { flyCard } from '../view-transition';
 import '../draft.css';
 
@@ -110,21 +110,37 @@ function AutoDraft({
     );
 }
 
+/** A quadra cabe no palco sem rolar: encolhe (zoom) até caber na altura e na largura que sobram. */
+function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
+    // biome-ignore lint/correctness/useExhaustiveDependencies: mede de novo quando a quadra troca (key)
+    useLayoutEffect(() => {
+        const wrap = ref.current;
+        const inner = wrap?.firstElementChild as HTMLElement | null;
+        if (!wrap || !inner || typeof ResizeObserver === 'undefined') return;
+        const refit = () => {
+            inner.style.zoom = '';
+            const z = Math.min(1, wrap.clientHeight / inner.offsetHeight, wrap.clientWidth / inner.offsetWidth);
+            if (z < 1) inner.style.zoom = String(Math.max(0.5, z));
+        };
+        refit();
+        const ro = new ResizeObserver(refit);
+        ro.observe(wrap);
+        return () => ro.disconnect();
+    }, [ref, key]);
+}
+
 /**
- * Celular em pé: a quadra sai da tela quando as cartas sobem. Esta faixa fica fixa no topo com as vagas (titulares e
- * banco): você vê onde a carta vai cair e toca numa vaga sem rolar de volta. Só aparece nessa tela (CSS); o leitor de
- * tela usa a quadra, que tem os mesmos botões.
+ * O time em miniatura em cima das 3 cartas: as vagas (titulares e banco) com quem já entrou e a da vez acesa. Só
+ * mostra; o botão em volta abre o time inteiro numa sheet.
  */
 function DraftStrip({
     run,
     byUid,
     stateOf,
-    onSlot,
 }: {
     run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
     byUid: Map<string, PokemonInstance>;
     stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
-    onSlot: (slot: SlotRef, uid: string) => void;
 }) {
     const { t, d } = useT();
     const roles = FORMATIONS[run.formation].slots;
@@ -141,25 +157,20 @@ function DraftStrip({
         })),
     ];
     return (
-        <div className="draft-strip" aria-hidden="true">
+        <span className="dp-strip" aria-hidden="true">
             {chips.map(({ ref, uid, label }) => {
                 const inst = uid ? byUid.get(uid) : undefined;
-                const state = stateOf(ref, uid);
                 return (
-                    <button
-                        type="button"
+                    <span
                         key={`${ref.zone}-${ref.index}`}
-                        tabIndex={-1}
-                        className={`ds-chip ${inst ? 'filled' : 'empty'} ${state}`}
-                        disabled={state === 'locked'}
-                        onClick={() => onSlot(ref, uid)}
+                        className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)}`}
                     >
                         {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : <i />}
                         <span>{label}</span>
-                    </button>
+                    </span>
                 );
             })}
-        </div>
+        </span>
     );
 }
 
@@ -174,26 +185,22 @@ export function Draft() {
     const [formation, setFormation] = useState<FormationId | null>(null);
     const tr = useT();
     const { t, d, lang } = tr;
-    // celular em pé: a quadra ocupa a tela e as cartas ficam lá embaixo. Leva até as cartas quando elas saem e
-    // volta pra quadra quando é hora de tocar numa vaga (só rola se o alvo não está à vista; no PC não mexe)
+    // a tela mostra a quadra (tocar numa vaga) ou as 3 cartas, uma de cada vez, sem rolar
     const boardRef = useRef<HTMLDivElement>(null);
-    const optionsRef = useRef<HTMLDivElement>(null);
     const focus = run?.status === 'captain' ? (selected ? 'board' : 'options') : run?.draftSlot ? 'options' : 'board';
+    const [teamOpen, setTeamOpen] = useState(false);
     const firstFocus = useRef(true);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: rola a cada troca de foco ou rodada
+    // biome-ignore lint/correctness/useExhaustiveDependencies: a cada troca de foco ou rodada
     useEffect(() => {
         if (firstFocus.current) {
             firstFocus.current = false;
             return;
         }
-        const el = (focus === 'options' ? optionsRef : boardRef).current;
-        if (!el) return;
         // teclado: escolheu o capitão (ou a carta), o foco vai pra 1ª vaga livre; sem isso o Tab seguia nas cartas
-        if (focus === 'board') el.querySelector<HTMLElement>('.slot.target')?.focus({ preventScroll: true });
-        const top = el.getBoundingClientRect().top;
-        if (top >= 0 && top < window.innerHeight * 0.5) return;
-        el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
+        if (focus === 'board')
+            boardRef.current?.querySelector<HTMLElement>('.slot.target')?.focus({ preventScroll: true });
     }, [focus, run?.draftRound]);
+    useFitBoard(boardRef, `${focus}|${run?.draftRound}|${selected}`);
     if (!run) return null;
 
     // Copa Relâmpago: a 1ª formação e o 1º draft (a Rota e a Copa do Dia não entram)
@@ -202,19 +209,21 @@ export function Draft() {
         const shown = formation ?? run.formation;
         return (
             // uma quadra por vez, nada rola; "Escolher" no polegar (cara-de-jogo.md, decisão 10)
-            <Stage className="draft-stage formation-stage" scene={<i className="k-stage-light" />}>
-                {/* o dedo aponta o carrossel; a linha fica embaixo dele, longe do título */}
-                {quick && <Coach id="relampago" targets={['.fc-stage']} />}
-                <div className="draft-head bc-screenhead">
-                    <span className="bc-tag">
-                        {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
-                    </span>
-                    <h1>{t('team.draft.chooseFormation')}</h1>
-                </div>
-                {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
-                    <p className="muted center">{t('liga.daily.unrankedNote')}</p>
-                )}
-                <FormationCarousel value={shown} onChange={setFormation} />
+            <>
+                <Stage className="draft-stage formation-stage" scene={<i className="k-stage-light" />}>
+                    {/* o dedo aponta o carrossel; a linha fica embaixo dele, longe do título */}
+                    {quick && <Coach id="relampago" targets={['.fc-stage']} />}
+                    <div className="draft-head bc-screenhead">
+                        <span className="bc-tag">
+                            {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
+                        </span>
+                        <h1>{t('team.draft.chooseFormation')}</h1>
+                    </div>
+                    {run.daily && daily.find((e) => e.day === run.daily)?.ranked === false && (
+                        <p className="muted center">{t('liga.daily.unrankedNote')}</p>
+                    )}
+                    <FormationCarousel value={shown} onChange={setFormation} />
+                </Stage>
                 <AutoDraft formation={shown}>
                     <button
                         type="button"
@@ -226,7 +235,7 @@ export function Draft() {
                         {t('team.draft.chooseThis')}
                     </button>
                 </AutoDraft>
-            </Stage>
+            </>
         );
     }
 
@@ -278,92 +287,85 @@ export function Draft() {
         return 'target' as const;
     };
 
-    const showOptions = isCaptain || !!run.draftSlot;
+    const board = (
+        <FormationBoard
+            formation={run.formation}
+            lineup={run.lineup}
+            bench={run.bench}
+            byUid={byUid}
+            captainUid={run.captainUid}
+            preview={chosen}
+            projection={chosen}
+            stateOf={slotState}
+            onSlot={onSlot}
+            footer={
+                <div className="row draft-board-foot">
+                    {filled.length > 0 && <TeamAvg avg={avg} />}
+                    {synergies.map((s) => (
+                        <span key={s.type} className="row" style={{ gap: 4 }}>
+                            <TypeBadge type={s.type} />
+                            <span className="tactic-desc">
+                                ×{s.count} +{Math.round((s.bonus - 1) * 100)}%
+                            </span>
+                        </span>
+                    ))}
+                    <LinkChips links={links} />
+                </div>
+            }
+        />
+    );
 
     return (
         <>
-            <div className="draft-head bc-screenhead">
-                <span className="bc-tag">
-                    {isCaptain
-                        ? t('common.ui.captain')
-                        : t('team.draft.pickOf', { n: run.draftRound + 1, total: DRAFT_PICKS })}{' '}
-                    · {formationText(run.formation, lang).name}
-                </span>
-                <div className="draft-title">
-                    <h1>{title}</h1>
-                    {hint && <p className="muted">{hint}</p>}
+            {/* escolha 1 de 3 num palco (cara-de-jogo.md): ou a quadra pra tocar na vaga, ou as 3 cartas do mesmo
+                tamanho; o time inteiro mora numa sheet. Nada rola. */}
+            <Stage className="draft-stage pick-stage" scene={<i className="k-stage-light" />}>
+                <div className="draft-head bc-screenhead">
+                    <span className="bc-tag">
+                        {isCaptain
+                            ? t('common.ui.captain')
+                            : t('team.draft.pickOf', { n: run.draftRound + 1, total: DRAFT_PICKS })}{' '}
+                        · {formationText(run.formation, lang).name}
+                    </span>
+                    <div className="draft-title">
+                        <h1>{title}</h1>
+                        {hint && <p className="muted">{hint}</p>}
+                    </div>
+                    <div className="steps" role="img" aria-label={t('team.draft.progress')}>
+                        {Array.from({ length: DRAFT_PICKS }, (_, i) => (
+                            <span
+                                // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
+                                key={i}
+                                className={i < run.draftRound ? 'done' : i === run.draftRound ? 'now' : ''}
+                            />
+                        ))}
+                    </div>
                 </div>
-                <div className="steps" role="img" aria-label={t('team.draft.progress')}>
-                    {Array.from({ length: DRAFT_PICKS }, (_, i) => (
-                        <span
-                            // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
-                            key={i}
-                            className={i < run.draftRound ? 'done' : i === run.draftRound ? 'now' : ''}
-                        />
-                    ))}
-                </div>
-                <AutoDraft captainUid={chosen?.uid} hint={title} />
-            </div>
 
-            {quick && (
-                <Coach
-                    id="relampagoDraft"
-                    targets={['.slot.empty']}
-                    when={run.status === 'drafting' && !run.draftSlot}
-                />
-            )}
-            <DraftStrip run={run} byUid={byUid} stateOf={slotState} onSlot={onSlot} />
-            <div className="draft-grid">
-                <div className="panel board-panel" ref={boardRef}>
-                    <h2>{run.teamName}</h2>
-                    <FormationBoard
-                        formation={run.formation}
-                        lineup={run.lineup}
-                        bench={run.bench}
-                        byUid={byUid}
-                        captainUid={run.captainUid}
-                        preview={chosen}
-                        projection={chosen}
-                        stateOf={slotState}
-                        onSlot={onSlot}
-                        footer={
-                            <div className="row" style={{ marginTop: 12, gap: 8 }}>
-                                {filled.length > 0 && <TeamAvg avg={avg} />}
-                                {synergies.map((s) => (
-                                    <span key={s.type} className="row" style={{ gap: 4 }}>
-                                        <TypeBadge type={s.type} />
-                                        <span className="tactic-desc">
-                                            ×{s.count} +{Math.round((s.bonus - 1) * 100)}%
-                                        </span>
-                                    </span>
-                                ))}
-                                <LinkChips links={links} />
-                            </div>
-                        }
+                {quick && (
+                    <Coach
+                        id="relampagoDraft"
+                        targets={['.slot.empty']}
+                        when={run.status === 'drafting' && !run.draftSlot}
                     />
-                </div>
-
-                {showOptions && (
-                    <div className="draft-options" ref={optionsRef}>
-                        <div className="row options-bar">
-                            <span className="bc-lbl">
-                                {isCaptain
-                                    ? t('team.draft.captainCandidates')
-                                    : t('team.draft.optionsFor', { pos: roleLabel })}
-                            </span>
-                            <button
-                                type="button"
-                                className="btn small"
-                                disabled={run.rerolls <= 0}
-                                onClick={() => {
-                                    reroll();
-                                    setSelected(null);
-                                }}
-                            >
-                                <HudIcon kind="reroll" />
-                                {t('team.draft.reroll', { n: run.rerolls })}
-                            </button>
-                        </div>
+                )}
+                {focus === 'board' ? (
+                    <div className="draft-board" key="board" ref={boardRef}>
+                        {board}
+                    </div>
+                ) : (
+                    <div className="draft-pick" key="options">
+                        {/* o time em miniatura: mostra onde a carta cai; tocar abre o time inteiro */}
+                        <button
+                            type="button"
+                            className="dp-strip-btn"
+                            aria-haspopup="dialog"
+                            aria-label={t('reward.yourTeam')}
+                            onClick={() => setTeamOpen(true)}
+                        >
+                            <DraftStrip run={run} byUid={byUid} stateOf={slotState} />
+                            <HudIcon kind="next" />
+                        </button>
                         {/* as 3 opções saem de um pacote compacto, uma de cada vez (um toque pula) */}
                         <CardPack
                             compact
@@ -371,7 +373,7 @@ export function Draft() {
                             label={isCaptain ? t('common.ui.captain') : roleLabel}
                             revealKey={run.options.map((o) => o.uid).join()}
                         >
-                            <div className="options">
+                            <div className="k-pick3 draft-pick3">
                                 {run.options.map((o) => (
                                     <div
                                         key={o.uid}
@@ -412,7 +414,7 @@ export function Draft() {
                                                                   r: r.display,
                                                               },
                                                           );
-                                                // coluna estreita (celular deitado, 2 colunas em pé): só "Pivô · 55", a cor diz o resto
+                                                // coluna estreita: só "Pivô · 55", a cor diz o resto
                                                 return (
                                                     <div className={`option-fit ${r.fit}`} title={full}>
                                                         <span className="fit-long">{full}</span>
@@ -428,19 +430,16 @@ export function Draft() {
                                         <FutCard
                                             inst={o}
                                             captain={isCaptain}
-                                            selected={selected === o.uid}
                                             action={{
                                                 label: isCaptain
-                                                    ? selected === o.uid
-                                                        ? t('team.draft.chosen')
-                                                        : t('team.draft.pickCaptain')
+                                                    ? t('team.draft.chooseThis')
                                                     : roleLabel
                                                       ? t('team.draft.signAs', { pos: roleLabel })
                                                       : t('team.draft.sign'),
                                                 primary: true,
                                                 onClick: () => {
                                                     // sem grito: no draft só a música (o Miguel, 22/10/2026)
-                                                    if (isCaptain) setSelected(selected === o.uid ? null : o.uid);
+                                                    if (isCaptain) setSelected(o.uid);
                                                     else flyCard(o.uid, () => pick(o.uid));
                                                 },
                                             }}
@@ -451,7 +450,36 @@ export function Draft() {
                         </CardPack>
                     </div>
                 )}
-            </div>
+            </Stage>
+            <Sheet open={teamOpen} onClose={() => setTeamOpen(false)} title={run.teamName} className="draft-team-sheet">
+                {board}
+            </Sheet>
+
+            {/* o polegar: "Monta pra mim" e, nas cartas, sortear de novo; capitão escolhido, voltar pras cartas */}
+            {focus === 'options' ? (
+                <AutoDraft captainUid={chosen?.uid}>
+                    <button
+                        type="button"
+                        className="btn"
+                        disabled={run.rerolls <= 0}
+                        onClick={() => {
+                            reroll();
+                            setSelected(null);
+                        }}
+                    >
+                        <HudIcon kind="reroll" />
+                        {t('team.draft.reroll', { n: run.rerolls })}
+                    </button>
+                </AutoDraft>
+            ) : chosen ? (
+                <AutoDraft captainUid={chosen.uid}>
+                    <button type="button" className="btn ghost" onClick={() => setSelected(null)}>
+                        {t('team.draft.autoBack')}
+                    </button>
+                </AutoDraft>
+            ) : (
+                <AutoDraft hint={title} />
+            )}
         </>
     );
 }

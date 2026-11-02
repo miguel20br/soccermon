@@ -243,3 +243,177 @@
 :root[data-reduce-motion="true"] .fc-court.on .fd-dot {
     animation: none;
 }
+
+/* ---------- capitão e escolhas: a quadra (tocar na vaga) ou as 3 cartas, uma tela de cada vez ---------- */
+.pick-stage .draft-head {
+    flex: none;
+}
+.draft-board,
+.draft-pick {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: safe center;
+    gap: 10px;
+    /* nada teleporta: a quadra e as cartas entram com fade ao trocar */
+    animation: row-in var(--dur-tela) var(--ease-out) both;
+}
+.draft-board {
+    overflow: hidden;
+}
+/* a quadra no tamanho natural; o useFitBoard (Draft.tsx) encolhe com zoom até caber */
+.draft-board .formation-board {
+    flex: none;
+    width: min(100%, 420px);
+}
+.draft-board-foot {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+/* tela baixa (320x568, deitado): o banco ao lado da quadra */
+@media (max-height: 760px) {
+    .draft-board .formation-board {
+        display: grid;
+        grid-template-columns: auto auto;
+        align-items: center;
+        justify-content: center;
+        column-gap: 10px;
+        width: auto;
+    }
+    /* tamanho natural; o zoom do useFitBoard encolhe tudo junto (as vagas não se encavalam) */
+    .draft-board .formation-board .court {
+        width: 260px;
+    }
+    .draft-board .formation-board .bench {
+        flex-direction: column;
+        margin-top: 0;
+    }
+    .draft-board .formation-board > :not(.court, .bench) {
+        grid-column: 1 / -1;
+    }
+}
+
+/* o time em miniatura em cima das cartas (tocar abre a sheet com a quadra) */
+.dp-strip-btn {
+    all: unset;
+    box-sizing: border-box;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: min(100%, 560px);
+    padding: 6px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.dp-strip-btn:active {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
+}
+.dp-strip-btn:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.dp-strip-btn > .hud-icon {
+    flex: none;
+    color: var(--muted);
+}
+.dp-strip {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 4px;
+}
+.dp-chip {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 3px 0;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+}
+.dp-chip.filled {
+    border-style: solid;
+    color: var(--text);
+}
+.dp-chip img,
+.dp-chip i {
+    height: 28px;
+    width: auto;
+}
+.dp-chip > span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.dp-chip.selected {
+    border: 2px solid var(--yellow);
+    background: rgba(255, 204, 0, 0.14);
+    color: var(--text);
+}
+
+/* as 3 cartas do mesmo tamanho (k-pick3): a faixa de encaixe em cima, a carta alinhada embaixo */
+.draft-pick3 {
+    /* barra de cima, título, miniatura, faixa, botão da carta e o polegar */
+    --k-pick-reserve: 430px;
+}
+.draft-pick3 .option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    container-type: inline-size;
+}
+.draft-pick3 .option > .fut-wrap {
+    margin-top: auto;
+}
+.draft-pick3 .option-fit {
+    max-width: 100%;
+}
+.draft-team-sheet .formation-board {
+    width: min(100%, 380px);
+    margin: 0 auto;
+}
+/* celular deitado: o título sai (a fase está na barra da copa); miniatura e cartas com a altura que sobra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .pick-stage .draft-head {
+        display: none;
+    }
+    .draft-pick {
+        gap: 6px;
+    }
+    .draft-pick3 {
+        --k-pick-reserve: 262px;
+    }
+    /* miniatura fina: só os sprites (a vaga da vez segue acesa) */
+    .dp-strip-btn {
+        padding: 3px 6px;
+    }
+    .dp-chip > span {
+        display: none;
+    }
+    .dp-chip img,
+    .dp-chip i {
+        height: 22px;
+    }
+}
+/* a instrução da vez cabe ao lado do "Monta pra mim" (só a pergunta do "Montar?" ocupa a linha inteira) */
+.draft-auto:not(.ask) > .tb-hint {
+    flex: 1 1 0;
+    min-width: 0;
+}
+/* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
+.draft-auto {
+    zoom: var(--k-big, 1);
+}
