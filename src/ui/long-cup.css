@@ -1232,6 +1232,14 @@
     text-align: center;
     animation: row-in var(--dur-ui) var(--ease-out) both;
 }
+/* sem nada marcado a placa vira só o subtítulo da tela */
+.tr-plaque.tr-sub {
+    min-height: 0;
+    padding: 0;
+}
+.tr-plaque.tr-sub small {
+    font-size: 13px;
+}
 .tr-plaque b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;

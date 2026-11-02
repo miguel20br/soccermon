@@ -331,6 +331,14 @@
 .cb:disabled .hud-icon {
     filter: none;
 }
+/* o gordo da barra do polegar desabilitado não se passa pelo primário: 14 px, sem contorno */
+.bc-thumbbar > .btn:is(.primary, .confirm):disabled {
+    font-size: 14px;
+    text-shadow: none;
+}
+.bc-thumbbar > .btn:is(.primary, .confirm):disabled .hud-icon {
+    filter: none;
+}
 .cb:disabled .cb-shine,
 .btn:disabled .cb-shine {
     display: none;

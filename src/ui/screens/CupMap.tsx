@@ -651,8 +651,13 @@ export function Training() {
                         </p>
                     </InfoSheet>
                 </div>
-                {/* a placa do que está marcado; a chave nova faz ela entrar de novo (nada teleporta) */}
-                <div className="tr-plaque bc-surface" key={mark ?? 'none'} aria-live="polite">
+                {/* a placa do que está marcado; a chave nova faz ela entrar de novo (nada teleporta). Sem nada marcado,
+                    só o subtítulo: o "toque em quem treina" já está na barra do polegar */}
+                <div
+                    className={`tr-plaque ${!mark && anyEvo ? 'tr-sub' : 'bc-surface'}`}
+                    key={mark ?? 'none'}
+                    aria-live="polite"
+                >
                     {marked ? (
                         <>
                             <b>
@@ -685,10 +690,12 @@ export function Training() {
                             <b>{t('longCup.treino.item')}</b>
                             <small>{t('longCup.treino.itemLine')}</small>
                         </>
+                    ) : anyEvo ? (
+                        <small>{t('longCup.treino.evoLine')}</small>
                     ) : (
                         <>
-                            <b>{t(anyEvo ? 'longCup.treino.pick' : 'longCup.treino.none')}</b>
-                            <small>{t(anyEvo ? 'longCup.treino.evoLine' : 'longCup.treino.itemLine')}</small>
+                            <b>{t('longCup.treino.none')}</b>
+                            <small>{t('longCup.treino.itemLine')}</small>
                         </>
                     )}
                 </div>
