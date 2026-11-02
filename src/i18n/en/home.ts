@@ -87,7 +87,7 @@ export const home: typeof pt = {
         ligaSoon: 'League · opens in {d}d',
         labGo: 'Open the Pokédex',
         labSeen: '{n} of {total} seen',
-        labTalk: '{n} to go for the Kanto Pokédex. Anyone you meet in a draft or on a rival team counts.',
+        labTalk: '{n} to go for the Pokédex. Drafts and rivals count.',
         labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
         signDuel: 'With friends',
         /** The arrows on the Stadium mode pill. */

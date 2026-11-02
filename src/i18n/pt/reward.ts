@@ -14,7 +14,7 @@ export const reward = {
     tipPrize: 'Agora o prêmio da casa. Pular dá +1 sorteio.',
     reroll: 'Sortear de novo ({n})',
     skip: 'Pular (+1 sorteio)',
-    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 sorteio.',
+    tip: 'Pegue um Pokémon do rival, um item ou uma MT.',
     fromClub: 'Do {club}',
     fromClubF: 'Da {club}',
     reinforcement: 'Reforço',

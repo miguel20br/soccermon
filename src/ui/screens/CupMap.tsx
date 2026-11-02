@@ -51,6 +51,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { useHeld } from '../use-held';
 import '../long-cup.css';
 import '../trophy-room.css';
+import { InfoSheet } from '../kit/controls';
 
 const ICON: Record<NodeKind, HudIconKind> = {
     jogo: 'players',
@@ -911,7 +912,13 @@ export function GroupScreen() {
                         <b>{r.pts}</b>
                     </div>
                 ))}
-                <small className="gp-note">{t('longCup.groupNote')}</small>
+                {/* a conta dos pontos no "?" (decisão 13: regra na tela até ~12 palavras) */}
+                <small className="gp-note">
+                    {t('longCup.groupNote')}
+                    <InfoSheet title={t('longCup.groupPointsTitle')}>
+                        <p>{t('longCup.groupPoints')}</p>
+                    </InfoSheet>
+                </small>
             </section>
 
             <div className="gp-days">

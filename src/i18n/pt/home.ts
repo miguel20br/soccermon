@@ -91,7 +91,7 @@ export const home = {
         /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
         labGo: 'Abrir a Pokédex',
         labSeen: '{n} de {total} vistos',
-        labTalk: 'Faltam {n} pra completar a Pokédex de Kanto. Quem aparece no draft ou no time rival já conta.',
+        labTalk: 'Faltam {n} pra fechar a Pokédex. Draft e rival já contam.',
         labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
         /** O Duelo no seletor de modos do Estádio. */

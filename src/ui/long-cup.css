@@ -941,6 +941,9 @@
     }
 }
 .gp-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     margin-top: 8px;
     color: var(--muted);
     font-size: 11px;

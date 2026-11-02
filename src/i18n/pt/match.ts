@@ -78,9 +78,9 @@ export const match = {
         formation: 'Formação',
         confirm: 'Confirmar',
         undo: 'Desfazer',
-        hintEdit: 'Toque em dois em quadra pra trocar de vaga. Um em quadra e um do banco: substituição.',
+        hintEdit: 'Toque em dois pra trocar de vaga. Com um do banco, substitui.',
         hintEditNoSub: 'Toque em dois jogadores pra trocar de vaga.',
-        hintSwap: 'Agora toque na vaga nova de {name}, ou num reserva pra entrar no lugar dele.',
+        hintSwap: 'Toque na vaga nova de {name} ou num reserva.',
         hintMove: 'Agora toque na vaga nova de {name}.',
         hintIn: 'Agora toque em quem sai pra {name} entrar.',
         subIn: 'ENTRA',
@@ -150,7 +150,7 @@ export const match = {
         maxLevel: 'Nível {n}',
         maxLevelShort: 'N{n}',
         /** Tocou no golpe máximo da barra de baixo antes de acender. */
-        maxWhen: 'Ainda não: acende no ataque do seu time (goleiro capitão: no chute do rival)',
+        maxWhen: 'Ainda não. Acende no seu ataque (capitão goleiro, no chute rival)',
         /** Um jogador seu chutou com a barra pronta (dica de uma vez só, em cima do capitão). */
         maxCaptainOnly: 'Só o capitão solta o golpe máximo',
         /** Bicuda com o toque fora: o goleiro faz a defesa de sempre e a barra se vai (no goleiro, curto). */

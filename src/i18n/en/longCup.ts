@@ -19,11 +19,11 @@ export const longCup: typeof pt = {
     },
     desc: {
         jogo: 'A win pays ₽ and the prize.',
-        jogoRival: 'A win pays ₽, 1 of 3 from the rival team and the prize.',
-        ginasio: "Much tougher rival. Win: the leader's card, their TM and the badge.",
+        jogoRival: 'A win pays ₽, 1 of 3 from the rival and the prize.',
+        ginasio: "Much tougher rival. Win the leader's card, TM and badge.",
         mercado: 'Spend your ₽. What you saved earns interest.',
         evento: 'Something happens on the road.',
-        treino: 'Half an evolution bar for one Pokémon (or an item, if nobody evolves), or +1 reroll.',
+        treino: 'Half an evolution bar (or an item) or +1 reroll.',
         bau: 'A free reward, one rarity higher.',
         centro: "Clears the yellow card or brings back who's out.",
         final: 'One match against the Indigo League.',
@@ -43,7 +43,7 @@ export const longCup: typeof pt = {
         money: 'The win pays double ₽, no reward.',
         moneyRival: 'The win pays double ₽.',
         pedra: 'Whoever evolves with it evolves right away.',
-        pedraRival: 'Whoever evolves with it evolves right away, and the rival brings one in their 1 of 3.',
+        pedraRival: 'Evolves right away. The rival brings one in their 1 of 3.',
     },
     prizeLabel: 'Prize',
     /** Evolution stones (the Route's region prizes). */
@@ -89,7 +89,9 @@ export const longCup: typeof pt = {
     colPlayed: 'P',
     colGd: 'GD',
     colPts: 'Pts',
-    groupNote: 'Top 2 go to the Final. Win 3, on penalties 2, loss on penalties 1.',
+    groupNote: 'Top 2 go to the Final.',
+    groupPointsTitle: 'Points',
+    groupPoints: 'Win 3, win on penalties 2, loss on penalties 1.',
     matchday: 'Matchday {n}',
     playMatchday: 'Play matchday {n}',
     playFinal: 'Play the Final',
@@ -189,7 +191,7 @@ export const longCup: typeof pt = {
             title: 'Legendary bird',
             text: 'A Zapdos landed at the Power Plant. Nobody gets close.',
             choices: {
-                desafiar: ['Challenge', "The next rival brings it, and is stronger. Win and it's yours."],
+                desafiar: ['Challenge', "It joins the next rival, who is stronger. Win and it's yours."],
                 deixar: ['Leave it be', ''],
             },
         },
@@ -200,7 +202,7 @@ export const longCup: typeof pt = {
             choices: {
                 item: ['Hand over an item', 'You pick whose.'],
                 reserva: ['Hand over a sub', 'They leave.'],
-                encarar: ['Fight', 'Next match is against Team Rocket, stronger. Win: +₽8 and one of their items.'],
+                encarar: ['Fight', 'Next match is against Team Rocket, stronger. Win +₽8 and an item.'],
             },
         },
         aposta: {
