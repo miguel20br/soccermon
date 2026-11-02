@@ -1030,7 +1030,8 @@
 
 /* ---------- desktop: abas na coluna da direita, tática e velocidade embaixo da quadra ---------- */
 @media (min-width: 1051px) {
-    .bc {
+    /* o painel antigo (?lab=hud-off) e o duelo; a partida nova tem o layout de TV (.bc-hud, mais abaixo) */
+    .bc:not(.bc-hud) {
         display: grid;
         grid-template-columns: minmax(0, 1fr) 380px;
         grid-template-areas:
@@ -1290,6 +1291,58 @@ body:has(.bc-hud) {
     outline: 3px solid #fff;
     outline-offset: 3px;
 }
+/*
+ * Partida no PC e no tablet deitado (cara-de-jogo.md, decisão 11: o layout do celular aumentado, como uma transmissão):
+ * a quadra inteira no meio (a caixa estica e o Phaser, em FIT, encaixa a quadra nela), o placar no topo, a barra dos 4
+ * botões embaixo e a narração como legenda de TV, centrada logo embaixo da quadra (por cima ela batia na caixa de texto
+ * que a própria cena desenha na beira de baixo, na disputa de pênaltis).
+ */
+.bc .pitch-wrap.hud-tv .phaser-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    aspect-ratio: auto;
+    background: var(--bc-ink);
+}
+.bc .pitch-wrap.hud-tv .bt-box {
+    flex: none;
+    width: min(calc(100% - 32px), 680px);
+    margin: 8px auto 0;
+}
+/* legenda sem frase ainda (começo do jogo): some, como na TV */
+.bc .pitch-wrap.hud-tv .bt-box:not(:has(.bt-line)) {
+    opacity: 0;
+}
+@media (min-width: 1051px) {
+    /* a coluna da largura da quadra que cabe na altura (placar, barra e o resto somam ~330 px): sem faixa escura dos
+       lados; em tela baixa, nunca menos de 900 px (a barra de baixo precisa de largura) */
+    .app:has(.bc-hud) {
+        max-width: max(900px, min(1180px, calc((100 * var(--dvh) - 330px) * 968 / 528 + 32px)));
+    }
+    .bc.bc-hud {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "head head"
+            "stage stage"
+            "bar thumb";
+        gap: 10px 16px;
+        padding-bottom: 0;
+    }
+    .bc-hud > .bc-hudbar {
+        grid-area: bar;
+        margin-top: 0;
+    }
+    .bc-hud > .bc-thumb {
+        gap: 10px;
+    }
+    .bc-hud > .bc-thumb .speed-seg {
+        flex: none;
+        width: 300px;
+    }
+}
+
 /* sheet do Tempo: o golpe máximo já mora na barra de baixo */
 .hud-sheet .sl-max {
     display: none;
