@@ -9,6 +9,75 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'Golpe máximo de verdade',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol',
+                    'Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada',
+                    'O gol aparece inteiro do chute até a bola chegar, em qualquer câmera',
+                    'O alvo acende verde no perfeito, e o botão do golpe não pisca mais',
+                    'Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também',
+                    'O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio',
+                    'Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival',
+                    'Bola com rastro e partículas do tipo, mais forte a cada nível',
+                ],
+            },
+            {
+                title: 'N1 por tipo',
+                lines: [
+                    'Psíquico: confunde ⇒ faz dormir',
+                    'Normal: derruba ⇒ faz recuar',
+                    'Planta: faz dormir ⇒ planta a semente (Leech Seed)',
+                    'Terrestre: derruba ⇒ areia nos olhos (Sand Attack)',
+                    'Inseto: envenena ⇒ prende na teia (String Shot)',
+                    'Água: derruba ⇒ leva 2 m pra trás',
+                    'Voador: confunde ⇒ joga pro alto',
+                    'Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote',
+                    'Pedra: derruba ⇒ preso no lugar por 2 s',
+                    'Dragão: paralisa ⇒ tira 5 pontos da barra do time rival',
+                    'Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais',
+                ],
+            },
+            {
+                title: 'Golpe máximo explicado',
+                lines: [
+                    'Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão',
+                    'Seção Golpe máximo na ficha de cada Pokémon',
+                    'Ajuda, Como jogar e um balão de primeira vez sobre o golpe',
+                ],
+            },
+            {
+                title: 'Capitão e câmera',
+                lines: [
+                    'Troque o capitão na Tática, entre as partidas',
+                    'Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz',
+                ],
+            },
+            {
+                title: 'Cara de jogo',
+                lines: [
+                    'Fim de partida em tela cheia, com placar, ₽, craque e próximo rival',
+                    'Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta',
+                    'Recompensa com as 3 opções do mesmo tamanho, sem rolar',
+                    'Pacote do Mercado em tela cheia, com o walkout pra carta ouro',
+                    'Resultado e Eliminado sem rolar',
+                    'Seletor ‹ valor › no lugar das listas e do volume',
+                ],
+            },
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Modo Copa agora é Modo Clássico',
+                    'Time Ultimate e Modo História em preto e branco até chegarem',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.30.1',
         date: '2026-11-01',
         title: 'Menu de modos mais claro',
@@ -2059,6 +2128,75 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'The real max move',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'New animations for L1, L2 and L3. L3 is now a true special: type background, cut-in, the ball turns into a projectile and explodes at the goal',
+                    'L3 music explodes on the shot. On L1 and L2 the music no longer stays muffled',
+                    'The whole goal stays in frame from the shot until the ball arrives, on every camera',
+                    'The target turns green on a perfect tap, and the max move button no longer flickers',
+                    'Players in the path fall when the ball reaches them, not on the shot. Type effects too',
+                    'Keepers never catch a max move: they parry it onto the post or out for a corner',
+                    'A captain keeper with the bar sends the max move straight back at the rival goal',
+                    'Type trail and particles on the ball, stronger at each level',
+                ],
+            },
+            {
+                title: 'L1 by type',
+                lines: [
+                    'Psychic: confuses ⇒ puts to sleep',
+                    'Normal: knocks down ⇒ makes them flinch',
+                    'Grass: puts to sleep ⇒ plants a seed (Leech Seed)',
+                    'Ground: knocks down ⇒ sand in the eyes (Sand Attack)',
+                    'Bug: poisons ⇒ caught in a web (String Shot)',
+                    'Water: knocks down ⇒ pushes them 2 m back',
+                    'Flying: confuses ⇒ throws them in the air',
+                    'Fighting: knocks down ⇒ numb hands, the next save becomes a rebound',
+                    'Rock: knocks down ⇒ stuck in place for 2 s',
+                    "Dragon: paralyzes ⇒ takes 5 points off the rival team's bar",
+                    'New L3 names: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast and more',
+                ],
+            },
+            {
+                title: 'Max move explained',
+                lines: [
+                    'A notice when each level unlocks and a legend of what L1, L2 and L3 do',
+                    "Max move section on every Pokémon's card",
+                    'Help, How to play and a first-time tip about the max move',
+                ],
+            },
+            {
+                title: 'Captain and camera',
+                lines: [
+                    'Change your captain in Tactics, between matches',
+                    'Portrait phones: a wider, smoother camera with room ahead of the ball carrier',
+                ],
+            },
+            {
+                title: 'Game feel',
+                lines: [
+                    'Full-screen full time, with score, ₽, man of the match and next opponent',
+                    'Champion in 3 beats: trophy, highlights and the road to the title. Stats live in a drawer',
+                    'Reward with the 3 options the same size, no scrolling',
+                    'Market pack in full screen, with the walkout for gold cards',
+                    'Result and Eliminated with no scrolling',
+                    '‹ value › selector instead of lists and the volume slider',
+                ],
+            },
+            {
+                title: 'Mode menu',
+                lines: [
+                    'Cup Mode is now Classic Mode',
+                    'Ultimate Team and Story Mode in black and white until they arrive',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.30.1',
         date: '2026-11-01',

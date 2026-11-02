@@ -1,5 +1,51 @@
 # Novidades
 
+## 0.9.31 · Golpe máximo de verdade (2026-11-02)
+
+### Golpe máximo
+- N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol
+- Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada
+- O gol aparece inteiro do chute até a bola chegar, em qualquer câmera
+- O alvo acende verde no perfeito, e o botão do golpe não pisca mais
+- Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também
+- O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio
+- Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival
+- Bola com rastro e partículas do tipo, mais forte a cada nível
+
+### N1 por tipo
+- Psíquico: confunde ⇒ faz dormir
+- Normal: derruba ⇒ faz recuar
+- Planta: faz dormir ⇒ planta a semente (Leech Seed)
+- Terrestre: derruba ⇒ areia nos olhos (Sand Attack)
+- Inseto: envenena ⇒ prende na teia (String Shot)
+- Água: derruba ⇒ leva 2 m pra trás
+- Voador: confunde ⇒ joga pro alto
+- Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote
+- Pedra: derruba ⇒ preso no lugar por 2 s
+- Dragão: paralisa ⇒ tira 5 pontos da barra do time rival
+- Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais
+
+### Golpe máximo explicado
+- Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão
+- Seção Golpe máximo na ficha de cada Pokémon
+- Ajuda, Como jogar e um balão de primeira vez sobre o golpe
+
+### Capitão e câmera
+- Troque o capitão na Tática, entre as partidas
+- Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz
+
+### Cara de jogo
+- Fim de partida em tela cheia, com placar, ₽, craque e próximo rival
+- Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta
+- Recompensa com as 3 opções do mesmo tamanho, sem rolar
+- Pacote do Mercado em tela cheia, com o walkout pra carta ouro
+- Resultado e Eliminado sem rolar
+- Seletor ‹ valor › no lugar das listas e do volume
+
+### Menu de modos
+- Modo Copa agora é Modo Clássico
+- Time Ultimate e Modo História em preto e branco até chegarem
+
 ## 0.9.30.1 · Menu de modos mais claro (2026-11-01)
 
 ### Menu de modos
