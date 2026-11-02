@@ -217,42 +217,40 @@ export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {
     const { t, d } = useT();
     const inCredits = useGame((s) => s.screen === 'credits');
     return (
-        <>
-            <footer className="home-footer">
-                <nav className="footer-links" aria-label={t('home.footerAria')}>
-                    <button type="button" className="link-btn" onClick={() => openPage('help')}>
-                        {d.home.tiles.help}
+        <footer className="home-footer">
+            <nav className="footer-links" aria-label={t('home.footerAria')}>
+                <button type="button" className="link-btn" onClick={() => openPage('help')}>
+                    {d.home.tiles.help}
+                </button>
+                {!inCredits && (
+                    <button type="button" className="link-btn" onClick={() => openPage('credits')}>
+                        {d.home.tiles.credits}
                     </button>
-                    {!inCredits && (
-                        <button type="button" className="link-btn" onClick={() => openPage('credits')}>
-                            {d.home.tiles.credits}
-                        </button>
-                    )}
-                    <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                        {d.home.tiles.feedback}
-                    </a>
-                    <a href={privacyUrl()} target="_blank" rel="noopener">
-                        {t('home.privacy')}
-                    </a>
-                    <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
-                        {t('home.github')}
-                    </a>
-                    {import.meta.env.DEV && (
-                        <button
-                            type="button"
-                            className="link-btn"
-                            onClick={() => {
-                                window.location.search = '?cards=1';
-                            }}
-                        >
-                            {d.home.tiles.cards}
-                        </button>
-                    )}
-                </nav>
-                {/* fora da linha dos links: ao trocar o idioma os links mudam de largura e o botão ficava pulando */}
-                {withLang && <LangToggle />}
-                <p className="disclaimer">{t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}</p>
-            </footer>
-        </>
+                )}
+                <a href={FEEDBACK_URL} target="_blank" rel="noopener">
+                    {d.home.tiles.feedback}
+                </a>
+                <a href={privacyUrl()} target="_blank" rel="noopener">
+                    {t('home.privacy')}
+                </a>
+                <a href="https://github.com/miguel20br/soccermon" target="_blank" rel="noopener">
+                    {t('home.github')}
+                </a>
+                {import.meta.env.DEV && (
+                    <button
+                        type="button"
+                        className="link-btn"
+                        onClick={() => {
+                            window.location.search = '?cards=1';
+                        }}
+                    >
+                        {d.home.tiles.cards}
+                    </button>
+                )}
+            </nav>
+            {/* fora da linha dos links: ao trocar o idioma os links mudam de largura e o botão ficava pulando */}
+            {withLang && <LangToggle />}
+            <p className="disclaimer">{t('home.disclaimer', { v: __APP_VERSION__.replace(/\.0$/, '') })}</p>
+        </footer>
     );
 }
