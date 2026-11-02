@@ -94,7 +94,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                             </span>
                             <SceneHotspot
                                 k="glassCab"
-                                x={0}
+                                x={4}
                                 bottom={72}
                                 label={t('home.amb.sedeTrophies')}
                                 plate={8}
@@ -116,7 +116,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 </>
                             )}
                             <SceneHotspot
-                                x={58}
+                                x={59}
                                 bottom={58}
                                 w={40}
                                 h={44}
@@ -126,7 +126,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 <Crest look={look} className="sd-crest" />
                             </SceneHotspot>
                             <SceneHotspot
-                                x={102}
+                                x={101}
                                 bottom={42}
                                 w={30}
                                 h={24}
@@ -137,7 +137,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                             </SceneHotspot>
                             <SceneHotspot
                                 k="wardrobe"
-                                x={136}
+                                x={131}
                                 bottom={72}
                                 label={d.profile.tabs.treinador}
                                 onClick={() => openDoor('profile', 'treinador')}

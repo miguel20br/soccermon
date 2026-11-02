@@ -1473,21 +1473,22 @@
     translate: -50% -50%;
     display: grid;
     justify-items: center;
-    padding: 2px 7px 3px;
-    border: 2px solid var(--cb-ink);
+    padding: 0.17em 0.6em 0.25em;
+    border: max(2px, calc(var(--mi) * 0.75)) solid var(--cb-ink);
     border-radius: 4px;
     background: var(--bc-ink);
-    box-shadow: 0 2px 0 var(--cb-ink);
+    box-shadow: 0 max(2px, calc(var(--mi) * 0.75)) 0 var(--cb-ink);
     color: #fff;
     font-family: "Galmuri11", monospace;
-    font-size: 12px;
+    /* cresce com o palco: 12 px no celular, 18 no PC (--mi 4) */
+    font-size: max(12px, calc(var(--mi) * 4.5));
     font-weight: 700;
     line-height: 1.15;
     white-space: nowrap;
     transition: border-color var(--dur-ui) var(--ease-out);
 }
 .hs-plate small {
-    font-size: 11px;
+    font-size: max(11px, calc(var(--mi) * 4));
     color: var(--yellow);
 }
 .hs:hover .hs-plate {
@@ -1627,7 +1628,7 @@
 .lb-balls {
     position: absolute;
     z-index: 81;
-    left: calc(var(--mi) * 21);
+    left: calc(var(--mi) * 26);
     top: calc(var(--mi) * 4);
     width: calc(var(--mi) * 22);
     height: calc(var(--mi) * 6);
@@ -1704,7 +1705,7 @@
 .sd-cups {
     position: absolute;
     z-index: 73;
-    left: calc(var(--mi) * 3);
+    left: calc(var(--mi) * 7);
     top: calc(var(--mi) * 30);
     width: calc(var(--mi) * 48);
     display: flex;
@@ -2818,7 +2819,7 @@
 .sd-plaque {
     position: absolute;
     z-index: 74;
-    left: calc(var(--mi) * 27);
+    left: calc(var(--mi) * 31);
     top: calc(var(--mi) * 50);
     width: max(calc(var(--mi) * 52), 86px);
     transform: translateX(-50%);

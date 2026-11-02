@@ -45,16 +45,16 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                             <Mi k="shelf2" x={-72} bottom={72} />
                             <SceneHotspot
                                 k="shelf"
-                                x={0}
+                                x={5}
                                 bottom={72}
                                 label={d.profile.tabs.dex}
                                 sub={`${seen}/${DEX_TOTAL}`}
                                 onClick={() => openDoor('collection', 'dex')}
                             />
-                            <Mi k="map" x={66} bottom={42} />
+                            <Mi k="map" x={68} bottom={42} />
                             <SceneHotspot
                                 k="deskBook"
-                                x={68}
+                                x={70}
                                 bottom={80}
                                 label={d.profile.tabs.album}
                                 sub={`${album.got}/${album.total}`}
@@ -62,7 +62,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                             />
                             <SceneHotspot
                                 k="labPc"
-                                x={132}
+                                x={129}
                                 bottom={74}
                                 label={d.profile.tabs.golpedex}
                                 sub={`${found}/${gameMoveIds().size}`}
