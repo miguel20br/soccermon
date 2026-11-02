@@ -64,7 +64,6 @@ export function ResultHero({
     stats = [],
     actions,
     foul,
-    unlocks,
     duel,
 }: {
     /** Duelo: sem copa (nem caminho, nem próximo rival); o título, o lado e as cores vêm daqui. */
@@ -80,8 +79,6 @@ export function ResultHero({
     actions: ReactNode;
     /** Cartão da Rota (amarelo/vermelho): a notícia da derrota fica logo abaixo do placar, antes da fala e das estatísticas. */
     foul?: ReactNode;
-    /** Desbloqueios desta partida (treinador, título): logo abaixo do placar, sem precisar rolar. */
-    unlocks?: ReactNode;
 }) {
     // a cascata do kit (cara-de-jogo.md, peça 3): placar rola, as linhas entram a cada 150 ms (o tom subindo) e o
     // craque vem por último, com batida. Um toque em qualquer lugar do bloco mostra tudo na hora.
@@ -226,7 +223,6 @@ export function ResultHero({
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
 
-            {unlocks}
             {gain && (
                 <div className="rh-gain">
                     <b>+{t('shop.money', { n: gain.total })}</b>
