@@ -19,7 +19,7 @@ export const longCup = {
         jogo: 'Vitória dá ₽ e o prêmio.',
         /** Com o Pokémon do rival em todo Jogo (ROTA_RULES.rivalEveryJogo). */
         jogoRival: 'Vitória dá ₽, 1 de 3 do time rival e o prêmio.',
-        ginasio: 'Rival bem mais forte. Vencendo, carta do líder, MT e insígnia.',
+        ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
         treino: 'Meia barra de evolução (ou um item) ou +1 sorteio.',

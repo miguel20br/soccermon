@@ -20,7 +20,7 @@ export const longCup: typeof pt = {
     desc: {
         jogo: 'A win pays ₽ and the prize.',
         jogoRival: 'A win pays ₽, 1 of 3 from the rival and the prize.',
-        ginasio: "Much tougher rival. Win the leader's card, TM and badge.",
+        ginasio: "Much tougher rival. Win it: leader's card, TM and badge.",
         mercado: 'Spend your ₽. What you saved earns interest.',
         evento: 'Something happens on the road.',
         treino: 'Half an evolution bar (or an item) or +1 reroll.',
