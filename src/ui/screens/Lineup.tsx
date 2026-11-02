@@ -13,6 +13,7 @@ import { type CornerPlan, TACTIC_LABEL, type Tactic } from '../../engine/state';
 import { computeSynergies } from '../../engine/synergy';
 import { clubName, cupStageName, dict, formationText, itemDesc, itemName, rivalLabel, tn } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { lookOfCupClub } from '../../store/club-kit';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
 import { useCardModal } from '../card-modal';
@@ -20,6 +21,7 @@ import { Coach } from '../coach/Coach';
 import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { Fold, foldOpenByDefault } from '../components/Fold';
 import { FormationBoard } from '../components/FormationBoard';
+import { FormationCarousel, FormationDiagram } from '../components/FormationCarousel';
 import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChips } from '../components/LinkChips';
@@ -28,11 +30,12 @@ import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { useMedia, WIDE } from '../components/Prancheta';
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
-import { edgeAgainst, FORMATION_ICON } from '../formation-info';
+import { edgeAgainst } from '../formation-info';
 import { useFirstCup } from '../help/Tip';
 import { Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import '../vestiario.css';
+import { Crest } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { simulateMatch } from '../sim-client';
@@ -62,7 +65,6 @@ export function Lineup() {
     const [error, setError] = useState<string | null>(null);
     const [askAbandon, setAskAbandon] = useState(false);
     const [boardOpen, setBoardOpen] = useState(false);
-    const [rivalOpen, setRivalOpen] = useState(false);
     const openCard = useCardModal((s) => s.open);
     const [loading, setLoading] = useState(false);
     const { t, d, lang } = useT();
@@ -129,38 +131,30 @@ export function Lineup() {
                 rivalFormation={opponent.formation ?? '1-2-1'}
                 outOf={(u) => outOf(run, u)}
                 wall={
-                    <>
-                        <button
-                            type="button"
-                            className="vt-obj vt-rival"
-                            aria-haspopup="dialog"
-                            onClick={() => setRivalOpen(true)}
-                        >
-                            <span>
-                                <b>
-                                    {t('team.lineup.vsRival', {
-                                        club: rivalLabel(opponent.name, lang),
-                                        n: lineupAverage(opponent.lineup, opponent.formation),
-                                    })}
-                                </b>
-                            </span>
-                        </button>
-                        {/* a chave (Relâmpago) ou a copa (Rota), e o Abandonar lá dentro */}
-                        <button
-                            type="button"
-                            className="vt-obj vt-cork"
-                            aria-haspopup="dialog"
-                            onClick={() => setBoardOpen(true)}
-                        >
+                    // o cartaz do rival na parede: escudo, nome, média e os 5 dele; abre a chave (com o rival e o Abandonar)
+                    <button
+                        type="button"
+                        className="vt-obj vt-rival"
+                        aria-haspopup="dialog"
+                        onClick={() => setBoardOpen(true)}
+                    >
+                        <Crest look={lookOfCupClub(opponent.name, opponent.color)} className="crest vt-crest" />
+                        <span className="vt-rival-txt">
+                            <b>{t('team.lineup.vsClub', { club: rivalLabel(opponent.name, lang) })}</b>
+                            <small>
+                                {t('team.lineup.avg', { n: lineupAverage(opponent.lineup, opponent.formation) })}
+                            </small>
+                        </span>
+                        <span className="vt-rival-mons" aria-hidden>
+                            {opponent.lineup.map((p) => (
+                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                            ))}
+                        </span>
+                        <span className="vt-rival-stage">
                             <HudIcon kind="cup" />
-                            <span>
-                                <b>{isLong(run) ? t('team.lineup.cupObj') : d.bracket.title}</b>
-                                <small>
-                                    {run.stage + 1}/{cupLength(run)}
-                                </small>
-                            </span>
-                        </button>
-                    </>
+                            {run.stage + 1}/{cupLength(run)}
+                        </span>
+                    </button>
                 }
                 side={
                     <div className="vt-door">
@@ -207,8 +201,8 @@ export function Lineup() {
                 }
             />
             <Sheet
-                open={rivalOpen}
-                onClose={() => setRivalOpen(false)}
+                open={boardOpen}
+                onClose={() => setBoardOpen(false)}
                 title={clubName(opponent.name, lang)}
                 className="vt-board-sheet"
             >
@@ -246,13 +240,9 @@ export function Lineup() {
                         n: lineupAverage(opponent.lineup, opponent.formation),
                     })}
                 </p>
-            </Sheet>
-            <Sheet
-                open={boardOpen}
-                onClose={() => setBoardOpen(false)}
-                title={isLong(run) ? t('team.lineup.cupObj') : d.bracket.title}
-                className="vt-board-sheet"
-            >
+                <h3 className="vt-sheet-h">
+                    {isLong(run) ? t('team.lineup.cupObj') : d.bracket.title} · {run.stage + 1}/{cupLength(run)}
+                </h3>
                 {/* Copa Relâmpago: as 4 fases e a chave inteira (na Rota o caminho é o mapa) */}
                 {!isLong(run) && (
                     <>
@@ -383,6 +373,8 @@ export function LineupEditor({
     const boardRef = useRef<HTMLDivElement>(null);
     const [tacticOpen, setTacticOpen] = useState(false);
     const [formationOpen, setFormationOpen] = useState(false);
+    // a quadra que o carrossel mostra (só vale no "Escolher esta")
+    const [shownFormation, setShownFormation] = useState(formation);
     const firstCup = useFirstCup();
     const { t, d, lang } = useT();
     const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
@@ -474,28 +466,33 @@ export function LineupEditor({
                 {/* a parede de armários com os quadros: a chave (na copa) e a tática, cada um abre a sua sheet */}
                 <div className="vt-wall">
                     {wall}
+                    {/* o quadro-branco da tática: o ícone e o nome escritos de pincel; abre a sheet da tática */}
                     <button
                         type="button"
                         className="vt-obj vt-white"
                         aria-haspopup="dialog"
                         onClick={() => setTacticOpen(true)}
                     >
-                        <HudIcon kind={tactic} />
-                        <span>
-                            <b>{t('team.lineup.tactic')}</b>
-                            <small>{d.common.tactic[tactic]}</small>
-                        </span>
+                        <small>
+                            <HudIcon kind={tactic} />
+                            {t('team.lineup.tactic')}
+                        </small>
+                        <b>{d.common.tactic[tactic]}</b>
                     </button>
+                    {/* a placa da prancheta: o desenho da formação; abre o carrossel (o mesmo do draft) */}
                     <button
                         type="button"
                         className="vt-obj vt-formation"
                         aria-haspopup="dialog"
-                        onClick={() => setFormationOpen(true)}
+                        onClick={() => {
+                            setShownFormation(formation);
+                            setFormationOpen(true);
+                        }}
                     >
+                        <i className="vt-clip" aria-hidden />
+                        <FormationDiagram id={formation} />
                         <span>
-                            <b>
-                                {formationText(formation, lang).name} <HudIcon kind="down" className="vt-caret" />
-                            </b>
+                            <b>{formationText(formation, lang).name}</b>
                             <FormationIdentity
                                 id={formation}
                                 edge={!!rivalFormation && hasEdge(formation, rivalFormation)}
@@ -588,27 +585,18 @@ export function LineupEditor({
                 title={t('team.lineup.formation')}
                 className="vt-formation-sheet"
             >
-                <div className="vt-formations">
-                    {Object.values(FORMATIONS).map((f) => (
-                        <button
-                            key={f.id}
-                            type="button"
-                            className={`bc-tile${formation === f.id ? ' on' : ''}`}
-                            aria-pressed={formation === f.id}
-                            disabled={locked}
-                            onClick={() => {
-                                onFormation(f.id);
-                                setFormationOpen(false);
-                            }}
-                        >
-                            <HudIcon kind={FORMATION_ICON[f.id]} />
-                            <span>
-                                <b>{formationText(f.id, lang).name}</b>
-                                <FormationIdentity id={f.id} edge={!!rivalFormation && hasEdge(f.id, rivalFormation)} />
-                            </span>
-                        </button>
-                    ))}
-                </div>
+                <FormationCarousel value={shownFormation} onChange={setShownFormation} edgeAgainst={rivalFormation} />
+                <button
+                    type="button"
+                    className="btn primary fc-choose"
+                    disabled={locked}
+                    onClick={() => {
+                        onFormation(shownFormation);
+                        setFormationOpen(false);
+                    }}
+                >
+                    {t('team.draft.chooseThis')}
+                </button>
             </Sheet>
             <Sheet
                 open={tacticOpen}

@@ -1,18 +1,19 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
 import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { stepIndex } from '../kit/beats';
 import { InfoSheet } from '../kit/controls';
 import { FormationIdentity } from './FormationIdentity';
 import { HudIcon } from './MatchHud';
+import '../draft.css';
 
 const IDS = Object.keys(FORMATIONS) as FormationId[];
 /** Arrasto que troca de quadra (px); menos que isso é toque. */
 const SWIPE = 40;
 
 /** Desenho da formação (bolinhas nas posições da UI). */
-function FormationDiagram({ id }: { id: FormationId }) {
+export function FormationDiagram({ id }: { id: FormationId }) {
     const f = FORMATIONS[id];
     return (
         <svg viewBox="0 0 60 80" className="formation-diagram" aria-hidden>
@@ -39,7 +40,16 @@ function FormationDiagram({ id }: { id: FormationId }) {
  * lados (no PC a fileira inteira em leque). Nome na placa e as 3 palavras; a frase e as posições no "?". Troca com as
  * setas, arrastando, tocando na vizinha ou com as setas do teclado. Quem escolhe é o botão do polegar (fora daqui).
  */
-export function FormationCarousel({ value, onChange }: { value: FormationId; onChange: (id: FormationId) => void }) {
+export function FormationCarousel({
+    value,
+    onChange,
+    edgeAgainst,
+}: {
+    value: FormationId;
+    onChange: (id: FormationId) => void;
+    /** Formação do rival (escalação): o selo "Vantagem tática" na quadra que encaixa. */
+    edgeAgainst?: FormationId;
+}) {
     const { t, d, lang } = useT();
     const i = Math.max(0, IDS.indexOf(value));
     const go = (dir: -1 | 1) => onChange(IDS[stepIndex(i, dir, IDS.length, true)]);
@@ -48,13 +58,18 @@ export function FormationCarousel({ value, onChange }: { value: FormationId; onC
     const moved = useRef(false);
     const text = formationText(value, lang);
 
-    // setas do teclado também sem foco no carrossel (só nesta tela; com uma sheet aberta, não)
+    // setas do teclado também sem foco no carrossel (só nesta tela; com outra sheet aberta por cima, não)
+    const root = useRef<HTMLDivElement>(null);
     const goRef = useRef(go);
     goRef.current = go;
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if (e.defaultPrevented || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-            if (document.querySelector('.k-sheet') || (e.target as HTMLElement)?.closest?.('input, textarea, select'))
+            const sheet = [...document.querySelectorAll('.k-sheet')].at(-1);
+            if (
+                (sheet && !sheet.contains(root.current)) ||
+                (e.target as HTMLElement)?.closest?.('input, textarea, select')
+            )
                 return;
             e.preventDefault();
             goRef.current(e.key === 'ArrowLeft' ? -1 : 1);
@@ -71,7 +86,7 @@ export function FormationCarousel({ value, onChange }: { value: FormationId; onC
     };
 
     return (
-        <div className="fc">
+        <div className="fc" ref={root}>
             {/* biome-ignore lint/a11y/useSemanticElements: carrossel (setas + quadras); fieldset traria estilo de formulário */}
             <div
                 className={`fc-stage${drag !== null ? ' dragging' : ''}`}
@@ -136,7 +151,7 @@ export function FormationCarousel({ value, onChange }: { value: FormationId; onC
                     <p className="muted">{FORMATIONS[value].slots.map((s) => d.common.pos[s]).join(' · ')}</p>
                 </InfoSheet>
             </div>
-            <FormationIdentity id={value} />
+            <FormationIdentity id={value} edge={!!edgeAgainst && hasEdge(value, edgeAgainst)} />
             <div className="fc-dots" aria-hidden>
                 {IDS.map((id, k) => (
                     <i key={id} className={k === i ? 'on' : ''} />

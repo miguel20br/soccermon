@@ -23,6 +23,8 @@ const PAGES = [
     ['/?demo=dia&motion=1', ['.k-info', '.k-sheetrow']],
     ['/?demo=liga&motion=1', ['.k-info', '.k-sheetrow']],
     ['/?demo=mercado&motion=1', ['.shop-buy']],
+    // Escalação: as placas da parede (cartaz do rival, quadro-branco, prancheta com o carrossel)
+    ['/?demo=vestiario&motion=1', ['.vt-obj']],
     // draft: o carrossel de formações e o "?" dela; o 1 de 3 (o time na sheet)
     ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
