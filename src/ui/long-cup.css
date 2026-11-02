@@ -1104,6 +1104,7 @@
         border: 2px dashed var(--line);
         border-radius: 8px;
         text-align: center;
+        animation: cm-fade-in 240ms ease-out both;
     }
 }
 @keyframes cm-side-in {
