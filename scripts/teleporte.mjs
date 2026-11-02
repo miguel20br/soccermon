@@ -50,6 +50,10 @@ function watch() {
     const vt = () =>
         document.getAnimations().some((a) => String(a.effect?.pseudoElement ?? '').startsWith('::view-transition'));
     const moving = (el) => {
+        // a caixa nova cujo conteúdo entra animado (ex.: .ht-wrap com o .ht-panel) também não teleporta
+        const finite = (a) =>
+            a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY;
+        if (el.getAnimations({ subtree: true }).some(finite)) return true;
         for (let e = el; e; e = e.parentElement)
             if (e.getAnimations().some((a) => a.playState === 'running')) return true;
         return vt();
