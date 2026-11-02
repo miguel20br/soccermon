@@ -112,7 +112,7 @@ export const home: typeof pt = {
         back: 'Game modes',
         last: 'LAST PLAYED',
         play: 'PLAY',
-        atual: { name: 'Cup Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
+        atual: { name: 'Classic Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
         ultimate: {
             name: 'Team Ultimate',
             when: 'Coming late November',
