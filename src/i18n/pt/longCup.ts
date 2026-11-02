@@ -275,5 +275,8 @@ export const longCup = {
         none: 'Ninguém do time evolui.',
         pick: 'Toque em quem treina',
         go: 'Treinar {name}',
+        restSign: '+1 sorteio',
+        pickObj: 'Escolha o treino',
+        itemSign: '1 de 2 itens',
     },
 };

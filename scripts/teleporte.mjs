@@ -26,6 +26,10 @@ const PAGES = [
     ['/?demo=mercado&motion=1', ['.shop-buy', '.shop-rail-arrow.on', '.shop-sponsor-row', '.shop-head .k-info']],
     // Escalação: as placas da parede (cartaz do rival, quadro-branco, prancheta com o carrossel)
     ['/?demo=vestiario&motion=1', ['.vt-obj']],
+    // Rota em cena: o Treino (Pokémon e colchonete), o Evento (opções do diálogo) e o Grupo (o "?")
+    ['/?demo=treino&motion=1', ['.tr-mon:not(.still)', '.tr-bed']],
+    ['/?demo=evento&motion=1', ['.ev-opt']],
+    ['/?demo=grupo&motion=1', ['.k-info']],
     // draft: o carrossel de formações e o "?" dela; o 1 de 3 (o time na sheet)
     ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)

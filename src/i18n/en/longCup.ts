@@ -271,5 +271,8 @@ export const longCup: typeof pt = {
         none: 'Nobody on the team evolves.',
         pick: 'Tap who trains',
         go: 'Train {name}',
+        restSign: '+1 reroll',
+        pickObj: 'Pick the training',
+        itemSign: '1 of 2 items',
     },
 };
