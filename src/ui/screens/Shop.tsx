@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { formationOf } from '../../engine/formations';
+import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
-import { editionOf } from '../../engine/specials';
 import { MAX_SPONSORS } from '../../engine/sponsors';
 import { itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -15,6 +15,9 @@ import { HudIcon } from '../components/MatchHud';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
 import { useFirstCup } from '../help/Tip';
+import { walkoutIndex } from '../kit/beats';
+import { SheetRow } from '../kit/controls';
+import { MomentStage, Walkout } from '../kit/MomentStage';
 import { Sheet } from '../kit/Sheet';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
@@ -159,82 +162,48 @@ export function Shop() {
             </p>
 
             {shop.pack ? (
-                <div className="panel shop-pack">
-                    <h2>{t('shop.packPick')}</h2>
-                    <CardPack
-                        sealed
-                        look={packLookOf(shop.pack)}
-                        label={packName}
-                        type={packOffer?.kind === 'pack' ? packOffer.type : undefined}
-                        revealKey={shop.pack.map((c) => c.uid).join()}
-                    >
-                        <div className="shop-grid">
-                            {shop.pack.map((inst, i) => (
-                                <div
-                                    key={inst.uid}
-                                    data-cry={inst.speciesId}
-                                    className={`shop-offer cpack-card${isBigCard(inst) ? ' big' : ''}${editionOf(inst) ? ' walk' : ''}`}
-                                >
-                                    <FutCard
-                                        inst={inst}
-                                        selected={packPick === i}
-                                        action={{
-                                            label: t(packPick === i ? 'reward.chosen' : 'reward.pick'),
-                                            primary: true,
-                                            onClick: () => {
-                                                setPackPick(packPick === i ? null : i);
-                                            },
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    </CardPack>
-                    <button
-                        type="button"
-                        className="btn small ghost shop-pack-skip"
-                        onClick={() => {
-                            setPackPick(null);
-                            skipPack();
-                        }}
-                    >
-                        {t('shop.packSkip')}
-                    </button>
-                    {packPick !== null ? (
-                        <GainTarget
-                            key={`pack-${packPick}`}
-                            gain={{ kind: 'pokemon', inst: shop.pack[packPick], price: 0 }}
-                            run={run}
-                            onClaim={(uid) => {
-                                claimPack(packPick, uid);
-                                setPackPick(null);
+                <PackMoment
+                    pack={shop.pack}
+                    label={packName}
+                    type={packOffer?.kind === 'pack' ? packOffer.type : undefined}
+                    pick={packPick}
+                    onPick={setPackPick}
+                    onSkip={() => {
+                        setPackPick(null);
+                        skipPack();
+                    }}
+                    team={
+                        <FormationBoard
+                            formation={run.formation}
+                            lineup={run.lineup}
+                            bench={run.bench}
+                            byUid={byUid}
+                            captainUid={run.captainUid}
+                            onSlot={(ref, uid) => {
+                                const inst = byUid.get(uid);
+                                if (!inst) return;
+                                useCardModal.getState().open(inst, {
+                                    position:
+                                        ref.zone === 'lineup' ? formationOf(run.formation).slots[ref.index] : undefined,
+                                    captain: inst.uid === run.captainUid,
+                                });
                             }}
                         />
-                    ) : (
-                        // o time à vista enquanto escolhe (do lado no PC, embaixo no celular), pra comparar
-                        <div className="panel reward-team shop-pack-team">
-                            <h2>{t('reward.yourTeam')}</h2>
-                            <FormationBoard
-                                formation={run.formation}
-                                lineup={run.lineup}
-                                bench={run.bench}
-                                byUid={byUid}
-                                captainUid={run.captainUid}
-                                onSlot={(ref, uid) => {
-                                    const inst = byUid.get(uid);
-                                    if (!inst) return;
-                                    useCardModal.getState().open(inst, {
-                                        position:
-                                            ref.zone === 'lineup'
-                                                ? formationOf(run.formation).slots[ref.index]
-                                                : undefined,
-                                        captain: inst.uid === run.captainUid,
-                                    });
+                    }
+                    target={
+                        packPick !== null && (
+                            <GainTarget
+                                key={`pack-${packPick}`}
+                                gain={{ kind: 'pokemon', inst: shop.pack[packPick], price: 0 }}
+                                run={run}
+                                onClaim={(uid) => {
+                                    claimPack(packPick, uid);
+                                    setPackPick(null);
                                 }}
                             />
-                        </div>
-                    )}
-                </div>
+                        )
+                    }
+                />
             ) : (
                 <>
                     {/* prateleiras: Pokémon, pacote e item, Patrocínio (antes tudo junto numa grade só confundia) */}
@@ -361,5 +330,84 @@ function OfferCard({
             <b className="card-name">{itemName(o.item)}</b>
             <span className="tactic-desc">{itemDesc(o.item, lang)}</span>
         </div>
+    );
+}
+
+/**
+ * O pacote da Copa em tela cheia (cara-de-jogo.md, decisão 4): abre num MomentStage, as cartas saem em leque com o tom
+ * subindo e a melhor, se for ouro (75+) ou edição, fica guardada pro walkout em 3 batidas depois do leque (com Pular).
+ * Escolher uma abre a sheet de quem sai do banco; "Não quero nenhuma" segue sem carta, como antes.
+ */
+function PackMoment({
+    pack,
+    label,
+    type,
+    pick,
+    onPick,
+    onSkip,
+    team,
+    target,
+}: {
+    pack: PokemonInstance[];
+    label: string;
+    type?: string;
+    pick: number | null;
+    onPick: (i: number | null) => void;
+    onSkip: () => void;
+    team: ReactNode;
+    target: ReactNode;
+}) {
+    const { t } = useT();
+    const walkAt = walkoutIndex(pack);
+    // 'wait' = guardada até o leque acabar; 'on' = o walkout tocando; 'done' = já na mesa
+    const [walk, setWalk] = useState<'wait' | 'on' | 'done'>(walkAt < 0 ? 'done' : 'wait');
+    return (
+        <MomentStage label={t('shop.packPick')} className="shop-pack-moment">
+            <h2 className="k-moment-title shop-pack-title">{t('shop.packPick')}</h2>
+            <CardPack
+                sealed
+                look={packLookOf(pack)}
+                label={label}
+                type={type}
+                revealKey={pack.map((c) => c.uid).join()}
+                onRevealed={() => walk === 'wait' && setWalk('on')}
+            >
+                <div className="k-pick3 shop-pick" style={{ '--k-n': pack.length } as CSSProperties}>
+                    {pack.map((inst, i) => {
+                        const held = i === walkAt && walk !== 'done';
+                        return (
+                            <div
+                                key={inst.uid}
+                                // a carta do walkout não grita nem brilha no leque: o momento dela vem depois
+                                data-cry={i === walkAt ? undefined : inst.speciesId}
+                                className={`shop-offer cpack-card${i !== walkAt && isBigCard(inst) ? ' big' : ''}${
+                                    held ? ' walk-held' : i === walkAt ? ' k-pop' : ''
+                                }`}
+                            >
+                                <FutCard
+                                    inst={inst}
+                                    selected={pick === i}
+                                    action={{
+                                        label: t(pick === i ? 'reward.chosen' : 'reward.pick'),
+                                        primary: true,
+                                        onClick: () => onPick(pick === i ? null : i),
+                                    }}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </CardPack>
+            {walk === 'on' && <Walkout inst={pack[walkAt]} onDone={() => setWalk('done')} />}
+            <SheetRow icon="team" label={t('reward.yourTeam')} title={t('reward.yourTeam')} className="reward-team-row">
+                <div className="reward-team">{team}</div>
+            </SheetRow>
+            <button type="button" className="btn ghost shop-pack-skip" onClick={onSkip}>
+                {t('shop.packSkip')}
+            </button>
+            <Sheet open={pick !== null} onClose={() => onPick(null)} title={t('reward.whoLeaves')}>
+                {target}
+            </Sheet>
+        </MomentStage>
     );
 }

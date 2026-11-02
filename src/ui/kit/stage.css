@@ -91,7 +91,7 @@
         rotate: 360deg;
     }
 }
-.k-moment-skip {
+.k-moment > .k-moment-skip {
     position: absolute;
     top: max(12px, env(safe-area-inset-top));
     right: 12px;
@@ -455,11 +455,11 @@
     /* e não passa da altura: --k-pick-reserve = o que a tela ocupa em volta das cartas (barra, título, botões) */
     --k-card-w: min(
         190px,
-        calc((min(calc(100 * var(--vw)), 720px) - 32px - 2 * var(--k-gap)) / 3),
+        calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
         calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
     );
     display: grid;
-    grid-template-columns: repeat(3, var(--k-card-w));
+    grid-template-columns: repeat(var(--k-n, 3), var(--k-card-w));
     justify-content: center;
     align-items: start;
     gap: var(--k-gap);
@@ -599,4 +599,13 @@
     translate: -50% -50%;
     background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.04) 0 9deg, transparent 9deg 22.5deg);
     mask: radial-gradient(closest-side, #000 15%, transparent 70%);
+}
+/* o pacote fechado cabe no palco da escolha: a arte mede pela altura do palco, não pela carta de 190 px */
+.cpack-stage:has(> .k-pick3) {
+    display: grid;
+    align-content: center;
+    min-height: min(300px, calc(100 * var(--vh) - 340px));
+}
+.cpack-stage:has(> .k-pick3) .cpack {
+    width: min(calc(var(--fut-w) * 1.08), calc(92cqh * 63 / 88));
 }
