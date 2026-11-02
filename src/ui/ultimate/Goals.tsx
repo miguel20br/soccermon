@@ -15,7 +15,14 @@ import {
     type UtEvo,
 } from '../../store/ultimate/evolutions';
 import { eventAt, nextReset, objectivesAt } from '../../store/ultimate/objectives';
-import { EVO_ACTIVE_MAX, EVO_STEP, OBJECTIVES, type Objective, TRAIN_STEPS } from '../../store/ultimate/rules';
+import {
+    EVO_ACTIVE_MAX,
+    EVO_STEP,
+    FIRST_STEPS,
+    OBJECTIVES,
+    type Objective,
+    TRAIN_STEPS,
+} from '../../store/ultimate/rules';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
@@ -26,12 +33,52 @@ import { Pass } from './Season';
 export function Goals() {
     return (
         <>
+            <FirstSteps />
             <Pass />
             <Objectives period="event" />
             <Objectives period="day" />
             <Objectives period="week" />
             <Evolutions />
         </>
+    );
+}
+
+/**
+ * Primeiros passos (o 1º dia): os 5 que ensinam o modo, o próximo em destaque, cada um com as Fichas dele. Some quando
+ * todos pagaram. `compact` (abas Pacotes e Jogar) mostra só o próximo.
+ */
+export function FirstSteps({ compact = false }: { compact?: boolean }) {
+    const { t, d } = useT();
+    const firsts = useGame((s) => s.ultimate.firsts);
+    if (firsts.length >= FIRST_STEPS.length) return null;
+    const next = FIRST_STEPS.find((f) => !firsts.includes(f.id))?.id;
+    return (
+        <section className="panel ut-goals ut-first bc-surface bc-stripe">
+            <h2 className="bc-caption">
+                <HudIcon kind="flag" />
+                {t('ultimate.first.title')}
+                <small className="ut-reset">
+                    {firsts.length}/{FIRST_STEPS.length}
+                </small>
+            </h2>
+            {!compact && <small className="muted">{t('ultimate.first.hint')}</small>}
+            <ul className="ut-goal-list">
+                {FIRST_STEPS.filter((f) => !compact || f.id === next).map((f) => {
+                    const done = firsts.includes(f.id);
+                    return (
+                        <li key={f.id} className={done ? 'done' : f.id === next ? 'next' : undefined}>
+                            <span>
+                                <b>{d.ultimate.first.steps[f.id]}</b>
+                                <small>
+                                    {done ? t('ultimate.goals.done') : t('ultimate.goals.fichas', { n: f.fichas })}
+                                </small>
+                            </span>
+                            {done && <HudIcon kind="check" />}
+                        </li>
+                    );
+                })}
+            </ul>
+        </section>
     );
 }
 

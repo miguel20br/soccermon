@@ -7,6 +7,7 @@ import { runMatch } from '../../engine/runners/batch-runner';
 import { metalOf } from '../../ui/rarity';
 import {
     FICHAS,
+    FIRST_STEPS,
     LEVEL_GAP,
     OBJECTIVES,
     OPEN_POINTS,
@@ -177,7 +178,12 @@ describe('time e partida', () => {
                     (s, id) => s + OBJECTIVES.find((o) => o.id === id)!.fichas,
                     0,
                 );
-                expect(out.fichas).toBe(7 + FICHAS[lv][outcome] + bonus);
+                // e os Primeiros passos da 1ª partida (e da 1ª vitória)
+                const first = (out.last?.firsts ?? []).reduce(
+                    (s, id) => s + FIRST_STEPS.find((f) => f.id === id)!.fichas,
+                    0,
+                );
+                expect(out.fichas).toBe(7 + FICHAS[lv][outcome] + bonus + first);
                 expect(out.last).toMatchObject({ outcome, level: lv, fichas: FICHAS[lv][outcome], seen: false });
                 expect(out.live).toBeNull();
                 expect(out.played).toBe(1);

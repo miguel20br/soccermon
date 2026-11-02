@@ -9,6 +9,7 @@ export const ultimate: typeof pt = {
     cards: 'Cards',
     tabs: { packs: 'Packs', collection: 'Cards', team: 'Team', goals: 'Goals', play: 'Play' },
     packs: {
+        tear: 'Swipe sideways to tear it, or tap',
         mini: 'Mini Pack',
         stored: '{n} of {max} saved',
         next: 'Next in {time}',
@@ -127,7 +128,21 @@ export const ultimate: typeof pt = {
         simError: "The match didn't load. Try again.",
         record: '{w}W {d}D {l}L',
     },
+    first: {
+        title: 'First steps',
+        progress: 'First steps {n}/{of}',
+        hint: 'Each one pays once. All 5 add up to 150 Coins: a Mini Pack in the shop.',
+        steps: {
+            pack: 'Open your 1st pack',
+            lineup: 'Change your lineup (Team tab)',
+            play: 'Play your 1st match',
+            win: 'Win a match',
+            evo: 'Start an Evolution (Goals tab)',
+        },
+    },
     result: {
+        openNow: 'Open now',
+        toOpen: 'To open',
         title: 'Prize',
         win: 'Win',
         draw: 'Draw',

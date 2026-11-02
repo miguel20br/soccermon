@@ -829,3 +829,115 @@
 [data-reduce-motion="true"] .ut-pass-card {
     animation: none;
 }
+
+/* Primeiros passos: o próximo em destaque (sem barra: cada um é feito ou não) */
+.ut-first .ut-goal-list li,
+.ut-first .ut-goal-list li.done {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.ut-first .ut-goal-list li.next {
+    box-shadow: inset 3px 0 0 var(--yellow);
+}
+
+/* JOGAR com o objetivo do momento embaixo */
+.ut-go > span {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+.ut-go-goal {
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.9;
+}
+
+/* pacote em tela cheia: rasgar com o dedo, leque, Guardar */
+.ut-pack-moment .k-moment-body {
+    gap: 12px;
+}
+.ut-pack-title {
+    font-size: clamp(22px, calc(6 * var(--vw)), 40px);
+}
+.ut-tear {
+    width: 100%;
+    touch-action: none;
+}
+.ut-tear .is-closed .cpack-top {
+    transform-origin: 0 100%;
+    transform: translate(calc(var(--tear, 0) * 18%), calc(var(--tear, 0) * -40%)) rotate(calc(var(--tear, 0) * -9deg));
+}
+.ut-tear .is-closed .cpack {
+    transform: rotate(calc(var(--tear, 0) * 2deg));
+}
+.ut-tear .cpack-hint {
+    display: none;
+}
+.ut-tear-hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+}
+/* o Grande (5 cartas) quebra em 3 + 2 no celular em pé; deitado e no desktop, uma fileira só */
+.ut-pick {
+    --k-cols: min(var(--k-n, 3), 3);
+    --k-rows: 2;
+    --k-card-w: min(
+        170px,
+        calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-cols) - 1) * var(--k-gap)) / var(--k-cols)),
+        calc((calc(100 * var(--vh)) - 230px) / (1.41 * var(--k-rows)) - var(--k-gap))
+    );
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.ut-pick > * {
+    width: var(--k-card-w);
+}
+.ut-pick:not(:has(> :nth-child(4))) {
+    --k-rows: 1;
+}
+@media (orientation: landscape) {
+    .ut-pick {
+        --k-cols: var(--k-n, 3);
+        --k-rows: 1;
+    }
+}
+.ut-pick .walk-held {
+    visibility: hidden;
+}
+
+/* pós-jogo: o que dá pra abrir, por último, e os dois botões */
+.ut-prize-extra {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+}
+.ut-prize-packs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+.ut-prize-packs > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 56px;
+}
+.ut-prize-packs > span {
+    display: grid;
+    gap: 2px;
+}
+.ut-prize-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+.ut-prize-actions .btn.wide {
+    flex: 1 1 160px;
+}

@@ -127,6 +127,7 @@ import {
     dropEvo,
     evolveCard,
     finishMatch,
+    firstStep,
     newUltimate,
     openPack,
     type PackKind,
@@ -1285,11 +1286,11 @@ export const useGame = create<GameStore>()(
                 },
                 ultimateTeam: (patch) => {
                     const u = getState().ultimate;
-                    setState({ ultimate: { ...u, team: { ...u.team, ...patch } } });
+                    setState({ ultimate: firstStep({ ...u, team: { ...u.team, ...patch } }, 'lineup') });
                 },
                 ultimateSetMember: (i, uid) => {
                     const u = getState().ultimate;
-                    setState({ ultimate: { ...u, team: setMember(u.team, i, uid) } });
+                    setState({ ultimate: firstStep({ ...u, team: setMember(u.team, i, uid) }, 'lineup') });
                 },
                 ultimateStart: (live) =>
                     setState({

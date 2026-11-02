@@ -15,6 +15,8 @@ const TRACK: Partial<Record<Screen, TrackId>> = {
     trophies: 'sala',
     daily: 'menu-balanco',
     liga: 'menu-balanco',
+    // Time Ultimate: a do menu até ter a própria (menus-fc-e-aclamados.md, decidido em 01/11)
+    ultimate: 'menu-balanco',
     shop: 'mercado-funk',
     draft: 'draft',
     lineup: 'escalacao',

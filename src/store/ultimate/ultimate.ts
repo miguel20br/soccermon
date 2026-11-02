@@ -15,7 +15,16 @@ import { lineupAverage } from '../../ui/rating';
 import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
 import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
-import { countObjectives, eventAt, newObjectives, type ObjectiveState, objectivesOf } from './objectives';
+import {
+    countObjectives,
+    eventAt,
+    newObjectives,
+    type ObjectiveState,
+    objectiveById,
+    objectivesAt,
+    objectivesNow,
+    objectivesOf,
+} from './objectives';
 import {
     BIG_FLOOR_N,
     BIG_PACK_SIZE,
@@ -23,6 +32,8 @@ import {
     EVO_ACTIVE_MAX,
     FICHAS,
     FICHAS_PACK_PRICE,
+    FIRST_STEPS,
+    type FirstStepId,
     FLOOR_METAL,
     GYM_FICHAS_MULT,
     GYM_FIRST_BIG,
@@ -33,6 +44,7 @@ import {
     LEVELS,
     type Level,
     METAL_ODDS,
+    type Objective,
     OPEN_POINTS,
     type Outcome,
     PACK_INTERVAL_MS,
@@ -98,6 +110,8 @@ export interface UltimateLast {
     marks?: number[];
     /** Enfeite do evento ganho nesta partida (todos os objetivos do evento). */
     ornament?: string;
+    /** Primeiros passos cumpridos nesta partida (a 1ª partida, a 1ª vitória). */
+    firsts?: FirstStepId[];
 }
 
 /** O que fica de uma temporada que acabou (no Perfil, nunca zera). */
@@ -161,6 +175,8 @@ export interface UltimateSave {
     gyms: string[];
     /** O que fica das temporadas passadas: nunca zera. */
     legacy: UtLegacy;
+    /** Primeiros passos já cumpridos (e pagos) nesta temporada. */
+    firsts: FirstStepId[];
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -197,6 +213,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     plays: {},
     gyms: [],
     legacy: { seasons: [], ornaments: [] },
+    firsts: [],
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -299,6 +316,7 @@ export function ultimateOf(raw: unknown): UltimateSave {
             ? raw.gyms.filter((g): g is string => typeof g === 'string' && GYMS.some((x) => x.id === g))
             : [],
         legacy: legacyOf(raw.legacy),
+        firsts: FIRST_STEPS.map((f) => f.id).filter((id) => strs(raw.firsts).includes(id)),
     };
 }
 
@@ -519,15 +537,18 @@ export function openPack(
     const points = cards.map((c) => (isRepeat(u.cards, c) ? REPEAT_POINTS[metalOf(viewInstance(c).overall)] : 0));
     const fresh = cards.filter((_, i) => points[i] === 0);
     return {
-        u: {
-            ...addCards(u, fresh),
-            packPoints: u.packPoints + OPEN_POINTS + points.reduce((s, p) => s + p, 0),
-            packs: free ? clock.packs - 1 : clock.packs,
-            packAt: clock.packAt,
-            extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
-            bigPacks: big ? u.bigPacks - 1 : u.bigPacks,
-            opened: u.opened + 1,
-        },
+        u: firstStep(
+            {
+                ...addCards(u, fresh),
+                packPoints: u.packPoints + OPEN_POINTS + points.reduce((s, p) => s + p, 0),
+                packs: free ? clock.packs - 1 : clock.packs,
+                packAt: clock.packAt,
+                extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
+                bigPacks: big ? u.bigPacks - 1 : u.bigPacks,
+                opened: u.opened + 1,
+            },
+            'pack',
+        ),
         pack: { cards, points },
     };
 }
@@ -771,9 +792,12 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
         losses: u.losses + (outcome === 'loss' ? 1 : 0),
         live: null,
     };
+    const firsts = (['play', ...(outcome === 'win' ? ['win'] : [])] as FirstStepId[]).filter(
+        (id) => !u.firsts.includes(id),
+    );
     const { pass, gained } = passGain(u.pass, outcome, !!gym, now);
     const before = u.pass.marks;
-    const out = payPass({ ...paid, pass });
+    const out = payPass(firsts.reduce(firstStep, { ...paid, pass }));
     return {
         ...out,
         last: {
@@ -789,8 +813,52 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
             pass: gained,
             marks: Array.from({ length: out.pass.marks - before }, (_, i) => before + i + 1),
             ...(ornament && { ornament }),
+            ...(firsts.length && { firsts }),
         },
     };
+}
+
+/** Pacotes que a partida deu (objetivos, insígnia e marcos do passe): o pós-jogo oferece "Abrir agora". */
+export function lastPacks(last: UltimateLast): { mini: number; big: number } {
+    let mini = 0;
+    let big = last.badge ? GYM_FIRST_BIG : 0;
+    for (const id of last.objectives ?? []) {
+        const o = objectiveById(id);
+        mini += o?.packs ?? 0;
+        big += o?.big ?? 0;
+    }
+    for (const k of last.marks ?? []) {
+        mini += passReward(k).packs;
+        big += passReward(k).big;
+    }
+    return { mini, big };
+}
+
+// ------------------------------------------------------------------------------------------- primeiros passos
+
+/** Primeiro passo cumprido: paga as Fichas dele, uma vez só por temporada. */
+export function firstStep(u: UltimateSave, id: FirstStepId): UltimateSave {
+    const step = FIRST_STEPS.find((f) => f.id === id);
+    if (!step || u.firsts.includes(id)) return u;
+    return { ...u, firsts: [...u.firsts, id], fichas: u.fichas + step.fichas };
+}
+
+/** O objetivo do momento (o que o botão JOGAR mostra): os Primeiros passos até acabarem; depois, o mais perto de fechar. */
+export type MomentGoal = { kind: 'first'; n: number; of: number } | { kind: 'objective'; o: Objective; n: number };
+export function momentGoal(u: Pick<UltimateSave, 'firsts' | 'objectives'>, now: number): MomentGoal | null {
+    if (u.firsts.length < FIRST_STEPS.length) return { kind: 'first', n: u.firsts.length, of: FIRST_STEPS.length };
+    const g = objectivesAt(u.objectives, now);
+    let best: MomentGoal | null = null;
+    let frac = -1;
+    for (const o of objectivesNow(now)) {
+        if (g.done.includes(o.id)) continue;
+        const n = Math.min(o.goal, g.prog[o.id] ?? 0);
+        if (n / o.goal > frac) {
+            best = { kind: 'objective', o, n };
+            frac = n / o.goal;
+        }
+    }
+    return best;
 }
 
 // ----------------------------------------------------------------------------------------------- passe e temporada
@@ -881,7 +949,7 @@ export function startEvo(u: UltimateSave, uid: string, path: readonly number[]):
     const card = u.cards.find((c) => c.uid === uid);
     if (!card || u.live || u.evos.length >= EVO_ACTIVE_MAX || u.evos.some((e) => e.uid === uid)) return null;
     if (u.evoDone.includes(uid) || !evoPaths(card).some((p) => p.join() === path.join())) return null;
-    return { ...u, evos: [...u.evos, newEvo(card, [...path])] };
+    return firstStep({ ...u, evos: [...u.evos, newEvo(card, [...path])] }, 'evo');
 }
 
 /** Desiste da Evolução (o que a carta já evoluiu fica). */

@@ -8,6 +8,7 @@ export const ultimate = {
     cards: 'Cartas',
     tabs: { packs: 'Pacotes', collection: 'Coleção', team: 'Time', goals: 'Metas', play: 'Jogar' },
     packs: {
+        tear: 'Arraste de lado pra rasgar, ou toque',
         mini: 'Pacote Mini',
         stored: '{n} de {max} guardados',
         next: 'Próximo em {time}',
@@ -126,7 +127,21 @@ export const ultimate = {
         simError: 'A partida não carregou. Tente de novo.',
         record: '{w}V {d}E {l}D',
     },
+    first: {
+        title: 'Primeiros passos',
+        progress: 'Primeiros passos {n}/{of}',
+        hint: 'Cada um paga uma vez. Os 5 juntos dão 150 Fichas: um Pacote Mini na loja.',
+        steps: {
+            pack: 'Abra o 1º pacote',
+            lineup: 'Mexa na escalação (aba Time)',
+            play: 'Jogue a 1ª partida',
+            win: 'Vença uma partida',
+            evo: 'Comece uma Evolução (aba Metas)',
+        },
+    },
     result: {
+        openNow: 'Abrir agora',
+        toOpen: 'Pra abrir',
         title: 'Prêmio',
         win: 'Vitória',
         draw: 'Empate',

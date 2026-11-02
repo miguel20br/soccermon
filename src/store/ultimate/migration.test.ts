@@ -7,7 +7,7 @@ import { mergeSaves } from '../../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../../engine/config';
 import { runMatch } from '../../engine/runners/batch-runner';
 import { migrateSave, type PersistedSave, SAVE_VERSION, savePart, useGame } from '../game-store';
-import { FICHAS, OBJECTIVES, PACK_MAX, PACK_SIZE } from './rules';
+import { FICHAS, FIRST_STEPS, OBJECTIVES, PACK_MAX, PACK_SIZE } from './rules';
 import { homeTeam, outcomeOf, ultimateRival } from './ultimate';
 
 const T0 = 1_800_000_000_000;
@@ -43,7 +43,9 @@ describe('save do Time Ultimate (v10)', () => {
             (s, id) => s + OBJECTIVES.find((o) => o.id === id)!.fichas,
             0,
         );
-        expect(g().ultimate.fichas).toBe(FICHAS.dificil[outcomeOf(m.score)] + bonus);
+        // + os Primeiros passos: o 1º pacote, a 1ª partida (e a 1ª vitória)
+        const first = g().ultimate.firsts.reduce((s, id) => s + FIRST_STEPS.find((f) => f.id === id)!.fichas, 0);
+        expect(g().ultimate.fichas).toBe(FICHAS.dificil[outcomeOf(m.score)] + bonus + first);
         expect(g().ultimate.live).toBeNull();
         // a Pokédex marca quem jogou, como no Duelo
         expect(g().dex[home.lineup[0].speciesId]?.matches ?? 0).toBeGreaterThan(0);

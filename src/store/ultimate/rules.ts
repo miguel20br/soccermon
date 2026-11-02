@@ -201,3 +201,18 @@ export const EVENTS: UtEvent[] = [
         ],
     },
 ];
+
+// ------------------------------------------------------------------------------------------- 27/11
+
+/**
+ * Primeiros passos (o 1º dia, ensinam o modo; fc-ut-sistema.md, "Foundations"): cada um paga as Fichas dele uma vez,
+ * na hora em que você faz. Os 5 somam 150 Fichas = 1 Pacote Mini na loja (FICHAS_PACK_PRICE). Recomeçam na temporada nova.
+ */
+export const FIRST_STEPS = [
+    { id: 'pack', fichas: 20 },
+    { id: 'lineup', fichas: 20 },
+    { id: 'play', fichas: 30 },
+    { id: 'win', fichas: 30 },
+    { id: 'evo', fichas: 50 },
+] as const;
+export type FirstStepId = (typeof FIRST_STEPS)[number]['id'];

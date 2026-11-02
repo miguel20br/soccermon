@@ -333,3 +333,29 @@ Pro Miguel decidir (nada mudado): a meta vale assim, ou mexer (química, teto, c
 - As 7 decisões da 0.9.33 valem como estão ("perfeito").
 - Química: a meta medida (Prata de química alta x Ouro sem química, 39/17/44 em n=400) fica assim.
 - Números das tabelas "Proposta de números": ele vai olhar e responder. A prévia ele joga depois.
+
+## Etapa até 27/11: Primeiros passos, objetivo no JOGAR, pacote e pós-jogo (02/11/2026, falta o ok dos números)
+
+Feito na branch `ultimate`, atrás de `?lab=ultimate` (B em etapas, `fc-ut-sistema.md` e `menus-fc-e-aclamados.md`).
+Nenhum número que já existia mudou; os novos estão em `src/store/ultimate/rules.ts` (`FIRST_STEPS`).
+
+| Primeiro passo | Quando conta | Prêmio (proposta) |
+|---|---|---|
+| Abra o 1º pacote | abriu um pacote | 20 Fichas |
+| Mexa na escalação (aba Time) | trocou vaga, formação, tática, escanteio ou capitão | 20 Fichas |
+| Jogue a 1ª partida | apito final da 1ª | 30 Fichas |
+| Vença uma partida | 1ª vitória | 30 Fichas |
+| Comece uma Evolução (aba Metas) | começou uma Evolução ou Treino | 50 Fichas |
+
+Os 5 somam 150 Fichas, o preço de um Pacote Mini na loja (`FICHAS_PACK_PRICE`): o último passo ensina a loja. Cada
+um paga uma vez, na hora; recomeçam na temporada nova (como o resto do modo).
+
+- **Botão JOGAR:** embaixo do "JOGAR" vai "Primeiros passos 2/5" até acabarem; depois, o objetivo do dia, da semana
+  ou do evento mais perto de fechar (maior fração; empate, o primeiro da lista), com "x/meta".
+- **Pacote:** tela cheia (Momento do kit), arrastar de lado rasga a tampa (o toque e o Enter também abrem), leque, e
+  a melhor carta, se for Ouro 75+ ou edição, guardada pro walkout em 3 batidas com Pular (`walkoutIndex`).
+- **Pós-jogo:** cascata de até 3 s (Fichas contando, passe, objetivos e Primeiros passos um por um, o que dá pra abrir
+  por último); tocar pula; "Abrir agora" quando a partida deu pacote (abre o Grande se tiver ganho um, senão o Mini).
+- **Música:** o Time Ultimate toca a `menu-balanco` até ter a própria.
+
+Pro Miguel: os 5 prêmios valem? Os Primeiros passos voltam a cada temporada (como está) ou só uma vez na vida?
