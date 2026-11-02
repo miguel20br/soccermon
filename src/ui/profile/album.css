@@ -967,15 +967,17 @@
     font-size: 12px;
     font-weight: 700;
 }
+/* o Abrir é o chip azul do kit (.k-chip): dourado é só o JOGAR */
 .al-cover-cta {
     margin-top: auto;
     padding: 4px 12px;
-    border-radius: 6px;
-    background: var(--yellow);
-    color: var(--bc-ink);
+    border: 2px solid var(--blue-c);
+    border-radius: 999px;
+    background: var(--bc-ink);
+    color: var(--blue-hi);
     font-size: 12px;
     font-weight: 700;
-    box-shadow: 0 3px 0 #000;
+    box-shadow: 0 3px 0 var(--cb-ink);
 }
 .al-cover.soon {
     cursor: default;

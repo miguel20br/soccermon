@@ -203,6 +203,7 @@
 }
 .room-dialog-go {
     flex: none;
+    min-height: 40px;
 }
 /* celular: a sala é pequena, a caixa em cima dela tampava as taças de que ela fala; fica logo embaixo da cena */
 @media (max-width: 600px) {

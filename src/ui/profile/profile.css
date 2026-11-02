@@ -133,7 +133,8 @@ img.pf-avatar:not(.pixel) {
     /* o título cola no nome (como no Showdown); o clube fica com o respiro normal abaixo */
     margin-top: -3px;
     line-height: 1.15;
-    color: var(--yellow);
+    /* --muted: o amarelo puxava o olho do nome pro título */
+    color: var(--muted);
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
@@ -1569,11 +1570,12 @@ fieldset.pf-field,
     color: var(--muted);
     font-size: 13px;
 }
+/* o número não pesa mais que o título da seção: 20 px na cor do texto */
 .pf-album-n {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 28px;
+    font-size: 20px;
     line-height: 1;
-    color: var(--yellow);
+    color: var(--text);
 }
 .pf-album-n small {
     font-size: 14px;
