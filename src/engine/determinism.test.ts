@@ -19,9 +19,9 @@ const EXPECTED_HASHES = [
     '02a85fc8',
     '3cd48072',
     // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro
-    // capitão, que vale só pro chute que ele alcança; motor 18: a queda do N2/N3 quando a bola chega, não no chute)
+    // capitão, que vale só pro chute que ele alcança; motor 18: a queda do N2/N3 e os efeitos do tipo quando a bola chega)
     'f8cf2c36',
-    'c2f790ed',
+    '181cff2c',
     '3899de05',
     'fee79e53',
     // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto

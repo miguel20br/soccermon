@@ -1,5 +1,5 @@
 import { abilityEffect, isStatusImmune } from './abilities';
-import { AGENCY, fxHas, fxTypeOf, inMaxZone, maxCharge, maxFxPieces, maxGraded } from './agency';
+import { AGENCY, fxHas, fxTypeOf, inMaxZone, type MaxPiece, maxCharge, maxFxPieces, maxGraded } from './agency';
 import {
     type AttrKey,
     aerialScore,
@@ -3656,69 +3656,50 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
     if (fxHas(fx, 'typeless') && !immune) shot.typeless = true;
     const goal = v(gx, target.y);
     const onLine = (o: PlayerState) => pointSegment(o.pos, p.pos, goal).d < M.lineR;
-    // pro lado da linha do chute em que `o` está (a onda empurra pra fora dela)
-    const sideOf = (o: PlayerState) =>
-        o.pos.y >= p.pos.y + ((goal.y - p.pos.y) * (o.pos.x - p.pos.x)) / (goal.x - p.pos.x || 1e-9) ? 1 : -1;
-    const push = (o: PlayerState, m: number) => {
-        o.pos = v(o.pos.x, clamp(o.pos.y + sideOf(o) * m, 0.2, s.cfg.pitch.width - 0.2));
-        o.vel = v(0, 0);
-        if (o.role !== 'GK') {
-            o.stun = Math.max(o.stun, 0.35);
-            setAction(o, Action.Hurt, 0.45);
-        }
-        emit(s, { type: 'knockback', target: o.idx, by: p.idx, moveId: 'surf' });
+    // o que pega os rivais acontece quando a bola chega em cada um (ou na área do efeito), não no chute (`landKnocks`)
+    const kick = s.ball.lastKick;
+    const dir = norm(sub(goal, p.pos));
+    const along = (at: Vec2) => dot(sub(at, p.pos), dir);
+    const land = (kind: Landing['kind'], at: number, idx: number, m: number, piece?: MaxPiece) => {
+        if (kick)
+            s.knocks.push({ kind, idx, by: p.idx, moveId: 'surf', fx, piece, m, from: p.pos, dir, goal, at, kick });
     };
-    const freeze = (o: PlayerState, t: number) => {
-        if (applyStatus(s, o, 'frz', p.idx, 'maxfx') && o.status) o.status.timer = t;
-        else o.stun = Math.max(o.stun, t);
-    };
+    // o goleiro defende antes de a bola encostar nele (alcance de 1 a 2 m): o que é dele acontece um pouco antes
+    const gkAt = (o: PlayerState) => along(o.pos) - (o.role === 'GK' ? LAND_GK_LEAD : 0);
+    const sign = attackSign(p.team);
     for (const piece of maxFxPieces(fx)) {
         switch (piece) {
             case 'wave':
                 // a onda abre a linha do chute: empurra de lado (o goleiro só 1 m e sem cair, senão não defendia nunca)
-                for (const o of rivals) if (onLine(o)) push(o, o.role === 'GK' ? M.gkPush : M.push);
+                for (const o of rivals)
+                    if (onLine(o)) land('push', gkAt(o), o.idx, o.role === 'GK' ? M.gkPush : M.push);
                 break;
             case 'tsunami':
                 // a onda do Gyarados pega todo mundo, não só quem está na linha
-                for (const o of rivals) push(o, o.role === 'GK' ? M.gkPush : S.tsunami);
+                for (const o of rivals) land('push', gkAt(o), o.idx, o.role === 'GK' ? M.gkPush : S.tsunami);
                 break;
             case 'iceLine':
-                for (const o of rivals) if (o.role !== 'GK' && onLine(o)) freeze(o, M.freeze);
+                for (const o of rivals) if (o.role !== 'GK' && onLine(o)) land('freeze', along(o.pos), o.idx, M.freeze);
                 break;
-            case 'snowArea': {
-                // nevasca: a área rival inteira congela (o goleiro só escorrega, no alcance)
-                const { penaltyAreaDepth: depth, penaltyAreaWidth: width } = s.cfg.pitch;
-                for (const o of rivals) {
-                    if (o.role === 'GK' || Math.abs(o.pos.x - gx) > depth || Math.abs(o.pos.y - gy) > width / 2)
-                        continue;
-                    freeze(o, S.snow);
-                }
+            case 'snowArea':
+                land('piece', along(v(gx - sign * s.cfg.pitch.penaltyAreaDepth, target.y)), -1, 0, piece);
                 break;
-            }
             case 'quake':
-                // terremoto: quem está perto do gol cai (Voador e Levitate não); o goleiro balança (alcance) mas não cai
-                for (const o of rivals) {
-                    if (o.role === 'GK' || dist(o.pos, v(gx, gy)) > M.quakeR) continue;
-                    if (typesOf(o).includes('Flying') || o.inst.ability === 'levitate') continue;
-                    o.stun = Math.max(o.stun, M.quakeStun);
-                    setAction(o, Action.Hurt, M.quakeStun);
-                    fxHit(s, p, fx, o.idx);
-                }
+                land('piece', along(v(gx, gy)) - M.quakeR, -1, 0, piece);
                 break;
-            case 'star': {
-                // Fire Blast: estrela de fogo na frente do gol; quem está nela cai e se queima (o goleiro só se queima)
-                const at = v(gx - attackSign(p.team) * 2, target.y);
-                for (const o of rivals) {
-                    if (dist(o.pos, at) > S.starR) continue;
-                    if (o.role !== 'GK') {
-                        o.stun = Math.max(o.stun, S.starStun);
-                        setAction(o, Action.Hurt, S.starStun);
-                    }
-                    applyStatus(s, o, 'brn', p.idx, 'maxfx');
-                    fxHit(s, p, fx, o.idx);
-                }
+            case 'star':
+                land('piece', along(v(gx - sign * 2, target.y)) - S.starR, -1, 0, piece);
                 break;
-            }
+            case 'chain':
+                if (gk) land('piece', along(gk.pos) - LAND_GK_LEAD, -1, 0, piece);
+                break;
+            case 'cloud':
+                land('piece', along(v(gx - sign * 2, target.y)) - M.cloudR, -1, 0, piece);
+                break;
+            case 'trail':
+                // rastro de fogo no chão, na linha do chute, aceso quando a bola passa
+                for (const k of [0.4, 0.7]) land('piece', k * along(goal), -1, k, piece);
+                break;
             case 'slam':
                 // Body Slam: o Snorlax se joga; quem está perto dele cai e fica paralisado (a sobra fica pro time dele)
                 for (const o of rivals) {
@@ -3728,37 +3709,6 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
                     if (applyStatus(s, o, 'par', p.idx, 'maxfx') && o.status) o.status.timer = M.par;
                     fxHit(s, p, fx, o.idx);
                 }
-                break;
-            case 'chain': {
-                // Thunderbolt: o raio salta da bola pro goleiro e dele pros rivais mais perto (paralisia curta)
-                if (!gk) break;
-                fxHit(s, p, fx, gk.idx);
-                const near = rivals
-                    .filter((o) => o !== gk && dist(o.pos, gk.pos) <= S.chainR)
-                    .sort((a, b) => dist(a.pos, gk.pos) - dist(b.pos, gk.pos) || a.idx - b.idx)
-                    .slice(0, S.chainN);
-                for (const o of near) {
-                    if (applyStatus(s, o, 'par', p.idx, 'maxfx') && o.status) o.status.timer = M.par;
-                    o.stun = Math.max(o.stun, 0.35);
-                    fxHit(s, p, fx, o.idx);
-                }
-                break;
-            }
-            case 'cloud': {
-                // nuvem tóxica na frente do gol: envenena, quem está nela não bloqueia e o goleiro sai jogando pior
-                const at = v(gx - attackSign(p.team) * 2, target.y);
-                addZone(s, p, 'smoke', at, M.cloudR, M.cloudT, 'poisongas');
-                for (const o of rivals) {
-                    if (dist(o.pos, at) > M.cloudR) continue;
-                    applyStatus(s, o, 'psn', p.idx, 'maxfx');
-                    if (o.role !== 'GK') shot.blockedBy.push(o.idx);
-                }
-                break;
-            }
-            case 'trail':
-                // rastro de fogo no chão, na linha do chute
-                for (const k of [0.4, 0.7])
-                    addZone(s, p, 'fire', add(p.pos, scale(sub(goal, p.pos), k)), 1.3, 3, 'firespin');
                 break;
             case 'curve':
                 curveAway(s, p, shot, sig?.curve ?? M.curve);
@@ -3774,6 +3724,104 @@ function maxFxShot(s: MatchState, p: PlayerState, fx: string, shot: ShotInfo, ta
                 break;
         }
     }
+}
+
+/** O que a bola leva até os rivais no golpe máximo (`MatchState.knocks`). */
+type Landing = MatchState['knocks'][number];
+
+/** Quanto antes (m, na linha do chute) o que é do goleiro acontece: ele defende antes de a bola encostar nele. */
+const LAND_GK_LEAD = 2;
+
+/** Efeito de área do N3 (`maxFxShot`) quando a bola chega nele: nevasca, terremoto, estrela, raio, nuvem e rastro. */
+function maxFxArea(s: MatchState, p: PlayerState, fx: string, piece: MaxPiece, goal: Vec2, k: number) {
+    const M = AGENCY.maxType;
+    const S = AGENCY.maxSigFx;
+    const gx = goal.x;
+    const gy = s.cfg.pitch.width / 2;
+    const gk = rivalGk(s, p);
+    const rivals = s.players.filter((o) => o.team !== p.team && !hidden(o));
+    switch (piece) {
+        case 'snowArea': {
+            // nevasca: a área rival inteira congela (o goleiro só escorrega, no alcance)
+            const { penaltyAreaDepth: depth, penaltyAreaWidth: width } = s.cfg.pitch;
+            for (const o of rivals) {
+                if (o.role === 'GK' || Math.abs(o.pos.x - gx) > depth || Math.abs(o.pos.y - gy) > width / 2) continue;
+                maxFreeze(s, p, o, S.snow);
+            }
+            break;
+        }
+        case 'quake':
+            // terremoto: quem está perto do gol cai (Voador e Levitate não); o goleiro balança (alcance) mas não cai
+            for (const o of rivals) {
+                if (o.role === 'GK' || dist(o.pos, v(gx, gy)) > M.quakeR) continue;
+                if (typesOf(o).includes('Flying') || o.inst.ability === 'levitate') continue;
+                o.stun = Math.max(o.stun, M.quakeStun);
+                setAction(o, Action.Hurt, M.quakeStun);
+                fxHit(s, p, fx, o.idx);
+            }
+            break;
+        case 'star': {
+            // Fire Blast: estrela de fogo na frente do gol; quem está nela cai e se queima (o goleiro só se queima)
+            const at = v(gx - attackSign(p.team) * 2, goal.y);
+            for (const o of rivals) {
+                if (dist(o.pos, at) > S.starR) continue;
+                if (o.role !== 'GK') {
+                    o.stun = Math.max(o.stun, S.starStun);
+                    setAction(o, Action.Hurt, S.starStun);
+                }
+                applyStatus(s, o, 'brn', p.idx, 'maxfx');
+                fxHit(s, p, fx, o.idx);
+            }
+            break;
+        }
+        case 'chain': {
+            // Thunderbolt: o raio salta da bola pro goleiro e dele pros rivais mais perto (paralisia curta)
+            if (!gk) break;
+            fxHit(s, p, fx, gk.idx);
+            const near = rivals
+                .filter((o) => o !== gk && dist(o.pos, gk.pos) <= S.chainR)
+                .sort((a, b) => dist(a.pos, gk.pos) - dist(b.pos, gk.pos) || a.idx - b.idx)
+                .slice(0, S.chainN);
+            for (const o of near) {
+                if (applyStatus(s, o, 'par', p.idx, 'maxfx') && o.status) o.status.timer = M.par;
+                o.stun = Math.max(o.stun, 0.35);
+                fxHit(s, p, fx, o.idx);
+            }
+            break;
+        }
+        case 'cloud': {
+            // nuvem tóxica na frente do gol: envenena, quem está nela não bloqueia e o goleiro sai jogando pior
+            const at = v(gx - attackSign(p.team) * 2, goal.y);
+            addZone(s, p, 'smoke', at, M.cloudR, M.cloudT, 'poisongas');
+            for (const o of rivals) {
+                if (dist(o.pos, at) > M.cloudR) continue;
+                applyStatus(s, o, 'psn', p.idx, 'maxfx');
+                if (o.role !== 'GK') s.ball.shot?.blockedBy.push(o.idx);
+            }
+            break;
+        }
+        case 'trail':
+            addZone(s, p, 'fire', add(p.pos, scale(sub(goal, p.pos), k)), 1.3, 3, 'firespin');
+            break;
+    }
+}
+
+/** Gelo do N3: congela `o` por `t` s (se já tem status, fica parado o mesmo tanto). */
+function maxFreeze(s: MatchState, p: PlayerState, o: PlayerState, t: number) {
+    if (applyStatus(s, o, 'frz', p.idx, 'maxfx') && o.status) o.status.timer = t;
+    else o.stun = Math.max(o.stun, t);
+}
+
+/** A onda do N3 empurra `o` `m` m pra fora da linha do chute (de `from` a `goal`); o goleiro não cai. */
+function maxPush(s: MatchState, by: number, o: PlayerState, m: number, from: Vec2, goal: Vec2) {
+    const side = o.pos.y >= from.y + ((goal.y - from.y) * (o.pos.x - from.x)) / (goal.x - from.x || 1e-9) ? 1 : -1;
+    o.pos = v(o.pos.x, clamp(o.pos.y + side * m, 0.2, s.cfg.pitch.width - 0.2));
+    o.vel = v(0, 0);
+    if (o.role !== 'GK') {
+        o.stun = Math.max(o.stun, 0.35);
+        setAction(o, Action.Hurt, 0.45);
+    }
+    emit(s, { type: 'knockback', target: o.idx, by, moveId: 'surf' });
 }
 
 /** Goleiro rival de `p` em campo (não escondido), se houver. */
@@ -3842,7 +3890,22 @@ function maxKnock(s: MatchState, p: PlayerState, to: Vec2) {
     for (const o of s.players) {
         if (o.team === p.team || o.role === 'GK' || hidden(o) || pointSegment(o.pos, p.pos, to).d > AGENCY.knockR)
             continue;
-        s.knocks.push({ idx: o.idx, by: p.idx, moveId, from: p.pos, dir, at: dot(sub(o.pos, p.pos), dir), kick });
+        // a onda do N3 já tira ele da linha antes de a bola chegar (`maxFxShot` vem antes): não cai de novo
+        if (s.knocks.some((k) => k.kind === 'push' && k.idx === o.idx && k.kick === kick)) continue;
+        const at = dot(sub(o.pos, p.pos), dir);
+        s.knocks.push({
+            kind: 'knock',
+            idx: o.idx,
+            by: p.idx,
+            moveId,
+            fx: '',
+            m: 0,
+            from: p.pos,
+            dir,
+            goal: to,
+            at,
+            kick,
+        });
     }
 }
 
@@ -3852,21 +3915,34 @@ function maxKnock(s: MatchState, p: PlayerState, to: Vec2) {
  */
 const KNOCK_LEAD = 0.5;
 
-/** As quedas do golpe máximo que a bola alcançou neste tick (`maxKnock`); as de outro chute somem. */
+/** O que o golpe máximo leva até os rivais e a bola alcançou neste tick (`maxKnock`, `maxFxShot`); o de outro chute some. */
 function landKnocks(s: MatchState) {
     const ball = s.ball;
     const t = AGENCY.knockStun;
+    const due: Landing[] = [];
     s.knocks = s.knocks.filter((k) => {
         if (ball.lastKick !== k.kick) return false;
         if (dot(sub(ball.pos, k.from), k.dir) < k.at - KNOCK_LEAD) return true;
-        const o = s.players[k.idx];
-        if (hidden(o)) return false;
-        o.stun = Math.max(o.stun, t);
-        o.vel = v(0, 0);
-        setAction(o, Action.Hurt, t);
-        emit(s, { type: 'knockback', target: o.idx, by: k.by, moveId: k.moveId });
+        due.push(k);
         return false;
     });
+    for (const k of due) {
+        const by = s.players[k.by];
+        if (k.kind === 'piece') {
+            maxFxArea(s, by, k.fx, k.piece as MaxPiece, k.goal, k.m);
+            continue;
+        }
+        const o = s.players[k.idx];
+        if (hidden(o)) continue;
+        if (k.kind === 'push') maxPush(s, k.by, o, k.m, k.from, k.goal);
+        else if (k.kind === 'freeze') maxFreeze(s, by, o, k.m);
+        else {
+            o.stun = Math.max(o.stun, t);
+            o.vel = v(0, 0);
+            setAction(o, Action.Hurt, t);
+            emit(s, { type: 'knockback', target: o.idx, by: k.by, moveId: k.moveId });
+        }
+    }
 }
 
 /** Golpe máximo: o status do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`). */

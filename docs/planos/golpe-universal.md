@@ -126,3 +126,10 @@ Relato do Miguel jogando a 0.9.30, causa vista e conserto:
   quando a bola chega nele (`landKnocks`). `calibrate --n 200 --agencia`, mesmas seeds: gols 8,31 ⇒ 8,29; golpe de
   linha que vira gol 74% ⇒ 71% (N2 65% ⇒ 61%, N3 93% ⇒ 96%), dentro do erro. Números de equilíbrio não mexidos.
 - **Bola do golpe**: partículas do tipo mais densas, brilho e rastro maiores por nível (`MAX_BALL_FX`).
+- **Efeitos do tipo na chegada da bola** (ok do Miguel, 01/11): a onda, o tsunami e o gelo na linha pegam cada um
+  quando a bola chega; nevasca, terremoto, estrela, raio, nuvem e rastro de fogo, quando ela chega na área deles (o que
+  é do goleiro, 2 m antes). O Body Slam continua no chute (é o Snorlax se jogando). Quem a onda tira da linha não cai
+  de novo. `calibrate --n 200 --agencia`: gols 8,29 ⇒ 8,29; golpe de linha que vira gol 71% ⇒ 71%.
+- **Letreiro do drama** ("GOLPE MÁXIMO N2!") cortado nas bordas na quadra grande do celular: medido no texto e
+  encaixado na faixa que aparece.
+

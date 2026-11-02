@@ -707,7 +707,11 @@ export class Cinematics {
         }
         const holder = this.scene.add.container(0, 0, children).setDepth(9800);
         this.dramaHolder = holder;
-        this.pin(holder, GAME_W / 2, GAME_H * 0.17);
+        // cabe na faixa que aparece: na quadra grande do celular (`crop`) só ~metade da quadra está na tela e o
+        // "GOLPE MÁXIMO N2!" saía cortado nas duas bordas; medido no texto de verdade, com o esticão da entrada (1,12)
+        const shown = this.crop ? this.crop.w / CROP_TEXT_SCALE : GAME_W;
+        const fit = Math.min(1, (0.9 * shown) / (Math.max(t.width, 1) * 1.12));
+        this.pin(holder, GAME_W / 2, GAME_H * 0.17, fit);
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
         this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });
