@@ -6471,7 +6471,11 @@ a.home-tile {
     padding-top: 8px;
 }
 .credits-hero .cr-logo {
+    display: block;
     width: min(280px, 72%);
+}
+.credits-hero .cr-logo img {
+    width: 100%;
     height: auto;
 }
 .credits-hero .pixel {

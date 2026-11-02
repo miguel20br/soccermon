@@ -4,6 +4,7 @@ import { useGame } from '../../store/game-store';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { backTarget } from '../back-nav';
 import { AboutFooter } from '../components/AboutFooter';
+import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { reduceMotionOn } from '../reduce-motion';
@@ -167,7 +168,7 @@ function CreditsList() {
     return (
         <>
             <section className="credits-card credits-hero">
-                <img className="cr-logo" src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                <Logo className="cr-logo" alt="Soccermon" />
                 <img className="pixel" src="assets/cards/25.gif" alt="" />
                 <p>
                     {rich(t('settings.credits.createdBy'), {
