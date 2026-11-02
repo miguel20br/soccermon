@@ -3245,6 +3245,14 @@ button,
     border-radius: 12px;
     background: var(--panel);
     text-align: center;
+    /* intervalo, pedido de tempo e pênaltis entram por cima da quadra (nada teleporta) */
+    animation: ht-panel-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+@keyframes ht-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
 }
 /* os dois blocos só viram colunas no celular deitado (broadcast.css); fora dele não existem pro layout */
 .ht-info,

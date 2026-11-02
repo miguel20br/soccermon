@@ -27,6 +27,9 @@ const PAGES = [
     ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
     ['/?lab=kit&motion=1', ['.k-step-btn', '.k-option', '.k-info', '.k-sheetrow']],
+    // a partida (vestiário: o intervalo chega 2 s depois do Jogar): as 4 sheets da barra, o placar do intervalo
+    // entrando e saindo no "Começar o 2º tempo"
+    ['/?demo=vestiario&motion=1', ['.btn.primary.wide', '.bc-hudbtn', '.ht-panel .btn.primary']],
 ];
 
 /** Roda dentro da página: vigia o que aparece, some e pula. */

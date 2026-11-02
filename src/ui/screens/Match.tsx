@@ -854,7 +854,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         </button>
                     )}
                     {halftime && (
-                        <div className="ht-wrap" ref={halftimeRef}>
+                        <div className="ht-wrap" ref={halftimeRef} data-exit>
                             <HalftimePanel
                                 match={match}
                                 names={teamNames}
@@ -897,7 +897,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         </div>
                     )}
                     {timeoutAt !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => openBoard()}
@@ -909,7 +909,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         </div>
                     )}
                     {penPick !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <PenaltyOrderPanel
                                 takers={penaltyTakers()}
                                 busy={pending}

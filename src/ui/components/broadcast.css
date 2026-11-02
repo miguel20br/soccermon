@@ -660,6 +660,17 @@
     animation: ticker-in 0.18s var(--ease-out) both;
 }
 
+/* nada teleporta: a partida chega depois da simulação (e sem o VERSUS na frente, quando retomada) e o canvas depois
+   das fontes; os dois entram com fade. `backwards`: depois do fade a opacidade volta a ser da quadra (court-follow.ts
+   apaga o canvas na troca de câmera) */
+.app:has(.bc) > .topbar,
+.bc,
+.bc .pitch-wrap .phaser-container,
+.bc .pitch-wrap canvas,
+.bc-stands {
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
+}
+
 /* o logo fica menor durante a partida (sobra quadra no celular) */
 .app:has(.bc) {
     gap: 6px;
