@@ -1,12 +1,4 @@
-import {
-    type CSSProperties,
-    type ReactNode,
-    type RefObject,
-    useEffect,
-    useLayoutEffect,
-    useRef,
-    useState,
-} from 'react';
+import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -20,7 +12,7 @@ import { isLong } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
-import { FormationBoard } from '../components/FormationBoard';
+import { cardLook, FormationBoard } from '../components/FormationBoard';
 import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
@@ -138,8 +130,9 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
 }
 
 /**
- * O time em miniatura junto das 3 cartas: uma quadrinha deitada (o gol à esquerda) com cada vaga no lugar da
- * formação, quem já entrou e a da vez acesa, e o banco ao lado. Só mostra; o botão em volta abre o time inteiro.
+ * O time em miniatura junto das 3 cartas: uma mini carta por vaga, na ordem da formação (do gol ao pivô) e o banco,
+ * com o visual das vagas da escalação (metal pela nota, lendário, edições especiais), o sprite, a nota na vaga e a
+ * posição. Vaga vazia mostra a posição; a da vez fica acesa. Só mostra; o botão em volta abre o time inteiro.
  */
 export function DraftStrip({
     run,
@@ -153,36 +146,35 @@ export function DraftStrip({
 }) {
     const { t, d } = useT();
     const f = FORMATIONS[run.formation];
-    const chip = (ref: SlotRef, uid: string, label: string, style?: CSSProperties) => {
+    const card = (ref: SlotRef, uid: string) => {
         const inst = uid ? byUid.get(uid) : undefined;
+        const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
+        // no banco a carta mostra a posição de origem; na quadra, a da vaga
+        const pos = inst && role === 'ANY' ? viewInstance(inst).positions[0] : role;
+        const label = pos === 'ANY' ? t('common.ui.bench') : d.common.posShort[pos];
+        const look = inst ? cardLook(inst) : null;
         return (
             <span
                 key={`${ref.zone}-${ref.index}`}
-                className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)}`}
-                style={style}
+                className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)} ${look?.className ?? ''}`}
+                style={look?.style}
             >
-                {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : label}
+                {inst ? (
+                    <>
+                        <b className="dp-ovr">{ratingAt(inst, role).display}</b>
+                        <small className="dp-pos">{label}</small>
+                        <img className="pixel" src={cardSprite(inst)} alt="" />
+                    </>
+                ) : (
+                    <small className="dp-pos">{label}</small>
+                )}
             </span>
         );
     };
     return (
         <span className="dp-strip" aria-hidden="true">
-            <span className="dp-court">
-                {run.lineup.map((uid, index) => {
-                    // a quadra da escalação deitada: o fundo (y) vira a coluna e o lado (x) vira uma de 3 linhas
-                    const [x, y] = f.ui[index];
-                    const col = Math.min(1, Math.max(0, (90 - y) / 80));
-                    const row = x < 35 ? 0 : x > 65 ? 2 : 1;
-                    return chip({ zone: 'lineup', index }, uid, d.common.posShort[f.slots[index]], {
-                        '--col': col,
-                        '--row': row,
-                    } as CSSProperties);
-                })}
-            </span>
-            <span className="dp-bench">
-                <small>{t('common.ui.bench')}</small>
-                {run.bench.map((uid, index) => chip({ zone: 'bench', index }, uid, ''))}
-            </span>
+            <span className="dp-court">{run.lineup.map((uid, index) => card({ zone: 'lineup', index }, uid))}</span>
+            <span className="dp-bench">{run.bench.map((uid, index) => card({ zone: 'bench', index }, uid))}</span>
         </span>
     );
 }
