@@ -635,7 +635,7 @@ export const help: typeof pt = {
         rotaNova: ['New: Indigo Road, a long cup through the Kanto gyms.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
         relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
-        relampagoVestiario: ['Tap two to swap. Tactics and Bracket are on the board.'],
+        relampagoVestiario: ['Tap two to swap. The bracket opens from the rival poster.'],
         relampagoJogo: ['Change tactics and make subs. Busy players evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
         dueloSala: [

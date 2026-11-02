@@ -24,7 +24,7 @@ const PAGES = [
     ['/?demo=liga&motion=1', ['.k-info', '.k-sheetrow']],
     // Mercado em palco: comprar, as setas das prateleiras, as vagas de Patrocínio e o "?" do que a vitória rendeu
     ['/?demo=mercado&motion=1', ['.shop-buy', '.shop-rail-arrow.on', '.shop-sponsor-row', '.shop-head .k-info']],
-    // Escalação: as placas da parede (cartaz do rival, quadro-branco, prancheta com o carrossel)
+    // Escalação: o cartaz do rival (abre a chave); tática e formação ficam abertas na tela
     ['/?demo=vestiario&motion=1', ['.vt-obj']],
     // Rota em cena: o Treino (Pokémon e colchonete), o Evento (opções do diálogo) e o Grupo (o "?")
     ['/?demo=treino&motion=1', ['.tr-mon:not(.still)', '.tr-bed']],
