@@ -1034,6 +1034,7 @@ export function GroupScreen() {
                 <h1>{t('longCup.region.planalto')}</h1>
             </div>
             {/* a tabela em placar de TV: posição na placa, a cor do time, os pontos no quadro claro */}
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: tocar pula a cascata (tudo já está no DOM pro leitor de tela) */}
             <section className="gp-table gp-tv" aria-label={t('longCup.groupTable')} onClick={casc.skip}>
                 <div className="gp-row gp-head">
                     <span />
