@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (02/11/2026, v0.9.35)
+## Estado atual (02/11/2026, v0.9.36)
 
-No ar: 0.9.35 "Prancheta no draft" (draft com a prancheta em todo tamanho; revisão de hierarquia). `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 19 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.36 "Lab, Sede e Créditos" (objetos da cena, Créditos rolando, placar de TV). `?lab=tv` em teste. `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 19 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

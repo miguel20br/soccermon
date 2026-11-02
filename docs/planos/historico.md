@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.36 · Lab, Sede e Créditos (02/11/2026)
+
+Cara de jogo: Lab e Sede com objetos da cena (SceneHotspot) no lugar dos botões azuis, Créditos rolando com sprites e a ultima-partida, placar de TV no Grupo e no Campeão (Ver tudo em Sheet), letreiro da Liga na Arena, achados 20 a 22 da hierarquia. Protótipo `?lab=tv` (corte diagonal, letreiro de canal, grade de programação) só em dev e prévia, pra o Miguel comparar; ele quer o menu Smash mais simples com toques de TV e manter o arrastar entre telas.
+
 ## 0.9.35 · Prancheta no draft (02/11/2026)
 
 O Miguel achou feia a grade de mini cartas do draft no PC: na escolha 1 de 3 o time é a mesma prancheta (FormationBoard) do passo de posição, deitada no celular em pé. Revisão de hierarquia (achados em pesquisa de 02/11): Nova copa único botão grande, títulos 22/26 px em caixa normal, Galmuri14 sem negrito sintético, verde só confirma e azul navega, toque 44 px, texto ≥11 px; brand guide atualizado. Liga deployada no motor 19.
