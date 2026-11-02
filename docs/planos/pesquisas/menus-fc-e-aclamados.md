@@ -492,6 +492,13 @@ da recompensa com o "craque" de pista, e voltar sempre pra tela de origem (confe
 
 ---
 
+## Decidido com o Miguel (01/11/2026)
+
+"Perfeito, por mim ótimo": as 12 decisões acima ficam com a recomendação (B "o Clube" em etapas: walkout em 3 batidas
+pra Ouro 75+ e edições com Pular, rasgar o pacote, pós-jogo em cascata de até 3 s, música própria com `menu-balanco`
+até lá, abas embaixo com o Clube no centro). Pedido novo no mesmo dia: **a cara de jogo vale pro site todo**, não só
+pro Time Ultimate (levantamento tela por tela em `cara-de-jogo.md`).
+
 ## Fontes
 
 EA FC e FIFA:

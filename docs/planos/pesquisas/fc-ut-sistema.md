@@ -445,6 +445,13 @@ quanto falta e o que paga** (o hub do FC), com uma coisa nova por fase e não po
     **(recomendado)** / já num evento.
 13. **Moeda:** só Fichas pra sempre, nada de token de Campeões **(recomendado)** / uma 2ª moeda.
 
+## Decidido com o Miguel (01/11/2026)
+
+"Perfeito, por mim ótimo": as 13 decisões acima ficam com a recomendação. B em etapas (27/11 Primeiros passos e o
+objetivo no JOGAR; dezembro fases de ~6 semanas com passe de 30 marcos e Batalhas de Treinador; janeiro Rivais,
+desafios de montagem e Time da Semana; fev/mar Platô Índigo). Rivais e Platô mexem na `liga` e no Supabase de
+produção: pedir o ok de novo na hora.
+
 ## Fontes
 
 - [EA, Pitch Notes: FC 27 Launch Update](https://www.ea.com/games/ea-sports-fc/fc-27/news/pitch-notes-fc27-launch-update)
