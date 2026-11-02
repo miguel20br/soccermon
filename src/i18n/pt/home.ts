@@ -65,6 +65,9 @@ export const home = {
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
     latest: 'Mais recente',
+    /** Novidades: o cartaz da versão nova leva pra lista inteira e pras versões antigas. */
+    newsAll: 'Ver tudo',
+    newsOld: 'Versões antigas',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */

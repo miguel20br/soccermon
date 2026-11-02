@@ -51,7 +51,7 @@ export const RoomStage = memo(function RoomStage({
             if (!ref.current) return;
             game = new Phaser.Game({
                 type: Phaser.WEBGL,
-                width: ROOM_W,
+                width: Math.min(ROOM_W, data.viewW ?? ROOM_W),
                 height: ROOM_H,
                 parent: ref.current,
                 pixelArt: true,

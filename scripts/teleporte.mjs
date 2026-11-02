@@ -12,9 +12,11 @@ const [W, H] = size.split('x').map(Number);
 // telas (url) e o que tocar nelas (seletores; cada elemento achado é tocado uma vez, Esc depois)
 const PAGES = [
     // a Home (ambientes): as 5 abas da barra
-    ['/?motion=1', ['.amb-tab']],
-    ['/?demo=colecao&motion=1', ['[role=tab]', '.pf-public']],
-    ['/?demo=sala&motion=1', ['.tr-summary .btn']],
+    ['/?motion=1', ['.amb-tab', '.news-fab']],
+    // o Perfil (armário): as portas que abrem Sheet e a barra das missões
+    ['/?demo=colecao&motion=1', ['.pf-locker:nth-child(n+3)', '.pf-arm-missions', '.pf-name']],
+    // a Sala em tela cheia: o ? e a lista, as setas de parede
+    ['/?demo=sala&motion=1', ['.tr-ic', '.room-wall:not(:disabled)']],
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
     ['/?demo=dia&motion=1', ['.bc-seg button']],

@@ -1,6 +1,7 @@
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { backTarget } from '../back-nav';
+import { AboutFooter } from '../components/AboutFooter';
 import { MenuHead } from '../components/MenuHead';
 
 export function Credits() {
@@ -107,6 +108,8 @@ export function Credits() {
                     </li>
                 </ul>
             </section>
+            {/* os links de site e o aviso de direitos (saíram do fim das Configurações, cara-de-jogo.md decisão 12) */}
+            <AboutFooter lang={false} />
         </div>
     );
 }
