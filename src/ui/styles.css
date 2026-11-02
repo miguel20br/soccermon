@@ -4971,10 +4971,6 @@ button,
 }
 .champ-h {
     margin: 10px 0 0;
-    font-size: 15px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--yellow);
 }
 .champ-final-h {
     margin: 22px 0 8px;

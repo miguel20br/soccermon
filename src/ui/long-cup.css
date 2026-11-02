@@ -901,7 +901,8 @@
 .gp-row > :nth-child(n + 3) {
     text-align: center;
 }
-.gp-head {
+/* a linha de cabeçalho da tabela (a placa do título da tela também é .gp-head, e não leva a caixa alta) */
+.gp-row.gp-head {
     min-height: 26px;
     color: var(--muted);
     font-size: 10px;

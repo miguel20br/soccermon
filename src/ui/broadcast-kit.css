@@ -116,23 +116,20 @@
     }
 }
 
-/* ---------- título de painel e de prateleira: texto simples (a placa fica só no título da tela, uma por tela) ----------
-   Vale pra todo painel de fora da partida (.bc tem o desenho dela), pras prateleiras do Mercado e pros títulos das
-   telas de campeão. */
+/* ---------- título de painel e de seção: texto simples (a placa fica só no título da tela, uma por tela) ----------
+   Vale pra todo painel de fora da partida (.bc tem o desenho dela) e pros títulos das telas de campeão. Um estilo só:
+   Galmuri11 Bold 16 px em caixa normal (caixa alta é só da etiqueta: .bc-tag e .bc-lbl). */
 .bc-caption,
 :where(.panel:not(.bc *, .modal)) > h2:first-child,
-.champ-h,
-.shop-shelf-title {
+.champ-h {
     display: block;
     max-width: 100%;
     margin: 0 0 10px;
     color: var(--text);
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
-    font-weight: 400;
-    letter-spacing: 1px;
+    font-family: "Galmuri11", monospace;
+    font-size: 16px;
+    font-weight: 700;
     line-height: 1.2;
-    text-transform: uppercase;
     /* numa linha: o que passa vira reticências (o nome do clube é o que corta) */
     white-space: nowrap;
     overflow: hidden;
