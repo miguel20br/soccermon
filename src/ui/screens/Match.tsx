@@ -84,6 +84,7 @@ import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { readHud } from '../hud-lab';
+import { CourtStands } from '../kit/backdrop';
 import { playMoment } from '../kit/MomentWipe';
 import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
@@ -814,6 +815,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     <div className={`pitch-wrap${follow ? ' hud-follow' : hud ? ' hud-tv' : ''}`} ref={pitchRef}>
+                        {/* quadra inteira no celular em pé (4x, 8x): a torcida nas bandas em cima e embaixo */}
+                        {follow && <CourtStands names={teamNames} colors={colors} />}
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (

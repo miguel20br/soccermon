@@ -81,3 +81,23 @@ export function EstadioBackdrop({ mon, led }: { mon: Mon; led: string }) {
         </ClockCtx.Provider>
     );
 }
+
+/**
+ * As bandas da quadra inteira no celular em pé (4x, 8x e Lances: a quadra é uma faixa no meio da caixa): a torcida de
+ * cada time no lugar do fundo liso, a sua do outro lado (com a faixa) e a do rival na beira de cá, com o letreiro do
+ * jogo colado na quadra. Fica atrás do canvas (Match.tsx, broadcast.css `.bc-stands`).
+ */
+export function CourtStands({ names, colors }: { names: [string, string]; colors: [number, number] }) {
+    const led = `${names[0]} x ${names[1]}`.toUpperCase();
+    return (
+        <div className="bc-stands" aria-hidden>
+            <div className="bc-stand-band far" style={clubVars(colors[0])}>
+                <Stands clubName={names[0]} led={led} />
+            </div>
+            <i className="bc-stand-court" />
+            <div className="bc-stand-band near" style={clubVars(colors[1])}>
+                <Stands clubName={names[1]} led={led} />
+            </div>
+        </div>
+    );
+}
