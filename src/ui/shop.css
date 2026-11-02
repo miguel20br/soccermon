@@ -511,8 +511,9 @@ button.sp-slot:hover {
  * Mercado em palco (cara-de-jogo.md, Mercado; ref. loja do Balatro): nada rola. A vitrine numa prateleira e os
  * Patrocínios na de baixo, cada uma corre de lado com a seta. A carta mede pela altura que sobra (--shop-reserve).
  */
+/* o título encosta na barra da copa (centrado sobravam ~90 px vazios em cima) */
 .shop-stage .k-stage-body {
-    justify-content: safe center;
+    justify-content: flex-start;
     gap: 8px;
     padding-top: 4px;
 }
@@ -624,9 +625,11 @@ button.sp-slot:hover {
 .shop-rack .shop-shelf {
     margin: 0;
 }
+/* um rótulo só nas prateleiras (Contratações, Pacote e item, Patrocínios): etiqueta Bold 12 px caixa alta, a contagem
+   e a seta à direita */
 .shop-stage .shop-shelf-title {
     margin: 0 0 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -672,17 +675,14 @@ button.sp-slot:hover {
     border: 0;
     background: none;
     box-shadow: none;
-    font-size: 11px;
 }
 .shop-stage .shop-sponsor-row .hud-icon {
     width: 16px;
     height: 16px;
 }
 .shop-stage .shop-sponsor-row b {
-    margin-right: 0;
-}
-.shop-stage .shop-sponsor-row .muted {
     margin-right: auto;
+    font-weight: 700;
 }
 .shop-sponsor-rail .shop-offer {
     width: min(330px, calc(100 * var(--vw) - 56px));
