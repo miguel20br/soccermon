@@ -5,6 +5,11 @@
  */
 export const common = {
     ui: {
+        skip: 'Pular',
+        tapToContinue: 'Toque pra continuar',
+        howItWorks: 'Como funciona',
+        prev: 'Anterior',
+        next: 'Próximo',
         close: 'Fechar',
         cancel: 'Cancelar',
         back: 'Voltar',
