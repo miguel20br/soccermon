@@ -4,8 +4,9 @@
  *
  * Cor por função (uma cor = um papel, aprende uma vez e lê a tela inteira):
  *   dourado  .btn.primary  / .cb-gold   joga (o JOGAR, um por tela)
- *   verde    .btn.confirm  / .cb-green  confirma, compra, segue, escolhe
- *   azul     .btn          / .cb-blue   secundário (ir a um lugar, sortear, compartilhar); .outline é o mesmo
+ *   verde    .btn.confirm  / .cb-green  confirma, compra, segue, escolhe (só isso: botão que só leva a um lugar não é verde)
+ *   azul     .btn          / .cb-blue   navega e secundário (ir a um lugar, sortear, compartilhar); .outline é o mesmo.
+ *                                       O gordo do ambiente que só abre um lugar (Abrir a Pokédex, Sala de troféus) é azul
  *   vermelho .btn.danger   / .cb-red    perigo e fechar, só dentro da confirmação
  *   terciário .btn.ghost                pular, cancelar, voltar (sem face); .ghost.danger = gatilho do perigo
  *

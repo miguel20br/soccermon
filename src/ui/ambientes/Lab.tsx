@@ -81,7 +81,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                 <div className="rm-actions">
                     <button
                         type="button"
-                        className="btn big cup-go rm-go cb cb-green"
+                        className="btn big cup-go rm-go cb cb-blue"
                         onClick={() => openDoor('collection', 'dex')}
                     >
                         <span className="cup-go-txt">
