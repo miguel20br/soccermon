@@ -29,7 +29,7 @@ import { cardSprite } from '../components/PokeCard';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { lineupAverage } from '../rating';
-import { DraftStrip } from '../screens/Draft';
+import { DraftTeam } from '../screens/Draft';
 import { LineupEditor } from '../screens/Lineup';
 import '../draft.css';
 import { seriesLabel, useCountdown } from './DuelMatch';
@@ -287,24 +287,17 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                 </div>
 
                 <div className="draft-pick" key={draft.round}>
-                    {/* o time em miniatura: mostra onde a carta cai; tocar abre a quadra */}
-                    <button
-                        type="button"
-                        className="dp-strip-btn"
-                        aria-haspopup="dialog"
-                        aria-label={t('duel.draft.yourTeam')}
-                        onClick={() => {
+                    {/* o time (a prancheta, ou a faixa no celular em pé): mostra onde a carta cai; tocar abre a quadra */}
+                    <DraftTeam
+                        run={{ formation: '1-2-1', ...myBoard }}
+                        byUid={new Map(mine.map((p) => [p.uid, p]))}
+                        stateOf={stateOf}
+                        label={t('duel.draft.yourTeam')}
+                        onOpen={() => {
                             setView(role);
                             setTeamOpen(true);
                         }}
-                    >
-                        <DraftStrip
-                            run={{ formation: '1-2-1', ...myBoard }}
-                            byUid={new Map(mine.map((p) => [p.uid, p]))}
-                            stateOf={stateOf}
-                        />
-                        <HudIcon kind="next" />
-                    </button>
+                    />
                     {(rivalTook || burned.length > 0) && (
                         <div className="duel-draft-news">
                             {rivalTook ? (

@@ -48,7 +48,7 @@ interface Props {
 
 /**
  * O visual da carta numa vaga (metal pela nota, lendário, edições especiais), sem os atributos: as classes `sc` e as
- * cores (`--rar` o anel do metal, `--t1` a cor do Evento). A mesma vaga da escalação e a mini carta do draft.
+ * cores (`--rar` o anel do metal, `--t1` a cor do Evento).
  */
 export function cardLook(inst: PokemonInstance): { className: string; style: CSSProperties } {
     const tier = species(inst.speciesId).tier;

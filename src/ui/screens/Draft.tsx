@@ -1,7 +1,7 @@
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import type { FormationId } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
@@ -12,13 +12,14 @@ import { isLong } from '../../store/long-cup';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
-import { cardLook, FormationBoard } from '../components/FormationBoard';
+import { FormationBoard } from '../components/FormationBoard';
 import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
 import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
+import { useMedia } from '../components/Prancheta';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { lineupAverage, ratingAt } from '../rating';
@@ -111,7 +112,7 @@ function AutoDraft({
 }
 
 /** A quadra cabe no palco sem rolar: encolhe (zoom) até caber na altura e na largura que sobram. */
-function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
+function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown, min = 0.5) {
     // biome-ignore lint/correctness/useExhaustiveDependencies: mede de novo quando a quadra troca (key)
     useLayoutEffect(() => {
         const wrap = ref.current;
@@ -120,62 +121,55 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
         const refit = () => {
             inner.style.zoom = '';
             const z = Math.min(1, wrap.clientHeight / inner.offsetHeight, wrap.clientWidth / inner.offsetWidth);
-            if (z < 1) inner.style.zoom = String(Math.max(0.5, z));
+            if (z < 1) inner.style.zoom = String(Math.max(min, z));
         };
         refit();
         const ro = new ResizeObserver(refit);
         ro.observe(wrap);
         return () => ro.disconnect();
-    }, [ref, key]);
+    }, [ref, key, min]);
 }
 
+type DraftTeamRun = Pick<NonNullable<ReturnType<typeof useGame.getState>['run']>, 'formation' | 'lineup' | 'bench'>;
+
 /**
- * O time em miniatura junto das 3 cartas: uma mini carta por vaga, na ordem da formação (do gol ao pivô) e o banco,
- * com o visual das vagas da escalação (metal pela nota, lendário, edições especiais), o sprite, a nota na vaga e a
- * posição. Vaga vazia mostra a posição; a da vez fica acesa. Só mostra; o botão em volta abre o time inteiro.
+ * O time junto das cartas da escolha: a mesma prancheta do passo "Escolha uma posição" (FormationBoard), encolhida
+ * com zoom até caber, com a vaga da vez acesa. No PC e deitado, em pé ao lado das cartas; no celular em pé, deitada
+ * (gol à esquerda) em cima delas. Só mostra; tocar abre o time inteiro (Copa e Duelo).
  */
-export function DraftStrip({
+export function DraftTeam({
     run,
     byUid,
     stateOf,
+    label,
+    onOpen,
 }: {
     /** A copa ou, no Duelo, o time montado até aqui (formação, titulares e banco). */
-    run: Pick<NonNullable<ReturnType<typeof useGame.getState>['run']>, 'formation' | 'lineup' | 'bench'>;
+    run: DraftTeamRun;
     byUid: Map<string, PokemonInstance>;
     stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
+    label: string;
+    onOpen: () => void;
 }) {
-    const { t, d } = useT();
-    const f = FORMATIONS[run.formation];
-    const card = (ref: SlotRef, uid: string) => {
-        const inst = uid ? byUid.get(uid) : undefined;
-        const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
-        // no banco a carta mostra a posição de origem; na quadra, a da vaga
-        const pos = inst && role === 'ANY' ? viewInstance(inst).positions[0] : role;
-        const label = pos === 'ANY' ? t('common.ui.bench') : d.common.posShort[pos];
-        const look = inst ? cardLook(inst) : null;
-        return (
-            <span
-                key={`${ref.zone}-${ref.index}`}
-                className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)} ${look?.className ?? ''}`}
-                style={look?.style}
-            >
-                {inst ? (
-                    <>
-                        <b className="dp-ovr">{ratingAt(inst, role).display}</b>
-                        <small className="dp-pos">{label}</small>
-                        <img className="pixel" src={cardSprite(inst)} alt="" />
-                    </>
-                ) : (
-                    <small className="dp-pos">{label}</small>
-                )}
-            </span>
-        );
-    };
+    const fitRef = useRef<HTMLDivElement>(null);
+    const horizontal = useMedia('(orientation: portrait)');
+    useFitBoard(fitRef, `${run.lineup.join()}|${run.bench.join()}|${horizontal}`, 0.2);
     return (
-        <span className="dp-strip" aria-hidden="true">
-            <span className="dp-court">{run.lineup.map((uid, index) => card({ zone: 'lineup', index }, uid))}</span>
-            <span className="dp-bench">{run.bench.map((uid, index) => card({ zone: 'bench', index }, uid))}</span>
-        </span>
+        <div className="dp-team">
+            <div className="dp-fit" ref={fitRef} aria-hidden="true">
+                <FormationBoard
+                    formation={run.formation}
+                    lineup={run.lineup}
+                    bench={run.bench}
+                    byUid={byUid}
+                    stateOf={stateOf}
+                    horizontal={horizontal}
+                />
+            </div>
+            <button type="button" className="dp-open" aria-haspopup="dialog" aria-label={label} onClick={onOpen}>
+                <HudIcon kind="next" />
+            </button>
+        </div>
     );
 }
 
@@ -365,17 +359,14 @@ export function Draft() {
                     </div>
                 ) : (
                     <div className="draft-pick" key="options">
-                        {/* o time em miniatura: mostra onde a carta cai; tocar abre o time inteiro */}
-                        <button
-                            type="button"
-                            className="dp-strip-btn"
-                            aria-haspopup="dialog"
-                            aria-label={t('reward.yourTeam')}
-                            onClick={() => setTeamOpen(true)}
-                        >
-                            <DraftStrip run={run} byUid={byUid} stateOf={slotState} />
-                            <HudIcon kind="next" />
-                        </button>
+                        {/* o time (a prancheta, ou a faixa no celular em pé): mostra onde a carta cai; tocar abre o time inteiro */}
+                        <DraftTeam
+                            run={run}
+                            byUid={byUid}
+                            stateOf={slotState}
+                            label={t('reward.yourTeam')}
+                            onOpen={() => setTeamOpen(true)}
+                        />
                         {/* as 3 opções saem de um pacote compacto, uma de cada vez (um toque pula) */}
                         <CardPack
                             compact
