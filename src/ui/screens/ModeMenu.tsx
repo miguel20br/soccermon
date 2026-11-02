@@ -24,7 +24,7 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
-import { announceProgram, tvOn } from '../tv-lab';
+import { announceProgram, tvGrid, tvOn } from '../tv-lab';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
@@ -525,9 +525,22 @@ const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
  * `look` c2 (padrão, 30/10/2026: o Copa grande em cima e os dois trancados lado a lado embaixo, cada um com a cena
  * inteira) ou c1 (as três empilhadas). Tocar abre a fatia (cresce, acende, mostra os itens). Os trancados têm o selo
  * "EM BREVE" com a data; abertos, o JOGAR dá lugar a "Chega em…" (um toque volta pro Modo Copa).
+ * `tv` (?lab=tv, src/ui/tv-lab.ts): o mesmo menu mais limpo, com cara de TV. Cada fatia é um canal (o número pequeno),
+ * o jogável diz AO VIVO, os trancados perdem a fita de obra e o selo vira a faixa de baixo ("EM BREVE 27/11"); a pilha
+ * ganha uma moldura de tela e o letreiro de LED da torcida fica sem texto (repetia os nomes dos modos).
  */
 export type SliceLook = 'c1' | 'c2';
-export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: SliceLook; onPlay?: () => void }) {
+export function ModeSlices({
+    big,
+    look = 'c2',
+    tv = false,
+    onPlay,
+}: {
+    big: boolean;
+    look?: SliceLook;
+    tv?: boolean;
+    onPlay?: () => void;
+}) {
     const { t, d } = useT();
     const [sel, setSel] = useState<ModeId>(LAST);
     // o "Chega em…" guarda o último trancado aberto: voltando pro Copa, ele some com o texto certo
@@ -542,7 +555,7 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
         anims.current = flipSlices(el, anims.current, () => flushSync(() => setSel(m)));
     };
     return (
-        <div className={`mm-c mm-${look}`}>
+        <div className={`mm-c mm-${look}${tv ? ' mm-tvs' : ''}`}>
             <Head />
             <div ref={stack} className={`mm-c-stack mm-sel-${sel}`}>
                 {ORDER.map((m, n) => (
@@ -559,12 +572,29 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
                             <i className="mm-burst" />
                         </span>
                         <Hero id={m} scale={big ? 5 : 3} />
-                        {m !== LAST && <Tape id={m} />}
+                        {m !== LAST && !tv && <Tape id={m} />}
                         <span className="mm-slice-txt">
-                            {m === LAST ? <span className="mm-tag">{t('home.modes.last')}</span> : <Soon id={m} />}
+                            {tv ? (
+                                m === LAST && (
+                                    <span className="tv-onair">
+                                        <i>{n + 1}</i>
+                                        <b>{d.home.live}</b>
+                                    </span>
+                                )
+                            ) : m === LAST ? (
+                                <span className="mm-tag">{t('home.modes.last')}</span>
+                            ) : (
+                                <Soon id={m} />
+                            )}
                             <b className="cb-num mm-plate">
                                 <span>{d.home.modes[m].name}</span>
                             </b>
+                            {tv && m !== LAST && (
+                                <span className="tv-soon">
+                                    <i>{n + 1}</i>
+                                    <Soon id={m} />
+                                </span>
+                            )}
                             <span className="mm-slice-more">
                                 <span>
                                     {m === 'ultimate' && <When id={m} />}
@@ -584,7 +614,7 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
 }
 
 /**
- * ?lab=tv (src/ui/tv-lab.ts): o menu de modos como grade de programação. Os mesmos modos, itens, selos, JOGAR e
+ * ?lab=tv&grade=1 (src/ui/tv-lab.ts, só pra comparar com o menu de TV): o menu de modos como grade de programação. Os mesmos modos, itens, selos, JOGAR e
  * "Chega em…" das fatias; cada modo é um horário da grade (AGORA no canal 1, A SEGUIR na data do Ultimate, MAIS TARDE
  * em 2027). Tocar abre o horário (cresce e mostra os itens), como a fatia.
  */
@@ -707,7 +737,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     return (
         <ClockCtx.Provider value={clock}>
             <section ref={root} className={`mm-root mm-menu mm-${phase}`} aria-label={t('home.modes.aria')}>
-                {tvOn() ? <ModeGrid big={big} onPlay={play} /> : <ModeSlices big={big} onPlay={play} />}
+                {tvGrid() ? <ModeGrid big={big} onPlay={play} /> : <ModeSlices big={big} tv={tvOn()} onPlay={play} />}
             </section>
         </ClockCtx.Provider>
     );

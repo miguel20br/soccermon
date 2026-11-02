@@ -20,6 +20,9 @@ export function tvFlag(search: string, stored: string | null, smoke: boolean): b
 let on = false;
 /** Ligado nesta aba (lido uma vez pelo App, `readTv`). */
 export const tvOn = () => on;
+/** `?lab=tv&grade=1`: o menu de modos como a grade de programação (a primeira versão, só pra comparar). */
+export const tvGridFlag = (search: string, tv: boolean) => tv && new URLSearchParams(search).get('grade') === '1';
+export const tvGrid = () => tvGridFlag(window.location.search, on);
 
 /** Lê e guarda a escolha (entrar na copa troca a URL; a troca de tela seguinte tem que lembrar). */
 export function readTv(): boolean {

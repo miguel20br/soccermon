@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CUT_IN_MS, CUT_OUT_MS, cutGeometry, tvFlag } from './tv-lab';
+import { CUT_IN_MS, CUT_OUT_MS, cutGeometry, tvFlag, tvGridFlag } from './tv-lab';
 
 describe('?lab=tv', () => {
     it('sem a bandeira (e sempre em produção) fica desligado', () => {
@@ -28,5 +28,13 @@ describe('?lab=tv', () => {
             expect(g.cover + g.width - g.s).toBeGreaterThanOrEqual(w);
             expect(g.end + g.width).toBeLessThanOrEqual(0);
         }
+    });
+});
+
+describe('?lab=tv&grade=1', () => {
+    it('a grade antiga só com a bandeira ligada e o grade=1', () => {
+        expect(tvGridFlag('?lab=tv&grade=1', true)).toBe(true);
+        expect(tvGridFlag('?lab=tv', true)).toBe(false);
+        expect(tvGridFlag('?grade=1', false)).toBe(false);
     });
 });
