@@ -94,3 +94,57 @@
 .kl-chips .k-chip {
     margin-top: 0;
 }
+
+.kl-cascade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    cursor: pointer;
+}
+.kl-score {
+    font-size: 40px;
+}
+.kl-gain {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 24px;
+    color: var(--yellow);
+}
+.kl-cascade-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.kl-stage-box {
+    display: flex;
+    height: 420px;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 12px;
+}
+.kl-stage-box .bc-thumbbar {
+    position: static;
+}
+.kl-stage-scene {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #1d2a5e, #0b1230);
+}
+.kl-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 260px);
+    align-items: center;
+    gap: 10px 14px;
+    margin-bottom: 14px;
+}
+.kl-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 420px;
+    margin-bottom: 14px;
+}

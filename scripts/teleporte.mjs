@@ -19,6 +19,8 @@ const PAGES = [
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
     ['/?demo=dia&motion=1', ['.bc-seg button']],
     ['/?demo=mercado&motion=1', ['.shop-buy']],
+    // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
+    ['/?lab=kit&motion=1', ['.k-step-btn', '.k-option', '.k-info', '.k-sheetrow']],
 ];
 
 /** Roda dentro da página: vigia o que aparece, some e pula. */

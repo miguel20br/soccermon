@@ -1,9 +1,52 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { createInstance } from '../../engine/instance';
+import { Rng } from '../../engine/rng';
 import { TopBar, useCountUp } from '../ambientes/TopBar';
+import { CountUp } from '../components/CountUp';
+import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
 import './kit-lab.css';
+import { Beat, Cascade, useCascade } from './Cascade';
+import { InfoSheet, OptionTile, SheetRow, Stepper } from './controls';
+import { MomentStage, Walkout } from './MomentStage';
 import { MomentWipe, randomArt, WIPE_ART, type WipeArt } from './MomentWipe';
+import { Stage } from './Stage';
+
+/** A cascata de exemplo (o fim de partida): placar, ₽ contando, craque e o próximo rival. */
+function CascadeDemo() {
+    const c = useCascade([0, 450, 450, 500]);
+    return (
+        // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a festa (demo)
+        <div className="kl-cascade" onClick={c.skip}>
+            <Beat on={c.step > 0}>
+                <b className="cb-num kl-score">5 x 3</b>
+            </Beat>
+            <Beat on={c.step > 1}>
+                <span className="kl-gain">
+                    +₽
+                    <CountUp from={0} to={c.step > 1 ? 14 : 0} skip={c.skipped} />
+                </span>
+            </Beat>
+            <Beat on={c.step > 2}>
+                <span className="k-seal">
+                    <HudIcon kind="max" /> Craque: Mewtwo
+                </span>
+            </Beat>
+            <Beat on={c.step > 3}>
+                <span className="muted">Próximo: Quartas · Cerulean</span>
+            </Beat>
+        </div>
+    );
+}
+
+const FORMS = [
+    { value: '2-2', label: 'Quadrado (2-2)' },
+    { value: '1-2-1', label: 'Losango (1-2-1)' },
+    { value: '3-1', label: 'Muralha (3-1)' },
+    { value: '2-1-1', label: 'Y (2-1-1)' },
+];
+const VOLS = Array.from({ length: 11 }, (_, i) => ({ value: i * 10, label: `${i * 10}%` }));
 
 /** Um botão de cada função, do jeito que as telas usam (`.btn` + modificador). */
 const ROLES: { cls: string; name: string; use: string; label: string; icon?: HudIconKind }[] = [
@@ -49,6 +92,17 @@ export function KitLab({ onExit }: { onExit: () => void }) {
     const [sel, setSel] = useState(1);
     const [run, setRun] = useState(0);
     const [wipe, setWipe] = useState<WipeArt | null>(null);
+    const [walk, setWalk] = useState(false);
+    const [pick, setPick] = useState<number | null>(null);
+    const [pickOpen, setPickOpen] = useState(false);
+    const [casc, setCasc] = useState(0);
+    const [form, setForm] = useState('1-2-1');
+    const [vol, setVol] = useState(60);
+    const [opt, setOpt] = useState(0);
+    const cards = useMemo(() => {
+        const rng = new Rng('kit', 'lab');
+        return [149, 6, 94].map((id) => createInstance(id, rng));
+    }, []);
     return (
         <div className="kl">
             <header className="kl-head bc-screenhead">
@@ -76,6 +130,119 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                     ))}
                 </div>
                 {wipe && <MomentWipe key={wipe} art={wipe} onDone={() => setWipe(null)} />}
+            </section>
+
+            <section className="panel" id="momento">
+                <h2>Momento e walkout</h2>
+                <p className="muted">
+                    Overlay de tela cheia com o fundo da marca e os raios. Walkout em 3 batidas (tipo, posição,
+                    insígnia) só pra ouro 75+ e edição; toque adianta, Pular vai pro fim.
+                </p>
+                <div className="kl-btns">
+                    <button type="button" className="btn" onClick={() => setWalk(true)}>
+                        <HudIcon kind="play" /> Walkout (Dragonite)
+                    </button>
+                    <button type="button" className="btn" onClick={() => setPickOpen(true)}>
+                        <HudIcon kind="cards" /> Escolha 1 de 3
+                    </button>
+                </div>
+                {walk && <Walkout inst={cards[0]} onDone={() => setWalk(false)} />}
+                {pickOpen && (
+                    <MomentStage label="Escolha 1 de 3" onSkip={() => setPickOpen(false)}>
+                        <h2 className="k-moment-title">Escolha 1</h2>
+                        <div className="k-pick3">
+                            {cards.map((c, i) => (
+                                <FutCard
+                                    key={c.uid}
+                                    inst={c}
+                                    selected={pick === i}
+                                    action={{ label: 'Escolher', primary: true, onClick: () => setPick(i) }}
+                                />
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            className="btn confirm big"
+                            disabled={pick === null}
+                            onClick={() => setPickOpen(false)}
+                        >
+                            Confirmar
+                        </button>
+                    </MomentStage>
+                )}
+            </section>
+
+            <section className="panel" id="cascata">
+                <h2>Cascata</h2>
+                <p className="muted">
+                    Batidas de 250–600 ms, cada uma com som e pop; o total cabe em 3,5 s e um toque pula pro fim.
+                </p>
+                <CascadeDemo key={casc} />
+                <Cascade gaps={[0, 300, 300]} key={`c${casc}`} className="kl-cascade-row">
+                    <span className="k-seal">Primeiro título!</span>
+                    <span className="k-seal k-seal-dark">Copa em 1 min</span>
+                    <span className="k-seal">Copa perfeita</span>
+                </Cascade>
+                <button type="button" className="btn small" onClick={() => setCasc((n) => n + 1)}>
+                    <HudIcon kind="reroll" /> De novo
+                </button>
+            </section>
+
+            <section className="panel" id="palco">
+                <h2>Palco</h2>
+                <p className="muted">Tela que não rola: cena atrás, um bloco no meio, a ação gorda no polegar.</p>
+                <div className="kl-stage-box">
+                    <Stage
+                        scene={<div className="kl-stage-scene" />}
+                        action={
+                            <button type="button" className="btn confirm">
+                                Seguir <HudIcon kind="next" />
+                            </button>
+                        }
+                    >
+                        <div className="k-pick3">
+                            {cards.map((c) => (
+                                <FutCard key={c.uid} inst={c} size="sm" />
+                            ))}
+                        </div>
+                    </Stage>
+                </div>
+            </section>
+
+            <section className="panel" id="controles">
+                <h2>Controles de jogo</h2>
+                <div className="kl-controls">
+                    <span className="muted">Formação</span>
+                    <Stepper label="Formação" value={form} options={FORMS} onChange={setForm} wrap />
+                    <span className="muted">Volume</span>
+                    <Stepper label="Volume" value={vol} options={VOLS} onChange={setVol} />
+                </div>
+                <div className="kl-options">
+                    {(
+                        [
+                            ['team', 'Meu time'],
+                            ['cards', 'Disputa'],
+                            ['chest', 'Pacotes'],
+                        ] as const
+                    ).map(([icon, label], i) => (
+                        <OptionTile
+                            key={label}
+                            icon={icon}
+                            label={label}
+                            selected={opt === i}
+                            onClick={() => setOpt(i)}
+                        />
+                    ))}
+                </div>
+                <div className="kl-controls">
+                    <span>Critério do gol da copa</span>
+                    <InfoSheet title="Gol da copa">
+                        <p>Golpe no chute (+3), distância do gol (+1 a cada 4 m) e gol na final (+2).</p>
+                    </InfoSheet>
+                </div>
+                <SheetRow icon="lock" label="Bloqueados" hint="45" title="Bloqueados">
+                    <p>O que antes era um acordeão na página abre aqui, numa Sheet.</p>
+                </SheetRow>
             </section>
 
             <section className="panel">

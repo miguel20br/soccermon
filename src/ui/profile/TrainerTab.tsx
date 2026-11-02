@@ -27,6 +27,7 @@ import {
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCardCode, redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
+import { SheetRow } from '../kit/controls';
 import { missionOfTitle, missionText, titleHow, titleName, trainerHow, trainerName } from './club';
 import { CheckIcon, LockIcon } from './icons';
 import { NewBadge } from './news';
@@ -178,8 +179,12 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                     ))}
                 </ul>
                 {lockedTitles.length > 0 && (
-                    <details className="pf-titles-locked">
-                        <summary>{t('profile.picker.lockedTitles', { n: lockedTitles.length })}</summary>
+                    <SheetRow
+                        icon="lock"
+                        className="pf-titles-locked"
+                        label={t('profile.picker.lockedTitles', { n: lockedTitles.length })}
+                        title={t('profile.picker.lockedTitles', { n: lockedTitles.length })}
+                    >
                         <ul className="pf-titles">
                             {lockedTitles.map((id) => {
                                 const m = missionOfTitle(id);
@@ -193,7 +198,7 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
                                 );
                             })}
                         </ul>
-                    </details>
+                    </SheetRow>
                 )}
                 <small className="muted">{t('profile.picker.titleHelp')}</small>
             </fieldset>

@@ -1,0 +1,617 @@
+/*
+ * Peças de "cara de jogo" (docs/planos/pesquisas/cara-de-jogo.md, 02/11/2026): Palco, Momento (com o walkout),
+ * Cascata e os controles de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet). Galeria: ?lab=kit.
+ */
+
+/* ---------- pop de jogo (o mesmo do selo): entra grande e assenta ---------- */
+.k-pop {
+    animation: k-pop-in var(--dur-pop) var(--ease-pop) both;
+}
+@keyframes k-pop-in {
+    from {
+        opacity: 0;
+        transform: scale(1.35);
+    }
+}
+
+/* ---------- cascata: cada batida guarda o lugar e entra com pop quando chega a vez ---------- */
+.k-beat {
+    visibility: hidden;
+}
+.k-beat.on {
+    visibility: visible;
+    animation: k-pop-in var(--dur-pop) var(--ease-pop) both;
+}
+
+/* ---------- palco: a tela que não rola ---------- */
+.app:has(> .k-stage) {
+    height: calc(100 * var(--vh));
+    min-height: 0;
+    overflow: hidden;
+}
+.k-stage {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.k-stage-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+.k-stage-body {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+    gap: 12px;
+}
+
+/* ---------- momento: overlay com o fundo da marca e os raios ---------- */
+.k-moment {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 40%, #2a3a7a 0%, #141d48 55%, #070a18 100%);
+    color: var(--text);
+    animation: k-moment-in var(--dur-tela) var(--ease-out) both;
+}
+@keyframes k-moment-in {
+    from {
+        opacity: 0;
+    }
+}
+.k-moment-rays {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    width: max(calc(180 * var(--vw)), calc(180 * var(--vh)));
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.07) 0 9deg, transparent 9deg 22.5deg);
+    mask: radial-gradient(closest-side, #000 20%, transparent 75%);
+    animation: k-rays-turn 24s linear infinite;
+    pointer-events: none;
+}
+@keyframes k-rays-turn {
+    to {
+        rotate: 360deg;
+    }
+}
+.k-moment > .k-moment-skip {
+    position: absolute;
+    top: max(12px, env(safe-area-inset-top));
+    right: 12px;
+    z-index: 2;
+}
+.k-moment-body {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 720px);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+.k-moment-title {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: clamp(34px, calc(10 * var(--vw)), 64px);
+    line-height: 1;
+    letter-spacing: 1px;
+    color: var(--yellow);
+    text-shadow: var(--k-out-2);
+    --ol: var(--cb-ink);
+    text-align: center;
+}
+.k-moment-title.loss {
+    color: color-mix(in srgb, var(--red), #fff 22%);
+}
+.k-moment-title.draw {
+    color: var(--text);
+}
+
+/* ---------- walkout: cor do tipo, ícone, placa da posição, insígnia, carta ---------- */
+.k-walk {
+    background: radial-gradient(
+        110% 80% at 50% 42%,
+        color-mix(in srgb, var(--tc), #fff 12%) 0%,
+        var(--tc) 38%,
+        color-mix(in srgb, var(--tc), #05081a 72%) 100%
+    );
+    transition: background var(--dur-tela) var(--ease-out);
+}
+.k-walk.is-card {
+    background: radial-gradient(120% 90% at 50% 40%, #2a3a7a 0%, #141d48 55%, #070a18 100%);
+}
+.k-walk-tap {
+    all: unset;
+    position: relative;
+    width: 100%;
+    height: min(560px, calc(70 * var(--vh)));
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+.k-walk-tap:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 4px;
+}
+.k-walk-type {
+    position: absolute;
+    top: 14%;
+    left: 50%;
+    translate: -50% 0;
+    filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.35));
+}
+.k-walk-type img {
+    width: 96px;
+    height: 96px;
+}
+.k-walk-pos {
+    position: absolute;
+    top: 46%;
+    right: -16px;
+    padding: 10px 40px 10px 34px;
+    background: var(--cb-ink);
+    border: 3px solid #000;
+    box-shadow: inset 0 0 0 2px var(--frame-in);
+    clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 30px;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    animation: k-walk-slide var(--dur-tela) var(--ease-out) both;
+}
+@keyframes k-walk-slide {
+    from {
+        transform: translate(60%, -30%);
+        opacity: 0;
+    }
+}
+.k-walk-badge {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    translate: -50% 0;
+}
+.k-walk-badge svg {
+    width: 84px;
+    height: 84px;
+    filter: drop-shadow(0 5px 0 rgb(0 0 0 / 0.4));
+}
+.k-walk-badge b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 34px;
+    color: #fff;
+    text-shadow: var(--k-out-2);
+}
+.k-walk-card {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: min(240px, calc(62 * var(--vw)));
+    animation: k-walk-rise 700ms var(--ease-pop) both;
+}
+.k-walk-card .fut-wrap,
+.k-walk-card > :not(i) {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+@keyframes k-walk-rise {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.8);
+    }
+}
+.k-walk-light {
+    position: absolute;
+    inset: -40%;
+    z-index: 0;
+    background: radial-gradient(closest-side, rgb(255 226 120 / 0.7), rgb(255 226 120 / 0) 70%);
+    animation: k-moment-in 600ms var(--ease-out) both;
+}
+.k-walk-dots {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: rgb(255 255 255 / 0.85);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.k-walk-dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    transition: background var(--dur-ui) var(--ease-out);
+}
+.k-walk-dots i:first-of-type {
+    margin-left: 6px;
+}
+.k-walk-dots i.on {
+    background: #fff;
+}
+.k-walk-go {
+    min-width: 220px;
+}
+
+/* ---------- seletor ‹ valor › ---------- */
+.k-stepper {
+    display: inline-grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    height: 44px;
+    background: var(--bc-ink);
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+}
+.k-step-btn {
+    all: unset;
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--yellow);
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.k-step-btn:active:not(:disabled) {
+    transform: scale(0.86);
+    transition-duration: var(--dur-toque);
+}
+.k-step-btn:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: -4px;
+    border-radius: 4px;
+}
+.k-step-btn:disabled {
+    color: var(--muted);
+    opacity: 0.4;
+    cursor: default;
+}
+.k-step-value {
+    overflow: hidden;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+}
+.k-step-value > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: k-step-in var(--dur-ui) var(--ease-out) both;
+}
+@keyframes k-step-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+/* ---------- bloco de escolha (ícone + 2–3 palavras) ---------- */
+.k-option {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 92px;
+    padding: 12px 8px;
+    text-align: center;
+    background: var(--panel-2);
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-2);
+    cursor: pointer;
+    transition:
+        transform var(--dur-solta) var(--ease-pop),
+        box-shadow var(--dur-ui) var(--ease-out);
+}
+.k-option .hud-icon {
+    width: 30px;
+    height: 30px;
+    color: var(--yellow);
+}
+.k-option b {
+    font-size: 14px;
+}
+.k-option small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.k-option:active:not(:disabled) {
+    transform: translateY(3px);
+    transition-duration: var(--dur-toque);
+}
+.k-option:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.k-option.on {
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--pick-ring);
+}
+.k-option:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* ---------- Info "?" e linha que abre Sheet ---------- */
+.k-info {
+    all: unset;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bc-ink);
+    border: 2px solid var(--cb-ink);
+    box-shadow: inset 0 0 0 2px var(--frame-in);
+    color: var(--yellow);
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.k-info .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.k-info:active {
+    transform: scale(0.88);
+    transition-duration: var(--dur-toque);
+}
+.k-info:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.k-info-sheet p {
+    line-height: 1.5;
+}
+.k-sheetrow {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.k-sheetrow > b {
+    flex: 1;
+    min-width: 0;
+}
+.k-sheetrow > .hud-icon:last-child {
+    color: var(--muted);
+}
+.k-sheetrow:active {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
+}
+.k-sheetrow:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+
+/* ---------- Reduzir movimento: tudo aparece sem pulo, os raios param ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .k-pop,
+    .k-beat.on,
+    .k-walk-card,
+    .k-walk-pos {
+        animation-name: k-moment-in;
+    }
+    .k-moment-rays {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] :is(.k-pop, .k-beat.on, .k-walk-card, .k-walk-pos) {
+    animation-name: k-moment-in;
+}
+:root[data-reduce-motion="true"] .k-moment-rays {
+    animation: none;
+}
+
+/* ---------- escolha 1 de 3: as três do mesmo tamanho, lado a lado (Slay the Spire, Balatro) ---------- */
+.k-pick3 {
+    --k-gap: clamp(6px, calc(2 * var(--vw)), 18px);
+    /* a carta (FutCard) mede tudo pela --fut-w: um terço da largura que sobra, no máximo o tamanho normal */
+    /* e não passa da altura: --k-pick-reserve = o que a tela ocupa em volta das cartas (barra, título, botões) */
+    --k-card-w: min(
+        190px,
+        calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
+        calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
+    );
+    display: grid;
+    grid-template-columns: repeat(var(--k-n, 3), var(--k-card-w));
+    justify-content: center;
+    align-items: start;
+    gap: var(--k-gap);
+    width: 100%;
+}
+.k-pick3 > *,
+.k-pick3 .fut-wrap {
+    --fut-w: var(--k-card-w);
+    min-width: 0;
+}
+
+/* ---------- fim de partida (FinalCard): a cartela por cima da quadra parada, que ainda aparece atrás ---------- */
+.k-final {
+    background: radial-gradient(120% 90% at 50% 40%, rgb(42 58 122 / 0.9) 0%, rgb(7 10 24 / 0.94) 100%);
+}
+.k-final .k-moment-body {
+    justify-content: center;
+    height: 100%;
+}
+.k-final-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    cursor: pointer;
+}
+.k-final-score {
+    width: min(560px, 100%);
+}
+.k-final-prize {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 30px;
+    color: var(--green-hi);
+    text-shadow: var(--k-out-1);
+}
+.k-final-star {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.k-final-star img {
+    width: 64px;
+    height: 64px;
+}
+.k-final-next {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+}
+.k-final-sprites {
+    display: flex;
+    gap: 2px;
+}
+.k-final-sprites img {
+    width: 40px;
+    height: 40px;
+}
+.k-final-actions {
+    display: flex;
+    gap: 10px;
+    width: min(520px, 100%);
+    margin-top: 6px;
+}
+.k-final-actions > .btn.confirm {
+    flex: 1;
+    min-width: 0;
+}
+.k-final-actions .btn {
+    white-space: nowrap;
+}
+@media (max-width: 359px) {
+    .k-final-actions .btn {
+        padding-inline: 10px;
+        font-size: 15px;
+    }
+}
+/* celular deitado: tudo encolhe pra caber sem rolar */
+@media (max-height: 520px) {
+    .k-final .k-moment-title {
+        font-size: 30px;
+    }
+    .k-final-body,
+    .k-final .k-moment-body {
+        gap: 6px;
+    }
+    .k-final .k-final-score b {
+        font-size: 28px;
+    }
+    .k-final-prize {
+        font-size: 22px;
+    }
+    .k-final-star {
+        flex-direction: row;
+        gap: 8px;
+    }
+    .k-final-star img {
+        width: 36px;
+        height: 36px;
+    }
+    .k-final-sprites img {
+        width: 28px;
+        height: 28px;
+    }
+    .k-final-next {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px 8px;
+    }
+    .k-final-actions {
+        margin-top: 0;
+    }
+    .k-final-actions .btn.big {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+/* a luz do palco: um foco no meio e os raios da marca bem fracos atrás do conteúdo */
+.k-stage-light {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(60% 45% at 50% 48%, rgb(58 80 170 / 0.45), transparent 70%);
+}
+.k-stage-light::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: max(calc(160 * var(--vw)), calc(160 * var(--vh)));
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.04) 0 9deg, transparent 9deg 22.5deg);
+    mask: radial-gradient(closest-side, #000 15%, transparent 70%);
+}
+/* o pacote fechado cabe no palco da escolha: a arte mede pela altura do palco, não pela carta de 190 px */
+.cpack-stage:has(> .k-pick3) {
+    display: grid;
+    align-content: center;
+    min-height: min(300px, calc(100 * var(--vh) - 340px));
+}
+.cpack-stage:has(> .k-pick3) .cpack {
+    width: min(calc(var(--fut-w) * 1.08), calc(92cqh * 63 / 88));
+}
+
+/* o seletor no lugar do <select> e do slider, dentro das linhas de sempre (escanteio, prancheta, volume, faixa) */
+:is(.corner-taker, .pr-formation, .volume-row, .pf-field) > .k-stepper {
+    flex: 1 1 200px;
+    width: 100%;
+}

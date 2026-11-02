@@ -66,6 +66,7 @@ export function CardPack({
     label,
     type,
     onOpen,
+    onRevealed,
     children,
 }: {
     revealKey: string;
@@ -79,6 +80,8 @@ export function CardPack({
     /** Pacote de tipo (Mercado): na cor e com a estampa do tipo. */
     type?: string;
     onOpen?: () => void;
+    /** As cartas acabaram de sair (ou o toque pulou): quem emenda um momento depois do leque (o walkout) espera isto. */
+    onRevealed?: () => void;
     children: ReactNode;
 }) {
     const { t } = useT();
@@ -191,6 +194,10 @@ export function CardPack({
         };
     }, [phase, revealKey, inView]);
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: avisa uma vez por leque, quando a fase vira 'done'
+    useEffect(() => {
+        if (phase === 'done') onRevealed?.();
+    }, [phase]);
     // quem abriu pelo teclado continua no lugar: o foco passa pra 1ª carta
     useEffect(() => {
         if (phase !== 'done' || !btnFocused.current) return;

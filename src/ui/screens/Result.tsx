@@ -18,7 +18,7 @@ import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { BracketPeek, bracketRivals, bracketYou } from '../components/Bracket';
+import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
 import { foldOpenByDefault } from '../components/Fold';
@@ -32,8 +32,11 @@ import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
+import { cupGoal } from '../moments';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
 import { shareRun } from '../share';
@@ -71,6 +74,8 @@ export function Result() {
     const match = useHeld(liveMatch);
     const { t } = useT();
     const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
+    // o que sai da tela pra uma sheet: as estatísticas, o gol da copa (com o replay) e a chave
+    const [sheet, setSheet] = useState<'stats' | 'goal' | 'bracket' | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -111,6 +116,17 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
+    // os detalhes da partida (destaques, gols, estatísticas): embaixo do resultado; no título, na sheet Estatísticas
+    const details = (
+        <MatchDetails
+            match={match}
+            names={names}
+            initialTab={tab}
+            cupTab={<CupStats results={run.results} mode={run.mode} />}
+            goalsExtra={<GoalsExtra run={run} evolutions={evolutions} destaque={destaque} />}
+            openPart
+        />
+    );
     const share = async () => {
         const res = await shareRun(run, card);
         track('share', { kind: card ? 'image' : 'text', result: res, champion });
@@ -130,53 +146,55 @@ export function Result() {
 
     const foul = foulOf(run);
 
-    const actions = (
+    // fim da copa: Melhores momentos e Compartilhar (ou o ranking da Copa do Dia) lado a lado
+    const icons = (
         <>
-            {eliminated && <NearMiss run={run} />}
-            {eliminated && <CupGains run={run} />}
-            {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
-            <div className="row" style={{ justifyContent: 'center' }}>
-                <MomentsButton run={run} match={match} />
-                {(eliminated || champion) &&
-                    (run.daily ? (
-                        // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                        <button type="button" className="btn outline" onClick={() => go('daily')}>
-                            {t('liga.daily.rankingTitle')}
-                        </button>
-                    ) : (
-                        <button type="button" className="btn outline" onClick={share}>
-                            {t('result.share')}
-                        </button>
-                    ))}
-            </div>
-            {/* fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado */}
-            <div className="bc-thumbbar">
-                {eliminated || champion ? (
-                    <>
-                        <button type="button" className="btn ghost" onClick={advance}>
-                            {t('result.menu')}
-                        </button>
-                        <button
-                            type="button"
-                            className="btn primary big"
-                            onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
-                        >
-                            {t('result.newCup')}
-                            <HudIcon kind="next" />
-                        </button>
-                    </>
+            <MomentsButton run={run} match={match} />
+            {(eliminated || champion) &&
+                (run.daily ? (
+                    // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                    <button type="button" className="btn outline" onClick={() => go('daily')}>
+                        {t('liga.daily.rankingTitle')}
+                    </button>
                 ) : (
-                    <button type="button" className="btn confirm big" onClick={advance}>
-                        {run.status === 'map'
-                            ? t('longCup.backToMap')
-                            : run.status === 'group'
-                              ? t('longCup.backToGroup')
-                              : t('result.chooseReward')}
+                    <button type="button" className="btn outline" onClick={share}>
+                        <HudIcon kind="upload" /> {t('result.share')}
+                    </button>
+                ))}
+        </>
+    );
+    const thumb = (
+        // fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado
+        <div className="bc-thumbbar">
+            {eliminated || champion ? (
+                <>
+                    <button type="button" className="btn ghost" onClick={advance}>
+                        {t('result.menu')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn primary big"
+                        onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                    >
+                        {t('result.newCup')}
                         <HudIcon kind="next" />
                     </button>
-                )}
-            </div>
-            {shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>}
+                </>
+            ) : (
+                <button type="button" className="btn confirm big" onClick={advance}>
+                    {run.status === 'map'
+                        ? t('longCup.backToMap')
+                        : run.status === 'group'
+                          ? t('longCup.backToGroup')
+                          : t('result.chooseReward')}
+                    <HudIcon kind="next" />
+                </button>
+            )}
+        </div>
+    );
+    // o resto do fim da copa: baixar o card do título e dar feedback (no campeão, dentro da sheet Estatísticas)
+    const extra = (
+        <>
             {champion && (
                 <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
                     <span className="muted">{t('result.card.download')}</span>
@@ -203,12 +221,73 @@ export function Result() {
             )}
         </>
     );
+    const bracket = run.status === 'reward' && !isLong(run);
+    const hasGoal = eliminated && !!cupGoal(run.results);
+    // resultado sem rolar (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar
+    const actions = (
+        <>
+            {eliminated && <NearMiss run={run} />}
+            <div className="res-icons">
+                {icons}
+                {hasGoal && (
+                    <button
+                        type="button"
+                        className="btn outline"
+                        aria-haspopup="dialog"
+                        onClick={() => setSheet('goal')}
+                    >
+                        <HudIcon kind="play" /> {t('moments.cup.h')}
+                    </button>
+                )}
+                {bracket && (
+                    <button
+                        type="button"
+                        className="btn outline"
+                        aria-haspopup="dialog"
+                        onClick={() => setSheet('bracket')}
+                    >
+                        <HudIcon kind="cup" /> {t('bracket.show')}
+                    </button>
+                )}
+                <button type="button" className="btn outline" aria-haspopup="dialog" onClick={() => setSheet('stats')}>
+                    <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
+                </button>
+            </div>
+            {thumb}
+        </>
+    );
+    const toast = shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>;
+
+    if (champion)
+        return (
+            <>
+                <ChampionView
+                    run={run}
+                    icons={icons}
+                    thumb={thumb}
+                    goal={<CupGoalCard run={run} match={match} />}
+                    extra={
+                        <>
+                            <LeaderQuote
+                                club={opponent.name}
+                                won
+                                color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
+                            />
+                            <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>
+                            {details}
+                            {extra}
+                        </>
+                    }
+                />
+                <UnlockStrip />
+                {toast}
+            </>
+        );
 
     return (
         <>
-            {champion ? (
-                <ChampionView run={run} actions={actions} />
-            ) : (
+            {toast}
+            <Stage className="result-stage">
                 <ResultHero
                     run={run}
                     match={match}
@@ -219,90 +298,101 @@ export function Result() {
                     unlocks={<UnlockStrip />}
                     actions={actions}
                 />
-            )}
-            {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
-            {!champion && run.status === 'reward' && !isLong(run) && (
-                <BracketPeek
-                    rounds={relampagoBracket(
-                        run.seed,
-                        bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
-                        bracketRivals(run.opponents),
-                        run.results,
-                    )}
-                    current={run.stage + 1}
-                    fresh
-                />
-            )}
-            {/* fora do título a fala vem no topo do resultado (ResultHero) */}
-            {champion && (
-                <LeaderQuote
-                    club={opponent.name}
-                    won
-                    color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
-                />
-            )}
-            {champion && <UnlockStrip />}
-            {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
-            <Tip id="result-dex">{t('result.dexTip')}</Tip>
-            {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
+                {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
+                <Tip id="result-dex">{t('result.dexTip')}</Tip>
+            </Stage>
+            <Sheet
+                open={sheet === 'stats'}
+                onClose={() => setSheet(null)}
+                title={t('result.champ.statsBtn')}
+                className="res-stats-sheet"
+            >
+                {eliminated && <CupGains run={run} />}
+                {details}
+                {extra}
+            </Sheet>
+            <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
+                <CupGoalCard run={run} match={match} />
+            </Sheet>
+            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
+                {bracket && (
+                    <Bracket
+                        rounds={relampagoBracket(
+                            run.seed,
+                            bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                            bracketRivals(run.opponents),
+                            run.results,
+                        )}
+                        current={run.stage + 1}
+                        fresh
+                    />
+                )}
+            </Sheet>
+        </>
+    );
+}
 
-            <MatchDetails
-                match={match}
-                names={names}
-                initialTab={tab}
-                cupTab={<CupStats results={run.results} mode={run.mode} />}
-                goalsExtra={
-                    <>
-                        {evolutions.length > 0 && (
-                            <div className="destaque-box">
-                                <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
-                                <p className="tactic-desc">{t('result.evolvedNote')}</p>
-                                <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    {evolutions.map(({ inst, from }) => (
-                                        <div key={inst.uid} className="evolved-card">
-                                            <span className="muted">
-                                                {species(from).name} → {species(inst.speciesId).name}
-                                            </span>
-                                            <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
-                                        </div>
-                                    ))}
-                                </div>
+/** Evoluções e a carta Destaque da partida (embaixo dos gols, nos detalhes). */
+function GoalsExtra({
+    run,
+    evolutions,
+    destaque,
+}: {
+    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    evolutions: { inst: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number]; from: number }[];
+    destaque: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number] | null | undefined;
+}) {
+    const { t } = useT();
+    return (
+        <>
+            {evolutions.length > 0 && (
+                <div className="destaque-box">
+                    <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                    <p className="tactic-desc">{t('result.evolvedNote')}</p>
+                    <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {evolutions.map(({ inst, from }) => (
+                            <div key={inst.uid} className="evolved-card">
+                                <span className="muted">
+                                    {species(from).name} → {species(inst.speciesId).name}
+                                </span>
+                                <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
                             </div>
-                        )}
-                        {destaque && (
-                            <div className="destaque-box">
-                                <h2>
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpTitle', {
-                                              ed: editionLabel(destaque.special.kind),
-                                              n: destaque.special.level ?? 1,
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
-                                          : t('result.destaqueTitle')}
-                                </h2>
-                                <p className="tactic-desc">
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpText', {
-                                              name: destaque.nickname ?? species(destaque.speciesId).name,
-                                              bonus: specialBonus(destaque),
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })
-                                          : t('result.destaqueText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })}
-                                </p>
-                                <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
-                            </div>
-                        )}
-                    </>
-                }
-            />
+                        ))}
+                    </div>
+                </div>
+            )}
+            {destaque && (
+                <div className="destaque-box">
+                    <h2>
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpTitle', {
+                                  ed: editionLabel(destaque.special.kind),
+                                  n: destaque.special.level ?? 1,
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                              : t('result.destaqueTitle')}
+                    </h2>
+                    <p className="tactic-desc">
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpText', {
+                                  name: destaque.nickname ?? species(destaque.speciesId).name,
+                                  bonus: specialBonus(destaque),
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })
+                              : t('result.destaqueText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })}
+                    </p>
+                    <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
+                </div>
+            )}
         </>
     );
 }
@@ -352,7 +442,10 @@ export function MatchDetails({
     cupTab,
     initialTab = 'times',
     side = 0,
+    openPart = false,
 }: {
+    /** Já abre na pasta Destaques (dentro de uma sheet, fechada não faz sentido). */
+    openPart?: boolean;
     match: MatchResult;
     names: [string, string];
     /** Seu lado (no duelo o convidado é o 1): a lista "O rival evoluiu" é do outro. */
@@ -364,7 +457,7 @@ export function MatchDetails({
     const { t, tn, d } = useT();
     const [tab, setTab] = useState<Tab>(initialTab);
     // as duas pastas (destaques, estatísticas): no PC abre a 1ª; no celular em pé começa fechada (tocar na aberta fecha)
-    const [part, setPart] = useState<Part | null>(() => (foldOpenByDefault() ? 'destaques' : null));
+    const [part, setPart] = useState<Part | null>(() => (openPart || foldOpenByDefault() ? 'destaques' : null));
     const mvp = matchMvp(match);
     const goals = match.events.filter((e) => e.type === 'goal');
     // evoluções do rival: lembrete pra quem não viu na quadra

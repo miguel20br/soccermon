@@ -488,3 +488,28 @@ button.sp-slot:hover {
     width: 12px;
     height: 12px;
 }
+
+/* pacote da Copa em tela cheia (PackMoment, cara-de-jogo.md): o leque no meio, a carta do walkout guardada até a vez dela */
+.shop-pack-moment .k-moment-body {
+    gap: 12px;
+}
+.shop-pack-title {
+    font-size: clamp(22px, calc(6 * var(--vw)), 40px);
+}
+.shop-pick {
+    --k-pick-reserve: 300px;
+}
+.walk-held {
+    visibility: hidden;
+}
+.shop-pack-moment .reward-team-row {
+    width: min(420px, 100%);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .shop-pack-title {
+        display: none;
+    }
+    .shop-pick {
+        --k-pick-reserve: 170px;
+    }
+}
