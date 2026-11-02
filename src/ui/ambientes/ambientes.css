@@ -21,24 +21,33 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
+/* o fundo de palco (fim do arquivo) usa as mesmas medidas de pixel de arte */
+.amb-bd {
+    --px: 3px;
+    --mi: 2px;
+}
 @media (min-width: 900px) and (min-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --px: 4px;
         --mi: 3px;
     }
 }
 @media (max-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --px: 2px;
     }
 }
 @media (max-width: 359px), (max-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --mi: 1.5px;
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --mi: 1px;
     }
 }
@@ -3790,4 +3799,40 @@
 }
 [data-reduce-motion="true"] .es-tile.on {
     transform: none;
+}
+
+/* ---------- fundo de palco (Backdrops.tsx): o lugar atrás do Duelo, da Liga e da Copa do Dia ---------- */
+.amb-bd {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    animation: screen-in var(--dur-ui) var(--ease-out) both;
+}
+/* a quadra sobe: o par do duelo fica no terço de cima, o conteúdo do palco embaixo. O neon do Arcade é da Home */
+.amb-bd .ar-scene {
+    --wall-top: 64px;
+    --ui-h: 58%;
+}
+.amb-bd :is(.ar-neon, .ar-lamp) {
+    display: none;
+}
+@media (max-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 44px;
+        --ui-h: 64%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 70px;
+        --ui-h: 64%;
+    }
+}
+/* deitado: o conteúdo na coluna da esquerda e a quadra à direita, como na aba da Home */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-bd .ar-scene {
+        --wall-top: 50px;
+        --ui-h: 0px;
+    }
 }

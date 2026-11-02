@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { ligaCountdown } from '../../league/rules';
@@ -8,7 +8,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { avatarMon, nextBelt } from './metas';
+import { avatarMon, type Mon, nextBelt } from './metas';
 import { BIG, floorZone, SMALL, Tile } from './Room';
 import { type Blockers, useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
@@ -17,7 +17,7 @@ import type { Wild } from './wild';
 const LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
 /** Na quadra, os de volta contornam os dois do duelo, a bola, o VS e o poste. */
 const ARENA: Blockers = { props: '.ar-side .fs-sprite:not(.ar-head), .ar-ball, .ar-vs, .ar-lamp' };
-const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
+export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 
 /**
  * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro com o neon do
@@ -53,89 +53,12 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const liga = ligaCountdown();
     // os dois do duelo maiores que os de volta: no desktop, 4x (com 3x o meio da quadra ficava vazio)
     const scale = small ? 1 : big ? 4 : 2;
-    // tocar na silhueta mostra quem é, por um instante
-    const [seen, setSeen] = useState(false);
-    useEffect(() => {
-        if (!seen) return;
-        const id = window.setTimeout(() => setSeen(false), 1600);
-        return () => window.clearTimeout(id);
-    }, [seen]);
 
     return (
         <ClockCtx.Provider value={clock}>
-            <div className="amb-scene ar-scene" aria-hidden>
-                <div className="amb-layer ar-sky" style={{ '--depth': 0.6 } as CSSProperties}>
-                    <i className="es-stars" />
-                </div>
-                <div className="amb-layer ar-street" style={{ '--depth': 0.25 } as CSSProperties}>
-                    <div className="ar-wall">
-                        <i className="ar-fence" />
-                        <div className="ar-neon">
-                            <b>{t('home.amb.soonArcade')}</b>
-                            <small>{t('home.amb.neonWeek')}</small>
-                            <em className="ar-tape">{t('home.soonRibbon')}</em>
-                        </div>
-                        <i className="ar-lamp" />
-                    </div>
-                    <div className="ar-court">
-                        {/* a quadra de rua inteira: piso pintado, linhas, as duas áreas, pênalti, escanteios e os gols */}
-                        <svg className="ar-lines" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden>
-                            <rect className="ar-paint" x="4" y="4" width="192" height="92" />
-                            <rect x="4" y="4" width="192" height="92" />
-                            <line x1="100" y1="4" x2="100" y2="96" />
-                            <path d="M4 26 C 34 26 34 74 4 74 M196 26 C 166 26 166 74 196 74" />
-                            <path d="M4 10 A 6 6 0 0 0 10 4 M190 4 A 6 6 0 0 0 196 10 M196 90 A 6 6 0 0 0 190 96 M10 96 A 6 6 0 0 0 4 90" />
-                            <path className="ar-spot" d="M40 50 h0.01 M160 50 h0.01 M100 50 h0.01" />
-                            <path className="ar-goal" d="M4 41 H0 V59 H4 M196 41 H200 V59 H196" />
-                        </svg>
-                        <i className="ar-circle" />
-                        <i className="ar-glow" />
-                        <img className="ar-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
-                        <div className="ar-duel">
-                            <span className="ar-side me">
-                                <i className="es-shadow" />
-                                <FieldSprite
-                                    id={mine.id}
-                                    shiny={mine.shiny}
-                                    anim="Idle"
-                                    dir={2}
-                                    scale={scale}
-                                    play={active}
-                                />
-                            </span>
-                            <b className="ar-vs">VS</b>
-                            <span className={`ar-side rival${seen ? ' seen' : ''}`}>
-                                <i className="es-shadow" />
-                                <FieldSprite id={rival} anim="Idle" dir={6} scale={scale} play={active} />
-                                {/* o mesmo sprite, invisível, só pra pôr o "?" em cima da cabeça (a silhueta apaga tudo dentro dela) */}
-                                <FieldSprite
-                                    id={rival}
-                                    anim="Idle"
-                                    dir={6}
-                                    scale={scale}
-                                    play={false}
-                                    className="ar-head"
-                                >
-                                    <i className="ar-ask">?</i>
-                                </FieldSprite>
-                                {/* biome-ignore lint/a11y/noStaticElementInteractions: enfeite da cena (aria-hidden) */}
-                                {/* biome-ignore lint/a11y/useKeyWithClickEvents: idem, sem foco nem função */}
-                                <i
-                                    className="ar-tap"
-                                    onClick={() => {
-                                        if (seen) return;
-                                        setSeen(true);
-                                        playCry(rival, useGame.getState().settings.cries, 0.5);
-                                    }}
-                                />
-                            </span>
-                        </div>
-                        <div className="ar-walk">
-                            <WildZone wild={w} zone="floor" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <ArenaScene me={mine} rival={rival} scale={scale} active={active}>
+                <WildZone wild={w} zone="floor" />
+            </ArenaScene>
             <div className="amb-ui rm-ui ar-ui">
                 <header className="rm-head">
                     <h2>{t('home.amb.arenaTitle')}</h2>
@@ -163,5 +86,94 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                 </div>
             </div>
         </ClockCtx.Provider>
+    );
+}
+
+/**
+ * A cena da Arena sem os botões: o muro com o neon, o poste e a quadra com os dois do duelo. A aba da Home põe os
+ * Pokémon de volta em `children`; o Duelo e a Liga usam de fundo do palco (Backdrops.tsx). `reveal`: o rival aparece
+ * (a Liga mostra o capitão do fantasma); sem ele, silhueta com "?".
+ */
+export function ArenaScene({
+    me,
+    rival,
+    reveal = false,
+    scale,
+    active,
+    children,
+}: {
+    me: Mon;
+    rival: number;
+    reveal?: boolean;
+    scale: number;
+    active: boolean;
+    children?: ReactNode;
+}) {
+    const { t } = useT();
+    // tocar na silhueta mostra quem é, por um instante
+    const [seen, setSeen] = useState(false);
+    useEffect(() => {
+        if (!seen) return;
+        const id = window.setTimeout(() => setSeen(false), 1600);
+        return () => window.clearTimeout(id);
+    }, [seen]);
+    return (
+        <div className="amb-scene ar-scene" aria-hidden>
+            <div className="amb-layer ar-sky" style={{ '--depth': 0.6 } as CSSProperties}>
+                <i className="es-stars" />
+            </div>
+            <div className="amb-layer ar-street" style={{ '--depth': 0.25 } as CSSProperties}>
+                <div className="ar-wall">
+                    <i className="ar-fence" />
+                    <div className="ar-neon">
+                        <b>{t('home.amb.soonArcade')}</b>
+                        <small>{t('home.amb.neonWeek')}</small>
+                        <em className="ar-tape">{t('home.soonRibbon')}</em>
+                    </div>
+                    <i className="ar-lamp" />
+                </div>
+                <div className="ar-court">
+                    {/* a quadra de rua inteira: piso pintado, linhas, as duas áreas, pênalti, escanteios e os gols */}
+                    <svg className="ar-lines" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden>
+                        <rect className="ar-paint" x="4" y="4" width="192" height="92" />
+                        <rect x="4" y="4" width="192" height="92" />
+                        <line x1="100" y1="4" x2="100" y2="96" />
+                        <path d="M4 26 C 34 26 34 74 4 74 M196 26 C 166 26 166 74 196 74" />
+                        <path d="M4 10 A 6 6 0 0 0 10 4 M190 4 A 6 6 0 0 0 196 10 M196 90 A 6 6 0 0 0 190 96 M10 96 A 6 6 0 0 0 4 90" />
+                        <path className="ar-spot" d="M40 50 h0.01 M160 50 h0.01 M100 50 h0.01" />
+                        <path className="ar-goal" d="M4 41 H0 V59 H4 M196 41 H200 V59 H196" />
+                    </svg>
+                    <i className="ar-circle" />
+                    <i className="ar-glow" />
+                    <img className="ar-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
+                    <div className="ar-duel">
+                        <span className="ar-side me">
+                            <i className="es-shadow" />
+                            <FieldSprite id={me.id} shiny={me.shiny} anim="Idle" dir={2} scale={scale} play={active} />
+                        </span>
+                        <b className="ar-vs">VS</b>
+                        <span className={`ar-side rival${seen || reveal ? ' seen' : ''}`}>
+                            <i className="es-shadow" />
+                            <FieldSprite id={rival} anim="Idle" dir={6} scale={scale} play={active} />
+                            {/* o mesmo sprite, invisível, só pra pôr o "?" em cima da cabeça (a silhueta apaga tudo dentro dela) */}
+                            <FieldSprite id={rival} anim="Idle" dir={6} scale={scale} play={false} className="ar-head">
+                                <i className="ar-ask">?</i>
+                            </FieldSprite>
+                            {/* biome-ignore lint/a11y/noStaticElementInteractions: enfeite da cena (aria-hidden) */}
+                            {/* biome-ignore lint/a11y/useKeyWithClickEvents: idem, sem foco nem função */}
+                            <i
+                                className="ar-tap"
+                                onClick={() => {
+                                    if (seen) return;
+                                    setSeen(true);
+                                    playCry(rival, useGame.getState().settings.cries, 0.5);
+                                }}
+                            />
+                        </span>
+                    </div>
+                    {children && <div className="ar-walk">{children}</div>}
+                </div>
+            </div>
+        </div>
     );
 }
