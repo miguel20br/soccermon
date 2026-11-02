@@ -290,3 +290,11 @@
         left: calc(12px + env(safe-area-inset-left));
     }
 }
+
+/* PC (≥ 1024): os botões da barra de cima com 44 px */
+@media (min-width: 1024px) and (min-height: 700px) {
+    .k-topbar .help-fab {
+        width: 44px;
+        height: 44px;
+    }
+}

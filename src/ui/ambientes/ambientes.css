@@ -3857,3 +3857,14 @@
         top: 19cqh;
     }
 }
+
+/* PC (≥ 1024): a barra de abas com rótulo de 12 px e ícone maior (10 px sumia numa tela de 1440) */
+@media (min-width: 1024px) and (min-height: 700px) {
+    .amb-tab-lbl {
+        font-size: 12px;
+    }
+    .amb-tab .hud-icon {
+        width: 28px;
+        height: 28px;
+    }
+}

@@ -6278,6 +6278,14 @@ a.home-tile {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
 }
+/* PC: a Coleção cresce com a tela, como os palcos (stage.css, --k-big); o --vw de dentro desconta o zoom */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .menu-screen.pf {
+        zoom: var(--k-big, 1);
+        --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
+        --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
+    }
+}
 /* cabeçalho em placar (.bc-screenhead do kit): aqui só o tamanho do título, do ícone e do voltar */
 .menu-head h1 {
     font-size: clamp(20px, calc(4.6 * var(--vw)), 26px);
