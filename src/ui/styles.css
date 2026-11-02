@@ -6279,7 +6279,8 @@ a.home-tile {
 }
 /* PC: a Coleção cresce com a tela, como os palcos (stage.css, --k-big); o --vw de dentro desconta o zoom */
 @media (min-width: 1100px) and (min-height: 720px) {
-    .menu-screen.pf {
+    .menu-screen.pf,
+    .menu-screen.credits-screen {
         zoom: var(--k-big, 1);
         --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
         --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
@@ -6353,37 +6354,151 @@ a.home-tile {
     text-align: right;
     font-size: 18px;
 }
+/* Créditos de fim de jogo (Credits.tsx): coluna centrada; subindo, o palco ocupa o resto da tela e a lista corre
+   por baixo de uma máscara; parada, é página comum */
+.credits-screen {
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+.cr-stage {
+    position: relative;
+    transition: opacity 220ms var(--ease-out);
+}
+.cr-stage.cr-out {
+    opacity: 0;
+}
+.cr-rolling .cr-stage {
+    min-height: 220px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    cursor: pointer;
+}
+.cr-rolling .cr-view {
+    position: absolute;
+    /* em cima, a faixa do Pular; embaixo, a do desfile; a lista some nos 40 px das pontas (FADE_PX) */
+    inset: 48px 0 64px;
+    overflow: hidden;
+    mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+.cr-rolling .cr-roll {
+    position: absolute;
+    inset: 0 0 auto;
+    will-change: transform;
+    /* antes do 1º quadro, fora da tela (embaixo) */
+    transform: translateY(calc(100 * var(--vh)));
+}
+/* subindo, tocar é acelerar (os links abrem na página parada) */
+.cr-rolling .cr-roll :is(a, button) {
+    pointer-events: none;
+}
+.cr-roll {
+    display: grid;
+    gap: 28px;
+    justify-items: center;
+    text-align: center;
+}
+.credits-card {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    max-width: 36em;
+}
 .credits-card h2 {
-    margin: 4px 0 0;
-    font-size: 15px;
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(16px, calc(4.6 * var(--vw)), 22px);
     color: var(--yellow);
 }
 .credits-card ul {
     margin: 0;
-    padding-left: 18px;
+    padding: 0;
+    list-style: none;
     display: grid;
-    gap: 6px;
+    gap: 14px;
 }
-.credits-card p {
+.credits-card p,
+.credits-card li {
     margin: 0;
     color: var(--text);
     font-size: 13px;
+    line-height: 1.5;
 }
 .credits-card a {
     color: var(--yellow);
 }
 .credits-hero {
+    padding-top: 8px;
+}
+.credits-hero .cr-logo {
+    width: min(280px, 72%);
+    height: auto;
+}
+.credits-hero .pixel {
+    height: 64px;
+}
+.cr-thanks {
+    margin: 12px 0 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(18px, calc(5.4 * var(--vw)), 26px);
+    color: var(--yellow);
+}
+.cr-ctrl {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    right: 0;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
 }
-.credits-hero img {
+.cr-hint {
+    font-size: 11px;
+    color: var(--muted);
+}
+.cr-skip svg {
+    width: 16px;
+    height: 16px;
+}
+.cr-parade-wrap,
+.cr-parade {
+    position: absolute;
+    inset: auto 0 0;
     height: 64px;
-    flex: none;
+    pointer-events: none;
 }
-.credits-hero > div {
-    display: grid;
-    gap: 8px;
+.cr-parade {
+    overflow: hidden;
+    border-bottom: 2px solid var(--line);
+}
+.cr-mon {
+    position: absolute;
+    left: 0;
+    bottom: 6px;
+}
+.cr-mon .fs-sprite {
+    position: absolute;
+}
+/* deitado no celular a altura é pouca: a coluna afina e o Pular vai pra margem do lado, sem faixa em cima */
+@media (orientation: landscape) and (max-height: 520px) {
+    .credits-card {
+        max-width: 30em;
+    }
+    .cr-rolling .cr-view {
+        inset: 0 0 56px;
+    }
+    .cr-ctrl {
+        flex-direction: column;
+        align-items: flex-end;
+        max-width: 140px;
+        text-align: right;
+    }
+    .cr-parade-wrap,
+    .cr-parade {
+        height: 56px;
+    }
 }
 
 /* ---------- revisão 0.7: celular, telas baixas e textos longos ---------- */
