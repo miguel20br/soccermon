@@ -410,7 +410,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             { p: '{maxFill}' },
             { dyn: 'maxLevels' },
             {
-                p: '**Na hora certa:** com capitão de linha, o botão acende no ataque do seu time e a bola procura o capitão, que solta o golpe perto do gol. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
+                p: '**Na hora certa:** com capitão de linha, o botão acende com a bola no pé dele perto do gol, e o golpe sai na hora. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
             },
             {
                 p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora: a defesa de sempre, e a barra se vai.',

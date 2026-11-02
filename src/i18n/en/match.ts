@@ -127,14 +127,14 @@ export const match: typeof pt = {
         max: 'Max move',
         charanga: 'THE DRUMS KICK IN',
         maxHint:
-            "Fills with your team's plays. Lights up from L1 when your team attacks: tap and the ball looks for your captain, who unleashes it near goal. Keeper captain: lights up on the rival's shot and he boots it back. Shortcut: M.",
+            "Fills with your team's plays. Lights up from L1 when your captain has the ball near goal: tap and he unleashes it right away. Keeper captain: lights up on the rival's shot and he boots it back. Shortcut: M.",
         maxReady: 'Now!',
         maxActive: 'Live!',
         maxCalling: 'Calling…',
         maxLevel: 'Level {n}',
         maxLevelShort: 'L{n}',
         /** Tapped the bottom-bar max move before it lit up. */
-        maxWhen: 'Not yet. Lights up when you attack (keeper captain, on their shot)',
+        maxWhen: 'Not yet. Lights up when your captain has the ball near goal (keeper captain, on their shot)',
         maxCaptainOnly: 'Only the captain unleashes the max move',
         maxMissShort: 'Miss: normal save',
         bicuda: 'Big boot',

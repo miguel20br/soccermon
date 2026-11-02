@@ -141,7 +141,7 @@ export const match = {
         /** Charanga de Pewter ligou (o time passou a perder): aviso curto na quadra. */
         charanga: 'A CHARANGA ENTROU',
         maxHint:
-            'Enche com os lances do time. Acende já no N1, no ataque do seu time: toque e a bola procura o capitão, que solta o golpe perto do gol. Capitão goleiro: acende no chute do rival e ele devolve de bicuda. Atalho: M.',
+            'Enche com os lances do time. Acende já no N1, com a bola no pé do capitão perto do gol: toque e ele solta o golpe na hora. Capitão goleiro: acende no chute do rival e ele devolve de bicuda. Atalho: M.',
         maxReady: 'Agora!',
         maxActive: 'No ar!',
         /** Tocou e o golpe ainda não saiu: a bola procura o capitão. */
@@ -150,7 +150,7 @@ export const match = {
         maxLevel: 'Nível {n}',
         maxLevelShort: 'N{n}',
         /** Tocou no golpe máximo da barra de baixo antes de acender. */
-        maxWhen: 'Ainda não. Acende no seu ataque (capitão goleiro, no chute rival)',
+        maxWhen: 'Ainda não. Acende com a bola no pé do capitão, perto do gol (capitão goleiro, no chute rival)',
         /** Um jogador seu chutou com a barra pronta (dica de uma vez só, em cima do capitão). */
         maxCaptainOnly: 'Só o capitão solta o golpe máximo',
         /** Bicuda com o toque fora: o goleiro faz a defesa de sempre e a barra se vai (no goleiro, curto). */

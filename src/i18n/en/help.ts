@@ -389,7 +389,7 @@ export const help: typeof pt = {
                 { p: '{maxFill}' },
                 { dyn: 'maxLevels' },
                 {
-                    p: '**At the right time:** with an outfield captain, the button lights up when your team attacks and the ball looks for the captain, who unleashes it near goal. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
+                    p: '**At the right time:** with an outfield captain, the button lights up when he has the ball near goal, and the move goes off right away. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
                 },
                 {
                     p: "**Keeper captain:** his move is the **big boot**. The button only lights up on a rival shot he is going to reach. On the tap, instead of saving, he sends it back: at L1 and L2 as a long ball up the pitch (L2 knocks down anyone in the way); at L3, straight at the rival's goal. A miss: the usual save, and the bar is gone.",
