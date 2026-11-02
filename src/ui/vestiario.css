@@ -7,37 +7,45 @@
     align-content: start;
     min-width: 0;
 }
-/* a barra de cima: rival, chave, tática e formação, cada um abre a sua sheet (sem placa nem moldura) */
+/*
+ * a parede (cara-de-jogo.md, Escalação): três placas penduradas, cada uma abre a sua sheet. O cartaz do rival (escudo,
+ * nome, média e os 5 dele; abre a chave), o quadro-branco da tática e a placa da prancheta com o desenho da formação.
+ */
 .vt-wall {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 6px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
 }
 .vt-obj {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
     min-width: 0;
-    min-height: 44px;
+    min-height: 48px;
     padding: 6px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--panel);
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
     color: var(--text);
     font: inherit;
     text-align: left;
     cursor: pointer;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
     transition:
         transform var(--dur-solta) var(--ease-pop),
-        border-color var(--dur-ui) var(--ease-out);
+        box-shadow var(--dur-ui) var(--ease-out);
 }
 .vt-obj:active {
-    transform: scale(0.98);
+    transform: translateY(2px) scale(0.98);
+    box-shadow: inset 0 0 0 2px var(--frame-in);
     transition-duration: var(--dur-toque);
 }
 .vt-obj:focus-visible {
-    outline: 2px solid var(--yellow);
+    outline: 3px solid var(--yellow);
     outline-offset: 2px;
 }
 .vt-obj > span {
@@ -55,43 +63,225 @@
     font-size: 13px;
 }
 .vt-obj small {
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
-.vt-obj > .hud-icon {
+
+/* o cartaz do rival: papel com fita nos cantos, um tico torto */
+.vt-rival {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 6px 10px 6px 8px;
+    background: var(--bc-paper);
+    color: var(--cb-ink);
+    box-shadow: var(--lift-1);
+    rotate: -0.6deg;
+}
+.vt-rival::before,
+.vt-rival::after {
+    content: "";
+    position: absolute;
+    top: -7px;
+    width: 34px;
+    height: 12px;
+    background: color-mix(in srgb, var(--yellow), transparent 35%);
+    rotate: -8deg;
+}
+.vt-rival::before {
+    left: 10px;
+}
+.vt-rival::after {
+    right: 10px;
+    rotate: 8deg;
+}
+.vt-crest {
+    grid-row: 1 / -1;
+    width: 34px;
+    height: 37px;
+}
+.vt-obj > .vt-rival-txt {
+    display: flex;
+    align-self: end;
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: baseline;
+    gap: 8px;
+}
+.vt-rival-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 15px;
+}
+.vt-rival-txt small {
+    color: color-mix(in srgb, var(--cb-ink), transparent 35%);
+}
+.vt-obj > .vt-rival-mons {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+}
+.vt-rival-mons img {
+    width: 26px;
+    height: 26px;
+    image-rendering: auto;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 25%));
+}
+.vt-rival-stage {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.vt-rival-stage .hud-icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+
+/* o quadro-branco: moldura de metal, nome escrito de pincel azul e o ícone em vermelho */
+.vt-white {
+    background: color-mix(in srgb, var(--bc-paper), #fff 65%);
+    color: var(--cb-ink);
+    box-shadow:
+        inset 0 0 0 3px #9aa2b0,
+        var(--lift-1);
+}
+/* a canaleta do pincel embaixo */
+.vt-white::after {
+    content: "";
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: -7px;
+    height: 4px;
+    border-radius: 0 0 3px 3px;
+    background: #9aa2b0;
+    box-shadow: 0 2px 0 var(--cb-ink);
+}
+.vt-white {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+}
+.vt-white small {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: color-mix(in srgb, var(--cb-ink), transparent 45%);
+}
+.vt-white small .hud-icon {
     flex: none;
     width: 18px;
     height: 18px;
+    color: var(--red);
+    stroke-width: 2.8;
 }
-/* o rival e a formação ocupam a linha toda (o bônus da formação é a 2ª linha do botão) */
-.vt-rival,
-.vt-formation {
-    grid-column: 1 / -1;
-}
-.vt-rival b {
+.vt-white b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    color: var(--muted);
+    font-size: 15px;
+    color: var(--blue);
+}
+/* o nome da tática e o da formação quebram linha em vez de cortar (Contra-ataque, Losango (1-2-1)) */
+.vt-white b,
+.vt-formation b,
+.vt-formation .fi-tags b {
+    white-space: normal;
+}
+
+/* a placa da prancheta: madeira com o prendedor de metal e a formação desenhada */
+.vt-formation {
+    padding-left: 8px;
+    background: linear-gradient(180deg, #8f5a2e, #6e4421);
+    box-shadow:
+        inset 0 0 0 2px #c98a4f,
+        var(--lift-1);
+}
+.vt-clip {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    width: 30px;
+    height: 9px;
+    translate: -50% 0;
+    border: 2px solid var(--cb-ink);
+    border-radius: 3px 3px 5px 5px;
+    background: linear-gradient(180deg, #fbfcfe, #9aa2b0);
+}
+.vt-formation .formation-diagram {
+    flex: none;
+    width: 27px;
+    height: 36px;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
+}
+.vt-formation .formation-diagram .fd-dot {
+    stroke-width: 1;
+}
+.vt-formation > span > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--yellow);
 }
 .vt-formation .fi-tags {
-    font-size: 11px;
+    gap: 0 4px;
+    font-size: 10px;
+    line-height: 1.25;
 }
-.vt-formation .hud-icon {
+.vt-formation .fi-tags b {
+    font-size: 10px;
+}
+.vt-formation .fi-tags > .hud-icon {
     display: none;
 }
-/* a seta de "abre a lista" ao lado do nome da formação (era um caractere de triângulo) */
-.vt-formation .hud-icon.vt-caret {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    stroke-width: 3;
-    vertical-align: -2px;
+@media (max-width: 359px) {
+    .vt-obj {
+        gap: 6px;
+        padding-inline: 8px;
+    }
+    .vt-white b,
+    .vt-formation > span > b {
+        font-size: 13px;
+    }
+    .vt-formation .formation-diagram {
+        width: 21px;
+        height: 28px;
+    }
 }
-.vt-formations {
+/* a sheet do carrossel: a quadra do tamanho que sobra da sheet, o Escolher embaixo */
+.vt-formation-sheet {
     display: grid;
-    gap: 6px;
+    gap: 12px;
 }
-.vt-formations .bc-tile {
-    text-align: left;
+/* deitado o carrossel põe a placa ao lado da quadra: a sheet precisa da largura */
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-sheet.vt-formation-sheet {
+        width: min(640px, 100%);
+    }
+}
+.vt-formation-sheet .fc {
+    --fc-reserve: 430px;
+}
+.vt-formation-sheet .fc-choose {
+    justify-self: center;
+    min-width: 200px;
 }
 .vt-hint {
     margin: 0 0 6px;
@@ -140,7 +330,7 @@
     white-space: nowrap;
     overflow-wrap: normal;
 }
-.vt-board-sheet {
+.k-sheet.vt-board-sheet {
     width: min(720px, 100%);
 }
 .vt-bracket {
@@ -149,6 +339,12 @@
 }
 .vt-board-sheet > .btn {
     justify-self: center;
+}
+.vt-sheet-h {
+    margin: 4px 0 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--muted);
 }
 /* deitado: a barra vira uma coluna ao lado da prancheta, e a prancheta ganha a altura toda */
 @media (orientation: landscape) and (max-height: 520px) {
@@ -160,6 +356,28 @@
     .vt-wall {
         grid-template-columns: 1fr;
         margin: 0;
+    }
+    /* o cartaz na coluna estreita: nome e média em 2 linhas, a fase pendurada no canto, os 5 embaixo */
+    .vt-rival {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .vt-obj > .vt-rival-txt {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding-right: 40px;
+    }
+    .vt-rival-stage {
+        position: absolute;
+        top: -8px;
+        right: 8px;
+    }
+    .vt-obj > .vt-rival-mons {
+        grid-column: 1 / -1;
+    }
+    .vt-rival-mons img {
+        width: 24px;
+        height: 24px;
     }
     /* a carta na sheet encolhe pra caber (com o botão da carta completa) na altura deitada */
     .vt-card-sheet .fut-wrap {
@@ -187,9 +405,6 @@
         flex-direction: column;
         margin-top: 0;
     }
-}
-.vt-formations .fi-tags .hud-icon {
-    display: none;
 }
 
 /* chip "Carta" da escalação: flutua no canto da quadra, não empurra nada */

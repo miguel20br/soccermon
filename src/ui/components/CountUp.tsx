@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import { reduceMotionOn } from '../settings-sync';
+import { reduceMotionOn } from '../reduce-motion';
 
 /** ease-out com leve overshoot (passa um tico do alvo e volta). */
 export const easeOutBack = (p: number) => {

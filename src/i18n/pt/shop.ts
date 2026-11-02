@@ -17,6 +17,7 @@ export const shop = {
     interestHint: 'Guardar rende juros: ₽1 a cada ₽5, até ₽{cap}.',
     reroll: 'Novas ofertas · ₽{n}',
     rerollFree: 'Novas ofertas · grátis',
+    free: 'Grátis',
     leave: 'Seguir',
     buy: 'Comprar · ₽{n}',
     buyPlain: 'Comprar',

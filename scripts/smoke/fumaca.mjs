@@ -146,7 +146,7 @@ async function copa() {
     });
     await step(p, 'abandonar em sheet', async () => {
         // a confirmação ficava atrás da barra do Jogar (0.9.22): agora é sheet e tem que estar por cima de tudo
-        await p.locator('.vt-cork').click();
+        await p.locator('.vt-rival').click();
         await p.locator('.vt-board-sheet .btn.ghost.danger').click();
         const danger = p.locator('.k-confirm .btn.danger');
         await danger.waitFor({ timeout: 5000 });

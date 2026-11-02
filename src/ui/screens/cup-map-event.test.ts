@@ -26,16 +26,16 @@ function rota() {
     return useGame.getState().run!;
 }
 
-/** Revisão da Rota (decisões 2 e 3): escolhas na barra do polegar, e tocar no Pokémon marca em vez de aplicar. */
+/** Rota em cena (cara-de-jogo.md): escolhas como opções do diálogo, e tocar no Pokémon marca em vez de aplicar. */
 describe('tela do evento e do Treino', () => {
-    it('evento: as escolhas ficam na barra do polegar, embaixo da cena', () => {
+    it('evento: as escolhas são opções da caixa de diálogo, embaixo da cena', () => {
         const run = rota();
         const event = rollEvent(run, 'entrevista');
         useGame.setState({ run: { ...run, status: 'event', event } });
         const out = renderToStaticMarkup(createElement(EventScreen));
-        expect(out).toMatch(/class="bc-thumbbar cm-choices".*cm-choice/s);
-        // a cena vem antes da barra
-        expect(out.indexOf('cm-event ')).toBeLessThan(out.indexOf('bc-thumbbar'));
+        expect(out).toMatch(/class="room-dialog has-opts".*class="ev-opt"/s);
+        // a cena vem antes do diálogo
+        expect(out.indexOf('ev-scene')).toBeLessThan(out.indexOf('room-dialog'));
     });
 
     it('Treino: tocar marca (aria-pressed) e o Treinar fica desligado até alguém ser marcado', () => {
@@ -43,7 +43,9 @@ describe('tela do evento e do Treino', () => {
         useGame.setState({ run: { ...run, status: 'treino' } });
         const out = renderToStaticMarkup(createElement(Training));
         expect(out).toContain('aria-pressed="false"');
-        expect(out).toMatch(/<button[^>]*class="btn confirm cm-train-go"[^>]*disabled=""/);
+        expect(out).toMatch(/<button[^>]*class="btn confirm wide"[^>]*disabled=""/);
+        // o Descansar é o colchonete da cena, com a placa
+        expect(out).toMatch(/class="tr-obj tr-bed"[^>]*aria-pressed="false"/);
         expect(out).toContain('Toque em quem treina');
     });
 });

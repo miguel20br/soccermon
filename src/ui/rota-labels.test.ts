@@ -118,12 +118,13 @@ describe('Rota Índigo: fim da copa', () => {
 describe('a fase só na barra da copa', () => {
     // a placa do mapa contava `results.length` e a barra `run.stage`: depois de uma derrota de cartão amarelo uma dizia
     // "Partida 3 de 8" e a outra "Partida 4 de 8". O brand guide manda a fase só na barra (CupBar)
-    it('as telas da Rota (mapa, treino, evento, grupo) não põem etiqueta no cabeçalho', async () => {
+    it('as telas da Rota (mapa, treino, evento, grupo) não põem a fase no cabeçalho', async () => {
         const { readFileSync } = await import('node:fs');
         const src = readFileSync('src/ui/screens/CupMap.tsx', 'utf8');
         const heads = src.match(/<MenuHead[^>]*\/>/gs) ?? [];
-        expect(heads.length).toBeGreaterThanOrEqual(4);
         expect(heads.filter((h) => h.includes('tag='))).toEqual([]);
+        // treino, evento e grupo viraram palco (cara-de-jogo.md): a etiqueta deles é o tipo da casa, nunca a partida
+        expect(src).not.toMatch(/longCup\.step|cupStageName|cupStageShort|cupBarStage/);
     });
 });
 
