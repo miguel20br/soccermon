@@ -47,39 +47,63 @@ function PatchBody({ n }: { n: PatchNotes }) {
     ));
 }
 
-/** A mais nova vem aberta e em destaque; as antigas ficam recolhidas (versão, título, data). */
-function PatchVersion({ n, latest, lang }: { n: PatchNotes; latest: boolean; lang: 'pt' | 'en' }) {
-    const { t } = useT();
-    const [open, setOpen] = useState(false);
-    const date = new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
+const patchDate = (n: PatchNotes, lang: 'pt' | 'en') =>
+    new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
         day: 'numeric',
         month: 'short',
         timeZone: 'UTC',
     });
-    if (latest) {
-        return (
-            <section className="patch-version patch-latest">
-                <p className="patch-meta">
-                    <span className="bc-tag">{t('home.latest')}</span>
-                    <time dateTime={n.date}>{date}</time>
-                </p>
-                <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
-                <PatchBody n={n} />
-            </section>
-        );
-    }
+
+/**
+ * O cartaz da versão nova (cara-de-jogo.md, decisão 15): o nome grande e 4 destaques (o 1º item de cada seção);
+ * "Ver tudo" e "Versões antigas" trocam a página dentro da mesma folha.
+ */
+function PatchPoster({ n, lang, go }: { n: PatchNotes; lang: 'pt' | 'en'; go: (page: string) => void }) {
+    const { t } = useT();
     return (
-        <section className={`patch-version patch-old${open ? ' open' : ''}`}>
-            <button type="button" className="patch-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
-                <span className="patch-old-title">{t('home.version', { v: n.version, title: n.title })}</span>
-                <time dateTime={n.date}>{date}</time>
-                <HudIcon kind="down" />
-            </button>
-            <div className="patch-fold" inert={!open}>
-                <div>
-                    <PatchBody n={n} />
-                </div>
+        <section className="patch-poster">
+            <div className="patch-poster-art" aria-hidden>
+                <img src="assets/ui/simbolo.svg" alt="" width="64" height="64" />
             </div>
+            <p className="patch-meta">
+                <span className="bc-tag">{t('home.latest')}</span>
+                <span>v{n.version}</span>
+                <time dateTime={n.date}>{patchDate(n, lang)}</time>
+            </p>
+            <h2 className="patch-poster-title">{n.title}</h2>
+            <ol className="patch-hl">
+                {n.sections.slice(0, 4).map((sec) => (
+                    <li key={sec.title}>
+                        <HudIcon kind="max" />
+                        <span>
+                            <b>{sec.title}</b>
+                            <small>{sec.lines[0]}</small>
+                        </span>
+                    </li>
+                ))}
+            </ol>
+            <div className="patch-poster-actions">
+                <button type="button" className="btn ghost" onClick={() => go(n.version)}>
+                    {t('home.newsAll')}
+                </button>
+                <button type="button" className="btn" onClick={() => go('old')}>
+                    {t('home.newsOld')}
+                </button>
+            </div>
+        </section>
+    );
+}
+
+/** Uma versão inteira (do cartaz ou da lista das antigas). */
+function PatchVersion({ n, lang }: { n: PatchNotes; lang: 'pt' | 'en' }) {
+    const { t } = useT();
+    return (
+        <section className="patch-version">
+            <p className="patch-meta">
+                <time dateTime={n.date}>{patchDate(n, lang)}</time>
+            </p>
+            <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
+            <PatchBody n={n} />
         </section>
     );
 }
@@ -108,6 +132,7 @@ export function NewsButton() {
     const latest = versionNum(__APP_VERSION__);
     const [seen, setSeen] = useState(readSeen);
     const [open, setOpen] = useState(false);
+    const [page, setPage] = useState('poster');
     const close = useCallback(() => setOpen(false), []);
     // a versão conta como vista quando as notas abrem de verdade (falhou o download, o pontinho fica)
     useEffect(() => {
@@ -133,6 +158,7 @@ export function NewsButton() {
                 onPointerDown={load}
                 onClick={() => {
                     load();
+                    setPage('poster');
                     setOpen(true);
                 }}
             >
@@ -142,9 +168,40 @@ export function NewsButton() {
             </button>
             {/* abre quando as notas chegam: a folha não nasce vazia */}
             <Sheet open={open && !!mod} onClose={close} title={t('home.news')} className="patch-notes">
-                {notes.map((n, i) => (
-                    <PatchVersion key={n.version} n={n} latest={i === 0} lang={lang} />
-                ))}
+                {/* uma página por vez, entrando com fade (nada teleporta) */}
+                <div key={page} className="patch-page">
+                    {page !== 'poster' && (
+                        <button
+                            type="button"
+                            className="btn small ghost patch-back"
+                            onClick={() => setPage(page === 'old' || page === notes[0]?.version ? 'poster' : 'old')}
+                        >
+                            <HudIcon kind="prev" />
+                            {t('common.ui.back')}
+                        </button>
+                    )}
+                    {page === 'poster' && notes[0] && <PatchPoster n={notes[0]} lang={lang} go={setPage} />}
+                    {page === 'old' && (
+                        <ul className="patch-old-list">
+                            {notes.slice(1).map((n) => (
+                                <li key={n.version}>
+                                    <button type="button" className="patch-toggle" onClick={() => setPage(n.version)}>
+                                        <span className="patch-old-title">
+                                            {t('home.version', { v: n.version, title: n.title })}
+                                        </span>
+                                        <time dateTime={n.date}>{patchDate(n, lang)}</time>
+                                        <HudIcon kind="next" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {notes
+                        .filter((n) => n.version === page)
+                        .map((n) => (
+                            <PatchVersion key={n.version} n={n} lang={lang} />
+                        ))}
+                </div>
             </Sheet>
         </>
     );

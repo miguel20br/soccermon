@@ -63,6 +63,9 @@ export const home: typeof pt = {
     footerAria: 'More',
     version: 'Version {v} · {title}',
     latest: 'Latest',
+    /** News: the new version's poster leads to the full list and to older versions. */
+    newsAll: 'See all',
+    newsOld: 'Older versions',
     soonTitle: 'Coming soon',
     soonRibbon: 'Coming soon',
     /** Contagem da Liga no cartãozinho do Vem aí. */
