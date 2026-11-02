@@ -22,6 +22,7 @@ import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
+import { announceProgram, tvCut, tvOn } from '../tv-lab';
 import { uiZoom } from '../ui-zoom';
 
 const ICON: Record<Tab, HudIconKind> = {
@@ -79,6 +80,19 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         setTabState(i);
         setPos(i);
     };
+    // ?lab=tv: tocar na aba é um corte de TV (a aba troca embaixo da faixa, sem deslizar); o arrasto continua igual
+    const tvTab = (i: number) =>
+        i !== tab &&
+        tvOn() &&
+        tvCut(() => {
+            const r = root.current;
+            r?.classList.add('amb-drag');
+            setTab(i);
+            requestAnimationFrame(() => requestAnimationFrame(() => r?.classList.remove('amb-drag')));
+        });
+    useEffect(() => {
+        if (tvOn()) announceProgram(TABS[tab]);
+    }, [tab]);
 
     // entrar num modo: a câmera anda até a quadra (ou o time sai pela estrada) e aí a copa começa; um toque pula
     const enter = (action: () => void) => {
@@ -250,7 +264,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                             aria-controls={`amb-panel-${id}`}
                             tabIndex={i === tab ? 0 : -1}
                             className={`amb-tab amb-tab-${id}${i === tab ? ' on' : ''}`}
-                            onClick={() => setTab(i)}
+                            onClick={() => tvTab(i) || setTab(i)}
                         >
                             <span className="amb-tab-ic">
                                 <HudIcon kind={ICON[id]} />

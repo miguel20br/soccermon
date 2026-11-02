@@ -16,6 +16,7 @@ import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
+import { TvLayer } from './ui/components/TvLayer';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { openPage } from './ui/doors';
@@ -44,6 +45,7 @@ import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
+import { readTv, tvCut, tvOn } from './ui/tv-lab';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
 /** Telas de dentro da copa: a barra da copa (fase, ₽, sorteios) no lugar do logo (revamp-ui, 0.9.23). */
@@ -172,6 +174,13 @@ export default function App() {
         }, MENU_FADE_MS);
     };
     useEffect(() => () => window.clearTimeout(fadeTimer.current), []);
+    // ?lab=tv: entrar e sair do menu de modos também é corte de TV (o fade de sempre quando não dá pra animar)
+    const tvMenu = (to: 'on' | null) =>
+        tvOn() &&
+        tvCut(() => {
+            window.clearTimeout(fadeTimer.current);
+            setMenu(to);
+        });
     // o menu é só da Home: saiu dela (Perfil, Configurações, copa), ele não volta no meio da sessão
     useEffect(() => {
         if (screen !== 'home') {
@@ -181,6 +190,8 @@ export default function App() {
     }, [screen]);
     // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
     useState(readHud);
+    // ?lab=tv (protótipo da transmissão, só dev e prévias): idem
+    const [tv] = useState(readTv);
     const [cards, setCards] = useState(
         () => __SMOKE__ && new URLSearchParams(window.location.search).get('cards') === '1',
     );
@@ -338,10 +349,10 @@ export default function App() {
                     <>
                         {/* cada um no seu Suspense: a Home carregando embaixo não tira o menu da tela no fade */}
                         <Suspense fallback={null}>
-                            {menu !== 'on' && <Ambientes onModes={() => fadeMenu('in', 'on')} />}
+                            {menu !== 'on' && <Ambientes onModes={() => tvMenu('on') || fadeMenu('in', 'on')} />}
                         </Suspense>
                         <Suspense fallback={null}>
-                            {menu && <ModeMenu phase={menu} onPlay={() => fadeMenu('out', null)} />}
+                            {menu && <ModeMenu phase={menu} onPlay={() => tvMenu(null) || fadeMenu('out', null)} />}
                         </Suspense>
                     </>
                 ) : (
@@ -368,6 +379,7 @@ export default function App() {
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />
+            {tv && <TvLayer />}
             <MomentLayer />
             <DoorLayer />
             <CardModal />

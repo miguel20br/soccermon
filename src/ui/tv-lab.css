@@ -1,0 +1,261 @@
+/* Protótipo ?lab=tv (src/ui/tv-lab.ts): corte de TV, letreiro de canal e a grade de programação do menu de modos. */
+
+/* ---------- o corte: a faixa diagonal na tinta do placar, com o filete amarelo nas duas bordas ---------- */
+.tv-cut {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    overflow: hidden;
+    pointer-events: none;
+}
+.tv-cut-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--yellow);
+    clip-path: polygon(var(--s) 0, 100% 0, calc(100% - var(--s)) 100%, 0 100%);
+    transform: translateX(100vw);
+    will-change: transform;
+}
+.tv-cut-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bc-ink);
+    clip-path: polygon(calc(var(--s) + 12px) 0, calc(100% - 12px) 0, calc(100% - var(--s) - 12px) 100%, 12px 100%);
+}
+
+/* ---------- letreiro: o bug do canal e a faixa do programa saindo dele ---------- */
+.tv-row {
+    position: fixed;
+    left: 8px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    pointer-events: none;
+}
+/* a partida: no topo à direita, na linha do símbolo */
+.tv-row.top {
+    top: calc(env(safe-area-inset-top) + 8px);
+    right: 8px;
+    left: auto;
+    flex-direction: row-reverse;
+}
+.tv-bug {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 9px 0 3px;
+    background: var(--bc-ink);
+    border: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    box-shadow: 0 2px 0 var(--bc-edge);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+    white-space: nowrap;
+}
+.tv-bug img {
+    width: 24px;
+    height: 24px;
+}
+.tv-bug.live b::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin: 0 5px 1px 0;
+    border-radius: 50%;
+    background: var(--red);
+    animation: tv-blink 1.2s steps(1) infinite;
+}
+@keyframes tv-blink {
+    50% {
+        opacity: 0.25;
+    }
+}
+.tv-lower {
+    overflow: hidden;
+    margin-left: -4px;
+}
+.tv-row.top .tv-lower {
+    margin: 0 -4px 0 0;
+}
+.tv-lower > span {
+    display: block;
+    height: 24px;
+    padding: 0 12px 0 14px;
+    background: var(--yellow);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 0 4px 4px 0;
+    color: var(--bc-ink);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 13px;
+    line-height: 23px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-102%);
+    transition: transform 240ms var(--ease-out);
+}
+.tv-row.top .tv-lower > span {
+    padding: 0 14px 0 12px;
+    border-radius: 4px 0 0 4px;
+    transform: translateX(102%);
+}
+.tv-row.on .tv-lower > span {
+    transform: none;
+    transition-duration: 280ms;
+}
+
+/* ---------- grade de programação (menu de modos) ---------- */
+.tv-grid {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 0 12px;
+}
+.tv-grid-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--yellow);
+    border-radius: 8px;
+    box-shadow: 0 3px 0 var(--bc-edge);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.tv-grid-head .tv-bug {
+    height: 26px;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+}
+.tv-grid-head time {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 14px;
+    letter-spacing: 0;
+}
+.tv-rows {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+}
+.tv-slot {
+    position: relative;
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    flex: 1;
+    min-height: 74px;
+    padding: 0;
+    overflow: hidden;
+    background: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow: 0 3px 0 var(--bc-edge);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        flex-grow 280ms var(--ease-out),
+        box-shadow 200ms var(--ease-out);
+}
+.tv-slot.on {
+    flex-grow: 2.4;
+    box-shadow:
+        inset 0 0 0 2px var(--blue),
+        0 3px 0 var(--bc-edge);
+}
+/* coluna do horário: AGORA em vermelho, os outros na tinta clara */
+.tv-time {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--bc-ink-2);
+    border-right: 3px solid var(--bc-edge);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-align: center;
+}
+.tv-time b {
+    padding: 2px 6px 1px;
+    border-radius: 4px;
+    background: var(--panel-2);
+    line-height: 14px;
+}
+.tv-slot-now .tv-time b {
+    background: var(--red-dark, var(--red));
+}
+.tv-time small {
+    color: var(--muted);
+    font-size: 10px;
+}
+.tv-show {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+}
+.tv-show > .mm-sc {
+    position: absolute;
+    inset: 0;
+    opacity: 0.55;
+    transition: opacity 280ms var(--ease-out);
+}
+.tv-slot.on .tv-show > .mm-sc {
+    opacity: 1;
+}
+.tv-show-txt {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+.tv-show-txt .mm-plate {
+    font-size: 18px;
+}
+.tv-show-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+        grid-template-rows 280ms var(--ease-out),
+        opacity 200ms var(--ease-out);
+}
+.tv-show-more > span {
+    min-height: 0;
+    overflow: hidden;
+}
+.tv-slot.on .tv-show-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+/* entram como as fatias (nada teleporta) */
+.tv-grid-head,
+.tv-slot {
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
+}
