@@ -18,6 +18,7 @@ export const COACH_IDS = [
     'dueloSala',
     'dia',
     'liga',
+    'golpe',
 ] as const;
 export type CoachId = (typeof COACH_IDS)[number];
 
@@ -37,10 +38,20 @@ export const COACH_GROUPS: Record<CoachId, readonly CoachId[]> = {
     dueloSala: ['duelo', 'dueloSala'],
     dia: ['dia'],
     liga: ['liga'],
+    golpe: ['golpe'],
 };
 
 /** Botões da Ajuda ("Como funciona"): um por modo, na ordem. */
-export const COACH_REPLAY: readonly CoachId[] = ['intro', 'rota', 'rotaGrupo', 'relampago', 'duelo', 'dia', 'liga'];
+export const COACH_REPLAY: readonly CoachId[] = [
+    'intro',
+    'rota',
+    'rotaGrupo',
+    'relampago',
+    'golpe',
+    'duelo',
+    'dia',
+    'liga',
+];
 
 type History = Pick<PersistedSave, 'run' | 'parkedRuns' | 'records' | 'duels' | 'daily' | 'hall' | 'onboarded'>;
 
