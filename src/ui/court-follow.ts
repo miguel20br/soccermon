@@ -40,8 +40,8 @@ export const readyScene = (): FollowScene | null => (ready?.sys?.isActive() ? re
 export const CAM = {
     /** Quanto da quadra cabe na janela em pé (antes ~0,46: o canvas na altura toda da caixa, só uns 18 m). */
     viewShare: 0.6,
-    /** Quem conduz fica atrás do meio: este tanto da janela de espaço à frente, pro gol que ele ataca. */
-    attackLead: 0.17,
+    /** Quem conduz fica atrás do meio: este tanto da janela de espaço à frente, pro gol que ele ataca (0,17 ⇒ 0,26 em 02/11: "mais descentralizada"). */
+    attackLead: 0.26,
     /** Segundos de bola à frente: no passe e no chute o alvo fica entre a bola e onde ela vai. */
     ballAhead: 0.4,
     /** ...até este tanto da janela (bola de saída de gol "teleporta": sem teto, a câmera disparava). */
