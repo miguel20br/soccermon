@@ -8,6 +8,7 @@ import { type AlbumEdition, albumSlots, type DexEntry, hasSticker, isPlayed, top
 import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
+import { Stepper } from '../kit/controls';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
 import { BallMark, CareerSealIcon, ChampionRibbon } from './icons';
@@ -95,55 +96,72 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
 
     return (
         <div className="pf-dex" key={view}>
-            <div className="pf-dex-progress">
-                <div className="pf-dex-counts">
-                    <span>
-                        {t('profile.dex.seen')} <b>{seenCount}</b>/{TOTAL}
+            {seenCount === 0 ? (
+                // Pokédex vazia: o Carvalho diz quanto falta (no lugar da barra zerada e dos filtros sem nada)
+                <div className="rt-talk pf-oak">
+                    <span className="rt-talk-face">
+                        <img className="pixel" src="assets/trainers/oak.png" alt="" width="80" height="80" />
                     </span>
-                    <span>
-                        <BallMark /> {t('profile.dex.played')} <b>{counts.played}</b>/{TOTAL}
-                    </span>
+                    <p>
+                        <b>{d.longCup.story.rota1.who}</b> {t('home.amb.labTalk', { n: TOTAL })}
+                    </p>
                 </div>
-                <div
-                    className={`k-bar${counts.played >= TOTAL ? ' full' : ''}`}
-                    role="img"
-                    aria-label={t('profile.dex.barAria', { seen: seenCount, total: TOTAL, played: counts.played })}
-                >
-                    <i className="k-bar-ghost" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
-                    <i style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
-                </div>
-            </div>
+            ) : (
+                <>
+                    <div className="pf-dex-progress">
+                        <div className="pf-dex-counts">
+                            <span>
+                                {t('profile.dex.seen')} <b>{seenCount}</b>/{TOTAL}
+                            </span>
+                            <span>
+                                <BallMark /> {t('profile.dex.played')} <b>{counts.played}</b>/{TOTAL}
+                            </span>
+                        </div>
+                        <div
+                            className={`k-bar${counts.played >= TOTAL ? ' full' : ''}`}
+                            role="img"
+                            aria-label={t('profile.dex.barAria', {
+                                seen: seenCount,
+                                total: TOTAL,
+                                played: counts.played,
+                            })}
+                        >
+                            <i className="k-bar-ghost" style={{ width: `${(seenCount / TOTAL) * 100}%` }} />
+                            <i style={{ width: `${(counts.played / TOTAL) * 100}%` }} />
+                        </div>
+                    </div>
 
-            <fieldset className="pf-filters">
-                <legend className="pf-sr">{t('profile.dex.filterStatus')}</legend>
-                {FILTERS.map((f) => (
-                    <button
-                        type="button"
-                        key={f}
-                        className={`pf-chip${filter === f ? ' active' : ''}`}
-                        aria-pressed={filter === f}
-                        onClick={() => setFilter(f)}
-                    >
-                        {d.profile.dex.filters[f]} <small>{counts[f]}</small>
-                    </button>
-                ))}
-            </fieldset>
-            <fieldset className="pf-types">
-                <legend className="pf-sr">{t('profile.dex.filterType')}</legend>
-                {TYPES.map((ty) => (
-                    <button
-                        type="button"
-                        key={ty}
-                        className={`pf-type${type === ty ? ' active' : ''}`}
-                        aria-pressed={type === ty}
-                        aria-label={t('profile.dex.typeAria', { type: typeName(ty, lang) })}
-                        title={typeName(ty, lang)}
-                        onClick={() => setType(type === ty ? null : ty)}
-                    >
-                        <TypeIcon type={ty} size={22} label={type === ty} />
-                    </button>
-                ))}
-            </fieldset>
+                    {/* a situação num seletor só; o tipo na fileira de ícones */}
+                    <div className="pf-dex-filters">
+                        <Stepper
+                            label={t('profile.dex.filterStatus')}
+                            value={filter}
+                            options={FILTERS.map((f) => ({
+                                value: f,
+                                label: `${d.profile.dex.filters[f]} · ${counts[f]}`,
+                            }))}
+                            onChange={setFilter}
+                            wrap
+                        />
+                        <fieldset className="pf-types">
+                            <legend className="pf-sr">{t('profile.dex.filterType')}</legend>
+                            {TYPES.map((ty) => (
+                                <button
+                                    type="button"
+                                    key={ty}
+                                    className={`pf-type${type === ty ? ' active' : ''}`}
+                                    aria-pressed={type === ty}
+                                    aria-label={t('profile.dex.typeAria', { type: typeName(ty, lang) })}
+                                    title={typeName(ty, lang)}
+                                    onClick={() => setType(type === ty ? null : ty)}
+                                >
+                                    <TypeIcon type={ty} size={22} label={type === ty} />
+                                </button>
+                            ))}
+                        </fieldset>
+                    </div>
+                </>
+            )}
 
             {list.length ? (
                 <ul className="pf-grid">
