@@ -503,3 +503,14 @@ Cada etapa sai com revisão dupla e trailerzinho, como o Miguel pediu ("versões
 
 Prints deste levantamento (fora do repo):
 `/home/bartolomeu/.cache/claude-tmp/claude-1000/-home-bartolomeu-Projects-soccermon/152ccaaa-4524-49c1-9d45-e064e56ed88b/scratchpad/cara-de-jogo/prints/`.
+
+## Decidido com o Miguel (02/11/2026)
+
+"Concordo com todas, menos na que propõe mudanças em menor escala ou mais conservadoras. Acho que conseguimos sim fazer
+algo bem feito e grande." Fica assim:
+
+- **Escopo C** (grande), em etapas: primeiro as peças do B (Palco, Momento, Cascata, controles de jogo, Info "?") e as
+  telas da Copa; depois a linguagem de TV em tudo.
+- **Decisão 3 caiu:** pode mexer nas telas da Copa já, antes de 27/11.
+- As outras 13 decisões ficam com a recomendação.
+
