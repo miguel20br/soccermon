@@ -884,9 +884,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     inName: nameOf(o.inUid),
                                     outName: nameOf(o.outUid),
                                     sprite: spriteOf(o.inUid),
+                                    outSprite: spriteOf(o.outUid),
                                     onUndo: canChangeTactic ? () => undoSub(o) : undefined,
                                 }))}
                                 rivalSubs={rivalHtSubs(match, 1)}
+                                colors={[hex(colors[0]), hex(colors[1])]}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');

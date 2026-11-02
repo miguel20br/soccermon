@@ -3235,6 +3235,8 @@ button,
 /* intervalo: o técnico decide antes do 2º tempo */
 .ht-panel {
     display: grid;
+    /* a coluna não cresce com o conteúdo (a placa de troca numa linha só passava da borda no 320) */
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     gap: 8px;
     margin-top: 10px;
@@ -3274,6 +3276,158 @@ button,
 .ht-stats dd {
     margin: 0;
     font-weight: 700;
+}
+/* placar de TV do intervalo (cara-de-jogo.md, padrão 8): uma linha por número, o .bc-sc da transmissão e a barra */
+.ht-stats.ht-board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    width: min(100%, 380px);
+    padding: 10px 12px 12px;
+    background: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in, #39447a),
+        0 4px 0 var(--bc-edge);
+}
+/* uma linha por número, como na TV: "10 ━━ CHUTES ━━ 4" (o rótulo em cima da barra, os números nas pontas) */
+.ht-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "a l b"
+        "a r b";
+    align-items: center;
+    gap: 2px 8px;
+}
+.ht-row dt {
+    grid-area: l;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.ht-row .bc-sc:first-child {
+    grid-area: a;
+}
+.ht-row .bc-sc:last-child {
+    grid-area: b;
+}
+.ht-row .ht-bar {
+    grid-area: r;
+}
+/* o fôlego só tem um número: rótulo e barra começam na ponta da esquerda */
+.ht-row:has(.ht-bar.one) dt,
+.ht-row .ht-bar.one {
+    grid-column: 1 / 3;
+}
+.ht-row:has(.ht-bar.one) dt {
+    text-align: left;
+}
+.ht-row .ht-who {
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.ht-stats .ht-row dd {
+    display: contents;
+}
+.ht-row .bc-sc {
+    margin: 0;
+    min-width: 46px;
+    font-size: 18px;
+    line-height: 26px;
+}
+/* barra de dois lados (seu time à esquerda, na sua cor) ou de um lado só (o fôlego) */
+.ht-bar {
+    position: relative;
+    flex: 1;
+    height: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    border-radius: 3px;
+    background: var(--ht-b, #5b6491);
+}
+.ht-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--v) * 100%);
+    background: var(--ht-a, var(--yellow));
+    transform-origin: left;
+}
+.k-beat.on .ht-bar::before {
+    animation: ht-bar-in 420ms var(--ease-out) 60ms both;
+}
+@keyframes ht-bar-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+.ht-bar.one {
+    background: var(--bc-ink-2);
+}
+.ht-bar.one::before {
+    background: #7dff8a;
+}
+.ht-bar.one.mid::before {
+    background: var(--yellow);
+}
+.ht-bar.one.low::before {
+    background: var(--red);
+}
+/* placa de substituição de TV: seta verde com quem entra, seta vermelha com quem sai */
+.ht-subs .ht-plate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+}
+.ht-plate > :is(.ht-in, .ht-out) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 2px 8px 2px 4px;
+    border-radius: 6px;
+}
+.ht-plate .ht-in {
+    background: rgb(125 255 138 / 14%);
+}
+.ht-plate .ht-out {
+    background: rgb(232 66 63 / 16%);
+    color: var(--muted);
+}
+.ht-plate .ht-in .hud-icon {
+    color: #7dff8a;
+}
+.ht-plate .ht-out .hud-icon {
+    color: #ff6b5e;
+}
+.ht-subs .ht-plate b,
+.ht-subs.rival .ht-plate b {
+    color: var(--text);
+}
+.ht-plate :is(b, span span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ht-plate img {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.ht-plate .ht-undo {
+    margin-left: auto;
+}
+.ht-subs-beat {
+    width: 100%;
+    max-width: 46ch;
 }
 .ht-tip {
     margin: 0;
