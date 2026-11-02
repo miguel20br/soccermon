@@ -64,15 +64,20 @@ const AWARDS: { id: string; score: (a: Agg) => number; show: (a: Agg) => string;
     { id: 'master', score: (a) => a.movesUsed, show: (a) => String(a.movesUsed) },
 ];
 
-export function CupAwards({ run }: { run: RunState }) {
-    const { t } = useT();
+/** Os prêmios da copa (quem ganhou cada um e o número); o Campeão põe os 2 primeiros em destaque. */
+export function cupAwardList(run: RunState) {
     const players = aggregate(run.results);
-    const list = AWARDS.flatMap((aw) => {
+    return AWARDS.flatMap((aw) => {
         const pool = players.filter((a) => aw.score(a) > 0 && (aw.min?.(a) ?? true));
         if (!pool.length) return [];
         const who = pool.reduce((a, b) => (aw.score(b) > aw.score(a) ? b : a));
         return [{ id: aw.id, who, v: aw.show(who) }];
     });
+}
+
+export function CupAwards({ run }: { run: RunState }) {
+    const { t } = useT();
+    const list = cupAwardList(run);
     if (!list.length) return null;
     return (
         <>

@@ -111,6 +111,16 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
+    // os detalhes da partida (destaques, gols, estatísticas): embaixo do resultado; no título, na sheet Estatísticas
+    const details = (
+        <MatchDetails
+            match={match}
+            names={names}
+            initialTab={tab}
+            cupTab={<CupStats results={run.results} mode={run.mode} />}
+            goalsExtra={<GoalsExtra run={run} evolutions={evolutions} destaque={destaque} />}
+        />
+    );
     const share = async () => {
         const res = await shareRun(run, card);
         track('share', { kind: card ? 'image' : 'text', result: res, champion });
@@ -130,53 +140,55 @@ export function Result() {
 
     const foul = foulOf(run);
 
-    const actions = (
+    // fim da copa: Melhores momentos e Compartilhar (ou o ranking da Copa do Dia) lado a lado
+    const icons = (
         <>
-            {eliminated && <NearMiss run={run} />}
-            {eliminated && <CupGains run={run} />}
-            {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
-            <div className="row" style={{ justifyContent: 'center' }}>
-                <MomentsButton run={run} match={match} />
-                {(eliminated || champion) &&
-                    (run.daily ? (
-                        // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                        <button type="button" className="btn outline" onClick={() => go('daily')}>
-                            {t('liga.daily.rankingTitle')}
-                        </button>
-                    ) : (
-                        <button type="button" className="btn outline" onClick={share}>
-                            {t('result.share')}
-                        </button>
-                    ))}
-            </div>
-            {/* fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado */}
-            <div className="bc-thumbbar">
-                {eliminated || champion ? (
-                    <>
-                        <button type="button" className="btn ghost" onClick={advance}>
-                            {t('result.menu')}
-                        </button>
-                        <button
-                            type="button"
-                            className="btn primary big"
-                            onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
-                        >
-                            {t('result.newCup')}
-                            <HudIcon kind="next" />
-                        </button>
-                    </>
+            <MomentsButton run={run} match={match} />
+            {(eliminated || champion) &&
+                (run.daily ? (
+                    // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                    <button type="button" className="btn outline" onClick={() => go('daily')}>
+                        {t('liga.daily.rankingTitle')}
+                    </button>
                 ) : (
-                    <button type="button" className="btn confirm big" onClick={advance}>
-                        {run.status === 'map'
-                            ? t('longCup.backToMap')
-                            : run.status === 'group'
-                              ? t('longCup.backToGroup')
-                              : t('result.chooseReward')}
+                    <button type="button" className="btn outline" onClick={share}>
+                        <HudIcon kind="upload" /> {t('result.share')}
+                    </button>
+                ))}
+        </>
+    );
+    const thumb = (
+        // fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado
+        <div className="bc-thumbbar">
+            {eliminated || champion ? (
+                <>
+                    <button type="button" className="btn ghost" onClick={advance}>
+                        {t('result.menu')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn primary big"
+                        onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                    >
+                        {t('result.newCup')}
                         <HudIcon kind="next" />
                     </button>
-                )}
-            </div>
-            {shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>}
+                </>
+            ) : (
+                <button type="button" className="btn confirm big" onClick={advance}>
+                    {run.status === 'map'
+                        ? t('longCup.backToMap')
+                        : run.status === 'group'
+                          ? t('longCup.backToGroup')
+                          : t('result.chooseReward')}
+                    <HudIcon kind="next" />
+                </button>
+            )}
+        </div>
+    );
+    // o resto do fim da copa: baixar o card do título e dar feedback (no campeão, dentro da sheet Estatísticas)
+    const extra = (
+        <>
             {champion && (
                 <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
                     <span className="muted">{t('result.card.download')}</span>
@@ -203,25 +215,61 @@ export function Result() {
             )}
         </>
     );
+    const actions = (
+        <>
+            {eliminated && <NearMiss run={run} />}
+            {eliminated && <CupGains run={run} />}
+            {eliminated && <CupGoalCard run={run} match={match} />}
+            <div className="row" style={{ justifyContent: 'center' }}>
+                {icons}
+            </div>
+            {thumb}
+            {extra}
+        </>
+    );
+    const toast = shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>;
+
+    if (champion)
+        return (
+            <>
+                <ChampionView
+                    run={run}
+                    icons={icons}
+                    thumb={thumb}
+                    goal={<CupGoalCard run={run} match={match} />}
+                    extra={
+                        <>
+                            <LeaderQuote
+                                club={opponent.name}
+                                won
+                                color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
+                            />
+                            <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>
+                            {details}
+                            {extra}
+                        </>
+                    }
+                />
+                <UnlockStrip />
+                {toast}
+            </>
+        );
 
     return (
         <>
-            {champion ? (
-                <ChampionView run={run} actions={actions} />
-            ) : (
-                <ResultHero
-                    run={run}
-                    match={match}
-                    opponent={opponent}
-                    names={names}
-                    mvpUid={ourStar?.uid ?? null}
-                    foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
-                    unlocks={<UnlockStrip />}
-                    actions={actions}
-                />
-            )}
+            {toast}
+            <ResultHero
+                run={run}
+                match={match}
+                opponent={opponent}
+                names={names}
+                mvpUid={ourStar?.uid ?? null}
+                foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
+                unlocks={<UnlockStrip />}
+                actions={actions}
+            />
             {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
-            {!champion && run.status === 'reward' && !isLong(run) && (
+            {run.status === 'reward' && !isLong(run) && (
                 <BracketPeek
                     rounds={relampagoBracket(
                         run.seed,
@@ -233,76 +281,73 @@ export function Result() {
                     fresh
                 />
             )}
-            {/* fora do título a fala vem no topo do resultado (ResultHero) */}
-            {champion && (
-                <LeaderQuote
-                    club={opponent.name}
-                    won
-                    color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
-                />
-            )}
-            {champion && <UnlockStrip />}
             {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
             <Tip id="result-dex">{t('result.dexTip')}</Tip>
-            {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
+            {details}
+        </>
+    );
+}
 
-            <MatchDetails
-                match={match}
-                names={names}
-                initialTab={tab}
-                cupTab={<CupStats results={run.results} mode={run.mode} />}
-                goalsExtra={
-                    <>
-                        {evolutions.length > 0 && (
-                            <div className="destaque-box">
-                                <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
-                                <p className="tactic-desc">{t('result.evolvedNote')}</p>
-                                <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    {evolutions.map(({ inst, from }) => (
-                                        <div key={inst.uid} className="evolved-card">
-                                            <span className="muted">
-                                                {species(from).name} → {species(inst.speciesId).name}
-                                            </span>
-                                            <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
-                                        </div>
-                                    ))}
-                                </div>
+/** Evoluções e a carta Destaque da partida (embaixo dos gols, nos detalhes). */
+function GoalsExtra({
+    run,
+    evolutions,
+    destaque,
+}: {
+    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    evolutions: { inst: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number]; from: number }[];
+    destaque: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number] | null | undefined;
+}) {
+    const { t } = useT();
+    return (
+        <>
+            {evolutions.length > 0 && (
+                <div className="destaque-box">
+                    <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                    <p className="tactic-desc">{t('result.evolvedNote')}</p>
+                    <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {evolutions.map(({ inst, from }) => (
+                            <div key={inst.uid} className="evolved-card">
+                                <span className="muted">
+                                    {species(from).name} → {species(inst.speciesId).name}
+                                </span>
+                                <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
                             </div>
-                        )}
-                        {destaque && (
-                            <div className="destaque-box">
-                                <h2>
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpTitle', {
-                                              ed: editionLabel(destaque.special.kind),
-                                              n: destaque.special.level ?? 1,
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
-                                          : t('result.destaqueTitle')}
-                                </h2>
-                                <p className="tactic-desc">
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpText', {
-                                              name: destaque.nickname ?? species(destaque.speciesId).name,
-                                              bonus: specialBonus(destaque),
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })
-                                          : t('result.destaqueText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })}
-                                </p>
-                                <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
-                            </div>
-                        )}
-                    </>
-                }
-            />
+                        ))}
+                    </div>
+                </div>
+            )}
+            {destaque && (
+                <div className="destaque-box">
+                    <h2>
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpTitle', {
+                                  ed: editionLabel(destaque.special.kind),
+                                  n: destaque.special.level ?? 1,
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                              : t('result.destaqueTitle')}
+                    </h2>
+                    <p className="tactic-desc">
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpText', {
+                                  name: destaque.nickname ?? species(destaque.speciesId).name,
+                                  bonus: specialBonus(destaque),
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })
+                              : t('result.destaqueText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })}
+                    </p>
+                    <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
+                </div>
+            )}
         </>
     );
 }
