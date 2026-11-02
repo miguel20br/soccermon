@@ -50,7 +50,9 @@ export function TitleRecords({ run, rarity }: { run: RunState; rarity: Rarity | 
             {firsts.length > 0 && (
                 <p className="ce-firsts">
                     {t('title.records.firstTitles', {
-                        names: new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(firsts),
+                        names: new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(
+                            firsts,
+                        ),
                     })}
                 </p>
             )}
