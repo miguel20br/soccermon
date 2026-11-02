@@ -881,7 +881,7 @@
         .bc .ht-score {
             order: -2;
         }
-        .bc .ht-panel:has(.ht-info) .ht-actions {
+        .bc .ht-panel:has(.ht-info) :is(.ht-actions, .ht-sub-row) {
             order: -1;
         }
         .bc .ht-panel .ht-stats {
@@ -932,6 +932,7 @@
     }
     /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
     .bc .ht-panel .ht-actions,
+    .bc .ht-panel .ht-sub-row,
     .bc .ht-panel .duel-ht {
         order: 1;
     }
@@ -1472,7 +1473,8 @@ body:has(.bc-hud) {
     .bc .ht-score {
         order: -2;
     }
-    .bc .ht-actions {
+    .bc .ht-actions,
+    .bc .ht-sub-row {
         order: -1;
     }
     /* placar de TV mais baixo: a placa do rival cabe sem rolar no 320x640 */

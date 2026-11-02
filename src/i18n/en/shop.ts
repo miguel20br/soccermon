@@ -19,6 +19,7 @@ export const shop: typeof pt = {
     reroll: 'New offers · ₽{n}',
     rerollFree: 'New offers · free',
     free: 'Free',
+    rerollLabel: 'New offers',
     leave: 'Continue',
     buy: 'Buy · ₽{n}',
     buyPlain: 'Buy',

@@ -168,11 +168,8 @@ export function Shop() {
                             }}
                         >
                             <HudIcon kind="reroll" />
-                            <span className="shop-reroll-full">
-                                {reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
-                            </span>
-                            {/* celular estreito: só o preço (o ícone diz que é trocar a vitrine) */}
-                            <span className="shop-reroll-short" aria-hidden>
+                            {t('shop.rerollLabel')}
+                            <span className="bc-tag">
                                 {reroll === 0 ? t('shop.free') : t('shop.money', { n: reroll })}
                             </span>
                         </button>

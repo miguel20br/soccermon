@@ -18,6 +18,7 @@ export const shop = {
     reroll: 'Novas ofertas · ₽{n}',
     rerollFree: 'Novas ofertas · grátis',
     free: 'Grátis',
+    rerollLabel: 'Novas ofertas',
     leave: 'Seguir',
     buy: 'Comprar · ₽{n}',
     buyPlain: 'Comprar',

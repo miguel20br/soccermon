@@ -732,17 +732,10 @@ button.sp-slot:hover {
 .shop-reroll {
     flex: 0 1 auto;
     min-width: 0;
+    gap: 6px;
 }
-.shop-reroll-short {
-    display: none;
-}
-@media (max-width: 400px) {
-    .shop-reroll-full {
-        display: none;
-    }
-    .shop-reroll-short {
-        display: inline;
-    }
+.shop-reroll .bc-tag {
+    flex: none;
 }
 /* 320: a placa da marca estreita (só o ícone) e o texto do contrato menor */
 @media (max-width: 359px) {

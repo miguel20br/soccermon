@@ -3695,7 +3695,7 @@
     gap: 4px;
     padding: 6px 4px 7px;
     font: inherit;
-    color: var(--muted);
+    color: var(--text);
     background: var(--panel-2);
     border: 3px solid var(--cb-ink);
     border-radius: 8px;
@@ -3731,7 +3731,7 @@
 .es-tile b {
     max-width: 100%;
     font-family: "Galmuri11", monospace;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.15;
     text-align: center;
 }
@@ -3747,7 +3747,7 @@
         border-width: 2px;
     }
     .es-tile b {
-        font-size: 10px;
+        font-size: 12px;
     }
     .es-rail.many .es-tile {
         transition-property: transform, filter, background-color, color, flex-grow;

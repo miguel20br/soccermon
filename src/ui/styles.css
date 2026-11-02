@@ -3443,6 +3443,17 @@ button,
     justify-content: center;
     gap: 8px;
 }
+/* Substituir: ação das trocas, com respiro do Começar o 2º tempo (que fica embaixo, sozinho) */
+.ht-sub-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+.ht-sub-row .btn {
+    min-height: 36px;
+    padding: 4px 14px;
+    font-size: 12px;
+}
 .ht-rival-evo dd {
     color: var(--yellow);
 }

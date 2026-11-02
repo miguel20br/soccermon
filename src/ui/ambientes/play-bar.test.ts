@@ -69,6 +69,10 @@ describe('JOGAR e placas de modos do Estádio', () => {
         expect(playSub({ title: 'Continuar', sub: 'Pallet FC · Partida 3 de 8', verb: 'Continuar' }, true)).toBe(
             'Pallet FC · Partida 3 de 8',
         );
+        // a placa de "continuar" já diz a copa: a linha de baixo só leva o passo
+        expect(
+            playSub({ id: 'continue', title: 'Copa Relâmpago', sub: 'Pallet FC · Oitavas', verb: 'Continuar' }, true),
+        ).toBe('Pallet FC · Oitavas');
         expect(playSub({ title: 'Duelo', sub: 'Com amigos' }, true)).toBe('Duelo · Com amigos');
         expect(playSub({ title: 'Copa Relâmpago', sub: '4 jogos' }, false)).toBe('4 jogos');
     });

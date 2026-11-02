@@ -371,7 +371,12 @@ export function Estadio({
     const step = run && `${run.teamName} · ${cupStep({ ...run, played: run.results.length })}`;
     const modes: Record<ModeId, Omit<Mode, 'id'>> = {
         continue: {
-            title: t('home.resume'),
+            // a placa diz qual copa é; o botão grande diz "Continuar"
+            title: run?.daily
+                ? t('liga.home.dailyTag')
+                : run?.mode === 'longa'
+                  ? t('home.longCup.title')
+                  : t('home.quickCup.title'),
             sub: step || '',
             icon: 'play',
             verb: t('home.resume'),
@@ -384,8 +389,8 @@ export function Estadio({
             go: () => play(challenge ?? undefined),
         },
         quick: {
-            title: t('home.quickCup.title'),
-            sub: inProgress ? `${t('home.newCup')} · ${t('home.quickCup.tag')}` : t('home.quickCup.tag'),
+            title: inProgress ? t('home.newCup') : t('home.quickCup.title'),
+            sub: t('home.quickCup.tag'),
             icon: 'stopwatch',
             go: () => play(),
         },

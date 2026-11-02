@@ -160,7 +160,6 @@ export function HalftimePanel({
         // biome-ignore lint/a11y/useKeyWithClickEvents: tocar pula a cascata (tudo já está no DOM pro leitor de tela)
         <div className="ht-panel" role="dialog" aria-label={t('match.halftime')} onClick={casc.skip}>
             <div className="ht-info">
-                <span className="ht-title">{t('match.halftime')}</span>
                 <b className="ht-score">
                     {names[0]} {ht.score[0]} x {ht.score[1]} {names[1]}
                 </b>
@@ -242,10 +241,13 @@ export function HalftimePanel({
                         </section>
                     </Beat>
                 )}
-                <div className="ht-actions">
+                {/* Substituir é ação das trocas (junto do bloco "O rival trocou"), não do Começar o 2º tempo */}
+                <div className="ht-sub-row">
                     <button type="button" className="btn outline" disabled={!canSub} onClick={onSub}>
                         {mySubs.length ? t('match.ht.subMore') : t('match.substitute')}
                     </button>
+                </div>
+                <div className="ht-actions">
                     {ready ?? (
                         <button type="button" className="btn primary big" onClick={onContinue}>
                             {t('match.ht.continue')}
