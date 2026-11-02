@@ -334,7 +334,7 @@ Pro Miguel decidir (nada mudado): a meta vale assim, ou mexer (química, teto, c
 - Química: a meta medida (Prata de química alta x Ouro sem química, 39/17/44 em n=400) fica assim.
 - Números das tabelas "Proposta de números": ele vai olhar e responder. A prévia ele joga depois.
 
-## Etapa até 27/11: Primeiros passos, objetivo no JOGAR, pacote e pós-jogo (02/11/2026, falta o ok dos números)
+## Etapa até 27/11: Primeiros passos, objetivo no JOGAR, pacote e pós-jogo (02/11/2026, números aprovados pelo Miguel)
 
 Feito na branch `ultimate`, atrás de `?lab=ultimate` (B em etapas, `fc-ut-sistema.md` e `menus-fc-e-aclamados.md`).
 Nenhum número que já existia mudou; os novos estão em `src/store/ultimate/rules.ts` (`FIRST_STEPS`).
@@ -358,4 +358,4 @@ um paga uma vez, na hora; recomeçam na temporada nova (como o resto do modo).
   por último); tocar pula; "Abrir agora" quando a partida deu pacote (abre o Grande se tiver ganho um, senão o Mini).
 - **Música:** o Time Ultimate toca a `menu-balanco` até ter a própria.
 
-Pro Miguel: os 5 prêmios valem? Os Primeiros passos voltam a cada temporada (como está) ou só uma vez na vida?
+Decidido com o Miguel (02/11/2026): os 5 prêmios ficam (20, 20, 30, 30, 50), os Primeiros passos recomeçam a cada temporada e o "Abrir agora" entra.
