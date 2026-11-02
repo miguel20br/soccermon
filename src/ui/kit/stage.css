@@ -465,3 +465,114 @@
     --fut-w: var(--k-card-w);
     min-width: 0;
 }
+
+/* ---------- fim de partida (FinalCard): a cartela por cima da quadra parada, que ainda aparece atrás ---------- */
+.k-final {
+    background: radial-gradient(120% 90% at 50% 40%, rgb(42 58 122 / 0.9) 0%, rgb(7 10 24 / 0.94) 100%);
+}
+.k-final .k-moment-body {
+    justify-content: center;
+    height: 100%;
+}
+.k-final-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    cursor: pointer;
+}
+.k-final-score {
+    width: min(560px, 100%);
+}
+.k-final-prize {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 30px;
+    color: var(--green-hi);
+    text-shadow: var(--k-out-1);
+}
+.k-final-star {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.k-final-star img {
+    width: 64px;
+    height: 64px;
+}
+.k-final-next {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+}
+.k-final-sprites {
+    display: flex;
+    gap: 2px;
+}
+.k-final-sprites img {
+    width: 40px;
+    height: 40px;
+}
+.k-final-actions {
+    display: flex;
+    gap: 10px;
+    width: min(520px, 100%);
+    margin-top: 6px;
+}
+.k-final-actions > .btn.confirm {
+    flex: 1;
+    min-width: 0;
+}
+.k-final-actions .btn {
+    white-space: nowrap;
+}
+@media (max-width: 359px) {
+    .k-final-actions .btn {
+        padding-inline: 10px;
+        font-size: 15px;
+    }
+}
+/* celular deitado: tudo encolhe pra caber sem rolar */
+@media (max-height: 520px) {
+    .k-final .k-moment-title {
+        font-size: 30px;
+    }
+    .k-final-body,
+    .k-final .k-moment-body {
+        gap: 6px;
+    }
+    .k-final .k-final-score b {
+        font-size: 28px;
+    }
+    .k-final-prize {
+        font-size: 22px;
+    }
+    .k-final-star {
+        flex-direction: row;
+        gap: 8px;
+    }
+    .k-final-star img {
+        width: 36px;
+        height: 36px;
+    }
+    .k-final-sprites img {
+        width: 28px;
+        height: 28px;
+    }
+    .k-final-next {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px 8px;
+    }
+    .k-final-actions {
+        margin-top: 0;
+    }
+    .k-final-actions .btn.big {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}

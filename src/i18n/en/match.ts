@@ -26,6 +26,7 @@ export const match: typeof pt = {
     skip: 'Skip to the end',
     seeResult: 'See result',
     final: { win: 'VICTORY!', loss: 'DEFEAT', draw: 'DRAW' },
+    finalCard: { court: 'See the court', star: 'Star', next: 'Next: {stage}', aria: 'Full time' },
     feed: 'Commentary',
     feedEmpty: 'The teams walk onto the court…',
     pressure: 'Who is pushing harder',

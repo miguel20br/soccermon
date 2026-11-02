@@ -35,18 +35,17 @@ import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
 import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
+import { FinalCard } from '../components/FinalCard';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
     type CoachTab,
     CoachTabs,
-    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
-    ResultButton,
     Scoreboard,
     subSuggestion,
     TacticControls,
@@ -796,9 +795,6 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
-                        {ended && !auto.held && (
-                            <FinalBanner score={clock.score} shootout={shootout} side={0} names={teamNames} />
-                        )}
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}
@@ -1024,8 +1020,12 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             </button>
                         </>
                     ) : (
-                        <ResultButton
-                            label={t('match.seeResult')}
+                        <FinalCard
+                            score={clock.score}
+                            shootout={shootout}
+                            names={teamNames}
+                            colors={colors}
+                            liga={liga}
                             onGo={() =>
                                 // título: o troféu cobre a quadra e a festa aparece embaixo
                                 !liga && useGame.getState().run?.status === 'champion'
