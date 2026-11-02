@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.37 · No ar (02/11/2026)
+
+O Miguel comparou o protótipo `?lab=tv` e aprovou tudo: corte de TV diagonal como transição padrão (280 ms, fade com reduzir movimento; ADR 0004 atualizado), letreiro do canal (bug SMN + faixa da tela, AO VIVO na partida, procura lugar sem cobrir controle) e o menu Smash simplificado com toques de TV. A grade de programação saiu. Arrastar entre abas no celular intacto (passo novo na fumaça).
+
 ## 0.9.36 · Lab, Sede e Créditos (02/11/2026)
 
 Cara de jogo: Lab e Sede com objetos da cena (SceneHotspot) no lugar dos botões azuis, Créditos rolando com sprites e a ultima-partida, placar de TV no Grupo e no Campeão (Ver tudo em Sheet), letreiro da Liga na Arena, achados 20 a 22 da hierarquia. Protótipo `?lab=tv` (corte diagonal, letreiro de canal, grade de programação) só em dev e prévia, pra o Miguel comparar; ele quer o menu Smash mais simples com toques de TV e manter o arrastar entre telas.

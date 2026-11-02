@@ -1,5 +1,13 @@
 # Novidades
 
+## 0.9.37 · No ar (2026-11-02)
+
+### Transmissão
+- Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade
+- Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida
+- Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE
+- Arrastar entre as telas no celular continua igual
+
 ## 0.9.36 · Lab, Sede e Créditos (2026-11-02)
 
 ### Lab e Sede

@@ -9,6 +9,22 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'No ar',
+        sections: [
+            {
+                title: 'Transmissão',
+                lines: [
+                    'Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade',
+                    'Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida',
+                    'Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE',
+                    'Arrastar entre as telas no celular continua igual',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.36',
         date: '2026-11-02',
         title: 'Lab, Sede e Créditos',
@@ -2297,6 +2313,22 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'On air',
+        sections: [
+            {
+                title: 'Broadcast',
+                lines: [
+                    'Every screen change is a TV cut. With Reduce motion it stays a fade',
+                    'Channel bug in the corner with the screen name, and LIVE during matches',
+                    'Cleaner mode menu that looks like a channel: 1 LIVE, and what is coming in a COMING SOON strip',
+                    'Swiping between screens on phones works the same',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.36',
         date: '2026-11-02',
