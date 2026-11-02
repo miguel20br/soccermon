@@ -22,7 +22,7 @@ for (const [w, h] of [
             await p.locator('.cpack-btn').click({ timeout: 15000 });
             await p.waitForTimeout(5000);
             await p.evaluate(() => scrollTo(0, 0));
-            sel = '.reward-grid .fut-action';
+            sel = '.reward-pick3 .fut-action';
         } else {
             await p
                 .getByRole('button', { name: /back to the match|voltar à partida|voltar pra partida/i })

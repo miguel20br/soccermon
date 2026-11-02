@@ -1916,6 +1916,80 @@ button,
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-items: center;
 }
+/* recompensa como escolha 1 de 3 num palco (cara-de-jogo.md): item e MT do tamanho da carta, texto curto (a regra
+   inteira vai na sheet de quem recebe) */
+.reward-stage .cpack-stage {
+    margin-block: auto;
+}
+.reward-pick3 {
+    --k-pick-reserve: 330px;
+}
+/* celular deitado: o título sai (a fase está na barra da copa) e as cartas ficam com a altura que sobra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .reward-stage .bc-screenhead {
+        display: none;
+    }
+    .reward-pick3 {
+        --k-pick-reserve: 220px;
+    }
+}
+.reward-pick3 .option {
+    display: grid;
+    justify-items: center;
+}
+.reward-pick3 .item-card {
+    box-sizing: border-box;
+    width: var(--fut-w);
+    aspect-ratio: 190 / 268;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: start;
+    gap: 4px;
+    padding: 8px 6px;
+    overflow: hidden;
+    text-align: center;
+}
+.reward-pick3 .item-card > * {
+    grid-column: auto;
+    max-width: 100%;
+}
+.reward-pick3 .item-art {
+    width: clamp(36px, calc(var(--fut-w) * 0.32), 60px);
+    height: clamp(36px, calc(var(--fut-w) * 0.32), 60px);
+}
+.reward-pick3 .card-name {
+    font-size: clamp(12px, calc(var(--fut-w) * 0.085), 16px);
+}
+.reward-pick3 .tier-label {
+    font-size: 10px;
+}
+.reward-pick3 .tactic-desc {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.25;
+}
+.reward-pick3 .tm-card .tactic-desc {
+    -webkit-line-clamp: 2;
+}
+.reward-team-row {
+    max-width: 420px;
+    margin-inline: auto;
+}
+.reward-sheet-desc {
+    margin-top: 0;
+}
+@media (max-width: 520px), (max-height: 520px) {
+    .reward-pick3 .tm-card .pos-chip {
+        display: none;
+    }
+    .reward-pick3 .tm-learners {
+        font-size: 10px;
+    }
+}
 .detail-card {
     display: grid;
     justify-items: center;

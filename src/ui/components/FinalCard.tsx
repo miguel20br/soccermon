@@ -61,71 +61,67 @@ export function FinalCard({
             {t('match.seeResult')}
         </button>
     );
+    // aberta, a cartela tem o seu "Ver resultado" (o da barra só volta quando ela fecha)
     if (!open) return go;
     return (
-        <>
-            {go}
-            <MomentStage
-                label={t('match.finalCard.aria')}
-                className={`k-final ${outcome}`}
-                style={{ '--home': hex(colors[0]), '--away': hex(colors[1]) } as CSSProperties}
-            >
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a contagem; os botões ficam no teclado */}
-                <div className="k-final-body" onClick={c.skip}>
-                    <h1 className={`k-moment-title k-pop ${outcome}`}>{t(`match.final.${outcome}`)}</h1>
-                    <div className="rh-score k-final-score">
-                        <div className="rh-team home">
-                            <span>{names[0]}</span>
-                        </div>
-                        <b className={score[0] > score[1] ? 'lead' : ''}>{score[0]}</b>
-                        <span className="rh-x">x</span>
-                        <b className={score[1] > score[0] ? 'lead' : ''}>{score[1]}</b>
-                        <div className="rh-team away">
-                            <span>{names[1]}</span>
-                        </div>
+        <MomentStage
+            label={t('match.finalCard.aria')}
+            className={`k-final ${outcome}`}
+            style={{ '--home': hex(colors[0]), '--away': hex(colors[1]) } as CSSProperties}
+        >
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a contagem; os botões ficam no teclado */}
+            <div className="k-final-body" onClick={c.skip}>
+                <h1 className={`k-moment-title k-pop ${outcome}`}>{t(`match.final.${outcome}`)}</h1>
+                <div className="rh-score k-final-score">
+                    <div className="rh-team home">
+                        <span>{names[0]}</span>
                     </div>
-                    {shootout && (
-                        <div className="rh-pens">{t('match.penalties', { a: shootout[0], b: shootout[1] })}</div>
-                    )}
-                    {prize !== null && (
-                        <Beat on={c.step > n++} className="k-final-prize">
-                            +₽
-                            <CountUp from={0} to={c.step >= n ? prize : 0} skip={c.skipped} ms={600} />
-                        </Beat>
-                    )}
-                    {star && (
-                        <Beat on={c.step > n++} className="k-final-star">
-                            <img className="pixel" src={cardSprite(star)} alt="" width={64} height={64} />
-                            <span className="k-seal">
-                                <HudIcon kind="max" />
-                                {t('match.finalCard.star')}: {star.name}
-                            </span>
-                        </Beat>
-                    )}
-                    {next && run && (
-                        <Beat on={c.step > n++} className="k-final-next">
-                            <span className="muted">
-                                {t('match.finalCard.next', { stage: cupStageName(run, run.stage + 1) })}
-                            </span>
-                            <b>{clubName(next.name)}</b>
-                            <span className="k-final-sprites">
-                                {next.lineup.map((p) => (
-                                    <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                                ))}
-                            </span>
-                        </Beat>
-                    )}
+                    <b className={score[0] > score[1] ? 'lead' : ''}>{score[0]}</b>
+                    <span className="rh-x">x</span>
+                    <b className={score[1] > score[0] ? 'lead' : ''}>{score[1]}</b>
+                    <div className="rh-team away">
+                        <span>{names[1]}</span>
+                    </div>
                 </div>
-                <div className="k-final-actions">
-                    <button type="button" className="btn ghost" onClick={() => setOpen(false)}>
-                        {t('match.finalCard.court')}
-                    </button>
-                    <button type="button" className="btn confirm big" onClick={onGo} data-autofocus>
-                        {t('match.seeResult')}
-                        <HudIcon kind="next" />
-                    </button>
-                </div>
-            </MomentStage>
-        </>
+                {shootout && <div className="rh-pens">{t('match.penalties', { a: shootout[0], b: shootout[1] })}</div>}
+                {prize !== null && (
+                    <Beat on={c.step > n++} className="k-final-prize">
+                        +₽
+                        <CountUp from={0} to={c.step >= n ? prize : 0} skip={c.skipped} ms={600} />
+                    </Beat>
+                )}
+                {star && (
+                    <Beat on={c.step > n++} className="k-final-star">
+                        <img className="pixel" src={cardSprite(star)} alt="" width={64} height={64} />
+                        <span className="k-seal">
+                            <HudIcon kind="max" />
+                            {t('match.finalCard.star')}: {star.name}
+                        </span>
+                    </Beat>
+                )}
+                {next && run && (
+                    <Beat on={c.step > n++} className="k-final-next">
+                        <span className="muted">
+                            {t('match.finalCard.next', { stage: cupStageName(run, run.stage + 1) })}
+                        </span>
+                        <b>{clubName(next.name)}</b>
+                        <span className="k-final-sprites">
+                            {next.lineup.map((p) => (
+                                <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                            ))}
+                        </span>
+                    </Beat>
+                )}
+            </div>
+            <div className="k-final-actions">
+                <button type="button" className="btn ghost" onClick={() => setOpen(false)}>
+                    {t('match.finalCard.court')}
+                </button>
+                <button type="button" className="btn confirm big" onClick={onGo} data-autofocus>
+                    {t('match.seeResult')}
+                    <HudIcon kind="next" />
+                </button>
+            </div>
+        </MomentStage>
     );
 }

@@ -452,7 +452,12 @@
 .k-pick3 {
     --k-gap: clamp(6px, calc(2 * var(--vw)), 18px);
     /* a carta (FutCard) mede tudo pela --fut-w: um terço da largura que sobra, no máximo o tamanho normal */
-    --k-card-w: min(190px, calc((min(calc(100 * var(--vw)), 720px) - 32px - 2 * var(--k-gap)) / 3));
+    /* e não passa da altura: --k-pick-reserve = o que a tela ocupa em volta das cartas (barra, título, botões) */
+    --k-card-w: min(
+        190px,
+        calc((min(calc(100 * var(--vw)), 720px) - 32px - 2 * var(--k-gap)) / 3),
+        calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
+    );
     display: grid;
     grid-template-columns: repeat(3, var(--k-card-w));
     justify-content: center;
@@ -575,4 +580,23 @@
         min-height: 44px;
         font-size: 16px;
     }
+}
+
+/* a luz do palco: um foco no meio e os raios da marca bem fracos atrás do conteúdo */
+.k-stage-light {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(60% 45% at 50% 48%, rgb(58 80 170 / 0.45), transparent 70%);
+}
+.k-stage-light::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: max(calc(160 * var(--vw)), calc(160 * var(--vh)));
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.04) 0 9deg, transparent 9deg 22.5deg);
+    mask: radial-gradient(closest-side, #000 15%, transparent 70%);
 }
