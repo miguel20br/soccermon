@@ -160,6 +160,12 @@
 :is(.btn.big, .cb, .bc-thumbbar > .btn:is(.primary, .confirm)) small {
     text-shadow: none; /* contorno só de 16 px pra cima: o subtítulo (13 px) é chapado */
 }
+/* no dourado e no verde o subtítulo vai em tinta escura e Bold: o branco chapado dava 1,6:1 no dourado e 2,2:1 no verde */
+:is(.btn.big, .cb, .bc-thumbbar > .btn):is(.primary, .confirm, .cb-gold, .cb-green) small {
+    color: var(--bc-ink);
+    font-weight: 700;
+    opacity: 1;
+}
 .btn.small {
     --base: 4px;
     padding: 5px 10px calc(4px + var(--base));
