@@ -74,6 +74,8 @@ export const result: typeof pt = {
         moves: '{n} move discovered|{n} moves discovered',
     },
     champ: {
+        statsBtn: 'Stats',
+        statsTitle: 'Cup stats',
         aria: 'Kanto Cup champions',
         titleAria: 'Champions!',
         title: 'CHAMPIONS!',

@@ -28,6 +28,7 @@ import '../settings.css';
 import { HudIcon } from '../components/MatchHud';
 import { readHud } from '../hud-lab';
 import { iosBrowser, promptInstall, useInstall } from '../install';
+import { Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 
 /** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
@@ -103,7 +104,10 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
     );
 }
 
-/** Slider 0–100% que toca uma amostra ao soltar. */
+/** Volumes de 0 a 100% de 10 em 10 (o seletor ‹ › do kit no lugar do slider). */
+const VOLUME_STEPS = Array.from({ length: 11 }, (_, i) => ({ value: i / 10, label: `${i * 10}%` }));
+
+/** Seletor ‹ 0–100% › que toca uma amostra a cada troca. */
 function VolumeSlider({
     label,
     value,
@@ -117,20 +121,17 @@ function VolumeSlider({
 }) {
     return (
         <div className="volume-row">
-            <input
-                aria-label={label}
-                aria-valuetext={`${Math.round(value * 100)}%`}
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={value}
-                onChange={(e) => onChange(Number(e.target.value))}
-                onMouseUp={preview}
-                onTouchEnd={preview}
-                onKeyUp={preview}
+            <Stepper
+                label={label}
+                // volume salvo fora da grade (0,35 de antes): mostra o degrau mais perto
+                value={Math.round(value * 10) / 10}
+                options={VOLUME_STEPS}
+                onChange={(v) => {
+                    onChange(v);
+                    // a amostra sai no volume novo (depois de a mudança chegar no áudio)
+                    requestAnimationFrame(preview);
+                }}
             />
-            <b>{Math.round(value * 100)}%</b>
         </div>
     );
 }

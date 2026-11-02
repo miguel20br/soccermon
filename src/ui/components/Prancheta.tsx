@@ -6,6 +6,7 @@ import { SNAP_STRIDE, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
 import { formationText, statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { Stepper } from '../kit/controls';
 import { ConfirmSheet } from '../kit/Sheet';
 import { boardAt, snapAt, whoAt } from '../match-view';
 import { subSummary } from '../rating';
@@ -185,20 +186,20 @@ export function Prancheta({
             </div>
             {editing && (
                 <div className="pr-edit">
-                    <label className="pr-formation">
+                    <div className="pr-formation">
                         <span>{t('match.board.formation')}</span>
-                        <select
+                        <Stepper
+                            label={t('match.board.formation')}
                             value={shown.formation}
                             disabled={!canEdit}
-                            onChange={(e) => setDraft({ formation: e.target.value as FormationId, order: shown.order })}
-                        >
-                            {(Object.keys(FORMATIONS) as FormationId[]).map((id) => (
-                                <option key={id} value={id}>
-                                    {formationText(id, lang).name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                            wrap
+                            options={(Object.keys(FORMATIONS) as FormationId[]).map((id) => ({
+                                value: id,
+                                label: formationText(id, lang).name,
+                            }))}
+                            onChange={(formation) => setDraft({ formation, order: shown.order })}
+                        />
+                    </div>
                     {changed && plan && (
                         <div className="pr-actions">
                             <button

@@ -30,6 +30,7 @@ export const match = {
     /** Fim de jogo: o botão conta os segundos até ir sozinho. */
     /** Faixa do fim de jogo. */
     final: { win: 'VITÓRIA!', loss: 'DERROTA', draw: 'EMPATE' },
+    finalCard: { court: 'Ver a quadra', star: 'Craque', next: 'Próximo: {stage}', aria: 'Fim de jogo' },
     feed: 'Narração',
     feedEmpty: 'Os times entram em quadra…',
     pressure: 'Quem está apertando mais',

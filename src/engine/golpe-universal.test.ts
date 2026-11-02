@@ -478,3 +478,71 @@ describe('N1 por tipo (tabela do Miguel, 02/11/2026)', () => {
         expect(maxCharge([...saves, drain], 0).charge).toBe(0);
     });
 });
+
+describe('defesa do golpe máximo: nunca encaixa (Miguel, 01/11/2026)', () => {
+    /** O capitão (idx 4) solta o golpe no meio do gol; devolve os lances em que o goleiro rival (idx 5) defendeu. */
+    function saved(level: 1 | 2 | 3, tag: string, n: number, gkCaptain = false, armed = false) {
+        const out: { s: MatchState; gkBall: boolean }[] = [];
+        for (let k = 0; k < n; k++) {
+            const s = setup({ level, seed: `gu-parry-${tag}-${k}` });
+            if (gkCaptain) for (const p of s.players) if (p.team === 1) p.captain = p.idx === 5;
+            if (armed) s.teams[1].agency.max = { idx: gkCaptain ? 5 : 9, until: 200, level: 1, q: 2 };
+            const cmds = IDLE_ALL(s);
+            cmds[4] = { type: 'shoot', target: v(40, 10), power: 1 };
+            step(s, cmds);
+            // o goleiro não fica com a bola nem logo depois da defesa (a sobra da trave é viva)
+            let gkBall = false;
+            for (let i = 0; i < 40 && !s.finished; i++) {
+                step(s, IDLE_ALL(s));
+                if (s.ball.owner === 5 && of(s, 'save').some((e) => e.by === 5)) gkBall = true;
+            }
+            if (of(s, 'save').some((e) => e.by === 5 && e.shooter === 4)) out.push({ s, gkBall });
+        }
+        return out;
+    }
+
+    it('N1 a N3: o goleiro espalma pra escanteio ou na trave (rebote vivo) e não fica com a bola', () => {
+        const kinds = new Set<string>();
+        for (const level of [1, 2, 3] as const) {
+            const got = saved(level, String(level), level === 3 ? 160 : 40);
+            if (level < 3) expect(got.length).toBeGreaterThan(3);
+            for (const { s, gkBall } of got) {
+                const save = of(s, 'save').find((e) => e.by === 5)!;
+                expect(save.caught).toBe(false);
+                expect(['corner', 'post']).toContain(save.parry);
+                kinds.add(save.parry!);
+                expect(gkBall).toBe(false);
+                // na trave: a bola bate no poste (o 'post' do chute) e volta pra quadra
+                if (save.parry === 'post') expect(of(s, 'post').some((e) => e.tick >= save.tick)).toBe(true);
+                if (save.parry === 'corner')
+                    expect(of(s, 'corner').some((e) => e.tick >= save.tick && e.team === 0)).toBe(true);
+            }
+        }
+        expect([...kinds].sort()).toEqual(['corner', 'post']);
+        expect(AGENCY.maxParry.post).toBeGreaterThan(0);
+    });
+
+    it('counter: só o goleiro capitão com o golpe armado devolve, e com a bicuda no gol (N1 também)', () => {
+        const counters = saved(1, 'counter', 30, true, true);
+        expect(counters.length).toBeGreaterThan(0);
+        for (const { s } of counters) {
+            const save = of(s, 'save').find((e) => e.by === 5)!;
+            expect(save.parry).toBeUndefined();
+            expect(of(s, 'max').find((e) => e.team === 1)).toMatchObject({ by: 5, phase: 'hit', tick: save.tick });
+            // o chute da bicuda sai no mesmo tick, rumo ao gol do time 0 (x = 0)
+            expect(of(s, 'shot').some((e) => e.by === 5 && e.tick === save.tick)).toBe(true);
+        }
+        // sem a condição (goleiro não é capitão, ou é capitão sem nada armado), espalma
+        for (const [gkCaptain, armed] of [
+            [false, true],
+            [true, false],
+        ] as const) {
+            const got = saved(1, `sem-${gkCaptain}-${armed}`, 30, gkCaptain, armed);
+            expect(got.length).toBeGreaterThan(0);
+            for (const { s } of got) {
+                expect(of(s, 'max').some((e) => e.team === 1 && e.phase === 'hit')).toBe(false);
+                expect(['corner', 'post']).toContain(of(s, 'save').find((e) => e.by === 5)!.parry);
+            }
+        }
+    });
+});

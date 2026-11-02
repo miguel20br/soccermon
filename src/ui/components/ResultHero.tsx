@@ -1,14 +1,14 @@
-import { type CSSProperties, Fragment, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, Fragment, type ReactNode } from 'react';
 import { CUP_STAGES } from '../../engine/cup';
 import { viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import type { TeamSetup } from '../../engine/state';
-import { playSfx } from '../../game/audio';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
 import { cupLength, groupTable, isFinalStage, isGroupStage, isLong, longWinEarnings } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
+import { useCascade } from '../kit/Cascade';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
@@ -83,29 +83,13 @@ export function ResultHero({
     /** Desbloqueios desta partida (treinador, título): logo abaixo do placar, sem precisar rolar. */
     unlocks?: ReactNode;
 }) {
-    // um de cada vez: placar rola, as linhas entram a cada 150 ms e o craque vem por último, com batida.
-    // Um toque em qualquer lugar do bloco mostra tudo na hora.
+    // a cascata do kit (cara-de-jogo.md, peça 3): placar rola, as linhas entram a cada 150 ms (o tom subindo) e o
+    // craque vem por último, com batida. Um toque em qualquer lugar do bloco mostra tudo na hora.
     const lines = stats.length + 1;
-    const [step, setStep] = useState(0);
-    const [done, setDone] = useState(false);
-    useEffect(() => {
-        if (step >= lines) return;
-        const id = window.setTimeout(
-            () => {
-                const next = step + 1;
-                // cada linha um semitom acima: o número "sobe" também no som
-                if (next < lines) playSfx('select', 2 ** ((next * 2) / 12));
-                else if (mvpUid) playSfx('kick');
-                setStep(next);
-            },
-            step === 0 ? FIRST_LINE_MS : LINE_MS,
-        );
-        return () => clearTimeout(id);
-    }, [step, lines, mvpUid]);
-    const finish = () => {
-        setDone(true);
-        setStep(lines);
-    };
+    const c = useCascade([FIRST_LINE_MS, ...Array.from({ length: lines - 1 }, () => LINE_MS)]);
+    const step = c.step;
+    const done = c.skipped;
+    const finish = c.skip;
     const mvpOn = step >= lines;
     const side = duel?.side ?? 0;
     const won = match.winner === side;

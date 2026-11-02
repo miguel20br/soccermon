@@ -121,7 +121,7 @@ Relato do Miguel jogando a 0.9.30, causa vista e conserto:
   intervalo e a bicuda depois do toque do goleiro apagam na hora. Depois: 1% no 1x.
 - **N3**: a cena era metade no 4x e nada no 8x (quem joga no 8x só via a câmera lenta); agora vale em toda velocidade,
   com raios saindo do capitão, o stinger `max-stinger` (`scripts/musica/pecas/especial-n3.mjs`: subida na cena, o
-  chute e o SOC-CER-MON em Lá menor) e, no chute, a câmera abre no gol atacado inteiro (`n3ShotFrame`).
+  chute e o SOC-CER-MON em Lá menor) e, no chute, a câmera abre no gol atacado inteiro (`n3ShotFrame`; virou `lockMaxFrame` em 01/11, abaixo).
 - **Queda antes da bola (motor 18)**: `maxKnock` derrubava todo mundo na linha no tick do chute; agora cada um cai
   quando a bola chega nele (`landKnocks`). `calibrate --n 200 --agencia`, mesmas seeds: gols 8,31 ⇒ 8,29; golpe de
   linha que vira gol 74% ⇒ 71% (N2 65% ⇒ 61%, N3 93% ⇒ 96%), dentro do erro. Números de equilíbrio não mexidos.
@@ -148,6 +148,59 @@ próprio `maxCharge`, `maxFxType` e `MAX_SIGNATURE`): número novo no motor muda
 
 O nome da seção é "Golpe máximo" (não "Golpe especial"): na carta, "Golpe especial" já é o tipo de golpe (o `blast`).
 
+## Golpe com show, gol inteiro e defesa que nunca encaixa (01/11/2026, branch `golpe-show`, motor 18)
+
+Pedidos do Miguel jogando: "as animações dos golpes N1 a N3 têm que ser beeem melhores; a N3 um super hiper mega golpe
+especial", "o golpe máximo ainda tá cortando o gol" e a regra nova (aprovada): defesa de golpe máximo nunca é encaixada.
+
+**Regra da defesa (motor 18, `AGENCY.maxParry`).** O chute de golpe máximo (N1 a N3, a bicuda que chuta inclusive) que
+o goleiro defende nunca vira posse dele: espalma na trave (35%, `post`; a bola vai até o poste a 10 m/s e o quique da
+trave a devolve viva) ou pra escanteio (o resto, `deflectOut`). A espalmada curta do N3 (Fogo, Normal, Pedra) e a bola
+colada na linha vão sempre na trave. Quem espalmou fica 1 s sem dominar a sobra (`gkLock`). O evento `save` leva
+`parry: 'corner' | 'post'`. **Counter**: é a bicuda de sempre (goleiro capitão, barra no N1+, toque bom ou perfeito na
+hora dela; o técnico IA do rival arma igual), sem chance sorteada: com a condição, devolve sempre; contra golpe máximo
+ela vai no gol rival em todo nível (N1 e N2 também chutam, com a força do nível) e gasta a barra.
+
+`calibrate --n 200 --agencia`, mesmas seeds (o `calibrate` sem técnico não muda: 7,88 gols, 68,8%):
+
+| Medida | Antes | Depois |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,24 |
+| Mais forte vence | 63,0% | 65,2% |
+| Golpe de linha que vira gol (N1/N2/N3) | 71% (50/61/96) | 70% (38/63/96) |
+| Defesa de golpe máximo por jogo | 0,18 | 0,18 |
+| ...encaixe / espalmada pra frente | 0% / 76% | 0% / 0% |
+| ...escanteio / trave / counter | 19% / 0% / 5% | 62% / 32% / 5% |
+| ...goleiro com a bola em 2 s | 62% | 16% (o counter e a sobra do escanteio) |
+
+**Câmera (o gol cortado).** Causa, medida no `?demo=maximo` em 390x844 (quadros com a bola andando e o gol atacado fora):
+N1 85%, N2 57%, N3 22%. Em pé a quadra grande seguia a bola com a mola de 0,6 s e a folga à frente com teto, e o N1/N2
+punha zoom no capitão (`lightZoom`/drama), que a quadra grande segue: a janela ficava no capitão e chegava no gol junto
+com a bola. Conserto num ponto só: `lockMaxFrame` (MatchScene) segura o gol do chute até o desfecho, pan e zoom dos
+outros lances esperam (a `cameras.main` passa pela trava), deitado/PC volta pro zoom 1 (até o zoom que enquadrava quem
+chuta e o gol cortava na transição, com a câmera presa na borda) e em pé a janela segura o gol (`keepTarget`,
+court-follow.ts, mola de 0,07 s). A carga do N1/N2 e o hit-stop do chute N3 seguram a bola até o gol estar no quadro
+(`maxHold`, solto no próprio chute: o timer do Phaser atrasa em quadro lento). Depois: 0 quadros cortados com a bola
+andando em 390x844, 844x390 e 1440x900, no 1x, 2x e 8x. A câmera lenta do golpe não multiplica mais a do drama (o voo do
+N3 levava ~4 s; a cena inteira do N3 agora dura ~3 s). O counter de longe voa a 0,6x.
+
+**Show (só tela, `src/game/max-show.ts`).** N1 dourado: carga curta (a quadra para 0,2 s), estouro no pé, cauda curta,
+anel na chegada. N2 na cor do tipo: carga de 0,3 s com faíscas sugadas, onda, clarão, cometa e a onda do tipo na chegada.
+N3: congela num clarão, o fundo vira a arte do tipo (chamas, ondas, raios, folhas, cristais, anéis, bolhas, almas,
+corações, estouros, vento), energia girando no capitão, cut-in do rosto e a faixa do golpe (saem no chute), onda de
+choque, a bola vira o projétil do tipo (cauda grossa e enfeite: raios, labaredas, anéis, estilhaços) e a chegada explode
+com tremida forte. Espalmada: "espalmou pra escanteio/na trave!" com faísca na luva; counter: "DEVOLVEU!". "Reduzir
+movimento": nada gira nem pisca.
+
+**Música.** Stinger v2 (`pecas/especial-n3.mjs`, mesmo SOC-CER-MON): subida de -30 a -18 dB RMS, respiro de 0,1 s e o
+impacto a -10 dB na linha 10 (1 s, o chute da cena, `N3_STINGER_KICK_MS`); a v1 ficava entre -16 e -12 sem contraste.
+Na cena a faixa quase some (`DUCK_N3`, ~-22 dB e 450 Hz; a virada do toque é calada) e volta de uma vez no chute. N1, N2 e
+a bicuda tocam o som no fim da carga (o chute na tela) e a faixa volta na virada do toque (max-beat.ts), sem ficar abafada.
+
+### Decidido com o Miguel (02/11/2026)
+
+"Por mim perfeito do 1 ao 3": defesa de golpe máximo 35% na trave e o resto pra escanteio, counter (bicuda) sempre que a condição vale; sem zoom no lance do golpe deitado e no PC; textos "DEVOLVEU!" e "Espalmou na trave!/pra escanteio!". Stinger v2: ouvindo.
+
 ## N1 por tipo e nomes do N3 (02/11/2026, branch `golpe-n1`, motor 18)
 
 Tabela aprovada pelo Miguel ("100%"). O N1 (e o N2 e o N3, que levam o efeito do anterior) passa isto em quem bloqueia
@@ -168,7 +221,7 @@ ou defende; números em `AGENCY.maxStatus` e `AGENCY.maxN1`, força e precisão 
 | Inseto | teia | velocidade x0,5 por 3 s (o debuff de velocidade do String Shot, mais forte) |
 | Água | a água leva 2 m pra trás | o empurrão do Surf, no sentido do chute (palavra MOLHADO) |
 | Voador | vai pro alto, 1 s fora do lance | o voo do Fly parado no lugar, sem o pouso (ninguém alcança ele) |
-| Lutador | mão dormente | a próxima defesa dele não encaixa (vira rebote) |
+| Lutador | mão dormente | a próxima defesa comum dele não encaixa (a de golpe máximo já nunca encaixa) |
 | Pedra | preso no lugar 2 s | não anda, mas ainda defende e chuta |
 | Dragão | o time rival perde 5 pontos da barra | evento `status` `drain`, que o `maxCharge` desconta |
 

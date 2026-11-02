@@ -70,10 +70,17 @@ export const AGENCY = {
     /**
      * Efeitos do N1 que não são status (02/11/2026). Semente = Leech Seed (`seed` s, o fôlego vai pro capitão); areia =
      * o `blind` do Sand Attack; teia: velocidade x`webPace` por `web` s; água: `push` m pra trás; alto: `lift` s no ar,
-     * fora do lance; mão dormente: a próxima defesa dele não encaixa; preso: `root` s sem andar (ainda defende);
+     * fora do lance; mão dormente: a próxima defesa comum dele não encaixa; preso: `root` s sem andar (ainda defende);
      * Dragão: o time de quem bloqueou ou defendeu perde `drain` pontos da barra.
      */
     maxN1: { seed: 12, web: 3, webPace: 0.5, push: 2, lift: 1, root: 2, drain: 5 },
+    /**
+     * Defesa do golpe máximo, N1 a N3 (Miguel 01/11/2026: "nunca encaixada"): o goleiro espalma, `post` das vezes na
+     * trave (a bola vai até o poste a `postSpeed` m/s e volta viva; colada na linha, sai de `postMin` m dela) e o resto
+     * pra escanteio. Quem espalmou fica `gkLock` s sem dominar a sobra (está no chão). O counter é a bicuda (`bicuda`):
+     * goleiro capitão com o golpe máximo armado pra esse chute; contra golpe máximo ela vai no gol rival em todo nível.
+     */
+    maxParry: { post: 0.35, postSpeed: 10, postMin: 0.3, gkLock: 1 },
     /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
     knockR: 1.5,
     knockStun: 1,

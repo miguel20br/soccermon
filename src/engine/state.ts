@@ -399,7 +399,14 @@ export type MatchEvent = MatchEventBase &
         | { type: 'tackle'; by: number; victim: number; success: boolean }
         | { type: 'skill'; by: number }
         | { type: 'shot'; by: number; xg: number; moveId: string | null }
-        | { type: 'save'; by: number; shooter: number; caught: boolean }
+        | {
+              type: 'save';
+              by: number;
+              shooter: number;
+              caught: boolean;
+              /** Golpe máximo defendido (nunca encaixa): espalmou pra escanteio ou na trave (`AGENCY.maxParry`). */
+              parry?: 'corner' | 'post';
+          }
         /**
          * O goleiro capitão `by` alcançou o chute que saiu no tick `from` (defendendo, com a bicuda ou não): a hora da
          * bicuda na tela vai de `from` até aqui (`bicudaCueNear`).

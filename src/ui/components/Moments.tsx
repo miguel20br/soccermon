@@ -16,6 +16,7 @@ import { downloadBlob } from '../share-card';
 import { simulateMatch } from '../sim-client';
 import { cardSprite } from './PokeCard';
 import './moments.css';
+import { InfoSheet } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { HudIcon } from './MatchHud';
 
@@ -312,7 +313,13 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                 })}
                 alt=""
             />
-            <span className="bc-lbl">{t('moments.cup.h')}</span>
+            <span className="bc-lbl cupgoal-lbl">
+                {t('moments.cup.h')}
+                {/* o critério inteiro no "?" (cara-de-jogo.md, decisão 13: regra na tela até ~12 palavras) */}
+                <InfoSheet title={t('moments.cup.h')}>
+                    <p>{t('moments.cup.rule')}</p>
+                </InfoSheet>
+            </span>
             <span className="cupgoal-line">
                 {t('moments.cup.line', {
                     name: pick.goal.name,
@@ -324,7 +331,6 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
             <span className="muted cupgoal-why">
                 {t('moments.cup.why', { reasons: reasons.join(', ') || tx.plain })}
             </span>
-            <small className="muted cupgoal-rule">{t('moments.cup.rule')}</small>
             {live || replay ? (
                 <button type="button" className="btn outline" onClick={watch} disabled={busy}>
                     <HudIcon kind="play" /> {busy ? t('moments.loading') : t('moments.cup.watch')}
