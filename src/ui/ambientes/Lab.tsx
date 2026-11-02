@@ -5,16 +5,18 @@ import { albumCount, gameMoveIds, movesFound, seenCount } from '../../store/prof
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
 import { ClockCtx, useSceneClock } from './clock';
-import { BIG, floorZone, Mi, ROOM, SMALL, Tile, useTalkOnce } from './Room';
+import { BIG, floorZone, Mi, ROOM, SMALL, useTalkOnce } from './Room';
+import { SceneHotspot } from './SceneHotspot';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
 const DEX_TOTAL = 151;
 
 /**
- * Laboratório do Carvalho (Coleção): a parede de estantes com o mapa, a bancada com a Pokédex aberta e o computador
- * da Golpedex, no traço do kit da Sala de troféus. A meta é a Pokédex (x/151 no alto e na fala do Carvalho); o botão
- * principal abre a Pokédex, e Álbum e Golpedex ficam do lado. `near`: a arte só baixa com a aba perto da tela.
+ * Laboratório do Carvalho (Coleção): a parede de estantes com o mapa, a bancada com o fichário aberto e a lousa, no
+ * traço do kit da Sala de troféus. A meta é a Pokédex (x/151 no alto e na fala do Carvalho); o botão principal abre a
+ * Pokédex, e os objetos da cena abrem cada parte: a estante é a Pokédex, o fichário é o Álbum e a lousa é a Golpedex.
+ * `near`: a arte só baixa com a aba perto da tela.
  */
 export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; near: boolean }) {
     const { t, d } = useT();
@@ -32,7 +34,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
 
     return (
         <ClockCtx.Provider value={clock}>
-            <div className="amb-scene rm-scene lb-scene" aria-hidden>
+            <div className="amb-scene rm-scene lb-scene">
                 <div className="amb-layer rm-room" style={{ '--depth': 0.25 } as CSSProperties}>
                     <i className="rm-wall" />
                     <i className="rm-floor" />
@@ -41,17 +43,38 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                             {/* fora do celular (desktop, deitado): mais estante e o carrinho de amostras */}
                             <Mi k="cabinet" x={-136} bottom={72} />
                             <Mi k="shelf2" x={-72} bottom={72} />
-                            <Mi k="shelf" x={0} bottom={72} />
-                            <Mi k="map" x={66} bottom={42} />
-                            <Mi k="deskBook" x={68} bottom={80} />
-                            <Mi k="labPc" x={132} bottom={74} />
+                            <SceneHotspot
+                                k="shelf"
+                                x={5}
+                                bottom={72}
+                                label={d.profile.tabs.dex}
+                                sub={`${seen}/${DEX_TOTAL}`}
+                                onClick={() => openDoor('collection', 'dex')}
+                            />
+                            <Mi k="map" x={68} bottom={42} />
+                            <SceneHotspot
+                                k="deskBook"
+                                x={70}
+                                bottom={80}
+                                label={d.profile.tabs.album}
+                                sub={`${album.got}/${album.total}`}
+                                onClick={() => openDoor('collection', 'album')}
+                            />
+                            <SceneHotspot
+                                k="labPc"
+                                x={129}
+                                bottom={74}
+                                label={d.profile.tabs.golpedex}
+                                sub={`${found}/${gameMoveIds().size}`}
+                                onClick={() => openDoor('collection', 'golpedex')}
+                            />
                             <Mi k="fridge" x={198} bottom={72} />
                             <Mi k="cart" x={230} bottom={74} />
                             <Mi k="palm" x={272} bottom={80} />
                             <i className="lb-balls" />
                         </div>
                     )}
-                    <div className="rm-walk">
+                    <div className="rm-walk" aria-hidden>
                         <WildZone wild={w} zone="floor" />
                     </div>
                 </div>
@@ -90,20 +113,6 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                         </span>
                         <HudIcon kind="next" />
                     </button>
-                    <div className="amb-tiles">
-                        <Tile
-                            icon="cards"
-                            title={d.profile.tabs.album}
-                            sub={`${album.got}/${album.total}`}
-                            onClick={() => openDoor('collection', 'album')}
-                        />
-                        <Tile
-                            icon="max"
-                            title={d.profile.tabs.golpedex}
-                            sub={`${found}/${gameMoveIds().size}`}
-                            onClick={() => openDoor('collection', 'golpedex')}
-                        />
-                    </div>
                 </div>
             </div>
         </ClockCtx.Provider>

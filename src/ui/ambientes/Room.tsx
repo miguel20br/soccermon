@@ -28,6 +28,7 @@ export const KIT = {
     fireplace: [288, 2752, 64, 80],
     lamp: [352, 1774, 30, 50],
     frame: [320, 850, 24, 32],
+    wardrobe: [228, 1544, 54, 78],
 } as const satisfies Record<string, Crop>;
 export type KitPiece = keyof typeof KIT;
 
@@ -64,8 +65,8 @@ export const floorZone = (scale: number, ok: ZoneDef['ok'] = () => true): Record
     floor: { ok: (x, y) => y > 0.12 && y < 0.9 && ok(x, y), speed: 0.2, scale },
 });
 
-/** Nas salas, os Pokémon contornam a base dos móveis (passar na frente pode) e os botões. */
-export const ROOM: Blockers = { feet: '.mi' };
+/** Nas salas, os Pokémon contornam a base dos móveis (passar na frente pode), os botões e as plaquinhas dos objetos. */
+export const ROOM: Blockers = { feet: '.mi', ui: '.amb-ui > *, .hs-plate' };
 
 /** Botão menor do lugar (ícone, nome e uma linha); `soon` = ainda não abre (tracejado, sem clique). */
 export function Tile({
