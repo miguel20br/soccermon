@@ -133,12 +133,13 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
  * O time em miniatura em cima das 3 cartas: as vagas (titulares e banco) com quem já entrou e a da vez acesa. Só
  * mostra; o botão em volta abre o time inteiro numa sheet.
  */
-function DraftStrip({
+export function DraftStrip({
     run,
     byUid,
     stateOf,
 }: {
-    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    /** A copa ou, no Duelo, o time montado até aqui (formação, titulares e banco). */
+    run: Pick<NonNullable<ReturnType<typeof useGame.getState>['run']>, 'formation' | 'lineup' | 'bench'>;
     byUid: Map<string, PokemonInstance>;
     stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
 }) {

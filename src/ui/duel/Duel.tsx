@@ -37,7 +37,7 @@ import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import type { HudIconKind } from '../components/MatchHud';
-import { MenuHead } from '../components/MenuHead';
+import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
@@ -1023,8 +1023,10 @@ export function Duel() {
     const back = () => (active ? setAskLeave(true) : home());
     // o cabeçalho das outras telas de menu; na partida o placar já diz onde se está
     const head = <MenuHead title={t('duel.title')} hud="friends" onBack={back} />;
+    // o draft é palco sem o placar do cabeçalho: o voltar (que confirma) fica só na barra de cima
+    useMenuBackOf(step === 'draft' ? back : undefined);
 
-    // criar, entrar e a sala de espera moram no palco da Arena; time, draft, partida e resultado seguem como página
+    // criar, entrar, a sala de espera e o draft são palco; time, escalação, partida e resultado seguem como página
     let body: React.ReactNode;
     let staged = true;
     if (!peer) {
@@ -1047,10 +1049,10 @@ export function Duel() {
             </DuelStage>
         );
     } else if (s.phase === 'lobby') body = <Lobby head={head} />;
+    else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;
     else {
         staged = false;
         if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
-        else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;
         else if (s.phase === 'preview') body = <DuelPreview s={s} role={role} />;
         else if (showMatch) body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
         else body = <DuelResultView onHome={home} />;

@@ -1101,19 +1101,6 @@ button,
     gap: 5px;
     color: var(--yellow);
 }
-.draft-grid {
-    display: grid;
-    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-    gap: var(--gap);
-    align-items: start;
-}
-.draft-options {
-    display: grid;
-    gap: 10px;
-}
-.options-bar {
-    justify-content: space-between;
-}
 .formation-board .court {
     max-height: 520px;
 }
@@ -1399,7 +1386,6 @@ button,
 
 /* ---------- tablet ---------- */
 @media (max-width: 1050px) {
-    .draft-grid,
     .lineup-grid,
     .two-col {
         grid-template-columns: 1fr;
@@ -1843,8 +1829,7 @@ button,
     text-align: center;
 }
 
-/* opções do draft e recompensas com cartas */
-.draft-options .options,
+/* recompensas com cartas */
 .reward-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-items: center;
@@ -2089,7 +2074,6 @@ button,
 }
 
 @media (max-width: 700px) {
-    .draft-options .options,
     .reward-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
@@ -4729,18 +4713,7 @@ button,
     font-size: 14px;
 }
 
-/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida.
-   As 3 opções ficam com a carta embaixo, alinhadas, mesmo se uma faixa ficar maior que a outra. */
-.draft-options .option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    container-type: inline-size;
-}
-.draft-options .option > .fut-wrap {
-    margin-top: auto;
-}
+/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida */
 .option-fit .fit-short {
     display: none;
 }
@@ -6277,14 +6250,7 @@ a.home-tile {
     .home .menu {
         padding-block: 12px;
     }
-    /* draft deitado: time e cartas lado a lado, quadra do tamanho da tela */
-    .draft-grid {
-        grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
-    }
-    .draft-grid .board-panel {
-        position: sticky;
-        top: 6px;
-    }
+    /* quadra do tamanho da tela */
     .formation-board .court {
         width: min(100%, calc((calc(100 * var(--svh)) - 90px) * 0.72));
     }
@@ -6293,13 +6259,6 @@ a.home-tile {
     }
     .formation-board .slot img {
         height: 28px;
-    }
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(150px, calc(17 * var(--vw)));
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
     .reward-grid .fut-wrap {
@@ -8326,65 +8285,6 @@ body {
     }
 }
 
-/* ---------- draft no celular e tablet em pé: as 3 cartas na 1ª tela (revamp-ui §3.2) ----------
-   As opções sobem pra cima da quadra (a faixa das vagas continua fixa no topo) e ficam lado a lado. */
-@media (max-width: 1050px) and (orientation: portrait) {
-    .draft-grid > .draft-options {
-        order: -1;
-    }
-}
-@media (max-width: 700px) and (orientation: portrait) {
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(170px, calc((calc(100 * var(--vw)) - 40px) / 3));
-    }
-    .draft-options .option-fit {
-        padding-inline: 6px;
-        font-size: 10px;
-    }
-}
-
-/* ---------- draft deitado: a quadra com o banco ao lado e centralizada enquanto não há cartas na mesa ---------- */
-@media (orientation: landscape) and (max-height: 520px) {
-    .draft-grid .board-panel > h2 {
-        display: none;
-    }
-    .draft-grid .board-panel {
-        margin-top: 0;
-    }
-    .draft-grid .formation-board {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 4px 10px;
-    }
-    .draft-grid .formation-board .court {
-        width: min(100%, calc((calc(100 * var(--svh)) - 130px) * 0.75));
-        flex: 0 1 auto;
-    }
-    .draft-grid .formation-board .bench {
-        flex-direction: column;
-        margin-top: 0;
-    }
-    .draft-grid .formation-board > .row {
-        flex: 1 0 100%;
-        justify-content: center;
-        margin-top: 0 !important;
-    }
-    /* sem vaga escolhida não há cartas: a quadra ocupa o meio em vez de ficar espremida à esquerda */
-    .draft-grid:not(:has(.draft-options)) {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    .draft-grid:not(:has(.draft-options)) .board-panel {
-        justify-self: center;
-        width: min(100%, 520px);
-    }
-}
 /* o pontinho das Novidades no canto do botão */
 .news-fab {
     position: relative;
