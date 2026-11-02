@@ -111,6 +111,8 @@ export const home = {
         sedeBoard: 'Quadro de missões',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Seu 1º troféu fica aqui',
+        /** Plaquinha da vitrine (abre a Sala de troféus). */
+        sedeTrophies: 'Troféus',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
         /** A estrela do nível na barra de cima. */

@@ -107,6 +107,7 @@ export const home: typeof pt = {
         sedeBoard: 'Mission board',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Your first trophy goes here',
+        sedeTrophies: 'Trophies',
         sedeTitles: '{n} title|{n} titles',
         sedeKit: 'Crest and kit',
     },
