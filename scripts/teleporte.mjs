@@ -13,7 +13,8 @@ const [W, H] = size.split('x').map(Number);
 const PAGES = [
     // a Home (ambientes): as 5 abas da barra
     ['/?motion=1', ['.amb-tab']],
-    ['/?demo=colecao&motion=1', ['[role=tab]', '.pf-public']],
+    // o Perfil (armário): as portas que abrem Sheet e a barra das missões
+    ['/?demo=colecao&motion=1', ['.pf-locker:nth-child(n+3)', '.pf-arm-missions', '.pf-name']],
     ['/?demo=sala&motion=1', ['.tr-summary .btn']],
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],

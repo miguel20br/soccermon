@@ -27,7 +27,6 @@ import {
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCardCode, redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
-import { SheetRow } from '../kit/controls';
 import { missionOfTitle, missionText, titleHow, titleName, trainerHow, trainerName } from './club';
 import { CheckIcon, LockIcon } from './icons';
 import { NewBadge } from './news';
@@ -62,19 +61,131 @@ export function TrainerSprite({ id, locked, className = '' }: { id: TrainerId; l
 }
 
 /**
- * Seu treinador: a grade dos treinadores (bloqueados em silhueta: tocar mostra a missão), o título e o
- * resgate de código. Tudo salva na hora.
+ * Treinadores como figurinhas (cara-de-jogo.md, decisão 9): só o sprite e o nome; tocar mostra a ficha em cima
+ * (como liberar, com a barra) e, se liberado, já escolhe. Tudo salva na hora.
  */
-export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void }) {
+export function TrainerPicker({ save }: { save: (patch: Partial<Profile>) => void }) {
     const profile = useGame((s) => s.profile);
     const { t, d } = useT();
     const unlocked = unlockedTrainers(profile);
     const current = activeTrainer(profile);
     const view = useSaveView();
+    const [pick, setPick] = useState<TrainerId>(current);
+    const open = unlocked.includes(pick);
+    const mission = missionOfTrainer(pick);
+    const seal = (id: TrainerId) =>
+        isHoloTrainer(id)
+            ? d.profile.missions.groups.platina
+            : isGoldTrainer(id)
+              ? t('profile.picker.legendary')
+              : null;
+    return (
+        <div className="pf-figs">
+            <div className={`pf-fig-card${open ? '' : ' locked'}`} aria-live="polite">
+                <TrainerSprite id={pick} locked={!open} key={pick} className="k-pop" />
+                <div>
+                    <b>
+                        {!open && <LockIcon />} {trainerName(pick)}
+                    </b>
+                    {seal(pick) && <span className="pf-gold-seal">{seal(pick)}</span>}
+                    {open ? (
+                        <small className="pf-how">{trainerHow(pick)}</small>
+                    ) : (
+                        mission && <MissionHow m={mission} view={view} />
+                    )}
+                </div>
+            </div>
+            <ul className="pf-trainers pf-fig-grid">
+                {/* liberados primeiro, depois os bloqueados em silhueta */}
+                {[...unlocked, ...TRAINERS.filter((id) => !unlocked.includes(id))].map((id) => {
+                    const free = unlocked.includes(id);
+                    const holo = isHoloTrainer(id);
+                    const gold = holo || isGoldTrainer(id);
+                    const how = missionOfTrainer(id);
+                    return (
+                        <li key={id}>
+                            <button
+                                type="button"
+                                aria-pressed={free ? id === current : undefined}
+                                aria-label={
+                                    free
+                                        ? trainerName(id)
+                                        : t('profile.picker.lockedAria', {
+                                              name: trainerName(id),
+                                              mission: how ? missionText(how) : '',
+                                          })
+                                }
+                                className={`pf-trainer${free && id === current ? ' active' : ''}${free ? '' : ' locked'}${!free && gold ? ' gold' : ''}${!free && holo ? ' holo' : ''}${id === pick ? ' picked' : ''}`}
+                                onClick={() => {
+                                    setPick(id);
+                                    if (free) save({ trainer: id });
+                                }}
+                            >
+                                <TrainerSprite id={id} locked={!free} className={!free && gold ? 'locked-gold' : ''} />
+                                <b>{trainerName(id)}</b>
+                                {free && <NewBadge k={newsKey.trainer(id)} className="corner" />}
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
+    );
+}
+
+/** Título embaixo do nome: os ganhos pra escolher e os bloqueados com a missão de cada um. */
+export function TitlePicker({ save }: { save: (patch: Partial<Profile>) => void }) {
+    const profile = useGame((s) => s.profile);
+    const { t } = useT();
+    const view = useSaveView();
     const titles = earnedTitles(profile);
     const title = activeTitle(profile);
     const lockedTitles = TITLE_IDS.filter((id) => !titles.includes(id));
+    return (
+        <div className="pf-card">
+            <ul className="pf-titles">
+                {titles.map((id) => (
+                    <li key={id}>
+                        <button
+                            type="button"
+                            aria-pressed={id === title}
+                            className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
+                            onClick={() => save({ title: id })}
+                        >
+                            <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
+                            <small className="pf-how">{titleHow(id)}</small>
+                            <NewBadge k={newsKey.title(id)} className="corner" />
+                        </button>
+                    </li>
+                ))}
+            </ul>
+            {lockedTitles.length > 0 && (
+                <>
+                    <h3 className="bc-lbl">{t('profile.picker.lockedTitles', { n: lockedTitles.length })}</h3>
+                    <ul className="pf-titles">
+                        {lockedTitles.map((id) => {
+                            const m = missionOfTitle(id);
+                            return (
+                                <li key={id} className="pf-chip pf-title-chip locked">
+                                    <span>
+                                        <LockIcon /> {titleName(id)}
+                                    </span>
+                                    {m && <MissionHow m={m} view={view} />}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </>
+            )}
+        </div>
+    );
+}
 
+/** Resgatar código (título, Pokédex corrigida ou carta devolvida). Mora nas Configurações. */
+export function RedeemCode() {
+    const profile = useGame((s) => s.profile);
+    const updateProfile = useGame((s) => s.updateProfile);
+    const { t } = useT();
     const [code, setCode] = useState('');
     const [codeMsg, setCodeMsg] = useState<{ ok: boolean; text: string } | null>(null);
     const [busy, setBusy] = useState(false);
@@ -102,142 +213,43 @@ export function TrainerCard({ save }: { save: (patch: Partial<Profile>) => void 
         if (!id) return setCodeMsg({ ok: false, text: t('profile.picker.codeBad') });
         if (profile.redeemedTitles.includes(id))
             return setCodeMsg({ ok: false, text: t('profile.picker.codeHave', { title: titleName(id) }) });
-        save({ redeemedTitles: [...profile.redeemedTitles, id], title: id });
+        updateProfile({ redeemedTitles: [...profile.redeemedTitles, id], title: id });
         setCode('');
         setCodeMsg({ ok: true, text: t('profile.picker.codeOk', { title: titleName(id) }) });
     };
-
     return (
-        <section className="panel pf-card">
-            <fieldset className="pf-field">
-                <legend>
-                    {t('profile.picker.trainer')}{' '}
-                    <span className="pf-count">
-                        {t('profile.picker.trainerCount', { n: unlocked.length, total: TRAINERS.length })}
-                    </span>
-                </legend>
-                <ul className="pf-trainers">
-                    {/* liberados primeiro (grade compacta), depois os bloqueados com a missão */}
-                    {[...unlocked, ...TRAINERS.filter((id) => !unlocked.includes(id))].map((id) => {
-                        const open = unlocked.includes(id);
-                        const on = open && id === current;
-                        const mission = missionOfTrainer(id);
-                        if (open)
-                            return (
-                                <li key={id}>
-                                    <button
-                                        type="button"
-                                        aria-pressed={on}
-                                        className={`pf-trainer${on ? ' active' : ''}`}
-                                        onClick={() => save({ trainer: id })}
-                                    >
-                                        <TrainerSprite id={id} />
-                                        <b>{trainerName(id)}</b>
-                                        <small className="pf-how">{trainerHow(id)}</small>
-                                        <NewBadge k={newsKey.trainer(id)} className="corner" />
-                                    </button>
-                                </li>
-                            );
-                        // dourado bloqueado: silhueta com brilho de ouro e o selo, pra dar gosto de caçar (holo: o da platina)
-                        const holo = isHoloTrainer(id);
-                        const gold = holo || isGoldTrainer(id);
-                        return (
-                            <li key={id} className={`pf-trainer locked${gold ? ' gold' : ''}${holo ? ' holo' : ''}`}>
-                                {gold && (
-                                    <span className="pf-gold-seal">
-                                        {holo ? d.profile.missions.groups.platina : t('profile.picker.legendary')}
-                                    </span>
-                                )}
-                                <TrainerSprite id={id} locked className={gold ? 'locked-gold' : ''} />
-                                <b>
-                                    <LockIcon /> {trainerName(id)}
-                                </b>
-                                {mission && <MissionHow m={mission} view={view} />}
-                            </li>
-                        );
-                    })}
-                </ul>
-                <small className="muted">{t('profile.picker.trainerHelp')}</small>
-            </fieldset>
-
-            <fieldset className="pf-field">
-                <legend>{t('profile.picker.title')}</legend>
-                <ul className="pf-titles">
-                    {titles.map((id) => (
-                        <li key={id}>
-                            <button
-                                type="button"
-                                aria-pressed={id === title}
-                                className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
-                                onClick={() => save({ title: id })}
-                            >
-                                <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
-                                <small className="pf-how">{titleHow(id)}</small>
-                                <NewBadge k={newsKey.title(id)} className="corner" />
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-                {lockedTitles.length > 0 && (
-                    <SheetRow
-                        icon="lock"
-                        className="pf-titles-locked"
-                        label={t('profile.picker.lockedTitles', { n: lockedTitles.length })}
-                        title={t('profile.picker.lockedTitles', { n: lockedTitles.length })}
-                    >
-                        <ul className="pf-titles">
-                            {lockedTitles.map((id) => {
-                                const m = missionOfTitle(id);
-                                return (
-                                    <li key={id} className="pf-chip pf-title-chip locked">
-                                        <span>
-                                            <LockIcon /> {titleName(id)}
-                                        </span>
-                                        {m && <MissionHow m={m} view={view} />}
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </SheetRow>
-                )}
-                <small className="muted">{t('profile.picker.titleHelp')}</small>
-            </fieldset>
-
-            <form className="pf-field" onSubmit={submit}>
-                <label htmlFor="pf-code">
-                    <span>{t('profile.picker.code')}</span>
-                </label>
-                <div className="pf-row">
-                    <input
-                        id="pf-code"
-                        className="pf-input"
-                        value={code}
-                        maxLength={40}
-                        autoComplete="off"
-                        autoCapitalize="characters"
-                        spellCheck={false}
-                        placeholder={t('profile.picker.codePlaceholder')}
-                        onChange={(e) => {
-                            setCode(e.target.value);
-                            setCodeMsg(null);
-                        }}
-                    />
-                    <button type="submit" className="btn" disabled={busy || !code.trim()}>
-                        {t('profile.picker.codeSubmit')}
-                    </button>
-                </div>
-                {codeMsg && (
-                    <small className={codeMsg.ok ? 'pf-code-ok' : 'pf-code-bad'} role="status">
-                        {codeMsg.text}
-                    </small>
-                )}
-            </form>
-        </section>
+        <form className="pf-field pf-code" onSubmit={submit}>
+            <div className="pf-row">
+                <input
+                    id="pf-code"
+                    className="pf-input"
+                    aria-label={t('profile.picker.code')}
+                    value={code}
+                    maxLength={40}
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    placeholder={t('profile.picker.codePlaceholder')}
+                    onChange={(e) => {
+                        setCode(e.target.value);
+                        setCodeMsg(null);
+                    }}
+                />
+                <button type="submit" className="btn" disabled={busy || !code.trim()}>
+                    {t('profile.picker.codeSubmit')}
+                </button>
+            </div>
+            {codeMsg && (
+                <small className={codeMsg.ok ? 'pf-code-ok' : 'pf-code-bad'} role="status">
+                    {codeMsg.text}
+                </small>
+            )}
+        </form>
     );
 }
 
 /** Como cumprir: o texto da missão e, se for de contador, a barra (x/meta). */
-function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
+export function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
     const { t } = useT();
     const n = m.goal && !view.done.has(m.id) ? missionCount(m, view) : null;
     return (

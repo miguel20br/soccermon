@@ -24,6 +24,26 @@ export const MENU_SCREENS: Screen[] = [
 /** O voltar da tela de menu aberta: o MenuHead entrega, o botão da barra de cima chama (um voltar só, no mesmo lugar). */
 export const useMenuBack = create<{ back: (() => void) | null }>(() => ({ back: null }));
 
+/**
+ * Entrega o voltar da tela pra barra de cima (telas de palco sem o placar do MenuHead usam direto). Devolve se a
+ * tela tem a barra (nos laboratórios, sem barra, o voltar fica no placar).
+ */
+export function useMenuBackOf(onBack?: () => void): boolean {
+    const inBar = MENU_SCREENS.includes(useGame((s) => s.screen));
+    const ref = useRef(onBack);
+    ref.current = onBack;
+    const register = inBar && !!onBack;
+    useEffect(() => {
+        if (!register) return;
+        const fn = () => ref.current?.();
+        useMenuBack.setState({ back: fn });
+        return () => {
+            if (useMenuBack.getState().back === fn) useMenuBack.setState({ back: null });
+        };
+    }, [register]);
+    return inBar;
+}
+
 /** Cabeçalho das telas de menu em forma de placar: etiqueta em cima, ícone e título (o voltar fica na barra de cima). */
 export function MenuHead({
     title,
@@ -42,19 +62,7 @@ export function MenuHead({
     tag?: string;
 }) {
     const { t } = useT();
-    // nas telas de menu o voltar vai pra barra de cima; nos laboratórios (sem barra) fica no placar
-    const inBar = MENU_SCREENS.includes(useGame((s) => s.screen));
-    const ref = useRef(onBack);
-    ref.current = onBack;
-    const register = inBar && !!onBack;
-    useEffect(() => {
-        if (!register) return;
-        const fn = () => ref.current?.();
-        useMenuBack.setState({ back: fn });
-        return () => {
-            if (useMenuBack.getState().back === fn) useMenuBack.setState({ back: null });
-        };
-    }, [register]);
+    const inBar = useMenuBackOf(onBack);
     return (
         <header className="menu-head bc-screenhead">
             {/* a barra de cima já diz onde você está: a etiqueta só quando a tela tem uma de verdade (ex.: Rota Índigo) */}

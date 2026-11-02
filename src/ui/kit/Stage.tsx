@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, useLayoutEffect, useRef } from 'react';
+import { type CSSProperties, type ReactNode, type RefObject, useLayoutEffect, useRef } from 'react';
 import './stage.css';
 
 /**
@@ -11,16 +11,18 @@ export function Stage({
     action,
     children,
     className = '',
+    style,
 }: {
     scene?: ReactNode;
     action?: ReactNode;
     children: ReactNode;
     className?: string;
+    style?: CSSProperties;
 }) {
     const body = useRef<HTMLDivElement>(null);
     useFitZoom(body);
     return (
-        <div className={`k-stage ${className}`}>
+        <div className={`k-stage ${className}`} style={style}>
             {scene && (
                 <div className="k-stage-scene" aria-hidden>
                     {scene}

@@ -1,72 +1,142 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
-import { activeTitle, activeTrainer, trainerFrame } from '../../store/missions';
-import { clubColorHex } from '../../store/profile';
+import {
+    activeTitle,
+    activeTrainer,
+    earnedTitles,
+    MISSIONS,
+    TRAINERS,
+    trainerFrame,
+    unlockedTrainers,
+} from '../../store/missions';
+import { clubColorHex, seenCount } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
-import { DoorTiles } from '../components/DoorTiles';
+import { closestMissions } from '../ambientes/metas';
 import { FutCard } from '../components/FutCard';
-import { HudIcon, type HudIconKind } from '../components/MatchHud';
-import { MenuHead } from '../components/MenuHead';
+import { HudIcon } from '../components/MatchHud';
+import { useMenuBackOf } from '../components/MenuHead';
+import { MenuIcon } from '../components/MenuIcon';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { DOOR_TABS, type DoorTab, initialTab, legacyDoor, openDoor } from '../doors';
+import { Trophy } from '../components/Trophy';
+import { legacyDoor, openDoor } from '../doors';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
-import { clubVars, titleName, trainerLabel, useAvatar } from '../profile/club';
+import { clubVars, hexCss, missionText, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
-import { NewDot, newsCount, useNews } from '../profile/news';
-import { TrainerSprite } from '../profile/TrainerTab';
-import { reduceMotionOn } from '../settings-sync';
+import { NewDot, useNews } from '../profile/news';
+import { MissionSummary, TitlePicker, TrainerPicker, TrainerSprite, useSaveView } from '../profile/TrainerTab';
 import '../profile/profile.css';
+import '../profile/armario.css';
 
-type Tab = DoorTab<'profile'>;
-const TAB_ICON: Record<Tab, HudIconKind> = { treinador: 'person', clube: 'defensive', amigos: 'friends' };
+type SheetId = 'nome' | 'treinadores' | 'titulo' | 'missoes' | 'clube' | 'amigos';
+const DEX_TOTAL = 151;
+const FLAGS = Array.from({ length: 14 }, (_, i) => i);
+/** `?aba=` (o quadro e os botões da Sede, links antigos `?perfil=`) que já abre uma Sheet. */
+const ABA_SHEET: Record<string, SheetId> = { clube: 'clube', amigos: 'amigos', missoes: 'missoes' };
+
+/** Uma porta do armário: ícone, nome e o número (ou o valor de agora). */
+function Locker({
+    icon,
+    title,
+    count,
+    dot,
+    onClick,
+}: {
+    icon: ReactNode;
+    title: string;
+    count?: ReactNode;
+    dot?: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button type="button" className="pf-locker bc-tile" onClick={onClick}>
+            <span className="pf-locker-ic">{icon}</span>
+            <span className="pf-locker-txt">
+                <b>{title}</b>
+                {count !== undefined && <em className="door-count">{count}</em>}
+            </span>
+            <NewDot on={!!dot} />
+        </button>
+    );
+}
 
 /**
- * Perfil = quem eu sou (docs/planos/menus-e-sala.md): o topo é o seu cartão público (o que os outros jogadores veem),
- * logo abaixo as portas da Sala de troféus e da Coleção (tudo mora no Perfil, pedido do Miguel em 20/10), e as abas mudam o que ele mostra: Treinador (nome, avatar, treinador e título, com as missões que liberam cada
- * um), Clube (cor, escudo, uniforme, faixa) e Amigos.
+ * Perfil = o armário do vestiário (cara-de-jogo.md, decisão 9): uma tela sem rolar com o cartão do treinador (o que os
+ * outros veem), as missões e as portas: Sala de troféus, Coleção, treinadores (figurinhas), título, clube e amigos.
+ * Editar mora em Sheet: tocar no nome ou no avatar abre o nome e o avatar.
  */
 export function Profile() {
     const go = useGame((s) => s.go);
     const profile = useGame((s) => s.profile);
     const hall = useGame((s) => s.hall);
+    const seen = useGame((s) => seenCount(s.dex));
+    const titles = useGame((s) => Math.max(s.records.titles, s.hall.length));
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
     const showcase = useShowcase();
     const { cards: shown } = useCardShowcase();
     const updateProfile = useGame((s) => s.updateProfile);
-    const [tab, setTab] = useState<Tab>(() => initialTab('profile'));
+    const view = useSaveView();
     const { t, d } = useT();
     const news = useNews();
+    const has = (prefix: string) => [...news].some((k) => k.startsWith(prefix));
     const cups = cupCounts(hall);
-    // link antigo (?perfil=medalhas, ?perfil=album…) que agora mora em outra porta
+    const look = lookOfProfile(profile);
+    const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
+    const near = useMemo(() => closestMissions(view, 6), [view]);
+    const [sheet, setSheet] = useState<SheetId | null>(null);
+    const close = () => setSheet(null);
+    useMenuBackOf(() => go('home'));
+
+    // link antigo (?perfil=medalhas, ?perfil=album…) que agora mora em outra porta; `?aba=clube|amigos|missoes` abre a
+    // Sheet dela (uma vez: some da URL, pra voltar ao Perfil depois não abrir de novo)
     useEffect(() => {
         const to = legacyDoor();
-        if (to) openDoor(...to);
-        // o quadro de missões da Sede: abre já nas missões (as abas em cima, o resumo logo embaixo). No quadro seguinte,
-        // depois do "tela nova abre no topo" do App
-        if (new URLSearchParams(window.location.search).get('aba') === 'missoes') {
-            const id = requestAnimationFrame(() =>
-                document
-                    .querySelector('.pf-tabs')
-                    ?.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' }),
-            );
-            return () => cancelAnimationFrame(id);
-        }
+        if (to) return openDoor(...to);
+        const url = new URL(window.location.href);
+        const id = ABA_SHEET[url.searchParams.get('aba') ?? url.searchParams.get('perfil') ?? ''];
+        if (!id) return;
+        setSheet(id);
+        url.searchParams.delete('aba');
+        url.searchParams.delete('perfil');
+        window.history.replaceState(window.history.state, '', url);
     }, []);
 
-    return (
-        <div className="menu-screen pf" style={clubVars(clubColorHex(profile.clubColor))}>
-            <MenuHead title={t('profile.title')} icon="profile" onBack={() => go('home')} />
+    const vars = { ...clubVars(clubColorHex(profile.clubColor)), '--club2': hexCss(look.color2) } as CSSProperties;
+    const edit = t('profile.club.trainerTitle');
 
+    return (
+        <Stage
+            className="pf pf-arm"
+            style={vars}
+            scene={
+                // o vestiário da Sede: parede de madeira, o varal nas cores do clube e o piso
+                <>
+                    <i className="pf-arm-wall" />
+                    <ol className="pf-arm-flags">
+                        {FLAGS.map((i) => (
+                            <li key={i} />
+                        ))}
+                    </ol>
+                    <i className="pf-arm-floor" />
+                </>
+            }
+        >
             <header className={`panel pf-head bc-surface bc-stripe${trainerFrame(activeTrainer(profile))}`}>
-                <div className="pf-duo">
+                <button
+                    type="button"
+                    className="pf-duo pf-edit"
+                    aria-label={`${edit}: ${t('profile.club.avatar')}`}
+                    onClick={() => setSheet('nome')}
+                >
                     <TrainerSprite id={activeTrainer(profile)} className="pf-duo-trainer" />
                     <img
                         className={`pf-avatar${avatar.google ? '' : ' pixel'}${frameClass(showcase.frame)}`}
@@ -74,14 +144,24 @@ export function Profile() {
                         alt=""
                         referrerPolicy="no-referrer"
                     />
-                </div>
+                    <NewDot on={has('av:')} />
+                </button>
                 <div className="pf-who">
-                    <h2>{trainerLabel(profile, googleName)}</h2>
+                    <h2>
+                        <button
+                            type="button"
+                            className="pf-edit pf-name"
+                            aria-label={`${edit}: ${t('profile.club.yourName')}`}
+                            onClick={() => setSheet('nome')}
+                        >
+                            {trainerLabel(profile, googleName)}
+                        </button>
+                    </h2>
                     <span className={`pf-title-line${titleClass(activeTitle(profile))}`}>
                         {titleName(activeTitle(profile))}
                     </span>
                     <span className="pf-clubline">
-                        <Crest look={lookOfProfile(profile)} className="crest pf-crest" />
+                        <Crest look={look} className="crest pf-crest" />
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>
                     </span>
                     <ShowcaseRow items={showcase.items} className="pf-showcase" />
@@ -138,40 +218,125 @@ export function Profile() {
                         {t('profile.card.addCards')}
                     </button>
                 )}
-                <small className="pf-public-hint">{t('profile.publicHint')}</small>
             </header>
 
-            <DoorTiles which={['trophies', 'collection']} />
-
-            <div
-                className="pf-tabs k-tabs"
-                role="tablist"
-                aria-label={t('profile.title')}
-                style={{ '--n': DOOR_TABS.profile.length } as CSSProperties}
+            <button
+                type="button"
+                className="pf-arm-missions bc-tile"
+                aria-haspopup="dialog"
+                onClick={() => setSheet('missoes')}
             >
-                {DOOR_TABS.profile.map((id) => (
-                    <button
-                        type="button"
-                        role="tab"
-                        key={id}
-                        id={`pf-tab-${id}`}
-                        aria-selected={tab === id}
-                        aria-controls={`pf-panel-${id}`}
-                        className={`pf-tab${tab === id ? ' active' : ''}`}
-                        onClick={() => setTab(id)}
-                    >
-                        <HudIcon kind={TAB_ICON[id]} />
-                        <span>{d.profile.tabs[id]}</span>
-                        <NewDot on={id !== 'amigos' && newsCount(news, id) > 0} />
-                    </button>
-                ))}
-            </div>
+                <b>{d.profile.tabs.missoes}</b>
+                <span className={`k-bar${done >= MISSIONS.length ? ' full' : ''}`} aria-hidden>
+                    <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
+                </span>
+                <em className="door-count">
+                    {done}/{MISSIONS.length}
+                </em>
+            </button>
 
-            <div role="tabpanel" id={`pf-panel-${tab}`} aria-labelledby={`pf-tab-${tab}`}>
-                {tab === 'treinador' && <ClubTab part="trainer" />}
-                {tab === 'clube' && <ClubTab part="club" />}
-                {tab === 'amigos' && <FriendsTab />}
-            </div>
-        </div>
+            <nav className="pf-lockers" aria-label={t('profile.title')}>
+                <Locker
+                    icon={<Trophy size={32} />}
+                    title={d.home.doors.trophies[0]}
+                    count={titles || undefined}
+                    onClick={() => openDoor('trophies')}
+                />
+                <Locker
+                    icon={<MenuIcon kind="dex" />}
+                    title={d.home.doors.collection[0]}
+                    count={`${seen}/${DEX_TOTAL}`}
+                    onClick={() => openDoor('collection')}
+                />
+                <Locker
+                    icon={<TrainerSprite id={activeTrainer(profile)} />}
+                    title={t('profile.picker.trainer')}
+                    count={`${unlockedTrainers(profile).length}/${TRAINERS.length}`}
+                    dot={has('tr:')}
+                    onClick={() => setSheet('treinadores')}
+                />
+                <Locker
+                    icon={<HudIcon kind="crown" />}
+                    title={t('profile.picker.title')}
+                    count={earnedTitles(profile).length}
+                    dot={has('ti:')}
+                    onClick={() => setSheet('titulo')}
+                />
+                <Locker
+                    icon={<Crest look={look} className="crest" />}
+                    title={d.profile.tabs.clube}
+                    count={profile.clubTag}
+                    dot={has('kit:')}
+                    onClick={() => setSheet('clube')}
+                />
+                <Locker
+                    icon={<HudIcon kind="friends" />}
+                    title={d.profile.tabs.amigos}
+                    onClick={() => setSheet('amigos')}
+                />
+            </nav>
+
+            <Sheet open={sheet === 'nome'} onClose={close} title={edit} className="pf pf-sheet" style={vars}>
+                <ClubTab part="trainer" />
+            </Sheet>
+            <Sheet
+                open={sheet === 'treinadores'}
+                onClose={close}
+                title={t('profile.picker.trainer')}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <TrainerPicker save={updateProfile} />
+            </Sheet>
+            <Sheet
+                open={sheet === 'titulo'}
+                onClose={close}
+                title={t('profile.picker.title')}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <TitlePicker save={updateProfile} />
+            </Sheet>
+            <Sheet
+                open={sheet === 'missoes'}
+                onClose={close}
+                title={d.profile.tabs.missoes}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <MissionSummary />
+                <ul className="pf-near">
+                    {near.map((g) => (
+                        <li key={g.m.id}>
+                            <span>{missionText(g.m)}</span>
+                            <span className="k-bar">
+                                <i style={{ width: `${(g.n / g.goal) * 100}%` }} />
+                                <b>
+                                    {g.n}/{g.goal}
+                                </b>
+                            </span>
+                        </li>
+                    ))}
+                </ul>
+            </Sheet>
+            <Sheet
+                open={sheet === 'clube'}
+                onClose={close}
+                title={d.profile.tabs.clube}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <ClubTab part="club" />
+            </Sheet>
+            <Sheet
+                open={sheet === 'amigos'}
+                onClose={close}
+                title={d.profile.tabs.amigos}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <FriendsTab />
+            </Sheet>
+        </Stage>
     );
 }

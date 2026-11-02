@@ -30,6 +30,7 @@ import { readHud } from '../hud-lab';
 import { iosBrowser, promptInstall, useInstall } from '../install';
 import { Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
+import { RedeemCode } from '../profile/TrainerTab';
 
 /** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
 function Segmented<T extends string | number | boolean>({
@@ -651,6 +652,11 @@ function DataSettings() {
                     </>
                 )}
             </Sheet>
+
+            {/* veio do Perfil (armário, cara-de-jogo.md): título, Pokédex corrigida ou carta devolvida */}
+            <Row title={t('profile.picker.code')}>
+                <RedeemCode />
+            </Row>
 
             <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
                 <div>
