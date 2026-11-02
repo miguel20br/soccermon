@@ -85,7 +85,7 @@ import {
     capTypeAt,
     MaxBars,
     MaxCueButton,
-    maxCueAt,
+    maxCueSteady,
     PenaltyOrderPanel,
     SidelineControls,
     SidelineOverlay,
@@ -539,7 +539,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
     const sideline = {
-        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueAt(match, setups, side, clock.tick)),
+        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueSteady(match, setups, side, clock.tick)),
         fxType: capFxType(match, setups, side, clock.tick),
         capType: capTypeAt(match, setups, side, clock.tick),
         bicuda: capIsGk(match, setups, side, clock.tick),

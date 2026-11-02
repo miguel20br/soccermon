@@ -69,7 +69,7 @@ import {
     MaxBars,
     MaxCueButton,
     MaxThumb,
-    maxCueAt,
+    maxCueSteady,
     maxLit,
     PenaltyOrderPanel,
     type PenaltyTaker,
@@ -483,7 +483,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
 
     // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
-    const cue = maxCueAt(match, setups, 0, clock.tick);
+    const cue = maxCueSteady(match, setups, 0, clock.tick);
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
     const wait = maxWaitNext(maxWait, agency.max.level, !!cue);
     // o botão aceso, o toque armado ou o golpe máximo (de qualquer time) no ar: a hora é dele, sem balão por cima

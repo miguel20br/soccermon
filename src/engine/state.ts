@@ -648,6 +648,26 @@ export interface MatchState {
     lastMove: [string | null, string | null];
     /** Zonas no chão (fumaça, anel de fogo, muro). */
     zones: Zone[];
+    /**
+     * O que o golpe máximo faz nos rivais esperando a bola: a queda do N2/N3 (e da bicuda N2), a onda, o gelo e os
+     * efeitos de área do N3 acontecem quando a bola chega em cada um (`at` metros de `from` na direção `dir`), não no
+     * chute. Valem só pra esse chute (`kick`, o `ball.lastKick` dele): a bola parada, dominada ou chutada de novo antes
+     * cancela o que falta. `kind`: queda, empurrão (`m` metros), gelo (`m` segundos) ou efeito de área (`piece`).
+     */
+    knocks: {
+        kind: 'knock' | 'push' | 'freeze' | 'piece';
+        idx: number;
+        by: number;
+        moveId: string;
+        fx: string;
+        piece?: string;
+        m: number;
+        from: Vec2;
+        dir: Vec2;
+        goal: Vec2;
+        at: number;
+        kick: object;
+    }[];
     /** Escanteio em andamento (cobrança e disputa). */
     setPiece: SetPiece | null;
     ball: BallState;

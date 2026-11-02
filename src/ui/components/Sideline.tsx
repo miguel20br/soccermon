@@ -7,8 +7,8 @@ import { MAX_SIGNATURE } from '../../engine/signature-moves';
 import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCallCueNear, maxCueNear, roleAt } from '../match-view';
-import { gradeDelta, holdRing, MAX_BEAT, maxTap } from '../max-beat';
+import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCallCueNear, maxCueNear, roleAt, snapAt } from '../match-view';
+import { gradeDelta, holdRing, MAX_BEAT, maxRing, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
 import { HudIcon, hex } from './MatchHud';
@@ -109,6 +109,62 @@ export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0
 
 /** Por que o botão acendeu: `call` (ataque do time, chamando o capitão) ou `hora` (a hora certa, com câmera lenta). */
 export type MaxCueKind = false | 'call' | 'hora';
+
+/**
+ * Tempo mínimo (ms, tempo real) do botão aceso quando ainda não há anel pra esperar fechar. O "chamar o capitão" dura o
+ * ataque, e um passe pra trás ou uma perdida de 0,1 s apagavam o botão: em 6 partidas medidas, 27% das vezes ele
+ * ficava aceso menos de 1 s de jogo e um terço reacendia em menos de 2 s (Miguel, 01/11: "aparece e depois some").
+ */
+export const MAX_CUE_MIN_MS = 1200;
+
+/** O botão aceso na tela: o motivo, desde quando e até quando ele fica mesmo que a hora apague (ms, tempo real). */
+export interface CueHold {
+    kind: Exclude<MaxCueKind, false>;
+    since: number;
+    until: number;
+}
+
+/**
+ * Botão sem pisca (só tela): acendeu, fica até o anel desta vez fechar (`ringEnd`, o fim da janela do bom) e pelo menos
+ * `MAX_CUE_MIN_MS`, e a hora que apaga e volta nesse meio não pisca. Some antes só por motivo claro (`linger` falso: gol,
+ * saída de bola, intervalo; a bicuda, que vale só até o goleiro tocar na bola). Tocar no resto vale como tocar
+ * logo antes: o motor deixa a ordem armada `AGENCY.maxArmTicks` e o golpe sai no mesmo chute da zona de sempre.
+ */
+export function steadyCue(
+    hold: CueHold | null,
+    raw: MaxCueKind,
+    now: number,
+    linger: boolean,
+    ringEnd: number | null,
+): CueHold | null {
+    if (raw) {
+        const since = hold?.since ?? now;
+        return { kind: raw, since, until: Math.max(hold?.until ?? 0, now + (hold ? 0 : MAX_CUE_MIN_MS), ringEnd ?? 0) };
+    }
+    if (!hold || !linger) return null;
+    const until = Math.max(hold.until, ringEnd ?? 0);
+    return now < until ? { ...hold, until } : null;
+}
+
+const cueHolds: [CueHold | null, CueHold | null] = [null, null];
+/** Fases em que o botão firme apaga na hora (a jogada acabou). */
+const STOPS = new Set(['goal', 'kickoff', 'halftime', 'fulltime']);
+
+/** `maxCueAt` com o botão firme (`steadyCue`): é o que a tela da partida e o Duelo acendem. */
+export function maxCueSteady(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): MaxCueKind {
+    const raw = maxCueAt(m, setups, side, tick);
+    const now = performance.now();
+    const prev = cueHolds[side];
+    // o anel desta vez (nasce quando o botão acende): até o fim da janela do bom
+    const r = maxRing();
+    const ringEnd = prev && r && r.start >= prev.since - 300 ? r.at + MAX_BEAT.goodMs : null;
+    // gol, saída de bola e intervalo apagam na hora; lateral, tiro de meta e escanteio, não (o lance segue)
+    const phase = m.snapshots.length ? snapAt(m.snapshots, tick).phase : 'goal';
+    const linger = !STOPS.has(phase) && !capIsGk(m, setups, side, tick);
+    const hold = steadyCue(prev, raw, now, linger, ringEnd);
+    cueHolds[side] = hold;
+    return hold?.kind ?? false;
+}
 
 /** Efeito do N3 do capitão do time `side`: a mesma regra do motor (a assinatura dos 12 ou `maxFxType`). */
 export function capFxType(

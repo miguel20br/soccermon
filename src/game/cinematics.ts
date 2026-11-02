@@ -454,6 +454,29 @@ export class Cinematics {
                     opts.y + Math.sin(a + w) * r1,
                 );
             }
+            if (opts.reduce) return;
+            // raios saindo do capitão (em zigue-zague, redesenhados a cada piscada): a energia do especial
+            for (let b = 0; b < 4; b++) {
+                const a = Math.random() * Math.PI * 2;
+                let px = opts.x + Math.cos(a) * 26;
+                let py = opts.y + Math.sin(a) * 26;
+                const pts = [px, py];
+                for (let j = 0; j < 6; j++) {
+                    const r = 22 + Math.random() * 18;
+                    const aa = a + (Math.random() - 0.5) * 0.9;
+                    px += Math.cos(aa) * r;
+                    py += Math.sin(aa) * r;
+                    pts.push(px, py);
+                }
+                for (const [wd, c, al] of [
+                    [7, opts.color, 0.45],
+                    [2.5, 0xffffff, 1],
+                ] as const) {
+                    lines.lineStyle(wd, c, al).beginPath().moveTo(pts[0], pts[1]);
+                    for (let j = 2; j < pts.length; j += 2) lines.lineTo(pts[j], pts[j + 1]);
+                    lines.strokePath();
+                }
+            }
         };
         draw();
         const flicker = opts.reduce ? null : scene.time.addEvent({ delay: 60, loop: true, callback: draw });
@@ -684,7 +707,11 @@ export class Cinematics {
         }
         const holder = this.scene.add.container(0, 0, children).setDepth(9800);
         this.dramaHolder = holder;
-        this.pin(holder, GAME_W / 2, GAME_H * 0.17);
+        // cabe na faixa que aparece: na quadra grande do celular (`crop`) só ~metade da quadra está na tela e o
+        // "GOLPE MÁXIMO N2!" saía cortado nas duas bordas; medido no texto de verdade, com o esticão da entrada (1,12)
+        const shown = this.crop ? this.crop.w / CROP_TEXT_SCALE : GAME_W;
+        const fit = Math.min(1, (0.9 * shown) / (Math.max(t.width, 1) * 1.12));
+        this.pin(holder, GAME_W / 2, GAME_H * 0.17, fit);
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
         this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });

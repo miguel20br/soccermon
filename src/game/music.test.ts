@@ -56,6 +56,8 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
         };
     };
     const node = () => ({ gain: param(), connect() {} });
+    /** Alvos do passa-baixa de cada faixa (o fundo do golpe máximo e a volta). */
+    const lp: number[] = [];
     /** Parâmetro que não conta como degrau (o passa-baixa de cada faixa). */
     const quiet = () => ({
         value: 0,
@@ -72,7 +74,17 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
         destination: {},
         addEventListener() {},
         createGain: node,
-        createBiquadFilter: () => ({ type: '', Q: quiet(), frequency: quiet(), connect() {} }),
+        createBiquadFilter: () => ({
+            type: '',
+            Q: quiet(),
+            frequency: {
+                ...quiet(),
+                setTargetAtTime(x: number) {
+                    lp.push(x);
+                },
+            },
+            connect() {},
+        }),
         createBuffer: () => ({ id: 'virada', copyToChannel() {} }),
         createBufferSource() {
             const s = {
@@ -109,7 +121,7 @@ function fakeAudio(opts: { webmFails?: boolean; extra?: number; metas?: Record<s
             arrayBuffer: async () => ({ ext, id }),
         };
     });
-    return { ctx, fetched, started, steps, targets, decodes: () => decodes };
+    return { ctx, fetched, started, steps, targets, lp, decodes: () => decodes };
 }
 
 const settle = () => new Promise((r) => setTimeout(r, 5));
@@ -281,6 +293,27 @@ describe('música', () => {
         expect(later[0].when).toBeCloseTo(4, 6); // compasso de 2 s a 120
         expect(later[0].off).toBe(64); // a Pressão entra pela `virada` da faixa
         expect(a.started[0].stop).toBeCloseTo(4.01, 6);
+    });
+
+    it('golpe máximo: a troca de trecho com a música no fundo não deixa o passa-baixa fechado na volta', async () => {
+        const secoes = [
+            { nome: 'nivel1', loop: true, inicio: 0, fim: 8, bpm: 120 },
+            { nome: 'nivel2', loop: true, inicio: 8, fim: 16, bpm: 120 },
+        ];
+        const a = fakeAudio({ metas: { 'partida-1t': { duracao: 16, secoes } } });
+        const m = await import('./music');
+        m.playMusic('partida-1t', 'nivel1');
+        await settle();
+        a.ctx.currentTime = 1;
+        m.duckMusic();
+        expect(a.lp.at(-1)).toBe(m.DUCK.hz);
+        // o minuto virou no meio do golpe: o trecho novo entra (na linha do compasso) com a música ainda no fundo
+        m.playMusic('partida-1t', 'nivel2');
+        await settle();
+        a.ctx.currentTime = 3;
+        m.unduckMusic(false);
+        expect(a.lp.at(-1)).toBe(a.ctx.sampleRate / 2);
+        expect(m.musicDucked()).toBe(false);
     });
 
     it('12/8 (Misty): troca de trecho na linha do compasso de 12 linhas', async () => {

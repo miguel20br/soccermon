@@ -52,7 +52,7 @@ import { playCrowd, playCry, playGoalCry, playMax, playSample, playSfx } from '.
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
-import { drawBanner, drawBoards, drawCourt, ensureBallTexture, GAME_H, GAME_W, PPM, toPx } from '../court';
+import { drawBanner, drawBoards, drawCourt, ensureBallTexture, GAME_H, GAME_W, n3ShotFrame, PPM, toPx } from '../court';
 import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
@@ -205,11 +205,22 @@ const BALL_DEPTH = FOCUS_DEPTH + 200;
 /** Reação do atingido (ícone, estrelinhas, palavra) e faixa do especial: acima do escurecimento, abaixo da bola. */
 const REACT_DEPTH = BALL_DEPTH - 6;
 /**
- * Cena do especial N3 (linha e bicuda): a quadra congela no toque por esse tempo real (o momento grande da partida). No
- * 4x, metade; no 8x, nada (só o clarão do tipo).
+ * Cena do especial N3 (linha e bicuda): a quadra congela no toque por esse tempo real (o momento grande da partida), em
+ * qualquer velocidade. Era metade no 4x e nada no 8x, e quem joga no 8x (a maioria) só via a câmera lenta (01/11/2026).
  */
 const N3_SCENE_MS = 800;
-const n3SceneMs = (speed: PlaybackSpeed) => (speed === 8 ? 0 : speed === 4 ? N3_SCENE_MS / 2 : N3_SCENE_MS);
+/** Depois da cena, quanto o stinger ainda toca (o SOC-CER-MON): a música volta do fundo no fim dele. */
+const N3_STINGER_TAIL_MS = 1600;
+/**
+ * Bola do golpe máximo no ar, por nível (pedido do Miguel, 01/11: "a bola tem que ter uns efeitos especiais"): as
+ * partículas do tipo a cada `every` ms (`n` por vez, espalhadas até `spread` px), o brilho (`glow`) e a grossura do
+ * rastro (`trail`). N1 discreto, N3 forte.
+ */
+const MAX_BALL_FX = {
+    1: { every: 26, n: 1, spread: 0, glow: 1.35, trail: 7 },
+    2: { every: 18, n: 2, spread: 6, glow: 1.7, trail: 10 },
+    3: { every: 12, n: 4, spread: 11, glow: 2.2, trail: 14 },
+} as const;
 /** Rastro da bola: quantos ticks de jogo para trás ele alcança. */
 const TRAIL_TICKS = 5;
 /** Rastro do golpe máximo no ar (mais longo: a curva pro canto tem que aparecer). */
@@ -483,7 +494,7 @@ export class MatchScene extends Phaser.Scene {
     /** Chute N3 no ar: o impacto (gol, defesa, bloqueio, trave) solta a onda de choque do tipo. */
     private n3Shot: { tick: number; type: string } | null = null;
     /** Golpe máximo no ar: câmera lenta até o desfecho e o brilho na bola (cor do tipo no N3). */
-    private maxSlow: { until: number; factor: number; color: number } | null = null;
+    private maxSlow: { until: number; factor: number; color: number; level: number; type: string } | null = null;
     /** Até quando (tempo real) a cena do especial N3 está na tela. */
     private n3SceneUntil = 0;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
@@ -1796,7 +1807,7 @@ export class MatchScene extends Phaser.Scene {
         if (n < 2) return;
         g.setDepth(BALL_DEPTH - 2);
         const color = max && this.ballColor === 0xffffff ? max.color : this.ballColor;
-        const w = max ? 9 : 5;
+        const w = max ? MAX_BALL_FX[max.level as 1 | 2 | 3].trail : 5;
         for (let i = 1; i < n; i++) {
             const k = i / (n - 1);
             g.lineStyle(1.5 + w * k, color, 0.08 + (max ? 0.6 : 0.42) * k);
@@ -1804,8 +1815,11 @@ export class MatchScene extends Phaser.Scene {
         }
     }
 
-    /** Chute com golpe: brilho na bola e rastro na cor do tipo. */
-    private updateBallFx(type: string, x: number, y: number) {
+    /** Chute com golpe: brilho na bola e rastro na cor do tipo; no golpe máximo, mais forte por nível. */
+    private updateBallFx(bfx: string, x: number, y: number) {
+        const max = this.maxSlow && this.playTick <= this.maxSlow.until && this.ballFree ? this.maxSlow : null;
+        const type = bfx || (max?.type ?? '');
+        const fx = max ? MAX_BALL_FX[max.level as 1 | 2 | 3] : null;
         if (!type) {
             this.ballGlow.setAlpha(0);
             this.ballColor = 0xffffff;
@@ -1820,12 +1834,17 @@ export class MatchScene extends Phaser.Scene {
         this.ballGlow
             .setPosition(x, y)
             .setFillStyle(color, pulse)
-            .setScale(1.1 + 0.15 * Math.sin(this.time.now / 45))
+            .setScale((fx?.glow ?? 1.1) + 0.15 * Math.sin(this.time.now / 45))
             .setAlpha(1)
             .setDepth(this.ball.depth - 1);
-        if (this.time.now - this.lastTrailAt > 30 && this.ballFree) {
+        if (this.time.now - this.lastTrailAt > (fx?.every ?? 30) && this.ballFree) {
             this.lastTrailAt = this.time.now;
-            trailParticle(this, type, x, y, this.ball.depth - 2);
+            // golpe máximo: mais partículas, espalhadas em volta da bola (N1 discreto, N3 forte)
+            for (let i = 0; i < (fx?.n ?? 1); i++) {
+                const a = Math.random() * Math.PI * 2;
+                const r = i ? Math.random() * (fx?.spread ?? 0) : 0;
+                trailParticle(this, type, x + Math.cos(a) * r, y + Math.sin(a) * r, this.ball.depth - 2);
+            }
         }
     }
 
@@ -2472,6 +2491,11 @@ export class MatchScene extends Phaser.Scene {
                 this.maxSlow = {
                     until: e.tick + (bicuda && !n3 ? MAX_BICUDA_SLOW_TICKS : TICK_RATE * 3),
                     factor: n3 ? MAX_SHOT_SLOW.n3 : MAX_SHOT_SLOW.other,
+                    level: e.level ?? 1,
+                    // o tipo das partículas da bola: o do efeito (N3) ou o do golpe dele, senão o do capitão
+                    type: fxType
+                        ? fxTypeOf(fxType)
+                        : ((e.moveId ? MOVES[e.moveId]?.type : undefined) ?? species(cap.speciesId).types[0]),
                     color: n3
                         ? hexToNumber(
                               TYPE_COLOR[fxType ? fxTypeOf(fxType) : species(cap.speciesId).types[0]] ?? '#ffd447',
@@ -3021,37 +3045,37 @@ export class MatchScene extends Phaser.Scene {
         const sig = !!fxType && fxType in AGENCY.maxSig;
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const reduce = !!this.md.reduceMotion;
-        const ms = n3SceneMs(this.speed);
+        const ms = N3_SCENE_MS;
         const now = this.time.now;
         const cam = this.cameras.main;
         const kick = () => {
             playMax(MAX_MOVE[3]);
             if (!reduce) cam.shake(420, 0.014);
-            cam.zoomTo(1.35, 160, 'Cubic.easeOut', true);
+            // o chute: a câmera abre no gol atacado inteiro (o close no capitão cortava o gol)
+            const f = n3ShotFrame(cap.sprite.x, cap.sprite.y, cap.team as 0 | 1, this.zoomDamp < 1);
+            cam.pan(f.x, f.y, 220, 'Sine.easeInOut', true);
+            cam.zoomTo(f.zoom, 220, 'Sine.easeInOut', true);
         };
-        if (ms > 0) {
-            this.holdReal = Math.max(this.holdReal, now + ms);
-            this.n3SceneUntil = now + ms;
-            playMax('especial');
-            // o capitão fica acima do fundo da cena (como no holofote dos golpes)
-            const idx = this.players.indexOf(cap);
-            this.cine.focused.add(idx);
-            this.cine.superScene({ x: cap.sprite.x, y: cap.sprite.y - 16, color, ms, reduce });
-            cam.pan(cap.sprite.x, cap.sprite.y - 14, 140, 'Sine.easeOut', true);
-            cam.zoomTo(reduce ? 1.35 : 1.75, 140, 'Cubic.easeOut', true);
-            // a música abaixa só na cena (se o toque já não a deixou no fundo) e volta com a virada
-            const duck = !musicDucked();
-            if (duck) duckMusic();
-            this.time.delayedCall(ms, () => {
-                if (!this.cine.spotlightActive) this.cine.focused.delete(idx);
-                if (duck) unduckMusic(true);
-                kick();
-            });
-        } else {
-            // 8x: sem cena, só o clarão do tipo e o chute
-            this.cine.hitTint(color, 320, reduce ? 0.16 : 0.4, REACT_DEPTH - 1);
+        // a música vai pro fundo e o stinger do especial toca por cima: a subida na cena, o chute e o SOC-CER-MON no voo
+        // da bola (`max-stinger`, ~2,4 s); a faixa volta logo depois, sem virada por cima do stinger
+        duckMusic();
+        playMax('stinger');
+        this.time.delayedCall(ms + N3_STINGER_TAIL_MS, () => {
+            if (musicDucked()) unduckMusic(false);
+        });
+        this.holdReal = Math.max(this.holdReal, now + ms);
+        this.n3SceneUntil = now + ms;
+        playMax('especial');
+        // o capitão fica acima do fundo da cena (como no holofote dos golpes)
+        const idx = this.players.indexOf(cap);
+        this.cine.focused.add(idx);
+        this.cine.superScene({ x: cap.sprite.x, y: cap.sprite.y - 16, color, ms, reduce });
+        cam.pan(cap.sprite.x, cap.sprite.y - 14, 140, 'Sine.easeOut', true);
+        cam.zoomTo(reduce ? 1.35 : 1.75, 140, 'Cubic.easeOut', true);
+        this.time.delayedCall(ms, () => {
+            if (!this.cine.spotlightActive) this.cine.focused.delete(idx);
             kick();
-        }
+        });
         // a faixa entra: a caixa de batalha sai e o "foi paralisado!" do mesmo lance espera ela passar
         this.battleBox.clear(now, ms + 1100);
         const a = dict().match.agency;
