@@ -9,6 +9,37 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, Sede e Créditos',
+        sections: [
+            {
+                title: 'Lab e Sede',
+                lines: [
+                    'Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex',
+                    'Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador',
+                    'A missão da Sede numa placa com a barra de progresso',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos',
+                    'Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo',
+                    'Mercado: Novas ofertas com a etiqueta grátis também no celular',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar',
+                    'Liga numa placa na parede da Arena',
+                    'Com copa em andamento, o modo aparece no lugar do Continuar repetido',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.35',
         date: '2026-11-02',
         title: 'Prancheta no draft',
@@ -2266,6 +2297,37 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, HQ and Credits',
+        sections: [
+            {
+                title: 'Lab and HQ',
+                lines: [
+                    'Buttons became objects in the scene: the shelf opens the Pokédex, the binder the Album and the board the Movedex',
+                    'At the HQ: the cabinet opens Trophies, the crest the Club, the board Friends and the locker the Trainer',
+                    'The HQ mission on a sign with a progress bar',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Indigo group and Champions with a TV scoreboard, and See all for the full table and numbers',
+                    'Halftime without the repeated title, with Substitute apart from Start the 2nd half',
+                    'Market: New offers with the free tag on phones too',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Credits roll like a game ending, with Pokémon parading. Hold to speed up',
+                    'League on a sign on the Arena wall',
+                    'With a cup in progress, the mode shows instead of a repeated Continue',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.35',
         date: '2026-11-02',

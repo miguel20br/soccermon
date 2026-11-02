@@ -1,5 +1,22 @@
 # Novidades
 
+## 0.9.36 · Lab, Sede e Créditos (2026-11-02)
+
+### Lab e Sede
+- Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex
+- Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador
+- A missão da Sede numa placa com a barra de progresso
+
+### Copa
+- Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos
+- Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo
+- Mercado: Novas ofertas com a etiqueta grátis também no celular
+
+### Menus
+- Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar
+- Liga numa placa na parede da Arena
+- Com copa em andamento, o modo aparece no lugar do Continuar repetido
+
 ## 0.9.35 · Prancheta no draft (2026-11-02)
 
 ### Draft
