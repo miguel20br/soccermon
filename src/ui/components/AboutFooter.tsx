@@ -83,11 +83,12 @@ function PatchPoster({ n, lang, go }: { n: PatchNotes; lang: 'pt' | 'en'; go: (p
                 ))}
             </ol>
             <div className="patch-poster-actions">
-                <button type="button" className="btn ghost" onClick={() => go(n.version)}>
-                    {t('home.newsAll')}
-                </button>
-                <button type="button" className="btn" onClick={() => go('old')}>
+                {/* o que a pessoa quer (ver a versão inteira) é o azul; as antigas, o fantasma */}
+                <button type="button" className="btn ghost" onClick={() => go('old')}>
                     {t('home.newsOld')}
+                </button>
+                <button type="button" className="btn" onClick={() => go(n.version)}>
+                    {t('home.newsAll')}
                 </button>
             </div>
         </section>
