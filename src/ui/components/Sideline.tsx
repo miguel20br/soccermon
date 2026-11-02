@@ -65,6 +65,27 @@ export function chargeAt(events: readonly MatchEvent[], team: 0 | 1, tick: numbe
     return value;
 }
 
+/**
+ * Golpe máximo armado no tick (motor 19): pelo último `maxArm` do time, até sair (o evento `max`) ou cancelar; antes
+ * disso, a ordem que a partida ainda não alcançou (o carimbo do Duelo põe 2 s à frente) já mostra "armado".
+ */
+export function maxArmedAt(
+    events: readonly MatchEvent[],
+    orders: readonly MatchOrder[],
+    side: 0 | 1,
+    tick: number,
+): boolean {
+    const simTo = events.at(-1)?.tick ?? -1;
+    if (orders.some((o) => o.kind === 'max' && (o.tick > tick || o.tick > simTo))) return true;
+    let armed = false;
+    for (const e of events) {
+        if (e.tick > tick) break;
+        if (e.type === 'maxArm' && e.team === side) armed = e.on;
+        else if (e.type === 'max' && e.team === side) armed = false;
+    }
+    return armed;
+}
+
 /** Estado da beira da quadra de um time no tick da tela. `cue`: é a hora do golpe máximo (`maxCueAt`). */
 export function agencyView(
     events: readonly MatchEvent[],
@@ -90,13 +111,7 @@ export function agencyView(
         flyOn,
         flyPending: flyWant !== flyOn ? flyWant : null,
         max: chargeAt(events, side, tick),
-        // armada até sair (qualquer evento `max` do time depois da ordem) ou passar `maxArmTicks`
-        maxPending: mine.some(
-            (o) =>
-                o.kind === 'max' &&
-                tick < o.tick + AGENCY.maxArmTicks &&
-                !past.some((e) => e.type === 'max' && e.team === side && e.tick >= o.tick),
-        ),
+        maxPending: maxArmedAt(events, mine, side, tick),
         maxCue: cue,
     };
 }
@@ -150,7 +165,7 @@ export interface CueHold {
  * Botão sem pisca (só tela): acendeu, fica até o anel desta vez fechar (`ringEnd`, o fim da janela do bom) e pelo menos
  * `MAX_CUE_MIN_MS`, e a hora que apaga e volta nesse meio não pisca. Some antes só por motivo claro (`linger` falso: gol,
  * saída de bola, intervalo; a bicuda, que vale só até o goleiro tocar na bola). Tocar no resto vale como tocar
- * logo antes: o motor deixa a ordem armada `AGENCY.maxArmTicks` e o golpe sai no mesmo chute da zona de sempre.
+ * logo antes: o motor deixa a ordem armada até o chute e o golpe sai no mesmo chute da zona de sempre.
  */
 export function steadyCue(
     hold: CueHold | null,

@@ -362,7 +362,8 @@ export interface TeamRuntime {
 
 export interface MaxArm {
     idx: number;
-    until: number;
+    /** Só a bicuda do goleiro: vale até esse tick. O de linha fica armado até o próximo chute da zona (motor 19). */
+    until?: number;
     /** Bicuda: o chute do rival (`ShotInfo.tick`) a que o toque vale; acabou o chute, o pedido some sem gastar. */
     shot?: number;
     level: 1 | 2 | 3;
@@ -376,8 +377,8 @@ export interface AgencyRuntime {
     /** Goleiro-linha ligado agora (liga e desliga na hora). */
     flyGk: boolean;
     /**
-     * Golpe máximo pedido: quem (índice do capitão) e até que tick vale, armado esperando a hora certa (o chute da zona;
-     * o goleiro, a bicuda no próximo chute no gol que ele alcança).
+     * Golpe máximo pedido: quem (índice do capitão), armado esperando a hora certa (o próximo chute da zona, sem prazo;
+     * o goleiro, a bicuda no próximo chute no gol que ele alcança, até `until`).
      */
     max: MaxArm | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
@@ -513,6 +514,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'timeout'; team: 0 | 1 }
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
+        /** Golpe máximo armado (`on`) ou cancelado sem gastar (intervalo, fim, capitão saiu, a bicuda que passou). */
+        | { type: 'maxArm'; team: 0 | 1; on: boolean }
         /**
          * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a bicuda do goleiro). Desde o motor 17 o motor solta
          * `hit` e `miss` (a bicuda com o toque fora: gasta a barra e vira a defesa de sempre); `start` era da defesa

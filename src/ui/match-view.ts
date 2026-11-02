@@ -26,13 +26,13 @@ export const STATUS_SHORT: Record<number, string> = {
 
 /**
  * O botão do golpe máximo fica aceso esse tanto depois da hora certa passar (0,3 s de jogo, ~1,2 s na câmera lenta): o
- * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (`AGENCY.maxArmTicks`)
- * e a bola procura o capitão.
+ * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (até o próximo chute da
+ * zona, motor 19) e a bola procura o capitão.
  */
 export const MAX_CUE_LATCH = 6;
 /**
  * E acende esse tanto antes da hora certa (0,3 s de jogo): o toque um pouco cedo, já na câmera lenta, não se perde. O
- * motor deixa a ordem armada (`AGENCY.maxArmTicks`) e o golpe sai no próximo chute ou defesa da zona; a ordem leva o
+ * motor deixa a ordem armada (até o chute, motor 19) e o golpe sai no próximo chute ou defesa da zona; a ordem leva o
  * tick do toque, então a partida continua a mesma em todo lugar.
  */
 export const MAX_CUE_EARLY = 6;

@@ -544,7 +544,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         capType: capTypeAt(match, setups, side, clock.tick),
         bicuda: capIsGk(match, setups, side, clock.tick),
     };
-    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
+    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada até o próximo chute do
+    // capitão da zona (motor 19) e o botão mostra "armado" até sair (`maxArmedAt`)
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
     const capPlan = agency ? captainPlan(match, setups, side, clock.tick) : null;
     const tactics = agency ? (

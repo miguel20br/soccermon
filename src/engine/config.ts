@@ -70,8 +70,11 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     gol, toque fora = defesa de sempre; N3 passa pela defesa normal do goleiro rival) e a defesa máxima sai.
  * 18 = a queda do N2/N3 (e da bicuda N2) acontece quando a bola chega em cada um, não no chute (`maxKnock`/`landKnocks`;
  *     Miguel, 01/11/2026: "a bicuda tá derrubando a galera antes da bola chegar"). Os números não mudaram.
+ * 19 = golpe máximo de linha armado até o próximo chute do capitão da zona, sem o prazo de `maxArmTicks` (só a bicuda
+ *     ainda tem prazo); sai no nível da barra na hora do chute e cancela sem gastar no intervalo e no fim (evento
+ *     `maxArm`). O Duelo carimba a ordem 2 s à frente e o capitão já não estava com a bola (Miguel, 02/11/2026).
  */
-export const ENGINE_VERSION = 18;
+export const ENGINE_VERSION = 19;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

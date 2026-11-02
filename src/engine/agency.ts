@@ -21,10 +21,9 @@ export const AGENCY = {
     timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
     /**
-     * Golpe máximo (21/10/2026): o botão só acende na hora certa (capitão de linha com a bola na zona de chute; capitão
-     * goleiro com o chute do rival vindo no gol, a bicuda) e o toque solta na hora. A ordem fica armada esse tanto (o
-     * Duelo e o rival mandam a ordem um pouco à frente, e o toque um pouco antes de acender também vale); passou sem a
-     * hora certa, nada acontece e a barra continua como estava.
+     * Golpe máximo da bicuda (o capitão goleiro): a ordem fica armada esse tanto esperando o chute do rival; passou sem
+     * ele, nada acontece e a barra continua como estava. O capitão de linha, desde o motor 19, fica armado até o próximo
+     * chute da zona, sem prazo (o Duelo carimba a ordem 2 s à frente; `startMax` em match.ts).
      */
     maxArmTicks: 100,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
@@ -315,7 +314,7 @@ export function bicudaCueNear(events: readonly MatchEvent[], from: number, to: n
 
 /**
  * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
- * ataque), não só na hora certa. O toque arma a ordem (`AGENCY.maxArmTicks`), a bola procura o capitão e o golpe sai no
+ * ataque), não só na hora certa. O toque arma a ordem (até o próximo chute da zona), a bola procura o capitão e o golpe sai no
  * chute dele da zona: o motor é o mesmo de sempre. A câmera lenta continua só na hora certa (`maxCue`).
  */
 export function maxCallCue(
