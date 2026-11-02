@@ -541,6 +541,28 @@
         order: -1;
     }
 }
+/* PC: sobra altura ao lado das cartas; o time em 3 colunas (titulares 3 + 2, o banco embaixo) e cartas maiores */
+@media (min-width: 1100px) {
+    .draft-pick {
+        --dp-h: clamp(64px, calc((100 * var(--vh) - 260px) / 3.2), 150px);
+    }
+    /* Duelo: o cabeçalho com o relógio e a linha do que o rival tirou comem mais altura */
+    .duel-draft-stage .draft-pick {
+        --dp-h: clamp(64px, calc((100 * var(--vh) - 320px) / 3.2), 150px);
+    }
+    .draft-pick > .dp-strip-btn {
+        max-width: calc(3 * 0.75 * var(--dp-h) + 70px);
+    }
+    .dp-strip {
+        --dp-w: min(calc((100cqi - 50px) / 3), calc(var(--dp-h) * 0.75));
+    }
+    .dp-court {
+        box-sizing: content-box;
+        width: calc(3 * var(--dp-w) + 6px);
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
 /* celular baixo (320x640): vagas menores, pra as cartas caberem inteiras */
 @media (orientation: portrait) and (max-height: 700px) {
     .dp-strip-btn {
