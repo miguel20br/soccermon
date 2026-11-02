@@ -9,6 +9,30 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Prancheta no draft',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição',
+                    'No celular em pé a prancheta fica deitada, com o gol à esquerda',
+                    'As 3 cartas cabem inteiras em qualquer tela',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Fim de copa com o Nova copa como o único botão grande',
+                    'Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar',
+                    'Verde é só pra confirmar: botões que só levam a outra tela ficam azuis',
+                    'Configurações com título e abas curtas',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.34',
         date: '2026-11-02',
         title: 'Tudo à vista',
@@ -2242,6 +2266,30 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Draft board',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'While you pick 1 of 3, your team shows on the lineup board, each one in their position',
+                    'On a phone held upright the board lies sideways, goal on the left',
+                    'The 3 cards fit whole on any screen',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'End of cup with New cup as the only big button',
+                    'Bigger titles in normal case, small text bigger and small buttons easier to tap',
+                    'Green only confirms: buttons that just open another screen are blue',
+                    'Settings with a title and short tabs',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.34',
         date: '2026-11-02',

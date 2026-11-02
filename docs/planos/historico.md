@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.35 · Prancheta no draft (02/11/2026)
+
+O Miguel achou feia a grade de mini cartas do draft no PC: na escolha 1 de 3 o time é a mesma prancheta (FormationBoard) do passo de posição, deitada no celular em pé. Revisão de hierarquia (achados em pesquisa de 02/11): Nova copa único botão grande, títulos 22/26 px em caixa normal, Galmuri14 sem negrito sintético, verde só confirma e azul navega, toque 44 px, texto ≥11 px; brand guide atualizado. Liga deployada no motor 19.
+
 ## 0.9.34 · Tudo à vista (02/11/2026)
 
 O Miguel não gostou da partida de TV no PC nem de tática e formação escondidas em sheets: volta o painel antigo da partida no PC (desfaz da8cd9e4), Escalação com táticas, formações e escanteio abertos, draft com o time numa quadrinha, fim de partida rolando de novo (Destaque, evoluções, estatísticas) e o botão do golpe máximo na Copa só com a bola no pé do capitão (sem o "chamar"); motor 19: a ordem do golpe fica armada até o próximo chute do capitão (conserta o Duelo).

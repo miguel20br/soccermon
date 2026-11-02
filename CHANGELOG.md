@@ -1,5 +1,18 @@
 # Novidades
 
+## 0.9.35 · Prancheta no draft (2026-11-02)
+
+### Draft
+- Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição
+- No celular em pé a prancheta fica deitada, com o gol à esquerda
+- As 3 cartas cabem inteiras em qualquer tela
+
+### Menus
+- Fim de copa com o Nova copa como o único botão grande
+- Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar
+- Verde é só pra confirmar: botões que só levam a outra tela ficam azuis
+- Configurações com título e abas curtas
+
 ## 0.9.34 · Tudo à vista (2026-11-02)
 
 ### Partida
