@@ -77,6 +77,8 @@ export const result = {
         moves: '{n} golpe descoberto|{n} golpes descobertos',
     },
     champ: {
+        statsBtn: 'Estatísticas',
+        statsTitle: 'Estatísticas da copa',
         aria: 'Campeões da Copa de Kanto',
         titleAria: 'Campeões!',
         title: 'CAMPEÕES!',

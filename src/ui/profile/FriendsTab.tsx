@@ -26,6 +26,7 @@ import { Crest } from './Crest';
 import { usePublicPeer } from './PlayerCard';
 import { openTrainer, TrainerName } from './TrainerName';
 import './friends.css';
+import { SheetRow } from '../kit/controls';
 
 /** O escudo do clube do amigo (o de verdade, da vitrine dele; sem ela, o padrão na cor do clube). */
 const ClubBadge = ({ r }: { r: FriendRow }) => <Crest look={friendLook(r)} className="crest fr-crest" />;
@@ -353,8 +354,12 @@ export function FriendsTab() {
             )}
 
             {g.blocked.length > 0 && (
-                <details className="panel fr-block fr-blocked">
-                    <summary className="bc-lbl">{t('friends.blockedTitle', { n: g.blocked.length })}</summary>
+                <SheetRow
+                    icon="lock"
+                    className="fr-blocked"
+                    label={t('friends.blockedTitle', { n: g.blocked.length })}
+                    title={t('friends.blockedTitle', { n: g.blocked.length })}
+                >
                     <ul className="fr-list">
                         {g.blocked.map((r) => (
                             <li key={r.code} className="fr-row dim" data-exit="collapse">
@@ -369,7 +374,7 @@ export function FriendsTab() {
                             </li>
                         ))}
                     </ul>
-                </details>
+                </SheetRow>
             )}
         </div>
     );

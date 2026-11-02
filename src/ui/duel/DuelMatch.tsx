@@ -75,6 +75,7 @@ import {
     useCoachTab,
     useFinalHold,
 } from '../components/MatchHud';
+import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
@@ -85,7 +86,7 @@ import {
     capTypeAt,
     MaxBars,
     MaxCueButton,
-    maxCueAt,
+    maxCueSteady,
     PenaltyOrderPanel,
     SidelineControls,
     SidelineOverlay,
@@ -539,13 +540,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
     const sideline = {
-        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueAt(match, setups, side, clock.tick)),
+        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueSteady(match, setups, side, clock.tick)),
         fxType: capFxType(match, setups, side, clock.tick),
         capType: capTypeAt(match, setups, side, clock.tick),
         bicuda: capIsGk(match, setups, side, clock.tick),
     };
     // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
+    const capPlan = agency ? captainPlan(match, setups, side, clock.tick) : null;
     const tactics = agency ? (
         <>
             {tacticControls}
@@ -557,6 +559,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 onMax={sendMax}
                 onPens={() => setPensOpen(true)}
             />
+            <MaxLegend plan={capPlan} level={sideline.max.level} />
         </>
     ) : (
         tacticControls
@@ -631,6 +634,15 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             />
                         )}
                         {agency && <MaxCueButton view={sideline} canAct={canChange} onMax={sendMax} />}
+                        {agency && (
+                            <MaxLevelCue
+                                events={match.events}
+                                tick={clock.tick}
+                                side={side}
+                                plan={capPlan}
+                                color={hex(colors[side])}
+                            />
+                        )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
                         {ended && !auto.held && (

@@ -304,6 +304,24 @@ export function Soon({ id }: { id: ModeId }) {
 }
 
 /**
+ * A faixa de obra lacrando o trancado: "EM BREVE · 27/11" repetido, por cima do herói (o pacote, o Blue) e embaixo do
+ * nome, recortada na diagonal da fatia. Pra ninguém achar que dá pra jogar.
+ */
+function Tape({ id }: { id: ModeId }) {
+    const { t, lang } = useT();
+    const txt = `${t('home.modes.soon')} · ${soonDate(id, lang)}`;
+    return (
+        <span className="mm-tape-box" aria-hidden>
+            <i className="mm-tape">
+                {[0, 1, 2, 3].map((k) => (
+                    <span key={k}>{txt}</span>
+                ))}
+            </i>
+        </span>
+    );
+}
+
+/**
  * O botão de baixo com um trancado aberto: diz quando chega (não é JOGAR, então não é dourado) e um toque volta pro
  * Modo Copa, onde o JOGAR reaparece.
  */
@@ -379,7 +397,7 @@ export const Head = memo(function Head() {
         <header className="mm-top k-topbar" style={{ '--n': 0 } as CSSProperties}>
             {/* celular em pé: o logo inteiro ficaria abaixo dos 120 px do guia; lá vai o símbolo */}
             <span className="mm-brand">
-                <Logo className="mm-logo" alt="Soccermon" idle />
+                <Logo className="mm-logo" alt="Soccermon" />
                 <img className="mm-symbol" src="assets/ui/simbolo.svg" alt="Soccermon" width="40" height="40" />
             </span>
             <TopBar />
@@ -551,6 +569,7 @@ export function ModeSlices({
                             <i className="mm-burst" />
                         </span>
                         <Hero id={m} scale={big ? 5 : 3} />
+                        {m !== LAST && <Tape id={m} />}
                         <span className="mm-slice-txt">
                             {m === LAST ? (
                                 <span className="mm-tag">{t('home.modes.last')}</span>

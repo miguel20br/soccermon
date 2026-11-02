@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.30.1',
+        date: '2026-11-01',
+        title: 'Menu de modos mais claro',
+        sections: [
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Time Ultimate e Modo História com a faixa EM BREVE e a data, mais escuros que o Modo Copa',
+                    'O menu não pisca mais ao abrir nem ao trocar de modo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.30',
         date: '2026-11-01',
         title: 'Golpe universal',
@@ -2045,6 +2059,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.30.1',
+        date: '2026-11-01',
+        title: 'Clearer mode menu',
+        sections: [
+            {
+                title: 'Mode menu',
+                lines: [
+                    'Ultimate Team and Story Mode get the COMING SOON tape with the date, darker than Cup Mode',
+                    'The menu no longer flickers when opening or switching modes',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.30',
         date: '2026-11-01',

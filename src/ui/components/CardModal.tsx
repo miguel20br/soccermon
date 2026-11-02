@@ -39,6 +39,7 @@ import { TYPE_COLOR } from '../type-colors';
 import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
 import { HudIcon } from './MatchHud';
+import { MaxSpecialSection } from './MaxSpecial';
 import { TypeBadge } from './PokeCard';
 import { TaughtMark } from './TaughtMark';
 
@@ -320,6 +321,8 @@ export function CardModal() {
                             );
                         })}
                     </div>
+
+                    <MaxSpecialSection moves={inst.moves} speciesId={inst.speciesId} gk={ovrRole === 'GK'} />
 
                     <h3>{t('team.modal.ability')}</h3>
                     <p className="tactic-desc" style={{ margin: 0 }}>

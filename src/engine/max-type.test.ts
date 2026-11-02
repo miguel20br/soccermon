@@ -78,12 +78,21 @@ function scene(fx: string, o: Opts = {}) {
     return s;
 }
 
+const idleN = (s: MatchState, n: number) => {
+    idle(s, n);
+    return s;
+};
 const idle = (s: MatchState, n: number) => {
     for (let i = 0; i < n && !s.finished; i++)
         step(
             s,
             s.players.map(() => IDLE),
         );
+};
+/** Anda o lance até `cond` valer (a bola chegar em quem o efeito pega), no máximo `n` ticks. */
+const till = (s: MatchState, cond: (s: MatchState) => boolean, n = 14) => {
+    for (let i = 0; i < n && !cond(s) && !s.finished; i++) idle(s, 1);
+    return s;
 };
 const of = <T extends MatchEvent['type']>(s: MatchState, type: T) =>
     s.events.filter((e): e is Extract<MatchEvent, { type: T }> => e.type === type);
@@ -127,16 +136,24 @@ describe('golpe máximo por tipo (fase 1)', () => {
 
     it('Água: a onda tira o zagueiro da linha do chute; o goleiro anda 1 m e não cai', () => {
         const s = scene('Water');
+        // no chute ninguém foi empurrado ainda: a onda pega cada um quando a bola chega (Miguel, 01/11)
+        expect(of(s, 'knockback')).toEqual([]);
+        expect(s.players[6].pos.y).toBeCloseTo(10.15, 6);
+        till(s, (x) => of(x, 'knockback').some((e) => e.target === 5));
         expect(Math.abs(s.players[6].pos.y - 10.15)).toBeGreaterThanOrEqual(AGENCY.maxType.push - 0.01);
         expect(s.players[5].stun).toBe(0);
         expect(of(s, 'knockback').map((e) => e.target)).toEqual(expect.arrayContaining([5, 6]));
     });
 
     it('Gelo: congela quem está na linha; Terrestre derruba quem está perto do gol, menos Voador', () => {
-        expect(scene('Ice').players[6].status?.kind).toBe('frz');
+        const ice = scene('Ice');
+        expect(ice.players[6].status).toBeNull();
+        expect(till(ice, (x) => !!x.players[6].status).players[6].status?.kind).toBe('frz');
         // fora da linha do chute (o N3 derruba quem está nela), mas perto do gol
         const near = { x: 36, y: 12.5 };
         const quake = scene('Ground', { defAt: near });
+        expect(quake.players[6].stun).toBe(0);
+        till(quake, (x) => x.players[6].stun > 0);
         expect(quake.players[6].stun).toBeGreaterThan(0);
         expect(quake.players[5].stun).toBe(0);
         expect(quake.ball.shot?.gkReach).toBeCloseTo(
@@ -144,7 +161,7 @@ describe('golpe máximo por tipo (fase 1)', () => {
             6,
         );
         // Pidgeot (Voador) não cai
-        expect(scene('Ground', { def: 18, defAt: near }).players[6].stun).toBe(0);
+        expect(idleN(scene('Ground', { def: 18, defAt: near }), 8).players[6].stun).toBe(0);
     });
 
     it('Fantasma e Normal atravessam o zagueiro; Pedra fura o 1º; Voador vai por cima', () => {
@@ -183,13 +200,22 @@ describe('golpe máximo por tipo (fase 1)', () => {
 
     it('Venenoso: nuvem na frente do gol envenena e quem está nela não bloqueia', () => {
         const s = scene('Poison');
+        expect(s.zones.some((z) => z.kind === 'smoke')).toBe(false);
+        till(s, (x) => x.zones.some((z) => z.kind === 'smoke'));
         expect(s.players[6].status?.kind).toBe('psn');
         expect(s.ball.shot?.blockedBy).toContain(6);
         expect(s.zones.some((z) => z.kind === 'smoke' && z.r === AGENCY.maxType.cloudR)).toBe(true);
     });
 
     it('Fogo: deixa rastro de fogo; o goleiro que defende se queima e espalma curto', () => {
-        expect(scene('Fire').zones.filter((z) => z.kind === 'fire')).toHaveLength(2);
+        // o rastro acende quando a bola passa (a 40% e a 70% do caminho), não no chute
+        const fire = scene('Fire');
+        expect(fire.zones.filter((z) => z.kind === 'fire')).toHaveLength(0);
+        expect(
+            till(fire, (x) => x.zones.filter((z) => z.kind === 'fire').length === 2).zones.filter(
+                (z) => z.kind === 'fire',
+            ),
+        ).toHaveLength(2);
         const s = until('Fire', (x) => of(x, 'save').some((e) => e.by === 5), { defAt: { x: 10, y: 2 } });
         expect(s).not.toBeNull();
         expect(s!.players[5].status?.kind).toBe('brn');

@@ -767,6 +767,12 @@ button.mm-card,
     background: var(--mc2);
     clip-path: var(--clip);
 }
+/* camada fixa pro FLIP: sem isso o fim da animação desmontava a camada e a cena sumia um quadro (a fatia piscava na
+   cor do modo, 01/11) */
+.mm-slice-bg,
+.mm-slice-bg > .mm-sc {
+    will-change: transform;
+}
 /* fechada um tico mais calma que a aberta, nunca apagada: um véu escuro por cima (filtro na cena inteira fazia cada
    quadro de sprite repintar a fatia toda) */
 .mm-slice-bg::before {
@@ -780,6 +786,58 @@ button.mm-card,
 }
 .mm-slice:is(.on, :hover, :focus-visible) .mm-slice-bg::before {
     opacity: 0;
+}
+/* os trancados bem mais escuros: dá pra ver a cena, mas fica claro que ainda não abriu */
+.mm-slice:not(.mm-s-atual) .mm-slice-bg::before {
+    background: rgb(10 6 28 / 50%);
+}
+.mm-slice:not(.mm-s-atual):is(.on, :hover, :focus-visible) .mm-slice-bg::before {
+    opacity: 0.45;
+}
+/* os trancados em preto e branco (cena, herói, fundo e placa); a faixa e o selo da data seguem no amarelo */
+.mm-slice:not(.mm-s-atual) {
+    --mc: #9d9aa6;
+    --mc2: #45434d;
+}
+.mm-slice:not(.mm-s-atual) :is(.mm-slice-bg > .mm-sc, .mm-hero) {
+    filter: grayscale(1);
+}
+/* a faixa de obra "EM BREVE · data" lacrando o trancado (Tape, ModeMenu.tsx): por cima do herói, embaixo do nome */
+.mm-tape-box {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    clip-path: var(--clip);
+    pointer-events: none;
+}
+.mm-tape {
+    position: absolute;
+    left: -20%;
+    right: -20%;
+    top: var(--tape-y, 34%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    height: 30px;
+    overflow: hidden;
+    border-block: 3px solid var(--cb-ink);
+    background: repeating-linear-gradient(-45deg, var(--yellow) 0 12px, var(--cb-ink) 12px 24px);
+    box-shadow: 0 4px 0 rgb(0 0 0 / 35%);
+    rotate: -7deg;
+    pointer-events: none;
+}
+.mm-tape > span {
+    flex: none;
+    padding: 3px 8px 2px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font:
+        700 13px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
 }
 /* o banho da cor do modo por cima da cena (onde vai o nome) */
 .mm-slice-bg::after {
@@ -906,16 +964,16 @@ button.mm-card,
     background: var(--cb-ink);
     color: var(--yellow);
     font:
-        700 10px / 1 "Galmuri11",
+        700 12px / 1 "Galmuri11",
         monospace;
     letter-spacing: 0.06em;
 }
 .mm-soon > b {
-    padding: 3px 7px 2px;
+    padding: 3px 8px 2px;
     background: var(--yellow);
     color: var(--cb-ink);
     font:
-        700 14px / 1 "Galmuri14",
+        700 17px / 1 "Galmuri14",
         monospace;
 }
 .mm-slice.on .mm-soon {
@@ -1029,7 +1087,8 @@ button.mm-card,
     position: relative;
     /* o herói fura a borda de cima e de baixo, nunca o lado da tela */
     overflow-x: clip;
-    background: #fff3d1;
+    /* tinta, não creme: o fundo aparece na entrada (antes das fatias) e no meio do FLIP, e o creme piscava (01/11) */
+    background: var(--cb-ink);
     border-radius: 6px;
     box-shadow: 0 0 0 3px var(--cb-ink);
 }
@@ -1107,7 +1166,8 @@ button.mm-card,
     container-type: inline-size;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1.45fr 1fr;
+    /* os trancados um tico menores que o Clássico */
+    grid-template-rows: 1.75fr 1fr;
 }
 .mm-c2 .mm-c-stack.mm-sel-ultimate,
 .mm-c2 .mm-c-stack.mm-sel-historia {
@@ -1274,6 +1334,13 @@ button.mm-card,
     .mm-plate {
         padding: 2px 8px 4px;
     }
+    /* 320: sem altura pra encolher os trancados; e o selo some neles fechados (a faixa já diz "EM BREVE" e a data) */
+    .mm-c2 .mm-c-stack {
+        grid-template-rows: 1.45fr 1fr;
+    }
+    .mm-slice:not(.on) .mm-soon {
+        display: none;
+    }
 }
 
 /* ========================================================================== PC e celular deitado: lado a lado */
@@ -1307,6 +1374,10 @@ button.mm-card,
     }
     .mm-slice.on {
         flex-grow: 2.4;
+    }
+    /* os trancados fechados um tico mais estreitos */
+    .mm-slice:not(.mm-s-atual, .on) {
+        flex-grow: 0.8;
     }
     .mm-slice-txt,
     .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {

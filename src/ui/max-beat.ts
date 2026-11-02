@@ -50,7 +50,21 @@ export function holdRing(duck = true): { start: number; at: number; release: () 
         ring = { start: now, at: now + leadMs() };
         tapped = false;
         ducking = duck;
-        if (duck) duckMusic();
+        if (duck) {
+            duckMusic();
+            // o anel fechou e passou a janela do bom sem toque: a música volta (antes ficava no fundo até a hora certa
+            // acabar, ~9 s no N1 sem toque); o toque depois disso ainda vale (fora)
+            const r = ring;
+            setTimeout(
+                () => {
+                    if (ring === r && ducking && !tapped) {
+                        ducking = false;
+                        unduckMusic(false);
+                    }
+                },
+                r.at - now + MAX_BEAT.goodMs + 100,
+            );
+        }
         void sfx().then((a) => a.loadMaxSfx());
     }
     const r = ring as { start: number; at: number };
@@ -88,7 +102,8 @@ export function maxTap(now = performance.now(), from?: HTMLElement): MaxGrade {
         const wait = q === 2 && ring ? Math.max(0, ring.at - now) / 1000 : 0;
         const at = wait ? heardAt(wait) : undefined;
         void sfx().then((a) => a.playMax(MAX_TAP[q], at));
-        unduckMusic(true);
+        if (ducking) unduckMusic(true);
+        ducking = false;
         maxBurst(q, from);
     }
     return q;

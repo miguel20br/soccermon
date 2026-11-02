@@ -15,6 +15,7 @@ import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { LiveRunner } from '../engine/runners/live-runner';
 import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
+import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
@@ -549,7 +550,13 @@ export function runDevDemo() {
         const nivel = Math.min(3, Math.max(1, Number(new URLSearchParams(window.location.search).get('nivel')) || 1));
         // &k=N pula as N primeiras copas (outra jogada pro mesmo capitão)
         const k0 = Number(new URLSearchParams(window.location.search).get('k')) || 0;
-        for (let k = k0; k < k0 + 120; k++) {
+        // &defesa=1: o goleiro rival defende o golpe (espalma pra escanteio ou na trave); &counter=1 (com goleiro=1): o
+        // rival solta o golpe máximo e o nosso goleiro capitão devolve com a bicuda. Os dois já vêm com o toque
+        // perfeito na agenda (o lance é sempre o mesmo, sem depender do toque na tela)
+        const q = new URLSearchParams(window.location.search);
+        const defesa = q.get('defesa') === '1';
+        const counter = gk && q.get('counter') === '1';
+        for (let k = k0; k < k0 + (defesa || counter ? 400 : 120); k++) {
             store.newRun('Demo FC', `max${k}`);
             const base = useGame.getState().run!;
             const rng = new Rng(`max${k}`, 'demo');
@@ -572,6 +579,22 @@ export function runDevDemo() {
             const live = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`);
             const s = live.state;
             let at: number | null = null;
+            let orders: MatchOrder[] = [];
+            // o lance com o toque na agenda acaba como pedido (defesa do goleiro rival / bicuda do nosso)
+            const check = (tick: number, from: number) => {
+                const order: MatchOrder = { tick, team: 0, kind: 'max', q: 2 };
+                const r = new LiveRunner(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, [
+                    order,
+                ]);
+                while (!r.finished && r.state.tick < tick + 60) r.step();
+                const ev = r.state.events.filter((e) => e.tick >= from);
+                const capIdx = r.state.players.find((p) => p.team === 0 && p.captain)?.idx;
+                const ok = counter
+                    ? ev.some((e) => e.type === 'max' && e.phase === 'hit' && e.team === 0)
+                    : ev.some((e) => e.type === 'save' && e.shooter === capIdx && !!e.parry);
+                if (ok) orders = [order];
+                return ok;
+            };
             while (!live.finished && at === null && s.tick < 6000) {
                 const seen = s.events.length;
                 live.step();
@@ -583,16 +606,21 @@ export function runDevDemo() {
                         if (
                             e.type === 'gkReach' &&
                             e.by === cap?.idx &&
-                            maxCharge(s.events, 0, e.from, 5).level >= nivel
+                            maxCharge(s.events, 0, e.from, 5).level >= nivel &&
+                            (!counter ||
+                                (s.events.some(
+                                    (x) => x.type === 'max' && x.phase === 'hit' && x.team === 1 && x.tick === e.from,
+                                ) &&
+                                    check(e.from + 1, e.from)))
                         )
                             at = e.from;
                     continue;
                 }
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
-                if (owner === cap && inMaxZoneOf(s, cap)) at = s.tick;
+                if (owner === cap && inMaxZoneOf(s, cap) && (!defesa || check(s.tick, s.tick))) at = s.tick;
             }
             if (at === null || at < 200) continue;
-            const saved = { stage: 0, orders: [], tick: at - 40, engine: ENGINE_VERSION };
+            const saved = { stage: 0, orders, tick: at - 40, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);
             return;

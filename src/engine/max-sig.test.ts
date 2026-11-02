@@ -81,6 +81,11 @@ const idle = (s: MatchState, n: number) => {
             s.players.map(() => IDLE),
         );
 };
+/** Anda o lance até `cond` valer (a bola chegar em quem o efeito pega), no máximo `n` ticks. */
+const till = (s: MatchState, cond: (s: MatchState) => boolean, n = 14) => {
+    for (let i = 0; i < n && !cond(s) && !s.finished; i++) idle(s, 1);
+    return s;
+};
 const of = <T extends MatchEvent['type']>(s: MatchState, type: T) =>
     s.events.filter((e): e is Extract<MatchEvent, { type: T }> => e.type === type);
 const fxOf = (s: MatchState) => of(s, 'maxFx').find((e) => e.step === 'shot')?.fx;
@@ -140,19 +145,25 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
 
     it('Arcanine (Fire Blast): a estrela derruba e queima o zagueiro perto do gol', () => {
         const s = scene(59);
+        // a estrela acende quando a bola chega na frente do gol, não no chute (Miguel, 01/11)
+        expect(s.players[6].stun).toBe(0);
+        till(s, (x) => x.players[6].stun > 0);
         expect(s.players[6].stun).toBeGreaterThan(0);
         expect(s.players[6].status?.kind).toBe('brn');
     });
 
     it('Articuno (Blizzard): a área inteira congela, até quem está fora da linha do chute', () => {
         const s = scene(144, { defAt: { x: 36, y: 14 } });
+        expect(s.players[6].status).toBeNull();
+        till(s, (x) => !!x.players[6].status);
         expect(s.players[6].status?.kind).toBe('frz');
         expect(s.players[5].status).toBeNull();
-        expect(s.ball.shot?.gkReach).toBeCloseTo(n3 * 0.9, 6);
+        expect(scene(144, { defAt: { x: 36, y: 14 } }).ball.shot?.gkReach).toBeCloseTo(n3 * 0.9, 6);
     });
 
     it('Blastoise (Hydro Pump): a onda empurra e, se o goleiro espalma, ele emenda de primeira', () => {
-        expect(Math.abs(scene(9).players[6].pos.y - 10.15)).toBeGreaterThanOrEqual(AGENCY.maxType.push - 0.01);
+        const wave = till(scene(9), (x) => of(x, 'knockback').some((e) => e.target === 6));
+        expect(Math.abs(wave.players[6].pos.y - 10.15)).toBeGreaterThanOrEqual(AGENCY.maxType.push - 0.01);
         const s = until(9, (x) => saved(x) && !of(x, 'save').some((e) => e.caught), { ...noDef, straight: true });
         expect(s).not.toBeNull();
         idle(s!, 40);
@@ -173,6 +184,9 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
 
     it('Pikachu (Thunderbolt): o raio salta do goleiro pros 2 rivais mais perto e paralisa', () => {
         const s = scene(25, { defAt: { x: 37, y: 13 } });
+        // o raio sai quando a bola chega no goleiro, não no chute
+        expect(of(s, 'maxFx').filter((e) => e.step === 'hit')).toEqual([]);
+        till(s, (x) => !!x.players[6].status);
         expect(s.players[6].status?.kind).toBe('par');
         const hits = of(s, 'maxFx').filter((e) => e.step === 'hit');
         expect(hits[0].target).toBe(5);
@@ -200,6 +214,10 @@ describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
 
     it('Gyarados (Tsunami): empurra todos os rivais, até os longe do chute, e fica em fúria', () => {
         const s = scene(130);
+        // quem está atrás do chute leva a onda na saída; o zagueiro na frente do gol e o goleiro, quando a bola chega
+        expect(of(s, 'knockback').map((e) => e.target)).not.toEqual(expect.arrayContaining([5]));
+        expect(of(s, 'knockback').map((e) => e.target)).not.toEqual(expect.arrayContaining([6]));
+        till(s, (x) => of(x, 'knockback').length >= 5);
         expect(of(s, 'knockback').length).toBe(5);
         expect(s.players[4].buffs.some((b) => b.attr === 'shooting' && b.factor > 1)).toBe(true);
     });

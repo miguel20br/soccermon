@@ -31,6 +31,7 @@ import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { useFirstCup } from '../help/Tip';
+import { Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import '../vestiario.css';
 import { useClubColor } from '../profile/club';
@@ -55,6 +56,7 @@ export function Lineup() {
         setCorner,
         setFormation,
         moveItem,
+        setCaptain,
         setMatch,
         go,
         abandonRun,
@@ -126,6 +128,7 @@ export function Lineup() {
                 onTactic={setTactic}
                 onCorner={setCorner}
                 onMoveItem={moveItem}
+                onCaptain={setCaptain}
                 sponsors={run.sponsors}
                 rivalFormation={opponent.formation ?? '1-2-1'}
                 outOf={(u) => outOf(run, u)}
@@ -336,6 +339,7 @@ export function LineupEditor({
     onTactic,
     onCorner,
     onMoveItem,
+    onCaptain,
     wall,
     side,
     footer,
@@ -359,6 +363,8 @@ export function LineupEditor({
     onCorner: (patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }) => void;
     /** Só na copa (o item vai junto do time do duelo, lacrado). */
     onMoveItem?: (fromUid: string, toUid: string) => void;
+    /** Só na copa: outro titular vira capitão (entre as partidas; no duelo o capitão vem do draft). */
+    onCaptain?: (uid: string) => void;
     /** Objeto a mais na parede do vestiário, à esquerda do quadro da tática (a chave, na copa). */
     wall?: ReactNode;
     side: ReactNode;
@@ -641,6 +647,30 @@ export function LineupEditor({
                         {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
                     </p>
                 </section>
+                {onCaptain && (
+                    <section>
+                        <h3>{t('team.lineup.captain')}</h3>
+                        <div className="vt-captains">
+                            {lineupNow.map((inst, i) => (
+                                <button
+                                    key={inst.uid}
+                                    type="button"
+                                    className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
+                                    aria-pressed={inst.uid === captainUid}
+                                    disabled={locked}
+                                    onClick={() => onCaptain(inst.uid)}
+                                >
+                                    <img className="pixel" src={cardSprite(inst)} alt="" />
+                                    <span>
+                                        <b>{viewInstance(inst).displayName}</b>
+                                        <small>{d.common.pos[slotsNow[i]]}</small>
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                        <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
+                    </section>
+                )}
                 <section>
                     <h3>{t('team.lineup.corner')}</h3>
                     <div className="bc-seg">
@@ -662,32 +692,35 @@ export function LineupEditor({
                     </p>
                 </section>
                 <section>
-                    <label className="corner-taker">
+                    <div className="corner-taker">
                         <h3>{t('team.lineup.cornerTaker')}</h3>
-                        <select
+                        <Stepper
+                            label={t('team.lineup.cornerTaker')}
                             value={cornerTakerUid ?? ''}
                             disabled={locked}
-                            onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
-                        >
-                            <option value="">
-                                {t('team.lineup.cornerAuto', {
-                                    name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                })}
-                            </option>
-                            {cornerField.map((f) => (
-                                <option key={f.inst.uid} value={f.inst.uid}>
-                                    {t('team.lineup.cornerTakerOpt', {
+                            wrap
+                            options={[
+                                {
+                                    value: '',
+                                    label: t('team.lineup.cornerAuto', {
+                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                    }),
+                                },
+                                ...cornerField.map((f) => ({
+                                    value: f.inst.uid,
+                                    label: t('team.lineup.cornerTakerOpt', {
                                         name: viewInstance(f.inst).displayName,
                                         pos: d.common.pos[f.role],
                                         n: Math.round(f.passing),
-                                    })}
-                                </option>
-                            ))}
-                            {chosenTaker && takerOff && (
-                                <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
-                            )}
-                        </select>
-                    </label>
+                                    }),
+                                })),
+                                ...(chosenTaker && takerOff
+                                    ? [{ value: chosenTaker.uid, label: viewInstance(chosenTaker).displayName }]
+                                    : []),
+                            ]}
+                            onChange={(uid) => onCorner({ cornerTakerUid: uid || null })}
+                        />
+                    </div>
                     {chosenTaker && takerOff && (
                         <p className="tactic-desc">
                             {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { ROTA_RULES } from '../../engine/cup-map';
 import { formationOf } from '../../engine/formations';
-import type { PokemonInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
 import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
-import { clubName, itemDesc, itemName, typeName } from '../../i18n';
+import { clubName, itemDesc, itemName, moveFutsal, moveName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
@@ -19,6 +19,9 @@ import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
 import { Tip, useFirstCup } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
+import { SheetRow } from '../kit/controls';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { readCount, writeCount } from '../local-count';
 import { useHeld } from '../use-held';
 
@@ -46,7 +49,7 @@ export function Reward() {
     const { run: live, claimReward, skipReward, rerollReward } = useGame();
     const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
-    const { lang, t, tn } = useT();
+    const { lang, t } = useT();
     const firstCup = useFirstCup();
     // a festa encurta: da 7ª tela de recompensa em diante, o pacote abre rápido e as cartas saem quase juntas
     const [fast] = useState(() => (readCount(PACKS_KEY) ?? 0) >= FAST_AFTER);
@@ -67,10 +70,6 @@ export function Reward() {
     // item que depende dos golpes (tipo, King's Rock): quantos golpes de cada um ele aproveita
     const fitItem = reward?.kind === 'item' ? reward.item : null;
     const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
-    const fitText = (f: ItemFit) =>
-        f.type
-            ? tn('reward.fit.typeCount', f.count, { type: typeName(f.type, lang) })
-            : tn('reward.fit.hitCount', f.count);
     const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
     const slots = formationOf(run.formation).slots;
     const openCard = useCardModal.getState().open;
@@ -82,169 +81,187 @@ export function Reward() {
               : t('reward.whoHolds')
         : t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose');
 
+    // o que foi escolhido, pelo nome (título da sheet de quem recebe) e a regra inteira (o card só tem um resumo)
+    const chosenName = !reward
+        ? ''
+        : reward.kind === 'pokemon'
+          ? viewInstance(reward.inst).displayName
+          : reward.kind === 'tm'
+            ? moveName(reward.move)
+            : itemName(reward.item);
+    const chosenDesc =
+        reward?.kind === 'item'
+            ? itemDesc(reward.item, lang)
+            : reward?.kind === 'tm'
+              ? moveFutsal(reward.move, lang)
+              : null;
+
     return (
         <>
-            {/* a fase fica só na barra da copa; sortear e pular moram juntos na barra de baixo */}
-            <div className="draft-head bc-screenhead">
-                <div className="draft-title">
-                    <h1>{title}</h1>
+            {/* escolha 1 de 3 num palco (cara-de-jogo.md, decisão 7): as 3 do mesmo tamanho, nada rola; o time e quem
+                recebe moram em sheets */}
+            <Stage className="reward-stage" scene={<i className="k-stage-light" />}>
+                {/* a fase fica só na barra da copa; sortear e pular moram juntos na barra de baixo */}
+                <div className="draft-head bc-screenhead">
+                    <div className="draft-title">
+                        <h1>{t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose')}</h1>
+                    </div>
                 </div>
-            </div>
 
-            <CardPack
-                sealed
-                autoOpen
-                fast={fast}
-                look={packLookOf(mons)}
-                label={t(training ? 'reward.pack.training' : 'reward.pack.label')}
-                revealKey={run.rewards.map(rewardKey).join()}
-                onOpen={countOpen}
-            >
-                <div className="reward-grid">
-                    {run.rewards.map((r, i) => (
-                        <div
-                            key={rewardKey(r)}
-                            data-cry={r.kind === 'pokemon' ? r.inst.speciesId : undefined}
-                            className={`option cpack-card${r.kind === 'tm' ? ' option-tm' : ''}${
-                                r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
-                            }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
-                        >
-                            {r.kind === 'pokemon' ? (
-                                <FutCard
-                                    inst={r.inst}
-                                    selected={chosen === i}
-                                    ribbon={
-                                        r.from
-                                            ? t(
-                                                  /^(Equipe|Liga) /.test(r.from)
-                                                      ? 'reward.fromClubF'
-                                                      : 'reward.fromClub',
-                                                  {
-                                                      club: clubName(r.from, lang),
-                                                  },
-                                              )
-                                            : t('reward.reinforcement')
-                                    }
-                                    action={{
-                                        label: t(
-                                            chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick',
-                                        ),
-                                        primary: true,
-                                        onClick: () => {
-                                            setChosen(chosen === i ? null : i);
-                                        },
-                                    }}
-                                />
-                            ) : (
-                                // item e MT com o mesmo botão "Escolher" da carta do Pokémon (antes parecia que só o
-                                // Pokémon dava pra escolher)
-                                <div className="fut-wrap">
-                                    {r.kind === 'tm' ? (
-                                        <TmCard
-                                            move={r.move}
-                                            leader={r.leader}
-                                            team={squad}
-                                            selected={chosen === i}
-                                            onClick={() => pick(i)}
-                                        />
-                                    ) : (
+                <CardPack
+                    sealed
+                    autoOpen
+                    fast={fast}
+                    look={packLookOf(mons)}
+                    label={t(training ? 'reward.pack.training' : 'reward.pack.label')}
+                    revealKey={run.rewards.map(rewardKey).join()}
+                    onOpen={countOpen}
+                >
+                    <div className="k-pick3 reward-pick3">
+                        {run.rewards.map((r, i) => (
+                            <div
+                                key={rewardKey(r)}
+                                data-cry={r.kind === 'pokemon' ? r.inst.speciesId : undefined}
+                                className={`option cpack-card${r.kind === 'tm' ? ' option-tm' : ''}${
+                                    r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
+                                }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
+                            >
+                                {r.kind === 'pokemon' ? (
+                                    <FutCard
+                                        inst={r.inst}
+                                        selected={chosen === i}
+                                        ribbon={
+                                            r.from
+                                                ? t(
+                                                      /^(Equipe|Liga) /.test(r.from)
+                                                          ? 'reward.fromClubF'
+                                                          : 'reward.fromClub',
+                                                      {
+                                                          club: clubName(r.from, lang),
+                                                      },
+                                                  )
+                                                : t('reward.reinforcement')
+                                        }
+                                        action={{
+                                            label: t(
+                                                chosen === i ? 'reward.chosen' : r.from ? 'reward.sign' : 'reward.pick',
+                                            ),
+                                            primary: true,
+                                            onClick: () => {
+                                                setChosen(chosen === i ? null : i);
+                                            },
+                                        }}
+                                    />
+                                ) : (
+                                    // item e MT com o mesmo botão "Escolher" da carta do Pokémon (antes parecia que só o
+                                    // Pokémon dava pra escolher)
+                                    <div className="fut-wrap">
+                                        {r.kind === 'tm' ? (
+                                            <TmCard
+                                                move={r.move}
+                                                leader={r.leader}
+                                                team={squad}
+                                                selected={chosen === i}
+                                                onClick={() => pick(i)}
+                                            />
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                className={`card item-card${chosen === i ? ' selected' : ''}`}
+                                                onClick={() => pick(i)}
+                                            >
+                                                <span className="tier-label">{t('reward.item')}</span>
+                                                <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
+                                                <b className="card-name">{itemName(r.item)}</b>
+                                                <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
+                                            </button>
+                                        )}
                                         <button
                                             type="button"
-                                            className={`card item-card${chosen === i ? ' selected' : ''}`}
+                                            className="btn small confirm fut-action"
+                                            aria-pressed={chosen === i}
                                             onClick={() => pick(i)}
                                         >
-                                            <span className="tier-label">{t('reward.item')}</span>
-                                            <img className="pixel item-art" src={itemSprite(r.item)} alt="" />
-                                            <b className="card-name">{itemName(r.item)}</b>
-                                            <span className="tactic-desc">{itemDesc(r.item, lang)}</span>
+                                            {t(chosen === i ? 'reward.chosen' : 'reward.pick')}
                                         </button>
-                                    )}
-                                    <button
-                                        type="button"
-                                        className="btn small confirm fut-action"
-                                        aria-pressed={chosen === i}
-                                        onClick={() => pick(i)}
-                                    >
-                                        {t(chosen === i ? 'reward.chosen' : 'reward.pick')}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </CardPack>
-            {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
-            {!reward && !training && (
-                <Tip id="reward-pick">
-                    {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
-                </Tip>
-            )}
-
-            {reward && (
-                <GainTarget
-                    key={chosen}
-                    gain={reward}
-                    run={run}
-                    onClaim={(uid, slot, passTo) => {
-                        claimReward(chosen!, uid, slot, passTo);
-                        // Rota: depois do rival vem o prêmio da casa na mesma tela
-                        setChosen(null);
-                    }}
-                />
-            )}
-            {/* com Pokémon ou item escolhido, a prancheta de escolher fica no lugar desta */}
-            {(!reward || reward.kind === 'tm') && (
-                <div className="panel reward-team">
-                    <h2>{t('reward.yourTeam')}</h2>
-                    {firstCup && (
-                        <>
-                            <p className="muted" style={{ marginTop: 0 }}>
-                                {t('reward.compare')}
-                            </p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </CardPack>
+                {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
+                {!reward && !training && (
+                    <Tip id="reward-pick">
+                        {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
+                    </Tip>
+                )}
+                {/* o time inteiro numa sheet: compara com o elenco sem a quadra empurrar as cartas pra baixo */}
+                <SheetRow
+                    icon="team"
+                    label={t('reward.yourTeam')}
+                    title={t('reward.yourTeam')}
+                    className="reward-team-row"
+                >
+                    <div className="reward-team">
+                        {firstCup && (
                             <p className="muted reward-open-hint">
                                 <ExpandIcon />
                                 {t('reward.openCard')}
                             </p>
-                        </>
-                    )}
-                    {fitItem && sampleFit && (
-                        <p className="reward-fit-legend">
-                            <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
-                            {sampleFit.type
-                                ? t('reward.fit.typeLegend', {
-                                      item: itemName(fitItem),
-                                      type: typeName(sampleFit.type, lang),
-                                  })
-                                : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
-                        </p>
-                    )}
-                    <FormationBoard
-                        formation={run.formation}
-                        lineup={run.lineup}
-                        bench={run.bench}
-                        byUid={byUid}
-                        captainUid={run.captainUid}
-                        onSlot={(ref, uid) => {
-                            const inst = byUid.get(uid);
-                            if (!inst) return;
-                            openCard(inst, {
-                                position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
-                                captain: inst.uid === run.captainUid,
-                            });
-                        }}
-                        badgeOf={(p) => {
-                            const f = fitOf(p);
-                            // na quadra só quem aproveita ganha o selo (quem não aproveita já fica apagado)
-                            return f?.count && fitItem ? <FitBadge fit={f} item={fitItem} text={fitText(f)} /> : null;
-                        }}
-                        dimOf={(p) => fitOf(p)?.count === 0}
-                        slotAria={(p) => {
-                            const f = fitOf(p);
-                            return `${f ? `, ${fitText(f)}` : ''}${t('reward.openAria')}`;
+                        )}
+                        <FormationBoard
+                            formation={run.formation}
+                            lineup={run.lineup}
+                            bench={run.bench}
+                            byUid={byUid}
+                            captainUid={run.captainUid}
+                            onSlot={(ref, uid) => {
+                                const inst = byUid.get(uid);
+                                if (!inst) return;
+                                openCard(inst, {
+                                    position: ref.zone === 'lineup' ? slots[ref.index] : undefined,
+                                    captain: inst.uid === run.captainUid,
+                                });
+                            }}
+                            slotAria={() => t('reward.openAria')}
+                        />
+                    </div>
+                </SheetRow>
+            </Stage>
+
+            {/* escolheu: quem sai do banco, quem segura o item ou quem aprende a MT, numa sheet (fechar = desfazer) */}
+            <Sheet
+                open={!!reward}
+                onClose={() => setChosen(null)}
+                title={chosenName ? `${chosenName} · ${title}` : title}
+                className="reward-sheet"
+            >
+                {chosenDesc && <p className="reward-sheet-desc">{chosenDesc}</p>}
+                {fitItem && sampleFit && (
+                    <p className="reward-fit-legend">
+                        <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
+                        {sampleFit.type
+                            ? t('reward.fit.typeLegend', {
+                                  item: itemName(fitItem),
+                                  type: typeName(sampleFit.type, lang),
+                              })
+                            : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
+                    </p>
+                )}
+                {reward && (
+                    <GainTarget
+                        key={chosen}
+                        gain={reward}
+                        run={run}
+                        onClaim={(uid, slot, passTo) => {
+                            claimReward(chosen!, uid, slot, passTo);
+                            // Rota: depois do rival vem o prêmio da casa na mesma tela
+                            setChosen(null);
                         }}
                     />
-                </div>
-            )}
+                )}
+            </Sheet>
             {/* pular é discreto (fantasma à esquerda); sortear de novo à direita */}
             <div className="bc-thumbbar reward-bar">
                 <button

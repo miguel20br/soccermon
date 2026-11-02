@@ -114,7 +114,7 @@ export const home: typeof pt = {
         /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
         preview: 'PREVIEW',
         play: 'PLAY',
-        atual: { name: 'Cup Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
+        atual: { name: 'Classic Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
         ultimate: {
             name: 'Team Ultimate',
             when: 'Coming late November',

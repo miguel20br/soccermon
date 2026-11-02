@@ -534,6 +534,11 @@ export interface GameStore {
     setTactic(t: Tactic): void;
     setCorner(patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }): void;
     moveItem(fromUid: string, toUid: string): void;
+    /**
+     * Troca o capitão por outro titular, só na escalação antes da partida (no meio dela o motor não troca: a barra do
+     * golpe máximo é do time e passaria cheia pro outro). A proteção do capitão (não sai do banco por reforço) vai junto.
+     */
+    setCaptain(uid: string): void;
     setMatch(m: MatchResult | null): void;
     lockMatch(team: TeamSetup): void;
     /** Guarda as ordens e o ponto da partida em andamento. */
@@ -1565,6 +1570,12 @@ export const useGame = create<GameStore>()(
                         return p;
                     });
                     updateRun({ picks });
+                },
+
+                setCaptain: (uid) => {
+                    const run = getState().run;
+                    if (run?.status !== 'lineup' || run.lockedTeam || !run.lineup.includes(uid)) return;
+                    updateRun({ captainUid: uid });
                 },
 
                 setMatch: (match) => setState({ match }),

@@ -23,6 +23,10 @@ export const battle = {
     intercept: 'CORTOU!',
     caught: '{x} segurou firme',
     parried: '{x} espalmou',
+    /** Golpe máximo defendido (nunca encaixa): espalmou pra escanteio ou na trave; e o counter, a bicuda que devolve. */
+    parryCorner: '{x} espalmou pra escanteio!',
+    parryPost: '{x} espalmou na trave!',
+    counter: 'DEVOLVEU!',
     goalKick: 'Tiro de meta',
     /** Faixa do escanteio: título e "Cobrador · jogada". */
     corner: 'ESCANTEIO',

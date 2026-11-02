@@ -125,7 +125,7 @@ export const home = {
         /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
         preview: 'PRÉVIA',
         play: 'JOGAR',
-        atual: { name: 'Modo Copa', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
+        atual: { name: 'Modo Clássico', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
         ultimate: {
             name: 'Time Ultimate',
             when: 'Chega fim de novembro',

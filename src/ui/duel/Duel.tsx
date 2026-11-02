@@ -51,6 +51,7 @@ import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
+import { SheetRow } from '../kit/controls';
 import { ConfirmSheet } from '../kit/Sheet';
 import { Toast } from '../kit/Toast';
 
@@ -469,11 +470,10 @@ function InviteBox({ s, local, compact }: { s: Shared; local: boolean; compact: 
                 </button>
             </div>
             {!compact && (
-                <details className="duel-qr">
-                    <summary>{t('duel.lobby.qr')}</summary>
+                <SheetRow className="duel-qr-row" label={t('duel.lobby.qr')} title={t('duel.lobby.qr')}>
                     <RoomQr link={link} />
                     <small className="muted">{t('duel.lobby.qrHint')}</small>
-                </details>
+                </SheetRow>
             )}
             {note && <Toast tone={note.ok ? 'ok' : 'info'}>{note.text}</Toast>}
         </div>

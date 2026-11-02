@@ -1,15 +1,28 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
-import { clubName, cupStageName } from '../../i18n';
+import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
 import { cupLength } from '../../store/long-cup';
 import { useCountUp } from '../ambientes/TopBar';
+import { Beat, useCascade } from '../kit/Cascade';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
+import { cupGoal } from '../moments';
 import { trainerLabel } from '../profile/club';
 import { aggregate, avg } from '../stats/CupStats';
-import { CupAwards, CupFinal, CupGoals, CupXI, FormSpark, TitleRecords, useRarity } from './ChampionExtras';
+import {
+    CupAwards,
+    CupFinal,
+    CupGoals,
+    CupXI,
+    cupAwardList,
+    FormSpark,
+    TitleRecords,
+    useRarity,
+} from './ChampionExtras';
 import { CupGains } from './CupGains';
 import { FutCard } from './FutCard';
 import { HallParade } from './HallParade';
@@ -29,12 +42,30 @@ function TotalNum({ n, run, suffix }: { n: number; run: boolean; suffix?: string
 }
 
 /**
- * Tela do título: a taça, o caminho até ela (as 4 partidas, com placar, rival e craque) e o elenco campeão
- * inteiro com as cartas e as estatísticas de cada um na copa. Tocar na carta abre tudo sobre o Pokémon.
+ * Tela do título em 3 batidas (cara-de-jogo.md, decisão 5), sem rolar: a taça com "CAMPEÕES!" e os selos, os 3
+ * destaques (Bola de Ouro, Chuteira de Ouro e o gol da copa) e o caminho do título em placas de placar. Tocar pula pro
+ * fim. O relatório inteiro (números, prêmios, seleção, gols, a final e o elenco com as estatísticas) mora na sheet
+ * "Estatísticas", com o que a tela de resultado mandar em `stats`.
  */
-export function ChampionView({ run, actions }: { run: RunState; actions: ReactNode }) {
+export function ChampionView({
+    run,
+    icons,
+    thumb,
+    extra,
+    goal,
+}: {
+    run: RunState;
+    /** Botões-ícone da fileira (Melhores momentos, Compartilhar); o Estatísticas entra aqui. */
+    icons: ReactNode;
+    /** A barra do polegar (Nova copa). */
+    thumb: ReactNode;
+    /** O resto do relatório (a final, baixar o card, feedback): vai pra sheet. */
+    extra: ReactNode;
+    /** O gol da copa com o replay (abre ao tocar no destaque). */
+    goal: ReactNode;
+}) {
     const { t, tn } = useT();
-    const rarity = useRarity();
+    const [sheet, setSheet] = useState<'stats' | 'goal' | null>(null);
     const hallEntry = useGame((s) => s.hall.find((h) => h.id === run.seed));
     const profile = useGame((s) => s.profile);
     const googleName = useCloud((s) => s.user?.name ?? null);
@@ -73,28 +104,39 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
             {hallEntry && parading && (
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
             )}
-            <section className="panel rh rh-champ champ" aria-label={t('result.champ.aria')}>
-                <Confetti count={70} />
-                <div className="champ-trophy">
-                    <Trophy size={150} rota={run.mode === 'longa'} />
-                </div>
-                <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
-                    {[...t('result.champ.title')].map((ch, i) => (
-                        // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
-                        <span key={i} style={{ '--i': i } as CSSProperties}>
-                            {ch}
-                        </span>
-                    ))}
-                </h1>
-                <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
-                {isPerfectCup(run) && (
-                    <div className="perfect-badge k-ribbon">
-                        <HudIcon kind="max" />
-                        {t('result.champ.perfect')}
-                        <HudIcon kind="max" />
+            <Stage className="champ-wrap">
+                <section className="panel rh rh-champ champ champ-stage" aria-label={t('result.champ.aria')}>
+                    <Confetti count={70} />
+                    {/* a cascata recomeça quando o desfile do Hall acaba (antes, ela tocaria escondida embaixo dele) */}
+                    <ChampBeats
+                        key={parading ? 'hall' : 'go'}
+                        run={run}
+                        quiet={parading}
+                        onGoal={() => setSheet('goal')}
+                    />
+                    <div className="champ-icons">
+                        {icons}
+                        <button
+                            type="button"
+                            className="btn outline"
+                            aria-haspopup="dialog"
+                            onClick={() => setSheet('stats')}
+                        >
+                            <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
+                        </button>
                     </div>
-                )}
-                <TitleRecords run={run} rarity={rarity} />
+                    <div className="rh-actions">{thumb}</div>
+                </section>
+            </Stage>
+            <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
+                {goal}
+            </Sheet>
+            <Sheet
+                open={sheet === 'stats'}
+                onClose={() => setSheet(null)}
+                title={t('result.champ.statsTitle')}
+                className="champ-stats-sheet"
+            >
                 <CupGains run={run} />
 
                 <div className="cup-totals champ-totals">
@@ -231,8 +273,92 @@ export function ChampionView({ run, actions }: { run: RunState; actions: ReactNo
                     })}
                 </div>
 
-                <div className="rh-actions">{actions}</div>
-            </section>
+                {extra}
+            </Sheet>
         </>
+    );
+}
+
+/** As 3 batidas do título: taça e selos, os 3 destaques, o caminho em placas. */
+function ChampBeats({ run, quiet, onGoal }: { run: RunState; quiet: boolean; onGoal: () => void }) {
+    const { t, d } = useT();
+    const rarity = useRarity();
+    const awards = cupAwardList(run).filter((a) => a.id === 'ball' || a.id === 'boot');
+    const goal = useMemo(() => cupGoal(run.results), [run.results]);
+    // o título cai letra a letra (~1 s): os destaques esperam ele assentar
+    const c = useCascade([0, 1100, 600], { sound: !quiet });
+    return (
+        // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a festa; os botões ficam no teclado
+        <div className="champ-beats" onClick={c.skip}>
+            <div className="champ-trophy">
+                <Trophy size={150} rota={run.mode === 'longa'} />
+            </div>
+            <h1 className="rh-title champ-title" aria-label={t('result.champ.titleAria')}>
+                {[...t('result.champ.title')].map((ch, i) => (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: letras do título
+                    <span key={i} style={{ '--i': i } as CSSProperties}>
+                        {ch}
+                    </span>
+                ))}
+            </h1>
+            <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
+            {isPerfectCup(run) && (
+                <div className="perfect-badge k-ribbon">
+                    <HudIcon kind="max" />
+                    {t('result.champ.perfect')}
+                    <HudIcon kind="max" />
+                </div>
+            )}
+            <TitleRecords run={run} rarity={rarity} />
+            <Beat on={c.step > 1} className="champ-picks">
+                {awards.map((a) => (
+                    <div key={a.id} className={`champ-pick ce-${a.id}`}>
+                        <img
+                            className="pixel"
+                            src={cardSprite({ speciesId: a.who.speciesId, shiny: a.who.shiny })}
+                            alt=""
+                        />
+                        <b>{t(`title.awards.${a.id}` as 'title.awards.ball')}</b>
+                        <span>{a.who.name}</span>
+                        <small>{t(`title.awards.${a.id}V` as 'title.awards.ballV', { v: a.v })}</small>
+                    </div>
+                ))}
+                {goal && (
+                    <button
+                        type="button"
+                        className="champ-pick champ-pick-goal"
+                        aria-haspopup="dialog"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onGoal();
+                        }}
+                    >
+                        <img
+                            className="pixel"
+                            src={cardSprite({
+                                speciesId: goal.goal.speciesId,
+                                shiny: !!run.picks.find((p) => p.uid === goal.goal.uid)?.shiny,
+                            })}
+                            alt=""
+                        />
+                        <b>{t('moments.cup.h')}</b>
+                        <span>{goal.goal.name}</span>
+                        <small>
+                            <HudIcon kind="play" /> {goal.goal.minute}'
+                        </small>
+                    </button>
+                )}
+            </Beat>
+            <Beat on={c.step > 2} className="champ-road">
+                {run.results.map((r) => (
+                    <span key={r.stage} className="champ-plate">
+                        <small>{cupStageShort(run, r.stage, d.match.stageShort)}</small>
+                        <b>
+                            {r.score[0]}x{r.score[1]}
+                        </b>
+                    </span>
+                ))}
+            </Beat>
+        </div>
     );
 }
