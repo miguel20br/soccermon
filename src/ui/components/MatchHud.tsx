@@ -567,9 +567,7 @@ export function TacticControls({
                                 role="img"
                                 aria-label={t('match.coach.meter', { a: atk, d: def })}
                             >
-                                {t('match.coach.atk')}
                                 <Dots n={atk} cls="atk" />
-                                {t('match.coach.def')}
                                 <Dots n={def} cls="def" />
                             </span>
                         </button>

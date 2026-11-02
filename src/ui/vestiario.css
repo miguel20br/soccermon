@@ -215,12 +215,12 @@
 }
 .vt-formations .fi-tags {
     gap: 0 4px;
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.25;
 }
 .vt-formations .fi-tags b {
     display: inline;
-    font-size: 10px;
+    font-size: 11px;
 }
 .vt-formations .fi-tags > .hud-icon {
     display: none;

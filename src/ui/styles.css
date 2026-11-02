@@ -1457,10 +1457,12 @@ button,
         height: 32px;
     }
     .slot .slot-name {
-        font-size: 10px;
+        font-size: 11px;
     }
+    /* a posição é etiqueta: 10 px em caixa alta */
     .slot .pos-badge {
-        font-size: 9px;
+        font-size: 10px;
+        text-transform: uppercase;
     }
     /* capitão na quina, fora do selo da posição (no celular "Goleiro" ocupa a largura toda) */
     .slot .captain-badge {
@@ -6901,9 +6903,9 @@ a.home-tile {
 p.muted.center a {
     padding-block: 12px;
 }
-/* nome comprido no card da quadra encolhe um pouco antes de cortar (Charmeleon, Kangaskhan) */
+/* nome no card da quadra: 11 px no mínimo (abaixo disso não se lê); o comprido corta com reticências */
 .slot .slot-name {
-    font-size: clamp(8.5px, calc(2.4 * var(--vw)), 11px);
+    font-size: 11px;
 }
 /* gols da campanha: rival com nome longo quebra em vez de cortar */
 .ce-tl-label small {
@@ -7636,11 +7638,12 @@ body {
 .prancheta .slot img {
     height: 28px;
 }
+/* na prancheta da partida o nome não cabia em 11 px: fica a nota (o sprite já diz quem é) */
 .prancheta .slot .slot-name {
-    font-size: 9px;
+    display: none;
 }
 .prancheta .slot .slot-rating {
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.1;
 }
 .prancheta .slot .pos-badge,

@@ -55,8 +55,6 @@ export const match = {
         },
         /** Selo na tática que está valendo. */
         active: 'Valendo',
-        atk: 'ATQ',
-        def: 'DEF',
         /** Régua da peça (leitor de tela). */
         meter: 'Ataque {a} de 3, defesa {d} de 3',
         /** Aviso curto ao tocar numa tática. */

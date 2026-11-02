@@ -450,18 +450,16 @@
     height: 18px;
 }
 :is(.bc, .hud-sheet) .tac-tile small {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.2;
     color: var(--text);
     opacity: 0.85;
 }
+/* a régua só com os gomos (amarelo ataca, azul defende); o texto fica no leitor de tela */
 .tac-meter {
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 9px;
-    letter-spacing: 0.5px;
-    color: var(--muted);
 }
 .bc-dots {
     display: inline-flex;
@@ -488,7 +486,7 @@
     border-radius: 4px;
     background: var(--yellow);
     color: var(--bc-ink);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -525,7 +523,7 @@
     height: 16px;
 }
 .corner-seg small {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 400;
     opacity: 0.85;
     white-space: normal;
@@ -1347,7 +1345,7 @@ body:has(.bc-hud) {
     gap: 1px;
     min-width: 0;
     min-height: 58px;
-    padding: 6px 4px 9px;
+    padding: 6px 2px 9px;
     border: 3px solid var(--cb-ink);
     border-radius: 10px;
     background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
@@ -1367,13 +1365,15 @@ body:has(.bc-hud) {
     font-size: 13px;
     line-height: 1.1;
 }
+/* o estado embaixo (Equilibrado, 1 por tempo) em 11 px: no celular estreito quebra em 2 linhas em vez de cortar */
 .bc-hudbtn small {
     max-width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     color: var(--muted);
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.1;
+    text-align: center;
+    text-overflow: ellipsis;
 }
 .bc-hudbtn.on {
     box-shadow: var(--pick-ring);

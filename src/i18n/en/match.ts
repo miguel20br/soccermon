@@ -48,8 +48,6 @@ export const match: typeof pt = {
             counter: 'Steal it and run',
         },
         active: 'On',
-        atk: 'ATK',
-        def: 'DEF',
         meter: 'Attack {a} of 3, defense {d} of 3',
         changed: 'The team switches on the next play.',
         cornerSub: { area: 'for the big ones', short: 'shot from outside', mixed: 'team decides' },
