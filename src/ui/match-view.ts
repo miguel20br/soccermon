@@ -72,6 +72,21 @@ export function maxCueNear(
     return false;
 }
 
+/**
+ * Tick em que vale a ordem do golpe máximo da Copa: o snapshot seguinte ao quadro da tela (`snapshotEvery`). A ordem do
+ * tick T vale no começo dele, com o estado do snapshot T: com o capitão de linha com a bola na zona nesse snapshot, a
+ * IA chuta no mesmo tick (`AIController.carrier`) e o golpe sai em T+1. Olhar o quadro exato é o que deixa o botão
+ * aceso só com o chute certo (Miguel, 02/11/2026: "a bola já não tava mais no pé do meu capitão").
+ */
+export const maxOrderTick = (tick: number) => Math.ceil(tick / FUTSAL_5.snapshotEvery) * FUTSAL_5.snapshotEvery;
+
+/** Chute certo do capitão de linha `capIdx` com a ordem no `maxOrderTick(tick)`: a bola no pé dele na zona nesse snapshot. */
+export function maxCertain(snaps: MatchSnapshot[], tick: number, team: 0 | 1, capIdx: number, capRole: Position) {
+    const at = maxOrderTick(tick);
+    const snap = snaps.length ? snapAt(snaps, at) : null;
+    return !!snap && snap.tick === at && maxCue(snap, team, capIdx, capRole, FUTSAL_5.pitch);
+}
+
 /** O passe no ar não apaga o "chamar o capitão": vale o último dono da bola nesse tanto de ticks (2 s). */
 export const MAX_CALL_LATCH = 40;
 

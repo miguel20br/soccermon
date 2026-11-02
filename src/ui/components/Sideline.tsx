@@ -7,7 +7,17 @@ import { MAX_SIGNATURE } from '../../engine/signature-moves';
 import { has } from '../../engine/sponsors';
 import { isAgencyOrder, type MatchEvent, type MatchOrder, type MaxGrade, type TeamSetup } from '../../engine/state';
 import { useT } from '../../i18n/react';
-import { captainAt, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCallCueNear, maxCueNear, roleAt, snapAt } from '../match-view';
+import {
+    captainAt,
+    MAX_CUE_EARLY,
+    MAX_CUE_LATCH,
+    maxCallCueNear,
+    maxCertain,
+    maxCueNear,
+    maxOrderTick,
+    roleAt,
+    snapAt,
+} from '../match-view';
 import { gradeDelta, holdRing, MAX_BEAT, maxRing, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
@@ -97,12 +107,24 @@ export function agencyView(
  * A hora certa acende `MAX_CUE_EARLY` antes (o toque um pouco cedo não se perde: a ordem fica armada e o golpe sai no
  * próximo chute ou defesa da zona) e fica `MAX_CUE_LATCH` depois (a quadra entra em câmera lenta antes ainda,
  * MatchScene `maxCueNow`).
+ *
+ * `certain` (a Copa, onde a ordem vale no quadro da tela): o botão só acende com o chute certo. O capitão de linha
+ * acende só no snapshot da ordem (`maxOrderTick`) com a bola no pé dele na zona; sem "chamar", sem o antes e o resto.
+ * O Duelo não pode: o carimbo do host põe a ordem `leadTicks` à frente (rede), e lá o chute nunca é certo.
  */
-export function maxCueAt(m: MatchResult, setups: [TeamSetup, TeamSetup], side: 0 | 1, tick: number): MaxCueKind {
+export function maxCueAt(
+    m: MatchResult,
+    setups: [TeamSetup, TeamSetup],
+    side: 0 | 1,
+    tick: number,
+    certain = false,
+): MaxCueKind {
+    if (certain) tick = maxOrderTick(tick);
     const cap = captainAt(m, setups, side, tick).idx;
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
     if (chargeAt(m.events, side, tick).level < 1) return false;
+    if (certain && role !== 'GK') return maxCertain(m.snapshots, tick, side, cap, role) && 'hora';
     if (maxCueNear(m.snapshots, m.events, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
     return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }

@@ -12,6 +12,7 @@ import {
     MAX_CUE_EARLY,
     type MaxWait,
     maxCallCueNear,
+    maxOrderTick,
     maxWaitNext,
     snapAt,
     whoAt,
@@ -180,5 +181,25 @@ describe('botão do golpe máximo (chamar o capitão e a hora certa)', () => {
         const r2 = runMatch(FUTSAL_5, line, away, 'cue-line');
         const kinds = new Set(r2.snapshots.map((s) => maxCueAt(r2, [line, away], 0, s.tick)));
         expect(kinds).toEqual(new Set([false, 'call', 'hora']));
+    });
+
+    it('na Copa só acende com o chute certo: bola no pé do capitão na zona, e o toque sempre solta (Miguel, 02/11)', () => {
+        const line = { ...home, captainUid: home.lineup[3].uid };
+        const setups: [TeamSetup, TeamSetup] = [line, away];
+        const r = runMatch(FUTSAL_5, line, away, 'cue-line');
+        // o botão do Duelo ("chamar", o antes e o resto da hora certa) acende sem a bola no pé dele
+        expect(r.snapshots.some((s) => maxCueAt(r, setups, 0, s.tick) && s.owner !== 3)).toBe(true);
+        const lit = r.snapshots.filter((s) => maxCueAt(r, setups, 0, s.tick, true) === 'hora');
+        expect(lit.length).toBeGreaterThan(3);
+        for (const s of lit) expect(s.owner).toBe(3);
+        // o quadro da tela é fracionário: aceso nele, a ordem no `maxOrderTick` solta o golpe no tick seguinte
+        for (const s of lit.filter((_, i) => i % Math.ceil(lit.length / 4) === 0)) {
+            const t = s.tick - 0.5;
+            expect(maxCueAt(r, setups, 0, t, true)).toBe('hora');
+            const at = maxOrderTick(t);
+            const o = runMatch(FUTSAL_5, line, away, 'cue-line', { orders: [{ tick: at, team: 0, kind: 'max' }] });
+            const hit = o.events.find((e) => e.type === 'max' && e.team === 0 && e.tick > at);
+            expect(hit).toMatchObject({ phase: 'hit', by: 3, tick: at + 1 });
+        }
     });
 });
