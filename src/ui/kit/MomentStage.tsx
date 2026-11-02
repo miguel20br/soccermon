@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { cardTypeOf } from '../../engine/specials';
@@ -11,6 +11,7 @@ import { FutCard } from '../components/FutCard';
 import { TypeIcon } from '../components/TypeIcon';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
+import { useFitZoom } from './Stage';
 import './stage.css';
 
 /**
@@ -33,6 +34,8 @@ export function MomentStage({
     style?: CSSProperties;
 }) {
     const { t } = useT();
+    const body = useRef<HTMLDivElement>(null);
+    useFitZoom(body);
     useEffect(() => {
         if (!onSkip) return;
         const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onSkip();
@@ -58,7 +61,9 @@ export function MomentStage({
                     {t('common.ui.skip')}
                 </button>
             )}
-            <div className="k-moment-body">{children}</div>
+            <div className="k-moment-body" ref={body}>
+                {children}
+            </div>
         </div>,
         document.body,
     );
