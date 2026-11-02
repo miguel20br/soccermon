@@ -35,7 +35,6 @@ import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
-import { cupGoal } from '../moments';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
 import { shareRun } from '../share';
@@ -73,8 +72,8 @@ export function Result() {
     const match = useHeld(liveMatch);
     const { t } = useT();
     const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
-    // o que sai da tela pra uma sheet: o gol da copa (com o replay) e a chave
-    const [sheet, setSheet] = useState<'goal' | 'bracket' | null>(null);
+    // o que sai da tela pra uma sheet: a chave
+    const [sheet, setSheet] = useState<'bracket' | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -221,7 +220,6 @@ export function Result() {
         </>
     );
     const bracket = run.status === 'reward' && !isLong(run);
-    const hasGoal = eliminated && !!cupGoal(run.results);
     // o palco do resultado (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar; o
     // resto (o que a copa rendeu, quem virou Destaque, evoluções, gols) vem rolando pra baixo, como antes do palco
     const actions = (
@@ -229,16 +227,6 @@ export function Result() {
             {eliminated && <NearMiss run={run} />}
             <div className="res-icons">
                 {icons}
-                {hasGoal && (
-                    <button
-                        type="button"
-                        className="btn outline"
-                        aria-haspopup="dialog"
-                        onClick={() => setSheet('goal')}
-                    >
-                        <HudIcon kind="play" /> {t('moments.cup.h')}
-                    </button>
-                )}
                 {bracket && (
                     <button
                         type="button"
@@ -298,12 +286,11 @@ export function Result() {
             </Stage>
             <section className="res-more" aria-label={t('result.champ.statsBtn')}>
                 {eliminated && <CupGains run={run} />}
+                {/* o gol da copa saiu da fileira de botões (pesava mais que o Nova copa) e fica no relato, rolando */}
+                {eliminated && <CupGoalCard run={run} match={match} />}
                 {details}
                 {extra}
             </section>
-            <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
-                <CupGoalCard run={run} match={match} />
-            </Sheet>
             {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
             <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
                 {bracket && (

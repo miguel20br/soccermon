@@ -5015,10 +5015,6 @@ button,
     .result-stage .rh-title {
         font-size: 30px;
     }
-    .result-stage .res-icons .btn {
-        flex-direction: row;
-        min-height: 40px;
-    }
     .result-stage .rh-score b {
         font-size: 30px;
     }
@@ -5042,6 +5038,14 @@ button,
     .result-stage .rh:has(> .leader-quote) > .rh-squad {
         grid-column: 2;
         justify-self: start;
+    }
+    /* o Nova copa sobe antes do relato (a fala e o time): com o cartão da Rota ele caía abaixo da dobra */
+    .result-stage .rh > :is(.leader-quote, .rh-squad, .rh-next) {
+        order: 1;
+    }
+    /* com o cartão (fim da Rota) a fala e o time não cabem e ficavam cortados: o cartão já conta a história */
+    .result-stage .rh:has(> .foul) > :is(.leader-quote, .rh-squad) {
+        display: none;
     }
 }
 /* o título em 3 batidas num palco que não rola (cara-de-jogo.md, decisão 5); o relatório mora na sheet */
@@ -5163,24 +5167,33 @@ button,
     font-weight: 400;
     font-size: 18px;
 }
-/* botões-ícone: ícone em cima, rótulo curto embaixo, os 3 numa fileira (título e resultado) */
+/* secundários do fim (Melhores momentos, Compartilhar): azul baixo e liso, ícone à esquerda, largura do conteúdo, pra
+   o Nova copa da barra ser o único gordo. O ::before leva o toque a 44 px sem mudar o desenho */
 .champ-icons,
 .res-icons {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
     width: min(420px, 100%);
 }
 .champ-icons .btn,
 .res-icons .btn {
-    flex-direction: column;
-    gap: 2px;
-    min-height: 52px;
-    padding: 6px 4px;
+    min-height: 36px;
     font-size: 12px;
-    line-height: 1.15;
-    white-space: normal;
+    white-space: nowrap;
+}
+.champ-icons .btn::before,
+.res-icons .btn::before {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+}
+/* PC: o Nova copa com corpo de ação principal */
+@media (min-width: 701px) {
+    .rh-actions .bc-thumbbar > .btn.primary.big {
+        min-width: 240px;
+    }
 }
 @media (max-height: 760px) {
     .champ-pick img {
@@ -5236,10 +5249,6 @@ button,
     }
     .champ-pick img {
         grid-row: span 3;
-    }
-    .champ-icons .btn {
-        flex-direction: row;
-        min-height: 40px;
     }
 }
 .champ-path {
