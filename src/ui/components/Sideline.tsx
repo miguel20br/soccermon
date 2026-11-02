@@ -1,6 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { AGENCY, fxTypeOf, type MaxCharge, maxCharge, maxCue } from '../../engine/agency';
-import { FUTSAL_5 } from '../../engine/config';
+import { AGENCY, fxTypeOf, type MaxCharge, maxCharge } from '../../engine/agency';
 import { species } from '../../engine/data';
 import { maxFxType } from '../../engine/match';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -13,6 +12,7 @@ import {
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
     maxCallCueNear,
+    maxCertain,
     maxCueNear,
     maxOrderTick,
     roleAt,
@@ -124,10 +124,7 @@ export function maxCueAt(
     if (cap === null || !m.snapshots.length) return false;
     const role = roleAt(m, setups, cap, tick);
     if (chargeAt(m.events, side, tick).level < 1) return false;
-    if (certain && role !== 'GK') {
-        const snap = snapAt(m.snapshots, tick);
-        return snap.tick === tick && maxCue(snap, side, cap, role, FUTSAL_5.pitch) && 'hora';
-    }
+    if (certain && role !== 'GK') return maxCertain(m.snapshots, tick, side, cap, role) && 'hora';
     if (maxCueNear(m.snapshots, m.events, tick - MAX_CUE_LATCH, tick + MAX_CUE_EARLY, side, cap, role)) return 'hora';
     return maxCallCueNear(m.snapshots, tick, side, role) && 'call';
 }
