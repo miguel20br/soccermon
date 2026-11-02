@@ -190,6 +190,7 @@ export function Draft() {
     const boardRef = useRef<HTMLDivElement>(null);
     const focus = run?.status === 'captain' ? (selected ? 'board' : 'options') : run?.draftSlot ? 'options' : 'board';
     const [teamOpen, setTeamOpen] = useState(false);
+    const [coachOn, setCoachOn] = useState(false);
     const firstFocus = useRef(true);
     // biome-ignore lint/correctness/useExhaustiveDependencies: a cada troca de foco ou rodada
     useEffect(() => {
@@ -211,9 +212,13 @@ export function Draft() {
         return (
             // uma quadra por vez, nada rola; "Escolher" no polegar (cara-de-jogo.md, decisão 10)
             <>
-                <Stage className="draft-stage formation-stage" scene={<i className="k-stage-light" />}>
-                    {/* o dedo aponta os pontinhos do carrossel: a linha cabe entre eles e o polegar */}
-                    {quick && <Coach id="relampago" targets={['.fc-dots']} />}
+                <Stage
+                    className={`draft-stage formation-stage${coachOn ? ' coach-on' : ''}`}
+                    scene={<i className="k-stage-light" />}
+                >
+                    {/* o dedo aponta os pontinhos do carrossel; com a dica aberta a quadra encolhe e a linha cabe
+                        entre os pontinhos e o polegar, sem cobrir a placa, as palavras nem a quadra */}
+                    {quick && <Coach id="relampago" targets={['.fc-dots']} onActive={setCoachOn} />}
                     <div className="draft-head bc-screenhead">
                         <span className="bc-tag">
                             {t(isLong(run) ? 'team.draft.beforeDraftRota' : 'team.draft.beforeDraft')}
