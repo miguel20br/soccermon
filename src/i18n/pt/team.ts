@@ -63,6 +63,8 @@ export const team = {
         tactic: 'Tática',
         canChange: 'Dá pra mudar durante o jogo.',
         captainBenched: 'O capitão está no banco: a aura dele só vale em quadra.',
+        captain: 'Capitão',
+        captainDesc: 'Faz o golpe máximo e fortalece quem é do tipo dele. Troca só entre as partidas.',
         corner: 'Escanteio',
         cornerDesc: {
             area: 'Bola alta na área pros grandões disputarem.',
