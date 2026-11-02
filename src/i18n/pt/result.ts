@@ -7,11 +7,11 @@ export const result = {
     share: 'Compartilhar',
     newCup: 'Nova copa',
     menu: 'Menu',
-    /** Eliminado: o quanto faltou, numa linha. */
+    /** Eliminado: o quanto faltou, numa linha (a fase já está no subtítulo). */
     nearMiss: {
-        pens: '{stage}: caiu nos pênaltis. Faltou muito pouco!',
-        one: '{stage}: caiu por 1 gol. Faltou pouco!',
-        more: '{stage}: caiu por {n} gols. Na próxima vai!',
+        pens: 'Caiu nos pênaltis. Faltou muito pouco!',
+        one: 'Caiu por 1 gol. Faltou pouco!',
+        more: 'Caiu por {n} gols. Na próxima vai!',
     },
     chooseReward: 'Escolher recompensa',
     feedback: 'Dar feedback',

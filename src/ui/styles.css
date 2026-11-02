@@ -8107,11 +8107,12 @@ body {
 }
 
 /* Eliminado: o quanto faltou, logo antes do "Nova copa" */
+/* o consolo é apoio: 13 px --muted (o amarelo em Bold competia com o título) */
 .near-miss {
     margin: 12px 0 4px;
     text-align: center;
-    font-weight: 700;
-    color: var(--yellow);
+    font-size: 13px;
+    color: var(--muted);
 }
 
 /* ---------- Vem aí (ComingSoon.tsx): o que ainda não dá pra jogar, numa fileira de cartõezinhos ----------

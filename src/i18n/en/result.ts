@@ -9,9 +9,9 @@ export const result: typeof pt = {
     newCup: 'New cup',
     menu: 'Menu',
     nearMiss: {
-        pens: '{stage}: out on penalties. So close!',
-        one: '{stage}: out by 1 goal. So close!',
-        more: '{stage}: out by {n} goals. Next time!',
+        pens: 'Out on penalties. So close!',
+        one: 'Out by 1 goal. So close!',
+        more: 'Out by {n} goals. Next time!',
     },
     chooseReward: 'Choose a reward',
     feedback: 'Send feedback',

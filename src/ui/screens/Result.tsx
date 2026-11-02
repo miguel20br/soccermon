@@ -13,7 +13,7 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName, cupStageName } from '../../i18n';
+import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
@@ -379,15 +379,14 @@ function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState
     const { t } = useT();
     const last = run.results.at(-1);
     if (!last || last.won) return null;
-    const stage = cupStageName(run, last.stage);
     const n = last.score[1] - last.score[0];
     return (
         <p className="near-miss">
             {last.shootout
-                ? t('result.nearMiss.pens', { stage })
+                ? t('result.nearMiss.pens')
                 : n <= 1
-                  ? t('result.nearMiss.one', { stage })
-                  : t('result.nearMiss.more', { stage, n })}
+                  ? t('result.nearMiss.one')
+                  : t('result.nearMiss.more', { n })}
         </p>
     );
 }
