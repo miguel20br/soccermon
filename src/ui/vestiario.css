@@ -1,16 +1,13 @@
 /*
- * Escalação no vestiário (revamp-ui §3.3, 0.9.23): a lousa de tática com os quadros (chave e tática, cada um abre a
- * sua sheet) e a prancheta logo embaixo, na 1ª tela.
+ * Escalação no vestiário (revamp-ui §3.3, 0.9.23): o cartaz do rival na parede, a prancheta embaixo e as opções de
+ * tática e formação abertas (.vt-plan).
  */
 .vt-room {
     display: grid;
     align-content: start;
     min-width: 0;
 }
-/*
- * a parede (cara-de-jogo.md, Escalação): três placas penduradas, cada uma abre a sua sheet. O cartaz do rival (escudo,
- * nome, média e os 5 dele; abre a chave), o quadro-branco da tática e a placa da prancheta com o desenho da formação.
- */
+/* a parede (cara-de-jogo.md, Escalação): o cartaz do rival (escudo, nome, média e os 5 dele; abre a chave) */
 .vt-wall {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -154,155 +151,138 @@
     stroke-width: 3;
 }
 
-/* o quadro-branco: moldura de metal, nome escrito de pincel azul e o ícone em vermelho */
-.vt-white {
-    background: color-mix(in srgb, var(--bc-paper), #fff 65%);
-    color: var(--cb-ink);
-    box-shadow:
-        inset 0 0 0 3px #9aa2b0,
-        var(--lift-1);
+/*
+ * tática, formação e escanteio abertos (pedido de 02/11: nada de abrir sheet pra escolher). No PC ficam na coluna do
+ * Jogar, ao lado da carta; no celular e deitado, embaixo da quadra em 2 colunas.
+ */
+.vt-plan,
+.vt-team {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
 }
-/* a canaleta do pincel embaixo */
-.vt-white::after {
-    content: "";
-    position: absolute;
-    left: 18%;
-    right: 18%;
-    bottom: -7px;
-    height: 4px;
-    border-radius: 0 0 3px 3px;
-    background: #9aa2b0;
-    box-shadow: 0 2px 0 var(--cb-ink);
+.vt-plan > h3.bc-lbl:first-child,
+.vt-team > section:first-child h3.bc-lbl {
+    margin-top: 0;
 }
-.vt-white {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 0;
+.vt-team > section {
+    display: grid;
+    gap: 6px;
 }
-.vt-white small {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: color-mix(in srgb, var(--cb-ink), transparent 45%);
+.vt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
 }
-.vt-white small .hud-icon {
+.vt-plan .bc-tile,
+.vt-captains .bc-tile {
+    transition:
+        transform 0.06s ease,
+        border-color 220ms var(--ease-out),
+        background-color 220ms var(--ease-out),
+        box-shadow 220ms var(--ease-out),
+        opacity 220ms var(--ease-out);
+}
+.vt-plan .bc-tile .hud-icon {
     flex: none;
-    width: 18px;
-    height: 18px;
-    color: var(--red);
-    stroke-width: 2.8;
+    width: 24px;
+    height: 24px;
+    transition: color 220ms var(--ease-out);
 }
-.vt-white b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-weight: 400;
-    font-size: 15px;
-    color: var(--blue);
+.vt-plan .bc-seg button {
+    transition:
+        background-color 220ms var(--ease-out),
+        color 220ms var(--ease-out);
 }
-/* o nome da tática e o da formação quebram linha em vez de cortar (Contra-ataque, Losango (1-2-1)) */
-.vt-white b,
-.vt-formation b,
-.vt-formation .fi-tags b {
-    white-space: normal;
+/* a formação: o desenho da quadra, o nome e o forte/fraco (o ícone da formação sai: o desenho já diz) */
+.vt-formations .bc-tile {
+    gap: 8px;
+    padding-left: 6px;
 }
-
-/* a placa da prancheta: madeira com o prendedor de metal e a formação desenhada */
-.vt-formation {
-    padding-left: 8px;
-    background: linear-gradient(180deg, #8f5a2e, #6e4421);
-    box-shadow:
-        inset 0 0 0 2px #c98a4f,
-        var(--lift-1);
-}
-.vt-clip {
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    width: 30px;
-    height: 9px;
-    translate: -50% 0;
-    border: 2px solid var(--cb-ink);
-    border-radius: 3px 3px 5px 5px;
-    background: linear-gradient(180deg, #fbfcfe, #9aa2b0);
-}
-.vt-formation .formation-diagram {
+.vt-formations .formation-diagram {
     flex: none;
     width: 27px;
     height: 36px;
     filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
 }
-.vt-formation .formation-diagram .fd-dot {
+.vt-formations .formation-diagram .fd-dot {
     stroke-width: 1;
 }
-.vt-formation > span > b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-weight: 400;
-    font-size: 14px;
-    color: var(--yellow);
+.vt-formations .fi {
+    margin-top: 1px;
+    animation: none;
 }
-.vt-formation .fi-tags {
+.vt-formations .fi-tags {
     gap: 0 4px;
     font-size: 10px;
     line-height: 1.25;
 }
-.vt-formation .fi-tags b {
+.vt-formations .fi-tags b {
+    display: inline;
     font-size: 10px;
 }
-.vt-formation .fi-tags > .hud-icon {
+.vt-formations .fi-tags > .hud-icon {
     display: none;
 }
-@media (max-width: 359px) {
-    .vt-obj {
-        gap: 6px;
-        padding-inline: 8px;
-    }
-    .vt-white b,
-    .vt-formation > span > b {
-        font-size: 13px;
-    }
-    .vt-formation .formation-diagram {
-        width: 21px;
-        height: 28px;
-    }
+.vt-formations .fi-edge {
+    width: 18px;
+    height: 18px;
 }
-/* a sheet do carrossel: a quadra do tamanho que sobra da sheet, o Escolher embaixo */
-.vt-formation-sheet {
-    display: grid;
-    gap: 12px;
-}
-/* deitado o carrossel põe a placa ao lado da quadra: a sheet precisa da largura */
-@media (orientation: landscape) and (max-height: 520px) {
-    .k-sheet.vt-formation-sheet {
-        width: min(640px, 100%);
-    }
-}
-.vt-formation-sheet .fc {
-    --fc-reserve: 430px;
-}
-.vt-formation-sheet .fc-choose {
-    justify-self: center;
-    min-width: 200px;
-}
-.vt-hint {
-    margin: 0 0 6px;
-    font-size: 12px;
-}
-/* sheet da tática: as 5 seções em sequência */
-.vt-tactic-sheet section {
-    display: grid;
-    gap: 6px;
-}
-.vt-tactic-sheet h3 {
+/* trocar de tática ou de escanteio troca a frase com fade */
+.vt-fade {
     margin: 0;
-    font-size: 12px;
+    animation: row-in var(--dur-ui) var(--ease-out) both;
+}
+.vt-plan p,
+.vt-team p {
+    margin: 0;
+}
+/* quem cobra: o rótulo em cima, o seletor na largura toda (o nome não corta) */
+.vt-plan .corner-taker {
+    display: grid;
+    margin: 2px 0 0;
+}
+.corner-taker h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--muted);
 }
-.vt-tactic-sheet .tactic-desc {
-    margin: 0;
+/* PC: as opções na coluna do Jogar e a carta (com capitão e sinergias) ao lado */
+@media (min-width: 1051px) {
+    .vt .side-stack {
+        grid-template-columns: minmax(0, 1fr) minmax(200px, 210px);
+        align-items: start;
+    }
+    .vt .side-stack > :not(.vt-plan, .vt-aside) {
+        grid-column: 1 / -1;
+    }
+    .vt-aside {
+        display: grid;
+        gap: var(--gap);
+        min-width: 0;
+    }
+    .vt-aside .vt-captains,
+    .vt-plan .vt-tactics,
+    .vt-plan .vt-formations {
+        grid-template-columns: 1fr;
+    }
 }
-.vt-tactic-sheet .corner-taker {
-    margin: 0;
+@media (max-width: 359px) {
+    .vt-grid {
+        gap: 6px;
+    }
+    .vt-plan .bc-tile {
+        gap: 6px;
+        padding-inline: 6px;
+    }
+    .vt-formations .formation-diagram {
+        width: 21px;
+        height: 28px;
+    }
 }
 .vt-captains {
     display: grid;
@@ -312,11 +292,6 @@
 .vt-captains .bc-tile {
     gap: 6px;
     padding: 4px 8px 4px 4px;
-    transition:
-        transform 0.06s ease,
-        border-color 220ms var(--ease-out),
-        background-color 220ms var(--ease-out),
-        box-shadow 220ms var(--ease-out);
 }
 .vt-captains img {
     width: 40px;
@@ -348,7 +323,7 @@
 }
 /* deitado: a barra vira uma coluna ao lado da prancheta, e a prancheta ganha a altura toda */
 @media (orientation: landscape) and (max-height: 520px) {
-    .vt-room {
+    .vt-room:has(> .vt-wall) {
         grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
         gap: 8px;
         align-items: start;

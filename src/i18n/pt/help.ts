@@ -663,7 +663,7 @@ export const help = {
         rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
         relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
-        relampagoVestiario: ['Toque em dois pra trocar. Tática e Chave ficam na lousa.'],
+        relampagoVestiario: ['Toque em dois pra trocar. A chave abre no cartaz do rival.'],
         relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
         dueloSala: [
