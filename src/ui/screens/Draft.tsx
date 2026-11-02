@@ -100,7 +100,7 @@ function AutoDraft({
             ) : (
                 // secundário à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
                 <>
-                    <button type="button" className="btn draft-auto-go" onClick={() => setAsk(true)}>
+                    <button type="button" className="btn ghost draft-auto-go" onClick={() => setAsk(true)}>
                         <HudIcon kind="skip" />
                         {t('team.draft.auto')}
                     </button>
@@ -231,7 +231,7 @@ export function Draft() {
                 <AutoDraft formation={shown}>
                     <button
                         type="button"
-                        className="btn primary fc-choose"
+                        className="btn confirm big fc-choose"
                         onClick={() => {
                             chooseFormation(shown);
                         }}
