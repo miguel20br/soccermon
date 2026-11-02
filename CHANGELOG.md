@@ -41,6 +41,10 @@
 - Pacote do Mercado em tela cheia, com o walkout pra carta ouro
 - Resultado e Eliminado sem rolar
 - Seletor ‹ valor › no lugar das listas e do volume
+- Fim do Duelo com a mesma tela do fim de partida
+- No PC, essas telas crescem e ocupam a tela
+- Walkout completo na 1ª carta ouro do dia; nas outras, mais curto
+- Ajuda com gavetas no lugar das listas que abriam
 
 ### Menu de modos
 - Modo Copa agora é Modo Clássico

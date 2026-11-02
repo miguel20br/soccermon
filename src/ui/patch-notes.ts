@@ -66,6 +66,10 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Pacote do Mercado em tela cheia, com o walkout pra carta ouro',
                     'Resultado e Eliminado sem rolar',
                     'Seletor ‹ valor › no lugar das listas e do volume',
+                    'Fim do Duelo com a mesma tela do fim de partida',
+                    'No PC, essas telas crescem e ocupam a tela',
+                    'Walkout completo na 1ª carta ouro do dia; nas outras, mais curto',
+                    'Ajuda com gavetas no lugar das listas que abriam',
                 ],
             },
             {
@@ -2186,6 +2190,10 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Market pack in full screen, with the walkout for gold cards',
                     'Result and Eliminated with no scrolling',
                     '‹ value › selector instead of lists and the volume slider',
+                    'Duel full time with the same screen as the Cup',
+                    'On PC these screens grow to fill the screen',
+                    "Full walkout for the day's first gold card; shorter after that",
+                    'Help with drawers instead of accordions',
                 ],
             },
             {
