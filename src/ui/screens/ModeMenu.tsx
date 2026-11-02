@@ -24,10 +24,12 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
+import { announceProgram, tvOn } from '../tv-lab';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
 import './mode-menu.css';
+import '../tv-lab.css';
 
 /*
  * Menu de modos: a tela que vem ANTES da Home dos ambientes pra quem já jogou (regra em `modeMenuDue`, store/coach.ts).
@@ -581,6 +583,77 @@ export function ModeSlices({ big, look = 'c2', onPlay }: { big: boolean; look?: 
     );
 }
 
+/**
+ * ?lab=tv (src/ui/tv-lab.ts): o menu de modos como grade de programação. Os mesmos modos, itens, selos, JOGAR e
+ * "Chega em…" das fatias; cada modo é um horário da grade (AGORA no canal 1, A SEGUIR na data do Ultimate, MAIS TARDE
+ * em 2027). Tocar abre o horário (cresce e mostra os itens), como a fatia.
+ */
+function ModeGrid({ big, onPlay }: { big: boolean; onPlay?: () => void }) {
+    const { t, d, lang } = useT();
+    const [sel, setSel] = useState<ModeId>(LAST);
+    const locked = useRef<ModeId>('ultimate');
+    if (sel !== LAST) locked.current = sel;
+    const [clock] = useState(() =>
+        new Date().toLocaleTimeString(lang === 'pt' ? 'pt-BR' : 'en-US', { hour: '2-digit', minute: '2-digit' }),
+    );
+    const slot = [d.home.tv.now, d.home.tv.next, d.home.tv.later];
+    return (
+        <div className="mm-c mm-tv">
+            <Head />
+            <div className="tv-grid">
+                <div className="tv-grid-head" style={{ '--n': 1 } as CSSProperties}>
+                    <span className="tv-bug live">
+                        <img src="assets/ui/simbolo.svg" alt="" width="24" height="24" />
+                        <b>{d.home.tv.onAir}</b>
+                    </span>
+                    <span>{d.home.tv.grid}</span>
+                    <time>{clock}</time>
+                </div>
+                <div className="tv-rows">
+                    {ORDER.map((m, i) => (
+                        <button
+                            type="button"
+                            key={m}
+                            className={`tv-slot${i === 0 ? ' tv-slot-now' : ''}${sel === m ? ' on' : ''}`}
+                            style={{ '--n': i + 2 } as CSSProperties}
+                            onClick={() => setSel(m)}
+                            aria-pressed={sel === m}
+                        >
+                            <span className="tv-time">
+                                <b>{slot[i]}</b>
+                                <small>{m === LAST ? t('home.tv.ch', { n: 1 }) : soonDate(m, lang)}</small>
+                            </span>
+                            <span className="tv-show">
+                                <Scene id={m} scale={big ? 3 : 2} />
+                                <span className="tv-show-txt">
+                                    {m === LAST ? (
+                                        <span className="mm-tag">{t('home.modes.last')}</span>
+                                    ) : (
+                                        <Soon id={m} />
+                                    )}
+                                    <b className="cb-num mm-plate">
+                                        <span>{d.home.modes[m].name}</span>
+                                    </b>
+                                    <span className="tv-show-more">
+                                        <span>
+                                            {m === 'ultimate' && <When id={m} />}
+                                            <Chips id={m} />
+                                        </span>
+                                    </span>
+                                </span>
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="mm-c-cta" style={{ '--n': 5 } as CSSProperties}>
+                <Play off={sel !== LAST} onClick={onPlay} />
+                <SoonCta id={locked.current} on={sel !== LAST} onBack={() => setSel(LAST)} />
+            </div>
+        </div>
+    );
+}
+
 /** O relógio das cenas e o tamanho dos sprites (3x na tela larga), pro menu e pro laboratório. */
 export function useMenuScene() {
     const clock = useSceneClock(true);
@@ -616,6 +689,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     // biome-ignore lint/correctness/useExhaustiveDependencies: só na montagem
     useEffect(() => {
         if (phase === 'in') root.current?.querySelector<HTMLElement>('.mm-play')?.focus({ preventScroll: true });
+        if (tvOn()) announceProgram('modes');
     }, []);
     const play = () => {
         const r = root.current;
@@ -633,7 +707,7 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     return (
         <ClockCtx.Provider value={clock}>
             <section ref={root} className={`mm-root mm-menu mm-${phase}`} aria-label={t('home.modes.aria')}>
-                <ModeSlices big={big} onPlay={play} />
+                {tvOn() ? <ModeGrid big={big} onPlay={play} /> : <ModeSlices big={big} onPlay={play} />}
             </section>
         </ClockCtx.Provider>
     );
