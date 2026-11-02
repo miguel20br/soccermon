@@ -68,14 +68,10 @@ const click = (re) =>
         return !!b;
     }, re);
 
-// lab=hud-off: o painel antigo, que o CSS abaixo esconde (no PC a partida nova tem a barra de baixo e a legenda)
-await page.goto(
-    `${process.env.BASE_URL ?? 'http://localhost:8080'}/?demo=trailer&cena=${cena}&seed=${seed}&lab=hud-off`,
-    {
-        waitUntil: 'networkidle0',
-        timeout: 300000,
-    },
-);
+await page.goto(`${process.env.BASE_URL ?? 'http://localhost:8080'}/?demo=trailer&cena=${cena}&seed=${seed}`, {
+    waitUntil: 'networkidle0',
+    timeout: 300000,
+});
 await wait(2000);
 if (!(await click('^Jogar '))) throw new Error('não achei o botão Jogar (o atalho ?demo=trailer abriu?)');
 // quadra ocupando a largura toda (sem barra lateral), pra gravar na resolução pedida

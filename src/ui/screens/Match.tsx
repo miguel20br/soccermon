@@ -109,9 +109,6 @@ const CHANGE_LEAD_TICKS = 40;
 /** No modo "Lances" o ritmo varia (1x perto dos lances, 16x no resto): na média fica perto de 4x. */
 const HIGHLIGHTS_MULT = 4;
 
-/** Celular deitado: o placar sobe pro topo e o painel fica ao lado da quadra (o único fora da partida nova). */
-const PHONE_LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
-
 /** De quanto em quanto tempo (real) o ponto da partida é salvo para poder retomar. */
 const SAVE_EVERY_MS = 1500;
 
@@ -178,22 +175,18 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [jogoOn, setJogoOn] = useState(false);
     const [golpeOn, setGolpeOn] = useState(false);
     const alive = useRef(true);
-    // painel do técnico antigo (?lab=hud-off): no desktop a Tática fica embaixo da quadra e as abas na Prancheta
+    // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
-    // partida nova (revamp-ui §3.5): 4 botões que abrem sheet. No celular em pé a quadra grande segue a bola; no PC e
-    // no tablet é o mesmo layout aumentado, com a quadra inteira (cara-de-jogo.md, decisão 11: "uma partida, um
-    // layout"). Só o celular deitado fica com o painel ao lado (não sobra altura pra barra de baixo).
+    // ?lab=hud (revamp-ui §3.5, variante A): no celular em pé, quadra grande seguindo a bola e o painel vira 4 botões
     const [hudLab] = useState(readHud);
     const portrait = useMedia('(orientation: portrait)');
-    const phoneLand = useMedia(PHONE_LANDSCAPE);
-    const hud = hudLab && !phoneLand;
-    const follow = hud && portrait;
+    const hud = hudLab && !wide && portrait;
     const [hudSheet, setHudSheet] = useState<HudSheet | null>(null);
     const [hudFeedTab, setHudFeedTab] = useState<CoachTab>('feed');
     const pitchRef = useRef<HTMLDivElement>(null);
     // até a velocidade escolhida em Configurações (padrão 2x) a câmera segue o lance; acima, a quadra inteira
     const camFollow = settings.camFollow ?? 2;
-    useCourtFollow(follow, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
+    useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
     const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
@@ -204,7 +197,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const coachRef = useRef<HTMLDivElement>(null);
     // celular deitado: placar no topo da tela pra quadra caber inteira (depois do scrollTo(0) do App)
     useEffect(() => {
-        if (!window.matchMedia(PHONE_LANDSCAPE).matches) return;
+        if (!window.matchMedia('(orientation: landscape) and (max-height: 520px)').matches) return;
         const id = requestAnimationFrame(() => scoreboardRef.current?.scrollIntoView({ block: 'start' }));
         return () => cancelAnimationFrame(id);
     }, []);
@@ -732,7 +725,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         <Coach
             id="golpe"
             // celular: o botão da barra de baixo; desktop: as barrinhas embaixo do placar
-            targets={wide && !hud ? ['.sl-maxbars', '.sl-maxbars'] : ['.bc-maxthumb', '.bc-maxthumb']}
+            targets={wide ? ['.sl-maxbars', '.sl-maxbars'] : ['.bc-maxthumb', '.bc-maxthumb']}
             when={
                 !liga &&
                 agency.max.level >= 1 &&
@@ -814,9 +807,9 @@ export function Match({ liga = false }: { liga?: boolean }) {
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
-                    <div className={`pitch-wrap${follow ? ' hud-follow' : hud ? ' hud-tv' : ''}`} ref={pitchRef}>
+                    <div className={`pitch-wrap${hud ? ' hud-follow' : ''}`} ref={pitchRef}>
                         {/* quadra inteira no celular em pé (4x, 8x): a torcida nas bandas em cima e embaixo */}
-                        {follow && <CourtStands names={teamNames} colors={colors} />}
+                        {hud && <CourtStands names={teamNames} colors={colors} />}
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
@@ -1045,7 +1038,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                 )}
                             </fieldset>
                             {/* celular: o golpe máximo sempre à vista na barra fixa (na aba Tática ficava abaixo da quadra) */}
-                            {(!wide || hud) && <MaxThumb view={sideline} canAct={canAgency} onMax={sendMax} />}
+                            {!wide && <MaxThumb view={sideline} canAct={canAgency} onMax={sendMax} />}
                             <button
                                 type="button"
                                 className="bc-skip"
@@ -1085,7 +1078,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     )}
                 </div>
                 {/* desktop: velocidade logo embaixo da narração e a tática por último (em 1280x720 a barra caía da tela) */}
-                {wide && !hud && (
+                {wide && (
                     <div className="bc-deskbar" onPointerDownCapture={auto.hold}>
                         {tactics}
                     </div>
