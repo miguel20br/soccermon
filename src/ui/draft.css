@@ -403,7 +403,7 @@
 .dp-fit .horizontal .bench .slot {
     width: 74px;
 }
-/* 320: quadra um pouco mais curta em volta das mesmas vagas, pra elas encolherem menos (≥ 44 px) */
+/* 320: quadra um pouco mais curta em volta das mesmas vagas, pra elas encolherem menos (44 px ou mais) */
 @media (max-width: 380px) {
     .dp-fit .formation-board.horizontal .court {
         width: 300px;
