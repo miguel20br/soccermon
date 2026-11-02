@@ -348,6 +348,8 @@
     border-radius: 8px;
     cursor: pointer;
     transition: transform var(--dur-solta) var(--ease-pop);
+    /* as vagas medem pela largura do botão (cqi), pra quadrinha não virar quadrado */
+    container-type: inline-size;
 }
 .dp-strip-btn:active {
     transform: translateY(2px);
@@ -361,9 +363,13 @@
     flex: none;
     color: var(--muted);
 }
-/* a quadrinha deitada (o gol à esquerda), 3 linhas de vagas; o banco numa coluna ao lado */
+/* a quadrinha deitada (o gol à esquerda), 3 linhas de vagas; o banco numa coluna ao lado. A vaga cresce com a
+   altura que sobra embaixo das cartas (--dp-h) até a quadra ficar ~1,4x mais larga que alta (cqi do botão) */
+.draft-pick {
+    --dp-h: clamp(34px, calc((100 * var(--vh) - 630px) / 4), 56px);
+}
 .dp-strip {
-    --dp-w: 34px;
+    --dp-w: max(28px, min(var(--dp-h, 34px), calc((100cqi - 30px) / 5.6)));
     flex: 1;
     min-width: 0;
     display: flex;
@@ -400,7 +406,7 @@
     align-items: center;
     justify-content: center;
     gap: 4px;
-    font-size: 10px;
+    font-size: max(10px, calc(var(--dp-w) * 0.24));
     color: var(--muted);
 }
 .dp-chip {
@@ -409,7 +415,7 @@
     height: var(--dp-w);
     display: grid;
     place-items: center;
-    font-size: 10px;
+    font-size: max(10px, calc(var(--dp-w) * 0.3));
     font-weight: 700;
     color: var(--muted);
     background: rgba(14, 20, 48, 0.72);
@@ -424,7 +430,7 @@
     background: var(--panel-2);
 }
 .dp-chip img {
-    height: calc(var(--dp-w) - 6px);
+    height: var(--dp-w);
     width: auto;
 }
 .dp-chip.selected {
@@ -433,19 +439,31 @@
     color: var(--text);
 }
 
-/* as 3 cartas do mesmo tamanho (k-pick3): a faixa de encaixe em cima, a carta alinhada embaixo */
+/* as 3 cartas do mesmo tamanho (k-pick3): as colunas com a mesma altura e tudo encostado embaixo, pra a carta com
+   "Ativa" (faixa mais alta) não descer em relação às outras */
 .draft-pick3 {
     /* barra de cima, título, miniatura, faixa, botão da carta e o polegar */
     --k-pick-reserve: 430px;
+    align-items: stretch;
 }
 .draft-pick3 .option {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
     container-type: inline-size;
 }
-.draft-pick3 .option > .fut-wrap {
-    margin-top: auto;
+/* coluna estreita (320): o selo da sinergia quebra em duas linhas em vez de passar da borda */
+.draft-pick3 .option-links {
+    max-width: 100%;
+}
+.draft-pick3 .option-links .link-chip {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    border-radius: 10px;
 }
 .draft-pick3 .option-fit {
     max-width: 100%;
@@ -465,6 +483,13 @@
     .draft-pick3 {
         --k-pick-reserve: 236px;
     }
+    /* sem altura pro "Ativa": fica só o selo da sinergia (que já pulsa), pra a carta e o botão não saírem da tela */
+    .draft-pick3 .option-links {
+        font-size: 0;
+    }
+    .draft-pick3 .option-links .link-chip {
+        font-size: 11px;
+    }
 }
 /* deitado e no PC: a quadrinha vai pro lado das cartas (elas ficam com a altura toda) */
 @media (orientation: landscape) and (max-height: 520px), (min-width: 1100px) {
@@ -473,8 +498,14 @@
         align-content: center;
         column-gap: 12px;
     }
+    .draft-pick {
+        --dp-h: clamp(34px, calc((100 * var(--vh) - 240px) / 3), 64px);
+    }
+    /* ocupa o que sobra ao lado das cartas (nunca menos que 250 px, nem mais que a quadra pede) */
     .draft-pick > .dp-strip-btn {
-        width: 250px;
+        flex: 1 1 0;
+        min-width: 250px;
+        max-width: calc(5.6 * var(--dp-h) + 46px);
     }
     /* Duelo: o que o rival tirou numa linha em cima das duas */
     .draft-pick > .duel-draft-news {
@@ -487,8 +518,8 @@
     .dp-strip-btn {
         padding: 4px 6px;
     }
-    .dp-strip {
-        --dp-w: 28px;
+    .draft-pick {
+        --dp-h: 28px;
     }
     /* o pacote fechado mede pela altura que sobra embaixo da quadrinha (a carta com "Ativa" cabe inteira) */
     .draft-pick .cpack-stage:has(> .k-pick3) {
