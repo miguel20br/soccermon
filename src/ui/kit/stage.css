@@ -685,4 +685,27 @@
     .k-stage-place .k-stage-body > * {
         width: min(400px, 54%);
     }
+    /* não coube numa coluna (useTwoCols, Stage.tsx): o conteúdo corre em 2 colunas e a cena fica na faixa da direita */
+    .k-stage-place .k-stage-body[data-cols="2"] {
+        display: block;
+        width: min(720px, 70%);
+        columns: 2;
+        column-gap: 10px;
+        column-fill: auto;
+    }
+    .k-stage-place .k-stage-body[data-cols="2"] > * {
+        width: 100%;
+        margin-bottom: 8px;
+        break-inside: avoid;
+    }
+    .k-stage-place .k-stage-body[data-cols="2"] > .k-stage-gap {
+        display: none;
+    }
+    .app:has(.k-stage-body[data-cols="2"]) .amb-bd :is(.ar-duel, .ar-circle) {
+        left: 86%;
+    }
+}
+/* em pé: a dupla no meio do vão de verdade (useTwoCols mede; a quadra começa embaixo da parede) */
+.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle) {
+    top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h));
 }

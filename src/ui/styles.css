@@ -1101,19 +1101,6 @@ button,
     gap: 5px;
     color: var(--yellow);
 }
-.draft-grid {
-    display: grid;
-    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-    gap: var(--gap);
-    align-items: start;
-}
-.draft-options {
-    display: grid;
-    gap: 10px;
-}
-.options-bar {
-    justify-content: space-between;
-}
 .formation-board .court {
     max-height: 520px;
 }
@@ -1399,7 +1386,6 @@ button,
 
 /* ---------- tablet ---------- */
 @media (max-width: 1050px) {
-    .draft-grid,
     .lineup-grid,
     .two-col {
         grid-template-columns: 1fr;
@@ -1843,8 +1829,7 @@ button,
     text-align: center;
 }
 
-/* opções do draft e recompensas com cartas */
-.draft-options .options,
+/* recompensas com cartas */
 .reward-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-items: center;
@@ -2089,7 +2074,6 @@ button,
 }
 
 @media (max-width: 700px) {
-    .draft-options .options,
     .reward-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
@@ -4891,18 +4875,7 @@ button,
     font-size: 14px;
 }
 
-/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida.
-   As 3 opções ficam com a carta embaixo, alinhadas, mesmo se uma faixa ficar maior que a outra. */
-.draft-options .option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    container-type: inline-size;
-}
-.draft-options .option > .fut-wrap {
-    margin-top: auto;
-}
+/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida */
 .option-fit .fit-short {
     display: none;
 }
@@ -6439,14 +6412,7 @@ a.home-tile {
     .home .menu {
         padding-block: 12px;
     }
-    /* draft deitado: time e cartas lado a lado, quadra do tamanho da tela */
-    .draft-grid {
-        grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
-    }
-    .draft-grid .board-panel {
-        position: sticky;
-        top: 6px;
-    }
+    /* quadra do tamanho da tela */
     .formation-board .court {
         width: min(100%, calc((calc(100 * var(--svh)) - 90px) * 0.72));
     }
@@ -6455,13 +6421,6 @@ a.home-tile {
     }
     .formation-board .slot img {
         height: 28px;
-    }
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(150px, calc(17 * var(--vw)));
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
     .reward-grid .fut-wrap {
@@ -7345,91 +7304,48 @@ p.muted.center a {
 
 /* aviso curto (Copiado!, Compartilhado!): pílula no rodapé que some sozinha */
 
-/* missão cumprida (treinador ou título novo), com a tarefa cumprida embaixo (UnlockNotice.tsx). Na Home: pílula
-   pequena fixa em cima da quadra do topo (enfeite), uma de cada vez, sem pegar toque. No Resultado: faixa no meio
-   da página, embaixo do placar (fixa no topo ela cobria o placar e o título da tela) */
-.unlock-notice {
+/* missão cumprida (treinador ou título novo, UnlockNotice.tsx): o sprite e o selo dourado batendo no alto da Home,
+   1,2 s cada, sem pegar toque */
+.unlock-seal {
     position: fixed;
     left: 50%;
-    top: calc(max(6px, env(safe-area-inset-top)) + 58px);
+    top: calc(max(6px, env(safe-area-inset-top)) + 64px);
     z-index: 260;
-    width: max-content;
-    max-width: min(460px, calc(calc(100 * var(--vw)) - 32px));
-    border-radius: 18px;
-    background: var(--panel-2);
-    box-shadow: var(--shadow);
-    pointer-events: none;
-    transform: translateX(-50%);
-    animation: unlock-in 0.32s var(--ease-pop) both;
-}
-@media (min-width: 900px) {
-    .unlock-notice {
-        top: 104px;
-    }
-}
-.unlock-notice,
-.unlock-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 3px 14px 3px 4px;
-    border: 2px solid var(--yellow);
-    color: var(--text);
-    font-size: 12px;
-    line-height: 1.25;
-}
-.unlock-strip {
-    position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    left: 50%;
-    z-index: 70;
-    display: grid;
-    gap: 6px;
-    width: min(calc(calc(100 * var(--vw)) - 24px), 340px);
+    max-width: min(420px, calc(calc(100 * var(--vw)) - 32px));
     translate: -50% 0;
     pointer-events: none;
-    transition: opacity 280ms var(--ease-out);
+    transition: opacity 220ms var(--ease-out);
 }
-.unlock-strip.out {
+.unlock-seal.out {
     opacity: 0;
 }
-.unlock-item {
-    min-width: 0;
-    border-radius: 12px;
-    background: var(--panel-2);
-    animation: unlock-in 0.32s var(--ease-pop) both;
-}
-:is(.unlock-notice, .unlock-item) > span {
-    display: grid;
-    min-width: 0;
-}
-/* a tarefa cumprida: até 2 linhas (inteira no celular estreito) */
-:is(.unlock-notice, .unlock-item) small {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    font-size: 11px;
-    color: var(--muted);
-}
-:is(.unlock-notice, .unlock-item) img {
-    width: 36px;
-    height: 36px;
-    flex: none;
+.unlock-seal > img,
+.unlock-seal > svg {
+    width: 72px;
+    height: 72px;
+    margin-bottom: -8px;
     image-rendering: pixelated;
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.45));
+    animation: k-seal-in var(--dur-pop) var(--ease-pop) both;
 }
-:is(.unlock-notice, .unlock-item) svg {
-    width: 22px;
-    height: 22px;
-    margin: 4px;
-    flex: none;
+.unlock-seal > svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 4px;
 }
-@keyframes unlock-in {
-    from {
-        opacity: 0;
-        translate: 0 -12px;
-        scale: 0.9;
+.unlock-seal > .k-seal {
+    position: relative;
+    padding: 5px 14px 6px;
+    font-size: 14px;
+    text-align: center;
+    animation-delay: 60ms;
+}
+@media (min-width: 900px) {
+    .unlock-seal {
+        top: 110px;
     }
 }
 
@@ -8488,65 +8404,6 @@ body {
     }
 }
 
-/* ---------- draft no celular e tablet em pé: as 3 cartas na 1ª tela (revamp-ui §3.2) ----------
-   As opções sobem pra cima da quadra (a faixa das vagas continua fixa no topo) e ficam lado a lado. */
-@media (max-width: 1050px) and (orientation: portrait) {
-    .draft-grid > .draft-options {
-        order: -1;
-    }
-}
-@media (max-width: 700px) and (orientation: portrait) {
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(170px, calc((calc(100 * var(--vw)) - 40px) / 3));
-    }
-    .draft-options .option-fit {
-        padding-inline: 6px;
-        font-size: 10px;
-    }
-}
-
-/* ---------- draft deitado: a quadra com o banco ao lado e centralizada enquanto não há cartas na mesa ---------- */
-@media (orientation: landscape) and (max-height: 520px) {
-    .draft-grid .board-panel > h2 {
-        display: none;
-    }
-    .draft-grid .board-panel {
-        margin-top: 0;
-    }
-    .draft-grid .formation-board {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 4px 10px;
-    }
-    .draft-grid .formation-board .court {
-        width: min(100%, calc((calc(100 * var(--svh)) - 130px) * 0.75));
-        flex: 0 1 auto;
-    }
-    .draft-grid .formation-board .bench {
-        flex-direction: column;
-        margin-top: 0;
-    }
-    .draft-grid .formation-board > .row {
-        flex: 1 0 100%;
-        justify-content: center;
-        margin-top: 0 !important;
-    }
-    /* sem vaga escolhida não há cartas: a quadra ocupa o meio em vez de ficar espremida à esquerda */
-    .draft-grid:not(:has(.draft-options)) {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    .draft-grid:not(:has(.draft-options)) .board-panel {
-        justify-self: center;
-        width: min(100%, 520px);
-    }
-}
 /* o pontinho das Novidades no canto do botão */
 .news-fab {
     position: relative;

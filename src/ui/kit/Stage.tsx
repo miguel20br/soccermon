@@ -21,6 +21,7 @@ export function Stage({
 }) {
     const body = useRef<HTMLDivElement>(null);
     useFitZoom(body);
+    useTwoCols(body, className.includes('k-stage-place'));
     return (
         <div className={`k-stage ${className}`} style={style}>
             {scene && (
@@ -34,6 +35,50 @@ export function Stage({
             {action && <div className="bc-thumbbar k-stage-action">{action}</div>}
         </div>
     );
+}
+
+/** Celular deitado (a mesma consulta do stage.css). */
+const SHORT_LANDSCAPE = '(orientation: landscape) and (max-height: 520px)';
+
+/**
+ * Palco de lugar (stage.css). Deitado: se o conteúdo não cabe na coluna da esquerda, ele vira 2 colunas (`data-cols`)
+ * e a cena encolhe pra direita, em vez de rolar dentro do palco (mede sempre com 1 coluna: o atributo sai antes).
+ * Em pé: passa pra cena onde fica o vão (`--k-gap-y`), pra a dupla do Duelo e da Liga aparecer nele.
+ */
+function useTwoCols(ref: RefObject<HTMLElement | null>, on: boolean) {
+    useLayoutEffect(() => {
+        const el = ref.current;
+        if (!on || !el || typeof ResizeObserver === 'undefined') return;
+        const mq = window.matchMedia(SHORT_LANDSCAPE);
+        const stage = el.parentElement;
+        const refit = () => {
+            delete el.dataset.cols;
+            if (mq.matches && el.scrollHeight > el.clientHeight + 1) el.dataset.cols = '2';
+            // celular em pé: a dupla da cena desce/sobe pro meio do vão (em tela baixa o vão não fica onde a cena
+            // espera e os blocos cobriam a dupla); vão pequeno demais fica como está
+            const gap = el.querySelector(':scope > .k-stage-gap')?.getBoundingClientRect();
+            if (stage && gap && !mq.matches && window.innerWidth <= 700 && gap.height >= 56) {
+                stage.style.setProperty('--k-gap-y', `${Math.round(gap.top + gap.height / 2)}px`);
+                stage.dataset.gap = '';
+            } else if (stage) delete stage.dataset.gap;
+        };
+        refit();
+        const ro = new ResizeObserver(refit);
+        ro.observe(el.parentElement ?? el);
+        // o conteúdo troca (sala cheia, outro bloco): mede de novo no quadro seguinte (só filhos: o atributo não volta)
+        let frame = 0;
+        const mo = new MutationObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(refit);
+        });
+        mo.observe(el, { subtree: true, childList: true });
+        document.fonts?.ready.then(refit);
+        return () => {
+            ro.disconnect();
+            mo.disconnect();
+            cancelAnimationFrame(frame);
+        };
+    }, [ref, on]);
 }
 
 /**

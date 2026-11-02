@@ -122,7 +122,7 @@ async function copa() {
     await step(p, 'draft', async () => {
         for (let round = 0; round < 30; round++) {
             await p.waitForTimeout(500);
-            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-grid'))) break;
+            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-stage'))) break;
             for (let k = 0; k < 8 && (await vis(p, '.cpack-btn')); k++) {
                 await p.locator('.cpack-btn').first().click();
                 await p.waitForTimeout(400);

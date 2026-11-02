@@ -29,7 +29,6 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
-import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
 import { Sheet } from '../kit/Sheet';
@@ -279,7 +278,6 @@ export function Result() {
                         </>
                     }
                 />
-                <UnlockStrip />
                 {toast}
             </>
         );
@@ -295,7 +293,6 @@ export function Result() {
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
                     foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
-                    unlocks={<UnlockStrip />}
                     actions={actions}
                 />
                 {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}

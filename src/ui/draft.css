@@ -188,6 +188,43 @@
 .formation-stage .draft-head {
     flex: none;
 }
+/* dica da primeira vez aberta (Coach.tsx): a quadra cede 100 px de altura pra linha e o dedo caberem embaixo dos
+   pontinhos (senão a linha subia pra cima da placa e das palavras). Deitado ela vai pro lado e no PC sobra altura. */
+@media (min-height: 521px) and (max-width: 1099px) {
+    .formation-stage.coach-on .fc {
+        --fc-w: clamp(
+            96px,
+            calc(min(calc(60 * var(--vw)), calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75)) - 75px),
+            300px
+        );
+    }
+}
+/* celular baixo (320x640): nem assim cabe; o título sai de cena enquanto a dica fala (ela diz "Escolha a formação") */
+.formation-stage .draft-head {
+    transition:
+        opacity var(--dur-tela, 260ms) var(--ease-out),
+        margin-top var(--dur-tela, 260ms) var(--ease-out);
+}
+@media (orientation: portrait) and (max-height: 700px) {
+    .formation-stage.coach-on .draft-head {
+        opacity: 0;
+        margin-top: -86px;
+        pointer-events: none;
+    }
+    /* e o carrossel sobe um pouco: o vão de baixo fica com a linha (3 linhas no 320) */
+    .formation-stage.coach-on .fc {
+        padding-bottom: 60px;
+    }
+}
+.formation-stage .fc {
+    transition: padding-bottom var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-view {
+    transition: height var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-court {
+    transition-property: scale, opacity, filter, width;
+}
 /* PC: a fileira inteira em leque, a da vez maior (o zoom do palco aumenta tudo junto) */
 @media (min-width: 1100px) {
     .fc {

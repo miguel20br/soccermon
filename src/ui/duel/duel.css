@@ -500,7 +500,6 @@ button.sb-title:hover {
 }
 
 /* draft */
-.duel-draft,
 .duel-preview {
     display: grid;
     gap: 12px;
@@ -523,9 +522,6 @@ button.sb-title:hover {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 8px;
-}
-.duel-progress {
-    align-self: center;
 }
 .duel-strip {
     display: grid;
@@ -554,9 +550,6 @@ button.sb-title:hover {
     min-height: 50px;
     border: 2px dashed var(--line);
     background: transparent;
-}
-.duel-options.four {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 .duel-locked {
     opacity: 0.75;
@@ -758,7 +751,70 @@ button.sb-title:hover {
     }
 }
 
-/* draft do duelo: o mesmo do draft da copa + o que é do duelo (vez de quem, cronômetro, queimadas) */
+/* draft do duelo: o palco do draft da copa (draft.css) + o que é do duelo (vez de quem, cronômetro, queimadas) */
+.app:has(.duel-draft-stage) {
+    height: calc(100 * var(--vh));
+    min-height: 0;
+    overflow: hidden;
+}
+.duel-draft-stage .draft-pick3 {
+    /* a linha do que o rival tirou ocupa um pouco mais que a da copa */
+    --k-pick-reserve: 470px;
+}
+/* a vez e o relógio no polegar, ao lado do botão do time */
+.duel-turn-hint {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.duel-turn-hint.mine {
+    color: var(--yellow);
+    font-weight: 700;
+}
+.duel-draft-bar {
+    zoom: var(--k-big, 1);
+}
+.duel-draft-bar > .btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* 320: o botão e a vez cabem na mesma linha (a vez é curta; a regra geral da barra sobe a instrução) */
+.duel .bc-thumbbar.duel-draft-bar {
+    flex-wrap: nowrap;
+}
+.duel .bc-thumbbar.duel-draft-bar > .tb-hint {
+    flex: 1 1 0;
+}
+/* deitado: o título sai (draft.css) e a vez fica só no polegar; as cartas ganham a altura */
+@media (orientation: landscape) and (max-height: 520px) {
+    .duel-draft-stage .draft-pick3 {
+        --k-pick-reserve: 250px;
+    }
+}
+/* celular baixo (320x640): a regra da linha cinza sai (o "?" das regras já explicou na sala), relógio e miniatura
+   mais baixos, pra as cartas caberem inteiras */
+@media (orientation: portrait) and (max-height: 700px) {
+    .duel-draft-stage .draft-title p {
+        display: none;
+    }
+    .duel-draft-stage .duel-timer {
+        min-width: 44px;
+        padding: 2px 8px;
+        font-size: 20px;
+    }
+    .duel-draft-stage .dp-chip > span {
+        display: none;
+    }
+    .duel-draft-stage .dp-chip img,
+    .duel-draft-stage .dp-chip i {
+        height: 24px;
+    }
+}
 .duel-draft-clock {
     display: flex;
     align-items: center;
@@ -766,21 +822,6 @@ button.sb-title:hover {
 }
 .duel-board-tabs {
     margin-bottom: 10px;
-}
-.duel-turn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    border: 2px solid var(--line);
-    font-size: 12px;
-    color: var(--muted);
-}
-.duel-turn.mine {
-    border-color: var(--yellow);
-    color: var(--yellow);
-    font-weight: 700;
 }
 .duel-draft-news {
     display: flex;
