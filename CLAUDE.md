@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (02/11/2026, v0.9.31)
+## Estado atual (02/11/2026, v0.9.32)
 
-No ar: 0.9.31 "Golpe máximo de verdade" (N1–N3 novos, goleiro só espalma, cara de jogo fase 1 no kit). `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 18 (`liga` 18). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.32 "Cara de jogo" (fase 2: Arena, Perfil, Draft, Novidades, Config). `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 18 (`liga` ainda 17: deployar). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

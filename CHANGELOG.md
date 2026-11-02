@@ -1,5 +1,28 @@
 # Novidades
 
+## 0.9.32 · Cara de jogo (2026-11-02)
+
+### Arena
+- Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande
+- Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra
+- Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra
+
+### Perfil
+- Perfil virou armário: cartão, missões e 6 portas, sem rolar
+- Sala de troféus em tela cheia. Toque num objeto pra ver a ficha
+- Treinadores viraram figurinhas
+
+### Draft
+- Formação em carrossel, uma quadra grande por vez
+- Escolha 1 de 3 sem rolar a tela
+- Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando
+- Textos de regra mais curtos
+
+### Menus
+- Novidades num cartaz, com as versões antigas numa lista
+- Configurações em abas, cada opção numa linha
+- Resgatar código foi pras Configurações
+
 ## 0.9.31 · Golpe máximo de verdade (2026-11-02)
 
 ### Golpe máximo

@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.31 e 0.9.32 · Golpe máximo de verdade e Cara de jogo (02/11/2026)
+
+0.9.31: N1–N3 novos, N1 por tipo, goleiro só espalma golpe máximo, câmera descentralizada, cara de jogo fase 1 (kit). 0.9.32: fase 2 da cara de jogo (escopo C) com Duelo, Liga e Copa do Dia na Arena; Perfil armário; Sala de troféus em tela cheia; Novidades cartaz; Configurações em abas; Draft sem rolar, formação em carrossel e dicas sem véu.
+
 ## 0.9.30 e 0.9.30.1 · Golpe universal (01/11/2026)
 
 No ar: 0.9.30 "Golpe universal" (bicuda do goleiro capitão, pedras na Rota) e 0.9.30.1 (menu de modos sem pisca, EM BREVE claro). Motor 17 (`liga` 17).

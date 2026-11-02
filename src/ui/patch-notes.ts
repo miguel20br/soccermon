@@ -9,6 +9,46 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Cara de jogo',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande',
+                    'Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra',
+                    'Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: [
+                    'Perfil virou armário: cartão, missões e 6 portas, sem rolar',
+                    'Sala de troféus em tela cheia. Toque num objeto pra ver a ficha',
+                    'Treinadores viraram figurinhas',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formação em carrossel, uma quadra grande por vez',
+                    'Escolha 1 de 3 sem rolar a tela',
+                    'Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando',
+                    'Textos de regra mais curtos',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Novidades num cartaz, com as versões antigas numa lista',
+                    'Configurações em abas, cada opção numa linha',
+                    'Resgatar código foi pras Configurações',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.31',
         date: '2026-11-02',
         title: 'Golpe máximo de verdade',
@@ -2132,6 +2172,46 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Game feel',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duel on the Arena court: 3 modes as blocks, rules behind a "?" and a big room code',
+                    'League with a big countdown while closed; when open, the rival shows up on the court',
+                    'Daily Cup in the Stadium, with the crowd and the daily sticker in the middle of the court',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: [
+                    'Profile is now a locker: card, missions and 6 doors, no scrolling',
+                    'Full-screen Trophy room. Tap an object to see its card',
+                    'Trainers are now stickers',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formation carousel, one big court at a time',
+                    'Pick 1 of 3 without scrolling',
+                    'First-time tips no longer darken the screen: a finger points and you keep playing',
+                    'Shorter rule texts',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'News on a poster, older versions in a list',
+                    'Settings in tabs, one option per row',
+                    'Redeem code moved to Settings',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.31',
         date: '2026-11-02',
