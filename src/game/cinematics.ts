@@ -514,12 +514,15 @@ export class Cinematics {
         depth: number;
         /** Vence os textos de drama (assinatura): o que chegar enquanto a faixa está na tela espera ela sair. */
         top?: boolean;
+        /** Quanto ela fica (ms): a cena do especial, pra sair no chute e não cobrir o gol no voo da bola. */
+        holdMs?: number;
     }) {
         const scene = this.scene;
-        claimOverlay('super', PRIO_GOAL, SUPER_HOLD_MS + 420);
+        const hold = opts.holdMs ?? SUPER_HOLD_MS;
+        claimOverlay('super', PRIO_GOAL, hold + 420);
         if (opts.top) {
             this.dramaTop = true;
-            this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + 1720);
+            this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + hold + 220);
         }
         const s = Math.min(this.uiScale, 1.6);
         const W = (GAME_W * 1.6) / s;
@@ -606,7 +609,7 @@ export class Cinematics {
         if (opts.reduce) {
             inner.setAlpha(0);
             scene.tweens.add({ targets: inner, alpha: 1, duration: 200 });
-            scene.tweens.add({ targets: inner, alpha: 0, delay: SUPER_HOLD_MS, duration: 220, onComplete: out });
+            scene.tweens.add({ targets: inner, alpha: 0, delay: hold, duration: 220, onComplete: out });
             return;
         }
         inner.x = -dir * off;
@@ -616,8 +619,79 @@ export class Cinematics {
         scene.tweens.add({
             targets: inner,
             x: dir * off,
-            delay: SUPER_HOLD_MS,
+            delay: hold,
             duration: 220,
+            ease: 'Cubic.easeIn',
+            onComplete: out,
+        });
+    }
+
+    /**
+     * Cut-in do especial N3 (Inazuma, Super de luta): o rosto do capitão enorme (o retrato PMD estourando a faixa, com
+     * dois rastros na cor do tipo) atravessando o alto da tela, com listras e linhas de velocidade, na cena (`ms`).
+     * "Reduzir movimento": só aparece e some.
+     */
+    superCutIn(opts: {
+        portrait: string | null;
+        color: number;
+        fromRight: boolean;
+        ms: number;
+        reduce: boolean;
+        depth: number;
+    }) {
+        const scene = this.scene;
+        if (!opts.portrait || !scene.textures.exists(opts.portrait)) return;
+        const s = Math.min(this.uiScale, 1.6);
+        const W = (GAME_W * 1.6) / s;
+        const h = 104;
+        const band = scene.add.graphics();
+        band.fillStyle(0x0d1024, 0.96).fillRect(-W / 2, -h / 2 - 8, W, h + 16);
+        band.fillStyle(opts.color, 1).fillRect(-W / 2, -h / 2 - 8, W, 6);
+        band.fillStyle(opts.color, 1).fillRect(-W / 2, h / 2 + 2, W, 6);
+        // linhas de velocidade atrás dos olhos
+        for (let i = 0; i < 14; i++) {
+            const y = -h / 2 + (i + 0.5) * (h / 14);
+            band.fillStyle(i % 3 ? 0xffffff : opts.color, 0.12).fillRect(-W / 2, y, W, 2);
+        }
+        const tex = scene.textures.get(opts.portrait).getSourceImage() as HTMLImageElement;
+        const ph = tex.height || 40;
+        // o retrato inteiro, maior que a faixa (estoura em cima e embaixo), com dois rastros atrás dele (o avanço)
+        const scale = (h * 1.3) / ph;
+        const dir0 = opts.fromRight ? 1 : -1;
+        const ghosts = [0.18, 0.4].map((a, i) =>
+            scene.add
+                .image(dir0 * (2 - i) * 46, 0, opts.portrait as string)
+                .setScale(scale)
+                .setFlipX(opts.fromRight)
+                .setTint(opts.color)
+                .setAlpha(a),
+        );
+        const img = scene.add.image(0, 0, opts.portrait).setScale(scale).setFlipX(opts.fromRight);
+        const glow = scene.add.graphics();
+        glow.fillStyle(opts.color, 0.3).fillCircle(0, 0, h * 0.62);
+        const inner = scene.add.container(0, 0, [band, glow, ...ghosts, img]).setRotation(0.06);
+        const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
+        this.pin(holder, GAME_W / 2, GAME_H * 0.27, s);
+        const dir = opts.fromRight ? 1 : -1;
+        const out = () => holder.destroy();
+        const stay = Math.max(200, opts.ms - 260);
+        if (opts.reduce) {
+            inner.setAlpha(0);
+            scene.tweens.add({ targets: inner, alpha: 1, duration: 160 });
+            scene.tweens.add({ targets: inner, alpha: 0, delay: stay, duration: 160, onComplete: out });
+            return;
+        }
+        // entra rápido, desliza devagar (o "olhar" atravessando) e sai pro outro lado
+        inner.x = -dir * (W / 2);
+        img.x = dir * 30;
+        scene.tweens.add({ targets: inner, x: 0, duration: 150, delay: 60, ease: 'Cubic.easeOut' });
+        scene.tweens.add({ targets: img, x: -dir * 30, duration: stay + 150, delay: 60, ease: 'Linear' });
+        scene.tweens.add({
+            targets: inner,
+            x: dir * (W / 2),
+            scaleY: 0.2,
+            delay: stay + 60,
+            duration: 160,
             ease: 'Cubic.easeIn',
             onComplete: out,
         });
