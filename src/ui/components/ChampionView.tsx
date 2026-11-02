@@ -65,7 +65,7 @@ export function ChampionView({
     goal: ReactNode;
 }) {
     const { t, tn } = useT();
-    const [sheet, setSheet] = useState<'stats' | 'goal' | null>(null);
+    const [sheet, setSheet] = useState<'goal' | null>(null);
     const hallEntry = useGame((s) => s.hall.find((h) => h.id === run.seed));
     const profile = useGame((s) => s.profile);
     const googleName = useCloud((s) => s.user?.name ?? null);
@@ -104,7 +104,7 @@ export function ChampionView({
             {hallEntry && parading && (
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
             )}
-            <Stage className="champ-wrap">
+            <Stage className="champ-wrap k-stage-rola">
                 <section className="panel rh rh-champ champ champ-stage" aria-label={t('result.champ.aria')}>
                     <Confetti count={70} />
                     {/* a cascata recomeça quando o desfile do Hall acaba (antes, ela tocaria escondida embaixo dele) */}
@@ -114,29 +114,16 @@ export function ChampionView({
                         quiet={parading}
                         onGoal={() => setSheet('goal')}
                     />
-                    <div className="champ-icons">
-                        {icons}
-                        <button
-                            type="button"
-                            className="btn outline"
-                            aria-haspopup="dialog"
-                            onClick={() => setSheet('stats')}
-                        >
-                            <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
-                        </button>
-                    </div>
+                    <div className="champ-icons">{icons}</div>
                     <div className="rh-actions">{thumb}</div>
                 </section>
             </Stage>
             <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
                 {goal}
             </Sheet>
-            <Sheet
-                open={sheet === 'stats'}
-                onClose={() => setSheet(null)}
-                title={t('result.champ.statsTitle')}
-                className="champ-stats-sheet"
-            >
+            {/* o relatório da copa embaixo do palco, rolando (antes numa sheet: ter que tocar pra ver era ruim) */}
+            <section className="champ-report" aria-label={t('result.champ.statsTitle')}>
+                <h2 className="champ-h champ-final-h">{t('result.champ.statsTitle')}</h2>
                 <CupGains run={run} />
 
                 <div className="cup-totals champ-totals">
@@ -274,7 +261,7 @@ export function ChampionView({
                 </div>
 
                 {extra}
-            </Sheet>
+            </section>
         </>
     );
 }
