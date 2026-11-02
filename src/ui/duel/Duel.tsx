@@ -223,10 +223,10 @@ function DuelStage({
     children: ReactNode;
 }) {
     return (
-        <Stage className={`duel-stage ${className}`} scene={<ArenaBackdrop />} action={action}>
+        <Stage className={`k-stage-place duel-stage ${className}`} scene={<ArenaBackdrop />} action={action}>
             {head}
             {/* a quadra com os dois do duelo aparece aqui, entre a placa e os blocos */}
-            <i className="duel-stage-gap" aria-hidden />
+            <i className="k-stage-gap" aria-hidden />
             {children}
         </Stage>
     );

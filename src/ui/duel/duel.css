@@ -1047,42 +1047,11 @@ button.sb-title:hover {
 }
 
 /* ---------- palco da Arena (criar sala, entrar, sala de espera): cara-de-jogo.md, decisão 8 ---------- */
-.app:has(> .duel > .k-stage) {
-    height: calc(100 * var(--vh));
-    min-height: 0;
-    overflow: hidden;
-}
-/* a quadra é fixa e cobre a tela toda: a barra de cima fica na frente dela */
-.app:has(> .duel > .k-stage) > .topbar {
-    position: relative;
-    z-index: 32;
-}
 .duel:has(> .k-stage) {
     flex: 1 1 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
-}
-.duel-stage .k-stage-body {
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    /* último recurso em tela baixa demais: rola dentro do palco, nunca a página */
-    overflow-y: auto;
-    scrollbar-width: none;
-}
-.duel-stage .k-stage-body > * {
-    flex: none;
-    width: min(560px, 100%);
-    margin: 0;
-}
-/* o vão entre a placa e os blocos: é onde a quadra mostra os dois do duelo */
-.duel-stage .k-stage-body > .duel-stage-gap {
-    flex: 1 1 0;
-    min-height: 0;
-}
-.duel-stage .k-stage-action > .btn {
-    flex: 0 1 420px;
 }
 /* os 3 modos lado a lado, cada um com o "?" da regra no canto */
 .duel-modes {
@@ -1202,15 +1171,6 @@ button.sb-title:hover {
 }
 .duel-stage .duel-peer-who small {
     font-size: 11px;
-}
-/* deitado: o conteúdo na coluna da esquerda, a quadra com os dois à direita */
-@media (orientation: landscape) and (max-height: 520px) {
-    .duel-stage .k-stage-body {
-        align-items: flex-start;
-    }
-    .duel-stage .k-stage-body > * {
-        width: min(400px, 54%);
-    }
 }
 .duel-stage .duel-share .btn {
     font-size: 13px;

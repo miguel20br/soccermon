@@ -642,3 +642,47 @@
     flex: 1 1 200px;
     width: 100%;
 }
+
+/*
+ * Palco de lugar (k-stage-place): a cena do lugar fixa atrás da tela toda (Backdrops.tsx: Arena no Duelo e na Liga,
+ * Estádio na Copa do Dia), a placa em cima, o vão (.k-stage-gap) onde a cena aparece e o conteúdo embaixo, perto do
+ * polegar. Deitado, o conteúdo vai pra coluna da esquerda e a cena fica à direita.
+ */
+.app:has(.k-stage-place) {
+    height: calc(100 * var(--vh));
+    min-height: 0;
+    overflow: hidden;
+}
+/* a cena é fixa e cobre a tela toda: a barra de cima fica na frente dela */
+.app:has(.k-stage-place) > .topbar {
+    position: relative;
+    z-index: 32;
+}
+.k-stage-place .k-stage-body {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    /* último recurso em tela baixa demais: rola dentro do palco, nunca a página */
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.k-stage-place .k-stage-body > * {
+    flex: none;
+    width: min(560px, 100%);
+    margin: 0;
+}
+.k-stage-place .k-stage-body > .k-stage-gap {
+    flex: 1 1 0;
+    min-height: 0;
+}
+.k-stage-place .k-stage-action > .btn {
+    flex: 0 1 420px;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-stage-place .k-stage-body {
+        align-items: flex-start;
+    }
+    .k-stage-place .k-stage-body > * {
+        width: min(400px, 54%);
+    }
+}

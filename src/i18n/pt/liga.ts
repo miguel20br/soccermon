@@ -1,6 +1,7 @@
 /** Copa do Dia e Liga ranqueada com times fantasma (docs/planos/liga.md). */
 export const liga = {
     stage: 'Liga',
+    ranking: 'Ranking',
     retry: 'Tentar de novo',
     stageShort: 'LIGA',
     home: {
@@ -69,6 +70,7 @@ export const liga = {
         needCloud: 'A Liga precisa do servidor do jogo: jogue em soccermon.com.',
         needLogin:
             'A Liga é com conta Google: seu time vira um fantasma que os outros enfrentam, e o ranking mostra o nome do treinador e do clube.',
+        needLoginShort: 'Entre com Google pra jogar a Liga.',
         season: 'Temporada de {month}',
         daysLeft: 'termina hoje|faltam {n} dias',
         division: { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', lenda: 'Lenda' },
@@ -78,6 +80,8 @@ export const liga = {
         noGames: 'Nenhuma partida nesta temporada ainda',
         teamTitle: 'Seu time na Liga',
         teamNone: 'Nenhum time inscrito ainda.',
+        teamShort: 'Seu time',
+        teamNoneShort: 'nenhum',
         ovr: 'nota {ovr}',
         register: 'Inscrever o time da copa',
         update: 'Trocar pelo time da copa',

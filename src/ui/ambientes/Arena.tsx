@@ -77,7 +77,10 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                     </button>
                     {/* o Arcade fica só no neon do muro (com o papel EM BREVE): o tile repetia */}
                     {liga ? (
-                        <p className="ar-soon">{t('home.amb.ligaSoon', { d: liga.d })}</p>
+                        // a contagem abre a Liga fechada (o palco com a contagem e as regras)
+                        <button type="button" className="ar-soon" onClick={() => go('liga')}>
+                            {t('home.amb.ligaSoon', { d: liga.d })}
+                        </button>
                     ) : (
                         <div className="amb-tiles">
                             <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
