@@ -3,48 +3,13 @@ import { reduceMotionOn } from './reduce-motion';
 import { uiZoom } from './ui-zoom';
 
 /**
- * Protótipo "Transmissão Kanto" (cara-de-jogo.md, direção C): corte de TV em diagonal na troca de tela, letreiro de
- * canal (o bug no canto e a faixa com o nome do programa) e o menu de modos como grade de programação. Só no dev e
- * nas prévias (`__SMOKE__`): `?lab=tv` liga na aba até fechar, `?lab=tv-off` desliga. Sem a bandeira nada muda.
+ * A transmissão (cara-de-jogo.md, direção C; padrão desde 0.9.37): corte de TV em diagonal na troca de tela e o
+ * letreiro de canal (o bug no canto e a faixa com o nome do programa, `TvLayer`). Reduzir movimento cai no fade.
  */
-const KEY = 'soccermon-lab-tv';
 
-export function tvFlag(search: string, stored: string | null, smoke: boolean): boolean {
-    if (!smoke) return false;
-    const q = new URLSearchParams(search).get('lab');
-    if (q === 'tv') return true;
-    if (q === 'tv-off') return false;
-    return stored === '1';
-}
-
-let on = false;
-/** Ligado nesta aba (lido uma vez pelo App, `readTv`). */
-export const tvOn = () => on;
-/** `?lab=tv&grade=1`: o menu de modos como a grade de programação (a primeira versão, só pra comparar). */
-export const tvGridFlag = (search: string, tv: boolean) => tv && new URLSearchParams(search).get('grade') === '1';
-export const tvGrid = () => tvGridFlag(window.location.search, on);
-
-/** Lê e guarda a escolha (entrar na copa troca a URL; a troca de tela seguinte tem que lembrar). */
-export function readTv(): boolean {
-    let stored: string | null = null;
-    try {
-        stored = sessionStorage.getItem(KEY);
-    } catch {
-        // aba anônima sem storage: vale só a URL
-    }
-    on = tvFlag(window.location.search, stored, __SMOKE__);
-    try {
-        if (on) sessionStorage.setItem(KEY, '1');
-        else sessionStorage.removeItem(KEY);
-    } catch {
-        // nada
-    }
-    return on;
-}
-
-/** Corte inteiro: a faixa entra (cobre a tela na metade) e sai do outro lado. Dentro dos 280–350 ms da proposta. */
-export const CUT_IN_MS = 150;
-export const CUT_OUT_MS = 170;
+/** Corte inteiro: a faixa entra (cobre a tela na metade) e sai do outro lado. 280 ms (ADR 0004: 200–300 ms). */
+export const CUT_IN_MS = 130;
+export const CUT_OUT_MS = 150;
 
 /**
  * Geometria da faixa (px do CSS): um paralelogramo de largura `w + 2s` com as bordas inclinadas `s` (a diagonal),
@@ -135,10 +100,29 @@ export function onProgram(l: Listener) {
 
 /** Controle ou a quadra (onde o letreiro não pode ficar por cima). */
 const CONTROL = 'button, a, input, select, textarea, [role=tab], [role=button], nav, canvas, .bc-thumbbar';
+/** Peça pequena com texto dentro (selo, chip do ₽, carta, caixa de botões): até o respiro dela conta como ocupado. */
+const piece = (el: Element) => {
+    if (!el.textContent?.trim()) return false;
+    const r = el.getBoundingClientRect();
+    return r.width < window.innerWidth / 2 && r.height < window.innerHeight * 0.3;
+};
 /** Controle, a quadra ou texto: o letreiro não esconde informação. */
 const busy = (el: Element | null) =>
     !!el &&
-    (!!el.closest(CONTROL) || [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && !!n.textContent?.trim()));
+    (!!el.closest(CONTROL) ||
+        piece(el) ||
+        [...el.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && !!n.textContent?.trim()));
+
+/** Respiro (px da tela) acima e abaixo da faixa: o letreiro não encosta num botão nem na moldura que o cerca. */
+const PAD = 6;
+/** A faixa de `h` px (px do CSS) que começa em `top` (px da tela) está livre nas colunas `xs` (px da tela)? */
+function rowFree(xs: number[], top: number, h: number) {
+    const hz = h * uiZoom();
+    const ys: number[] = [];
+    for (let y = top - PAD; y < top + hz + PAD; y += 6) ys.push(y);
+    ys.push(top + hz + PAD);
+    return xs.every((x) => ys.every((y) => !busy(document.elementFromPoint(x, y))));
+}
 
 /**
  * A linha livre mais baixa pro letreiro: sobe de baixo (px da tela) até achar, nas colunas `xs`, uma faixa de `h` px
@@ -147,9 +131,18 @@ const busy = (el: Element | null) =>
 export function freeBottom(xs: number[], h: number): number | null {
     const z = uiZoom();
     const H = window.innerHeight;
-    const hit = (x: number, y: number) => busy(document.elementFromPoint(x, y));
-    for (let y = H - 4; y > H * 0.7; y -= 6) {
-        if (xs.every((x) => !hit(x, y) && !hit(x, y - h * z) && !hit(x, y - (h * z) / 2))) return (H - y) / z;
-    }
+    for (let y = H - 4; y > H * 0.7; y -= 6) if (rowFree(xs, y - h * z, h)) return (H - y) / z;
+    return null;
+}
+
+/**
+ * O mesmo de cima pro topo à direita (a partida, ou a tela sem lugar embaixo): desce do topo até achar, nas colunas `xs`
+ * contadas da borda direita, a faixa livre de `h` px. Devolve a distância do topo (px do CSS) ou null no terço de cima.
+ */
+export function freeTop(xs: number[], h: number): number | null {
+    const z = uiZoom();
+    const W = window.innerWidth;
+    const right = xs.map((x) => W - x);
+    for (let y = 8 * z; y < window.innerHeight * 0.3; y += 6) if (rowFree(right, y, h)) return y / z;
     return null;
 }

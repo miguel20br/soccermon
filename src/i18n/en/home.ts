@@ -167,11 +167,5 @@ export const home: typeof pt = {
             collection: 'Collection',
             trophies: 'Trophy room',
         },
-        onAir: 'LIVE · KANTO',
-        grid: "TODAY'S LINEUP",
-        now: 'NOW',
-        next: 'UP NEXT',
-        later: 'LATER',
-        ch: 'CHANNEL {n}',
     },
 };

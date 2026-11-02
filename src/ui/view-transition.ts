@@ -1,7 +1,7 @@
 import { flushSync } from 'react-dom';
 import { setScreenWrap } from '../store/screen-transition';
 import { reduceMotionOn } from './settings-sync';
-import { tvCut, tvOn } from './tv-lab';
+import { tvCut } from './tv';
 
 /**
  * Nada teleporta (docs/planos/nada-teleporta.md) com View Transitions: a tela velha some enquanto a nova entra
@@ -55,9 +55,9 @@ export function run(apply: () => void, after?: () => void) {
 }
 
 export function startScreenTransitions() {
-    // ?lab=tv: o corte de TV no lugar do fade (sem animar, cai no fade de sempre)
+    // troca de tela é o corte de TV (ADR 0004); sem animar (Reduzir movimento, aba escondida), cai no `run`
     setScreenWrap((apply) => {
-        if (!(tvOn() && tvCut(apply))) void run(apply);
+        if (!tvCut(apply)) void run(apply);
     });
 }
 

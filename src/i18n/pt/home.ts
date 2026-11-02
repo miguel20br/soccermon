@@ -153,7 +153,7 @@ export const home = {
         arrives: 'Chega em {date}',
         backTo: 'Voltar pro {name}',
     },
-    /** Protótipo ?lab=tv (src/ui/tv-lab.ts): o canal, a faixa do programa e a grade do menu de modos. */
+    /** O letreiro de canal (src/ui/components/TvLayer.tsx): o bug e a faixa com o nome do programa. */
     tv: {
         channel: 'SMN',
         programs: {
@@ -184,11 +184,5 @@ export const home = {
             collection: 'Coleção',
             trophies: 'Sala de troféus',
         },
-        onAir: 'AO VIVO · KANTO',
-        grid: 'GRADE DE HOJE',
-        now: 'AGORA',
-        next: 'A SEGUIR',
-        later: 'MAIS TARDE',
-        ch: 'CANAL {n}',
     },
 };

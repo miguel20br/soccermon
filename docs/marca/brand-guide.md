@@ -279,6 +279,16 @@ muda pela galeria `?cards=1` com o ok do Miguel.
 - **Momento** (protótipo no `?lab=kit`, transição de momento): uma linha amarela desce na diagonal, do canto de cima
   à direita ao de baixo à esquerda, e revela um papel de parede com o logo numa placa; o papel sai da direita pra
   esquerda (~1,1 s). Só pra momento (começar a copa, entrar em quadra, título), nunca em troca de tela comum.
+- **Corte de TV** (padrão desde 0.9.37, `src/ui/tv.ts`): toda troca de tela, entrar e sair do menu de modos e tocar
+  numa aba da Home é uma faixa diagonal azul-noite com filete amarelo que varre da direita pra esquerda em 280 ms
+  (130 entrando, 150 saindo); a troca acontece com a tela coberta. Arrastar entre as abas da Home continua deslizando.
+  Com Reduzir movimento, fade.
+- **Letreiro de canal** (`TvLayer.tsx`, sempre ligado): o bug no canto de baixo à esquerda (símbolo + "SMN") e a faixa
+  amarela com o nome da tela, que sai do bug a cada troca e volta depois de ~2 s. Fica na linha livre mais baixa sem
+  botão nem texto embaixo; sem espaço, só o bug; sem espaço nem pra ele, some. Na partida vai pro topo à direita e diz
+  "AO VIVO" com a luz vermelha piscando. No menu de modos não aparece: a fatia do Modo Copa já diz "1 AO VIVO".
+- **Menu de modos com cara de TV**: as fatias do Smash numa moldura de tela com varredura fraca, cada modo um canal
+  (o número no quadradinho), o jogável com "AO VIVO" e os trancados com a faixa reta "EM BREVE 27/11".
 - Nada vai sozinho pra outra tela: o fim de jogo espera o toque em "Ver resultado".
 - Na partida (`src/game/`), o peso vem do impacto em 4 níveis (`punch()` no `MatchScene`), câmera lenta igual pra
   gol, trave e defesa, rastro do tipo na bola e flash no gol.

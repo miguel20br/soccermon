@@ -3,7 +3,7 @@
 // as telas, toca em cada aba, seletor e botão de abrir, e acusa o que APARECE, SOME ou PULA sem animação.
 //   node scripts/teleporte.mjs <base> [LxA]        (npm run teleporte -- http://localhost:8080)
 // Heurística (pode dar falso positivo): conta como animado o que tem animação/transição rodando nele ou num pai, ou
-// uma View Transition na tela. Sai com 1 se achou algo; a lista vai pro console. Ainda não roda no CI.
+// uma View Transition ou o corte de TV na tela. Sai com 1 se achou algo; a lista vai pro console. Ainda não roda no CI.
 const NPX_PLAYWRIGHT = '/home/bartolomeu/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs';
 const pw = await import(process.env.PLAYWRIGHT ?? 'playwright').catch(() => import(NPX_PLAYWRIGHT));
 const [base = 'http://localhost:8080', size = '390x844'] = process.argv.slice(2);
@@ -47,7 +47,9 @@ function watch() {
             .slice(0, 3)
             .map((c) => `.${c}`)
             .join('')}`;
+    // View Transition ou o corte de TV (src/ui/tv.ts) na tela: a troca acontece por baixo da faixa, não teleporta
     const vt = () =>
+        !!document.querySelector('.tv-cut') ||
         document.getAnimations().some((a) => String(a.effect?.pseudoElement ?? '').startsWith('::view-transition'));
     const moving = (el) => {
         // a caixa nova cujo conteúdo entra animado (ex.: .ht-wrap com o .ht-panel) também não teleporta

@@ -1,4 +1,4 @@
-/* Protótipo ?lab=tv (src/ui/tv-lab.ts): corte de TV, letreiro de canal e a grade de programação do menu de modos. */
+/* A transmissão (src/ui/tv.ts, padrão desde 0.9.37): corte de TV, letreiro de canal e o menu de modos com cara de TV. */
 
 /* ---------- o corte: a faixa diagonal na tinta do placar, com o filete amarelo nas duas bordas ---------- */
 .tv-cut {
@@ -35,6 +35,12 @@
     align-items: center;
     height: 30px;
     pointer-events: none;
+    animation: tv-row-in var(--dur-ui) var(--ease-out);
+}
+@keyframes tv-row-in {
+    from {
+        opacity: 0;
+    }
 }
 /* a partida: no topo à direita, na linha do símbolo */
 .tv-row.top {
@@ -114,153 +120,7 @@
     transition-duration: 280ms;
 }
 
-/* ---------- grade de programação (menu de modos) ---------- */
-.tv-grid {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 8px;
-    min-height: 0;
-    padding: 0 12px;
-}
-.tv-grid-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 6px 10px;
-    background: var(--bc-ink);
-    border: 3px solid var(--bc-edge);
-    border-top: 5px solid var(--yellow);
-    border-radius: 8px;
-    box-shadow: 0 3px 0 var(--bc-edge);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-.tv-grid-head .tv-bug {
-    height: 26px;
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-    background: none;
-}
-.tv-grid-head time {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 14px;
-    letter-spacing: 0;
-}
-.tv-rows {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 8px;
-    min-height: 0;
-}
-.tv-slot {
-    position: relative;
-    display: grid;
-    grid-template-columns: 74px 1fr;
-    flex: 1;
-    min-height: 74px;
-    padding: 0;
-    overflow: hidden;
-    background: var(--bc-ink);
-    border: 3px solid var(--bc-edge);
-    border-radius: 8px;
-    box-shadow: 0 3px 0 var(--bc-edge);
-    color: var(--text);
-    text-align: left;
-    cursor: pointer;
-    transition:
-        flex-grow 280ms var(--ease-out),
-        box-shadow 200ms var(--ease-out);
-}
-.tv-slot.on {
-    flex-grow: 2.4;
-    box-shadow:
-        inset 0 0 0 2px var(--blue),
-        0 3px 0 var(--bc-edge);
-}
-/* coluna do horário: AGORA em vermelho, os outros na tinta clara */
-.tv-time {
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: var(--bc-ink-2);
-    border-right: 3px solid var(--bc-edge);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-align: center;
-}
-.tv-time b {
-    padding: 2px 6px 1px;
-    border-radius: 4px;
-    background: var(--panel-2);
-    line-height: 14px;
-}
-.tv-slot-now .tv-time b {
-    background: var(--red-dark, var(--red));
-}
-.tv-time small {
-    color: var(--muted);
-    font-size: 10px;
-}
-.tv-show {
-    position: relative;
-    min-width: 0;
-    overflow: hidden;
-}
-.tv-show > .mm-sc {
-    position: absolute;
-    inset: 0;
-    opacity: 0.55;
-    transition: opacity 280ms var(--ease-out);
-}
-.tv-slot.on .tv-show > .mm-sc {
-    opacity: 1;
-}
-.tv-show-txt {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-}
-.tv-show-txt .mm-plate {
-    font-size: 18px;
-}
-.tv-show-more {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition:
-        grid-template-rows 280ms var(--ease-out),
-        opacity 200ms var(--ease-out);
-}
-.tv-show-more > span {
-    min-height: 0;
-    overflow: hidden;
-}
-.tv-slot.on .tv-show-more {
-    grid-template-rows: 1fr;
-    opacity: 1;
-}
-/* entram como as fatias (nada teleporta) */
-.tv-grid-head,
-.tv-slot {
-    animation: mm-in var(--dur-pop) var(--ease-pop) both;
-    animation-delay: calc(var(--n, 0) * 70ms);
-}
-
-/* ---------- menu de modos com cara de TV (ModeSlices tv): o Smash de sempre, mais limpo ---------- */
+/* ---------- menu de modos com cara de TV (ModeSlices): o Smash de sempre, mais limpo ---------- */
 /* a moldura da tela: a pilha ganha o aro escuro e as linhas de varredura bem fracas por cima */
 .mm-tvs .mm-c-stack {
     border-radius: 10px;
