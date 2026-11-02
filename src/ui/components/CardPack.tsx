@@ -247,7 +247,7 @@ export function CardPack({
  */
 export function PackArt({ look, label, type }: { look: PackLook; label?: string; type?: string }) {
     const style = type
-        ? ({ '--tc': TYPE_COLOR[type], '--ticon': `url(assets/types/${type.toLowerCase()}.png)` } as CSSProperties)
+        ? ({ '--tc': TYPE_COLOR[type], '--ticon': `url(/assets/types/${type.toLowerCase()}.png)` } as CSSProperties)
         : undefined;
     return (
         <span className={`cpack${look ? ` cpack-${look}` : ''}${type ? ' cpack-type' : ''}`} style={style} aria-hidden>

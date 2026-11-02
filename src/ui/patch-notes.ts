@@ -9,6 +9,12 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Ícone do pacote de tipo',
+        sections: [{ title: 'Conserto', lines: ['O ícone do tipo voltou a aparecer no pacote de tipo'] }],
+    },
+    {
         version: '0.9.32',
         date: '2026-11-02',
         title: 'Cara de jogo',
@@ -2172,6 +2178,12 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Type pack icon',
+        sections: [{ title: 'Fix', lines: ['The type icon shows up on type packs again'] }],
+    },
     {
         version: '0.9.32',
         date: '2026-11-02',

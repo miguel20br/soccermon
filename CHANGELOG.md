@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.32.1 · Ícone do pacote de tipo (2026-11-02)
+
+### Conserto
+- O ícone do tipo voltou a aparecer no pacote de tipo
+
 ## 0.9.32 · Cara de jogo (2026-11-02)
 
 ### Arena
