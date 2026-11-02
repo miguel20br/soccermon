@@ -533,6 +533,9 @@ export class MatchScene extends Phaser.Scene {
     private uiScale = 1;
     /** Quanto dos zooms dos lances vale (1 = tudo; a quadra grande do ?lab=hud já vem ampliada). */
     private zoomDamp = 1;
+    /** Câmera da quadra grande: quem conduz (px do mundo, null com a bola solta) e pra que lado o time da bola ataca. */
+    private camCarrier: { x: number; y: number } | null = null;
+    private camAttack = 1;
     private readonly labelWidths = new Map<string, number>();
     private unbind?: () => void;
     /** O jogador tocou em "Esperar" no golpe máximo (Match.tsx, `maxWaitNext`): sem câmera lenta até a tela soltar. */
@@ -926,6 +929,12 @@ export class MatchScene extends Phaser.Scene {
     focusOnScreen(): { x: number; y: number } {
         const d = this.cameras.main.panEffect.destination;
         return this.onScreen(d.x, d.y);
+    }
+
+    /** Quadra grande: quem conduz, na tela (null com a bola solta), e o lado do ataque do último time com a bola (1 = direita). */
+    camSubject(): { carrier: { x: number; y: number } | null; attack: number } {
+        const c = this.camCarrier;
+        return { carrier: c ? this.onScreen(c.x, c.y) : null, attack: this.camAttack };
     }
 
     /** ?lab=hud: os zooms dos lances valem só `k` (a quadra já vem ampliada; somados, mostravam 2 ou 3 Pokémon). */
@@ -1687,6 +1696,9 @@ export class MatchScene extends Phaser.Scene {
         }
         d.owner = carrier;
         d.tick = this.playTick;
+        this.camCarrier = carrier >= 0 ? (pxOf[carrier] ?? null) : null;
+        // o time 0 ataca pra direita o jogo todo (attackSign do motor)
+        if (near.owner >= 0) this.camAttack = this.players[near.owner]?.team === 1 ? -1 : 1;
         // bola na mão do goleiro que acabou de mergulhar acompanha o mergulho
         const held = near.owner >= 0 ? diveOf.get(near.owner) : undefined;
         if (held) {
