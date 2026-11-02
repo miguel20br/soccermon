@@ -37,6 +37,28 @@
     flex-direction: column;
     overflow: hidden;
 }
+/* palco que abre a página (Resultado, Campeão): o palco vem primeiro e os detalhes seguem embaixo, rolando */
+.app:has(> .k-stage.k-stage-rola) {
+    height: auto;
+    overflow: visible;
+}
+.k-stage.k-stage-rola,
+.k-stage-rola > .k-stage-body {
+    flex: none;
+    overflow: visible;
+}
+/* PC: o palco fica do tamanho da 1ª tela, pro zoom de caber (useFitZoom) ainda ter altura pra medir. 128px = respiro
+   de cima (16) + barra do logo (40) + vão (16) + uma ponta de 56 dos detalhes aparecendo embaixo (convida a rolar),
+   na mesma unidade do --vh (desconta o zoom) */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .k-stage.k-stage-rola {
+        height: calc(100 * var(--vh) - 128px);
+        overflow: hidden;
+    }
+    .k-stage-rola > .k-stage-body {
+        flex: 1 1 0;
+    }
+}
 .k-stage-scene {
     position: absolute;
     inset: 0;
