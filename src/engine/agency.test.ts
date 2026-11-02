@@ -179,12 +179,13 @@ describe('agência do técnico (experimento)', () => {
             // gastou a barra toda (o próprio chute já começa a encher de novo)
             expect(maxCharge(r.events, 0, hit.tick).level).toBe(0);
 
-            // fora da hora certa (o capitão sem a bola): fica armada um instante; se não vier a hora, nada gasta
+            // fora da hora certa (o capitão sem a bola): fica armada até o próximo chute dele da zona (motor 19); se não
+            // vier, nada gasta
             const early = firstCue(P, seed, (live) => live.state.ball.owner !== capOf(live).idx);
             const r2 = runP([{ tick: early!, team: 0, kind: 'max' }], seed);
             const hit2 = of(r2.events, 'max')[0];
-            if (hit2) expect(hit2.tick - early!).toBeLessThanOrEqual(AGENCY.maxArmTicks);
-            else expect(maxCharge(r2.events, 0, early! + AGENCY.maxArmTicks + 1).level).toBeGreaterThanOrEqual(1);
+            if (hit2) expect(of(r2.events, 'shot').find((e) => e.tick === hit2.tick)?.by).toBe(hit2.by);
+            else expect(maxCharge(r2.events, 0).level).toBeGreaterThanOrEqual(1);
 
             // o toque um pouco antes de acender (a tela acende MAX_CUE_EARLY = 6 ticks antes) não se perde: sai no
             // próximo chute da zona

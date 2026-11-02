@@ -546,3 +546,48 @@ describe('defesa do golpe máximo: nunca encaixa (Miguel, 01/11/2026)', () => {
         }
     });
 });
+
+describe('golpe de linha armado até o chute (motor 19)', () => {
+    /** Lance montado sem nada armado, com a barra no N1 e a bola com o goleiro do time (o capitão sem ela). */
+    function armed() {
+        const s = setup();
+        s.teams[0].agency.max = null;
+        addSaves(s, 10);
+        s.ball.owner = 0;
+        s.ball.pos = s.players[0].pos;
+        applyAgencyOrder(s, { tick: s.tick, team: 0, kind: 'max', q: 2 });
+        expect(s.teams[0].agency.max).toMatchObject({ idx: 4, level: 1 });
+        return s;
+    }
+    const addSaves = (s: MatchState, n: number) => {
+        for (let i = 0; i < n; i++)
+            s.events.push({ tick: s.tick, half: 1, minute: 0, type: 'save', by: 0, shooter: 9, caught: true });
+    };
+
+    it('a ordem longe do chute sai no próximo chute da zona, bem depois de maxArmTicks, no nível da barra', () => {
+        const s = armed();
+        // o Duelo carimba a ordem 2 s à frente: até o motor 18 ela sumia em `maxArmTicks`
+        idle(s, AGENCY.maxArmTicks + 50);
+        expect(s.teams[0].agency.max).toMatchObject({ idx: 4 });
+        expect(of(s, 'max')).toHaveLength(0);
+        // a barra encheu armada: sai no N2
+        addSaves(s, 10);
+        s.ball.owner = 4;
+        s.ball.pos = v(30.3, 10);
+        const cmds = IDLE_ALL(s);
+        cmds[4] = { type: 'shoot', target: v(40, 10), power: 1 };
+        step(s, cmds);
+        expect(of(s, 'max').at(-1)).toMatchObject({ phase: 'hit', by: 4, level: 2 });
+        expect(s.teams[0].agency.max).toBeNull();
+    });
+
+    it('o intervalo cancela o armado sem gastar a barra', () => {
+        const s = armed();
+        s.time = s.cfg.halfSeconds;
+        for (let i = 0; i < 2000 && s.phase !== 'halftime'; i++) idle(s, 1);
+        expect(s.phase).toBe('halftime');
+        expect(s.teams[0].agency.max).toBeNull();
+        expect(of(s, 'maxArm').map((e) => e.on)).toEqual([true, false]);
+        expect(maxCharge(s.events, 0, s.tick).level).toBe(1);
+    });
+});
