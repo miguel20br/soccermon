@@ -15,6 +15,16 @@
     src: url("/fonts/Galmuri14.woff2") format("woff2");
     font-display: swap;
 }
+/* A Galmuri14 não tem Bold: peso acima de 400 nela virava negrito sintético (o navegador engrossa o pixel na marra).
+   Sem síntese ela sai sempre no desenho dela; quem precisa de peso usa a Galmuri11 Bold ou o contorno (.cb-num). As
+   cartas (.pc2) e as vagas do draft (.dp-chip) ficam como estão: carta só muda pela galeria ?cards=1 */
+:root {
+    font-synthesis-weight: none;
+}
+.pc2,
+.dp-chip {
+    font-synthesis-weight: auto;
+}
 /* O acento da maiúscula da Galmuri (Í, Â, É) passa 0,2em da ascendente da fonte: numa linha com reticências
    (overflow: hidden) e line-height curto, ele era cortado ("Rota Indigo", "Icaro"). Folga em cima só pro desenho; a
    caixa fica no mesmo lugar. Texto novo que corta com reticências e pode ter maiúscula acentuada entra aqui. */

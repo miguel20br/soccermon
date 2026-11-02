@@ -102,11 +102,18 @@
     min-width: 0;
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 400;
     line-height: 1.2;
     color: var(--text);
     letter-spacing: 1px;
+}
+/* o título de tela é um só: 22 px no celular e 26 px no PC, como o letreiro dos ambientes (.rm-head h2) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .bc-screenhead h1,
+    .bc-screenhead h2 {
+        font-size: 26px;
+    }
 }
 
 /* ---------- título de painel e de prateleira: texto simples (a placa fica só no título da tela, uma por tela) ----------
