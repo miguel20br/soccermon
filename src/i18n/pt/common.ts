@@ -8,6 +8,7 @@ export const common = {
         skip: 'Pular',
         tapToContinue: 'Toque pra continuar',
         howItWorks: 'Como funciona',
+        seeAll: 'Ver tudo',
         prev: 'Anterior',
         next: 'Próximo',
         close: 'Fechar',

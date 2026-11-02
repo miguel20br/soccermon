@@ -91,6 +91,8 @@ export const home = {
         sedeTitle: 'Sede do clube',
         soonArcade: 'Arcade',
         ligaSoon: 'Liga · abre em {d}d',
+        /** O letreiro da Liga no muro da Arena, embaixo do nome. */
+        ligaSign: 'abre em {d}d',
         /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
         labGo: 'Abrir a Pokédex',
         labSeen: '{n} de {total} vistos',
