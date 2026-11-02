@@ -1924,6 +1924,10 @@ button,
 .reward-pick3 {
     --k-pick-reserve: 330px;
 }
+/* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
+.reward-bar {
+    zoom: var(--k-big, 1);
+}
 /* celular deitado: o título sai (a fase está na barra da copa) e as cartas ficam com a altura que sobra */
 @media (orientation: landscape) and (max-height: 520px) {
     .reward-stage .bc-screenhead {
@@ -4856,6 +4860,27 @@ button,
     }
     .result-stage .rh-score b {
         font-size: 30px;
+    }
+}
+/* PC (regra de 1440, stage.css): a fala do líder e o time lado a lado, pra sobrar altura e o palco crescer */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .result-stage .rh:has(> .leader-quote) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row dense;
+        column-gap: 24px;
+        align-items: center;
+    }
+    .result-stage .rh:has(> .leader-quote) > * {
+        grid-column: 1 / -1;
+    }
+    .result-stage .rh > .leader-quote {
+        grid-column: 1;
+        justify-self: end;
+        width: min(100%, 440px);
+    }
+    .result-stage .rh:has(> .leader-quote) > .rh-squad {
+        grid-column: 2;
+        justify-self: start;
     }
 }
 /* o título em 3 batidas num palco que não rola (cara-de-jogo.md, decisão 5); o relatório mora na sheet */

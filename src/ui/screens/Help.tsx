@@ -10,6 +10,7 @@ import { FEEDBACK_URL } from '../links';
 import '../help/help.css';
 import { backTarget } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
+import { SheetRow } from '../kit/controls';
 
 /** `**negrito**` → <b>. */
 function rich(text: string): ReactNode {
@@ -83,8 +84,7 @@ export function Help() {
 
     const sections = index.sections.filter((s) => !terms.length || match(s.text));
     const faq = index.faq.filter((f) => !terms.length || match(f.text));
-    const searching = terms.length > 0;
-    const nothing = searching && !sections.length && !faq.length;
+    const nothing = terms.length > 0 && !sections.length && !faq.length;
 
     return (
         <div className="menu-screen help-screen">
@@ -162,31 +162,31 @@ export function Help() {
                 </div>
             )}
 
+            {/* cada tema é uma linha que abre a sheet (cara-de-jogo.md: acordeão só dentro de sheet) */}
             {sections.length > 0 && (
                 <div className="help-list">
                     {sections.map(({ section }) => (
-                        <details
-                            key={`${section.id}${searching ? '-q' : ''}`}
-                            className="panel help-section"
-                            open={searching || undefined}
-                        >
-                            <summary>
+                        <SheetRow
+                            key={section.id}
+                            className="help-row"
+                            icon={
                                 <img
                                     className="pixel help-sprite"
                                     src={`assets/cards/${section.sprite}.gif`}
                                     alt=""
                                     loading="lazy"
                                 />
-                                <span>{section.title}</span>
-                                <HudIcon kind="down" className="help-caret" />
-                            </summary>
+                            }
+                            label={section.title}
+                            title={section.title}
+                        >
                             <div className="help-body">
                                 {section.blocks.map((b, i) => (
                                     // biome-ignore lint/suspicious/noArrayIndexKey: blocos fixos da seção
                                     <Block key={i} block={b} />
                                 ))}
                             </div>
-                        </details>
+                        </SheetRow>
                     ))}
                 </div>
             )}
@@ -198,22 +198,14 @@ export function Help() {
                     </h2>
                     <div className="help-list">
                         {faq.map(({ faq: f }) => (
-                            <details
-                                key={`${f.q}${searching ? '-q' : ''}`}
-                                className="panel help-section faq"
-                                open={searching || undefined}
-                            >
-                                <summary>
-                                    <span>{f.q}</span>
-                                    <HudIcon kind="down" className="help-caret" />
-                                </summary>
+                            <SheetRow key={f.q} className="help-row faq" label={f.q} title={f.q}>
                                 <div className="help-body">
                                     {f.a.map((b, i) => (
                                         // biome-ignore lint/suspicious/noArrayIndexKey: blocos fixos da resposta
                                         <Block key={i} block={b} />
                                     ))}
                                 </div>
-                            </details>
+                            </SheetRow>
                         ))}
                     </div>
                 </section>

@@ -626,54 +626,6 @@
 .bc-result {
     flex: 1;
 }
-/* faixa grande do fim de jogo por cima da quadra */
-.final-banner {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 6;
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    max-width: calc(100% - 24px);
-    padding: 8px 20px;
-    border: 3px solid #f4f1e6;
-    border-radius: 10px;
-    background: rgb(14 20 48 / 94%);
-    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
-    pointer-events: none;
-    text-align: center;
-    translate: -50% -50%;
-    animation: final-in 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
-}
-.final-banner b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(24px, calc(6 * var(--vw)), 44px);
-    line-height: 1.05;
-    color: #f4f1e6;
-}
-.final-banner span {
-    font-size: clamp(12px, calc(2.2 * var(--vw)), 16px);
-    overflow-wrap: anywhere;
-}
-.final-banner.win {
-    border-color: var(--yellow);
-}
-.final-banner.win b {
-    color: var(--yellow);
-}
-.final-banner.loss {
-    border-color: #e94b4b;
-}
-@keyframes final-in {
-    from {
-        opacity: 0;
-        scale: 0.8;
-    }
-}
-:root[data-reduce-motion="true"] .final-banner {
-    animation: none;
-}
 .bc-speed-ask {
     flex: 1;
     min-width: 0;

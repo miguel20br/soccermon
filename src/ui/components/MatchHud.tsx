@@ -636,40 +636,6 @@ export function finalOutcome(score: [number, number], shootout: [number, number]
     return diff > 0 ? 'win' : diff < 0 ? 'loss' : 'draw';
 }
 
-/** Faixa grande do fim de jogo por cima da quadra: VITÓRIA!/DERROTA/EMPATE e o placar. */
-export function FinalBanner({
-    score,
-    shootout,
-    side,
-    names,
-}: {
-    score: [number, number];
-    shootout: [number, number] | null;
-    side: 0 | 1;
-    names: [string, string];
-}) {
-    const { t } = useT();
-    const outcome = finalOutcome(score, shootout, side);
-    return (
-        <div className={`final-banner ${outcome}`} role="status">
-            <b>{t(`match.final.${outcome}`)}</b>
-            <span>
-                {names[side]} {score[side]} x {score[side === 0 ? 1 : 0]}
-                {shootout && ` (${t('match.penalties', { a: shootout[side], b: shootout[side === 0 ? 1 : 0] })})`}
-            </span>
-        </div>
-    );
-}
-
-/** Botão do fim de jogo: enche enquanto conta os segundos pra ir sozinho; segurado, vira o botão de sempre. */
-export function ResultButton({ label, onGo }: { label: string; onGo: () => void }) {
-    return (
-        <button type="button" className="btn confirm bc-result" onClick={onGo}>
-            {label}
-        </button>
-    );
-}
-
 /** Narração completa (aba Lances; no celular sem abas ela recolhe). */
 export function MatchFeed({ lines, colors }: { lines: (CommentLine & { id: number })[]; colors: [number, number] }) {
     const { t } = useT();

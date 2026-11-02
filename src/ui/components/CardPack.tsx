@@ -152,7 +152,7 @@ export function CardPack({
             el.style.removeProperty('--fy');
         }
         const s = stage.getBoundingClientRect();
-        const z = uiZoom();
+        const z = uiZoom(stage);
         // horário de cada carta: depois da tampa, uma de cada vez (a grande segura mais)
         const base: number[] = [];
         let at = lead;

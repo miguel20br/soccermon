@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
-import { beatsAt, beatTimes, CASCADE_MAX_MS, stepIndex, walkoutIndex } from './beats';
+import { beatsAt, beatTimes, CASCADE_MAX_MS, dayNumber, stepIndex, walkoutBeats, walkoutIndex } from './beats';
 
 describe('cascata', () => {
     it('soma os intervalos e encolhe pra caber no teto', () => {
@@ -31,6 +31,14 @@ describe('walkout', () => {
         // edição especial passa na frente da nota
         const shiny = { ...mk(19), shiny: true };
         expect(walkoutIndex([gold, weak[0], shiny])).toBe(2);
+    });
+    it('3 batidas no primeiro do dia, 1 do segundo em diante', () => {
+        const today = dayNumber(new Date(2026, 10, 2, 23, 59));
+        expect(today).toBe(20261102);
+        expect(walkoutBeats(null, today)).toBe(3);
+        expect(walkoutBeats(today, today)).toBe(1);
+        // virou o dia: volta inteiro
+        expect(walkoutBeats(today, dayNumber(new Date(2026, 10, 3, 0, 1)))).toBe(3);
     });
 });
 

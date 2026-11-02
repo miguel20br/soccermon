@@ -54,6 +54,33 @@
     gap: 12px;
 }
 
+/*
+ * Regra de 1440 (cara-de-jogo.md, padrão 6): no PC o palco e o momento crescem com a tela, como a Home. O conteúdo
+ * ganha `zoom` (--k-big) e o --vw/--vh de dentro desconta o zoom, pra quem mede pela tela continuar certo (medida em
+ * JS: `uiZoom(el)`). Celular, tablet e deitado ficam em 1.
+ */
+@media (min-width: 1100px) and (min-height: 720px) {
+    :root {
+        --k-big: 1.2;
+    }
+}
+@media (min-width: 1250px) and (min-height: 840px) {
+    :root {
+        --k-big: 1.35;
+        /* carta da escolha 1 de 3 e título do momento: um pouco maiores que o teto do celular */
+        --k-card-max: 230px;
+        --k-title-max: 80px;
+    }
+}
+.k-stage-body,
+.k-moment-body {
+    /* --k-fit: o quanto o zoom desce pra caber (useFitZoom, Stage.tsx) */
+    --k-z: calc(var(--k-big, 1) * var(--k-fit, 1));
+    zoom: var(--k-z);
+    --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-z));
+    --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-z));
+}
+
 /* ---------- momento: overlay com o fundo da marca e os raios ---------- */
 .k-moment {
     position: fixed;
@@ -111,7 +138,7 @@
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: clamp(34px, calc(10 * var(--vw)), 64px);
+    font-size: clamp(34px, calc(10 * var(--vw)), var(--k-title-max, 64px));
     line-height: 1;
     letter-spacing: 1px;
     color: var(--yellow);
@@ -454,7 +481,7 @@
     /* a carta (FutCard) mede tudo pela --fut-w: um terço da largura que sobra, no máximo o tamanho normal */
     /* e não passa da altura: --k-pick-reserve = o que a tela ocupa em volta das cartas (barra, título, botões) */
     --k-card-w: min(
-        190px,
+        var(--k-card-max, 190px),
         calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
         calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
     );
