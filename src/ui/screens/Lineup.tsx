@@ -30,6 +30,7 @@ import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst, FORMATION_ICON } from '../formation-info';
 import { useFirstCup } from '../help/Tip';
+import { Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import '../vestiario.css';
 import { useClubColor } from '../profile/club';
@@ -655,32 +656,35 @@ export function LineupEditor({
                     </p>
                 </section>
                 <section>
-                    <label className="corner-taker">
+                    <div className="corner-taker">
                         <h3>{t('team.lineup.cornerTaker')}</h3>
-                        <select
+                        <Stepper
+                            label={t('team.lineup.cornerTaker')}
                             value={cornerTakerUid ?? ''}
                             disabled={locked}
-                            onChange={(e) => onCorner({ cornerTakerUid: e.target.value || null })}
-                        >
-                            <option value="">
-                                {t('team.lineup.cornerAuto', {
-                                    name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                })}
-                            </option>
-                            {cornerField.map((f) => (
-                                <option key={f.inst.uid} value={f.inst.uid}>
-                                    {t('team.lineup.cornerTakerOpt', {
+                            wrap
+                            options={[
+                                {
+                                    value: '',
+                                    label: t('team.lineup.cornerAuto', {
+                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                    }),
+                                },
+                                ...cornerField.map((f) => ({
+                                    value: f.inst.uid,
+                                    label: t('team.lineup.cornerTakerOpt', {
                                         name: viewInstance(f.inst).displayName,
                                         pos: d.common.pos[f.role],
                                         n: Math.round(f.passing),
-                                    })}
-                                </option>
-                            ))}
-                            {chosenTaker && takerOff && (
-                                <option value={chosenTaker.uid}>{viewInstance(chosenTaker).displayName}</option>
-                            )}
-                        </select>
-                    </label>
+                                    }),
+                                })),
+                                ...(chosenTaker && takerOff
+                                    ? [{ value: chosenTaker.uid, label: viewInstance(chosenTaker).displayName }]
+                                    : []),
+                            ]}
+                            onChange={(uid) => onCorner({ cornerTakerUid: uid || null })}
+                        />
+                    </div>
                     {chosenTaker && takerOff && (
                         <p className="tactic-desc">
                             {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}

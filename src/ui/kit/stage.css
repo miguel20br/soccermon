@@ -609,3 +609,9 @@
 .cpack-stage:has(> .k-pick3) .cpack {
     width: min(calc(var(--fut-w) * 1.08), calc(92cqh * 63 / 88));
 }
+
+/* o seletor no lugar do <select> e do slider, dentro das linhas de sempre (escanteio, prancheta, volume, faixa) */
+:is(.corner-taker, .pr-formation, .volume-row, .pf-field) > .k-stepper {
+    flex: 1 1 200px;
+    width: 100%;
+}
