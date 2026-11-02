@@ -1,4 +1,12 @@
-import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    type CSSProperties,
+    type ReactNode,
+    type RefObject,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -130,8 +138,8 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown) {
 }
 
 /**
- * O time em miniatura em cima das 3 cartas: as vagas (titulares e banco) com quem já entrou e a da vez acesa. Só
- * mostra; o botão em volta abre o time inteiro numa sheet.
+ * O time em miniatura junto das 3 cartas: uma quadrinha deitada (o gol à esquerda) com cada vaga no lugar da
+ * formação, quem já entrou e a da vez acesa, e o banco ao lado. Só mostra; o botão em volta abre o time inteiro.
  */
 export function DraftStrip({
     run,
@@ -144,33 +152,37 @@ export function DraftStrip({
     stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
 }) {
     const { t, d } = useT();
-    const roles = FORMATIONS[run.formation].slots;
-    const chips: { ref: SlotRef; uid: string; label: string }[] = [
-        ...run.lineup.map((uid, index) => ({
-            ref: { zone: 'lineup', index } as SlotRef,
-            uid,
-            label: d.team.board.slot[roles[index]],
-        })),
-        ...run.bench.map((uid, index) => ({
-            ref: { zone: 'bench', index } as SlotRef,
-            uid,
-            label: t('common.ui.bench'),
-        })),
-    ];
+    const f = FORMATIONS[run.formation];
+    const chip = (ref: SlotRef, uid: string, label: string, style?: CSSProperties) => {
+        const inst = uid ? byUid.get(uid) : undefined;
+        return (
+            <span
+                key={`${ref.zone}-${ref.index}`}
+                className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)}`}
+                style={style}
+            >
+                {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : label}
+            </span>
+        );
+    };
     return (
         <span className="dp-strip" aria-hidden="true">
-            {chips.map(({ ref, uid, label }) => {
-                const inst = uid ? byUid.get(uid) : undefined;
-                return (
-                    <span
-                        key={`${ref.zone}-${ref.index}`}
-                        className={`dp-chip ${inst ? 'filled' : 'empty'} ${stateOf(ref, uid)}`}
-                    >
-                        {inst ? <img className="pixel" src={cardSprite(inst)} alt="" /> : <i />}
-                        <span>{label}</span>
-                    </span>
-                );
-            })}
+            <span className="dp-court">
+                {run.lineup.map((uid, index) => {
+                    // a quadra da escalação deitada: o fundo (y) vira a coluna e o lado (x) vira uma de 3 linhas
+                    const [x, y] = f.ui[index];
+                    const col = Math.min(1, Math.max(0, (90 - y) / 80));
+                    const row = x < 35 ? 0 : x > 65 ? 2 : 1;
+                    return chip({ zone: 'lineup', index }, uid, d.common.posShort[f.slots[index]], {
+                        '--col': col,
+                        '--row': row,
+                    } as CSSProperties);
+                })}
+            </span>
+            <span className="dp-bench">
+                <small>{t('common.ui.bench')}</small>
+                {run.bench.map((uid, index) => chip({ zone: 'bench', index }, uid, ''))}
+            </span>
         </span>
     );
 }
