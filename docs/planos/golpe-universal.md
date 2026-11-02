@@ -196,3 +196,7 @@ movimento": nada gira nem pisca.
 impacto a -10 dB na linha 10 (1 s, o chute da cena, `N3_STINGER_KICK_MS`); a v1 ficava entre -16 e -12 sem contraste.
 Na cena a faixa quase some (`DUCK_N3`, ~-22 dB e 450 Hz; a virada do toque é calada) e volta de uma vez no chute. N1, N2 e
 a bicuda tocam o som no fim da carga (o chute na tela) e a faixa volta na virada do toque (max-beat.ts), sem ficar abafada.
+
+### Decidido com o Miguel (02/11/2026)
+
+"Por mim perfeito do 1 ao 3": defesa de golpe máximo 35% na trave e o resto pra escanteio, counter (bicuda) sempre que a condição vale; sem zoom no lance do golpe deitado e no PC; textos "DEVOLVEU!" e "Espalmou na trave!/pra escanteio!". Stinger v2: ouvindo.
