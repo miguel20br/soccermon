@@ -300,10 +300,15 @@
 .draft-board {
     overflow: hidden;
 }
-/* a quadra no tamanho natural; o useFitBoard (Draft.tsx) encolhe com zoom até caber */
+/* a quadra no tamanho natural; o useFitBoard (Draft.tsx) encolhe com zoom até caber. A prancheta ao lado das cartas
+   (.dp-fit) é a mesma, sempre no tamanho natural (a largura dela não pode depender da caixa que o zoom mede) */
 .draft-board .formation-board {
     flex: none;
     width: min(100%, 420px);
+}
+.dp-fit .formation-board {
+    flex: none;
+    width: 420px;
 }
 .draft-board-foot {
     justify-content: center;
@@ -312,7 +317,7 @@
 }
 /* tela baixa (320x568, deitado): o banco ao lado da quadra */
 @media (max-height: 760px) {
-    .draft-board .formation-board {
+    :is(.draft-board, .dp-fit) .formation-board {
         display: grid;
         grid-template-columns: auto auto;
         align-items: center;
@@ -321,56 +326,66 @@
         width: auto;
     }
     /* tamanho natural; o zoom do useFitBoard encolhe tudo junto (as vagas não se encavalam) */
-    .draft-board .formation-board .court {
+    :is(.draft-board, .dp-fit) .formation-board .court {
         width: 260px;
     }
-    .draft-board .formation-board .bench {
+    :is(.draft-board, .dp-fit) .formation-board .bench {
         flex-direction: column;
         margin-top: 0;
     }
-    .draft-board .formation-board > :not(.court, .bench) {
+    :is(.draft-board, .dp-fit) .formation-board > :not(.court, .bench) {
         grid-column: 1 / -1;
     }
 }
 
-/* o time em miniatura em cima das cartas (tocar abre a sheet com a quadra) */
-.dp-strip-btn {
-    all: unset;
+/* o time junto das cartas (tocar abre a sheet com a quadra): no celular em pé uma faixa de mini cartas em cima
+   delas; deitado e no PC, a prancheta do passo das vagas ao lado (lá embaixo) */
+.dp-team {
+    position: relative;
     box-sizing: border-box;
     flex: none;
     display: flex;
-    align-items: center;
-    gap: 6px;
     width: min(100%, 560px);
-    padding: 6px;
+    padding: 6px 30px 6px 6px;
     background: var(--panel);
     border: 2px solid var(--line);
     border-radius: 8px;
-    cursor: pointer;
     transition: transform var(--dur-solta) var(--ease-pop);
-    /* as vagas medem pela largura do botão (cqi), pra quadrinha não virar quadrado */
+    /* as mini cartas medem pela largura (cqi) */
     container-type: inline-size;
 }
-.dp-strip-btn:active {
+.dp-team:has(> .dp-open:active) {
     transform: translateY(2px);
     transition-duration: var(--dur-toque);
 }
-.dp-strip-btn:focus-visible {
+/* o botão cobre o time todo; a seta no canto diz que abre */
+.dp-open {
+    all: unset;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 6px;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+}
+.dp-open:focus-visible {
     outline: 3px solid var(--yellow);
     outline-offset: 2px;
 }
-.dp-strip-btn > .hud-icon {
-    flex: none;
-    color: var(--muted);
+.dp-fit {
+    display: none;
 }
-/* o time em mini cartas (o visual das vagas da escalação, styles.css .sc): os 5 titulares na ordem da formação
-   numa faixa de quadra e o banco ao lado, numa linha só. A carta mede pela largura do botão (cqi) e não passa da
-   altura que sobra embaixo das cartas (--dp-h) */
+/* a faixa: os 5 titulares na ordem da formação numa faixa de quadra e o banco ao lado, mini cartas com o visual das
+   vagas da escalação (styles.css .sc). A carta mede pela largura (cqi) e não passa da altura que sobra (--dp-h) */
 .draft-pick {
     --dp-h: clamp(48px, calc((100 * var(--vh) - 560px) / 3), 80px);
 }
 .dp-strip {
-    --dp-w: min(calc((100cqi - 64px) / var(--dp-cols, 7)), calc(var(--dp-h) * 0.75));
+    --dp-w: min(calc((100cqi - 40px) / var(--dp-cols, 7)), calc(var(--dp-h) * 0.75));
     flex: 1;
     min-width: 0;
     display: flex;
@@ -455,7 +470,7 @@
     box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
 }
 
-/* sobra altura (celular alto, deitado, PC): o banco embaixo dos titulares, 5 cartas por linha e maiores */
+/* celular alto: o banco embaixo dos titulares, 5 cartas por linha e maiores */
 @media (orientation: portrait) and (min-height: 760px) {
     .dp-strip {
         --dp-cols: 5;
@@ -515,63 +530,87 @@
         font-size: 11px;
     }
 }
-/* deitado e no PC: a quadrinha vai pro lado das cartas (elas ficam com a altura toda) */
-@media (orientation: landscape) and (max-height: 520px), (min-width: 1100px) {
+@property --dp-room {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 720px;
+}
+/* deitado e no PC: a prancheta do passo das vagas (as mesmas regras de .draft-board lá em cima: banco embaixo, ou ao
+   lado em tela baixa) do lado das cartas, com a altura toda; o useFitBoard (Draft.tsx) encolhe com zoom até caber.
+   A coluna dela mede pela altura do palco (cqh) e as cartas, pelo que sobra da largura (cqi) */
+@media (orientation: landscape) {
     .draft-pick {
-        flex-flow: row wrap;
-        align-content: center;
-        column-gap: 12px;
+        /* largura da prancheta encolhida: a proporção dela (banco embaixo) vezes a altura, até 38% da largura */
+        --dp-team-w: max(150px, min(calc(100cqh * var(--dp-aspect, 0.62)), 38cqi));
+        container-type: size;
+        display: grid;
+        grid-template-columns: auto auto;
+        grid-template-rows: auto minmax(0, 1fr);
+        justify-content: center;
+        align-items: center;
+        column-gap: var(--dp-gap, 16px);
+        row-gap: 0;
     }
-    .draft-pick {
-        --dp-h: clamp(48px, calc((100 * var(--vh) - 240px) / 2.4), 96px);
+    .draft-pick > .dp-team {
+        grid-row: 2;
+        align-self: stretch;
+        width: var(--dp-team-w);
+        min-height: 0;
+        padding: 0;
+        background: none;
+        border: 0;
     }
-    /* ocupa o que sobra ao lado das cartas (nunca menos que 250 px, nem mais que os 5 titulares pedem) */
-    .draft-pick > .dp-strip-btn {
-        flex: 1 1 0;
-        min-width: 250px;
-        max-width: calc(5 * 0.75 * var(--dp-h) + 70px);
+    .draft-pick > .cpack-stage {
+        grid-row: 2;
     }
-    .dp-strip {
-        --dp-cols: 5;
-        flex-direction: column;
-    }
-    /* Duelo: o que o rival tirou numa linha em cima das duas */
+    /* Duelo: o que o rival tirou numa linha em cima dos dois */
     .draft-pick > .duel-draft-news {
-        flex-basis: 100%;
-        order: -1;
+        grid-column: 1 / -1;
+        grid-row: 1;
+        justify-content: center;
+        margin-bottom: 6px;
+    }
+    .dp-team > .dp-strip {
+        display: none;
+    }
+    .dp-fit {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .dp-open {
+        align-items: flex-end;
+        padding: 0;
+    }
+    /* a largura que sobra pras cartas, resolvida aqui (registrada em @property): a carta mede de novo dentro da
+       .option, que é outro container, e lá o cqi seria o da coluna */
+    .draft-pick .draft-pick3 {
+        --dp-room: calc(100cqi - var(--dp-team-w) - var(--dp-gap, 16px));
+        --k-card-w: min(
+            var(--k-card-max, 190px),
+            calc((min(var(--dp-room), 720px) - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
+            calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
+        );
     }
 }
-/* PC: sobra altura ao lado das cartas; o time em 3 colunas (titulares 3 + 2, o banco embaixo) e cartas maiores */
-@media (min-width: 1100px) {
+/* tela baixa: o banco vai pro lado da quadra (.draft-board lá em cima), a prancheta fica mais larga que alta */
+@media (orientation: landscape) and (max-height: 760px) {
     .draft-pick {
-        --dp-h: clamp(64px, calc((100 * var(--vh) - 260px) / 3.2), 150px);
-    }
-    /* Duelo: o cabeçalho com o relógio e a linha do que o rival tirou comem mais altura */
-    .duel-draft-stage .draft-pick {
-        --dp-h: clamp(64px, calc((100 * var(--vh) - 320px) / 3.2), 150px);
-    }
-    .draft-pick > .dp-strip-btn {
-        max-width: calc(3 * 0.75 * var(--dp-h) + 70px);
-    }
-    .dp-strip {
-        --dp-w: min(calc((100cqi - 50px) / 3), calc(var(--dp-h) * 0.75));
-    }
-    .dp-court {
-        box-sizing: content-box;
-        width: calc(3 * var(--dp-w) + 6px);
-        flex-wrap: wrap;
-        justify-content: center;
+        --dp-aspect: 1.12;
     }
 }
 /* celular baixo (320x640): vagas menores, pra as cartas caberem inteiras */
 @media (orientation: portrait) and (max-height: 700px) {
-    .dp-strip-btn {
-        padding: 4px 6px;
+    .dp-team {
+        padding: 4px 30px 4px 6px;
     }
     .draft-pick {
         --dp-h: 48px;
     }
-    /* o pacote fechado mede pela altura que sobra embaixo da quadrinha (a carta com "Ativa" cabe inteira) */
+    /* o pacote fechado mede pela altura que sobra embaixo da faixa do time (a carta com "Ativa" cabe inteira) */
     .draft-pick .cpack-stage:has(> .k-pick3) {
         min-height: min(300px, calc(100 * var(--vh) - 400px));
     }

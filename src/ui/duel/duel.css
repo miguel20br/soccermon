@@ -797,7 +797,7 @@ button.sb-title:hover {
     }
 }
 /* celular baixo (320x640): a regra da linha cinza sai (o "?" das regras já explicou na sala), relógio mais baixo
-   (a quadrinha encolhe em draft.css), pra as cartas caberem inteiras */
+   (a faixa do time encolhe em draft.css), pra as cartas caberem inteiras */
 @media (orientation: portrait) and (max-height: 700px) {
     .duel-draft-stage .draft-title p {
         display: none;
