@@ -1,5 +1,29 @@
 # Novidades
 
+## 0.9.33 · Partida de TV (2026-11-02)
+
+### Partida
+- No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo
+- Tática, Trocar, Tempo e Lances abrem cada um a sua janela. A página não rola mais
+- Narração como legenda de TV embaixo da quadra
+- No 4x e no 8x a quadra fica entre as duas torcidas
+- Intervalo com placar de TV e placa de substituição
+
+### Copa
+- Escalação com placas na parede: o cartaz do rival, o quadro da tática e a prancheta da formação
+- Mercado com o ₽ contando na entrada e as cartas em prateleiras
+- Treino da Rota numa quadra: toque em quem treina ou deite no colchonete
+- Evento com a caixa de diálogo e Grupo com placar de TV
+
+### Duelo e Arena
+- Draft do Duelo com a mesma cara do draft da Copa, sem rolar
+- Duelo, Liga e Copa do Dia cabem com o celular deitado
+
+### Coleção e avisos
+- Pokédex com seletor no lugar das pílulas, e o Prof. Carvalho na Pokédex vazia
+- Treinador desbloqueado aparece num selo na volta pro menu, não no meio da comemoração
+- A dica da formação não cobre mais as palavras
+
 ## 0.9.32.1 · Ícone do pacote de tipo (2026-11-02)
 
 ### Conserto
