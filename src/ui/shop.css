@@ -800,8 +800,9 @@ button.sp-slot:hover {
         grid-row: 2;
         min-height: 0;
     }
+    /* sobra um vão pra seta da prateleira: na largura toda ela cobria o preço do contrato */
     .shop-sponsor-rail .shop-offer {
-        width: calc(100% - 4px);
+        width: calc(100% - 30px);
     }
     .shop-sponsor-rail .sp-fam {
         display: none;
