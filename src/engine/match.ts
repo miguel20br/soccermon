@@ -550,8 +550,7 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
         t.screens.mist = Math.max(0, t.screens.mist - dt);
     }
 
-    if (s.phase === 'play')
-        for (const t of [0, 1] as const) if (s.tick === s.teams[t].setup.demoBicudaAt) demoBicuda(s, t);
+    if (s.phase === 'play') for (const t of [0, 1] as const) if (s.teams[t].setup.demoBicudaAt) demoBicuda(s, t);
     if (s.phase !== 'play') {
         updatePhase(s, dt, commands);
         return;
@@ -3701,6 +3700,9 @@ function updateShowdown(s: MatchState, dt: number) {
  * armados no N3 (toque perfeito) e o chute; o goleiro capitão de `team` no meio do gol alcança e segura.
  */
 function demoBicuda(s: MatchState, team: 0 | 1) {
+    // o 1º tick com a bola rolando a partir do pedido (uma vez: o chute do rival solta o 'max' dele)
+    const at = s.teams[team].setup.demoBicudaAt ?? 0;
+    if (s.tick < at || s.tick > at + 400 || s.events.some((e) => e.type === 'max' && e.tick >= at)) return;
     const gk = s.players.find((p) => p.team === team && p.captain && p.role === 'GK');
     const atk = s.players.find((p) => p.team !== team && p.captain && p.role !== 'GK');
     if (!gk || !atk) return;

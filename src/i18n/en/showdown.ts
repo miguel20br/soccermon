@@ -3,6 +3,8 @@ import type { showdown as pt, ShowdownScript, ShowdownSolo } from '../pt/showdow
 /** Big boot duel lines (same shape as the PT file: `s` = shooter, `g` = keeper; the last line is the keeper's shout). */
 export const showdown: typeof pt = {
     tag: 'Big boot duel',
+    goal: 'BIG BOOT!',
+    goalSub: 'goal to goal',
     pairs: {
         '6-4': [
             ['s', 'Charmander? You stopped my fire?'],

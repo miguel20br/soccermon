@@ -17,6 +17,9 @@ export interface ShowdownSolo {
 
 export const showdown = {
     tag: 'Duelo da bicuda',
+    /** A 2ª faixa do gol do duelo (o nome do goleiro vai antes do `goalSub`). */
+    goal: 'BICUDA!',
+    goalSub: 'de gol a gol',
     pairs: {
         // Charizard × Charmander
         '6-4': [

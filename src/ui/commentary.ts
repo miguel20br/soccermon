@@ -189,6 +189,8 @@ export class Commentator {
                 if (e.xg > 0.3) return line(say(c.oneOnOne, { w }), 'big', this.teams[e.by]);
                 return line(this.pick(c.shots, { w }), 'normal', this.teams[e.by]);
             }
+            case 'showdown':
+                return line(say(c.showdown, { x: this.n(e.gk), w: this.n(e.shooter) }), 'big', this.teams[e.gk]);
             case 'save':
                 if (this.bicudas.has(`${e.tick}:${e.by}`)) return null;
                 return line(

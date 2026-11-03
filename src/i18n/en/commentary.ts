@@ -96,6 +96,7 @@ export const commentary: typeof pt = {
     oneOnOne: '{w} one-on-one with the keeper... shoots!',
     shots: ['{w} tries from distance!', '{w} shoots!', 'Shot by {w}!', '{w} goes for goal!'],
     saveCaught: ['{x} holds on tight!', 'Safe hands from {x}.'],
+    showdown: "{x} caught {w}'s max move!",
     saveParried: ['WHAT A SAVE by {x}! Parried!', '{x} flies and tips it wide!'],
     post: ['OFF THE POST!', 'Smashed off the woodwork!', 'Hits the post! So unlucky!'],
     wide: ['Wide.', 'Way off target.', 'Just past the post!'],
