@@ -107,6 +107,7 @@ export const ultimate = {
         pending: 'Pendentes',
         pendingState: 'Repetidas {c} · Prêmios {p}',
         resolve: 'Resolver',
+        lastDay: 'Último dia da temporada: resgate {n} prêmios antes da virada',
         levelChip: '{level} · +{n}',
         change: 'Nível',
     },
@@ -168,6 +169,9 @@ export const ultimate = {
         fullTitle: 'Pendentes cheio',
         fullText: '{n} pendentes. Resolva antes de abrir outro pacote.',
         fullGo: 'Ver Pendentes',
+        lastDayTitle: 'Último dia da temporada',
+        lastDayText: 'Tem {n} prêmios esperando. Na virada a temporada zera Fichas e pacotes: resgate agora.',
+        lastDayGo: 'Resgatar',
         prize: { objective: 'Objetivo', pass: 'Marco {n} do passe', gym: 'Insígnia: {name}' },
         blocked: {
             locked: 'A do Clube está trancada',

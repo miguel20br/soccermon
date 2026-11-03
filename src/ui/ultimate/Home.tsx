@@ -21,7 +21,7 @@ import {
     PASS_MARKS,
     STARTERS,
 } from '../../store/ultimate/rules';
-import { seasonAt } from '../../store/ultimate/season';
+import { lastDayPrizes, seasonAt } from '../../store/ultimate/season';
 import {
     canPlay,
     gymReady,
@@ -153,6 +153,7 @@ export function Home({
     const season = seasonAt(now);
     const repeats = u.pending.filter((p) => p.kind === 'card').length;
     const prizes = u.pending.length - repeats;
+    const lastDay = lastDayPrizes(now, u.pending);
 
     return (
         <div className="ut-home">
@@ -160,6 +161,7 @@ export function Home({
                 <button type="button" className="panel bc-surface bc-stripe ut-block ut-b-pending" onClick={onPending}>
                     <BlockHead icon="chest" title={`${t('ultimate.home.pending')} · ${u.pending.length}`} />
                     <small>{t('ultimate.home.pendingState', { c: repeats, p: prizes })}</small>
+                    {lastDay > 0 && <strong className="ut-b-last">{t('ultimate.home.lastDay', { n: lastDay })}</strong>}
                     <span className="btn small confirm ut-b-cta">{t('ultimate.home.resolve')}</span>
                 </button>
             )}

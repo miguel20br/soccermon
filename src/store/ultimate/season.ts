@@ -22,6 +22,12 @@ import {
 export const seasonAt = (now: number): Season | null =>
     SEASONS.reduce<Season | null>((b, s) => (now >= s.start ? s : b), null);
 export const seasonN = (now: number) => seasonAt(now)?.n ?? 0;
+/** Último dia: as 24 h antes do `end` da temporada. Devolve quantos prêmios esperam o Resgatar (0 = sem aviso). */
+export function lastDayPrizes(now: number, pending: readonly { kind: string }[]): number {
+    const s = seasonAt(now);
+    if (!s || now < s.end - 86_400_000 || now >= s.end) return 0;
+    return pending.filter((p) => p.kind === 'prize').length;
+}
 /** A próxima temporada a começar (a contagem da prévia). */
 export const nextSeason = (now: number): Season | null => SEASONS.find((s) => s.start > now) ?? null;
 
