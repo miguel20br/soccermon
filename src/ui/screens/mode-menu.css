@@ -1452,6 +1452,11 @@ button.mm-card,
     .mm-play b {
         font-size: 22px;
     }
+    /* o texto chega mais perto do corte diagonal (a faixa do EM BREVE embaixo ainda cabe antes dele) */
+    .mm-slice-txt,
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
+        right: calc(var(--cut) * 0.6 + 10px);
+    }
 }
 /* o JOGAR fica no polegar; com um trancado aberto, o "Chega em…" toma o lugar dele (os dois na mesma célula) */
 .mm-c-cta {

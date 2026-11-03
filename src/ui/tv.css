@@ -157,3 +157,17 @@
         font-size: 13px;
     }
 }
+/* celular deitado: as fatias trancadas fechadas têm ~170 px e a faixa cortava a data ("27/1"); perde o canal e encolhe */
+@media (orientation: landscape) and (max-height: 560px) {
+    .mm-tvs .tv-soon > i {
+        display: none;
+    }
+    .mm-tvs .mm-slice .tv-soon .mm-soon > span {
+        padding: 0 4px;
+        font-size: 10px;
+    }
+    .mm-tvs .mm-slice .tv-soon .mm-soon > b {
+        padding: 0 5px;
+        font-size: 13px;
+    }
+}
