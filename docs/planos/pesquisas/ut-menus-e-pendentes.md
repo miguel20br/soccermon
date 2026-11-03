@@ -450,3 +450,10 @@ Ordem dentro de B (cada etapa jogável na prévia):
 - [Pokémon Zone, Trade updates (julho de 2025)](https://www.pokemon-zone.com/articles/trade-updates-july-2025/)
 - [SnapVault, coleção do Marvel Snap](https://www.snapvault.app/news/snapvault-collection-and-wishlist-guide)
 - [Clash Royale Wiki, Cards](https://clashroyale.fandom.com/wiki/Cards)
+
+## Decidido com o Miguel (02/11/2026)
+
+"Tudo como recomendado": opção B antes de 27/11 e Transferências contra a IA em dezembro; abas Início · Elenco · Clube · Loja · Metas;
+JOGAR como botão gordo no Início; carta nova vai direto pro Clube e só a repetida fica pendente; venda rápida paga os pontos de
+pacote de hoje (1/3/8); pode vender carta do Clube fora do time, com confirmação; prêmios com Resgatar (resgate sozinho na virada
+da temporada); teto de 30 pendentes antes de abrir pacote; "Trocar a repetida pela do Clube"; banco continua com 2.

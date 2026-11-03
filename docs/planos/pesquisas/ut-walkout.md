@@ -395,3 +395,11 @@ movimento sem gambiarra. Dá pra entregar em 2 passos: o A primeiro (já sobe o 
 - [TCG Pocket: luz, estalo e fundo na carta rara (GameWith)](https://gamewith.net/pokemon-tcg-pocket/49002)
 - [TCG Pocket: rasgo segue o dedo (Serebii)](https://serebii.net/tcgpocket/preview/)
 - [TCG Pocket: god packs (Pocket Tactics)](https://www.pockettactics.com/pokemon-tcg-pocket/god-packs)
+
+## Decidido com o Miguel (02/11/2026)
+
+"Tudo como recomendado": níveis raro (Ouro 75–84) ~4 s, muito raro (Ouro 85+, Shiny e Evento) ~7 s, especial (Ícone, Destaque) ~11 s;
+Pular depois de 1 s; encolhe do 2º raro e do 3º muito raro no dia, especial nunca; upgrade em metade dos especiais; silhueta com
+"Quem é esse Pokémon?"; o mesmo walkout no pacote da Copa. Motor de animação: ele quer ver como fica no Phaser e, se ficar mais
+bonito, fica no Phaser. Por isso o nível especial é feito nas duas versões (React/CSS e Phaser) atrás de laboratório, com vídeo
+lado a lado, antes de escolher.
