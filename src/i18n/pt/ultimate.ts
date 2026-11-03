@@ -226,5 +226,7 @@ export const ultimate = {
         none: 'Nenhuma Evolução em andamento',
         noCards: 'Nenhuma carta pode começar agora',
     },
+    /** Walkout (ut-walkout.md): a silhueta e o laboratório do Phaser (?lab=walkout&motor=phaser). */
+    walkout: { who: 'Quem é esse Pokémon?', open: 'Abrir pacote', again: 'De novo' },
     match: { stage: 'Time Ultimate', stageShort: 'ULTIMATE' },
 };

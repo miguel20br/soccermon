@@ -72,7 +72,7 @@ export function MomentStage({
 }
 
 /** A insígnia do ginásio do tipo (a 3ª batida do walkout); tipo sem ginásio mostra "Kanto". */
-const BADGE_OF: Partial<Record<string, TrainerId>> = {
+export const BADGE_OF: Partial<Record<string, TrainerId>> = {
     Rock: 'brock',
     Water: 'misty',
     Electric: 'ltsurge',
