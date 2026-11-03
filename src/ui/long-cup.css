@@ -1084,8 +1084,14 @@
         align-items: center;
         box-shadow: none;
     }
+    /* o "Continuar" embaixo do texto: ao lado (invisível até o texto acabar), ele espremia a fala em ~110 px */
     .cm-side .cm-story .room-dialog {
         align-self: stretch;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cm-side .cm-story .room-dialog-go {
+        align-self: flex-end;
     }
     /* pixel art em escala inteira: o treinador a 2x, o da ficha e o capitão no tamanho do sprite */
     .cm-side .cm-story-who {
@@ -1156,6 +1162,13 @@
     .cm-side .cm-sheet,
     .cm-side .cm-story {
         order: -1;
+    }
+    /* o treinador a 1x e a fala menor: a 2x ele empurrava a fala pra baixo da tela */
+    .cm-side .cm-story-who {
+        width: 80px;
+    }
+    .cm-side .cm-story .room-dialog-text {
+        font-size: 13px;
     }
 }
 /* celular deitado: painel mais estreito e a janela do mapa com a altura da tela */
