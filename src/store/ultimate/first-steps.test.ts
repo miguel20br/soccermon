@@ -10,6 +10,7 @@ import {
     momentGoal,
     newUltimate,
     openPack,
+    redeem,
     startEvo,
     type UltimateSave,
     ultimateOf,
@@ -60,8 +61,9 @@ describe('Primeiros passos', () => {
         const f1 = u.fichas;
         u = finishMatch(live(u), { score: [2, 0], shootout: null }, MON);
         expect(u.last?.firsts).toEqual(['win']);
-        // a vitória ainda fecha o objetivo do dia "vença 1" (+40) e "jogue 2" (+30)
-        expect(u.fichas).toBe(f1 + FICHAS.normal.win + pay('win') + 40 + 30);
+        // a vitória ainda fecha o objetivo do dia "vença 1" (+40) e "jogue 2" (+30), que esperam o Resgatar
+        expect(u.fichas).toBe(f1 + FICHAS.normal.win + pay('win'));
+        expect(redeem(u).fichas).toBe(f1 + FICHAS.normal.win + pay('win') + 40 + 30);
         u = finishMatch(live(u), { score: [2, 0], shootout: null }, MON);
         expect(u.last?.firsts).toBeUndefined();
     });

@@ -14,7 +14,6 @@ import {
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
-    REPEAT_POINTS,
     RIVAL_TOLERANCE,
     STARTERS,
     TEAM_SIZE,
@@ -30,6 +29,7 @@ import {
     nextPackIn,
     openPack,
     packMetals,
+    redeem,
     refill,
     rollPack,
     setMember,
@@ -98,20 +98,21 @@ describe('pacote Mini', () => {
         }
     });
 
-    it('repetida não entra: vira pontos de pacote pelo metal', () => {
+    it('repetida não entra no Clube nem vira ponto sozinha: fica nos Pendentes', () => {
         let u = newUltimate('rep', T0);
         const first = rollPack(u);
         // a coleção já tem as mesmas cartas (mesma espécie e edição) e o time está cheio
         u = { ...u, cards: [...first, ...rollPack({ ...u, opened: 99 })], team: { ...u.team, order: [] } };
         u.cards.push(...rollPack({ ...u, opened: 98 }));
         const res = openPack({ ...u, opened: 0 }, T0)!;
-        const want = res.pack.cards.map((c) =>
-            isRepeat(u.cards, c) ? REPEAT_POINTS[metalOf(viewInstance(c).overall)] : 0,
+        const want = res.pack.cards.map((c) => isRepeat(u.cards, c));
+        expect(res.pack.repeat).toEqual(want);
+        expect(want.some(Boolean)).toBe(true);
+        expect(res.u.packPoints).toBe(OPEN_POINTS);
+        expect(res.u.cards.length).toBe(u.cards.length + want.filter((r) => !r).length);
+        expect(res.u.pending.map((p) => p.kind === 'card' && p.card.uid)).toEqual(
+            res.pack.cards.filter((_, i) => want[i]).map((c) => c.uid),
         );
-        expect(res.pack.points).toEqual(want);
-        expect(want.some((p) => p > 0)).toBe(true);
-        expect(res.u.packPoints).toBe(OPEN_POINTS + want.reduce((s, p) => s + p, 0));
-        expect(res.u.cards.length).toBe(u.cards.length + want.filter((p) => p === 0).length);
     });
 
     it('mesma semente, mesmo pacote', () => {
@@ -186,7 +187,7 @@ describe('time e partida', () => {
                     engine: ENGINE_VERSION,
                 };
                 const out = finishMatch({ ...u, live, fichas: 7 }, { score, shootout: null }, T0);
-                // + o que os objetivos do dia pagaram (vencer 1 paga Fichas na hora)
+                // + o que os objetivos do dia pagaram (vencer 1 paga Fichas no Resgatar)
                 const bonus = (out.last?.objectives ?? []).reduce(
                     (s, id) => s + OBJECTIVES.find((o) => o.id === id)!.fichas,
                     0,
@@ -196,7 +197,8 @@ describe('time e partida', () => {
                     (s, id) => s + FIRST_STEPS.find((f) => f.id === id)!.fichas,
                     0,
                 );
-                expect(out.fichas).toBe(7 + FICHAS[lv][outcome] + bonus + first);
+                expect(out.fichas).toBe(7 + FICHAS[lv][outcome] + first);
+                expect(redeem(out).fichas).toBe(7 + FICHAS[lv][outcome] + bonus + first);
                 expect(out.last).toMatchObject({ outcome, level: lv, fichas: FICHAS[lv][outcome], seen: false });
                 expect(out.live).toBeNull();
                 expect(out.played).toBe(1);

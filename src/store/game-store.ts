@@ -132,13 +132,18 @@ import {
     openPack,
     type PackKind,
     type PackOpen,
+    quickSell,
+    redeem,
     rollSeason,
     setMember,
     startEvo,
+    swapPending,
+    toggleLock,
     type UltimateLive,
     type UltimateSave,
     type UltimateTeam,
     ultimateOf,
+    undoSell,
 } from './ultimate/ultimate';
 
 /** Edição especial só quando as cartas novas estão no jogo. */
@@ -486,6 +491,13 @@ export interface GameStore {
     ultimateEvolve(uid: string): { from: PokemonInstance; card: PokemonInstance } | null;
     /** O painel do prêmio já foi visto. */
     ultimateSeen(): void;
+    /** Pendentes e Clube (src/store/ultimate): venda rápida, desfazer, trocar a repetida, resgatar, trancar. */
+    ultimateQuickSell(uids: readonly string[]): void;
+    ultimateUndoSell(): void;
+    ultimateSwap(uid: string): void;
+    /** Sem `uid`, resgata todos os prêmios. */
+    ultimateRedeem(uid?: string): void;
+    ultimateLock(uid: string): void;
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
@@ -1245,7 +1257,7 @@ export const useGame = create<GameStore>()(
                         // Álbum: as especiais novas (Shiny, Ícone) contam como as da Copa
                         binder: binderAdd(
                             getState().binder,
-                            r.pack.cards.filter((_, i) => !r.pack.points[i]),
+                            r.pack.cards.filter((_, i) => !r.pack.repeat[i]),
                             { from: 'ultimate', at: now },
                         ),
                     });
@@ -1324,6 +1336,11 @@ export const useGame = create<GameStore>()(
                     );
                     setState({ dex, ultimate: finishMatch(getState().ultimate, m, utNow()) });
                 },
+                ultimateQuickSell: (uids) => setState({ ultimate: quickSell(getState().ultimate, uids) }),
+                ultimateUndoSell: () => setState({ ultimate: undoSell(getState().ultimate) }),
+                ultimateSwap: (uid) => setState({ ultimate: swapPending(getState().ultimate, uid) }),
+                ultimateRedeem: (uid) => setState({ ultimate: redeem(getState().ultimate, uid) }),
+                ultimateLock: (uid) => setState({ ultimate: toggleLock(getState().ultimate, uid) }),
                 ultimateSeen: () => {
                     const u = getState().ultimate;
                     if (u.last && !u.last.seen) setState({ ultimate: { ...u, last: { ...u.last, seen: true } } });

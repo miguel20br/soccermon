@@ -22,8 +22,13 @@ export const FLOOR_METAL: Metal = 'prata';
 export const SHINY_ODDS = 1 / 64;
 export const ICON_ODDS = 1 / 100;
 
-/** Repetida (mesma espécie e mesma edição que você já tem) não entra: vira pontos de pacote. */
+/**
+ * Venda rápida (a repetida dos Pendentes, ou carta do Clube fora do time e destrancada): pontos de pacote pelo metal.
+ * Repetida não entra no Clube: fica em Pendentes até você vender ou trocar (decidido em 02/11/2026).
+ */
 export const REPEAT_POINTS: Record<Metal, number> = { bronze: 1, prata: 3, ouro: 8 };
+/** Pendentes (repetidas e prêmios a resgatar): cheio, o pacote pede pra resolver antes de abrir. */
+export const PENDING_MAX = 30;
 
 /** Time: 5 titulares + 2 no banco. Até ter o time cheio, o pacote não repete espécie que você já tem. */
 export const TEAM_SIZE = 7;

@@ -31,6 +31,7 @@ import {
     newUltimate,
     openPack,
     packsReady,
+    redeem,
     startEvo,
     type UltimateSave,
     ultimateRival,
@@ -145,8 +146,15 @@ describe('objetivos diários e semanais (relógio injetado)', () => {
         const goals = OBJECTIVES.find((o) => o.id === 'd-goals')!;
         const out = finishMatch(u, { score: [goals.goal, 0], shootout: null }, MON);
         expect(out.last?.objectives).toEqual(expect.arrayContaining(['d-win', 'd-goals']));
-        expect(out.extraPacks).toBe(u.extraPacks + goals.packs);
-        expect(packsReady(out, MON)).toBe(packsReady(u, MON) + goals.packs);
+        // o prêmio espera nos Pendentes até o Resgatar
+        expect(out.extraPacks).toBe(u.extraPacks);
+        expect(out.pending).toContainEqual(
+            expect.objectContaining({ kind: 'prize', ref: 'd-goals', packs: goals.packs }),
+        );
+        const got = redeem(out);
+        expect(got.extraPacks).toBe(u.extraPacks + goals.packs);
+        expect(packsReady(got, MON)).toBe(packsReady(u, MON) + goals.packs);
+        expect(got.pending.filter((p) => p.kind === 'prize')).toEqual([]);
     });
 });
 

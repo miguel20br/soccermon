@@ -36,6 +36,7 @@ import {
     packMetals,
     passCardUid,
     payPass,
+    redeem,
     rollPack,
     rollSeason,
     type UltimateSave,
@@ -217,9 +218,12 @@ describe('passe grátis da temporada', () => {
         const grown = all.cards.find((c) => c.uid === passCardUid(1))!;
         expect(grown.evolved).toBe(PASS_MARKS / 5);
         expect(viewInstance(grown).overall).toBeGreaterThan(viewInstance(card!).overall);
-        expect(all.fichas).toBeGreaterThan(one.fichas);
-        expect(all.extraPacks).toBeGreaterThan(one.extraPacks);
-        expect(all.bigPacks).toBeGreaterThan(one.bigPacks);
+        // Fichas e pacotes dos marcos esperam o Resgatar; a carta entra na hora
+        expect(all.fichas).toBe(one.fichas);
+        const got = redeem(all);
+        expect(got.fichas).toBeGreaterThan(one.fichas);
+        expect(got.extraPacks).toBeGreaterThan(one.extraPacks);
+        expect(got.bigPacks).toBeGreaterThan(one.bigPacks);
         expect(all.cards.filter((c) => c.speciesId === PASS_CARD && c.uid === passCardUid(1))).toHaveLength(1);
     });
 
@@ -260,7 +264,7 @@ describe('desafios dos líderes', () => {
         expect(gym.last?.fichas).toBe(FICHAS.dificil.win * GYM_FICHAS_MULT);
         expect(gym.gyms).toEqual(['brock']);
         expect(gym.last).toMatchObject({ gym: 'brock', badge: true });
-        expect(gym.bigPacks - won.bigPacks).toBe(GYM_FIRST_BIG);
+        expect(redeem(gym).bigPacks - redeem(won).bigPacks).toBe(GYM_FIRST_BIG);
         // de novo: Fichas sim, insígnia e pacote não
         const again = finishMatch(live(gym, 'brock'), { score: [1, 0], shootout: null }, IN_T1 + DAY);
         expect(again.gyms).toEqual(['brock']);
@@ -296,11 +300,11 @@ describe('Pacote Grande', () => {
         const week = OBJECTIVES.filter((o) => o.period === 'week');
         expect(week.every((o) => o.packs === 0)).toBe(true);
         expect(week.reduce((s, o) => s + o.big, 0)).toBeGreaterThan(0);
-        // 12 partidas na semana: o w-play paga o Grande na hora
+        // 12 partidas na semana: o w-play paga o Grande (no Resgatar)
         let u = { ...ready(), season: 1 };
         for (let i = 0; i < 12; i++) u = play(u, IN_T1 + Math.floor(i / 4) * DAY, [0, 1]);
         expect(u.objectives.done).toContain('w-play');
-        expect(u.bigPacks).toBeGreaterThanOrEqual(OBJECTIVES.find((o) => o.id === 'w-play')!.big);
+        expect(redeem(u).bigPacks).toBeGreaterThanOrEqual(OBJECTIVES.find((o) => o.id === 'w-play')!.big);
     });
 });
 

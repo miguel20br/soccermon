@@ -52,6 +52,7 @@ import {
     PACK_SIZE,
     PASS_CARD,
     PASS_MARKS,
+    PENDING_MAX,
     PICK_PRICE,
     passReward,
     REPEAT_POINTS,
@@ -132,6 +133,31 @@ export interface UtLegacy {
     ornaments: string[];
 }
 
+/**
+ * Pendente (os "Itens não atribuídos" do FC; ut-menus-e-pendentes.md, opção B): a repetida do pacote (o Clube guarda
+ * uma de cada) ou um prêmio de objetivo, passe ou líder que espera o Resgatar.
+ */
+export type UtPending =
+    | { kind: 'card'; card: PokemonInstance }
+    | {
+          kind: 'prize';
+          uid: string;
+          from: 'objective' | 'pass' | 'gym';
+          /** id do objetivo, número do marco ou id do líder. */
+          ref: string;
+          fichas: number;
+          packs: number;
+          big: number;
+      };
+export type UtPrize = Extract<UtPending, { kind: 'prize' }>;
+export const pendingUid = (p: UtPending) => (p.kind === 'card' ? p.card.uid : p.uid);
+
+/** A última venda rápida (uma carta, ou as repetidas de uma vez): o Desfazer devolve e cobra os pontos de volta. */
+export interface UtSold {
+    card: PokemonInstance;
+    points: number;
+}
+
 export interface UltimateSave {
     /** A temporada deste save (SEASONS); 0 = a prévia antes da Temporada 1. Virou a temporada, zera (`rollSeason`). */
     season: number;
@@ -178,6 +204,12 @@ export interface UltimateSave {
     legacy: UtLegacy;
     /** Primeiros passos já cumpridos (e pagos) nesta temporada. */
     firsts: FirstStepId[];
+    /** Repetidas e prêmios esperando você (até PENDING_MAX antes de abrir pacote). */
+    pending: UtPending[];
+    /** Cartas trancadas: não saem na venda rápida. */
+    locked: string[];
+    /** A última venda rápida, pro Desfazer. */
+    sold: UtSold[];
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -215,6 +247,9 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     gyms: [],
     legacy: { seasons: [], ornaments: [] },
     firsts: [],
+    pending: [],
+    locked: [],
+    sold: [],
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -318,7 +353,46 @@ export function ultimateOf(raw: unknown): UltimateSave {
             : [],
         legacy: legacyOf(raw.legacy),
         firsts: FIRST_STEPS.map((f) => f.id).filter((id) => strs(raw.firsts).includes(id)),
+        pending: pendingOf(raw.pending, uids),
+        locked: [...new Set(strs(raw.locked).filter((x) => uids.has(x)))],
+        sold: Array.isArray(raw.sold)
+            ? raw.sold.flatMap((x) => (isObj(x) && cardOk(x.card) ? [{ card: x.card, points: num(x.points) }] : []))
+            : [],
     };
+}
+
+const PRIZE_FROM = ['objective', 'pass', 'gym'] as const;
+/** Pendentes do save: carta de verdade (que não está no Clube) e prêmio com número; uid repetido entra uma vez. */
+function pendingOf(raw: unknown, clubUids: Set<string>): UtPending[] {
+    if (!Array.isArray(raw)) return [];
+    const seen = new Set(clubUids);
+    return raw.flatMap((p): UtPending[] => {
+        if (!isObj(p)) return [];
+        if (p.kind === 'card' && cardOk(p.card) && !seen.has(p.card.uid)) {
+            seen.add(p.card.uid);
+            return [{ kind: 'card', card: p.card }];
+        }
+        if (
+            p.kind === 'prize' &&
+            typeof p.uid === 'string' &&
+            !seen.has(p.uid) &&
+            PRIZE_FROM.includes(p.from as UtPrize['from'])
+        ) {
+            seen.add(p.uid);
+            return [
+                {
+                    kind: 'prize',
+                    uid: p.uid,
+                    from: p.from as UtPrize['from'],
+                    ref: typeof p.ref === 'string' ? p.ref : '',
+                    fichas: num(p.fichas),
+                    packs: num(p.packs),
+                    big: num(p.big),
+                },
+            ];
+        }
+        return [];
+    });
 }
 
 const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
@@ -512,9 +586,12 @@ export const isRepeat = (cards: readonly PokemonInstance[], c: PokemonInstance) 
 
 export interface PackOpen {
     cards: PokemonInstance[];
-    /** Quantos pontos de pacote cada carta deu (0 = carta nova, entrou na coleção). */
-    points: number[];
+    /** Repetida: foi pros Pendentes (as outras entraram no Clube). */
+    repeat: boolean[];
 }
+
+/** Pendentes cheio: o pacote não abre até você resolver. */
+export const pendingFull = (u: Pick<UltimateSave, 'pending'>) => u.pending.length >= PENDING_MAX;
 
 /** Pacotes Mini pra abrir agora: os grátis do relógio + os ganhos. */
 export const packsReady = (u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks'>, now: number) =>
@@ -523,7 +600,8 @@ export const packsReady = (u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPack
 /**
  * Abre um pacote. Mini: o grátis primeiro, pra o relógio voltar a contar; depois os ganhos. Grande: só os ganhos. As
  * novas entram na coleção e enchem as vagas vazias do time, cada uma na vaga da posição dela (nunca tiram ninguém);
- * repetida vira pontos de pacote, e todo pacote aberto dá OPEN_POINTS. null = sem pacote.
+ * repetida vai pros Pendentes (nada vira ponto sozinho), e todo pacote aberto dá OPEN_POINTS. null = sem pacote, ou
+ * Pendentes cheio.
  */
 export function openPack(
     u: UltimateSave,
@@ -533,15 +611,19 @@ export function openPack(
     const clock = refill(u, now);
     const big = kind === 'big';
     const free = !big && clock.packs >= 1;
-    if (big ? u.bigPacks < 1 : !free && u.extraPacks < 1) return null;
+    if ((big ? u.bigPacks < 1 : !free && u.extraPacks < 1) || pendingFull(u)) return null;
     const cards = rollPack(u, kind, now);
-    const points = cards.map((c) => (isRepeat(u.cards, c) ? REPEAT_POINTS[metalOf(viewInstance(c).overall)] : 0));
-    const fresh = cards.filter((_, i) => points[i] === 0);
+    const repeat = cards.map((c) => isRepeat(u.cards, c));
+    const fresh = cards.filter((_, i) => !repeat[i]);
     return {
         u: firstStep(
             {
                 ...addCards(u, fresh),
-                packPoints: u.packPoints + OPEN_POINTS + points.reduce((s, p) => s + p, 0),
+                pending: [
+                    ...u.pending,
+                    ...cards.filter((_, i) => repeat[i]).map((card): UtPending => ({ kind: 'card', card })),
+                ],
+                packPoints: u.packPoints + OPEN_POINTS,
                 packs: free ? clock.packs - 1 : clock.packs,
                 packAt: clock.packAt,
                 extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
@@ -550,7 +632,7 @@ export function openPack(
             },
             'pack',
         ),
-        pack: { cards, points },
+        pack: { cards, repeat },
     };
 }
 
@@ -788,12 +870,15 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
         event && !u.legacy.ornaments.includes(event.id) && event.objectives.every((o) => obj.g.done.includes(o.id))
             ? event.id
             : undefined;
-    const sum = (k: 'fichas' | 'packs' | 'big') => obj.completed.reduce((s, o) => s + o[k], 0);
+    // prêmios (objetivos e a insígnia) esperam o Resgatar; as Fichas da partida pagam na hora
+    const prizes = [
+        ...obj.completed.map((o) => prizeOf('objective', o.id, o, `obj-${o.id}-${u.played}`)),
+        ...(badge && gym ? [prizeOf('gym', gym, { fichas: 0, packs: 0, big: GYM_FIRST_BIG }, `gym-${gym}`)] : []),
+    ].filter((p): p is UtPrize => !!p);
     const paid: UltimateSave = {
         ...u,
-        fichas: u.fichas + fichas + sum('fichas'),
-        extraPacks: u.extraPacks + sum('packs'),
-        bigPacks: u.bigPacks + sum('big') + (badge ? GYM_FIRST_BIG : 0),
+        fichas: u.fichas + fichas,
+        pending: [...u.pending, ...prizes],
         objectives: obj.g,
         evos: countEvos(u.evos, players, mvp?.uid ?? null),
         plays,
@@ -830,6 +915,135 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
         },
     };
 }
+
+/** Prêmio pendente (null = não paga nada). */
+function prizeOf(
+    from: UtPrize['from'],
+    ref: string,
+    r: { fichas: number; packs: number; big: number },
+    uid: string,
+): UtPrize | null {
+    return r.fichas + r.packs + r.big > 0
+        ? { kind: 'prize', uid, from, ref, fichas: r.fichas, packs: r.packs, big: r.big }
+        : null;
+}
+
+/** Resgata o prêmio `uid` (sem `uid`, todos): as Fichas vão pra carteira e os pacotes pra Loja. */
+export function redeem(u: UltimateSave, uid?: string): UltimateSave {
+    const take = u.pending.filter((p): p is UtPrize => p.kind === 'prize' && (uid === undefined || p.uid === uid));
+    if (!take.length) return u;
+    const sum = (k: 'fichas' | 'packs' | 'big') => take.reduce((s, p) => s + p[k], 0);
+    return {
+        ...u,
+        fichas: u.fichas + sum('fichas'),
+        extraPacks: u.extraPacks + sum('packs'),
+        bigPacks: u.bigPacks + sum('big'),
+        pending: u.pending.filter((p) => !take.includes(p as UtPrize)),
+    };
+}
+
+/** Pontos da venda rápida da carta (pelo metal). */
+export const sellPoints = (c: PokemonInstance) => REPEAT_POINTS[metalOf(viewInstance(c).overall)];
+
+/** A carta `uid` pode ir na venda rápida: repetida dos Pendentes, ou do Clube fora do time, destrancada e sem Evolução. */
+export function canSell(u: UltimateSave, uid: string): boolean {
+    if (u.pending.some((p) => p.kind === 'card' && p.card.uid === uid)) return true;
+    return (
+        u.cards.some((c) => c.uid === uid) &&
+        !u.team.order.includes(uid) &&
+        !u.locked.includes(uid) &&
+        !u.evos.some((e) => e.uid === uid)
+    );
+}
+
+/**
+ * Venda rápida das cartas `uids` (as que podem; as outras ficam): somem e pagam os pontos de pacote. Fica guardada
+ * pro Desfazer (troca a venda anterior).
+ */
+export function quickSell(u: UltimateSave, uids: readonly string[]): UltimateSave {
+    const ok = new Set(uids.filter((x) => canSell(u, x)));
+    if (!ok.size) return u;
+    const all = [...u.pending.flatMap((p) => (p.kind === 'card' ? [p.card] : [])), ...u.cards];
+    const sold = all.filter((c) => ok.has(c.uid)).map((card) => ({ card, points: sellPoints(card) }));
+    return {
+        ...u,
+        cards: u.cards.filter((c) => !ok.has(c.uid)),
+        pending: u.pending.filter((p) => p.kind !== 'card' || !ok.has(p.card.uid)),
+        packPoints: u.packPoints + sold.reduce((s, x) => s + x.points, 0),
+        sold,
+    };
+}
+
+/** Vende todas as repetidas dos Pendentes (os prêmios ficam). */
+export const sellRepeats = (u: UltimateSave) =>
+    quickSell(
+        u,
+        u.pending.flatMap((p) => (p.kind === 'card' ? [p.card.uid] : [])),
+    );
+
+/** Dá pra desfazer a última venda: tem venda e os pontos dela ainda estão na carteira. */
+export const canUndoSell = (u: Pick<UltimateSave, 'sold' | 'packPoints'>) =>
+    u.sold.length > 0 && u.packPoints >= u.sold.reduce((s, x) => s + x.points, 0);
+
+/**
+ * Desfaz a última venda rápida: os pontos voltam e as cartas também, pro Clube (fora do time) ou, se o Clube já tem
+ * uma igual, pros Pendentes.
+ */
+export function undoSell(u: UltimateSave): UltimateSave {
+    if (!canUndoSell(u)) return u;
+    let cards = u.cards;
+    const pending = [...u.pending];
+    for (const { card } of u.sold) {
+        if (isRepeat(cards, card)) pending.push({ kind: 'card', card });
+        else cards = [...cards, card];
+    }
+    return { ...u, cards, pending, packPoints: u.packPoints - u.sold.reduce((s, x) => s + x.points, 0), sold: [] };
+}
+
+/** A carta do Clube igual à repetida (mesma espécie e edição). */
+export const twinOf = (u: Pick<UltimateSave, 'cards'>, c: PokemonInstance) =>
+    u.cards.find((o) => o.speciesId === c.speciesId && editionOf(o) === editionOf(c));
+
+/** A troca da repetida pela do Clube trava: a do Clube está trancada, em Evolução ou jogando a partida aberta. */
+export function swapBlock(u: UltimateSave, c: PokemonInstance): 'locked' | 'evo' | 'live' | null {
+    const twin = twinOf(u, c);
+    if (!twin) return null;
+    if (u.locked.includes(twin.uid)) return 'locked';
+    if (u.evos.some((e) => e.uid === twin.uid)) return 'evo';
+    if (u.live && u.team.order.includes(twin.uid)) return 'live';
+    return null;
+}
+
+/**
+ * Troca a repetida `uid` pela do Clube (as habilidades podem ser outras): ela entra no lugar da outra, no Clube e no
+ * time (capitão e cobrador junto), e a do Clube vira a pendente. Sem a do Clube (vendida), a repetida só entra.
+ */
+export function swapPending(u: UltimateSave, uid: string): UltimateSave {
+    const entry = u.pending.find((p) => p.kind === 'card' && p.card.uid === uid);
+    if (entry?.kind !== 'card' || swapBlock(u, entry.card)) return u;
+    const card = entry.card;
+    const twin = twinOf(u, card);
+    const rest = u.pending.filter((p) => p !== entry);
+    if (!twin) return addCards({ ...u, pending: rest }, [card]);
+    const swap = (x: string | null) => (x === twin.uid ? card.uid : x);
+    return {
+        ...u,
+        cards: u.cards.map((c) => (c.uid === twin.uid ? card : c)),
+        team: {
+            ...u.team,
+            order: u.team.order.map((x) => swap(x) as string),
+            captainUid: swap(u.team.captainUid),
+            cornerTakerUid: swap(u.team.cornerTakerUid),
+        },
+        pending: u.pending.map((p): UtPending => (p === entry ? { kind: 'card', card: twin } : p)),
+    };
+}
+
+/** Tranca ou destranca a carta do Clube. */
+export const toggleLock = (u: UltimateSave, uid: string): UltimateSave =>
+    u.cards.some((c) => c.uid === uid)
+        ? { ...u, locked: u.locked.includes(uid) ? u.locked.filter((x) => x !== uid) : [...u.locked, uid] }
+        : u;
 
 /** Pacotes que a partida deu (objetivos, insígnia e marcos do passe): o pós-jogo oferece "Abrir agora". */
 export function lastPacks(last: UltimateLast): { mini: number; big: number } {
@@ -880,20 +1094,17 @@ export function momentGoal(u: Pick<UltimateSave, 'firsts' | 'objectives'>, now: 
 export const passCardUid = (season: number) => `utp${season}-${PASS_CARD}`;
 
 /**
- * Paga os marcos do passe que os pontos alcançaram e ainda não pagaram: Fichas, pacotes e a carta de abertura (que
- * entra no marco 1 e sobe +2 em tudo nos marcos de crescer, a mesma conta do Treino).
+ * Paga os marcos do passe que os pontos alcançaram e ainda não pagaram: Fichas e pacotes vão pros Pendentes (esperam o
+ * Resgatar); a carta de abertura entra no Clube no marco 1 e sobe +2 em tudo nos marcos de crescer (a mesma conta do
+ * Treino), na hora.
  */
 export function payPass(u: UltimateSave): UltimateSave {
     const reach = passMarksOf(u.pass.pts);
     let out = u;
     for (let k = u.pass.marks + 1; k <= reach; k++) {
         const r = passReward(k);
-        out = {
-            ...out,
-            fichas: out.fichas + r.fichas,
-            extraPacks: out.extraPacks + r.packs,
-            bigPacks: out.bigPacks + r.big,
-        };
+        const prize = prizeOf('pass', String(k), r, `pass-${u.season}-${k}`);
+        if (prize) out = { ...out, pending: [...out.pending, prize] };
         const uid = passCardUid(u.season);
         if (r.card === 'card' && !out.cards.some((c) => c.uid === uid)) {
             const inst = createInstance(PASS_CARD, new Rng(u.salt, `ut-pass-${u.season}`));
@@ -943,7 +1154,8 @@ export const seasonRecord = (u: UltimateSave): UtSeasonRecord | null =>
 export function rollSeason(u: UltimateSave, now: number): { u: UltimateSave; record: UtSeasonRecord | null } {
     const n = seasonN(now);
     if (n <= u.season || u.live) return { u, record: null };
-    const record = seasonRecord(u);
+    // prêmio pendente é resgatado sozinho antes de zerar; a repetida pendente zera com as cartas
+    const record = seasonRecord(redeem(u));
     const fresh = newUltimate(`${u.salt}.${n}`, now);
     return {
         u: {

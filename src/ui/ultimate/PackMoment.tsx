@@ -53,8 +53,8 @@ function useTear() {
 
 /**
  * Pacote do Time Ultimate em tela cheia: rasga (arrasto ou toque), as cartas saem em leque e a melhor, se for ouro
- * (75+) ou edição, fica guardada pro walkout em 3 batidas depois do leque (com Pular). As cartas já estão na coleção
- * (openPack); "Guardar" só fecha.
+ * (75+) ou edição, fica guardada pro walkout em 3 batidas depois do leque (com Pular). As novas já estão no Clube e
+ * as repetidas nos Pendentes (openPack); "Guardar" só fecha.
  */
 export function UtPackMoment({ open, onClose }: { open: PackOpen & { kind: PackKind }; onClose: () => void }) {
     const { t } = useT();
@@ -90,11 +90,7 @@ export function UtPackMoment({ open, onClose }: { open: PackOpen & { kind: PackK
                             >
                                 <FutCard
                                     inst={c}
-                                    ribbon={
-                                        open.points[i]
-                                            ? t('ultimate.packs.repeat', { n: open.points[i] })
-                                            : t('ultimate.packs.fresh')
-                                    }
+                                    ribbon={open.repeat[i] ? t('ultimate.packs.repeat') : t('ultimate.packs.fresh')}
                                 />
                             </div>
                         ))}
