@@ -1,18 +1,21 @@
-import { setUtNow } from '../../store/ultimate/clock';
+import { setUtNow, utNow } from '../../store/ultimate/clock';
+
+/** Estreia do Time Ultimate pra todo mundo: 27/11/2026 00:00 de Brasília. */
+export const ULTIMATE_OPENS_AT = Date.UTC(2026, 10, 27, 3);
 
 /**
- * Bandeira do Time Ultimate (ADR 0005, docs/planos/ultimate-team.md): `?lab=ultimate` liga na aba até fechar,
- * `?lab=ultimate-off` desliga. Só no dev e nas prévias (`__SMOKE__`): em produção o cartão continua EM BREVE até 27/11,
- * com ou sem a bandeira.
+ * Bandeira do Time Ultimate (ADR 0005, docs/planos/ultimate-team.md): a partir de `ULTIMATE_OPENS_AT` liga pra todo
+ * mundo. Antes disso, só no dev e nas prévias (`__SMOKE__`): `?lab=ultimate` liga na aba até fechar, `?lab=ultimate-off`
+ * desliga (vale também depois da data, pra ver o menu antigo). Em produção, antes da data, o cartão fica EM BREVE.
  */
 const KEY = 'soccermon-lab-ultimate';
 
-export function ultimateOn(smoke: boolean, search: string, stored: string | null): boolean {
-    if (!smoke) return false;
-    const q = new URLSearchParams(search).get('lab');
+export function ultimateOn(smoke: boolean, search: string, stored: string | null, now: number): boolean {
+    const q = smoke ? new URLSearchParams(search).get('lab') : null;
     if (q === 'ultimate') return true;
     if (q === 'ultimate-off') return false;
-    return stored === '1';
+    if (now >= ULTIMATE_OPENS_AT) return true;
+    return smoke && stored === '1';
 }
 
 /**
@@ -35,7 +38,7 @@ export function readUltimate(): boolean {
     } catch {
         // aba anônima sem storage: vale só a URL
     }
-    const on = ultimateOn(__SMOKE__, window.location.search, stored);
+    const on = ultimateOn(__SMOKE__, window.location.search, stored, utNow());
     try {
         sessionStorage.setItem(KEY, on ? '1' : '0');
     } catch {

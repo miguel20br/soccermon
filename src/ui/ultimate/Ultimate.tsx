@@ -7,6 +7,7 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
+import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
 import { eventAt, objectiveById } from '../../store/ultimate/objectives';
 import {
@@ -60,6 +61,7 @@ import { LineupEditor } from '../screens/Lineup';
 import { simulateMatch } from '../sim-client';
 import { Chemistry } from './Chemistry';
 import { hms, useNow } from './clock';
+import { ULTIMATE_OPENS_AT } from './flag';
 import { FirstSteps, Goals, useReward } from './Goals';
 import { UtPackMoment } from './PackMoment';
 import { Gyms, SeasonBar } from './Season';
@@ -98,7 +100,13 @@ export function Ultimate() {
     };
     return (
         <div className="menu-screen ut">
-            <MenuHead title={t('ultimate.title')} hud="cards" onBack={() => go('home')} tag={t('ultimate.preview')} />
+            <MenuHead
+                title={t('ultimate.title')}
+                hud="cards"
+                onBack={() => go('home')}
+                // "Prévia" só antes da estreia (dev e prévias); depois de 27/11 o modo é de verdade
+                tag={utNow() < ULTIMATE_OPENS_AT ? t('ultimate.preview') : undefined}
+            />
             <section className="panel ut-wallet bc-surface bc-stripe" aria-live="polite">
                 <span>
                     <HudIcon kind="coin" />

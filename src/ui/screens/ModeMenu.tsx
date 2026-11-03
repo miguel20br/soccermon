@@ -10,6 +10,7 @@ import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
 import type { Avatar } from '../../store/profile';
 import { clubColorHex } from '../../store/profile';
+import { utNow } from '../../store/ultimate/clock';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { CourtFloor, clubVars, Stands } from '../ambientes/Estadio';
 import { FieldSprite } from '../ambientes/FieldSprite';
@@ -25,6 +26,7 @@ import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
+import { ULTIMATE_OPENS_AT } from '../ultimate/flag';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
 import './mode-menu.css';
@@ -40,7 +42,7 @@ export type ModeId = 'atual' | 'ultimate' | 'historia';
 export const LAST: ModeId = 'atual';
 
 /** Estreia do Ultimate: a contagem do cartão ("faltam N dias") sai só daqui. */
-export const ULTIMATE_AT = new Date('2026-11-27T00:00:00-03:00');
+export const ULTIMATE_AT = new Date(ULTIMATE_OPENS_AT);
 /** Dias inteiros até `at` (arredonda pra cima: falta meio dia = falta 1); 0 quando já chegou. */
 export const daysUntil = (at: Date, now: Date) => Math.max(0, Math.ceil((at.getTime() - now.getTime()) / 86_400_000));
 /** A data do selo "EM BREVE": o dia da estreia do Ultimate (de `ULTIMATE_AT`, "27/11" / "Nov 27") ou o ano do Modo História. */
@@ -520,7 +522,7 @@ export function ModeSlices({
     big: boolean;
     look?: SliceLook;
     onPlay?: () => void;
-    /** Com a bandeira `?lab=ultimate` (só dev e prévias): o Time Ultimate abre, com o JOGAR levando pra ele. */
+    /** Com o modo aberto (`ultimateOn`: a partir de 27/11, ou `?lab=ultimate` no dev e nas prévias): o JOGAR leva pra ele. */
     onUltimate?: () => void;
 }) {
     const { d } = useT();
@@ -559,7 +561,11 @@ export function ModeSlices({
                             {playable(m) && (
                                 <span className="tv-onair">
                                     <i>{n + 1}</i>
-                                    <b>{m === LAST ? d.home.live : d.home.modes.preview}</b>
+                                    <b>
+                                        {m === LAST || utNow() >= ULTIMATE_OPENS_AT
+                                            ? d.home.live
+                                            : d.home.modes.preview}
+                                    </b>
                                 </span>
                             )}
                             <b className="cb-num mm-plate">
