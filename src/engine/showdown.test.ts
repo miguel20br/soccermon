@@ -11,7 +11,7 @@ import type { MatchEvent, MatchState, TeamSetup } from './state';
 import { v } from './vec';
 
 /**
- * Duelo da bicuda (motor 20): o capitão do time 0 (pivô, idx 4) chuta o N3 de 10 m; o goleiro do time 1 (idx 5) é o
+ * Duelo da bicuda (motor 21): o capitão do time 0 (pivô, idx 4) chuta o N3 de 10 m; o goleiro do time 1 (idx 5) é o
  * capitão, com a bicuda N3 armada. Alcançou: segura, a partida para e a bicuda vira gol sempre.
  */
 function team(seed: string): TeamSetup {
@@ -54,7 +54,7 @@ function untilGoal(s: MatchState, n = 400) {
     for (let i = 0; i < n && !of(s, 'goal').length; i++) step(s, IDLE_ALL(s));
 }
 
-describe('duelo da bicuda (motor 20)', () => {
+describe('duelo da bicuda (motor 21)', () => {
     it('o N3 que o goleiro capitão alcança com a bicuda N3 armada para a partida e vira gol dele, sempre', () => {
         let seen = 0;
         for (let k = 0; k < 40; k++) {

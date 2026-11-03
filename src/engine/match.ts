@@ -3576,7 +3576,7 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
         return false;
     }
     gk.stats.saves++;
-    // bicuda N3 contra o N3 do rival (motor 20): ele segura e a partida para no duelo da bicuda (`startShowdown`)
+    // bicuda N3 contra o N3 do rival (motor 21): ele segura e a partida para no duelo da bicuda (`startShowdown`)
     if (arm.level === 3 && shot.max?.level === 3) {
         emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: true });
         startShowdown(s, gk, shooter, arm);
@@ -3618,7 +3618,7 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
 }
 
 /**
- * Duelo da bicuda (motor 20, `AGENCY.showdown`): o goleiro segura o N3 e a partida para (todo mundo parado, relógio
+ * Duelo da bicuda (motor 21, `AGENCY.showdown`): o goleiro segura o N3 e a partida para (todo mundo parado, relógio
  * parado, a cutscene na tela). A barra da bicuda gasta no chute, no fim da parada (`updateShowdown`).
  */
 function startShowdown(s: MatchState, gk: PlayerState, shooter: PlayerState, arm: MaxArm) {

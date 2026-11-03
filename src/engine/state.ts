@@ -314,7 +314,7 @@ export interface BallState {
 export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime' | 'showdown';
 
 /**
- * Duelo da bicuda (motor 20): o goleiro capitão `gk` segurou o N3 de `shooter` com a bicuda N3 armada. A partida para
+ * Duelo da bicuda (motor 21): o goleiro capitão `gk` segurou o N3 de `shooter` com a bicuda N3 armada. A partida para
  * (`AGENCY.showdown`) e, no tick `kick`, ele chuta (`kicked`): a bola vai reta pro gol rival, sem ninguém tocar.
  */
 export interface Showdown {
@@ -431,7 +431,7 @@ export type MatchEvent = MatchEventBase &
          */
         | { type: 'gkReach'; by: number; shooter: number; from: number }
         /**
-         * Duelo da bicuda (motor 20): o goleiro capitão `gk` (time `team`) segurou o N3 de `shooter` com a bicuda N3; a
+         * Duelo da bicuda (motor 21): o goleiro capitão `gk` (time `team`) segurou o N3 de `shooter` com a bicuda N3; a
          * partida para até o tick `kick`, quando ele chuta e é gol (a cutscene com as falas vai nesse intervalo). `q`: o toque.
          */
         | { type: 'showdown'; team: 0 | 1; gk: number; shooter: number; kick: number; q: MaxGrade }

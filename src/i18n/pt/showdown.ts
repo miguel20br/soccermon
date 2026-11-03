@@ -1,5 +1,5 @@
 /**
- * Falas do duelo da bicuda (motor 20: a bicuda N3 do goleiro capitão segura o N3 do rival e a partida para numa
+ * Falas do duelo da bicuda (motor 21: a bicuda N3 do goleiro capitão segura o N3 do rival e a partida para numa
  * cutscene). `s` = quem chutou, `g` = o goleiro; a última fala é sempre o grito do goleiro na bicuda. A escolha
  * (src/ui/showdown-lines.ts) vai nessa ordem: par notável (`pairs`, chave "quem chutou-goleiro" pelo número da
  * Pokédex), mesma linha evolutiva (`up`: o goleiro é a pré-evolução; `down`: o goleiro é o evoluído), fala de um

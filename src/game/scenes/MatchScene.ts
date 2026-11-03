@@ -267,7 +267,7 @@ export interface MatchEvolution {
 }
 
 /**
- * Duelo da bicuda (motor 20): a cutscene que a tela React mostra (src/ui/components/ShowdownOverlay.tsx) enquanto o
+ * Duelo da bicuda (motor 21): a cutscene que a tela React mostra (src/ui/components/ShowdownOverlay.tsx) enquanto o
  * motor segura a partida. `tick` escolhe as falas; `ms` é a parada em 1x (a quadra roda em 1x nela, em toda velocidade).
  */
 export interface MatchShowdown {
@@ -3269,7 +3269,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * Duelo da bicuda (motor 20): o goleiro segurou o N3 e o motor parou. A cutscene é da tela React (`match:showdown`,
+     * Duelo da bicuda (motor 21): o goleiro segurou o N3 e o motor parou. A cutscene é da tela React (`match:showdown`,
      * ShowdownOverlay.tsx), que entra por cima da quadra; aqui fica a janela de 1x e a música baixa. Pulando (silent) ou
      * no replay, só a janela.
      */

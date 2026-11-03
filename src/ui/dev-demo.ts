@@ -55,7 +55,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1&nivel=3`, a bicuda N3).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender). `&efeito=1`: só a jogada em que o golpe,
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
- * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 20): o capitão
+ * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de

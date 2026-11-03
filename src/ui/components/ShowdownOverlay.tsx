@@ -13,7 +13,7 @@ import { cardSprite } from './PokeCard';
 import './showdown.css';
 
 /**
- * Duelo da bicuda (motor 20): a cutscene no meio do jogo. O motor segura a partida (`AGENCY.showdown`) e a quadra roda
+ * Duelo da bicuda (motor 21): a cutscene no meio do jogo. O motor segura a partida (`AGENCY.showdown`) e a quadra roda
  * em 1x; a cutscene anda no relógio dela (`match:showdown-t`, ms desde o lance): a defesa aparece um instante, o corte
  * de TV entra, os dois frente a frente, as falas na caixa com o rosto de quem fala e o grito do goleiro; o corte sai
  * logo antes da bicuda (a quadra faz o chute e o gol), ou na hora se a reprodução passar dela (`match:showdown-end`).

@@ -5339,7 +5339,8 @@ button,
 }
 .champ-path {
     list-style: none;
-    margin: 0;
+    /* o título seguinte (Prêmios da copa) encostava nos cartões */
+    margin: 0 0 14px;
     padding: 0;
     width: min(980px, 100%);
     display: grid;
