@@ -1166,6 +1166,16 @@
 .ut-b-pending > small {
     grid-column: 1;
 }
+.ut-b-pending > .ut-b-last {
+    grid-column: 1 / -1;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--red) 22%, transparent);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.25;
+    text-align: left;
+}
 .ut-b-pending .ut-b-cta {
     grid-column: 2;
     grid-row: 1 / span 2;

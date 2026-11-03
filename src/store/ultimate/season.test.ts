@@ -436,3 +436,16 @@ describe('save da 0.9.33', () => {
             }
     });
 });
+
+describe('último dia da temporada', () => {
+    const end = SEASONS[0].end;
+    const pend = [{ kind: 'prize' }, { kind: 'card' }, { kind: 'prize' }];
+    it('avisa só nas últimas 24 h e com prêmio pendente', async () => {
+        const { lastDayPrizes } = await import('./season');
+        expect(lastDayPrizes(end - 86_400_000 - 1, pend)).toBe(0);
+        expect(lastDayPrizes(end - 86_400_000, pend)).toBe(2);
+        expect(lastDayPrizes(end - 1, pend)).toBe(2);
+        expect(lastDayPrizes(end - 3600_000, [{ kind: 'card' }])).toBe(0);
+        expect(lastDayPrizes(end - 3600_000, [])).toBe(0);
+    });
+});

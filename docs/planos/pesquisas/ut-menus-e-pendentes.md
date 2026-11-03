@@ -457,3 +457,10 @@ Ordem dentro de B (cada etapa jogável na prévia):
 JOGAR como botão gordo no Início; carta nova vai direto pro Clube e só a repetida fica pendente; venda rápida paga os pontos de
 pacote de hoje (1/3/8); pode vender carta do Clube fora do time, com confirmação; prêmios com Resgatar (resgate sozinho na virada
 da temporada); teto de 30 pendentes antes de abrir pacote; "Trocar a repetida pela do Clube"; banco continua com 2.
+
+### Último dia da temporada (03/11/2026)
+
+Nas últimas 24 h antes do `end` da temporada (relógio do modo, `utNow`, que respeita `&utnow=`), com prêmio pendente: aviso
+vermelho no bloco Pendentes do Início ("Último dia da temporada: resgate N prêmios antes da virada"), ponto na aba Início (o
+Clube já tem o dele) e, ao entrar no modo, uma folha (ConfirmSheet) uma vez por dia de Brasília com "Resgatar" que leva aos
+Pendentes. Regra em `lastDayPrizes` (`src/store/ultimate/season.ts`, testada dos dois lados da data).

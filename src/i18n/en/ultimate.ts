@@ -108,6 +108,7 @@ export const ultimate: typeof pt = {
         pending: 'Unassigned',
         pendingState: 'Duplicates {c} · Rewards {p}',
         resolve: 'Sort out',
+        lastDay: 'Last day of the season: claim {n} rewards before the rollover',
         levelChip: '{level} · +{n}',
         change: 'Level',
     },
@@ -169,6 +170,9 @@ export const ultimate: typeof pt = {
         fullTitle: 'Unassigned is full',
         fullText: '{n} unassigned. Sort them out before opening another pack.',
         fullGo: 'See Unassigned',
+        lastDayTitle: 'Last day of the season',
+        lastDayText: '{n} rewards are waiting. The rollover resets Fichas and packs: claim them now.',
+        lastDayGo: 'Claim',
         prize: { objective: 'Objective', pass: 'Pass milestone {n}', gym: 'Badge: {name}' },
         blocked: {
             locked: 'The Club one is locked',

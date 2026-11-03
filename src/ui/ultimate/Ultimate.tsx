@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { useT } from '../../i18n/react';
+import { dailyDay } from '../../store/daily';
 import { useGame } from '../../store/game-store';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
@@ -14,7 +15,7 @@ import {
     REPEAT_POINTS,
     SHINY_ODDS,
 } from '../../store/ultimate/rules';
-import { seasonN } from '../../store/ultimate/season';
+import { lastDayPrizes, seasonN } from '../../store/ultimate/season';
 import {
     nextPackIn,
     type PackKind,
@@ -91,8 +92,25 @@ export function Ultimate() {
         setSeg('pending');
         setTab('club');
     };
+    // último dia da temporada com prêmio pendente: aviso uma vez por dia (Brasília), com atalho pros Pendentes
+    const lastDay = lastDayPrizes(now, u.pending);
+    const [warn, setWarn] = useState(false);
+    const today = dailyDay(new Date(now));
+    const warned = lastDay > 0;
+    useEffect(() => {
+        if (!warned) return;
+        const key = 'soccermon-ut-lastday';
+        try {
+            if (localStorage.getItem(key) === today) return;
+            localStorage.setItem(key, today);
+        } catch {
+            // sem storage: avisa a cada entrada
+        }
+        setWarn(true);
+    }, [warned, today]);
     const dot: Partial<Record<UtTab, boolean>> = {
         club: u.pending.length > 0,
+        home: lastDay > 0,
         shop: packsReady(u, now) + u.bigPacks > 0,
         goals: u.evos.some(evoReady),
     };
@@ -179,6 +197,15 @@ export function Ultimate() {
                 title={t('ultimate.pending.fullTitle')}
                 text={t('ultimate.pending.fullText', { n: u.pending.length })}
                 confirm={t('ultimate.pending.fullGo')}
+                calm
+                onConfirm={toPending}
+            />
+            <ConfirmSheet
+                open={warn}
+                onClose={() => setWarn(false)}
+                title={t('ultimate.pending.lastDayTitle')}
+                text={t('ultimate.pending.lastDayText', { n: lastDay })}
+                confirm={t('ultimate.pending.lastDayGo')}
                 calm
                 onConfirm={toPending}
             />
