@@ -142,7 +142,7 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (02/11/2026, v0.9.37)
+## Estado atual (02/11/2026, v0.9.37.1)
 
 No ar: 0.9.37 "No ar" (corte de TV nas trocas, letreiro do canal, menu Smash com cara de TV). `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 19 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
