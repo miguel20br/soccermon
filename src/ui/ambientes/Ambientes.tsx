@@ -22,7 +22,7 @@ import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
-import { announceProgram, tvCut } from '../tv';
+import { tvCut } from '../tv';
 import { uiZoom } from '../ui-zoom';
 
 const ICON: Record<Tab, HudIconKind> = {
@@ -89,9 +89,6 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
             setTab(i);
             requestAnimationFrame(() => requestAnimationFrame(() => r?.classList.remove('amb-drag')));
         });
-    useEffect(() => {
-        announceProgram(TABS[tab]);
-    }, [tab]);
 
     // entrar num modo: a câmera anda até a quadra (ou o time sai pela estrada) e aí a copa começa; um toque pula
     const enter = (action: () => void) => {

@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.37.1 · Copa Relâmpago no lugar (2026-11-02)
+
+### Menus
+- Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular
+- Sai o selo SMN que ficava boiando na tela
+
 ## 0.9.37 · No ar (2026-11-02)
 
 ### Transmissão

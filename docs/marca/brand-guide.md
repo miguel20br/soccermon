@@ -283,10 +283,8 @@ muda pela galeria `?cards=1` com o ok do Miguel.
   numa aba da Home é uma faixa diagonal azul-noite com filete amarelo que varre da direita pra esquerda em 280 ms
   (130 entrando, 150 saindo); a troca acontece com a tela coberta. Arrastar entre as abas da Home continua deslizando.
   Com Reduzir movimento, fade.
-- **Letreiro de canal** (`TvLayer.tsx`, sempre ligado): o bug no canto de baixo à esquerda (símbolo + "SMN") e a faixa
-  amarela com o nome da tela, que sai do bug a cada troca e volta depois de ~2 s. Fica na linha livre mais baixa sem
-  botão nem texto embaixo; sem espaço, só o bug; sem espaço nem pra ele, some. Na partida vai pro topo à direita e diz
-  "AO VIVO" com a luz vermelha piscando. No menu de modos não aparece: a fatia do Modo Copa já diz "1 AO VIVO".
+- **Sem letreiro de canal flutuante** (saiu na 0.9.37.1: o Miguel não curtiu o bug "SMN" boiando na tela). O "AO VIVO"
+  fica só dentro do menu de modos, na fatia do Modo Copa.
 - **Menu de modos com cara de TV**: as fatias do Smash numa moldura de tela com varredura fraca, cada modo um canal
   (o número no quadradinho), o jogável com "AO VIVO" e os trancados com a faixa reta "EM BREVE 27/11".
 - Nada vai sozinho pra outra tela: o fim de jogo espera o toque em "Ver resultado".

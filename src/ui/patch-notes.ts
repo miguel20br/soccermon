@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.37.1',
+        date: '2026-11-02',
+        title: 'Copa Relâmpago no lugar',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular',
+                    'Sai o selo SMN que ficava boiando na tela',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.37',
         date: '2026-11-02',
         title: 'No ar',
@@ -2313,6 +2327,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.37.1',
+        date: '2026-11-02',
+        title: 'Lightning Cup in place',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'With a cup in progress, the Lightning Cup name fits centered on its phone tile',
+                    'The floating SMN channel bug is gone',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.37',
         date: '2026-11-02',
