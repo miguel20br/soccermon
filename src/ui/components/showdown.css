@@ -156,8 +156,8 @@
 }
 .sd-name {
     justify-self: start;
-    padding: 2px 8px 1px;
-    border-left: 5px solid var(--tc);
+    padding: 1px 8px 0;
+    border: 2px solid var(--tc);
     border-radius: 4px;
     background: var(--bc-ink);
     color: var(--text);
@@ -169,8 +169,6 @@
 }
 .sd-box-g .sd-name {
     justify-self: end;
-    border-left: 0;
-    border-right: 5px solid var(--tc);
 }
 .sd-text {
     margin: 0;
