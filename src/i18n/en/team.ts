@@ -266,4 +266,7 @@ export const team: typeof pt = {
         tapSkip: 'tap to skip',
     },
     linkTitle: '{desc} Combo: {combo}.',
+    synTitle: 'Type synergy: {n} {type} on court, +{pct}% to all their stats.',
+    novo: 'NEW',
+    novoTitle: 'Not in your Pokédex yet',
 };

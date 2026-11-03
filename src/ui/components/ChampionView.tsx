@@ -55,8 +55,10 @@ export function ChampionView({
     /** O gol da copa com o replay (abre ao tocar no destaque). */
     goal: ReactNode;
 }) {
-    const { t } = useT();
+    const { t, d } = useT();
     const [sheet, setSheet] = useState<'goal' | null>(null);
+    const [openStage, setOpenStage] = useState<number | null>(null);
+    const shown = run.results.find((r) => r.stage === openStage);
     const hallEntry = useGame((s) => s.hall.find((h) => h.id === run.seed));
     const profile = useGame((s) => s.profile);
     const googleName = useCloud((s) => s.user?.name ?? null);
@@ -116,6 +118,23 @@ export function ChampionView({
                                     <small>{t('result.champ.pens', { score: r.shootout.join(' x ') })}</small>
                                 )}
                                 <span className="muted">{t('result.champ.vs', { team: clubName(r.opponent) })}</span>
+                                {r.stats && (
+                                    <>
+                                        <div className="champ-opp champ-mine">
+                                            {played(r.stats.players).map((p) => (
+                                                <img
+                                                    key={p.uid}
+                                                    className="pixel"
+                                                    src={cardSprite({ speciesId: p.speciesId, shiny: !!p.shiny })}
+                                                    alt={p.name}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span className="champ-x" aria-hidden>
+                                            x
+                                        </span>
+                                    </>
+                                )}
                                 {opp && (
                                     <div className="champ-opp">
                                         {opp.lineup.map((p) => (
@@ -133,10 +152,56 @@ export function ChampionView({
                                         <HudIcon kind="max" /> {best.name} ({best.rating.toFixed(1)})
                                     </span>
                                 )}
+                                {r.stats && (
+                                    <button
+                                        type="button"
+                                        className="champ-step-open"
+                                        aria-haspopup="dialog"
+                                        aria-label={t('result.champ.lineupOf', { stage: cupStageName(run, r.stage) })}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenStage(r.stage);
+                                        }}
+                                    />
+                                )}
                             </li>
                         );
                     })}
                 </ol>
+                <Sheet
+                    open={!!shown}
+                    onClose={() => setOpenStage(null)}
+                    title={shown ? `${cupStageName(run, shown.stage)} · ${shown.score[0]} x ${shown.score[1]}` : ''}
+                    className="champ-lineup-sheet"
+                >
+                    {shown?.stats && (
+                        <ul className="cl-list">
+                            <li className="cl-row cl-labels" aria-hidden>
+                                <span />
+                                <span />
+                                <span>{t('team.panel.rating')}</span>
+                                <span title={t('team.panel.goals')}>G</span>
+                                <span title={t('team.panel.assists')}>A</span>
+                            </li>
+                            {played(shown.stats.players).map((p) => (
+                                <li key={p.uid} className="cl-row">
+                                    <img
+                                        className="pixel"
+                                        src={cardSprite({ speciesId: p.speciesId, shiny: !!p.shiny })}
+                                        alt=""
+                                    />
+                                    <span className="cl-name">
+                                        <b>{p.name}</b>
+                                        <small>{d.common.pos[p.role as keyof typeof d.common.pos] ?? p.role}</small>
+                                    </span>
+                                    <span className="cl-num">{p.rating.toFixed(1)}</span>
+                                    <span className={p.goals ? 'cl-num on' : 'cl-num'}>{p.goals || '–'}</span>
+                                    <span className={p.assists ? 'cl-num on' : 'cl-num'}>{p.assists || '–'}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Sheet>
 
                 <CupAwards run={run} />
                 <CupXI run={run} />
@@ -200,6 +265,10 @@ export function ChampionView({
 }
 
 /** As 3 batidas do título: taça e selos, os 3 destaques, o caminho em placas. */
+/** Quem jogou na partida (titulares primeiro: a lista já vem na ordem do elenco). */
+const played = (players: NonNullable<RunState['results'][number]['stats']>['players']) =>
+    players.filter((p) => p.minutes > 0);
+
 function ChampBeats({ run, quiet, onGoal }: { run: RunState; quiet: boolean; onGoal: () => void }) {
     const { t, d } = useT();
     const rarity = useRarity();

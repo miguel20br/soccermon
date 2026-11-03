@@ -8,6 +8,7 @@ import { EventBus } from '../../game/EventBus';
 import { statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { snapAt, statsUntil, whoAt } from '../match-view';
+import { TeamSynergies } from './LinkChips';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
@@ -111,6 +112,7 @@ export function TeamPanel({
             </div>
             {open && (
                 <>
+                    <TeamSynergies lineup={view.rows.map((r) => r.inst)} />
                     <div className="tp-row tp-labels" aria-hidden>
                         <span />
                         <span>{t('team.panel.onCourt')}</span>

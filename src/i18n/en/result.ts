@@ -84,6 +84,7 @@ export const result: typeof pt = {
         wins: 'wins',
         poss: 'average possession',
         path: 'Road to the title',
+        lineupOf: 'Lineup: {stage}',
         pens: 'penalties {score}',
         vs: 'vs {team}',
         squad: 'Champion squad',

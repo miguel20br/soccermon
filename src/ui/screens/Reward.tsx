@@ -10,11 +10,13 @@ import { clubName, itemDesc, itemName, moveFutsal, moveName, typeName } from '..
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
+import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
+import { NovoSeal } from '../components/NovoSeal';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
 import { Tip, useFirstCup } from '../help/Tip';
@@ -46,7 +48,7 @@ function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text:
  * ou pular e ganhar +1 reroll.
  */
 export function Reward() {
-    const { run: live, claimReward, skipReward, rerollReward } = useGame();
+    const { run: live, claimReward, skipReward, rerollReward, dex } = useGame();
     const run = useHeld(live?.status === 'reward' ? live : null);
     const [chosen, setChosen] = useState<number | null>(null);
     const { lang, t } = useT();
@@ -126,6 +128,11 @@ export function Reward() {
                                     r.kind === 'pokemon' && isBigCard(r.inst) ? ' big' : ''
                                 }${!fast && r.kind === 'pokemon' && editionOf(r.inst) ? ' walk' : ''}`}
                             >
+                                {r.kind === 'pokemon' && isNovo(dex, r.inst.speciesId) && (
+                                    <div className="option-links">
+                                        <NovoSeal />
+                                    </div>
+                                )}
                                 {r.kind === 'pokemon' ? (
                                     <FutCard
                                         inst={r.inst}
