@@ -417,7 +417,7 @@ Miguel comparou Phaser x React: fica uma mistura.
 
 ### Walkout final (03/11/2026, branch `walkout`, `?lab=walkout`)
 
-A mistura, atrás do laboratório até o ok do Miguel (o pacote do UT e da Copa ainda usam o walkout antigo):
+A mistura, atrás do laboratório até o ok do Miguel (no jogo desde a seção seguinte):
 - Cena do Phaser `src/game/scenes/WalkoutScene.ts` (estádio, holofotes, fogos, dois telões: tipo com o ícone e posição),
   silhueta com a bola, a jogada com bola e o chute na tela que racha e quebra o vidro. Por cima, em React
   (`src/ui/kit/WalkoutStage.tsx`): a placa da edição ("ÍCONE", "DESTAQUE", "SHINY", "EVENTO · TIPO", "OURO") e a
@@ -430,3 +430,20 @@ A mistura, atrás do laboratório até o ok do Miguel (o pacote do UT e da Copa 
   embaixadinha, cabeçada e canhão pelo número da Pokédex. Todas acabam com o chute na tela.
 - Saíram a placa de rota e o título no telão. As versões só Phaser e só React ficam nas branches `walkout-phaser` e
   `walkout-react`. Vídeo: `node scripts/walkout-capture.mjs --ed icone --id 150 --out x.mp4` (`--medir` dá o FPS).
+
+### No jogo (03/11/2026): a versão 2
+
+O Miguel escolheu a versão 2 (mais animada). Ela virou o walkout (sem bandeira) e saíram a versão 1 e o walkout antigo de
+3 batidas (`walkoutIndex`, `walkoutBeats`, `.k-walk`):
+- Tempos com a folga da versão 2: raro 5,5 s, muito raro 9,8 s, especial 15,6 s; encolhido 1,8 s (raro do 2º) e 5 s
+  (muito raro do 3º); Reduzir movimento 1,2 s.
+- **Onde toca:** no pacote do Time Ultimate (`src/ui/ultimate/PackMoment.tsx`) e no pacote do Mercado da Copa
+  (`PackMoment` em `src/ui/screens/Shop.tsx`, com o walkout por import dinâmico). `walkoutPick` escolhe a carta de nível
+  mais alto (e, no empate, a de nota maior); as outras seguem no leque. Recompensa e draft (escolha 1 de 3) seguem com o
+  brilho do `CardPack`, sem walkout.
+- **Contagem do dia:** `Walkout` (`src/ui/kit/WalkoutStage.tsx`) conta por nível no dia de Brasília (`walkoutToday`),
+  em `localStorage` (`soccermon:walkout-raro|muitoraro`, com try/catch: sem onde guardar, sai sempre inteiro), a mesma
+  no UT e na Copa.
+- O pacote baixa o Phaser e a cena enquanto o leque abre (`preloadWalkout`); o Pular aparece com 1 s de relógio de
+  verdade, mesmo com a cena atrasada.
+- `?lab=walkout&ed=…&id=…&jogada=…` segue só no dev e nas prévias, pra gravar e testar.

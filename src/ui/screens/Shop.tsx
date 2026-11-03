@@ -1,4 +1,14 @@
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    type CSSProperties,
+    lazy,
+    type ReactNode,
+    Suspense,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import { formationOf } from '../../engine/formations';
 import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
@@ -19,11 +29,14 @@ import { InfoSheet, SheetRow } from '../kit/controls';
 import { MomentStage } from '../kit/MomentStage';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
-import { Walkout } from '../kit/WalkoutStage';
 import { reduceMotionOn } from '../settings-sync';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
+
+// o walkout (e a cena do Phaser dele) só baixa quando um pacote do Mercado tem carta de walkout
+const loadWalkout = () => import('../kit/WalkoutStage');
+const Walkout = lazy(() => loadWalkout().then((m) => ({ default: m.Walkout })));
 
 const offerKey = (o: ShopOffer) =>
     o.kind === 'pokemon'
@@ -454,6 +467,12 @@ function PackMoment({
     const walkAt = walkoutPick(pack);
     // 'wait' = guardada até o leque acabar; 'on' = o walkout tocando; 'done' = já na mesa
     const [walk, setWalk] = useState<'wait' | 'on' | 'done'>(walkAt < 0 ? 'done' : 'wait');
+    useEffect(() => {
+        if (walkAt >= 0)
+            void loadWalkout()
+                .then((m) => m.preloadWalkout())
+                .catch(() => undefined);
+    }, [walkAt]);
     return (
         <MomentStage label={t('shop.packPick')} className="shop-pack-moment">
             <h2 className="k-moment-title shop-pack-title">{t('shop.packPick')}</h2>
@@ -491,7 +510,11 @@ function PackMoment({
                     })}
                 </div>
             </CardPack>
-            {walk === 'on' && <Walkout inst={pack[walkAt]} onDone={() => setWalk('done')} />}
+            {walk === 'on' && (
+                <Suspense fallback={null}>
+                    <Walkout inst={pack[walkAt]} onDone={() => setWalk('done')} />
+                </Suspense>
+            )}
             <SheetRow icon="team" label={t('reward.yourTeam')} title={t('reward.yourTeam')} className="reward-team-row">
                 <div className="reward-team">{team}</div>
             </SheetRow>

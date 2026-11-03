@@ -300,9 +300,10 @@ export class WalkoutScene extends Phaser.Scene {
         if (next) this.clock = next.at - 1;
     }
 
-    /** Pular: vai direto pro fim (a carta pronta por cima), com o grito. */
-    skip() {
-        if (this.finished) return;
+    /** Pular: vai direto pro fim (a carta pronta por cima), com o grito. false = a cena ainda não montou. */
+    skip(): boolean {
+        if (!this.hud) return false;
+        if (this.finished) return true;
         this.queue = [];
         this.tweens.killAll();
         this.hud.removeAll(true);
@@ -336,6 +337,7 @@ export class WalkoutScene extends Phaser.Scene {
         this.snd({ k: 'sfx', name: 'goal' });
         this.finish();
         this.game.events.emit('wk-tick', this.clock);
+        return true;
     }
 
     private finish() {

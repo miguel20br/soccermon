@@ -1,11 +1,11 @@
-import { type CSSProperties, type PointerEvent, useRef, useState } from 'react';
+import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from 'react';
 import { walkoutPick } from '../../game/walkout-plan';
 import { useT } from '../../i18n/react';
 import type { PackKind, PackOpen } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { MomentStage } from '../kit/MomentStage';
-import { Walkout } from '../kit/WalkoutStage';
+import { preloadWalkout, Walkout } from '../kit/WalkoutStage';
 
 /** Quanto o dedo anda (fração da largura do pacote) pra rasgar a tampa. */
 const TEAR_AT = 0.4;
@@ -63,6 +63,9 @@ export function UtPackMoment({ open, onClose }: { open: PackOpen & { kind: PackK
     const walkAt = walkoutPick(open.cards);
     // 'wait' = guardada até o leque acabar; 'on' = o walkout tocando; 'done' = já na mesa
     const [walk, setWalk] = useState<'wait' | 'on' | 'done'>(walkAt < 0 ? 'done' : 'wait');
+    useEffect(() => {
+        if (walkAt >= 0) void preloadWalkout().catch(() => undefined);
+    }, [walkAt]);
     const [revealed, setRevealed] = useState(false);
     const tear = useTear();
     return (

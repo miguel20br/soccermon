@@ -107,13 +107,7 @@ export function WalkoutStage({
         let dead = false;
         wkw().__wkPlan = make.current.plan;
         void (async () => {
-            const [{ default: P }, { WalkoutScene: Scene }] = await Promise.all([
-                import('phaser'),
-                import('../../game/scenes/WalkoutScene'),
-                document.fonts.load('11px Galmuri11'),
-                document.fonts.load('bold 11px Galmuri11'),
-                document.fonts.load('28px Galmuri14'),
-            ]);
+            const [{ default: P }, { WalkoutScene: Scene }] = await preloadWalkout();
             if (dead || !host.current) return;
             await Promise.all(
                 [...(warmRef.current?.querySelectorAll('img') ?? [])].map((im) => im.decode().catch(() => undefined)),
@@ -159,11 +153,22 @@ export function WalkoutStage({
         duckMusic(true);
         return () => unduckMusic(false);
     }, [plan.tier]);
+    // Pular: a cena vai pro fim (a carta pronta); se ela ainda nem montou (Phaser baixando), fecha o walkout
+    const skip = () => scene()?.skip() || onDone();
+    const skipRef = useRef(skip);
+    skipRef.current = skip;
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) =>
-            e.key === 'Escape' && (gameRef.current?.scene.getScene('walkout') as WalkoutScene | null)?.skip();
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && skipRef.current();
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
+    }, []);
+    // o Pular aparece com 1 s de relógio de verdade, mesmo se o celular estiver lento pra montar ou rodar a cena (a
+    // gravação quadro a quadro segue o relógio da cena)
+    const [skipOk, setSkipOk] = useState(false);
+    useEffect(() => {
+        if (wkw().__wkManual) return;
+        const id = window.setTimeout(() => setSkipOk(true), WALK_SKIP_AT);
+        return () => clearTimeout(id);
     }, []);
 
     // tamanho da carta: o palco de 360x640 unidades no meio da tela
@@ -334,8 +339,8 @@ export function WalkoutStage({
                     </div>
                 </div>
             )}
-            {on && t >= WALK_SKIP_AT && !done && !calm && (
-                <button type="button" className="btn ghost small wk-ph-skip" onClick={() => scene()?.skip()}>
+            {(skipOk || t >= WALK_SKIP_AT) && !done && !calm && (
+                <button type="button" className="btn ghost small wk-ph-skip" onClick={skip}>
                     {tr('common.ui.skip')}
                 </button>
             )}
@@ -348,6 +353,19 @@ export function WalkoutStage({
         document.body,
     );
 }
+
+/**
+ * Baixa o Phaser, a cena e as fontes antes da hora (o pacote chama enquanto as cartas saem em leque): sem isso a tela
+ * do walkout ficava preta, sem Pular, enquanto o Phaser baixava. O navegador guarda o módulo: chamar de novo é de graça.
+ */
+export const preloadWalkout = () =>
+    Promise.all([
+        import('phaser'),
+        import('../../game/scenes/WalkoutScene'),
+        document.fonts.load('11px Galmuri11'),
+        document.fonts.load('bold 11px Galmuri11'),
+        document.fonts.load('28px Galmuri14'),
+    ]);
 
 /**
  * O walkout de uma carta do pacote (UT e Mercado da Copa; quem escolhe a carta é `walkoutPick`): o nível pela edição e
