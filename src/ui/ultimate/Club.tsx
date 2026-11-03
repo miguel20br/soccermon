@@ -19,6 +19,7 @@ import {
     type UtPrize,
 } from '../../store/ultimate/ultimate';
 import type { CardAction } from '../card-modal';
+import { Coach } from '../coach/Coach';
 import { PackArt } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -26,6 +27,7 @@ import { MonIcon } from '../components/MonIcon';
 import { TypeIcon } from '../components/TypeIcon';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import { type Metal, metalLabel, metalOf } from '../rarity';
+import { type ClubStatus, STATUSES, statusesOf } from './club-status';
 import { useMarkText } from './Season';
 
 export type ClubSeg = 'cards' | 'pending';
@@ -42,10 +44,11 @@ interface Filters {
     metal: Metal | null;
     edition: EditionKey | null;
     type: string | null;
+    status: ClubStatus | null;
     sort: Sort;
 }
 /** Os filtros do Clube ficam lembrados enquanto o jogo está aberto (conveniência, não save). */
-let mem: Filters = { q: '', pos: null, metal: null, edition: null, type: null, sort: 'rating' };
+let mem: Filters = { q: '', pos: null, metal: null, edition: null, type: null, status: null, sort: 'rating' };
 /** Abre o Clube filtrado pela posição (o "Ver no Clube" do Elenco). */
 export const clubPos = (pos: Position | null) => {
     mem = { ...mem, pos };
@@ -132,6 +135,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const views = useMemo(() => new Map(u.cards.map((c) => [c.uid, viewInstance(c)])), [u.cards]);
     const q = f.q.trim().toLocaleLowerCase(lang);
+    const stat = useMemo(() => new Map(u.cards.map((c) => [c.uid, statusesOf(u, c.uid)])), [u]);
     const list = u.cards
         .map((c, i) => ({ c, i, v: views.get(c.uid)! }))
         .filter(({ c, v }) => {
@@ -141,7 +145,8 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 (!f.pos || v.positions.includes(f.pos)) &&
                 (!f.metal || metalOf(v.overall) === f.metal) &&
                 (!f.edition || ed === f.edition) &&
-                (!f.type || species(c.speciesId).types.includes(f.type))
+                (!f.type || species(c.speciesId).types.includes(f.type)) &&
+                (!f.status || stat.get(c.uid)!.includes(f.status))
             );
         })
         .sort((a, b) =>
@@ -154,7 +159,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                     : (f.pos ? slotRating(b.c, f.pos) - slotRating(a.c, f.pos) : b.v.overall - a.v.overall) ||
                       a.c.speciesId - b.c.speciesId,
         );
-    const on = [f.metal, f.edition, f.type].filter(Boolean).length;
+    const on = [f.metal, f.edition, f.type, f.status].filter(Boolean).length;
     if (!u.cards.length) return <p className="panel ut-empty">{t('ultimate.collection.empty')}</p>;
     const actions = (c: PokemonInstance): CardAction[] => [
         { label: t('ultimate.club.place'), primary: true, onClick: () => setPlace(c) },
@@ -204,7 +209,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 <small className="muted">{t('ultimate.club.count', { n: list.length, of: u.cards.length })}</small>
             </div>
             {list.length ? (
-                <div className="ut-cards" key={`${f.pos}-${f.metal}-${f.edition}-${f.type}-${f.sort}`}>
+                <div className="ut-cards" key={`${f.pos}-${f.metal}-${f.edition}-${f.type}-${f.status}-${f.sort}`}>
                     {list.map(({ c }) => {
                         const i = u.team.order.indexOf(c.uid);
                         return (
@@ -267,6 +272,19 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                             </Chip>
                         ))}
                     </div>
+                    <span className="bc-lbl">{t('ultimate.club.status')}</span>
+                    <div className="ut-chips">
+                        {STATUSES.map((st) => (
+                            <Chip
+                                key={st}
+                                on={f.status === st}
+                                onClick={() => set({ status: f.status === st ? null : st })}
+                            >
+                                {t(`ultimate.club.st.${st}`)} ·{' '}
+                                {u.cards.filter((c) => stat.get(c.uid)!.includes(st)).length}
+                            </Chip>
+                        ))}
+                    </div>
                     <span className="bc-lbl">{t('ultimate.club.type')}</span>
                     <div className="ut-types">
                         {TYPES.map((ty) => (
@@ -288,7 +306,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                             type="button"
                             className="btn ghost"
                             disabled={!on}
-                            onClick={() => set({ metal: null, edition: null, type: null })}
+                            onClick={() => set({ metal: null, edition: null, type: null, status: null })}
                         >
                             {t('ultimate.club.clear')}
                         </button>
@@ -459,6 +477,7 @@ function Pending() {
     };
     return (
         <>
+            <Coach id="utRepetida" targets={['.ut-pend-list .ut-pend:not(.ut-pend-prize)']} when={repeats.length > 0} />
             <section className="panel bc-surface ut-pend-head">
                 <small className="muted">{t('ultimate.pending.hint')}</small>
                 <div className="ut-pend-all">

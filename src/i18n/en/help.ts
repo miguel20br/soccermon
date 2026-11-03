@@ -648,6 +648,7 @@ export const help: typeof pt = {
             "You face another trainer's saved team. They don't need to be online.",
         ],
         golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
+        utRepetida: ["A duplicate doesn't join the Club: sell it or swap it for the one you have."],
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',

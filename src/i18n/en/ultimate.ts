@@ -130,6 +130,8 @@ export const ultimate: typeof pt = {
         clear: 'Clear',
         done: 'Show cards',
         none: 'No cards match these filters',
+        status: 'Status',
+        st: { starter: 'Starter', bench: 'Bench', evo: 'Evolving', locked: 'Locked', free: 'Free' },
         locked: 'Locked',
         place: 'Put in team',
         compare: 'Compare',
