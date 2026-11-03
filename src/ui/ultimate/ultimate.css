@@ -68,6 +68,11 @@
     white-space: nowrap;
 }
 
+/* o rótulo do pacote acompanha a largura dele (6,4cqw) mas não desce de 9 px (o "PACOTE MINI" ficava em 6 px) */
+.ut .cpack-label {
+    font-size: max(9px, 6.4cqw);
+    letter-spacing: 0.06em;
+}
 /* pacote fechado */
 .ut-pack {
     display: grid;

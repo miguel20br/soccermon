@@ -533,3 +533,13 @@
 .draft-auto {
     zoom: var(--k-big, 1);
 }
+
+/* a quadra do draft encolhe por zoom (useFitBoard): o texto das vagas compensa pra ficar com pelo menos 9 px na tela */
+.draft-board .slot .slot-name,
+.draft-board .slot .slot-rating,
+.draft-board .slot .slot-empty {
+    font-size: max(11px, calc(9px / var(--fit, 1)));
+}
+.draft-board .slot .pos-badge {
+    font-size: max(10px, calc(9px / var(--fit, 1)));
+}

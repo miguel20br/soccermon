@@ -121,7 +121,10 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown, min = 
         const refit = () => {
             inner.style.zoom = '';
             const z = Math.min(1, wrap.clientHeight / inner.offsetHeight, wrap.clientWidth / inner.offsetWidth);
-            if (z < 1) inner.style.zoom = String(Math.max(min, z));
+            const fit = z < 1 ? Math.max(min, z) : 1;
+            if (z < 1) inner.style.zoom = String(fit);
+            // o texto das vagas desconta o zoom pra nunca ficar abaixo de 9 px na tela (draft.css, .draft-board)
+            inner.style.setProperty('--fit', String(fit));
         };
         refit();
         const ro = new ResizeObserver(refit);
