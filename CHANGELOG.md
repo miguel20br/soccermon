@@ -1,5 +1,13 @@
 # Novidades
 
+## 0.9.38 · Walkout (2026-11-03)
+
+### Pacotes
+- Carta rara no pacote do Mercado entra em campo: estádio, telões com o tipo e a posição, silhueta e a carta aparecendo
+- Três níveis: raro (Ouro 75 a 84), muito raro (Ouro 85+, Shiny e Evento) e especial (Ícone e Destaque)
+- Cada Pokémon entra com uma jogada: embaixadinha, bicicleta, cabeçada, drible, voo, chama e mais
+- Pular depois de 1 segundo. Do 2º raro do dia em diante, a versão curta
+
 ## 0.9.37.1 · Copa Relâmpago no lugar (2026-11-02)
 
 ### Menus

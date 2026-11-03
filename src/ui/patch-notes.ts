@@ -9,6 +9,22 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.38',
+        date: '2026-11-03',
+        title: 'Walkout',
+        sections: [
+            {
+                title: 'Pacotes',
+                lines: [
+                    'Carta rara no pacote do Mercado entra em campo: estádio, telões com o tipo e a posição, silhueta e a carta aparecendo',
+                    'Três níveis: raro (Ouro 75 a 84), muito raro (Ouro 85+, Shiny e Evento) e especial (Ícone e Destaque)',
+                    'Cada Pokémon entra com uma jogada: embaixadinha, bicicleta, cabeçada, drible, voo, chama e mais',
+                    'Pular depois de 1 segundo. Do 2º raro do dia em diante, a versão curta',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.37.1',
         date: '2026-11-02',
         title: 'Copa Relâmpago no lugar',
@@ -2327,6 +2343,22 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.38',
+        date: '2026-11-03',
+        title: 'Walkout',
+        sections: [
+            {
+                title: 'Packs',
+                lines: [
+                    'A rare card in a Market pack walks out: stadium, big screens with type and position, silhouette and the card reveal',
+                    'Three tiers: rare (Gold 75 to 84), very rare (Gold 85+, Shiny and Event) and special (Icon and Highlight)',
+                    'Each Pokémon comes in with a move: keepy-ups, bicycle kick, header, dribble, flight, flame and more',
+                    'Skip after 1 second. From the 2nd rare of the day on, the short version',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.37.1',
         date: '2026-11-02',

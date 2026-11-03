@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.38 · Walkout (03/11/2026)
+
+Walkout V2 (estádio no Phaser, placa e `FutCard` do React, telões com tipo e posição, silhueta, jogada com bola por espécie, vidro quebrando) no pacote do Mercado e no do Time Ultimate; 3 níveis, encolhe do 2º raro e 3º muito raro no dia. Time Ultimate inteiro na main (save v10), escondido até `ULTIMATE_OPENS_AT` (27/11 00:00 BRT): Início estilo hub do FC, Clube com filtros, Elenco por posição, Pendentes (venda rápida, trocar, resgatar, teto 30), aviso do último dia, rival do Fácil justo. 0.9.37.1: Copa Relâmpago centralizado e saiu o letreiro SMN flutuante.
+
 ## 0.9.37 · No ar (02/11/2026)
 
 O Miguel comparou o protótipo `?lab=tv` e aprovou tudo: corte de TV diagonal como transição padrão (280 ms, fade com reduzir movimento; ADR 0004 atualizado), letreiro do canal (bug SMN + faixa da tela, AO VIVO na partida, procura lugar sem cobrir controle) e o menu Smash simplificado com toques de TV. A grade de programação saiu. Arrastar entre abas no celular intacto (passo novo na fumaça).
