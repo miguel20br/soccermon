@@ -1188,6 +1188,12 @@ button.sb-title:hover {
     min-width: 0;
     padding-inline: 6px;
 }
+/* deitado em 2 colunas: os dois treinadores um embaixo do outro (lado a lado, ~140 px cada, o nome e o título cortavam) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .duel-stage .k-stage-body[data-cols="2"] .duel-peers {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
 /* tela baixa: a frase do convite, o QR e o aviso da sala local saem (o código e os botões dizem o mesmo) */
 @media (max-height: 700px) {
     .duel-stage :is(.duel-invite-hint, .duel-qr-row, .duel-local) {
