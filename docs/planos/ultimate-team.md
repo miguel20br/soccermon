@@ -359,3 +359,15 @@ um paga uma vez, na hora; recomeçam na temporada nova (como o resto do modo).
 - **Música:** o Time Ultimate toca a `menu-balanco` até ter a própria.
 
 Decidido com o Miguel (02/11/2026): os 5 prêmios ficam (20, 20, 30, 30, 50), os Primeiros passos recomeçam a cada temporada e o "Abrir agora" entra.
+
+## Junção com a 0.9.37 e playtest headless (02/11/2026)
+
+Main 0.9.37 juntada na `ultimate` (motor 19 igual, sem `calibrate`). Hoje o modo só abre com `?lab=ultimate` no dev e
+nas prévias (`ultimateOn` exige `__SMOKE__`); em produção não há data: o EM BREVE 27/11 fica até alguém trocar
+`ultimateOn` pra ligar a partir de 27/11. Save 0.9.37 (v9) abre na branch e vira v10 com a fatia vazia.
+
+Pro Miguel decidir: **o Fácil nem sempre é fácil pra quem começa.** O rival sai de 12 times do clube sorteado
+(`aiDraftTeam` com dificuldade −2 a 3) e alguns clubes não têm time fraco o bastante: medido em 200 saves novos
+(2 pacotes, média 49–74), em 22 o rival do 1º Fácil tem média igual ou maior que a do jogador (3 com +5 ou mais; no
+pior, 50 x 59, que perdeu 0x7 e mais 4 seguidas). Opções: aceitar, abrir a faixa de dificuldade da IA no Fácil, ou
+escolher o clube entre os que chegam perto do alvo.
