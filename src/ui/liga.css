@@ -744,3 +744,15 @@
     text-align: left;
     font-size: 15px;
 }
+/* Copa do Dia deitada em 2 colunas: o painel inteiro não cabia embaixo do título (o título ficava sozinho na 1ª coluna)
+   e o Ranking ia pra uma 3ª coluna fora da tela. O painel quebra entre as colunas, cada pedaço com a moldura */
+@media (orientation: landscape) and (max-height: 520px) {
+    .dy-stage .k-stage-body[data-cols="2"] > .dy-panel {
+        break-inside: auto;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+    .dy-stage .k-stage-body[data-cols="2"] > .dy-panel > * {
+        break-inside: avoid;
+    }
+}
