@@ -330,6 +330,7 @@ export function LineupEditor({
     onCorner,
     onMoveItem,
     onCaptain,
+    onSlotTap,
     wall,
     side,
     footer,
@@ -355,6 +356,8 @@ export function LineupEditor({
     onMoveItem?: (fromUid: string, toUid: string) => void;
     /** Só na copa: outro titular vira capitão (entre as partidas; no duelo o capitão vem do draft). */
     onCaptain?: (uid: string) => void;
+    /** Time Ultimate: tocar numa vaga abre a troca por posição (no lugar de tocar em duas vagas). */
+    onSlotTap?: (ref: SlotRef, uid: string) => void;
     /** Objeto a mais na parede do vestiário, à esquerda do quadro da tática (a chave, na copa). */
     wall?: ReactNode;
     side: ReactNode;
@@ -413,6 +416,10 @@ export function LineupEditor({
                 onMoveItem?.(giving, uid);
             }
             setGiving(null);
+            return;
+        }
+        if (onSlotTap) {
+            onSlotTap(ref, uid);
             return;
         }
         if (!selected) {

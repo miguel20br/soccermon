@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { clubName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { dailyDay } from '../../store/daily';
@@ -19,7 +19,7 @@ import {
     type PassReward,
     passReward,
 } from '../../store/ultimate/rules';
-import { gymCount, nextSeason, seasonAt, seasonN } from '../../store/ultimate/season';
+import { gymCount, nextSeason, seasonAt } from '../../store/ultimate/season';
 import { gymReady, passCardUid, type UltimateSave } from '../../store/ultimate/ultimate';
 import { KantoBadge } from '../components/BadgeCase';
 import { FutCard } from '../components/FutCard';
@@ -32,16 +32,10 @@ import { hms, useNow } from './clock';
  * desafios dos líderes e o legado que fica no Perfil. Os números vêm de rules.ts (proposta, falta o ok do Miguel).
  */
 
-/** A faixa da temporada embaixo da carteira; também faz a virada quando o relógio passa do fim. */
+/** A faixa da temporada (em Metas), com a contagem até o fim. A virada mora no Time Ultimate (`Ultimate`). */
 export function SeasonBar() {
     const { t, d } = useT();
     const now = useNow();
-    const n = seasonN(now);
-    const roll = useGame((s) => s.ultimateSeason);
-    // virou a temporada (ou a partida aberta acabou): zera o modo e guarda o legado
-    const live = useGame((s) => !!s.ultimate.live);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: `n` e `live` são o gatilho da virada
-    useEffect(() => roll(), [n, live, roll]);
     const season = seasonAt(now);
     const next = nextSeason(now);
     const event = eventAt(now);
