@@ -147,21 +147,24 @@ const ESPECIAL: Base = {
 /** Upgrade: a prévia é a do muito raro (prateada, sem placa); a cor da edição e a placa vêm no flash. */
 const UPGRADE: Partial<Base> = { spots: 2, fires: [600, 800], rain: false, plate: 7400, plateOut: 8000 };
 
-/** Encolhido do dia (raro do 2º em diante): prévia, o chute na tela e a carta. */
+/**
+ * Encolhido do dia (raro do 2º em diante, ~3 s): prévia, o chute na tela e a carta, sem a jogada com bola. Com 1,8 s
+ * ficava "absurdamente rápido" (03/11): a entrada e a carta respiram, e a nota bate a 0,7 s do Continuar.
+ */
 const CURTO: Base = {
-    end: 1800,
+    end: 3000,
     spots: 1,
-    fires: [100],
+    fires: [150],
     rain: false,
     sky: 0,
-    plate: 100,
-    plateOut: 600,
-    enter: 500,
+    plate: 150,
+    plateOut: 750,
+    enter: 750,
     body: 0,
-    impact: 900,
-    card: 1200,
-    count: 400,
-    party: 1500,
+    impact: 1300,
+    card: 1600,
+    count: 500,
+    party: 2400,
 };
 
 /** Reduzir movimento (~1,2 s): fade pra cor, a carta parada com a placa, o grito. */
@@ -206,7 +209,15 @@ export function walkoutPlan(
  */
 function stretch(p: WalkPlan): WalkPlan {
     const tunnel = p.gate !== undefined ? 500 : 0;
-    const reveal = p.kind === 'curto' ? 0 : p.tier === 'especial' ? 1100 : p.tier === 'muitoraro' ? 800 : 500;
+    // o raro curto já tem o respiro na tabela; o muito raro curto (a tabela do raro) ganha o do raro
+    const reveal =
+        p.tier === 'raro' && p.kind === 'curto'
+            ? 0
+            : p.tier === 'especial'
+              ? 1100
+              : p.tier === 'muitoraro' && p.kind === 'cheio'
+                ? 800
+                : 500;
     const hit = p.card + 200 + p.count;
     const at = (x: number) => x + (p.back !== undefined && x >= p.back ? tunnel : 0) + (x > hit ? reveal : 0);
     const opt = (x?: number) => (x === undefined ? x : at(x));

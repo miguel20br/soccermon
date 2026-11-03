@@ -57,10 +57,15 @@ describe('plano do walkout', () => {
     });
 
     it('encolhe do 2º raro e do 3º muito raro do dia; especial nunca', () => {
-        expect(walkoutPlan('raro', { nth: 2 })).toMatchObject({ kind: 'curto', end: 1800 });
+        expect(walkoutPlan('raro', { nth: 2 })).toMatchObject({ kind: 'curto', end: 3000 });
         expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(10650);
-        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 5500, tier: 'muitoraro' });
+        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 6000, tier: 'muitoraro' });
         expect(walkoutPlan('especial', { nth: 9 }).end).toBe(16550);
+        // o curto respira: a nota bate e ainda dá pra ler nota e nome antes do Continuar
+        for (const p of [walkoutPlan('raro', { nth: 2 }), walkoutPlan('muitoraro', { nth: 3 })]) {
+            expect(p.impact + SHATTER_MS).toBeLessThanOrEqual(p.card);
+            expect(p.end - (p.card + 200 + p.count)).toBeGreaterThanOrEqual(600);
+        }
     });
 
     it('upgrade só no especial: prévia prateada, a placa vem no flash; metade dos especiais', () => {
