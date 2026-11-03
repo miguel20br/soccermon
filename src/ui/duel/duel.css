@@ -1183,7 +1183,8 @@ button.sb-title:hover {
     width: min(420px, 100%);
 }
 .duel-stage .duel-share .btn {
-    flex: 1 1 0;
+    /* largura pelo texto: com as 3 iguais, "Compartilhar" vazava do botão no 320 e deitado */
+    flex: 1 1 auto;
     min-width: 0;
     padding-inline: 6px;
 }
