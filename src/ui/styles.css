@@ -8635,3 +8635,71 @@ body {
 .team-panel .syn-row {
     margin-bottom: 2px;
 }
+
+/* caminho do título: o seu time na partida (tocar abre a escalação) */
+.champ-mine img {
+    height: 26px;
+}
+.champ-x {
+    font-size: 10px;
+    line-height: 1;
+    color: var(--muted);
+}
+.champ-step-open {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+.champ-step-open:hover,
+.champ-step-open:focus-visible {
+    background: rgb(255 212 71 / 8%);
+    outline: 2px solid var(--yellow);
+}
+.cl-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+}
+.cl-row {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 40px 26px 26px;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 5%);
+}
+.cl-row.cl-labels {
+    background: none;
+    font-size: 11px;
+    color: var(--muted);
+}
+.cl-row img {
+    height: 32px;
+    justify-self: center;
+}
+.cl-name {
+    display: grid;
+    min-width: 0;
+}
+.cl-name b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cl-name small {
+    color: var(--muted);
+}
+.cl-num {
+    text-align: center;
+    color: var(--muted);
+}
+.cl-num.on {
+    color: var(--yellow);
+    font-weight: 700;
+}

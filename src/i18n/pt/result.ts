@@ -87,6 +87,7 @@ export const result = {
         wins: 'vitórias',
         poss: 'posse média',
         path: 'Caminho do título',
+        lineupOf: 'Escalação: {stage}',
         pens: 'pênaltis {score}',
         vs: 'vs {team}',
         squad: 'Elenco campeão',
