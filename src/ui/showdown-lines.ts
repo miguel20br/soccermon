@@ -58,9 +58,9 @@ export function showdownScript(
  * (Miguel, 03/11/2026: "não dá pra ler"). `fade` é a saída da caixa.
  */
 export const SHOWDOWN_MS = {
-    talk: 3100,
+    talk: 3900,
     shout: 2600,
-    exit: 2200,
+    exit: 3200,
     char: 26,
     type: 900,
     soft: 70,

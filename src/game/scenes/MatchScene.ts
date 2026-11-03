@@ -301,10 +301,10 @@ const SD = {
     spin: 14,
     impactFill: 0.62,
     impactMax: 4.2,
-    panelsAt: 2100,
-    impactFrameMs: 240,
-    wordMs: 2200,
-    bicudaWordAt: 2700,
+    panelsAt: 2900,
+    impactFrameMs: 320,
+    wordMs: 3200,
+    bicudaWordAt: 3800,
     close: 0.56,
     closeMax: 4.6,
     zMin: 1.8,
@@ -3799,7 +3799,7 @@ export class MatchScene extends Phaser.Scene {
             chroma(this, [gk.sprite, shooter.sprite, this.ball], 3, 220, reduce);
             this.rig.shake(9, 750);
             crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 8), 650, FOCUS_DEPTH - 50, reduce);
-            // parada e legível até os painéis (1,7 s no meio da entrada e da saída)
+            // parada e legível até os painéis (2,5 s entre a entrada e a saída)
             banner(d.back, null, SD.panelsAt - 60);
             // a bola parada solta faíscas do goleiro e, mais fracas, as do golpe que ela trazia
             st.streams.push(
