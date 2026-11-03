@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.39.1 · Bicuda de volta (2026-11-03)
+
+### Ajustes
+- O duelo da bicuda sai por enquanto: a bicuda N3 volta a ser o contra-ataque de sempre
+- Walkout com as jogadas da 0.9.38
+
 ## 0.9.39 · Duelo da bicuda (2026-11-03)
 
 ### Duelo da bicuda

@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.39.1',
+        date: '2026-11-03',
+        title: 'Bicuda de volta',
+        sections: [
+            {
+                title: 'Ajustes',
+                lines: [
+                    'O duelo da bicuda sai por enquanto: a bicuda N3 volta a ser o contra-ataque de sempre',
+                    'Walkout com as jogadas da 0.9.38',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.39',
         date: '2026-11-03',
         title: 'Duelo da bicuda',
@@ -2425,6 +2439,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.39.1',
+        date: '2026-11-03',
+        title: 'Punt is back',
+        sections: [
+            {
+                title: 'Tweaks',
+                lines: [
+                    'The keeper showdown is out for now: the level 3 punt is the usual counter again',
+                    'Walkout with the 0.9.38 ball tricks',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.39',
         date: '2026-11-03',

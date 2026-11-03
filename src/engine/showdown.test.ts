@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AGENCY } from './agency';
 import { type Command, IDLE } from './commands';
-import { FUTSAL_5 } from './config';
+import { FUTSAL_5, type MatchConfig } from './config';
 import { aiDraftTeam } from './draft';
 import { createInstance } from './instance';
 import { createMatch, step } from './match';
@@ -22,10 +22,10 @@ const IDLE_ALL = (s: MatchState): Command[] => s.players.map(() => IDLE);
 const of = <T extends MatchEvent['type']>(s: MatchState, type: T, from = 0) =>
     s.events.slice(from).filter((e): e is Extract<MatchEvent, { type: T }> => e.type === type);
 
-function duel(seed: string, level: 1 | 2 | 3 = 3, q: 1 | 2 = 2) {
+function duel(seed: string, level: 1 | 2 | 3 = 3, q: 1 | 2 = 2, cfg: MatchConfig = ON) {
     const A = team('sd-a');
     const B = team('sd-b');
-    const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[4].uid }, { ...B, captainUid: B.lineup[0].uid }, seed);
+    const s = createMatch(cfg, { ...A, captainUid: A.lineup[4].uid }, { ...B, captainUid: B.lineup[0].uid }, seed);
     s.phase = 'play';
     const far = [v(8, 3), v(8, 17), v(4, 10), v(12, 10), v(15, 5), v(15, 15), v(20, 3)];
     s.players.forEach((p, i) => {
@@ -54,7 +54,21 @@ function untilGoal(s: MatchState, n = 400) {
     for (let i = 0; i < n && !of(s, 'goal').length; i++) step(s, IDLE_ALL(s));
 }
 
+/** O duelo está desligado no FUTSAL_5 (motor 22) até o Miguel aprovar. */
+const ON = { ...FUTSAL_5, showdown: true };
+
 describe('duelo da bicuda (motor 21)', () => {
+    it('desligado no FUTSAL_5 (motor 22): a bicuda N3 contra o N3 é o counter de antes, sem parar a partida', () => {
+        let saves = 0;
+        for (let k = 0; k < 40; k++) {
+            const s = duel(`sd-${k}`, 3, 2, FUTSAL_5);
+            expect(of(s, 'showdown')).toHaveLength(0);
+            expect(s.phase).not.toBe('showdown');
+            if (of(s, 'save').some((e) => e.by === 5)) saves++;
+        }
+        expect(saves).toBeGreaterThan(0);
+    });
+
     it('o N3 que o goleiro capitão alcança com a bicuda N3 armada para a partida e vira gol dele, sempre', () => {
         let seen = 0;
         for (let k = 0; k < 40; k++) {
@@ -161,7 +175,7 @@ describe('duelo da bicuda (motor 21)', () => {
 function duelWith(seed: string, shotLevel: 1 | 2 | 3, q: 0 | 1 | 2, level: 1 | 2 | 3 = 3) {
     const A = team('sd-a');
     const B = team('sd-b');
-    const s = createMatch(FUTSAL_5, { ...A, captainUid: A.lineup[4].uid }, { ...B, captainUid: B.lineup[0].uid }, seed);
+    const s = createMatch(ON, { ...A, captainUid: A.lineup[4].uid }, { ...B, captainUid: B.lineup[0].uid }, seed);
     s.phase = 'play';
     const far = [v(8, 3), v(8, 17), v(4, 10), v(12, 10), v(15, 5), v(15, 15), v(20, 3)];
     s.players.forEach((p, i) => {

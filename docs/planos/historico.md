@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.39.1 · Bicuda de volta (03/11/2026)
+
+A cutscene da bicuda e o walkout polido subiram na 0.9.39 sem o Miguel ter visto. Motor 22: `MatchConfig.showdown` desligado no FUTSAL_5 (bicuda N3 contra N3 volta ao counter do motor 20; só o `?demo=bicuda` abre o duelo) e o walkout volta aos tempos da 0.9.38 (o polido é o commit 1295770e, revertido). Os dois esperam o ok dele em cima dos vídeos.
+
 ## 0.9.39 · Duelo da bicuda (03/11/2026)
 
 Motor 21: bicuda N3 do goleiro capitão contra o N3 do rival para a partida 9 s (fase `showdown`) numa cutscene com falas (16 pares, linha evolutiva, 14 solos, genéricas; escolha pelo tick), e a bicuda é gol garantido com comemoração de 6 s. Rival também faz, sem pular. Sugestões dos jogadores (sinergias na aba Time, +Tipo nas cartas do draft, carta em campo na prancheta, selo NOVO, seu time no Caminho do título), walkout polido (jogadas mais calmas, tiers +6 a 10%) e as 8 sugestões do QA.

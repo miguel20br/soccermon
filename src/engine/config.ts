@@ -28,6 +28,11 @@ export interface MatchConfig {
      * mundo no FUTSAL_5 desde a 0.9.16 (copa, Duelo e Liga). Sem = o N3 de força pura.
      */
     maxType?: boolean;
+    /**
+     * Duelo da bicuda (motor 21): desligado no FUTSAL_5 desde o motor 22 até o Miguel aprovar a cutscene e as falas.
+     * Fora daqui, só o `?demo=bicuda` liga (`TeamSetup.demoBicudaAt`).
+     */
+    showdown?: boolean;
 }
 
 /**
@@ -77,8 +82,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 21 = duelo da bicuda (Miguel, 03/11/2026): o goleiro capitão que alcança o N3 do rival com a bicuda N3 segura, a
  *     partida para 9 s (fase `showdown`, a cutscene com as falas) e a bicuda é gol sempre, com a comemoração de 6 s
  *     (`AGENCY.showdown`). A bicuda N1/N2 (contra qualquer chute) e a N3 contra os outros chutes não mudaram.
+ * 22 = o duelo da bicuda sai do ar (`MatchConfig.showdown` desligado; Miguel não tinha aprovado): a bicuda N3 contra o N3
+ *     volta a ser o counter do motor 20. Só o `?demo=bicuda` ainda abre o duelo.
  */
-export const ENGINE_VERSION = 21;
+export const ENGINE_VERSION = 22;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
