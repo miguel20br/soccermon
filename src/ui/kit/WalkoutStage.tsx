@@ -111,13 +111,17 @@ export function WalkoutStage({
             setWarm(false);
             // a pixel art é em px do jogo (2 px de CSS); o canvas tem `res` px por px do jogo, o múltiplo inteiro que
             // casa com a tela (DPR 1: 2; DPR 2: 4; DPR 3: 3), e os telões e textos nítidos usam essa resolução
+            // (tela grande com DPR alto cai pra 2: acima de ~2,4 milhões de px o preenchimento derruba o FPS)
             const dpr = window.devicePixelRatio || 1;
-            const res = dpr >= 2.5 ? 3 : dpr >= 1.5 ? 4 : 2;
+            const gw = Math.floor(window.innerWidth / 2);
+            const gh = Math.floor(window.innerHeight / 2);
+            let res = dpr >= 2.5 ? 3 : dpr >= 1.5 ? 4 : 2;
+            if (gw * gh * res * res > 2.4e6) res = 2;
             make.current.res = res;
             game = new P.Game({
                 type: P.AUTO,
-                width: Math.floor(window.innerWidth / 2) * res,
-                height: Math.floor(window.innerHeight / 2) * res,
+                width: gw * res,
+                height: gh * res,
                 parent: host.current,
                 pixelArt: true,
                 backgroundColor: '#000000',

@@ -186,6 +186,7 @@ export class WalkoutScene extends Phaser.Scene {
     private celeb: Comemoracao = 'pose';
     private beat = 0;
     private heat = 0;
+    private fires: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor() {
         super('walkout');
@@ -213,6 +214,7 @@ export class WalkoutScene extends Phaser.Scene {
         this.olaFrom = Number.POSITIVE_INFINITY;
         this.timers = {};
         this.temp = [];
+        this.fires = [];
         this.celebAt = -1;
         this.beat = 0;
         this.heat = 0;
@@ -2128,6 +2130,44 @@ export class WalkoutScene extends Phaser.Scene {
         const cam = this.cameras.main;
         const fx = this.finalLook.fx;
         const esp = p.tier === 'especial';
+        // tudo o que solta partícula na v2 nasce agora, parado (criar no meio custava uma travadinha por batida)
+        this.fireColumns(0);
+        const rise = this.add.particles(0, 0, 'wk-px', {
+            x: { min: W * 0.12, max: W * 0.88 },
+            y: H + 2,
+            speedY: { min: -75, max: -35 },
+            speedX: { min: -6, max: 6 },
+            lifespan: 3600,
+            frequency: 55,
+            scale: { start: 1.2, end: 0 },
+            alpha: { start: 1, end: 0.2 },
+            tint: fx,
+            blendMode: Phaser.BlendModes.ADD,
+            emitting: false,
+        });
+        rise.setDepth(11.5);
+        const fall = this.add.particles(0, -4, 'wk-conf', {
+            x: { min: 0, max: W },
+            speedY: { min: 30, max: 65 },
+            speedX: { min: -14, max: 14 },
+            rotate: { min: 0, max: 360 },
+            lifespan: 6000,
+            frequency: 45,
+            tint: fx,
+            emitting: false,
+        });
+        fall.setDepth(14);
+        for (const e of [rise, fall]) {
+            this.w(e);
+            this.temp.push(e);
+        }
+        this.rays2 = this.w(
+            this.add
+                .image(this.rays.x, this.rays.y, 'wk-rays')
+                .setDepth(10.9)
+                .setAlpha(0)
+                .setBlendMode(Phaser.BlendModes.ADD),
+        );
         // abre perto do túnel no escuro e recua até o estádio inteiro quando a luz acende
         this.zoom(1.6);
         cam.centerOn(W / 2, this.yS - 14);
@@ -2145,33 +2185,15 @@ export class WalkoutScene extends Phaser.Scene {
             this.beatBeams();
         });
         this.at(p.card, () => {
-            this.rays2 ??= this.w(
-                this.add.image(this.rays.x, this.rays.y, 'wk-rays').setDepth(10.9).setBlendMode(Phaser.BlendModes.ADD),
-            );
             this.rays2
-                .setAlpha(0)
+                ?.setAlpha(0)
                 .setTint(fx[1] ?? fx[0])
                 .setScale(0.8);
             this.tweens.add({ targets: this.rays2, alpha: 0.16, duration: 400 });
             this.tweens.add({ targets: this.rays2, angle: -360, duration: 6000, repeat: -1 });
             this.tweens.add({ targets: this.rays, angle: 360, duration: 5000, repeat: -1 });
             this.zoom(1.06, p.end - p.card, 'Sine.easeInOut');
-            // faíscas subindo atrás da carta
-            const rise = this.add.particles(0, 0, 'wk-px', {
-                x: { min: W * 0.12, max: W * 0.88 },
-                y: H + 2,
-                speedY: { min: -75, max: -35 },
-                speedX: { min: -6, max: 6 },
-                lifespan: 3600,
-                frequency: 55,
-                scale: { start: 1.2, end: 0 },
-                alpha: { start: 1, end: 0.2 },
-                tint: fx,
-                blendMode: Phaser.BlendModes.ADD,
-            });
-            rise.setDepth(11.5);
-            this.w(rise);
-            this.temp.push(rise);
+            rise.start();
         });
         // a nota bate: tremida, fogo e fogos
         const hit = p.card + 200 + p.count;
@@ -2207,46 +2229,37 @@ export class WalkoutScene extends Phaser.Scene {
             this.heat = 1;
             this.fireColumns(4);
             this.beatBeams();
-            const fall = this.add.particles(0, -4, 'wk-conf', {
-                x: { min: 0, max: W },
-                speedY: { min: 30, max: 65 },
-                speedX: { min: -14, max: 14 },
-                rotate: { min: 0, max: 360 },
-                lifespan: 6000,
-                frequency: 45,
-                tint: fx,
-            });
-            fall.setDepth(14);
-            this.w(fall);
-            this.temp.push(fall);
+            fall.start();
         });
     }
 
     /** Colunas de fogo na beira do campo (pirotecnia), com o tranco e o som do fogo. */
-    private fireColumns(n: 2 | 4) {
-        const { W, yS } = this;
-        const xs = n === 2 ? [0.1, 0.9] : [0.08, 0.3, 0.7, 0.92];
-        for (const x of xs) {
-            const e = this.add.particles(W * x, yS + 2, 'wk-px', {
-                speedY: { min: -210, max: -140 },
-                speedX: { min: -10, max: 10 },
-                gravityY: 160,
-                lifespan: { min: 380, max: 560 },
-                frequency: 14,
-                quantity: 2,
-                scale: { start: 2, end: 0.4 },
-                alpha: { start: 1, end: 0 },
-                tint: [0xffffff, 0xfff1a8, 0xffb13b, 0xff6a1f, this.finalLook.fx[0]],
-                blendMode: Phaser.BlendModes.ADD,
+    private fireColumns(n: 0 | 2 | 4) {
+        // as 4 colunas são criadas uma vez (criar emissor no meio do walkout custava ~10 ms por quadro de batida)
+        if (!this.fires.length)
+            this.fires = [0.08, 0.3, 0.7, 0.92].map((x) => {
+                const e = this.add.particles(this.W * x, this.yS + 2, 'wk-px', {
+                    speedY: { min: -210, max: -140 },
+                    speedX: { min: -10, max: 10 },
+                    gravityY: 160,
+                    lifespan: { min: 380, max: 560 },
+                    frequency: 14,
+                    quantity: 2,
+                    scale: { start: 2, end: 0.4 },
+                    alpha: { start: 1, end: 0 },
+                    tint: [0xffffff, 0xfff1a8, 0xffb13b, 0xff6a1f, this.finalLook.fx[0]],
+                    blendMode: Phaser.BlendModes.ADD,
+                    emitting: false,
+                });
+                e.setDepth(7.5);
+                this.w(e);
+                this.temp.push(e);
+                return e;
             });
-            e.setDepth(7.5);
-            this.w(e);
-            this.temp.push(e);
+        if (n === 0) return;
+        for (const e of n === 2 ? [this.fires[0], this.fires[3]] : this.fires) {
+            e.start();
             this.at(this.clock + 320, () => e.stop());
-            this.at(this.clock + 1000, () => {
-                e.destroy();
-                this.temp = this.temp.filter((t) => t !== e);
-            });
         }
         this.snd({ k: 'zz', name: 'fogo' });
         this.shake(120, 2);
