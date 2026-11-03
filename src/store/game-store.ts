@@ -101,6 +101,7 @@ import {
     EMPTY_CAREER,
     EMPTY_ENTRY,
     editionBits,
+    freshSpecies,
     type HallEntry,
     MAX_HALL,
     type MoveDex,
@@ -1184,11 +1185,16 @@ export const useGame = create<GameStore>()(
                 if (run) setState({ run: { ...run, ...patch } });
             };
             /** Pokédex com estas espécies marcadas como vistas. */
-            const seenDex = (list: { speciesId: number }[]) =>
-                markSeen(
-                    getState().dex,
+            const seenDex = (list: { speciesId: number }[]) => {
+                const dex = getState().dex;
+                // guarda quem era novo antes de gravar o "visto" (selo NOVO das cartas que acabaram de nascer)
+                freshSpecies.clear();
+                for (const p of list) if (!dex[p.speciesId]) freshSpecies.add(p.speciesId);
+                return markSeen(
+                    dex,
                     list.map((p) => p.speciesId),
                 );
+            };
             const ovrOf = (p: PokemonInstance): [number, number] => [p.speciesId, viewInstance(p).overall];
             /** O que muda no save quando chega carta nova (recompensa ou Mercado): Ícones, álbum e nota na Pokédex. */
             const gained = (run: RunState, picks: PokemonInstance[], from: 'recompensa' | 'mercado') => {

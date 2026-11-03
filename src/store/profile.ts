@@ -175,6 +175,16 @@ export const seenCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =
 export const playedCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =>
     list.filter((sp) => isPlayed(dex[sp.id])).length;
 
+/**
+ * Espécies que eram novas pra Pokédex no instante em que as cartas da tela nasceram. O jogo grava o "visto" quando a
+ * carta aparece, então o selo NOVO não pode olhar a Dex na hora de desenhar: olha esta lista (e a Dex, pras cartas
+ * que ainda não foram gravadas, como a recompensa). Não vai pro save.
+ */
+export const freshSpecies = new Set<number>();
+
+/** O selo NOVO: a espécie ainda não estava na Pokédex quando a carta apareceu. */
+export const isNovo = (dex: Dex, speciesId: number) => !dex[speciesId] || freshSpecies.has(speciesId);
+
 /** Marca espécies como vistas (não mexe em quem já está na Dex). Devolve o mesmo objeto se nada mudou. */
 export function markSeen(dex: Dex, ids: Iterable<number>): Dex {
     let out: Dex | null = null;

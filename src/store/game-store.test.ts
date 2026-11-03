@@ -35,7 +35,7 @@ import {
 } from './game-store';
 import { groupTable } from './long-cup';
 import { choiceTargets } from './long-events';
-import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
+import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -1136,5 +1136,23 @@ describe('trocar o capitão na escalação', () => {
         const team = playerTeam(g().run!);
         const m = runMatch(FUTSAL_5, team, team, 'teste-capitao-barra');
         expect(m.roster.find((r) => r.team === 0 && r.captain)?.uid).toBe(novo);
+    });
+});
+
+describe('selo NOVO (Pokédex de antes das cartas aparecerem)', () => {
+    it('as opções do draft são novas mesmo com o "visto" já gravado; na 2ª vez deixam de ser', () => {
+        const g = () => useGame.getState();
+        useGame.setState({ dex: {} });
+        g().newRun('Pallet FC', 'teste-novo');
+        g().chooseFormation(g().run!.formation);
+        const cap = g().run!.options;
+        // o "visto" já foi gravado quando a carta nasceu: ler só a Dex diria que ninguém é novo
+        for (const o of cap) expect(g().dex[o.speciesId]).toBeDefined();
+        for (const o of cap) expect(isNovo(g().dex, o.speciesId)).toBe(true);
+        // capitão escolhido, próxima rodada: novo só quem não estava na Dex antes dela
+        g().pick(cap[0].uid, { zone: 'lineup', index: 0 });
+        const before = new Set(Object.keys(g().dex).map(Number));
+        g().chooseSlot({ zone: 'lineup', index: 1 });
+        for (const o of g().run!.options) expect(isNovo(g().dex, o.speciesId)).toBe(!before.has(o.speciesId));
     });
 });

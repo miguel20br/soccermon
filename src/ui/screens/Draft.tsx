@@ -2,6 +2,7 @@ import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, use
 import { DRAFT_PICKS } from '../../engine/draft';
 import { evolvedRating } from '../../engine/evolution';
 import type { FormationId } from '../../engine/formations';
+import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { computeLinks } from '../../engine/links';
 import { computeSynergies } from '../../engine/synergy';
@@ -9,14 +10,17 @@ import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { type SlotRef, slotRole, useGame } from '../../store/game-store';
 import { isLong } from '../../store/long-cup';
+import { isNovo } from '../../store/profile';
+import { useCardModal } from '../card-modal';
 import { Coach } from '../coach/Coach';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { FormationBoard } from '../components/FormationBoard';
 import { FormationCarousel } from '../components/FormationCarousel';
 import { FutCard } from '../components/FutCard';
-import { LinkChip, LinkChips, newLinks } from '../components/LinkChips';
+import { LinkChip, LinkChips, newLinks, newSynergies, SynergyChip } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
+import { NovoSeal } from '../components/NovoSeal';
 import { TypeBadge } from '../components/PokeCard';
 import { EvoBadge } from '../components/PokeCard2';
 import { useMedia } from '../components/Prancheta';
@@ -147,7 +151,7 @@ export function DraftTeam({
     /** A copa ou, no Duelo, o time montado até aqui (formação, titulares e banco). */
     run: DraftTeamRun;
     byUid: Map<string, PokemonInstance>;
-    stateOf: (slot: SlotRef, uid: string) => 'locked' | 'target' | 'selected';
+    stateOf: (slot: SlotRef, uid: string) => 'idle' | 'locked' | 'target' | 'selected';
     label: string;
     onOpen: () => void;
 }) {
@@ -178,7 +182,7 @@ export function DraftTeam({
  * vaga e saem 3 Pokémon que jogam naquela posição.
  */
 export function Draft() {
-    const { run, chooseFormation, chooseSlot, pick, reroll, daily } = useGame();
+    const { run, chooseFormation, chooseSlot, pick, reroll, daily, dex } = useGame();
     const [selected, setSelected] = useState<string | null>(null);
     // formação que o carrossel mostra (só a tela; vale quando toca em "Escolher")
     const [formation, setFormation] = useState<FormationId | null>(null);
@@ -188,6 +192,7 @@ export function Draft() {
     const boardRef = useRef<HTMLDivElement>(null);
     const focus = run?.status === 'captain' ? (selected ? 'board' : 'options') : run?.draftSlot ? 'options' : 'board';
     const [teamOpen, setTeamOpen] = useState(false);
+    const openCard = useCardModal((s) => s.open);
     const [coachOn, setCoachOn] = useState(false);
     const firstFocus = useRef(true);
     // biome-ignore lint/correctness/useExhaustiveDependencies: a cada troca de foco ou rodada
@@ -270,7 +275,16 @@ export function Draft() {
     const hint = isCaptain ? (chosen ? t('team.draft.hintCaptainSlot') : t('team.draft.hintCaptain')) : null;
 
     const onSlot = (slot: SlotRef, uid: string) => {
-        if (uid) return;
+        if (uid) {
+            // vaga já preenchida: no draft o toque nela não move nem troca ninguém, então abre a carta (como na Recompensa)
+            const inst = byUid.get(uid);
+            if (inst)
+                openCard(inst, {
+                    position: slot.zone === 'lineup' ? formationOf(run.formation).slots[slot.index] : undefined,
+                    captain: uid === run.captainUid,
+                });
+            return;
+        }
         if (isCaptain) {
             if (!chosen) return;
             flyCard(chosen.uid, () => {
@@ -283,7 +297,7 @@ export function Draft() {
     };
 
     const slotState = (slot: SlotRef, uid: string) => {
-        if (uid) return 'locked' as const;
+        if (uid) return 'idle' as const; // ocupada: toca e abre a carta (nada move no draft)
         if (isCaptain) return chosen ? ('target' as const) : ('locked' as const);
         if (run.draftSlot) {
             return run.draftSlot.zone === slot.zone && run.draftSlot.index === slot.index ? 'selected' : 'locked';
@@ -302,6 +316,7 @@ export function Draft() {
             projection={chosen}
             stateOf={slotState}
             onSlot={onSlot}
+            slotAria={() => t('reward.openAria')}
             footer={
                 <div className="row draft-board-foot">
                     {filled.length > 0 && <TeamAvg avg={avg} />}
@@ -381,20 +396,30 @@ export function Draft() {
                                         className={`option cpack-card${isBigCard(o) ? ' big' : ''}`}
                                         data-fly={o.uid}
                                     >
-                                        {!isCaptain && role !== 'ANY' && newLinks(filled, o).length > 0 && (
-                                            <div className="option-links">
-                                                {t('team.draft.activates')}{' '}
-                                                {newLinks(filled, o).map((l) => (
-                                                    <LinkChip
-                                                        key={l.def.id}
-                                                        def={l.def}
-                                                        bonus={l.bonus}
-                                                        special={l.full && l.def.special}
-                                                        fresh
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const links = !isCaptain && role !== 'ANY' ? newLinks(filled, o) : [];
+                                            const syn = !isCaptain && role !== 'ANY' ? newSynergies(filled, o) : [];
+                                            const novo = isNovo(dex, o.speciesId);
+                                            if (!links.length && !syn.length && !novo) return null;
+                                            return (
+                                                <div className="option-links">
+                                                    {novo && <NovoSeal />}
+                                                    {links.length + syn.length > 0 && <>{t('team.draft.activates')} </>}
+                                                    {syn.map((s) => (
+                                                        <SynergyChip key={s.type} s={s} plus fresh />
+                                                    ))}
+                                                    {links.map((l) => (
+                                                        <LinkChip
+                                                            key={l.def.id}
+                                                            def={l.def}
+                                                            bonus={l.bonus}
+                                                            special={l.full && l.def.special}
+                                                            fresh
+                                                        />
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
                                         {!isCaptain &&
                                             role &&
                                             role !== 'ANY' &&
