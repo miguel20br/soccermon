@@ -306,5 +306,7 @@ export const ultimate: typeof pt = {
         none: 'No Evolution in progress',
         noCards: 'No card can start right now',
     },
+    /** Walkout (ut-walkout.md): a silhueta e o laboratório do Phaser (?lab=walkout&motor=phaser). */
+    walkout: { who: "Who's that Pokémon?", open: 'Open pack', again: 'Again' },
     match: { stage: 'Team Ultimate', stageShort: 'ULTIMATE' },
 };
