@@ -437,6 +437,9 @@ O Miguel escolheu a versão 2 (mais animada). Ela virou o walkout (sem bandeira)
 3 batidas (`walkoutIndex`, `walkoutBeats`, `.k-walk`):
 - Tempos com a folga da versão 2: raro 5,5 s, muito raro 9,8 s, especial 15,6 s; encolhido 1,8 s (raro do 2º) e 5 s
   (muito raro do 3º); Reduzir movimento 1,2 s.
+- **Polimento das jogadas (03/11/2026):** o Miguel aprovou tudo, só pediu pra desacelerar o que estava rápido. A jogada
+  (`body`) e o chute na tela ficaram mais longos (a revelação da carta não mudou): raro 6 s, muito raro 10,65 s, especial
+  16,55 s; o muito raro do 3º em diante (tamanho do raro) 5,5 s. Encolhido do 2º raro e Reduzir movimento seguem iguais.
 - **Onde toca:** no pacote do Time Ultimate (`src/ui/ultimate/PackMoment.tsx`) e no pacote do Mercado da Copa
   (`PackMoment` em `src/ui/screens/Shop.tsx`, com o walkout por import dinâmico). `walkoutPick` escolhe a carta de nível
   mais alto (e, no empate, a de nota maior); as outras seguem no leque. Recompensa e draft (escolha 1 de 3) seguem com o
