@@ -3240,8 +3240,10 @@
     display: grid;
     place-content: center;
     justify-items: center;
-    gap: 2px;
-    padding: 8px 16px 12px;
+    /* o contorno do JOGAR passa 3 px da letra (e 6 px embaixo): com 8 px em cima ele encostava na borda e cortava,
+       e com 2 px de vão a sombra de baixo pisava no subtítulo */
+    gap: 6px;
+    padding: 12px 16px 12px;
     border-radius: 14px;
     text-align: center;
 }
