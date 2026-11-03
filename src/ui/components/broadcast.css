@@ -1077,7 +1077,7 @@
     }
     /* o placar do duelo tem a linha dos títulos (~22 px) */
     .duel .bc-stage > .pitch-wrap {
-        width: min(100%, calc((calc(100 * var(--svh)) - 156px - env(safe-area-inset-bottom)) * 968 / 528));
+        width: min(100%, calc((calc(100 * var(--svh)) - 164px - env(safe-area-inset-bottom)) * 968 / 528));
     }
 }
 
