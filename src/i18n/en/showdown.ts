@@ -5,6 +5,8 @@ export const showdown: typeof pt = {
     tag: 'Big boot duel',
     goal: 'BIG BOOT!',
     goalSub: 'goal to goal',
+    counter: 'COUNTER!',
+    caught: 'Caught the L3',
     pairs: {
         '6-4': [
             ['s', 'Charmander? You stopped my fire?'],

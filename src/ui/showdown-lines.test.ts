@@ -92,8 +92,9 @@ describe('falas do duelo da bicuda', () => {
         expect(seen.size).toBeGreaterThan(3);
     });
 
-    it('a cutscene: cada fala na vez dela até o grito, que fica até o corte sair', () => {
+    it('o duelo: o COUNTER! da defesa sai antes da 1ª fala, cada fala na vez dela até o grito, que fica até a caixa sair', () => {
         const ms = 9000;
+        expect(SHOWDOWN_MS.talk).toBeGreaterThanOrEqual(SHOWDOWN_MS.counter);
         for (const n of [3, 4]) {
             const seen = Array.from({ length: ms / 50 }, (_, k) => lineAt(k * 50, ms, n));
             expect(seen[0]).toBe(-1);

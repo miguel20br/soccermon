@@ -50,11 +50,12 @@ export function showdownScript(
 }
 
 /**
- * Tempos da cutscene (ms no relógio da quadra, desde o lance; ShowdownOverlay.tsx): a defesa aparece `lead` antes do
- * corte, a 1ª fala entra em `talk`, o grito fica `shout` na tela e o corte sai `exit` antes da bicuda. Uma letra a cada
- * `char` (a fala inteira em até `type`); `fade` é a saída de quem não tem o corte (Reduzir movimento).
+ * Tempos do duelo na quadra (ms no relógio da quadra, desde o lance; MatchScene.ts e ShowdownOverlay.tsx): o letreiro
+ * COUNTER! da defesa fica `counter`, a 1ª fala entra em `talk`, o grito fica `shout` e a caixa sai `exit` antes da
+ * bicuda (o goleiro carrega e o 2º COUNTER! passa). Uma letra a cada `char` (a fala inteira em até `type`); `fade` é a
+ * saída da caixa.
  */
-export const SHOWDOWN_MS = { lead: 600, talk: 1000, shout: 1400, exit: 420, char: 26, type: 900, fade: 250 };
+export const SHOWDOWN_MS = { counter: 1300, talk: 1400, shout: 1300, exit: 900, char: 26, type: 900, fade: 250 };
 
 /** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e o grito. */
 export const FACE = {

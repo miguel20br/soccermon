@@ -20,6 +20,12 @@ export const showdown = {
     /** A 2ª faixa do gol do duelo (o nome do goleiro vai antes do `goalSub`). */
     goal: 'BICUDA!',
     goalSub: 'de gol a gol',
+    /**
+     * O letreiro do duelo na defesa e na bicuda (o nome do golpe Counter, que devolve o golpe; "contra-ataque" é a tática)
+     * e a etiqueta dele na defesa.
+     */
+    counter: 'COUNTER!',
+    caught: 'Segurou o N3',
     pairs: {
         // Charizard × Charmander
         '6-4': [

@@ -221,6 +221,22 @@ export class Cinematics {
         }
     }
 
+    /**
+     * Duelo da bicuda: a quadra escurece e só `idxs` ficam acesos, por cima do escuro, até `duelEnd` (nenhum holofote
+     * de golpe apaga no meio).
+     */
+    duel(idxs: number[]) {
+        for (const i of idxs) this.focused.add(i);
+        this.spotlightUntil = Number.POSITIVE_INFINITY;
+        this.scene.tweens.killTweensOf(this.dim);
+        this.scene.tweens.add({ targets: this.dim, fillAlpha: 0.66, duration: 250 });
+    }
+
+    duelEnd() {
+        this.spotlightUntil = 0;
+        this.clearSpotlight();
+    }
+
     private clearSpotlight() {
         this.focused.clear();
         this.pair = null;

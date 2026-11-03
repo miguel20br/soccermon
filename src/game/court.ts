@@ -216,3 +216,39 @@ export function ensureBallTexture(scene: Phaser.Scene) {
     g.generateTexture('ball', r * 2 + 2, r * 2 + 2);
     g.destroy();
 }
+
+/**
+ * A rede do gol `side` (0 = o da esquerda) estufando com a bola que entrou na altura `yPx` (px da tela): o fundo da rede
+ * vai pra fora, mais onde a bola bateu, e vibra até parar (`ms`). Desenhada por cima da rede pintada, embaixo dos
+ * Pokémon. "Reduzir movimento": estufa uma vez e volta, sem vibrar.
+ */
+export function netRipple(scene: Phaser.Scene, side: 0 | 1, yPx: number, color: number, reduce: boolean, ms = 900) {
+    const g = scene.add.graphics().setDepth(0);
+    const out = side === 0 ? -1 : 1;
+    const x0 = toPx(side === 0 ? 0 : L, 0).x;
+    const top = toPx(0, W / 2 - GW / 2).y;
+    const h = GW * PPM;
+    const hit = Math.min(1, Math.max(0, (yPx - top) / h));
+    const draw = (t: number) => {
+        const amp = (reduce ? 1 - t : Math.exp(-3.5 * t) * Math.cos(t * 15)) * 0.9 * PPM;
+        // quanto o fundo anda em cada altura (0 nas traves, o máximo onde a bola bateu)
+        const back = (f: number) =>
+            x0 + out * (PPM + amp * Math.sin(Math.PI * f) * (0.35 + 0.65 * Math.exp(-((f - hit) * (f - hit)) / 0.06)));
+        g.clear();
+        g.lineStyle(2, 0xffffff, 0.9 * (1 - t * 0.5));
+        for (let i = 0; i <= 6; i++) g.lineBetween(x0, top + (i * h) / 6, back(i / 6), top + (i * h) / 6);
+        for (const k of [1 / 3, 2 / 3, 1]) {
+            g.lineStyle(k === 1 ? 3 : 2, k === 1 ? color : 0xffffff, 0.9 * (1 - t * 0.5));
+            g.beginPath().moveTo(x0 + (back(0) - x0) * k, top);
+            for (let j = 1; j <= 12; j++) g.lineTo(x0 + (back(j / 12) - x0) * k, top + (j * h) / 12);
+            g.strokePath();
+        }
+    };
+    scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: ms,
+        onUpdate: (tw) => draw(tw.getValue() ?? 1),
+        onComplete: () => g.destroy(),
+    });
+}
