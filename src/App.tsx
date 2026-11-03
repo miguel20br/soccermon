@@ -16,7 +16,6 @@ import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
-import { TvLayer } from './ui/components/TvLayer';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { openPage } from './ui/doors';
@@ -376,7 +375,6 @@ export default function App() {
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />
-            <TvLayer />
             <MomentLayer />
             <DoorLayer />
             <CardModal />

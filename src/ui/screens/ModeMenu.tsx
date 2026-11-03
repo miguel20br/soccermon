@@ -24,7 +24,6 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
-import { announceProgram } from '../tv';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
@@ -613,7 +612,6 @@ export function ModeMenu({ phase, onPlay }: { phase: 'in' | 'on' | 'out'; onPlay
     // biome-ignore lint/correctness/useExhaustiveDependencies: só na montagem
     useEffect(() => {
         if (phase === 'in') root.current?.querySelector<HTMLElement>('.mm-play')?.focus({ preventScroll: true });
-        announceProgram('modes');
     }, []);
     const play = () => {
         const r = root.current;

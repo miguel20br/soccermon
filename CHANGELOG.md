@@ -4,7 +4,7 @@
 
 ### Menus
 - Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular
-- O letreiro do canal não cobre mais o logo
+- Sai o selo SMN que ficava boiando na tela
 
 ## 0.9.37 · No ar (2026-11-02)
 

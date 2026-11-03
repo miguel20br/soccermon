@@ -17,7 +17,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 title: 'Menus',
                 lines: [
                     'Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular',
-                    'O letreiro do canal não cobre mais o logo',
+                    'Sai o selo SMN que ficava boiando na tela',
                 ],
             },
         ],
@@ -2336,7 +2336,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 title: 'Menus',
                 lines: [
                     'With a cup in progress, the Lightning Cup name fits centered on its phone tile',
-                    'The channel bug no longer covers the logo',
+                    'The floating SMN channel bug is gone',
                 ],
             },
         ],

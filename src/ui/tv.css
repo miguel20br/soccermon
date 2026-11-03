@@ -1,4 +1,4 @@
-/* A transmissão (src/ui/tv.ts, padrão desde 0.9.37): corte de TV, letreiro de canal e o menu de modos com cara de TV. */
+/* A transmissão (src/ui/tv.ts, padrão desde 0.9.37): corte de TV e o menu de modos com cara de TV. */
 
 /* ---------- o corte: a faixa diagonal na tinta do placar, com o filete amarelo nas duas bordas ---------- */
 .tv-cut {
@@ -24,100 +24,6 @@
     inset: 0;
     background: var(--bc-ink);
     clip-path: polygon(calc(var(--s) + 12px) 0, calc(100% - 12px) 0, calc(100% - var(--s) - 12px) 100%, 12px 100%);
-}
-
-/* ---------- letreiro: o bug do canal e a faixa do programa saindo dele ---------- */
-.tv-row {
-    position: fixed;
-    left: 8px;
-    z-index: 90;
-    display: flex;
-    align-items: center;
-    height: 30px;
-    pointer-events: none;
-    animation: tv-row-in var(--dur-ui) var(--ease-out);
-}
-@keyframes tv-row-in {
-    from {
-        opacity: 0;
-    }
-}
-/* a partida: no topo à direita, na linha do símbolo */
-.tv-row.top {
-    top: calc(env(safe-area-inset-top) + 8px);
-    right: 8px;
-    left: auto;
-    flex-direction: row-reverse;
-}
-.tv-bug {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    height: 30px;
-    padding: 0 9px 0 3px;
-    background: var(--bc-ink);
-    border: 2px solid var(--bc-edge);
-    border-radius: 6px;
-    box-shadow: 0 2px 0 var(--bc-edge);
-    color: var(--text);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 1;
-    white-space: nowrap;
-}
-.tv-bug img {
-    width: 24px;
-    height: 24px;
-}
-.tv-bug.live b::before {
-    content: "";
-    display: inline-block;
-    width: 7px;
-    height: 7px;
-    margin: 0 5px 1px 0;
-    border-radius: 50%;
-    background: var(--red);
-    animation: tv-blink 1.2s steps(1) infinite;
-}
-@keyframes tv-blink {
-    50% {
-        opacity: 0.25;
-    }
-}
-.tv-lower {
-    overflow: hidden;
-    margin-left: -4px;
-}
-.tv-row.top .tv-lower {
-    margin: 0 -4px 0 0;
-}
-.tv-lower > span {
-    display: block;
-    height: 24px;
-    padding: 0 12px 0 14px;
-    background: var(--yellow);
-    border-bottom: 2px solid var(--bc-edge);
-    border-radius: 0 4px 4px 0;
-    color: var(--bc-ink);
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 13px;
-    line-height: 23px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transform: translateX(-102%);
-    transition: transform 240ms var(--ease-out);
-}
-.tv-row.top .tv-lower > span {
-    padding: 0 14px 0 12px;
-    border-radius: 4px 0 0 4px;
-    transform: translateX(102%);
-}
-.tv-row.on .tv-lower > span {
-    transform: none;
-    transition-duration: 280ms;
 }
 
 /* ---------- menu de modos com cara de TV (ModeSlices): o Smash de sempre, mais limpo ---------- */
