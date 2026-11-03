@@ -52,6 +52,8 @@ export interface WalkPlan {
     art?: number;
     /** Confete, fogos e o Pokémon pulando. */
     party: number;
+    /** Versão 2 (`&v=2`, pra comparar): mais movimento; a nota bate em `card + 200 + count`. */
+    v2?: boolean;
 }
 
 /** Pular aparece depois da prévia: ninguém perde a cor. */
@@ -162,15 +164,49 @@ const CALMO: Base = {
  */
 export function walkoutPlan(
     tier: WalkTier,
-    { nth = 1, reduce = false, upgrade = false }: { nth?: number; reduce?: boolean; upgrade?: boolean } = {},
+    {
+        nth = 1,
+        reduce = false,
+        upgrade = false,
+        v2 = false,
+    }: { nth?: number; reduce?: boolean; upgrade?: boolean; v2?: boolean } = {},
 ): WalkPlan {
     const up = tier === 'especial' && upgrade && !reduce;
     const head = { tier, upgrade: up };
     if (reduce) return { ...CALMO, ...head, kind: 'calmo' };
-    if (tier === 'raro' && nth >= 2) return { ...CURTO, ...head, kind: 'curto' };
-    if (tier === 'muitoraro' && nth >= 3) return { ...RARO, ...head, kind: 'curto' };
-    const base = tier === 'raro' ? RARO : tier === 'muitoraro' ? MUITO : ESPECIAL;
-    return { ...base, ...(up ? UPGRADE : {}), ...head, kind: 'cheio' };
+    let p: WalkPlan;
+    if (tier === 'raro' && nth >= 2) p = { ...CURTO, ...head, kind: 'curto' };
+    else if (tier === 'muitoraro' && nth >= 3) p = { ...RARO, ...head, kind: 'curto' };
+    else {
+        const base = tier === 'raro' ? RARO : tier === 'muitoraro' ? MUITO : ESPECIAL;
+        p = { ...base, ...(up ? UPGRADE : {}), ...head, kind: 'cheio' };
+    }
+    return v2 ? stretchV2(p) : p;
+}
+
+/**
+ * A versão 2 ganha tempo em dois lugares (no máximo +2 s): o travelling da câmera dos telões até o túnel (quem tem
+ * silhueta) e a revelação da carta (a nota batendo, raios, a arte e a festa depois).
+ */
+function stretchV2(p: WalkPlan): WalkPlan {
+    const tunnel = p.gate !== undefined ? 500 : 0;
+    const reveal = p.kind === 'curto' ? 0 : p.tier === 'especial' ? 1100 : p.tier === 'muitoraro' ? 800 : 500;
+    const hit = p.card + 200 + p.count;
+    const at = (x: number) => x + (p.back !== undefined && x >= p.back ? tunnel : 0) + (x > hit ? reveal : 0);
+    const opt = (x?: number) => (x === undefined ? x : at(x));
+    const out: WalkPlan = { ...p, v2: true };
+    for (const k of ['gate', 'art', 'plate', 'plateOut'] as const) out[k] = opt(p[k]);
+    for (const k of ['enter', 'impact', 'card', 'party', 'end'] as const) out[k] = at(p[k]);
+    return out;
+}
+
+/** A comemoração depois da jogada (versão 2), pela forma: quem voa gira, quem é bicho de quatro patas/bola pula, o resto faz pose. */
+export type Comemoracao = 'pulo' | 'giro' | 'pose';
+export function comemoracaoOf(speciesId: number): Comemoracao {
+    const sp = species(speciesId);
+    if (sp.types.includes('Flying') || sp.shape === 'wings' || sp.shape === 'bug-wings') return 'giro';
+    if (['upright', 'humanoid', 'armor', 'squiggle'].includes(sp.shape)) return 'pose';
+    return 'pulo';
 }
 
 /** As batidas onde o toque para (tocar adianta pra próxima). */

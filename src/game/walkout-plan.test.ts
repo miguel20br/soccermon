@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
-import { dayCount, JOGADAS, jogadaOf, planBeats, SHATTER_MS, upgradeOf, walkoutPlan, walkTier } from './walkout-plan';
+import {
+    comemoracaoOf,
+    dayCount,
+    JOGADAS,
+    jogadaOf,
+    planBeats,
+    SHATTER_MS,
+    upgradeOf,
+    walkoutPlan,
+    walkTier,
+} from './walkout-plan';
 
 describe('plano do walkout', () => {
     it('nível pela edição e pela nota (ut-walkout.md, decidido em 02/11)', () => {
@@ -28,8 +38,13 @@ describe('plano do walkout', () => {
 
     it('a ordem das batidas faz sentido (telões, silhueta, jogada, vidro, carta)', () => {
         for (const tier of ['raro', 'muitoraro', 'especial'] as const)
-            for (const upgrade of [false, true]) {
-                const p = walkoutPlan(tier, { upgrade });
+            for (const [upgrade, v2] of [
+                [false, false],
+                [true, false],
+                [false, true],
+                [true, true],
+            ]) {
+                const p = walkoutPlan(tier, { upgrade, v2 });
                 expect(p.enter + p.body).toBeLessThan(p.impact);
                 // a carta só aparece com o vidro já quebrado
                 expect(p.impact + SHATTER_MS).toBeLessThanOrEqual(p.card);
@@ -82,5 +97,29 @@ describe('plano do walkout', () => {
         expect(jogadaOf(143)).toBe('canhao'); // Snorlax
         const seen = new Set(Array.from({ length: 151 }, (_, i) => jogadaOf(i + 1)));
         expect([...seen].sort()).toEqual([...JOGADAS].sort());
+    });
+
+    it('versão 2: no máximo +2 s, Pular e Reduzir movimento iguais, a placa do upgrade no flash', () => {
+        for (const tier of ['raro', 'muitoraro', 'especial'] as const)
+            for (const nth of [1, 2, 3]) {
+                const a = walkoutPlan(tier, { nth });
+                const b = walkoutPlan(tier, { nth, v2: true });
+                expect(b.end - a.end).toBeGreaterThanOrEqual(0);
+                expect(b.end - a.end).toBeLessThanOrEqual(2000);
+                expect(walkoutPlan(tier, { reduce: true, v2: true }).end).toBe(1200);
+            }
+        const up = walkoutPlan('especial', { upgrade: true, v2: true });
+        expect(up.plate).toBe(up.enter);
+        // a nota bate antes da arte entrar
+        const esp = walkoutPlan('especial', { v2: true });
+        expect(esp.card + 200 + esp.count).toBeLessThan(esp.art ?? 0);
+    });
+
+    it('comemoração pela forma (versão 2)', () => {
+        expect(comemoracaoOf(150)).toBe('pose'); // Mewtwo
+        expect(comemoracaoOf(149)).toBe('giro'); // Dragonite
+        expect(comemoracaoOf(6)).toBe('giro'); // Charizard
+        expect(comemoracaoOf(59)).toBe('pulo'); // Arcanine
+        expect(comemoracaoOf(132)).toBe('pulo'); // Ditto
     });
 });

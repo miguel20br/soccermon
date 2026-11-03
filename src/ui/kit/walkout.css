@@ -199,6 +199,50 @@
     font-size: calc(24 * var(--u));
 }
 
+/* versão 2: raios girando atrás da carta e o brilho correndo na borda (um conic girando dentro de um anel) */
+.wk-card-rays {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300%;
+    aspect-ratio: 1;
+    background: repeating-conic-gradient(
+        from 0deg,
+        color-mix(in srgb, var(--l1) 60%, transparent) 0deg 5deg,
+        transparent 5deg 15deg
+    );
+    mask: radial-gradient(closest-side, #000 18%, transparent 72%);
+    will-change: transform;
+}
+.wk-card-edge {
+    position: absolute;
+    inset: calc(-5 * var(--u));
+    overflow: hidden;
+    border-radius: calc(16 * var(--u));
+}
+.wk-card-edge > i {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    aspect-ratio: 1;
+    background: conic-gradient(
+        transparent 0deg 220deg,
+        var(--l2) 290deg,
+        #fff 320deg,
+        var(--l1) 340deg,
+        transparent 360deg
+    );
+    will-change: transform;
+}
+/* o aquecimento: montado quase invisível antes do 1º quadro (o navegador rasteriza e compila os shaders agora) */
+.wk-warm {
+    position: absolute;
+    inset: 0;
+    opacity: 0.004;
+    pointer-events: none;
+}
+
 /* ---------- laboratório (?lab=walkout) ---------- */
 .wkl {
     display: flex;

@@ -15,13 +15,14 @@ export type WkSound =
     | { k: 'cry'; gain: number }
     | { k: 'zz'; name: keyof typeof ZZ };
 
-/** Sons novos no ZzFX (sem arquivo): o BOING de assinatura, o brilho de shiny, o estouro dos fogos, o tique da nota, o vidro. */
+/** Sons novos no ZzFX (sem arquivo): o BOING de assinatura, o brilho de shiny, o estouro dos fogos, o tique da nota, o vidro, o fogo. */
 const ZZ = {
     boing: [1, 0, 130, 0.01, 0.09, 0.28, 0, 1.2, 16, -0.9, 0, 0, 0, 0, 11, 0, 0, 0.8, 0.05],
     sparkle: [0.7, 0, 1568, 0, 0.03, 0.32, 0, 1.8, 0, 0, 523, 0.05, 0.07, 0, 0, 0, 0, 0.55, 0.05],
     pop: [1.1, 0.2, 380, 0, 0.02, 0.28, 4, 1.4, -2, 0, 0, 0, 0, 0.9, 0, 0.1, 0, 0.5, 0.06],
     tick: [0.5, 0, 1200, 0, 0.005, 0.03, 1, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0],
     glass: [1.2, 0.4, 1900, 0, 0.01, 0.35, 4, 0.6, 0, 0, 0, 0, 0, 1.6, 0, 0.35, 0, 0.6, 0.1],
+    fogo: [0.9, 0.3, 200, 0.03, 0.15, 0.35, 4, 0.5, -1, 0, 0, 0, 0, 2.5, 0, 0.2, 0, 0.6, 0.1],
 } as const;
 
 interface WkWindow {

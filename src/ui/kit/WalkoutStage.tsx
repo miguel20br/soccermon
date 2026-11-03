@@ -69,6 +69,10 @@ export function WalkoutStage({
     const scene = () => gameRef.current?.scene.getScene('walkout') as WalkoutScene | null | undefined;
     const [t, setT] = useState(0);
     const [on, setOn] = useState(false);
+    // o aquecimento: a carta, a placa e as luzes montadas quase invisíveis antes do 1º quadro, pro navegador rasterizar
+    // (e compilar os shaders da GPU) agora e não no meio do walkout (a travada de ~150 ms quando a carta aparecia)
+    const [warm, setWarm] = useState(true);
+    const warmRef = useRef<HTMLDivElement>(null);
     const typeColor = TYPE_COLOR[inst.special?.type ?? type] ?? '#3a7bd5';
 
     // o palco: baixa o Phaser e a cena, cria o jogo a 2x (pixel art) e escuta o relógio dela
@@ -99,14 +103,25 @@ export function WalkoutStage({
                 document.fonts.load('28px Galmuri14'),
             ]);
             if (dead || !host.current) return;
+            await Promise.all(
+                [...(warmRef.current?.querySelectorAll('img') ?? [])].map((im) => im.decode().catch(() => undefined)),
+            );
+            for (let i = 0; i < 3; i++) await new Promise((r) => requestAnimationFrame(r));
+            if (dead || !host.current) return;
+            setWarm(false);
+            // a pixel art é em px do jogo (2 px de CSS); o canvas tem `res` px por px do jogo, o múltiplo inteiro que
+            // casa com a tela (DPR 1: 2; DPR 2: 4; DPR 3: 3), e os telões e textos nítidos usam essa resolução
+            const dpr = window.devicePixelRatio || 1;
+            const res = dpr >= 2.5 ? 3 : dpr >= 1.5 ? 4 : 2;
+            make.current.res = res;
             game = new P.Game({
                 type: P.AUTO,
-                width: Math.floor(window.innerWidth / 2),
-                height: Math.floor(window.innerHeight / 2),
+                width: Math.floor(window.innerWidth / 2) * res,
+                height: Math.floor(window.innerHeight / 2) * res,
                 parent: host.current,
                 pixelArt: true,
                 backgroundColor: '#000000',
-                scale: { mode: P.Scale.NONE, zoom: 2 },
+                scale: { mode: P.Scale.NONE, zoom: 2 / res },
                 audio: { noAudio: true },
             });
             const manual = wkw().__wkManual;
@@ -155,9 +170,16 @@ export function WalkoutStage({
         ? Math.round(lerp(from, ovr, 1 - (1 - ramp(t, plan.card + 200, plan.card + 200 + plan.count)) ** 2))
         : ovr;
     const lastTick = useRef(-1000);
+    const hit = plan.card + 200 + plan.count;
+    const hitK = ramp(t, hit, hit + 300);
     useLayoutEffect(() => {
-        const el = cardRef.current?.querySelector('.m-ovr');
+        const el = cardRef.current?.querySelector<HTMLElement>('.m-ovr');
         if (!el) return;
+        // versão 2: a nota bate (cresce e carimba de volta) quando termina de contar
+        if (plan.v2 && plan.count)
+            el.style.scale = String(
+                t < hit ? 1 : hitK < 0.2 ? lerp(1, 1.8, hitK / 0.2) : lerp(1.8, 1, outBack((hitK - 0.2) / 0.8)),
+            );
         const txt = String(shown);
         if (el.textContent === txt) return;
         el.textContent = txt;
@@ -200,6 +222,10 @@ export function WalkoutStage({
     const shineK = ramp(t, shineAt, shineAt + 650);
     const flash = plan.art !== undefined && t >= plan.art ? 1 - ramp(t, plan.art, plan.art + 260) : 0;
     const done = t >= plan.end;
+    const v2 = plan.v2 === true && !calm;
+    const shakeK = v2 && plan.count && t >= hit ? 1 - hitK : 0;
+    const edgeK = v2 ? ramp(t, landed, landed + 300) : 0;
+    const raysK = v2 ? ramp(t, landed - 300, landed + 200) : 0;
 
     const rootStyle = { '--u': `${u}px`, '--l1': l1, '--l2': l2, '--c1': typeColor } as CSSProperties;
     return createPortal(
@@ -221,13 +247,37 @@ export function WalkoutStage({
                 <div
                     ref={cardRef}
                     className={`wk-card${plan.art !== undefined ? ' wk-card-noart' : ''}`}
-                    style={{ opacity: cardOp, '--wk-art': artK } as CSSProperties}
+                    style={
+                        {
+                            opacity: cardOp,
+                            '--wk-art': artK,
+                            transform: shakeK
+                                ? `translate(${7 * u * shakeK * Math.sin(t / 11)}px, ${5 * u * shakeK * Math.cos(t / 13)}px)`
+                                : undefined,
+                        } as CSSProperties
+                    }
                 >
+                    {raysK > 0 && (
+                        <i
+                            className="wk-card-rays"
+                            style={{
+                                opacity: raysK * (0.75 + 0.25 * shakeK),
+                                transform: `translate(-50%, -50%) rotate(${t / 45}deg) scale(${0.8 + 0.2 * raysK + 0.15 * shakeK})`,
+                            }}
+                        />
+                    )}
                     <i
                         className="wk-card-glow"
-                        style={{ transform: `translate(-50%, -50%) scale(${1 + 0.06 * Math.sin(t / 220)})` }}
+                        style={{
+                            transform: `translate(-50%, -50%) scale(${1 + (v2 ? 0.1 : 0.06) * Math.sin(t / 220) + 0.25 * shakeK})`,
+                        }}
                     />
                     <div className="wk-card-spin" style={{ transform: cardTf }}>
+                        {edgeK > 0 && (
+                            <div className="wk-card-edge" style={{ opacity: edgeK }}>
+                                <i style={{ transform: `translate(-50%, -50%) rotate(${t * 0.36}deg)` }} />
+                            </div>
+                        )}
                         <div className="wk-card-face">
                             <Card inst={inst} />
                             {shineK > 0 && shineK < 1 && (
@@ -245,6 +295,28 @@ export function WalkoutStage({
                         )}
                     </div>
                     {calm && <span className={`wk-seal wk-seal-${edition ?? 'ouro'} wk-seal-calm`}>{plateText}</span>}
+                </div>
+            )}
+            {warm && (
+                <div ref={warmRef} className="wk-warm" aria-hidden="true">
+                    <span className={`wk-seal wk-seal-${edition ?? 'ouro'} wk-plate`}>{plateText}</span>
+                    <div className={`wk-card${plan.art !== undefined ? ' wk-card-noart' : ''}`}>
+                        <i className="wk-card-rays" />
+                        <i className="wk-card-glow" style={{ transform: 'translate(-50%, -50%)' }} />
+                        <div className="wk-card-spin" style={{ transform: 'rotateY(30deg) scale(0.9)' }}>
+                            <div className="wk-card-edge">
+                                <i />
+                            </div>
+                            <div className="wk-card-face">
+                                <Card inst={inst} />
+                                <i className="wk-card-shine" />
+                                <i className="wk-card-flash" />
+                            </div>
+                            <div className="wk-card-back">
+                                <img src="assets/ui/simbolo.svg" alt="" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
             {on && t >= WALK_SKIP_AT && !done && !calm && (

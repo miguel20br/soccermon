@@ -4,7 +4,7 @@ import { bodyHeight, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim
 import { trailParticle } from '../ball-trail';
 import { ensureBallTexture } from '../court';
 import { skinOf } from '../skin';
-import { type Jogada, SHATTER_MS, type WalkPlan } from '../walkout-plan';
+import { type Comemoracao, comemoracaoOf, type Jogada, SHATTER_MS, type WalkPlan } from '../walkout-plan';
 import { type WkSound, wkSound } from '../walkout-sound';
 
 /**
@@ -29,6 +29,8 @@ export interface WalkoutData {
     who: string;
     jogada: Jogada;
     cries: CryStyle;
+    /** Px da tela por px do jogo (2 a 4): o canvas tem a resolução da tela, a pixel art continua em px do jogo. */
+    res?: number;
 }
 
 interface Look {
@@ -80,7 +82,6 @@ const mix = (a: number, b: number, t: number) => {
     );
 };
 const FONT = 'Galmuri11, monospace';
-const FONT_BIG = 'Galmuri14, monospace';
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const outQuad = (k: number) => 1 - (1 - k) * (1 - k);
@@ -114,6 +115,7 @@ export class WalkoutScene extends Phaser.Scene {
     private p!: WalkPlan;
     private W = 0;
     private H = 0;
+    private Z = 1;
     private look!: Look;
     private finalLook!: Look;
     private clock = 0;
@@ -142,8 +144,15 @@ export class WalkoutScene extends Phaser.Scene {
     private rays!: Phaser.GameObjects.Image;
     // telões
     private screens: Screen[] = [];
-    private screenOn: Phaser.GameObjects.GameObject[][] = [[], []];
-    private lit = [false, false];
+    private tv: {
+        halo: Phaser.GameObjects.Image;
+        content: Phaser.GameObjects.Image;
+        bloom: Phaser.GameObjects.Image;
+        sweep: Phaser.GameObjects.Image;
+        lit: boolean;
+        ready: boolean;
+        at: number;
+    }[] = [];
     // Pokémon e bola
     private skin = 0;
     private mon!: Phaser.GameObjects.Sprite;
@@ -161,6 +170,22 @@ export class WalkoutScene extends Phaser.Scene {
     private fxAt = 0;
     private impactPt = { x: 0, y: 0 };
     private landed = false;
+    // versão 2: câmera, ola, flashes, comemoração e a revelação com floreio
+    private heads: { x: number; y: number; s: string; c: string; jump: boolean }[] = [];
+    private rot = 0;
+    private orbit = 0;
+    private camFree = false;
+    private ola?: Phaser.GameObjects.Image;
+    private olaFrom = Number.POSITIVE_INFINITY;
+    private camFlash?: Phaser.GameObjects.Particles.ParticleEmitter;
+    private timers: Record<string, number> = {};
+    private temp: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+    private rays2?: Phaser.GameObjects.Image;
+    private celebAt = -1;
+    private celebStep = -1;
+    private celeb: Comemoracao = 'pose';
+    private beat = 0;
+    private heat = 0;
 
     constructor() {
         super('walkout');
@@ -176,12 +201,22 @@ export class WalkoutScene extends Phaser.Scene {
         this.beams = [];
         this.doors = [];
         this.screens = [];
-        this.screenOn = [[], []];
-        this.lit = [false, false];
+        this.tv = [];
         this.animKey = '';
         this.kicked = false;
         this.touched = -1;
         this.landed = false;
+        this.rot = 0;
+        this.orbit = 0;
+        this.camFree = false;
+        this.ola = undefined;
+        this.olaFrom = Number.POSITIVE_INFINITY;
+        this.timers = {};
+        this.temp = [];
+        this.celebAt = -1;
+        this.beat = 0;
+        this.heat = 0;
+        this.celeb = comemoracaoOf(data.speciesId);
     }
 
     preload() {
@@ -192,8 +227,10 @@ export class WalkoutScene extends Phaser.Scene {
 
     create() {
         const d = this.d;
-        this.W = this.scale.width;
-        this.H = this.scale.height;
+        // a tela tem Z px por px do jogo: a pixel art fica igual (Z inteiro) e os telões e textos nítidos ganham resolução
+        this.Z = Math.max(1, Math.round(d.res ?? 1));
+        this.W = Math.round(this.scale.width / this.Z);
+        this.H = Math.round(this.scale.height / this.Z);
         const { W, H } = this;
         this.y0 = Math.round(H * 0.38);
         this.yS = Math.round(H * 0.58);
@@ -220,7 +257,9 @@ export class WalkoutScene extends Phaser.Scene {
 
         this.world = this.add.layer();
         this.hud = this.add.layer();
-        this.hudCam = this.cameras.add(0, 0, W, H);
+        this.hudCam = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+        this.hudCam.setZoom(this.Z).centerOn(W / 2, H / 2);
+        this.cameras.main.setZoom(this.Z).centerOn(W / 2, H / 2);
         this.cameras.main.ignore(this.hud);
         this.hudCam.ignore(this.world);
 
@@ -266,14 +305,21 @@ export class WalkoutScene extends Phaser.Scene {
         this.tweens.killAll();
         this.hud.removeAll(true);
         this.rain?.stop();
+        for (const e of this.temp) e.stop();
+        this.celebAt = -1;
+        this.rot = 0;
+        this.orbit = 0;
+        this.ola?.setVisible(false);
         const cam = this.cameras.main;
         cam.resetFX();
-        cam.setZoom(1).centerOn(this.W / 2, this.H / 2);
+        cam.setRotation(0);
+        this.zoom(1);
+        cam.centerOn(this.W / 2, this.H / 2);
         this.look = this.finalLook;
         this.paintSky(this.finalLook, 0);
         this.dark.setAlpha(0.3);
         for (const l of this.lamps) l.setAlpha(1);
-        for (const b of this.beams) b.setAlpha(0.3).setTint(this.finalLook.beam);
+        for (const b of this.beams) b.setAlpha(0.3).setTint(this.finalLook.beam).setData('lit', true);
         this.glow.setAlpha(0);
         for (const door of this.doors) door.setVisible(false);
         this.lightScreen(0, true);
@@ -308,6 +354,8 @@ export class WalkoutScene extends Phaser.Scene {
         const p = this.p;
         if (!this.finished && p.kind !== 'calmo' && this.clock >= p.enter && this.clock < p.impact)
             this.stepJogada(this.clock - p.enter);
+        if (p.kind !== 'calmo') this.stepScreens();
+        if (p.v2 && p.kind !== 'calmo') this.stepV2();
         this.game.events.emit('wk-tick', this.clock);
     }
 
@@ -436,7 +484,8 @@ export class WalkoutScene extends Phaser.Scene {
         });
         // torcida, 2 quadros (uns 40% pulam um pixel e levantam o braço)
         const rnd = seeded(3);
-        const heads: { x: number; y: number; s: string; c: string; jump: boolean }[] = [];
+        const heads = this.heads;
+        heads.length = 0;
         const SKIN = ['#d9a066', '#8f563b', '#eec39a', '#663931', '#c58a5a'];
         const SHIRT = ['#ffcb05', '#3a7bd5', '#e8e8e8', '#e8423f', '#58c26b', '#ffcb05', '#3a7bd5'];
         const tw = 22;
@@ -548,21 +597,12 @@ export class WalkoutScene extends Phaser.Scene {
                 ctx.fillStyle = '#4a4f60';
                 for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) ctx.fillRect(px - 6 + i * 4, 13 + j * 4, 3, 3);
             }
-            // telões: pernas, moldura e a tela apagada (pontinhos de LED)
+            // pernas dos telões (o telão em si é nítido, `buildScreens`)
             for (const s of this.screens) {
-                const l = Math.round(s.x - s.w / 2);
                 const t = Math.round(s.y - s.h / 2);
                 ctx.fillStyle = '#1d2133';
                 ctx.fillRect(Math.round(s.x - s.w / 4), t + s.h, 2, y0 - 8 - t - s.h);
                 ctx.fillRect(Math.round(s.x + s.w / 4), t + s.h, 2, y0 - 8 - t - s.h);
-                ctx.fillStyle = '#4b5a9a';
-                ctx.fillRect(l - 2, t - 2, s.w + 4, s.h + 4);
-                ctx.fillStyle = '#232d57';
-                ctx.fillRect(l - 2, t + s.h, s.w + 4, 2);
-                ctx.fillStyle = '#05060a';
-                ctx.fillRect(l, t, s.w, s.h);
-                ctx.fillStyle = '#0d1020';
-                for (let x = l; x < l + s.w; x += 2) for (let yy = t; yy < t + s.h; yy += 2) ctx.fillRect(x, yy, 1, 1);
             }
         });
         // a luz do fim do túnel (atrás da silhueta) e as portas
@@ -586,6 +626,33 @@ export class WalkoutScene extends Phaser.Scene {
         );
         this.w(this.add.image(0, 0, 'wk-stadium').setOrigin(0).setDepth(4));
         this.crowd = this.w(this.add.image(0, 0, 'wk-crowd-0').setOrigin(0).setDepth(5));
+        if (this.p.v2) {
+            // a ola: a arquibancada de pé com os braços pra cima, mostrada numa faixa que corre de um lado pro outro
+            const st = this.textures.get('wk-stadium').getSourceImage() as HTMLCanvasElement;
+            this.canvas('wk-crowd-up', W, H, (ctx) => {
+                ctx.drawImage(st, 0, y0, W, yS - y0 - 1, 0, y0, W, yS - y0 - 1);
+                for (const h of this.heads) {
+                    ctx.fillStyle = h.c;
+                    ctx.fillRect(h.x, h.y, 2, 2);
+                    ctx.fillStyle = h.s;
+                    ctx.fillRect(h.x, h.y - 2, 2, 2);
+                    ctx.fillRect(h.x - 1, h.y - 4, 1, 3);
+                    ctx.fillRect(h.x + 2, h.y - 4, 1, 3);
+                }
+            });
+            this.ola = this.w(this.add.image(0, 0, 'wk-crowd-up').setOrigin(0).setDepth(5.5).setVisible(false));
+            this.camFlash = this.add.particles(0, 0, 'wk-star', {
+                x: { min: 4, max: W - 4 },
+                y: { min: y0 + 4, max: yS - 6 },
+                lifespan: 150,
+                frequency: -1,
+                scale: { start: 1, end: 0.2 },
+                alpha: { start: 1, end: 0 },
+                blendMode: Phaser.BlendModes.ADD,
+            });
+            this.camFlash.setDepth(8);
+            this.w(this.camFlash);
+        }
         // escuro por cima do estádio (o céu escurece pela troca de textura)
         this.dark = this.w(
             this.add
@@ -660,94 +727,400 @@ export class WalkoutScene extends Phaser.Scene {
         );
     }
 
-    /** O que cada telão mostra quando acende: o ícone e o nome do tipo; a posição. */
+    /**
+     * Os dois telões, nítidos: a moldura com bisel e espessura, o vidro com linhas finas e reflexo, e o conteúdo (o ícone
+     * do tipo redesenhado em alta a partir do de 36 px; o nome do tipo; a posição) em textura de K px por px do jogo com
+     * filtro linear, que continua limpa quando a câmera chega perto. Por cima, o brilho (bloom); atrás, o halo de luz.
+     */
     private buildScreens() {
         const d = this.d;
-        const [a, b] = this.screens;
-        const led = (s: Screen, i: number) => {
-            // grade de LED por cima do conteúdo (linhas escuras a cada 2 px)
-            const key = `wk-led-${i}`;
-            this.canvas(key, s.w, s.h, (ctx) => {
-                ctx.fillStyle = 'rgba(0,0,0,0.42)';
-                for (let y = 1; y < s.h; y += 2) ctx.fillRect(0, y, s.w, 1);
-                for (let x = 2; x < s.w; x += 3) ctx.fillRect(x, 0, 1, s.h);
+        const B = 4;
+        const D = 3;
+        const halo = this.screens[0];
+        // halo: um retângulo de luz macio (baixa resolução de propósito), tingido na cor de cada telão
+        this.canvas('wk-tv-halo', halo.w + 40, halo.h + 40, (c) => {
+            const img = c.createImageData(halo.w + 40, halo.h + 40);
+            for (let y = 0; y < halo.h + 40; y++)
+                for (let x = 0; x < halo.w + 40; x++) {
+                    const dx = Math.max(0, Math.abs(x + 0.5 - (halo.w + 40) / 2) - halo.w / 2);
+                    const dy = Math.max(0, Math.abs(y + 0.5 - (halo.h + 40) / 2) - halo.h / 2);
+                    const v = Math.max(0, 1 - Math.hypot(dx, dy) / 20);
+                    img.data.set([255, 255, 255, Math.round(230 * v * v)], (y * (halo.w + 40) + x) * 4);
+                }
+            c.putImageData(img, 0, 0);
+        })?.setFilter(Phaser.Textures.FilterMode.LINEAR);
+        // a faixa da varredura e a borda do wipe: degradê macio
+        this.canvas('wk-tv-soft', 8, 64, (c) => {
+            const g = c.createLinearGradient(0, 0, 0, 64);
+            g.addColorStop(0, 'rgba(255,255,255,0)');
+            g.addColorStop(0.5, 'rgba(255,255,255,1)');
+            g.addColorStop(1, 'rgba(255,255,255,0)');
+            c.fillStyle = g;
+            c.fillRect(0, 0, 8, 64);
+        })?.setFilter(Phaser.Textures.FilterMode.LINEAR);
+
+        this.screens.forEach((s, i) => {
+            const K = Math.min(this.Z * 3.6, 2400 / (s.w + 2 * B + 2));
+            const l = s.x - s.w / 2;
+            const t = s.y - s.h / 2;
+            const hi = (key: string, w: number, h: number, draw: (c: CanvasRenderingContext2D) => void) => {
+                const tex = this.canvas(key, Math.ceil(w * K), Math.ceil(h * K), (c) => {
+                    c.scale(K, K);
+                    draw(c);
+                });
+                tex?.setFilter(Phaser.Textures.FilterMode.LINEAR);
+                return tex;
+            };
+            const color = i === 0 ? d.typeColor : 0xffcb05;
+
+            hi(`wk-tv-frame-${i}`, s.w + 2 * B + 2, s.h + 2 * B + D + 2, (c) => {
+                c.translate(B + 1, B + 1);
+                const box = (x: number, y: number, w: number, h: number, r: number, fill: string | CanvasGradient) => {
+                    c.fillStyle = fill;
+                    c.beginPath();
+                    c.roundRect(x, y, w, h, r);
+                    c.fill();
+                };
+                // sombra e a espessura da caixa (vista um pouco de baixo)
+                box(-B - 1, -B + 1, s.w + 2 * B + 2, s.h + 2 * B + D, 3, 'rgba(0,0,0,0.45)');
+                box(-B, -B + D, s.w + 2 * B, s.h + 2 * B, 3, '#10142a');
+                // bisel de metal: luz em cima, sombra embaixo
+                const g = c.createLinearGradient(0, -B, 0, s.h + B);
+                g.addColorStop(0, '#93a3e8');
+                g.addColorStop(0.1, '#5a6aa6');
+                g.addColorStop(0.6, '#323f78');
+                g.addColorStop(1, '#1b2350');
+                box(-B, -B, s.w + 2 * B, s.h + 2 * B, 3, g);
+                c.fillStyle = 'rgba(255,255,255,0.4)';
+                c.fillRect(-B + 2, -B + 0.2, s.w + 2 * B - 4, 0.45);
+                // a borda funda em volta do vidro
+                box(-1.3, -1.3, s.w + 2.6, s.h + 2.6, 1.3, '#04050b');
+                // o vidro apagado: azul quase preto com pontinhos finos de LED
+                const v = c.createLinearGradient(0, 0, 0, s.h);
+                v.addColorStop(0, '#0d1226');
+                v.addColorStop(1, '#05070f');
+                c.fillStyle = v;
+                c.fillRect(0, 0, s.w, s.h);
+                c.fillStyle = 'rgba(120,140,220,0.09)';
+                for (let y = 0.5; y < s.h; y++) for (let x = 0.5; x < s.w; x++) c.fillRect(x - 0.2, y - 0.2, 0.4, 0.4);
+                // parafusos
+                c.fillStyle = '#b4c0f2';
+                for (const [x, y] of [
+                    [-B + 1.6, -B + 1.6],
+                    [s.w + B - 1.6, -B + 1.6],
+                    [-B + 1.6, s.h + B - 1.6],
+                    [s.w + B - 1.6, s.h + B - 1.6],
+                ]) {
+                    c.beginPath();
+                    c.arc(x, y, 0.7, 0, Math.PI * 2);
+                    c.fill();
+                }
             });
-            return this.add.image(s.x, s.y, key).setDepth(6.6);
-        };
-        const tint = (s: Screen, c: number) =>
-            this.add.rectangle(s.x, s.y, s.w, s.h, c, 0.35).setDepth(6.2).setBlendMode(Phaser.BlendModes.ADD);
-        const halo = (s: Screen, c: number) =>
-            this.add
-                .rectangle(s.x, s.y, s.w + 14, s.h + 14, c, 0.3)
-                .setDepth(3.5)
-                .setBlendMode(Phaser.BlendModes.ADD);
-        const icon = this.add.image(a.x, a.y - 7, 'wk-type').setDepth(6.4);
-        const iconScale = Math.max(1, Math.floor((a.h - 22) / 36));
-        icon.setScale(iconScale);
-        const tname = this.add
-            .text(a.x, a.y + a.h / 2 - 3, d.typeLabel.toUpperCase(), {
-                fontFamily: FONT,
-                fontStyle: 'bold',
-                fontSize: '11px',
-                color: '#ffffff',
-            })
-            .setOrigin(0.5, 1)
-            .setDepth(6.4);
-        const two = d.posLong.toUpperCase() !== d.posShort.toUpperCase();
-        const pbig = this.add
-            .text(b.x, b.y - (two ? 6 : 0), d.posShort.toUpperCase(), {
-                fontFamily: FONT_BIG,
-                fontSize: '28px',
-                color: '#ffcb05',
-            })
-            .setOrigin(0.5)
-            .setDepth(6.4);
-        const psmall = this.add
-            .text(b.x, b.y + b.h / 2 - 3, d.posLong.toUpperCase(), {
-                fontFamily: FONT,
-                fontStyle: 'bold',
-                fontSize: '11px',
-                color: '#ffffff',
-            })
-            .setOrigin(0.5, 1)
-            .setDepth(6.4)
-            .setVisible(two);
-        this.screenOn[0] = [halo(a, this.d.typeColor), tint(a, this.d.typeColor), icon, tname, led(a, 0)];
-        this.screenOn[1] = [halo(b, 0xffcb05), tint(b, 0x141a33), pbig, psmall, led(b, 1)];
-        for (const list of this.screenOn)
-            for (const o of list) {
-                const img = this.w(o) as unknown as Phaser.GameObjects.Image;
-                img.setData('alpha', img.alpha).setAlpha(0);
-            }
+            const on = hi(`wk-tv-on-${i}`, s.w, s.h, (c) =>
+                i === 0 ? this.drawTypeScreen(c, s.w, s.h, K) : this.drawPosScreen(c, s.w, s.h, K),
+            );
+            // bloom: o conteúdo borrado em baixa resolução, somado por cima (vaza um pouco pro bisel)
+            const P = 8;
+            this.canvas(`wk-tv-bloom-${i}`, (s.w + 2 * P) * 2, (s.h + 2 * P) * 2, (c) => {
+                if (!on) return;
+                if ('filter' in c) c.filter = 'blur(5px)';
+                c.drawImage(on.getSourceImage() as HTMLCanvasElement, P * 2, P * 2, s.w * 2, s.h * 2);
+            })?.setFilter(Phaser.Textures.FilterMode.LINEAR);
+            // o vidro por cima: linhas finas, vinheta e o reflexo na diagonal
+            hi(`wk-tv-glass-${i}`, s.w, s.h, (c) => {
+                c.fillStyle = 'rgba(0,0,0,0.2)';
+                for (let y = 0; y < s.h; y++) c.fillRect(0, y + 0.68, s.w, 0.32);
+                const vg = c.createRadialGradient(
+                    s.w / 2,
+                    s.h / 2,
+                    Math.min(s.w, s.h) * 0.3,
+                    s.w / 2,
+                    s.h / 2,
+                    s.w * 0.7,
+                );
+                vg.addColorStop(0, 'rgba(0,0,0,0)');
+                vg.addColorStop(1, 'rgba(0,0,0,0.38)');
+                c.fillStyle = vg;
+                c.fillRect(0, 0, s.w, s.h);
+                const r = c.createLinearGradient(0, 0, s.w, s.h);
+                r.addColorStop(0.26, 'rgba(255,255,255,0)');
+                r.addColorStop(0.33, 'rgba(255,255,255,0.11)');
+                r.addColorStop(0.42, 'rgba(255,255,255,0.03)');
+                r.addColorStop(0.5, 'rgba(255,255,255,0)');
+                c.fillStyle = r;
+                c.fillRect(0, 0, s.w, s.h);
+            });
+
+            const img = (key: string, x: number, y: number, depth: number, scale: number) =>
+                this.w(this.add.image(x, y, key).setOrigin(0).setScale(scale).setDepth(depth));
+            const tv = {
+                halo: img('wk-tv-halo', l - 20, t - 20, 3.5, 1)
+                    .setTint(color)
+                    .setBlendMode(Phaser.BlendModes.ADD)
+                    .setAlpha(0),
+                content: img(`wk-tv-on-${i}`, l, t, 6.2, 1 / K).setAlpha(0),
+                bloom: img(`wk-tv-bloom-${i}`, l - P, t - P, 6.3, 0.5)
+                    .setBlendMode(Phaser.BlendModes.ADD)
+                    .setAlpha(0),
+                sweep: img('wk-tv-soft', l, t, 6.6, 1)
+                    .setDisplaySize(s.w, 7)
+                    .setBlendMode(Phaser.BlendModes.ADD)
+                    .setAlpha(0),
+                lit: false,
+                ready: false,
+                at: 0,
+            };
+            img(`wk-tv-frame-${i}`, l - B - 1, t - B - 1, 6, 1 / K);
+            img(`wk-tv-glass-${i}`, l, t, 6.5, 1 / K);
+            this.tv.push(tv);
+        });
     }
 
-    /** Acende um telão: varredura de cima pra baixo e o conteúdo piscando até firmar. */
-    private lightScreen(i: number, now = false) {
-        if (this.lit[i] && !now) return;
-        this.lit[i] = true;
-        for (const o of this.screenOn[i]) {
-            const img = o as Phaser.GameObjects.Image;
-            const to = img.getData('alpha') as number;
-            if (now) img.setAlpha(to);
-            else
-                this.tweens.add({
-                    targets: img,
-                    alpha: to,
-                    duration: 280,
-                    ease: 'Stepped',
-                    easeParams: [4],
-                    delay: 60,
-                });
+    /** O ícone oficial do tipo (36 px) redesenhado em alta: o fundo vira vetor e o símbolo branco é ampliado e afiado. */
+    private drawTypeIcon(c: CanvasRenderingContext2D, x: number, y: number, size: number, K: number) {
+        const img = this.textures.get('wk-type').getSourceImage() as HTMLImageElement;
+        const n = img.width;
+        const src = document.createElement('canvas');
+        src.width = src.height = n;
+        const sc = src.getContext('2d', { willReadFrequently: true });
+        if (!sc) return;
+        sc.drawImage(img, 0, 0);
+        const px = sc.getImageData(0, 0, n, n);
+        const k0 = (Math.floor(n / 2) * n + 3) * 4;
+        const bg = [px.data[k0], px.data[k0 + 1], px.data[k0 + 2]];
+        const base = bg[0] + bg[1] + bg[2];
+        // a máscara do símbolo: quanto o pixel puxa do fundo pro branco
+        for (let k = 0; k < px.data.length; k += 4) {
+            const a = clamp01((px.data[k] + px.data[k + 1] + px.data[k + 2] - base) / Math.max(1, 765 - base));
+            px.data[k] = px.data[k + 1] = px.data[k + 2] = 255;
+            px.data[k + 3] = Math.round(255 * a * (px.data[k + 3] / 255));
         }
-        if (now) return;
-        const s = this.screens[i];
-        const bar = this.w(
-            this.add
-                .rectangle(s.x, s.y - s.h / 2, s.w, 3, 0xffffff, 0.8)
-                .setDepth(6.8)
-                .setBlendMode(Phaser.BlendModes.ADD),
+        sc.putImageData(px, 0, 0);
+        const S = Math.ceil(size * K);
+        const big = document.createElement('canvas');
+        big.width = big.height = S;
+        const bc = big.getContext('2d', { willReadFrequently: true });
+        if (!bc) return;
+        bc.imageSmoothingEnabled = true;
+        bc.imageSmoothingQuality = 'high';
+        bc.drawImage(src, 0, 0, S, S);
+        // limiar suave: a borda borrada da ampliação vira um contorno limpo
+        const bd = bc.getImageData(0, 0, S, S);
+        for (let k = 3; k < bd.data.length; k += 4) {
+            const e = clamp01((bd.data[k] / 255 - 0.32) / 0.36);
+            bd.data[k] = Math.round(255 * e * e * (3 - 2 * e));
+        }
+        bc.putImageData(bd, 0, 0);
+        const hex = (v: number[]) => `rgb(${v.map(Math.round).join(',')})`;
+        const g = c.createLinearGradient(0, y, 0, y + size);
+        g.addColorStop(0, hex(bg.map((v) => v + (255 - v) * 0.22)));
+        g.addColorStop(0.55, hex(bg));
+        g.addColorStop(1, hex(bg.map((v) => v * 0.8)));
+        c.save();
+        c.shadowColor = 'rgba(0,0,0,0.45)';
+        c.shadowOffsetY = 1.2 * K;
+        c.shadowBlur = 1.5 * K;
+        c.fillStyle = g;
+        c.beginPath();
+        c.roundRect(x, y, size, size, size * 0.2);
+        c.fill();
+        c.restore();
+        c.strokeStyle = 'rgba(255,255,255,0.6)';
+        c.lineWidth = 0.6;
+        c.stroke();
+        c.save();
+        c.shadowColor = 'rgba(0,0,0,0.3)';
+        c.shadowOffsetY = 0.5 * K;
+        c.drawImage(big, x, y, size, size);
+        c.restore();
+    }
+
+    /** Texto na fonte do jogo, com contorno e sombra, encolhendo pra caber em `maxW`. */
+    private fitText(
+        c: CanvasRenderingContext2D,
+        text: string,
+        font: string,
+        size: number,
+        [maxW, maxH]: [number, number],
+        x: number,
+        y: number,
+        fill: string,
+        stroke: string,
+        K: number,
+    ) {
+        c.font = font.replace('#', `${size}px`);
+        c.textAlign = 'center';
+        c.textBaseline = 'alphabetic';
+        const m = c.measureText(text);
+        const tall = Math.max(1, m.actualBoundingBoxAscent + m.actualBoundingBoxDescent);
+        const f = Math.min(1.3, maxW / Math.max(1, m.width), maxH / tall);
+        c.font = font.replace('#', `${size * f}px`);
+        // centra pela caixa de verdade das letras (acento incluído), não pela linha de base da fonte
+        y += ((m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) * f) / 2;
+        c.lineJoin = 'round';
+        c.lineWidth = size * f * (size > 20 ? 0.18 : 0.3);
+        c.strokeStyle = stroke;
+        c.strokeText(text, x, y);
+        c.save();
+        c.shadowColor = 'rgba(0,0,0,0.5)';
+        c.shadowOffsetY = 0.8 * K;
+        c.fillStyle = fill;
+        c.fillText(text, x, y);
+        c.restore();
+    }
+
+    private drawTypeScreen(c: CanvasRenderingContext2D, w: number, h: number, K: number) {
+        const col = this.d.typeColor;
+        const css = (v: number) => `#${v.toString(16).padStart(6, '0')}`;
+        const bg = c.createRadialGradient(w / 2, h * 0.42, 2, w / 2, h * 0.45, w * 0.7);
+        bg.addColorStop(0, css(mix(col, 0x000000, 0.25)));
+        bg.addColorStop(1, css(mix(col, 0x000000, 0.78)));
+        c.fillStyle = bg;
+        c.fillRect(0, 0, w, h);
+        c.save();
+        c.globalAlpha = 0.08;
+        c.strokeStyle = '#ffffff';
+        c.lineWidth = 1.1;
+        for (let x = -h; x < w; x += 4) {
+            c.beginPath();
+            c.moveTo(x, h);
+            c.lineTo(x + h, 0);
+            c.stroke();
+        }
+        c.restore();
+        const ic = Math.min(h * 0.54, w * 0.5);
+        this.drawTypeIcon(c, (w - ic) / 2, h * 0.4 - ic / 2, ic, K);
+        this.fitText(
+            c,
+            this.d.typeLabel.toUpperCase(),
+            'bold # Galmuri11, monospace',
+            11,
+            [w * 0.88, h * 0.22],
+            w / 2,
+            h * 0.84,
+            '#ffffff',
+            'rgba(0,0,0,0.65)',
+            K,
         );
-        this.tweens.add({ targets: bar, y: s.y + s.h / 2, duration: 300, onComplete: () => bar.destroy() });
+    }
+
+    private drawPosScreen(c: CanvasRenderingContext2D, w: number, h: number, K: number) {
+        const d = this.d;
+        const g = c.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, '#273272');
+        g.addColorStop(0.5, '#141a3e');
+        g.addColorStop(1, '#090c20');
+        c.fillStyle = g;
+        c.fillRect(0, 0, w, h);
+        const r = c.createRadialGradient(w / 2, h / 2, 1, w / 2, h / 2, w * 0.5);
+        r.addColorStop(0, 'rgba(255,203,5,0.28)');
+        r.addColorStop(1, 'rgba(255,203,5,0)');
+        c.fillStyle = r;
+        c.fillRect(0, 0, w, h);
+        // faixas amarelas em cima e embaixo, cara de placar
+        c.fillStyle = '#ffcb05';
+        c.fillRect(0, 0, w, 1.5);
+        c.fillRect(0, h - 1.5, w, 1.5);
+        const two = d.posLong.toUpperCase() !== d.posShort.toUpperCase();
+        const big = d.posShort.toUpperCase();
+        this.fitText(
+            c,
+            big,
+            '# Galmuri14, monospace',
+            28,
+            two ? [w * 0.8, h * 0.46] : [w * 0.8, h * 0.62],
+            w / 2,
+            two ? h * 0.4 : h * 0.5,
+            '#ffcb05',
+            '#3b2a05',
+            K,
+        );
+        if (two)
+            this.fitText(
+                c,
+                d.posLong.toUpperCase(),
+                'bold # Galmuri11, monospace',
+                11,
+                [w * 0.9, h * 0.22],
+                w / 2,
+                h * 0.8,
+                '#ffffff',
+                'rgba(0,0,0,0.65)',
+                K,
+            );
+    }
+
+    /** Acende um telão: o conteúdo entra num wipe com a borda de luz (o tipo da esquerda pra direita, a posição descendo
+     * em degraus como placar), o brilho estoura e assenta, e o halo acende em volta. */
+    private lightScreen(i: number, now = false) {
+        const tv = this.tv[i];
+        if (!tv || (tv.lit && !now)) return;
+        tv.lit = true;
+        tv.at = this.clock;
+        const fw = tv.content.frame.width;
+        const fh = tv.content.frame.height;
+        if (now) {
+            tv.content.setAlpha(1).setCrop();
+            tv.bloom.setAlpha(0.2);
+            tv.halo.setAlpha(0.5);
+            tv.ready = true;
+            return;
+        }
+        const s = this.screens[i];
+        const down = i === 1;
+        tv.content.setAlpha(1).setCrop(0, 0, 0, 0);
+        const edge = this.w(
+            this.add
+                .image(s.x, s.y, 'wk-tv-soft')
+                .setDepth(6.7)
+                .setBlendMode(Phaser.BlendModes.ADD)
+                .setAngle(down ? 0 : 90)
+                .setDisplaySize(down ? s.w : s.h, 6),
+        );
+        const o = { k: 0 };
+        const ms = down ? 460 : 360;
+        this.tweens.add({
+            targets: o,
+            k: 1,
+            duration: ms,
+            ease: down ? 'Stepped' : 'Cubic.easeOut',
+            easeParams: down ? [6] : undefined,
+            onUpdate: () => {
+                if (down) {
+                    tv.content.setCrop(0, 0, fw, fh * o.k);
+                    edge.setPosition(s.x, s.y - s.h / 2 + s.h * o.k);
+                } else {
+                    tv.content.setCrop(0, 0, fw * o.k, fh);
+                    edge.setPosition(s.x - s.w / 2 + s.w * o.k, s.y);
+                }
+            },
+            onComplete: () => {
+                tv.content.setCrop();
+                this.tweens.add({ targets: edge, alpha: 0, duration: 160, onComplete: () => edge.destroy() });
+            },
+        });
+        this.tweens.add({ targets: tv.bloom, alpha: 0.7, duration: ms });
+        this.tweens.add({
+            targets: tv.bloom,
+            alpha: 0.2,
+            duration: 420,
+            delay: ms,
+            onComplete: () => {
+                tv.ready = true;
+            },
+        });
+        this.tweens.add({ targets: tv.halo, alpha: 0.5, duration: 300 });
+    }
+
+    /** Telões acesos: a varredura desce devagar e o brilho respira. */
+    private stepScreens() {
+        for (const [i, tv] of this.tv.entries()) {
+            if (!tv.lit) continue;
+            const s = this.screens[i];
+            const ph = ((this.clock - tv.at) % 2400) / 2400;
+            tv.sweep.setPosition(s.x - s.w / 2, s.y - s.h / 2 + (s.h - 7) * ph).setAlpha(0.14 * Math.sin(ph * Math.PI));
+            if (tv.ready) tv.bloom.setAlpha(0.2 + 0.05 * Math.sin(this.clock / 260 + i));
+        }
     }
 
     /** O tipo ou a posição: a câmera corre pro telão, ele acende, e a luz dos holofotes pega a cor. */
@@ -755,8 +1128,30 @@ export class WalkoutScene extends Phaser.Scene {
         const s = this.screens[i];
         const cam = this.cameras.main;
         const z = Phaser.Math.Clamp((this.W * 0.86) / s.w, 1.6, 3);
-        cam.pan(s.x, s.y + 4, 320, 'Quad.easeInOut', true);
-        cam.zoomTo(z, 320, 'Quad.easeInOut', true);
+        const p = this.p;
+        if (p.v2 && i === 1) {
+            // corte seco pro telão da posição, já perto, e a câmera abre devagar girando de volta
+            cam.panEffect.reset();
+            cam.centerOn(s.x, s.y + 4);
+            this.zoom(z * 1.12);
+            this.zoom(z * 0.97, Math.max(300, (p.back ?? p.enter) - (p.pos ?? 0) - 100), 'Sine.easeOut');
+            this.hudCam.flash(70, 255, 255, 255);
+            this.rot = 0.03;
+            this.tweens.add({ targets: this, rot: 0, duration: 900, ease: 'Sine.easeOut' });
+        } else if (p.v2) {
+            // chicote até o telão do tipo e um dolly lento chegando mais perto, com a câmera inclinada
+            cam.pan(s.x, s.y + 4, 260, 'Cubic.easeOut', true);
+            this.zoom(z * 0.94, 260, 'Back.easeOut');
+            this.at(this.clock + 270, () =>
+                this.zoom(z * 1.06, Math.max(300, (p.pos ?? 0) - (p.type ?? 0) - 300), 'Sine.easeInOut'),
+            );
+            this.rot = -0.035;
+            this.tweens.add({ targets: this, rot: -0.015, duration: 1000, ease: 'Sine.easeOut' });
+        } else {
+            cam.pan(s.x, s.y + 4, 320, 'Quad.easeInOut', true);
+            this.zoom(z, 320, 'Quad.easeInOut');
+        }
+        this.beatBeams();
         this.at(this.clock + 220, () => {
             this.lightScreen(i);
             this.snd({ k: 'sfx', name: 'kick', pitch: 1 + step * 0.15 });
@@ -771,8 +1166,17 @@ export class WalkoutScene extends Phaser.Scene {
 
     private camBack() {
         const cam = this.cameras.main;
-        cam.pan(this.W / 2, this.H / 2, 360, 'Quad.easeInOut', true);
-        cam.zoomTo(1, 360, 'Quad.easeInOut', true);
+        const p = this.p;
+        this.tweens.add({ targets: this, rot: 0, duration: 400 });
+        if (p.v2 && p.gate !== undefined && p.back !== undefined) {
+            // travelling: dos telões desce pela arquibancada até a boca do túnel
+            const ms = p.gate - p.back + 120;
+            cam.pan(this.W / 2, this.yS - 22, ms, 'Sine.easeInOut', true);
+            this.zoom(1.25, ms, 'Sine.easeInOut');
+        } else {
+            cam.pan(this.W / 2, this.H / 2, 360, 'Quad.easeInOut', true);
+            this.zoom(1, 360, 'Quad.easeInOut');
+        }
         for (const b of this.beams) b.setTint(this.look.beam);
         this.snd({ k: 'sfx', name: 'move', pitch: 0.6 });
     }
@@ -806,6 +1210,8 @@ export class WalkoutScene extends Phaser.Scene {
         this.snd({ k: 'sfx', name: 'post', pitch: 0.55 + i * 0.05 });
         b.setAlpha(alpha + 0.25);
         this.tweens.add({ targets: b, alpha, duration: 260 });
+        b.setData('lit', true);
+        if (this.p.v2) return;
         this.tweens.add({
             targets: b,
             rotation: b.getData('aim') + b.getData('sweep'),
@@ -817,6 +1223,7 @@ export class WalkoutScene extends Phaser.Scene {
     }
 
     private sweepBeams() {
+        if (this.p.v2) return;
         for (const b of this.beams) {
             if (this.tweens.isTweening(b)) continue;
             this.tweens.add({
@@ -964,8 +1371,19 @@ export class WalkoutScene extends Phaser.Scene {
     }
 
     private shake(ms: number, px: number) {
-        this.cameras.main.shake(ms, px / this.H);
-        this.hudCam.shake(ms, px / this.H);
+        // a intensidade do Phaser é fração da câmera vezes o zoom: com Z, divide por Z pra tremer os mesmos px do jogo
+        this.cameras.main.shake(ms, px / this.H / this.Z);
+        this.hudCam.shake(ms, px / this.H / this.Z);
+    }
+
+    /** Zoom da câmera do mundo (1 = a tela inteira), já no Z da resolução. */
+    private zoom(z: number, ms = 0, ease = 'Quad.easeInOut') {
+        const cam = this.cameras.main;
+        if (ms) cam.zoomTo(z * this.Z, ms, ease, true);
+        else {
+            cam.zoomEffect.reset();
+            cam.setZoom(z * this.Z);
+        }
     }
 
     private crowdBurst(n: number) {
@@ -1369,10 +1787,11 @@ export class WalkoutScene extends Phaser.Scene {
         this.shadow.setVisible(false);
         this.ballShadow.setVisible(false);
         cam.pan(W / 2, yS - 20, 260, 'Quad.easeOut', true);
-        cam.zoomTo(1.1, 260, 'Quad.easeOut', true);
+        const v2 = this.p.v2 ? 1.15 : 1;
+        this.zoom(1.1 * v2, 260, 'Quad.easeOut');
         this.at(this.clock + 280, () => {
             cam.pan(W / 2, yS - 18, ms - 300, 'Sine.easeIn', true);
-            cam.zoomTo(1.3, ms - 300, 'Sine.easeIn', true);
+            this.zoom(1.3 * v2, ms - 300, 'Sine.easeIn');
         });
         const who = this.h(
             this.add
@@ -1436,7 +1855,7 @@ export class WalkoutScene extends Phaser.Scene {
             this.hudCam.flash(90, 255, 255, 255);
             this.shake(320, p.tier === 'especial' ? 8 : 6);
             cam.pan(W / 2, H / 2, 260, 'Quad.easeOut', true);
-            cam.zoomTo(1, 260, 'Back.easeOut', true);
+            this.zoom(1, 260, 'Back.easeOut');
             this.glow.setAlpha(0.5);
             this.tweens.add({ targets: this.glow, alpha: 0, duration: 600 });
             this.snd({ k: 'sfx', name: 'shot', pitch: 0.8 });
@@ -1517,6 +1936,15 @@ export class WalkoutScene extends Phaser.Scene {
         this.tweens.add({ targets: prog, p: 1, duration: 200, ease: 'Quad.easeOut', onUpdate: draw });
         this.hudCam.flash(60, 255, 255, 255);
         this.shake(220, small ? 3 : 6);
+        if (this.p.v2) {
+            this.zoom(1.14);
+            this.zoom(1, 360, 'Back.easeOut');
+            this.beatBeams();
+            this.at(this.clock + 140, () => {
+                this.celebAt = this.clock;
+                this.celebStep = -1;
+            });
+        }
         this.snd({ k: 'zz', name: 'glass' });
         this.snd({ k: 'sfx', name: 'thud', pitch: 0.6 });
         this.crowdBurst(20);
@@ -1662,7 +2090,7 @@ export class WalkoutScene extends Phaser.Scene {
         this.at(
             p.art,
             () => {
-                this.snd({ k: 'max', name: 'stinger' });
+                if (!p.v2) this.snd({ k: 'max', name: 'stinger' });
                 this.snd({ k: 'sfx', name: 'goal' });
             },
             true,
@@ -1674,13 +2102,265 @@ export class WalkoutScene extends Phaser.Scene {
                 this.firework(W * 0.78, this.y0 * 0.35, this.finalLook.fx, 150);
             }
             this.tweens.add({ targets: this.rays, alpha: 0.3, duration: 200 });
-            this.anim('Hop', 0);
-            this.time.delayedCall(1100, () => this.anim('Idle', 0));
+            if (p.v2) {
+                this.celebAt = this.clock;
+                this.celebStep = -1;
+            } else {
+                this.anim('Hop', 0);
+                this.time.delayedCall(1100, () => this.anim('Idle', 0));
+            }
             this.snd({ k: 'crowd', call: 'gol', gain: esp ? 1 : 0.6 });
             this.crowdBurst(50);
             this.crowdBeat = 90;
         });
         this.at(p.end, () => this.finish());
+        if (p.v2) this.planV2();
+    }
+
+    /**
+     * O que a versão 2 soma ao roteiro: a câmera abre num dolly, a ola e os flashes começam com a luz, colunas de fogo e
+     * fogos nas batidas (placa, carta, a nota batendo, o golpe do stinger), raios e faíscas subindo atrás da carta, e
+     * confete na cor da edição caindo na festa.
+     */
+    private planV2() {
+        const p = this.p;
+        const { W, H } = this;
+        const cam = this.cameras.main;
+        const fx = this.finalLook.fx;
+        const esp = p.tier === 'especial';
+        // abre perto do túnel no escuro e recua até o estádio inteiro quando a luz acende
+        this.zoom(1.6);
+        cam.centerOn(W / 2, this.yS - 14);
+        this.at(Math.max(0, p.sky - 100), () => {
+            cam.pan(W / 2, H / 2, 1300, 'Sine.easeInOut', true);
+            this.zoom(1, 1300, 'Sine.easeInOut');
+        });
+        this.olaFrom = p.sky + 700;
+        this.at(p.plate, () => {
+            if (!p.upgrade) this.fireColumns(2);
+            this.beatBeams();
+        });
+        this.at(p.enter, () => {
+            this.fireColumns(4);
+            this.beatBeams();
+        });
+        this.at(p.card, () => {
+            this.rays2 ??= this.w(
+                this.add.image(this.rays.x, this.rays.y, 'wk-rays').setDepth(10.9).setBlendMode(Phaser.BlendModes.ADD),
+            );
+            this.rays2
+                .setAlpha(0)
+                .setTint(fx[1] ?? fx[0])
+                .setScale(0.8);
+            this.tweens.add({ targets: this.rays2, alpha: 0.16, duration: 400 });
+            this.tweens.add({ targets: this.rays2, angle: -360, duration: 6000, repeat: -1 });
+            this.tweens.add({ targets: this.rays, angle: 360, duration: 5000, repeat: -1 });
+            this.zoom(1.06, p.end - p.card, 'Sine.easeInOut');
+            // faíscas subindo atrás da carta
+            const rise = this.add.particles(0, 0, 'wk-px', {
+                x: { min: W * 0.12, max: W * 0.88 },
+                y: H + 2,
+                speedY: { min: -75, max: -35 },
+                speedX: { min: -6, max: 6 },
+                lifespan: 3600,
+                frequency: 55,
+                scale: { start: 1.2, end: 0 },
+                alpha: { start: 1, end: 0.2 },
+                tint: fx,
+                blendMode: Phaser.BlendModes.ADD,
+            });
+            rise.setDepth(11.5);
+            this.w(rise);
+            this.temp.push(rise);
+        });
+        // a nota bate: tremida, fogo e fogos
+        const hit = p.card + 200 + p.count;
+        this.at(hit, () => {
+            this.shake(260, esp ? 6 : 4);
+            this.snd({ k: 'sfx', name: 'thud', pitch: 0.5 });
+            this.snd({ k: 'max', name: 'tap-perfeito' });
+            this.fireColumns(4);
+            this.beatBeams();
+            this.crowdBurst(30);
+            this.rays.setAlpha(0.5);
+            this.tweens.add({ targets: this.rays, alpha: 0.26, duration: 500 });
+            if (p.tier !== 'raro') this.firework(W * 0.5, this.y0 * 0.3, fx, 0, 1.2);
+        });
+        // o stinger começa antes: o golpe dele (500 ms) cai com a arte entrando; o acento (1,1 s) com mais fogos
+        if (p.art !== undefined) {
+            const art = p.art;
+            this.at(art - 500, () => this.snd({ k: 'max', name: 'stinger' }));
+            this.at(art, () => {
+                this.fireColumns(4);
+                this.firework(W * 0.2, this.y0 * 0.38, fx, 0, 1.2);
+                this.firework(W * 0.8, this.y0 * 0.32, fx, 60, 1.2);
+                this.beatBeams();
+                this.heat = 1;
+            });
+            this.at(art + 600, () => {
+                this.firework(W * 0.5, this.y0 * 0.25, fx, 0, 1.4);
+                this.fireColumns(2);
+                this.beatBeams();
+            });
+        }
+        this.at(p.party, () => {
+            this.heat = 1;
+            this.fireColumns(4);
+            this.beatBeams();
+            const fall = this.add.particles(0, -4, 'wk-conf', {
+                x: { min: 0, max: W },
+                speedY: { min: 30, max: 65 },
+                speedX: { min: -14, max: 14 },
+                rotate: { min: 0, max: 360 },
+                lifespan: 6000,
+                frequency: 45,
+                tint: fx,
+            });
+            fall.setDepth(14);
+            this.w(fall);
+            this.temp.push(fall);
+        });
+    }
+
+    /** Colunas de fogo na beira do campo (pirotecnia), com o tranco e o som do fogo. */
+    private fireColumns(n: 2 | 4) {
+        const { W, yS } = this;
+        const xs = n === 2 ? [0.1, 0.9] : [0.08, 0.3, 0.7, 0.92];
+        for (const x of xs) {
+            const e = this.add.particles(W * x, yS + 2, 'wk-px', {
+                speedY: { min: -210, max: -140 },
+                speedX: { min: -10, max: 10 },
+                gravityY: 160,
+                lifespan: { min: 380, max: 560 },
+                frequency: 14,
+                quantity: 2,
+                scale: { start: 2, end: 0.4 },
+                alpha: { start: 1, end: 0 },
+                tint: [0xffffff, 0xfff1a8, 0xffb13b, 0xff6a1f, this.finalLook.fx[0]],
+                blendMode: Phaser.BlendModes.ADD,
+            });
+            e.setDepth(7.5);
+            this.w(e);
+            this.temp.push(e);
+            this.at(this.clock + 320, () => e.stop());
+            this.at(this.clock + 1000, () => {
+                e.destroy();
+                this.temp = this.temp.filter((t) => t !== e);
+            });
+        }
+        this.snd({ k: 'zz', name: 'fogo' });
+        this.shake(120, 2);
+    }
+
+    /** Batida: os holofotes trocam de cor (as da edição, em roda). */
+    private beatBeams() {
+        if (!this.p.v2) return;
+        this.beat++;
+        const fx = this.look.fx;
+        for (const [i, b] of this.beams.entries()) b.setTint(fx[(i + this.beat) % fx.length] ?? this.look.beam);
+    }
+
+    /** A cada quadro da versão 2: câmera (órbita na jogada), holofotes dançando, ola, flashes e a comemoração. */
+    private stepV2() {
+        const p = this.p;
+        const { W, H } = this;
+        const cam = this.cameras.main;
+        const c = this.clock;
+        // órbita leve seguindo o Pokémon na jogada; volta pro centro antes do chute (o vidro racha no ponto certo)
+        if (!this.finished && p.body > 0 && c >= p.enter + 300 && c < p.enter + p.body) {
+            const k = clamp01((c - p.enter - 300) / 500) * (1 - clamp01((c - (p.enter + p.body - 350)) / 350));
+            this.zoom(1 + 0.12 * k);
+            cam.centerOn(lerp(W / 2, this.mon.x, 0.35 * k), lerp(H / 2, this.mon.y - 12, 0.3 * k));
+            this.orbit = 0.035 * k * Math.sin((c - p.enter) / 520);
+            this.camFree = true;
+        } else if (this.camFree) {
+            this.camFree = false;
+            this.orbit = 0;
+            this.zoom(1);
+            cam.centerOn(W / 2, H / 2);
+        }
+        cam.setRotation(this.rot + this.orbit);
+        // holofotes dançando: varrem mais rápido e mais largo, e esquentam na festa
+        for (const [i, b] of this.beams.entries()) {
+            if (!b.getData('lit')) continue;
+            const sp = 620 - 200 * this.heat;
+            b.setRotation(b.getData('aim') + b.getData('sweep') * 1.3 * Math.sin(c / sp + i * 1.7));
+        }
+        // ola: uma faixa de pé corre a arquibancada a cada 2,6 s
+        if (this.ola) {
+            const ph = c - this.olaFrom;
+            const k = ph >= 0 ? ph % 2600 : -1;
+            if (k >= 0 && k < 1500) {
+                const bw = W * 0.16;
+                this.ola.setVisible(true).setCrop(-bw + ((W + bw) * k) / 1500, 0, bw, H);
+            } else this.ola.setVisible(false);
+        }
+        // flashes de câmera na torcida
+        if (c > p.sky && this.each('flash', 110)) this.crowdBurst(2);
+        if (c > p.sky && this.each('cam', 260)) this.camFlash?.explode(1 + (this.heat ? 1 : 0));
+        if (this.celebAt >= 0) this.celebrate(c - this.celebAt);
+    }
+
+    /** Uma vez a cada `ms` por chave. */
+    private each(key: string, ms: number) {
+        if (this.clock - (this.timers[key] ?? Number.NEGATIVE_INFINITY) < ms) return false;
+        this.timers[key] = this.clock;
+        return true;
+    }
+
+    /** A comemoração (versão 2), pela forma: pulo (3 pulinhos), giro (salto girando) ou pose (carrega e solta o golpe). */
+    private celebrate(ms: number) {
+        const DUR = 1300;
+        const m = { x: this.monAt.x, d: this.monAt.d };
+        const base = this.d.jogada === 'voo' ? 8 : 0;
+        if (ms >= DUR) {
+            this.celebAt = -1;
+            this.anim('Idle', 0);
+            this.placeMon(m.x, m.d, base);
+            this.mon.setAngle(0);
+            return;
+        }
+        const u = ms / DUR;
+        const y = this.depthY(m.d);
+        if (this.celeb === 'pulo') {
+            const ph = u * 3;
+            const n = Math.floor(ph);
+            this.anim('Hop', 0, 1.4);
+            this.placeMon(m.x, m.d, base + [18, 13, 9][n] * Math.sin((ph - n) * Math.PI));
+            if (n !== this.celebStep) {
+                this.celebStep = n;
+                this.dust(m.x, y, 6);
+                this.snd({ k: 'sfx', name: 'kick', pitch: 1.4 + n * 0.15 });
+            }
+            return;
+        }
+        if (this.celeb === 'giro') {
+            this.anim('Walk', 0, 1.6);
+            this.placeMon(m.x, m.d, base + 28 * Math.sin(u * Math.PI), -360 * inOut(u));
+            if (u > 0.45 && this.celebStep < 0) {
+                this.celebStep = 1;
+                this.burst(this.mon.x, this.mon.y, this.finalLook.fx, 0.5);
+            }
+            if (u > 0.98) this.mon.setAngle(0);
+            return;
+        }
+        // pose: agacha carregando e solta o golpe, um anel do tipo em volta
+        if (u < 0.25) {
+            this.anim('Charge', 0);
+            this.placeMon(m.x, m.d, base);
+            return;
+        }
+        this.anim('Attack', 0);
+        this.placeMon(m.x, m.d, base + 5 * Math.sin(Math.min(1, (u - 0.25) / 0.3) * (Math.PI / 2)));
+        if (this.celebStep < 0) {
+            this.celebStep = 1;
+            this.shake(140, 3);
+            this.snd({ k: 'sfx', name: 'shot', pitch: 1.2 });
+            for (let a = 0; a < 10; a++) {
+                const th = (a / 10) * Math.PI * 2;
+                this.trail(this.d.type, m.x + Math.cos(th) * 16, y - 14 + Math.sin(th) * 10, 13.6);
+            }
+        }
     }
 
     /** Reduzir movimento: fade pra cor, telões acesos, o Pokémon parado; a carta (React) aparece com a placa. */
