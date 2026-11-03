@@ -3848,13 +3848,14 @@ export class MatchScene extends Phaser.Scene {
             this.rig.rumble(2.6);
             st.streams[0]?.rate(18);
         };
+        // em ordem de hora (`stepShowdown` tira da frente): com a bicuda armada mais longa que o stinger, ela vinha depois
         st.cues = [
             { at: 0, run: impact },
             { at: SD.panelsAt, run: panels },
+            { at: ms - SHOWDOWN_MS.exit, run: prep },
             // o stinger do especial sobe pra bater junto com a bicuda
             { at: ms - N3_STINGER_KICK_MS, run: () => playMax('stinger') },
-            { at: ms - SHOWDOWN_MS.exit, run: prep },
-        ];
+        ].sort((x, y) => x.at - y.at);
     }
 
     /**
