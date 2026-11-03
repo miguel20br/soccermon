@@ -46,6 +46,11 @@ export interface TeamSetup {
     coach?: LeaderId;
     /** Patrocínios da copa (src/engine/sponsors.ts): os de campo dão bônus pela regra única (modifiers.ts). */
     sponsors?: string[];
+    /**
+     * Só o `?demo=bicuda` (src/ui/dev-demo.ts): nesse tick o capitão rival chuta o N3 no gol deste time e o goleiro
+     * capitão daqui está com a bicuda armada (o duelo da bicuda). Nunca vem da rede: Duelo e Liga montam o time pela receita.
+     */
+    demoBicudaAt?: number;
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
@@ -306,7 +311,19 @@ export interface BallState {
     assistCandidate: number | null;
 }
 
-export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime';
+export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime' | 'showdown';
+
+/**
+ * Duelo da bicuda (motor 20): o goleiro capitão `gk` segurou o N3 de `shooter` com a bicuda N3 armada. A partida para
+ * (`AGENCY.showdown`) e, no tick `kick`, ele chuta (`kicked`): a bola vai reta pro gol rival, sem ninguém tocar.
+ */
+export interface Showdown {
+    gk: number;
+    shooter: number;
+    q: MaxGrade;
+    kick: number;
+    kicked: boolean;
+}
 
 /** Escanteio em andamento: a jogada sorteada e a disputa que vem quando a bola chega. */
 export interface SetPiece {
@@ -413,6 +430,11 @@ export type MatchEvent = MatchEventBase &
          * bicuda na tela vai de `from` até aqui (`bicudaCueNear`).
          */
         | { type: 'gkReach'; by: number; shooter: number; from: number }
+        /**
+         * Duelo da bicuda (motor 20): o goleiro capitão `gk` (time `team`) segurou o N3 de `shooter` com a bicuda N3; a
+         * partida para até o tick `kick`, quando ele chuta e é gol (a cutscene com as falas vai nesse intervalo). `q`: o toque.
+         */
+        | { type: 'showdown'; team: 0 | 1; gk: number; shooter: number; kick: number; q: MaxGrade }
         | { type: 'block'; by: number; shooter: number }
         | { type: 'post'; shooter: number }
         | { type: 'wide'; shooter: number }
@@ -648,6 +670,8 @@ export interface MatchState {
     pressure: 0 | 1 | null;
     phase: Phase;
     phaseTimer: number;
+    /** Duelo da bicuda em andamento (fase `showdown`). */
+    showdown: Showdown | null;
     kickoffTeam: 0 | 1;
     teams: [TeamRuntime, TeamRuntime];
     players: PlayerState[];

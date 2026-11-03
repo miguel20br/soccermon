@@ -73,8 +73,11 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 19 = golpe máximo de linha armado até o próximo chute do capitão da zona, sem o prazo de `maxArmTicks` (só a bicuda
  *     ainda tem prazo); sai no nível da barra na hora do chute e cancela sem gastar no intervalo e no fim (evento
  *     `maxArm`). O Duelo carimba a ordem 2 s à frente e o capitão já não estava com a bola (Miguel, 02/11/2026).
+ * 20 = duelo da bicuda (Miguel, 03/11/2026): o goleiro capitão que alcança o N3 do rival com a bicuda N3 segura, a
+ *     partida para 9 s (fase `showdown`, a cutscene com as falas) e a bicuda é gol sempre, com a comemoração de 6 s
+ *     (`AGENCY.showdown`). A bicuda N1/N2 (contra qualquer chute) e a N3 contra os outros chutes não mudaram.
  */
-export const ENGINE_VERSION = 19;
+export const ENGINE_VERSION = 20;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
