@@ -7538,6 +7538,10 @@ p.muted.center a {
         top: 110px;
     }
 }
+/* no PC o selo cresce junto com o palco (--k-big): no tamanho do celular ele sumia perto dos botões de 1,35x */
+.unlock-seal {
+    zoom: var(--k-big, 1);
+}
 
 /* brilho e raios de efeitos (pacote, VERSUS) podem passar da borda: nunca viram rolagem para o lado */
 html,
