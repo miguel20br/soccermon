@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { cupRival } from '../../engine/cup';
 import { FORMATIONS } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -55,6 +55,7 @@ import { cardSprite } from '../components/PokeCard';
 import { beatTimes } from '../kit/beats';
 import { Beat, useCascade } from '../kit/Cascade';
 import { METAL, type Metal, metalLabel, metalOf } from '../rarity';
+import { reduceMotionOn } from '../reduce-motion';
 import { LineupEditor } from '../screens/Lineup';
 import { simulateMatch } from '../sim-client';
 import { Chemistry } from './Chemistry';
@@ -675,10 +676,17 @@ function PostGame({
     // cabe nos 3 s: as batidas encolhem na mesma proporção
     const times = beatTimes(raw, POST_MS.max);
     const c = useCascade(times.map((x, i) => x - (times[i - 1] ?? 0)));
+    // deitado (844x390) o prêmio nascia abaixo da dobra, embaixo do cabeçalho e das abas: rola até ele
+    const box = useRef<HTMLElement>(null);
+    useEffect(() => {
+        const el = box.current;
+        if (el && el.getBoundingClientRect().top > window.innerHeight / 2)
+            el.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    }, []);
     let n = 0;
     return (
         // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a festa; o conteúdo já está no DOM e os botões no teclado
-        <section className={`panel ut-prize bc-surface bc-stripe is-${last.outcome}`} onClick={c.skip}>
+        <section ref={box} className={`panel ut-prize bc-surface bc-stripe is-${last.outcome}`} onClick={c.skip}>
             <span className="bc-tag">{t('ultimate.result.title')}</span>
             <b className="ut-verdict cb-num k-pop">
                 {t(`ultimate.result.${last.outcome}`)} {last.score[0]}x{last.score[1]}
