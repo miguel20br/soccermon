@@ -403,3 +403,14 @@ Pular depois de 1 s; encolhe do 2º raro e do 3º muito raro no dia, especial nu
 "Quem é esse Pokémon?"; o mesmo walkout no pacote da Copa. Motor de animação: ele quer ver como fica no Phaser e, se ficar mais
 bonito, fica no Phaser. Por isso o nível especial é feito nas duas versões (React/CSS e Phaser) atrás de laboratório, com vídeo
 lado a lado, antes de escolher.
+
+### Escolha depois dos vídeos lado a lado (02/11/2026)
+
+Miguel comparou Phaser x React: fica uma mistura.
+- **Estádio do Phaser** (aberto, gramado, torcida, torres de luz) como cenário.
+- **Logo/placa "ÍCONE" do React** (e o mesmo estilo de placa pras outras edições).
+- **Tipo e posição nos telões do estádio**, não no meio da tela.
+- **Sai a placa de rota** ("Cerulean Cave": ele não entendeu o sentido) e **sai o título "MEWTWO CONTRA-ATACA"** no telão.
+- **Revelação da carta:** a intro quebrando a tela do Phaser e, depois, a carta de verdade (`FutCard`) aparecendo como no React.
+- **Mais longo**, principalmente a revelação da carta.
+- **Entrada com bola, diferente por Pokémon** (embaixadinha, bicicleta, cabeçada, drible, chute na câmera, levitar a bola etc., pela forma e pelo tipo).
