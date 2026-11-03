@@ -2242,8 +2242,12 @@ export class MatchScene extends Phaser.Scene {
                 )
                     break;
                 playSfx('save');
-                // a defesa que abre o duelo da bicuda: a cena é o COUNTER! dele (startShowdown)
-                if (this.matchEvents.some((x) => x.type === 'showdown' && x.tick === e.tick && x.gk === e.by)) break;
+                // a defesa que abre o duelo da bicuda: a cena é o COUNTER! dele (startShowdown; o replay não tem a cena)
+                if (
+                    !this.md.replay &&
+                    this.matchEvents.some((x) => x.type === 'showdown' && x.tick === e.tick && x.gk === e.by)
+                )
+                    break;
                 // a torcida é sua: "uuuh" quando o goleiro rival pega o seu chute
                 if (this.players[e.by]?.team !== this.mine) playCrowd('uuh', 0.8);
                 const gk = this.players[e.by];
@@ -3504,11 +3508,9 @@ export class MatchScene extends Phaser.Scene {
                     run: () => {
                         this.sdWalk(gk, { x: 0, y: 0 }, 360, gkFace, 'Charge');
                         chargeFx(this, g.x, g.y, type, 3, SHOWDOWN_MS.exit, FOCUS_DEPTH + 60, reduce);
-                        const q = this.matchEvents.find((x) => x.type === 'showdown' && x.tick === e.tick);
-                        const perfect = q?.type === 'showdown' && q.q === 2;
                         banner(
                             `${a.bicuda} · ${a.maxFxBy.replace('{t}', typeName(type))}`,
-                            perfect ? { text: a.maxPerfect, color: '#7dffb0' } : null,
+                            e.q === 2 ? { text: a.maxPerfect, color: '#7dffb0' } : null,
                             SHOWDOWN_MS.exit - 240,
                         );
                         this.cine.superCutIn({
