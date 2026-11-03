@@ -79,6 +79,8 @@ interface Spec {
     /** Quanto a saída se espalha (ms) e quanto cada pedaço leva pra sair. */
     spread: number;
     dur: number;
+    /** Começa este tanto antes da batida (durante o chute): `draw` recebe ms negativos. */
+    lead?: number;
     /** Extras: na batida, no estouro (`SHATTER_MS` depois) e a cada quadro (o Graphics já vem limpo). */
     hit?: () => void;
     brk?: () => void;
@@ -100,6 +102,7 @@ export class TypeFx {
     private rnd: () => number;
     private broke = false;
     private t0 = -1;
+    private preAt = -1;
     done = false;
 
     /** Pinta a capa e corta os pedaços já na montagem da cena (a batida não paga esse custo). */
@@ -113,17 +116,34 @@ export class TypeFx {
         if (this.spec.paint) this.makeCover(this.spec.paint, this.spec.stamp);
     }
 
+    /** Quanto antes da batida o efeito começa (a cena chama `prestart` nessa hora). */
+    get lead() {
+        return this.spec.lead ?? 0;
+    }
+
+    /** O começo antecipado (o dragão entra enquanto a bola voa). */
+    prestart(clock: number) {
+        this.preAt = clock;
+        this.g ??= this.h.hud(this.h.scene.add.graphics().setDepth(43));
+    }
+
     /** A bola bateu na tela. */
     start(clock: number) {
         this.t0 = clock;
-        this.g = this.h.hud(this.h.scene.add.graphics());
+        this.g ??= this.h.hud(this.h.scene.add.graphics().setDepth(43));
         for (const p of this.pieces) p.img.setVisible(true).setAlpha(0);
         this.spec.hit?.();
     }
 
     /** A cada quadro, com o relógio da cena. */
     step(clock: number) {
-        if (this.t0 < 0 || this.done) return;
+        if (this.done) return;
+        if (this.t0 < 0) {
+            if (this.preAt < 0 || !this.g) return;
+            this.g.clear();
+            this.spec.draw?.(this.g, clock - this.preAt - this.lead);
+            return;
+        }
         const ms = clock - this.t0;
         if (!this.broke && ms >= this.B) {
             this.broke = true;
@@ -1050,47 +1070,144 @@ export class TypeFx {
                 };
             }
             case 'Dragon': {
-                // o rugido: ondas de choque saem do impacto e empurram a tela pra fora
+                // um dragão (azul como um Dragonair) entra enquanto a bola voa, serpenteia em espiral em volta do
+                // impacto e ruge: a onda de choque estoura a aura que ele deixou e os pedaços voam pra fora
+                const lead = 450;
+                const th0 = rnd() * Math.PI * 2;
+                const Z = Math.min(W, H) / 180;
+                const N = 30;
+                const path = (u: number) => {
+                    const r =
+                        u < 1
+                            ? lerp(R * 0.42, R * 0.1, inOut(clamp01(u)))
+                            : lerp(R * 0.1, R * 1.1, clamp01((u - 1) / 0.7));
+                    const th = th0 + u * Math.PI * 2.6;
+                    return { x: I.x + Math.cos(th) * r, y: I.y + Math.sin(th) * r * 0.85 };
+                };
+                const uAt = (ms: number) => (ms + lead) / (lead + this.B);
+                let trail: Phaser.GameObjects.Particles.ParticleEmitter | undefined;
+                const body = (g: Phaser.GameObjects.Graphics, u: number) => {
+                    const rad = (i: number) => lerp(11, 3, i / (N - 1)) * Z;
+                    // os gomos pelo comprimento do caminho (não pelo tempo): o corpo sai contínuo em qualquer raio
+                    const seg = [{ ...path(u), i: 0 }];
+                    let uu = u;
+                    for (let i = 1; i < N; i++) {
+                        const p0 = path(uu);
+                        const p1 = path(uu - 0.002);
+                        uu -= (0.002 * rad(i) * 0.95) / Math.max(0.01, Math.hypot(p0.x - p1.x, p0.y - p1.y));
+                        seg.push({ ...path(uu), i });
+                    }
+                    // contorno escuro de todos os gomos (da cauda pra cabeça), depois a cor, depois a barriga
+                    for (let k = N - 1; k >= 0; k--)
+                        g.fillStyle(0x140a30, 1).fillCircle(seg[k].x, seg[k].y, rad(k) + 1.6);
+                    for (let k = N - 1; k >= 0; k--) {
+                        g.fillStyle(mix(0x5a7cf0, 0x3a4ad0, k / N), 1).fillCircle(seg[k].x, seg[k].y, rad(k));
+                        if (k % 2 === 0)
+                            g.fillStyle(0xe8f0ff, 0.9).fillCircle(seg[k].x, seg[k].y + rad(k) * 0.35, rad(k) * 0.38);
+                    }
+                    // as contas azul-piscina (pescoço e cauda)
+                    for (const k of [2, N - 3, N - 2])
+                        g.fillStyle(0x40e0d0, 1).fillCircle(seg[k].x, seg[k].y, rad(k) * 0.6);
+                    // a cabeça: focinho pra frente, olho, chifre e as asinhas brancas
+                    const h = seg[0];
+                    const ahead = path(u + 0.01);
+                    const a = Math.atan2(ahead.y - h.y, ahead.x - h.x);
+                    const f = (d: number, s2: number) => ({
+                        x: h.x + Math.cos(a) * d - Math.sin(a) * s2,
+                        y: h.y + Math.sin(a) * d + Math.cos(a) * s2,
+                    });
+                    const r0 = rad(0) * 1.25;
+                    const tri = (p: { x: number; y: number }[], c: number) => {
+                        g.fillStyle(0x140a30, 1).fillPoints(
+                            p.map((q) => ({ x: q.x + 1, y: q.y + 1 })) as Phaser.Math.Vector2[],
+                            true,
+                        );
+                        g.fillStyle(c, 1).fillPoints(p as Phaser.Math.Vector2[], true);
+                    };
+                    tri([f(-r0 * 0.4, -r0 * 0.6), f(-r0 * 1.9, -r0 * 1.4), f(-r0 * 1.1, -r0 * 0.2)], 0xffffff);
+                    tri([f(-r0 * 0.4, r0 * 0.6), f(-r0 * 1.9, r0 * 1.4), f(-r0 * 1.1, r0 * 0.2)], 0xffffff);
+                    g.fillStyle(0x140a30, 1).fillCircle(h.x, h.y, r0 + 1.6);
+                    const sn = f(r0 * 0.9, 0);
+                    g.fillStyle(0x140a30, 1).fillCircle(sn.x, sn.y, r0 * 0.62 + 1.6);
+                    g.fillStyle(0x5a7cf0, 1).fillCircle(h.x, h.y, r0);
+                    g.fillStyle(0x6a8cff, 1).fillCircle(sn.x, sn.y, r0 * 0.62);
+                    tri([f(r0 * 0.2, -r0 * 0.8), f(r0 * 1.2, -r0 * 1.5), f(r0 * 0.7, -r0 * 0.5)], 0xffffff);
+                    const ey = f(r0 * 0.3, -r0 * 0.35);
+                    g.fillStyle(0xffffff, 1).fillCircle(ey.x, ey.y, r0 * 0.3);
+                    g.fillStyle(0x140a30, 1).fillCircle(
+                        ey.x + Math.cos(a) * r0 * 0.08,
+                        ey.y + Math.sin(a) * r0 * 0.08,
+                        r0 * 0.16,
+                    );
+                    return h;
+                };
                 return {
+                    lead,
                     paint: (x, y, b) => {
-                        // escamas: meias-luas em fileiras
-                        const sw = 14;
-                        const row = Math.floor(y / (sw * 0.6));
-                        const ox = row % 2 ? sw / 2 : 0;
-                        const cx = Math.floor((x + ox) / sw) * sw - ox + sw / 2;
-                        const cy = row * sw * 0.6;
-                        const d = Math.hypot(x - cx, (y - cy) * 1.1);
-                        if (d > sw * 0.62 && b > 0.6) return -1;
-                        const rim = d > sw * 0.5;
-                        return rim
-                            ? 0x40e0d0
-                            : tone(0.3 + (1 - d / (sw * 0.6)) * 0.6, b, [0x1a0a4a, 0x2a1060, 0x6f35fc]);
+                        // a aura que o dragão deixa: braços de espiral translúcidos, violeta e azul-piscina
+                        const d = Math.hypot(x - I.x, y - I.y);
+                        const v = Math.sin(Math.atan2(y - I.y, x - I.x) * 3 + d * 0.07);
+                        if (b > 0.22 + 0.28 * v) return -1;
+                        const h = hash(x >> 1, y >> 1);
+                        if (h > 0.99) return 0xffffff;
+                        return tone(0.45 + v * 0.35 + (h - 0.5) * 0.2, b, [0x1a0a4a, 0x3a1a8a, 0x6f35fc, 0x40e0d0]);
                     },
-                    o1: (x, y) => dI(x, y) * 1.4,
-                    o2: (x, y, r) => dI(x, y) * 0.9 + r * 0.1,
+                    o1: (x, y) => 1 - dI(x, y) * 1.3,
+                    o2: (x, y, r) => dI(x, y) * 0.8 + r * 0.2,
                     leave: 'burst',
-                    spread: 260,
-                    dur: 600,
+                    spread: 200,
+                    dur: 620,
                     hit: () => {
                         S({ k: 'zz', name: 'rugido' });
-                        this.h.shake(500, 5);
+                        this.h.shake(300, 4);
                     },
                     brk: () => {
                         S({ k: 'zz', name: 'rugido' });
                         S({ k: 'sfx', name: 'thud', pitch: 0.35 });
-                        this.h.flash(90, 160, 120, 255);
-                        this.h.shake(360, 8);
+                        this.h.flash(90, 160, 140, 255);
+                        this.h.shake(380, 9);
+                        trail?.stop();
+                        this.burst(I.x, I.y, 'wk-star', 26, {
+                            speed: { min: 90, max: 240 },
+                            lifespan: { min: 400, max: 800 },
+                            scale: { start: 1.2, end: 0.2 },
+                            alpha: { start: 1, end: 0 },
+                            tint: [0xffffff, 0x40e0d0, 0x9a70ff],
+                        });
                     },
                     draw: (g, ms) => {
-                        for (const at of [0, 110, 220, this.B, this.B + 120])
+                        const u = uAt(ms);
+                        if (u < 1.75) {
+                            const h = body(g, u);
+                            if (!trail) {
+                                S({ k: 'zz', name: 'vento' });
+                                // o rastro brilhando atrás da cabeça (um emissor só, com teto)
+                                trail = this.h.hud(
+                                    this.h.scene.add.particles(h.x, h.y, 'wk-px', {
+                                        frequency: 25,
+                                        quantity: 1,
+                                        maxAliveParticles: 20,
+                                        lifespan: 380,
+                                        speed: { min: 4, max: 14 },
+                                        scale: { start: 1, end: 0 },
+                                        alpha: { start: 0.9, end: 0 },
+                                        tint: [0x40e0d0, 0xb8c8ff, 0xffffff],
+                                    }),
+                                );
+                                trail.setDepth(42);
+                                this.emitters.push(trail);
+                            }
+                            trail.setPosition(h.x, h.y);
+                        }
+                        for (const at of [0, this.B, this.B + 90, this.B + 180])
                             this.ring(
                                 g,
                                 ms,
                                 at,
-                                480,
-                                R * 0.75,
-                                at >= this.B ? 0x40e0d0 : 0x9a70ff,
-                                at >= this.B ? 5 : 3,
+                                460,
+                                R * 0.8,
+                                at > this.B ? 0x9a70ff : 0x40e0d0,
+                                at === this.B ? 6 : 3,
                             );
                     },
                 };

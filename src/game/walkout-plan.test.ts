@@ -78,6 +78,10 @@ describe('plano do walkout', () => {
         expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(10650);
         expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 6000, tier: 'muitoraro' });
         expect(walkoutPlan('especial', { nth: 9 }).end).toBe(16550);
+        // o curto também mostra o tipo e a posição nos telões, antes do chute
+        const c = walkoutPlan('raro', { nth: 2 });
+        expect(c.type).toBeLessThan(c.pos ?? 0);
+        expect(c.pos).toBeLessThan(c.enter);
         // o curto respira: a nota bate e ainda dá pra ler nota e nome antes do Continuar
         for (const p of [walkoutPlan('raro', { nth: 2 }), walkoutPlan('muitoraro', { nth: 3 })]) {
             expect(p.impact + SHATTER_MS).toBeLessThanOrEqual(p.card);

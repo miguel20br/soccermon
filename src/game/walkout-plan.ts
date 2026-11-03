@@ -180,7 +180,8 @@ const UPGRADE: Partial<Base> = { spots: 2, fires: [600, 800], rain: false, plate
 
 /**
  * Encolhido do dia (raro do 2º em diante, ~3 s): prévia, o chute na tela e a carta, sem a jogada com bola. Com 1,8 s
- * ficava "absurdamente rápido" (03/11): a entrada e a carta respiram, e a nota bate a 0,7 s do Continuar.
+ * ficava "absurdamente rápido" (03/11): a entrada e a carta respiram, e a nota bate a 0,7 s do Continuar. Os telões
+ * do tipo e da posição acendem junto com a placa.
  */
 const CURTO: Base = {
     end: 3000,
@@ -190,6 +191,9 @@ const CURTO: Base = {
     sky: 0,
     plate: 150,
     plateOut: 750,
+    // os telões do tipo e da posição acendem no plano aberto, junto com a placa (sem a câmera ir até eles)
+    type: 350,
+    pos: 600,
     enter: 750,
     body: 0,
     impact: 1300,

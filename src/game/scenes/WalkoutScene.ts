@@ -1228,6 +1228,16 @@ export class WalkoutScene extends Phaser.Scene {
         }
     }
 
+    /** O telão acende sem a câmera ir até ele (o curto do dia: os dois aparecem no plano aberto, por cima da placa). */
+    private quickScreen(i: number, step: number) {
+        this.lightScreen(i);
+        this.snd({ k: 'sfx', name: 'kick', pitch: 1 + step * 0.15 });
+        this.snd({ k: 'sfx', name: 'select', pitch: 1.2 + step * 0.2 });
+        this.crowdBurst(8);
+        const c = i === 0 ? mix(this.d.typeColor, 0xffffff, 0.3) : this.look.beam;
+        for (const b of this.beams) b.setTint(c);
+    }
+
     /** O tipo ou a posição: a câmera corre pro telão, ele acende, e a luz dos holofotes pega a cor. */
     private clueScreen(i: number, step: number) {
         const s = this.screens[i];
@@ -2172,12 +2182,15 @@ export class WalkoutScene extends Phaser.Scene {
             },
             true,
         );
-        this.at(p.type, () => this.clueScreen(0, 0), true);
-        this.at(p.pos, () => this.clueScreen(1, 1), true);
+        // telões: com a volta da câmera (`back`), ela corre pra cada um; no curto eles acendem no plano aberto
+        this.at(p.type, () => (p.back === undefined ? this.quickScreen(0, 0) : this.clueScreen(0, 0)), true);
+        this.at(p.pos, () => (p.back === undefined ? this.quickScreen(1, 1) : this.clueScreen(1, 1)), true);
         this.at(p.back, () => this.camBack());
         if (p.gate !== undefined) this.at(p.gate, () => this.silhouette(p.enter - (p.gate ?? 0)), true);
         this.at(p.enter, () => this.enter(), true);
         this.at(p.impact, () => this.impact(), true);
+        const lead = this.tfx?.lead ?? 0;
+        if (lead) this.at(p.impact - lead, () => this.tfx?.prestart(this.clock));
         this.at(
             p.card,
             () => {
@@ -2265,9 +2278,11 @@ export class WalkoutScene extends Phaser.Scene {
         // abre perto do túnel no escuro e recua até o estádio inteiro quando a luz acende
         this.zoom(1.6);
         cam.centerOn(W / 2, this.yS - 14);
+        // no curto o recuo é rápido: os telões acendem logo e precisam estar na tela
+        const open = p.kind === 'curto' && p.back === undefined ? 450 : 1300;
         this.at(Math.max(0, p.sky - 100), () => {
-            cam.pan(W / 2, H / 2, 1300, 'Sine.easeInOut', true);
-            this.zoom(1, 1300, 'Sine.easeInOut');
+            cam.pan(W / 2, H / 2, open, 'Sine.easeInOut', true);
+            this.zoom(1, open, 'Sine.easeInOut');
         });
         this.olaFrom = p.sky + 700;
         this.at(p.plate, () => {
