@@ -106,7 +106,9 @@ propósito.
 
 **Cor por função** (desde a 0.9.22, `src/ui/kit/kit.css`): a cor do botão diz o que ele faz, e a pessoa aprende uma
 vez e lê a tela inteira. **Dourado joga** (o JOGAR, um por tela, `.btn.primary`); **verde confirma ou compra**
-(Comprar, Escolher, Seguir, `.btn.confirm`); **azul é secundário** (Sortear, Compartilhar, ir a um lugar, `.btn`);
+(Comprar, Escolher, Seguir, `.btn.confirm`), e só isso; **azul navega e é secundário** (ir a um lugar, Sortear,
+Compartilhar, `.btn`). Botão que só leva a um lugar é azul mesmo quando é o gordo da tela (Abrir a Pokédex, Sala de
+troféus, `.cb-blue`). Subtítulo dentro do gordo dourado ou verde vai em `--bc-ink` Bold (branco ali some);
 **vermelho é perigo ou fechar**, só dentro da confirmação (`.btn.danger`); o **terciário** não tem face (Pular,
 Cancelar, `.btn.ghost`; o gatilho de perigo é `.btn.ghost.danger`, texto vermelho). Seleção continua dourada, mas como
 **anel**, nunca como botão cheio.
@@ -162,12 +164,18 @@ Uma família só, pixel: **Galmuri** (SIL OFL 1.1, `public/fonts/`, subset gerad
 
 | Estilo | Fonte | Uso |
 |---|---|---|
-| Placar e título de tela | Galmuri14, 20 a 48 px, peso normal | placar (`.bc-sc`), relógio, título do cabeçalho (`.bc-screenhead h1`), número grande do resultado |
+| Placar e título de tela | Galmuri14, 20 a 48 px, peso normal | placar (`.bc-sc`), relógio, número grande do resultado. Título de tela: um só, 22 px no celular e 26 px no PC (`.bc-screenhead h1` e o letreiro dos ambientes) |
+| Título de painel e de seção | Galmuri11 Bold 16 px, caixa normal | `h2` do painel, `.bc-caption`, `.champ-h` (Gols, Vitrine de cartas) |
 | Texto | Galmuri11, 14 px, entrelinha 1,45 | tudo que se lê |
-| Botão, rótulo, etiqueta | Galmuri11 Bold | botões, `.bc-tag` (10 px, caixa alta, espaço 1 px), nomes |
+| Botão, rótulo, etiqueta | Galmuri11 Bold | botões, `.bc-tag` e `.bc-lbl` (10 a 12 px, caixa alta, espaço 1 px), nomes |
 | Vídeo e arte | Galmuri11 Bold, caixa alta | legenda de vídeo, tagline nas artes |
 
-- Tamanho mínimo: 10 px só em etiqueta de caixa alta; texto corrido nunca abaixo de 12 px.
+- Tamanho mínimo: 10 px só em etiqueta de caixa alta; texto corrido nunca abaixo de 12 px; nada abaixo de 11 px
+  efetivo no celular (estado de botão, nome na carta da quadra).
+- **Caixa alta só na etiqueta** (`.bc-tag`, `.bc-lbl`, posição na carta). Título de tela e de seção vai em caixa
+  normal.
+- A Galmuri14 não tem Bold: nunca `font-weight` acima de 400 nela (o navegador engrossaria o pixel na marra;
+  `font-synthesis-weight: none` no `:root` garante). Quem precisa de peso usa Galmuri11 Bold ou o contorno `.cb-num`.
 - Símbolo novo num texto (seta, estrela) precisa estar no subset: o teste `scripts/fonts.test.ts` acusa e
   `npm run fonts` refaz.
 - `-webkit-font-smoothing: none` no corpo: a fonte é pixel, não alise.
@@ -185,16 +193,20 @@ O site inteiro usa as peças da tela de partida (`src/ui/broadcast-kit.css`). Vi
 - **Rótulo de seção** (`.bc-lbl`), **peça com ícone** (`.bc-tile`), **abas** (`.bc-tabs`), **seletor
   segmentado** (`.bc-seg`), **barra do polegar** (`.bc-thumbbar`: a ação principal fixa embaixo no celular).
 - **Painel** (`.panel`): `--panel`, moldura dupla grossa (borda 3 px `--cb-ink`, filete de 3 px `--frame-in` e um fio
-  escuro por dentro), raio 10 px e base dura de 4 px, sem textura. O título (`h2` de cima, `.shop-shelf-title`,
-  `.champ-h`) vai na placa do Estádio: moldura preta, faixa amarela em cima, Galmuri14 15 px; no painel fica
-  pendurada na borda de cima. `.bc-surface`, toast e balão do tutorial usam o mesmo material.
+  escuro por dentro), raio 10 px e base dura de 4 px, sem textura. Desde a faxina de 27/10 o painel é calmo (borda
+  fina, sem sombra dura) e o título dele (`h2` de cima, `.bc-caption`, `.champ-h`) é **texto simples**: Galmuri11
+  Bold 16 px, caixa normal, sem placa. A placa (moldura preta, faixa amarela) fica só no título da tela, uma por tela.
+  Prateleira (Mercado) usa rótulo de etiqueta (`.shop-shelf-title`: 12 px Bold, caixa alta, `--muted`, contagem à
+  direita). `.bc-surface`, toast e balão do tutorial usam o mesmo material.
 - **Botão** (`.btn`, kit em `src/ui/kit/kit.css`, galeria `?lab=kit`): chanfrado, como o do Clash em pixel. Contorno
   3 px `--cb-ink`, faixa clara na metade de cima, base escura de 5 px por dentro e sombra dura de 4 px; texto branco,
   com contorno de pixel de 2 px só de 16 px pra cima (o gordo da tela). No toque afunda 3 px em 60 ms e volta
   com quique (`--ease-pop`, 180 ms) e som; com Reduzir movimento, afunda sem quique. Desabilitado fica no lugar, sem
   cor e sem base, e diz o porquê em `.btn-why`. A cor é a função (ver Cor).
 - **Hierarquia (variante B, 26/10):** cada tela tem **um** botão gordo, o da barra do polegar ou um `.big`: dourado
-  se joga, verde se segue ou confirma. O secundário azul é baixo e de face lisa. Ação repetida de lista (Comprar,
+  se joga, verde se segue ou confirma, azul se só leva a um lugar. O secundário azul é baixo e de face lisa (no fim
+  da copa, Melhores momentos e Compartilhar ficam assim; o Nova copa é o único gordo). O gordo da barra desabilitado
+  perde o contorno e vai a 14 px, pra não se passar pelo primário. Ação repetida de lista (Comprar,
   Escalar, Escolher, Ensinar) é o **chip** baixo (`.k-chip`, `.fut-action`, `.shop-buy`) preso na borda de baixo da
   carta ou do item. O escolhido num seletor (`.bc-seg`) é azul: o dourado cheio fica só no JOGAR.
 - **Número com contorno** (`.cb-num`): Galmuri14 com o contorno de pixel de 2 px, pra ₽, x/151, nível, taças e placar.
@@ -267,6 +279,16 @@ muda pela galeria `?cards=1` com o ok do Miguel.
 - **Momento** (protótipo no `?lab=kit`, transição de momento): uma linha amarela desce na diagonal, do canto de cima
   à direita ao de baixo à esquerda, e revela um papel de parede com o logo numa placa; o papel sai da direita pra
   esquerda (~1,1 s). Só pra momento (começar a copa, entrar em quadra, título), nunca em troca de tela comum.
+- **Corte de TV** (padrão desde 0.9.37, `src/ui/tv.ts`): toda troca de tela, entrar e sair do menu de modos e tocar
+  numa aba da Home é uma faixa diagonal azul-noite com filete amarelo que varre da direita pra esquerda em 280 ms
+  (130 entrando, 150 saindo); a troca acontece com a tela coberta. Arrastar entre as abas da Home continua deslizando.
+  Com Reduzir movimento, fade.
+- **Letreiro de canal** (`TvLayer.tsx`, sempre ligado): o bug no canto de baixo à esquerda (símbolo + "SMN") e a faixa
+  amarela com o nome da tela, que sai do bug a cada troca e volta depois de ~2 s. Fica na linha livre mais baixa sem
+  botão nem texto embaixo; sem espaço, só o bug; sem espaço nem pra ele, some. Na partida vai pro topo à direita e diz
+  "AO VIVO" com a luz vermelha piscando. No menu de modos não aparece: a fatia do Modo Copa já diz "1 AO VIVO".
+- **Menu de modos com cara de TV**: as fatias do Smash numa moldura de tela com varredura fraca, cada modo um canal
+  (o número no quadradinho), o jogável com "AO VIVO" e os trancados com a faixa reta "EM BREVE 27/11".
 - Nada vai sozinho pra outra tela: o fim de jogo espera o toque em "Ver resultado".
 - Na partida (`src/game/`), o peso vem do impacto em 4 níveis (`punch()` no `MatchScene`), câmera lenta igual pra
   gol, trave e defesa, rastro do tipo na bola e flash no gol.
@@ -358,7 +380,9 @@ diz o que tem dentro, sem emoji, fundo azul-noite sólido, logo em PNG com conto
 
 - Contraste pela tabela acima. Branco sobre verde não.
 - Foco visível: anel de 3 px (`--yellow` ou branco) com 2 a 3 px de folga.
-- Alvo de toque de 40 a 44 px (`.modal-close`, `.tip-close`, botões).
+- Alvo de toque de 44 px. Quando o desenho é menor (o "?" de 28, o x da vitrine, o chip de 29, o ‹ ›), a área cresce
+  sem mudar o desenho: `::before { inset: -8px }` (o elemento com `position: relative`) ou padding com margem
+  negativa.
 - Ícone sozinho num botão tem `aria-label`; o SVG leva `aria-hidden`.
 - Reduzir movimento sempre funcionando (seção 3).
 

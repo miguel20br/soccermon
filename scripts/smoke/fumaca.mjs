@@ -107,19 +107,78 @@ async function copa() {
         await p.waitForTimeout(600);
         await shot(p, '01-home', true);
     });
+    // celular: arrastar entre as abas da Home desliza com o dedo (o --pos acompanha, fracionário) e solta na vizinha,
+    // sem o corte de TV (que é só do toque na aba e da troca de tela); vale pro toque (CDP) e pro ponteiro (mouse)
+    if (mobile)
+        await step(p, 'arrastar entre as abas', async () => {
+            await p.evaluate(() => {
+                window.__cuts = 0;
+                new MutationObserver((ms) => {
+                    for (const m of ms)
+                        for (const n of m.addedNodes) if (n.classList?.contains('tv-cut')) window.__cuts++;
+                }).observe(document.body, { childList: true });
+            });
+            const cdp = await p.context().newCDPSession(p);
+            const pos = () =>
+                p.evaluate(() => {
+                    const r = document.querySelector('.amb');
+                    return { pos: Number(r.style.getPropertyValue('--pos')), drag: r.classList.contains('amb-drag') };
+                });
+            const on = () => p.evaluate(() => document.querySelector('.amb-tab.on')?.id);
+            const y = Math.round(H * 0.45);
+            const drag = async (kind, from, to) => {
+                const xs = Array.from({ length: 9 }, (_, k) => Math.round(from + ((to - from) * k) / 8));
+                if (kind === 'toque') {
+                    const tp = (type, x) =>
+                        cdp.send('Input.dispatchTouchEvent', {
+                            type,
+                            touchPoints: type === 'touchEnd' ? [] : [{ x, y }],
+                        });
+                    await tp('touchStart', xs[0]);
+                    for (const x of xs.slice(1, 5)) await tp('touchMove', x);
+                    const mid = await pos();
+                    for (const x of xs.slice(5)) await tp('touchMove', x);
+                    await tp('touchEnd');
+                    return mid;
+                }
+                await p.mouse.move(xs[0], y);
+                await p.mouse.down();
+                for (const x of xs.slice(1, 5)) await p.mouse.move(x, y);
+                const mid = await pos();
+                for (const x of xs.slice(5)) await p.mouse.move(x, y);
+                await p.mouse.up();
+                return mid;
+            };
+            for (const [kind, from, to, want] of [
+                ['toque', W * 0.8, W * 0.15, 'amb-tab-arena'],
+                ['ponteiro', W * 0.15, W * 0.8, 'amb-tab-estadio'],
+            ]) {
+                const mid = await drag(kind, from, to);
+                if (!mid.drag || mid.pos % 1 === 0)
+                    throw new Error(`${kind}: no meio do arrasto a aba não acompanha o dedo (${JSON.stringify(mid)})`);
+                await p.waitForTimeout(500);
+                const tab = await on();
+                if (tab !== want) throw new Error(`${kind}: o arrasto parou em ${tab}, esperado ${want}`);
+            }
+            const cuts = await p.evaluate(() => window.__cuts);
+            if (cuts) throw new Error(`o arrasto disparou ${cuts} corte(s) de TV`);
+        });
     await step(p, 'nova copa e formação', async () => {
         await p
             .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .click();
-        await p.locator('.formation-option').first().waitFor({ timeout: 15000 });
+        await p.locator('.fc-choose').waitFor({ timeout: 15000 });
         await shot(p, '02-formacao');
-        await p.locator('.formation-option').nth(1).click();
+        // carrossel: a 2ª formação e "Escolher"
+        await p.locator('.fc-arrow.next').click();
+        await p.waitForTimeout(400);
+        await p.locator('.fc-choose').click();
     });
     await step(p, 'draft', async () => {
         for (let round = 0; round < 30; round++) {
             await p.waitForTimeout(500);
-            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-grid'))) break;
+            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-stage'))) break;
             for (let k = 0; k < 8 && (await vis(p, '.cpack-btn')); k++) {
                 await p.locator('.cpack-btn').first().click();
                 await p.waitForTimeout(400);
@@ -143,7 +202,7 @@ async function copa() {
     });
     await step(p, 'abandonar em sheet', async () => {
         // a confirmação ficava atrás da barra do Jogar (0.9.22): agora é sheet e tem que estar por cima de tudo
-        await p.locator('.vt-cork').click();
+        await p.locator('.vt-rival').click();
         await p.locator('.vt-board-sheet .btn.ghost.danger').click();
         const danger = p.locator('.k-confirm .btn.danger');
         await danger.waitFor({ timeout: 5000 });

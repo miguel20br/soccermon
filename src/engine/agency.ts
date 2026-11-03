@@ -9,8 +9,11 @@
  */
 import type { Position } from './attributes';
 import type { StatusKind } from './moves';
-import { type MatchEvent, type MatchSnapshot, SNAP_STRIDE } from './state';
+import { type MatchEvent, type MatchSnapshot, type MaxN1Fx, SNAP_STRIDE } from './state';
 import { expectedGoals } from './xg';
+
+/** O que o N1 passa: um status dos jogos, o recuo (flinch) ou um efeito do `AGENCY.maxN1`. */
+export type MaxN1Kind = StatusKind | 'infatuation' | 'flinch' | 'seed' | 'push' | MaxN1Fx;
 
 export const AGENCY = {
     /** Pedido de tempo: 1 por tempo, fôlego +5% pra quem pediu e +3% pro rival (Miguel, 18/10/2026), parada de 3 s. */
@@ -18,10 +21,9 @@ export const AGENCY = {
     timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
     /**
-     * Golpe máximo (21/10/2026): o botão só acende na hora certa (capitão de linha com a bola na zona de chute; capitão
-     * goleiro com o chute do rival vindo no gol, a bicuda) e o toque solta na hora. A ordem fica armada esse tanto (o
-     * Duelo e o rival mandam a ordem um pouco à frente, e o toque um pouco antes de acender também vale); passou sem a
-     * hora certa, nada acontece e a barra continua como estava.
+     * Golpe máximo da bicuda (o capitão goleiro): a ordem fica armada esse tanto esperando o chute do rival; passou sem
+     * ele, nada acontece e a barra continua como estava. O capitão de linha, desde o motor 19, fica armado até o próximo
+     * chute da zona, sem prazo (o Duelo carimba a ordem 2 s à frente; `startMax` em match.ts).
      */
     maxArmTicks: 100,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
@@ -43,28 +45,34 @@ export const AGENCY = {
     ],
     /**
      * Golpe máximo universal (motor 17, docs/planos/golpe-universal.md), por cima dos números do nível: N1 passa o
-     * status do tipo do capitão (`maxFxType`, com `MatchConfig.maxType`) em quem bloqueia ou defende; `[status, s]`, sem
-     * `s` dura o de sempre; 'stun' = cai. Fogo, Elétrico, Venenoso, Gelo, Psíquico e Normal vêm do plano; os outros são
-     * a 1ª proposta (fechar com o Miguel).
+     * efeito do tipo do capitão (`maxFxType`, com `MatchConfig.maxType`) em quem bloqueia ou defende; `[efeito, s]`, sem
+     * `s` dura o de sempre. Tabela fechada com o Miguel em 02/11/2026: os status dos jogos e os efeitos do `maxN1`.
      */
     maxStatus: {
         Fire: ['brn'],
         Electric: ['par', 1.5],
         Poison: ['psn'],
         Ice: ['frz', 1],
-        Psychic: ['confusion'],
-        Normal: ['stun', 0.6],
-        Water: ['stun', 0.6],
-        Grass: ['slp', 1],
-        Fighting: ['stun', 0.8],
-        Ground: ['stun', 0.6],
-        Flying: ['confusion'],
-        Bug: ['psn'],
-        Rock: ['stun', 0.8],
-        Ghost: ['confusion'],
-        Dragon: ['par', 1.5],
         Fairy: ['infatuation'],
-    } as Record<string, readonly [StatusKind | 'infatuation' | 'stun', number?]>,
+        Psychic: ['slp', 1],
+        Ghost: ['confusion'],
+        Normal: ['flinch', 0.6],
+        Grass: ['seed'],
+        Ground: ['blind'],
+        Bug: ['web'],
+        Water: ['push'],
+        Flying: ['lift'],
+        Fighting: ['numb'],
+        Rock: ['root'],
+        Dragon: ['drain'],
+    } as Record<string, readonly [MaxN1Kind, number?]>,
+    /**
+     * Efeitos do N1 que não são status (02/11/2026). Semente = Leech Seed (`seed` s, o fôlego vai pro capitão); areia =
+     * o `blind` do Sand Attack; teia: velocidade x`webPace` por `web` s; água: `push` m pra trás; alto: `lift` s no ar,
+     * fora do lance; mão dormente: a próxima defesa comum dele não encaixa; preso: `root` s sem andar (ainda defende);
+     * Dragão: o time de quem bloqueou ou defendeu perde `drain` pontos da barra.
+     */
+    maxN1: { seed: 12, web: 3, webPace: 0.5, push: 2, lift: 1, root: 2, drain: 5 },
     /**
      * Defesa do golpe máximo, N1 a N3 (Miguel 01/11/2026: "nunca encaixada"): o goleiro espalma, `post` das vezes na
      * trave (a bola vai até o poste a `postSpeed` m/s e volta viva; colada na linha, sai de `postMin` m dela) e o resto
@@ -306,7 +314,7 @@ export function bicudaCueNear(events: readonly MatchEvent[], from: number, to: n
 
 /**
  * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
- * ataque), não só na hora certa. O toque arma a ordem (`AGENCY.maxArmTicks`), a bola procura o capitão e o golpe sai no
+ * ataque), não só na hora certa. O toque arma a ordem (até o próximo chute da zona), a bola procura o capitão e o golpe sai no
  * chute dele da zona: o motor é o mesmo de sempre. A câmera lenta continua só na hora certa (`maxCue`).
  */
 export function maxCallCue(
@@ -353,6 +361,11 @@ export function maxCharge(
         // o golpe gasta a barra toda e ela volta a encher
         if (e.type === 'max') {
             if (e.team === team) pts = 0;
+            continue;
+        }
+        // N1 Dragão: o time de quem bloqueou ou defendeu perde pontos
+        if (e.type === 'status' && e.status === 'drain') {
+            if (teamOf(e.target) === team) pts = Math.max(0, pts - AGENCY.maxN1.drain);
             continue;
         }
         if (e.type === 'goal') behind = e.team === team ? behind - 1 : behind + 1;

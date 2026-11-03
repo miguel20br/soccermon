@@ -69,6 +69,8 @@ export const settings: typeof pt = {
         onPl: 'On',
         offPl: 'Off',
         accessibility: 'Accessibility',
+        accessTab: 'Access',
+        dataTab: 'Data',
         motion: 'Reduce motion',
         motionHint: 'Less shake, flash and zoom.',
         motionHintSystem: 'Less shake, flash and zoom. Your device: {state}.',
@@ -158,6 +160,8 @@ export const settings: typeof pt = {
     },
     credits: {
         title: 'Credits',
+        hold: 'Hold to speed up',
+        thanks: 'Thanks for playing!',
         createdBy: 'Created by {name} ({link}): idea, game design and code.',
         nonProfit:
             'Soccermon is a {np} fan game, open source under the AGPL-3.0 license. Pokémon and all related names, images and sounds are © Nintendo, Game Freak, Creatures Inc. and The Pokémon Company. This project is not affiliated with or endorsed by them.',

@@ -30,7 +30,7 @@ import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
-import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCueNear } from '../../ui/match-view';
+import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCertain, maxCueNear } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
@@ -57,7 +57,16 @@ import { COURTS } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
-import { hurtSecondsAt, type Reaction, reactionFor, showsWord, spanAt, WORD_RANK } from '../hit-react';
+import {
+    hurtSecondsAt,
+    N1_FX_WORDS,
+    type Reaction,
+    reactionFor,
+    showsWord,
+    spanAt,
+    WORD_RANK,
+    WORD_TYPE,
+} from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { MAX_MOVE } from '../max-sfx';
 import { chargeFx, drawProjectile, impactFx, MAX_CHARGE_MS, releaseFx, typeBackdrop } from '../max-show';
@@ -765,8 +774,11 @@ export class MatchScene extends Phaser.Scene {
             this.agencyG = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
     }
 
-    /** O botão do golpe máximo do seu time está aceso agora ou vai acender já (`MAX_CUE_LEAD`; a conta é a da tela). */
-    private maxCueNow(ahead = MAX_CUE_LEAD): boolean {
+    /**
+     * O botão do golpe máximo do seu time está aceso agora ou vai acender já (`MAX_CUE_LEAD`; a conta é a da tela).
+     * `lit`: o botão aceso agora (o bullet time); na Copa o de linha só acende com o chute certo (`maxCertain`).
+     */
+    private maxCueNow(ahead = MAX_CUE_LEAD, lit = false): boolean {
         if (!this.md.agency || this.md.replay || this.maxWait) return false;
         // no Duelo as duas telas andam juntas: as duas desaceleram quando o botão de QUALQUER capitão acende (a conta é
         // a mesma dos dois lados, só dos dados da partida), então ninguém fica pra trás
@@ -777,6 +789,7 @@ export class MatchScene extends Phaser.Scene {
             const role = (this.md.result.roster[cap]?.role ?? 'PIVO') as Position;
             const c = maxCharge(this.matchEvents, team, this.playTick, 5);
             if (c.level < 1) return false;
+            if (lit && !this.md.duel && role !== 'GK') return maxCertain(this.snaps, this.playTick, team, cap, role);
             return maxCueNear(
                 this.snaps,
                 this.matchEvents,
@@ -1606,7 +1619,7 @@ export class MatchScene extends Phaser.Scene {
         // qualquer velocidade e mesmo com "não cair" nas chances
         // o bullet time começa quando o BOTÃO acende (a mesma conta da tela, `MAX_CUE_EARLY` antes da hora certa): o
         // toque nele arma o golpe antes do chute do capitão. Antes disso, só a câmera lenta chegando (`MAX_CUE_LEAD`)
-        if (this.maxCueNow(MAX_CUE_EARLY)) {
+        if (this.maxCueNow(MAX_CUE_EARLY, true)) {
             const t = performance.now();
             this.cueSince ??= t;
             // o anel desta hora (nasce no mesmo quadro ou logo depois do botão acender)
@@ -2288,7 +2301,9 @@ export class MatchScene extends Phaser.Scene {
                     this.battleBox.push(
                         `${view.name} ${(dict().battle.status as Record<string, string>)[e.status] ?? '!'}`,
                     );
-                    if (e.status !== 'flinch' && e.status !== 'seed') {
+                    // N1 do golpe máximo (areia, teia, alto, mão dormente, preso, barra): a partícula do tipo
+                    if (N1_FX_WORDS.has(e.status)) this.impact(view.sprite.x, view.sprite.y - 16, WORD_TYPE[e.status]);
+                    else if (e.status !== 'flinch' && e.status !== 'seed') {
                         this.applyIndicators(view, STATUS_KIND_TO_CODE[e.status] ?? 0, view.flags);
                     }
                 }

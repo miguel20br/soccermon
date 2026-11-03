@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
@@ -6,13 +6,13 @@ import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
 import { cupLength } from '../../store/long-cup';
-import { useCountUp } from '../ambientes/TopBar';
 import { Beat, useCascade } from '../kit/Cascade';
+import { SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { cupGoal } from '../moments';
 import { trainerLabel } from '../profile/club';
-import { aggregate, avg } from '../stats/CupStats';
+import { type Agg, aggregate, avg } from '../stats/CupStats';
 import {
     CupAwards,
     CupFinal,
@@ -25,21 +25,12 @@ import {
 } from './ChampionExtras';
 import { CupGains } from './CupGains';
 import { FutCard } from './FutCard';
+import { share } from './HalftimePanel';
 import { HallParade } from './HallParade';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 import { Confetti } from './ResultHero';
 import { Trophy } from './Trophy';
-
-/** Número do resumo da copa: contornado, contando do 0 (com "reduzir movimento", já parado). */
-function TotalNum({ n, run, suffix }: { n: number; run: boolean; suffix?: string }) {
-    return (
-        <b className="cb-num">
-            {useCountUp(n, run)}
-            {suffix && <small>{suffix}</small>}
-        </b>
-    );
-}
 
 /**
  * Tela do título em 3 batidas (cara-de-jogo.md, decisão 5), sem rolar: a taça com "CAMPEÕES!" e os selos, os 3
@@ -64,8 +55,8 @@ export function ChampionView({
     /** O gol da copa com o replay (abre ao tocar no destaque). */
     goal: ReactNode;
 }) {
-    const { t, tn } = useT();
-    const [sheet, setSheet] = useState<'stats' | 'goal' | null>(null);
+    const { t } = useT();
+    const [sheet, setSheet] = useState<'goal' | null>(null);
     const hallEntry = useGame((s) => s.hall.find((h) => h.id === run.seed));
     const profile = useGame((s) => s.profile);
     const googleName = useCloud((s) => s.user?.name ?? null);
@@ -77,34 +68,15 @@ export function ChampionView({
     const squad = [...run.lineup, ...run.bench]
         .map((uid) => run.picks.find((p) => p.uid === uid))
         .filter((p): p is NonNullable<typeof p> => !!p);
-    const gf = run.results.reduce((s, r) => s + r.score[0], 0);
-    const ga = run.results.reduce((s, r) => s + r.score[1], 0);
-    const withStats = run.results.filter((r) => r.stats);
-    const poss = withStats.length
-        ? Math.round((withStats.reduce((s, r) => s + (r.stats?.possession[0] ?? 0), 0) / withStats.length) * 100)
-        : null;
     const players = [...stats.values()];
-    const topScorer = players.length ? players.reduce((a, b) => (b.goals > a.goals ? b : a)) : null;
-    const star = players
-        .filter((a) => a.games >= 2)
-        .reduce<(typeof players)[number] | null>((best, a) => (!best || avg(a) > avg(best) ? a : best), null);
     const parading = !!(hallEntry && run.champ && !run.champ.paraded);
-    // os números contam depois do desfile; um toque em qualquer lugar completa
-    const [skip, setSkip] = useState(false);
-    useEffect(() => {
-        if (parading) return;
-        const done = () => setSkip(true);
-        window.addEventListener('pointerdown', done, { once: true });
-        return () => window.removeEventListener('pointerdown', done);
-    }, [parading]);
-    const count = !parading && !skip;
 
     return (
         <>
             {hallEntry && parading && (
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
             )}
-            <Stage className="champ-wrap">
+            <Stage className="champ-wrap k-stage-rola">
                 <section className="panel rh rh-champ champ champ-stage" aria-label={t('result.champ.aria')}>
                     <Confetti count={70} />
                     {/* a cascata recomeça quando o desfile do Hall acaba (antes, ela tocaria escondida embaixo dele) */}
@@ -114,72 +86,20 @@ export function ChampionView({
                         quiet={parading}
                         onGoal={() => setSheet('goal')}
                     />
-                    <div className="champ-icons">
-                        {icons}
-                        <button
-                            type="button"
-                            className="btn outline"
-                            aria-haspopup="dialog"
-                            onClick={() => setSheet('stats')}
-                        >
-                            <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
-                        </button>
-                    </div>
+                    <div className="champ-icons">{icons}</div>
                     <div className="rh-actions">{thumb}</div>
                 </section>
             </Stage>
             <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
                 {goal}
             </Sheet>
-            <Sheet
-                open={sheet === 'stats'}
-                onClose={() => setSheet(null)}
-                title={t('result.champ.statsTitle')}
-                className="champ-stats-sheet"
-            >
+            {/* o relatório da copa embaixo do palco, rolando (antes numa sheet: ter que tocar pra ver era ruim) */}
+            <section className="champ-report" aria-label={t('result.champ.statsTitle')}>
+                <h2 className="champ-h champ-final-h">{t('result.champ.statsTitle')}</h2>
                 <CupGains run={run} />
 
-                <div className="cup-totals champ-totals">
-                    <div>
-                        <TotalNum
-                            n={run.results.filter((r) => r.won).length}
-                            run={count}
-                            suffix={`/${cupLength(run)}`}
-                        />
-                        <span>{t('result.champ.wins')}</span>
-                    </div>
-                    <div>
-                        <TotalNum n={gf} run={count} />
-                        <span>{t('result.champ.gf')}</span>
-                    </div>
-                    <div>
-                        <TotalNum n={ga} run={count} />
-                        <span>{t('result.champ.ga')}</span>
-                    </div>
-                    {poss !== null && (
-                        <div>
-                            <TotalNum n={poss} run={count} suffix="%" />
-                            <span>{t('result.champ.poss')}</span>
-                        </div>
-                    )}
-                    {topScorer && topScorer.goals > 0 && (
-                        <div>
-                            <TotalNum n={topScorer.goals} run={count} />
-                            <span>
-                                {t('result.champ.topScorer', {
-                                    goals: tn('result.champ.goalWord', topScorer.goals),
-                                    name: topScorer.name,
-                                })}
-                            </span>
-                        </div>
-                    )}
-                    {star && (
-                        <div>
-                            <b className="cb-num">{avg(star).toFixed(1)}</b>
-                            <span>{t('result.champ.star', { name: star.name })}</span>
-                        </div>
-                    )}
-                </div>
+                {/* placar de TV (o mesmo do Intervalo): 3 números com barra; o resto no Ver tudo */}
+                <ChampBoard run={run} players={players} ready={!parading} />
 
                 <h2 className="champ-h">{t('result.champ.path')}</h2>
                 <ol className="champ-path">
@@ -274,7 +194,7 @@ export function ChampionView({
                 </div>
 
                 {extra}
-            </Sheet>
+            </section>
         </>
     );
 }
@@ -359,6 +279,106 @@ function ChampBeats({ run, quiet, onGoal }: { run: RunState; quiet: boolean; onG
                     </span>
                 ))}
             </Beat>
+        </div>
+    );
+}
+
+/** A cascata do placar da copa: as 3 linhas, 250 ms entre uma e outra. */
+const BOARD_BEATS = [0, 250, 250];
+
+/**
+ * Placar de TV das estatísticas da copa (cara-de-jogo.md, padrão 8; o mesmo do Intervalo): vitórias, gols feitos x
+ * sofridos e posse, cada um com a barra, entrando um por vez quando o placar aparece na tela (depois do desfile do
+ * Hall). O resto (artilheiro, craque e os números do time) fica no Ver tudo.
+ */
+function ChampBoard({ run, players, ready }: { run: RunState; players: Agg[]; ready: boolean }) {
+    const { t } = useT();
+    const box = useRef<HTMLDListElement>(null);
+    const [seen, setSeen] = useState(false);
+    useEffect(() => {
+        const el = box.current;
+        if (!el || !ready) return;
+        if (typeof IntersectionObserver === 'undefined') return setSeen(true);
+        const io = new IntersectionObserver(([e]) => e.isIntersecting && setSeen(true), { threshold: 0.6 });
+        io.observe(el);
+        return () => io.disconnect();
+    }, [ready]);
+    const casc = useCascade(seen ? BOARD_BEATS : []);
+    const wins = run.results.filter((r) => r.won).length;
+    const games = cupLength(run);
+    const gf = run.results.reduce((s, r) => s + r.score[0], 0);
+    const ga = run.results.reduce((s, r) => s + r.score[1], 0);
+    const withStats = run.results.filter((r) => r.stats);
+    const poss = withStats.length
+        ? Math.round((withStats.reduce((s, r) => s + (r.stats?.possession[0] ?? 0), 0) / withStats.length) * 100)
+        : null;
+    const topScorer = players.length ? players.reduce((a, b) => (b.goals > a.goals ? b : a)) : null;
+    const star = players
+        .filter((a) => a.games >= 2)
+        .reduce<Agg | null>((best, a) => (!best || avg(a) > avg(best) ? a : best), null);
+    const sum = (f: (a: Agg) => number) => players.reduce((s, a) => s + f(a), 0);
+    const bar = (v: number) => ({ '--v': v }) as CSSProperties;
+    // o resto do placar: uma linha por número, no Ver tudo
+    const rest: [string, ReactNode][] = [
+        ...(topScorer && topScorer.goals > 0
+            ? [[`${t('title.awards.boot')} · ${topScorer.name}`, topScorer.goals] as [string, ReactNode]]
+            : []),
+        ...(star ? [[`${t('title.awards.ball')} · ${star.name}`, avg(star).toFixed(1)] as [string, ReactNode]] : []),
+        ...(withStats.length
+            ? ([
+                  [t('result.champ.stats.shots'), sum((a) => a.shots)],
+                  [t('result.champ.stats.passes'), `${sum((a) => a.passesCompleted)}/${sum((a) => a.passes)}`],
+                  [t('result.champ.stats.steals'), sum((a) => a.tacklesWon + a.interceptions)],
+                  [t('result.champ.stats.saves'), sum((a) => a.saves)],
+                  [t('result.champ.stats.moves'), sum((a) => a.movesUsed)],
+                  [t('result.champ.stats.ran'), `${(sum((a) => a.distance) / 1000).toFixed(1)} km`],
+              ] as [string, ReactNode][])
+            : []),
+    ];
+    return (
+        // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a cascata (tudo já está no DOM)
+        <div className="champ-board" onClick={casc.skip}>
+            <dl className="ht-stats ht-board" ref={box}>
+                <Beat on={casc.step > 0} className="ht-row">
+                    <dt>{t('result.champ.wins')}</dt>
+                    <dd>
+                        <i className="ht-bar one" style={bar(games ? wins / games : 0)} />
+                        <b className="bc-sc">
+                            {wins}/{games}
+                        </b>
+                    </dd>
+                </Beat>
+                <Beat on={casc.step > 1} className="ht-row">
+                    <dt>{t('result.champ.stats.goals')}</dt>
+                    <dd>
+                        <b className="bc-sc">{gf}</b>
+                        <i className="ht-bar two" style={bar(share(gf, ga))} />
+                        <b className="bc-sc">{ga}</b>
+                    </dd>
+                </Beat>
+                {poss !== null && (
+                    <Beat on={casc.step > 2} className="ht-row">
+                        <dt>{t('result.champ.poss')}</dt>
+                        <dd>
+                            <b className="bc-sc">{poss}%</b>
+                            <i className="ht-bar two" style={bar(poss / 100)} />
+                            <b className="bc-sc">{100 - poss}%</b>
+                        </dd>
+                    </Beat>
+                )}
+            </dl>
+            {rest.length > 0 && (
+                <SeeAll title={t('result.champ.statsTitle')}>
+                    <dl className="champ-all">
+                        {rest.map(([k, v]) => (
+                            <div key={k}>
+                                <dt>{k}</dt>
+                                <dd className="bc-sc">{v}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </SeeAll>
+            )}
         </div>
     );
 }

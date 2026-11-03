@@ -235,5 +235,7 @@ export const setLeagueServer = (s: LeagueServer) => {
 export const league = (): LeagueServer => server;
 /** Tem servidor (Supabase configurado, ou o de mentira do `?demo=`). */
 export const leagueOnline = () => cloudEnabled || server !== real;
+/** O servidor de mentira do `?demo=dia|liga` (dev): a Liga abre mesmo antes de `LIGA_OPENS_AT`. */
+export const leagueDemo = () => server !== real;
 export const isError = (x: unknown): x is { error: string } =>
     !!x && typeof x === 'object' && typeof (x as { error?: unknown }).error === 'string';

@@ -64,6 +64,7 @@ import {
     type MatchState,
     type MaxArm,
     type MaxGrade,
+    type MaxN1Fx,
     type PlayerState,
     type SetPiece,
     type ShotInfo,
@@ -137,6 +138,8 @@ export function freshTraits(): TraitState {
         curl: 0,
         typeCopy: null,
         flee: null,
+        numb: false,
+        root: 0,
     };
 }
 
@@ -732,6 +735,7 @@ function tickTraits(s: MatchState, p: PlayerState, dt: number) {
     fx.mini = Math.max(0, fx.mini - dt);
     fx.guard = Math.max(0, fx.guard - dt);
     fx.curl = Math.max(0, fx.curl - dt);
+    fx.root = Math.max(0, fx.root - dt);
     if (fx.aim) {
         fx.aim.t -= dt;
         if (fx.aim.t <= 0) fx.aim = null;
@@ -869,6 +873,8 @@ function updateAir(s: MatchState, p: PlayerState, dt: number) {
     if (air.t > 0) return;
     p.fx.air = null;
     p.vel = v(0, 0);
+    // N1 Voador: só volta pro chão (sem o pouso do Fly)
+    if (air.moveId === MAX_LIFT) return;
     traitFx(s, p.idx, 'land', air.moveId, air.prey);
     if (s.phase !== 'play') return;
     const prof = moveProfile(air.moveId);
@@ -1030,7 +1036,8 @@ function applyCommand(s: MatchState, p: PlayerState, c: Command, dt: number) {
 
 function applyMovement(s: MatchState, p: PlayerState, dir: Vec2, sprint: boolean, dt: number) {
     let desiredDir = truncate(dir, 1);
-    if (isIncapacitated(p)) desiredDir = v(0, 0);
+    // N1 Pedra: preso no lugar
+    if (isIncapacitated(p) || p.fx.root > 0) desiredDir = v(0, 0);
     if (p.status?.kind === 'confusion' && len(desiredDir) > 0.1)
         desiredDir = rotate(desiredDir, s.rng.range(-0.9, 0.9));
     const top = maxSpeed(s, p) * (sprint ? 1 : 0.72);
@@ -1074,6 +1081,12 @@ function kick(
     const armed = kind === 'shot' ? s.teams[p.team].agency.max : null;
     const max =
         bicuda ?? (armed && armed.idx === p.idx && p.captain && p.role !== 'GK' && inMaxZoneOf(s, p) ? armed : null);
+    // armado há tempo (motor 19): a barra continuou enchendo e o golpe sai no nível dela agora
+    if (max && !bicuda)
+        max.level = Math.max(max.level, Math.min(3, maxCharge(s.events, p.team, s.tick, s.cfg.teamSize).level)) as
+            | 1
+            | 2
+            | 3;
     // N3: mira com mais margem da trave (decisão 12; vale com ou sem o efeito do tipo)
     if (max?.level === 3) {
         const gy = s.cfg.pitch.width / 2;
@@ -2378,8 +2391,15 @@ function checkShotInteractions(s: MatchState, prev: Vec2) {
             }
             if (sash || s.rng.chance(pSave)) {
                 p.stats.saves++;
-                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou; golpe máximo nunca encaixa
-                const caught = !shot.max && felt < 17 && s.rng.chance(0.55 + (0.3 * gk) / 99) && !fxHas(fx, 'cannon');
+                // o 2º canhão do Blastoise arranca até a bola que o goleiro segurou; golpe máximo nunca encaixa; N1
+                // Lutador: com a mão dormente, a próxima defesa comum também não
+                const caught =
+                    !shot.max &&
+                    felt < 17 &&
+                    s.rng.chance(0.55 + (0.3 * gk) / 99) &&
+                    !fxHas(fx, 'cannon') &&
+                    !p.fx.numb;
+                if (!shot.max) p.fx.numb = false;
                 const saveAt = s.events.length;
                 emit(s, { type: 'save', by: p.idx, shooter: shooter.idx, caught });
                 ball.shot = null;
@@ -3175,6 +3195,9 @@ function endHalf(s: MatchState) {
             // tempo pedido no fim do 1º tempo não passa pro 2º (o intervalo já é a pausa)
             t.agency.timeoutPending = false;
         }
+        // nem o golpe máximo armado (motor 19): volta com a barra inteira
+        disarmMax(s, 0);
+        disarmMax(s, 1);
         s.phase = 'halftime';
         s.phaseTimer = 2;
         return;
@@ -3186,6 +3209,8 @@ function endHalf(s: MatchState) {
         p.fx.bide = null;
         p.fx.flee = null;
     }
+    disarmMax(s, 0);
+    disarmMax(s, 1);
     emit(s, { type: 'fulltime', score: [s.score[0], s.score[1]] });
     s.phase = 'fulltime';
     if (s.score[0] === s.score[1] && s.cfg.knockout) penaltyShootout(s);
@@ -3474,22 +3499,35 @@ export const inMaxZoneOf = (s: MatchState, p: PlayerState, role: Position = p.ro
     inMaxZone(p.pos.x, p.pos.y, p.team, s.cfg.pitch, role);
 
 /**
- * Pede o golpe máximo: com a barra no N1 ou mais, fica armado `maxArmTicks`. O de linha sai no chute da zona (a IA chuta
- * na hora, `AIController.carrier`). O do goleiro (a bicuda) só vale na hora dela (o chute do rival no ar, ou o rival com
- * a bola na zona do goleiro, o chute que vem) e só pra esse chute (`updateMax`): o toque que chega depois do goleiro
- * alcançar a bola não fica armado pro chute seguinte (Miguel, 30/10/2026).
+ * Pede o golpe máximo: com a barra no N1 ou mais, fica armado. O de linha (motor 19) fica armado até o próximo chute dele
+ * da zona (a IA chuta na hora, `AIController.carrier`, e a bola procura o capitão), sem prazo: o Duelo carimba a ordem
+ * 2 s à frente e o capitão já não estava com a bola. A barra não gasta até sair, continua enchendo e o golpe sai no
+ * nível dela na hora do chute (`kick`). Cancela sem gastar só no intervalo e no apito final (`endHalf`) ou se o capitão
+ * sair. O do goleiro (a bicuda) só vale na hora dela (o chute do rival no ar, ou o rival com a bola na zona do goleiro,
+ * o chute que vem), por `maxArmTicks`, e só pra esse chute (`updateMax`): o toque que chega depois do goleiro alcançar a
+ * bola não fica armado pro chute seguinte (Miguel, 30/10/2026). Armou ou cancelou, sai o evento `maxArm` (a tela do
+ * Duelo mostra "armado" por ele).
  */
 function startMax(s: MatchState, team: 0 | 1, q: MaxGrade) {
     const ag = s.teams[team].agency;
     const cap = s.players.find((p) => p.team === team && p.captain);
-    if (!cap || ag.max) return;
+    if (!cap || ag.max || s.phase === 'halftime') return;
     if (cap.role === 'GK' && !rivalShot(s, team)) {
         const carrier = s.ball.owner === null ? null : s.players[s.ball.owner];
         if (!carrier || carrier.team === team || !inMaxZoneOf(s, carrier, 'GK')) return;
     }
     const c = maxCharge(s.events, team, s.tick, s.cfg.teamSize);
     if (c.level < 1) return;
-    ag.max = { idx: cap.idx, until: s.tick + AGENCY.maxArmTicks, level: c.level as 1 | 2 | 3, q };
+    ag.max = { idx: cap.idx, level: c.level as 1 | 2 | 3, q };
+    if (cap.role === 'GK') ag.max.until = s.tick + AGENCY.maxArmTicks;
+    emit(s, { type: 'maxArm', team, on: true });
+}
+
+/** Tira o golpe máximo armado sem gastar a barra (o evento `maxArm` desligado avisa a tela). */
+function disarmMax(s: MatchState, team: 0 | 1) {
+    if (!s.teams[team].agency.max) return;
+    s.teams[team].agency.max = null;
+    emit(s, { type: 'maxArm', team, on: false });
 }
 
 /** Chute do rival do time `team` no ar. */
@@ -3502,7 +3540,7 @@ function rivalShot(s: MatchState, team: 0 | 1): ShotInfo | null {
 const maxTag = (max: { level: 1 | 2 | 3; q: MaxGrade }) => ({ level: max.level, q: max.q });
 
 /**
- * O pedido que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. A bicuda prende no 1º chute do rival
+ * O pedido do goleiro que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. A bicuda prende no 1º chute do rival
  * e some com ele (bloqueado, pra fora, na trave ou gol sem o goleiro chegar nele).
  */
 function updateMax(s: MatchState) {
@@ -3511,12 +3549,12 @@ function updateMax(s: MatchState) {
         const arm = ag.max;
         if (!arm) continue;
         const cap = s.players[arm.idx];
-        if (!cap.captain) ag.max = null;
+        if (!cap.captain) disarmMax(s, team);
         else if (cap.role === 'GK' && (arm.shot !== undefined || rivalShot(s, team))) {
             const shot = rivalShot(s, team);
             arm.shot ??= shot?.tick;
-            if (shot?.tick !== arm.shot) ag.max = null;
-        } else if (s.tick >= arm.until) ag.max = null;
+            if (shot?.tick !== arm.shot) disarmMax(s, team);
+        } else if (arm.until !== undefined && s.tick >= arm.until) disarmMax(s, team);
     }
 }
 
@@ -3987,16 +4025,55 @@ function landKnocks(s: MatchState) {
     }
 }
 
-/** Golpe máximo: o status do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`). */
+/** N1 Voador: o voo de quem foi pro alto (o pouso não é o do Fly). */
+const MAX_LIFT = 'maxlift';
+
+/** Golpe máximo: o efeito do tipo de quem chutou em quem bloqueou ou defendeu (`AGENCY.maxStatus`, `AGENCY.maxN1`). */
 function maxStatusOn(s: MatchState, shot: ShotInfo, o: PlayerState) {
     const st = shot.max?.status ? AGENCY.maxStatus[shot.max.status] : undefined;
     if (!st) return;
     const [kind, t] = st;
-    if (kind === 'stun') {
-        o.stun = Math.max(o.stun, t ?? 0.6);
-        setAction(o, Action.Hurt, t ?? 0.6);
-        emit(s, { type: 'status', target: o.idx, status: 'flinch', by: shot.by, source: 'max' });
-    } else if (applyStatus(s, o, kind, shot.by, 'max') && t && o.status) o.status.timer = t;
+    const N = AGENCY.maxN1;
+    const by = s.players[shot.by];
+    const mark = (status: MaxN1Fx | 'flinch' | 'seed') =>
+        emit(s, { type: 'status', target: o.idx, status, by: shot.by, source: 'max' });
+    switch (kind) {
+        case 'flinch':
+            o.stun = Math.max(o.stun, t ?? 0.6);
+            setAction(o, Action.Hurt, t ?? 0.6);
+            return mark(kind);
+        case 'seed':
+            // a regra do Leech Seed: Planta não pega, e quem já tem semente fica com a dele
+            if (o.sp.types.includes('Grass') || o.seeded) return;
+            o.seeded = { by: shot.by, timer: N.seed };
+            return mark(kind);
+        case 'blind':
+        case 'web':
+            if (o.ability.immuneDebuff) return;
+            if (kind === 'blind') o.fx.aim = { ...T.blind.sandattack };
+            else o.buffs.push({ attr: 'pace', factor: N.webPace, timer: N.web });
+            return mark(kind);
+        case 'push':
+            // a onda leva pra trás, no sentido do chute (a palavra é a do Surf: MOLHADO)
+            return knockback(s, o, by, N.push, 'surf');
+        case 'lift':
+            if (hidden(o)) return;
+            o.fx.air = { kind: 'fly', moveId: MAX_LIFT, t: N.lift, from: o.pos, to: o.pos, prey: null };
+            o.vel = v(0, 0);
+            return mark(kind);
+        case 'numb':
+            o.fx.numb = true;
+            return mark(kind);
+        case 'root':
+            o.fx.root = Math.max(o.fx.root, N.root);
+            o.vel = v(0, 0);
+            return mark(kind);
+        case 'drain':
+            // a barra sai dos eventos (`maxCharge` tira os pontos)
+            return mark(kind);
+        default:
+            if (applyStatus(s, o, kind, shot.by, 'max') && t && o.status) o.status.timer = t;
+    }
 }
 
 /**

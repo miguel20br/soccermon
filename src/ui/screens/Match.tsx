@@ -70,7 +70,7 @@ import {
     MaxBars,
     MaxCueButton,
     MaxThumb,
-    maxCueSteady,
+    maxCueAt,
     maxLit,
     PenaltyOrderPanel,
     type PenaltyTaker,
@@ -85,10 +85,11 @@ import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
 import { readHud } from '../hud-lab';
+import { CourtStands } from '../kit/backdrop';
 import { playMoment } from '../kit/MomentWipe';
 import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, clockExtrasAt, type MaxWait, maxWaitNext, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, type MaxWait, maxOrderTick, maxWaitNext, roleAt, snapAt } from '../match-view';
 import { maxTap } from '../max-beat';
 import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
@@ -495,7 +496,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
 
     // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
     const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
-    const cue = maxCueSteady(match, setups, 0, clock.tick);
+    // só com o chute certo (`maxCueAt` com `certain`): sem o botão firme do Duelo, que ficava aceso sem a bola no pé
+    const cue = maxCueAt(match, setups, 0, clock.tick, true);
     const agency = agencyView(match.events, orders, 0, clock.tick, cue);
     const wait = maxWaitNext(maxWait, agency.max.level, !!cue);
     // o botão aceso, o toque armado ou o golpe máximo (de qualquer time) no ar: a hora é dele, sem balão por cima
@@ -518,10 +520,13 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
         maxWaiting: wait !== null,
     };
     const canAgency = canChangeTactic && penPick === null;
-    // golpe máximo: vale já no quadro da tela, antes da decisão do capitão (com +1 a IA chutava antes e o lance
-    // passava; a quadra espera a partida nova; é um lance, não um plano)
-    const sendMax = (q: MaxGrade) =>
-        sendOrder((tick) => ({ tick, team: 0, kind: 'max', q }), Math.ceil(tickRef.current));
+    // golpe máximo: vale no snapshot do quadro da tela (`maxOrderTick`), antes da decisão do capitão (com +1 a IA
+    // chutava antes e o lance passava; a quadra espera a partida nova; é um lance, não um plano). O toque que chega com
+    // a hora já passada (o capitão chutou ou perdeu a bola entre o quadro e o dedo) não manda nada
+    const sendMax = (q: MaxGrade) => {
+        const at = maxOrderTick(tickRef.current);
+        if (maxCueAt(match, setups, 0, at, true)) sendOrder((tick) => ({ tick, team: 0, kind: 'max', q }), at);
+    };
     const lit = canAgency && maxLit(sideline);
     const waitMax = () => setMaxWait({ level: sideline.max.level });
     maxKey.current = (key) => {
@@ -826,6 +831,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
                     <div className={`pitch-wrap${hud ? ' hud-follow' : ''}`} ref={pitchRef}>
+                        {/* quadra inteira no celular em pé (4x, 8x): a torcida nas bandas em cima e embaixo */}
+                        {hud && <CourtStands names={teamNames} colors={colors} />}
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
@@ -863,7 +870,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         </button>
                     )}
                     {halftime && (
-                        <div className="ht-wrap" ref={halftimeRef}>
+                        <div className="ht-wrap" ref={halftimeRef} data-exit>
                             <HalftimePanel
                                 match={match}
                                 names={teamNames}
@@ -893,9 +900,11 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                     inName: nameOf(o.inUid),
                                     outName: nameOf(o.outUid),
                                     sprite: spriteOf(o.inUid),
+                                    outSprite: spriteOf(o.outUid),
                                     onUndo: canChangeTactic ? () => undoSub(o) : undefined,
                                 }))}
                                 rivalSubs={rivalHtSubs(match, 1)}
+                                colors={[hex(colors[0]), hex(colors[1])]}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -904,7 +913,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         </div>
                     )}
                     {timeoutAt !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => openBoard()}
@@ -916,7 +925,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         </div>
                     )}
                     {penPick !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <PenaltyOrderPanel
                                 takers={penaltyTakers()}
                                 busy={pending}

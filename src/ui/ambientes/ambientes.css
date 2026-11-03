@@ -21,24 +21,33 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
+/* o fundo de palco (fim do arquivo) usa as mesmas medidas de pixel de arte */
+.amb-bd {
+    --px: 3px;
+    --mi: 2px;
+}
 @media (min-width: 900px) and (min-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --px: 4px;
         --mi: 3px;
     }
 }
 @media (max-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --px: 2px;
     }
 }
 @media (max-width: 359px), (max-height: 700px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --mi: 1.5px;
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-    .amb {
+    .amb,
+    .amb-bd {
         --mi: 1px;
     }
 }
@@ -974,6 +983,7 @@
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 20px;
+    font-weight: 400;
     line-height: 1.1;
 }
 .rt-badges {
@@ -1345,20 +1355,20 @@
     --wall-top: 126px;
     --wall-h: calc(var(--mi) * 64);
     /* altura da UI de baixo: o chão dos Pokémon termina antes dela */
-    --ui-h: 236px;
+    --ui-h: 180px;
     --set-x: 50%;
     background: #0d1129;
 }
 @media (max-height: 700px) {
     .rm-scene {
         --wall-top: 116px;
-        --ui-h: 170px;
+        --ui-h: 120px;
     }
 }
 @media (min-width: 900px) and (min-height: 700px) {
     .rm-scene {
         --wall-top: 170px;
-        --ui-h: 270px;
+        --ui-h: 210px;
     }
 }
 /* PC: o kit em 4 px, pra sala encher a tela larga (em 3 px sobrava chão vazio dos lados e embaixo do tapete) */
@@ -1417,6 +1427,84 @@
 .mi.flip {
     scale: -1 1;
 }
+/* objeto da cena que abre uma tela (SceneHotspot.tsx): o desenho e a plaquinha num botão só, nas medidas do .mi */
+.hs {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: calc(var(--w) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: translate var(--dur-solta) var(--ease-pop);
+}
+/* o toque tem pelo menos 44 px, mesmo com o desenho menor */
+.hs::before {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((var(--h) * var(--mi) - 44px) / 2)) min(0px, calc((var(--w) * var(--mi) - 44px) / 2));
+}
+.hs:active {
+    translate: 0 2px;
+    transition-duration: var(--dur-toque);
+}
+.hs:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.hs > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+/* a plaquinha: o nome (e a contagem) na base do objeto, sempre à vista */
+.hs-plate {
+    position: absolute;
+    z-index: 100;
+    left: 50%;
+    top: calc(100% + var(--plate) * 1px);
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    padding: 0.17em 0.6em 0.25em;
+    border: max(2px, calc(var(--mi) * 0.75)) solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--bc-ink);
+    box-shadow: 0 max(2px, calc(var(--mi) * 0.75)) 0 var(--cb-ink);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    /* cresce com o palco: 12 px no celular, 18 no PC (--mi 4) */
+    font-size: max(12px, calc(var(--mi) * 4.5));
+    font-weight: 700;
+    line-height: 1.15;
+    white-space: nowrap;
+    transition: border-color var(--dur-ui) var(--ease-out);
+}
+.hs-plate small {
+    font-size: max(11px, calc(var(--mi) * 4));
+    color: var(--yellow);
+}
+.hs:hover .hs-plate {
+    border-color: var(--blue-hi);
+}
+/* pisca 1 vez quando a aba acende (só cor: vale com Reduzir movimento) */
+.amb-panel.on .hs-plate {
+    animation: hs-blink 700ms var(--ease-out) 420ms;
+}
+@keyframes hs-blink {
+    35% {
+        border-color: var(--yellow);
+        background: var(--yellow);
+        color: var(--bc-ink);
+    }
+}
 .rm-walk {
     position: absolute;
     left: 0;
@@ -1468,9 +1556,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
-.amb-tiles.three {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
 .amb-tile {
     display: flex;
     align-items: center;
@@ -1512,16 +1597,6 @@
     background: rgb(12 16 40 / 70%);
     color: var(--muted);
 }
-.amb-tiles.three .amb-tile {
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 4px;
-    text-align: center;
-}
-.amb-tiles.three .amb-tile b {
-    font-size: 12px;
-}
 
 /* ---------- Laboratório do Carvalho: parede verde-água com rodapé, piso de ladrilho creme ---------- */
 .lb-scene {
@@ -1553,7 +1628,7 @@
 .lb-balls {
     position: absolute;
     z-index: 81;
-    left: calc(var(--mi) * 21);
+    left: calc(var(--mi) * 26);
     top: calc(var(--mi) * 4);
     width: calc(var(--mi) * 22);
     height: calc(var(--mi) * 6);
@@ -1566,17 +1641,17 @@
 /* ---------- Sede do clube: madeira escura, piso de tábuas, as cores do clube no varal, no tapete e no escudo ---------- */
 .sd-scene {
     --rm-cap: #efe6d6;
-    --ui-h: 330px;
+    --ui-h: 270px;
 }
 @media (min-width: 900px) and (min-height: 700px) {
     .sd-scene {
-        --ui-h: 340px;
+        --ui-h: 290px;
     }
 }
 /* o quadro de missões é alto: no celular pequeno o chão dos Pokémon fica só na faixa logo abaixo da parede */
 @media (max-height: 700px) and (orientation: portrait) {
     .sd-scene {
-        --ui-h: 262px;
+        --ui-h: 220px;
     }
 }
 .sd-scene .rm-wall {
@@ -1623,19 +1698,14 @@
 .sd-flags li:nth-child(even) {
     background: var(--club2);
 }
-.sd-crest {
-    position: absolute;
-    z-index: 1;
-    left: calc(var(--mi) * 74);
-    top: calc(var(--mi) * 14);
-    width: calc(var(--mi) * 40);
-    height: calc(var(--mi) * 44);
+.sd-crest,
+.sd-mural {
     filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 40%));
 }
 .sd-cups {
     position: absolute;
     z-index: 73;
-    left: calc(var(--mi) * 3);
+    left: calc(var(--mi) * 7);
     top: calc(var(--mi) * 30);
     width: calc(var(--mi) * 48);
     display: flex;
@@ -1651,7 +1721,7 @@
 .sd-fire {
     position: absolute;
     z-index: 79;
-    left: calc(var(--mi) * 146);
+    left: calc(var(--mi) * 218);
     top: calc(var(--mi) * 60);
     width: calc(var(--mi) * 20);
     height: calc(var(--mi) * 8);
@@ -1701,47 +1771,41 @@
     width: 22px;
     height: 24px;
 }
-/* o bilhete da missão mais perto de sair: um papel na cortiça, texto, n/meta e a barra */
+/* a missão mais perto de sair numa placa do kit: a etiqueta em cima, o texto e a barra x/y */
 .sd-board {
+    position: relative;
     width: min(460px, 100%);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 4px 10px;
-    padding: 7px 10px 8px;
-    border: 3px solid #4a2e20;
-    border-radius: 6px;
-    background: #f8f4e6;
+    gap: 6px;
+    margin-top: 14px;
+    padding: 8px 12px 10px;
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--yellow);
+    border-radius: 8px;
+    background: var(--bc-ink);
     box-shadow:
-        inset 0 0 0 2px #d6a874,
+        inset 0 0 0 2px var(--frame-in),
         0 4px 0 var(--bc-edge);
-    color: #1d1d2c;
+    color: var(--text);
     font: inherit;
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.25;
     text-align: left;
     cursor: pointer;
 }
+.sd-board > .bc-tag {
+    position: absolute;
+    left: 10px;
+    top: -5px;
+    translate: 0 -100%;
+    border-radius: 4px 4px 0 0;
+}
+.sd-board > b {
+    font-family: "Galmuri11", monospace;
+}
 .sd-board:focus-visible {
     outline: 2px solid var(--yellow);
     outline-offset: 2px;
-}
-.sd-board small {
-    font-family: "Galmuri11", monospace;
-    font-size: 11px;
-    color: #4a3e2a;
-}
-.sd-bar {
-    grid-column: 1 / -1;
-    height: 6px;
-    background: #d9d2bc;
-    border: 1px solid #8a7f62;
-}
-.sd-bar i {
-    display: block;
-    height: 100%;
-    background: #3fa34d;
-    transition: width 300ms var(--ease-out);
 }
 
 /* ---------- Arena: quadra de rua à noite, o muro com o neon do Arcade, o poste ---------- */
@@ -1858,6 +1922,77 @@
     letter-spacing: 0;
     text-shadow: none;
     rotate: -6deg;
+}
+/* o letreiro da Liga fechada: uma placa do kit pregada no muro, à direita do neon; tocar abre a Liga */
+.ar-liga {
+    all: unset;
+    position: absolute;
+    z-index: 2;
+    left: 84%;
+    top: 50%;
+    display: grid;
+    justify-items: center;
+    gap: calc(var(--mi) * 1);
+    padding: calc(var(--mi) * 2) calc(var(--mi) * 5) calc(var(--mi) * 2.5);
+    border: 2px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px var(--yellow),
+        0 3px 0 var(--cb-ink);
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: scale var(--dur-solta) var(--ease-pop);
+}
+/* a área de toque passa de 44 px por fora da placa */
+.ar-liga::before {
+    content: "";
+    position: absolute;
+    inset: -8px -6px;
+}
+.ar-liga b {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: max(14px, calc(var(--mi) * 8));
+    font-weight: 400;
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow: var(--k-out-1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.ar-liga .hud-icon {
+    width: 1em;
+    height: 1em;
+}
+.ar-liga small {
+    font-size: max(11px, calc(var(--mi) * 5.5));
+    font-weight: 700;
+    color: var(--text);
+}
+.ar-liga:active {
+    scale: 0.94;
+    transition-duration: var(--dur-toque);
+}
+.ar-liga:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+}
+/* em pé e baixo (320x640) o cabeçalho cobre o muro: o letreiro desce pra beira de baixo dele */
+@media (max-height: 700px) {
+    .ar-liga {
+        top: 100%;
+    }
+}
+/* desktop: mais perto do neon (a 84% ficava solto no muro comprido) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-liga {
+        left: 70%;
+    }
 }
 /* o poste à esquerda, com a luz caindo na quadra */
 .ar-lamp {
@@ -2018,6 +2153,10 @@
         --ui-h: 0px;
         --set-x: 72%;
     }
+    /* as salas em 1,5: em 1 px as plaquinhas dos objetos não cabiam lado a lado */
+    .rm-scene {
+        --mi: 1.5px;
+    }
     .rm-walk {
         left: 52%;
     }
@@ -2051,6 +2190,10 @@
     }
     .ar-neon {
         left: 76%;
+    }
+    .ar-liga {
+        left: 92%;
+        top: 50%;
     }
     .ar-lines {
         left: 50%;
@@ -2751,7 +2894,7 @@
 .sd-plaque {
     position: absolute;
     z-index: 74;
-    left: calc(var(--mi) * 27);
+    left: calc(var(--mi) * 31);
     top: calc(var(--mi) * 50);
     width: max(calc(var(--mi) * 52), 86px);
     transform: translateX(-50%);
@@ -3556,14 +3699,6 @@
 }
 
 /* Arena: a Liga fechada vira uma linha discreta (era um card tracejado ao lado do "em breve" da Dupla) */
-.ar-soon {
-    margin: 0;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--muted);
-    text-shadow: var(--k-out-1);
-}
 
 /* 320 e 360: nada de nome cortado. O selo NOVO da Rota sai (o título vale mais), a Sede mostra só o nome do clube e a
    pílula do modo perde o ícone (sobra espaço pro "Copa Relâmpago" inteiro) */
@@ -3679,7 +3814,7 @@
     gap: 4px;
     padding: 6px 4px 7px;
     font: inherit;
-    color: var(--muted);
+    color: var(--text);
     background: var(--panel-2);
     border: 3px solid var(--cb-ink);
     border-radius: 8px;
@@ -3715,7 +3850,7 @@
 .es-tile b {
     max-width: 100%;
     font-family: "Galmuri11", monospace;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.15;
     text-align: center;
 }
@@ -3731,7 +3866,7 @@
         border-width: 2px;
     }
     .es-tile b {
-        font-size: 10px;
+        font-size: 12px;
     }
     .es-rail.many .es-tile {
         transition-property: transform, filter, background-color, color, flex-grow;
@@ -3790,4 +3925,65 @@
 }
 [data-reduce-motion="true"] .es-tile.on {
     transform: none;
+}
+
+/* ---------- fundo de palco (Backdrops.tsx): o lugar atrás do Duelo, da Liga e da Copa do Dia ---------- */
+.amb-bd {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    animation: screen-in var(--dur-ui) var(--ease-out) both;
+}
+/* a quadra sobe: o par do duelo fica no terço de cima, o conteúdo do palco embaixo. O neon do Arcade é da Home */
+.amb-bd .ar-scene {
+    --wall-top: 64px;
+    --ui-h: 58%;
+}
+.amb-bd :is(.ar-neon, .ar-lamp) {
+    display: none;
+}
+@media (max-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 44px;
+        --ui-h: 64%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 70px;
+        --ui-h: 47%;
+    }
+}
+/* deitado: o conteúdo na coluna da esquerda e a quadra à direita, como na aba da Home */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-bd .ar-scene {
+        --wall-top: 50px;
+        --ui-h: 0px;
+    }
+}
+/* Estádio (Copa do Dia): a arquibancada sobe pra baixo da placa e o Pokémon da figurinha fica no vão do palco */
+.amb-bd .es-scene {
+    --stand-top: 14%;
+}
+@media (max-height: 700px) {
+    .amb-bd .es-scene {
+        --stand-top: 9%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .es-captain {
+        top: 19cqh;
+    }
+}
+
+/* PC (1024 px ou mais): a barra de abas com rótulo de 12 px e ícone maior (10 px sumia numa tela de 1440) */
+@media (min-width: 1024px) and (min-height: 700px) {
+    .amb-tab-lbl {
+        font-size: 12px;
+    }
+    .amb-tab .hud-icon {
+        width: 28px;
+        height: 28px;
+    }
 }

@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
-import { type CueHold, MAX_CUE_MIN_MS, type MaxCueKind, steadyCue } from './Sideline';
+import type { MatchEvent, MatchOrder } from '../../engine/state';
+import { type CueHold, MAX_CUE_MIN_MS, type MaxCueKind, maxArmedAt, steadyCue } from './Sideline';
 
 /** Botão aceso quadro a quadro (16 ms) pra uma sequência da hora crua (`maxCueAt`). */
 function shown(raw: MaxCueKind[], linger = true, ringEnd: number | null = null) {
@@ -39,5 +40,25 @@ describe('botão do golpe máximo sem pisca (Miguel, 01/11: "aparece e depois so
 
     it('a hora certa no meio do "chamar o capitão" troca o motivo (o anel da hora certa nasce de novo)', () => {
         expect(shown(['call', 'call', 'hora'])).toEqual(['call', 'call', 'hora']);
+    });
+});
+
+describe('golpe máximo armado no Duelo (motor 19: até o chute)', () => {
+    const ev = (tick: number, e: object) => ({ tick, half: 1 as const, minute: 0, ...e }) as MatchEvent;
+    const order = (tick: number): MatchOrder => ({ tick, team: 0, kind: 'max', q: 2 });
+    const events = [
+        ev(10, { type: 'maxArm', team: 0, on: true }),
+        ev(400, { type: 'max', team: 0, by: 4, phase: 'hit' }),
+    ];
+    it('a ordem carimbada à frente já mostra armado; armado fica até o golpe sair, sem prazo', () => {
+        expect(maxArmedAt(events, [order(10)], 0, 5)).toBe(true);
+        expect(maxArmedAt(events, [order(10)], 0, 300)).toBe(true);
+        expect(maxArmedAt(events, [order(10)], 0, 400)).toBe(false);
+        expect(maxArmedAt(events, [order(10)], 1, 300)).toBe(false);
+    });
+    it('cancelado (intervalo) ou recusado pelo motor (sem maxArm) não fica armado', () => {
+        const off = [events[0], ev(200, { type: 'maxArm', team: 0, on: false }), ev(900, { type: 'end' })];
+        expect(maxArmedAt(off, [order(10)], 0, 250)).toBe(false);
+        expect(maxArmedAt([ev(900, { type: 'end' })], [order(10)], 0, 250)).toBe(false);
     });
 });

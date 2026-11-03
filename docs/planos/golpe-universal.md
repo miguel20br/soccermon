@@ -200,3 +200,39 @@ a bicuda tocam o som no fim da carga (o chute na tela) e a faixa volta na virada
 ### Decidido com o Miguel (02/11/2026)
 
 "Por mim perfeito do 1 ao 3": defesa de golpe máximo 35% na trave e o resto pra escanteio, counter (bicuda) sempre que a condição vale; sem zoom no lance do golpe deitado e no PC; textos "DEVOLVEU!" e "Espalmou na trave!/pra escanteio!". Stinger v2: ouvindo.
+
+## N1 por tipo e nomes do N3 (02/11/2026, branch `golpe-n1`, motor 18)
+
+Tabela aprovada pelo Miguel ("100%"). O N1 (e o N2 e o N3, que levam o efeito do anterior) passa isto em quem bloqueia
+ou defende; números em `AGENCY.maxStatus` e `AGENCY.maxN1`, força e precisão dos níveis não mexidas.
+
+| Tipo | Efeito do N1 | Como funciona no motor |
+|---|---|---|
+| Fogo | queima | status `brn`, igual |
+| Elétrico | paralisa | status `par` 1,5 s, igual |
+| Venenoso | envenena | status `psn`, igual |
+| Gelo | congela | status `frz` 1 s, igual |
+| Fada | encanta | `infatuation`, igual |
+| Psíquico | faz dormir | status `slp` 1 s (era confundir) |
+| Fantasma | confunde | `confusion`, igual |
+| Normal | recua (flinch): perde a próxima ação | 0,6 s sem ação, palavra ATORDOADO |
+| Planta | semente | o Leech Seed (12 s, o fôlego vai pro capitão que chutou; Planta não pega) |
+| Terrestre | areia nos olhos | o `blind` do Sand Attack: erro do chute e do passe x2 por 6 s |
+| Inseto | teia | velocidade x0,5 por 3 s (o debuff de velocidade do String Shot, mais forte) |
+| Água | a água leva 2 m pra trás | o empurrão do Surf, no sentido do chute (palavra MOLHADO) |
+| Voador | vai pro alto, 1 s fora do lance | o voo do Fly parado no lugar, sem o pouso (ninguém alcança ele) |
+| Lutador | mão dormente | a próxima defesa comum dele não encaixa (a de golpe máximo já nunca encaixa) |
+| Pedra | preso no lugar 2 s | não anda, mas ainda defende e chuta |
+| Dragão | o time rival perde 5 pontos da barra | evento `status` `drain`, que o `maxCharge` desconta |
+
+Na tela: a palavra de reação de cada efeito (AREIA, NA TEIA, PRO ALTO, DORMENTE, PRESO, BARRA -5) na cor do tipo, com a
+partícula do tipo, e a linha na caixa de narração. Os nomes do N3 viraram os golpes dos jogos (Giga Impact, Surf,
+Thunder…), com os gritos e as descrições novas do Miguel, em PT e EN.
+
+`calibrate --n 200 --agencia`, mesmas seeds, antes/depois (o N1 sai só 0,06 por jogo, então o N1 que vira gol é ruído):
+
+| Medida | Antes | Depois |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,29 |
+| Golpe de linha que vira gol (N1/N2/N3) | 71% (50/61/96) | 73% (42/65/96) |
+| Mais forte (Δ≥3) vence | 63,0% | 65,9% |

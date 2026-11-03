@@ -38,9 +38,11 @@ export const chosenMode = (plan: { main: ModeId; sheet: ModeId[] }, chosen: Mode
  * A linha de baixo do JOGAR: o modo (com o seletor) e o detalhe, sem repetir o verbo do botão ("JOGAR HOJE" com
  * "Copa do Dia · Jogar hoje" embaixo, "CONTINUAR" com "Continuar · …").
  */
-export function playSub(main: Pick<Mode, 'title' | 'sub' | 'verb'>, rail: boolean): string {
+export function playSub(main: Pick<Mode, 'title' | 'sub' | 'verb'> & { id?: ModeId }, rail: boolean): string {
     const verb = main.verb?.toLocaleLowerCase();
-    return (rail ? [main.title, main.sub] : [main.sub]).filter((x) => x && x.toLocaleLowerCase() !== verb).join(' · ');
+    return (rail && main.id !== 'continue' ? [main.title, main.sub] : [main.sub])
+        .filter((x) => x && x.toLocaleLowerCase() !== verb)
+        .join(' · ');
 }
 
 /**

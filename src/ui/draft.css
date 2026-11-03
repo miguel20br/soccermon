@@ -1,0 +1,535 @@
+/*
+ * Draft em palco (cara-de-jogo.md, decisões 10 e 13): a formação em carrossel e as escolhas 1 de 3 sem rolar.
+ * Tamanhos pela tela com calc(N * var(--vw/--vh)) (o Stage desconta o zoom do PC).
+ */
+
+/* ---------- formação: carrossel de quadras ---------- */
+.fc {
+    --fc-gap: clamp(14px, calc(4 * var(--vw)), 36px);
+    /* a quadra: o que sobra da altura (barra de cima, título, placa, barra de baixo) em 3:4, no máximo 60% da largura */
+    --fc-w: clamp(96px, min(calc(60 * var(--vw)), calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75)), 300px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.fc-stage {
+    position: relative;
+    width: 100%;
+}
+.fc-view {
+    position: relative;
+    height: calc(var(--fc-w) * 4 / 3 + 8px);
+    overflow: hidden;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+    /* as vizinhas somem nas bordas em vez de cortar seco */
+    mask: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+.fc-stage.dragging .fc-view {
+    cursor: grabbing;
+}
+.fc-track {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    display: flex;
+    gap: var(--fc-gap);
+    transform: translateX(calc(-1 * (var(--i) * (var(--fc-w) + var(--fc-gap)) + var(--fc-w) / 2) + var(--drag, 0px)));
+    transition: transform var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-stage.dragging .fc-track {
+    transition: none;
+}
+.fc-court {
+    all: unset;
+    flex: none;
+    width: var(--fc-w);
+    aspect-ratio: 3 / 4;
+    cursor: pointer;
+    scale: 0.72;
+    opacity: 0.45;
+    filter: saturate(0.6);
+    transition:
+        scale var(--dur-tela, 260ms) var(--ease-out),
+        opacity var(--dur-tela, 260ms) var(--ease-out),
+        filter var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-court.on {
+    scale: 1;
+    opacity: 1;
+    filter: none;
+    cursor: inherit;
+}
+.fc-court .formation-diagram {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.35));
+}
+.formation-diagram rect {
+    fill: #c98a4f;
+    stroke: #fff;
+    stroke-width: 1.5;
+}
+.formation-diagram line,
+.formation-diagram .fd-ring {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.85);
+    stroke-width: 1;
+}
+.formation-diagram .fd-dot {
+    fill: var(--red);
+    stroke: #fff;
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+/* os 5 pontos piscam um depois do outro na quadra da vez */
+.fc-court.on .fd-dot {
+    animation: fd-blink 1.6s var(--ease-out) calc(var(--k) * 120ms) infinite;
+}
+@keyframes fd-blink {
+    0%,
+    60%,
+    100% {
+        scale: 1;
+    }
+    30% {
+        scale: 1.25;
+    }
+}
+.fc-arrow {
+    all: unset;
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    z-index: 1;
+    color: var(--yellow);
+    background: var(--bc-ink);
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.fc-arrow.prev {
+    left: 0;
+}
+.fc-arrow.next {
+    right: 0;
+}
+.fc-arrow:active {
+    transform: scale(0.86);
+    transition-duration: var(--dur-toque);
+}
+.fc-arrow:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.fc-arrow .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+/* a placa com o nome e o "?" (frase e posições) */
+.fc-plaque {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 6px 16px;
+    background: var(--bc-ink);
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    animation: row-in var(--dur-ui) var(--ease-out) both;
+}
+.fc-name {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.fc > .fi {
+    margin: 0;
+    font-size: 14px;
+    text-align: center;
+}
+.fc > .fi .fi-tags {
+    justify-content: center;
+}
+.fc-dots {
+    display: flex;
+    gap: 8px;
+}
+.fc-dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    transition:
+        background var(--dur-ui) var(--ease-out),
+        scale var(--dur-ui) var(--ease-out);
+}
+.fc-dots i.on {
+    background: var(--yellow);
+    scale: 1.3;
+}
+.formation-stage .draft-head {
+    flex: none;
+}
+/* dica da primeira vez aberta (Coach.tsx): a quadra cede 100 px de altura pra linha e o dedo caberem embaixo dos
+   pontinhos (senão a linha subia pra cima da placa e das palavras). Deitado ela vai pro lado e no PC sobra altura. */
+@media (min-height: 521px) and (max-width: 1099px) {
+    .formation-stage.coach-on .fc {
+        --fc-w: clamp(
+            96px,
+            calc(min(calc(60 * var(--vw)), calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75)) - 75px),
+            300px
+        );
+    }
+}
+/* celular baixo (320x640): nem assim cabe; o título sai de cena enquanto a dica fala (ela diz "Escolha a formação") */
+.formation-stage .draft-head {
+    transition:
+        opacity var(--dur-tela, 260ms) var(--ease-out),
+        margin-top var(--dur-tela, 260ms) var(--ease-out);
+}
+@media (orientation: portrait) and (max-height: 700px) {
+    .formation-stage.coach-on .draft-head {
+        opacity: 0;
+        margin-top: -86px;
+        pointer-events: none;
+    }
+    /* e o carrossel sobe um pouco: o vão de baixo fica com a linha (3 linhas no 320) */
+    .formation-stage.coach-on .fc {
+        padding-bottom: 60px;
+    }
+}
+.formation-stage .fc {
+    transition: padding-bottom var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-view {
+    transition: height var(--dur-tela, 260ms) var(--ease-out);
+}
+.fc-court {
+    transition-property: scale, opacity, filter, width;
+}
+/* PC: a fileira inteira em leque, a da vez maior (o zoom do palco aumenta tudo junto) */
+@media (min-width: 1100px) {
+    .fc {
+        --fc-w: clamp(120px, calc((100 * var(--vh) - var(--fc-reserve, 380px)) * 0.75), 200px);
+    }
+    .fc-view {
+        mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    }
+    .fc-court {
+        scale: 0.78;
+        opacity: 0.6;
+    }
+}
+/* celular deitado: o título sai (a fase está na barra da copa), placa e palavras ao lado da quadra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .formation-stage .draft-head {
+        display: none;
+    }
+    .fc {
+        --fc-reserve: 150px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr auto;
+        align-items: center;
+        justify-items: center;
+        column-gap: 12px;
+        row-gap: 8px;
+    }
+    .fc-stage {
+        grid-column: 1;
+        grid-row: 1 / -1;
+    }
+    .fc-plaque {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: end;
+    }
+    .fc > .fi {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    .fc-dots {
+        grid-column: 2;
+        grid-row: 3;
+        align-self: start;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fc-court.on .fd-dot {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .fc-court.on .fd-dot {
+    animation: none;
+}
+
+/* ---------- capitão e escolhas: a quadra (tocar na vaga) ou as 3 cartas, uma tela de cada vez ---------- */
+.pick-stage .draft-head {
+    flex: none;
+}
+.draft-board,
+.draft-pick {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: safe center;
+    gap: 10px;
+    /* nada teleporta: a quadra e as cartas entram com fade ao trocar */
+    animation: row-in var(--dur-tela) var(--ease-out) both;
+}
+.draft-board {
+    overflow: hidden;
+}
+/* a quadra no tamanho natural; o useFitBoard (Draft.tsx) encolhe com zoom até caber. A prancheta ao lado das cartas
+   (.dp-fit) é a mesma, sempre no tamanho natural (a largura dela não pode depender da caixa que o zoom mede) */
+.draft-board .formation-board {
+    flex: none;
+    width: min(100%, 420px);
+}
+.dp-fit .formation-board {
+    flex: none;
+    width: 420px;
+}
+.draft-board-foot {
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+/* tela baixa (320x568, deitado): o banco ao lado da quadra */
+@media (max-height: 760px) {
+    :is(.draft-board, .dp-fit) .formation-board {
+        display: grid;
+        grid-template-columns: auto auto;
+        align-items: center;
+        justify-content: center;
+        column-gap: 10px;
+        width: auto;
+    }
+    /* tamanho natural; o zoom do useFitBoard encolhe tudo junto (as vagas não se encavalam) */
+    :is(.draft-board, .dp-fit) .formation-board .court {
+        width: 260px;
+    }
+    :is(.draft-board, .dp-fit) .formation-board .bench {
+        flex-direction: column;
+        margin-top: 0;
+    }
+    :is(.draft-board, .dp-fit) .formation-board > :not(.court, .bench) {
+        grid-column: 1 / -1;
+    }
+}
+
+/* o time junto das cartas (tocar abre a sheet com a quadra): a prancheta do passo das vagas, no tamanho natural e
+   encolhida com zoom pelo useFitBoard (Draft.tsx) até caber na caixa (.dp-fit). Celular em pé: deitada (gol à
+   esquerda), a largura toda e a altura que sobra em cima das cartas; deitado e no PC, em pé ao lado delas (lá embaixo) */
+.dp-team {
+    position: relative;
+    box-sizing: border-box;
+    flex: 1 1 0;
+    min-height: 120px;
+    display: flex;
+    width: 100%;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.dp-team:has(> .dp-open:active) {
+    transform: translateY(2px);
+    transition-duration: var(--dur-toque);
+}
+/* o botão cobre o time todo; a seta no canto diz que abre */
+.dp-open {
+    all: unset;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+}
+.dp-open:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.dp-fit {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+/* deitada: a quadra e o banco numa coluna ao lado (a vaga mede como a do celular) */
+.dp-fit .formation-board.horizontal {
+    flex: none;
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    column-gap: 10px;
+}
+/* um pouco mais alta que a da partida (1,7): as alas nas laterais não saem da quadra */
+.dp-fit .formation-board.horizontal .court {
+    width: 360px;
+    aspect-ratio: 1.5 / 1;
+}
+.dp-fit .horizontal .bench {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+}
+.dp-fit .horizontal .bench .slot {
+    width: 74px;
+}
+/* 320: quadra um pouco mais curta em volta das mesmas vagas, pra elas encolherem menos (44 px ou mais) */
+@media (max-width: 380px) {
+    .dp-fit .formation-board.horizontal .court {
+        width: 300px;
+    }
+}
+
+/* as 3 cartas do mesmo tamanho (k-pick3): as colunas com a mesma altura e tudo encostado embaixo, pra a carta com
+   "Ativa" (faixa mais alta) não descer em relação às outras */
+.draft-pick3 {
+    /* barra de cima, título, miniatura, faixa, botão da carta e o polegar */
+    --k-pick-reserve: 430px;
+    align-items: stretch;
+}
+.draft-pick3 .option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    container-type: inline-size;
+}
+/* coluna estreita (320): o selo da sinergia quebra em duas linhas em vez de passar da borda */
+.draft-pick3 .option-links {
+    max-width: 100%;
+}
+.draft-pick3 .option-links .link-chip {
+    display: inline-block;
+    box-sizing: border-box;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    border-radius: 10px;
+}
+.draft-pick3 .option-fit {
+    max-width: 100%;
+}
+.draft-team-sheet .formation-board {
+    width: min(100%, 380px);
+    margin: 0 auto;
+}
+/* celular deitado: o título sai (a fase está na barra da copa); miniatura e cartas com a altura que sobra */
+@media (orientation: landscape) and (max-height: 520px) {
+    .pick-stage .draft-head {
+        display: none;
+    }
+    .draft-pick {
+        gap: 6px;
+    }
+    .draft-pick3 {
+        --k-pick-reserve: 236px;
+    }
+    /* sem altura pro "Ativa": fica só o selo da sinergia (que já pulsa), pra a carta e o botão não saírem da tela */
+    .draft-pick3 .option-links {
+        font-size: 0;
+    }
+    .draft-pick3 .option-links .link-chip {
+        font-size: 11px;
+    }
+}
+@property --dp-room {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 720px;
+}
+/* deitado e no PC: a prancheta do passo das vagas (as mesmas regras de .draft-board lá em cima: banco embaixo, ou ao
+   lado em tela baixa) do lado das cartas, com a altura toda; o useFitBoard (Draft.tsx) encolhe com zoom até caber.
+   A coluna dela mede pela altura do palco (cqh) e as cartas, pelo que sobra da largura (cqi) */
+@media (orientation: landscape) {
+    .draft-pick {
+        /* largura da prancheta encolhida: a proporção dela (banco embaixo) vezes a altura, até 38% da largura */
+        --dp-team-w: max(150px, min(calc(100cqh * var(--dp-aspect, 0.62)), 38cqi));
+        container-type: size;
+        display: grid;
+        grid-template-columns: auto auto;
+        grid-template-rows: auto minmax(0, 1fr);
+        justify-content: center;
+        align-items: center;
+        column-gap: var(--dp-gap, 16px);
+        row-gap: 0;
+    }
+    .draft-pick > .dp-team {
+        grid-row: 2;
+        align-self: stretch;
+        width: var(--dp-team-w);
+        min-height: 0;
+    }
+    .draft-pick > .cpack-stage {
+        grid-row: 2;
+    }
+    /* Duelo: o que o rival tirou numa linha em cima dos dois */
+    .draft-pick > .duel-draft-news {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        justify-content: center;
+        margin-bottom: 6px;
+    }
+    /* a largura que sobra pras cartas, resolvida aqui (registrada em @property): a carta mede de novo dentro da
+       .option, que é outro container, e lá o cqi seria o da coluna */
+    .draft-pick .draft-pick3 {
+        --dp-room: calc(100cqi - var(--dp-team-w) - var(--dp-gap, 16px));
+        --k-card-w: min(
+            var(--k-card-max, 190px),
+            calc((min(var(--dp-room), 720px) - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
+            calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
+        );
+    }
+}
+/* tela baixa: o banco vai pro lado da quadra (.draft-board lá em cima), a prancheta fica mais larga que alta */
+@media (orientation: landscape) and (max-height: 760px) {
+    .draft-pick {
+        --dp-aspect: 1.12;
+    }
+}
+/* celular baixo (320x640): as cartas caberem inteiras */
+@media (orientation: portrait) and (max-height: 700px) {
+    /* o pacote fechado mede pela altura que sobra embaixo da prancheta (a carta com "Ativa" cabe inteira); o resto
+       fica com a prancheta */
+    .draft-pick .cpack-stage:has(> .k-pick3) {
+        min-height: min(300px, calc(100 * var(--vh) - 460px));
+    }
+}
+/* a instrução da vez cabe ao lado do "Monta pra mim" (só a pergunta do "Montar?" ocupa a linha inteira) */
+.draft-auto:not(.ask) > .tb-hint {
+    flex: 1 1 0;
+    min-width: 0;
+}
+/* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
+.draft-auto {
+    zoom: var(--k-big, 1);
+}

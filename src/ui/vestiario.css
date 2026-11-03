@@ -1,43 +1,48 @@
 /*
- * Escalação no vestiário (revamp-ui §3.3, 0.9.23): a lousa de tática com os quadros (chave e tática, cada um abre a
- * sua sheet) e a prancheta logo embaixo, na 1ª tela.
+ * Escalação no vestiário (revamp-ui §3.3, 0.9.23): o cartaz do rival na parede, a prancheta embaixo e as opções de
+ * tática e formação abertas (.vt-plan).
  */
 .vt-room {
     display: grid;
     align-content: start;
     min-width: 0;
 }
-/* a barra de cima: rival, chave, tática e formação, cada um abre a sua sheet (sem placa nem moldura) */
+/* a parede (cara-de-jogo.md, Escalação): o cartaz do rival (escudo, nome, média e os 5 dele; abre a chave) */
 .vt-wall {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    margin-bottom: 6px;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
 }
 .vt-obj {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
     min-width: 0;
-    min-height: 44px;
+    min-height: 48px;
     padding: 6px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--panel);
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
     color: var(--text);
     font: inherit;
     text-align: left;
     cursor: pointer;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
     transition:
         transform var(--dur-solta) var(--ease-pop),
-        border-color var(--dur-ui) var(--ease-out);
+        box-shadow var(--dur-ui) var(--ease-out);
 }
 .vt-obj:active {
-    transform: scale(0.98);
+    transform: translateY(2px) scale(0.98);
+    box-shadow: inset 0 0 0 2px var(--frame-in);
     transition-duration: var(--dur-toque);
 }
 .vt-obj:focus-visible {
-    outline: 2px solid var(--yellow);
+    outline: 3px solid var(--yellow);
     outline-offset: 2px;
 }
 .vt-obj > span {
@@ -55,64 +60,229 @@
     font-size: 13px;
 }
 .vt-obj small {
-    font-size: 11px;
-    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
-.vt-obj > .hud-icon {
+
+/* o cartaz do rival: papel com fita nos cantos, um tico torto */
+.vt-rival {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 6px 10px 6px 8px;
+    background: var(--bc-paper);
+    color: var(--cb-ink);
+    box-shadow: var(--lift-1);
+    rotate: -0.6deg;
+}
+.vt-rival::before,
+.vt-rival::after {
+    content: "";
+    position: absolute;
+    top: -7px;
+    width: 34px;
+    height: 12px;
+    background: color-mix(in srgb, var(--yellow), transparent 35%);
+    rotate: -8deg;
+}
+.vt-rival::before {
+    left: 10px;
+}
+.vt-rival::after {
+    right: 10px;
+    rotate: 8deg;
+}
+.vt-crest {
+    grid-row: 1 / -1;
+    width: 34px;
+    height: 37px;
+}
+.vt-obj > .vt-rival-txt {
+    display: flex;
+    align-self: end;
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: baseline;
+    gap: 8px;
+}
+.vt-rival-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 15px;
+}
+.vt-rival-txt small {
+    color: color-mix(in srgb, var(--cb-ink), transparent 35%);
+}
+.vt-obj > .vt-rival-mons {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+}
+.vt-rival-mons img {
+    width: 26px;
+    height: 26px;
+    image-rendering: auto;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 25%));
+}
+.vt-rival-stage {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.vt-rival-stage .hud-icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+
+/*
+ * tática, formação e escanteio abertos (pedido de 02/11: nada de abrir sheet pra escolher). No PC ficam na coluna do
+ * Jogar, ao lado da carta; no celular e deitado, embaixo da quadra em 2 colunas.
+ */
+.vt-plan,
+.vt-team {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+}
+.vt-plan > h3.bc-lbl:first-child,
+.vt-team > section:first-child h3.bc-lbl {
+    margin-top: 0;
+}
+.vt-team > section {
+    display: grid;
+    gap: 6px;
+}
+.vt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.vt-plan .bc-tile,
+.vt-captains .bc-tile {
+    transition:
+        transform 0.06s ease,
+        border-color 220ms var(--ease-out),
+        background-color 220ms var(--ease-out),
+        box-shadow 220ms var(--ease-out),
+        opacity 220ms var(--ease-out);
+}
+.vt-plan .bc-tile .hud-icon {
     flex: none;
+    width: 24px;
+    height: 24px;
+    transition: color 220ms var(--ease-out);
+}
+.vt-plan .bc-seg button {
+    transition:
+        background-color 220ms var(--ease-out),
+        color 220ms var(--ease-out);
+}
+/* a formação: o desenho da quadra, o nome e o forte/fraco (o ícone da formação sai: o desenho já diz) */
+.vt-formations .bc-tile {
+    gap: 8px;
+    padding-left: 6px;
+}
+.vt-formations .formation-diagram {
+    flex: none;
+    width: 27px;
+    height: 36px;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
+}
+.vt-formations .formation-diagram .fd-dot {
+    stroke-width: 1;
+}
+.vt-formations .fi {
+    margin-top: 1px;
+    animation: none;
+}
+.vt-formations .fi-tags {
+    gap: 0 4px;
+    font-size: 11px;
+    line-height: 1.25;
+}
+.vt-formations .fi-tags b {
+    display: inline;
+    font-size: 11px;
+}
+.vt-formations .fi-tags > .hud-icon {
+    display: none;
+}
+.vt-formations .fi-edge {
     width: 18px;
     height: 18px;
 }
-/* o rival e a formação ocupam a linha toda (o bônus da formação é a 2ª linha do botão) */
-.vt-rival,
-.vt-formation {
-    grid-column: 1 / -1;
-}
-.vt-rival b {
-    font-weight: 400;
-    color: var(--muted);
-}
-.vt-formation .fi-tags {
-    font-size: 11px;
-}
-.vt-formation .hud-icon {
-    display: none;
-}
-/* a seta de "abre a lista" ao lado do nome da formação (era um caractere de triângulo) */
-.vt-formation .hud-icon.vt-caret {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    stroke-width: 3;
-    vertical-align: -2px;
-}
-.vt-formations {
-    display: grid;
-    gap: 6px;
-}
-.vt-formations .bc-tile {
-    text-align: left;
-}
-.vt-hint {
-    margin: 0 0 6px;
-    font-size: 12px;
-}
-/* sheet da tática: as 5 seções em sequência */
-.vt-tactic-sheet section {
-    display: grid;
-    gap: 6px;
-}
-.vt-tactic-sheet h3 {
+/* trocar de tática ou de escanteio troca a frase com fade */
+.vt-fade {
     margin: 0;
-    font-size: 12px;
+    animation: row-in var(--dur-ui) var(--ease-out) both;
+}
+.vt-plan p,
+.vt-team p {
+    margin: 0;
+}
+/* quem cobra: o rótulo em cima, o seletor na largura toda (o nome não corta) */
+.vt-plan .corner-taker {
+    display: grid;
+    margin: 2px 0 0;
+}
+.corner-taker h3 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--muted);
 }
-.vt-tactic-sheet .tactic-desc {
-    margin: 0;
+/* PC: as opções na coluna do Jogar e a carta (com capitão e sinergias) ao lado */
+@media (min-width: 1051px) {
+    .vt .side-stack {
+        grid-template-columns: minmax(0, 1fr) minmax(200px, 210px);
+        align-items: start;
+    }
+    .vt .side-stack > :not(.vt-plan, .vt-aside) {
+        grid-column: 1 / -1;
+    }
+    .vt-aside {
+        display: grid;
+        gap: var(--gap);
+        min-width: 0;
+    }
+    .vt-aside .vt-captains,
+    .vt-plan .vt-tactics,
+    .vt-plan .vt-formations {
+        grid-template-columns: 1fr;
+    }
 }
-.vt-tactic-sheet .corner-taker {
-    margin: 0;
+@media (max-width: 359px) {
+    .vt-grid {
+        gap: 6px;
+    }
+    .vt-plan .bc-tile {
+        gap: 6px;
+        padding-inline: 6px;
+    }
+    .vt-formations .formation-diagram {
+        width: 21px;
+        height: 28px;
+    }
 }
 .vt-captains {
     display: grid;
@@ -122,11 +292,6 @@
 .vt-captains .bc-tile {
     gap: 6px;
     padding: 4px 8px 4px 4px;
-    transition:
-        transform 0.06s ease,
-        border-color 220ms var(--ease-out),
-        background-color 220ms var(--ease-out),
-        box-shadow 220ms var(--ease-out);
 }
 .vt-captains img {
     width: 40px;
@@ -140,7 +305,7 @@
     white-space: nowrap;
     overflow-wrap: normal;
 }
-.vt-board-sheet {
+.k-sheet.vt-board-sheet {
     width: min(720px, 100%);
 }
 .vt-bracket {
@@ -150,9 +315,15 @@
 .vt-board-sheet > .btn {
     justify-self: center;
 }
+.vt-sheet-h {
+    margin: 4px 0 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
 /* deitado: a barra vira uma coluna ao lado da prancheta, e a prancheta ganha a altura toda */
 @media (orientation: landscape) and (max-height: 520px) {
-    .vt-room {
+    .vt-room:has(> .vt-wall) {
         grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
         gap: 8px;
         align-items: start;
@@ -160,6 +331,28 @@
     .vt-wall {
         grid-template-columns: 1fr;
         margin: 0;
+    }
+    /* o cartaz na coluna estreita: nome e média em 2 linhas, a fase pendurada no canto, os 5 embaixo */
+    .vt-rival {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .vt-obj > .vt-rival-txt {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding-right: 40px;
+    }
+    .vt-rival-stage {
+        position: absolute;
+        top: -8px;
+        right: 8px;
+    }
+    .vt-obj > .vt-rival-mons {
+        grid-column: 1 / -1;
+    }
+    .vt-rival-mons img {
+        width: 24px;
+        height: 24px;
     }
     /* a carta na sheet encolhe pra caber (com o botão da carta completa) na altura deitada */
     .vt-card-sheet .fut-wrap {
@@ -217,9 +410,6 @@
         flex-direction: column;
         margin-top: 0;
     }
-}
-.vt-formations .fi-tags .hud-icon {
-    display: none;
 }
 
 /* chip "Carta" da escalação: flutua no canto da quadra, não empurra nada */

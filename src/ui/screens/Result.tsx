@@ -13,7 +13,7 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName, cupStageName } from '../../i18n';
+import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
@@ -29,14 +29,12 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
-import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
 import { Tip } from '../help/Tip';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
-import { cupGoal } from '../moments';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
 import { shareRun } from '../share';
@@ -74,8 +72,8 @@ export function Result() {
     const match = useHeld(liveMatch);
     const { t } = useT();
     const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
-    // o que sai da tela pra uma sheet: as estatísticas, o gol da copa (com o replay) e a chave
-    const [sheet, setSheet] = useState<'stats' | 'goal' | 'bracket' | null>(null);
+    // o que sai da tela pra uma sheet: a chave
+    const [sheet, setSheet] = useState<'bracket' | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -116,7 +114,7 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
-    // os detalhes da partida (destaques, gols, estatísticas): embaixo do resultado; no título, na sheet Estatísticas
+    // os detalhes da partida (destaques, carta Destaque, gols, estatísticas): embaixo do palco, rolando (sem botão)
     const details = (
         <MatchDetails
             match={match}
@@ -192,7 +190,7 @@ export function Result() {
             )}
         </div>
     );
-    // o resto do fim da copa: baixar o card do título e dar feedback (no campeão, dentro da sheet Estatísticas)
+    // o resto do fim da copa: baixar o card do título e dar feedback (embaixo dos detalhes)
     const extra = (
         <>
             {champion && (
@@ -222,23 +220,13 @@ export function Result() {
         </>
     );
     const bracket = run.status === 'reward' && !isLong(run);
-    const hasGoal = eliminated && !!cupGoal(run.results);
-    // resultado sem rolar (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar
+    // o palco do resultado (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar; o
+    // resto (o que a copa rendeu, quem virou Destaque, evoluções, gols) vem rolando pra baixo, como antes do palco
     const actions = (
         <>
             {eliminated && <NearMiss run={run} />}
             <div className="res-icons">
                 {icons}
-                {hasGoal && (
-                    <button
-                        type="button"
-                        className="btn outline"
-                        aria-haspopup="dialog"
-                        onClick={() => setSheet('goal')}
-                    >
-                        <HudIcon kind="play" /> {t('moments.cup.h')}
-                    </button>
-                )}
                 {bracket && (
                     <button
                         type="button"
@@ -249,9 +237,6 @@ export function Result() {
                         <HudIcon kind="cup" /> {t('bracket.show')}
                     </button>
                 )}
-                <button type="button" className="btn outline" aria-haspopup="dialog" onClick={() => setSheet('stats')}>
-                    <HudIcon kind="chart" /> {t('result.champ.statsBtn')}
-                </button>
             </div>
             {thumb}
         </>
@@ -279,7 +264,6 @@ export function Result() {
                         </>
                     }
                 />
-                <UnlockStrip />
                 {toast}
             </>
         );
@@ -287,7 +271,7 @@ export function Result() {
     return (
         <>
             {toast}
-            <Stage className="result-stage">
+            <Stage className="result-stage k-stage-rola">
                 <ResultHero
                     run={run}
                     match={match}
@@ -295,25 +279,18 @@ export function Result() {
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
                     foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
-                    unlocks={<UnlockStrip />}
                     actions={actions}
                 />
                 {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
                 <Tip id="result-dex">{t('result.dexTip')}</Tip>
             </Stage>
-            <Sheet
-                open={sheet === 'stats'}
-                onClose={() => setSheet(null)}
-                title={t('result.champ.statsBtn')}
-                className="res-stats-sheet"
-            >
+            <section className="res-more" aria-label={t('result.champ.statsBtn')}>
                 {eliminated && <CupGains run={run} />}
+                {/* o gol da copa saiu da fileira de botões (pesava mais que o Nova copa) e fica no relato, rolando */}
+                {eliminated && <CupGoalCard run={run} match={match} />}
                 {details}
                 {extra}
-            </Sheet>
-            <Sheet open={sheet === 'goal'} onClose={() => setSheet(null)} title={t('moments.cup.h')}>
-                <CupGoalCard run={run} match={match} />
-            </Sheet>
+            </section>
             {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
             <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
                 {bracket && (
@@ -402,15 +379,14 @@ function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState
     const { t } = useT();
     const last = run.results.at(-1);
     if (!last || last.won) return null;
-    const stage = cupStageName(run, last.stage);
     const n = last.score[1] - last.score[0];
     return (
         <p className="near-miss">
             {last.shootout
-                ? t('result.nearMiss.pens', { stage })
+                ? t('result.nearMiss.pens')
                 : n <= 1
-                  ? t('result.nearMiss.one', { stage })
-                  : t('result.nearMiss.more', { stage, n })}
+                  ? t('result.nearMiss.one')
+                  : t('result.nearMiss.more', { n })}
         </p>
     );
 }
@@ -444,7 +420,7 @@ export function MatchDetails({
     side = 0,
     openPart = false,
 }: {
-    /** Já abre na pasta Destaques (dentro de uma sheet, fechada não faz sentido). */
+    /** Já abre na pasta Destaques (no Resultado: quem virou Destaque aparece rolando, sem tocar). */
     openPart?: boolean;
     match: MatchResult;
     names: [string, string];

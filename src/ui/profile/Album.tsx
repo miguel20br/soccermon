@@ -775,7 +775,9 @@ function ShowcaseEditor({
             d.el.classList.add('drag');
             setSel(null);
         }
-        d.el.style.translate = `${dx / uiZoom()}px ${dy / uiZoom()}px`;
+        // o zoom que vale na carta (a raiz e, no PC, o da Coleção): o deslocamento acompanha o dedo
+        const z = uiZoom(d.el);
+        d.el.style.translate = `${dx / z}px ${dy / z}px`;
         const j = slotAt(e.clientX, e.clientY);
         setOver(j >= 0 && j !== d.i && j < ids.length ? j : null);
     };

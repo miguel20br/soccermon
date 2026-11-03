@@ -24,7 +24,7 @@ export const title: typeof pt = {
         first: 'First title!',
         perfect: 'Perfect cup #{n}',
         best: 'New best for {name}: {r}',
-        firstTitle: "{name}'s first title",
+        firstTitles: 'First title for {names}',
         time: 'Cup won in {t}',
         rerolls: '{n} rerolls used',
         rare: 'Only {p}% of champions had {name}',

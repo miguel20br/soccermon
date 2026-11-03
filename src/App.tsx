@@ -16,6 +16,7 @@ import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
 import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
+import { TvLayer } from './ui/components/TvLayer';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { openPage } from './ui/doors';
@@ -44,6 +45,7 @@ import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
+import { tvCut } from './ui/tv';
 import { readUltimate } from './ui/ultimate/flag';
 
 // Movedex (?lab=golpes) usa o Phaser: vem num pedaço à parte, como a partida
@@ -176,6 +178,12 @@ export default function App() {
         }, MENU_FADE_MS);
     };
     useEffect(() => () => window.clearTimeout(fadeTimer.current), []);
+    // entrar e sair do menu de modos também é corte de TV (o fade de sempre quando não dá pra animar)
+    const tvMenu = (to: 'on' | null) =>
+        tvCut(() => {
+            window.clearTimeout(fadeTimer.current);
+            setMenu(to);
+        });
     // o menu é só da Home: saiu dela (Perfil, Configurações, copa), ele não volta no meio da sessão
     useEffect(() => {
         if (screen !== 'home') {
@@ -342,13 +350,13 @@ export default function App() {
                     <>
                         {/* cada um no seu Suspense: a Home carregando embaixo não tira o menu da tela no fade */}
                         <Suspense fallback={null}>
-                            {menu !== 'on' && <Ambientes onModes={() => fadeMenu('in', 'on')} />}
+                            {menu !== 'on' && <Ambientes onModes={() => tvMenu('on') || fadeMenu('in', 'on')} />}
                         </Suspense>
                         <Suspense fallback={null}>
                             {menu && (
                                 <ModeMenu
                                     phase={menu}
-                                    onPlay={() => fadeMenu('out', null)}
+                                    onPlay={() => tvMenu(null) || fadeMenu('out', null)}
                                     onUltimate={ultimateLab ? () => useGame.getState().go('ultimate') : undefined}
                                 />
                             )}
@@ -384,6 +392,7 @@ export default function App() {
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
             <PlayerCardModal />
+            <TvLayer />
             <MomentLayer />
             <DoorLayer />
             <CardModal />

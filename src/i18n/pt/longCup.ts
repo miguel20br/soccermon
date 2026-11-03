@@ -19,10 +19,10 @@ export const longCup = {
         jogo: 'Vitória dá ₽ e o prêmio.',
         /** Com o Pokémon do rival em todo Jogo (ROTA_RULES.rivalEveryJogo). */
         jogoRival: 'Vitória dá ₽, 1 de 3 do time rival e o prêmio.',
-        ginasio: 'Rival bem mais forte. Vencendo: a carta do líder, a MT dele e a insígnia.',
+        ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
-        treino: 'Meia barra de evolução pra um Pokémon (ou um item, se ninguém evolui), ou +1 sorteio.',
+        treino: 'Meia barra de evolução (ou um item) ou +1 sorteio.',
         bau: 'Recompensa grátis, uma raridade acima.',
         centro: 'Tira o cartão amarelo ou traz de volta quem está fora.',
         final: 'Jogo único contra a Liga Índigo.',
@@ -43,7 +43,7 @@ export const longCup = {
         money: 'O ₽ da vitória vem em dobro, sem recompensa.',
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
-        pedraRival: 'Quem evolui com ela evolui na hora, e o rival traz um deles no 1 de 3.',
+        pedraRival: 'Evolui na hora. O rival traz um deles no 1 de 3.',
     },
     prizeLabel: 'Prêmio',
     /** Pedras de evolução (prêmio de região da Rota). */
@@ -89,8 +89,12 @@ export const longCup = {
     groupTable: 'Grupo',
     colPlayed: 'J',
     colGd: 'SG',
+    colGf: 'GP',
+    colGa: 'GC',
     colPts: 'Pts',
-    groupNote: 'Os 2 primeiros vão pra Final. Vitória 3, nos pênaltis 2, derrota nos pênaltis 1.',
+    groupNote: 'Os 2 primeiros vão pra Final.',
+    groupPointsTitle: 'Pontos',
+    groupPoints: 'Vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1.',
     matchday: 'Rodada {n}',
     playMatchday: 'Jogar a rodada {n}',
     playFinal: 'Jogar a Final',
@@ -193,7 +197,7 @@ export const longCup = {
             title: 'Pássaro lendário',
             text: 'Um Zapdos pousou na Usina. Ninguém chega perto.',
             choices: {
-                desafiar: ['Desafiar', 'O próximo rival vem com ele, e mais forte. Vencendo, ele é seu.'],
+                desafiar: ['Desafiar', 'Ele joga no próximo rival, mais forte. Vencendo, é seu.'],
                 deixar: ['Deixar ele lá', ''],
             },
         },
@@ -204,10 +208,7 @@ export const longCup = {
             choices: {
                 item: ['Entregar um item', 'Você escolhe de quem.'],
                 reserva: ['Entregar um reserva', 'Ele vai embora.'],
-                encarar: [
-                    'Encarar',
-                    'O próximo jogo é contra a Equipe Rocket, mais forte. Vencendo: +₽8 e um item deles.',
-                ],
+                encarar: ['Encarar', 'Jogo contra a Equipe Rocket, mais forte. Vencendo, +₽8 e um item.'],
             },
         },
         aposta: {
@@ -276,5 +277,8 @@ export const longCup = {
         none: 'Ninguém do time evolui.',
         pick: 'Toque em quem treina',
         go: 'Treinar {name}',
+        restSign: '+1 sorteio',
+        pickObj: 'Escolha o treino',
+        itemSign: '1 de 2 itens',
     },
 };

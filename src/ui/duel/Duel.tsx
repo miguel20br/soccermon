@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
 import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
@@ -36,7 +36,8 @@ import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-s
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Coach } from '../coach/Coach';
-import { MenuHead } from '../components/MenuHead';
+import type { HudIconKind } from '../components/MatchHud';
+import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
@@ -51,8 +52,10 @@ import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
-import { SheetRow } from '../kit/controls';
+import { ArenaBackdrop } from '../kit/backdrop';
+import { InfoSheet, OptionTile, SheetRow } from '../kit/controls';
 import { ConfirmSheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
 
 const PENDING = 'soccermon-duel-pending';
@@ -125,7 +128,7 @@ function BetaNote() {
  * agora" (login anônimo, só pro canal da sala). Entrar com o Google fica de segunda opção (guarda o histórico na
  * nuvem); o duelo não exige conta.
  */
-function DuelEntry({ code }: { code: string | null }) {
+function DuelEntry({ code, head }: { code: string | null; head: ReactNode }) {
     const { t } = useT();
     const profile = useGame((g) => g.profile);
     const updateProfile = useGame((g) => g.updateProfile);
@@ -145,7 +148,21 @@ function DuelEntry({ code }: { code: string | null }) {
         }
     };
     return (
-        <>
+        <DuelStage
+            head={head}
+            className="duel-entry-stage"
+            action={
+                <button
+                    type="button"
+                    className="btn primary big"
+                    data-testid="duel-play-now"
+                    disabled={busy}
+                    onClick={() => void play()}
+                >
+                    {busy ? t('duel.entry.entering') : t('duel.entry.playNow')}
+                </button>
+            }
+        >
             <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />
             <div className="panel duel-center duel-entry">
                 {code ? (
@@ -166,15 +183,6 @@ function DuelEntry({ code }: { code: string | null }) {
                         onKeyDown={(e) => e.key === 'Enter' && !busy && void play()}
                     />
                 </label>
-                <button
-                    type="button"
-                    className="btn primary big"
-                    data-testid="duel-play-now"
-                    disabled={busy}
-                    onClick={() => void play()}
-                >
-                    {busy ? t('duel.entry.entering') : t('duel.entry.playNow')}
-                </button>
                 {error && (
                     <p className="error-text" role="alert">
                         {error === 'disabled' ? t('duel.entry.anonOff') : t('duel.entry.failed')}
@@ -185,7 +193,7 @@ function DuelEntry({ code }: { code: string | null }) {
                 </button>
                 <BetaNote />
             </div>
-        </>
+        </DuelStage>
     );
 }
 
@@ -196,8 +204,36 @@ function useHasReadyTeam(): boolean {
     return (!!run && isDraftComplete(run) && run.lineup.length > 0) || hall.length > 0;
 }
 
-/** Criar sala: o host escolhe o modo e a velocidade. */
-function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
+/** O ícone de cada modo no bloco (Meu time · Disputa · Pacotes). */
+const MODE_ICON: Record<DuelMode, HudIconKind> = { ready: 'players', disputa: 'cards', pacotes: 'chest' };
+
+/**
+ * Palco do Duelo na Arena (cara-de-jogo.md, decisão 8): a quadra noturna atrás, com o seu Pokémon e a silhueta do
+ * rival em cima, o conteúdo embaixo e a ação gorda no polegar. Criar sala, entrar e a sala de espera moram aqui.
+ */
+function DuelStage({
+    head,
+    action,
+    className = '',
+    children,
+}: {
+    head: ReactNode;
+    action?: ReactNode;
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <Stage className={`k-stage-place duel-stage ${className}`} scene={<ArenaBackdrop />} action={action}>
+            {head}
+            {/* a quadra com os dois do duelo aparece aqui, entre a placa e os blocos */}
+            <i className="k-stage-gap" aria-hidden />
+            {children}
+        </Stage>
+    );
+}
+
+/** Criar sala: o modo em 3 blocos (a regra de cada um no "?"), velocidade, duração e jogos numa Sheet. */
+function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: ReactNode }) {
     const { t, d } = useT();
     const startSpeed = useGame((s) => s.settings.speed);
     const hasTeam = useHasReadyTeam();
@@ -211,145 +247,171 @@ function CreateRoom({ peer, local }: { peer: Peer; local: boolean }) {
     const [bestOf, setBestOf] = useState<DuelBestOf>(1);
     // "Desafiar" na lista de amigos: a sala que nascer aqui chama esse amigo
     const challenging = useFriends((s) => s.challenging);
+    const create = async () => {
+        setBusy(true);
+        const code = await duel.create(peer, mode, speed, local, specialLimit, duration, true, bestOf);
+        setUrl(code, local);
+        void sendPendingChallenge(code);
+    };
+    const rules = [speedLabel(speed, t('match.highlights')), d.duel.durations[duration], d.duel.bestOf[bestOf]];
     return (
-        <div className="duel-create">
-            <Coach id="dueloSala" targets={['[data-testid="duel-bestof-3"]', '.duel-create > .btn.primary.big']} />
-            <p className="muted">{t('duel.newHint')}</p>
+        <DuelStage
+            head={head}
+            className="duel-create"
+            action={
+                <button
+                    type="button"
+                    className="btn primary big"
+                    data-testid="duel-create"
+                    disabled={busy}
+                    onClick={() => void create()}
+                >
+                    {t('duel.createRoom')}
+                </button>
+            }
+        >
+            <Coach id="dueloSala" targets={['.duel-rules', '[data-testid="duel-create"]']} />
             {challenging && (
                 <p className="panel fr-challenging">{t('friends.challengingNote', { name: challenging.trainer })}</p>
             )}
-            <BetaNote />
             <fieldset className="duel-modes">
-                <legend className="bc-lbl">{t('duel.modeLabel')}</legend>
+                <legend className="sr-only">{t('duel.modeLabel')}</legend>
                 {DUEL_MODES.map((m) => (
-                    <button
-                        key={m}
-                        type="button"
-                        className={`bc-tile duel-mode${mode === m ? ' on' : ''}`}
-                        aria-pressed={mode === m}
-                        data-mode={m}
-                        disabled={m === 'ready' && !hasTeam}
-                        onClick={() => setMode(m)}
-                    >
-                        <b>{d.duel.modes[m][0]}</b>
-                        <span>{d.duel.modes[m][1]}</span>
-                        {m === 'ready' && !hasTeam && <small className="duel-mode-off">{t('duel.noTeam')}</small>}
-                    </button>
+                    <div key={m} className="duel-mode" data-mode={m}>
+                        <OptionTile
+                            icon={MODE_ICON[m]}
+                            label={d.duel.modeShort[m]}
+                            sub={m === 'ready' && !hasTeam ? t('duel.noTeamShort') : undefined}
+                            selected={mode === m}
+                            disabled={m === 'ready' && !hasTeam}
+                            onClick={() => setMode(m)}
+                        />
+                        <InfoSheet title={d.duel.modes[m][0]}>
+                            <p>{d.duel.modes[m][1]}</p>
+                            {m === 'ready' && !hasTeam && <p className="muted">{t('duel.noTeam')}</p>}
+                        </InfoSheet>
+                    </div>
                 ))}
             </fieldset>
-            {mode === 'ready' && (
-                <fieldset className="duel-speeds">
-                    <legend className="bc-lbl">{t('duel.specials.label')}</legend>
-                    <div className="bc-seg segmented">
-                        {SPECIAL_LIMITS.map((l) => (
-                            <button
-                                key={String(l)}
-                                type="button"
-                                className={specialLimit === l ? 'on' : undefined}
-                                aria-pressed={specialLimit === l}
-                                onClick={() => setSpecialLimit(l)}
-                            >
-                                {l === 0
-                                    ? t('duel.specials.none')
-                                    : l === null
-                                      ? t('duel.specials.free')
-                                      : t('duel.specials.upTo3')}
-                            </button>
-                        ))}
-                    </div>
-                    <small className="muted">{t('duel.specials.hint')}</small>
-                </fieldset>
-            )}
-            <fieldset className="duel-speeds">
-                <legend className="bc-lbl">{t('duel.speedLabel')}</legend>
-                <div className="bc-seg segmented">
-                    {DUEL_SPEEDS.map((sp) => (
-                        <button
-                            key={String(sp)}
-                            type="button"
-                            className={speed === sp ? 'on' : undefined}
-                            aria-pressed={speed === sp}
-                            onClick={() => setSpeed(sp)}
-                        >
-                            {speedLabel(sp, t('match.highlights'))}
-                        </button>
-                    ))}
-                </div>
-                <small className="muted">{t('duel.speedHint')}</small>
-            </fieldset>
-            <fieldset className="duel-speeds">
-                <legend className="bc-lbl">{t('duel.durationLabel')}</legend>
-                <div className="bc-seg segmented">
-                    {DUEL_DURATIONS.map((du) => (
-                        <button
-                            key={du}
-                            type="button"
-                            className={duration === du ? 'on' : undefined}
-                            aria-pressed={duration === du}
-                            data-testid={`duel-length-${du}`}
-                            onClick={() => setDuration(du)}
-                        >
-                            {d.duel.durations[du]}
-                        </button>
-                    ))}
-                </div>
-                <small className="muted">{t('duel.durationHint')}</small>
-            </fieldset>
-            <fieldset className="duel-speeds">
-                <legend className="bc-lbl">{t('duel.bestOfLabel')}</legend>
-                <div className="bc-seg segmented">
-                    {DUEL_BEST_OF.map((b) => (
-                        <button
-                            key={b}
-                            type="button"
-                            className={bestOf === b ? 'on' : undefined}
-                            aria-pressed={bestOf === b}
-                            data-testid={`duel-bestof-${b}`}
-                            onClick={() => setBestOf(b)}
-                        >
-                            {d.duel.bestOf[b]}
-                        </button>
-                    ))}
-                </div>
-                <small className="muted">{t('duel.bestOfHint')}</small>
-            </fieldset>
-            <button
-                type="button"
-                className="btn primary big"
-                disabled={busy}
-                onClick={async () => {
-                    setBusy(true);
-                    const code = await duel.create(peer, mode, speed, local, specialLimit, duration, true, bestOf);
-                    setUrl(code, local);
-                    void sendPendingChallenge(code);
-                }}
+            <SheetRow
+                className="duel-rules"
+                icon="board"
+                label={t('duel.rules')}
+                hint={rules.join(' · ')}
+                title={t('duel.rules')}
             >
-                {t('duel.createRoom')}
-            </button>
-            <form
-                className="panel duel-join"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    if (isRoomCode(joinCode)) window.location.assign(duelLink(joinCode, local));
-                }}
+                <div className="duel-rules-sheet">
+                    {mode === 'ready' && (
+                        <fieldset className="duel-speeds">
+                            <legend className="bc-lbl">{t('duel.specials.label')}</legend>
+                            <div className="bc-seg segmented">
+                                {SPECIAL_LIMITS.map((l) => (
+                                    <button
+                                        key={String(l)}
+                                        type="button"
+                                        className={specialLimit === l ? 'on' : undefined}
+                                        aria-pressed={specialLimit === l}
+                                        onClick={() => setSpecialLimit(l)}
+                                    >
+                                        {l === 0
+                                            ? t('duel.specials.none')
+                                            : l === null
+                                              ? t('duel.specials.free')
+                                              : t('duel.specials.upTo3')}
+                                    </button>
+                                ))}
+                            </div>
+                            <small className="muted">{t('duel.specials.hint')}</small>
+                        </fieldset>
+                    )}
+                    <fieldset className="duel-speeds">
+                        <legend className="bc-lbl">{t('duel.speedLabel')}</legend>
+                        <div className="bc-seg segmented">
+                            {DUEL_SPEEDS.map((sp) => (
+                                <button
+                                    key={String(sp)}
+                                    type="button"
+                                    className={speed === sp ? 'on' : undefined}
+                                    aria-pressed={speed === sp}
+                                    onClick={() => setSpeed(sp)}
+                                >
+                                    {speedLabel(sp, t('match.highlights'))}
+                                </button>
+                            ))}
+                        </div>
+                        <small className="muted">{t('duel.speedHint')}</small>
+                    </fieldset>
+                    <fieldset className="duel-speeds">
+                        <legend className="bc-lbl">{t('duel.durationLabel')}</legend>
+                        <div className="bc-seg segmented">
+                            {DUEL_DURATIONS.map((du) => (
+                                <button
+                                    key={du}
+                                    type="button"
+                                    className={duration === du ? 'on' : undefined}
+                                    aria-pressed={duration === du}
+                                    data-testid={`duel-length-${du}`}
+                                    onClick={() => setDuration(du)}
+                                >
+                                    {d.duel.durations[du]}
+                                </button>
+                            ))}
+                        </div>
+                        <small className="muted">{t('duel.durationHint')}</small>
+                    </fieldset>
+                    <fieldset className="duel-speeds">
+                        <legend className="bc-lbl">{t('duel.bestOfLabel')}</legend>
+                        <div className="bc-seg segmented">
+                            {DUEL_BEST_OF.map((b) => (
+                                <button
+                                    key={b}
+                                    type="button"
+                                    className={bestOf === b ? 'on' : undefined}
+                                    aria-pressed={bestOf === b}
+                                    data-testid={`duel-bestof-${b}`}
+                                    onClick={() => setBestOf(b)}
+                                >
+                                    {d.duel.bestOf[b]}
+                                </button>
+                            ))}
+                        </div>
+                        <small className="muted">{t('duel.bestOfHint')}</small>
+                    </fieldset>
+                    <BetaNote />
+                </div>
+            </SheetRow>
+            <SheetRow
+                className="duel-join-row"
+                icon="addFriend"
+                label={t('duel.join.label')}
+                title={t('duel.join.label')}
             >
-                <label>
-                    <span className="muted">{t('duel.join.label')}</span>
-                    <input
-                        value={joinCode}
-                        maxLength={6}
-                        autoCapitalize="characters"
-                        autoComplete="off"
-                        spellCheck={false}
-                        placeholder="K7M2QX"
-                        onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                    />
-                </label>
-                <button type="submit" className="btn" disabled={!isRoomCode(joinCode)}>
-                    {t('duel.join.go')}
-                </button>
-            </form>
-        </div>
+                <form
+                    className="duel-join"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        if (isRoomCode(joinCode)) window.location.assign(duelLink(joinCode, local));
+                    }}
+                >
+                    <label>
+                        <span className="muted">{t('duel.lobby.codeLabel')}</span>
+                        <input
+                            value={joinCode}
+                            maxLength={6}
+                            autoCapitalize="characters"
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder="K7M2QX"
+                            data-autofocus
+                            onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                        />
+                    </label>
+                    <button type="submit" className="btn confirm" disabled={!isRoomCode(joinCode)}>
+                        {t('duel.join.go')}
+                    </button>
+                </form>
+            </SheetRow>
+        </DuelStage>
     );
 }
 
@@ -495,7 +557,8 @@ function VersionBanner({ s }: { s: Shared }) {
     );
 }
 
-function Lobby() {
+/** Sala de espera: o código grande pra mandar, os dois treinadores e o Pronto no polegar. */
+function Lobby({ head }: { head: ReactNode }) {
     const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
@@ -509,9 +572,25 @@ function Lobby() {
     const hasTeam = useHasReadyTeam();
     const noTeam = s.mode === 'ready' && !hasTeam;
     return (
-        <div className="duel-lobby">
-            <div className="duel-lobby-head bc-screenhead">
-                <h1>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</h1>
+        <DuelStage
+            head={head}
+            className={`duel-lobby${rivalIn ? ' full' : ''}`}
+            action={
+                <button
+                    type="button"
+                    className={`btn big ${s.ready[role] ? 'ghost' : 'primary'}`}
+                    data-testid="duel-ready"
+                    disabled={!rivalIn || !!mismatch || (noTeam && !s.ready[role])}
+                    onClick={() => {
+                        void duel.setReady(!s.ready[role]);
+                    }}
+                >
+                    {s.ready[role] ? t('duel.lobby.unready') : t('duel.lobby.imReady')}
+                </button>
+            }
+        >
+            <p className="duel-lobby-head">
+                <b>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</b>
                 <span className="bc-tag">
                     {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
                     {durationOf(s) === 'short' && ` · ${d.duel.durations.short}`}
@@ -525,7 +604,7 @@ function Lobby() {
                         </>
                     )}
                 </span>
-            </div>
+            </p>
             <InviteBox s={s} local={local} compact={rivalIn} />
             {sent && !rivalIn && (
                 <p
@@ -536,27 +615,15 @@ function Lobby() {
                     {t(`friends.challengeSent.${sent.status}`, { name: sent.trainer })}
                 </p>
             )}
-            {local && <p className="muted small">{t('duel.lobby.local')}</p>}
             <div className="duel-peers">
                 {(['host', 'guest'] as Role[]).map((r) => (
                     <PeerCard key={r} p={s.peers[r]} role={r} me={r === role} online={online[r]} ready={s.ready[r]} />
                 ))}
             </div>
             <VersionBanner s={s} />
-            <button
-                type="button"
-                className={`btn big ${s.ready[role] ? 'ghost' : 'primary'}`}
-                data-testid="duel-ready"
-                disabled={!rivalIn || !!mismatch || (noTeam && !s.ready[role])}
-                onClick={() => {
-                    void duel.setReady(!s.ready[role]);
-                }}
-            >
-                {s.ready[role] ? t('duel.lobby.unready') : t('duel.lobby.imReady')}
-            </button>
             {noTeam && <p className="error-text small">{t('duel.noTeam')}</p>}
-            <BetaNote />
-        </div>
+            {local && <p className="muted small duel-local">{t('duel.lobby.local')}</p>}
+        </DuelStage>
     );
 }
 
@@ -953,52 +1020,66 @@ export function Duel() {
         window.scrollTo(0, 0);
     }, [step, s?.game]);
 
+    const back = () => (active ? setAskLeave(true) : home());
+    // o cabeçalho das outras telas de menu; na partida o placar já diz onde se está
+    const head = <MenuHead title={t('duel.title')} hud="friends" onBack={back} />;
+    // o draft é palco sem o placar do cabeçalho: o voltar (que confirma) fica só na barra de cima
+    useMenuBackOf(step === 'draft' ? back : undefined);
+
+    // criar, entrar, a sala de espera e o draft são palco; time, escalação, partida e resultado seguem como página
     let body: React.ReactNode;
+    let staged = true;
     if (!peer) {
-        body = <DuelEntry code={code} />;
+        body = <DuelEntry code={code} head={head} />;
     } else if (status === 'full') {
         body = (
-            <div className="panel duel-center">
-                <h1>{t('duel.full')}</h1>
-                <p className="muted">{t('duel.fullText')}</p>
-            </div>
+            <DuelStage head={head}>
+                <div className="panel duel-center">
+                    <h1>{t('duel.full')}</h1>
+                    <p className="muted">{t('duel.fullText')}</p>
+                </div>
+            </DuelStage>
         );
     } else if (!code && !room) {
-        body = <CreateRoom peer={peer} local={local} />;
+        body = <CreateRoom peer={peer} local={local} head={head} />;
     } else if (!s || !role) {
-        body = <Connecting code={code ?? room ?? ''} status={status} />;
-    } else if (s.phase === 'lobby') body = <Lobby />;
-    else if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
+        body = (
+            <DuelStage head={head}>
+                <Connecting code={code ?? room ?? ''} status={status} />
+            </DuelStage>
+        );
+    } else if (s.phase === 'lobby') body = <Lobby head={head} />;
     else if (s.phase === 'draft') body = <DuelDraft s={s} role={role} />;
-    else if (s.phase === 'preview') body = <DuelPreview s={s} role={role} />;
-    else if (showMatch) body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
-    else body = <DuelResultView onHome={home} />;
-
-    const back = () => (active ? setAskLeave(true) : home());
+    else {
+        staged = false;
+        if (s.phase === 'team') body = <TeamPick s={s} role={role} />;
+        else if (s.phase === 'preview') body = <DuelPreview s={s} role={role} />;
+        else if (showMatch) body = <DuelMatch key={s.game} onSeeResult={() => setSeen(s.game)} />;
+        else body = <DuelResultView onHome={home} />;
+    }
 
     return (
         <div className="duel" data-phase={s?.phase ?? 'none'}>
-            {/* o cabeçalho das outras telas de menu; na partida o placar já diz onde se está */}
-            {step !== 'match' && <MenuHead title={t('duel.title')} hud="friends" onBack={back} />}
-            {room && (
+            {!staged && step !== 'match' && head}
+            {room && !staged && (
                 <div className="duel-top row">
                     <span className="muted">{t('duel.room', { code: room })}</span>
                     <button type="button" className="btn small ghost" onClick={back}>
                         {t('duel.leave')}
                     </button>
-                    <ConfirmSheet
-                        open={askLeave}
-                        onClose={() => setAskLeave(false)}
-                        title={t('duel.leaveTitle')}
-                        text={t('duel.leaveText')}
-                        confirm={t('duel.leaveYes')}
-                        onConfirm={() => leaveWith('leave', home)}
-                        quiet
-                    />
                 </div>
             )}
+            <ConfirmSheet
+                open={askLeave}
+                onClose={() => setAskLeave(false)}
+                title={t('duel.leaveTitle')}
+                text={t('duel.leaveText')}
+                confirm={t('duel.leaveYes')}
+                onConfirm={() => leaveWith('leave', home)}
+                quiet
+            />
             {s && role && <WaitBanner s={s} role={role} />}
-            {s && role && s.phase !== 'lobby' && <VersionBanner s={s} />}
+            {s && role && !staged && <VersionBanner s={s} />}
             {body}
             <LeaveConfirm />
         </div>

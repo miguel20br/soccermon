@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { create } from 'zustand';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { reduceMotionOn } from '../settings-sync';
+import { useDoor } from './wipe-store';
 
 /**
  * A porta da Sala de troféus (pedido do Miguel, 30/10): da Sede, a porta dupla de madeira chega perto, a tela troca
@@ -87,8 +87,6 @@ function DoorWipe({ onCovered, onDone }: { onCovered: () => void; onDone: () => 
         </div>
     );
 }
-
-const useDoor = create<{ cover: (() => void) | null; n: number }>(() => ({ cover: null, n: 0 }));
 
 /** Passa pela porta: `then` troca a tela quando a porta cobre tudo. Uma porta já tocando: o 2º toque não conta. */
 export function playDoor(then: () => void) {

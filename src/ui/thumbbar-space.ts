@@ -9,7 +9,13 @@ export function startThumbbarSpace() {
         if (bar?.isConnected) root.style.setProperty('--bc-thumb-h', `${(bar as HTMLElement).offsetHeight}px`);
         else root.style.removeProperty('--bc-thumb-h');
     };
-    const ro = new ResizeObserver(set);
+    // escreve no quadro seguinte: mudar a variável dentro da entrega redimensiona o palco (Stage, que também é observado)
+    // no mesmo quadro, e o navegador acusava "ResizeObserver loop" (Pronto na sala do Duelo)
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(set);
+    });
     const find = () => {
         const next = document.querySelector('.bc-thumbbar');
         if (next === bar) return;

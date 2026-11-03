@@ -65,6 +65,9 @@ export const home = {
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
     latest: 'Mais recente',
+    /** Novidades: o cartaz da versão nova leva pra lista inteira e pras versões antigas. */
+    newsAll: 'Ver tudo',
+    newsOld: 'Versões antigas',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */
@@ -88,10 +91,12 @@ export const home = {
         sedeTitle: 'Sede do clube',
         soonArcade: 'Arcade',
         ligaSoon: 'Liga · abre em {d}d',
+        /** O letreiro da Liga no muro da Arena, embaixo do nome. */
+        ligaSign: 'abre em {d}d',
         /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
         labGo: 'Abrir a Pokédex',
         labSeen: '{n} de {total} vistos',
-        labTalk: 'Faltam {n} pra completar a Pokédex de Kanto. Quem aparece no draft ou no time rival já conta.',
+        labTalk: 'Faltam {n} pra fechar a Pokédex. Draft e rival já contam.',
         labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
         /** O Duelo no seletor de modos do Estádio. */
@@ -108,6 +113,8 @@ export const home = {
         sedeBoard: 'Quadro de missões',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Seu 1º troféu fica aqui',
+        /** Plaquinha da vitrine (abre a Sala de troféus). */
+        sedeTrophies: 'Troféus',
         sedeTitles: '{n} título|{n} títulos',
         sedeKit: 'Escudo e uniforme',
         /** A estrela do nível na barra de cima. */
@@ -147,5 +154,37 @@ export const home = {
         soon: 'EM BREVE',
         arrives: 'Chega em {date}',
         backTo: 'Voltar pro {name}',
+    },
+    /** O letreiro de canal (src/ui/components/TvLayer.tsx): o bug e a faixa com o nome do programa. */
+    tv: {
+        channel: 'SMN',
+        programs: {
+            modes: 'Modos de jogo',
+            lab: 'Laboratório do Carvalho',
+            rota: 'Rota',
+            estadio: 'Estádio',
+            arena: 'Arena',
+            sede: 'Sede do clube',
+            draft: 'Draft',
+            lineup: 'Escalação',
+            match: 'Partida',
+            result: 'Resultado',
+            reward: 'Recompensa',
+            shop: 'Mercado',
+            map: 'Rota Índigo',
+            treino: 'Treino',
+            event: 'Evento da Rota',
+            group: 'Fase de grupos',
+            settings: 'Configurações',
+            credits: 'Créditos',
+            profile: 'Perfil',
+            help: 'Ajuda',
+            duel: 'Duelo',
+            daily: 'Copa do Dia',
+            liga: 'Liga',
+            'liga-match': 'Liga',
+            collection: 'Coleção',
+            trophies: 'Sala de troféus',
+        },
     },
 };

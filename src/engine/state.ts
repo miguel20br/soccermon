@@ -185,6 +185,10 @@ export interface TraitState {
     typeCopy: { types: TypeName[]; t: number } | null;
     /** Roar: fugindo para o próprio campo. */
     flee: { dir: Vec2; t: number } | null;
+    /** N1 Lutador: mão dormente, a próxima defesa dele não encaixa. */
+    numb: boolean;
+    /** N1 Pedra: segundos preso no lugar (não anda, ainda defende). */
+    root: number;
 }
 
 /** Zona no chão (Smokescreen, Fire Spin, muro do Barrier). */
@@ -358,7 +362,8 @@ export interface TeamRuntime {
 
 export interface MaxArm {
     idx: number;
-    until: number;
+    /** Só a bicuda do goleiro: vale até esse tick. O de linha fica armado até o próximo chute da zona (motor 19). */
+    until?: number;
     /** Bicuda: o chute do rival (`ShotInfo.tick`) a que o toque vale; acabou o chute, o pedido some sem gastar. */
     shot?: number;
     level: 1 | 2 | 3;
@@ -372,8 +377,8 @@ export interface AgencyRuntime {
     /** Goleiro-linha ligado agora (liga e desliga na hora). */
     flyGk: boolean;
     /**
-     * Golpe máximo pedido: quem (índice do capitão) e até que tick vale, armado esperando a hora certa (o chute da zona;
-     * o goleiro, a bicuda no próximo chute no gol que ele alcança).
+     * Golpe máximo pedido: quem (índice do capitão), armado esperando a hora certa (o próximo chute da zona, sem prazo;
+     * o goleiro, a bicuda no próximo chute no gol que ele alcança, até `until`).
      */
     max: MaxArm | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
@@ -445,7 +450,7 @@ export type MatchEvent = MatchEventBase &
         | {
               type: 'status';
               target: number;
-              status: StatusKind | 'infatuation' | 'flinch' | 'seed';
+              status: StatusKind | 'infatuation' | 'flinch' | 'seed' | MaxN1Fx;
               by: number | null;
               source: string;
           }
@@ -509,6 +514,8 @@ export type MatchEvent = MatchEventBase &
         | { type: 'timeout'; team: 0 | 1 }
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
+        /** Golpe máximo armado (`on`) ou cancelado sem gastar (intervalo, fim, capitão saiu, a bicuda que passou). */
+        | { type: 'maxArm'; team: 0 | 1; on: boolean }
         /**
          * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a bicuda do goleiro). Desde o motor 17 o motor solta
          * `hit` e `miss` (a bicuda com o toque fora: gasta a barra e vira a defesa de sempre); `start` era da defesa
@@ -534,6 +541,9 @@ export type MatchEvent = MatchEventBase &
     );
 
 export type MatchEventType = MatchEvent['type'];
+
+/** Efeitos do N1 do golpe máximo que não são status (`AGENCY.maxN1`): areia, teia, alto, mão dormente, preso, barra. */
+export type MaxN1Fx = 'blind' | 'web' | 'lift' | 'numb' | 'root' | 'drain';
 
 export type TraitFx =
     | 'crit'

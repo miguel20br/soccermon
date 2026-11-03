@@ -6,6 +6,7 @@ export const common: typeof pt = {
         skip: 'Skip',
         tapToContinue: 'Tap to continue',
         howItWorks: 'How it works',
+        seeAll: 'See all',
         prev: 'Previous',
         next: 'Next',
         close: 'Close',

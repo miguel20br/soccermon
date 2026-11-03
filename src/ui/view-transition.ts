@@ -1,6 +1,7 @@
 import { flushSync } from 'react-dom';
 import { setScreenWrap } from '../store/screen-transition';
 import { reduceMotionOn } from './settings-sync';
+import { tvCut } from './tv';
 
 /**
  * Nada teleporta (docs/planos/nada-teleporta.md) com View Transitions: a tela velha some enquanto a nova entra
@@ -54,7 +55,10 @@ export function run(apply: () => void, after?: () => void) {
 }
 
 export function startScreenTransitions() {
-    setScreenWrap((apply) => void run(apply));
+    // troca de tela é o corte de TV (ADR 0004); sem animar (Reduzir movimento, aba escondida), cai no `run`
+    setScreenWrap((apply) => {
+        if (!tvCut(apply)) void run(apply);
+    });
 }
 
 /** A carta `[data-fly=uid]` voa até onde ela aparece depois de `apply` (a vaga com `data-uid=uid`). */

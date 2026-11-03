@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { formationOf } from '../../engine/formations';
 import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
@@ -14,11 +14,12 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
-import { useFirstCup } from '../help/Tip';
 import { walkoutIndex } from '../kit/beats';
-import { SheetRow } from '../kit/controls';
+import { InfoSheet, SheetRow } from '../kit/controls';
 import { MomentStage, Walkout } from '../kit/MomentStage';
 import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
+import { reduceMotionOn } from '../settings-sync';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
 import '../shop.css';
@@ -49,7 +50,6 @@ export function Shop() {
     const [chosen, setChosen] = useState<number | null>(null);
     const [packPick, setPackPick] = useState<number | null>(null);
     const [sponsorsOpen, setSponsorsOpen] = useState(false);
-    const firstCup = useFirstCup();
     const { lang, t } = useT();
     const shop = run?.shop;
     if (run?.status !== 'shop' || !shop) return null;
@@ -80,11 +80,8 @@ export function Shop() {
             setChosen(null);
             setPackPick(null);
         } else {
+            // quem recebe (ou qual Patrocínio sai, com as vagas cheias) abre numa sheet
             setChosen(chosen === i ? null : i);
-            // no celular o painel de quem recebe fica embaixo da vitrine: rola até ele
-            requestAnimationFrame(() =>
-                document.querySelector('.reward-pick')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }),
-            );
         }
     };
     // Pokémon que já está no time (veio do pacote): não compra outro da mesma espécie
@@ -134,34 +131,104 @@ export function Shop() {
         );
     };
 
+    // o que entrou (vitória, gols, sem sofrer gol, Patrocínio, juros): a barra de cima conta o total; a conta fica no "?"
+    const earnedSheet = (
+        <InfoSheet title={t(e.win > 0 ? 'shop.earned.title' : 'shop.earned.titleInterest')}>
+            <ul className="shop-earned-list">
+                {earnedLines.map(([k, n]) => (
+                    <li key={k}>
+                        <span>{t(`shop.earned.${k}`)}</span>
+                        <b className="money">+{t('shop.money', { n })}</b>
+                    </li>
+                ))}
+            </ul>
+            <p className="muted">{t('shop.interestHint', { cap })}</p>
+        </InfoSheet>
+    );
+
     return (
         <>
-            {/* a fase e o ₽ ficam na barra da copa (revisao-caminho.md, itens 1 e 2) */}
-            <div className="draft-head bc-screenhead">
-                <div className="draft-title">
-                    <h1>{t('shop.title')}</h1>
+            {/* um palco que não rola (cara-de-jogo.md, Mercado): a vitrine numa prateleira e os Patrocínios na de baixo,
+                cada uma corre de lado com a seta. O ₽ e a fase ficam na barra da copa */}
+            <Stage
+                className="shop-stage"
+                action={
+                    <>
+                        {/* com o pacote aberto o Seguir espera; o momento por cima já diz "Escolha 1 carta do pacote"
+                            (a dica aqui mudava a altura da barra e a vitrine pulava atrás) */}
+                        {/* trocar a vitrine é o secundário (azul, à esquerda), como o Sortear da recompensa */}
+                        <button
+                            type="button"
+                            className="btn shop-reroll"
+                            aria-label={reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
+                            disabled={money < reroll || !!shop.pack}
+                            onClick={() => {
+                                rerollShop();
+                                setChosen(null);
+                            }}
+                        >
+                            <HudIcon kind="reroll" />
+                            {t('shop.rerollLabel')}
+                            <span className="bc-tag">
+                                {reroll === 0 ? t('shop.free') : t('shop.money', { n: reroll })}
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            className="btn confirm"
+                            disabled={!!shop.pack}
+                            onClick={() => {
+                                leaveShop();
+                            }}
+                        >
+                            {t('shop.leave')}
+                            <HudIcon kind="next" />
+                        </button>
+                    </>
+                }
+            >
+                <div className="draft-head bc-screenhead shop-head">
+                    <div className="draft-title">
+                        <h1>{t('shop.title')}</h1>
+                        {earnedLines.length > 0 && earnedSheet}
+                    </div>
                 </div>
-                <button
-                    type="button"
-                    className="btn small"
-                    disabled={money < reroll || !!shop.pack}
-                    onClick={() => {
-                        rerollShop();
-                        setChosen(null);
-                    }}
-                >
-                    <HudIcon kind="reroll" />
-                    {reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
-                </button>
-            </div>
+                {/* com o pacote aberto (o momento por cima) a vitrine fica atrás, sem foco nem toque */}
+                <div className="shop-shelves-wrap" inert={!!shop.pack}>
+                    {/* a vitrine: Contratações e Pacote e item lado a lado na mesma prateleira */}
+                    <Rail className="shop-rack" label={t('shop.title')}>
+                        <section className="shop-shelf">
+                            <h2 className="shop-shelf-title">{t('shop.shelf.mons')}</h2>
+                            <div className="shop-grid">{shelf(['pokemon']).map(offerTile)}</div>
+                        </section>
+                        <section className="shop-shelf">
+                            <h2 className="shop-shelf-title">{t('shop.shelf.gear')}</h2>
+                            {/* reward-pick3: o item e a MT no tamanho da carta, com o texto curto (as mesmas regras da recompensa) */}
+                            <div className="shop-grid reward-pick3">{shelf(['pack', 'item', 'tm']).map(offerTile)}</div>
+                        </section>
+                    </Rail>
+                    {/* os Patrocínios na prateleira de baixo (antes ficavam numa linha que abria a sheet); o nome
+                            dela abre as 3 vagas */}
+                    <section className="shop-shelf shop-sponsor-shelf">
+                        <button
+                            type="button"
+                            className="shop-shelf-title shop-sponsor-row"
+                            aria-haspopup="dialog"
+                            onClick={() => setSponsorsOpen(true)}
+                        >
+                            <HudIcon kind="briefcase" />
+                            <b>{t('shop.sponsors')}</b>
+                            <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
+                            <HudIcon kind="next" />
+                        </button>
+                        <Rail className="shop-sponsor-rail" label={t('shop.sponsors')}>
+                            {shelf(['sponsor']).map(offerTile)}
+                        </Rail>
+                    </section>
+                </div>
+            </Stage>
 
-            <p className="shop-earned">
-                {t(e.win > 0 ? 'shop.earned.title' : 'shop.earned.titleInterest')}{' '}
-                <b>+{t('shop.money', { n: earnedLines.reduce((sum, [, n]) => sum + n, 0) })}</b>
-                {firstCup && <span className="muted"> {t('shop.interestHint', { cap })}</span>}
-            </p>
-
-            {shop.pack ? (
+            {shop.pack && (
                 <PackMoment
                     pack={shop.pack}
                     label={packName}
@@ -204,94 +271,119 @@ export function Shop() {
                         )
                     }
                 />
-            ) : (
-                <>
-                    {/* prateleiras: Pokémon, pacote e item, Patrocínio (antes tudo junto numa grade só confundia) */}
-                    <div className="shop-shelves">
-                        <section className="shop-shelf">
-                            <h2 className="shop-shelf-title">{t('shop.shelf.mons')}</h2>
-                            <div className="shop-grid">{shelf(['pokemon']).map(offerTile)}</div>
-                        </section>
-                        <section className="shop-shelf">
-                            <h2 className="shop-shelf-title">{t('shop.shelf.gear')}</h2>
-                            <div className="shop-grid">{shelf(['pack', 'item', 'tm']).map(offerTile)}</div>
-                        </section>
-                        {/* patrocínios ocupavam meia tela: viram uma linha que abre a sheet (revisao-caminho.md item 8) */}
-                        <button
-                            type="button"
-                            className="shop-sponsor-row"
-                            aria-haspopup="dialog"
-                            onClick={() => setSponsorsOpen(true)}
-                        >
-                            <HudIcon kind="briefcase" />
-                            <b>{t('shop.sponsors')}</b>
-                            <span className="muted">{t('shop.slots', { n: sponsors.length })}</span>
-                            <HudIcon kind="next" />
-                        </button>
-                    </div>
+            )}
 
-                    <Sheet
-                        open={sponsorsOpen}
-                        onClose={() => {
-                            setSponsorsOpen(false);
-                            if (offer?.kind === 'sponsor') setChosen(null);
-                        }}
-                        title={`${t('shop.sponsors')} ${t('shop.slots', { n: sponsors.length })}`}
-                        className="shop-sponsor-sheet"
-                    >
-                        <p>{t('shop.sponsorsHint')}</p>
-                        {offer?.kind === 'sponsor' ? (
-                            <div className="reward-pick">
-                                <h3>{t('shop.full')}</h3>
-                                <SponsorSlots
-                                    sponsors={sponsors}
-                                    onPick={(id) => {
-                                        buyOffer(chosen!, id);
-                                        setChosen(null);
-                                    }}
-                                />
-                            </div>
-                        ) : (
-                            <>
-                                {shelf(['sponsor']).map(offerTile)}
-                                <SponsorSlots sponsors={sponsors} />
-                            </>
-                        )}
-                    </Sheet>
-                    {offer && offer.kind !== 'sponsor' && offer.kind !== 'pack' && (
-                        <GainTarget
-                            key={chosen}
-                            gain={offer}
-                            run={run}
-                            onClaim={(uid, slot, passTo) => {
-                                buyOffer(chosen!, uid, slot, passTo);
+            {/* as 3 vagas; com elas cheias, comprar outro abre aqui a escolha de quem sai */}
+            <Sheet
+                open={sponsorsOpen || offer?.kind === 'sponsor'}
+                onClose={() => {
+                    setSponsorsOpen(false);
+                    if (offer?.kind === 'sponsor') setChosen(null);
+                }}
+                title={`${t('shop.sponsors')} ${t('shop.slots', { n: sponsors.length })}`}
+                className="shop-sponsor-sheet"
+            >
+                <p>{t('shop.sponsorsHint')}</p>
+                {offer?.kind === 'sponsor' ? (
+                    <div className="reward-pick">
+                        <h3>{t('shop.full')}</h3>
+                        <SponsorSlots
+                            sponsors={sponsors}
+                            onPick={(id) => {
+                                buyOffer(chosen!, id);
                                 setChosen(null);
                             }}
                         />
-                    )}
-                </>
-            )}
-            {/* a ação que avança mora embaixo: Seguir. Com o pacote aberto ele espera a escolha (e diz por quê) */}
-            <div className="bc-thumbbar">
-                {shop.pack && (
-                    <p className="tb-hint" id="shop-leave-why">
-                        {t('shop.packPick')}
-                    </p>
+                    </div>
+                ) : (
+                    <SponsorSlots sponsors={sponsors} />
                 )}
-                <button
-                    type="button"
-                    className="btn confirm"
-                    disabled={!!shop.pack}
-                    aria-describedby={shop.pack ? 'shop-leave-why' : undefined}
-                    onClick={() => {
-                        leaveShop();
-                    }}
-                >
-                    {t('shop.leave')}
-                    <HudIcon kind="next" />
-                </button>
-            </div>
+            </Sheet>
+            {/* Pokémon, item e MT: quem sai do banco, quem segura ou quem aprende, numa sheet (fechar = desfazer) */}
+            <Sheet
+                open={!!offer && offer.kind !== 'sponsor' && offer.kind !== 'pack'}
+                onClose={() => setChosen(null)}
+                title={
+                    offer?.kind === 'pokemon'
+                        ? t('reward.whoLeaves')
+                        : offer?.kind === 'tm'
+                          ? t('reward.whoLearns')
+                          : t('reward.whoHolds')
+                }
+                className="reward-sheet"
+            >
+                {offer && offer.kind !== 'sponsor' && offer.kind !== 'pack' && (
+                    <GainTarget
+                        key={chosen}
+                        gain={offer}
+                        run={run}
+                        onClaim={(uid, slot, passTo) => {
+                            buyOffer(chosen!, uid, slot, passTo);
+                            setChosen(null);
+                        }}
+                    />
+                )}
+            </Sheet>
         </>
+    );
+}
+
+/**
+ * Prateleira que corre de lado (padrão da loja do Balatro): o que não cabe fica à direita e a seta lateral leva até lá
+ * (arrastar também). As setas só aparecem quando há o que ver daquele lado.
+ */
+function Rail({ children, className = '', label }: { children: ReactNode; className?: string; label: string }) {
+    const { t } = useT();
+    const track = useRef<HTMLDivElement>(null);
+    const [edge, setEdge] = useState({ prev: false, next: false });
+    const sync = useCallback(() => {
+        const el = track.current;
+        if (!el) return;
+        const prev = el.scrollLeft > 4;
+        const next = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+        setEdge((o) => (o.prev === prev && o.next === next ? o : { prev, next }));
+    }, []);
+    useLayoutEffect(() => {
+        const el = track.current;
+        if (!el || typeof ResizeObserver === 'undefined') return;
+        sync();
+        const ro = new ResizeObserver(sync);
+        ro.observe(el);
+        for (const c of Array.from(el.children)) ro.observe(c);
+        return () => ro.disconnect();
+    }, [sync]);
+    const step = (dir: -1 | 1) =>
+        track.current?.scrollBy({
+            left: dir * track.current.clientWidth * 0.8,
+            behavior: reduceMotionOn() ? 'auto' : 'smooth',
+        });
+    return (
+        <div className={`shop-rail ${className}`}>
+            {/* biome-ignore lint/a11y/useSemanticElements: prateleira (rolagem de lado); fieldset traria estilo de formulário */}
+            <div className="shop-rail-track" ref={track} onScroll={sync} role="group" aria-label={label}>
+                {children}
+            </div>
+            <button
+                type="button"
+                className={`shop-rail-arrow prev${edge.prev ? ' on' : ''}`}
+                aria-label={t('common.ui.prev')}
+                tabIndex={edge.prev ? 0 : -1}
+                aria-hidden={!edge.prev}
+                onClick={() => step(-1)}
+            >
+                <HudIcon kind="prev" />
+            </button>
+            <button
+                type="button"
+                className={`shop-rail-arrow next${edge.next ? ' on' : ''}`}
+                aria-label={t('common.ui.next')}
+                tabIndex={edge.next ? 0 : -1}
+                aria-hidden={!edge.next}
+                onClick={() => step(1)}
+            >
+                <HudIcon kind="next" />
+            </button>
+        </div>
     );
 }
 

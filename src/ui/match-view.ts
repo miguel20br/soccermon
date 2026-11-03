@@ -26,13 +26,13 @@ export const STATUS_SHORT: Record<number, string> = {
 
 /**
  * O botão do golpe máximo fica aceso esse tanto depois da hora certa passar (0,3 s de jogo, ~1,2 s na câmera lenta): o
- * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (`AGENCY.maxArmTicks`)
- * e a bola procura o capitão.
+ * capitão entra e sai da zona driblando e o botão piscava. Tocou nesse resto, a ordem fica armada (até o próximo chute da
+ * zona, motor 19) e a bola procura o capitão.
  */
 export const MAX_CUE_LATCH = 6;
 /**
  * E acende esse tanto antes da hora certa (0,3 s de jogo): o toque um pouco cedo, já na câmera lenta, não se perde. O
- * motor deixa a ordem armada (`AGENCY.maxArmTicks`) e o golpe sai no próximo chute ou defesa da zona; a ordem leva o
+ * motor deixa a ordem armada (até o chute, motor 19) e o golpe sai no próximo chute ou defesa da zona; a ordem leva o
  * tick do toque, então a partida continua a mesma em todo lugar.
  */
 export const MAX_CUE_EARLY = 6;
@@ -70,6 +70,21 @@ export function maxCueNear(
     for (let t = from; t <= to; t += snapshotEvery)
         if (maxCue(snapAt(snaps, t), team, capIdx, capRole, pitch)) return true;
     return false;
+}
+
+/**
+ * Tick em que vale a ordem do golpe máximo da Copa: o snapshot seguinte ao quadro da tela (`snapshotEvery`). A ordem do
+ * tick T vale no começo dele, com o estado do snapshot T: com o capitão de linha com a bola na zona nesse snapshot, a
+ * IA chuta no mesmo tick (`AIController.carrier`) e o golpe sai em T+1. Olhar o quadro exato é o que deixa o botão
+ * aceso só com o chute certo (Miguel, 02/11/2026: "a bola já não tava mais no pé do meu capitão").
+ */
+export const maxOrderTick = (tick: number) => Math.ceil(tick / FUTSAL_5.snapshotEvery) * FUTSAL_5.snapshotEvery;
+
+/** Chute certo do capitão de linha `capIdx` com a ordem no `maxOrderTick(tick)`: a bola no pé dele na zona nesse snapshot. */
+export function maxCertain(snaps: MatchSnapshot[], tick: number, team: 0 | 1, capIdx: number, capRole: Position) {
+    const at = maxOrderTick(tick);
+    const snap = snaps.length ? snapAt(snaps, at) : null;
+    return !!snap && snap.tick === at && maxCue(snap, team, capIdx, capRole, FUTSAL_5.pitch);
 }
 
 /** O passe no ar não apaga o "chamar o capitão": vale o último dono da bola nesse tanto de ticks (2 s). */

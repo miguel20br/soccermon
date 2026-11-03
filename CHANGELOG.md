@@ -1,5 +1,157 @@
 # Novidades
 
+## 0.9.37 · No ar (2026-11-02)
+
+### Transmissão
+- Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade
+- Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida
+- Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE
+- Arrastar entre as telas no celular continua igual
+
+## 0.9.36 · Lab, Sede e Créditos (2026-11-02)
+
+### Lab e Sede
+- Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex
+- Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador
+- A missão da Sede numa placa com a barra de progresso
+
+### Copa
+- Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos
+- Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo
+- Mercado: Novas ofertas com a etiqueta grátis também no celular
+
+### Menus
+- Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar
+- Liga numa placa na parede da Arena
+- Com copa em andamento, o modo aparece no lugar do Continuar repetido
+
+## 0.9.35 · Prancheta no draft (2026-11-02)
+
+### Draft
+- Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição
+- No celular em pé a prancheta fica deitada, com o gol à esquerda
+- As 3 cartas cabem inteiras em qualquer tela
+
+### Menus
+- Fim de copa com o Nova copa como o único botão grande
+- Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar
+- Verde é só pra confirmar: botões que só levam a outra tela ficam azuis
+- Configurações com título e abas curtas
+
+## 0.9.34 · Tudo à vista (2026-11-02)
+
+### Partida
+- No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado
+- O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar
+- No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)
+
+### Copa
+- Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver
+- Draft mostra o seu time numa quadrinha junto das 3 escolhas
+- Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar
+
+## 0.9.33 · Partida de TV (2026-11-02)
+
+### Partida
+- No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo
+- Tática, Trocar, Tempo e Lances abrem cada um a sua janela. A página não rola mais
+- Narração como legenda de TV embaixo da quadra
+- No 4x e no 8x a quadra fica entre as duas torcidas
+- Intervalo com placar de TV e placa de substituição
+
+### Copa
+- Escalação com placas na parede: o cartaz do rival, o quadro da tática e a prancheta da formação
+- Mercado com o ₽ contando na entrada e as cartas em prateleiras
+- Treino da Rota numa quadra: toque em quem treina ou deite no colchonete
+- Evento com a caixa de diálogo e Grupo com placar de TV
+
+### Duelo e Arena
+- Draft do Duelo com a mesma cara do draft da Copa, sem rolar
+- Duelo, Liga e Copa do Dia cabem com o celular deitado
+
+### Coleção e avisos
+- Pokédex com seletor no lugar das pílulas, e o Prof. Carvalho na Pokédex vazia
+- Treinador desbloqueado aparece num selo na volta pro menu, não no meio da comemoração
+- A dica da formação não cobre mais as palavras
+
+## 0.9.32.1 · Ícone do pacote de tipo (2026-11-02)
+
+### Conserto
+- O ícone do tipo voltou a aparecer no pacote de tipo
+
+## 0.9.32 · Cara de jogo (2026-11-02)
+
+### Arena
+- Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande
+- Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra
+- Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra
+
+### Perfil
+- Perfil virou armário: cartão, missões e 6 portas, sem rolar
+- Sala de troféus em tela cheia. Toque num objeto pra ver a ficha
+- Treinadores viraram figurinhas
+
+### Draft
+- Formação em carrossel, uma quadra grande por vez
+- Escolha 1 de 3 sem rolar a tela
+- Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando
+- Textos de regra mais curtos
+
+### Menus
+- Novidades num cartaz, com as versões antigas numa lista
+- Configurações em abas, cada opção numa linha
+- Resgatar código foi pras Configurações
+
+## 0.9.31 · Golpe máximo de verdade (2026-11-02)
+
+### Golpe máximo
+- N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol
+- Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada
+- O gol aparece inteiro do chute até a bola chegar, em qualquer câmera
+- O alvo acende verde no perfeito, e o botão do golpe não pisca mais
+- Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também
+- O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio
+- Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival
+- Bola com rastro e partículas do tipo, mais forte a cada nível
+
+### N1 por tipo
+- Psíquico: confunde ⇒ faz dormir
+- Normal: derruba ⇒ faz recuar
+- Planta: faz dormir ⇒ planta a semente (Leech Seed)
+- Terrestre: derruba ⇒ areia nos olhos (Sand Attack)
+- Inseto: envenena ⇒ prende na teia (String Shot)
+- Água: derruba ⇒ leva 2 m pra trás
+- Voador: confunde ⇒ joga pro alto
+- Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote
+- Pedra: derruba ⇒ preso no lugar por 2 s
+- Dragão: paralisa ⇒ tira 5 pontos da barra do time rival
+- Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais
+
+### Golpe máximo explicado
+- Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão
+- Seção Golpe máximo na ficha de cada Pokémon
+- Ajuda, Como jogar e um balão de primeira vez sobre o golpe
+
+### Capitão e câmera
+- Troque o capitão na Tática, entre as partidas
+- Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz
+
+### Cara de jogo
+- Fim de partida em tela cheia, com placar, ₽, craque e próximo rival
+- Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta
+- Recompensa com as 3 opções do mesmo tamanho, sem rolar
+- Pacote do Mercado em tela cheia, com o walkout pra carta ouro
+- Resultado e Eliminado sem rolar
+- Seletor ‹ valor › no lugar das listas e do volume
+- Fim do Duelo com a mesma tela do fim de partida
+- No PC, essas telas crescem e ocupam a tela
+- Walkout completo na 1ª carta ouro do dia; nas outras, mais curto
+- Ajuda com gavetas no lugar das listas que abriam
+
+### Menu de modos
+- Modo Copa agora é Modo Clássico
+- Time Ultimate e Modo História em preto e branco até chegarem
+
 ## 0.9.30.1 · Menu de modos mais claro (2026-11-01)
 
 ### Menu de modos

@@ -1,0 +1,379 @@
+/*
+ * Perfil como armário (src/ui/screens/Profile.tsx, cara-de-jogo.md decisão 9): o cartão do treinador, a barra das
+ * missões e as portas, sem rolar. Editar abre Sheet.
+ */
+.pf-arm .k-stage-body {
+    width: min(560px, 100%);
+    margin: 0 auto;
+    gap: 10px;
+}
+.pf-arm .pf-head {
+    grid-template-columns: auto minmax(0, 1fr);
+    animation: pf-arm-in 260ms var(--ease-out) both;
+}
+/* a vitrine de cartas desce pra linha dela, centralizada (o cartão aqui é estreito) */
+.pf-arm .pf-cards,
+.pf-arm .pf-cards-empty {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
+.pf-arm .pf-cards {
+    container-type: inline-size;
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+    padding: 0;
+}
+.pf-arm .pf-cards .fut-wrap.sm {
+    --fut-w: min(104px, calc((100cqi - 16px) / 3));
+}
+.pf-arm .pf-cards li:is(:first-child, :last-child):not(:only-child) {
+    rotate: none;
+    translate: none;
+}
+.pf-arm .pf-cards li + li {
+    margin-left: 0;
+}
+.pf-arm .pf-cards-empty {
+    width: auto;
+    grid-auto-flow: column;
+    padding: 8px 12px;
+}
+
+/* o fundo: o vestiário da Sede (parede de madeira, varal do clube, piso), na tela toda e escurecido */
+.pf-arm > .k-stage-scene {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    --mi: 2px;
+    background: #0d1129;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .pf-arm > .k-stage-scene {
+        --mi: 3px;
+    }
+}
+.pf-arm-wall,
+.pf-arm-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+.pf-arm-wall {
+    top: 0;
+    height: 46%;
+    border-bottom: calc(var(--mi) * 3) solid #efe6d6;
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 22%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        linear-gradient(180deg, #5e3e31, #7b5240 70%, #4e3226);
+}
+.pf-arm-floor {
+    top: 46%;
+    bottom: 0;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 20%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #9a6a45 0 calc(var(--mi) * 23),
+            #8e603d calc(var(--mi) * 23) calc(var(--mi) * 24)
+        );
+}
+/* o olho fica no cartão e nas portas, não na madeira */
+.pf-arm > .k-stage-scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(120% 80% at 50% 45%, rgb(8 10 28 / 45%), rgb(8 10 28 / 82%));
+}
+.pf-arm-flags {
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    top: calc(var(--mi) * 46);
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--mi) solid #2a1a14;
+}
+.pf-arm-flags li {
+    width: calc(var(--mi) * 8);
+    height: calc(var(--mi) * 9);
+    background: var(--club);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.pf-arm-flags li:nth-child(even) {
+    background: var(--club2, #fff);
+}
+
+/* nome e avatar: tocar edita (Sheet) */
+.pf-edit {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.pf-edit:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+/* o nome é botão: o padding leva o toque a 44 px e a margem negativa devolve o lugar */
+.pf-name {
+    display: block;
+    max-width: 100%;
+    padding-block: 13px;
+    margin-block: -13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-decoration: underline dotted color-mix(in srgb, var(--text), transparent 60%);
+    text-underline-offset: 4px;
+}
+.pf-duo.pf-edit .new-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* missões: uma linha com a barra */
+.pf-arm-missions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    min-height: 44px;
+    animation: pf-arm-in 260ms var(--ease-out) 60ms both;
+}
+.pf-arm-missions b {
+    font-size: 13px;
+    white-space: nowrap;
+}
+.pf-arm-missions .k-bar {
+    width: 100%;
+}
+.pf-arm-missions .door-count {
+    margin: 0;
+}
+
+/* as portas do armário */
+.pf-lockers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.pf-locker {
+    position: relative;
+    min-height: 52px;
+    padding: 6px 10px;
+    animation: pf-arm-in 260ms var(--ease-out) both;
+}
+.pf-locker:nth-child(1),
+.pf-locker:nth-child(2) {
+    animation-delay: 100ms;
+}
+.pf-locker:nth-child(3),
+.pf-locker:nth-child(4) {
+    animation-delay: 140ms;
+}
+.pf-locker:nth-child(5),
+.pf-locker:nth-child(6) {
+    animation-delay: 180ms;
+}
+.pf-locker-ic {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+}
+.pf-locker-ic > :is(svg, img) {
+    width: 32px;
+    height: 32px;
+}
+.pf-locker-ic .trainer-sprite {
+    width: 40px;
+    height: 40px;
+}
+.pf-locker-txt {
+    flex: 1;
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+    text-align: left;
+}
+.pf-locker b {
+    line-height: 1.15;
+}
+.pf-locker .door-count {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+}
+.pf-locker .new-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+/* tela baixa (celular pequeno): a vitrine e o cartão encolhem pra caber sem rolar */
+@media (max-height: 640px) and (orientation: portrait) {
+    .pf-arm .k-stage-body {
+        gap: 8px;
+    }
+    .pf-arm .pf-head {
+        padding: 10px 12px;
+        gap: 6px 10px;
+    }
+    .pf-arm .pf-duo,
+    .pf-arm .pf-duo-trainer {
+        width: 64px;
+        height: 64px;
+    }
+    .pf-arm .pf-cards .fut-wrap.sm {
+        --fut-w: min(64px, calc((100cqi - 16px) / 3));
+    }
+    /* sem carta na vitrine: o convite sai (o Álbum continua na porta da Coleção) */
+    .pf-arm .pf-cards-empty {
+        display: none;
+    }
+    .pf-arm .pf-who {
+        gap: 2px;
+    }
+    .pf-arm .pf-who h2 {
+        font-size: 17px;
+    }
+    .pf-locker,
+    .pf-arm-missions {
+        min-height: 40px;
+        padding-block: 4px;
+    }
+    .pf-locker b {
+        font-size: 12px;
+    }
+    .pf-lockers {
+        gap: 6px;
+    }
+}
+
+/* deitado e PC: o cartão à esquerda, missões e portas à direita */
+@media (orientation: landscape) and (min-width: 700px) {
+    .pf-arm .k-stage-body {
+        width: min(980px, 100%);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-content: center;
+        column-gap: 14px;
+    }
+    .pf-arm .pf-head {
+        grid-row: 1 / 3;
+        align-self: center;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .pf-arm .pf-cards .fut-wrap.sm {
+        --fut-w: min(84px, calc((100cqi - 16px) / 3));
+    }
+    .pf-arm .pf-head {
+        padding: 10px 12px;
+    }
+    .pf-locker,
+    .pf-arm-missions {
+        min-height: 44px;
+    }
+}
+
+/* as Sheets do Perfil: lista de missões perto de sair */
+.pf-sheet {
+    width: min(560px, 100%);
+}
+.pf-near {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pf-near li {
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+}
+
+/* figurinhas dos treinadores: a ficha do tocado em cima, a grade embaixo */
+.pf-figs {
+    display: grid;
+    gap: 10px;
+}
+.pf-fig-card {
+    position: sticky;
+    top: -20px;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 var(--bc-ink);
+}
+.pf-fig-card .trainer-sprite {
+    width: 72px;
+    height: 72px;
+}
+.pf-fig-card > div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+.pf-fig-card .pf-gold-seal {
+    position: static;
+    justify-self: start;
+}
+.pf-fig-grid {
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+.pf-fig-grid .pf-trainer {
+    width: 100%;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 6px 2px;
+}
+.pf-fig-grid .pf-trainer b {
+    font-size: 11px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pf-fig-grid .pf-trainer.picked {
+    outline: 2px solid var(--yellow);
+    outline-offset: 1px;
+}
+.pf-gen-block {
+    display: grid;
+    gap: 8px;
+}
+@keyframes pf-arm-in {
+    from {
+        opacity: 0;
+        translate: 0 10px;
+    }
+}

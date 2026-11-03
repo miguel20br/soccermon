@@ -29,6 +29,8 @@ export function useMedia(query: string): boolean {
             return () => m.removeEventListener('change', cb);
         },
         () => window.matchMedia(query).matches,
+        // render do servidor (testes): sem tela, nenhuma consulta bate
+        () => false,
     );
 }
 

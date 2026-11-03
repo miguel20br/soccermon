@@ -113,6 +113,33 @@ export function OptionTile({
 }
 
 /**
+ * "Ver tudo" do placar de TV (cara-de-jogo.md, padrão 8): a tela mostra 3 números por vez; o resto abre numa Sheet.
+ */
+export function SeeAll({ title, children }: { title: string; children: ReactNode }) {
+    const [open, setOpen] = useState(false);
+    const { t } = useT();
+    return (
+        <>
+            <button
+                type="button"
+                className="k-seeall"
+                aria-haspopup="dialog"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(true);
+                }}
+            >
+                {t('common.ui.seeAll')}
+                <HudIcon kind="next" />
+            </button>
+            <Sheet open={open} onClose={() => setOpen(false)} title={title}>
+                {children}
+            </Sheet>
+        </>
+    );
+}
+
+/**
  * Info "?" (InfoSheet, cara-de-jogo.md peça 5): na tela fica só o botão-ícone; a regra inteira abre numa Sheet. Na
  * tela, no máximo ~12 palavras; o resto mora aqui.
  */
@@ -157,7 +184,7 @@ export function SheetRow({
     children,
     className = '',
 }: {
-    icon?: HudIconKind;
+    icon?: HudIconKind | ReactNode;
     label: ReactNode;
     hint?: ReactNode;
     title: string;
@@ -173,7 +200,7 @@ export function SheetRow({
                 aria-haspopup="dialog"
                 onClick={() => setOpen(true)}
             >
-                {icon && <HudIcon kind={icon} />}
+                {typeof icon === 'string' ? <HudIcon kind={icon as HudIconKind} /> : icon}
                 <b>{label}</b>
                 {hint && <span className="muted">{hint}</span>}
                 <HudIcon kind="next" />

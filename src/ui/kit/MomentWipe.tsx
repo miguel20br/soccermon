@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
-import { create } from 'zustand';
 import { Logo } from '../components/LogoHits';
 import { reduceMotionOn } from '../settings-sync';
+import { useMoment } from './wipe-store';
 
 /**
  * Transição de momento (ideia do Miguel, 26/10; protótipo no ?lab=kit): uma linha amarela desce na diagonal do canto
@@ -145,12 +145,6 @@ export function MomentWipe({
 
 /** Quanto a linha leva pra cobrir a tela: quem emenda numa animação própria (a câmera do túnel) começa antes. */
 export const WIPE_IN_MS = IN_MS;
-
-const useMoment = create<{ art: WipeArt; cover: (() => void) | null; n: number }>(() => ({
-    art: 'bola',
-    cover: null,
-    n: 0,
-}));
 
 /**
  * Toca a transição de momento por cima de tudo e chama `then` quando a tela estiver coberta (a hora de trocar o que

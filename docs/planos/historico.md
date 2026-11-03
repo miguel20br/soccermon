@@ -6,6 +6,34 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.37 · No ar (02/11/2026)
+
+O Miguel comparou o protótipo `?lab=tv` e aprovou tudo: corte de TV diagonal como transição padrão (280 ms, fade com reduzir movimento; ADR 0004 atualizado), letreiro do canal (bug SMN + faixa da tela, AO VIVO na partida, procura lugar sem cobrir controle) e o menu Smash simplificado com toques de TV. A grade de programação saiu. Arrastar entre abas no celular intacto (passo novo na fumaça).
+
+## 0.9.36 · Lab, Sede e Créditos (02/11/2026)
+
+Cara de jogo: Lab e Sede com objetos da cena (SceneHotspot) no lugar dos botões azuis, Créditos rolando com sprites e a ultima-partida, placar de TV no Grupo e no Campeão (Ver tudo em Sheet), letreiro da Liga na Arena, achados 20 a 22 da hierarquia. Protótipo `?lab=tv` (corte diagonal, letreiro de canal, grade de programação) só em dev e prévia, pra o Miguel comparar; ele quer o menu Smash mais simples com toques de TV e manter o arrastar entre telas.
+
+## 0.9.35 · Prancheta no draft (02/11/2026)
+
+O Miguel achou feia a grade de mini cartas do draft no PC: na escolha 1 de 3 o time é a mesma prancheta (FormationBoard) do passo de posição, deitada no celular em pé. Revisão de hierarquia (achados em pesquisa de 02/11): Nova copa único botão grande, títulos 22/26 px em caixa normal, Galmuri14 sem negrito sintético, verde só confirma e azul navega, toque 44 px, texto ≥11 px; brand guide atualizado. Liga deployada no motor 19.
+
+## 0.9.34 · Tudo à vista (02/11/2026)
+
+O Miguel não gostou da partida de TV no PC nem de tática e formação escondidas em sheets: volta o painel antigo da partida no PC (desfaz da8cd9e4), Escalação com táticas, formações e escanteio abertos, draft com o time numa quadrinha, fim de partida rolando de novo (Destaque, evoluções, estatísticas) e o botão do golpe máximo na Copa só com a bola no pé do capitão (sem o "chamar"); motor 19: a ordem do golpe fica armada até o próximo chute do capitão (conserta o Duelo).
+
+## 0.9.33 · Partida de TV (02/11/2026)
+
+Cara de jogo fase 3: partida no PC com o layout do celular (barra de 4 botões, Sheets, legenda de TV), torcida em volta da quadra no 4x/8x, intervalo em placar de TV; Escalação com placas, Mercado com prateleiras, Treino/Evento/Grupo da Rota em cena; draft do Duelo no palco; Arena deitada sem rolar; Coleção com seletor; desbloqueio como selo.
+
+## 0.9.31 e 0.9.32 · Golpe máximo de verdade e Cara de jogo (02/11/2026)
+
+0.9.31: N1–N3 novos, N1 por tipo, goleiro só espalma golpe máximo, câmera descentralizada, cara de jogo fase 1 (kit). 0.9.32: fase 2 da cara de jogo (escopo C) com Duelo, Liga e Copa do Dia na Arena; Perfil armário; Sala de troféus em tela cheia; Novidades cartaz; Configurações em abas; Draft sem rolar, formação em carrossel e dicas sem véu.
+
+## 0.9.30 e 0.9.30.1 · Golpe universal (01/11/2026)
+
+No ar: 0.9.30 "Golpe universal" (bicuda do goleiro capitão, pedras na Rota) e 0.9.30.1 (menu de modos sem pisca, EM BREVE claro). Motor 17 (`liga` 17).
+
 ## 0.9.29 · Rota nova (31/10/2026)
 
 No ar: 0.9.29 "Rota nova" (Rota redesenhada: ramos com tipo, prêmio à vista, rival em todo Jogo + prêmio, Ginásio +2, até 2 Mercados, Centro Pokémon, 6 eventos novos; menu de modos estilo Smash com Time Ultimate e selos EM BREVE; pênaltis com o chute no menu e a câmera com o gol). Motor 16 (`liga` 16).

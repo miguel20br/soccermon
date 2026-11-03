@@ -53,18 +53,17 @@ import type { TrainerId } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
+import { FinalCard } from '../components/FinalCard';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
     type CoachTab,
     CoachTabs,
-    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
-    ResultButton,
     Scoreboard,
     subSuggestion,
     TacticControls,
@@ -545,7 +544,8 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         capType: capTypeAt(match, setups, side, clock.tick),
         bicuda: capIsGk(match, setups, side, clock.tick),
     };
-    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada `AGENCY.maxArmTicks`
+    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada até o próximo chute do
+    // capitão da zona (motor 19) e o botão mostra "armado" até sair (`maxArmedAt`)
     const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
     const capPlan = agency ? captainPlan(match, setups, side, clock.tick) : null;
     const tactics = agency ? (
@@ -645,9 +645,6 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
-                        {ended && !auto.held && (
-                            <FinalBanner score={clock.score} shootout={shootout} side={side} names={teamNames} />
-                        )}
                         <PlayerInspect
                             match={match}
                             setups={setups}
@@ -841,7 +838,16 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             </div>
                         </fieldset>
                     ) : (
-                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} />
+                        // a mesma cartela do fim de partida da Copa (placar, craque do seu lado); só mostra
+                        <FinalCard
+                            score={clock.score}
+                            shootout={shootout}
+                            names={teamNames}
+                            colors={colors}
+                            liga={false}
+                            duel={{ side, match, label: t('duel.match.seeResult') }}
+                            onGo={onSeeResult}
+                        />
                     )}
                     {wide ? (
                         <EmoteBar captain={captains[side]} />

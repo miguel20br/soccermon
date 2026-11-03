@@ -1,4 +1,4 @@
-import { Children, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { Children, type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
 import { playSfx } from '../../game/audio';
 import { reduceMotionOn } from '../settings-sync';
 import { beatTimes } from './beats';
@@ -44,8 +44,22 @@ export function useCascade(gaps: readonly number[], { sound = true } = {}) {
 }
 
 /** Uma batida da cascata: guarda o lugar (nada empurra nada quando ela entra) e entra com pop quando `on`. */
-export function Beat({ on, children, className = '' }: { on: boolean; children: ReactNode; className?: string }) {
-    return <div className={`k-beat${on ? ' on' : ''} ${className}`}>{children}</div>;
+export function Beat({
+    on,
+    children,
+    className = '',
+    style,
+}: {
+    on: boolean;
+    children: ReactNode;
+    className?: string;
+    style?: CSSProperties;
+}) {
+    return (
+        <div className={`k-beat${on ? ' on' : ''} ${className}`} style={style}>
+            {children}
+        </div>
+    );
 }
 
 /** Cascata pronta: cada filho é uma batida; tocar em qualquer lugar dela pula pro fim. */

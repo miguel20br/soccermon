@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { DRAFT_PICKS } from '../../engine/draft';
 import { countSpecials, type SpecialLimit, teamRecipe, validarTimeDuelo } from '../../engine/duel-validate';
 import { FORMATIONS, type FormationId } from '../../engine/formations';
@@ -24,10 +24,14 @@ import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
 import { FutCard } from '../components/FutCard';
+import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 import { lineupAverage } from '../rating';
+import { DraftTeam } from '../screens/Draft';
 import { LineupEditor } from '../screens/Lineup';
-import { reduceMotionOn } from '../settings-sync';
+import '../draft.css';
 import { seriesLabel, useCountdown } from './DuelMatch';
 import { ReadyBar } from './ReadyBar';
 
@@ -186,10 +190,10 @@ const slotOfRound = (round: number): SlotRef =>
     round >= 1 && round <= 5 ? { zone: 'lineup', index: round - 1 } : { zone: 'bench', index: round === 0 ? 0 : 1 };
 
 /**
- * Draft do duelo, no visual do draft da copa (quadra com as vagas + pacote com as cartas): os dois andam rodada a
- * rodada. A rodada abre quando os dois abrem o segredo dela (a seed dos pacotes sai daí). Disputa: 4 cartas abertas,
- * um tira e o outro tira (as 2 que sobram queimam). Cada um com seus pacotes: 3 cartas pra cada, a escolha vai
- * lacrada e só abre no fim.
+ * Draft do duelo, no palco do draft da copa (cara-de-jogo.md): as cartas 1 de 3 sem rolar, o time em miniatura em
+ * cima (tocar abre a quadra numa sheet) e a vez/cronômetro no polegar. Os dois andam rodada a rodada. A rodada abre
+ * quando os dois abrem o segredo dela (a seed dos pacotes sai daí). Disputa: 4 cartas abertas, um tira e o outro
+ * tira (as 2 que sobram queimam). Cada um com seus pacotes: 3 cartas pra cada, a escolha vai lacrada e só abre no fim.
  */
 export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const { t, d } = useT();
@@ -198,6 +202,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     const rival = s.peers[rivalRole]?.name ?? '';
     const packPicks = useDuel((v) => v.packPicks);
     const [view, setView] = useState<Role>(role);
+    const [teamOpen, setTeamOpen] = useState(false);
     const disputa = s.mode === 'disputa';
     const round = Math.min(draft.round, DRAFT_PICKS - 1);
     const seed = draft.seeds[draft.round];
@@ -221,20 +226,15 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
     // Disputa: o que o rival tirou nesta rodada e o que queimou na anterior
     const rivalTook = disputa && rivalPicks.length > round ? rivalPicks[round] : null;
     const burned = disputa && round > 0 ? draft.burned.slice(-2) : [];
+    const target = slotOfRound(round);
+    const stateOf = (ref: SlotRef, uid: string) =>
+        !uid && open && ref.zone === target.zone && ref.index === target.index
+            ? ('selected' as const)
+            : ('locked' as const);
+    const myBoard = boardOf(mine);
+    // a sheet mostra o seu time ou (na Disputa) o do rival
     const shown = view === role || !disputa ? mine : rivalPicks;
     const board = boardOf(shown);
-    const byUid = new Map(shown.map((p) => [p.uid, p]));
-    const target = slotOfRound(round);
-    // celular em pé: as cartas ficam embaixo da quadra; na sua vez a tela desce até elas (como no draft da copa)
-    const optionsRef = useRef<HTMLDivElement>(null);
-    // biome-ignore lint/correctness/useExhaustiveDependencies: desce a cada rodada nova em que é a sua vez
-    useEffect(() => {
-        const el = optionsRef.current;
-        if (!myTurn || !el) return;
-        const top = el.getBoundingClientRect().top;
-        if (top >= 0 && top < window.innerHeight * 0.5) return;
-        el.scrollIntoView({ behavior: reduceMotionOn() ? 'auto' : 'smooth', block: 'start' });
-    }, [myTurn, draft.round]);
 
     const title = !open
         ? draft.round >= DRAFT_PICKS
@@ -247,106 +247,60 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
           : sealedNow
             ? t('duel.draft.sealedWait', { name: rival })
             : t('duel.draft.choose', { pos: slotLabel });
+    // a vez e o relógio, perto do polegar
+    const status =
+        open && myTurn
+            ? t('duel.draft.yourClock', { s: left })
+            : open && disputa
+              ? t('duel.draft.rivalPicking', { name: rival, s: left })
+              : t('duel.draft.progress', { name: rival, n: rivalCount });
 
     return (
-        <div className="duel-draft">
-            <div className="draft-head bc-screenhead">
-                <span className="bc-tag">
-                    {t('duel.draft.round', { n: round + 1 })} · {slotLabel}
-                </span>
-                <div className="draft-title">
-                    <h1>{title}</h1>
-                    <p className="muted">{disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}</p>
-                </div>
-                <div className="duel-draft-clock">
-                    <div className="steps" role="img" aria-label={t('team.draft.progress')}>
-                        {Array.from({ length: DRAFT_PICKS }, (_, i) => (
-                            <span
-                                // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
-                                key={i}
-                                className={i < draft.round ? 'done' : i === draft.round ? 'now' : ''}
-                            />
-                        ))}
+        <>
+            <Stage className="draft-stage pick-stage duel-draft-stage" scene={<i className="k-stage-light" />}>
+                <div className="draft-head bc-screenhead">
+                    <span className="bc-tag">
+                        {t('duel.draft.round', { n: round + 1 })} · {slotLabel}
+                    </span>
+                    <div className="draft-title">
+                        <h1>{title}</h1>
+                        <p className="muted">{disputa ? t('duel.draft.burn') : t('duel.draft.hidden')}</p>
                     </div>
-                    <div
-                        className={`duel-timer${open && left <= 5 ? ' low' : ''}`}
-                        data-testid="duel-timer"
-                        title={t('duel.draft.timeout')}
-                    >
-                        {open ? left : '…'}
-                    </div>
-                </div>
-            </div>
-
-            <div className="draft-grid">
-                <div className="panel board-panel">
-                    {disputa ? (
-                        <div className="tp-tabs duel-board-tabs" role="tablist">
-                            {([role, rivalRole] as Role[]).map((r) => (
-                                <button
-                                    key={r}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={view === r}
-                                    className={`tp-tab${view === r ? ' active' : ''}`}
-                                    onClick={() => setView(r)}
-                                >
-                                    {r === role ? t('duel.draft.yourTeam') : t('duel.draft.rivalTeam', { name: rival })}
-                                </button>
+                    <div className="duel-draft-clock">
+                        <div className="steps" role="img" aria-label={t('team.draft.progress')}>
+                            {Array.from({ length: DRAFT_PICKS }, (_, i) => (
+                                <span
+                                    // biome-ignore lint/suspicious/noArrayIndexKey: posições fixas do progresso
+                                    key={i}
+                                    className={i < draft.round ? 'done' : i === draft.round ? 'now' : ''}
+                                />
                             ))}
                         </div>
-                    ) : (
-                        <h2>{s.peers[role]?.clubName ?? t('duel.draft.yourTeam')}</h2>
-                    )}
-                    <FormationBoard
-                        formation="1-2-1"
-                        lineup={board.lineup}
-                        bench={board.bench}
-                        byUid={byUid}
-                        captainUid={shown[0]?.uid ?? null}
-                        emptyLabel={t('duel.draft.empty')}
-                        stateOf={(ref, uid) =>
-                            !uid && open && ref.zone === target.zone && ref.index === target.index
-                                ? 'selected'
-                                : 'locked'
-                        }
-                        footer={
-                            <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
-                                {disputa && view !== role
-                                    ? t('duel.draft.rivalCount', { name: rival, n: rivalCount })
-                                    : t('duel.draft.boardHint')}
-                            </p>
-                        }
-                    />
-                    {!disputa && (
-                        <p className="muted duel-progress" data-testid="duel-rival-progress">
-                            {t('duel.draft.progress', { name: rival, n: rivalCount })}
-                        </p>
-                    )}
+                        <div
+                            className={`duel-timer${open && left <= 5 ? ' low' : ''}`}
+                            data-testid="duel-timer"
+                            title={t('duel.draft.timeout')}
+                        >
+                            {open ? left : '…'}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="draft-options" ref={optionsRef}>
-                    <div className="row options-bar">
-                        <span className="muted">
-                            {round === 0
-                                ? t('team.draft.captainCandidates')
-                                : t('team.draft.optionsFor', { pos: slotLabel })}
-                        </span>
-                        {open && disputa && !myTurn && (
-                            <span className="duel-turn" role="status">
-                                <span className="duel-spinner" aria-hidden />{' '}
-                                {t('duel.draft.rivalPicking', { name: rival, s: left })}
-                            </span>
-                        )}
-                        {open && myTurn && (
-                            <span className="duel-turn mine" role="status">
-                                {t('duel.draft.yourClock', { s: left })}
-                            </span>
-                        )}
-                    </div>
+                <div className="draft-pick" key={draft.round}>
+                    {/* o time (a prancheta, ou a faixa no celular em pé): mostra onde a carta cai; tocar abre a quadra */}
+                    <DraftTeam
+                        run={{ formation: '1-2-1', ...myBoard }}
+                        byUid={new Map(mine.map((p) => [p.uid, p]))}
+                        stateOf={stateOf}
+                        label={t('duel.draft.yourTeam')}
+                        onOpen={() => {
+                            setView(role);
+                            setTeamOpen(true);
+                        }}
+                    />
                     {(rivalTook || burned.length > 0) && (
                         <div className="duel-draft-news">
-                            {rivalTook && (
+                            {rivalTook ? (
                                 <span>
                                     <img className="pixel" src={cardSprite(rivalTook)} alt="" />
                                     {t('duel.draft.rivalTook', {
@@ -354,8 +308,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                                         mon: viewInstance(rivalTook).displayName,
                                     })}
                                 </span>
-                            )}
-                            {!rivalTook && burned.length > 0 && (
+                            ) : (
                                 <span>
                                     {burned.map((id) => (
                                         <img
@@ -377,7 +330,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                             label={slotLabel}
                             revealKey={`${s.game}-${draft.round}-${disputa ? 'd' : role}`}
                         >
-                            <div className={`options duel-options${disputa ? ' four' : ''}`}>
+                            <div className="k-pick3 draft-pick3" style={{ '--k-n': options.length } as CSSProperties}>
                                 {options.map((o) => (
                                     <div
                                         key={o.uid}
@@ -393,7 +346,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                                                           label: disputa
                                                               ? t('duel.draft.take')
                                                               : round === 0
-                                                                ? t('team.draft.pickCaptain')
+                                                                ? t('team.draft.chooseThis')
                                                                 : t('team.draft.signAs', { pos: slotLabel }),
                                                           primary: true,
                                                           onClick: () => {
@@ -417,8 +370,75 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                         </div>
                     )}
                 </div>
+            </Stage>
+
+            <Sheet
+                open={teamOpen}
+                onClose={() => setTeamOpen(false)}
+                title={
+                    view === role || !disputa
+                        ? (s.peers[role]?.clubName ?? t('duel.draft.yourTeam'))
+                        : (s.peers[rivalRole]?.clubName ?? t('duel.draft.rivalTeam', { name: rival }))
+                }
+                className="draft-team-sheet"
+            >
+                {disputa && (
+                    <div className="tp-tabs duel-board-tabs" role="tablist">
+                        {([role, rivalRole] as Role[]).map((r) => (
+                            <button
+                                key={r}
+                                type="button"
+                                role="tab"
+                                aria-selected={view === r}
+                                className={`tp-tab${view === r ? ' active' : ''}`}
+                                onClick={() => setView(r)}
+                            >
+                                {r === role ? t('duel.draft.yourTeam') : t('duel.draft.rivalTeam', { name: rival })}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                <FormationBoard
+                    formation="1-2-1"
+                    lineup={board.lineup}
+                    bench={board.bench}
+                    byUid={new Map(shown.map((p) => [p.uid, p]))}
+                    captainUid={shown[0]?.uid ?? null}
+                    emptyLabel={t('duel.draft.empty')}
+                    stateOf={stateOf}
+                    footer={
+                        <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>
+                            {disputa && view !== role
+                                ? t('duel.draft.rivalCount', { name: rival, n: rivalCount })
+                                : t('duel.draft.boardHint')}
+                        </p>
+                    }
+                />
+            </Sheet>
+
+            {/* o polegar: o time inteiro (na Disputa, o do rival também) e de quem é a vez */}
+            <div className="bc-thumbbar duel-draft-bar">
+                <button
+                    type="button"
+                    className="btn"
+                    onClick={() => {
+                        setView(disputa ? rivalRole : role);
+                        setTeamOpen(true);
+                    }}
+                >
+                    <HudIcon kind="players" />
+                    {disputa ? t('duel.draft.rivalTeam', { name: rival }) : t('duel.draft.yourTeam')}
+                </button>
+                <p
+                    className={`tb-hint duel-turn-hint${myTurn ? ' mine' : ''}`}
+                    role="status"
+                    data-testid="duel-rival-progress"
+                >
+                    {open && disputa && !myTurn && <span className="duel-spinner" aria-hidden />}
+                    {status}
+                </p>
             </div>
-        </div>
+        </>
     );
 }
 

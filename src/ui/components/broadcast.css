@@ -450,18 +450,16 @@
     height: 18px;
 }
 :is(.bc, .hud-sheet) .tac-tile small {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.2;
     color: var(--text);
     opacity: 0.85;
 }
+/* a régua só com os gomos (amarelo ataca, azul defende); o texto fica no leitor de tela */
 .tac-meter {
     display: flex;
     align-items: center;
     gap: 3px;
-    font-size: 9px;
-    letter-spacing: 0.5px;
-    color: var(--muted);
 }
 .bc-dots {
     display: inline-flex;
@@ -488,7 +486,7 @@
     border-radius: 4px;
     background: var(--yellow);
     color: var(--bc-ink);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: uppercase;
@@ -525,7 +523,7 @@
     height: 16px;
 }
 .corner-seg small {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 400;
     opacity: 0.85;
     white-space: normal;
@@ -626,54 +624,6 @@
 .bc-result {
     flex: 1;
 }
-/* faixa grande do fim de jogo por cima da quadra */
-.final-banner {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    z-index: 6;
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    max-width: calc(100% - 24px);
-    padding: 8px 20px;
-    border: 3px solid #f4f1e6;
-    border-radius: 10px;
-    background: rgb(14 20 48 / 94%);
-    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
-    pointer-events: none;
-    text-align: center;
-    translate: -50% -50%;
-    animation: final-in 0.35s cubic-bezier(0.2, 0.9, 0.25, 1.2) both;
-}
-.final-banner b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(24px, calc(6 * var(--vw)), 44px);
-    line-height: 1.05;
-    color: #f4f1e6;
-}
-.final-banner span {
-    font-size: clamp(12px, calc(2.2 * var(--vw)), 16px);
-    overflow-wrap: anywhere;
-}
-.final-banner.win {
-    border-color: var(--yellow);
-}
-.final-banner.win b {
-    color: var(--yellow);
-}
-.final-banner.loss {
-    border-color: #e94b4b;
-}
-@keyframes final-in {
-    from {
-        opacity: 0;
-        scale: 0.8;
-    }
-}
-:root[data-reduce-motion="true"] .final-banner {
-    animation: none;
-}
 .bc-speed-ask {
     flex: 1;
     min-width: 0;
@@ -706,6 +656,17 @@
     background: #0e1430;
     border-top: 3px solid var(--line);
     animation: ticker-in 0.18s var(--ease-out) both;
+}
+
+/* nada teleporta: a partida chega depois da simulação (e sem o VERSUS na frente, quando retomada) e o canvas depois
+   das fontes; os dois entram com fade. `backwards`: depois do fade a opacidade volta a ser da quadra (court-follow.ts
+   apaga o canvas na troca de câmera) */
+.app:has(.bc) > .topbar,
+.bc,
+.bc .pitch-wrap .phaser-container,
+.bc .pitch-wrap canvas,
+.bc-stands {
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 
 /* o logo fica menor durante a partida (sobra quadra no celular) */
@@ -920,7 +881,7 @@
         .bc .ht-score {
             order: -2;
         }
-        .bc .ht-panel:has(.ht-info) .ht-actions {
+        .bc .ht-panel:has(.ht-info) :is(.ht-actions, .ht-sub-row) {
             order: -1;
         }
         .bc .ht-panel .ht-stats {
@@ -971,6 +932,7 @@
     }
     /* deitado, os botões (e o pronto do duelo) vêm antes das listas de trocas: o que se toca fica à vista */
     .bc .ht-panel .ht-actions,
+    .bc .ht-panel .ht-sub-row,
     .bc .ht-panel .duel-ht {
         order: 1;
     }
@@ -991,6 +953,32 @@
     .bc .ht-subs li {
         min-height: 26px;
         font-size: 12px;
+    }
+    /* placar de TV do intervalo no deitado: o placar já está em cima, e as linhas ficam baixas pra caber sem rolar */
+    .bc .ht-panel .ht-score {
+        display: none;
+    }
+    .bc .ht-board {
+        gap: 3px;
+        padding: 5px 8px 7px;
+    }
+    .bc .ht-row {
+        row-gap: 1px;
+    }
+    .bc .ht-row dt {
+        font-size: 10px;
+    }
+    .bc .ht-row .bc-sc {
+        min-width: 36px;
+        font-size: 14px;
+        line-height: 19px;
+    }
+    .bc .ht-bar {
+        height: 8px;
+    }
+    .bc .ht-plate img {
+        width: 24px;
+        height: 24px;
     }
     .panel.bc-coach {
         grid-area: coach;
@@ -1255,6 +1243,10 @@ body:has(.bc-hud) {
     max-height: calc(100% - 16px);
     overflow-y: auto;
 }
+/* o placar do intervalo já está no placar de cima (INTERVALO 1 x 2): no painel sobra lugar pro placar de TV */
+.bc-hud .ht-score {
+    display: none;
+}
 /* intervalo, pedido de tempo e pênaltis tampam a quadra: a caixa do texto some junto (aparecia cortada embaixo) */
 .bc-hud > .bc-stage .bt-box {
     transition: opacity var(--dur-ui) var(--ease-out);
@@ -1286,6 +1278,61 @@ body:has(.bc-hud) {
     width: 100%;
     aspect-ratio: auto;
 }
+/* 4x, 8x e Lances no celular em pé: a torcida (CourtStands) nas bandas em cima e embaixo da quadra, no lugar do fundo
+   liso. A caixa do texto (52 + 6 px) fica fora; o meio (a quadra) é o canvas, por cima */
+.bc-stands {
+    position: absolute;
+    inset: 0 0 58px;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 180ms var(--ease-out);
+    pointer-events: none;
+}
+.bc .pitch-wrap.hud-full > .bc-stands {
+    opacity: 1;
+}
+.bc .pitch-wrap.hud-follow.hud-full .phaser-container {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+.bc-stand-court {
+    flex: none;
+    width: 100%;
+    aspect-ratio: 968 / 528;
+}
+.bc-stand-band {
+    --px: 2px;
+    --stand-top: 0px;
+    --stand-h: calc(100% - var(--px) * 9);
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #121838;
+}
+/* as fileiras colam na quadra: do outro lado embaixo (o letreiro entre elas e a quadra), na beira de cá em cima */
+.bc-stand-band .es-stand {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.bc-stand-band .es-row {
+    flex: none;
+}
+.bc-stand-band.near .es-stand {
+    top: calc(var(--px) * 9);
+    justify-content: flex-start;
+}
+.bc-stand-band.near .es-led {
+    top: 0;
+}
+.bc-stand-band.near .es-banner {
+    display: none;
+}
 .bc-hudbar {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1299,7 +1346,7 @@ body:has(.bc-hud) {
     gap: 1px;
     min-width: 0;
     min-height: 58px;
-    padding: 6px 4px 9px;
+    padding: 6px 2px 9px;
     border: 3px solid var(--cb-ink);
     border-radius: 10px;
     background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
@@ -1319,13 +1366,15 @@ body:has(.bc-hud) {
     font-size: 13px;
     line-height: 1.1;
 }
+/* o estado embaixo (Equilibrado, 1 por tempo) em 11 px: no celular estreito quebra em 2 linhas em vez de cortar */
 .bc-hudbtn small {
     max-width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     color: var(--muted);
-    font-size: 10px;
+    font-size: 11px;
+    line-height: 1.1;
+    text-align: center;
+    text-overflow: ellipsis;
 }
 .bc-hudbtn.on {
     box-shadow: var(--pick-ring);
@@ -1424,8 +1473,29 @@ body:has(.bc-hud) {
     .bc .ht-score {
         order: -2;
     }
-    .bc .ht-actions {
+    .bc .ht-actions,
+    .bc .ht-sub-row {
         order: -1;
+    }
+    /* placar de TV mais baixo: a placa do rival cabe sem rolar no 320x640 */
+    .bc .ht-board {
+        gap: 4px;
+        padding: 6px 10px 8px;
+    }
+    .bc .ht-row .bc-sc {
+        min-width: 40px;
+        font-size: 15px;
+        line-height: 20px;
+    }
+    .bc .ht-bar {
+        height: 9px;
+    }
+    .bc .ht-subs .ht-plate {
+        flex-wrap: nowrap;
+    }
+    .bc .ht-plate img {
+        width: 24px;
+        height: 24px;
     }
 }
 /* a reação do rival (retrato com "Ops", "Zzz") cobria o painel do intervalo: some enquanto ele está aberto */

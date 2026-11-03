@@ -9,6 +9,260 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'No ar',
+        sections: [
+            {
+                title: 'Transmissão',
+                lines: [
+                    'Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade',
+                    'Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida',
+                    'Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE',
+                    'Arrastar entre as telas no celular continua igual',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, Sede e Créditos',
+        sections: [
+            {
+                title: 'Lab e Sede',
+                lines: [
+                    'Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex',
+                    'Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador',
+                    'A missão da Sede numa placa com a barra de progresso',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos',
+                    'Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo',
+                    'Mercado: Novas ofertas com a etiqueta grátis também no celular',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar',
+                    'Liga numa placa na parede da Arena',
+                    'Com copa em andamento, o modo aparece no lugar do Continuar repetido',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Prancheta no draft',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição',
+                    'No celular em pé a prancheta fica deitada, com o gol à esquerda',
+                    'As 3 cartas cabem inteiras em qualquer tela',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Fim de copa com o Nova copa como o único botão grande',
+                    'Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar',
+                    'Verde é só pra confirmar: botões que só levam a outra tela ficam azuis',
+                    'Configurações com título e abas curtas',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'Tudo à vista',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado',
+                    'O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar',
+                    'No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver',
+                    'Draft mostra o seu time numa quadrinha junto das 3 escolhas',
+                    'Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.33',
+        date: '2026-11-02',
+        title: 'Partida de TV',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo',
+                    'Tática, Trocar, Tempo e Lances abrem cada um a sua janela. A página não rola mais',
+                    'Narração como legenda de TV embaixo da quadra',
+                    'No 4x e no 8x a quadra fica entre as duas torcidas',
+                    'Intervalo com placar de TV e placa de substituição',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação com placas na parede: o cartaz do rival, o quadro da tática e a prancheta da formação',
+                    'Mercado com o ₽ contando na entrada e as cartas em prateleiras',
+                    'Treino da Rota numa quadra: toque em quem treina ou deite no colchonete',
+                    'Evento com a caixa de diálogo e Grupo com placar de TV',
+                ],
+            },
+            {
+                title: 'Duelo e Arena',
+                lines: [
+                    'Draft do Duelo com a mesma cara do draft da Copa, sem rolar',
+                    'Duelo, Liga e Copa do Dia cabem com o celular deitado',
+                ],
+            },
+            {
+                title: 'Coleção e avisos',
+                lines: [
+                    'Pokédex com seletor no lugar das pílulas, e o Prof. Carvalho na Pokédex vazia',
+                    'Treinador desbloqueado aparece num selo na volta pro menu, não no meio da comemoração',
+                    'A dica da formação não cobre mais as palavras',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Ícone do pacote de tipo',
+        sections: [{ title: 'Conserto', lines: ['O ícone do tipo voltou a aparecer no pacote de tipo'] }],
+    },
+    {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Cara de jogo',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande',
+                    'Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra',
+                    'Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: [
+                    'Perfil virou armário: cartão, missões e 6 portas, sem rolar',
+                    'Sala de troféus em tela cheia. Toque num objeto pra ver a ficha',
+                    'Treinadores viraram figurinhas',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formação em carrossel, uma quadra grande por vez',
+                    'Escolha 1 de 3 sem rolar a tela',
+                    'Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando',
+                    'Textos de regra mais curtos',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Novidades num cartaz, com as versões antigas numa lista',
+                    'Configurações em abas, cada opção numa linha',
+                    'Resgatar código foi pras Configurações',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'Golpe máximo de verdade',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol',
+                    'Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada',
+                    'O gol aparece inteiro do chute até a bola chegar, em qualquer câmera',
+                    'O alvo acende verde no perfeito, e o botão do golpe não pisca mais',
+                    'Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também',
+                    'O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio',
+                    'Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival',
+                    'Bola com rastro e partículas do tipo, mais forte a cada nível',
+                ],
+            },
+            {
+                title: 'N1 por tipo',
+                lines: [
+                    'Psíquico: confunde ⇒ faz dormir',
+                    'Normal: derruba ⇒ faz recuar',
+                    'Planta: faz dormir ⇒ planta a semente (Leech Seed)',
+                    'Terrestre: derruba ⇒ areia nos olhos (Sand Attack)',
+                    'Inseto: envenena ⇒ prende na teia (String Shot)',
+                    'Água: derruba ⇒ leva 2 m pra trás',
+                    'Voador: confunde ⇒ joga pro alto',
+                    'Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote',
+                    'Pedra: derruba ⇒ preso no lugar por 2 s',
+                    'Dragão: paralisa ⇒ tira 5 pontos da barra do time rival',
+                    'Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais',
+                ],
+            },
+            {
+                title: 'Golpe máximo explicado',
+                lines: [
+                    'Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão',
+                    'Seção Golpe máximo na ficha de cada Pokémon',
+                    'Ajuda, Como jogar e um balão de primeira vez sobre o golpe',
+                ],
+            },
+            {
+                title: 'Capitão e câmera',
+                lines: [
+                    'Troque o capitão na Tática, entre as partidas',
+                    'Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz',
+                ],
+            },
+            {
+                title: 'Cara de jogo',
+                lines: [
+                    'Fim de partida em tela cheia, com placar, ₽, craque e próximo rival',
+                    'Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta',
+                    'Recompensa com as 3 opções do mesmo tamanho, sem rolar',
+                    'Pacote do Mercado em tela cheia, com o walkout pra carta ouro',
+                    'Resultado e Eliminado sem rolar',
+                    'Seletor ‹ valor › no lugar das listas e do volume',
+                    'Fim do Duelo com a mesma tela do fim de partida',
+                    'No PC, essas telas crescem e ocupam a tela',
+                    'Walkout completo na 1ª carta ouro do dia; nas outras, mais curto',
+                    'Ajuda com gavetas no lugar das listas que abriam',
+                ],
+            },
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Modo Copa agora é Modo Clássico',
+                    'Time Ultimate e Modo História em preto e branco até chegarem',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.30.1',
         date: '2026-11-01',
         title: 'Menu de modos mais claro',
@@ -2059,6 +2313,260 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'On air',
+        sections: [
+            {
+                title: 'Broadcast',
+                lines: [
+                    'Every screen change is a TV cut. With Reduce motion it stays a fade',
+                    'Channel bug in the corner with the screen name, and LIVE during matches',
+                    'Cleaner mode menu that looks like a channel: 1 LIVE, and what is coming in a COMING SOON strip',
+                    'Swiping between screens on phones works the same',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, HQ and Credits',
+        sections: [
+            {
+                title: 'Lab and HQ',
+                lines: [
+                    'Buttons became objects in the scene: the shelf opens the Pokédex, the binder the Album and the board the Movedex',
+                    'At the HQ: the cabinet opens Trophies, the crest the Club, the board Friends and the locker the Trainer',
+                    'The HQ mission on a sign with a progress bar',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Indigo group and Champions with a TV scoreboard, and See all for the full table and numbers',
+                    'Halftime without the repeated title, with Substitute apart from Start the 2nd half',
+                    'Market: New offers with the free tag on phones too',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Credits roll like a game ending, with Pokémon parading. Hold to speed up',
+                    'League on a sign on the Arena wall',
+                    'With a cup in progress, the mode shows instead of a repeated Continue',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Draft board',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'While you pick 1 of 3, your team shows on the lineup board, each one in their position',
+                    'On a phone held upright the board lies sideways, goal on the left',
+                    'The 3 cards fit whole on any screen',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'End of cup with New cup as the only big button',
+                    'Bigger titles in normal case, small text bigger and small buttons easier to tap',
+                    'Green only confirms: buttons that just open another screen are blue',
+                    'Settings with a title and short tabs',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'All in view',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'On PC the full panel is back: tactics open under the court, formation and team on the side',
+                    "The max move button only lights up when the ball is at the captain's feet, ready to shoot",
+                    "In Duels the max move stays armed until the captain's next shot (it used to last about 5 seconds)",
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Lineup with tactics, formations and corners open on screen, no tapping needed',
+                    'The draft shows your team on a small court next to the 3 picks',
+                    'End of match scrolls again: Star Player card, evolutions, goals and stats right under the score',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.33',
+        date: '2026-11-02',
+        title: 'TV match',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'On PC the match uses the phone layout: big court, score on top and the 4-button bar at the bottom',
+                    'Tactics, Swap, Time and Plays each open their own window. The page no longer scrolls',
+                    'Commentary as a TV caption under the court',
+                    'At 4x and 8x the court sits between both crowds',
+                    'Half time with a TV scoreboard and a substitution board',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    "Lineup with boards on the wall: the rival's poster, the tactics board and the formation clipboard",
+                    'Market with the ₽ counting up on entry and cards on shelves',
+                    'Route training on a court: tap who trains or lie down on the mat',
+                    'Event with the dialog box and Group with a TV scoreboard',
+                ],
+            },
+            {
+                title: 'Duel and Arena',
+                lines: [
+                    "Duel draft looks like the Cup's draft, no scrolling",
+                    'Duel, League and Daily Cup fit with the phone sideways',
+                ],
+            },
+            {
+                title: 'Collection and notices',
+                lines: [
+                    'Pokédex with a selector instead of pills, and Prof. Oak on an empty Pokédex',
+                    'New trainer unlocks show as a seal back at the menu, not during a celebration',
+                    'The formation tip no longer covers the words',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Type pack icon',
+        sections: [{ title: 'Fix', lines: ['The type icon shows up on type packs again'] }],
+    },
+    {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Game feel',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duel on the Arena court: 3 modes as blocks, rules behind a "?" and a big room code',
+                    'League with a big countdown while closed; when open, the rival shows up on the court',
+                    'Daily Cup in the Stadium, with the crowd and the daily sticker in the middle of the court',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: [
+                    'Profile is now a locker: card, missions and 6 doors, no scrolling',
+                    'Full-screen Trophy room. Tap an object to see its card',
+                    'Trainers are now stickers',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formation carousel, one big court at a time',
+                    'Pick 1 of 3 without scrolling',
+                    'First-time tips no longer darken the screen: a finger points and you keep playing',
+                    'Shorter rule texts',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'News on a poster, older versions in a list',
+                    'Settings in tabs, one option per row',
+                    'Redeem code moved to Settings',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'The real max move',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'New animations for L1, L2 and L3. L3 is now a true special: type background, cut-in, the ball turns into a projectile and explodes at the goal',
+                    'L3 music explodes on the shot. On L1 and L2 the music no longer stays muffled',
+                    'The whole goal stays in frame from the shot until the ball arrives, on every camera',
+                    'The target turns green on a perfect tap, and the max move button no longer flickers',
+                    'Players in the path fall when the ball reaches them, not on the shot. Type effects too',
+                    'Keepers never catch a max move: they parry it onto the post or out for a corner',
+                    'A captain keeper with the bar sends the max move straight back at the rival goal',
+                    'Type trail and particles on the ball, stronger at each level',
+                ],
+            },
+            {
+                title: 'L1 by type',
+                lines: [
+                    'Psychic: confuses ⇒ puts to sleep',
+                    'Normal: knocks down ⇒ makes them flinch',
+                    'Grass: puts to sleep ⇒ plants a seed (Leech Seed)',
+                    'Ground: knocks down ⇒ sand in the eyes (Sand Attack)',
+                    'Bug: poisons ⇒ caught in a web (String Shot)',
+                    'Water: knocks down ⇒ pushes them 2 m back',
+                    'Flying: confuses ⇒ throws them in the air',
+                    'Fighting: knocks down ⇒ numb hands, the next save becomes a rebound',
+                    'Rock: knocks down ⇒ stuck in place for 2 s',
+                    "Dragon: paralyzes ⇒ takes 5 points off the rival team's bar",
+                    'New L3 names: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast and more',
+                ],
+            },
+            {
+                title: 'Max move explained',
+                lines: [
+                    'A notice when each level unlocks and a legend of what L1, L2 and L3 do',
+                    "Max move section on every Pokémon's card",
+                    'Help, How to play and a first-time tip about the max move',
+                ],
+            },
+            {
+                title: 'Captain and camera',
+                lines: [
+                    'Change your captain in Tactics, between matches',
+                    'Portrait phones: a wider, smoother camera with room ahead of the ball carrier',
+                ],
+            },
+            {
+                title: 'Game feel',
+                lines: [
+                    'Full-screen full time, with score, ₽, man of the match and next opponent',
+                    'Champion in 3 beats: trophy, highlights and the road to the title. Stats live in a drawer',
+                    'Reward with the 3 options the same size, no scrolling',
+                    'Market pack in full screen, with the walkout for gold cards',
+                    'Result and Eliminated with no scrolling',
+                    '‹ value › selector instead of lists and the volume slider',
+                    'Duel full time with the same screen as the Cup',
+                    'On PC these screens grow to fill the screen',
+                    "Full walkout for the day's first gold card; shorter after that",
+                    'Help with drawers instead of accordions',
+                ],
+            },
+            {
+                title: 'Mode menu',
+                lines: [
+                    'Cup Mode is now Classic Mode',
+                    'Ultimate Team and Story Mode in black and white until they arrive',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.30.1',
         date: '2026-11-01',

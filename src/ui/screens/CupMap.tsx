@@ -20,6 +20,7 @@ import { EventBus } from '../../game/EventBus';
 import type { MatchEvolution } from '../../game/scenes/MatchScene';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { lookOfCupClub, lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import {
     groupOthers,
@@ -37,12 +38,12 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
-import { PmdSprite } from '../components/PmdSprite';
 import { cardSprite } from '../components/PokeCard';
 import { useMedia } from '../components/Prancheta';
 import { SponsorSlots } from '../components/SponsorCard';
 import { TypeIcons } from '../components/TypeIcon';
 import { portraitSrc } from '../portrait';
+import { Crest } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
@@ -51,6 +52,13 @@ import { TYPE_COLOR } from '../type-colors';
 import { useHeld } from '../use-held';
 import '../long-cup.css';
 import '../trophy-room.css';
+import { FORMATIONS } from '../../engine/formations';
+import { ClockCtx, useSceneClock } from '../ambientes/clock';
+import { FieldSprite } from '../ambientes/FieldSprite';
+import { Beat, useCascade } from '../kit/Cascade';
+import { InfoSheet, SeeAll } from '../kit/controls';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 
 const ICON: Record<NodeKind, HudIconKind> = {
     jogo: 'players',
@@ -528,114 +536,222 @@ function NodeSheet({
     );
 }
 
-/** Casa Treino: encher a barra de evolução de alguém (metade), ou 1 de 2 itens se ninguém evolui; ou descansar (+1 sorteio). */
+/** Treino na quadra deitada (celular deitado e PC): o gol do time fica à esquerda. */
+const TR_WIDE = '(orientation: landscape)';
+const TR_SMALL = '(max-width: 359px), (max-height: 560px)';
+/** PC grande: os sprites a 3x (a quadra passa de 700 px). */
+const TR_BIG = '(min-width: 1250px) and (min-height: 840px)';
+
+/**
+ * Casa Treino como cena (cara-de-jogo.md, Rota Índigo): a quadra de treino do ginásio com os titulares nas posições e
+ * os reservas na beira. Tocar em quem evolui marca e a placa mostra a barra enchendo pela metade; o colchonete é o
+ * Descansar (+1 sorteio); se ninguém evolui, o suporte de halteres é o treino de técnica (1 de 2 itens). O botão do
+ * polegar faz o que estiver marcado.
+ */
 export function Training() {
     const live = useGame((s) => s.run);
     const train = useGame((s) => s.train);
     const run = useHeld(live?.status === 'treino' ? live : null);
+    // o uid de quem treina, ou 'rest' / 'item'
     const [mark, setMark] = useState<string | null>(null);
+    const clock = useSceneClock(true);
+    const wide = useMedia(TR_WIDE);
+    const small = useMedia(TR_SMALL);
+    const big = useMedia(TR_BIG);
     const { t } = useT();
     if (!run) return null;
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
-    const evolvers = [...run.lineup, ...run.bench]
-        .map((u) => byUid.get(u))
-        .filter((p) => p && evolutionTarget(p.speciesId, p.uid) !== null);
+    const canEvo = (p: PokemonInstance) => evolutionTarget(p.speciesId, p.uid) !== null;
+    const team = [...run.lineup, ...run.bench].flatMap((u) => byUid.get(u) ?? []);
+    const anyEvo = team.some(canEvo);
+    const max = evoThreshold(run.sponsors);
+    const pctOf = (p: PokemonInstance) => Math.min(100, Math.round(((p.evo ?? 0) / max) * 100));
+    const marked = mark && mark !== 'rest' && mark !== 'item' ? byUid.get(mark) : undefined;
+    const into = marked ? evolutionTarget(marked.speciesId, marked.uid) : null;
+    const resting = mark === 'rest';
+    const scale = small ? 1 : big ? 3 : 2;
+    const ui = FORMATIONS[run.formation].ui;
+    const toggle = (id: string) => setMark(mark === id ? null : id);
+
+    const mon = (p: PokemonInstance, cls: string, style?: CSSProperties) => {
+        const evo = canEvo(p);
+        const on = mark === p.uid;
+        const body = (
+            <>
+                <i className="tr-shadow" />
+                <FieldSprite
+                    id={p.speciesId}
+                    shiny={p.shiny}
+                    anim={on ? 'Hop' : 'Idle'}
+                    dir={wide ? 2 : 4}
+                    scale={scale}
+                    play={!resting}
+                >
+                    {resting && <i className="tr-zzz">z</i>}
+                </FieldSprite>
+                {evo && (
+                    <span className="cm-evo tr-evo" style={{ '--p': `${pctOf(p)}%` } as CSSProperties}>
+                        <i />
+                    </span>
+                )}
+            </>
+        );
+        return evo ? (
+            <button
+                key={p.uid}
+                type="button"
+                className={`tr-mon ${cls}${on ? ' on' : ''}`}
+                style={style}
+                aria-pressed={on}
+                aria-label={`${viewInstance(p).displayName}: ${t('team.board.evo', { n: pctOf(p) })}`}
+                onClick={() => toggle(p.uid)}
+            >
+                {body}
+            </button>
+        ) : (
+            <span key={p.uid} className={`tr-mon ${cls} still`} style={style} aria-hidden>
+                {body}
+            </span>
+        );
+    };
+
+    const label = marked
+        ? t('longCup.treino.go', { name: viewInstance(marked).displayName })
+        : resting
+          ? t('longCup.treino.restGo')
+          : mark === 'item'
+            ? t('longCup.treino.itemGo')
+            : t(anyEvo ? 'longCup.treino.pick' : 'longCup.treino.pickObj');
+
     return (
-        <div className="menu-screen cm">
-            <MenuHead title={t('longCup.treino.title')} hud="dumbbell" />
-            {evolvers.length > 0 && (
-                <div className="panel cm-train">
-                    <h2>{t('longCup.treino.evo')}</h2>
-                    <p className="muted">{t('longCup.treino.evoLine')}</p>
-                    <div className="squad-strip">
-                        {evolvers.map((p) => {
-                            const pct = Math.min(100, Math.round(((p!.evo ?? 0) / evoThreshold(run.sponsors)) * 100));
-                            return (
-                                <button
-                                    key={p!.uid}
-                                    type="button"
-                                    className="mini target-btn"
-                                    aria-pressed={mark === p!.uid}
-                                    onClick={() => {
-                                        setMark(p!.uid);
-                                    }}
-                                >
-                                    <img className="pixel" src={cardSprite(p!)} alt="" />
-                                    <span>
-                                        <b>{viewInstance(p!).displayName}</b>
-                                        <span className="cm-evo" style={{ '--p': `${pct}%` } as CSSProperties}>
-                                            <i />
-                                        </span>
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {/* tocar marca, o botão treina (tocar já aplicava, sem volta) */}
+        <ClockCtx.Provider value={clock}>
+            <Stage
+                className="tr-stage"
+                action={
                     <button
                         type="button"
-                        className="btn confirm cm-train-go"
+                        className="btn confirm wide"
                         disabled={!mark}
                         onClick={() => {
-                            if (mark) train('evo', mark);
+                            if (marked) train('evo', marked.uid);
+                            else if (mark === 'rest') train('rest');
+                            else if (mark === 'item') train('item');
                         }}
                     >
-                        <HudIcon kind="dumbbell" />
-                        {mark
-                            ? t('longCup.treino.go', { name: viewInstance(byUid.get(mark)!).displayName })
-                            : t('longCup.treino.pick')}
+                        <HudIcon kind={resting ? 'reroll' : mark === 'item' ? 'bag' : 'dumbbell'} />
+                        {label}
                     </button>
+                }
+            >
+                <div className="draft-head bc-screenhead tr-head">
+                    <h1>{t('longCup.treino.title')}</h1>
+                    <InfoSheet title={t('longCup.treino.title')}>
+                        <p>{t(anyEvo ? 'longCup.treino.evoLine' : 'longCup.treino.itemLine')}</p>
+                        <p>
+                            {t('longCup.treino.rest')}: {t('longCup.treino.restLine')}
+                        </p>
+                    </InfoSheet>
                 </div>
-            )}
-            {/* ninguém evolui: treino de técnica, 1 de 2 itens (sem ele, o último Treino era um clique morto) */}
-            {evolvers.length === 0 && (
-                <div className="panel cm-train">
-                    <h2>{t('longCup.treino.item')}</h2>
-                    <p className="muted">{t('longCup.treino.itemLine')}</p>
-                    <button
-                        type="button"
-                        className="btn confirm"
-                        onClick={() => {
-                            train('item');
-                        }}
-                    >
-                        <HudIcon kind="bag" />
-                        {t('longCup.treino.itemGo')}
-                    </button>
-                </div>
-            )}
-            <div className="panel cm-train">
-                <h2>{t('longCup.treino.rest')}</h2>
-                <p className="muted">{t('longCup.treino.restLine')}</p>
-                {/* o time tirando um cochilo (PMD Sleep; quem não tem, o sprite da carta) */}
-                <div className="cm-rest-squad" aria-hidden>
-                    {run.lineup
-                        .map((u) => byUid.get(u))
-                        .map(
-                            (p) =>
-                                p && (
-                                    <PmdSprite
-                                        key={p.uid}
-                                        id={p.speciesId}
-                                        shiny={p.shiny}
-                                        anim="Sleep"
-                                        fallback={<img className="pixel" src={cardSprite(p)} alt="" />}
-                                    />
-                                ),
-                        )}
-                </div>
-                <button
-                    type="button"
-                    className="btn confirm"
-                    onClick={() => {
-                        train('rest');
-                    }}
+                {/* a placa do que está marcado; a chave nova faz ela entrar de novo (nada teleporta). Sem nada marcado,
+                    só o subtítulo: o "toque em quem treina" já está na barra do polegar */}
+                <div
+                    className={`tr-plaque ${!mark && anyEvo ? 'tr-sub' : 'bc-surface'}`}
+                    key={mark ?? 'none'}
+                    aria-live="polite"
                 >
-                    <HudIcon kind="reroll" />
-                    {t('longCup.treino.restGo')}
-                </button>
-            </div>
-        </div>
+                    {marked ? (
+                        <>
+                            <b>
+                                {viewInstance(marked).displayName}
+                                {into !== null && ` → ${viewInstance(evolveInstance(marked, into)).displayName}`}
+                            </b>
+                            <span
+                                className="tr-bar"
+                                style={
+                                    {
+                                        '--p': `${pctOf(marked)}%`,
+                                        '--q': `${Math.min(100, pctOf(marked) + 50)}%`,
+                                    } as CSSProperties
+                                }
+                            >
+                                <i className="tr-bar-now" />
+                                <i className="tr-bar-add" />
+                            </span>
+                            <small>
+                                {pctOf(marked)}% → {Math.min(100, pctOf(marked) + 50)}%
+                            </small>
+                        </>
+                    ) : resting ? (
+                        <>
+                            <b>{t('longCup.treino.rest')}</b>
+                            <small>{t('longCup.treino.restSign')}</small>
+                        </>
+                    ) : mark === 'item' ? (
+                        <>
+                            <b>{t('longCup.treino.item')}</b>
+                            <small>{t('longCup.treino.itemLine')}</small>
+                        </>
+                    ) : anyEvo ? (
+                        <small>{t('longCup.treino.evoLine')}</small>
+                    ) : (
+                        <>
+                            <b>{t('longCup.treino.none')}</b>
+                            <small>{t('longCup.treino.itemLine')}</small>
+                        </>
+                    )}
+                </div>
+                <div className={`tr-gym${wide ? ' wide' : ''}${resting ? ' resting' : ''}`}>
+                    <div className="tr-court">
+                        <svg className="tr-lines" viewBox="0 0 60 80" preserveAspectRatio="none" aria-hidden>
+                            <rect x="2" y="2" width="56" height="76" />
+                            <line x1="2" y1="40" x2="58" y2="40" />
+                            <circle cx="30" cy="40" r="7" />
+                            <path d="M18 2a12 10 0 0 0 24 0M18 78a12 10 0 0 1 24 0" />
+                        </svg>
+                        {/* o cone e a escada de agilidade: enfeite do treino */}
+                        <i className="tr-cone c1" aria-hidden />
+                        <i className="tr-cone c2" aria-hidden />
+                        <i className="tr-ladder" aria-hidden />
+                        {run.lineup.flatMap((u, i) => {
+                            const p = byUid.get(u);
+                            if (!p) return [];
+                            const [x, y] = ui[i] ?? [50, 50];
+                            const pos = wide ? { left: `${100 - y}%`, top: `${x}%` } : { left: `${x}%`, top: `${y}%` };
+                            return [mon(p, 'field', pos as CSSProperties)];
+                        })}
+                    </div>
+                    <div className="tr-side">
+                        {/* os reservas na beira da quadra */}
+                        <div className="tr-benchrow">
+                            {run.bench.flatMap((u) => byUid.get(u) ?? []).map((p) => mon(p, 'bench'))}
+                        </div>
+                        <div className="tr-objs">
+                            {!anyEvo && (
+                                <button
+                                    type="button"
+                                    className={`tr-obj tr-rack${mark === 'item' ? ' on' : ''}`}
+                                    aria-pressed={mark === 'item'}
+                                    onClick={() => toggle('item')}
+                                >
+                                    <HudIcon kind="dumbbell" />
+                                    <span className="tr-sign">{t('longCup.treino.itemSign')}</span>
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className={`tr-obj tr-bed${resting ? ' on' : ''}`}
+                                aria-pressed={resting}
+                                aria-label={`${t('longCup.treino.rest')}: ${t('longCup.treino.restSign')}`}
+                                onClick={() => toggle('rest')}
+                            >
+                                <i className="tr-mat" aria-hidden />
+                                <span className="tr-sign">{t('longCup.treino.restSign')}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Stage>
+        </ClockCtx.Provider>
     );
 }
 
@@ -755,14 +871,23 @@ export function EventScreen() {
     );
     const [pickedLabel, pickedEffect] = picked ? (txt.choices[picked.id] ?? [picked.id, '']) : ['', ''];
     return (
-        <div className={`menu-screen cm cm-ev${picked ? ' asking' : ''}`}>
-            <MenuHead title={stoneName ?? txt.title} hud={art.icon} />
-            <div className="cm-event bc-surface bc-stripe" style={{ '--ev': art.color } as CSSProperties}>
-                <img className="cm-story-who" src={`assets/trainers/${txt.who}.png`} alt="" />
-                <p>{fmtNames(txt.text, names)}</p>
-                {ev.stone && <StoneMark stone={ev.stone} className="cm-event-stone" />}
+        <Stage className="ev-stage" style={{ '--ev': art.color } as CSSProperties}>
+            <div className="draft-head bc-screenhead ev-head">
+                <span className="bc-tag">
+                    <HudIcon kind={art.icon} />
+                    {t('longCup.kind.evento')}
+                </span>
+                <h1>{stoneName ?? txt.title}</h1>
+            </div>
+            {/* a cena atrás do diálogo: quem fala em pé, o emblema do evento e o que está em jogo (cartas, rostos) */}
+            <div className="ev-scene" aria-hidden={!ev.cards?.length}>
+                <i className="ev-floor" />
+                <span className="ev-emblem">
+                    {ev.stone ? <StoneMark stone={ev.stone} className="cm-event-stone" /> : <HudIcon kind={art.icon} />}
+                </span>
+                <img className="ev-who" src={`assets/trainers/${txt.who}.png`} alt="" />
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
-                    <span className="cm-event-faces" aria-hidden>
+                    <span className="cm-event-faces">
                         {ev.uids.map((u) =>
                             byUid.get(u) ? (
                                 <img
@@ -777,71 +902,28 @@ export function EventScreen() {
                         )}
                     </span>
                 )}
+                {!!ev.cards?.length && (
+                    <div className="cm-event-cards">
+                        {ev.cards.map((c) => (
+                            <FutCard key={c.uid} inst={c} size="sm" />
+                        ))}
+                    </div>
+                )}
             </div>
-            {!!ev.cards?.length && (
-                <div className="cm-event-cards">
-                    {ev.cards.map((c) => (
-                        <FutCard key={c.uid} inst={c} size="sm" />
-                    ))}
-                </div>
-            )}
-            {picked && (
-                <div key={picked.id} className="panel reward-pick cm-who" data-exit>
-                    <h2>
-                        {fmtNames(pickedLabel, names)}
-                        {pickedEffect && <small>{fmtNames(pickedEffect, names)}</small>}
-                    </h2>
-                    <h3>{t(sale ? 'longCup.pickSub' : 'longCup.pickWho')}</h3>
-                    {strip(targets, setWho, who, face)}
-                    {/* o novo capitão entra animado (e de novo a cada troca de reserva: a escalação muda) */}
-                    {sale && who && (
-                        <div key={who} className="cm-bar-in">
-                            <h3>{t('longCup.pickCaptain')}</h3>
-                            {strip(lineupAfter, setCaptain, captain)}
-                        </div>
-                    )}
-                </div>
-            )}
-            {/* as escolhas na barra do polegar; escolhida a que pede alguém, a barra vira Voltar · Confirmar */}
-            <div className="bc-thumbbar cm-choices">
-                {picked ? (
-                    <>
-                        <button
-                            key="back"
-                            type="button"
-                            className="btn ghost cm-bar-in"
-                            disabled={evolving}
-                            onClick={() => {
-                                setChoice(null);
-                            }}
-                        >
-                            {t('common.ui.back')}
-                        </button>
-                        <button
-                            key="ok"
-                            type="button"
-                            className="btn primary cm-bar-in"
-                            disabled={!ready || evolving}
-                            onClick={() => {
-                                if (!who) return;
-                                if (picked.need === 'stone') evolve(picked.id, who);
-                                else chooseEvent(picked.id, who, captain ?? undefined);
-                            }}
-                        >
-                            {t('longCup.confirm')}
-                        </button>
-                    </>
-                ) : (
-                    choices.map((c) => {
+            {/* a caixa de diálogo do mapa, com as escolhas como opções (o custo em ₽ à direita) */}
+            <div className="ev-dialog">
+                <RoomDialog text={fmtNames(txt.text, names)} onClose={() => {}}>
+                    {choices.map((c) => {
                         const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
                         return (
                             <button
                                 key={c.id}
                                 type="button"
-                                className="cm-choice bc-tile cm-bar-in"
-                                disabled={!c.ok}
+                                className="ev-opt"
+                                disabled={!c.ok || evolving}
                                 onClick={() => pick(c.id)}
                             >
+                                <HudIcon kind="next" className="ev-cursor" />
                                 <span>
                                     <b>{fmtNames(label, names)}</b>
                                     {effect && <small>{fmtNames(effect, names)}</small>}
@@ -854,16 +936,54 @@ export function EventScreen() {
                                 )}
                             </button>
                         );
-                    })
-                )}
+                    })}
+                </RoomDialog>
             </div>
+            {/* escolha que pede alguém do time: o "Quem?" numa sheet (fechar = voltar); Confirmar aplica */}
+            <Sheet
+                open={!!picked && !evolving}
+                onClose={() => setChoice(null)}
+                title={fmtNames(pickedLabel, names)}
+                className="ev-who-sheet"
+            >
+                {pickedEffect && <p className="muted ev-who-effect">{fmtNames(pickedEffect, names)}</p>}
+                <h3>{t(sale ? 'longCup.pickSub' : 'longCup.pickWho')}</h3>
+                {strip(targets, setWho, who, face)}
+                {/* o novo capitão entra animado (e de novo a cada troca de reserva: a escalação muda) */}
+                {sale && who && (
+                    <div key={who} className="cm-bar-in">
+                        <h3>{t('longCup.pickCaptain')}</h3>
+                        {strip(lineupAfter, setCaptain, captain)}
+                    </div>
+                )}
+                <div className="ev-who-bar">
+                    <button type="button" className="btn ghost" onClick={() => setChoice(null)}>
+                        {t('common.ui.back')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn primary"
+                        disabled={!ready || evolving}
+                        onClick={() => {
+                            if (!who || !picked) return;
+                            if (picked.need === 'stone') evolve(picked.id, who);
+                            else chooseEvent(picked.id, who, captain ?? undefined);
+                        }}
+                    >
+                        {t('longCup.confirm')}
+                    </button>
+                </div>
+            </Sheet>
             <EvolutionOverlay />
-        </div>
+        </Stage>
     );
 }
 
 /** "{a} e {b}" com os nomes dos envolvidos. */
 const fmtNames = (text: string, names: string[]) => text.replace('{a}', names[0] ?? '').replace('{b}', names[1] ?? '');
+
+/** A cascata do grupo: 4 linhas da tabela e 3 rodadas, 250 ms entre uma e outra (~1,6 s). */
+const GROUP_BEATS = [100, ...Array(6).fill(250)];
 
 /**
  * Fase de grupos da Rota Índigo, no Planalto (docs/planos/campeonato.md): a tabela (os 2 primeiros vão pra Final), as
@@ -875,77 +995,28 @@ export function GroupScreen() {
     const tell = useGame((s) => s.tell);
     const run = useHeld(live?.status === 'group' && live.group ? live : null);
     const color = useClubColor();
+    const profile = useGame((s) => s.profile);
     const { t, d, lang } = useT();
+    // placar de TV: as 4 linhas da tabela e as 3 rodadas entram uma por vez (o toque pula pro fim)
+    const casc = useCascade(GROUP_BEATS);
     if (!run?.group) return null;
     const rows = groupTable(run, color);
+    const gd = (r: { gf: number; ga: number }) => (r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga);
     const others = groupOthers(run.seed);
     const played = run.results.filter((r) => isGroupStage(r.stage)).length;
     const toFinal = run.results.length >= FINAL_MATCH;
-    const teamName = (i: number) => (i === 0 ? run.teamName : clubName(run.group!.rivals[i - 1].name, lang));
     const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
     const untold = !run.told?.includes('planalto');
+    const myLook = lookOfProfile(profile);
+    const lookOf = (i: number) =>
+        i === 0 ? myLook : lookOfCupClub(run.group!.rivals[i - 1].name, run.group!.rivals[i - 1].color);
+    // na placa só a cidade ("Cinnabar"); o nome inteiro fica na tabela
+    const short = (i: number) => (i === 0 ? run.teamName : clubName(run.group!.rivals[i - 1].name, lang).split(' ')[0]);
+    const score = (n: number | undefined) => <b className="bc-sc gp-sc">{n ?? '–'}</b>;
     return (
-        <div className="menu-screen cm">
-            <MenuHead title={t('longCup.region.planalto')} hud="players" />
-            <section className="gp-table bc-surface" aria-label={t('longCup.groupTable')}>
-                <div className="gp-row gp-head">
-                    <span />
-                    <span>{t('longCup.groupTable')}</span>
-                    <span>{t('longCup.colPlayed')}</span>
-                    <span>{t('longCup.colGd')}</span>
-                    <span>{t('longCup.colPts')}</span>
-                </div>
-                {rows.map((r, i) => (
-                    <div
-                        key={r.name}
-                        className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
-                        style={{ '--tc': hex(r.color) } as CSSProperties}
-                    >
-                        <b className="gp-pos">{i + 1}</b>
-                        <span className="gp-team">
-                            <i />
-                            {r.you ? r.name : clubName(r.name, lang)}
-                        </span>
-                        <span>{r.played}</span>
-                        <span>{r.gf - r.ga > 0 ? `+${r.gf - r.ga}` : r.gf - r.ga}</span>
-                        <b>{r.pts}</b>
-                    </div>
-                ))}
-                <small className="gp-note">{t('longCup.groupNote')}</small>
-            </section>
-
-            <div className="gp-days">
-                {run.group.rivals.map((rival, md) => {
-                    const mine = run.results.find((x) => x.stage === GROUP_START + md);
-                    const o = others[md];
-                    const trainer = rivalTrainer(rival.name);
-                    return (
-                        <div key={rival.name} className={`gp-day${md === played && !toFinal ? ' now' : ''}`}>
-                            <span className="gp-day-head">
-                                <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
-                                <span className="gp-types">
-                                    <TypeIcons types={rivalTypes(rival.name)} label size={16} />
-                                </span>
-                            </span>
-                            <span className="gp-game mine">
-                                {trainer && (
-                                    <img className="gp-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
-                                )}
-                                {run.teamName} <b>{mine ? `${mine.score[0]} x ${mine.score[1]}` : 'x'}</b>
-                                {mine?.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
-                                {clubName(rival.name, lang)}
-                            </span>
-                            <span className="gp-game muted">
-                                {teamName(o.a)} <b>{mine ? `${o.score[0]} x ${o.score[1]}` : 'x'}</b>
-                                {mine && o.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
-                                {teamName(o.b)}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="bc-thumbbar">
+        <Stage
+            className="gp-stage"
+            action={
                 <button
                     type="button"
                     className="btn primary wide"
@@ -956,6 +1027,121 @@ export function GroupScreen() {
                     {toFinal ? t('longCup.playFinal') : t('longCup.playMatchday', { n: played + 1 })}
                     <HudIcon kind="next" />
                 </button>
+            }
+        >
+            <div className="draft-head bc-screenhead gp-head">
+                <span className="bc-tag">{t('longCup.groupTable')}</span>
+                <h1>{t('longCup.region.planalto')}</h1>
+            </div>
+            {/* a tabela em placar de TV: posição na placa, a cor do time, os pontos no quadro claro */}
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: tocar pula a cascata (tudo já está no DOM pro leitor de tela) */}
+            <section className="gp-table gp-tv" aria-label={t('longCup.groupTable')} onClick={casc.skip}>
+                <div className="gp-row gp-head">
+                    <span />
+                    <span />
+                    <span>{t('longCup.colPlayed')}</span>
+                    <span>{t('longCup.colGd')}</span>
+                    <span>{t('longCup.colPts')}</span>
+                </div>
+                {rows.map((r, i) => (
+                    <Beat
+                        key={r.name}
+                        on={casc.step > i}
+                        className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
+                        style={{ '--tc': hex(r.color) } as CSSProperties}
+                    >
+                        <b className="gp-pos">{i + 1}</b>
+                        <span className="gp-team">
+                            <i />
+                            {r.you ? r.name : clubName(r.name, lang)}
+                        </span>
+                        <span>{r.played}</span>
+                        <span>{gd(r)}</span>
+                        <b className="bc-sc gp-pts">{r.pts}</b>
+                    </Beat>
+                ))}
+                {/* a conta dos pontos no "?" (decisão 13: regra na tela até ~12 palavras); a tabela inteira no Ver tudo */}
+                <small className="gp-note">
+                    {t('longCup.groupNote')}
+                    <InfoSheet title={t('longCup.groupPointsTitle')}>
+                        <p>{t('longCup.groupPoints')}</p>
+                    </InfoSheet>
+                    <SeeAll title={t('longCup.groupTable')}>
+                        <div className="gp-table gp-tv gp-all">
+                            <div className="gp-row gp-head">
+                                <span />
+                                <span />
+                                <span>{t('longCup.colPlayed')}</span>
+                                <span>{t('longCup.colGf')}</span>
+                                <span>{t('longCup.colGa')}</span>
+                                <span>{t('longCup.colGd')}</span>
+                                <span>{t('longCup.colPts')}</span>
+                            </div>
+                            {rows.map((r, i) => (
+                                <div
+                                    key={r.name}
+                                    className={`gp-row${r.you ? ' you' : ''}${i < 2 ? ' up' : ''}`}
+                                    style={{ '--tc': hex(r.color) } as CSSProperties}
+                                >
+                                    <b className="gp-pos">{i + 1}</b>
+                                    <span className="gp-team">
+                                        <i />
+                                        {r.you ? r.name : clubName(r.name, lang)}
+                                    </span>
+                                    <span>{r.played}</span>
+                                    <span>{r.gf}</span>
+                                    <span>{r.ga}</span>
+                                    <span>{gd(r)}</span>
+                                    <b className="bc-sc gp-pts">{r.pts}</b>
+                                </div>
+                            ))}
+                        </div>
+                    </SeeAll>
+                </small>
+            </section>
+
+            {/* as 3 rodadas como placas de jogo: os dois escudos e o placar; a próxima pulsa */}
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a cascata */}
+            <div className="gp-days" onClick={casc.skip}>
+                {run.group.rivals.map((rival, md) => {
+                    const mine = run.results.find((x) => x.stage === GROUP_START + md);
+                    const o = others[md];
+                    const trainer = rivalTrainer(rival.name);
+                    const now = md === played && !toFinal;
+                    return (
+                        <Beat
+                            key={rival.name}
+                            on={casc.step > rows.length + md}
+                            className={`gp-day${now ? ' now' : ''}${mine ? ' done' : ''}`}
+                        >
+                            <span className="gp-day-head">
+                                <span className="gp-day-tag">{t('longCup.matchday', { n: md + 1 })}</span>
+                                <span className="gp-types">
+                                    <TypeIcons types={rivalTypes(rival.name)} size={14} />
+                                </span>
+                            </span>
+                            <span className="gp-game mine" title={`${run.teamName} x ${clubName(rival.name, lang)}`}>
+                                <Crest look={myLook} className="crest gp-crest" />
+                                <span className="gp-name">{run.teamName}</span>
+                                {score(mine?.score[0])}
+                                {score(mine?.score[1])}
+                                <span className="gp-name away">{short(md + 1)}</span>
+                                <span className="gp-crest-wrap">
+                                    <Crest look={lookOf(md + 1)} className="crest gp-crest" />
+                                    {trainer && (
+                                        <img className="gp-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
+                                    )}
+                                </span>
+                                {mine?.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}
+                            </span>
+                            <span className="gp-game gp-other muted">
+                                {short(o.a)} <b>{mine ? `${o.score[0]} x ${o.score[1]}` : 'x'}</b>
+                                {mine && o.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}{' '}
+                                {short(o.b)}
+                            </span>
+                        </Beat>
+                    );
+                })}
             </div>
             <Coach id="rotaGrupo" targets={['.gp-table']} when={!untold} />
             {untold &&
@@ -970,6 +1156,6 @@ export function GroupScreen() {
                     </div>,
                     document.body,
                 )}
-        </div>
+        </Stage>
     );
 }

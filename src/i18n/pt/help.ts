@@ -410,7 +410,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             { p: '{maxFill}' },
             { dyn: 'maxLevels' },
             {
-                p: '**Na hora certa:** com capitão de linha, o botão acende no ataque do seu time e a bola procura o capitão, que solta o golpe perto do gol. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
+                p: '**Na hora certa:** com capitão de linha, o botão acende com a bola no pé dele perto do gol, e o golpe sai na hora. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
             },
             {
                 p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora: a defesa de sempre, e a barra se vai.',
@@ -604,7 +604,7 @@ export const help = {
             'chute com {pw} e derruba quem estiver no caminho (o goleiro não cai).',
             'chute com {pw}, sempre no alvo, com a cena do especial e o efeito do tipo (12 Pokémon têm assinatura própria).',
         ],
-        maxTypeLine: 'N1 {st} · N3: {fx}.',
+        maxTypeLine: 'N1 {st} quem bloquear ou defender · N3: {fx}.',
     },
     screen: {
         title: 'Ajuda',
@@ -660,13 +660,11 @@ export const help = {
             'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
-        rotaNova: ['Agora tem a Rota Índigo: uma copa longa, com os ginásios de Kanto.'],
+        rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],
         relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
-        relampagoDraft: [
-            'Monta pra mim escala o time num toque. Quer escolher? Toque numa vaga: saem 3 e você leva 1.',
-        ],
-        relampagoVestiario: ['Toque em dois jogadores pra trocar. A Tática e a Chave ficam na lousa.'],
-        relampagoJogo: ['Mude a tática e troque jogadores durante o jogo. Quem joga muito evolui.'],
+        relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
+        relampagoVestiario: ['Toque em dois pra trocar. A chave abre no cartaz do rival.'],
+        relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
         dueloSala: [
             'Melhor de 3: mesmo time nos jogos, escalação ajustável entre eles.',
@@ -677,10 +675,7 @@ export const help = {
             'Ganhar sobe o Elo, perder desce.',
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
-        golpe: [
-            'Barra no N1: o golpe máximo do capitão liberou. No N2 derruba quem estiver no caminho; no N3 sai sempre no alvo.',
-            'Quando o botão acender, toque com o círculo verde fechando. Capitão no gol devolve o chute de bicuda.',
-        ],
+        golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',

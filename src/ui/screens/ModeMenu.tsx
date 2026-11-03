@@ -24,10 +24,12 @@ import { PokeCard2 } from '../components/PokeCard2';
 import { TopActions } from '../components/TopActions';
 import { openPage } from '../doors';
 import { reduceMotionOn } from '../settings-sync';
+import { announceProgram } from '../tv';
 import { uiZoom } from '../ui-zoom';
 import '../ambientes/ambientes.css';
 import '../components/badges.css';
 import './mode-menu.css';
+import '../tv.css';
 
 /*
  * Menu de modos: a tela que vem ANTES da Home dos ambientes pra quem já jogou (regra em `modeMenuDue`, store/coach.ts).
@@ -304,24 +306,6 @@ export function Soon({ id }: { id: ModeId }) {
 }
 
 /**
- * A faixa de obra lacrando o trancado: "EM BREVE · 27/11" repetido, por cima do herói (o pacote, o Blue) e embaixo do
- * nome, recortada na diagonal da fatia. Pra ninguém achar que dá pra jogar.
- */
-function Tape({ id }: { id: ModeId }) {
-    const { t, lang } = useT();
-    const txt = `${t('home.modes.soon')} · ${soonDate(id, lang)}`;
-    return (
-        <span className="mm-tape-box" aria-hidden>
-            <i className="mm-tape">
-                {[0, 1, 2, 3].map((k) => (
-                    <span key={k}>{txt}</span>
-                ))}
-            </i>
-        </span>
-    );
-}
-
-/**
  * O botão de baixo com um trancado aberto: diz quando chega (não é JOGAR, então não é dourado) e um toque volta pro
  * Modo Copa, onde o JOGAR reaparece.
  */
@@ -523,6 +507,9 @@ const ORDER: ModeId[] = ['atual', 'ultimate', 'historia'];
  * `look` c2 (padrão, 30/10/2026: o Copa grande em cima e os dois trancados lado a lado embaixo, cada um com a cena
  * inteira) ou c1 (as três empilhadas). Tocar abre a fatia (cresce, acende, mostra os itens). Os trancados têm o selo
  * "EM BREVE" com a data; abertos, o JOGAR dá lugar a "Chega em…" (um toque volta pro Modo Copa).
+ * Com cara de TV (padrão desde 0.9.37, estilos em src/ui/tv.css): cada fatia é um canal (o número pequeno), o jogável
+ * diz AO VIVO, o selo dos trancados é a faixa de baixo ("EM BREVE 27/11"), a pilha tem moldura de tela e o letreiro de
+ * LED da torcida fica sem texto (repetia os nomes dos modos).
  */
 export type SliceLook = 'c1' | 'c2';
 export function ModeSlices({
@@ -537,7 +524,7 @@ export function ModeSlices({
     /** Com a bandeira `?lab=ultimate` (só dev e prévias): o Time Ultimate abre, com o JOGAR levando pra ele. */
     onUltimate?: () => void;
 }) {
-    const { t, d } = useT();
+    const { d } = useT();
     const [sel, setSel] = useState<ModeId>(LAST);
     const playable = (m: ModeId) => m === LAST || (m === 'ultimate' && !!onUltimate);
     // o "Chega em…" guarda o último trancado aberto: voltando pro Copa, ele some com o texto certo
@@ -552,7 +539,7 @@ export function ModeSlices({
         anims.current = flipSlices(el, anims.current, () => flushSync(() => setSel(m)));
     };
     return (
-        <div className={`mm-c mm-${look}`}>
+        <div className={`mm-c mm-${look} mm-tvs`}>
             <Head />
             <div ref={stack} className={`mm-c-stack mm-sel-${sel}`}>
                 {ORDER.map((m, n) => (
@@ -569,18 +556,22 @@ export function ModeSlices({
                             <i className="mm-burst" />
                         </span>
                         <Hero id={m} scale={big ? 5 : 3} />
-                        {m !== LAST && <Tape id={m} />}
                         <span className="mm-slice-txt">
-                            {m === LAST ? (
-                                <span className="mm-tag">{t('home.modes.last')}</span>
-                            ) : playable(m) ? (
-                                <span className="mm-tag">{t('home.modes.preview')}</span>
-                            ) : (
-                                <Soon id={m} />
+                            {playable(m) && (
+                                <span className="tv-onair">
+                                    <i>{n + 1}</i>
+                                    <b>{m === LAST ? d.home.live : d.home.modes.preview}</b>
+                                </span>
                             )}
                             <b className="cb-num mm-plate">
                                 <span>{d.home.modes[m].name}</span>
                             </b>
+                            {!playable(m) && (
+                                <span className="tv-soon">
+                                    <i>{n + 1}</i>
+                                    <Soon id={m} />
+                                </span>
+                            )}
                             <span className="mm-slice-more">
                                 <span>
                                     {m === 'ultimate' && !playable(m) && <When id={m} />}
@@ -642,6 +633,7 @@ export function ModeMenu({
     // biome-ignore lint/correctness/useExhaustiveDependencies: só na montagem
     useEffect(() => {
         if (phase === 'in') root.current?.querySelector<HTMLElement>('.mm-play')?.focus({ preventScroll: true });
+        announceProgram('modes');
     }, []);
     const play = () => {
         const r = root.current;

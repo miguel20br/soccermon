@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import { FUTSAL_5 } from '../../engine/config';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { type MatchResult, runMatch } from '../../engine/runners/batch-runner';
 import { TopBar, useCountUp } from '../ambientes/TopBar';
 import { CountUp } from '../components/CountUp';
+import { FinalCard } from '../components/FinalCard';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import '../ambientes/ambientes.css';
@@ -99,6 +102,21 @@ export function KitLab({ onExit }: { onExit: () => void }) {
     const [form, setForm] = useState('1-2-1');
     const [vol, setVol] = useState(60);
     const [opt, setOpt] = useState(0);
+    const [duel, setDuel] = useState<MatchResult | null>(null);
+    // fim do Duelo visto do visitante: uma partida de verdade, sem quadra (o craque sai dela)
+    const playDuel = () => {
+        const rng = new Rng('kit', 'duelo');
+        const team = (name: string, ids: number[], color: number) => ({
+            name,
+            lineup: ids.map((id) => createInstance(id, rng)),
+            bench: [],
+            tactic: 'balanced' as const,
+            color,
+        });
+        const home = team('Sala do Ash', [143, 68, 151, 132, 150], 0xe94b4b);
+        const away = team('Sala do Gary', [9, 3, 6, 25, 65], 0x3b82f6);
+        setDuel(runMatch(FUTSAL_5, home, away, 'kit-duelo', { snapshots: false }));
+    };
     const cards = useMemo(() => {
         const rng = new Rng('kit', 'lab');
         return [149, 6, 94].map((id) => createInstance(id, rng));
@@ -145,7 +163,21 @@ export function KitLab({ onExit }: { onExit: () => void }) {
                     <button type="button" className="btn" onClick={() => setPickOpen(true)}>
                         <HudIcon kind="cards" /> Escolha 1 de 3
                     </button>
+                    <button type="button" className="btn" onClick={playDuel}>
+                        <HudIcon kind="max" /> Fim do Duelo (visitante)
+                    </button>
                 </div>
+                {duel && (
+                    <FinalCard
+                        score={duel.score}
+                        shootout={duel.shootout ?? null}
+                        names={['Sala do Ash', 'Sala do Gary']}
+                        colors={[0xe94b4b, 0x3b82f6]}
+                        liga={false}
+                        duel={{ side: 1, match: duel, label: 'Ver resultado' }}
+                        onGo={() => setDuel(null)}
+                    />
+                )}
                 {walk && <Walkout inst={cards[0]} onDone={() => setWalk(false)} />}
                 {pickOpen && (
                     <MomentStage label="Escolha 1 de 3" onSkip={() => setPickOpen(false)}>

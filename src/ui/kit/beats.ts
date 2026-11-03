@@ -36,6 +36,15 @@ export function walkoutIndex(cards: readonly PokemonInstance[]): number {
     return best;
 }
 
+/** O dia local como número (20261102), pra guardar no `local-count`. */
+export const dayNumber = (d: Date) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+
+/**
+ * Batidas do walkout (menus-fc-e-aclamados.md): 3 no primeiro do dia, 1 (cor do tipo e a carta) do segundo em diante.
+ * `last` = o dia do último walkout guardado neste navegador (null = nunca ou sem onde guardar).
+ */
+export const walkoutBeats = (last: number | null, today: number) => (last === today ? 1 : 3);
+
 /** Próximo índice do seletor ‹ › (`dir` -1 ou 1): dá a volta com `wrap`, senão para nas pontas. */
 export function stepIndex(i: number, dir: -1 | 1, n: number, wrap: boolean): number {
     const j = i + dir;

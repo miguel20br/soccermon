@@ -8,7 +8,7 @@ export const moments = {
     close: 'Fechar',
     export: 'Exportar clipe',
     recording: 'Gravando o clipe… {p}%',
-    recordingNote: 'Deixe esta tela aberta: o clipe grava em tempo real (até 15 s).',
+    recordingNote: 'Deixe a tela aberta. O clipe grava ao vivo (até 15 s).',
     ready: 'Clipe pronto',
     download: 'Baixar',
     share: 'Compartilhar',
@@ -37,6 +37,6 @@ export const moments = {
             final: 'na final',
             plain: 'o seu gol mais bonito',
         },
-        old: 'Este gol é de uma versão antiga do jogo: dá pra ver o resumo, mas não o replay.',
+        old: 'Gol de uma versão antiga. Tem o resumo, sem replay.',
     },
 };

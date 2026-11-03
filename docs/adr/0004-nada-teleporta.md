@@ -17,5 +17,6 @@ Toda troca de tela, entrada, saída e mudança de estado nos menus tem transiç�
 ## Consequências
 
 - Infra: `src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`; `npm run teleporte` acusa o que pula.
+- Desde 0.9.37 o corte diagonal de TV (`src/ui/tv.ts`, 280 ms) é a transição de tela padrão; com Reduzir movimento, fade.
 - O que ainda não cumpre está no backlog em `docs/planos/nada-teleporta.md`.
 - Trocar de tela adia só a `screen` até a animação, não o estado inteiro (`src/store/screen-transition.ts`).

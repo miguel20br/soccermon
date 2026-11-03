@@ -46,6 +46,25 @@ interface Props {
     mirror?: boolean;
 }
 
+/**
+ * O visual da carta numa vaga (metal pela nota, lendário, edições especiais), sem os atributos: as classes `sc` e as
+ * cores (`--rar` o anel do metal, `--t1` a cor do Evento).
+ */
+export function cardLook(inst: PokemonInstance): { className: string; style: CSSProperties } {
+    const tier = species(inst.speciesId).tier;
+    const edition = editionOf(inst);
+    const metal = metalOf(viewInstance(inst).overall);
+    // anel na cor do metal da carta (lendário: creme e dourado)
+    const ring = tier === 'legendary' ? '#f2d878' : METAL[metal].color;
+    const className = edition
+        ? `sc sc-${edition}`
+        : tier === 'legendary'
+          ? 'sc sc-lendario'
+          : `sc sc-${metal}${finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`;
+    // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água, não de Pedra)
+    return { className, style: { '--rar': ring, '--t1': TYPE_COLOR[cardTypeOf(inst)] } as CSSProperties };
+}
+
 /** Mini-quadra vertical com as vagas da formação + banco. Usada no draft, na escalação e nas recompensas. */
 export function FormationBoard({
     formation,
@@ -92,26 +111,11 @@ export function FormationBoard({
         // projeção do selecionado (não no banco nem na própria vaga dele)
         const proj = projection && ref.zone === 'lineup' && uid !== projection.uid ? ratingAt(projection, role) : null;
         const projClass = proj ? (proj.fit === 'off' ? ' proj-bad' : ' proj-good') : '';
-        // cor da raridade (anel) e marca da edição especial
         const tier = inst ? species(inst.speciesId).tier : null;
         const edition = inst ? editionOf(inst) : null;
-        // anel na cor do metal da carta (lendário: creme e dourado)
-        const ring = inst
-            ? tier === 'legendary'
-                ? '#f2d878'
-                : METAL[metalOf(viewInstance(inst).overall)].color
-            : null;
-        // visual da carta (metal pela nota, lendário, edições especiais), sem os atributos
-        const look = inst
-            ? edition
-                ? `sc sc-${edition}`
-                : tier === 'legendary'
-                  ? 'sc sc-lendario'
-                  : `sc sc-${metalOf(viewInstance(inst).overall)}${tier && finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`
-            : '';
-        // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água, não de Pedra)
-        const t1 = inst ? TYPE_COLOR[cardTypeOf(inst)] : undefined;
-        const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
+        const card = inst ? cardLook(inst) : null;
+        const look = card?.className ?? '';
+        const rarStyle = card ? ({ ...style, ...card.style } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
         const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';
         return (

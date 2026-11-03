@@ -18,10 +18,16 @@ const GAP = 12;
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 /**
- * Onde pôr o balão: embaixo do alvo, senão em cima, senão ao lado (celular deitado). Nunca em cima do alvo, a não
- * ser que nada caiba (`inside`: encostado no pé da tela).
+ * Onde pôr a linha da dica: embaixo do alvo, senão em cima, senão ao lado (celular deitado). Nunca em cima do alvo, a não
+ * ser que nada caiba (`inside`: dentro do alvo, no pé dele; no pé da tela tapava o botão de jogar). `gap`: o vão do dedo entre a linha e o alvo.
  */
-export function placeBalloon(hole: Box, b: { width: number; height: number }, vw: number, vh: number): Placement {
+export function placeBalloon(
+    hole: Box,
+    b: { width: number; height: number },
+    vw: number,
+    vh: number,
+    gap = GAP,
+): Placement {
     const r = hole.left + hole.width;
     const bt = hole.top + hole.height;
     const cx = hole.left + hole.width / 2;
@@ -31,7 +37,7 @@ export function placeBalloon(hole: Box, b: { width: number; height: number }, vw
         return {
             side,
             left,
-            top: side === 'below' ? bt + GAP : hole.top - GAP - b.height,
+            top: side === 'below' ? bt + gap : hole.top - gap - b.height,
             arrow: clamp(cx - left, 16, b.width - 16),
         };
     };
@@ -40,31 +46,21 @@ export function placeBalloon(hole: Box, b: { width: number; height: number }, vw
         return {
             side,
             top,
-            left: side === 'right' ? r + GAP : hole.left - GAP - b.width,
+            left: side === 'right' ? r + gap : hole.left - gap - b.width,
             arrow: clamp(cy - top, 16, b.height - 16),
         };
     };
-    if (vh - bt >= b.height + GAP + M) return vertical('below');
-    if (hole.top >= b.height + GAP + M) return vertical('above');
-    if (vw - r >= b.width + GAP + M) return horizontal('right');
-    if (hole.left >= b.width + GAP + M) return horizontal('left');
+    if (vh - bt >= b.height + gap + M) return vertical('below');
+    if (hole.top >= b.height + gap + M) return vertical('above');
+    if (vw - r >= b.width + gap + M) return horizontal('right');
+    if (hole.left >= b.width + gap + M) return horizontal('left');
+    const left = clamp(cx - b.width / 2, M, Math.max(M, vw - b.width - M));
     return {
         side: 'inside',
-        left: clamp(cx - b.width / 2, M, Math.max(M, vw - b.width - M)),
-        top: vh - b.height - M,
-        arrow: 0,
+        left,
+        top: clamp(bt - b.height - M, M, Math.max(M, vh - b.height - M)),
+        arrow: clamp(cx - left, 16, b.width - 16),
     };
-}
-
-/** Seletor do que "tocar fora do balão" deve seguir: o toque fecha o balão e ainda vale pro botão tocado. */
-export const TAPPABLE = 'button, a[href], [role="button"], input, select, summary, label';
-
-type Hit = { closest(sel: string): Hit | null };
-
-/** De `document.elementsFromPoint`: o 1º que não é do próprio balão, subindo até o botão/link. */
-export function tappableUnder<T extends Hit>(stack: readonly T[]): T | null {
-    const under = stack.find((n) => !n.closest('.coach'));
-    return (under?.closest(TAPPABLE) as T | null | undefined) ?? null;
 }
 
 /** Só rola a página se o alvo estiver (em parte) fora da tela; alvo que já cabe não mexe na rolagem (o logo fica). */

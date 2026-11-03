@@ -38,6 +38,8 @@ export const duel = {
         replayBtn: 'Jogar de novo',
         replayed: '{n} jogo anulado e jogado de novo|{n} jogos anulados e jogados de novo',
     },
+    modeShort: { ready: 'Meu time', disputa: 'Disputa', pacotes: 'Pacotes' },
+    rules: 'Regras',
     modes: {
         ready: ['Meu time', 'Cada um entra com o time da copa ou um campeão do Hall.'],
         disputa: ['Disputa', '4 cartas por rodada: cada um tira 1, as outras 2 queimam.'],
@@ -57,6 +59,7 @@ export const duel = {
     leaveYes: 'Sair',
     room: 'Sala {code}',
     noTeam: 'Jogue uma copa ou escolha Disputa / Cada um com seus pacotes.',
+    noTeamShort: 'sem time',
     join: { label: 'Tem um código de sala?', go: 'Entrar' },
     entry: {
         kicker: 'Sala {code}',
@@ -82,8 +85,8 @@ export const duel = {
         codeLabel: 'Código da sala',
         inviteHint: 'Mande o link ou o código. Quem abrir entra direto, sem conta.',
         share: 'Compartilhar',
-        whatsapp: 'Mandar no WhatsApp',
-        copy: 'Copiar link',
+        whatsapp: 'WhatsApp',
+        copy: 'Copiar',
         copied: 'Link copiado!',
         qr: 'QR code (pra quem está do lado)',
         qrHint: 'Aponte a câmera do celular: abre a sala.',

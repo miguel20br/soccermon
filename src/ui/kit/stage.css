@@ -37,6 +37,28 @@
     flex-direction: column;
     overflow: hidden;
 }
+/* palco que abre a página (Resultado, Campeão): o palco vem primeiro e os detalhes seguem embaixo, rolando */
+.app:has(> .k-stage.k-stage-rola) {
+    height: auto;
+    overflow: visible;
+}
+.k-stage.k-stage-rola,
+.k-stage-rola > .k-stage-body {
+    flex: none;
+    overflow: visible;
+}
+/* PC: o palco fica do tamanho da 1ª tela, pro zoom de caber (useFitZoom) ainda ter altura pra medir. 128px = respiro
+   de cima (16) + barra do logo (40) + vão (16) + uma ponta de 56 dos detalhes aparecendo embaixo (convida a rolar),
+   na mesma unidade do --vh (desconta o zoom) */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .k-stage.k-stage-rola {
+        height: calc(100 * var(--vh) - 128px);
+        overflow: hidden;
+    }
+    .k-stage-rola > .k-stage-body {
+        flex: 1 1 0;
+    }
+}
 .k-stage-scene {
     position: absolute;
     inset: 0;
@@ -52,6 +74,33 @@
     flex-direction: column;
     justify-content: safe center;
     gap: 12px;
+}
+
+/*
+ * Regra de 1440 (cara-de-jogo.md, padrão 6): no PC o palco e o momento crescem com a tela, como a Home. O conteúdo
+ * ganha `zoom` (--k-big) e o --vw/--vh de dentro desconta o zoom, pra quem mede pela tela continuar certo (medida em
+ * JS: `uiZoom(el)`). Celular, tablet e deitado ficam em 1.
+ */
+@media (min-width: 1100px) and (min-height: 720px) {
+    :root {
+        --k-big: 1.2;
+    }
+}
+@media (min-width: 1250px) and (min-height: 840px) {
+    :root {
+        --k-big: 1.35;
+        /* carta da escolha 1 de 3 e título do momento: um pouco maiores que o teto do celular */
+        --k-card-max: 230px;
+        --k-title-max: 80px;
+    }
+}
+.k-stage-body,
+.k-moment-body {
+    /* --k-fit: o quanto o zoom desce pra caber (useFitZoom, Stage.tsx) */
+    --k-z: calc(var(--k-big, 1) * var(--k-fit, 1));
+    zoom: var(--k-z);
+    --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-z));
+    --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-z));
 }
 
 /* ---------- momento: overlay com o fundo da marca e os raios ---------- */
@@ -111,7 +160,7 @@
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: clamp(34px, calc(10 * var(--vw)), 64px);
+    font-size: clamp(34px, calc(10 * var(--vw)), var(--k-title-max, 64px));
     line-height: 1;
     letter-spacing: 1px;
     color: var(--yellow);
@@ -273,12 +322,23 @@
 }
 .k-step-btn {
     all: unset;
+    position: relative;
     display: grid;
     place-items: center;
     height: 100%;
     color: var(--yellow);
     cursor: pointer;
     transition: transform var(--dur-solta) var(--ease-pop);
+}
+/* toque de 44 px sem mudar o desenho: a área invisível passa da borda (o ‹ › tem 32, o "?" de 24 a 28) */
+.k-step-btn::before,
+.k-info::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+}
+.k-info::before {
+    inset: -10px;
 }
 .k-step-btn:active:not(:disabled) {
     transform: scale(0.86);
@@ -370,6 +430,7 @@
 /* ---------- Info "?" e linha que abre Sheet ---------- */
 .k-info {
     all: unset;
+    position: relative;
     flex: none;
     display: inline-grid;
     place-items: center;
@@ -392,6 +453,44 @@
     transition-duration: var(--dur-toque);
 }
 .k-info:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* "Ver tudo" do placar de TV: a pílula do "?" com texto (a área de toque cresce pra 44 px por fora) */
+.k-seeall {
+    all: unset;
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 28px;
+    padding: 0 6px 0 10px;
+    border-radius: 14px;
+    background: var(--bc-ink);
+    border: 2px solid var(--cb-ink);
+    box-shadow: inset 0 0 0 2px var(--frame-in);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--dur-solta) var(--ease-pop);
+}
+.k-seeall::before {
+    content: "";
+    position: absolute;
+    inset: -10px -4px;
+}
+.k-seeall .hud-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--yellow);
+}
+.k-seeall:active {
+    transform: scale(0.94);
+    transition-duration: var(--dur-toque);
+}
+.k-seeall:focus-visible {
     outline: 2px solid var(--yellow);
     outline-offset: 2px;
 }
@@ -454,7 +553,7 @@
     /* a carta (FutCard) mede tudo pela --fut-w: um terço da largura que sobra, no máximo o tamanho normal */
     /* e não passa da altura: --k-pick-reserve = o que a tela ocupa em volta das cartas (barra, título, botões) */
     --k-card-w: min(
-        190px,
+        var(--k-card-max, 190px),
         calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-n, 3) - 1) * var(--k-gap)) / var(--k-n, 3)),
         calc((calc(100 * var(--vh)) - var(--k-pick-reserve, 0px)) / 1.41)
     );
@@ -614,4 +713,71 @@
 :is(.corner-taker, .pr-formation, .volume-row, .pf-field) > .k-stepper {
     flex: 1 1 200px;
     width: 100%;
+}
+
+/*
+ * Palco de lugar (k-stage-place): a cena do lugar fixa atrás da tela toda (Backdrops.tsx: Arena no Duelo e na Liga,
+ * Estádio na Copa do Dia), a placa em cima, o vão (.k-stage-gap) onde a cena aparece e o conteúdo embaixo, perto do
+ * polegar. Deitado, o conteúdo vai pra coluna da esquerda e a cena fica à direita.
+ */
+.app:has(.k-stage-place) {
+    height: calc(100 * var(--vh));
+    min-height: 0;
+    overflow: hidden;
+}
+/* a cena é fixa e cobre a tela toda: a barra de cima fica na frente dela */
+.app:has(.k-stage-place) > .topbar {
+    position: relative;
+    z-index: 32;
+}
+.k-stage-place .k-stage-body {
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    /* último recurso em tela baixa demais: rola dentro do palco, nunca a página */
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.k-stage-place .k-stage-body > * {
+    flex: none;
+    width: min(560px, 100%);
+    margin: 0;
+}
+.k-stage-place .k-stage-body > .k-stage-gap {
+    flex: 1 1 0;
+    min-height: 0;
+}
+.k-stage-place .k-stage-action > .btn {
+    flex: 0 1 420px;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-stage-place .k-stage-body {
+        align-items: flex-start;
+    }
+    .k-stage-place .k-stage-body > * {
+        width: min(400px, 54%);
+    }
+    /* não coube numa coluna (useTwoCols, Stage.tsx): o conteúdo corre em 2 colunas e a cena fica na faixa da direita */
+    .k-stage-place .k-stage-body[data-cols="2"] {
+        display: block;
+        width: min(720px, 70%);
+        columns: 2;
+        column-gap: 10px;
+        column-fill: auto;
+    }
+    .k-stage-place .k-stage-body[data-cols="2"] > * {
+        width: 100%;
+        margin-bottom: 8px;
+        break-inside: avoid;
+    }
+    .k-stage-place .k-stage-body[data-cols="2"] > .k-stage-gap {
+        display: none;
+    }
+    .app:has(.k-stage-body[data-cols="2"]) .amb-bd :is(.ar-duel, .ar-circle) {
+        left: 86%;
+    }
+}
+/* em pé: a dupla no meio do vão de verdade (useTwoCols mede; a quadra começa embaixo da parede) */
+.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle) {
+    top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h));
 }

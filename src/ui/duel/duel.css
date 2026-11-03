@@ -230,18 +230,10 @@
 }
 
 /* criar sala */
-.duel-create {
-    display: grid;
-    gap: 14px;
-    width: min(640px, 100%);
-    margin: 0 auto;
-}
-.duel-create h1,
 .duel-teams h1,
 .duel-result h1 {
     margin: 0;
 }
-.duel-modes,
 .duel-speeds {
     border: 0;
     padding: 0;
@@ -249,27 +241,8 @@
     display: grid;
     gap: 8px;
 }
-/* modos: peças do kit (.bc-tile), título em cima e a explicação embaixo */
-.duel-mode.bc-tile {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 10px 14px;
-    font: inherit;
-}
-.duel-mode span {
-    color: var(--muted);
-    font-size: 13px;
-}
 
 /* lobby */
-.duel-lobby {
-    display: grid;
-    gap: 14px;
-    width: min(720px, 100%);
-    margin: 0 auto;
-    justify-items: center;
-}
 .duel-code {
     display: grid;
     justify-items: center;
@@ -527,7 +500,6 @@ button.sb-title:hover {
 }
 
 /* draft */
-.duel-draft,
 .duel-preview {
     display: grid;
     gap: 12px;
@@ -550,9 +522,6 @@ button.sb-title:hover {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 8px;
-}
-.duel-progress {
-    align-self: center;
 }
 .duel-strip {
     display: grid;
@@ -581,9 +550,6 @@ button.sb-title:hover {
     min-height: 50px;
     border: 2px dashed var(--line);
     background: transparent;
-}
-.duel-options.four {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 .duel-locked {
     opacity: 0.75;
@@ -785,7 +751,63 @@ button.sb-title:hover {
     }
 }
 
-/* draft do duelo: o mesmo do draft da copa + o que é do duelo (vez de quem, cronômetro, queimadas) */
+/* draft do duelo: o palco do draft da copa (draft.css) + o que é do duelo (vez de quem, cronômetro, queimadas) */
+.app:has(.duel-draft-stage) {
+    height: calc(100 * var(--vh));
+    min-height: 0;
+    overflow: hidden;
+}
+.duel-draft-stage .draft-pick3 {
+    /* a linha do que o rival tirou ocupa um pouco mais que a da copa */
+    --k-pick-reserve: 470px;
+}
+/* a vez e o relógio no polegar, ao lado do botão do time */
+.duel-turn-hint {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.duel-turn-hint.mine {
+    color: var(--yellow);
+    font-weight: 700;
+}
+.duel-draft-bar {
+    zoom: var(--k-big, 1);
+}
+.duel-draft-bar > .btn {
+    flex: 0 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* 320: o botão e a vez cabem na mesma linha (a vez é curta; a regra geral da barra sobe a instrução) */
+.duel .bc-thumbbar.duel-draft-bar {
+    flex-wrap: nowrap;
+}
+.duel .bc-thumbbar.duel-draft-bar > .tb-hint {
+    flex: 1 1 0;
+}
+/* deitado: o título sai (draft.css) e a vez fica só no polegar; as cartas ganham a altura */
+@media (orientation: landscape) and (max-height: 520px) {
+    .duel-draft-stage .draft-pick3 {
+        --k-pick-reserve: 236px;
+    }
+}
+/* celular baixo (320x640): a regra da linha cinza sai (o "?" das regras já explicou na sala), relógio mais baixo
+   (a faixa do time encolhe em draft.css), pra as cartas caberem inteiras */
+@media (orientation: portrait) and (max-height: 700px) {
+    .duel-draft-stage .draft-title p {
+        display: none;
+    }
+    .duel-draft-stage .duel-timer {
+        min-width: 44px;
+        padding: 2px 8px;
+        font-size: 20px;
+    }
+}
 .duel-draft-clock {
     display: flex;
     align-items: center;
@@ -793,21 +815,6 @@ button.sb-title:hover {
 }
 .duel-board-tabs {
     margin-bottom: 10px;
-}
-.duel-turn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 10px;
-    border-radius: 999px;
-    border: 2px solid var(--line);
-    font-size: 12px;
-    color: var(--muted);
-}
-.duel-turn.mine {
-    border-color: var(--yellow);
-    color: var(--yellow);
-    font-weight: 700;
 }
 .duel-draft-news {
     display: flex;
@@ -832,9 +839,6 @@ button.sb-title:hover {
 }
 
 /* convite: código grande, compartilhar, WhatsApp e QR */
-.duel-lobby-head {
-    justify-self: stretch;
-}
 .duel-invite {
     position: relative;
     display: grid;
@@ -895,14 +899,6 @@ button.sb-title:hover {
     font-size: 10px;
     font-weight: 400;
     vertical-align: 2px;
-}
-.duel-mode:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-.duel-mode-off {
-    color: var(--yellow);
-    font-size: 12px;
 }
 .duel-join {
     display: flex;
@@ -1082,4 +1078,139 @@ button.sb-title:hover {
 /* sala sem anfitrião: o painel entra com fade em vez de trocar o texto da espera (nada teleporta) */
 .duel-closed {
     animation: row-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- palco da Arena (criar sala, entrar, sala de espera): cara-de-jogo.md, decisão 8 ---------- */
+.duel:has(> .k-stage) {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+/* os 3 modos lado a lado, cada um com o "?" da regra no canto */
+.duel-modes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.duel-mode {
+    position: relative;
+    display: grid;
+}
+.duel-mode > .k-info {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+}
+.duel-mode .k-option small {
+    color: var(--yellow);
+}
+.duel-rules .muted {
+    font-size: 12px;
+    white-space: nowrap;
+}
+.duel-rules-sheet {
+    display: grid;
+    gap: 14px;
+}
+.duel-rules-sheet .duel-beta {
+    font-size: 12px;
+}
+.duel-join-row > b {
+    font-weight: 400;
+}
+/* sala de espera: o título com as regras, o código grande e os dois treinadores */
+.duel-lobby-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px 10px;
+    text-align: center;
+}
+.duel-lobby-head b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 18px;
+    font-weight: 400;
+    text-shadow: var(--k-out-1);
+}
+.duel-stage .duel-code b {
+    font-size: clamp(36px, calc(11 * var(--vw)), 56px);
+}
+.duel-stage .duel-local {
+    margin: 0;
+    text-align: center;
+    text-shadow: var(--k-out-1);
+}
+.duel-stage .duel-center {
+    padding: 18px 16px;
+}
+/* os dois treinadores lado a lado, enxutos: sprite, nome, título e o pronto (o cartão inteiro abre o perfil) */
+.duel-stage .duel-peers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.duel-stage .duel-peer {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px 8px;
+    padding: 8px;
+}
+.duel-stage .duel-peer .avatar,
+.duel-stage .duel-club {
+    display: none;
+}
+.duel-stage .duel-trainer {
+    height: 48px;
+}
+.duel-stage .duel-ready {
+    grid-column: 2;
+    justify-self: start;
+}
+.duel-stage .duel-peer.empty {
+    flex-direction: column;
+    min-height: 0;
+    font-size: 12px;
+    text-align: center;
+}
+.duel-stage .duel-share {
+    flex-wrap: nowrap;
+    width: min(420px, 100%);
+}
+.duel-stage .duel-share .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 6px;
+}
+/* tela baixa: a frase do convite, o QR e o aviso da sala local saem (o código e os botões dizem o mesmo) */
+@media (max-height: 700px) {
+    .duel-stage :is(.duel-invite-hint, .duel-qr-row, .duel-local) {
+        display: none;
+    }
+    .duel-stage .duel-invite {
+        gap: 8px;
+        padding: 10px 12px;
+    }
+    .duel-stage .duel-code b {
+        font-size: 34px;
+    }
+    .duel-stage .duel-trainer {
+        height: 40px;
+    }
+}
+.duel-stage .duel-peer-who small {
+    font-size: 11px;
+}
+.duel-stage .duel-share .btn {
+    font-size: 13px;
+}
+@media (max-width: 359px) {
+    .duel-stage .duel-share .btn {
+        font-size: 12px;
+    }
 }

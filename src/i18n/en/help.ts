@@ -389,7 +389,7 @@ export const help: typeof pt = {
                 { p: '{maxFill}' },
                 { dyn: 'maxLevels' },
                 {
-                    p: '**At the right time:** with an outfield captain, the button lights up when your team attacks and the ball looks for the captain, who unleashes it near goal. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
+                    p: '**At the right time:** with an outfield captain, the button lights up when he has the ball near goal, and the move goes off right away. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
                 },
                 {
                     p: "**Keeper captain:** his move is the **big boot**. The button only lights up on a rival shot he is going to reach. On the tap, instead of saving, he sends it back: at L1 and L2 as a long ball up the pitch (L2 knocks down anyone in the way); at L3, straight at the rival's goal. A miss: the usual save, and the bar is gone.",
@@ -576,7 +576,7 @@ export const help: typeof pt = {
             'shot with {pw} and it knocks down anyone in the way (the keeper does not fall).',
             'shot with {pw}, always on target, with the special scene and the type effect (12 Pokémon have their own signature).',
         ],
-        maxTypeLine: 'L1 {st} · L3: {fx}.',
+        maxTypeLine: 'L1 {st} whoever blocks or saves it · L3: {fx}.',
     },
     screen: {
         title: 'Help',
@@ -632,11 +632,11 @@ export const help: typeof pt = {
             'Wins pay ₽. Spend it at the Market or save it to earn interest.',
         ],
         rotaGrupo: ['Losing here costs no card.'],
-        rotaNova: ['Now there is Indigo Road: a long cup through the Kanto gyms.'],
+        rotaNova: ['New: Indigo Road, a long cup through the Kanto gyms.'],
         relampago: ['4-game knockout: lose and you are out. Pick a formation.'],
-        relampagoDraft: ['Auto-draft fills the team in one tap. Want to pick? Tap a slot: 3 show up and you keep 1.'],
-        relampagoVestiario: ['Tap two players to swap them. Tactics and the Bracket are on the board.'],
-        relampagoJogo: ['Change tactics and make subs during the match. Players who play a lot evolve.'],
+        relampagoDraft: ['Tap a slot: 3 show up and you keep 1.'],
+        relampagoVestiario: ['Tap two to swap. The bracket opens from the rival poster.'],
+        relampagoJogo: ['Change tactics and make subs. Busy players evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
         dueloSala: [
             'Best of 3: same team in every game, lineup can change between them.',
@@ -647,10 +647,7 @@ export const help: typeof pt = {
             'Winning raises your Elo, losing lowers it.',
             "You face another trainer's saved team. They don't need to be online.",
         ],
-        golpe: [
-            "Bar at L1: your captain's max move is unlocked. At L2 it knocks down anyone in the way; at L3 it is always on target.",
-            'When the button lights up, tap as the green circle closes. A keeper captain boots the shot back.',
-        ],
+        golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',

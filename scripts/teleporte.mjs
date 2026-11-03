@@ -3,7 +3,7 @@
 // as telas, toca em cada aba, seletor e botão de abrir, e acusa o que APARECE, SOME ou PULA sem animação.
 //   node scripts/teleporte.mjs <base> [LxA]        (npm run teleporte -- http://localhost:8080)
 // Heurística (pode dar falso positivo): conta como animado o que tem animação/transição rodando nele ou num pai, ou
-// uma View Transition na tela. Sai com 1 se achou algo; a lista vai pro console. Ainda não roda no CI.
+// uma View Transition ou o corte de TV na tela. Sai com 1 se achou algo; a lista vai pro console. Ainda não roda no CI.
 const NPX_PLAYWRIGHT = '/home/bartolomeu/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs';
 const pw = await import(process.env.PLAYWRIGHT ?? 'playwright').catch(() => import(NPX_PLAYWRIGHT));
 const [base = 'http://localhost:8080', size = '390x844'] = process.argv.slice(2);
@@ -12,15 +12,31 @@ const [W, H] = size.split('x').map(Number);
 // telas (url) e o que tocar nelas (seletores; cada elemento achado é tocado uma vez, Esc depois)
 const PAGES = [
     // a Home (ambientes): as 5 abas da barra
-    ['/?motion=1', ['.amb-tab']],
-    ['/?demo=colecao&motion=1', ['[role=tab]', '.pf-public']],
-    ['/?demo=sala&motion=1', ['.tr-summary .btn']],
+    ['/?motion=1', ['.amb-tab', '.news-fab']],
+    // o Perfil (armário): as portas que abrem Sheet e a barra das missões
+    ['/?demo=colecao&motion=1', ['.pf-locker:nth-child(n+3)', '.pf-arm-missions', '.pf-name']],
+    // a Sala em tela cheia: o ? e a lista, as setas de parede
+    ['/?demo=sala&motion=1', ['.tr-ic', '.room-wall:not(:disabled)']],
     ['/?demo=album&motion=1', ['[role=tab]']],
     ['/?demo=amigos&motion=1', ['.fr-open', '.fr-more']],
-    ['/?demo=dia&motion=1', ['.bc-seg button']],
-    ['/?demo=mercado&motion=1', ['.shop-buy']],
+    // Copa do Dia e Liga no palco: o "?" e as linhas que abrem Sheet (ranking, seu time)
+    ['/?demo=dia&motion=1', ['.k-info', '.k-sheetrow']],
+    ['/?demo=liga&motion=1', ['.k-info', '.k-sheetrow']],
+    // Mercado em palco: comprar, as setas das prateleiras, as vagas de Patrocínio e o "?" do que a vitória rendeu
+    ['/?demo=mercado&motion=1', ['.shop-buy', '.shop-rail-arrow.on', '.shop-sponsor-row', '.shop-head .k-info']],
+    // Escalação: o cartaz do rival (abre a chave); tática e formação ficam abertas na tela
+    ['/?demo=vestiario&motion=1', ['.vt-obj']],
+    // Rota em cena: o Treino (Pokémon e colchonete), o Evento (opções do diálogo) e o Grupo (o "?")
+    ['/?demo=treino&motion=1', ['.tr-mon:not(.still)', '.tr-bed']],
+    ['/?demo=evento&motion=1', ['.ev-opt']],
+    ['/?demo=grupo&motion=1', ['.k-info']],
+    // draft: o carrossel de formações e o "?" dela; o 1 de 3 (o time na sheet)
+    ['/?demo=draft&motion=1', ['.fc-arrow', '.fc .k-info']],
     // as peças de cara de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet)
     ['/?lab=kit&motion=1', ['.k-step-btn', '.k-option', '.k-info', '.k-sheetrow']],
+    // a partida (vestiário: o intervalo chega 2 s depois do Jogar): as 4 sheets da barra, o placar do intervalo
+    // entrando e saindo no "Começar o 2º tempo"
+    ['/?demo=vestiario&motion=1', ['.btn.primary.wide', '.bc-hudbtn', '.ht-panel .btn.primary']],
 ];
 
 /** Roda dentro da página: vigia o que aparece, some e pula. */
@@ -31,9 +47,15 @@ function watch() {
             .slice(0, 3)
             .map((c) => `.${c}`)
             .join('')}`;
+    // View Transition ou o corte de TV (src/ui/tv.ts) na tela: a troca acontece por baixo da faixa, não teleporta
     const vt = () =>
+        !!document.querySelector('.tv-cut') ||
         document.getAnimations().some((a) => String(a.effect?.pseudoElement ?? '').startsWith('::view-transition'));
     const moving = (el) => {
+        // a caixa nova cujo conteúdo entra animado (ex.: .ht-wrap com o .ht-panel) também não teleporta
+        const finite = (a) =>
+            a.playState === 'running' && a.effect?.getComputedTiming().iterations !== Number.POSITIVE_INFINITY;
+        if (el.getAnimations({ subtree: true }).some(finite)) return true;
         for (let e = el; e; e = e.parentElement)
             if (e.getAnimations().some((a) => a.playState === 'running')) return true;
         return vt();

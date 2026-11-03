@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { cardTypeOf } from '../../engine/specials';
@@ -9,8 +9,11 @@ import type { TrainerId } from '../../store/missions';
 import { KantoBadge } from '../components/BadgeCase';
 import { FutCard } from '../components/FutCard';
 import { TypeIcon } from '../components/TypeIcon';
+import { readCount, writeCount } from '../local-count';
 import { reduceMotionOn } from '../settings-sync';
 import { TYPE_COLOR } from '../type-colors';
+import { dayNumber, walkoutBeats } from './beats';
+import { useFitZoom } from './Stage';
 import './stage.css';
 
 /**
@@ -33,6 +36,8 @@ export function MomentStage({
     style?: CSSProperties;
 }) {
     const { t } = useT();
+    const body = useRef<HTMLDivElement>(null);
+    useFitZoom(body);
     useEffect(() => {
         if (!onSkip) return;
         const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onSkip();
@@ -58,7 +63,9 @@ export function MomentStage({
                     {t('common.ui.skip')}
                 </button>
             )}
-            <div className="k-moment-body">{children}</div>
+            <div className="k-moment-body" ref={body}>
+                {children}
+            </div>
         </div>,
         document.body,
     );
@@ -78,19 +85,24 @@ const BADGE_OF: Partial<Record<string, TrainerId>> = {
 
 /** Tempo de cada batida do walkout (ms): tipo, posição, insígnia; a carta vem na seguinte. */
 const WALK_BEAT_MS = 600;
+/** O dia do último walkout neste navegador: do 2º do dia em diante ele encolhe pra 1 batida. */
+const WALK_DAY = 'soccermon:walkout-day';
 
 /**
  * Walkout em 3 batidas (menus-fc-e-aclamados.md, direção B; só pra ouro 75+ e edição, quem escolhe é `walkoutIndex`):
  * a tela pinta na cor do tipo e o ícone bate, a placa da posição entra na diagonal, a insígnia do ginásio do tipo, e
- * a carta sobe com luz atrás e o grito. Cada toque adianta uma batida; "Pular" vai direto pro fim (`onDone`). Com
- * Reduzir movimento, só a cor do tipo e a carta.
+ * a carta sobe com luz atrás e o grito. Cada toque adianta uma batida; "Pular" vai direto pro fim (`onDone`). Do 2º
+ * walkout do dia em diante, 1 batida (o ícone na cor do tipo) e a carta; com Reduzir movimento, só a carta.
  */
 export function Walkout({ inst, onDone }: { inst: PokemonInstance; onDone: () => void }) {
     const { t, d } = useT();
     const view = viewInstance(inst);
     const type = cardTypeOf(inst);
     const badge = BADGE_OF[type];
-    const steps = reduceMotionOn() ? 0 : 3;
+    const [today] = useState(() => dayNumber(new Date()));
+    const [steps] = useState(() => (reduceMotionOn() ? 0 : walkoutBeats(readCount(WALK_DAY), today)));
+    // grava depois (o StrictMode chama o useState duas vezes: gravar lá faria o 1º do dia nascer encolhido)
+    useEffect(() => writeCount(WALK_DAY, today), [today]);
     // 0..steps-1 = batidas; steps = a carta
     const [beat, setBeat] = useState(0);
     const card = beat >= steps;

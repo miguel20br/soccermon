@@ -133,7 +133,8 @@ img.pf-avatar:not(.pixel) {
     /* o título cola no nome (como no Showdown); o clube fica com o respiro normal abaixo */
     margin-top: -3px;
     line-height: 1.15;
-    color: var(--yellow);
+    /* --muted: o amarelo puxava o olho do nome pro título */
+    color: var(--muted);
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
@@ -503,7 +504,6 @@ button.pf-trainer:focus-visible,
     min-width: 0;
 }
 fieldset.pf-field,
-.pf-filters,
 .pf-types {
     margin: 0;
     padding: 0;
@@ -844,6 +844,8 @@ fieldset.pf-field,
 /* ---------- Pokédex ---------- */
 .pf-dex {
     display: grid;
+    /* a fileira de tipos rola de lado: não pode alargar a coluna */
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
 }
 .pf-dex-progress {
@@ -872,10 +874,26 @@ fieldset.pf-field,
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 16px;
 }
-.pf-filters {
+/* a situação (seletor ‹ ›) e o tipo (ícones que rolam de lado) na mesma faixa; no celular, um embaixo do outro */
+.pf-dex-filters {
     display: flex;
-    gap: 6px;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.pf-dex-filters > .k-stepper {
+    flex: 1 1 220px;
+}
+.pf-dex-filters > .pf-types {
+    flex: 999 1 280px;
+}
+/* Pokédex vazia: a fala do Carvalho no topo (a mesma caixa do Laboratório) */
+.rt-talk.pf-oak {
+    display: flex;
+    grid-column: 1 / -1;
+    align-self: auto;
+    width: 100%;
+    animation: row-in var(--dur-ui) var(--ease-out) both;
 }
 .pf-chip {
     display: inline-flex;
@@ -1552,11 +1570,12 @@ fieldset.pf-field,
     color: var(--muted);
     font-size: 13px;
 }
+/* o número não pesa mais que o título da seção: 20 px na cor do texto */
 .pf-album-n {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 28px;
+    font-size: 20px;
     line-height: 1;
-    color: var(--yellow);
+    color: var(--text);
 }
 .pf-album-n small {
     font-size: 14px;

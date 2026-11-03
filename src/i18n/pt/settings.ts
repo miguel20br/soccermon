@@ -68,6 +68,9 @@ export const settings = {
         onPl: 'Ligadas',
         offPl: 'Desligadas',
         accessibility: 'Acessibilidade',
+        /** Rótulos curtos das abas (Acessibilidade e Seus dados não cabiam no celular). */
+        accessTab: 'Acesso',
+        dataTab: 'Dados',
         motion: 'Reduzir movimento',
         motionHint: 'Menos tremida, flash e zoom.',
         motionHintSystem: 'Menos tremida, flash e zoom. Seu aparelho: {state}.',
@@ -157,6 +160,8 @@ export const settings = {
     },
     credits: {
         title: 'Créditos',
+        hold: 'Segure pra acelerar',
+        thanks: 'Obrigado por jogar!',
         createdBy: 'Criado por {name} ({link}): ideia, game design e código.',
         nonProfit:
             'Soccermon é um fan game {np}, com código aberto sob a licença AGPL-3.0. Pokémon e todos os nomes, imagens e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles.',

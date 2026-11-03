@@ -9,7 +9,7 @@ export const moments: typeof pt = {
     close: 'Close',
     export: 'Export clip',
     recording: 'Recording the clip… {p}%',
-    recordingNote: 'Keep this screen open: the clip records in real time (up to 15 s).',
+    recordingNote: 'Keep this screen open. The clip records live (up to 15 s).',
     ready: 'Clip ready',
     download: 'Download',
     share: 'Share',
@@ -37,6 +37,6 @@ export const moments: typeof pt = {
             final: 'in the final',
             plain: 'your best-looking goal',
         },
-        old: 'This goal is from an older version of the game: you can see the summary, but not the replay.',
+        old: 'Goal from an older version. Summary only, no replay.',
     },
 };

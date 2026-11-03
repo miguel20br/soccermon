@@ -1,5 +1,6 @@
 import { type CSSProperties, useState } from 'react';
 import { matchMvp } from '../../engine/mvp';
+import type { MatchResult } from '../../engine/runners/batch-runner';
 import { winEarnings } from '../../engine/shop';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -17,7 +18,8 @@ const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
  * Fim de partida em tela cheia (cara-de-jogo.md, decisão 6): no apito final a cartela cobre a quadra parada e a
  * cascata conta o que a partida deu, uma coisa de cada vez: placar, ₽ da vitória (o mesmo número que o Mercado ou o
  * mapa vão somar), o craque e o próximo rival. Tocar pula pro fim; "Ver a quadra" fecha a cartela e deixa o "Ver
- * resultado" de sempre na barra do polegar. Só mostra; nada muda no jogo.
+ * resultado" de sempre na barra do polegar. Só mostra; nada muda no jogo. No Duelo (`duel`) não há copa: placar,
+ * craque do seu lado e o botão do resultado do Duelo.
  */
 export function FinalCard({
     score,
@@ -25,6 +27,7 @@ export function FinalCard({
     names,
     colors,
     liga,
+    duel,
     onGo,
 }: {
     score: [number, number];
@@ -32,13 +35,17 @@ export function FinalCard({
     names: [string, string];
     colors: [number, number];
     liga: boolean;
+    /** Duelo: o seu lado, a partida (não mora no store) e o rótulo do botão. */
+    duel?: { side: 0 | 1; match: MatchResult | null; label: string };
     onGo: () => void;
 }) {
     const { t } = useT();
-    const run = useGame((s) => (liga ? null : s.run));
-    const match = useGame((s) => s.match);
+    const run = useGame((s) => (liga || duel ? null : s.run));
+    const storeMatch = useGame((s) => s.match);
+    const match = duel ? duel.match : storeMatch;
+    const side = duel?.side ?? 0;
     const [open, setOpen] = useState(true);
-    const outcome = finalOutcome(score, shootout, 0);
+    const outcome = finalOutcome(score, shootout, side);
     const won = outcome === 'win';
     const champion = run?.status === 'champion';
     // Rota: caiu no grupo mesmo ganhando a última rodada (a Final não vem)
@@ -51,14 +58,14 @@ export function FinalCard({
           : isLong(run)
             ? longWinEarnings(score, run.sponsors).total
             : null;
-    const star = match ? matchMvp(match, 0) : null;
+    const star = match ? matchMvp(match, side) : null;
     const next = paid ? run.opponents[run.stage + 1] : null;
     const gaps = [0, ...(prize ? [500] : []), ...(star ? [450] : []), ...(next ? [500] : [])];
     const c = useCascade(gaps);
     let n = 1;
     const go = (
         <button type="button" className="btn confirm bc-result" onClick={onGo}>
-            {t('match.seeResult')}
+            {duel?.label ?? t('match.seeResult')}
         </button>
     );
     // aberta, a cartela tem o seu "Ver resultado" (o da barra só volta quando ela fecha)
@@ -118,7 +125,7 @@ export function FinalCard({
                     {t('match.finalCard.court')}
                 </button>
                 <button type="button" className="btn confirm big" onClick={onGo} data-autofocus>
-                    {t('match.seeResult')}
+                    {duel?.label ?? t('match.seeResult')}
                     <HudIcon kind="next" />
                 </button>
             </div>

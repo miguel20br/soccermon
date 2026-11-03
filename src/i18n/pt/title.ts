@@ -23,7 +23,7 @@ export const title = {
         first: 'Primeiro título!',
         perfect: '{n}ª copa perfeita',
         best: 'Recorde de {name}: nota {r}',
-        firstTitle: 'Primeiro título de {name}',
+        firstTitles: '1º título de {names}',
         time: 'Copa em {t}',
         rerolls: '{n} sorteios gastos',
         rare: 'Só {p}% dos campeões tinham {name}',

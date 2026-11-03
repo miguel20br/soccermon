@@ -30,13 +30,12 @@ import {
     rivalColor,
     tagFromName,
 } from '../../store/profile';
-import { SheetRow, Stepper } from '../kit/controls';
+import { Stepper } from '../kit/controls';
 import { Crest, KitShirt, kitBackground } from './Crest';
 import { avatarGif, bannerText, hexCss, titleName } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
-import { NewBadge, useNews } from './news';
-import { MissionSummary, TrainerCard } from './TrainerTab';
+import { NewBadge } from './news';
 
 /** Rival da prévia do placar (Cerulean): azul, troca de uniforme se bater com a sua cor. */
 const PREVIEW_RIVAL = 0x2f6fde;
@@ -61,8 +60,7 @@ function useSavedFlash(): [boolean, () => void] {
     ];
 }
 
-/** Meu clube: nome do treinador, clube, sigla, cor e avatar. Tudo salva na hora. */
-/** Perfil → Treinador (`trainer`: nome, avatar, treinador, título e as missões) ou Clube (`club`: cor, escudo, uniforme, faixa). */
+/** Sheets do Perfil: `trainer` (nome e avatar) ou `club` (nome, sigla, cor, escudo, uniforme, faixa). Tudo salva na hora. */
 export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
     const profile = useGame((s) => s.profile);
     const updateProfile = useGame((s) => s.updateProfile);
@@ -118,7 +116,6 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
     const av = profile.avatar;
     // avatar com shiny liberado que foi tocado: mostra a escolha Normal / Shiny
     const [choosing, setChoosing] = useState<number | null>(null);
-    const news = useNews();
     const avKeys = (id: number, shiny: boolean) =>
         shiny ? [newsKey.avatar(id), newsKey.avatar(id, true)] : [newsKey.avatar(id)];
 
@@ -132,10 +129,8 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                 )}
             </div>
 
-            {part === 'trainer' && <MissionSummary />}
             {part === 'trainer' && (
-                <section className="panel pf-card">
-                    <h2>{t('profile.club.trainerTitle')}</h2>
+                <section className="pf-card">
                     <label className="pf-field">
                         <span>{t('profile.club.yourName')}</span>
                         <input
@@ -178,38 +173,13 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                             const opts = avatarOptions(dex, g);
                             const mine = av.kind === 'pokemon' && av.speciesId >= g.from && av.speciesId <= g.to;
                             return (
-                                <SheetRow
-                                    key={g.gen}
-                                    className="pf-gen"
-                                    title={t('profile.club.gen', { gen: g.gen, region: g.region })}
-                                    label={
-                                        <>
-                                            {mine && (
-                                                <span className="pf-av active pf-gen-current">
-                                                    <img
-                                                        className="pixel"
-                                                        src={avatarGif(av.speciesId, av.shiny === true)}
-                                                        alt=""
-                                                    />
-                                                    {av.shiny && <ShinySpark />}
-                                                </span>
-                                            )}
-                                            {t('profile.club.gen', { gen: g.gen, region: g.region })}
-                                        </>
-                                    }
-                                    hint={
-                                        <>
-                                            <span className="pf-count">
-                                                {opts.length}/{g.to - g.from + 1}
-                                            </span>
-                                            <NewBadge
-                                                on={opts.some((o) =>
-                                                    avKeys(o.speciesId, o.shiny).some((k) => news.has(k)),
-                                                )}
-                                            />
-                                        </>
-                                    }
-                                >
+                                <div key={g.gen} className="pf-gen-block">
+                                    <h3 className="bc-lbl">
+                                        {t('profile.club.gen', { gen: g.gen, region: g.region })}{' '}
+                                        <span className="pf-count">
+                                            {opts.length}/{g.to - g.from + 1}
+                                        </span>
+                                    </h3>
                                     <div className="pf-avatars">
                                         {opts.map(({ speciesId: id, shiny }) => {
                                             const on = mine && av.speciesId === id;
@@ -276,18 +246,16 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                                             );
                                         })}
                                     </div>
-                                </SheetRow>
+                                </div>
                             );
                         })}
                         <small className="muted">{t('profile.club.avatarHelp')}</small>
                     </fieldset>
                 </section>
             )}
-            {part === 'trainer' && <TrainerCard save={save} />}
 
             {part === 'club' && (
-                <section className="panel pf-card">
-                    <h2>{t('profile.club.clubTitle')}</h2>
+                <section className="pf-card">
                     <div className="pf-row">
                         <label className="pf-field grow">
                             <span>{t('profile.club.clubName')}</span>

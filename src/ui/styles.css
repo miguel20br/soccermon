@@ -15,6 +15,16 @@
     src: url("/fonts/Galmuri14.woff2") format("woff2");
     font-display: swap;
 }
+/* A Galmuri14 não tem Bold: peso acima de 400 nela virava negrito sintético (o navegador engrossa o pixel na marra).
+   Sem síntese ela sai sempre no desenho dela; quem precisa de peso usa a Galmuri11 Bold ou o contorno (.cb-num). As
+   cartas (.pc2) e as vagas do draft (.dp-chip) ficam como estão: carta só muda pela galeria ?cards=1 */
+:root {
+    font-synthesis-weight: none;
+}
+.pc2,
+.dp-chip {
+    font-synthesis-weight: auto;
+}
 /* O acento da maiúscula da Galmuri (Í, Â, É) passa 0,2em da ascendente da fonte: numa linha com reticências
    (overflow: hidden) e line-height curto, ele era cortado ("Rota Indigo", "Icaro"). Folga em cima só pro desenho; a
    caixa fica no mesmo lugar. Texto novo que corta com reticências e pode ter maiúscula acentuada entra aqui. */
@@ -1041,11 +1051,6 @@ button,
 }
 
 /* ---------- draft: formação, capitão, vagas ---------- */
-.formation-picker {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--gap);
-}
 /* formação (FormationIdentity): ícone + forte/fraco curtos, selo de vantagem tática só com ícone.
    Trocar de formação refaz o bloco com fade (nada teleporta). */
 .fi {
@@ -1105,69 +1110,6 @@ button,
     align-items: center;
     gap: 5px;
     color: var(--yellow);
-}
-.formation-option .fi {
-    margin-top: 0;
-    font-size: 11px;
-    text-align: center;
-}
-.formation-option .fi-tags {
-    justify-content: center;
-}
-@media (max-width: 700px) {
-    .formation-option .fi {
-        text-align: left;
-    }
-    .formation-option .fi-tags {
-        justify-content: flex-start;
-    }
-}
-/* formações: peças do kit (.bc-tile) com o desenho da quadra */
-.formation-option.bc-tile {
-    display: grid;
-    justify-items: center;
-    align-content: start;
-    gap: 8px;
-    padding: 14px 12px;
-    text-align: center;
-    font: inherit;
-    transition: transform var(--dur-solta) var(--ease-pop);
-}
-.formation-option:hover {
-    transform: translateY(-3px);
-    /* formação escolhida em azul: o dourado fica só no JOGAR */
-    border-color: var(--blue-c);
-}
-.formation-diagram {
-    width: 90px;
-    height: 120px;
-}
-.formation-diagram rect {
-    fill: #c98a4f;
-    stroke: #fff;
-    stroke-width: 1.5;
-}
-.formation-diagram line {
-    stroke: rgba(255, 255, 255, 0.85);
-    stroke-width: 1.2;
-}
-.formation-diagram circle {
-    fill: var(--red);
-    stroke: #fff;
-    stroke-width: 1.5;
-}
-.draft-grid {
-    display: grid;
-    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-    gap: var(--gap);
-    align-items: start;
-}
-.draft-options {
-    display: grid;
-    gap: 10px;
-}
-.options-bar {
-    justify-content: space-between;
 }
 .formation-board .court {
     max-height: 520px;
@@ -1454,7 +1396,6 @@ button,
 
 /* ---------- tablet ---------- */
 @media (max-width: 1050px) {
-    .draft-grid,
     .lineup-grid,
     .two-col {
         grid-template-columns: 1fr;
@@ -1484,19 +1425,8 @@ button,
         width: 16px;
     }
     .options,
-    .reward-grid,
-    .formation-picker {
+    .reward-grid {
         grid-template-columns: 1fr;
-    }
-    .formation-option.bc-tile {
-        grid-template-columns: 70px 1fr;
-        justify-items: start;
-        text-align: left;
-    }
-    .formation-diagram {
-        grid-row: span 3;
-        width: 60px;
-        height: 80px;
     }
     /* cards compactos: atributos só quando pedir */
     .attrs-toggle {
@@ -1527,10 +1457,12 @@ button,
         height: 32px;
     }
     .slot .slot-name {
-        font-size: 10px;
+        font-size: 11px;
     }
+    /* a posição é etiqueta: 10 px em caixa alta */
     .slot .pos-badge {
-        font-size: 9px;
+        font-size: 10px;
+        text-transform: uppercase;
     }
     /* capitão na quina, fora do selo da posição (no celular "Goleiro" ocupa a largura toda) */
     .slot .captain-badge {
@@ -1582,8 +1514,7 @@ button,
 
 @media (prefers-reduced-motion: reduce) {
     .card.clickable,
-    .btn,
-    .formation-option {
+    .btn {
         transition: none;
     }
     .slot.target,
@@ -1910,8 +1841,7 @@ button,
     text-align: center;
 }
 
-/* opções do draft e recompensas com cartas */
-.draft-options .options,
+/* recompensas com cartas */
 .reward-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     justify-items: center;
@@ -1923,6 +1853,10 @@ button,
 }
 .reward-pick3 {
     --k-pick-reserve: 330px;
+}
+/* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
+.reward-bar {
+    zoom: var(--k-big, 1);
 }
 /* celular deitado: o título sai (a fase está na barra da copa) e as cartas ficam com a altura que sobra */
 @media (orientation: landscape) and (max-height: 520px) {
@@ -2152,7 +2086,6 @@ button,
 }
 
 @media (max-width: 700px) {
-    .draft-options .options,
     .reward-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
@@ -3298,6 +3231,8 @@ button,
 /* intervalo: o técnico decide antes do 2º tempo */
 .ht-panel {
     display: grid;
+    /* a coluna não cresce com o conteúdo (a placa de troca numa linha só passava da borda no 320) */
+    grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     gap: 8px;
     margin-top: 10px;
@@ -3306,6 +3241,14 @@ button,
     border-radius: 12px;
     background: var(--panel);
     text-align: center;
+    /* intervalo, pedido de tempo e pênaltis entram por cima da quadra (nada teleporta) */
+    animation: ht-panel-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+@keyframes ht-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
 }
 /* os dois blocos só viram colunas no celular deitado (broadcast.css); fora dele não existem pro layout */
 .ht-info,
@@ -3338,6 +3281,158 @@ button,
     margin: 0;
     font-weight: 700;
 }
+/* placar de TV do intervalo (cara-de-jogo.md, padrão 8): uma linha por número, o .bc-sc da transmissão e a barra */
+.ht-stats.ht-board {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    width: min(100%, 380px);
+    padding: 10px 12px 12px;
+    background: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in, #39447a),
+        0 4px 0 var(--bc-edge);
+}
+/* uma linha por número, como na TV: "10 -- CHUTES -- 4" (o rótulo em cima da barra, os números nas pontas) */
+.ht-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "a l b"
+        "a r b";
+    align-items: center;
+    gap: 2px 8px;
+}
+.ht-row dt {
+    grid-area: l;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.ht-row .bc-sc:first-child {
+    grid-area: a;
+}
+.ht-row .bc-sc:last-child {
+    grid-area: b;
+}
+.ht-row .ht-bar {
+    grid-area: r;
+}
+/* o fôlego só tem um número: rótulo e barra começam na ponta da esquerda */
+.ht-row:has(.ht-bar.one) dt,
+.ht-row .ht-bar.one {
+    grid-column: 1 / 3;
+}
+.ht-row:has(.ht-bar.one) dt {
+    text-align: left;
+}
+.ht-row .ht-who {
+    color: var(--text);
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.ht-stats .ht-row dd {
+    display: contents;
+}
+.ht-row .bc-sc {
+    margin: 0;
+    min-width: 46px;
+    font-size: 18px;
+    line-height: 26px;
+}
+/* barra de dois lados (seu time à esquerda, na sua cor) ou de um lado só (o fôlego) */
+.ht-bar {
+    position: relative;
+    flex: 1;
+    height: 12px;
+    overflow: hidden;
+    border: 2px solid #000;
+    border-radius: 3px;
+    background: var(--ht-b, #5b6491);
+}
+.ht-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--v) * 100%);
+    background: var(--ht-a, var(--yellow));
+    transform-origin: left;
+}
+.k-beat.on .ht-bar::before {
+    animation: ht-bar-in 420ms var(--ease-out) 60ms both;
+}
+@keyframes ht-bar-in {
+    from {
+        transform: scaleX(0);
+    }
+}
+.ht-bar.one {
+    background: var(--bc-ink-2);
+}
+.ht-bar.one::before {
+    background: #7dff8a;
+}
+.ht-bar.one.mid::before {
+    background: var(--yellow);
+}
+.ht-bar.one.low::before {
+    background: var(--red);
+}
+/* placa de substituição de TV: seta verde com quem entra, seta vermelha com quem sai */
+.ht-subs .ht-plate {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+}
+.ht-plate > :is(.ht-in, .ht-out) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 2px 8px 2px 4px;
+    border-radius: 6px;
+}
+.ht-plate .ht-in {
+    background: rgb(125 255 138 / 14%);
+}
+.ht-plate .ht-out {
+    background: rgb(232 66 63 / 16%);
+    color: var(--muted);
+}
+.ht-plate .ht-in .hud-icon {
+    color: #7dff8a;
+}
+.ht-plate .ht-out .hud-icon {
+    color: #ff6b5e;
+}
+.ht-subs .ht-plate b,
+.ht-subs.rival .ht-plate b {
+    color: var(--text);
+}
+.ht-plate :is(b, span span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ht-plate img {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+.ht-plate .ht-undo {
+    margin-left: auto;
+}
+.ht-subs-beat {
+    width: 100%;
+    max-width: 46ch;
+}
 .ht-tip {
     margin: 0;
     max-width: 46ch;
@@ -3347,6 +3442,17 @@ button,
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
+}
+/* Substituir: ação das trocas, com respiro do Começar o 2º tempo (que fica embaixo, sozinho) */
+.ht-sub-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+.ht-sub-row .btn {
+    min-height: 36px;
+    padding: 4px 14px;
+    font-size: 12px;
 }
 .ht-rival-evo dd {
     color: var(--yellow);
@@ -4596,13 +4702,6 @@ button,
     letter-spacing: 0.5px;
     text-transform: none;
 }
-/* mais recente: destaque; antigas: recolhidas, mais leves */
-.patch-latest {
-    padding: 12px;
-    border: 2px solid var(--yellow);
-    border-radius: 8px;
-    background: var(--panel-2);
-}
 .patch-meta {
     margin: 0 0 8px;
     display: flex;
@@ -4611,15 +4710,6 @@ button,
     padding-right: 44px;
     color: var(--muted);
     font-size: 12px;
-}
-.patch-latest h2.bc-caption {
-    max-width: 100%;
-    font-size: 18px;
-}
-.patch-version.patch-old {
-    margin-top: 6px;
-    padding: 0;
-    border-top: 0;
 }
 .patch-toggle {
     width: 100%;
@@ -4649,41 +4739,149 @@ button,
     min-width: 0;
     overflow-wrap: anywhere;
 }
+/* o cartaz da versão nova: arte com raios, o nome grande e 4 destaques */
+.patch-page {
+    display: grid;
+    gap: 10px;
+    animation: patch-page-in 240ms var(--ease-out) both;
+}
+@keyframes patch-page-in {
+    from {
+        opacity: 0;
+        translate: 0 8px;
+    }
+}
+.patch-back {
+    justify-self: start;
+    width: auto;
+}
+.patch-poster {
+    display: grid;
+    gap: 10px;
+}
+.patch-poster-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 96px;
+    overflow: hidden;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: radial-gradient(120% 140% at 50% 50%, #3a4fa8 0%, #1a2560 55%, #0a0f2a 100%);
+}
+.patch-poster-art::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 640px;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.09) 0 9deg, transparent 9deg 22.5deg);
+    animation: k-rays-turn 24s linear infinite;
+}
+.patch-poster-art img {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    filter: drop-shadow(0 4px 0 rgb(0 0 0 / 35%));
+    animation: k-pop-in var(--dur-pop) var(--ease-pop) both;
+}
+.patch-poster .patch-meta {
+    margin: 0;
+    padding: 0;
+}
+.patch-notes .patch-poster-title {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: clamp(26px, calc(7 * var(--vw)), 36px);
+    line-height: 1.05;
+    color: var(--yellow);
+    text-shadow: var(--k-out-2);
+    --ol: var(--cb-ink);
+}
+.patch-hl {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.patch-hl li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    animation: patch-page-in 240ms var(--ease-out) both;
+}
+.patch-hl li:nth-child(2) {
+    animation-delay: 60ms;
+}
+.patch-hl li:nth-child(3) {
+    animation-delay: 120ms;
+}
+.patch-hl li:nth-child(4) {
+    animation-delay: 180ms;
+}
+.patch-hl svg {
+    width: 20px;
+    height: 20px;
+    color: var(--yellow);
+}
+.patch-hl span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.patch-hl b {
+    font-size: 14px;
+}
+.patch-hl small {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+}
+@media (max-height: 520px) {
+    .patch-poster-art {
+        height: 56px;
+    }
+    .patch-poster-art img {
+        width: 40px;
+        height: 40px;
+    }
+}
+.patch-notes .patch-version h2.bc-caption {
+    max-width: 100%;
+    white-space: normal;
+}
+.patch-poster-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.patch-poster-actions .btn {
+    width: 100%;
+    margin: 0;
+}
+.patch-old-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 .patch-toggle svg {
     width: 16px;
     height: 16px;
     flex: none;
-    transition: transform 0.25s;
-}
-.patch-old.open .patch-toggle svg {
-    transform: rotate(180deg);
-}
-.patch-fold {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition:
-        grid-template-rows 0.25s,
-        opacity 0.25s;
-}
-.patch-old.open .patch-fold {
-    grid-template-rows: 1fr;
-    opacity: 1;
-}
-.patch-fold > div {
-    min-height: 0;
-    overflow: hidden;
-    padding: 0 10px;
-}
-@media (prefers-reduced-motion: reduce) {
-    .patch-fold,
-    .patch-toggle svg {
-        transition: none;
-    }
-}
-/* separa uma versão da outra (o título da anterior colava na última linha da seguinte) */
-.patch-latest + .patch-version {
-    margin-top: 16px;
 }
 .patch-notes h3 {
     margin: 12px 0 4px;
@@ -4700,18 +4898,7 @@ button,
     font-size: 14px;
 }
 
-/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida.
-   As 3 opções ficam com a carta embaixo, alinhadas, mesmo se uma faixa ficar maior que a outra. */
-.draft-options .option {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    container-type: inline-size;
-}
-.draft-options .option > .fut-wrap {
-    margin-top: auto;
-}
+/* draft: a carta mostra a posição principal; o selo diz como ele encaixa na vaga escolhida */
 .option-fit .fit-short {
     display: none;
 }
@@ -4780,26 +4967,50 @@ button,
     }
 }
 .champ-sub {
-    font-size: 17px;
+    font-size: 14px;
+    color: var(--muted);
 }
 .champ-sub b {
-    color: var(--yellow);
+    color: var(--text);
 }
-.champ-totals {
-    width: min(860px, 100%);
+/* placar de TV da copa (o .ht-board do Intervalo) e o Ver tudo embaixo, à direita */
+.champ-board {
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+    width: min(380px, 100%);
+    margin: 0 auto 12px;
 }
-.champ-totals span {
-    text-align: center;
+.champ-board .ht-board {
+    width: 100%;
 }
-.champ-totals small {
-    font-size: 18px;
+.champ-all {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+.champ-all > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+    padding: 2px 4px 2px 10px;
+    border-radius: 4px;
+    background: var(--bc-ink-2);
+}
+.champ-all dt {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+}
+.champ-all .bc-sc {
+    margin: 0;
+    min-width: 46px;
+    font-size: 16px;
+    line-height: 26px;
 }
 .champ-h {
     margin: 10px 0 0;
-    font-size: 15px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--yellow);
 }
 .champ-final-h {
     margin: 22px 0 8px;
@@ -4850,12 +5061,37 @@ button,
     .result-stage .rh-title {
         font-size: 30px;
     }
-    .result-stage .res-icons .btn {
-        flex-direction: row;
-        min-height: 40px;
-    }
     .result-stage .rh-score b {
         font-size: 30px;
+    }
+}
+/* PC (regra de 1440, stage.css): a fala do líder e o time lado a lado, pra sobrar altura e o palco crescer */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .result-stage .rh:has(> .leader-quote) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row dense;
+        column-gap: 24px;
+        align-items: center;
+    }
+    .result-stage .rh:has(> .leader-quote) > * {
+        grid-column: 1 / -1;
+    }
+    .result-stage .rh > .leader-quote {
+        grid-column: 1;
+        justify-self: end;
+        width: min(100%, 440px);
+    }
+    .result-stage .rh:has(> .leader-quote) > .rh-squad {
+        grid-column: 2;
+        justify-self: start;
+    }
+    /* o Nova copa sobe antes do relato (a fala e o time): com o cartão da Rota ele caía abaixo da dobra */
+    .result-stage .rh > :is(.leader-quote, .rh-squad, .rh-next) {
+        order: 1;
+    }
+    /* com o cartão (fim da Rota) a fala e o time não cabem e ficavam cortados: o cartão já conta a história */
+    .result-stage .rh:has(> .foul) > :is(.leader-quote, .rh-squad) {
+        display: none;
     }
 }
 /* o título em 3 batidas num palco que não rola (cara-de-jogo.md, decisão 5); o relatório mora na sheet */
@@ -4977,24 +5213,33 @@ button,
     font-weight: 400;
     font-size: 18px;
 }
-/* botões-ícone: ícone em cima, rótulo curto embaixo, os 3 numa fileira (título e resultado) */
+/* secundários do fim (Melhores momentos, Compartilhar): azul baixo e liso, ícone à esquerda, largura do conteúdo, pra
+   o Nova copa da barra ser o único gordo. O ::before leva o toque a 44 px sem mudar o desenho */
 .champ-icons,
 .res-icons {
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 8px;
     width: min(420px, 100%);
 }
 .champ-icons .btn,
 .res-icons .btn {
-    flex-direction: column;
-    gap: 2px;
-    min-height: 52px;
-    padding: 6px 4px;
+    min-height: 36px;
     font-size: 12px;
-    line-height: 1.15;
-    white-space: normal;
+    white-space: nowrap;
+}
+.champ-icons .btn::before,
+.res-icons .btn::before {
+    content: "";
+    position: absolute;
+    inset: -4px 0;
+}
+/* PC: o Nova copa com corpo de ação principal */
+@media (min-width: 701px) {
+    .rh-actions .bc-thumbbar > .btn.primary.big {
+        min-width: 240px;
+    }
 }
 @media (max-height: 760px) {
     .champ-pick img {
@@ -5030,7 +5275,8 @@ button,
 /* celular deitado: sem taça nem selos, destaques em linha (sprite do lado do texto) */
 @media (max-height: 520px) {
     .champ-stage .champ-sub,
-    .champ-beats .ce-records {
+    .champ-beats .ce-records,
+    .champ-beats .ce-firsts {
         display: none;
     }
     .champ-stage,
@@ -5050,10 +5296,6 @@ button,
     }
     .champ-pick img {
         grid-row: span 3;
-    }
-    .champ-icons .btn {
-        flex-direction: row;
-        min-height: 40px;
     }
 }
 .champ-path {
@@ -5090,7 +5332,8 @@ button,
     height: 2px;
     background: rgb(255 212 71 / 60%);
 }
-.champ-stage {
+/* a fase no caminho do campeão (o palco também se chama .champ-stage: sem o .champ-step, tudo nele saía em caixa alta) */
+.champ-step .champ-stage {
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -5117,6 +5360,11 @@ button,
     color: var(--yellow);
 }
 /* extras do título (0.8.2): recordes, prêmios, seleção, gols da campanha, golpes, a final */
+.ce-firsts {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted);
+}
 .ce-records {
     display: flex;
     flex-wrap: wrap;
@@ -6067,6 +6315,15 @@ a.home-tile {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
 }
+/* PC: a Coleção cresce com a tela, como os palcos (stage.css, --k-big); o --vw de dentro desconta o zoom */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .menu-screen.pf,
+    .menu-screen.credits-screen {
+        zoom: var(--k-big, 1);
+        --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
+        --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
+    }
+}
 /* cabeçalho em placar (.bc-screenhead do kit): aqui só o tamanho do título, do ícone e do voltar */
 .menu-head h1 {
     font-size: clamp(20px, calc(4.6 * var(--vw)), 26px);
@@ -6135,37 +6392,155 @@ a.home-tile {
     text-align: right;
     font-size: 18px;
 }
+/* Créditos de fim de jogo (Credits.tsx): coluna centrada; subindo, o palco ocupa o resto da tela e a lista corre
+   por baixo de uma máscara; parada, é página comum */
+.credits-screen {
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+.cr-stage {
+    position: relative;
+    transition: opacity 220ms var(--ease-out);
+}
+.cr-stage.cr-out {
+    opacity: 0;
+}
+.cr-rolling .cr-stage {
+    min-height: 220px;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    cursor: pointer;
+}
+.cr-rolling .cr-view {
+    position: absolute;
+    /* em cima, a faixa do Pular; embaixo, a do desfile; a lista some nos 40 px das pontas (FADE_PX) */
+    inset: 48px 0 64px;
+    overflow: hidden;
+    mask-image: linear-gradient(transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+.cr-rolling .cr-roll {
+    position: absolute;
+    inset: 0 0 auto;
+    will-change: transform;
+    /* antes do 1º quadro, fora da tela (embaixo) */
+    transform: translateY(calc(100 * var(--vh)));
+}
+/* subindo, tocar é acelerar (os links abrem na página parada) */
+.cr-rolling .cr-roll :is(a, button) {
+    pointer-events: none;
+}
+.cr-roll {
+    display: grid;
+    gap: 28px;
+    justify-items: center;
+    text-align: center;
+}
+.credits-card {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+    max-width: 36em;
+}
 .credits-card h2 {
-    margin: 4px 0 0;
-    font-size: 15px;
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(16px, calc(4.6 * var(--vw)), 22px);
     color: var(--yellow);
 }
 .credits-card ul {
     margin: 0;
-    padding-left: 18px;
+    padding: 0;
+    list-style: none;
     display: grid;
-    gap: 6px;
+    gap: 14px;
 }
-.credits-card p {
+.credits-card p,
+.credits-card li {
     margin: 0;
     color: var(--text);
     font-size: 13px;
+    line-height: 1.5;
 }
 .credits-card a {
     color: var(--yellow);
 }
 .credits-hero {
+    padding-top: 8px;
+}
+.credits-hero .cr-logo {
+    display: block;
+    width: min(280px, 72%);
+}
+.credits-hero .cr-logo img {
+    width: 100%;
+    height: auto;
+}
+.credits-hero .pixel {
+    height: 64px;
+}
+.cr-thanks {
+    margin: 12px 0 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(18px, calc(5.4 * var(--vw)), 26px);
+    color: var(--yellow);
+}
+.cr-ctrl {
+    position: absolute;
+    z-index: 3;
+    top: 0;
+    right: 0;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
 }
-.credits-hero img {
+.cr-hint {
+    font-size: 11px;
+    color: var(--muted);
+}
+.cr-skip svg {
+    width: 16px;
+    height: 16px;
+}
+.cr-parade-wrap,
+.cr-parade {
+    position: absolute;
+    inset: auto 0 0;
     height: 64px;
-    flex: none;
+    pointer-events: none;
 }
-.credits-hero > div {
-    display: grid;
-    gap: 8px;
+.cr-parade {
+    overflow: hidden;
+    border-bottom: 2px solid var(--line);
+}
+.cr-mon {
+    position: absolute;
+    left: 0;
+    bottom: 6px;
+}
+.cr-mon .fs-sprite {
+    position: absolute;
+}
+/* deitado no celular a altura é pouca: a coluna afina e o Pular vai pra margem do lado, sem faixa em cima */
+@media (orientation: landscape) and (max-height: 520px) {
+    .credits-card {
+        max-width: 30em;
+    }
+    .cr-rolling .cr-view {
+        inset: 0 0 56px;
+    }
+    .cr-ctrl {
+        flex-direction: column;
+        align-items: flex-end;
+        max-width: 140px;
+        text-align: right;
+    }
+    .cr-parade-wrap,
+    .cr-parade {
+        height: 56px;
+    }
 }
 
 /* ---------- revisão 0.7: celular, telas baixas e textos longos ---------- */
@@ -6227,14 +6602,7 @@ a.home-tile {
     .home .menu {
         padding-block: 12px;
     }
-    /* draft deitado: time e cartas lado a lado, quadra do tamanho da tela */
-    .draft-grid {
-        grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
-    }
-    .draft-grid .board-panel {
-        position: sticky;
-        top: 6px;
-    }
+    /* quadra do tamanho da tela */
     .formation-board .court {
         width: min(100%, calc((calc(100 * var(--svh)) - 90px) * 0.72));
     }
@@ -6243,13 +6611,6 @@ a.home-tile {
     }
     .formation-board .slot img {
         height: 28px;
-    }
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(150px, calc(17 * var(--vw)));
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
     .reward-grid .fut-wrap {
@@ -6714,9 +7075,9 @@ a.home-tile {
 p.muted.center a {
     padding-block: 12px;
 }
-/* nome comprido no card da quadra encolhe um pouco antes de cortar (Charmeleon, Kangaskhan) */
+/* nome no card da quadra: 11 px no mínimo (abaixo disso não se lê); o comprido corta com reticências */
 .slot .slot-name {
-    font-size: clamp(8.5px, calc(2.4 * var(--vw)), 11px);
+    font-size: 11px;
 }
 /* gols da campanha: rival com nome longo quebra em vez de cortar */
 .ce-tl-label small {
@@ -7075,7 +7436,6 @@ p.muted.center a {
     transition: scale var(--dur-solta) var(--ease-pop);
 }
 /* estes já tinham transição própria: soma o scale sem perder a dela */
-.formation-option,
 .resume-card,
 .card.clickable {
     transition:
@@ -7087,7 +7447,6 @@ p.muted.center a {
 .slot:active,
 .target-btn:active,
 .tm-move:active,
-.formation-option:active,
 .scout-btn:active,
 .resume-card:active,
 .card.clickable:active {
@@ -7135,91 +7494,48 @@ p.muted.center a {
 
 /* aviso curto (Copiado!, Compartilhado!): pílula no rodapé que some sozinha */
 
-/* missão cumprida (treinador ou título novo), com a tarefa cumprida embaixo (UnlockNotice.tsx). Na Home: pílula
-   pequena fixa em cima da quadra do topo (enfeite), uma de cada vez, sem pegar toque. No Resultado: faixa no meio
-   da página, embaixo do placar (fixa no topo ela cobria o placar e o título da tela) */
-.unlock-notice {
+/* missão cumprida (treinador ou título novo, UnlockNotice.tsx): o sprite e o selo dourado batendo no alto da Home,
+   1,2 s cada, sem pegar toque */
+.unlock-seal {
     position: fixed;
     left: 50%;
-    top: calc(max(6px, env(safe-area-inset-top)) + 58px);
+    top: calc(max(6px, env(safe-area-inset-top)) + 64px);
     z-index: 260;
-    width: max-content;
-    max-width: min(460px, calc(calc(100 * var(--vw)) - 32px));
-    border-radius: 18px;
-    background: var(--panel-2);
-    box-shadow: var(--shadow);
-    pointer-events: none;
-    transform: translateX(-50%);
-    animation: unlock-in 0.32s var(--ease-pop) both;
-}
-@media (min-width: 900px) {
-    .unlock-notice {
-        top: 104px;
-    }
-}
-.unlock-notice,
-.unlock-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 3px 14px 3px 4px;
-    border: 2px solid var(--yellow);
-    color: var(--text);
-    font-size: 12px;
-    line-height: 1.25;
-}
-.unlock-strip {
-    position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    left: 50%;
-    z-index: 70;
-    display: grid;
-    gap: 6px;
-    width: min(calc(calc(100 * var(--vw)) - 24px), 340px);
+    max-width: min(420px, calc(calc(100 * var(--vw)) - 32px));
     translate: -50% 0;
     pointer-events: none;
-    transition: opacity 280ms var(--ease-out);
+    transition: opacity 220ms var(--ease-out);
 }
-.unlock-strip.out {
+.unlock-seal.out {
     opacity: 0;
 }
-.unlock-item {
-    min-width: 0;
-    border-radius: 12px;
-    background: var(--panel-2);
-    animation: unlock-in 0.32s var(--ease-pop) both;
-}
-:is(.unlock-notice, .unlock-item) > span {
-    display: grid;
-    min-width: 0;
-}
-/* a tarefa cumprida: até 2 linhas (inteira no celular estreito) */
-:is(.unlock-notice, .unlock-item) small {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    font-size: 11px;
-    color: var(--muted);
-}
-:is(.unlock-notice, .unlock-item) img {
-    width: 36px;
-    height: 36px;
-    flex: none;
+.unlock-seal > img,
+.unlock-seal > svg {
+    width: 72px;
+    height: 72px;
+    margin-bottom: -8px;
     image-rendering: pixelated;
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 0.45));
+    animation: k-seal-in var(--dur-pop) var(--ease-pop) both;
 }
-:is(.unlock-notice, .unlock-item) svg {
-    width: 22px;
-    height: 22px;
-    margin: 4px;
-    flex: none;
+.unlock-seal > svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 4px;
 }
-@keyframes unlock-in {
-    from {
-        opacity: 0;
-        translate: 0 -12px;
-        scale: 0.9;
+.unlock-seal > .k-seal {
+    position: relative;
+    padding: 5px 14px 6px;
+    font-size: 14px;
+    text-align: center;
+    animation-delay: 60ms;
+}
+@media (min-width: 900px) {
+    .unlock-seal {
+        top: 110px;
     }
 }
 
@@ -7472,11 +7788,12 @@ body {
     aspect-ratio: 3 / 3.6;
     max-height: none;
 }
-.prancheta .horizontal .court {
+/* quadra deitada (FormationBoard horizontal: a prancheta da partida e o draft no celular em pé) */
+.formation-board.horizontal .court {
     aspect-ratio: 1.7 / 1;
     background: repeating-linear-gradient(0deg, #c98a4f 0 24px, #cf9358 24px 48px);
 }
-.prancheta .horizontal .court::before {
+.formation-board.horizontal .court::before {
     left: 50%;
     right: auto;
     top: 0;
@@ -7494,11 +7811,12 @@ body {
 .prancheta .slot img {
     height: 28px;
 }
+/* na prancheta da partida o nome não cabia em 11 px: fica a nota (o sprite já diz quem é) */
 .prancheta .slot .slot-name {
-    font-size: 9px;
+    display: none;
 }
 .prancheta .slot .slot-rating {
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.1;
 }
 .prancheta .slot .pos-badge,
@@ -7946,11 +8264,12 @@ body {
 }
 
 /* Eliminado: o quanto faltou, logo antes do "Nova copa" */
+/* o consolo é apoio: 13 px --muted (o amarelo em Bold competia com o título) */
 .near-miss {
     margin: 12px 0 4px;
     text-align: center;
-    font-weight: 700;
-    color: var(--yellow);
+    font-size: 13px;
+    color: var(--muted);
 }
 
 /* ---------- Vem aí (ComingSoon.tsx): o que ainda não dá pra jogar, numa fileira de cartõezinhos ----------
@@ -8213,72 +8532,6 @@ body {
     margin-left: auto;
 }
 
-/* ---------- draft no celular em pé: faixa fixa com as vagas (U6) ---------- */
-.draft-strip {
-    display: none;
-}
-@media (max-width: 600px) and (orientation: portrait) {
-    .draft-strip {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        display: flex;
-        gap: 4px;
-        padding: 6px;
-        margin: 0 -2px 10px;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
-    }
-    .ds-chip {
-        flex: 1 1 0;
-        min-width: 0;
-        display: grid;
-        justify-items: center;
-        gap: 2px;
-        padding: 3px 0;
-        font: inherit;
-        font-size: 10px;
-        color: var(--muted);
-        background: var(--panel-2);
-        border: 1px dashed var(--line);
-        border-radius: 6px;
-        transition:
-            border-color 0.25s var(--ease-out),
-            background 0.25s var(--ease-out),
-            transform 0.25s var(--ease-out);
-    }
-    .ds-chip.filled {
-        border-style: solid;
-        color: var(--text);
-    }
-    .ds-chip img {
-        height: 28px;
-        width: auto;
-    }
-    .ds-chip i {
-        height: 28px;
-    }
-    .ds-chip span {
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .ds-chip.target {
-        border-color: var(--yellow);
-    }
-    .ds-chip.selected {
-        border: 2px solid var(--yellow);
-        background: rgba(255, 204, 0, 0.14);
-        transform: translateY(-2px);
-    }
-    .draft-options {
-        scroll-margin-top: 76px;
-    }
-}
-
 /* ---------- Fold: bloco recolhível (escalação, resultado) ---------- */
 .fold {
     border-top: 1px solid var(--line);
@@ -8344,65 +8597,6 @@ body {
     }
 }
 
-/* ---------- draft no celular e tablet em pé: as 3 cartas na 1ª tela (revamp-ui §3.2) ----------
-   As opções sobem pra cima da quadra (a faixa das vagas continua fixa no topo) e ficam lado a lado. */
-@media (max-width: 1050px) and (orientation: portrait) {
-    .draft-grid > .draft-options {
-        order: -1;
-    }
-}
-@media (max-width: 700px) and (orientation: portrait) {
-    .draft-options .options {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
-    }
-    .draft-options .fut-wrap,
-    .draft-options .cpack-stage {
-        --fut-w: min(170px, calc((calc(100 * var(--vw)) - 40px) / 3));
-    }
-    .draft-options .option-fit {
-        padding-inline: 6px;
-        font-size: 10px;
-    }
-}
-
-/* ---------- draft deitado: a quadra com o banco ao lado e centralizada enquanto não há cartas na mesa ---------- */
-@media (orientation: landscape) and (max-height: 520px) {
-    .draft-grid .board-panel > h2 {
-        display: none;
-    }
-    .draft-grid .board-panel {
-        margin-top: 0;
-    }
-    .draft-grid .formation-board {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 4px 10px;
-    }
-    .draft-grid .formation-board .court {
-        width: min(100%, calc((calc(100 * var(--svh)) - 130px) * 0.75));
-        flex: 0 1 auto;
-    }
-    .draft-grid .formation-board .bench {
-        flex-direction: column;
-        margin-top: 0;
-    }
-    .draft-grid .formation-board > .row {
-        flex: 1 0 100%;
-        justify-content: center;
-        margin-top: 0 !important;
-    }
-    /* sem vaga escolhida não há cartas: a quadra ocupa o meio em vez de ficar espremida à esquerda */
-    .draft-grid:not(:has(.draft-options)) {
-        grid-template-columns: minmax(0, 1fr);
-    }
-    .draft-grid:not(:has(.draft-options)) .board-panel {
-        justify-self: center;
-        width: min(100%, 520px);
-    }
-}
 /* o pontinho das Novidades no canto do botão */
 .news-fab {
     position: relative;

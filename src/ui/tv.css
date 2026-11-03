@@ -1,0 +1,253 @@
+/* A transmissão (src/ui/tv.ts, padrão desde 0.9.37): corte de TV, letreiro de canal e o menu de modos com cara de TV. */
+
+/* ---------- o corte: a faixa diagonal na tinta do placar, com o filete amarelo nas duas bordas ---------- */
+.tv-cut {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    overflow: hidden;
+    pointer-events: none;
+}
+.tv-cut-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--yellow);
+    clip-path: polygon(var(--s) 0, 100% 0, calc(100% - var(--s)) 100%, 0 100%);
+    transform: translateX(100vw);
+    will-change: transform;
+}
+.tv-cut-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bc-ink);
+    clip-path: polygon(calc(var(--s) + 12px) 0, calc(100% - 12px) 0, calc(100% - var(--s) - 12px) 100%, 12px 100%);
+}
+
+/* ---------- letreiro: o bug do canal e a faixa do programa saindo dele ---------- */
+.tv-row {
+    position: fixed;
+    left: 8px;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    pointer-events: none;
+    animation: tv-row-in var(--dur-ui) var(--ease-out);
+}
+@keyframes tv-row-in {
+    from {
+        opacity: 0;
+    }
+}
+/* a partida: no topo à direita, na linha do símbolo */
+.tv-row.top {
+    top: calc(env(safe-area-inset-top) + 8px);
+    right: 8px;
+    left: auto;
+    flex-direction: row-reverse;
+}
+.tv-bug {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 9px 0 3px;
+    background: var(--bc-ink);
+    border: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    box-shadow: 0 2px 0 var(--bc-edge);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1;
+    white-space: nowrap;
+}
+.tv-bug img {
+    width: 24px;
+    height: 24px;
+}
+.tv-bug.live b::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin: 0 5px 1px 0;
+    border-radius: 50%;
+    background: var(--red);
+    animation: tv-blink 1.2s steps(1) infinite;
+}
+@keyframes tv-blink {
+    50% {
+        opacity: 0.25;
+    }
+}
+.tv-lower {
+    overflow: hidden;
+    margin-left: -4px;
+}
+.tv-row.top .tv-lower {
+    margin: 0 -4px 0 0;
+}
+.tv-lower > span {
+    display: block;
+    height: 24px;
+    padding: 0 12px 0 14px;
+    background: var(--yellow);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 0 4px 4px 0;
+    color: var(--bc-ink);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 13px;
+    line-height: 23px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-102%);
+    transition: transform 240ms var(--ease-out);
+}
+.tv-row.top .tv-lower > span {
+    padding: 0 14px 0 12px;
+    border-radius: 4px 0 0 4px;
+    transform: translateX(102%);
+}
+.tv-row.on .tv-lower > span {
+    transform: none;
+    transition-duration: 280ms;
+}
+
+/* ---------- menu de modos com cara de TV (ModeSlices): o Smash de sempre, mais limpo ---------- */
+/* a moldura da tela: a pilha ganha o aro escuro e as linhas de varredura bem fracas por cima */
+.mm-tvs .mm-c-stack {
+    border-radius: 10px;
+    box-shadow:
+        0 0 0 3px var(--cb-ink),
+        0 0 0 6px var(--bc-ink-2),
+        0 4px 0 6px var(--bc-edge);
+}
+.mm-tvs .mm-c-stack::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    border-radius: inherit;
+    background: repeating-linear-gradient(0deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 3px);
+    box-shadow: inset 0 0 24px rgb(0 0 0 / 35%);
+    pointer-events: none;
+}
+/* o LED da torcida repetia os nomes dos modos: fica a faixa, sem o texto */
+.mm-tvs .es-led span {
+    visibility: hidden;
+}
+/* o número do canal: quadradinho na tinta, em todo painel */
+.mm-tvs :is(.tv-onair, .tv-soon) > i {
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font:
+        700 13px / 1 "Galmuri14",
+        monospace;
+    font-style: normal;
+}
+/* o jogável: canal 1, AO VIVO com a luz vermelha piscando */
+.mm-tvs .tv-onair {
+    display: inline-flex;
+    align-items: stretch;
+    height: 24px;
+    overflow: hidden;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow: 0 2px 0 var(--cb-ink);
+}
+.mm-tvs .tv-onair > b {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px 0 7px;
+    background: var(--red-dark, var(--red));
+    color: #fff;
+    font:
+        700 11px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.08em;
+}
+.mm-tvs .tv-onair > b::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #fff;
+    animation: tv-blink 1.2s steps(1) infinite;
+}
+/* os trancados: a faixa de baixo da TV, reta (sem a fita nem o selo inclinado), com o canal na ponta */
+.mm-tvs .tv-soon {
+    display: inline-flex;
+    align-items: stretch;
+    height: 24px;
+    overflow: hidden;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow: 0 2px 0 var(--cb-ink);
+}
+.mm-tvs .mm-slice .tv-soon .mm-soon {
+    display: inline-flex;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    rotate: none;
+    animation: none;
+}
+.mm-tvs .mm-slice .tv-soon .mm-soon > span {
+    padding: 0 7px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    font-size: 11px;
+}
+.mm-tvs .mm-slice .tv-soon .mm-soon > b {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font-size: 15px;
+}
+:root[data-reduce-motion="true"] .mm-tvs .tv-onair > b::before {
+    animation: none;
+}
+/* PC: as faixas um tico maiores (a fatia é larga) */
+@media (min-width: 900px) {
+    .mm-tvs :is(.tv-onair, .tv-soon) {
+        height: 30px;
+    }
+    .mm-tvs :is(.tv-onair, .tv-soon) > i {
+        min-width: 30px;
+        font-size: 16px;
+    }
+    .mm-tvs .tv-onair > b,
+    .mm-tvs .mm-slice .tv-soon .mm-soon > span {
+        font-size: 13px;
+    }
+    .mm-tvs .mm-slice .tv-soon .mm-soon > b {
+        font-size: 19px;
+    }
+}
+/* 320: a fatia de baixo é estreita; a faixa perde o número do canal (fica no AO VIVO) e cabe inteira */
+@media (max-width: 359px) {
+    .mm-tvs .tv-soon > i {
+        display: none;
+    }
+    .mm-tvs .mm-slice .tv-soon .mm-soon > span {
+        padding: 0 5px;
+    }
+    .mm-tvs .mm-slice .tv-soon .mm-soon > b {
+        padding: 0 5px;
+        font-size: 13px;
+    }
+}
