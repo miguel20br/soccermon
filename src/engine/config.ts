@@ -73,8 +73,9 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 19 = golpe máximo de linha armado até o próximo chute do capitão da zona, sem o prazo de `maxArmTicks` (só a bicuda
  *     ainda tem prazo); sai no nível da barra na hora do chute e cancela sem gastar no intervalo e no fim (evento
  *     `maxArm`). O Duelo carimba a ordem 2 s à frente e o capitão já não estava com a bola (Miguel, 02/11/2026).
+ * 20 = Snorlax, Lickitung e Wigglytuff ganham Fixo de secundária (`POSITION_OVERRIDES`; Miguel, 03/11/2026).
  */
-export const ENGINE_VERSION = 19;
+export const ENGINE_VERSION = 20;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

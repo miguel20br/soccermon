@@ -28,6 +28,14 @@ describe('iteração 3: posições, formações, capitão, itens, tática ao viv
         expect(pos[0]).toBe('GK');
     });
 
+    it('Snorlax, Lickitung e Wigglytuff têm Fixo de secundária (Miguel, 03/11/2026)', () => {
+        for (const id of [143, 108, 40]) {
+            const pos = eligiblePositions(computeAttributes(species(id), 50), id);
+            expect(pos[0]).toBe('GK');
+            expect(pos).toContain('FIXO');
+        }
+    });
+
     it('positionFactor: principal 1, secundária 0.98, fora penaliza', () => {
         expect(positionFactor(['FIXO', 'GK'], 'FIXO')).toBe(1);
         expect(positionFactor(['FIXO', 'GK'], 'GK')).toBe(0.98);
