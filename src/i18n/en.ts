@@ -16,6 +16,7 @@ import { result } from './en/result';
 import { reward } from './en/reward';
 import { settings } from './en/settings';
 import { shop } from './en/shop';
+import { showdown } from './en/showdown';
 import { stats } from './en/stats';
 import { team } from './en/team';
 import { title } from './en/title';
@@ -48,4 +49,5 @@ export const en: Dict = {
     longCup,
     bracket,
     ultimate,
+    showdown,
 };

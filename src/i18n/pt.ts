@@ -16,6 +16,7 @@ import { result } from './pt/result';
 import { reward } from './pt/reward';
 import { settings } from './pt/settings';
 import { shop } from './pt/shop';
+import { showdown } from './pt/showdown';
 import { stats } from './pt/stats';
 import { team } from './pt/team';
 import { title } from './pt/title';
@@ -52,6 +53,7 @@ export const pt = {
     longCup,
     bracket,
     ultimate,
+    showdown,
 };
 
 export type Dict = typeof pt;
