@@ -7,6 +7,12 @@ export const ultimate = {
     pointsShort: 'Pontos',
     cards: 'Cartas',
     tabs: { packs: 'Pacotes', collection: 'Coleção', team: 'Time', goals: 'Metas', play: 'Jogar' },
+    /** Walkout em 3 níveis (pesquisas/ut-walkout.md, ?lab=walkout&motor=react). */
+    walkout: {
+        who: 'Quem é esse Pokémon?',
+        /** Placa de rota de quem não é selvagem. */
+        place: { presente: 'Presente', fossil: 'Fóssil', cassino: 'Cassino', troca: 'Troca', evento: 'Evento' },
+    },
     packs: {
         tear: 'Arraste de lado pra rasgar, ou toque',
         mini: 'Pacote Mini',

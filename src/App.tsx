@@ -61,6 +61,8 @@ const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ defau
 // Time Ultimate (atrás de ?lab=ultimate, só dev e prévias): pedaço à parte
 const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ default: m.Ultimate })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
+// walkout em 3 níveis em React/CSS (?lab=walkout&motor=react, só dev e prévias): pedaço à parte
+const WalkoutLab = lazy(() => import('./ui/kit/WalkoutReact').then((m) => ({ default: m.WalkoutLab })));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
 const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
 // a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
@@ -140,6 +142,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
+        if (__SMOKE__ && q === 'walkout' && params.get('motor') === 'react') return 'walkout-react';
         if (
             __SMOKE__ &&
             (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas' || q === 'kit' || q === 'menu-modos')
@@ -276,6 +279,7 @@ export default function App() {
                 lab === 'icones' ||
                 lab === 'cenas' ||
                 lab === 'kit' ||
+                lab === 'walkout-react' ||
                 lab === 'menu-modos' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
@@ -292,6 +296,8 @@ export default function App() {
                             <StoryLab onExit={exit} />
                         ) : lab === 'kit' ? (
                             <KitLab onExit={exit} />
+                        ) : lab === 'walkout-react' ? (
+                            <WalkoutLab onExit={exit} />
                         ) : lab === 'menu-modos' ? (
                             <ModeMenuLab onExit={exit} />
                         ) : (

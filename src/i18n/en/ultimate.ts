@@ -8,6 +8,12 @@ export const ultimate: typeof pt = {
     pointsShort: 'Points',
     cards: 'Cards',
     tabs: { packs: 'Packs', collection: 'Cards', team: 'Team', goals: 'Goals', play: 'Play' },
+    /** Walkout em 3 níveis (pesquisas/ut-walkout.md, ?lab=walkout&motor=react). */
+    walkout: {
+        who: "Who's that Pokémon?",
+        /** Placa de rota de quem não é selvagem. */
+        place: { presente: 'Gift', fossil: 'Fossil', cassino: 'Game Corner', troca: 'Trade', evento: 'Event' },
+    },
     packs: {
         tear: 'Swipe sideways to tear it, or tap',
         mini: 'Mini Pack',
