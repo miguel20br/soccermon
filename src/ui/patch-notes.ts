@@ -9,6 +9,21 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.38.2',
+        date: '2026-11-03',
+        title: 'Fixo de secundária',
+        sections: [
+            {
+                title: 'Posições',
+                lines: [
+                    'Snorlax ganha Fixo de secundária: Fixo 59 ⇒ 77',
+                    'Lickitung ganha Fixo de secundária: Fixo 49 ⇒ 64',
+                    'Wigglytuff ganha Fixo de secundária: Fixo 37 ⇒ 48',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.38.1',
         date: '2026-11-03',
         title: 'Ajustes de tela',
@@ -2365,6 +2380,21 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.38.2',
+        date: '2026-11-03',
+        title: 'Defender as a second position',
+        sections: [
+            {
+                title: 'Positions',
+                lines: [
+                    'Snorlax can now play Defender: Defender 59 ⇒ 77',
+                    'Lickitung can now play Defender: Defender 49 ⇒ 64',
+                    'Wigglytuff can now play Defender: Defender 37 ⇒ 48',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.38.1',
         date: '2026-11-03',

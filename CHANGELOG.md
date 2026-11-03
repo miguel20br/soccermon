@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.38.2 · Fixo de secundária (2026-11-03)
+
+### Posições
+- Snorlax ganha Fixo de secundária: Fixo 59 ⇒ 77
+- Lickitung ganha Fixo de secundária: Fixo 49 ⇒ 64
+- Wigglytuff ganha Fixo de secundária: Fixo 37 ⇒ 48
+
 ## 0.9.38.1 · Ajustes de tela (2026-11-03)
 
 ### Celular

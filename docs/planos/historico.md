@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.38.2 · Fixo de secundária (03/11/2026)
+
+Motor 20: Snorlax (Fixo 59 ⇒ 77), Lickitung (49 ⇒ 64) e Wigglytuff (37 ⇒ 48) ganham Fixo de secundária em `POSITION_OVERRIDES`, a pedido do Miguel e com prioridade. Calibragem (n 200) dentro do ruído: 7,88 ⇒ 7,50 gols/jogo, favorito 68,8% ⇒ 68,6%. 0.9.38.1: 12 consertos de tela da varredura da madrugada.
+
 ## 0.9.38 · Walkout (03/11/2026)
 
 Walkout V2 (estádio no Phaser, placa e `FutCard` do React, telões com tipo e posição, silhueta, jogada com bola por espécie, vidro quebrando) no pacote do Mercado e no do Time Ultimate; 3 níveis, encolhe do 2º raro e 3º muito raro no dia. Time Ultimate inteiro na main (save v10), escondido até `ULTIMATE_OPENS_AT` (27/11 00:00 BRT): Início estilo hub do FC, Clube com filtros, Elenco por posição, Pendentes (venda rápida, trocar, resgatar, teto 30), aviso do último dia, rival do Fácil justo. 0.9.37.1: Copa Relâmpago centralizado e saiu o letreiro SMN flutuante.
