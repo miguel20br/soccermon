@@ -166,6 +166,8 @@ export const home: typeof pt = {
             daily: 'Daily Cup',
             liga: 'League',
             'liga-match': 'League',
+            ultimate: 'Team Ultimate',
+            'ultimate-match': 'Team Ultimate',
             collection: 'Collection',
             trophies: 'Trophy room',
         },

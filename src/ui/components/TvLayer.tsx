@@ -27,7 +27,7 @@ const HOLD_MS = 2200;
 export function TvLayer() {
     const { d } = useT();
     const screen = useGame((s) => s.screen);
-    const live = screen === 'match' || screen === 'liga-match';
+    const live = screen === 'match' || screen === 'liga-match' || screen === 'ultimate-match';
     const [prog, setProg] = useState<{ key: Program; n: number } | null>(null);
     const [shown, setShown] = useState(false);
     // onde o letreiro fica: embaixo à esquerda (`bottom`) ou no topo à direita (`top`), com ou sem espaço pra faixa;
@@ -40,7 +40,8 @@ export function TvLayer() {
     useEffect(() => onProgram(set), []);
     // biome-ignore lint/correctness/useExhaustiveDependencies: só na troca de tela
     useEffect(() => {
-        if (screen !== 'home') set(screen);
+        // `satisfies`: tela nova sem nome no letreiro não compila (o Time Ultimate saía com a faixa vazia)
+        if (screen !== 'home') set(screen satisfies Program);
     }, [screen]);
     const n = prog?.n ?? 0;
     // biome-ignore lint/correctness/useExhaustiveDependencies: refaz a cada programa novo (n)

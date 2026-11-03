@@ -50,7 +50,7 @@
     line-height: 1;
 }
 .ut-wallet small {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -226,7 +226,7 @@
     border-left: 3px solid var(--mc, transparent);
 }
 .ut-chip small {
-    font-size: 10px;
+    font-size: 11px;
     opacity: 0.75;
 }
 .ut-chip b {
@@ -404,7 +404,7 @@
 }
 .ut-seg small {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     opacity: 0.8;
 }
 .ut-pick-list {
@@ -448,7 +448,7 @@
     font-size: 13px;
 }
 .ut-chem-players li > small {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted);
 }
 .ut-chem-players li > span {
@@ -645,7 +645,7 @@
         padding-inline: 0;
     }
     .ut .k-tabs > [role="tab"] {
-        font-size: 10px;
+        font-size: 11px;
         letter-spacing: -0.8px;
         padding-inline: 0;
         min-width: 0;

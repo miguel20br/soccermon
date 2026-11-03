@@ -182,7 +182,7 @@ function Evolutions() {
             ) : (
                 <button
                     type="button"
-                    className="btn confirm wide"
+                    className="btn wide"
                     disabled={full || !free.length || !!u.live}
                     onClick={() => setPicking(true)}
                 >
@@ -251,8 +251,7 @@ function EvoRow({ e, card }: { e: UtEvo; card: PokemonInstance }) {
                 <Bar n={e.prog.mvp} of={EVO_STEP.mvp} label={t('ultimate.evo.mvp')} />
                 {note && <small className="ut-note">{note}</small>}
                 <span className="row ut-evo-actions">
-                    <button type="button" className="btn primary" disabled={!ready || live} onClick={go}>
-                        <i className="cb-shine" aria-hidden />
+                    <button type="button" className="btn confirm" disabled={!ready || live} onClick={go}>
                         {into ? t('ultimate.evo.evolve') : t('ultimate.evo.train')}
                     </button>
                     <button type="button" className="btn ghost small" disabled={live} onClick={() => drop(e.uid)}>
@@ -332,7 +331,7 @@ function EvoStart({ cards, onClose }: { cards: PokemonInstance[]; onClose: () =>
             <span className="row ut-evo-actions">
                 <button
                     type="button"
-                    className="btn primary"
+                    className="btn confirm"
                     disabled={!card || !chosen}
                     onClick={() => {
                         if (!card || !chosen) return;

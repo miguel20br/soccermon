@@ -329,7 +329,7 @@ function Team({ onPacks }: { onPacks: () => void }) {
             <section className="panel ut-empty">
                 <b>{tn('ultimate.team.need', STARTERS - order.length)}</b>
                 <p className="muted">{t('ultimate.team.needHint')}</p>
-                <button type="button" className="btn confirm" onClick={onPacks}>
+                <button type="button" className="btn" onClick={onPacks}>
                     {t('ultimate.play.toPacks')}
                 </button>
             </section>
@@ -552,7 +552,7 @@ function Play({
         return (
             <section className="panel ut-empty">
                 <b>{t('ultimate.play.needTeam')}</b>
-                <button type="button" className="btn confirm" onClick={onPacks}>
+                <button type="button" className="btn" onClick={onPacks}>
                     {t('ultimate.play.toPacks')}
                 </button>
             </section>
@@ -769,7 +769,7 @@ function PostGame({
                 {hasPacks && (
                     <button
                         type="button"
-                        className="btn confirm"
+                        className="btn confirm wide"
                         onClick={() => {
                             seen();
                             onOpen(packs.big ? 'big' : 'mini');
@@ -778,7 +778,7 @@ function PostGame({
                         {t('ultimate.result.openNow')}
                     </button>
                 )}
-                <button type="button" className={`btn ${hasPacks ? 'primary' : 'confirm'} wide`} onClick={seen}>
+                <button type="button" className={hasPacks ? 'btn' : 'btn confirm wide'} onClick={seen}>
                     {t('ultimate.result.next')}
                 </button>
             </div>

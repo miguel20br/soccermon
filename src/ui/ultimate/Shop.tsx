@@ -109,7 +109,7 @@ export function Shop() {
                     )}
                     <button
                         type="button"
-                        className="btn primary wide"
+                        className="btn confirm wide"
                         disabled={pick === null || short > 0}
                         onClick={() => {
                             if (pick === null) return;

@@ -183,6 +183,8 @@ export const home = {
             daily: 'Copa do Dia',
             liga: 'Liga',
             'liga-match': 'Liga',
+            ultimate: 'Time Ultimate',
+            'ultimate-match': 'Time Ultimate',
             collection: 'Coleção',
             trophies: 'Sala de troféus',
         },
