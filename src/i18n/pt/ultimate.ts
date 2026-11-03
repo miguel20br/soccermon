@@ -129,6 +129,8 @@ export const ultimate = {
         clear: 'Limpar',
         done: 'Ver cartas',
         none: 'Nenhuma carta com esses filtros',
+        status: 'Situação',
+        st: { starter: 'Titular', bench: 'Banco', evo: 'Em evolução', locked: 'Trancada', free: 'Livre' },
         locked: 'Trancada',
         place: 'Escalar',
         compare: 'Comparar',

@@ -676,6 +676,7 @@ export const help = {
             'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
         ],
         golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
+        utRepetida: ['Repetida não entra no Clube: venda ou troque pela que você já tem.'],
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',
