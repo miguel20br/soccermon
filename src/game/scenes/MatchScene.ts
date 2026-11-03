@@ -3340,7 +3340,7 @@ export class MatchScene extends Phaser.Scene {
                     sub: `${gk.name} · ${a.goalSub}`,
                     top: true,
                 });
-            else this.popText(this.players.indexOf(gk), a.goal, '#ffd447', 0, 2400);
+            else this.goalBanner('#1a1030', a.goal, '#ffd447');
         });
     }
 
@@ -3516,14 +3516,14 @@ export class MatchScene extends Phaser.Scene {
         });
     }
 
-    private goalBanner(stroke: string) {
+    private goalBanner(stroke: string, text = tr('battle.goalBanner'), color = '#ffffff') {
         claimOverlay('drama', PRIO_GOAL, 1700);
         const t = this.add
-            .text(GAME_W / 2, GAME_H / 2, tr('battle.goalBanner'), {
+            .text(GAME_W / 2, GAME_H / 2, text, {
                 fontFamily: 'Galmuri11, monospace',
                 fontSize: '72px',
                 fontStyle: 'bold',
-                color: '#ffffff',
+                color,
                 stroke,
                 strokeThickness: 10,
             })

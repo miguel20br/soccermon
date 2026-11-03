@@ -191,7 +191,8 @@ export class Commentator {
             }
             case 'shot': {
                 const w = this.n(e.by);
-                if (this.showdownKicks.has(e.tick)) return line(say(c.showdownKick, { w }), 'big', this.teams[e.by]);
+                // a bicuda do duelo já tem a fala dela (no 'max' do mesmo tick)
+                if (this.showdownKicks.has(e.tick)) return null;
                 if (e.moveId) {
                     const m = MOVES[e.moveId]?.name ?? e.moveId;
                     return line(say(c.shotMove, { w, m }), 'big', this.teams[e.by]);
@@ -444,6 +445,8 @@ export class Commentator {
                 // só o golpe que saiu vira fala (a bicuda com o toque fora fica no goleiro)
                 if (e.phase !== 'hit') return null;
                 const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
+                if (this.showdownKicks.has(e.tick))
+                    return line(say(c.showdownKick, { w: this.n(e.by) }), 'big', e.team);
                 const text = this.roles[e.by] === 'GK' ? c.maxGk : c.maxHit;
                 return line(say(text, { x: this.n(e.by), m }), 'big', e.team);
             }

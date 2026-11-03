@@ -26,6 +26,11 @@
         --sd-face: 120px;
     }
 }
+@media (min-width: 1200px) and (min-height: 860px) {
+    .sd-overlay {
+        --sd-k: 4;
+    }
+}
 
 /* o fundo: as cores dos dois times divididas na diagonal, com as linhas de velocidade andando */
 .sd-bg {
