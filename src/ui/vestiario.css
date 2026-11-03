@@ -412,6 +412,48 @@
     }
 }
 
+/* celular em pé baixo (320x640, 360x640, 375x667): a quadra cresce pela altura que sobra (cabeçalho e barra do Jogar
+   fora), as vagas encolhem pra uma linha caber na outra e o banco fica acima da barra, sem rolar */
+@media (max-width: 400px) and (max-height: 720px) and (orientation: portrait) {
+    .vt .formation-board .court {
+        aspect-ratio: auto;
+        height: calc(100 * var(--svh) - 336px);
+        max-height: none;
+    }
+    .vt .formation-board .slot {
+        width: 62px;
+        min-height: 0;
+        padding: 2px 1px 3px;
+    }
+    .vt .formation-board .slot img {
+        height: 24px;
+    }
+    .vt .formation-board .slot .pos-badge {
+        padding: 0 3px;
+        font-size: 9px;
+        line-height: 1.2;
+    }
+    .vt .formation-board .slot .slot-name {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+    .vt .formation-board .slot .slot-rating {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+    .vt .formation-board .slot .slot-item,
+    .vt .formation-board .slot .slot-evo {
+        display: none;
+    }
+    .vt .formation-board .bench {
+        margin-top: 6px;
+        gap: 8px;
+    }
+    .vt .formation-board .bench .slot {
+        width: 62px;
+    }
+}
+
 /* chip "Carta" da escalação: flutua no canto da quadra, não empurra nada */
 .vt-board {
     position: relative;
