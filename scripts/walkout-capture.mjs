@@ -122,10 +122,66 @@ await page.evaluate(async () => {
             an.currentTime = an.__vt;
         }
     };
-    window.__frame = (dt) => {
+    // o GIF da carta anda no relógio real: cada quadro da gravação leva ~0,5 s, então ele pulava uns 5 quadros do GIF
+    // por quadro do vídeo (a carta "tremia"). Aqui ele é decodificado e troca no relógio da cena, na duração de cada
+    // quadro do GIF (o mesmo ritmo do jogo); a mesma ideia do scripts/trailer-capture.mjs
+    const gifs = new Map();
+    const loadGif = (src) => {
+        if (!gifs.has(src))
+            gifs.set(
+                src,
+                (async () => {
+                    const dec = new ImageDecoder({ data: await (await fetch(src)).arrayBuffer(), type: 'image/gif' });
+                    await dec.tracks.ready;
+                    const c = document.createElement('canvas');
+                    const urls = [];
+                    const durs = [];
+                    for (let i = 0; i < dec.tracks.selectedTrack.frameCount; i++) {
+                        const { image } = await dec.decode({ frameIndex: i });
+                        c.width = image.displayWidth;
+                        c.height = image.displayHeight;
+                        const ctx = c.getContext('2d');
+                        ctx.clearRect(0, 0, c.width, c.height);
+                        ctx.drawImage(image, 0, 0);
+                        urls.push(c.toDataURL());
+                        durs.push(Math.max(20, (image.duration ?? 100000) / 1000));
+                        image.close();
+                    }
+                    return { urls, durs, total: durs.reduce((a, b) => a + b, 0) };
+                })(),
+            );
+        return gifs.get(src);
+    };
+    let vnow = 0;
+    window.__gifFrames = 0;
+    const gifTick = () =>
+        Promise.all(
+            [...document.querySelectorAll('.wk-ph img')].map(async (im) => {
+                const attr = im.getAttribute('src') || '';
+                if (!attr.startsWith('data:') && attr !== im.dataset.gifSrc) {
+                    if (!/\.gif(\?|$)/.test(attr)) return;
+                    im.dataset.gifSrc = attr;
+                    im.dataset.gifT0 = String(vnow);
+                }
+                if (!im.dataset.gifSrc) return;
+                const gif = await loadGif(new URL(im.dataset.gifSrc, location.href).href);
+                let t = (vnow - Number(im.dataset.gifT0)) % gif.total;
+                let i = 0;
+                while (i < gif.durs.length - 1 && t >= gif.durs[i]) t -= gif.durs[i++];
+                if (im.dataset.gifFrame !== String(i)) {
+                    if (im.closest('.wk-card-face')) window.__gifFrames++;
+                    im.dataset.gifFrame = String(i);
+                    im.src = gif.urls[i];
+                    await im.decode().catch(() => {});
+                }
+            }),
+        );
+    window.__frame = async (dt) => {
         window.__t += dt;
+        vnow += dt;
         g.step(window.__t, dt);
         window.__stepCss(dt);
+        await gifTick();
         return g.scene.getScene('walkout').clock;
     };
 });
@@ -186,6 +242,11 @@ if (args.includes('--so')) {
 }
 
 // áudio: cada som vira um arquivo (ZzFX renderizado na página; os outros são os do jogo) com atraso e volume
+// ritmo do GIF da carta no vídeo: trocas de quadro por segundo de relógio (contadas na carta da frente)
+const gifFps = await page.evaluate(
+    (ms) => (window.__gifFrames / (ms / 1000)).toFixed(1),
+    Math.max(1, clock - plan.card),
+);
 const sounds = await page.evaluate(() =>
     window.__wkSounds.map((x) => ({ t: x.t, s: x.s, pcm: window.__wkRender?.(x.s) ?? null })),
 );
@@ -263,4 +324,6 @@ ff.push(
 );
 execFileSync('flock', ['/tmp/soccermon-heavy.lock', 'ffmpeg', ...ff], { stdio: ['ignore', 'ignore', 'inherit'] });
 rmSync(dir, { recursive: true, force: true });
-console.log(`pronto: ${out} (${n} quadros, ${inputs.length} sons, fim ${plan.end} ms)`);
+console.log(
+    `pronto: ${out} (${n} quadros, ${inputs.length} sons, fim ${plan.end} ms, GIF da carta ${gifFps} quadros/s)`,
+);

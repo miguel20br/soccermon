@@ -46,7 +46,6 @@ const LIGHT: Record<string, [string, string]> = {
     destaque: ['#d9b23c', '#ffe08a'],
     shiny: ['#ffb3e0', '#b3dcff'],
     ouro: ['#e8c24a', '#ffe9a0'],
-    prata: ['#e4ebf7', '#9aa3b5'],
 };
 
 const Card = memo(function Card({ inst }: { inst: PokemonInstance }) {
@@ -212,8 +211,8 @@ export function WalkoutStage({
 
     // ---------------------------------------------------------------- quadro
     const calm = plan.kind === 'calmo';
-    const lightKey =
-        edition && LIGHT[edition] ? edition : edition === 'evento' ? '' : plan.tier === 'raro' ? 'ouro' : 'prata';
+    // sem edição a carta é ouro (75+): a luz é ouro também no 85+ (antes saía prata e destoava do fundo)
+    const lightKey = edition && LIGHT[edition] ? edition : edition === 'evento' ? '' : 'ouro';
     const [l1, l2] = lightKey ? LIGHT[lightKey] : [typeColor, '#ffffff'];
     const plateText =
         edition === 'evento'

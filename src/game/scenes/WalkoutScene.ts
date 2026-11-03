@@ -38,19 +38,63 @@ interface Look {
     sky: number[];
     /** Nebulosa: [x, y, raio x, raio y] em fração da tela + cor. */
     blobs?: [number, number, number, number, number][];
+    /**
+     * A textura da carta da edição no céu (pokecard2.css), em faixas com dithering: `ang` em graus, uma faixa a cada
+     * `gap` px com `w` px de largura e força `a`; com várias cores, cada faixa pega a seguinte (o furta-cor do Shiny).
+     */
+    stripes?: { ang: number; gap: number; w: number; c: number | number[]; a: number }[];
+    /** Raios de sol saindo de [x, y] (fração da tela) em `n` fatias, uma sim outra não escurecida (o Evento). */
+    rays?: { x: number; y: number; n: number; dark: number };
+    /** Cor das estrelas (a 1ª é a mais rara, o brilho). */
+    stars?: [string, string];
     fx: number[];
     beam: number;
 }
 
+/**
+ * O fundo de cada edição conversa com o acabamento da carta dela (pokecard2.css): ouro fosco com um reflexo largo,
+ * ouro 85+ com o foil em faixas finas, Shiny pérola furta-cor, Destaque preto com risca dourada, Ícone galáxia e
+ * Evento raios na cor do tipo (`eventLook`). Prata é só o começo do especial que troca de cor.
+ */
 const LOOKS: Record<string, Look> = {
-    ouro: { sky: [0x05040a, 0x1a1206, 0x4a3410], fx: [0xe8c24a, 0xffe9a0, 0xfff6d8], beam: 0xffd76a },
+    ouro: {
+        sky: [0x060402, 0x22170a, 0x5c4312],
+        blobs: [
+            [0.25, 0.14, 0.6, 0.2, 0xb48a18],
+            [0.78, 0.3, 0.55, 0.18, 0xe8c24a],
+        ],
+        stripes: [{ ang: 115, gap: 260, w: 70, c: 0xfff3b8, a: 0.3 }],
+        stars: ['#fff6d8', '#c9a24a'],
+        fx: [0xe8c24a, 0xffe9a0, 0xfff6d8],
+        beam: 0xffd76a,
+    },
+    ouro85: {
+        sky: [0x070402, 0x2c1c04, 0x74520a],
+        blobs: [
+            [0.2, 0.12, 0.6, 0.2, 0xe0ad1c],
+            [0.75, 0.3, 0.6, 0.2, 0xffe680],
+            [0.45, 0.02, 0.4, 0.1, 0x9c7208],
+        ],
+        stripes: [
+            { ang: 115, gap: 9, w: 2, c: 0xfff6d8, a: 0.35 },
+            { ang: 25, gap: 12, w: 1, c: 0xffffff, a: 0.18 },
+            { ang: 115, gap: 220, w: 60, c: 0xffffff, a: 0.35 },
+        ],
+        stars: ['#ffffff', '#ffe680'],
+        fx: [0xffe680, 0xe0ad1c, 0xfff6d8, 0xffffff],
+        beam: 0xffe680,
+    },
     prata: { sky: [0x05060a, 0x141822, 0x3a4256], fx: [0xc9ced8, 0xffffff, 0x9aa3b5], beam: 0xe4ebf7 },
     shiny: {
-        sky: [0x0a0716, 0x2a1d48, 0x5a3f78],
+        sky: [0x0c0818, 0x2e2250, 0x6c5c96],
         blobs: [
-            [0.2, 0.15, 0.5, 0.18, 0xff8ad0],
-            [0.8, 0.25, 0.5, 0.2, 0x8ac8ff],
+            [0.15, 0.12, 0.45, 0.18, 0xffb3e0],
+            [0.85, 0.2, 0.45, 0.18, 0xb3dcff],
+            [0.5, 0.34, 0.6, 0.1, 0xc8ffc8],
+            [0.45, 0.02, 0.35, 0.1, 0xffe6a8],
         ],
+        stripes: [{ ang: 135, gap: 34, w: 30, c: [0xffe3f3, 0xe3f1ff, 0xe9ffe9, 0xfff4dc, 0xf3e3ff], a: 0.3 }],
+        stars: ['#ffffff', '#ffd6f0'],
         fx: [0xffb3e0, 0xb3dcff, 0xc8ffc8, 0xffe6a8, 0xe0c8ff, 0xffffff],
         beam: 0xffe3f3,
     },
@@ -66,7 +110,12 @@ const LOOKS: Record<string, Look> = {
     },
     destaque: {
         sky: [0x000000, 0x111114, 0x2b2b30],
-        blobs: [[0.5, 0.3, 0.8, 0.12, 0x6a5418]],
+        blobs: [
+            [0.5, 0.34, 0.8, 0.12, 0x8a6a1c],
+            [0.2, 0.08, 0.4, 0.12, 0x3a2e10],
+        ],
+        stripes: [{ ang: 135, gap: 7, w: 1, c: 0xd9b23c, a: 0.45 }],
+        stars: ['#ffe08a', '#b8902a'],
         fx: [0xd9b23c, 0xffe08a, 0xffffff, 0xb8902a],
         beam: 0xffe08a,
     },
@@ -256,7 +305,7 @@ export class WalkoutScene extends Phaser.Scene {
 
         const ed = d.edition === 'evento' ? this.eventLook() : d.edition ? LOOKS[d.edition] : null;
         this.finalLook =
-            this.p.tier === 'raro' ? LOOKS.ouro : (ed ?? (this.p.tier === 'muitoraro' ? LOOKS.prata : LOOKS.ouro));
+            this.p.tier === 'raro' ? LOOKS.ouro : (ed ?? (this.p.tier === 'muitoraro' ? LOOKS.ouro85 : LOOKS.ouro));
         this.look = this.p.upgrade ? LOOKS.prata : this.finalLook;
 
         this.world = this.add.layer();
@@ -278,8 +327,13 @@ export class WalkoutScene extends Phaser.Scene {
     private eventLook(): Look {
         const c = this.d.typeColor;
         return {
-            sky: [0x000000, mix(c, 0, 0.75), mix(c, 0, 0.4)],
-            blobs: [[0.5, 0.15, 0.7, 0.2, c]],
+            sky: [mix(c, 0, 0.88), mix(c, 0, 0.6), mix(c, 0, 0.3)],
+            blobs: [
+                [0.7, 0.12, 0.35, 0.14, 0xffffff],
+                [0.3, 0.3, 0.6, 0.15, c],
+            ],
+            rays: { x: 0.7, y: 0.12, n: 44, dark: 0.45 },
+            stars: ['#ffffff', `#${mix(c, 0xffffff, 0.6).toString(16).padStart(6, '0')}`],
             fx: [c, mix(c, 0xffffff, 0.5), 0xffffff],
             beam: mix(c, 0xffffff, 0.4),
         };
@@ -420,12 +474,48 @@ export class WalkoutScene extends Phaser.Scene {
                         img.data[k + 2] = (img.data[k + 2] + b) / 2;
                     }
             }
+            this.skyPattern(img, W, h, look);
             ctx.putImageData(img, 0, 0);
+            const [s1, s2] = look.stars ?? ['#ffffff', '#9aa0b8'];
             for (let i = 0; i < (W * h) / 140; i++) {
-                ctx.fillStyle = rnd() < 0.2 ? '#ffffff' : '#9aa0b8';
+                ctx.fillStyle = rnd() < 0.2 ? s1 : s2;
                 ctx.fillRect(Math.floor(rnd() * W), Math.floor(rnd() * (h - 10)), 1, 1);
             }
         });
+    }
+
+    /** Faixas e raios da carta no céu (`Look.stripes`/`rays`), com o Bayer decidindo a força de cada pixel. */
+    private skyPattern(img: ImageData, W: number, h: number, look: Look) {
+        const put = (x: number, y: number, c: number, k: number) => {
+            const q = Math.floor(k * 4 + BAYER[(y & 3) * 4 + (x & 3)] / 16) / 4;
+            if (q <= 0) return;
+            const [r, g, b] = rgb(c);
+            const i = (y * W + x) * 4;
+            img.data[i] += (r - img.data[i]) * q;
+            img.data[i + 1] += (g - img.data[i + 1]) * q;
+            img.data[i + 2] += (b - img.data[i + 2]) * q;
+        };
+        for (const s of look.stripes ?? []) {
+            const ca = Math.cos((s.ang * Math.PI) / 180);
+            const sa = Math.sin((s.ang * Math.PI) / 180);
+            const cs = Array.isArray(s.c) ? s.c : [s.c];
+            for (let y = 0; y < h; y++)
+                for (let x = 0; x < W; x++) {
+                    const u = x * ca + y * sa + 4 * s.gap;
+                    const off = Math.abs((u % s.gap) - s.gap / 2);
+                    if (off > s.w / 2) continue;
+                    // faixa larga tem borda macia; faixa fina é um risco cheio
+                    const v = s.w > 4 ? 1 - off / (s.w / 2) : 1;
+                    put(x, y, cs[Math.floor(u / s.gap) % cs.length], s.a * v);
+                }
+        }
+        const r = look.rays;
+        if (r)
+            for (let y = 0; y < h; y++)
+                for (let x = 0; x < W; x++) {
+                    const a = Math.atan2(y - r.y * this.H, x - r.x * W) / (2 * Math.PI) + 0.5;
+                    if (Math.floor(a * r.n) % 2) put(x, y, 0, r.dark);
+                }
     }
 
     private makeTextures() {
