@@ -2259,7 +2259,7 @@ export class MatchScene extends Phaser.Scene {
                 }
                 const sdGoal =
                     this.showdown?.gk === e.by && e.tick >= this.showdown.kick && e.tick < this.showdown.until;
-                this.punch(sdGoal ? 'boom' : this.goalLevel(e));
+                this.punch(sdGoal && !this.md.reduceMotion ? 'boom' : this.goalLevel(e));
                 if (sdGoal && scorer) this.showdownGoal(scorer, cinematic);
                 // gol de golpe: explosão do tipo no gol (o golaço de Flamethrower pega fogo)
                 if (this.ballType) typeBurst(this, this.ballType, this.ball.x, this.ball.y, BALL_DEPTH + 1);
