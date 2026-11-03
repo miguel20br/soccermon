@@ -209,7 +209,7 @@ constantes num lugar só (`src/store/ultimate/rules.ts`) e só valem depois do o
 | 0.9.31 | ~08/11 | Base: save do Time Ultimate (fatia própria, migração), coleção da temporada, Fichas, pacote Mini a cada 12 h (acumula 2) com piso e chances na tela, abrir pacote (reusa o pacote da vitória), montar o time (reusa a Escalação), jogo contra IA com nível escolhido e tabela de prêmio antes da partida |
 | 0.9.32 | ~15/11 | Química no centro (painel na escalação), objetivos diários e semanais, pontos de pacote que compram a carta, Evoluções com prévia (Charmander → Charizard por objetivo; Treino pra quem não evolui), ponte da Copa (título = 1 pacote) |
 | 0.9.33 | ~22/11 | Temporada 1 (tema Kanto clássico, reset semestral, medalha e "Lenda da T1" no Álbum), desafios dos líderes de ginásio, passe grátis com a carta de abertura, Natal preparado como 1º evento, Pacote Grande nos objetivos semanais, polimento e playtest do Miguel (feito na branch `ultimate`, falta o playtest) |
-| 27/11 | | Bandeira ligada: o Time Ultimate sai do EM BREVE no menu de modos |
+| 27/11 | | Abre sozinho: `ultimateOn` (flag.ts) liga pra todo mundo a partir de `ULTIMATE_OPENS_AT` (27/11 00:00 de Brasília) e o menu tira o EM BREVE (feito em 02/11) |
 | dez | | Evento de Natal (cartas Evento, objetivos, enfeite no Perfil) |
 | jan | | Ranking do Time Ultimate, desafios de montagem; Duelo com o time e troca entre amigos depois |
 
@@ -230,7 +230,7 @@ aprovado. Mudou um número? Muda lá e aqui.
 | Edições por carta | Shiny 1/64 (1,6%) · Ícone 1% (só os 20 da lista); Evento fica pros eventos |
 | Repetida (mesma espécie e edição) | não entra; vira pontos de pacote: Bronze 1 · Prata 3 · Ouro 8 |
 | Primeiros pacotes | até o time ter 7 cartas, o pacote não repete espécie que você já tem (2 pacotes = time pronto) |
-| Rival da IA | clube de ginásio sorteado por partida; média dos titulares = a sua + Fácil −6 · Normal 0 · Difícil +4 · Mestre +8 (o mais perto entre 12 times sorteados) |
+| Rival da IA | clube de ginásio sorteado por partida só entre os que montam time a até 2 do alvo (`RIVAL_TOLERANCE`; 02/11); média dos titulares = a sua + Fácil −6 · Normal 0 · Difícil +4 · Mestre +8 (o mais perto entre 12 times do clube) |
 | Fichas (V / E / D) | Fácil 30/15/10 · Normal 50/25/10 · Difícil 80/40/15 · Mestre 120/60/20 |
 | Empate | placar igual no tempo normal (os pênaltis do motor ficam só como festa) |
 | **0.9.32** | |
@@ -295,7 +295,7 @@ Decisões tomadas sem o Miguel na 0.9.33 (as mais simples que respeitam o plano)
 
 **Pra ligar a bandeira em 27/11:** o ok do Miguel nos números (as três tabelas), ele jogar a prévia (inclusive com
 `&utnow=2026-12-20` pro Natal e `&utnow=2027-06-01` pra virada), decidir os 7 itens acima, `npm run calibrate` da
-meta de química, trocar `ultimateOn` (flag.ts) pra ligar em produção a partir de 27/11 e tirar o EM BREVE do menu,
+meta de química (a abertura em 27/11 já está no `ultimateOn`, flag.ts: feito em 02/11),
 patch notes e changelog da versão.
 
 ## Medição da química (falta o ok)
@@ -362,12 +362,27 @@ Decidido com o Miguel (02/11/2026): os 5 prêmios ficam (20, 20, 30, 30, 50), os
 
 ## Junção com a 0.9.37 e playtest headless (02/11/2026)
 
-Main 0.9.37 juntada na `ultimate` (motor 19 igual, sem `calibrate`). Hoje o modo só abre com `?lab=ultimate` no dev e
-nas prévias (`ultimateOn` exige `__SMOKE__`); em produção não há data: o EM BREVE 27/11 fica até alguém trocar
-`ultimateOn` pra ligar a partir de 27/11. Save 0.9.37 (v9) abre na branch e vira v10 com a fatia vazia.
+Main 0.9.37 juntada na `ultimate` (motor 19 igual, sem `calibrate`); depois a 0.9.37.1 (sem o letreiro de canal
+flutuante). Save 0.9.37 (v9) abre na branch e vira v10 com a fatia vazia.
+
+**Abertura automática (02/11, aprovado):** `ultimateOn` (flag.ts) liga o modo pra todo mundo a partir de
+`ULTIMATE_OPENS_AT` = 27/11/2026 00:00 de Brasília (`Date.UTC(2026, 10, 27, 3)`, a mesma data da contagem do menu).
+Antes disso, em produção, nada muda (EM BREVE 27/11). No dev e nas prévias `?lab=ultimate` liga antes,
+`&utnow=2026-11-27` simula a data (só lá) e `?lab=ultimate-off` mostra o menu antigo. Depois da data o canal diz
+AO VIVO em vez de PRÉVIA e o cabeçalho do modo perde o selo "Prévia".
 
 Pro Miguel decidir: **o Fácil nem sempre é fácil pra quem começa.** O rival sai de 12 times do clube sorteado
 (`aiDraftTeam` com dificuldade −2 a 3) e alguns clubes não têm time fraco o bastante: medido em 200 saves novos
 (2 pacotes, média 49–74), em 22 o rival do 1º Fácil tem média igual ou maior que a do jogador (3 com +5 ou mais; no
 pior, 50 x 59, que perdeu 0x7 e mais 4 seguidas). Opções: aceitar, abrir a faixa de dificuldade da IA no Fácil, ou
 escolher o clube entre os que chegam perto do alvo.
+
+**Decidido com o Miguel (02/11/2026): o clube sai só entre os que chegam perto do alvo** (a até `RIVAL_TOLERANCE` = 2;
+nenhum chega, fica o mais perto). Ordem embaralhada pela semente e `n`, o primeiro que chega: determinístico, e o
+clube pode mudar com o nível. Medido de novo, mesmo método (200 saves novos, 1ª partida):
+
+| | antes | depois |
+|---|---|---|
+| Fácil: rival com média ≥ a sua | 22 de 200 (3 com +5 ou mais; pior +9) | 0 de 200 (pior 50 x 49) |
+| Fácil: rival a até 2 do alvo | 111 de 200 | 196 de 200 (os 4 de fora até +5, sem clube fraco o bastante) |
+| Normal / Difícil / Mestre: rival a até 2 do alvo | 134 / 154 / 157 de 200 | 200 / 200 / 200 |

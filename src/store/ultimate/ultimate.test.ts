@@ -15,6 +15,7 @@ import {
     PACK_MAX,
     PACK_SIZE,
     REPEAT_POINTS,
+    RIVAL_TOLERANCE,
     STARTERS,
     TEAM_SIZE,
 } from './rules';
@@ -148,11 +149,23 @@ describe('time e partida', () => {
         expect(avgs[0]).toBeLessThanOrEqual(avgs[1]);
         expect(avgs[1]).toBeLessThanOrEqual(avgs[3]);
         expect(Math.abs(avgs[1] - avg)).toBeLessThan(Math.abs(avgs[0] - avg) + 1 + Math.abs(LEVEL_GAP.facil));
-        // o clube é o mesmo em todo nível (só a força muda)
-        expect(new Set((['facil', 'mestre'] as const).map((lv) => ultimateRival(u.salt, 0, lv, avg).name)).size).toBe(
-            1,
-        );
+        // determinístico: a mesma semente, partida e média dão o mesmo rival
+        expect(ultimateRival(u.salt, 0, 'facil', avg)).toEqual(ultimateRival(u.salt, 0, 'facil', avg));
         expect(homeTeam(u, 'Eu', 0).lineup).toHaveLength(STARTERS);
+    });
+
+    it('o clube sai só entre os que chegam perto do alvo: no 1º Fácil de quem começa, o rival é mais fraco', () => {
+        // antes (clube sorteado sem olhar o alvo), em 200 saves novos 22 tinham rival do Fácil com média >= a sua
+        for (let i = 0; i < 40; i++) {
+            let u = newUltimate(`s${i}`, T0);
+            u = openPack(openPack(u, T0)!.u, T0)!.u;
+            const avg = teamAverage(homeTeam(u, 'Eu', 0));
+            expect(teamAverage(ultimateRival(u.salt, 0, 'facil', avg))).toBeLessThan(avg);
+            for (const lv of ['normal', 'dificil', 'mestre'] as const)
+                expect(
+                    Math.abs(teamAverage(ultimateRival(u.salt, 0, lv, avg)) - avg - LEVEL_GAP[lv]),
+                ).toBeLessThanOrEqual(RIVAL_TOLERANCE);
+        }
     });
 
     it('Fichas por nível e resultado; o mais difícil paga mais e nenhum paga zero', () => {

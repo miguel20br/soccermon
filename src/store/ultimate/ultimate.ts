@@ -55,6 +55,7 @@ import {
     PICK_PRICE,
     passReward,
     REPEAT_POINTS,
+    RIVAL_TOLERANCE,
     SHINY_ODDS,
     STARTERS,
     TEAM_SIZE,
@@ -694,24 +695,36 @@ export function homeTeam(u: UltimateSave, name: string, color: number): TeamSetu
 /** Média dos titulares na vaga (a mesma conta do "vs." da Escalação). */
 export const teamAverage = (t: Pick<TeamSetup, 'lineup' | 'formation'>) => lineupAverage(t.lineup, t.formation);
 
-/**
- * Rival da IA da partida `n`: um clube de ginásio (a mesma quadra, líder e uniforme da Copa) com o time cuja média
- * chega mais perto da sua + LEVEL_GAP do nível. O clube depende só de `n` (ou é o do líder, no desafio `gym`); o nível
- * muda a força.
- */
-export function ultimateRival(salt: string, n: number, level: Level, myAvg: number, gym?: string): TeamSetup {
-    const gymClub = gym && CLUBS.find((c) => c.name === GYMS.find((g) => g.id === gym)?.club);
-    const club = gymClub || new Rng(salt, `ut-club-${n}`).pick(CLUBS);
-    const target = myAvg + LEVEL_GAP[level];
+/** O time do clube cuja média chega mais perto do alvo (12 tentativas: dificuldade da IA −2 a 3, duas sementes). */
+function closestTeam(salt: string, n: number, club: (typeof CLUBS)[number], target: number) {
     let best: ReturnType<typeof aiDraftTeam> | null = null;
-    let bestGap = Infinity;
+    let gap = Infinity;
     for (const d of [-2, -1, 0, 1, 2, 3])
         for (const k of [0, 1]) {
             const team = aiDraftTeam(new Rng(salt, `ut-rival-${n}-${d}-${k}`), d, club.types, club.formation);
-            const gap = Math.abs(lineupAverage(team.lineup, club.formation) - target);
-            if (gap < bestGap) [best, bestGap] = [team, gap];
+            const g = Math.abs(lineupAverage(team.lineup, club.formation) - target);
+            if (g < gap) [best, gap] = [team, g];
         }
-    const t = best!;
+    return { team: best!, gap };
+}
+
+/**
+ * Rival da IA da partida `n`: um clube de ginásio (a mesma quadra, líder e uniforme da Copa) com o time cuja média
+ * chega mais perto da sua + LEVEL_GAP do nível. O clube é sorteado (pela semente e `n`) só entre os que montam um
+ * time a até RIVAL_TOLERANCE do alvo: tem clube sem time fraco o bastante pro Fácil de quem começa (02/11/2026).
+ * Nenhum chega? Fica o mais perto. No desafio `gym` o clube é sempre o do líder.
+ */
+export function ultimateRival(salt: string, n: number, level: Level, myAvg: number, gym?: string): TeamSetup {
+    const gymClub = gym && CLUBS.find((c) => c.name === GYMS.find((g) => g.id === gym)?.club);
+    const target = myAvg + LEVEL_GAP[level];
+    let pick: { club: (typeof CLUBS)[number]; team: ReturnType<typeof aiDraftTeam>; gap: number } | null = null;
+    // a ordem embaralhada e o primeiro que chega: o mesmo que sortear entre os que chegam
+    for (const club of gymClub ? [gymClub] : new Rng(salt, `ut-club-${n}`).shuffle([...CLUBS])) {
+        const c = { club, ...closestTeam(salt, n, club, target) };
+        if (!pick || c.gap < pick.gap) pick = c;
+        if (c.gap <= RIVAL_TOLERANCE) break;
+    }
+    const { club, team: t } = pick!;
     return {
         name: club.name,
         lineup: noMidEvo(t.lineup),

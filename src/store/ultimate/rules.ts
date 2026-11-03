@@ -35,6 +35,8 @@ export type Level = (typeof LEVELS)[number];
 
 /** O rival acompanha a média do seu time: média dos titulares dele = a sua + isto. */
 export const LEVEL_GAP: Record<Level, number> = { facil: -6, normal: 0, dificil: 4, mestre: 8 };
+/** O clube do rival só entra no sorteio se monta um time com média a até isto do alvo (`ultimateRival`). */
+export const RIVAL_TOLERANCE = 2;
 
 export type Outcome = 'win' | 'draw' | 'loss';
 /** Fichas por resultado e nível (o fácil nunca paga zero). Empate = placar igual no tempo normal. */
