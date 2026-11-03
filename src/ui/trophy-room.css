@@ -212,6 +212,14 @@
         margin-top: 8px;
     }
 }
+/* celular baixinho (320x640) com a sala em tela cheia: embaixo da cena a caixa passava da altura do palco e o fim da
+   fala e o "Próximo" ficavam fora da tela; ali ela volta pra dentro do quarto, no pé */
+@media (max-width: 600px) and (max-height: 700px) {
+    .tr-full .room-dialog {
+        position: absolute;
+        margin-top: 0;
+    }
+}
 @media (max-width: 420px) {
     .room-dialog {
         flex-direction: column;
