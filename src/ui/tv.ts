@@ -98,8 +98,9 @@ export function onProgram(l: Listener) {
     };
 }
 
-/** Controle ou a quadra (onde o letreiro não pode ficar por cima). */
-const CONTROL = 'button, a, input, select, textarea, [role=tab], [role=button], nav, canvas, .bc-thumbbar';
+/** Controle, a quadra ou o logo (onde o letreiro não pode ficar por cima; o logo é imagem, sem texto pro `busy` ver). */
+const CONTROL =
+    'button, a, input, select, textarea, [role=tab], [role=button], nav, canvas, .bc-thumbbar, .es-logo, .logo-blink';
 /** Peça pequena com texto dentro (selo, chip do ₽, carta, caixa de botões): até o respiro dela conta como ocupado. */
 const piece = (el: Element) => {
     if (!el.textContent?.trim()) return false;

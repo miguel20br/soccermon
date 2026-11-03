@@ -3854,6 +3854,14 @@
     line-height: 1.15;
     text-align: center;
 }
+/* com 5 placas (copa em andamento) a escolhida alarga pro nome dela caber: "Relâmpago" é uma palavra só e passava da
+   borda da placa no 390, descentralizada */
+.es-rail.many .es-tile {
+    transition-property: transform, filter, background-color, color, flex-grow;
+}
+.es-rail.many .es-tile.on {
+    flex-grow: 1.7;
+}
 /* 320: nome em 10 px (o mínimo do guia), em até 2 linhas; a placa perde 1 px de borda e quase todo o respiro do lado
    pra "Relâmpago" caber inteiro. Com 5 placas (copa em andamento) não cabe: a escolhida alarga com o nome e as outras
    ficam só com o ícone (o nome vai no leitor de tela e embaixo do JOGAR quando ela é escolhida) */
@@ -3867,9 +3875,6 @@
     }
     .es-tile b {
         font-size: 12px;
-    }
-    .es-rail.many .es-tile {
-        transition-property: transform, filter, background-color, color, flex-grow;
     }
     .es-rail.many .es-tile.on {
         flex-grow: 2;
