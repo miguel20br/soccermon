@@ -1988,6 +1988,25 @@
         top: 100%;
     }
 }
+/* 320x640: o muro desce pra baixo da placa do título (ela cobria o ARCADE), o neon vai um pouco pra esquerda e a placa da
+   Liga encosta na borda direita: o papel "EM BREVE" não chega mais nela */
+@media (max-width: 359px) and (max-height: 700px) and (orientation: portrait) {
+    .ar-scene {
+        --wall-top: 134px;
+    }
+    .ar-neon {
+        left: 44%;
+    }
+    .ar-tape {
+        right: -8px;
+    }
+    .ar-liga {
+        left: auto;
+        right: 6px;
+        translate: 0 0;
+        transform: translateY(-50%);
+    }
+}
 /* desktop: mais perto do neon (a 84% ficava solto no muro comprido) */
 @media (min-width: 900px) and (min-height: 700px) {
     .ar-liga {
@@ -3976,6 +3995,12 @@
 @media (max-height: 700px) {
     .amb-bd .es-scene {
         --stand-top: 9%;
+    }
+}
+/* 320x640: a placa do título (mais alta com o nome em 2 linhas) cobria a faixa do clube na arquibancada */
+@media (max-width: 359px) and (max-height: 700px) and (orientation: portrait) {
+    .amb-bd .es-scene {
+        --stand-top: 14%;
     }
 }
 @media (min-width: 900px) and (min-height: 700px) {

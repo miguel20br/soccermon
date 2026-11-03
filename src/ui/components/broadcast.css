@@ -797,7 +797,8 @@
             "stage coach";
         column-gap: 12px;
         align-items: start;
-        padding-bottom: calc(60px + env(safe-area-inset-bottom));
+        /* a barra de velocidade mora na coluna da direita: a esquerda não reserva mais o pé da tela */
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
     }
     .bc-head {
         grid-area: head;
@@ -807,8 +808,9 @@
         grid-area: stage;
     }
     .bc-stage > .pitch-wrap {
-        /* placar (~92 px), faixa da narração (24 px) e barra de baixo (~58 px) fora: a quadra inteira na tela */
-        width: min(100%, calc((calc(100 * var(--svh)) - 178px - env(safe-area-inset-bottom)) * 968 / 528));
+        /* placar (~92 px) e faixa da narração (24 px) fora: a quadra inteira na tela, usando a altura que a barra de
+           baixo deixou livre (ela foi pra coluna da direita) */
+        width: min(100%, calc((calc(100 * var(--svh)) - 132px - env(safe-area-inset-bottom)) * 968 / 528));
         margin-inline: auto;
     }
     /* intervalo por cima da quadra parada (embaixo dela não caberia na altura da tela) */
@@ -983,9 +985,24 @@
     .panel.bc-coach {
         grid-area: coach;
         margin-top: 0;
-        max-height: calc(calc(100 * var(--svh)) - 64px - env(safe-area-inset-bottom));
+        max-height: calc(calc(100 * var(--svh)) - 124px - env(safe-area-inset-bottom));
         overflow-y: auto;
         align-content: start;
+    }
+    /* velocidade, golpe máximo e pular: embaixo da coluna das abas (a coluna ficava vazia e a quadra espremida) */
+    .bc-thumb {
+        left: auto;
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(8px, env(safe-area-inset-bottom));
+        width: 300px;
+        flex-wrap: wrap;
+        gap: 6px 8px;
+        padding: 6px 8px;
+        border: 3px solid var(--line);
+        border-radius: 10px;
+    }
+    .bc-thumb .speed-seg {
+        flex: 1 1 100%;
     }
     .bc .bc-tabs {
         position: sticky;
@@ -1060,7 +1077,7 @@
     }
     /* o placar do duelo tem a linha dos títulos (~22 px) */
     .duel .bc-stage > .pitch-wrap {
-        width: min(100%, calc((calc(100 * var(--svh)) - 200px - env(safe-area-inset-bottom)) * 968 / 528));
+        width: min(100%, calc((calc(100 * var(--svh)) - 164px - env(safe-area-inset-bottom)) * 968 / 528));
     }
 }
 

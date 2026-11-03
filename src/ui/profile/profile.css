@@ -129,6 +129,12 @@ img.pf-avatar:not(.pixel) {
     border-width: 2px;
     box-shadow: 0 2px 0 #0e1430;
 }
+/* o pontinho de "novo avatar" fica na quina do círculo do avatar (no canto do botão ele boiava sozinho ao lado do nome) */
+.pf-duo > .new-dot {
+    top: auto;
+    right: -8px;
+    bottom: 27px;
+}
 .pf-title-line {
     /* o título cola no nome (como no Showdown); o clube fica com o respiro normal abaixo */
     margin-top: -3px;

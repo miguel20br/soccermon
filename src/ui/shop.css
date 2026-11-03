@@ -791,9 +791,13 @@ button.sp-slot:hover {
         font-size: 18px;
     }
     .shop-rack {
-        --shop-reserve: 235px;
+        --shop-reserve: 245px;
         grid-column: 1;
         grid-row: 1 / -1;
+    }
+    /* o chip de comprar fica embaixo da carta (preso na borda ele cobria a 3ª linha de atributos e a descrição) */
+    .shop-rack .shop-offer > .shop-buy {
+        margin-top: 4px;
     }
     /* a descrição do item termina numa linha inteira (antes cortava no meio da 4ª) */
     .shop-rack .item-card .tactic-desc {
