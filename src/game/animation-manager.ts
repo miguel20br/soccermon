@@ -56,6 +56,13 @@ export function resolveAnim(skin: number, anim: string): string {
     return 'Idle';
 }
 
+/** Quantos quadros a animação tem e o do impacto (o PMD marca; sem marca, o do meio): a pose congelada do chute. */
+export function animHit(skin: number, anim: string): { frames: number; hit: number } {
+    const a = PMD[baseOf(skin)]?.anims[anim];
+    const frames = a?.frames ?? 1;
+    return { frames, hit: Math.min(frames - 1, a?.hitFrame ?? Math.floor(frames / 2)) };
+}
+
 /**
  * Cria (uma vez) as 8 direções de cada animação da espécie. Sem a folha carregada não cria nada: a animação sairia
  * sem quadros, ficaria guardada assim (o `exists` não refaz) e o `play` dela quebra o Phaser (getFirstTick).
@@ -136,6 +143,52 @@ function bodyCenter(frame: Phaser.Textures.Frame): { x: number; y: number } {
         n++;
     }
     return n ? { x: sx / n, y: sy / n } : { x: w / 2, y: h / 2 };
+}
+
+const frameBoxes = new Map<string, { x0: number; y0: number; x1: number; y1: number }>();
+
+/**
+ * Onde o corpo está de fato no sprite (o desenho, sem a sobra transparente do quadro do PMD), em px do mundo: pra
+ * enquadrar alguém sem cortar asa nem rabo. Medido uma vez por quadro.
+ */
+export function spriteBox(sprite: Phaser.GameObjects.Sprite): { x: number; y: number; w: number; h: number } {
+    const f = sprite.frame;
+    const key = `${f.texture.key}|${f.name}`;
+    let b = frameBoxes.get(key);
+    if (!b) {
+        const w = f.cutWidth;
+        const h = f.cutHeight;
+        b = { x0: 0, y0: 0, x1: w, y1: h };
+        probe ??= document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        if (probe) {
+            probe.canvas.width = w;
+            probe.canvas.height = h;
+            probe.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, w, h, 0, 0, w, h);
+            const px = probe.getImageData(0, 0, w, h).data;
+            let x0 = w;
+            let y0 = h;
+            let x1 = 0;
+            let y1 = 0;
+            for (let i = 3; i < px.length; i += 4) {
+                if (px[i] <= 20) continue;
+                const k = (i - 3) / 4;
+                const x = k % w;
+                const y = Math.floor(k / w);
+                x0 = Math.min(x0, x);
+                x1 = Math.max(x1, x + 1);
+                y0 = Math.min(y0, y);
+                y1 = Math.max(y1, y + 1);
+            }
+            if (x1 > x0) b = { x0, y0, x1, y1 };
+        }
+        frameBoxes.set(key, b);
+    }
+    const sx = Math.abs(sprite.scaleX);
+    const sy = Math.abs(sprite.scaleY);
+    const left = sprite.x - sprite.originX * f.cutWidth * sx;
+    const top = sprite.y - sprite.originY * f.cutHeight * sy;
+    const x0 = sprite.flipX ? f.cutWidth - b.x1 : b.x0;
+    return { x: left + x0 * sx, y: top + b.y0 * sy, w: (b.x1 - b.x0) * sx, h: (b.y1 - b.y0) * sy };
 }
 
 /**

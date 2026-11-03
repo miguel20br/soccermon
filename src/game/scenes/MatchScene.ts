@@ -37,6 +37,7 @@ import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
+    animHit,
     atlasKey,
     baseOf,
     bodyShift,
@@ -48,10 +49,31 @@ import {
     resolveAnim,
     shadowSize,
     skinOf,
+    spriteBox,
 } from '../animation-manager';
 import { playCrowd, playCry, playGoalCry, playMax, playSample, playSfx } from '../audio';
 import { trailParticle, typeBurst } from '../ball-trail';
 import { BattleBox } from '../battle-box';
+import {
+    type Box,
+    CineRig,
+    chroma,
+    shockwave as cineShock,
+    crack,
+    crowdFlash,
+    edgePoints,
+    fitShot,
+    impactFrame,
+    inset,
+    lightTrail,
+    mangaPanels,
+    type Panel,
+    type Shot,
+    shotMid,
+    speedLines,
+    TypeFx,
+    worldToScreen,
+} from '../cine';
 import { Cinematics, FOCUS_DEPTH } from '../cinematics';
 import {
     drawBanner,
@@ -260,34 +282,44 @@ const TRAIL_TICKS = 5;
 /** Rastro do golpe máximo no ar (mais longo: a curva pro canto tem que aparecer). */
 const MAX_TRAIL_TICKS = 16;
 /**
- * Duelo da bicuda na quadra (Miguel, 03/11/2026: "o fundo só tem que escurecer e rolar uma animação com phaser por cima,
- * com os pokes interagindo"). Quem chutou anda até o goleiro (ou recua, se chegou colado) e para a `gap` m dele (`walkAt`,
- * por `walkMs`); o goleiro sai `gkStep` m do gol com a bola e volta pra tomar distância antes da bicuda. Zoom na defesa,
- * no par e na bola voando (`zoomPairPhone` na quadra grande do celular, que já mostra só um pedaço). No voo, a câmera
- * lenta vai de `slowFar` no meio da quadra a `slowNear` nos últimos `nearM` m, e a câmera fica `lead` da tela à frente da
- * bola (`phoneLead` na janela do celular).
+ * Duelo da bicuda v3 (Miguel, 03/11/2026: "tem que parecer que ele revidou o chute com uma bicuda direta", "ângulos de
+ * câmera mais ousados", "AINDA MAIS IMPRESSIONANTE"). O goleiro arma o chute `windup` ticks antes do contato e o tempo
+ * para nele: a bola no pé, `lift` px no ar e `reach` m à frente dele, girando `spin` rad/s. A câmera (cine.ts): o contato
+ * em close (`impactFill` da altura útil, até `impactMax`), os painéis de mangá de `panelsAt` até a 1ª fala, o close de
+ * quem fala (`close`, zoom de `zMin` a `closeMax`) com push-in `push`, o grito do goleiro mais perto (`shoutClose`,
+ * `shoutMax`) e a bicuda armada (`kickZoom`); ângulo holandês `dutch` (`dutchImpact`, `dutchShout`), chicote em `whipMs`.
+ * No voo, a câmera lenta é `depart` nos `departTicks` da saída do pé, `slowFar` no meio e `slowNear` nos `nearM` m finais,
+ * a câmera abre pra `flyZoom` com a bola `lead` da tela atrás do meio. O gol: `goalZoom` por `goalHold` ms.
  */
-const SD_STAGE = {
-    gap: 3.4,
-    gkStep: 1.5,
-    walkAt: 450,
-    walkMs: 900,
-    zoomCatch: 1.6,
-    zoomPair: 2.4,
-    zoomPairPhone: 2.3,
-    zoomBall: 1.6,
+const SD = {
+    windup: 3,
+    lift: 9,
+    reach: 0.5,
+    spin: 14,
+    impactFill: 0.62,
+    impactMax: 4.2,
+    panelsAt: 620,
+    close: 0.56,
+    closeMax: 4.6,
+    zMin: 1.8,
+    shoutClose: 0.74,
+    shoutMax: 5.6,
+    kickZoom: 3.2,
+    push: 1.09,
+    dutch: 0.16,
+    dutchImpact: 0.21,
+    dutchShout: 0.25,
+    whipMs: 200,
+    depart: 0.12,
+    departTicks: 3,
     slowFar: 0.5,
     slowNear: 0.16,
     nearM: 8,
+    flyZoom: 1.6,
     lead: 0.2,
-    phoneLead: 0.09,
+    goalZoom: 2.3,
+    goalHold: 1150,
 };
-/**
- * O gesto de cada fala (PMD): quem chutou pula de susto e depois parte pra cima (o Swing dá o bote dentro do quadro); o
- * goleiro chega `lean` m pra cima dele e volta (andando, a bola vai junto: o bote e o pulo deixavam ela no ar); o grito,
- * a carga. O gesto dura `ms`.
- */
-const SD_TALK = { s: 'Hop', s2: 'Swing', lean: 0.6, ms: 800 } as const;
 
 /** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
 const MAX_BICUDA_SLOW_TICKS = 24;
@@ -520,10 +552,13 @@ interface PlayerView {
     flags: number;
     /** Deslocamento temporário do sprite (investida do golpe). */
     lunge: { x: number; y: number };
-    /** Duelo da bicuda: o corpo inteiro (sprite, sombra, anel, nome e a bola na mão) andando fora do lugar do motor. */
-    walk: { x: number; y: number };
-    /** Duelo da bicuda: a animação e o lado que a cena manda, no lugar dos do motor. */
-    act: { anim: string; facing: number } | null;
+    /**
+     * Duelo da bicuda: a animação e o lado que a cena manda, no lugar dos do motor; `frame` = de que quadro ela começa e
+     * `hold` = parada nele (o tempo congelado).
+     */
+    act: { anim: string; facing: number; frame?: number; hold?: boolean } | null;
+    /** Duelo da bicuda: o corpo inteiro (sprite, sombra, anel) fora do lugar do motor (px): quem chutou fica no chute. */
+    shift: { x: number; y: number };
     /** Em animação de evolução: a cena não troca a animação dele. */
     evolving: boolean;
     /** Entrando na quadra vindo da lateral (substituição): de onde, quando começa e quanto dura (tempo real). */
@@ -581,8 +616,6 @@ export class MatchScene extends Phaser.Scene {
     /** Pan e zoom de verdade da câmera (os da `cameras.main` passam pela trava do golpe máximo). */
     private rawPan!: (x: number, y: number, ms: number) => void;
     private rawZoom!: (zoom: number, ms: number) => void;
-    /** Zoom sem o abafamento da quadra grande (`zoomDamp`) nem a trava do golpe máximo: o duelo da bicuda. */
-    private fullZoom!: (zoom: number, ms: number) => void;
     /**
      * A carga do golpe máximo (N1/N2) e a cena do N3 seguram a quadra até o chute na tela (o timer do Phaser atrasa em
      * quadro lento e a bola saía antes do chute): solta no próprio callback do chute.
@@ -600,21 +633,61 @@ export class MatchScene extends Phaser.Scene {
      * reprodução passa da bicuda, até pulando (`match:showdown-end`).
      */
     private showdownOpen = false;
-    /** O duelo na quadra (`stageShowdown`): as falas, quem olha pra onde e os passos que faltam (ms desde o lance). */
+    /** O duelo na quadra (`stageShowdown`): o instante congelado, as falas e as deixas que faltam (ms desde o lance). */
     private sdStage: {
         gk: PlayerView;
         shooter: PlayerView;
         gkFace: number;
         shooterFace: number;
-        /** Onde o goleiro fica na conversa e até onde ele chega pra cima de quem chutou (px, fora do lugar do motor). */
-        gkTo: { x: number; y: number };
-        gkLean: { x: number; y: number };
+        /** A bola parada no pé do goleiro (px, no chão) e pra onde vai a bicuda (unitário). */
+        contact: { x: number; y: number };
+        /** Onde as faíscas da bola nascem (a bola no ar). */
+        spark: { x: number; y: number };
+        dir: { x: number; y: number };
+        /** O lado do goleiro (1: ele defende o gol da esquerda): o giro dos planos dele. */
+        side: number;
+        type: string;
+        color: number;
         script: ShowdownLine[];
         line: number;
+        ms: number;
         cues: { at: number; run: () => void }[];
+        streams: { stop: () => void; rate: (ms: number) => void }[];
+        crack: { fade: (ms: number) => void } | null;
+        /** O goleiro treme segurando a energia (o grito e a bicuda armada). */
+        strain: boolean;
+        /** O tempo já parou (o contato passou): a bola fica no pé dele. */
+        frozen: boolean;
     } | null = null;
-    /** A bicuda no ar: a câmera vai junto com a bola até o gol (`team` ataca; `x`, `y` = o meio da câmera). */
-    private sdFly: { team: 0 | 1; x: number; y: number; until: number } | null = null;
+    /** O lance do duelo (o contato): o goleiro arma o chute `SD.windup` ticks antes. */
+    private sdSave: {
+        tick: number;
+        kick: number;
+        gk: number;
+        shooter: number;
+        /** O chute de quem chutou (o N3 que o goleiro parou): ele fica ali, no fim do chute. */
+        shotTick: number;
+        armed: boolean;
+    } | null = null;
+    /** A bicuda no ar: a câmera vai junto com a bola até o gol (`team` ataca). */
+    private sdFly: {
+        team: 0 | 1;
+        kick: number;
+        until: number;
+        dir: { x: number; y: number };
+        gk: PlayerView;
+        shooter: PlayerView | null;
+        following: boolean;
+        stream: { stop: () => void } | null;
+        lines: { stop: () => void } | null;
+    } | null = null;
+    /** A câmera de cinema do duelo (cine.ts) e as partículas por tipo. */
+    private rig!: CineRig;
+    private fx!: TypeFx;
+    /** A borda da câmera volta quando o quadro dela couber de novo na quadra (senão daria um salto). */
+    private sdBoundsPending = false;
+    /** Onde começa a caixa das falas na tela (px do canvas), medido na caixa da tela React. */
+    private sdBoxAt: number | null = null;
     /** Até quando (tempo real) a cena do especial N3 está na tela. */
     private n3SceneUntil = 0;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
@@ -694,6 +767,16 @@ export class MatchScene extends Phaser.Scene {
                 if (id <= 151 && !this.textures.exists(key)) this.load.image(key, portraitSrc(id, ['determined']));
             }
         }
+        // duelo da bicuda: os rostos dos painéis de mangá (quem chutou com dor ou espantado, o goleiro decidido)
+        const sd = this.md.result.events.find((x) => x.type === 'showdown');
+        if (sd?.type === 'showdown')
+            for (const [idx, faces] of [
+                [sd.shooter, ['pain', 'surprised']],
+                [sd.gk, ['determined', 'shouting']],
+            ] as const) {
+                const id = this.md.result.roster[idx]?.speciesId;
+                if (id && id <= 151) this.load.image(`sdface-${id}`, portraitSrc(id, faces));
+            }
     }
 
     create() {
@@ -709,7 +792,6 @@ export class MatchScene extends Phaser.Scene {
         const pan = cam.pan.bind(cam);
         this.rawZoom = (zoom, ms) => zoomTo(1 + (zoom - 1) * this.zoomDamp, ms, 'Sine.easeInOut', true);
         this.rawPan = (x, y, ms) => pan(x, y, ms, 'Sine.easeInOut', true);
-        this.fullZoom = (zoom, ms) => zoomTo(zoom, ms, 'Sine.easeInOut', true);
         // o golpe máximo no ar segura a câmera no gol: o resto (holofote, drama, golpe, volta pro meio) espera ele chegar
         cam.zoomTo = (zoom, ...rest) => (this.frameLocked() ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest));
         cam.pan = (x, y, ...rest) => (this.frameLocked() ? cam : pan(x, y, ...rest));
@@ -734,6 +816,9 @@ export class MatchScene extends Phaser.Scene {
         this.reactG = this.add.graphics().setDepth(REACT_DEPTH);
         this.battleBox = new BattleBox(this, GAME_W / 2, GAME_H - 30, 560);
         this.cine = new Cinematics(this);
+        this.rig = new CineRig(this, !!this.md.reduceMotion);
+        this.cine.rig = this.rig;
+        this.fx = new TypeFx(this);
 
         const onResize = () => this.updateUiScale();
         this.scale.on('resize', onResize);
@@ -834,7 +919,26 @@ export class MatchScene extends Phaser.Scene {
         this.goalTicks = this.dramaTicks;
         this.highlightTicks = this.matchEvents.filter((e) => HIGHLIGHT.has(e.type)).map((e) => e.tick);
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
-        this.dives = this.matchEvents.flatMap((e) => (e.type === 'save' ? [{ tick: e.tick, gk: e.by, at: null }] : []));
+        // o lance do duelo da bicuda não tem mergulho: o goleiro arma a bicuda e para a bola no pé (`sdWindup`)
+        const duel = this.matchEvents.find((e) => e.type === 'showdown');
+        this.sdSave =
+            duel?.type === 'showdown'
+                ? {
+                      tick: duel.tick,
+                      kick: duel.kick,
+                      gk: duel.gk,
+                      shooter: duel.shooter,
+                      shotTick: this.matchEvents.reduce(
+                          (t, x) => (x.type === 'shot' && x.by === duel.shooter && x.tick <= duel.tick ? x.tick : t),
+                          duel.tick,
+                      ),
+                      armed: false,
+                  }
+                : null;
+        const noDive = duel && !this.md.replay ? duel.tick : -1;
+        this.dives = this.matchEvents.flatMap((e) =>
+            e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null }] : [],
+        );
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
         this.agencySpans();
@@ -1073,12 +1177,8 @@ export class MatchScene extends Phaser.Scene {
 
     /** Pra onde a câmera do lance (gol, golpe, Transformar) aponta, na tela: a quadra grande do ?lab=hud vai junto. */
     focusOnScreen(): { x: number; y: number } {
-        // a bicuda do duelo no ar: a bola, com um pouco de espaço pro gol que ela vai
-        if (this.sdFly)
-            return this.onScreen(
-                this.ball.x + ((this.sdFly.team === 0 ? 1 : -1) * SD_STAGE.phoneLead * GAME_W) / this.cameras.main.zoom,
-                this.ball.y,
-            );
+        // o duelo da bicuda: a câmera de cinema põe o lance no meio da tela
+        if (this.rig?.active) return { x: GAME_W / 2, y: GAME_H / 2 };
         const d = this.cameras.main.panEffect.destination;
         return this.onScreen(d.x, d.y);
     }
@@ -1098,6 +1198,8 @@ export class MatchScene extends Phaser.Scene {
      * inteiro (rede e traves) e `MAX_KEEP_FRONT` m na frente dele, onde o goleiro mergulha.
      */
     private keepOnScreen(): { x0: number; x1: number } | null {
+        // o duelo da bicuda: a janela do celular fica no meio da quadra, rápida (a câmera de cinema enquadra)
+        if (this.rig?.active) return { x0: GAME_W / 2, x1: GAME_W / 2 };
         if (!this.frameLocked()) return null;
         const right = this.maxFrame?.team === 0;
         const a = toPx(right ? L - MAX_KEEP_FRONT : -1.3, 0).x;
@@ -1106,7 +1208,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     private frameLocked(): boolean {
-        return !!this.maxFrame && this.playTick <= this.maxFrame.until;
+        return (!!this.maxFrame && this.playTick <= this.maxFrame.until) || !!this.rig?.active;
     }
 
     /**
@@ -1215,8 +1317,8 @@ export class MatchScene extends Phaser.Scene {
             status: -1,
             flags: -1,
             lunge: { x: 0, y: 0 },
-            walk: { x: 0, y: 0 },
             act: null,
+            shift: { x: 0, y: 0 },
             evolving: false,
             enter: null,
             clones: [],
@@ -1475,6 +1577,8 @@ export class MatchScene extends Phaser.Scene {
             if (this.playTick >= this.showdown.kick) {
                 this.showdownOpen = false;
                 EventBus.emit('match:showdown-end');
+                // pulou a bicuda (o chute passou sem a cena): desmonta o instante congelado
+                if (this.sdStage) this.sdAbort();
             } else {
                 const t = ((this.playTick - this.showdown.tick) / TICK_RATE) * 1000;
                 EventBus.emit('match:showdown-t', t);
@@ -1482,6 +1586,7 @@ export class MatchScene extends Phaser.Scene {
             }
         }
 
+        this.sdWindup();
         const { index, t } = this.locate(this.playTick);
         const inShootout = this.penalties.length > 0 && this.playTick >= this.fulltimeTick + TICK_RATE;
         if (inShootout) {
@@ -1490,10 +1595,14 @@ export class MatchScene extends Phaser.Scene {
         } else {
             this.applySnapshot(index, t, factor);
         }
+        this.holdShowdownBall(delta);
         this.updateBallMotion(inShootout);
         this.followShowdownBall(delta);
         this.drawMaxBall(time);
         this.battleBox.update(time, Math.max(1, factor));
+        this.rig.apply();
+        if (this.sdBoundsPending) this.sdBoundsBack();
+        this.sdSettle();
         this.cine.updatePins();
         this.updateZoneViews();
 
@@ -1806,13 +1915,15 @@ export class MatchScene extends Phaser.Scene {
                 : a.p[o + 1] + (b.p[o + 1] - a.p[o + 1]) * k;
             const { facing, action } = this.steadyPose(index + (k < 0.5 ? 0 : 1), o);
             const px = toPx(x, y);
-            px.x += view.walk.x;
-            px.y += view.walk.y;
+            px.x += view.shift.x;
+            px.y += view.shift.y;
             pxOf[i] = px;
             // em destaque (holofote): acima do escurecimento
             const focused = this.cine.focused.has(i);
             const base = focused ? FOCUS_DEPTH + px.y / 100 : px.y;
-            const dive = this.diveOffset(i, px);
+            // o duelo da bicuda manda na pose (o chute armado no contato): sem o mergulho
+            const act = view.act;
+            const dive = act ? null : this.diveOffset(i, px);
             if (dive) diveOf.set(i, dive);
             view.sprite
                 .setPosition(px.x + view.lunge.x + (dive?.x ?? 0), px.y + view.lunge.y + (dive?.y ?? 0))
@@ -1849,7 +1960,6 @@ export class MatchScene extends Phaser.Scene {
             const calm = (action === Action.Idle || action === Action.Run) && a.owner !== i && b.owner !== i;
             if (since >= POSE_MS || (since >= 0 && !calm) || dive) view.pose = 0;
             const posing = view.pose > 0 && entering === null;
-            const act = dive ? null : view.act;
             const anim = resolveAnim(
                 view.skin,
                 act
@@ -1871,7 +1981,10 @@ export class MatchScene extends Phaser.Scene {
                     view.currentKey = wkey;
                 }
             } else if (key !== view.currentKey && !view.evolving) {
-                view.sprite.play(key).setOrigin(0.5, footOrigin(view.skin, anim));
+                if (act?.frame !== undefined) view.sprite.play({ key, startFrame: act.frame });
+                else view.sprite.play(key);
+                if (act?.hold) view.sprite.anims.pause();
+                view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
             if (dive && entering === null && !view.evolving) this.holdBody(view);
@@ -1888,6 +2001,12 @@ export class MatchScene extends Phaser.Scene {
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
             if (!arriving) this.drawReaction(view, k < 0.5 ? index : Math.min(index + 1, this.snaps.length - 1), i);
         }
+        // o duelo da bicuda: o tempo parado (ninguém mexe) e a quadra limpa, sem nome, anel nem setinha, até o gol
+        if (this.sdStage || this.sdFly)
+            for (const v of this.players) {
+                if (this.sdStage) v.sprite.anims.timeScale = 0;
+                for (const o of [v.label, v.badge, v.ring, v.arrow]) o?.setVisible(false);
+            }
         this.declutterLabels(a.owner, this.game.loop.delta);
         if (focusPos.size) this.cine.followSpots(focusPos);
         this.drawAgency(pxOf);
@@ -2035,17 +2154,16 @@ export class MatchScene extends Phaser.Scene {
         if (n < 2) return;
         g.setDepth(BALL_DEPTH - 2);
         const color = max && this.ballColor === 0xffffff ? max.color : this.ballColor;
-        // a bicuda do duelo: o rastro mais grosso do jogo, com o miolo branco (dá pra seguir a bola de gol a gol)
-        const fly = !!this.sdFly && !!max;
-        const w = fly ? 24 : max ? MAX_BALL_FX[max.level as 1 | 2 | 3].trail : 5;
+        // a bicuda do duelo: o rastro de luz mais grosso do jogo (dá pra seguir a bola de gol a gol)
+        if (this.sdFly && max) {
+            lightTrail(g, this.trail, color, 22);
+            return;
+        }
+        const w = max ? MAX_BALL_FX[max.level as 1 | 2 | 3].trail : 5;
         for (let i = 1; i < n; i++) {
             const k = i / (n - 1);
-            g.lineStyle(1.5 + w * k, color, 0.08 + (fly ? 0.8 : max ? 0.6 : 0.42) * k);
+            g.lineStyle(1.5 + w * k, color, 0.08 + (max ? 0.6 : 0.42) * k);
             g.lineBetween(this.trail[i - 1].x, this.trail[i - 1].y, this.trail[i].x, this.trail[i].y);
-            if (fly) {
-                g.lineStyle(1 + w * 0.3 * k, 0xffffff, 0.75 * k);
-                g.lineBetween(this.trail[i - 1].x, this.trail[i - 1].y, this.trail[i].x, this.trail[i].y);
-            }
         }
     }
 
@@ -3370,9 +3488,10 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * Duelo da bicuda (motor 21): o goleiro segurou o N3 e o motor parou. Tudo na quadra (`stageShowdown`): ela escurece,
-     * os dois se encaram e conversam; a caixa das falas é da tela React (`match:showdown`, ShowdownOverlay.tsx). Aqui
-     * também a janela de 1x e a música baixa. Pulando (silent) ou no replay, só a janela.
+     * Duelo da bicuda (motor 21): o goleiro parou o N3 no pé e o motor parou (no motor ele "tem a bola"; na tela, o tempo
+     * congela no contato e ele devolve de primeira). Tudo na quadra (`stageShowdown`); a caixa das falas é da tela React
+     * (`match:showdown`, ShowdownOverlay.tsx). Aqui também a janela de 1x e a música baixa. Pulando (silent) ou no
+     * replay, só a janela.
      */
     private startShowdown(e: Extract<MatchEvent, { type: 'showdown' }>, silent: boolean) {
         const goal = this.matchEvents.find((x) => x.type === 'goal' && x.tick >= e.kick);
@@ -3380,8 +3499,19 @@ export class MatchScene extends Phaser.Scene {
         this.showdown = { tick: e.tick, kick: e.kick, until, gk: e.gk };
         const shooter = this.players[e.shooter];
         const gk = this.players[e.gk];
-        if (silent || this.md.replay || !shooter || !gk) return;
+        if (silent || this.md.replay || !shooter || !gk) {
+            // sem a cena (pulou, replay): o goleiro que tinha armado a bicuda volta pro motor
+            if (gk?.act) this.sdAct(gk, null);
+            if (shooter) {
+                if (shooter.act) this.sdAct(shooter, null);
+                shooter.shift.x = 0;
+                shooter.shift.y = 0;
+            }
+            return;
+        }
         const ms = ((e.kick - e.tick) / TICK_RATE) * 1000;
+        // o tipo do golpe que o goleiro parou (as faíscas dele brigam com as do goleiro na bola parada)
+        const shotType = this.maxSlow?.type || this.ballType || species(shooter.speciesId).types[0];
         this.maxSlow = null;
         this.battleBox.clear(this.time.now, ms);
         duckMusic();
@@ -3399,7 +3529,7 @@ export class MatchScene extends Phaser.Scene {
             shooter: who(shooter),
             gk: who(gk),
         } satisfies MatchShowdown);
-        this.stageShowdown(e, gk, shooter, ms);
+        this.stageShowdown(e, gk, shooter, ms, shotType);
     }
 
     /** Posição de alguém na tela num tick (o lugar do motor, sem a caminhada do duelo). */
@@ -3412,39 +3542,166 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * O duelo na quadra, no relógio da quadra (`stepShowdown`): o COUNTER! da defesa com a quadra escurecendo, quem chutou
-     * anda até o goleiro e os dois se encaram; cada fala tem o gesto de quem fala (`SD_TALK`, a caixa é a da tela React);
-     * no grito o goleiro carrega, quem chutou se encolhe; no fim, o goleiro toma distância, o 2º COUNTER! passa e vem a
-     * bicuda (`showdownKick`). "Reduzir movimento": sem zoom, tremida nem clarão (a câmera fica parada).
+     * A geometria do lance do duelo: o goleiro e quem chutou na hora do contato (px), pra onde vai a bicuda (a bola logo
+     * depois do chute: o motor já escolheu o canto), a bola parada no pé (`contact` no chão, `spark` no ar) e o lado de
+     * cada um.
+     */
+    private sdGeom(e: { tick: number; kick: number; gk: number; shooter: number }) {
+        const g = this.playerPxAt(e.gk, e.tick);
+        const s = this.playerPxAt(e.shooter, this.sdSave?.shotTick ?? e.tick);
+        const k = this.ballPxAt(e.kick + 4);
+        const l = Math.hypot(k.x - g.x, k.y - g.y) || 1;
+        const dir = { x: (k.x - g.x) / l, y: (k.y - g.y) / l };
+        const contact = { x: g.x + dir.x * SD.reach * PPM, y: g.y + dir.y * SD.reach * PPM };
+        return {
+            g,
+            s,
+            dir,
+            contact,
+            spark: { x: contact.x, y: contact.y - 4 - SD.lift },
+            gkFace: dir8(dir, 2),
+            shooterFace: dir8({ x: g.x - s.x, y: g.y - s.y }, 6),
+        };
+    }
+
+    /**
+     * Antes do contato: quem chutou fica onde chutou, no fim do chute (o motor leva ele correndo até o gol e os dois
+     * ficavam um em cima do outro), e o goleiro arma a bicuda `SD.windup` ticks antes de a bola chegar. Até a bicuda.
+     */
+    private sdWindup() {
+        const w = this.sdSave;
+        if (!w || this.md.replay || this.playTick < w.shotTick || this.playTick >= w.kick) return;
+        const shooter = this.players[w.shooter];
+        if (shooter) {
+            const at = this.playerPxAt(w.shooter, w.shotTick);
+            const now = this.playerPxAt(w.shooter, Math.min(this.playTick, w.tick));
+            shooter.shift.x = at.x - now.x;
+            shooter.shift.y = at.y - now.y;
+            if (!shooter.act && this.playTick >= w.shotTick + 1) {
+                const g = this.playerPxAt(w.gk, w.tick);
+                const shoot = resolveAnim(shooter.skin, 'Shoot');
+                this.sdAct(
+                    shooter,
+                    'Shoot',
+                    dir8({ x: g.x - at.x, y: g.y - at.y }, 6),
+                    animHit(shooter.skin, shoot).hit,
+                );
+            }
+        }
+        if (w.armed || this.playTick < w.tick - SD.windup || this.playTick >= w.tick) return;
+        w.armed = true;
+        const gk = this.players[w.gk];
+        if (gk) this.sdAct(gk, 'Shoot', this.sdGeom(w).gkFace, 0);
+    }
+
+    /** A área útil do duelo (px do canvas): a janela que aparece (no celular em pé, o meio) acima da caixa das falas. */
+    private sdSafe(): Box {
+        const c = this.cine.crop;
+        const w = c ? Math.min(GAME_W, c.w) : GAME_W;
+        return { x: (GAME_W - w) / 2, y: 0, w, h: this.sdBoxTop() };
+    }
+
+    /** Onde começa a caixa das falas (px do canvas), medida na tela React; antes de ela aparecer, a última medida. */
+    private sdBoxTop(): number {
+        const box = document.querySelector('.sd-box');
+        const c = this.game.canvas.getBoundingClientRect();
+        if (box && c.height > 0)
+            this.sdBoxAt = Math.min(GAME_H, ((box.getBoundingClientRect().top - c.top) / c.height) * GAME_H - 4);
+        // no celular em pé a caixa fica embaixo da quadra; deitado e no PC, por cima do fim dela
+        const guess = this.cine.crop && this.cine.crop.w < GAME_W - 1 ? GAME_H : GAME_H * 0.76;
+        return Math.max(GAME_H * 0.5, this.sdBoxAt ?? guess);
+    }
+
+    /** O raio da tela em px do mundo (as linhas de velocidade do mesmo tamanho em qualquer zoom). */
+    private sdReach() {
+        return Math.hypot(GAME_W, GAME_H) / 2 / (this.rig.view.zoom || 1);
+    }
+
+    /** O corpo de alguém (mundo): o desenho do quadro de agora (asa e rabo inclusive). */
+    private sdBody(v: PlayerView): Box {
+        const b = spriteBox(v.sprite);
+        // o goleiro com a bola parada no pé (e o brilho dela) é uma coisa só no quadro
+        const st = this.sdStage;
+        if (st?.gk !== v) return b;
+        const r = 14;
+        const x0 = Math.min(b.x, st.spark.x - r);
+        const x1 = Math.max(b.x + b.w, st.spark.x + r);
+        return { x: x0, y: b.y, w: x1 - x0, h: Math.max(b.h, st.spark.y + r - b.y) };
+    }
+
+    /** O pedaço x de uma caixa (mundo) na tela, com o plano `shot`. */
+    private sdOnScreen(shot: Shot, b: Box) {
+        const mid = shotMid(shot, GAME_W, GAME_H);
+        const xs = [
+            [b.x, b.y],
+            [b.x + b.w, b.y],
+            [b.x, b.y + b.h],
+            [b.x + b.w, b.y + b.h],
+        ].map(([x, y]) => worldToScreen(mid, shot.zoom, shot.rot, GAME_W, GAME_H, x, y).x);
+        return { x0: Math.min(...xs), x1: Math.max(...xs) };
+    }
+
+    /**
+     * Close de quem fala: o corpo em `fill` da altura útil, girado `rot`, no meio. Quem escuta nunca fica cortado na
+     * borda, nem no fim do push-in (`push`): o plano anda até ele sair inteiro (quem fala vai pra beira do lado dele,
+     * olhando pra fora do quadro: o contraplano), senão até ele entrar inteiro; não cabendo, um pouco mais fechado, e por
+     * fim o plano abre pros dois.
+     */
+    private sdClose(who: PlayerView, other: PlayerView, fill: number, max: number, rot: number, push: number): Shot {
+        const view = this.sdSafe();
+        const safe = inset(view, 0.07);
+        const b = this.sdBody(who);
+        const ob = this.sdBody(other);
+        const x0 = view.x + 3;
+        const x1 = view.x + view.w - 3;
+        // o plano vale do começo ao fim do push-in (o zoom maior empurra quem está perto da borda pra fora dela)
+        const ok = (shot: Shot) =>
+            [1, push].every((z) => {
+                const s = { ...shot, zoom: shot.zoom * z };
+                const o = this.sdOnScreen(s, ob);
+                const me = this.sdOnScreen(s, b);
+                const clean = (o.x0 >= x0 && o.x1 <= x1) || o.x1 <= x0 || o.x0 >= x1;
+                return clean && me.x0 >= x0 && me.x1 <= x1;
+            });
+        for (const k of [1, 1.25]) {
+            const shot = fitShot([b], safe, { min: SD.zMin, max: max * k, fill: fill * k, rot, ay: 0.54 });
+            const o = this.sdOnScreen(shot, ob);
+            const left = o.x0 + o.x1 < x0 + x1;
+            for (const d of [0, left ? x0 - o.x1 - 2 : x1 - o.x0 + 2, left ? x0 - o.x0 + 2 : x1 - o.x1 - 2]) {
+                const moved = { ...shot, sx: shot.sx + d };
+                if (ok(moved)) return moved;
+            }
+        }
+        return fitShot([b, ob], safe, { min: 1.2, max, fill: 0.9, rot });
+    }
+
+    /**
+     * O duelo na quadra, no relógio da quadra (`stepShowdown`). O tempo para no contato (o goleiro no quadro do chute, a
+     * bola parada no pé dele, no ar, quem chutou no fim do chute dele) com o quadro de impacto, a onda, as linhas, a
+     * rachadura e o COUNTER!; os painéis de mangá no encaro; cada fala em close de quem fala (a caixa é a da tela React);
+     * no fim, a bicuda armada com o 2º COUNTER! e a bicuda de primeira (`showdownKick`).
      */
     private stageShowdown(
         e: Extract<MatchEvent, { type: 'showdown' }>,
         gk: PlayerView,
         shooter: PlayerView,
         ms: number,
+        shotType: string,
     ) {
         const reduce = !!this.md.reduceMotion;
         const d = dict().showdown;
         const a = dict().match.agency;
-        const g = this.playerPxAt(e.gk, e.tick);
-        const s = this.playerPxAt(e.shooter, e.tick);
-        const dist = Math.hypot(s.x - g.x, s.y - g.y) || 1;
-        const u = { x: (s.x - g.x) / dist, y: (s.y - g.y) / dist };
-        const step = Math.min(SD_STAGE.gkStep * PPM, Math.max(0, dist - SD_STAGE.gap * PPM));
-        // < 0: quem chutou chegou colado no goleiro e recua de frente pra ele
-        const walk = dist - step - SD_STAGE.gap * PPM;
-        const gkTo = { x: u.x * step, y: u.y * step };
-        const shooterTo = { x: -u.x * walk, y: -u.y * walk };
-        const gkFace = dir8(u, 2);
-        const shooterFace = dir8({ x: -u.x, y: -u.y }, 6);
+        const geo = this.sdGeom(e);
+        const { g, dir, contact, spark, gkFace, shooterFace } = geo;
         const type = species(gk.speciesId).types[0];
         const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
+        const sColor = hexToNumber(TYPE_COLOR[shotType] ?? '#ffd447');
+        const side = gk.team === 0 ? 1 : -1;
         const portrait = this.cutPortrait(`portrait-${gk.speciesId}`);
-        const cam = this.cameras.main;
-        const phone = this.zoomDamp < 1;
-        // o par no meio da tela, um pouco acima (a caixa das falas fica embaixo)
-        const pairZoom = phone ? SD_STAGE.zoomPairPhone : SD_STAGE.zoomPair;
-        const mid = { x: g.x + (gkTo.x + s.x + shooterTo.x - g.x) / 2, y: (g.y + gkTo.y + s.y + shooterTo.y) / 2 };
+        const face = (v: PlayerView) =>
+            this.cutPortrait(
+                this.textures.exists(`sdface-${v.speciesId}`) ? `sdface-${v.speciesId}` : `portrait-${v.speciesId}`,
+            ) ?? '';
         const banner = (typeLabel: string, note: { text: string; color: string } | null, holdMs: number) =>
             this.cine.superBanner({
                 portrait,
@@ -3457,233 +3714,427 @@ export class MatchScene extends Phaser.Scene {
                 reduce,
                 depth: REACT_DEPTH + 2,
                 holdMs,
+                y: 0.82,
             });
-        const prep = ms - SHOWDOWN_MS.exit;
-        this.sdStage = {
+        const st: NonNullable<MatchScene['sdStage']> = {
             gk,
             shooter,
             gkFace,
             shooterFace,
-            gkTo,
-            gkLean: { x: gkTo.x + u.x * SD_TALK.lean * PPM, y: gkTo.y + u.y * SD_TALK.lean * PPM },
+            contact,
+            spark,
+            dir,
+            side,
+            type,
+            color,
             script: showdownScript(shooter, gk, e.tick, d),
             line: -1,
-            cues: [
-                {
-                    // a defesa: COUNTER! com o retrato do goleiro, a quadra escurece e só os dois ficam acesos
-                    at: 0,
-                    run: () => {
-                        this.cine.duel([e.gk, e.shooter]);
-                        this.sdAct(gk, 'Idle', gkFace);
-                        this.sdAct(shooter, 'Hurt', shooterFace);
-                        playMax('especial');
-                        banner(d.caught, null, SHOWDOWN_MS.counter - 220);
-                        if (!reduce) this.cine.hitTint(color, 260, 0.5, FOCUS_DEPTH - 58);
-                        // o goleiro fica colado na linha de fundo: a câmera pode passar da borda da quadra pra pôr os dois
-                        // no meio (a sobra tem a cor da beira da quadra, escurecida); volta pra borda no voo da bola
-                        if (!reduce) {
-                            cam.setBackgroundColor((this.md.court ? COURTS[this.md.court] : WOOD).surround);
-                            cam.setBounds(-GAME_W / 2, 0, GAME_W * 2, GAME_H);
-                        }
-                        cam.pan(g.x, g.y, 300, 'Sine.easeOut', true);
-                        this.fullZoom(SD_STAGE.zoomCatch, 300);
-                    },
-                },
-                {
-                    // frente a frente: quem chutou vem até o goleiro, que sai do gol com a bola
-                    at: SD_STAGE.walkAt,
-                    run: () => {
-                        if (Math.abs(walk) > 1) this.sdWalk(shooter, shooterTo, SD_STAGE.walkMs, shooterFace, 'Idle');
-                        if (step > 1) this.sdWalk(gk, gkTo, SD_STAGE.walkMs * 0.7, gkFace, 'Idle');
-                        // o par no meio, um pouco acima da caixa das falas (no celular em pé ela fica fora da quadra)
-                        cam.pan(mid.x, mid.y + (phone ? 0 : (0.08 * GAME_H) / pairZoom), 900, 'Sine.easeInOut', true);
-                        this.fullZoom(pairZoom, 900);
-                    },
-                },
-                // o stinger do especial sobe pra bater junto com a bicuda
-                { at: ms - N3_STINGER_KICK_MS, run: () => playMax('stinger') },
-                {
-                    // a bicuda chegando: o goleiro volta pro lugar tomando distância e carrega; o 2º COUNTER! passa
-                    at: prep,
-                    run: () => {
-                        this.sdWalk(gk, { x: 0, y: 0 }, 360, gkFace, 'Charge');
-                        chargeFx(this, g.x, g.y, type, 3, SHOWDOWN_MS.exit, FOCUS_DEPTH + 60, reduce);
-                        banner(
-                            `${a.bicuda} · ${a.maxFxBy.replace('{t}', typeName(type))}`,
-                            e.q === 2 ? { text: a.maxPerfect, color: '#7dffb0' } : null,
-                            SHOWDOWN_MS.exit - 240,
-                        );
-                        this.cine.superCutIn({
-                            portrait,
-                            color,
-                            fromRight: gk.team === 1,
-                            ms: SHOWDOWN_MS.exit,
-                            reduce,
-                            depth: REACT_DEPTH + 2,
-                        });
-                        const dir = gk.team === 0 ? 1 : -1;
-                        cam.pan(
-                            g.x + (dir * SD_STAGE.lead * GAME_W) / SD_STAGE.zoomBall,
-                            g.y,
-                            500,
-                            'Sine.easeInOut',
-                            true,
-                        );
-                        this.fullZoom(SD_STAGE.zoomBall, 500);
-                    },
-                },
-            ],
+            ms,
+            cues: [],
+            streams: [],
+            crack: null,
+            strain: false,
+            frozen: false,
         };
+        this.sdStage = st;
+        const ballBox = { x: spark.x - 7, y: spark.y - 7, w: 14, h: 14 };
+        const impact = () => {
+            st.frozen = true;
+            this.cine.duel([e.gk, e.shooter]);
+            // o tempo para: o goleiro no quadro do chute (o do impacto), quem chutou no fim do dele
+            const gs = animHit(gk.skin, resolveAnim(gk.skin, 'Shoot'));
+            const ss = animHit(shooter.skin, resolveAnim(shooter.skin, 'Shoot'));
+            this.sdAct(gk, 'Shoot', gkFace, gs.hit, true);
+            this.sdAct(shooter, 'Shoot', shooterFace, Math.min(ss.frames - 1, ss.hit + 2), true);
+            playMax('especial');
+            playSfx('kick');
+            // a câmera de cinema: corte seco no contato, torto, e aproximando devagar até os painéis
+            this.cameras.main.setBackgroundColor((this.md.court ? COURTS[this.md.court] : WOOD).surround);
+            this.rig.on();
+            const shot = fitShot([this.sdBody(gk), ballBox], inset(this.sdSafe(), 0.08), {
+                min: 2,
+                max: SD.impactMax,
+                fill: SD.impactFill,
+                rot: side * SD.dutchImpact,
+                ax: 0.5 - Math.sign(dir.x) * 0.12,
+            });
+            this.rig.cut(shot);
+            this.rig.apply();
+            this.rig.move({ zoom: shot.zoom * 1.12, rot: shot.rot * 1.15 }, SD.panelsAt, 'Sine.easeOut');
+            impactFrame(this, color, 130, reduce);
+            cineShock(this, contact.x, contact.y, color, 1.1, FOCUS_DEPTH - 45, reduce);
+            speedLines(this, {
+                at: spark,
+                color,
+                ms: 700,
+                depth: FOCUS_DEPTH - 58,
+                reach: () => this.sdReach(),
+                reduce,
+            });
+            this.fx.burst(type, spark.x, spark.y, 26, BALL_DEPTH + 2);
+            this.fx.burst(shotType, spark.x, spark.y, 16, BALL_DEPTH + 2);
+            this.fx.burst('Dust', g.x - dir.x * 6, g.y, 10, FOCUS_DEPTH - 40);
+            st.crack = crack(this, g.x - dir.x * 5, g.y + 1, color, 1, FOCUS_DEPTH - 52, reduce);
+            chroma(this, [gk.sprite, shooter.sprite, this.ball], 3, 220, reduce);
+            this.rig.shake(9, 750);
+            crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 8), 650, FOCUS_DEPTH - 50, reduce);
+            banner(d.back, null, SD.panelsAt - 60);
+            // a bola parada solta faíscas do goleiro e, mais fracas, as do golpe que ela trazia
+            st.streams.push(
+                this.fx.stream(type, spark, 55, BALL_DEPTH + 1, 0.55),
+                this.fx.stream(shotType, spark, 150, BALL_DEPTH + 1, 0.45),
+            );
+        };
+        const panels = () => {
+            // o encaro em mangá: o goleiro do lado dele, a bola no meio e quem chutou (a caixa das falas ainda não veio)
+            const left = gk.team === 0;
+            const list: Panel[] = [
+                { face: face(gk), color, flip: !left },
+                { ball: 'ball', color },
+                { face: face(shooter), color: sColor, flip: left },
+            ];
+            if (!left) list.reverse();
+            mangaPanels(this, this.rig, { ...this.sdSafe(), h: GAME_H }, list, SHOWDOWN_MS.talk - SD.panelsAt);
+            this.rig.shake(4, 300);
+        };
+        const prep = () => {
+            banner(
+                `${a.bicuda} · ${a.maxFxBy.replace('{t}', typeName(type))}`,
+                e.q === 2 ? { text: a.maxPerfect, color: '#7dffb0' } : null,
+                SHOWDOWN_MS.exit - 240,
+            );
+            this.cine.superCutIn({
+                portrait,
+                color,
+                fromRight: gk.team === 1,
+                ms: SHOWDOWN_MS.exit,
+                reduce,
+                depth: REACT_DEPTH + 2,
+            });
+            // a bicuda armada: a bola entre as faixas, o goleiro atrás dela e o espaço pro gol na frente
+            const safe = inset(this.sdSafe(), 0.06);
+            const shot: Shot = {
+                px: spark.x,
+                py: spark.y,
+                sx: safe.x + safe.w * (0.5 - Math.sign(dir.x) * 0.16),
+                sy: Math.min(safe.y + safe.h * 0.7, GAME_H * 0.5),
+                zoom: SD.kickZoom,
+                rot: -side * 0.1,
+            };
+            const rest = SHOWDOWN_MS.exit - SD.whipMs - 40;
+            this.rig.whip(shot, SD.whipMs, () => this.rig.move({ zoom: SD.kickZoom * 1.1 }, rest, 'Quad.easeIn'));
+            this.rig.rumble(2.6);
+            st.streams[0]?.rate(18);
+        };
+        st.cues = [
+            { at: 0, run: impact },
+            { at: SD.panelsAt, run: panels },
+            // o stinger do especial sobe pra bater junto com a bicuda
+            { at: ms - N3_STINGER_KICK_MS, run: () => playMax('stinger') },
+            { at: ms - SHOWDOWN_MS.exit, run: prep },
+        ];
     }
 
-    /** O palco do duelo a `t` ms do lance: os passos que chegaram e o gesto da fala da vez (as mesmas da caixa). */
+    /**
+     * O duelo a `t` ms do lance: as deixas que chegaram e o plano da fala da vez (as mesmas da caixa). Quem fala em close
+     * (plano e contraplano, holandês pro lado dele), a 3ª fala de 4 com os dois no quadro, o grito em close forte com o
+     * goleiro tremendo; troca de quem fala é chicote, o mesmo falando de novo só aproxima, e todo plano faz push-in.
+     */
     private stepShowdown(t: number) {
         const st = this.sdStage;
         if (!st) return;
         while (st.cues.length && st.cues[0].at <= t) st.cues.shift()?.run();
-        const ms = ((this.showdown ? this.showdown.kick - this.showdown.tick : 0) / TICK_RATE) * 1000;
-        const i = lineAt(t, ms, st.script.length);
-        if (i < 0 || i === st.line) return;
+        const n = st.script.length;
+        const i = lineAt(t, st.ms, n);
+        if (i < 0 || i === st.line || !this.rig.active) return;
+        const prev = st.line;
         st.line = i;
-        const { gk, shooter, gkFace, shooterFace, gkTo } = st;
-        // o goleiro volta pro lugar da conversa (se tinha chegado pra cima)
-        const back = (end: string) => this.sdWalk(gk, gkTo, 300, gkFace, end);
-        if (i === st.script.length - 1) {
-            // o grito: o goleiro carrega a bicuda e quem chutou se encolhe
-            back('Charge');
-            this.sdAct(shooter, 'Hurt', shooterFace);
-            return;
+        // a rachadura do contato some na 1ª fala (o chão volta a ser chão)
+        if (prev < 0) st.crack?.fade(1200);
+        const { gk, shooter, side } = st;
+        const last = i === n - 1;
+        const shoutAt = st.ms - SHOWDOWN_MS.exit - SHOWDOWN_MS.shout;
+        const hold = last ? SHOWDOWN_MS.shout : (shoutAt - SHOWDOWN_MS.talk) / (n - 1);
+        const who = st.script[i].who === 'g' ? gk : shooter;
+        const other = who === gk ? shooter : gk;
+        let shot: Shot;
+        if (last) {
+            shot = this.sdClose(gk, shooter, SD.shoutClose, SD.shoutMax, side * SD.dutchShout, 1.16);
+            st.strain = true;
+            this.rig.rumble(1.4);
+            st.streams[0]?.rate(28);
+            // a energia do tipo subindo do corpo dele (aura) e um tranco na entrada do close
+            const body = this.sdBody(gk);
+            st.streams.push(
+                this.fx.stream(st.type, { x: gk.sprite.x, y: gk.sprite.y }, 40, FOCUS_DEPTH + 61, 0.6, body),
+            );
+            this.rig.shake(5, 320);
+        } else if (n === 4 && i === 2) {
+            const boxes = [this.sdBody(gk), this.sdBody(shooter)];
+            shot = fitShot(boxes, inset(this.sdSafe(), 0.07), { min: 1.3, max: 3.6, fill: 0.9, rot: side * 0.05 });
+        } else {
+            const rot = (who === gk ? 1 : -1) * side * SD.dutch;
+            shot = this.sdClose(who, other, SD.close, SD.closeMax, rot, SD.push);
         }
-        if (st.script[i].who === 'g') {
-            this.sdWalk(gk, st.gkLean, 220, gkFace, 'Idle');
-            this.sdAct(shooter, 'Idle', shooterFace);
-            this.time.delayedCall(SD_TALK.ms, () => {
-                if (this.sdStage === st && st.line === i) back('Idle');
-            });
-            return;
-        }
-        this.sdAct(shooter, i === 0 ? SD_TALK.s : SD_TALK.s2, shooterFace);
-        if (gk.walk.x !== gkTo.x || gk.walk.y !== gkTo.y) back('Idle');
-        else this.sdAct(gk, 'Idle', gkFace);
-        this.time.delayedCall(SD_TALK.ms, () => {
-            if (this.sdStage === st && st.line === i) this.sdAct(shooter, 'Idle', shooterFace);
-        });
-    }
-
-    /** A animação que o duelo manda (null devolve pro motor), recomeçando do 1º quadro. */
-    private sdAct(view: PlayerView, anim: string | null, facing: number) {
-        view.act = anim ? { anim, facing } : null;
-        view.currentKey = '';
-    }
-
-    /** Anda o corpo inteiro até `to` (px, fora do lugar do motor) e termina em `end` (null devolve pro motor). */
-    private sdWalk(view: PlayerView, to: { x: number; y: number }, ms: number, facing: number, end: string | null) {
-        this.tweens.killTweensOf(view.walk);
-        this.sdAct(view, 'Walk', facing);
-        this.tweens.add({
-            targets: view.walk,
-            x: to.x,
-            y: to.y,
-            duration: ms,
-            ease: 'Sine.easeInOut',
-            onComplete: () => this.sdAct(view, end, facing),
-        });
+        const push = () =>
+            this.rig.move(
+                { zoom: shot.zoom * (last ? 1.16 : SD.push), rot: shot.rot * 1.12 },
+                hold - SD.whipMs,
+                'Sine.easeInOut',
+            );
+        if (prev < 0) {
+            this.rig.cut(shot);
+            push();
+        } else if (last && st.script[prev].who === 'g') this.rig.move(shot, 260, 'Back.easeOut', push);
+        else if (st.script[prev].who === st.script[i].who) this.rig.move(shot, 300, 'Cubic.easeOut', push);
+        else this.rig.whip(shot, SD.whipMs, push);
     }
 
     /**
-     * A bicuda do duelo: o estouro do N3 no pé do goleiro, a quadra volta a acender e a bola cruza a quadra inteira com a
-     * câmera indo junto (`followShowdownBall`), em câmera lenta que pesa perto do gol, com o rastro na cor do tipo dele.
+     * O tempo voltou: quem chutou se encolhe com a bola passando e fica olhando ela ir (ele volta pro lugar do motor no
+     * fim do duelo, com a quadra arrumando pra saída de bola).
+     */
+    private sdRunBack(v: PlayerView, dir: { x: number; y: number }) {
+        this.sdAct(v, 'Hurt', dir8({ x: -dir.x, y: -dir.y }, 6));
+        this.time.delayedCall(700, () => {
+            if (v.act?.anim === 'Hurt') this.sdAct(v, 'Idle', dir8(dir, 2));
+        });
+    }
+
+    /** O duelo acabou (a quadra arruma pra saída de bola): quem chutou volta pro lugar e pra animação do motor. */
+    private sdSettle() {
+        const w = this.sdSave;
+        const v = w ? this.players[w.shooter] : undefined;
+        if (!v || !this.showdown || this.playTick < this.showdown.until || (!v.shift.x && !v.shift.y && !v.act)) return;
+        v.shift.x = 0;
+        v.shift.y = 0;
+        this.sdAct(v, null);
+    }
+
+    /** A animação que o duelo manda (null devolve pro motor), do quadro `frame` (parada nele com `hold`). */
+    private sdAct(view: PlayerView, anim: string | null, facing = 0, frame?: number, hold = false) {
+        view.act = anim ? { anim, facing, frame, hold } : null;
+        view.currentKey = '';
+    }
+
+    /** O instante congelado: a bola parada no ar no pé do goleiro, girando e brilhando no tipo dele; no grito ele treme. */
+    private holdShowdownBall(delta: number) {
+        const st = this.sdStage;
+        if (!st?.frozen) return;
+        const now = this.time.now;
+        const { x, y } = st.contact;
+        this.ball.setPosition(st.spark.x, st.spark.y).setScale(1.1);
+        this.ball.rotation += (delta / 1000) * SD.spin * (st.strain ? 2.2 : 1);
+        this.lastBall = { x: this.ball.x, y: this.ball.y };
+        this.ballShadow
+            .setPosition(x + 2, y + 2)
+            .setScale(0.75)
+            .setAlpha(0.3);
+        this.ballGlow
+            .setPosition(st.spark.x, st.spark.y)
+            .setFillStyle(st.color, 0.45 + 0.15 * Math.sin(now / 70))
+            .setScale(1.5 + 0.25 * Math.sin(now / 45))
+            .setAlpha(1)
+            .setDepth(this.ball.depth - 1);
+        if (st.strain && !this.md.reduceMotion) st.gk.sprite.x += Math.sin(now / 22) * 0.7;
+    }
+
+    /**
+     * A bicuda do duelo, de primeira: o tempo volta (o goleiro termina o chute da pose do contato, quem chutou se encolhe),
+     * o 2º quadro de impacto, a onda, as linhas e a torcida em flash; a bola sai do pé bem devagar com a câmera parada
+     * nela, e aí a câmera abre e vai junto até o gol (`followShowdownBall`), com o rastro de luz e as partículas do tipo.
      */
     private showdownKick(gk: PlayerView, tick: number) {
         const reduce = !!this.md.reduceMotion;
-        const type = species(gk.speciesId).types[0];
         const st = this.sdStage;
         this.sdStage = null;
         this.cine.duelEnd();
         playMax('bicuda');
         playMax(MAX_MOVE[3]);
         if (musicDucked()) unduckMusic(false, true);
-        playCry(gk.speciesId, this.md.cries, 1.2);
-        releaseFx(this, gk.sprite.x, gk.sprite.y, type, 3, REACT_DEPTH + 1, reduce);
-        this.kickPop(gk.sprite.x, gk.sprite.y, 2.8, 18);
-        if (!reduce) {
-            this.cameras.main.shake(420, 0.014);
-            this.cameras.main.flash(140, 255, 255, 255);
+        const type = st?.type ?? species(gk.speciesId).types[0];
+        const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
+        const at = st?.spark ?? { x: this.ball.x, y: this.ball.y };
+        releaseFx(this, at.x, at.y, type, 3, REACT_DEPTH + 1, reduce);
+        this.kickPop(at.x, at.y, 2.8, 18);
+        if (gk.act) {
+            gk.act.hold = false;
+            gk.sprite.anims.resume();
         }
-        // o goleiro chuta (a animação do motor); quem chutou se abaixa com a bola passando e volta pro lugar dele
-        this.tweens.killTweensOf(gk.walk);
-        gk.walk.x = 0;
-        gk.walk.y = 0;
-        this.sdAct(gk, null, 0);
         if (st) {
-            const sh = st.shooter;
-            this.sdAct(sh, 'Hurt', st.shooterFace);
-            this.time.delayedCall(700, () => this.sdWalk(sh, { x: 0, y: 0 }, 1200, st.gkFace, null));
+            this.sdRunBack(st.shooter, st.dir);
+            for (const s of st.streams) s.stop();
         }
-        this.maxSlow = {
-            until: tick + TICK_RATE * 3,
-            factor: SD_STAGE.slowFar,
-            level: 3,
-            type,
-            color: hexToNumber(TYPE_COLOR[type] ?? '#ffd447'),
-        };
+        this.rig.rumble(0);
+        impactFrame(this, color, 160, reduce);
+        cineShock(this, at.x, at.y + 4 + SD.lift, color, 1.6, FOCUS_DEPTH - 45, reduce);
+        speedLines(this, { at, color, ms: 520, depth: FOCUS_DEPTH - 58, reach: () => this.sdReach(), reduce });
+        this.fx.burst(type, at.x, at.y, 40, BALL_DEPTH + 2);
+        this.fx.burst('Dust', gk.sprite.x, gk.sprite.y, 14, FOCUS_DEPTH - 40);
+        chroma(this, [gk.sprite, this.ball], 4, 260, reduce);
+        if (this.rig.active) {
+            this.rig.shake(14, 1000);
+            crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 10), 900, FOCUS_DEPTH - 50, reduce);
+            this.rig.move({ zoom: this.rig.s.zoom * 0.9, rot: this.rig.s.rot * 0.4 }, 420, 'Sine.easeOut');
+        }
+        this.maxSlow = { until: tick + TICK_RATE * 3, factor: SD.depart, level: 3, type, color };
         // a chegada explode no tipo do goleiro (o 'max' marcou a do golpe dele)
         this.maxImpact = { tick, type, level: 3 };
-        const cam = this.cameras.main;
-        this.sdFly = { team: gk.team, x: cam.midPoint.x, y: cam.midPoint.y, until: tick + TICK_RATE * 3 };
-        if (!reduce) cam.panEffect.reset();
+        this.sdFly = {
+            team: gk.team,
+            kick: tick,
+            until: tick + TICK_RATE * 3,
+            dir: st?.dir ?? { x: gk.team === 0 ? 1 : -1, y: 0 },
+            gk,
+            shooter: st?.shooter ?? null,
+            following: false,
+            stream: this.fx.stream(type, this.ball, 24, BALL_DEPTH - 3, 0.8),
+            lines: null,
+        };
     }
 
     /**
-     * A bicuda no ar: a câmera lenta pesa conforme a bola chega no gol (`SD_STAGE.slowFar` a `slowNear`) e a câmera (fora
-     * do "Reduzir movimento") vai junto com ela, com espaço à frente pro gol.
+     * A bicuda no ar: a câmera lenta bem devagar na saída do pé (`SD.depart`) e depois pesando conforme a bola chega no gol
+     * (`slowFar` a `slowNear`); a câmera de cinema abre pra `flyZoom`, endireita e vai junto com a bola, com espaço pro gol
+     * na frente e as linhas de velocidade. "Reduzir movimento": a quadra inteira num corte, parada.
      */
     private followShowdownBall(delta: number) {
         const f = this.sdFly;
         if (!f) return;
         if (this.playTick > f.until) {
             this.sdFly = null;
-            this.sdBoundsBack(true);
+            f.stream?.stop();
+            f.lines?.stop();
+            this.sdRelease(0);
             return;
         }
+        const since = this.playTick - f.kick;
         const goalX = toPx(f.team === 0 ? L : 0, 0).x;
-        const left = Math.abs(goalX - this.ball.x) / PPM;
-        const k = Math.min(1, left / SD_STAGE.nearM);
-        if (this.maxSlow) this.maxSlow.factor = SD_STAGE.slowNear + (SD_STAGE.slowFar - SD_STAGE.slowNear) * k * k;
-        if (this.md.reduceMotion) return;
-        const cam = this.cameras.main;
-        const ahead = ((f.team === 0 ? 1 : -1) * SD_STAGE.lead * GAME_W) / cam.zoom;
-        // mola curta: alcança a bola na saída e depois anda junto
-        const a = 1 - Math.exp(-delta / 90);
-        f.x += (this.ball.x + ahead - f.x) * a;
-        f.y += (this.ball.y - f.y) * a;
-        cam.centerOn(f.x, f.y);
-        this.sdBoundsBack();
+        const k = Math.min(1, Math.abs(goalX - this.ball.x) / PPM / SD.nearM);
+        const far = SD.slowNear + (SD.slowFar - SD.slowNear) * k * k;
+        const ramp = Math.min(1, Math.max(0, (since - SD.departTicks) / 3));
+        if (this.maxSlow) this.maxSlow.factor = SD.depart + (far - SD.depart) * ramp;
+        // o tempo voltou de vez: o goleiro e quem chutou voltam pro motor
+        if (since > 10 && f.gk.act) this.sdAct(f.gk, null);
+        if (!this.rig.active) return;
+        if (!f.following && since >= SD.departTicks) {
+            f.following = true;
+            const safe = this.sdSafe();
+            if (this.md.reduceMotion)
+                this.rig.cut({ px: GAME_W / 2, py: GAME_H / 2, sx: GAME_W / 2, sy: GAME_H / 2, zoom: 1, rot: 0 });
+            else {
+                this.rig.move(
+                    {
+                        zoom: SD.flyZoom,
+                        rot: 0,
+                        sx: safe.x + safe.w * (0.5 - Math.sign(f.dir.x) * SD.lead),
+                        sy: safe.y + safe.h * 0.5,
+                    },
+                    700,
+                    'Sine.easeInOut',
+                );
+                f.lines = speedLines(this, {
+                    at: this.ball,
+                    color: this.maxSlow?.color ?? 0xffffff,
+                    ms: 1800,
+                    depth: BALL_DEPTH - 4,
+                    reach: () => this.sdReach(),
+                    dir: f.dir,
+                    reduce: false,
+                });
+            }
+        }
+        if (f.following && !this.md.reduceMotion) {
+            // mola curta: alcança a bola na saída e depois anda junto
+            const a = 1 - Math.exp(-delta / 90);
+            this.rig.s.px += (this.ball.x - this.rig.s.px) * a;
+            this.rig.s.py += (this.ball.y - this.rig.s.py) * a;
+        }
+    }
+
+    /** Devolve a câmera pro jogo depois de `delay` ms: endireita, solta e volta pro meio (a borda volta quando couber). */
+    private sdRelease(delay: number) {
+        if (!this.rig.active) return;
+        this.time.delayedCall(delay, () => {
+            if (!this.rig.active) return;
+            this.rig.move({ rot: 0 }, 260, 'Sine.easeInOut', () => {
+                this.rig.off();
+                this.sdBoundsPending = true;
+                this.cameraHome();
+            });
+        });
+    }
+
+    /** Pulou a bicuda no meio do duelo: desmonta o instante congelado e devolve a câmera. */
+    private sdAbort() {
+        const st = this.sdStage;
+        if (!st) return;
+        this.sdStage = null;
+        for (const s of st.streams) s.stop();
+        st.crack?.fade(200);
+        this.sdAct(st.gk, null);
+        this.sdAct(st.shooter, null);
+        st.shooter.shift.x = 0;
+        st.shooter.shift.y = 0;
+        this.cine.duelEnd();
+        this.rig.rumble(0);
+        if (!this.rig.active) return;
+        this.rig.off();
+        this.sdBoundsPending = true;
+        this.cameraHome();
     }
 
     /** A câmera do duelo voltou pra dentro da quadra: a borda dela volta a valer (antes disso daria um salto). */
-    private sdBoundsBack(force = false) {
+    private sdBoundsBack() {
         const cam = this.cameras.main;
         const v = cam.worldView;
-        if (cam.getBounds().x === 0 || (!force && (v.x < 0 || v.right > GAME_W))) return;
+        if (this.rig.active || v.x < -0.5 || v.y < -0.5 || v.right > GAME_W + 0.5 || v.bottom > GAME_H + 0.5) return;
         cam.setBounds(0, 0, GAME_W, GAME_H);
+        this.sdBoundsPending = false;
     }
 
     /**
-     * O gol do duelo, a comemoração mais longa do jogo (o motor segura `AGENCY.showdown.goal` s): a rede estufa, por cima
-     * do gol de sempre explosões do tipo em volta do gol, a torcida de novo e a 2ª faixa com o goleiro.
+     * O gol do duelo, a comemoração mais longa do jogo (o motor segura `AGENCY.showdown.goal` s): a rede estufa e explode
+     * (fios voando, a onda, o tipo do goleiro, o quadro de impacto e a torcida em flash), a câmera na rede por
+     * `SD.goalHold` e depois de volta; por cima do gol de sempre, explosões do tipo e a 2ª faixa com o goleiro.
      */
     private showdownGoal(gk: PlayerView, cinematic: boolean) {
         const a = dict().showdown;
+        const reduce = !!this.md.reduceMotion;
         const type = this.ballType || species(gk.speciesId).types[0];
+        const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
         const { x, y } = this.ball;
+        const f = this.sdFly;
         this.sdFly = null;
-        this.sdBoundsBack(true);
-        netRipple(this, gk.team === 0 ? 1 : 0, y, hexToNumber(TYPE_COLOR[type] ?? '#ffd447'), !!this.md.reduceMotion);
+        f?.stream?.stop();
+        f?.lines?.stop();
+        netRipple(this, gk.team === 0 ? 1 : 0, y, color, reduce);
+        impactFrame(this, color, 140, reduce, false);
+        cineShock(this, x, y, color, 1.8, BALL_DEPTH - 1, reduce);
+        this.fx.burst('Net', x, y, 30, BALL_DEPTH + 1);
+        this.fx.burst(type, x, y, 40, BALL_DEPTH + 1);
         for (let k = 0; k < 4; k++)
             this.time.delayedCall(250 + k * 380, () =>
                 typeBurst(this, type, x + (k % 2 ? 1 : -1) * 18 * (1 + k / 2), y + (k - 1.5) * 16, BALL_DEPTH + 1),
             );
+        if (this.rig.active) {
+            this.rig.shake(16, 900);
+            crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 16), 1500, FOCUS_DEPTH - 50, reduce);
+            const safe = this.sdSafe();
+            this.rig.move(
+                {
+                    px: x,
+                    py: y,
+                    sx: safe.x + safe.w / 2,
+                    sy: safe.y + safe.h * 0.5,
+                    zoom: SD.goalZoom,
+                    rot: (gk.team === 0 ? 1 : -1) * 0.08,
+                },
+                200,
+                'Cubic.easeOut',
+            );
+            this.sdRelease(SD.goalHold);
+        }
         this.time.delayedCall(1700, () => {
             playCrowd('gol', 1);
             playGoalCry(gk.speciesId, this.md.cries);

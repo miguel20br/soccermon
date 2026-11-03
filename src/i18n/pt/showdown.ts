@@ -1,18 +1,19 @@
 /**
- * Falas do duelo da bicuda (motor 21: a bicuda N3 do goleiro capitão segura o N3 do rival e a partida para numa
- * cutscene). `s` = quem chutou, `g` = o goleiro; a última fala é sempre o grito do goleiro na bicuda. A escolha
+ * Falas do duelo da bicuda (motor 21: o goleiro capitão para o N3 do rival no pé, o tempo congela e, no fim, ele devolve
+ * de bicuda). `s` = quem chutou, `g` = o goleiro; a última fala é sempre a do goleiro na bicuda. A escolha
  * (src/ui/showdown-lines.ts) vai nessa ordem: par notável (`pairs`, chave "quem chutou-goleiro" pelo número da
- * Pokédex), mesma linha evolutiva (`up`: o goleiro é a pré-evolução; `down`: o goleiro é o evoluído), fala de um
- * Pokémon sozinho (`solo`) e as genéricas. `{s}` e `{g}` viram os nomes. Até 10 palavras por fala.
+ * Pokédex), mesma linha evolutiva (`up`: o goleiro é a pré-evolução; `down`: o goleiro é o evoluído), a conversa de um
+ * Pokémon no gol (`solo[id].keeper`), a de quem chutou (`solo[id].shooter`) e as genéricas. `{s}` e `{g}` viram os
+ * nomes. Até 10 palavras por fala. Tom (Miguel, 03/11/2026): piadinha besta pode, drama de novela não; o goleiro parou a
+ * bola com o pé (nada de "segurou" ou "pegou").
  */
 export type ShowdownWho = 's' | 'g';
 export type ShowdownScript = readonly (readonly [ShowdownWho, string])[];
 export interface ShowdownSolo {
-    /** Quando ele chutou (a reação depois de o goleiro segurar). */
-    shot: readonly string[];
-    /** Quando ele é o goleiro: a resposta e o grito da bicuda. */
-    gk: readonly string[];
-    shout: readonly string[];
+    /** Ele no gol (quem chutou é um qualquer): a conversa inteira. */
+    keeper?: readonly ShowdownScript[];
+    /** Ele chutou (o goleiro é um qualquer). */
+    shooter?: readonly ShowdownScript[];
 }
 
 export const showdown = {
@@ -21,298 +22,511 @@ export const showdown = {
     goal: 'BICUDA!',
     goalSub: 'de gol a gol',
     /**
-     * O letreiro do duelo na defesa e na bicuda (o nome do golpe Counter, que devolve o golpe; "contra-ataque" é a tática)
-     * e a etiqueta dele na defesa.
+     * O letreiro do duelo no contato e na bicuda (o nome do golpe Counter, que devolve o golpe; "contra-ataque" é a
+     * tática) e a etiqueta dele no contato.
      */
     counter: 'COUNTER!',
-    caught: 'Segurou o N3',
+    back: 'Devolve o N3',
     pairs: {
         // Charizard × Charmander
         '6-4': [
-            ['s', 'Charmander? Você segurou o meu fogo?'],
-            ['g', 'Minha cauda também queima, sabia?'],
-            ['s', 'Eu era assim. Pequeno e teimoso.'],
-            ['g', 'Segura, grandão!'],
+            ['s', 'Charmander? Sério que foi você?'],
+            ['g', 'Fui. Pode tirar foto.'],
+            ['s', 'Isso não sai daqui, hein.'],
+            ['g', 'Já saiu. Bicuda!'],
         ],
         '4-6': [
-            ['s', 'Pegou com uma mão só?'],
-            ['g', 'Eu já tive essa chama, pequeno.'],
-            ['s', 'Um dia eu chego aí.'],
-            ['g', 'Hoje não!'],
+            ['s', 'Você parou isso de costas?'],
+            ['g', 'Faço tudo de costas. Pergunta pro Ash.'],
+            ['s', 'Ele vive reclamando de você.'],
+            ['g', 'Bicuda!'],
         ],
         // Blastoise × Squirtle
         '9-7': [
             ['s', 'Dois canhões e um Squirtle me parou?'],
-            ['g', 'Meu casco aguenta pancada, grandão.'],
-            ['s', 'Coisa do Esquadrão Squirtle, aposto.'],
-            ['g', 'Squirtle!'],
+            ['g', 'Foi o óculos escuro. Ajuda muito.'],
+            ['s', 'Isso nem é do uniforme.'],
+            ['g', 'Esquadrão Squirtle!'],
         ],
         '7-9': [
-            ['s', 'Ei! Você nem pulou!'],
-            ['g', 'Nem precisei. Eu já fui você.'],
-            ['g', 'Canhão!'],
+            ['s', 'Ei, você nem pulou!'],
+            ['g', 'Com esse casco? Nem tento.'],
+            ['g', 'Canhão de pé!'],
         ],
         // Venusaur × Bulbasaur
         '3-1': [
-            ['s', 'Bulbasaur? Seu bulbo nem abriu ainda.'],
-            ['g', 'Mas já segura bola.'],
-            ['s', 'Hmpf. Floresce aí, então.'],
-            ['g', 'Bulba!'],
+            ['s', 'Um Bulbasaur? Cadê o resto do jardim?'],
+            ['g', 'Tô crescendo ainda. Paciência.'],
+            ['s', 'Meu chute tinha Solar Beam!'],
+            ['g', 'O meu também. Bicuda!'],
         ],
         '1-3': [
-            ['s', 'Treinei esse chute no sol o dia inteiro.'],
-            ['g', 'Eu também. Por isso cresci tanto.'],
-            ['g', 'Desabrocha!'],
+            ['s', 'Você parou com a flor?'],
+            ['g', 'A flor é só enfeite.'],
+            ['s', 'Que enfeite pesado.'],
+            ['g', 'Bicuda!'],
         ],
         // Mewtwo × Mew
         '150-151': [
-            ['s', 'Fui criado pra ser mais forte que você.'],
-            ['g', 'Mew? Mew!'],
-            ['s', 'Pare de brincar com a bola.'],
+            ['s', 'Sou um clone melhorado. Explica isso.'],
+            ['g', 'Mew!'],
+            ['s', 'Isso não explica nada.'],
             ['g', 'Meeew!'],
         ],
         '151-150': [
-            ['s', 'Mew?'],
-            ['g', 'Eu nasci de você. Conheço seus truques.'],
-            ['s', 'Mew mew!'],
-            ['g', 'Minha vez.'],
+            ['s', 'Mew? Mew mew?'],
+            ['g', 'Li sua mente. Era só "mew".'],
+            ['s', 'Mew!'],
+            ['g', 'Bicuda!'],
         ],
         // Raichu × Pikachu
         '26-25': [
-            ['s', 'Ainda sem a Thunder Stone, Pikachu?'],
-            ['g', 'Pika! Gosto de mim assim.'],
-            ['s', 'Mais lento e mais fraco.'],
-            ['g', 'Pika... CHU!'],
+            ['s', 'Pikachu? Cadê a Thunder Stone?'],
+            ['g', 'Pika. Tô bem assim.'],
+            ['s', 'Lembra do ginásio do Lt. Surge?'],
+            ['g', 'Lembro. Ganhei. Pika... CHU!'],
         ],
         '25-26': [
-            ['s', 'Pika? Pegou o meu raio?'],
-            ['g', 'Eu sou o que vem depois da pedra.'],
+            ['s', 'Pika? Parou meu Thunderbolt?'],
+            ['g', 'Choque em Raichu? Faz cosquinha.'],
             ['g', 'Rai... CHU!'],
         ],
         // Gyarados × Magikarp
         '130-129': [
-            ['s', 'Um Magikarp segurou o meu chute?'],
-            ['g', 'Todo Gyarados já foi Magikarp.'],
-            ['s', 'Eu só pulava. Lembro bem.'],
-            ['g', 'Splash!'],
+            ['g', 'Splash.'],
+            ['s', 'Splash não faz nada! Eu sei, eu usava.'],
+            ['g', 'SPLASH!'],
         ],
         '129-130': [
-            ['s', 'Foi o chute mais forte da minha vida!'],
-            ['g', 'Lembro desse tempo. Eu só pulava.'],
-            ['g', 'Sai, peixinho!'],
+            ['s', 'Gyarados? Me ajuda, primo!'],
+            ['g', 'Primo? A gente nem se fala mais.'],
+            ['s', 'Desde que você evoluiu!'],
+            ['g', 'Bicuda!'],
         ],
         // Hitmonchan × Hitmonlee
         '107-106': [
-            ['s', 'Segurou meu chute? Com o pé?'],
-            ['g', 'Perna alcança mais que braço.'],
-            ['s', 'A gente resolve isso no ringue.'],
+            ['s', 'Parou com o pé? Que falta de classe.'],
+            ['g', 'É futebol, irmão. Pé.'],
+            ['s', 'Eu sou de soco. Por que eu chutei?'],
             ['g', 'High Jump Kick!'],
         ],
         '106-107': [
-            ['s', 'Parado por uma luva de boxe?'],
-            ['g', 'Treinei defesa a vida inteira.'],
-            ['s', 'Mas chutar você não sabe.'],
-            ['g', 'Sei sim!'],
+            ['s', 'Hitmonchan usando o pé? Tá doente?'],
+            ['g', 'Hoje deu vontade.'],
+            ['s', 'Isso é traição de família.'],
+            ['g', 'Mega Kick!'],
         ],
         // Nidoking × Nidoqueen
         '34-31': [
-            ['s', 'Até você, Nidoqueen?'],
-            ['g', 'Em casa a gente conversa.'],
-            ['g', 'Agora sai!'],
+            ['s', 'Amor? Você parou meu chute?'],
+            ['g', 'Parei. Em casa a gente conversa.'],
+            ['s', 'Vou dormir no sofá, né?'],
+            ['g', 'Vai. Bicuda!'],
         ],
         '31-34': [
-            ['s', 'Você nunca segura nada em casa.'],
-            ['g', 'Hoje eu segurei. Anota aí.'],
-            ['g', 'Pro gol!'],
+            ['s', 'Na frente de todo mundo, amor?'],
+            ['g', 'Desculpa. É trabalho.'],
+            ['g', 'Bicuda!'],
         ],
         // Gengar × Alakazam
         '94-65': [
-            ['s', 'Como você viu a minha bola fantasma?'],
-            ['g', 'Vi o chute antes de você chutar.'],
-            ['s', 'Hehehe... trapaça psíquica.'],
-            ['g', 'Previsto!'],
+            ['s', 'Como você viu minha bola fantasma?'],
+            ['g', 'Vi ontem. Sou psíquico.'],
+            ['s', 'Hehehe... isso é trapaça.'],
+            ['g', 'Previsto. Bicuda!'],
         ],
         '65-94': [
-            ['s', 'Calculei tudo. Você não estava na conta.'],
-            ['g', 'Hehehe. Fantasma não entra em conta.'],
+            ['s', 'Calculei tudo. Você não tava na conta.'],
+            ['g', 'Hehehe. Eu tava atrás de você.'],
+            ['s', 'Desde quando?'],
             ['g', 'Bu!'],
         ],
         // Machamp × Machop
         '68-66': [
             ['s', 'Quatro braços e um Machop me parou?'],
-            ['g', 'Dois braços deram conta.'],
-            ['s', 'Treinou, hein, pequeno?'],
-            ['g', 'Muito!'],
+            ['g', 'Com o pé. Os braços tavam ocupados.'],
+            ['s', 'Ocupados com o quê?'],
+            ['g', 'Dia de perna!'],
         ],
         '66-68': [
             ['s', 'Treinei esse chute mil vezes!'],
-            ['g', 'Eu treinei com quatro braços.'],
-            ['g', 'Força!'],
+            ['g', 'Que fofo. Eu treino quatro mil.'],
+            ['g', 'Toma, baixinho!'],
         ],
-        // Charizard × Blastoise (os rivais do laboratório)
+        // Charizard × Blastoise (os iniciais do Red e do Blue)
         '6-9': [
-            ['s', 'De novo você, Blastoise?'],
-            ['g', 'Água apaga fogo. Sempre foi assim.'],
-            ['s', 'Desde o laboratório do Carvalho.'],
-            ['g', 'Apagou!'],
+            ['s', 'Você de novo, Blastoise?'],
+            ['g', 'O rival sempre escolhe o tipo certo.'],
+            ['s', 'Isso é muito injusto.'],
+            ['g', 'Tá na tabela. Bicuda!'],
         ],
         '9-6': [
-            ['s', 'Segurou água com fogo?'],
-            ['g', 'Segurei com a mão, Blastoise.'],
-            ['g', 'Queima!'],
+            ['s', 'Fogo parou água? Tá errado isso.'],
+            ['g', 'Eu nunca li a tabela de tipos.'],
+            ['g', 'Voa, bola!'],
         ],
         // Golduck × Psyduck
         '55-54': [
-            ['s', 'Psyduck? Você segurou?'],
-            ['g', 'Ai, minha cabeça... segurei?'],
-            ['s', 'Eu também tinha essa dor de cabeça.'],
+            ['s', 'Psyduck? Você parou isso?'],
+            ['g', 'Ai, minha cabeça... parei o quê?'],
+            ['s', 'Eu tinha essa dor de cabeça também.'],
             ['g', 'Psy... DUCK!'],
         ],
         '54-55': [
-            ['s', 'Ai... minha cabeça. Não entrou?'],
-            ['g', 'Passou a dor de cabeça? A minha passou.'],
-            ['g', 'Vai!'],
+            ['s', 'Ai... minha cabeça. Entrou?'],
+            ['g', 'Não. E a dor, passou?'],
+            ['s', 'Piorou.'],
+            ['g', 'Desculpa. Bicuda!'],
         ],
         // Slowbro × Slowpoke
         '80-79': [
-            ['s', 'Slowpoke... segurou... o meu chute?'],
+            ['s', 'Slowpoke... você... parou?'],
             ['g', '.........'],
-            ['s', 'Ainda tá pensando, né?'],
-            ['g', '...Lá vai.'],
+            ['s', 'Ele ainda nem sabe que parou.'],
+            ['g', '...bicuda.'],
         ],
         '79-80': [
-            ['s', '.........'],
-            ['g', 'Já segurei faz tempo, Slowpoke.'],
-            ['s', '...Chutei?'],
-            ['g', 'Minha vez!'],
+            ['s', '...'],
+            ['g', 'Ele ainda tá chutando, gente.'],
+            ['s', '...chutei?'],
+            ['g', 'Chutou. Ontem. Bicuda!'],
         ],
         // Pikachu × Meowth (a Equipe Rocket)
         '25-52': [
-            ['s', 'Pika! Equipe Rocket no gol?'],
-            ['g', 'Hoje eu pego o Pikachu de vez.'],
+            ['s', 'Pika! A Equipe Rocket no gol?'],
+            ['g', 'A bola é nossa. O Pikachu é o próximo.'],
             ['s', 'Pika pika...'],
             ['g', 'Meowth, é isso aí!'],
         ],
         '52-25': [
             ['s', 'Miau! Era o plano perfeito!'],
-            ['g', 'Pika pika!'],
+            ['g', 'Pika pika.'],
             ['s', 'A Equipe Rocket decolando de novo...'],
-            ['g', 'Pikachu!'],
+            ['g', 'Pika... CHU!'],
         ],
         // Jigglypuff × Snorlax
         '39-143': [
-            ['s', 'Era pra você dormir com a minha música!'],
-            ['g', 'Eu já tava dormindo.'],
-            ['g', 'Acordei!'],
+            ['s', 'Eu cantei e você parou?'],
+            ['g', 'Zzz...'],
+            ['s', 'Ele dormiu antes da música!'],
+            ['g', 'Zzz... BICUDA... zzz'],
         ],
         '143-39': [
-            ['s', 'Zzz... hã? Segurou?'],
+            ['s', 'Zzz... hã? Não entrou?'],
             ['g', 'Dormiu no jogo? Vai levar rabisco.'],
             ['g', 'Puf!'],
         ],
         // Onix × Pikachu (o ginásio de Pewter)
         '95-25': [
             ['s', 'Choque não faz nada em pedra.'],
-            ['g', 'Pika! Ainda bem que é bicuda.'],
+            ['g', 'Pika. Por isso é bicuda.'],
             ['g', 'Pika... CHU!'],
         ],
     } as Record<string, ShowdownScript>,
     /** O goleiro é a pré-evolução de quem chutou. */
     up: [
         [
-            ['s', 'Logo você, {g}, me segurou?'],
-            ['g', 'Pequeno, mas segurei.'],
-            ['g', 'Lá vai!'],
+            ['s', 'Logo você, {g}?'],
+            ['g', 'Logo eu. Surpresa!'],
+            ['g', 'Bicuda!'],
         ],
         [
-            ['s', 'Eu já fui {g}. Sei como você joga.'],
-            ['g', 'Então sabe o que vem agora.'],
-            ['g', 'Segura!'],
+            ['s', 'Perdi pro meu eu de criança?'],
+            ['g', 'Seu eu de criança treinava mais.'],
+            ['s', 'Isso foi pessoal.'],
+            ['g', 'Bicuda!'],
         ],
         [
-            ['s', 'Evoluí pra não perder pra você.'],
-            ['g', 'Pelo visto não deu.'],
-            ['s', 'Espera, {g}...'],
+            ['s', 'Evoluí pra isso?'],
+            ['g', 'Pelo visto, à toa.'],
             ['g', 'Toma!'],
         ],
     ] as readonly ShowdownScript[],
     /** O goleiro é a evolução de quem chutou. */
     down: [
         [
-            ['s', 'Meu chute mais forte, e você pegou.'],
-            ['g', 'Eu já fui {s}. Conheço esse chute.'],
-            ['g', 'Aprende!'],
+            ['s', 'Eu ia te passar um dia.'],
+            ['g', 'Senta aí que eu te ensino.'],
+            ['g', 'Lá vai!'],
         ],
         [
-            ['s', 'Um dia eu evoluo e passo você.'],
-            ['g', 'Até lá, eu te ensino.'],
-            ['g', 'Olha só!'],
+            ['s', '{g}, pega leve!'],
+            ['g', 'Leve? Eu evoluí pra quê?'],
+            ['g', 'Bicuda!'],
         ],
         [
             ['s', 'Achei que dava, {g}.'],
-            ['g', 'Quase. Eu chutava igualzinho.'],
+            ['g', 'Quase. Faltou evoluir.'],
             ['s', 'E agora?'],
-            ['g', 'Minha vez!'],
+            ['g', 'Agora corre.'],
         ],
     ] as readonly ShowdownScript[],
     solo: {
-        143: { shot: ['Zzz... hã? Ele segurou?'], gk: ['Hmm... me acordaram pra isso?'], shout: ['Acordei!'] },
-        150: {
-            shot: ['Impossível. Ninguém segura o meu poder.'],
-            gk: ['Previsível. Agora é a minha vez.'],
-            shout: ['Psychic!'],
+        143: {
+            keeper: [
+                [
+                    ['s', 'Ele tá dormindo?'],
+                    ['g', 'Zzz...'],
+                    ['g', 'Zzz... BICUDA... zzz'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Zzz... hã? Não entrou?'],
+                    ['g', 'Você chutou dormindo, cara.'],
+                    ['g', 'Acorda!'],
+                ],
+            ],
         },
-        25: { shot: ['Pika? Pegou o meu raio?'], gk: ['Pika pika!'], shout: ['Pikachu!'] },
-        129: { shot: ['Meu melhor chute... e nada.'], gk: ['Dessa vez o Splash funcionou!'], shout: ['Splash!'] },
+        129: {
+            keeper: [
+                [
+                    ['g', 'Splash.'],
+                    ['s', '...Ele usou Splash e funcionou?'],
+                    ['g', 'SPLASH!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Foi meu melhor Splash!'],
+                    ['g', 'Foi seu único golpe.'],
+                    ['s', 'Isso é verdade.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
+        79: {
+            keeper: [
+                [
+                    ['s', 'Ele parou mesmo?'],
+                    ['g', '.........'],
+                    ['s', 'Ainda tá carregando.'],
+                    ['g', '...bicuda.'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', '...'],
+                    ['s', '...peraí, eu chutei?'],
+                    ['g', 'Faz três segundos. Bicuda!'],
+                ],
+            ],
+        },
+        25: {
+            keeper: [
+                [
+                    ['s', 'Parou meu chute? Um rato?'],
+                    ['g', 'Pika.'],
+                    ['s', 'Rato elétrico, desculpa.'],
+                    ['g', 'Pika... CHU!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Pika?'],
+                    ['g', 'Seu Thunderbolt? Senti um choquinho.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
+        150: {
+            keeper: [
+                [
+                    ['s', 'Ele parou com a mente?'],
+                    ['g', 'Com o pé. A mente tá de folga.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Impossível. Calculei tudo.'],
+                    ['g', 'Esqueceu de me calcular.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
+        151: {
+            keeper: [
+                [
+                    ['s', 'Era só um Mew...'],
+                    ['g', 'Mew!'],
+                    ['g', 'Meeew!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Mew?'],
+                    ['g', 'Chega de rir, Mew.'],
+                    ['s', 'Mew mew!'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
         132: {
-            shot: ['Copiei o chute certinho. Como pegou?'],
-            gk: ['Copiei a defesa de um goleiro bom.'],
-            shout: ['Copiei!'],
+            keeper: [
+                [
+                    ['s', 'Ei, esse chute é meu!'],
+                    ['g', 'Copiei. Ficou até melhor.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Copiei o chute de um craque!'],
+                    ['g', 'Copiou errado, então.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
         },
         54: {
-            shot: ['Ai... minha cabeça. Não entrou?'],
-            gk: ['Psy... ai, que dor de cabeça.'],
-            shout: ['Psy... DUCK!'],
+            keeper: [
+                [
+                    ['s', 'Ele parou sem nem olhar?'],
+                    ['g', 'Ai, minha cabeça...'],
+                    ['g', 'Psy... DUCK!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Ai... minha cabeça. Entrou?'],
+                    ['g', 'Nem perto. Melhora aí.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
         },
-        79: { shot: ['......... Hã? Ele segurou?'], gk: ['......... Ah. Peguei a bola?'], shout: ['...Lá vai.'] },
-        94: { shot: ['Hehehe... era pra atravessar você.'], gk: ['Hehehe. Sua bola agora é minha.'], shout: ['Bu!'] },
-        151: { shot: ['Mew?'], gk: ['Mew mew!'], shout: ['Meeew!'] },
-        39: { shot: ['Puf! Você nem dormiu?'], gk: ['Quem dormir leva rabisco na cara.'], shout: ['Puf!'] },
+        94: {
+            keeper: [
+                [
+                    ['s', 'Como você chegou aí?'],
+                    ['g', 'Hehehe. Eu sempre tô aí.'],
+                    ['g', 'Bu!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Hehehe... era pra atravessar você.'],
+                    ['g', 'Eu sou de carne e osso.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
+        39: {
+            keeper: [
+                [
+                    ['s', 'Por que ela tá com uma caneta?'],
+                    ['g', 'Quem dormir leva rabisco.'],
+                    ['g', 'Puf!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Você não dormiu com a música?'],
+                    ['g', 'Eu tava de fone.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
         52: {
-            shot: ['Miau! Era o plano perfeito!'],
-            gk: ['Essa bola agora é da Equipe Rocket!'],
-            shout: ['Meowth, é isso aí!'],
+            keeper: [
+                [
+                    ['s', 'A Equipe Rocket no gol?'],
+                    ['g', 'Essa bola agora é da Equipe Rocket!'],
+                    ['g', 'Meowth, é isso aí!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Miau! Era o plano perfeito!'],
+                    ['g', 'Nunca é, Meowth.'],
+                    ['s', 'A Equipe Rocket decolando de novo...'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
         },
-        83: { shot: ['Nem com o alho-poró deu?'], gk: ['Defendi com o alho-poró!'], shout: ['Alho-poró!'] },
-        63: { shot: ['Zzz...'], gk: ['Zzz...'], shout: ['Teleport!'] },
-        133: { shot: ['Vee! Você pegou?'], gk: ['Ainda nem escolhi a minha pedra.'], shout: ['Eevee!'] },
+        83: {
+            keeper: [
+                [
+                    ['s', 'Ele parou com um alho-poró?'],
+                    ['g', 'Alho-poró de competição.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Nem com o alho-poró?'],
+                    ['g', 'Era pra usar o pé.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
+        63: {
+            keeper: [
+                [
+                    ['s', 'Ele tá dormindo no gol?'],
+                    ['g', 'Zzz...'],
+                    ['g', 'Teleport!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Zzz...'],
+                    ['g', 'Chutou e foi dormir?'],
+                    ['g', 'Acorda, Abra!'],
+                ],
+            ],
+        },
+        133: {
+            keeper: [
+                [
+                    ['s', 'Um Eevee? Cadê a evolução?'],
+                    ['g', 'Ainda tô escolhendo a pedra.'],
+                    ['g', 'Eevee!'],
+                ],
+            ],
+            shooter: [
+                [
+                    ['s', 'Vee! Achei que era gol!'],
+                    ['g', 'Evolui primeiro, depois a gente conversa.'],
+                    ['g', 'Bicuda!'],
+                ],
+            ],
+        },
     } as Record<string, ShowdownSolo>,
-    /** Genéricas: quem chutou reage, o goleiro responde, às vezes quem chutou de novo (`more`) e o grito. */
+    /** Genéricas: quem chutou reage, o goleiro responde, às vezes quem chutou de novo (`more`) e a bicuda (`shout`). */
     shot: [
-        'Como você pegou isso?',
-        'Era o meu chute mais forte!',
-        'Não acredito. Segurou?',
-        'Pegou com uma mão só?',
-        'Esse era pra entrar!',
-        'Meu golpe máximo... parado?',
-        'Ei! Devolve a bola!',
-        'Tava no ângulo! Como?',
+        'Esse era o meu melhor chute.',
+        'Parou com o pé?',
+        'Ei, isso era gol!',
+        'Como assim, parou?',
+        'Meu golpe máximo... no pé dele?',
+        'Tava no ângulo!',
+        'Alguém viu isso?',
+        'Treinei isso a semana inteira!',
     ],
     gk: [
-        'Treinei a vida inteira pra isso.',
-        'Agora é a minha vez.',
-        'Segurei. Agora olha só.',
-        'Você chutou forte. Eu chuto mais.',
-        'Viu? Goleiro também ataca.',
-        'Corre pra trás, que lá vai.',
-        'Fica olhando daí.',
-        'Pulei certo dessa vez.',
+        'Dava pra ver.',
+        'Treinei a semana inteira também.',
+        'Agora é minha vez.',
+        'Bonito. Agora olha o meu.',
+        'Goleiro também chuta, sabia?',
+        'Corre pra trás que lá vai.',
+        'Foi bom. Pena que voltou.',
+        'Obrigado pelo passe.',
     ],
     more: [
         'Daí do gol? Não alcança.',
-        'Espera, você vai chutar daí?',
         'Pessoal, volta! Volta!',
         'Ninguém chuta de gol a gol.',
+        'Peraí, você vai chutar daí?',
     ],
-    shout: ['Lá vai!', 'Bicuda!', 'Levou!', 'Segura essa!', 'Pro gol!', 'Daqui mesmo!', 'Toma!', 'Vai!'],
+    shout: [
+        'Toma de volta!',
+        'Bicuda!',
+        'Devolvendo!',
+        'Volta pra casa!',
+        'Lá vai!',
+        'Segura essa!',
+        'De primeira!',
+        'Recebe!',
+    ],
 };

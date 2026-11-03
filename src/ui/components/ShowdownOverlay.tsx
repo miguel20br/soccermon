@@ -12,8 +12,8 @@ import './showdown.css';
 
 /**
  * Duelo da bicuda (motor 21): a caixa das falas, estilo PMD, por cima da quadra escurecida. A cena é da quadra
- * (MatchScene.ts, `stageShowdown`: os dois se encaram, o COUNTER! e a bicuda); aqui só a fala da vez, com o rosto de quem
- * fala, no relógio da quadra (`match:showdown-t`, ms desde o lance). A caixa sai `SHOWDOWN_MS.exit` antes da bicuda, ou
+ * (MatchScene.ts, `stageShowdown`: o tempo parado no contato, a câmera de cinema, o COUNTER! e a bicuda); aqui só a fala
+ * da vez, com o rosto de quem fala, no relógio da quadra (`match:showdown-t`, ms desde o lance). A caixa sai `SHOWDOWN_MS.exit` antes da bicuda, ou
  * na hora se a reprodução passar dela (`match:showdown-end`).
  */
 export function ShowdownOverlay() {

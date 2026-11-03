@@ -21,8 +21,9 @@ function hash(text: string): number {
 }
 
 /**
- * As falas do duelo da bicuda, em ordem (a última é o grito do goleiro). Escolha determinística pelo lance (`seed`: o
- * tick do evento), na prioridade: par notável, mesma linha evolutiva, fala própria de um dos dois (`solo`) e as genéricas.
+ * As falas do duelo da bicuda, em ordem (a última é a do goleiro na bicuda). Escolha determinística pelo lance (`seed`: o
+ * tick do evento), na prioridade: par notável, mesma linha evolutiva, a conversa de quem está no gol (`solo[id].keeper`),
+ * a de quem chutou (`solo[id].shooter`) e as genéricas.
  */
 export function showdownScript(
     shooter: { speciesId: number; name: string },
@@ -37,15 +38,15 @@ export function showdownScript(
     if (pair) return lines(pair);
     if (evolvesInto(gk.speciesId, shooter.speciesId)) return lines(pick(d.up, 'up'));
     if (evolvesInto(shooter.speciesId, gk.speciesId)) return lines(pick(d.down, 'down'));
-    const s = d.solo[shooter.speciesId];
-    const g = d.solo[gk.speciesId];
+    const solo = d.solo[gk.speciesId]?.keeper ?? d.solo[shooter.speciesId]?.shooter;
+    if (solo) return lines(pick(solo, 'solo'));
     const out: ShowdownLine[] = [
-        { who: 's', text: pick(s?.shot ?? d.shot, 'shot') },
-        { who: 'g', text: pick(g?.gk ?? d.gk, 'gk') },
+        { who: 's', text: pick(d.shot, 'shot') },
+        { who: 'g', text: pick(d.gk, 'gk') },
     ];
-    // a 2ª fala de quem chutou, às vezes (só nas genéricas: a de um Pokémon notável fecha com a dele)
-    if (!s && hash(`${seed}:more`) % 2 === 0) out.push({ who: 's', text: pick(d.more, 'more') });
-    out.push({ who: 'g', text: pick(g?.shout ?? d.shout, 'shout') });
+    // a 2ª fala de quem chutou, às vezes
+    if (hash(`${seed}:more`) % 2 === 0) out.push({ who: 's', text: pick(d.more, 'more') });
+    out.push({ who: 'g', text: pick(d.shout, 'shout') });
     return out.map((l) => ({ ...l, text: fmt(l.text, names) }));
 }
 
@@ -57,7 +58,7 @@ export function showdownScript(
  */
 export const SHOWDOWN_MS = { counter: 1300, talk: 1400, shout: 1300, exit: 900, char: 26, type: 900, fade: 250 };
 
-/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e o grito. */
+/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e a bicuda. */
 export const FACE = {
     s: ['surprised', 'pain', 'sad'],
     s2: ['sigh', 'angry', 'sad'],

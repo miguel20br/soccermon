@@ -103,7 +103,7 @@ export const commentary = {
     shots: ['{w} arrisca de longe!', '{w} finaliza!', 'Chute de {w}!', '{w} bate pro gol!'],
     saveCaught: ['{x} encaixa firme!', 'Defesa segura de {x}.'],
     /** Duelo da bicuda (motor 21): o goleiro capitão segurou o N3 do rival. */
-    showdown: '{x} segurou o golpe máximo de {w}!',
+    showdown: '{x} parou o golpe máximo de {w} no pé!',
     showdownKick: 'Bicuda de {w}, de gol a gol!',
     saveParried: ['QUE DEFESA de {x}! Espalmou!', '{x} voa e manda pra fora!'],
     post: ['NA TRAVE!', 'Carimbou a trave!', 'Bola no poste! Que azar!'],

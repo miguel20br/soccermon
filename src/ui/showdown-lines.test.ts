@@ -5,14 +5,22 @@ import { showdown as pt } from '../i18n/pt/showdown';
 import { lineAt, SHOWDOWN_MS, showdownScript } from './showdown-lines';
 
 const mon = (id: number) => ({ speciesId: id, name: species(id).name });
+/** As conversas prontas de um idioma (pares, linha evolutiva e as de um Pokémon só), com onde estão. */
+function scripts(d: typeof pt) {
+    return [
+        ...Object.entries(d.pairs).map(([k, s]) => [`pairs.${k}`, s] as const),
+        ...[...d.up, ...d.down].map((s, k) => [`fam.${k}`, s] as const),
+        ...Object.entries(d.solo).flatMap(([k, s]) => [
+            ...(s.keeper ?? []).map((x, i) => [`solo.${k}.keeper.${i}`, x] as const),
+            ...(s.shooter ?? []).map((x, i) => [`solo.${k}.shooter.${i}`, x] as const),
+        ]),
+    ];
+}
+
 /** Todas as falas de um idioma, com onde estão. */
 function all(d: typeof pt): [string, string][] {
     return [
-        ...Object.entries(d.pairs).flatMap(([k, s]) => s.map(([, t], i) => [`pairs.${k}.${i}`, t] as [string, string])),
-        ...[...d.up, ...d.down].flatMap((s, k) => s.map(([, t], i) => [`fam.${k}.${i}`, t] as [string, string])),
-        ...Object.entries(d.solo).flatMap(([k, s]) =>
-            [...s.shot, ...s.gk, ...s.shout].map((t, i) => [`solo.${k}.${i}`, t] as [string, string]),
-        ),
+        ...scripts(d).flatMap(([at, s]) => s.map(([, t], i) => [`${at}.${i}`, t] as [string, string])),
         ...[...d.shot, ...d.gk, ...d.more, ...d.shout].map((t, i) => [`generic.${i}`, t] as [string, string]),
     ];
 }
@@ -30,6 +38,12 @@ describe('falas do duelo da bicuda', () => {
             pt[fam].forEach((s, i) => {
                 expect(en[fam][i].map(([w]) => w)).toEqual(s.map(([w]) => w));
             });
+        for (const [k, s] of Object.entries(pt.solo))
+            for (const role of ['keeper', 'shooter'] as const)
+                expect(
+                    en.solo[k][role]?.map((x) => x.map(([w]) => w)),
+                    `${k}.${role}`,
+                ).toEqual(s[role]?.map((x) => x.map(([w]) => w)));
         // pares notáveis: 12 a 16 (contando os dois sentidos como um)
         const pairs = new Set(Object.keys(pt.pairs).map((k) => k.split('-').map(Number).sort().join('-')));
         expect(pairs.size).toBeGreaterThanOrEqual(12);
@@ -38,12 +52,15 @@ describe('falas do duelo da bicuda', () => {
             for (const id of k.split('-').map(Number)) expect(id).toBeLessThanOrEqual(151);
     });
 
-    it('quem chutou abre, o goleiro fecha (o grito da bicuda), 3 ou 4 falas', () => {
-        for (const s of [...Object.values(pt.pairs), ...pt.up, ...pt.down]) {
-            expect(s[0][0]).toBe('s');
-            expect(s.at(-1)?.[0]).toBe('g');
-            expect(s.length).toBeGreaterThanOrEqual(3);
-            expect(s.length).toBeLessThanOrEqual(4);
+    it('o goleiro fecha (a bicuda), 3 ou 4 falas, e quem chutou fala pelo menos uma vez', () => {
+        for (const [at, s] of scripts(pt)) {
+            expect(s.at(-1)?.[0], at).toBe('g');
+            expect(
+                s.some(([w]) => w === 's'),
+                at,
+            ).toBe(true);
+            expect(s.length, at).toBeGreaterThanOrEqual(3);
+            expect(s.length, at).toBeLessThanOrEqual(4);
         }
     });
 
@@ -59,11 +76,13 @@ describe('falas do duelo da bicuda', () => {
                 if (lang === 'pt') {
                     expect(text, at).not.toMatch(/\bpara\b/i);
                     expect(text, at).not.toMatch(/não é .*, é /i);
-                }
+                    // o goleiro parou a bola no pé e devolveu de bicuda: ninguém segura nem agarra (Miguel, 03/11/2026)
+                    expect(text, at).not.toMatch(/\b(segurou|segurei|segurar|pegou|peguei|agarr\w*)\b/i);
+                } else expect(text, at).not.toMatch(/\b(caught|catch(es)? it|grabbed)\b/i);
             }
         }
-        // o grito: 1 ou 2 palavras (o nome do golpe e o bordão da Equipe Rocket passam)
-        for (const t of pt.shout) expect(t.split(/\s+/).length).toBeLessThanOrEqual(2);
+        // a bicuda genérica: até 3 palavras
+        for (const t of [...pt.shout, ...en.shout]) expect(t.split(/\s+/).length).toBeLessThanOrEqual(3);
     });
 
     it('prioridade: par notável, linha evolutiva, solo e genéricas', () => {
@@ -79,10 +98,10 @@ describe('falas do duelo da bicuda', () => {
         ).toBe(true);
         const down = showdownScript(mon(7), mon(8), 7, pt);
         expect(pt.down.some((s) => s.at(-1)?.[1] === down.at(-1)?.text)).toBe(true);
-        // Snorlax chutou num Weedle: a fala do Snorlax e a resposta genérica
+        // Snorlax chutou num Weedle: a conversa do Snorlax; Magikarp no gol vence a de quem chutou (Slowpoke)
         const solo = showdownScript(mon(143), mon(13), 3, pt);
-        expect(solo[0]).toEqual({ who: 's', text: pt.solo[143].shot[0] });
-        expect(pt.gk).toContain(solo[1].text);
+        expect(solo.map((l) => l.text)).toEqual(pt.solo[143].shooter?.[0].map(([, t]) => t));
+        expect(showdownScript(mon(79), mon(129), 3, pt)[0].text).toBe('Splash.');
         // Wartortle chutou num Weedle: tudo genérico, e a mesma em toda tela (mesmo lance = mesma conversa)
         const generic = showdownScript(mon(8), mon(13), 1234, pt);
         expect(pt.shot).toContain(generic[0].text);
