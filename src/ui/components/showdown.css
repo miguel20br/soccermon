@@ -55,11 +55,13 @@
 /* frente a frente: quem chutou à esquerda (virado pra direita), o goleiro à direita */
 .sd-stage {
     position: relative;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-around;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    align-content: center;
+    align-items: end;
+    justify-items: center;
     min-height: 0;
-    padding-bottom: 6px;
 }
 .sd-mon {
     position: relative;

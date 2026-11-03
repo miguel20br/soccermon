@@ -104,6 +104,7 @@ export const commentary = {
     saveCaught: ['{x} encaixa firme!', 'Defesa segura de {x}.'],
     /** Duelo da bicuda (motor 20): o goleiro capitão segurou o N3 do rival. */
     showdown: '{x} segurou o golpe máximo de {w}!',
+    showdownKick: 'Bicuda de {w}, de gol a gol!',
     saveParried: ['QUE DEFESA de {x}! Espalmou!', '{x} voa e manda pra fora!'],
     post: ['NA TRAVE!', 'Carimbou a trave!', 'Bola no poste! Que azar!'],
     wide: ['Pra fora.', 'Passou longe.', 'Raspando a trave, pra fora!'],

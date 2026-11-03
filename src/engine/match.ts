@@ -3666,6 +3666,11 @@ function updateShowdown(s: MatchState, dt: number) {
         const keeper = rivalGk(s, gk);
         const side = keeper && keeper.pos.y >= gy ? -1 : 1;
         const to = v(gx, gy + side * (s.cfg.pitch.goalWidth / 2 - AGENCY.maxPost));
+        // o goleiro rival pula pro outro canto (a bola não passa pelo desenho dele): só a tela, ele não defende
+        if (keeper) {
+            keeper.pos = v(keeper.pos.x, clamp(keeper.pos.y - side * 0.8, gy - 1.5, gy + 1.5));
+            setAction(keeper, Action.Dive, 1);
+        }
         const dir = norm(sub(to, gk.pos));
         emit(s, {
             type: 'max',

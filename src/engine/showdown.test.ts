@@ -89,7 +89,9 @@ describe('duelo da bicuda (motor 20)', () => {
             expect(s.phase).toBe('goal');
             expect(s.phaseTimer).toBe(AGENCY.showdown.goal);
             expect(AGENCY.showdown.goal).toBeGreaterThan(3);
-            expect(s.players.map((p) => p.pos)).toEqual(pos);
+            // na bicuda, todo mundo parado; só o goleiro rival (idx 0) pulou pro outro canto, longe da bola
+            expect(s.players.map((p) => p.pos).filter((_, i) => i !== 0)).toEqual(pos.filter((_, i) => i !== 0));
+            expect(Math.abs(s.players[0].pos.y - s.ball.pos.y)).toBeGreaterThan(1.5);
         }
         expect(seen).toBeGreaterThan(5);
     });

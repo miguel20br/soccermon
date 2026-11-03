@@ -99,6 +99,8 @@ export class Commentator {
     private coached: [boolean, boolean];
     /** Bicudas (`tick:goleiro`): a defesa do mesmo tick fica muda, a fala é a da bicuda. */
     private bicudas: Set<string>;
+    /** Duelo da bicuda: o tick do chute (a bicuda de gol a gol tem fala própria). */
+    private showdownKicks: Set<number> = new Set();
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -125,6 +127,13 @@ export class Commentator {
                 .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
                 .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
         );
+        // duelo da bicuda: a defesa que segura o N3 fica muda (a fala é a do duelo) e o chute tem a dele
+        this.showdownKicks = new Set();
+        for (const e of result.events) {
+            if (e.type !== 'showdown') continue;
+            this.bicudas.add(`${e.tick}:${e.gk}`);
+            this.showdownKicks.add(e.kick);
+        }
     };
 
     private n(idx: number | null | undefined): string {
@@ -182,6 +191,7 @@ export class Commentator {
             }
             case 'shot': {
                 const w = this.n(e.by);
+                if (this.showdownKicks.has(e.tick)) return line(say(c.showdownKick, { w }), 'big', this.teams[e.by]);
                 if (e.moveId) {
                     const m = MOVES[e.moveId]?.name ?? e.moveId;
                     return line(say(c.shotMove, { w, m }), 'big', this.teams[e.by]);
