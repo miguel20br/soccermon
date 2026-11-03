@@ -89,6 +89,10 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
   `traducao`; o que depende dos golpes novos e da MT fica em `docs/planos/traducao-pendente.md`.
 
 ### Mais adiante (vitrine "Em breve" do menu)
+- **Sinergia de monotipo (Miguel, 03/11/2026):** uma sinergia nova, bem mais forte que a de tipo, pro time com 6
+  Pokémon do mesmo tipo. Hoje 5 do mesmo tipo dão +10% e o teto de sinergia é +15% (`SYNERGY_CAP` em
+  `src/engine/synergy.ts`). Decidir junto: quais 6 contam (5 titulares mais 1 do banco, ou o elenco inteiro), o
+  tamanho do bônus e se passa do teto. Mexe no motor (`ENGINE_VERSION` e `liga`).
 - **Modo história**: ginásios, insígnias e a Liga Índigo contados como história.
 - **Multiplayer**: desafiar o time de um amigo (o desafio por seed já existe como primeiro passo).
 - **Futebol de campo 11x11** (`MatchConfig` já é paramétrico para 7v7/11v11).
