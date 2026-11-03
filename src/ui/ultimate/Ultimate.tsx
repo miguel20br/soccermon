@@ -72,7 +72,9 @@ export function Ultimate() {
     useEffect(() => roll(), [n, live, roll]);
     // troca de aba volta pro topo (a barra embaixo é fixa; a página nova nasce do começo)
     // biome-ignore lint/correctness/useExhaustiveDependencies: `tab` é o gatilho
-    useEffect(() => window.scrollTo({ top: 0 }), [tab]);
+    useEffect(() => {
+        window.scrollTo({ top: 0 });
+    }, [tab]);
     // o pacote aberto (tela cheia por cima de tudo): da Loja ou do "Abrir agora" do pós-jogo
     const openPack = useGame((s) => s.ultimateOpenPack);
     const [pack, setPack] = useState<(PackOpen & { kind: PackKind }) | null>(null);

@@ -271,7 +271,7 @@ export function Home({
                             <span>{busy ? t('ultimate.play.warming') : t('ultimate.play.go')}</span>
                         </button>
                         <button type="button" className="ut-level-chip" onClick={() => setSheet('level')}>
-                            <HudIcon kind="dice" />
+                            <HudIcon kind="coin" />
                             {t('ultimate.home.levelChip', {
                                 level: d.ultimate.play.levels[level],
                                 n: FICHAS[level].win,

@@ -477,7 +477,13 @@ function Pending() {
             <ul className="ut-pend-list">
                 {prizes.map((p) => (
                     <li key={p.uid} className="panel bc-surface ut-pend ut-pend-prize">
-                        <PackArt look="" label={p.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
+                        {p.packs + p.big > 0 ? (
+                            <PackArt look="" label={p.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
+                        ) : (
+                            <span className="ut-pend-coin">
+                                <HudIcon kind="coin" />
+                            </span>
+                        )}
                         <span className="ut-pend-info">
                             <b>{prizeTitle(p)}</b>
                             <small>{mark({ fichas: p.fichas, packs: p.packs, big: p.big })}</small>
