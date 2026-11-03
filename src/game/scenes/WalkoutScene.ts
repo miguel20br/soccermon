@@ -85,7 +85,6 @@ const FONT = 'Galmuri11, monospace';
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const outQuad = (k: number) => 1 - (1 - k) * (1 - k);
-const inSine = (k: number) => (1 - Math.cos(Math.PI * k)) / 2;
 const inOut = (k: number) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
 /** Onde o Pokémon para de frente (fração do caminho do túnel até a beira da tela). */
 const FRONT = 0.72;
@@ -167,7 +166,6 @@ export class WalkoutScene extends Phaser.Scene {
     private monAt = { x: 0, d: 0, z: 0, angle: 0 };
     private contact = { x: 0, y: 0, s: BALL };
     private kicked = false;
-    private shotSpin = 0;
     private touched = -1;
     private fxAt = 0;
     private impactPt = { x: 0, y: 0 };
@@ -1481,7 +1479,7 @@ export class WalkoutScene extends Phaser.Scene {
             return lerp(d0, dEnd, k);
         };
         const dribble = (x: number, md: number, k = 1) =>
-            this.placeBall(x, md + 0.05, Math.abs(Math.sin(u * 20)) * 3 * k, u * 450);
+            this.placeBall(x, md + 0.05, Math.abs(Math.sin(u * 38)) * 3 * k, u * 900);
         if (j === 'embaixadinha') {
             const md = walk(0.3, FRONT);
             if (u < 0.3) {
@@ -1489,19 +1487,13 @@ export class WalkoutScene extends Phaser.Scene {
                 dribble(cx + 2, md);
                 return;
             }
-            // 4 a 5 toques (cada um com no mínimo ~350 ms), cada um mais alto; o último deixa a bola caindo no pé pro voleio
-            const n = Math.max(3, Math.min(5, Math.round((0.7 * this.p.body) / 350)));
-            const ph = ((u - 0.3) / 0.7) * n;
-            const k = Math.min(n - 1, Math.floor(ph));
+            // 5 toques, cada um mais alto; o último deixa a bola caindo no pé pro voleio
+            const ph = ((u - 0.3) / 0.7) * 5;
+            const k = Math.floor(ph);
             const f = ph - k;
-            this.anim(f < 0.35 ? 'Swing' : 'Idle', 0);
-            this.placeMon(cx, md, f < 0.35 ? 2 * Math.sin((f / 0.35) * Math.PI) : 0);
-            this.placeBall(
-                cx + (k % 2 ? 4 : -4) * (1 - f),
-                md + 0.04,
-                (10 + k * 4) * 4 * f * (1 - f),
-                135 + (ph / n) * 420,
-            );
+            this.anim(f < 0.18 ? 'Swing' : 'Idle', 0);
+            this.placeMon(cx, md, f < 0.18 ? 2 : 0);
+            this.placeBall(cx + (k % 2 ? 4 : -4) * (1 - f), md + 0.04, (12 + k * 5) * 4 * f * (1 - f), ph * 180);
             this.touch(k, 1.2 + k * 0.08);
             return;
         }
@@ -1516,15 +1508,15 @@ export class WalkoutScene extends Phaser.Scene {
                 const k = (u - 0.3) / 0.2;
                 this.anim('Idle', 0);
                 this.placeMon(cx, md);
-                this.placeBall(cx + 2, md + 0.04, 40 * outQuad(k), 135 + k * 400);
+                this.placeBall(cx + 2, md + 0.04, 40 * outQuad(k), k * 400);
                 this.touch(0);
                 return;
             }
             // o pulo de costas: sobe girando e encontra a bola lá em cima
             const k = (u - 0.5) / 0.5;
             this.anim('Shoot', 0, 0.6);
-            this.placeMon(cx, md, 32 * Math.sin((k * Math.PI) / 2), -300 * inSine(k));
-            this.placeBall(cx + 2, md + 0.04, 40 - 3 * k, 535 + k * 200);
+            this.placeMon(cx, md, 32 * Math.sin((k * Math.PI) / 2), -300 * inOut(k));
+            this.placeBall(cx + 2, md + 0.04, 40 - 3 * k, 400 + k * 200);
             if (k > 0.02 && this.every(500)) this.snd({ k: 'sfx', name: 'move', pitch: 1.4 });
             return;
         }
@@ -1543,27 +1535,21 @@ export class WalkoutScene extends Phaser.Scene {
             const b = (4 * P - 2 * hz + Math.sqrt((4 * P - 2 * hz) ** 2 - 4 * hz * hz)) / 2;
             this.anim(k > 0.72 ? 'Hop' : 'Idle', 0);
             this.placeMon(cx, md, jump);
-            this.placeBall(cx + 1, md + 0.02, (b + hz) * k - b * k * k, 135 + k * 400);
+            this.placeBall(cx + 1, md + 0.02, (b + hz) * k - b * k * k, k * 500);
             this.touch(0);
             return;
         }
         if (j === 'drible') {
             // zigue-zague até a frente, a bola colada no pé do lado que ele vai
             const md = FRONT * u;
-            const amp = this.W * 0.22 * (1 - u * 0.5);
-            const mx = cx + amp * Math.sin(u * Math.PI * 2);
-            const dx = Math.cos(u * Math.PI * 2);
-            this.anim('Walk', dx > 0 ? 1 : 7, 1.5);
+            const amp = this.W * 0.24 * (1 - u * 0.5);
+            const mx = cx + amp * Math.sin(u * Math.PI * 3);
+            const dx = Math.cos(u * Math.PI * 3);
+            this.anim('Walk', dx > 0 ? 1 : 7, 2.2);
             this.placeMon(mx, md);
-            // a bola troca de pé deslizando (nada de pulo seco de um lado pro outro)
-            this.placeBall(
-                mx + Math.max(-1, Math.min(1, dx * 3)) * 6 * (1 + md),
-                md + 0.05,
-                Math.abs(Math.sin(u * 26)) * 2,
-                u * 700,
-            );
-            this.touch(Math.floor(u * 6), 1.5);
-            if (this.every(150)) this.dust(mx, this.depthY(md), 4, 0.6);
+            this.placeBall(mx + Math.sign(dx) * 6 * (1 + md), md + 0.05, Math.abs(Math.sin(u * 60)) * 2, u * 1400);
+            this.touch(Math.floor(u * 9), 1.5);
+            if (this.every(90)) this.dust(mx, this.depthY(md), 4, 0.6);
             return;
         }
         if (j === 'canhao') {
@@ -1574,35 +1560,35 @@ export class WalkoutScene extends Phaser.Scene {
                 return;
             }
             const rest = { x: cx + 2, d: 0.64 };
-            if (u < 0.46) {
+            if (u < 0.45) {
                 // ajeita a bola e recua pra pegar distância
-                const k = (u - 0.3) / 0.16;
+                const k = (u - 0.3) / 0.15;
                 this.anim('Walk', 4, 1);
                 this.placeMon(cx, lerp(0.6, 0.46, k));
-                this.placeBall(rest.x, rest.d, 0, 135);
+                this.placeBall(rest.x, rest.d, 0, 0);
                 return;
             }
-            if (u < 0.78) {
-                // carrega o chute: treme (balanço suave, não liga-desliga), e a energia do tipo sobe
-                const k = (u - 0.46) / 0.32;
+            if (u < 0.8) {
+                // carrega o chute: treme, e a energia do tipo sobe
+                const k = (u - 0.45) / 0.35;
                 this.anim('Charge', 0);
-                this.placeMon(cx + Math.sin(this.clock / 45) * 1.5 * k, 0.46);
-                this.placeBall(rest.x, rest.d, 0, 135);
+                this.placeMon(cx + (Math.floor(this.clock / 40) % 2 ? 1 : -1) * k, 0.46);
+                this.placeBall(rest.x, rest.d, 0, 0);
                 this.touch(0, 0.6);
-                if (this.every(70))
+                if (this.every(40))
                     this.trail(
                         type,
                         cx + (((this.clock * 13) % 24) - 12) * (1 + k),
                         this.depthY(0.46) - (this.clock % 30),
                         12.9,
                     );
-                if (k > 0.4 && this.every(240)) this.shake(80, 1 + k * 2);
+                if (k > 0.4 && this.every(160)) this.shake(80, 1 + k * 2);
                 return;
             }
-            const k = inSine((u - 0.78) / 0.22);
-            this.anim('Walk', 0, 1.6);
+            const k = (u - 0.8) / 0.2;
+            this.anim('Walk', 0, 2.6);
             this.placeMon(cx, lerp(0.46, 0.6, k));
-            this.placeBall(rest.x, rest.d, 0, 135);
+            this.placeBall(rest.x, rest.d, 0, 0);
             return;
         }
         if (j === 'levita') {
@@ -1610,31 +1596,31 @@ export class WalkoutScene extends Phaser.Scene {
             const k = clamp01((u - 0.35) / 0.65);
             if (u < 0.35) {
                 this.placeMon(cx, md);
-                this.placeBall(cx + 12, md + 0.02, 10 + 2 * Math.sin(u * 20), u * 450);
+                this.placeBall(cx + 12, md + 0.02, 10 + 2 * Math.sin(u * 20), 0);
                 return;
             }
             // a bola gira em volta dele e sobe, com os anéis psíquicos
             this.anim('Charge', 0);
             this.placeMon(cx, md);
-            const th = k * Math.PI * 3;
+            const th = k * Math.PI * 4;
             const r = 14 * (1 - k * 0.4);
             this.placeBall(
                 cx + r * Math.cos(th),
                 md + 0.05 * Math.sin(th),
                 12 + k * 30 + 3 * Math.sin(th * 2),
-                157 + k * 360,
+                k * 720,
             );
             this.ball.setTint(mix(0xffffff, 0xff9ae6, k));
-            if (this.every(90)) this.trail('Psychic', this.ball.x, this.ball.y, 13.6);
+            if (this.every(70)) this.trail('Psychic', this.ball.x, this.ball.y, 13.6);
             this.touch(0, 0.9);
             return;
         }
         if (j === 'voo') {
             // desce do céu trazendo a bola, solta perto da frente e paira
-            if (u < 0.7) {
-                const k = u / 0.7;
-                const e = Math.sin((k * Math.PI) / 2);
-                this.anim('Walk', k < 0.85 ? 1 : 0, 1.1);
+            if (u < 0.65) {
+                const k = u / 0.65;
+                const e = outQuad(k);
+                this.anim('Walk', k < 0.85 ? 1 : 0, 1.4);
                 const md = lerp(0.1, 0.7, e);
                 const z = lerp(this.H * 0.42, 16, inOut(k)) + Math.sin(k * Math.PI) * 8;
                 this.placeMon(lerp(-30, cx, e), md, z);
@@ -1643,23 +1629,23 @@ export class WalkoutScene extends Phaser.Scene {
                 if (this.every(420)) this.snd({ k: 'sfx', name: 'move', pitch: 0.5 });
                 return;
             }
-            const k = (u - 0.7) / 0.3;
+            const k = (u - 0.65) / 0.35;
             this.anim('Walk', 0, 1);
             this.placeMon(cx, 0.7, 16 - 6 * k + Math.sin(this.clock / 120) * 2);
             const fall = k < 0.45 ? 10 * (1 - (k / 0.45) ** 2) : 9 * Math.sin(((k - 0.45) / 0.55) * Math.PI * 0.75);
-            this.placeBall(cx + 3, 0.74, Math.max(0, fall), 200 + k * 100);
+            this.placeBall(cx + 3, 0.74, Math.max(0, fall), k * 300);
             if (k >= 0.45) this.touch(0, 0.9);
             return;
         }
         if (j === 'tremor') {
-            if (u < 0.4) {
-                const md = walk(0.4, 0.62, 0.8);
+            if (u < 0.45) {
+                const md = walk(0.45, 0.62, 0.8);
                 this.placeMon(cx, md);
                 dribble(cx + 2, md, 0.5);
-                const step = Math.floor(u / 0.14);
+                const step = Math.floor(u / 0.09);
                 if (step !== this.touched) {
                     this.touched = step;
-                    this.shake(130, 2);
+                    this.shake(90, 2);
                     this.dust(cx, this.depthY(md), 6);
                     this.snd({ k: 'sfx', name: 'thud', pitch: 0.7 });
                 }
@@ -1668,10 +1654,10 @@ export class WalkoutScene extends Phaser.Scene {
             const rest = { x: cx + 2, d: 0.66 };
             if (u < 0.7) {
                 // pula e cai com tudo no chão
-                const k = (u - 0.4) / 0.3;
+                const k = (u - 0.45) / 0.25;
                 this.anim('Hop', 0);
                 this.placeMon(cx, 0.62, 30 * Math.sin(k * Math.PI));
-                this.placeBall(rest.x, rest.d, 0, 180);
+                this.placeBall(rest.x, rest.d, 0, 0);
                 this.landed = false;
                 return;
             }
@@ -1687,7 +1673,7 @@ export class WalkoutScene extends Phaser.Scene {
             const k = (u - 0.7) / 0.3;
             this.anim('Idle', 0);
             this.placeMon(cx, 0.62);
-            this.placeBall(rest.x, rest.d, 32 * Math.sin(k * Math.PI * 0.8), 180 + k * 360);
+            this.placeBall(rest.x, rest.d, 32 * Math.sin(k * Math.PI * 0.8), k * 500);
             return;
         }
         // chama: para, carrega, e a bola pega fogo num anel de chamas
@@ -1700,11 +1686,11 @@ export class WalkoutScene extends Phaser.Scene {
         const k = (u - 0.35) / 0.65;
         this.anim('Charge', 0);
         this.placeMon(cx, md);
-        this.placeBall(cx + 2, 0.7, 0, 157);
+        this.placeBall(cx + 2, 0.7, 0, 0);
         this.ball.setTint(mix(0xffffff, 0xff7a2a, k));
         this.touch(0, 0.6);
-        if (this.every(Math.max(45, 100 - k * 55))) {
-            const th = this.clock / 140;
+        if (this.every(Math.max(25, 90 - k * 70))) {
+            const th = this.clock / 90;
             const r = 9 * (1 + 0.7);
             this.trail('Fire', this.ball.x + Math.cos(th) * r, this.ball.y + Math.sin(th) * r * 0.4, 13.6);
             this.trail('Fire', this.ball.x, this.ball.y - 2, 13.6);
@@ -1717,7 +1703,6 @@ export class WalkoutScene extends Phaser.Scene {
         const m = this.monAt;
         if (!this.kicked) {
             this.kicked = true;
-            this.shotSpin = this.ball.angle;
             this.snd({ k: 'sfx', name: 'shot', pitch: j === 'canhao' || j === 'tremor' ? 0.6 : 0.8 });
             this.snd({ k: 'sfx', name: 'kick', pitch: 0.7 });
             this.shake(160, j === 'canhao' ? 6 : 3);
@@ -1743,7 +1728,7 @@ export class WalkoutScene extends Phaser.Scene {
             .setDepth(30)
             .setPosition(lerp(c.x, I.x, e), lerp(c.y, I.y, e) - Math.sin(k * Math.PI) * this.H * 0.06)
             .setScale(lerp(c.s, big, k ** 2.2))
-            .setAngle(this.shotSpin + k * 300);
+            .setAngle(this.ball.angle + 24);
         if (this.every(16)) this.trail(this.d.type, this.ball.x, this.ball.y, 29);
     }
 

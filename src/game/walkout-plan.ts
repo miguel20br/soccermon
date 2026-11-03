@@ -63,7 +63,7 @@ export interface WalkPlan {
     back?: number;
     /** Portão abre, silhueta "Quem é esse Pokémon?". */
     gate?: number;
-    /** Flash: o Pokémon entra com a bola e faz a jogada (dura `body`), depois chuta na tela (~500-600 ms até o vidro). */
+    /** Flash: o Pokémon entra com a bola e faz a jogada (dura `body`), depois chuta na tela. */
     enter: number;
     body: number;
     /** A bola bate no vidro e racha; o vidro quebra logo depois. */
@@ -85,7 +85,7 @@ export const SHATTER_MS = 280;
 type Base = Omit<WalkPlan, 'tier' | 'kind' | 'upgrade'>;
 
 const RARO: Base = {
-    end: 5500,
+    end: 5000,
     spots: 1,
     fires: [120],
     rain: false,
@@ -96,15 +96,15 @@ const RARO: Base = {
     pos: 1500,
     back: 2100,
     enter: 2100,
-    body: 1600,
-    impact: 4200,
-    card: 4550,
+    body: 1250,
+    impact: 3700,
+    card: 4050,
     count: 600,
-    party: 5000,
+    party: 4500,
 };
 
 const MUITO: Base = {
-    end: 9350,
+    end: 8500,
     spots: 2,
     fires: [500, 700],
     rain: false,
@@ -116,15 +116,15 @@ const MUITO: Base = {
     back: 3800,
     gate: 3800,
     enter: 5000,
-    body: 2200,
-    impact: 7700,
-    card: 8000,
+    body: 1500,
+    impact: 6850,
+    card: 7150,
     count: 800,
-    party: 8750,
+    party: 7900,
 };
 
 const ESPECIAL: Base = {
-    end: 14950,
+    end: 14000,
     spots: 4,
     fires: [650, 850, 1050],
     rain: true,
@@ -136,12 +136,12 @@ const ESPECIAL: Base = {
     back: 5600,
     gate: 5800,
     enter: 7400,
-    body: 3200,
-    impact: 11200,
-    card: 11550,
+    body: 2400,
+    impact: 10250,
+    card: 10600,
     count: 1300,
-    art: 13150,
-    party: 13550,
+    art: 12200,
+    party: 12600,
 };
 
 /** Upgrade: a prévia é a do muito raro (prateada, sem placa); a cor da edição e a placa vêm no flash. */
