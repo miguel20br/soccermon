@@ -1,5 +1,18 @@
 # Novidades
 
+## 0.9.38.1 · Ajustes de tela (2026-11-03)
+
+### Celular
+- Copa do Dia deitada: o Ranking aparece (saía da tela)
+- Draft: os selos das cartas e o Escalar do banco não vazam mais no 320 e no 390
+- JOGAR do Estádio, faixa EM BREVE do menu e a fala do Prof. Carvalho na Rota cabem inteiros
+- Duelo: Compartilhar dentro do botão e a sala de espera deitada sem cortar os nomes
+- Mercado deitado: a seta não cobre o preço e a descrição do item termina inteira
+- Sala de troféus no 320: o fim da fala e o Próximo à vista
+
+### PC
+- O selo do treinador desbloqueado cresce com a tela
+
 ## 0.9.38 · Walkout (2026-11-03)
 
 ### Pacotes

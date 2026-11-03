@@ -9,6 +9,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.38.1',
+        date: '2026-11-03',
+        title: 'Ajustes de tela',
+        sections: [
+            {
+                title: 'Celular',
+                lines: [
+                    'Copa do Dia deitada: o Ranking aparece (saía da tela)',
+                    'Draft: os selos das cartas e o Escalar do banco não vazam mais no 320 e no 390',
+                    'JOGAR do Estádio, faixa EM BREVE do menu e a fala do Prof. Carvalho na Rota cabem inteiros',
+                    'Duelo: Compartilhar dentro do botão e a sala de espera deitada sem cortar os nomes',
+                    'Mercado deitado: a seta não cobre o preço e a descrição do item termina inteira',
+                    'Sala de troféus no 320: o fim da fala e o Próximo à vista',
+                ],
+            },
+            {
+                title: 'PC',
+                lines: ['O selo do treinador desbloqueado cresce com a tela'],
+            },
+        ],
+    },
+    {
         version: '0.9.38',
         date: '2026-11-03',
         title: 'Walkout',
@@ -2343,6 +2365,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.38.1',
+        date: '2026-11-03',
+        title: 'Screen fixes',
+        sections: [
+            {
+                title: 'Phone',
+                lines: [
+                    'Daily Cup on a sideways phone: the Ranking shows (it was off screen)',
+                    'Draft: card tags and the bench Pick button no longer overflow at 320 and 390',
+                    'Stadium PLAY, the COMING SOON strip and Prof. Oak on the Route fit whole',
+                    'Duel: Share inside its button and the sideways waiting room without cut names',
+                    'Sideways Market: the arrow no longer covers the price and item text ends whole',
+                    'Trophy room at 320: the end of the line and Next in view',
+                ],
+            },
+            {
+                title: 'PC',
+                lines: ['The unlocked trainer seal grows with the screen'],
+            },
+        ],
+    },
     {
         version: '0.9.38',
         date: '2026-11-03',
