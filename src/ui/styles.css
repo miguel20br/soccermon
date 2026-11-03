@@ -1909,6 +1909,45 @@ button,
 .reward-pick3 .tm-card .tactic-desc {
     -webkit-line-clamp: 2;
 }
+/* celular em pé e alto (390x844): duas em cima e a terceira embaixo, no centro; as cartas ocupam o vazio em vez de
+   três de 113 px no meio da tela. A altura dá a conta: 2 cartas + 2 botões + o que sobra em volta. */
+@media (max-width: 700px) and (orientation: portrait) and (min-height: 740px) {
+    .reward-pick3 {
+        --k-card-w: min(
+            190px,
+            calc((100 * var(--vw) - 32px - var(--k-gap)) / 2),
+            calc((100 * var(--vh) - 380px) / 2.9)
+        );
+        grid-template-columns: repeat(2, var(--k-card-w));
+        row-gap: 14px;
+    }
+    .reward-pick3 > :nth-child(3) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: var(--k-card-w);
+    }
+}
+/* o selo "Do Celadon Pokémon Center" quebra em 2 linhas em vez de cortar com reticências */
+@media (orientation: portrait) {
+    .reward-pick3 .fut-ribbon {
+        max-width: 94%;
+        overflow: visible;
+        white-space: normal;
+        text-overflow: clip;
+        line-height: 1.15;
+    }
+}
+/* 320: com 3 de ~92 px o texto da MT não cabia na proporção da carta; a MT e o item crescem pra baixo (sobra altura) */
+@media (max-width: 359px) and (orientation: portrait) {
+    .reward-pick3 .item-card {
+        aspect-ratio: auto;
+        min-height: calc(var(--fut-w) * 1.41);
+        padding-bottom: 10px;
+    }
+    .reward-pick3 .tm-card .tactic-desc {
+        -webkit-line-clamp: 2;
+    }
+}
 .reward-team-row {
     max-width: 420px;
     margin-inline: auto;
