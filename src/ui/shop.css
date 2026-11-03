@@ -795,6 +795,14 @@ button.sp-slot:hover {
         grid-column: 1;
         grid-row: 1 / -1;
     }
+    /* a descrição do item termina numa linha inteira (antes cortava no meio da 4ª) */
+    .shop-rack .item-card .tactic-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
     .shop-sponsor-shelf {
         grid-column: 2;
         grid-row: 2;
