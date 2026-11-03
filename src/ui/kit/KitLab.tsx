@@ -12,9 +12,10 @@ import '../ambientes/ambientes.css';
 import './kit-lab.css';
 import { Beat, Cascade, useCascade } from './Cascade';
 import { InfoSheet, OptionTile, SheetRow, Stepper } from './controls';
-import { MomentStage, Walkout } from './MomentStage';
+import { MomentStage } from './MomentStage';
 import { MomentWipe, randomArt, WIPE_ART, type WipeArt } from './MomentWipe';
 import { Stage } from './Stage';
+import { Walkout } from './WalkoutStage';
 
 /** A cascata de exemplo (o fim de partida): placar, ₽ contando, craque e o próximo rival. */
 function CascadeDemo() {
@@ -153,8 +154,8 @@ export function KitLab({ onExit }: { onExit: () => void }) {
             <section className="panel" id="momento">
                 <h2>Momento e walkout</h2>
                 <p className="muted">
-                    Overlay de tela cheia com o fundo da marca e os raios. Walkout em 3 batidas (tipo, posição,
-                    insígnia) só pra ouro 75+ e edição; toque adianta, Pular vai pro fim.
+                    Overlay de tela cheia com o fundo da marca e os raios. Walkout em 3 níveis (estádio, telões, jogada
+                    e a carta; `?lab=walkout` tem todos); toque adianta, Pular vai pro fim.
                 </p>
                 <div className="kl-btns">
                     <button type="button" className="btn" onClick={() => setWalk(true)}>

@@ -1,10 +1,11 @@
 import { type CSSProperties, type PointerEvent, useRef, useState } from 'react';
+import { walkoutPick } from '../../game/walkout-plan';
 import { useT } from '../../i18n/react';
 import type { PackKind, PackOpen } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
-import { walkoutIndex } from '../kit/beats';
-import { MomentStage, Walkout } from '../kit/MomentStage';
+import { MomentStage } from '../kit/MomentStage';
+import { Walkout } from '../kit/WalkoutStage';
 
 /** Quanto o dedo anda (fração da largura do pacote) pra rasgar a tampa. */
 const TEAR_AT = 0.4;
@@ -53,13 +54,13 @@ function useTear() {
 
 /**
  * Pacote do Time Ultimate em tela cheia: rasga (arrasto ou toque), as cartas saem em leque e a melhor, se for ouro
- * (75+) ou edição, fica guardada pro walkout em 3 batidas depois do leque (com Pular). As novas já estão no Clube e
+ * (75+) ou edição, fica guardada pro walkout do nível dela depois do leque (com Pular). As novas já estão no Clube e
  * as repetidas nos Pendentes (openPack); "Guardar" só fecha.
  */
 export function UtPackMoment({ open, onClose }: { open: PackOpen & { kind: PackKind }; onClose: () => void }) {
     const { t } = useT();
     const label = open.kind === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini');
-    const walkAt = walkoutIndex(open.cards);
+    const walkAt = walkoutPick(open.cards);
     // 'wait' = guardada até o leque acabar; 'on' = o walkout tocando; 'done' = já na mesa
     const [walk, setWalk] = useState<'wait' | 'on' | 'done'>(walkAt < 0 ? 'done' : 'wait');
     const [revealed, setRevealed] = useState(false);

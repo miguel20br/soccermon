@@ -1,5 +1,7 @@
 import { species } from '../engine/data';
-import type { PokemonInstance } from '../engine/instance';
+import { type PokemonInstance, viewInstance } from '../engine/instance';
+import { editionOf } from '../engine/specials';
+import { dailyDay } from '../store/daily';
 
 /**
  * Plano do walkout final (docs/planos/pesquisas/ut-walkout.md, "Escolha depois dos vídeos lado a lado"): quem ganha
@@ -13,6 +15,27 @@ export function walkTier(edition: string | null, overall: number): WalkTier | nu
     if (edition === 'icone' || edition === 'destaque') return 'especial';
     if (edition === 'shiny' || edition === 'evento' || overall >= 85) return 'muitoraro';
     return overall >= 75 ? 'raro' : null;
+}
+
+const TIER_RANK: Record<WalkTier, number> = { raro: 1, muitoraro: 2, especial: 3 };
+
+/**
+ * A carta do pacote que ganha o walkout (UT e Mercado da Copa): a de nível mais alto e, no empate, a de nota maior.
+ * -1 = nenhuma bate num nível: o pacote abre só com o leque.
+ */
+export function walkoutPick(cards: readonly PokemonInstance[]): number {
+    let best = -1;
+    let score = 0;
+    cards.forEach((c, i) => {
+        const ovr = viewInstance(c).overall;
+        const tier = walkTier(editionOf(c), ovr);
+        const s = tier ? TIER_RANK[tier] * 1000 + ovr : 0;
+        if (s > score) {
+            best = i;
+            score = s;
+        }
+    });
+    return best;
 }
 
 /** O roteiro: cada campo é a hora (ms desde o começo) em que a batida entra. */
@@ -52,8 +75,6 @@ export interface WalkPlan {
     art?: number;
     /** Confete, fogos e o Pokémon pulando. */
     party: number;
-    /** Versão 2 (`&v=2`, pra comparar): mais movimento; a nota bate em `card + 200 + count`. */
-    v2?: boolean;
 }
 
 /** Pular aparece depois da prévia: ninguém perde a cor. */
@@ -164,12 +185,7 @@ const CALMO: Base = {
  */
 export function walkoutPlan(
     tier: WalkTier,
-    {
-        nth = 1,
-        reduce = false,
-        upgrade = false,
-        v2 = false,
-    }: { nth?: number; reduce?: boolean; upgrade?: boolean; v2?: boolean } = {},
+    { nth = 1, reduce = false, upgrade = false }: { nth?: number; reduce?: boolean; upgrade?: boolean } = {},
 ): WalkPlan {
     const up = tier === 'especial' && upgrade && !reduce;
     const head = { tier, upgrade: up };
@@ -181,26 +197,26 @@ export function walkoutPlan(
         const base = tier === 'raro' ? RARO : tier === 'muitoraro' ? MUITO : ESPECIAL;
         p = { ...base, ...(up ? UPGRADE : {}), ...head, kind: 'cheio' };
     }
-    return v2 ? stretchV2(p) : p;
+    return stretch(p);
 }
 
 /**
- * A versão 2 ganha tempo em dois lugares (no máximo +2 s): o travelling da câmera dos telões até o túnel (quem tem
- * silhueta) e a revelação da carta (a nota batendo, raios, a arte e a festa depois).
+ * As tabelas acima ganham tempo em dois lugares (no máximo +2 s): o travelling da câmera dos telões até o túnel (quem
+ * tem silhueta) e a revelação da carta (a nota batendo em `card + 200 + count`, raios, a arte e a festa depois).
  */
-function stretchV2(p: WalkPlan): WalkPlan {
+function stretch(p: WalkPlan): WalkPlan {
     const tunnel = p.gate !== undefined ? 500 : 0;
     const reveal = p.kind === 'curto' ? 0 : p.tier === 'especial' ? 1100 : p.tier === 'muitoraro' ? 800 : 500;
     const hit = p.card + 200 + p.count;
     const at = (x: number) => x + (p.back !== undefined && x >= p.back ? tunnel : 0) + (x > hit ? reveal : 0);
     const opt = (x?: number) => (x === undefined ? x : at(x));
-    const out: WalkPlan = { ...p, v2: true };
+    const out: WalkPlan = { ...p };
     for (const k of ['gate', 'art', 'plate', 'plateOut'] as const) out[k] = opt(p[k]);
     for (const k of ['enter', 'impact', 'card', 'party', 'end'] as const) out[k] = at(p[k]);
     return out;
 }
 
-/** A comemoração depois da jogada (versão 2), pela forma: quem voa gira, quem é bicho de quatro patas/bola pula, o resto faz pose. */
+/** A comemoração depois da jogada, pela forma: quem voa gira, quem é bicho de quatro patas/bola pula, o resto faz pose. */
 export type Comemoracao = 'pulo' | 'giro' | 'pose';
 export function comemoracaoOf(speciesId: number): Comemoracao {
     const sp = species(speciesId);
@@ -231,6 +247,9 @@ export function dayCount(stored: number | null, today: number): { nth: number; s
     const n = day === today && stored !== null ? (stored % 1000) + 1 : 1;
     return { nth: n, store: today * 1000 + Math.min(n, 999) };
 }
+
+/** Hoje no relógio de Brasília (o dia da Copa do Dia) como número, 20261103, pro `dayCount`. */
+export const walkoutToday = (now = new Date()) => Number(dailyDay(now).replace(/-/g, ''));
 
 /** A jogada com bola na entrada em campo. Todas terminam com o chute na tela (que racha o vidro). */
 export type Jogada =

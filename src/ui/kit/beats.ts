@@ -1,6 +1,3 @@
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { editionOf } from '../../engine/specials';
-
 /** Teto da cascata (cara-de-jogo.md, peça 3): passou disso, as batidas encolhem na mesma proporção. */
 export const CASCADE_MAX_MS = 3500;
 
@@ -17,33 +14,6 @@ export function beatTimes(gaps: readonly number[], max = CASCADE_MAX_MS): number
 
 /** Quantas batidas já bateram aos `elapsed` ms. */
 export const beatsAt = (times: readonly number[], elapsed: number) => times.filter((t) => t <= elapsed).length;
-
-/**
- * A carta do pacote que ganha o walkout (menus-fc-e-aclamados.md): só ouro (75+) ou edição especial, e só uma por
- * pacote, a melhor (edição antes, depois a nota). -1 = nenhuma: o pacote abre como sempre.
- */
-export function walkoutIndex(cards: readonly PokemonInstance[]): number {
-    let best = -1;
-    let score = -1;
-    cards.forEach((c, i) => {
-        const ovr = viewInstance(c).overall;
-        const s = editionOf(c) ? 1000 + ovr : ovr >= 75 ? ovr : -1;
-        if (s > score) {
-            best = i;
-            score = s;
-        }
-    });
-    return best;
-}
-
-/** O dia local como número (20261102), pra guardar no `local-count`. */
-export const dayNumber = (d: Date) => d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-
-/**
- * Batidas do walkout (menus-fc-e-aclamados.md): 3 no primeiro do dia, 1 (cor do tipo e a carta) do segundo em diante.
- * `last` = o dia do último walkout guardado neste navegador (null = nunca ou sem onde guardar).
- */
-export const walkoutBeats = (last: number | null, today: number) => (last === today ? 1 : 3);
 
 /** Próximo índice do seletor ‹ › (`dir` -1 ou 1): dá a volta com `wrap`, senão para nas pontas. */
 export function stepIndex(i: number, dir: -1 | 1, n: number, wrap: boolean): number {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
+import { ICONS } from '../engine/specials';
 import {
     comemoracaoOf,
     dayCount,
@@ -9,7 +10,9 @@ import {
     planBeats,
     SHATTER_MS,
     upgradeOf,
+    walkoutPick,
     walkoutPlan,
+    walkoutToday,
     walkTier,
 } from './walkout-plan';
 
@@ -25,26 +28,23 @@ describe('plano do walkout', () => {
         expect(walkTier(null, 74)).toBeNull();
     });
 
-    it('dura ~5, ~8,5 e ~14 s; a revelação do especial tem ~3,5–4 s; Reduzir movimento ~1,2 s', () => {
-        expect(walkoutPlan('raro').end).toBe(5000);
-        expect(walkoutPlan('muitoraro').end).toBe(8500);
+    it('dura ~5,5, ~10 e ~15,5 s; a revelação do especial tem ~5 s; Reduzir movimento ~1,2 s', () => {
+        expect(walkoutPlan('raro').end).toBe(5500);
+        expect(walkoutPlan('muitoraro').end).toBe(9800);
         const esp = walkoutPlan('especial');
-        expect(esp.end).toBe(14000);
-        expect(esp.end - esp.impact).toBeGreaterThanOrEqual(3500);
-        expect(esp.end - esp.impact).toBeLessThanOrEqual(4000);
+        expect(esp.end).toBe(15600);
+        expect(esp.end - esp.impact).toBeGreaterThanOrEqual(4500);
+        expect(esp.end - esp.impact).toBeLessThanOrEqual(5500);
+        // a nota bate antes da arte entrar
+        expect(esp.card + 200 + esp.count).toBeLessThan(esp.art ?? 0);
         for (const tier of ['raro', 'muitoraro', 'especial'] as const)
             expect(walkoutPlan(tier, { reduce: true })).toMatchObject({ kind: 'calmo', end: 1200, spots: 0 });
     });
 
     it('a ordem das batidas faz sentido (telões, silhueta, jogada, vidro, carta)', () => {
         for (const tier of ['raro', 'muitoraro', 'especial'] as const)
-            for (const [upgrade, v2] of [
-                [false, false],
-                [true, false],
-                [false, true],
-                [true, true],
-            ]) {
-                const p = walkoutPlan(tier, { upgrade, v2 });
+            for (const upgrade of [false, true]) {
+                const p = walkoutPlan(tier, { upgrade });
                 expect(p.enter + p.body).toBeLessThan(p.impact);
                 // a carta só aparece com o vidro já quebrado
                 expect(p.impact + SHATTER_MS).toBeLessThanOrEqual(p.card);
@@ -58,9 +58,9 @@ describe('plano do walkout', () => {
 
     it('encolhe do 2º raro e do 3º muito raro do dia; especial nunca', () => {
         expect(walkoutPlan('raro', { nth: 2 })).toMatchObject({ kind: 'curto', end: 1800 });
-        expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(8500);
-        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ end: 5000, tier: 'muitoraro' });
-        expect(walkoutPlan('especial', { nth: 9 }).end).toBe(14000);
+        expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(9800);
+        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 5000, tier: 'muitoraro' });
+        expect(walkoutPlan('especial', { nth: 9 }).end).toBe(15600);
     });
 
     it('upgrade só no especial: prévia prateada, a placa vem no flash; metade dos especiais', () => {
@@ -81,6 +81,19 @@ describe('plano do walkout', () => {
         const b = dayCount(a.store, 20261102);
         expect(b.nth).toBe(2);
         expect(dayCount(b.store, 20261103).nth).toBe(1);
+        // o dia vira à meia-noite de Brasília (03:00 UTC), não à do navegador
+        expect(walkoutToday(new Date('2026-11-03T02:59:00Z'))).toBe(20261102);
+        expect(walkoutToday(new Date('2026-11-03T03:01:00Z'))).toBe(20261103);
+    });
+
+    it('a carta do pacote: o nível mais alto, depois a nota; abaixo de 75 sem edição, nenhuma', () => {
+        const mk = (id: number, lv: number) => createInstance(id, new Rng('pick', `${id}-${lv}`), lv);
+        const weak = [mk(10, 5), mk(16, 5)];
+        expect(walkoutPick(weak)).toBe(-1);
+        const shiny = { ...mk(19, 5), shiny: true };
+        expect(walkoutPick([weak[0], shiny, weak[1]])).toBe(1);
+        const icon = { ...mk(150, 5), special: { kind: 'icone' as const, title: ICONS[150] } };
+        expect(walkoutPick([shiny, weak[0], icon])).toBe(2);
     });
 
     it('jogada com bola pela forma e pelo tipo, sempre a mesma por espécie, e todas aparecem', () => {
@@ -99,23 +112,7 @@ describe('plano do walkout', () => {
         expect([...seen].sort()).toEqual([...JOGADAS].sort());
     });
 
-    it('versão 2: no máximo +2 s, Pular e Reduzir movimento iguais, a placa do upgrade no flash', () => {
-        for (const tier of ['raro', 'muitoraro', 'especial'] as const)
-            for (const nth of [1, 2, 3]) {
-                const a = walkoutPlan(tier, { nth });
-                const b = walkoutPlan(tier, { nth, v2: true });
-                expect(b.end - a.end).toBeGreaterThanOrEqual(0);
-                expect(b.end - a.end).toBeLessThanOrEqual(2000);
-                expect(walkoutPlan(tier, { reduce: true, v2: true }).end).toBe(1200);
-            }
-        const up = walkoutPlan('especial', { upgrade: true, v2: true });
-        expect(up.plate).toBe(up.enter);
-        // a nota bate antes da arte entrar
-        const esp = walkoutPlan('especial', { v2: true });
-        expect(esp.card + 200 + esp.count).toBeLessThan(esp.art ?? 0);
-    });
-
-    it('comemoração pela forma (versão 2)', () => {
+    it('comemoração pela forma', () => {
         expect(comemoracaoOf(150)).toBe('pose'); // Mewtwo
         expect(comemoracaoOf(149)).toBe('giro'); // Dragonite
         expect(comemoracaoOf(6)).toBe('giro'); // Charizard

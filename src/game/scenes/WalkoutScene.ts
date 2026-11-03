@@ -170,7 +170,7 @@ export class WalkoutScene extends Phaser.Scene {
     private fxAt = 0;
     private impactPt = { x: 0, y: 0 };
     private landed = false;
-    // versão 2: câmera, ola, flashes, comemoração e a revelação com floreio
+    // câmera, ola, flashes, comemoração e a revelação com floreio
     private heads: { x: number; y: number; s: string; c: string; jump: boolean }[] = [];
     private rot = 0;
     private orbit = 0;
@@ -340,7 +340,6 @@ export class WalkoutScene extends Phaser.Scene {
 
     private finish() {
         this.finished = true;
-        this.sweepBeams();
     }
 
     update(_t: number, dt: number) {
@@ -357,7 +356,7 @@ export class WalkoutScene extends Phaser.Scene {
         if (!this.finished && p.kind !== 'calmo' && this.clock >= p.enter && this.clock < p.impact)
             this.stepJogada(this.clock - p.enter);
         if (p.kind !== 'calmo') this.stepScreens();
-        if (p.v2 && p.kind !== 'calmo') this.stepV2();
+        if (p.kind !== 'calmo') this.stepMotion();
         this.game.events.emit('wk-tick', this.clock);
     }
 
@@ -628,33 +627,31 @@ export class WalkoutScene extends Phaser.Scene {
         );
         this.w(this.add.image(0, 0, 'wk-stadium').setOrigin(0).setDepth(4));
         this.crowd = this.w(this.add.image(0, 0, 'wk-crowd-0').setOrigin(0).setDepth(5));
-        if (this.p.v2) {
-            // a ola: a arquibancada de pé com os braços pra cima, mostrada numa faixa que corre de um lado pro outro
-            const st = this.textures.get('wk-stadium').getSourceImage() as HTMLCanvasElement;
-            this.canvas('wk-crowd-up', W, H, (ctx) => {
-                ctx.drawImage(st, 0, y0, W, yS - y0 - 1, 0, y0, W, yS - y0 - 1);
-                for (const h of this.heads) {
-                    ctx.fillStyle = h.c;
-                    ctx.fillRect(h.x, h.y, 2, 2);
-                    ctx.fillStyle = h.s;
-                    ctx.fillRect(h.x, h.y - 2, 2, 2);
-                    ctx.fillRect(h.x - 1, h.y - 4, 1, 3);
-                    ctx.fillRect(h.x + 2, h.y - 4, 1, 3);
-                }
-            });
-            this.ola = this.w(this.add.image(0, 0, 'wk-crowd-up').setOrigin(0).setDepth(5.5).setVisible(false));
-            this.camFlash = this.add.particles(0, 0, 'wk-star', {
-                x: { min: 4, max: W - 4 },
-                y: { min: y0 + 4, max: yS - 6 },
-                lifespan: 150,
-                frequency: -1,
-                scale: { start: 1, end: 0.2 },
-                alpha: { start: 1, end: 0 },
-                blendMode: Phaser.BlendModes.ADD,
-            });
-            this.camFlash.setDepth(8);
-            this.w(this.camFlash);
-        }
+        // a ola: a arquibancada de pé com os braços pra cima, mostrada numa faixa que corre de um lado pro outro
+        const st = this.textures.get('wk-stadium').getSourceImage() as HTMLCanvasElement;
+        this.canvas('wk-crowd-up', W, H, (ctx) => {
+            ctx.drawImage(st, 0, y0, W, yS - y0 - 1, 0, y0, W, yS - y0 - 1);
+            for (const h of this.heads) {
+                ctx.fillStyle = h.c;
+                ctx.fillRect(h.x, h.y, 2, 2);
+                ctx.fillStyle = h.s;
+                ctx.fillRect(h.x, h.y - 2, 2, 2);
+                ctx.fillRect(h.x - 1, h.y - 4, 1, 3);
+                ctx.fillRect(h.x + 2, h.y - 4, 1, 3);
+            }
+        });
+        this.ola = this.w(this.add.image(0, 0, 'wk-crowd-up').setOrigin(0).setDepth(5.5).setVisible(false));
+        this.camFlash = this.add.particles(0, 0, 'wk-star', {
+            x: { min: 4, max: W - 4 },
+            y: { min: y0 + 4, max: yS - 6 },
+            lifespan: 150,
+            frequency: -1,
+            scale: { start: 1, end: 0.2 },
+            alpha: { start: 1, end: 0 },
+            blendMode: Phaser.BlendModes.ADD,
+        });
+        this.camFlash.setDepth(8);
+        this.w(this.camFlash);
         // escuro por cima do estádio (o céu escurece pela troca de textura)
         this.dark = this.w(
             this.add
@@ -1131,7 +1128,7 @@ export class WalkoutScene extends Phaser.Scene {
         const cam = this.cameras.main;
         const z = Phaser.Math.Clamp((this.W * 0.86) / s.w, 1.6, 3);
         const p = this.p;
-        if (p.v2 && i === 1) {
+        if (i === 1) {
             // corte seco pro telão da posição, já perto, e a câmera abre devagar girando de volta
             cam.panEffect.reset();
             cam.centerOn(s.x, s.y + 4);
@@ -1140,7 +1137,7 @@ export class WalkoutScene extends Phaser.Scene {
             this.hudCam.flash(70, 255, 255, 255);
             this.rot = 0.03;
             this.tweens.add({ targets: this, rot: 0, duration: 900, ease: 'Sine.easeOut' });
-        } else if (p.v2) {
+        } else {
             // chicote até o telão do tipo e um dolly lento chegando mais perto, com a câmera inclinada
             cam.pan(s.x, s.y + 4, 260, 'Cubic.easeOut', true);
             this.zoom(z * 0.94, 260, 'Back.easeOut');
@@ -1149,9 +1146,6 @@ export class WalkoutScene extends Phaser.Scene {
             );
             this.rot = -0.035;
             this.tweens.add({ targets: this, rot: -0.015, duration: 1000, ease: 'Sine.easeOut' });
-        } else {
-            cam.pan(s.x, s.y + 4, 320, 'Quad.easeInOut', true);
-            this.zoom(z, 320, 'Quad.easeInOut');
         }
         this.beatBeams();
         this.at(this.clock + 220, () => {
@@ -1170,7 +1164,7 @@ export class WalkoutScene extends Phaser.Scene {
         const cam = this.cameras.main;
         const p = this.p;
         this.tweens.add({ targets: this, rot: 0, duration: 400 });
-        if (p.v2 && p.gate !== undefined && p.back !== undefined) {
+        if (p.gate !== undefined && p.back !== undefined) {
             // travelling: dos telões desce pela arquibancada até a boca do túnel
             const ms = p.gate - p.back + 120;
             cam.pan(this.W / 2, this.yS - 22, ms, 'Sine.easeInOut', true);
@@ -1192,7 +1186,7 @@ export class WalkoutScene extends Phaser.Scene {
         } else this.skyLook.setAlpha(1);
     }
 
-    private addBeam(x: number, y: number, aim: number, sweep: number, delay: number) {
+    private addBeam(x: number, y: number, aim: number, sweep: number) {
         const b = this.add
             .image(x, y, 'wk-beam')
             .setOrigin(0.5, 0)
@@ -1201,42 +1195,18 @@ export class WalkoutScene extends Phaser.Scene {
             .setAlpha(0)
             .setTint(this.look.beam)
             .setBlendMode(Phaser.BlendModes.ADD);
-        b.setData('aim', aim).setData('sweep', sweep).setData('delay', delay);
+        b.setData('aim', aim).setData('sweep', sweep);
         this.w(b);
         this.beams.push(b);
         return b;
     }
 
-    /** Holofote acende com um "clank" e começa a varrer. */
+    /** Holofote acende com um "clank" (quem varre é o `stepMotion`). */
     private lightBeam(b: Phaser.GameObjects.Image, i: number, alpha = 0.32) {
         this.snd({ k: 'sfx', name: 'post', pitch: 0.55 + i * 0.05 });
         b.setAlpha(alpha + 0.25);
         this.tweens.add({ targets: b, alpha, duration: 260 });
         b.setData('lit', true);
-        if (this.p.v2) return;
-        this.tweens.add({
-            targets: b,
-            rotation: b.getData('aim') + b.getData('sweep'),
-            duration: 1500 + b.getData('delay'),
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut',
-        });
-    }
-
-    private sweepBeams() {
-        if (this.p.v2) return;
-        for (const b of this.beams) {
-            if (this.tweens.isTweening(b)) continue;
-            this.tweens.add({
-                targets: b,
-                rotation: b.getData('aim') + b.getData('sweep'),
-                duration: 1800,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut',
-            });
-        }
     }
 
     private lampOn(i: number) {
@@ -1789,11 +1759,10 @@ export class WalkoutScene extends Phaser.Scene {
         this.shadow.setVisible(false);
         this.ballShadow.setVisible(false);
         cam.pan(W / 2, yS - 20, 260, 'Quad.easeOut', true);
-        const v2 = this.p.v2 ? 1.15 : 1;
-        this.zoom(1.1 * v2, 260, 'Quad.easeOut');
+        this.zoom(1.1 * 1.15, 260, 'Quad.easeOut');
         this.at(this.clock + 280, () => {
             cam.pan(W / 2, yS - 18, ms - 300, 'Sine.easeIn', true);
-            this.zoom(1.3 * v2, ms - 300, 'Sine.easeIn');
+            this.zoom(1.3 * 1.15, ms - 300, 'Sine.easeIn');
         });
         const who = this.h(
             this.add
@@ -1938,15 +1907,13 @@ export class WalkoutScene extends Phaser.Scene {
         this.tweens.add({ targets: prog, p: 1, duration: 200, ease: 'Quad.easeOut', onUpdate: draw });
         this.hudCam.flash(60, 255, 255, 255);
         this.shake(220, small ? 3 : 6);
-        if (this.p.v2) {
-            this.zoom(1.14);
-            this.zoom(1, 360, 'Back.easeOut');
-            this.beatBeams();
-            this.at(this.clock + 140, () => {
-                this.celebAt = this.clock;
-                this.celebStep = -1;
-            });
-        }
+        this.zoom(1.14);
+        this.zoom(1, 360, 'Back.easeOut');
+        this.beatBeams();
+        this.at(this.clock + 140, () => {
+            this.celebAt = this.clock;
+            this.celebStep = -1;
+        });
         this.snd({ k: 'zz', name: 'glass' });
         this.snd({ k: 'sfx', name: 'thud', pitch: 0.6 });
         this.crowdBurst(20);
@@ -2017,7 +1984,7 @@ export class WalkoutScene extends Phaser.Scene {
                         [W * 0.8, H + 4, Math.PI - 0.35, 0.6],
                     ];
         set.slice(0, beams).forEach(([x, y, aim, sweep], i) => {
-            const b = this.addBeam(x, y, aim, sweep, i * 230);
+            const b = this.addBeam(x, y, aim, sweep);
             b.setTint(look.beam);
             this.at(at + i * step, () => {
                 this.lightBeam(b, i);
@@ -2089,14 +2056,7 @@ export class WalkoutScene extends Phaser.Scene {
             },
             true,
         );
-        this.at(
-            p.art,
-            () => {
-                if (!p.v2) this.snd({ k: 'max', name: 'stinger' });
-                this.snd({ k: 'sfx', name: 'goal' });
-            },
-            true,
-        );
+        this.at(p.art, () => this.snd({ k: 'sfx', name: 'goal' }), true);
         this.at(p.party, () => {
             this.confetti(this.finalLook.fx.concat(p.tier === 'especial' ? [] : LOOKS.ouro.fx));
             if (p.tier !== 'raro') {
@@ -2104,33 +2064,28 @@ export class WalkoutScene extends Phaser.Scene {
                 this.firework(W * 0.78, this.y0 * 0.35, this.finalLook.fx, 150);
             }
             this.tweens.add({ targets: this.rays, alpha: 0.3, duration: 200 });
-            if (p.v2) {
-                this.celebAt = this.clock;
-                this.celebStep = -1;
-            } else {
-                this.anim('Hop', 0);
-                this.time.delayedCall(1100, () => this.anim('Idle', 0));
-            }
+            this.celebAt = this.clock;
+            this.celebStep = -1;
             this.snd({ k: 'crowd', call: 'gol', gain: esp ? 1 : 0.6 });
             this.crowdBurst(50);
             this.crowdBeat = 90;
         });
         this.at(p.end, () => this.finish());
-        if (p.v2) this.planV2();
+        this.planMotion();
     }
 
     /**
-     * O que a versão 2 soma ao roteiro: a câmera abre num dolly, a ola e os flashes começam com a luz, colunas de fogo e
+     * O movimento por cima do roteiro: a câmera abre num dolly, a ola e os flashes começam com a luz, colunas de fogo e
      * fogos nas batidas (placa, carta, a nota batendo, o golpe do stinger), raios e faíscas subindo atrás da carta, e
      * confete na cor da edição caindo na festa.
      */
-    private planV2() {
+    private planMotion() {
         const p = this.p;
         const { W, H } = this;
         const cam = this.cameras.main;
         const fx = this.finalLook.fx;
         const esp = p.tier === 'especial';
-        // tudo o que solta partícula na v2 nasce agora, parado (criar no meio custava uma travadinha por batida)
+        // tudo o que solta partícula nasce agora, parado (criar no meio custava uma travadinha por batida)
         this.fireColumns(0);
         const rise = this.add.particles(0, 0, 'wk-px', {
             x: { min: W * 0.12, max: W * 0.88 },
@@ -2267,14 +2222,13 @@ export class WalkoutScene extends Phaser.Scene {
 
     /** Batida: os holofotes trocam de cor (as da edição, em roda). */
     private beatBeams() {
-        if (!this.p.v2) return;
         this.beat++;
         const fx = this.look.fx;
         for (const [i, b] of this.beams.entries()) b.setTint(fx[(i + this.beat) % fx.length] ?? this.look.beam);
     }
 
-    /** A cada quadro da versão 2: câmera (órbita na jogada), holofotes dançando, ola, flashes e a comemoração. */
-    private stepV2() {
+    /** A cada quadro: câmera (órbita na jogada), holofotes dançando, ola, flashes e a comemoração. */
+    private stepMotion() {
         const p = this.p;
         const { W, H } = this;
         const cam = this.cameras.main;
@@ -2321,7 +2275,7 @@ export class WalkoutScene extends Phaser.Scene {
         return true;
     }
 
-    /** A comemoração (versão 2), pela forma: pulo (3 pulinhos), giro (salto girando) ou pose (carrega e solta o golpe). */
+    /** A comemoração, pela forma: pulo (3 pulinhos), giro (salto girando) ou pose (carrega e solta o golpe). */
     private celebrate(ms: number) {
         const DUR = 1300;
         const m = { x: this.monAt.x, d: this.monAt.d };

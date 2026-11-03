@@ -5,13 +5,25 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { cardTypeOf, editionOf } from '../../engine/specials';
 import { duckMusic, unduckMusic } from '../../game/music';
 import type { WalkoutData, WalkoutScene } from '../../game/scenes/WalkoutScene';
-import { type Jogada, jogadaOf, WALK_SKIP_AT, type WalkPlan } from '../../game/walkout-plan';
+import {
+    dayCount,
+    type Jogada,
+    jogadaOf,
+    upgradeOf,
+    WALK_SKIP_AT,
+    type WalkPlan,
+    walkoutPlan,
+    walkoutToday,
+    walkTier,
+} from '../../game/walkout-plan';
 import { wkSound } from '../../game/walkout-sound';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { FutCard } from '../components/FutCard';
+import { readCount, writeCount } from '../local-count';
 import { editionLabel } from '../rarity';
+import { reduceMotionOn } from '../reduce-motion';
 import { TYPE_COLOR } from '../type-colors';
 import { uiZoom } from '../ui-zoom';
 import './walkout.css';
@@ -179,8 +191,8 @@ export function WalkoutStage({
     useLayoutEffect(() => {
         const el = cardRef.current?.querySelector<HTMLElement>('.m-ovr');
         if (!el) return;
-        // versão 2: a nota bate (cresce e carimba de volta) quando termina de contar
-        if (plan.v2 && plan.count)
+        // a nota bate (cresce e carimba de volta) quando termina de contar
+        if (plan.count)
             el.style.scale = String(
                 t < hit ? 1 : hitK < 0.2 ? lerp(1, 1.8, hitK / 0.2) : lerp(1.8, 1, outBack((hitK - 0.2) / 0.8)),
             );
@@ -226,10 +238,9 @@ export function WalkoutStage({
     const shineK = ramp(t, shineAt, shineAt + 650);
     const flash = plan.art !== undefined && t >= plan.art ? 1 - ramp(t, plan.art, plan.art + 260) : 0;
     const done = t >= plan.end;
-    const v2 = plan.v2 === true && !calm;
-    const shakeK = v2 && plan.count && t >= hit ? 1 - hitK : 0;
-    const edgeK = v2 ? ramp(t, landed, landed + 300) : 0;
-    const raysK = v2 ? ramp(t, landed - 300, landed + 200) : 0;
+    const shakeK = !calm && plan.count && t >= hit ? 1 - hitK : 0;
+    const edgeK = calm ? 0 : ramp(t, landed, landed + 300);
+    const raysK = calm ? 0 : ramp(t, landed - 300, landed + 200);
 
     const rootStyle = { '--u': `${u}px`, '--l1': l1, '--l2': l2, '--c1': typeColor } as CSSProperties;
     return createPortal(
@@ -273,7 +284,7 @@ export function WalkoutStage({
                     <i
                         className="wk-card-glow"
                         style={{
-                            transform: `translate(-50%, -50%) scale(${1 + (v2 ? 0.1 : 0.06) * Math.sin(t / 220) + 0.25 * shakeK})`,
+                            transform: `translate(-50%, -50%) scale(${1 + (calm ? 0.06 : 0.1) * Math.sin(t / 220) + 0.25 * shakeK})`,
                         }}
                     />
                     <div className="wk-card-spin" style={{ transform: cardTf }}>
@@ -336,4 +347,21 @@ export function WalkoutStage({
         </div>,
         document.body,
     );
+}
+
+/**
+ * O walkout de uma carta do pacote (UT e Mercado da Copa; quem escolhe a carta é `walkoutPick`): o nível pela edição e
+ * pela nota, encolhido pela contagem do dia (Brasília) daquele nível, guardada neste navegador e a mesma nos dois modos.
+ */
+export function Walkout({ inst, onDone }: { inst: PokemonInstance; onDone: () => void }) {
+    const [walk] = useState(() => {
+        const tier = walkTier(editionOf(inst), viewInstance(inst).overall) ?? 'raro';
+        const key = `soccermon:walkout-${tier}`;
+        const day = dayCount(readCount(key), walkoutToday());
+        const plan = walkoutPlan(tier, { nth: day.nth, reduce: reduceMotionOn(), upgrade: upgradeOf(inst) });
+        return { key, store: day.store, plan };
+    });
+    // grava depois (o StrictMode chama o useState duas vezes: gravar lá faria o 1º do dia nascer encolhido)
+    useEffect(() => writeCount(walk.key, walk.store), [walk]);
+    return <WalkoutStage inst={inst} plan={walk.plan} onDone={onDone} />;
 }

@@ -1,5 +1,5 @@
 /*
- * Peças de "cara de jogo" (docs/planos/pesquisas/cara-de-jogo.md, 02/11/2026): Palco, Momento (com o walkout),
+ * Peças de "cara de jogo" (docs/planos/pesquisas/cara-de-jogo.md, 02/11/2026): Palco, Momento,
  * Cascata e os controles de jogo (seletor ‹ ›, bloco de escolha, Info "?", linha que abre Sheet). Galeria: ?lab=kit.
  */
 
@@ -173,136 +173,6 @@
 }
 .k-moment-title.draw {
     color: var(--text);
-}
-
-/* ---------- walkout: cor do tipo, ícone, placa da posição, insígnia, carta ---------- */
-.k-walk {
-    background: radial-gradient(
-        110% 80% at 50% 42%,
-        color-mix(in srgb, var(--tc), #fff 12%) 0%,
-        var(--tc) 38%,
-        color-mix(in srgb, var(--tc), #05081a 72%) 100%
-    );
-    transition: background var(--dur-tela) var(--ease-out);
-}
-.k-walk.is-card {
-    background: radial-gradient(120% 90% at 50% 40%, #2a3a7a 0%, #141d48 55%, #070a18 100%);
-}
-.k-walk-tap {
-    all: unset;
-    position: relative;
-    width: 100%;
-    height: min(560px, calc(70 * var(--vh)));
-    display: grid;
-    place-items: center;
-    cursor: pointer;
-}
-.k-walk-tap:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 4px;
-}
-.k-walk-type {
-    position: absolute;
-    top: 14%;
-    left: 50%;
-    translate: -50% 0;
-    filter: drop-shadow(0 6px 0 rgb(0 0 0 / 0.35));
-}
-.k-walk-type img {
-    width: 96px;
-    height: 96px;
-}
-.k-walk-pos {
-    position: absolute;
-    top: 46%;
-    right: -16px;
-    padding: 10px 40px 10px 34px;
-    background: var(--cb-ink);
-    border: 3px solid #000;
-    box-shadow: inset 0 0 0 2px var(--frame-in);
-    clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%);
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 30px;
-    color: var(--yellow);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    animation: k-walk-slide var(--dur-tela) var(--ease-out) both;
-}
-@keyframes k-walk-slide {
-    from {
-        transform: translate(60%, -30%);
-        opacity: 0;
-    }
-}
-.k-walk-badge {
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    translate: -50% 0;
-}
-.k-walk-badge svg {
-    width: 84px;
-    height: 84px;
-    filter: drop-shadow(0 5px 0 rgb(0 0 0 / 0.4));
-}
-.k-walk-badge b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-weight: 400;
-    font-size: 34px;
-    color: #fff;
-    text-shadow: var(--k-out-2);
-}
-.k-walk-card {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: min(240px, calc(62 * var(--vw)));
-    animation: k-walk-rise 700ms var(--ease-pop) both;
-}
-.k-walk-card .fut-wrap,
-.k-walk-card > :not(i) {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-}
-@keyframes k-walk-rise {
-    from {
-        opacity: 0;
-        transform: translateY(40px) scale(0.8);
-    }
-}
-.k-walk-light {
-    position: absolute;
-    inset: -40%;
-    z-index: 0;
-    background: radial-gradient(closest-side, rgb(255 226 120 / 0.7), rgb(255 226 120 / 0) 70%);
-    animation: k-moment-in 600ms var(--ease-out) both;
-}
-.k-walk-dots {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    color: rgb(255 255 255 / 0.85);
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-.k-walk-dots i {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    transition: background var(--dur-ui) var(--ease-out);
-}
-.k-walk-dots i:first-of-type {
-    margin-left: 6px;
-}
-.k-walk-dots i.on {
-    background: #fff;
-}
-.k-walk-go {
-    min-width: 220px;
 }
 
 /* ---------- seletor ‹ valor › ---------- */
@@ -531,16 +401,14 @@
 /* ---------- Reduzir movimento: tudo aparece sem pulo, os raios param ---------- */
 @media (prefers-reduced-motion: reduce) {
     .k-pop,
-    .k-beat.on,
-    .k-walk-card,
-    .k-walk-pos {
+    .k-beat.on {
         animation-name: k-moment-in;
     }
     .k-moment-rays {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] :is(.k-pop, .k-beat.on, .k-walk-card, .k-walk-pos) {
+:root[data-reduce-motion="true"] :is(.k-pop, .k-beat.on) {
     animation-name: k-moment-in;
 }
 :root[data-reduce-motion="true"] .k-moment-rays {

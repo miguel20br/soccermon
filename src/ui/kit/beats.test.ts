@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInstance, viewInstance } from '../../engine/instance';
-import { Rng } from '../../engine/rng';
-import { beatsAt, beatTimes, CASCADE_MAX_MS, dayNumber, stepIndex, walkoutBeats, walkoutIndex } from './beats';
+import { beatsAt, beatTimes, CASCADE_MAX_MS, stepIndex } from './beats';
 
 describe('cascata', () => {
     it('soma os intervalos e encolhe pra caber no teto', () => {
@@ -15,30 +13,6 @@ describe('cascata', () => {
         expect(beatsAt(t, 0)).toBe(1);
         expect(beatsAt(t, 999)).toBe(2);
         expect(beatsAt(t, Number.POSITIVE_INFINITY)).toBe(3);
-    });
-});
-
-describe('walkout', () => {
-    const rng = new Rng('walk', 'test');
-    const mk = (id: number) => ({ ...createInstance(id, rng), shiny: false });
-    it('só ouro (75+) ou edição ganha walkout, e só o melhor', () => {
-        const weak = [mk(10), mk(13), mk(16)];
-        expect(weak.every((c) => viewInstance(c).overall < 75)).toBe(true);
-        expect(walkoutIndex(weak)).toBe(-1);
-        const gold = mk(149);
-        expect(viewInstance(gold).overall).toBeGreaterThanOrEqual(75);
-        expect(walkoutIndex([weak[0], gold, weak[1]])).toBe(1);
-        // edição especial passa na frente da nota
-        const shiny = { ...mk(19), shiny: true };
-        expect(walkoutIndex([gold, weak[0], shiny])).toBe(2);
-    });
-    it('3 batidas no primeiro do dia, 1 do segundo em diante', () => {
-        const today = dayNumber(new Date(2026, 10, 2, 23, 59));
-        expect(today).toBe(20261102);
-        expect(walkoutBeats(null, today)).toBe(3);
-        expect(walkoutBeats(today, today)).toBe(1);
-        // virou o dia: volta inteiro
-        expect(walkoutBeats(today, dayNumber(new Date(2026, 10, 3, 0, 1)))).toBe(3);
     });
 });
 

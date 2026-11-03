@@ -4,6 +4,7 @@ import type { PokemonInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { interestOf, rerollPrice, type ShopOffer } from '../../engine/shop';
 import { MAX_SPONSORS } from '../../engine/sponsors';
+import { walkoutPick } from '../../game/walkout-plan';
 import { itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -14,11 +15,11 @@ import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { TmCard } from '../components/TmTeach';
-import { walkoutIndex } from '../kit/beats';
 import { InfoSheet, SheetRow } from '../kit/controls';
-import { MomentStage, Walkout } from '../kit/MomentStage';
+import { MomentStage } from '../kit/MomentStage';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
+import { Walkout } from '../kit/WalkoutStage';
 import { reduceMotionOn } from '../settings-sync';
 import { useHeld } from '../use-held';
 import { GainTarget } from './Reward';
@@ -427,7 +428,7 @@ function OfferCard({
 
 /**
  * O pacote da Copa em tela cheia (cara-de-jogo.md, decisão 4): abre num MomentStage, as cartas saem em leque com o tom
- * subindo e a melhor, se for ouro (75+) ou edição, fica guardada pro walkout em 3 batidas depois do leque (com Pular).
+ * subindo e a melhor, se for ouro (75+) ou edição, fica guardada pro walkout do nível dela depois do leque (com Pular).
  * Escolher uma abre a sheet de quem sai do banco; "Não quero nenhuma" segue sem carta, como antes.
  */
 function PackMoment({
@@ -450,7 +451,7 @@ function PackMoment({
     target: ReactNode;
 }) {
     const { t } = useT();
-    const walkAt = walkoutIndex(pack);
+    const walkAt = walkoutPick(pack);
     // 'wait' = guardada até o leque acabar; 'on' = o walkout tocando; 'done' = já na mesa
     const [walk, setWalk] = useState<'wait' | 'on' | 'done'>(walkAt < 0 ? 'done' : 'wait');
     return (

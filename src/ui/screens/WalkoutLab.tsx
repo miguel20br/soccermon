@@ -20,8 +20,8 @@ import { reduceMotionOn } from '../reduce-motion';
 /**
  * Laboratório do walkout final (`?lab=walkout`, só dev e prévias; ut-walkout.md). `&ed=icone|destaque|evento|shiny|
  * ouro85|ouro75&id=<pokédex>` escolhe a carta; `&jogada=<nome>` força a jogada; `&up=1|0` força o upgrade do especial
- * (sem: metade, pela carta); `&dia=N` simula o N-ésimo do nível no dia; `&reduce=1` simula Reduzir movimento;
- * `&v=2` a versão 2 (mais animada, pra comparar); `&auto=1` já abre (a gravação espera `window.__wkStart`).
+ * (sem: metade, pela carta); `&dia=N` simula o N-ésimo do nível no dia (não mexe na contagem do jogo); `&reduce=1`
+ * simula Reduzir movimento; `&auto=1` já abre (a gravação espera `window.__wkStart`).
  */
 type LabEd = 'icone' | 'destaque' | 'evento' | 'shiny' | 'ouro85' | 'ouro75';
 const PRESETS: [string, LabEd, number][] = [
@@ -58,7 +58,6 @@ export function WalkoutLab({ onExit }: { onExit: () => void }) {
         nth: Number(q.get('dia')) || 1,
         reduce: q.get('reduce') === '1' || reduceMotionOn(),
         upgrade: q.has('up') ? q.get('up') === '1' : upgradeOf(inst),
-        v2: q.get('v') === '2',
     });
     const manual = (window as unknown as { __wkManual?: boolean }).__wkManual;
     const [open, setOpen] = useState(() => (q.get('auto') === '1' && !manual ? 1 : 0));
@@ -72,7 +71,6 @@ export function WalkoutLab({ onExit }: { onExit: () => void }) {
             <p className="muted">
                 {view.displayName} · {view.overall} · {tier} · {plan.kind} · {(jogada ?? jogadaOf(id)).toString()}
                 {plan.upgrade ? ' · upgrade' : ''}
-                {plan.v2 ? ' · v2' : ''}
             </p>
             <div className="wkl-presets">
                 {PRESETS.map(([label, e, pid]) => (
