@@ -10,6 +10,10 @@
         --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
         --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
     }
+    /* a barra fixa de baixo não herda o zoom da tela (descentralizava ~20 px): volta ao tamanho de antes */
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) .ut-nav {
+        zoom: calc(1 / var(--k-big, 1));
+    }
 }
 .ut-panel {
     display: grid;
