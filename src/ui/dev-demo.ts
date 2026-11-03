@@ -669,36 +669,50 @@ export function runDevDemo() {
             Number(v) || SPECIES.find((sp) => sp.name.toLowerCase() === v?.toLowerCase())?.id || fallback;
         const gkId = idOf(q.get('gk'), 4);
         const atkId = idOf(q.get('atk'), 6);
-        store.newRun('Demo FC', `bicuda-${gkId}-${atkId}`);
-        const base = useGame.getState().run!;
-        const rng = new Rng(`bicuda-${gkId}-${atkId}`, 'demo');
-        // o seu goleiro capitão, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
-        const lineup = [gkId, 68, 130, 18, 149].map((id) => createInstance(id, rng));
-        const bench = [95, 25].map((id) => createInstance(id, rng));
-        // o rival com o atacante escolhido de capitão, no lugar do pivô (a última vaga)
-        const opp = base.opponents[0];
-        const atk = createInstance(atkId, rng);
-        const rival = {
-            ...opp,
-            lineup: opp.lineup.map((p, i) => (i === opp.lineup.length - 1 ? atk : p)),
-            captainUid: atk.uid,
-        };
-        const run = {
-            ...base,
-            opponents: [rival, ...base.opponents.slice(1)],
-            formation: '1-2-1' as const,
-            picks: [...lineup, ...bench],
-            lineup: lineup.map((p) => p.uid),
-            bench: bench.map((p) => p.uid),
-            captainUid: lineup[0].uid,
-            draftRound: 7,
-            status: 'lineup' as const,
-        };
-        const at = 300;
-        const team = { ...playerTeam(run), manualSubs: true, demoBicudaAt: at };
-        const saved = { stage: 0, orders: [], tick: at - 60, engine: ENGINE_VERSION };
-        useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
-        console.info(`[demo] bicuda: ${species(gkId).name} no gol x ${species(atkId).name}, duelo no tick ${at}`);
+        // o lance armado nem sempre acaba no duelo (Weedle x Wartortle virava gol na 0.9.39.1): tenta outras
+        // sementes até o goleiro segurar sem gol antes (a 1ª é a de sempre)
+        for (let k = 0; k < 20; k++) {
+            const seed = `bicuda-${gkId}-${atkId}${k ? `-${k}` : ''}`;
+            store.newRun('Demo FC', seed);
+            const base = useGame.getState().run!;
+            const rng = new Rng(seed, 'demo');
+            // o seu goleiro capitão, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
+            const lineup = [gkId, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+            const bench = [95, 25].map((id) => createInstance(id, rng));
+            // o rival com o atacante escolhido de capitão, no lugar do pivô (a última vaga)
+            const opp = base.opponents[0];
+            const atk = createInstance(atkId, rng);
+            const rival = {
+                ...opp,
+                lineup: opp.lineup.map((p, i) => (i === opp.lineup.length - 1 ? atk : p)),
+                captainUid: atk.uid,
+            };
+            const run = {
+                ...base,
+                opponents: [rival, ...base.opponents.slice(1)],
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[0].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const at = 300;
+            const team = { ...playerTeam(run), manualSubs: true, demoBicudaAt: at };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const duel = r.events.find((e) => e.type === 'showdown');
+            const early = r.events.some((e) => e.type === 'goal' && e.tick < (duel?.tick ?? 0));
+            if ((!duel || early) && k < 19) continue;
+            const saved = { stage: 0, orders: [], tick: at - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
+            console.info(
+                `[demo] bicuda: ${species(gkId).name} no gol x ${species(atkId).name}, duelo no tick ${duel?.tick ?? '-'}`,
+            );
+            return;
+        }
         return;
     }
     if (demo === 'charanga') {
