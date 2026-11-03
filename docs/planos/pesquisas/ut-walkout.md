@@ -414,3 +414,19 @@ Miguel comparou Phaser x React: fica uma mistura.
 - **Revelação da carta:** a intro quebrando a tela do Phaser e, depois, a carta de verdade (`FutCard`) aparecendo como no React.
 - **Mais longo**, principalmente a revelação da carta.
 - **Entrada com bola, diferente por Pokémon** (embaixadinha, bicicleta, cabeçada, drible, chute na câmera, levitar a bola etc., pela forma e pelo tipo).
+
+### Walkout final (03/11/2026, branch `walkout`, `?lab=walkout`)
+
+A mistura, atrás do laboratório até o ok do Miguel (o pacote do UT e da Copa ainda usam o walkout antigo):
+- Cena do Phaser `src/game/scenes/WalkoutScene.ts` (estádio, holofotes, fogos, dois telões: tipo com o ícone e posição),
+  silhueta com a bola, a jogada com bola e o chute na tela que racha e quebra o vidro. Por cima, em React
+  (`src/ui/kit/WalkoutStage.tsx`): a placa da edição ("ÍCONE", "DESTAQUE", "SHINY", "EVENTO · TIPO", "OURO") e a
+  `FutCard` girando, sem a foto no especial, com a nota contando. Um relógio só (o da cena, evento `wk-tick`).
+- Roteiro em `src/game/walkout-plan.ts`: raro 5 s, muito raro 8,5 s, especial 14 s (revelação do vidro ao fim ~3,75 s);
+  Pular depois de 1 s; Reduzir movimento 1,2 s; encolhe do 2º raro e do 3º muito raro no dia; upgrade (prata → cor da
+  edição) no flash, em metade dos especiais.
+- Jogadas (`jogadaOf`, pela espécie): levita (Psíquico, Fantasma), drible (quadrúpede rápido, Elétrico), chama (Fogo),
+  voo (Voador, asas), bicicleta (Lutador), tremor (Pedra, Terra), embaixadinha (bola, gosma, peixe), e o resto entre
+  embaixadinha, cabeçada e canhão pelo número da Pokédex. Todas acabam com o chute na tela.
+- Saíram a placa de rota e o título no telão. As versões só Phaser e só React ficam nas branches `walkout-phaser` e
+  `walkout-react`. Vídeo: `node scripts/walkout-capture.mjs --ed icone --id 150 --out x.mp4` (`--medir` dá o FPS).

@@ -1,13 +1,14 @@
 /**
- * Grava o walkout React (?lab=walkout&motor=react) quadro a quadro em 1080x1920, com o áudio montado a partir dos sons
- * que o walkout pediu (cada um na hora certa). Precisa do servidor de dev (BASE_URL, padrão http://localhost:8181).
+ * Grava o walkout final (?lab=walkout) quadro a quadro em 1080x1920, com o áudio montado a partir dos sons que o
+ * walkout pediu (cada um na hora certa do relógio da cena). Precisa do servidor de dev (BASE_URL, padrão
+ * http://localhost:8183). Rode dentro do `flock /tmp/soccermon-browser.lock`.
  *
- *   node scripts/walkout-capture.mjs --ed icone --id 150 --up 0 --out /tmp/x.mp4 [--quadros 400,900] [--fps 30]
- *   node scripts/walkout-capture.mjs --ed icone --id 150 --medir     (FPS em tempo real, sem gravar)
+ *   node scripts/walkout-capture.mjs --ed icone --id 150 --out /tmp/x.mp4 [--extra up=0] [--de 0 --ate 14000]
+ *                                    [--quadros 400,900] (PNGs também nesses ms) [--so] (só os PNGs)
+ *   node scripts/walkout-capture.mjs --ed icone --id 150 --medir --tela 390x844   (FPS em tempo real, sem gravar)
  *
- * O relógio do walkout para (window.__wkManual) e cada quadro chama __wkSeek(ms); as animações CSS e WAAPI (o
- * MomentWipe, o brilho da carta) andam junto pelo document.getAnimations(). --quadros grava também PNGs nesses ms.
- * CHROME_PATH aponta o Chromium (padrão /usr/bin/chromium). Rode dentro do `flock /tmp/soccermon-browser.lock`.
+ * O loop do Phaser dorme e cada quadro chama game.step (a cena e os tweens andam no relógio dela); as animações CSS
+ * (a carta) andam junto pelo document.getAnimations(). CHROME_PATH aponta o Chromium (padrão /usr/bin/chromium).
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -18,73 +19,94 @@ const args = process.argv.slice(2);
 const arg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const ed = arg('--ed', 'icone');
 const id = arg('--id', '150');
-const up = arg('--up', '');
 const out = arg('--out', `/tmp/walkout-${ed}-${id}.mp4`);
 const fps = Number(arg('--fps', 30));
 const keys = (arg('--quadros', '') || '').split(',').filter(Boolean).map(Number);
 const measure = args.includes('--medir');
-const base = process.env.BASE_URL ?? 'http://localhost:8181';
-const url = `${base}/?lab=walkout&motor=react&ed=${ed}&id=${id}${up ? `&up=${up}` : ''}&auto=1${arg('--extra', '') ? `&${arg('--extra', '')}` : ''}`;
+const base = process.env.BASE_URL ?? 'http://localhost:8183';
+const extra = arg('--extra', '');
+const url = `${base}/?lab=walkout&ed=${ed}&id=${id}&auto=1${extra ? `&${extra}` : ''}`;
 
 const browser = await puppeteer.launch({
     executablePath: process.env.CHROME_PATH ?? '/usr/bin/chromium',
     headless: true,
-    args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required', '--hide-scrollbars'],
-    protocolTimeout: 600000,
+    args: [
+        '--no-sandbox',
+        '--hide-scrollbars',
+        ...(process.env.GPU
+            ? ['--enable-gpu', '--ignore-gpu-blocklist']
+            : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']),
+    ],
+    protocolTimeout: 900000,
     env: { ...process.env, LANG: 'pt_BR.UTF-8', LANGUAGE: 'pt_BR' },
 });
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.log('[página]', e.message));
+page.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text()));
+const ready = () =>
+    page.waitForFunction(() => window.__walkoutGame?.scene.getScene('walkout')?.sys.settings.status === 5, {
+        timeout: 60000,
+    });
 
 if (measure) {
-    // tempo real: conta os quadros do requestAnimationFrame do começo ao fim do walkout
-    const vp = arg('--tela', '390x844x2').split('x').map(Number);
-    await page.setViewport({ width: vp[0], height: vp[1], deviceScaleFactor: vp[2] });
-    await page.evaluateOnNewDocument(() => {
-        const ts = [];
-        window.__wkFrames = ts;
-        const tick = (n) => {
-            if (document.querySelector('.wk')) ts.push(n);
-            requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-    });
+    // tempo real: quadros do loop do Phaser do começo ao fim do walkout
+    const vp = arg('--tela', '390x844').split('x').map(Number);
+    await page.setViewport({ width: vp[0], height: vp[1], deviceScaleFactor: vp[2] ?? 2 });
     await page.goto(url, { waitUntil: 'networkidle0', timeout: 120000 });
-    await page.waitForFunction(() => window.__wkPlan, { timeout: 30000 });
-    const end = await page.evaluate(() => window.__wkPlan.end);
-    await new Promise((r) => setTimeout(r, end + 600));
-    const ts = await page.evaluate(() => window.__wkFrames.slice());
-    const span = ts.filter((t) => t - ts[0] <= end);
-    const dts = span.slice(1).map((t, i) => t - span[i]);
-    const sorted = [...dts].sort((a, b) => a - b);
-    const p = (q) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))];
-    console.log(
-        JSON.stringify({
-            tela: vp.join('x'),
-            ms: Math.round(span.at(-1) - span[0]),
-            fps: +(dts.length / ((span.at(-1) - span[0]) / 1000)).toFixed(1),
-            p50: +p(0.5).toFixed(1),
-            p95: +p(0.95).toFixed(1),
-            max: +sorted.at(-1).toFixed(1),
-            acima33: dts.filter((d) => d > 33.4).length,
-            quadros: dts.length,
-        }),
+    await ready();
+    const r = await page.evaluate(
+        () =>
+            new Promise((res) => {
+                const g = window.__walkoutGame;
+                const s = g.scene.getScene('walkout');
+                const end = window.__wkPlan.end;
+                const ts = [];
+                const on = () => ts.push(performance.now());
+                g.events.on('poststep', on);
+                const chk = () => {
+                    if (s.clock < end) return setTimeout(chk, 50);
+                    g.events.off('poststep', on);
+                    const dts = ts.slice(1).map((t, i) => t - ts[i]);
+                    const sorted = [...dts].sort((a, b) => a - b);
+                    const q = (x) => sorted[Math.min(sorted.length - 1, Math.floor(x * sorted.length))];
+                    res({
+                        ms: Math.round(ts.at(-1) - ts[0]),
+                        fps: +(dts.length / ((ts.at(-1) - ts[0]) / 1000)).toFixed(1),
+                        p50: +q(0.5).toFixed(1),
+                        p95: +q(0.95).toFixed(1),
+                        max: +sorted.at(-1).toFixed(1),
+                        acima33: dts.filter((d) => d > 33.4).length,
+                        quadros: dts.length,
+                    });
+                };
+                chk();
+            }),
     );
+    console.log(JSON.stringify({ tela: vp.join('x'), ...r }));
     await browser.close();
     process.exit(0);
 }
 
-await page.setViewport({ width: 360, height: 640, deviceScaleFactor: 3 });
+// --tela LxAxD só pros PNGs (--so); o vídeo é sempre 360x640 a 3x = 1080x1920
+const [vw, vh, vd] = arg('--tela', '360x640x3').split('x').map(Number);
+await page.setViewport({ width: vw, height: vh, deviceScaleFactor: vd ?? 1 });
 await page.evaluateOnNewDocument(() => {
     window.__wkManual = true;
+    window.__wkHold = true;
     window.__wkSounds = [];
 });
 await page.goto(url, { waitUntil: 'networkidle0', timeout: 120000 });
 await page.waitForFunction(() => window.__wkStart, { timeout: 30000 });
+await page.evaluate(() => window.__wkStart());
+await ready();
 await page.evaluate(async () => {
     await document.fonts.ready;
+    const g = window.__walkoutGame;
+    g.loop.sleep();
+    window.__wkHold = false;
+    window.__t = performance.now();
     // as animações CSS/WAAPI ficam paradas e andam pelo relógio do quadro
-    window.__step = (dt) => {
+    window.__stepCss = (dt) => {
         for (const an of document.getAnimations()) {
             if (an.__vt === undefined) {
                 an.pause();
@@ -100,75 +122,72 @@ await page.evaluate(async () => {
             an.currentTime = an.__vt;
         }
     };
-    window.__wkStart();
+    window.__frame = (dt) => {
+        window.__t += dt;
+        g.step(window.__t, dt);
+        window.__stepCss(dt);
+        return g.scene.getScene('walkout').clock;
+    };
 });
-await page.waitForFunction(() => window.__wkSeek && window.__wkPlan, { timeout: 30000 });
-await page.evaluate(() => window.__step(0));
 const plan = await page.evaluate(() => window.__wkPlan);
-const tail = plan.end + 1200;
-const n = Math.ceil((tail / 1000) * fps);
+const from = Number(arg('--de', 0));
+const to = Number(arg('--ate', plan.end + 1200));
+const dt = 1000 / fps;
 const dir = join(dirname(out), `.frames-${ed}-${id}`);
 rmSync(dir, { recursive: true, force: true });
 mkdirSync(dir, { recursive: true });
 const cdp = await page.createCDPSession();
-// espera o que ainda carrega (folha do sprite, arte da carta) antes de fotografar
+// espera o que ainda carrega (arte da carta) antes de fotografar
 const settle = () =>
     page.evaluate(async () => {
         for (let i = 0; i < 60; i++) {
-            const mon = document.querySelector('.wk-mon');
-            const imgs = [...document.querySelectorAll('.wk img')];
-            const ok = (!mon || mon.querySelector('.fs-sprite')) && imgs.every((im) => im.complete);
-            if (ok) return;
+            if ([...document.querySelectorAll('.wk-ph img')].every((im) => im.complete)) return;
             await new Promise((r) => setTimeout(r, 50));
         }
     });
-if (args.includes('--so')) {
-    // só os quadros-chave (conferir rápido): anda até cada um em passos de 1/fps
-    let at = 0;
-    for (const k of keys) {
-        for (; at < k; at += 1000 / fps)
-            await page.evaluate(
-                (m, dt) => {
-                    window.__wkSeek(m);
-                    window.__step(dt);
-                },
-                at,
-                1000 / fps,
-            );
-        await page.evaluate((m) => window.__wkSeek(m), k);
+const shot = async () =>
+    Buffer.from(
+        (
+            await cdp.send('Page.captureScreenshot', {
+                format: 'png',
+                optimizeForSpeed: true,
+                clip: { x: 0, y: 0, width: vw, height: vh, scale: vd ?? 1 },
+            })
+        ).data,
+        'base64',
+    );
+let clock = 0;
+let n = 0;
+const left = [...keys];
+while (clock < to) {
+    clock = await page.evaluate((d) => window.__frame(d), dt);
+    if (clock < from) continue;
+    const k = left.find((x) => x <= clock);
+    if (args.includes('--so')) {
+        if (k === undefined) continue;
         await settle();
-        await page.screenshot({ path: out.replace(/\.mp4$/, `-q${k}.png`) });
+        writeFileSync(out.replace(/\.mp4$/, `-q${k}.png`), await shot());
+        left.splice(left.indexOf(k), 1);
+        if (!left.length) break;
+        continue;
     }
+    await settle();
+    const png = await shot();
+    writeFileSync(join(dir, `${String(n++).padStart(4, '0')}.png`), png);
+    if (k !== undefined) {
+        writeFileSync(out.replace(/\.mp4$/, `-q${k}.png`), png);
+        left.splice(left.indexOf(k), 1);
+    }
+    if (n % 60 === 0) console.log(`quadro ${n} (${Math.round(clock)} ms)`);
+}
+if (args.includes('--so')) {
     await browser.close();
     process.exit(0);
-}
-const keySet = new Set(keys);
-const keyFrames = keys.map((k) => Math.round((k / 1000) * fps));
-for (let i = 0; i < n; i++) {
-    const ms = (i * 1000) / fps;
-    await page.evaluate(
-        (m, dt) => {
-            window.__wkSeek(m);
-            window.__step(dt);
-        },
-        ms,
-        1000 / fps,
-    );
-    await settle();
-    const shot = await cdp.send('Page.captureScreenshot', {
-        format: 'png',
-        optimizeForSpeed: true,
-        clip: { x: 0, y: 0, width: 360, height: 640, scale: 3 },
-    });
-    writeFileSync(join(dir, `${String(i).padStart(4, '0')}.png`), Buffer.from(shot.data, 'base64'));
-    if (keyFrames.includes(i) || keySet.has(ms))
-        writeFileSync(out.replace(/\.mp4$/, `-q${Math.round(ms)}.png`), Buffer.from(shot.data, 'base64'));
-    if (i % 60 === 0) console.log(`quadro ${i}/${n}`);
 }
 
 // áudio: cada som vira um arquivo (ZzFX renderizado na página; os outros são os do jogo) com atraso e volume
 const sounds = await page.evaluate(() =>
-    window.__wkSounds.map((x) => ({ t: x.t, s: x.s, pcm: window.__wkRender(x.s) })),
+    window.__wkSounds.map((x) => ({ t: x.t, s: x.s, pcm: window.__wkRender?.(x.s) ?? null })),
 );
 await browser.close();
 const pub = join(process.cwd(), 'public');
@@ -192,12 +211,13 @@ const wav = (pcm, file) => {
 };
 const inputs = [];
 sounds.forEach((x, j) => {
+    if (x.t < from) return;
     let file;
     let vol = 1;
     if (x.pcm) {
         file = join(dir, `s${j}.wav`);
         wav(x.pcm, file);
-        vol = 0.5;
+        vol = 0.45;
     } else if (x.s.k === 'max') {
         file = join(pub, 'sfx', `max-${x.s.name}.mp3`);
         vol = 0.6;
@@ -208,13 +228,13 @@ sounds.forEach((x, j) => {
         file = join(pub, 'assets', 'cries', 'latest', `${id}.ogg`);
         vol = 0.7 * x.s.gain;
     }
-    if (file) inputs.push({ file, t: x.t, vol });
+    if (file) inputs.push({ file, t: x.t - from, vol });
 });
 const ff = ['-y', '-loglevel', 'error', '-framerate', String(fps), '-i', join(dir, '%04d.png')];
 for (const s of inputs) ff.push('-i', s.file);
 const chains = inputs.map(
     (s, j) =>
-        `[${j + 1}:a]aresample=44100,aformat=channel_layouts=stereo,volume=${s.vol},adelay=${Math.round(s.t)}:all=1[a${j}]`,
+        `[${j + 1}:a]aresample=44100,aformat=channel_layouts=stereo,volume=${s.vol},adelay=${Math.max(0, Math.round(s.t))}:all=1[a${j}]`,
 );
 const mix = `${inputs.map((_, j) => `[a${j}]`).join('')}amix=inputs=${inputs.length}:normalize=0:duration=longest,atrim=0:${(n / fps).toFixed(3)},loudnorm=I=-14:TP=-1.5[aout]`;
 ff.push(
@@ -229,7 +249,7 @@ ff.push(
     '-pix_fmt',
     'yuv420p',
     '-crf',
-    '17',
+    '18',
     '-preset',
     'medium',
     '-r',
