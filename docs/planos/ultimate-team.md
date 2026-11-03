@@ -216,7 +216,7 @@ constantes num lugar só (`src/store/ultimate/rules.ts`) e só valem depois do o
 **Pro ok do Miguel antes de valer:** chances do pacote por metal, Fichas por resultado e por nível, preço em pontos
 de pacote, meta da química ("prata com química cheia empata com ouro sem química", medida no `calibrate`).
 
-## Proposta de números (falta o ok)
+## Proposta de números (aprovada "a princípio" pelo Miguel em 02/11/2026, sujeita a mudanças)
 
 0.9.31 (base), atrás de `?lab=ultimate` (só dev e prévias). Tudo em `src/store/ultimate/rules.ts`; nada aqui está
 aprovado. Mudou um número? Muda lá e aqui.
