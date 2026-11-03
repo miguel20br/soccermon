@@ -119,6 +119,24 @@
         ],
         "createdAt": "2026-10-29T19:12:27.377Z",
         "reason": "Claude: poeira de luz em pontinhos radiais (partículas do fundo do menu), não grade de linhas"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/ui/ultimate/ultimate.css"
+        ],
+        "createdAt": "2026-11-03T02:34:57.340Z",
+        "reason": "Claude: .ut-ind::before é o indicador da aba ativa da barra de baixo (sublinhado embaixo; vira barra à esquerda na barra vertical do celular deitado), não um card com borda lateral"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "src/ui/ultimate/ultimate.css"
+        ],
+        "createdAt": "2026-11-03T02:34:57.360Z",
+        "reason": "Claude: o mesmo indicador da aba ativa (.ut-ind::before), sublinhado amarelo sob a pílula da aba, padrão do kit das abas"
       }
     ]
   }
