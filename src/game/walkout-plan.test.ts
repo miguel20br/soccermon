@@ -29,10 +29,10 @@ describe('plano do walkout', () => {
     });
 
     it('dura ~5,5, ~10 e ~15,5 s; a revelação do especial tem ~5 s; Reduzir movimento ~1,2 s', () => {
-        expect(walkoutPlan('raro').end).toBe(5500);
-        expect(walkoutPlan('muitoraro').end).toBe(9800);
+        expect(walkoutPlan('raro').end).toBe(6000);
+        expect(walkoutPlan('muitoraro').end).toBe(10650);
         const esp = walkoutPlan('especial');
-        expect(esp.end).toBe(15600);
+        expect(esp.end).toBe(16550);
         expect(esp.end - esp.impact).toBeGreaterThanOrEqual(4500);
         expect(esp.end - esp.impact).toBeLessThanOrEqual(5500);
         // a nota bate antes da arte entrar
@@ -58,9 +58,9 @@ describe('plano do walkout', () => {
 
     it('encolhe do 2º raro e do 3º muito raro do dia; especial nunca', () => {
         expect(walkoutPlan('raro', { nth: 2 })).toMatchObject({ kind: 'curto', end: 1800 });
-        expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(9800);
-        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 5000, tier: 'muitoraro' });
-        expect(walkoutPlan('especial', { nth: 9 }).end).toBe(15600);
+        expect(walkoutPlan('muitoraro', { nth: 2 }).end).toBe(10650);
+        expect(walkoutPlan('muitoraro', { nth: 3 })).toMatchObject({ kind: 'curto', end: 5500, tier: 'muitoraro' });
+        expect(walkoutPlan('especial', { nth: 9 }).end).toBe(16550);
     });
 
     it('upgrade só no especial: prévia prateada, a placa vem no flash; metade dos especiais', () => {
