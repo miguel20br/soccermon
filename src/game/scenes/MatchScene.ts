@@ -285,11 +285,14 @@ const MAX_TRAIL_TICKS = 16;
  * Duelo da bicuda v3 (Miguel, 03/11/2026: "tem que parecer que ele revidou o chute com uma bicuda direta", "ângulos de
  * câmera mais ousados", "AINDA MAIS IMPRESSIONANTE"). O goleiro arma o chute `windup` ticks antes do contato e o tempo
  * para nele: a bola no pé, `lift` px no ar e `reach` m à frente dele, girando `spin` rad/s. A câmera (cine.ts): o contato
- * em close (`impactFill` da altura útil, até `impactMax`), os painéis de mangá de `panelsAt` até a 1ª fala, o close de
+ * em close (`impactFill` da altura útil, até `impactMax`) com o COUNTER! parado até `panelsAt`, os painéis de mangá dali
+ * até a 1ª fala, o close de
  * quem fala (`close`, zoom de `zMin` a `closeMax`) com push-in `push`, o grito do goleiro mais perto (`shoutClose`,
  * `shoutMax`) e a bicuda armada (`kickZoom`); ângulo holandês `dutch` (`dutchImpact`, `dutchShout`), chicote em `whipMs`.
  * No voo, a câmera lenta é `depart` nos `departTicks` da saída do pé, `slowFar` no meio e `slowNear` nos `nearM` m finais,
- * a câmera abre pra `flyZoom` com a bola `lead` da tela atrás do meio. O gol: `goalZoom` por `goalHold` ms.
+ * a câmera abre pra `flyZoom` com a bola `lead` da tela atrás do meio. O gol: `goalZoom` por `goalHold` ms. Pra dar
+ * tempo de ler (Miguel, 03/11/2026): o quadro de impacto fica `impactFrameMs` (2 cores e negativo), GOOOOL! e BICUDA!
+ * ficam `wordMs` cada (BICUDA! entra `bicudaWordAt` depois do gol, com o GOOOOL! já fora).
  */
 const SD = {
     windup: 3,
@@ -298,7 +301,10 @@ const SD = {
     spin: 14,
     impactFill: 0.62,
     impactMax: 4.2,
-    panelsAt: 620,
+    panelsAt: 2100,
+    impactFrameMs: 240,
+    wordMs: 2200,
+    bicudaWordAt: 2700,
     close: 0.56,
     closeMax: 4.6,
     zMin: 1.8,
@@ -2495,6 +2501,8 @@ export class MatchScene extends Phaser.Scene {
                         stroke: color,
                         at: { x: this.ball.x, y: this.ball.y },
                         sub: scorer ? scorer.name : undefined,
+                        // o gol da bicuda do duelo: o GOOOOL! fica o bastante pra ler (o BICUDA! vem depois)
+                        hold: sdGoal ? SD.wordMs : undefined,
                     });
                 } else this.goalBanner(color);
                 break;
@@ -3603,7 +3611,7 @@ export class MatchScene extends Phaser.Scene {
 
     /** Onde começa a caixa das falas (px do canvas), medida na tela React; antes de ela aparecer, a última medida. */
     private sdBoxTop(): number {
-        const box = document.querySelector('.sd-box');
+        const box = document.querySelector('.sd-dock');
         const c = this.game.canvas.getBoundingClientRect();
         if (box && c.height > 0)
             this.sdBoxAt = Math.min(GAME_H, ((box.getBoundingClientRect().top - c.top) / c.height) * GAME_H - 4);
@@ -3774,7 +3782,7 @@ export class MatchScene extends Phaser.Scene {
             this.rig.cut(shot);
             this.rig.apply();
             this.rig.move({ zoom: shot.zoom * 1.12, rot: shot.rot * 1.15 }, SD.panelsAt, 'Sine.easeOut');
-            impactFrame(this, color, 130, reduce);
+            impactFrame(this, color, SD.impactFrameMs, reduce);
             cineShock(this, contact.x, contact.y, color, 1.1, FOCUS_DEPTH - 45, reduce);
             speedLines(this, {
                 at: spark,
@@ -3791,6 +3799,7 @@ export class MatchScene extends Phaser.Scene {
             chroma(this, [gk.sprite, shooter.sprite, this.ball], 3, 220, reduce);
             this.rig.shake(9, 750);
             crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 8), 650, FOCUS_DEPTH - 50, reduce);
+            // parada e legível até os painéis (1,7 s no meio da entrada e da saída)
             banner(d.back, null, SD.panelsAt - 60);
             // a bola parada solta faíscas do goleiro e, mais fracas, as do golpe que ela trazia
             st.streams.push(
@@ -3814,7 +3823,7 @@ export class MatchScene extends Phaser.Scene {
             banner(
                 `${a.bicuda} · ${a.maxFxBy.replace('{t}', typeName(type))}`,
                 e.q === 2 ? { text: a.maxPerfect, color: '#7dffb0' } : null,
-                SHOWDOWN_MS.exit - 240,
+                SHOWDOWN_MS.exit - 350,
             );
             this.cine.superCutIn({
                 portrait,
@@ -3979,7 +3988,7 @@ export class MatchScene extends Phaser.Scene {
             for (const s of st.streams) s.stop();
         }
         this.rig.rumble(0);
-        impactFrame(this, color, 160, reduce);
+        impactFrame(this, color, SD.impactFrameMs, reduce);
         cineShock(this, at.x, at.y + 4 + SD.lift, color, 1.6, FOCUS_DEPTH - 45, reduce);
         speedLines(this, { at, color, ms: 520, depth: FOCUS_DEPTH - 58, reach: () => this.sdReach(), reduce });
         this.fx.burst(type, at.x, at.y, 40, BALL_DEPTH + 2);
@@ -4122,7 +4131,7 @@ export class MatchScene extends Phaser.Scene {
         f?.stream?.stop();
         f?.lines?.stop();
         netRipple(this, gk.team === 0 ? 1 : 0, y, color, reduce);
-        impactFrame(this, color, 140, reduce, false);
+        impactFrame(this, color, SD.impactFrameMs, reduce, false);
         cineShock(this, x, y, color, 1.8, BALL_DEPTH - 1, reduce);
         this.fx.burst('Net', x, y, 30, BALL_DEPTH + 1);
         this.fx.burst(type, x, y, 40, BALL_DEPTH + 1);
@@ -4148,7 +4157,7 @@ export class MatchScene extends Phaser.Scene {
             );
             this.sdRelease(SD.goalHold);
         }
-        this.time.delayedCall(1700, () => {
+        this.time.delayedCall(SD.bicudaWordAt, () => {
             playCrowd('gol', 1);
             playGoalCry(gk.speciesId, this.md.cries);
             if (cinematic)
@@ -4158,6 +4167,7 @@ export class MatchScene extends Phaser.Scene {
                     at: { x: gk.sprite.x, y: gk.sprite.y },
                     sub: `${gk.name} · ${a.goalSub}`,
                     top: true,
+                    hold: SD.wordMs,
                 });
             else this.goalBanner('#1a1030', a.goal, '#ffd447');
         });

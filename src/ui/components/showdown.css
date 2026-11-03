@@ -22,14 +22,19 @@
     }
 }
 
-/* ---------- a caixa de fala (PMD): rosto do lado de quem fala, nome na placa, letra por letra ---------- */
+/*
+ * A caixa de fala (PMD): o rosto do lado de quem fala, o nome numa plaquinha clara presa na borda de cima, o texto
+ * sempre à esquerda, grande, em até 2 linhas equilibradas, letra por letra (Miguel, 03/11/2026: "dá pra formatar melhor").
+ */
 .sd-box {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-    width: min(560px, 100%);
-    min-height: calc(var(--sd-face) + 12px);
-    padding: 5px 12px 5px 5px;
+    gap: 12px;
+    width: min(580px, 100%);
+    min-height: calc(var(--sd-face) + 16px);
+    margin-top: 12px;
+    padding: 8px 16px 8px 8px;
     background: var(--bc-paper);
     color: var(--bc-ink);
     border: 3px solid var(--bc-edge);
@@ -41,8 +46,7 @@
 }
 .sd-box-g {
     flex-direction: row-reverse;
-    padding: 5px 5px 5px 12px;
-    text-align: right;
+    padding: 8px 8px 8px 16px;
 }
 .sd-face {
     flex: none;
@@ -53,66 +57,79 @@
     background: var(--panel);
 }
 .sd-talk {
-    display: grid;
-    gap: 4px;
     min-width: 0;
     flex: 1;
+    padding: 6px 0 2px;
 }
+/* a plaquinha do nome: clara, com a faixa na cor do time, encaixada na borda de cima, em cima do texto */
 .sd-name {
-    justify-self: start;
-    padding: 1px 8px 0;
-    border: 2px solid var(--tc);
+    position: absolute;
+    top: -13px;
+    left: calc(var(--sd-face) + 22px);
+    padding: 0 10px 0 8px;
+    border: 2px solid var(--bc-edge);
+    border-left: 7px solid var(--tc);
     border-radius: 4px;
-    background: var(--bc-ink);
-    color: var(--text);
-    font-size: 10px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    box-shadow: 0 2px 0 var(--bc-edge);
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 1px;
-    line-height: 14px;
+    line-height: 18px;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 .sd-box-g .sd-name {
-    justify-self: end;
+    left: 16px;
 }
 .sd-text {
     margin: 0;
     font-family: "Galmuri11", monospace;
-    font-size: 14px;
-    line-height: 1.3;
-    overflow-wrap: anywhere;
+    font-size: 16px;
+    line-height: 1.35;
+    text-align: left;
+    text-wrap: balance;
+    overflow-wrap: break-word;
 }
 .sd-box-shout .sd-text {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 24px;
-    line-height: 1.1;
+    line-height: 1.15;
     letter-spacing: 1px;
 }
 @media (min-width: 900px) and (min-height: 700px) {
     .sd-text {
-        font-size: 18px;
+        font-size: 20px;
     }
     .sd-box-shout .sd-text {
         font-size: 32px;
+    }
+    .sd-name {
+        font-size: 12px;
+        line-height: 20px;
     }
 }
 .sd-ch {
     animation: sd-type 1ms steps(1) both;
 }
 
-/* celular deitado: pouca altura, rosto menor e a caixa mais baixa */
+/* celular deitado: pouca altura, rosto menor e a caixa mais baixa (o texto continua 16) */
 @media (max-height: 480px) {
     .sd-dock {
         --sd-face: 44px;
         bottom: 4px;
     }
     .sd-box {
-        width: min(480px, 100%);
+        width: min(520px, 100%);
+        min-height: calc(var(--sd-face) + 10px);
+        padding-block: 5px;
     }
-    .sd-text {
-        font-size: 13px;
+    .sd-talk {
+        padding-top: 4px;
     }
     .sd-box-shout .sd-text {
-        font-size: 20px;
+        font-size: 22px;
     }
 }
 

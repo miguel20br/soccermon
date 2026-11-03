@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { AGENCY } from '../engine/agency';
 import { species } from '../engine/data';
 import { showdown as en } from '../i18n/en/showdown';
 import { showdown as pt } from '../i18n/pt/showdown';
-import { lineAt, SHOWDOWN_MS, showdownScript } from './showdown-lines';
+import { lineAt, lineSpan, SHOWDOWN_MS, showdownScript, typeDelays, typeMs } from './showdown-lines';
 
 const mon = (id: number) => ({ speciesId: id, name: species(id).name });
 /** As conversas prontas de um idioma (pares, linha evolutiva e as de um Pokémon só), com onde estão. */
@@ -111,18 +112,55 @@ describe('falas do duelo da bicuda', () => {
         expect(seen.size).toBeGreaterThan(3);
     });
 
-    it('o duelo: o COUNTER! da defesa sai antes da 1ª fala, cada fala na vez dela até o grito, que fica até a caixa sair', () => {
-        const ms = 9000;
-        expect(SHOWDOWN_MS.talk).toBeGreaterThanOrEqual(SHOWDOWN_MS.counter);
+    it('o duelo: cada fala na vez dela até a última, que fica até a caixa sair', () => {
+        // a parada do motor (AGENCY.showdown.seconds): a cena cabe nela
+        const ms = AGENCY.showdown.seconds * 1000;
         for (const n of [3, 4]) {
             const seen = Array.from({ length: ms / 50 }, (_, k) => lineAt(k * 50, ms, n));
             expect(seen[0]).toBe(-1);
             expect(seen.at(-1)).toBe(n - 1);
-            // em ordem, sem pular nenhuma
+            // em ordem, sem pular nenhuma, e o mesmo pedaço do lineSpan
             expect([...new Set(seen)]).toEqual([-1, ...Array.from({ length: n }, (_, i) => i)]);
-            // o grito entra antes do corte sair com tempo de ler
-            const shout = seen.indexOf(n - 1) * 50;
-            expect(ms - SHOWDOWN_MS.exit - shout).toBeGreaterThanOrEqual(1000);
+            for (let i = 0; i < n; i++) {
+                const [a, b] = lineSpan(i, ms, n);
+                expect(lineAt(a + 1, ms, n)).toBe(i);
+                expect(lineAt(b - 1, ms, n)).toBe(i);
+            }
         }
+    });
+
+    it('toda fala termina de digitar e fica inteira pelo menos 1,2 s na caixa (Miguel: "não dá pra ler")', () => {
+        // a parada do motor (AGENCY.showdown.seconds): a cena cabe nela
+        const ms = AGENCY.showdown.seconds * 1000;
+        for (const d of [pt, en]) {
+            const fits = (text: string, i: number, n: number, at: string) => {
+                const [a, b] = lineSpan(i, ms, n);
+                expect(typeMs(text) + SHOWDOWN_MS.read, `${at}: ${text}`).toBeLessThanOrEqual(b - a);
+            };
+            for (const [at, s] of [
+                ...Object.entries(d.pairs),
+                ...[...d.up, ...d.down].map((x, k) => [`fam.${k}`, x] as const),
+                ...Object.entries(d.solo).flatMap(([k, x]) =>
+                    [...(x.keeper ?? []), ...(x.shooter ?? [])].map((y) => [k, y] as const),
+                ),
+            ])
+                s.forEach(([, t], i) => {
+                    fits(t, i, s.length, at);
+                });
+            // as genéricas valem na conversa de 4 (a mais apertada)
+            for (const t of [...d.shot, ...d.gk, ...d.more]) fits(t, 0, 4, 'generic');
+            for (const t of d.shout) fits(t, 3, 4, 'shout');
+        }
+    });
+
+    it('a digitação pausa curto depois da pontuação (as reticências, uma vez só)', () => {
+        const d = typeDelays('Fui. Pode tirar foto.');
+        const gap = (i: number) => d[i + 1] - d[i];
+        // depois do "Fui." a pausa; entre letras de uma palavra, o passo normal
+        expect(gap(3)).toBeGreaterThan(gap(1) + SHOWDOWN_MS.hard / 2);
+        const dots = typeDelays('Zzz... BICUDA');
+        expect(dots[4] - dots[3]).toBeCloseTo(dots[2] - dots[1]);
+        expect(dots[6] - dots[5]).toBeGreaterThan(dots[2] - dots[1]);
+        expect(typeMs('Isso não sai daqui, hein.')).toBeLessThanOrEqual(SHOWDOWN_MS.type + SHOWDOWN_MS.char);
     });
 });

@@ -84,9 +84,11 @@ export const AGENCY = {
      * Duelo da bicuda (motor 21, Miguel 03/11/2026): o goleiro capitão alcança o N3 do rival com a bicuda N3 armada
      * (toque bom ou perfeito; a bicuda N1/N2 contra o N3 é o counter de sempre) e segura. A partida para `seconds` s (a cutscene com as falas dos dois),
      * ele chuta e é gol sempre: a bola vai reta pro canto longe do goleiro rival a `speed` m/s, todo mundo parado, sem
-     * ninguém tocar. A comemoração fica `goal` s (a de um gol comum, 3 s).
+     * ninguém tocar. A comemoração fica `goal` s (a de um gol comum, 3 s). De 9 s e 6 s pra 15,5 s e 8 s na v3 da cutscene
+     * (Miguel, 03/11/2026: "não dá pra ler", "a cutscene longa é ultra rara, é uma recompensa"); a fase está desligada
+     * fora do `?demo=bicuda` (`MatchConfig.showdown`), então nenhuma partida de verdade muda.
      */
-    showdown: { seconds: 9, speed: 26, goal: 6 },
+    showdown: { seconds: 15.5, speed: 26, goal: 8 },
     /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
     knockR: 1.5,
     knockStun: 1,

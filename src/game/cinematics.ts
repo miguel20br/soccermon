@@ -744,6 +744,8 @@ export class Cinematics {
              * (combo, gol…); se outro chega na espera, o mais velho some.
              */
             top?: boolean;
+            /** Quanto ele fica parado antes de sumir (ms; padrão 1,25 s, `short` 0,7 s): o duelo da bicuda segura mais. */
+            hold?: number;
         },
     ) {
         const now = this.scene.time.now;
@@ -761,7 +763,8 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
-        claimOverlay('drama', PRIO_GOAL, (opts.short ? 700 : 1250) + 330);
+        const fadeAt = opts.hold ?? (opts.short ? 700 : 1250);
+        claimOverlay('drama', PRIO_GOAL, fadeAt + 330);
         this.slowMotion(now, 0.25, 1100);
         this.dramaUntil = now + 1500;
         this.banner?.destroy();
@@ -821,7 +824,6 @@ export class Cinematics {
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
         this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });
-        const fadeAt = opts.short ? 700 : 1250;
         this.dramaTextUntil = now + fadeAt + 330;
         this.scene.tweens.add({
             targets: children,

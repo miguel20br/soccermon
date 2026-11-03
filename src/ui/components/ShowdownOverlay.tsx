@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { playCry } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchShowdown } from '../../game/scenes/MatchScene';
@@ -7,7 +7,7 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { portraitSrc } from '../portrait';
 import { reduceMotionOn } from '../reduce-motion';
-import { FACE, lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../showdown-lines';
+import { FACE, lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript, typeDelays } from '../showdown-lines';
 import './showdown.css';
 
 /**
@@ -22,6 +22,7 @@ export function ShowdownOverlay() {
     const [lines, setLines] = useState<ShowdownLine[]>([]);
     const [at, setAt] = useState(-1);
     const [leaving, setLeaving] = useState(false);
+    const dock = useRef<HTMLElement>(null);
 
     useEffect(() => {
         let cue: MatchShowdown | null = null;
@@ -77,15 +78,39 @@ export function ShowdownOverlay() {
         };
     }, []);
 
+    // celular deitado: a quadra passa da tela embaixo e a caixa ficava fora dela; sobe até caber (a cena enquadra acima)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: a caixa só existe com uma fala na tela (`at`)
+    useLayoutEffect(() => {
+        const el = dock.current;
+        if (!el || !sd) return;
+        const place = () => {
+            el.style.bottom = '';
+            const over = el.getBoundingClientRect().bottom - window.innerHeight;
+            if (over > 0) el.style.bottom = `${over + 12}px`;
+        };
+        place();
+        window.addEventListener('resize', place);
+        window.addEventListener('scroll', place, { passive: true });
+        return () => {
+            window.removeEventListener('resize', place);
+            window.removeEventListener('scroll', place);
+        };
+    }, [sd, at]);
+
     const line = sd && at >= 0 ? lines[at] : null;
     if (!sd || !line) return null;
     const last = at === lines.length - 1;
     const who = line.who === 's' ? sd.shooter : sd.gk;
     const face = last ? FACE.shout : line.who === 'g' ? FACE.g : at > 0 ? FACE.s2 : FACE.s;
-    // Reduzir movimento: a fala vem inteira (a caixa só faz o fade)
-    const step = reduceMotionOn() ? 0 : Math.min(SHOWDOWN_MS.char, SHOWDOWN_MS.type / Math.max(1, line.text.length));
+    // a digitação com a pausa curta na pontuação; Reduzir movimento: a fala vem inteira (a caixa só faz o fade)
+    const delays = reduceMotionOn() ? null : typeDelays(line.text);
     return (
-        <section className={`sd-dock${leaving ? ' sd-leaving' : ''}`} aria-label={d.showdown.tag} aria-live="polite">
+        <section
+            ref={dock}
+            className={`sd-dock${leaving ? ' sd-leaving' : ''}`}
+            aria-label={d.showdown.tag}
+            aria-live="polite"
+        >
             <div
                 key={at}
                 className={`sd-box sd-box-${line.who}${last ? ' sd-box-shout' : ''}`}
@@ -99,7 +124,7 @@ export function ShowdownOverlay() {
                         <span aria-hidden>
                             {[...line.text].map((c, i) => (
                                 // biome-ignore lint/suspicious/noArrayIndexKey: as letras da fala não mudam de lugar
-                                <span key={i} className="sd-ch" style={{ animationDelay: `${i * step}ms` }}>
+                                <span key={i} className="sd-ch" style={{ animationDelay: `${delays?.[i] ?? 0}ms` }}>
                                     {c}
                                 </span>
                             ))}
