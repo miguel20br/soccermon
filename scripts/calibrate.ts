@@ -202,6 +202,9 @@ const goalsByLevel = [0, 0, 0];
 const bicudaByLevel = [0, 0, 0];
 const bicudaGoals = [0, 0, 0];
 let bicudaMiss = 0;
+/** Duelo da bicuda (motor 20): quantos e quantos viraram gol do goleiro. */
+let showdowns = 0;
+let showdownGoals = 0;
 /** Defesa do golpe máximo (qualquer nível, a bicuda que chuta inclusive): encaixe, escanteio, trave, counter (bicuda), outra espalmada. */
 const maxSaves = { caught: 0, corner: 0, post: 0, counter: 0, other: 0, gkBall: 0 };
 const rows: string[] = ['seed,home,away,strHome,strAway,tactHome,tactAway,shootout'];
@@ -261,6 +264,12 @@ for (let i = 0; i < N; i++) {
         }
     }
 
+    for (const sd of r.events) {
+        if (sd.type !== 'showdown') continue;
+        showdowns++;
+        if (r.events.some((e) => e.type === 'goal' && e.by === sd.gk && e.tick >= sd.kick && e.tick - sd.kick < 80))
+            showdownGoals++;
+    }
     let hit: { tick: number; by: number; lv: number; gk: boolean; team: 0 | 1 } | null = null;
     for (const e of r.events) {
         if (e.type === 'max' && e.phase === 'hit') {
@@ -395,6 +404,9 @@ if (AGENCIA) {
         `bicudas/jogo N1/N2/N3 ${bicudaByLevel.map(per).join('/')}; gol do time em 4 s: ${[0, 1, 2].map((k) => pct(bicudaGoals[k], bicudaByLevel[k])).join('/')}`,
     );
     console.log(`bicuda com o toque fora (virou a defesa de sempre): ${per(bicudaMiss)}/jogo`);
+    console.log(
+        `duelo da bicuda (N3 do rival segurado): ${per(showdowns)}/jogo (${showdowns} em ${N}), gol do goleiro ${pct(showdownGoals, showdowns)}`,
+    );
     const ms = maxSaves;
     const tot = ms.caught + ms.corner + ms.post + ms.counter + ms.other;
     console.log(

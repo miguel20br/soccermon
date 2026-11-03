@@ -99,6 +99,8 @@ export class Commentator {
     private coached: [boolean, boolean];
     /** Bicudas (`tick:goleiro`): a defesa do mesmo tick fica muda, a fala é a da bicuda. */
     private bicudas: Set<string>;
+    /** Duelo da bicuda: o tick do chute (a bicuda de gol a gol tem fala própria). */
+    private showdownKicks: Set<number> = new Set();
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -125,6 +127,13 @@ export class Commentator {
                 .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
                 .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
         );
+        // duelo da bicuda: a defesa que segura o N3 fica muda (a fala é a do duelo) e o chute tem a dele
+        this.showdownKicks = new Set();
+        for (const e of result.events) {
+            if (e.type !== 'showdown') continue;
+            this.bicudas.add(`${e.tick}:${e.gk}`);
+            this.showdownKicks.add(e.kick);
+        }
     };
 
     private n(idx: number | null | undefined): string {
@@ -182,6 +191,8 @@ export class Commentator {
             }
             case 'shot': {
                 const w = this.n(e.by);
+                // a bicuda do duelo já tem a fala dela (no 'max' do mesmo tick)
+                if (this.showdownKicks.has(e.tick)) return null;
                 if (e.moveId) {
                     const m = MOVES[e.moveId]?.name ?? e.moveId;
                     return line(say(c.shotMove, { w, m }), 'big', this.teams[e.by]);
@@ -189,6 +200,8 @@ export class Commentator {
                 if (e.xg > 0.3) return line(say(c.oneOnOne, { w }), 'big', this.teams[e.by]);
                 return line(this.pick(c.shots, { w }), 'normal', this.teams[e.by]);
             }
+            case 'showdown':
+                return line(say(c.showdown, { x: this.n(e.gk), w: this.n(e.shooter) }), 'big', this.teams[e.gk]);
             case 'save':
                 if (this.bicudas.has(`${e.tick}:${e.by}`)) return null;
                 return line(
@@ -432,6 +445,8 @@ export class Commentator {
                 // só o golpe que saiu vira fala (a bicuda com o toque fora fica no goleiro)
                 if (e.phase !== 'hit') return null;
                 const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
+                if (this.showdownKicks.has(e.tick))
+                    return line(say(c.showdownKick, { w: this.n(e.by) }), 'big', e.team);
                 const text = this.roles[e.by] === 'GK' ? c.maxGk : c.maxHit;
                 return line(say(text, { x: this.n(e.by), m }), 'big', e.team);
             }

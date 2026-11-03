@@ -80,6 +80,13 @@ export const AGENCY = {
      * goleiro capitão com o golpe máximo armado pra esse chute; contra golpe máximo ela vai no gol rival em todo nível.
      */
     maxParry: { post: 0.35, postSpeed: 10, postMin: 0.3, gkLock: 1 },
+    /**
+     * Duelo da bicuda (motor 20, Miguel 03/11/2026): o goleiro capitão alcança o N3 do rival com a bicuda N3 armada
+     * (toque bom ou perfeito; a bicuda N1/N2 contra o N3 é o counter de sempre) e segura. A partida para `seconds` s (a cutscene com as falas dos dois),
+     * ele chuta e é gol sempre: a bola vai reta pro canto longe do goleiro rival a `speed` m/s, todo mundo parado, sem
+     * ninguém tocar. A comemoração fica `goal` s (a de um gol comum, 3 s).
+     */
+    showdown: { seconds: 9, speed: 26, goal: 6 },
     /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
     knockR: 1.5,
     knockStun: 1,

@@ -4,7 +4,7 @@ import { maxCharge } from '../engine/agency';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
 import { isMatchKind } from '../engine/cup-map';
-import { species } from '../engine/data';
+import { SPECIES, species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
 import type { Stone } from '../engine/evolution';
 import { FORMATIONS, type FormationId } from '../engine/formations';
@@ -55,6 +55,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1&nivel=3`, a bicuda N3).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender). `&efeito=1`: só a jogada em que o golpe,
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
+ * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 20): o capitão
+ * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
+ * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
@@ -100,6 +103,7 @@ export function runDevDemo() {
         demo !== 'vestiario' &&
         demo !== 'acrescimos' &&
         demo !== 'maximo' &&
+        demo !== 'bicuda' &&
         demo !== 'virada' &&
         demo !== 'charanga' &&
         demo !== 'sala'
@@ -657,6 +661,44 @@ export function runDevDemo() {
             console.info(`[demo] copa ${run.seed}: golpe máximo na hora no tick ${at}`);
             return;
         }
+        return;
+    }
+    if (demo === 'bicuda') {
+        const q = new URLSearchParams(window.location.search);
+        const idOf = (v: string | null, fallback: number) =>
+            Number(v) || SPECIES.find((sp) => sp.name.toLowerCase() === v?.toLowerCase())?.id || fallback;
+        const gkId = idOf(q.get('gk'), 4);
+        const atkId = idOf(q.get('atk'), 6);
+        store.newRun('Demo FC', `bicuda-${gkId}-${atkId}`);
+        const base = useGame.getState().run!;
+        const rng = new Rng(`bicuda-${gkId}-${atkId}`, 'demo');
+        // o seu goleiro capitão, fixo Machamp, alas Gyarados e Pidgeot, pivô Dragonite; banco Onix e Pikachu
+        const lineup = [gkId, 68, 130, 18, 149].map((id) => createInstance(id, rng));
+        const bench = [95, 25].map((id) => createInstance(id, rng));
+        // o rival com o atacante escolhido de capitão, no lugar do pivô (a última vaga)
+        const opp = base.opponents[0];
+        const atk = createInstance(atkId, rng);
+        const rival = {
+            ...opp,
+            lineup: opp.lineup.map((p, i) => (i === opp.lineup.length - 1 ? atk : p)),
+            captainUid: atk.uid,
+        };
+        const run = {
+            ...base,
+            opponents: [rival, ...base.opponents.slice(1)],
+            formation: '1-2-1' as const,
+            picks: [...lineup, ...bench],
+            lineup: lineup.map((p) => p.uid),
+            bench: bench.map((p) => p.uid),
+            captainUid: lineup[0].uid,
+            draftRound: 7,
+            status: 'lineup' as const,
+        };
+        const at = 300;
+        const team = { ...playerTeam(run), manualSubs: true, demoBicudaAt: at };
+        const saved = { stage: 0, orders: [], tick: at - 60, engine: ENGINE_VERSION };
+        useGame.setState({ run: { ...run, lockedTeam: team, live: saved }, screen: 'lineup' });
+        console.info(`[demo] bicuda: ${species(gkId).name} no gol x ${species(atkId).name}, duelo no tick ${at}`);
         return;
     }
     if (demo === 'charanga') {

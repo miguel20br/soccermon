@@ -204,7 +204,7 @@ const MAX_N2_COLOR = 0xf6941c;
 /** Dica "só o capitão solta" (A1): uma vez por aparelho (`local-count`). */
 const MAX_CAP_HINT = 'soccermon-max-capitao';
 /** O golpe saiu: a bola voa em câmera lenta até o desfecho (gol, defesa, trave, fora), em qualquer velocidade. */
-const MAX_SHOT_SLOW = { n3: 0.2, other: 0.35, counter: 0.6 };
+const MAX_SHOT_SLOW = { n3: 0.2, other: 0.35, counter: 0.6, showdown: 0.45 };
 /** Ticks antes de gol/trave/defesa em que a câmera lenta começa. */
 const DRAMA_LEAD = 12;
 /**
@@ -264,6 +264,17 @@ export interface MatchEvolution {
     name: string;
     newName: string;
     shiny: boolean;
+}
+
+/**
+ * Duelo da bicuda (motor 20): a cutscene que a tela React mostra (src/ui/components/ShowdownOverlay.tsx) enquanto o
+ * motor segura a partida. `tick` escolhe as falas; `ms` é a parada em 1x (a quadra roda em 1x nela, em toda velocidade).
+ */
+export interface MatchShowdown {
+    tick: number;
+    ms: number;
+    shooter: { speciesId: number; shiny: boolean; name: string; color: string };
+    gk: { speciesId: number; shiny: boolean; name: string; color: string };
 }
 
 /** Faixa de gol/defesa que a tela React mostra no canto do time. */
@@ -530,6 +541,16 @@ export class MatchScene extends Phaser.Scene {
     private maxHold = false;
     /** Golpe máximo no ar: câmera lenta até o desfecho e o brilho na bola (cor do tipo no N3). */
     private maxSlow: { until: number; factor: number; color: number; level: number; type: string } | null = null;
+    /**
+     * Duelo da bicuda: do lance (`tick`) até a bicuda (`kick`) a quadra roda em 1x cravado (a cutscene na tela é em tempo
+     * real); da bicuda ao fim da comemoração (`until`), no máximo 1x.
+     */
+    private showdown: { tick: number; kick: number; until: number; gk: number } | null = null;
+    /**
+     * A cutscene está na tela: a cada quadro, quanto da parada já passou (`match:showdown-t`, ms em 1x); sai quando a
+     * reprodução passa da bicuda, até pulando (`match:showdown-end`).
+     */
+    private showdownOpen = false;
     /** Até quando (tempo real) a cena do especial N3 está na tela. */
     private n3SceneUntil = 0;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
@@ -1360,8 +1381,10 @@ export class MatchScene extends Phaser.Scene {
             if (this.paused) return;
         }
         // evolução: a partida para enquanto o Pokémon evolui, como nos jogos
+        const sd = this.showdown;
+        const cutscene = !!sd && !this.md.replay && this.playTick >= sd.tick && this.playTick < sd.kick;
         const factor =
-            time < this.holdReal || this.maxHold
+            !cutscene && (time < this.holdReal || this.maxHold)
                 ? 0
                 : this.currentSpeedFactor(time) * this.rate * (this.md.pace ?? 1) * SMOKE_VEL;
         this.playTick = Math.min(
@@ -1373,6 +1396,13 @@ export class MatchScene extends Phaser.Scene {
 
         while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
             this.handleEvent(this.matchEvents[this.eventCursor++], false);
+        }
+        // a cutscene anda no relógio da quadra (aparelho lento ou aba parada, ela espera junto)
+        if (this.showdownOpen && this.showdown) {
+            if (this.playTick >= this.showdown.kick) {
+                this.showdownOpen = false;
+                EventBus.emit('match:showdown-end');
+            } else EventBus.emit('match:showdown-t', ((this.playTick - this.showdown.tick) / TICK_RATE) * 1000);
         }
 
         const { index, t } = this.locate(this.playTick);
@@ -1599,6 +1629,13 @@ export class MatchScene extends Phaser.Scene {
             const slow = this.playTick >= clip.slowFrom && this.playTick <= clip.slowTo ? REPLAY_SLOW : 1;
             return Math.min(slow, this.cine.speedFactor(now));
         }
+        const sd = this.showdown;
+        const inShowdown = !!sd && this.playTick >= sd.tick && this.playTick < sd.until;
+        if (sd && inShowdown && this.playTick < sd.kick) return 1;
+        return inShowdown ? Math.min(1, this.speedFactorOf(now)) : this.speedFactorOf(now);
+    }
+
+    private speedFactorOf(now: number): number {
         let base: number;
         if (this.speed !== 'highlights') base = this.speed;
         else {
@@ -2013,6 +2050,7 @@ export class MatchScene extends Phaser.Scene {
         }
         // Ditto vira a cópia; ao vivo quem troca é a animação de Transformar (pisca em branco antes, ver abaixo)
         if (e.type === 'transform' && silent) this.becomeCopy(e.by, e.into, e.target);
+        if (e.type === 'showdown') this.startShowdown(e, silent);
         if (silent) return;
         // intervalo: a partida para e o técnico decide (tática, substituição) antes do 2º tempo
         if (e.type === 'halftime' && !this.md.replay) {
@@ -2225,7 +2263,10 @@ export class MatchScene extends Phaser.Scene {
                     playCry(scorer.speciesId, cries, 1.2);
                     this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);
                 }
-                this.punch(this.goalLevel(e));
+                const sdGoal =
+                    this.showdown?.gk === e.by && e.tick >= this.showdown.kick && e.tick < this.showdown.until;
+                this.punch(sdGoal && !this.md.reduceMotion ? 'boom' : this.goalLevel(e));
+                if (sdGoal && scorer) this.showdownGoal(scorer, cinematic);
                 // gol de golpe: explosão do tipo no gol (o golaço de Flamethrower pega fogo)
                 if (this.ballType) typeBurst(this, this.ballType, this.ball.x, this.ball.y, BALL_DEPTH + 1);
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[e.team]).rgba;
@@ -2594,6 +2635,11 @@ export class MatchScene extends Phaser.Scene {
                 // chute no gol (a bicuda N1/N2 de sempre é um lançamento): a câmera segura o gol e a chegada explode
                 const isShot = this.matchEvents.some((x) => x.type === 'shot' && x.by === e.by && x.tick === e.tick);
                 if (isShot) this.maxImpact = { tick: e.tick, type: shotType, level };
+                // o fim do duelo da bicuda: a cutscene já foi a cena do especial, aqui é só o chute
+                if (bicuda && this.showdown?.kick === e.tick) {
+                    this.showdownKick(cap, shotType, e.tick);
+                    break;
+                }
                 // o counter: a bicuda que devolve o golpe máximo do rival (Miguel, 01/11/2026)
                 const saved = this.matchEvents.find((x) => x.type === 'save' && x.by === e.by && x.tick === e.tick);
                 const counter =
@@ -3223,6 +3269,88 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
+     * Duelo da bicuda (motor 20): o goleiro segurou o N3 e o motor parou. A cutscene é da tela React (`match:showdown`,
+     * ShowdownOverlay.tsx), que entra por cima da quadra; aqui fica a janela de 1x e a música baixa. Pulando (silent) ou
+     * no replay, só a janela.
+     */
+    private startShowdown(e: Extract<MatchEvent, { type: 'showdown' }>, silent: boolean) {
+        const goal = this.matchEvents.find((x) => x.type === 'goal' && x.tick >= e.kick);
+        const until = (goal?.tick ?? e.kick + TICK_RATE * 3) + AGENCY.showdown.goal * TICK_RATE;
+        this.showdown = { tick: e.tick, kick: e.kick, until, gk: e.gk };
+        const shooter = this.players[e.shooter];
+        const gk = this.players[e.gk];
+        if (silent || this.md.replay || !shooter || !gk) return;
+        const ms = ((e.kick - e.tick) / TICK_RATE) * 1000;
+        this.maxSlow = null;
+        this.battleBox.clear(this.time.now, ms);
+        duckMusic();
+        const css = (c: number) => `#${c.toString(16).padStart(6, '0')}`;
+        const who = (v: PlayerView) => ({
+            speciesId: v.speciesId,
+            shiny: v.shiny,
+            name: v.name,
+            color: css(this.md.colors[v.team]),
+        });
+        this.showdownOpen = true;
+        EventBus.emit('match:showdown', {
+            tick: e.tick,
+            ms,
+            shooter: who(shooter),
+            gk: who(gk),
+        } satisfies MatchShowdown);
+    }
+
+    /** A bicuda do duelo: o estouro do N3 no pé do goleiro, a quadra inteira na câmera e a bola em câmera lenta até o gol. */
+    private showdownKick(gk: PlayerView, type: string, tick: number) {
+        const reduce = !!this.md.reduceMotion;
+        playMax('bicuda');
+        playMax(MAX_MOVE[3]);
+        if (musicDucked()) unduckMusic(false, true);
+        playCry(gk.speciesId, this.md.cries, 1.2);
+        releaseFx(this, gk.sprite.x, gk.sprite.y, type, 3, REACT_DEPTH + 1, reduce);
+        this.kickPop(gk.sprite.x, gk.sprite.y, 2.8, 18);
+        if (!reduce) {
+            this.cameras.main.shake(520, 0.018);
+            this.cameras.main.flash(160, 255, 255, 255);
+        }
+        this.lockMaxFrame(gk, tick, 260);
+        this.maxSlow = {
+            until: tick + TICK_RATE * 3,
+            factor: MAX_SHOT_SLOW.showdown,
+            level: 3,
+            type,
+            color: hexToNumber(TYPE_COLOR[type] ?? '#ffd447'),
+        };
+    }
+
+    /**
+     * O gol do duelo, a comemoração mais longa do jogo (o motor segura `AGENCY.showdown.goal` s): por cima do gol de
+     * sempre, explosões do tipo em volta do gol, a torcida de novo e a 2ª faixa com o goleiro.
+     */
+    private showdownGoal(gk: PlayerView, cinematic: boolean) {
+        const a = dict().showdown;
+        const type = this.ballType || species(gk.speciesId).types[0];
+        const { x, y } = this.ball;
+        for (let k = 0; k < 4; k++)
+            this.time.delayedCall(250 + k * 380, () =>
+                typeBurst(this, type, x + (k % 2 ? 1 : -1) * 18 * (1 + k / 2), y + (k - 1.5) * 16, BALL_DEPTH + 1),
+            );
+        this.time.delayedCall(1700, () => {
+            playCrowd('gol', 1);
+            playGoalCry(gk.speciesId, this.md.cries);
+            if (cinematic)
+                this.cine.drama(a.goal, {
+                    color: '#ffd447',
+                    stroke: '#1a1030',
+                    at: { x: gk.sprite.x, y: gk.sprite.y },
+                    sub: `${gk.name} · ${a.goalSub}`,
+                    top: true,
+                });
+            else this.goalBanner('#1a1030', a.goal, '#ffd447');
+        });
+    }
+
+    /**
      * N3, o super (Inazuma, Captain Tsubasa, Super de luta; o da bicuda também): a quadra congela (`N3_SCENE_MS`, tempo
      * real, em toda velocidade) num clarão, o fundo vira a arte do tipo, close no capitão com a energia girando, o cut-in
      * dos olhos e a faixa do golpe, e o stinger subindo; no fim da cena, o chute (onda de choque, tremida forte) com a
@@ -3394,14 +3522,14 @@ export class MatchScene extends Phaser.Scene {
         });
     }
 
-    private goalBanner(stroke: string) {
+    private goalBanner(stroke: string, text = tr('battle.goalBanner'), color = '#ffffff') {
         claimOverlay('drama', PRIO_GOAL, 1700);
         const t = this.add
-            .text(GAME_W / 2, GAME_H / 2, tr('battle.goalBanner'), {
+            .text(GAME_W / 2, GAME_H / 2, text, {
                 fontFamily: 'Galmuri11, monospace',
                 fontSize: '72px',
                 fontStyle: 'bold',
-                color: '#ffffff',
+                color,
                 stroke,
                 strokeThickness: 10,
             })

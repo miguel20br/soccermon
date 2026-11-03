@@ -61,6 +61,7 @@ import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
+import { ShowdownOverlay } from '../components/ShowdownOverlay';
 import {
     agencyView,
     CharangaCue,
@@ -856,6 +857,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        <ShowdownOverlay />
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}

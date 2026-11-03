@@ -289,6 +289,7 @@ export function createMatch(
         pressure: null,
         phase: 'kickoff',
         phaseTimer: 1,
+        showdown: null,
         kickoffTeam: 0,
         teams: [
             {
@@ -549,6 +550,7 @@ export function step(s: MatchState, commands: (Command | Command[])[]) {
         t.screens.mist = Math.max(0, t.screens.mist - dt);
     }
 
+    if (s.phase === 'play') for (const t of [0, 1] as const) if (s.teams[t].setup.demoBicudaAt) demoBicuda(s, t);
     if (s.phase !== 'play') {
         updatePhase(s, dt, commands);
         return;
@@ -659,7 +661,7 @@ function updatePhase(s: MatchState, dt: number, commands: (Command | Command[])[
         s.time = 0;
         s.added = null;
         setupKickoff(s, 1);
-    }
+    } else if (s.phase === 'showdown') updateShowdown(s, dt);
     void commands;
 }
 
@@ -3574,6 +3576,12 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
         return false;
     }
     gk.stats.saves++;
+    // bicuda N3 contra o N3 do rival (motor 20): ele segura e a partida para no duelo da bicuda (`startShowdown`)
+    if (arm.level === 3 && shot.max?.level === 3) {
+        emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: true });
+        startShowdown(s, gk, shooter, arm);
+        return true;
+    }
     emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: false });
     ball.shot = null;
     ball.owner = null;
@@ -3607,6 +3615,122 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     kick(s, gk, 'pass', to, 1.3, mate?.idx);
     if (arm.level === 2) maxKnock(s, gk, to);
     return true;
+}
+
+/**
+ * Duelo da bicuda (motor 20, `AGENCY.showdown`): o goleiro segura o N3 e a partida para (todo mundo parado, relógio
+ * parado, a cutscene na tela). A barra da bicuda gasta no chute, no fim da parada (`updateShowdown`).
+ */
+function startShowdown(s: MatchState, gk: PlayerState, shooter: PlayerState, arm: MaxArm) {
+    const ball = s.ball;
+    s.teams[gk.team].agency.max = null;
+    ball.shot = null;
+    ball.owner = gk.idx;
+    ball.lastTouch = gk.idx;
+    ball.assistCandidate = null;
+    ball.vel = v(0, 0);
+    ball.z = 0;
+    ball.vz = 0;
+    gk.heading = v(attackSign(gk.team), 0);
+    ball.pos = add(gk.pos, scale(gk.heading, DRIBBLE_OFFSET));
+    s.knocks.length = 0;
+    s.setPiece = null;
+    s.phase = 'showdown';
+    s.phaseTimer = AGENCY.showdown.seconds;
+    const kick = s.tick + Math.round(AGENCY.showdown.seconds * s.cfg.tickRate);
+    s.showdown = { gk: gk.idx, shooter: shooter.idx, q: arm.q, kick, kicked: false };
+    emit(s, {
+        type: 'showdown',
+        team: gk.team,
+        gk: gk.idx,
+        shooter: shooter.idx,
+        kick,
+        q: arm.q,
+    });
+}
+
+/**
+ * Fim do duelo: a bicuda sai reta pro canto longe do goleiro rival, sem atrito e sem ninguém tocar (todos continuam
+ * parados), e vira gol quando cruza a linha. Gol garantido pela física, não pela sorte.
+ */
+function updateShowdown(s: MatchState, dt: number) {
+    const sd = s.showdown;
+    if (!sd) return;
+    const ball = s.ball;
+    const gk = s.players[sd.gk];
+    const gx = goalXFor(s, gk.team);
+    if (!sd.kicked) {
+        if (s.tick < sd.kick) return;
+        sd.kicked = true;
+        const gy = s.cfg.pitch.width / 2;
+        const keeper = rivalGk(s, gk);
+        const side = keeper && keeper.pos.y >= gy ? -1 : 1;
+        const to = v(gx, gy + side * (s.cfg.pitch.goalWidth / 2 - AGENCY.maxPost));
+        // o goleiro rival pula pro outro canto (a bola não passa pelo desenho dele): só a tela, ele não defende
+        if (keeper) {
+            keeper.pos = v(keeper.pos.x, clamp(keeper.pos.y - side * 0.8, gy - 1.5, gy + 1.5));
+            setAction(keeper, Action.Dive, 1);
+        }
+        const dir = norm(sub(to, gk.pos));
+        emit(s, {
+            type: 'max',
+            team: gk.team,
+            by: gk.idx,
+            phase: 'hit',
+            moveId: maxMoveOf(gk.inst.moves, gk.inst.speciesId),
+            level: 3,
+            q: sd.q,
+        });
+        gk.stats.shots++;
+        gk.stats.shotsOnTarget++;
+        emit(s, { type: 'shot', by: gk.idx, xg: 1, moveId: null });
+        setAction(gk, Action.Shoot, 0.4);
+        gk.facing = dir8(dir, gk.facing);
+        ball.owner = null;
+        ball.lastKick = { by: gk.idx, kind: 'shot', tick: s.tick };
+        ball.pos = add(gk.pos, scale(dir, DRIBBLE_OFFSET + 0.1));
+        ball.vel = scale(dir, AGENCY.showdown.speed);
+        return;
+    }
+    ball.pos = add(ball.pos, scale(ball.vel, dt));
+    if ((ball.pos.x - gx) * attackSign(gk.team) < 0) return;
+    s.showdown = null;
+    scoreGoal(s, gk.team);
+    s.phaseTimer = AGENCY.showdown.goal;
+    setAction(gk, Action.Celebrate, AGENCY.showdown.goal);
+}
+
+/**
+ * `?demo=bicuda` (`TeamSetup.demoBicudaAt`): o capitão rival na marca dos 7 m com a bola, os dois golpes máximos
+ * armados no N3 (toque perfeito) e o chute; o goleiro capitão de `team` no meio do gol alcança e segura.
+ */
+function demoBicuda(s: MatchState, team: 0 | 1) {
+    // o 1º tick com a bola rolando a partir do pedido (uma vez: o chute do rival solta o 'max' dele)
+    const at = s.teams[team].setup.demoBicudaAt ?? 0;
+    if (s.tick < at || s.tick > at + 400 || s.events.some((e) => e.type === 'max' && e.tick >= at)) return;
+    const gk = s.players.find((p) => p.team === team && p.captain && p.role === 'GK');
+    const atk = s.players.find((p) => p.team !== team && p.captain && p.role !== 'GK');
+    if (!gk || !atk) return;
+    const gy = s.cfg.pitch.width / 2;
+    gk.pos = toWorld(s, team, 1.2, gy);
+    atk.pos = toWorld(s, team, 7, gy);
+    atk.heading = v(-attackSign(team), 0);
+    s.ball.owner = atk.idx;
+    // ninguém da linha no caminho (o N3 ainda é bloqueável, com 15% da chance)
+    for (const p of s.players)
+        if (p.team === team && p !== gk && Math.abs(p.pos.y - gy) < 3)
+            p.pos = v(p.pos.x, gy + (p.pos.y >= gy ? 3 : -3));
+    s.teams[atk.team].agency.max = { idx: atk.idx, level: 3, q: 2 };
+    s.teams[team].agency.max = { idx: gk.idx, level: 3, q: 2, until: s.tick + AGENCY.maxArmTicks };
+    kick(s, atk, 'shot', v(ownGoalX(s, team), gy), 1);
+    const shot = s.ball.shot;
+    // a isca do Inseto e a curva passariam pelo goleiro: a bola vai no corpo dele
+    if (shot) {
+        shot.decoy = undefined;
+        shot.curve = undefined;
+        shot.gkReach = undefined;
+        s.ball.vel = scale(norm(sub(gk.pos, s.ball.pos)), len(s.ball.vel));
+    }
 }
 
 /** Companheiro de linha mais à frente (de pé), além de `minX` metros do próprio gol. */

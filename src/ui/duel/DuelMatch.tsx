@@ -78,6 +78,7 @@ import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
+import { ShowdownOverlay } from '../components/ShowdownOverlay';
 import {
     agencyView,
     capFxType,
@@ -645,6 +646,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
+                        <ShowdownOverlay />
                         <PlayerInspect
                             match={match}
                             setups={setups}
