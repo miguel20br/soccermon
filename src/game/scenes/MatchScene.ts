@@ -3629,7 +3629,7 @@ export class MatchScene extends Phaser.Scene {
         return { x: x0, y: b.y, w: x1 - x0, h: Math.max(b.h, st.spark.y + r - b.y) };
     }
 
-    /** O pedaço x de uma caixa (mundo) na tela, com o plano `shot`. */
+    /** Onde uma caixa (mundo) cai na tela, com o plano `shot`. */
     private sdOnScreen(shot: Shot, b: Box) {
         const mid = shotMid(shot, GAME_W, GAME_H);
         const xs = [
@@ -3637,15 +3637,20 @@ export class MatchScene extends Phaser.Scene {
             [b.x + b.w, b.y],
             [b.x, b.y + b.h],
             [b.x + b.w, b.y + b.h],
-        ].map(([x, y]) => worldToScreen(mid, shot.zoom, shot.rot, GAME_W, GAME_H, x, y).x);
-        return { x0: Math.min(...xs), x1: Math.max(...xs) };
+        ].map(([x, y]) => worldToScreen(mid, shot.zoom, shot.rot, GAME_W, GAME_H, x, y));
+        return {
+            x0: Math.min(...xs.map((p) => p.x)),
+            x1: Math.max(...xs.map((p) => p.x)),
+            y0: Math.min(...xs.map((p) => p.y)),
+            y1: Math.max(...xs.map((p) => p.y)),
+        };
     }
 
     /**
      * Close de quem fala: o corpo em `fill` da altura útil, girado `rot`, no meio. Quem escuta nunca fica cortado na
      * borda, nem no fim do push-in (`push`): o plano anda até ele sair inteiro (quem fala vai pra beira do lado dele,
-     * olhando pra fora do quadro: o contraplano), senão até ele entrar inteiro; não cabendo, um pouco mais fechado, e por
-     * fim o plano abre pros dois.
+     * olhando pra fora do quadro: o contraplano), senão até ele entrar inteiro; não cabendo, quem fala em outro canto do
+     * quadro e mais fechado (o Gyarados enorme do lado do Magikarp), e por fim o plano abre pros dois.
      */
     private sdClose(who: PlayerView, other: PlayerView, fill: number, max: number, rot: number, push: number): Shot {
         const view = this.sdSafe();
@@ -3660,8 +3665,10 @@ export class MatchScene extends Phaser.Scene {
                 const s = { ...shot, zoom: shot.zoom * z };
                 const o = this.sdOnScreen(s, ob);
                 const me = this.sdOnScreen(s, b);
-                const clean = (o.x0 >= x0 && o.x1 <= x1) || o.x1 <= x0 || o.x0 >= x1;
-                return clean && me.x0 >= x0 && me.x1 <= x1;
+                // a caixa das falas cobre, não corta: quem escuta vale na tela inteira; quem fala fica acima dela
+                const inside = o.x0 >= x0 && o.x1 <= x1 && o.y0 >= 0 && o.y1 <= GAME_H;
+                const out = o.x1 <= x0 || o.x0 >= x1 || o.y1 <= 0 || o.y0 >= GAME_H;
+                return (inside || out) && me.x0 >= x0 && me.x1 <= x1 && me.y0 >= 0 && me.y1 <= view.y + view.h;
             });
         for (const k of [1, 1.25]) {
             const shot = fitShot([b], safe, { min: SD.zMin, max: max * k, fill: fill * k, rot, ay: 0.54 });
@@ -3672,6 +3679,12 @@ export class MatchScene extends Phaser.Scene {
                 if (ok(moved)) return moved;
             }
         }
+        for (const k of [1.25, 1.5])
+            for (const ay of [0.54, 0.3, 0.75])
+                for (const ax of [0.5, 0.25, 0.75, 0.15, 0.85]) {
+                    const shot = fitShot([b], safe, { min: SD.zMin, max: max * k, fill: fill * k, rot, ax, ay });
+                    if (ok(shot)) return shot;
+                }
         return fitShot([b, ob], safe, { min: 1.2, max, fill: 0.9, rot });
     }
 
