@@ -24,6 +24,9 @@ import './ui/kit/kit.css';
 
 // erros fora do React (eventos, timers, promessas): só registra no console com prefixo claro, sem esconder nada
 window.addEventListener('error', (e) => {
+    // aviso benigno do navegador (um ResizeObserver mexeu no layout e a medida nova fica pro quadro seguinte, como no
+    // useFitZoom/useTwoCols do palco): não é erro do jogo, e como console.error derrubava a fumaça no PC
+    if (!e.error && /^ResizeObserver loop/.test(e.message)) return;
     console.error('[Soccermon] erro não tratado:', e.error ?? e.message, `${e.filename}:${e.lineno}:${e.colno}`);
 });
 window.addEventListener('unhandledrejection', (e) => {
