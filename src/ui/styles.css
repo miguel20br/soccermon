@@ -4903,7 +4903,7 @@ button,
     display: none;
 }
 @container (max-width: 200px) {
-    .option-fit:not(.main) .fit-long {
+    .option-fit .fit-long {
         display: none;
     }
     .option-fit .fit-short {

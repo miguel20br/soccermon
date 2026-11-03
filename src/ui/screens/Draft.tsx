@@ -419,11 +419,13 @@ export function Draft() {
                                                 return (
                                                     <div className={`option-fit ${r.fit}`} title={full}>
                                                         <span className="fit-long">{full}</span>
-                                                        {r.fit !== 'main' && (
-                                                            <span className="fit-short">
-                                                                {d.common.pos[role]} · {r.display}
-                                                            </span>
-                                                        )}
+                                                        {/* na de origem, só a posição (o verde diz o resto): "Fixo de
+                                                            origem" não cabia na coluna do 320 e encavalava no vizinho */}
+                                                        <span className="fit-short">
+                                                            {r.fit === 'main'
+                                                                ? d.common.pos[role]
+                                                                : `${d.common.pos[role]} · ${r.display}`}
+                                                        </span>
                                                         {evo && <EvoBadge evo={evo} now={r.rating} tr={tr} />}
                                                     </div>
                                                 );
@@ -434,7 +436,9 @@ export function Draft() {
                                             action={{
                                                 label: isCaptain
                                                     ? t('team.draft.chooseThis')
-                                                    : roleLabel
+                                                    : // vaga do banco: só "Escalar" (o título já diz que é pro banco;
+                                                      // "Escalar (o banco)" não cabia no chip e vazava pra carta do lado)
+                                                      roleLabel && role !== 'ANY'
                                                       ? t('team.draft.signAs', { pos: roleLabel })
                                                       : t('team.draft.sign'),
                                                 primary: true,
