@@ -7,45 +7,17 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { portraitSrc } from '../portrait';
 import { reduceMotionOn } from '../reduce-motion';
-import { type ShowdownLine, showdownScript } from '../showdown-lines';
+import { FACE, lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../showdown-lines';
 import { tvCut } from '../tv';
 import { cardSprite } from './PokeCard';
 import './showdown.css';
 
 /**
  * Duelo da bicuda (motor 20): a cutscene no meio do jogo. O motor segura a partida (`AGENCY.showdown`) e a quadra roda
- * em 1x; aqui, no tempo real dessa parada: a defesa aparece um instante, o corte de TV entra, os dois frente a frente,
- * as falas na caixa com o rosto de quem fala e o grito do goleiro; o corte sai logo antes da bicuda (a quadra faz o
- * chute e o gol). Sai antes se a reprodução passar da bicuda (`match:showdown-end`).
+ * em 1x; a cutscene anda no relógio dela (`match:showdown-t`, ms desde o lance): a defesa aparece um instante, o corte
+ * de TV entra, os dois frente a frente, as falas na caixa com o rosto de quem fala e o grito do goleiro; o corte sai
+ * logo antes da bicuda (a quadra faz o chute e o gol), ou na hora se a reprodução passar dela (`match:showdown-end`).
  */
-const LEAD_MS = 600;
-/** A 1ª fala entra aqui; o grito fica `SHOUT_MS` na tela e o corte sai `EXIT_MS` antes da bicuda. */
-const TALK_AT_MS = 1000;
-const SHOUT_MS = 1400;
-const EXIT_MS = 420;
-/** Uma letra a cada `CHAR_MS` (a fala inteira em até `TYPE_MAX_MS`). */
-const CHAR_MS = 26;
-const TYPE_MAX_MS = 900;
-/** Fade de quem não tem o corte (Reduzir movimento). */
-const FADE_MS = 250;
-
-/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e o grito. */
-const FACE = {
-    s: ['surprised', 'pain', 'sad'],
-    s2: ['sigh', 'angry', 'sad'],
-    g: ['determined', 'happy'],
-    shout: ['shouting', 'determined', 'angry'],
-};
-
-let timers: number[] = [];
-const clear = () => {
-    for (const t of timers) clearTimeout(t);
-    timers = [];
-};
-const later = (ms: number, fn: () => void) => {
-    timers.push(window.setTimeout(fn, ms));
-};
-
 function Mon({ who, side, talking }: { who: MatchShowdown['gk']; side: 's' | 'g'; talking: boolean }) {
     const [w, setW] = useState(0);
     return (
@@ -70,6 +42,10 @@ export function ShowdownOverlay() {
     const open = useRef(false);
 
     useEffect(() => {
+        let cue: MatchShowdown | null = null;
+        let script: ShowdownLine[] = [];
+        let shown = -1;
+        let fade = 0;
         const done = () => {
             open.current = false;
             setSd(null);
@@ -77,45 +53,51 @@ export function ShowdownOverlay() {
             setAt(-1);
         };
         const close = () => {
-            clear();
+            cue = null;
             if (!open.current) return;
             if (!tvCut(done)) {
                 setLeaving(true);
-                later(FADE_MS, done);
+                clearTimeout(fade);
+                fade = window.setTimeout(done, SHOWDOWN_MS.fade);
             }
         };
-        const onShowdown = (cue: MatchShowdown) => {
-            clear();
-            const script = showdownScript(cue.shooter, cue.gk, cue.tick, dict().showdown);
-            const cries = useGame.getState().settings.cries;
+        const onShowdown = (c: MatchShowdown) => {
+            cue = c;
+            script = showdownScript(c.shooter, c.gk, c.tick, dict().showdown);
+            shown = -1;
             setLines(script);
             setAt(-1);
             setLeaving(false);
-            later(LEAD_MS, () => {
+        };
+        const onTime = (t: number) => {
+            const c = cue;
+            if (!c) return;
+            if (t >= c.ms - SHOWDOWN_MS.exit) {
+                close();
+                return;
+            }
+            if (t >= SHOWDOWN_MS.lead && !open.current) {
                 open.current = true;
-                if (!tvCut(() => setSd(cue))) setSd(cue);
-            });
-            // as falas dividem o tempo até o grito; o grito fica com o fim
-            const last = script.length - 1;
-            const shoutAt = cue.ms - EXIT_MS - SHOUT_MS;
-            const step = (shoutAt - TALK_AT_MS) / last;
-            script.forEach((l, i) => {
-                later(i < last ? TALK_AT_MS + step * i : shoutAt, () => {
-                    setAt(i);
-                    const mon = l.who === 's' ? cue.shooter : cue.gk;
-                    playCry(mon.speciesId, cries, i === last ? 1 : 0.55, i === last ? 1.15 : 1);
-                });
-            });
-            later(cue.ms - EXIT_MS, close);
+                if (!tvCut(() => setSd(c))) setSd(c);
+            }
+            const i = lineAt(t, c.ms, script.length);
+            if (i === shown || i < 0) return;
+            shown = i;
+            setAt(i);
+            const last = i === script.length - 1;
+            const mon = script[i].who === 's' ? c.shooter : c.gk;
+            playCry(mon.speciesId, useGame.getState().settings.cries, last ? 1 : 0.55, last ? 1.15 : 1);
         };
         EventBus.on('match:showdown', onShowdown);
+        EventBus.on('match:showdown-t', onTime);
         EventBus.on('match:showdown-end', close);
         EventBus.on('match:ended', close);
         return () => {
             EventBus.off('match:showdown', onShowdown);
+            EventBus.off('match:showdown-t', onTime);
             EventBus.off('match:showdown-end', close);
             EventBus.off('match:ended', close);
-            clear();
+            clearTimeout(fade);
         };
     }, []);
 
@@ -125,7 +107,8 @@ export function ShowdownOverlay() {
     const who = line?.who === 's' ? sd.shooter : sd.gk;
     const face = !line ? [] : last ? FACE.shout : line.who === 'g' ? FACE.g : at > 0 ? FACE.s2 : FACE.s;
     // Reduzir movimento: a fala vem inteira (a caixa só faz o fade)
-    const step = line && !reduceMotionOn() ? Math.min(CHAR_MS, TYPE_MAX_MS / Math.max(1, line.text.length)) : 0;
+    const step =
+        line && !reduceMotionOn() ? Math.min(SHOWDOWN_MS.char, SHOWDOWN_MS.type / Math.max(1, line.text.length)) : 0;
     return (
         <div
             className={`sd-overlay${leaving ? ' sd-leaving' : ''}${last ? ' sd-shout' : ''}`}

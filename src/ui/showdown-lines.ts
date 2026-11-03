@@ -48,3 +48,27 @@ export function showdownScript(
     out.push({ who: 'g', text: pick(g?.shout ?? d.shout, 'shout') });
     return out.map((l) => ({ ...l, text: fmt(l.text, names) }));
 }
+
+/**
+ * Tempos da cutscene (ms no relógio da quadra, desde o lance; ShowdownOverlay.tsx): a defesa aparece `lead` antes do
+ * corte, a 1ª fala entra em `talk`, o grito fica `shout` na tela e o corte sai `exit` antes da bicuda. Uma letra a cada
+ * `char` (a fala inteira em até `type`); `fade` é a saída de quem não tem o corte (Reduzir movimento).
+ */
+export const SHOWDOWN_MS = { lead: 600, talk: 1000, shout: 1400, exit: 420, char: 26, type: 900, fade: 250 };
+
+/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e o grito. */
+export const FACE = {
+    s: ['surprised', 'pain', 'sad'],
+    s2: ['sigh', 'angry', 'sad'],
+    g: ['determined', 'happy'],
+    shout: ['shouting', 'determined', 'angry'],
+};
+
+/** A fala da vez `t` ms depois do lance (-1 antes da 1ª): as falas dividem o tempo até o grito, que fica com o fim. */
+export function lineAt(t: number, ms: number, count: number): number {
+    const { talk, shout, exit } = SHOWDOWN_MS;
+    const shoutAt = ms - exit - shout;
+    if (t >= shoutAt) return count - 1;
+    if (t < talk) return -1;
+    return Math.min(count - 2, Math.floor((t - talk) / ((shoutAt - talk) / (count - 1))));
+}

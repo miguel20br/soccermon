@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { species } from '../engine/data';
 import { showdown as en } from '../i18n/en/showdown';
 import { showdown as pt } from '../i18n/pt/showdown';
-import { showdownScript } from './showdown-lines';
+import { lineAt, SHOWDOWN_MS, showdownScript } from './showdown-lines';
 
 const mon = (id: number) => ({ speciesId: id, name: species(id).name });
 /** Todas as falas de um idioma, com onde estão. */
@@ -90,5 +90,19 @@ describe('falas do duelo da bicuda', () => {
         expect(showdownScript(mon(8), mon(13), 1234, pt)).toEqual(generic);
         const seen = new Set(Array.from({ length: 30 }, (_, k) => showdownScript(mon(8), mon(13), k, pt)[0].text));
         expect(seen.size).toBeGreaterThan(3);
+    });
+
+    it('a cutscene: cada fala na vez dela até o grito, que fica até o corte sair', () => {
+        const ms = 9000;
+        for (const n of [3, 4]) {
+            const seen = Array.from({ length: ms / 50 }, (_, k) => lineAt(k * 50, ms, n));
+            expect(seen[0]).toBe(-1);
+            expect(seen.at(-1)).toBe(n - 1);
+            // em ordem, sem pular nenhuma
+            expect([...new Set(seen)]).toEqual([-1, ...Array.from({ length: n }, (_, i) => i)]);
+            // o grito entra antes do corte sair com tempo de ler
+            const shout = seen.indexOf(n - 1) * 50;
+            expect(ms - SHOWDOWN_MS.exit - shout).toBeGreaterThanOrEqual(1000);
+        }
     });
 });

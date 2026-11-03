@@ -546,7 +546,10 @@ export class MatchScene extends Phaser.Scene {
      * real); da bicuda ao fim da comemoração (`until`), no máximo 1x.
      */
     private showdown: { tick: number; kick: number; until: number; gk: number } | null = null;
-    /** A cutscene está na tela (sai quando a reprodução passa da bicuda, até pulando: `match:showdown-end`). */
+    /**
+     * A cutscene está na tela: a cada quadro, quanto da parada já passou (`match:showdown-t`, ms em 1x); sai quando a
+     * reprodução passa da bicuda, até pulando (`match:showdown-end`).
+     */
     private showdownOpen = false;
     /** Até quando (tempo real) a cena do especial N3 está na tela. */
     private n3SceneUntil = 0;
@@ -1394,9 +1397,12 @@ export class MatchScene extends Phaser.Scene {
         while (this.eventCursor < this.matchEvents.length && this.matchEvents[this.eventCursor].tick <= this.playTick) {
             this.handleEvent(this.matchEvents[this.eventCursor++], false);
         }
-        if (this.showdownOpen && this.playTick >= (this.showdown?.kick ?? 0)) {
-            this.showdownOpen = false;
-            EventBus.emit('match:showdown-end');
+        // a cutscene anda no relógio da quadra (aparelho lento ou aba parada, ela espera junto)
+        if (this.showdownOpen && this.showdown) {
+            if (this.playTick >= this.showdown.kick) {
+                this.showdownOpen = false;
+                EventBus.emit('match:showdown-end');
+            } else EventBus.emit('match:showdown-t', ((this.playTick - this.showdown.tick) / TICK_RATE) * 1000);
         }
 
         const { index, t } = this.locate(this.playTick);
