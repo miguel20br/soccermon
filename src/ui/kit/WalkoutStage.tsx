@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { type CSSProperties, memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
+import { species } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { cardTypeOf, editionOf } from '../../engine/specials';
 import { duckMusic, unduckMusic } from '../../game/music';
@@ -9,6 +10,7 @@ import {
     dayCount,
     type Jogada,
     jogadaOf,
+    revealOf,
     upgradeOf,
     WALK_SKIP_AT,
     type WalkPlan,
@@ -99,6 +101,7 @@ export function WalkoutStage({
         typeColor: Number.parseInt(typeColor.slice(1), 16),
         who: d.ultimate.walkout.who,
         jogada: jogada ?? jogadaOf(inst.speciesId),
+        reveal: revealOf(edition, species(inst.speciesId).types),
         cries: useGame.getState().settings.cries,
     });
     useEffect(() => {

@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import { species } from '../engine/data';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { ICONS } from '../engine/specials';
 import {
     comemoracaoOf,
     dayCount,
+    FX_TYPES,
     JOGADAS,
     jogadaOf,
     planBeats,
+    revealOf,
     SHATTER_MS,
     upgradeOf,
     walkoutPick,
@@ -17,6 +20,20 @@ import {
 } from './walkout-plan';
 
 describe('plano do walkout', () => {
+    it('vidro só nas edições; no ouro, o efeito do tipo (Normal com 2º tipo usa o 2º)', () => {
+        for (const ed of ['icone', 'destaque', 'shiny', 'evento']) expect(revealOf(ed, ['Fire'])).toBe('vidro');
+        const of = (id: number) => revealOf(null, species(id).types);
+        expect(of(25)).toBe('Electric');
+        expect(of(76)).toBe('Rock');
+        expect(of(18)).toBe('Flying');
+        expect(of(59)).toBe('Fire');
+        expect(of(143)).toBe('Normal');
+        expect(revealOf(null, ['Steel'])).toBe('Normal');
+        // todo tipo da Gen 1 + Fada tem efeito, e todo efeito tem um Pokémon de Kanto que o mostra
+        const seen = new Set(Array.from({ length: 151 }, (_, i) => of(i + 1)));
+        expect([...seen].sort()).toEqual([...FX_TYPES].sort());
+    });
+
     it('nível pela edição e pela nota (ut-walkout.md, decidido em 02/11)', () => {
         expect(walkTier('icone', 60)).toBe('especial');
         expect(walkTier('destaque', 70)).toBe('especial');

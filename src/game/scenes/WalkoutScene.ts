@@ -4,14 +4,16 @@ import { bodyHeight, createSpeciesAnims, footOrigin, preloadSpecies, resolveAnim
 import { trailParticle } from '../ball-trail';
 import { ensureBallTexture } from '../court';
 import { skinOf } from '../skin';
-import { type Comemoracao, comemoracaoOf, type Jogada, SHATTER_MS, type WalkPlan } from '../walkout-plan';
+import { type Comemoracao, comemoracaoOf, type FxType, type Jogada, SHATTER_MS, type WalkPlan } from '../walkout-plan';
 import { type WkSound, wkSound } from '../walkout-sound';
+import { BAYER, mix, rgb, seeded, TypeFx } from '../walkout-type-fx';
 
 /**
  * O walkout final (ut-walkout.md, "Escolha depois dos vídeos lado a lado"): o estádio de pixel art desenhado por código
  * (gramado, torcida, torres de luz, holofotes, fogos e faíscas na cor da edição, câmera com zoom e tremida), o tipo e a
  * posição acendendo nos dois telões, a silhueta "Quem é esse Pokémon?", o Pokémon entrando com a bola e fazendo a jogada
- * dele, o chute na tela que racha e quebra o vidro. A placa da edição e a carta de verdade (`FutCard`) ficam por cima,
+ * dele, o chute na tela que racha e quebra o vidro (edições especiais) ou revela a carta com o efeito do tipo (ouro,
+ * `walkout-type-fx.ts`). A placa da edição e a carta de verdade (`FutCard`) ficam por cima,
  * em React (`WalkoutStage`), lendo o mesmo relógio: a cena avisa a hora a cada quadro por `game.events` ('wk-tick').
  * O relógio é próprio (`clock`): tocar pula pra próxima batida e a gravação quadro a quadro (`game.step`) sai igual.
  */
@@ -28,6 +30,8 @@ export interface WalkoutData {
     typeColor: number;
     who: string;
     jogada: Jogada;
+    /** O que revela a carta: o vidro (edições) ou o efeito do tipo (`revealOf`). */
+    reveal: 'vidro' | FxType;
     cries: CryStyle;
     /** Px da tela por px do jogo (2 a 4): o canvas tem a resolução da tela, a pixel art continua em px do jogo. */
     res?: number;
@@ -121,15 +125,6 @@ const LOOKS: Record<string, Look> = {
     },
 };
 
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-const rgb = (c: number) => [(c >> 16) & 255, (c >> 8) & 255, c & 255];
-const mix = (a: number, b: number, t: number) => {
-    const [r1, g1, b1] = rgb(a);
-    const [r2, g2, b2] = rgb(b);
-    return (
-        (Math.round(r1 + (r2 - r1) * t) << 16) | (Math.round(g1 + (g2 - g1) * t) << 8) | Math.round(b1 + (b2 - b1) * t)
-    );
-};
 const FONT = 'Galmuri11, monospace';
 const clamp01 = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -140,15 +135,6 @@ const inOut = (k: number) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
 const FRONT = 0.72;
 /** Bola no tamanho 1 (perto do túnel): a textura da quadra tem 18 px. */
 const BALL = 0.36;
-
-/** Sorteio com semente (o desenho do estádio, da torcida e da rachadura sai igual em toda gravação). */
-function seeded(seed: number) {
-    let s = seed >>> 0;
-    return () => {
-        s = (s * 1664525 + 1013904223) >>> 0;
-        return s / 4294967296;
-    };
-}
 
 type Fn = () => void;
 /** A gravação segura o relógio no zero até começar a fotografar (`scripts/walkout-capture.mjs`). */
@@ -239,6 +225,8 @@ export class WalkoutScene extends Phaser.Scene {
     private beat = 0;
     private heat = 0;
     private fires: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+    /** A revelação pelo tipo (carta ouro); sem, o vidro. */
+    private tfx?: TypeFx;
 
     constructor() {
         super('walkout');
@@ -272,6 +260,7 @@ export class WalkoutScene extends Phaser.Scene {
         this.beat = 0;
         this.heat = 0;
         this.celeb = comemoracaoOf(data.speciesId);
+        this.tfx = undefined;
     }
 
     preload() {
@@ -322,6 +311,24 @@ export class WalkoutScene extends Phaser.Scene {
         this.buildStadium();
         this.buildScreens();
 
+        // a capa do tipo é pintada agora, na montagem (a batida não paga esse custo)
+        if (d.reveal !== 'vidro' && this.p.kind !== 'calmo')
+            this.tfx = new TypeFx(
+                {
+                    scene: this,
+                    W,
+                    H,
+                    I: this.impactPt,
+                    hud: (o) => this.h(o),
+                    snd: (s) => this.snd(s),
+                    shake: (ms, px) => this.shake(ms, px),
+                    flash: (ms, r, g, b) => this.hudCam.flash(ms, r, g, b),
+                    small: this.p.tier === 'raro' || this.p.kind === 'curto',
+                    seed: d.speciesId * 17 + 3,
+                },
+                d.reveal,
+                SHATTER_MS,
+            );
         if (this.p.kind === 'calmo') this.planReduced();
         else this.plan();
     }
@@ -364,6 +371,8 @@ export class WalkoutScene extends Phaser.Scene {
         if (this.finished) return true;
         this.queue = [];
         this.tweens.killAll();
+        this.tfx?.destroy();
+        this.tfx = undefined;
         this.hud.removeAll(true);
         this.rain?.stop();
         for (const e of this.temp) e.stop();
@@ -416,6 +425,7 @@ export class WalkoutScene extends Phaser.Scene {
         if (!this.finished && p.kind !== 'calmo' && this.clock >= p.enter && this.clock < p.impact)
             this.stepJogada(this.clock - p.enter);
         if (p.kind !== 'calmo') this.stepScreens();
+        this.tfx?.step(this.clock);
         if (p.kind !== 'calmo') this.stepMotion();
         this.game.events.emit('wk-tick', this.clock);
     }
@@ -1975,7 +1985,10 @@ export class WalkoutScene extends Phaser.Scene {
         }
     }
 
-    /** A bola bate no vidro: a tela racha a partir do ponto do impacto e, logo depois, quebra em cacos. */
+    /**
+     * A bola bate na tela. Edição especial: a tela racha a partir do ponto do impacto e, logo depois, quebra em cacos.
+     * Ouro: o efeito do tipo (congela, queima, lava…) no mesmo tempo.
+     */
     private impact() {
         const { W, H } = this;
         const I = this.impactPt;
@@ -1983,6 +1996,22 @@ export class WalkoutScene extends Phaser.Scene {
         this.ballShadow.setVisible(false);
         this.settleMon();
         const small = this.p.tier === 'raro' || this.p.kind === 'curto';
+        const punch = () => {
+            this.zoom(1.14);
+            this.zoom(1, 360, 'Back.easeOut');
+            this.beatBeams();
+            this.at(this.clock + 140, () => {
+                this.celebAt = this.clock;
+                this.celebStep = -1;
+            });
+            this.crowdBurst(20);
+        };
+        if (this.tfx) {
+            punch();
+            this.shake(220, small ? 3 : 5);
+            this.tfx.start(this.clock);
+            return;
+        }
         const rnd = seeded(this.d.speciesId * 17 + 3);
         const n = small ? 7 : 11;
         const R = Math.max(W, H);
@@ -2024,16 +2053,9 @@ export class WalkoutScene extends Phaser.Scene {
         this.tweens.add({ targets: prog, p: 1, duration: 200, ease: 'Quad.easeOut', onUpdate: draw });
         this.hudCam.flash(60, 255, 255, 255);
         this.shake(220, small ? 3 : 6);
-        this.zoom(1.14);
-        this.zoom(1, 360, 'Back.easeOut');
-        this.beatBeams();
-        this.at(this.clock + 140, () => {
-            this.celebAt = this.clock;
-            this.celebStep = -1;
-        });
+        punch();
         this.snd({ k: 'zz', name: 'glass' });
         this.snd({ k: 'sfx', name: 'thud', pitch: 0.6 });
-        this.crowdBurst(20);
         this.at(this.clock + SHATTER_MS, () => this.shatter(g, rays, rnd));
     }
 

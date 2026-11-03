@@ -77,6 +77,37 @@ export interface WalkPlan {
     party: number;
 }
 
+/** Os efeitos de tipo que revelam a carta ouro (sem edição), um por tipo da Gen 1 + Fada. */
+export const FX_TYPES = [
+    'Normal',
+    'Fire',
+    'Water',
+    'Electric',
+    'Grass',
+    'Ice',
+    'Fighting',
+    'Poison',
+    'Ground',
+    'Flying',
+    'Psychic',
+    'Bug',
+    'Rock',
+    'Ghost',
+    'Dragon',
+    'Fairy',
+] as const;
+export type FxType = (typeof FX_TYPES)[number];
+
+/**
+ * O que revela a carta depois do chute na tela: o vidro quebrando só nas edições especiais (03/11); no ouro, o efeito
+ * do tipo principal (Normal com um 2º tipo usa o 2º, como o símbolo no fundo da carta: o Pidgeot é Voador).
+ */
+export function revealOf(edition: string | null, types: readonly string[]): 'vidro' | FxType {
+    if (edition) return 'vidro';
+    const t = types[0] === 'Normal' && types[1] ? types[1] : types[0];
+    return (FX_TYPES as readonly string[]).includes(t) ? (t as FxType) : 'Normal';
+}
+
 /** Pular aparece depois da prévia: ninguém perde a cor. */
 export const WALK_SKIP_AT = 1000;
 /** O vidro quebra este tanto depois da bola bater. */

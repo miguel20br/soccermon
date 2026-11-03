@@ -43,7 +43,8 @@ function labCard(ed: LabEd, id: number): PokemonInstance {
     if (ed === 'destaque') return { ...inst, special: { kind: 'destaque', level: 1 } };
     if (ed === 'evento') return { ...inst, special: { kind: 'evento', type: species(id).types[0] } };
     if (ed === 'shiny') return { ...inst, shiny: true };
-    return inst;
+    // ouro sem edição: o sorteio às vezes dava shiny (e o walkout virava o da edição)
+    return { ...inst, shiny: false };
 }
 
 export function WalkoutLab({ onExit }: { onExit: () => void }) {
