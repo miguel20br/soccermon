@@ -9,6 +9,51 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.39',
+        date: '2026-11-03',
+        title: 'Duelo da bicuda',
+        sections: [
+            {
+                title: 'Duelo da bicuda',
+                lines: [
+                    'Goleiro capitão com a bicuda N3 segura o golpe máximo N3 do rival e a partida para',
+                    'Os dois ficam frente a frente e conversam, depois vem a bicuda de gol a gol',
+                    'A bicuda do duelo é sempre gol, com a comemoração mais longa do jogo',
+                    'Falas próprias pra 16 duelos e 14 Pokémon, de Charmander x Charizard a Magikarp',
+                ],
+            },
+            {
+                title: 'Sugestões da galera',
+                lines: [
+                    'Sinergias na aba Time da partida',
+                    'Draft: a carta mostra a sinergia que ela ativa (+Psíquico 2)',
+                    'Draft: toque num Pokémon da prancheta pra ver a carta dele',
+                    'Selo NOVO no Pokémon que ainda não está na sua Pokédex',
+                    'Campeão: seu time em cada jogo do Caminho do título. Toque pra ver a escalação',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: ['Jogadas com bola mais calmas: embaixadinha, drible, tremor, bicicleta, voo e canhão'],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'Escalação no 320 cabe sem rolar',
+                    'Mercado deitado: o Comprar fica embaixo da carta',
+                    'Recompensa: cartas maiores e o texto da MT inteiro',
+                    'Partida deitada: quadra maior e os botões na coluna da direita',
+                    'Arena e Copa do Dia no 320: as placas não cobrem os letreiros',
+                    'Vagas do Draft com texto maior no 320',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: ['O aviso de avatar novo fica no canto do avatar'],
+            },
+        ],
+    },
+    {
         version: '0.9.38.2',
         date: '2026-11-03',
         title: 'Fixo de secundária',
@@ -2380,6 +2425,51 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.39',
+        date: '2026-11-03',
+        title: 'Keeper showdown',
+        sections: [
+            {
+                title: 'Keeper showdown',
+                lines: [
+                    'A captain keeper with a level 3 punt holds the rival level 3 max move and the match stops',
+                    'The two face off and talk, then comes the punt from goal to goal',
+                    'The showdown punt is always a goal, with the longest celebration in the game',
+                    'Special lines for 16 matchups and 14 Pokémon, from Charmander vs Charizard to Magikarp',
+                ],
+            },
+            {
+                title: 'Player suggestions',
+                lines: [
+                    'Synergies in the match Team tab',
+                    'Draft: the card shows the synergy it unlocks (+Psychic 2)',
+                    'Draft: tap a Pokémon on the board to see its card',
+                    'NEW tag on Pokémon not yet in your Pokédex',
+                    'Champion: your team in every game of the road to the title. Tap to see the lineup',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: ['Calmer ball tricks: keepy-ups, dribble, stomp, bicycle kick, flight and cannon'],
+            },
+            {
+                title: 'Phone',
+                lines: [
+                    'Lineup at 320 fits without scrolling',
+                    'Sideways Market: Buy sits under the card',
+                    'Reward: bigger cards and the whole TM text',
+                    'Sideways match: bigger court and the buttons in the right column',
+                    'Arena and Daily Cup at 320: signs no longer cover the marquees',
+                    'Bigger Draft slot labels at 320',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: ['The new avatar dot sits on the avatar corner'],
+            },
+        ],
+    },
     {
         version: '0.9.38.2',
         date: '2026-11-03',

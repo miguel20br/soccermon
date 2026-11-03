@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.39 · Duelo da bicuda (03/11/2026)
+
+Motor 21: bicuda N3 do goleiro capitão contra o N3 do rival para a partida 9 s (fase `showdown`) numa cutscene com falas (16 pares, linha evolutiva, 14 solos, genéricas; escolha pelo tick), e a bicuda é gol garantido com comemoração de 6 s. Rival também faz, sem pular. Sugestões dos jogadores (sinergias na aba Time, +Tipo nas cartas do draft, carta em campo na prancheta, selo NOVO, seu time no Caminho do título), walkout polido (jogadas mais calmas, tiers +6 a 10%) e as 8 sugestões do QA.
+
 ## 0.9.38.2 · Fixo de secundária (03/11/2026)
 
 Motor 20: Snorlax (Fixo 59 ⇒ 77), Lickitung (49 ⇒ 64) e Wigglytuff (37 ⇒ 48) ganham Fixo de secundária em `POSITION_OVERRIDES`, a pedido do Miguel e com prioridade. Calibragem (n 200) dentro do ruído: 7,88 ⇒ 7,50 gols/jogo, favorito 68,8% ⇒ 68,6%. 0.9.38.1: 12 consertos de tela da varredura da madrugada.

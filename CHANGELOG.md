@@ -1,5 +1,34 @@
 # Novidades
 
+## 0.9.39 · Duelo da bicuda (2026-11-03)
+
+### Duelo da bicuda
+- Goleiro capitão com a bicuda N3 segura o golpe máximo N3 do rival e a partida para
+- Os dois ficam frente a frente e conversam, depois vem a bicuda de gol a gol
+- A bicuda do duelo é sempre gol, com a comemoração mais longa do jogo
+- Falas próprias pra 16 duelos e 14 Pokémon, de Charmander x Charizard a Magikarp
+
+### Sugestões da galera
+- Sinergias na aba Time da partida
+- Draft: a carta mostra a sinergia que ela ativa (+Psíquico 2)
+- Draft: toque num Pokémon da prancheta pra ver a carta dele
+- Selo NOVO no Pokémon que ainda não está na sua Pokédex
+- Campeão: seu time em cada jogo do Caminho do título. Toque pra ver a escalação
+
+### Walkout
+- Jogadas com bola mais calmas: embaixadinha, drible, tremor, bicicleta, voo e canhão
+
+### Celular
+- Escalação no 320 cabe sem rolar
+- Mercado deitado: o Comprar fica embaixo da carta
+- Recompensa: cartas maiores e o texto da MT inteiro
+- Partida deitada: quadra maior e os botões na coluna da direita
+- Arena e Copa do Dia no 320: as placas não cobrem os letreiros
+- Vagas do Draft com texto maior no 320
+
+### Perfil
+- O aviso de avatar novo fica no canto do avatar
+
 ## 0.9.38.2 · Fixo de secundária (2026-11-03)
 
 ### Posições
