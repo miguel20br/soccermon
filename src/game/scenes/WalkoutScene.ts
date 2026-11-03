@@ -224,6 +224,7 @@ export class WalkoutScene extends Phaser.Scene {
     // câmera, ola, flashes, comemoração e a revelação com floreio
     private heads: { x: number; y: number; s: string; c: string; jump: boolean }[] = [];
     private rot = 0;
+    private rotTween?: Phaser.Tweens.Tween;
     private orbit = 0;
     private camFree = false;
     private ola?: Phaser.GameObjects.Image;
@@ -259,6 +260,7 @@ export class WalkoutScene extends Phaser.Scene {
         this.touched = -1;
         this.landed = false;
         this.rot = 0;
+        this.rotTween = undefined;
         this.orbit = 0;
         this.camFree = false;
         this.ola = undefined;
@@ -1229,8 +1231,7 @@ export class WalkoutScene extends Phaser.Scene {
             this.zoom(z * 1.12);
             this.zoom(z * 0.97, Math.max(300, (p.back ?? p.enter) - (p.pos ?? 0) - 100), 'Sine.easeOut');
             this.hudCam.flash(70, 255, 255, 255);
-            this.rot = 0.03;
-            this.tweens.add({ targets: this, rot: 0, duration: 900, ease: 'Sine.easeOut' });
+            this.tilt(0.03, 0, 900, 'Sine.easeOut');
         } else {
             // chicote até o telão do tipo e um dolly lento chegando mais perto, com a câmera inclinada
             cam.pan(s.x, s.y + 4, 260, 'Cubic.easeOut', true);
@@ -1238,8 +1239,7 @@ export class WalkoutScene extends Phaser.Scene {
             this.at(this.clock + 270, () =>
                 this.zoom(z * 1.06, Math.max(300, (p.pos ?? 0) - (p.type ?? 0) - 300), 'Sine.easeInOut'),
             );
-            this.rot = -0.035;
-            this.tweens.add({ targets: this, rot: -0.015, duration: 1000, ease: 'Sine.easeOut' });
+            this.tilt(-0.035, -0.015, 1000, 'Sine.easeOut');
         }
         this.beatBeams();
         this.at(this.clock + 220, () => {
@@ -1254,10 +1254,20 @@ export class WalkoutScene extends Phaser.Scene {
         for (const b of this.beams) b.setTint(c);
     }
 
+    /**
+     * Inclina a câmera de `from` pra `to`. Uma inclinação só por vez: com duas, a anterior (a do telão do tipo) seguia
+     * escrevendo `rot` por cima da nova e o telão da posição tremia pro outro lado no corte.
+     */
+    private tilt(from: number, to: number, ms: number, ease = 'Linear') {
+        this.rotTween?.remove();
+        this.rot = from;
+        this.rotTween = this.tweens.add({ targets: this, rot: to, duration: ms, ease });
+    }
+
     private camBack() {
         const cam = this.cameras.main;
         const p = this.p;
-        this.tweens.add({ targets: this, rot: 0, duration: 400 });
+        this.tilt(this.rot, 0, 400);
         if (p.gate !== undefined && p.back !== undefined) {
             // travelling: dos telões desce pela arquibancada até a boca do túnel
             const ms = p.gate - p.back + 120;

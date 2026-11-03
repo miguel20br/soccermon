@@ -8,7 +8,8 @@
  *   node scripts/walkout-capture.mjs --ed icone --id 150 --medir --tela 390x844   (FPS em tempo real, sem gravar)
  *
  * O loop do Phaser dorme e cada quadro chama game.step (a cena e os tweens andam no relógio dela); as animações CSS
- * (a carta) andam junto pelo document.getAnimations(). CHROME_PATH aponta o Chromium (padrão /usr/bin/chromium).
+ * (a carta) andam junto pelo document.getAnimations(). CHROME_PATH aponta o Chromium (padrão /usr/bin/chromium); roda na
+ * GPU (SWIFTSHADER=1 pra WebGL por software).
  */
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -33,9 +34,11 @@ const browser = await puppeteer.launch({
     args: [
         '--no-sandbox',
         '--hide-scrollbars',
-        ...(process.env.GPU
-            ? ['--enable-gpu', '--ignore-gpu-blocklist']
-            : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']),
+        // GPU de verdade: o SwiftShader (WebGL por software) perdia triângulos dos telões e do céu (manchas escuras que
+        // piscavam de quadro em quadro); SWIFTSHADER=1 volta pra ele numa máquina sem GPU
+        ...(process.env.SWIFTSHADER
+            ? ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
+            : ['--enable-gpu', '--ignore-gpu-blocklist']),
     ],
     protocolTimeout: 900000,
     env: { ...process.env, LANG: 'pt_BR.UTF-8', LANGUAGE: 'pt_BR' },
