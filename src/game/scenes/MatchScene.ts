@@ -262,16 +262,16 @@ const MAX_TRAIL_TICKS = 16;
 /**
  * Duelo da bicuda na quadra (Miguel, 03/11/2026: "o fundo só tem que escurecer e rolar uma animação com phaser por cima,
  * com os pokes interagindo"). Quem chutou anda até o goleiro (ou recua, se chegou colado) e para a `gap` m dele (`walkAt`,
- * por `walkMs`); o goleiro sai `gkStep` m do gol com a bola e volta pra tomar distância antes da bicuda. Zoom na defesa, no par e na bola voando
- * (`zoomPairPhone` na quadra grande do celular, que já mostra só um pedaço). No voo, a câmera lenta vai de `slowFar` no
- * meio da quadra a `slowNear` nos últimos `nearM` m, e a câmera fica `lead` da tela à frente da bola (`phoneLead` na
- * janela do celular).
+ * por `walkMs`); o goleiro sai `gkStep` m do gol com a bola e volta pra tomar distância antes da bicuda. Zoom na defesa,
+ * no par e na bola voando (`zoomPairPhone` na quadra grande do celular, que já mostra só um pedaço). No voo, a câmera
+ * lenta vai de `slowFar` no meio da quadra a `slowNear` nos últimos `nearM` m, e a câmera fica `lead` da tela à frente da
+ * bola (`phoneLead` na janela do celular).
  */
 const SD_STAGE = {
     gap: 3.4,
     gkStep: 1.5,
     walkAt: 450,
-    walkMs: 1100,
+    walkMs: 900,
     zoomCatch: 1.6,
     zoomPair: 2.4,
     zoomPairPhone: 2.3,
@@ -282,8 +282,12 @@ const SD_STAGE = {
     lead: 0.2,
     phoneLead: 0.09,
 };
-/** O gesto de cada fala (PMD): quem chutou pula de susto e depois bufa, o goleiro encara; o grito, a carga. */
-const SD_TALK = { s: 'Hop', s2: 'Swing', g: 'Swing', ms: 800 } as const;
+/**
+ * O gesto de cada fala (PMD): quem chutou pula de susto e depois parte pra cima (o Swing dá o bote dentro do quadro); o
+ * goleiro chega `lean` m pra cima dele e volta (andando, a bola vai junto: o bote e o pulo deixavam ela no ar); o grito,
+ * a carga. O gesto dura `ms`.
+ */
+const SD_TALK = { s: 'Hop', s2: 'Swing', lean: 0.6, ms: 800 } as const;
 
 /** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
 const MAX_BICUDA_SLOW_TICKS = 24;
@@ -602,6 +606,9 @@ export class MatchScene extends Phaser.Scene {
         shooter: PlayerView;
         gkFace: number;
         shooterFace: number;
+        /** Onde o goleiro fica na conversa e até onde ele chega pra cima de quem chutou (px, fora do lugar do motor). */
+        gkTo: { x: number; y: number };
+        gkLean: { x: number; y: number };
         script: ShowdownLine[];
         line: number;
         cues: { at: number; run: () => void }[];
@@ -3453,6 +3460,8 @@ export class MatchScene extends Phaser.Scene {
             shooter,
             gkFace,
             shooterFace,
+            gkTo,
+            gkLean: { x: gkTo.x + u.x * SD_TALK.lean * PPM, y: gkTo.y + u.y * SD_TALK.lean * PPM },
             script: showdownScript(shooter, gk, e.tick, d),
             line: -1,
             cues: [
@@ -3534,21 +3543,28 @@ export class MatchScene extends Phaser.Scene {
         const i = lineAt(t, ms, st.script.length);
         if (i < 0 || i === st.line) return;
         st.line = i;
-        const { gk, shooter, gkFace, shooterFace } = st;
+        const { gk, shooter, gkFace, shooterFace, gkTo } = st;
+        // o goleiro volta pro lugar da conversa (se tinha chegado pra cima)
+        const back = (end: string) => this.sdWalk(gk, gkTo, 300, gkFace, end);
         if (i === st.script.length - 1) {
             // o grito: o goleiro carrega a bicuda e quem chutou se encolhe
-            this.sdAct(gk, 'Charge', gkFace);
+            back('Charge');
             this.sdAct(shooter, 'Hurt', shooterFace);
             return;
         }
-        const g = st.script[i].who === 'g';
-        const [talker, face, other, otherFace] = g
-            ? [gk, gkFace, shooter, shooterFace]
-            : [shooter, shooterFace, gk, gkFace];
-        this.sdAct(talker, g ? SD_TALK.g : i === 0 ? SD_TALK.s : SD_TALK.s2, face);
-        this.sdAct(other, 'Idle', otherFace);
+        if (st.script[i].who === 'g') {
+            this.sdWalk(gk, st.gkLean, 220, gkFace, 'Idle');
+            this.sdAct(shooter, 'Idle', shooterFace);
+            this.time.delayedCall(SD_TALK.ms, () => {
+                if (this.sdStage === st && st.line === i) back('Idle');
+            });
+            return;
+        }
+        this.sdAct(shooter, i === 0 ? SD_TALK.s : SD_TALK.s2, shooterFace);
+        if (gk.walk.x !== gkTo.x || gk.walk.y !== gkTo.y) back('Idle');
+        else this.sdAct(gk, 'Idle', gkFace);
         this.time.delayedCall(SD_TALK.ms, () => {
-            if (this.sdStage === st && st.line === i) this.sdAct(talker, 'Idle', face);
+            if (this.sdStage === st && st.line === i) this.sdAct(shooter, 'Idle', shooterFace);
         });
     }
 
