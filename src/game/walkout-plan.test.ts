@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { species } from '../engine/data';
 import { createInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
-import { ICONS } from '../engine/specials';
+import { ICONS, themeTypeOf } from '../engine/specials';
 import {
     comemoracaoOf,
     dayCount,
@@ -29,6 +29,9 @@ describe('plano do walkout', () => {
         expect(of(59)).toBe('Fire');
         expect(of(143)).toBe('Normal');
         expect(revealOf(null, ['Steel'])).toBe('Normal');
+        // o telão (themeTypeOf), o símbolo da carta e o efeito nunca divergem
+        for (let id = 1; id <= 151; id++) expect(of(id)).toBe(themeTypeOf({ speciesId: id }));
+        expect(themeTypeOf({ speciesId: 18 })).toBe('Flying');
         // todo tipo da Gen 1 + Fada tem efeito, e todo efeito tem um Pokémon de Kanto que o mostra
         const seen = new Set(Array.from({ length: 151 }, (_, i) => of(i + 1)));
         expect([...seen].sort()).toEqual([...FX_TYPES].sort());

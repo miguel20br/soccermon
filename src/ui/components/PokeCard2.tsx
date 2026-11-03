@@ -6,7 +6,15 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
-import { type Edition, editionOf, ICON_CHANCE, mvpLevel, specialBonus } from '../../engine/specials';
+import {
+    type Edition,
+    editionOf,
+    ICON_CHANCE,
+    mvpLevel,
+    specialBonus,
+    themeOfTypes,
+    themeTypeOf,
+} from '../../engine/specials';
 import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
 import { type Translator, useT } from '../../i18n/react';
 import type { CareerSeal } from '../../store/profile';
@@ -210,7 +218,7 @@ export const PokeCard2 = memo(function PokeCard2({
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
-        const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
+        const theme = themeOfTypes(d.sp.types);
         classes.push(`holo-${theme.toLowerCase()}`);
         if (edition) classes.push('is-special', `sp-${edition}`);
     }
@@ -359,12 +367,7 @@ function Metal({
     tipFocus: boolean;
     art?: string;
 }) {
-    const theme =
-        edition === 'evento' && inst.special?.type
-            ? inst.special.type
-            : d.sp.types[0] === 'Normal' && d.sp.types[1]
-              ? d.sp.types[1]
-              : d.sp.types[0];
+    const theme = themeTypeOf(inst);
     const tag = layerTag(d.tr, inst, edition);
     const mvp = mvpLevel(inst);
     const dLevel = edition === 'destaque' ? mvp : 0;

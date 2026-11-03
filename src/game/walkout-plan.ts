@@ -1,6 +1,6 @@
 import { species } from '../engine/data';
 import { type PokemonInstance, viewInstance } from '../engine/instance';
-import { editionOf } from '../engine/specials';
+import { editionOf, themeOfTypes } from '../engine/specials';
 import { dailyDay } from '../store/daily';
 
 /**
@@ -104,7 +104,7 @@ export type FxType = (typeof FX_TYPES)[number];
  */
 export function revealOf(edition: string | null, types: readonly string[]): 'vidro' | FxType {
     if (edition) return 'vidro';
-    const t = types[0] === 'Normal' && types[1] ? types[1] : types[0];
+    const t = themeOfTypes(types);
     return (FX_TYPES as readonly string[]).includes(t) ? (t as FxType) : 'Normal';
 }
 

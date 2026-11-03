@@ -3,7 +3,7 @@ import { type CSSProperties, memo, useEffect, useLayoutEffect, useRef, useState 
 import { createPortal, flushSync } from 'react-dom';
 import { species } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
-import { cardTypeOf, editionOf } from '../../engine/specials';
+import { editionOf, themeTypeOf } from '../../engine/specials';
 import { duckMusic, unduckMusic } from '../../game/music';
 import type { WalkoutData, WalkoutScene } from '../../game/scenes/WalkoutScene';
 import {
@@ -75,7 +75,8 @@ export function WalkoutStage({
 }) {
     const { t: tr, d } = useT();
     const view = viewInstance(inst);
-    const type = cardTypeOf(inst);
+    // o tipo do telão é o mesmo do símbolo da carta e do efeito que a revela (themeTypeOf)
+    const type = themeTypeOf(inst);
     const edition = editionOf(inst);
     const host = useRef<HTMLDivElement>(null);
     const gameRef = useRef<Phaser.Game | null>(null);
