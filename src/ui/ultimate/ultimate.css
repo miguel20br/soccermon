@@ -543,7 +543,7 @@
     position: relative;
     display: block;
     height: 18px;
-    border-radius: 9px;
+    border-radius: 8px;
     background: var(--bc-ink-2, #0e1430);
     overflow: hidden;
 }
@@ -563,7 +563,12 @@
     font-size: 11px;
     line-height: 18px;
     color: #fff;
-    text-shadow: 0 1px 0 #000;
+    /* contorno inteiro: o número passa por cima do verde (branco sobre verde sem contorno não lê) */
+    text-shadow:
+        1px 0 0 #000,
+        -1px 0 0 #000,
+        0 1px 0 #000,
+        0 -1px 0 #000;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

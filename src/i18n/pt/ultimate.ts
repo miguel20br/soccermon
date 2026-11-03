@@ -86,7 +86,7 @@ export const ultimate = {
         medal: 'Medalha da Temporada {n}',
         champion: 'Campeão da Temporada {n}',
         legend: 'Lenda da T{n}',
-        stats: '{p} partidas · {w} vitórias · marco {m}',
+        stats: '{p} · {w} · marco {m}',
         ornaments: 'Enfeites',
         noLegend: 'Sem Lenda: nenhuma carta jogou',
     },

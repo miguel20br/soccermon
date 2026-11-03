@@ -87,7 +87,7 @@ export const ultimate: typeof pt = {
         medal: 'Season {n} medal',
         champion: 'Season {n} Champion',
         legend: 'S{n} Legend',
-        stats: '{p} matches · {w} wins · milestone {m}',
+        stats: '{p} · {w} · milestone {m}',
         ornaments: 'Ornaments',
         noLegend: 'No Legend: no card played',
     },

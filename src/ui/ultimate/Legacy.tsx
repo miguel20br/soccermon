@@ -1,16 +1,29 @@
 import { viewInstance } from '../../engine/instance';
+import { type Lang, t as tr, tn as trn } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import './legacy.css';
 
+/** "1 partida · 2 vitórias · marco 3": cada número com o plural dele. */
+export const legacyStats = (r: { played: number; wins: number; marks: number }, lang: Lang) =>
+    tr(
+        'ultimate.legacy.stats',
+        {
+            p: trn('common.count.matches', r.played, {}, lang),
+            w: trn('common.count.wins', r.wins, {}, lang),
+            m: r.marks,
+        },
+        lang,
+    );
+
 /**
  * O que ficou das temporadas do Time Ultimate (Perfil): medalha, título de campeão, a Lenda (a carta que mais jogou,
  * só enfeite) e os enfeites dos eventos. Sem legado, não aparece.
  */
 export function UltimateLegacy() {
-    const { t, d } = useT();
+    const { t, d, lang } = useT();
     const legacy = useGame((s) => s.ultimate.legacy);
     if (!legacy.seasons.length && !legacy.ornaments.length) return null;
     return (
@@ -37,9 +50,7 @@ export function UltimateLegacy() {
                                 {t('ultimate.legacy.champion', { n: r.season })}
                             </b>
                         )}
-                        <small className="muted">
-                            {t('ultimate.legacy.stats', { p: r.played, w: r.wins, m: r.marks })}
-                        </small>
+                        <small className="muted">{legacyStats(r, lang)}</small>
                         {r.legend && <small className="muted">{viewInstance(r.legend).displayName}</small>}
                     </span>
                 </div>
