@@ -218,7 +218,7 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
                 ? c.mod.captain
                 : fmt(m.ref === 'same' ? c.mod.captainSame : c.mod.captainAura, { pct: pct(f) });
         case 'sinergia':
-            return fmt(c.mod.typeSynergy, { pct: pct(f) });
+            return fmt(m.ref === 'mono' ? c.mod.monoSynergy : c.mod.typeSynergy, { pct: pct(f) });
         case 'historia':
             return fmt(c.mod.storySynergy, { pct: pct(f) });
         case 'posicao':

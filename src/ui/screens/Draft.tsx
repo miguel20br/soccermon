@@ -255,7 +255,10 @@ export function Draft() {
     const isCaptain = run.status === 'captain';
     const chosen = isCaptain ? (run.options.find((o) => o.uid === selected) ?? null) : null;
     const filled = run.lineup.filter(Boolean).map((u) => byUid.get(u)!);
-    const synergies = computeSynergies(filled);
+    const synergies = computeSynergies(
+        filled,
+        run.bench.filter(Boolean).flatMap((u) => byUid.get(u) ?? []),
+    );
     const links = computeLinks(filled);
     const avg = lineupAverage(
         run.lineup.map((u) => (u ? byUid.get(u) : null)),

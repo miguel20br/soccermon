@@ -24,7 +24,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FormationDiagram } from '../components/FormationCarousel';
 import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
-import { LinkChips } from '../components/LinkChips';
+import { LinkChips, SynergyChip } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite, TypeBadge } from '../components/PokeCard';
 import { useMedia, WIDE } from '../components/Prancheta';
@@ -384,7 +384,11 @@ export function LineupEditor({
     const { t, d, lang } = useT();
     const picks = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
     const detailInst = byUid.get(detail ?? lineup[0]) ?? picks[0];
-    const synergies = computeSynergies(lineup.map((u) => byUid.get(u)!));
+    const benchNow = bench.flatMap((u) => byUid.get(u) ?? []);
+    const synergies = computeSynergies(
+        lineup.map((u) => byUid.get(u)!),
+        benchNow,
+    );
     const links = computeLinks(lineup.map((u) => byUid.get(u)!));
     const slotsNow = FORMATIONS[formation].slots;
     const positionOf = (uid: string) => {
@@ -398,7 +402,13 @@ export function LineupEditor({
     const cornerField = lineupNow
         .map((inst, i) => {
             const role = slotsNow[i];
-            const mods = attributeModifiers(inst, { lineup: lineupNow, captain: captainNow, role, sponsors });
+            const mods = attributeModifiers(inst, {
+                lineup: lineupNow,
+                rest: benchNow,
+                captain: captainNow,
+                role,
+                sponsors,
+            });
             const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
             return { inst, role, passing };
         })
@@ -671,14 +681,18 @@ export function LineupEditor({
                                 <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
                             ) : (
                                 <div className="row" style={{ gap: 8 }}>
-                                    {synergies.map((s) => (
-                                        <span key={s.type} className="row" style={{ gap: 4 }}>
-                                            <TypeBadge type={s.type} />
-                                            <span className="tactic-desc">
-                                                ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                    {synergies.map((s) =>
+                                        s.mono ? (
+                                            <SynergyChip key={s.type} s={s} />
+                                        ) : (
+                                            <span key={s.type} className="row" style={{ gap: 4 }}>
+                                                <TypeBadge type={s.type} />
+                                                <span className="tactic-desc">
+                                                    ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
+                                                </span>
                                             </span>
-                                        </span>
-                                    ))}
+                                        ),
+                                    )}
                                 </div>
                             )}
                         </section>

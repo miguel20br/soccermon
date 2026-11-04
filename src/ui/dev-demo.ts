@@ -57,6 +57,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
  * `&gol=1`: só a jogada em que o golpe, perfeito e já na agenda, entra (sem tocar; as gravações do N3 por tipo); com
  * `&goleiro=1`, a bicuda perfeita na agenda num chute comum do rival (as gravações das bicudas N1, N2 e N3).
+ * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
@@ -78,6 +79,7 @@ export function runDevDemo() {
         demo !== 'penaltis' &&
         demo !== 'draft' &&
         demo !== 'ditto' &&
+        demo !== 'monotipo' &&
         demo !== 'evolucao' &&
         demo !== 'campeao' &&
         demo !== 'eliminado' &&
@@ -268,6 +270,29 @@ export function runDevDemo() {
                 return;
             }
         }
+        return;
+    }
+    if (demo === 'monotipo') {
+        const n = Number(new URLSearchParams(window.location.search).get('n') ?? 6);
+        store.newRun('Demo FC', 'monotipo');
+        const run = useGame.getState().run!;
+        const rng = new Rng('monotipo', 'demo');
+        // 1-2-1 todo Água: Lapras no gol, Blastoise fixo, Starmie e Golduck nas alas, Gyarados pivô
+        const lineup = [131, 9, 121, 55, 130].map((id) => createInstance(id, rng));
+        const bench = (n >= 7 ? [134, 87] : n === 6 ? [134, 25] : [25, 4]).map((id) => createInstance(id, rng));
+        useGame.setState({
+            run: {
+                ...run,
+                formation: '1-2-1',
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup',
+            },
+            screen: 'lineup',
+        });
         return;
     }
     if (demo === 'mt') {

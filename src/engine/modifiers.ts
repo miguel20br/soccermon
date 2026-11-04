@@ -7,7 +7,7 @@ import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { specialBonus } from './specials';
 import { sponsorBonuses } from './sponsors';
-import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
+import { computeSynergies, synergyCap, synergyFactor } from './synergy';
 
 /**
  * De onde vêm os bônus e penalidades de um Pokémon. É a MESMA regra que o motor usa para montar o jogador
@@ -53,6 +53,8 @@ export interface MoveModifier {
 
 export interface TeamContext {
     lineup?: readonly PokemonInstance[];
+    /** Resto do elenco (reservas e quem já saiu): só conta pro monotipo. */
+    rest?: readonly PokemonInstance[];
     captain?: PokemonInstance | null;
     role?: Position | null;
     /** Patrocínios da copa (ids). Os de campo somam pontos; sem eles a partida é a de sempre. */
@@ -155,11 +157,19 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
         });
     }
     if (lineup.length) {
-        const syn = synergyFactor(computeSynergies(lineup), sp.types);
+        const all = computeSynergies(lineup, ctx.rest);
+        const syn = synergyFactor(all, sp.types);
+        const mono = all.find((s) => s.mono && s.bonus === syn && sp.types.includes(s.type));
         if (syn > 1)
-            mods.push({ source: 'sinergia', label: `Sinergia de tipo: ${pct(syn)}`, attrs: 'all', factor: syn });
-        // tipo × história com teto: um time montado pra isso não passa de +15%
-        const link = Math.min(linkFactor(computeLinks(lineup), inst.uid), SYNERGY_CAP / syn);
+            mods.push({
+                source: 'sinergia',
+                label: `${mono ? 'Monotipo' : 'Sinergia de tipo'}: ${pct(syn)}`,
+                ref: mono ? 'mono' : undefined,
+                attrs: 'all',
+                factor: syn,
+            });
+        // tipo × história com teto: um time montado pra isso não passa de +15% (o monotipo passa)
+        const link = Math.min(linkFactor(computeLinks(lineup), inst.uid), synergyCap(syn) / syn);
         if (link > 1)
             mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
     }

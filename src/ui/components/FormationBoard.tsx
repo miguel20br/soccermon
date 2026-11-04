@@ -6,12 +6,14 @@ import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { cardTypeOf, editionOf } from '../../engine/specials';
+import { computeSynergies } from '../../engine/synergy';
 import { useT } from '../../i18n/react';
 import { type SlotRef, useGame } from '../../store/game-store';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
+import { monoAura } from './LinkChips';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
@@ -97,6 +99,15 @@ export function FormationBoard({
     for (const l of computeLinks(lineup.flatMap((u) => byUid.get(u) ?? []))) {
         if (l.full && l.def.special) for (const uid of l.members) aura.set(uid, l.def.id);
     }
+    // monotipo: os do tipo brilham na cor dele (com 6 ou 7, o banco do tipo também)
+    const squad = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
+    const mono = computeSynergies(
+        lineup.flatMap((u) => byUid.get(u) ?? []),
+        bench.flatMap((u) => byUid.get(u) ?? []),
+    ).find((s) => s.mono);
+    const monoUids = new Set(
+        mono ? squad.filter((p) => species(p.speciesId).types.includes(mono.type)).map((p) => p.uid) : [],
+    );
 
     const slot = (ref: SlotRef, uid: string, style?: CSSProperties) => {
         const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
@@ -117,13 +128,16 @@ export function FormationBoard({
         const look = card?.className ?? '';
         const rarStyle = card ? ({ ...style, ...card.style } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
-        const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';
+        const linkGlow = inst && ref.zone === 'lineup' && aura.has(inst.uid);
+        const monoGlow = !!mono && !!inst && monoUids.has(inst.uid) && (ref.zone === 'lineup' || mono.mono! > 5);
+        const glow = linkGlow ? ` aura aura-${aura.get(inst!.uid)}` : monoGlow ? ' aura aura-mono' : '';
+        const glowStyle = !linkGlow && monoGlow ? monoAura(mono!.type) : undefined;
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
                 className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim}${glow} ${look}`}
-                style={rarStyle}
+                style={glowStyle ? { ...rarStyle, ...glowStyle } : rarStyle}
                 data-uid={inst?.uid}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}

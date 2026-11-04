@@ -217,10 +217,28 @@ describe('v0.5: físico, sinergias de história e Ditto', () => {
             computeSynergies(lineupOf(ids)).find((x) => x.type === type)?.bonus;
         expect(bonusOf([7, 54, 60, 19, 20], 'Water')).toBe(1.06);
         expect(bonusOf([7, 54, 60, 72, 20], 'Water')).toBe(1.08);
-        expect(bonusOf([7, 54, 60, 72, 79], 'Water')).toBe(1.1);
+        expect(bonusOf([7, 54, 60, 72, 79], 'Water')).toBe(1.12);
         const birds = (ids: number[]) => computeLinks(lineupOf(ids)).find((l) => l.def.id === 'passaros');
         expect(birds([144, 145, 19, 20, 21])).toMatchObject({ bonus: 1.06, full: false });
         expect(birds([144, 145, 146, 20, 21])).toMatchObject({ bonus: 1.1, full: true });
+    });
+
+    it('monotipo: só com os 5 em quadra do tipo; o banco do tipo sobe pra 6 (+16%) e 7 (+22%)', () => {
+        const water = lineupOf([7, 54, 60, 72, 79]);
+        const mono = (rest: number[]) => computeSynergies(water, lineupOf(rest)).find((x) => x.type === 'Water');
+        expect(mono([19, 20])).toMatchObject({ mono: 5, bonus: 1.12 });
+        expect(mono([8, 20])).toMatchObject({ mono: 6, bonus: 1.16 });
+        expect(mono([8, 9])).toMatchObject({ mono: 7, bonus: 1.22 });
+        // banco do tipo sem os 5 em quadra não vira monotipo
+        const four = computeSynergies(lineupOf([7, 54, 60, 72, 19]), lineupOf([8, 9])).find((x) => x.type === 'Water');
+        expect(four).toMatchObject({ count: 4, bonus: 1.08 });
+        expect(four?.mono).toBeUndefined();
+        // na partida, o reserva do tipo conta (carta = campo): monotipo 6 = +16% e a história ainda soma por cima
+        const home = setup([7, 54, 60, 72, 79], 'Água');
+        home.bench = lineupOf([8, 20]);
+        const s = createMatch(FUTSAL_5, home, setup([143, 16, 17, 10, 11], 'Fora'), 1);
+        const base = computeAttributes(species(7), s.players[0].inst.level);
+        expect(s.players[0].attr.pace / base.pace).toBeGreaterThanOrEqual(1.16);
     });
 
     it('Ditto vira o melhor da posição em campo (de qualquer time) e continua Ditto no elenco', () => {

@@ -266,6 +266,9 @@ export const team: typeof pt = {
         tapSkip: 'tap to skip',
     },
     linkTitle: '{desc} Combo: {combo}.',
+    mono: 'Monotype {type}',
+    monoTitle:
+        'Monotype: all 5 on court are {type} ({n} in the squad), +{pct}% to all their stats. 6 in the squad = +16%, 7 = +22%.',
     synTitle: 'Type synergy: {n} {type} on court, +{pct}% to all their stats.',
     novo: 'NEW',
     novoTitle: 'Not in your Pokédex yet',

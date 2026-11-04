@@ -103,6 +103,7 @@ export function PlayerInspect({
     const behind = snap.score[who.team === 0 ? 1 : 0] - snap.score[who.team];
     const mods = attributeModifiers(inst, {
         lineup: lineupNow,
+        rest: [...setup.lineup, ...setup.bench].filter((p) => !lineupNow.some((l) => l.uid === p.uid)),
         captain,
         role: who.role,
         sponsors: setup.sponsors,

@@ -101,6 +101,7 @@ export function CardModal() {
         onTeam
             ? {
                   lineup,
+                  rest: picks.filter((p) => !lineup.includes(p)),
                   captain: picks.find((p) => p.uid === run?.captainUid) ?? null,
                   role: position ?? null,
                   sponsors: run?.sponsors,

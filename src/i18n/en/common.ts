@@ -329,6 +329,7 @@ export const common: typeof pt = {
         captain: 'Captain: +3%',
         captainSame: 'Same type as captain: {pct}',
         captainAura: "Captain's aura: {pct}",
+        monoSynergy: 'Monotype: {pct}',
         typeSynergy: 'Type synergy: {pct}',
         storySynergy: 'Story synergy: {pct}',
         offPosition: 'Out of position: {pct}',

@@ -330,6 +330,7 @@ export const common = {
         captain: 'Capitão: +3%',
         captainSame: 'Mesmo tipo do capitão: {pct}',
         captainAura: 'Aura do capitão: {pct}',
+        monoSynergy: 'Monotipo: {pct}',
         typeSynergy: 'Sinergia de tipo: {pct}',
         storySynergy: 'Sinergia de história: {pct}',
         offPosition: 'Fora da posição: {pct}',

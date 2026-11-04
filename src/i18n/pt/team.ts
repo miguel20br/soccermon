@@ -269,6 +269,9 @@ export const team = {
         tapSkip: 'toque pra pular',
     },
     linkTitle: '{desc} Combo: {combo}.',
+    mono: 'Monotipo {type}',
+    monoTitle:
+        'Monotipo: os 5 em quadra são {type} ({n} no elenco), +{pct}% em todos os atributos deles. 6 no elenco = +16%, 7 = +22%.',
     synTitle: 'Sinergia de tipo: {n} {type} em quadra, +{pct}% em todos os atributos deles.',
     novo: 'NOVO',
     novoTitle: 'Ainda não estava na sua Pokédex',

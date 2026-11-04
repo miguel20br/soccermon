@@ -159,6 +159,8 @@ export function minuteOf(s: MatchState): number {
 /** Bônus coletivos do time: sinergias de tipo e aura do capitão. */
 interface TeamBonuses {
     lineup: readonly PokemonInstance[];
+    /** Resto do elenco (reservas e quem já saiu), pro monotipo. */
+    rest: readonly PokemonInstance[];
     links: ActiveLink[];
     captain: PokemonInstance | null;
     sponsors?: readonly string[];
@@ -169,7 +171,8 @@ interface TeamBonuses {
 /** Bônus pela escalação de agora (`lineup`): capitão substituído leva a aura junto. */
 function teamBonuses(lineup: readonly PokemonInstance[], setup: TeamSetup, losing = false): TeamBonuses {
     const captain = lineup.find((p) => p.uid === setup.captainUid) ?? null;
-    return { lineup, links: computeLinks(lineup), captain, sponsors: setup.sponsors, losing };
+    const rest = [...setup.lineup, ...setup.bench].filter((p) => !lineup.some((l) => l.uid === p.uid));
+    return { lineup, rest, links: computeLinks(lineup), captain, sponsors: setup.sponsors, losing };
 }
 
 const bonusesOf = (s: MatchState, team: 0 | 1) =>

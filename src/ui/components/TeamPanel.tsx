@@ -112,7 +112,7 @@ export function TeamPanel({
             </div>
             {open && (
                 <>
-                    <TeamSynergies lineup={view.rows.map((r) => r.inst)} />
+                    <TeamSynergies lineup={view.rows.map((r) => r.inst)} rest={view.bench.map((b) => b.inst)} />
                     <div className="tp-row tp-labels" aria-hidden>
                         <span />
                         <span>{t('team.panel.onCourt')}</span>
