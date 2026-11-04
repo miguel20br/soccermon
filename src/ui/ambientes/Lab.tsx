@@ -109,7 +109,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                     >
                         <span className="cup-go-txt">
                             <b>{t('home.amb.labGo')}</b>
-                            <small>{t('home.amb.labSeen', { n: seen, total: DEX_TOTAL })}</small>
+                            <small>{left > 0 ? t('home.amb.labLeft', { n: left }) : t('home.amb.labFull')}</small>
                         </span>
                         <HudIcon kind="next" />
                     </button>

@@ -931,6 +931,17 @@
     text-shadow: var(--k-out-1);
     font-variant-numeric: tabular-nums;
 }
+/* o "x/y" ao lado da barra (por cima do amarelo o branco lê mal) */
+.k-num {
+    flex: none;
+    min-width: 3.2em;
+    text-align: right;
+    font-family: "Galmuri11", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
 @keyframes k-bar-fill {
     from {
         transform: scaleX(0);

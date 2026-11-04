@@ -267,10 +267,10 @@ export function MissionHow({ m, view }: { m: Mission; view: SaveView }) {
                 >
                     <span className="k-bar">
                         <i style={{ width: `${(n / m.goal) * 100}%` }} />
-                        <b aria-hidden>
-                            {n}/{m.goal}
-                        </b>
                     </span>
+                    <b className="k-num" aria-hidden>
+                        {n}/{m.goal}
+                    </b>
                 </span>
             )}
         </>
@@ -318,10 +318,10 @@ export function PlatinumBlock({ p, view }: { p: Platinum; view: SaveView }) {
                             >
                                 <span className={`k-bar${i.n >= i.goal ? ' full' : ''}`}>
                                     <i style={{ width: `${Math.min(1, i.n / i.goal) * 100}%` }} />
-                                    <b aria-hidden>
-                                        {Math.min(i.n, i.goal)}/{i.goal}
-                                    </b>
                                 </span>
+                                <b className="k-num" aria-hidden>
+                                    {Math.min(i.n, i.goal)}/{i.goal}
+                                </b>
                             </span>
                         </div>
                         {i.n >= i.goal && (

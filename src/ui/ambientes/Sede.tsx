@@ -166,33 +166,18 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                         {titles}
                     </span>
                 </header>
-                {goal && (
-                    <button
-                        type="button"
-                        className="sd-board"
-                        aria-label={t('home.amb.sedeBoard')}
-                        onClick={() => openDoor('profile', 'missoes')}
-                    >
-                        <span className="bc-tag">{d.profile.tabs.missoes}</span>
-                        <b>{missionText(goal.m)}</b>
-                        <span className="k-bar">
-                            <i style={{ width: `${Math.min(1, goal.n / goal.goal) * 100}%` }} />
-                            <b>
-                                {goal.n}/{goal.goal}
-                            </b>
-                        </span>
-                    </button>
-                )}
                 <div className="rm-actions">
+                    {/* a ação principal é o que não tem porta na cena: as Missões (Troféus é a vitrine, o contador e a porta) */}
                     <button
                         type="button"
                         className="btn big cup-go rm-go cb cb-blue"
-                        onClick={() => playDoor(() => openDoor('trophies'))}
+                        onClick={() => openDoor('profile', 'missoes')}
                     >
                         <span className="cup-go-txt">
-                            <b>{d.home.doors.trophies[0]}</b>
-                            <small>{tn('home.amb.sedeTitles', titles)}</small>
+                            <b>{d.profile.tabs.missoes}</b>
+                            <small>{goal ? missionText(goal.m) : t('home.amb.sedeBoard')}</small>
                         </span>
+                        {goal && <em className="door-count">{`${goal.n}/${goal.goal}`}</em>}
                         <HudIcon kind="next" />
                     </button>
                 </div>

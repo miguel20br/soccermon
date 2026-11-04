@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { cloneElement, type ReactElement, type ReactNode, useEffect, useState } from 'react';
 import { track } from '../../analytics/track';
 import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
@@ -233,7 +233,7 @@ function DuelStage({
 }
 
 /** Criar sala: o modo em 3 blocos (a regra de cada um no "?"), velocidade, duração e jogos numa Sheet. */
-function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: ReactNode }) {
+function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: ReactElement<{ info?: ReactNode }> }) {
     const { t, d } = useT();
     const startSpeed = useGame((s) => s.settings.speed);
     const hasTeam = useHasReadyTeam();
@@ -253,10 +253,22 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
         setUrl(code, local);
         void sendPendingChallenge(code);
     };
+    // um "?" só, no título, explica os três modos (antes era um por cartão)
+    const modesInfo = (
+        <InfoSheet title={t('duel.modeLabel')}>
+            {DUEL_MODES.map((m) => (
+                <div key={m}>
+                    <h3>{d.duel.modes[m][0]}</h3>
+                    <p>{d.duel.modes[m][1]}</p>
+                    {m === 'ready' && !hasTeam && <p className="muted">{t('duel.noTeam')}</p>}
+                </div>
+            ))}
+        </InfoSheet>
+    );
     const rules = [speedLabel(speed, t('match.highlights')), d.duel.durations[duration], d.duel.bestOf[bestOf]];
     return (
         <DuelStage
-            head={head}
+            head={cloneElement(head, { info: modesInfo })}
             className="duel-create"
             action={
                 <button
@@ -286,10 +298,6 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                             disabled={m === 'ready' && !hasTeam}
                             onClick={() => setMode(m)}
                         />
-                        <InfoSheet title={d.duel.modes[m][0]}>
-                            <p>{d.duel.modes[m][1]}</p>
-                            {m === 'ready' && !hasTeam && <p className="muted">{t('duel.noTeam')}</p>}
-                        </InfoSheet>
                     </div>
                 ))}
             </fieldset>
