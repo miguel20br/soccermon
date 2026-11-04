@@ -1,4 +1,4 @@
-import { CLUBS, type ClubTemplate } from './cup';
+import { CLUBS, type ClubTemplate, GYM_THEME_MIN } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
 import { type Stone, stoneUsers } from './evolution';
@@ -391,8 +391,15 @@ export function longOpponent(
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
     const difficulty = Math.max(-2, Math.min(4, base + (kind === 'ginasio' ? GYM_SHIFT : 0) + shift));
-    // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares
-    const d = aiDraftTeam(rng, difficulty, club.types, club.formation, kind === 'jogo' ? ROUTE_THEME_MIN : 0);
+    // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares; o líder (ginásio e Final), 4
+    const d = aiDraftTeam(
+        rng,
+        difficulty,
+        club.types,
+        club.formation,
+        kind === 'jogo' ? ROUTE_THEME_MIN : GYM_THEME_MIN,
+        kind === 'final',
+    );
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);

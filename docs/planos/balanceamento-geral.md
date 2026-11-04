@@ -234,3 +234,23 @@ Pedido dele: "o nv3 devia ser quase indefensável". Medido com `POL=n3 MAXTIPO=1
 
 O calibrate não mede (o robô não aperta o botão); efeito estimado de +0,1 gol/jogo pra quem guarda o N3. O rival da
 copa também usa N3: vale igual contra o jogador.
+
+## Monotipo e times dos líderes (04/11/2026, motor 24)
+
+Aprovado pelo Miguel ("o teto tem que ser removido", "apoio G1 a G6"; números da sinergia delegados a mim).
+
+| O quê | Antes | Depois |
+|---|---|---|
+| 5 do mesmo tipo em quadra | +10% | Monotipo +12% |
+| 6 do tipo no elenco (5 + 1 reserva) | — | +16% |
+| 7 do tipo no elenco | — | +22% |
+| Teto tipo × história | +15% | sem teto |
+| Líder de ginásio (e Final) | sem mínimo do tipo | 4 dos 5 titulares do tipo (Rota segue 3) |
+| Capitão do líder | melhor nota | melhor do tipo (a Final, elite, segue a melhor nota) |
+| Fora do tipo (ginásio e Rota) | qualquer um | sem contra-tipo nem lendário (Final livre) |
+| Oitavas | dificuldade -1, sem item | -2 (pior das opções) e 1 item |
+
+Time monotipo contra time do mesmo nível (8 tipos × 200, ±1,2 pp; o monotipo sai 1,3 de nota mais fraco): +10% 54%,
++15% 60%, +20% 65%, +25% 70%. Copa por fase (600 copas, `scripts/balance/cup.ts`, ±2–4 pp): antes 73/64/54/42%,
+título 11%; depois 81/58/51/60%, título 14%. Ressalvas: a final ficou acima da meta (50–55%) e as quartas abaixo;
+a Rota não foi medida por fase.

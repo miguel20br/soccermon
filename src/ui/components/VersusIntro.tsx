@@ -5,9 +5,10 @@ import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
+import { computeSynergies } from '../../engine/synergy';
 import { GYM_TM } from '../../engine/tm';
 import { playCry, playSfx } from '../../game/audio';
-import { clubName, formationText } from '../../i18n';
+import { clubName, formationText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
@@ -368,6 +369,9 @@ export function VersusIntro({
     // o treinador do rival: o líder do ginásio ou, nos times da Rota, a classe de treinador (Caçador de Insetos…)
     const host = awayTrainer || awayCoach ? undefined : rivalTrainer(away.name);
     const hostText = host ? d.match.leaders[host as keyof typeof d.match.leaders] : undefined;
+    // rival de monotipo (raro): o treinador avisa no lugar da fala de sempre
+    const mono = host ? computeSynergies(away.lineup, away.bench).find((s) => s.mono) : undefined;
+    const quote = mono ? t('match.vs.mono', { type: typeName(mono.type) }) : hostText?.pre;
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -400,7 +404,7 @@ export function VersusIntro({
                                 ? t('match.vs.host', { leader: hostText.name, city: club.city })
                                 : (hostText?.name ?? t('match.vs.rival')))
                     }
-                    quote={hostText?.pre}
+                    quote={quote}
                 />
                 <Side
                     team={home}

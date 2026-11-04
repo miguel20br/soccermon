@@ -6,7 +6,7 @@ import {
     positionFactor,
     positionRating,
 } from './attributes';
-import { SPECIES, type Species, species, type Tier } from './data';
+import { effectiveness, SPECIES, type Species, species, type Tier, type TypeName } from './data';
 import { type FormationId, formationOf } from './formations';
 import { createInstance, DEFAULT_LEVEL, type PokemonInstance, slotRating } from './instance';
 import type { Rng } from './rng';
@@ -229,22 +229,35 @@ export function aiPick(rng: Rng, options: PokemonInstance[], need: Position | 'A
     return best;
 }
 
-/** Um Pokémon dos `types` que joga em `need`, com a nota na vaga mais perto da de `like`. */
-function themedLike(
+/** Um Pokémon que passa em `ok` e joga em `need`, com a nota na vaga mais perto da de `like`. */
+function similarLike(
     rng: Rng,
     like: PokemonInstance,
     need: Position | 'ANY',
     taken: ReadonlySet<number>,
-    types: readonly string[],
+    ok: (sp: Species) => boolean,
 ): PokemonInstance | null {
     const target = speciesSlotRating(species(like.speciesId), need);
-    const pool = SPECIES.filter(
-        (sp) => !taken.has(sp.id) && canPlay(sp, need) && sp.types.some((t) => types.includes(t)),
-    );
+    const pool = SPECIES.filter((sp) => !taken.has(sp.id) && canPlay(sp, need) && ok(sp));
     if (!pool.length) return null;
     const gap = (sp: Species) => Math.abs(speciesSlotRating(sp, need) - target);
     const best = Math.min(...pool.map(gap));
     return createInstance(rng.pick(pool.filter((sp) => gap(sp) === best)).id, rng);
+}
+
+const ofTypes = (sp: Species, types: readonly string[]) => sp.types.some((t) => types.includes(t));
+
+/**
+ * Quem pode jogar num time temático sem ser do tipo (Miguel, 04/11/2026): nem lendário solto (Mewtwo na Erika) nem
+ * contra-tipo, o que bate ou apanha forte do tipo do time (Fogo na Misty e na Erika).
+ */
+function fitsTheme(sp: Species, types: readonly string[]): boolean {
+    if (ofTypes(sp, types)) return true;
+    if (sp.tier === 'legendary') return false;
+    const own = sp.types as TypeName[];
+    return !types.some(
+        (t) => effectiveness(t as TypeName, own) > 1 || own.some((o) => effectiveness(o, [t as TypeName]) > 1),
+    );
 }
 
 /** Opção de pior nota na vaga (dificuldade -2). */
@@ -267,6 +280,8 @@ export function aiDraftTeam(
     formation?: FormationId,
     /** Titulares mínimos dos `preferTypes` (times da Rota: o Ornitólogo tem pássaros). 0 = só a preferência de 75%. */
     themeMin = 0,
+    /** A Final (Liga Índigo): a elite leva quem quiser, sem as regras de tema (contra-tipo, lendário, capitão do tipo). */
+    elite = false,
 ): { lineup: PokemonInstance[]; bench: PokemonInstance[]; captainUid: string } {
     const needs: (Position | 'ANY')[] = [...formationOf(formation).slots, 'ANY', 'ANY'];
     const starters = needs.length - BENCH_SIZE;
@@ -285,15 +300,21 @@ export function aiDraftTeam(
         // com a nota na vaga mais perto da escolhida, pra força do time não mudar
         const missing = themeMin - picks.filter(themed).length;
         if (round < starters && missing > 0 && missing >= starters - round && !themed(pick))
-            pick = themedLike(rng, pick, need, taken, preferTypes) ?? pick;
+            // sem lendário forçado: o Zapdos saía em todo time do Surge
+            pick =
+                similarLike(rng, pick, need, taken, (sp) => ofTypes(sp, preferTypes) && sp.tier !== 'legendary') ??
+                pick;
+        if (preferTypes.length && !elite && !fitsTheme(species(pick.speciesId), preferTypes))
+            pick = similarLike(rng, pick, need, taken, (sp) => fitsTheme(sp, preferTypes)) ?? pick;
         taken.add(pick.speciesId);
         picks.push(pick);
     });
     const lineup = picks.slice(0, needs.length - BENCH_SIZE);
-    // capitão da IA: o titular de melhor nota
+    // capitão da IA: o titular de melhor nota (time temático: o melhor do tipo, o ás do líder)
     const overall = (p: PokemonInstance) =>
         Math.max(...Object.values(speciesProfile(SPECIES[p.speciesId - 1]).ratings));
-    const captain = lineup.reduce((best, p) => (overall(p) > overall(best) ? p : best));
+    const aces = elite ? [] : lineup.filter(themed);
+    const captain = (aces.length ? aces : lineup).reduce((best, p) => (overall(p) > overall(best) ? p : best));
     return { lineup, bench: picks.slice(needs.length - BENCH_SIZE), captainUid: captain.uid };
 }
 

@@ -17,10 +17,6 @@ export interface Synergy {
 const TYPE_BONUS: Record<number, number> = { 2: 1.03, 3: 1.06, 4: 1.08 };
 export const MONO_BONUS: Record<number, number> = { 5: 1.12, 6: 1.16, 7: 1.22 };
 
-/** Teto de sinergia (tipo × história) por Pokémon: só o monotipo passa, e a história soma no máximo +5% por cima. */
-export const SYNERGY_CAP = 1.15;
-export const synergyCap = (syn: number) => Math.max(SYNERGY_CAP, syn + 0.05);
-
 /** `rest`: o resto do elenco (reservas e quem já saiu), que só conta para o monotipo. */
 export function computeSynergies(lineup: readonly PokemonInstance[], rest: readonly PokemonInstance[] = []): Synergy[] {
     const counts = new Map<string, number>();

@@ -112,8 +112,11 @@ export const CLUBS: ClubTemplate[] = [
     },
 ];
 
+/** Titulares do tipo do líder no time do ginásio (o treinador da Rota tem 3: o líder é o mais temático). */
+export const GYM_THEME_MIN = 4;
+
 export const CUP_STAGES = ['Oitavas de final', 'Quartas de final', 'Semifinal', 'Final'];
-const STAGE_DIFFICULTY = [-1, 0, 2, 4];
+const STAGE_DIFFICULTY = [-2, 0, 2, 4];
 
 /**
  * Sorteia os 4 adversários da copa (a final é sempre contra a Liga Índigo). Cada clube entra com a MT do
@@ -124,9 +127,9 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
     const gyms = rng.shuffle(CLUBS.filter((c) => c.city !== 'Indigo Plateau'));
     const clubs = [gyms[0], gyms[1], gyms[2], CLUBS[CLUBS.length - 1]];
     return clubs.map((club, stage) => {
-        const d = aiDraftTeam(rng, STAGE_DIFFICULTY[stage], club.types, club.formation);
-        // das quartas em diante os adversários também chegam com itens (1 nas quartas e na semi, 3 na final)
-        const itemCount = stage >= 3 ? 3 : stage >= 1 ? 1 : 0;
+        const d = aiDraftTeam(rng, STAGE_DIFFICULTY[stage], club.types, club.formation, GYM_THEME_MIN, stage === 3);
+        // os adversários chegam com itens: 1 nas oitavas, quartas e semi, 3 na final
+        const itemCount = stage >= 3 ? 3 : 1;
         const holders = rng.shuffle([...d.lineup]).slice(0, itemCount);
         // item que serve: um geral ou o do tipo dele (antes saía Metal Coat, de tipo que nem existe na Gen 1)
         for (const h of holders) {

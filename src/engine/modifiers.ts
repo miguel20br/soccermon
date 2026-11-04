@@ -7,7 +7,7 @@ import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { specialBonus } from './specials';
 import { sponsorBonuses } from './sponsors';
-import { computeSynergies, synergyCap, synergyFactor } from './synergy';
+import { computeSynergies, synergyFactor } from './synergy';
 
 /**
  * De onde vêm os bônus e penalidades de um Pokémon. É a MESMA regra que o motor usa para montar o jogador
@@ -168,8 +168,8 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
                 attrs: 'all',
                 factor: syn,
             });
-        // tipo × história com teto: um time montado pra isso não passa de +15% (o monotipo passa)
-        const link = Math.min(linkFactor(computeLinks(lineup), inst.uid), synergyCap(syn) / syn);
+        // tipo × história somam sem teto (Miguel, 04/11/2026: o teto de +15% saiu)
+        const link = linkFactor(computeLinks(lineup), inst.uid);
         if (link > 1)
             mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
     }

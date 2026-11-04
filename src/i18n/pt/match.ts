@@ -458,6 +458,7 @@ export const match = {
         leader: 'Líder {leader} · {city}',
         host: '{leader} · {city}',
         elite: 'Elite dos Quatro',
+        mono: 'Hoje o time é todo {type}. Boa sorte.',
         final: 'Grande final',
         aria: '{home} contra {away}',
         start: 'Começar!',

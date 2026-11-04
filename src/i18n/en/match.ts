@@ -427,6 +427,7 @@ export const match: typeof pt = {
         leader: 'Leader {leader} · {city}',
         host: '{leader} · {city}',
         elite: 'Elite Four',
+        mono: 'All {type} today. Good luck.',
         final: 'Grand final',
         aria: '{home} vs {away}',
         start: 'Kick off!',
