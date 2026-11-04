@@ -7,11 +7,12 @@ import { crack, shockwave, type TypeFx } from './cine';
  * na régua do Counter). Por cima do kit de cinema (cine.ts), cada um dos 16 tipos deixa a marca dele no voo da bola e na
  * chegada (Fogo põe o chão em brasa, Água deixa esteira de espuma, Elétrico solta raio que ricocheteia, Gelo trilha de
  * cristais, Psíquico o eco da bola, Fantasma some e reaparece, Dragão a serpente...) e as 12 assinaturas ganham um toque
- * a mais (o feixe do Hyper Beam, o 大 do Fire Blast, o raio em cadeia do Pikachu, a roleta do Metronome...). Só tela.
+ * a mais (o feixe do Hyper Beam, a estrela de fogo do Fire Blast, o raio em cadeia do Pikachu, a roleta do Metronome...).
+ * Só tela.
  *
- * Tudo em 3 Graphics redesenhados a cada quadro (o chão, a tinta e a camada de cima) e nas partículas do `TypeFx`: nada cria textura
- * nem objeto por quadro (o eco e as iscas são 6 imagens da bola criadas uma vez). "Reduzir movimento": só o rastro no chão
- * parado sumindo e as rajadas da chegada; nada pisca, gira nem some.
+ * Tudo em 3 Graphics redesenhados a cada quadro (o chão, a tinta e a camada de cima) e nas partículas do `TypeFx`: nada
+ * cria textura nem objeto por quadro (o eco e as iscas são 6 imagens da bola criadas uma vez). "Reduzir movimento": só o
+ * rastro no chão parado sumindo e as rajadas da chegada; nada pisca, gira nem some.
  */
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -469,8 +470,8 @@ const TYPES: Record<string, Look> = {
             const o = (s.r - 0.5) * 14;
             const po = (prev.r - 0.5) * 14;
             for (const [w, col, al] of [
-                [12, 0xc09a3a, 0.55],
-                [4.5, 0x2a1a08, 0.95],
+                [15, 0xc09a3a, 0.6],
+                [5.5, 0x2a1a08, 0.95],
             ] as const) {
                 c.floor.lineStyle(w, col, al * k);
                 c.floor.lineBetween(prev.gx + p.x * po, prev.gy + p.y * po * 0.5, s.gx + p.x * o, s.gy + p.y * o * 0.5);
@@ -812,6 +813,8 @@ interface Sig {
     hit?(c: Ctx, x: number, y: number): void;
     after?(c: Ctx, a: number, x: number, y: number): void;
     landMs?: number;
+    /** No chute, no pé (`c.from`). */
+    launch?(c: Ctx): void;
     /** Tremida a mais no chute (px da tela). */
     kickShake?: number;
 }
@@ -861,8 +864,13 @@ const SIGS: Record<string, Sig> = {
         },
     },
     bodyslam: {
-        // o peso do Snorlax: tremida a mais no chute e a sombra esmagando o gol
+        // o peso do Snorlax: ele se joga (a cratera e a poeira no pé, tremida a mais) e a sombra esmaga o gol
         kickShake: 10,
+        launch: (c) => {
+            shockwave(c.scene, c.from.x, c.from.y, c.color, 2.6, c.depth - 1, c.reduce);
+            crack(c.scene, c.from.x, c.from.y + 2, 0x5a4e3c, 3, 3, c.reduce).fade(1600);
+            c.fx.burst('Dust', c.from.x, c.from.y + 4, 26, c.depth - 2);
+        },
         hit: (c, x, y) => {
             shockwave(c.scene, x, y, c.color, 2.6, c.depth - 1, c.reduce);
             c.fx.burst('Dust', x, y + 10, 22, c.depth - 2);
@@ -876,7 +884,7 @@ const SIGS: Record<string, Sig> = {
     fireblast: {
         landMs: 1000,
         after: (c, a, x, y) => {
-            // o 大 do Fire Blast: cinco braços de fogo saindo do meio
+            // a estrela de fogo do Fire Blast: cinco braços saindo do meio
             const k = a < 650 ? 1 : 1 - (a - 650) / 350;
             const g = Math.min(1, a / 170);
             const arms = [
@@ -1039,8 +1047,9 @@ const SIGS: Record<string, Sig> = {
                 const x = at.x + Math.cos(ang) * 54;
                 const y = at.y - 18 + Math.sin(ang) * 36;
                 const on = i === lit;
-                c.top.fillStyle(colorOf(WHEEL[i]), on ? 1 : 0.5).fillCircle(x, y, on ? 8 : 4.5);
-                if (on) c.top.lineStyle(2.5, 0xffffff, 1).strokeCircle(x, y, 11);
+                c.ink.fillStyle(0x0d1024, 0.8).fillCircle(x, y, on ? 11 : 7.5);
+                c.top.fillStyle(colorOf(WHEEL[i]), on ? 1 : 0.85).fillCircle(x, y, on ? 9 : 6);
+                if (on) c.top.lineStyle(3, 0xffffff, 1).strokeCircle(x, y, 13);
             }
             // o dedo balançando: o ponteiro do metrônomo em cima da cabeça
             const sw = c.reduce ? 0 : Math.sin(a / 90) * 0.7 * (1 - t);
@@ -1134,6 +1143,7 @@ export class N3Story {
         this.c.from = { ...from };
         this.t0 = this.c.scene.time.now;
         this.flying = true;
+        this.sig?.launch?.(this.c);
     }
 
     /** A chegada (gol, defesa, trave, bloqueio). */

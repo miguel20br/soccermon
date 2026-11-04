@@ -4657,6 +4657,8 @@ export class MatchScene extends Phaser.Scene {
         const n = this.n3;
         if (!n) return;
         this.n3 = null;
+        // desmontou antes do chute (o chute já não vem): a quadra não pode ficar congelada
+        if (!n.home && !n.flying && !n.landed) this.maxHold = false;
         n.story.stop();
         n.aura?.stop();
         n.stream?.stop();
