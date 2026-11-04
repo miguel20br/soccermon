@@ -52,7 +52,7 @@ import {
     ShotMapChart,
     TeamLegend,
 } from '../stats/StatsCharts';
-import { useHeld } from '../use-held';
+import { useHeldPair } from '../use-held';
 
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 /** Abas (o rótulo vem do dicionário: result.tabs). */
@@ -68,8 +68,9 @@ let sadSeed: string | null = null;
 
 export function Result() {
     const { run: liveRun, match: liveMatch, advance, newRun, go } = useGame();
-    const run = useHeld(liveRun);
-    const match = useHeld(liveMatch);
+    const held = useHeldPair(liveRun, liveMatch);
+    const run = held?.run;
+    const match = held?.match;
     const { t } = useT();
     const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
     // o que sai da tela pra uma sheet: a chave

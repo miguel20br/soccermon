@@ -88,6 +88,7 @@ export function runDevDemo() {
         demo !== 'evento' &&
         demo !== 'pedra' &&
         demo !== 'grupo' &&
+        demo !== 'rota-fim' &&
         demo !== 'fora' &&
         demo !== 'escanteio' &&
         demo !== 'conta' &&
@@ -382,6 +383,48 @@ export function runDevDemo() {
         }));
         useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 4, money: 22 } });
         useGame.getState().train('rest');
+        return;
+    }
+    // ?demo=rota-fim&venceu=1|0: a Rota Índigo na Final (8ª partida), jogada na hora: time forte (1) ou fraco (0).
+    // Sai na tela de resultado de campeão ou de eliminado; dali dá pra testar Menu, Nova copa e Continuar.
+    if (demo === 'rota-fim') {
+        const venceu = new URLSearchParams(window.location.search).get('venceu') !== '0';
+        demoLongMap(store, false);
+        const run = useGame.getState().run!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const results = [0, 1, 2, 3, 4, 5, 6].map((stage) => ({
+            stage,
+            opponent: 'Montanhistas',
+            score: [3, 1] as [number, number],
+            shootout: null,
+            won: true,
+            final: false,
+        }));
+        useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 6, money: 22 } });
+        useGame.getState().train('rest');
+        useGame.getState().playNext();
+        const rng = new Rng('rota-fim', 'demo');
+        const lineup = (venceu ? [150, 149, 144, 145, 146] : [129, 10, 13, 16, 19]).map((id) =>
+            createInstance(id, rng),
+        );
+        const cur = useGame.getState().run!;
+        useGame.setState({
+            run: {
+                ...cur,
+                picks: [...lineup, ...cur.picks.filter((p) => cur.bench.includes(p.uid))],
+                lineup: lineup.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+            },
+        });
+        // `&jogar=1`: para na escalação da Final, pra jogar a partida na tela
+        if (new URLSearchParams(window.location.search).has('jogar')) return;
+        const now = useGame.getState().run!;
+        const team = playerTeam(now);
+        useGame.getState().lockMatch(team);
+        const m = runMatch(FUTSAL_5, team, now.opponents[now.stage], `${now.seed}-stage-${now.stage}`);
+        useGame.getState().recordResult(m);
+        useGame.setState({ match: m, screen: 'result' });
+        console.info(`[demo] rota-fim: ${useGame.getState().run!.status}`);
         return;
     }
     // ?demo=treino: casa de Treino da Rota (encher a evolução de alguém ou descansar, com o time cochilando)
