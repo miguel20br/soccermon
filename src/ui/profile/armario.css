@@ -6,9 +6,6 @@
     width: min(560px, 100%);
     margin: 0 auto;
     gap: 10px;
-    /* o cartão encosta em cima (antes ficava no meio com um terço da tela vazio) */
-    justify-content: flex-start;
-    padding-top: 8px;
 }
 .pf-arm .pf-head {
     grid-template-columns: auto minmax(0, 1fr);
