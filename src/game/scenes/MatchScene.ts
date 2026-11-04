@@ -5,6 +5,7 @@ import { FUTSAL_5 } from '../../engine/config';
 import { ABILITIES, MOVES, species } from '../../engine/data';
 import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
+import { maxFxType } from '../../engine/match';
 import { moveProfile } from '../../engine/moves';
 import type { LeaderId } from '../../engine/rival-coach';
 import type { MatchResult } from '../../engine/runners/batch-runner';
@@ -104,7 +105,7 @@ import {
 } from '../hit-react';
 import { firstFit, labelText, type Rect } from '../label-fit';
 import { MAX_MOVE } from '../max-sfx';
-import { chargeFx, drawProjectile, impactFx, MAX_CHARGE_MS, releaseFx, typeBackdrop } from '../max-show';
+import { chargeFx, drawProjectile, impactFx, MAX_CHARGE_MS, MAX_N12, releaseFx, typeBackdrop } from '../max-show';
 import { castMove, preloadMoveFx } from '../move-fx';
 import { duckMusic, musicDucked, unduckMusic } from '../music';
 import { N3Story } from '../n3-story';
@@ -353,25 +354,6 @@ const SD = {
 
 /** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
 const MAX_BICUDA_SLOW_TICKS = 24;
-/**
- * Golpe máximo N1/N2 e bicuda N1/N2 na escada de produção (Miguel, 04/11/2026: N1 < N2 < N3 < Counter; N1 e N2 acontecem
- * muito mais, não podem alongar a partida). A carga é a de sempre (`MAX_CHARGE_MS`) e o N2 e a bicuda ganham `closeMs`
- * pro close no pé (zoom `close`, e chegando `push` até o chute). No chute: o quadro de impacto (`impactMs`, N2 e bicuda)
- * e o letreiro parado `tagMs` colado em quem chutou; no voo, as partículas do tipo (`stream`: a cada `every` ms, tamanho
- * `k`) e, no N2 e na bicuda, a história do tipo em versão curta (`story`, o `scale` do N3Story); a bicuda leva o rastro
- * de luz do tipo do goleiro (`trail`, grossura por nível) até o destino.
- */
-const MAX_N12 = {
-    closeMs: 150,
-    close: { 2: 1.7, bicuda: 1.9 },
-    push: 1.08,
-    impactMs: 110,
-    whipMs: 160,
-    tagMs: 1300,
-    stream: { 1: { every: 40, k: 0.5 }, 2: { every: 28, k: 0.7 } },
-    story: { 2: 0.5, bicuda: 0.42 },
-    trail: { 1: 9, 2: 12 },
-};
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
 const DIVE_LEAD = 6;
 const DIVE_TAIL = 10;
@@ -2996,9 +2978,10 @@ export class MatchScene extends Phaser.Scene {
                 );
                 const fxType = fx?.type === 'maxFx' ? fx.fx : null;
                 // o tipo das partículas, do projétil e da explosão: o do efeito (N3) ou o do golpe dele, senão o do capitão
+                // (N1/N2: o tipo do golpe máximo dele, `maxFxType`, o mesmo do efeito do N1 em quem bloqueia ou defende)
                 const shotType = fxType
                     ? fxTypeOf(fxType)
-                    : ((e.moveId ? MOVES[e.moveId]?.type : undefined) ?? species(cap.speciesId).types[0]);
+                    : maxFxType(e.moveId ? [e.moveId] : [], cap.speciesId, species(cap.speciesId).types);
                 const level = (e.level ?? 1) as 1 | 2 | 3;
                 // chute no gol (a bicuda N1/N2 de sempre é um lançamento): a câmera segura o gol e a chegada explode
                 const isShot = this.matchEvents.some((x) => x.type === 'shot' && x.by === e.by && x.tick === e.tick);
@@ -4313,6 +4296,8 @@ export class MatchScene extends Phaser.Scene {
         const cam = this.cameras.main;
         this.maxRunEnd();
         this.cine.dropTag();
+        // o cartão do canto (e o aviso pro leitor de tela), como antes
+        this.highlight(o.bicuda ? 'bicuda' : 'max', cap);
         this.maxHold = true;
         chargeFx(this, cap.sprite.x, cap.sprite.y, type, level, hold, REACT_DEPTH + 1, reduce);
         this.fx.burst(type, cap.sprite.x, cap.sprite.y - 10, close ? 10 : 6, REACT_DEPTH + 1);

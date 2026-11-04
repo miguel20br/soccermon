@@ -18,6 +18,26 @@ const lighten = (c: number, k: number) => Phaser.Display.Color.IntegerToColor(c)
 export const MAX_CHARGE_MS = { 1: 200, 2: 300 } as const;
 
 /**
+ * Golpe máximo N1/N2 e bicuda N1/N2 na escada de produção (Miguel, 04/11/2026: N1 < N2 < N3 < Counter; N1 e N2 acontecem
+ * muito mais, não podem alongar a partida). A carga é a de sempre (`MAX_CHARGE_MS`) e o N2 e a bicuda ganham `closeMs`
+ * pro close no pé (zoom `close`, e chegando `push` até o chute). No chute: o quadro de impacto (`impactMs`, N2 e bicuda)
+ * e o letreiro parado `tagMs` colado em quem chutou; no voo, as partículas do tipo (`stream`: a cada `every` ms, tamanho
+ * `k`) e, no N2 e na bicuda, a história do tipo em versão curta (`story`, o `scale` do N3Story); a bicuda leva o rastro
+ * de luz do tipo do goleiro (`trail`, grossura por nível) até o destino.
+ */
+export const MAX_N12 = {
+    closeMs: 150,
+    close: { 2: 1.7, bicuda: 1.9 },
+    push: 1.08,
+    impactMs: 110,
+    whipMs: 160,
+    tagMs: 1300,
+    stream: { 1: { every: 40, k: 0.5 }, 2: { every: 28, k: 0.7 } },
+    story: { 2: 0.5, bicuda: 0.42 },
+    trail: { 1: 9, 2: 12 },
+};
+
+/**
  * Carga no pé do capitão durante a parada (`ms`): anéis da cor do tipo fechando nele e (N2, N3) faíscas sugadas; no N3
  * a energia gira em volta dele a cena inteira.
  */
