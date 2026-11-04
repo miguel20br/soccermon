@@ -52,7 +52,9 @@ interface Mark {
 
 interface Ctx {
     scene: Phaser.Scene;
-    fx: TypeFx;
+    fx: Pick<TypeFx, 'burst'>;
+    /** Tamanho da história: 1 no N3; menos no N2 e na bicuda (`N3Story` `scale`). */
+    k: number;
     type: string;
     color: number;
     light: number;
@@ -197,7 +199,7 @@ const spawn = (c: Ctx, m: Omit<Mark, 't' | 'r'> & { t?: number }) =>
 
 /** Deu a hora de soltar de novo (`key`, a cada `ms`). */
 const every = (c: Ctx, key: string, ms: number) => {
-    if (c.now - (c.last[key] ?? -1e9) < ms) return false;
+    if (c.now - (c.last[key] ?? -1e9) < ms / c.k) return false;
     c.last[key] = c.now;
     return true;
 };
@@ -785,6 +787,8 @@ function echoes(c: Ctx, n: number, tint: number) {
 
 /** Inseto: duas iscas (bolas falsas) se abrindo do caminho, a isca do goleiro. */
 function decoys(c: Ctx) {
+    // as iscas são o efeito do N3 (a isca do goleiro): a versão curta não promete o que não faz
+    if (c.k < 1) return;
     const sc = c.scene;
     const p = perp(c.dir);
     const k = Math.min(1, c.age / 700);
@@ -1075,7 +1079,10 @@ const SIGS: Record<string, Sig> = {
 
 /**
  * O N3 do tipo: nasce na cena (`charge`, a carga), solta no chute (`launch`), anda com a bola (`step` a cada quadro) e
- * explode na chegada (`land`). `step` devolve false quando acabou (o último rastro sumiu).
+ * explode na chegada (`land`). `step` devolve false quando acabou (o último rastro sumiu). `scale` < 1 é a versão curta
+ * (N2 e bicuda, Miguel 04/11/2026: "todos os golpes máximos e bicudas sobem o mesmo tanto de produção"): o rastro dura
+ * `scale` do tempo, as marcas saem `scale` das vezes, as rajadas têm `scale` das partículas e a chegada passa
+ * `1/scale` mais rápido; a bola não some (Fantasma) e o Inseto não solta as iscas (são o efeito do N3).
  */
 export class N3Story {
     private readonly c: Ctx;
@@ -1095,15 +1102,18 @@ export class N3Story {
         reduce: boolean;
         goal: P;
         rivals: () => P[];
+        scale?: number;
     }) {
         const look = TYPES[o.type] ?? TYPES.Normal;
+        const k = o.scale ?? 1;
         this.look = look;
         this.sig = (o.sig && SIGS[o.sig]) || null;
         const color = colorOf(o.type);
         const floor = o.scene.add.graphics().setDepth(2);
         this.c = {
             scene: o.scene,
-            fx: o.fx,
+            fx: k < 1 ? { burst: (t, x, y, n, d) => o.fx.burst(t, x, y, Math.max(1, Math.round(n * k)), d) } : o.fx,
+            k,
             type: o.type,
             color,
             light: Phaser.Display.Color.IntegerToColor(color).lighten(25).color,
@@ -1160,7 +1170,7 @@ export class N3Story {
 
     /** A bola agora (Fantasma: some e volta). */
     ballAlpha(): number {
-        return this.flying ? (this.look.ballAlpha?.(this.c) ?? 1) : 1;
+        return this.flying && this.c.k === 1 ? (this.look.ballAlpha?.(this.c) ?? 1) : 1;
     }
 
     /**
@@ -1210,7 +1220,7 @@ export class N3Story {
             if (!c.reduce) this.look.tick?.(c);
         }
         // o rastro do chão (parado sumindo, também no "Reduzir movimento")
-        const life = this.look.life;
+        const life = this.look.life * c.k;
         let prev: Sample | null = null;
         c.path.forEach((s, i) => {
             const k = 1 - (c.now - s.t) / life;
@@ -1230,9 +1240,10 @@ export class N3Story {
         let busy = c.marks.length > 0 || c.path.some((s) => c.now - s.t < life);
         if (L) {
             const a = c.now - L.t;
-            const lm = Math.max(this.look.landMs ?? 0, this.sig?.landMs ?? 0);
+            const lm = Math.max((this.look.landMs ?? 0) * c.k, this.sig?.landMs ?? 0);
             if (a < lm && !c.reduce) {
-                if (a < (this.look.landMs ?? 0)) this.look.after?.(c, a, L.x, L.y);
+                // a versão curta passa a chegada inteira mais rápido (não corta no meio)
+                if (a < (this.look.landMs ?? 0) * c.k) this.look.after?.(c, a / c.k, L.x, L.y);
                 if (a < (this.sig?.landMs ?? 0)) this.sig?.after?.(c, a, L.x, L.y);
                 busy = true;
             }

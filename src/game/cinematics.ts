@@ -38,6 +38,8 @@ export class Cinematics {
     private pair: { attacker: number; target: number | null; color: number } | null = null;
     private dramaUntil = 0;
     private dramaHolder: Phaser.GameObjects.Container | null = null;
+    /** O letreiro do N1/N2 na tela (`maxTag`): sai rápido quando o texto de drama entra (o GOOOOL! caía em cima). */
+    private tagHolder: Phaser.GameObjects.Container | null = null;
     /** Até quando (tempo real) o texto de drama fica na tela. */
     private dramaTextUntil = 0;
     /** O texto de drama na tela é de prioridade (`drama` `top`) e o texto que espera ele sair (só o último espera). */
@@ -678,6 +680,134 @@ export class Cinematics {
         });
     }
 
+    /** O letreiro do N1/N2 na tela dá a vez (o texto de drama, o golpe seguinte): sai em 120 ms. */
+    dropTag() {
+        const tag = this.tagHolder;
+        this.tagHolder = null;
+        if (!tag?.active) return;
+        this.scene.tweens.killTweensOf(tag.list);
+        this.scene.tweens.add({ targets: tag, alpha: 0, duration: 120, onComplete: () => tag.destroy() });
+    }
+
+    /**
+     * Letreiro do golpe máximo N1/N2 e da bicuda (a escada N1 < N2 < N3 < Counter, Miguel 04/11/2026): a faixa diagonal
+     * do N3 em ponto pequeno, colada em quem chutou (`x, y`: px do canvas com a quadra inteira, o plano em que a câmera
+     * fica no voo; a faixa vai acima disso), crescendo pro lado do ataque (`dir`) e presa à janela que aparece (no
+     * celular em pé a quadra anda atrás dela). O nome grande, a etiqueta (nível, tipo) e a nota; `who` e o retrato só nos
+     * maiores (`big`: N2 e bicuda). Entra em 120 ms, fica parada `hold` ms e some em 160 ms, sem segurar a partida.
+     * Reduzir movimento: só aparece e some.
+     */
+    maxTag(opts: {
+        x: number;
+        y: number;
+        dir: 1 | -1;
+        title: string;
+        tag: string;
+        note: { text: string; color: string } | null;
+        who?: string;
+        portrait: string | null;
+        big: boolean;
+        color: number;
+        typeInk: number;
+        hold: number;
+        reduce: boolean;
+        depth: number;
+    }) {
+        const scene = this.scene;
+        claimOverlay('drama', PRIO_GOAL, opts.hold + 160);
+        this.dramaTextUntil = Math.max(this.dramaTextUntil, scene.time.now + opts.hold + 160);
+        const s = Math.min(this.uiScale, 1.6);
+        const font = (px: number, color: string, stroke = 0) => ({
+            fontFamily: 'Galmuri11, monospace',
+            fontSize: `${px}px`,
+            fontStyle: 'bold',
+            color,
+            ...(stroke ? { stroke: '#0d1024', strokeThickness: stroke } : {}),
+        });
+        const content: Phaser.GameObjects.GameObject[] = [];
+        const size = opts.big ? 62 : 0;
+        const pad = 12;
+        let x = pad;
+        if (size && opts.portrait && scene.textures.exists(opts.portrait)) {
+            const f = scene.add.graphics();
+            f.fillStyle(0xffffff, 1).fillRect(x - 2, -size / 2 - 2, size + 4, size + 4);
+            f.fillStyle(Phaser.Display.Color.IntegerToColor(opts.color).darken(28).color, 1);
+            f.fillRect(x, -size / 2, size, size);
+            const img = scene.add
+                .image(x + size / 2, 0, opts.portrait)
+                .setDisplaySize(size, size)
+                .setFlipX(opts.dir < 0);
+            content.push(f, img);
+            x += size + 10;
+        }
+        const big = scene.add
+            .text(x, -11, opts.title.toUpperCase(), font(opts.big ? 40 : 34, '#ffffff', 7))
+            .setOrigin(0, 0.5)
+            .setResolution(2);
+        const tag = scene.add
+            .text(x + 8, 23, opts.tag.toUpperCase(), font(21, Phaser.Display.Color.IntegerToColor(opts.typeInk).rgba))
+            .setOrigin(0, 0.5)
+            .setResolution(2);
+        const chip = scene.add.graphics();
+        chip.fillStyle(0x0d1024, 1).fillRoundedRect(x, 23 - 15, tag.width + 16, 30, 4);
+        content.push(big, chip, tag);
+        let tagEnd = x + tag.width + 16;
+        if (opts.note) {
+            const note = scene.add
+                .text(tagEnd + 10, 23, opts.note.text, font(21, opts.note.color, 5))
+                .setOrigin(0, 0.5)
+                .setResolution(2);
+            content.push(note);
+            tagEnd += 10 + note.width;
+        }
+        const w = Math.max(x + big.width, tagEnd) + pad + 6;
+        const h = opts.big ? 82 : 76;
+        const k = 10;
+        const band = scene.add.graphics();
+        const para = (dx: number, dy: number, ww: number, hh: number) => [
+            new Phaser.Math.Vector2(dx + k, -hh / 2 + dy),
+            new Phaser.Math.Vector2(dx + ww + k, -hh / 2 + dy),
+            new Phaser.Math.Vector2(dx + ww - k, hh / 2 + dy),
+            new Phaser.Math.Vector2(dx - k, hh / 2 + dy),
+        ];
+        band.fillStyle(0x0d1024, 0.95).fillPoints(para(-4, 4, w + 8, h + 8), true);
+        band.fillStyle(opts.color, 1).fillPoints(para(0, 0, w, h), true);
+        band.fillStyle(0xffffff, 0.3).fillRect(0, -h / 2, w, 3);
+        content.unshift(band);
+        if (opts.who) {
+            const who = scene.add
+                .text(x + 10, -h / 2 - 14, opts.who.toUpperCase(), font(21, '#ffffff'))
+                .setOrigin(0, 0.5)
+                .setResolution(2);
+            const plate = scene.add.graphics();
+            plate.fillStyle(0x0d1024, 1).fillRoundedRect(x, -h / 2 - 31, who.width + 20, 32, 4);
+            plate.lineStyle(2, opts.color, 1).strokeRoundedRect(x, -h / 2 - 31, who.width + 20, 32, 4);
+            content.push(plate, who);
+        }
+        // cresce pro lado do ataque a partir de quem chutou (o gol fica livre) e cabe na tela
+        const inner = scene.add.container(0, 0, content).setRotation(-0.08);
+        inner.x = opts.dir > 0 ? -w * 0.18 : -w * 0.82;
+        const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
+        // a janela que aparece (px do canvas) e o tamanho de verdade da faixa nela (a janela encolhe o que é preso)
+        const c = this.crop;
+        const vx = c?.x ?? 0;
+        const vw = c?.w ?? GAME_W;
+        const ck = c ? CROP_TEXT_SCALE : 1;
+        const fit = Math.min(s, (0.9 * vw) / ((w + 12) * ck));
+        const u = fit * ck;
+        const left = Phaser.Math.Clamp(opts.x + inner.x * u, vx + 8, Math.max(vx + 8, vx + vw - 8 - w * u));
+        const cx = left - inner.x * u;
+        const top = ((opts.who ? 32 : 0) + h / 2 + 8) * u;
+        this.pin(holder, c ? ((cx - vx) * GAME_W) / vw : cx, Math.max(top, opts.y - (h / 2 + 10) * u), fit);
+        const out = () => holder.destroy();
+        this.dropTag();
+        this.tagHolder = holder;
+        inner.setAlpha(0);
+        if (!opts.reduce) inner.setScale(0.7, 0.5);
+        scene.tweens.add({ targets: inner, alpha: 1, scaleX: 1, scaleY: 1, duration: 120, ease: 'Back.easeOut' });
+        scene.tweens.add({ targets: inner, alpha: 0, delay: 120 + opts.hold, duration: 160, onComplete: out });
+    }
+
     /**
      * Cut-in do especial N3 (Inazuma, Super de luta): o rosto do capitão enorme (o retrato PMD estourando a faixa, com
      * dois rastros na cor do tipo) atravessando o alto da tela, com listras e linhas de velocidade, na cena (`ms`).
@@ -785,6 +915,7 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
+        this.dropTag();
         const fadeAt = opts.hold ?? (opts.short ? 700 : 1250);
         claimOverlay('drama', PRIO_GOAL, fadeAt + 330);
         this.slowMotion(now, 0.25, 1100);

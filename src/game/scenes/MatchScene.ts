@@ -251,11 +251,6 @@ const BALL_DEPTH = FOCUS_DEPTH + 200;
 /** Reação do atingido (ícone, estrelinhas, palavra) e faixa do especial: acima do escurecimento, abaixo da bola. */
 const REACT_DEPTH = BALL_DEPTH - 6;
 /**
- * Cena do especial N3 (linha e bicuda): a quadra congela no toque por esse tempo real (o momento grande da partida), em
- * qualquer velocidade. Era metade no 4x e nada no 8x, e quem joga no 8x (a maioria) só via a câmera lenta (01/11/2026).
- */
-const N3_SCENE_MS = 1000;
-/**
  * Onde cai o chute dentro do stinger (`max-stinger` v2, linha 10 a 150 BPM, `scripts/musica/pecas/especial-n3.mjs`):
  * ele começa atrasado o que a cena passa disso, pro 808, o bumbo e o prato baterem junto com o chute na tela.
  */
@@ -263,8 +258,9 @@ const N3_STINGER_KICK_MS = 1000;
 /** Hit-stop no chute do N3 (ms reais): a câmera vai do close no capitão pro gol inteiro antes da bola sair. */
 const N3_KICK_STOP_MS = 300;
 /**
- * N3 do capitão de linha na régua do Counter (Miguel, 04/11/2026): a cena dura `scene` ms reais (0,2 s a mais que a da
- * bicuda, pro "X usou Y!" ficar parado `bannerMs` legível; ele sai com a bola já saindo do pé). O close no capitão com a
+ * N3 na régua do Counter (Miguel, 04/11/2026; de linha e, desde a rodada do N1/N2, a bicuda N3 no chute comum): a quadra
+ * congela no toque, em qualquer velocidade, e a cena dura `scene` ms reais (0,2 s a mais que a de antes, pro "X usou Y!"
+ * ficar parado `bannerMs` legível; ele sai com a bola já saindo do pé). O close no capitão com a
  * bola no pé ocupa `fill` da faixa da tela entre o cut-in e a faixa (`closeY`, `closeH`; zoom de `closeMin` a
  * `closeMax`, holandês `dutch`, push-in `push`); o cut-in dos olhos só no começo (`cutInMs`, no alto, `cutInY`) e a
  * faixa embaixo dele (`bannerY`). No chute, o quadro de impacto (`impactMs`) e o chicote pro gol inteiro (`whipMs`); na
@@ -357,6 +353,25 @@ const SD = {
 
 /** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
 const MAX_BICUDA_SLOW_TICKS = 24;
+/**
+ * Golpe máximo N1/N2 e bicuda N1/N2 na escada de produção (Miguel, 04/11/2026: N1 < N2 < N3 < Counter; N1 e N2 acontecem
+ * muito mais, não podem alongar a partida). A carga é a de sempre (`MAX_CHARGE_MS`) e o N2 e a bicuda ganham `closeMs`
+ * pro close no pé (zoom `close`, e chegando `push` até o chute). No chute: o quadro de impacto (`impactMs`, N2 e bicuda)
+ * e o letreiro parado `tagMs` colado em quem chutou; no voo, as partículas do tipo (`stream`: a cada `every` ms, tamanho
+ * `k`) e, no N2 e na bicuda, a história do tipo em versão curta (`story`, o `scale` do N3Story); a bicuda leva o rastro
+ * de luz do tipo do goleiro (`trail`, grossura por nível) até o destino.
+ */
+const MAX_N12 = {
+    closeMs: 150,
+    close: { 2: 1.7, bicuda: 1.9 },
+    push: 1.08,
+    impactMs: 110,
+    whipMs: 160,
+    tagMs: 1300,
+    stream: { 1: { every: 40, k: 0.5 }, 2: { every: 28, k: 0.7 } },
+    story: { 2: 0.5, bicuda: 0.42 },
+    trail: { 1: 9, 2: 12 },
+};
 /** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
 const DIVE_LEAD = 6;
 const DIVE_TAIL = 10;
@@ -745,6 +760,24 @@ export class MatchScene extends Phaser.Scene {
         stream: { stop: () => void } | null;
         lines: { stop: () => void } | null;
     } | null = null;
+    /**
+     * Golpe máximo N1/N2 e bicuda N1/N2 no ar (`maxShow`), do chute até a chegada: as partículas do tipo na bola, a
+     * história do tipo em versão curta (N2 e bicuda) e até quando vale (`until`, tick).
+     */
+    private maxRun: {
+        by: number;
+        type: string;
+        level: 1 | 2;
+        bicuda: boolean;
+        story: N3Story | null;
+        stream: { stop: () => void } | null;
+        at: number;
+        until: number;
+        landed: boolean;
+        /** N2: a onda no chão (por onde a bola passou, px e hora), a faixa de quem cai. */
+        wave: { x: number; y: number; t: number }[];
+    } | null = null;
+    private maxWaveG: Phaser.GameObjects.Graphics | null = null;
     private maxBallG: Phaser.GameObjects.Graphics | null = null;
     private maxBallPrev: { x: number; y: number } | null = null;
     /** Para onde o projétil anda na tela (px por quadro, suavizado): a cauda vai pro lado contrário. */
@@ -1214,6 +1247,7 @@ export class MatchScene extends Phaser.Scene {
         this.holdReal = 0;
         this.n3SceneUntil = 0;
         this.n3End();
+        this.maxRunEnd();
         this.maxFrame = null;
         this.maxHold = false;
         this.seekTo(clips[this.clip].from);
@@ -1659,6 +1693,7 @@ export class MatchScene extends Phaser.Scene {
         this.followShowdownBall(delta);
         this.drawMaxBall(time);
         this.n3Step();
+        this.maxRunStep();
         this.battleBox.update(time, Math.max(1, factor));
         this.rig.apply();
         if (this.sdBoundsPending) this.sdBoundsBack();
@@ -1676,7 +1711,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * Golpe máximo no ar: a bola vira o projétil do nível (`drawProjectile`: N1 brilho dourado, N2 cometa do tipo, N3 o
+     * Golpe máximo no ar: a bola vira o projétil do nível (`drawProjectile`: N1 brilho do tipo, N2 cometa do tipo, N3 o
      * projétil do tipo com cauda grossa e enfeite), até o desfecho.
      */
     private drawMaxBall(time: number) {
@@ -2221,9 +2256,13 @@ export class MatchScene extends Phaser.Scene {
             lightTrail(g, this.trail, color, 18 + 16 * this.sdFly.speed);
             return;
         }
-        // o N3 de linha: o rastro de luz forte na cor do tipo
+        // o N3 de linha: o rastro de luz forte na cor do tipo; a bicuda N1/N2, o do Counter em versão curta
         if (this.n3?.flying && max) {
             lightTrail(g, this.trail, color, 15);
+            return;
+        }
+        if (this.maxRun?.bicuda && !this.maxRun.landed && max) {
+            lightTrail(g, this.trail, color, MAX_N12.trail[this.maxRun.level]);
             return;
         }
         const w = max ? MAX_BALL_FX[max.level as 1 | 2 | 3].trail : 5;
@@ -2257,7 +2296,12 @@ export class MatchScene extends Phaser.Scene {
             .setAlpha(1)
             .setDepth(this.ball.depth - 1);
         // o N3 de linha solta as partículas do tipo num fluxo só (TypeFx), não uma a uma
-        if (this.time.now - this.lastTrailAt > (fx?.every ?? 30) && this.ballFree && !this.n3?.flying) {
+        if (
+            this.time.now - this.lastTrailAt > (fx?.every ?? 30) &&
+            this.ballFree &&
+            !this.n3?.flying &&
+            !this.maxRun?.stream
+        ) {
             this.lastTrailAt = this.time.now;
             // golpe máximo: mais partículas, espalhadas em volta da bola (N1 discreto, N3 forte)
             for (let i = 0; i < (fx?.n ?? 1); i++) {
@@ -2384,6 +2428,15 @@ export class MatchScene extends Phaser.Scene {
                 impactFx(this, this.ball.x, this.ball.y, m.type, m.level, BALL_DEPTH - 3, reduce);
                 if (m.level === 3) shockwave(this, this.ball.x, this.ball.y, m.type, BALL_DEPTH - 3, !reduce);
                 const [ms, k] = MAX_IMPACT_SHAKE[m.level];
+                // o N2 e a bicuda no gol: a rede estufa na cor do tipo (o N3 estufa na chegada de cinema)
+                if (e.type === 'goal' && m.level < 3 && (m.level === 2 || this.maxRun?.bicuda))
+                    netRipple(
+                        this,
+                        e.team === 0 ? 1 : 0,
+                        this.ball.y,
+                        hexToNumber(TYPE_COLOR[m.type] ?? '#ffffff'),
+                        reduce,
+                    );
                 // o N3 de linha: a chegada de cinema (a tremida em curva vem da câmera dele)
                 if (this.n3?.flying) this.n3Land(e.type === 'goal');
                 else this.cameras.main.shake(ms, k);
@@ -2394,6 +2447,8 @@ export class MatchScene extends Phaser.Scene {
             this.maxImpact = null;
             if (this.n3?.flying) this.n3Land(false, true);
         }
+        // o N1/N2 no ar chegou: a chegada do tipo (fora: só para)
+        if (landed || e.type === 'wide') this.maxRunLand(landed, e.type === 'goal');
         switch (e.type) {
             case 'kickoff':
             case 'halftime':
@@ -2637,6 +2692,15 @@ export class MatchScene extends Phaser.Scene {
                     this.battleBox.push(
                         `${view.name} ${(dict().battle.status as Record<string, string>)[e.status] ?? '!'}`,
                     );
+                    // o N1 do golpe máximo pegou quem bloqueou ou defendeu: a rajada do tipo de quem chutou nele
+                    if (e.source === 'max' && !silent)
+                        this.fx.burst(
+                            this.maxSlow?.type ?? WORD_TYPE[e.status] ?? 'Normal',
+                            view.sprite.x,
+                            view.sprite.y - 14,
+                            14,
+                            REACT_DEPTH,
+                        );
                     // N1 do golpe máximo (areia, teia, alto, mão dormente, preso, barra): a partícula do tipo
                     if (N1_FX_WORDS.has(e.status)) this.impact(view.sprite.x, view.sprite.y - 16, WORD_TYPE[e.status]);
                     else if (e.status !== 'flinch' && e.status !== 'seed') {
@@ -2648,7 +2712,17 @@ export class MatchScene extends Phaser.Scene {
             case 'knockback': {
                 const view = this.players[e.target];
                 const type = MOVES[e.moveId]?.type ?? 'Normal';
-                if (view) this.impact(view.sprite.x, view.sprite.y - 16, type);
+                if (!view) break;
+                this.impact(view.sprite.x, view.sprite.y - 16, type);
+                // a onda do N2 (e da bicuda N2) derrubando a linha: a rajada e o choque do tipo em quem cai
+                const r = this.maxRun;
+                if (r && r.by === e.by && !r.landed && !silent) {
+                    const reduce = !!this.md.reduceMotion;
+                    const c = hexToNumber(TYPE_COLOR[r.type] ?? '#ffffff');
+                    this.fx.burst(r.type, view.sprite.x, view.sprite.y - 14, 18, REACT_DEPTH);
+                    cineShock(this, view.sprite.x, view.sprite.y, c, 0.6, FOCUS_DEPTH - 45, reduce);
+                    chroma(this, [view.sprite], 3, 200, reduce);
+                }
                 break;
             }
             case 'transform': {
@@ -2916,7 +2990,6 @@ export class MatchScene extends Phaser.Scene {
                 }
                 if (e.phase !== 'hit') break;
                 const n3 = e.level === 3;
-                const name = bicuda ? a.bicuda : a.max;
                 // golpe máximo por tipo: a faixa grande leva o nome do efeito, na cor do tipo
                 const fx = this.matchEvents.find(
                     (x) => x.type === 'maxFx' && x.step === 'shot' && x.tick === e.tick && x.by === e.by,
@@ -2948,63 +3021,18 @@ export class MatchScene extends Phaser.Scene {
                             x.tick <= e.tick &&
                             e.tick - x.tick <= TICK_RATE * 3,
                     );
-                if (counter && !cinematic) this.popText(e.by, tr('battle.counter'), '#7dffb0', -26, 1500);
-                if (n3 && !bicuda) {
-                    // o N3 de linha: a cena de cinema e a história do tipo (lineSuper)
-                    this.lineSuper(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0);
-                } else if (n3) {
-                    // o especial: a cena congela a quadra, toca a entrada e o golpe cai no fim dela (superMove)
-                    this.superMove(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0, bicuda);
-                } else {
-                    // no N3 a faixa do especial leva tudo (o card do canto ficava por baixo dela)
-                    this.highlight(bicuda ? 'bicuda' : 'max', cap);
-                    // o nível no rótulo e a nota do toque por cima ("PERFEITO!"), pros dois lados; com a faixa grande
-                    // (que já leva o nome e a nota), só ela: os dois juntos repetiam "BICUDA N2" e "BICUDA! PERFEITO!"
-                    const lv = e.level ? ` ${a.maxLevelShort.replace('{n}', String(e.level))}` : '';
-                    if (!cinematic) {
-                        this.popText(e.by, `${name.toUpperCase()}${lv}`, '#ffd447');
-                        if (e.q === 2) this.popText(e.by, a.maxPerfect, '#7dffb0', 22);
-                        else if (e.q === 1) this.popText(e.by, a.maxGood, '#9be7ff', 22);
-                    }
-                    // carga curta no pé (a quadra para um instante) e o estouro do chute: N1 dourado, N2 na cor do tipo
-                    // com onda; nesse tempo a câmera abre no gol atacado inteiro
-                    const hold = MAX_CHARGE_MS[level as 1 | 2];
-                    const reduce = !!this.md.reduceMotion;
-                    this.maxHold = true;
-                    chargeFx(this, cap.sprite.x, cap.sprite.y, shotType, level, hold, REACT_DEPTH + 1, reduce);
-                    if (isShot) this.lockMaxFrame(cap, e.tick, hold);
-                    this.time.delayedCall(hold, () => {
-                        this.maxHold = false;
-                        // o som do golpe no chute (fim da carga), não no começo dela
-                        playMax(bicuda ? 'bicuda' : MAX_MOVE[level]);
-                        releaseFx(this, cap.sprite.x, cap.sprite.y, shotType, level, REACT_DEPTH + 1, reduce);
-                        const [ms, k, flash] = MAX_KICK_SHAKE[level as 1 | 2];
-                        this.cameras.main.shake(ms, k);
-                        if (flash) this.cameras.main.flash(flash, 255, 255, 255);
-                        // o chutão levanta poeira no pé (a bicuda mais)
-                        this.kickPop(
-                            cap.sprite.x,
-                            cap.sprite.y,
-                            bicuda ? 2.2 : 1.6 + level * 0.3,
-                            bicuda ? 12 : 6 + level * 3,
-                        );
+                if (n3) {
+                    // o N3 (de linha e a bicuda N3 no chute comum): a cena de cinema e a história do tipo (lineSuper)
+                    if (counter && !cinematic) this.popText(e.by, tr('battle.counter'), '#7dffb0', -26, 1500);
+                    this.lineSuper(cap, e.moveId ?? null, fxType, e.tick, e.q ?? 0, bicuda);
+                } else
+                    this.maxShow(cap, e.tick, level as 1 | 2, shotType, {
+                        bicuda,
+                        counter,
+                        isShot,
+                        q: e.q ?? 0,
+                        moveId: e.moveId ?? null,
                     });
-                    if (cinematic) {
-                        this.cine.drama(
-                            fxType
-                                ? `${(a.maxFx[fxType]?.[0] ?? fxType).toUpperCase()}!`
-                                : `${name.toUpperCase()}${lv}!`,
-                            {
-                                color: fxType ? (TYPE_COLOR[fxTypeOf(fxType)] ?? '#ffd447') : '#ffd447',
-                                stroke: '#1a1030',
-                                // a nota do toque também na faixa grande (o texto pequeno fica atrás dela)
-                                sub: `${counter ? `${tr('battle.counter')} · ` : ''}${e.q === 2 ? `${a.maxPerfect} · ` : ''}${e.moveId ? (MOVES[e.moveId]?.name ?? cap.name) : cap.name}`,
-                                // a assinatura vence as outras faixas do lance (o combo do Pikachu cobria a dele)
-                                top: !!fxType && fxType in AGENCY.maxSig,
-                            },
-                        );
-                    }
-                }
                 // a bola voa em câmera lenta até o desfecho, com o rastro na cor do golpe (a curva aparece nele); a
                 // bicuda N1/N2 é um lançamento: a câmera lenta dura só a saída
                 this.maxSlow = {
@@ -3013,8 +3041,8 @@ export class MatchScene extends Phaser.Scene {
                     factor: n3 ? MAX_SHOT_SLOW.n3 : bicuda && isShot ? MAX_SHOT_SLOW.counter : MAX_SHOT_SLOW.other,
                     level,
                     type: shotType,
-                    // N1 dourado; N2 e N3 na cor do tipo (o rastro e o projétil)
-                    color: level === 1 ? 0xffd447 : hexToNumber(TYPE_COLOR[shotType] ?? '#ffd447'),
+                    // a cor do tipo em todo nível (o rastro e o projétil; o N1 era dourado)
+                    color: hexToNumber(TYPE_COLOR[shotType] ?? '#ffd447'),
                 };
                 break;
             }
@@ -3052,7 +3080,7 @@ export class MatchScene extends Phaser.Scene {
                     };
                     if (wait > 0) this.time.delayedCall(wait, go);
                     else go();
-                    // o nome do efeito vai na faixa do especial (superMove); o Snorlax no gol não tem o 'hit' do chute
+                    // o nome do efeito vai na faixa do especial (lineSuper); o Snorlax no gol não tem o 'hit' do chute
                     // máximo: a faixa grande dele sai aqui
                     if (cinematic && e.fx === 'rest')
                         this.cine.drama(`${name[0].toUpperCase()}!`, {
@@ -3598,6 +3626,7 @@ export class MatchScene extends Phaser.Scene {
         const ms = ((e.kick - e.tick) / TICK_RATE) * 1000;
         // o N3 que o goleiro parou: a câmera e a bola agora são do duelo
         this.n3End();
+        this.maxRunEnd();
         // o tipo do golpe que o goleiro parou (as faíscas dele brigam com as do goleiro na bola parada)
         const shotType = this.maxSlow?.type || this.ballType || species(shooter.speciesId).types[0];
         this.maxSlow = null;
@@ -4261,98 +4290,217 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * N3, o super (Inazuma, Captain Tsubasa, Super de luta; o da bicuda também): a quadra congela (`N3_SCENE_MS`, tempo
-     * real, em toda velocidade) num clarão, o fundo vira a arte do tipo, close no capitão com a energia girando, o cut-in
-     * dos olhos e a faixa do golpe, e o stinger subindo; no fim da cena, o chute (onda de choque, tremida forte) com a
-     * câmera no gol inteiro, a bola vira o projétil do tipo (`drawMaxBall`) e a chegada explode (`maxImpact`). Só tela:
-     * o motor já decidiu o lance.
+     * Golpe máximo N1/N2 e bicuda N1/N2 na escada (Miguel, 04/11/2026: "todos os golpes máximos e bicudas sobem o mesmo
+     * tanto de produção"; N1 < N2 < N3 < Counter). A quadra para a carga de sempre (o N2 e a bicuda + `MAX_N12.closeMs`)
+     * com a energia do tipo no pé. N1: sem corte, o estouro e as partículas do tipo, impacto pequeno. N2: close curto no
+     * capitão, quadro de impacto no chute e a onda do tipo no voo (quem cai reage no `knockback`). Bicuda: o revide do
+     * Counter em versão curta, close no pé do goleiro, quadro de impacto, rachadura e o rastro de luz do tipo dele até o
+     * destino, com o DEVOLVEU!/BICUDA no letreiro. O letreiro fica parado `MAX_N12.tagMs` colado em quem chutou, sem
+     * segurar a partida. Só tela: o motor já decidiu o lance. Reduzir movimento: o close entra e sai em corte seco.
      */
-    private superMove(
+    private maxShow(
         cap: PlayerView,
-        moveId: string | null,
-        fxType: string | null,
         tick: number,
-        q: number,
-        bicuda: boolean,
+        level: 1 | 2,
+        type: string,
+        o: { bicuda: boolean; counter: boolean; isShot: boolean; q: number; moveId: string | null },
     ) {
-        const move = moveId ? MOVES[moveId] : undefined;
-        const type = fxType ? fxTypeOf(fxType) : (move?.type ?? species(cap.speciesId).types[0]);
-        // assinatura (Hyper Beam, Blizzard…): o nome dela na faixa no lugar do golpe, e a faixa vence as outras
-        const sig = !!fxType && fxType in AGENCY.maxSig;
-        const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
-        const reduce = !!this.md.reduceMotion;
-        const ms = N3_SCENE_MS;
-        const now = this.time.now;
-        const cam = this.cameras.main;
-        const at = { x: cap.sprite.x, y: cap.sprite.y };
-        // o chute no fim da cena: estouro com onda de choque no pé, tremida forte, clarão e a câmera no gol inteiro
-        const kick = () => {
-            playMax(MAX_MOVE[3]);
-            // a faixa explode de volta junto do impacto do stinger
-            unduckMusic(false, true);
-            releaseFx(this, cap.sprite.x, cap.sprite.y, type, 3, REACT_DEPTH + 1, reduce);
-            cam.shake(520, 0.018);
-            cam.flash(140, 255, 255, 255);
-            this.kickPop(cap.sprite.x, cap.sprite.y, 2.6, 16);
-            // hit-stop do chute: a bola espera a câmera abrir no gol (o gol inteiro já no quadro quando ela sai)
-            this.lockMaxFrame(cap, tick, N3_KICK_STOP_MS - 20);
-            this.time.delayedCall(N3_KICK_STOP_MS, () => {
-                this.maxHold = false;
-            });
-        };
-        // a música quase some e o stinger do especial sobe por cima na cena; no chute (o impacto dele) a faixa volta na
-        // hora e o SOC-CER-MON toca no voo da bola (`max-stinger`, ~3 s)
-        duckMusic(true);
-        const lead = ms - N3_STINGER_KICK_MS;
-        if (lead > 0) this.time.delayedCall(lead, () => playMax('stinger'));
-        else playMax('stinger');
-        this.time.delayedCall(ms + N3_STINGER_TAIL_MS, () => {
-            if (musicDucked()) unduckMusic(false);
-        });
-        this.maxHold = true;
-        this.n3SceneUntil = now + ms;
-        playMax('especial');
-        // congela: um clarão branco e a quadra some atrás da arte do tipo (cor, desenho do tipo andando, linhas e raios)
-        if (!reduce) this.cine.hitTint(0xffffff, 180, 0.85, FOCUS_DEPTH - 58);
-        // o capitão fica acima do fundo da cena (como no holofote dos golpes)
-        const idx = this.players.indexOf(cap);
-        this.cine.focused.add(idx);
-        this.cine.superScene({ x: at.x, y: at.y - 16, color, ms, reduce });
-        typeBackdrop(this, type, at.x, at.y, { w: GAME_W / 1.2, h: GAME_H / 1.2 }, ms, FOCUS_DEPTH - 59.5, reduce);
-        // a carga: anéis fechando, faíscas sugadas e a energia girando em volta dele
-        chargeFx(this, at.x, at.y, type, 3, ms, FOCUS_DEPTH + 60, reduce);
-        cam.pan(at.x, at.y - 14, 140, 'Sine.easeOut', true);
-        cam.zoomTo(reduce ? 1.35 : 1.75, 140, 'Cubic.easeOut', true);
-        this.time.delayedCall(ms, () => {
-            if (!this.cine.spotlightActive) this.cine.focused.delete(idx);
-            kick();
-        });
-        // a faixa entra: a caixa de batalha sai e o "foi paralisado!" do mesmo lance espera ela passar
-        this.battleBox.clear(now, ms + 1100);
         const a = dict().match.agency;
-        const typeLabel = (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type));
-        const portrait = this.cutPortrait(`portrait-${cap.speciesId}`);
-        // o cut-in dos olhos no alto e a faixa do golpe embaixo, as duas saindo no chute (o gol fica livre no voo)
-        this.cine.superCutIn({ portrait, color, fromRight: cap.team === 1, ms, reduce, depth: REACT_DEPTH + 2 });
-        this.cine.superBanner({
-            portrait,
-            move: sig && fxType ? (a.maxFx[fxType]?.[0] ?? fxType) : (move?.name ?? a.max),
-            // o golpe pode ser Normal (Hyper Beam) e o efeito, do tipo do capitão: "efeito Dragão"
-            typeLabel: bicuda ? `${a.bicuda} · ${typeLabel}` : typeLabel,
-            top: sig,
-            note:
-                q === 2
-                    ? { text: a.maxPerfect, color: '#7dffb0' }
-                    : q === 1
-                      ? { text: a.maxGood, color: '#9be7ff' }
-                      : null,
-            color,
-            typeInk: readableColor(type),
-            fromRight: cap.team === 1,
-            reduce,
-            depth: REACT_DEPTH + 2,
-            holdMs: ms - 120,
+        const reduce = !!this.md.reduceMotion;
+        const color = hexToNumber(TYPE_COLOR[type] ?? '#ffd447');
+        const close = level === 2 || o.bicuda;
+        const hold = MAX_CHARGE_MS[level] + (close ? MAX_N12.closeMs : 0);
+        const cam = this.cameras.main;
+        this.maxRunEnd();
+        this.cine.dropTag();
+        this.maxHold = true;
+        chargeFx(this, cap.sprite.x, cap.sprite.y, type, level, hold, REACT_DEPTH + 1, reduce);
+        this.fx.burst(type, cap.sprite.x, cap.sprite.y - 10, close ? 10 : 6, REACT_DEPTH + 1);
+        if (close) {
+            // o close curto: corta no pé dele e vai chegando até o chute
+            const z = o.bicuda ? MAX_N12.close.bicuda : MAX_N12.close[2];
+            if (!reduce) this.cine.hitTint(0xffffff, 120, 0.45, FOCUS_DEPTH - 58);
+            this.rawPan(cap.sprite.x, cap.sprite.y - 14, reduce ? 1 : 80);
+            this.rawZoom(z, reduce ? 1 : 80);
+            if (!reduce) this.time.delayedCall(80, () => this.maxHold && this.rawZoom(z * MAX_N12.push, hold - 80));
+        } else if (o.isShot) this.lockMaxFrame(cap, tick, hold);
+        // o cine sem a faixa de drama do N1/N2 (o letreiro é colado nele): a mesma câmera lenta de antes nos textos
+        if (this.md.cinematic) this.cine.slowMotion(this.time.now, 0.25, 1100);
+        this.time.delayedCall(hold, () => {
+            this.maxHold = false;
+            const foot = { x: cap.sprite.x, y: cap.sprite.y };
+            // o som do golpe no chute (fim da carga), não no começo dela
+            playMax(o.bicuda ? 'bicuda' : MAX_MOVE[level]);
+            releaseFx(this, foot.x, foot.y, type, level, REACT_DEPTH + 1, reduce);
+            const [ms, k, flash] = MAX_KICK_SHAKE[level];
+            cam.shake(ms, k);
+            if (flash && !close) cam.flash(flash, 255, 255, 255);
+            // o chutão levanta poeira no pé (a bicuda mais)
+            this.kickPop(foot.x, foot.y, o.bicuda ? 2.2 : 1.6 + level * 0.3, o.bicuda ? 12 : 6 + level * 3);
+            this.fx.burst(type, foot.x, foot.y - 10, close ? 24 : 14, BALL_DEPTH + 1);
+            if (close) {
+                impactFrame(this, color, MAX_N12.impactMs, reduce, false);
+                cineShock(this, foot.x, foot.y, color, o.bicuda ? 0.9 : 0.75, FOCUS_DEPTH - 45, reduce);
+                chroma(this, [cap.sprite, this.ball], 3, 180, reduce);
+                if (o.bicuda) {
+                    const cr = crack(this, foot.x, foot.y + 1, color, 0.8, 3, reduce);
+                    this.time.delayedCall(500, () => cr.fade(600));
+                }
+                // sai do close: no gol atacado (o chute) ou na quadra inteira (o lançamento)
+                if (o.isShot) this.lockMaxFrame(cap, tick, reduce ? 1 : MAX_N12.whipMs);
+                else if (reduce) {
+                    this.rawPan(GAME_W / 2, GAME_H / 2, 1);
+                    this.rawZoom(1, 1);
+                } else this.cameraHome();
+            }
+            // o letreiro: DEVOLVEU! (o counter) / BICUDA! / o golpe, com o nível e a nota, parado em cima dele (depois
+            // do close, com a câmera já no plano do voo)
+            const lv = a.maxLevelShort.replace('{n}', String(level));
+            const move = o.moveId ? MOVES[o.moveId]?.name : undefined;
+            const tag = () =>
+                this.cine.maxTag({
+                    x: foot.x,
+                    y: foot.y - 46,
+                    dir: cap.team === 0 ? 1 : -1,
+                    title: o.counter ? tr('battle.counter') : o.bicuda ? `${a.bicuda}!` : `${move ?? a.max}!`,
+                    tag: `${o.counter ? `${a.bicuda} ` : ''}${lv} · ${typeName(type)}`,
+                    note:
+                        o.q === 2
+                            ? { text: a.maxPerfect, color: '#7dffb0' }
+                            : o.q === 1
+                              ? { text: a.maxGood, color: '#9be7ff' }
+                              : null,
+                    who: close ? `${cap.name}${tr('match.castUsed')}` : undefined,
+                    portrait: close ? this.cutPortrait(`portrait-${cap.speciesId}`) : null,
+                    big: close,
+                    color,
+                    typeInk: readableColor(type),
+                    hold: MAX_N12.tagMs,
+                    reduce,
+                    depth: REACT_DEPTH + 2,
+                });
+            if (close && !reduce) this.time.delayedCall(MAX_N12.whipMs, tag);
+            else tag();
+            // no ar: as partículas do tipo na bola e (N2, bicuda) a história do tipo em versão curta
+            const sc = o.bicuda ? MAX_N12.story.bicuda : level === 2 ? MAX_N12.story[2] : 0;
+            const st = MAX_N12.stream[o.bicuda ? 2 : level];
+            const story = sc
+                ? new N3Story({
+                      scene: this,
+                      fx: this.fx,
+                      type,
+                      sig: null,
+                      depth: REACT_DEPTH + 1,
+                      reduce,
+                      goal: toPx(cap.team === 0 ? L : 0, PW / 2),
+                      rivals: () => [],
+                      scale: sc,
+                  })
+                : null;
+            story?.launch(foot);
+            this.maxRun = {
+                by: this.players.indexOf(cap),
+                type,
+                level,
+                bicuda: o.bicuda,
+                story,
+                stream: this.fx.stream(type, this.ball, st.every, BALL_DEPTH - 3, st.k),
+                at: this.time.now,
+                until: tick + (o.bicuda && !o.isShot ? MAX_BICUDA_SLOW_TICKS : TICK_RATE * 3),
+                landed: false,
+                wave: [],
+            };
         });
+    }
+
+    /** Um quadro do N1/N2 no ar: a história anda com a bola; chegou no pé de alguém (o lançamento) ou passou, fecha. */
+    private maxRunStep() {
+        const r = this.maxRun;
+        if (!r) return;
+        if (!r.landed && (this.playTick > r.until || (!this.ballFree && this.time.now - r.at > 150)))
+            this.maxRunLand(!this.ballFree);
+        const ground = { x: this.ballShadow.x - 2, y: this.ballShadow.y - 2 };
+        const alive = r.story?.step(this.ball, ground) ?? false;
+        if (r.level === 2) this.drawMaxWave(r, ground);
+        if (r.landed && !alive && !r.wave.length) this.maxRun = null;
+    }
+
+    /**
+     * A onda do N2 no chão: a faixa da cor do tipo com as bordas brancas, da largura em que o motor derruba
+     * (`AGENCY.knockR` de cada lado), sumindo atrás da bola, e a proa dela na frente: quem está dentro cai.
+     */
+    private drawMaxWave(r: NonNullable<MatchScene['maxRun']>, ground: { x: number; y: number }) {
+        if (!this.maxWaveG) this.maxWaveG = this.add.graphics().setDepth(3);
+        const g = this.maxWaveG.clear();
+        const now = this.time.now;
+        const life = 520;
+        const last = r.wave.at(-1);
+        if (!r.landed && (!last || Math.hypot(ground.x - last.x, ground.y - last.y) > 6))
+            r.wave.push({ x: ground.x, y: ground.y, t: now });
+        while (r.wave.length && now - r.wave[0].t > life) r.wave.shift();
+        const pts = r.wave;
+        if (pts.length < 2) return;
+        const c = hexToNumber(TYPE_COLOR[r.type] ?? '#ffffff');
+        const R = AGENCY.knockR * PPM;
+        for (let i = 1; i < pts.length; i++) {
+            const a = pts[i - 1];
+            const b = pts[i];
+            const k = 1 - (now - b.t) / life;
+            const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+            const px = (-(b.y - a.y) / d) * R;
+            const py = ((b.x - a.x) / d) * R * 0.75;
+            g.lineStyle(R * 1.5, c, 0.34 * k).lineBetween(a.x, a.y, b.x, b.y);
+            // as bordas: sombra escura por baixo (aparece na quadra clara) e o branco por cima
+            for (const [w, col, al] of [
+                [7, 0x0d1024, 0.4],
+                [3.5, 0xffffff, 0.95],
+            ] as const) {
+                g.lineStyle(w, col, al * k);
+                g.lineBetween(a.x + px, a.y + py, b.x + px, b.y + py);
+                g.lineBetween(a.x - px, a.y - py, b.x - px, b.y - py);
+            }
+        }
+        if (r.landed) return;
+        // a proa: a onda abrindo na frente da bola
+        const a = pts[pts.length - 2];
+        const b = pts[pts.length - 1];
+        const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const ux = (b.x - a.x) / d;
+        const uy = (b.y - a.y) / d;
+        const f = this.md.reduceMotion ? 1 : 1 + 0.12 * Math.sin(now / 45);
+        const tip = { x: ground.x + ux * R * 0.7 * f, y: ground.y + uy * R * 0.5 * f };
+        const l = { x: ground.x - uy * R * f - ux * R * 0.3, y: ground.y + ux * R * 0.75 * f - uy * R * 0.3 };
+        const rr = { x: ground.x + uy * R * f - ux * R * 0.3, y: ground.y - ux * R * 0.75 * f - uy * R * 0.3 };
+        g.fillStyle(c, 0.45).fillTriangle(tip.x, tip.y, l.x, l.y, rr.x, rr.y);
+        g.lineStyle(4, 0xffffff, 0.95)
+            .beginPath()
+            .moveTo(l.x, l.y)
+            .lineTo(tip.x, tip.y)
+            .lineTo(rr.x, rr.y)
+            .strokePath();
+    }
+
+    /** A bola do N1/N2 chegou (`hit`: em alguém, no gol; senão saiu): a chegada do tipo e o fluxo para. */
+    private maxRunLand(hit: boolean, goal = false) {
+        const r = this.maxRun;
+        if (!r || r.landed) return;
+        r.landed = true;
+        r.stream?.stop();
+        r.stream = null;
+        const { x, y } = this.ball;
+        if (hit) this.fx.burst(r.type, x, y, r.level === 1 && !r.bicuda ? 16 : 26, BALL_DEPTH + 1);
+        r.story?.land(x, y, goal && hit);
+        if (!r.story) this.maxRun = null;
+    }
+
+    /** Desmonta o N1/N2 no ar agora (outro golpe, trocou o trecho do replay). */
+    private maxRunEnd() {
+        const r = this.maxRun;
+        this.maxWaveG?.clear();
+        if (!r) return;
+        this.maxRun = null;
+        r.stream?.stop();
+        r.story?.stop();
     }
 
     /**
@@ -4363,7 +4511,14 @@ export class MatchScene extends Phaser.Scene {
      * torcida em flash e o chicote pro gol inteiro; no voo, o rastro de luz, o tipo na bola, as linhas e a história do
      * tipo (n3-story.ts); na chegada, a explosão de cinema (`n3Land`). Só tela: o motor já decidiu o lance.
      */
-    private lineSuper(cap: PlayerView, moveId: string | null, fxType: string | null, tick: number, q: number) {
+    private lineSuper(
+        cap: PlayerView,
+        moveId: string | null,
+        fxType: string | null,
+        tick: number,
+        q: number,
+        bicuda = false,
+    ) {
         const move = moveId ? MOVES[moveId] : undefined;
         const type = fxType ? fxTypeOf(fxType) : (move?.type ?? species(cap.speciesId).types[0]);
         const sig = !!fxType && fxType in AGENCY.maxSig;
@@ -4385,6 +4540,7 @@ export class MatchScene extends Phaser.Scene {
         const at = { x: cap.sprite.x, y: cap.sprite.y };
         const side = cap.team === 0 ? 1 : -1;
         this.n3End();
+        this.maxRunEnd();
         const story = new N3Story({
             scene: this,
             fx: this.fx,
@@ -4514,7 +4670,8 @@ export class MatchScene extends Phaser.Scene {
         });
         this.battleBox.clear(now, ms + 1100);
         const a = dict().match.agency;
-        const typeLabel = (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type));
+        const fxLabel = (sig ? a.maxSigBy : a.maxFxBy).replace('{t}', typeName(type));
+        const typeLabel = bicuda ? `${a.bicuda} · ${fxLabel}` : fxLabel;
         const portrait = this.cutPortrait(`portrait-${cap.speciesId}`);
         // o cut-in dos olhos só no começo (no alto) e o "X usou Y!" embaixo dele, parado até a bola sair do pé
         this.cine.superCutIn({
