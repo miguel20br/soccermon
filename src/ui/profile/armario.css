@@ -6,6 +6,9 @@
     width: min(560px, 100%);
     margin: 0 auto;
     gap: 10px;
+    /* o cartão encosta em cima (antes ficava no meio com um terço da tela vazio) */
+    justify-content: flex-start;
+    padding-top: 8px;
 }
 .pf-arm .pf-head {
     grid-template-columns: auto minmax(0, 1fr);
@@ -313,6 +316,15 @@
     gap: 4px;
     font-size: 13px;
 }
+.pf-near-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.pf-near-bar .k-bar {
+    flex: 1;
+    min-width: 0;
+}
 
 /* figurinhas dos treinadores: a ficha do tocado em cima, a grade embaixo */
 .pf-figs {
@@ -376,4 +388,44 @@
         opacity: 0;
         translate: 0 10px;
     }
+}
+
+/* "Ir pra Sede": o caminho do cartão pros lugares do clube (troféus, clube, amigos, missões) */
+.pf-to-sede {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: center;
+    min-height: 44px;
+    padding: 6px 14px;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 200ms var(--ease-out);
+}
+.pf-to-sede .crest {
+    width: 18px;
+    height: 20px;
+}
+.pf-to-sede:hover {
+    color: var(--text);
+}
+.pf-to-sede:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.pf-code-row {
+    display: grid;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 2px solid var(--bc-ink-3);
+}
+.pf-code-row h3 {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
 }

@@ -588,6 +588,13 @@ export const help: typeof pt = {
         nothing: 'Nothing found for “{query}”.',
         notFound: "Didn't find what you wanted?",
         askUs: 'Ask us',
+        review: 'Replay the tutorial',
+        groups: {
+            team: 'Building the team',
+            match: 'The match',
+            modes: 'Modes and rewards',
+            account: 'Collection and account',
+        },
         faq: 'Frequently asked questions',
     },
     tip: {

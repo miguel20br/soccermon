@@ -593,3 +593,19 @@
 .help-coach h2 {
     margin: 0;
 }
+
+/* tópicos em blocos com título; "Rever o tutorial" no fim (uso raro) */
+.help-group,
+.help-review {
+    display: grid;
+    gap: 8px;
+}
+.help-group h2,
+.help-review > h2 {
+    margin: 6px 2px 0;
+}
+.help-review {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 2px solid var(--bc-ink-3);
+}

@@ -7,21 +7,19 @@ import {
     activeTitle,
     activeTrainer,
     earnedTitles,
-    MISSIONS,
     TRAINERS,
     trainerFrame,
     unlockedTrainers,
 } from '../../store/missions';
-import { clubColorHex, seenCount } from '../../store/profile';
+import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
 import { closestMissions } from '../ambientes/metas';
+import { openTabNext } from '../ambientes/nav';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { useMenuBackOf } from '../components/MenuHead';
-import { MenuIcon } from '../components/MenuIcon';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { Trophy } from '../components/Trophy';
 import { legacyDoor, openDoor } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
@@ -32,12 +30,18 @@ import { clubVars, hexCss, missionText, titleName, trainerLabel, useAvatar } fro
 import { FriendsTab } from '../profile/FriendsTab';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NewDot, useNews } from '../profile/news';
-import { MissionSummary, TitlePicker, TrainerPicker, TrainerSprite, useSaveView } from '../profile/TrainerTab';
+import {
+    MissionSummary,
+    RedeemCode,
+    TitlePicker,
+    TrainerPicker,
+    TrainerSprite,
+    useSaveView,
+} from '../profile/TrainerTab';
 import '../profile/profile.css';
 import '../profile/armario.css';
 
 type SheetId = 'nome' | 'treinadores' | 'titulo' | 'missoes' | 'clube' | 'amigos';
-const DEX_TOTAL = 151;
 const FLAGS = Array.from({ length: 14 }, (_, i) => i);
 /** `?aba=` (o quadro e os botões da Sede, links antigos `?perfil=`) que já abre uma Sheet. */
 const ABA_SHEET: Record<string, SheetId> = { clube: 'clube', amigos: 'amigos', missoes: 'missoes' };
@@ -77,8 +81,6 @@ export function Profile() {
     const go = useGame((s) => s.go);
     const profile = useGame((s) => s.profile);
     const hall = useGame((s) => s.hall);
-    const seen = useGame((s) => seenCount(s.dex));
-    const titles = useGame((s) => Math.max(s.records.titles, s.hall.length));
     const googleName = useCloud((s) => s.user?.name ?? null);
     const avatar = useAvatar();
     const showcase = useShowcase();
@@ -90,7 +92,6 @@ export function Profile() {
     const has = (prefix: string) => [...news].some((k) => k.startsWith(prefix));
     const cups = cupCounts(hall);
     const look = lookOfProfile(profile);
-    const done = MISSIONS.filter((m) => view.done.has(m.id)).length;
     const near = useMemo(() => closestMissions(view, 6), [view]);
     const [sheet, setSheet] = useState<SheetId | null>(null);
     const close = () => setSheet(null);
@@ -220,34 +221,9 @@ export function Profile() {
                 )}
             </header>
 
-            <button
-                type="button"
-                className="pf-arm-missions bc-tile"
-                aria-haspopup="dialog"
-                onClick={() => setSheet('missoes')}
-            >
-                <b>{d.profile.tabs.missoes}</b>
-                <span className={`k-bar${done >= MISSIONS.length ? ' full' : ''}`} aria-hidden>
-                    <i style={{ width: `${(done / MISSIONS.length) * 100}%` }} />
-                </span>
-                <em className="door-count">
-                    {done}/{MISSIONS.length}
-                </em>
-            </button>
-
+            {/* o Perfil é o seu cartão: aqui só o que é de você (treinador e título). Troféus, Clube, Amigos e Missões
+                moram na Sede; a Coleção, no Laboratório */}
             <nav className="pf-lockers" aria-label={t('profile.title')}>
-                <Locker
-                    icon={<Trophy size={32} />}
-                    title={d.home.doors.trophies[0]}
-                    count={titles || undefined}
-                    onClick={() => openDoor('trophies')}
-                />
-                <Locker
-                    icon={<MenuIcon kind="dex" />}
-                    title={d.home.doors.collection[0]}
-                    count={`${seen}/${DEX_TOTAL}`}
-                    onClick={() => openDoor('collection')}
-                />
                 <Locker
                     icon={<TrainerSprite id={activeTrainer(profile)} />}
                     title={t('profile.picker.trainer')}
@@ -262,19 +238,19 @@ export function Profile() {
                     dot={has('ti:')}
                     onClick={() => setSheet('titulo')}
                 />
-                <Locker
-                    icon={<Crest look={look} className="crest" />}
-                    title={d.profile.tabs.clube}
-                    count={profile.clubTag}
-                    dot={has('kit:')}
-                    onClick={() => setSheet('clube')}
-                />
-                <Locker
-                    icon={<HudIcon kind="friends" />}
-                    title={d.profile.tabs.amigos}
-                    onClick={() => setSheet('amigos')}
-                />
             </nav>
+            <button
+                type="button"
+                className="pf-to-sede"
+                onClick={() => {
+                    openTabNext('sede');
+                    go('home');
+                }}
+            >
+                <Crest look={look} className="crest" />
+                {t('profile.toSede')}
+                <HudIcon kind="next" />
+            </button>
 
             <Sheet open={sheet === 'nome'} onClose={close} title={edit} className="pf pf-sheet" style={vars}>
                 <ClubTab part="trainer" />
@@ -296,6 +272,11 @@ export function Profile() {
                 style={vars}
             >
                 <TitlePicker save={updateProfile} />
+                {/* o código de título, onde o título aparece (antes morava nas Configurações) */}
+                <section className="pf-code-row">
+                    <h3>{t('profile.picker.code')}</h3>
+                    <RedeemCode />
+                </section>
             </Sheet>
             <Sheet
                 open={sheet === 'missoes'}
@@ -309,9 +290,11 @@ export function Profile() {
                     {near.map((g) => (
                         <li key={g.m.id}>
                             <span>{missionText(g.m)}</span>
-                            <span className="k-bar">
-                                <i style={{ width: `${(g.n / g.goal) * 100}%` }} />
-                                <b>
+                            <span className="pf-near-bar">
+                                <span className="k-bar">
+                                    <i style={{ width: `${(g.n / g.goal) * 100}%` }} />
+                                </span>
+                                <b className="k-num">
                                     {g.n}/{g.goal}
                                 </b>
                             </span>

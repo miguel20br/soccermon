@@ -569,6 +569,7 @@ export const profile = {
             duelista: 'Vitórias no Duelo',
         } as Record<string, string>,
     },
+    toSede: 'Ir pra Sede',
     picker: {
         trainer: 'Seu treinador',
         trainerCount: '{n} de {total} liberados',

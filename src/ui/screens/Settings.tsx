@@ -31,7 +31,6 @@ import { iosBrowser, promptInstall, useInstall } from '../install';
 import { InfoSheet, Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
-import { RedeemCode } from '../profile/TrainerTab';
 
 /** Opção de jogo ‹ valor › (cara-de-jogo.md, decisão 12): o seletor do kit; com 2 valores, as duas setas alternam. */
 function Segmented<T extends string | number | boolean>({
@@ -227,7 +226,7 @@ export function Settings() {
                                 preview={() => playSfx('kick')}
                             />
                         </Row>
-                        <Row title={t('settings.screen.cries')} hint={t('settings.screen.criesHint')}>
+                        <Row title={t('settings.screen.cries')}>
                             <VolumeSlider
                                 label={t('settings.screen.criesVolume')}
                                 value={settings.criesVolume}
@@ -235,7 +234,7 @@ export function Settings() {
                                 preview={() => playCry(25, settings.cries)}
                             />
                         </Row>
-                        <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
+                        <Row title={t('settings.screen.sfx')}>
                             <VolumeSlider
                                 label={t('settings.screen.sfxVolume')}
                                 value={settings.sfxVolume}
@@ -243,7 +242,7 @@ export function Settings() {
                                 preview={() => playSfx('kick')}
                             />
                         </Row>
-                        <Row title={t('settings.screen.crowd')} hint={t('settings.screen.crowdHint')}>
+                        <Row title={t('settings.screen.crowd')}>
                             <VolumeSlider
                                 label={t('settings.screen.crowdVolume')}
                                 value={settings.crowdVolume}
@@ -251,7 +250,7 @@ export function Settings() {
                                 preview={() => playCrowd('gol')}
                             />
                         </Row>
-                        <Row title={t('settings.screen.music')} hint={t('settings.screen.musicHint')}>
+                        <Row title={t('settings.screen.music')}>
                             <VolumeSlider
                                 label={t('settings.screen.musicVolume')}
                                 value={settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume}
@@ -259,7 +258,7 @@ export function Settings() {
                                 preview={() => undefined}
                             />
                         </Row>
-                        <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
+                        <Row title={t('settings.screen.goalCry')}>
                             <Segmented
                                 label={t('settings.screen.goalCry')}
                                 value={settings.goalCry}
@@ -294,7 +293,7 @@ export function Settings() {
 
                 {tab === 'partida' && (
                     <Group title={t('settings.screen.match')}>
-                        <Row title={t('settings.screen.speed')} hint={t('settings.screen.speedHint')}>
+                        <Row title={t('settings.screen.speed')}>
                             <Segmented
                                 label={t('settings.screen.speed')}
                                 value={settings.speed}
@@ -319,7 +318,7 @@ export function Settings() {
                                 />
                             </Row>
                         )}
-                        <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
+                        <Row title={t('settings.screen.cinematic')}>
                             <Segmented
                                 label={t('settings.screen.cinematic')}
                                 value={settings.cinematic}
@@ -327,7 +326,7 @@ export function Settings() {
                                 onPick={(cinematic) => set({ cinematic })}
                             />
                         </Row>
-                        <Row title={t('settings.screen.chance')} hint={t('settings.screen.chanceHint')}>
+                        <Row title={t('settings.screen.chance')}>
                             <Segmented
                                 label={t('settings.screen.chance')}
                                 value={settings.chanceSpeed}
@@ -351,7 +350,7 @@ export function Settings() {
                                 onPick={(arrowSize) => set({ arrowSize })}
                             />
                         </Row>
-                        <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>
+                        <Row title={t('settings.screen.confirmLeave')}>
                             <Segmented
                                 label={t('settings.screen.confirmLeaveLabel')}
                                 value={settings.confirmLeave}
@@ -359,7 +358,7 @@ export function Settings() {
                                 onPick={(confirmLeave) => set({ confirmLeave })}
                             />
                         </Row>
-                        <Row title={t('settings.screen.haptics')} hint={t('settings.screen.hapticsHint')}>
+                        <Row title={t('settings.screen.haptics')}>
                             <Segmented
                                 label={t('settings.screen.haptics')}
                                 value={settings.haptics !== false}
@@ -404,7 +403,7 @@ export function Settings() {
                                 onPick={(reduceMotion) => set({ reduceMotion })}
                             />
                         </Row>
-                        <Row title={t('settings.screen.tips')} hint={t('settings.screen.tipsHint')}>
+                        <Row title={t('settings.screen.tips')}>
                             <Segmented
                                 label={t('settings.screen.tips')}
                                 value={settings.tips}
@@ -422,15 +421,15 @@ export function Settings() {
                         <InstallGroup />
                         <DataSettings />
                         <AccountSettings />
-                        {/* o rodapé de site (Ajuda, Feedback, Privacidade, GitHub, direitos) mora nos Créditos */}
-                        <button type="button" className="k-sheetrow set-about" onClick={() => openPage('credits')}>
-                            <HudIcon kind="book" />
-                            <b>{d.home.tiles.credits}</b>
-                            <HudIcon kind="next" />
-                        </button>
                     </>
                 )}
             </div>
+            {/* os Créditos (e o rodapé de site: Ajuda, Feedback, Privacidade, GitHub, direitos) ficam fora das abas */}
+            <button type="button" className="k-sheetrow set-about" onClick={() => openPage('credits')}>
+                <HudIcon kind="book" />
+                <b>{d.home.tiles.credits}</b>
+                <HudIcon kind="next" />
+            </button>
         </Stage>
     );
 }
@@ -605,7 +604,7 @@ function DataSettings() {
                     onPick={(v) => updateSettings({ stats: v })}
                 />
             </Row>
-            <Row title={t('settings.data.backup')} hint={t('settings.data.backupHint')}>
+            <Row title={t('settings.data.backup')}>
                 <div className="set-actions">
                     <button
                         type="button"
@@ -674,11 +673,6 @@ function DataSettings() {
                     </>
                 )}
             </Sheet>
-
-            {/* veio do Perfil (armário, cara-de-jogo.md): título, Pokédex corrigida ou carta devolvida */}
-            <Row title={t('profile.picker.code')}>
-                <RedeemCode />
-            </Row>
 
             <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
                 <div>
