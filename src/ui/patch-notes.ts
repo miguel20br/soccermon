@@ -9,6 +9,17 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.41.1',
+        date: '2026-11-04',
+        title: 'Fim da Rota',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: ['Nova copa no fim da Rota não dá mais erro', 'Quem vence a Rota conquista a Liga Índigo'],
+            },
+        ],
+    },
+    {
         version: '0.9.41',
         date: '2026-11-04',
         title: 'Golpes de cinema',
@@ -2488,6 +2499,17 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
+        version: '0.9.41.1',
+        date: '2026-11-04',
+        title: 'End of the Road',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: ['New cup at the end of the Road no longer crashes', 'Winning the Road wins the Indigo League'],
+            },
+        ],
+    },
+    {
         version: '0.9.41',
         date: '2026-11-04',
         title: 'Movie moves',
@@ -2953,7 +2975,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 ],
             },
             {
-                title: 'Indigo Route',
+                title: 'Indigo Road',
                 lines: [
                     "Evolution stones: one Match in each region gives that region's stone on top of the prize (Fire on Route 1, Leaf in the Forest, Moon on Mt. Moon, Water and Thunder in Cerulean)",
                     'The rival on that space brings one who evolves with the stone in the 1 of 3, and whoever you use it on evolves right away',
@@ -2970,7 +2992,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         title: 'New Route',
         sections: [
             {
-                title: 'Indigo Route',
+                title: 'Indigo Road',
                 lines: [
                     'Each branch of the map has its own types, and every Match shows its prize before you go',
                     "Every Match win signs 1 of 3 from the rival team, then comes the space's prize",
@@ -3504,7 +3526,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         title: 'Baby route',
         sections: [
             {
-                title: 'Indigo Route',
+                title: 'Indigo Road',
                 lines: [
                     'The Route starts at base forms: the captain and the draft come out as Charmander, Machop, Magikarp, and the team evolves along the way',
                     'Average team rating at the start of the Route: 79.5 ⇒ 64.6',

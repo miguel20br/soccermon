@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.41.1 · Fim da Rota (04/11/2026)
+
+Nova copa no resultado do fim da Rota derrubava no ErrorBoundary (a tela saindo segurava a partida velha com a Rota nova sem rivais): `useHeldPair` em `src/ui/use-held.ts` segura copa e partida juntas. Campeão da Rota conquista a Liga Índigo. Atalho `?demo=rota-fim&venceu=1|0`.
+
 ## 0.9.41 · Golpes de cinema (04/11/2026)
 
 O nível de produção do Counter em todo golpe máximo, aprovado pelo Miguel por vídeo: N3 com corte pro capitão, ângulo holandês, quadro de impacto, rastro e TypeFx, história por tipo (`src/game/n3-story.ts`) e toque próprio nas 12 assinaturas, letreiro parado 1,6 s (+0,2 s no lance); N2 com close curto e a onda que derruba desenhada no chão; N1 na cor do tipo com letreiro colado em quem chutou (1,3 s, +0 s); bicudas com o revide curto do Counter. Peças prontas na abertura (`prewarmImpactFrame`) tiram o engasgo. Duelo: o convidado volta à velocidade normal quando o fim está gravado na sala (`src/net/session.ts`). Motor sem mudança.

@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.41.1 · Fim da Rota (2026-11-04)
+
+### Rota Índigo
+- Nova copa no fim da Rota não dá mais erro
+- Quem vence a Rota conquista a Liga Índigo
+
 ## 0.9.41 · Golpes de cinema (2026-11-04)
 
 ### Golpe máximo
