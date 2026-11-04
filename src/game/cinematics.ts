@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { t } from '../i18n';
+import { screenToWorld } from './cine';
 import { GAME_H, GAME_W } from './court';
 import { claimOverlay, onOverlayClaim, PRIO_GOAL, PRIO_MOVE } from './overlay-slot';
 
@@ -48,6 +49,11 @@ export class Cinematics {
     private slowValue = 1;
     /** Escala extra para textos quando a tela é pequena (celular). */
     uiScale = 1;
+    /**
+     * A câmera de cinema (cine.ts) no comando: os textos presos usam o quadro exato dela (meio, zoom e giro), senão
+     * giravam com a quadra e ficavam um quadro atrasados.
+     */
+    rig: { active: boolean; view: { x: number; y: number; zoom: number; rot: number } } | null = null;
 
     constructor(private readonly scene: Phaser.Scene) {
         this.dim = scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W * 2, GAME_H * 2, 0x05060f, 0).setDepth(7000);
@@ -221,6 +227,22 @@ export class Cinematics {
         }
     }
 
+    /**
+     * Duelo da bicuda: a quadra escurece e só `idxs` ficam acesos, por cima do escuro, até `duelEnd` (nenhum holofote
+     * de golpe apaga no meio).
+     */
+    duel(idxs: number[]) {
+        for (const i of idxs) this.focused.add(i);
+        this.spotlightUntil = Number.POSITIVE_INFINITY;
+        this.scene.tweens.killTweensOf(this.dim);
+        this.scene.tweens.add({ targets: this.dim, fillAlpha: 0.66, duration: 250 });
+    }
+
+    duelEnd() {
+        this.spotlightUntil = 0;
+        this.clearSpotlight();
+    }
+
     private clearSpotlight() {
         this.focused.clear();
         this.pair = null;
@@ -265,6 +287,14 @@ export class Cinematics {
         const c = this.crop;
         const sx = c ? c.x + (pin.sx * c.w) / GAME_W : pin.sx;
         const k = c ? CROP_TEXT_SCALE : 1;
+        const r = this.rig?.active ? this.rig.view : null;
+        if (r) {
+            const p = screenToWorld(r, r.zoom, r.rot, cam.width, cam.height, sx, pin.sy);
+            obj.setPosition(p.x, p.y).setRotation(-r.rot);
+            obj.setScale((pin.scale * k) / r.zoom);
+            return;
+        }
+        if (obj.rotation) obj.setRotation(0);
         obj.setPosition(vx + sx / z, vy + pin.sy / z);
         obj.setScale((pin.scale * k) / z);
     }
@@ -516,6 +546,8 @@ export class Cinematics {
         top?: boolean;
         /** Quanto ela fica (ms): a cena do especial, pra sair no chute e não cobrir o gol no voo da bola. */
         holdMs?: number;
+        /** Altura na tela (fração; padrão 0,6): o duelo da bicuda põe embaixo de quem chuta. */
+        y?: number;
     }) {
         const scene = this.scene;
         const hold = opts.holdMs ?? SUPER_HOLD_MS;
@@ -602,7 +634,7 @@ export class Cinematics {
         const group = scene.add.container(-width / 2, 0, content).setScale(fit);
         const inner = scene.add.container(0, 0, [band, group]).setRotation(-0.1);
         const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
-        this.pin(holder, GAME_W / 2, GAME_H * 0.6, s);
+        this.pin(holder, GAME_W / 2, GAME_H * (opts.y ?? 0.6), s);
         const dir = opts.fromRight ? -1 : 1;
         const off = GAME_W / s;
         const out = () => holder.destroy();
@@ -712,6 +744,8 @@ export class Cinematics {
              * (combo, gol…); se outro chega na espera, o mais velho some.
              */
             top?: boolean;
+            /** Quanto ele fica parado antes de sumir (ms; padrão 1,25 s, `short` 0,7 s): o duelo da bicuda segura mais. */
+            hold?: number;
         },
     ) {
         const now = this.scene.time.now;
@@ -729,7 +763,8 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
-        claimOverlay('drama', PRIO_GOAL, (opts.short ? 700 : 1250) + 330);
+        const fadeAt = opts.hold ?? (opts.short ? 700 : 1250);
+        claimOverlay('drama', PRIO_GOAL, fadeAt + 330);
         this.slowMotion(now, 0.25, 1100);
         this.dramaUntil = now + 1500;
         this.banner?.destroy();
@@ -789,7 +824,6 @@ export class Cinematics {
         // entra esticado na horizontal e "assenta"
         this.scene.tweens.add({ targets: t, scaleX: 1.12, scaleY: 1, duration: 240, ease: 'Back.easeOut' });
         this.scene.tweens.add({ targets: t, scaleX: 1, delay: 240, duration: 280, ease: 'Sine.easeInOut' });
-        const fadeAt = opts.short ? 700 : 1250;
         this.dramaTextUntil = now + fadeAt + 330;
         this.scene.tweens.add({
             targets: children,

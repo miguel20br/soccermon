@@ -216,3 +216,49 @@ export function ensureBallTexture(scene: Phaser.Scene) {
     g.generateTexture('ball', r * 2 + 2, r * 2 + 2);
     g.destroy();
 }
+
+/**
+ * A rede do gol `side` (0 = o da esquerda) estufando com a bola que entrou na altura `yPx` (px da tela): o fundo vai pra
+ * fora (até 0,9 m: cabe na beira da quadra) e os fios abrem em volta de onde a bola bateu, tremendo até parar (`ms`).
+ * Desenhada por cima da rede pintada, embaixo dos Pokémon. "Reduzir movimento": estufa uma vez e volta, sem tremer.
+ */
+export function netRipple(scene: Phaser.Scene, side: 0 | 1, yPx: number, color: number, reduce: boolean, ms = 1500) {
+    const g = scene.add.graphics().setDepth(0);
+    const out = side === 0 ? -1 : 1;
+    const x0 = toPx(side === 0 ? 0 : L, 0).x;
+    const top = toPx(0, W / 2 - GW / 2).y;
+    const h = GW * PPM;
+    const hit = Math.min(1, Math.max(0, (yPx - top) / h));
+    // o tanto que cada ponto da rede anda: 0 nas traves e na linha do gol, o máximo onde a bola bateu
+    const near = (f: number) => Math.sin(Math.PI * f) * (0.35 + 0.65 * Math.exp(-((f - hit) * (f - hit)) / 0.06));
+    const draw = (t: number) => {
+        // estufa na hora e vai murchando, tremendo (sec = segundos)
+        const sec = (t * ms) / 1000;
+        const amp = (reduce ? 1 : Math.exp(-1.4 * sec) * (0.75 + 0.25 * Math.cos(20 * sec))) * (1 - t) * 0.9 * PPM;
+        // o ponto (d = 0 na linha do gol, 1 no fundo; f = 0 numa trave, 1 na outra)
+        const at = (d: number, f: number) => ({
+            x: x0 + out * d * (PPM + amp * near(f)),
+            y: top + f * h + Math.sign(f - hit) * amp * 0.3 * Math.sin(Math.PI * d) * near(f),
+        });
+        const line = (pts: { x: number; y: number }[]) => {
+            g.beginPath().moveTo(pts[0].x, pts[0].y);
+            for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+            g.strokePath();
+        };
+        const alpha = 0.95 * (1 - t * 0.5);
+        g.clear();
+        g.lineStyle(2.5, 0xffffff, alpha);
+        for (let i = 0; i <= 6; i++) line(Array.from({ length: 7 }, (_, j) => at(j / 6, i / 6)));
+        for (const d of [1 / 3, 2 / 3, 1]) {
+            g.lineStyle(d === 1 ? 4 : 2.5, d === 1 ? color : 0xffffff, alpha);
+            line(Array.from({ length: 13 }, (_, j) => at(d, j / 12)));
+        }
+    };
+    scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: ms,
+        onUpdate: (tw) => draw(tw.getValue() ?? 1),
+        onComplete: () => g.destroy(),
+    });
+}

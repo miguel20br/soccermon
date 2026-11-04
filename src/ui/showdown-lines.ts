@@ -21,8 +21,9 @@ function hash(text: string): number {
 }
 
 /**
- * As falas do duelo da bicuda, em ordem (a última é o grito do goleiro). Escolha determinística pelo lance (`seed`: o
- * tick do evento), na prioridade: par notável, mesma linha evolutiva, fala própria de um dos dois (`solo`) e as genéricas.
+ * As falas do duelo da bicuda, em ordem (a última é a do goleiro na bicuda). Escolha determinística pelo lance (`seed`: o
+ * tick do evento), na prioridade: par notável, mesma linha evolutiva, a conversa de quem está no gol (`solo[id].keeper`),
+ * a de quem chutou (`solo[id].shooter`) e as genéricas.
  */
 export function showdownScript(
     shooter: { speciesId: number; name: string },
@@ -37,32 +38,80 @@ export function showdownScript(
     if (pair) return lines(pair);
     if (evolvesInto(gk.speciesId, shooter.speciesId)) return lines(pick(d.up, 'up'));
     if (evolvesInto(shooter.speciesId, gk.speciesId)) return lines(pick(d.down, 'down'));
-    const s = d.solo[shooter.speciesId];
-    const g = d.solo[gk.speciesId];
+    const solo = d.solo[gk.speciesId]?.keeper ?? d.solo[shooter.speciesId]?.shooter;
+    if (solo) return lines(pick(solo, 'solo'));
     const out: ShowdownLine[] = [
-        { who: 's', text: pick(s?.shot ?? d.shot, 'shot') },
-        { who: 'g', text: pick(g?.gk ?? d.gk, 'gk') },
+        { who: 's', text: pick(d.shot, 'shot') },
+        { who: 'g', text: pick(d.gk, 'gk') },
     ];
-    // a 2ª fala de quem chutou, às vezes (só nas genéricas: a de um Pokémon notável fecha com a dele)
-    if (!s && hash(`${seed}:more`) % 2 === 0) out.push({ who: 's', text: pick(d.more, 'more') });
-    out.push({ who: 'g', text: pick(g?.shout ?? d.shout, 'shout') });
+    // a 2ª fala de quem chutou, às vezes
+    if (hash(`${seed}:more`) % 2 === 0) out.push({ who: 's', text: pick(d.more, 'more') });
+    out.push({ who: 'g', text: pick(d.shout, 'shout') });
     return out.map((l) => ({ ...l, text: fmt(l.text, names) }));
 }
 
 /**
- * Tempos da cutscene (ms no relógio da quadra, desde o lance; ShowdownOverlay.tsx): a defesa aparece `lead` antes do
- * corte, a 1ª fala entra em `talk`, o grito fica `shout` na tela e o corte sai `exit` antes da bicuda. Uma letra a cada
- * `char` (a fala inteira em até `type`); `fade` é a saída de quem não tem o corte (Reduzir movimento).
+ * Tempos do duelo na quadra (ms no relógio da quadra, desde o lance; MatchScene.ts e ShowdownOverlay.tsx). A 1ª fala
+ * entra em `talk` (depois do COUNTER! do contato e dos painéis de mangá), a fala final do goleiro fica `shout` e a caixa
+ * sai `exit` antes da bicuda (o 2º COUNTER!, o cut-in e a bicuda armada). A fala digita uma letra a cada `char` (a fala inteira em até `type`, com
+ * as pausas), para `soft` depois de vírgula e `hard` depois de ponto, e fica inteira pelo menos `read` antes da próxima
+ * (Miguel, 03/11/2026: "não dá pra ler"). `fade` é a saída da caixa.
  */
-export const SHOWDOWN_MS = { lead: 600, talk: 1000, shout: 1400, exit: 420, char: 26, type: 900, fade: 250 };
+export const SHOWDOWN_MS = {
+    talk: 3350,
+    shout: 2200,
+    exit: 2800,
+    char: 22,
+    type: 770,
+    soft: 60,
+    hard: 110,
+    read: 1275,
+    fade: 250,
+};
 
-/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e o grito. */
+/**
+ * Quando cada letra da fala aparece (ms desde a fala entrar): uma a cada `SHOWDOWN_MS.char`, apertando pra caber em
+ * `type`, com a pausa curta depois da pontuação (as reticências pausam uma vez, no fim delas). Vazio no "Reduzir
+ * movimento" (a fala vem inteira).
+ */
+export function typeDelays(text: string): number[] {
+    const { char, type, soft, hard } = SHOWDOWN_MS;
+    const chars = [...text];
+    const pause = chars.map((c, i) => {
+        const next = chars[i + 1];
+        if (next === undefined || next === c) return 0;
+        if ('.!?…'.includes(c)) return hard;
+        return ',;:'.includes(c) ? soft : 0;
+    });
+    const total = pause.reduce((a, b) => a + b, 0);
+    const step = Math.max(6, Math.min(char, (type - total) / Math.max(1, chars.length)));
+    let at = 0;
+    return chars.map((_, i) => {
+        const t = at;
+        at += step + pause[i];
+        return t;
+    });
+}
+
+/** Quanto a fala leva pra ficar inteira na caixa. */
+export const typeMs = (text: string) => (typeDelays(text).at(-1) ?? 0) + SHOWDOWN_MS.char;
+
+/** Rosto PMD de cada fala: quem chutou se espanta, o goleiro encara, quem chutou de novo bufa e a bicuda. */
 export const FACE = {
     s: ['surprised', 'pain', 'sad'],
     s2: ['sigh', 'angry', 'sad'],
     g: ['determined', 'happy'],
     shout: ['shouting', 'determined', 'angry'],
 };
+
+/** De quando a quando (ms desde o lance) a fala `i` fica na caixa: as falas dividem o tempo até a última, que fica com o fim. */
+export function lineSpan(i: number, ms: number, count: number): [number, number] {
+    const { talk, shout, exit } = SHOWDOWN_MS;
+    const shoutAt = ms - exit - shout;
+    if (i === count - 1) return [shoutAt, ms - exit];
+    const each = (shoutAt - talk) / (count - 1);
+    return [talk + i * each, talk + (i + 1) * each];
+}
 
 /** A fala da vez `t` ms depois do lance (-1 antes da 1ª): as falas dividem o tempo até o grito, que fica com o fim. */
 export function lineAt(t: number, ms: number, count: number): number {
