@@ -1118,8 +1118,8 @@ button.mm-card,
     container-type: inline-size;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* os trancados um tico menores que o Clássico */
-    grid-template-rows: 1.75fr 1fr;
+    /* os "em breve" bem menores que o Clássico (até o Ultimate abrir, 27/11) */
+    grid-template-rows: 3fr 1fr;
 }
 .mm-c2 .mm-c-stack.mm-sel-ultimate,
 .mm-c2 .mm-c-stack.mm-sel-historia {
@@ -1209,6 +1209,25 @@ button.mm-card,
 }
 .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-chips > span {
     white-space: normal;
+}
+
+/* os itens do modo são uma linha de texto (Copa · Rota Índigo · Duelo · Liga), sem moldura de botão: não são botões */
+.mm-chips {
+    gap: 0 5px;
+}
+.mm-chips > span {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--muted);
+}
+.mm-chips > span:not(:last-child)::after {
+    content: "·";
+    margin-left: 5px;
+}
+.mm-chips .hud-icon {
+    display: none;
 }
 
 /* celular em pé: itens um tico menores (a Galmuri11 no tamanho dela) e, nas duas de baixo, o nome aberto cabe na fatia */

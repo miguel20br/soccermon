@@ -56,7 +56,7 @@ const patchDate = (n: PatchNotes, lang: 'pt' | 'en') =>
 
 /**
  * O cartaz da versão nova (cara-de-jogo.md, decisão 15): o nome grande e 4 destaques (o 1º item de cada seção);
- * "Ver tudo" e "Versões antigas" trocam a página dentro da mesma folha.
+ * "Ver tudo" troca a página dentro da mesma folha.
  */
 function PatchPoster({ n, lang, go }: { n: PatchNotes; lang: 'pt' | 'en'; go: (page: string) => void }) {
     const { t } = useT();
@@ -83,11 +83,8 @@ function PatchPoster({ n, lang, go }: { n: PatchNotes; lang: 'pt' | 'en'; go: (p
                 ))}
             </ol>
             <div className="patch-poster-actions">
-                {/* o que a pessoa quer (ver a versão inteira) é o azul; as antigas, o fantasma */}
-                <button type="button" className="btn ghost" onClick={() => go('old')}>
-                    {t('home.newsOld')}
-                </button>
-                <button type="button" className="btn" onClick={() => go(n.version)}>
+                {/* um botão só: a lista com a versão de agora no topo e as antigas embaixo */}
+                <button type="button" className="btn" onClick={() => go('old')}>
                     {t('home.newsAll')}
                 </button>
             </div>
@@ -131,7 +128,16 @@ export function NewsButton() {
     const [mod, setMod] = useState<typeof import('../patch-notes') | null>(null);
     const notes = mod?.patchNotes(lang) ?? [];
     const latest = versionNum(__APP_VERSION__);
-    const [seen, setSeen] = useState(readSeen);
+    // save novo (nada visto ainda) nasce com a versão atual lida: o jogador do primeiro minuto não tem novidade
+    const fresh = useGame((s) => Object.keys(s.dex).length === 0);
+    const [seen, setSeen] = useState(() => {
+        const v = readSeen();
+        if (v === 0 && fresh && useGame.persist.hasHydrated()) {
+            writeCount(NEWS_SEEN, latest);
+            return latest;
+        }
+        return v;
+    });
     const [open, setOpen] = useState(false);
     const [page, setPage] = useState('poster');
     const close = useCallback(() => setOpen(false), []);
@@ -175,7 +181,7 @@ export function NewsButton() {
                         <button
                             type="button"
                             className="btn small ghost patch-back"
-                            onClick={() => setPage(page === 'old' || page === notes[0]?.version ? 'poster' : 'old')}
+                            onClick={() => setPage(page === 'old' ? 'poster' : 'old')}
                         >
                             <HudIcon kind="prev" />
                             {t('common.ui.back')}
@@ -184,7 +190,7 @@ export function NewsButton() {
                     {page === 'poster' && notes[0] && <PatchPoster n={notes[0]} lang={lang} go={setPage} />}
                     {page === 'old' && (
                         <ul className="patch-old-list">
-                            {notes.slice(1).map((n) => (
+                            {notes.map((n) => (
                                 <li key={n.version}>
                                     <button type="button" className="patch-toggle" onClick={() => setPage(n.version)}>
                                         <span className="patch-old-title">

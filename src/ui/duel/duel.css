@@ -1101,13 +1101,6 @@ button.sb-title:hover {
     position: relative;
     display: grid;
 }
-.duel-mode > .k-info {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 24px;
-    height: 24px;
-}
 .duel-mode .k-option small {
     color: var(--yellow);
 }

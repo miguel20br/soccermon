@@ -26,7 +26,8 @@ export function playModes(s: { inProgress: boolean; challenge: string | null; fi
     const sheet: ModeId[] = [];
     if (s.inProgress) sheet.push('continue');
     if (s.challenge) sheet.push('challenge');
-    sheet.push('quick', 'long', 'daily', 'duel');
+    // a Rota Índigo e o Duelo moram nas abas deles (Rota, Arena): aqui só o que é do Estádio
+    sheet.push('quick', 'daily');
     return { main, sheet };
 }
 

@@ -616,6 +616,8 @@ export const help = {
         nothing: 'Nada encontrado pra “{query}”.',
         notFound: 'Não achou o que queria?',
         askUs: 'Pergunta pra gente',
+        review: 'Rever o tutorial',
+        groups: { team: 'Montar o time', match: 'A partida', modes: 'Modos e recompensas', account: 'Coleção e conta' },
         faq: 'Perguntas frequentes',
     },
     tip: {

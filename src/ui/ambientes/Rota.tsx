@@ -4,6 +4,7 @@ import { useT } from '../../i18n/react';
 import { resumeScreenOf, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
 import { KANTO_BADGES } from '../../store/missions';
+import { useHydrated } from '../coach/Coach';
 import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
 import { ConfirmSheet } from '../kit/Sheet';
@@ -367,6 +368,17 @@ export function Rota({
         : { grass: near, water: near };
     const w = useWild(clock, wild, zonesOf(scale), threats, ROUTE);
     const talk = useTalkOnce('falaRota', active);
+    // NOVO só pra save de antes da Rota (já tem Pokédex) e some depois da 1ª visita à aba
+    const hydrated = useHydrated();
+    const [isNew, setIsNew] = useState(false);
+    useEffect(() => {
+        if (!hydrated || !active) return;
+        const { profile, dex, updateProfile } = useGame.getState();
+        const have = profile.coach ?? [];
+        if (have.includes('novoRota')) return;
+        if (Object.keys(dex).length > 0) setIsNew(true);
+        updateProfile({ coach: [...have, 'novoRota'] });
+    }, [hydrated, active]);
     const story = d.longCup.story[stop === 'start' ? 'rota1' : stop];
     const where = stop === 'start' ? '' : d.longCup.region[stop];
     const got = (id: string) => done.includes(id);
@@ -396,7 +408,7 @@ export function Rota({
                     <h2>
                         <span className="rt-title">{t('home.longCup.title')}</span>
                         {/* NOVO até a 1ª Rota (o mesmo selo da Home de lista) */}
-                        {!records.longCups && !longOn && (
+                        {isNew && !records.longCups && !longOn && (
                             <span className="bc-tag rota-new">{t('profile.news.badge')}</span>
                         )}
                     </h2>

@@ -20,8 +20,8 @@ const ARENA: Blockers = { props: '.ar-side .fs-sprite:not(.ar-head), .ar-ball, .
 export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 
 /**
- * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro com o neon do
- * Arcade da semana (o Game Corner de Celadon) e o poste aceso. A meta é o próximo cinturão do Duelo; o botão principal
+ * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro e o poste aceso.
+ * (o Arcade saiu: ainda não tem data). A meta é o próximo cinturão do Duelo; o botão principal
  * é Desafiar. A Liga, enquanto fechada, é um letreiro no muro com a contagem (tocar abre a Liga).
  */
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
@@ -86,7 +86,9 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                     <h2>{t('home.amb.arenaTitle')}</h2>
                     <span className="rt-badges" title={belt ? t('trophies.belt', { n: belt.goal }) : undefined}>
                         <PixelTrophy kind="cinturao" metal={belt?.metal ?? 'ouro'} className="rm-belt" />
-                        {belt ? `${belt.n}/${belt.goal}` : t('trophies.duelWins', { n: wins })}
+                        {belt
+                            ? t('home.amb.beltCount', { n: belt.n, goal: belt.goal })
+                            : t('trophies.duelWins', { n: wins })}
                     </span>
                 </header>
                 <div className="rm-actions">
@@ -132,7 +134,6 @@ export function ArenaScene({
     active: boolean;
     children?: ReactNode;
 }) {
-    const { t } = useT();
     // tocar na silhueta mostra quem é, por um instante
     const [seen, setSeen] = useState(false);
     useEffect(() => {
@@ -148,11 +149,6 @@ export function ArenaScene({
             <div className="amb-layer ar-street" style={{ '--depth': 0.25 } as CSSProperties}>
                 <div className="ar-wall">
                     <i className="ar-fence" />
-                    <div className="ar-neon" aria-hidden>
-                        <b>{t('home.amb.soonArcade')}</b>
-                        <small>{t('home.amb.neonWeek')}</small>
-                        <em className="ar-tape">{t('home.soonRibbon')}</em>
-                    </div>
                     <i className="ar-lamp" />
                     {sign}
                 </div>

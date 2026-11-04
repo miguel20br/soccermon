@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { type ReactNode, useEffect, useRef } from 'react';
 import { create } from 'zustand';
 import { useT } from '../../i18n/react';
 import { type Screen, useGame } from '../../store/game-store';
@@ -52,6 +52,7 @@ export function MenuHead({
     hud,
     onBack,
     tag,
+    info,
 }: {
     title: string;
     /** Ilustração do menu; ou `hud`, o mesmo ícone de traço que a tela tem na Home (Liga, Duelo, Rota…). */
@@ -61,6 +62,8 @@ export function MenuHead({
     onBack?: () => void;
     /** Etiqueta amarela em cima do placar (sem = nenhuma). */
     tag?: string;
+    /** O "?" do título (um `InfoSheet`): explica a tela toda, no lugar de um por linha. */
+    info?: ReactNode;
 }) {
     const { t } = useT();
     const inBar = useMenuBackOf(onBack);
@@ -75,6 +78,7 @@ export function MenuHead({
             )}
             {hud ? <HudIcon kind={hud} className="menu-head-ic" /> : icon && <MenuIcon kind={icon} />}
             <h1>{title}</h1>
+            {info}
         </header>
     );
 }

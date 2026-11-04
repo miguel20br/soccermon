@@ -13,8 +13,8 @@ const [W, H] = size.split('x').map(Number);
 const PAGES = [
     // a Home (ambientes): as 5 abas da barra
     ['/?motion=1', ['.amb-tab', '.news-fab']],
-    // o Perfil (armário): as portas que abrem Sheet e a barra das missões
-    ['/?demo=colecao&motion=1', ['.pf-locker:nth-child(n+3)', '.pf-arm-missions', '.pf-name']],
+    // o Perfil (cartão): as portas de treinador e título (Sheet)
+    ['/?demo=colecao&motion=1', ['.pf-locker', '.pf-name']],
     // a Sala em tela cheia: o ? e a lista, as setas de parede
     ['/?demo=sala&motion=1', ['.tr-ic', '.room-wall:not(:disabled)']],
     ['/?demo=album&motion=1', ['[role=tab]']],
