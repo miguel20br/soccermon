@@ -126,6 +126,8 @@ export class Cinematics {
         targetColor?: number;
         withBall?: boolean;
         durationMs?: number;
+        /** Quanto a quadra escurece (padrão 0,58): no voo do N3 só um pouco, o rastro do tipo no chão segue à vista. */
+        dim?: number;
     }) {
         const now = this.scene.time.now;
         const duration = opts.durationMs ?? 950;
@@ -134,7 +136,7 @@ export class Cinematics {
         for (const f of opts.focus) this.focused.add(f.idx);
 
         this.scene.tweens.killTweensOf(this.dim);
-        this.scene.tweens.add({ targets: this.dim, fillAlpha: 0.58, duration: extending ? 60 : 160 });
+        this.scene.tweens.add({ targets: this.dim, fillAlpha: opts.dim ?? 0.58, duration: extending ? 60 : 160 });
 
         for (const [i, f] of opts.focus.entries()) {
             // o mesmo Pokémon já em foco reaproveita a luz dele
@@ -548,6 +550,8 @@ export class Cinematics {
         holdMs?: number;
         /** Altura na tela (fração; padrão 0,6): o duelo da bicuda põe embaixo de quem chuta. */
         y?: number;
+        /** Quem usou (o "X usou" numa placa em cima do golpe; o N3 de linha). */
+        who?: string;
     }) {
         const scene = this.scene;
         const hold = opts.holdMs ?? SUPER_HOLD_MS;
@@ -611,6 +615,22 @@ export class Cinematics {
         const tagBg = scene.add.graphics();
         tagBg.fillStyle(0x0d1024, 1).fillRoundedRect(x, 27 - 14, tag.width + 20, 28, 4);
         content.push(big, tagBg, tag);
+        if (opts.who) {
+            // "NINETALES USOU": a placa em cima do nome do golpe, saindo da faixa
+            const who = scene.add
+                .text(x + 12, -h / 2 - 12, opts.who.toUpperCase(), {
+                    fontFamily: 'Galmuri11, monospace',
+                    fontSize: '20px',
+                    fontStyle: 'bold',
+                    color: '#ffffff',
+                })
+                .setOrigin(0, 0.5)
+                .setResolution(2);
+            const plate = scene.add.graphics();
+            plate.fillStyle(0x0d1024, 1).fillRoundedRect(x, -h / 2 - 27, who.width + 24, 30, 5);
+            plate.lineStyle(2, opts.color, 1).strokeRoundedRect(x, -h / 2 - 27, who.width + 24, 30, 5);
+            content.push(plate, who);
+        }
         let tagEnd = tag.width + 20;
         if (opts.note) {
             const note = scene.add
@@ -670,6 +690,8 @@ export class Cinematics {
         ms: number;
         reduce: boolean;
         depth: number;
+        /** Altura na tela (fração; padrão 0,27). */
+        y?: number;
     }) {
         const scene = this.scene;
         if (!opts.portrait || !scene.textures.exists(opts.portrait)) return;
@@ -703,7 +725,7 @@ export class Cinematics {
         glow.fillStyle(opts.color, 0.3).fillCircle(0, 0, h * 0.62);
         const inner = scene.add.container(0, 0, [band, glow, ...ghosts, img]).setRotation(0.06);
         const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
-        this.pin(holder, GAME_W / 2, GAME_H * 0.27, s);
+        this.pin(holder, GAME_W / 2, GAME_H * (opts.y ?? 0.27), s);
         const dir = opts.fromRight ? 1 : -1;
         const out = () => holder.destroy();
         const stay = Math.max(200, opts.ms - 260);

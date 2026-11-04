@@ -55,6 +55,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `MAX_SIGNATURE` têm a assinatura, ex. 149 Hyper Beam, 143 Pancada; com `&goleiro=1&nivel=3`, a bicuda N3).
  * `&k=N`: pula as N primeiras copas (outra jogada, se a primeira não acender). `&efeito=1`: só a jogada em que o golpe,
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
+ * `&gol=1`: só a jogada em que o golpe, perfeito e já na agenda, entra (sem tocar; as gravações do N3 por tipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
@@ -573,7 +574,9 @@ export function runDevDemo() {
         // perfeito na agenda (o lance é sempre o mesmo, sem depender do toque na tela)
         const defesa = q.get('defesa') === '1';
         const counter = gk && q.get('counter') === '1';
-        for (let k = k0; k < k0 + (defesa || counter ? 400 : 120); k++) {
+        // &gol=1: o golpe tocado na hora (perfeito, na agenda) entra (a gravação dos N3 por tipo)
+        const gol = !gk && !defesa && q.get('gol') === '1';
+        for (let k = k0; k < k0 + (defesa || counter || gol ? 400 : 120); k++) {
             store.newRun('Demo FC', `max${k}`);
             const base = useGame.getState().run!;
             const rng = new Rng(`max${k}`, 'demo');
@@ -608,7 +611,10 @@ export function runDevDemo() {
                 const capIdx = r.state.players.find((p) => p.team === 0 && p.captain)?.idx;
                 const ok = counter
                     ? ev.some((e) => e.type === 'max' && e.phase === 'hit' && e.team === 0)
-                    : ev.some((e) => e.type === 'save' && e.shooter === capIdx && !!e.parry);
+                    : gol
+                      ? ev.some((e) => e.type === 'max' && e.phase === 'hit' && e.by === capIdx) &&
+                        ev.some((e) => e.type === 'goal' && e.team === 0 && e.tick < tick + 60)
+                      : ev.some((e) => e.type === 'save' && e.shooter === capIdx && !!e.parry);
                 if (ok) orders = [order];
                 return ok;
             };
@@ -634,7 +640,7 @@ export function runDevDemo() {
                     continue;
                 }
                 if (s.phase !== 'play' || !owner || !cap || maxCharge(s.events, 0, s.tick, 5).level < nivel) continue;
-                if (owner === cap && inMaxZoneOf(s, cap) && (!defesa || check(s.tick, s.tick))) at = s.tick;
+                if (owner === cap && inMaxZoneOf(s, cap) && (!(defesa || gol) || check(s.tick, s.tick))) at = s.tick;
             }
             if (at === null || at < 200) continue;
             // &efeito=1: só a jogada em que o golpe tocado assim que o botão acende (nota fora) pega alguém com o efeito
