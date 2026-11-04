@@ -560,7 +560,6 @@ export function ModeSlices({
                         <span className="mm-slice-txt">
                             {playable(m) && (
                                 <span className="tv-onair">
-                                    <i>{n + 1}</i>
                                     <b>
                                         {m === LAST || utNow() >= ULTIMATE_OPENS_AT
                                             ? d.home.live
@@ -573,7 +572,6 @@ export function ModeSlices({
                             </b>
                             {!playable(m) && (
                                 <span className="tv-soon">
-                                    <i>{n + 1}</i>
                                     <Soon id={m} />
                                 </span>
                             )}
