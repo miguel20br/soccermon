@@ -18,6 +18,8 @@ const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /** Tamanho dos textos presos dentro do recorte do clipe (cabem na faixa e seguem legíveis no 9:16). */
 const CROP_TEXT_SCALE = 0.72;
+/** Até onde (px do canvas) vai o texto de drama no alto (GOOOOL!, QUE DEFESA!): o letreiro do N1/N2 não entra aí. */
+const DRAMA_BOTTOM = GAME_H * 0.17 + 80;
 
 /** Quanto a faixa do N3 (retrato, golpe e tipo) fica parada na tela antes de sair (tempo real). */
 const SUPER_HOLD_MS = 1500;
@@ -38,8 +40,12 @@ export class Cinematics {
     private pair: { attacker: number; target: number | null; color: number } | null = null;
     private dramaUntil = 0;
     private dramaHolder: Phaser.GameObjects.Container | null = null;
-    /** O letreiro do N1/N2 na tela (`maxTag`): sai rápido quando o texto de drama entra (o GOOOOL! caía em cima). */
+    /**
+     * O letreiro do N1/N2 na tela (`maxTag`) e o alto dele (px): sai rápido quando o golpe seguinte entra ou quando o
+     * texto de drama cairia em cima dele (o GOOOOL!).
+     */
     private tagHolder: Phaser.GameObjects.Container | null = null;
+    private tagTop = 0;
     /** Até quando (tempo real) o texto de drama fica na tela. */
     private dramaTextUntil = 0;
     /** O texto de drama na tela é de prioridade (`drama` `top`) e o texto que espera ele sair (só o último espera). */
@@ -692,7 +698,8 @@ export class Cinematics {
     /**
      * Letreiro do golpe máximo N1/N2 e da bicuda (a escada N1 < N2 < N3 < Counter, Miguel 04/11/2026): a faixa diagonal
      * do N3 em ponto pequeno, colada em quem chutou (`x, y`: px do canvas com a quadra inteira, o plano em que a câmera
-     * fica no voo; a faixa vai acima disso), crescendo pro lado do ataque (`dir`) e presa à janela que aparece (no
+     * fica no voo; a faixa vai acima da cabeça, `y`, ou embaixo dos pés, `feet`, se em cima ela bateria no texto de drama
+     * do alto e sairia antes de dar pra ler), crescendo pro lado do ataque (`dir`) e presa à janela que aparece (no
      * celular em pé a quadra anda atrás dela). O nome grande, a etiqueta (nível, tipo) e a nota; `who` e o retrato só nos
      * maiores (`big`: N2 e bicuda). Entra em 120 ms, fica parada `hold` ms e some em 160 ms, sem segurar a partida.
      * Reduzir movimento: só aparece e some.
@@ -700,6 +707,7 @@ export class Cinematics {
     maxTag(opts: {
         x: number;
         y: number;
+        feet: number;
         dir: 1 | -1;
         title: string;
         tag: string;
@@ -797,11 +805,17 @@ export class Cinematics {
         const u = fit * ck;
         const left = Phaser.Math.Clamp(opts.x + inner.x * u, vx + 8, Math.max(vx + 8, vx + vw - 8 - w * u));
         const cx = left - inner.x * u;
-        const top = ((opts.who ? 32 : 0) + h / 2 + 8) * u;
-        this.pin(holder, c ? ((cx - vx) * GAME_W) / vw : cx, Math.max(top, opts.y - (h / 2 + 10) * u), fit);
+        // do meio ao alto da faixa (com a placa do "X usou") e à base dela
+        const up = ((opts.who ? 32 : 0) + h / 2) * u;
+        const down = (h / 2 + 5) * u;
+        let cy = opts.y - down - 6 * u;
+        if (cy - up < DRAMA_BOTTOM) cy = opts.feet + up + 10 * u;
+        cy = Math.min(cy, GAME_H - 6 - down);
+        this.pin(holder, c ? ((cx - vx) * GAME_W) / vw : cx, cy, fit);
         const out = () => holder.destroy();
         this.dropTag();
         this.tagHolder = holder;
+        this.tagTop = cy - up;
         inner.setAlpha(0);
         if (!opts.reduce) inner.setScale(0.7, 0.5);
         scene.tweens.add({ targets: inner, alpha: 1, scaleX: 1, scaleY: 1, duration: 120, ease: 'Back.easeOut' });
@@ -915,7 +929,7 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
-        this.dropTag();
+        if (this.tagTop < DRAMA_BOTTOM) this.dropTag();
         const fadeAt = opts.hold ?? (opts.short ? 700 : 1250);
         claimOverlay('drama', PRIO_GOAL, fadeAt + 330);
         this.slowMotion(now, 0.25, 1100);

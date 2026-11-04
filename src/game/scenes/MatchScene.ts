@@ -4346,6 +4346,7 @@ export class MatchScene extends Phaser.Scene {
                 this.cine.maxTag({
                     x: foot.x,
                     y: foot.y - 46,
+                    feet: foot.y + 4,
                     dir: cap.team === 0 ? 1 : -1,
                     title: o.counter ? tr('battle.counter') : o.bicuda ? `${a.bicuda}!` : `${move ?? a.max}!`,
                     tag: `${o.counter ? `${a.bicuda} ` : ''}${lv} · ${typeName(type)}`,
