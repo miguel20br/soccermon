@@ -1,5 +1,18 @@
 # Novidades
 
+## 0.9.41 · Golpes de cinema (2026-11-04)
+
+### Golpe máximo
+- N3 com câmera de cinema: close no capitão, impacto no chute e a rede estufando no gol
+- Cada tipo deixa a sua marca no N3: chão em brasa, raio que ricocheteia, bola fantasma e mais 13
+- As 12 assinaturas ganham um toque próprio, do Hyper Beam ao Metronome do Mew
+- N2 com a onda que derruba a linha desenhada no chão, na cor do tipo
+- N1 na cor do tipo, com o nome do golpe colado em quem chutou
+- Bicudas com o pé do goleiro, impacto e rastro até onde a bola vai
+
+### Duelo
+- A tela de quem entrou na sala não fica mais parada no fim de jogo
+
 ## 0.9.40 · Counter (2026-11-03)
 
 ### Counter

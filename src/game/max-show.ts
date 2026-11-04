@@ -6,8 +6,8 @@ import { trailParticle, typeBurst } from './ball-trail';
  * O show do golpe máximo (pedido do Miguel, 01/11/2026: "as animações dos golpes N1 a N3 têm que ser beeem melhores; a
  * N3 um super hiper mega golpe especial"). Só tela, desenhado com shapes e as partículas do tipo (sem emoji): a carga no
  * capitão, o estouro do chute, a bola virando projétil do tipo, o impacto na chegada e, no N3, o fundo com a arte do
- * tipo. Identidade crescente: N1 dourado e curto, N2 na cor do tipo com onda, N3 a cena inteira. "Reduzir movimento":
- * nada gira nem pisca, os anéis só aparecem e somem.
+ * tipo. Identidade crescente, todo nível na cor do tipo (04/11/2026; o N1 era dourado): N1 curto, N2 com onda, N3 a
+ * cena inteira. "Reduzir movimento": nada gira nem pisca, os anéis só aparecem e somem.
  */
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -16,6 +16,26 @@ const lighten = (c: number, k: number) => Phaser.Display.Color.IntegerToColor(c)
 
 /** Carga (ms reais, a quadra parada) e o tamanho do estouro por nível. O N3 carrega na cena do especial. */
 export const MAX_CHARGE_MS = { 1: 200, 2: 300 } as const;
+
+/**
+ * Golpe máximo N1/N2 e bicuda N1/N2 na escada de produção (Miguel, 04/11/2026: N1 < N2 < N3 < Counter; N1 e N2 acontecem
+ * muito mais, não podem alongar a partida). A carga é a de sempre (`MAX_CHARGE_MS`) e o N2 e a bicuda ganham `closeMs`
+ * pro close no pé (zoom `close`, e chegando `push` até o chute). No chute: o quadro de impacto (`impactMs`, N2 e bicuda)
+ * e o letreiro parado `tagMs` colado em quem chutou; no voo, as partículas do tipo (`stream`: a cada `every` ms, tamanho
+ * `k`) e, no N2 e na bicuda, a história do tipo em versão curta (`story`, o `scale` do N3Story); a bicuda leva o rastro
+ * de luz do tipo do goleiro (`trail`, grossura por nível) até o destino.
+ */
+export const MAX_N12 = {
+    closeMs: 150,
+    close: { 2: 1.7, bicuda: 1.9 },
+    push: 1.08,
+    impactMs: 110,
+    whipMs: 160,
+    tagMs: 1300,
+    stream: { 1: { every: 40, k: 0.5 }, 2: { every: 28, k: 0.7 } },
+    story: { 2: 0.5, bicuda: 0.42 },
+    trail: { 1: 9, 2: 12 },
+};
 
 /**
  * Carga no pé do capitão durante a parada (`ms`): anéis da cor do tipo fechando nele e (N2, N3) faíscas sugadas; no N3
@@ -116,7 +136,7 @@ export function releaseFx(
     depth: number,
     reduce: boolean,
 ) {
-    const c = level === 1 ? 0xffd447 : colorOf(type);
+    const c = colorOf(type);
     const size = level === 1 ? 1 : level === 2 ? 1.5 : 2.4;
     if (!reduce) {
         const f = scene.add
@@ -161,8 +181,8 @@ export function releaseFx(
 }
 
 /**
- * Chegada do golpe (gol, defesa, trave, bloqueio): N1 um anel dourado com faíscas, N2 a onda do tipo, N3 a explosão (três
- * anéis grandes, estilhaços, a rajada do tipo e um clarão).
+ * Chegada do golpe (gol, defesa, trave, bloqueio): N1 um anel com faíscas, N2 a onda do tipo, N3 a explosão (três anéis
+ * grandes, estilhaços, a rajada do tipo e um clarão), todos na cor do tipo.
  */
 export function impactFx(
     scene: Phaser.Scene,
@@ -173,7 +193,7 @@ export function impactFx(
     depth: number,
     reduce: boolean,
 ) {
-    const c = level === 1 ? 0xffd447 : colorOf(type);
+    const c = colorOf(type);
     const rings = level === 3 ? 3 : level;
     for (let i = 0; i < rings; i++) {
         const ring = scene.add
@@ -227,7 +247,7 @@ export function impactFx(
 }
 
 /**
- * A bola do golpe no ar, desenhada a cada quadro num Graphics (ADD) em volta dela: N1 brilho dourado com cauda curta, N2
+ * A bola do golpe no ar, desenhada a cada quadro num Graphics (ADD) em volta dela: N1 brilho do tipo com cauda curta, N2
  * cometa na cor do tipo, N3 o projétil do tipo (núcleo branco, cauda grossa e o enfeite do tipo: raios, chamas, anéis,
  * estilhaços orbitando). `vx`/`vy`: para onde a bola anda na tela (px por quadro, a cauda vai pro lado contrário).
  */
@@ -242,7 +262,7 @@ export function drawProjectile(
     t: number,
     reduce: boolean,
 ) {
-    const c = level === 1 ? 0xffd447 : colorOf(type);
+    const c = colorOf(type);
     const light = lighten(c, 25);
     const pulse = reduce ? 0 : Math.sin(t / 60);
     const r = (level === 1 ? 9 : level === 2 ? 11 : 14) + pulse * (level + 1);
