@@ -905,6 +905,11 @@ class DuelSession {
             // apito final na minha tela: grava o placar da partida que eu simulei
             if (this.final && cur.phase === 'match' && !cur.result && this.due(`ended-${cur.game}`))
                 this.dispatch({ k: 'ended' });
+        } else if (s.result) {
+            // o host já gravou o fim: a partida dele acabou e ele não manda mais o minuto. A minha tela, parada à frente
+            // esperando o relógio dele (velocidade 0), não espera mais ninguém: senão nunca chegava no apito (04/11/2026,
+            // 1 em 5 Duelos no "Lances", o host terminava entre duas batidas)
+            this.setRate(1);
         }
         // batida com o número da última mensagem (quem perdeu alguma percebe): de quem aplica, o relógio; do outro, o
         // minuto da tela dele (o host que voltou pula pra ele). O host ainda voltando não manda o minuto dele

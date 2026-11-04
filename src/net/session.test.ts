@@ -279,6 +279,39 @@ describe('sessão: jogo de versão antiga na sala', () => {
     });
 });
 
+describe('sessão: o convidado à frente do host', () => {
+    it('parado esperando o relógio (velocidade 0), solta quando o host grava o fim (ele não manda mais o minuto)', async () => {
+        const { EventBus } = await import('../game/EventBus');
+        const emit = vi.mocked(EventBus.emit);
+        const room = 'KQWRTY';
+        const ana = tab(room, 'ana');
+        duel.join(room, peer('bia'), true);
+        const match: Shared = { ...lobbyOf(room, 5), phase: 'match' };
+        ana.send({ t: 'state', shared: match });
+        await wait(150);
+        duel.playing = true;
+        duel.tick = 4000;
+        // o host lá atrás (a aba dele em segundo plano): a minha tela para
+        ana.send({ t: 'clock', tick: 100, now: Date.now(), rev: 5 });
+        await wait(150);
+        const rates = () => emit.mock.calls.filter((c) => c[0] === 'match:rate').map((c) => c[1]);
+        expect(rates().at(-1)).toBe(0);
+        // ele alcançou e acabou entre duas batidas: grava o fim e as batidas seguintes vêm sem o minuto
+        const done: Shared = {
+            ...match,
+            rev: 6,
+            phase: 'done',
+            result: { score: [2, 1], shootout: null, winner: 'host' },
+        };
+        ana.send({ t: 'state', shared: done });
+        ana.send({ t: 'clock', now: Date.now(), rev: 6 });
+        await wait(700);
+        expect(rates().at(-1)).toBe(1);
+        duel.playing = false;
+        ana.close();
+    });
+});
+
 describe('sessão: batida do relógio', () => {
     it('a cada 2,5 s na partida e 5 s fora dela (lobby, draft, escalação, resultado)', () => {
         expect(clockEvery('match')).toBe(2500);
