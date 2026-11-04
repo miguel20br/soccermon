@@ -69,6 +69,7 @@ import {
     lightTrail,
     mangaPanels,
     type Panel,
+    prewarmImpactFrame,
     type Shot,
     shotMid,
     speedLines,
@@ -889,6 +890,10 @@ export class MatchScene extends Phaser.Scene {
         this.rig = new CineRig(this, !!this.md.reduceMotion);
         this.cine.rig = this.rig;
         this.fx = new TypeFx(this);
+        // o retrato sem fundo dos capitães e o filtro do quadro de impacto já prontos na abertura: feitos na hora do
+        // golpe, cada um era um quadro de ~20 ms no meio do lance (o letreiro do N2 e a bicuda, o chute)
+        for (const p of this.md.result.roster) if (p.captain) this.cutPortrait(`portrait-${p.speciesId}`);
+        prewarmImpactFrame(this, !!this.md.reduceMotion);
 
         const onResize = () => this.updateUiScale();
         this.scale.on('resize', onResize);

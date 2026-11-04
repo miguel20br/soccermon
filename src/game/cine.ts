@@ -322,18 +322,36 @@ export function impactFrame(scene: Phaser.Scene, color: number, ms = 120, reduce
         cam.flash(ms, (color >> 16) & 255, (color >> 8) & 255, color & 255);
         return;
     }
-    let f = impactFilters.get(cam);
-    if (!f) {
-        f = cam.filters.internal.addColorMatrix();
-        impactFilters.set(cam, f);
-    }
-    const filter = f;
+    const filter = impactFilter(cam);
     // invertido (quadra escura: o fundo vira a cor, quem brilha vira silhueta) ou direto (quadra acesa: o claro vira a cor)
     filter.colorMatrix.set(invert ? duotone(color, 0x0d1024, -3.2, 2.1) : duotone(color, 0x0d1024, 3.4, -1.2));
     filter.active = true;
     scene.time.delayedCall(ms / 2, () => filter.colorMatrix.reset().negative());
     scene.time.delayedCall(ms, () => {
         filter.active = false;
+    });
+}
+
+function impactFilter(cam: Phaser.Cameras.Scene2D.Camera) {
+    let f = impactFilters.get(cam);
+    if (!f) {
+        f = cam.filters.internal.addColorMatrix();
+        impactFilters.set(cam, f);
+    }
+    return f;
+}
+
+/**
+ * O filtro do quadro de impacto pronto antes do primeiro lance: criado e desenhado uns quadros sem mudar a cor (a
+ * matriz neutra). Feito na hora do golpe, o primeiro uso custava ~20 ms num quadro (o N1/N2 e a bicuda acontecem muito).
+ */
+export function prewarmImpactFrame(scene: Phaser.Scene, reduce: boolean) {
+    if (reduce || !isGl(scene)) return;
+    const f = impactFilter(scene.cameras.main);
+    f.colorMatrix.reset();
+    f.active = true;
+    scene.time.delayedCall(60, () => {
+        f.active = false;
     });
 }
 
