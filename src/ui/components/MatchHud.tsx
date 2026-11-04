@@ -504,6 +504,45 @@ function Dots({ n, cls }: { n: number; cls: string }) {
     );
 }
 
+/** Instrução de escanteio (Time do painel; no Duelo, junto da tática). */
+export function CornerControls({
+    corner,
+    canChange,
+    onCorner,
+}: {
+    corner: CornerPlan;
+    canChange: boolean;
+    onCorner: (c: CornerPlan) => void;
+}) {
+    const { t, d } = useT();
+    return (
+        <>
+            <div className="bc-row row-corner">
+                <span className="bc-lbl">
+                    <HudIcon kind="flag" />
+                    {t('match.corner')}
+                </span>
+            </div>
+            <div className="bc-seg corner-seg" title={t('match.cornerHint')}>
+                {CORNER_PLANS.map((pl) => (
+                    <button
+                        key={pl}
+                        type="button"
+                        className={corner === pl ? 'on' : undefined}
+                        aria-pressed={corner === pl}
+                        disabled={!canChange}
+                        onClick={() => onCorner(pl)}
+                    >
+                        <HudIcon kind={CORNER_ICON[pl]} />
+                        <span>{d.common.cornerPlan[pl]}</span>
+                        <small>{d.match.coach.cornerSub[pl]}</small>
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+}
+
 /**
  * Tática (estilos em peças com ícone, sem limite de trocas), escanteio e o botão Substituir. Cada peça diz em
  * palavras simples o que muda, com a régua ATQ/DEF e o selo "Valendo" na ativa; ao tocar sobe um aviso curto.
@@ -526,7 +565,8 @@ export function TacticControls({
     pending: boolean;
     error?: string | null;
     onTactic: (t: Tactic) => void;
-    onCorner: (c: CornerPlan) => void;
+    /** Sem = sem escanteio aqui (na partida da copa ele mora na aba Time). */
+    onCorner?: (c: CornerPlan) => void;
     canSub: boolean;
     /** Leva pra prancheta (a troca é tocando em quem sai e em quem entra). Sem = sem botão (no intervalo o painel já tem). */
     onSub?: () => void;
@@ -584,28 +624,7 @@ export function TacticControls({
                 </p>
             )}
             {error && <span className="error-text">{error}</span>}
-            <div className="bc-row row-corner">
-                <span className="bc-lbl">
-                    <HudIcon kind="flag" />
-                    {t('match.corner')}
-                </span>
-            </div>
-            <div className="bc-seg corner-seg" title={t('match.cornerHint')}>
-                {CORNER_PLANS.map((pl) => (
-                    <button
-                        key={pl}
-                        type="button"
-                        className={corner === pl ? 'on' : undefined}
-                        aria-pressed={corner === pl}
-                        disabled={!canChange}
-                        onClick={() => onCorner(pl)}
-                    >
-                        <HudIcon kind={CORNER_ICON[pl]} />
-                        <span>{d.common.cornerPlan[pl]}</span>
-                        <small>{d.match.coach.cornerSub[pl]}</small>
-                    </button>
-                ))}
-            </div>
+            {onCorner && <CornerControls corner={corner} canChange={canChange} onCorner={onCorner} />}
             {onSub && (
                 <button type="button" className="bc-subbtn" disabled={!canSub} onClick={onSub}>
                     <HudIcon kind="sub" />

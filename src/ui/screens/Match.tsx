@@ -43,6 +43,7 @@ import {
     type Clock,
     type CoachTab,
     CoachTabs,
+    CornerControls,
     HudIcon,
     hex,
     MatchFeed,
@@ -68,6 +69,7 @@ import {
     capFxType,
     capIsGk,
     capTypeAt,
+    FlyGkControl,
     MaxBars,
     MaxCueButton,
     MaxThumb,
@@ -198,7 +200,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     const camFollow = settings.camFollow ?? 2;
     useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
-    const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
+    const [tab, setTab] = useCoachTab(tabs, wide ? 'feed' : 'tactic');
     const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
@@ -546,6 +548,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             }
             onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
             onMax={sendMax}
+            hideFly
         />
     );
     const capPlan = captainPlan(match, setups, 0, clock.tick);
@@ -679,7 +682,6 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             pending={pending}
             error={tacticError}
             onTactic={changeTactic}
-            onCorner={changeCorner}
             canSub={canSub}
             // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes); no ?lab=hud, no Trocar
             onSub={halftime || hud ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
@@ -771,13 +773,23 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                 edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
             />
         ) : k === 'team' ? (
-            <TeamPanel
-                match={match}
-                setups={[lockedSetup, opponent]}
-                tick={clock.tick}
-                teamNames={teamNames}
-                interactive={sceneReady && !ended}
-            />
+            <>
+                <div className="bc-teamctl">
+                    <CornerControls corner={currentCorner} canChange={canChangeTactic} onCorner={changeCorner} />
+                    <FlyGkControl
+                        view={sideline}
+                        canAct={canAgency}
+                        onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
+                    />
+                </div>
+                <TeamPanel
+                    match={match}
+                    setups={[lockedSetup, opponent]}
+                    tick={clock.tick}
+                    teamNames={teamNames}
+                    interactive={sceneReady && !ended}
+                />
+            </>
         ) : k === 'feed' ? (
             <MatchFeed lines={lines} colors={colors} />
         ) : (
@@ -842,7 +854,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         {/* partida nova: a caixa de texto da batalha no lugar da faixa da narração */}
                         {hud ? (
                             <BattleText lines={lines} colors={colors} speed={settings.speed} />
-                        ) : (
+                        ) : wide ? null : (
                             <Ticker lines={lines} colors={colors} />
                         )}
                         <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
@@ -1104,7 +1116,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                 </div>
                 {/* desktop: velocidade logo embaixo da narração e a tática por último (em 1280x720 a barra caía da tela) */}
                 {wide && (
-                    <div className="bc-deskbar" onPointerDownCapture={auto.hold}>
+                    <div className="bc-deskbar compact" onPointerDownCapture={auto.hold}>
                         {tactics}
                     </div>
                 )}
