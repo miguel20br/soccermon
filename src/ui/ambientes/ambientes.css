@@ -3996,3 +3996,15 @@
         height: 28px;
     }
 }
+
+/* Sede: o texto da missão no botão das Missões fica numa linha só (com o número ao lado) */
+.sd-ui .rm-go .cup-go-txt {
+    min-width: 0;
+    flex: 1;
+}
+.sd-ui .rm-go .cup-go-txt small {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
