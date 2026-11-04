@@ -726,6 +726,8 @@ export function speedLines(
         reach: () => number;
         dir?: { x: number; y: number };
         n?: number;
+        /** 0..1 a cada desenho: quantas linhas, quão fortes e compridas (a bola mais rápida, mais linha). */
+        power?: () => number;
         reduce: boolean;
     },
 ) {
@@ -736,17 +738,18 @@ export function speedLines(
     const draw = () => {
         const R = o.reach();
         const k = (scene.time.now - t0) / o.ms;
+        const p = o.power ? Math.max(0, Math.min(1, o.power())) : 1;
         g.clear()
             .setPosition(o.at.x, o.at.y)
-            .setAlpha(k < 0.65 ? 1 : Math.max(0, 1 - (k - 0.65) / 0.35));
-        for (let i = 0; i < n; i++) {
+            .setAlpha((k < 0.65 ? 1 : Math.max(0, 1 - (k - 0.65) / 0.35)) * (0.35 + 0.65 * p));
+        for (let i = 0; i < Math.round(n * (0.35 + 0.65 * p)); i++) {
             const c = i % 3 ? 0xffffff : o.color;
             g.fillStyle(c, 0.5 + Math.random() * 0.45);
             if (o.dir) {
                 // paralelas: faixas ao longo da direção, fora do miolo onde está a bola
                 const across = (Math.random() < 0.5 ? -1 : 1) * R * (0.12 + Math.random() * 0.75);
                 const along = (Math.random() - 0.5) * R * 1.6;
-                const len = R * (0.25 + Math.random() * 0.5);
+                const len = R * (0.25 + Math.random() * 0.5) * (0.6 + 0.6 * p);
                 const w = 0.6 + Math.random() * 1.8;
                 const { x: dx, y: dy } = o.dir;
                 const px = -dy;

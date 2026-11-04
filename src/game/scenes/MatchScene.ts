@@ -301,10 +301,10 @@ const SD = {
     spin: 14,
     impactFill: 0.62,
     impactMax: 4.2,
-    panelsAt: 2900,
+    panelsAt: 2500,
     impactFrameMs: 320,
-    wordMs: 3200,
-    bicudaWordAt: 3800,
+    wordMs: 2700,
+    bicudaWordAt: 3200,
     close: 0.56,
     closeMax: 4.6,
     zMin: 1.8,
@@ -316,10 +316,10 @@ const SD = {
     dutchImpact: 0.21,
     dutchShout: 0.25,
     whipMs: 200,
-    depart: 0.12,
+    depart: 0.13,
     departTicks: 3,
-    slowFar: 0.5,
-    slowNear: 0.16,
+    slowFar: 0.85,
+    slowNear: 0.17,
     nearM: 8,
     flyZoom: 1.6,
     lead: 0.2,
@@ -686,6 +686,8 @@ export class MatchScene extends Phaser.Scene {
         following: boolean;
         stream: { stop: () => void } | null;
         lines: { stop: () => void } | null;
+        /** 0..1: o quanto a bola está voando rápido agora (o meio do campo), pras linhas e o rastro. */
+        speed: number;
     } | null = null;
     /** A câmera de cinema do duelo (cine.ts) e as partículas por tipo. */
     private rig!: CineRig;
@@ -2162,7 +2164,7 @@ export class MatchScene extends Phaser.Scene {
         const color = max && this.ballColor === 0xffffff ? max.color : this.ballColor;
         // a bicuda do duelo: o rastro de luz mais grosso do jogo (dá pra seguir a bola de gol a gol)
         if (this.sdFly && max) {
-            lightTrail(g, this.trail, color, 22);
+            lightTrail(g, this.trail, color, 18 + 16 * this.sdFly.speed);
             return;
         }
         const w = max ? MAX_BALL_FX[max.level as 1 | 2 | 3].trail : 5;
@@ -3799,7 +3801,7 @@ export class MatchScene extends Phaser.Scene {
             chroma(this, [gk.sprite, shooter.sprite, this.ball], 3, 220, reduce);
             this.rig.shake(9, 750);
             crowdFlash(this.fx, this, edgePoints(this.rig, this.sdSafe(), 8), 650, FOCUS_DEPTH - 50, reduce);
-            // parada e legível até os painéis (2,5 s entre a entrada e a saída)
+            // parada e legível até os painéis (2,3 s entre a entrada e a saída)
             banner(d.back, null, SD.panelsAt - 60);
             // a bola parada solta faíscas do goleiro e, mais fracas, as do golpe que ela trazia
             st.streams.push(
@@ -4013,6 +4015,7 @@ export class MatchScene extends Phaser.Scene {
             following: false,
             stream: this.fx.stream(type, this.ball, 24, BALL_DEPTH - 3, 0.8),
             lines: null,
+            speed: 0,
         };
     }
 
@@ -4035,8 +4038,11 @@ export class MatchScene extends Phaser.Scene {
         const goalX = toPx(f.team === 0 ? L : 0, 0).x;
         const k = Math.min(1, Math.abs(goalX - this.ball.x) / PPM / SD.nearM);
         const far = SD.slowNear + (SD.slowFar - SD.slowNear) * k * k;
-        const ramp = Math.min(1, Math.max(0, (since - SD.departTicks) / 3));
-        if (this.maxSlow) this.maxSlow.factor = SD.depart + (far - SD.depart) * ramp;
+        const ramp = Math.min(1, Math.max(0, (since - SD.departTicks) / 2));
+        const factor = SD.depart + (far - SD.depart) * ramp;
+        if (this.maxSlow) this.maxSlow.factor = factor;
+        // o trecho rápido do meio: mais linha de velocidade e o rastro mais grosso (0 = câmera lenta, 1 = bola voando)
+        f.speed = Math.max(0, (factor - SD.slowNear) / (SD.slowFar - SD.slowNear));
         // o tempo voltou de vez: o goleiro e quem chutou voltam pro motor
         if (since > 10 && f.gk.act) this.sdAct(f.gk, null);
         if (!this.rig.active) return;
@@ -4063,6 +4069,8 @@ export class MatchScene extends Phaser.Scene {
                     depth: BALL_DEPTH - 4,
                     reach: () => this.sdReach(),
                     dir: f.dir,
+                    n: 34,
+                    power: () => f.speed,
                     reduce: false,
                 });
             }
