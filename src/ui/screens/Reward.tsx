@@ -19,7 +19,7 @@ import { HudIcon } from '../components/MatchHud';
 import { NovoSeal } from '../components/NovoSeal';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
-import { Tip, useFirstCup } from '../help/Tip';
+import { Tip, tipSeq, useFirstCup } from '../help/Tip';
 import { type ItemFit, itemFit } from '../item-fit';
 import { SheetRow } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -199,7 +199,7 @@ export function Reward() {
                 </CardPack>
                 {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
                 {!reward && !training && (
-                    <Tip id="reward-pick">
+                    <Tip id="reward-pick" seq={tipSeq(run)}>
                         {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
                     </Tip>
                 )}

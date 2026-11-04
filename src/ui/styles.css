@@ -462,10 +462,6 @@ img.pixel {
     .draft-auto.ask {
         flex: 1 1 100%;
     }
-    /* no PC o título já está do lado */
-    .draft-auto-hint {
-        display: none;
-    }
 }
 .steps span {
     width: 26px;
@@ -1850,6 +1846,8 @@ button,
    inteira vai na sheet de quem recebe) */
 .reward-stage .cpack-stage {
     margin-block: auto;
+    /* se ainda faltar altura, sobra pra baixo: centrado, as cartas subiam por cima do título */
+    align-content: safe center;
 }
 .reward-pick3 {
     --k-pick-reserve: 330px;
@@ -1858,9 +1856,17 @@ button,
 .reward-bar {
     zoom: var(--k-big, 1);
 }
-/* celular deitado: o título sai (a fase está na barra da copa) e as cartas ficam com a altura que sobra */
+/* PC: a carta do Pokémon tem o selo NOVO em cima e o chip embaixo; com 330 o chip encostava na dica */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .reward-pick3 {
+        --k-pick-reserve: 390px;
+    }
+}
+/* celular deitado: o título sai (a fase está na barra da copa) e as cartas ficam com a altura que sobra; a dica
+   também (não cabia e cobria as cartas) */
 @media (orientation: landscape) and (max-height: 520px) {
-    .reward-stage .bc-screenhead {
+    .reward-stage .bc-screenhead,
+    .reward-stage .tip {
         display: none;
     }
     .reward-pick3 {
@@ -1910,13 +1916,15 @@ button,
     -webkit-line-clamp: 2;
 }
 /* celular em pé e alto (390x844): duas em cima e a terceira embaixo, no centro; as cartas ocupam o vazio em vez de
-   três de 113 px no meio da tela. A altura dá a conta: 2 cartas + 2 botões + o que sobra em volta. */
-@media (max-width: 700px) and (orientation: portrait) and (min-height: 740px) {
+   três de 113 px no meio da tela. A altura dá a conta: 2 x (carta 1,41 + botão 50) + 14 de vão cabem no que sobra do
+   palco depois da barra de cima, do título, da dica, do "Seu time" e da barra de baixo (460 px). Abaixo de 790 de
+   altura as três lado a lado ficam maiores. Antes a conta reservava 380 e as cartas subiam por cima do título. */
+@media (max-width: 700px) and (orientation: portrait) and (min-height: 790px) {
     .reward-pick3 {
         --k-card-w: min(
             190px,
             calc((100 * var(--vw) - 32px - var(--k-gap)) / 2),
-            calc((100 * var(--vh) - 380px) / 2.9)
+            calc((100 * var(--vh) - 460px) / 2.82)
         );
         grid-template-columns: repeat(2, var(--k-card-w));
         row-gap: 14px;
@@ -5273,6 +5281,24 @@ button,
     content: "";
     position: absolute;
     inset: -4px 0;
+}
+/* Resultado: Melhores momentos e Ver a chave colados no placar, como links (fantasma baixo): o gordo é só o do polegar */
+.rh-links {
+    margin-block: -2px 2px;
+}
+.res-icons.rh-links .btn {
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 2px solid var(--line);
+    background: transparent;
+    box-shadow: none;
+    color: var(--text);
+    text-shadow: none;
+}
+/* as duas pastas do resultado (destaques, estatísticas) com largura de aba: esticadas sobre as duas colunas do PC,
+   pareciam as duas abertas lado a lado */
+.res-parts {
+    max-width: 560px;
 }
 /* PC: o Nova copa com corpo de ação principal */
 @media (min-width: 701px) {

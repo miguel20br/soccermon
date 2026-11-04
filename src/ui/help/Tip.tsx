@@ -38,15 +38,30 @@ export function resetTips() {
 /** Instruções fixas e Dicas só na 1ª copa (até terminar uma) e com "Dicas" ligado; depois, só pelo "?" (Ajuda). */
 export const useFirstCup = () => useGame((s) => s.settings.tips && s.records.cups === 0);
 
+/** Qual dica já falou em cada sequência de telas (`seq`): a 1ª que aparece fica com a sequência. Só nesta visita. */
+const seqOwner = new Map<string, string>();
+
+/** A sequência Resultado → Recompensa → Mercado de uma partida da copa. */
+export const tipSeq = (run: { seed: string; results: readonly unknown[] }) => `${run.seed}:${run.results.length}`;
+
+/** Esta dica pode falar nesta sequência? A primeira a perguntar fica com ela; as outras se calam. */
+export function claimTipSeq(seq: string, id: string): boolean {
+    const owner = seqOwner.get(seq);
+    if (owner && owner !== id) return false;
+    seqOwner.set(seq, id);
+    return true;
+}
+
 /**
  * Dica contextual de uma linha, perto da coisa que ela explica. Aparece só na 1ª copa (até terminar uma), com "Dicas"
- * ligado nas configurações e até o jogador fechar; fechada, não volta mais neste aparelho.
+ * ligado nas configurações e até o jogador fechar; fechada, não volta mais neste aparelho. Com `seq`, uma dica só por
+ * sequência de telas (a regra 8 da revisão de telas): a que falou primeiro na sequência cala as outras.
  */
-export function Tip({ id, children }: { id: string; children: ReactNode }) {
+export function Tip({ id, seq, children }: { id: string; seq?: string; children: ReactNode }) {
     const enabled = useFirstCup();
     const [hidden, setHidden] = useState(() => readDismissed().includes(id));
     const { d } = useT();
-    if (!enabled || hidden) return null;
+    if (!enabled || hidden || (seq && !claimTipSeq(seq, id))) return null;
     return (
         <div className="tip bc-surface bc-stripe" role="note">
             <HudIcon kind="bulb" className="tip-icon" />

@@ -152,8 +152,8 @@
 }
 
 /*
- * tática, formação e escanteio abertos (pedido de 02/11: nada de abrir sheet pra escolher). No PC ficam na coluna do
- * Jogar, ao lado da carta; no celular e deitado, embaixo da quadra em 2 colunas.
+ * tática, formação e bola parada em 3 linhas-resumo (.vt-row) que abrem a escolha numa sheet (.vt-pick): revisão de
+ * telas de 04/11, item 21 (antes ficavam abertas, pedido de 02/11). No PC ficam na coluna do Jogar, ao lado da carta.
  */
 .vt-plan,
 .vt-team {
@@ -170,12 +170,36 @@
     display: grid;
     gap: 6px;
 }
+.vt-pick {
+    display: grid;
+    gap: 8px;
+}
+.vt-pick > h3.bc-lbl:first-child {
+    margin-top: 0;
+}
+/* a linha-resumo: rótulo e valor à esquerda, o detalhe (o que faz, quem cobra) apagado à direita */
+.vt-row > .muted {
+    font-size: 12px;
+    text-align: right;
+}
+.vt-row > .formation-diagram {
+    flex: none;
+    width: 18px;
+    height: 24px;
+}
+.vt-row > .fi-edge {
+    flex: none;
+}
+.vt-syn {
+    flex-wrap: wrap;
+    gap: 6px;
+}
 .vt-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
-.vt-plan .bc-tile,
+.vt-pick .bc-tile,
 .vt-captains .bc-tile {
     transition:
         transform 0.06s ease,
@@ -184,13 +208,13 @@
         box-shadow 220ms var(--ease-out),
         opacity 220ms var(--ease-out);
 }
-.vt-plan .bc-tile .hud-icon {
+.vt-pick .bc-tile .hud-icon {
     flex: none;
     width: 24px;
     height: 24px;
     transition: color 220ms var(--ease-out);
 }
-.vt-plan .bc-seg button {
+.vt-pick .bc-seg button {
     transition:
         background-color 220ms var(--ease-out),
         color 220ms var(--ease-out);
@@ -234,12 +258,12 @@
     margin: 0;
     animation: row-in var(--dur-ui) var(--ease-out) both;
 }
-.vt-plan p,
+.vt-pick p,
 .vt-team p {
     margin: 0;
 }
 /* quem cobra: o rótulo em cima, o seletor na largura toda (o nome não corta) */
-.vt-plan .corner-taker {
+.vt-pick .corner-taker {
     display: grid;
     margin: 2px 0 0;
 }
@@ -257,17 +281,23 @@
         grid-template-columns: minmax(0, 1fr) minmax(200px, 210px);
         align-items: start;
     }
-    .vt .side-stack > :not(.vt-plan, .vt-aside) {
+    .vt .side-stack > :not(.vt-plan, .vt-team, .vt-aside) {
         grid-column: 1 / -1;
+    }
+    /* as linhas-resumo e o capitão na coluna do Jogar; a carta ao lado, nas duas linhas (cabe em 900 sem rolar) */
+    .vt .side-stack > :is(.vt-plan, .vt-team) {
+        grid-column: 1;
+    }
+    .vt .side-stack > .vt-aside {
+        grid-column: 2;
+        grid-row: 2 / span 2;
     }
     .vt-aside {
         display: grid;
         gap: var(--gap);
         min-width: 0;
     }
-    .vt-aside .vt-captains,
-    .vt-plan .vt-tactics,
-    .vt-plan .vt-formations {
+    .vt-aside .vt-captains {
         grid-template-columns: 1fr;
     }
 }
@@ -275,7 +305,7 @@
     .vt-grid {
         gap: 6px;
     }
-    .vt-plan .bc-tile {
+    .vt-pick .bc-tile {
         gap: 6px;
         padding-inline: 6px;
     }

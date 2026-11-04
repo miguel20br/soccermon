@@ -1093,6 +1093,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                             names={teamNames}
                             colors={colors}
                             liga={liga}
+                            heading={solo}
                             onGo={() =>
                                 // título: o troféu cobre a quadra e a festa aparece embaixo
                                 !solo && useGame.getState().run?.status === 'champion'

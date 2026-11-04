@@ -62,12 +62,10 @@ function TeamAvg({ avg }: { avg: number }) {
  */
 function AutoDraft({
     captainUid,
-    hint,
     formation,
     children,
 }: {
     captainUid?: string;
-    hint?: string;
     /** Na escolha da formação: a que está na tela (o carrossel), não a padrão do save. */
     formation?: FormationId;
     /** A ação principal ao lado (no lugar da instrução). */
@@ -102,13 +100,13 @@ function AutoDraft({
                     </button>
                 </>
             ) : (
-                // secundário à esquerda; à direita, a instrução da vez (no celular o cabeçalho já rolou pra cima)
+                // secundário à esquerda; à direita, a ação da vez (a instrução fica só no título, sem repetir aqui)
                 <>
                     <button type="button" className="btn ghost draft-auto-go" onClick={() => setAsk(true)}>
                         <HudIcon kind="skip" />
                         {t('team.draft.auto')}
                     </button>
-                    {children ?? (hint && <p className="tb-hint draft-auto-hint">{hint}</p>)}
+                    {children}
                 </>
             )}
         </div>
@@ -514,7 +512,7 @@ export function Draft() {
                     </button>
                 </AutoDraft>
             ) : (
-                <AutoDraft hint={title} />
+                <AutoDraft />
             )}
         </>
     );

@@ -457,6 +457,10 @@
 .k-final-score {
     width: min(560px, 100%);
 }
+/* sem o VITÓRIA em cima (copa e Duelo: a palavra fica pro Resultado), o placar é a manchete */
+.k-final .k-final-solo b {
+    font-size: clamp(56px, calc(14 * var(--vw)), 96px);
+}
 .k-final-prize {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 30px;
@@ -518,6 +522,9 @@
     }
     .k-final .k-final-score b {
         font-size: 28px;
+    }
+    .k-final .k-final-solo b {
+        font-size: 44px;
     }
     .k-final-prize {
         font-size: 22px;
