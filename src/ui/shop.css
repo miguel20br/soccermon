@@ -663,13 +663,16 @@ button.sp-slot:hover {
 .shop-rack .shop-offer:is(.k-pack, .k-item, .k-tm) > .shop-buy {
     margin-top: 6px;
 }
-.shop-rack .reward-pick3 .item-card {
-    aspect-ratio: auto;
-    min-height: calc(var(--fut-w) * 1.41);
-}
-.shop-rack .reward-pick3 .tm-card .tactic-desc {
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
+/* PC: o cartão da MT cresce com o texto ("2 do seu time aprendem" cortava); no celular a altura não sobra */
+@media (min-width: 1000px) {
+    .shop-rack .reward-pick3 .item-card {
+        aspect-ratio: auto;
+        min-height: calc(var(--fut-w) * 1.41);
+    }
+    .shop-rack .reward-pick3 .tm-card .tactic-desc {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
 }
 
 /* os Patrocínios: o contrato deitado (placa à esquerda), o nome da prateleira abre as 3 vagas */
