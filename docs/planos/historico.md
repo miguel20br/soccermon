@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.40 · Counter (03/11/2026)
+
+Motor 23: o duelo da bicuda volta aprovado pelo Miguel na v3 (tempo parado no contato e bicuda de primeira, câmera de cinema com plano e contraplano, ângulo holandês, painéis de mangá, kit `src/game/cine.ts`; falas reescritas com piada boba; faixas 2,3 s, GOOOOL!/BICUDA! 2,8 s, voo 3,3 s; parada 15,25 s e comemoração 8 s). Walkout v3: fundo por raridade, vidro só nas edições, efeito do tipo na carta ouro (16, `walkout-type-fx.ts`), telões no ouro, curto de 3 s, `themeTypeOf` decide o tipo do telão, do efeito e do fundo da carta; o gravador grava na GPU e no relógio da cena (o SwiftShader e o relógio real deixavam os vídeos errados). Próximo: o mesmo nível de produção nos golpes máximos N1/N2/N3 e nas bicudas.
+
 ## 0.9.39.1 · Bicuda de volta (03/11/2026)
 
 A cutscene da bicuda e o walkout polido subiram na 0.9.39 sem o Miguel ter visto. Motor 22: `MatchConfig.showdown` desligado no FUTSAL_5 (bicuda N3 contra N3 volta ao counter do motor 20; só o `?demo=bicuda` abre o duelo) e o walkout volta aos tempos da 0.9.38 (o polido é o commit 1295770e, revertido). Os dois esperam o ok dele em cima dos vídeos.

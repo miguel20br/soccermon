@@ -54,14 +54,14 @@ function untilGoal(s: MatchState, n = 400) {
     for (let i = 0; i < n && !of(s, 'goal').length; i++) step(s, IDLE_ALL(s));
 }
 
-/** O duelo está desligado no FUTSAL_5 (motor 22) até o Miguel aprovar. */
+/** O duelo explícito (o FUTSAL_5 já liga desde o motor 23; o teste do counter de antes desliga). */
 const ON = { ...FUTSAL_5, showdown: true };
 
 describe('duelo da bicuda (motor 21)', () => {
-    it('desligado no FUTSAL_5 (motor 22): a bicuda N3 contra o N3 é o counter de antes, sem parar a partida', () => {
+    it('sem `showdown` no MatchConfig: a bicuda N3 contra o N3 é o counter de antes, sem parar a partida', () => {
         let saves = 0;
         for (let k = 0; k < 40; k++) {
-            const s = duel(`sd-${k}`, 3, 2, FUTSAL_5);
+            const s = duel(`sd-${k}`, 3, 2, { ...FUTSAL_5, showdown: false });
             expect(of(s, 'showdown')).toHaveLength(0);
             expect(s.phase).not.toBe('showdown');
             if (of(s, 'save').some((e) => e.by === 5)) saves++;

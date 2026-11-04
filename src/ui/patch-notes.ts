@@ -9,6 +9,32 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.40',
+        date: '2026-11-03',
+        title: 'Counter',
+        sections: [
+            {
+                title: 'Counter',
+                lines: [
+                    'Goleiro capitão com a bicuda N3 revida o golpe máximo N3 do rival e o tempo para',
+                    'Os dois conversam no tempo parado, com câmera de cinema e painéis de mangá',
+                    'A bicuda de primeira cruza a quadra e é sempre gol, com a comemoração mais longa do jogo',
+                    'Falas próprias pra 16 duelos e vários Pokémon, do Magikarp ao Slowpoke',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: [
+                    'Carta de ouro revela com o efeito do tipo: Gelo congela a tela, Fogo queima e mais 14',
+                    'Vidro quebrando só nas edições especiais',
+                    'Cada raridade com o seu céu de estádio',
+                    'Telões com tipo e posição também nas cartas de ouro',
+                    'Jogadas com bola mais calmas e a versão curta com 3 s',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.39.1',
         date: '2026-11-03',
         title: 'Bicuda de volta',
@@ -2439,6 +2465,32 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.40',
+        date: '2026-11-03',
+        title: 'Counter',
+        sections: [
+            {
+                title: 'Counter',
+                lines: [
+                    'A captain keeper with a level 3 punt hits back the rival level 3 max move and time stops',
+                    'The two talk while time is frozen, with movie camera moves and manga panels',
+                    'The first-time punt crosses the court and is always a goal, with the longest celebration in the game',
+                    'Special lines for 16 matchups and many Pokémon, from Magikarp to Slowpoke',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: [
+                    'Gold cards reveal with their type effect: Ice freezes the screen, Fire burns it and 14 more',
+                    'Breaking glass only on special editions',
+                    'Each rarity with its own stadium sky',
+                    'Type and position screens on gold cards too',
+                    'Calmer ball tricks and the short version at 3 s',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.39.1',
         date: '2026-11-03',

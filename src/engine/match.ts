@@ -3577,9 +3577,7 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     }
     gk.stats.saves++;
     // bicuda N3 contra o N3 do rival (motor 21): ele segura e a partida para no duelo da bicuda (`startShowdown`)
-    // ponytail: bandeira até o Miguel aprovar a cutscene; aprovou, liga `showdown` no FUTSAL_5 e tira o atalho da demo
-    const showdownOn = s.cfg.showdown || s.teams.some((t) => t.setup.demoBicudaAt !== undefined);
-    if (showdownOn && arm.level === 3 && shot.max?.level === 3) {
+    if (s.cfg.showdown && arm.level === 3 && shot.max?.level === 3) {
         emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: true });
         startShowdown(s, gk, shooter, arm);
         return true;

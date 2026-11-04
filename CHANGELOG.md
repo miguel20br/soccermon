@@ -1,5 +1,20 @@
 # Novidades
 
+## 0.9.40 · Counter (2026-11-03)
+
+### Counter
+- Goleiro capitão com a bicuda N3 revida o golpe máximo N3 do rival e o tempo para
+- Os dois conversam no tempo parado, com câmera de cinema e painéis de mangá
+- A bicuda de primeira cruza a quadra e é sempre gol, com a comemoração mais longa do jogo
+- Falas próprias pra 16 duelos e vários Pokémon, do Magikarp ao Slowpoke
+
+### Walkout
+- Carta de ouro revela com o efeito do tipo: Gelo congela a tela, Fogo queima e mais 14
+- Vidro quebrando só nas edições especiais
+- Cada raridade com o seu céu de estádio
+- Telões com tipo e posição também nas cartas de ouro
+- Jogadas com bola mais calmas e a versão curta com 3 s
+
 ## 0.9.39.1 · Bicuda de volta (2026-11-03)
 
 ### Ajustes
