@@ -63,6 +63,7 @@ export function ResultHero({
     mvpUid,
     stats = [],
     actions,
+    links,
     foul,
     duel,
 }: {
@@ -77,6 +78,8 @@ export function ResultHero({
     /** Números que entram linha a linha depois do placar. */
     stats?: HeroStat[];
     actions: ReactNode;
+    /** Secundários pequenos colados no placar (Melhores momentos, Ver a chave): o gordo fica sozinho no polegar. */
+    links?: ReactNode;
     /** Cartão da Rota (amarelo/vermelho): a notícia da derrota fica logo abaixo do placar, antes da fala e das estatísticas. */
     foul?: ReactNode;
 }) {
@@ -222,6 +225,7 @@ export function ResultHero({
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
+            {links}
 
             {gain && (
                 <div className="rh-gain">

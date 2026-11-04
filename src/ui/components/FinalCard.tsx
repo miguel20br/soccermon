@@ -28,6 +28,7 @@ export function FinalCard({
     colors,
     liga,
     duel,
+    heading = false,
     onGo,
 }: {
     score: [number, number];
@@ -37,6 +38,9 @@ export function FinalCard({
     liga: boolean;
     /** Duelo: o seu lado, a partida (não mora no store) e o rótulo do botão. */
     duel?: { side: 0 | 1; match: MatchResult | null; label: string };
+    /** VITÓRIA/DERROTA em cima do placar: só onde a tela seguinte não diz (Liga, Time Ultimate). Na copa e no Duelo a
+     * palavra fica pro Resultado e a cartela é o placar grande. */
+    heading?: boolean;
     onGo: () => void;
 }) {
     const { t } = useT();
@@ -78,8 +82,11 @@ export function FinalCard({
         >
             {/* biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a contagem; os botões ficam no teclado */}
             <div className="k-final-body" onClick={c.skip}>
-                <h1 className={`k-moment-title k-pop ${outcome}`}>{t(`match.final.${outcome}`)}</h1>
-                <div className="rh-score k-final-score">
+                {/* sem a manchete na tela, o leitor de tela ainda ouve o resultado */}
+                <h1 className={heading ? `k-moment-title k-pop ${outcome}` : 'sr-only'}>
+                    {t(`match.final.${outcome}`)}
+                </h1>
+                <div className={`rh-score k-final-score${heading ? '' : ' k-pop k-final-solo'}`}>
                     <div className="rh-team home">
                         <span>{names[0]}</span>
                     </div>

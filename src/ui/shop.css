@@ -658,6 +658,22 @@ button.sp-slot:hover {
 .shop-rack .shop-buy {
     margin-top: 6px;
 }
+/* pacote, item e MT: o Comprar embaixo do texto, não por cima (o chip do kit sobe 6 px pra encostar na moldura da
+   carta do Pokémon e cobria a 2ª linha do "3 cartas Elétrico. Você fica com 1"); o cartão cresce com o texto */
+.shop-rack .shop-offer:is(.k-pack, .k-item, .k-tm) > .shop-buy {
+    margin-top: 6px;
+}
+/* PC: o cartão da MT cresce com o texto ("2 do seu time aprendem" cortava); no celular a altura não sobra */
+@media (min-width: 1000px) {
+    .shop-rack .reward-pick3 .item-card {
+        aspect-ratio: auto;
+        min-height: calc(var(--fut-w) * 1.41);
+    }
+    .shop-rack .reward-pick3 .tm-card .tactic-desc {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+}
 
 /* os Patrocínios: o contrato deitado (placa à esquerda), o nome da prateleira abre as 3 vagas */
 .shop-sponsor-shelf {
@@ -822,6 +838,19 @@ button.sp-slot:hover {
 }
 /* PC: as duas prateleiras centradas, a vitrine cresce com o palco */
 @media (min-width: 1000px) {
+    /* o Comprar do Patrocínio dentro do contrato, no canto de baixo (pendurado na borda ele passava do cartão) */
+    .shop-sponsor-rail .shop-offer {
+        position: relative;
+    }
+    .shop-sponsor-rail .sp-contract {
+        padding-bottom: 40px;
+    }
+    .shop-sponsor-rail .shop-offer > .shop-buy {
+        position: absolute;
+        right: 12px;
+        bottom: 10px;
+        margin: 0;
+    }
     .shop-rail-track {
         justify-content: safe center;
     }

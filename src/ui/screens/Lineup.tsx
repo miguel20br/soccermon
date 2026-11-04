@@ -26,14 +26,14 @@ import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
 import { LinkChips, SynergyChip } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
-import { cardSprite, TypeBadge } from '../components/PokeCard';
+import { cardSprite } from '../components/PokeCard';
 import { useMedia, WIDE } from '../components/Prancheta';
 
 import { Money, SponsorSlots } from '../components/SponsorCard';
 import { leaveWith } from '../feedback';
 import { edgeAgainst } from '../formation-info';
 import { useFirstCup } from '../help/Tip';
-import { Stepper } from '../kit/controls';
+import { SheetRow, Stepper } from '../kit/controls';
 import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import '../vestiario.css';
 import { Crest } from '../profile/Crest';
@@ -417,6 +417,9 @@ export function LineupEditor({
     const chosenTaker = cornerTakerUid ? byUid.get(cornerTakerUid) : undefined;
     const takerOff = !!chosenTaker && !cornerField.some((f) => f.inst.uid === chosenTaker.uid);
     const captainBenched = !!captainUid && bench.includes(captainUid);
+    // o resumo da bola parada: quem cobra (o escolhido ou o automático)
+    const taker = chosenTaker && !takerOff ? chosenTaker : autoTaker;
+    const takerName = taker ? viewInstance(taker).displayName : undefined;
 
     const onSlot = (ref: SlotRef, uid: string) => {
         setDetail(uid);
@@ -537,101 +540,173 @@ export function LineupEditor({
             <div className="side-stack">
                 {side}
 
-                {/* tática, formação e escanteio abertos (sem sheet): no PC na coluna do Jogar, no celular embaixo da quadra */}
+                {/* tática, formação e bola parada: 3 linhas-resumo que abrem a escolha numa sheet (revisão de telas,
+                    item 21: ajuste raro fecha); o capitão fica à vista, é a escolha de toda partida */}
                 <section className="panel vt-plan" aria-label={t('team.lineup.tactic')}>
-                    <h3 className="bc-lbl">{t('match.coach.style')}</h3>
-                    <div className="vt-grid vt-tactics">
-                        {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
-                            <button
-                                key={tc}
-                                type="button"
-                                className={`bc-tile${tactic === tc ? ' on' : ''}`}
-                                aria-pressed={tactic === tc}
-                                disabled={locked}
-                                onClick={() => onTactic(tc)}
-                            >
-                                <HudIcon kind={tc} />
-                                <span>
-                                    <b>{d.common.tactic[tc]}</b>
-                                    <small>{d.match.coach.styleShort[tc]}</small>
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                    <p className="tactic-desc vt-fade" key={tactic}>
-                        {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
-                    </p>
-                    <h3 className="bc-lbl">{t('team.lineup.formation')}</h3>
-                    <div className="vt-grid vt-formations">
-                        {(Object.keys(FORMATIONS) as FormationId[]).map((id) => (
-                            <button
-                                key={id}
-                                type="button"
-                                className={`bc-tile${formation === id ? ' on' : ''}`}
-                                aria-pressed={formation === id}
-                                disabled={locked}
-                                title={formationText(id, lang).description}
-                                onClick={() => onFormation(id)}
-                            >
-                                <FormationDiagram id={id} />
-                                <span>
-                                    <b>{formationText(id, lang).name}</b>
-                                    <FormationIdentity id={id} edge={!!rivalFormation && hasEdge(id, rivalFormation)} />
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                    <h3 className="bc-lbl">{t('team.lineup.corner')}</h3>
-                    <div className="bc-seg">
-                        {CORNER_PLANS.map((pl) => (
-                            <button
-                                key={pl}
-                                type="button"
-                                className={cornerPlan === pl ? 'on' : undefined}
-                                aria-pressed={cornerPlan === pl}
-                                disabled={locked}
-                                onClick={() => onCorner({ cornerPlan: pl })}
-                            >
-                                {d.common.cornerPlan[pl]}
-                            </button>
-                        ))}
-                    </div>
-                    <p className="tactic-desc vt-fade" key={cornerPlan}>
-                        {d.team.lineup.cornerDesc[cornerPlan]}
-                    </p>
-                    <div className="corner-taker">
-                        <h3>{t('team.lineup.cornerTaker')}</h3>
-                        <Stepper
-                            label={t('team.lineup.cornerTaker')}
-                            value={cornerTakerUid ?? ''}
-                            disabled={locked}
-                            wrap
-                            options={[
-                                {
-                                    value: '',
-                                    label: t('team.lineup.cornerAuto', {
-                                        name: autoTaker ? viewInstance(autoTaker).displayName : '?',
-                                    }),
-                                },
-                                ...cornerField.map((f) => ({
-                                    value: f.inst.uid,
-                                    label: t('team.lineup.cornerTakerOpt', {
-                                        name: viewInstance(f.inst).displayName,
-                                        pos: d.common.pos[f.role],
-                                        n: Math.round(f.passing),
-                                    }),
-                                })),
-                                ...(chosenTaker && takerOff
-                                    ? [{ value: chosenTaker.uid, label: viewInstance(chosenTaker).displayName }]
-                                    : []),
-                            ]}
-                            onChange={(uid) => onCorner({ cornerTakerUid: uid || null })}
-                        />
-                    </div>
-                    {chosenTaker && takerOff && (
-                        <p className="tactic-desc">
-                            {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
-                        </p>
+                    <SheetRow
+                        className="vt-row"
+                        icon={tactic}
+                        label={`${t('team.lineup.tactic')}: ${d.common.tactic[tactic]}`}
+                        title={t('match.coach.style')}
+                    >
+                        <div className="vt-pick">
+                            <div className="vt-grid vt-tactics">
+                                {(Object.keys(TACTIC_LABEL) as Tactic[]).map((tc) => (
+                                    <button
+                                        key={tc}
+                                        type="button"
+                                        className={`bc-tile${tactic === tc ? ' on' : ''}`}
+                                        aria-pressed={tactic === tc}
+                                        disabled={locked}
+                                        onClick={() => onTactic(tc)}
+                                    >
+                                        <HudIcon kind={tc} />
+                                        <span>
+                                            <b>{d.common.tactic[tc]}</b>
+                                            <small>{d.match.coach.styleShort[tc]}</small>
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="tactic-desc vt-fade" key={tactic}>
+                                {d.team.lineup.tacticDesc[tactic]} {t('team.lineup.canChange')}
+                            </p>
+                        </div>
+                    </SheetRow>
+                    <SheetRow
+                        className="vt-row"
+                        icon={<FormationDiagram id={formation} />}
+                        label={`${t('team.lineup.formation')}: ${formationText(formation, lang).name}`}
+                        hint={!!rivalFormation && hasEdge(formation, rivalFormation) && <EdgeMark />}
+                        title={t('team.lineup.formation')}
+                    >
+                        <div className="vt-pick">
+                            <div className="vt-grid vt-formations">
+                                {(Object.keys(FORMATIONS) as FormationId[]).map((id) => (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        className={`bc-tile${formation === id ? ' on' : ''}`}
+                                        aria-pressed={formation === id}
+                                        disabled={locked}
+                                        title={formationText(id, lang).description}
+                                        onClick={() => onFormation(id)}
+                                    >
+                                        <FormationDiagram id={id} />
+                                        <span>
+                                            <b>{formationText(id, lang).name}</b>
+                                            <FormationIdentity
+                                                id={id}
+                                                edge={!!rivalFormation && hasEdge(id, rivalFormation)}
+                                            />
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </SheetRow>
+                    <SheetRow
+                        className="vt-row"
+                        icon="flag"
+                        label={`${t('team.lineup.setPiece')}: ${d.common.cornerPlan[cornerPlan]}`}
+                        hint={takerName}
+                        title={t('team.lineup.setPiece')}
+                    >
+                        <div className="vt-pick">
+                            <h3 className="bc-lbl">{t('team.lineup.corner')}</h3>
+                            <div className="bc-seg">
+                                {CORNER_PLANS.map((pl) => (
+                                    <button
+                                        key={pl}
+                                        type="button"
+                                        className={cornerPlan === pl ? 'on' : undefined}
+                                        aria-pressed={cornerPlan === pl}
+                                        disabled={locked}
+                                        onClick={() => onCorner({ cornerPlan: pl })}
+                                    >
+                                        {d.common.cornerPlan[pl]}
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="tactic-desc vt-fade" key={cornerPlan}>
+                                {d.team.lineup.cornerDesc[cornerPlan]}
+                            </p>
+                            <div className="corner-taker">
+                                <h3>{t('team.lineup.cornerTaker')}</h3>
+                                <Stepper
+                                    label={t('team.lineup.cornerTaker')}
+                                    value={cornerTakerUid ?? ''}
+                                    disabled={locked}
+                                    wrap
+                                    options={[
+                                        {
+                                            value: '',
+                                            label: t('team.lineup.cornerAuto', {
+                                                name: autoTaker ? viewInstance(autoTaker).displayName : '?',
+                                            }),
+                                        },
+                                        ...cornerField.map((f) => ({
+                                            value: f.inst.uid,
+                                            label: t('team.lineup.cornerTakerOpt', {
+                                                name: viewInstance(f.inst).displayName,
+                                                pos: d.common.pos[f.role],
+                                                n: Math.round(f.passing),
+                                            }),
+                                        })),
+                                        ...(chosenTaker && takerOff
+                                            ? [{ value: chosenTaker.uid, label: viewInstance(chosenTaker).displayName }]
+                                            : []),
+                                    ]}
+                                    onChange={(uid) => onCorner({ cornerTakerUid: uid || null })}
+                                />
+                            </div>
+                            {chosenTaker && takerOff && (
+                                <p className="tactic-desc">
+                                    {t('team.lineup.cornerTakerOff', { name: viewInstance(chosenTaker).displayName })}
+                                </p>
+                            )}
+                        </div>
+                    </SheetRow>
+                </section>
+
+                {/* capitão (à vista: escolha de toda partida) e as sinergias, logo embaixo das linhas-resumo */}
+                <section className="panel vt-team">
+                    {onCaptain && (
+                        <section>
+                            <h3 className="bc-lbl">{t('team.lineup.captain')}</h3>
+                            <div className="vt-captains">
+                                {lineupNow.map((inst, i) => (
+                                    <button
+                                        key={inst.uid}
+                                        type="button"
+                                        className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
+                                        aria-pressed={inst.uid === captainUid}
+                                        disabled={locked}
+                                        onClick={() => onCaptain(inst.uid)}
+                                    >
+                                        <img className="pixel" src={cardSprite(inst)} alt="" />
+                                        <span>
+                                            <b>{viewInstance(inst).displayName}</b>
+                                            <small>{d.common.pos[slotsNow[i]]}</small>
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
+                        </section>
+                    )}
+                    {/* sinergias de tipo (o selo do monotipo incluso) e de história numa linha de chips; sem
+                        nenhuma, a seção some */}
+                    {synergies.length + links.length > 0 && (
+                        <section>
+                            <h3 className="bc-lbl">{t('team.lineup.synergies')}</h3>
+                            <div className="row vt-syn">
+                                {synergies.map((s) => (
+                                    <SynergyChip key={s.type} s={s} />
+                                ))}
+                                <LinkChips links={links} />
+                            </div>
+                        </section>
                     )}
                 </section>
 
@@ -648,67 +723,6 @@ export function LineupEditor({
                             {itemMove}
                         </>
                     )}
-                    <section className="panel vt-team">
-                        {onCaptain && (
-                            <section>
-                                <h3 className="bc-lbl">{t('team.lineup.captain')}</h3>
-                                <div className="vt-captains">
-                                    {lineupNow.map((inst, i) => (
-                                        <button
-                                            key={inst.uid}
-                                            type="button"
-                                            className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
-                                            aria-pressed={inst.uid === captainUid}
-                                            disabled={locked}
-                                            onClick={() => onCaptain(inst.uid)}
-                                        >
-                                            <img className="pixel" src={cardSprite(inst)} alt="" />
-                                            <span>
-                                                <b>{viewInstance(inst).displayName}</b>
-                                                <small>{d.common.pos[slotsNow[i]]}</small>
-                                            </span>
-                                        </button>
-                                    ))}
-                                </div>
-                                <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
-                            </section>
-                        )}
-                        <section>
-                            <h3 className="bc-lbl">
-                                {t('team.lineup.typeSynergies')} · {synergies.length}
-                            </h3>
-                            {synergies.length === 0 ? (
-                                <p className="tactic-desc">{t('team.lineup.typeSynEmpty')}</p>
-                            ) : (
-                                <div className="row" style={{ gap: 8 }}>
-                                    {synergies.map((s) =>
-                                        s.mono ? (
-                                            <SynergyChip key={s.type} s={s} />
-                                        ) : (
-                                            <span key={s.type} className="row" style={{ gap: 4 }}>
-                                                <TypeBadge type={s.type} />
-                                                <span className="tactic-desc">
-                                                    ×{s.count} · +{Math.round((s.bonus - 1) * 100)}%
-                                                </span>
-                                            </span>
-                                        ),
-                                    )}
-                                </div>
-                            )}
-                        </section>
-                        <section>
-                            <h3 className="bc-lbl">
-                                {t('team.lineup.storySynergies')} · {links.length}
-                            </h3>
-                            {links.length === 0 ? (
-                                <p className="tactic-desc">{t('team.lineup.storySynEmpty')}</p>
-                            ) : (
-                                <div className="row" style={{ gap: 6 }}>
-                                    <LinkChips links={links} />
-                                </div>
-                            )}
-                        </section>
-                    </section>
                 </div>
 
                 {footer}

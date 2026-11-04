@@ -30,7 +30,7 @@ import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
 import { feedback } from '../feedback';
-import { Tip } from '../help/Tip';
+import { Tip, tipSeq } from '../help/Tip';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { Toast } from '../kit/Toast';
@@ -221,24 +221,21 @@ export function Result() {
         </>
     );
     const bracket = run.status === 'reward' && !isLong(run);
-    // o palco do resultado (cara-de-jogo.md): o herói, uma fileira de botões-ícone e a ação gorda no polegar; o
-    // resto (o que a copa rendeu, quem virou Destaque, evoluções, gols) vem rolando pra baixo, como antes do palco
+    // o palco do resultado (cara-de-jogo.md): placar, fala e a ação gorda no polegar; Melhores momentos e Ver a chave
+    // viram links pequenos colados no placar. O resto (destaques, carta Destaque, evoluções, gols) vem rolando
+    const links = (
+        <div className="res-icons rh-links">
+            {icons}
+            {bracket && (
+                <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setSheet('bracket')}>
+                    <HudIcon kind="cup" /> {t('bracket.show')}
+                </button>
+            )}
+        </div>
+    );
     const actions = (
         <>
             {eliminated && <NearMiss run={run} />}
-            <div className="res-icons">
-                {icons}
-                {bracket && (
-                    <button
-                        type="button"
-                        className="btn outline"
-                        aria-haspopup="dialog"
-                        onClick={() => setSheet('bracket')}
-                    >
-                        <HudIcon kind="cup" /> {t('bracket.show')}
-                    </button>
-                )}
-            </div>
             {thumb}
         </>
     );
@@ -281,9 +278,8 @@ export function Result() {
                     mvpUid={ourStar?.uid ?? null}
                     foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
                     actions={actions}
+                    links={links}
                 />
-                {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
-                <Tip id="result-dex">{t('result.dexTip')}</Tip>
             </Stage>
             <section className="res-more" aria-label={t('result.champ.statsBtn')}>
                 {eliminated && <CupGains run={run} />}
@@ -291,6 +287,13 @@ export function Result() {
                 {eliminated && <CupGoalCard run={run} match={match} />}
                 {details}
                 {extra}
+                {/* a dica no fim da página, não entre o placar e o botão; na 1ª vitória quem fala é a da Recompensa
+                    (uma dica por sequência Resultado → Recompensa → Mercado) */}
+                {(run.results.length > 1 || run.status !== 'reward') && (
+                    <Tip id="result-dex" seq={tipSeq(run)}>
+                        {t('result.dexTip')}
+                    </Tip>
+                )}
             </section>
             {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
             <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
@@ -322,14 +325,17 @@ function GoalsExtra({
     destaque: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number] | null | undefined;
 }) {
     const { t } = useT();
+    // quem evoluiu e virou Destaque aparece uma vez só: na caixa do Destaque, com a linha da evolução
+    const destaqueEvo = destaque ? evolutions.find((e) => e.inst.uid === destaque.uid) : undefined;
+    const evolved = destaqueEvo ? evolutions.filter((e) => e !== destaqueEvo) : evolutions;
     return (
         <>
-            {evolutions.length > 0 && (
+            {evolved.length > 0 && (
                 <div className="destaque-box">
-                    <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                    <h2>{evolved.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
                     <p className="tactic-desc">{t('result.evolvedNote')}</p>
                     <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                        {evolutions.map(({ inst, from }) => (
+                        {evolved.map(({ inst, from }) => (
                             <div key={inst.uid} className="evolved-card">
                                 <span className="muted">
                                     {species(from).name} → {species(inst.speciesId).name}
@@ -368,6 +374,12 @@ function GoalsExtra({
                                     bonus: specialBonus(destaque),
                                 })}
                     </p>
+                    {destaqueEvo && (
+                        <span className="muted">
+                            {species(destaqueEvo.from).name} → {species(destaque.speciesId).name} ·{' '}
+                            {t('result.evolvedNote')}
+                        </span>
+                    )}
                     <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
                 </div>
             )}
@@ -479,23 +491,42 @@ export function MatchDetails({
                     <div className="panel">
                         <h2>{t('result.highlights')}</h2>
                         <div className="st-leaders">
-                            {leaderList.map((l) => (
-                                <div key={l.id} className="st-leader">
-                                    <img
-                                        className="pixel"
-                                        src={cardSprite({ speciesId: l.line.speciesId, shiny: l.line.shiny })}
-                                        alt=""
-                                    />
+                            {/* o craque da partida numa linha só, no lugar da "Melhor nota" (antes eram duas e mais um
+                                bloco embaixo dos gols) */}
+                            {mvp && (
+                                <div className="st-leader st-leader-mvp">
+                                    <img className="pixel" src={cardSprite(mvp)} alt="" />
                                     <div>
-                                        <span className="muted">{leaderTitle(l)}</span>
-                                        <b>{l.line.name}</b>
+                                        <span className="muted">{t('result.mvp')}</span>
+                                        <b>{mvp.name}</b>
                                         <small>
-                                            <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
-                                            {names[l.line.team]} · {leaderValue(l)}
+                                            <i style={{ background: mvp.team === 0 ? homeC() : awayC() }} />
+                                            {names[mvp.team]} · {tn('common.count.goals', mvp.stats.goals)} ·{' '}
+                                            {tn('common.count.assists', mvp.stats.assists)}
+                                            {mvp.stats.saves > 0 && <> · {tn('common.count.saves', mvp.stats.saves)}</>}
                                         </small>
                                     </div>
                                 </div>
-                            ))}
+                            )}
+                            {leaderList
+                                .filter((l) => !mvp || l.id !== 'rating')
+                                .map((l) => (
+                                    <div key={l.id} className="st-leader">
+                                        <img
+                                            className="pixel"
+                                            src={cardSprite({ speciesId: l.line.speciesId, shiny: l.line.shiny })}
+                                            alt=""
+                                        />
+                                        <div>
+                                            <span className="muted">{leaderTitle(l)}</span>
+                                            <b>{l.line.name}</b>
+                                            <small>
+                                                <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
+                                                {names[l.line.team]} · {leaderValue(l)}
+                                            </small>
+                                        </div>
+                                    </div>
+                                ))}
                         </div>
                     </div>
                     <div className="panel">
@@ -542,23 +573,6 @@ export function MatchDetails({
                                         </div>
                                     </div>
                                 ))}
-                            </>
-                        )}
-                        {mvp && (
-                            <>
-                                <h2 style={{ marginTop: 16 }}>{t('result.mvp')}</h2>
-                                <div className="mini" style={{ display: 'inline-flex' }}>
-                                    <img className="pixel" src={cardSprite(mvp)} alt="" />
-                                    <div>
-                                        <b>{mvp.name}</b> <span className="muted">({names[mvp.team]})</span>
-                                        <div className="muted">
-                                            {tn('common.count.goals', mvp.stats.goals)} ·{' '}
-                                            {tn('common.count.assists', mvp.stats.assists)} ·{' '}
-                                            {tn('common.count.saves', mvp.stats.saves)} ·{' '}
-                                            {tn('common.count.tackles', mvp.stats.tacklesWon)}
-                                        </div>
-                                    </div>
-                                </div>
                             </>
                         )}
                     </div>
