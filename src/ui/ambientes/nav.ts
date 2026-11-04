@@ -7,6 +7,12 @@ export const TABS = ['lab', 'rota', 'estadio', 'arena', 'sede'] as const;
 export type Tab = (typeof TABS)[number];
 export const START = TABS.indexOf('estadio');
 const LAST = TABS.length - 1;
+/** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
+export const tabMemory = { last: START as number };
+/** Marca a aba em que a Home abre da próxima vez (o "Ir pra Sede" do Perfil). */
+export const openTabNext = (tab: Tab) => {
+    tabMemory.last = TABS.indexOf(tab);
+};
 
 const KEY = 'soccermon-lab-ambientes';
 

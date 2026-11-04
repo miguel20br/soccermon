@@ -5,7 +5,6 @@ import { useGame } from '../../store/game-store';
 import { LONG_CUP_LIVE } from '../../store/long-cup';
 import { Coach, useHydrated } from '../coach/Coach';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
-import { MenuIcon } from '../components/MenuIcon';
 import { TopActions } from '../components/TopActions';
 import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
@@ -13,7 +12,7 @@ import { Arena } from './Arena';
 import { Estadio } from './Estadio';
 import { SpriteNearCtx } from './FieldSprite';
 import { Lab } from './Lab';
-import { dragPos, START, skyOf, snapTab, TABS, type Tab } from './nav';
+import { dragPos, START, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
 import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { TopBar } from './TopBar';
@@ -34,8 +33,6 @@ const ICON: Record<Tab, HudIconKind> = {
 };
 /** Duração da entrada num modo (exceção ao ADR 0004, ver ADR 0008): um toque pula. */
 const ENTER_MS = 860;
-/** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
-let lastTab = START;
 
 /**
  * A Home (navegação por ambientes; `?lab=off` = a Home de lista): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
@@ -48,7 +45,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     const firstVisit = useGame(isFirstVisit);
     const records = useGame((s) => s.records);
     const coachSeen = useGame((s) => s.profile.coach);
-    const [tab, setTabState] = useState(lastTab);
+    const [tab, setTabState] = useState(tabMemory.last);
     // o céu do Estádio e da Rota segue a hora de verdade (dia, fim de tarde, noite); a Arena é sempre à noite
     const [sky] = useState(() => skyOf(new Date().getHours()));
     const [entering, setEntering] = useState<(() => void) | null>(null);
@@ -76,7 +73,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
 
     const setPos = (p: number) => root.current?.style.setProperty('--pos', String(p));
     const setTab = (i: number) => {
-        lastTab = i;
+        tabMemory.last = i;
         setTabState(i);
         setPos(i);
     };
@@ -172,7 +169,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         const tb = installTabBack(
             () => tabRef.current !== START,
             () => {
-                lastTab = START;
+                tabMemory.last = START;
                 setTabState(START);
             },
         );
@@ -189,7 +186,9 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     const view: Record<Tab, (active: boolean, wild: Wild[], near: boolean) => ReactNode> = {
         lab: (active, wild, near) => <Lab active={active} wild={wild} near={near} />,
         rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
-        estadio: (active, wild) => <Estadio active={active} enter={enter} wild={wild} entering={!!entering} />,
+        estadio: (active, wild) => (
+            <Estadio active={active} enter={enter} wild={wild} entering={!!entering} onModes={onModes} />
+        ),
         arena: (active, wild) => <Arena active={active} wild={wild} />,
         sede: (active, wild, near) => <Sede active={active} wild={wild} near={near} />,
     };
@@ -202,18 +201,6 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
             style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
         >
             <div className="amb-top k-topbar">
-                {/* volta pro menu de modos (quem já jogou: o menu abre antes da Home) */}
-                {onModes && !firstVisit && (
-                    <button
-                        type="button"
-                        className="help-fab amb-modes"
-                        aria-label={t('home.modes.back')}
-                        title={t('home.modes.back')}
-                        onClick={onModes}
-                    >
-                        <MenuIcon kind="back" />
-                    </button>
-                )}
                 <TopBar />
                 <TopActions help={() => openPage('help')} profile={false} />
             </div>

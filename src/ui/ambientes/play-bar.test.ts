@@ -20,26 +20,19 @@ describe('JOGAR e placas de modos do Estádio', () => {
         expect(playModes({ ...base, inProgress: true, challenge: 'ABC123' }).main).toBe('continue');
     });
 
-    it('a lista tem os modos (Continuar só com copa em andamento)', () => {
-        expect(playModes({ inProgress: false, challenge: null, firstVisit: false }).sheet).toEqual([
-            'quick',
-            'long',
-            'daily',
-            'duel',
-        ]);
+    it('a lista tem só os modos do Estádio (Continuar só com copa em andamento); Rota e Duelo moram nas abas', () => {
+        expect(playModes({ inProgress: false, challenge: null, firstVisit: false }).sheet).toEqual(['quick', 'daily']);
         expect(playModes({ inProgress: true, challenge: null, firstVisit: false }).sheet).toEqual([
             'continue',
             'quick',
-            'long',
             'daily',
-            'duel',
         ]);
     });
 
     it('o escolhido vale enquanto estiver na lista; senão volta pro padrão', () => {
         const plan = playModes({ inProgress: true, challenge: null, firstVisit: false });
         expect(chosenMode(plan, null)).toBe('continue');
-        expect(chosenMode(plan, 'long')).toBe('long');
+        expect(chosenMode(plan, 'daily')).toBe('daily');
         // a copa acabou: o "Continuar" escolhido sai da lista e o JOGAR volta pra Relâmpago
         expect(chosenMode(playModes({ inProgress: false, challenge: null, firstVisit: false }), 'continue')).toBe(
             'quick',
@@ -56,9 +49,9 @@ describe('JOGAR e placas de modos do Estádio', () => {
 
     it('uma placa por modo, a escolhida acesa; o JOGAR diz o verbo e o modo embaixo', () => {
         const cont = { ...m('continue', 'Continuar', 'Pallet FC · Quartas de final'), verb: 'Continuar' };
-        const sheet = [cont, m('quick', 'Copa Relâmpago'), m('long', 'Rota Índigo'), m('duel', 'Duelo')];
+        const sheet = [cont, m('quick', 'Copa Relâmpago'), m('daily', 'Copa do Dia')];
         const out = html(cont, sheet);
-        expect(out.match(/class="es-tile /g)).toHaveLength(4);
+        expect(out.match(/class="es-tile /g)).toHaveLength(3);
         expect(out).toMatch(/aria-pressed="true" class="es-tile m-continue on"/);
         expect(out.match(/aria-pressed="true"/g)).toHaveLength(1);
         expect(out).toMatch(/es-play-verb">Continuar<.*es-play-sub">Pallet FC · Quartas de final</);

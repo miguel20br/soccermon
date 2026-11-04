@@ -65,7 +65,6 @@ export const home: typeof pt = {
     latest: 'Latest',
     /** News: the new version's poster leads to the full list and to older versions. */
     newsAll: 'See all',
-    newsOld: 'Older versions',
     soonTitle: 'Coming soon',
     soonRibbon: 'Coming soon',
     /** Contagem da Liga no cartãozinho do Vem aí. */
@@ -80,7 +79,8 @@ export const home: typeof pt = {
         tabsAria: 'Places',
         tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
         skip: 'Tap to skip',
-        board: 'LIGHTNING CUP · DAILY CUP · INDIGO ROAD · LIVE DUEL · ',
+        ledDaily: 'NEW DAILY CUP',
+        ledLiga: 'LEAGUE OPENS IN {d} DAYS',
         labTitle: "Oak's Lab",
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
         labShort: "Oak's Lab",
@@ -90,7 +90,9 @@ export const home: typeof pt = {
         ligaSoon: 'League · opens in {d}d',
         ligaSign: 'opens in {d}d',
         labGo: 'Open the Pokédex',
-        labSeen: '{n} of {total} seen',
+        beltCount: '{n}/{goal} wins',
+        labLeft: '{n} to go',
+        labFull: 'Pokédex complete',
         labTalk: '{n} to go for the Pokédex. Drafts and rivals count.',
         labTalkDone: 'All 151 of Kanto seen! Now go fill the Album.',
         signDuel: 'With friends',

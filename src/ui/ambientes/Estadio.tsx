@@ -2,6 +2,7 @@ import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 
 import { weeklyEventType } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { ligaCountdown } from '../../league/rules';
 import { isFirstVisit } from '../../store/coach';
 import { dailyDay } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
@@ -151,7 +152,11 @@ export function Stands({ clubName, led: text, children }: { clubName: string; le
     const { t } = useT();
     const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
-    const led = (text ? `${text} · ` : `${week} · ${t('home.amb.board')}`).repeat(3);
+    // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
+    const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));
+    const liga = ligaCountdown();
+    const news = [week, !playedToday && t('home.amb.ledDaily'), liga && t('home.amb.ledLiga', { d: liga.d })];
+    const led = (text ? `${text} · ` : `${news.filter(Boolean).join(' · ')} · `).repeat(3);
     return (
         <>
             <div className="es-stand">
@@ -325,11 +330,14 @@ export function Estadio({
     enter,
     wild,
     entering,
+    onModes,
 }: {
     active: boolean;
     enter: (action: () => void) => void;
     wild: Wild[];
     entering: boolean;
+    /** Volta pro menu de modos (quem já jogou): toque no logo, no lugar da setinha da barra de cima. */
+    onModes?: () => void;
 }) {
     const { t } = useT();
     const clock = useSceneClock(active);
@@ -447,7 +455,19 @@ export function Estadio({
                     <i className="es-cable l" aria-hidden />
                     <i className="es-cable r" aria-hidden />
                     <h1 className="es-logo">
-                        <Logo alt="Soccermon" idle />
+                        {onModes && !firstVisit ? (
+                            <button
+                                type="button"
+                                className="es-logo-btn"
+                                aria-label={t('home.modes.back')}
+                                title={t('home.modes.back')}
+                                onClick={onModes}
+                            >
+                                <Logo alt="Soccermon" idle />
+                            </button>
+                        ) : (
+                            <Logo alt="Soccermon" idle />
+                        )}
                     </h1>
                     {hydrated && firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>}
                 </div>

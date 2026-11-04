@@ -67,7 +67,6 @@ export const home = {
     latest: 'Mais recente',
     /** Novidades: o cartaz da versão nova leva pra lista inteira e pras versões antigas. */
     newsAll: 'Ver tudo',
-    newsOld: 'Versões antigas',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */
@@ -83,7 +82,8 @@ export const home = {
         tabs: { lab: 'Lab', rota: 'Rota', estadio: 'Estádio', arena: 'Arena', sede: 'Sede' },
         skip: 'Toque pra pular',
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
-        board: 'COPA RELÂMPAGO · COPA DO DIA · ROTA ÍNDIGO · DUELO AO VIVO · ',
+        ledDaily: 'COPA DO DIA NOVA',
+        ledLiga: 'LIGA ABRE EM {d} DIAS',
         labTitle: 'Laboratório do Carvalho',
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
         labShort: 'Laboratório',
@@ -95,7 +95,9 @@ export const home = {
         ligaSign: 'abre em {d}d',
         /** Laboratório: a meta é a Pokédex; o Carvalho fala quanto falta. */
         labGo: 'Abrir a Pokédex',
-        labSeen: '{n} de {total} vistos',
+        beltCount: '{n}/{goal} vitórias',
+        labLeft: 'Faltam {n}',
+        labFull: 'Pokédex completa',
         labTalk: 'Faltam {n} pra fechar a Pokédex. Draft e rival já contam.',
         labTalkDone: 'Os 151 de Kanto, todos vistos! Agora é encher o Álbum.',
         /** Arena: o Duelo na frente, o cinturão como meta, o resto chegando. */
