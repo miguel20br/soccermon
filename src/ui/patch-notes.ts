@@ -9,6 +9,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.41',
+        date: '2026-11-04',
+        title: 'Golpes de cinema',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'N3 com câmera de cinema: close no capitão, impacto no chute e a rede estufando no gol',
+                    'Cada tipo deixa a sua marca no N3: chão em brasa, raio que ricocheteia, bola fantasma e mais 13',
+                    'As 12 assinaturas ganham um toque próprio, do Hyper Beam ao Metronome do Mew',
+                    'N2 com a onda que derruba a linha desenhada no chão, na cor do tipo',
+                    'N1 na cor do tipo, com o nome do golpe colado em quem chutou',
+                    'Bicudas com o pé do goleiro, impacto e rastro até onde a bola vai',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['A tela de quem entrou na sala não fica mais parada no fim de jogo'],
+            },
+        ],
+    },
+    {
         version: '0.9.40',
         date: '2026-11-03',
         title: 'Counter',
@@ -2465,6 +2487,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.41',
+        date: '2026-11-04',
+        title: 'Movie moves',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Level 3 with movie camera moves: close-up on the captain, impact on the shot and the net bulging on a goal',
+                    'Each type leaves its mark on level 3: burning floor, bouncing lightning, ghost ball and 13 more',
+                    'The 12 signatures get their own touch, from Hyper Beam to Mew Metronome',
+                    'Level 2 draws the wave that knocks down the line on the floor, in the type colour',
+                    'Level 1 in the type colour, with the move name next to the shooter',
+                    'Punts with the keeper foot, impact and a trail to where the ball goes',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ['The guest screen no longer gets stuck at full time'],
+            },
+        ],
+    },
     {
         version: '0.9.40',
         date: '2026-11-03',

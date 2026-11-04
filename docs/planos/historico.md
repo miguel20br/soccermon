@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.41 · Golpes de cinema (04/11/2026)
+
+O nível de produção do Counter em todo golpe máximo, aprovado pelo Miguel por vídeo: N3 com corte pro capitão, ângulo holandês, quadro de impacto, rastro e TypeFx, história por tipo (`src/game/n3-story.ts`) e toque próprio nas 12 assinaturas, letreiro parado 1,6 s (+0,2 s no lance); N2 com close curto e a onda que derruba desenhada no chão; N1 na cor do tipo com letreiro colado em quem chutou (1,3 s, +0 s); bicudas com o revide curto do Counter. Peças prontas na abertura (`prewarmImpactFrame`) tiram o engasgo. Duelo: o convidado volta à velocidade normal quando o fim está gravado na sala (`src/net/session.ts`). Motor sem mudança.
+
 ## 0.9.40 · Counter (03/11/2026)
 
 Motor 23: o duelo da bicuda volta aprovado pelo Miguel na v3 (tempo parado no contato e bicuda de primeira, câmera de cinema com plano e contraplano, ângulo holandês, painéis de mangá, kit `src/game/cine.ts`; falas reescritas com piada boba; faixas 2,3 s, GOOOOL!/BICUDA! 2,8 s, voo 3,3 s; parada 15,25 s e comemoração 8 s). Walkout v3: fundo por raridade, vidro só nas edições, efeito do tipo na carta ouro (16, `walkout-type-fx.ts`), telões no ouro, curto de 3 s, `themeTypeOf` decide o tipo do telão, do efeito e do fundo da carta; o gravador grava na GPU e no relógio da cena (o SwiftShader e o relógio real deixavam os vídeos errados). Próximo: o mesmo nível de produção nos golpes máximos N1/N2/N3 e nas bicudas.
