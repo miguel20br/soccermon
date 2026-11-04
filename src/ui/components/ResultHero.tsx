@@ -116,7 +116,7 @@ export function ResultHero({
         (!run
             ? ''
             : champion
-              ? t('result.hero.cupWon')
+              ? t(isLong(run) ? 'result.hero.cupWonRota' : 'result.hero.cupWon')
               : isLong(run)
                 ? // Copa longa: "Partida 3 de 8", o cartão amarelo ou o fim
                   // amarelo: a regra fica no cartão que cai logo embaixo

@@ -61,6 +61,8 @@ export const result = {
         /** Rota Índigo: perdeu, mas segue (cartão amarelo no mapa, derrota no grupo). */
         lossAlive: 'DERROTA',
         cupWon: 'Copa de Kanto conquistada!',
+        /** Rota Índigo campeã. */
+        cupWonRota: 'Liga Índigo conquistada!',
         runnerUp: 'Vice-campeão da Copa de Kanto',
         eliminated: 'Eliminado {stage}',
         aria: 'Resultado da partida',
@@ -80,9 +82,11 @@ export const result = {
         statsBtn: 'Estatísticas',
         statsTitle: 'Estatísticas da copa',
         aria: 'Campeões da Copa de Kanto',
+        ariaRota: 'Campeões da Liga Índigo',
         titleAria: 'Campeões!',
         title: 'CAMPEÕES!',
         sub: '{team} conquistou a Copa de Kanto',
+        subRota: '{team} conquistou a Liga Índigo',
         perfect: 'COPA PERFEITA: nenhum gol sofrido',
         wins: 'vitórias',
         poss: 'posse média',

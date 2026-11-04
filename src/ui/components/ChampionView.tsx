@@ -5,7 +5,7 @@ import { viewInstance } from '../../engine/instance';
 import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
-import { cupLength } from '../../store/long-cup';
+import { cupLength, isLong } from '../../store/long-cup';
 import { Beat, useCascade } from '../kit/Cascade';
 import { SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -79,7 +79,7 @@ export function ChampionView({
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
             )}
             <Stage className="champ-wrap k-stage-rola">
-                <section className="panel rh rh-champ champ champ-stage" aria-label={t('result.champ.aria')}>
+                <section className="panel rh rh-champ champ champ-stage" aria-label={t(isLong(run) ? 'result.champ.ariaRota' : 'result.champ.aria')}>
                     <Confetti count={70} />
                     {/* a cascata recomeça quando o desfile do Hall acaba (antes, ela tocaria escondida embaixo dele) */}
                     <ChampBeats
@@ -290,7 +290,7 @@ function ChampBeats({ run, quiet, onGoal }: { run: RunState; quiet: boolean; onG
                     </span>
                 ))}
             </h1>
-            <div className="champ-sub">{rich(t('result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
+            <div className="champ-sub">{rich(t(isLong(run) ? 'result.champ.subRota' : 'result.champ.sub'), { team: <b>{run.teamName}</b> })}</div>
             {isPerfectCup(run) && (
                 <div className="perfect-badge k-ribbon">
                     <HudIcon kind="max" />
