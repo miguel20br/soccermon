@@ -758,8 +758,31 @@
     cursor: pointer;
 }
 .bc-maxthumb .hud-icon,
-.bc-maxthumb b {
+.bc-maxpips {
     position: relative;
+}
+.bc-maxthumb .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.bc-maxpips {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.bc-maxpips i {
+    width: 7px;
+    height: 7px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    opacity: 0.55;
+    transition:
+        background-color 0.25s ease,
+        opacity 0.25s ease;
+}
+.bc-maxpips i.on {
+    background: currentColor;
+    opacity: 1;
 }
 .bc-maxthumb-fill {
     position: absolute;

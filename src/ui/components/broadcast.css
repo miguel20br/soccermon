@@ -1156,6 +1156,42 @@
     .bc-deskbar .error-text {
         grid-area: er;
     }
+    /* desktop: tática à esquerda; Substituir e a beira da quadra (tempo, golpe máximo) à direita, tudo em 900 px */
+    .bc-deskbar.compact {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr;
+        gap: 6px 18px;
+        align-items: start;
+    }
+    .bc-deskbar.compact .bc-tactic {
+        display: contents;
+    }
+    .bc-deskbar.compact .row-style {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .bc-deskbar.compact .bc-styles {
+        grid-column: 1;
+        grid-row: 2 / 4;
+    }
+    .bc-deskbar.compact .bc-subbtn {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        align-self: stretch;
+    }
+    .bc-deskbar.compact .sl {
+        grid-column: 2;
+        grid-row: 3;
+    }
+    .bc-deskbar.compact .sl-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .bc-deskbar.compact .mx-legend,
+    .bc-deskbar.compact .tac-note,
+    .bc-deskbar.compact .error-text {
+        grid-column: 1 / -1;
+    }
     .bc-thumb {
         grid-area: thumb;
         position: static;
@@ -1519,4 +1555,15 @@ body:has(.bc-hud) {
 .bc:has(.ht-panel) .emote-pop {
     opacity: 0;
     transition: opacity var(--dur-ui) var(--ease-out);
+}
+
+/* aba Time: escanteio e goleiro-linha (antes na tela da partida) em cima da tabela */
+.bc-teamctl {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+.sl-actions.one {
+    grid-template-columns: minmax(0, 1fr);
 }

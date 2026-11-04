@@ -296,6 +296,44 @@ function maxFace(view: AgencyView, a: ReturnType<typeof useT>['d']['match']['age
         : { name: a.max, icon: 'max' as const, hint: a.maxBeatHint };
 }
 
+function FlyGkButton({ view, canAct, onFlyGk }: { view: AgencyView; canAct: boolean; onFlyGk: (on: boolean) => void }) {
+    const { d } = useT();
+    const a = d.match.agency;
+    return (
+        <button
+            type="button"
+            className={`sl-btn${view.flyOn ? ' on' : ''}`}
+            aria-pressed={view.flyOn}
+            title={a.flyGkHint}
+            disabled={!canAct}
+            onClick={() => onFlyGk(!(view.flyPending ?? view.flyOn))}
+        >
+            <HudIcon kind="flyGk" />
+            <span>
+                <b>{a.flyGk}</b>
+                <small>
+                    {view.flyPending !== null
+                        ? `${view.flyPending ? a.flyGkOn : a.flyGkOff}…`
+                        : view.flyOn
+                          ? a.flyGkOn
+                          : a.flyGkOff}
+                </small>
+            </span>
+        </button>
+    );
+}
+
+/** Goleiro-linha sozinho (aba Time do painel). */
+export function FlyGkControl(props: { view: AgencyView; canAct: boolean; onFlyGk: (on: boolean) => void }) {
+    return (
+        <div className="sl">
+            <div className="sl-actions one">
+                <FlyGkButton {...props} />
+            </div>
+        </div>
+    );
+}
+
 /** Os botões do técnico (na aba Tática e na barra do desktop). */
 export function SidelineControls({
     view,
@@ -304,11 +342,14 @@ export function SidelineControls({
     onFlyGk,
     onMax,
     onPens,
+    hideFly,
 }: {
     view: AgencyView;
     canAct: boolean;
     onTimeout?: () => void;
     onFlyGk: (on: boolean) => void;
+    /** Goleiro-linha fora daqui (na partida da copa ele mora na aba Time: `FlyGkControl`). */
+    hideFly?: boolean;
     onMax: (q: MaxGrade) => void;
     /** Duelo: abre a ordem dos pênaltis (na copa ela aparece sozinha antes da disputa). */
     onPens?: () => void;
@@ -349,26 +390,7 @@ export function SidelineControls({
                         </span>
                     </button>
                 )}
-                <button
-                    type="button"
-                    className={`sl-btn${view.flyOn ? ' on' : ''}`}
-                    aria-pressed={view.flyOn}
-                    title={a.flyGkHint}
-                    disabled={!canAct}
-                    onClick={() => onFlyGk(!(view.flyPending ?? view.flyOn))}
-                >
-                    <HudIcon kind="flyGk" />
-                    <span>
-                        <b>{a.flyGk}</b>
-                        <small>
-                            {view.flyPending !== null
-                                ? `${view.flyPending ? a.flyGkOn : a.flyGkOff}…`
-                                : view.flyOn
-                                  ? a.flyGkOn
-                                  : a.flyGkOff}
-                        </small>
-                    </span>
-                </button>
+                {!hideFly && <FlyGkButton view={view} canAct={canAct} onFlyGk={onFlyGk} />}
                 <button
                     type="button"
                     className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}`}
@@ -447,7 +469,12 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
             >
                 <i className="bc-maxthumb-fill" aria-hidden />
                 <HudIcon kind={face.icon} />
-                <b aria-hidden>{maxLevelLabel(view.max.level, a.maxLevelShort)}</b>
+                {/* nível em 3 gomos: "N0" sozinho não se lê (a bicuda é o desenho; os gomos, o quanto já carregou) */}
+                <span className="bc-maxpips" aria-hidden>
+                    {[1, 2, 3].map((n) => (
+                        <i key={n} className={view.max.level >= n ? 'on' : undefined} />
+                    ))}
+                </span>
             </button>
             {lit && <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />}
             {why && (
