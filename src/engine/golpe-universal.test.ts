@@ -206,6 +206,22 @@ function reached(level: 1 | 2 | 3 | null, tag: string, q: 0 | 1 | 2 = 2, cap = 0
 }
 
 describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)', () => {
+    it('chute bloqueado antes do goleiro: a bicuda fica guardada pro próximo chute (Miguel 05/11)', () => {
+        let seen = 0;
+        for (let k = 0; k < 12; k++) {
+            const s = bicudaScene(2, `gu-bi-guarda-${k}`, 2, 0, true);
+            if (!of(s, 'block').length || of(s, 'max').length) continue;
+            seen++;
+            idle(s, 5);
+            expect(s.teams[0].agency.max).toMatchObject({ idx: 0, level: 2 });
+            s.players[1].pos = v(30, 3);
+            rivalShoots(s);
+            if (of(s, 'save').some((e) => e.by === 0) || of(s, 'max').length)
+                expect(of(s, 'max')).toEqual([expect.objectContaining({ by: 0, phase: 'hit', level: 2 })]);
+        }
+        expect(seen).toBeGreaterThan(0);
+    });
+
     it('N1 e N2: lançamento pro companheiro no campo rival, sem chute no gol; N3: chute no alvo', () => {
         for (const level of [1, 2, 3] as const) {
             for (const s of reached(level, String(level))) {
@@ -312,23 +328,6 @@ describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)
         expect(blocked).toBeGreaterThan(0);
         // goleiro que não é capitão: sem o evento
         for (let k = 0; k < 5; k++) expect(of(bicudaScene(null, `gu-bi-nc-${k}`, 2, 4), 'gkReach')).toHaveLength(0);
-    });
-
-    it('o toque vale só pra aquele chute: bloqueado, o pedido some sem gastar e o chute seguinte é defesa normal', () => {
-        let seen = 0;
-        for (let k = 0; k < 40 && seen < 3; k++) {
-            const s = bicudaScene(2, `gu-bi-once-${k}`, 2, 0, true);
-            if (!of(s, 'block').some((e) => e.by === 1)) continue;
-            seen++;
-            idle(s, 1);
-            expect(s.teams[0].agency.max).toBeNull();
-            // o fixo sai da frente; o 2º chute chega no goleiro sem bicuda (antes ficava armada 5 s e saía aqui)
-            s.players[1].pos = v(30, 3);
-            for (let n = 0; n < 10 && !of(s, 'gkReach').length; n++) rivalShoots(s);
-            expect(of(s, 'gkReach').length).toBeGreaterThan(0);
-            expect(of(s, 'max')).toHaveLength(0);
-        }
-        expect(seen).toBeGreaterThan(0);
     });
 
     it('a ordem da bicuda só arma na hora dela (o chute do rival no ar ou o rival com a bola na zona do goleiro)', () => {

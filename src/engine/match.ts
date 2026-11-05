@@ -3545,8 +3545,9 @@ function rivalShot(s: MatchState, team: 0 | 1): ShotInfo | null {
 const maxTag = (max: { level: 1 | 2 | 3; q: MaxGrade }) => ({ level: max.level, q: max.q });
 
 /**
- * O pedido do goleiro que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. A bicuda prende no 1º chute do rival
- * e some com ele (bloqueado, pra fora, na trave ou gol sem o goleiro chegar nele).
+ * O pedido do goleiro que passou sem a hora certa (ou o capitão saiu) some sem gastar nada. A bicuda prende no chute do
+ * rival; se ele não chega no goleiro (bloqueado, pra fora, na trave), ela fica guardada pro próximo chute, com o prazo de
+ * novo (Miguel, 05/11/2026). Gol do rival tira a bicuda, sem gastar a barra.
  */
 function updateMax(s: MatchState) {
     for (const team of [0, 1] as const) {
@@ -3558,7 +3559,13 @@ function updateMax(s: MatchState) {
         else if (cap.role === 'GK' && (arm.shot !== undefined || rivalShot(s, team))) {
             const shot = rivalShot(s, team);
             arm.shot ??= shot?.tick;
-            if (shot?.tick !== arm.shot) disarmMax(s, team);
+            if (shot?.tick !== arm.shot) {
+                if (s.events.some((e) => e.type === 'goal' && e.tick >= (arm.shot ?? s.tick))) disarmMax(s, team);
+                else {
+                    arm.shot = shot?.tick;
+                    arm.until = s.tick + AGENCY.maxArmTicks;
+                }
+            }
         } else if (arm.until !== undefined && s.tick >= arm.until) disarmMax(s, team);
     }
 }
