@@ -87,7 +87,7 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 23 = o duelo da bicuda volta, aprovado (v3: tempo parado no contato, câmera de cinema, falas novas): parada de 15,25 s
  *     e comemoração de 8 s (`AGENCY.showdown`), `MatchConfig.showdown` ligado no FUTSAL_5.
  */
-export const ENGINE_VERSION = 26;
+export const ENGINE_VERSION = 27;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

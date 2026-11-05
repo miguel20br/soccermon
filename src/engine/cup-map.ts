@@ -1,4 +1,4 @@
-import { CLUBS, type ClubTemplate, GYM_THEME_MIN } from './cup';
+import { CLUBS, type ClubTemplate, CROWD, CROWD_ROUTE_START, GYM_THEME_MIN } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
 import { type Stone, stoneUsers } from './evolution';
@@ -434,6 +434,7 @@ export function longOpponent(
         color: club.color,
         formation: club.formation,
         captainUid: d.captainUid,
+        crowd: match < 3 ? CROWD_ROUTE_START : CROWD,
     };
 }
 

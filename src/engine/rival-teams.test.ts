@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildCupOpponents } from './cup';
+import { buildCupOpponents, CROWD, CROWD_ROUTE_START } from './cup';
+import { longOpponent } from './cup-map';
 import { species } from './data';
+import { teamFromRecipe, teamRecipe } from './duel-validate';
+import { EVO_THRESHOLD, evoNeeded } from './evolution';
+import { attributeModifiers } from './modifiers';
 
 // Times dos líderes (Miguel, 04/11/2026): temáticos, capitão do tipo, sem contra-tipo nem lendário solto
 describe('times dos líderes de ginásio', () => {
@@ -24,5 +28,30 @@ describe('times dos líderes de ginásio', () => {
             expect(typesOf(cap.speciesId)).toContain('Water');
             expect(t.lineup.filter((p) => typesOf(p.speciesId).includes('Water')).length).toBeGreaterThanOrEqual(4);
         }
+    });
+});
+
+// Torcida a favor (Miguel, 05/11/2026): menos zebra contra o jogador, só no PVE
+describe('torcida a favor', () => {
+    it('Copa -4%, Rota -7% nas 3 primeiras e -4% depois', () => {
+        for (const o of buildCupOpponents('torcida')) expect(o.crowd).toBe(CROWD);
+        expect(longOpponent('torcida', 0, 'jogo', []).crowd).toBe(CROWD_ROUTE_START);
+        expect(longOpponent('torcida', 2, 'jogo', []).crowd).toBe(CROWD_ROUTE_START);
+        expect(longOpponent('torcida', 3, 'jogo', []).crowd).toBe(CROWD);
+        expect(longOpponent('torcida', 7, 'final', []).crowd).toBe(CROWD);
+    });
+
+    it('carta = campo: o modificador sai com o rótulo e o fator', () => {
+        const o = buildCupOpponents('torcida')[0];
+        const m = attributeModifiers(o.lineup[0], { crowd: o.crowd }).find((x) => x.source === 'torcida');
+        expect(m).toMatchObject({ factor: CROWD, attrs: 'all', label: 'Torcida a favor: −4%' });
+    });
+
+    it('não vaza pro x1: a receita do Duelo e da Liga não leva a torcida', () => {
+        expect(teamFromRecipe(teamRecipe(buildCupOpponents('torcida')[0]), 'a').crowd).toBeUndefined();
+    });
+
+    it('o rival evolui com a mesma barra do jogador', () => {
+        expect(evoNeeded(1)).toBe(EVO_THRESHOLD);
     });
 });

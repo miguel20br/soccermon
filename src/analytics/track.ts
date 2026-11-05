@@ -1,6 +1,7 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
 import { type GameState, liveOf, useGame } from '../store/game-store';
 import { seenCount } from '../store/profile';
+import { lineupAverage } from '../ui/rating';
 
 /**
  * Estatísticas anônimas do jogo, gravadas na tabela `game_events` do Supabase (só inserir; ninguém lê
@@ -193,8 +194,15 @@ function onChange(s: GameState, prev: GameState) {
         }
         if (run.results.length > old.results.length) {
             const r = run.results.at(-1)!;
+            const rival = old.opponents[r.stage];
             track('match_end', {
                 stage: r.stage,
+                // diferença de nota (seu time - rival): é o que mede a zebra de verdade
+                delta:
+                    old.lockedTeam && rival
+                        ? lineupAverage(old.lockedTeam.lineup, old.lockedTeam.formation) -
+                          lineupAverage(rival.lineup, rival.formation)
+                        : null,
                 mode: run.mode ?? null,
                 won: r.won,
                 gf: r.score[0],

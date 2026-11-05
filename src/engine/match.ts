@@ -166,13 +166,14 @@ interface TeamBonuses {
     sponsors?: readonly string[];
     /** Perdendo no placar agora (Charanga de Pewter). */
     losing?: boolean;
+    crowd?: number;
 }
 
 /** Bônus pela escalação de agora (`lineup`): capitão substituído leva a aura junto. */
 function teamBonuses(lineup: readonly PokemonInstance[], setup: TeamSetup, losing = false): TeamBonuses {
     const captain = lineup.find((p) => p.uid === setup.captainUid) ?? null;
     const rest = [...setup.lineup, ...setup.bench].filter((p) => !lineup.some((l) => l.uid === p.uid));
-    return { lineup, rest, links: computeLinks(lineup), captain, sponsors: setup.sponsors, losing };
+    return { lineup, rest, links: computeLinks(lineup), captain, sponsors: setup.sponsors, losing, crowd: setup.crowd };
 }
 
 const bonusesOf = (s: MatchState, team: 0 | 1) =>

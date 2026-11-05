@@ -16,7 +16,8 @@ const EXPECTED_HASHES = [
     'cf5a90bc',
     'd591c5c9',
     '744e69e4',
-    '0cefc209',
+    // motor 27: o rival evolui com a mesma barra do jogador (esta partida tinha evolução do rival)
+    '406ebeef',
     '02a85fc8',
     '50785a42',
     // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro

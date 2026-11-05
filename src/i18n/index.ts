@@ -223,6 +223,8 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
             return fmt(c.mod.storySynergy, { pct: pct(f) });
         case 'posicao':
             return fmt(c.mod.offPosition, { pct: pct(f) });
+        case 'torcida':
+            return fmt(c.mod.crowd, { pct: pct(f) });
         default:
             return m.label;
     }

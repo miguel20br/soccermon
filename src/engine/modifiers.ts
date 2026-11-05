@@ -27,7 +27,8 @@ export type ModSource =
     | 'sinergia'
     | 'historia'
     | 'posicao'
-    | 'patrocinio';
+    | 'patrocinio'
+    | 'torcida';
 
 export interface AttrModifier {
     source: ModSource;
@@ -61,6 +62,8 @@ export interface TeamContext {
     sponsors?: readonly string[];
     /** O time perde no placar agora (Charanga de Pewter). Fora da partida é sempre falso. */
     losing?: boolean;
+    /** `TeamSetup.crowd`. */
+    crowd?: number;
 }
 
 const ALL: AttrKey[] = [
@@ -173,6 +176,8 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
         if (link > 1)
             mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
     }
+    if (ctx.crowd)
+        mods.push({ source: 'torcida', label: `Torcida a favor: ${pct(ctx.crowd)}`, attrs: 'all', factor: ctx.crowd });
     if (ctx.role) {
         const base = computeAttributes(sp, inst.level);
         const f = positionFactor(instancePositions(inst, base), ctx.role, base);

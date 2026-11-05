@@ -33,6 +33,8 @@ export interface TeamSetup {
     formation?: FormationId;
     /** uid do capitão (dá aura ao time). */
     captainUid?: string | null;
+    /** Torcida a favor do jogador (só rivais da Copa e da Rota; Duelo e Liga não têm): multiplica os atributos do time. */
+    crowd?: number;
     /** Só o técnico troca (time do jogador): sem substituição automática no intervalo. */
     manualSubs?: boolean;
     /** Instrução de escanteio (padrão: Variar). */

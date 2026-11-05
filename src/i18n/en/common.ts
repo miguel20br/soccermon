@@ -333,6 +333,7 @@ export const common: typeof pt = {
         typeSynergy: 'Type synergy: {pct}',
         storySynergy: 'Story synergy: {pct}',
         offPosition: 'Out of position: {pct}',
+        crowd: 'Home crowd: {pct}',
         moveBoost: '{name}: +{n}%',
         choiceLocked: 'Choice Band: locked',
         taughtMove: 'Trained move (TM): +{n}%',

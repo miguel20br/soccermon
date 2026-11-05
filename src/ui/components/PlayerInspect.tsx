@@ -108,6 +108,7 @@ export function PlayerInspect({
         role: who.role,
         sponsors: setup.sponsors,
         losing: behind > 0,
+        crowd: setup.crowd,
     });
     // mesma conta do motor (effective.ts: 0.72 + 0.28 × fôlego)
     const fatigue = Math.round(0.28 * (1 - energy) * 100);

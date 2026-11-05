@@ -334,6 +334,7 @@ export const common = {
         typeSynergy: 'Sinergia de tipo: {pct}',
         storySynergy: 'Sinergia de história: {pct}',
         offPosition: 'Fora da posição: {pct}',
+        crowd: 'Torcida a favor: {pct}',
         moveBoost: '{name}: +{n}%',
         choiceLocked: 'Choice Band: travado',
         taughtMove: 'Golpe treinado (MT): +{n}%',

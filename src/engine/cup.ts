@@ -115,6 +115,13 @@ export const CLUBS: ClubTemplate[] = [
 /** Titulares do tipo do líder no time do ginásio (o treinador da Rota tem 3: o líder é o mais temático). */
 export const GYM_THEME_MIN = 4;
 
+/**
+ * Torcida a favor (Miguel, 05/11/2026: menos zebra contra o jogador, só no PVE): os rivais da Copa e da Rota jogam com
+ * os atributos x isso; a Rota começa com o time de pré-evoluções, então as 3 primeiras partidas têm mais.
+ */
+export const CROWD = 0.96;
+export const CROWD_ROUTE_START = 0.93;
+
 export const CUP_STAGES = ['Oitavas de final', 'Quartas de final', 'Semifinal', 'Final'];
 const STAGE_DIFFICULTY = [-2, 0, 2, 4];
 
@@ -146,6 +153,7 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
             color: club.color,
             formation: club.formation,
             captainUid: d.captainUid,
+            crowd: CROWD,
         };
     });
 }

@@ -30,11 +30,12 @@ const ROLE_SCALE: Record<Position, number> = { GK: 1.5, FIXO: 3.5, ALA: 0.7, PIV
 /**
  * Pontos para evoluir. O seu time acumula a barra entre as partidas da copa (`PokemonInstance.evo`), então o
  * limiar é mais alto (decidido com o Miguel em 16/10/2026: ~1,24 evolução por copa, era ~1; 15 → 14 no Bloco 2 do
- * balanceamento, 17/10, com a promessa no draft: ~1,2 por copa para quem escolhe pela nota evoluída). O rival não acumula
- * e continua com o limiar de uma partida só (~1 em cada 4 que podem evoluir chega lá).
+ * balanceamento, 17/10, com a promessa no draft: ~1,2 por copa para quem escolhe pela nota evoluída). O rival não acumula:
+ * o limiar dele vale pra uma partida só.
  */
 export const EVO_THRESHOLD = 14;
-export const RIVAL_EVO_THRESHOLD = 10;
+/** O rival evolui com a mesma barra que você (Miguel, 05/11/2026: era 10 contra 14, zebra contra o jogador). */
+export const RIVAL_EVO_THRESHOLD = EVO_THRESHOLD;
 /** Clube Formador de Pallet (Patrocínio): o seu time evolui com 10 em vez de 14 (Miguel, 23/10/2026). */
 export const FORMADOR_EVO_THRESHOLD = 10;
 
