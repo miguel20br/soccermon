@@ -1,5 +1,27 @@
 # Novidades
 
+## 0.9.42 · Monotipo (2026-11-05)
+
+### Sinergia de monotipo
+- Os 5 em quadra do mesmo tipo: Monotipo, +10% ⇒ +12%
+- Com o banco do tipo: 6 no elenco +16% e 7 no elenco +22%
+- Selo próprio e as cartas do tipo brilham na cor dele
+- O teto de +15% das sinergias saiu: tipo e história somam inteiros
+
+### Líderes de ginásio
+- Time do líder com pelo menos 4 titulares do tipo dele, e o capitão também do tipo
+- Nada de contra-tipo nem lendário de fora no time do ginásio (sem Charizard na Misty)
+- Quando o rival vem de monotipo, o treinador avisa antes do jogo
+- Oitavas um pouco mais tranquilas; a Liga Índigo continua levando quem quiser
+
+### Telas mais arrumadas
+- Escalação: tática, formação e bola parada em linhas que abrem; sinergias só quando existem
+- Resultado com um botão principal e cada carta uma vez só
+- Partida no PC cabe na tela, abre nos Lances, e escanteio e goleiro-linha ficam na aba Time
+- No celular, o botão do golpe máximo mostra os 3 gomos de nível
+- Estádio, menu de modos, Ajuda, Perfil, Sede e Configurações com menos repetição
+- Uma dica por vez entre Resultado, Recompensa e Mercado
+
 ## 0.9.41.1 · Fim da Rota (2026-11-04)
 
 ### Rota Índigo

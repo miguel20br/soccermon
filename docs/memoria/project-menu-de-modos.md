@@ -37,3 +37,7 @@ Menu de modos: **C (Smash) aprovado, adaptado pro celular** (branch `menu-smash`
 Ultimate Team do FC 27 antes), 2 Liga separada, 3 sim (temporada atravessa o Natal), 4 sem limite duro (rival acompanha a média, nível escolhido, objetivos com restrição):
 "a dificuldade é o limite", 5 moeda = Fichas, 6 ok (prata com química empata com ouro sem química).
 
+
+**31/10/2026:** pediu **temporada longa com eventos no meio e reset anual ou semestral** (no lugar das 6 semanas).
+Eu recomendei semestral (T1 27/11 → maio, T2 jun → nov), eventos de 2–3 semanas (Natal = 1º evento). **01/11: ele
+aprovou semestral.** Pesquisa do FC 27 já no plano (`docs/planos/ultimate-team.md`, branch golpe-universal).

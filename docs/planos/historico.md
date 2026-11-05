@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.42 · Monotipo (05/11/2026)
+
+Motor 24: sinergia de monotipo (5 em quadra do mesmo tipo +12%, 6 no elenco +16%, 7 +22%; `rest` do elenco no `TeamContext`), sem o teto de +15% de tipo × história; líderes de ginásio temáticos (4 titulares do tipo, capitão do tipo, sem contra-tipo nem lendário fora do tipo, Final da Liga livre; oitavas -2 com 1 item; fala de monotipo no VERSUS). As 26 mudanças da revisão de organização de telas (Escalação em linhas-resumo com sheet, Resultado enxuto, partida no PC em 900 px com escanteio e goleiro-linha na aba Time, Perfil só o cartão, Ajuda em 4 blocos, uma dica por sequência). Números em `balanceamento-geral.md`.
+
 ## 0.9.41.1 · Fim da Rota (04/11/2026)
 
 Nova copa no resultado do fim da Rota derrubava no ErrorBoundary (a tela saindo segurava a partida velha com a Rota nova sem rivais): `useHeldPair` em `src/ui/use-held.ts` segura copa e partida juntas. Campeão da Rota conquista a Liga Índigo. Atalho `?demo=rota-fim&venceu=1|0`.

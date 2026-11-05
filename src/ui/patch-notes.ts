@@ -9,6 +9,42 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.42',
+        date: '2026-11-05',
+        title: 'Monotipo',
+        sections: [
+            {
+                title: 'Sinergia de monotipo',
+                lines: [
+                    'Os 5 em quadra do mesmo tipo: Monotipo, +10% ⇒ +12%',
+                    'Com o banco do tipo: 6 no elenco +16% e 7 no elenco +22%',
+                    'Selo próprio e as cartas do tipo brilham na cor dele',
+                    'O teto de +15% das sinergias saiu: tipo e história somam inteiros',
+                ],
+            },
+            {
+                title: 'Líderes de ginásio',
+                lines: [
+                    'Time do líder com pelo menos 4 titulares do tipo dele, e o capitão também do tipo',
+                    'Nada de contra-tipo nem lendário de fora no time do ginásio (sem Charizard na Misty)',
+                    'Quando o rival vem de monotipo, o treinador avisa antes do jogo',
+                    'Oitavas um pouco mais tranquilas; a Liga Índigo continua levando quem quiser',
+                ],
+            },
+            {
+                title: 'Telas mais arrumadas',
+                lines: [
+                    'Escalação: tática, formação e bola parada em linhas que abrem; sinergias só quando existem',
+                    'Resultado com um botão principal e cada carta uma vez só',
+                    'Partida no PC cabe na tela, abre nos Lances, e escanteio e goleiro-linha ficam na aba Time',
+                    'No celular, o botão do golpe máximo mostra os 3 gomos de nível',
+                    'Estádio, menu de modos, Ajuda, Perfil, Sede e Configurações com menos repetição',
+                    'Uma dica por vez entre Resultado, Recompensa e Mercado',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.41.1',
         date: '2026-11-04',
         title: 'Fim da Rota',
@@ -2498,6 +2534,42 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.42',
+        date: '2026-11-05',
+        title: 'Monotype',
+        sections: [
+            {
+                title: 'Monotype synergy',
+                lines: [
+                    'All 5 on court of the same type: Monotype, +10% ⇒ +12%',
+                    'With the bench of that type: 6 in the squad +16% and 7 in the squad +22%',
+                    'Its own badge, and the cards of that type glow in its color',
+                    'The +15% synergy cap is gone: type and story synergies stack in full',
+                ],
+            },
+            {
+                title: 'Gym Leaders',
+                lines: [
+                    "Leader teams have at least 4 starters of the leader's type, and a captain of that type",
+                    'No counter-types or off-type legendaries in gym teams (no Charizard for Misty)',
+                    'When the rival brings a monotype team, the trainer warns you before kick-off',
+                    'Round of 16 a bit easier; the Indigo League still brings whoever it wants',
+                ],
+            },
+            {
+                title: 'Tidier screens',
+                lines: [
+                    'Lineup: tactic, formation and set pieces in rows that open; synergies only when there are any',
+                    'Result with one main button and each card shown once',
+                    'Match on PC fits the screen, opens on Plays, and corners and fly goalkeeper live in the Team tab',
+                    'On phones, the max move button shows its 3 level pips',
+                    'Stadium, mode menu, Help, Profile, Club and Settings with less repetition',
+                    'One tip at a time across Result, Reward and Shop',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.41.1',
         date: '2026-11-04',
