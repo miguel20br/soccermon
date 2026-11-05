@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.42.2 · Capitão chamado (2026-11-05)
+
+### Golpe máximo
+- Chamou o capitão num ataque: agora ala e pivô também conduzem até a zona e chutam, como o fixo já fazia
+- O time passa mais a bola pro capitão chamado
+- Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo
+
 ## 0.9.42.1 · Bicuda sempre sai (2026-11-05)
 
 ### Goleiro capitão

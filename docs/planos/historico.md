@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.42.2 · Capitão chamado (05/11/2026)
+
+Motor 26: capitão de linha chamado conduz até a zona em qualquer vaga (antes só o fixo) e o time passa mais pra ele (ala/pivô +0,35 ⇒ +0,8; fixo +0,08 ⇒ +0,3); a bicuda armada continua pro próximo chute se o do rival não chega no goleiro. O técnico IA só usa a hora certa e não muda. Números em `balanceamento-geral.md`.
+
 ## 0.9.42.1 · Bicuda sempre sai (05/11/2026)
 
 Motor 25: a bicuda do goleiro capitão sai em qualquer toque (o toque só gradua a força); N1/N2 sempre lançam pro companheiro, inclusive no counter; N3 sempre chuta no gol (o duelo da bicuda pede toque bom ou perfeito). Antes o toque fora virava a defesa de sempre e gastava a barra (relatos de "N3 defendendo em vez de chutar"). Simulação, N3 do goleiro com toque fora: 0% ⇒ 67% de gol.

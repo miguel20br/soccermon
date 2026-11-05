@@ -9,6 +9,21 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.42.2',
+        date: '2026-11-05',
+        title: 'Capitão chamado',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Chamou o capitão num ataque: agora ala e pivô também conduzem até a zona e chutam, como o fixo já fazia',
+                    'O time passa mais a bola pro capitão chamado',
+                    'Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.42.1',
         date: '2026-11-05',
         title: 'Bicuda sempre sai',
@@ -2548,6 +2563,21 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.42.2',
+        date: '2026-11-05',
+        title: 'Called captain',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Called your captain during an attack: wingers and pivots now also carry the ball into the zone and shoot, as defenders already did',
+                    'The team passes more to the called captain',
+                    "Big boot: if the rival's shot doesn't reach the keeper, it stays ready for the next one",
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.42.1',
         date: '2026-11-05',

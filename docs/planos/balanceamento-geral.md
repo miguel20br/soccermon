@@ -254,3 +254,10 @@ Time monotipo contra time do mesmo nível (8 tipos × 200, ±1,2 pp; o monotipo 
 +15% 60%, +20% 65%, +25% 70%. Copa por fase (600 copas, `scripts/balance/cup.ts`, ±2–4 pp): antes 73/64/54/42%,
 título 11%; depois 81/58/51/60%, título 14%. Ressalvas: a final ficou acima da meta (50–55%) e as quartas abaixo;
 a Rota não foi medida por fase.
+
+## Capitão chamado (05/11/2026, motor 26)
+
+Relatos de "N3 não chuta": o golpe chamado num ataque esperava o capitão chutar da zona. N3 chamado saindo em até 30 s
+(116 casos): 54% ⇒ 86%; mediana entre os que saíram ~6 s ⇒ ~4 s. Jogador que chama em todo ataque, toque bom (240 partidas, ±3 pp):
+V/E/D 52/16/32 ⇒ 62/10/28, gols 4,40 x 3,70 ⇒ 4,94 x 3,90, golpes por jogo 2,74 ⇒ 3,44. Quem puxa o ganho é a condução,
+não o passe (só a condução: 63/10/28). `calibrate --agencia` igual: o técnico IA só usa a hora certa.
