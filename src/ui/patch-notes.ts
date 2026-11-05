@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.42.1',
+        date: '2026-11-05',
+        title: 'Bicuda sempre sai',
+        sections: [
+            {
+                title: 'Goleiro capitão',
+                lines: [
+                    'A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)',
+                    'N1 e N2 sempre cruzam pro companheiro, inclusive contra o golpe máximo do rival; o N3 sempre chuta no gol',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.42',
         date: '2026-11-05',
         title: 'Monotipo',
@@ -2534,6 +2548,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.42.1',
+        date: '2026-11-05',
+        title: 'The big boot always goes',
+        sections: [
+            {
+                title: 'Keeper captain',
+                lines: [
+                    'The big boot goes even when the tap is off the beat, just weaker (before, the keeper only saved and the bar was gone)',
+                    "L1 and L2 always send a long ball to a teammate, even against the rival's max move; L3 always shoots at goal",
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.42',
         date: '2026-11-05',

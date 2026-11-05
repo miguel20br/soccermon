@@ -110,16 +110,16 @@ describe('duelo da bicuda (motor 21)', () => {
         expect(seen).toBeGreaterThan(5);
     });
 
-    it('toque fora não segura: vira a defesa de sempre, sem duelo', () => {
-        let misses = 0;
+    it('toque fora não segura: sem duelo, é a bicuda N3 de sempre no gol rival (mais fraca)', () => {
+        let kicks = 0;
         for (let k = 0; k < 20; k++) {
             const s = duelWith(`sd-q0-${k}`, 3, 0);
-            if (of(s, 'max').some((e) => e.team === 1 && e.phase === 'miss')) {
-                misses++;
+            if (of(s, 'max').some((e) => e.team === 1 && e.phase === 'hit' && e.q === 0)) {
+                kicks++;
                 expect(of(s, 'showdown')).toHaveLength(0);
             }
         }
-        expect(misses).toBeGreaterThan(0);
+        expect(kicks).toBeGreaterThan(0);
     });
 
     it('sem duelo fora do N3 contra N3: a bicuda N1/N2 contra o N3 e a N3 contra o N2 são o counter de sempre', () => {

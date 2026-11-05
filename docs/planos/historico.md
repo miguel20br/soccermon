@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.42.1 · Bicuda sempre sai (05/11/2026)
+
+Motor 25: a bicuda do goleiro capitão sai em qualquer toque (o toque só gradua a força); N1/N2 sempre lançam pro companheiro, inclusive no counter; N3 sempre chuta no gol (o duelo da bicuda pede toque bom ou perfeito). Antes o toque fora virava a defesa de sempre e gastava a barra (relatos de "N3 defendendo em vez de chutar"). Simulação, N3 do goleiro com toque fora: 0% ⇒ 67% de gol.
+
 ## 0.9.42 · Monotipo (05/11/2026)
 
 Motor 24: sinergia de monotipo (5 em quadra do mesmo tipo +12%, 6 no elenco +16%, 7 +22%; `rest` do elenco no `TeamContext`), sem o teto de +15% de tipo × história; líderes de ginásio temáticos (4 titulares do tipo, capitão do tipo, sem contra-tipo nem lendário fora do tipo, Final da Liga livre; oitavas -2 com 1 item; fala de monotipo no VERSUS). As 26 mudanças da revisão de organização de telas (Escalação em linhas-resumo com sheet, Resultado enxuto, partida no PC em 900 px com escanteio e goleiro-linha na aba Time, Perfil só o cartão, Ajuda em 4 blocos, uma dica por sequência). Números em `balanceamento-geral.md`.

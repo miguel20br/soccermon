@@ -413,7 +413,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 p: '**Na hora certa:** com capitão de linha, o botão acende com a bola no pé dele perto do gol, e o golpe sai na hora. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
             },
             {
-                p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora: a defesa de sempre, e a barra se vai.',
+                p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora da hora: a bicuda sai do mesmo jeito, só que mais fraca.',
             },
             {
                 p: 'O status do N1 e o efeito do N3 vêm do tipo do golpe, se ele for de um tipo do Pokémon (senão, do 1º tipo dele):',

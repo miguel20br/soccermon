@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.42.1 · Bicuda sempre sai (2026-11-05)
+
+### Goleiro capitão
+- A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)
+- N1 e N2 sempre cruzam pro companheiro, inclusive contra o golpe máximo do rival; o N3 sempre chuta no gol
+
 ## 0.9.42 · Monotipo (2026-11-05)
 
 ### Sinergia de monotipo

@@ -3568,19 +3568,16 @@ function updateMax(s: MatchState) {
  * um chute no gol do rival (qualquer um, golpe máximo inclusive) e devolve com o golpe máximo. N3 é um chute N3 no gol
  * rival (sempre no alvo, derruba a linha, efeito do tipo), mas o goleiro rival defende como num chute normal; N1 e N2 são
  * um lançamento forte pro companheiro mais à frente no campo rival (sem ninguém lá, pro espaço), e o N2 derruba quem
- * está no caminho. Contra o golpe máximo do rival (o counter), N1 e N2 também chutam no gol, com a força do nível. Vale
- * como defesa. Toque fora (`q` 0): gasta a barra e devolve false (a defesa de sempre desse chute).
+ * está no caminho; também contra o golpe máximo do rival. Vale como defesa. O toque só muda a força: fora (`q` 0) a
+ * bicuda sai mais fraca, mas sai (Miguel, 05/11/2026: "N1 e N2 sempre o cruzamento, N3 sempre bicuda pro gol"; antes o
+ * toque fora virava a defesa de sempre e gastava a barra, e parecia que o goleiro defendia em vez de chutar).
  */
 function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: ShotInfo, arm: MaxArm): boolean {
     const ball = s.ball;
-    if (arm.q === 0) {
-        s.teams[gk.team].agency.max = null;
-        emit(s, { type: 'max', team: gk.team, by: gk.idx, phase: 'miss', ...maxTag(arm) });
-        return false;
-    }
     gk.stats.saves++;
-    // bicuda N3 contra o N3 do rival (motor 21): ele segura e a partida para no duelo da bicuda (`startShowdown`)
-    if (s.cfg.showdown && arm.level === 3 && shot.max?.level === 3) {
+    // bicuda N3 contra o N3 do rival (motor 21): ele segura e a partida para no duelo da bicuda (`startShowdown`);
+    // o duelo pede toque bom ou perfeito, com toque fora é a bicuda N3 de sempre
+    if (s.cfg.showdown && arm.level === 3 && shot.max?.level === 3 && arm.q > 0) {
         emit(s, { type: 'save', by: gk.idx, shooter: shooter.idx, caught: true });
         startShowdown(s, gk, shooter, arm);
         return true;
@@ -3592,8 +3589,8 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     ball.vz = 0;
     maxStatusOn(s, shot, gk);
     const gy = s.cfg.pitch.width / 2;
-    // o counter (Miguel 01/11/2026): contra o golpe máximo do rival, a bicuda vai no gol em todo nível
-    if (arm.level === 3 || shot.max) {
+    // N3: a bicuda vai no gol rival (contra o golpe máximo do rival também)
+    if (arm.level === 3) {
         kick(s, gk, 'shot', v(goalXFor(s, gk.team), gy), 1, undefined, 1, arm);
         // o goleiro rival defende como num chute normal (alcance, chance e a isca do Inseto)
         const out = s.ball.shot;
@@ -3615,7 +3612,7 @@ function bicuda(s: MatchState, gk: PlayerState, shooter: PlayerState, shot: Shot
     });
     const mate = aheadMate(s, gk, s.cfg.pitch.length / 2);
     const to = mate ? mate.pos : toWorld(s, gk.team, s.cfg.pitch.length * 0.7, gy);
-    kick(s, gk, 'pass', to, 1.3, mate?.idx);
+    kick(s, gk, 'pass', to, maxGraded(1.3, arm.q), mate?.idx);
     if (arm.level === 2) maxKnock(s, gk, to);
     return true;
 }

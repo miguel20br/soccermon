@@ -392,7 +392,7 @@ export const help: typeof pt = {
                     p: '**At the right time:** with an outfield captain, the button lights up when he has the ball near goal, and the move goes off right away. {maxTiming} Shortcut: M. **Wait** saves it for the next level.',
                 },
                 {
-                    p: "**Keeper captain:** his move is the **big boot**. The button only lights up on a rival shot he is going to reach. On the tap, instead of saving, he sends it back: at L1 and L2 as a long ball up the pitch (L2 knocks down anyone in the way); at L3, straight at the rival's goal. A miss: the usual save, and the bar is gone.",
+                    p: "**Keeper captain:** his move is the **big boot**. The button only lights up on a rival shot he is going to reach. On the tap, instead of saving, he sends it back: at L1 and L2 as a long ball up the pitch (L2 knocks down anyone in the way); at L3, straight at the rival's goal. Off the beat: the big boot still goes, just weaker.",
                 },
                 {
                     p: "The L1 status and the L3 effect come from the move's type, if it is one of the Pokémon's types (otherwise, its first type):",

@@ -234,15 +234,13 @@ describe('bicuda do goleiro capitão: o golpe máximo dele é o parry (motor 17)
         }
     });
 
-    it('toque fora: gasta a barra (max "miss") e vira a defesa de sempre daquele chute, sem bicuda', () => {
+    it('toque fora: a bicuda sai mesmo assim, mais fraca (Miguel 05/11: N1/N2 sempre cruzam, N3 sempre chuta)', () => {
         for (const s of reached(2, 'fora', 0)) {
-            idle(s, 20);
-            expect(of(s, 'max')).toEqual([expect.objectContaining({ by: 0, team: 0, phase: 'miss', level: 2, q: 0 })]);
+            expect(of(s, 'max')).toEqual([expect.objectContaining({ by: 0, team: 0, phase: 'hit', level: 2, q: 0 })]);
             expect(s.teams[0].agency.max).toBeNull();
-            expect(of(s, 'shot').some((e) => e.by === 0)).toBe(false);
-            expect(s.ball.lastKick?.kind === 'pass' && s.ball.lastKick.by === 0).toBe(false);
-            expect(of(s, 'save').some((e) => e.by === 0) || of(s, 'goal').length > 0).toBe(true);
+            expect(s.ball.lastKick).toMatchObject({ by: 0, kind: 'pass' });
         }
+        for (const s of reached(3, 'fora3', 0)) expect(s.ball.shot).toMatchObject({ by: 0, max: { level: 3 } });
     });
 
     it('vale contra o golpe máximo do rival também (não existe parry à parte)', () => {
@@ -522,15 +520,16 @@ describe('defesa do golpe máximo: nunca encaixa (Miguel, 01/11/2026)', () => {
         expect(AGENCY.maxParry.post).toBeGreaterThan(0);
     });
 
-    it('counter: só o goleiro capitão com o golpe armado devolve, e com a bicuda no gol (N1 também)', () => {
+    it('counter: só o goleiro capitão com o golpe armado devolve, e no N1 é o lançamento (só o N3 vai no gol)', () => {
         const counters = saved(1, 'counter', 30, true, true);
         expect(counters.length).toBeGreaterThan(0);
         for (const { s } of counters) {
             const save = of(s, 'save').find((e) => e.by === 5)!;
             expect(save.parry).toBeUndefined();
             expect(of(s, 'max').find((e) => e.team === 1)).toMatchObject({ by: 5, phase: 'hit', tick: save.tick });
-            // o chute da bicuda sai no mesmo tick, rumo ao gol do time 0 (x = 0)
-            expect(of(s, 'shot').some((e) => e.by === 5 && e.tick === save.tick)).toBe(true);
+            // N1: o lançamento pro companheiro sai no mesmo tick, sem chute no gol
+            expect(of(s, 'shot').some((e) => e.by === 5 && e.tick === save.tick)).toBe(false);
+            expect(s.ball.lastKick).toMatchObject({ by: 5, kind: 'pass', tick: save.tick });
         }
         // sem a condição (goleiro não é capitão, ou é capitão sem nada armado), espalma
         for (const [gkCaptain, armed] of [
