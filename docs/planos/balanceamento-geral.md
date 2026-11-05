@@ -261,3 +261,23 @@ Relatos de "N3 não chuta": o golpe chamado num ataque esperava o capitão chuta
 (116 casos): 54% ⇒ 86%; mediana entre os que saíram de 4–10 s ⇒ 4–6 s (amostra em oitavos, conta grossa). Jogador que chama em todo ataque, toque bom (240 partidas, ±3 pp):
 V/E/D 52/16/32 ⇒ 62/10/28, gols 4,40 x 3,70 ⇒ 4,94 x 3,90, golpes por jogo 2,74 ⇒ 3,44. Quem puxa o ganho é a condução,
 não o passe (só a condução: 63/10/28). `calibrate --agencia` igual: o técnico IA só usa a hora certa.
+
+## Torcida a favor (05/11/2026, motor 27)
+
+Miguel: menos zebra contra o jogador no PVE, x1 equilibrado. Aprovado: rival evolui com 14 (era 10), `crowd` −4% na Copa e na
+Rota, −7% nas 3 primeiras da Rota, visível no painel do rival, Time Ultimate de fora.
+
+Real, 14 dias: Copa 77/74/62/59%, Rota 52/57/56/61/63/60/68/71%, título 20% nas duas (quase tudo antes da 0.9.42).
+
+| Simulação | Antes | Depois |
+|---|---|---|
+| Só as regras, robô fixo (2.000 partidas, ±2,2 pp), geral | 59% | 67% |
+| Mesma medida, time 0–4 / 5–9 / 10–14 / 15+ melhor | 51/59/63/81% | 64/62/75/88% |
+| Copa inteira, 600 copas, robô da nota | 81/58/51/60%, título 14% | 85/70/60/67%, título 24% |
+| Rota inteira, 200 rotas | 53/47/57/51/43/53/55/68%, título 14% | 68/61/66/65/49/51/57/64%, título 22% |
+
+Ressalvas: o grupo do Planalto segue perto de 50% e a final da Copa passa da meta antiga (50–55%).
+
+Barra de evolução (robô, 600 copas por linha): 14 ⇒ 12 ⇒ 10 quase não muda. Robô da nota 0,36 ⇒ 0,38 por copa; robô que escolhe
+quem evolui 1,95 ⇒ 2,15 ⇒ 2,35. Real na Copa: 0,63 por copa, 39% das copas com alguma, só 20% das cartas escolhidas ainda
+evoluem (estimativa pelo elenco final). A barra segue em 14: o que limita é a escolha no draft.

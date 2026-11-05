@@ -142,9 +142,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (05/11/2026, v0.9.42.2)
+## Estado atual (05/11/2026, v0.9.43)
 
-No ar: 0.9.42.2 (capitão chamado) sobre a 0.9.42 "Monotipo" (`?demo=monotipo&n=7`); UT em 27/11. `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 26 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
+No ar: 0.9.43 "Torcida a favor" (rivais do PVE com `crowd`; `?demo=monotipo&n=7`); UT em 27/11. `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 27 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
 
 ## Armadilhas (o porquê de cada uma)
 

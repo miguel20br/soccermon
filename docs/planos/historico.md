@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.43 · Torcida a favor (05/11/2026)
+
+Motor 27, pedido do Miguel (muita zebra contra o jogador, só no PVE): `TeamSetup.crowd` nos rivais da Copa e da Rota (−4%, −7% nas 3 primeiras da Rota; modificador visível no painel do rival), rival evolui com 14 como o jogador (a Liga também, o fantasma usava 10). Duelo, Liga e Time Ultimate sem torcida. `match_end` registra `delta` (diferença de nota). Números em `balanceamento-geral.md`.
+
 ## 0.9.42.2 · Capitão chamado (05/11/2026)
 
 Motor 26: capitão de linha chamado conduz até a zona em qualquer vaga (antes só o fixo) e o time passa mais pra ele (ala/pivô +0,35 ⇒ +0,8; fixo +0,08 ⇒ +0,3); a bicuda armada continua pro próximo chute se o do rival não chega no goleiro. O técnico IA só usa a hora certa e não muda. Números em `balanceamento-geral.md`.

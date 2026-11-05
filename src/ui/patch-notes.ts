@@ -9,6 +9,22 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.43',
+        date: '2026-11-05',
+        title: 'Torcida a favor',
+        sections: [
+            {
+                title: 'Copa e Rota',
+                lines: [
+                    'Torcida a favor: os rivais jogam com 4% a menos nos atributos ⇒ menos zebra contra você',
+                    'Nas 3 primeiras partidas da Rota, 7% a menos',
+                    'O rival evolui com a mesma barra que você: 10 ⇒ 14',
+                    'Duelo e Liga continuam sem torcida',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.42.2',
         date: '2026-11-05',
         title: 'Capitão chamado',
@@ -2563,6 +2579,22 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.43',
+        date: '2026-11-05',
+        title: 'Home crowd',
+        sections: [
+            {
+                title: 'Cup and Road',
+                lines: [
+                    'Home crowd: rivals play with 4% lower stats ⇒ fewer upsets against you',
+                    'In the first 3 matches of the Road, 7% lower',
+                    'Rivals evolve with the same bar as you: 10 ⇒ 14',
+                    'Duel and League stay without the crowd',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.42.2',
         date: '2026-11-05',

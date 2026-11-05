@@ -1,5 +1,13 @@
 # Novidades
 
+## 0.9.43 · Torcida a favor (2026-11-05)
+
+### Copa e Rota
+- Torcida a favor: os rivais jogam com 4% a menos nos atributos ⇒ menos zebra contra você
+- Nas 3 primeiras partidas da Rota, 7% a menos
+- O rival evolui com a mesma barra que você: 10 ⇒ 14
+- Duelo e Liga continuam sem torcida
+
 ## 0.9.42.2 · Capitão chamado (2026-11-05)
 
 ### Golpe máximo
