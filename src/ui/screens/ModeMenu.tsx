@@ -542,7 +542,7 @@ export function ModeSlices({
     return (
         <div className={`mm-c mm-${look} mm-tvs`}>
             <Head />
-            <div ref={stack} className={`mm-c-stack mm-sel-${sel}`}>
+            <div ref={stack} className={`mm-c-stack mm-sel-${sel}${playable('ultimate') ? ' mm-ut-open' : ''}`}>
                 {ORDER.map((m, n) => (
                     <button
                         type="button"

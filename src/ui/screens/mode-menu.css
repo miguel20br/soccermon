@@ -1118,8 +1118,12 @@ button.mm-card,
     container-type: inline-size;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    /* os "em breve" bem menores que o Clássico (até o Ultimate abrir, 27/11) */
+    /* os "em breve" bem menores que o Clássico (até o Ultimate abrir, 27/11: `.mm-ut-open`) */
     grid-template-rows: 3fr 1fr;
+}
+/* o Ultimate abriu: a fileira de baixo volta a ter altura (os tamanhos menores de tela e o FLIP continuam mandando) */
+.mm-c2 .mm-ut-open {
+    grid-template-rows: 1.75fr 1fr;
 }
 .mm-c2 .mm-c-stack.mm-sel-ultimate,
 .mm-c2 .mm-c-stack.mm-sel-historia {
@@ -1349,6 +1353,9 @@ button.mm-card,
     /* os trancados fechados um tico mais estreitos */
     .mm-slice:not(.mm-s-atual, .on) {
         flex-grow: 0.8;
+    }
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        flex-grow: 1.3;
     }
     .mm-slice-txt,
     .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
