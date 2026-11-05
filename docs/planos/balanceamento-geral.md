@@ -258,6 +258,6 @@ a Rota não foi medida por fase.
 ## Capitão chamado (05/11/2026, motor 26)
 
 Relatos de "N3 não chuta": o golpe chamado num ataque esperava o capitão chutar da zona. N3 chamado saindo em até 30 s
-(116 casos): 54% ⇒ 86%; mediana entre os que saíram ~6 s ⇒ ~4 s. Jogador que chama em todo ataque, toque bom (240 partidas, ±3 pp):
+(116 casos): 54% ⇒ 86%; mediana entre os que saíram de 4–10 s ⇒ 4–6 s (amostra em oitavos, conta grossa). Jogador que chama em todo ataque, toque bom (240 partidas, ±3 pp):
 V/E/D 52/16/32 ⇒ 62/10/28, gols 4,40 x 3,70 ⇒ 4,94 x 3,90, golpes por jogo 2,74 ⇒ 3,44. Quem puxa o ganho é a condução,
 não o passe (só a condução: 63/10/28). `calibrate --agencia` igual: o técnico IA só usa a hora certa.
