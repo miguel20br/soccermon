@@ -141,6 +141,7 @@ export function Home({
                   lineup,
                   roles,
                   u.cards.filter((c) => !lineup.includes(c)),
+                  u.team.order.slice(STARTERS).flatMap((x) => byUid.get(x) ?? []),
               ).avg -
                   1) *
                   100,

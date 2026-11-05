@@ -332,4 +332,11 @@ describe('química (a regra única de bônus)', () => {
         expect(full.avg).toBeGreaterThan(ch.avg);
         expect(ch.players).toHaveLength(STARTERS);
     });
+
+    it('o banco conta pro monotipo, como na partida (carta = campo)', () => {
+        const lineup = [card(8), card(138), card(61), card(117), card(119)];
+        const roles = FORMATIONS['1-2-1'].slots;
+        expect(chemistry(lineup, roles).players[0].chem).toBeCloseTo(1.12);
+        expect(chemistry(lineup, roles, [], [card(7), card(60)]).players[0].chem).toBeCloseTo(1.22);
+    });
 });

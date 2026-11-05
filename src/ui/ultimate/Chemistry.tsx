@@ -25,7 +25,8 @@ export function Chemistry({ u }: { u: UltimateSave }) {
     const lineup = u.team.order.slice(0, STARTERS).flatMap((uid) => byUid.get(uid) ?? []);
     const reserves = u.cards.filter((c) => !lineup.includes(c));
     const roles = FORMATIONS[u.team.formation].slots;
-    const ch = chemistry(lineup, roles, reserves);
+    const bench = u.team.order.slice(STARTERS).flatMap((uid) => byUid.get(uid) ?? []);
+    const ch = chemistry(lineup, roles, reserves, bench);
     const on = ch.types.length + ch.links.length > 0;
     const name = (p: PokemonInstance) => viewInstance(p).displayName;
     return (

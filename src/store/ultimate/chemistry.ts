@@ -23,24 +23,31 @@ export interface Chemistry {
     nearLinks: { def: LinkDef; missing: number[]; owned: PokemonInstance[] }[];
 }
 
-const factor = (inst: PokemonInstance, lineup: PokemonInstance[], role: Position, sources: string[]) =>
-    attributeModifiers(inst, { lineup, role })
+const factor = (
+    inst: PokemonInstance,
+    lineup: PokemonInstance[],
+    rest: readonly PokemonInstance[],
+    role: Position,
+    sources: string[],
+) =>
+    attributeModifiers(inst, { lineup, rest, role })
         .filter((m) => sources.includes(m.source))
         .reduce((f, m) => f * (m.factor ?? 1), 1);
 
-/** `lineup` na ordem das vagas (`roles`); `reserves` = as cartas da coleção fora dos titulares. */
+/** `lineup` na ordem das vagas (`roles`); `reserves` = as cartas da coleção fora dos titulares; `bench` = o banco (conta pro monotipo, como na partida). */
 export function chemistry(
     lineup: PokemonInstance[],
     roles: readonly Position[],
     reserves: readonly PokemonInstance[] = [],
+    bench: readonly PokemonInstance[] = [],
 ): Chemistry {
     const players = lineup.map((p, i) => ({
         uid: p.uid,
-        chem: factor(p, lineup, roles[i], ['sinergia', 'historia']),
-        pos: factor(p, lineup, roles[i], ['posicao']),
+        chem: factor(p, lineup, bench, roles[i], ['sinergia', 'historia']),
+        pos: factor(p, lineup, bench, roles[i], ['posicao']),
     }));
     const avg = players.length ? players.reduce((s, p) => s + p.chem, 0) / players.length : 1;
-    const types = computeSynergies(lineup);
+    const types = computeSynergies(lineup, bench);
     const links = computeLinks(lineup);
     const counts = new Map<string, number>();
     for (const p of lineup) for (const t of species(p.speciesId).types) counts.set(t, (counts.get(t) ?? 0) + 1);
