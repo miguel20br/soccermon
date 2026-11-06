@@ -1538,7 +1538,8 @@
         gap: 2px;
     }
 }
-.ut-level .ut-rival {
+/* na folha o painel perde a moldura (.panel .panel, kit.css), mas a faixa do clube fica: o texto não encosta nela */
+.k-sheet .ut-level .ut-rival {
     padding: 10px 12px 10px 20px;
 }
 .ut-pend-coin {
