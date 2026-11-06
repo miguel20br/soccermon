@@ -547,7 +547,7 @@ export function ModeSlices({
                     <button
                         type="button"
                         key={m}
-                        className={`mm-slice mm-s-${m}${sel === m ? ' on' : ''}`}
+                        className={`mm-slice mm-s-${m}${sel === m ? ' on' : ''}${playable(m) ? '' : ' mm-locked'}`}
                         style={{ '--n': n + 1 } as CSSProperties}
                         onClick={() => open(m)}
                         aria-pressed={sel === m}

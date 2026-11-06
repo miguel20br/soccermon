@@ -8,6 +8,7 @@
  */
 
 import { FUTSAL_5 } from '../../src/engine/config';
+import { cupRival } from '../../src/engine/cup';
 import { species } from '../../src/engine/data';
 import { DEFAULT_FORMATION, FORMATIONS } from '../../src/engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../../src/engine/instance';
@@ -25,7 +26,9 @@ import {
     newUltimate,
     openPack,
     outcomeOf,
+    paidLevel,
     teamAverage,
+    teamStrength,
     type UltimateSave,
     ultimateRival,
 } from '../../src/store/ultimate/ultimate';
@@ -76,13 +79,14 @@ const STAGES: { label: string; make: (salt: string) => UltimateSave }[] = [
 
 function play(u: UltimateSave, level: Level, n: number, salt: string, crowd?: number) {
     const home: TeamSetup = homeTeam(u, 'Eu', 0);
-    const avg = teamAverage(home);
-    const base = ultimateRival(u.salt, n, level, avg);
-    const rival = crowd ? { ...base, crowd } : base;
+    const power = teamStrength(home);
+    const base = ultimateRival(u.salt, n, level, power);
+    // como a tela entra na partida (Home.tsx): o treinador do clube reage
+    const rival = cupRival(crowd ? { ...base, crowd } : base, true);
     const flip = n % 2 === 1;
     const m = runMatch(FUTSAL_5, flip ? rival : home, flip ? home : rival, `${salt}-${n}`, { snapshots: false });
     const score: [number, number] = flip ? [m.score[1], m.score[0]] : [m.score[0], m.score[1]];
-    return { score, gap: teamAverage(rival) - avg };
+    return { score, gap: teamStrength(rival) - power, paid: paidLevel(level, home, rival) };
 }
 
 console.log(`Time Ultimate por nível, ${N} partidas por linha (erro ±${((196 * 0.5) / Math.sqrt(N)).toFixed(1)} pp)`);
@@ -90,26 +94,35 @@ for (const stage of STAGES) {
     const saves = Array.from({ length: SAVES }, (_, i) => stage.make(`ut-niveis-${i}`));
     const homes = saves.map((u) => homeTeam(u, 'Eu', 0));
     const avg = homes.reduce((s, t) => s + teamAverage(t), 0) / SAVES;
-    const chem = saves.reduce((s, u, i) => s + chemistry(homes[i].lineup, FORMATION_SLOTS(u)).avg, 0) / SAVES;
+    const chem =
+        saves.reduce((s, u, i) => s + chemistry(homes[i].lineup, FORMATION_SLOTS(u), [], homes[i].bench).avg, 0) /
+        SAVES;
     const ex = homes[0].lineup.map((p) => `${viewInstance(p).displayName} ${viewInstance(p).overall}`).join(', ');
     console.log(`\n${stage.label}: média ${avg.toFixed(1)}, química do painel ${chem.toFixed(3)} (ex.: ${ex})`);
-    console.log('| Nível | Torcida | V | E | D | Gols | Fichas/jogo | Diferença do rival |');
-    console.log('|---|---|---|---|---|---|---|---|');
+    console.log('| Nível | Torcida | V | E | D | Gols | Fichas/jogo | Diferença de força | Paga o nível |');
+    console.log('|---|---|---|---|---|---|---|---|---|');
     for (const level of LEVELS)
         for (const crowd of CROWDS) {
-            const r = { win: 0, draw: 0, loss: 0, gf: 0, ga: 0, fichas: 0, gap: 0 };
+            const r = { win: 0, draw: 0, loss: 0, gf: 0, ga: 0, fichas: 0, gap: 0, full: 0 };
             for (let i = 0; i < N; i++) {
-                const { score, gap } = play(saves[i % SAVES], level, i, `${stage.label}-${level}-${crowd}`, crowd);
+                const { score, gap, paid } = play(
+                    saves[i % SAVES],
+                    level,
+                    i,
+                    `${stage.label}-${level}-${crowd}`,
+                    crowd,
+                );
                 const out = outcomeOf(score);
                 r[out]++;
                 r.gf += score[0];
                 r.ga += score[1];
-                r.fichas += fichasFor(level, out);
+                r.fichas += fichasFor(paid, out);
+                r.full += paid === level ? 1 : 0;
                 r.gap += gap;
             }
             const pct = (x: number) => `${((x / N) * 100).toFixed(0)}%`;
             console.log(
-                `| ${level} | ${crowd ? '−4%' : 'não'} | ${pct(r.win)} | ${pct(r.draw)} | ${pct(r.loss)} | ${(r.gf / N).toFixed(2)} x ${(r.ga / N).toFixed(2)} | ${(r.fichas / N).toFixed(0)} | ${(r.gap / N).toFixed(1)} |`,
+                `| ${level} | ${crowd ? '−4%' : 'não'} | ${pct(r.win)} | ${pct(r.draw)} | ${pct(r.loss)} | ${(r.gf / N).toFixed(2)} x ${(r.ga / N).toFixed(2)} | ${(r.fichas / N).toFixed(0)} | ${(r.gap / N).toFixed(1)} | ${pct(r.full)} |`,
             );
         }
 }

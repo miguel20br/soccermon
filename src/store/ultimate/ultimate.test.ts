@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ENGINE_VERSION, FUTSAL_5 } from '../../engine/config';
 import { EVO_THRESHOLD } from '../../engine/evolution';
-import { viewInstance } from '../../engine/instance';
+import { DEFAULT_FORMATION } from '../../engine/formations';
+import { createInstance, viewInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { runMatch } from '../../engine/runners/batch-runner';
 import { metalOf } from '../../ui/rarity';
@@ -29,11 +30,13 @@ import {
     nextPackIn,
     openPack,
     packMetals,
+    paidLevel,
     redeem,
     refill,
     rollPack,
     setMember,
     teamAverage,
+    teamStrength,
     ultimateOf,
     ultimateRival,
 } from './ultimate';
@@ -141,11 +144,11 @@ describe('time e partida', () => {
         expect(swapped.captainUid).toBe(u.team.captainUid);
     });
 
-    it('o rival acompanha a média do seu time: mais difícil = rival mais forte', () => {
+    it('o rival acompanha a força do seu time: mais difícil = rival mais forte', () => {
         const u = ready();
-        const avg = teamAverage(homeTeam(u, 'Eu', 0));
+        const avg = teamStrength(homeTeam(u, 'Eu', 0));
         const avgs = (['facil', 'normal', 'dificil', 'mestre'] as const).map((lv) =>
-            teamAverage(ultimateRival(u.salt, 0, lv, avg)),
+            teamStrength(ultimateRival(u.salt, 0, lv, avg)),
         );
         expect(avgs[0]).toBeLessThanOrEqual(avgs[1]);
         expect(avgs[1]).toBeLessThanOrEqual(avgs[3]);
@@ -160,13 +163,39 @@ describe('time e partida', () => {
         for (let i = 0; i < 40; i++) {
             let u = newUltimate(`s${i}`, T0);
             u = openPack(openPack(u, T0)!.u, T0)!.u;
-            const avg = teamAverage(homeTeam(u, 'Eu', 0));
-            expect(teamAverage(ultimateRival(u.salt, 0, 'facil', avg))).toBeLessThan(avg);
+            const avg = teamStrength(homeTeam(u, 'Eu', 0));
+            expect(teamStrength(ultimateRival(u.salt, 0, 'facil', avg))).toBeLessThan(avg);
             for (const lv of ['normal', 'dificil', 'mestre'] as const)
                 expect(
-                    Math.abs(teamAverage(ultimateRival(u.salt, 0, lv, avg)) - avg - LEVEL_GAP[lv]),
+                    Math.abs(teamStrength(ultimateRival(u.salt, 0, lv, avg)) - avg - LEVEL_GAP[lv]),
                 ).toBeLessThanOrEqual(RIVAL_TOLERANCE);
         }
+    });
+
+    it('a química conta na força: o mesmo time com monotipo enfrenta rival mais forte', () => {
+        const water = [7, 8, 9, 54, 55, 60, 61].map((id, i) => ({
+            ...createInstance(id, new Rng('mono', `${i}`)),
+            uid: `w${i}`,
+        }));
+        const team = { lineup: water.slice(0, STARTERS), bench: water.slice(STARTERS), formation: DEFAULT_FORMATION };
+        const strong = teamStrength(team);
+        expect(strong).toBeGreaterThan(teamAverage(team) * 1.15);
+        expect(teamStrength(ultimateRival('mono', 0, 'normal', strong))).toBeGreaterThan(
+            teamStrength(ultimateRival('mono', 0, 'normal', teamAverage(team))),
+        );
+    });
+
+    it('sem rival à altura o nível paga como o que ele alcança, nunca acima do escolhido', () => {
+        const u = ready();
+        const home = homeTeam(u, 'Eu', 0);
+        const near = ultimateRival(u.salt, 0, 'normal', teamStrength(home));
+        expect(paidLevel('mestre', home, near)).toBe('normal');
+        expect(paidLevel('dificil', home, near)).toBe('normal');
+        expect(paidLevel('normal', home, near)).toBe('normal');
+        expect(paidLevel('facil', home, near)).toBe('facil');
+        const strong = ultimateRival(u.salt, 0, 'mestre', teamStrength(home));
+        expect(paidLevel('mestre', home, strong)).toBe('mestre');
+        expect(paidLevel('normal', home, strong)).toBe('normal');
     });
 
     it('Fichas por nível e resultado; o mais difícil paga mais e nenhum paga zero', () => {

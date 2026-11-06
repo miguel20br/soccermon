@@ -14,6 +14,7 @@ import { type Metal, metalOf } from '../../ui/rarity';
 import { lineupAverage } from '../../ui/rating';
 import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
+import { chemistry } from './chemistry';
 import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
 import {
     countObjectives,
@@ -777,28 +778,48 @@ export function homeTeam(u: UltimateSave, name: string, color: number): TeamSetu
 /** Média dos titulares na vaga (a mesma conta do "vs." da Escalação). */
 export const teamAverage = (t: Pick<TeamSetup, 'lineup' | 'formation'>) => lineupAverage(t.lineup, t.formation);
 
-/** O time do clube cuja média chega mais perto do alvo (12 tentativas: dificuldade da IA −2 a 3, duas sementes). */
+/** Força do time em campo: a média na vaga vezes a química (a mesma regra da partida, com o banco no monotipo). */
+export const teamStrength = (t: Pick<TeamSetup, 'lineup' | 'bench' | 'formation'>) =>
+    teamAverage(t) * chemistry(t.lineup, FORMATIONS[t.formation ?? DEFAULT_FORMATION].slots, [], t.bench).avg;
+
+/** Os 12 times que o clube pode montar na partida (dificuldade da IA −2 a 3, duas sementes); a tela pede os 4 níveis. */
+const clubTeams = new Map<string, { team: ReturnType<typeof aiDraftTeam>; strength: number }[]>();
+function teamsOf(salt: string, n: number, club: (typeof CLUBS)[number]) {
+    const key = `${salt}-${n}-${club.name}`;
+    let teams = clubTeams.get(key);
+    if (!teams) {
+        if (clubTeams.size >= CLUBS.length) clubTeams.clear();
+        teams = [-2, -1, 0, 1, 2, 3].flatMap((d) =>
+            [0, 1].map((k) => {
+                const team = aiDraftTeam(new Rng(salt, `ut-rival-${n}-${d}-${k}`), d, club.types, club.formation);
+                return { team, strength: teamStrength({ ...team, formation: club.formation }) };
+            }),
+        );
+        clubTeams.set(key, teams);
+    }
+    return teams;
+}
+
+/** O time do clube cuja força chega mais perto do alvo. */
 function closestTeam(salt: string, n: number, club: (typeof CLUBS)[number], target: number) {
     let best: ReturnType<typeof aiDraftTeam> | null = null;
     let gap = Infinity;
-    for (const d of [-2, -1, 0, 1, 2, 3])
-        for (const k of [0, 1]) {
-            const team = aiDraftTeam(new Rng(salt, `ut-rival-${n}-${d}-${k}`), d, club.types, club.formation);
-            const g = Math.abs(lineupAverage(team.lineup, club.formation) - target);
-            if (g < gap) [best, gap] = [team, g];
-        }
+    for (const { team, strength } of teamsOf(salt, n, club)) {
+        const g = Math.abs(strength - target);
+        if (g < gap) [best, gap] = [team, g];
+    }
     return { team: best!, gap };
 }
 
 /**
- * Rival da IA da partida `n`: um clube de ginásio (a mesma quadra, líder e uniforme da Copa) com o time cuja média
- * chega mais perto da sua + LEVEL_GAP do nível. O clube é sorteado (pela semente e `n`) só entre os que montam um
+ * Rival da IA da partida `n`: um clube de ginásio (a mesma quadra, líder e uniforme da Copa) com o time cuja força
+ * (`teamStrength`) chega mais perto da sua + LEVEL_GAP do nível. O clube é sorteado (pela semente e `n`) só entre os que montam um
  * time a até RIVAL_TOLERANCE do alvo: tem clube sem time fraco o bastante pro Fácil de quem começa (02/11/2026).
  * Nenhum chega? Fica o mais perto. No desafio `gym` o clube é sempre o do líder.
  */
-export function ultimateRival(salt: string, n: number, level: Level, myAvg: number, gym?: string): TeamSetup {
+export function ultimateRival(salt: string, n: number, level: Level, myStrength: number, gym?: string): TeamSetup {
     const gymClub = gym && CLUBS.find((c) => c.name === GYMS.find((g) => g.id === gym)?.club);
-    const target = myAvg + LEVEL_GAP[level];
+    const target = myStrength + LEVEL_GAP[level];
     let pick: { club: (typeof CLUBS)[number]; team: ReturnType<typeof aiDraftTeam>; gap: number } | null = null;
     // a ordem embaralhada e o primeiro que chega: o mesmo que sortear entre os que chegam
     for (const club of gymClub ? [gymClub] : new Rng(salt, `ut-club-${n}`).shuffle([...CLUBS])) {
@@ -816,6 +837,20 @@ export function ultimateRival(salt: string, n: number, level: Level, myAvg: numb
         formation: club.formation,
         captainUid: t.captainUid,
     };
+}
+
+/**
+ * O nível que a partida vale: o escolhido, ou o que o rival alcançou, se nenhum clube chega à altura (time muito forte
+ * no Mestre). Fichas e objetivos seguem este nível, nunca acima do escolhido.
+ */
+export function paidLevel(
+    level: Level,
+    home: Pick<TeamSetup, 'lineup' | 'bench' | 'formation'>,
+    rival: Pick<TeamSetup, 'lineup' | 'bench' | 'formation'>,
+): Level {
+    const gap = teamStrength(rival) - teamStrength(home);
+    const reached = LEVELS.filter((lv) => LEVEL_GAP[lv] <= gap + RIVAL_TOLERANCE).length - 1;
+    return LEVELS[Math.max(0, Math.min(LEVELS.indexOf(level), reached))];
 }
 
 // ------------------------------------------------------------------------------------------------- resultado

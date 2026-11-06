@@ -31,7 +31,9 @@ import {
     nextPackIn,
     type PackKind,
     packsReady,
+    paidLevel,
     teamAverage,
+    teamStrength,
     type UltimateLast,
     ultimateRival,
     ultimateSeed,
@@ -87,10 +89,11 @@ export function Home({
     );
     const ready = canPlay(u);
     const avg = ready ? teamAverage(home) : 0;
-    const rival = useMemo(
-        () => (ready ? ultimateRival(u.salt, u.played, level, avg) : null),
-        [ready, u.salt, u.played, level, avg],
-    );
+    const strength = ready ? teamStrength(home) : 0;
+    const rivalOf = (lv: Level) => ultimateRival(u.salt, u.played, lv, strength);
+    const rival = ready ? rivalOf(level) : null;
+    /** O nível que cada escolha vale de verdade: sem rival à altura, paga como o que ele alcança. */
+    const paid = (lv: Level) => (ready ? paidLevel(lv, home, rivalOf(lv)) : lv);
 
     /** Simula (a mesma seed e as ordens guardadas dão a mesma partida) e abre a quadra. */
     const kick = async () => {
@@ -117,14 +120,14 @@ export function Home({
     };
     const start = () => {
         if (!rival) return;
-        useGame.getState().ultimateStart({ n: u.played, level, home, rival });
+        useGame.getState().ultimateStart({ n: u.played, level: paid(level), home, rival });
         void kick();
     };
     /** Desafio de líder: o clube dele, no Difícil, com a regra conferida na hora. */
     const challenge = (gym: string) => {
         if (!gymReady(u, gym)) return;
         setSheet(null);
-        const r = ultimateRival(u.salt, u.played, GYM_LEVEL, avg, gym);
+        const r = ultimateRival(u.salt, u.played, GYM_LEVEL, strength, gym);
         useGame.getState().ultimateStart({ n: u.played, level: GYM_LEVEL, home, rival: r, gym });
         void kick();
     };
@@ -277,7 +280,7 @@ export function Home({
                             <HudIcon kind="coin" />
                             {t('ultimate.home.levelChip', {
                                 level: d.ultimate.play.levels[level],
-                                n: FICHAS[level].win,
+                                n: FICHAS[paid(level)].win,
                             })}
                             <b>{t('ultimate.home.change')}</b>
                         </button>
@@ -290,7 +293,7 @@ export function Home({
                 {error && <p className="error-text">{error}</p>}
             </section>
             <Sheet open={sheet === 'level'} onClose={() => setSheet(null)} title={t('ultimate.play.level')}>
-                {rival && <LevelPick level={level} onLevel={setLevel} rival={rival} avg={avg} />}
+                {rival && <LevelPick level={level} onLevel={setLevel} rival={rival} strength={strength} paid={paid} />}
             </Sheet>
             <Sheet
                 open={sheet === 'gyms'}
@@ -330,12 +333,14 @@ function LevelPick({
     level,
     onLevel,
     rival,
-    avg,
+    strength,
+    paid,
 }: {
     level: Level;
     onLevel: (lv: Level) => void;
     rival: ReturnType<typeof ultimateRival>;
-    avg: number;
+    strength: number;
+    paid: (lv: Level) => Level;
 }) {
     const { t, d, lang } = useT();
     const u = useGame((s) => s.ultimate);
@@ -368,14 +373,17 @@ function LevelPick({
                     {LEVELS.map((lv) => (
                         <tr key={lv} className={level === lv ? 'on' : undefined}>
                             <th>{d.ultimate.play.levels[lv]}</th>
-                            <td>{FICHAS[lv].win}</td>
-                            <td>{FICHAS[lv].draw}</td>
-                            <td>{FICHAS[lv].loss}</td>
+                            <td>{FICHAS[paid(lv)].win}</td>
+                            <td>{FICHAS[paid(lv)].draw}</td>
+                            <td>{FICHAS[paid(lv)].loss}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
             <small className="muted">{t('ultimate.play.prizeNote')}</small>
+            {paid(level) !== level && (
+                <small>{t('ultimate.play.noRival', { level: d.ultimate.play.levels[paid(level)] })}</small>
+            )}
             <section
                 key={rival.name}
                 className="panel ut-rival bc-surface bc-stripe"
@@ -389,7 +397,8 @@ function LevelPick({
                     ))}
                 </span>
                 <small>
-                    {t('ultimate.play.rivalAvg', { n: teamAverage(rival) })} · {t('ultimate.play.yourAvg', { n: avg })}
+                    {t('ultimate.play.rivalPower', { n: Math.round(teamStrength(rival)) })} ·{' '}
+                    {t('ultimate.play.yourPower', { n: Math.round(strength) })}
                 </small>
                 {u.played > 0 && (
                     <small className="muted">{t('ultimate.play.record', { w: u.wins, d: u.draws, l: u.losses })}</small>

@@ -788,18 +788,18 @@ button.mm-card,
     opacity: 0;
 }
 /* os trancados bem mais escuros: dá pra ver a cena, mas fica claro que ainda não abriu */
-.mm-slice:not(.mm-s-atual) .mm-slice-bg::before {
+.mm-slice.mm-locked .mm-slice-bg::before {
     background: rgb(10 6 28 / 50%);
 }
-.mm-slice:not(.mm-s-atual):is(.on, :hover, :focus-visible) .mm-slice-bg::before {
+.mm-slice.mm-locked:is(.on, :hover, :focus-visible) .mm-slice-bg::before {
     opacity: 0.45;
 }
 /* os trancados em preto e branco (cena, herói, fundo e placa); a faixa e o selo da data seguem no amarelo */
-.mm-slice:not(.mm-s-atual) {
+.mm-slice.mm-locked {
     --mc: #9d9aa6;
     --mc2: #45434d;
 }
-.mm-slice:not(.mm-s-atual) :is(.mm-slice-bg > .mm-sc, .mm-hero) {
+.mm-slice.mm-locked :is(.mm-slice-bg > .mm-sc, .mm-hero) {
     filter: grayscale(1);
 }
 /* o banho da cor do modo por cima da cena (onde vai o nome) */
@@ -1235,6 +1235,12 @@ button.mm-card,
 }
 
 /* celular em pé: itens um tico menores (a Galmuri11 no tamanho dela) e, nas duas de baixo, o nome aberto cabe na fatia */
+/* em pé com altura de sobra, o pacote aberto fica acima do AO VIVO */
+@media (max-width: 899px) and (min-width: 360px) and (min-height: 701px) and (orientation: portrait) {
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        --hb: 116px;
+    }
+}
 @media (max-width: 899px) and (orientation: portrait) {
     .mm-slice .mm-chips > span {
         font-size: 11px;
@@ -1482,6 +1488,11 @@ button.mm-card,
     .mm-slice-txt,
     .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
         right: calc(var(--cut) * 0.6 + 10px);
+    }
+    /* aberto, o pacote sobe pra cima do AO VIVO e do nome */
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        --hb: 118px;
+        --hh: 38%;
     }
 }
 /* o JOGAR fica no polegar; com um trancado aberto, o "Chega em…" toma o lugar dele (os dois na mesma célula) */
