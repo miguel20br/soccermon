@@ -20,7 +20,7 @@ import {
 
 describe('Liga fechada até a data', () => {
     it('abre à meia-noite de Brasília do dia marcado', () => {
-        expect(new Date(LIGA_OPENS_AT).toISOString()).toBe('2026-12-01T03:00:00.000Z');
+        expect(new Date(LIGA_OPENS_AT).toISOString()).toBe('2027-01-12T03:00:00.000Z');
     });
     it('antes da data: contagem em dias, horas e minutos; na hora e depois: aberta', () => {
         const at = Date.parse('2026-12-01T03:00:00Z');

@@ -154,7 +154,7 @@ No ar: 0.9.43 "Torcida a favor" (rivais do PVE com `crowd`; `?demo=monotipo&n=7`
 - **Dev server com `--config`:** `npx vite --config vite/config.dev.mjs --port <porta> --strictPort`; sem o `--config` a Home quebra.
 - **Supabase (painel):** Realtime com "Allow public access" desligado e Auth com "Allow anonymous sign-ins" ligado; desfazer quebra o Duelo ([ADR 0003](docs/adr/0003-duelo-realtime-privado-e-login-anonimo.md)). Migração de produção só com o ok do Miguel.
 - **Modo novo atrás de bandeira até ser jogado na tela** ([ADR 0005](docs/adr/0005-modo-novo-so-no-ar-depois-de-jogado.md)): robô do store não pega bug de tela.
-- **Liga fechada:** reabrir ou adiar = trocar só `LIGA_OPENS_AT` em `src/league/rules.ts` (01/12/2026 00:00 de Brasília, provisória) e publicar.
+- **Liga fechada:** reabrir ou adiar = trocar só `LIGA_OPENS_AT` em `src/league/rules.ts` (12/01/2027 00:00 de Brasília, adiada em 07/11 pra não encostar no Modo Treinador nem no Natal) e publicar.
 - **Versão com 4 partes:** `version` do `package.json` é semver; o número exibido sai de `displayVersion`.
 - **Repo público, sem dinheiro** ([ADR 0006](docs/adr/0006-sem-dinheiro-nenhum.md)): segredos só no `.env.local`; código de título nunca no repo. Supabase grátis pausa após 7 dias parado.
 

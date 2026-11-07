@@ -10,7 +10,7 @@ export const ELO_START = 1000;
  * contagem. **Pra mudar a data, troque só esta linha** (hora de Brasília, UTC−3). Passou dela, a Liga abre sozinha,
  * sem deploy. O `?demo=liga` (dev) entra mesmo fechada.
  */
-export const LIGA_OPENS_AT = Date.parse('2026-12-01T00:00:00-03:00');
+export const LIGA_OPENS_AT = Date.parse('2027-01-12T00:00:00-03:00');
 
 /** Quanto falta pra Liga abrir, em dias, horas e minutos; `null` = aberta. */
 export function ligaCountdown(now = Date.now(), opensAt = LIGA_OPENS_AT) {

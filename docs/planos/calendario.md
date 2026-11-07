@@ -15,7 +15,7 @@ nesse dia é o que vai ao ar.**
 | Quando (Brasília) | O quê | Onde muda a data |
 |---|---|---|
 | sex 27/11/2026 00:00 | Modo Treinador (Time Ultimate) abre pra todo mundo, Temporada 1 começa | `ULTIMATE_OPENS_AT` em `src/ui/ultimate/flag.ts` |
-| ter 01/12/2026 00:00 | Liga abre (data provisória) | `LIGA_OPENS_AT` em `src/league/rules.ts` |
+| ter 12/01/2027 00:00 | Liga abre (adiada em 07/11; era 01/12) | `LIGA_OPENS_AT` em `src/league/rules.ts` |
 | ter 15/12/2026 a 05/01/2027 | Evento de Natal do Modo Treinador (cartas Evento de Gelo, objetivos, enfeite) | `EVENTS` em `src/store/ultimate/rules.ts` |
 | ter 01/06/2027 00:00 | Fim da Temporada 1 (zera o Modo Treinador), começa a T2 "Líderes" | `SEASONS` em `src/store/ultimate/rules.ts` |
 
@@ -29,8 +29,8 @@ nesse dia é o que vai ao ar.**
 | ter 17/11 | 0.9.44 "Véspera do Treinador": números aprovados, polimento do playtest | "pode subir" |
 | 18 a 26/11 | Congelamento do Modo Treinador: só conserto. Trailer do lançamento pronto até ter 24/11 | Miguel aprova o trailer |
 | sex 27/11 | Modo Treinador no ar (sozinho, 00:00); trailer nas redes às 19h | — |
-| 01/12 | Liga abre. **Recomendo adiar pra 12/01/2027**: fica a 4 dias do Modo Treinador e dezembro é só do Natal (combinado em 29/10) | Miguel |
 | ~qui 10/12 | Versão de Natal (o que mais entrar no Natal), pra estar no ar antes do evento do dia 15 | "pode subir" |
+| ter 12/01/2027 | Liga abre sozinha (adiada pelo Miguel em 07/11) | — |
 | 2027 | Modo História | — |
 
 ## Redes
