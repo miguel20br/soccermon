@@ -34,6 +34,25 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 
 (Qua 28/10 às 10h tem o Show HN, fora desta pauta: rascunho em `docs/planos/divulgacao-trailer2.md`.)
 
+## Semanas 4 a 7 (10/11 a 01/12): as duas séries do Pallet FC e o Modo Treinador
+
+Proposto em 07/11 (calendário: `docs/planos/calendario.md`). Animação à mão no molde dos EP 2 e 3, 30 a 45 s,
+música própria no estilo `livre-ditto`, tela final com soccermon.com. Vídeo pronto 2 dias antes, pro Miguel ver.
+Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/yt` no Shorts).
+
+| # | Quando | Série | Episódio | Texto na tela | Status |
+|---|---|---|---|---|---|
+| 13 | ter 10/11 19h | Vestiário do Pallet FC | **O atrasado:** o Slowpoke chega todo pronto pra estreia… que foi semana passada; a lousa mostra o placar | VESTIÁRIO DO PALLET FC | proposto |
+| 14 | sex 13/11 19h | Confessionário | **Paredão:** quem vai pro banco? Magikarp faz campanha com a medalha, Pikachu faz pose, Snorlax dorme na cabine; quem sai é o Ditto, que estava fingindo ser o Psyduck | CONFESSIONÁRIO · DIA 1 | proposto |
+| 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | proposto |
+| 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | proposto |
+| 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Modo Treinador e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | MODO TREINADOR 27/11 | proposto |
+| 18 | sex 27/11 19h | Lançamento | Trailer do Modo Treinador + comentário com o link | MODO TREINADOR | proposto (o trailer passa pelo Miguel) |
+| 19 | ter 01/12 19h | Confessionário | **Prova do líder:** prova de segurar a bola na cabeça; o Snorlax ganha dormindo | CONFESSIONÁRIO · DIA 3 | proposto |
+
+Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Modo
+Treinador cobre a novidade.
+
 ## Registro (toda segunda)
 
 | Semana | Post | Views | Assistiu tudo | Compart. | Cliques no site | Nota |
