@@ -24,7 +24,7 @@ nesse dia é o que vai ao ar.**
 | Quando | O quê | Quem decide |
 |---|---|---|
 | até sáb 07/11 | Branch `ut-numeros-27` na prévia da Vercel (números do Modo Treinador, fatia colorida) | feito |
-| assim que o conserto ficar pronto | 0.9.43.1: os erros em laço da 0.9.43 (`QuotaExceededError` e `zoom` no celular) | conserto com teste (regra 5) |
+| ter 17/11, junto da 0.9.44 | Conserto da quadra que segue a bola (erro `zoom` em laço) e teto de erros por sessão: branch `erros-0943` | conserto com teste (regra 5) |
 | até sex 13/11 | Miguel joga a prévia do Modo Treinador e dá o ok final nas tabelas | Miguel |
 | ter 17/11 | 0.9.44 "Véspera do Treinador": números aprovados, polimento do playtest | "pode subir" |
 | 18 a 26/11 | Congelamento do Modo Treinador: só conserto. Trailer do lançamento pronto até ter 24/11 | Miguel aprova o trailer |
