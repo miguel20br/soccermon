@@ -191,6 +191,15 @@
         ],
         "createdAt": "2026-11-07T23:50:58.424Z",
         "reason": "Claude: quadro de vídeo 1080x1920 do HyperFrames, o recorte da cena é intencional (não é interface)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "trailer/curtas/vestiario-atrasado/index.html"
+        ],
+        "createdAt": "2026-11-07T23:57:09.611Z",
+        "reason": "Claude: quadro de vídeo em pixel art (pés do banco e móveis do vestiário desenhados com borda), não card de interface; mesma exceção do EP 3"
       }
     ]
   }
