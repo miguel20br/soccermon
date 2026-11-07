@@ -83,5 +83,5 @@ for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos']) {
     console.log(nome, `medido ${m.input_i} LUFS → −14`);
 }
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ apontando pra cá
-for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
+for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'vestiario-atrasado']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
 console.log('midia pronta');
