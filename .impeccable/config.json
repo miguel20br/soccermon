@@ -182,6 +182,15 @@
         ],
         "createdAt": "2026-10-29T17:03:18.000Z",
         "reason": "Claude: quadro de vídeo em pixel art (contorno das cortinas, placas e telas do jogo desenhadas), não interface; tracking das placas em caixa-alta"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "trailer/curtas/vestiario-atrasado/index.html"
+        ],
+        "createdAt": "2026-11-07T23:50:58.424Z",
+        "reason": "Claude: quadro de vídeo 1080x1920 do HyperFrames, o recorte da cena é intencional (não é interface)"
       }
     ]
   }

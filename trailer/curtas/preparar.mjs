@@ -72,7 +72,7 @@ copyFileSync(`${JOGO}/public/fonts/Galmuri11-Bold.woff2`, `${OUT}/Galmuri11-Bold
 
 // música: a peça editada na partitura, normalizada pra −14 LUFS (2 passadas do loudnorm, ganho linear)
 execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`], { stdio: 'inherit' });
-for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos']) {
+for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado']) {
     const wav = `${OUT}/som/${nome}.wav`;
     const err = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'], {
         encoding: 'utf8',

@@ -1,12 +1,16 @@
 <!doctype html>
 <!--
-  Vestiário do Pallet FC, EP 1 "O atrasado" (07/11/2026): RASCUNHO ANIMADO (animatic) de 15 s, sem música. Roteiro
-  completo em ROTEIRO.md (100 BPM, 15 compassos). Mapa do rascunho (segundos):
-  0–2 gancho: o Slowpoke corre parado | 2–3,6 vinheta anos 90 | 3,6–6,4 ele chega, CHEGUEI PRA ESTREIA!, "?" no time |
-  6,4–9,4 apito, a lousa gira: ESTREIA 4 × 1 | 9,4–10,6 "..." | 10,6–11,3 a luz apaga | 11,3 "!" e congela, O ATRASADO |
-  13–15 tela final.
-  Câmera parada de frente; sprites em escala inteira; nada de animação depois do congelamento (o vestiário para).
-  Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-atrasado -q draft -w 1 --no-browser-gpu
+  Vestiário do Pallet FC, EP 1 "O atrasado" (07/11/2026), 9:16. Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s,
+  15 compassos (36 s) + 0,6 s de rabo. Música: scripts/musica/pecas/livre-atrasado.mjs (midia/som/atrasado.js e
+  atrasado-14.wav, feitos pelo preparar.mjs). Tempos: C.T(compasso, linha), 16 linhas por compasso.
+  0 gancho: o Slowpoke corre parado | 1 vinheta anos 90 | 2 ainda correndo, a plateia ri | 3 chega e estufa o peito
+  (no 2, com a tuba atrasada) | 4 CHEGUEI PRA ESTREIA! | 5 "?" no Magikarp e no Pikachu, o Snorlax ronca | 6 apito, a
+  lousa gira (linha 8) e ele vira de costas pra ler | 7–8 a lousa: ESTREIA 4 × 1 SÁBADO PASSADO | 9 nada | 10 "...",
+  o Pikachu ri | 11 a luz apaga, só ele no foco | 12 "!" (linha 0) e congela (linha 8) | 13 PALLET FC · EP 1, O
+  ATRASADO | 14 tela final (e ele chega atrasado na tela final também).
+  Câmera parada de frente; sprites em escala inteira (o congelamento aproxima 1,5x: Slowpoke 16 → 24 px por pixel).
+  A faixa da testa segue o quadro (segueFaixa, como a medalha do Magikarp). Nada se mexe depois do congelamento.
+  Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-atrasado -q high -w 1 --no-browser-gpu
 -->
 <html lang="pt-BR">
 <head>
@@ -15,51 +19,51 @@
 <title>Soccermon · O atrasado</title>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <script src="midia/sprites.js"></script>
+<script src="midia/som/atrasado.js"></script>
 <script src="comum.js"></script>
 <style>
 .cena { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; visibility: hidden; }
-/* vestiário (o do EP 3, com a lousa mais baixa: fora da faixa de cima do app) */
 #vest { background: #24304e; }
-#vest .parede { position: absolute; left: 0; top: 0; width: 1080px; height: 1180px;
+#vest .parede { position: absolute; left: 0; top: 0; width: 1080px; height: 1290px;
   background-image: linear-gradient(90deg, rgb(0 0 0 / 18%) 2px, transparent 2px), linear-gradient(rgb(0 0 0 / 18%) 2px, transparent 2px), linear-gradient(#1c2640, #34446c);
   background-size: 90px 90px, 90px 90px, 100% 100%; }
-.armario { position: absolute; top: 540px; width: 140px; height: 610px; box-sizing: border-box; background: #4a6fa5; border: 8px solid #0e1430; border-radius: 6px;
-  background-image: repeating-linear-gradient(#0e1430 0 6px, transparent 6px 22px); background-size: 70px 120px; background-position: 27px 50px; background-repeat: no-repeat; }
-.armario::after { content: ""; position: absolute; right: 18px; top: 280px; width: 14px; height: 60px; background: #c8d0f0; border: 5px solid #0e1430; border-radius: 4px; }
-#vest .piso { position: absolute; left: 0; top: 1180px; width: 1080px; height: 740px;
+.armario { position: absolute; top: 610px; width: 150px; height: 650px; box-sizing: border-box; background: #4a6fa5; border: 8px solid #0e1430; border-radius: 6px;
+  background-image: repeating-linear-gradient(#0e1430 0 6px, transparent 6px 22px); background-size: 76px 130px; background-position: 29px 50px; background-repeat: no-repeat; }
+.armario::after { content: ""; position: absolute; right: 18px; top: 300px; width: 14px; height: 64px; background: #c8d0f0; border: 5px solid #0e1430; border-radius: 4px; }
+#vest .piso { position: absolute; left: 0; top: 1290px; width: 1080px; height: 630px;
   background: repeating-conic-gradient(#3a4560 0 25%, #333d56 0 50%) 0 0 / 120px 120px; box-shadow: inset 0 18px 0 rgb(0 0 0 / 30%); }
-.banco-v { position: absolute; left: 40px; top: 1130px; width: 1000px; height: 56px; z-index: 9; box-sizing: border-box; background: #c98a4f; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 14px 0 #7a4a2a; }
-.banco-v::before, .banco-v::after { content: ""; position: absolute; top: 56px; width: 30px; height: 120px; background: #7a4a2a; border: 8px solid #0e1430; border-top: none; }
-.banco-v::before { left: 90px; } .banco-v::after { right: 90px; }
-/* a lousa giratória: o eixo é horizontal (gira em scaleY); o verso tem os rabiscos de tática, a frente o placar */
-#lousa-pe { position: absolute; left: 520px; top: 500px; width: 40px; height: 40px; background: #7a4a2a; border: 8px solid #0e1430; z-index: 2; }
-#lousa { position: absolute; left: 150px; top: 170px; width: 780px; height: 340px; z-index: 3; box-sizing: border-box;
-  background: #1f3a2c; border: 16px solid #a8743f; border-radius: 10px; box-shadow: 0 0 0 8px #0e1430, 0 16px 0 rgb(0 0 0 / 40%); }
+.banco-v { position: absolute; left: -20px; top: 1250px; width: 1120px; height: 60px; z-index: 9; box-sizing: border-box; background: #c98a4f; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 14px 0 #7a4a2a; }
+.banco-v::before, .banco-v::after { content: ""; position: absolute; top: 60px; width: 34px; height: 130px; background: #7a4a2a; border: 8px solid #0e1430; border-top: none; }
+.banco-v::before { left: 110px; } .banco-v::after { right: 110px; }
+#lousa-pe { position: absolute; left: 516px; top: 560px; width: 48px; height: 50px; background: #7a4a2a; border: 8px solid #0e1430; z-index: 2; }
+#lousa { position: absolute; left: 100px; top: 170px; width: 880px; height: 400px; z-index: 3; box-sizing: border-box;
+  background: #1f3a2c; border: 18px solid #a8743f; border-radius: 10px; box-shadow: 0 0 0 8px #0e1430, 0 16px 0 rgb(0 0 0 / 40%); }
 #lousa .face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #f0f0e4; }
 #placar-lousa { visibility: hidden; letter-spacing: 5px; }
-#placar-lousa .l1 { font-size: 76px; }
-#placar-lousa b { font-size: 132px; line-height: 1.05; color: #ffcb05; }
-#placar-lousa small { font-size: 44px; letter-spacing: 3px; color: #c9e2cf; }
+#placar-lousa .l1 { font-size: 88px; }
+#placar-lousa b { font-size: 150px; line-height: 1.05; color: #ffcb05; }
+#placar-lousa small { font-size: 52px; letter-spacing: 3px; color: #c9e2cf; }
 .medalha, .medalha .med { position: absolute; left: 0; top: 0; width: 0; height: 0; }
 .medalha .fita { position: absolute; background: linear-gradient(90deg, #e8423f 0 50%, #3a7bd5 50%); clip-path: polygon(0 0, 22% 0, 50% 70%, 78% 0, 100% 0, 62% 100%, 38% 100%); }
 .medalha .disco { position: absolute; box-sizing: border-box; border-radius: 50%; border-style: solid; border-color: #0e1430;
   background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00); }
-.apito { position: absolute; left: 0; top: 0; width: 72px; height: 40px; margin: -20px 0 0 -36px; box-sizing: border-box; border-radius: 10px 20px 20px 10px;
+.apito { position: absolute; left: 0; top: 0; width: 80px; height: 44px; margin: -22px 0 0 -40px; box-sizing: border-box; border-radius: 10px 22px 22px 10px;
   background: #c8d0f0; border: 7px solid #0e1430; }
-.faixa { position: absolute; left: 0; top: 0; height: 30px; box-sizing: border-box; background: #e8423f; border: 6px solid #0e1430; border-radius: 6px; }
-.faixa i { position: absolute; top: 2px; width: 34px; height: 16px; background: #e8423f; border: 6px solid #0e1430; border-radius: 4px; }
-.zz { position: absolute; left: 0; top: 0; z-index: 31; font-size: 72px; color: #fff; -webkit-text-stroke: 11px #0e1430; paint-order: stroke fill; opacity: 0; }
-.ha { position: absolute; left: 0; top: 0; z-index: 52; font-size: 64px; color: #ffcb05; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
-.balao { position: absolute; left: 0; top: 0; z-index: 46; width: 130px; height: 150px; margin: -150px 0 0 -65px; box-sizing: border-box; border-radius: 24px;
-  background: #f8f8f0; border: 8px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 96px; color: #e8423f; opacity: 0; }
-.balao.largo { width: 200px; margin-left: -100px; font-size: 64px; color: #0e1430; letter-spacing: 4px; }
-.gota { position: absolute; left: 0; top: 0; width: 26px; height: 34px; margin: -17px 0 0 -13px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #7cc8ff;
-  border: 5px solid #0e1430; z-index: 30; opacity: 0; }
-.risco { position: absolute; left: 0; top: 0; height: 12px; border-radius: 6px; background: #f8f8f0; border: 4px solid #0e1430; z-index: 19; opacity: 0; }
-#vest .fala { top: 220px; font-size: 76px; line-height: 1.2; letter-spacing: 3px; }
-/* a luz apaga: escuro por cima de tudo, com um foco redondo no Slowpoke */
+/* a faixa vermelha da testa (o Slowpoke "todo pronto"): a tira e o nó com as duas pontas */
+.faixa { position: absolute; left: 0; top: 0; box-sizing: border-box; background: #e8423f; border: 6px solid #0e1430; border-radius: 6px; box-shadow: inset 0 6px 0 #ff7a6e; }
+.faixa i { position: absolute; width: 40px; height: 22px; background: #e8423f; border: 6px solid #0e1430; border-radius: 4px; }
+.zz { position: absolute; left: 0; top: 0; z-index: 31; font-size: 80px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
+.ha { position: absolute; left: 0; top: 0; z-index: 52; font-size: 72px; color: #ffcb05; -webkit-text-stroke: 13px #0e1430; paint-order: stroke fill; opacity: 0; }
+.balao { position: absolute; left: 0; top: 0; z-index: 46; width: 150px; height: 170px; margin: -170px 0 0 -75px; box-sizing: border-box; border-radius: 26px;
+  background: #f8f8f0; border: 9px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 110px; color: #e8423f; opacity: 0;
+  box-shadow: 0 10px 0 rgb(0 0 0 / 30%); }
+.balao.largo { width: 230px; margin-left: -115px; font-size: 76px; color: #0e1430; letter-spacing: 4px; }
+.gota { position: absolute; left: 0; top: 0; width: 30px; height: 40px; margin: -20px 0 0 -15px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #7cc8ff;
+  border: 6px solid #0e1430; z-index: 30; opacity: 0; }
+.risco { position: absolute; left: 0; top: 0; height: 14px; border-radius: 7px; background: #f8f8f0; border: 5px solid #0e1430; z-index: 19; opacity: 0; }
+#vest .fala { top: 200px; font-size: 70px; line-height: 1.2; letter-spacing: 3px; }
 #escuro { position: absolute; inset: 0; z-index: 40; pointer-events: none; opacity: 0;
-  background: radial-gradient(circle 300px at 830px 1460px, transparent 0 62%, rgb(5 8 20 / 92%) 100%); }
+  background: radial-gradient(circle 380px at 720px 1500px, transparent 0 60%, rgb(5 8 20 / 93%) 100%); }
 /* vinheta anos 90 */
 #vinheta { z-index: 60; background: #1fb5a8; }
 .memphis { position: absolute; }
@@ -71,24 +75,23 @@
 #vt-titulo span { display: block; font-size: 104px; }
 #vt-titulo b { display: block; font-size: 150px; color: #ffcb05; line-height: 1.15; }
 /* congelamento */
-#congela { position: absolute; left: 0; width: 1080px; top: 1340px; z-index: 70; text-align: center; opacity: 0; }
-#congela small { display: block; font-size: 60px; color: #fff; letter-spacing: 6px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
-#congela b { display: inline-block; margin-top: 18px; padding: 22px 54px; border-radius: 24px; background: #ffcb05; color: #0e1430; font-size: 112px; letter-spacing: 6px;
-  box-shadow: 0 0 0 12px #0e1430, 0 22px 0 #8a6a00; transform: rotate(-3deg); }
+#congela { position: absolute; left: 0; width: 1080px; top: 1220px; z-index: 70; text-align: center; opacity: 0; }
+#congela small { display: block; font-size: 58px; color: #fff; letter-spacing: 5px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
+#congela b { display: inline-block; margin-top: 22px; padding: 24px 56px; border-radius: 24px; background: #ffcb05; color: #0e1430; font-size: 118px; letter-spacing: 6px;
+  box-shadow: 0 0 0 12px #0e1430, 0 22px 0 #8a6a00; transform: rotate(-3deg); opacity: 0; }
 #moldura { position: absolute; inset: 0; z-index: 69; box-sizing: border-box; border: 22px solid #f8f8f0; box-shadow: inset 0 0 0 10px #0e1430; opacity: 0; pointer-events: none; }
-#credito { display: none; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="15">
-  <div id="cena" class="clip" data-start="0" data-duration="15">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="36.6">
+  <div id="cena" class="clip" data-start="0" data-duration="33.6">
     <div id="vest" class="cena"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div id="lousa-pe"></div>
       <div id="lousa">
-        <svg class="face" id="tatica" viewBox="0 0 748 308" fill="none" stroke="#f0f0e4" stroke-width="8" stroke-linecap="round" opacity="0.85">
-          <circle cx="150" cy="90" r="26" /><circle cx="300" cy="200" r="26" /><circle cx="470" cy="110" r="26" />
-          <path d="M120 230 l40 40 m0 -40 l-40 40 M560 220 l40 40 m0 -40 l-40 40 M640 70 l36 36 m0 -36 l-36 36" />
-          <path d="M175 105 C 230 160, 250 190, 270 195 M325 190 C 380 150, 410 120, 440 112 M495 120 C 560 150, 600 160, 630 120" />
-          <path d="M262 182 l10 14 l-16 4 M430 100 l12 12 l-16 6 M618 112 l14 6 l-6 14" />
+        <svg class="face" id="tatica" viewBox="0 0 844 364" fill="none" stroke="#f0f0e4" stroke-width="9" stroke-linecap="round" opacity="0.85">
+          <circle cx="170" cy="110" r="30" /><circle cx="340" cy="235" r="30" /><circle cx="530" cy="130" r="30" />
+          <path d="M135 270 l46 46 m0 -46 l-46 46 M630 260 l46 46 m0 -46 l-46 46 M720 80 l40 40 m0 -40 l-40 40" />
+          <path d="M198 128 C 260 190, 285 225, 308 230 M368 222 C 430 178, 465 145, 498 134 M560 142 C 630 178, 675 188, 708 140" />
+          <path d="M298 214 l12 16 l-18 5 M486 120 l14 14 l-18 7 M694 130 l16 7 l-7 16" />
         </svg>
         <div class="face" id="placar-lousa"><span class="l1">ESTREIA</span><b>4 × 1</b><small>SÁBADO PASSADO</small></div>
       </div>
@@ -96,21 +99,22 @@
     </div>
     <div id="vinheta" class="cena"><div id="vt-titulo"><span>VESTIÁRIO DO</span><b>PALLET FC</b></div></div>
     <div id="moldura"></div>
-    <div id="congela"><small>EP 1</small><b>O ATRASADO</b></div>
+    <div id="congela"><small>PALLET FC · EP 1</small><b>O ATRASADO</b></div>
   </div>
-  <div id="final" class="clip palco" data-start="13" data-duration="2">
+  <div id="final" class="clip palco" data-start="33.6" data-duration="3">
     <div class="raios" id="raios-final"></div>
     <div id="final-cena" class="camada"></div>
   </div>
   <div class="flash" id="flash"></div>
-  <audio id="a-sp-chega" class="clip" src="som/79.ogg" data-start="4.6" data-duration="0.47" data-media-start="0"></audio>
-  <audio id="a-apito" class="clip" src="som/apito-curto.mp3" data-start="6.4" data-duration="0.6" data-media-start="0"></audio>
-  <audio id="a-pk-ri" class="clip" src="som/25.ogg" data-start="8.3" data-duration="0.92" data-media-start="0"></audio>
-  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="5.1" data-duration="1.2" data-media-start="0"></audio>
-  <audio id="a-sp-susto" class="clip" src="som/79.ogg" data-start="11.3" data-duration="0.47" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/atrasado-14.wav" data-start="0" data-duration="36.6" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-sp-chega" class="clip" src="som/79.ogg" data-start="9.65" data-duration="0.47" data-media-start="0"></audio>
+  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="12.0" data-duration="1.2" data-media-start="0"></audio>
+  <audio id="a-apito" class="clip" src="som/apito-curto.mp3" data-start="14.4" data-duration="0.6" data-media-start="0"></audio>
+  <audio id="a-pk-ri" class="clip" src="som/25.ogg" data-start="25.2" data-duration="0.92" data-media-start="0"></audio>
+  <audio id="a-sp-susto" class="clip" src="som/79-lento.ogg" data-start="28.8" data-duration="0.94" data-media-start="0"></audio>
 
   <script>
-    const { div, ator, anim, quadro, estouro, poeira, flash, fala, telaFinal, piscada } = C;
+    const { T, div, ator, anim, quadro, estouro, poeira, flash, fala, telaFinal, piscada } = C;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const vest = $('vest');
@@ -143,35 +147,27 @@
     const gota = (t, x, y, lado) => {
       const g = div(vest, 'gota');
       tl.set(g, { x, y, opacity: 0 }, 0);
-      tl.fromTo(g, { x, opacity: 1 }, { x: x + lado * 110, duration: 0.5, ease: 'none', immediateRender: false }, t);
-      tl.fromTo(g, { y }, { keyframes: { y: [y - 60, y + 130] }, duration: 0.5, ease: 'power1.in', immediateRender: false }, t);
+      tl.fromTo(g, { x, opacity: 1 }, { x: x + lado * 120, duration: 0.5, ease: 'none', immediateRender: false }, t);
+      tl.fromTo(g, { y }, { keyframes: { y: [y - 70, y + 140] }, duration: 0.5, ease: 'power1.in', immediateRender: false }, t);
       op(g, t + 0.5, false);
     };
 
-    // ---------- tempos do rascunho ----------
-    const VIN = 2.0; // vinheta entra
-    const VOLTA = 3.6; // volta pro vestiário
-    const PARA = 4.4; // ele chega
-    const APITO = 6.4;
-    const GIRA = 6.5; // a lousa gira
-    const NADA = 9.4; // "..."
-    const APAGA = 10.6;
-    const SUSTO = 11.3; // "!"
-    const CONGELA = 11.45;
-    const FIM = 13.0;
+    // ---------- tempos (compasso, linha) ----------
+    const CONGELA = T(12, 8);
+    const FIM = T(14, 0);
+    const CHAO = 1640; // o pé do Slowpoke
 
     // ====================================================================================================
-    // o vestiário: armários, banco com o elenco, o Slowpoke em primeiro plano à direita
+    // o vestiário de perto: armários, o banco com o elenco, o Slowpoke em primeiro plano entrando pela direita
     // ====================================================================================================
     ver(['#vest', '#vinheta'], 0, false);
     ver('#vest', 0);
-    [30, 190, 750, 910].forEach((x) => div(vest, 'armario', `left:${x}px`));
-    const sn = ator(vest, '143x', { escala: 10, z: 10, x: 200, y: 1150, sombra: false });
-    const mk = ator(vest, 129, { escala: 10, z: 11, x: 470, y: 1140, sombra: false });
-    const pk = ator(vest, 25, { escala: 10, z: 10, x: 690, y: 1150, sombra: false });
-    const dt = ator(vest, 132, { escala: 11, z: 10, x: 880, y: 1150, sombra: false });
-    const sp = ator(vest, 79, { escala: 12, z: 20, x: 930, y: 1640 });
-    // medalha do Magikarp pendurada abaixo da boca (a do EP 3, Idle de frente e de lado)
+    [10, 170, 760, 920].forEach((x) => div(vest, 'armario', `left:${x}px`));
+    const sn = ator(vest, '143x', { escala: 12, z: 10, x: 150, y: 1270, sombra: false });
+    const mk = ator(vest, 129, { escala: 14, z: 11, x: 405, y: 1262, sombra: false });
+    const pk = ator(vest, 25, { escala: 12, z: 10, x: 700, y: 1272, sombra: false });
+    const dt = ator(vest, 132, { escala: 13, z: 10, x: 925, y: 1270, sombra: false });
+    const sp = ator(vest, 79, { escala: 16, z: 20, x: 880, y: CHAO });
     {
       const E = mk.escala;
       const pend = div(mk.corpo, 'medalha');
@@ -181,167 +177,183 @@
       mk.pend = pend;
     }
     const apito = div(mk.corpo, 'apito');
-    gsap.set(apito, { x: 5, y: -72, opacity: 0 });
+    gsap.set(apito, { x: 6, y: -84, opacity: 0 });
     apito.style.zIndex = 3;
-    // a faixa na testa do Slowpoke (px da folha: de lado olhando pra esquerda, de frente e de costas)
     const faixa = div(sp.corpo, 'faixa');
-    faixa.innerHTML = '<i></i>';
     faixa.style.zIndex = 2;
-    const FAIXA = { 6: { x: -122, y: -170, w: 86, cauda: 'right:-30px' }, 0: { x: -62, y: -124, w: 128, cauda: 'display:none' }, 4: { x: -62, y: -190, w: 128, cauda: 'left:40px;top:14px' } };
-    const poeFaixa = (dir, t) => {
-      const f = FAIXA[dir];
-      tl.set(faixa, { x: f.x, y: f.y, width: f.w }, t);
-      tl.set(faixa.firstChild, { attr: { style: f.cauda } }, t);
-    };
+    const nos = [div(faixa, ''), div(faixa, '')];
+    nos.forEach((n) => n.appendChild(document.createElement('i')));
 
-    // o Snorlax dorme o rascunho inteiro (até congelar); Zs só até antes da luz apagar
-    anim(tl, sn, 'Sleep', 0, 0, CONGELA, { id: '143x', vel: 0.5 });
-    ronco(0.4, 250, 980, 2);
-    ronco(3.9, 250, 980, 2);
-    ronco(7.4, 250, 980, 2);
+    // o Snorlax dorme até a luz apagar
+    anim(tl, sn, 'Sleep', 0, 0, T(11, 0), { id: '143x', vel: 0.5 });
+    for (const b of [0, 2, 5, 9]) ronco(T(b, 8), 200, 1110, 2);
+    anim(tl, dt, 'Idle', 0, 0, T(11, 0));
 
     // ====================================================================================================
-    // 0–2 · gancho: o Slowpoke corre parado (Walk a 3x, anda 30 px), suor, poeira e riscos de velocidade
+    // 0 · gancho: ele corre parado (Walk a 3x), suor, poeira e riscos de velocidade; o time olha pra ele
     // ====================================================================================================
     const corre = (t0, t1, x0, x1) => {
       anim(tl, sp, 'Walk', 6, t0, t1, { vel: 3 });
-      poeFaixa(6, t0);
       tl.fromTo(sp.el, { x: x0 }, { x: x1, duration: t1 - t0, ease: 'none', immediateRender: false }, t0);
-      for (let t = t0 + 0.05; t < t1 - 0.2; t += 0.45) gota(t, x0 + 60, 1330, 1);
-      for (let t = t0 + 0.1; t < t1 - 0.1; t += 0.3) poeira(tl, vest, x0 + 90, 1640, t, { n: 4, r: 70, tam: 30 });
-      [1380, 1450, 1520].forEach((y, i) => {
-        const r = div(vest, 'risco', `width:${90 + 30 * (i % 2)}px`);
-        tl.set(r, { x: x0 + 150, y }, 0);
-        for (let t = t0 + i * 0.07; t < t1; t += 0.24) tl.fromTo(r, { opacity: 1, x: x0 + 150 }, { opacity: 0, x: x0 + 230, duration: 0.22, ease: 'none', immediateRender: false }, t);
+      for (let t = t0 + 0.05; t < t1 - 0.2; t += 0.45) gota(t, x0 + 60, 1430, 1);
+      for (let t = t0 + 0.1; t < t1 - 0.1; t += 0.3) poeira(tl, vest, x0 + 110, CHAO, t, { n: 4, r: 80, tam: 34 });
+      [1460, 1530, 1600].forEach((y, i) => {
+        const r = div(vest, 'risco', `width:${100 + 30 * (i % 2)}px`);
+        tl.set(r, { x: x0 + 170, y }, 0);
+        for (let t = t0 + i * 0.07; t < t1; t += 0.24) tl.fromTo(r, { opacity: 1, x: x0 + 170 }, { opacity: 0, x: x0 + 260, duration: 0.22, ease: 'none', immediateRender: false }, t);
       });
     };
-    corre(0, VIN, 930, 905);
-    // o time olha pra ele
-    anim(tl, mk, 'Idle', 2, 0, VIN, { vel: 1.2 });
-    anim(tl, pk, 'Idle', 2, 0, VIN);
-    anim(tl, dt, 'Idle', 0, 0, CONGELA);
+    corre(0, T(1, 0), 880, 852);
+    anim(tl, mk, 'Idle', 2, 0, T(4, 0), { vel: 1.2 });
+    anim(tl, pk, 'Idle', 2, 0, T(4, 0));
 
     // ====================================================================================================
-    // 2–3,6 · vinheta anos 90: VESTIÁRIO DO PALLET FC com os 4 retratos do elenco
+    // 1 · vinheta anos 90: VESTIÁRIO DO PALLET FC com os 4 retratos do elenco
     // ====================================================================================================
     {
+      const VIN = T(1, 0);
       const v = $('vinheta');
       const formas = [
         ['background:#ff4fa3;width:150px;height:150px;clip-path:polygon(50% 0,100% 100%,0 100%)', 80, 160],
         ['background:#ffcb05;width:120px;height:120px;border-radius:50%', 860, 230],
         ['border:16px solid #6b3fd4;width:180px;height:180px;border-radius:50%;box-sizing:border-box', 760, 1380],
         ['background:#ff4fa3;width:240px;height:36px;border-radius:18px', 110, 1440],
-        ['background:#0e1430;width:90px;height:90px', 900, 1600],
-        ['background:#ffcb05;width:130px;height:130px;clip-path:polygon(50% 0,100% 100%,0 100%)', 160, 1640],
+        ['background:#0e1430;width:90px;height:90px', 900, 1560],
+        ['background:#ffcb05;width:130px;height:130px;clip-path:polygon(50% 0,100% 100%,0 100%)', 160, 1580],
       ];
       formas.forEach(([css, x, y], i) => {
         const f = div(v, 'memphis', `${css};left:${x}px;top:${y}px`);
-        tl.fromTo(f, { rotation: 0, scale: 0 }, { rotation: (i % 2 ? -1 : 1) * 40, scale: 1, duration: 1.4, ease: 'back.out(2)', immediateRender: false }, VIN + 0.05 * i);
+        tl.fromTo(f, { rotation: 0, scale: 0 }, { rotation: (i % 2 ? -1 : 1) * 60, scale: 1, duration: 2.2, ease: 'back.out(2)', immediateRender: false }, VIN + 0.05 * i);
       });
+      // os retratos pulam nas colcheias dos acordes (F · Dm7 · Bb · C7)
       ['129', '143', '25', '132'].forEach((r, i) => {
         const c = div(v, 'vt-ret', `left:${80 + i * 240}px`);
         c.innerHTML = `<img src="midia/${r}.png" alt="" />`;
-        tl.set(c, { opacity: 1 }, VIN + 0.1 + i * 0.12);
-        tl.fromTo(c, { scale: 0, rotation: -20 }, { scale: 1, rotation: i % 2 ? 4 : -4, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, VIN + 0.1 + i * 0.12);
+        const t = T(1, i * 2);
+        tl.set(c, { opacity: 1 }, t);
+        tl.fromTo(c, { scale: 0, rotation: -20 }, { scale: 1, rotation: i % 2 ? 4 : -4, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t);
+        tl.to(c, { keyframes: { y: [-30, 0] }, duration: 0.25, ease: 'power1.inOut' }, T(1, 12));
       });
       ver('#vinheta', VIN);
       flash(tl, VIN, 0.5, 0.2);
-      carimbo('#vt-titulo', VIN + 0.6, 2.4);
-      tl.to('#vt-titulo', { scale: 1.06, duration: VOLTA - VIN - 0.85, ease: 'sine.inOut' }, VIN + 0.85);
-      ver('#vinheta', VOLTA, false);
-      flash(tl, VOLTA, 0.4, 0.2);
+      carimbo('#vt-titulo', T(1, 8), 2.4);
+      tl.to('#vt-titulo', { scale: 1.06, duration: T(1, 14) - T(1, 9), ease: 'sine.inOut' }, T(1, 9));
+      tl.fromTo('#vt-titulo', { scale: 1.06 }, { scale: 1.14, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(1, 14));
+      ver('#vinheta', T(2, 0), false);
+      flash(tl, T(2, 0), 0.4, 0.2);
     }
 
     // ====================================================================================================
-    // 3,6–6,4 · ele ainda está correndo; chega, estufa o peito; CHEGUEI PRA ESTREIA!; "?" no time
+    // 2 · ainda correndo, quase no mesmo lugar; 3 · chega (um último arranque), para, ofega e estufa o peito no 2
     // ====================================================================================================
-    corre(VOLTA, PARA, 893, 870);
-    anim(tl, mk, 'Idle', 2, VOLTA, APITO, { vel: 1.2 });
-    anim(tl, pk, 'Idle', 2, VOLTA, NADA);
-    poeira(tl, vest, 900, 1640, PARA, { n: 7, r: 160, tam: 50 });
-    anim(tl, sp, 'Idle', 0, PARA, GIRA + 0.3);
-    poeFaixa(0, PARA);
-    tl.fromTo(sp.corpo, { scaleX: 1, scaleY: 1 }, { keyframes: { scaleY: [1.12, 1.06], scaleX: [0.94, 1] }, duration: 0.4, ease: 'back.out(2)', immediateRender: false }, PARA + 0.05);
-    estouro(tl, vest, 870, 1300, PARA + 0.05, { tam: 160, cor: '#fff' });
-    const f = fala(vest, 'midia/79.png', 'CHEGUEI PRA<br>ESTREIA!', 'fala-sp');
-    op(f, PARA + 0.2);
-    tl.fromTo(f, { scale: 0.6 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, PARA + 0.2);
-    op(f, APITO - 0.1, false);
-    balao('?', 470, 840, 5.1, APITO - 0.1);
-    balao('?', 690, 840, 5.25, APITO - 0.1);
+    corre(T(2, 0), T(3, 0), 846, 812);
+    const tChega = T(3, 0);
+    anim(tl, sp, 'Walk', 6, tChega, tChega + 0.4, { vel: 4 });
+    tl.fromTo(sp.el, { x: 812 }, { x: 720, duration: 0.4, ease: 'power2.out', immediateRender: false }, tChega);
+    poeira(tl, vest, 760, CHAO, tChega + 0.35, { n: 7, r: 180, tam: 56 });
+    anim(tl, sp, 'Idle', 0, tChega + 0.4, T(6, 12));
+    // ofega (o corpo infla e esvazia) e pinga suor
+    tl.fromTo(sp.corpo, { scaleX: 1, scaleY: 1 }, { keyframes: { scaleY: [1.04, 0.97, 1.04, 0.97, 1], scaleX: [0.98, 1.02, 0.98, 1.02, 1] }, duration: T(3, 4) - tChega - 0.4, ease: 'sine.inOut', immediateRender: false }, tChega + 0.4);
+    gota(tChega + 0.5, 780, 1400, 1);
+    gota(tChega + 0.7, 660, 1410, -1);
+    // estufa o peito no 2 (a tuba dele entra atrasada) e fica estufado até a fala
+    tl.to(sp.corpo, { scaleY: 1.1, scaleX: 0.95, duration: 0.25, ease: 'back.out(3)' }, T(3, 4));
+    estouro(tl, vest, 720, 1350, T(3, 4), { tam: 180, cor: '#fff' });
+    tl.to(sp.corpo, { scaleY: 1, scaleX: 1, duration: 0.3, ease: 'power1.inOut' }, T(5, 0));
 
     // ====================================================================================================
-    // 6,4–9,4 · o Magikarp apita, a lousa gira: o placar da estreia; o Slowpoke vira de costas pra ler; o Pikachu ri
+    // 4 · CHEGUEI PRA ESTREIA! (o grito no 1)
     // ====================================================================================================
-    anim(tl, mk, 'Idle', 0, APITO, NADA, { vel: 1.2 });
-    op(apito, APITO);
-    op(apito, APITO + 0.6, false);
-    salto(mk, APITO, 60);
-    estouro(tl, vest, 490, 990, APITO, { tam: 120, cor: '#fff' });
-    tl.to('#lousa', { scaleY: 0, duration: 0.14, ease: 'power2.in' }, GIRA);
-    tl.set('#tatica', { visibility: 'hidden' }, GIRA + 0.14);
-    tl.set('#placar-lousa', { visibility: 'visible' }, GIRA + 0.14);
-    tl.to('#lousa', { scaleY: 1, duration: 0.3, ease: 'back.out(2.5)' }, GIRA + 0.14);
-    flash(tl, GIRA + 0.14, 0.35, 0.2);
-    anim(tl, sp, 'Idle', 4, GIRA + 0.3, APAGA + 0.6, { vel: 0.8 });
-    poeFaixa(4, GIRA + 0.3);
-    const ha = [[640, 790], [760, 740]].map(([x, y], i) => {
+    const f = fala(vest, 'midia/79.png', 'CHEGUEI PRA<br>ESTREIA!', 'fala-sp');
+    op(f, T(4, 0));
+    tl.fromTo(f, { scale: 0.6 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(4, 0));
+    salto(sp, T(4, 0), 40, 0.25);
+    op(f, T(5, 14), false);
+    // ====================================================================================================
+    // 5 · o time se olha: "?" no Magikarp (plof, no 1) e no Pikachu (pícolo, linha 5); o Snorlax ronca
+    // ====================================================================================================
+    anim(tl, mk, 'Idle', 0, T(4, 0), T(6, 0), { vel: 1.2 });
+    anim(tl, pk, 'Idle', 0, T(4, 0), T(7, 0));
+    balao('?', 410, 900, T(5, 0), T(6, 0));
+    tl.to(mk.corpo, { keyframes: { rotation: [-8, 0] }, duration: 0.4, ease: 'sine.inOut' }, T(5, 0));
+    balao('?', 710, 900, T(5, 5), T(6, 0));
+    tl.to(pk.corpo, { keyframes: { rotation: [8, 0] }, duration: 0.4, ease: 'sine.inOut' }, T(5, 5));
+
+    // ====================================================================================================
+    // 6 · o apito (no 1); a lousa gira (zum na linha 7, o placar na 8); ele vira de costas pra ler (linha 12)
+    // ====================================================================================================
+    anim(tl, mk, 'Idle', 0, T(6, 0), T(9, 0), { vel: 1.2 });
+    op(apito, T(6, 0));
+    op(apito, T(6, 6), false);
+    salto(mk, T(6, 0), 70);
+    estouro(tl, vest, 435, 1060, T(6, 0), { tam: 130, cor: '#fff' });
+    tl.to('#lousa', { scaleY: 0, duration: 0.16, ease: 'power2.in' }, T(6, 7));
+    tl.set('#tatica', { visibility: 'hidden' }, T(6, 8));
+    tl.set('#placar-lousa', { visibility: 'visible' }, T(6, 8));
+    tl.to('#lousa', { scaleY: 1, duration: 0.32, ease: 'back.out(2.5)' }, T(6, 8));
+    flash(tl, T(6, 8), 0.35, 0.2);
+    anim(tl, sp, 'Idle', 4, T(6, 12), T(12, 0), { vel: 0.7 });
+    // ====================================================================================================
+    // 7–8 · a lousa (a plateia ri); o time olha pra ele; ele inclina a cabeça a cada nota atrasada da tuba
+    // ====================================================================================================
+    anim(tl, pk, 'Idle', 2, T(7, 0), T(10, 8));
+    for (const t of [T(7, 4), T(8, 8)]) tl.to(sp.corpo, { keyframes: { rotation: [5, 5, 0] }, duration: 0.9, ease: 'sine.inOut' }, t);
+    // ====================================================================================================
+    // 9 · nada (a música para); 10 · "..." e o Pikachu não aguenta (linha 8)
+    // ====================================================================================================
+    anim(tl, mk, 'Idle', 2, T(9, 0), T(11, 0), { vel: 1.2 });
+    balao('...', 720, 1330, T(10, 0), T(11, 0), 'balao largo');
+    anim(tl, pk, 'Idle', 0, T(10, 8), T(11, 0), { vel: 1.5 });
+    [[660, 860], [800, 800]].forEach(([x, y], i) => {
       const h = div(vest, 'ha');
       h.textContent = i ? 'HA' : 'HAHA';
       tl.set(h, { x, y }, 0);
-      tl.fromTo(h, { opacity: 0, y: y + 20 }, { opacity: 1, y: y - 40, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, 8.3 + i * 0.12);
-      op(h, NADA - 0.1, false);
-      return h;
+      tl.fromTo(h, { opacity: 0, y: y + 20 }, { opacity: 1, y: y - 40, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(10, 8) + i * 0.12);
+      op(h, T(11, 0), false);
     });
-    tl.to(pk.corpo, { keyframes: { y: [-20, 0, -20, 0] }, duration: 0.6, ease: 'none' }, 8.3);
+    tl.to(pk.corpo, { keyframes: { y: [-24, 0, -24, 0, -24, 0] }, duration: 0.9, ease: 'none' }, T(10, 8));
 
     // ====================================================================================================
-    // 9,4–10,6 · nada: "..." no Slowpoke, o time olha pra ele
+    // 11 · a luz apaga (clique no 1): todo mundo já foi; o foco fica nele, de costas, olhando a lousa
     // ====================================================================================================
-    anim(tl, mk, 'Idle', 2, NADA, APAGA, { vel: 1.2 });
-    anim(tl, pk, 'Idle', 2, NADA, APAGA);
-    balao('...', 870, 1290, NADA + 0.1, APAGA, 'balao largo');
+    op('#escuro', T(11, 0));
+    tl.set([mk.el, pk.el, dt.el, sn.el], { opacity: 0 }, T(11, 0));
 
     // ====================================================================================================
-    // 10,6–11,3 · a luz apaga: todo mundo já foi embora; o foco fica nele, de costas, olhando a lousa
+    // 12 · a ficha cai (linha 0): vira pra câmera, pula, "!"; congela na linha 8 (a câmera vai 1,5x pra perto dele)
     // ====================================================================================================
-    op('#escuro', APAGA);
-    tl.set([mk.el, pk.el, dt.el, sn.el], { opacity: 0 }, APAGA);
-
-    // ====================================================================================================
-    // 11,3 · a ficha cai: vira pra câmera com o "!"; 11,45 congela; O ATRASADO
-    // ====================================================================================================
-    anim(tl, sp, 'Idle', 0, SUSTO, CONGELA, { loop: false });
-    poeFaixa(0, SUSTO);
-    tl.fromTo(sp.corpo, { y: 0 }, { y: -40, duration: 0.12, ease: 'power2.out', immediateRender: false }, SUSTO);
-    balao('!', 870, 1310, SUSTO, FIM);
-    // congelou: a cena para, a cor lava, moldura branca e o nome do episódio carimbado
+    anim(tl, sp, 'Idle', 0, T(12, 0), CONGELA, { loop: false });
+    tl.fromTo(sp.corpo, { y: 0, scaleY: 1, scaleX: 1 }, { y: -56, scaleY: 1.08, scaleX: 0.94, duration: 0.18, ease: 'power2.out', immediateRender: false }, T(12, 0));
+    balao('!', 720, 1290, T(12, 0), FIM);
+    estouro(tl, vest, 720, 1200, T(12, 0), { tam: 240, cor: '#ffcb05' });
     flash(tl, CONGELA, 0.7, 0.25);
-    // e a câmera pula pra perto dele (2x: o pixel continua inteiro), o Slowpoke no centro
-    tl.set('#vest', { filter: 'saturate(0.45) contrast(1.05) brightness(1.05) sepia(0.25)', scale: 2, x: -1200, y: -1980, transformOrigin: '0px 0px' }, CONGELA);
+    tl.set('#vest', { filter: 'saturate(0.5) contrast(1.05) brightness(1.08) sepia(0.25)', scale: 1.5, x: -540, y: -1330, transformOrigin: '0px 0px' }, CONGELA);
     op('#moldura', CONGELA);
-    carimbo('#congela small', CONGELA + 0.2, 1.8);
-    carimbo('#congela b', CONGELA + 0.35, 2.4);
-    op('#congela', CONGELA + 0.2);
-    tl.set('#congela small, #congela b', { opacity: 0 }, 0);
+    op('#congela', CONGELA);
+    carimbo('#congela small', T(12, 12), 1.8);
+    carimbo('#congela b', T(13, 0), 2.4);
     ver(['#vest', '#moldura', '#congela'], FIM, false);
 
     // ====================================================================================================
-    // 13–15 · tela final (o logo pisca SOC-CER-MON)
+    // 14 · tela final; na linha 12 (a tuba atrasada) o Slowpoke ainda chega correndo, pela direita
     // ====================================================================================================
     telaFinal($('final'));
+    const fc = $('final-cena');
     flash(tl, FIM, 0.6, 0.3);
-    tl.fromTo('#raios-final', { rotation: 0 }, { rotation: 20, duration: 2, ease: 'none', immediateRender: false }, FIM);
+    tl.fromTo('#raios-final', { rotation: 0 }, { rotation: 30, duration: 3, ease: 'none', immediateRender: false }, FIM);
     tl.set('#logo', { opacity: 1 }, FIM);
     tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, FIM);
-    piscada(tl, [FIM + 0.25, FIM + 0.4, FIM + 0.55], '#final-cena');
-    tl.set('#tag', { opacity: 1 }, FIM + 0.6);
-    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, FIM + 0.6);
-    tl.to(['#site', '#selo'], { opacity: 1, duration: 0.2 }, FIM + 0.75);
-    tl.set({}, {}, 15);
+    piscada(tl, [T(14, 0), T(14, 3), T(14, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(14, 6));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(14, 6));
+    tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(14, 8));
+    const sp2 = ator(fc, 79, { escala: 10, z: 5, x: 1220, y: 1440, opacity: 0 });
+    op(sp2.el, T(14, 11));
+    anim(tl, sp2, 'Walk', 6, T(14, 11), FIM + 3, { vel: 3 });
+    tl.fromTo(sp2.el, { x: 1220 }, { x: 900, duration: FIM + 3 - T(14, 11), ease: 'power2.out', immediateRender: false }, T(14, 11));
+    tl.set({}, {}, 36.6);
 
-    // a medalha segue o quadro do Idle do Magikarp (segueMedalha do EP 3): onde a fita nasce, em px da folha, de frente
-    // e de lado; nos quadros 1 e 3 a cabeça desce 1 px
+    // a medalha segue o quadro do Idle do Magikarp (o segueMedalha do EP 3)
     {
       const PESCOCO = { 0: [16, 24, 0], 2: [24.5, 20.5, 1], 6: [9.5, 19.5, 0] };
       const A = SPR['129'].anims.Idle;
@@ -354,6 +366,40 @@
         const q = mapa.get(tw.vars.backgroundPosition);
         if (q) tl.set(mk.pend, { x: q[0], y: q[1] }, tw.startTime());
       }
+    }
+    // a faixa segue o quadro do Slowpoke: a testa em px da folha (coluna e linha do canto de cima à esquerda, largura)
+    // em cada animação e direção; nos quadros 1 e 3 o corpo desce 1 px. De lado o nó fica atrás (à direita); de
+    // costas, no meio da nuca; de frente, escondido. Quadro sem testa mapeada: a faixa some.
+    {
+      const S = SPR['79'];
+      const E = sp.escala;
+      const TESTA = {
+        'Walk/6': { c: 3, l: 11, w: 9, no: 'atras' },
+        'Idle/0': { c: 5, l: 12, w: 14, no: null },
+        'Idle/4': { c: 6, l: 9, w: 12, no: 'nuca' },
+      };
+      const mapa = new Map();
+      for (const [k, v] of Object.entries(TESTA)) {
+        const [nome, d] = k.split('/');
+        const A = S.anims[nome];
+        A.rects[d].forEach(([rx, ry], i) => mapa.set(`${-rx * E}px ${-ry * E}px`, { ...v, A, dy: i % 2 }));
+      }
+      const poe = (t, v) => {
+        if (!v) return tl.set(faixa, { opacity: 0 }, t);
+        const x = (v.c - v.A.w / 2) * E;
+        const y = (v.l + v.dy - v.A.pe * v.A.h) * E;
+        tl.set(faixa, { opacity: 1, x, y, width: v.w * E, height: 2 * E }, t);
+        tl.set(nos, { display: v.no ? 'block' : 'none' }, t);
+        if (v.no === 'atras') {
+          tl.set(nos[0], { position: 'absolute', x: v.w * E - 16, y: -10, rotation: -25 }, t);
+          tl.set(nos[1], { position: 'absolute', x: v.w * E - 12, y: 14, rotation: 20 }, t);
+        } else if (v.no === 'nuca') {
+          tl.set(nos[0], { position: 'absolute', x: (v.w * E) / 2 - 36, y: 18, rotation: 70 }, t);
+          tl.set(nos[1], { position: 'absolute', x: (v.w * E) / 2 - 4, y: 18, rotation: 110 }, t);
+        }
+      };
+      gsap.set(faixa, { opacity: 0 });
+      for (const tw of tl.getTweensOf(sp.spr)) if (tw.vars.backgroundPosition) poe(tw.startTime(), mapa.get(tw.vars.backgroundPosition));
     }
 
     window.__timelines = window.__timelines || {};
