@@ -34,7 +34,7 @@ Legenda do trailer (TikTok; no Reels troca `/tt` por `/ig`):
 
 (Qua 28/10 às 10h tem o Show HN, fora desta pauta: rascunho em `docs/planos/divulgacao-trailer2.md`.)
 
-## Semanas 4 a 7 (10/11 a 01/12): as duas séries do Pallet FC e o Modo Treinador
+## Semanas 4 a 7 (10/11 a 01/12): as duas séries do Pallet FC e o Time Ultimate
 
 Aprovados pelo Miguel em 07/11 ("ok 13–19"; calendário: `docs/planos/calendario.md`). Animação à mão no molde dos EP 2 e 3, 30 a 45 s,
 música própria no estilo `livre-ditto`, tela final com soccermon.com. Vídeo pronto 2 dias antes, pro Miguel ver.
@@ -46,12 +46,12 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 | 14 | sex 13/11 19h | Confessionário | **Paredão:** quem vai pro banco? Magikarp faz campanha com a medalha, Pikachu faz pose, Snorlax dorme na cabine; quem sai é o Ditto, que estava fingindo ser o Psyduck | CONFESSIONÁRIO · DIA 1 | aprovado (07/11) |
 | 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | aprovado (07/11) |
 | 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | aprovado (07/11) |
-| 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Modo Treinador e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | MODO TREINADOR 27/11 | aprovado (07/11) |
-| 18 | sex 27/11 19h | Lançamento | Trailer do Modo Treinador + comentário com o link | MODO TREINADOR | aprovado (07/11) (o trailer passa pelo Miguel) |
+| 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Time Ultimate e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | TIME ULTIMATE 27/11 | aprovado (07/11) |
+| 18 | sex 27/11 19h | Lançamento | Trailer do Time Ultimate + comentário com o link | TIME ULTIMATE | aprovado (07/11) (o trailer passa pelo Miguel) |
 | 19 | ter 01/12 19h | Confessionário | **Prova do líder:** prova de segurar a bola na cabeça; o Snorlax ganha dormindo | CONFESSIONÁRIO · DIA 3 | aprovado (07/11) |
 
-Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Modo
-Treinador cobre a novidade.
+Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Time
+Ultimate cobre a novidade.
 
 ## Registro (toda segunda)
 

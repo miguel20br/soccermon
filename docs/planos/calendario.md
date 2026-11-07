@@ -14,21 +14,21 @@ nesse dia é o que vai ao ar.**
 
 | Quando (Brasília) | O quê | Onde muda a data |
 |---|---|---|
-| sex 27/11/2026 00:00 | Modo Treinador (Time Ultimate) abre pra todo mundo, Temporada 1 começa | `ULTIMATE_OPENS_AT` em `src/ui/ultimate/flag.ts` |
+| sex 27/11/2026 00:00 | Time Ultimate abre pra todo mundo, Temporada 1 começa | `ULTIMATE_OPENS_AT` em `src/ui/ultimate/flag.ts` |
 | ter 12/01/2027 00:00 | Liga abre (adiada em 07/11; era 01/12) | `LIGA_OPENS_AT` em `src/league/rules.ts` |
-| ter 15/12/2026 a 05/01/2027 | Evento de Natal do Modo Treinador (cartas Evento de Gelo, objetivos, enfeite) | `EVENTS` em `src/store/ultimate/rules.ts` |
-| ter 01/06/2027 00:00 | Fim da Temporada 1 (zera o Modo Treinador), começa a T2 "Líderes" | `SEASONS` em `src/store/ultimate/rules.ts` |
+| ter 15/12/2026 a 05/01/2027 | Evento de Natal do Time Ultimate (cartas Evento de Gelo, objetivos, enfeite) | `EVENTS` em `src/store/ultimate/rules.ts` |
+| ter 01/06/2027 00:00 | Fim da Temporada 1 (zera o Time Ultimate), começa a T2 "Líderes" | `SEASONS` em `src/store/ultimate/rules.ts` |
 
 ## Jogo
 
 | Quando | O quê | Quem decide |
 |---|---|---|
-| até sáb 07/11 | Branch `ut-numeros-27` na prévia da Vercel (números do Modo Treinador, fatia colorida) | feito |
+| até sáb 07/11 | Branch `ut-numeros-27` na prévia da Vercel (números do Time Ultimate, fatia colorida) | feito |
 | ter 17/11, junto da 0.9.44 | Conserto da quadra que segue a bola (erro `zoom` em laço) e teto de erros por sessão: branch `erros-0943` | conserto com teste (regra 5) |
-| até sex 13/11 | Miguel joga a prévia do Modo Treinador e dá o ok final nas tabelas | Miguel |
-| ter 17/11 | 0.9.44 "Véspera do Treinador": números aprovados, polimento do playtest | "pode subir" |
-| 18 a 26/11 | Congelamento do Modo Treinador: só conserto. Trailer do lançamento pronto até ter 24/11 | Miguel aprova o trailer |
-| sex 27/11 | Modo Treinador no ar (sozinho, 00:00); trailer nas redes às 19h | — |
+| até sex 13/11 | Miguel joga a prévia do Time Ultimate e dá o ok final nas tabelas | Miguel |
+| ter 17/11 | 0.9.44 "Véspera do Time Ultimate": números aprovados, polimento do playtest | "pode subir" |
+| 18 a 26/11 | Congelamento do Time Ultimate: só conserto. Trailer do lançamento pronto até ter 24/11 | Miguel aprova o trailer |
+| sex 27/11 | Time Ultimate no ar (sozinho, 00:00); trailer nas redes às 19h | — |
 | ~qui 10/12 | Versão de Natal (o que mais entrar no Natal), pra estar no ar antes do evento do dia 15 | "pode subir" |
 | ter 12/01/2027 | Liga abre sozinha (adiada pelo Miguel em 07/11) | — |
 | 2027 | Modo História | — |
@@ -42,5 +42,5 @@ nesse dia é o que vai ao ar.**
   o mesmo vídeo no Instagram, TikTok e Shorts pelo Buffer:
   - terça: sitcom **"Vestiário do Pallet FC"** (F1);
   - sexta: reality **"Confessionário"** (F2).
-- **Semana do lançamento:** o episódio de 24/11 puxa o Modo Treinador; 27/11 é o trailer.
+- **Semana do lançamento:** o episódio de 24/11 puxa o Time Ultimate; 27/11 é o trailer.
 - **Prazo de cada vídeo:** pronto 2 dias antes do post, pro Miguel ver.

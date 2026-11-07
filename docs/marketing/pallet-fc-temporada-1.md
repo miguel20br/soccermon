@@ -9,7 +9,7 @@ A lore das duas séries animadas, presa ao calendário do jogo. Elenco, manias e
 desse clube: o que o elenco faz entre as partidas que você joga.
 
 A temporada anda junto com o jogo:
-- 27/11: o Modo Treinador chega, e o elenco descobre que pode ser trocado por carta;
+- 27/11: o Time Ultimate chega, e o elenco descobre que pode ser trocado por carta;
 - 15/12: o Natal chega com as cartas de Gelo;
 - 12/01: a Liga abre, e o Pallet FC estreia nela no último episódio.
 
@@ -40,8 +40,8 @@ Na estreia da Liga, cada um resolve a sua.
 
 ## Episódios
 
-Ter = Vestiário do Pallet FC (sitcom). Sex = Confessionário (reality). Itens 13 a 19 da pauta já aprovados; 20 em
-diante são proposta.
+Ter = Vestiário do Pallet FC (sitcom). Sex = Confessionário (reality). Itens 13 a 21 aprovados pelo Miguel (13–19 em 07/11; 20–26 "a princípio" no mesmo dia, antes do Natal
+virar mês cheio). 22 a 31 são a versão com o Natal, falta o ok.
 
 | # | Data | Série | Episódio | O fio |
 |---|---|---|---|---|
@@ -49,17 +49,33 @@ diante são proposta.
 | 14 | sex 13/11 | Confessionário 1 | **Paredão.** Depois da derrota, quem vai pro banco? O Magikarp faz campanha com a medalha, o Pikachu faz pose, o Snorlax dorme na cabine. Sai o "Psyduck", que era o Ditto | O Ditto não sabe qual vaga é a dele |
 | 15 | ter 17/11 | Vestiário 2 | **Saco de bolas.** O Pikachu chuta o Voltorb achando que é a bola. Fumaça, plateia ri. A lousa fica preta de fuligem | Treino pra Liga começa mal |
 | 16 | sex 20/11 | Confessionário 2 | **Sem a medalha.** O Magikarp chora no confessionário porque perdeu a medalha. Corta pro Ditto usando ela | A medalha some (volta no final) |
-| 17 | ter 24/11 | Vestiário 3 | **O pacote.** O Psyduck traz o 1º pacote do Modo Treinador. O Magikarp abre e sai ele mesmo, carta bronze. O Snorlax acorda pra ver | Dá pra ser trocado por carta |
-| 18 | sex 27/11 | Lançamento | **Trailer do Modo Treinador** com o elenco: o Pallet FC abre pacotes, monta o time, ganha a 1ª partida | O modo chega no jogo no mesmo dia |
+| 17 | ter 24/11 | Vestiário 3 | **O pacote.** O Psyduck traz o 1º pacote do Time Ultimate. O Magikarp abre e sai ele mesmo, carta bronze. O Snorlax acorda pra ver | Dá pra ser trocado por carta |
+| 18 | sex 27/11 | Lançamento | **Trailer do Time Ultimate** com o elenco: o Pallet FC abre pacotes, monta o time, ganha a 1ª partida | O modo chega no jogo no mesmo dia |
 | 19 | ter 01/12 | Confessionário 3 | **Prova do líder.** Quem segurar a bola na cabeça por mais tempo garante a vaga. O Snorlax ganha dormindo | Ninguém quer perder a vaga pra carta |
 | 20 | sex 04/12 | Vestiário 4 | **O reforço.** Chega uma carta ouro: Dragonite. Todo mundo com ciúme. Ele é gente boa e dorme no banco igual o Snorlax | O medo vira amizade |
 | 21 | ter 08/12 | Confessionário 4 | **Quem fica.** O Pikachu confessa que tem medo do Dragonite roubar a câmera. Corta pro Ditto de Dragonite fazendo pose | Pikachu × Ditto |
-| 22 | sex 11/12 | Vestiário 5 | **Amigo secreto.** O Ditto tira todo mundo, vira cada um pra entregar o presente e esquece quem ele é | Ditto perdido |
-| 23 | ter 15/12 | Especial de Natal | **Carta de Gelo.** O evento de Natal começa no jogo. O vestiário congela, só o Snorlax fica quentinho | Natal no jogo no mesmo dia |
-| — | 18/12 a 04/01 | — | Pausa de fim de ano (só repost e Stories) | — |
-| 24 | ter 05/01 | Vestiário 6 | **Adiantado.** O Slowpoke chega pro treino da Liga… uma semana antes (volta do ep. 1). Está sozinho no vestiário de novo | Faltam 7 dias |
-| 25 | sex 08/01 | Bastidores | **Véspera.** Depoimento olhando pra lente: cada um conta o que a temporada foi pra ele | Tudo amarrado |
-| 26 | ter 12/01 | Final de temporada | **A estreia na Liga.** Pallet FC × o time do Charizard. O Magikarp acha a medalha (estava com o Ditto). O Ditto joga de Ditto. O Snorlax acorda no último lance. Lousa: LIGA 1ª RODADA | A Liga abre no jogo no mesmo dia |
+| 22 | sex 11/12 | Vestiário 5 | **A neve chegou.** Nevou na quadra. O Pikachu faz um boneco de neve do Snorlax; o Snorlax de verdade dorme do lado e ninguém sabe qual é qual | A versão de Natal chega no jogo |
+| 23 | ter 15/12 | Especial de Natal | **Carta de Gelo.** O evento de Natal começa no jogo. O vestiário congela, só o Snorlax fica quentinho | Evento no jogo no mesmo dia |
+| 24 | sex 18/12 | Confessionário 5 | **Carta pro Papai Noel.** Cada um conta o que pediu. O Magikarp pede a medalha de volta; o Ditto pede pra "ser alguém" | Os arcos de Natal |
+| 25 | ter 22/12 | Vestiário 6 | **Amigo secreto.** O Ditto tira todo mundo, vira cada um pra entregar o presente e esquece quem ele é | Ditto perdido |
+| 26 | qui 24/12 | Especial curto (10–15 s) | **Noite de Natal.** O Ditto vira a árvore; o Snorlax dorme embaixo, de laço, como presente | Véspera de Natal |
+| 27 | ter 29/12 | Confessionário 6 | **Retrospectiva.** O ano do Pallet FC em 30 s, com cenas dos episódios e um comentário de cada um | Recap pra quem chegou agora |
+| 28 | qui 31/12 | Especial curto (10–15 s) | **Virada.** Fogos sobre a quadra; a lousa vira pra LIGA EM 12 DIAS | Contagem final |
+| 29 | ter 05/01 | Vestiário 7 | **Adiantado.** O Slowpoke chega pro treino da Liga… uma semana antes (volta do ep. 1). Está sozinho no vestiário de novo | Fim do evento de Natal; faltam 7 dias |
+| 30 | sex 08/01 | Bastidores | **Véspera.** Depoimento olhando pra lente: cada um conta o que a temporada foi pra ele | Tudo amarrado |
+| 31 | ter 12/01 | Final de temporada | **A estreia na Liga.** Pallet FC × o time do Charizard. O Magikarp acha a medalha (estava com o Ditto). O Ditto joga de Ditto. O Snorlax acorda no último lance. Lousa: LIGA 1ª RODADA | A Liga abre no jogo no mesmo dia |
+
+## Natal (hype de dezembro)
+
+Sem pausa de fim de ano: dezembro é o mês mais forte do ano pra post. De 11/12 a 31/12 são 7 vídeos, dois deles curtos
+e baratos (24 e 31/12).
+
+- **Stories de 01 a 24/12:** um "calendário do Advento" do Pallet FC, uma imagem por dia (um personagem com gorro, uma
+  carta de Gelo do evento a partir do dia 15, a contagem pro Natal). Imagem parada, feita em lote.
+- **Música de Natal própria:** uma versão natalina da vinheta das séries (sino + o funk da `livre-ditto`), usada em
+  todo vídeo de dezembro.
+- **No jogo (proposta pra versão de Natal, ~10/12, decidir com o Miguel):** neve na quadra, a música de Natal no
+  menu, e uma Copa do Dia especial de Natal em 24 e 25/12 (rivais de Gelo).
 
 ## Regras de produção
 

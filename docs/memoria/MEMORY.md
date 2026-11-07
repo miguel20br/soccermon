@@ -16,7 +16,7 @@
 - [Postar pelo Buffer](reference-postar-pelo-buffer.md) — API do Buffer nas 3 redes, ids, repo soccermon-midia, canal YT é a conta de marca miguel20br
 - [Sem Hacker News](feedback-sem-hacker-news.md) — Show HN cancelado em 28/10; não sugerir HN de novo
 - [Música animada é o padrão](feedback-musica-animada-ditto.md) — livre-ditto (EP 3) aprovada como novo padrão: funk animado, motivo do protagonista, BOING de assinatura
-- [Menu de modos](project-menu-de-modos.md) — 29/10: menu antes do Estádio, UT fim de nov/2026, Natal em dez, Modo História 2027; nomes Copa · Treinador · História
+- [Menu de modos](project-menu-de-modos.md) — 29/10: menu antes do Estádio, UT fim de nov/2026, Natal em dez, Modo História 2027; nome final Time Ultimate (não "Modo Treinador")
 - [Golpe universal](project-golpe-universal.md) — 30/10: todo capitão chuta, bicuda do goleiro, parry, efeito na bola, N3 especial; 0.9.29 depois da 0.9.28
 - [Sem Artifacts](feedback-sem-artifacts.md) — nunca publicar Artifact/Claude Docs nesta conta; entregar arquivo local
 - [Itens quebrados que combam](feedback-itens-quebrados-combam.md) — jogadores amam combo forte (juros + gol dá dinheiro); não nerfar por conservadorismo, sem extrapolar

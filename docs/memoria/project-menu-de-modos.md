@@ -1,6 +1,6 @@
 ---
 name: project-menu-de-modos
-description: "Decisões de 29/10/2026 do menu de modos (antes do Estádio): 3 modos, Ultimate Team no fim de novembro, Natal separado em dezembro, nomes fechados (Copa, Treinador, História)"
+description: "Menu de modos (29/10/2026): 3 modos, Time Ultimate em 27/11 (nome final, não \"Modo Treinador\"), Natal separado em dezembro, Modo História 2027"
 metadata:
   node_type: memory
   type: project
@@ -16,7 +16,8 @@ Decidido:
 - Os trancados não podem parecer jogo inacabado: cena viva com sprites, nada de cadeado e "Em breve" seco.
 - **Datas:** Ultimate Team no **fim de novembro de 2026** ("nos desafiar"); Modo História "2027".
 - **Dezembro de 2026 = atualização de Natal separada.** Não juntar o UT com ela.
-- **Nomes (fechados em 29/10):** Modo Copa (o atual), **Modo Treinador** (o Ultimate Team; EN "Trainer Mode") e
+- **Nome final: Time Ultimate** (o jogo já mostra assim; Miguel corrigiu em 07/11: "o nome do modo é TIME ULTIMATE, não modo treinador"). Time Ultimate é o nome em tudo: jogo, posts, legendas.
+- **Nomes antigos (29/10, superados):** Modo Copa (o atual), **Modo Treinador** (o Ultimate Team; EN "Trainer Mode") e
   Modo História. "Ultimate" fica só como nome interno no código (`ultimate`). Antes ele tinha recusado Copa/Clube/Jornada,
   Futsal/Time dos Sonhos e Kanto Cup/Clube Pallet; "Arcade" ficou descartado.
 - **Sala do time + troféus:** fica pra depois da 0.9.27 (conceitos em `?lab=sala-trofeus&v=a|b|c`, branch `sala-trofeus`).
