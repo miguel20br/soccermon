@@ -281,3 +281,9 @@ Ressalvas: o grupo do Planalto segue perto de 50% e a final da Copa passa da met
 Barra de evolução (robô, 600 copas por linha): 14 ⇒ 12 ⇒ 10 quase não muda. Robô da nota 0,36 ⇒ 0,38 por copa; robô que escolhe
 quem evolui 1,95 ⇒ 2,15 ⇒ 2,35. Real na Copa: 0,63 por copa, 39% das copas com alguma, só 20% das cartas escolhidas ainda
 evoluem (estimativa pelo elenco final). A barra segue em 14: o que limita é a escolha no draft.
+
+## Time Ultimate: rival pela força (06/11/2026, motor 27)
+
+Aprovado pelo Miguel: o rival do Time Ultimate mira a força (média × química) e não só a média; sem rival à altura, as
+Fichas seguem o nível alcançado. Tabela e ressalvas em [ultimate-team.md](ultimate-team.md) (seção do dia). Não muda o
+motor nem a Liga.

@@ -386,3 +386,23 @@ clube pode mudar com o nível. Medido de novo, mesmo método (200 saves novos, 1
 | Fácil: rival com média ≥ a sua | 22 de 200 (3 com +5 ou mais; pior +9) | 0 de 200 (pior 50 x 49) |
 | Fácil: rival a até 2 do alvo | 111 de 200 | 196 de 200 (os 4 de fora até +5, sem clube fraco o bastante) |
 | Normal / Difícil / Mestre: rival a até 2 do alvo | 134 / 154 / 157 de 200 | 200 / 200 / 200 |
+
+## Rival pela força e Fichas pelo nível alcançado (06/11/2026, motor 27, aprovado pelo Miguel)
+
+- **Rival pela força:** `ultimateRival` mira a força do seu time (`teamStrength`: média na vaga × química, com o banco no
+  monotipo, a mesma regra da partida) + LEVEL_GAP, e não só a média. A torcida segue fora do modo.
+- **Fichas pelo nível que o rival alcança** (`paidLevel`): sem clube à altura (time forte no Mestre), a partida vale o
+  nível que ele alcançou, nunca acima do escolhido. Fichas e o objetivo "vencer no Difícil" seguem esse nível; a folha
+  de nível mostra a tabela já ajustada e "Nenhum rival à altura: paga como X".
+- **Medida** (`scripts/balance/niveis-ut.ts --n 400`, ±4,9 pp, robô dos dois lados, rival com o treinador que reage
+  como na tela). Vitórias, antes (n 200, mesmo método) ⇒ depois:
+
+| Time | Fácil | Normal | Difícil | Mestre | Mestre paga o nível |
+|---|---|---|---|---|---|
+| Início (média 62) | 39 ⇒ 45% | 32 ⇒ 38% | 26 ⇒ 27% | 18 ⇒ 21% | 100% |
+| 1ª semana (78) | 33 ⇒ 40% | 28 ⇒ 30% | 24 ⇒ 23% | 18 ⇒ 15% | 94% |
+| 1º mês (85) | 47 ⇒ 46% | 39 ⇒ 35% | 33 ⇒ 30% | 34 ⇒ 23% | 52% |
+| 7 de Água (68, monotipo) | 68 ⇒ 48% | 62 ⇒ 33% | (62) ⇒ 34% | (43) ⇒ 16% | 75% |
+
+  Entre parênteses, a medida antiga sem o treinador do rival (a de antes parou no meio). Mestre do 1º mês: Fichas por
+  partida 60 ⇒ 36. Ressalva: o robô do seu lado não troca nem chama o capitão; o rival tem treinador que reage.
