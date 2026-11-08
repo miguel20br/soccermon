@@ -42,7 +42,7 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 
 | # | Quando | Série | Episódio | Texto na tela | Status |
 |---|---|---|---|---|---|
-| 13 | ter 10/11 19h | Vestiário do Pallet FC | **O atrasado:** o Slowpoke chega todo pronto pra estreia… que foi semana passada; a lousa mostra o placar | VESTIÁRIO DO PALLET FC | aprovado (07/11) |
+| 13 | ter 17/11 19h (era 10/11) | Vestiário do Pallet FC | **A foto do time:** o Psyduck tenta a foto da inscrição na Liga e cada um estraga uma; a final sai a cara deles, com o Slowpoke borrado (troca "O atrasado", 08/11) | VESTIÁRIO DO PALLET FC · A FOTO | aprovado o roteiro (08/11); rascunho em produção |
 | 14 | sex 13/11 19h | Confessionário | **Paredão:** quem vai pro banco? Magikarp faz campanha com a medalha, Pikachu faz pose, Snorlax dorme na cabine; quem sai é o Ditto, que estava fingindo ser o Psyduck | CONFESSIONÁRIO · DIA 1 | aprovado (07/11) |
 | 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | aprovado (07/11) |
 | 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | aprovado (07/11) |

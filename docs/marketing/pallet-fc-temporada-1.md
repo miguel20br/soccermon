@@ -45,7 +45,7 @@ virar mês cheio). 22 a 31 são a versão com o Natal, falta o ok.
 
 | # | Data | Série | Episódio | O fio |
 |---|---|---|---|---|
-| 13 | ter 10/11 | Vestiário 1 | **O atrasado.** O Slowpoke chega todo pronto pra estreia, que foi sábado passado. Lousa: ESTREIA 4 × 1 | O time perdeu a estreia. Começa a contagem da Liga |
+| 13 | ter 17/11 | Vestiário 1 | **A foto do time** (substitui "O atrasado", 08/11). O Psyduck tenta a foto da inscrição na Liga; cada um estraga uma do seu jeito; a final sai bonitinha e a cara deles, com o Slowpoke borrado na porta. Lousa: LIGA EM 63 DIAS | Apresenta o elenco oficial (bíblia, 08/11: Squirtle e Jigglypuff entram) |
 | 14 | sex 13/11 | Confessionário 1 | **Paredão.** Depois da derrota, quem vai pro banco? O Magikarp faz campanha com a medalha, o Pikachu faz pose, o Snorlax dorme na cabine. Sai o "Psyduck", que era o Ditto | O Ditto não sabe qual vaga é a dele |
 | 15 | ter 17/11 | Vestiário 2 | **Saco de bolas.** O Pikachu chuta o Voltorb achando que é a bola. Fumaça, plateia ri. A lousa fica preta de fuligem | Treino pra Liga começa mal |
 | 16 | sex 20/11 | Confessionário 2 | **Sem a medalha.** O Magikarp chora no confessionário porque perdeu a medalha. Corta pro Ditto usando ela | A medalha some (volta no final) |
@@ -76,6 +76,10 @@ e baratos (24 e 31/12).
   todo vídeo de dezembro.
 - **No jogo (proposta pra versão de Natal, ~10/12, decidir com o Miguel):** neve na quadra, a música de Natal no
   menu, e uma Copa do Dia especial de Natal em 24 e 25/12 (rivais de Gelo).
+
+**Elenco e formato (08/11):** elenco oficial (5 titulares + 2 reservas, como no jogo), reforços e o formato multicâmera ficam na
+bíblia (`trailer/curtas/BIBLIA.md`, branch `curtas-vest`). O roteiro de "O atrasado" abaixo foi trocado pela "A foto do time"
+(`trailer/curtas/vestiario-foto/ROTEIRO.md`); o Slowpoke atrasado vira piada de fundo.
 
 ## Roteiros (07/11, depois do "cadê o desenvolvimento?" do Miguel)
 
