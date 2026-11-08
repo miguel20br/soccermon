@@ -209,6 +209,24 @@
         ],
         "createdAt": "2026-11-08T07:36:44.893Z",
         "reason": "Claude: quadro de vídeo 9:16 (HyperFrames); o recorte da foto/cena pelo overflow é o enquadramento, não UI com popover"
+      },
+      {
+        "rule": "buried-raster",
+        "value": "*",
+        "files": [
+          "trailer/curtas/vestiario-foto/index.html"
+        ],
+        "createdAt": "2026-11-08T08:03:21.907Z",
+        "reason": "Claude: quadro de vídeo do HyperFrames; as imagens nascem em opacidade 0 e a linha do tempo (GSAP) mostra cada uma na hora dela"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "trailer/curtas/vestiario-foto/index.html"
+        ],
+        "createdAt": "2026-11-08T08:03:22.569Z",
+        "reason": "Claude: a faixa de cima do #camera é o corpo da câmera de tripé desenhada em pixel art, não card; mesma exceção dos outros episódios"
       }
     ]
   }
