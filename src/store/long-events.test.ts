@@ -88,7 +88,8 @@ describe('eventos da Copa longa', () => {
         const run = longRun('ev-4');
         const card = { ...createInstance(149, new Rng('ev', 'c')), uid: 'dragonite' };
         const two = resolveEvent(run, { id: 'patrocinador', cards: [card] }, 'aceitar')!;
-        expect(two.bench).toEqual(['dragonite']);
+        // a vaga do 2º reserva fica vazia (antes sumia e o banco encolhia pra sempre)
+        expect(two.bench).toEqual(['dragonite', '']);
         expect(two.picks).toHaveLength(run.picks.length - 1);
         const ev: LongEvent = { id: 'capitao' };
         const sub = run.bench[0];
@@ -111,9 +112,28 @@ describe('eventos da Copa longa', () => {
         };
         const sold = resolveEvent(run, { id: 'capitao' }, 'vender', 'charm', run.lineup[0])!;
         const uids = new Set(sold.picks.map((p) => p.uid));
-        expect([...sold.lineup, ...sold.bench].filter((u) => !uids.has(u))).toEqual([]);
-        expect(sold.bench).toEqual(['charm']);
+        expect([...sold.lineup, ...sold.bench].filter((u) => u && !uids.has(u))).toEqual([]);
+        expect(sold.bench).toEqual(['charm', '']);
         expect(sold.lineup).toEqual(run.lineup);
+    });
+
+    it('quem sai do banco deixa a vaga vazia: o reforço entra nela e ela nunca vai pra quadra', () => {
+        const run = longRun('ev-vaga');
+        const gone = resolveEvent(run, { id: 'rocket' }, 'reserva', run.bench[0])!;
+        expect(gone.bench).toEqual(['', 'charm']);
+        // a partida só leva quem existe
+        expect(playerTeam(gone, 0xe8423f).bench.map((p) => p.uid)).toEqual(['charm']);
+        // trocar a vaga vazia com um titular não abre buraco na quadra
+        useGame.setState({ run: { ...gone, status: 'lineup' } });
+        useGame.getState().swapSlots({ zone: 'bench', index: 0 }, { zone: 'lineup', index: 1 });
+        expect(useGame.getState().run!.lineup).toEqual(gone.lineup);
+        // o reforço da recompensa entra na vaga vazia
+        const inst = { ...createInstance(149, new Rng('vaga', 'r')), uid: 'reforco' };
+        useGame.setState({ run: { ...gone, status: 'reward', rewards: [{ kind: 'pokemon', inst, from: null }] } });
+        useGame.getState().claimReward(0, '');
+        const after = useGame.getState().run!;
+        expect(after.bench).toEqual(['reforco', 'charm']);
+        expect(after.picks.some((p) => p.uid === 'reforco')).toBe(true);
     });
 
     it('entrevista muda o próximo rival', () => {
@@ -232,7 +252,7 @@ describe('eventos novos da revisão da Rota', () => {
         const lost = resolveEvent(withItem, { id: 'rocket' }, 'item', holder)!;
         expect(lost.picks.find((p) => p.uid === holder)!.item).toBeNull();
         const gone = resolveEvent(run, { id: 'rocket' }, 'reserva', run.bench[0])!;
-        expect(gone.bench).toEqual(['charm']);
+        expect(gone.bench).toEqual(['', 'charm']);
         expect(resolveEvent(run, { id: 'rocket' }, 'encarar')!.challenge).toBe('rocket');
         // o assalto não tem saída de graça
         expect(eventChoices(run, { id: 'rocket' }).every((c) => c.id !== 'seguir')).toBe(true);
@@ -244,7 +264,8 @@ describe('eventos novos da revisão da Rota', () => {
         expect(resolveEvent(run, ev, 'pagar')).toMatchObject({ cards: 0, money: 2 });
         const best = resolveEvent(run, ev, 'reserva')!;
         expect(best.cards).toBe(0);
-        expect(best.bench).toHaveLength(1);
+        expect(best.bench).toHaveLength(2);
+        expect(best.bench).toContain('');
         expect(best.bench).not.toContain(ev.uids![0]);
         expect(eventChoices({ ...run, money: 9 }, ev).find((c) => c.id === 'pagar')!.ok).toBe(false);
         // a nota do mapa guarda o nome de quem saiu ("{a} vai embora"): ele não está mais no time
@@ -269,7 +290,7 @@ describe('eventos novos da revisão da Rota', () => {
     it('no store: Ovo choca no banco depois de 2 partidas; a aposta do Blue paga ou cobra na partida seguinte', () => {
         const run = longRun('ev-ovo');
         const egg = resolveEvent(run, { id: 'ovo', egg: 147 }, 'ficar', run.bench[0])!;
-        expect(egg.bench).toEqual(['charm']);
+        expect(egg.bench).toEqual(['', 'charm']);
         expect(egg.egg).toEqual({ left: 2, speciesId: 147 });
         const bet = resolveEvent({ ...egg, money: 10 }, { id: 'aposta' }, 'topar')!;
         expect(bet.bet).toBe(6);
@@ -305,7 +326,9 @@ describe('eventos novos da revisão da Rota', () => {
         r = useGame.getState().run!;
         expect(r.egg).toBeNull();
         expect(r.picks.some((p) => p.speciesId === 147)).toBe(true);
-        expect(r.bench.some((u) => r.picks.find((p) => p.uid === u)?.speciesId === 147)).toBe(true);
+        // nasce na vaga que o Ovo deixou, sem banco de 3
+        expect(r.picks.find((p) => p.uid === r.bench[0])?.speciesId).toBe(147);
+        expect(r.bench).toHaveLength(2);
         expect(r.eventNote).toMatchObject({ id: 'ovo', choice: 'nasceu' });
     });
 });

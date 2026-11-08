@@ -88,11 +88,11 @@ const rating = (run: RunState, uid: string) => {
     const p = run.picks.find((x) => x.uid === uid);
     return p ? viewInstance(p).overall : 0;
 };
-/** Sai do time (do banco). */
+/** Sai do time (do banco): a vaga fica vazia pra um reforço, nunca some. */
 const leave = (run: RunState, uid: string): RunState => ({
     ...run,
     picks: run.picks.filter((p) => p.uid !== uid),
-    bench: run.bench.filter((u) => u !== uid),
+    bench: run.bench.map((u) => (u === uid ? '' : u)),
 });
 
 /**
@@ -247,18 +247,18 @@ export function resolveEvent(
         case 'carrinho:parar':
             return { ...next, ...out(target!, 2, 'lesao') };
         case 'patrocinador:aceitar': {
-            // dois por um: os dois reservas vão embora e a carta lacrada entra no banco
+            // dois por um: os dois reservas vão embora, a carta lacrada entra na vaga do primeiro e a outra fica vazia
             const leaving = benchFree(run).slice(0, 2);
             const inst = ev.cards![0];
             return {
                 ...next,
                 picks: [...next.picks.filter((p) => !leaving.includes(p.uid)), inst],
-                bench: [inst.uid, ...next.bench.filter((u) => u && !leaving.includes(u))],
+                bench: next.bench.map((u) => (u === leaving[0] ? inst.uid : leaving.includes(u) ? '' : u)),
             };
         }
         case 'capitao:vender': {
             // o capitão vai embora; o reserva escolhido entra na vaga dele (na quadra ou no banco, onde ele estiver) e a
-            // vaga do reserva some; você escolhe o novo capitão
+            // vaga do reserva fica vazia; você escolhe o novo capitão
             const old = run.captainUid;
             if (!old) return null;
             const swap = (u: string) => (u === old ? target! : u === target ? old : u);
@@ -268,7 +268,7 @@ export function resolveEvent(
                 ...next,
                 picks: next.picks.filter((p) => p.uid !== old),
                 lineup,
-                bench: next.bench.map(swap).filter((u) => u !== old),
+                bench: next.bench.map(swap).map((u) => (u === old ? '' : u)),
                 captainUid: captain,
             };
         }

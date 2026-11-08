@@ -792,7 +792,7 @@ export function playerTeam(run: RunState, color = clubColorHex(useGame.getState(
         name: run.teamName,
         lineup: run.lineup.map((u) => byUid.get(u)!),
         // quem está fora (Copa longa: lesão, Creche) não vai pro banco da partida, então não tem como entrar
-        bench: run.bench.filter((u) => !isOut(run, u)).map((u) => byUid.get(u)!),
+        bench: run.bench.filter((u) => u && !isOut(run, u)).map((u) => byUid.get(u)!),
         tactic: run.tactic,
         color,
         ...(run.sponsors?.length && { sponsors: run.sponsors }),
@@ -1575,6 +1575,8 @@ export const useGame = create<GameStore>()(
                     const tmp = zone(a)[a.index];
                     zone(a)[a.index] = zone(b)[b.index];
                     zone(b)[b.index] = tmp;
+                    // vaga vazia do banco (alguém saiu na Copa longa) não vai pra quadra
+                    if (lineup.filter((u) => !u).length > run.lineup.filter((u) => !u).length) return;
                     updateRun({ lineup, bench });
                 },
 
@@ -1786,7 +1788,12 @@ export const useGame = create<GameStore>()(
                         else {
                             const baby = createInstance(next.egg.speciesId, new Rng(run.seed, `egg-${run.stage}`));
                             next.picks = [...next.picks, baby];
-                            next.bench = [...next.bench, baby.uid];
+                            // na 1ª vaga vazia do banco (a que o Ovo deixou); save antigo, sem vaga: no fim
+                            const free = next.bench.indexOf('');
+                            next.bench =
+                                free < 0
+                                    ? [...next.bench, baby.uid]
+                                    : next.bench.map((u, i) => (i === free ? baby.uid : u));
                             next.egg = null;
                             next.eventNote = { id: 'ovo', choice: 'nasceu', target: baby.uid, cost: 0 };
                         }

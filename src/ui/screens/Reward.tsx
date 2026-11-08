@@ -317,10 +317,13 @@ export function GainTarget({
         reward.kind === 'pokemon'
             ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
             : squad;
+    // reforço também entra numa vaga vazia do banco (um reserva saiu na Copa longa)
+    const emptyBench = reward.kind === 'pokemon' && run.bench.includes('');
     const holding = holder ? byUid.get(holder) : null;
     // 2º passo do item: quem segurava já tinha um item, falta escolher quem fica com o antigo
     const passing = reward.kind === 'item' && !!holding?.item;
     const canPick = new Set((passing ? squad.filter((p) => p.uid !== holder) : targets).map((p) => p.uid));
+    if (emptyBench && !passing) canPick.add('');
     const fitItem = reward.kind === 'item' ? reward.item : null;
     const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
     const fitText = (f: ItemFit) =>
