@@ -1,10 +1,12 @@
-// A foto do time: o Ditto "meio Pikachu" da foto final, tirado por código da folha do jogo, no molde do
+// A foto do time: (1) o Ditto "meio Pikachu" da foto final, tirado por código da folha do jogo, no molde do
 // vestiario-atrasado/gerar.cjs: cada pixel opaco da folha do Pikachu ganha a cor da paleta do Ditto (preto + 4 roxos)
 // pela luz dele; no quadro 1 do Pose de frente (o da foto) a cara do Pikachu vira a do Ditto (dois olhinhos e a boca
 // de risco), mas as bochechas vermelhas ficam: ele ainda está no meio do caminho.
-//   node trailer/curtas/vestiario-foto/gerar.cjs     (precisa de trailer/curtas/midia: preparar.mjs) → img/25-ditto.png
+// (2) img/cabeca.js: onde está a cabeça do Squirtle em cada quadro (o canto esquerdo da 1ª linha opaca, em px do quadro),
+// pros óculos escuros seguirem o sprite quadro a quadro (no PMD a cabeça dele é a mesma em todo quadro, só anda).
+//   node trailer/curtas/vestiario-foto/gerar.cjs     (precisa de trailer/curtas/midia: preparar.mjs) → img/25-ditto.png, img/cabeca.js
 const { execFileSync } = require('node:child_process');
-const { mkdirSync } = require('node:fs');
+const { mkdirSync, writeFileSync } = require('node:fs');
 const { join } = require('node:path');
 
 const AQUI = __dirname;
@@ -54,3 +56,23 @@ mkdirSync(join(AQUI, 'img'), { recursive: true });
 const sai = join(AQUI, 'img/25-ditto.png');
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${W}x${H}`, '-i', '-', '-frames:v', '1', sai], { input: d });
 console.log('25-ditto: pronto');
+
+// (2) a cabeça do Squirtle quadro a quadro
+{
+    const S7 = window.SPR['7'];
+    const [W7] = S7.tam;
+    const px = execFileSync('ffmpeg', ['-v', 'error', '-i', join(AQUI, '../midia/sp/7.png'), '-vf', 'format=rgba', '-f', 'rawvideo', '-'], { maxBuffer: 64 << 20 });
+    const CAB = {};
+    for (const nome of ['Idle', 'Walk', 'Shoot']) {
+        const A = S7.anims[nome];
+        A.rects.forEach((dir, d) => {
+            CAB[`${nome}/${d}`] = dir.map(([fx7, fy7]) => {
+                for (let Y = 0; Y < A.h; Y++)
+                    for (let X = 0; X < A.w; X++) if (px[((fy7 + Y) * W7 + fx7 + X) * 4 + 3] > 128) return [X, Y];
+                return null;
+            });
+        });
+    }
+    writeFileSync(join(AQUI, 'img/cabeca.js'), `window.CABECA = ${JSON.stringify(CAB)};\n`);
+    console.log('cabeca: pronto');
+}
