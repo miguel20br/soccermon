@@ -76,3 +76,38 @@ console.log('25-ditto: pronto');
     writeFileSync(join(AQUI, 'img/cabeca.js'), `window.CABECA = ${JSON.stringify(CAB)};\n`);
     console.log('cabeca: pronto');
 }
+
+// (3) img/7-ditto.png: o Ditto virado Squirtle (o EP inteiro, 08/11). A folha do Squirtle nas cores dele, mas nos quadros
+// do Idle de frente (o único que o disfarce usa) a cara vira a do Ditto: apaga os olhões e a boca (a mancha azul-clara
+// entre o contorno) e entram os dois olhinhos e a boca de risco, presos ao canto da cabeça de cada quadro (o mesmo da (2)).
+{
+    const S7 = window.SPR['7'];
+    const [W7, H7] = S7.tam;
+    const px = execFileSync('ffmpeg', ['-v', 'error', '-i', join(AQUI, '../midia/sp/7.png'), '-vf', 'format=rgba', '-f', 'rawvideo', '-'], { maxBuffer: 64 << 20 });
+    const A = S7.anims.Idle;
+    const PRETO = [0, 0, 0];
+    const CLARO = [127, 207, 255];
+    for (const [fx, fy] of A.rects[0]) {
+        const at7 = (X, Y) => ((fy + Y) * W7 + fx + X) * 4;
+        let cx = 0;
+        let cy = 0;
+        achou: for (let Y = 0; Y < A.h; Y++)
+            for (let X = 0; X < A.w; X++)
+                if (px[at7(X, Y) + 3] > 128) {
+                    [cx, cy] = [X, Y];
+                    break achou;
+                }
+        // a mancha: tudo que não é contorno nas linhas da cara (olhos e boca), entre as colunas do contorno da cabeça
+        for (let Y = cy + 4; Y <= cy + 9; Y++)
+            for (let X = cx - 1; X <= cx + 9; X++) {
+                const i = at7(X, Y);
+                if (px[i + 3] > 128 && px[i] + px[i + 1] + px[i + 2] > 0) px.set(CLARO, i);
+            }
+        const P = (X, Y) => px.set(PRETO, at7(X, Y));
+        P(cx + 2, cy + 6);
+        P(cx + 6, cy + 6);
+        for (let X = cx + 1; X <= cx + 7; X++) P(X, cy + 8);
+    }
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${W7}x${H7}`, '-i', '-', '-frames:v', '1', join(AQUI, 'img/7-ditto.png')], { input: px });
+    console.log('7-ditto: pronto');
+}
