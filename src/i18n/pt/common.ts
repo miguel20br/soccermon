@@ -5,6 +5,7 @@
  */
 export const common = {
     ui: {
+        diskFull: 'Sem espaço no aparelho: seu progresso não está sendo salvo. Libere espaço e volte.',
         skip: 'Pular',
         tapToContinue: 'Toque pra continuar',
         howItWorks: 'Como funciona',

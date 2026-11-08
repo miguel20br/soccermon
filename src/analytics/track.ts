@@ -162,6 +162,12 @@ function referrer(): string | null {
     }
 }
 
+let dailyFrom: string | null = null;
+/** De onde a Copa do Dia foi começada ('jogar' = botão JOGAR do Estádio, 'tela' = tela da Copa do Dia): vai no `run_start`. */
+export const noteDailyOrigin = (from: string) => {
+    dailyFrom = from;
+};
+
 function onChange(s: GameState, prev: GameState) {
     // mudanças vindas da nuvem (login em outro aparelho) não são ações do jogador
     if (isApplyingCloud()) return;
@@ -175,6 +181,7 @@ function onChange(s: GameState, prev: GameState) {
         track('run_start', {
             challenge: new URLSearchParams(location.search).has('seed'),
             daily: !!run.daily,
+            from: run.daily ? dailyFrom : null,
             // Rota Índigo ('longa'): 8 partidas, então `stage` não é a fase da Relâmpago
             mode: run.mode ?? null,
         });

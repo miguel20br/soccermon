@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useState } from 'react';
+import { noteDailyOrigin } from '../../analytics/track';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
 import { SPECIES_BY_ID, species } from '../../engine/data';
@@ -37,7 +38,7 @@ export function useDailyBegin() {
     const [busy, setBusy] = useState(false);
     const [note, setNote] = useState<string | null>(null);
     const { t } = useT();
-    const begin = async () => {
+    const begin = async (from: 'jogar' | 'tela' = 'tela') => {
         const s = useGame.getState();
         const today = dailyDay();
         if (dailyInPlay()) {
@@ -54,6 +55,7 @@ export function useDailyBegin() {
             s.go('daily');
             return;
         }
+        noteDailyOrigin(from);
         setBusy(true);
         setNote(null);
         let ranked = false;

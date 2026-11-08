@@ -5,6 +5,7 @@ import { duel } from './net/session';
 import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
+import { useSaveHealth } from './store/save-health';
 import { readAmbientes } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav } from './ui/back-nav';
@@ -23,6 +24,7 @@ import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
 import { readHud } from './ui/hud-lab';
 import { DoorLayer } from './ui/kit/DoorWipe';
 import { MomentLayer } from './ui/kit/MomentWipe';
+import { Toast } from './ui/kit/Toast';
 import { requestBack, requestLeave } from './ui/leave-guard';
 import { FriendInvite, FriendVitrine } from './ui/profile/FriendsTab';
 import { PlayerCardModal } from './ui/profile/PlayerCard';
@@ -121,6 +123,7 @@ function MenuBack({ screen }: { screen: Screen }) {
 
 export default function App() {
     const { screen, settings, tour, run } = useGame();
+    const diskFull = useSaveHealth((s) => s.full);
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
@@ -404,6 +407,9 @@ export default function App() {
             <FriendVitrine />
             <AccountLink />
             <UnlockNotice />
+            {diskFull && !['match', 'liga-match', 'ultimate-match'].includes(screen) && (
+                <Toast tone="bad">{t('common.ui.diskFull')}</Toast>
+            )}
             {hydrated && tour && screen === 'home' && <Onboarding />}
         </div>
     );
