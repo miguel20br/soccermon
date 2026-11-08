@@ -31,7 +31,7 @@ import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
-import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCertain, maxCueNear } from '../../ui/match-view';
+import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCertain, maxCueNear, maxHitAhead } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui/showdown-lines';
@@ -795,6 +795,8 @@ export class MatchScene extends Phaser.Scene {
     private lastEmit = 0;
     private dramaTicks: number[] = [];
     private goalTicks: number[] = [];
+    /** Os golpes máximos que saem na partida (os dois times): a câmera lenta chegando. */
+    private maxHits: MatchEvent[] = [];
     private highlightTicks: number[] = [];
 
     /** Disputa de pênaltis (acontece depois do último snapshot: a cena anima sozinha). */
@@ -993,6 +995,7 @@ export class MatchScene extends Phaser.Scene {
         // gol, trave e defesa desaceleram igual: a câmera lenta não pode entregar que vai ser gol
         this.goalTicks = this.dramaTicks;
         this.highlightTicks = this.matchEvents.filter((e) => HIGHLIGHT.has(e.type)).map((e) => e.tick);
+        this.maxHits = this.matchEvents.filter((e) => e.type === 'max' && e.phase === 'hit');
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         // o lance do duelo da bicuda não tem mergulho: o goleiro arma a bicuda e para a bola no pé (`sdWindup`)
         const duel = this.matchEvents.find((e) => e.type === 'showdown');
@@ -1937,7 +1940,9 @@ export class MatchScene extends Phaser.Scene {
             base = Math.min(base, hold ? MAX_CUE_HOLD : MAX_CUE_SLOW);
         } else {
             this.cueSince = null;
-            if (this.maxCueNow()) base = Math.min(base, MAX_CUE_SLOW);
+            // a câmera lenta chegando vale pro golpe do rival também (ele não tem botão: só o bullet time é seu)
+            if (this.maxCueNow() || maxHitAhead(this.maxHits, this.playTick, MAX_CUE_LEAD))
+                base = Math.min(base, MAX_CUE_SLOW);
         }
         // o golpe máximo no ar já vai na câmera lenta dele: a do drama chegando no gol e a dos textos (0,25) por cima
         // multiplicavam (o voo do N3 levava ~4 s, 1 tick a cada 0,6 s); ele manda sozinho até o desfecho

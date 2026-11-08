@@ -12,6 +12,7 @@ import {
     MAX_CUE_EARLY,
     type MaxWait,
     maxCallCueNear,
+    maxHitAhead,
     maxOrderTick,
     maxWaitNext,
     snapAt,
@@ -201,5 +202,20 @@ describe('botão do golpe máximo (chamar o capitão e a hora certa)', () => {
             const hit = o.events.find((e) => e.type === 'max' && e.team === 0 && e.tick > at);
             expect(hit).toMatchObject({ phase: 'hit', by: 3, tick: at + 1 });
         }
+    });
+});
+
+describe('câmera lenta chegando no golpe máximo (maxHitAhead)', () => {
+    // o do rival não tem botão: antes chegava em 8x e só desacelerava depois do chute (Miguel, 08/11/2026)
+    it('vale pro golpe do rival, nos ticks antes do chute, e não depois nem na carga (maxArm)', () => {
+        const ev: MatchEvent[] = [
+            { tick: 60, half: 1, minute: 3, type: 'maxArm', team: 1, on: true },
+            { tick: 100, half: 1, minute: 5, type: 'max', team: 1, by: 9, phase: 'hit', moveId: null, level: 2, q: 1 },
+        ];
+        expect(maxHitAhead(ev, 88, 12)).toBe(true);
+        expect(maxHitAhead(ev, 100, 12)).toBe(true);
+        expect(maxHitAhead(ev, 87, 12)).toBe(false);
+        expect(maxHitAhead(ev, 101, 12)).toBe(false);
+        expect(maxHitAhead(ev.slice(0, 1), 55, 12)).toBe(false);
     });
 });
