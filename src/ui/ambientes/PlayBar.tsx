@@ -89,7 +89,7 @@ export function PlayBar({ main, sheet, onPick }: { main: Mode; sheet: Mode[]; on
                 onClick={main.go}
             >
                 <i className="cb-shine" aria-hidden />
-                <b className={`es-play-verb${(main.verb ?? '').length > 12 ? ' long' : ''}`}>
+                <b className="es-play-verb">
                     {main.verb ?? t('home.play')}
                 </b>
                 <small className="es-play-sub">{playSub(main, rail)}</small>

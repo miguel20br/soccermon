@@ -426,7 +426,7 @@ export function Estadio({
     // sem pílula (1ª visita), o JOGAR diz o modo embaixo: "Jogar · Copa Relâmpago · 4 jogos"
     const main =
         dailyNew && cur === 'daily'
-            ? { ...mode('daily'), title: '', verb: t('home.dailyNew'), sub: t('liga.home.dailyPlay') }
+            ? { ...mode('daily'), title: '', verb: t('home.dailyNew'), sub: t('home.dailyNewSub') }
             : !plan.sheet.length && cur === 'quick'
               ? { ...mode('quick'), sub: t('home.playTag') }
               : mode(cur);

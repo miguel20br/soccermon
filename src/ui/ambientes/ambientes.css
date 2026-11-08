@@ -3253,17 +3253,6 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-/* verbo comprido ("Copa do Dia · nova"): cabe numa linha em 320 px */
-.amb .es-play .es-play-verb.long {
-    font-size: min(26px, calc((100 * var(--vw) - 72px) / 18));
-    letter-spacing: 0;
-    text-shadow:
-        -2px -2px 0 var(--ol),
-        2px -2px 0 var(--ol),
-        2px 2px 0 var(--ol),
-        -2px 2px 0 var(--ol),
-        0 4px 0 var(--ol);
-}
 .amb .es-play .es-play-verb {
     --ol: #3d1c00;
     text-shadow:
