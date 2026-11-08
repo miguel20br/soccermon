@@ -200,6 +200,15 @@
         ],
         "createdAt": "2026-11-07T23:57:09.611Z",
         "reason": "Claude: quadro de vídeo em pixel art (pés do banco e móveis do vestiário desenhados com borda), não card de interface; mesma exceção do EP 3"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "trailer/curtas/vestiario-foto/index.html"
+        ],
+        "createdAt": "2026-11-08T07:36:44.893Z",
+        "reason": "Claude: quadro de vídeo 9:16 (HyperFrames); o recorte da foto/cena pelo overflow é o enquadramento, não UI com popover"
       }
     ]
   }
