@@ -77,9 +77,106 @@ e baratos (24 e 31/12).
 - **No jogo (proposta pra versão de Natal, ~10/12, decidir com o Miguel):** neve na quadra, a música de Natal no
   menu, e uma Copa do Dia especial de Natal em 24 e 25/12 (rivais de Gelo).
 
+## Roteiros (07/11, depois do "cadê o desenvolvimento?" do Miguel)
+
+A v2 do EP 1 era só a premissa: chega, lê a lousa, acabou. O que faltava é o miolo que os EP 2 e 3 tinham (três
+tentativas que pioram, fundo do poço, virada). Todo episódio passa a ter o esqueleto de sitcom:
+
+1. **Gancho** (0–2 s): o meio da confusão, antes de explicar.
+2. **Vinheta** (2 s).
+3. **Situação** (~8 s): o problema do episódio, claro numa imagem.
+4. **Três tentativas que pioram** (~20 s): cada personagem resolve do seu jeito (a mania dele), e cada uma dá
+   mais errado que a anterior. É aqui que mora a comédia.
+5. **Virada** (~10 s): a revelação ou o desastre maior.
+6. **Congela** com o nome do episódio.
+7. **Tag** (~6 s, depois do congelamento): uma piada extra que planta o próximo episódio ou a contagem da Liga.
+
+**Piada que corre a temporada:** toda tag de Vestiário termina com o Slowpoke chegando atrasado pra alguma coisa
+do episódio anterior. Quem segue a série espera por ela.
+
+### Item 13 · Vestiário 1 · O atrasado, v3 (~60 s)
+
+| Seg. | Bloco | Cena |
+|---|---|---|
+| 0 | Gancho | O Slowpoke entra correndo, todo uniformizado, e anda um palmo |
+| 2 | Vinheta | VESTIÁRIO DO PALLET FC |
+| 5 | Situação | Ele chega, estufa o peito: CHEGUEI PRA ESTREIA! O time olha. "?" no Magikarp e no Pikachu, o Snorlax ronca |
+| 14 | Tentativa 1 · Magikarp | Apita e aponta o calendário na parede: o SÁB riscado de vermelho. O Slowpoke olha… demora… e faz joinha: "SÁBADO!" (acha que é o que vem). Plateia |
+| 19 | Tentativa 2 · Pikachu | Mímica do jogo: chuta, a bola volta na cara, quatro vezes; mostra 4 dedos. O Slowpoke conta nos dedos, um por nota atrasada da tuba… e comemora: 4 × 0! O Pikachu solta um choquinho de raiva |
+| 26 | Tentativa 3 · Ditto | BOING: vira Slowpoke (com a cara do Ditto) e encena o sábado: a camisa 79 pendurada no banco vazio. O Slowpoke de verdade acha que é um espelho e ajeita a faixa; o Ditto ajeita junto. A plateia explode |
+| 33 | Virada | O Magikarp desiste, apito longo, gira a lousa: ESTREIA · 4 × 1 · SÁBADO PASSADO. Nada. A tuba tenta e desiste. "…", o Pikachu não aguenta: HAHA |
+| 43 | Congela | A luz apaga, todos foram embora; a ficha cai: "!". Congela: PALLET FC · EP 1 · O ATRASADO |
+| 50 | Tag | UMA SEMANA DEPOIS. Vestiário vazio de manhã. Ele chega correndo, a lousa diz LIGA EM 63 DIAS. Ele lê, senta no banco e espera. Balão: CHEGUEI CEDO. Grilo |
+| 57 | Fim | soccermon.com |
+
+O que a v3 planta: o Ditto jogou no lugar dele no sábado (por isso o Ditto não sabe qual vaga é a dele, item 14) e
+o Slowpoke começa a esperar a Liga (volta no item 29, "Adiantado").
+
+### Item 14 · Confessionário 1 · Paredão (~55 s)
+
+Reality: cabine com cortina, luz de cima, câmera tremida, DIA 1 na tela, sem plateia (o "tum-tum" faz o papel dela).
+
+| Bloco | Cena |
+|---|---|
+| Gancho | O Snorlax já dorme dentro da cabine; a cortina não fecha por causa da barriga |
+| Vinheta | CONFESSIONÁRIO · DIA 1 |
+| Situação | O Psyduck, com a prancheta, na frente do time: depois do 4 × 1, um vai pro banco. Urna no meio do vestiário |
+| Tentativa 1 · Magikarp | Na cabine, mostra a medalha pra câmera, bem perto: VOTEM PRA EU FICAR. Corta pro de verdade: ele apitando o almoço, todo mundo com a mão no ouvido |
+| Tentativa 2 · Pikachu | Na cabine: três poses, três flashes, a câmera não acompanha. Corta: no treino, ele comemora antes de chutar e a bola acerta o Diglett |
+| Tentativa 3 · Snorlax | Cabine: dorme. Relógio acelerado, o "DIA 1" vira "DIA 1 (AINDA)". A equipe de produção (o Mr. Mime) tenta tirar ele em mímica |
+| Virada | O Psyduck abre a urna: os votos são todos PSYDUCK. Ele segura a cabeça, vai pro banco… BOING: era o Ditto. A porta abre, o Psyduck de verdade entra com a prancheta. Tum-tum |
+| Congela | O Ditto no meio, com a cara do Psyduck derretendo: CONFESSIONÁRIO · PAREDÃO |
+| Tag | O Ditto na cabine, sozinho, tenta virar cada um do time. Para na própria cara, olha pra câmera, sem saber o que dizer. Corta: o Snorlax ainda dorme na outra cabine |
+
+### Item 15 · Vestiário 2 · Saco de bolas (~55 s)
+
+| Bloco | Cena |
+|---|---|
+| Gancho | BOOM: fumaça preta, só os olhos piscando |
+| Vinheta | VESTIÁRIO DO PALLET FC |
+| Situação | 10 SEGUNDOS ANTES. Lousa: LIGA EM 56 DIAS. O Psyduck despeja um saco de bolas pro treino. Uma delas tem olhos e ninguém percebe |
+| Tentativa 1 · Snorlax | Pega a "bola" pra travesseiro. O Voltorb pisca vermelho, tique-taque; todo mundo congela. O Snorlax ronca e o Voltorb se acalma. Plateia solta o ar |
+| Tentativa 2 · Magikarp | Apita pra organizar e manda separar: bolas aqui, o resto ali. O Ditto separa tudo certinho… e vira bola pra ficar do lado das bolas |
+| Tentativa 3 · Pikachu | Já comemorando antes do chute (a mania dele), de costas, dá uma bicuda sem olhar |
+| Virada | BOOM. Volta o quadro do gancho. A fumaça baixa: a lousa preta de fuligem, o Pikachu com o pelo em pé, o Voltorb intacto e sorrindo |
+| Congela | PALLET FC · EP 2 · SACO DE BOLAS |
+| Tag | O Slowpoke chega correndo, todo pronto: CHEGUEI PRO TREINO. A lousa preta não diz nada; ele chuta a primeira bola do saco. Tela preta, BOOM |
+
+### Item 16 · Confessionário 2 · Sem a medalha (~55 s)
+
+| Bloco | Cena |
+|---|---|
+| Gancho | O Magikarp chora na cabine em jatos de desenho; a água sobe até o joelho da câmera |
+| Vinheta | CONFESSIONÁRIO · DIA 2 |
+| Situação | Close no pescoço dele: só a fita, sem medalha. SUMIU |
+| Tentativa 1 · Pikachu | Na cabine: NÃO FUI EU, com a mão no peito. Corta: ele treinando pose de campeão no espelho, com a mão no peito onde a medalha ficaria. Suspeito |
+| Tentativa 2 · Snorlax | O Magikarp revira a "pilha de achados" onde o Snorlax dorme: meia, apito, o Voltorb (que pisca vermelho de novo). Nada de medalha |
+| Tentativa 3 · Psyduck | Monta um quadro de investigação com fotos e setas; as setas viram um nó e o nó vira dor de cabeça |
+| Virada | O Magikarp sai da cabine, derrotado. Corta pro vestiário vazio: o Ditto, de Magikarp, com a medalha no pescoço, fazendo pose no espelho. Tum-tum |
+| Congela | CONFESSIONÁRIO · SEM A MEDALHA |
+| Tag | O Ditto na cabine olha pra câmera e esconde a medalha atrás das costas. CONTINUA |
+
+### Item 17 · Vestiário 3 · O pacote (~60 s, puxa o Time Ultimate)
+
+| Bloco | Cena |
+|---|---|
+| Gancho | Um pacote dourado cai do teto no meio do vestiário, brilhando |
+| Vinheta | VESTIÁRIO DO PALLET FC |
+| Situação | Lousa: TIME ULTIMATE 27/11 · LIGA EM 49 DIAS. O Psyduck lê o manual: quem sai do pacote pode entrar no time. Todo mundo se olha e engole seco |
+| Tentativa 1 · Pikachu | Pra provar que é insubstituível: embaixadinha perfeita… com o Voltorb. Pisca vermelho; ele devolve devagarinho pro saco |
+| Tentativa 2 · Magikarp | Sem a medalha (item 16), lustra o apito e mostra pra câmera. Ninguém olha |
+| Tentativa 3 · Ditto | Vira uma carta, retângulo com a cara dele, e se põe em cima do pacote: ME ESCOLHE |
+| Virada | O Magikarp abre o pacote: rufar, luz dourada… desce uma carta bronze. É ele mesmo. Olha a carta, olha o time. "Aaah" da plateia |
+| Clímax | O Snorlax ACORDA, levanta, pega a carta bronze e cola na lousa, no meio do time. Volta a dormir. Aplauso |
+| Congela | PALLET FC · EP 3 · O PACOTE |
+| Tag | O Slowpoke chega correndo com um pacote na mão: CHEGOU O PACOTE! O pacote dele está vazio: a carta já está na lousa |
+
+Os episódios 19 em diante seguem o mesmo esqueleto; escrevo cada um quando o anterior estiver aprovado.
+
 ## Regras de produção
 
-- 30 a 45 s, 9:16, gancho no 1º segundo, uma piada por episódio, texto na tela de 2 a 5 palavras.
+- 50 a 65 s (os EP 2 e 3, de 64 e 68 s, foram os que mais seguraram gente), 9:16, gancho no 1º segundo, o esqueleto de
+  sitcom acima, texto na tela de 2 a 5 palavras.
 - Rascunho curto antes do episódio inteiro só no 1º episódio de cada formato. Os seguintes vão direto, pro Miguel
   ver o vídeo final 2 dias antes.
 - Música própria no molde da `livre-ditto`. Cada série tem sua vinheta, que se repete em todo episódio.
