@@ -26,10 +26,10 @@ nesse dia é o que vai ao ar.**
 | até sáb 07/11 | Branch `ut-numeros-27` na prévia da Vercel (números do Time Ultimate, fatia colorida) | feito |
 | ter 17/11, junto da 0.9.44 | Conserto da quadra que segue a bola (erro `zoom` em laço) e teto de erros por sessão: branch `erros-0943` | conserto com teste (regra 5) |
 | até sex 13/11 | Miguel joga a prévia do Time Ultimate e dá o ok final nas tabelas | Miguel |
-| ter 17/11 | 0.9.44 "Véspera do Time Ultimate": números aprovados, polimento do playtest | "pode subir" |
+| ter 17/11 | 0.9.44 "Véspera do Time Ultimate": números aprovados, polimento do playtest, aviso de "sem espaço" no save e Copa do Dia em destaque no JOGAR pra quem volta (aprovados em 08/11, branch `avisos-0944`) | "pode subir" |
 | 18 a 26/11 | Congelamento do Time Ultimate: só conserto. Trailer do lançamento pronto até ter 24/11 | Miguel aprova o trailer |
 | sex 27/11 | Time Ultimate no ar (sozinho, 00:00); trailer nas redes às 19h | — |
-| ~qui 10/12 | Versão de Natal (o que mais entrar no Natal), pra estar no ar antes do evento do dia 15 | "pode subir" |
+| ~qui 10/12 | Versão de Natal, no ar antes do evento do dia 15: neve na quadra, música de Natal no menu, Copa do Dia de Natal em 24 e 25/12 com rivais de Gelo (aprovado em 08/11) | "pode subir" |
 | ter 12/01/2027 | Liga abre sozinha (adiada pelo Miguel em 07/11) | — |
 | 2027 | Modo História | — |
 
