@@ -1,16 +1,19 @@
 <!doctype html>
 <!--
-  Vestiário do Pallet FC, EP 1 "O atrasado" (07/11/2026), 9:16. Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s,
-  15 compassos (36 s) + 0,6 s de rabo. Música: scripts/musica/pecas/livre-atrasado.mjs (midia/som/atrasado.js e
+  Vestiário do Pallet FC, EP 1 "O atrasado", v3 (08/11/2026), 9:16. Roteiro em ROTEIRO.md: 100 BPM, 4/4, compasso = 2,4 s,
+  25 compassos (60 s) + 0,6 s de rabo. Música: scripts/musica/pecas/livre-atrasado.mjs (midia/som/atrasado.js e
   atrasado-14.wav, feitos pelo preparar.mjs). Tempos: C.T(compasso, linha), 16 linhas por compasso.
-  0 gancho: o Slowpoke corre parado | 1 vinheta anos 90 | 2 ainda correndo, a plateia ri | 3 chega e estufa o peito
-  (no 2, com a tuba atrasada) | 4 CHEGUEI PRA ESTREIA! | 5 "?" no Magikarp e no Pikachu, o Snorlax ronca | 6 apito, a
-  lousa gira (linha 8) e ele vira de costas pra ler | 7–8 a lousa: ESTREIA 4 × 1 SÁBADO PASSADO | 9 nada | 10 "...",
-  o Pikachu ri | 11 a luz apaga, só ele no foco | 12 "!" (linha 0) e congela (linha 8) | 13 PALLET FC · EP 1, O
-  ATRASADO | 14 tela final (e ele chega atrasado na tela final também).
+  0 gancho: o Slowpoke corre parado | 1–2 vinheta anos 90: VESTIÁRIO DO PALLET FC e O ATRASADO | 2,8 ainda correndo |
+  3 chega e estufa o peito | 4 CHEGUEI PRA ESTREIA! | 5 "?" e ronco | 6–7 tentativa 1, o Magikarp: o calendário com o SÁB
+  riscado; ele demora e faz joinha: SÁBADO! | 8–10 tentativa 2, o Pikachu: a mímica (a bola volta na cara 4 vezes), os 4
+  dedos, ele conta 1-2-3-4 e comemora 4 × 0!; o choquinho | 11–14 tentativa 3, o Ditto: BOING, vira Slowpoke (com a
+  cara dele), larga a camisa 79 no banco e sai; volta; o espelho (os dois ajeitam a faixa) | 15 a lousa: ESTREIA 4 × 1
+  SÁBADO PASSADO | 16 nada | 17 "...", HAHA | 18 a luz apaga; "!" | 19 congela (moldura, sem texto) | 20 UMA SEMANA
+  DEPOIS | 21–23 a tag: de manhã, LIGA EM 63 DIAS; ele sobe no banco e espera: CHEGUEI CEDO | 24 tela final.
   Câmera parada de frente; sprites em escala inteira (o congelamento aproxima 1,5x: Slowpoke 16 → 24 px por pixel).
-  A faixa da testa segue o quadro (segueFaixa, como a medalha do Magikarp). Nada se mexe depois do congelamento.
-  Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-atrasado -q high -w 1 --no-browser-gpu
+  A faixa da testa segue o quadro (faixaSegue, como a medalha do Magikarp); o Ditto disfarçado copia até a faixa (roxa).
+  O disfarce sai do gerar.cjs (img/79-ditto.png). Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes
+  render vestiario-atrasado -q high -w 1 --no-browser-gpu
 -->
 <html lang="pt-BR">
 <head>
@@ -20,6 +23,10 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <script src="midia/sprites.js"></script>
 <script src="midia/som/atrasado.js"></script>
+<script>
+  // o Ditto disfarçado de Slowpoke (gerar.cjs): a mesma folha, roxa, com a cara do Ditto nos quadros de frente
+  window.SPR["79d"] = { ...window.SPR["79"], folha: "img/79-ditto.png" };
+</script>
 <script src="comum.js"></script>
 <style>
 .cena { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; visibility: hidden; }
@@ -39,9 +46,9 @@
 #lousa { position: absolute; left: 100px; top: 170px; width: 880px; height: 400px; z-index: 3; box-sizing: border-box;
   background: #1f3a2c; border: 18px solid #a8743f; border-radius: 10px; box-shadow: 0 0 0 8px #0e1430, 0 16px 0 rgb(0 0 0 / 40%); }
 #lousa .face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #f0f0e4; }
-#placar-lousa { visibility: hidden; letter-spacing: 5px; }
-#placar-lousa .l1 { font-size: 88px; }
-#placar-lousa b { font-size: 150px; line-height: 1.05; color: #ffcb05; }
+#placar-lousa, #liga-lousa { visibility: hidden; letter-spacing: 5px; }
+#placar-lousa .l1, #liga-lousa .l1 { font-size: 88px; }
+#placar-lousa b, #liga-lousa b { font-size: 150px; line-height: 1.05; color: #ffcb05; }
 #placar-lousa small { font-size: 52px; letter-spacing: 3px; color: #c9e2cf; }
 .medalha, .medalha .med { position: absolute; left: 0; top: 0; width: 0; height: 0; }
 .medalha .fita { position: absolute; background: linear-gradient(90deg, #e8423f 0 50%, #3a7bd5 50%); clip-path: polygon(0 0, 22% 0, 50% 70%, 78% 0, 100% 0, 62% 100%, 38% 100%); }
@@ -74,17 +81,47 @@
   -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; letter-spacing: 6px; }
 #vt-titulo span { display: block; font-size: 104px; }
 #vt-titulo b { display: block; font-size: 150px; color: #ffcb05; line-height: 1.15; }
-/* congelamento */
-#congela { position: absolute; left: 0; width: 1080px; top: 1220px; z-index: 70; text-align: center; opacity: 0; }
-#congela small { display: block; font-size: 58px; color: #fff; letter-spacing: 5px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; opacity: 0; }
-#congela b { display: inline-block; margin-top: 22px; padding: 24px 56px; border-radius: 24px; background: #ffcb05; color: #0e1430; font-size: 118px; letter-spacing: 6px;
-  box-shadow: 0 0 0 12px #0e1430, 0 22px 0 #8a6a00; transform: rotate(-3deg); opacity: 0; }
+/* congelamento: só a moldura de sitcom (o nome do episódio foi pra vinheta) */
 #moldura { position: absolute; inset: 0; z-index: 69; box-sizing: border-box; border: 22px solid #f8f8f0; box-shadow: inset 0 0 0 10px #0e1430; opacity: 0; pointer-events: none; }
+#vt-ep { position: absolute; left: 0; width: 1080px; top: 1190px; text-align: center; opacity: 0; }
+#vt-ep b { display: inline-block; padding: 24px 56px; border-radius: 24px; background: #ffcb05; color: #0e1430; font-size: 118px; letter-spacing: 6px;
+  box-shadow: 0 0 0 12px #0e1430, 0 22px 0 #8a6a00; transform: rotate(-3deg); }
+/* v3: o calendário da tentativa 1 (o SÁB riscado de vermelho) */
+#calendario { position: absolute; left: 380px; top: 630px; width: 320px; height: 262px; z-index: 4; box-sizing: border-box; background: #f8f8f0; border: 8px solid #0e1430;
+  border-radius: 10px; box-shadow: 0 12px 0 rgb(0 0 0 / 35%); transform-origin: 50% 0; visibility: hidden; }
+#calendario .topo { position: absolute; left: 0; top: 0; right: 0; height: 52px; background: #e8423f; border-bottom: 8px solid #0e1430; }
+#calendario .argola { position: absolute; top: -22px; width: 16px; height: 40px; background: #c8d0f0; border: 6px solid #0e1430; border-radius: 8px; }
+#calendario .dia { position: absolute; left: 0; right: 0; top: 66px; text-align: center; font-size: 132px; line-height: 170px; color: #0e1430; letter-spacing: 4px; }
+#calendario .x { position: absolute; left: 14px; top: 150px; width: 276px; height: 24px; margin-top: -12px; background: #e8423f; border-radius: 11px; transform-origin: 50% 50%; opacity: 0; }
+/* a camisa 79 que o Ditto deixa no banco */
+.camisa { position: absolute; left: 0; top: 0; width: 204px; height: 180px; margin: -90px 0 0 -102px; z-index: 11; opacity: 0; }
+/* o Ditto e o disfarce (o brilho da transformação do EP 3) */
+.aura { position: absolute; left: 0; top: 0; width: 560px; height: 560px; margin: -280px 0 0 -280px; border-radius: 50%; z-index: 12; opacity: 0;
+  background: radial-gradient(circle, rgb(255 255 255 / 95%), rgb(230 190 255 / 55%) 45%, transparent 70%); }
+.brilho { position: absolute; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; z-index: 14; opacity: 0; background: #fff;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+.branco { filter: brightness(0) invert(1); }
+.faixa.roxa, .faixa.roxa i { background: #af77af; box-shadow: inset 0 6px 0 #dfafd7; }
+/* ícones desenhados nos balões (joinha, 4 dedos) e a contagem */
+.balao svg { width: 112px; height: 112px; }
+.conta { position: absolute; left: 0; top: 0; z-index: 46; width: 104px; height: 116px; margin: -116px 0 0 -52px; box-sizing: border-box; border-radius: 22px;
+  background: #f8f8f0; border: 8px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 74px; color: #0e1430; opacity: 0;
+  box-shadow: 0 8px 0 rgb(0 0 0 / 30%); }
+.raio { position: absolute; left: 0; top: 0; width: 100px; height: 160px; margin: -80px 0 0 -50px; z-index: 32; opacity: 0; }
+/* a tag: o letreiro UMA SEMANA DEPOIS e a luz da manhã */
+#letreiro { z-index: 60; background: #1fb5a8; }
+#lt-texto { position: absolute; left: 0; width: 1080px; top: 700px; text-align: center; color: #fff; opacity: 0; transform: rotate(-4deg);
+  -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; letter-spacing: 6px; }
+#lt-texto span { display: block; font-size: 120px; }
+#lt-texto b { display: block; font-size: 150px; color: #ffcb05; line-height: 1.2; }
+#manha { position: absolute; inset: 0; z-index: 39; pointer-events: none; opacity: 0;
+  background: linear-gradient(115deg, transparent 0 22%, rgb(255 236 170 / 22%) 22% 40%, transparent 40% 48%, rgb(255 236 170 / 16%) 48% 60%, transparent 60%),
+    linear-gradient(rgb(255 214 140 / 16%), rgb(255 214 140 / 6%)); }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="36.6">
-  <div id="cena" class="clip" data-start="0" data-duration="33.6">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="60.6">
+  <div id="cena" class="clip" data-start="0" data-duration="57.6">
     <div id="vest" class="cena"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div id="lousa-pe"></div>
       <div id="lousa">
         <svg class="face" id="tatica" viewBox="0 0 844 364" fill="none" stroke="#f0f0e4" stroke-width="9" stroke-linecap="round" opacity="0.85">
@@ -94,27 +131,37 @@
           <path d="M298 214 l12 16 l-18 5 M486 120 l14 14 l-18 7 M694 130 l16 7 l-7 16" />
         </svg>
         <div class="face" id="placar-lousa"><span class="l1">ESTREIA</span><b>4 × 1</b><small>SÁBADO PASSADO</small></div>
+        <div class="face" id="liga-lousa"><span class="l1">LIGA EM</span><b>63 DIAS</b></div>
       </div>
+      <div id="calendario"><div class="topo"></div><div class="argola" style="left:60px"></div><div class="argola" style="right:60px"></div>
+        <div class="dia">SÁB</div><div class="x" id="x1"></div><div class="x" id="x2"></div></div>
       <div id="escuro"></div>
+      <div id="manha"></div>
     </div>
-    <div id="vinheta" class="cena"><div id="vt-titulo"><span>VESTIÁRIO DO</span><b>PALLET FC</b></div></div>
+    <div id="vinheta" class="cena"><div id="vt-titulo"><span>VESTIÁRIO DO</span><b>PALLET FC</b></div><div id="vt-ep"><b>O ATRASADO</b></div></div>
+    <div id="letreiro" class="cena"><div id="lt-texto"><span>UMA SEMANA</span><b>DEPOIS</b></div></div>
     <div id="moldura"></div>
-    <div id="congela"><small>PALLET FC · EP 1</small><b>O ATRASADO</b></div>
   </div>
-  <div id="final" class="clip palco" data-start="33.6" data-duration="3">
+  <div id="mimica" class="clip" data-start="19.2" data-duration="2.4"></div>
+  <div id="final" class="clip palco" data-start="57.6" data-duration="3">
     <div class="raios" id="raios-final"></div>
     <div id="final-cena" class="camada"></div>
   </div>
   <div class="flash" id="flash"></div>
-  <audio id="a-musica" class="clip" src="midia/som/atrasado-14.wav" data-start="0" data-duration="36.6" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/atrasado-14.wav" data-start="0" data-duration="60.6" data-media-start="0" data-fade-out="0.6"></audio>
   <audio id="a-sp-chega" class="clip" src="som/79.ogg" data-start="9.65" data-duration="0.47" data-media-start="0"></audio>
   <audio id="a-mk" class="clip" src="som/129.ogg" data-start="12.0" data-duration="1.2" data-media-start="0"></audio>
   <audio id="a-apito" class="clip" src="som/apito-curto.mp3" data-start="14.4" data-duration="0.6" data-media-start="0"></audio>
-  <audio id="a-pk-ri" class="clip" src="som/25.ogg" data-start="25.2" data-duration="0.92" data-media-start="0"></audio>
-  <audio id="a-sp-susto" class="clip" src="som/79-lento.ogg" data-start="28.8" data-duration="0.94" data-media-start="0"></audio>
+  <audio id="a-sp-sabado" class="clip" src="som/79.ogg" data-start="16.8" data-duration="0.47" data-media-start="0"></audio>
+  <audio id="a-sp-placar" class="clip" src="som/79.ogg" data-start="24.0" data-duration="0.47" data-media-start="0"></audio>
+  <audio id="a-pk-choque" class="clip" src="som/25.ogg" data-start="25.5" data-duration="0.6" data-media-start="0"></audio>
+  <audio id="a-apito-longo" class="clip" src="som/apito-longo.mp3" data-start="36.0" data-duration="1.9" data-media-start="0"></audio>
+  <audio id="a-pk-ri" class="clip" src="som/25.ogg" data-start="42.0" data-duration="0.92" data-media-start="0"></audio>
+  <audio id="a-sp-susto" class="clip" src="som/79-lento.ogg" data-start="44.4" data-duration="0.94" data-media-start="0"></audio>
+  <audio id="a-sp-cedo" class="clip" src="som/79.ogg" data-start="54.6" data-duration="0.47" data-media-start="0"></audio>
 
   <script>
-    const { T, div, ator, anim, quadro, estouro, poeira, flash, fala, telaFinal, piscada } = C;
+    const { T, div, ator, anim, quadro, estouro, poeira, flash, fala, telaFinal, piscada, bola } = C;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const vest = $('vest');
@@ -125,9 +172,10 @@
       tl.set(sel, { opacity: 1 }, t);
       tl.fromTo(sel, { scale: s }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, t);
     };
-    const balao = (txt, x, y, t0, t1, cls = 'balao') => {
+    const balao = (txt, x, y, t0, t1, cls = 'balao', html = false) => {
       const b = div(vest, cls);
-      b.textContent = txt;
+      if (html) b.innerHTML = txt;
+      else b.textContent = txt;
       tl.set(b, { x, y }, 0);
       op(b, t0);
       tl.fromTo(b, { scale: 0.3 }, { scale: 1, duration: 0.2, ease: 'back.out(3)', immediateRender: false }, t0);
@@ -151,22 +199,35 @@
       tl.fromTo(g, { y }, { keyframes: { y: [y - 70, y + 140] }, duration: 0.5, ease: 'power1.in', immediateRender: false }, t);
       op(g, t + 0.5, false);
     };
+    const falaSp = (txt, t0, t1, top) => {
+      const f = fala(vest, 'midia/79.png', txt);
+      if (top) f.style.top = `${top}px`;
+      op(f, t0);
+      tl.fromTo(f, { scale: 0.6 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0);
+      op(f, t1, false);
+      return f;
+    };
+    // ícones desenhados (sem emoji): o joinha do Slowpoke e os 4 dedos do Pikachu
+    const JOINHA = '<svg viewBox="0 0 16 16"><g fill="#f5a3b4" stroke="#0e1430" stroke-width="1" stroke-linejoin="round"><path d="M4 2.5a1.5 1.5 0 0 1 3 0V8H4z"/><rect x="3" y="7" width="7" height="8" rx="1"/><rect x="9" y="7" width="5" height="2" rx="1"/><rect x="9" y="9" width="5" height="2" rx="1"/><rect x="9" y="11" width="5" height="2" rx="1"/><rect x="9" y="13" width="4.5" height="2" rx="1"/></g></svg>';
+    const QUATRO = '<svg viewBox="0 0 14 14" shape-rendering="crispEdges"><path d="M3 2h1.6v5H3zM5.4 1h1.6v6H5.4zM7.8 1h1.6v6H7.8zM10.2 2h1.6v5h-1.6z" fill="#ffcb05" stroke="#0e1430" stroke-width="0.8"/><path d="M3 7h8.8v6H3z" fill="#ffcb05" stroke="#0e1430" stroke-width="0.8"/><path d="M4 9.2h4" stroke="#0e1430" stroke-width="0.8"/></svg>';
+    const CAMISA = '<svg viewBox="0 0 34 30" width="204" height="180"><path d="M10 2 L4 5 L1 12 L6 14 L8 11 L8 28 L26 28 L26 11 L28 14 L33 12 L30 5 L24 2 C22 5 12 5 10 2 Z" fill="#e8423f" stroke="#0e1430" stroke-width="1.6" stroke-linejoin="round"/><text x="17" y="23" text-anchor="middle" font-family="Galmuri11, monospace" font-size="11" fill="#f8f8f0" stroke="#0e1430" stroke-width="0.6" paint-order="stroke">79</text></svg>';
+    const RAIO = '<svg viewBox="0 0 14 22" width="100" height="160"><path d="M8 1 L2 12 L7 12 L5 21 L12 8 L7 8 L10 1 Z" fill="#ffe14d" stroke="#0e1430" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 
     // ---------- tempos (compasso, linha) ----------
-    const CONGELA = T(12, 8);
-    const FIM = T(14, 0);
+    const CONGELA = T(19, 0);
+    const TAG = T(20, 14);
+    const FIM = T(24, 0);
     const CHAO = 1640; // o pé do Slowpoke
 
     // ====================================================================================================
     // o vestiário de perto: armários, o banco com o elenco, o Slowpoke em primeiro plano entrando pela direita
     // ====================================================================================================
-    ver(['#vest', '#vinheta'], 0, false);
+    ver(['#vest', '#vinheta', '#letreiro'], 0, false);
     ver('#vest', 0);
     [10, 170, 760, 920].forEach((x) => div(vest, 'armario', `left:${x}px`));
     const sn = ator(vest, '143x', { escala: 12, z: 10, x: 150, y: 1270, sombra: false });
     const mk = ator(vest, 129, { escala: 14, z: 11, x: 405, y: 1262, sombra: false });
     const pk = ator(vest, 25, { escala: 12, z: 10, x: 700, y: 1272, sombra: false });
-    const dt = ator(vest, 132, { escala: 13, z: 10, x: 925, y: 1270, sombra: false });
     const sp = ator(vest, 79, { escala: 16, z: 20, x: 880, y: CHAO });
     {
       const E = mk.escala;
@@ -179,52 +240,72 @@
     const apito = div(mk.corpo, 'apito');
     gsap.set(apito, { x: 6, y: -84, opacity: 0 });
     apito.style.zIndex = 3;
-    const faixa = div(sp.corpo, 'faixa');
-    faixa.style.zIndex = 2;
-    const nos = [div(faixa, ''), div(faixa, '')];
-    nos.forEach((n) => n.appendChild(document.createElement('i')));
+
+    // o Ditto e o disfarce (o virar do EP 3): cada um com uma cópia branca por cima, pro brilho
+    const forma = (id, x, y, E, z) => {
+      const a = ator(vest, id, { escala: E, z, x, y, sombra: false, opacity: 0 });
+      const b = ator(vest, id, { escala: E, z: z + 1, x, y, sombra: false, opacity: 0 });
+      b.spr.classList.add('branco');
+      return { a, b, id, E, x, y };
+    };
+    const D = forma(132, 925, 1270, 13, 10);
+    op(D.a.el, 0);
+    D.aura = div(vest, 'aura');
+    gsap.set(D.aura, { x: D.x, y: D.y - 9.3 * D.E, scale: D.E / 14 });
+    const F = forma('79d', 925, 1270, 13, 13);
+    const par = (f, nome, dir, t0, t1, o = {}) => {
+      anim(tl, f.a, nome, dir, t0, t1, o);
+      anim(tl, f.b, nome, dir, t0, t1, o);
+    };
 
     // o Snorlax dorme até a luz apagar
-    anim(tl, sn, 'Sleep', 0, 0, T(11, 0), { id: '143x', vel: 0.5 });
-    for (const b of [0, 2, 5, 9]) ronco(T(b, 8), 200, 1110, 2);
-    anim(tl, dt, 'Idle', 0, 0, T(11, 0));
+    anim(tl, sn, 'Sleep', 0, 0, T(18, 0), { id: '143x', vel: 0.5 });
+    for (const b of [0, 3, 5, 9, 12, 16]) ronco(T(b, 8), 200, 1110, 2);
+    par(D, 'Idle', 0, 0, T(11, 0));
 
     // ====================================================================================================
     // 0 · gancho: ele corre parado (Walk a 3x), suor, poeira e riscos de velocidade; o time olha pra ele
     // ====================================================================================================
-    const corre = (t0, t1, x0, x1) => {
-      anim(tl, sp, 'Walk', 6, t0, t1, { vel: 3 });
-      tl.fromTo(sp.el, { x: x0 }, { x: x1, duration: t1 - t0, ease: 'none', immediateRender: false }, t0);
-      for (let t = t0 + 0.05; t < t1 - 0.2; t += 0.45) gota(t, x0 + 60, 1430, 1);
-      for (let t = t0 + 0.1; t < t1 - 0.1; t += 0.3) poeira(tl, vest, x0 + 110, CHAO, t, { n: 4, r: 80, tam: 34 });
+    const corre = (a, t0, t1, x0, x1, y = CHAO, dir = 6) => {
+      anim(tl, a, 'Walk', dir, t0, t1, { vel: 3 });
+      tl.fromTo(a.el, { x: x0 }, { x: x1, duration: t1 - t0, ease: 'none', immediateRender: false }, t0);
+      const k = a.escala / 16;
+      for (let t = t0 + 0.05; t < t1 - 0.2; t += 0.45) gota(t, x0 + 60 * k, y - 210 * k, 1);
+      for (let t = t0 + 0.1; t < t1 - 0.1; t += 0.3) poeira(tl, vest, x0 + 110 * k, y, t, { n: 4, r: 80 * k, tam: 34 * k });
+    };
+    const riscos = (t0, t1, x0) => {
       [1460, 1530, 1600].forEach((y, i) => {
         const r = div(vest, 'risco', `width:${100 + 30 * (i % 2)}px`);
         tl.set(r, { x: x0 + 170, y }, 0);
         for (let t = t0 + i * 0.07; t < t1; t += 0.24) tl.fromTo(r, { opacity: 1, x: x0 + 170 }, { opacity: 0, x: x0 + 260, duration: 0.22, ease: 'none', immediateRender: false }, t);
       });
     };
-    corre(0, T(1, 0), 880, 852);
+    corre(sp, 0, T(1, 0), 880, 852);
+    riscos(0, T(1, 0), 880);
     anim(tl, mk, 'Idle', 2, 0, T(4, 0), { vel: 1.2 });
     anim(tl, pk, 'Idle', 2, 0, T(4, 0));
 
     // ====================================================================================================
-    // 1 · vinheta anos 90: VESTIÁRIO DO PALLET FC com os 4 retratos do elenco
+    // 1–2 · vinheta anos 90: VESTIÁRIO DO PALLET FC (linha 2) e o nome do episódio, O ATRASADO (linha 8)
     // ====================================================================================================
-    {
-      const VIN = T(1, 0);
-      const v = $('vinheta');
+    const memphis = (v, t0) => {
       const formas = [
         ['background:#ff4fa3;width:150px;height:150px;clip-path:polygon(50% 0,100% 100%,0 100%)', 80, 160],
         ['background:#ffcb05;width:120px;height:120px;border-radius:50%', 860, 230],
-        ['border:16px solid #6b3fd4;width:180px;height:180px;border-radius:50%;box-sizing:border-box', 760, 1380],
-        ['background:#ff4fa3;width:240px;height:36px;border-radius:18px', 110, 1440],
-        ['background:#0e1430;width:90px;height:90px', 900, 1560],
-        ['background:#ffcb05;width:130px;height:130px;clip-path:polygon(50% 0,100% 100%,0 100%)', 160, 1580],
+        ['border:16px solid #6b3fd4;width:180px;height:180px;border-radius:50%;box-sizing:border-box', 760, 1420],
+        ['background:#ff4fa3;width:240px;height:36px;border-radius:18px', 110, 1470],
+        ['background:#0e1430;width:90px;height:90px', 900, 1580],
+        ['background:#ffcb05;width:130px;height:130px;clip-path:polygon(50% 0,100% 100%,0 100%)', 160, 1600],
       ];
       formas.forEach(([css, x, y], i) => {
         const f = div(v, 'memphis', `${css};left:${x}px;top:${y}px`);
-        tl.fromTo(f, { rotation: 0, scale: 0 }, { rotation: (i % 2 ? -1 : 1) * 60, scale: 1, duration: 2.2, ease: 'back.out(2)', immediateRender: false }, VIN + 0.05 * i);
+        tl.fromTo(f, { rotation: 0, scale: 0 }, { rotation: (i % 2 ? -1 : 1) * 60, scale: 1, duration: 2.2, ease: 'back.out(2)', immediateRender: false }, t0 + 0.05 * i);
       });
+    };
+    {
+      const VIN = T(1, 0);
+      const v = $('vinheta');
+      memphis(v, VIN);
       // os retratos pulam nas colcheias dos acordes (F · Dm7 · Bb · C7)
       ['129', '143', '25', '132'].forEach((r, i) => {
         const c = div(v, 'vt-ret', `left:${80 + i * 240}px`);
@@ -233,109 +314,293 @@
         tl.set(c, { opacity: 1 }, t);
         tl.fromTo(c, { scale: 0, rotation: -20 }, { scale: 1, rotation: i % 2 ? 4 : -4, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t);
         tl.to(c, { keyframes: { y: [-30, 0] }, duration: 0.25, ease: 'power1.inOut' }, T(1, 12));
+        tl.to(c, { keyframes: { y: [-30, 0] }, duration: 0.25, ease: 'power1.inOut' }, T(2, 0));
       });
       ver('#vinheta', VIN);
       flash(tl, VIN, 0.5, 0.2);
-      carimbo('#vt-titulo', T(1, 8), 2.4);
-      tl.to('#vt-titulo', { scale: 1.06, duration: T(1, 14) - T(1, 9), ease: 'sine.inOut' }, T(1, 9));
-      tl.fromTo('#vt-titulo', { scale: 1.06 }, { scale: 1.14, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(1, 14));
-      ver('#vinheta', T(2, 0), false);
-      flash(tl, T(2, 0), 0.4, 0.2);
+      carimbo('#vt-titulo', T(1, 2), 2.4);
+      tl.to('#vt-titulo', { scale: 1.05, duration: T(2, 8) - T(1, 3), ease: 'sine.inOut' }, T(1, 3));
+      carimbo('#vt-ep', T(1, 8), 2.4);
+      tl.fromTo('#vt-ep', { scale: 1 }, { scale: 1.1, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(2, 0));
+      ver('#vinheta', T(2, 8), false);
+      flash(tl, T(2, 8), 0.4, 0.2);
     }
 
     // ====================================================================================================
-    // 2 · ainda correndo, quase no mesmo lugar; 3 · chega (um último arranque), para, ofega e estufa o peito no 2
+    // 2,8 · ainda correndo, quase no mesmo lugar; 3 · chega (um último arranque), para, ofega e estufa o peito no 2
     // ====================================================================================================
-    corre(T(2, 0), T(3, 0), 846, 812);
+    corre(sp, T(2, 8), T(3, 0), 846, 828);
+    riscos(T(2, 8), T(3, 0), 846);
     const tChega = T(3, 0);
     anim(tl, sp, 'Walk', 6, tChega, tChega + 0.4, { vel: 4 });
-    tl.fromTo(sp.el, { x: 812 }, { x: 720, duration: 0.4, ease: 'power2.out', immediateRender: false }, tChega);
+    tl.fromTo(sp.el, { x: 828 }, { x: 720, duration: 0.4, ease: 'power2.out', immediateRender: false }, tChega);
     poeira(tl, vest, 760, CHAO, tChega + 0.35, { n: 7, r: 180, tam: 56 });
-    anim(tl, sp, 'Idle', 0, tChega + 0.4, T(6, 12));
-    // ofega (o corpo infla e esvazia) e pinga suor
+    anim(tl, sp, 'Idle', 0, tChega + 0.4, T(6, 6));
     tl.fromTo(sp.corpo, { scaleX: 1, scaleY: 1 }, { keyframes: { scaleY: [1.04, 0.97, 1.04, 0.97, 1], scaleX: [0.98, 1.02, 0.98, 1.02, 1] }, duration: T(3, 4) - tChega - 0.4, ease: 'sine.inOut', immediateRender: false }, tChega + 0.4);
     gota(tChega + 0.5, 780, 1400, 1);
     gota(tChega + 0.7, 660, 1410, -1);
-    // estufa o peito no 2 (a tuba dele entra atrasada) e fica estufado até a fala
     tl.to(sp.corpo, { scaleY: 1.1, scaleX: 0.95, duration: 0.25, ease: 'back.out(3)' }, T(3, 4));
     estouro(tl, vest, 720, 1350, T(3, 4), { tam: 180, cor: '#fff' });
     tl.to(sp.corpo, { scaleY: 1, scaleX: 1, duration: 0.3, ease: 'power1.inOut' }, T(5, 0));
 
     // ====================================================================================================
-    // 4 · CHEGUEI PRA ESTREIA! (o grito no 1)
+    // 4 · CHEGUEI PRA ESTREIA! (o grito no 1); 5 · o time se olha: "?" no Magikarp e no Pikachu; o Snorlax ronca
     // ====================================================================================================
-    const f = fala(vest, 'midia/79.png', 'CHEGUEI PRA<br>ESTREIA!', 'fala-sp');
-    op(f, T(4, 0));
-    tl.fromTo(f, { scale: 0.6 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(4, 0));
+    falaSp('CHEGUEI PRA<br>ESTREIA!', T(4, 0), T(5, 14));
     salto(sp, T(4, 0), 40, 0.25);
-    op(f, T(5, 14), false);
-    // ====================================================================================================
-    // 5 · o time se olha: "?" no Magikarp (plof, no 1) e no Pikachu (pícolo, linha 5); o Snorlax ronca
-    // ====================================================================================================
     anim(tl, mk, 'Idle', 0, T(4, 0), T(6, 0), { vel: 1.2 });
-    anim(tl, pk, 'Idle', 0, T(4, 0), T(7, 0));
+    anim(tl, pk, 'Idle', 0, T(4, 0), T(8, 0));
     balao('?', 410, 900, T(5, 0), T(6, 0));
     tl.to(mk.corpo, { keyframes: { rotation: [-8, 0] }, duration: 0.4, ease: 'sine.inOut' }, T(5, 0));
     balao('?', 710, 900, T(5, 5), T(6, 0));
     tl.to(pk.corpo, { keyframes: { rotation: [8, 0] }, duration: 0.4, ease: 'sine.inOut' }, T(5, 5));
 
     // ====================================================================================================
-    // 6 · o apito (no 1); a lousa gira (zum na linha 7, o placar na 8); ele vira de costas pra ler (linha 12)
+    // 6 · tentativa 1, o Magikarp: apita (no 1), o calendário desenrola na parede (linha 2) e o SÁB é riscado (linha 4);
+    //     o Slowpoke vira pra olhar (linha 6)… e demora
     // ====================================================================================================
-    anim(tl, mk, 'Idle', 0, T(6, 0), T(9, 0), { vel: 1.2 });
+    anim(tl, mk, 'Idle', 2, T(6, 0), T(7, 8), { vel: 1.2 });
     op(apito, T(6, 0));
     op(apito, T(6, 6), false);
     salto(mk, T(6, 0), 70);
     estouro(tl, vest, 435, 1060, T(6, 0), { tam: 130, cor: '#fff' });
-    tl.to('#lousa', { scaleY: 0, duration: 0.16, ease: 'power2.in' }, T(6, 7));
-    tl.set('#tatica', { visibility: 'hidden' }, T(6, 8));
-    tl.set('#placar-lousa', { visibility: 'visible' }, T(6, 8));
-    tl.to('#lousa', { scaleY: 1, duration: 0.32, ease: 'back.out(2.5)' }, T(6, 8));
-    flash(tl, T(6, 8), 0.35, 0.2);
-    anim(tl, sp, 'Idle', 4, T(6, 12), T(12, 0), { vel: 0.7 });
+    tl.set('#calendario', { visibility: 'visible', scaleY: 0 }, T(6, 2));
+    tl.to('#calendario', { scaleY: 1, duration: 0.3, ease: 'back.out(2)' }, T(6, 2));
+    for (const [id, r, k] of [['#x1', 32, 0], ['#x2', -32, 1]]) {
+      tl.set(id, { opacity: 1, rotation: r, scaleX: 0 }, T(6, 4) + 0.08 * k);
+      tl.to(id, { scaleX: 1, duration: 0.12, ease: 'power2.out' }, T(6, 4) + 0.08 * k);
+    }
+    estouro(tl, vest, 540, 780, T(6, 4), { tam: 200, cor: '#e8423f', anel: false });
+    tl.to(mk.corpo, { keyframes: { rotation: [10, 0, 10, 0] }, duration: 0.8, ease: 'sine.inOut' }, T(6, 6));
+    anim(tl, sp, 'Idle', 4, T(6, 6), T(7, 0), { vel: 0.7 });
+    tl.to(sp.corpo, { keyframes: { rotation: [5, 5, 0] }, duration: 0.9, ease: 'sine.inOut' }, T(6, 8));
+
     // ====================================================================================================
-    // 7–8 · a lousa (a plateia ri); o time olha pra ele; ele inclina a cabeça a cada nota atrasada da tuba
+    // 7 · ele vira pra câmera, joinha: SÁBADO! (acha que é o que vem). A plateia; o Magikarp cai pra trás (plof)
     // ====================================================================================================
-    anim(tl, pk, 'Idle', 2, T(7, 0), T(10, 8));
-    for (const t of [T(7, 4), T(8, 8)]) tl.to(sp.corpo, { keyframes: { rotation: [5, 5, 0] }, duration: 0.9, ease: 'sine.inOut' }, t);
+    anim(tl, sp, 'Idle', 0, T(7, 0), T(14, 0));
+    falaSp('SÁBADO!', T(7, 0), T(7, 15));
+    salto(sp, T(7, 0), 50, 0.28);
+    balao(JOINHA, 545, 1400, T(7, 1), T(8, 0), 'balao', true);
+    anim(tl, mk, 'Idle', 0, T(7, 8), T(15, 0), { vel: 1.2 });
+    tl.to(mk.corpo, { keyframes: { rotation: [-24, -24, 0], y: [-30, 0, 0] }, duration: 0.9, ease: 'power1.inOut' }, T(7, 10));
+
     // ====================================================================================================
-    // 9 · nada (a música para); 10 · "..." e o Pikachu não aguenta (linha 8)
+    // 8 · tentativa 2, o Pikachu: a mímica do jogo. Chuta (no tempo), a bola volta na cara (no "e"), quatro vezes
     // ====================================================================================================
-    anim(tl, mk, 'Idle', 2, T(9, 0), T(11, 0), { vel: 1.2 });
-    balao('...', 720, 1330, T(10, 0), T(11, 0), 'balao largo');
-    anim(tl, pk, 'Idle', 0, T(10, 8), T(11, 0), { vel: 1.5 });
+    {
+      const mim = $('mimica');
+      const bl = bola(mim, { d: 92, z: 25, x: 735, y: 1268 });
+      tl.set(bl.sh, { opacity: 0.6 }, 0);
+      const SH = SPR['25'].anims.Shoot;
+      const vShoot = SH.dur.reduce((a, b) => a + b, 0) / 60 / 0.3;
+      for (let k = 0; k < 4; k++) {
+        const t = T(8, 4 * k);
+        const tB = T(8, 4 * k + 2);
+        anim(tl, pk, 'Shoot', 0, t, tB, { vel: vShoot, loop: false });
+        tl.fromTo(bl.corpo, { y: 0 }, { y: -430, duration: (tB - t) * 0.55, ease: 'power2.out', immediateRender: false }, t);
+        tl.to(bl.corpo, { y: -250, duration: (tB - t) * 0.45, ease: 'power2.in' }, t + (tB - t) * 0.55);
+        tl.fromTo(bl.gira, { rotation: 0 }, { rotation: 360, duration: tB - t, ease: 'none', immediateRender: false }, t);
+        anim(tl, pk, 'Hurt', 0, tB, tB + 0.24, { loop: false });
+        estouro(tl, vest, 718, 1020, tB, { tam: 110, cor: '#fff', anel: false });
+        tl.to(pk.corpo, { keyframes: { rotation: [-10, 0] }, duration: 0.3, ease: 'power1.out' }, tB);
+        if (k < 3) tl.to(bl.corpo, { y: 0, duration: T(8, 4 * k + 4) - tB - 0.02, ease: 'power2.in' }, tB);
+        else tl.to(bl.el, { keyframes: { x: [880, 1200], y: [1000, 1350] }, duration: T(9, 0) - tB, ease: 'power1.in' }, tB);
+      }
+      anim(tl, pk, 'Idle', 0, T(8, 14) + 0.24, T(10, 10));
+    }
+
+    // ====================================================================================================
+    // 9 · os 4 dedos (no 1); o Slowpoke conta, um número por nota atrasada da tuba (linhas 2, 6, 10, 14)
+    // ====================================================================================================
+    balao(QUATRO, 705, 900, T(9, 0), T(10, 0), 'balao', true);
+    salto(pk, T(9, 0), 30, 0.25);
+    const contas = [150, 265, 380, 495].map((x, i) => {
+      const c = div(vest, 'conta');
+      c.textContent = String(i + 1);
+      tl.set(c, { x, y: 1560 }, 0);
+      const t = T(9, 2 + 4 * i);
+      op(c, t);
+      tl.fromTo(c, { scale: 0.3 }, { scale: 1, duration: 0.18, ease: 'back.out(3)', immediateRender: false }, t);
+      tl.to(sp.corpo, { keyframes: { rotation: [-6, 0] }, duration: 0.3, ease: 'sine.inOut' }, t);
+      return c;
+    });
+
+    // ====================================================================================================
+    // 10 · 4 × 0! (o grito no 1) e a comemoração; o Pikachu solta um choquinho de raiva (linha 10)
+    // ====================================================================================================
+    op(contas, T(10, 0), false);
+    falaSp('4 × 0!', T(10, 0), T(10, 12));
+    for (const r of [0, 4]) salto(sp, T(10, r), 70, 0.3);
+    estouro(tl, vest, 720, 1350, T(10, 0), { tam: 220, cor: '#ffcb05' });
+    anim(tl, pk, 'Charge', 0, T(10, 10), T(11, 0));
+    [[610, 960, -20], [800, 930, 18], [580, 1130, -30], [830, 1120, 26]].forEach(([x, y, r], i) => {
+      const z = div(vest, 'raio');
+      z.innerHTML = RAIO;
+      tl.set(z, { x, y, rotation: r }, 0);
+      for (let t = T(10, 10) + 0.04 * i; t < T(11, 0) - 0.05; t += 0.16) {
+        op(z, t);
+        op(z, t + 0.09, false);
+      }
+    });
+    tl.to(pk.spr, { keyframes: { filter: ['brightness(1.8)', 'brightness(1)', 'brightness(1.8)', 'brightness(1)'] }, duration: T(11, 0) - T(10, 10), ease: 'none' }, T(10, 10));
+
+    // ====================================================================================================
+    // 11 · tentativa 3, o Ditto: se concentra e vira Slowpoke (BOING na linha 8), com a cara dele
+    // ====================================================================================================
+    anim(tl, pk, 'Idle', 0, T(11, 0), T(17, 8));
+    const tPop = T(11, 8);
+    {
+      const dur = 1.1;
+      const t0 = tPop - dur;
+      const tb = t0 + dur * 0.125;
+      const tE = t0 + dur * 0.5;
+      const tS = tPop - dur * 0.125;
+      const s = D.E / 14;
+      par(D, 'Idle', 0, t0 - 0.01, tS);
+      tl.fromTo([D.a.corpo, D.b.corpo], { scaleX: 1, scaleY: 1 }, { scaleX: 1.22, scaleY: 0.78, duration: dur * 0.2, ease: 'sine.inOut', immediateRender: false }, t0);
+      tl.fromTo(D.b.el, { opacity: 0 }, { opacity: 1, duration: tE - tb, ease: 'power1.in', immediateRender: false }, tb);
+      tl.fromTo(D.aura, { opacity: 0, scale: 0.4 * s }, { opacity: 0.9, scale: s, duration: tS - tb, ease: 'power1.in', immediateRender: false }, tb);
+      for (let k = 0; k < 6; k++) {
+        const b = div(vest, 'brilho');
+        const a0 = (k / 6) * Math.PI * 2;
+        const pos = (a, r) => ({ x: D.x + Math.cos(a) * r * s, y: D.y - 140 * s + Math.sin(a) * r * 0.8 * s });
+        tl.set(b, { ...pos(a0, 260), opacity: 0 }, 0);
+        const tk = tb + k * 0.06;
+        tl.fromTo(b, { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1.2, duration: 0.15, immediateRender: false }, tk);
+        tl.to(b, { keyframes: [pos(a0 + 1, 220), pos(a0 + 2, 150), pos(a0 + 2.6, 60)], rotation: 180, duration: tS - tk, ease: 'power1.in' }, tk);
+        op(b, tS, false);
+      }
+      tl.to([D.a.corpo, D.b.corpo], { keyframes: { scaleX: [1.05, 1.3, 1.2, 1.4], scaleY: [1.3, 1.6, 2.0, 2.3] }, duration: tS - tE, ease: 'power1.in' }, tE);
+      op([D.a.el, D.b.el], tS, false);
+      tl.set([D.a.corpo, D.b.corpo], { scaleX: 1, scaleY: 1 }, tS);
+      op([F.a.el, F.b.el], tS);
+      par(F, 'Idle', 0, tS, T(12, 2));
+      tl.fromTo([F.a.corpo, F.b.corpo], { scaleX: 0.8, scaleY: 1.1 }, { scaleX: 1, scaleY: 1, duration: tPop - tS, ease: 'power2.in', immediateRender: false }, tS);
+      tl.to(F.b.el, { opacity: 0, duration: 0.4, ease: 'power1.in' }, tPop);
+      tl.to(D.aura, { opacity: 0, scale: 1.5 * s, duration: 0.3, ease: 'power2.out' }, tPop);
+      tl.fromTo([F.a.corpo, F.b.corpo], { scaleX: 1.25, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.6, ease: 'elastic.out(1, 0.35)', immediateRender: false }, tPop);
+      const e = estouro(tl, vest, D.x, D.y - 200 * s, tPop, { tam: 520 * s, cor: '#ffcb05' });
+      e.style.zIndex = 12;
+      flash(tl, tPop, 0.6, 0.3);
+      salto(F.a, T(11, 12), 40, 0.28);
+    }
+
+    // ====================================================================================================
+    // 12 · ele encena o sábado: larga a camisa 79 no banco e sai andando; o banco vazio com a camisa (linha 10 até 13.6)
+    // ====================================================================================================
+    const camisa = div(vest, 'camisa');
+    camisa.innerHTML = CAMISA;
+    tl.set(camisa, { x: 925, y: 1205 }, 0);
+    op(camisa, T(12, 0));
+    tl.fromTo(camisa, { y: 1100, rotation: -10 }, { y: 1205, rotation: 0, duration: 0.25, ease: 'bounce.out', immediateRender: false }, T(12, 0));
+    anim(tl, F.a, 'Walk', 2, T(12, 2), T(12, 10), { vel: 2 });
+    tl.fromTo(F.a.el, { x: 925 }, { x: 1250, duration: T(12, 10) - T(12, 2), ease: 'none', immediateRender: false }, T(12, 2));
+    // o time olha pro Slowpoke: "entendeu?"
+    for (const [a, t] of [[mk, T(12, 12)], [pk, T(12, 14)]]) salto(a, t, 30, 0.25);
+    // ele volta (linha 6 do 13) e pega a camisa
+    anim(tl, F.a, 'Walk', 6, T(13, 6), T(13, 14), { vel: 2 });
+    tl.fromTo(F.a.el, { x: 1250 }, { x: 925, duration: T(13, 14) - T(13, 6), ease: 'none', immediateRender: false }, T(13, 6));
+    op(camisa, T(13, 14), false);
+    estouro(tl, vest, 925, 1200, T(13, 14), { tam: 120, cor: '#fff', anel: false });
+    anim(tl, F.a, 'Idle', 0, T(13, 14), T(18, 0));
+
+    // ====================================================================================================
+    // 14 · o espelho: o Slowpoke olha pro disfarce (linha 0), volta e ajeita a faixa (linha 8); o Ditto ajeita junto,
+    //      espelhado. A plateia explode
+    // ====================================================================================================
+    anim(tl, sp, 'Idle', 2, T(14, 0), T(14, 6));
+    anim(tl, sp, 'Idle', 0, T(14, 6), T(15, 12));
+    const ajeita = (a, f, t, lado) => {
+      tl.to(a.corpo, { keyframes: { rotation: [-9 * lado, 9 * lado, -6 * lado, 0] }, duration: 1.2, ease: 'sine.inOut' }, t);
+      tl.to(f, { keyframes: { rotation: [-12 * lado, 6 * lado, -4 * lado, 0], scaleY: [1.35, 1, 1.2, 1] }, duration: 1.2, ease: 'sine.inOut' }, t + 0.1);
+    };
+
+    // ====================================================================================================
+    // 15 · a virada: o Magikarp desiste, apito longo (no 1); a lousa gira (linha 8); o Slowpoke vira de costas pra ler
+    // ====================================================================================================
+    anim(tl, mk, 'Idle', 0, T(15, 0), T(18, 0), { vel: 1.2 });
+    op(apito, T(15, 0));
+    op(apito, T(15, 8), false);
+    tl.to(mk.corpo, { keyframes: { scaleY: [1.15, 1.15, 1], scaleX: [0.9, 0.9, 1] }, duration: 0.9, ease: 'sine.inOut' }, T(15, 0));
+    tl.to('#lousa', { scaleY: 0, duration: 0.16, ease: 'power2.in' }, T(15, 7));
+    tl.set('#tatica', { visibility: 'hidden' }, T(15, 8));
+    tl.set('#placar-lousa', { visibility: 'visible' }, T(15, 8));
+    tl.to('#lousa', { scaleY: 1, duration: 0.32, ease: 'back.out(2.5)' }, T(15, 8));
+    flash(tl, T(15, 8), 0.35, 0.2);
+    anim(tl, sp, 'Idle', 4, T(15, 12), T(19, 0), { vel: 0.7 });
+    tl.to(sp.corpo, { keyframes: { rotation: [5, 5, 0] }, duration: 0.9, ease: 'sine.inOut' }, T(16, 4));
+
+    // ====================================================================================================
+    // 16 · nada (a música para); 17 · "..." e o Pikachu não aguenta (linha 8)
+    // ====================================================================================================
+    balao('...', 720, 1330, T(17, 0), T(18, 0), 'balao largo');
+    anim(tl, pk, 'Idle', 0, T(17, 8), T(18, 0), { vel: 1.5 });
     [[660, 860], [800, 800]].forEach(([x, y], i) => {
       const h = div(vest, 'ha');
       h.textContent = i ? 'HA' : 'HAHA';
       tl.set(h, { x, y }, 0);
-      tl.fromTo(h, { opacity: 0, y: y + 20 }, { opacity: 1, y: y - 40, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(10, 8) + i * 0.12);
-      op(h, T(11, 0), false);
+      tl.fromTo(h, { opacity: 0, y: y + 20 }, { opacity: 1, y: y - 40, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(17, 8) + i * 0.12);
+      op(h, T(18, 0), false);
     });
-    tl.to(pk.corpo, { keyframes: { y: [-24, 0, -24, 0, -24, 0] }, duration: 0.9, ease: 'none' }, T(10, 8));
+    tl.to(pk.corpo, { keyframes: { y: [-24, 0, -24, 0, -24, 0] }, duration: 0.9, ease: 'none' }, T(17, 8));
 
     // ====================================================================================================
-    // 11 · a luz apaga (clique no 1): todo mundo já foi; o foco fica nele, de costas, olhando a lousa
+    // 18 · a luz apaga (clique no 1): todo mundo já foi; o foco nele, de costas. A ficha cai (linha 8): vira, pula, "!"
+    // 19 · congela no pulo (no 1): cor lavada, moldura de sitcom, a câmera 1,5x nele
     // ====================================================================================================
-    op('#escuro', T(11, 0));
-    tl.set([mk.el, pk.el, dt.el, sn.el], { opacity: 0 }, T(11, 0));
-
-    // ====================================================================================================
-    // 12 · a ficha cai (linha 0): vira pra câmera, pula, "!"; congela na linha 8 (a câmera vai 1,5x pra perto dele)
-    // ====================================================================================================
-    anim(tl, sp, 'Idle', 0, T(12, 0), CONGELA, { loop: false });
-    tl.fromTo(sp.corpo, { y: 0, scaleY: 1, scaleX: 1 }, { y: -56, scaleY: 1.08, scaleX: 0.94, duration: 0.18, ease: 'power2.out', immediateRender: false }, T(12, 0));
-    balao('!', 720, 1290, T(12, 0), FIM);
-    estouro(tl, vest, 720, 1200, T(12, 0), { tam: 240, cor: '#ffcb05' });
+    op('#escuro', T(18, 0));
+    tl.set([mk.el, pk.el, D.a.el, F.a.el, sn.el], { opacity: 0 }, T(18, 0));
+    anim(tl, sp, 'Idle', 0, T(18, 8), CONGELA, { loop: false });
+    tl.fromTo(sp.corpo, { y: 0, scaleY: 1, scaleX: 1 }, { y: -56, scaleY: 1.08, scaleX: 0.94, duration: 0.18, ease: 'power2.out', immediateRender: false }, T(18, 8));
+    balao('!', 720, 1290, T(18, 8), T(20, 0));
+    estouro(tl, vest, 720, 1200, T(18, 8), { tam: 240, cor: '#ffcb05' });
     flash(tl, CONGELA, 0.7, 0.25);
     tl.set('#vest', { filter: 'saturate(0.5) contrast(1.05) brightness(1.08) sepia(0.25)', scale: 1.5, x: -540, y: -1330, transformOrigin: '0px 0px' }, CONGELA);
     op('#moldura', CONGELA);
-    op('#congela', CONGELA);
-    carimbo('#congela small', T(12, 12), 1.8);
-    carimbo('#congela b', T(13, 0), 2.4);
-    ver(['#vest', '#moldura', '#congela'], FIM, false);
 
     // ====================================================================================================
-    // 14 · tela final; na linha 12 (a tuba atrasada) o Slowpoke ainda chega correndo, pela direita
+    // 20 · UMA SEMANA DEPOIS (o letreiro de sitcom, com a vinheta)
+    // ====================================================================================================
+    {
+      const t0 = T(20, 0);
+      const v = $('letreiro');
+      memphis(v, t0);
+      ver('#letreiro', t0);
+      op('#moldura', t0, false);
+      flash(tl, t0, 0.5, 0.2);
+      carimbo('#lt-texto', T(20, 1), 2.4);
+      tl.to('#lt-texto', { scale: 1.05, duration: TAG - T(20, 2), ease: 'sine.inOut' }, T(20, 2));
+      ver('#letreiro', TAG, false);
+      flash(tl, TAG, 0.5, 0.25);
+    }
+
+    // ====================================================================================================
+    // 21–23 · a tag: o vestiário vazio, de manhã; a lousa diz LIGA EM 63 DIAS. Ele chega correndo, lê, sobe no banco e
+    //         espera: CHEGUEI CEDO. Grilo
+    // ====================================================================================================
+    tl.set('#vest', { filter: 'none', scale: 1, x: 0, y: 0 }, TAG);
+    op(['#escuro', sp.el], TAG, false);
+    tl.set('#calendario', { visibility: 'hidden' }, TAG);
+    tl.set('#placar-lousa', { visibility: 'hidden' }, TAG);
+    tl.set('#liga-lousa', { visibility: 'visible' }, TAG);
+    op('#manha', TAG);
+    const PISO = 1340;
+    const s3 = ator(vest, 79, { escala: 12, z: 20, x: 1250, y: PISO, opacity: 0 });
+    op(s3.el, T(21, 0));
+    corre(s3, T(21, 0), T(21, 10), 1250, 600, PISO);
+    anim(tl, s3, 'Idle', 4, T(21, 10), T(22, 8), { vel: 0.7 });
+    poeira(tl, vest, 640, PISO, T(21, 10), { n: 6, r: 130, tam: 44 });
+    tl.to(s3.corpo, { keyframes: { rotation: [5, 5, 0] }, duration: 0.9, ease: 'sine.inOut' }, T(21, 14));
+    anim(tl, s3, 'Idle', 0, T(22, 8), FIM, { vel: 0.6 });
+    tl.to(s3.el, { y: 1268, duration: 0.3, ease: 'none' }, T(22, 8));
+    tl.to(s3.corpo, { keyframes: { y: [-90, 0] }, duration: 0.3, ease: 'power1.inOut' }, T(22, 8));
+    tl.to(s3.corpo, { scaleY: 0.92, scaleX: 1.04, duration: 0.15, ease: 'power2.out' }, T(22, 8) + 0.3);
+    falaSp('CHEGUEI<br>CEDO', T(22, 12), FIM, 680);
+    tl.to(s3.corpo, { keyframes: { rotation: [-4, 4, 0] }, duration: 1.6, ease: 'sine.inOut' }, T(23, 4));
+
+    // ====================================================================================================
+    // 24 · tela final; na linha 11 (a tuba atrasada) o Slowpoke ainda chega correndo, pela direita
     // ====================================================================================================
     telaFinal($('final'));
     const fc = $('final-cena');
@@ -343,15 +608,15 @@
     tl.fromTo('#raios-final', { rotation: 0 }, { rotation: 30, duration: 3, ease: 'none', immediateRender: false }, FIM);
     tl.set('#logo', { opacity: 1 }, FIM);
     tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, FIM);
-    piscada(tl, [T(14, 0), T(14, 3), T(14, 6)], '#final-cena');
-    tl.set('#tag', { opacity: 1 }, T(14, 6));
-    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(14, 6));
-    tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(14, 8));
+    piscada(tl, [T(24, 0), T(24, 3), T(24, 6)], '#final-cena');
+    tl.set('#tag', { opacity: 1 }, T(24, 6));
+    tl.from('#tag', { scale: 1.6, duration: 0.25, ease: 'back.out(2)' }, T(24, 6));
+    tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(24, 8));
     const sp2 = ator(fc, 79, { escala: 10, z: 5, x: 1220, y: 1440, opacity: 0 });
-    op(sp2.el, T(14, 11));
-    anim(tl, sp2, 'Walk', 6, T(14, 11), FIM + 3, { vel: 3 });
-    tl.fromTo(sp2.el, { x: 1220 }, { x: 900, duration: FIM + 3 - T(14, 11), ease: 'power2.out', immediateRender: false }, T(14, 11));
-    tl.set({}, {}, 36.6);
+    op(sp2.el, T(24, 11));
+    anim(tl, sp2, 'Walk', 6, T(24, 11), FIM + 3, { vel: 3 });
+    tl.fromTo(sp2.el, { x: 1220 }, { x: 900, duration: FIM + 3 - T(24, 11), ease: 'power2.out', immediateRender: false }, T(24, 11));
+    tl.set({}, {}, 60.6);
 
     // a medalha segue o quadro do Idle do Magikarp (o segueMedalha do EP 3)
     {
@@ -367,17 +632,27 @@
         if (q) tl.set(mk.pend, { x: q[0], y: q[1] }, tw.startTime());
       }
     }
-    // a faixa segue o quadro do Slowpoke: a testa em px da folha (coluna e linha do canto de cima à esquerda, largura)
-    // em cada animação e direção; nos quadros 1 e 3 o corpo desce 1 px. De lado o nó fica atrás (à direita); de
-    // costas, no meio da nuca; de frente, escondido. Quadro sem testa mapeada: a faixa some.
-    {
-      const S = SPR['79'];
-      const E = sp.escala;
-      const TESTA = {
-        'Walk/6': { c: 3, l: 11, w: 9, no: 'atras' },
-        'Idle/0': { c: 5, l: 12, w: 14, no: null },
-        'Idle/4': { c: 6, l: 9, w: 12, no: 'nuca' },
-      };
+    /**
+     * A faixa segue o quadro do Slowpoke (e do disfarce): a testa em px da folha (coluna e linha do canto de cima à
+     * esquerda, largura) em cada animação e direção; nos quadros 1 e 3 o corpo desce 1 px. De lado o nó fica atrás
+     * (olhando pra direita a faixa espelha); de costas, no meio da nuca; de frente, escondido. Quadro sem testa mapeada:
+     * a faixa some. Chamar depois de todas as animações do ator.
+     */
+    const TESTA = {
+      'Walk/6': { c: 3, l: 11, w: 9, no: 'atras' },
+      'Idle/6': { c: 3, l: 11, w: 9, no: 'atras' },
+      'Walk/2': { c: 12, l: 11, w: 9, no: 'atras', esp: true },
+      'Idle/2': { c: 12, l: 11, w: 9, no: 'atras', esp: true },
+      'Idle/0': { c: 5, l: 12, w: 14, no: null },
+      'Idle/4': { c: 6, l: 9, w: 12, no: 'nuca' },
+    };
+    function faixaSegue(a, cls = 'faixa') {
+      const faixa = div(a.corpo, cls);
+      faixa.style.zIndex = 2;
+      const nos = [div(faixa, ''), div(faixa, '')];
+      nos.forEach((n) => n.appendChild(document.createElement('i')));
+      const S = SPR[a.id];
+      const E = a.escala;
       const mapa = new Map();
       for (const [k, v] of Object.entries(TESTA)) {
         const [nome, d] = k.split('/');
@@ -388,7 +663,7 @@
         if (!v) return tl.set(faixa, { opacity: 0 }, t);
         const x = (v.c - v.A.w / 2) * E;
         const y = (v.l + v.dy - v.A.pe * v.A.h) * E;
-        tl.set(faixa, { opacity: 1, x, y, width: v.w * E, height: 2 * E }, t);
+        tl.set(faixa, { opacity: 1, x, y, width: v.w * E, height: 2 * E, scaleX: v.esp ? -1 : 1 }, t);
         tl.set(nos, { display: v.no ? 'block' : 'none' }, t);
         if (v.no === 'atras') {
           tl.set(nos[0], { position: 'absolute', x: v.w * E - 16, y: -10, rotation: -25 }, t);
@@ -398,9 +673,15 @@
           tl.set(nos[1], { position: 'absolute', x: (v.w * E) / 2 - 4, y: 18, rotation: 110 }, t);
         }
       };
-      gsap.set(faixa, { opacity: 0 });
-      for (const tw of tl.getTweensOf(sp.spr)) if (tw.vars.backgroundPosition) poe(tw.startTime(), mapa.get(tw.vars.backgroundPosition));
+      gsap.set(faixa, { opacity: 0, transformOrigin: '50% 50%' });
+      for (const tw of tl.getTweensOf(a.spr)) if (tw.vars.backgroundPosition) poe(tw.startTime(), mapa.get(tw.vars.backgroundPosition));
+      return faixa;
     }
+    const fSp = faixaSegue(sp);
+    const fDt = faixaSegue(F.a, 'faixa roxa');
+    faixaSegue(s3);
+    ajeita(sp, fSp, T(14, 8), 1);
+    ajeita(F.a, fDt, T(14, 8), -1);
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
