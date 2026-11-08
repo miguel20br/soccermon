@@ -18,6 +18,29 @@ tutorial.
 | **Pikachu** (25) | O craque. Faz os gols e quer a câmera. | Comemora antes de chutar. Ri de tudo (os HAHA). | Ser o protagonista. | Grito do jogo, choquinho |
 | **Ditto** (132) | O novato (EP 3). Vira qualquer um, sempre com a própria cara. | Copia por reflexo quem está do lado (vira Snorlax pequeno pra dormir junto). | Ser aceito sendo ele mesmo. | BOING (`mola`), kazoo |
 
+**Elenco oficial do Pallet FC (Miguel, 08/11/2026):** igual ao jogo, 5 titulares + 2 reservas, no Losango 1-2-1.
+
+| Vaga | Quem | Mania | Bordão |
+|---|---|---|---|
+| Goleiro | **Snorlax** (143) | dorme no gol, ninguém passa | uma frase só por episódio, certeira |
+| Fixo (capitão) | **Magikarp** (129) | apita tudo, mostra a medalha | apito + CAPITÃO FALANDO! |
+| Ala | **Pikachu** (25) | quer a câmera, comemora antes de chutar | o choquinho de empolgação, HAHA |
+| Ala | **Squirtle** (7) | o marrento de óculos escuros (Esquadrão Squirtle): aparece sem esforço; comemora com jato d'água na cara de alguém | abaixa os óculos devagar |
+| Pivô | **Slowpoke** (79) | pivô segura a bola parado, e nisso ele é perfeito; o problema é chegar | responde 3 s depois |
+| Reserva | **Ditto** (132) | entra em qualquer posição virando quem saiu (jogou de Slowpoke na estreia) | EU TAMBÉM! |
+| Reserva | **Jigglypuff** (39) | só quer cantar o hino do time; todo mundo dorme e ele rabisca a cara de quem dormiu | o microfone-caneta |
+| Técnico | **Psyduck** (54) | a prancheta dá dor de cabeça | segura a cabeça |
+
+**Reforços:** o elenco tem 7 vagas, como no jogo; reforço só entra se alguém sair ou se uma vaga abrir. Vem do pacote
+do Time Ultimate (a carta ganha vida no vestiário). Participação especial: fica 1 ou 2 episódios e volta pro pacote
+(ex.: a carta de Gelo do Natal). Reforço fixo: no máximo 1 por temporada, e alguém perde a vaga (T1: Dragonite, no
+episódio dos armários: 7 armários com nome, chega o 8º).
+
+**Formato do Vestiário (08/11):** sitcom multicâmera. Plano aberto do vestiário e close de quem fala (retrato grande
++ balão), corte seco a cada fala; diálogo curto, uma troca por vez; plateia que reage (aplauso de entrada, risada
+depois da frase, "uuuh"); abertura curta com o tema e o elenco; congela no fim com "tan-tan-TAAN". A estrutura é
+guia, não regra.
+
 **Relações:** Magikarp e Pikachu brigam pelo posto de estrela (amizade de rivais). Snorlax é o pai que dorme.
 Ditto idolatra o Magikarp (os dois começaram como piada) e copia o Snorlax.
 
