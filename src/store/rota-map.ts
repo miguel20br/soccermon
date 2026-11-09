@@ -98,11 +98,15 @@ export function buildRotaMap(seed: string): CupMap {
         if (role === 'M') return matchRow(rng, row);
         if (role === 'T') return rng.shuffle<House>(['treino', 'planalto', 'centro']);
         if (role === 'B') return spread(rng, ['bau', 'bau', 'centro', rng.pick<House>(['safari', 'cassino'])]);
-        // parada: 4 tipos diferentes; na Rota 1 ainda não tem ₽ pro Cassino
-        const extra = rng.shuffle<House>(row === 1 ? ['treino', 'safari', 'bau'] : ['treino', 'safari', 'cassino']);
-        return rng.shuffle<House>(
-            shopRows.has(row) ? ['mercado', 'evento', ...extra.slice(0, 2)] : ['evento', ...extra],
+        // parada: na Rota 1 ainda não tem ₽ pro Cassino. Linha de Mercado: 2 Mercados, um sim, um não (o caminho
+        // passa por um só por linha); com 1 só, quem não ia atrás dele quase não achava Mercado e o título caía 5 pp
+        const extra = rng.shuffle<House>(
+            row === 1 ? ['evento', 'treino', 'safari', 'bau'] : ['evento', 'treino', 'safari', 'cassino'],
         );
+        if (!shopRows.has(row)) return extra;
+        return rng.chance(0.5)
+            ? ['mercado', extra[0], 'mercado', extra[1]]
+            : [extra[0], 'mercado', extra[1], 'mercado'];
     });
     const rows: RotaNode[][] = houses.map((line, row) =>
         line.map((h, col) => ({
