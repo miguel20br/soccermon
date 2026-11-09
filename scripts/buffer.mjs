@@ -2,6 +2,7 @@
 //   node scripts/buffer.mjs canais                       lista as redes ligadas (id, serviço, nome)
 //   node scripts/buffer.mjs tipo <Tipo>                  campos de um tipo da API (ex.: PostInputMetaData)
 //   node scripts/buffer.mjs postar <canal> <url do vídeo> <arquivo da legenda> <quando ISO | fila | agora> [metadata JSON]
+//   node scripts/buffer.mjs editar <id do post> <url do vídeo> <arquivo da legenda> [metadata JSON]   muda um post agendado
 // CAPA_MS=30000: o quadro da capa (ms do vídeo) no Instagram e no TikTok.
 // O vídeo tem que estar num link público e estável até a hora do post (o Buffer baixa de lá).
 import { readFileSync } from 'node:fs';
@@ -67,6 +68,25 @@ if (cmd === 'canais') {
         { i: input },
     );
     console.log(JSON.stringify(d.createPost));
+} else if (cmd === 'editar') {
+    // A edição troca o post inteiro: o vídeo (e a capa) e a metadata vão de novo.
+    const [id, url, legenda, meta] = a;
+    const video = {
+        url,
+        ...(process.env.CAPA_MS ? { metadata: { thumbnailOffset: Number(process.env.CAPA_MS) } } : {}),
+    };
+    const d = await gql(
+        'mutation($i: EditPostInput!) { editPost(input: $i) { ... on PostActionSuccess { post { id dueAt text } } ... on MutationError { message } } }',
+        {
+            i: {
+                id,
+                text: readFileSync(legenda, 'utf8').trim(),
+                assets: [{ video }],
+                ...(meta ? { metadata: JSON.parse(meta) } : {}),
+            },
+        },
+    );
+    console.log(JSON.stringify(d.editPost));
 } else {
     console.log('uso: canais | tipo <Tipo> | postar <canal> <url> <legenda.txt> <quando|fila> [metadata]');
 }
