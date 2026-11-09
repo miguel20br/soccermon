@@ -7,9 +7,12 @@ import { utNow } from '../store/ultimate/clock';
  * ele que o save guarda como visto), com a arte de `NewsArt` e o destino de `NewsTo`. Fica leve de propósito: o botão
  * da barra de cima lê esta lista pra acender o pontinho; a arte e o carrossel só baixam ao abrir (NewsFeed.tsx).
  */
-export type NewsArt = 'daily' | 'max' | 'bench' | 'ultimate';
-/** Pra onde o botão leva: `cup` = o Estádio (o JOGAR da copa); destino fechado, o botão some. */
-export type NewsTo = 'daily' | 'cup' | 'ultimate';
+export type NewsArt = 'daily' | 'max' | 'bench' | 'ultimate' | 'packs' | 'rota' | 'golpedex';
+/**
+ * Pra onde o botão leva: `daily` = a Copa do Dia; `estadio`/`rota` = a Home naquela aba (a Rota é a Copa longa);
+ * `golpedex` = a Coleção na Golpedex; `ultimate` = o Time Ultimate (fechado, o botão some e fica a contagem).
+ */
+export type NewsTo = 'daily' | 'estadio' | 'rota' | 'golpedex' | 'ultimate';
 
 export interface NewsCard {
     id: string;
@@ -21,6 +24,8 @@ export interface NewsCard {
     text: Record<Lang, string>;
     art: NewsArt;
     to?: NewsTo;
+    /** O rótulo do botão, dizendo aonde ele leva ("Jogar a Copa do Dia", nunca só "Jogar" se houver dúvida). */
+    cta?: Record<Lang, string>;
     /** Antes disso o cartão mostra a contagem no lugar do botão (Time Ultimate). */
     opensAt?: number;
 }
@@ -40,6 +45,7 @@ export const NEWS: NewsCard[] = [
         },
         art: 'ultimate',
         to: 'ultimate',
+        cta: { pt: 'Jogar', en: 'Play' },
         opensAt: UT_AT,
     },
     {
@@ -53,6 +59,7 @@ export const NEWS: NewsCard[] = [
         },
         art: 'daily',
         to: 'daily',
+        cta: { pt: 'Jogar a Copa do Dia', en: 'Play the Daily Cup' },
     },
     {
         id: 'max-rival-lento',
@@ -64,7 +71,8 @@ export const NEWS: NewsCard[] = [
             en: "The rival's max move now plays in slow motion too",
         },
         art: 'max',
-        to: 'cup',
+        to: 'estadio',
+        cta: { pt: 'Ver na copa', en: 'See it in a cup' },
     },
     {
         id: 'banco-vaga-vazia',
@@ -76,28 +84,56 @@ export const NEWS: NewsCard[] = [
             en: 'Long Cup: whoever leaves the bench frees the slot for the next signing',
         },
         art: 'bench',
-        to: 'cup',
+        to: 'rota',
+        cta: { pt: 'Jogar a Copa longa', en: 'Play the Long Cup' },
     },
-    /* Ligue quando a branch entrar (e troque a data):
+];
+
+/**
+ * Os próximos cartões, prontos com arte e destino, esperando a branch deles entrar: pra ligar, passe o cartão pra
+ * `NEWS` com a data do lançamento. Nas prévias, `?noticias=prox` mostra eles no feed (pra ver a arte antes).
+ */
+export const NEXT_NEWS: NewsCard[] = [
     {
         id: 'meus-pacotes',
         date: '2026-11-27',
         until: '2026-12-31',
-        title: { pt: 'Meus pacotes', en: 'My packs' },
-        text: { pt: 'Os pacotes que você ganhou ficam guardados até você abrir', en: 'Packs you earn wait until you open them' },
-        art: 'ultimate',
+        title: { pt: 'Meus pacotes e Picks', en: 'My packs and Picks' },
+        text: {
+            pt: 'Pacotes guardados até você abrir, e o Pokémon Picks: escolha 1 de 3',
+            en: 'Packs wait until you open them, and Pokémon Picks: choose 1 of 3',
+        },
+        art: 'packs',
         to: 'ultimate',
+        cta: { pt: 'Ver meus pacotes', en: 'See my packs' },
+        opensAt: UT_AT,
     },
     {
         id: 'rota-nova',
         date: '2026-12-01',
         until: '2027-01-15',
         title: { pt: 'Rota nova', en: 'New Route' },
-        text: { pt: 'A Copa longa ganhou um caminho novo até a Liga Índigo', en: 'The Long Cup has a new path to the Indigo League' },
-        art: 'daily',
-        to: 'cup',
+        text: {
+            pt: 'Mapa mais largo, a Zona Safari e o Cassino no caminho da Copa longa',
+            en: 'A wider map, the Safari Zone and the Game Corner on the Long Cup path',
+        },
+        art: 'rota',
+        to: 'rota',
+        cta: { pt: 'Ver a Rota', en: 'See the Route' },
     },
-    */
+    {
+        id: 'golpedex-especiais',
+        date: '2026-12-01',
+        until: '2027-01-15',
+        title: { pt: 'Golpedex: especiais e bicudas', en: 'Movedex: specials and punts' },
+        text: {
+            pt: 'Os golpes especiais e as bicudas do goleiro agora estão na Golpedex',
+            en: "Special moves and the keeper's punts are now in the Movedex",
+        },
+        art: 'golpedex',
+        to: 'golpedex',
+        cta: { pt: 'Abrir a Golpedex', en: 'Open the Movedex' },
+    },
 ];
 
 /** Meia-noite (ou o fim do dia) de Brasília de um AAAA-MM-DD. */

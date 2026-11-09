@@ -3,10 +3,9 @@ import { reloadForNewVersion } from '../../chunk-reload';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { openPage } from '../doors';
-import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { writeCount } from '../local-count';
-import { activeNews, unseenNews, withSeen } from '../news';
+import { activeNews, NEXT_NEWS, unseenNews, withSeen } from '../news';
 import { NewDot } from '../profile/news';
 import { MenuIcon } from './MenuIcon';
 
@@ -45,13 +44,20 @@ export function readSeen(): number | null {
     }
 }
 
+/** Os cartões no ar; nas prévias, `?noticias=prox` junta os próximos (`NEXT_NEWS`) pra ver a arte antes. */
+const newsCards = () =>
+    __SMOKE__ && new URLSearchParams(window.location.search).get('noticias') === 'prox'
+        ? [...activeNews(), ...NEXT_NEWS]
+        : activeNews();
+
 /**
- * Novidades no canto de cima (TopActions), em toda tela de menu: abre o feed (as Notícias em carrossel e as notas de
- * versão, `NewsFeed`). O pontinho acende enquanto a versão nova não foi aberta neste navegador (o Miguel, 30/10: nas
- * Configurações ficava estranho) ou há cartão das Notícias que o save ainda não viu (`Profile.newsSeen`).
+ * Novidades no canto de cima (TopActions), em toda tela de menu: abre a tela cheia das Novidades (as Notícias em
+ * carrossel e as Notas da versão, `NewsScreen`). O pontinho acende enquanto a versão nova não foi aberta neste
+ * navegador (o Miguel, 30/10: nas Configurações ficava estranho) ou há cartão das Notícias que o save ainda não viu
+ * (`Profile.newsSeen`).
  */
 export function NewsButton() {
-    const { t, d } = useT();
+    const { d } = useT();
     // o feed e as notas (~50 KB gzip) só baixam ao abrir; o botão e o pontinho só precisam da versão (a 1ª das notas,
     // testado) e da lista leve das Notícias
     const [mod, setMod] = useState<typeof import('./NewsFeed') | null>(null);
@@ -69,7 +75,6 @@ export function NewsButton() {
     const newsSeen = useGame((s) => s.profile.newsSeen);
     const unseen = unseenNews(newsSeen);
     const [open, setOpen] = useState(false);
-    const [page, setPage] = useState('feed');
     // os cartões não vistos quando a folha abriu: o selo "Nova" fica neles até fechar
     const [newIds, setNewIds] = useState<ReadonlySet<string>>(new Set());
     const close = useCallback(() => setOpen(false), []);
@@ -102,7 +107,6 @@ export function NewsButton() {
                 onPointerDown={load}
                 onClick={() => {
                     load();
-                    setPage('feed');
                     setNewIds(new Set(unseen.map((c) => c.id)));
                     setOpen(true);
                 }}
@@ -111,19 +115,8 @@ export function NewsButton() {
                 {/* sem onde guardar a versão (aba anônima): só os cartões acendem (esses ficam no save) */}
                 <NewDot on={(seen !== null && seen < latest) || (!fresh && unseen.length > 0)} />
             </button>
-            {/* abre quando o feed chega: a folha não nasce vazia */}
-            <Sheet open={open && !!mod} onClose={close} title={t('home.news')} className="patch-notes">
-                {mod && (
-                    <mod.NewsFeed
-                        page={page}
-                        setPage={setPage}
-                        cards={activeNews()}
-                        fresh={newIds}
-                        onSeen={onSeen}
-                        close={close}
-                    />
-                )}
-            </Sheet>
+            {/* abre quando o feed chega: a tela não nasce vazia */}
+            {open && mod && <mod.NewsScreen cards={newsCards()} fresh={newIds} onSeen={onSeen} onClose={close} />}
         </>
     );
 }

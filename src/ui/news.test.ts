@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mergeProfileUnlocks } from '../store/missions';
 import { DEFAULT_PROFILE } from '../store/profile';
-import { activeNews, NEWS, type NewsCard, unseenNews, withSeen } from './news';
+import { activeNews, NEWS, NEXT_NEWS, type NewsCard, unseenNews, withSeen } from './news';
 import { ULTIMATE_OPENS_AT } from './ultimate/flag';
 
 const at = (iso: string) => Date.parse(iso);
@@ -16,14 +16,17 @@ const card = (id: string, date: string, until: string): NewsCard => ({
 
 describe('lista das Notícias', () => {
     it('ids únicos, datas válidas e textos curtos nos dois idiomas', () => {
-        expect(new Set(NEWS.map((c) => c.id)).size).toBe(NEWS.length);
-        for (const c of NEWS) {
+        const all = [...NEWS, ...NEXT_NEWS];
+        expect(new Set(all.map((c) => c.id)).size).toBe(all.length);
+        for (const c of all) {
             expect(c.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
             expect(c.until >= c.date).toBe(true);
             for (const l of ['pt', 'en'] as const) {
                 expect(c.title[l].split(' ').length).toBeLessThanOrEqual(5);
                 expect(c.text[l].length).toBeGreaterThan(0);
                 expect(c.text[l].length).toBeLessThanOrEqual(90);
+                // o botão diz aonde leva (Miguel, 09/11: nada de "Jogar" pra tudo)
+                if (c.to) expect(c.cta?.[l].split(' ').length).toBeLessThanOrEqual(5);
             }
         }
     });
