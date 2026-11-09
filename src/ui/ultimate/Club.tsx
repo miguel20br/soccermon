@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import type { Position } from '../../engine/attributes';
 import { species, TYPES } from '../../engine/data';
 import { FORMATIONS } from '../../engine/formations';
@@ -120,6 +120,30 @@ function UndoBar() {
 
 // ---------------------------------------------------------------------------------------------------- cartas
 
+const SEEN_KEY = 'soccermon-ut-seen';
+/**
+ * As cartas que chegaram desde a última vez que o Clube abriu (conveniência do aparelho, no localStorage): ficam com o
+ * selo Nova nesta visita; a próxima já não mostra. Sem storage, nada é novo.
+ */
+function useFresh(cards: readonly PokemonInstance[]): Set<string> {
+    const [fresh] = useState(() => {
+        try {
+            const seen = new Set<string>(JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]'));
+            return new Set(cards.filter((c) => !seen.has(c.uid)).map((c) => c.uid));
+        } catch {
+            return new Set<string>();
+        }
+    });
+    useEffect(() => {
+        try {
+            localStorage.setItem(SEEN_KEY, JSON.stringify(cards.map((c) => c.uid)));
+        } catch {
+            // sem storage: o selo não aparece
+        }
+    }, [cards]);
+    return fresh;
+}
+
 function Cards({ onSquad }: { onSquad: () => void }) {
     const { t, d, lang } = useT();
     const u = useGame((s) => s.ultimate);
@@ -135,6 +159,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
     const lock = useGame((s) => s.ultimateLock);
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const views = useMemo(() => new Map(u.cards.map((c) => [c.uid, viewInstance(c)])), [u.cards]);
+    const fresh = useFresh(u.cards);
     const q = f.q.trim().toLocaleLowerCase(lang);
     const stat = useMemo(() => new Map(u.cards.map((c) => [c.uid, statusesOf(u, c.uid)])), [u]);
     const list = u.cards
@@ -213,7 +238,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 <div className="ut-cards" key={`${f.pos}-${f.metal}-${f.edition}-${f.type}-${f.status}-${f.sort}`}>
                     {list.map(({ c }) => {
                         const i = u.team.order.indexOf(c.uid);
-                        return (
+                        const card = (
                             <FutCard
                                 key={c.uid}
                                 inst={c}
@@ -231,6 +256,15 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                                           : undefined
                                 }
                             />
+                        );
+                        // selo Nova: chegou desde a última visita ao Clube (o "NEW" do FC); some na próxima
+                        return fresh.has(c.uid) ? (
+                            <div key={c.uid} className="ut-new-wrap">
+                                {card}
+                                <i className="ut-new">{t('ultimate.packs.fresh')}</i>
+                            </div>
+                        ) : (
+                            card
                         );
                     })}
                 </div>

@@ -1307,11 +1307,15 @@
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-areas:
             "pend pend"
+            "hl grid"
             "squad grid"
             "play grid"
             ". grid";
-        grid-template-rows: auto auto auto 1fr;
+        grid-template-rows: auto auto auto auto 1fr;
         align-items: start;
+    }
+    .ut-hl {
+        grid-area: hl;
     }
     .ut-b-pending {
         grid-area: pend;
@@ -1820,4 +1824,232 @@
 }
 .ut-got-line {
     padding: 8px 10px;
+}
+
+/* ---------- 09/11: destaque do Início (carrossel), cartão do time, selo Nova ---------- */
+.ut-hl {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+.ut-hl-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border-radius: 10px;
+}
+.ut-hl-track::-webkit-scrollbar {
+    display: none;
+}
+.ut-hl-slide {
+    scroll-snap-align: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 96px;
+    --tc: var(--yellow);
+}
+.ut-hl-slide.is-event {
+    --tc: var(--blue);
+}
+.ut-hl-text {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.ut-hl-text > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 17px;
+    line-height: 1.2;
+    color: var(--text);
+}
+.ut-hl-text > small {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--muted);
+}
+.ut-hl-slide .ut-b-cta {
+    pointer-events: none;
+}
+/* a pilha desenhada: até 3 pacotes encavalados */
+.ut-hl-packs {
+    position: relative;
+    display: flex;
+    isolation: isolate;
+}
+.ut-hl-packs > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 46px;
+}
+.ut-hl-packs > .cpack + .cpack {
+    margin-left: -30px;
+    transform: rotate(8deg) translateY(2px);
+    z-index: -1;
+}
+.ut-hl-packs > .cpack + .cpack + .cpack {
+    transform: rotate(16deg) translateY(4px);
+    z-index: -2;
+}
+.ut-hl-ic {
+    width: 40px;
+    height: 40px;
+    color: var(--yellow);
+}
+.ut-hl-dots {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+.ut-hl-dots > button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.ut-hl-dots > button::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    transition:
+        width 220ms var(--ease-out),
+        background-color 220ms var(--ease-out);
+}
+.ut-hl-dots > button.on::before {
+    width: 20px;
+    background: var(--yellow);
+}
+@media (max-width: 360px) {
+    .ut-hl-slide {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .ut-hl-slide .ut-b-cta {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+}
+/* a nota do time grande no bloco do Elenco */
+.ut-b-ovr {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.ut-b-ovr > b {
+    font-size: 22px;
+    line-height: 1;
+    color: var(--yellow);
+}
+/* cartão do time em cima da prancheta */
+.ut-teamcard {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+}
+.ut-teamcard > span {
+    display: grid;
+    gap: 2px;
+}
+.ut-teamcard > .ut-teamcard-ovr {
+    font-size: 44px;
+    line-height: 1;
+    color: var(--yellow);
+}
+.ut-teamcard b {
+    font-size: 15px;
+}
+.ut-teamcard-str {
+    justify-items: end;
+    text-align: right;
+}
+.ut-teamcard-str b {
+    font-size: 22px;
+}
+/* selo Nova: a carta que chegou desde a última visita */
+.ut-new-wrap {
+    position: relative;
+    display: grid;
+    justify-items: center;
+}
+.ut-new {
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    translate: -50% 0;
+    padding: 2px 8px;
+    border: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--bc-ink, #111);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) 120ms both;
+}
+[data-reduce-motion="true"] .ut-new {
+    animation: none;
+}
+
+/* ---------- PC: o Início em 3 colunas (Elenco grande | destaque e JOGAR | blocos); Loja e Metas na largura de ler ---------- */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home) {
+        width: min(1240px, 100%);
+    }
+    .ut-panel:not(:has(.ut-home, .ut-prize)) {
+        width: min(760px, 100%);
+        margin: 0 auto;
+    }
+    .ut-home {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "squad hl grid"
+            "squad pend grid"
+            "squad play grid"
+            ". . grid";
+        grid-template-rows: auto auto auto 1fr;
+        column-gap: 14px;
+    }
+    .ut-hl {
+        grid-area: hl;
+    }
+    .ut-b-squad {
+        align-self: stretch;
+    }
+    .ut-b-squad .ut-b-court {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        row-gap: 14px;
+        padding: 14px 6px;
+        flex: 1;
+    }
+    .ut-b-squad .ut-b-court img,
+    .ut-b-squad .ut-b-court i {
+        width: 72px;
+        height: 72px;
+    }
+    .ut-hl-slide {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .ut-hl-slide .ut-b-cta {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+    .ut-b-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

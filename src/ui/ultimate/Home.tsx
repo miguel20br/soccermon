@@ -10,7 +10,7 @@ import { clubColorHex } from '../../store/profile';
 import { chemistry } from '../../store/ultimate/chemistry';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
-import { objectiveById } from '../../store/ultimate/objectives';
+import { eventAhead, objectiveById } from '../../store/ultimate/objectives';
 import {
     EVO_ACTIVE_MAX,
     FICHAS,
@@ -51,6 +51,7 @@ import { reduceMotionOn } from '../reduce-motion';
 import { simulateMatch } from '../sim-client';
 import { hms, useNow } from './clock';
 import { useReward } from './Goals';
+import { usePickName } from './PickMoment';
 import { Gyms } from './Season';
 
 export type UtTab = 'home' | 'squad' | 'club' | 'shop' | 'goals';
@@ -155,6 +156,7 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
 
     return (
         <div className="ut-home">
+            <Highlights onTab={onTab} />
             {u.pending.length > 0 && (
                 <button type="button" className="panel bc-surface bc-stripe ut-block ut-b-pending" onClick={onPending}>
                     <BlockHead icon="chest" title={`${t('ultimate.home.pending')} · ${u.pending.length}`} />
@@ -168,9 +170,15 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                     icon="team"
                     title={t('ultimate.home.squad')}
                     state={
-                        ready
-                            ? t('ultimate.home.squadState', { n: avg, c: chem })
-                            : tn('ultimate.home.squadNeed', STARTERS - lineup.length)
+                        ready ? (
+                            // o cartão do time: a nota grande e a química (como o FC)
+                            <span className="ut-b-ovr">
+                                <b className="cb-num">{avg}</b>
+                                {t('ultimate.home.chem', { c: chem })}
+                            </span>
+                        ) : (
+                            tn('ultimate.home.squadNeed', STARTERS - lineup.length)
+                        )
                     }
                 />
                 <span className="ut-b-court">
@@ -194,6 +202,7 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                             {[
                                 mini && `${t('ultimate.stack.miniShort')} x${mini}`,
                                 u.bigPacks && `${t('ultimate.stack.bigShort')} x${u.bigPacks}`,
+                                u.picks.length && `${t('ultimate.pick.short')} x${u.picks.length}`,
                             ]
                                 .filter(Boolean)
                                 .join(' · ')}
@@ -309,6 +318,148 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                 <Gyms u={u} busy={busy} onGo={challenge} />
             </Sheet>
         </div>
+    );
+}
+
+type Slide = { id: string; tab: UtTab; art: ReactNode; title: string; line: string; cta: string };
+
+/** Troca o destaque sozinho a cada tanto (pausa quando a pessoa mexe; parado com Reduzir movimento). */
+const SLIDE_MS = 6000;
+
+/**
+ * Destaque no topo do Início (ultimate-fc.md, opção C): o que tem de mais quente agora (a pilha, o Pick, o evento), um
+ * por vez num carrossel de arrastar (scroll-snap) que troca sozinho, com os pontinhos embaixo. Um só fica parado.
+ */
+function Highlights({ onTab }: { onTab: (t: UtTab) => void }) {
+    const { t, tn, d } = useT();
+    const u = useGame((s) => s.ultimate);
+    const now = useNow();
+    const name = usePickName();
+    const packs = packsReady(u, now) + u.bigPacks;
+    const event = eventAhead(now);
+    const live = event && now >= event.start;
+    const slides: Slide[] = [
+        ...(packs
+            ? [
+                  {
+                      id: 'packs',
+                      tab: 'shop' as const,
+                      art: (
+                          <span className="ut-hl-packs">
+                              {Array.from({ length: Math.min(3, packs) }, (_, i) => (
+                                  // biome-ignore lint/suspicious/noArrayIndexKey: só a pilha desenhada
+                                  <PackArt key={i} look="" />
+                              ))}
+                          </span>
+                      ),
+                      title: tn('ultimate.hl.packs', packs),
+                      line: event
+                          ? t('ultimate.hl.packsEvent', { name: d.ultimate.events[event.id] ?? event.id })
+                          : t('ultimate.hl.packsLine'),
+                      cta: t('ultimate.stack.title'),
+                  },
+              ]
+            : []),
+        ...(u.picks.length
+            ? [
+                  {
+                      id: 'pick',
+                      tab: 'shop' as const,
+                      art: (
+                          <span className="ut-hl-packs">
+                              <PackArt
+                                  look={u.picks[0].min === 'ouro' ? 'gold' : ''}
+                                  label={t('ultimate.pick.short')}
+                                  type={u.picks[0].type}
+                              />
+                          </span>
+                      ),
+                      title: name(u.picks[0]).title,
+                      line: name(u.picks[0]).hint,
+                      cta: t('ultimate.pick.open'),
+                  },
+              ]
+            : []),
+        ...(event
+            ? [
+                  {
+                      id: 'event',
+                      tab: 'goals' as const,
+                      art: <HudIcon kind="sparkle" className="ut-hl-ic" />,
+                      title: t('ultimate.event.title', { name: d.ultimate.events[event.id] ?? event.id }),
+                      line: live
+                          ? t('ultimate.event.ends', { time: hms(event.end - now) })
+                          : t('ultimate.hl.eventSoon', { time: hms(event.start - now) }),
+                      cta: t('ultimate.home.goals'),
+                  },
+              ]
+            : []),
+    ];
+    const box = useRef<HTMLDivElement>(null);
+    const [at, setAt] = useState(0);
+    const touched = useRef(false);
+    const n = slides.length;
+    useEffect(() => {
+        if (n < 2 || reduceMotionOn()) return;
+        const id = window.setInterval(() => {
+            const el = box.current;
+            if (!el || touched.current) return;
+            const next = (Math.round(el.scrollLeft / el.clientWidth) + 1) % n;
+            el.scrollTo({ left: next * el.clientWidth, behavior: 'smooth' });
+        }, SLIDE_MS);
+        return () => clearInterval(id);
+    }, [n]);
+    if (!n) return null;
+    const go = (i: number) => {
+        touched.current = true;
+        const el = box.current;
+        el?.scrollTo({ left: i * el.clientWidth, behavior: reduceMotionOn() ? 'auto' : 'smooth' });
+    };
+    return (
+        <section className="ut-hl" aria-roledescription="carousel" aria-label={t('ultimate.hl.title')}>
+            <div
+                ref={box}
+                className="ut-hl-track"
+                onPointerDown={() => {
+                    touched.current = true;
+                }}
+                onScroll={(e) => {
+                    const el = e.currentTarget;
+                    setAt(Math.round(el.scrollLeft / el.clientWidth));
+                }}
+            >
+                {slides.map((sl) => (
+                    <button
+                        type="button"
+                        key={sl.id}
+                        className={`panel bc-surface bc-stripe ut-block ut-hl-slide is-${sl.id}`}
+                        onClick={() => onTab(sl.tab)}
+                    >
+                        {sl.art}
+                        <span className="ut-hl-text">
+                            <span className="bc-lbl">{t('ultimate.hl.title')}</span>
+                            <b>{sl.title}</b>
+                            <small>{sl.line}</small>
+                        </span>
+                        <span className="btn small confirm ut-b-cta">{sl.cta}</span>
+                    </button>
+                ))}
+            </div>
+            {n > 1 && (
+                <span className="ut-hl-dots">
+                    {slides.map((sl, i) => (
+                        <button
+                            type="button"
+                            key={sl.id}
+                            className={i === at ? 'on' : undefined}
+                            aria-label={sl.title}
+                            aria-current={i === at}
+                            onClick={() => go(i)}
+                        />
+                    ))}
+                </span>
+            )}
+        </section>
     );
 }
 

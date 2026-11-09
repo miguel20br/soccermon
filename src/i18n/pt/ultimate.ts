@@ -81,6 +81,15 @@ export const ultimate = {
         buyBtn: '{metal} · {n} pontos',
         bought: 'Pick {metal} guardado em Meus pacotes',
     },
+    /** Destaque do Início (carrossel). */
+    hl: {
+        title: 'Destaque',
+        packs: '{n} pacote guardado|{n} pacotes guardados',
+        packsLine: 'Abra quando quiser: eles esperam até a temporada virar',
+        packsEvent: 'Pacote aberto no {name} pode trazer carta Evento',
+        eventSoon: 'Começa em {time}: guarde pacotes pra abrir no evento',
+    },
+    teamcard: { ovr: 'Nota do time', str: 'Força' },
     season: {
         title: 'Temporada {n}',
         theme: { kanto: 'Kanto clássico', lideres: 'Ícones dos líderes' },
@@ -142,6 +151,7 @@ export const ultimate = {
     home: {
         squad: 'Elenco',
         squadState: 'Média {n} · química +{c}%',
+        chem: 'química +{c}%',
         squadNeed: 'Faltam {n} cartas pro time|Faltam {n} cartas pro time',
         shop: 'Loja',
         packsReady: '{n} pacote pra abrir|{n} pacotes pra abrir',

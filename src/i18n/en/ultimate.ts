@@ -80,6 +80,14 @@ export const ultimate: typeof pt = {
         buyBtn: '{metal} · {n} points',
         bought: '{metal} Pick saved in My Packs',
     },
+    hl: {
+        title: 'Featured',
+        packs: '{n} pack saved|{n} packs saved',
+        packsLine: 'Open them whenever: they wait until the season ends',
+        packsEvent: 'Packs opened during {name} can drop Event cards',
+        eventSoon: 'Starts in {time}: save packs to open during the event',
+    },
+    teamcard: { ovr: 'Team rating', str: 'Strength' },
     season: {
         title: 'Season {n}',
         theme: { kanto: 'Classic Kanto', lideres: 'Gym Leader Icons' },
@@ -141,6 +149,7 @@ export const ultimate: typeof pt = {
     home: {
         squad: 'Squad',
         squadState: 'Average {n} · chemistry +{c}%',
+        chem: 'chemistry +{c}%',
         squadNeed: '{n} more card for the team|{n} more cards for the team',
         shop: 'Store',
         packsReady: '{n} pack to open|{n} packs to open',
