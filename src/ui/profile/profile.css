@@ -484,8 +484,7 @@ button.pf-trainer:focus-visible,
 .pf-cell:focus-visible,
 .pf-av:focus-visible,
 .pf-av-opt:focus-visible,
-.pf-color:focus-visible,
-.pf-evo-mon:focus-visible {
+.pf-color:focus-visible {
     outline: 3px solid var(--yellow);
     outline-offset: 2px;
 }
@@ -1167,61 +1166,6 @@ fieldset.pf-field,
     height: 100%;
     border-radius: 999px;
 }
-.pf-evo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-.pf-evo-stage {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.pf-evo-col {
-    display: grid;
-    gap: 4px;
-}
-.pf-evo-arrow {
-    width: 18px;
-    height: 18px;
-    color: var(--muted);
-    flex: none;
-}
-.pf-evo-mon {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    width: 76px;
-    padding: 4px;
-    border-radius: 9px;
-    border: 2px solid var(--line);
-    background: var(--bg-2);
-    color: var(--text);
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-}
-.pf-evo-mon img {
-    width: 44px;
-    height: 44px;
-    object-fit: contain;
-}
-.pf-evo-mon span {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.pf-evo-mon.current {
-    border-color: var(--yellow);
-    background: var(--panel-2);
-    cursor: default;
-}
-.pf-evo-mon:disabled {
-    opacity: 1;
-}
 .pf-moves {
     list-style: none;
     margin: 0;
@@ -1467,12 +1411,6 @@ fieldset.pf-field,
     }
     .pf-grid {
         grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
-    }
-    .pf-evo-mon {
-        width: 66px;
-    }
-    .pf-evo-arrow {
-        width: 14px;
     }
 }
 @media (max-width: 560px) {

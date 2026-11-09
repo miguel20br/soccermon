@@ -22,6 +22,7 @@ import {
     sealsOf,
     topSeal,
 } from '../../store/profile';
+import { EvoChain, evolutionStages } from '../components/EvoChain';
 import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
@@ -29,7 +30,7 @@ import { METAL, metalOf } from '../rarity';
 import { TYPE_COLOR } from '../type-colors';
 import { speciesGif } from './club';
 import { DexText } from './DexText';
-import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, EvoArrow, LockIcon, SpeakerIcon } from './icons';
+import { BallMark, CareerSealIcon, ChampionRibbon, Chevron, LockIcon, SpeakerIcon } from './icons';
 import { useMedalView } from './Medals';
 import { sealTip } from './seal-tip';
 
@@ -37,23 +38,6 @@ const STATS: StatKey[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
 export const dexNo = (id: number) => String(id).padStart(3, '0');
 const fmt1 = (n: number) => (getLang() === 'pt' ? n.toFixed(1).replace('.', ',') : n.toFixed(1));
-
-/** Linha evolutiva por estágio (só espécies do jogo): [[Eevee], [Vaporeon, Jolteon, Flareon]]. */
-function evolutionStages(sp: Species): number[][] {
-    let root = sp;
-    while (root.prevo && SPECIES_BY_ID.has(root.prevo)) root = species(root.prevo);
-    const stages: number[][] = [[root.id]];
-    for (;;) {
-        const next = stages[stages.length - 1].flatMap((id) =>
-            species(id)
-                .evolvesTo.map((e) => e.id)
-                .filter((x) => SPECIES_BY_ID.has(x)),
-        );
-        if (!next.length) break;
-        stages.push(next);
-    }
-    return stages;
-}
 
 const statColor = (v: number) => (v >= 110 ? '#58c26b' : v >= 80 ? '#b6d94c' : v >= 55 ? '#ffcb05' : '#f07f1d');
 
@@ -294,41 +278,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
             {stages.length > 1 && (
                 <section className="pf-block">
                     <h3>{t('profile.sheet.evolution')}</h3>
-                    <div className="pf-evo">
-                        {stages.map((ids, i) => (
-                            <div key={ids.join('-')} className="pf-evo-stage">
-                                {i > 0 && <EvoArrow />}
-                                <div className="pf-evo-col">
-                                    {ids.map((eid) => {
-                                        const known = !!dex[eid];
-                                        const current = eid === sp.id;
-                                        return (
-                                            <button
-                                                type="button"
-                                                key={eid}
-                                                className={`pf-evo-mon${current ? ' current' : ''}`}
-                                                onClick={() => onNav(eid)}
-                                                disabled={current}
-                                                aria-label={
-                                                    known
-                                                        ? species(eid).name
-                                                        : t('profile.sheet.evoNotSeen', { no: dexNo(eid) })
-                                                }
-                                            >
-                                                <img
-                                                    className={`pixel${known ? '' : ' pf-silhouette'}`}
-                                                    src={speciesGif(eid)}
-                                                    alt=""
-                                                    loading="lazy"
-                                                />
-                                                <span>{known ? species(eid).name : '???'}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <EvoChain id={sp.id} dex={dex} onPick={onNav} pickUnseen />
                     <p className="pf-note">
                         {sp.evolvesTo.some((e) => SPECIES_BY_ID.has(e.id))
                             ? t('profile.sheet.evolvesMidMatch')

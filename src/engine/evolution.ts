@@ -1,6 +1,7 @@
+import { abilityEffect } from './abilities';
 import type { Position } from './attributes';
 import { SPECIES, species } from './data';
-import { type PokemonInstance, slotRating } from './instance';
+import { type PokemonInstance, slotRating, viewInstance } from './instance';
 import { has } from './sponsors';
 import type { PlayerStats } from './state';
 import { movesAfterEvolution } from './tm';
@@ -100,15 +101,44 @@ export function evolvedRating(inst: PokemonInstance, role: Position | 'ANY'): { 
 }
 
 /**
+ * Selo de evolução da carta (selo B, Miguel 09/11/2026): numa vaga, a nota naquela vaga; fora dela (clube, coleção,
+ * pacote), a nota na posição principal da forma nova, a mesma que a carta evoluída vai mostrar ("vira 84 PIV").
+ */
+export function evoPreview(
+    inst: PokemonInstance,
+    position?: Position,
+): { into: number; rating: number; pos: Position } | null {
+    const evo = evolvedRating(inst, position ?? 'ANY');
+    if (!evo) return null;
+    return { ...evo, pos: position ?? viewInstance(evolveInstance(inst, evo.into)).naturalPosition };
+}
+
+/**
+ * Habilidade da carta depois de evoluir: a mesma se a forma nova tiver, ou se ela mexe em atributo (regra C, Miguel
+ * 09/11/2026: o Gyarados que era Magikarp continua Swift Swim, senão ficava mais lento); senão a 1ª da forma nova.
+ */
+export const abilityAfterEvolution = (ability: string, into: number) =>
+    ability === 'imposter' || species(into).abilities.includes(ability) || abilityEffect(ability).mods
+        ? ability
+        : species(into).abilities[0];
+
+/**
  * A instância depois de evoluir: golpes da nova forma (mantendo os ensinados por MT, se a forma nova aprende),
- * habilidade mantida se a nova forma tiver. `role`: a vaga em que ele jogava, que a forma nova herda como
+ * habilidade pela `abilityAfterEvolution`, atributos nunca abaixo da forma de antes (`evolvedFrom`). `role`: a vaga em que ele jogava, que a forma nova herda como
  * secundária (auditoria de posições, 17/10/2026).
  */
 export function evolveInstance(inst: PokemonInstance, into: number, role?: Position): PokemonInstance {
     const sp = species(into);
-    const ability = inst.ability === 'imposter' || sp.abilities.includes(inst.ability) ? inst.ability : sp.abilities[0];
+    const ability = abilityAfterEvolution(inst.ability, into);
     const { moves, taught } = movesAfterEvolution(inst, sp);
-    const out: PokemonInstance = { ...inst, speciesId: into, moves, ability, evolved: (inst.evolved ?? 0) + 1 };
+    const out: PokemonInstance = {
+        ...inst,
+        speciesId: into,
+        moves,
+        ability,
+        evolved: (inst.evolved ?? 0) + 1,
+        evolvedFrom: [...(inst.evolvedFrom ?? []), inst.speciesId],
+    };
     if (taught.length) out.taught = taught;
     else delete out.taught;
     if (role && !inst.inherited?.includes(role)) out.inherited = [...(inst.inherited ?? []), role];

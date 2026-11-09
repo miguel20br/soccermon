@@ -1,10 +1,8 @@
 import { type ReactNode, useRef, useState } from 'react';
-import { computeAttributes } from '../../engine/attributes';
 import { relampagoBracket } from '../../engine/bracket';
 import { cupRival } from '../../engine/cup';
-import { species } from '../../engine/data';
 import { FORMATIONS, type FormationId, hasEdge } from '../../engine/formations';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { instanceBase, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { pickCornerTaker } from '../../engine/match';
@@ -409,7 +407,7 @@ export function LineupEditor({
                 role,
                 sponsors,
             });
-            const passing = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, role).passing;
+            const passing = applyModifiers(instanceBase(inst), mods, role).passing;
             return { inst, role, passing };
         })
         .filter((f) => f.role !== 'GK');

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { aerialLevel, aerialScore, computeAttributes, sizePercentile } from '../../engine/attributes';
+import { aerialLevel, aerialScore, sizePercentile } from '../../engine/attributes';
 import { ABILITIES, MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoNeeded, evoProgress } from '../../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, hasEdge } from '../../engine/formations';
+import { instanceBase } from '../../engine/instance';
 import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { FLAG_BUFF, FLAG_CHARGED, FLAG_DEBUFF, SNAP_STRIDE, type Tactic, type TeamSetup } from '../../engine/state';
@@ -162,7 +163,7 @@ export function PlayerInspect({
     if (hasEdge(myFormation, formationAt(who.team === 0 ? 1 : 0)))
         live.push({ up: true, text: t('team.inspect.edge', { pct: edgePct(lang) }) });
     // selo "Jogo aéreo": a mesma conta da disputa no alto do escanteio (carta = campo)
-    const fieldAttr = applyModifiers(computeAttributes(species(inst.speciesId), inst.level), mods, who.role);
+    const fieldAttr = applyModifiers(instanceBase(inst), mods, who.role);
     const aerial = aerialLevel(
         aerialScore(fieldAttr.strength, fieldAttr.positioning, sizePercentile(species(inst.speciesId))),
     );

@@ -1,6 +1,6 @@
 import { POSITIONS, type Position } from './attributes';
 import { MOVES, SPECIES_BY_ID } from './data';
-import { EVO_THRESHOLD } from './evolution';
+import { abilityAfterEvolution, EVO_THRESHOLD } from './evolution';
 import { FORMATIONS, type FormationId } from './formations';
 import { DEFAULT_LEVEL, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
@@ -26,6 +26,8 @@ export interface DuelMonRecipe {
     inherited?: Position[];
     /** Quantas vezes a carta evoluiu (+2 em tudo por evolução): sem isso o Charizard da copa jogava com 4 a menos. */
     evolved?: number;
+    /** Espécies de antes da evolução (`PokemonInstance.evolvedFrom`): a carta não perde atributo nem a habilidade. */
+    evolvedFrom?: number[];
     nickname?: string | null;
 }
 
@@ -74,6 +76,7 @@ export const monRecipe = (p: PokemonInstance): DuelMonRecipe => ({
     evo: p.evo === undefined ? undefined : Math.min(p.evo, MAX_EVO),
     inherited: p.inherited ? [...p.inherited] : undefined,
     evolved: p.evolved || undefined,
+    evolvedFrom: p.evolvedFrom?.length ? [...p.evolvedFrom] : undefined,
     nickname: p.nickname ?? null,
 });
 
@@ -103,7 +106,25 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
     const sp = SPECIES_BY_ID.get(m.speciesId);
     if (!sp || m.speciesId > 151) return [`${where}: espécie ${m.speciesId} não existe`];
     if (typeof m.shiny !== 'boolean') bad('shiny');
-    if (!(m.speciesId === 132 ? m.ability === 'imposter' : sp.abilities.includes(m.ability)))
+    // evoluiu de quem? só formas de antes da linha dela (Magikarp no Gyarados), no máximo uma por evolução
+    const ancestors: number[] = [];
+    for (let id = sp.prevo; id; id = SPECIES_BY_ID.get(id)?.prevo ?? null) ancestors.push(id);
+    const from = m.evolvedFrom ?? [];
+    const fromOk =
+        Array.isArray(from) &&
+        from.length <= (Number.isInteger(m.evolved) ? (m.evolved as number) : 0) &&
+        new Set(from).size === from.length &&
+        from.every((id) => ancestors.includes(id));
+    if (!fromOk) bad('evoluiu de');
+    // a habilidade é da espécie, ou de uma forma de antes que a evolução deixa ficar (regra C)
+    const fromAbility =
+        fromOk &&
+        from.some(
+            (id) =>
+                abilityAfterEvolution(m.ability, m.speciesId) === m.ability &&
+                SPECIES_BY_ID.get(id)?.abilities.includes(m.ability),
+        );
+    if (!(m.speciesId === 132 ? m.ability === 'imposter' : sp.abilities.includes(m.ability) || fromAbility))
         bad(`habilidade ${m.ability}`);
     const taught = m.taught ?? [];
     if (!Array.isArray(taught) || !taught.every((x) => isStr(x) && MOVES[x] && sp.learnset.includes(x))) bad('MT');
@@ -144,8 +165,7 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
     )
         bad('posição herdada');
     // evoluiu no máximo quantas vezes a linha dela deixa (Charizard: 2, Charmander: 0)
-    let depth = 0;
-    for (let id = sp.prevo; id; id = SPECIES_BY_ID.get(id)?.prevo ?? null) depth++;
+    const depth = ancestors.length;
     if (m.evolved !== undefined && !(Number.isInteger(m.evolved) && m.evolved >= 0 && m.evolved <= depth))
         bad('evoluções');
     if (m.nickname != null && !isStr(m.nickname, 20)) bad('apelido');
@@ -209,6 +229,7 @@ export function monFromRecipe(m: DuelMonRecipe, uid: string): PokemonInstance {
     if (m.evo !== undefined) p.evo = m.evo;
     if (m.inherited?.length) p.inherited = [...m.inherited];
     if (m.evolved) p.evolved = m.evolved;
+    if (m.evolvedFrom?.length) p.evolvedFrom = [...m.evolvedFrom];
     return p;
 }
 
