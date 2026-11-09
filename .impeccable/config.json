@@ -137,6 +137,15 @@
         ],
         "createdAt": "2026-11-03T02:34:57.360Z",
         "reason": "Claude: o mesmo indicador da aba ativa (.ut-ind::before), sublinhado amarelo sob a pílula da aba, padrão do kit das abas"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/ui/news-feed.css"
+        ],
+        "createdAt": "2026-11-09T18:16:32.812Z",
+        "reason": "falso positivo: L51 é o X redondo do kit (borda de 3px em volta toda, sem lado); o arquivo não tem borda de um lado só"
       }
     ]
   }
