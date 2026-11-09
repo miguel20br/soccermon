@@ -473,7 +473,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 list: [
                     'O Pokémon novo entra **no lugar de um reserva** (nunca do capitão) e herda o item de quem saiu.',
                     'O item vai pra qualquer jogador; se ele já tinha um, o item antigo é substituído (e some).',
-                    'Sortear de novo gasta 1 sorteio. **Pular** não pega nada, mas dá +1 sorteio.',
+                    'Sortear de novo gasta 1 sorteio. **Pular** não pega nada, mas dá +1 sorteio (na Rota Índigo, o botão mostra o que ele dá).',
                 ],
             },
             {
