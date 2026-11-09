@@ -2053,3 +2053,23 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* losangos de química (rascunho atrás de ?losangos=1, Chemistry.tsx) */
+.ut-chem-players li:has(.ut-dia) {
+    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto auto;
+}
+.ut-dia {
+    display: inline-flex;
+    gap: 3px;
+}
+.ut-dia i {
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--line);
+    transform: rotate(45deg);
+    transition: background-color 220ms var(--ease-out);
+}
+.ut-dia i.on {
+    border-color: var(--green);
+    background: var(--green);
+}

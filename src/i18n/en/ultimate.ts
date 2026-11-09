@@ -101,7 +101,7 @@ export const ultimate: typeof pt = {
     event: {
         title: 'Event: {name}',
         ends: 'Ends in {time}',
-        hint: 'Event cards in packs and goals of its own. Complete them all to earn the Profile ornament.',
+        hint: 'Event cards in packs and goals of its own. Complete them all: a Profile ornament and an Event Pick.',
         ornament: 'Ornament earned',
     },
     pass: {
@@ -299,7 +299,7 @@ export const ultimate: typeof pt = {
         passCap: 'Daily pass cap reached',
         marks: 'Pass milestone {n}|Pass milestones {n}',
         badge: '{badge} + Leader Pick',
-        ornament: 'Event ornament: {name}',
+        ornament: 'Event ornament: {name} + Event Pick',
     },
     shop: {
         title: 'Shop',

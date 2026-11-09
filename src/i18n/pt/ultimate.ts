@@ -103,7 +103,7 @@ export const ultimate = {
     event: {
         title: 'Evento: {name}',
         ends: 'Termina em {time}',
-        hint: 'Cartas Evento nos pacotes e objetivos próprios. Complete todos e ganhe o enfeite do Perfil.',
+        hint: 'Cartas Evento nos pacotes e objetivos próprios. Complete todos: enfeite do Perfil e um Pick de Evento.',
         ornament: 'Enfeite ganho',
     },
     pass: {
@@ -301,7 +301,7 @@ export const ultimate = {
         passCap: 'Teto do dia no passe',
         marks: 'Marco {n} do passe|Marcos {n} do passe',
         badge: '{badge} + Pick do líder',
-        ornament: 'Enfeite do evento: {name}',
+        ornament: 'Enfeite do evento: {name} + Pick de Evento',
     },
     shop: {
         title: 'Loja',

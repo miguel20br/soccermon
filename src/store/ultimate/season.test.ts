@@ -353,6 +353,10 @@ describe('evento de Natal (1º evento da T1, desligado por data)', () => {
         for (let i = 0; i < goal && !u.legacy.ornaments.length; i++) u = play(u, inNatal + i * 1000, [5, 0]);
         expect(NATAL.objectives.every((o) => u.objectives.done.includes(o.id))).toBe(true);
         expect(u.legacy.ornaments).toEqual(['natal-2026']);
+        // o enfeite vem com o Pick de Evento (Resgatar → Meus pacotes), ligado só pela data do evento
+        const ev = redeem(u).picks.find((p) => p.from === 'event');
+        expect(ev).toMatchObject({ uid: 'event-natal-2026', event: 'natal-2026', n: 3 });
+        expect(u.last?.ornament).toBe('natal-2026');
         // acabou o evento: os objetivos dele somem, o enfeite fica (e sobrevive à virada da temporada)
         expect(objectivesAt(u.objectives, NATAL.end).done.some((id) => id.startsWith('e-'))).toBe(false);
         expect(rollSeason(u, T2.start).u.legacy.ornaments).toEqual(['natal-2026']);
