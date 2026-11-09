@@ -20,6 +20,14 @@ describe('JOGAR e placas de modos do Estádio', () => {
         expect(playModes({ ...base, inProgress: true, challenge: 'ABC123' }).main).toBe('continue');
     });
 
+    it('Copa do Dia nova vira o JOGAR só para quem já fez copa, sem copa nem desafio em andamento', () => {
+        const base = { challenge: null, firstVisit: false, inProgress: false };
+        expect(playModes({ ...base, dailyNew: true }).main).toBe('daily');
+        expect(playModes({ ...base, dailyNew: false }).main).toBe('quick'); // nunca jogou copa, ou já fez a de hoje
+        expect(playModes({ ...base, dailyNew: true, inProgress: true }).main).toBe('continue');
+        expect(playModes({ ...base, dailyNew: true, challenge: 'ABC123' }).main).toBe('challenge');
+    });
+
     it('a lista tem só os modos do Estádio (Continuar só com copa em andamento); Rota e Duelo moram nas abas', () => {
         expect(playModes({ inProgress: false, challenge: null, firstVisit: false }).sheet).toEqual(['quick', 'daily']);
         expect(playModes({ inProgress: true, challenge: null, firstVisit: false }).sheet).toEqual([

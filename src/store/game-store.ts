@@ -119,6 +119,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
+import { watchSave } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
 import {
@@ -613,7 +614,7 @@ export const isCupInProgress = (run: RunState | null | undefined): run is RunSta
 
 const idbStorage: StateStorage = {
     getItem: async (name) => (await get(name)) ?? null,
-    setItem: (name, value) => set(name, value),
+    setItem: (name, value) => watchSave(set(name, value)),
     removeItem: (name) => del(name),
 };
 

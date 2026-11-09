@@ -17,11 +17,17 @@ export interface Mode {
  * Os modos do Estádio. O padrão é o mais provável: a copa em andamento, o desafio do link ou a Copa Relâmpago. Na 1ª
  * visita não há seletor: o JOGAR é o único botão (o funil não ganha toque).
  */
-export function playModes(s: { inProgress: boolean; challenge: string | null; firstVisit: boolean }): {
+export function playModes(s: {
+    inProgress: boolean;
+    challenge: string | null;
+    firstVisit: boolean;
+    /** Já terminou alguma copa e ainda não jogou a Copa do Dia de hoje: ela vira o JOGAR. */
+    dailyNew?: boolean;
+}): {
     main: ModeId;
     sheet: ModeId[];
 } {
-    const main: ModeId = s.inProgress ? 'continue' : s.challenge ? 'challenge' : 'quick';
+    const main: ModeId = s.inProgress ? 'continue' : s.challenge ? 'challenge' : s.dailyNew ? 'daily' : 'quick';
     if (s.firstVisit && !s.challenge) return { main, sheet: [] };
     const sheet: ModeId[] = [];
     if (s.inProgress) sheet.push('continue');

@@ -31,6 +31,8 @@ export const home = {
     teamName: 'Nome do seu time',
     /** 1ª visita: a Home só com este botão. */
     play: 'Jogar',
+    dailyNew: 'Copa do Dia',
+    dailyNewSub: 'Nova hoje',
     playTag: 'Copa Relâmpago · 4 jogos',
     moreModes: 'Mais modos',
     newCup: 'Nova copa',

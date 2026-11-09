@@ -29,6 +29,8 @@ export const home: typeof pt = {
     resume: 'Continue',
     teamName: 'Your team name',
     play: 'Play',
+    dailyNew: 'Daily Cup',
+    dailyNewSub: 'New today',
     playTag: 'Lightning Cup · 4 matches',
     moreModes: 'More modes',
     newCup: 'New cup',

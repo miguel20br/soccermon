@@ -3,6 +3,7 @@ import type { common as pt } from '../pt/common';
 /** Shared texts. Pokémon terms use the official English names from the games. */
 export const common: typeof pt = {
     ui: {
+        diskFull: 'No space left on this device: your progress is not being saved. Free some space and come back.',
         skip: 'Skip',
         tapToContinue: 'Tap to continue',
         howItWorks: 'How it works',

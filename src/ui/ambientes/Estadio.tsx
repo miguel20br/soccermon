@@ -240,7 +240,7 @@ function useDaily() {
         done,
         played: !!entry,
         label: playing ? t('liga.home.dailyContinue') : entry ? t('liga.home.dailyDone') : t('liga.home.dailyPlay'),
-        go: () => (done ? go('daily') : void begin()),
+        go: () => (done ? go('daily') : void begin('jogar')),
     };
 }
 
@@ -419,10 +419,17 @@ export function Estadio({
         duel: { title: t('duel.title'), sub: t('home.amb.signDuel'), icon: 'friends', go: () => go('duel') },
     };
     const mode = (id: ModeId): Mode => ({ id, ...modes[id] });
-    const plan = playModes({ inProgress, challenge, firstVisit });
+    const cups = useGame((s) => s.records.cups);
+    const dailyNew = cups > 0 && !firstVisit && !daily.played;
+    const plan = playModes({ inProgress, challenge, firstVisit, dailyNew });
     const cur = chosenMode(plan, chosen);
     // sem pílula (1ª visita), o JOGAR diz o modo embaixo: "Jogar · Copa Relâmpago · 4 jogos"
-    const main = !plan.sheet.length && cur === 'quick' ? { ...mode('quick'), sub: t('home.playTag') } : mode(cur);
+    const main =
+        dailyNew && cur === 'daily'
+            ? { ...mode('daily'), title: '', verb: t('home.dailyNew'), sub: t('home.dailyNewSub') }
+            : !plan.sheet.length && cur === 'quick'
+              ? { ...mode('quick'), sub: t('home.playTag') }
+              : mode(cur);
     const look = useLook(active);
     const vars = clubVars(club);
 
