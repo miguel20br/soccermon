@@ -7,7 +7,6 @@ import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
 import { Action, SNAP_STRIDE } from '../engine/state';
-import { dir8 } from '../engine/vec';
 
 /**
  * Leitura da partida num tick a partir do resultado já simulado (eventos + snapshots): quem está em cada vaga,
@@ -326,26 +325,30 @@ export function pressureUntil(m: MatchResult, tick: number, bins = PRESSURE_BINS
     return out;
 }
 
-/** Lado x de cada direção das sheets PMD (0 baixo, 1 baixo-direita, 2 direita…): +1 direita, -1 esquerda. */
-const FACING_X = [0, 1, 1, 1, 0, -1, -1, -1];
+/**
+ * Direções em que o goleiro pode aparecer (sheets PMD: 1 baixo-direita, 2 direita, 6 esquerda, 7 baixo-esquerda): de
+ * frente pro campo ou na diagonal de baixo. Virado pro próprio gol ele ficava de costas pro chute, e nas diagonais de
+ * cima (e de cima) a câmera vê as costas dele. `front`: +1 quando o gol dele é o da esquerda (o campo à direita).
+ */
+const keeperRows = (front: 1 | -1) => (front > 0 ? { field: 2, low: 1 } : { field: 6, low: 7 });
 
 /**
- * O goleiro na área nunca fica virado pro próprio gol. O motor vira o sprite pra onde ele anda e, no recuo pra linha
- * quando o rival chuta, ele corria de costas pro chute. Na tela ele olha pra bola, sempre do lado do campo (de frente
- * ou na diagonal), e anda de ré.
- * `front`: +1 quando o gol dele é o da esquerda (o campo fica à direita). `toBall`: da posição dele até a bola.
+ * O goleiro na área nunca aparece de costas. O motor vira o sprite pra onde ele anda e, no recuo pra linha quando o
+ * rival chuta, ele corria de costas pro chute. Na tela ele olha pro campo, na diagonal de baixo quando a bola está mais
+ * pra baixo, e anda de ré. `toBall`: da posição dele até a bola.
  */
 export function keeperFacing(facing: number, front: 1 | -1, toBall: { x: number; y: number }): number {
-    if (FACING_X[facing] * front > 0) return facing;
-    // de cima ou de baixo também não: de cima ele mostra as costas. Pro lado do campo, no máximo na diagonal
-    const x = Math.max(Math.abs(toBall.x), Math.abs(toBall.y) * 0.5, 1e-3);
-    return dir8({ x: x * front, y: toBall.y });
+    const { field, low } = keeperRows(front);
+    if (facing === field || facing === low) return facing;
+    // tan(22,5°): a partir daí a bola está na diagonal de baixo
+    return toBall.y > Math.abs(toBall.x) * 0.41 ? low : field;
 }
 
-/** Gol com o goleiro mergulhando (o sorteio da defesa falhou): `tick` é o começo do mergulho, `goal` o do gol. */
+/** Gol com o goleiro mergulhando (o sorteio da defesa falhou): o mergulho vai de `tick` a `end`, o gol é em `goal`. */
 export interface SoldDive {
     gk: number;
     tick: number;
+    end: number;
     goal: number;
 }
 
@@ -360,6 +363,7 @@ export function soldDives(snaps: MatchSnapshot[], events: readonly MatchEvent[],
         const from = (1 - e.team) * teamSize;
         let gk = -1;
         let tick = -1;
+        let end = -1;
         // de trás pra frente a partir do gol: o mergulho de até 0,8 s antes, e onde ele começou
         for (let n = snaps.length - 1; n >= 0; n--) {
             const s = snaps[n];
@@ -368,24 +372,35 @@ export function soldDives(snaps: MatchSnapshot[], events: readonly MatchEvent[],
             const diving = (i: number) => s.p[i * SNAP_STRIDE + 3] === Action.Dive;
             if (gk < 0) {
                 for (let i = from; i < from + teamSize; i++) if (diving(i)) gk = i;
-                if (gk >= 0) tick = s.tick;
+                if (gk >= 0) tick = end = s.tick;
             } else if (diving(gk)) tick = s.tick;
             else break;
         }
-        if (gk >= 0) out.push({ gk, tick, goal: e.tick });
+        if (gk < 0) continue;
+        // e até onde ele vai (o motor segura o Dive por 0,5 s, às vezes além do gol)
+        for (const s of snaps) {
+            if (s.tick <= tick) continue;
+            if (s.p[gk * SNAP_STRIDE + 3] !== Action.Dive) break;
+            end = s.tick;
+        }
+        out.push({ gk, tick, end, goal: e.tick });
     }
     return out;
 }
 
 /**
- * Quanto o sprite do goleiro sobe (negativo) ou desce no mergulho vendido pra bola passar rente, fora do corpo.
- * `path`: centro da bola em cada tick do lance, relativo ao pé dele (px de tela). O corpo vai do pé (0) até `body.h`
- * acima; `body.w` é a largura. `r`: raio da bola com folga. Devolve o menor desvio que limpa o caminho todo.
+ * Pose do mergulho vendido num tick: o bote de frente pro campo, na diagonal de baixo quando a bola passa abaixo dele
+ * na tela (`side` > 0), do contato até o fim do mergulho (ou logo depois do gol). Ele não sai do lugar (desvio 0): o
+ * goleiro saindo pela lateral parecia abrir o gol (Miguel, 09/11/2026). A bola pode passar por cima do sprite: vista de
+ * cima, ela passa do lado.
  */
-export function soldDiveShift(path: { x: number; y: number }[], body: { w: number; h: number }, r = 8): number {
-    const near = path.filter((p) => Math.abs(p.x) < body.w / 2 + r);
-    if (near.every((p) => p.y > r || p.y < -body.h - r)) return 0;
-    const up = Math.min(...near.map((p) => p.y)) - r;
-    const down = Math.max(...near.map((p) => p.y)) + r + body.h;
-    return Math.abs(up) <= Math.abs(down) ? up : down;
+export function soldDivePose(
+    d: SoldDive,
+    tick: number,
+    front: 1 | -1,
+    side: number,
+): { x: number; y: number; facing: number } | null {
+    if (tick < d.tick || tick > Math.max(d.end, d.goal + 2)) return null;
+    const { field, low } = keeperRows(front);
+    return { x: 0, y: 0, facing: side >= 0 ? low : field };
 }

@@ -40,7 +40,7 @@ import {
     maxCueNear,
     maxHitAhead,
     type SoldDive,
-    soldDiveShift,
+    soldDivePose,
     soldDives,
 } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
@@ -371,13 +371,6 @@ const DIVE_LEAD = 6;
 const DIVE_TAIL = 10;
 /** Alcance máximo do mergulho na tela (px). */
 const DIVE_MAX = 1.8 * PPM;
-/**
- * Mergulho vendido (gol com o goleiro mergulhando): o corpo sai da linha da bola até 3 ticks antes do contato, as mãos
- * chegam no contato (atrasadas) e, passado o gol, ele volta andando pra posição real.
- */
-const SOLD_LEAD = 8;
-const SOLD_SET = 3;
-const SOLD_TAIL = 16;
 
 /** Evolução que a tela React mostra grande no meio da tela. */
 export interface MatchEvolution {
@@ -799,8 +792,8 @@ export class MatchScene extends Phaser.Scene {
     private lastTrailAt = 0;
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
-    /** Mergulhos vendidos; `y` (desvio do sprite) e `facing` saem na 1ª vez que aparecem. */
-    private sold: (SoldDive & { y: number | null; facing: number })[] = [];
+    /** Mergulhos vendidos; `side` (bola abaixo/acima dele na tela) sai na 1ª vez que aparece. */
+    private sold: (SoldDive & { side: number | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
     /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
@@ -1037,11 +1030,7 @@ export class MatchScene extends Phaser.Scene {
         this.dives = this.matchEvents.flatMap((e) =>
             e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null }] : [],
         );
-        this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({
-            ...d,
-            y: null,
-            facing: 0,
-        }));
+        this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({ ...d, side: null }));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
         this.agencySpans();
@@ -2044,9 +2033,9 @@ export class MatchScene extends Phaser.Scene {
             const act = view.act;
             const dive = act ? null : this.diveOffset(i, px);
             if (dive) diveOf.set(i, dive);
-            view.sprite
-                .setPosition(px.x + view.lunge.x + (dive?.x ?? 0), px.y + view.lunge.y + (dive?.y ?? 0))
-                .setDepth(base);
+            // onde o corpo está na tela (bote, mergulho): a sombra, o anel e a setinha vão junto
+            const body = { x: px.x + view.lunge.x + (dive?.x ?? 0), y: px.y + view.lunge.y + (dive?.y ?? 0) };
+            view.sprite.setPosition(body.x, body.y).setDepth(base);
             // entrando da lateral (substituição): anda até a posição; antes disso fica escondido
             let entering: number | null = null;
             if (view.enter) {
@@ -2064,14 +2053,14 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
             if (!view.enter && view.sprite.alpha < 1) view.sprite.setAlpha(1);
-            view.shadow.setPosition(px.x, px.y + 1).setDepth(base - 2);
-            view.ring.setPosition(px.x, px.y + 1).setDepth(base - 1);
+            view.shadow.setPosition(body.x, body.y + 1).setDepth(base - 2);
+            view.ring.setPosition(body.x, body.y + 1).setDepth(base - 1);
             // o close do N3 de linha: o nome e a setinha do capitão ficam atrás da cena (a faixa já diz quem é)
             const closeUp = this.n3?.cap === view && !this.n3.home;
             const labelDepth = focused && !closeUp ? FOCUS_DEPTH + 60 : 5000;
             view.label.setPosition(px.x, px.y + 6).setDepth(labelDepth);
             view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(labelDepth + 1);
-            this.placeArrow(view, px.x, px.y, labelDepth - 1);
+            this.placeArrow(view, body.x, body.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
             this.applyTraitPose(view, near.p[o + 5]);
@@ -2085,7 +2074,7 @@ export class MatchScene extends Phaser.Scene {
                 view.skin,
                 act
                     ? act.anim
-                    : dive?.reach
+                    : dive
                       ? 'Attack'
                       : posing
                         ? since < POSE_CHARGE_MS
@@ -2093,7 +2082,7 @@ export class MatchScene extends Phaser.Scene {
                             : 'Pose'
                         : animForAction(action),
             );
-            const key = `${view.skin}/${anim}/${act ? act.facing : dive?.reach ? dive.facing : posing ? 0 : facing}`;
+            const key = `${view.skin}/${anim}/${act ? act.facing : dive ? dive.facing : posing ? 0 : facing}`;
             if (entering !== null) {
                 const walk = resolveAnim(view.skin, 'Walk');
                 const wkey = `${view.skin}/${walk}/${entering}`;
@@ -2108,7 +2097,7 @@ export class MatchScene extends Phaser.Scene {
                 view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
-            if (dive?.reach && entering === null && !view.evolving) this.holdBody(view);
+            if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);
@@ -2231,10 +2220,7 @@ export class MatchScene extends Phaser.Scene {
      * Mergulho do goleiro numa defesa: o sprite sai do lugar e chega na bola exatamente no contato,
      * em vez de a bola "passar" por ele e a defesa aparecer do nada.
      */
-    private diveOffset(
-        i: number,
-        px: { x: number; y: number },
-    ): { x: number; y: number; facing: number; reach: boolean } | null {
+    private diveOffset(i: number, px: { x: number; y: number }): { x: number; y: number; facing: number } | null {
         for (const d of this.dives) {
             if (d.gk !== i) continue;
             const dt = this.playTick - d.tick;
@@ -2249,44 +2235,15 @@ export class MatchScene extends Phaser.Scene {
                 ox *= DIVE_MAX / l;
                 oy *= DIVE_MAX / l;
             }
-            return { x: ox * k, y: oy * k, facing: dir8({ x: ox, y: oy }, 2), reach: true };
+            return { x: ox * k, y: oy * k, facing: dir8({ x: ox, y: oy }, 2) };
         }
         for (const d of this.sold) {
             if (d.gk !== i) continue;
-            const dt = this.playTick - d.tick;
-            const after = this.playTick - d.goal - 2;
-            if (dt < -SOLD_LEAD || after > SOLD_TAIL) continue;
-            if (d.y === null) this.soldShift(d);
-            const k =
-                dt < -SOLD_SET
-                    ? 1 - ((dt + SOLD_SET) / (SOLD_LEAD - SOLD_SET)) ** 2
-                    : after > 0
-                      ? 1 - (after / SOLD_TAIL) ** 2
-                      : 1;
-            return { x: 0, y: (d.y ?? 0) * k, facing: d.facing, reach: dt >= 0 && after <= 0 };
+            d.side ??= this.ballPxAt(d.goal).y - this.playerPxAt(d.gk, d.tick).y;
+            const pose = soldDivePose(d, this.playTick, this.players[i].team === 0 ? 1 : -1, d.side);
+            if (pose) return pose;
         }
         return null;
-    }
-
-    /**
-     * Mergulho vendido: o sprite sai da linha da bola o bastante pra ela passar rente às mãos, não pela barriga (o
-     * corpo medido no sprite: Snorlax e Onix desviam mais), e as mãos vão pro lado da bola, de frente pro campo.
-     */
-    private soldShift(d: SoldDive & { y: number | null; facing: number }) {
-        const sp = this.players[d.gk].sprite;
-        const box = spriteBox(sp);
-        const body = { w: box.w, h: sp.y - box.y };
-        const path: { x: number; y: number }[] = [];
-        for (let t = d.tick - SOLD_SET; t <= d.goal + 2; t++) {
-            const b = this.ballPxAt(t);
-            const f = this.playerPxAt(d.gk, t);
-            // a bola é desenhada 4 px acima do ponto dela
-            path.push({ x: b.x - f.x, y: b.y - 4 - f.y });
-        }
-        d.y = soldDiveShift(path, body);
-        const front = this.players[d.gk].team === 0 ? 1 : -1;
-        const ballY = path[SOLD_SET]?.y ?? 0;
-        d.facing = dir8({ x: front, y: d.y < 0 ? 1 : d.y > 0 ? -1 : Math.sign(ballY) }, front > 0 ? 2 : 6);
     }
 
     /** Giro proporcional ao que a bola andou de fato + rastro para mostrar a direção. */
