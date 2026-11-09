@@ -278,7 +278,7 @@ function SeenBody({ sp, dex, moves, onNav }: { sp: Species; dex: Dex; moves: Mov
             {stages.length > 1 && (
                 <section className="pf-block">
                     <h3>{t('profile.sheet.evolution')}</h3>
-                    <EvoChain id={sp.id} dex={dex} onPick={onNav} />
+                    <EvoChain id={sp.id} dex={dex} onPick={onNav} pickUnseen />
                     <p className="pf-note">
                         {sp.evolvesTo.some((e) => SPECIES_BY_ID.has(e.id))
                             ? t('profile.sheet.evolvesMidMatch')

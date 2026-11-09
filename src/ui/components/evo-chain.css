@@ -46,6 +46,29 @@
     height: 44px;
     object-fit: contain;
 }
+/* mini carta: nota e posição em cima, com a cor do metal pela nota (bronze/prata/ouro) */
+.evo-chain-ovr {
+    justify-self: stretch;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 3px;
+    line-height: 1;
+    color: var(--metal);
+}
+.evo-chain-ovr b {
+    font-size: 15px;
+}
+.evo-chain-ovr small {
+    font-size: 9px;
+    letter-spacing: 0.02em;
+}
+.evo-chain-mon:has(.evo-chain-ovr) {
+    border-color: color-mix(in srgb, var(--line) 55%, var(--metal, var(--line)));
+}
+.evo-chain-mon.current:has(.evo-chain-ovr) {
+    border-color: var(--yellow);
+}
 .evo-chain-name {
     max-width: 100%;
     overflow: hidden;

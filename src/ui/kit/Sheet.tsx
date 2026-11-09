@@ -33,7 +33,12 @@ export function Sheet({
         if (!open) return;
         // o foco entra na folha: o 1º botão marcado com data-autofocus, senão a própria folha
         (box.current?.querySelector<HTMLElement>('[data-autofocus]') ?? box.current)?.focus();
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+        // Esc fecha só a de cima (ficha empilhada na carta, CardModal): a de baixo continua aberta
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape') return;
+            const open = document.querySelectorAll('.k-sheet-back:not(.is-leaving) > .k-sheet');
+            if (open[open.length - 1] === box.current) onClose();
+        };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [open, onClose]);

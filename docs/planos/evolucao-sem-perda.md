@@ -5,7 +5,7 @@ description: Auditoria dos 72 pares de evolução (quem fica pior que a pré-evo
 # Evolução sem perda: auditoria e regras propostas (09/11/2026)
 
 Pedido do Miguel: "O Magikarp tem mais velocidade que a evolução? Isso não deveria acontecer. Confira se isso não
-acontece com nenhum outro Pokémon." **Nada foi aplicado**: é equilíbrio, a decisão é dele.
+acontece com nenhum outro Pokémon." **Decidido em 09/11: B + C (versão estreita), aplicado no motor 28** (seção no fim).
 
 Script: `npx tsx scripts/balance/evo-audit.ts` (atributos de `computeAttributes`, caminho de `evolveInstance`, bônus de
 `attributeModifiers`; nível 50). Rodar de novo depois de aplicar uma regra mostra o que sobrou.
@@ -94,3 +94,48 @@ resolve o Magikarp.
 1. Regra: A, B, C, B + C (recomendada) ou deixar como está (4 dos 6 são fiéis aos jogos).
 2. Na C: manter qualquer habilidade perdida, ou só as que mexem em atributo?
 3. Depois do ok: aplicar, `ENGINE_VERSION`, Edge Function `liga`, calibrate n=200 antes/depois e n=400 no final.
+
+## Decidido com o Miguel (09/11)
+
+**B + C (versão estreita), aplicado no motor 28** (branch `evo-selo`).
+
+- **B:** a carta guarda as espécies de antes em `evolvedFrom` (campo novo com padrão; carta do pacote e saves antigos
+  não têm, sem migração). `instanceBase` (src/engine/instance.ts) dá o máximo de cada atributo entre a forma de agora e
+  as de antes; carta, painel, escalação e motor usam ele (`viewInstance`, `attributeModifiers`, `createPlayer`). A
+  posição principal sai dos atributos já com o máximo. A tela de evolução também não mostra mais ▼.
+- **C estreita:** `abilityAfterEvolution` (src/engine/evolution.ts) mantém a habilidade quando a forma nova não tem ela
+  e ela mexe em atributo (`mods` em `ABILITY_EFFECTS`: Swift Swim, Run Away, Hustle, Levitate, Anticipation, Compound
+  Eyes...). A que não mexe em atributo troca como antes (Eevee Adaptability → Vaporeon Water Absorb).
+- Duelo e fichário levam `evolvedFrom` na receita; o validador só aceita forma de antes da própria linha (no máximo
+  uma por evolução) e a habilidade herdada só com ela.
+- Teste: `src/engine/evolution.test.ts` ("evolução sem perda"): os 6 pares com toda habilidade, na carta e em campo, e
+  os 72 pares na carta. Falha sem a regra (4 testes).
+
+### Os 6 pares, antes ⇒ depois (carta evoluída, nível 50, habilidade da pré)
+
+| Par | Habilidade | VEL na carta | VEL em campo | DRI na carta | Nota na vaga em que evoluiu | Principal |
+|---|---|---|---|---|---|---|
+| Magikarp → Gyarados | Swift Swim (fica) | 73 → 72 ⇒ **73 → 75** | 79 → 72 ⇒ **79 → 81** | 59 → 64 | ALA 74 | PIV 84 |
+| Poliwhirl → Poliwrath | Swift Swim | 82 → 66 ⇒ **82 → 84** | 89 → 71 ⇒ **89 → 91** | 72 → 66 ⇒ **72 → 74** | ALA 73 ⇒ 78 | GOL 93 |
+| Poliwag → Poliwhirl | Swift Swim | 86 → 84 ⇒ **86 → 88** | 93 → 91 ⇒ **93 → 95** | 71 → 74 | ALA 69 ⇒ 70 | ALA 70 |
+| Caterpie → Metapod | Run Away (fica) | 44 → 31 ⇒ **44 → 46** | 47 → 31 ⇒ **47 → 49** | 40 → 32 ⇒ **40 → 42** | ALA 32 ⇒ 39 | GOL 40 ⇒ ALA 39 |
+| Weedle → Kakuna | Run Away (fica) | 48 → 34 ⇒ **48 → 50** | 51 → 34 ⇒ **51 → 53** | 43 → 34 ⇒ **43 → 45** | ALA 32 ⇒ 40 | FIX 36 ⇒ ALA 40 |
+| Metapod → Butterfree | Shed Skin → Compound Eyes | 29 → 69 | 29 → 69 | 30 → 70 | GOL 58 | ALA 69 (DES 42 → 43 ⇒ 42 → 44) |
+
+`npx tsx scripts/balance/evo-audit.ts` depois da regra: carta evoluída pior em algum atributo **0 de 72** (era 6),
+com habilidade **0** casos, vagas em que a nota cai **0** (eram 2). A espécie pura (carta do pacote) continua com as 6
+diferenças, de propósito.
+
+### Calibrate (n = 200, mesma semente)
+
+| Métrica | Motor 27 | Motor 28 |
+|---|---|---|
+| Gols/jogo (meta 5–7) | 7,59 | 7,58 |
+| Empates no tempo normal | 15,5% | 15,0% |
+| Goleadas (6+) | 5,0% | 5,0% |
+| Mais forte (Δ≥3) vence (meta 60–65%) | 65,7% | 65,7% |
+| Evoluções/jogo | 0,57 | 0,56 |
+| Vitórias por tática (contra/equil./def./ofens.) | 45/51/46/59% | 45/52/47/57% |
+
+Dentro do ruído, como esperado: só 6 pares e as habilidades que mexem em atributo mudam. n = 400 fica pro número
+final do lançamento.
