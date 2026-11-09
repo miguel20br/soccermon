@@ -32,13 +32,20 @@ import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } fr
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
+    type FacingHold,
+    type GoalReaction,
+    goalReactionAt,
+    goalReactions,
     halftimeEnd,
+    holdFacing,
     keeperFacing,
+    keeperRows,
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
     maxCertain,
     maxCueNear,
     maxHitAhead,
+    SOLD_LEAN,
     type SoldDive,
     soldDivePose,
     soldDives,
@@ -620,6 +627,19 @@ interface PlayerView {
     stSpan: { code: number; from: number; to: number } | null;
     /** Palavra de reação na tela agora (uma por vez; a de mais prioridade vence). */
     word: { obj: Phaser.GameObjects.Text; rank: number; at: number; text: string } | null;
+    /** Inclinação do corpo (rad) que a cena pede (mergulho do goleiro); o tombo passa por cima. */
+    tilt: number;
+    /** Esticado no mergulho: volta ao tamanho normal quando acaba. */
+    stretched: boolean;
+    /** Goleiro na área: a direção mostrada e quando ela trocou (histerese, `holdFacing`). */
+    faceHold: FacingHold | null;
+}
+
+/** Corpo inclinado (rad) e esticado (escala em x e y) num mergulho ou reação. */
+interface Lean {
+    tilt: number;
+    sx: number;
+    sy: number;
 }
 
 /** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
@@ -793,7 +813,9 @@ export class MatchScene extends Phaser.Scene {
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
     /** Mergulhos vendidos; `side` (bola abaixo/acima dele na tela) sai na 1ª vez que aparece. */
-    private sold: (SoldDive & { side: number | null })[] = [];
+    private sold: (SoldDive & { toBall: { x: number; y: number } | null; dusted: boolean })[] = [];
+    /** Goleiro cabisbaixo depois do gol sofrido. */
+    private reacts: GoalReaction[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
     /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
@@ -1030,7 +1052,12 @@ export class MatchScene extends Phaser.Scene {
         this.dives = this.matchEvents.flatMap((e) =>
             e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null }] : [],
         );
-        this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({ ...d, side: null }));
+        this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({
+            ...d,
+            toBall: null,
+            dusted: false,
+        }));
+        this.reacts = goalReactions(this.matchEvents, this.sold, (team, tick) => this.keeperAt(team, tick));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
         this.agencySpans();
@@ -1425,6 +1452,9 @@ export class MatchScene extends Phaser.Scene {
             down: null,
             stSpan: null,
             word: null,
+            tilt: 0,
+            stretched: false,
+            faceHold: null,
         };
         this.refreshTint(view);
         // tocar no Pokémon abre o painel dele (src/ui/components/PlayerInspect.tsx) e pausa a partida
@@ -2020,8 +2050,15 @@ export class MatchScene extends Phaser.Scene {
             // goleiro na área: nunca virado pro próprio gol (no recuo pra linha ele anda de ré, olhando a bola)
             const front = view.team === 0 ? 1 : -1;
             const L = FUTSAL_5.pitch.length;
-            if ((front > 0 ? x : L - x) < 6 && this.isKeeper(i))
-                facing = keeperFacing(facing, front, { x: near.bx - x, y: near.by - y });
+            if ((front > 0 ? x : L - x) < 6 && this.isKeeper(i)) {
+                // e sem tremer entre duas direções: uma troca a cada 150 ms no máximo
+                view.faceHold = holdFacing(
+                    view.faceHold,
+                    keeperFacing(facing, front, { x: near.bx - x, y: near.by - y }),
+                    this.time.now,
+                );
+                facing = view.faceHold.facing;
+            } else view.faceHold = null;
             const px = toPx(x, y);
             px.x += view.shift.x;
             px.y += view.shift.y;
@@ -2033,6 +2070,8 @@ export class MatchScene extends Phaser.Scene {
             const act = view.act;
             const dive = act ? null : this.diveOffset(i, px);
             if (dive) diveOf.set(i, dive);
+            // gol sofrido: o goleiro fica cabisbaixo um instante (Hurt), de frente pro campo
+            const react = act || dive ? null : this.goalReaction(i);
             // onde o corpo está na tela (bote, mergulho): a sombra, o anel e a setinha vão junto
             const body = { x: px.x + view.lunge.x + (dive?.x ?? 0), y: px.y + view.lunge.y + (dive?.y ?? 0) };
             view.sprite.setPosition(body.x, body.y).setDepth(base);
@@ -2068,7 +2107,7 @@ export class MatchScene extends Phaser.Scene {
             // pose do capitão: só parado ou andando, sem a bola (o lance vence e a pose acaba)
             const since = view.pose ? this.time.now - view.pose : -1;
             const calm = (action === Action.Idle || action === Action.Run) && a.owner !== i && b.owner !== i;
-            if (since >= POSE_MS || (since >= 0 && !calm) || dive) view.pose = 0;
+            if (since >= POSE_MS || (since >= 0 && !calm) || dive || react !== null) view.pose = 0;
             const posing = view.pose > 0 && entering === null;
             const anim = resolveAnim(
                 view.skin,
@@ -2076,13 +2115,24 @@ export class MatchScene extends Phaser.Scene {
                     ? act.anim
                     : dive
                       ? 'Attack'
-                      : posing
-                        ? since < POSE_CHARGE_MS
-                            ? 'Charge'
-                            : 'Pose'
-                        : animForAction(action),
+                      : react !== null
+                        ? 'Hurt'
+                        : posing
+                          ? since < POSE_CHARGE_MS
+                              ? 'Charge'
+                              : 'Pose'
+                          : animForAction(action),
             );
-            const key = `${view.skin}/${anim}/${act ? act.facing : dive ? dive.facing : posing ? 0 : facing}`;
+            const shown = act
+                ? act.facing
+                : dive
+                  ? dive.facing
+                  : react !== null
+                    ? keeperRows(front).low
+                    : posing
+                      ? 0
+                      : facing;
+            const key = `${view.skin}/${anim}/${shown}`;
             if (entering !== null) {
                 const walk = resolveAnim(view.skin, 'Walk');
                 const wkey = `${view.skin}/${walk}/${entering}`;
@@ -2097,6 +2147,7 @@ export class MatchScene extends Phaser.Scene {
                 view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
+            this.leanBody(view, entering === null ? (dive?.lean ?? this.droop(react)) : null);
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
@@ -2220,7 +2271,10 @@ export class MatchScene extends Phaser.Scene {
      * Mergulho do goleiro numa defesa: o sprite sai do lugar e chega na bola exatamente no contato,
      * em vez de a bola "passar" por ele e a defesa aparecer do nada.
      */
-    private diveOffset(i: number, px: { x: number; y: number }): { x: number; y: number; facing: number } | null {
+    private diveOffset(
+        i: number,
+        px: { x: number; y: number },
+    ): { x: number; y: number; facing: number; lean?: Lean } | null {
         for (const d of this.dives) {
             if (d.gk !== i) continue;
             const dt = this.playTick - d.tick;
@@ -2239,11 +2293,58 @@ export class MatchScene extends Phaser.Scene {
         }
         for (const d of this.sold) {
             if (d.gk !== i) continue;
-            d.side ??= this.ballPxAt(d.goal).y - this.playerPxAt(d.gk, d.tick).y;
-            const pose = soldDivePose(d, this.playTick, this.players[i].team === 0 ? 1 : -1, d.side);
-            if (pose) return pose;
+            if (this.playTick < d.tick) d.dusted = false;
+            if (!d.toBall) {
+                const ball = this.ballPxAt(d.goal);
+                const at = this.playerPxAt(d.gk, d.tick);
+                d.toBall = { x: ball.x - at.x, y: ball.y - at.y };
+            }
+            const reduce = !!this.md.reduceMotion;
+            const pose = soldDivePose(d, this.playTick, this.players[i].team === 0 ? 1 : -1, d.toBall, reduce);
+            if (!pose) continue;
+            // no contato: poeirinha no pé (uma vez; voltando o replay, de novo)
+            if (!d.dusted && !reduce && this.playTick >= d.tick + SOLD_LEAN.rise) {
+                d.dusted = true;
+                dust(this, px.x + pose.x, px.y + pose.y + 1, 5, px.y - 1);
+            }
+            return { ...pose, lean: pose.k > 0 ? pose : undefined };
         }
         return null;
+    }
+
+    /** Reação ao gol sofrido em andamento pro jogador i (0 a 1), ou null. */
+    private goalReaction(i: number): number | null {
+        for (const r of this.reacts) {
+            if (r.gk !== i) continue;
+            const k = goalReactionAt(r, this.playTick);
+            if (k !== null) return k;
+        }
+        return null;
+    }
+
+    /** Cabeça baixa na reação ao gol: amassa um pouco e volta (sem o Reduzir movimento). */
+    private droop(k: number | null): Lean | null {
+        if (k === null || this.md.reduceMotion) return null;
+        const w = Math.sin(Math.PI * k);
+        return { tilt: 0, sx: 1 + 0.04 * w, sy: 1 - 0.07 * w };
+    }
+
+    /** Inclina e estica o corpo (mergulho, reação) ou devolve ao normal; a rotação sai no drawReaction. */
+    private leanBody(view: PlayerView, lean: Lean | null) {
+        const sp = view.sprite;
+        const base = SPRITE_SCALE * (view.flags > 0 && view.flags & FLAG_MINI ? 0.6 : 1);
+        // a cabeça anda no máximo 18 px: o Onix (95 px de altura) inclinado 20° saía da quadra
+        const h = Math.max(1, (sp.originY - headTop(view.skin)) * sp.frame.realHeight * base);
+        const cap = Math.asin(Math.min(1, 18 / h));
+        view.tilt = lean && !view.evolving ? Math.max(-cap, Math.min(cap, lean.tilt)) : 0;
+        if (view.evolving) return;
+        if (lean) {
+            sp.setScale(base * lean.sx, base * lean.sy);
+            view.stretched = true;
+        } else if (view.stretched) {
+            sp.setScale(base);
+            view.stretched = false;
+        }
     }
 
     /** Giro proporcional ao que a bola andou de fato + rastro para mostrar a direção. */
@@ -3420,6 +3521,17 @@ export class MatchScene extends Phaser.Scene {
      * Marcador perto: toques curtos, bola protegida. Parado: no pé. Devolve o múltiplo dos 0,45 m do motor.
      */
     /** Está no gol agora? A mudança de prancheta (evento `lineup`) pode trocar o goleiro; a vaga 0 é sempre o gol. */
+    /** O goleiro do time num tick (a escalação pode ter trocado). */
+    private keeperAt(team: 0 | 1, tick: number): number {
+        const r = this.md.result;
+        let gk = r.roster.findIndex((p) => p.team === team && p.role === 'GK');
+        for (const e of r.events) {
+            if (e.tick > tick) break;
+            if (e.type === 'lineup' && e.team === team) gk = e.idx[0];
+        }
+        return gk;
+    }
+
     private isKeeper(idx: number): boolean {
         const r = this.md.result;
         let gk = r.roster[idx]?.role === 'GK';
@@ -3586,7 +3698,7 @@ export class MatchScene extends Phaser.Scene {
         const head = sp.y - (sp.originY - headTop(view.skin)) * h;
         const d = view.down;
         const t = this.playTick;
-        let rot = 0;
+        let rot = view.tilt;
         if (d && t >= d.from && t < d.to) {
             if (d.tumble) {
                 // cai em 3 ticks, fica no chão e levanta nos 4 últimos
