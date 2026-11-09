@@ -1,0 +1,298 @@
+/* ---------- Notícias: o carrossel do topo das Novidades (components/NewsFeed.tsx, ui/news.ts) ---------- */
+.nf {
+    position: relative;
+    container-type: inline-size;
+    display: grid;
+    gap: 6px;
+    /* a arte: meia largura do cartão, nunca baixa demais nem alta demais (deitado, a folha é baixa) */
+    --art-h: clamp(132px, 50cqi, 230px);
+}
+@media (max-height: 520px) {
+    .nf {
+        --art-h: 120px;
+    }
+}
+.nf-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    border-radius: 10px;
+}
+.nf-track::-webkit-scrollbar {
+    display: none;
+}
+.nf-card {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: var(--panel-2);
+}
+.nf-art {
+    position: relative;
+    /* as cenas têm z-index próprio: ficam presas aqui, embaixo das setas */
+    isolation: isolate;
+    flex: none;
+    height: var(--art-h);
+    overflow: hidden;
+    border-bottom: 3px solid var(--cb-ink);
+}
+.nf-new {
+    position: absolute;
+    z-index: 6;
+    top: 8px;
+    left: 8px;
+    box-shadow: 0 2px 0 var(--cb-ink);
+}
+.nf-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px 12px;
+}
+.patch-notes .nf-title {
+    margin: 0;
+    color: var(--yellow);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-transform: none;
+    text-shadow: var(--k-out-2);
+    --ol: var(--cb-ink);
+}
+.nf-text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+.nf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 6px;
+}
+.nf-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--yellow);
+    font-size: 12px;
+    font-weight: 700;
+}
+.nf-when svg {
+    width: 16px;
+    height: 16px;
+}
+.nf-actions .nf-go {
+    width: auto;
+    min-width: 120px;
+    margin: 0 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.nf-go svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* setas por cima da arte, no meio dela */
+.nf-arrow {
+    position: absolute;
+    z-index: 2;
+    top: calc(var(--art-h) / 2 + 3px);
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--panel) 82%, transparent);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+        background-color 200ms var(--ease-out),
+        scale 200ms var(--ease-out);
+}
+.nf-arrow.prev {
+    left: 8px;
+}
+.nf-arrow.next {
+    right: 8px;
+}
+.nf-arrow:hover,
+.nf-arrow:focus-visible {
+    background: var(--panel-2);
+    color: var(--yellow);
+}
+.nf-arrow:active {
+    scale: 0.92;
+}
+.nf-arrow svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* pontinhos: o da vez fica dourado e comprido */
+.nf-dots {
+    display: flex;
+    justify-content: center;
+}
+.nf-dots button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.nf-dots button::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    transition:
+        width 250ms var(--ease-out),
+        background-color 250ms var(--ease-out);
+}
+.nf-dots button.on::before {
+    width: 20px;
+    background: var(--yellow);
+}
+
+.patch-notes h3.nf-versions {
+    margin: 6px 0 0;
+}
+
+/* a cena do Estádio num cartão: torcida baixa e pixel de celular em qualquer tela (a quadra fica com o espaço) */
+.nf .mm-sc-atual {
+    --px: 2px;
+    --stand-h: calc(var(--px) * 26);
+}
+@media (max-height: 520px) {
+    .nf .mm-sc-atual {
+        --stand-h: calc(var(--px) * 16);
+    }
+}
+
+/* ---------- as duas artes montadas aqui (as outras são as cenas do menu de modos) ---------- */
+.nf-max,
+.nf-bench {
+    --px: 2px;
+}
+.nf-court {
+    top: 46%;
+}
+.nf-max {
+    background: radial-gradient(circle at 50% 62%, #c8402e 0%, #6a1626 50%, #250814 100%);
+}
+.nf-max .mm-rays {
+    left: 50%;
+    top: 62%;
+    background: repeating-conic-gradient(rgb(255 203 5 / 22%) 0 6deg, transparent 6deg 18deg);
+    /* câmera lenta: os raios giram devagar */
+    animation-duration: 60s;
+}
+.nf-max .mm-stage,
+.nf-bench .mm-stage {
+    z-index: 4;
+}
+.nf-ball {
+    position: absolute;
+    left: 66%;
+    top: 58%;
+    width: calc(var(--px) * 7);
+    height: calc(var(--px) * 7);
+    animation: nf-float 4s var(--ease-out) infinite alternate;
+}
+@keyframes nf-float {
+    to {
+        translate: calc(var(--px) * 6) calc(var(--px) * -4);
+        rotate: 90deg;
+    }
+}
+/* as faixas de cinema da câmera lenta */
+.nf-bar {
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    height: 11%;
+    background: #05060f;
+}
+.nf-bar.top {
+    top: 0;
+}
+.nf-bar.bottom {
+    bottom: 0;
+}
+.nf-bench {
+    background: linear-gradient(180deg, #070b1e 0%, #111a44 55%, #1f2b62 100%);
+}
+.nf-plank {
+    position: absolute;
+    left: 9%;
+    right: 9%;
+    top: 58%;
+    height: calc(var(--px) * 5);
+    border-radius: 2px;
+    background: #6b4a2b;
+    box-shadow:
+        0 calc(var(--px) * 2) 0 #3d2a18,
+        0 calc(var(--px) * 3) 0 var(--cb-ink);
+}
+/* a vaga vazia: tracejado piscando devagar onde o próximo reforço vai sentar */
+.nf-slot {
+    position: absolute;
+    left: 66%;
+    top: 66%;
+    width: calc(var(--px) * 20);
+    height: calc(var(--px) * 22);
+    translate: -50% -100%;
+    border: calc(var(--px) * 1.5) dashed var(--yellow);
+    border-radius: 6px;
+    animation: nf-blink 1.6s var(--ease-out) infinite alternate;
+}
+@keyframes nf-blink {
+    from {
+        opacity: 0.35;
+    }
+}
+@media (min-width: 900px) {
+    .nf-max,
+    .nf-bench {
+        --px: 3px;
+    }
+}
+:root[data-reduce-motion="true"] :is(.nf-ball, .nf-slot, .nf-max .mm-rays) {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(.nf-ball, .nf-slot, .nf-max .mm-rays) {
+        animation: none;
+    }
+}

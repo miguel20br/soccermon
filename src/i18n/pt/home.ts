@@ -66,9 +66,17 @@ export const home = {
     doorsAria: 'Seu jogo',
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
+    /** Notícias: o carrossel do topo das Novidades (ui/news.ts). */
+    newsFeed: {
+        aria: 'Notícias',
+        slide: '{i} de {n}',
+        new: 'Nova',
+        play: 'Jogar',
+        prev: 'Notícia anterior',
+        next: 'Próxima notícia',
+        versions: 'Todas as versões',
+    },
     latest: 'Mais recente',
-    /** Novidades: o cartaz da versão nova leva pra lista inteira e pras versões antigas. */
-    newsAll: 'Ver tudo',
     soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
     /** Contagem da Liga no cartãozinho do Vem aí. */
