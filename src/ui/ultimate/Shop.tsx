@@ -72,7 +72,7 @@ export function Shop() {
                         disabled={u.fichas < PICK_FICHAS[m]}
                         onClick={() => buyPick(m) && setBoughtPick(m)}
                     >
-                        {t('ultimate.pick.buyBtn', { metal: metalLabel(m), n: PICK_FICHAS[m] })}
+                        {metalLabel(m)} <small>{t('ultimate.shop.price', { n: PICK_FICHAS[m] })}</small>
                     </button>
                 ))}
             </div>

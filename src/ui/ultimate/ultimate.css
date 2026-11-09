@@ -1682,6 +1682,16 @@
     flex: 1 1 0;
     min-width: 0;
     justify-content: center;
+    /* metal em cima, o preço embaixo (como o seletor do Escolher carta): "Prata · 125 Fichas" não cabia em 390 */
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.15;
+    height: auto;
+    padding-block: 6px;
+}
+.ut-pick-buy > .btn small {
+    font-size: 0.8em;
+    opacity: 0.85;
 }
 .ut-got-line {
     padding: 8px 10px;

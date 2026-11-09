@@ -108,7 +108,6 @@ export const ultimate = {
         rest: 'As outras voltam pro mato.',
         buy: 'Pick com Fichas',
         buyHint: 'Escolha 1 de 3 do metal. Vai pra Meus pacotes.',
-        buyBtn: '{metal} · {n} Fichas',
         bought: 'Pick {metal} guardado em Meus pacotes',
     },
     /** Destaque do Início (carrossel). */

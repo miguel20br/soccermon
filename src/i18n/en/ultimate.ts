@@ -106,7 +106,6 @@ export const ultimate: typeof pt = {
         rest: 'The others go back to the tall grass.',
         buy: 'Pick with Coins',
         buyHint: 'Pick 1 of 3 of that metal. Goes to My Packs.',
-        buyBtn: '{metal} · {n} Coins',
         bought: '{metal} Pick saved in My Packs',
     },
     hl: {
