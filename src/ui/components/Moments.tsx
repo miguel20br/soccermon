@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ENGINE_VERSION } from '../../engine/config';
+import { clubLeader } from '../../engine/cup';
+import type { LeaderId } from '../../engine/rival-coach';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
@@ -39,6 +41,7 @@ export function Moments({
     colors,
     cup = false,
     banners,
+    court,
     onClose,
 }: {
     result: MatchResult;
@@ -48,6 +51,8 @@ export function Moments({
     /** Gol da copa (etiqueta própria no clipe). */
     cup?: boolean;
     banners?: [string | null, string | null];
+    /** Quadra do ginásio do rival, a mesma da partida (sem ela o replay caía na quadra padrão). */
+    court?: LeaderId;
     onClose: () => void;
 }) {
     const { t, d } = useT();
@@ -81,6 +86,7 @@ export function Moments({
             chanceSpeed: 1,
             reduceMotion: reduce,
             banners,
+            court,
             replay: { clips: mode === 'record' ? [clips[recIndex]] : clips.slice(index) },
         };
     }, [run]);
@@ -347,6 +353,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                     colors={colors}
                     cup
                     banners={[bannerText(profile.banner, run.teamName || profile.clubName), null]}
+                    court={clubLeader(opponent.name)}
                     onClose={() => setOpen(null)}
                 />
             )}
@@ -378,6 +385,7 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
                     names={names}
                     colors={colors}
                     banners={[bannerText(profile.banner, run.teamName || profile.clubName), null]}
+                    court={opponent ? clubLeader(opponent.name) : undefined}
                     onClose={() => setOpen(false)}
                 />
             )}
