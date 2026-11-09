@@ -3,6 +3,7 @@ import { type AttrKey, POSITIONS, type Position } from '../../engine/attributes'
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import { editionOf } from '../../engine/specials';
 import { dict, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -131,9 +132,10 @@ export function FutCard({
     const positions = POSITIONS.map((p) => ({ p, ...ratingAt(inst, p) }))
         .filter((x) => view.positions.includes(x.p))
         .sort((a, b) => b.rating - a.rating);
+    const { field } = cardAttributes(inst);
     const best = (Object.keys(ATTR_SHORT) as AttrKey[])
         .filter((k) => k !== 'goalkeeping' || pos === 'GK')
-        .map((k) => ({ k, v: Math.round(view.attributes[k]) }))
+        .map((k) => ({ k, v: field[k] }))
         .sort((a, b) => b.v - a.v)
         .slice(0, 3);
 
