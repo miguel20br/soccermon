@@ -1,6 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EventBus } from '../game/EventBus';
-import { CAM, type CamState, camStep, camTarget, followOffset, HUD_ZOOM_DAMP, readyScene } from './court-follow';
+import {
+    CAM,
+    type CamState,
+    camStep,
+    camTarget,
+    followCourt,
+    followOffset,
+    HUD_ZOOM_DAMP,
+    readyScene,
+} from './court-follow';
 import { hudOn } from './hud-lab';
 
 describe('?lab=hud', () => {
@@ -98,5 +107,59 @@ describe('cena pronta (girar o celular no meio da partida)', () => {
         fns.destroy();
         scene.sys.isActive = () => true;
         expect(readyScene()).toBeNull();
+    });
+});
+
+describe('quadra grande com a cena destruída no meio da partida', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('o laço larga a cena morta em vez de ler a câmera e o canvas dela a cada quadro', () => {
+        let frame: FrameRequestCallback = () => {};
+        vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+            frame = cb;
+            return 1;
+        });
+        vi.stubGlobal('cancelAnimationFrame', () => {});
+        const on: Record<string, () => void> = {};
+        let alive = true;
+        const dead = () => {
+            throw new TypeError("Cannot read properties of null (reading 'style')");
+        };
+        const scene = {
+            sys: { isActive: () => alive, events: { once: (ev: string, fn: () => void) => (on[ev] = fn) } },
+            ballOnScreen: () => ({ x: 400, y: 200 }),
+            camSubject: () => ({ carrier: null, attack: 1 }),
+            focusOnScreen: () => ({ x: 400, y: 200 }),
+            setZoomDamp: () => {},
+            setClipView: () => {},
+            cameras: { main: { zoom: 1 } as { zoom: number } | undefined },
+            scale: { width: 968, refresh: () => {}, updateBounds: () => {} },
+        };
+        const inner = { isConnected: true, style: {}, offsetWidth: 900, offsetHeight: 600 };
+        const listeners: (() => void)[] = [];
+        const box = {
+            clientWidth: 390,
+            clientHeight: 600,
+            classList: { toggle: () => {}, remove: () => {} },
+            querySelector: () => inner,
+            addEventListener: (_: string, fn: () => void) => listeners.push(fn),
+            removeEventListener: () => {},
+        };
+        EventBus.emit('current-scene-ready', scene);
+        // biome-ignore lint/suspicious/noExplicitAny: só o que o laço lê da caixa
+        const stop = followCourt({ current: box as any }, { current: true });
+        for (let i = 0; i < 3; i++) frame(i * 16);
+        // o Phaser destrói o jogo: CameraManager.shutdown põe main = undefined, ScaleManager.destroy põe canvas = null
+        alive = false;
+        scene.cameras.main = undefined;
+        scene.scale.refresh = dead;
+        scene.scale.updateBounds = dead;
+        on.destroy();
+        box.clientHeight = 610; // a barra do navegador mexeu: mede de novo
+        expect(() => {
+            for (let i = 3; i < 60; i++) frame(i * 16);
+            for (const fn of listeners) fn();
+            stop();
+        }).not.toThrow();
     });
 });

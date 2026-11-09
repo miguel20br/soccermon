@@ -330,6 +330,22 @@ const errorText = (e: unknown) =>
         .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
         .slice(0, 160);
 
+/**
+ * Teto de erros por sessão: um laço que repete o erro a cada quadro mandava dezenas de milhares de linhas (69 mil em 3
+ * sessões da 0.9.10). A mesma mensagem vai no máximo `same` vezes, e no total `total`; o resto da sessão fica de fora.
+ */
+export function errorGate(same = 3, total = 30) {
+    const seen = new Map<string, number>();
+    let sent = 0;
+    return (msg: string) => {
+        const n = (seen.get(msg) ?? 0) + 1;
+        seen.set(msg, n);
+        if (n > same || sent >= total) return false;
+        sent++;
+        return true;
+    };
+}
+
 /** Liga as estatísticas (uma vez, no início do app). */
 export function startAnalytics() {
     if (!ENABLED) return;
@@ -365,8 +381,13 @@ export function startAnalytics() {
         // merged = o progresso do aparelho foi junto para a conta; choice = qual copa continuou (se houve escolha)
         if (s.lastLink && s.lastLink !== prev.lastLink && takeLoginPending()) track('login', { ...s.lastLink });
     });
-    window.addEventListener('error', (e) => track('error', { msg: errorText(e.message ?? e.error) }));
-    window.addEventListener('unhandledrejection', (e) => track('error', { msg: errorText(e.reason) }));
+    const gate = errorGate();
+    const report = (e: unknown) => {
+        const msg = errorText(e);
+        if (gate(msg)) track('error', { msg });
+    };
+    window.addEventListener('error', (e) => report(e.message ?? e.error));
+    window.addEventListener('unhandledrejection', (e) => report(e.reason));
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
 }
 

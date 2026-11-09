@@ -171,127 +171,137 @@ const SWAP_MS = 180;
 export function useCourtFollow(on: boolean, wrap: RefObject<HTMLElement | null>, follow = true) {
     const followRef = useRef(follow);
     followRef.current = follow;
-    useEffect(() => {
-        if (!on) return;
-        let scene = readyScene();
-        let cam: CamState | null = null;
-        let x: number | null = null;
-        let mode: boolean | null = null;
-        // velocidade da bola na tela (px/s, suavizada): a câmera vai um pouco à frente, pro lado do ataque
-        let lastBall: number | null = null;
-        let lastT = 0;
-        let vel = 0;
-        // tamanho da caixa em que o canvas foi medido (girar, teclado, barra do navegador: mede de novo)
-        let sizedFor = '';
-        let swapping = false;
-        let raf = 0;
-        let inner: HTMLElement | null = null;
-        // a quadra anda com transform; o Phaser só precisa da posição nova do canvas na hora do toque (medir em todo
-        // quadro forçava um layout por quadro)
-        const onDown = () => scene?.scale.updateBounds();
-        const host = wrap.current;
-        host?.addEventListener('pointerdown', onDown, true);
-        // o Phaser lê o toque no touchstart: no Safari ele pode vir antes do pointerdown
-        host?.addEventListener('touchstart', onDown, { capture: true, passive: true });
-        const onReady = (sc: FollowScene) => {
-            scene = sc;
-            mode = null;
-        };
-        EventBus.on('current-scene-ready', onReady);
-        const tick = () => {
-            raf = requestAnimationFrame(tick);
-            const box = wrap.current;
-            if (!inner?.isConnected) {
-                inner = box?.querySelector<HTMLElement>('.phaser-container') ?? null;
-                sizedFor = '';
-            }
-            if (!scene || !box || !inner || swapping) return;
-            const want = followRef.current;
-            if (mode !== want) {
-                const first = mode === null;
-                mode = want;
-                const el = inner;
-                const apply = () => {
-                    box.classList.toggle('hud-full', !want);
-                    scene?.setZoomDamp(want ? HUD_ZOOM_DAMP : 1);
-                    el.style.transform = '';
-                    sizeCourt(el, null);
-                    sizedFor = '';
-                    cam = null;
-                    x = null;
-                    if (!want) scene?.setClipView(0, scene.scale.width);
-                };
-                if (first) apply();
-                else {
-                    swapping = true;
-                    el.style.opacity = '0';
-                    window.setTimeout(() => {
-                        apply();
-                        window.setTimeout(() => {
-                            el.style.opacity = '';
-                            swapping = false;
-                        }, 60);
-                    }, SWAP_MS);
-                }
-                return;
-            }
-            if (!want) return;
-            const view = box.clientWidth;
-            const size = `${view}x${box.clientHeight}`;
-            if (size !== sizedFor) {
-                sizedFor = size;
-                // a altura que a caixa dá (o canvas sem tamanho próprio enche ela) e a largura pra mostrar viewShare
-                sizeCourt(inner, null);
-                const aspect = inner.offsetWidth / (inner.offsetHeight || 1);
-                sizeCourt(inner, Math.min(inner.offsetHeight, view / CAM.viewShare / aspect));
-                scene.scale.refresh();
-                cam = null;
-            }
-            const full = inner.offsetWidth;
-            if (!full || full <= view) return;
-            const k = full / (scene.scale.width || full);
-            const now = performance.now();
-            const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 0;
-            const ball = scene.ballOnScreen().x * k;
-            if (lastBall !== null && dt > 0) vel += ((ball - lastBall) / dt - vel) * (1 - Math.exp(-dt / 0.12));
-            lastBall = ball;
-            lastT = now;
-            // lance especial (o jogo deu zoom: gol, golpe, defesa, pênalti): vai pra onde a câmera do jogo aponta
-            // (presa na quadra, nem sempre é o meio do canvas); fora disso, quem tem a bola com espaço pro ataque
-            const zoomed = scene.cameras.main.zoom > 1.02;
-            const sub = scene.camSubject();
-            const carrier = sub.carrier ? sub.carrier.x * k : null;
-            // golpe máximo no ar: o gol atacado não sai da janela, e a mola rápida chega nele durante a carga do chute
-            const keep = sub.keep ? { x0: sub.keep.x0 * k, x1: sub.keep.x1 * k } : null;
-            const target = keepTarget(
-                zoomed ? scene.focusOnScreen().x * k : camTarget(ball, carrier, sub.attack, vel, view),
-                keep,
-                view,
-            );
-            const smooth = keep ? CAM.keepSmooth : CAM.smooth;
-            cam = cam
-                ? camStep(cam, target, zoomed || keep ? null : (carrier ?? ball), dt, view, full, smooth)
-                : camStep({ x: target, v: 0 }, target, null, 0, view, full);
-            const next = followOffset(cam.x, view, full);
-            if (x !== null && Math.abs(next - x) < 0.1) return;
-            x = next;
-            inner.style.transform = `translateX(${x}px)`;
-            scene.setClipView(-x / k, view / k);
-        };
+    useEffect(() => (on ? followCourt(wrap, followRef) : undefined), [on, wrap]);
+}
+
+/**
+ * O laço da quadra grande (o corpo do `useCourtFollow`; devolve a limpeza). A cena sai sempre de `readyScene()`, nunca
+ * guardada: quando o jogo é destruído com a partida aberta (o "Recarregar" da quadra troca a `key` do PhaserGame), a
+ * câmera e o canvas somem, e o laço seguia chamando a cena morta a cada quadro ("reading 'zoom'", "reading 'style'",
+ * "reading 'getBoundingClientRect'": 0.9.24 a 0.9.43, só no celular).
+ */
+export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { readonly current: boolean }) {
+    let cam: CamState | null = null;
+    let x: number | null = null;
+    let mode: boolean | null = null;
+    // velocidade da bola na tela (px/s, suavizada): a câmera vai um pouco à frente, pro lado do ataque
+    let lastBall: number | null = null;
+    let lastT = 0;
+    let vel = 0;
+    // tamanho da caixa em que o canvas foi medido (girar, teclado, barra do navegador: mede de novo)
+    let sizedFor = '';
+    let swapping = false;
+    let raf = 0;
+    let inner: HTMLElement | null = null;
+    // a quadra anda com transform; o Phaser só precisa da posição nova do canvas na hora do toque (medir em todo
+    // quadro forçava um layout por quadro)
+    const onDown = () => readyScene()?.scale.updateBounds();
+    const host = wrap.current;
+    host?.addEventListener('pointerdown', onDown, true);
+    // o Phaser lê o toque no touchstart: no Safari ele pode vir antes do pointerdown
+    host?.addEventListener('touchstart', onDown, { capture: true, passive: true });
+    // cena nova (a quadra recarregou): mede e encaixa de novo
+    const onReady = () => {
+        mode = null;
+    };
+    EventBus.on('current-scene-ready', onReady);
+    const tick = () => {
         raf = requestAnimationFrame(tick);
-        return () => {
-            cancelAnimationFrame(raf);
-            EventBus.off('current-scene-ready', onReady);
-            host?.removeEventListener('pointerdown', onDown, true);
-            host?.removeEventListener('touchstart', onDown, true);
-            // girou pra deitado no meio do jogo: a quadra volta inteira, no lugar e com o zoom normal
-            if (inner) {
-                inner.style.transform = '';
-                sizeCourt(inner, null);
+        const scene = readyScene();
+        const box = wrap.current;
+        if (!inner?.isConnected) {
+            inner = box?.querySelector<HTMLElement>('.phaser-container') ?? null;
+            sizedFor = '';
+        }
+        if (!scene || !box || !inner || swapping) return;
+        const want = followRef.current;
+        if (mode !== want) {
+            const first = mode === null;
+            mode = want;
+            const el = inner;
+            const apply = () => {
+                // depois do fade a cena pode já ter acabado
+                const sc = readyScene();
+                box.classList.toggle('hud-full', !want);
+                sc?.setZoomDamp(want ? HUD_ZOOM_DAMP : 1);
+                el.style.transform = '';
+                sizeCourt(el, null);
+                sizedFor = '';
+                cam = null;
+                x = null;
+                if (!want) sc?.setClipView(0, sc.scale.width);
+            };
+            if (first) apply();
+            else {
+                swapping = true;
+                el.style.opacity = '0';
+                window.setTimeout(() => {
+                    apply();
+                    window.setTimeout(() => {
+                        el.style.opacity = '';
+                        swapping = false;
+                    }, 60);
+                }, SWAP_MS);
             }
-            wrap.current?.classList.remove('hud-full');
-            scene?.setZoomDamp(1);
-            scene?.setClipView(0, scene.scale.width);
-        };
-    }, [on, wrap]);
+            return;
+        }
+        if (!want) return;
+        const view = box.clientWidth;
+        const size = `${view}x${box.clientHeight}`;
+        if (size !== sizedFor) {
+            sizedFor = size;
+            // a altura que a caixa dá (o canvas sem tamanho próprio enche ela) e a largura pra mostrar viewShare
+            sizeCourt(inner, null);
+            const aspect = inner.offsetWidth / (inner.offsetHeight || 1);
+            sizeCourt(inner, Math.min(inner.offsetHeight, view / CAM.viewShare / aspect));
+            scene.scale.refresh();
+            cam = null;
+        }
+        const full = inner.offsetWidth;
+        if (!full || full <= view) return;
+        const k = full / (scene.scale.width || full);
+        const now = performance.now();
+        const dt = lastT ? Math.min(0.1, (now - lastT) / 1000) : 0;
+        const ball = scene.ballOnScreen().x * k;
+        if (lastBall !== null && dt > 0) vel += ((ball - lastBall) / dt - vel) * (1 - Math.exp(-dt / 0.12));
+        lastBall = ball;
+        lastT = now;
+        // lance especial (o jogo deu zoom: gol, golpe, defesa, pênalti): vai pra onde a câmera do jogo aponta
+        // (presa na quadra, nem sempre é o meio do canvas); fora disso, quem tem a bola com espaço pro ataque
+        const zoomed = scene.cameras.main.zoom > 1.02;
+        const sub = scene.camSubject();
+        const carrier = sub.carrier ? sub.carrier.x * k : null;
+        // golpe máximo no ar: o gol atacado não sai da janela, e a mola rápida chega nele durante a carga do chute
+        const keep = sub.keep ? { x0: sub.keep.x0 * k, x1: sub.keep.x1 * k } : null;
+        const target = keepTarget(
+            zoomed ? scene.focusOnScreen().x * k : camTarget(ball, carrier, sub.attack, vel, view),
+            keep,
+            view,
+        );
+        const smooth = keep ? CAM.keepSmooth : CAM.smooth;
+        cam = cam
+            ? camStep(cam, target, zoomed || keep ? null : (carrier ?? ball), dt, view, full, smooth)
+            : camStep({ x: target, v: 0 }, target, null, 0, view, full);
+        const next = followOffset(cam.x, view, full);
+        if (x !== null && Math.abs(next - x) < 0.1) return;
+        x = next;
+        inner.style.transform = `translateX(${x}px)`;
+        scene.setClipView(-x / k, view / k);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+        cancelAnimationFrame(raf);
+        EventBus.off('current-scene-ready', onReady);
+        host?.removeEventListener('pointerdown', onDown, true);
+        host?.removeEventListener('touchstart', onDown, true);
+        // girou pra deitado no meio do jogo: a quadra volta inteira, no lugar e com o zoom normal
+        if (inner) {
+            inner.style.transform = '';
+            sizeCourt(inner, null);
+        }
+        wrap.current?.classList.remove('hud-full');
+        const sc = readyScene();
+        sc?.setZoomDamp(1);
+        sc?.setClipView(0, sc.scale.width);
+    };
 }

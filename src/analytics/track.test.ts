@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COACH_EVENTS, EVENT_NAMES, firstLeave, isBot, pickedReward, sendable } from './track';
+import { COACH_EVENTS, EVENT_NAMES, errorGate, firstLeave, isBot, pickedReward, sendable } from './track';
 
 describe('nomes dos eventos', () => {
     it('a lista do cliente é a da última migração do game_events_name_check (fora dela, o lote inteiro dá 400)', () => {
@@ -118,5 +118,17 @@ describe('firstLeave (onde larga quem sai antes da 1ª partida)', () => {
         expect(firstLeave(g({ records: { cups: 1, titles: 0, perfect: 0 } }), 9)).toBeNull();
         // jogou e abandonou a copa: cups 0 e sem copa aberta, mas já jogou
         expect(firstLeave(g({ screen: 'home', career: { matches: 2 } }), 9)).toBeNull();
+    });
+});
+
+describe('errorGate', () => {
+    it('um laço que repete o erro manda no máximo 3 da mesma mensagem e 30 no total por sessão', () => {
+        const gate = errorGate();
+        const loop = Array.from({ length: 1000 }, () => gate("Cannot read properties of undefined (reading 'zoom')"));
+        expect(loop.filter(Boolean).length).toBe(3);
+        // mensagem nova ainda passa, até o teto da sessão
+        expect(gate('QuotaExceededError')).toBe(true);
+        const varied = Array.from({ length: 100 }, (_, i) => gate(`erro ${i}`));
+        expect(varied.filter(Boolean).length).toBe(26);
     });
 });
