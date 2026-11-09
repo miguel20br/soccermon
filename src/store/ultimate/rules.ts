@@ -232,7 +232,7 @@ export interface UtEvent {
     objectives: Objective[];
     /**
      * Pick de Evento: cumprir todos os objetivos do evento (o enfeite) dá também 1 de 3 cartas Evento, Prata ou melhor.
-     * Onde ele sai foi escolha nossa (o plano diz "objetivo do Natal"); falta o ok do Miguel.
+     * Aprovado pelo Miguel em 09/11.
      */
     pick?: PickSpec;
 }
@@ -254,7 +254,7 @@ export const EVENTS: UtEvent[] = [
 
 /**
  * Meus pacotes avisa o evento que vem: "pacote aberto no Natal pode trazer carta Evento" (o convite pra guardar, como o
- * TOTY do FC) aparece este tanto de dias antes e durante o evento. Número inventado (09/11), falta o ok do Miguel.
+ * TOTY do FC) aparece este tanto de dias antes e durante o evento. Aprovado pelo Miguel em 09/11.
  */
 export const EVENT_HINT_DAYS = 14;
 

@@ -1644,8 +1644,13 @@
 .ut-pack-moment.is-many .k-moment-body {
     width: min(100%, 860px);
 }
-.ut-pack-moment.is-many .cpack-stage:has(> .k-pick3) {
-    min-height: 0;
+/* o resumo entra (os pacotes já saíram um por um, com o leque de sempre) */
+.ut-sum {
+    animation: ut-in 260ms var(--ease-out) both;
+}
+.ut-pack-count {
+    font-size: 0.6em;
+    color: var(--muted);
 }
 .ut-sum-line {
     margin: 0;
@@ -1925,59 +1930,74 @@
 .ut-home > .ut-hl {
     grid-area: hl;
 }
-/* o JOGAR: o botão gordo dourado do kit, do tamanho de um bloco */
+/* Jogar · Modos de jogo (retorno de 09/11: "não com textura de botão"): um painel como os outros, com a faixa dourada,
+   a arte do modo liberado (o rival da vez) e as miniaturas apagadas dos que vêm depois */
 .ut-b-jogar {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    align-content: stretch;
+}
+.ut-b-modes {
     display: grid;
-    justify-items: start;
-    align-content: center;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
-    min-width: 0;
-    min-height: 176px;
-    padding: 14px 16px calc(14px + var(--base));
-    text-align: left;
-    overflow: hidden;
+    min-height: 0;
 }
-.ut-jogar-word {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 36px;
-    line-height: 1;
-    letter-spacing: 0.04em;
+.ut-b-modes > .ut-mode-art {
+    height: 64px;
 }
-.ut-jogar-word .hud-icon {
-    width: 30px;
-    height: 30px;
-}
-.ut-b-jogar small {
-    max-width: 100%;
-    font-size: 12px;
-    line-height: 1.3;
-}
-.ut-jogar-mode {
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-.ut-jogar-team {
-    display: flex;
-    gap: 2px;
-}
-.ut-jogar-team img {
+.ut-b-modes .ut-mode-team img {
     width: 48px;
     height: 48px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 30%));
 }
-.ut-jogar-goal {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+.ut-b-modes > .ut-mode-art .ut-mode-vs img {
+    width: 56px;
+    height: 56px;
 }
-.ut-jogar-goal .hud-icon {
-    flex: none;
+.ut-b-soon {
+    display: grid;
+    grid-template-columns: repeat(2, 52px);
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 4px;
+}
+.ut-b-soon > .ut-mode-art {
+    height: auto;
+    min-height: 0;
+    border-radius: 6px;
+    filter: grayscale(1);
+    opacity: 0.6;
+}
+.ut-b-soon .ut-mode-vs {
+    gap: 2px;
+}
+.ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+    width: 26px;
+    height: 26px;
+}
+.ut-b-soon .ut-mode-four img + img {
+    margin-left: -14px;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback {
     width: 14px;
-    height: 14px;
-    filter: none;
+    border-width: 1px;
+    border-radius: 3px;
+    box-shadow: none;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(1) {
+    translate: 2px 1px;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(3) {
+    translate: -2px 1px;
+}
+.ut-b-soon .ut-mode-slots {
+    grid-template-columns: repeat(3, 7px);
+    gap: 2px;
+}
+.ut-b-soon .ut-mode-slots i {
+    border-width: 1px;
+    border-radius: 2px;
+}
+.ut-b-soon .ut-mode-slots i:nth-child(n + 4) {
+    translate: 4.5px 0;
 }
 /* Clube: o cartão do time (a nota grande, a química e os 5 titulares em 3 + 2) */
 .ut-b-club .ut-b-ovr > b {
@@ -2022,8 +2042,31 @@
             "play play club goals"
             "hl hl hl hl";
     }
-    .ut-b-jogar {
-        padding-inline: 20px;
+    .ut-b-modes > .ut-mode-art {
+        height: auto;
+        min-height: 64px;
+    }
+    /* o 2 x 2 é alto: o time do rival em 3 + 2, maior */
+    .ut-b-modes .ut-mode-team {
+        --sp: 48px;
+        flex-wrap: wrap;
+        align-content: center;
+        max-width: calc(3 * var(--sp));
+    }
+    .ut-b-modes .ut-mode-team img {
+        flex: none;
+        width: var(--sp);
+        height: var(--sp);
+    }
+    .ut-b-soon {
+        grid-template-columns: repeat(2, 64px);
+    }
+    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+        width: 32px;
+        height: 32px;
+    }
+    .ut-b-soon .ut-mode-backs .ut-cardback {
+        width: 18px;
     }
 }
 @media (min-width: 1100px) and (min-height: 720px) {
@@ -2035,22 +2078,27 @@
         margin: 0 auto;
     }
     .ut-b-jogar {
-        gap: 10px;
-        padding: 24px 28px calc(24px + var(--base));
+        gap: 8px;
+        padding: 14px 16px 14px 22px;
     }
-    .ut-jogar-word {
-        font-size: 56px;
+    .ut-b-jogar > b {
+        font-size: 15px;
     }
-    .ut-jogar-word .hud-icon {
-        width: 44px;
-        height: 44px;
+    .ut-b-modes .ut-mode-team {
+        --sp: 64px;
     }
-    .ut-b-jogar small {
-        font-size: 14px;
+    .ut-b-soon {
+        grid-template-columns: repeat(2, 84px);
     }
-    .ut-jogar-team img {
-        width: 72px;
-        height: 72px;
+    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+        width: 40px;
+        height: 40px;
+    }
+    .ut-b-soon .ut-mode-four img + img {
+        margin-left: -20px;
+    }
+    .ut-b-soon .ut-mode-backs .ut-cardback {
+        width: 22px;
     }
     .ut-b-club .ut-b-court img,
     .ut-b-club .ut-b-court i {
@@ -2273,28 +2321,29 @@
     width: 58%;
     height: auto;
 }
-/* Pick: as duas faces no mesmo lugar; virar gira as duas juntas (a de trás some ao passar dos 90°) */
+/* Pick: as duas faces no mesmo lugar; virar dobra o verso e a frente entra com a saída de carta do pacote de sempre
+   (cpack-out, o mesmo giro do leque e do "Sortear de novo"), com o brilho da carta grande */
 .ut-pick-face {
     display: grid;
     justify-items: center;
-    transform-style: preserve-3d;
 }
 .ut-pick-face > * {
     grid-area: 1 / 1;
-    backface-visibility: hidden;
-}
-.ut-pick-face.up {
-    /* curva simétrica: com o --ease-out o verso sumia em 60 ms e não dava pra ver a carta virando */
-    animation: ut-turn 450ms cubic-bezier(0.4, 0, 0.2, 1) var(--flip-at, 0ms) both;
 }
 .ut-pick-face.up > .ut-pick-back {
-    transform: rotateY(180deg);
-    transition: none;
     pointer-events: none;
+    animation: ut-fold 120ms ease-in var(--flip-at, 0ms) forwards;
 }
-@keyframes ut-turn {
-    from {
-        transform: perspective(800px) rotateY(-180deg);
+.ut-pick-face.up > .ut-pick-flip {
+    animation: cpack-out 0.46s calc(var(--flip-at, 0ms) + 120ms) cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+.ut-pick-face.up > .ut-pick-flip.big .fut-wrap {
+    animation: opt-glow 0.9s calc(var(--flip-at, 0ms) + 370ms) ease-out;
+}
+@keyframes ut-fold {
+    to {
+        opacity: 0;
+        transform: perspective(900px) rotateY(-90deg) scale(0.9);
     }
 }
 .ut-pick-back {
@@ -2321,11 +2370,19 @@
     outline: 3px solid var(--blue);
     outline-offset: 2px;
 }
-[data-reduce-motion="true"] .ut-pick-face.up {
+[data-reduce-motion="true"] .ut-pick-face.up > *,
+[data-reduce-motion="true"] .ut-pick-face.up .fut-wrap {
     animation: none;
 }
+[data-reduce-motion="true"] .ut-pick-face.up > .ut-pick-back {
+    opacity: 0;
+}
 @media (prefers-reduced-motion: reduce) {
-    .ut-pick-face.up {
+    .ut-pick-face.up > *,
+    .ut-pick-face.up .fut-wrap {
         animation: none;
+    }
+    .ut-pick-face.up > .ut-pick-back {
+        opacity: 0;
     }
 }

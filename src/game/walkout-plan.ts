@@ -38,6 +38,20 @@ export function walkoutPick(cards: readonly PokemonInstance[]): number {
     return best;
 }
 
+/**
+ * Abrir todos: a carta do walkout entre todos os pacotes (`walkoutPick`) e os pacotes na ordem de abrir, com o dela por
+ * último (o clímax fecha a sequência; os outros na ordem em que saíram).
+ */
+export function walkoutLast<T extends { cards: readonly PokemonInstance[] }>(
+    packs: readonly T[],
+): { packs: T[]; best: PokemonInstance | null } {
+    const all = packs.flatMap((p) => p.cards);
+    const at = walkoutPick(all);
+    const best = at < 0 ? null : all[at];
+    const has = (p: T) => !!best && p.cards.includes(best);
+    return { packs: [...packs.filter((p) => !has(p)), ...packs.filter(has)], best };
+}
+
 /** O roteiro: cada campo é a hora (ms desde o começo) em que a batida entra. */
 export interface WalkPlan {
     tier: WalkTier;

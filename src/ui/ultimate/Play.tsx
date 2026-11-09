@@ -50,11 +50,11 @@ export function useBattle() {
 }
 
 /** Os modos que ainda não chegaram (equivalentes do FC: Rivals, Champions, Draft, SBC), na ordem da aba. */
-const SOON = ['rivals', 'elite', 'draft', 'sbc'] as const;
+export const SOON = ['rivals', 'elite', 'draft', 'sbc'] as const;
 type SoonMode = (typeof SOON)[number];
 
-const trainer = (id: string) => <img key={id} className="pixel" src={`assets/trainers/${id}.png`} alt="" />;
-const SOON_ART: Record<SoonMode, ReactNode> = {
+export const trainer = (id: string) => <img key={id} className="pixel" src={`assets/trainers/${id}.png`} alt="" />;
+export const SOON_ART: Record<SoonMode, ReactNode> = {
     rivals: <span className="ut-mode-vs">{[trainer('red'), trainer('blue')]}</span>,
     elite: <span className="ut-mode-four">{['lorelei', 'bruno', 'agatha', 'lance'].map(trainer)}</span>,
     draft: (

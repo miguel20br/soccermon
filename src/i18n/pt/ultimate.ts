@@ -79,6 +79,7 @@ export const ultimate = {
         openAll: 'Abrir todos ({n})',
         many: '{n} × {kind}',
         summary: 'Saiu de {n} pacotes',
+        skipAll: 'Pular pro resumo',
         sumFresh: '{n} nova no Clube|{n} novas no Clube',
         sumRepeat: '{n} repetida|{n} repetidas',
         sumPoints: '+{n} pontos',
@@ -180,6 +181,7 @@ export const ultimate = {
         noLegend: 'Sem Lenda: nenhuma carta jogou',
     },
     home: {
+        modes: 'Modos de jogo',
         squad: 'Elenco',
         squadState: 'Média {n} · química +{c}%',
         chem: 'química +{c}%',

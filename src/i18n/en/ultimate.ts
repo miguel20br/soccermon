@@ -78,6 +78,7 @@ export const ultimate: typeof pt = {
         openAll: 'Open all ({n})',
         many: '{n} × {kind}',
         summary: 'From {n} packs',
+        skipAll: 'Skip to summary',
         sumFresh: '{n} new in your Club|{n} new in your Club',
         sumRepeat: '{n} duplicate|{n} duplicates',
         sumPoints: '+{n} points',
@@ -177,6 +178,7 @@ export const ultimate: typeof pt = {
         noLegend: 'No Legend: no card played',
     },
     home: {
+        modes: 'Game modes',
         squad: 'Squad',
         squadState: 'Average {n} · chemistry +{c}%',
         chem: 'chemistry +{c}%',

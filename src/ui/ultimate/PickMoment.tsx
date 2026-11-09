@@ -1,5 +1,6 @@
-import { type CSSProperties, useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { viewInstance } from '../../engine/instance';
+import { playCry, playSfx } from '../../game/audio';
 import { walkoutPick } from '../../game/walkout-plan';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -7,11 +8,13 @@ import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
 import { utNow } from '../../store/ultimate/clock';
 import { pickOptions, type UtPick } from '../../store/ultimate/ultimate';
-import { CardPack, type PackLook } from '../components/CardPack';
+import { CardPack, isBigCard, type PackLook, pitchOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { MomentStage } from '../kit/MomentStage';
 import { preloadWalkout, Walkout } from '../kit/WalkoutStage';
 import { METAL, metalLabel } from '../rarity';
+import { reduceMotionOn } from '../reduce-motion';
+import { useTear } from './PackMoment';
 
 /** Nome e regra do Pick ("Seu primeiro craque" · "Escolha 1 de 5 · Prata ou melhor"), na tela e em Meus pacotes. */
 export function usePickName() {
@@ -51,13 +54,18 @@ export function CardBack({ metal }: { metal?: string }) {
 /** A arte do pacote do Pick: dourada no de Ouro, holográfica no de Evento, na cor do tipo no do líder. */
 const lookOf = (p: UtPick): PackLook => (p.event ? 'special' : p.min === 'ouro' ? 'gold' : '');
 
-/** Entre uma carta e a próxima no "Virar todas" (ms). */
-const FLIP_STEP = 140;
+/** Entre uma carta e a próxima no "Virar todas" (ms): o intervalo do leque de sempre (`TIMING.full` do CardPack). */
+const FLIP_STEP = 220;
+/** O verso dobra (ms) e a frente entra com a saída de carta de sempre (`cpack-out`, 460 ms). */
+const FOLD_MS = 120;
+const OUT_MS = 460;
 
 /**
  * Pokémon Pick em tela cheia (ultimate-fc.md, decidido em 09/11): rasga o pacote do Pick e as opções nascem de costas
  * (o verso com o símbolo do Soccermon, retorno de 09/11: "a carta virada, não a silhueta"); tocar vira uma, "Virar
- * todas" vira o resto em sequência, e a melhor (se for Ouro ou edição) vira com o walkout. "Ficar com" acende quando
+ * todas" vira o resto em sequência, e a melhor (se for Ouro ou edição) vira com o walkout. As animações são as de sempre
+ * (retorno de 09/11): o rasgo com o dedo, o leque de versos, a frente entrando com a saída de carta do pacote e o som
+ * dele, e o walkout depois que a sequência acaba, com a carta guardada até lá. "Ficar com" acende quando
  * todas viraram e uma foi escolhida; as outras somem.
  */
 export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => void }) {
@@ -70,23 +78,45 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
     const [up, setUp] = useState<number[]>(() => opts.map(() => -1));
     const [sel, setSel] = useState<number | null>(null);
     const best = walkoutPick(opts);
-    const [walk, setWalk] = useState<'idle' | 'on' | 'done'>('idle');
+    const [walk, setWalk] = useState<'idle' | 'wait' | 'on' | 'done'>('idle');
     useEffect(() => {
         if (best >= 0) void preloadWalkout().catch(() => undefined);
     }, [best]);
+    const timers = useRef<number[]>([]);
+    useEffect(() => () => timers.current.forEach(clearTimeout), []);
+    /** Vira as cartas em sequência com o som do leque (tom subindo, grito da carta grande); o walkout vem no fim. */
     const flip = (ids: number[]) => {
         const todo = ids.filter((i) => up[i] < 0);
+        if (!todo.length) return;
         setUp((u) => u.map((x, i) => (x < 0 && todo.includes(i) ? todo.indexOf(i) : x)));
-        if (todo.includes(best) && walk === 'idle') setWalk('on');
+        const settings = useGame.getState().settings;
+        const reduce = reduceMotionOn();
+        todo.forEach((i, k) => {
+            const at = reduce ? 0 : k * FLIP_STEP + FOLD_MS;
+            const n = opts.length - up.filter((x) => x < 0).length + k;
+            timers.current.push(
+                window.setTimeout(() => {
+                    playSfx(i === best ? 'goal' : 'select', i === best ? 1 : pitchOf(n));
+                    if (i !== best && isBigCard(opts[i])) playCry(opts[i].speciesId, settings.cries, 0.8);
+                }, at),
+            );
+        });
+        // como no pacote: a melhor fica guardada até o leque acabar, e aí o walkout
+        if (todo.includes(best) && walk === 'idle') {
+            setWalk('wait');
+            const end = reduce ? 0 : (todo.length - 1) * FLIP_STEP + FOLD_MS + OUT_MS;
+            timers.current.push(window.setTimeout(() => setWalk('on'), end));
+        }
     };
     const all = up.every((x) => x >= 0);
+    const tear = useTear();
     const chosen = sel === null ? null : opts[sel];
     const label = name(pick);
     return (
         <MomentStage label={label.title} className="ut-pick-moment">
             <h2 className="k-moment-title ut-pack-title">{label.title}</h2>
             <p className="ut-pick-sub">{label.hint}</p>
-            <div className="ut-tear">
+            <div className="ut-tear" {...tear.props} style={{ '--tear': tear.p } as CSSProperties}>
                 <CardPack
                     sealed
                     look={lookOf(pick)}
@@ -97,7 +127,12 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
                 >
                     <div className="k-pick3 ut-pick" style={{ '--k-n': opts.length } as CSSProperties}>
                         {opts.map((c, i) => (
-                            <div key={c.uid} className={`cpack-card ut-pick-opt${sel === i ? ' on' : ''}`}>
+                            <div
+                                key={c.uid}
+                                className={`cpack-card ut-pick-opt${sel === i ? ' on' : ''}${
+                                    i === best && walk === 'done' ? ' k-pop' : ''
+                                }`}
+                            >
                                 {/* de costas: o verso com o símbolo; virada, as duas faces giram juntas (a frente por cima) */}
                                 <div
                                     className={`ut-pick-face${up[i] >= 0 ? ' up' : ''}`}
@@ -114,7 +149,15 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
                                     </button>
                                     {up[i] >= 0 && (
                                         <div
-                                            className={`ut-pick-flip${i === best && walk !== 'done' ? ' walk-held' : ''}`}
+                                            className={`ut-pick-flip${
+                                                i === best
+                                                    ? walk !== 'done'
+                                                        ? ' walk-held'
+                                                        : ''
+                                                    : isBigCard(c)
+                                                      ? ' big'
+                                                      : ''
+                                            }`}
                                         >
                                             <FutCard
                                                 inst={c}

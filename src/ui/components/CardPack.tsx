@@ -34,7 +34,7 @@ const WALKOUT_MS = 1200;
 /** Animações da carta que contam o `--rd` (a saída, o walkout, os raios e o brilho da carta grande). */
 const REVEAL_ANIMS = ['cpack-out', 'cpack-walk', 'cpack-rays', 'opt-glow'];
 /** Tom sobe carta a carta (dó, mi, sol, dó), como a contagem do Balatro. */
-const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
+export const pitchOf = (i: number) => 2 ** (([0, 4, 7, 12][i] ?? 12) / 12);
 
 /**
  * Carta grande (ouro, Shiny, edição especial) solta o grito do Pokémon quando aparece (`data-cry` = espécie). As

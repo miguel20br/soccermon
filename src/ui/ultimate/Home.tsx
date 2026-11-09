@@ -30,7 +30,7 @@ import { reduceMotionOn } from '../reduce-motion';
 import { hms, useNow } from './clock';
 import { useReward } from './Goals';
 import { usePickName } from './PickMoment';
-import { useBattle } from './Play';
+import { SOON, SOON_ART, trainer, useBattle } from './Play';
 
 export type UtTab = 'home' | 'play' | 'club' | 'shop' | 'goals';
 
@@ -98,22 +98,35 @@ export function Home({
                     <span className="btn small confirm ut-b-cta">{t('ultimate.home.resolve')}</span>
                 </button>
             )}
-            {/* o JOGAR: o maior bloco e o único dourado da tela; leva pra aba Jogar, com os modos */}
-            <button type="button" className="cb cb-gold ut-b-jogar" onClick={() => onTab('play')}>
-                <i className="cb-shine" aria-hidden />
-                <span className="ut-jogar-word">
-                    <HudIcon kind="play" />
-                    {t('ultimate.play.go')}
-                </span>
-                <small className="ut-jogar-mode">{t('ultimate.modes.battles.name')}</small>
-                {versus && (
-                    <span className="ut-jogar-team" aria-hidden>
-                        {versus.lineup.map((p) => (
-                            <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+            {/* Jogar · Modos de jogo: o primeiro bloco (painel, não botão); a arte é a da aba Jogar, o liberado e os em breve */}
+            <button
+                type="button"
+                className="panel bc-surface bc-stripe ut-block ut-b-jogar"
+                onClick={() => onTab('play')}
+            >
+                <BlockHead icon="play" title={`${d.ultimate.tabs.play} · ${t('ultimate.home.modes')}`} />
+                <span className="ut-b-modes" aria-hidden>
+                    <span className="ut-mode-art">
+                        {versus ? (
+                            <span className="ut-mode-team">
+                                {versus.lineup.map((p) => (
+                                    <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                                ))}
+                            </span>
+                        ) : (
+                            <span className="ut-mode-vs">{[trainer('red'), trainer('acetrainer')]}</span>
+                        )}
+                    </span>
+                    <span className="ut-b-soon">
+                        {SOON.map((id) => (
+                            <span key={id} className={`ut-mode-art is-${id}`}>
+                                {SOON_ART[id]}
+                            </span>
                         ))}
                     </span>
-                )}
-                <small className="ut-jogar-next">
+                </span>
+                <b>{t('ultimate.modes.battles.name')}</b>
+                <small>
                     {u.live
                         ? `${t('ultimate.play.resume')} · ${clubName(u.live.rival.name, lang)}`
                         : rival
@@ -122,14 +135,8 @@ export function Home({
                                 level: d.ultimate.play.levels[level],
                                 n: FICHAS[paid(level)].win,
                             })
-                          : tn('ultimate.home.squadNeed', STARTERS - lineup.length)}
+                          : (goalText ?? tn('ultimate.home.squadNeed', STARTERS - lineup.length))}
                 </small>
-                {goalText && (
-                    <small className="ut-jogar-goal">
-                        <HudIcon kind="flag" />
-                        {goalText}
-                    </small>
-                )}
             </button>
             <button type="button" className="panel bc-surface ut-block ut-b-club" onClick={onSquad}>
                 <BlockHead icon="team" title={d.ultimate.tabs.club} />

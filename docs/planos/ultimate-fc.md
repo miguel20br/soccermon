@@ -101,6 +101,37 @@ O que mudou (branch `ut-fc`):
   uma e outra) e a melhor segue virando com o walkout. Com Reduzir movimento, vira sem giro. O walkout continua com a
   silhueta dele.
 
+## Segundo retorno do Miguel (09/11, prints do Início)
+
+"no Time Ultimate esse botão de jogar tá ENORME. e meio feio. queria que ele fosse algo mais tipo 'ver modos de jogo',
+ou algo assim, não com textura de botão. mas de resto tá tudo certo. só lembra de colocar as animações originais".
+
+**Números aprovados** (eram inventados, agora valem):
+
+- Aviso do Natal em Meus pacotes **14 dias antes** e durante o evento (`EVENT_HINT_DAYS`).
+- Pick **"Prata ou melhor"** sai Prata ~90% e Ouro ~10% (o Bronze sorteado sobe pra Prata; `METAL_ODDS`).
+- **Pick de Evento** (1 de 3 cartas Evento, Prata ou melhor) ao cumprir todos os objetivos do Natal (`EVENTS[].pick`).
+- Degraus dos **losangos** de química: 0% = 0, até +3% = 1, até +6% = 2, acima = 3 (`diamondsOf`; o visual segue
+  atrás de `?losangos=1` até ele ver).
+
+O que mudou:
+
+- **Bloco "Jogar · Modos de jogo"** no lugar do botão gordo dourado: painel do kit como os outros blocos (faixa dourada),
+  ainda o primeiro e o maior; a arte do modo liberado (o time do rival da vez em sprites) e as miniaturas apagadas dos 4
+  em breve, o nome do modo e uma linha com o próximo jogo (ou a meta, sem time). Tocar abre a aba Jogar, onde fica o
+  JOGAR de verdade. Celular: ~140 px de altura em vez de ~190; deitado e PC: o mesmo 2 x 2 do mosaico.
+- **Animações originais nos fluxos novos:**
+  - *Abrir todos* usava uma versão rápida (`TIMING.fast`: rasgo de 200 ms em vez de 560, sem a pausa e o brilho da
+    carta grande) com todas as cartas saindo de um pacote só numa grade pequena. Agora é o pacote de sempre, um depois
+    do outro: você rasga o 1º (arrasto ou toque), os outros rasgam sozinhos com o leque inteiro (450 ms entre um e
+    outro), o walkout toca uma vez pra melhor de todas, no pacote dela (que fica por último), e aí vem o resumo pela nota.
+    "Pular pro resumo" encurta (o walkout da melhor ainda toca).
+  - *Pick*: não tinha o rasgo com o dedo; a virada era um giro 3D novo e mudo; o walkout começava junto da sequência.
+    Agora: rasgo com o dedo, o verso dobra e a frente entra com a saída de carta do pacote (`cpack-out`, o mesmo giro do
+    leque), com o som do leque (tom subindo, grito da carta grande) e o brilho da carta grande; a melhor fica guardada e
+    o walkout toca depois que a sequência acaba, como no pacote.
+  - *Abrir 1* já era o original (rasgo, leque, walkout).
+
 ## 1. Como o FC faz
 
 Onde não achei fonte e falo do jogo de memória, está marcado **(do jogo, sem fonte)**.
@@ -274,8 +305,9 @@ entram no Clube (`addCards` + `fillTeam` só nas vagas vazias), a repetida vai p
 
 ### Abrir todos
 
-- Botão "Abrir todos (N)" na linha do tipo (e "Abrir 1" do lado). Um rasgo só; cada pacote sai em leque rápido
-  (`TIMING.fast` do `CardPack`); o walkout toca **uma vez**, pra melhor carta de todos (degraus do `walkoutPick`).
+- Botão "Abrir todos (N)" na linha do tipo (e "Abrir 1" do lado). O pacote de sempre, um depois do outro (o 1º você
+  rasga, os outros rasgam sozinhos com o leque inteiro; trocado em 09/11, era um rasgo só com o `TIMING.fast`); o
+  walkout toca **uma vez**, pra melhor carta de todos (degraus do `walkoutPick`), no pacote dela, que fica por último.
 - Fim: **resumo** "Saiu de 4 pacotes": grade ordenada pela nota com fita Nova/Repetida, total de pontos ganhos, e dois
   botões: "Guardar no Clube" e "Ver Pendentes (3)". Igual à "lista de itens" do FC, sem o mercado.
 - Pendentes cheio no meio: para, abre o que deu, e o resumo diz "Pendentes cheio: venda as repetidas pra abrir o resto".

@@ -16,7 +16,7 @@ const pct = (f: number) => Math.round((f - 1) * 100);
 /**
  * Losangos de química 0–3 por titular e o "X/15" do time (ultimate-fc.md, opção C), como os do FC. RASCUNHO atrás de
  * bandeira (`?lab=ultimate&losangos=1`, só no dev e nas prévias): mexe no visual da escalação, então só espalha depois
- * do Miguel ver. Degraus inventados (09/11, falta o ok): 0% = 0, até +3% = 1, até +6% = 2, acima = 3.
+ * do Miguel ver o visual. Degraus aprovados (09/11): 0% = 0, até +3% = 1, até +6% = 2, acima = 3.
  */
 export const diamondsOf = (chem: number) => {
     const p = pct(chem);
