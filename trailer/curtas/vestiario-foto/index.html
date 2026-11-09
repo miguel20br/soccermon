@@ -1,15 +1,15 @@
 <!doctype html>
 <!--
-  Vestiário do Pallet FC, "A foto do time": o EPISÓDIO 1 (54 s, 3ª versão 08/11/2026), 9:16. Roteiro em ROTEIRO.md.
+  Vestiário do Pallet FC, "A foto do time": o EPISÓDIO 1 (54 s, 4ª versão 08/11/2026), 9:16. Roteiro em ROTEIRO.md.
   Um dominó: cada coisa acontece por causa da anterior. Sem closes em quadrado: o "close" é a câmera chegando perto no
   próprio vestiário (punch-in 2×, os sprites continuam em escala inteira) e a fala é texto solto em cima de quem fala.
-  Trilha provisória scripts/musica/pecas/livre-foto.mjs: 120 BPM, compasso = 2 s, um plano por compasso. Tempos:
+  Trilha scripts/musica/pecas/livre-foto.mjs (o tema do Vestiário em Fá): 120 BPM, compasso = 2 s, um plano por compasso. Tempos:
   C.T(compasso, linha).
   0–1 abertura (as letras quicam, o Snorlax dorme na placa, o Pikachu espia, o Magikarp pula por cima) | 2 o Snorlax já
   dorme | 3 FOTO DO TIME! | 4 o Magikarp na frente da lente | 5 foto 1 | 6 o Psyduck segura a cabeça | 7 o Pikachu pula
   no Magikarp e o choquinho acerta a câmera | 8 foto 2 (queimada) | 9 o Squirtle apaga a câmera e encharca o Pikachu |
   10 foto 3 | 11 a pose do Squirtle; o Ditto vê | 12 EU TAMBÉM! (POOF) | 13 a briga | 14 foto 4 | 15 CALMA, GENTE… |
-  16 a canção: todo mundo dorme | 17 o bigode no Snorlax | 18 foto 5 | 19 o timer: 3, 2 | 20 NÃO TÁ FALTANDO NINGUÉM,
+  16 a canção: todo mundo dorme | 17 o Jigglypuff percebe e incha de raiva | 18 foto 5 | 19 o timer: 3, 2 | 20 NÃO TÁ FALTANDO NINGUÉM,
   NÉ? | 21 todos se olham, NÃO!, 1 | 22–23½ a FOTO FINAL | 23½–27 a tela final, e o Slowpoke chega nela.
   Os óculos e a medalha seguem o quadro do sprite (segue(); a cabeça do Squirtle quadro a quadro vem do gerar.cjs,
   img/cabeca.js). Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-foto -q high -w 1
@@ -66,7 +66,20 @@
 #tela .t-med { left: 14px; top: 2px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00); box-shadow: 0 0 0 5px #0e1430; }
 #tela .t-off { inset: 0; background: repeating-linear-gradient(#22242e 0 6px, #3a3d4a 6px 10px); }
 #camera .luz { position: absolute; right: 18px; top: 22px; width: 22px; height: 22px; border-radius: 50%; background: #e8423f; border: 5px solid #0e1430; }
-.jato { position: absolute; left: 0; top: 0; width: 20px; height: 20px; z-index: 40; background: #7cc8ff; box-shadow: inset 0 -6px 0 #3a7bd5, 0 0 0 5px #0e1430; opacity: 0; }
+/* o jato de pressão do Squirtle: um cone que abre da boca pro alvo, em camadas (contorno, borda azul, azul claro, núcleo
+   branco), com riscos de fluxo correndo no núcleo; os anéis de pressão saem da boca a cada pulso */
+.jato { position: absolute; left: 0; top: 0; width: 0; height: 120px; margin-top: -60px; z-index: 40; opacity: 0; transform-origin: 0 50%; }
+.jato b { position: absolute; inset: 0; }
+.jato b:nth-child(1) { background: #0e1430; clip-path: polygon(0 27%, 100% 0, 100% 100%, 0 73%); }
+.jato b:nth-child(2) { background: #3a7bd5; clip-path: polygon(0 34%, 100% 8%, 100% 92%, 0 66%); }
+.jato b:nth-child(3) { background: #7cc8ff; clip-path: polygon(0 39%, 100% 19%, 100% 81%, 0 61%); }
+.jato b:nth-child(4) { background: #f0fbff; clip-path: polygon(0 45%, 100% 34%, 100% 66%, 0 55%); }
+.jato i { position: absolute; width: 80px; height: 8px; margin-left: -40px; border-radius: 4px; background: #ffffff; opacity: 0; }
+.jato u { position: absolute; left: 0; top: 50%; width: 40px; height: 104px; margin: -52px 0 0 -20px; box-sizing: border-box; border-radius: 50%;
+  border: 9px solid #bfe6ff; box-shadow: 0 0 0 5px #0e1430, inset 0 0 0 5px #0e1430; opacity: 0; }
+.spray { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; z-index: 41; background: #e8f6ff; box-shadow: inset 0 -5px 0 #7cc8ff, 0 0 0 5px #0e1430; opacity: 0; }
+.faisca { position: absolute; left: 0; top: 0; width: 16px; height: 16px; margin: -8px 0 0 -8px; z-index: 41; background: #fff6a8; box-shadow: inset 0 -5px 0 #ffcb05, 0 0 0 5px #0e1430; opacity: 0; }
+.flashr { position: absolute; inset: 0; z-index: 49; background: #fff3a0; opacity: 0; pointer-events: none; }
 .gota { position: absolute; left: 0; top: 0; width: 10px; height: 10px; z-index: 40; background: #7cc8ff; box-shadow: 0 0 0 4px #0e1430; opacity: 0; }
 .nuvem { position: absolute; left: 0; top: 0; border-radius: 50%; z-index: 30; background: radial-gradient(circle at 40% 35%, #f8f4ec, #d8d0c4 70%); border: 8px solid #0e1430; opacity: 0; }
 /* a fala: texto solto em cima de quem fala (contorno grosso, sombra), fora da câmera (não escala) */
@@ -263,13 +276,12 @@
     const RAIVA = ['rr.rr', 'r...r', '.....', 'r...r', 'rr.rr'];
     const nota = (pai, E, cor = '#ff9ad5') => desenho(pai, contorno(arte(NOTA, { w: cor })), E, 30);
     const raiva = (pai, E) => desenho(pai, contorno(arte(RAIVA, { r: '#e8423f' })), E, 30);
-    // o Jigglypuff bravo (rosa avermelhado) e a caneta-microfone na mão dele (quadro 0 do Idle de frente)
-    const BRAVO = 'sepia(0.5) saturate(2.6) hue-rotate(-28deg) brightness(0.92)';
+    // o Jigglypuff bravo (rosa avermelhado: BRAVO1 emburrado, BRAVO no auge) e a bufada (nuvenzinha de vapor)
+    const BRAVO1 = 'sepia(0.3) saturate(1.8) hue-rotate(-16deg)';
+    const BRAVO = 'brightness(0.72) sepia(1) saturate(9) hue-rotate(-48deg) contrast(1.25)';
     const MOLHADO = 'brightness(0.78) saturate(0.8)';
-    const CANETA = [[18, 14, 2, 6, '#2b2f45'], [18, 12, 2, 2, '#e8423f'], [18, 19, 2, 1, '#c8d0f0']];
-    // o bigodinho a caneta do Snorlax: na linha 23, em cima da boca (linha 24), com as pontas viradas pra cima (22)
-    const TINTA = '#07070f';
-    const BIGODE = [[12, 23, 4, 1, TINTA], [17, 23, 4, 1, TINTA], [16, 23, 1, 1, TINTA], [11, 22, 1, 1, TINTA], [21, 22, 1, 1, TINTA]];
+    const BUFO = ['.ww..', 'wwwww', 'wwwgw', '.ggg.'];
+    const bufo = (pai, E) => desenho(pai, contorno(arte(BUFO, { w: '#f8f8f0', g: '#c8d0e0' })), E, 30);
     // o raio do choquinho
     const RAIO = '<svg viewBox="0 0 14 22" width="70" height="110"><path d="M8 1 L2 12 L7 12 L5 21 L12 8 L7 8 L10 1 Z" fill="#ffe14d" stroke="#0e1430" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 
@@ -430,12 +442,11 @@
     const medV = medalha(mk);
     const ocV = oculos(sq);
     const ocD = oculos(dq);
-    const canetaV = pix(jg, 'Idle', CANETA);
     const raivaV = raiva(jg.corpo, 8);
     gsap.set(raivaV, { x: 50, y: -300 });
     $('tripe').innerHTML = [22, 0, -22].map((r) => `<i style="left:${LENTE_X - 14}px;top:1630px;transform:rotate(${r}deg)"></i>`).join('');
     const FIM = T(22, 0);
-    op([mk.el, pk.el, sq.el, dt.el, dq.el, jg.el, ps2.el, canetaV, raivaV], 0, false);
+    op([mk.el, pk.el, sq.el, dt.el, dq.el, jg.el, ps2.el, raivaV], 0, false);
     // o Snorlax dorme no banco desde antes de tudo (quadro parado, respirando)
     quadro(tl, sn, 'Idle', 0, 0, 0);
     tl.to(sn.corpo, { scaleY: 1.03, duration: 1, ease: 'sine.inOut', repeat: 41, yoyo: true }, T(2, 0));
@@ -501,7 +512,7 @@
       tl.to(ps.corpo, { keyframes: { rotation: [-7, 7, -7, 7, 0] }, duration: 1.8, ease: 'sine.inOut' }, t0 + 0.1);
     }
     // 7 · o Pikachu, querendo aparecer também, pula em cima do Magikarp (pousa na 6) e, na empolgação, solta o choquinho
-    //     (10): um raio desce na câmera (12), que solta faísca e fumaça
+    //     (10): um RAIO grande desce na câmera (12): a tela pisca amarela, faíscas, e só depois a fumaça
     const fumacaCamera = (de, ate) => {
       for (let t = de, i = 0; t < ate; t += 0.24, i++) {
         const f = div(cam, 'fumaca', 'z-index:33');
@@ -539,16 +550,48 @@
         }
       });
       tl.to(pk.spr, { keyframes: { filter: ['brightness(1.8)', 'brightness(1)', 'brightness(1.9)', 'brightness(1)'] }, duration: tC - tZ, ease: 'none' }, tZ);
-      // o raio que desce na câmera
-      const r = div(cam, '', 'position:absolute;left:0;top:0;z-index:34');
-      r.innerHTML = '<svg width="200" height="420" viewBox="0 0 20 42" style="display:block"><path d="M10 0 L4 12 L13 16 L5 28 L14 31 L9 42" fill="none" stroke="#0e1430" stroke-width="5" stroke-linejoin="round"/><path d="M10 0 L4 12 L13 16 L5 28 L14 31 L9 42" fill="none" stroke="#ffe14d" stroke-width="2.4" stroke-linejoin="round"/></svg>';
-      tl.set(r, { x: LENTE_X - 100, y: 1170, opacity: 0 }, 0);
-      for (const [t, on] of [[tC, 1], [tC + 0.07, 0], [tC + 0.11, 1], [tC + 0.22, 0]]) op(r, t, on);
-      estouro(tl, cam, LENTE_X, 1540, tC + 0.05, { tam: 280, cor: '#ffe14d' });
-      tl.to('#camera', { keyframes: { x: [10, -10, 8, -6, 0] }, duration: 0.3, ease: 'none' }, tC);
-      tela('t-off', tC);
+      // o RAIO grande, em zigue-zague, do Pikachu até a câmera (tC): amarelo com núcleo branco e contorno escuro, dois
+      // desenhos que se alternam (estala); a tela pisca amarela; faíscas saem da câmera e só depois vem a fumaça
+      const zig = (d) => `<path d="${d}" fill="none" stroke="#0e1430" stroke-width="6.4" stroke-linejoin="miter" stroke-miterlimit="3"/>`
+        + `<path d="${d}" fill="none" stroke="#ffe14d" stroke-width="3.8" stroke-linejoin="miter" stroke-miterlimit="3"/>`
+        + `<path d="${d}" fill="none" stroke="#fffbe0" stroke-width="1.3" stroke-linejoin="miter" stroke-miterlimit="3"/>`;
+      const raios = ['M10 0 L3 11 L15 17 L4 27 L14 32 L9 40', 'M8 0 L15 10 L4 18 L14 26 L5 33 L9 40'].map((d) => {
+        const r = div(cam, '', 'position:absolute;left:0;top:0;z-index:34;opacity:0');
+        r.innerHTML = `<svg width="240" height="480" viewBox="-0.5 0 19 38" style="display:block;overflow:visible">${zig(d)}</svg>`;
+        tl.set(r, { x: LENTE_X - 120, y: 1080 }, 0);
+        return r;
+      });
+      for (let k = 0, t = tC; t < tC + 0.4; k++, t += 0.05) {
+        op(raios[k % 2], t);
+        op(raios[k % 2], t + (k === 3 ? 0.02 : 0.05), false);
+      }
+      const fr = div(VEST, 'flashr');
+      for (const [t, o] of [[tC, 0.8], [tC + 0.15, 0.55]]) tl.fromTo(fr, { opacity: o }, { opacity: 0, duration: 0.14, ease: 'power2.out', immediateRender: false }, t);
+      tl.to(pk.spr, { keyframes: { filter: ['brightness(2)', 'brightness(1.3)', 'brightness(2)', 'brightness(1)'] }, duration: 0.4, ease: 'none' }, tC);
+      estouro(tl, cam, LENTE_X, 1530, tC + 0.04, { tam: 300, cor: '#ffe14d' });
+      tl.to('#camera', { keyframes: { x: [12, -12, 10, -8, 6, 0] }, duration: 0.4, ease: 'none' }, tC);
       tela('t-pk', tC, false);
-      fumacaCamera(tC + 0.15, T(8, 0));
+      tl.set('#tela', { backgroundColor: '#ffffff' }, tC);
+      tl.set('#tela', { backgroundColor: '#7cc8ff' }, tC + 0.2);
+      tela('t-off', tC + 0.2);
+      // as faíscas: quadradinhos amarelos pulando da câmera, com gravidade, e estrelinhas
+      for (let i = 0; i < 14; i++) {
+        const f = div(cam, 'faisca');
+        const ang = Math.PI * (1.08 + 0.84 * ((i * 0.618) % 1));
+        const v = 150 + 90 * ((i * 0.37) % 1);
+        const [x, y] = [LENTE_X + ((i * 23) % 120) - 60, 1520];
+        const t = tC + 0.03 + 0.025 * i;
+        tl.set(f, { x, y }, 0);
+        tl.fromTo(f, { opacity: 1, x, y }, { keyframes: { x: [x + Math.cos(ang) * v * 0.6, x + Math.cos(ang) * v], y: [y + Math.sin(ang) * v * 0.7, y + Math.sin(ang) * v * 0.6 + 90] }, duration: 0.38, ease: 'none', immediateRender: false }, t);
+        tl.set(f, { opacity: 0 }, t + 0.38);
+      }
+      [[LENTE_X - 90, 1480, 0.05], [LENTE_X + 95, 1500, 0.14], [LENTE_X + 10, 1440, 0.24], [LENTE_X - 60, 1560, 0.32]].forEach(([x, y, d]) => {
+        const b = div(cam, 'brilho', 'z-index:41;width:56px;height:56px;margin:-28px 0 0 -28px;background:#ffe14d');
+        tl.set(b, { x, y }, 0);
+        tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.2, ease: 'sine.out', immediateRender: false }, tC + d);
+        tl.to(b, { opacity: 0, duration: 0.08 }, tC + d + 0.18);
+      });
+      fumacaCamera(tC + 0.3, T(8, 0));
       salto(mk, tC, 30, 0.25);
     }
     // 9 · por causa da fumaça, o Squirtle (de óculos, tranquilo) entra (linhas 0 a 6) e apaga a câmera com o jato (7);
@@ -565,27 +608,63 @@
       anim(tl, sq, 'Idle', 2, T(9, 6), tJ, { vel: 0.6 });
       anim(tl, sq, 'Shoot', 2, tJ, T(9, 13), { vel: 0.5, loop: false });
       anim(tl, sq, 'Idle', 0, T(9, 13), FIM, { vel: 0.6 });
-      tarja('SQUIRTLE', 'ALA', T(9, 1), T(9, 10));
+      tarja('SQUIRTLE', 'ALA', T(9, 0) + 0.05, tJ + 0.15);
       anim(tl, pk, 'Idle', 0, t0, tM);
       anim(tl, pk, 'Hurt', 0, tM, T(9, 13), { vel: 0.6 });
       anim(tl, pk, 'Idle', 0, T(9, 13), FIM, { vel: 0.5 });
       tl.set(pk.spr, { filter: MOLHADO }, tM);
-      // o jato: da boca do Squirtle (330, 1370) num arco baixo até a cara do Pikachu (700, 1150)
-      Array.from({ length: 14 }, (_, i) => {
-        const u = i / 13;
-        const j = div(cam, 'jato');
-        tl.set(j, { x: 330 + 370 * u - 10, y: 1370 - 220 * u - 70 * Math.sin(Math.PI * u) - 10 }, 0);
-        op(j, tJ + 0.02 * i);
-        op(j, T(9, 12) + 0.015 * i, false);
-      });
-      // o respingo no Pikachu e a água que escorre na câmera
-      [[700, 1130, -60, -90], [780, 1110, 70, -110], [740, 1090, 10, -140], [800, 1150, 90, -60], [690, 1170, -80, -40]].forEach(([x, y, dx, dy], i) => {
-        const g = div(cam, 'gota');
-        tl.set(g, { x, y }, 0);
-        const t = tM + 0.04 * i;
-        tl.fromTo(g, { opacity: 1, x, y }, { keyframes: { x: [x + dx * 0.5, x + dx], y: [y + dy, y + dy * 0.3 + 200] }, duration: 0.55, ease: 'none', immediateRender: false }, t);
-        tl.set(g, { opacity: 0 }, t + 0.55);
-      });
+      // o JATO de pressão: reto, grosso, sai da boca (O) com um tranco (o Squirtle recua 30 px e fica empurrado pra trás),
+      // acerta a câmera (CM) e sobe pro Pikachu (PK) na 9; anéis correm por ele em pulsos; spray e gotas no impacto
+      const tF = T(9, 12);
+      const RECUO = [-34, -24, -30, -24];
+      const O = [322, 1362];
+      const alvo = ([x, y]) => {
+        const dx = x - (O[0] + RECUO[3]);
+        const dy = y - O[1];
+        return { width: Math.hypot(dx, dy), rotation: (Math.atan2(dy, dx) * 180) / Math.PI };
+      };
+      const CM = [LENTE_X - 10, 1520];
+      const PK = [735, 1185];
+      tl.fromTo(sq.corpo, { x: 0 }, { keyframes: { x: RECUO }, duration: 0.24, ease: 'power2.out', immediateRender: false }, tJ);
+      tl.fromTo(sq.corpo, { scaleX: 0.86, scaleY: 1.1 }, { scaleX: 1, scaleY: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)', immediateRender: false }, tJ);
+      tl.to(sq.corpo, { x: 0, duration: 0.2, ease: 'power2.out' }, tF);
+      const jato = div(cam, 'jato');
+      tl.set(jato, { y: O[1], x: O[0] + RECUO[0] }, 0);
+      tl.to(jato, { keyframes: { x: RECUO.map((r) => O[0] + r) }, duration: 0.24, ease: 'power2.out' }, tJ);
+      op(jato, tJ);
+      tl.fromTo(jato, { ...alvo(CM), width: 0, scaleY: 1 }, { width: alvo(CM).width, duration: 0.07, ease: 'none', immediateRender: false }, tJ);
+      tl.to(jato, { ...alvo(PK), duration: 0.1, ease: 'power1.inOut' }, tM - 0.05);
+      tl.to(jato, { keyframes: { scaleY: [1.25, 0.9, 1.2, 0.95, 1.25, 0.9, 1.15, 1] }, duration: tF - tJ, ease: 'none' }, tJ);
+      tl.to(jato, { scaleY: 0, duration: 0.08, ease: 'power2.in' }, tF);
+      op(jato, tF + 0.08, false);
+      jato.innerHTML = '<b></b><b></b><b></b><b></b>';
+      // os riscos de fluxo no núcleo (rápidos, em três alturas) e o anel de pressão na boca a cada pulso
+      for (let t = tJ + 0.02, i = 0; t < tF - 0.04; t += 0.045, i++) {
+        const r = document.createElement('i');
+        r.style.top = `${53 + (i % 3) * 3}px`;
+        jato.appendChild(r);
+        tl.fromTo(r, { left: '0%', opacity: 1 }, { left: '100%', duration: 0.1, ease: 'none', immediateRender: false }, t);
+        tl.set(r, { opacity: 0 }, t + 0.1);
+      }
+      for (let t = tJ, i = 0; t < tF - 0.04; t += 0.12, i++) {
+        const u = document.createElement('u');
+        jato.appendChild(u);
+        tl.fromTo(u, { left: '2%', opacity: 1, scale: 0.7 }, { left: '22%', scale: 1.25, duration: 0.14, ease: 'power1.out', immediateRender: false }, t);
+        tl.set(u, { opacity: 0 }, t + 0.14);
+      }
+      // o spray no ponto onde ele bate (a câmera antes da 9, o Pikachu depois)
+      for (let t = tJ + 0.05, i = 0; t < tF + 0.05; t += 0.03, i++) {
+        const [x, y] = t < tM ? CM : PK;
+        const g = div(cam, 'spray');
+        const ang = Math.PI * (0.62 + 1.1 * ((i * 0.618) % 1)) + (t < tM ? Math.PI * 0.15 : 0);
+        const v = 110 + 120 * ((i * 0.41) % 1);
+        const k = 0.7 + 0.5 * ((i * 0.29) % 1);
+        tl.set(g, { x, y, scale: k }, 0);
+        tl.fromTo(g, { opacity: 1, x, y }, { keyframes: { x: [x + Math.cos(ang) * v * 0.6, x + Math.cos(ang) * v], y: [y + Math.sin(ang) * v * 0.6 - 30, y + Math.sin(ang) * v * 0.4 + 120] }, duration: 0.42, ease: 'none', immediateRender: false }, t);
+        tl.set(g, { opacity: 0 }, t + 0.42);
+      }
+      for (let t = tJ + 0.04, i = 0; t < tF; t += 0.12, i++) estouro(tl, cam, ...(t < tM ? CM : PK), t, { tam: 150, cor: i % 2 ? '#bfe6ff' : '#f0fbff', anel: i % 3 === 0, dur: 0.16 });
+      // e a água que escorre do Pikachu pra câmera
       [[720, 0], [760, 0.1], [740, 0.25], [780, 0.4], [730, 0.55]].forEach(([x, d]) => {
         const g = div(cam, 'gota');
         tl.set(g, { x, y: 1300 }, 0);
@@ -709,7 +788,6 @@
       anim(tl, jg, 'Hop', 6, t0, tP, { vel: 1.8, loop: false });
       tl.fromTo(jg.el, { x: 1200 }, { x: 830, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
       tl.fromTo(jg.corpo, { y: 0 }, { keyframes: { y: [-200, 0] }, duration: tP - t0, ease: 'power1.inOut', immediateRender: false }, t0);
-      op(canetaV, tP);
       quadro(tl, jg, 'Idle', 0, 0, tP);
       tarja('JIGGLYPUFF', 'RESERVA', T(15, 1), T(16, 0));
       const [x, y] = P(830, BANCO - 240);
@@ -717,8 +795,8 @@
       salto(jg, T(15, 5), 30, 0.24);
     }
     // 16 · a canção de ninar: o Jigglypuff canta (as notas voam pra briga), a nuvem some (1) e cada um cai no sono e tomba
-    //      (linhas 2 a 5); o Psyduck não: a dor de cabeça segura ele acordado. Na 10 o Jigglypuff percebe que ninguém
-    //      ouviu: incha, avermelha e treme
+    //      (linhas 2 a 5); o Psyduck não: a dor de cabeça segura ele acordado. Na 10 ele termina a canção, feliz (um
+    //      pulinho); quem percebe que ninguém ouviu é o punch-in do 17
     const DORMEM = [
       // [ator, linha em que dorme, quanto tomba (graus), onde sai o Z]
       [pk, 2, 18, 470, 1110],
@@ -747,51 +825,60 @@
       anim(tl, ps, 'Charge', 0, t0, T(16, 14), { vel: 0.6 });
       tl.to(ps.corpo, { keyframes: { rotation: [-6, 6, -6, 6, 0] }, duration: 1.6, ease: 'sine.inOut' }, t0 + 0.2);
       anim(tl, ps, 'Idle', 0, T(16, 14), T(19, 0));
-      const tB = T(16, 10);
-      tl.to(jg.corpo, { scale: 1.25, duration: 0.25, ease: 'back.out(3)' }, tB);
-      tl.set(jg.spr, { filter: BRAVO }, tB);
-      op(raivaV, tB);
-      tl.to(jg.el, { keyframes: { x: [842, 818, 838, 822, 830] }, duration: 0.4, ease: 'none' }, tB + 0.25);
+      salto(jg, T(16, 10), 40, 0.26);
     }
-    // 17 · punch-in no Snorlax (que já dormia antes de tudo): o Jigglypuff, ofendido, sobe nele e RISCA o bigodinho a
-    //      caneta, pixel por pixel (linhas 2 a 12), do meio pras pontas; na 13 pula, satisfeito
+    // 17 · punch-in no Jigglypuff (casa com a trilha): ele olha pra um lado e pro outro (linhas 1 e 3) e percebe que todo
+    //      mundo dormiu na canção dele; de 0 a 11 vai inchando e avermelhando, tremendo cada vez mais; na 9 a CHALEIRA
+    //      apita: o vapor sobe da cabeça em jorro; na 12 a bufada HMPF!: amassa, solta duas nuvens de vapor pros lados e a
+    //      veia pipoca; fica estufado, tremendo, até o fim do compasso
     {
       const t0 = T(17, 0);
-      plano(t0, [560, 1086], 820);
-      tl.set(jg.corpo, { scale: 1 }, t0);
-      op(canetaV, t0, false);
-      // o pixel (x, y) do Snorlax no vestiário: o quadro começa em (364, 850) e cada pixel tem 11 px
-      const P = ([x, y]) => [364 + 11 * x + 5.5, 850 + 11 * y + 5.5];
-      const px = [[16, 23], [15, 23], [17, 23], [14, 23], [18, 23], [13, 23], [19, 23], [12, 23], [20, 23], [11, 22], [21, 22]];
-      const ta = T(17, 2);
-      const tb = T(17, 12);
-      const pen = div(cam, '', 'position:absolute;left:0;top:0;z-index:18;width:22px;height:200px;margin:15px 0 0 -11px;box-sizing:border-box;background:#2b2f45;border:4px solid #0e1430;border-radius:5px 5px 3px 3px;transform-origin:50% -15px');
-      div(pen, '', 'position:absolute;left:2px;top:-15px;width:10px;height:15px;background:#07070f;border:3px solid #0e1430;border-bottom:none;border-radius:5px 5px 0 0;margin-left:-1px');
-      div(pen, '', 'position:absolute;left:-4px;bottom:-4px;width:22px;height:25px;background:#e8423f;border:4px solid #0e1430;border-radius:3px');
-      op(pen, 0, false);
-      op(pen, t0);
-      op(pen, T(18, 0), false);
-      tl.set(pen, { rotation: -27 }, 0);
-      const [x0, y0] = P(px[0]);
-      tl.fromTo(jg.el, { x: 800, y: BANCO }, { x: x0 + 110, y: 1200, duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
-      salto(jg, t0, 120, ta - t0);
-      tl.fromTo(pen, { x: 760, y: 1100 }, { x: x0, y: y0, duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
-      px.forEach((q, i) => {
-        const t = ta + ((tb - ta) * i) / px.length;
-        const [x, y] = P(q);
-        const d = pix(sn, 'Idle', [[q[0], q[1], 1, 1, TINTA]], { borda: false });
-        op(d, 0, false);
-        op(d, t);
-        tl.to(pen, { x, y, duration: 0.05, ease: 'none' }, t - 0.05);
-        tl.to(jg.el, { x: x + 110, duration: 0.05, ease: 'none' }, t - 0.05);
-      });
-      tl.to(pen, { x: P(px.at(-1))[0] + 80, y: 1030, rotation: -14, duration: 0.3, ease: 'power2.out' }, tb);
-      tl.to(jg.el, { x: P(px.at(-1))[0] + 130, duration: 0.3, ease: 'power2.out' }, tb);
-      salto(jg, T(17, 13), 50, 0.3);
+      const tC = T(17, 9);
+      const tH = T(17, 12);
+      plano(t0, [830, 1110]);
+      quadro(tl, jg, 'Idle', 6, 0, T(17, 1));
+      quadro(tl, jg, 'Idle', 2, 0, T(17, 3));
+      quadro(tl, jg, 'Idle', 0, 0, T(17, 5));
+      zzz(t0 + 0.1, 0, 650, 860, 1);
+      zzz(T(17, 4), 1, 650, 860, 1);
+      for (const [x, y, d] of [[470, 1110, 0.3], [640, 1330, 0.7]]) zzz(t0 + d, 0, x, y, 0.7);
+      // a bexiga enchendo (0 a 11), em degraus pequenos, e a cor subindo
+      tl.fromTo(jg.corpo, { scale: 1 }, { scale: 1.5, duration: T(17, 11) - t0, ease: 'power1.in', immediateRender: false }, t0);
+      tl.set(jg.spr, { filter: BRAVO1 }, T(17, 4));
+      tl.set(jg.spr, { filter: BRAVO }, T(17, 8));
+      tl.to(jg.el, { keyframes: { x: [834, 827, 833, 828, 830] }, duration: 0.5, ease: 'none' }, T(17, 4));
+      tl.to(jg.el, { keyframes: { x: [840, 820, 841, 819, 839, 821, 830] }, duration: 0.45, ease: 'none' }, T(17, 8));
+      // a chaleira (9): um jorro de vapor saindo do alto da cabeça, subindo
+      for (let i = 0; i < 7; i++) {
+        const b = bufo(cam, 10);
+        const t = tC + 0.05 * i;
+        const [x, y] = [805 + (i % 2 ? 12 : -12), 1262 - 300];
+        tl.set(b, { x, y, opacity: 0 }, 0);
+        tl.fromTo(b, { opacity: 1, x, y, scale: 0.5 }, { x: x + (i % 2 ? 30 : -30), y: y - 260, scale: 1.4, duration: 0.4, ease: 'power1.out', immediateRender: false }, t);
+        tl.to(b, { opacity: 0, duration: 0.1 }, t + 0.3);
+      }
+      // a bufada HMPF! (12): amassa e volta, duas nuvens grandes pros lados, a veia
+      tl.fromTo(jg.corpo, { scaleX: 1.62, scaleY: 1.36 }, { scaleX: 1.5, scaleY: 1.5, duration: 0.3, ease: 'elastic.out(1, 0.45)', immediateRender: false }, tH);
+      for (const lado of [-1, 1]) {
+        const b = bufo(cam, 14);
+        const [x, y] = [830 + lado * 150 - 35, 1262 - 170];
+        tl.set(b, { x, y, opacity: 0 }, 0);
+        tl.fromTo(b, { opacity: 1, x, y, scale: 0.6 }, { x: x + lado * 170, y: y - 60, scale: 1.4, duration: 0.4, ease: 'power2.out', immediateRender: false }, tH);
+        tl.to(b, { opacity: 0, duration: 0.12 }, tH + 0.3);
+      }
+      const r = raiva(cam, 10);
+      tl.set(r, { x: 830 - 140, y: 1262 - 300, opacity: 0 }, 0);
+      op(r, T(17, 8));
+      tl.fromTo(r, { scale: 0.4 }, { scale: 1, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(17, 8));
+      op(r, T(18, 0), false);
+      op(raivaV, tH);
+      tl.fromTo(raivaV, { scale: 0.4 }, { scale: 1, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, tH);
+      tl.to(jg.el, { keyframes: { x: [842, 818, 840, 820, 830] }, duration: 0.4, ease: 'none' }, tH + 0.3);
     }
     // 19 · o timer: o Psyduck aperta a câmera (2: a luz pisca, a telinha volta) e corre pra fora (3, linha 4); os bips do
     //      3 (4) e do 2 (8) acordam todo mundo, que corre pro lugar da foto: [Squirtle, Pikachu] Magikarp [Ditto], o
-    //      Jigglypuff no colo do Snorlax (que segue dormindo, de bigode) e o Psyduck sobe no banco (12)
+    //      Jigglypuff (bravo até o bip do 2, quando desincha) no colo do Snorlax, que segue dormindo, e o Psyduck sobe no
+    //      banco (12)
     const timer = (x, y, n, t, t1) => {
       const b = div(cam, 'timer');
       b.textContent = n;
@@ -803,8 +890,6 @@
       const t0 = T(19, 0);
       const t2 = T(19, 8);
       plano(t0);
-      tl.set(jg.el, { x: 800, y: BANCO }, t0);
-      op(canetaV, t0);
       zzz(t0 + 0.1);
       for (const [, , , zx, zy] of DORMEM) zzz(t0 + 0.1 + (zx % 3) * 0.1, 0, zx, zy, 0.7);
       quadro(tl, ps, 'Idle', 6, 0, t0);
@@ -824,8 +909,9 @@
       anim(tl, ps2, 'Idle', 0, T(19, 12), FIM, { vel: 0.6 });
       tl.fromTo(ps2.el, { y: BANCO + 200 }, { y: BANCO, duration: 0.25, ease: 'back.out(1.6)', immediateRender: false }, T(19, 12));
       // 2: acordam num pulo (o Jigglypuff desincha) e vão pro lugar da foto
-      tl.set(jg.spr, { filter: 'none' }, t2);
+      tl.set(jg.spr, { filter: BRAVO1 }, t2);
       op(raivaV, t2, false);
+      tl.to(jg.corpo, { scale: 1, duration: 0.2, ease: 'power2.out' }, t2);
       tl.set(pk.spr, { filter: 'none' }, t2);
       DORMEM.forEach(([a], i) => tl.to(a.corpo, { rotation: 0, duration: 0.12, ease: 'power2.out' }, t2 + 0.02 * i));
       anim(tl, sq, 'Idle', 0, t2, FIM, { vel: 0.6 });
@@ -840,16 +926,16 @@
       tl.fromTo(dq.el, { x: 380 }, { x: 720, duration: 0.45, ease: 'none', immediateRender: false }, t2 + 0.08);
       salto(dq, t2 + 0.08, 230, 0.45);
       poeira(tl, cam, 720, CHAO, t2 + 0.53, { n: 6, r: 100, tam: 36 });
-      tl.fromTo(jg.el, { x: 800, y: BANCO }, { x: 540, y: BANCO + 70, duration: 0.4, ease: 'none', immediateRender: false }, t2 + 0.1);
+      tl.fromTo(jg.el, { x: 830, y: BANCO }, { x: 540, y: BANCO + 70, duration: 0.4, ease: 'none', immediateRender: false }, t2 + 0.1);
       salto(jg, t2 + 0.1, 140, 0.4);
       anim(tl, jg, 'Idle', 0, t2, FIM, { vel: 0.6 });
     }
-    // 20 · punch-in no capitão, já no lugar da foto: NÃO TÁ FALTANDO NINGUÉM, NÉ?
+    // 20 · punch-in no capitão, já no lugar da foto: NÃO TÁ FALTANDO NINGUÉM, NÉ? (o quadro desce o bastante pra sobrar
+    //      parede em cima da cabeça do Snorlax: o texto mora lá, no alto, sem tapar ninguém)
     {
       const t0 = T(20, 0);
-      const P = plano(t0, [540, 1320]);
-      const [x, y] = P(540, CHAO - 290);
-      fala(VEST, 'NÃO TÁ FALTANDO<br>NINGUÉM, NÉ?', t0 + 0.05, T(21, 0), x, y, 96);
+      plano(t0, [540, 1320], 1260);
+      fala(VEST, 'NÃO TÁ FALTANDO<br>NINGUÉM, NÉ?', t0 + 0.05, T(21, 0), 540, 330, 96);
       tl.to(mk.corpo, { keyframes: { scaleY: [1.08, 1], scaleX: [0.95, 1] }, duration: 0.3, ease: 'power1.out' }, t0 + 0.05);
     }
     // 21 · todos se olham (linhas 1, 3 e 5, um pra cada lado), e juntos: NÃO! (8). O bip do 1 (12) e as poses: o
@@ -1028,19 +1114,18 @@
       gsap.set(raiva(b.corpo, 6), { x: -60, y: -300 });
       cai(p, T(14, 0));
     }
-    // 18 · FOTO 5: todo mundo dormindo (tombados, os "z"); o Snorlax de bigode, e o Jigglypuff bravo no banco, inchado e
-    //      vermelho, com a caneta na mão
+    // 18 · FOTO 5: todo mundo dormindo (tombados, os "z"), e o Jigglypuff bravo no banco, estufado, vermelho, bufando
     {
       const p = polaroide('FOTO 5', { rot: 5, dx: 10, dy: -4 });
       fundoFoto(p.f, { banco: 380 });
-      const s6 = fa(p.f, 143, 450, 404, 9, 2, 'Idle', 0, 0);
-      pix(s6, 'Idle', BIGODE, { borda: false });
+      fa(p.f, 143, 450, 404, 9, 2, 'Idle', 0, 0);
       zFoto(p.f, 550, 90);
-      const j6 = fa(p.f, 39, 680, 404, 9, 3, 'Idle', 0, 0);
+      const j6 = fa(p.f, 39, 690, 404, 9, 3, 'Idle', 0, 0);
       j6.spr.style.filter = BRAVO;
-      gsap.set(j6.corpo, { scale: 1.2 });
-      pix(j6, 'Idle', CANETA);
-      gsap.set(raiva(j6.corpo, 7), { x: 40, y: -240 });
+      gsap.set(j6.corpo, { scale: 1.5 });
+      gsap.set(raiva(j6.corpo, 7), { x: 20, y: -175 });
+      gsap.set(bufo(p.f, 7), { x: 560, y: 210 });
+      gsap.set(bufo(p.f, 7), { x: 790, y: 200 });
       const q = fa(p.f, 7, 170, 575, 9, 6, 'Idle', 2, 0);
       oculosLado(q);
       const d = fa(p.f, 7, 310, 575, 9, 6, 'Idle', 2, 0);
@@ -1056,7 +1141,7 @@
     }
     // 22–23½ · A FOTO FINAL (3 s; clique no 1, o "tan-tan-TAAN", "awww" e aplauso): uma foto de time de verdade, simétrica,
     //         numa foto 3:2, todos na escala 8 menos o Snorlax (11, o grandão do meio). Atrás, no banco: o Snorlax no
-    //         centro dormindo (bigodinho rabiscado) com o Jigglypuff no colo, de caneta na mão; o Psyduck em pé no banco à
+    //         centro dormindo com o Jigglypuff no colo, emburrado (rosa avermelhado); o Psyduck em pé no banco à
     //         esquerda, segurando a cabeça; à direita, a porta, com o Slowpoke BORRADO entrando. Na frente, agachados: o
     //         Magikarp NO CENTRO com a medalha estufada; à esquerda o Squirtle de óculos abaixados e o Pikachu fazendo
     //         chifrinho nele; à direita, colado no capitão, o Ditto (um Squirtle idêntico)
@@ -1075,10 +1160,9 @@
       const sp = fa(f, 79, 720, BACK, E, 1, 'Walk', 6, 1);
       gsap.set(sp.el, { filter: 'blur(2.5px)' });
       fa(f, 54, 220, BACK, E, 3, 'Charge', 0, 5);
-      const snf = fa(f, 143, 450, BACK + 6, 11, 2, 'Idle', 0, 0);
-      pix(snf, 'Idle', BIGODE, { borda: false });
+      fa(f, 143, 450, BACK + 6, 11, 2, 'Idle', 0, 0);
       const jgf = fa(f, 39, 450, BACK + 4, E, 3, 'Idle', 0, 0);
-      pix(jgf, 'Idle', CANETA);
+      jgf.spr.style.filter = BRAVO1;
       zFoto(f, 600, 40, 56);
       oculosFoto(fa(f, 7, 200, FRENTE, E, 9, 'Idle', 0, 0));
       const pkf = fa(f, 25, 282, FRENTE, E, 7, 'Pose', 0, 1);

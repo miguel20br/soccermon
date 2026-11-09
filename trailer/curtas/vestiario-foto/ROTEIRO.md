@@ -1,4 +1,4 @@
-# Vestiário do Pallet FC · EP 1 "A foto do time" (54 s, 3ª versão do episódio inteiro, 08/11/2026)
+# Vestiário do Pallet FC · EP 1 "A foto do time" (54 s, 4ª versão do episódio inteiro, 08/11/2026)
 
 **Por que existe:** o Miguel achou o "O atrasado" (v3) "nhe": câmera longe, ninguém conversa, pura mímica. Este é o
 novo 1º episódio, no formato da [bíblia](../BIBLIA.md) ("Formato do Vestiário (08/11)"): **sitcom multicâmera**.
@@ -46,26 +46,46 @@ esquecendo de ninguém, né? e aí tirar a foto". Nesta versão:
    embaixo do selo (soccermon.com fica legível o tempo todo), grilo, …JÁ TIRARAM?, a plateia ri e o vídeo acaba ali.
 5. Na FOTO FINAL o Ditto-Squirtle chegou pra perto do capitão (x 612, era 670).
 
+**Retorno da 3ª versão (54 s, 08/11):** "curti bastante". Só ajustes, sem mexer na grade (27 compassos de 2 s; a
+música está sendo composta em cima dela):
+1. **Jato de verdade:** o arco fino que caía ("tá mijando no Pikachu") virou um jato de pressão reto: um cone grosso
+   que abre da boca pro alvo (contorno, borda azul, azul claro, núcleo branco), riscos de fluxo correndo no núcleo, um
+   anel de pressão saindo da boca a cada pulso e a espessura pulsando. Bate na câmera (7) e sobe pro Pikachu (9); spray
+   de gotas e um respingo em cada impacto; o Squirtle recua com o tranco do disparo. A tarja SQUIRTLE · ALA sai antes do
+   disparo (cobria o jato na câmera).
+2. **Sem bigode:** o Jigglypuff não desenha mais no Snorlax (a pixel art não ficou boa). O punch-in do 17 é nele:
+   olha pra um lado e pro outro, percebe que todo mundo dormiu na canção dele e vai inchando de raiva (linhas 0 a 11),
+   cada vez mais vermelho e tremendo; a chaleira apita na 9 (o vapor sobe da cabeça em jorro) e na 12 ele bufa, HMPF!
+   (amassa, duas nuvens de vapor pros lados, a veia). Casado com a trilha nova. Fica bravo e estufado até o bip do 2, quando desincha.
+   A foto 5 é todo mundo dormindo e ele vermelho, bufando. Bigode e caneta saíram de todos os planos e da FOTO FINAL,
+   onde o Snorlax só dorme e o Jigglypuff fica no colo dele, emburrado (rosa avermelhado; a veia saiu porque caía na
+   cara do Snorlax).
+3. **O raio lê na hora:** um zigue-zague grande (240×480) amarelo com núcleo branco e contorno escuro, do Pikachu até a
+   câmera, estalando entre dois desenhos; a tela pisca amarela duas vezes; a telinha da câmera estoura em branco;
+   faíscas (quadradinhos e estrelas amarelas) pulam da câmera e só depois vem a fumaça.
+4. **Legibilidade:** o NÃO TÁ FALTANDO NINGUÉM, NÉ? subiu pro alto do quadro; o punch-in do 20 desce o enquadramento
+   pra sobrar parede em cima da cabeça do Snorlax, e o texto mora lá, sem tapar ninguém.
+
 **Elenco:** Snorlax (143, goleiro, dorme), Magikarp (129, capitão, medalha), Pikachu (25, quer aparecer), Squirtle (7,
 marrento de óculos escuros), Ditto (132, "EU TAMBÉM!", copia quem está do lado), Jigglypuff (39, quer cantar; todo
-mundo dorme e ele rabisca a cara de quem dormiu), Psyduck (54, técnico, a dor de cabeça) e Slowpoke (79, sempre
+mundo dorme e ele fica furioso), Psyduck (54, técnico, a dor de cabeça) e Slowpoke (79, sempre
 atrasado).
 
 ## A cadeia de causa e efeito
 
-0. O **Snorlax** já dorme no banco desde antes de tudo (por isso ele é o alvo do bigode no fim).
+0. O **Snorlax** já dorme no banco desde antes de tudo.
 1. O **Psyduck** arruma a câmera no tripé: FOTO DO TIME! → o **Magikarp**, capitão, pula na frente da lente pra
    aparecer com a medalha → **foto 1**: só a medalha → o Psyduck segura a cabeça.
 2. O **Pikachu**, querendo aparecer também, pula em cima do Magikarp e, na empolgação, o choquinho acerta a câmera →
    **foto 2**: queimada; a câmera solta fumaça.
-3. Por causa da fumaça, o **Squirtle** (de óculos, tranquilo) apaga a câmera com o jato d'água, e encharca o Pikachu
-   junto → **foto 3**: o Pikachu encharcado, o Squirtle abaixando os óculos.
+3. Por causa da fumaça, o **Squirtle** (de óculos, tranquilo) apaga a câmera com um jato de pressão, e encharca o
+   Pikachu junto → **foto 3**: o Pikachu encharcado, o Squirtle abaixando os óculos.
 4. O **Ditto** vê o Squirtle fazendo pose de descolado e copia: EU TAMBÉM!, POOF, um Squirtle idêntico de óculos → o de
    verdade fica bravo, os dois discutem cara a cara, o Pikachu molhado e o Magikarp entram e vira nuvem de briga →
    **foto 4**: dois Squirtles se encarando.
 5. Por causa da gritaria, o **Jigglypuff** entra: CALMA, GENTE…, e canta → todo mundo dorme (o Psyduck não: a dor de
-   cabeça segura ele acordado) → ninguém ouviu: ele, ofendido, rabisca o bigode no Snorlax, que já dormia → **foto 5**:
-   todo mundo dormindo, o Snorlax de bigode.
+   cabeça segura ele acordado) → ninguém ouviu: ele percebe e incha de raiva, vermelho, bufando → **foto 5**: todo
+   mundo dormindo e o Jigglypuff bravo.
 6. O Psyduck liga o timer e corre pro banco; os bips do 3 e do 2 acordam todo mundo, que corre pra pose → o Magikarp:
    NÃO TÁ FALTANDO NINGUÉM, NÉ? → todos se olham → NÃO! → o bip do 1, FLASH: **FOTO FINAL** (com o Slowpoke borrado na
    porta, que ninguém viu), "awww" e aplauso.
@@ -75,8 +95,10 @@ atrasado).
 
 **Tempo: 120 BPM, 4/4, compasso = 2 s. Um plano por compasso**, menos a abertura (dois compassos) e a FOTO FINAL e a
 tela final, que dividem o resto (3 s e 7 s). Aberto = o vestiário inteiro; punch-in = a câmera em escala 2 no ponto
-indicado. Trilha **provisória** `scripts/musica/pecas/livre-foto.mjs` (os timbres e a vinheta do "O atrasado", funk em
-Fá).
+indicado. Trilha `scripts/musica/pecas/livre-foto.mjs`: o **tema do Vestiário** em Fá (2 compassos, exportado como
+`TEMA`, a abertura de todo episódio: metais em terças, xilofone quicando nas letras, BOING na bolinha, a toalha
+estalando no ta-DÁ), o funk da casa nas entradas, um som pra cada um, a canção de ninar na caixinha com a banda dormindo
+junto, a chaleira e o HMPF! do Jigglypuff, os bips subindo; o Ré7 sobe um tom e a FOTO FINAL e a tela final são em Sol.
 
 | C | Seg. | Plano | Na tela | Texto | Som |
 |---|---|---|---|---|---|
@@ -86,31 +108,30 @@ Fá).
 | 4 | 8,0 | **Punch-in na lente** | O Magikarp pula pra frente da câmera (pousa na 6), estufa a medalha (8), brilho; a telinha mostra a medalha | MAGIKARP · CAPITÃO | aplauso, o grito, BOING, sobe, apito, sino |
 | 5 | 10,0 | **Foto 1** | Só a medalha | FOTO 1 | clique; riso |
 | 6 | 12,0 | **Punch-in Psyduck** | Segura a cabeça (o Magikarp ainda estufado atrás) | — | a tuba desce, riso |
-| 7 | 14,0 | **Aberto** | O Pikachu pula em cima do Magikarp (6), que amassa; o choquinho (10); o raio desce na câmera (12): faísca, a telinha apaga, fumaça | PIKACHU · ALA | aplauso, o grito, BOING, zaps, bzzt, tímpano |
+| 7 | 14,0 | **Aberto** | O Pikachu pula em cima do Magikarp (6), que amassa; o choquinho (10); o RAIO grande desce na câmera (12): a tela pisca amarela, a telinha estoura e apaga, faíscas, depois a fumaça | PIKACHU · ALA | aplauso, o grito, BOING, zaps, bzzt, tímpano |
 | 8 | 16,0 | **Foto 2** | Queimada: o Pikachu em cima do Magikarp, tostados, borda queimada, fumaça | FOTO 2 | clique; riso |
-| 9 | 18,0 | **Aberto** | A câmera fumegando; o Squirtle entra de óculos (0 a 6) e dá o jato (7) no Pikachu, a água escorre na câmera, vapor (9) | SQUIRTLE · ALA | aplauso, o baixo arrastado, o grito, a água, riso |
+| 9 | 18,0 | **Aberto** | A câmera fumegando; o Squirtle entra de óculos (0 a 6) e dispara o jato de pressão (7), com recuo: acerta a câmera, sobe pro Pikachu (9), spray e respingo; a água escorre na câmera, vapor | SQUIRTLE · ALA | aplauso, o baixo arrastado, o grito, a água, riso |
 | 10 | 20,0 | **Foto 3** | O Pikachu encharcado no Magikarp; o Squirtle abaixando os óculos | FOTO 3 | clique; risada grande |
 | 11 | 22,0 | **Punch-in Squirtle** | A pose: os óculos descem (2, 6, 10); no banco, o Ditto vê e se encanta (12) | — | o metal escorrega, sino |
 | 12 | 24,0 | **Punch-in Squirtle** | O Ditto grita; POOF (6): um Squirtle idêntico; o de verdade vira (10) e fica bravo (13) | EU TAMBÉM! · DITTO · RESERVA | o grito, o kazoo, o POOF, riso |
 | 13 | 26,0 | **Punch-in na briga** | O clone desce do banco; os dois se empurram (2, 4, 6); o Pikachu pula pra briga (8), o Magikarp vem (10) e vira nuvem | — | o funk, os gritos (a mesma voz), tímpano, prato, riso |
 | 14 | 28,0 | **Foto 4** | Dois Squirtles cara a cara, bravos; o Pikachu e o Magikarp pulando, poeira | FOTO 4 | clique; risada grande |
 | 15 | 30,0 | **Aberto** | A nuvem ainda briga; o Jigglypuff pula no banco (0 a 4) e pede (5) | CALMA, GENTE… · JIGGLYPUFF · RESERVA | aplauso, o grito, o piano doce |
-| 16 | 32,0 | **Aberto** | A canção: a nuvem some (1), cada um tomba dormindo (2 a 5); o Psyduck segura a cabeça, acordado; o Jigglypuff incha e avermelha (10) | — | a canção de ninar, roncos, tímpano, riso |
-| 17 | 34,0 | **Punch-in Snorlax** | O Jigglypuff sobe nele e risca o bigode pixel por pixel (2 a 12) | — | a caneta, ronco, risada grande |
-| 18 | 36,0 | **Foto 5** | Todo mundo dormindo, o Snorlax de bigode, o Jigglypuff vermelho de caneta na mão | FOTO 5 | clique; riso |
+| 16 | 32,0 | **Aberto** | A canção: a nuvem some (1), cada um tomba dormindo (2 a 5); o Psyduck segura a cabeça, acordado; o Jigglypuff termina, feliz (10) | — | a canção de ninar, roncos, tímpano, riso |
+| 17 | 34,0 | **Punch-in Jigglypuff** | Olha pra um lado (1) e pro outro (3): todo mundo dormiu; incha e avermelha (0 a 11), tremendo; o vapor sobe da cabeça (9); a bufada: amassa, nuvens pros lados, a veia (12) | — | a bexiga enchendo, a canção de ninar em menor, a chaleira (9), HMPF! (12) |
+| 18 | 36,0 | **Foto 5** | Todo mundo dormindo e o Jigglypuff vermelho, estufado, bufando | FOTO 5 | clique; riso |
 | 19 | 38,0 | **Aberto** | O Psyduck aperta (2) e corre (4); 3 (4); 2 (8): todos acordam e vão pro lugar da foto; o Psyduck aparece no banco (12) | 3 · 2 | os bips, prato, a caixa sobe |
-| 20 | 40,0 | **Punch-in capitão** | O Magikarp, já no lugar da foto | NÃO TÁ FALTANDO NINGUÉM, NÉ? | o grito, o tímpano rufando |
+| 20 | 40,0 | **Punch-in capitão** | O Magikarp, já no lugar da foto; o texto no alto, em cima da cabeça do Snorlax | NÃO TÁ FALTANDO NINGUÉM, NÉ? | o grito, o tímpano rufando |
 | 21 | 42,0 | **Aberto** | Todos se olham (1, 3, 5); juntos (8); o 1 e as poses (12) | NÃO! · 1 | o bloco, o NÃO! (os gritos juntos), prato, o bip |
 | 22–23½ | 44,0 | **FOTO FINAL** (3 s) | Clique, FLASH: a polaroide cai na pilha e aproxima devagar | PALLET FC | "tan-tan-TAAN", "awww", aplauso |
 | 23½–27 | 47,0 | **Tela final** (7 s) | O logo com a piscada SOC-CER-MON, a frase, o site, o selo, o crédito; o Slowpoke entra devagar pela direita (24½), para no meio (25½), inclina a cabeça; a fala (26, linha 2) | Temos que chutar! · soccermon.com · …JÁ TIRARAM? | SOC-CER-MON, silêncio, a tuba arrastada, o grilo, o grito lento, risada grande |
 
 **A FOTO FINAL (a composição).** Polaroide deitada, foto 3:2 (900×600), quadro parado, todos na escala 8 menos o
-Snorlax (11). Atrás, no banco: o **Snorlax** no centro, dormindo, de **bigodinho**; o **Jigglypuff** no colo, de
-caneta na mão; o **Psyduck** em pé no banco à esquerda, segurando a cabeça; à direita a porta, com o **Slowpoke
+Snorlax (11). Atrás, no banco: o **Snorlax** no centro, dormindo; o **Jigglypuff** no colo, emburrado (rosa
+avermelhado); o **Psyduck** em pé no banco à esquerda, segurando a cabeça; à direita a porta, com o **Slowpoke
 BORRADO** entrando. Na frente: o **Magikarp no centro** com a medalha estufada e um brilho; à esquerda o **Squirtle**
 de óculos abaixados e o **Pikachu** fazendo chifrinho nele; à direita, colado no capitão, o **Ditto** (um Squirtle
-idêntico). No vestiário a ordem é a mesma: [Squirtle 240, Pikachu 340] Magikarp 540 [Ditto 720], o Jigglypuff no colo
-(abaixo do bigode) e o Psyduck no banco (escala 10: mais longe da câmera do que no tripé, escala 14).
+idêntico). No vestiário a ordem é a mesma: [Squirtle 240, Pikachu 340] Magikarp 540 [Ditto 720], o Jigglypuff no colo e o Psyduck no banco (escala 10: mais longe da câmera do que no tripé, escala 14).
 
 **O Ditto virado Squirtle.** O mesmo sprite do Squirtle (folha 7) com os mesmos óculos (`oculos()`), sem diferença
 nenhuma. Virado pro outro lado = o Idle 2 com o ator espelhado (`scaleX: -1` no `el`), assim os óculos de lado
@@ -119,9 +140,6 @@ acompanham.
 **Os óculos do Squirtle.** Pixel art na escala do sprite; seguem o sprite quadro a quadro (`segue()`): o `gerar.cjs`
 grava em `img/cabeca.js` o canto da cabeça em cada quadro, de frente (Idle/0) ou olhando pra direita (vista 2). Abaixados
 = 3 px pra baixo.
-
-**O bigode.** Linha 23 do Idle 0 do Snorlax, em cima da boca (24), com as pontas pra cima na 22 (`BIGODE`); no punch-in
-do compasso 17 ele aparece pixel por pixel, do meio pras pontas.
 
 Regras: uma coisa por vez; cada ideia ≥ 2 s; corte seco entre planos (o flash só nas fotos e na tela final); sprites em
 escala inteira (o punch-in é escala 2 da câmera inteira); texto de 2 a 5 palavras (a fala do capitão tem 5), sem emoji,
