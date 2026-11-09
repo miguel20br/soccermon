@@ -484,7 +484,7 @@
     /* câmera lenta: os raios giram devagar */
     animation-duration: 60s;
 }
-:is(.nf-max, .nf-bench, .nf-packs, .nf-rota, .nf-dex) .mm-stage {
+:is(.nf-max, .nf-bench, .nf-packs, .nf-rota, .nf-dex, .nf-evento) .mm-stage {
     z-index: 4;
 }
 .nf-ball {
@@ -722,6 +722,34 @@
 .nf-punt {
     left: 40%;
     top: 26%;
+}
+
+/* o evento da semana: o fundo na cor do tipo, os raios e o ícone grande em cima dos três Pokémon */
+.nf-evento {
+    background: radial-gradient(
+        circle at 50% 60%,
+        color-mix(in srgb, var(--tc) 85%, white) 0%,
+        var(--tc) 45%,
+        color-mix(in srgb, var(--tc) 35%, #05060f) 100%
+    );
+}
+.nf-evento .mm-rays {
+    left: 50%;
+    top: 34%;
+    background: repeating-conic-gradient(rgb(255 255 255 / 18%) 0 6deg, transparent 6deg 18deg);
+}
+.nf-type {
+    position: absolute;
+    z-index: 4;
+    left: 50%;
+    top: 32%;
+    translate: -50% -50%;
+}
+.nf-type img {
+    display: block;
+    width: calc(var(--px) * 30);
+    height: calc(var(--px) * 30);
+    filter: drop-shadow(0 calc(var(--px) * 2) 0 var(--cb-ink));
 }
 
 :root[data-reduce-motion="true"] :is(.nf-ball, .nf-slot, .nf-max .mm-rays, .nf-picks .on, .nf-rota .nf-walker) {

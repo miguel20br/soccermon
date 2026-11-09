@@ -17,28 +17,58 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Time Ultimate (abre em 27/11)',
                 lines: [
+                    'Meus pacotes: o pacote fica guardado até você abrir, e o Abrir todos abre a pilha de uma vez',
+                    'Pokémon Picks: escolha 1 de 3, com as cartas de costas até você virar',
+                    'Início em blocos e a aba Jogar: Batalhas de Treinador, e os outros modos em breve',
                     'O rival olha a força do seu time (média × química), não só a média',
                     'Sem rival à altura, a partida paga as Fichas do nível que ele alcançou',
                     'Mestre com o time do 1º mês: 60 ⇒ 36 Fichas por partida',
                 ],
             },
             {
-                title: 'Copa e partida',
+                title: 'Rota Índigo',
                 lines: [
-                    'Copa longa: quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela',
-                    'O golpe máximo do rival também chega em câmera lenta, como o seu',
+                    'Mapa largo: mais caminhos e casas novas (Treinador Ás, Zona Safari, Cassino de Celadon)',
+                    'A última parada vira escolha: Treino, Mercado do Planalto ou Centro',
+                    'Pular mostra o prêmio à vista: ₽, troca grátis no Mercado, rival −1, sorteios',
+                    'Centro sem ninguém pra tratar vira o PC do Bill',
+                    'Descanso do Treino vira Folga: +₽5 e quem está fora volta',
+                    'Pedra sem uso vai pra Mochila (ou vende por ₽4)',
+                    'Quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela',
                 ],
             },
             {
-                title: 'Avisos',
+                title: 'Evolução',
                 lines: [
-                    'Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo',
+                    'A carta que evolui não perde atributo: fica com o maior de cada um entre as formas',
+                    'Poliwhirl ⇒ Poliwrath: VEL 66 ⇒ 84',
+                    'A habilidade que mexe em atributo fica (o Gyarados mantém o Swift Swim)',
+                    'O selo de evolução mostra a posição da forma nova',
+                    'A ficha da carta mostra a linha evolutiva',
+                ],
+            },
+            {
+                title: 'Copa e partida',
+                lines: [
+                    'O golpe máximo do rival também chega em câmera lenta, como o seu',
+                    'O goleiro nunca fica de costas pro chute',
+                ],
+            },
+            {
+                title: 'Telas',
+                lines: [
+                    'Novidades em tela cheia: notícias com arte e as notas da versão',
+                    'Golpedex: os especiais e as bicudas do goleiro',
                     'Ainda não jogou a Copa do Dia de hoje? O JOGAR mostra ela primeiro',
+                    'Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo',
                 ],
             },
             {
                 title: 'Consertos',
-                lines: ['Celular em pé: a quadra que segue a bola travava em erro depois da partida'],
+                lines: [
+                    'Sortear de novo no rival devolvia as mesmas 3 cartas',
+                    'Celular em pé: a quadra que segue a bola travava em erro depois da partida',
+                ],
             },
         ],
     },
@@ -2623,28 +2653,58 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Team Ultimate (opens on 11/27)',
                 lines: [
+                    'My Packs: a pack waits until you open it, and Open all opens the whole stack',
+                    'Pokémon Picks: choose 1 of 3, cards face down until you flip them',
+                    'Home in blocks and the Play tab: Trainer Battles, with more modes coming soon',
                     "The rival looks at your team's strength (average × chemistry), not just the average",
                     'With no rival at your level, the match pays the Coins of the level it reached',
                     'Master with a 1st-month team: 60 ⇒ 36 Coins per match',
                 ],
             },
             {
-                title: 'Cup and match',
+                title: 'Indigo Road',
                 lines: [
-                    'Long cup: whoever leaves the bench leaves an empty slot, and the next signing takes it',
-                    "The rival's max move also comes in slow motion, like yours",
+                    'Wide map: more paths and new stops (Ace Trainer, Safari Zone, Celadon Game Corner)',
+                    'The last stop is a choice: Training, Plateau Market or Center',
+                    'Skip shows its reward up front: ₽, a free Market refresh, rival −1, rerolls',
+                    "A Center with no one to heal becomes Bill's PC",
+                    'Training rest becomes Day off: +₽5 and whoever is out comes back',
+                    'An unused stone goes to the Bag (or sells for ₽4)',
+                    'Whoever leaves the bench leaves an empty slot, and the next signing takes it',
                 ],
             },
             {
-                title: 'Warnings',
+                title: 'Evolution',
                 lines: [
-                    'Out of storage: the game warns that your progress is not being saved',
+                    'An evolving card never loses a stat: it keeps the highest of each across its forms',
+                    'Poliwhirl ⇒ Poliwrath: PAC 66 ⇒ 84',
+                    'An ability that changes stats stays (Gyarados keeps Swift Swim)',
+                    "The evolution badge shows the new form's position",
+                    "The card's sheet shows the evolution line",
+                ],
+            },
+            {
+                title: 'Cup and match',
+                lines: [
+                    "The rival's max move also comes in slow motion, like yours",
+                    'The keeper never turns his back on a shot',
+                ],
+            },
+            {
+                title: 'Screens',
+                lines: [
+                    "What's new goes full screen: news with art and the release notes",
+                    "Movedex: special moves and the keeper's punts",
                     "Haven't played today's Daily Cup? PLAY shows it first",
+                    'Out of storage: the game warns that your progress is not being saved',
                 ],
             },
             {
                 title: 'Fixes',
-                lines: ['Phone upright: the court that follows the ball got stuck in an error after the match'],
+                lines: [
+                    'Rerolling the rival pick gave back the same 3 cards',
+                    'Phone upright: the court that follows the ball got stuck in an error after the match',
+                ],
             },
         ],
     },

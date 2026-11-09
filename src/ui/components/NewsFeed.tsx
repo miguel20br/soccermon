@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { SPECIES } from '../../engine/data';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { plural } from '../../i18n';
@@ -16,11 +17,13 @@ import type { NewsArt, NewsCard, NewsTo } from '../news';
 import { type PatchNotes, patchNotes } from '../patch-notes';
 import { daysUntil, Scene, useMenuScene } from '../screens/ModeMenu';
 import { reduceMotionOn } from '../settings-sync';
+import { TYPE_COLOR } from '../type-colors';
 import { uiZoom } from '../ui-zoom';
 import { readUltimate } from '../ultimate/flag';
 import { PackArt } from './CardPack';
 import { HudIcon } from './MatchHud';
 import { PokeCard2 } from './PokeCard2';
+import { TypeIcon } from './TypeIcon';
 import '../news-feed.css';
 
 /*
@@ -48,7 +51,7 @@ const PICKS = [25, 6, 131].map((id) => ({ ...createInstance(id, new Rng(`noticia
  * As artes: cenas que o jogo já tem (Estádio e pacote do menu de modos) e as montadas aqui com os mesmos sprites.
  * `s` = escala do sprite; o pixel do cenário (`--px`) acompanha.
  */
-function Art({ art, s }: { art: NewsArt; s: number }) {
+function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: string }) {
     if (art === 'daily') return <Scene id="atual" scale={s} />;
     if (art === 'ultimate') return <Scene id="ultimate" scale={s} />;
     if (art === 'max')
@@ -151,6 +154,36 @@ function Art({ art, s }: { art: NewsArt; s: number }) {
                 </div>
             </div>
         );
+    if (art === 'evento') {
+        // o evento da semana: a cor e o ícone do tipo e três Pokémon dele (o primeiro, o do meio e o último da Dex)
+        const of = SPECIES.filter((sp) => sp.types.includes(type));
+        const trio = [of[0], of[of.length >> 1], of[of.length - 1]];
+        return (
+            <div className="mm-sc nf-evento" style={{ '--tc': TYPE_COLOR[type] } as CSSProperties} aria-hidden>
+                <i className="mm-rays" />
+                <span className="nf-type">
+                    <TypeIcon type={type} size={64} />
+                </span>
+                <div className="mm-stage">
+                    {trio.map((sp, i) => (
+                        <span
+                            key={sp.id}
+                            className="mm-pt"
+                            style={{ left: `${22 + i * 28}%`, top: i === 1 ? '90%' : '82%' }}
+                        >
+                            <i className="mm-shadow" />
+                            <FieldSprite
+                                id={sp.id}
+                                anim="Idle"
+                                dir={i === 0 ? 2 : i === 1 ? 0 : 6}
+                                scale={i === 1 ? s + 1 : s}
+                            />
+                        </span>
+                    ))}
+                </div>
+            </div>
+        );
+    }
     return <Bench s={s} />;
 }
 
@@ -223,7 +256,7 @@ function Slide({
             inert={!on}
         >
             <div className="nfs-art" style={{ '--s': s } as CSSProperties}>
-                <Art art={c.art} s={s} />
+                <Art art={c.art} s={s} type={c.type} />
             </div>
             <div className="nfs-copy">
                 {fresh && <span className="novo-seal nfs-new">{t('home.newsFeed.new')}</span>}

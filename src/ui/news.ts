@@ -1,3 +1,5 @@
+import { weeklyEventType } from '../engine/specials';
+import { typeName } from '../i18n';
 import type { Lang } from '../i18n/lang';
 import { utNow } from '../store/ultimate/clock';
 
@@ -7,7 +9,7 @@ import { utNow } from '../store/ultimate/clock';
  * ele que o save guarda como visto), com a arte de `NewsArt` e o destino de `NewsTo`. Fica leve de propósito: o botão
  * da barra de cima lê esta lista pra acender o pontinho; a arte e o carrossel só baixam ao abrir (NewsFeed.tsx).
  */
-export type NewsArt = 'daily' | 'max' | 'bench' | 'ultimate' | 'packs' | 'rota' | 'golpedex';
+export type NewsArt = 'daily' | 'max' | 'bench' | 'ultimate' | 'packs' | 'rota' | 'golpedex' | 'evento';
 /**
  * Pra onde o botão leva: `daily` = a Copa do Dia; `estadio`/`rota` = a Home naquela aba (a Rota é a Copa longa);
  * `golpedex` = a Coleção na Golpedex; `ultimate` = o Time Ultimate (fechado, o botão some e fica a contagem).
@@ -28,64 +30,44 @@ export interface NewsCard {
     cta?: Record<Lang, string>;
     /** Antes disso o cartão mostra a contagem no lugar do botão (Time Ultimate). */
     opensAt?: number;
+    /** O tipo em evento (arte `evento`). */
+    type?: string;
 }
 
 /** Estreia do Time Ultimate (o mesmo instante de `ULTIMATE_OPENS_AT`, ui/ultimate/flag.ts; teste em news.test.ts). */
 const UT_AT = Date.UTC(2026, 10, 27, 3);
 
+/**
+ * Só as notícias principais (Miguel, 09/11: "não enche linguiça"); o resto fica nas Notas da versão. O evento da
+ * semana entra na frente sozinho (`weekCard`), com o mesmo tipo do letreiro do Estádio.
+ */
 export const NEWS: NewsCard[] = [
     {
         id: 'ultimate-2711',
-        date: '2026-11-09',
+        date: '2026-11-17',
         until: '2026-12-31',
         title: { pt: 'Time Ultimate · 27/11', en: 'Team Ultimate · Nov 27' },
         text: {
-            pt: 'Abra pacotes e monte o time da temporada',
-            en: 'Open packs and build your season squad',
+            pt: 'Meus pacotes guarda o que você ganha, e no Pokémon Picks você escolhe 1 de 3',
+            en: 'My Packs keeps what you win, and in Pokémon Picks you choose 1 of 3',
         },
-        art: 'ultimate',
+        art: 'packs',
         to: 'ultimate',
-        cta: { pt: 'Jogar', en: 'Play' },
+        cta: { pt: 'Ver meus pacotes', en: 'See My Packs' },
         opensAt: UT_AT,
     },
     {
-        id: 'copa-do-dia',
-        date: '2026-11-09',
-        until: '2026-12-10',
-        title: { pt: 'Copa do Dia', en: 'Daily Cup' },
+        id: 'rota-nova',
+        date: '2026-11-17',
+        until: '2027-01-15',
+        title: { pt: 'Rota nova', en: 'New Road' },
         text: {
-            pt: 'A mesma copa pra todo mundo hoje, agora em destaque no JOGAR',
-            en: 'The same cup for everyone today, now up front on PLAY',
+            pt: 'Mapa mais largo, a Zona Safari e o Cassino no caminho da Copa longa',
+            en: 'A wider map, the Safari Zone and the Game Corner on the Long Cup path',
         },
-        art: 'daily',
-        to: 'daily',
-        cta: { pt: 'Jogar a Copa do Dia', en: 'Play the Daily Cup' },
-    },
-    {
-        id: 'max-rival-lento',
-        date: '2026-11-09',
-        until: '2026-12-10',
-        title: { pt: 'Golpe máximo do rival', en: "Rival's max move" },
-        text: {
-            pt: 'O golpe máximo do rival também chega em câmera lenta',
-            en: "The rival's max move now plays in slow motion too",
-        },
-        art: 'max',
-        to: 'estadio',
-        cta: { pt: 'Ver na copa', en: 'See it in a cup' },
-    },
-    {
-        id: 'banco-vaga-vazia',
-        date: '2026-11-09',
-        until: '2026-12-10',
-        title: { pt: 'Vaga vazia no banco', en: 'Empty bench slot' },
-        text: {
-            pt: 'Copa longa: quem sai do banco deixa a vaga, e o próximo reforço entra nela',
-            en: 'Long Cup: whoever leaves the bench frees the slot for the next signing',
-        },
-        art: 'bench',
+        art: 'rota',
         to: 'rota',
-        cta: { pt: 'Jogar a Copa longa', en: 'Play the Long Cup' },
+        cta: { pt: 'Ver a Rota', en: 'See the Road' },
     },
 ];
 
@@ -93,55 +75,45 @@ export const NEWS: NewsCard[] = [
  * Os próximos cartões, prontos com arte e destino, esperando a branch deles entrar: pra ligar, passe o cartão pra
  * `NEWS` com a data do lançamento. Nas prévias, `?noticias=prox` mostra eles no feed (pra ver a arte antes).
  */
-export const NEXT_NEWS: NewsCard[] = [
-    {
-        id: 'meus-pacotes',
-        date: '2026-11-27',
-        until: '2026-12-31',
-        title: { pt: 'Meus pacotes e Picks', en: 'My packs and Picks' },
+export const NEXT_NEWS: NewsCard[] = [];
+
+const ymd = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+/**
+ * O evento da semana (`weeklyEventType`, a mesma regra do letreiro e do draft): segunda a domingo, id por semana (o
+ * pontinho acende a cada evento novo).
+ */
+export function weekCard(now = utNow()): NewsCard {
+    const d = new Date(now);
+    const type = weeklyEventType(d);
+    const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+    const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+    const [dd, mm] = [String(sun.getDate()).padStart(2, '0'), String(sun.getMonth() + 1).padStart(2, '0')];
+    return {
+        id: `evento-${ymd(mon)}`,
+        date: ymd(mon),
+        until: ymd(sun),
+        title: { pt: `Semana do tipo ${typeName(type, 'pt')}`, en: `${typeName(type, 'en')}-type week` },
         text: {
-            pt: 'Pacotes guardados até você abrir, e o Pokémon Picks: escolha 1 de 3',
-            en: 'Packs wait until you open them, and Pokémon Picks: choose 1 of 3',
+            pt: `Cartas Evento de ${typeName(type, 'pt')} podem sair no draft, até domingo (${dd}/${mm})`,
+            en: `${typeName(type, 'en')} Event cards can turn up in the draft, until Sunday (${mm}/${dd})`,
         },
-        art: 'packs',
-        to: 'ultimate',
-        cta: { pt: 'Ver meus pacotes', en: 'See my packs' },
-        opensAt: UT_AT,
-    },
-    {
-        id: 'rota-nova',
-        date: '2026-12-01',
-        until: '2027-01-15',
-        title: { pt: 'Rota nova', en: 'New Route' },
-        text: {
-            pt: 'Mapa mais largo, a Zona Safari e o Cassino no caminho da Copa longa',
-            en: 'A wider map, the Safari Zone and the Game Corner on the Long Cup path',
-        },
-        art: 'rota',
-        to: 'rota',
-        cta: { pt: 'Ver a Rota', en: 'See the Route' },
-    },
-    {
-        id: 'golpedex-especiais',
-        date: '2026-12-01',
-        until: '2027-01-15',
-        title: { pt: 'Golpedex: especiais e bicudas', en: 'Movedex: specials and punts' },
-        text: {
-            pt: 'Os golpes especiais e as bicudas do goleiro agora estão na Golpedex',
-            en: "Special moves and the keeper's punts are now in the Movedex",
-        },
-        art: 'golpedex',
-        to: 'golpedex',
-        cta: { pt: 'Abrir a Golpedex', en: 'Open the Movedex' },
-    },
-];
+        art: 'evento',
+        type,
+        to: 'estadio',
+        cta: { pt: 'Jogar uma copa', en: 'Play a cup' },
+    };
+}
 
 /** Meia-noite (ou o fim do dia) de Brasília de um AAAA-MM-DD. */
 const day = (d: string, end = false) => Date.parse(`${d}T${end ? '23:59:59.999' : '00:00:00'}-03:00`);
 
-/** Os cartões no ar agora, na ordem da lista. */
-export const activeNews = (now = utNow(), list = NEWS) =>
-    list.filter((c) => day(c.date) <= now && now <= day(c.until, true));
+/** Os cartões no ar agora, na ordem da lista (a de verdade começa pelo evento da semana). */
+export const activeNews = (now = utNow(), list = NEWS) => [
+    ...(list === NEWS ? [weekCard(now)] : []),
+    ...list.filter((c) => day(c.date) <= now && now <= day(c.until, true)),
+];
 
 /** Cartões no ar que este save ainda não viu (`Profile.newsSeen`; sem o campo = nenhum visto). */
 export const unseenNews = (seen: readonly string[] | undefined, now = utNow(), list = NEWS) =>
