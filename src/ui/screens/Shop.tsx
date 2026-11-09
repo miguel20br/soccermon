@@ -17,7 +17,7 @@ import { MAX_SPONSORS } from '../../engine/sponsors';
 import { walkoutPick } from '../../game/walkout-plan';
 import { itemDesc, itemName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { shopRerollTicket, useGame } from '../../store/game-store';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, PackArt, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -73,7 +73,9 @@ export function Shop() {
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const packOffer = shop.offers.find((o) => o.kind === 'pack');
     const packName = packOffer?.kind === 'pack' ? t('shop.pack', { type: typeName(packOffer.type, lang) }) : '';
-    const reroll = rerollPrice(shop.rerolls, sponsors);
+    // Rota: a troca grátis do Pular e o sorteio pagam a troca antes do ₽
+    const ticket = shopRerollTicket(run);
+    const reroll = ticket ? 0 : rerollPrice(shop.rerolls, sponsors);
     const cap = interestOf(Number.POSITIVE_INFINITY, sponsors);
     const e = shop.earned;
     const earnedLines = (
@@ -174,7 +176,13 @@ export function Shop() {
                         <button
                             type="button"
                             className="btn shop-reroll"
-                            aria-label={reroll === 0 ? t('shop.rerollFree') : t('shop.reroll', { n: reroll })}
+                            aria-label={
+                                ticket === 'reroll'
+                                    ? t('shop.rerollTicketAria', { n: run.rerolls })
+                                    : reroll === 0
+                                      ? t('shop.rerollFree')
+                                      : t('shop.reroll', { n: reroll })
+                            }
                             disabled={money < reroll || !!shop.pack}
                             onClick={() => {
                                 rerollShop();
@@ -184,7 +192,11 @@ export function Shop() {
                             <HudIcon kind="reroll" />
                             {t('shop.rerollLabel')}
                             <span className="bc-tag">
-                                {reroll === 0 ? t('shop.free') : t('shop.money', { n: reroll })}
+                                {ticket === 'reroll'
+                                    ? t('shop.rerollTicket')
+                                    : reroll === 0
+                                      ? t('shop.free')
+                                      : t('shop.money', { n: reroll })}
                             </span>
                         </button>
                         <button

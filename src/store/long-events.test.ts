@@ -11,12 +11,18 @@ import { runMatch } from '../engine/runners/batch-runner';
 import { playerTeam, type RunState, useGame } from './game-store';
 import { outOf } from './long-cup';
 import {
+    applySkip,
+    centroEvent,
     choiceTargets,
     EVENT_IDS,
     eventChoices,
     type LongEvent,
+    ROTA_VALUES,
     resolveEvent,
     rollEvent,
+    type SkipTag,
+    skipEvoTarget,
+    skipTagOf,
     withKnownEvents,
 } from './long-events';
 
@@ -214,11 +220,12 @@ describe('eventos novos da revisão da Rota', () => {
                 STONES.some((st) => stoneInto(p.speciesId, st) !== null) ? { ...p, speciesId: 4 } : p,
             ),
         };
-        // sem ninguém que use a Pedra do Trovão, só dá pra deixar
+        // sem ninguém que use a Pedra do Trovão: guarda na Mochila ou vende
         const thunder: LongEvent = { id: 'pedra', stone: 'trovao' };
         expect(eventChoices(base, thunder).map((c) => [c.id, c.ok])).toEqual([
             ['usar', false],
-            ['deixar', true],
+            ['guardar', true],
+            ['vender', true],
         ]);
         const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', evo: 9 };
         const titular = base.lineup[2];
@@ -240,7 +247,7 @@ describe('eventos novos da revisão da Rota', () => {
         // a forma nova herda a vaga em que ele jogava
         expect(forms[1].inherited?.length).toBe(1);
         expect(resolveEvent(run, { id: 'pedra', stone: 'lua' }, 'usar', 'eevee')).toBeNull();
-        expect(resolveEvent(run, thunder, 'deixar')!.picks).toEqual(run.picks);
+        expect(resolveEvent(run, thunder, 'guardar')!.picks).toEqual(run.picks);
     });
 
     it('Pássaro lendário e Equipe Rocket: o desafio vale pra próxima partida do mapa, com o rival +2', () => {
@@ -285,6 +292,36 @@ describe('eventos novos da revisão da Rota', () => {
                 .filter((c) => c.ok)
                 .map((c) => c.id),
         ).toEqual(['seguir']);
+        // sem nada pra tratar, a casa vira o PC do Bill (antes só sobrava "Seguir viagem")
+        expect(centroEvent(run)).toBe('centro');
+        expect(centroEvent({ ...run, cards: 0 })).toBe('centro');
+        expect(centroEvent(fresh)).toBe('pc');
+        const pc = rollEvent(fresh, 'pc');
+        expect(pc.cards).toHaveLength(1);
+        expect(eventChoices(fresh, pc).map((c) => [c.id, c.ok])).toEqual([
+            ['trocar', true],
+            ['seguir', true],
+        ]);
+        const swapped = resolveEvent(fresh, pc, 'trocar', 'charm')!;
+        expect(swapped.bench).toEqual([run.bench[0], pc.cards![0].uid]);
+        expect(withKnownEvents({ ...fresh, event: pc })!.event).toBe(pc);
+    });
+
+    it('Entrevista: fugir dos repórteres dá +1 sorteio (antes "Sem comentários" não dava nada)', () => {
+        const run = longRun('ev-sair');
+        expect(resolveEvent(run, { id: 'entrevista' }, 'sair')!.rerolls).toBe(run.rerolls + 1);
+    });
+
+    it('pedra: usar, guardar na Mochila ou vender (+₽4); sem "Deixar" de graça', () => {
+        const run = longRun('ev-pedra-mochila');
+        const ev: LongEvent = { id: 'pedra', stone: 'fogo' };
+        expect(eventChoices(run, ev).map((c) => c.id)).toEqual(['usar', 'guardar', 'vender']);
+        expect(resolveEvent(run, ev, 'guardar')!.bag).toEqual(['fogo']);
+        expect(resolveEvent(run, ev, 'vender')!.money).toBe(run.money! + ROTA_VALUES.stoneSale);
+        // da Mochila: vender tira de lá; guardar deixa como está
+        const bagged = { ...run, bag: ['fogo' as const, 'lua' as const] };
+        expect(resolveEvent(bagged, { ...ev, bag: true }, 'vender')!.bag).toEqual(['lua']);
+        expect(resolveEvent(bagged, { ...ev, bag: true }, 'guardar')!.bag).toEqual(['fogo', 'lua']);
     });
 
     it('no store: Ovo choca no banco depois de 2 partidas; a aposta do Blue paga ou cobra na partida seguinte', () => {
@@ -352,5 +389,51 @@ describe('save de antes da revisão da Rota', () => {
         const { readFileSync } = await import('node:fs');
         const backup = JSON.parse(readFileSync('scripts/fixtures/backup-v6-pt.json', 'utf8'));
         expect(withKnownEvents(backup.save.run)).toEqual(backup.save.run);
+    });
+});
+
+describe('Pular na Rota (etiqueta à vista, estilo Balatro)', () => {
+    const at = (run: RunState, row: number) => run.map!.nodes.find((n) => n.row === row)!.id;
+
+    it('o rival tem a dele (Dispensar); as outras telas sorteiam pela seed e só o que serve agora', () => {
+        const run = { ...longRun('pular-1'), status: 'reward' as const };
+        expect(skipTagOf({ ...run, rivalPick: true })).toBe('dispensar');
+        expect(skipTagOf({ ...run, mode: undefined })).toBeNull();
+        const seen = new Set<SkipTag | null>();
+        for (let k = 0; k < 60; k++) {
+            const r = { ...run, seed: `pular-${k}`, at: at(run, k % 2 ? 2 : 5) };
+            expect(skipTagOf(r)).toBe(skipTagOf(r));
+            seen.add(skipTagOf(r));
+        }
+        expect([...seen].sort()).toEqual(['evo', 'money', 'rerolls', 'rival', 'shop']);
+        // rival −1 não empilha com a Entrevista; no grupo e no fim do mapa não há Mercado nem rival do mapa
+        for (let k = 0; k < 40; k++) {
+            const r = { ...run, seed: `pular-teto-${k}`, at: at(run, 5) };
+            expect(skipTagOf({ ...r, rivalShift: -1 })).not.toBe('rival');
+            const late = { ...r, at: at(run, 8) };
+            expect(['money', 'rerolls', 'evo']).toContain(skipTagOf(late));
+            expect(['money', 'rerolls', 'evo']).toContain(skipTagOf({ ...r, group: { rivals: [] } }));
+        }
+    });
+
+    it('cada etiqueta faz o que o botão diz; Relâmpago continua +1 sorteio', () => {
+        const run = { ...longRun('pular-2'), status: 'reward' as const, at: 'r0c0', money: 3 };
+        const tagged = (tag: SkipTag) => {
+            for (let k = 0; k < 200; k++) {
+                const r = { ...run, seed: `pular-ef-${k}` };
+                if (skipTagOf(r) === tag) return r;
+            }
+            throw new Error(tag);
+        };
+        expect(applySkip({ ...run, rivalPick: true }).money).toBe(3 + ROTA_VALUES.dismiss);
+        expect(applySkip(tagged('money')).money).toBe(3 + ROTA_VALUES.skipMoney);
+        expect(applySkip(tagged('rerolls')).rerolls).toBe(run.rerolls + ROTA_VALUES.skipRerolls);
+        expect(applySkip(tagged('shop')).shopFree).toBe(1);
+        expect(applySkip(tagged('rival')).rivalShift).toBe(-1);
+        const evo = tagged('evo');
+        const who = skipEvoTarget(evo)!;
+        const after = applySkip(evo).picks.find((p) => p.uid === who.uid)!;
+        expect(after.evo).toBeGreaterThan(who.evo ?? 0);
+        expect(applySkip({ ...run, mode: undefined }).rerolls).toBe(run.rerolls + 1);
     });
 });

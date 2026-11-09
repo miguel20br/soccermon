@@ -14,6 +14,7 @@ import {
     matchIndexOfRow,
     nodeById,
 } from '../engine/cup-map';
+import type { Stone } from '../engine/evolution';
 import { Rng } from '../engine/rng';
 import { winEarnings } from '../engine/shop';
 import type { TeamSetup } from '../engine/state';
@@ -84,6 +85,10 @@ export interface LongRunFields {
     rivalPick?: boolean;
     /** Ovo da Creche: nasce no banco depois de `left` partidas. */
     egg?: { left: number; speciesId: number } | null;
+    /** Mochila: pedras guardadas pra quem entrar no time depois (sem = vazia; Rota de antes da 0.9.44 não tem). */
+    bag?: Stone[];
+    /** Trocas grátis de vitrine no Mercado (etiqueta do Pular). Sem = 0. */
+    shopFree?: number;
 }
 
 export type Challenge = 'lendario' | 'rocket';

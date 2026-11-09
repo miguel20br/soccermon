@@ -153,6 +153,7 @@ export function CupMap() {
     const live = useGame((s) => s.run);
     const enterNode = useGame((s) => s.enterNode);
     const tell = useGame((s) => s.tell);
+    const openBag = useGame((s) => s.openBag);
     const run = useHeld(live?.status === 'map' && live.map ? live : null);
     const [pick, setPick] = useState<string | null>(null);
     const [walking, setWalking] = useState<string | null>(null);
@@ -275,6 +276,27 @@ export function CupMap() {
                             {cards}/{YELLOW_CARDS}
                         </span>
                         {/* a regra do amarelo: o balão do mapa ensina e o cartão do resultado explica quando cai */}
+                        {/* Mochila: as pedras guardadas; tocar abre a tela da pedra (usar, guardar de volta, vender) */}
+                        {!!run.bag?.length && (
+                            <span className="cm-bag">
+                                <HudIcon kind="bag" />
+                                {[...new Set(run.bag)].map((s) => {
+                                    const n = run.bag!.filter((x) => x === s).length;
+                                    return (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            className="cm-bag-stone"
+                                            aria-label={`${t('longCup.bag')}: ${t(`longCup.stone.${s}`)}`}
+                                            onClick={() => openBag(s)}
+                                        >
+                                            <StoneMark stone={s} />
+                                            {n > 1 && `×${n}`}
+                                        </button>
+                                    );
+                                })}
+                            </span>
+                        )}
                         {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
                     </div>
                     {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
@@ -545,7 +567,7 @@ const TR_BIG = '(min-width: 1250px) and (min-height: 840px)';
 /**
  * Casa Treino como cena (cara-de-jogo.md, Rota Índigo): a quadra de treino do ginásio com os titulares nas posições e
  * os reservas na beira. Tocar em quem evolui marca e a placa mostra a barra enchendo pela metade; o colchonete é o
- * Descansar (+1 sorteio); se ninguém evolui, o suporte de halteres é o treino de técnica (1 de 2 itens). O botão do
+ * Folga (+₽5 e quem está fora volta); se ninguém evolui, o suporte de halteres é o treino de técnica (1 de 2 itens). O botão do
  * polegar faz o que estiver marcado.
  */
 export function Training() {
@@ -769,6 +791,7 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     ovo: { icon: 'egg', color: '#e0a860' },
     pedra: { icon: 'stone', color: '#8e7c68' },
     centro: { icon: 'heart', color: '#e06a8a' },
+    pc: { icon: 'reroll', color: '#3a7bc8' },
 };
 
 /**
@@ -912,7 +935,7 @@ export function EventScreen() {
             </div>
             {/* a caixa de diálogo do mapa, com as escolhas como opções (o custo em ₽ à direita) */}
             <div className="ev-dialog">
-                <RoomDialog text={fmtNames(txt.text, names)} onClose={() => {}}>
+                <RoomDialog text={fmtNames(ev.bag ? t('longCup.bagText') : txt.text, names)} onClose={() => {}}>
                     {choices.map((c) => {
                         const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
                         return (

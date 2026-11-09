@@ -34,8 +34,10 @@ import {
     withSettingDefaults,
 } from './game-store';
 import { groupTable } from './long-cup';
-import { choiceTargets } from './long-events';
+import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
+
+const eventChoiceIds = (run: RunState, ev: LongEvent) => eventChoices(run, ev).map((c) => c.id);
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -795,15 +797,18 @@ describe('Copa longa', () => {
         expect(useGame.getState().run!.status).toBe('map');
     });
 
-    it('Treino: barra de evolução enche metade, ou +1 troca', () => {
+    it('Treino: barra de evolução enche metade, ou Folga (+₽5 e quem está fora volta)', () => {
         const base = start('longa-treino');
         // Charmander no banco: alguém que evolui com certeza
         const evolver = { ...createInstance(4, new Rng('treino', 'x')), uid: 'charmander' };
         const run = { ...base, picks: [...base.picks.slice(0, -1), evolver], bench: [base.bench[0], 'charmander'] };
         expect(evolutionTarget(evolver.speciesId, evolver.uid)).not.toBeNull();
-        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.setState({ run: { ...run, status: 'treino', money: 3, out: { charmander: 2 } } });
         useGame.getState().train('rest');
-        expect(useGame.getState().run!.rerolls).toBe(run.rerolls + 1);
+        // a Folga: ₽ e quem está fora volta (o Descanso dava +1 sorteio, que não tinha onde gastar)
+        expect(useGame.getState().run!.rerolls).toBe(run.rerolls);
+        expect(useGame.getState().run!.money).toBe(8);
+        expect(useGame.getState().run!.out).toBeUndefined();
         useGame.setState({ run: { ...run, status: 'treino' } });
         useGame.getState().train('evo', evolver.uid);
         expect(useGame.getState().run!.status).toBe('map');
@@ -879,18 +884,26 @@ describe('Copa longa', () => {
             expect(now.rewards).toHaveLength(3);
             expect(now.rewards.every((r) => r.kind === 'pokemon')).toBe(true);
             expect(now.rewards.some((r) => r.kind === 'pokemon' && r.from === rival)).toBe(true);
-            // pular o rival não dá sorteio e abre o prêmio (MT) na mesma tela
+            // Dispensar o rival: +₽2 (antes não dava nada) e abre o prêmio (MT) na mesma tela
             const rerolls = now.rerolls;
+            const money = now.money ?? 0;
+            expect(skipTagOf(now)).toBe('dispensar');
             useGame.getState().skipReward();
             now = useGame.getState().run!;
             expect(now.status).toBe('reward');
             expect(now.rivalPick).toBe(false);
             expect(now.rerolls).toBe(rerolls);
+            expect(now.money).toBe(money + 2);
             expect(now.rewards.some((r) => r.kind === 'tm')).toBe(true);
             expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+            // o prêmio da casa: pular dá a etiqueta que estava no botão
+            const want = applySkip(now);
+            expect(skipTagOf(now)).not.toBeNull();
             useGame.getState().skipReward();
-            expect(useGame.getState().run!.status).toBe('map');
-            expect(useGame.getState().run!.rerolls).toBe(rerolls + 1);
+            const after = useGame.getState().run!;
+            expect(after.status).toBe('map');
+            for (const k of ['rerolls', 'money', 'shopFree', 'rivalShift', 'picks'] as const)
+                expect(after[k]).toEqual(want[k]);
 
             // ₽ em dobro: o ₽ entra na vitória, o rival vem igual, e depois volta pro mapa
             const { m } = winFirstJogo('money');
@@ -997,6 +1010,143 @@ describe('Copa longa', () => {
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
         }
+    });
+
+    it('Sortear de novo no rival: cartas novas do elenco todo dele (antes voltavam as mesmas 3)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('tm');
+            const now = useGame.getState().run!;
+            const opp = now.opponents[now.stage];
+            const roster = new Set([...opp.lineup, ...opp.bench].map((p) => p.speciesId));
+            const species = (r: RunState) => r.rewards.flatMap((x) => (x.kind === 'pokemon' ? [x.inst.speciesId] : []));
+            const first = species(now);
+            useGame.setState({ run: { ...now, rerolls: 1 } });
+            useGame.getState().rerollReward();
+            const again = useGame.getState().run!;
+            expect(again.rerolls).toBe(0);
+            expect(species(again)).toHaveLength(3);
+            for (const sp of species(again)) expect(roster.has(sp)).toBe(true);
+            // o elenco do rival (5 + banco) tem mais de 3 contratáveis: vem pelo menos uma carta nova
+            expect(species(again).some((sp) => !first.includes(sp))).toBe(true);
+            // sem ninguém novo no elenco, o botão apaga e o sorteio não é gasto
+            const only = { ...opp, lineup: opp.lineup.filter((p) => first.includes(p.speciesId)), bench: [] };
+            const stuck = { ...now, rerolls: 1, opponents: now.opponents.map((o, i) => (i === now.stage ? only : o)) };
+            useGame.setState({ run: stuck });
+            useGame.getState().rerollReward();
+            expect(useGame.getState().run!.rerolls).toBe(1);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Mercado da Rota: a troca grátis do Pular e depois o sorteio pagam a troca de vitrine antes do ₽', () => {
+        const run = start('longa-mercado-sorteio');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const shopNode = run.map!.nodes.find((n) => n.kind === 'mercado')!;
+        const map = {
+            ...run.map!,
+            nodes: run.map!.nodes.map((n) => (n === first ? { ...n, next: [shopNode.id] } : n)),
+        };
+        useGame.setState({ run: { ...run, map, at: first.id, money: 10, rerolls: 1, shopFree: 1 } });
+        useGame.getState().enterNode(shopNode.id);
+        const offers = useGame.getState().run!.shop!.offers;
+        const money = useGame.getState().run!.money;
+        useGame.getState().rerollShop();
+        let now = useGame.getState().run!;
+        expect(now.shop!.offers).not.toEqual(offers);
+        expect([now.money, now.shopFree, now.rerolls]).toEqual([money, 0, 1]);
+        useGame.getState().rerollShop();
+        now = useGame.getState().run!;
+        expect([now.money, now.rerolls]).toEqual([money, 0]);
+        useGame.getState().rerollShop();
+        now = useGame.getState().run!;
+        expect(now.money).toBeLessThan(money!);
+    });
+
+    it('Mochila: a pedra que ninguém usa fica guardada e evolui quem entrar depois; ou vende', () => {
+        const run = start('longa-mochila');
+        const ev = { id: 'pedra' as const, stone: 'fogo' as const };
+        useGame.setState({ run: { ...run, status: 'event', event: ev } });
+        expect(eventChoiceIds(run, ev)).toEqual(['usar', 'guardar', 'vender']);
+        useGame.getState().chooseEvent('guardar');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('map');
+        expect(now.bag).toEqual(['fogo']);
+        // entra um Growlithe: tira da Mochila e usa
+        const growl = { ...createInstance(58, new Rng('mochila', 'g')), uid: 'growl' };
+        const leaving = now.bench.find((u) => u !== now.captainUid)!;
+        useGame.setState({
+            run: {
+                ...now,
+                picks: [...now.picks.filter((p) => p.uid !== leaving), growl],
+                bench: now.bench.map((u) => (u === leaving ? 'growl' : u)),
+            },
+        });
+        useGame.getState().openBag('agua');
+        expect(useGame.getState().run!.status).toBe('map');
+        useGame.getState().openBag('fogo');
+        now = useGame.getState().run!;
+        expect(now.event).toEqual({ id: 'pedra', stone: 'fogo', bag: true });
+        // guardar de volta não duplica
+        useGame.getState().chooseEvent('guardar');
+        expect(useGame.getState().run!.bag).toEqual(['fogo']);
+        useGame.getState().openBag('fogo');
+        useGame.getState().chooseEvent('usar', 'growl');
+        now = useGame.getState().run!;
+        expect(now.picks.find((p) => p.uid === 'growl')!.speciesId).toBe(59);
+        expect(now.bag).toBeUndefined();
+        // vender: +₽4
+        useGame.setState({ run: { ...now, status: 'event', event: { id: 'pedra', stone: 'lua' }, money: 1 } });
+        useGame.getState().chooseEvent('vender');
+        expect(useGame.getState().run!.money).toBe(5);
+        expect(useGame.getState().run!.bag).toBeUndefined();
+    });
+
+    it('Centro sem nada pra tratar vira o PC do Bill: um reserva por uma carta à vista', () => {
+        const run = start('longa-pc');
+        const centro = { id: 'c-test', row: 0, col: 0, kind: 'centro' as const, next: [] };
+        const map = { ...run.map!, nodes: [...run.map!.nodes.filter((n) => n.row !== 0), centro] };
+        useGame.setState({ run: { ...run, map, cards: 0 } });
+        useGame.getState().enterNode('c-test');
+        const now = useGame.getState().run!;
+        expect(now.event?.id).toBe('pc');
+        const card = now.event!.cards![0];
+        const leaving = now.bench.find((u) => u !== now.captainUid)!;
+        useGame.getState().chooseEvent('trocar', leaving);
+        const after = useGame.getState().run!;
+        expect(after.bench).toContain(card.uid);
+        expect(after.picks.some((p) => p.uid === leaving)).toBe(false);
+        // com amarelo, é o Centro de sempre
+        useGame.setState({ run: { ...run, map, cards: 1, at: null, path: [] } });
+        useGame.getState().enterNode('c-test');
+        expect(useGame.getState().run!.event?.id).toBe('centro');
+    });
+
+    it('Rota guardada antes da 0.9.44 (sem Mochila nem troca grátis): carrega e as telas novas funcionam', () => {
+        const run = start('longa-guardada');
+        // como o 0.9.43 salvava: sem `bag`, sem `shopFree`, com a nota de "Deixar" a pedra
+        const old = { ...run, eventNote: { id: 'pedra', choice: 'deixar', cost: 0 } } as RunState;
+        delete (old as Partial<RunState>).bag;
+        delete (old as Partial<RunState>).shopFree;
+        const save = migrateSave({ run: old, records: { cups: 0, titles: 0, perfect: 0 } }, SAVE_VERSION);
+        expect(save.run?.bag).toBeUndefined();
+        expect(save.run?.shopFree).toBeUndefined();
+        useGame.setState({ run: { ...save.run!, status: 'event', event: { id: 'pedra', stone: 'agua' } } });
+        useGame.getState().chooseEvent('guardar');
+        expect(useGame.getState().run!.bag).toEqual(['agua']);
+        const shopNode = run.map!.nodes.find((n) => n.kind === 'mercado')!;
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const map = {
+            ...run.map!,
+            nodes: run.map!.nodes.map((n) => (n === first ? { ...n, next: [shopNode.id] } : n)),
+        };
+        useGame.setState({ run: { ...save.run!, map, at: first.id, rerolls: 0, money: 10 } });
+        useGame.getState().enterNode(shopNode.id);
+        const money = useGame.getState().run!.money!;
+        useGame.getState().rerollShop();
+        expect(useGame.getState().run!.money).toBeLessThan(money);
     });
 
     it('regra desligada: ₽ em dobro volta direto pro mapa (sem recompensa)', () => {

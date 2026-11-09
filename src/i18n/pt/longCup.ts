@@ -22,9 +22,9 @@ export const longCup = {
         ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
-        treino: 'Meia barra de evolução (ou um item) ou +1 sorteio.',
+        treino: 'Meia barra de evolução (ou um item) ou Folga (+₽5).',
         bau: 'Recompensa grátis, uma raridade acima.',
-        centro: 'Tira o cartão amarelo ou traz de volta quem está fora.',
+        centro: 'Tira o cartão amarelo ou traz de volta quem está fora. Sem nada pra tratar, o PC do Bill.',
         final: 'Jogo único contra a Liga Índigo.',
     },
     /** Prêmio do Jogo, à vista no mapa. */
@@ -57,6 +57,9 @@ export const longCup = {
     stoneShort: { lua: 'P. Lua', agua: 'P. Água', trovao: 'P. Trovão', folha: 'P. Folha', fogo: 'P. Fogo' },
     stoneWho: 'No seu time: {names}',
     stoneNobody: 'Ninguém do seu time evolui com ela.',
+    /** Mochila do mapa: as pedras guardadas. */
+    bag: 'Mochila',
+    bagText: 'Na Mochila: uma {a}. Quem vai usar?',
     branch: 'Caminho',
     prizeMoney: 'Prêmio',
     rocketMoney: 'Equipe Rocket',
@@ -178,7 +181,7 @@ export const longCup = {
             choices: {
                 respeito: ['"Respeito o time deles"', 'Próximo rival mais fraco.'],
                 provocar: ['Provocar', 'Próximo rival mais forte. Paga cachê.'],
-                sair: ['Sem comentários', ''],
+                sair: ['Fugir dos repórteres', '+1 sorteio.'],
             },
         },
         fosseis: {
@@ -246,7 +249,17 @@ export const longCup = {
             text: 'Olha só, uma {a}! Quem vai usar?',
             choices: {
                 usar: ['Usar', 'Evolui na hora.'],
-                deixar: ['Deixar', ''],
+                guardar: ['Guardar na Mochila', 'Usa depois, em quem entrar no time.'],
+                vender: ['Vender', ''],
+            },
+        },
+        pc: {
+            who: 'bill',
+            title: 'PC do Bill',
+            text: 'O Centro está tranquilo. Quer trocar um reserva por este aqui do meu PC?',
+            choices: {
+                trocar: ['Trocar', 'Ele entra no lugar de um reserva.'],
+                seguir: ['Seguir viagem', ''],
             },
         },
         centro: {
@@ -271,13 +284,13 @@ export const longCup = {
         item: 'Treino de técnica',
         itemLine: 'Escolha 1 de 2 itens (ou MT).',
         itemGo: 'Escolher item',
-        rest: 'Descanso',
-        restLine: '+1 sorteio.',
-        restGo: 'Descansar',
+        rest: 'Folga',
+        restLine: '+₽5 e quem está fora volta.',
+        restGo: 'Dar folga',
         none: 'Ninguém do time evolui.',
         pick: 'Toque em quem treina',
         go: 'Treinar {name}',
-        restSign: '+1 sorteio',
+        restSign: '+₽5',
         pickObj: 'Escolha o treino',
         itemSign: '1 de 2 itens',
     },

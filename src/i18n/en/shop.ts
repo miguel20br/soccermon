@@ -18,6 +18,8 @@ export const shop: typeof pt = {
     interestHint: 'Saving pays interest: ₽1 per ₽5, up to ₽{cap}.',
     reroll: 'New offers · ₽{n}',
     rerollFree: 'New offers · free',
+    rerollTicket: '1 reroll',
+    rerollTicketAria: 'New offers · 1 reroll (you have {n})',
     free: 'Free',
     rerollLabel: 'New offers',
     leave: 'Continue',

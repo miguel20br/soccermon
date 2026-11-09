@@ -1,12 +1,12 @@
-import { LEGENDARY_BIRD } from '../engine/cup-map';
+import { isMatchKind, LEGENDARY_BIRD, type MapNode, nodeById } from '../engine/cup-map';
 import { draftOptions } from '../engine/draft';
-import { evolveInstance, type Stone, stoneInto } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, evoThreshold, type Stone, stoneInto } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
 import { rollSpecial } from '../engine/specials';
 import type { RunState } from './game-store';
-import { isOut, type OutWhy } from './long-cup';
+import { currentNode, isLong, isOut, longRound, type OutWhy } from './long-cup';
 
 /**
  * Eventos "?" da Copa longa (revisão da Rota, docs/planos/rota-indigo-revisao.md). Regras: uma tela, 2–3 escolhas, o
@@ -25,8 +25,11 @@ export const EVENT_IDS = [
     'juiz',
     'ovo',
 ] as const;
-/** `centro` = o Centro Pokémon do mapa e `pedra` = a pedra ganha num Jogo (a mesma tela, fora do sorteio). */
-export type EventId = (typeof EVENT_IDS)[number] | 'centro' | 'pedra';
+/**
+ * `centro` = o Centro Pokémon do mapa, `pc` = o PC do Bill (o Centro sem nada pra tratar) e `pedra` = a pedra ganha num
+ * Jogo ou tirada da Mochila (a mesma tela, fora do sorteio).
+ */
+export type EventId = (typeof EVENT_IDS)[number] | 'centro' | 'pc' | 'pedra';
 
 export interface LongEvent {
     id: EventId;
@@ -38,6 +41,8 @@ export interface LongEvent {
     egg?: number;
     /** A pedra ganha (prêmio `pedra` do Jogo). */
     stone?: Stone;
+    /** A pedra saiu da Mochila (guardar = continua lá; usar e vender tiram de lá). */
+    bag?: boolean;
 }
 
 /** O que cada escolha pede: nada, alguém do time, alguém do banco, quem segura item, quem evolui com a pedra. */
@@ -75,6 +80,22 @@ export const EGG_MATCHES = 2;
 /** Aposta do Blue (ganha ou perde) e o preço do Juiz. */
 export const BET = 6;
 export const JUDGE_PRICE = 10;
+
+/**
+ * O que não fica mais sem valor na Rota (docs/planos/rota-indigo.md, decidido com o Miguel em 09/11): Dispensar o
+ * rival, as etiquetas do Pular, vender a pedra e a Folga do Treino.
+ */
+export const ROTA_VALUES = {
+    /** "Dispensar" o 1 de 3 do rival. */
+    dismiss: 2,
+    /** Etiquetas do Pular: ₽ e sorteios. */
+    skipMoney: 4,
+    skipRerolls: 2,
+    /** Vender a pedra (ou tirar da Mochila e vender). */
+    stoneSale: 4,
+    /** Folga no Treino (no lugar do Descanso de +1 sorteio). */
+    folga: 5,
+};
 
 const squadOf = (run: RunState) => [...run.lineup, ...run.bench].filter(Boolean);
 const benchFree = (run: RunState) => run.bench.filter((u) => u && u !== run.captainUid);
@@ -134,6 +155,8 @@ export function rollEvent(run: RunState, only?: EventId): LongEvent {
         const best = [...benchFree(run)].sort((a, b) => rating(run, b) - rating(run, a))[0];
         return { id, uids: best ? [best] : [] };
     }
+    // PC do Bill: um reserva por uma carta da raridade do Baú (a melhor de 3 sorteadas, à vista)
+    if (id === 'pc') return { id, cards: offer(Math.min(6, longRound(run.stage) + 1), 1, 3) };
     if (id === 'ovo') {
         const free = EGG_POOL.filter((sp) => !taken.has(sp));
         return { id, egg: rng.pick(free.length ? free : EGG_POOL) };
@@ -159,6 +182,7 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
         case 'capitao':
             return [c('vender', -15, 'captainSale', bench >= 1), c('recusar', 0, 'none')];
         case 'entrevista':
+            // fugir dos repórteres vale +1 sorteio (antes "Sem comentários" não dava nada)
             return [c('respeito', 0, 'none'), c('provocar', -4, 'none'), c('sair', 0, 'none')];
         case 'fosseis':
             return [
@@ -187,7 +211,14 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
         case 'ovo':
             return [c('ficar', 0, 'bench', bench >= 1), c('deixar', 0, 'none')];
         case 'pedra':
-            return [c('usar', 0, 'stone', stoners(run, stoneOf(ev)).length > 0), c('deixar', 0, 'none')];
+            // ninguém usa: guarda na Mochila (pra quem entrar depois) ou vende; não há mais o "Deixar" que não dava nada
+            return [
+                c('usar', 0, 'stone', stoners(run, stoneOf(ev)).length > 0),
+                c('guardar', 0, 'none'),
+                c('vender', -ROTA_VALUES.stoneSale, 'none'),
+            ];
+        case 'pc':
+            return [c('trocar', 0, 'bench', bench >= 1 && !!ev.cards?.length), c('seguir', 0, 'none')];
         case 'centro':
             return [
                 c('amarelo', 0, 'none', (run.cards ?? 0) > 0),
@@ -281,8 +312,17 @@ export function resolveEvent(
         case 'fosseis:domo':
             return swapIn(ev.cards![1], target!);
         case 'fosseis:pedra':
-        case 'pedra:usar':
             return { ...next, picks: stoneEvolve(target!) };
+        case 'pedra:usar':
+            return { ...next, picks: stoneEvolve(target!), ...(ev.bag && { bag: bagWithout(run, stoneOf(ev)) }) };
+        case 'pedra:guardar':
+            return ev.bag ? next : { ...next, bag: [...(run.bag ?? []), stoneOf(ev)] };
+        case 'pedra:vender':
+            return ev.bag ? { ...next, bag: bagWithout(run, stoneOf(ev)) } : next;
+        case 'pc:trocar':
+            return swapIn(ev.cards![0], target!);
+        case 'entrevista:sair':
+            return { ...next, rerolls: next.rerolls + 1 };
         case 'lendario:desafiar':
             return { ...next, challenge: 'lendario' };
         case 'rocket:item':
@@ -315,10 +355,110 @@ export function resolveEvent(
  */
 export function withKnownEvents<T extends RunState | null | undefined>(run: T): T {
     if (!run) return run;
-    const known = (id: string) => id === 'centro' || id === 'pedra' || (EVENT_IDS as readonly string[]).includes(id);
+    const known = (id: string) =>
+        id === 'centro' || id === 'pc' || id === 'pedra' || (EVENT_IDS as readonly string[]).includes(id);
     let out: RunState = run;
     if (run.event && !known(run.event.id))
         out = { ...out, event: rollEvent({ ...run, eventsSeen: [...(run.eventsSeen ?? []), run.event.id] }) };
     if (run.eventNote && !known(run.eventNote.id)) out = { ...out, eventNote: null };
     return out as T;
+}
+
+/** Tira uma pedra dessas da Mochila. */
+const bagWithout = (run: RunState, stone: Stone) => {
+    const bag = [...(run.bag ?? [])];
+    bag.splice(bag.indexOf(stone), 1);
+    return bag.length ? bag : undefined;
+};
+
+/** Centro Pokémon sem amarelo pra tirar nem ninguém fora: vira o PC do Bill (antes só sobrava "Seguir viagem"). */
+export const centroEvent = (run: RunState): EventId =>
+    (run.cards ?? 0) > 0 || squadOf(run).some((u) => isOut(run, u)) ? 'centro' : 'pc';
+
+/** O que o Pular dá na Rota (estilo Balatro: a etiqueta aparece no botão antes de você decidir). */
+export type SkipTag = 'dispensar' | 'money' | 'shop' | 'rival' | 'evo' | 'rerolls';
+
+/** Casas que ainda dá pra alcançar no mapa a partir de onde você está. */
+function ahead(run: RunState): MapNode[] {
+    const map = run.map;
+    if (!map || run.group) return [];
+    const seen = new Set<string>();
+    const todo = [...(currentNode(run)?.next ?? map.nodes.filter((n) => n.row === 0).map((n) => n.id))];
+    while (todo.length) {
+        const id = todo.pop()!;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        todo.push(...(nodeById(map, id)?.next ?? []));
+    }
+    return map.nodes.filter((n) => seen.has(n.id));
+}
+
+/** Quem leva a meia barra do Pular: o titular (depois o reserva) mais perto de evoluir. */
+export function skipEvoTarget(run: RunState): PokemonInstance | undefined {
+    const max = evoThreshold(run.sponsors);
+    return [...run.lineup, ...run.bench]
+        .map((u) => run.picks.find((p) => p.uid === u))
+        .filter(
+            (p): p is PokemonInstance =>
+                !!p && evolutionTarget(p.speciesId, p.uid) !== null && (p.evo ?? 0) < max && !isOut(run, p.uid),
+        )
+        .sort((a, b) => +run.bench.includes(a.uid) - +run.bench.includes(b.uid) || (b.evo ?? 0) - (a.evo ?? 0))[0];
+}
+
+/**
+ * A etiqueta do Pular desta tela de recompensa, pela seed (a mesma até você sair dela). O rival tem a dele (Dispensar:
+ * +₽2). Só entra no sorteio o que serve agora: troca grátis com um Mercado pela frente, rival −1 com partida no mapa e
+ * sem outro −1 guardado (a Entrevista), meia barra com alguém que evolui. null = Relâmpago (+1 sorteio de sempre).
+ */
+export function skipTagOf(run: RunState): SkipTag | null {
+    if (!isLong(run)) return null;
+    if (run.rivalPick) return 'dispensar';
+    const next = ahead(run);
+    const pool: SkipTag[] = ['money', 'rerolls'];
+    if (next.some((n) => n.kind === 'mercado')) pool.push('shop');
+    if ((run.rivalShift ?? 0) >= 0 && next.some((n) => isMatchKind(n.kind))) pool.push('rival');
+    if (skipEvoTarget(run)) pool.push('evo');
+    return new Rng(run.seed, `skip-${run.at}-${run.stage}${run.group ? '-g' : ''}`).pick(pool);
+}
+
+/** Aplica o Pular (a etiqueta da tela). */
+export function applySkip(run: RunState): RunState {
+    const money = run.money ?? 0;
+    switch (skipTagOf(run)) {
+        case null:
+            return { ...run, rerolls: run.rerolls + 1 };
+        case 'dispensar':
+            return { ...run, money: money + ROTA_VALUES.dismiss };
+        case 'money':
+            return { ...run, money: money + ROTA_VALUES.skipMoney };
+        case 'rerolls':
+            return { ...run, rerolls: run.rerolls + ROTA_VALUES.skipRerolls };
+        case 'shop':
+            return { ...run, shopFree: (run.shopFree ?? 0) + 1 };
+        case 'rival':
+            return { ...run, rivalShift: -1 };
+        case 'evo': {
+            const uid = skipEvoTarget(run)!.uid;
+            const max = evoThreshold(run.sponsors);
+            return {
+                ...run,
+                picks: run.picks.map((p) => (p.uid === uid ? { ...p, evo: Math.min(max, (p.evo ?? 0) + max / 2) } : p)),
+            };
+        }
+    }
+}
+
+/**
+ * "Sortear de novo" no 1 de 3 do rival: só se o elenco dele tem alguém que não está na mesa (ou se há um reforço
+ * sorteado). Fora do rival, sempre.
+ */
+export function rewardRerollable(run: RunState): boolean {
+    if (!run.rivalPick) return true;
+    const opp = run.opponents[run.stage];
+    const shown = new Set(run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst.speciesId] : [])));
+    const taken = new Set(run.picks.map((p) => p.speciesId));
+    return (
+        run.rewards.some((r) => r.kind === 'pokemon' && !r.from) ||
+        [...(opp?.lineup ?? []), ...(opp?.bench ?? [])].some((p) => !taken.has(p.speciesId) && !shown.has(p.speciesId))
+    );
 }

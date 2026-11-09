@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COACH_EVENTS, EVENT_NAMES, errorGate, firstLeave, isBot, pickedReward, sendable } from './track';
+import { COACH_EVENTS, EVENT_NAMES, errorGate, firstLeave, isBot, pickedReward, rewardEvent, sendable } from './track';
 
 describe('nomes dos eventos', () => {
     it('a lista do cliente é a da última migração do game_events_name_check (fora dela, o lote inteiro dá 400)', () => {
@@ -39,6 +39,35 @@ describe('pickedReward', () => {
         expect(pickedReward(before, run([mon('a', ['bubblebeam', 'growl']), before.picks[1]]))?.kind).toBe('tm');
         expect(pickedReward(before, run([before.picks[0], mon('b', ['ember'], 'leftovers')]))?.kind).toBe('item');
         expect(pickedReward(before, before)).toBeNull();
+    });
+});
+
+describe('rewardEvent', () => {
+    const base = {
+        seed: 's',
+        status: 'reward',
+        stage: 1,
+        rerolls: 1,
+        rerollsUsed: 0,
+        picks: [mon('a', ['tackle'])],
+        rewards: [{ kind: 'item', item: 'leftovers' }],
+    };
+    // biome-ignore lint/suspicious/noExplicitAny: só os campos que a função lê
+    const run = (patch: object) => ({ ...base, ...patch }) as any;
+
+    it('Rota: grava a recompensa mesmo quando a tela seguinte é o mapa ou o prêmio da casa (antes ficava cega)', () => {
+        const rival = run({ mode: 'longa', rivalPick: true });
+        // dispensou o rival: o prêmio da casa abre na mesma tela de recompensa
+        const prize = run({ mode: 'longa', rewards: [{ kind: 'item', item: 'scopelens' }], money: 2 });
+        expect(rewardEvent(rival, prize)).toMatchObject({ skipped: true, screen: 'rival', tag: 'dispensar' });
+        const held = run({ mode: 'longa', status: 'map', picks: [mon('a', ['tackle'], 'scopelens')] });
+        expect(rewardEvent(prize, held)).toMatchObject({ skipped: false, kind: 'item', what: 'scopelens', tag: null });
+        // sortear de novo não é resolver a tela
+        expect(rewardEvent(prize, { ...prize, rerollsUsed: 1, rewards: [] })).toBeNull();
+        // Relâmpago: igual a antes (sem tela nem etiqueta)
+        const quick = rewardEvent(run({}), run({ status: 'lineup' }));
+        expect(quick).toMatchObject({ skipped: true, stage: 1 });
+        expect(quick).not.toHaveProperty('screen');
     });
 });
 

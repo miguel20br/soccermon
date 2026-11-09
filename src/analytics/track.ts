@@ -1,5 +1,7 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
 import { type GameState, liveOf, useGame } from '../store/game-store';
+import { currentNode, isLong } from '../store/long-cup';
+import { skipTagOf } from '../store/long-events';
 import { seenCount } from '../store/profile';
 import { lineupAverage } from '../ui/rating';
 
@@ -141,6 +143,35 @@ export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null 
     );
 }
 
+/** Tela de recompensa da Rota: o 1 de 3 do rival, o prêmio da casa, o Baú, o Treino, o Ginásio, o desafio ou o grupo. */
+const rewardScreen = (run: Run) => {
+    const kind = currentNode(run)?.kind;
+    if (run.rivalPick) return 'rival';
+    if (run.group) return 'grupo';
+    if (run.fight) return 'desafio';
+    return kind === 'bau' || kind === 'treino' || kind === 'ginasio' ? kind : 'premio';
+};
+
+/**
+ * A recompensa resolvida (pegou ou pulou), ou null. Na Rota a tela seguinte é o mapa, um evento, o grupo ou outra
+ * recompensa (o prêmio da casa depois do rival); antes só contava a escalação e o Mercado, e nenhuma recompensa da
+ * Rota chegava no `npm run stats`. Sortear de novo não conta (a tela continua a mesma).
+ */
+export function rewardEvent(old: Run, run: Run): Props | null {
+    if (old.status !== 'reward') return null;
+    if (run.status === 'reward' && (run.rewards === old.rewards || run.rerollsUsed !== old.rerollsUsed)) return null;
+    const got = pickedReward(old, run);
+    return {
+        stage: old.stage,
+        rerolls_left: run.rerolls,
+        skipped: !got,
+        kind: got?.kind ?? null,
+        what: got ? (got.kind === 'pokemon' ? got.inst.speciesId : got.kind === 'tm' ? got.move : got.item) : null,
+        // Rota: qual tela e, pulando, o que a etiqueta do Pular deu
+        ...(isLong(old) && { screen: rewardScreen(old), tag: got ? null : skipTagOf(old) }),
+    };
+}
+
 export function track(name: EventName, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
     if (!ENABLED || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
@@ -268,22 +299,8 @@ function onChange(s: GameState, prev: GameState) {
                 rerolls: old.shop?.rerolls ?? 0,
                 sponsors: (run.sponsors ?? []).join(','),
             });
-        if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
-            const got = pickedReward(old, run);
-            track('reward', {
-                stage: old.stage,
-                rerolls_left: run.rerolls,
-                skipped: run.picks === old.picks,
-                kind: got?.kind ?? null,
-                what: got
-                    ? got.kind === 'pokemon'
-                        ? got.inst.speciesId
-                        : got.kind === 'tm'
-                          ? got.move
-                          : got.item
-                    : null,
-            });
-        }
+        const reward = rewardEvent(old, run);
+        if (reward) track('reward', reward);
     }
     if (old && !run) track('run_abandon', { stage: old.stage, status: old.status });
 
