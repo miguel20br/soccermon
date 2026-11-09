@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerOrder,
@@ -729,7 +730,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                         name: nameOf(uid),
                                         sprite: inst ? cardSprite(inst) : '',
                                         gk: slots[i] === 'GK',
-                                        shot: inst ? viewInstance(inst).attributes.shooting : undefined,
+                                        shot: inst ? cardAttributes(inst).field.shooting : undefined,
                                     };
                                 })}
                                 onKeep={() => setPensOpen(false)}

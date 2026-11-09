@@ -4,6 +4,7 @@ import { FUTSAL_5 } from '../../engine/config';
 import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerPlan,
@@ -711,7 +712,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                     name: nameOf(uid),
                     sprite: inst ? cardSprite(inst) : '',
                     gk: role === 'GK',
-                    shot: shooting(uid),
+                    shot: inst ? cardAttributes(inst).field.shooting : 0,
                 };
             });
     };

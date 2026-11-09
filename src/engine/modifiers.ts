@@ -207,14 +207,18 @@ export function applyModifiers(base: Attributes, mods: readonly AttrModifier[], 
  * `field` = carta + edição, evolução, habilidade, item e Fada; `bonus` = `field` − carta sem nada, já arredondados.
  * Com `ctx`, entra também o do time (capitão, sinergias, Patrocínios, vaga).
  */
+/** Teto do número de atributo na carta (o motor pode passar disso com habilidade). */
+export const CARD_MAX = 99;
+
 export function cardAttributes(inst: PokemonInstance, ctx: TeamContext = {}) {
     const base = instanceBase(inst);
     const raw = applyModifiers(base, attributeModifiers(inst, ctx), ctx.role);
     const field = {} as Attributes;
     const bonus = {} as Attributes;
     for (const k of ALL) {
-        field[k] = Math.round(raw[k]);
-        bonus[k] = field[k] - Math.round(base[k]);
+        // a carta para em 99 (Miguel, 09/11); em campo vale o número inteiro (Rapidash Run Away: 101) e o ▲ é o bônus todo
+        field[k] = Math.min(CARD_MAX, Math.round(raw[k]));
+        bonus[k] = Math.round(raw[k]) - Math.round(base[k]);
     }
     return { field, bonus };
 }

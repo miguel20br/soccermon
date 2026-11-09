@@ -13,7 +13,7 @@ vi.mock('./Tip', async () => {
 import type { AttrKey } from '../../engine/attributes';
 import { evolveInstance } from '../../engine/evolution';
 import { createInstance, instanceBase, type PokemonInstance } from '../../engine/instance';
-import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
+import { applyModifiers, attributeModifiers, CARD_MAX } from '../../engine/modifiers';
 import { Rng } from '../../engine/rng';
 import { ICONS } from '../../engine/specials';
 import { dict } from '../../i18n';
@@ -32,6 +32,7 @@ const CASES: [string, PokemonInstance][] = [
     ['Gyarados do pacote (sem bônus)', sample(130)],
     ['Mewtwo Shiny Ícone (edição)', sample(150, { shiny: true, special: { kind: 'icone', title: ICONS[150] } })],
     ['Clefairy com Choice Band (Fada + item)', sample(35, { item: 'choiceband' })],
+    ['Rapidash com Run Away (passa de 99 em campo)', sample(78, { ability: 'runaway' })],
 ];
 
 const ATTR_OF = Object.fromEntries(
@@ -57,7 +58,7 @@ describe('carta = campo: o número do atributo é o que vale em campo e o ▲ qu
         const stats = Object.entries(shown(inst)) as [AttrKey, { v: number; mod: number }][];
         expect(stats.length).toBeGreaterThanOrEqual(6);
         for (const [k, s] of stats) {
-            expect(s.v, k).toBe(Math.round(field[k]));
+            expect(s.v, k).toBe(Math.min(CARD_MAX, Math.round(field[k])));
             expect(s.mod, k).toBe(Math.round(field[k]) - Math.round(base[k]));
         }
     });
@@ -66,5 +67,14 @@ describe('carta = campo: o número do atributo é o que vale em campo e o ▲ qu
         expect(shown(karp).pace).toEqual({ v: 79, mod: 6 });
         expect(Object.values(shown(evolveInstance(karp, 130))).some((s) => s.mod > 0)).toBe(true);
         expect(Object.values(shown(sample(130))).every((s) => s.mod === 0)).toBe(true);
+    });
+});
+
+describe('a carta para em 99', () => {
+    it('Rapidash com Run Away: 101 em campo, 99 na carta, ▲ com o bônus inteiro', () => {
+        const rapidash = sample(78, { ability: 'runaway' });
+        const field = applyModifiers(instanceBase(rapidash), attributeModifiers(rapidash));
+        expect(Math.round(field.pace)).toBeGreaterThan(CARD_MAX);
+        expect(shown(rapidash).pace?.v).toBe(CARD_MAX);
     });
 });
