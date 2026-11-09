@@ -13,6 +13,19 @@ export const tabMemory = { last: START as number };
 export const openTabNext = (tab: Tab) => {
     tabMemory.last = TABS.indexOf(tab);
 };
+const tabCalls = new Set<(i: number) => void>();
+/** Leva a Home pra uma aba agora (o botão das Notícias): a Home aberta troca na hora; fechada, abre nela. */
+export const goTab = (tab: Tab) => {
+    openTabNext(tab);
+    for (const f of tabCalls) f(tabMemory.last);
+};
+/** Quem atende o `goTab` (os Ambientes trocam de aba; o App tira o menu de modos da frente). */
+export const onGoTab = (f: (i: number) => void) => {
+    tabCalls.add(f);
+    return () => {
+        tabCalls.delete(f);
+    };
+};
 
 const KEY = 'soccermon-lab-ambientes';
 

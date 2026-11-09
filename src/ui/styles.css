@@ -4804,7 +4804,7 @@ button,
     min-width: 0;
     overflow-wrap: anywhere;
 }
-/* o cartaz da versão nova: arte com raios, o nome grande e 4 destaques */
+/* a versão de agora: o nome grande e 4 destaques (embaixo do carrossel das Notícias) */
 .patch-page {
     display: grid;
     gap: 10px;
@@ -4823,34 +4823,6 @@ button,
 .patch-poster {
     display: grid;
     gap: 10px;
-}
-.patch-poster-art {
-    position: relative;
-    display: grid;
-    place-items: center;
-    height: 96px;
-    overflow: hidden;
-    border: 3px solid var(--cb-ink);
-    border-radius: 10px;
-    background: radial-gradient(120% 140% at 50% 50%, #3a4fa8 0%, #1a2560 55%, #0a0f2a 100%);
-}
-.patch-poster-art::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 640px;
-    aspect-ratio: 1;
-    translate: -50% -50%;
-    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.09) 0 9deg, transparent 9deg 22.5deg);
-    animation: k-rays-turn 24s linear infinite;
-}
-.patch-poster-art img {
-    position: relative;
-    width: 64px;
-    height: 64px;
-    filter: drop-shadow(0 4px 0 rgb(0 0 0 / 35%));
-    animation: k-pop-in var(--dur-pop) var(--ease-pop) both;
 }
 .patch-poster .patch-meta {
     margin: 0;
@@ -4914,27 +4886,9 @@ button,
     font-size: 12px;
     line-height: 1.35;
 }
-@media (max-height: 520px) {
-    .patch-poster-art {
-        height: 56px;
-    }
-    .patch-poster-art img {
-        width: 40px;
-        height: 40px;
-    }
-}
 .patch-notes .patch-version h2.bc-caption {
     max-width: 100%;
     white-space: normal;
-}
-.patch-poster-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-.patch-poster-actions .btn {
-    width: 100%;
-    margin: 0;
 }
 .patch-old-list {
     display: grid;

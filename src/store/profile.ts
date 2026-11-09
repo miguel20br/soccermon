@@ -93,6 +93,8 @@ export interface Profile {
     seen?: string[];
     /** Balões do tutorial já mostrados (coach.ts). Sem o campo = save de antes deles (o que já jogou conta como visto). */
     coach?: string[];
+    /** Cartões das Notícias já vistos (ui/news.ts, ids). Sem o campo = nenhum visto. */
+    newsSeen?: string[];
 }
 
 export const DEFAULT_PROFILE: Profile = {

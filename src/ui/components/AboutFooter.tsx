@@ -3,12 +3,10 @@ import { reloadForNewVersion } from '../../chunk-reload';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { openPage } from '../doors';
-import { Sheet } from '../kit/Sheet';
 import { FEEDBACK_URL, privacyUrl } from '../links';
 import { writeCount } from '../local-count';
-import type { PatchNotes } from '../patch-notes';
+import { activeNews, NEXT_NEWS, unseenNews, withSeen } from '../news';
 import { NewDot } from '../profile/news';
-import { HudIcon } from './MatchHud';
 import { MenuIcon } from './MenuIcon';
 
 /** Troca rápida de idioma no rodapé (as Configurações também têm). */
@@ -34,78 +32,6 @@ function LangToggle() {
     );
 }
 
-function PatchBody({ n }: { n: PatchNotes }) {
-    return n.sections.map((sec) => (
-        <div key={sec.title}>
-            <h3>{sec.title}</h3>
-            <ul>
-                {sec.lines.map((l) => (
-                    <li key={l}>{l}</li>
-                ))}
-            </ul>
-        </div>
-    ));
-}
-
-const patchDate = (n: PatchNotes, lang: 'pt' | 'en') =>
-    new Date(`${n.date}T12:00:00Z`).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US', {
-        day: 'numeric',
-        month: 'short',
-        timeZone: 'UTC',
-    });
-
-/**
- * O cartaz da versão nova (cara-de-jogo.md, decisão 15): o nome grande e 4 destaques (o 1º item de cada seção);
- * "Ver tudo" troca a página dentro da mesma folha.
- */
-function PatchPoster({ n, lang, go }: { n: PatchNotes; lang: 'pt' | 'en'; go: (page: string) => void }) {
-    const { t } = useT();
-    return (
-        <section className="patch-poster">
-            <div className="patch-poster-art" aria-hidden>
-                <img src="assets/ui/simbolo.svg" alt="" width="64" height="64" />
-            </div>
-            <p className="patch-meta">
-                <span className="bc-tag">{t('home.latest')}</span>
-                <span>v{n.version}</span>
-                <time dateTime={n.date}>{patchDate(n, lang)}</time>
-            </p>
-            <h2 className="patch-poster-title">{n.title}</h2>
-            <ol className="patch-hl">
-                {n.sections.slice(0, 4).map((sec) => (
-                    <li key={sec.title}>
-                        <HudIcon kind="max" />
-                        <span>
-                            <b>{sec.title}</b>
-                            <small>{sec.lines[0]}</small>
-                        </span>
-                    </li>
-                ))}
-            </ol>
-            <div className="patch-poster-actions">
-                {/* um botão só: a lista com a versão de agora no topo e as antigas embaixo */}
-                <button type="button" className="btn" onClick={() => go('old')}>
-                    {t('home.newsAll')}
-                </button>
-            </div>
-        </section>
-    );
-}
-
-/** Uma versão inteira (do cartaz ou da lista das antigas). */
-function PatchVersion({ n, lang }: { n: PatchNotes; lang: 'pt' | 'en' }) {
-    const { t } = useT();
-    return (
-        <section className="patch-version">
-            <p className="patch-meta">
-                <time dateTime={n.date}>{patchDate(n, lang)}</time>
-            </p>
-            <h2 className="bc-caption">{t('home.version', { v: n.version, title: n.title })}</h2>
-            <PatchBody n={n} />
-        </section>
-    );
-}
-
 /** "0.9.27" vira 9027: a última versão aberta nas Novidades fica guardada como número (`local-count`). */
 const versionNum = (v: string) => v.split('.').reduce((a, x) => a * 1000 + (Number(x) || 0), 0);
 const NEWS_SEEN = 'soccermon.newsSeen';
@@ -118,15 +44,23 @@ export function readSeen(): number | null {
     }
 }
 
+/** Os cartões no ar; nas prévias, `?noticias=prox` junta os próximos (`NEXT_NEWS`) pra ver a arte antes. */
+const newsCards = () =>
+    __SMOKE__ && new URLSearchParams(window.location.search).get('noticias') === 'prox'
+        ? [...activeNews(), ...NEXT_NEWS]
+        : activeNews();
+
 /**
- * Novidades no canto de cima (TopActions), em toda tela de menu: abre as notas de versão; o pontinho acende enquanto
- * a versão nova não foi aberta neste navegador (o Miguel, 30/10: nas Configurações ficava estranho).
+ * Novidades no canto de cima (TopActions), em toda tela de menu: abre a tela cheia das Novidades (as Notícias em
+ * carrossel e as Notas da versão, `NewsScreen`). O pontinho acende enquanto a versão nova não foi aberta neste
+ * navegador (o Miguel, 30/10: nas Configurações ficava estranho) ou há cartão das Notícias que o save ainda não viu
+ * (`Profile.newsSeen`).
  */
 export function NewsButton() {
-    const { t, d, lang } = useT();
-    // as notas (~50 KB gzip) só baixam ao abrir; o botão e o pontinho só precisam da versão (a 1ª das notas, testado)
-    const [mod, setMod] = useState<typeof import('../patch-notes') | null>(null);
-    const notes = mod?.patchNotes(lang) ?? [];
+    const { d } = useT();
+    // o feed e as notas (~50 KB gzip) só baixam ao abrir; o botão e o pontinho só precisam da versão (a 1ª das notas,
+    // testado) e da lista leve das Notícias
+    const [mod, setMod] = useState<typeof import('./NewsFeed') | null>(null);
     const latest = versionNum(__APP_VERSION__);
     // save novo (nada visto ainda) nasce com a versão atual lida: o jogador do primeiro minuto não tem novidade
     const fresh = useGame((s) => Object.keys(s.dex).length === 0);
@@ -138,9 +72,17 @@ export function NewsButton() {
         }
         return v;
     });
+    const newsSeen = useGame((s) => s.profile.newsSeen);
+    const unseen = unseenNews(newsSeen);
     const [open, setOpen] = useState(false);
-    const [page, setPage] = useState('poster');
+    // os cartões não vistos quando a folha abriu: o selo "Nova" fica neles até fechar
+    const [newIds, setNewIds] = useState<ReadonlySet<string>>(new Set());
     const close = useCallback(() => setOpen(false), []);
+    // cada cartão conta como visto quando aparece no carrossel
+    const onSeen = useCallback((id: string) => {
+        const g = useGame.getState();
+        if (!g.profile.newsSeen?.includes(id)) g.updateProfile({ newsSeen: withSeen(g.profile.newsSeen, [id]) });
+    }, []);
     // a versão conta como vista quando as notas abrem de verdade (falhou o download, o pontinho fica)
     useEffect(() => {
         if (!open || !mod) return;
@@ -150,7 +92,7 @@ export function NewsButton() {
     // sem rede ou com o pedaço de uma versão velha (404), recarrega pra versão nova como os outros pedaços preguiçosos
     const load = () => {
         if (!mod)
-            void import('../patch-notes').then(setMod, () => {
+            void import('./NewsFeed').then(setMod, () => {
                 setOpen(false);
                 void reloadForNewVersion();
             });
@@ -165,51 +107,16 @@ export function NewsButton() {
                 onPointerDown={load}
                 onClick={() => {
                     load();
-                    setPage('poster');
+                    setNewIds(new Set(unseen.map((c) => c.id)));
                     setOpen(true);
                 }}
             >
                 <MenuIcon kind="news" />
-                {/* sem onde guardar (aba anônima): sem pontinho, ele não apagaria nunca */}
-                <NewDot on={seen !== null && seen < latest} />
+                {/* sem onde guardar a versão (aba anônima): só os cartões acendem (esses ficam no save) */}
+                <NewDot on={(seen !== null && seen < latest) || (!fresh && unseen.length > 0)} />
             </button>
-            {/* abre quando as notas chegam: a folha não nasce vazia */}
-            <Sheet open={open && !!mod} onClose={close} title={t('home.news')} className="patch-notes">
-                {/* uma página por vez, entrando com fade (nada teleporta) */}
-                <div key={page} className="patch-page">
-                    {page !== 'poster' && (
-                        <button
-                            type="button"
-                            className="btn small ghost patch-back"
-                            onClick={() => setPage(page === 'old' ? 'poster' : 'old')}
-                        >
-                            <HudIcon kind="prev" />
-                            {t('common.ui.back')}
-                        </button>
-                    )}
-                    {page === 'poster' && notes[0] && <PatchPoster n={notes[0]} lang={lang} go={setPage} />}
-                    {page === 'old' && (
-                        <ul className="patch-old-list">
-                            {notes.map((n) => (
-                                <li key={n.version}>
-                                    <button type="button" className="patch-toggle" onClick={() => setPage(n.version)}>
-                                        <span className="patch-old-title">
-                                            {t('home.version', { v: n.version, title: n.title })}
-                                        </span>
-                                        <time dateTime={n.date}>{patchDate(n, lang)}</time>
-                                        <HudIcon kind="next" />
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    {notes
-                        .filter((n) => n.version === page)
-                        .map((n) => (
-                            <PatchVersion key={n.version} n={n} lang={lang} />
-                        ))}
-                </div>
-            </Sheet>
+            {/* abre quando o feed chega: a tela não nasce vazia */}
+            {open && mod && <mod.NewsScreen cards={newsCards()} fresh={newIds} onSeen={onSeen} onClose={close} />}
         </>
     );
 }

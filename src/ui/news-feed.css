@@ -1,0 +1,734 @@
+/* ---------- Novidades em tela cheia (components/NewsFeed.tsx, ui/news.ts): Notícias e Notas da versão ---------- */
+.nfs {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: var(--bg);
+    color: var(--text);
+    overscroll-behavior: contain;
+    animation: nfs-in 260ms var(--ease-out) both;
+}
+.nfs:focus {
+    outline: none;
+}
+@keyframes nfs-in {
+    from {
+        opacity: 0;
+        scale: 1.03;
+    }
+}
+
+/* o topo: as duas abas no meio e o X vermelho do kit à direita */
+.nfs-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 12px;
+    border-bottom: 3px solid var(--cb-ink);
+    background: var(--bg-2);
+}
+.nfs-tabs {
+    flex: 1;
+    max-width: 440px;
+    margin: 0 auto;
+}
+.nfs-tabs button {
+    min-height: 40px;
+    font-size: 13px;
+}
+@media (max-width: 359px) {
+    .nfs-head {
+        gap: 6px;
+        padding-left: 8px;
+    }
+    .nfs-tabs button {
+        font-size: 11px;
+    }
+}
+.nfs-x {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--red-hi) 0 44%, var(--red) 44%);
+    box-shadow:
+        inset 0 -3px 0 var(--red-lo),
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    cursor: pointer;
+}
+.nfs-x:hover {
+    filter: brightness(1.08);
+}
+.nfs-x:active {
+    translate: 0 2px;
+    box-shadow:
+        inset 0 -3px 0 var(--red-lo),
+        0 1px 0 var(--cb-ink);
+}
+.nfs-x:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.nfs-x svg {
+    width: 20px;
+    height: 20px;
+}
+.nfs-body {
+    display: grid;
+    min-height: 0;
+    animation: patch-page-in 240ms var(--ease-out) both;
+}
+
+/* ---------- Notícias: um cartão por tela ---------- */
+.nfs-car {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-height: 0;
+    /* largura do texto ao lado da arte (deitado e PC) */
+    --copy-w: clamp(270px, 34%, 460px);
+}
+@media (min-width: 900px) and (min-height: 600px) {
+    .nfs-car {
+        --copy-w: clamp(270px, 38%, 560px);
+    }
+}
+.nfs-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+.nfs-track::-webkit-scrollbar {
+    display: none;
+}
+/* em pé: a arte em cima, o texto embaixo; deitado e no PC: o texto à esquerda, a arte enchendo o resto */
+.nfs-slide {
+    position: relative;
+    display: grid;
+    grid-template: "art" minmax(0, 1fr) "copy" auto / minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+.nfs-art {
+    grid-area: art;
+    position: relative;
+    /* as cenas têm z-index próprio: ficam presas aqui, embaixo do texto e das setas */
+    isolation: isolate;
+    min-height: 0;
+    overflow: hidden;
+    /* o pixel do cenário acompanha o sprite (a cena enche a tela) */
+    --px: calc(var(--s) * 1px);
+}
+.nfs-copy {
+    grid-area: copy;
+    position: relative;
+    z-index: 3;
+    display: grid;
+    justify-items: start;
+    align-content: end;
+    gap: 8px;
+    margin-top: -64px;
+    padding: 44px 16px 14px;
+    background: linear-gradient(180deg, transparent, var(--bg) 40px);
+}
+.nfs-new {
+    box-shadow: 0 2px 0 var(--cb-ink);
+}
+.nfs-title {
+    margin: 0;
+    color: var(--yellow);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    font-size: clamp(26px, calc(8 * var(--vw)), 34px);
+    line-height: 1.05;
+    letter-spacing: 0;
+    text-shadow: var(--k-out-2);
+    --ol: var(--cb-ink);
+}
+.nfs-text {
+    max-width: 40ch;
+    margin: 0;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.4;
+}
+.nfs-go.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    min-width: min(100%, 220px);
+    margin: 4px 0 0;
+    padding-inline: 20px;
+}
+.nfs-go svg,
+.nfs-when svg {
+    width: 18px;
+    height: 18px;
+    flex: none;
+}
+.nfs-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 8px 12px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--yellow);
+    font-size: 14px;
+    font-weight: 700;
+}
+@media (orientation: landscape) {
+    .nfs-slide {
+        grid-template: "copy art" minmax(0, 1fr) / var(--copy-w) minmax(0, 1fr);
+    }
+    .nfs-copy {
+        align-content: center;
+        margin: 0 -72px 0 0;
+        padding: 16px 88px 16px 20px;
+        background: linear-gradient(90deg, var(--bg) calc(100% - 72px), transparent);
+    }
+}
+/* celular deitado: pouca altura, texto menor */
+@media (orientation: landscape) and (max-height: 520px) {
+    .nfs-title {
+        font-size: 24px;
+    }
+    .nfs-text {
+        font-size: 13px;
+    }
+    .nfs-copy {
+        gap: 6px;
+    }
+}
+@media (min-width: 900px) and (min-height: 600px) {
+    .nfs-copy {
+        gap: 14px;
+        padding-left: 48px;
+    }
+    .nfs-title {
+        font-size: clamp(36px, calc(3.6 * var(--vw)), 52px);
+    }
+    .nfs-text {
+        font-size: 18px;
+    }
+    .nfs-go.btn {
+        min-height: 56px;
+        font-size: 16px;
+    }
+}
+
+/* setas grandes, por cima da arte (nas bordas dela) */
+.nfs-arrow {
+    position: absolute;
+    z-index: 4;
+    top: 38%;
+    translate: 0 -50%;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--panel) 85%, transparent);
+    box-shadow: 0 3px 0 var(--cb-ink);
+    color: var(--text);
+    cursor: pointer;
+    transition:
+        background-color 200ms var(--ease-out),
+        color 200ms var(--ease-out),
+        scale 200ms var(--ease-out);
+}
+.nfs-arrow.prev {
+    left: 8px;
+}
+.nfs-arrow.next {
+    right: 8px;
+}
+/* em pé: as setas descem pra linha dos pontinhos, nas bordas (em cima da arte tapavam os Pokémon) */
+@media (orientation: portrait) {
+    .nfs-arrow {
+        top: auto;
+        bottom: 6px;
+        translate: none;
+    }
+    .nfs-nav {
+        min-height: 60px;
+        align-items: center;
+        padding-inline: 64px;
+    }
+}
+@media (orientation: landscape) {
+    .nfs-arrow {
+        top: 45%;
+    }
+    .nfs-arrow.prev {
+        left: calc(var(--copy-w) + 8px);
+    }
+}
+@media (min-width: 900px) and (min-height: 600px) {
+    .nfs-arrow {
+        width: 64px;
+        height: 64px;
+    }
+    .nfs-arrow.next {
+        right: 20px;
+    }
+    .nfs-arrow svg {
+        width: 30px;
+        height: 30px;
+    }
+}
+.nfs-arrow:hover,
+.nfs-arrow:focus-visible {
+    background: var(--panel-2);
+    color: var(--yellow);
+}
+.nfs-arrow:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+.nfs-arrow:active {
+    scale: 0.92;
+}
+.nfs-arrow svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* embaixo: pontinhos no celular em pé; abas com o título do cartão quando cabe (a da vez enche no autoplay) */
+.nfs-nav {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px 12px 8px;
+}
+.nfs-nav button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.nfs-nav span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+.nfs-nav button::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    transition:
+        width 250ms var(--ease-out),
+        background-color 250ms var(--ease-out);
+}
+.nfs-nav button.on::before {
+    width: 22px;
+    background: var(--yellow);
+}
+.nfs-nav button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+    border-radius: 6px;
+}
+@media (min-width: 700px) {
+    .nfs-nav {
+        gap: 8px;
+        padding: 8px 16px 12px;
+    }
+    .nfs-nav button {
+        flex: 0 1 220px;
+        place-items: stretch;
+        width: auto;
+        min-width: 0;
+        height: auto;
+        min-height: 44px;
+        padding: 0 12px;
+        overflow: hidden;
+        border: 2px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        text-align: left;
+        transition:
+            border-color 200ms var(--ease-out),
+            color 200ms var(--ease-out);
+    }
+    .nfs-nav span {
+        position: static;
+        width: auto;
+        height: auto;
+        align-self: center;
+        overflow: hidden;
+        clip-path: none;
+        text-overflow: ellipsis;
+    }
+    .nfs-nav button::before {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 4px;
+        border-radius: 0;
+        background: var(--yellow);
+        transition: none;
+    }
+    .nfs-nav button:hover {
+        color: var(--text);
+    }
+    .nfs-nav button.on {
+        border-color: var(--yellow);
+        color: var(--text);
+    }
+    .nfs-nav button.on::before {
+        width: 100%;
+    }
+    /* o autoplay: a aba da vez enche da esquerda pra direita no tempo do cartão */
+    .nfs-nav.auto button.on::before {
+        animation: nfs-fill var(--ms) linear both;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .nfs-nav {
+        padding: 4px 12px 6px;
+    }
+    .nfs-nav button {
+        min-height: 34px;
+    }
+}
+@keyframes nfs-fill {
+    from {
+        width: 0;
+    }
+}
+
+/* ---------- Notas da versão: o changelog numa coluna no meio ---------- */
+.nfs-notes {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px 16px 24px;
+}
+.nfs-notes .patch-notes {
+    max-width: 680px;
+    margin: 0 auto;
+    text-align: left;
+}
+.nfs-notes .patch-old-list {
+    padding-left: 0;
+}
+.nfs-notes .patch-meta {
+    padding-right: 0;
+}
+.nfs-notes .patch-notes h2.bc-caption {
+    max-width: 100%;
+}
+.nfs-notes .patch-notes > h3 {
+    margin: 10px 0 0;
+}
+
+/* ---------- a arte: as cenas do menu de modos enchendo a tela ---------- */
+/* o Estádio: a quadra fica com o espaço (torcida baixa) */
+.nfs-art .mm-sc-atual {
+    --px: calc(var(--s) * 1px);
+    --stand-h: calc(var(--px) * 26);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .nfs-art .mm-sc-atual {
+        --stand-h: calc(var(--px) * 14);
+    }
+}
+.nf-court {
+    top: 46%;
+}
+.nf-max {
+    background: radial-gradient(circle at 50% 62%, #c8402e 0%, #6a1626 50%, #250814 100%);
+}
+.nf-max .mm-rays {
+    left: 50%;
+    top: 62%;
+    background: repeating-conic-gradient(rgb(255 203 5 / 22%) 0 6deg, transparent 6deg 18deg);
+    /* câmera lenta: os raios giram devagar */
+    animation-duration: 60s;
+}
+:is(.nf-max, .nf-bench, .nf-packs, .nf-rota, .nf-dex) .mm-stage {
+    z-index: 4;
+}
+.nf-ball {
+    position: absolute;
+    left: 66%;
+    top: 58%;
+    width: calc(var(--px) * 7);
+    height: calc(var(--px) * 7);
+    animation: nf-float 4s var(--ease-out) infinite alternate;
+}
+@keyframes nf-float {
+    to {
+        translate: calc(var(--px) * 6) calc(var(--px) * -4);
+        rotate: 90deg;
+    }
+}
+/* as faixas de cinema da câmera lenta */
+.nf-bar {
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    height: 9%;
+    background: #05060f;
+}
+.nf-bar.top {
+    top: 0;
+}
+.nf-bar.bottom {
+    bottom: 0;
+}
+.nf-plank {
+    position: absolute;
+    left: 9%;
+    right: 9%;
+    top: 58%;
+    height: calc(var(--px) * 5);
+    border-radius: 2px;
+    background: #6b4a2b;
+    box-shadow:
+        0 calc(var(--px) * 2) 0 #3d2a18,
+        0 calc(var(--px) * 3) 0 var(--cb-ink);
+}
+/* a vaga vazia: tracejado piscando devagar onde o próximo reforço vai sentar */
+.nf-slot {
+    position: absolute;
+    left: 66%;
+    top: 66%;
+    width: calc(var(--px) * 20);
+    height: calc(var(--px) * 22);
+    translate: -50% -100%;
+    border: calc(var(--px) * 1.5) dashed var(--yellow);
+    border-radius: 6px;
+    animation: nf-blink 1.6s var(--ease-out) infinite alternate;
+}
+@keyframes nf-blink {
+    from {
+        opacity: 0.35;
+    }
+}
+
+/* Meus pacotes e Picks: a pilha de pacotes à esquerda e as três cartas, a do meio subindo */
+.nf-packs {
+    background: radial-gradient(circle at 60% 58%, #8b4cf0 0%, #3d1786 48%, #1a0a45 100%);
+}
+.nf-packs .mm-rays {
+    left: 62%;
+}
+.nf-pile {
+    position: absolute;
+    left: 6%;
+    bottom: 8%;
+    width: 22%;
+    aspect-ratio: 63 / 88;
+}
+.nf-pile > span {
+    position: absolute;
+    inset: 0;
+    translate: calc(var(--i) * 18%) calc(var(--i) * -8%);
+    rotate: calc(var(--i) * 6deg - 6deg);
+}
+.nf-pile .cpack {
+    width: 100%;
+    animation: none;
+}
+.nf-picks {
+    position: absolute;
+    left: 40%;
+    right: 3%;
+    bottom: 10%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: end;
+    gap: 3%;
+}
+.nf-picks > span {
+    container-type: inline-size;
+    border-radius: 6px;
+    transition: translate 300ms var(--ease-out);
+}
+.nf-picks .pc2 {
+    width: 100%;
+    font-size: calc(100cqw / 15);
+}
+.nf-picks > span.on {
+    translate: 0 -14%;
+    box-shadow: 0 0 0 calc(var(--px) * 1.5) var(--yellow);
+    animation: nf-blink 1.6s var(--ease-out) infinite alternate;
+}
+/* em pé: as três cartas na largura toda e a pilha atrás, em cima (o palco fica mais alto) */
+@media (orientation: portrait) {
+    .nf-packs .mm-stage {
+        width: min(100cqw, 90cqh);
+        aspect-ratio: 0.9;
+    }
+    .nf-pile {
+        left: 50%;
+        bottom: 56%;
+        width: 30%;
+        translate: -60% 0;
+    }
+    .nf-picks {
+        left: 5%;
+        right: 5%;
+        bottom: 16%;
+    }
+}
+.nf-picks .pc2 *,
+.nf-pile .cpack * {
+    animation: none;
+}
+
+/* a Rota nova: o mapa largo de cima, o caminho tracejado, a grama alta da Zona Safari e as fichas do Cassino */
+.nf-rota {
+    /* grama em faixas largas, como o mapa visto de cima */
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent 0 calc(var(--px) * 10),
+            rgb(0 0 0 / 6%) calc(var(--px) * 10) calc(var(--px) * 20)
+        ),
+        linear-gradient(180deg, #6fb35c 0%, #4f9a45 60%, #3d7d38 100%);
+}
+.nf-rota .mm-stage {
+    width: min(100cqw, 170cqh);
+}
+.nf-map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.nf-map path {
+    fill: none;
+    stroke: #f3ead2;
+    stroke-width: 2.4;
+    stroke-dasharray: 5 4;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 2px 0 #23421f);
+}
+@media (min-width: 900px) {
+    .nf-map path {
+        stroke-width: 6;
+    }
+}
+.nf-node {
+    position: absolute;
+    width: calc(var(--px) * 10);
+    height: calc(var(--px) * 10);
+    translate: -50% -50%;
+    border: calc(var(--px) * 1.5) solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--yellow);
+    box-shadow: 0 calc(var(--px) * 1.5) 0 var(--cb-ink);
+}
+/* a grama alta da Zona Safari: na frente do Tauros, que aparece só da cintura pra cima */
+.nf-grass {
+    position: absolute;
+    z-index: 3;
+    width: 26%;
+    height: 12%;
+    translate: 0 -50%;
+    border-radius: 40% 40% 8px 8px;
+    background: repeating-linear-gradient(
+        90deg,
+        #1f5c25 0 calc(var(--px) * 3),
+        #2e7a31 calc(var(--px) * 3) calc(var(--px) * 6)
+    );
+    box-shadow: 0 calc(var(--px) * 1.5) 0 var(--cb-ink);
+}
+.nf-coins {
+    position: absolute;
+    display: flex;
+    flex-direction: column-reverse;
+    translate: -50% -100%;
+}
+.nf-coins i {
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 4);
+    margin-top: calc(var(--px) * -1);
+    border: calc(var(--px) * 1) solid var(--cb-ink);
+    border-radius: 50%;
+    background: linear-gradient(180deg, #ffe26a 0 50%, #d9a400 50%);
+}
+.nf-rota .nf-walker {
+    animation: nf-walk 4s var(--ease-out) infinite alternate;
+}
+@keyframes nf-walk {
+    to {
+        translate: calc(var(--px) * 18) calc(var(--px) * -8);
+    }
+}
+
+/* Golpedex: a bicuda do Snorlax sobe no arco e o Gengar solta o especial com os raios roxos */
+.nf-dex {
+    background: radial-gradient(circle at 70% 58%, #6b3fc8 0%, #2c1670 50%, #0f0a33 100%);
+}
+.nf-dex .mm-rays {
+    left: 74%;
+    top: 58%;
+    background: repeating-conic-gradient(rgb(184 120 255 / 30%) 0 6deg, transparent 6deg 18deg);
+}
+.nf-arc {
+    position: absolute;
+    left: 20%;
+    top: 30%;
+    width: 44%;
+    height: 60%;
+    border: calc(var(--px) * 1.5) dashed rgb(255 255 255 / 70%);
+    border-color: rgb(255 255 255 / 70%) transparent transparent transparent;
+    border-radius: 50%;
+}
+.nf-punt {
+    left: 40%;
+    top: 26%;
+}
+
+:root[data-reduce-motion="true"] :is(.nf-ball, .nf-slot, .nf-max .mm-rays, .nf-picks .on, .nf-rota .nf-walker) {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(.nf-ball, .nf-slot, .nf-max .mm-rays, .nf-picks .on, .nf-rota .nf-walker) {
+        animation: none;
+    }
+}

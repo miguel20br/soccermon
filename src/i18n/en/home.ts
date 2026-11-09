@@ -64,9 +64,18 @@ export const home: typeof pt = {
     doorsAria: 'Your game',
     footerAria: 'More',
     version: 'Version {v} · {title}',
+    /** Notícias: o carrossel do topo das Novidades (ui/news.ts). */
+    newsFeed: {
+        aria: 'News',
+        slide: '{i} of {n}',
+        new: 'New',
+        notes: 'Patch notes',
+        tabs: 'News or patch notes',
+        prev: 'Previous story',
+        next: 'Next story',
+        versions: 'All versions',
+    },
     latest: 'Latest',
-    /** News: the new version's poster leads to the full list and to older versions. */
-    newsAll: 'See all',
     soonTitle: 'Coming soon',
     soonRibbon: 'Coming soon',
     /** Contagem da Liga no cartãozinho do Vem aí. */

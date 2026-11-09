@@ -742,5 +742,7 @@ export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | und
         seen: keep.seen || other?.seen ? union(keep.seen ?? [], other?.seen) : undefined,
         // balões do tutorial: visto em qualquer lado conta
         coach: keep.coach || other?.coach ? union(keep.coach ?? [], other?.coach) : undefined,
+        // cartões das Notícias: visto em qualquer lado conta
+        newsSeen: keep.newsSeen || other?.newsSeen ? union(keep.newsSeen ?? [], other?.newsSeen) : undefined,
     };
 }

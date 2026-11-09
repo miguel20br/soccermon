@@ -6,7 +6,7 @@ import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { useSaveHealth } from './store/save-health';
-import { readAmbientes } from './ui/ambientes/nav';
+import { onGoTab, readAmbientes } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
@@ -189,6 +189,11 @@ export default function App() {
             window.clearTimeout(fadeTimer.current);
             setMenu(to);
         });
+    // o botão das Notícias leva pra uma aba da Home: com o menu de modos na frente, ele sai (corte de TV)
+    const menuNow = useRef(menu);
+    menuNow.current = menu;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: tvMenu só usa o setter e o timer (refs)
+    useEffect(() => onGoTab(() => menuNow.current && tvMenu(null)), []);
     // o menu é só da Home: saiu dela (Perfil, Configurações, copa), ele não volta no meio da sessão
     useEffect(() => {
         if (screen !== 'home') {

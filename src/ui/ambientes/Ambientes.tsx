@@ -12,7 +12,7 @@ import { Arena } from './Arena';
 import { Estadio } from './Estadio';
 import { SpriteNearCtx } from './FieldSprite';
 import { Lab } from './Lab';
-import { dragPos, START, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
+import { dragPos, onGoTab, START, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
 import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { TopBar } from './TopBar';
@@ -86,6 +86,11 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
             setTab(i);
             requestAnimationFrame(() => requestAnimationFrame(() => r?.classList.remove('amb-drag')));
         });
+
+    // o botão das Notícias pede uma aba (`goTab`): troca com o corte de TV, como tocar na aba
+    const tvTabNow = useRef(tvTab);
+    tvTabNow.current = tvTab;
+    useEffect(() => onGoTab((i) => tvTabNow.current(i)), []);
 
     // entrar num modo: a câmera anda até a quadra (ou o time sai pela estrada) e aí a copa começa; um toque pula
     const enter = (action: () => void) => {
