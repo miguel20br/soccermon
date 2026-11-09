@@ -54,7 +54,8 @@ você é o Claude e `git log` mostrar commits com `miguelcunhabr@`, avise o Migu
 - **Nada teleporta:** toda troca de tela e mudança de estado nos menus tem transição de 200–300 ms; tela nova já nasce assim ([ADR 0004](docs/adr/0004-nada-teleporta.md), `npm run teleporte`).
 - **Sem emoji na interface do jogo** (golpes, menus, gráficos): use ícones desenhados (SVG ou Phaser). O texto
   de Compartilhar pode ter emoji.
-- **Carta = campo:** `src/engine/modifiers.ts` é a regra única de bônus; carta, painel e motor usam a mesma.
+- **Carta = campo:** `src/engine/modifiers.ts` é a regra única de bônus; carta, painel e motor usam a mesma (carta para em 99).
+- **Sem faltas** (09/11): nem falta nem pênalti no meio da partida.
 
 ## O projeto
 
@@ -142,10 +143,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (05/11/2026, v0.9.43)
+## Estado atual (09/11/2026, v0.9.44)
 
-No ar: 0.9.43 "Torcida a favor" (rivais do PVE com `crowd`; `?demo=monotipo&n=7`); UT em 27/11. `?lab=kit`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`, não vw/vh. Motor 27 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Histórico: [historico.md](docs/planos/historico.md). Índice: `node scripts/indice.mjs`.
-
+No ar: 0.9.44 "Véspera do Time Ultimate" (UT abre em 27/11). Motor 28 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
 ## Armadilhas (o porquê de cada uma)
 
 - **Motor sem `Math.random()`/`Date`:** quebra o Duelo, a Liga e os replays (mesma seed tem que dar a mesma partida). Use o `Rng` do estado. Resultado mudou? Suba `ENGINE_VERSION`.

@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.44 · Véspera do Time Ultimate (09/11/2026)
+
+Motor 28 (evolução sem perda: a carta que evolui herda o maior de cada atributo das formas anteriores e mantém a habilidade que mexe em atributo; `evolvedFrom`). Time Ultimate com cara de FC (Meus pacotes, Abrir todos, Pokémon Picks, Início em blocos, aba Jogar), Rota A+B (Pular com etiqueta, PC do Bill, Folga, Mochila, mapa largo `mapV`, Ás, Safari, Cassino, Planalto), carta mostra o valor em campo (▲ = bônus, teto 99 na carta), Golpedex com especiais e bicudas, Novidades em tela cheia, goleiro nunca de costas. Planos: ultimate-fc.md, rota-indigo.md, evolucao-sem-perda.md, noticias.md, menos-e-mais.md.
+
 ## 0.9.43 · Torcida a favor (05/11/2026)
 
 Motor 27, pedido do Miguel (muita zebra contra o jogador, só no PVE): `TeamSetup.crowd` nos rivais da Copa e da Rota (−4%, −7% nas 3 primeiras da Rota; modificador visível no painel do rival), rival evolui com 14 como o jogador (a Liga também, o fantasma usava 10). Duelo, Liga e Time Ultimate sem torcida. `match_end` registra `delta` (diferença de nota). Números em `balanceamento-geral.md`.

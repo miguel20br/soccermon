@@ -8,7 +8,6 @@ export interface PatchNotes {
 }
 
 export const PATCH_NOTES: PatchNotes[] = [
-    /* RASCUNHO 0.9.44: tire o comentário no lançamento, junto com o version do package.json
     {
         version: '0.9.44',
         date: '2026-11-09',
@@ -45,13 +44,14 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'A habilidade que mexe em atributo fica (o Gyarados mantém o Swift Swim)',
                     'O selo de evolução mostra a posição da forma nova',
                     'A ficha da carta mostra a linha evolutiva',
+                    'O número do atributo na carta é o que vale em campo, e o ▲ diz quanto é bônus',
                 ],
             },
             {
                 title: 'Copa e partida',
                 lines: [
                     'O golpe máximo do rival também chega em câmera lenta, como o seu',
-                    'O goleiro nunca fica de costas pro chute',
+                    'O goleiro nunca fica de costas pro chute, mergulha pro lado da bola e sente o gol',
                 ],
             },
             {
@@ -72,7 +72,6 @@ export const PATCH_NOTES: PatchNotes[] = [
             },
         ],
     },
-    */
     {
         version: '0.9.43',
         date: '2026-11-05',
@@ -2644,7 +2643,6 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
-    /* RASCUNHO 0.9.44: tire o comentário no lançamento, junto com o version do package.json
     {
         version: '0.9.44',
         date: '2026-11-09',
@@ -2681,13 +2679,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'An ability that changes stats stays (Gyarados keeps Swift Swim)',
                     "The evolution badge shows the new form's position",
                     "The card's sheet shows the evolution line",
+                    'A stat on the card is what it is worth on the pitch, and the ▲ shows how much is bonus',
                 ],
             },
             {
                 title: 'Cup and match',
                 lines: [
                     "The rival's max move also comes in slow motion, like yours",
-                    'The keeper never turns his back on a shot',
+                    'The keeper never turns his back on a shot, dives toward the ball and feels the goal',
                 ],
             },
             {
@@ -2708,7 +2707,6 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
         ],
     },
-    */
     {
         version: '0.9.43',
         date: '2026-11-05',

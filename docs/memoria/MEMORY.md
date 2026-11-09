@@ -3,7 +3,7 @@
 - [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
-- [Retomar (estado 03/11)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.41.1 no ar (motor 23, liga 23; fim da Rota consertado); só a main aberta
+- [Retomar (estado 09/11)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.44 integrada na v0944; ut-fc, rota-a e goleiro-tela rodando; ep. 1 do Vestiário agendado
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
 - [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
 - [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
@@ -22,3 +22,4 @@
 - [Itens quebrados que combam](feedback-itens-quebrados-combam.md) — jogadores amam combo forte (juros + gol dá dinheiro); não nerfar por conservadorismo, sem extrapolar
 - [Pode subir só o aprovado](feedback-pode-subir-so-o-aprovado.md) — o que ele não viu (vídeo, falas, feature) fica fora da versão ou é perguntado pelo nome
 - [Cutscene rara pode ser longa](feedback-cutscene-rara-pode-ser-longa.md) — evento ultra raro dura o que precisar; só encurtar o que se repete
+- [Roteiro: guia, não fórmula](feedback-roteiro-guia-nao-formula.md) — episódio precisa de miolo cômico; estrutura é guia; nome do episódio no começo

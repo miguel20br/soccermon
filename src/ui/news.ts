@@ -44,7 +44,7 @@ const UT_AT = Date.UTC(2026, 10, 27, 3);
 export const NEWS: NewsCard[] = [
     {
         id: 'ultimate-2711',
-        date: '2026-11-17',
+        date: '2026-11-09',
         until: '2026-12-31',
         title: { pt: 'Time Ultimate · 27/11', en: 'Team Ultimate · Nov 27' },
         text: {
@@ -58,7 +58,7 @@ export const NEWS: NewsCard[] = [
     },
     {
         id: 'rota-nova',
-        date: '2026-11-17',
+        date: '2026-11-09',
         until: '2027-01-15',
         title: { pt: 'Rota nova', en: 'New Road' },
         text: {

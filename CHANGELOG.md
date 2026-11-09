@@ -1,5 +1,46 @@
 # Novidades
 
+## 0.9.44 · Véspera do Time Ultimate (2026-11-09)
+
+### Time Ultimate (abre em 27/11)
+- Meus pacotes: o pacote fica guardado até você abrir, e o Abrir todos abre a pilha de uma vez
+- Pokémon Picks: escolha 1 de 3, com as cartas de costas até você virar
+- Início em blocos e a aba Jogar: Batalhas de Treinador, e os outros modos em breve
+- O rival olha a força do seu time (média × química), não só a média
+- Sem rival à altura, a partida paga as Fichas do nível que ele alcançou
+- Mestre com o time do 1º mês: 60 ⇒ 36 Fichas por partida
+
+### Rota Índigo
+- Mapa largo: mais caminhos e casas novas (Treinador Ás, Zona Safari, Cassino de Celadon)
+- A última parada vira escolha: Treino, Mercado do Planalto ou Centro
+- Pular mostra o prêmio à vista: ₽, troca grátis no Mercado, rival −1, sorteios
+- Centro sem ninguém pra tratar vira o PC do Bill
+- Descanso do Treino vira Folga: +₽5 e quem está fora volta
+- Pedra sem uso vai pra Mochila (ou vende por ₽4)
+- Quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela
+
+### Evolução
+- A carta que evolui não perde atributo: fica com o maior de cada um entre as formas
+- Poliwhirl ⇒ Poliwrath: VEL 66 ⇒ 84
+- A habilidade que mexe em atributo fica (o Gyarados mantém o Swift Swim)
+- O selo de evolução mostra a posição da forma nova
+- A ficha da carta mostra a linha evolutiva
+- O número do atributo na carta é o que vale em campo, e o ▲ diz quanto é bônus
+
+### Copa e partida
+- O golpe máximo do rival também chega em câmera lenta, como o seu
+- O goleiro nunca fica de costas pro chute, mergulha pro lado da bola e sente o gol
+
+### Telas
+- Novidades em tela cheia: notícias com arte e as notas da versão
+- Golpedex: os especiais e as bicudas do goleiro
+- Ainda não jogou a Copa do Dia de hoje? O JOGAR mostra ela primeiro
+- Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo
+
+### Consertos
+- Sortear de novo no rival devolvia as mesmas 3 cartas
+- Celular em pé: a quadra que segue a bola travava em erro depois da partida
+
 ## 0.9.43 · Torcida a favor (2026-11-05)
 
 ### Copa e Rota
