@@ -21,6 +21,7 @@ import {
     bestFit,
     captainOptions,
     DRAFT_PICKS,
+    draftOptions,
     playerDraftOptions,
     ROUTE_START_BANNED,
 } from '../engine/draft';
@@ -724,7 +725,26 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
               stone: run.rivalPick && node?.kind === 'jogo' ? node.stone : undefined,
           }
         : undefined;
-    const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
+    // Ás: as 3 melhores de 6 sorteadas na raridade mais alta (só a raridade deixava sair um Poliwag 58)
+    const options = ace
+        ? draftOptions(
+              new Rng(run.seed, `as-${run.at}-r${reroll}`),
+              ACE_ROUND,
+              new Set(run.picks.map((p) => p.speciesId)),
+              6,
+              node?.types ?? [],
+              'ANY',
+          )
+              .sort((a, b) => viewInstance(b).overall - viewInstance(a).overall)
+              .slice(0, 3)
+              .map(
+                  (inst): Reward => ({
+                      kind: 'pokemon',
+                      inst: { ...inst, uid: `as-${inst.speciesId}-${run.at}` },
+                      from: null,
+                  }),
+              )
+        : rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
     return (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );

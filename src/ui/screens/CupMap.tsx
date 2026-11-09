@@ -959,7 +959,7 @@ export function EventScreen() {
                 <h1>{stoneName ?? txt.title}</h1>
             </div>
             {/* a cena atrás do diálogo: quem fala em pé, o emblema do evento e o que está em jogo (cartas, rostos) */}
-            <div className="ev-scene" aria-hidden={!ev.cards?.length}>
+            <div className={`ev-scene ev-${ev.id}`} aria-hidden={!ev.cards?.length}>
                 <i className="ev-floor" />
                 <span className="ev-emblem">
                     {ev.stone ? <StoneMark stone={ev.stone} className="cm-event-stone" /> : <HudIcon kind={art.icon} />}

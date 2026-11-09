@@ -68,7 +68,7 @@ export const longCup = {
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
         pedraRival: 'Evolui na hora. O rival traz um deles no 1 de 3.',
-        rara: 'Escolha 1 de 3 cartas da raridade mais alta.',
+        rara: 'As 3 melhores de 6 cartas da raridade mais alta.',
     },
     /** Zona Safari: a chance de a carta fugir. */
     flee: 'Foge {n}%',
@@ -294,11 +294,11 @@ export const longCup = {
         safari: {
             who: 'pokemaniac',
             title: 'Zona Safari',
-            text: 'Uma Safari Ball, uma chance. Em qual você joga?',
+            text: 'Uma Safari Ball, uma chance. Quem você pegar entra no lugar de um reserva.',
             choices: {
-                bola0: ['{a}', 'Se pegar, entra no lugar de um reserva.'],
-                bola1: ['{b}', 'Se pegar, entra no lugar de um reserva.'],
-                bola2: ['{c}', 'Se pegar, entra no lugar de um reserva.'],
+                bola0: ['{a}', ''],
+                bola1: ['{b}', ''],
+                bola2: ['{c}', ''],
                 seguir: ['Seguir viagem', ''],
                 pegou: ['Na Safari Ball!', '{a} entrou no time.'],
                 fugiu: ['Fugiu!', '{a} correu pro mato.'],

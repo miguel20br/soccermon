@@ -1772,7 +1772,7 @@
     cursor: pointer;
     transition: background-color var(--dur-ui) var(--ease-out);
 }
-.ev-opt > span:not(.money) {
+.ev-opt > span:not(.money):not(.ev-chance) {
     display: grid;
     flex: 1;
     min-width: 0;
@@ -2196,7 +2196,7 @@
 .cm-w4 .cm-node {
     width: 58px;
 }
-.cm-w4 .cm-node .hud-icon {
+.cm-w4 .cm-node > .hud-icon {
     width: 20px;
     height: 20px;
     padding: 7px;
@@ -2210,9 +2210,10 @@
     top: -14px;
     left: calc(50% + 4px);
 }
+/* a pedra no alto à esquerda do círculo (embaixo ela cobria o rótulo; no alto à direita fica o capitão do rival) */
 .cm-w4 .cm-node .cm-node-stone {
-    top: 22px;
-    right: calc(50% + 8px);
+    top: -6px;
+    right: calc(50% + 6px);
 }
 .cm-w4 .cm-me {
     width: 44px;
@@ -2245,7 +2246,7 @@
     .cm-w4 .cm-node {
         width: 72px;
     }
-    .cm-w4 .cm-node .hud-icon {
+    .cm-w4 .cm-node > .hud-icon {
         width: 24px;
         height: 24px;
         padding: 10px;
@@ -2256,6 +2257,7 @@
     .cm-w4 .cm-me {
         width: auto;
         height: auto;
+        max-height: 52px;
     }
 }
 
@@ -2274,9 +2276,27 @@
     font-weight: 700;
     white-space: nowrap;
 }
-/* 3 cartas na cena: menores, e quem fala sai no celular em pé (não cabem os 4) */
+/* 3 cartas na cena: medem pela altura que sobra (com o selo embaixo), e quem fala sai no celular em pé */
+.ev-scene:has(.ev-wild) {
+    padding-block: 4px;
+}
 .ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
-    --fut-w: clamp(66px, min(calc((100 * var(--vh) - 520px) / 1.41), calc(26 * var(--vw))), 130px);
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.6), calc(26 * var(--vw))), 112px);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
+        --fut-w: clamp(56px, min(calc((100 * var(--vh) - 170px) / 1.6), calc(11.5 * var(--vw))), 100px);
+    }
+    .ev-scene:has(.ev-wild) .ev-who {
+        display: none;
+    }
+}
+/* o Cassino: a carta do balcão também mede pela altura (a 320 px ela saía cortada em cima) */
+.ev-scene.ev-cassino {
+    padding-block: 4px;
+}
+.ev-scene.ev-cassino .cm-event-cards .fut-wrap {
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.5), calc(30 * var(--vw))), 130px);
 }
 @media (max-width: 599px) {
     .ev-scene:has(.ev-wild) .ev-who {
