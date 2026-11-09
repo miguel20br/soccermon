@@ -26,7 +26,7 @@ const rng = (seed) => {
     };
 };
 /** Passa-faixa (biquad RBJ) por amostra, frequência fixa: formantes de voz. */
-const bp = (f, q) => {
+export const bp = (f, q) => {
     const w = (TAU * f) / SR;
     const al = Math.sin(w) / (2 * q);
     const a0 = 1 + al;
@@ -39,7 +39,7 @@ const bp = (f, q) => {
     };
 };
 /** Filtro de estado variável (Chamberlin): passa-faixa com o centro mudando a cada amostra (ruído que sobe). */
-const svf = (q = 0.5) => {
+export const svf = (q = 0.5) => {
     let lo = 0;
     let ba = 0;
     return (x, fc) => {
