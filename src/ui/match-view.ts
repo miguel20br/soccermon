@@ -330,7 +330,7 @@ export function pressureUntil(m: MatchResult, tick: number, bins = PRESSURE_BINS
  * frente pro campo ou na diagonal de baixo. Virado pro próprio gol ele ficava de costas pro chute, e nas diagonais de
  * cima (e de cima) a câmera vê as costas dele. `front`: +1 quando o gol dele é o da esquerda (o campo à direita).
  */
-const keeperRows = (front: 1 | -1) => (front > 0 ? { field: 2, low: 1 } : { field: 6, low: 7 });
+export const keeperRows = (front: 1 | -1) => (front > 0 ? { field: 2, low: 1 } : { field: 6, low: 7 });
 
 /**
  * O goleiro na área nunca aparece de costas. O motor vira o sprite pra onde ele anda e, no recuo pra linha quando o
@@ -388,19 +388,91 @@ export function soldDives(snaps: MatchSnapshot[], events: readonly MatchEvent[],
     return out;
 }
 
+/** O corpo no mergulho vendido: sobe em `rise` ticks, volta em `fall`; desloca até `px` pra bola, inclina `tilt` rad. */
+export const SOLD_LEAN = { rise: 3, fall: 5, px: 6, tilt: 0.35, stretch: 0.13 } as const;
+
+/** Último tick da pose do mergulho vendido (o fim do mergulho do motor ou logo depois do gol). */
+export const soldDiveEnd = (d: SoldDive) => Math.max(d.end, d.goal + 2);
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
 /**
  * Pose do mergulho vendido num tick: o bote de frente pro campo, na diagonal de baixo quando a bola passa abaixo dele
- * na tela (`side` > 0), do contato até o fim do mergulho (ou logo depois do gol). Ele não sai do lugar (desvio 0): o
- * goleiro saindo pela lateral parecia abrir o gol (Miguel, 09/11/2026). A bola pode passar por cima do sprite: vista de
- * cima, ela passa do lado.
+ * na tela, do contato até o fim do mergulho (ou logo depois do gol). `toBall` (px): do pé dele no começo do mergulho
+ * até a bola no gol. O corpo se estica e inclina pro lado da bola (squash & stretch) e anda no máximo 6 px: o goleiro
+ * saindo pela lateral parecia abrir o gol (Miguel, 09/11/2026), e parado parecia que nem tentou. `reduce` (Reduzir
+ * movimento): só a pose, sem esticar.
  */
 export function soldDivePose(
     d: SoldDive,
     tick: number,
     front: 1 | -1,
-    side: number,
-): { x: number; y: number; facing: number } | null {
-    if (tick < d.tick || tick > Math.max(d.end, d.goal + 2)) return null;
+    toBall: { x: number; y: number },
+    reduce = false,
+): { x: number; y: number; facing: number; tilt: number; sx: number; sy: number; k: number } | null {
+    const end = soldDiveEnd(d);
+    if (tick < d.tick || tick > end) return null;
     const { field, low } = keeperRows(front);
-    return { x: 0, y: 0, facing: side >= 0 ? low : field };
+    const L = SOLD_LEAN;
+    // bote rápido (sai forte e freia) e volta suave
+    const up = clamp01((tick - d.tick) / L.rise);
+    const back = clamp01((end - tick) / L.fall);
+    const k = reduce ? 0 : Math.min(1 - (1 - up) ** 2, back * back * (3 - 2 * back));
+    const l = Math.hypot(toBall.x, toBall.y) || 1;
+    // a cabeça vai pro lado da bola (pra trás dele, ela já passou): rotação positiva = horária = cabeça pra direita
+    const sign = toBall.x !== 0 ? Math.sign(toBall.x) : -front;
+    return {
+        x: (toBall.x / l) * L.px * k,
+        y: (toBall.y / l) * L.px * k,
+        facing: toBall.y >= 0 ? low : field,
+        tilt: sign * L.tilt * k,
+        sx: 1 + L.stretch * k,
+        sy: 1 - L.stretch * 0.6 * k,
+        k,
+    };
+}
+
+/** Reação do goleiro ao gol sofrido: `gk` fica cabisbaixo de `from` a `from + GOAL_REACTION_TICKS`. */
+export interface GoalReaction {
+    gk: number;
+    from: number;
+}
+export const GOAL_REACTION_TICKS = 12;
+
+/**
+ * Depois do gol sofrido, ~0,6 s de reação (o Hurt do PMD, cabeça baixa) antes de voltar ao normal: começa quando o
+ * mergulho vendido acaba ou logo depois do gol. `keeperOf(time, tick)`: o goleiro do time naquele tick.
+ */
+export function goalReactions(
+    events: readonly MatchEvent[],
+    sold: readonly SoldDive[],
+    keeperOf: (team: 0 | 1, tick: number) => number,
+): GoalReaction[] {
+    const out: GoalReaction[] = [];
+    for (const e of events) {
+        if (e.type !== 'goal') continue;
+        const d = sold.find((x) => x.goal === e.tick);
+        const gk = d?.gk ?? keeperOf(e.team === 0 ? 1 : 0, e.tick);
+        if (gk >= 0) out.push({ gk, from: d ? soldDiveEnd(d) : e.tick + 2 });
+    }
+    return out;
+}
+
+/** Quanto da reação já passou (0 a 1) naquele tick, ou null fora dela. */
+export function goalReactionAt(r: GoalReaction, tick: number): number | null {
+    if (tick <= r.from || tick > r.from + GOAL_REACTION_TICKS) return null;
+    return (tick - r.from) / GOAL_REACTION_TICKS;
+}
+
+/** Uma troca de direção a cada 150 ms no máximo (tempo de tela): o goleiro tremia entre duas direções. */
+export const FACE_HOLD_MS = 150;
+export interface FacingHold {
+    facing: number;
+    at: number;
+}
+
+/** Direção mostrada com histerese: troca só se a última troca foi há `FACE_HOLD_MS` ou mais. */
+export function holdFacing(h: FacingHold | null, want: number, now: number): FacingHold {
+    if (!h || (want !== h.facing && now - h.at >= FACE_HOLD_MS)) return { facing: want, at: now };
+    return h;
 }

@@ -8,7 +8,12 @@ import { Action, type MatchEvent, type MatchSnapshot, SNAP_STRIDE, type TeamSetu
 import { maxCueAt } from './components/Sideline';
 import {
     captainAt,
+    FACE_HOLD_MS,
+    GOAL_REACTION_TICKS,
+    goalReactionAt,
+    goalReactions,
     halftimeEnd,
+    holdFacing,
     keeperFacing,
     MAX_CUE_EARLY,
     type MaxWait,
@@ -16,7 +21,9 @@ import {
     maxHitAhead,
     maxOrderTick,
     maxWaitNext,
+    SOLD_LEAN,
     snapAt,
+    soldDiveEnd,
     soldDivePose,
     soldDives,
     whoAt,
@@ -277,21 +284,79 @@ describe('goleiro na tela (o motor fica igual)', () => {
                 gols++;
                 expect(d.gk).toBe(gk);
                 const front = e.team === 1 ? 1 : -1;
-                for (const side of [1, -1])
-                    for (const s of r.snapshots) {
-                        if (s.tick < d.tick - 10 || s.tick > d.end + 10) continue;
-                        const pose = soldDivePose(d, s.tick, front, side);
+                for (const toBall of [
+                    { x: -12, y: 9 },
+                    { x: 3, y: -40 },
+                    { x: 0, y: 0 },
+                ]) {
+                    let peak = 0;
+                    for (let t = d.tick - 10; t <= d.end + 10; t += 0.25) {
+                        const pose = soldDivePose(d, t, front, toBall);
+                        const s = r.snapshots.find((x) => x.tick >= t);
                         // o mergulho inteiro do motor (o Attack, que dava o bote pra fora) é dele
-                        if (diving(s) && s.tick >= d.tick && s.tick <= d.end) expect(pose).not.toBeNull();
+                        if (s && diving(s) && t >= d.tick && t <= d.end) expect(pose).not.toBeNull();
                         if (!pose) continue;
-                        // não sai do lugar: o goleiro saindo pela lateral parecia abrir o gol
-                        expect(Math.hypot(pose.x, pose.y)).toBe(0);
+                        // estica pro lado da bola, mas no máximo 6 px: saindo pela lateral parecia abrir o gol
+                        const off = Math.hypot(pose.x, pose.y);
+                        expect(off).toBeLessThanOrEqual(SOLD_LEAN.px + 1e-9);
+                        peak = Math.max(peak, off, Math.abs(pose.tilt));
+                        expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(SOLD_LEAN.tilt);
                         // de frente pro campo, na diagonal de baixo se a bola passa abaixo dele
                         expect(ofKeeper(front)).toContain(pose.facing);
-                        expect([0, 1, 7].includes(pose.facing)).toBe(side > 0);
+                        expect([0, 1, 7].includes(pose.facing)).toBe(toBall.y >= 0);
+                        // Reduzir movimento: só a pose, sem esticar nem inclinar
+                        const calm = soldDivePose(d, t, front, toBall, true);
+                        expect([calm?.x, calm?.y, calm?.tilt, calm?.sx].map((v) => Math.abs(v ?? 9))).toEqual([
+                            0, 0, 0, 1,
+                        ]);
                     }
+                    // e o corpo mexe de verdade (parado parecia que ele nem tentou)
+                    expect(peak).toBeGreaterThan(0.3);
+                    // volta suave: no último tick da pose ele já está no lugar
+                    expect(soldDivePose(d, soldDiveEnd(d), front, toBall)?.k).toBe(0);
+                }
             }
         }
         expect(gols).toBeGreaterThan(0);
+    });
+
+    it('depois do gol sofrido o goleiro reage (~0,6 s), sem pisar no mergulho', () => {
+        let n = 0;
+        for (const r of matches) {
+            const sold = soldDives(r.snapshots, r.events, FUTSAL_5.teamSize);
+            const reacts = goalReactions(r.events, sold, (team) => team * FUTSAL_5.teamSize);
+            for (const e of r.events) {
+                if (e.type !== 'goal') continue;
+                n++;
+                const gk = (e.team === 0 ? 1 : 0) * FUTSAL_5.teamSize;
+                const re = reacts.find((x) => x.gk === gk && x.from >= e.tick && x.from <= e.tick + 20);
+                expect(re).toBeDefined();
+                if (!re) continue;
+                // nada antes do gol nem durante o mergulho vendido; depois, 0,6 s
+                expect(goalReactionAt(re, e.tick)).toBeNull();
+                const d = sold.find((x) => x.goal === e.tick);
+                if (d) expect(goalReactionAt(re, soldDiveEnd(d))).toBeNull();
+                expect(goalReactionAt(re, re.from + 1)).not.toBeNull();
+                expect(goalReactionAt(re, re.from + GOAL_REACTION_TICKS + 1)).toBeNull();
+                expect(GOAL_REACTION_TICKS / FUTSAL_5.tickRate).toBeCloseTo(0.6);
+            }
+        }
+        expect(n).toBeGreaterThan(0);
+    });
+
+    it('vira no máximo uma vez a cada 150 ms (não treme entre duas direções)', () => {
+        let h = null as ReturnType<typeof holdFacing> | null;
+        const trocas: number[] = [];
+        // o pedido alterna entre 1 e 2 a cada quadro de 16 ms por 2 s
+        for (let now = 0; now < 2000; now += 16) {
+            const prev = h?.facing;
+            h = holdFacing(h, Math.floor(now / 16) % 2 ? 1 : 2, now);
+            if (prev !== undefined && h.facing !== prev) trocas.push(now);
+        }
+        expect(trocas.length).toBeGreaterThan(0);
+        for (let k = 1; k < trocas.length; k++) expect(trocas[k] - trocas[k - 1]).toBeGreaterThanOrEqual(FACE_HOLD_MS);
+        // direção parada há tempo: a troca é na hora
+        expect(holdFacing({ facing: 1, at: 0 }, 2, 1000).facing).toBe(2);
+        expect(holdFacing({ facing: 1, at: 900 }, 2, 1000).facing).toBe(1);
     });
 });
