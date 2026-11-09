@@ -1,6 +1,6 @@
 import type { Position } from './attributes';
 import { SPECIES, species } from './data';
-import { type PokemonInstance, slotRating } from './instance';
+import { type PokemonInstance, slotRating, viewInstance } from './instance';
 import { has } from './sponsors';
 import type { PlayerStats } from './state';
 import { movesAfterEvolution } from './tm';
@@ -97,6 +97,19 @@ export function evolvedRating(inst: PokemonInstance, role: Position | 'ANY'): { 
     const into = evolutionTarget(inst.speciesId, inst.uid);
     if (into === null) return null;
     return { into, rating: slotRating(evolveInstance(inst, into, role === 'ANY' ? undefined : role), role) };
+}
+
+/**
+ * Selo de evolução da carta (selo B, Miguel 09/11/2026): numa vaga, a nota naquela vaga; fora dela (clube, coleção,
+ * pacote), a nota na posição principal da forma nova, a mesma que a carta evoluída vai mostrar ("↑84 PIV").
+ */
+export function evoPreview(
+    inst: PokemonInstance,
+    position?: Position,
+): { into: number; rating: number; pos: Position } | null {
+    const evo = evolvedRating(inst, position ?? 'ANY');
+    if (!evo) return null;
+    return { ...evo, pos: position ?? viewInstance(evolveInstance(inst, evo.into)).naturalPosition };
 }
 
 /**

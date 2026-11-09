@@ -1,0 +1,102 @@
+/* Cadeia de evolução (EvoChain): carta (CardModal) e Pokédex (SpeciesSheet). */
+.evo-chain {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.evo-chain-stage {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.evo-chain-col {
+    display: grid;
+    gap: 4px;
+}
+.evo-chain .pf-evo-arrow {
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    flex: none;
+}
+.evo-chain-mon {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 2px;
+    width: 78px;
+    padding: 4px;
+    border-radius: 9px;
+    border: 2px solid var(--line);
+    background: var(--bg-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    transition:
+        border-color 200ms ease,
+        background-color 200ms ease,
+        transform 160ms ease;
+}
+.evo-chain-mon img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+.evo-chain-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.evo-chain-how {
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--muted);
+}
+.evo-chain-mon.current {
+    border-color: var(--yellow);
+    background: var(--panel-2);
+}
+.evo-chain-mon.unseen {
+    border-style: dashed;
+}
+.evo-chain-mon.unseen img {
+    filter: brightness(0);
+    opacity: 0.35;
+}
+.evo-chain-mon.unseen .evo-chain-name {
+    color: var(--muted);
+}
+.evo-chain-mon.pick {
+    cursor: pointer;
+}
+@media (hover: hover) {
+    .evo-chain-mon.pick:hover {
+        border-color: var(--muted);
+    }
+}
+.evo-chain-mon.pick:active {
+    transform: scale(0.96);
+}
+.evo-chain-mon.pick:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+@media (max-width: 380px) {
+    .evo-chain-mon {
+        width: 68px;
+    }
+    .evo-chain .pf-evo-arrow {
+        width: 14px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .evo-chain-mon {
+        transition: none;
+    }
+}

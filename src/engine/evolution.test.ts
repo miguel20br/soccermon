@@ -1,10 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { FUTSAL_5 } from './config';
-import { EVO_THRESHOLD, evolvedRating, evolveInstance, evoNeeded, RIVAL_EVO_THRESHOLD } from './evolution';
+import { EVO_THRESHOLD, evolvedRating, evolveInstance, evoNeeded, evoPreview, RIVAL_EVO_THRESHOLD } from './evolution';
 import { createInstance, slotRating, viewInstance } from './instance';
 import { attributeModifiers } from './modifiers';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
+
+describe('selo de evolução (selo B)', () => {
+    it('fora da vaga mostra a nota da posição principal da forma nova; na vaga, a da vaga', () => {
+        const magikarp = { ...createInstance(129, new Rng('selo-b')), uid: '129-selo' };
+        const gyarados = viewInstance(evolveInstance(magikarp, 130));
+        const fora = evoPreview(magikarp);
+        // a carta evoluída mostra Gyarados Pivô; o selo não pode projetar na Ala do Magikarp ("↑74")
+        expect(fora).toEqual({ into: 130, rating: gyarados.overall, pos: gyarados.naturalPosition });
+        expect(fora?.pos).not.toBe(viewInstance(magikarp).naturalPosition);
+        expect(evoPreview(magikarp, 'ALA')).toEqual({
+            into: 130,
+            rating: slotRating(evolveInstance(magikarp, 130, 'ALA'), 'ALA'),
+            pos: 'ALA',
+        });
+        expect(fora?.rating).toBeGreaterThan(evoPreview(magikarp, 'ALA')?.rating ?? 99);
+    });
+});
 
 describe('evolução herda a vaga', () => {
     it('Nidorina que evolui jogando de Ala: a Nidoqueen fica com Ala nas posições (carta e campo)', () => {

@@ -3333,6 +3333,11 @@ button.pc2.pc2-fx:hover {
 .m-evo.down {
     background: #c9302c;
 }
+.m-evo-pos {
+    margin-left: 0.2em;
+    font-size: 0.7em;
+    opacity: 0.85;
+}
 .m-evo svg {
     width: 0.8em;
     height: 0.8em;

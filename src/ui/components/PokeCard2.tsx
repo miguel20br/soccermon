@@ -1,7 +1,7 @@
 import { type CSSProperties, memo, useRef } from 'react';
 import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
-import { evolvedRating } from '../../engine/evolution';
+import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
@@ -131,8 +131,8 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
         v: Math.round(view.attributes[k]),
         delta: Math.round(final[k] - base[k]),
     }));
-    // selo de evolução: a nota que ele vira na mesma vaga se evoluir (carta = campo)
-    const evo = evolvedRating(inst, pos);
+    // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
+    const evo = evoPreview(inst, position);
     const t1 = TYPE_COLOR[sp.types[0]] ?? '#888';
     const t2 = TYPE_COLOR[sp.types[1] ?? sp.types[0]] ?? t1;
     return {
@@ -394,7 +394,7 @@ function Metal({
                         <TypeIcons types={d.sp.types} />
                     </span>
                     {captain && <span className="pc2-captain">C</span>}
-                    {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} />}
+                    {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} pos={d.evo.pos} />}
                 </span>
                 <img className="pixel m-art" src={art ?? cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
@@ -508,17 +508,34 @@ function MvpStamp({ level }: { level: number }) {
 }
 
 /** Selo "vira 85": seta desenhada + a nota depois de evoluir (para baixo se a forma nova joga pior na vaga). */
-export function EvoBadge({ evo, now, tr }: { evo: { into: number; rating: number }; now: number; tr: Translator }) {
+export function EvoBadge({
+    evo,
+    now,
+    tr,
+    pos,
+}: {
+    evo: { into: number; rating: number };
+    now: number;
+    tr: Translator;
+    /** Posição da nota (fora da vaga: a principal da forma nova). */
+    pos?: Position;
+}) {
     const down = evo.rating < now;
+    const name = SPECIES[evo.into - 1].name;
     return (
         <span
             className={`m-evo${down ? ' down' : ''}`}
-            title={tr.t('team.card.evoTitle', { name: SPECIES[evo.into - 1].name, r: evo.rating })}
+            title={
+                pos
+                    ? tr.t('team.card.evoTitlePos', { name, r: evo.rating, pos: tr.d.common.pos[pos] })
+                    : tr.t('team.card.evoTitle', { name, r: evo.rating })
+            }
         >
             <svg viewBox="0 0 10 10" aria-hidden="true" focusable="false">
                 <path d={down ? 'M5 9 1 4.5h2.5V1h3v3.5H9z' : 'M5 1 9 5.5H6.5V9h-3V5.5H1z'} />
             </svg>
             <b>{evo.rating}</b>
+            {pos && <small className="m-evo-pos">{tr.d.common.posShort[pos]}</small>}
         </span>
     );
 }

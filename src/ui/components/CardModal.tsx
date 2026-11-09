@@ -36,6 +36,7 @@ import { useCardModal } from '../card-modal';
 import { Sheet } from '../kit/Sheet';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
+import { EvoChain, evolutionStages } from './EvoChain';
 import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
 import { HudIcon } from './MatchHud';
@@ -69,6 +70,7 @@ function secondaryText(moveId: string, d: Dict): string | null {
 export function CardModal() {
     const { inst, position, captain, note, section, actions, extra, close } = useCardModal();
     const run = useGame((s) => s.run);
+    const dex = useGame((s) => s.dex);
     const { t, tn, d, lang } = useT();
     const movesRef = useRef<HTMLHeadingElement>(null);
 
@@ -195,6 +197,13 @@ export function CardModal() {
                             ],
                         })}
                     </p>
+
+                    {evolutionStages(sp).length > 1 && (
+                        <>
+                            <h3>{t('team.modal.evoChain')}</h3>
+                            <EvoChain id={sp.id} dex={dex} />
+                        </>
+                    )}
 
                     {linksOf(sp.id).length > 0 && (
                         <>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type AttrKey, POSITIONS, type Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
-import { evolvedRating } from '../../engine/evolution';
+import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { editionOf } from '../../engine/specials';
 import { dict, moveName } from '../../i18n';
@@ -86,7 +86,7 @@ export function FutCard({
     const pos = position ?? view.naturalPosition;
     const { display } = ratingAt(inst, pos);
     const edition = editionOf(inst);
-    const evo = evolvedRating(inst, pos);
+    const evo = evoPreview(inst, position);
 
     useEffect(
         () => () => {
@@ -158,7 +158,8 @@ export function FutCard({
                     evo: evo ? t('team.card.evoAria', { name: SPECIES[evo.into - 1].name, r: evo.rating }) : '',
                 })}
             >
-                <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />
+                {/* sem vaga, a carta usa a posição principal; o selo de evolução projeta na principal da forma nova */}
+                <PokeCard2 inst={inst} variant="metal" position={position} captain={captain} />
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
 
                 {peek && (
