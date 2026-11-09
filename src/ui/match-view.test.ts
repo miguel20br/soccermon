@@ -4,11 +4,12 @@ import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
-import { type MatchEvent, SNAP_STRIDE, type TeamSetup } from '../engine/state';
+import { Action, type MatchEvent, type MatchSnapshot, SNAP_STRIDE, type TeamSetup } from '../engine/state';
 import { maxCueAt } from './components/Sideline';
 import {
     captainAt,
     halftimeEnd,
+    keeperFacing,
     MAX_CUE_EARLY,
     type MaxWait,
     maxCallCueNear,
@@ -16,6 +17,8 @@ import {
     maxOrderTick,
     maxWaitNext,
     snapAt,
+    soldDivePose,
+    soldDives,
     whoAt,
 } from './match-view';
 
@@ -217,5 +220,78 @@ describe('câmera lenta chegando no golpe máximo (maxHitAhead)', () => {
         expect(maxHitAhead(ev, 87, 12)).toBe(false);
         expect(maxHitAhead(ev, 101, 12)).toBe(false);
         expect(maxHitAhead(ev.slice(0, 1), 55, 12)).toBe(false);
+    });
+});
+
+describe('goleiro na tela (o motor fica igual)', () => {
+    const FACING_X = [0, 1, 1, 1, 0, -1, -1, -1];
+    // de frente pro campo ou na diagonal de baixo: nunca virado pro gol, nem pra cima (a câmera vê as costas)
+    const ofKeeper = (front: 1 | -1) => (front > 0 ? [1, 2] : [6, 7]);
+    const matches = [1, 2, 3].map((seed) =>
+        runMatch(FUTSAL_5, team(`gk-a${seed}`, 'A'), team(`gk-b${seed}`, 'B'), seed),
+    );
+
+    it('nunca aparece de costas na área, nem no recuo pra linha', () => {
+        const L = FUTSAL_5.pitch.length;
+        let recuos = 0;
+        for (const r of matches)
+            for (const s of r.snapshots)
+                for (const [gk, front] of [
+                    [0, 1],
+                    [FUTSAL_5.teamSize, -1],
+                ] as const) {
+                    const o = gk * SNAP_STRIDE;
+                    const [x, y, facing] = [s.p[o], s.p[o + 1], s.p[o + 2]];
+                    if ((front > 0 ? x : L - x) >= 6) continue;
+                    if (FACING_X[facing] * front < 0) recuos++;
+                    const f = keeperFacing(facing, front, { x: s.bx - x, y: s.by - y });
+                    expect(ofKeeper(front)).toContain(f);
+                }
+        // o motor vira o goleiro de costas quando ele corre pra linha: é isso que a tela desfaz
+        expect(recuos).toBeGreaterThan(0);
+        // em toda direção do motor, com a bola em qualquer lugar (até atrás dele)
+        for (let facing = 0; facing < 8; facing++)
+            for (const toBall of [
+                { x: -1, y: 0.3 },
+                { x: 0, y: -2 },
+                { x: 0, y: 2 },
+                { x: 0, y: 0 },
+            ]) {
+                expect(ofKeeper(1)).toContain(keeperFacing(facing, 1, toBall));
+                expect(ofKeeper(-1)).toContain(keeperFacing(facing, -1, toBall));
+            }
+    });
+
+    it('gol com o goleiro mergulhando vira mergulho vendido no lugar, de frente pro campo, sem abrir o gol', () => {
+        let gols = 0;
+        for (const r of matches) {
+            const sold = soldDives(r.snapshots, r.events, FUTSAL_5.teamSize);
+            for (const e of r.events) {
+                if (e.type !== 'goal' || e.ownGoal) continue;
+                const gk = (1 - e.team) * FUTSAL_5.teamSize;
+                const diving = (s: MatchSnapshot) => s.p[gk * SNAP_STRIDE + 3] === Action.Dive;
+                const dove = r.snapshots.some((s) => s.tick <= e.tick && s.tick >= e.tick - 16 && diving(s));
+                const d = sold.find((x) => x.goal === e.tick);
+                expect(!!d).toBe(dove);
+                if (!d) continue;
+                gols++;
+                expect(d.gk).toBe(gk);
+                const front = e.team === 1 ? 1 : -1;
+                for (const side of [1, -1])
+                    for (const s of r.snapshots) {
+                        if (s.tick < d.tick - 10 || s.tick > d.end + 10) continue;
+                        const pose = soldDivePose(d, s.tick, front, side);
+                        // o mergulho inteiro do motor (o Attack, que dava o bote pra fora) é dele
+                        if (diving(s) && s.tick >= d.tick && s.tick <= d.end) expect(pose).not.toBeNull();
+                        if (!pose) continue;
+                        // não sai do lugar: o goleiro saindo pela lateral parecia abrir o gol
+                        expect(Math.hypot(pose.x, pose.y)).toBe(0);
+                        // de frente pro campo, na diagonal de baixo se a bola passa abaixo dele
+                        expect(ofKeeper(front)).toContain(pose.facing);
+                        expect([0, 1, 7].includes(pose.facing)).toBe(side > 0);
+                    }
+            }
+        }
+        expect(gols).toBeGreaterThan(0);
     });
 });

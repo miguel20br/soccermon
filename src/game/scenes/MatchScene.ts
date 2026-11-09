@@ -31,7 +31,18 @@ import { dict, linkText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
-import { halftimeEnd, MAX_CUE_EARLY, MAX_CUE_LATCH, maxCertain, maxCueNear, maxHitAhead } from '../../ui/match-view';
+import {
+    halftimeEnd,
+    keeperFacing,
+    MAX_CUE_EARLY,
+    MAX_CUE_LATCH,
+    maxCertain,
+    maxCueNear,
+    maxHitAhead,
+    type SoldDive,
+    soldDivePose,
+    soldDives,
+} from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui/showdown-lines';
@@ -781,6 +792,8 @@ export class MatchScene extends Phaser.Scene {
     private lastTrailAt = 0;
     private lastBall = { x: 0, y: 0 };
     private dives: DiveInfo[] = [];
+    /** Mergulhos vendidos; `side` (bola abaixo/acima dele na tela) sai na 1ª vez que aparece. */
+    private sold: (SoldDive & { side: number | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
     /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
@@ -1017,6 +1030,7 @@ export class MatchScene extends Phaser.Scene {
         this.dives = this.matchEvents.flatMap((e) =>
             e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null }] : [],
         );
+        this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({ ...d, side: null }));
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
         this.agencySpans();
@@ -2000,7 +2014,14 @@ export class MatchScene extends Phaser.Scene {
             const y = smooth
                 ? catmull(prev.p[o + 1], a.p[o + 1], b.p[o + 1], next.p[o + 1], k)
                 : a.p[o + 1] + (b.p[o + 1] - a.p[o + 1]) * k;
-            const { facing, action } = this.steadyPose(index + (k < 0.5 ? 0 : 1), o);
+            const pose = this.steadyPose(index + (k < 0.5 ? 0 : 1), o);
+            const { action } = pose;
+            let { facing } = pose;
+            // goleiro na área: nunca virado pro próprio gol (no recuo pra linha ele anda de ré, olhando a bola)
+            const front = view.team === 0 ? 1 : -1;
+            const L = FUTSAL_5.pitch.length;
+            if ((front > 0 ? x : L - x) < 6 && this.isKeeper(i))
+                facing = keeperFacing(facing, front, { x: near.bx - x, y: near.by - y });
             const px = toPx(x, y);
             px.x += view.shift.x;
             px.y += view.shift.y;
@@ -2012,9 +2033,9 @@ export class MatchScene extends Phaser.Scene {
             const act = view.act;
             const dive = act ? null : this.diveOffset(i, px);
             if (dive) diveOf.set(i, dive);
-            view.sprite
-                .setPosition(px.x + view.lunge.x + (dive?.x ?? 0), px.y + view.lunge.y + (dive?.y ?? 0))
-                .setDepth(base);
+            // onde o corpo está na tela (bote, mergulho): a sombra, o anel e a setinha vão junto
+            const body = { x: px.x + view.lunge.x + (dive?.x ?? 0), y: px.y + view.lunge.y + (dive?.y ?? 0) };
+            view.sprite.setPosition(body.x, body.y).setDepth(base);
             // entrando da lateral (substituição): anda até a posição; antes disso fica escondido
             let entering: number | null = null;
             if (view.enter) {
@@ -2032,14 +2053,14 @@ export class MatchScene extends Phaser.Scene {
                 }
             }
             if (!view.enter && view.sprite.alpha < 1) view.sprite.setAlpha(1);
-            view.shadow.setPosition(px.x, px.y + 1).setDepth(base - 2);
-            view.ring.setPosition(px.x, px.y + 1).setDepth(base - 1);
+            view.shadow.setPosition(body.x, body.y + 1).setDepth(base - 2);
+            view.ring.setPosition(body.x, body.y + 1).setDepth(base - 1);
             // o close do N3 de linha: o nome e a setinha do capitão ficam atrás da cena (a faixa já diz quem é)
             const closeUp = this.n3?.cap === view && !this.n3.home;
             const labelDepth = focused && !closeUp ? FOCUS_DEPTH + 60 : 5000;
             view.label.setPosition(px.x, px.y + 6).setDepth(labelDepth);
             view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(labelDepth + 1);
-            this.placeArrow(view, px.x, px.y, labelDepth - 1);
+            this.placeArrow(view, body.x, body.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
             this.applyTraitPose(view, near.p[o + 5]);
@@ -2215,6 +2236,12 @@ export class MatchScene extends Phaser.Scene {
                 oy *= DIVE_MAX / l;
             }
             return { x: ox * k, y: oy * k, facing: dir8({ x: ox, y: oy }, 2) };
+        }
+        for (const d of this.sold) {
+            if (d.gk !== i) continue;
+            d.side ??= this.ballPxAt(d.goal).y - this.playerPxAt(d.gk, d.tick).y;
+            const pose = soldDivePose(d, this.playTick, this.players[i].team === 0 ? 1 : -1, d.side);
+            if (pose) return pose;
         }
         return null;
     }
