@@ -146,7 +146,10 @@ export function CardModal() {
                                 <b>{evoPct}%</b>
                             </div>
                             <div className="muted inspect-note">
-                                {t('team.modal.evoNote', { name: species(evoTarget).name })}
+                                {/* forma que ele ainda não viu fica em segredo, como a silhueta da Linha evolutiva */}
+                                {dex[evoTarget]
+                                    ? t('team.modal.evoNote', { name: species(evoTarget).name })
+                                    : t('team.modal.evoNoteUnseen')}
                             </div>
                         </>
                     )}

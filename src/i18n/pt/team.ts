@@ -150,6 +150,7 @@ export const team = {
     },
     modal: {
         evoNote: 'Enche jogando bem. Cheia, vira {name} quando a bola parar.',
+        evoNoteUnseen: 'Enche jogando bem. Cheia, ele evolui quando a bola parar.',
         aria: 'Carta de {name}',
         dexLine: '#{id} · {tier} · nível {level}',
         positions: 'Posições',

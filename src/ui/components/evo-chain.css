@@ -87,9 +87,15 @@
     outline: 3px solid var(--yellow);
     outline-offset: 2px;
 }
-@media (max-width: 380px) {
+/* as pontas (Eevee) lado a lado quando cabem; no celular pequeno (320) empilham */
+@media (min-width: 380px) {
+    .evo-chain-col {
+        grid-auto-flow: column;
+    }
+}
+@media (max-width: 480px) {
     .evo-chain-mon {
-        width: 68px;
+        width: 70px;
     }
     .evo-chain .pf-evo-arrow {
         width: 14px;

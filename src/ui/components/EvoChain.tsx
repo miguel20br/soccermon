@@ -36,7 +36,7 @@ export function EvoChain({ id, dex, onPick }: { id: number; dex: Dex; onPick?: (
         const edge = prevo ? species(prevo).evolvesTo.find((e) => e.id === eid) : undefined;
         if (!prevo || !edge) return null;
         const stone = STONES.find((s) => stoneInto(prevo, s) === eid);
-        if (stone) return t('team.modal.evoHowStone', { stone: d.longCup.stone[stone] });
+        if (stone) return t('team.modal.evoHowStone', { stone: d.longCup.stoneShort[stone].replace('. ', '.\u00a0') });
         return edge.method === 'trade' ? t('team.modal.evoHowTrade') : t('team.modal.evoHowBar');
     };
     return (
