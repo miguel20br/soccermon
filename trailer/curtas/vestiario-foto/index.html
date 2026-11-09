@@ -1,19 +1,19 @@
 <!doctype html>
 <!--
-  Vestiário do Pallet FC, "A foto do time": o EPISÓDIO 1 inteiro (52 s, 2ª versão 08/11/2026), 9:16. Roteiro em ROTEIRO.md.
-  Entradas que acumulam: cada um entra (aplauso), mexe com quem já está, fala no close (texto solto, tarja de nome) e
-  sai uma polaroide HORIZONTAL que cai na pilha da mesa. Trilha provisória scripts/musica/pecas/livre-foto.mjs: 120 BPM,
-  compasso = 2 s, um plano por compasso. Tempos: C.T(compasso, linha).
-  0 abertura (a logo da série, EPISÓDIO 1, A FOTO DO TIME) | 1 aberto: o Magikarp estufa a medalha | 2 close CAPITÃO
-  FALANDO! | 3 foto 1 | 4 aberto: o Snorlax entra e dorme | 5 foto 2 | 6 aberto: o Pikachu pula na frente | 7 close
-  OLHA EU! | 8 foto 3 (queimada) | 9 aberto: o Squirtle entra devagar | 10 close: os óculos descem | 11 aberto: o jato
-  no Pikachu | 12 foto 4 | 13 aberto: o Ditto vira um Squirtle idêntico, os dois abaixam os óculos | 14 close EU
-  TAMBÉM! | 15 foto 5 (dois Squirtles) | 16 close DEIXA QUE EU ANIMO! | 17 aberto: a canção, todo mundo dorme | 18 close:
-  o bigode no Snorlax | 19 foto 6 | 20 aberto: o timer, 3, 2, 1 | 21–22½ a FOTO FINAL (3 s) | 22½–24 os créditos (3 s)
-  | 24 pós-créditos: o Slowpoke no vestiário vazio, o grilo | 25 close …JÁ TIRARAM?, a risada e o corte seco.
-  Sprites em escala inteira; dentro das fotos tudo é quadro parado. Os óculos e a medalha seguem o quadro do sprite
-  (segue(); a cabeça do Squirtle quadro a quadro vem do gerar.cjs, img/cabeca.js). Render: (de trailer/curtas)
-  ../../scripts/pesado.sh npx hyperframes render vestiario-foto -q high -w 1 --no-browser-gpu
+  Vestiário do Pallet FC, "A foto do time": o EPISÓDIO 1 (54 s, 3ª versão 08/11/2026), 9:16. Roteiro em ROTEIRO.md.
+  Um dominó: cada coisa acontece por causa da anterior. Sem closes em quadrado: o "close" é a câmera chegando perto no
+  próprio vestiário (punch-in 2×, os sprites continuam em escala inteira) e a fala é texto solto em cima de quem fala.
+  Trilha provisória scripts/musica/pecas/livre-foto.mjs: 120 BPM, compasso = 2 s, um plano por compasso. Tempos:
+  C.T(compasso, linha).
+  0–1 abertura (as letras quicam, o Snorlax dorme na placa, o Pikachu espia, o Magikarp pula por cima) | 2 o Snorlax já
+  dorme | 3 FOTO DO TIME! | 4 o Magikarp na frente da lente | 5 foto 1 | 6 o Psyduck segura a cabeça | 7 o Pikachu pula
+  no Magikarp e o choquinho acerta a câmera | 8 foto 2 (queimada) | 9 o Squirtle apaga a câmera e encharca o Pikachu |
+  10 foto 3 | 11 a pose do Squirtle; o Ditto vê | 12 EU TAMBÉM! (POOF) | 13 a briga | 14 foto 4 | 15 CALMA, GENTE… |
+  16 a canção: todo mundo dorme | 17 o bigode no Snorlax | 18 foto 5 | 19 o timer: 3, 2 | 20 NÃO TÁ FALTANDO NINGUÉM,
+  NÉ? | 21 todos se olham, NÃO!, 1 | 22–23½ a FOTO FINAL | 23½–27 a tela final, e o Slowpoke chega nela.
+  Os óculos e a medalha seguem o quadro do sprite (segue(); a cabeça do Squirtle quadro a quadro vem do gerar.cjs,
+  img/cabeca.js). Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-foto -q high -w 1
+  --no-browser-gpu
 -->
 <html lang="pt-BR">
 <head>
@@ -27,7 +27,7 @@
 <script src="comum.js"></script>
 <style>
 .cena { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; visibility: hidden; }
-/* o vestiário (o mesmo do EP "O atrasado") */
+/* o vestiário (o mesmo do EP "O atrasado"); #cam é a câmera: escala 2 no punch-in */
 .set { background: #24304e; }
 .parede { position: absolute; left: 0; top: 0; width: 1080px; height: 1290px;
   background-image: linear-gradient(90deg, rgb(0 0 0 / 18%) 2px, transparent 2px), linear-gradient(rgb(0 0 0 / 18%) 2px, transparent 2px), linear-gradient(#1c2640, #34446c);
@@ -58,27 +58,27 @@
 /* a câmera de tripé do Psyduck (vista de trás: a telinha mostra o que a lente vê) */
 .tripe i { position: absolute; width: 16px; height: 380px; background: #2b3045; border: 6px solid #0e1430; border-radius: 6px; transform-origin: 50% 0; z-index: 30; }
 #camera { position: absolute; left: 640px; top: 1500px; width: 210px; height: 140px; box-sizing: border-box; z-index: 31; background: #3a3f52; border: 9px solid #0e1430; border-radius: 16px;
-  box-shadow: inset 0 10px 0 #565d78; }
+  box-shadow: inset 0 10px 0 #565d78; transform-origin: 50% 100%; }
 #camera::before { content: ""; position: absolute; left: 30px; top: -36px; width: 56px; height: 30px; background: #c8d0f0; border: 8px solid #0e1430; border-radius: 6px 6px 0 0; }
 #tela { position: absolute; left: 20px; top: 18px; width: 120px; height: 86px; box-sizing: border-box; border: 6px solid #0e1430; background: #7cc8ff; overflow: hidden; }
-#tela img { position: absolute; left: -10px; top: -14px; width: 120px; height: 120px; image-rendering: pixelated; opacity: 0; }
+#tela > * { position: absolute; opacity: 0; }
+#tela img { left: -10px; top: -14px; width: 120px; height: 120px; image-rendering: pixelated; }
+#tela .t-med { left: 14px; top: 2px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00); box-shadow: 0 0 0 5px #0e1430; }
+#tela .t-off { inset: 0; background: repeating-linear-gradient(#22242e 0 6px, #3a3d4a 6px 10px); }
 #camera .luz { position: absolute; right: 18px; top: 22px; width: 22px; height: 22px; border-radius: 50%; background: #e8423f; border: 5px solid #0e1430; }
 .jato { position: absolute; left: 0; top: 0; width: 20px; height: 20px; z-index: 40; background: #7cc8ff; box-shadow: inset 0 -6px 0 #3a7bd5, 0 0 0 5px #0e1430; opacity: 0; }
 .gota { position: absolute; left: 0; top: 0; width: 10px; height: 10px; z-index: 40; background: #7cc8ff; box-shadow: 0 0 0 4px #0e1430; opacity: 0; }
-/* o close: o vestiário de perto, o retrato grande (×16), a fala (texto solto, sem balão) e a tarja do nome (terço de baixo de sitcom) */
-.close .parede { height: 1920px; background-size: 180px 180px, 180px 180px, 100% 100%; }
-.close .armario { top: 380px; width: 300px; height: 1400px; border-width: 14px; background-size: 150px 260px; background-position: 60px 100px; }
-.retrato { position: absolute; left: 206px; top: 580px; width: 668px; height: 668px; box-sizing: border-box; z-index: 10; border: 14px solid #f8f8f0; border-radius: 26px;
-  box-shadow: 0 0 0 12px #0e1430, 0 26px 0 rgb(0 0 0 / 40%); overflow: hidden; background: #2a3a7a; }
-.retrato img { display: block; width: 640px; height: 640px; image-rendering: pixelated; }
-.retrato .pix { z-index: 2; }
-.dito { position: absolute; left: 30px; top: 140px; width: 1020px; height: 400px; z-index: 20; display: flex; align-items: center; justify-content: center; text-align: center;
-  color: #fff; font-size: 120px; line-height: 1.1; letter-spacing: 4px; -webkit-text-stroke: 26px #0e1430; paint-order: stroke fill;
-  text-shadow: 0 14px 0 #0e1430, 0 22px 26px rgb(0 0 0 / 45%); }
-.nome { position: absolute; left: 140px; top: 1330px; z-index: 20; display: flex; align-items: stretch; transform: rotate(-2deg); }
-.nome b { padding: 16px 34px; background: #ffcb05; color: #0e1430; font-size: 76px; letter-spacing: 4px; border: 10px solid #0e1430; border-radius: 16px 0 0 16px; }
-.nome span { padding: 16px 30px; background: #10183d; color: #f8f8f0; font-size: 56px; letter-spacing: 3px; border: 10px solid #0e1430; border-left: none; border-radius: 0 16px 16px 0; display: flex; align-items: center; }
-.raio { position: absolute; left: 0; top: 0; width: 140px; height: 220px; margin: -110px 0 0 -70px; z-index: 22; opacity: 0; }
+.nuvem { position: absolute; left: 0; top: 0; border-radius: 50%; z-index: 30; background: radial-gradient(circle at 40% 35%, #f8f4ec, #d8d0c4 70%); border: 8px solid #0e1430; opacity: 0; }
+/* a fala: texto solto em cima de quem fala (contorno grosso, sombra), fora da câmera (não escala) */
+.dito { position: absolute; z-index: 50; display: flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap;
+  color: #fff; line-height: 1.1; letter-spacing: 4px; -webkit-text-stroke: 24px #0e1430; paint-order: stroke fill;
+  text-shadow: 0 12px 0 #0e1430, 0 20px 24px rgb(0 0 0 / 45%); transform-origin: 50% 100%; }
+/* a tarja NOME · POSIÇÃO (terço de baixo de sitcom, fora dos 15% de baixo) */
+.nome { position: absolute; left: 40px; top: 1468px; z-index: 50; display: flex; align-items: stretch; transform: rotate(-2deg); }
+.nome b { padding: 10px 24px; background: #ffcb05; color: #0e1430; font-size: 62px; letter-spacing: 3px; border: 8px solid #0e1430; border-radius: 14px 0 0 14px; }
+.nome span { padding: 10px 22px; background: #10183d; color: #f8f8f0; font-size: 44px; letter-spacing: 2px; border: 8px solid #0e1430; border-left: none; border-radius: 0 14px 14px 0; display: flex; align-items: center; }
+.raio { position: absolute; left: 0; top: 0; width: 70px; height: 110px; margin: -55px 0 0 -35px; z-index: 32; opacity: 0; }
+.raio svg { display: block; }
 /* as fotos: a mesa e a pilha de polaroides HORIZONTAIS (a foto 3:2 é um quadro parado) */
 .mesa { background: radial-gradient(circle at 50% 40%, #3a2a20, #1a120c 75%); }
 .mesa::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgb(255 255 255 / 3%) 0 3px, transparent 3px 60px); }
@@ -90,17 +90,20 @@
   background: radial-gradient(ellipse at 45% 45%, rgb(255 190 80 / 0%) 0 22%, rgb(120 50 10 / 55%) 45%, rgb(20 8 2 / 92%) 74%); }
 .fumaca { position: absolute; left: 0; top: 0; width: 130px; height: 130px; margin: -65px 0 0 -65px; border-radius: 50%; z-index: 40; opacity: 0;
   background: radial-gradient(circle at 40% 40%, #b8b4ae, #6e6a66 70%); border: 8px solid #2a2622; }
-/* 0 · a abertura: a logo da série (a fita VESTIÁRIO DO, a placa PALLET FC no estilo do ERMON, as cinco bolinhas) e o episódio */
+/* 0 · a abertura: a logo da série, brincalhona (as letras quicam uma a uma, cada uma no seu ângulo; o ponto é uma bola;
+   o Snorlax dorme em cima da placa, o Pikachu espia atrás, o Magikarp pula por cima) e o episódio */
 .veu { position: absolute; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, rgb(16 24 61 / 55%), rgb(7 10 24 / 90%) 78%); }
-.serie { position: absolute; left: 60px; top: 500px; width: 960px; height: 360px; z-index: 30; }
-.serie .placa { position: absolute; left: 0; top: 70px; width: 960px; height: 270px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border-radius: 34px;
-  background: #10183d; border: 12px solid #0e1430; box-shadow: inset 0 0 0 10px #ffcb05, inset 0 0 0 22px #10183d, inset 0 0 0 28px #2a4ea0, 0 22px 0 rgb(0 0 0 / 45%); }
-.serie .placa b { margin-top: -18px; font-size: 136px; letter-spacing: 6px; color: #ffcb05; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill;
+.serie { position: absolute; left: 60px; top: 470px; width: 960px; height: 420px; z-index: 30; }
+.serie .placa { position: absolute; left: 0; top: 110px; width: 960px; height: 270px; z-index: 2; box-sizing: border-box; border-radius: 40px;
+  background: #10183d; border: 12px solid #0e1430; box-shadow: inset 0 0 0 10px #ffcb05, inset 0 0 0 22px #10183d, inset 0 0 0 28px #2a4ea0, 0 22px 0 rgb(0 0 0 / 45%); transform-origin: 50% 100%; }
+.serie .letras { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
+.serie .letras b { display: inline-block; margin-top: -14px; font-size: 118px; color: #ffcb05; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill;
   text-shadow: 0 7px 0 #ff8a1c, 0 14px 0 #2a4ea0, 0 20px 0 #0e1430; }
-.serie .fita { position: absolute; left: 150px; top: 0; width: 660px; height: 120px; z-index: 2; display: flex; align-items: center; justify-content: center;
+.serie .letras .bolinha { position: relative; display: inline-block; width: 84px; height: 84px; margin: 0 14px 0 18px; }
+.serie .fita { position: absolute; left: 230px; top: 26px; width: 500px; height: 104px; z-index: 3; display: flex; align-items: center; justify-content: center;
   background: #0e1430; clip-path: polygon(0 0, 100% 0, 93% 50%, 100% 100%, 0 100%, 7% 50%); }
 .serie .fita::before { content: ""; position: absolute; inset: 10px 14px; background: #e8423f; box-shadow: inset 0 -12px 0 #b02a2a; clip-path: polygon(0 0, 100% 0, 93.5% 50%, 100% 100%, 0 100%, 6.5% 50%); }
-.serie .fita span { position: relative; margin-top: -6px; font-size: 54px; letter-spacing: 5px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
+.serie .fita span { position: relative; margin-top: -6px; font-size: 48px; letter-spacing: 5px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
 .epi { position: absolute; left: 0; width: 1080px; text-align: center; z-index: 30; font-size: 70px; letter-spacing: 8px; color: #f8f8f0; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; }
 .ep { position: absolute; left: 0; width: 1080px; text-align: center; z-index: 30; }
 .ep b { display: inline-block; padding: 20px 44px; border-radius: 22px; background: #ffcb05; color: #0e1430; font-size: 80px; letter-spacing: 5px;
@@ -109,36 +112,43 @@
 .timer { position: absolute; width: 230px; height: 230px; margin: -115px 0 0 -115px; box-sizing: border-box; border-radius: 50%; z-index: 45; opacity: 0;
   display: flex; align-items: center; justify-content: center; background: #10183d; border: 12px solid #0e1430; box-shadow: 0 0 0 12px #ffcb05, 0 0 0 22px #0e1430, 0 22px 0 18px rgb(0 0 0 / 35%);
   color: #f8f8f0; font-size: 170px; line-height: 1; }
+/* a tela final (a do trailer, mais pra cima: o Slowpoke chega embaixo sem tapar o site) */
+#fim #logo { top: 300px; }
+#fim .tag { top: 520px; }
+#fim .site { top: 640px; }
+#fim .selo { top: 750px; }
+#fim .credito { top: 1580px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="52">
-  <div id="cena" class="clip" data-start="0" data-duration="52">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="54">
+  <div id="cena" class="clip" data-start="0" data-duration="54">
     <div id="abertura" class="cena set"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="veu"></div></div>
-    <div id="vest" class="cena set"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="lousa-pe"></div>
+    <div id="vest" class="cena set"><div id="cam" class="camada"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="lousa-pe"></div>
       <div class="lousa"><span>DIA DA</span><b>FOTO</b></div>
       <div class="tripe" id="tripe"></div>
-      <div id="camera"><div id="tela"><img src="midia/25-joyous.png" alt="" /></div><div class="luz"></div></div>
-    </div>
-    <div id="closeMk" class="cena set close"><div class="parede"></div></div>
-    <div id="closePk" class="cena set close"><div class="parede"></div></div>
-    <div id="closeSq" class="cena set close"><div class="parede"></div></div>
-    <div id="closeDt" class="cena set close"><div class="parede"></div></div>
-    <div id="closeJg" class="cena set close"><div class="parede"></div></div>
-    <div id="closeSn2" class="cena set close"><div class="parede"></div></div>
-    <div id="closeSp" class="cena set close"><div class="parede"></div></div>
+      <div id="camera"><div id="tela"><div class="t-med"></div><img class="t-pk" src="midia/25-joyous.png" alt="" /><div class="t-off"></div></div><div class="luz"></div></div>
+    </div></div>
     <div id="mesa" class="cena mesa"></div>
     <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"></div></div>
   </div>
   <div class="flash" id="flash"></div>
-  <audio id="a-musica" class="clip" src="midia/som/foto-14.wav" data-start="0" data-duration="52" data-media-start="0" data-fade-out="0.06"></audio>
-  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="4.0" data-duration="1.22" data-media-start="0"></audio>
-  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="14.0" data-duration="0.92" data-media-start="0"></audio>
-  <audio id="a-sq" class="clip" src="som/7.ogg" data-start="22.6" data-duration="0.87" data-media-start="0"></audio>
-  <audio id="a-dt" class="clip" src="som/132.ogg" data-start="28.0" data-duration="0.66" data-media-start="0"></audio>
-  <audio id="a-jg" class="clip" src="som/39.ogg" data-start="32.0" data-duration="0.38" data-media-start="0"></audio>
-  <audio id="a-ps" class="clip" src="som/54.ogg" data-start="40.0" data-duration="0.84" data-media-start="0"></audio>
-  <audio id="a-sp" class="clip" src="som/79-lento.ogg" data-start="50.25" data-duration="0.94" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/foto-14.wav" data-start="0" data-duration="54" data-media-start="0" data-fade-out="0.4"></audio>
+  <audio id="a-ps" class="clip" src="som/54.ogg" data-start="6.0" data-duration="0.84" data-media-start="0"></audio>
+  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="8.75" data-duration="1.22" data-media-start="0" data-volume="0.8"></audio>
+  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="14.75" data-duration="0.92" data-media-start="0"></audio>
+  <audio id="a-sq" class="clip" src="som/7.ogg" data-start="18.89" data-duration="0.87" data-media-start="0"></audio>
+  <audio id="a-dt" class="clip" src="som/132.ogg" data-start="24.0" data-duration="0.66" data-media-start="0"></audio>
+  <audio id="a-sq2" class="clip" src="som/7.ogg" data-start="26.25" data-duration="0.87" data-media-start="0" data-volume="0.8"></audio>
+  <audio id="a-dq2" class="clip" src="som/7.ogg" data-start="26.75" data-duration="0.87" data-media-start="0" data-volume="0.8"></audio>
+  <audio id="a-jg" class="clip" src="som/39.ogg" data-start="30.64" data-duration="0.38" data-media-start="0"></audio>
+  <audio id="a-mk2" class="clip" src="som/129.ogg" data-start="40.0" data-duration="1.22" data-media-start="0"></audio>
+  <audio id="a-nao-mk" class="clip" src="som/129.ogg" data-start="43.0" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-nao-pk" class="clip" src="som/25.ogg" data-start="43.0" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-nao-sq" class="clip" src="som/7.ogg" data-start="43.0" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-nao-jg" class="clip" src="som/39.ogg" data-start="43.0" data-duration="0.38" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-nao-ps" class="clip" src="som/54.ogg" data-start="43.02" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-sp" class="clip" src="som/79-lento.ogg" data-start="52.25" data-duration="0.94" data-media-start="0"></audio>
 
   <script>
     const { T, div, ator, anim, quadro, poeira, flash, estouro, telaFinal, piscada } = C;
@@ -151,7 +161,7 @@
       tl.set(sel, { opacity: 1 }, t);
       tl.fromTo(sel, { scale: s }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, t);
     };
-    const CENAS = ['#abertura', '#vest', '#closeMk', '#closePk', '#closeSq', '#closeDt', '#closeJg', '#closeSn2', '#closeSp', '#mesa', '#fim'];
+    const CENAS = ['#abertura', '#vest', '#mesa', '#fim'];
     /** Corte seco: só a cena `id` no ar a partir de t. */
     const corta = (id, t) => {
       ver(CENAS, t, false);
@@ -190,8 +200,7 @@
     }
     /**
      * Faz `el` (filho do corpo) seguir o quadro do sprite: `pos(nome, dir, i)` devolve o ponto em px do quadro (ou null,
-     * e ele some). Lê as trocas de quadro já agendadas: chamar depois de todas as animações do ator (o segueFaixa do
-     * "O atrasado").
+     * e ele some). Lê as trocas de quadro já agendadas: chamar depois de todas as animações do ator.
      */
     function segue(a, el, pos) {
       const S = SPR[a.id];
@@ -206,12 +215,7 @@
       }
     }
 
-    // ---------- os óculos escuros do Squirtle ----------
-    // A cabeça dele no PMD é a mesma em todo quadro; img/cabeca.js tem o canto de cima à esquerda dela (a 1ª linha opaca)
-    // em cada quadro. De frente (Idle/0, canto em 12,3) os olhos ficam nas colunas 11–12 e 18–19, linhas 8–10; de lado
-    // (olhando pra direita, Walk/2 e Shoot/2, canto em 15,3) o olho fica nas colunas 20–21. Os óculos são desenhados em
-    // relação a esse canto: armação preta (a barra de cima reta, os cantos de baixo redondos), a lente escura com o
-    // fundo um tom acima, o brilho branco na diagonal, a ponte e as hastes.
+    // ---------- os óculos escuros do Squirtle (seguem a cabeça: img/cabeca.js) ----------
     const ARM = '#07080f';
     const LENTE = '#1c2140';
     const LENTE2 = '#36437a';
@@ -252,347 +256,630 @@
       [x + 1, y - 9, 2, 3, cor], [x, y - 6, 2, 3, cor], [x - 1, y - 3, 2, 2, cor],
       [x - 3, y - 1, 5, 3, cor], [x - 2, y - 1, 1, 1, claro],
     ], { z: 1 });
-    // a bola em pixel art (12×12), com os gomos na cor `p` (as bolinhas da logo da série)
+    // a bola em pixel art (12×12), com os gomos na cor `p`
     const BOLA = ['....XXXX....', '..XXwwwwXX..', '.XwwwPPwwwX.', '.XwwPPPPwwX.', 'XwwwwPPwwwwX', 'XPwwwwwwwwPX', 'XPPwwwwwwPPX', 'XwPwwwwwwPwX', '.XwwwPPwwSX.', '.XwwPPPPSSX.', '..XXSPPSXX..', '....XXXX....'];
-    // a nota musical da canção (contorno em volta) e a veia de raiva do Jigglypuff
+    // a nota musical da canção (contorno em volta) e a veia de raiva
     const NOTA = ['..w...', '..ww..', '..w.w.', '..w..w', '..w...', 'www...', 'www...'];
     const RAIVA = ['rr.rr', 'r...r', '.....', 'r...r', 'rr.rr'];
     const nota = (pai, E, cor = '#ff9ad5') => desenho(pai, contorno(arte(NOTA, { w: cor })), E, 30);
     const raiva = (pai, E) => desenho(pai, contorno(arte(RAIVA, { r: '#e8423f' })), E, 30);
     // o Jigglypuff bravo (rosa avermelhado) e a caneta-microfone na mão dele (quadro 0 do Idle de frente)
     const BRAVO = 'sepia(0.5) saturate(2.6) hue-rotate(-28deg) brightness(0.92)';
+    const MOLHADO = 'brightness(0.78) saturate(0.8)';
     const CANETA = [[18, 14, 2, 6, '#2b2f45'], [18, 12, 2, 2, '#e8423f'], [18, 19, 2, 1, '#c8d0f0']];
-    // o bigodinho a caneta do Snorlax: na linha 21, entre os olhos fechados (linha 20) e a boca (linha 22), pontas pra cima
-    const BIGODE = [[12, 21, 4, 1, '#07070f'], [17, 21, 4, 1, '#07070f'], [16, 21, 1, 1, '#07070f'], [11, 20, 1, 1, '#07070f'], [21, 20, 1, 1, '#07070f']];
-    // as lentes dos óculos na grade do retrato (40×40, ×16)
-    const lenteR = (x, y, w, h) => [
-      [x + 1, y, w - 2, h, ARM], [x, y + 1, w, h - 3, ARM], [x + 2, y + h - 1, w - 4, 1, ARM],
-      [x + 1, y + 1, w - 2, h - 3, LENTE], [x + 2, y + h - 2, w - 4, 1, LENTE], [x + 1, y + h - 5, w - 2, 3, LENTE2], [x + 2, y + h - 2, w - 4, 1, LENTE2],
-    ];
-    const traco = (x, y, n) => Array.from({ length: n }, (_, k) => [x - k, y + k, 1, 1, '#ffffff']);
-    // os óculos no retrato do Squirtle (7-determined): olho esquerdo nas colunas 14–20, o direito 30–35, linhas 12–21
-    const OC_RETRATO = [
-      [9, 13, 4, 2, ARM], [36, 13, 3, 2, ARM], [22, 13, 7, 2, ARM],
-      ...lenteR(12, 11, 11, 11), ...lenteR(28, 11, 9, 11),
-      ...traco(20, 13, 5), ...traco(21, 15, 3), ...traco(34, 13, 4), ...traco(35, 15, 2),
-    ];
+    // o bigodinho a caneta do Snorlax: na linha 23, em cima da boca (linha 24), com as pontas viradas pra cima (22)
+    const TINTA = '#07070f';
+    const BIGODE = [[12, 23, 4, 1, TINTA], [17, 23, 4, 1, TINTA], [16, 23, 1, 1, TINTA], [11, 22, 1, 1, TINTA], [21, 22, 1, 1, TINTA]];
+    // o raio do choquinho
+    const RAIO = '<svg viewBox="0 0 14 22" width="70" height="110"><path d="M8 1 L2 12 L7 12 L5 21 L12 8 L7 8 L10 1 Z" fill="#ffe14d" stroke="#0e1430" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 
     // ====================================================================================================
-    // 0 · ABERTURA (2 s): o vestiário apagado atrás e a logo da série no meio, como abertura de sitcom. A placa PALLET FC
-    //     carimba no 1 com a fita VESTIÁRIO DO; as cinco bolinhas (a assinatura, os pontinhos de Friends) caem uma por
-    //     semicolcheia (linhas 2 a 6); EPISÓDIO 1 e A FOTO DO TIME carimbam na linha 6; todas as bolinhas pulam na 12
+    // a fala (texto solto em cima de quem fala) e a tarja NOME · POSIÇÃO: ficam fora da câmera, na tela
+    // ====================================================================================================
+    const VEST = $('vest');
+    /** Texto solto com a base em (sx, sy) da TELA, centrado em sx (sem sair da tela); entra com um pop curto. */
+    function fala(pai, html, t0, t1, sx, sy, tam = 110) {
+      const linhas = html.split('<br>');
+      const w = Math.max(...linhas.map((l) => l.length)) * tam * 0.72 + 60;
+      const h = linhas.length * tam * 1.1;
+      const left = Math.max(20, Math.min(1060 - w, sx - w / 2));
+      const b = div(pai, 'dito', `left:${left}px;top:${Math.max(110, sy - h)}px;width:${w}px;height:${h}px;font-size:${tam}px`);
+      b.innerHTML = html;
+      op(b, 0, false);
+      op(b, t0);
+      op(b, t1, false);
+      tl.fromTo(b, { scale: 0.5 }, { scale: 1, duration: 0.18, ease: 'back.out(2.6)', immediateRender: false }, t0);
+      return b;
+    }
+    /** A tarja de quem entra pela primeira vez (desliza da esquerda). */
+    function tarja(nome, cargo, t0, t1) {
+      const n = div(VEST, 'nome');
+      n.innerHTML = `<b>${nome}</b><span>${cargo}</span>`;
+      op(n, 0, false);
+      op(n, t0);
+      tl.fromTo(n, { x: -900 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0);
+      tl.to(n, { x: -900, duration: 0.2, ease: 'power2.in' }, t1 - 0.2);
+      op(n, t1, false);
+    }
+
+    // ====================================================================================================
+    // 0–1 · ABERTURA (4 s): a logo da série brincalhona no vestiário apagado. A fita VESTIÁRIO DO e a placa carimbam no
+    //       1; as letras de PALLET FC caem quicando uma por semicolcheia (linhas 2 a 10), cada uma no seu ângulo e na
+    //       sua altura; o ponto do meio é uma bola que chega girando (linha 8). Na linha 12 o Snorlax despenca em cima da
+    //       placa e dorme. No compasso 1: EPISÓDIO 1 · A FOTO DO TIME carimba (linha 0), as orelhas do Pikachu espiam
+    //       por trás da placa (4) e o Magikarp pula por cima de tudo (6 a 13); as letras fazem a ola quando ele passa
     // ====================================================================================================
     {
       const v = $('abertura');
       [10, 170, 760, 920].forEach((x) => div(v, 'armario', `left:${x}px`));
-      const logo = div(v, 'serie');
-      logo.innerHTML = '<div class="placa"><b>PALLET FC</b></div><div class="fita"><span>VESTIÁRIO DO</span></div>';
-      const epi = div(v, 'epi', 'top:1010px');
+      const serie = div(v, 'serie');
+      const placa = div(serie, 'placa');
+      const letras = div(placa, 'letras');
+      const fita = div(serie, 'fita');
+      fita.innerHTML = '<span>VESTIÁRIO DO</span>';
+      // as letras, cada uma no seu ângulo e na sua altura (a bola é o ponto do meio)
+      const ROT = [-8, 5, -3, 7, -6, 4, 0, -5, 8];
+      const DY = [6, -12, 8, -6, 12, -8, 4, 10, -10];
+      const els = [...'PALLET', null, ...'FC'].map((c) => {
+        if (c) {
+          const b = document.createElement('b');
+          b.textContent = c;
+          letras.appendChild(b);
+          return b;
+        }
+        const bo = div(letras, 'bolinha');
+        desenho(bo, arte(BOLA, { X: PRETO, w: '#f8f8f0', S: '#c8d0f0', P: '#e8423f' }), 7, 3);
+        return bo;
+      });
+      op(els, 0, false);
+      els.forEach((el, i) => {
+        const t = T(0, 2 + i);
+        tl.set(el, { y: DY[i], rotation: ROT[i] }, 0);
+        op(el, t);
+        if (i === 6) {
+          // a bola chega rolando de cima, girando
+          tl.fromTo(el, { y: DY[i] - 380, x: -160, rotation: -360 }, { y: DY[i], x: 0, rotation: 0, duration: 0.4, ease: 'bounce.out', immediateRender: false }, t);
+        } else tl.fromTo(el, { y: DY[i] - 360 }, { y: DY[i], duration: 0.34, ease: 'bounce.out', immediateRender: false }, t);
+      });
+      carimbo(placa, T(0, 0), 1.5);
+      carimbo(fita, T(0, 1), 1.8);
+      // o Snorlax despenca na placa (linha 12): a placa amassa, as letras pulam, e ele dorme
+      const sn0 = ator(serie, '143x', { escala: 6, z: 4, x: 830, y: 124, sombra: false });
+      anim(tl, sn0, 'Sleep', 0, 0, T(2, 0), { vel: 0.4 });
+      const tS = T(0, 12);
+      op(sn0.el, 0, false);
+      op(sn0.el, tS - 0.18);
+      tl.fromTo(sn0.el, { y: -520 }, { y: 124, duration: 0.18, ease: 'power2.in', immediateRender: false }, tS - 0.18);
+      tl.fromTo(sn0.corpo, { scaleY: 0.7, scaleX: 1.2 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: 'elastic.out(1, 0.45)', immediateRender: false }, tS);
+      tl.fromTo(placa, { scaleY: 0.9 }, { scaleY: 1, duration: 0.35, ease: 'elastic.out(1, 0.4)', immediateRender: false }, tS);
+      els.forEach((el, i) => tl.to(el, { keyframes: { y: [DY[i] - 30 - 4 * (i % 3), DY[i]] }, duration: 0.24, ease: 'power1.inOut' }, tS + 0.02 * i));
+      for (const [t, k] of [[T(0, 14), 0], [T(1, 8), 1]]) {
+        const z = div(serie, 'zz');
+        z.textContent = 'Z';
+        tl.set(z, { x: 880, y: -20, fontSize: 64 }, 0);
+        tl.fromTo(z, { opacity: 0, scale: 0.7 + 0.2 * k }, { opacity: 1, duration: 0.2, immediateRender: false }, t);
+        tl.to(z, { x: 960, y: -160, duration: 1.1, ease: 'sine.out' }, t);
+        tl.to(z, { opacity: 0, duration: 0.3 }, t + 0.8);
+      }
+      // o episódio
+      const epi = div(v, 'epi', 'top:960px');
       epi.textContent = 'EPISÓDIO 1';
-      const ep = div(v, 'ep', 'top:1110px');
+      const ep = div(v, 'ep', 'top:1060px');
       ep.innerHTML = '<b>A FOTO DO TIME</b>';
       op([epi, ep], 0, false);
-      carimbo(logo, T(0, 0), 1.7);
-      ['#ffcb05', '#e8423f', '#3a7bd5', '#58c26b', '#ff9ad5'].forEach((cor, i) => {
-        const b = desenho(v, arte(BOLA, { X: PRETO, w: '#f8f8f0', S: '#c8d0f0', P: cor }), 9, 31);
-        const x = 540 + 130 * (i - 2) - 54;
-        const y = 790;
-        const t = T(0, 2 + i);
-        op(b, 0, false);
-        op(b, t);
-        tl.fromTo(b, { x, y: y - 70 }, { y, duration: 0.18, ease: 'bounce.out', immediateRender: false }, t);
+      carimbo(epi, T(1, 0), 1.8);
+      carimbo(ep, T(1, 0) + 0.06, 2.2);
+      // as orelhas do Pikachu espiam por trás da placa (à esquerda da fita) e mexem
+      const pk0 = ator(serie, 25, { escala: 6, z: 1, x: 120, y: 340, sombra: false });
+      anim(tl, pk0, 'Idle', 0, 0, T(2, 0), { vel: 0.8 });
+      tl.fromTo(pk0.el, { y: 340 }, { y: 185, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, T(1, 4));
+      tl.to(pk0.corpo, { keyframes: { rotation: [-6, 6, -4, 0] }, duration: 0.6, ease: 'sine.inOut' }, T(1, 8));
+      // o Magikarp pula por cima de tudo, girando
+      const mk0 = ator(v, 129, { escala: 6, z: 40, x: -300, y: 1000, sombra: false });
+      anim(tl, mk0, 'Idle', 2, 0, T(2, 0));
+      const t1 = T(1, 5);
+      const t2 = T(1, 15);
+      const tm = (t1 + t2) / 2;
+      tl.fromTo(mk0.el, { x: -300 }, { x: 1380, duration: t2 - t1, ease: 'none', immediateRender: false }, t1);
+      tl.fromTo(mk0.corpo, { y: 0 }, { y: -700, duration: tm - t1, ease: 'power2.out', immediateRender: false }, t1);
+      tl.to(mk0.corpo, { y: 0, duration: t2 - tm, ease: 'power2.in' }, tm);
+      tl.fromTo(mk0.spr, { rotation: 0 }, { rotation: 360, duration: t2 - t1, ease: 'none', immediateRender: false }, t1);
+      // a ola: cada letra pula quando ele passa por cima
+      els.forEach((el, i) => tl.to(el, { keyframes: { y: [DY[i] - 46, DY[i]] }, duration: 0.26, ease: 'power1.inOut' }, t1 + (t2 - t1) * (0.2 + 0.065 * i)));
+      // os brilhinhos em volta da placa
+      [[-10, 120, T(0, 10)], [950, 360, T(1, 2)], [40, 400, T(1, 6)], [700, 60, T(1, 10)], [930, 110, T(1, 12)], [470, 410, T(0, 14)]].forEach(([x, y, t]) => {
+        const b = div(serie, 'brilho', 'z-index:5');
         tl.set(b, { x, y }, 0);
-        tl.to(b, { keyframes: { y: [y - 34, y] }, duration: 0.22, ease: 'power1.inOut' }, T(0, 12) + 0.03 * i);
+        tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, t);
+        tl.to(b, { opacity: 0, duration: 0.15 }, t + 0.3);
       });
-      carimbo(epi, T(0, 6), 1.8);
-      carimbo(ep, T(0, 6) + 0.06, 2.2);
-      tl.fromTo(logo, { y: 0 }, { keyframes: { y: [-12, 0] }, duration: 0.25, ease: 'power1.inOut', immediateRender: false }, T(0, 12));
     }
 
     // ====================================================================================================
-    // o vestiário (os planos abertos): todo mundo na mesma escala em todos eles
+    // o vestiário: todo mundo na mesma escala em todos os abertos; o punch-in é a câmera (#cam) em escala 2
     // ====================================================================================================
-    const vest = $('vest');
-    [10, 170, 760, 920].forEach((x) => div(vest, 'armario', `left:${x}px`));
+    const cam = $('cam');
+    gsap.set(cam, { transformOrigin: '0px 0px' });
+    [10, 170, 760, 920].forEach((x) => div(cam, 'armario', `left:${x}px`));
     const BANCO = 1262;
     const CHAO = 1450;
-    const sn = ator(vest, 143, { escala: 11, z: 10, x: 1250, y: BANCO + 6, sombra: false });
-    const mk = ator(vest, 129, { escala: 10, z: 21, x: 620, y: CHAO, sombra: false });
-    const pk = ator(vest, 25, { escala: 10, z: 25, x: 1250, y: 1395, sombra: false });
-    const sq = ator(vest, 7, { escala: 10, z: 22, x: -120, y: CHAO, sombra: false });
-    const ps = ator(vest, 54, { escala: 14, z: 35, x: 990, y: 1720, sombra: true });
-    // os que chegam depois: o Ditto (roxo, e o Ditto virado um Squirtle IDÊNTICO, óculos e tudo), o Jigglypuff com a
-    // caneta-microfone (já no banco quando a canção começa) e o Slowpoke (só no pós-créditos)
-    const dt = ator(vest, 132, { escala: 10, z: 11, x: -120, y: BANCO, sombra: false });
-    const dq = ator(vest, 7, { escala: 10, z: 11, x: 240, y: BANCO, sombra: false });
-    const jg = ator(vest, 39, { escala: 10, z: 12, x: 880, y: BANCO, sombra: false });
-    const sp = ator(vest, 79, { escala: 10, z: 20, x: 1250, y: CHAO, sombra: false });
+    const LENTE_X = 745;
+    const PKY = 1300; // o pé do Pikachu em cima do Magikarp
+    /**
+     * Corte seco pro vestiário. Sem `foco`, o aberto; com `foco` [x, y], o punch-in: a câmera em escala 2 com o ponto em
+     * (540, sy) da tela (sem sair do cenário). Devolve o conversor do vestiário pra tela.
+     */
+    const plano = (t, foco = null, sy = 1000) => {
+      corta('#vest', t);
+      const k = foco ? 2 : 1;
+      const tx = foco ? Math.max(-1080, Math.min(0, 540 - 2 * foco[0])) : 0;
+      const ty = foco ? Math.max(-1920, Math.min(0, sy - 2 * foco[1])) : 0;
+      tl.set(cam, { x: tx, y: ty, scale: k }, t);
+      return (x, y) => [k * x + tx, k * y + ty];
+    };
+    const sn = ator(cam, 143, { escala: 11, z: 10, x: 540, y: BANCO + 6, sombra: false });
+    const ps = ator(cam, 54, { escala: 14, z: 35, x: 960, y: 1720, sombra: true });
+    const mk = ator(cam, 129, { escala: 10, z: 21, x: -150, y: CHAO, sombra: false });
+    const pk = ator(cam, 25, { escala: 10, z: 25, x: 1250, y: CHAO, sombra: false });
+    const sq = ator(cam, 7, { escala: 10, z: 22, x: -150, y: CHAO, sombra: false });
+    const dt = ator(cam, 132, { escala: 10, z: 11, x: 330, y: BANCO, sombra: false });
+    const dq = ator(cam, 7, { escala: 10, z: 11, x: 330, y: BANCO, sombra: false });
+    const jg = ator(cam, 39, { escala: 10, z: 12, x: 1250, y: BANCO, sombra: false });
+    // o Psyduck no banco, mais longe da câmera (escala 10): a foto final
+    const ps2 = ator(cam, 54, { escala: 10, z: 8, x: 250, y: BANCO + 200, sombra: false });
     const medV = medalha(mk);
     const ocV = oculos(sq);
     const ocD = oculos(dq);
     const canetaV = pix(jg, 'Idle', CANETA);
     const raivaV = raiva(jg.corpo, 8);
     gsap.set(raivaV, { x: 50, y: -300 });
-    {
-      const tr = $('tripe');
-      [[745, 1630, 22], [745, 1630, 0], [745, 1630, -22]].forEach(([x, y, r]) => div(tr, '', `left:${x - 14}px;top:${y}px;transform:rotate(${r}deg)`));
-    }
-    // o elenco fica no vestiário até o pós-créditos (compasso 24, ele vazio pro Slowpoke)
-    const FIM = T(24, 0);
-    op([sn.el, pk.el, sq.el, dt.el, dq.el, jg.el, sp.el, canetaV, raivaV], 0, false);
-    anim(tl, mk, 'Idle', 0, 0, FIM);
+    $('tripe').innerHTML = [22, 0, -22].map((r) => `<i style="left:${LENTE_X - 14}px;top:1630px;transform:rotate(${r}deg)"></i>`).join('');
+    const FIM = T(22, 0);
+    op([mk.el, pk.el, sq.el, dt.el, dq.el, jg.el, ps2.el, canetaV, raivaV], 0, false);
+    // o Snorlax dorme no banco desde antes de tudo (quadro parado, respirando)
+    quadro(tl, sn, 'Idle', 0, 0, 0);
+    tl.to(sn.corpo, { scaleY: 1.03, duration: 1, ease: 'sine.inOut', repeat: 41, yoyo: true }, T(2, 0));
     anim(tl, ps, 'Idle', 4, 0, FIM);
-    /** "Z" subindo de (x, y): a cabeça do Snorlax, se nada for dito. */
-    const zzz = (t, k = 0, x = 650, y = 860, pai = vest, tam = 1) => {
-      const z = div(pai, 'zz');
+    /** "Z" subindo de (x, y) (o padrão é a cabeça do Snorlax). */
+    const zzz = (t, k = 0, x = 650, y = 860, tam = 1) => {
+      const z = div(cam, 'zz');
       z.textContent = 'Z';
       tl.set(z, { x, y, fontSize: 80 * tam }, 0);
       tl.fromTo(z, { opacity: 0, scale: 0.7 + 0.2 * k }, { opacity: 1, duration: 0.2, immediateRender: false }, t);
       tl.to(z, { x: x + 90 * tam, y: y - 180 * tam, duration: 1.2, ease: 'sine.out' }, t);
       tl.to(z, { opacity: 0, duration: 0.3 }, t + 0.9);
     };
+    const tela = (cls, t, on = true) => op(`#tela .${cls}`, t, on);
+    const luz = $('camera').querySelector('.luz');
 
-    // 1 · o Magikarp sozinho: pula (linha 4) e estufa a medalha pra lente (linha 8), o brilho na linha 10
+    // 2 · o vestiário: o Snorlax JÁ dorme no banco; o Psyduck mexe na câmera do tripé (de costas)
     {
-      const t0 = T(1, 0);
-      corta('#vest', t0);
-      salto(mk, T(1, 4), 40, 0.3);
-      tl.fromTo(medV.d, { scale: 1 }, { scale: 1.8, duration: 0.3, ease: 'back.out(2.5)', immediateRender: false }, T(1, 8));
-      tl.to(mk.corpo, { scaleY: 1.1, scaleX: 0.94, duration: 0.3, ease: 'back.out(2.5)' }, T(1, 8));
-      const br = div(mk.corpo, 'brilho');
-      gsap.set(br, { x: -12, y: -40 });
-      tl.fromTo(br, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.3, rotation: 90, duration: 0.4, ease: 'sine.out', immediateRender: false }, T(1, 10));
-      tl.to(br, { opacity: 0, duration: 0.2 }, T(1, 10) + 0.35);
-      // volta ao normal pro resto do episódio (fora de quadro: no close)
-      tl.set(medV.d, { scale: 1 }, T(2, 0));
-      tl.set(mk.corpo, { scaleY: 1, scaleX: 1 }, T(2, 0));
+      const t0 = T(2, 0);
+      plano(t0);
+      tarja('SNORLAX', 'GOLEIRO', T(2, 1), T(3, 0));
+      zzz(T(2, 3));
+      zzz(T(2, 11), 1);
+      anim(tl, ps, 'Charge', 4, t0, T(3, 0), { vel: 0.7 });
+      tl.to('#camera', { keyframes: { rotation: [-5, 4, -3, 0] }, duration: 1.2, ease: 'sine.inOut' }, T(2, 4));
     }
-    // 4 · o Snorlax entra pesado (o chão treme a cada passo), senta atrás do Magikarp (linha 8) e dorme
+    // 3 · punch-in no Psyduck: ele vira pra todo mundo e grita FOTO DO TIME!
+    {
+      const t0 = T(3, 0);
+      const P = plano(t0, [960, 1500]);
+      anim(tl, ps, 'Idle', 0, t0, T(4, 0));
+      salto(ps, t0 + 0.04, 30, 0.25);
+      const [x, y] = P(960, 1350);
+      fala(VEST, 'FOTO<br>DO TIME!', t0 + 0.05, T(4, 0), x, y - 30);
+      tarja('PSYDUCK', 'TÉCNICO', t0 + 0.15, T(4, 0));
+    }
+    // 4 · por causa da foto, o Magikarp (capitão) pula na frente da lente (pousa na 6) e estufa a medalha (8)
     {
       const t0 = T(4, 0);
-      const tS = T(4, 8);
-      corta('#vest', t0);
-      op(sn.el, t0);
-      anim(tl, sn, 'Walk', 6, t0, tS, { vel: 0.9 });
-      tl.fromTo(sn.el, { x: 1250 }, { x: 560, duration: tS - t0, ease: 'none', immediateRender: false }, t0);
-      anim(tl, sn, 'Idle', 0, tS, FIM, { vel: 0.5 });
-      tl.fromTo(sn.corpo, { scaleY: 0.88, scaleX: 1.08 }, { scaleY: 1, scaleX: 1, duration: 0.35, ease: 'elastic.out(1, 0.5)', immediateRender: false }, tS);
-      for (const r of [0, 4, 8]) tl.to(vest, { keyframes: { y: [8, -4, 0] }, duration: 0.15, ease: 'none' }, T(4, r));
-      // o Magikarp leva um susto quando o Snorlax senta
-      salto(mk, T(4, 9), 50, 0.3);
-      zzz(T(4, 11));
+      const tP = T(4, 6);
+      plano(t0, [LENTE_X, 1350]);
+      anim(tl, ps, 'Idle', 4, t0, FIM);
+      op(mk.el, t0);
+      anim(tl, mk, 'Hop', 2, t0, tP, { vel: 1.7, loop: false });
+      tl.fromTo(mk.el, { x: 300 }, { x: LENTE_X, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo(mk.corpo, { y: 0 }, { keyframes: { y: [-180, 0, -120, 0] }, duration: tP - t0, ease: 'power1.inOut', immediateRender: false }, t0);
+      anim(tl, mk, 'Idle', 0, tP, FIM);
+      poeira(tl, cam, LENTE_X, CHAO, tP, { n: 6, r: 110, tam: 36 });
+      tl.fromTo(medV.d, { scale: 1 }, { scale: 1.8, duration: 0.3, ease: 'back.out(2.5)', immediateRender: false }, T(4, 8));
+      tl.fromTo(mk.corpo, { scaleY: 1, scaleX: 1 }, { scaleY: 1.1, scaleX: 0.94, duration: 0.3, ease: 'back.out(2.5)', immediateRender: false }, T(4, 8));
+      const br = div(mk.corpo, 'brilho');
+      gsap.set(br, { x: -12, y: -40 });
+      tl.fromTo(br, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.3, rotation: 90, duration: 0.4, ease: 'sine.out', immediateRender: false }, T(4, 10));
+      tl.to(br, { opacity: 0, duration: 0.2 }, T(4, 10) + 0.35);
+      tela('t-med', T(4, 8));
+      tarja('MAGIKARP', 'CAPITÃO', T(4, 1), T(5, 0));
     }
-    // 6 · o Pikachu pula na frente da câmera e cai no BOING (linha 8): a telinha da câmera só mostra ele
+    // 6 · por causa da foto 1, o Psyduck segura a cabeça (o mesmo punch-in, de frente)
     {
       const t0 = T(6, 0);
-      const t1 = T(6, 4);
-      const tP = T(6, 8);
-      corta('#vest', t0);
-      zzz(t0 + 0.2, 1);
-      op(pk.el, t1);
-      anim(tl, pk, 'Hop', 6, t1, tP, { vel: 1.6, loop: false });
-      tl.fromTo(pk.el, { x: 1180, y: 1395 }, { x: 800, y: 1395, duration: tP - t1, ease: 'none', immediateRender: false }, t1);
-      tl.fromTo(pk.corpo, { y: 0 }, { keyframes: { y: [-260, 0] }, duration: tP - t1, ease: 'power1.inOut', immediateRender: false }, t1);
-      anim(tl, pk, 'Pose', 0, tP, T(9, 0), { vel: 0.8 });
-      poeira(tl, vest, 800, 1395, tP, { n: 6, r: 120, tam: 40 });
-      tl.fromTo(pk.corpo, { scaleX: 1.2, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)', immediateRender: false }, tP);
-      tl.fromTo('#tela img', { opacity: 0 }, { opacity: 1, duration: 0.05, immediateRender: false }, tP);
-      tl.set('#tela', { backgroundColor: '#ffe14d' }, tP);
-      salto(mk, T(6, 9), 36, 0.26);
-      tl.to(ps.corpo, { keyframes: { y: [-30, 0] }, duration: 0.3, ease: 'power1.inOut' }, tP);
+      plano(t0, [960, 1500]);
+      anim(tl, ps, 'Charge', 0, t0, T(7, 0), { vel: 0.7 });
+      tl.to(ps.corpo, { keyframes: { rotation: [-7, 7, -7, 7, 0] }, duration: 1.8, ease: 'sine.inOut' }, t0 + 0.1);
     }
-    // 9 · o Squirtle entra DEVAGAR pela esquerda, de óculos (linha 12 para e olha pra lente)
+    // 7 · o Pikachu, querendo aparecer também, pula em cima do Magikarp (pousa na 6) e, na empolgação, solta o choquinho
+    //     (10): um raio desce na câmera (12), que solta faísca e fumaça
+    const fumacaCamera = (de, ate) => {
+      for (let t = de, i = 0; t < ate; t += 0.24, i++) {
+        const f = div(cam, 'fumaca', 'z-index:33');
+        const x = LENTE_X + ((i * 37) % 60) - 30;
+        tl.set(f, { x, y: 1480 }, 0);
+        tl.fromTo(f, { opacity: 0.9, scale: 0.4, x, y: 1480 }, { opacity: 0, scale: 1.4, y: 1180, x: x + 30, duration: 1, ease: 'sine.out', immediateRender: false }, t);
+      }
+    };
+    {
+      const t0 = T(7, 0);
+      const tP = T(7, 6);
+      const tZ = T(7, 10);
+      const tC = T(7, 12);
+      plano(t0);
+      anim(tl, ps, 'Idle', 4, t0, FIM);
+      op(pk.el, t0);
+      anim(tl, pk, 'Hop', 6, t0, tP, { vel: 1.6, loop: false });
+      tl.fromTo(pk.el, { x: 1200, y: CHAO }, { x: LENTE_X, y: PKY, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo(pk.corpo, { y: 0 }, { keyframes: { y: [-360, 0] }, duration: tP - t0, ease: 'power1.inOut', immediateRender: false }, t0);
+      anim(tl, pk, 'Pose', 0, tP, T(9, 0), { vel: 0.8 });
+      // o Magikarp amassa e a medalha murcha
+      tl.set(medV.d, { scale: 1 }, tP);
+      tl.fromTo(mk.corpo, { scaleY: 0.7, scaleX: 1.25 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: 'elastic.out(1, 0.5)', immediateRender: false }, tP);
+      tela('t-med', tP, false);
+      tela('t-pk', tP);
+      tarja('PIKACHU', 'ALA', T(7, 1), T(7, 10));
+      // o choquinho em volta dele
+      [[640, 1070, -20], [860, 1050, 18], [620, 1220, -30], [880, 1230, 26]].forEach(([x, y, r], i) => {
+        const z = div(cam, 'raio');
+        z.innerHTML = RAIO;
+        tl.set(z, { x, y, rotation: r }, 0);
+        for (let t = tZ + 0.03 * i; t < T(8, 0) - 0.05; t += 0.14) {
+          op(z, t);
+          op(z, t + 0.08, false);
+        }
+      });
+      tl.to(pk.spr, { keyframes: { filter: ['brightness(1.8)', 'brightness(1)', 'brightness(1.9)', 'brightness(1)'] }, duration: tC - tZ, ease: 'none' }, tZ);
+      // o raio que desce na câmera
+      const r = div(cam, '', 'position:absolute;left:0;top:0;z-index:34');
+      r.innerHTML = '<svg width="200" height="420" viewBox="0 0 20 42" style="display:block"><path d="M10 0 L4 12 L13 16 L5 28 L14 31 L9 42" fill="none" stroke="#0e1430" stroke-width="5" stroke-linejoin="round"/><path d="M10 0 L4 12 L13 16 L5 28 L14 31 L9 42" fill="none" stroke="#ffe14d" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+      tl.set(r, { x: LENTE_X - 100, y: 1170, opacity: 0 }, 0);
+      for (const [t, on] of [[tC, 1], [tC + 0.07, 0], [tC + 0.11, 1], [tC + 0.22, 0]]) op(r, t, on);
+      estouro(tl, cam, LENTE_X, 1540, tC + 0.05, { tam: 280, cor: '#ffe14d' });
+      tl.to('#camera', { keyframes: { x: [10, -10, 8, -6, 0] }, duration: 0.3, ease: 'none' }, tC);
+      tela('t-off', tC);
+      tela('t-pk', tC, false);
+      fumacaCamera(tC + 0.15, T(8, 0));
+      salto(mk, tC, 30, 0.25);
+    }
+    // 9 · por causa da fumaça, o Squirtle (de óculos, tranquilo) entra (linhas 0 a 6) e apaga a câmera com o jato (7);
+    //     a água encharca o Pikachu junto e escorre na câmera; a fumaça vira vapor (9)
     {
       const t0 = T(9, 0);
-      const tP = T(9, 12);
-      corta('#vest', t0);
-      zzz(t0 + 0.3);
-      anim(tl, pk, 'Idle', 0, t0, T(11, 0));
+      const tJ = T(9, 7);
+      const tM = T(9, 9);
+      plano(t0);
+      fumacaCamera(t0, tM);
       op(sq.el, t0);
-      anim(tl, sq, 'Walk', 2, t0, tP, { vel: 0.55 });
-      tl.fromTo(sq.el, { x: -120 }, { x: 130, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
-      anim(tl, sq, 'Idle', 0, tP, T(11, 6), { vel: 0.6 });
-      // o Pikachu e o Magikarp viram pra ver quem chegou
-      salto(pk, T(9, 6), 24, 0.24);
-      salto(mk, T(9, 7), 24, 0.24);
-    }
-    // 11 · o Pikachu pula na frente do Squirtle e posa (linha 4); o Squirtle, de óculos abaixados, dá o jato (linha 6)
-    {
-      const t0 = T(11, 0);
-      const t1 = T(11, 4);
-      const tJ = T(11, 6);
-      corta('#vest', t0);
-      tl.set(ocV.baixa, { y: 3 * sq.escala }, t0);
-      anim(tl, pk, 'Hop', 6, t0, t1, { vel: 2, loop: false });
-      tl.fromTo(pk.el, { x: 800, y: 1395 }, { x: 380, y: CHAO, duration: t1 - t0, ease: 'none', immediateRender: false }, t0);
-      tl.fromTo(pk.corpo, { y: 0 }, { keyframes: { y: [-200, 0] }, duration: t1 - t0, ease: 'power1.inOut', immediateRender: false }, t0);
-      anim(tl, pk, 'Pose', 0, t1, T(11, 8), { vel: 1.2 });
-      anim(tl, pk, 'Hurt', 6, T(11, 8), T(11, 13), { vel: 0.6 });
-      anim(tl, pk, 'Idle', 0, T(11, 13), FIM, { vel: 0.5 });
-      // encharcado: o amarelo apaga e pinga
-      tl.set(pk.spr, { filter: 'brightness(0.78) saturate(0.8)' }, T(11, 9));
-      anim(tl, sq, 'Shoot', 2, tJ, T(11, 13), { vel: 0.5, loop: false });
-      anim(tl, sq, 'Idle', 0, T(11, 13), FIM, { vel: 0.6 });
-      // o jato: da boca do Squirtle (225, 1380) direto na cara do Pikachu (340, 1280)
-      const ARCO = Array.from({ length: 7 }, (_, i) => {
-        const u = i / 6;
-        return [225 + 115 * u, 1380 - 100 * u - 20 * Math.sin(Math.PI * u)];
+      anim(tl, sq, 'Walk', 2, t0, T(9, 6), { vel: 0.75 });
+      tl.fromTo(sq.el, { x: -150 }, { x: 220, duration: T(9, 6) - t0, ease: 'none', immediateRender: false }, t0);
+      anim(tl, sq, 'Idle', 2, T(9, 6), tJ, { vel: 0.6 });
+      anim(tl, sq, 'Shoot', 2, tJ, T(9, 13), { vel: 0.5, loop: false });
+      anim(tl, sq, 'Idle', 0, T(9, 13), FIM, { vel: 0.6 });
+      tarja('SQUIRTLE', 'ALA', T(9, 1), T(9, 10));
+      anim(tl, pk, 'Idle', 0, t0, tM);
+      anim(tl, pk, 'Hurt', 0, tM, T(9, 13), { vel: 0.6 });
+      anim(tl, pk, 'Idle', 0, T(9, 13), FIM, { vel: 0.5 });
+      tl.set(pk.spr, { filter: MOLHADO }, tM);
+      // o jato: da boca do Squirtle (330, 1370) num arco baixo até a cara do Pikachu (700, 1150)
+      Array.from({ length: 14 }, (_, i) => {
+        const u = i / 13;
+        const j = div(cam, 'jato');
+        tl.set(j, { x: 330 + 370 * u - 10, y: 1370 - 220 * u - 70 * Math.sin(Math.PI * u) - 10 }, 0);
+        op(j, tJ + 0.02 * i);
+        op(j, T(9, 12) + 0.015 * i, false);
       });
-      ARCO.forEach(([x, y], i) => {
-        const j = div(vest, 'jato');
-        tl.set(j, { x: x - 10, y: y - 10 }, 0);
-        const t = T(11, 7) + 0.03 * i;
-        op(j, t);
-        op(j, T(11, 12) + 0.02 * i, false);
-      });
-      [[330, 1260, -40, -90], [420, 1240, 70, -110], [370, 1220, 10, -150], [400, 1270, 60, -70], [320, 1290, -50, -40]].forEach(([x, y, dx, dy], i) => {
-        const g = div(vest, 'gota');
+      // o respingo no Pikachu e a água que escorre na câmera
+      [[700, 1130, -60, -90], [780, 1110, 70, -110], [740, 1090, 10, -140], [800, 1150, 90, -60], [690, 1170, -80, -40]].forEach(([x, y, dx, dy], i) => {
+        const g = div(cam, 'gota');
         tl.set(g, { x, y }, 0);
-        const t = T(11, 8) + 0.05 * i;
-        tl.fromTo(g, { opacity: 1, x, y }, { keyframes: { x: [x + dx * 0.5, x + dx], y: [y + dy, y + dy * 0.3 + 160] }, duration: 0.55, ease: 'none', immediateRender: false }, t);
+        const t = tM + 0.04 * i;
+        tl.fromTo(g, { opacity: 1, x, y }, { keyframes: { x: [x + dx * 0.5, x + dx], y: [y + dy, y + dy * 0.3 + 200] }, duration: 0.55, ease: 'none', immediateRender: false }, t);
         tl.set(g, { opacity: 0 }, t + 0.55);
       });
-      for (const [k, t] of [[0, T(11, 13)], [1, T(11, 15)]]) {
-        const g = div(vest, 'gota');
-        tl.set(g, { x: 360 + 40 * k, y: 1290 }, 0);
-        tl.fromTo(g, { opacity: 1, y: 1290 }, { y: 1440, duration: 0.3, ease: 'power2.in', immediateRender: false }, t);
-        tl.set(g, { opacity: 0 }, t + 0.3);
-      }
-      salto(mk, T(11, 9), 30, 0.26);
-      zzz(t0 + 0.4, 1);
-    }
-    // 13 · o Ditto quica da esquerda e cai no banco do lado do Squirtle (linha 4) e, POOF (linha 6), vira um Squirtle
-    //      IDÊNTICO, óculos e tudo. Os dois abaixam os óculos juntos, um pixel por linha (10 a 12); na 13 o Squirtle de
-    //      verdade vira pro outro, irritado (a veia de raiva)
-    {
-      const t0 = T(13, 0);
-      const tP = T(13, 4);
-      const tV = T(13, 6);
-      corta('#vest', t0);
+      [[720, 0], [760, 0.1], [740, 0.25], [780, 0.4], [730, 0.55]].forEach(([x, d]) => {
+        const g = div(cam, 'gota');
+        tl.set(g, { x, y: 1300 }, 0);
+        tl.fromTo(g, { opacity: 1, y: 1300 }, { y: 1500, duration: 0.35, ease: 'power2.in', immediateRender: false }, tM + d);
+        tl.set(g, { opacity: 0 }, tM + d + 0.35);
+      });
+      estouro(tl, cam, LENTE_X, 1460, tM + 0.1, { tam: 300, cor: '#e8eef8', anel: false, dur: 0.5 });
+      salto(mk, tM, 26, 0.24);
       zzz(t0 + 0.3);
-      // os óculos voltaram pro lugar depois do jato (a foto 4)
-      tl.set(ocV.baixa, { y: 0 }, t0);
+    }
+    // 11 · punch-in no Squirtle: a pose de descolado, os óculos descem devagar (linhas 2, 6, 10); no banco, atrás, o
+    //      Ditto vê e se encanta (o brilho na 12)
+    const FOCO_SQ = [280, 1300];
+    {
+      const t0 = T(11, 0);
+      plano(t0, FOCO_SQ);
       op(dt.el, t0);
-      anim(tl, dt, 'Hop', 2, t0, tP, { vel: 2, loop: false });
-      tl.fromTo(dt.el, { x: -120 }, { x: 240, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
-      tl.fromTo(dt.corpo, { y: 0 }, { keyframes: { y: [-160, 0] }, duration: tP - t0, ease: 'power1.inOut', immediateRender: false }, t0);
-      quadro(tl, dt, 'Idle', 0, 0, tP);
-      poeira(tl, vest, 240, BANCO, tP, { n: 6, r: 100, tam: 36 });
-      tl.fromTo(dt.corpo, { scaleX: 1.2, scaleY: 0.8 }, { scaleX: 1, scaleY: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, tP);
-      estouro(tl, vest, 240, BANCO - 110, tV, { tam: 300, cor: '#dfafd7' });
+      anim(tl, dt, 'Idle', 0, t0, T(12, 6), { vel: 0.6 });
+      for (let k = 1; k <= 3; k++) tl.set(ocV.baixa, { y: k * sq.escala }, T(11, 2 + 4 * (k - 1)));
+      const br = div(sq.corpo, 'brilho', 'z-index:5');
+      gsap.set(br, { x: -30, y: -150 });
+      tl.fromTo(br, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, T(11, 1));
+      tl.to(br, { opacity: 0, duration: 0.15 }, T(11, 1) + 0.3);
+      // o Ditto encantado: pula no banco e brilha
+      salto(dt, T(11, 12), 40, 0.28);
+      for (const [x, y, d] of [[-90, -230, 0], [80, -260, 0.08]]) {
+        const b = div(dt.corpo, 'brilho', 'z-index:5;width:44px;height:44px;margin:-22px 0 0 -22px');
+        gsap.set(b, { x, y });
+        tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, T(11, 12) + d);
+        tl.to(b, { opacity: 0, duration: 0.15 }, T(11, 12) + d + 0.3);
+      }
+    }
+    // 12 · o mesmo punch-in: o Ditto grita EU TAMBÉM! e, POOF (6), vira um Squirtle IDÊNTICO, de óculos abaixados; o
+    //      Squirtle de verdade vira pra ele (10) e fica bravo (13)
+    {
+      const t0 = T(12, 0);
+      const tV = T(12, 6);
+      const P = plano(t0, FOCO_SQ);
+      const [x, y] = P(330, BANCO - 240);
+      fala(VEST, 'EU TAMBÉM!', t0 + 0.05, tV, x, y);
+      tarja('DITTO', 'RESERVA', t0 + 0.15, T(13, 0));
+      salto(dt, t0, 50, 0.26);
+      estouro(tl, cam, 330, BANCO - 110, tV, { tam: 300, cor: '#dfafd7' });
       op(dt.el, tV, false);
       op(dq.el, tV);
-      anim(tl, dq, 'Idle', 0, tV, FIM, { vel: 0.6 });
+      tl.set(ocD.baixa, { y: 3 * dq.escala }, 0);
+      anim(tl, dq, 'Idle', 0, tV, T(13, 0), { vel: 0.6 });
       tl.fromTo(dq.corpo, { scaleX: 0.7, scaleY: 1.3 }, { scaleX: 1, scaleY: 1, duration: 0.4, ease: 'elastic.out(1, 0.45)', immediateRender: false }, tV);
-      // os dois abaixam os óculos juntos, um pixel por linha
-      for (let k = 1; k <= 3; k++) tl.set([ocV.baixa, ocD.baixa], { y: k * sq.escala }, T(13, 9 + k));
-      // o de verdade vira pro outro (olhando pra direita, pro banco) e fica bravo
-      quadro(tl, sq, 'Idle', 2, 0, T(13, 13));
+      anim(tl, sq, 'Idle', 2, T(12, 10), T(17, 0), { vel: 0.6 });
       const rq = raiva(sq.corpo, 7);
-      gsap.set(rq, { x: -80, y: -185 });
+      gsap.set(rq, { x: -70, y: -200 });
       op(rq, 0, false);
-      op(rq, T(13, 13));
-      tl.fromTo(rq, { scale: 0.4 }, { scale: 1, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(13, 13));
-      op(rq, T(14, 0), false);
-      anim(tl, sq, 'Idle', 0, T(14, 0), FIM, { vel: 0.6 });
+      op(rq, T(12, 13));
+      tl.fromTo(rq, { scale: 0.4 }, { scale: 1, duration: 0.15, ease: 'back.out(3)', immediateRender: false }, T(12, 13));
+      op(rq, T(16, 0), false);
     }
-    // 17 · a canção: o Jigglypuff (já no banco, com a caneta-microfone) balança e as notas voam; cada um cai no sono e tomba (linhas 2 a 5), o Psyduck segura
-    //      a cabeça (a dor de cabeça não deixa ele dormir). Na linha 10 ele percebe: incha, fica vermelho e treme
-    const DORMEM = [
-      // [ator, linha em que dorme, quanto tomba (graus), onde sai o Z]
-      [pk, 2, 18, 440, 1110],
-      [sq, 3, -14, 150, 1230],
-      [dq, 4, 16, 270, 1030],
-      [mk, 5, -78, 560, 1330],
+    // 13 · por causa da cópia, a briga: o Ditto-Squirtle desce do banco (0 a 2) e os dois discutem cara a cara (empurrões
+    //      nas linhas 2, 4 e 6); o Pikachu molhado pula do Magikarp pra briga (8), o Magikarp vai junto (10) e vira uma
+    //      nuvem de poeira (10 até a canção do Jigglypuff, no 16)
+    // a nuvem da briga: um anel de bolotas em volta de (420, 1320) e três no meio, em dois tons
+    const NUVEM = [
+      ...Array.from({ length: 10 }, (_, k) => {
+        const a = (k / 10) * 2 * Math.PI;
+        return [420 + 210 * Math.cos(a), 1310 + 120 * Math.sin(a), 150 + 30 * (k % 3)];
+      }),
+      [340, 1290, 200], [500, 1300, 210], [420, 1360, 190],
     ];
     {
-      const t0 = T(17, 0);
-      corta('#vest', t0);
-      op([jg.el, canetaV], t0);
-      quadro(tl, jg, 'Idle', 0, 0, t0);
-      quadro(tl, sn, 'Idle', 0, 0, t0);
-      tl.to(jg.corpo, { keyframes: { rotation: [-9, 9, -9, 9, 0] }, duration: T(17, 9) - t0, ease: 'sine.inOut' }, t0);
+      const t0 = T(13, 0);
+      plano(t0, [330, 1350]);
+      // o Ditto-Squirtle pula do banco pro chão, virado pro Squirtle (o espelho do Idle 2: olha pra esquerda)
+      anim(tl, dq, 'Idle', 2, t0, T(17, 0), { vel: 0.6 });
+      tl.set(dq.el, { scaleX: -1 }, t0);
+      tl.fromTo(dq.el, { x: 330, y: BANCO }, { x: 380, y: CHAO, duration: T(13, 2) - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo(dq.corpo, { y: 0 }, { keyframes: { y: [-120, 0] }, duration: T(13, 2) - t0, ease: 'power1.inOut', immediateRender: false }, t0);
+      tl.set(dq.el, { zIndex: 22 }, T(13, 1));
+      const rd = raiva(dq.corpo, 7);
+      gsap.set(rd, { x: -70, y: -200 });
+      op(rd, 0, false);
+      op(rd, T(13, 3));
+      op(rd, T(16, 0), false);
+      // os empurrões: um avança, o outro avança
+      for (const [a, l, dx] of [[sq, 2, 26], [dq, 4, -26], [sq, 6, 26]]) {
+        const x0 = a === sq ? 220 : 380;
+        tl.to(a.el, { keyframes: { x: [x0 + dx, x0] }, duration: 0.3, ease: 'power2.out' }, T(13, l));
+        salto(a, T(13, l), 34, 0.26);
+      }
+      // o Pikachu pula do Magikarp pra briga e o Magikarp vai atrás
+      anim(tl, pk, 'Hop', 6, T(13, 8), T(13, 10), { vel: 2.2, loop: false });
+      tl.fromTo(pk.el, { x: LENTE_X, y: PKY }, { x: 480, y: CHAO, duration: T(13, 10) - T(13, 8), ease: 'none', immediateRender: false }, T(13, 8));
+      anim(tl, pk, 'Idle', 0, T(13, 10), FIM, { vel: 0.5 });
+      tl.fromTo(mk.el, { x: LENTE_X }, { x: 600, duration: 0.3, ease: 'none', immediateRender: false }, T(13, 10));
+      salto(mk, T(13, 10), 60, 0.3);
+      // a nuvem da briga
+      NUVEM.forEach(([x, y, d], i) => {
+        const n = div(cam, 'nuvem', `width:${d}px;height:${d}px;margin:${-d / 2}px 0 0 ${-d / 2}px${i % 2 ? ';background:radial-gradient(circle at 40% 35%, #e4ddd2, #b9b0a4 70%)' : ''}`);
+        tl.set(n, { x, y }, 0);
+        const t = T(13, 10) + 0.03 * i;
+        tl.fromTo(n, { opacity: 1, scale: 0.3 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t);
+        tl.to(n, { keyframes: { scale: [1.12, 0.94, 1.08, 0.96, 1.1, 1] }, duration: 1.4, ease: 'none', repeat: 2 }, t + 0.2);
+        tl.to(n, { opacity: 0, scale: 0.4, duration: 0.2, ease: 'power2.in' }, T(16, 1) + 0.02 * i);
+      });
+      for (const [x, y, t] of [[300, 1200, T(13, 11)], [560, 1260, T(13, 13)], [420, 1440, T(13, 15)], [250, 1300, T(15, 2)], [600, 1200, T(15, 6)], [420, 1180, T(15, 10)], [520, 1420, T(15, 13)]]) {
+        estouro(tl, cam, x, y, t, { tam: 120, anel: false, dur: 0.25 });
+      }
+      // as veias de raiva pipocando por cima da nuvem
+      for (const [x, y, t] of [[330, 1150, T(13, 11)], [520, 1170, T(13, 14)], [400, 1130, T(15, 3)], [560, 1190, T(15, 8)], [300, 1200, T(15, 12)]]) {
+        const r = raiva(cam, 9);
+        tl.set(r, { x, y, opacity: 0 }, 0);
+        op(r, t);
+        op(r, t + 0.5, false);
+      }
+    }
+    // 15 · por causa da gritaria, o Jigglypuff entra (pula no banco, linhas 0 a 4) e pede: CALMA, GENTE… (5); a briga
+    //      continua na nuvem
+    {
+      const t0 = T(15, 0);
+      const tP = T(15, 4);
+      const P = plano(t0);
+      op(jg.el, t0);
+      anim(tl, jg, 'Hop', 6, t0, tP, { vel: 1.8, loop: false });
+      tl.fromTo(jg.el, { x: 1200 }, { x: 830, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo(jg.corpo, { y: 0 }, { keyframes: { y: [-200, 0] }, duration: tP - t0, ease: 'power1.inOut', immediateRender: false }, t0);
+      op(canetaV, tP);
+      quadro(tl, jg, 'Idle', 0, 0, tP);
+      tarja('JIGGLYPUFF', 'RESERVA', T(15, 1), T(16, 0));
+      const [x, y] = P(830, BANCO - 240);
+      fala(VEST, 'CALMA,<br>GENTE…', T(15, 5), T(16, 0), x, y);
+      salto(jg, T(15, 5), 30, 0.24);
+    }
+    // 16 · a canção de ninar: o Jigglypuff canta (as notas voam pra briga), a nuvem some (1) e cada um cai no sono e tomba
+    //      (linhas 2 a 5); o Psyduck não: a dor de cabeça segura ele acordado. Na 10 o Jigglypuff percebe que ninguém
+    //      ouviu: incha, avermelha e treme
+    const DORMEM = [
+      // [ator, linha em que dorme, quanto tomba (graus), onde sai o Z]
+      [pk, 2, 18, 470, 1110],
+      [sq, 3, -14, 180, 1210],
+      [dq, 4, 16, 330, 1210],
+      [mk, 5, 78, 640, 1330],
+    ];
+    {
+      const t0 = T(16, 0);
+      plano(t0);
+      tl.to(jg.corpo, { keyframes: { rotation: [-9, 9, -9, 9, 0] }, duration: T(16, 9) - t0, ease: 'sine.inOut' }, t0);
       for (let i = 0; i < 5; i++) {
-        const n = nota(vest, 8, i % 2 ? '#ffcb05' : '#ff9ad5');
-        const t = T(17, 2 * i);
-        const [x, y] = [800 - 30 * i, 1020];
+        const n = nota(cam, 8, i % 2 ? '#ffcb05' : '#ff9ad5');
+        const t = T(16, 2 * i);
+        const [x, y] = [760 - 30 * i, 1000];
         tl.set(n, { x, y, opacity: 0 }, 0);
-        tl.fromTo(n, { opacity: 1, x, y }, { x: x - 260 - 40 * i, y: y - 260 + 30 * (i % 2), duration: 1.3, ease: 'sine.out', immediateRender: false }, t);
+        tl.fromTo(n, { opacity: 1, x, y }, { x: x - 260 - 40 * i, y: y - 220 + 30 * (i % 2), duration: 1.3, ease: 'sine.out', immediateRender: false }, t);
         tl.to(n, { opacity: 0, duration: 0.25 }, t + 1.05);
       }
       for (const [a, l, r, zx, zy] of DORMEM) {
-        const t = T(17, l);
-        quadro(tl, a, 'Idle', 0, 0, t);
+        const t = T(16, l);
+        quadro(tl, a, 'Idle', a === sq || a === dq ? 2 : 0, 0, t);
         tl.to(a.corpo, { rotation: r, duration: 0.45, ease: 'power2.inOut' }, t);
-        zzz(t + 0.5, 0, zx, zy, vest, 0.7);
+        zzz(t + 0.5, 0, zx, zy, 0.7);
       }
-      anim(tl, ps, 'Charge', 4, t0, T(17, 12), { vel: 0.6 });
+      anim(tl, ps, 'Charge', 0, t0, T(16, 14), { vel: 0.6 });
       tl.to(ps.corpo, { keyframes: { rotation: [-6, 6, -6, 6, 0] }, duration: 1.6, ease: 'sine.inOut' }, t0 + 0.2);
-      anim(tl, ps, 'Idle', 4, T(17, 12), FIM);
-      // ele percebe: incha, avermelha e treme
-      const tB = T(17, 10);
+      anim(tl, ps, 'Idle', 0, T(16, 14), T(19, 0));
+      const tB = T(16, 10);
       tl.to(jg.corpo, { scale: 1.25, duration: 0.25, ease: 'back.out(3)' }, tB);
       tl.set(jg.spr, { filter: BRAVO }, tB);
       op(raivaV, tB);
-      tl.to(jg.el, { keyframes: { x: [892, 868, 888, 872, 880] }, duration: 0.4, ease: 'none' }, tB + 0.25);
+      tl.to(jg.el, { keyframes: { x: [842, 818, 838, 822, 830] }, duration: 0.4, ease: 'none' }, tB + 0.25);
     }
-    // 20 · o timer, no próprio vestiário: o Psyduck segura a cabeça (linhas 0 e 1), aperta a câmera (linha 2: a luz
-    //      pisca verde) e, no 3 (linha 4), corre pra fora pela esquerda. 2 (linha 8): todo mundo acorda num pulo e se
-    //      ajeita na ordem da foto (o Ditto quica por cima do capitão pro outro lado). 1 (linha 12): as poses (o
-    //      chifrinho do Pikachu no Squirtle, a medalha estufa). O Snorlax dorme, de bigode, com o Jigglypuff no colo
-    const timer = (pai, x, y, n, t, t1) => {
-      const b = div(pai, 'timer');
+    // 17 · punch-in no Snorlax (que já dormia antes de tudo): o Jigglypuff, ofendido, sobe nele e RISCA o bigodinho a
+    //      caneta, pixel por pixel (linhas 2 a 12), do meio pras pontas; na 13 pula, satisfeito
+    {
+      const t0 = T(17, 0);
+      plano(t0, [560, 1086], 820);
+      tl.set(jg.corpo, { scale: 1 }, t0);
+      op(canetaV, t0, false);
+      // o pixel (x, y) do Snorlax no vestiário: o quadro começa em (364, 850) e cada pixel tem 11 px
+      const P = ([x, y]) => [364 + 11 * x + 5.5, 850 + 11 * y + 5.5];
+      const px = [[16, 23], [15, 23], [17, 23], [14, 23], [18, 23], [13, 23], [19, 23], [12, 23], [20, 23], [11, 22], [21, 22]];
+      const ta = T(17, 2);
+      const tb = T(17, 12);
+      const pen = div(cam, '', 'position:absolute;left:0;top:0;z-index:18;width:22px;height:200px;margin:15px 0 0 -11px;box-sizing:border-box;background:#2b2f45;border:4px solid #0e1430;border-radius:5px 5px 3px 3px;transform-origin:50% -15px');
+      div(pen, '', 'position:absolute;left:2px;top:-15px;width:10px;height:15px;background:#07070f;border:3px solid #0e1430;border-bottom:none;border-radius:5px 5px 0 0;margin-left:-1px');
+      div(pen, '', 'position:absolute;left:-4px;bottom:-4px;width:22px;height:25px;background:#e8423f;border:4px solid #0e1430;border-radius:3px');
+      op(pen, 0, false);
+      op(pen, t0);
+      op(pen, T(18, 0), false);
+      tl.set(pen, { rotation: -27 }, 0);
+      const [x0, y0] = P(px[0]);
+      tl.fromTo(jg.el, { x: 800, y: BANCO }, { x: x0 + 110, y: 1200, duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
+      salto(jg, t0, 120, ta - t0);
+      tl.fromTo(pen, { x: 760, y: 1100 }, { x: x0, y: y0, duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
+      px.forEach((q, i) => {
+        const t = ta + ((tb - ta) * i) / px.length;
+        const [x, y] = P(q);
+        const d = pix(sn, 'Idle', [[q[0], q[1], 1, 1, TINTA]], { borda: false });
+        op(d, 0, false);
+        op(d, t);
+        tl.to(pen, { x, y, duration: 0.05, ease: 'none' }, t - 0.05);
+        tl.to(jg.el, { x: x + 110, duration: 0.05, ease: 'none' }, t - 0.05);
+      });
+      tl.to(pen, { x: P(px.at(-1))[0] + 80, y: 1030, rotation: -14, duration: 0.3, ease: 'power2.out' }, tb);
+      tl.to(jg.el, { x: P(px.at(-1))[0] + 130, duration: 0.3, ease: 'power2.out' }, tb);
+      salto(jg, T(17, 13), 50, 0.3);
+    }
+    // 19 · o timer: o Psyduck aperta a câmera (2: a luz pisca, a telinha volta) e corre pra fora (3, linha 4); os bips do
+    //      3 (4) e do 2 (8) acordam todo mundo, que corre pro lugar da foto: [Squirtle, Pikachu] Magikarp [Ditto], o
+    //      Jigglypuff no colo do Snorlax (que segue dormindo, de bigode) e o Psyduck sobe no banco (12)
+    const timer = (x, y, n, t, t1) => {
+      const b = div(cam, 'timer');
       b.textContent = n;
       tl.set(b, { x, y }, 0);
       carimbo(b, t, 1.8);
       op(b, t1, false);
     };
-    const luz = $('camera').querySelector('.luz');
     {
-      const t0 = T(20, 0);
-      const t2 = T(20, 8);
-      const t1 = T(20, 12);
-      corta('#vest', t0);
-      tl.set(jg.el, { x: 560, y: BANCO + 100 }, t0);
-      tl.set(jg.corpo, { scale: 1 }, t0);
-      // o bigode que ele riscou (o Snorlax está parado no quadro 0 desde a canção)
-      const big = pix(sn, 'Idle', BIGODE, { borda: false });
-      op(big, 0, false);
-      op(big, t0);
-      tl.set(raivaV, { x: 50, y: -260 }, t0);
+      const t0 = T(19, 0);
+      const t2 = T(19, 8);
+      plano(t0);
+      tl.set(jg.el, { x: 800, y: BANCO }, t0);
+      op(canetaV, t0);
       zzz(t0 + 0.1);
-      for (const [, , , zx, zy] of DORMEM) zzz(t0 + 0.1 + (zx % 3) * 0.1, 0, zx, zy, vest, 0.7);
-      anim(tl, ps, 'Charge', 4, t0, T(20, 2), { vel: 0.8 });
-      tl.to(ps.corpo, { keyframes: { rotation: [-8, 8, 0] }, duration: T(20, 2) - t0, ease: 'sine.inOut' }, t0);
-      quadro(tl, ps, 'Idle', 6, 0, T(20, 2));
-      tl.to(ps.corpo, { keyframes: { x: [-40, 0] }, duration: 0.2, ease: 'power2.out' }, T(20, 2));
-      for (const t of [T(20, 2), t2, t1]) {
+      for (const [, , , zx, zy] of DORMEM) zzz(t0 + 0.1 + (zx % 3) * 0.1, 0, zx, zy, 0.7);
+      quadro(tl, ps, 'Idle', 6, 0, t0);
+      tl.to(ps.corpo, { keyframes: { x: [-40, 0] }, duration: 0.2, ease: 'power2.out' }, T(19, 2));
+      for (const t of [T(19, 2), T(19, 4), t2]) {
         tl.set(luz, { backgroundColor: '#58c26b' }, t);
         tl.set(luz, { backgroundColor: '#2b3045' }, t + 0.2);
       }
-      tl.set(luz, { backgroundColor: '#58c26b' }, T(20, 14));
-      timer(vest, 540, 770, '3', T(20, 4), t2);
-      timer(vest, 540, 770, '2', t2, t1);
-      timer(vest, 540, 770, '1', t1, T(21, 0));
-      anim(tl, ps, 'Walk', 6, T(20, 4), FIM, { vel: 2.4 });
-      tl.fromTo(ps.el, { x: 990 }, { x: -250, duration: T(20, 10) - T(20, 4), ease: 'power1.in', immediateRender: false }, T(20, 4));
-      op(ps.el, T(20, 11), false);
-      // 2: acordam num pulo (o Jigglypuff desincha) e vão pro lugar da foto: [Squirtle, Pikachu] Magikarp [Ditto]
+      tela('t-off', T(19, 2), false);
+      timer(540, 770, '3', T(19, 4), t2);
+      timer(540, 770, '2', t2, T(20, 0));
+      anim(tl, ps, 'Walk', 6, T(19, 4), FIM, { vel: 2.4 });
+      tl.fromTo(ps.el, { x: 960 }, { x: -250, duration: T(19, 10) - T(19, 4), ease: 'power1.in', immediateRender: false }, T(19, 4));
+      op(ps.el, T(19, 11), false);
+      // o Psyduck aparece no banco, à esquerda (mais longe: escala 10), subindo por trás dele
+      op(ps2.el, T(19, 12));
+      anim(tl, ps2, 'Idle', 0, T(19, 12), FIM, { vel: 0.6 });
+      tl.fromTo(ps2.el, { y: BANCO + 200 }, { y: BANCO, duration: 0.25, ease: 'back.out(1.6)', immediateRender: false }, T(19, 12));
+      // 2: acordam num pulo (o Jigglypuff desincha) e vão pro lugar da foto
       tl.set(jg.spr, { filter: 'none' }, t2);
       op(raivaV, t2, false);
       tl.set(pk.spr, { filter: 'none' }, t2);
       DORMEM.forEach(([a], i) => tl.to(a.corpo, { rotation: 0, duration: 0.12, ease: 'power2.out' }, t2 + 0.02 * i));
-      for (const [a, x0, x1, h] of [[sq, 130, 280, 70], [pk, 380, 380, 90], [mk, 620, 560, 80]]) {
+      anim(tl, sq, 'Idle', 0, t2, FIM, { vel: 0.6 });
+      anim(tl, dq, 'Idle', 0, t2, FIM, { vel: 0.6 });
+      anim(tl, pk, 'Idle', 0, t2, FIM, { vel: 0.5 });
+      anim(tl, mk, 'Idle', 0, t2, FIM);
+      for (const [a, x0, x1, h] of [[sq, 220, 240, 70], [pk, 480, 340, 110], [mk, 600, 540, 80]]) {
         tl.fromTo(a.el, { x: x0 }, { x: x1, duration: 0.35, ease: 'power1.inOut', immediateRender: false }, t2 + 0.05);
         salto(a, t2 + 0.05, h, 0.35);
       }
-      tl.fromTo(dq.el, { x: 240, y: BANCO }, { x: 760, y: CHAO, duration: 0.45, ease: 'none', immediateRender: false }, t2 + 0.08);
-      tl.fromTo(dq.corpo, { y: 0 }, { keyframes: { y: [-260, 0] }, duration: 0.45, ease: 'power1.inOut', immediateRender: false }, t2 + 0.08);
-      tl.set(dq.el, { zIndex: 22 }, t2 + 0.3);
-      poeira(tl, vest, 760, CHAO, t2 + 0.53, { n: 6, r: 100, tam: 36 });
-      // 1: as poses
+      tl.set(dq.el, { scaleX: 1 }, t2);
+      tl.fromTo(dq.el, { x: 380 }, { x: 720, duration: 0.45, ease: 'none', immediateRender: false }, t2 + 0.08);
+      salto(dq, t2 + 0.08, 230, 0.45);
+      poeira(tl, cam, 720, CHAO, t2 + 0.53, { n: 6, r: 100, tam: 36 });
+      tl.fromTo(jg.el, { x: 800, y: BANCO }, { x: 540, y: BANCO + 70, duration: 0.4, ease: 'none', immediateRender: false }, t2 + 0.1);
+      salto(jg, t2 + 0.1, 140, 0.4);
+      anim(tl, jg, 'Idle', 0, t2, FIM, { vel: 0.6 });
+    }
+    // 20 · punch-in no capitão, já no lugar da foto: NÃO TÁ FALTANDO NINGUÉM, NÉ?
+    {
+      const t0 = T(20, 0);
+      const P = plano(t0, [540, 1320]);
+      const [x, y] = P(540, CHAO - 290);
+      fala(VEST, 'NÃO TÁ FALTANDO<br>NINGUÉM, NÉ?', t0 + 0.05, T(21, 0), x, y, 96);
+      tl.to(mk.corpo, { keyframes: { scaleY: [1.08, 1], scaleX: [0.95, 1] }, duration: 0.3, ease: 'power1.out' }, t0 + 0.05);
+    }
+    // 21 · todos se olham (linhas 1, 3 e 5, um pra cada lado), e juntos: NÃO! (8). O bip do 1 (12) e as poses: o
+    //      chifrinho do Pikachu no Squirtle, a medalha estufa
+    {
+      const t0 = T(21, 0);
+      const tN = T(21, 8);
+      const t1 = T(21, 12);
+      plano(t0);
+      const OLHA = [
+        // [ator, folha com os óculos (vira o corpo inteiro) ou não, começa olhando pra direita]
+        [sq, true, true], [pk, false, false], [mk, false, true], [dq, true, false], [jg, false, true], [ps2, false, false],
+      ];
+      OLHA.forEach(([a, vira, dir0]) => {
+        [1, 3, 5].forEach((l, k) => {
+          const direita = (k % 2 === 0) === dir0;
+          const t = T(21, l);
+          if (vira) {
+            quadro(tl, a, 'Idle', 2, 0, t);
+            tl.set(a.el, { scaleX: direita ? 1 : -1 }, t);
+          } else quadro(tl, a, 'Idle', direita ? 2 : 6, 0, t);
+        });
+        anim(tl, a, 'Idle', 0, tN, FIM, { vel: 0.6 });
+        if (vira) tl.set(a.el, { scaleX: 1 }, tN);
+        salto(a, tN, 50, 0.26);
+      });
+      fala(VEST, 'NÃO!', tN, T(22, 0), 540, 1010, 170);
+      timer(540, 640, '1', t1, T(22, 0));
+      tl.set(luz, { backgroundColor: '#58c26b' }, t1);
       quadro(tl, pk, 'Pose', 0, 1, t1);
-      // a mão fica atrás da cabeça do Squirtle (ele passa pra frente) e os dedos aparecem por cima
       const chV = chifre(pk, 6, 14, '#ffe14d', '#fff6a8');
       gsap.set(chV, { y: `-=${6 * pk.escala}` });
       tl.set(sq.el, { zIndex: 26 }, t1);
@@ -601,159 +888,10 @@
       tl.to(medV.d, { scale: 1.8, duration: 0.25, ease: 'back.out(2.5)' }, t1);
       for (const a of [sq, pk, mk, dq]) tl.fromTo(a.corpo, { scaleY: 0.85, scaleX: 1.1 }, { scaleY: 1, scaleX: 1, duration: 0.3, ease: 'elastic.out(1, 0.5)', immediateRender: false }, t1);
     }
-    // 24 · pós-créditos: o vestiário vazio, só o tripé. O Slowpoke entra DEVAGAR pela direita, para (linha 10) e olha
-    //      pra câmera; silêncio, só o grilo; na linha 13 ele inclina a cabeça
-    {
-      const t0 = T(24, 0);
-      const tP = T(24, 10);
-      corta('#vest', t0);
-      op([sn.el, mk.el, pk.el, sq.el, dq.el, jg.el, ps.el], t0, false);
-      tl.set(luz, { backgroundColor: '#e8423f' }, t0);
-      op(sp.el, t0);
-      anim(tl, sp, 'Walk', 6, t0, tP, { vel: 0.45 });
-      tl.fromTo(sp.el, { x: 1200 }, { x: 760, duration: tP - t0, ease: 'none', immediateRender: false }, t0);
-      anim(tl, sp, 'Idle', 0, tP, T(25, 0), { vel: 0.35 });
-      tl.to(sp.corpo, { keyframes: { rotation: [0, -7, -7] }, duration: 0.5, ease: 'sine.inOut' }, T(24, 13));
-    }
     // os óculos e a medalha seguem o quadro (depois de todas as animações)
     ocV.prende();
     ocD.prende();
     medV.prende();
-
-    // ====================================================================================================
-    // os closes (retrato ×16, a fala solta em cima, tarja NOME · POSIÇÃO)
-    // ====================================================================================================
-    function close(id, retrato, fala, nome, cargo, t0, t1, { zoom = true, tf = t0 + 0.05 } = {}) {
-      const c = $(id);
-      [-90, 870].forEach((x) => div(c, 'armario', `left:${x}px`));
-      const r = div(c, 'retrato');
-      r.innerHTML = `<img src="midia/${retrato}.png" alt="" />`;
-      let b = null;
-      if (fala) {
-        // a fala: texto solto, sem balão (contorno grosso e sombra), entra com um pop curto
-        b = div(c, 'dito');
-        b.innerHTML = fala;
-        op(b, 0, false);
-        op(b, tf);
-        tl.fromTo(b, { scale: 0.5 }, { scale: 1, duration: 0.18, ease: 'back.out(2.6)', immediateRender: false }, tf);
-      }
-      corta(`#${id}`, t0);
-      if (zoom) tl.fromTo(r, { scale: 1.06 }, { scale: 1, duration: t1 - t0, ease: 'sine.out', immediateRender: false }, t0);
-      if (nome) {
-        // nome comprido (JIGGLYPUFF) encolhe a tarja pra caber
-        const n = div(c, 'nome', nome.length > 8 ? 'left:70px' : '');
-        n.innerHTML = nome.length > 8 ? `<b style="font-size:66px">${nome}</b><span style="font-size:48px">${cargo}</span>` : `<b>${nome}</b><span>${cargo}</span>`;
-        tl.fromTo(n, { x: -800 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0 + 0.15);
-      }
-      return { c, r, b };
-    }
-    // 2 · CAPITÃO FALANDO! (o grito no 1) e o retrato treme
-    {
-      const t0 = T(2, 0);
-      const { r } = close('closeMk', '129-shouting', 'CAPITÃO<br>FALANDO!', 'MAGIKARP', 'CAPITÃO', t0, T(3, 0));
-      tl.to(r, { keyframes: { x: [14, -12, 9, -6, 3, 0] }, duration: 0.35, ease: 'none' }, t0);
-      salto({ corpo: r }, T(2, 8), 26, 0.25);
-    }
-    // 7 · OLHA EU! (o grito no 1) e o choquinho de empolgação (linha 8)
-    const RAIO = '<svg viewBox="0 0 14 22" width="140" height="220"><path d="M8 1 L2 12 L7 12 L5 21 L12 8 L7 8 L10 1 Z" fill="#ffe14d" stroke="#0e1430" stroke-width="1.4" stroke-linejoin="round"/></svg>';
-    {
-      const t0 = T(7, 0);
-      const { c, r } = close('closePk', '25-shouting', 'OLHA EU!', 'PIKACHU', 'ALA', t0, T(8, 0));
-      salto({ corpo: r }, t0, 30, 0.25);
-      const tZ = T(7, 8);
-      [[170, 660, -20], [930, 620, 18], [140, 1140, -30], [950, 1180, 26], [540, 540, 4]].forEach(([x, y, rot], i) => {
-        const z = div(c, 'raio');
-        z.innerHTML = RAIO;
-        tl.set(z, { x, y, rotation: rot }, 0);
-        for (let t = tZ + 0.03 * i; t < T(8, 0) - 0.05; t += 0.14) {
-          op(z, t);
-          op(z, t + 0.08, false);
-        }
-      });
-      tl.to(r, { keyframes: { filter: ['brightness(1.7)', 'brightness(1)', 'brightness(1.8)', 'brightness(1)', 'brightness(2)', 'brightness(1.2)'] }, duration: T(8, 0) - tZ, ease: 'none' }, tZ);
-      tl.to(r, { keyframes: { x: [10, -10, 8, -8, 10, -6, 0] }, duration: T(8, 0) - tZ, ease: 'none' }, tZ);
-    }
-    // 10 · o close dos óculos: o Squirtle abaixa os óculos DEVAGAR (um pixel do retrato por vez, da linha 2 à 14) e
-    //      olha por cima da armação; o brilho corre na lente no 1
-    {
-      const t0 = T(10, 0);
-      const { r } = close('closeSq', '7-determined', null, 'SQUIRTLE', 'ALA', t0, T(11, 0));
-      const oc = desenho(r, OC_RETRATO, 16, 2);
-      const brilho = div(r, 'brilho', 'z-index:4');
-      gsap.set(brilho, { x: 300, y: 220 });
-      tl.fromTo(brilho, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.6, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, t0 + 0.1);
-      tl.to(brilho, { opacity: 0, duration: 0.15 }, t0 + 0.4);
-      for (let k = 1; k <= 7; k++) tl.set(oc, { y: k * 16 }, T(10, 2 + 2 * (k - 1)) + 0.12);
-    }
-    // 14 · EU TAMBÉM!: o retrato é o do Squirtle, igualzinho, de óculos abaixados (o Ditto copiou tudo); só a tarja e o
-    //      grito entregam. O brilho corre na lente no 1 e ele estufa na linha 8
-    {
-      const t0 = T(14, 0);
-      const { r } = close('closeDt', '7-determined', 'EU TAMBÉM!', 'DITTO', 'RESERVA', t0, T(15, 0));
-      gsap.set(desenho(r, OC_RETRATO, 16, 2), { y: 7 * 16 });
-      const brilho = div(r, 'brilho', 'z-index:4');
-      gsap.set(brilho, { x: 300, y: 330 });
-      tl.fromTo(brilho, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.6, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, t0 + 0.1);
-      tl.to(brilho, { opacity: 0, duration: 0.15 }, t0 + 0.4);
-      salto({ corpo: r }, T(14, 8), 30, 0.26);
-      tl.to(r, { keyframes: { scaleY: [0.92, 1.05, 1] }, duration: 0.4, ease: 'power1.out' }, T(14, 8));
-    }
-    // 16 · DEIXA QUE EU ANIMO!: o Jigglypuff com o olho brilhando; as notinhas pulam em volta (linha 8)
-    {
-      const t0 = T(16, 0);
-      const { c, r } = close('closeJg', '39-inspired', 'DEIXA QUE<br>EU ANIMO!', 'JIGGLYPUFF', 'RESERVA', t0, T(17, 0));
-      salto({ corpo: r }, t0, 24, 0.24);
-      [[150, 700, '#ff9ad5'], [880, 650, '#ffcb05'], [130, 1120, '#ffcb05'], [900, 1100, '#ff9ad5']].forEach(([x, y, cor], i) => {
-        const n = nota(c, 12, cor);
-        const t = T(16, 8) + 0.08 * i;
-        tl.set(n, { x, y, opacity: 0 }, 0);
-        tl.fromTo(n, { opacity: 1, y }, { keyframes: { y: [y - 50, y] }, duration: 0.5, ease: 'power1.inOut', immediateRender: false }, t);
-        tl.to(n, { keyframes: { y: [y - 40, y] }, duration: 0.5, ease: 'power1.inOut' }, t + 0.5);
-      });
-    }
-    // 18 · o bigode: o Snorlax dormindo de perto; o Jigglypuff, bravo, entra pela direita e RISCA o bigodinho a caneta,
-    //      pixel por pixel (linhas 2 a 12), de dentro pra fora; na 13 ele se afasta satisfeito. No retrato (40×40): os
-    //      olhos fechados na linha 20, a boca da 24 à 26; o bigode nas linhas 21 a 23, com as pontas viradas pra cima
-    {
-      const t0 = T(18, 0);
-      const { c, r } = close('closeSn2', '143', null, null, null, t0, T(19, 0), { zoom: false });
-      tl.to(r, { keyframes: { scaleY: [1.02, 1, 1.02, 1] }, duration: 2, ease: 'sine.inOut' }, t0);
-      const PRETO_C = '#07070f';
-      // de dentro pra fora: a metade esquerda (do meio até a ponta) e depois a direita
-      const esq = [[25, 23], [24, 23], [24, 22], [23, 23], [23, 22], [22, 23], [22, 22], [21, 23], [21, 22], [20, 23], [19, 23], [18, 23], [17, 22], [16, 21]];
-      const dir = esq.map(([x, y]) => [50 - x, y]).slice(1);
-      const px = [...esq, ...dir];
-      const ta = T(18, 2);
-      const tb = T(18, 12);
-      const pen = div(c, '', 'position:absolute;left:0;top:0;z-index:18;width:44px;height:400px;margin:30px 0 0 -22px;box-sizing:border-box;background:#2b2f45;border:8px solid #0e1430;border-radius:10px 10px 6px 6px;transform-origin:50% -30px');
-      div(pen, '', 'position:absolute;left:4px;top:-30px;width:20px;height:30px;background:#07070f;border:6px solid #0e1430;border-bottom:none;border-radius:10px 10px 0 0;margin-left:-2px');
-      div(pen, '', 'position:absolute;left:-8px;bottom:-8px;width:44px;height:50px;background:#e8423f;border:8px solid #0e1430;border-radius:6px');
-      const j = ator(c, 39, { escala: 16, z: 16, x: 1250, y: 1480, sombra: false });
-      quadro(tl, j, 'Idle', 0, 0, 0);
-      tl.set(j.spr, { filter: BRAVO }, 0);
-      const rv = raiva(j.corpo, 12);
-      gsap.set(rv, { x: 60, y: -420 });
-      // o pixel (x, y) do retrato no quadro: o retrato começa em (220, 594) e cada pixel tem 16 px
-      const P = ([x, y]) => [220 + 16 * x + 8, 594 + 16 * y + 8];
-      tl.set(pen, { x: 1300, y: 900, rotation: -27, opacity: 1 }, 0);
-      tl.fromTo(j.el, { x: 1250 }, { x: P(px[0])[0] + 100, duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
-      tl.fromTo(pen, { x: 1300 }, { x: P(px[0])[0], y: P(px[0])[1], duration: ta - t0, ease: 'power2.out', immediateRender: false }, t0);
-      px.forEach((q, i) => {
-        const t = ta + ((tb - ta) * i) / px.length;
-        const [x, y] = P(q);
-        const d = desenho(r, [[q[0], q[1], 1, 1, PRETO_C]], 16, 3);
-        op(d, 0, false);
-        op(d, t);
-        tl.to(pen, { x, y, duration: 0.05, ease: 'none' }, t - 0.05);
-        tl.to(j.el, { x: x + 100, duration: 0.05, ease: 'none' }, t - 0.05);
-      });
-      tl.to(pen, { x: P(px.at(-1))[0] + 160, y: 860, rotation: -14, duration: 0.3, ease: 'power2.out' }, tb);
-      tl.to(j.el, { x: P(px.at(-1))[0] + 120, duration: 0.3, ease: 'power2.out' }, tb);
-      salto(j, T(18, 13), 50, 0.3);
-    }
-    // 25 · …JÁ TIRARAM? (a fala e o grito lento na linha 2, depois de um silêncio); a plateia explode na linha 6, ele não
-    //      muda a cara, e o vídeo acaba num corte seco no fim do compasso, no meio da risada
-    close('closeSp', '79', '…JÁ<br>TIRARAM?', 'SLOWPOKE', 'PIVÔ', T(25, 0), T(26, 0), { tf: T(25, 2) });
 
     // ====================================================================================================
     // as fotos: cada clique (no 1 do compasso) é um flash e uma polaroide HORIZONTAL que cai na pilha da mesa
@@ -802,8 +940,20 @@
       gsap.set(m.d, { scale: k });
       return m;
     };
+    // os óculos parados no Squirtle (`dy` px do quadro: 3 = abaixados), de frente ou de lado (Idle 2, quadro 0)
+    const A7 = SPR['7'].anims.Idle;
+    const oculosFoto = (a, dy = 3) => gsap.set(desenho(a.corpo, OC_FRENTE, a.escala), { x: (12 - A7.w / 2) * a.escala, y: (3 + dy - A7.pe * A7.h) * a.escala });
+    const oculosLado = (a, dy = 3) => gsap.set(desenho(a.corpo, OC_LADO, a.escala), { x: (15 - A7.w / 2) * a.escala, y: (3 + dy - A7.pe * A7.h) * a.escala });
+    // um "z" parado na foto
+    const zFoto = (f, x, y, tam = 48) => {
+      const z = div(f, 'zz', `opacity:1;font-size:${tam}px`);
+      z.textContent = 'z';
+      gsap.set(z, { x, y });
+      return z;
+    };
+    const gotas = (f, pts) => pts.forEach(([x, y]) => gsap.set(div(f, 'gota', 'opacity:1'), { x, y }));
 
-    // 3 · FOTO 1: o Magikarp grudado na lente, só a medalha (as barbatanas escapam em volta)
+    // 5 · FOTO 1: o Magikarp grudado na lente, só a medalha (as barbatanas escapam em volta)
     {
       const p = polaroide('FOTO 1', { rot: -3, dx: -10, dy: 10 });
       fundoFoto(p.f);
@@ -812,33 +962,23 @@
       med.innerHTML = '<div class="fita" style="left:-90px;top:-330px;width:180px;height:240px"></div><div class="disco" style="left:-230px;top:-170px;width:460px;height:460px;border-width:20px"></div>'
         + '<div style="position:absolute;left:-130px;top:-90px;width:56px;height:56px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)"></div>';
       gsap.set(med, { x: 450, y: 260 });
-      cai(p, T(3, 0));
+      cai(p, T(5, 0));
     }
-    // 5 · FOTO 2: um Snorlax enorme dormindo e o Magikarp no ar, do susto
+    // 8 · FOTO 2: o choquinho queimou o filme: o Pikachu em cima do Magikarp, tostados, borda queimada, fumaça
     {
       const p = polaroide('FOTO 2', { rot: 4, dx: 12, dy: -6 });
       fundoFoto(p.f);
-      fa(p.f, 143, 470, 720, 15, 3, 'Idle', 0, 0);
-      const z = div(p.f, 'zz', 'opacity:1;font-size:72px');
-      gsap.set(z, { x: 650, y: 40 });
-      z.textContent = 'Z';
-      const m = fa(p.f, 129, 270, 420, 9, 6, 'Idle', 2, 0);
-      medalhaFoto(m, 1);
-      gsap.set(m.el, { rotation: -12 });
-      // os risquinhos do pulo
-      for (const [x, y, w] of [[160, 440, 70], [180, 470, 50]]) div(p.f, 'fp', `left:${x}px;top:${y}px;width:${w}px;height:10px;background:#f8f8f0;box-shadow:0 0 0 5px #0e1430;z-index:7`);
-      cai(p, T(5, 0));
-    }
-    // 8 · FOTO 3: o choquinho queimou o filme: o Pikachu tostado na frente de tudo, borda queimada, fumaça
-    {
-      const p = polaroide('FOTO 3', { rot: -5, dx: -6, dy: 14 });
-      fundoFoto(p.f);
       const g = div(p.f, 'fp', `width:${FW}px;height:${FH}px;filter:sepia(1) saturate(1.8) brightness(0.55) contrast(1.6)`);
       fundoFoto(g, { banco: 380 });
-      fa(g, 143, 450, 404, 9, 2, 'Idle', 0, 0);
-      const m = fa(g, 129, 640, 560, 9, 4, 'Idle', 0, 0);
+      fa(g, 143, 250, 404, 9, 2, 'Idle', 0, 0);
+      const m = fa(g, 129, 480, 640, 12, 4, 'Idle', 0, 0);
       medalhaFoto(m, 1);
-      fa(g, 25, 320, 690, 16, 6, 'Pose', 0, 1);
+      fa(g, 25, 480, 345, 12, 6, 'Pose', 0, 1);
+      for (const [x, y, r] of [[300, 120, -20], [660, 110, 18], [300, 330, -30], [660, 340, 26]]) {
+        const z = div(g, 'raio', 'opacity:1');
+        z.innerHTML = RAIO;
+        gsap.set(z, { x, y, rotation: r });
+      }
       div(p.f, 'queima');
       div(p.pl, 'fp', 'left:auto;right:-8px;top:-8px;width:190px;height:170px;background:#1a0e06;clip-path:polygon(0 0,100% 0,100% 100%,80% 72%,62% 88%,50% 55%,30% 62%,22% 30%,6% 22%);z-index:70');
       const t0 = T(8, 0);
@@ -850,146 +990,140 @@
         tl.fromTo(f, { opacity: 0.9, scale: 0.5 }, { opacity: 0, scale: 1.8, y: y - 380, x: x + 40, duration: 1.4, ease: 'sine.out', immediateRender: false }, t);
       });
     }
-    // 12 · FOTO 4: o Pikachu encharcado (o jato pego no ar) e o Squirtle tranquilo, de óculos no lugar
+    // 10 · FOTO 3: o Pikachu encharcado em cima do Magikarp (a água escorrendo) e o Squirtle tranquilo, abaixando os óculos
+    {
+      const p = polaroide('FOTO 3', { rot: -4, dx: -6, dy: 14 });
+      fundoFoto(p.f, { banco: 380 });
+      fa(p.f, 143, 330, 404, 9, 2, 'Idle', 0, 0);
+      zFoto(p.f, 420, 90);
+      const m = fa(p.f, 129, 640, 575, 10, 5, 'Idle', 0, 0);
+      medalhaFoto(m, 1);
+      const pq = fa(p.f, 25, 640, 345, 10, 6, 'Hurt', 0, 0);
+      pq.spr.style.filter = MOLHADO;
+      gotas(p.f, [[560, 150], [720, 140], [600, 110], [700, 230], [570, 260], [610, 380], [690, 420], [650, 470]]);
+      div(p.f, 'fp', 'left:560px;top:560px;width:180px;height:26px;border-radius:50%;background:#7cc8ff;box-shadow:inset 0 -6px 0 #3a7bd5, 0 0 0 5px #0e1430;z-index:4');
+      const q = fa(p.f, 7, 200, 575, 12, 6, 'Idle', 0, 0);
+      oculosFoto(q, 2);
+      cai(p, T(10, 0));
+    }
+    // 14 · FOTO 4: dois Squirtles IGUAIS cara a cara, bravos, de óculos abaixados; o Pikachu molhado e o Magikarp pulando
+    //      pra briga, poeira; atrás, o Snorlax dormindo
     {
       const p = polaroide('FOTO 4', { rot: 3, dx: 8, dy: 0 });
       fundoFoto(p.f, { banco: 380 });
-      const s = fa(p.f, 143, 450, 404, 9, 2, 'Idle', 0, 0);
-      pix(s, 'Idle', [[13, 9, 1, 1, '#f8f8f0']], { borda: false });
-      const m = fa(p.f, 129, 600, 570, 9, 5, 'Idle', 0, 0);
-      medalhaFoto(m, 1);
-      const pq = fa(p.f, 25, 330, 575, 9, 5, 'Hurt', 6, 0);
-      pq.spr.style.filter = 'saturate(0.55) brightness(0.85) hue-rotate(-12deg)';
-      const q = fa(p.f, 7, 150, 570, 9, 6, 'Idle', 0, 0);
-      const oq = desenho(q.corpo, OC_FRENTE, 9);
-      const A7 = SPR['7'].anims.Idle;
-      gsap.set(oq, { x: (12 - A7.w / 2) * 9, y: (3 - A7.pe * A7.h) * 9 });
-      // o jato congelado no ar, da boca do Squirtle até a cabeça do Pikachu, e as gotas
-      Array.from({ length: 8 }, (_, i) => {
-        const u = i / 7;
-        const j = div(p.f, 'jato', 'opacity:1');
-        gsap.set(j, { x: 190 + 130 * u - 10, y: 470 - 170 * u + 100 * u * u - 10 });
-        return j;
-      });
-      for (const [x, y] of [[300, 330], [360, 340], [330, 300], [390, 380], [270, 380], [345, 450], [300, 470]]) {
-        const g = div(p.f, 'gota', 'opacity:1');
-        gsap.set(g, { x, y });
-      }
-      div(p.f, 'fp', 'left:250px;top:560px;width:170px;height:26px;border-radius:50%;background:#7cc8ff;box-shadow:inset 0 -6px 0 #3a7bd5, 0 0 0 5px #0e1430;z-index:4');
-      cai(p, T(12, 0));
-    }
-    // os óculos parados no Squirtle (`dy` px do quadro: 3 = abaixados)
-    const A7 = SPR['7'].anims.Idle;
-    const oculosFoto = (a, dy = 3) => gsap.set(desenho(a.corpo, OC_FRENTE, a.escala), { x: (12 - A7.w / 2) * a.escala, y: (3 + dy - A7.pe * A7.h) * a.escala });
-    // um "z" parado na foto
-    const zFoto = (f, x, y, tam = 48) => {
-      const z = div(f, 'zz', `opacity:1;font-size:${tam}px`);
-      z.textContent = 'z';
-      gsap.set(z, { x, y });
-      return z;
-    };
-    // 15 · FOTO 5: dois Squirtles IGUAIS de perto, lado a lado, na mesma pose e de óculos abaixados (qual é o Ditto?).
-    //      Atrás, o Snorlax dormindo e o Magikarp
-    {
-      const p = polaroide('FOTO 5', { rot: -4, dx: -8, dy: 8 });
-      fundoFoto(p.f, { banco: 380 });
       fa(p.f, 143, 450, 404, 9, 2, 'Idle', 0, 0);
       zFoto(p.f, 560, 90);
-      const m = fa(p.f, 129, 800, 570, 9, 4, 'Idle', 0, 0);
-      medalhaFoto(m, 1);
-      oculosFoto(fa(p.f, 7, 290, 585, 16, 6, 'Idle', 0, 0));
-      oculosFoto(fa(p.f, 7, 590, 585, 16, 6, 'Idle', 0, 0));
-      cai(p, T(15, 0));
+      const pq = fa(p.f, 25, 700, 470, 9, 3, 'Hurt', 6, 1);
+      pq.spr.style.filter = MOLHADO;
+      gsap.set(pq.el, { rotation: -10 });
+      const m = fa(p.f, 129, 790, 520, 9, 3, 'Idle', 6, 0);
+      gsap.set(m.el, { rotation: 14 });
+      for (const [x, y, d] of [[300, 585, 110], [440, 595, 130], [580, 585, 110]]) div(p.f, 'nuvem', `opacity:1;z-index:4;width:${d}px;height:${d * 0.55}px;left:${x - d / 2}px;top:${y - d * 0.3}px`);
+      const a = fa(p.f, 7, 330, 580, 13, 6, 'Idle', 2, 0);
+      oculosLado(a);
+      const b = fa(p.f, 7, 550, 580, 13, 6, 'Idle', 2, 0);
+      oculosLado(b);
+      gsap.set(b.el, { scaleX: -1 });
+      gsap.set(raiva(a.corpo, 6), { x: -60, y: -300 });
+      gsap.set(raiva(b.corpo, 6), { x: -60, y: -300 });
+      cai(p, T(14, 0));
     }
-    // 19 · FOTO 6: todo mundo dormindo (tombados, os "z"); o Snorlax de bigode, e o Jigglypuff bravo no banco, inchado e
+    // 18 · FOTO 5: todo mundo dormindo (tombados, os "z"); o Snorlax de bigode, e o Jigglypuff bravo no banco, inchado e
     //      vermelho, com a caneta na mão
     {
-      const p = polaroide('FOTO 6', { rot: 5, dx: 10, dy: -4 });
+      const p = polaroide('FOTO 5', { rot: 5, dx: 10, dy: -4 });
       fundoFoto(p.f, { banco: 380 });
-      const s6 = fa(p.f, 143, 420, 404, 9, 2, 'Idle', 0, 0);
+      const s6 = fa(p.f, 143, 450, 404, 9, 2, 'Idle', 0, 0);
       pix(s6, 'Idle', BIGODE, { borda: false });
-      zFoto(p.f, 520, 90);
-      const j6 = fa(p.f, 39, 650, 404, 9, 3, 'Idle', 0, 0);
+      zFoto(p.f, 550, 90);
+      const j6 = fa(p.f, 39, 680, 404, 9, 3, 'Idle', 0, 0);
       j6.spr.style.filter = BRAVO;
       gsap.set(j6.corpo, { scale: 1.2 });
       pix(j6, 'Idle', CANETA);
       gsap.set(raiva(j6.corpo, 7), { x: 40, y: -240 });
-      const q = fa(p.f, 7, 110, 575, 9, 6, 'Idle', 0, 0);
-      oculosFoto(q);
-      const d = fa(p.f, 7, 240, 575, 9, 6, 'Idle', 0, 0);
-      oculosFoto(d);
-      const pq = fa(p.f, 25, 420, 575, 9, 5, 'Idle', 0, 0);
-      pq.spr.style.filter = 'brightness(0.85) saturate(0.85)';
-      const m = fa(p.f, 129, 700, 578, 9, 5, 'Idle', 0, 0);
+      const q = fa(p.f, 7, 170, 575, 9, 6, 'Idle', 2, 0);
+      oculosLado(q);
+      const d = fa(p.f, 7, 310, 575, 9, 6, 'Idle', 2, 0);
+      oculosLado(d);
+      gsap.set(d.el, { scaleX: -1 });
+      const pq = fa(p.f, 25, 410, 575, 9, 5, 'Idle', 0, 0);
+      pq.spr.style.filter = MOLHADO;
+      const m = fa(p.f, 129, 520, 578, 9, 5, 'Idle', 0, 0);
       medalhaFoto(m, 1);
-      for (const [a, r] of [[q, -14], [d, 16], [pq, 18], [m, -78]]) gsap.set(a.corpo, { rotation: r });
-      for (const [x, y] of [[120, 330], [270, 300], [470, 240], [610, 460]]) zFoto(p.f, x, y, 40);
-      cai(p, T(19, 0));
+      for (const [a, r] of [[q, -14], [d, 16], [pq, 18], [m, 78]]) gsap.set(a.corpo, { rotation: r });
+      for (const [x, y] of [[150, 330], [300, 300], [420, 240], [560, 460]]) zFoto(p.f, x, y, 40);
+      cai(p, T(18, 0));
     }
-    // 21–22½ · A FOTO FINAL (3 s; clique no 1, o "tan-tan-TAAN", "awww" e aplauso): uma foto de time de verdade, simétrica,
-    //         numa foto 3:2, todos na escala 8 menos o Snorlax (11, o grandão do meio). Fileira de trás, no banco: o Snorlax
-    //         no centro dormindo (bigodinho rabiscado) com o Jigglypuff no colo, de caneta na mão; o Psyduck em pé no banco
-    //         à esquerda, o técnico segurando a cabeça; à direita, a porta, com o Slowpoke BORRADO entrando. Fileira da
-    //         frente, agachada: o Magikarp NO CENTRO, capitão, com a medalha estufada; à esquerda o Squirtle de óculos
-    //         abaixados e o Pikachu fazendo chifrinho nele; à direita o Ditto, um Squirtle idêntico
+    // 22–23½ · A FOTO FINAL (3 s; clique no 1, o "tan-tan-TAAN", "awww" e aplauso): uma foto de time de verdade, simétrica,
+    //         numa foto 3:2, todos na escala 8 menos o Snorlax (11, o grandão do meio). Atrás, no banco: o Snorlax no
+    //         centro dormindo (bigodinho rabiscado) com o Jigglypuff no colo, de caneta na mão; o Psyduck em pé no banco à
+    //         esquerda, segurando a cabeça; à direita, a porta, com o Slowpoke BORRADO entrando. Na frente, agachados: o
+    //         Magikarp NO CENTRO com a medalha estufada; à esquerda o Squirtle de óculos abaixados e o Pikachu fazendo
+    //         chifrinho nele; à direita, colado no capitão, o Ditto (um Squirtle idêntico)
     {
-      const t0 = T(21, 0);
+      const t0 = T(22, 0);
       const p = polaroide('PALLET FC', { rot: -1.5 });
       const f = p.f;
       fundoFoto(f, { banco: 362, porta: true });
       const E = 8;
       const BACK = 372;
       const FRENTE = 572;
-      // o Slowpoke borrado na porta (rastro de três cópias apagando)
       [[48, 0.14], [32, 0.24], [16, 0.4]].forEach(([dx, o]) => {
         const r = fa(f, 79, 720 + dx, BACK, E, 1, 'Walk', 6, 1);
         gsap.set(r.el, { opacity: o, filter: 'blur(4px)' });
       });
       const sp = fa(f, 79, 720, BACK, E, 1, 'Walk', 6, 1);
       gsap.set(sp.el, { filter: 'blur(2.5px)' });
-      // atrás: o Psyduck em pé no banco e o Snorlax com o Jigglypuff no colo
       fa(f, 54, 220, BACK, E, 3, 'Charge', 0, 5);
       const snf = fa(f, 143, 450, BACK + 6, 11, 2, 'Idle', 0, 0);
       pix(snf, 'Idle', BIGODE, { borda: false });
       const jgf = fa(f, 39, 450, BACK + 4, E, 3, 'Idle', 0, 0);
       pix(jgf, 'Idle', CANETA);
       zFoto(f, 600, 40, 56);
-      // a frente: [Squirtle, Pikachu] Magikarp [Ditto]
       oculosFoto(fa(f, 7, 200, FRENTE, E, 9, 'Idle', 0, 0));
       const pkf = fa(f, 25, 282, FRENTE, E, 7, 'Pose', 0, 1);
       chifre(pkf, 6, 14, '#ffe14d', '#fff6a8');
       const mkf = fa(f, 129, 450, FRENTE, E, 10, 'Idle', 0, 0);
-      // a medalha estufada pra lente: sobe do pescoço pro peito e fica 1,8×
       const mdf = medalhaFoto(mkf, 1.8);
       gsap.set(mdf.m, { y: `-=${11 * E}` });
       const brilho = div(mkf.corpo, 'brilho', 'opacity:1;width:44px;height:44px;margin:-22px 0 0 -22px');
       gsap.set(brilho, { x: -10, y: -36 });
       tl.fromTo(brilho, { scale: 0.3, rotation: 0 }, { keyframes: { scale: [1.3, 0.6, 1.1, 0.8] }, rotation: 90, duration: 2.4, ease: 'sine.inOut', immediateRender: false }, t0 + 0.4);
-      oculosFoto(fa(f, 7, 670, FRENTE, E, 9, 'Idle', 0, 0));
+      oculosFoto(fa(f, 7, 612, FRENTE, E, 8, 'Idle', 0, 0));
       cai(p, t0);
-      tl.fromTo(p.pl, { scale: 1 }, { scale: 1.04, duration: T(22, 8) - t0 - 0.3, ease: 'sine.inOut', immediateRender: false }, t0 + 0.3);
+      tl.fromTo(p.pl, { scale: 1 }, { scale: 1.04, duration: T(23, 8) - t0 - 0.3, ease: 'sine.inOut', immediateRender: false }, t0 + 0.3);
     }
 
-    // 22½–24 · os créditos (3 s): o logo do Soccermon com a piscada SOC-CER-MON (linhas 8, 11 e 14 do 22), "Temos que
-    //          chutar!", soccermon.com e "Música original: Soccermon"
+    // 23½–27 · A TELA FINAL é a última coisa, e a tag acontece nela: o logo com a piscada SOC-CER-MON (linhas 8, 11 e 14
+    //          do 23), "Temos que chutar!", soccermon.com, o selo e "Música original: Soccermon". Com ela no ar, o
+    //          Slowpoke entra DEVAGAR pela direita (24, linha 8), para no meio, embaixo do site (25, linha 8), silêncio e
+    //          o grilo; inclina a cabeça (25, 13) e: …JÁ TIRARAM? (26, linha 2). A plateia explode e o vídeo acaba aí
     {
-      const t0 = T(22, 8);
-      telaFinal($('fim'));
+      const t0 = T(23, 8);
+      const fim = $('fim');
+      telaFinal(fim);
       corta('#fim', t0);
       flash(tl, t0, 0.6, 0.3);
-      tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 25, duration: T(24, 0) - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 40, duration: 54 - t0, ease: 'none', immediateRender: false }, t0);
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, t0);
-      piscada(tl, [T(22, 8), T(22, 11), T(22, 14)]);
-      tl.set('#tag', { opacity: 1 }, T(22, 14));
-      tl.fromTo('#tag', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(22, 14));
-      tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(22, 14));
+      piscada(tl, [T(23, 8), T(23, 11), T(23, 14)]);
+      tl.set('#tag', { opacity: 1 }, T(23, 14));
+      tl.fromTo('#tag', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(23, 14));
+      tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(23, 14));
+      const sp = ator($('fim-cena'), 79, { escala: 12, z: 30, x: 1250, y: 1470, sombra: true });
+      const tE = T(24, 8);
+      const tP = T(25, 8);
+      anim(tl, sp, 'Walk', 6, tE, tP, { vel: 0.45 });
+      tl.fromTo(sp.el, { x: 1250 }, { x: 540, duration: tP - tE, ease: 'none', immediateRender: false }, tE);
+      anim(tl, sp, 'Idle', 0, tP, 54, { vel: 0.35 });
+      tl.to(sp.corpo, { keyframes: { rotation: [0, -7, -7] }, duration: 0.5, ease: 'sine.inOut' }, T(25, 13));
+      fala(fim, '…JÁ<br>TIRARAM?', T(26, 2), 54, 540, 1160);
     }
 
     // 0 · a abertura abre o vídeo
     corta('#abertura', 0);
-    flash(tl, 0, 0.5, 0.2);
-    tl.set({}, {}, 52);
+    tl.set({}, {}, 54);
 
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
