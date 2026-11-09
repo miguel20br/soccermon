@@ -7,7 +7,36 @@ export const ultimate: typeof pt = {
     /** Na carteira (cabe no celular de 320). */
     pointsShort: 'Points',
     cards: 'Cards',
-    tabs: { home: 'Home', squad: 'Squad', club: 'Club', shop: 'Store', goals: 'Goals' },
+    tabs: { home: 'Home', play: 'Play', club: 'Club', shop: 'Store', goals: 'Goals' },
+    modes: {
+        soon: 'Coming soon',
+        battles: {
+            name: 'Trainer Battles',
+            line: 'Your team against AI clubs, at the level you choose.',
+            gives: 'Coins, pass and goals',
+        },
+        rivals: {
+            name: 'Rivals',
+            line: "Matches against other trainers' teams, climbing divisions.",
+            gives: 'Rewards per division',
+        },
+        elite: {
+            name: 'Elite Four',
+            line: 'The weekend tournament against the best teams.',
+            gives: 'Picks and rare cards',
+            cond: 'Qualify in Rivals',
+        },
+        draft: {
+            name: 'Draft',
+            line: 'Build a team on the spot, picking 1 of 5 per slot.',
+            gives: 'Packs per win',
+        },
+        sbc: {
+            name: 'Build Challenges',
+            line: 'Trade duplicate cards for rewards by building teams with a rule.',
+            gives: 'Packs and Picks',
+        },
+    },
     packs: {
         tear: 'Swipe sideways to tear it, or tap',
         mini: 'Mini Pack',
@@ -72,6 +101,7 @@ export const ultimate: typeof pt = {
         open: 'Choose',
         flip: 'Flip the card',
         flipAll: 'Flip all',
+        tapFlip: 'Tap a card to flip it',
         tapOne: 'Tap a card',
         keep: 'Keep {name} ({n})',
         rest: 'The others go back to the tall grass.',
@@ -166,9 +196,13 @@ export const ultimate: typeof pt = {
         resolve: 'Sort out',
         lastDay: 'Last day of the season: claim {n} rewards before the rollover',
         levelChip: '{level} · +{n}',
+        next: '{club} · {level} · win +{n}',
+        cards: '{n} card in the club|{n} cards in the club',
+        evosReady: '{n} evolution ready|{n} evolutions ready',
         change: 'Level',
     },
     club: {
+        squad: 'Squad',
         cards: 'Cards',
         pending: 'Unassigned',
         search: 'Search by name',

@@ -1,43 +1,23 @@
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { cupRival } from '../../engine/cup';
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { FORMATIONS } from '../../engine/formations';
-import { viewInstance } from '../../engine/instance';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
-import { clubColorHex } from '../../store/profile';
 import { chemistry } from '../../store/ultimate/chemistry';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
 import { eventAhead, objectiveById } from '../../store/ultimate/objectives';
+import { FICHAS, FIRST_STEPS, PASS_MARKS, STARTERS } from '../../store/ultimate/rules';
+import { lastDayPrizes } from '../../store/ultimate/season';
 import {
-    EVO_ACTIVE_MAX,
-    FICHAS,
-    FIRST_STEPS,
-    GYM_LEVEL,
-    GYMS,
-    LEVELS,
-    type Level,
-    PASS_MARKS,
-    STARTERS,
-} from '../../store/ultimate/rules';
-import { lastDayPrizes, seasonAt } from '../../store/ultimate/season';
-import {
-    canPlay,
-    gymReady,
-    homeTeam,
     lastPacks,
     momentGoal,
     nextPackIn,
     packsReady,
-    paidLevel,
     stackCount,
     teamAverage,
-    teamStrength,
     type UltimateLast,
-    ultimateRival,
-    ultimateSeed,
 } from '../../store/ultimate/ultimate';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
@@ -46,85 +26,33 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { beatTimes } from '../kit/beats';
 import { Beat, useCascade } from '../kit/Cascade';
-import { Sheet } from '../kit/Sheet';
 import { reduceMotionOn } from '../reduce-motion';
-import { simulateMatch } from '../sim-client';
 import { hms, useNow } from './clock';
 import { useReward } from './Goals';
 import { usePickName } from './PickMoment';
-import { Gyms } from './Season';
+import { useBattle } from './Play';
 
-export type UtTab = 'home' | 'squad' | 'club' | 'shop' | 'goals';
-
-/** O nível escolhido fica na sessão (é conveniência, não save). */
-let levelMem: Level | null = null;
+export type UtTab = 'home' | 'play' | 'club' | 'shop' | 'goals';
 
 /**
- * Início do Time Ultimate (ut-menus-e-pendentes.md, opção B): o hub do FC, um bloco por coisa com o estado dela
- * (Elenco, Loja, Metas, Evoluções, Temporada, Líderes; Pendentes só quando tem) e o JOGAR gordo embaixo. Voltando da
- * partida, o pós-jogo vem antes dos blocos.
+ * Início do Time Ultimate (retorno do Miguel, 09/11: "uns quadrados com JOGAR, CLUBE, LOJA, OBJETIVOS, de tamanhos e
+ * pesos diferentes"): o hub do FC em blocos. JOGAR é o maior e o único dourado (o próximo jogo e a meta da vez) e leva
+ * pra aba Jogar; em volta, Clube (o cartão do time), Loja (Meus pacotes) e Metas (a meta e o passe); o destaque largo
+ * embaixo. Pendentes em cima, só quando tem. Voltando da partida, o pós-jogo vem antes dos blocos.
  */
-export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPending: () => void }) {
+export function Home({
+    onTab,
+    onPending,
+    onSquad,
+}: {
+    onTab: (t: UtTab) => void;
+    onPending: () => void;
+    onSquad: () => void;
+}) {
     const { t, tn, d, lang } = useT();
     const now = useNow();
-    const u = useGame((s) => s.ultimate);
-    const profile = useGame((s) => s.profile);
-    const [level, setLevelState] = useState<Level>(() => levelMem ?? u.last?.level ?? 'normal');
-    const setLevel = (lv: Level) => {
-        levelMem = lv;
-        setLevelState(lv);
-    };
-    const [sheet, setSheet] = useState<'level' | 'gyms' | null>(null);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const home = useMemo(
-        () => homeTeam(u, profile.clubName || 'Pallet FC', clubColorHex(profile.clubColor)),
-        [u, profile.clubName, profile.clubColor],
-    );
-    const ready = canPlay(u);
-    const avg = ready ? teamAverage(home) : 0;
-    const strength = ready ? teamStrength(home) : 0;
-    const rivalOf = (lv: Level) => ultimateRival(u.salt, u.played, lv, strength);
-    const rival = ready ? rivalOf(level) : null;
-    /** O nível que cada escolha vale de verdade: sem rival à altura, paga como o que ele alcança. */
-    const paid = (lv: Level) => (ready ? paidLevel(lv, home, rivalOf(lv)) : lv);
-
-    /** Simula (a mesma seed e as ordens guardadas dão a mesma partida) e abre a quadra. */
-    const kick = async () => {
-        const s = useGame.getState();
-        const live = s.ultimate.live;
-        if (!live) return;
-        setBusy(true);
-        setError(null);
-        try {
-            const m = await simulateMatch(
-                live.home,
-                cupRival(live.rival, true),
-                `${ultimateSeed(s.ultimate.salt, live.n)}-stage-0`,
-                live.orders,
-            );
-            if (useGame.getState().screen !== 'ultimate') return;
-            s.setMatch(m);
-            s.go('ultimate-match');
-        } catch {
-            setError(t('ultimate.play.simError'));
-        } finally {
-            setBusy(false);
-        }
-    };
-    const start = () => {
-        if (!rival) return;
-        useGame.getState().ultimateStart({ n: u.played, level: paid(level), home, rival });
-        void kick();
-    };
-    /** Desafio de líder: o clube dele, no Difícil, com a regra conferida na hora. */
-    const challenge = (gym: string) => {
-        if (!gymReady(u, gym)) return;
-        setSheet(null);
-        const r = ultimateRival(u.salt, u.played, GYM_LEVEL, strength, gym);
-        useGame.getState().ultimateStart({ n: u.played, level: GYM_LEVEL, home, rival: r, gym });
-        void kick();
-    };
+    const name = usePickName();
+    const { u, home, ready, rival, level, paid } = useBattle();
 
     const last = u.last && !u.last.seen ? u.last : null;
     if (last) return <PostGame last={last} onGoals={() => onTab('goals')} onPacks={() => onTab('shop')} />;
@@ -132,6 +60,7 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
     const byUid = new Map(u.cards.map((c) => [c.uid, c]));
     const lineup = u.team.order.slice(0, STARTERS).flatMap((x) => byUid.get(x) ?? []);
     const roles = FORMATIONS[u.team.formation].slots;
+    const avg = ready ? teamAverage(home) : 0;
     const chem = ready
         ? Math.round(
               (chemistry(
@@ -144,19 +73,23 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                   100,
           )
         : 0;
-    const mini = packsReady(u, now);
     const packs = stackCount(u, now);
     const next = nextPackIn(u, now);
     const goal = momentGoal(u, now);
-    const evoOn = u.evos.find(evoReady);
-    const season = seasonAt(now);
+    const goalText =
+        goal?.kind === 'first'
+            ? d.ultimate.first.steps[FIRST_STEPS[goal.n]?.id ?? 'pack']
+            : goal
+              ? tn(`ultimate.goals.text.${goal.o.kind}`, goal.o.goal)
+              : null;
+    const evos = u.evos.filter(evoReady).length;
     const repeats = u.pending.filter((p) => p.kind === 'card').length;
     const prizes = u.pending.length - repeats;
     const lastDay = lastDayPrizes(now, u.pending);
+    const versus = u.live?.rival ?? rival;
 
     return (
         <div className="ut-home">
-            <Highlights onTab={onTab} />
             {u.pending.length > 0 && (
                 <button type="button" className="panel bc-surface bc-stripe ut-block ut-b-pending" onClick={onPending}>
                     <BlockHead icon="chest" title={`${t('ultimate.home.pending')} · ${u.pending.length}`} />
@@ -165,22 +98,50 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                     <span className="btn small confirm ut-b-cta">{t('ultimate.home.resolve')}</span>
                 </button>
             )}
-            <button type="button" className="panel bc-surface ut-block ut-b-squad" onClick={() => onTab('squad')}>
-                <BlockHead
-                    icon="team"
-                    title={t('ultimate.home.squad')}
-                    state={
-                        ready ? (
-                            // o cartão do time: a nota grande e a química (como o FC)
-                            <span className="ut-b-ovr">
-                                <b className="cb-num">{avg}</b>
-                                {t('ultimate.home.chem', { c: chem })}
-                            </span>
-                        ) : (
-                            tn('ultimate.home.squadNeed', STARTERS - lineup.length)
-                        )
-                    }
-                />
+            {/* o JOGAR: o maior bloco e o único dourado da tela; leva pra aba Jogar, com os modos */}
+            <button type="button" className="cb cb-gold ut-b-jogar" onClick={() => onTab('play')}>
+                <i className="cb-shine" aria-hidden />
+                <span className="ut-jogar-word">
+                    <HudIcon kind="play" />
+                    {t('ultimate.play.go')}
+                </span>
+                <small className="ut-jogar-mode">{t('ultimate.modes.battles.name')}</small>
+                {versus && (
+                    <span className="ut-jogar-team" aria-hidden>
+                        {versus.lineup.map((p) => (
+                            <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
+                        ))}
+                    </span>
+                )}
+                <small className="ut-jogar-next">
+                    {u.live
+                        ? `${t('ultimate.play.resume')} · ${clubName(u.live.rival.name, lang)}`
+                        : rival
+                          ? t('ultimate.home.next', {
+                                club: clubName(rival.name, lang),
+                                level: d.ultimate.play.levels[level],
+                                n: FICHAS[paid(level)].win,
+                            })
+                          : tn('ultimate.home.squadNeed', STARTERS - lineup.length)}
+                </small>
+                {goalText && (
+                    <small className="ut-jogar-goal">
+                        <HudIcon kind="flag" />
+                        {goalText}
+                    </small>
+                )}
+            </button>
+            <button type="button" className="panel bc-surface ut-block ut-b-club" onClick={onSquad}>
+                <BlockHead icon="team" title={d.ultimate.tabs.club} />
+                {ready ? (
+                    // o cartão do time: a nota grande e a química (como o FC)
+                    <span className="ut-b-ovr">
+                        <b className="cb-num">{avg}</b>
+                        <small>{t('ultimate.home.chem', { c: chem })}</small>
+                    </span>
+                ) : (
+                    <small>{tn('ultimate.home.squadNeed', STARTERS - lineup.length)}</small>
+                )}
                 <span className="ut-b-court">
                     {roles.map((role, i) => {
                         const p = lineup[i];
@@ -193,130 +154,40 @@ export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPendin
                         );
                     })}
                 </span>
+                <small>{tn('ultimate.home.cards', u.cards.length)}</small>
             </button>
-            <div className="ut-b-grid">
-                <button type="button" className="panel bc-surface ut-block ut-b-stack" onClick={() => onTab('shop')}>
-                    <BlockHead icon="bag" title={t('ultimate.stack.title')} count={packs} />
-                    {packs ? (
-                        <b className="ut-b-hot">
-                            {[
-                                mini && `${t('ultimate.stack.miniShort')} x${mini}`,
-                                u.bigPacks && `${t('ultimate.stack.bigShort')} x${u.bigPacks}`,
-                                u.picks.length && `${t('ultimate.pick.short')} x${u.picks.length}`,
-                            ]
-                                .filter(Boolean)
-                                .join(' · ')}
-                        </b>
-                    ) : (
-                        <b>{t('ultimate.home.packsNone')}</b>
-                    )}
-                    {next !== null && (
-                        <small className="ut-timer">
-                            <HudIcon kind="stopwatch" />
-                            {hms(next)}
-                        </small>
-                    )}
-                </button>
-                <button type="button" className="panel bc-surface ut-block" onClick={() => onTab('goals')}>
-                    <BlockHead icon="medal" title={t('ultimate.home.goals')} />
-                    {goal?.kind === 'first' ? (
-                        <>
-                            <b>{d.ultimate.first.steps[FIRST_STEPS[goal.n]?.id ?? 'pack']}</b>
-                            <BlockBar n={goal.n} of={goal.of} />
-                        </>
-                    ) : goal ? (
-                        <>
-                            <b>{tn(`ultimate.goals.text.${goal.o.kind}`, goal.o.goal)}</b>
-                            <BlockBar n={goal.n} of={goal.o.goal} />
-                        </>
-                    ) : (
-                        <small>{t('ultimate.home.goalsDone')}</small>
-                    )}
-                </button>
-                <button type="button" className="panel bc-surface ut-block" onClick={() => onTab('goals')}>
-                    <BlockHead icon="sprout" title={`${t('ultimate.home.evos')} ${u.evos.length}/${EVO_ACTIVE_MAX}`} />
-                    {evoOn ? (
-                        <b className="ut-b-hot">
-                            {t('ultimate.home.evoReady', {
-                                name: byUid.get(evoOn.uid) ? viewInstance(byUid.get(evoOn.uid)!).displayName : '',
-                            })}
-                        </b>
-                    ) : u.evos.length ? (
-                        <small>
-                            {u.evos
-                                .flatMap((e) => (byUid.get(e.uid) ? [viewInstance(byUid.get(e.uid)!).displayName] : []))
-                                .join(' · ')}
-                        </small>
-                    ) : (
-                        <small>{t('ultimate.home.evoNone')}</small>
-                    )}
-                </button>
-                <button type="button" className="panel bc-surface ut-block" onClick={() => onTab('goals')}>
-                    <BlockHead
-                        icon="crown"
-                        title={season ? t('ultimate.season.title', { n: season.n }) : t('ultimate.home.season')}
-                    />
-                    <b>{t('ultimate.pass.mark', { a: u.pass.marks, b: PASS_MARKS })}</b>
-                    <BlockBar n={u.pass.marks} of={PASS_MARKS} />
-                </button>
-                <button type="button" className="panel bc-surface ut-block ut-b-gyms" onClick={() => setSheet('gyms')}>
-                    <BlockHead icon="stadium" title={`${t('ultimate.home.gyms')} ${u.gyms.length}/${GYMS.length}`} />
-                    <span className="ut-b-badges">
-                        {GYMS.map((g) => (
-                            <KantoBadge key={g.id} leader={g.id as TrainerId} earned={u.gyms.includes(g.id)} />
-                        ))}
-                    </span>
-                </button>
-            </div>
-            <section className="ut-b-play">
-                {u.live ? (
-                    <button
-                        type="button"
-                        className="btn primary big wide ut-go"
-                        disabled={busy}
-                        onClick={() => void kick()}
-                    >
-                        <i className="cb-shine" aria-hidden />
-                        <span>
-                            {busy ? t('ultimate.play.warming') : t('ultimate.play.resume')}
-                            <small className="ut-go-goal">
-                                {clubName(u.live.rival.name, lang)} · {d.ultimate.play.levels[u.live.level]}
-                            </small>
-                        </span>
-                    </button>
-                ) : ready && rival ? (
+            <button type="button" className="panel bc-surface ut-block ut-b-shop" onClick={() => onTab('shop')}>
+                <BlockHead icon="bag" title={d.ultimate.tabs.shop} count={packs} />
+                <b className={packs ? 'ut-b-hot' : undefined}>{t('ultimate.stack.mine', { n: packs })}</b>
+                {u.picks.length > 0 && (
+                    <small className="ut-b-pick">
+                        <HudIcon kind="cards" />
+                        {name(u.picks[0]).title}
+                        {u.picks.length > 1 && ` +${u.picks.length - 1}`}
+                    </small>
+                )}
+                {next !== null && (
+                    <small className="ut-timer">
+                        <HudIcon kind="stopwatch" />
+                        {t('ultimate.packs.next', { time: hms(next) })}
+                    </small>
+                )}
+            </button>
+            <button type="button" className="panel bc-surface ut-block ut-b-goals" onClick={() => onTab('goals')}>
+                <BlockHead icon="medal" title={d.ultimate.tabs.goals} count={evos} />
+                {goal ? (
                     <>
-                        <button type="button" className="btn primary big wide ut-go" disabled={busy} onClick={start}>
-                            <i className="cb-shine" aria-hidden />
-                            <span>{busy ? t('ultimate.play.warming') : t('ultimate.play.go')}</span>
-                        </button>
-                        <button type="button" className="ut-level-chip" onClick={() => setSheet('level')}>
-                            <HudIcon kind="coin" />
-                            {t('ultimate.home.levelChip', {
-                                level: d.ultimate.play.levels[level],
-                                n: FICHAS[paid(level)].win,
-                            })}
-                            <b>{t('ultimate.home.change')}</b>
-                        </button>
+                        <b>{goalText}</b>
+                        <BlockBar n={goal.n} of={goal.kind === 'first' ? goal.of : goal.o.goal} />
                     </>
                 ) : (
-                    <button type="button" className="btn wide" onClick={() => onTab('shop')}>
-                        {t('ultimate.play.toPacks')}
-                    </button>
+                    <small>{t('ultimate.home.goalsDone')}</small>
                 )}
-                {error && <p className="error-text">{error}</p>}
-            </section>
-            <Sheet open={sheet === 'level'} onClose={() => setSheet(null)} title={t('ultimate.play.level')}>
-                {rival && <LevelPick level={level} onLevel={setLevel} rival={rival} strength={strength} paid={paid} />}
-            </Sheet>
-            <Sheet
-                open={sheet === 'gyms'}
-                onClose={() => setSheet(null)}
-                title={t('ultimate.gyms.title')}
-                className="ut-gyms-sheet"
-            >
-                <Gyms u={u} busy={busy} onGo={challenge} />
-            </Sheet>
+                <small>{t('ultimate.pass.mark', { a: u.pass.marks, b: PASS_MARKS })}</small>
+                <BlockBar n={u.pass.marks} of={PASS_MARKS} />
+                {evos > 0 && <small className="ut-b-hot">{tn('ultimate.home.evosReady', evos)}</small>}
+            </button>
+            <Highlights onTab={onTab} />
         </div>
     );
 }
@@ -493,86 +364,6 @@ function BlockBar({ n, of }: { n: number; of: number }) {
                 {Math.min(n, of)}/{of}
             </small>
         </span>
-    );
-}
-
-/** A sheet do nível: os 4 níveis, a tabela de Fichas e o rival que sai no nível escolhido. */
-function LevelPick({
-    level,
-    onLevel,
-    rival,
-    strength,
-    paid,
-}: {
-    level: Level;
-    onLevel: (lv: Level) => void;
-    rival: ReturnType<typeof ultimateRival>;
-    strength: number;
-    paid: (lv: Level) => Level;
-}) {
-    const { t, d, lang } = useT();
-    const u = useGame((s) => s.ultimate);
-    return (
-        <div className="ut-level">
-            <div className="bc-seg">
-                {LEVELS.map((lv) => (
-                    <button
-                        type="button"
-                        key={lv}
-                        aria-pressed={level === lv}
-                        className={level === lv ? 'on' : undefined}
-                        onClick={() => onLevel(lv)}
-                    >
-                        {d.ultimate.play.levels[lv]}
-                    </button>
-                ))}
-            </div>
-            <span className="bc-lbl">{t('ultimate.play.prize')}</span>
-            <table className="ut-prizes">
-                <thead>
-                    <tr>
-                        <th />
-                        <th>{t('ultimate.play.win')}</th>
-                        <th>{t('ultimate.play.draw')}</th>
-                        <th>{t('ultimate.play.loss')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {LEVELS.map((lv) => (
-                        <tr key={lv} className={level === lv ? 'on' : undefined}>
-                            <th>{d.ultimate.play.levels[lv]}</th>
-                            <td>{FICHAS[paid(lv)].win}</td>
-                            <td>{FICHAS[paid(lv)].draw}</td>
-                            <td>{FICHAS[paid(lv)].loss}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            <small className="muted">{t('ultimate.play.prizeNote')}</small>
-            {paid(level) !== level && (
-                <small>{t('ultimate.play.noRival', { level: d.ultimate.play.levels[paid(level)] })}</small>
-            )}
-            <section
-                key={rival.name}
-                className="panel ut-rival bc-surface bc-stripe"
-                style={{ '--tc': `#${rival.color.toString(16).padStart(6, '0')}` } as CSSProperties}
-            >
-                <span className="bc-lbl">{t('ultimate.play.rival')}</span>
-                <b>{clubName(rival.name, lang)}</b>
-                <span className="lg-squad">
-                    {rival.lineup.map((p) => (
-                        <img key={p.uid} className="pixel" src={cardSprite(p)} alt={viewInstance(p).displayName} />
-                    ))}
-                </span>
-                <small>
-                    {t('ultimate.play.rivalPower', { n: Math.round(teamStrength(rival)) })} ·{' '}
-                    {t('ultimate.play.yourPower', { n: Math.round(strength) })}
-                </small>
-                {u.played > 0 && (
-                    <small className="muted">{t('ultimate.play.record', { w: u.wins, d: u.draws, l: u.losses })}</small>
-                )}
-            </section>
-        </div>
     );
 }
 

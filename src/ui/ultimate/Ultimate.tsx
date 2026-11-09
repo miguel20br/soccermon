@@ -38,16 +38,16 @@ import { FirstSteps, Goals } from './Goals';
 import { Home, type UtTab } from './Home';
 import { type UtOpened, UtPackMoment } from './PackMoment';
 import { UtPickMoment, usePickName } from './PickMoment';
+import { Play } from './Play';
 import { SeasonBar } from './Season';
 import { Shop } from './Shop';
-import { Squad } from './Squad';
 import './ultimate.css';
 
-const TABS: UtTab[] = ['home', 'squad', 'club', 'shop', 'goals'];
+const TABS: UtTab[] = ['home', 'play', 'club', 'shop', 'goals'];
 const TAB_ICON: Record<UtTab, HudIconKind> = {
     home: 'stadium',
-    squad: 'team',
-    club: 'cards',
+    play: 'play',
+    club: 'team',
     shop: 'bag',
     goals: 'medal',
 };
@@ -56,16 +56,18 @@ const pct = (p: number, lang: string) =>
     `${(Math.round(p * 1000) / 10).toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US')}%`;
 
 /**
- * Time Ultimate (atrás de `?lab=ultimate`), no esqueleto do UT do FC (ut-menus-e-pendentes.md, opção B): Início (o
- * hub com o JOGAR), Elenco, Clube (cartas e Pendentes), Loja e Metas, na barra embaixo.
+ * Time Ultimate (atrás de `?lab=ultimate`), no esqueleto do UT do FC (ut-menus-e-pendentes.md, opção B; ultimate-fc.md,
+ * retorno de 09/11): Início (o hub em blocos), Jogar (os modos), Clube (Elenco, cartas e Pendentes), Loja e Metas, na
+ * barra embaixo.
  */
 export function Ultimate() {
     const { t, d } = useT();
     const go = useGame((s) => s.go);
     const u = useGame((s) => s.ultimate);
     const now = useNow();
-    const [tab, setTab] = useState<UtTab>(() => (u.cards.length ? 'home' : 'shop'));
-    const [seg, setSeg] = useState<ClubSeg>('cards');
+    // entra sempre no Início (o destaque e o número na aba já avisam dos pacotes; retorno de 09/11)
+    const [tab, setTab] = useState<UtTab>('home');
+    const [seg, setSeg] = useState<ClubSeg>('squad');
     // virou a temporada (ou a partida aberta acabou): zera o modo e guarda o legado
     const roll = useGame((s) => s.ultimateSeason);
     const n = seasonN(now);
@@ -91,10 +93,11 @@ export function Ultimate() {
         const r = openMany(kind, n);
         setPack(r && { ...r, kind });
     };
-    const toPending = () => {
-        setSeg('pending');
+    const toClub = (s: ClubSeg) => {
+        setSeg(s);
         setTab('club');
     };
+    const toPending = () => toClub('pending');
     // último dia da temporada com prêmio pendente: aviso uma vez por dia (Brasília), com atalho pros Pendentes
     const lastDay = lastDayPrizes(now, u.pending);
     const [warn, setWarn] = useState(false);
@@ -155,11 +158,11 @@ export function Ultimate() {
                 aria-labelledby={`ut-tab-${tab}`}
             >
                 {tab === 'home' ? (
-                    <Home onTab={setTab} onPending={toPending} />
-                ) : tab === 'squad' ? (
-                    <Squad onPacks={() => setTab('shop')} onClub={() => setTab('club')} />
+                    <Home onTab={setTab} onPending={toPending} onSquad={() => toClub('squad')} />
+                ) : tab === 'play' ? (
+                    <Play onPacks={() => setTab('shop')} />
                 ) : tab === 'club' ? (
-                    <Club seg={seg} onSeg={setSeg} onSquad={() => setTab('squad')} />
+                    <Club seg={seg} onSeg={setSeg} onPacks={() => setTab('shop')} />
                 ) : tab === 'shop' ? (
                     <Packs onOpen={openKind} onPick={setPick} />
                 ) : (

@@ -6,7 +6,37 @@ export const ultimate = {
     /** Na carteira (cabe no celular de 320). */
     pointsShort: 'Pontos',
     cards: 'Cartas',
-    tabs: { home: 'Início', squad: 'Elenco', club: 'Clube', shop: 'Loja', goals: 'Metas' },
+    tabs: { home: 'Início', play: 'Jogar', club: 'Clube', shop: 'Loja', goals: 'Metas' },
+    /** Aba Jogar (retorno de 09/11): os modos, equivalentes do FC (Squad Battles, Rivals, Champions, Draft, SBC). */
+    modes: {
+        soon: 'Em breve',
+        battles: {
+            name: 'Batalhas de Treinador',
+            line: 'Seu time contra clubes da IA, no nível que você escolher.',
+            gives: 'Fichas, passe e metas',
+        },
+        rivals: {
+            name: 'Rivais',
+            line: 'Partidas contra times de outros treinadores, subindo de divisão.',
+            gives: 'Prêmio por divisão',
+        },
+        elite: {
+            name: 'Elite dos Quatro',
+            line: 'O torneio do fim de semana contra os melhores times.',
+            gives: 'Picks e cartas raras',
+            cond: 'Classifique-se em Rivais',
+        },
+        draft: {
+            name: 'Draft',
+            line: 'Monte um time na hora, escolhendo 1 de 5 por vaga.',
+            gives: 'Pacotes por vitória',
+        },
+        sbc: {
+            name: 'Desafios de Montagem',
+            line: 'Troque cartas repetidas por prêmios montando times com regra.',
+            gives: 'Pacotes e Picks',
+        },
+    },
     packs: {
         tear: 'Arraste de lado pra rasgar, ou toque',
         mini: 'Pacote Mini',
@@ -73,6 +103,7 @@ export const ultimate = {
         open: 'Escolher',
         flip: 'Virar a carta',
         flipAll: 'Virar todas',
+        tapFlip: 'Toque numa carta pra virar',
         tapOne: 'Toque numa carta',
         keep: 'Ficar com {name} ({n})',
         rest: 'As outras voltam pro mato.',
@@ -168,9 +199,13 @@ export const ultimate = {
         resolve: 'Resolver',
         lastDay: 'Último dia da temporada: resgate {n} prêmios antes da virada',
         levelChip: '{level} · +{n}',
+        next: '{club} · {level} · vitória +{n}',
+        cards: '{n} carta no clube|{n} cartas no clube',
+        evosReady: '{n} evolução pronta|{n} evoluções prontas',
         change: 'Nível',
     },
     club: {
+        squad: 'Elenco',
         cards: 'Cartas',
         pending: 'Pendentes',
         search: 'Buscar pelo nome',

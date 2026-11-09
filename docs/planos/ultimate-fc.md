@@ -65,9 +65,41 @@ da C**. Todas as decisões da seção 8 ficaram na recomendação:
 8. Marcos **20 e 40** do passe dão **Pick 1 de 3 Ouro** (10 e 30 seguem Grande).
 9. **Pick com pontos** em Comprar: Bronze 10 · Prata 25 · Ouro 60.
 10. O Pick **nunca oferece carta que você já tem** (Normal).
-11. Revelação com **silhueta "Quem é esse Pokémon?"** (toque vira, "Virar todas").
+11. Revelação com **silhueta "Quem é esse Pokémon?"** (toque vira, "Virar todas"). *Trocada em 09/11 pela carta de
+    costas (abaixo).*
 12. **Resgatar** fica onde está, mostrando "+N em Meus pacotes".
 13. **Aviso da ponte** no resultado da Copa campeã ("+1 Pacote Mini no Time Ultimate").
+
+## Retorno do Miguel na prévia (09/11)
+
+"por que o time ultimate tá abrindo na loja? e sei lá, ainda não me convenceu essa home... pra mim tinha que ter na
+home uns quadrados com JOGAR, CLUBE, LOJA, OBJETIVOS, de tamanhos e pesos diferentes. e aí tinha que ter a aba JOGAR,
+com todos os modos de jogo, o equivalente ao Squad Battles liberado, o equivalente ao Rivals bloqueado, o equivalente ao
+Champions bloqueado também, e tal". E: "nos PPs (Pokémon Picks), queria que a carta estivesse virada, e que as costas
+dela tivessem a logo do Soccermon. não a silhueta".
+
+O que mudou (branch `ut-fc`):
+
+- **Abre sempre no Início.** A causa: a aba inicial era `u.cards.length ? 'home' : 'shop'`; o save novo (sem cartas, só
+  o Pick do primeiro craque e 2 Mini guardados) caía na Loja. O destaque e o número na aba Loja já avisam dos pacotes.
+  Teste: `src/ui/ultimate/hub.test.ts`.
+- **Início em blocos de pesos diferentes:** JOGAR é o maior e o único dourado (o botão gordo do kit), com o modo, o time
+  rival, "clube · nível · vitória +N" e a meta da vez; Clube (nota grande, química, os 5 titulares, nº de cartas); Loja
+  (Meus pacotes · N, o Pick guardado, o relógio do grátis); Metas (a meta com barra, o marco do passe, evolução pronta);
+  o destaque (carrossel) largo embaixo; Pendentes em cima, só quando tem. Celular em pé: 2 colunas (JOGAR na largura
+  toda, Clube alto à esquerda, Loja e Metas à direita). Deitado e PC: mosaico de 4 colunas (JOGAR 2 x 2). Saiu a barra
+  fixa do JOGAR (cobria blocos) e os blocos Evoluções, Temporada e Líderes (viraram linhas de Metas e da aba Jogar).
+- **Barra de baixo: Início · Jogar · Clube · Loja · Metas.** O Elenco saiu da barra e virou o 1º segmento do Clube
+  (Elenco · Cartas · Pendentes), como o Squad dentro do Club no FC; o bloco Clube do Início abre direto nele.
+- **Aba Jogar com os modos** (cartão por modo, arte de sprites e cartas do jogo): **Batalhas de Treinador** (Squad
+  Battles, liberado: o jogo contra a IA de sempre, com nível, rival, JOGAR e os Líderes); **Rivais** (Rivals),
+  **Elite dos Quatro** (Champions, "Classifique-se em Rivais"), **Draft** (FUT Draft) e **Desafios de Montagem** (SBC)
+  em preto e branco com cadeado e "Em breve", sem nada funcionando. EN: Trainer Battles, Rivals, Elite Four, Draft,
+  Build Challenges.
+- **Pick de costas:** as opções nascem com o verso da carta (o símbolo do Soccermon no escuro, na moldura do metal, o
+  mesmo verso do walkout); tocar vira (giro 3D de 450 ms, as duas faces), "Virar todas" vira em sequência (140 ms entre
+  uma e outra) e a melhor segue virando com o walkout. Com Reduzir movimento, vira sem giro. O walkout continua com a
+  silhueta dele.
 
 ## 1. Como o FC faz
 

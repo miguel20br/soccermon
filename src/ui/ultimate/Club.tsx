@@ -30,8 +30,9 @@ import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import { type Metal, metalLabel, metalOf } from '../rarity';
 import { type ClubStatus, STATUSES, statusesOf } from './club-status';
 import { useMarkText } from './Season';
+import { Squad } from './Squad';
 
-export type ClubSeg = 'cards' | 'pending';
+export type ClubSeg = 'squad' | 'cards' | 'pending';
 type Sort = 'rating' | 'name' | 'dex' | 'recent';
 type EditionKey = 'normal' | 'shiny' | 'icone' | 'evento' | 'destaque';
 const POSITIONS: Position[] = ['GK', 'FIXO', 'ALA', 'PIVO'];
@@ -65,16 +66,17 @@ export const ratingAtSlot = (c: PokemonInstance, i: number, u: Pick<UltimateSave
     i < STARTERS ? slotRating(c, FORMATIONS[u.team.formation].slots[i]) : viewInstance(c).overall;
 
 /**
- * Clube (o My Club do FC): as cartas com busca, posição, filtros e ordem, e as ações de cada uma; e os Pendentes
- * (repetidas e prêmios). Os dois num segmentado em cima.
+ * Clube (o My Club do FC): o Elenco (escalação), as cartas com busca, posição, filtros e ordem, e as ações de cada
+ * uma; e os Pendentes (repetidas e prêmios). Os três num segmentado em cima (o Elenco saiu da barra em 09/11, pra
+ * entrar a aba Jogar).
  */
-export function Club({ seg, onSeg, onSquad }: { seg: ClubSeg; onSeg: (s: ClubSeg) => void; onSquad: () => void }) {
+export function Club({ seg, onSeg, onPacks }: { seg: ClubSeg; onSeg: (s: ClubSeg) => void; onPacks: () => void }) {
     const { t } = useT();
     const u = useGame((s) => s.ultimate);
     return (
         <>
             <div className="bc-seg ut-club-seg">
-                {(['cards', 'pending'] as const).map((s) => (
+                {(['squad', 'cards', 'pending'] as const).map((s) => (
                     <button
                         type="button"
                         key={s}
@@ -82,14 +84,21 @@ export function Club({ seg, onSeg, onSquad }: { seg: ClubSeg; onSeg: (s: ClubSeg
                         className={seg === s ? 'on' : undefined}
                         onClick={() => onSeg(s)}
                     >
-                        {t(`ultimate.club.${s}`)} · {s === 'cards' ? u.cards.length : u.pending.length}
+                        {t(`ultimate.club.${s}`)}
+                        {s !== 'squad' && ` · ${s === 'cards' ? u.cards.length : u.pending.length}`}
                         {s === 'pending' && u.pending.length > 0 && <i className="ut-dot" aria-hidden />}
                     </button>
                 ))}
             </div>
             <UndoBar />
             <div key={seg} className="ut-panel">
-                {seg === 'cards' ? <Cards onSquad={onSquad} /> : <Pending />}
+                {seg === 'squad' ? (
+                    <Squad onPacks={onPacks} onClub={() => onSeg('cards')} />
+                ) : seg === 'cards' ? (
+                    <Cards onSquad={() => onSeg('squad')} />
+                ) : (
+                    <Pending />
+                )}
             </div>
         </>
     );
