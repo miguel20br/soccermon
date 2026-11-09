@@ -8,6 +8,41 @@ export interface PatchNotes {
 }
 
 export const PATCH_NOTES: PatchNotes[] = [
+    /* RASCUNHO 0.9.44: tire o comentário no lançamento, junto com o version do package.json
+    {
+        version: '0.9.44',
+        date: '2026-11-09',
+        title: 'Véspera do Time Ultimate',
+        sections: [
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'O rival olha a força do seu time (média × química), não só a média',
+                    'Sem rival à altura, a partida paga as Fichas do nível que ele alcançou',
+                    'Mestre com o time do 1º mês: 60 ⇒ 36 Fichas por partida',
+                ],
+            },
+            {
+                title: 'Copa e partida',
+                lines: [
+                    'Copa longa: quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela',
+                    'O golpe máximo do rival também chega em câmera lenta, como o seu',
+                ],
+            },
+            {
+                title: 'Avisos',
+                lines: [
+                    'Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo',
+                    'Ainda não jogou a Copa do Dia de hoje? O JOGAR mostra ela primeiro',
+                ],
+            },
+            {
+                title: 'Consertos',
+                lines: ['Celular em pé: a quadra que segue a bola travava em erro depois da partida'],
+            },
+        ],
+    },
+    */
     {
         version: '0.9.43',
         date: '2026-11-05',
@@ -2579,6 +2614,41 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    /* RASCUNHO 0.9.44: tire o comentário no lançamento, junto com o version do package.json
+    {
+        version: '0.9.44',
+        date: '2026-11-09',
+        title: 'Team Ultimate eve',
+        sections: [
+            {
+                title: 'Team Ultimate (opens on 11/27)',
+                lines: [
+                    "The rival looks at your team's strength (average × chemistry), not just the average",
+                    'With no rival at your level, the match pays the Coins of the level it reached',
+                    'Master with a 1st-month team: 60 ⇒ 36 Coins per match',
+                ],
+            },
+            {
+                title: 'Cup and match',
+                lines: [
+                    'Long cup: whoever leaves the bench leaves an empty slot, and the next signing takes it',
+                    "The rival's max move also comes in slow motion, like yours",
+                ],
+            },
+            {
+                title: 'Warnings',
+                lines: [
+                    'Out of storage: the game warns that your progress is not being saved',
+                    "Haven't played today's Daily Cup? PLAY shows it first",
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: ['Phone upright: the court that follows the ball got stuck in an error after the match'],
+            },
+        ],
+    },
+    */
     {
         version: '0.9.43',
         date: '2026-11-05',
