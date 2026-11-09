@@ -1,5 +1,5 @@
 import { dailyDay, weekOf } from '../daily';
-import { EVENTS, type Level, OBJECTIVES, type Objective, type Outcome, type UtEvent } from './rules';
+import { EVENT_HINT_DAYS, EVENTS, type Level, OBJECTIVES, type Objective, type Outcome, type UtEvent } from './rules';
 
 /**
  * Objetivos diários e semanais do Time Ultimate (a tabela fica em rules.ts). O dia vira à meia-noite de Brasília, como
@@ -18,6 +18,9 @@ export interface ObjectiveState {
 
 /** O evento no ar no relógio `now` (desligado por data: fora da janela dele, nenhum). */
 export const eventAt = (now: number): UtEvent | null => EVENTS.find((e) => now >= e.start && now < e.end) ?? null;
+/** O evento de agora, ou o que começa em até EVENT_HINT_DAYS (o aviso de guardar pacote pra ele). */
+export const eventAhead = (now: number): UtEvent | null =>
+    EVENTS.find((e) => now >= e.start - EVENT_HINT_DAYS * 86_400_000 && now < e.end) ?? null;
 
 export const periodKeys = (now: number) => {
     const day = dailyDay(new Date(now));

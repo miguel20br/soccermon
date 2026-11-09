@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ENGINE_VERSION, FUTSAL_5 } from '../../engine/config';
+import { SPECIES } from '../../engine/data';
 import { EVO_THRESHOLD } from '../../engine/evolution';
 import { DEFAULT_FORMATION } from '../../engine/formations';
 import { createInstance, viewInstance } from '../../engine/instance';
@@ -15,6 +16,8 @@ import {
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
+    PACK_START,
+    PENDING_MAX,
     RIVAL_TOLERANCE,
     STARTERS,
     TEAM_SIZE,
@@ -28,8 +31,10 @@ import {
     NO_MID_EVO,
     newUltimate,
     nextPackIn,
+    openMany,
     openPack,
     packMetals,
+    packsOf,
     paidLevel,
     redeem,
     refill,
@@ -44,9 +49,10 @@ import {
 const H = PACK_INTERVAL_MS;
 const T0 = 1_800_000_000_000;
 
-describe('relógio dos pacotes (12 h, acumula 2)', () => {
-    it('cheio, o relógio fica parado; abriu, conta 12 h do momento da abertura', () => {
+describe('relógio dos pacotes (12 h, guarda até PACK_MAX em Meus pacotes)', () => {
+    it(`nasce com ${PACK_START}; o relógio conta até ${PACK_MAX} e só aí para; abriu, volta a contar`, () => {
         let u = newUltimate('a', T0);
+        expect(u.packs).toBe(PACK_START);
         expect(refill(u, T0 + 100 * H)).toEqual({ packs: PACK_MAX, packAt: T0 + 100 * H });
         u = openPack(u, T0)!.u;
         u = openPack(u, T0)!.u;
@@ -55,9 +61,10 @@ describe('relógio dos pacotes (12 h, acumula 2)', () => {
         expect(refill(u, T0 + H - 1).packs).toBe(0);
         expect(refill(u, T0 + H).packs).toBe(1);
         expect(nextPackIn(u, T0 + H / 2)).toBe(H / 2);
-        // 36 h depois: só 2 (o terceiro não acumula) e o relógio para
-        expect(refill(u, T0 + 3 * H)).toEqual({ packs: 2, packAt: T0 + 3 * H });
-        expect(nextPackIn(u, T0 + 3 * H)).toBeNull();
+        // 3 dias fora: guardou 6 (o relógio não trava a pilha antes disso)
+        expect(refill(u, T0 + 3 * H)).toEqual({ packs: 3, packAt: T0 + 3 * H });
+        expect(refill(u, T0 + 10 * H)).toEqual({ packs: PACK_MAX, packAt: T0 + 10 * H });
+        expect(nextPackIn(u, T0 + 10 * H)).toBeNull();
     });
 
     it('o resto do tempo não se perde: 1 pacote em 18 h e o próximo 6 h depois', () => {
@@ -69,6 +76,40 @@ describe('relógio dos pacotes (12 h, acumula 2)', () => {
 
     it('relógio que voltou no tempo não dá nem tira pacote', () => {
         expect(refill({ packs: 1, packAt: T0 }, T0 - 5 * H)).toEqual({ packs: 1, packAt: T0 - 5 * H });
+    });
+});
+
+describe('Abrir todos (openMany)', () => {
+    it('abrir 4 de uma vez dá as mesmas cartas (e o mesmo save) que abrir 4 um por um', () => {
+        const u = { ...newUltimate('many', T0), extraPacks: 2 };
+        let one = u;
+        const cards = [];
+        for (let i = 0; i < 4; i++) {
+            const r = openPack(one, T0)!;
+            one = r.u;
+            cards.push(...r.pack.cards);
+        }
+        const all = openMany(u, T0, 'mini');
+        expect(all.packs).toHaveLength(4);
+        expect(all.packs.flatMap((p) => p.cards)).toEqual(cards);
+        expect(all.u).toEqual(one);
+        expect(all.full).toBe(false);
+        expect(openMany(u, T0, 'mini', 2).packs).toHaveLength(2);
+        expect(openMany(u, T0, 'big').packs).toHaveLength(0);
+    });
+
+    it('Pendentes cheio no meio: para, guarda o resto e avisa', () => {
+        // a coleção com todas as espécies: toda carta do pacote é repetida e vai pros Pendentes
+        const cards = SPECIES.map((sp, i) => ({ ...createInstance(sp.id, new Rng('all', String(i))), uid: `c${i}` }));
+        const pending = Array.from({ length: PENDING_MAX - 2 }, (_, i) => ({
+            kind: 'card' as const,
+            card: { ...cards[0], uid: `p${i}` },
+        }));
+        const u = { ...newUltimate('cheio', T0), cards, extraPacks: 3, pending };
+        const all = openMany(u, T0, 'mini');
+        expect(all.packs).toHaveLength(1);
+        expect(all.full).toBe(true);
+        expect(packsOf(all.u, T0, 'mini')).toBe(PACK_START + 3 - 1);
     });
 });
 
@@ -245,9 +286,10 @@ describe('time e partida', () => {
 describe('save', () => {
     it('fatia estragada ou ausente vira uma nova, sem derrubar o resto', () => {
         expect(ultimateOf(undefined).cards).toEqual([]);
-        expect(ultimateOf('x').packs).toBe(PACK_MAX);
+        expect(ultimateOf('x').packs).toBe(PACK_START);
         const u = ultimateOf({ salt: 's', cards: [null, { uid: 1 }], fichas: -5, packs: 9, team: { order: ['nada'] } });
         expect(u).toMatchObject({ salt: 's', cards: [], fichas: 0, packs: PACK_MAX });
+        expect(ultimateOf({ packs: 2.7 }).packs).toBe(2);
         expect(u.team.order).toEqual([]);
     });
 

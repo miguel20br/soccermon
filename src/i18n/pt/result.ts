@@ -15,6 +15,8 @@ export const result = {
     },
     chooseReward: 'Escolher recompensa',
     feedback: 'Dar feedback',
+    /** Ponte da Copa (ultimate-fc.md): o título pagou 1 pacote no Time Ultimate. */
+    utBridge: '+1 Pacote Mini no Time Ultimate',
     finalDetails: 'A final em detalhes',
     highlights: 'Destaques da partida',
     foldHighlights: 'Destaques e gols',

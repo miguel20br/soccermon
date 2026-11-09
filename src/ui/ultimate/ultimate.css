@@ -38,38 +38,38 @@
     }
 }
 
-/* carteira: Fichas, pontos de pacote, cartas */
+/* carteira no canto do placar (como as moedas do FC): Fichas e pontos de pacote nas plaquinhas da barra da copa */
+.menu-head-side {
+    flex: none;
+    margin-left: auto;
+}
 .ut-wallet {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px 12px;
+    display: flex;
+    gap: 6px;
 }
-.ut-wallet > span {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    column-gap: 6px;
-    min-width: 0;
+.ut-wallet .k-res {
+    height: 32px;
 }
-.ut-wallet .hud-icon {
-    grid-row: span 2;
-    width: 22px;
-    height: 22px;
-    color: var(--yellow);
+.ut-res-pts .hud-icon {
+    background: var(--yellow);
+    color: var(--gold-ol, #3a2a00);
 }
-.ut-wallet b {
-    font-size: 18px;
-    line-height: 1;
-}
-.ut-wallet small {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+@media (max-width: 400px) {
+    .ut-hub .menu-head h1 {
+        font-size: 18px;
+    }
+    .ut-hub .menu-head .menu-head-ic {
+        display: none;
+    }
+    .ut-wallet {
+        gap: 4px;
+    }
+    .ut-wallet .k-res {
+        padding-right: 6px;
+    }
+    .ut-wallet .cb-num {
+        font-size: 15px;
+    }
 }
 
 /* o rótulo do pacote acompanha a largura dele (6,4cqw) mas não desce de 9 px (o "PACOTE MINI" ficava em 6 px) */
@@ -351,9 +351,6 @@
     }
     .ut-pack-info {
         justify-items: center;
-    }
-    .ut-wallet b {
-        font-size: 15px;
     }
 }
 
@@ -1060,6 +1057,31 @@
     border: 2px solid var(--bc-ink);
     animation: ut-in 220ms var(--ease-out) both;
 }
+/* o número no lugar do ponto (FC): quantos esperam você ali */
+.ut-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--red);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+}
+.ut-dot.ut-count {
+    top: -6px;
+    right: -12px;
+    width: auto;
+    height: 18px;
+}
+.ut-b-head .ut-count {
+    animation: ut-in 220ms var(--ease-out) both;
+}
 .bc-seg .ut-dot {
     position: static;
     display: inline-block;
@@ -1554,4 +1576,164 @@
 .ut-pend-coin .hud-icon {
     width: 30px;
     height: 30px;
+}
+
+/* ---------- 09/11: Loja > Meus pacotes (a pilha guardada) e Comprar ---------- */
+.ut-shop-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.ut-seg-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-stack {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 4px 12px;
+    list-style: none;
+}
+.ut-stack-row {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 14px;
+    padding: 12px 0;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-stack-row + .ut-stack-row {
+    border-top: 2px solid var(--line);
+}
+/* a pilha: o de trás aparece torto atrás do da frente */
+.ut-stack-art {
+    position: relative;
+    display: grid;
+    grid-row: span 2;
+    padding: 6px 8px 0 0;
+}
+.ut-stack-art > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 64px;
+}
+.ut-stack-art > .cpack + .cpack {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    z-index: -1;
+    transform: rotate(7deg);
+    opacity: 0.75;
+}
+.ut-stack-art {
+    isolation: isolate;
+}
+.ut-stack-info {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.ut-stack-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    line-height: 1.2;
+}
+.ut-stack-x {
+    color: var(--yellow);
+}
+.ut-stack-info > small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-stack-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ut-stack-acts > .btn {
+    flex: 1 1 auto;
+    min-height: 40px;
+}
+.ut-stack-empty .ut-timer {
+    justify-content: center;
+}
+.ut-stack-event {
+    padding: 0 4px;
+}
+.ut-stack-clock {
+    justify-content: center;
+}
+@media (min-width: 720px) {
+    .ut-stack-row {
+        grid-template-columns: 96px minmax(0, 1fr) auto;
+    }
+    .ut-stack-art {
+        grid-row: auto;
+    }
+    .ut-stack-art > .cpack {
+        width: 84px;
+    }
+    .ut-stack-acts > .btn {
+        flex: none;
+        min-width: 120px;
+    }
+}
+
+/* Abrir todos: o resumo (todas as cartas pela nota, como a lista de itens do FC) */
+.ut-sum {
+    --k-cols: 4;
+    --k-card-w: min(
+        120px,
+        calc((min(calc(100 * var(--vw)), 860px) - 32px - (var(--k-cols) - 1) * var(--k-gap)) / var(--k-cols))
+    );
+    grid-template-columns: repeat(auto-fill, var(--k-card-w));
+    max-height: calc(100 * var(--vh) - 250px);
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+@media (orientation: landscape) {
+    .ut-sum {
+        --k-cols: 6;
+    }
+}
+@media (min-width: 900px) {
+    .ut-sum {
+        --k-cols: 6;
+    }
+}
+.ut-pack-moment.is-many .k-moment-body {
+    width: min(100%, 860px);
+}
+.ut-pack-moment.is-many .cpack-stage:has(> .k-pick3) {
+    min-height: 0;
+}
+.ut-sum-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 14px;
+    color: var(--yellow);
+}
+.ut-sum-line .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.ut-sum-full {
+    margin: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--red) 22%, transparent);
+    font-size: 13px;
+    text-align: center;
+}
+.ut-pack-acts {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
 }

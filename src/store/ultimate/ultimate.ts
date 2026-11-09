@@ -51,6 +51,7 @@ import {
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
+    PACK_START,
     PASS_CARD,
     PASS_MARKS,
     PENDING_MAX,
@@ -169,7 +170,7 @@ export interface UltimateSave {
     fichas: number;
     /** Pontos de pacote (cada pacote aberto + repetidas): compram a carta que você escolher. */
     packPoints: number;
-    /** Pacotes grátis guardados (0..PACK_MAX). */
+    /** Pacotes grátis guardados pelo relógio (0..PACK_MAX), em Meus pacotes junto dos ganhos. */
     packs: number;
     /** Pacotes ganhos (objetivos, título da Copa, Fichas): sem teto e sem relógio. */
     extraPacks: number;
@@ -219,7 +220,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     cards: [],
     fichas: 0,
     packPoints: 0,
-    packs: PACK_MAX,
+    packs: PACK_START,
     packAt: now,
     extraPacks: 0,
     bigPacks: 0,
@@ -637,6 +638,37 @@ export function openPack(
     };
 }
 
+/** Tudo em Meus pacotes (Mini do relógio e ganhos, Grandes): o número da aba Loja e do bloco do Início. */
+export const stackCount = (u: UltimateSave, now: number) => packsReady(u, now) + u.bigPacks;
+
+/** Pacotes de um tipo guardados agora (Mini: os do relógio + os ganhos). */
+export const packsOf = (
+    u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks' | 'bigPacks'>,
+    now: number,
+    kind: PackKind,
+) => (kind === 'big' ? u.bigPacks : packsReady(u, now));
+
+/**
+ * Abrir todos (ultimate-fc.md): `openPack` em laço, até `n` pacotes do tipo. Mesma semente por `opened`, então abrir 4 de
+ * uma vez dá as mesmas cartas que abrir 4 um por um. Para no meio se os Pendentes encherem (`full`).
+ */
+export function openMany(
+    u: UltimateSave,
+    now: number,
+    kind: PackKind,
+    n = Number.POSITIVE_INFINITY,
+): { u: UltimateSave; packs: PackOpen[]; full: boolean } {
+    const packs: PackOpen[] = [];
+    let cur = u;
+    while (packs.length < n) {
+        const r = openPack(cur, now, kind);
+        if (!r) break;
+        cur = r.u;
+        packs.push(r.pack);
+    }
+    return { u: cur, packs, full: packs.length < n && packsOf(cur, now, kind) > 0 && pendingFull(cur) };
+}
+
 /** Cartas novas na coleção, enchendo as vagas vazias do time pela posição. */
 function addCards(u: UltimateSave, fresh: PokemonInstance[]): UltimateSave {
     const team = fillTeam(u.team, fresh);
@@ -721,6 +753,10 @@ export function cupBridge(save: UltimateSave, now: number): UltimateSave {
     if (n >= CUP_BRIDGE_DAY_MAX) return u;
     return { ...u, extraPacks: u.extraPacks + 1, bridge: { day, n: n + 1 } };
 }
+
+/** O próximo título da Copa paga a ponte (o teto do dia não chegou): o resultado da Copa avisa. */
+export const bridgePays = (save: UltimateSave, now: number) =>
+    cupBridge(save, now).extraPacks > rollSeason(save, now).u.extraPacks;
 
 // ------------------------------------------------------------------------------------------------------- time
 
@@ -962,6 +998,9 @@ function prizeOf(
         ? { kind: 'prize', uid, from, ref, fichas: r.fichas, packs: r.packs, big: r.big }
         : null;
 }
+
+/** Quantos itens o prêmio põe em Meus pacotes ("+2 em Meus pacotes"). */
+export const prizePacks = (p: Pick<UtPrize, 'packs' | 'big'>) => p.packs + p.big;
 
 /** Resgata o prêmio `uid` (sem `uid`, todos): as Fichas vão pra carteira e os pacotes pra Loja. */
 export function redeem(u: UltimateSave, uid?: string): UltimateSave {

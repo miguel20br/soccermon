@@ -19,6 +19,7 @@ import {
     TRAIN_STEPS,
 } from './rules';
 import {
+    bridgePays,
     buyCard,
     buyPack,
     cupBridge,
@@ -212,7 +213,13 @@ describe('loja: pontos de pacote e Fichas', () => {
 describe('ponte da Copa', () => {
     it(`título = 1 Pacote Mini, até ${CUP_BRIDGE_DAY_MAX} por dia; o dia novo libera de novo`, () => {
         let u = ready();
-        for (let i = 0; i < CUP_BRIDGE_DAY_MAX + 2; i++) u = cupBridge(u, MON + i * 1000);
+        for (let i = 0; i < CUP_BRIDGE_DAY_MAX; i++) {
+            // o aviso no resultado da Copa: só quando o título paga de verdade
+            expect(bridgePays(u, MON + i * 1000)).toBe(true);
+            u = cupBridge(u, MON + i * 1000);
+        }
+        expect(bridgePays(u, MON + 5000)).toBe(false);
+        for (let i = 0; i < 2; i++) u = cupBridge(u, MON + i * 1000);
         expect(u.extraPacks).toBe(CUP_BRIDGE_DAY_MAX);
         u = cupBridge(u, MON + DAY);
         expect(u.extraPacks).toBe(CUP_BRIDGE_DAY_MAX + 1);

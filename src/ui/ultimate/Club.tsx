@@ -12,6 +12,7 @@ import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
 import {
     canSell,
     canUndoSell,
+    prizePacks,
     sellPoints,
     swapBlock,
     twinOf,
@@ -462,13 +463,31 @@ function Pending() {
     const u = useGame((s) => s.ultimate);
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const swap = useGame((s) => s.ultimateSwap);
-    const redeem = useGame((s) => s.ultimateRedeem);
     const mark = useMarkText();
     const [askAll, setAskAll] = useState(false);
+    // resgatou: o destino à vista (o pacote espera em Meus pacotes, nada abre sozinho)
+    const [got, setGot] = useState(0);
     const repeats = u.pending.flatMap((p) => (p.kind === 'card' ? [p.card] : []));
     const prizes = u.pending.filter((p): p is UtPrize => p.kind === 'prize');
     const total = repeats.reduce((s, c) => s + sellPoints(c), 0);
-    if (!u.pending.length) return <p className="panel ut-empty">{t('ultimate.pending.empty')}</p>;
+    const redeem = (uid?: string) => {
+        const n = prizes.filter((p) => uid === undefined || p.uid === uid).reduce((s, p) => s + prizePacks(p), 0);
+        useGame.getState().ultimateRedeem(uid);
+        if (n) setGot((g) => g + n);
+    };
+    const gotLine = got > 0 && (
+        <p key={got} className="panel bc-surface ut-undo ut-got-line">
+            <HudIcon kind="bag" />
+            <span>{t('ultimate.stack.gotN', { n: got })}</span>
+        </p>
+    );
+    if (!u.pending.length)
+        return (
+            <>
+                {gotLine}
+                <p className="panel ut-empty">{t('ultimate.pending.empty')}</p>
+            </>
+        );
     const prizeTitle = (p: UtPrize) => {
         if (p.from === 'pass') return t('ultimate.pending.prize.pass', { n: p.ref });
         if (p.from === 'gym') return t('ultimate.pending.prize.gym', { name: d.profile.badges.names[p.ref] ?? p.ref });
@@ -478,6 +497,7 @@ function Pending() {
     return (
         <>
             <Coach id="utRepetida" targets={['.ut-pend-list .ut-pend:not(.ut-pend-prize)']} when={repeats.length > 0} />
+            {gotLine}
             <section className="panel bc-surface ut-pend-head">
                 <small className="muted">{t('ultimate.pending.hint')}</small>
                 <div className="ut-pend-all">

@@ -8,8 +8,13 @@ import type { Metal } from '../../ui/rarity';
 
 /** Pacote Mini grátis: um a cada 12 h. */
 export const PACK_INTERVAL_MS = 12 * 60 * 60 * 1000;
-/** Quantos pacotes grátis acumulam (cheio, o relógio para, como no TCG Pocket). Quem chega começa com o máximo. */
-export const PACK_MAX = 2;
+/**
+ * Quantos pacotes grátis o relógio guarda em Meus pacotes (cheio, ele para): 6 = 3 dias fora (ultimate-fc.md, decidido
+ * com o Miguel em 09/11/2026; era 2, e o relógio parado obrigava a abrir).
+ */
+export const PACK_MAX = 6;
+/** Pacotes Mini de boas-vindas (save novo e temporada nova), junto do Pick "Seu primeiro craque". */
+export const PACK_START = 2;
 /** Cartas no Pacote Mini. */
 export const PACK_SIZE = 3;
 
@@ -208,6 +213,12 @@ export const EVENTS: UtEvent[] = [
         ],
     },
 ];
+
+/**
+ * Meus pacotes avisa o evento que vem: "pacote aberto no Natal pode trazer carta Evento" (o convite pra guardar, como o
+ * TOTY do FC) aparece este tanto de dias antes e durante o evento. Número inventado (09/11), falta o ok do Miguel.
+ */
+export const EVENT_HINT_DAYS = 14;
 
 // ------------------------------------------------------------------------------------------- 27/11
 

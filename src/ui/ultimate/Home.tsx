@@ -8,6 +8,7 @@ import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
 import { chemistry } from '../../store/ultimate/chemistry';
+import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
 import { objectiveById } from '../../store/ultimate/objectives';
 import {
@@ -29,9 +30,9 @@ import {
     lastPacks,
     momentGoal,
     nextPackIn,
-    type PackKind,
     packsReady,
     paidLevel,
+    stackCount,
     teamAverage,
     teamStrength,
     type UltimateLast,
@@ -62,15 +63,7 @@ let levelMem: Level | null = null;
  * (Elenco, Loja, Metas, Evoluções, Temporada, Líderes; Pendentes só quando tem) e o JOGAR gordo embaixo. Voltando da
  * partida, o pós-jogo vem antes dos blocos.
  */
-export function Home({
-    onTab,
-    onPending,
-    onOpen,
-}: {
-    onTab: (t: UtTab) => void;
-    onPending: () => void;
-    onOpen: (kind: PackKind) => void;
-}) {
+export function Home({ onTab, onPending }: { onTab: (t: UtTab) => void; onPending: () => void }) {
     const { t, tn, d, lang } = useT();
     const now = useNow();
     const u = useGame((s) => s.ultimate);
@@ -133,7 +126,7 @@ export function Home({
     };
 
     const last = u.last && !u.last.seen ? u.last : null;
-    if (last) return <PostGame last={last} onGoals={() => onTab('goals')} onOpen={onOpen} />;
+    if (last) return <PostGame last={last} onGoals={() => onTab('goals')} onPacks={() => onTab('shop')} />;
 
     const byUid = new Map(u.cards.map((c) => [c.uid, c]));
     const lineup = u.team.order.slice(0, STARTERS).flatMap((x) => byUid.get(x) ?? []);
@@ -150,7 +143,8 @@ export function Home({
                   100,
           )
         : 0;
-    const packs = packsReady(u, now) + u.bigPacks;
+    const mini = packsReady(u, now);
+    const packs = stackCount(u, now);
     const next = nextPackIn(u, now);
     const goal = momentGoal(u, now);
     const evoOn = u.evos.find(evoReady);
@@ -193,15 +187,26 @@ export function Home({
                 </span>
             </button>
             <div className="ut-b-grid">
-                <button type="button" className="panel bc-surface ut-block" onClick={() => onTab('shop')}>
-                    <BlockHead icon="bag" title={t('ultimate.home.shop')} />
-                    <b className={packs ? 'ut-b-hot' : undefined}>
-                        {packs ? tn('ultimate.home.packsReady', packs) : t('ultimate.home.packsNone')}
-                    </b>
-                    <small className="ut-timer">
-                        <HudIcon kind="stopwatch" />
-                        {next === null ? t('ultimate.packs.full') : t('ultimate.packs.next', { time: hms(next) })}
-                    </small>
+                <button type="button" className="panel bc-surface ut-block ut-b-stack" onClick={() => onTab('shop')}>
+                    <BlockHead icon="bag" title={t('ultimate.stack.title')} count={packs} />
+                    {packs ? (
+                        <b className="ut-b-hot">
+                            {[
+                                mini && `${t('ultimate.stack.miniShort')} x${mini}`,
+                                u.bigPacks && `${t('ultimate.stack.bigShort')} x${u.bigPacks}`,
+                            ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </b>
+                    ) : (
+                        <b>{t('ultimate.home.packsNone')}</b>
+                    )}
+                    {next !== null && (
+                        <small className="ut-timer">
+                            <HudIcon kind="stopwatch" />
+                            {hms(next)}
+                        </small>
+                    )}
                 </button>
                 <button type="button" className="panel bc-surface ut-block" onClick={() => onTab('goals')}>
                     <BlockHead icon="medal" title={t('ultimate.home.goals')} />
@@ -307,11 +312,23 @@ export function Home({
     );
 }
 
-function BlockHead({ icon, title, state }: { icon: HudIconKind; title: string; state?: ReactNode }) {
+function BlockHead({
+    icon,
+    title,
+    state,
+    count,
+}: {
+    icon: HudIconKind;
+    title: string;
+    state?: ReactNode;
+    /** O número do que espera você ali (como no FC). */
+    count?: number;
+}) {
     return (
         <span className="ut-b-head">
             <HudIcon kind={icon} />
             <b>{title}</b>
+            {!!count && <i className="ut-count">{count}</i>}
             {state && <small>{state}</small>}
         </span>
     );
@@ -414,26 +431,21 @@ const POST_MS = { fichas: 400, pass: 450, line: 250, prize: 400, max: 3000 };
 /**
  * Pós-jogo em cascata (≤ 3 s; tocar pula pro fim): o placar, as Fichas contando, o passe, os objetivos e os Primeiros
  * passos batendo um por um e, por último, o que a partida deu. Prêmio espera o Resgatar (aqui ou nos Pendentes);
- * resgatado, o pacote ganho tem "Abrir agora".
+ * resgatado, o pacote vai pra Meus pacotes ("+2 em Meus pacotes"): Continuar é o principal e nada empurra pra abrir
+ * (ultimate-fc.md, decidido em 09/11).
  */
-function PostGame({
-    last,
-    onGoals,
-    onOpen,
-}: {
-    last: UltimateLast;
-    onGoals: () => void;
-    onOpen: (kind: PackKind) => void;
-}) {
+function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () => void; onPacks: () => void }) {
     const { t, tn, d, lang } = useT();
     const reward = useReward();
     const evo = useGame((s) => s.ultimate.evos.some(evoReady));
     const prizes = useGame((s) => s.ultimate.pending.some((p) => p.kind === 'prize'));
+    const stack = useGame((s) => stackCount(s.ultimate, utNow()));
     const seen = () => useGame.getState().ultimateSeen();
     const objectives = (last.objectives ?? []).flatMap((id) => objectiveById(id) ?? []);
     const firsts = (last.firsts ?? []).flatMap((id) => FIRST_STEPS.find((f) => f.id === id) ?? []);
     const packs = lastPacks(last);
-    const hasPacks = packs.mini + packs.big > 0;
+    const got = packs.mini + packs.big;
+    const hasPacks = got > 0;
     const extra = !!(last.badge && last.gym) || !!last.ornament;
     const raw = [
         POST_MS.fichas,
@@ -530,11 +542,16 @@ function PostGame({
                 <Beat on={c.step > n++} className="ut-prize-packs">
                     <PackArt look="" label={packs.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
                     <span>
-                        <span className="bc-lbl">
-                            {prizes ? t('ultimate.result.toOpen') : t('ultimate.packs.open')}
-                        </span>
-                        {packs.mini > 0 && <b>{tn('ultimate.goals.packs', packs.mini)}</b>}
-                        {packs.big > 0 && <b>{tn('ultimate.goals.big', packs.big)}</b>}
+                        {prizes ? (
+                            <span className="bc-lbl">{t('ultimate.result.toOpen')}</span>
+                        ) : (
+                            // resgatado: o destino à vista (nada abre sozinho; a pilha espera em Meus pacotes)
+                            <b key="got" className="ut-b-hot k-pop">
+                                {t('ultimate.stack.gotN', { n: got })}
+                            </b>
+                        )}
+                        {packs.mini > 0 && <small>{tn('ultimate.goals.packs', packs.mini)}</small>}
+                        {packs.big > 0 && <small>{tn('ultimate.goals.big', packs.big)}</small>}
                     </span>
                 </Beat>
             )}
@@ -545,7 +562,7 @@ function PostGame({
                 </button>
             )}
             <div className="ut-prize-actions">
-                {prizes ? (
+                {prizes && (
                     <button
                         type="button"
                         className="btn confirm wide"
@@ -557,23 +574,22 @@ function PostGame({
                     >
                         {t('ultimate.pending.redeemAll')}
                     </button>
-                ) : (
-                    hasPacks && (
-                        <button
-                            type="button"
-                            className="btn confirm wide"
-                            onClick={() => {
-                                seen();
-                                onOpen(packs.big ? 'big' : 'mini');
-                            }}
-                        >
-                            {t('ultimate.result.openNow')}
-                        </button>
-                    )
                 )}
-                <button type="button" className={prizes || hasPacks ? 'btn' : 'btn confirm wide'} onClick={seen}>
+                <button type="button" className={prizes ? 'btn' : 'btn confirm wide'} onClick={seen}>
                     {t('ultimate.result.next')}
                 </button>
+                {!prizes && stack > 0 && (
+                    <button
+                        type="button"
+                        className="btn"
+                        onClick={() => {
+                            seen();
+                            onPacks();
+                        }}
+                    >
+                        {t('ultimate.stack.mine', { n: stack })}
+                    </button>
+                )}
             </div>
         </section>
     );

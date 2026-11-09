@@ -123,6 +123,7 @@ import { watchSave } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
 import {
+    bridgePays,
     buyCard,
     buyPack,
     cupBridge,
@@ -131,7 +132,7 @@ import {
     finishMatch,
     firstStep,
     newUltimate,
-    openPack,
+    openMany,
     type PackKind,
     type PackOpen,
     quickSell,
@@ -247,6 +248,8 @@ export interface ChampMemo {
     firstTitles: number[];
     /** O desfile do Hall da Fama já passou (só aparece uma vez). */
     paraded?: boolean;
+    /** A ponte da Copa pagou 1 Pacote Mini no Time Ultimate com este título (o aviso no resultado). */
+    utBridge?: boolean;
 }
 
 export type RunStatus =
@@ -473,6 +476,8 @@ export interface GameStore {
     ultimate: UltimateSave;
     /** Abre um pacote (Mini: o grátis primeiro; `now` = relógio, injetado nos testes). null = sem pacote. */
     ultimateOpenPack(now?: number, kind?: PackKind): PackOpen | null;
+    /** Abrir todos (ou `n`) do tipo de uma vez; null = nenhum abriu. `full` = parou nos Pendentes cheios. */
+    ultimateOpenMany(kind: PackKind, n?: number, now?: number): { packs: PackOpen[]; full: boolean } | null;
     /** Virada da temporada (zera o modo e guarda o legado). */
     ultimateSeason(now?: number): void;
     ultimateTeam(patch: Partial<UltimateTeam>): void;
@@ -1252,23 +1257,26 @@ export const useGame = create<GameStore>()(
                 hall: [],
                 binder: [],
                 ultimate: newUltimate(),
-                ultimateOpenPack: (now = utNow(), kind = 'mini') => {
-                    const r = openPack(getState().ultimate, now, kind);
-                    if (!r) return null;
+                ultimateOpenPack: (now = utNow(), kind = 'mini') =>
+                    getState().ultimateOpenMany(kind, 1, now)?.packs[0] ?? null,
+                ultimateOpenMany: (kind, n, now = utNow()) => {
+                    const r = openMany(getState().ultimate, now, kind, n);
+                    if (!r.packs.length) return null;
+                    const cards = r.packs.flatMap((p) => p.cards);
                     setState({
                         ultimate: r.u,
                         dex: markSeen(
                             getState().dex,
-                            r.pack.cards.map((c) => c.speciesId),
+                            cards.map((c) => c.speciesId),
                         ),
                         // Álbum: as especiais novas (Shiny, Ícone) contam como as da Copa
                         binder: binderAdd(
                             getState().binder,
-                            r.pack.cards.filter((_, i) => !r.pack.repeat[i]),
+                            r.packs.flatMap((p) => p.cards.filter((_, i) => !p.repeat[i])),
                             { from: 'ultimate', at: now },
                         ),
                     });
-                    return r.pack;
+                    return { packs: r.packs, full: r.full };
                 },
                 ultimateSeason: (now = utNow()) => {
                     const r = rollSeason(getState().ultimate, now);
@@ -1855,8 +1863,14 @@ export const useGame = create<GameStore>()(
                             cup: run.seed,
                         });
                     let hall = getState().hall;
+                    // ponte da Copa: o título vale 1 Pacote Mini no Time Ultimate (com teto por dia), pra quem já começou o modo
+                    const ut = getState().ultimate;
+                    const bridge = status === 'champion' && ut.opened > 0 && bridgePays(ut, utNow());
                     if (status === 'champion') {
-                        next.champ = champMemo(next, records, getState().dex);
+                        next.champ = {
+                            ...champMemo(next, records, getState().dex),
+                            ...(bridge && { utBridge: true }),
+                        };
                         hall = [hallEntry(next, getState().profile), ...hall.filter((h) => h.id !== next.seed)].slice(
                             0,
                             MAX_HALL,
@@ -1904,11 +1918,9 @@ export const useGame = create<GameStore>()(
                         },
                         [matchView(m, result.stats?.digest ?? matchDigest(m), run.lockedTeam, last)],
                     );
-                    // ponte da Copa: o título vale 1 Pacote Mini no Time Ultimate (com teto por dia), pra quem já começou o modo
-                    const ut = getState().ultimate;
                     setState({
                         ...saved,
-                        ...(status === 'champion' && ut.opened > 0 && { ultimate: cupBridge(ut, utNow()) }),
+                        ...(bridge && { ultimate: cupBridge(ut, utNow()) }),
                         ...(run.daily && { daily: dailyNext }),
                         ...(fresh.length && {
                             profile: { ...profile, missionsDone: [...profile.missionsDone, ...fresh] },

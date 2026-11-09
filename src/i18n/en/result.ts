@@ -15,6 +15,7 @@ export const result: typeof pt = {
     },
     chooseReward: 'Choose a reward',
     feedback: 'Send feedback',
+    utBridge: '+1 Mini Pack in Team Ultimate',
     finalDetails: 'The final in detail',
     highlights: 'Match highlights',
     foldHighlights: 'Highlights and goals',

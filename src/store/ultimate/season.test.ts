@@ -16,7 +16,7 @@ import {
     GYM_FIRST_BIG,
     GYMS,
     OBJECTIVES,
-    PACK_MAX,
+    PACK_START,
     PASS_CARD,
     PASS_DAY_MAX,
     PASS_GYM_MULT,
@@ -140,7 +140,7 @@ describe('temporadas (semestrais)', () => {
             gyms: [],
             plays: {},
             pass: newPass(),
-            packs: PACK_MAX,
+            packs: PACK_START,
         });
         expect(v.team.order).toEqual([]);
         // fica: o legado (com a temporada nova no fim) e os enfeites
@@ -293,7 +293,7 @@ describe('Pacote Grande', () => {
         expect(openPack(u, IN_T1, 'big')).toBeNull();
         const r = openPack({ ...u, bigPacks: 1 }, IN_T1, 'big')!;
         expect(r.pack.cards).toHaveLength(BIG_PACK_SIZE);
-        expect(r.u).toMatchObject({ bigPacks: 0, packs: PACK_MAX, extraPacks: 0, opened: 1 });
+        expect(r.u).toMatchObject({ bigPacks: 0, packs: PACK_START, extraPacks: 0, opened: 1 });
     });
 
     it('os objetivos da semana pagam Pacote Grande no lugar do Mini', () => {
