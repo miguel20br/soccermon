@@ -6,7 +6,8 @@ import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/form
 import type { PokemonInstance } from '../engine/instance';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
-import { SNAP_STRIDE } from '../engine/state';
+import { Action, SNAP_STRIDE } from '../engine/state';
+import { dir8 } from '../engine/vec';
 
 /**
  * Leitura da partida num tick a partir do resultado já simulado (eventos + snapshots): quem está em cada vaga,
@@ -323,4 +324,68 @@ export function pressureUntil(m: MatchResult, tick: number, bins = PRESSURE_BINS
         } else if (e.type === 'goal') out[binOf(e.minute)].goals[e.team]++;
     }
     return out;
+}
+
+/** Lado x de cada direção das sheets PMD (0 baixo, 1 baixo-direita, 2 direita…): +1 direita, -1 esquerda. */
+const FACING_X = [0, 1, 1, 1, 0, -1, -1, -1];
+
+/**
+ * O goleiro na área nunca fica virado pro próprio gol. O motor vira o sprite pra onde ele anda e, no recuo pra linha
+ * quando o rival chuta, ele corria de costas pro chute. Na tela ele olha pra bola, sempre do lado do campo (de frente
+ * ou na diagonal), e anda de ré.
+ * `front`: +1 quando o gol dele é o da esquerda (o campo fica à direita). `toBall`: da posição dele até a bola.
+ */
+export function keeperFacing(facing: number, front: 1 | -1, toBall: { x: number; y: number }): number {
+    if (FACING_X[facing] * front > 0) return facing;
+    // de cima ou de baixo também não: de cima ele mostra as costas. Pro lado do campo, no máximo na diagonal
+    const x = Math.max(Math.abs(toBall.x), Math.abs(toBall.y) * 0.5, 1e-3);
+    return dir8({ x: x * front, y: toBall.y });
+}
+
+/** Gol com o goleiro mergulhando (o sorteio da defesa falhou): `tick` é o começo do mergulho, `goal` o do gol. */
+export interface SoldDive {
+    gk: number;
+    tick: number;
+    goal: number;
+}
+
+/**
+ * Gols que a tela mostra como "mergulho vendido". No motor o goleiro mergulha no chute que alcança (`Action.Dive`) e,
+ * se o sorteio falha, a bola segue pelo ponto onde ele está: o gol saía pela barriga dele. Lê só os snapshots.
+ */
+export function soldDives(snaps: MatchSnapshot[], events: readonly MatchEvent[], teamSize: number): SoldDive[] {
+    const out: SoldDive[] = [];
+    for (const e of events) {
+        if (e.type !== 'goal' || e.ownGoal) continue;
+        const from = (1 - e.team) * teamSize;
+        let gk = -1;
+        let tick = -1;
+        // de trás pra frente a partir do gol: o mergulho de até 0,8 s antes, e onde ele começou
+        for (let n = snaps.length - 1; n >= 0; n--) {
+            const s = snaps[n];
+            if (s.tick > e.tick) continue;
+            if (s.tick < e.tick - 16) break;
+            const diving = (i: number) => s.p[i * SNAP_STRIDE + 3] === Action.Dive;
+            if (gk < 0) {
+                for (let i = from; i < from + teamSize; i++) if (diving(i)) gk = i;
+                if (gk >= 0) tick = s.tick;
+            } else if (diving(gk)) tick = s.tick;
+            else break;
+        }
+        if (gk >= 0) out.push({ gk, tick, goal: e.tick });
+    }
+    return out;
+}
+
+/**
+ * Quanto o sprite do goleiro sobe (negativo) ou desce no mergulho vendido pra bola passar rente, fora do corpo.
+ * `path`: centro da bola em cada tick do lance, relativo ao pé dele (px de tela). O corpo vai do pé (0) até `body.h`
+ * acima; `body.w` é a largura. `r`: raio da bola com folga. Devolve o menor desvio que limpa o caminho todo.
+ */
+export function soldDiveShift(path: { x: number; y: number }[], body: { w: number; h: number }, r = 8): number {
+    const near = path.filter((p) => Math.abs(p.x) < body.w / 2 + r);
+    if (near.every((p) => p.y > r || p.y < -body.h - r)) return 0;
+    const up = Math.min(...near.map((p) => p.y)) - r;
+    const down = Math.max(...near.map((p) => p.y)) + r + body.h;
+    return Math.abs(up) <= Math.abs(down) ? up : down;
 }
