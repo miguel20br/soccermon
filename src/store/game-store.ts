@@ -91,6 +91,7 @@ import {
 import {
     applySkip,
     centroEvent,
+    gambleNote,
     ROTA_VALUES,
     resolveEvent,
     rewardRerollable,
@@ -127,6 +128,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
+import { ACE_ROUND, casaOf } from './rota-map';
 import { watchSave } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
@@ -692,7 +694,10 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
     const node = currentNode(run);
     // treino de técnica (Treino sem ninguém que evolua): só os itens, sem o Pokémon. No grupo `at` ainda é o Treino.
     const training = isLong(run) && node?.kind === 'treino' && !run.group;
-    const defeated = node?.kind === 'bau' || training ? undefined : rerollRival(run, reroll, avoid, defeatedOf(run));
+    // Treinador Ás (mapa largo): depois do 1 de 3 do rival, 1 de 3 cartas da raridade mais alta (sem o elenco dele)
+    const ace = isLong(run) && casaOf(node) === 'as' && !run.rivalPick && !run.group && !run.fight;
+    const defeated =
+        node?.kind === 'bau' || training || ace ? undefined : rerollRival(run, reroll, avoid, defeatedOf(run));
     // prêmio da casa: o do Jogo (à vista no mapa) ou o do Ginásio; desafio de evento vale a recompensa de sempre com o
     // garantido dele. No grupo `at` ainda é o Treino: recompensa de sempre.
     const fight = run.fight;
@@ -709,7 +714,7 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
     const long = isLong(run)
         ? {
               key: training ? `${run.at}-treino` : run.rivalPick ? `${run.at}-rival` : (run.at ?? `m${run.stage}`),
-              round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
+              round: ace ? ACE_ROUND : Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
               prize,
               types: run.group ? undefined : node?.types,
               ace: prize === 'gym' && opp ? LEADER_ACE[opp.name] : undefined,
@@ -1251,7 +1256,7 @@ export const useGame = create<GameStore>()(
                     // depois do 1 de 3 do rival, o prêmio da casa (MT ou item; o ₽ em dobro já entrou na vitória)
                     const node = currentNode(run);
                     const prize = run.rivalPick ? node?.prize : undefined;
-                    if (prize === 'tm' || prize === 'item')
+                    if (prize === 'tm' || prize === 'item' || (prize === 'pokemon' && casaOf(node) === 'as'))
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
                     // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento
                     const stone = stoneEvent(done);
@@ -2062,7 +2067,8 @@ export const useGame = create<GameStore>()(
                 leaveShop: () => {
                     const run = getState().run;
                     if (run?.status !== 'shop' || run.shop?.pack) return;
-                    if (isLong(run)) setState({ run: toMap(run), match: null, screen: 'map' });
+                    // Rota: de volta pro mapa, ou pro grupo depois do Mercado do Planalto (a última parada)
+                    if (isLong(run)) setState({ ...backToRoute(run), match: null });
                     else setState({ run: toLineup({ ...run, shop: null }), match: null, screen: 'lineup' });
                 },
 
@@ -2120,8 +2126,15 @@ export const useGame = create<GameStore>()(
                     } else if (node.kind === 'treino')
                         setState({ run: { ...base, status: 'treino' }, screen: 'treino' });
                     else {
-                        // Centro Pokémon: a mesma tela do evento, com as escolhas dele (sem nada pra tratar, o PC do Bill)
-                        const event = node.kind === 'centro' ? rollEvent(base, centroEvent(base)) : rollEvent(base);
+                        // Centro Pokémon: a mesma tela do evento, com as escolhas dele (sem nada pra tratar, o PC do Bill);
+                        // Zona Safari e Cassino (mapa largo) também
+                        const casa = casaOf(node);
+                        const event =
+                            node.kind === 'centro'
+                                ? rollEvent(base, centroEvent(base))
+                                : casa === 'safari' || casa === 'cassino'
+                                  ? rollEvent(base, casa)
+                                  : rollEvent(base);
                         setState({
                             run: { ...base, status: 'event', event },
                             screen: 'event',
@@ -2135,6 +2148,9 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'event' || !run.event) return;
                     const next = resolveEvent(run, run.event, choice, target, captain);
                     if (!next) return;
+                    // aposta (Safari, Cassino): a nota diz o resultado; Centro da última parada: segue pro grupo
+                    const gamble = gambleNote(run, run.event, choice, target);
+                    const back = backToRoute({ ...next, event: null });
                     const incoming = next.picks.filter((p) => !run.picks.some((o) => o.uid === p.uid));
                     // a pedra evoluiu alguém: Pokédex e fichário como a evolução da partida
                     const evolved = next.picks.filter((p) =>
@@ -2157,12 +2173,12 @@ export const useGame = create<GameStore>()(
                             }),
                         }),
                         run: {
-                            ...toMap(next),
+                            ...back.run,
                             event: null,
                             eventsSeen: [...(run.eventsSeen ?? []), run.event.id],
                             eventNote: {
                                 id: run.event.id,
-                                choice,
+                                choice: gamble?.choice ?? choice,
                                 ...(target && { target }),
                                 cost: (run.money ?? 0) - (next.money ?? 0),
                                 // os nomes do texto ("{a} vai embora"): quem sai do time não está mais em `picks`
@@ -2172,9 +2188,10 @@ export const useGame = create<GameStore>()(
                                         return p ? viewInstance(p).displayName : '';
                                     }),
                                 }),
+                                ...(gamble && { names: gamble.names }),
                             },
                         },
-                        screen: 'map',
+                        screen: back.screen,
                     });
                 },
 

@@ -1,6 +1,5 @@
 import { CUP_STAGES } from '../engine/cup';
 import {
-    buildCupMap,
     CHALLENGE_SHIFT,
     type CupMap,
     FINAL_MATCH,
@@ -18,6 +17,7 @@ import type { Stone } from '../engine/evolution';
 import { Rng } from '../engine/rng';
 import { winEarnings } from '../engine/shop';
 import type { TeamSetup } from '../engine/state';
+import { ACE_SHIFT, buildRotaMap, casaOf, MAP_V } from './rota-map';
 
 /**
  * Copa longa (docs/planos/copa-longa.md): o que muda numa copa com `mode: 'longa'`. Sem `mode` é a Copa rápida de
@@ -53,6 +53,8 @@ export const longRound = (stage: number) => LONG_ROUND[Math.min(stage, LONG_ROUN
 export interface LongRunFields {
     mode?: CupMode;
     map?: CupMap;
+    /** Versão do mapa: 2 = o mapa largo (src/store/rota-map.ts). Sem = o estreito (Rota guardada antes dele). */
+    mapV?: number;
     /** Casa em que você está (null = ainda não entrou no mapa). */
     at?: string | null;
     /** Casas por onde passou, em ordem. */
@@ -106,7 +108,7 @@ export function nodeOpponent(
     const faced = run.opponents.flatMap((o) => (o ? [o.name] : []));
     const ch = node.kind === 'final' ? null : run.challenge;
     return longOpponent(run.seed, matchIndexOfRow(node.row), node.kind, faced, {
-        shift: (run.rivalShift ?? 0) + (ch ? CHALLENGE_SHIFT : 0),
+        shift: (run.rivalShift ?? 0) + (ch ? CHALLENGE_SHIFT : 0) + (casaOf(node) === 'as' ? ACE_SHIFT : 0),
         types: node.types,
         ...(ch === 'rocket' && { club: 'Equipe Rocket' }),
         ...(ch === 'lendario' && { boss: LEGENDARY_BIRD }),
@@ -174,7 +176,8 @@ export function tickOut(out: Record<string, number> | undefined): Record<string,
 
 export const newLongFields = (seed: string): LongRunFields => ({
     mode: 'longa',
-    map: buildCupMap(seed),
+    map: buildRotaMap(seed),
+    mapV: MAP_V,
     at: null,
     path: [],
     cards: 0,

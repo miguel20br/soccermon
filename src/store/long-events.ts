@@ -3,7 +3,9 @@ import { draftOptions } from '../engine/draft';
 import { evolutionTarget, evolveInstance, evoThreshold, type Stone, stoneInto } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, viewInstance } from '../engine/instance';
+import { ITEM_IDS, ITEMS } from '../engine/items';
 import { Rng } from '../engine/rng';
+import { metalOf } from '../engine/shop';
 import { rollSpecial } from '../engine/specials';
 import type { RunState } from './game-store';
 import { currentNode, isLong, isOut, longRound, type OutWhy } from './long-cup';
@@ -27,9 +29,9 @@ export const EVENT_IDS = [
 ] as const;
 /**
  * `centro` = o Centro Pokémon do mapa, `pc` = o PC do Bill (o Centro sem nada pra tratar) e `pedra` = a pedra ganha num
- * Jogo ou tirada da Mochila (a mesma tela, fora do sorteio).
+ * Jogo ou tirada da Mochila (a mesma tela, fora do sorteio). `safari` e `cassino` = as casas novas do mapa largo.
  */
-export type EventId = (typeof EVENT_IDS)[number] | 'centro' | 'pc' | 'pedra';
+export type EventId = (typeof EVENT_IDS)[number] | 'centro' | 'pc' | 'pedra' | 'safari' | 'cassino';
 
 export interface LongEvent {
     id: EventId;
@@ -45,8 +47,11 @@ export interface LongEvent {
     bag?: boolean;
 }
 
-/** O que cada escolha pede: nada, alguém do time, alguém do banco, quem segura item, quem evolui com a pedra. */
-export type Need = 'none' | 'involved' | 'bench' | 'holder' | 'stone' | 'captainSale';
+/**
+ * O que cada escolha pede: nada, alguém do time, alguém do banco, quem segura item, quem evolui com a pedra, quem está
+ * sem item.
+ */
+export type Need = 'none' | 'involved' | 'bench' | 'holder' | 'stone' | 'captainSale' | 'noItem';
 
 export interface EventChoice {
     id: string;
@@ -55,6 +60,8 @@ export interface EventChoice {
     need: Need;
     /** Dá pra escolher agora (₽ suficiente, banco cheio…). */
     ok: boolean;
+    /** Aposta (Safari, Cassino): a chance de dar certo, à vista no botão. */
+    chance?: number;
 }
 
 /** O capitão só recebe proposta de vez em quando; os de região e o Juiz, quando aparecem, aparecem mais. */
@@ -97,6 +104,16 @@ export const ROTA_VALUES = {
     folga: 5,
 };
 
+/** Zona Safari (Gen 1): os selvagens dela. Quanto melhor a carta, mais fácil ela fugir da Safari Ball. */
+export const SAFARI_POOL = [29, 30, 32, 33, 46, 47, 48, 49, 54, 79, 84, 102, 111, 113, 115, 118, 123, 127, 128, 147];
+export const SAFARI_FLEE = { bronze: 0.15, prata: 0.35, ouro: 0.55 } as const;
+/** Balcão de prêmios do Cassino de Celadon (Gen 1). */
+export const CASSINO_POOL = [63, 35, 30, 147, 123, 127, 137];
+/** Cassino: o caça-níquel (item pra quem está sem) e o balcão (a carta à vista), com o preço e a chance. */
+export const CASSINO = { spin: 3, spinWin: 0.5, prize: 8, prizeWin: 0.6 } as const;
+/** Chance de a carta fugir da Safari Ball. */
+export const fleeOf = (inst: PokemonInstance) => SAFARI_FLEE[metalOf(viewInstance(inst).overall)];
+
 const squadOf = (run: RunState) => [...run.lineup, ...run.bench].filter(Boolean);
 const benchFree = (run: RunState) => run.bench.filter((u) => u && u !== run.captainUid);
 /** Quem evolui com a pedra (a Pedra da Lua: Nidorina, Nidorino, Clefairy, Jigglypuff). */
@@ -105,6 +122,7 @@ export const stoners = (run: Pick<RunState, 'picks' | 'out'>, stone: Stone) =>
 /** A pedra do evento: a ganha no Jogo ou a Pedra da Lua dos Fósseis. */
 const stoneOf = (ev: LongEvent): Stone => ev.stone ?? 'lua';
 const holders = (run: RunState) => squadOf(run).filter((u) => run.picks.find((p) => p.uid === u)?.item);
+const noItem = (run: RunState) => squadOf(run).filter((u) => !run.picks.find((p) => p.uid === u)?.item);
 const rating = (run: RunState, uid: string) => {
     const p = run.picks.find((x) => x.uid === uid);
     return p ? viewInstance(p).overall : 0;
@@ -161,6 +179,14 @@ export function rollEvent(run: RunState, only?: EventId): LongEvent {
         const free = EGG_POOL.filter((sp) => !taken.has(sp));
         return { id, egg: rng.pick(free.length ? free : EGG_POOL) };
     }
+    // Zona Safari: 3 selvagens que você ainda não tem; Cassino: a carta do balcão de prêmios
+    const wild = (pool: readonly number[], n: number) =>
+        rng
+            .shuffle(pool.filter((sp) => !taken.has(sp)))
+            .slice(0, n)
+            .map((sp) => ({ ...createInstance(sp, rng), uid: `${id}-${sp}-${run.at}` }));
+    if (id === 'safari') return { id, cards: wild(SAFARI_POOL, 3) };
+    if (id === 'cassino') return { id, cards: wild(CASSINO_POOL, 1) };
     return { id };
 }
 
@@ -219,6 +245,24 @@ export function eventChoices(run: RunState, ev: LongEvent): EventChoice[] {
             ];
         case 'pc':
             return [c('trocar', 0, 'bench', bench >= 1 && !!ev.cards?.length), c('seguir', 0, 'none')];
+        case 'safari':
+            // uma Safari Ball só: se pegar, entra no lugar do reserva que você escolheu; se fugir, ninguém sai
+            return [
+                ...(ev.cards ?? []).map((card, i) => ({
+                    ...c(`bola${i}`, 0, 'bench', bench >= 1),
+                    chance: 1 - fleeOf(card),
+                })),
+                c('seguir', 0, 'none'),
+            ];
+        case 'cassino':
+            return [
+                { ...c('girar', CASSINO.spin, 'noItem', noItem(run).length > 0), chance: CASSINO.spinWin },
+                {
+                    ...c('premio', CASSINO.prize, 'bench', bench >= 1 && !!ev.cards?.length),
+                    chance: CASSINO.prizeWin,
+                },
+                c('sair', 0, 'none'),
+            ];
         case 'centro':
             return [
                 c('amarelo', 0, 'none', (run.cards ?? 0) > 0),
@@ -238,6 +282,7 @@ export function choiceTargets(run: RunState, ev: LongEvent, need: Need): string[
     if (need === 'involved') return ev.uids ?? [];
     if (need === 'stone') return stoners(run, stoneOf(ev)).map((p) => p.uid);
     if (need === 'holder') return holders(run);
+    if (need === 'noItem') return noItem(run);
     if (need === 'bench' || need === 'captainSale') return benchFree(run);
     return [];
 }
@@ -274,7 +319,17 @@ export function resolveEvent(
         picks: [...next.picks.filter((p) => p.uid !== leaving), inst],
         bench: next.bench.map((u) => (u === leaving ? inst.uid : u)),
     });
+    const won = gambleWon(run, ev, choiceId);
+    if (won === false) return next;
+    if (ev.id === 'safari' && choiceId.startsWith('bola')) return swapIn(ev.cards![Number(choiceId.slice(4))], target!);
     switch (`${ev.id}:${choiceId}`) {
+        case 'cassino:girar':
+            return {
+                ...next,
+                picks: next.picks.map((p) => (p.uid === target ? { ...p, item: cassinoItem(run) } : p)),
+            };
+        case 'cassino:premio':
+            return swapIn(ev.cards![0], target!);
         case 'carrinho:parar':
             return { ...next, ...out(target!, 2, 'lesao') };
         case 'patrocinador:aceitar': {
@@ -356,12 +411,46 @@ export function resolveEvent(
 export function withKnownEvents<T extends RunState | null | undefined>(run: T): T {
     if (!run) return run;
     const known = (id: string) =>
-        id === 'centro' || id === 'pc' || id === 'pedra' || (EVENT_IDS as readonly string[]).includes(id);
+        ['centro', 'pc', 'pedra', 'safari', 'cassino'].includes(id) || (EVENT_IDS as readonly string[]).includes(id);
     let out: RunState = run;
     if (run.event && !known(run.event.id))
         out = { ...out, event: rollEvent({ ...run, eventsSeen: [...(run.eventsSeen ?? []), run.event.id] }) };
     if (run.eventNote && !known(run.eventNote.id)) out = { ...out, eventNote: null };
     return out as T;
+}
+
+/**
+ * Aposta da Safari (a bola pega?) e do Cassino (o caça-níquel e o balcão pagam?): pela seed e pela casa, então a tela
+ * pode mostrar o resultado antes de valer e voltar na mesma copa dá o mesmo. null = não é aposta.
+ */
+export function gambleWon(run: RunState, ev: LongEvent, choiceId: string): boolean | null {
+    const c = eventChoices(run, ev).find((x) => x.id === choiceId);
+    if (c?.chance === undefined) return null;
+    return new Rng(run.seed, `${ev.id}-${run.at}-${choiceId}`).chance(c.chance);
+}
+/** O item do caça-níquel: um que o time ainda não tem. */
+export function cassinoItem(run: RunState): string {
+    const owned = new Set(run.picks.map((p) => p.item).filter(Boolean));
+    const pool = ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type' && !owned.has(id));
+    return new Rng(run.seed, `cassino-${run.at}-item`).pick(pool.length ? pool : ITEM_IDS);
+}
+/**
+ * A nota no mapa depois da escolha: na aposta, o resultado (`pegou`/`fugiu` na Safari, `ganhou`/`perdeu` no Cassino) e
+ * o nome de quem entra ou de quem leva o item.
+ */
+export function gambleNote(
+    run: RunState,
+    ev: LongEvent,
+    choiceId: string,
+    target?: string,
+): { choice: string; names: string[] } | null {
+    const won = gambleWon(run, ev, choiceId);
+    if (won === null) return null;
+    const card = ev.id === 'safari' ? ev.cards?.[Number(choiceId.slice(4))] : ev.cards?.[0];
+    const who = choiceId === 'girar' ? run.picks.find((p) => p.uid === target) : card;
+    const names = who ? [viewInstance(who).displayName] : [];
+    if (ev.id === 'safari') return { choice: won ? 'pegou' : 'fugiu', names };
+    return { choice: won ? (choiceId === 'girar' ? 'ganhouItem' : 'ganhou') : 'perdeu', names };
 }
 
 /** Tira uma pedra dessas da Mochila. */

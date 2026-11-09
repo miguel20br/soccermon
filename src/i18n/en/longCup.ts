@@ -16,6 +16,24 @@ export const longCup: typeof pt = {
         bau: 'Chest',
         centro: 'Pokémon Center',
         final: 'Final',
+        as: 'Ace Trainer',
+        safari: 'Safari Zone',
+        cassino: 'Celadon Game Corner',
+        planalto: 'Plateau Market',
+    },
+    kindShort: {
+        jogo: 'Match',
+        ginasio: 'Gym',
+        mercado: 'Market',
+        evento: 'Event',
+        treino: 'Training',
+        bau: 'Chest',
+        centro: 'Center',
+        final: 'Final',
+        as: 'Ace',
+        safari: 'Safari',
+        cassino: 'Casino',
+        planalto: 'Plateau',
     },
     desc: {
         jogo: 'A win pays ₽ and the prize.',
@@ -27,6 +45,10 @@ export const longCup: typeof pt = {
         bau: 'A free reward, one rarity higher.',
         centro: "Clears the yellow card or brings back who's out. Nothing to treat: Bill's PC.",
         final: 'One match against the Indigo League.',
+        as: 'Tougher rival. A win pays ₽, 1 of 3 from their team and a rare card.',
+        safari: 'One Safari Ball for 1 of 3 wild Pokémon. The better, the likelier to flee.',
+        cassino: 'Bet ₽ on the slots (item) or the prize counter (Pokémon).',
+        planalto: 'The last Market before the group. Spend your leftover ₽.',
     },
     prize: {
         pokemon: "Rival's Pokémon",
@@ -34,6 +56,7 @@ export const longCup: typeof pt = {
         item: 'Type item',
         money: 'Double ₽',
         pedra: 'Evolution stone',
+        rara: 'Rare card',
     },
     prizeShort: { pokemon: 'Pokémon', tm: 'TM', item: 'Item', money: '₽ x2', pedra: 'Stone' },
     prizeDesc: {
@@ -44,7 +67,10 @@ export const longCup: typeof pt = {
         moneyRival: 'The win pays double ₽.',
         pedra: 'Whoever evolves with it evolves right away.',
         pedraRival: 'Evolves right away. The rival brings one in their 1 of 3.',
+        rara: 'Pick 1 of 3 cards of the highest rarity.',
     },
+    flee: 'Flees {n}%',
+    reveal: { pegou: 'Caught {a}!', fugiu: '{a} fled!', ganhou: 'Jackpot!', perdeu: 'Not this time' },
     prizeLabel: 'Prize',
     /** Evolution stones (the Route's region prizes). */
     stone: {
@@ -255,6 +281,32 @@ export const longCup: typeof pt = {
             choices: {
                 trocar: ['Swap', 'Takes the place of a sub.'],
                 seguir: ['Move on', ''],
+            },
+        },
+        safari: {
+            who: 'pokemaniac',
+            title: 'Safari Zone',
+            text: 'One Safari Ball, one shot. Which one do you throw it at?',
+            choices: {
+                bola0: ['{a}', "If caught, it takes a sub's place."],
+                bola1: ['{b}', "If caught, it takes a sub's place."],
+                bola2: ['{c}', "If caught, it takes a sub's place."],
+                seguir: ['Move on', ''],
+                pegou: ['Safari Ball!', '{a} joined the team.'],
+                fugiu: ['It fled!', '{a} ran into the grass.'],
+            },
+        },
+        cassino: {
+            who: 'rocker',
+            title: 'Celadon Game Corner',
+            text: 'Coins, coins! Today the counter has {a}.',
+            choices: {
+                girar: ['Slots', 'Three stars: an item for someone without one.'],
+                premio: ['Prize counter', "{a} takes a sub's place."],
+                sair: ['Leave', ''],
+                ganhou: ['Jackpot!', '{a} joined the team.'],
+                ganhouItem: ['Three stars!', '{a} got an item.'],
+                perdeu: ['Not this time', 'Just the ₽ you bet.'],
             },
         },
         centro: {

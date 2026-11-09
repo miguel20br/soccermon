@@ -3,7 +3,7 @@ import type { SaveSummary } from '../cloud/reconcile-plan';
 import { maxCharge } from '../engine/agency';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
 import { clubLeader, cupRival } from '../engine/cup';
-import { isMatchKind } from '../engine/cup-map';
+import { isMatchKind, matchIndexOfRow } from '../engine/cup-map';
 import { SPECIES, species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
 import type { Stone } from '../engine/evolution';
@@ -23,6 +23,7 @@ import { longRound } from '../store/long-cup';
 import { type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
+import { type House, houseOf } from '../store/rota-map';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -88,6 +89,8 @@ export function runDevDemo() {
         demo !== 'mt' &&
         demo !== 'mercado' &&
         demo !== 'mapa' &&
+        demo !== 'as' &&
+        demo !== 'planalto' &&
         demo !== 'treino' &&
         demo !== 'evento' &&
         demo !== 'pedra' &&
@@ -399,7 +402,7 @@ export function runDevDemo() {
     if (demo === 'grupo') {
         demoLongMap(store, false);
         const run = useGame.getState().run!;
-        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
         const results = [0, 1, 2, 3, 4].map((stage) => ({
             stage,
             opponent: 'Montanhistas',
@@ -418,7 +421,7 @@ export function runDevDemo() {
         const venceu = new URLSearchParams(window.location.search).get('venceu') !== '0';
         demoLongMap(store, false);
         const run = useGame.getState().run!;
-        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
         const results = [0, 1, 2, 3, 4, 5, 6].map((stage) => ({
             stage,
             opponent: 'Montanhistas',
@@ -462,14 +465,53 @@ export function runDevDemo() {
         if (new URLSearchParams(window.location.search).has('pronto')) {
             const ids = [128, 131, 143, 115, 123, 127, 142];
             const picks = run.picks.map((p, i) => ({ ...p, speciesId: ids[i % ids.length], item: null }));
-            const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+            const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
             run = { ...run, picks, at: last.id };
         }
         useGame.setState({ run: { ...run, status: 'treino' }, screen: 'treino' });
         return;
     }
+    // `&fim=1`: na última linha de partida, com a última parada (Treino, Mercado do Planalto, Centro) aberta
     if (demo === 'mapa') {
-        demoLongMap(store, new URLSearchParams(window.location.search).has('meio'));
+        const q = new URLSearchParams(window.location.search);
+        if (q.has('fim')) demoBefore(store, 'planalto');
+        else demoLongMap(store, q.has('meio'));
+        return;
+    }
+    // ?demo=as: o mapa largo com um Treinador Ás aberto (`&premio=1`: a recompensa dele, 1 de 3 cartas raras)
+    // ?demo=planalto: o Mercado do Planalto (a última parada, antes do grupo)
+    // A Zona Safari e o Cassino são eventos: `?demo=evento&id=safari` e `?demo=evento&id=cassino`.
+    if (demo === 'as' || demo === 'planalto') {
+        const target = demoBefore(store, demo);
+        if (!target) return;
+        if (demo === 'planalto') {
+            useGame.getState().enterNode(target);
+            return;
+        }
+        if (!new URLSearchParams(window.location.search).has('premio')) return;
+        // venceu o Ás: o 1 de 3 do rival dispensado leva direto ao prêmio da casa
+        useGame.getState().enterNode(target);
+        const run = useGame.getState().run!;
+        useGame.setState({
+            run: {
+                ...run,
+                status: 'reward',
+                rivalPick: true,
+                rewards: [],
+                results: [
+                    ...run.results,
+                    {
+                        stage: run.stage,
+                        opponent: 'Montanhistas',
+                        score: [2, 1],
+                        shootout: null,
+                        won: true,
+                        final: false,
+                    },
+                ],
+            },
+        });
+        useGame.getState().skipReward();
         return;
     }
     // ?demo=mercado: Mercado depois das quartas (demoShop)
@@ -1310,6 +1352,40 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
 }
 
 /** ?demo=mapa: Copa longa com o time montado sozinho, parada no mapa. */
+/**
+ * Mapa largo: o time numa casa de onde dá pra entrar na primeira casa desse tipo (a de linha mais alta, pra ver o mapa
+ * andado), com as partidas de antes vencidas. Devolve a casa.
+ */
+function demoBefore(store: ReturnType<typeof useGame.getState>, house: House): string | undefined {
+    demoLongMap(store, false);
+    const run = useGame.getState().run!;
+    const nodes = run.map!.nodes;
+    const target = nodes.filter((n) => houseOf(n) === house && n.row > 0).sort((a, b) => b.row - a.row)[0];
+    if (!target) return undefined;
+    // o caminho de volta até a 1ª linha (qualquer casa que liga na de cima)
+    const path: string[] = [];
+    let at = target;
+    while (at.row > 0) {
+        const prev = nodes.find((n) => n.next.includes(at.id))!;
+        path.unshift(prev.id);
+        at = prev;
+    }
+    const played = matchIndexOfRow(target.row);
+    const results = Array.from({ length: played }, (_, stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: [3, 1] as [number, number],
+        shootout: null,
+        won: true,
+        final: false,
+    }));
+    useGame.setState({
+        run: { ...run, at: path.at(-1)!, path, stage: Math.max(0, played - 1), results, money: 24, status: 'map' },
+        screen: 'map',
+    });
+    return target.id;
+}
+
 function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {
     store.newRun('Demo FC', 'mapa-demo', undefined, 'longa');
     useGame.getState().autoDraft();

@@ -827,7 +827,7 @@ describe('Copa longa', () => {
             uid: `d${i}`,
         }));
         expect(done.every((p) => evolutionTarget(p.speciesId, p.uid) === null)).toBe(true);
-        const last = base.map!.nodes.find((n) => n.row === base.map!.rows - 1)!;
+        const last = base.map!.nodes.find((n) => n.row === base.map!.rows - 1 && n.kind === 'treino')!;
         const run = {
             ...base,
             picks: done,
@@ -1166,7 +1166,7 @@ describe('Rota Índigo: fase de grupos', () => {
         useGame.getState().newRun('Pallet FC', 'grupo-1', undefined, 'longa');
         useGame.getState().autoDraft();
         const run = useGame.getState().run!;
-        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
         // 4 partidas das eliminatórias "jogadas" (só os resultados), parado no Treino
         const results = [0, 1, 2, 3].map((stage) => ({
             stage,

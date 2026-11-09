@@ -3,6 +3,7 @@ import { type GameState, liveOf, useGame } from '../store/game-store';
 import { currentNode, isLong } from '../store/long-cup';
 import { skipTagOf } from '../store/long-events';
 import { seenCount } from '../store/profile';
+import { casaOf } from '../store/rota-map';
 import { lineupAverage } from '../ui/rating';
 
 /**
@@ -149,6 +150,8 @@ const rewardScreen = (run: Run) => {
     if (run.rivalPick) return 'rival';
     if (run.group) return 'grupo';
     if (run.fight) return 'desafio';
+    // o prêmio do Treinador Ás (mapa largo): a carta rara
+    if (casaOf(currentNode(run)) === 'as') return 'as';
     return kind === 'bau' || kind === 'treino' || kind === 'ginasio' ? kind : 'premio';
 };
 
