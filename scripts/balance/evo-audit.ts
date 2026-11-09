@@ -2,7 +2,7 @@
  * Auditoria "evolução sem perda" (09/11/2026, docs/planos/evolucao-sem-perda.md): pra cada par pré-evolução → evolução
  * dos 151, compara cada atributo e a nota por posição da forma base com a evoluída, em três camadas:
  *   1. espécie pura (a carta do pacote: Magikarp × Gyarados, sem bônus);
- *   2. carta que evoluiu em quadra (+EVOLUTION_BONUS em tudo, `evolveInstance`), sem habilidade;
+ *   2. carta que evoluiu em quadra (`evolveInstance` + `viewInstance`: +EVOLUTION_BONUS e, desde 09/11, o máximo da pré);
  *   3. idem com a habilidade de cada um (a que `evolveInstance` mantém ou troca) e o Encanto da Fada.
  * E simula as regras de conserto (R1 herda o máximo, R2 piso pré+1, R3 habilidade passa) sem mexer no jogo.
  *
@@ -23,8 +23,10 @@ import { evolveInstance } from '../../src/engine/evolution';
 import {
     createInstance,
     EVOLUTION_BONUS,
+    instanceBase,
     type PokemonInstance,
     slotRating,
+    viewInstance,
     withBonus,
 } from '../../src/engine/instance';
 import { applyModifiers, attributeModifiers } from '../../src/engine/modifiers';
@@ -68,8 +70,8 @@ const inst = (id: number, ability: string, evolved = 0): PokemonInstance => ({
     special: null,
     evolved,
 });
-const field = (p: PokemonInstance) =>
-    applyModifiers(withBonus(computeAttributes(species(p.speciesId), L), 0), attributeModifiers(p));
+// com as regras B + C (09/11/2026) a carta evoluída já herda o máximo (`instanceBase`) e a habilidade que mexe em atributo
+const field = (p: PokemonInstance) => applyModifiers(instanceBase(p), attributeModifiers(p));
 type Drop = { k: AttrKey; a: number; b: number; d: number };
 const worse = (a: Attributes, b: Attributes): Drop[] =>
     KEYS.map((k) => ({ k, a: Math.round(a[k]), b: Math.round(b[k]), d: Math.round(b[k]) - Math.round(a[k]) })).filter(
@@ -90,7 +92,7 @@ for (const [a, b] of pairs) {
     const A = computeAttributes(a, L);
     const B = computeAttributes(b, L);
     const wp = worse(A, B);
-    const wc = worse(A, withBonus(B, EVOLUTION_BONUS));
+    const wc = worse(A, viewInstance(evolveInstance(inst(a.id, a.abilities[0]), b.id)).attributes);
     if (wp.length) pureWorse++;
     if (wc.length) cardWorse++;
     for (const x of wp) byAttrPure[x.k] = (byAttrPure[x.k] ?? 0) + 1;

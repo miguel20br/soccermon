@@ -15,7 +15,7 @@ import { dpow } from './dmath';
 import { compressed, eff, fatigueFactor, finalPressureTeam, isIncapacitated, TACTIC_MODS } from './effective';
 import { evolutionTarget, evolveInstance, evoNeeded, evoProgress, evoScore } from './evolution';
 import { FORMATIONS, formationOf } from './formations';
-import type { PokemonInstance } from './instance';
+import { instanceBase, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { type ActiveLink, computeLinks } from './links';
 import {
@@ -188,7 +188,7 @@ function refreshTeamBonuses(s: MatchState, team: 0 | 1) {
     for (const p of s.players) {
         if (p.team !== team) continue;
         const mods = attributeModifiers(p.inst, { ...bonuses, role: p.role });
-        p.attr = applyModifiers(computeAttributes(p.sp, p.inst.level), mods, p.role);
+        p.attr = applyModifiers(instanceBase(p.inst), mods, p.role);
         p.captain = bonuses.captain?.uid === p.inst.uid;
     }
 }
@@ -206,7 +206,7 @@ function createPlayer(
     const sp = species(inst.speciesId);
     // edição, habilidade, item, tipo, capitão, sinergias e posição: a mesma regra que a carta mostra
     const mods = attributeModifiers(inst, { ...bonuses, role });
-    const attr = applyModifiers(computeAttributes(sp, inst.level), mods, role);
+    const attr = applyModifiers(instanceBase(inst), mods, role);
     const ability = abilityEffect(inst.ability);
     const item = inst.item && ITEMS[inst.item] ? inst.item : null;
     const moveUses = inst.moves.map((m, i) => (item === 'choiceband' && i > 0 ? 0 : usesOf(inst, m)));

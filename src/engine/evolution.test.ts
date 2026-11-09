@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { type Attributes, computeAttributes } from './attributes';
 import { FUTSAL_5 } from './config';
+import { SPECIES, species } from './data';
+import { monProblems, monRecipe } from './duel-validate';
 import { EVO_THRESHOLD, evolvedRating, evolveInstance, evoNeeded, evoPreview, RIVAL_EVO_THRESHOLD } from './evolution';
-import { createInstance, slotRating, viewInstance } from './instance';
-import { attributeModifiers } from './modifiers';
+import { createInstance, instanceBase, type PokemonInstance, slotRating, viewInstance } from './instance';
+import { applyModifiers, attributeModifiers } from './modifiers';
 import { Rng } from './rng';
 import { runMatch } from './runners/batch-runner';
 
@@ -20,6 +23,76 @@ describe('selo de evolução (selo B)', () => {
             pos: 'ALA',
         });
         expect(fora?.rating).toBeGreaterThan(evoPreview(magikarp, 'ALA')?.rating ?? 99);
+    });
+});
+
+describe('evolução sem perda (regras B + C, Miguel 09/11/2026)', () => {
+    const mon = (id: number, ability: string): PokemonInstance => ({
+        ...createInstance(id, new Rng(`sem-perda-${id}`)),
+        uid: `sem-perda-${id}`,
+        ability,
+        shiny: false,
+        special: null,
+    });
+    const field = (p: PokemonInstance) => applyModifiers(instanceBase(p), attributeModifiers(p));
+    const worse = (a: Attributes, b: Attributes) =>
+        (Object.keys(a) as (keyof Attributes)[]).filter((k) => Math.round(b[k]) < Math.round(a[k]));
+    // os 6 pares da auditoria (scripts/balance/evo-audit.ts) em que a carta ficava pior ao evoluir
+    const AUDIT: [number, number][] = [
+        [61, 62], // Poliwhirl → Poliwrath
+        [13, 14], // Weedle → Kakuna
+        [10, 11], // Caterpie → Metapod
+        [129, 130], // Magikarp → Gyarados
+        [60, 61], // Poliwag → Poliwhirl
+        [11, 12], // Metapod → Butterfree
+    ];
+
+    it('os 6 pares da auditoria não ficam piores em nenhum atributo, na carta e em campo, com qualquer habilidade', () => {
+        for (const [a, b] of AUDIT) {
+            for (const ability of species(a).abilities) {
+                const pre = mon(a, ability);
+                const post = evolveInstance(pre, b);
+                expect(worse(viewInstance(pre).attributes, viewInstance(post).attributes), `${a}→${b} carta`).toEqual(
+                    [],
+                );
+                expect(worse(field(pre), field(post)), `${a}→${b} ${ability} campo`).toEqual([]);
+            }
+        }
+    });
+
+    it('nenhum par dos 151 fica pior na carta', () => {
+        for (const sp of SPECIES)
+            for (const e of sp.evolvesTo.filter((x) => x.id <= SPECIES.length)) {
+                const pre = mon(sp.id, sp.abilities[0]);
+                const post = evolveInstance(pre, e.id);
+                expect(worse(viewInstance(pre).attributes, viewInstance(post).attributes), `${sp.id}→${e.id}`).toEqual(
+                    [],
+                );
+            }
+    });
+
+    it('Magikarp que vira Gyarados mantém o Swift Swim e fica mais rápido; o Gyarados do pacote não muda', () => {
+        const karp = mon(129, 'swiftswim');
+        const gyara = evolveInstance(karp, 130);
+        expect(gyara.ability).toBe('swiftswim');
+        expect(gyara.evolvedFrom).toEqual([129]);
+        expect(Math.round(field(gyara).pace)).toBeGreaterThan(Math.round(field(karp).pace));
+        const pacote = mon(130, 'intimidate');
+        expect(instanceBase(pacote)).toEqual(computeAttributes(species(130), pacote.level));
+        // a forma de antes inteira conta: Charmander → Charmeleon → Charizard guarda as duas
+        expect(evolveInstance(evolveInstance(mon(4, 'blaze'), 5), 6).evolvedFrom).toEqual([4, 5]);
+    });
+
+    it('habilidade que não mexe em atributo troca pela da forma nova (Eevee Adaptability → Vaporeon)', () => {
+        expect(evolveInstance(mon(133, 'adaptability'), 134).ability).toBe('waterabsorb');
+    });
+
+    it('o Duelo aceita o Gyarados com Swift Swim só se ele evoluiu do Magikarp', () => {
+        const gyara = monRecipe(evolveInstance(mon(129, 'swiftswim'), 130));
+        expect(monProblems(gyara, 'x')).toEqual([]);
+        expect(monProblems({ ...gyara, evolvedFrom: undefined }, 'x')).not.toEqual([]);
+        expect(monProblems({ ...gyara, evolvedFrom: [1] }, 'x')).not.toEqual([]);
+        expect(monProblems({ ...gyara, evolved: 0 }, 'x')).not.toEqual([]);
     });
 });
 

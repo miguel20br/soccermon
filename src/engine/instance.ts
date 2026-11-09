@@ -50,6 +50,12 @@ export interface PokemonInstance {
      * atributos, pra valer a pena pegar uma carta pra evoluir em vez de uma pronta. Saves antigos não têm o campo.
      */
     evolved?: number;
+    /**
+     * Espécies que esta carta foi antes de evoluir (Magikarp no Gyarados que evoluiu): cada atributo vale o máximo
+     * entre a forma de agora e as de antes, pra carta nunca ficar pior ao evoluir (regra B, Miguel 09/11/2026,
+     * docs/planos/evolucao-sem-perda.md). Carta do pacote e saves antigos não têm o campo.
+     */
+    evolvedFrom?: number[];
 }
 
 /** Pontos em todos os atributos por evolução da carta (18/10/2026). */
@@ -93,7 +99,7 @@ export interface InstanceView {
 
 export function viewInstance(inst: PokemonInstance): InstanceView {
     const sp = species(inst.speciesId);
-    const base = computeAttributes(sp, inst.level);
+    const base = instanceBase(inst);
     const positions = instancePositions(inst, base);
     const attributes = withBonus(base, specialBonus(inst) + evolutionBonus(inst));
     return {
@@ -105,6 +111,18 @@ export function viewInstance(inst: PokemonInstance): InstanceView {
         overall: positionRating(attributes, positions[0]),
         displayName: inst.nickname ?? sp.name,
     };
+}
+
+/** Atributos da carta antes dos bônus: os da espécie, sem perder nada das formas de antes (`evolvedFrom`). */
+export function instanceBase(inst: PokemonInstance): Attributes {
+    const own = computeAttributes(species(inst.speciesId), inst.level);
+    if (!inst.evolvedFrom?.length) return own;
+    const out = { ...own };
+    for (const id of inst.evolvedFrom) {
+        const pre = computeAttributes(species(id), inst.level);
+        for (const k of Object.keys(out) as (keyof Attributes)[]) out[k] = Math.max(out[k], pre[k]);
+    }
+    return out;
 }
 
 /** Posições em que joga bem: as da espécie (a principal primeiro) + as herdadas na evolução. */

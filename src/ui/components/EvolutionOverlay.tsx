@@ -35,8 +35,13 @@ const later = (ms: number, fn: () => void) => {
     timers.push(window.setTimeout(fn, ms));
 };
 
-function cardOf(id: number) {
+/** `from`: a forma de antes, de quem a carta evoluída herda o máximo de cada atributo (regra B, 09/11/2026). */
+function cardOf(id: number, from?: number) {
     const a = computeAttributes(species(id), DEFAULT_LEVEL);
+    if (from) {
+        const pre = computeAttributes(species(from), DEFAULT_LEVEL);
+        for (const k of Object.keys(a) as AttrKey[]) a[k] = Math.max(a[k], pre[k]);
+    }
     return { attrs: a, overall: positionRating(a, eligiblePositions(a, id)[0]) };
 }
 
@@ -97,7 +102,7 @@ export function EvolutionOverlay() {
 
     if (!evo) return null;
     const before = cardOf(evo.from);
-    const after = cardOf(evo.into);
+    const after = cardOf(evo.into, evo.from);
     const tap = () => (phase === 'done' ? finish() : phase !== 'flash' ? reveal(evo) : undefined);
     const silhouette = phase === 'morph' || phase === 'flash';
 

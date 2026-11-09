@@ -4,7 +4,6 @@ import {
     type AttrKey,
     aerialLevel,
     aerialScore,
-    computeAttributes,
     POSITIONS,
     physiqueOf,
     positionRating,
@@ -12,7 +11,7 @@ import {
 } from '../../engine/attributes';
 import { MOVES, species } from '../../engine/data';
 import { evolutionTarget, evoThreshold } from '../../engine/evolution';
-import { viewInstance } from '../../engine/instance';
+import { instanceBase, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
 import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
@@ -110,7 +109,7 @@ export function CardModal() {
               }
             : { role: position ?? null },
     );
-    const inField = applyModifiers(computeAttributes(sp, inst.level), mods, position ?? null);
+    const inField = applyModifiers(instanceBase(inst), mods, position ?? null);
     const ovrRole = position ?? view.naturalPosition;
     const cardOvr = positionRating(view.attributes, ovrRole);
     const fieldOvr = positionRating(inField, ovrRole);

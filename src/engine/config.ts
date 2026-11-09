@@ -86,8 +86,11 @@ export const STOPPAGE = { min: 1, max: 3 };
  *     volta a ser o counter do motor 20. Só o `?demo=bicuda` ainda abre o duelo.
  * 23 = o duelo da bicuda volta, aprovado (v3: tempo parado no contato, câmera de cinema, falas novas): parada de 15,25 s
  *     e comemoração de 8 s (`AGENCY.showdown`), `MatchConfig.showdown` ligado no FUTSAL_5.
+ * 24 a 27: no histórico do git (`git log -S ENGINE_VERSION`).
+ * 28 = evolução sem perda (Miguel, 09/11/2026, docs/planos/evolucao-sem-perda.md): a carta que evoluiu herda o máximo de
+ *     cada atributo das formas de antes (`evolvedFrom`) e mantém a habilidade que mexe em atributo (Swift Swim).
  */
-export const ENGINE_VERSION = 27;
+export const ENGINE_VERSION = 28;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

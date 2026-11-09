@@ -1,8 +1,13 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { computeAttributes } from '../../engine/attributes';
 import { SPECIES, species } from '../../engine/data';
 import { evolveInstance } from '../../engine/evolution';
-import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
+import {
+    createInstance,
+    evolutionBonus,
+    instanceBase,
+    type PokemonInstance,
+    viewInstance,
+} from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
 import { SPONSOR_IDS } from '../../engine/sponsors';
@@ -151,7 +156,7 @@ interface Step {
 }
 function stepNumbers(inst: PokemonInstance) {
     const view = viewInstance(inst);
-    const base = computeAttributes(view.species, inst.level);
+    const base = instanceBase(inst);
     const bonus = specialBonus(inst) + evolutionBonus(inst);
     const keys = Object.keys(base) as (keyof typeof base)[];
     const at99 = keys.filter((k) => base[k] + bonus >= 99).length;

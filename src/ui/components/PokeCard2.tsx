@@ -1,8 +1,8 @@
 import { type CSSProperties, memo, useRef } from 'react';
-import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
+import { type AttrKey, type Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
-import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { instanceBase, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
@@ -123,7 +123,7 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const { rating, display, fit } = ratingAt(inst, pos);
     // setinha de bônus/penalidade que vai com a carta (edição, habilidade, item, Fada): quanto o atributo
     // vale a mais (ou a menos) em campo em relação ao Pokémon "puro"
-    const base = computeAttributes(sp, inst.level);
+    const base = instanceBase(inst);
     const final = applyModifiers(base, attributeModifiers(inst));
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
