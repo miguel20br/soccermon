@@ -7,6 +7,7 @@ import { LAB_H, LAB_W, MoveLabScene } from '../../game/scenes/MoveLabScene';
 import { moveFutsal, plural, typeName } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { TypeIcon, TypeIcons } from '../components/TypeIcon';
 import { GdxIcon } from '../golpedex/GdxIcon';
@@ -20,6 +21,7 @@ import {
     ROW_BY_ID,
     timesSeen,
 } from '../golpedex/golpedex-data';
+import { MaxDex, type MaxSection } from '../golpedex/MaxDex';
 import '../golpedex/golpedex.css';
 import { TYPE_COLOR } from '../type-colors';
 
@@ -106,8 +108,50 @@ function Sprite({ id, shown, size = 48 }: { id: number; shown: boolean; size?: n
     );
 }
 
-/** Golpedex. `bare`: dentro da Coleção (a aba já tem o cabeçalho). */
+type Section = 'golpes' | MaxSection;
+const SECTIONS: readonly Section[] = ['golpes', 'especiais', 'bicudas'];
+const SECTION_ICON = { golpes: 'dex', especiais: 'max', bicudas: 'bicuda' } as const;
+/** `?lab=golpes&secao=especiais` abre direto numa parte. */
+const startSection = (): Section => {
+    const q = new URLSearchParams(window.location.search).get('secao');
+    return SECTIONS.find((s) => s === q) ?? 'golpes';
+};
+
+/**
+ * Golpedex em 3 partes: os golpes, o golpe máximo do capitão (Especiais) e a bicuda do goleiro (Bicudas). `bare`: dentro
+ * da Coleção (a aba já tem o cabeçalho). A parte nova entra com fade (nada teleporta).
+ */
 export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }) {
+    const { t, d } = useT();
+    const L = d.stats.lab;
+    const [section, setSection] = useState<Section>(startSection);
+    return (
+        <div className="golpedex">
+            {!bare && <MenuHead title={t('stats.lab.title')} icon="moves" onBack={onExit} />}
+            <div className="bc-tabs gdx-sections" role="tablist" aria-label={L.sectionsAria}>
+                {SECTIONS.map((id) => (
+                    <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        aria-selected={section === id}
+                        className={section === id ? 'on' : undefined}
+                        onClick={() => setSection(id)}
+                    >
+                        <HudIcon kind={SECTION_ICON[id]} />
+                        <span>{L.sections[id]}</span>
+                    </button>
+                ))}
+            </div>
+            <div key={section} className="gdx-section">
+                {section === 'golpes' ? <MoveBrowser onExit={onExit} /> : <MaxDex section={section} />}
+            </div>
+        </div>
+    );
+}
+
+/** Golpes: o catálogo com o palco Phaser. */
+function MoveBrowser({ onExit }: { onExit: () => void }) {
     const { t, tn, d, lang } = useT();
     const L = d.stats.lab;
     const moves = useGame((s) => s.moves);
@@ -342,9 +386,7 @@ export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }
     };
 
     return (
-        <div className="golpedex">
-            {!bare && <MenuHead title={t('stats.lab.title')} icon="moves" onBack={onExit} />}
-
+        <>
             <section className="panel gdx-progress" aria-label={L.progress}>
                 <div className="gdx-progress-top">
                     <span>
@@ -722,6 +764,6 @@ export function MoveLab({ onExit, bare }: { onExit: () => void; bare?: boolean }
                     )}
                 </section>
             </div>
-        </div>
+        </>
     );
 }
