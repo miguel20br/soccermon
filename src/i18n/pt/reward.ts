@@ -4,6 +4,8 @@ export const reward = {
     /** Fase fora da lista (não acontece na copa normal). */
     cup: 'Copa',
     whoLeaves: 'Quem sai do banco?',
+    /** Reforço com vaga vazia no banco (um reserva saiu na Copa longa). */
+    whereGoes: 'Onde ele entra?',
     whoLearns: 'Quem aprende o golpe?',
     whoHolds: 'Quem vai segurar o item?',
     choose: 'Escolha uma recompensa',
@@ -23,6 +25,7 @@ export const reward = {
     pick: 'Escolher',
     item: 'Item',
     swapWhich: 'Trocar por qual reserva?',
+    swapOrEmpty: 'Na vaga ou no lugar de um reserva?',
     giveTo: 'Entregar pra…',
     itemGoesToNew: ' ({item} vai pro reforço)',
     replacesItem: ' (troca a {item})',

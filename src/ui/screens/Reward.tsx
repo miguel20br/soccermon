@@ -77,7 +77,7 @@ export function Reward() {
     const openCard = useCardModal.getState().open;
     const title = reward
         ? reward.kind === 'pokemon'
-            ? t('reward.whoLeaves')
+            ? t(run.bench.includes('') ? 'reward.whereGoes' : 'reward.whoLeaves')
             : reward.kind === 'tm'
               ? t('reward.whoLearns')
               : t('reward.whoHolds')
@@ -348,7 +348,13 @@ export function GainTarget({
                     <h2>
                         {passing
                             ? t('reward.passTitle', { item: itemName(holding!.item!) })
-                            : t(reward.kind === 'pokemon' ? 'reward.swapWhich' : 'reward.giveTo')}
+                            : t(
+                                  reward.kind === 'pokemon'
+                                      ? emptyBench
+                                          ? 'reward.swapOrEmpty'
+                                          : 'reward.swapWhich'
+                                      : 'reward.giveTo',
+                              )}
                     </h2>
                     <FormationBoard
                         formation={run.formation}

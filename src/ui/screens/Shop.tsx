@@ -249,6 +249,7 @@ export function Shop() {
                     type={packOffer?.kind === 'pack' ? packOffer.type : undefined}
                     pick={packPick}
                     onPick={setPackPick}
+                    title={t(run.bench.includes('') ? 'reward.whereGoes' : 'reward.whoLeaves')}
                     onSkip={() => {
                         setPackPick(null);
                         skipPack();
@@ -319,7 +320,7 @@ export function Shop() {
                 onClose={() => setChosen(null)}
                 title={
                     offer?.kind === 'pokemon'
-                        ? t('reward.whoLeaves')
+                        ? t(run.bench.includes('') ? 'reward.whereGoes' : 'reward.whoLeaves')
                         : offer?.kind === 'tm'
                           ? t('reward.whoLearns')
                           : t('reward.whoHolds')
@@ -453,6 +454,7 @@ function PackMoment({
     onSkip,
     team,
     target,
+    title,
 }: {
     pack: PokemonInstance[];
     label: string;
@@ -462,6 +464,7 @@ function PackMoment({
     onSkip: () => void;
     team: ReactNode;
     target: ReactNode;
+    title: string;
 }) {
     const { t } = useT();
     const walkAt = walkoutPick(pack);
@@ -521,7 +524,7 @@ function PackMoment({
             <button type="button" className="btn ghost shop-pack-skip" onClick={onSkip}>
                 {t('shop.packSkip')}
             </button>
-            <Sheet open={pick !== null} onClose={() => onPick(null)} title={t('reward.whoLeaves')}>
+            <Sheet open={pick !== null} onClose={() => onPick(null)} title={title}>
                 {target}
             </Sheet>
         </MomentStage>
