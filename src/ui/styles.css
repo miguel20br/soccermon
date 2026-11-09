@@ -2777,6 +2777,8 @@ button,
     border-radius: 0.25em;
     vertical-align: middle;
     object-fit: contain;
+    /* o ícone é de 256 px: reduzido com suavização fica nítido (pixelated, herdado do pai, serrilhava) */
+    image-rendering: auto;
 }
 .type-chip {
     display: inline-flex;

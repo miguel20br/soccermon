@@ -33,6 +33,8 @@ button.pc2:hover {
 }
 .pc2 img {
     display: block;
+}
+.pc2 img:not(.type-icon) {
     image-rendering: pixelated;
 }
 .tier-common {

@@ -834,7 +834,7 @@ export class WalkoutScene extends Phaser.Scene {
 
     /**
      * Os dois telões, nítidos: a moldura com bisel e espessura, o vidro com linhas finas e reflexo, e o conteúdo (o ícone
-     * do tipo redesenhado em alta a partir do de 36 px; o nome do tipo; a posição) em textura de K px por px do jogo com
+     * do tipo redesenhado em alta; o nome do tipo; a posição) em textura de K px por px do jogo com
      * filtro linear, que continua limpa quando a câmera chega perto. Por cima, o brilho (bloom); atrás, o halo de luz.
      */
     private buildScreens() {
@@ -981,7 +981,7 @@ export class WalkoutScene extends Phaser.Scene {
         });
     }
 
-    /** O ícone oficial do tipo (36 px) redesenhado em alta: o fundo vira vetor e o símbolo branco é ampliado e afiado. */
+    /** O ícone do tipo redesenhado em alta: o fundo vira vetor e o símbolo branco é ampliado e afiado. */
     private drawTypeIcon(c: CanvasRenderingContext2D, x: number, y: number, size: number, K: number) {
         const img = this.textures.get('wk-type').getSourceImage() as HTMLImageElement;
         const n = img.width;

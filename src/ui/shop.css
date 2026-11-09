@@ -283,7 +283,6 @@ button.sp-slot:hover {
     position: absolute;
     inset: -30%;
     background: var(--ticon) 0 0 / 15cqw auto repeat;
-    image-rendering: pixelated;
     opacity: 0.14;
     rotate: -18deg;
 }
@@ -292,8 +291,6 @@ button.sp-slot:hover {
     width: 44%;
     height: auto;
     margin-top: 4cqw;
-    /* o ícone do tipo é pixel art de 36 px: esticado com pixelated fica nítido (com borrão ficava ruim) */
-    image-rendering: pixelated;
     filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
 }
 .cpack.cpack-type .cpack-label {
