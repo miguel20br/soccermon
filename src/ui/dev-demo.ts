@@ -32,7 +32,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
  * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10, Charanga e Clube Formador à venda; `&novos=2` Olheiro e Preparador). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
- * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>` abre na escalação a
+ * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>[&gk=<id>]` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
  * grandalhões cuja primeira partida tem escanteio seu com disputa no alto logo no começo. `?demo=colecao` põe no save uma
  * carreira de mentira (medalhas em vários degraus, coleções, selos, escudo e uniforme listrado, vitrine cheia) e abre o
@@ -182,6 +182,9 @@ export function runDevDemo() {
         store.newRun('Pallet FC', seed);
         const run = useGame.getState().run!;
         const { lineup, bench, captainUid } = trailerPicks(cena, seed);
+        // `&gk=95`: outro goleiro (a caça de lances do goleiro troca a vaga 0 igual)
+        const gk = Number(params.get('gk'));
+        if (gk >= 1 && gk <= 151) lineup[0] = createInstance(gk, new Rng(`gk-${seed}`, 'x'));
         useGame.setState({
             run: {
                 ...run,
