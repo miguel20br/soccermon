@@ -1,4 +1,4 @@
-# Vestiário do Pallet FC · EP 1 "A foto do time" (54 s, 4ª versão do episódio inteiro, 08/11/2026)
+# Vestiário do Pallet FC · EP 1 "A foto do time" (54 s, 5ª versão do episódio inteiro, 09/11/2026)
 
 **Por que existe:** o Miguel achou o "O atrasado" (v3) "nhe": câmera longe, ninguém conversa, pura mímica. Este é o
 novo 1º episódio, no formato da [bíblia](../BIBLIA.md) ("Formato do Vestiário (08/11)"): **sitcom multicâmera**.
@@ -66,6 +66,17 @@ música está sendo composta em cima dela):
 4. **Legibilidade:** o NÃO TÁ FALTANDO NINGUÉM, NÉ? subiu pro alto do quadro; o punch-in do 20 desce o enquadramento
    pra sobrar parede em cima da cabeça do Snorlax, e o texto mora lá, sem tapar ninguém.
 
+**Retorno da 4ª versão (54 s, 09/11):** o Ditto tem que ser ele mesmo na FOTO FINAL (era um segundo Squirtle). Com
+causa e efeito, sem mexer na grade nem na música:
+1. **A canção desfaz a cópia:** no 16 o Ditto-Squirtle tomba dormindo (linha 4), derrete (amassa) e, num POOF pequeno
+   rosa, volta a ser Ditto, dormindo achatado, com os óculos do Squirtle encolhidos junto (o mesmo desenho, `lente()`,
+   na escala da cara dele: `OC_DITTO`, seguindo os dois quadros do Idle de frente).
+2. **Foto 5:** o Ditto achatado, dormindo, de óculos (era o segundo Squirtle tombado).
+3. **O timer:** no bip do 2 ele acorda como Ditto, desamassa e pula pro lugar da foto (x 720). No 21 ele olha
+   inclinando o corpo inteiro (de frente, os óculos ficam na cara); NÃO! e a pose com os outros.
+4. **FOTO FINAL e tela final** (a mesma polaroide): o Ditto de verdade com os óculos em miniatura, no mesmo lugar, à
+   direita do capitão. Ele ainda quer ser o descolado.
+
 **Elenco:** Snorlax (143, goleiro, dorme), Magikarp (129, capitão, medalha), Pikachu (25, quer aparecer), Squirtle (7,
 marrento de óculos escuros), Ditto (132, "EU TAMBÉM!", copia quem está do lado), Jigglypuff (39, quer cantar; todo
 mundo dorme e ele fica furioso), Psyduck (54, técnico, a dor de cabeça) e Slowpoke (79, sempre
@@ -84,8 +95,9 @@ atrasado).
    verdade fica bravo, os dois discutem cara a cara, o Pikachu molhado e o Magikarp entram e vira nuvem de briga →
    **foto 4**: dois Squirtles se encarando.
 5. Por causa da gritaria, o **Jigglypuff** entra: CALMA, GENTE…, e canta → todo mundo dorme (o Psyduck não: a dor de
-   cabeça segura ele acordado) → ninguém ouviu: ele percebe e incha de raiva, vermelho, bufando → **foto 5**: todo
-   mundo dormindo e o Jigglypuff bravo.
+   cabeça segura ele acordado); o sono desfaz a cópia: o Ditto volta a ser Ditto, com os óculos encolhidos junto →
+   ninguém ouviu: ele percebe e incha de raiva, vermelho, bufando → **foto 5**: todo
+   mundo dormindo (o Ditto de volta, de óculos) e o Jigglypuff bravo.
 6. O Psyduck liga o timer e corre pro banco; os bips do 3 e do 2 acordam todo mundo, que corre pra pose → o Magikarp:
    NÃO TÁ FALTANDO NINGUÉM, NÉ? → todos se olham → NÃO! → o bip do 1, FLASH: **FOTO FINAL** (com o Slowpoke borrado na
    porta, que ninguém viu), "awww" e aplauso.
@@ -117,10 +129,10 @@ junto, a chaleira e o HMPF! do Jigglypuff, os bips subindo; o Ré7 sobe um tom e
 | 13 | 26,0 | **Punch-in na briga** | O clone desce do banco; os dois se empurram (2, 4, 6); o Pikachu pula pra briga (8), o Magikarp vem (10) e vira nuvem | — | o funk, os gritos (a mesma voz), tímpano, prato, riso |
 | 14 | 28,0 | **Foto 4** | Dois Squirtles cara a cara, bravos; o Pikachu e o Magikarp pulando, poeira | FOTO 4 | clique; risada grande |
 | 15 | 30,0 | **Aberto** | A nuvem ainda briga; o Jigglypuff pula no banco (0 a 4) e pede (5) | CALMA, GENTE… · JIGGLYPUFF · RESERVA | aplauso, o grito, o piano doce |
-| 16 | 32,0 | **Aberto** | A canção: a nuvem some (1), cada um tomba dormindo (2 a 5); o Psyduck segura a cabeça, acordado; o Jigglypuff termina, feliz (10) | — | a canção de ninar, roncos, tímpano, riso |
+| 16 | 32,0 | **Aberto** | A canção: a nuvem some (1), cada um tomba dormindo (2 a 5); o Ditto-Squirtle derrete e, POOF, volta a ser Ditto, de óculos em miniatura (4); o Psyduck segura a cabeça, acordado; o Jigglypuff termina, feliz (10) | — | a canção de ninar, roncos, tímpano, riso |
 | 17 | 34,0 | **Punch-in Jigglypuff** | Olha pra um lado (1) e pro outro (3): todo mundo dormiu; incha e avermelha (0 a 11), tremendo; o vapor sobe da cabeça (9); a bufada: amassa, nuvens pros lados, a veia (12) | — | a bexiga enchendo, a canção de ninar em menor, a chaleira (9), HMPF! (12) |
-| 18 | 36,0 | **Foto 5** | Todo mundo dormindo e o Jigglypuff vermelho, estufado, bufando | FOTO 5 | clique; riso |
-| 19 | 38,0 | **Aberto** | O Psyduck aperta (2) e corre (4); 3 (4); 2 (8): todos acordam e vão pro lugar da foto; o Psyduck aparece no banco (12) | 3 · 2 | os bips, prato, a caixa sobe |
+| 18 | 36,0 | **Foto 5** | Todo mundo dormindo (o Ditto achatado, de óculos) e o Jigglypuff vermelho, estufado, bufando | FOTO 5 | clique; riso |
+| 19 | 38,0 | **Aberto** | O Psyduck aperta (2) e corre (4); 3 (4); 2 (8): todos acordam (o Ditto como Ditto) e vão pro lugar da foto; o Psyduck aparece no banco (12) | 3 · 2 | os bips, prato, a caixa sobe |
 | 20 | 40,0 | **Punch-in capitão** | O Magikarp, já no lugar da foto; o texto no alto, em cima da cabeça do Snorlax | NÃO TÁ FALTANDO NINGUÉM, NÉ? | o grito, o tímpano rufando |
 | 21 | 42,0 | **Aberto** | Todos se olham (1, 3, 5); juntos (8); o 1 e as poses (12) | NÃO! · 1 | o bloco, o NÃO! (os gritos juntos), prato, o bip |
 | 22–23½ | 44,0 | **FOTO FINAL** (3 s) | Clique, FLASH: a polaroide cai na pilha e aproxima devagar | PALLET FC | "tan-tan-TAAN", "awww", aplauso |
@@ -130,12 +142,13 @@ junto, a chaleira e o HMPF! do Jigglypuff, os bips subindo; o Ré7 sobe um tom e
 Snorlax (11). Atrás, no banco: o **Snorlax** no centro, dormindo; o **Jigglypuff** no colo, emburrado (rosa
 avermelhado); o **Psyduck** em pé no banco à esquerda, segurando a cabeça; à direita a porta, com o **Slowpoke
 BORRADO** entrando. Na frente: o **Magikarp no centro** com a medalha estufada e um brilho; à esquerda o **Squirtle**
-de óculos abaixados e o **Pikachu** fazendo chifrinho nele; à direita, colado no capitão, o **Ditto** (um Squirtle
-idêntico). No vestiário a ordem é a mesma: [Squirtle 240, Pikachu 340] Magikarp 540 [Ditto 720], o Jigglypuff no colo e o Psyduck no banco (escala 10: mais longe da câmera do que no tripé, escala 14).
+de óculos abaixados e o **Pikachu** fazendo chifrinho nele; à direita, colado no capitão, o **Ditto** de verdade,
+com os óculos do Squirtle em miniatura. No vestiário a ordem é a mesma: [Squirtle 240, Pikachu 340] Magikarp 540 [Ditto 720], o Jigglypuff no colo e o Psyduck no banco (escala 10: mais longe da câmera do que no tripé, escala 14).
 
-**O Ditto virado Squirtle.** O mesmo sprite do Squirtle (folha 7) com os mesmos óculos (`oculos()`), sem diferença
-nenhuma. Virado pro outro lado = o Idle 2 com o ator espelhado (`scaleX: -1` no `el`), assim os óculos de lado
-acompanham.
+**O Ditto virado Squirtle (12 a 16).** O mesmo sprite do Squirtle (folha 7) com os mesmos óculos (`oculos()`), sem
+diferença nenhuma. Virado pro outro lado = o Idle 2 com o ator espelhado (`scaleX: -1` no `el`), assim os óculos de lado
+acompanham. Do 16 em diante é o Ditto (folha 132) com `OC_DITTO`: as duas lentes de 5×4 em cima dos olhos (9, 12) e
+(14, 13) do quadro 0 do Idle de frente, que sobem 1 px no quadro 1.
 
 **Os óculos do Squirtle.** Pixel art na escala do sprite; seguem o sprite quadro a quadro (`segue()`): o `gerar.cjs`
 grava em `img/cabeca.js` o canto da cabeça em cada quadro, de frente (Idle/0) ou olhando pra direita (vista 2). Abaixados
