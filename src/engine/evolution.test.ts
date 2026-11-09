@@ -11,7 +11,7 @@ describe('selo de evolução (selo B)', () => {
         const magikarp = { ...createInstance(129, new Rng('selo-b')), uid: '129-selo' };
         const gyarados = viewInstance(evolveInstance(magikarp, 130));
         const fora = evoPreview(magikarp);
-        // a carta evoluída mostra Gyarados Pivô; o selo não pode projetar na Ala do Magikarp ("↑74")
+        // a carta evoluída mostra Gyarados Pivô; o selo não pode projetar na Ala do Magikarp ("vira 74")
         expect(fora).toEqual({ into: 130, rating: gyarados.overall, pos: gyarados.naturalPosition });
         expect(fora?.pos).not.toBe(viewInstance(magikarp).naturalPosition);
         expect(evoPreview(magikarp, 'ALA')).toEqual({

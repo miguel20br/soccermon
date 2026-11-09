@@ -101,7 +101,7 @@ export function evolvedRating(inst: PokemonInstance, role: Position | 'ANY'): { 
 
 /**
  * Selo de evolução da carta (selo B, Miguel 09/11/2026): numa vaga, a nota naquela vaga; fora dela (clube, coleção,
- * pacote), a nota na posição principal da forma nova, a mesma que a carta evoluída vai mostrar ("↑84 PIV").
+ * pacote), a nota na posição principal da forma nova, a mesma que a carta evoluída vai mostrar ("vira 84 PIV").
  */
 export function evoPreview(
     inst: PokemonInstance,
