@@ -9,6 +9,20 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.44.1',
+        date: '2026-11-09',
+        title: 'Replay no ginásio certo',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Os melhores momentos tocam no ginásio do rival, não na quadra padrão',
+                    'Novidades: o texto do Time Ultimate',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.44',
         date: '2026-11-09',
         title: 'Véspera do Time Ultimate',
@@ -2643,6 +2657,20 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.44.1',
+        date: '2026-11-09',
+        title: 'Replays on the right court',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    "Highlights now play on the rival's gym court, not the default one",
+                    "What's new: the Team Ultimate text",
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.44',
         date: '2026-11-09',

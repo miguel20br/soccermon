@@ -1,5 +1,11 @@
 # Novidades
 
+## 0.9.44.1 · Replay no ginásio certo (2026-11-09)
+
+### Consertos
+- Os melhores momentos tocam no ginásio do rival, não na quadra padrão
+- Novidades: o texto do Time Ultimate
+
 ## 0.9.44 · Véspera do Time Ultimate (2026-11-09)
 
 ### Time Ultimate (abre em 27/11)
