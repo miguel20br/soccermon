@@ -32,9 +32,12 @@ export const casaOf = (n: MapNode | undefined): Casa | undefined => (n as RotaNo
 export type House = NodeKind | Casa;
 export const houseOf = (n: MapNode): House => casaOf(n) ?? n.kind;
 
-/** Treinador Ás (elite leve): o rival vem +1 e o prêmio é 1 de 3 cartas da raridade mais alta. */
+/**
+ * Treinador Ás (elite leve): o rival vem +1 e o prêmio é 1 de 3 cartas raras, duas raridades acima da partida (até a
+ * mais alta). Com a mais alta desde a 1ª partida, quem pegava todo Ás ganhava 5 pp de título (robô, 09/11).
+ */
 export const ACE_SHIFT = 1;
-export const ACE_ROUND = 6;
+export const ACE_ROUND_UP = 2;
 
 /** O papel de cada linha (as mesmas 9 do mapa estreito): partida, parada, Baú/Centro e a última parada. */
 const ROLE = ['M', 'S', 'M', 'S', 'B', 'M', 'S', 'M', 'T'] as const;

@@ -129,7 +129,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
-import { ACE_ROUND, casaOf } from './rota-map';
+import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { watchSave } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
@@ -715,7 +715,7 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
     const long = isLong(run)
         ? {
               key: training ? `${run.at}-treino` : run.rivalPick ? `${run.at}-rival` : (run.at ?? `m${run.stage}`),
-              round: ace ? ACE_ROUND : Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
+              round: Math.min(6, longRound(run.stage) + (node?.kind === 'bau' ? 1 : 0)),
               prize,
               types: run.group ? undefined : node?.types,
               ace: prize === 'gym' && opp ? LEADER_ACE[opp.name] : undefined,
@@ -725,11 +725,11 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
               stone: run.rivalPick && node?.kind === 'jogo' ? node.stone : undefined,
           }
         : undefined;
-    // Ás: as 3 melhores de 6 sorteadas na raridade mais alta (só a raridade deixava sair um Poliwag 58)
+    // Ás: as 3 melhores de 6 sorteadas duas raridades acima (só a raridade deixava sair um Poliwag 58)
     const options = ace
         ? draftOptions(
               new Rng(run.seed, `as-${run.at}-r${reroll}`),
-              ACE_ROUND,
+              Math.min(6, longRound(run.stage) + ACE_ROUND_UP),
               new Set(run.picks.map((p) => p.speciesId)),
               6,
               node?.types ?? [],

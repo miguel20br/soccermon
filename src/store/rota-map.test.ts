@@ -8,7 +8,7 @@ import { Rng } from '../engine/rng';
 import { migrateSave, type RunState, useGame } from './game-store';
 import { nodeOpponent } from './long-cup';
 import { eventChoices, gambleNote, gambleWon, resolveEvent, rollEvent } from './long-events';
-import { ACE_ROUND, buildRotaMap, casaOf, houseOf, MAP_V, roleMatchesLayout } from './rota-map';
+import { buildRotaMap, casaOf, houseOf, MAP_V, roleMatchesLayout } from './rota-map';
 
 const SEEDS = Array.from({ length: 300 }, (_, i) => `largo-${i}`);
 
@@ -143,7 +143,6 @@ describe('casas novas na Rota', () => {
         expect(prize.rivalPick).toBe(false);
         expect(prize.rewards).toHaveLength(3);
         expect(prize.rewards.every((r) => r.kind === 'pokemon' && !r.from)).toBe(true);
-        expect(ACE_ROUND).toBe(6);
     });
 
     it('Zona Safari: 3 selvagens com a chance à vista; pegou entra no lugar do reserva, fugiu ninguém sai', () => {

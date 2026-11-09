@@ -68,7 +68,7 @@ export const longCup = {
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
         pedraRival: 'Evolui na hora. O rival traz um deles no 1 de 3.',
-        rara: 'As 3 melhores de 6 cartas da raridade mais alta.',
+        rara: 'As 3 melhores de 6 cartas, duas raridades acima.',
     },
     /** Zona Safari: a chance de a carta fugir. */
     flee: 'Foge {n}%',

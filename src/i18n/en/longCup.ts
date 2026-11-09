@@ -67,7 +67,7 @@ export const longCup: typeof pt = {
         moneyRival: 'The win pays double ₽.',
         pedra: 'Whoever evolves with it evolves right away.',
         pedraRival: 'Evolves right away. The rival brings one in their 1 of 3.',
-        rara: 'The best 3 of 6 cards of the highest rarity.',
+        rara: 'The best 3 of 6 cards, two rarities up.',
     },
     flee: 'Flees {n}%',
     reveal: { pegou: 'Caught {a}!', fugiu: '{a} fled!', ganhou: 'Jackpot!', perdeu: 'Not this time' },
