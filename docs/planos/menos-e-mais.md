@@ -315,3 +315,10 @@ Duelo que começam copa e % de sessões que abrem a Rota.
 - Progressive disclosure: [Built for Mars](https://builtformars.com/ux-glossary/progressive-disclosure),
   [Tutorials as onboarding funnels (Wayline)](https://www.wayline.io/blog/tutorials-onboarding-funnels-ux),
   [First-time user experience (PlaytestCloud)](https://blog.playtestcloud.com/first-time-user-experience-can-make-or-break-your-game/).
+
+## Decidido com o Miguel (09/11)
+
+- 1 a 8 nas recomendações: Time Ultimate só com Fichas antes de 27/11 (branch `ut-fichas`); abas acendendo pela progressão, Liga escondida até ~1 semana antes de 12/01, MT fora da vitrine do Mercado (passa pelo robô), Configurações e Ajuda enxutas e o evento `nav` (migração) na 0.9.45; tela "Metas" e Perfil dentro da Sede na 0.9.46; o JOGAR continua virando "Copa do Dia" pra quem volta.
+- 9: o Modo História "2027" continua no menu de modos.
+- Partida: dribles com nome (lambreta, roleta, caneta, elástico) só no visual, com câmera lenta curta; **sem faltas no jogo** (nada de cavar pênalti).
+- Rota: pular tudo fica como está até ter dado real da telemetria nova.
