@@ -176,6 +176,13 @@ const CATERPIE: Step[] = [
     { label: 'Evoluiu: Butterfree', inst: evolveInstance(evolveInstance(bugMvp3, 11), 12) },
 ];
 
+const karp: PokemonInstance = { ...sample(129), ability: 'swiftswim' };
+const MAGIKARP: Step[] = [
+    { label: 'Magikarp (clube, sem vaga)', inst: karp },
+    { label: 'Evoluiu na Ala: Gyarados', inst: evolveInstance(karp, 130, 'ALA') },
+    { label: 'Gyarados do pacote', inst: sample(130) },
+];
+
 function Ladder({ steps }: { steps: Step[] }) {
     return (
         <div className="cg-row">
@@ -422,6 +429,8 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     <Ladder steps={MEWTWO} />
                     <h3 className="cb-sub">Caterpie até Butterfree (Evento Inseto, shiny, MVP 3 e 2 evoluções)</h3>
                     <Ladder steps={CATERPIE} />
+                    <h3 className="cb-sub" id="magikarp">Magikarp e o selo de evolução</h3>
+                    <Ladder steps={MAGIKARP} />
                 </section>
                 <section className="panel" id="evento-tipos">
                     <h2>Evento por tipo</h2>
