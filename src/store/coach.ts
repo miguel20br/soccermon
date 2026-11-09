@@ -92,11 +92,13 @@ export const isFirstVisit = (s: History) => coachPlayed(s).length === 0;
 /**
  * Menu de modos na abertura (antes da Home): só pra quem já terminou uma partida (copa, Rota ou Duelo) antes de abrir o
  * jogo agora. O App decide uma vez, quando o save carrega: quem termina a 1ª partida nesta visita não ganha o menu no
- * meio da sessão. Link de duelo e demo abrem a tela deles direto.
+ * meio da sessão. Link de duelo e demo abrem a tela deles direto. `?lab=ultimate` abre o menu até num save novo (a prévia
+ * tem save próprio, vazio): sem ele não havia caminho pro Time Ultimate.
  */
 export function modeMenuDue(s: Pick<PersistedSave, 'career' | 'records' | 'duels'>, search = ''): boolean {
     const q = new URLSearchParams(search);
     if (q.has('duelo') || q.has('demo')) return false;
+    if (q.get('lab') === 'ultimate') return true;
     return s.career.matches > 0 || s.records.cups > 0 || s.duels.length > 0;
 }
 

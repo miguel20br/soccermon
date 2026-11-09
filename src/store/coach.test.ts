@@ -154,6 +154,11 @@ describe('menu de modos na abertura', () => {
         expect(modeMenuDue(played, '?demo=campeao')).toBe(false);
         expect(modeMenuDue(played, '?vel=8')).toBe(true);
     });
+
+    it('?lab=ultimate abre o menu até num save novo (a prévia não tinha caminho pro Time Ultimate)', () => {
+        expect(modeMenuDue(save(), '?lab=ultimate')).toBe(true);
+        expect(modeMenuDue(save(), '?lab=ultimate-off')).toBe(false);
+    });
 });
 
 describe('whenHydrated', () => {
