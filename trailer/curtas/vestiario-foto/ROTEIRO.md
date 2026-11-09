@@ -124,7 +124,7 @@ junto, a chaleira e o HMPF! do Jigglypuff, os bips subindo; o Ré7 sobe um tom e
 | 20 | 40,0 | **Punch-in capitão** | O Magikarp, já no lugar da foto; o texto no alto, em cima da cabeça do Snorlax | NÃO TÁ FALTANDO NINGUÉM, NÉ? | o grito, o tímpano rufando |
 | 21 | 42,0 | **Aberto** | Todos se olham (1, 3, 5); juntos (8); o 1 e as poses (12) | NÃO! · 1 | o bloco, o NÃO! (os gritos juntos), prato, o bip |
 | 22–23½ | 44,0 | **FOTO FINAL** (3 s) | Clique, FLASH: a polaroide cai na pilha e aproxima devagar | PALLET FC | "tan-tan-TAAN", "awww", aplauso |
-| 23½–27 | 47,0 | **Tela final** (7 s) | O logo com a piscada SOC-CER-MON, a frase, o site, o selo, o crédito; o Slowpoke entra devagar pela direita (24½), para no meio (25½), inclina a cabeça; a fala (26, linha 2) | Temos que chutar! · soccermon.com · …JÁ TIRARAM? | SOC-CER-MON, silêncio, a tuba arrastada, o grilo, o grito lento, risada grande |
+| 23½–27 | 47,0 | **Tela final** (7 s) | Sem corte: a FOTO FINAL encolhe e sobe pro meio do cartão (0,45 s) e fica até o fim; em cima o logo com a piscada SOC-CER-MON e a frase, embaixo da foto o site, o selo e o crédito; o Slowpoke entra devagar pela direita (24½), para à direita, embaixo da porta da foto (25½), inclina a cabeça; a fala à esquerda dele (26, linha 2): o borrado da foto e o de verdade juntos | Temos que chutar! · soccermon.com · …JÁ TIRARAM? | SOC-CER-MON, silêncio, a tuba arrastada, o grilo, o grito lento, risada grande |
 
 **A FOTO FINAL (a composição).** Polaroide deitada, foto 3:2 (900×600), quadro parado, todos na escala 8 menos o
 Snorlax (11). Atrás, no banco: o **Snorlax** no centro, dormindo; o **Jigglypuff** no colo, emburrado (rosa
@@ -141,7 +141,7 @@ acompanham.
 grava em `img/cabeca.js` o canto da cabeça em cada quadro, de frente (Idle/0) ou olhando pra direita (vista 2). Abaixados
 = 3 px pra baixo.
 
-Regras: uma coisa por vez; cada ideia ≥ 2 s; corte seco entre planos (o flash só nas fotos e na tela final); sprites em
+Regras: uma coisa por vez; cada ideia ≥ 2 s; corte seco entre planos (o flash só nas fotos; da foto final pra tela final, a foto sobe sem corte); sprites em
 escala inteira (o punch-in é escala 2 da câmera inteira); texto de 2 a 5 palavras (a fala do capitão tem 5), sem emoji,
 fora dos 15% de baixo. `node trailer/qa-quadros.mjs trailer/curtas/vestiario-foto`: 0 problema(s) em 1620 quadros.
 

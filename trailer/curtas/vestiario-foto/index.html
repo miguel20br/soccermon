@@ -125,11 +125,12 @@
 .timer { position: absolute; width: 230px; height: 230px; margin: -115px 0 0 -115px; box-sizing: border-box; border-radius: 50%; z-index: 45; opacity: 0;
   display: flex; align-items: center; justify-content: center; background: #10183d; border: 12px solid #0e1430; box-shadow: 0 0 0 12px #ffcb05, 0 0 0 22px #0e1430, 0 22px 0 18px rgb(0 0 0 / 35%);
   color: #f8f8f0; font-size: 170px; line-height: 1; }
-/* a tela final (a do trailer, mais pra cima: o Slowpoke chega embaixo sem tapar o site) */
-#fim #logo { top: 300px; }
-#fim .tag { top: 520px; }
-#fim .site { top: 640px; }
-#fim .selo { top: 750px; }
+/* a tela final: o logo em cima, a FOTO FINAL no meio (ela sobe da mesa e se acomoda), o site e o selo embaixo dela e o
+   Slowpoke chegando à direita, embaixo de tudo, sem tapar nada */
+#fim #logo { top: 50px; left: 220px; width: 640px; }
+#fim .tag { top: 188px; }
+#fim .site { top: 1000px; }
+#fim .selo { top: 1085px; }
 #fim .credito { top: 1580px; }
 </style>
 </head>
@@ -987,8 +988,8 @@
     const FW = 900;
     const FH = 600;
     const MG = 40;
-    function polaroide(legenda, { rot, dx = 0, dy = 0 }) {
-      const pl = div(mesa, 'polaroide', `left:${(1080 - PW) / 2 + dx}px;top:${470 + dy}px;width:${PW}px;height:${FH + MG + 150}px`);
+    function polaroide(legenda, { rot, dx = 0, dy = 0, pai = mesa }) {
+      const pl = div(pai, 'polaroide', `left:${(1080 - PW) / 2 + dx}px;top:${470 + dy}px;width:${PW}px;height:${FH + MG + 150}px`);
       const f = div(pl, 'foto', `left:${MG}px;top:${MG}px;width:${FW}px;height:${FH}px`);
       const l = div(pl, 'leg', `top:${MG + FH + 36}px;font-size:72px`);
       l.textContent = legenda;
@@ -1147,7 +1148,10 @@
     //         chifrinho nele; à direita, colado no capitão, o Ditto (um Squirtle idêntico)
     {
       const t0 = T(22, 0);
-      const p = polaroide('PALLET FC', { rot: -1.5 });
+      // fora da mesa (por cima das cenas): na tela final ela não some, sobe e se acomoda no cartão
+      const p = polaroide('PALLET FC', { rot: -1.5, pai: $('cena') });
+      p.pl.id = 'foto-final';
+      p.pl.style.zIndex = 20;
       const f = p.f;
       fundoFoto(f, { banco: 362, porta: true });
       const E = 8;
@@ -1178,16 +1182,20 @@
       tl.fromTo(p.pl, { scale: 1 }, { scale: 1.04, duration: T(23, 8) - t0 - 0.3, ease: 'sine.inOut', immediateRender: false }, t0 + 0.3);
     }
 
-    // 23½–27 · A TELA FINAL é a última coisa, e a tag acontece nela: o logo com a piscada SOC-CER-MON (linhas 8, 11 e 14
-    //          do 23), "Temos que chutar!", soccermon.com, o selo e "Música original: Soccermon". Com ela no ar, o
-    //          Slowpoke entra DEVAGAR pela direita (24, linha 8), para no meio, embaixo do site (25, linha 8), silêncio e
-    //          o grilo; inclina a cabeça (25, 13) e: …JÁ TIRARAM? (26, linha 2). A plateia explode e o vídeo acaba aí
+    // 23½–27 · A TELA FINAL é a última coisa, e a tag acontece nela: a FOTO FINAL não some, encolhe e sobe pro meio do
+    //          cartão (sem corte, o palco aparece por baixo); o logo com a piscada SOC-CER-MON (linhas 8, 11 e 14 do 23)
+    //          em cima, "Temos que chutar!", e embaixo da foto soccermon.com, o selo e "Música original: Soccermon". Com
+    //          ela no ar, o Slowpoke entra DEVAGAR pela direita (24, linha 8), para à direita, embaixo da porta da foto
+    //          (25, linha 8), silêncio e o grilo; inclina a cabeça (25, 13) e, à esquerda dele: …JÁ TIRARAM? (26,
+    //          linha 2). A plateia explode e o vídeo acaba aí
     {
       const t0 = T(23, 8);
       const fim = $('fim');
       telaFinal(fim);
-      corta('#fim', t0);
-      flash(tl, t0, 0.6, 0.3);
+      // sem corte: o palco aparece por baixo da foto, que encolhe e sobe pro meio do cartão (0,45 s) e fica até o fim
+      tl.fromTo('#fim', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: 'power1.out', immediateRender: false }, t0);
+      corta('#fim', t0 + 0.35);
+      tl.fromTo('#foto-final', { scale: 1.04, y: 0, rotation: -1.5 }, { scale: 0.82, y: -240, rotation: -3, duration: 0.45, ease: 'power3.inOut', immediateRender: false }, t0);
       tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 40, duration: 54 - t0, ease: 'none', immediateRender: false }, t0);
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, t0);
@@ -1195,14 +1203,14 @@
       tl.set('#tag', { opacity: 1 }, T(23, 14));
       tl.fromTo('#tag', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(23, 14));
       tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, T(23, 14));
-      const sp = ator($('fim-cena'), 79, { escala: 12, z: 30, x: 1250, y: 1470, sombra: true });
+      const sp = ator($('fim-cena'), 79, { escala: 12, z: 30, x: 1250, y: 1550, sombra: true });
       const tE = T(24, 8);
       const tP = T(25, 8);
       anim(tl, sp, 'Walk', 6, tE, tP, { vel: 0.45 });
-      tl.fromTo(sp.el, { x: 1250 }, { x: 540, duration: tP - tE, ease: 'none', immediateRender: false }, tE);
+      tl.fromTo(sp.el, { x: 1250 }, { x: 770, duration: tP - tE, ease: 'none', immediateRender: false }, tE);
       anim(tl, sp, 'Idle', 0, tP, 54, { vel: 0.35 });
       tl.to(sp.corpo, { keyframes: { rotation: [0, -7, -7] }, duration: 0.5, ease: 'sine.inOut' }, T(25, 13));
-      fala(fim, '…JÁ<br>TIRARAM?', T(26, 2), 54, 540, 1160);
+      fala(fim, '…JÁ<br>TIRARAM?', T(26, 2), 54, 340, 1535, 88);
     }
 
     // 0 · a abertura abre o vídeo
