@@ -13,7 +13,7 @@ import {
     canSell,
     canUndoSell,
     prizePacks,
-    sellPoints,
+    sellFichas,
     swapBlock,
     twinOf,
     type UltimateSave,
@@ -104,13 +104,13 @@ export function Club({ seg, onSeg, onPacks }: { seg: ClubSeg; onSeg: (s: ClubSeg
     );
 }
 
-/** A última venda rápida, com o Desfazer (some quando os pontos dela já foram gastos). */
+/** A última venda rápida, com o Desfazer (some quando as Fichas dela já foram gastas). */
 function UndoBar() {
     const { t } = useT();
     const u = useGame((s) => s.ultimate);
     const undo = useGame((s) => s.ultimateUndoSell);
     if (!canUndoSell(u)) return null;
-    const pts = u.sold.reduce((s, x) => s + x.points, 0);
+    const pts = u.sold.reduce((s, x) => s + x.fichas, 0);
     return (
         <p className="panel bc-surface ut-undo" role="status">
             <HudIcon kind="check" />
@@ -204,7 +204,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
             onClick: () => lock(c.uid),
         },
         ...(canSell(u, c.uid)
-            ? [{ label: t('ultimate.club.sell', { n: sellPoints(c) }), onClick: () => setSell(c) }]
+            ? [{ label: t('ultimate.club.sell', { n: sellFichas(c) }), onClick: () => setSell(c) }]
             : []),
     ];
     return (
@@ -373,8 +373,8 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 open={!!sell}
                 onClose={() => setSell(null)}
                 title={sell ? t('ultimate.club.sellTitle', { name: viewInstance(sell).displayName }) : ''}
-                text={sell ? t('ultimate.club.sellText', { n: sellPoints(sell) }) : ''}
-                confirm={sell ? t('ultimate.club.sell', { n: sellPoints(sell) }) : ''}
+                text={sell ? t('ultimate.club.sellText', { n: sellFichas(sell) }) : ''}
+                confirm={sell ? t('ultimate.club.sell', { n: sellFichas(sell) }) : ''}
                 onConfirm={() => sell && quickSell([sell.uid])}
             />
         </>
@@ -512,7 +512,7 @@ function Pending() {
     const [got, setGot] = useState(0);
     const repeats = u.pending.flatMap((p) => (p.kind === 'card' ? [p.card] : []));
     const prizes = u.pending.filter((p): p is UtPrize => p.kind === 'prize');
-    const total = repeats.reduce((s, c) => s + sellPoints(c), 0);
+    const total = repeats.reduce((s, c) => s + sellFichas(c), 0);
     const redeem = (uid?: string) => {
         const n = prizes.filter((p) => uid === undefined || p.uid === uid).reduce((s, p) => s + prizePacks(p), 0);
         useGame.getState().ultimateRedeem(uid);
@@ -609,7 +609,7 @@ function Pending() {
                             </span>
                             <span className="ut-pend-acts">
                                 <button type="button" className="btn k-chip" onClick={() => quickSell([c.uid])}>
-                                    {t('ultimate.club.sell', { n: sellPoints(c) })}
+                                    {t('ultimate.club.sell', { n: sellFichas(c) })}
                                 </button>
                                 <button
                                     type="button"

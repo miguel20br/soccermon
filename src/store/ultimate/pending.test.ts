@@ -14,7 +14,7 @@ import {
     quickSell,
     redeem,
     rollSeason,
-    sellPoints,
+    sellFichas,
     sellRepeats,
     swapBlock,
     swapPending,
@@ -49,21 +49,21 @@ function ready(): UltimateSave {
 }
 
 describe('Pendentes: venda rápida, desfazer e trancar', () => {
-    it('vende a repetida pelos pontos do metal e o Desfazer devolve carta e pontos', () => {
+    it('vende a repetida pelas Fichas do metal e o Desfazer devolve carta e Fichas', () => {
         const u = ready();
         const rep = u.pending[1] as Extract<UtPending, { kind: 'card' }>;
         const sold = quickSell(u, [rep.card.uid]);
         expect(sold.pending).toHaveLength(1);
-        expect(sold.packPoints).toBe(u.packPoints + sellPoints(rep.card));
-        expect(sellPoints(rep.card)).toBeGreaterThan(0);
+        expect(sold.fichas).toBe(u.fichas + sellFichas(rep.card));
+        expect(sellFichas(rep.card)).toBeGreaterThan(0);
         expect(canUndoSell(sold)).toBe(true);
         const back = undoSell(sold);
         // o Clube já tem uma igual: volta pros Pendentes
         expect(back.pending.map((p) => p.kind === 'card' && p.card.uid)).toContain(rep.card.uid);
-        expect(back.packPoints).toBe(u.packPoints);
+        expect(back.fichas).toBe(u.fichas);
         expect(back.sold).toEqual([]);
-        // pontos gastos: o Desfazer não deixa a carteira negativa
-        const spent = { ...sold, packPoints: 0 };
+        // Fichas gastas: o Desfazer não deixa a carteira negativa
+        const spent = { ...sold, fichas: 0 };
         expect(canUndoSell(spent)).toBe(false);
         expect(undoSell(spent)).toBe(spent);
     });

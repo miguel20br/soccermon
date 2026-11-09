@@ -63,7 +63,7 @@ da C**. Todas as decisões da seção 8 ficaram na recomendação:
 6. Save novo e temporada nova: 2 Mini + **Pick 1 de 5 Prata ou melhor** ("Seu primeiro craque").
 7. **Pick do líder** (1 de 3 Prata+ do tipo dele) no lugar do Pacote Grande do líder.
 8. Marcos **20 e 40** do passe dão **Pick 1 de 3 Ouro** (10 e 30 seguem Grande).
-9. **Pick com pontos** em Comprar: Bronze 10 · Prata 25 · Ouro 60.
+9. **Pick com pontos** em Comprar: Bronze 10 · Prata 25 · Ouro 60. *Em Fichas desde a moeda única (09/11): 50 · 125 · 300.*
 10. O Pick **nunca oferece carta que você já tem** (Normal).
 11. Revelação com **silhueta "Quem é esse Pokémon?"** (toque vira, "Virar todas"). *Trocada em 09/11 pela carta de
     costas (abaixo).*
@@ -131,6 +131,61 @@ O que mudou:
     leque), com o som do leque (tom subindo, grito da carta grande) e o brilho da carta grande; a melhor fica guardada e
     o walkout toca depois que a sequência acaba, como no pacote.
   - *Abrir 1* já era o original (rasgo, leque, walkout).
+
+## Moeda única (Miguel, 09/11)
+
+Decisão do Miguel (09/11, [menos-e-mais.md](menos-e-mais.md) B4): **o Time Ultimate fica só com Fichas.** Os pontos de
+pacote saem: tudo que dava pontos dá Fichas, tudo que custava pontos custa Fichas. Branch `ut-fichas`.
+
+**Medida** (`scripts/pesado.sh npx tsx scripts/balance/semana-ut.ts --saves 12 --semanas 4`): saves de verdade, partidas
+do motor no Normal (rival com o treinador que reage, como a tela), objetivos, passe, Resgatar, abre tudo o que tem e
+vende todas as repetidas; não compra nada. Semanas de janeiro (sem evento). Média por semana:
+
+| Jogador | Semana | Fichas (antes) | Pontos (antes) | Fichas / ponto |
+|---|---|---:|---:|---:|
+| Típico (2 partidas por dia) | 1ª | 993 | 172 | 5,8 |
+| | 2ª | 1.078 | 222 | 4,9 |
+| | 3ª e 4ª | 1.051 | 262 | 4,0 |
+| | **1º mês** | **4.173** | **918** | **4,5** |
+| Ativo (4 por dia, ~o teto do passe) | 1º mês | 6.417 | 1.034 | 6,2 |
+
+**Fator: 1 ponto = 5 Fichas.** É a razão do jogador típico no 1º mês (4,5, a conta do passe no plano é 2 partidas por
+dia), arredondada pra cima pra dar números redondos. Com ela, uma semana de pontos vale o mesmo que uma semana de
+Fichas, e cada coisa custa a mesma fração da parte da carteira que a pagava: o Pick Prata custava ~11% dos pontos da
+semana e custa ~11% do que entra por pacote aberto e venda; o Mini segue ~14% do que entra por partida, objetivos e
+passe. Somando tudo numa carteira, o Pick Prata cai pra ~6% da semana (ressalva 1).
+
+| | Antes | Depois |
+|---|---|---|
+| Fichas por semana, típico (1ª · 3ª e 4ª) | 993 · ~1.050 (+ 172 · 262 pontos) | **1.851 · ~2.360** |
+| Fichas por semana, ativo (1ª · 3ª e 4ª) | 1.589 · ~1.600 (+ 197 · 289 pontos) | **2.575 · ~3.045** |
+| De onde vêm (típico, 4ª semana) | partida 401 · objetivos e passe 638 Fichas; pacote aberto 122 · venda 140 pontos | partida 401 · objetivos e passe 638 · pacote aberto 608 · venda rápida 702 |
+| Pacote aberto | +5 pontos | **+25 Fichas** |
+| Repetida (venda rápida) | Bronze 1 · Prata 3 · Ouro 8 pontos | **Bronze 5 · Prata 15 · Ouro 40 Fichas** |
+| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 50 · Prata 125 · Ouro 300 Fichas** |
+| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 75 · Prata 200 · Ouro 500 Fichas** |
+| Pacote Mini na Loja | 150 Fichas | 150 Fichas (igual) |
+| Primeiros passos, objetivos, passe, partidas | Fichas | iguais |
+
+O que mudou na tela: a plaquinha dos pontos saiu do cabeçalho (fica só a das Fichas); Comprar mostra Pick e Escolher
+carta em Fichas; as Chances dizem "Venda rápida da repetida (Fichas)" e "Todo pacote aberto dá +25 Fichas"; o resumo do
+Abrir todos troca "+N pontos" por "+N Fichas"; venda, Desfazer e o texto da virada da temporada falam de Fichas (PT e
+EN). A Ajuda não citava pontos de pacote. `POINTS_TO_FICHAS` (rules.ts) converte o save de prévia: `ultimateOf` soma
+`packPoints × 5` às Fichas e a venda guardada pro Desfazer passa a valer em Fichas. Sem `SAVE_VERSION` novo (a fatia
+`ultimate` da produção está vazia). Teste: `migration.test.ts` (fatia vazia, save de prévia com pontos que não converte
+duas vezes, `backup-v6-*.json`).
+
+Ressalvas e o que fica pro Miguel:
+
+1. **A carteira dobra e as duas metades agora se misturam.** Antes os pontos só compravam Pick e carta; agora as Fichas
+   da venda e do pacote aberto também compram Pacote Mini. Quem gastar tudo em Mini compra ~15 por semana em vez de ~7
+   (cada Mini comprado ainda devolve 25 + as repetidas, ~55 Fichas no fim do mês). Se o Mini tiver que continuar raro:
+   Mini a 250–300, ou pacote aberto a +10/+15. Eu deixaria como está até alguém jogar (diversão > realismo).
+2. **Pick Prata (125) sai mais barato que o Mini (150).** Já era assim em tempo de jogo; com uma carteira só, fica à
+   vista. Se o Mini tiver que ser a compra "de entrada": Pick Prata a 150 ou mais.
+3. O robô sempre abre tudo e vende toda repetida, não compra, não faz líder nem Evolução; com Evento (dezembro) a conta
+   muda pouco (as cartas Evento não são repetidas).
+4. O jogador ativo ganha mais pontos por Ficha (6,2): o fator 5 é o do típico. Com o ativo, seria 6 (Pick Prata 150).
 
 ## 1. Como o FC faz
 

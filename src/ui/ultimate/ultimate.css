@@ -38,7 +38,7 @@
     }
 }
 
-/* carteira no canto do placar (como as moedas do FC): Fichas e pontos de pacote nas plaquinhas da barra da copa */
+/* carteira no canto do placar (como as moedas do FC): as Fichas na plaquinha da barra da copa */
 .menu-head-side {
     flex: none;
     margin-left: auto;
@@ -49,10 +49,6 @@
 }
 .ut-wallet .k-res {
     height: 32px;
-}
-.ut-res-pts .hud-icon {
-    background: var(--yellow);
-    color: var(--gold-ol, #3a2a00);
 }
 @media (max-width: 400px) {
     .ut-hub .menu-head h1 {
@@ -1681,7 +1677,7 @@
 .ut-pick-moment .ut-pick-all {
     min-width: 180px;
 }
-/* Pick com pontos (Comprar) */
+/* Pick com Fichas (Comprar) */
 .ut-pick-buy > .btn {
     flex: 1 1 0;
     min-width: 0;

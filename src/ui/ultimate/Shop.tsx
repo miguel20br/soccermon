@@ -4,7 +4,7 @@ import { createInstance, type PokemonInstance, viewInstance } from '../../engine
 import { Rng } from '../../engine/rng';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { FICHAS_PACK_PRICE, PICK_POINTS, PICK_PRICE } from '../../store/ultimate/rules';
+import { FICHAS_PACK_PRICE, PICK_FICHAS, PICK_PRICE } from '../../store/ultimate/rules';
 import { pickable } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -18,7 +18,7 @@ const overallOf = (id: number) =>
     viewInstance({ ...createInstance(id, new Rng('loja', String(id))), shiny: false }).overall;
 
 /**
- * Loja do Time Ultimate: Pacote Mini extra com Fichas e a carta escolhida com pontos de pacote (a proteção contra
+ * Loja do Time Ultimate: Pacote Mini extra, Pick e a carta escolhida, tudo com Fichas (a carta é a proteção contra
  * azar). Preços em rules.ts (proposta, falta o ok do Miguel).
  */
 export function Shop() {
@@ -33,7 +33,7 @@ export function Shop() {
     const [got, setGot] = useState<PokemonInstance | null>(null);
     const list = useMemo(() => pickable(u, metal).sort((a, b) => overallOf(b) - overallOf(a) || a - b), [u, metal]);
     const price = PICK_PRICE[metal];
-    const short = price - u.packPoints;
+    const short = price - u.fichas;
     return (
         <section className="panel ut-shop bc-surface">
             <h2 className="bc-caption">
@@ -69,10 +69,10 @@ export function Shop() {
                         key={m}
                         className="btn k-chip ut-chip"
                         style={{ '--mc': METAL[m].color } as CSSProperties}
-                        disabled={u.packPoints < PICK_POINTS[m]}
+                        disabled={u.fichas < PICK_FICHAS[m]}
                         onClick={() => buyPick(m) && setBoughtPick(m)}
                     >
-                        {t('ultimate.pick.buyBtn', { metal: metalLabel(m), n: PICK_POINTS[m] })}
+                        {t('ultimate.pick.buyBtn', { metal: metalLabel(m), n: PICK_FICHAS[m] })}
                     </button>
                 ))}
             </div>

@@ -118,7 +118,7 @@ describe('temporadas (semestrais)', () => {
         u = play(u, IN_T1, [1, 0], [line(star, 1), line(u.team.order[2])]);
         u = play(u, IN_T1 + DAY, [0, 1], [line(star)]);
         u = play(u, IN_T1 + 2 * DAY, [2, 2], [line(star)]);
-        u = { ...u, fichas: 999, packPoints: 77, bigPacks: 3, extraPacks: 4, gyms: ['brock'] };
+        u = { ...u, fichas: 999, bigPacks: 3, extraPacks: 4, gyms: ['brock'] };
         u = { ...u, pass: { ...u.pass, pts: PASS_MARKS * PASS_STEP, marks: PASS_MARKS } };
         u = { ...u, legacy: { ...u.legacy, ornaments: ['natal-2026'] } };
         // ainda na T1: nada muda
@@ -127,12 +127,11 @@ describe('temporadas (semestrais)', () => {
         expect(r.record).toMatchObject({ season: 1, played: 3, wins: 1, marks: PASS_MARKS, champion: true });
         expect(r.record?.legend?.uid).toBe(star);
         const v = r.u;
-        // zera: time, cartas, Fichas, pontos de pacote, passe, insígnias, pacotes ganhos, partidas
+        // zera: time, cartas, Fichas, passe, insígnias, pacotes ganhos, partidas
         expect(v).toMatchObject({
             season: 2,
             cards: [],
             fichas: 0,
-            packPoints: 0,
             bigPacks: 0,
             extraPacks: 0,
             played: 0,

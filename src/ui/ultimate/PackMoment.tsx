@@ -2,7 +2,7 @@ import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } fr
 import { viewInstance } from '../../engine/instance';
 import { walkoutLast } from '../../game/walkout-plan';
 import { useT } from '../../i18n/react';
-import { OPEN_POINTS } from '../../store/ultimate/rules';
+import { OPEN_FICHAS } from '../../store/ultimate/rules';
 import type { PackKind, PackOpen } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
@@ -123,7 +123,7 @@ export function UtPackMoment({
                     <HudIcon kind="sparkle" />
                     {tn('ultimate.stack.sumFresh', all.length - repeats)}
                     {repeats > 0 && ` · ${tn('ultimate.stack.sumRepeat', repeats)}`}
-                    {` · ${t('ultimate.stack.sumPoints', { n: open.packs.length * OPEN_POINTS })}`}
+                    {` · ${t('ultimate.stack.sumFichas', { n: open.packs.length * OPEN_FICHAS })}`}
                 </p>
                 <div className="k-pick3 ut-sum">
                     {sorted.map(({ c, repeat }) => (

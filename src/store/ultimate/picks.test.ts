@@ -9,7 +9,7 @@ import { Rng } from '../../engine/rng';
 import { editionOf } from '../../engine/specials';
 import { metalOf } from '../../ui/rarity';
 import { migrateSave } from '../game-store';
-import { EVENTS, FIRST_PICK, GYMS, gymPick, PICK_POINTS, passReward } from './rules';
+import { EVENTS, FIRST_PICK, GYMS, gymPick, PICK_FICHAS, passReward } from './rules';
 import {
     buyPick,
     choosePick,
@@ -92,13 +92,13 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         expect(r.u.firsts).toContain('pack');
     });
 
-    it('Pick com pontos: cobra o preço do metal e guarda em Meus pacotes', () => {
-        const u = { ...newUltimate('b', T0), packPoints: PICK_POINTS.prata };
-        expect(buyPick({ ...u, packPoints: PICK_POINTS.prata - 1 }, 'prata')).toBeNull();
+    it('Pick com Fichas: cobra o preço do metal e guarda em Meus pacotes', () => {
+        const u = { ...newUltimate('b', T0), fichas: PICK_FICHAS.prata };
+        expect(buyPick({ ...u, fichas: PICK_FICHAS.prata - 1 }, 'prata')).toBeNull();
         const v = buyPick(u, 'prata')!;
-        expect(v.packPoints).toBe(0);
+        expect(v.fichas).toBe(0);
         expect(v.picks.at(-1)).toMatchObject({ from: 'shop', min: 'prata', exact: true, n: 3 });
-        expect(v.picks.at(-1)?.uid).not.toBe(buyPick({ ...v, packPoints: 99 }, 'prata')!.picks.at(-1)?.uid);
+        expect(v.picks.at(-1)?.uid).not.toBe(buyPick({ ...v, fichas: 999 }, 'prata')!.picks.at(-1)?.uid);
     });
 
     it('prêmio com Pick espera o Resgatar e vai pra Meus pacotes; o pós-jogo conta o Pick', () => {
