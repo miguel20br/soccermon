@@ -491,6 +491,7 @@ function Pending() {
     const prizeTitle = (p: UtPrize) => {
         if (p.from === 'pass') return t('ultimate.pending.prize.pass', { n: p.ref });
         if (p.from === 'gym') return t('ultimate.pending.prize.gym', { name: d.profile.badges.names[p.ref] ?? p.ref });
+        if (p.from === 'event') return t('ultimate.event.title', { name: d.ultimate.events[p.ref] ?? p.ref });
         const o = objectiveById(p.ref);
         return o ? tn(`ultimate.goals.text.${o.kind}`, o.goal) : t('ultimate.pending.prize.objective');
     };
@@ -516,7 +517,13 @@ function Pending() {
             <ul className="ut-pend-list">
                 {prizes.map((p) => (
                     <li key={p.uid} className="panel bc-surface ut-pend ut-pend-prize">
-                        {p.packs + p.big > 0 ? (
+                        {p.pick ? (
+                            <PackArt
+                                look={p.pick.min === 'ouro' ? 'gold' : p.pick.event ? 'special' : ''}
+                                label={t('ultimate.pick.short')}
+                                type={p.pick.type}
+                            />
+                        ) : p.packs + p.big > 0 ? (
                             <PackArt look="" label={p.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
                         ) : (
                             <span className="ut-pend-coin">
@@ -525,7 +532,7 @@ function Pending() {
                         )}
                         <span className="ut-pend-info">
                             <b>{prizeTitle(p)}</b>
-                            <small>{mark({ fichas: p.fichas, packs: p.packs, big: p.big })}</small>
+                            <small>{mark({ fichas: p.fichas, packs: p.packs, big: p.big, pick: p.pick })}</small>
                         </span>
                         <span className="ut-pend-acts">
                             <button type="button" className="btn confirm k-chip" onClick={() => redeem(p.uid)}>

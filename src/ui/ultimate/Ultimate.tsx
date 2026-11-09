@@ -16,7 +16,14 @@ import {
     SHINY_ODDS,
 } from '../../store/ultimate/rules';
 import { lastDayPrizes, seasonN } from '../../store/ultimate/season';
-import { nextPackIn, type PackKind, packsReady, pendingFull, stackCount } from '../../store/ultimate/ultimate';
+import {
+    nextPackIn,
+    type PackKind,
+    packsReady,
+    pendingFull,
+    stackCount,
+    type UtPick,
+} from '../../store/ultimate/ultimate';
 import { PackArt } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -30,6 +37,7 @@ import { ULTIMATE_OPENS_AT } from './flag';
 import { FirstSteps, Goals } from './Goals';
 import { Home, type UtTab } from './Home';
 import { type UtOpened, UtPackMoment } from './PackMoment';
+import { UtPickMoment, usePickName } from './PickMoment';
 import { SeasonBar } from './Season';
 import { Shop } from './Shop';
 import { Squad } from './Squad';
@@ -72,6 +80,7 @@ export function Ultimate() {
     // o pacote aberto (tela cheia por cima de tudo): da Loja ou do "Abrir agora" do pós-jogo
     const openMany = useGame((s) => s.ultimateOpenMany);
     const [pack, setPack] = useState<UtOpened | null>(null);
+    const [pick, setPick] = useState<UtPick | null>(null);
     const [full, setFull] = useState(false);
     /** Abre `n` pacotes do tipo (sem `n` = Abrir todos). */
     const openKind = (kind: PackKind, n?: number) => {
@@ -152,7 +161,7 @@ export function Ultimate() {
                 ) : tab === 'club' ? (
                     <Club seg={seg} onSeg={setSeg} onSquad={() => setTab('squad')} />
                 ) : tab === 'shop' ? (
-                    <Packs onOpen={openKind} />
+                    <Packs onOpen={openKind} onPick={setPick} />
                 ) : (
                     <>
                         <SeasonBar />
@@ -198,6 +207,7 @@ export function Ultimate() {
                     }}
                 />
             )}
+            {pick && <UtPickMoment key={pick.uid} pick={pick} onClose={() => setPick(null)} />}
             <ConfirmSheet
                 open={full}
                 onClose={() => setFull(false)}
@@ -230,7 +240,7 @@ export type ShopSeg = 'mine' | 'buy';
  * Abrir 1 / Abrir todos, o relógio do grátis) e o outro segmento é **Comprar** (Mini por Fichas, escolher carta com
  * pontos, as chances). Nada abre sozinho: o pacote ganho espera aqui até a temporada virar.
  */
-function Packs({ onOpen }: { onOpen: (kind: PackKind, n?: number) => void }) {
+function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => void; onPick: (p: UtPick) => void }) {
     const { t, d, lang } = useT();
     const u = useGame((s) => s.ultimate);
     const now = useNow();
@@ -273,6 +283,10 @@ function Packs({ onOpen }: { onOpen: (kind: PackKind, n?: number) => void }) {
                             </section>
                         ) : (
                             <ul className="panel bc-surface ut-stack">
+                                {/* os Picks primeiro (é o mais gostoso), o mesmo tipo junto com "x2" */}
+                                {pickGroups(u.picks).map((g) => (
+                                    <PickRow key={g[0].uid} picks={g} onPick={onPick} />
+                                ))}
                                 {mini > 0 && (
                                     <StackRow
                                         kind="mini"
@@ -374,6 +388,46 @@ function StackRow({
                     onClick={() => onOpen(kind, n > 1 ? undefined : 1)}
                 >
                     {n > 1 ? t('ultimate.stack.openAll', { n }) : t('ultimate.stack.open')}
+                </button>
+            </span>
+        </li>
+    );
+}
+
+/** Picks iguais (mesma origem e regra) numa linha só. */
+const pickGroups = (picks: readonly UtPick[]) => {
+    const by = new Map<string, UtPick[]>();
+    for (const p of picks) {
+        const k = [p.from, p.ref, p.n, p.min, p.exact, p.type, p.event].join('|');
+        by.set(k, [...(by.get(k) ?? []), p]);
+    }
+    return [...by.values()];
+};
+
+/** Uma linha de Pick em Meus pacotes: o pacote do Pick, o nome, a regra e Escolher. */
+function PickRow({ picks, onPick }: { picks: UtPick[]; onPick: (p: UtPick) => void }) {
+    const { t } = useT();
+    const name = usePickName()(picks[0]);
+    const p = picks[0];
+    return (
+        <li className={`ut-stack-row is-pick from-${p.from}`}>
+            <span className="ut-stack-art">
+                <PackArt
+                    look={p.event ? 'special' : p.min === 'ouro' ? 'gold' : ''}
+                    label={t('ultimate.pick.short')}
+                    type={p.type}
+                />
+                {picks.length > 1 && <PackArt look="" type={p.type} />}
+            </span>
+            <span className="ut-stack-info">
+                <b>
+                    {name.title} {picks.length > 1 && <span className="ut-stack-x cb-num">x{picks.length}</span>}
+                </b>
+                <small>{name.hint}</small>
+            </span>
+            <span className="ut-stack-acts">
+                <button type="button" className="btn confirm" onClick={() => onPick(p)}>
+                    {t('ultimate.pick.open')}
                 </button>
             </span>
         </li>

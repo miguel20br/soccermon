@@ -78,6 +78,7 @@ export function useMarkText() {
             r.fichas ? t('ultimate.pass.reward.fichas', { n: r.fichas }) : '',
             r.packs ? tn('ultimate.pass.reward.packs', r.packs) : '',
             r.big ? tn('ultimate.pass.reward.big', r.big) : '',
+            r.pick ? t('ultimate.pick.gold') : '',
         ]
             .filter(Boolean)
             .join(' · ');

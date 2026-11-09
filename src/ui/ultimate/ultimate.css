@@ -1737,3 +1737,87 @@
     justify-items: center;
     gap: 6px;
 }
+
+/* ---------- 09/11: Pokémon Pick ("Quem é esse Pokémon?": a silhueta vira no toque) ---------- */
+.ut-pick-sub {
+    margin: -6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+}
+.ut-pick-back {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--fut-w);
+    aspect-ratio: 190 / 268;
+    padding: 0;
+    border: 3px solid var(--mc, var(--line));
+    border-radius: 10px;
+    background:
+        radial-gradient(70% 50% at 50% 42%, rgb(255 255 255 / 18%), transparent 70%),
+        repeating-linear-gradient(135deg, rgb(255 255 255 / 4%) 0 8px, transparent 8px 16px), var(--bc-ink-3);
+    box-shadow: 0 4px 0 var(--bc-edge);
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out);
+}
+.ut-pick-back:active {
+    transform: translateY(2px);
+}
+.ut-pick-back:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.ut-pick-back img {
+    width: 74%;
+    image-rendering: pixelated;
+    /* a silhueta do anime: o Pokémon todo no escuro */
+    filter: brightness(0);
+    opacity: 0.85;
+}
+.ut-pick-back b {
+    position: absolute;
+    top: 6%;
+    right: 9%;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: calc(var(--fut-w) * 0.2);
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow: 0 2px 0 var(--bc-edge);
+}
+/* virou: a carta entra girando (240 ms) */
+.ut-flip {
+    display: grid;
+    justify-items: center;
+    animation: ut-flip-in 240ms var(--ease-out) both;
+}
+@keyframes ut-flip-in {
+    from {
+        opacity: 0.4;
+        transform: perspective(600px) rotateY(90deg);
+    }
+}
+.ut-pick-opt.on .fut-card {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
+[data-reduce-motion="true"] .ut-flip {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ut-flip {
+        animation: none;
+    }
+}
+.ut-pick-moment .ut-pick-all {
+    min-width: 180px;
+}
+/* Pick com pontos (Comprar) */
+.ut-pick-buy > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+}
+.ut-got-line {
+    padding: 8px 10px;
+}

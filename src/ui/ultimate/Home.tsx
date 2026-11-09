@@ -444,7 +444,7 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
     const objectives = (last.objectives ?? []).flatMap((id) => objectiveById(id) ?? []);
     const firsts = (last.firsts ?? []).flatMap((id) => FIRST_STEPS.find((f) => f.id === id) ?? []);
     const packs = lastPacks(last);
-    const got = packs.mini + packs.big;
+    const got = packs.mini + packs.big + packs.picks;
     const hasPacks = got > 0;
     const extra = !!(last.badge && last.gym) || !!last.ornament;
     const raw = [
@@ -540,7 +540,16 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
             )}
             {hasPacks && (
                 <Beat on={c.step > n++} className="ut-prize-packs">
-                    <PackArt look="" label={packs.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
+                    <PackArt
+                        look={packs.picks ? 'gold' : ''}
+                        label={
+                            packs.picks
+                                ? t('ultimate.pick.short')
+                                : packs.big
+                                  ? t('ultimate.packs.big')
+                                  : t('ultimate.packs.mini')
+                        }
+                    />
                     <span>
                         {prizes ? (
                             <span className="bc-lbl">{t('ultimate.result.toOpen')}</span>
@@ -552,6 +561,7 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
                         )}
                         {packs.mini > 0 && <small>{tn('ultimate.goals.packs', packs.mini)}</small>}
                         {packs.big > 0 && <small>{tn('ultimate.goals.big', packs.big)}</small>}
+                        {packs.picks > 0 && <small>{tn('ultimate.result.picks', packs.picks)}</small>}
                     </span>
                 </Beat>
             )}

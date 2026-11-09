@@ -126,6 +126,8 @@ import {
     bridgePays,
     buyCard,
     buyPack,
+    buyPick,
+    choosePick,
     cupBridge,
     dropEvo,
     evolveCard,
@@ -492,6 +494,10 @@ export interface GameStore {
     ultimateBuyCard(speciesId: number): PokemonInstance | null;
     /** Pacote Mini extra com Fichas. */
     ultimateBuyPack(): boolean;
+    /** Pokémon Pick: fica com a opção `cardUid` do Pick `uid` (null = não deu). */
+    ultimateChoosePick(uid: string, cardUid: string): PokemonInstance | null;
+    /** Pick com pontos de pacote (vai pra Meus pacotes). */
+    ultimateBuyPick(metal: Parameters<typeof buyPick>[1]): boolean;
     ultimateStartEvo(uid: string, path: readonly number[]): void;
     ultimateDropEvo(uid: string): void;
     /** Dá o passo pronto da Evolução da carta. null = nada pronto. */
@@ -1290,6 +1296,24 @@ export const useGame = create<GameStore>()(
                 },
                 ultimateBuyPack: () => {
                     const u = buyPack(getState().ultimate);
+                    if (u) setState({ ultimate: u });
+                    return !!u;
+                },
+                ultimateChoosePick: (uid, cardUid) => {
+                    const now = utNow();
+                    const r = choosePick(getState().ultimate, uid, cardUid, now);
+                    if (!r) return null;
+                    setState({
+                        ultimate: r.u,
+                        dex: markSeen(getState().dex, [r.card.speciesId]),
+                        ...(!r.repeat && {
+                            binder: binderAdd(getState().binder, [r.card], { from: 'ultimate', at: now }),
+                        }),
+                    });
+                    return r.card;
+                },
+                ultimateBuyPick: (metal) => {
+                    const u = buyPick(getState().ultimate, metal);
                     if (u) setState({ ultimate: u });
                     return !!u;
                 },

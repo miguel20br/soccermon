@@ -13,7 +13,6 @@ import {
     EVENTS,
     FICHAS,
     GYM_FICHAS_MULT,
-    GYM_FIRST_BIG,
     GYMS,
     OBJECTIVES,
     PACK_START,
@@ -256,7 +255,7 @@ describe('desafios dos líderes', () => {
         expect(gymOk(sabrina.rule, silver)).toBe(silver.length >= 5);
     });
 
-    it('rival é o clube do líder; paga o dobro das Fichas do Difícil; 1ª vitória dá insígnia e Pacote Grande', () => {
+    it('rival é o clube do líder; paga o dobro das Fichas do Difícil; 1ª vitória dá insígnia e o Pick do líder', () => {
         const u = { ...ready(), season: 1 };
         for (const g of GYMS) expect(ultimateRival(u.salt, 0, 'dificil', 60, g.id).name).toBe(g.club);
         const won = play(u, IN_T1, [3, 1]);
@@ -264,7 +263,10 @@ describe('desafios dos líderes', () => {
         expect(gym.last?.fichas).toBe(FICHAS.dificil.win * GYM_FICHAS_MULT);
         expect(gym.gyms).toEqual(['brock']);
         expect(gym.last).toMatchObject({ gym: 'brock', badge: true });
-        expect(redeem(gym).bigPacks - redeem(won).bigPacks).toBe(GYM_FIRST_BIG);
+        expect(redeem(gym).bigPacks).toBe(redeem(won).bigPacks);
+        // o Pick do líder: 1 de 3 Prata ou melhor do tipo dele, em Meus pacotes depois do Resgatar
+        const pick = redeem(gym).picks.find((p) => p.from === 'gym');
+        expect(pick).toMatchObject({ uid: 'gym-brock', ref: 'brock', n: 3, min: 'prata', type: 'Rock' });
         // de novo: Fichas sim, insígnia e pacote não
         const again = finishMatch(live(gym, 'brock'), { score: [1, 0], shootout: null }, IN_T1 + DAY);
         expect(again.gyms).toEqual(['brock']);

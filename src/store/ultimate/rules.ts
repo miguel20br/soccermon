@@ -151,13 +151,37 @@ export interface PassReward {
     big: number;
     /** 'card' = ganha a carta de abertura; 'grow' = ela sobe (+2 em tudo, a mesma conta do Treino). */
     card?: 'card' | 'grow';
+    /** Pokémon Pick (marcos 20 e 40). */
+    pick?: PickSpec;
 }
-/** O prêmio do marco `k` (1..PASS_MARKS). */
+/** O prêmio do marco `k` (1..PASS_MARKS): 10 e 30 dão Pacote Grande; 20 e 40, Pick de Ouro (decidido em 09/11). */
 export function passReward(k: number): PassReward {
     if (k === 1) return { fichas: 0, packs: 0, big: 0, card: 'card' };
+    if (k % 20 === 0) return { fichas: 0, packs: 0, big: 0, pick: GOLD_PICK, card: 'grow' };
     if (k % PASS_GROW_EVERY === 0) return { fichas: 0, packs: 0, big: k % 10 === 0 ? 1 : 0, card: 'grow' };
     return k % 2 ? { fichas: 100, packs: 0, big: 0 } : { fichas: 0, packs: 1, big: 0 };
 }
+
+/**
+ * Pokémon Pick (ultimate-fc.md, decidido com o Miguel em 09/11/2026): escolha 1 de `n`, as outras somem. `min` é o
+ * piso de cada opção (o metal sorteado abaixo dele vira ele, como o piso do pacote); `exact` = só aquele metal (o
+ * Pick comprado com pontos); `type` = só do tipo (o Pick do líder); `event` = toda opção sai Evento (o do Natal).
+ * Nunca oferece espécie que você já tem.
+ */
+export interface PickSpec {
+    n: number;
+    min: Metal;
+    exact?: boolean;
+    type?: string;
+    event?: string;
+}
+/** "Seu primeiro craque": save novo e temporada nova, junto dos 2 Mini (o dia 1 do FC termina num 1 de 5). */
+export const FIRST_PICK: PickSpec = { n: 5, min: 'prata' };
+/** Marcos 20 e 40 do passe. */
+export const GOLD_PICK: PickSpec = { n: 3, min: 'ouro', exact: true };
+/** Pick com pontos de pacote em Comprar (1 de 3 daquele metal), mais barato que escolher a espécie (PICK_PRICE). */
+export const PICK_POINTS: Record<Metal, number> = { bronze: 10, prata: 25, ouro: 60 };
+export const PICK_BUY_N = 3;
 
 /**
  * Desafios dos líderes de ginásio (contra a IA, sem servidor): o clube do líder no nível Difícil e uma regra pro seu
@@ -182,7 +206,15 @@ export const GYMS: Gym[] = [
 ];
 export const GYM_LEVEL: Level = 'dificil';
 export const GYM_FICHAS_MULT = 2;
-export const GYM_FIRST_BIG = 1;
+/**
+ * Pick do líder (no lugar do Pacote Grande, decidido em 09/11): a 1ª vitória contra cada um dá 1 de 3 Prata ou melhor
+ * do tipo dele (Sabrina, que pede o time Prata, sem tipo).
+ */
+export const gymPick = (g: Gym): PickSpec => ({
+    n: 3,
+    min: 'prata',
+    ...(g.rule.kind === 'type' && { type: g.rule.type }),
+});
 
 /**
  * Eventos da temporada (um de cada vez, 2 a 3 semanas). Desligados por data: fora de [start, end) não existem. Cada
@@ -198,6 +230,11 @@ export interface UtEvent {
     /** Chance de cada carta do pacote sair Evento durante o evento. */
     cardOdds: number;
     objectives: Objective[];
+    /**
+     * Pick de Evento: cumprir todos os objetivos do evento (o enfeite) dá também 1 de 3 cartas Evento, Prata ou melhor.
+     * Onde ele sai foi escolha nossa (o plano diz "objetivo do Natal"); falta o ok do Miguel.
+     */
+    pick?: PickSpec;
 }
 export const EVENTS: UtEvent[] = [
     {
@@ -206,6 +243,7 @@ export const EVENTS: UtEvent[] = [
         end: brt(2027, 1, 5),
         type: 'Ice',
         cardOdds: 1 / 12,
+        pick: { n: 3, min: 'prata', event: 'natal-2026' },
         objectives: [
             { id: 'e-play', period: 'event', kind: 'play', goal: 10, fichas: 150, packs: 0, big: 0 },
             { id: 'e-goals', period: 'event', kind: 'goals', goal: 25, fichas: 0, packs: 2, big: 0 },

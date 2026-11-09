@@ -90,7 +90,7 @@ describe('objetivo do JOGAR', () => {
     });
 });
 
-describe('Abrir agora no pós-jogo', () => {
+describe('o que a partida deu (pós-jogo: +N em Meus pacotes)', () => {
     it('conta os pacotes que a partida deu: objetivos, insígnia e marcos do passe', () => {
         const last = {
             score: [3, 0],
@@ -101,10 +101,10 @@ describe('Abrir agora no pós-jogo', () => {
             rival: '',
             seen: false,
         } as const;
-        expect(lastPacks({ ...last, score: [3, 0] })).toEqual({ mini: 0, big: 0 });
-        // d-goals = 1 Mini; w-win = 2 Grandes; insígnia = 1 Grande; marco 2 = 1 Mini, marco 10 = 1 Grande
+        expect(lastPacks({ ...last, score: [3, 0] })).toEqual({ mini: 0, big: 0, picks: 0 });
+        // d-goals = 1 Mini; w-win = 2 Grandes; insígnia = Pick do líder; marco 2 = 1 Mini, marco 10 = 1 Grande, 20 = Pick
         expect(
-            lastPacks({ ...last, score: [3, 0], objectives: ['d-goals', 'w-win'], badge: true, marks: [2, 3, 10] }),
-        ).toEqual({ mini: 2, big: 4 });
+            lastPacks({ ...last, score: [3, 0], objectives: ['d-goals', 'w-win'], badge: true, marks: [2, 3, 10, 20] }),
+        ).toEqual({ mini: 2, big: 3, picks: 2 });
     });
 });
