@@ -4,14 +4,36 @@ import { viewInstance } from '../../engine/instance';
 import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
+import { chemistry } from '../../store/ultimate/chemistry';
 import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
-import { orderIndex } from '../../store/ultimate/ultimate';
+import { homeTeam, orderIndex, teamAverage, teamStrength, type UltimateSave } from '../../store/ultimate/ultimate';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
 import { Sheet } from '../kit/Sheet';
 import { LineupEditor } from '../screens/Lineup';
 import { Chemistry } from './Chemistry';
 import { clubPos, Diff, fitOf, ratingAtSlot } from './Club';
+
+/** Cartão do time em cima da prancheta (como o do FC): a nota do time grande, a química e a força. */
+function TeamCard({ u }: { u: UltimateSave }) {
+    const { t } = useT();
+    const home = homeTeam(u, '', 0);
+    const avg = teamAverage(home);
+    const chem = Math.round((chemistry(home.lineup, FORMATIONS[u.team.formation].slots, [], home.bench).avg - 1) * 100);
+    return (
+        <section className="panel bc-surface bc-stripe ut-teamcard" aria-live="polite">
+            <b className="ut-teamcard-ovr cb-num">{avg}</b>
+            <span>
+                <span className="bc-lbl">{t('ultimate.teamcard.ovr')}</span>
+                <b>{t('ultimate.home.chem', { c: chem })}</b>
+            </span>
+            <span className="ut-teamcard-str">
+                <span className="bc-lbl">{t('ultimate.teamcard.str')}</span>
+                <b className="cb-num">{Math.round(teamStrength(home))}</b>
+            </span>
+        </section>
+    );
+}
 
 /**
  * Elenco: a prancheta da Copa com a troca por vaga (como no FC): tocar numa vaga abre a lista do Clube já filtrada
@@ -39,6 +61,7 @@ export function Squad({ onPacks, onClub }: { onPacks: () => void; onClub: () => 
     const name = (uid: string) => viewInstance(byUid.get(uid)!).displayName;
     return (
         <>
+            <TeamCard u={u} />
             <LineupEditor
                 title={t('team.lineup.title', { team: clubName || t('ultimate.title') })}
                 formation={u.team.formation}

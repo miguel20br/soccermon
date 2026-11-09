@@ -30,16 +30,18 @@ import {
     BIG_FLOOR_N,
     BIG_PACK_SIZE,
     CUP_BRIDGE_DAY_MAX,
+    EVENTS,
     EVO_ACTIVE_MAX,
     FICHAS,
     FICHAS_PACK_PRICE,
+    FIRST_PICK,
     FIRST_STEPS,
     type FirstStepId,
     FLOOR_METAL,
     GYM_FICHAS_MULT,
-    GYM_FIRST_BIG,
     GYM_LEVEL,
     GYMS,
+    gymPick,
     ICON_ODDS,
     LEVEL_GAP,
     LEVELS,
@@ -51,16 +53,21 @@ import {
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
+    PACK_START,
     PASS_CARD,
     PASS_MARKS,
     PENDING_MAX,
+    PICK_BUY_N,
+    PICK_POINTS,
     PICK_PRICE,
+    type PickSpec,
     passReward,
     REPEAT_POINTS,
     RIVAL_TOLERANCE,
     SHINY_ODDS,
     STARTERS,
     TEAM_SIZE,
+    type UtEvent,
 } from './rules';
 import { gymOk, newPass, type PassState, passGain, passMarksOf, seasonN } from './season';
 
@@ -143,15 +150,26 @@ export type UtPending =
     | {
           kind: 'prize';
           uid: string;
-          from: 'objective' | 'pass' | 'gym';
-          /** id do objetivo, número do marco ou id do líder. */
+          from: 'objective' | 'pass' | 'gym' | 'event';
+          /** id do objetivo, número do marco, id do líder ou do evento. */
           ref: string;
           fichas: number;
           packs: number;
           big: number;
+          /** Pokémon Pick (vai pra Meus pacotes no Resgatar). */
+          pick?: PickSpec;
       };
 export type UtPrize = Extract<UtPending, { kind: 'prize' }>;
 export const pendingUid = (p: UtPending) => (p.kind === 'card' ? p.card.uid : p.uid);
+
+/** Pokémon Pick guardado em Meus pacotes (ultimate-fc.md): de onde veio e o que oferece. */
+export interface UtPick extends PickSpec {
+    /** Único na temporada (semeia as opções: `ut-pick-${uid}`). */
+    uid: string;
+    from: 'start' | 'gym' | 'pass' | 'shop' | 'event';
+    /** id do líder, número do marco, id do evento ('' no primeiro craque e no comprado). */
+    ref: string;
+}
 
 /** A última venda rápida (uma carta, ou as repetidas de uma vez): o Desfazer devolve e cobra os pontos de volta. */
 export interface UtSold {
@@ -169,7 +187,7 @@ export interface UltimateSave {
     fichas: number;
     /** Pontos de pacote (cada pacote aberto + repetidas): compram a carta que você escolher. */
     packPoints: number;
-    /** Pacotes grátis guardados (0..PACK_MAX). */
+    /** Pacotes grátis guardados pelo relógio (0..PACK_MAX), em Meus pacotes junto dos ganhos. */
     packs: number;
     /** Pacotes ganhos (objetivos, título da Copa, Fichas): sem teto e sem relógio. */
     extraPacks: number;
@@ -211,6 +229,10 @@ export interface UltimateSave {
     locked: string[];
     /** A última venda rápida, pro Desfazer. */
     sold: UtSold[];
+    /** Pokémon Picks guardados em Meus pacotes (escolha 1 de N). */
+    picks: UtPick[];
+    /** Picks escolhidos (conta no progresso da nuvem x aparelho). */
+    picked: number;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -219,7 +241,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     cards: [],
     fichas: 0,
     packPoints: 0,
-    packs: PACK_MAX,
+    packs: PACK_START,
     packAt: now,
     extraPacks: 0,
     bigPacks: 0,
@@ -251,6 +273,9 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     pending: [],
     locked: [],
     sold: [],
+    // o dia 1 termina num Pick 1 de 5, como no FC ("Seu primeiro craque")
+    picks: [{ ...FIRST_PICK, uid: 'start', from: 'start', ref: '' }],
+    picked: 0,
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -359,10 +384,40 @@ export function ultimateOf(raw: unknown): UltimateSave {
         sold: Array.isArray(raw.sold)
             ? raw.sold.flatMap((x) => (isObj(x) && cardOk(x.card) ? [{ card: x.card, points: num(x.points) }] : []))
             : [],
+        // campo novo (09/11): sem ele (fatia da 0.9.43) nasce com o "Seu primeiro craque", como o save novo
+        picks: Array.isArray(raw.picks) ? picksOf(raw.picks) : base.picks,
+        picked: num(raw.picked),
     };
 }
 
-const PRIZE_FROM = ['objective', 'pass', 'gym'] as const;
+const PICK_FROM = ['start', 'gym', 'pass', 'shop', 'event'] as const;
+const METAL_IDS: readonly string[] = ['bronze', 'prata', 'ouro'];
+/** O que o Pick oferece, do save: `n` de 1 a 10, metal de verdade; o resto opcional. null = estragado. */
+function pickSpecOf(p: Record<string, unknown>): PickSpec | null {
+    if (!METAL_IDS.includes(p.min as string)) return null;
+    const n = num(p.n, 10);
+    if (n < 1) return null;
+    return {
+        n,
+        min: p.min as Metal,
+        ...(p.exact === true && { exact: true }),
+        ...(typeof p.type === 'string' && { type: p.type }),
+        ...(typeof p.event === 'string' && { event: p.event }),
+    };
+}
+/** Picks do save: uid único, origem conhecida. */
+function picksOf(raw: unknown[]): UtPick[] {
+    const seen = new Set<string>();
+    return raw.flatMap((p): UtPick[] => {
+        if (!isObj(p) || typeof p.uid !== 'string' || seen.has(p.uid)) return [];
+        const spec = pickSpecOf(p);
+        if (!spec || !PICK_FROM.includes(p.from as UtPick['from'])) return [];
+        seen.add(p.uid);
+        return [{ ...spec, uid: p.uid, from: p.from as UtPick['from'], ref: typeof p.ref === 'string' ? p.ref : '' }];
+    });
+}
+
+const PRIZE_FROM = ['objective', 'pass', 'gym', 'event'] as const;
 /** Pendentes do save: carta de verdade (que não está no Clube) e prêmio com número; uid repetido entra uma vez. */
 function pendingOf(raw: unknown, clubUids: Set<string>): UtPending[] {
     if (!Array.isArray(raw)) return [];
@@ -380,6 +435,7 @@ function pendingOf(raw: unknown, clubUids: Set<string>): UtPending[] {
             PRIZE_FROM.includes(p.from as UtPrize['from'])
         ) {
             seen.add(p.uid);
+            const pick = isObj(p.pick) ? pickSpecOf(p.pick) : null;
             return [
                 {
                     kind: 'prize',
@@ -389,6 +445,7 @@ function pendingOf(raw: unknown, clubUids: Set<string>): UtPending[] {
                     fichas: num(p.fichas),
                     packs: num(p.packs),
                     big: num(p.big),
+                    ...(pick && { pick }),
                 },
             ];
         }
@@ -435,7 +492,7 @@ function mergeLegacy(a: UtLegacy, b: UtLegacy): UtLegacy {
     };
 }
 
-const progress = (u: UltimateSave) => u.opened + u.played + u.bought;
+const progress = (u: UltimateSave) => u.opened + u.played + u.bought + u.picked;
 /**
  * Nuvem x aparelho: fica o lado da temporada mais nova e, na mesma, o que andou mais (pacotes abertos + partidas +
  * compras); empate, o que vale (`keep`). O legado (Perfil) dos dois lados fica junto.
@@ -552,33 +609,121 @@ export function rollPack(
     const avoidOwned = u.cards.length < TEAM_SIZE;
     const needKeeper = avoidOwned && !u.cards.some(isKeeper);
     const taken = new Set<number>();
-    const iconIds = Object.keys(ICONS).map(Number);
     return packMetals(rng, kind).map((metal, i) => {
         const free = (id: number) => !taken.has(id) && !(avoidOwned && owned.has(id));
         const open = metalPools()[metal].filter(free);
         const keepers = i === 0 && needKeeper ? open.filter(isKeeperSpecies) : [];
         const pool = keepers.length ? keepers : open;
-        const icon = rng.chance(ICON_ODDS);
-        const iconPool = icon ? iconIds.filter((id) => pool.includes(id)) : [];
-        const from = iconPool.length
-            ? iconPool
-            : pool.length
-              ? pool
-              : metalPools()[metal].filter((id) => !taken.has(id));
-        const id = rng.pick(from);
-        taken.add(id);
-        const inst = createInstance(id, rng);
-        const shiny = rng.chance(SHINY_ODDS);
-        // o sorteio do Evento só existe no evento (fora dele, o pacote é o mesmo de antes)
-        const evento = !iconPool.length && !!event && rng.chance(event.cardOdds);
-        return {
-            ...inst,
-            uid: `ut${u.opened}-${i}-${id}`,
-            shiny,
-            ...(iconPool.length && { special: { kind: 'icone' as const, title: ICONS[id] } }),
-            ...(evento && { special: { kind: 'evento' as const, type: event.type } }),
-        };
+        const card = drawCard(
+            rng,
+            pool,
+            metalPools()[metal].filter((id) => !taken.has(id)),
+            event,
+            (id) => `ut${u.opened}-${i}-${id}`,
+        );
+        taken.add(card.speciesId);
+        return card;
     });
+}
+
+const ICON_IDS = Object.keys(ICONS).map(Number);
+/**
+ * Uma carta sorteada de `pool` (vazio: de `fallback`), com as edições de sempre: Ícone (1%, só os da lista), Shiny e,
+ * no evento, a chance de Evento (`forceEvent`: sempre Evento, o Pick do Natal). A ordem dos sorteios é a do pacote de
+ * sempre (mudar muda todos os pacotes já sorteados).
+ */
+function drawCard(
+    rng: Rng,
+    pool: number[],
+    fallback: number[],
+    event: UtEvent | null,
+    uid: (id: number) => string,
+    forceEvent = false,
+): PokemonInstance {
+    const icon = rng.chance(ICON_ODDS);
+    const iconPool = icon ? ICON_IDS.filter((id) => pool.includes(id)) : [];
+    const from = iconPool.length ? iconPool : pool.length ? pool : fallback;
+    const id = rng.pick(from);
+    const inst = createInstance(id, rng);
+    const shiny = rng.chance(SHINY_ODDS);
+    // o sorteio do Evento só existe no evento (fora dele, o pacote é o mesmo de antes)
+    const evento = !iconPool.length && !!event && (forceEvent || rng.chance(event.cardOdds));
+    return {
+        ...inst,
+        uid: uid(id),
+        shiny,
+        ...(iconPool.length && { special: { kind: 'icone' as const, title: ICONS[id] } }),
+        ...(evento && { special: { kind: 'evento' as const, type: event.type } }),
+    };
+}
+
+// ------------------------------------------------------------------------------------------------ Pokémon Pick
+
+/**
+ * As opções do Pick (ultimate-fc.md): `n` espécies diferentes que você ainda não tem, cada uma no metal sorteado pela
+ * chance de sempre com o piso `min` (ou só `min`, se `exact`), do tipo `type` se tiver; edições com as chances de sempre
+ * (o do evento sai sempre Evento). Semente `ut-pick-${uid}`: fechar e voltar mostra as mesmas opções (sem rerrolar
+ * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida.
+ */
+export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, now?: number): PokemonInstance[] {
+    const rng = new Rng(u.salt, `ut-pick-${p.uid}`);
+    const forced = p.event ? (EVENTS.find((e) => e.id === p.event) ?? null) : null;
+    const event = forced ?? (now === undefined ? null : eventAt(now));
+    const owned = new Set(u.cards.map((c) => c.speciesId));
+    const taken = new Set<number>();
+    const above = METALS.filter((m) => rank(m) >= rank(p.min));
+    const typed = (id: number) => !p.type || species(id).types.includes(p.type as never);
+    return Array.from({ length: p.n }, (_, i) => {
+        const rolled = rollMetal(rng);
+        const metal = p.exact || rank(rolled) < rank(p.min) ? p.min : rolled;
+        const order = [metal, ...above.filter((m) => m !== metal)];
+        const first = (ok: (id: number) => boolean) =>
+            order.map((m) => metalPools()[m].filter(ok)).find((x) => x.length) ?? [];
+        const fresh = (id: number) => !taken.has(id) && typed(id);
+        const pool = first((id) => fresh(id) && !owned.has(id));
+        const card = drawCard(
+            rng,
+            pool,
+            first(fresh).length ? first(fresh) : first((id) => !taken.has(id)),
+            event,
+            (id) => `utk-${p.uid}-${i}-${id}`,
+            !!forced,
+        );
+        taken.add(card.speciesId);
+        return card;
+    });
+}
+
+/**
+ * Fica com a opção `cardUid` do Pick `uid`: ela entra no Clube (enche vaga vazia como o pacote; repetida, que só sai
+ * quando não sobra espécie nova, vai pros Pendentes) e as outras somem. Vale o Primeiro passo do 1º pacote.
+ */
+export function choosePick(
+    u: UltimateSave,
+    uid: string,
+    cardUid: string,
+    now?: number,
+): { u: UltimateSave; card: PokemonInstance; repeat: boolean } | null {
+    const p = u.picks.find((x) => x.uid === uid);
+    const card = p && pickOptions(u, p, now).find((c) => c.uid === cardUid);
+    if (!p || !card) return null;
+    const repeat = isRepeat(u.cards, card);
+    const base = { ...u, picks: u.picks.filter((x) => x !== p), picked: u.picked + 1 };
+    const next = repeat
+        ? { ...base, pending: [...base.pending, { kind: 'card' as const, card }] }
+        : addCards(base, [card]);
+    return { u: firstStep(next, 'pack'), card, repeat };
+}
+
+/** Pick com pontos de pacote (Comprar): 1 de 3 daquele metal, guardado em Meus pacotes. null = pontos não bastam. */
+export function buyPick(u: UltimateSave, metal: Metal): UltimateSave | null {
+    if (u.packPoints < PICK_POINTS[metal]) return null;
+    return {
+        ...u,
+        packPoints: u.packPoints - PICK_POINTS[metal],
+        bought: u.bought + 1,
+        picks: [...u.picks, { n: PICK_BUY_N, min: metal, exact: true, uid: `shop-${u.bought}`, from: 'shop', ref: '' }],
+    };
 }
 
 /** Mesma espécie e mesma edição que uma carta da coleção. */
@@ -635,6 +780,37 @@ export function openPack(
         ),
         pack: { cards, repeat },
     };
+}
+
+/** Tudo em Meus pacotes (Mini do relógio e ganhos, Grandes): o número da aba Loja e do bloco do Início. */
+export const stackCount = (u: UltimateSave, now: number) => packsReady(u, now) + u.bigPacks + u.picks.length;
+
+/** Pacotes de um tipo guardados agora (Mini: os do relógio + os ganhos). */
+export const packsOf = (
+    u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPacks' | 'bigPacks'>,
+    now: number,
+    kind: PackKind,
+) => (kind === 'big' ? u.bigPacks : packsReady(u, now));
+
+/**
+ * Abrir todos (ultimate-fc.md): `openPack` em laço, até `n` pacotes do tipo. Mesma semente por `opened`, então abrir 4 de
+ * uma vez dá as mesmas cartas que abrir 4 um por um. Para no meio se os Pendentes encherem (`full`).
+ */
+export function openMany(
+    u: UltimateSave,
+    now: number,
+    kind: PackKind,
+    n = Number.POSITIVE_INFINITY,
+): { u: UltimateSave; packs: PackOpen[]; full: boolean } {
+    const packs: PackOpen[] = [];
+    let cur = u;
+    while (packs.length < n) {
+        const r = openPack(cur, now, kind);
+        if (!r) break;
+        cur = r.u;
+        packs.push(r.pack);
+    }
+    return { u: cur, packs, full: packs.length < n && packsOf(cur, now, kind) > 0 && pendingFull(cur) };
 }
 
 /** Cartas novas na coleção, enchendo as vagas vazias do time pela posição. */
@@ -721,6 +897,10 @@ export function cupBridge(save: UltimateSave, now: number): UltimateSave {
     if (n >= CUP_BRIDGE_DAY_MAX) return u;
     return { ...u, extraPacks: u.extraPacks + 1, bridge: { day, n: n + 1 } };
 }
+
+/** O próximo título da Copa paga a ponte (o teto do dia não chegou): o resultado da Copa avisa. */
+export const bridgePays = (save: UltimateSave, now: number) =>
+    cupBridge(save, now).extraPacks > rollSeason(save, now).u.extraPacks;
 
 // ------------------------------------------------------------------------------------------------------- time
 
@@ -908,7 +1088,13 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
     // prêmios (objetivos e a insígnia) esperam o Resgatar; as Fichas da partida pagam na hora
     const prizes = [
         ...obj.completed.map((o) => prizeOf('objective', o.id, o, `obj-${o.id}-${u.played}`)),
-        ...(badge && gym ? [prizeOf('gym', gym, { fichas: 0, packs: 0, big: GYM_FIRST_BIG }, `gym-${gym}`)] : []),
+        ...(badge && gymOf(gym)
+            ? [prizeOf('gym', gym, { fichas: 0, packs: 0, big: 0, pick: gymPick(gymOf(gym)!) }, `gym-${gym}`)]
+            : []),
+        // o enfeite do evento vem com o Pick de Evento
+        ...(ornament && event?.pick
+            ? [prizeOf('event', ornament, { fichas: 0, packs: 0, big: 0, pick: event.pick }, `event-${ornament}`)]
+            : []),
     ].filter((p): p is UtPrize => !!p);
     const paid: UltimateSave = {
         ...u,
@@ -951,17 +1137,31 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
     };
 }
 
+const gymOf = (id: string) => GYMS.find((g) => g.id === id);
+
 /** Prêmio pendente (null = não paga nada). */
 function prizeOf(
     from: UtPrize['from'],
     ref: string,
-    r: { fichas: number; packs: number; big: number },
+    r: { fichas: number; packs: number; big: number; pick?: PickSpec },
     uid: string,
 ): UtPrize | null {
-    return r.fichas + r.packs + r.big > 0
-        ? { kind: 'prize', uid, from, ref, fichas: r.fichas, packs: r.packs, big: r.big }
+    return r.fichas + r.packs + r.big > 0 || r.pick
+        ? {
+              kind: 'prize',
+              uid,
+              from,
+              ref,
+              fichas: r.fichas,
+              packs: r.packs,
+              big: r.big,
+              ...(r.pick && { pick: r.pick }),
+          }
         : null;
 }
+
+/** Quantos itens o prêmio põe em Meus pacotes ("+2 em Meus pacotes"). */
+export const prizePacks = (p: Pick<UtPrize, 'packs' | 'big' | 'pick'>) => p.packs + p.big + (p.pick ? 1 : 0);
 
 /** Resgata o prêmio `uid` (sem `uid`, todos): as Fichas vão pra carteira e os pacotes pra Loja. */
 export function redeem(u: UltimateSave, uid?: string): UltimateSave {
@@ -973,6 +1173,15 @@ export function redeem(u: UltimateSave, uid?: string): UltimateSave {
         fichas: u.fichas + sum('fichas'),
         extraPacks: u.extraPacks + sum('packs'),
         bigPacks: u.bigPacks + sum('big'),
+        // o Pick leva o uid do prêmio (único na temporada: semeia as opções)
+        picks: [
+            ...u.picks,
+            ...take.flatMap((p): UtPick[] =>
+                p.pick && !u.picks.some((x) => x.uid === p.uid)
+                    ? [{ ...p.pick, uid: p.uid, from: p.from === 'objective' ? 'event' : p.from, ref: p.ref }]
+                    : [],
+            ),
+        ],
         pending: u.pending.filter((p) => !take.includes(p as UtPrize)),
     };
 }
@@ -1081,9 +1290,10 @@ export const toggleLock = (u: UltimateSave, uid: string): UltimateSave =>
         : u;
 
 /** Pacotes que a partida deu (objetivos, insígnia e marcos do passe): o pós-jogo oferece "Abrir agora". */
-export function lastPacks(last: UltimateLast): { mini: number; big: number } {
+export function lastPacks(last: UltimateLast): { mini: number; big: number; picks: number } {
     let mini = 0;
-    let big = last.badge ? GYM_FIRST_BIG : 0;
+    let big = 0;
+    let picks = (last.badge ? 1 : 0) + (last.ornament && EVENTS.find((e) => e.id === last.ornament)?.pick ? 1 : 0);
     for (const id of last.objectives ?? []) {
         const o = objectiveById(id);
         mini += o?.packs ?? 0;
@@ -1092,8 +1302,9 @@ export function lastPacks(last: UltimateLast): { mini: number; big: number } {
     for (const k of last.marks ?? []) {
         mini += passReward(k).packs;
         big += passReward(k).big;
+        picks += passReward(k).pick ? 1 : 0;
     }
-    return { mini, big };
+    return { mini, big, picks };
 }
 
 // ------------------------------------------------------------------------------------------- primeiros passos

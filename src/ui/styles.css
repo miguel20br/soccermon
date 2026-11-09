@@ -5081,6 +5081,26 @@ button,
     margin: 22px 0 8px;
     text-align: center;
 }
+/* ponte da Copa: o título pagou 1 pacote no Time Ultimate (vai pra Meus pacotes de lá) */
+.res-ut-bridge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: fit-content;
+    margin: 12px auto 0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--yellow);
+    font-size: 13px;
+    font-weight: 700;
+    animation: k-moment-in 260ms var(--ease-out) both;
+}
+.res-ut-bridge .hud-icon {
+    width: 18px;
+    height: 18px;
+}
 /* resultado num palco que não rola: o herói ocupa a altura e encolhe nas telas baixas */
 .result-stage .rh {
     flex: 1 1 auto;

@@ -4,7 +4,7 @@ import { createInstance, type PokemonInstance, viewInstance } from '../../engine
 import { Rng } from '../../engine/rng';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { FICHAS_PACK_PRICE, PICK_PRICE } from '../../store/ultimate/rules';
+import { FICHAS_PACK_PRICE, PICK_POINTS, PICK_PRICE } from '../../store/ultimate/rules';
 import { pickable } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
@@ -26,6 +26,8 @@ export function Shop() {
     const u = useGame((s) => s.ultimate);
     const buyPack = useGame((s) => s.ultimateBuyPack);
     const buyCard = useGame((s) => s.ultimateBuyCard);
+    const buyPick = useGame((s) => s.ultimateBuyPick);
+    const [boughtPick, setBoughtPick] = useState<Metal | null>(null);
     const [metal, setMetal] = useState<Metal>('bronze');
     const [pick, setPick] = useState<number | null>(null);
     const [got, setGot] = useState<PokemonInstance | null>(null);
@@ -55,6 +57,31 @@ export function Shop() {
                     {t('ultimate.shop.buy')}
                 </button>
             </div>
+            <span className="bc-lbl">
+                <HudIcon kind="cards" />
+                {t('ultimate.pick.buy')}
+            </span>
+            <small className="muted">{t('ultimate.pick.buyHint')}</small>
+            <div className="ut-chips ut-pick-buy">
+                {METALS.map((m) => (
+                    <button
+                        type="button"
+                        key={m}
+                        className="btn k-chip ut-chip"
+                        style={{ '--mc': METAL[m].color } as CSSProperties}
+                        disabled={u.packPoints < PICK_POINTS[m]}
+                        onClick={() => buyPick(m) && setBoughtPick(m)}
+                    >
+                        {t('ultimate.pick.buyBtn', { metal: metalLabel(m), n: PICK_POINTS[m] })}
+                    </button>
+                ))}
+            </div>
+            {boughtPick && (
+                <p key={u.bought} className="ut-undo ut-got-line">
+                    <HudIcon kind="bag" />
+                    <span>{t('ultimate.pick.bought', { metal: metalLabel(boughtPick) })}</span>
+                </p>
+            )}
             <span className="bc-lbl">
                 <HudIcon kind="sparkle" />
                 {t('ultimate.shop.pick')}

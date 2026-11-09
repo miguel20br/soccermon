@@ -251,6 +251,12 @@ export function Result() {
                     goal={<CupGoalCard run={run} match={match} />}
                     extra={
                         <>
+                            {run.champ?.utBridge && (
+                                <p className="res-ut-bridge">
+                                    <HudIcon kind="bag" />
+                                    {t('result.utBridge')}
+                                </p>
+                            )}
                             <LeaderQuote
                                 club={opponent.name}
                                 won

@@ -13,6 +13,7 @@ import {
     revealOf,
     SHATTER_MS,
     upgradeOf,
+    walkoutLast,
     walkoutPick,
     walkoutPlan,
     walkoutToday,
@@ -123,6 +124,16 @@ describe('plano do walkout', () => {
         expect(walkoutPick([weak[0], shiny, weak[1]])).toBe(1);
         const icon = { ...mk(150, 5), special: { kind: 'icone' as const, title: ICONS[150] } };
         expect(walkoutPick([shiny, weak[0], icon])).toBe(2);
+    });
+
+    it('Abrir todos: o pacote com a carta do walkout vai por último, os outros na ordem', () => {
+        const mk = (id: number, lv: number) => createInstance(id, new Rng('pick', `${id}-${lv}`), lv);
+        const a = { cards: [mk(10, 5)] };
+        const shiny = { ...mk(19, 5), shiny: true };
+        const b = { cards: [mk(16, 5), shiny] };
+        const c = { cards: [mk(13, 5)] };
+        expect(walkoutLast([a, b, c])).toEqual({ packs: [a, c, b], best: shiny });
+        expect(walkoutLast([a, c])).toEqual({ packs: [a, c], best: null });
     });
 
     it('jogada com bola pela forma e pelo tipo, sempre a mesma por espécie, e todas aparecem', () => {

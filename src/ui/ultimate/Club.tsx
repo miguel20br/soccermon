@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import type { Position } from '../../engine/attributes';
 import { species, TYPES } from '../../engine/data';
 import { FORMATIONS } from '../../engine/formations';
@@ -12,6 +12,7 @@ import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
 import {
     canSell,
     canUndoSell,
+    prizePacks,
     sellPoints,
     swapBlock,
     twinOf,
@@ -29,8 +30,9 @@ import { ConfirmSheet, Sheet } from '../kit/Sheet';
 import { type Metal, metalLabel, metalOf } from '../rarity';
 import { type ClubStatus, STATUSES, statusesOf } from './club-status';
 import { useMarkText } from './Season';
+import { Squad } from './Squad';
 
-export type ClubSeg = 'cards' | 'pending';
+export type ClubSeg = 'squad' | 'cards' | 'pending';
 type Sort = 'rating' | 'name' | 'dex' | 'recent';
 type EditionKey = 'normal' | 'shiny' | 'icone' | 'evento' | 'destaque';
 const POSITIONS: Position[] = ['GK', 'FIXO', 'ALA', 'PIVO'];
@@ -64,16 +66,17 @@ export const ratingAtSlot = (c: PokemonInstance, i: number, u: Pick<UltimateSave
     i < STARTERS ? slotRating(c, FORMATIONS[u.team.formation].slots[i]) : viewInstance(c).overall;
 
 /**
- * Clube (o My Club do FC): as cartas com busca, posição, filtros e ordem, e as ações de cada uma; e os Pendentes
- * (repetidas e prêmios). Os dois num segmentado em cima.
+ * Clube (o My Club do FC): o Elenco (escalação), as cartas com busca, posição, filtros e ordem, e as ações de cada
+ * uma; e os Pendentes (repetidas e prêmios). Os três num segmentado em cima (o Elenco saiu da barra em 09/11, pra
+ * entrar a aba Jogar).
  */
-export function Club({ seg, onSeg, onSquad }: { seg: ClubSeg; onSeg: (s: ClubSeg) => void; onSquad: () => void }) {
+export function Club({ seg, onSeg, onPacks }: { seg: ClubSeg; onSeg: (s: ClubSeg) => void; onPacks: () => void }) {
     const { t } = useT();
     const u = useGame((s) => s.ultimate);
     return (
         <>
             <div className="bc-seg ut-club-seg">
-                {(['cards', 'pending'] as const).map((s) => (
+                {(['squad', 'cards', 'pending'] as const).map((s) => (
                     <button
                         type="button"
                         key={s}
@@ -81,14 +84,21 @@ export function Club({ seg, onSeg, onSquad }: { seg: ClubSeg; onSeg: (s: ClubSeg
                         className={seg === s ? 'on' : undefined}
                         onClick={() => onSeg(s)}
                     >
-                        {t(`ultimate.club.${s}`)} · {s === 'cards' ? u.cards.length : u.pending.length}
+                        {t(`ultimate.club.${s}`)}
+                        {s !== 'squad' && ` · ${s === 'cards' ? u.cards.length : u.pending.length}`}
                         {s === 'pending' && u.pending.length > 0 && <i className="ut-dot" aria-hidden />}
                     </button>
                 ))}
             </div>
             <UndoBar />
             <div key={seg} className="ut-panel">
-                {seg === 'cards' ? <Cards onSquad={onSquad} /> : <Pending />}
+                {seg === 'squad' ? (
+                    <Squad onPacks={onPacks} onClub={() => onSeg('cards')} />
+                ) : seg === 'cards' ? (
+                    <Cards onSquad={() => onSeg('squad')} />
+                ) : (
+                    <Pending />
+                )}
             </div>
         </>
     );
@@ -119,6 +129,30 @@ function UndoBar() {
 
 // ---------------------------------------------------------------------------------------------------- cartas
 
+const SEEN_KEY = 'soccermon-ut-seen';
+/**
+ * As cartas que chegaram desde a última vez que o Clube abriu (conveniência do aparelho, no localStorage): ficam com o
+ * selo Nova nesta visita; a próxima já não mostra. Sem storage, nada é novo.
+ */
+function useFresh(cards: readonly PokemonInstance[]): Set<string> {
+    const [fresh] = useState(() => {
+        try {
+            const seen = new Set<string>(JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]'));
+            return new Set(cards.filter((c) => !seen.has(c.uid)).map((c) => c.uid));
+        } catch {
+            return new Set<string>();
+        }
+    });
+    useEffect(() => {
+        try {
+            localStorage.setItem(SEEN_KEY, JSON.stringify(cards.map((c) => c.uid)));
+        } catch {
+            // sem storage: o selo não aparece
+        }
+    }, [cards]);
+    return fresh;
+}
+
 function Cards({ onSquad }: { onSquad: () => void }) {
     const { t, d, lang } = useT();
     const u = useGame((s) => s.ultimate);
@@ -134,6 +168,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
     const lock = useGame((s) => s.ultimateLock);
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const views = useMemo(() => new Map(u.cards.map((c) => [c.uid, viewInstance(c)])), [u.cards]);
+    const fresh = useFresh(u.cards);
     const q = f.q.trim().toLocaleLowerCase(lang);
     const stat = useMemo(() => new Map(u.cards.map((c) => [c.uid, statusesOf(u, c.uid)])), [u]);
     const list = u.cards
@@ -212,7 +247,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                 <div className="ut-cards" key={`${f.pos}-${f.metal}-${f.edition}-${f.type}-${f.status}-${f.sort}`}>
                     {list.map(({ c }) => {
                         const i = u.team.order.indexOf(c.uid);
-                        return (
+                        const card = (
                             <FutCard
                                 key={c.uid}
                                 inst={c}
@@ -230,6 +265,15 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                                           : undefined
                                 }
                             />
+                        );
+                        // selo Nova: chegou desde a última visita ao Clube (o "NEW" do FC); some na próxima
+                        return fresh.has(c.uid) ? (
+                            <div key={c.uid} className="ut-new-wrap">
+                                {card}
+                                <i className="ut-new">{t('ultimate.packs.fresh')}</i>
+                            </div>
+                        ) : (
+                            card
                         );
                     })}
                 </div>
@@ -462,22 +506,42 @@ function Pending() {
     const u = useGame((s) => s.ultimate);
     const quickSell = useGame((s) => s.ultimateQuickSell);
     const swap = useGame((s) => s.ultimateSwap);
-    const redeem = useGame((s) => s.ultimateRedeem);
     const mark = useMarkText();
     const [askAll, setAskAll] = useState(false);
+    // resgatou: o destino à vista (o pacote espera em Meus pacotes, nada abre sozinho)
+    const [got, setGot] = useState(0);
     const repeats = u.pending.flatMap((p) => (p.kind === 'card' ? [p.card] : []));
     const prizes = u.pending.filter((p): p is UtPrize => p.kind === 'prize');
     const total = repeats.reduce((s, c) => s + sellPoints(c), 0);
-    if (!u.pending.length) return <p className="panel ut-empty">{t('ultimate.pending.empty')}</p>;
+    const redeem = (uid?: string) => {
+        const n = prizes.filter((p) => uid === undefined || p.uid === uid).reduce((s, p) => s + prizePacks(p), 0);
+        useGame.getState().ultimateRedeem(uid);
+        if (n) setGot((g) => g + n);
+    };
+    const gotLine = got > 0 && (
+        <p key={got} className="panel bc-surface ut-undo ut-got-line">
+            <HudIcon kind="bag" />
+            <span>{t('ultimate.stack.gotN', { n: got })}</span>
+        </p>
+    );
+    if (!u.pending.length)
+        return (
+            <>
+                {gotLine}
+                <p className="panel ut-empty">{t('ultimate.pending.empty')}</p>
+            </>
+        );
     const prizeTitle = (p: UtPrize) => {
         if (p.from === 'pass') return t('ultimate.pending.prize.pass', { n: p.ref });
         if (p.from === 'gym') return t('ultimate.pending.prize.gym', { name: d.profile.badges.names[p.ref] ?? p.ref });
+        if (p.from === 'event') return t('ultimate.event.title', { name: d.ultimate.events[p.ref] ?? p.ref });
         const o = objectiveById(p.ref);
         return o ? tn(`ultimate.goals.text.${o.kind}`, o.goal) : t('ultimate.pending.prize.objective');
     };
     return (
         <>
             <Coach id="utRepetida" targets={['.ut-pend-list .ut-pend:not(.ut-pend-prize)']} when={repeats.length > 0} />
+            {gotLine}
             <section className="panel bc-surface ut-pend-head">
                 <small className="muted">{t('ultimate.pending.hint')}</small>
                 <div className="ut-pend-all">
@@ -496,7 +560,13 @@ function Pending() {
             <ul className="ut-pend-list">
                 {prizes.map((p) => (
                     <li key={p.uid} className="panel bc-surface ut-pend ut-pend-prize">
-                        {p.packs + p.big > 0 ? (
+                        {p.pick ? (
+                            <PackArt
+                                look={p.pick.min === 'ouro' ? 'gold' : p.pick.event ? 'special' : ''}
+                                label={t('ultimate.pick.short')}
+                                type={p.pick.type}
+                            />
+                        ) : p.packs + p.big > 0 ? (
                             <PackArt look="" label={p.big ? t('ultimate.packs.big') : t('ultimate.packs.mini')} />
                         ) : (
                             <span className="ut-pend-coin">
@@ -505,7 +575,7 @@ function Pending() {
                         )}
                         <span className="ut-pend-info">
                             <b>{prizeTitle(p)}</b>
-                            <small>{mark({ fichas: p.fichas, packs: p.packs, big: p.big })}</small>
+                            <small>{mark({ fichas: p.fichas, packs: p.packs, big: p.big, pick: p.pick })}</small>
                         </span>
                         <span className="ut-pend-acts">
                             <button type="button" className="btn confirm k-chip" onClick={() => redeem(p.uid)}>

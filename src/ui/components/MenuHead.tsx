@@ -53,6 +53,7 @@ export function MenuHead({
     onBack,
     tag,
     info,
+    side,
 }: {
     title: string;
     /** Ilustração do menu; ou `hud`, o mesmo ícone de traço que a tela tem na Home (Liga, Duelo, Rota…). */
@@ -64,6 +65,8 @@ export function MenuHead({
     tag?: string;
     /** O "?" do título (um `InfoSheet`): explica a tela toda, no lugar de um por linha. */
     info?: ReactNode;
+    /** No canto direito do placar (a carteira do Time Ultimate, como no FC). */
+    side?: ReactNode;
 }) {
     const { t } = useT();
     const inBar = useMenuBackOf(onBack);
@@ -79,6 +82,7 @@ export function MenuHead({
             {hud ? <HudIcon kind={hud} className="menu-head-ic" /> : icon && <MenuIcon kind={icon} />}
             <h1>{title}</h1>
             {info}
+            {side && <span className="menu-head-side">{side}</span>}
         </header>
     );
 }

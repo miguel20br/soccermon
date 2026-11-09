@@ -13,10 +13,9 @@ import {
     EVENTS,
     FICHAS,
     GYM_FICHAS_MULT,
-    GYM_FIRST_BIG,
     GYMS,
     OBJECTIVES,
-    PACK_MAX,
+    PACK_START,
     PASS_CARD,
     PASS_DAY_MAX,
     PASS_GYM_MULT,
@@ -140,7 +139,7 @@ describe('temporadas (semestrais)', () => {
             gyms: [],
             plays: {},
             pass: newPass(),
-            packs: PACK_MAX,
+            packs: PACK_START,
         });
         expect(v.team.order).toEqual([]);
         // fica: o legado (com a temporada nova no fim) e os enfeites
@@ -256,7 +255,7 @@ describe('desafios dos líderes', () => {
         expect(gymOk(sabrina.rule, silver)).toBe(silver.length >= 5);
     });
 
-    it('rival é o clube do líder; paga o dobro das Fichas do Difícil; 1ª vitória dá insígnia e Pacote Grande', () => {
+    it('rival é o clube do líder; paga o dobro das Fichas do Difícil; 1ª vitória dá insígnia e o Pick do líder', () => {
         const u = { ...ready(), season: 1 };
         for (const g of GYMS) expect(ultimateRival(u.salt, 0, 'dificil', 60, g.id).name).toBe(g.club);
         const won = play(u, IN_T1, [3, 1]);
@@ -264,7 +263,10 @@ describe('desafios dos líderes', () => {
         expect(gym.last?.fichas).toBe(FICHAS.dificil.win * GYM_FICHAS_MULT);
         expect(gym.gyms).toEqual(['brock']);
         expect(gym.last).toMatchObject({ gym: 'brock', badge: true });
-        expect(redeem(gym).bigPacks - redeem(won).bigPacks).toBe(GYM_FIRST_BIG);
+        expect(redeem(gym).bigPacks).toBe(redeem(won).bigPacks);
+        // o Pick do líder: 1 de 3 Prata ou melhor do tipo dele, em Meus pacotes depois do Resgatar
+        const pick = redeem(gym).picks.find((p) => p.from === 'gym');
+        expect(pick).toMatchObject({ uid: 'gym-brock', ref: 'brock', n: 3, min: 'prata', type: 'Rock' });
         // de novo: Fichas sim, insígnia e pacote não
         const again = finishMatch(live(gym, 'brock'), { score: [1, 0], shootout: null }, IN_T1 + DAY);
         expect(again.gyms).toEqual(['brock']);
@@ -293,7 +295,7 @@ describe('Pacote Grande', () => {
         expect(openPack(u, IN_T1, 'big')).toBeNull();
         const r = openPack({ ...u, bigPacks: 1 }, IN_T1, 'big')!;
         expect(r.pack.cards).toHaveLength(BIG_PACK_SIZE);
-        expect(r.u).toMatchObject({ bigPacks: 0, packs: PACK_MAX, extraPacks: 0, opened: 1 });
+        expect(r.u).toMatchObject({ bigPacks: 0, packs: PACK_START, extraPacks: 0, opened: 1 });
     });
 
     it('os objetivos da semana pagam Pacote Grande no lugar do Mini', () => {
@@ -351,6 +353,10 @@ describe('evento de Natal (1º evento da T1, desligado por data)', () => {
         for (let i = 0; i < goal && !u.legacy.ornaments.length; i++) u = play(u, inNatal + i * 1000, [5, 0]);
         expect(NATAL.objectives.every((o) => u.objectives.done.includes(o.id))).toBe(true);
         expect(u.legacy.ornaments).toEqual(['natal-2026']);
+        // o enfeite vem com o Pick de Evento (Resgatar → Meus pacotes), ligado só pela data do evento
+        const ev = redeem(u).picks.find((p) => p.from === 'event');
+        expect(ev).toMatchObject({ uid: 'event-natal-2026', event: 'natal-2026', n: 3 });
+        expect(u.last?.ornament).toBe('natal-2026');
         // acabou o evento: os objetivos dele somem, o enfeite fica (e sobrevive à virada da temporada)
         expect(objectivesAt(u.objectives, NATAL.end).done.some((id) => id.startsWith('e-'))).toBe(false);
         expect(rollSeason(u, T2.start).u.legacy.ornaments).toEqual(['natal-2026']);

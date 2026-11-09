@@ -7,8 +7,8 @@ import { mergeSaves } from '../../cloud/reconcile-plan';
 import { FUTSAL_5 } from '../../engine/config';
 import { runMatch } from '../../engine/runners/batch-runner';
 import { migrateSave, type PersistedSave, SAVE_VERSION, savePart, useGame } from '../game-store';
-import { FICHAS, FIRST_STEPS, PACK_MAX, PACK_SIZE } from './rules';
-import { homeTeam, outcomeOf, ultimateRival } from './ultimate';
+import { FICHAS, FIRST_STEPS, PACK_SIZE, PACK_START } from './rules';
+import { homeTeam, newUltimate, outcomeOf, ultimateRival } from './ultimate';
 
 const T0 = 1_800_000_000_000;
 const withoutUltimate = ({ ultimate: _, ...rest }: PersistedSave) => rest;
@@ -18,7 +18,7 @@ describe('save do Time Ultimate (v10)', () => {
         for (const lang of ['pt', 'en']) {
             const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
             const save = migrateSave(backup.save, backup.version);
-            expect(save.ultimate).toMatchObject({ cards: [], fichas: 0, packs: PACK_MAX, live: null, last: null });
+            expect(save.ultimate).toMatchObject({ cards: [], fichas: 0, packs: PACK_START, live: null, last: null });
             // o save de hoje (v9, sem a fatia) passa pela migração nova sem mudar nada do resto
             const v9 = JSON.parse(JSON.stringify(withoutUltimate(save)));
             const now = migrateSave(v9, 9);
@@ -29,6 +29,8 @@ describe('save do Time Ultimate (v10)', () => {
 
     it('a coleção, as Fichas e o time sobrevivem ao save, à migração e à nuvem', () => {
         const g = useGame.getState;
+        // o relógio guarda até PACK_MAX: o save nasce em T0 pra só ter os de boas-vindas
+        useGame.setState({ ultimate: newUltimate('mig', T0) });
         g().ultimateOpenPack(T0);
         g().ultimateOpenPack(T0);
         expect(g().ultimateOpenPack(T0)).toBeNull();
