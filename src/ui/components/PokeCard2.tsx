@@ -1,5 +1,5 @@
 import { type CSSProperties, memo, useRef } from 'react';
-import { type AttrKey, type Position } from '../../engine/attributes';
+import type { AttrKey, Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
 import { instanceBase, type PokemonInstance, viewInstance } from '../../engine/instance';
@@ -100,6 +100,11 @@ interface PokeCard2Props {
     bare?: boolean;
     /** Outra imagem no lugar do sprite (carta Metal): a proposta da edição Retrô na galeria. */
     art?: string;
+    /**
+     * Proposta do ▲ na galeria (Miguel, 09/11/2026), só lá: 'campo' = o número é o que vale em campo e o ▲ diz quanto
+     * vem de bônus; 'base' = o número é o da carta sem bônus e o ▲ soma tudo. Sem o prop, o de hoje.
+     */
+    arrows?: 'campo' | 'base';
 }
 
 /**
@@ -116,7 +121,7 @@ export function HoloLayer() {
     );
 }
 
-function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
+function cardData(inst: PokemonInstance, tr: Translator, position?: Position, arrows?: 'campo' | 'base') {
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
@@ -128,7 +133,7 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
         label: tr.d.common.attrShort[k],
-        v: Math.round(view.attributes[k]),
+        v: Math.round(arrows === 'campo' ? final[k] : arrows === 'base' ? base[k] : view.attributes[k]),
         delta: Math.round(final[k] - base[k]),
     }));
     // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
@@ -175,9 +180,10 @@ export const PokeCard2 = memo(function PokeCard2({
     tipFocus,
     bare,
     art,
+    arrows,
 }: PokeCard2Props) {
     const tr = useT();
-    const d = cardData(inst, tr, position);
+    const d = cardData(inst, tr, position, arrows);
     const holo = isHolo(variant);
     const fig = variant === 'figurinha';
     const metal = variant === 'metal';
