@@ -78,6 +78,14 @@ export function maxCueNear(
  * IA chuta no mesmo tick (`AIController.carrier`) e o golpe sai em T+1. Olhar o quadro exato é o que deixa o botão
  * aceso só com o chute certo (Miguel, 02/11/2026: "a bola já não tava mais no pé do meu capitão").
  */
+/**
+ * Golpe máximo de qualquer time saindo de `tick` a `tick + lead` (os ticks dos eventos `max` com `phase: 'hit'`): a
+ * câmera lenta chegando. Era só do seu (vinha do botão aceso); o do rival chegava em 8x e só desacelerava depois do
+ * chute (Miguel, 08/11/2026: "o golpe especial do inimigo também tem que ficar em câmera lenta").
+ */
+export const maxHitAhead = (events: readonly MatchEvent[], tick: number, lead: number) =>
+    events.some((e) => e.type === 'max' && e.phase === 'hit' && e.tick >= tick && e.tick - tick <= lead);
+
 export const maxOrderTick = (tick: number) => Math.ceil(tick / FUTSAL_5.snapshotEvery) * FUTSAL_5.snapshotEvery;
 
 /** Chute certo do capitão de linha `capIdx` com a ordem no `maxOrderTick(tick)`: a bola no pé dele na zona nesse snapshot. */
