@@ -1,5 +1,5 @@
 ---
-description: Rota Índigo: o que está inútil (medido), 3 direções pra mais ramificação e um Pular que vale, e as decisões do Miguel.
+description: Rota Índigo: o que estava inútil (medido), 3 direções pra mais ramificação, e a A (Pular que vale) e a B (mapa largo) feitas com os números do robô.
 ---
 
 # Rota Índigo: menos coisa inútil, mais caminho (09/11/2026)
@@ -7,7 +7,7 @@ description: Rota Índigo: o que está inútil (medido), 3 direções pra mais r
 Pedido do Miguel: "a rota índigo tem muitas coisas inúteis. principalmente pular as escolhas não te dá nada. também
 queria que tivéssemos mais ramificações nas escolhas de caminhos."
 
-Começou como análise (base: worktree `v0944`); a A entrou em 09/11 (seção no fim). Os números saem de dois scripts no scratchpad (não estão no repo):
+Começou como análise (base: worktree `v0944`); a A e a B entraram em 09/11 (seções no fim). Os números saem de dois scripts no scratchpad (não estão no repo):
 - **Mapa:** 2.000 mapas sorteados por `buildCupMap` e 5 caminhos ao acaso em cada um (10 mil Rotas andadas), sem partida.
 - **Robô:** 200 Rotas inteiras com partida de verdade (`runMatch`), as mesmas 200 seeds nas duas políticas (comparação
   pareada). O robô vai por caminho ao acaso, monta pelo "Monta pra mim", pega o Pokémon que melhora uma vaga em mais de 2
@@ -290,8 +290,8 @@ Miguel joga umas Rotas na prévia.
 
 ## Decidido com o Miguel (09/11)
 
-"Vamos fazer a A e a B em seguida" e "apoio todas as recomendações". A A entrou na branch `rota-a` (a B vem noutra
-rodada). Sem mudança no motor (nada de `ENGINE_VERSION`). Save: `bag` e `shopFree` opcionais no `RunState`, sem migração.
+"Vamos fazer a A e a B em seguida" e "apoio todas as recomendações". A A entrou na branch `rota-a` e a B na `rota-b`
+(seção seguinte). Sem mudança no motor (nada de `ENGINE_VERSION`). Save: `bag` e `shopFree` opcionais no `RunState`, sem migração.
 
 1. **Pular mostra a etiqueta, estilo Balatro** (`skipTagOf`/`applySkip` em `src/store/long-events.ts`): sorteada pela
    seed em cada tela (prêmio da casa, Baú, Treino de técnica, grupo), à vista no botão. Valores: +₽4, troca grátis no
@@ -334,3 +334,80 @@ Leitura: pular continua pior que pegar (25% contra 32%), então nenhum número f
 **sobra mais ₽** (27 → 32 em quem pega, 25 → 37 em quem pula), porque o Pular e a Folga pagam ₽ e quase não há onde
 gastar depois do último Mercado. É o argumento pro "Mercado do Planalto" da B. A troca grátis no Mercado vale menos
 que +2 sorteios (o sorteio agora também troca a vitrine): se ficar sem graça jogando, vira outra etiqueta na B.
+
+## B feita: o mapa largo (branch `rota-b`, 09/11)
+
+O gerador novo é `buildRotaMap` em `src/store/rota-map.ts` (nada em `src/engine`, sem `ENGINE_VERSION`). Rota nova
+nasce com `mapV: 2` no `RunState`; Rota guardada antes (sem `mapV`) segue no mapa estreito de `buildCupMap`, sem
+migração (teste em `src/store/rota-map.test.ts` com o backup v6 e uma Rota salva como a 0.9.43 e a `rota-a` salvavam).
+
+- **4 casas por linha** (a última tem 3). Cada casa liga na de cima da mesma coluna e numa vizinha, às vezes nas duas
+  (35%): os caminhos se cruzam em X, se juntam e se separam. Casas vizinhas nunca são do mesmo tipo, então **todo
+  passo é escolha entre tipos diferentes**, a 1ª linha também (3 Jogos com prêmios diferentes e um Ás).
+- **Linhas de partida:** 2 Jogos alternados com o Ginásio e o Ás. Continuam as 8 partidas (4 no mapa, em toda Rota).
+- **Linhas de parada:** 2 das 3 têm Mercado, com 2 Mercados alternados (o caminho passa por um só por linha: no máximo
+  2 por Rota, como antes). As outras casas saem de Evento, Treino, Zona Safari e Cassino (Baú no lugar do Cassino na
+  Rota 1, sem ₽ ainda). Linha do Baú: 2 Baús, Centro e Safari ou Cassino.
+- **A última parada vira escolha:** Treino, Mercado do Planalto (o ₽ que sobra tem uso antes do grupo) ou Centro.
+- **Casas novas** (em cima dos tipos de sempre, campo `casa`; uma versão antiga do jogo que abrir o save cai no tipo
+  de base): 
+  - **Treinador Ás** (Jogo): rival +1 (`ACE_SHIFT`), sprite do Ás na ficha. Vencendo: o 1 de 3 do time dele e depois a
+    **carta rara**, as 3 melhores de 6 sorteadas duas raridades acima da partida (até a mais alta).
+  - **Zona Safari** (evento): 3 selvagens da Safari de Kanto que você não tem, uma Safari Ball. A chance de fugir está
+    na carta (bronze 15%, prata 35%, ouro 55%); pegou, entra no lugar do reserva que você escolheu; fugiu, ninguém sai.
+  - **Cassino de Celadon** (evento): caça-níquel (₽3, 50%: um item pra quem está sem) ou balcão de prêmios (₽8, 60%: a
+    carta do balcão, Abra, Clefairy, Nidorina, Dratini, Scyther, Pinsir ou Porygon, no lugar de um reserva).
+  - Na Safari e no Cassino o resultado aparece na tela (a bola balança, as roletas param) antes de voltar pro mapa, e
+    a nota do mapa diz o que deu. Tudo pela seed: voltar na mesma Rota dá o mesmo.
+- **Tela:** casas menores no mapa largo, nome curto ("Centro"), a pedra no alto da casa, o capitão em cima da casa
+  dele e as ligações que dá pra tomar agora acesas (as linhas se cruzam). Prévia: `?demo=mapa` (`&meio=1`, `&fim=1`),
+  `?demo=as` (`&premio=1`), `?demo=planalto`, `?demo=evento&id=safari`, `?demo=evento&id=cassino`.
+- Telemetria: a tela de recompensa do Ás vai como `screen: 'as'`. A casa escolhida no mapa pediria um evento novo
+  no Supabase (migração de produção): ficou de fora.
+
+### Mapa: antes e depois (2.000 mapas, 5 caminhos ao acaso em cada)
+
+| Medida | Antes (`buildCupMap`) | Depois (`buildRotaMap`) |
+|---|---|---|
+| Caminhos por mapa | 94 | 2.343 |
+| Sequências de tipos de casa diferentes | 27 | **1.335** |
+| Passos da Rota (9) com escolha | 5,3 | **9** |
+| Escolhas entre tipos de casa diferentes | 3,1 por Rota | **9** |
+| Opções por escolha | 2,2 | 2,4 |
+| Escolhas que levam às mesmas casas da linha seguinte | 12% | 28% |
+
+### Robô antes e depois (mesmas seeds, partida de verdade)
+
+"Antes" é o código da `rota-b` com o mapa estreito (dá exatamente os números da `rota-a`). O robô aprendeu as casas
+novas: joga a bola na carta de maior ganho esperado sobre o pior reserva, no Cassino vai no balcão se a carta é
+melhor que o pior reserva e no caça-níquel se um titular está sem item, e põe em quadra quem entrou se for melhor.
+Ele anda por caminho ao acaso (não vai atrás de Mercado nem foge de Ás). Título tem erro de uns ±3 a 4 pp com 200.
+
+| | `pega` antes | `pega` depois | `pula` antes | `pula` depois |
+|---|---|---|---|---|
+| Título (200 Rotas) | 32% | 28% | 25% | 29% |
+| Título (400 Rotas, só `pega`) | 30% | 30% | | |
+| Chega ao grupo | 59% | 59% | 58% | 58% |
+| Time no fim | 81,8 | 82,9 | 81,0 | 82,1 |
+| ₽ sobrando no fim | 31,7 | **24,9** | 37,0 | 29,6 |
+| Vitória no mapa: Jogo / Ginásio / Ás (antes: 400 Rotas) | 68% / 52% / – | 72% / 51% / 52% | | |
+
+Casas novas (por Rota, `pega`): Ás 0,94 partida (vitória 52%, e depois dela o time sobe +3,4, contra +1,8 a +1,9 do
+Jogo e +1,0 do Ginásio), Safari 0,59 (+0,6 de time), Cassino 0,37 (−₽3,9, +0,34 item), Mercado do Planalto 0,20
+(−₽17,8 gastos, +0,6 item).
+
+**Casa dominante?** Robô que entra em toda casa X que aparece (`pega`, 200 Rotas; base ao acaso 30%): Ás 35% na
+1ª versão (carta da raridade mais alta desde a 1ª partida), **28%** depois do ajuste; Safari 28%; Cassino 32%.
+Nenhuma ficou dominante.
+
+**Ajustes de número feitos nesta rodada (pra decidir junto):**
+1. Carta rara do Ás: das 3 da raridade mais alta (às vezes saía um Poliwag 58) pra **as 3 melhores de 6, duas
+   raridades acima da partida**. Com a mais alta desde o começo, quem pegava todo Ás ganhava 5 pp de título.
+2. **2 Mercados** nas linhas de Mercado. Com 1 só em 4 casas, o caminho ao acaso entrava em 0,44 Mercado por Rota (eram
+   0,81) e o título caía de 30% pra 25% (400 Rotas), mesmo com o time mais forte no fim: menos Patrocínio. Com 2:
+   0,85 por Rota e 30%.
+
+Leitura: o título ficou no lugar (30% → 30% com 400) e o ₽ que sobrava caiu ~7 (o Planalto gasta). Quem pula tudo
+agora empata com quem pega (29% × 28% com 200): pular rende ₽ e o ₽ tem o Planalto. Se jogando parecer que pular
+ficou bom demais, a etiqueta de ₽ (+₽4) é o primeiro número a mexer.
+
