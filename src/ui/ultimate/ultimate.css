@@ -1715,18 +1715,16 @@
     min-height: 0;
 }
 .ut-sum-line {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
     margin: 0;
+    text-align: center;
     font-size: 14px;
     color: var(--yellow);
 }
 .ut-sum-line .hud-icon {
     width: 16px;
     height: 16px;
+    margin-right: 6px;
+    vertical-align: -3px;
 }
 .ut-sum-full {
     margin: 0;
@@ -2011,7 +2009,7 @@
     .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home) {
         width: min(1240px, 100%);
     }
-    .ut-panel:not(:has(.ut-home, .ut-prize)) {
+    .ut-panel:not(:has(.ut-home)) {
         width: min(760px, 100%);
         margin: 0 auto;
     }
@@ -2072,4 +2070,23 @@
 .ut-dia i.on {
     border-color: var(--green);
     background: var(--green);
+}
+/* destaque em coluna estreita (deitado, PC): o botão desce pra linha de baixo, sem cobrir o texto */
+@media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
+    .ut-hl-slide {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .ut-hl-slide .ut-b-cta {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+}
+/* o número do bloco nunca sai pra fora: no 320 ele fica só na aba Loja */
+.ut-b-head .ut-count {
+    flex: none;
+}
+@media (max-width: 360px) {
+    .ut-b-head .ut-count {
+        display: none;
+    }
 }
