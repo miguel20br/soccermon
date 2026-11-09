@@ -7,7 +7,6 @@ import {
     MAP_REGIONS,
     type MapNode,
     type MapRegion,
-    type NodeKind,
     nextNodes,
     ROTA_RULES,
     regionOfRow,
@@ -30,7 +29,8 @@ import {
     nodeOpponent,
     YELLOW_CARDS,
 } from '../../store/long-cup';
-import { choiceTargets, type EventId, eventChoices, stoners } from '../../store/long-events';
+import { choiceTargets, type EventId, eventChoices, fleeOf, gambleWon, stoners } from '../../store/long-events';
+import { type House, houseOf } from '../../store/rota-map';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
@@ -60,7 +60,7 @@ import { InfoSheet, SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 
-const ICON: Record<NodeKind, HudIconKind> = {
+const ICON: Record<House, HudIconKind> = {
     jogo: 'players',
     ginasio: 'medal',
     mercado: 'bag',
@@ -69,6 +69,11 @@ const ICON: Record<NodeKind, HudIconKind> = {
     bau: 'chest',
     centro: 'heart',
     final: 'cup',
+    // casas do mapa largo
+    as: 'max',
+    safari: 'paw',
+    cassino: 'coin',
+    planalto: 'building',
 };
 /** Cor de cada pedra: a do tipo de quem ela evolui (a da Lua, a de Fada do Clefairy). */
 const STONE_COLOR: Record<Stone, string> = {
@@ -97,8 +102,12 @@ const MOBILE_CHROME = 250;
 const WIDE = '(min-width: 1000px), (min-width: 700px) and (max-height: 500px)';
 /** ₽ que o mapa mostrou da última vez: a próxima vez que abrir, o número rola até o novo (a vitória rendeu). */
 let lastMapMoney: { seed: string; n: number } | null = null;
-/** As casas ficam entre 10% e 90% da largura (as bordas são do cenário e do nome da região). */
-const nodeX = (col: number, width: number) => 10 + ((col + 0.5) / width) * 80;
+/**
+ * As casas ficam entre 10% e 90% da largura (as bordas são do cenário e do nome da região); no mapa largo (4 por linha),
+ * entre 5% e 95%, pra sobrar espaço entre elas no celular.
+ */
+const nodeX = (col: number, width: number, wide: boolean) =>
+    wide ? 5 + ((col + 0.5) / width) * 90 : 10 + ((col + 0.5) / width) * 80;
 
 const useViewportH = () =>
     useSyncExternalStore(
@@ -153,6 +162,7 @@ export function CupMap() {
     const live = useGame((s) => s.run);
     const enterNode = useGame((s) => s.enterNode);
     const tell = useGame((s) => s.tell);
+    const openBag = useGame((s) => s.openBag);
     const run = useHeld(live?.status === 'map' && live.map ? live : null);
     const [pick, setPick] = useState<string | null>(null);
     const [walking, setWalking] = useState<string | null>(null);
@@ -202,8 +212,10 @@ export function CupMap() {
     const pad = Math.round(rowH * 0.67);
     const H = map.rows * rowH + MAP_REGIONS.length * NAME_H;
     const width = (row: number) => map.nodes.filter((x) => x.row === row).length;
+    // mapa largo (4 casas por linha): casas menores e o capitão em cima da casa dele (ao lado, cobria a vizinha)
+    const w4 = map.nodes.some((n) => n.col >= 3);
     const pos = (n: MapNode) => ({
-        x: nodeX(n.col, width(n.row)),
+        x: nodeX(n.col, width(n.row), w4),
         y: H - (n.row + 0.5) * rowH - regionIndex(n.row) * NAME_H,
     });
     const path = run.path ?? [];
@@ -275,6 +287,27 @@ export function CupMap() {
                             {cards}/{YELLOW_CARDS}
                         </span>
                         {/* a regra do amarelo: o balão do mapa ensina e o cartão do resultado explica quando cai */}
+                        {/* Mochila: as pedras guardadas; tocar abre a tela da pedra (usar, guardar de volta, vender) */}
+                        {!!run.bag?.length && (
+                            <span className="cm-bag">
+                                <HudIcon kind="bag" />
+                                {[...new Set(run.bag)].map((s) => {
+                                    const n = run.bag!.filter((x) => x === s).length;
+                                    return (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            className="cm-bag-stone"
+                                            aria-label={`${t('longCup.bag')}: ${t(`longCup.stone.${s}`)}`}
+                                            onClick={() => openBag(s)}
+                                        >
+                                            <StoneMark stone={s} />
+                                            {n > 1 && `×${n}`}
+                                        </button>
+                                    );
+                                })}
+                            </span>
+                        )}
                         {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
                     </div>
                     {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
@@ -282,7 +315,7 @@ export function CupMap() {
                 </aside>
 
                 <div className="cm-scroll" ref={scroller}>
-                    <div className="cm-map" style={{ height: H + pad }}>
+                    <div className={`cm-map${w4 ? ' cm-w4' : ''}`} style={{ height: H + pad }}>
                         {REGIONS.map((r, i) => {
                             const top = H - (r.rows[1] + 1) * rowH - (i + 1) * NAME_H;
                             const h = (r.rows[1] - r.rows[0] + 1) * rowH + NAME_H + (r.rows[0] === 0 ? pad : 0);
@@ -309,10 +342,12 @@ export function CupMap() {
                                     const to = map.nodes.find((x) => x.id === id)!;
                                     const a = pos(n);
                                     const b = pos(to);
+                                    // o caminho que dá pra tomar agora fica aceso (no mapa largo as linhas se cruzam)
+                                    const live = !walking && n.id === (run.at ?? null) && open.has(id);
                                     return (
                                         <line
                                             key={`${n.id}>${id}`}
-                                            className={walked.has(`${n.id}>${id}`) ? 'walked' : ''}
+                                            className={walked.has(`${n.id}>${id}`) ? 'walked' : live ? 'live' : ''}
                                             x1={a.x}
                                             y1={a.y}
                                             x2={b.x}
@@ -328,15 +363,16 @@ export function CupMap() {
                             const isOpen = open.has(n.id) && !walking;
                             const state =
                                 n.id === run.at ? ' at' : path.includes(n.id) ? ' done' : isOpen ? ' open' : '';
+                            const house = houseOf(n);
                             return (
                                 <button
                                     key={n.id}
                                     type="button"
-                                    className={`cm-node k-${n.kind}${state}${pick === n.id ? ' picked' : ''}`}
+                                    className={`cm-node k-${n.kind}${house !== n.kind ? ` h-${house}` : ''}${state}${pick === n.id ? ' picked' : ''}`}
                                     style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
                                     disabled={!isOpen}
                                     aria-label={[
-                                        t(`longCup.kind.${n.kind}`),
+                                        t(`longCup.kind.${house}`),
                                         [
                                             n.prize && n.prize !== 'pedra' && t(`longCup.prize.${n.prize}`),
                                             n.stone && t(`longCup.stone.${n.stone}`),
@@ -352,7 +388,7 @@ export function CupMap() {
                                         if (untold) tell(untold.id);
                                     }}
                                 >
-                                    <HudIcon kind={ICON[n.kind]} />
+                                    <HudIcon kind={ICON[house]} />
                                     {rivalIcons.has(n.id) && (
                                         <MonIcon
                                             className="cm-node-rival"
@@ -365,9 +401,9 @@ export function CupMap() {
                                     <span className="cm-label">
                                         {n.prize === 'pedra' && n.stone
                                             ? t(`longCup.stoneShort.${n.stone}`)
-                                            : n.prize && n.kind === 'jogo'
+                                            : n.prize && house === 'jogo'
                                               ? t(`longCup.prizeShort.${n.prize}`)
-                                              : t(`longCup.kind.${n.kind}`)}
+                                              : t(`longCup.${w4 ? 'kindShort' : 'kind'}.${house}`)}
                                     </span>
                                     {isOpen && n.types && (
                                         <span className="cm-node-types">
@@ -386,8 +422,13 @@ export function CupMap() {
                                     {
                                         left: `${here.x}%`,
                                         top: here.y,
-                                        // ao lado da casa, pro lado do meio do mapa: nunca em cima da próxima casa
-                                        translate: here.x <= 50 ? '34px -50%' : 'calc(-100% - 34px) -50%',
+                                        // ao lado da casa, pro lado do meio do mapa: nunca em cima da próxima casa; no mapa
+                                        // largo a vizinha está perto demais, então ele fica em cima da casa dele
+                                        translate: w4
+                                            ? '-50% -78%'
+                                            : here.x <= 50
+                                              ? '34px -50%'
+                                              : 'calc(-100% - 34px) -50%',
                                     } as CSSProperties
                                 }
                             />
@@ -449,36 +490,45 @@ function NodeSheet({
     const rival = useMemo(() => (isMatchKind(node.kind) ? nodeOpponent(run, node) : null), [node, run]);
     // a pedra: quem do seu time evolui com ela
     const users = node.stone ? stoners(run, node.stone).map((p) => viewInstance(p).displayName) : [];
-    const trainer = rival ? rivalTrainer(rival.name) : undefined;
+    const house = houseOf(node);
+    const trainer = house === 'as' ? 'acetrainer' : rival ? rivalTrainer(rival.name) : undefined;
     // a mesma conta da escalação e do VERSUS (nota na vaga): a ficha dizia 55 e a escalação 54
     const avg = rival ? lineupAverage(rival.lineup, rival.formation) : 0;
     return (
         <div
-            className={`cm-sheet bc-surface bc-stripe k-${node.kind}`}
+            className={`cm-sheet bc-surface bc-stripe k-${node.kind}${house !== node.kind ? ` h-${house}` : ''}`}
             data-exit
             role="dialog"
-            aria-label={t(`longCup.kind.${node.kind}`)}
+            aria-label={t(`longCup.kind.${house}`)}
         >
             <div className="cm-sheet-head">
                 {trainer ? (
                     <img className="cm-sheet-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
                 ) : (
                     <span className="cm-sheet-icon">
-                        <HudIcon kind={ICON[node.kind]} />
+                        <HudIcon kind={ICON[house]} />
                     </span>
                 )}
                 <span>
-                    <b>{t(`longCup.kind.${node.kind}`)}</b>
+                    <b>{t(`longCup.kind.${house}`)}</b>
                     <small>
                         {t(
-                            node.kind === 'jogo' && ROTA_RULES.rivalEveryJogo
+                            house === 'jogo' && ROTA_RULES.rivalEveryJogo
                                 ? 'longCup.desc.jogoRival'
-                                : `longCup.desc.${node.kind}`,
+                                : `longCup.desc.${house}`,
                         )}
                     </small>
                 </span>
             </div>
-            {node.kind === 'jogo' && node.prize && node.prize !== 'pedra' && (
+            {house === 'as' && (
+                <p className="cm-prize">
+                    <b>
+                        {t('longCup.prizeLabel')}: {t('longCup.prize.rara')}
+                    </b>{' '}
+                    <span className="muted">{t('longCup.prizeDesc.rara')}</span>
+                </p>
+            )}
+            {house === 'jogo' && node.prize && node.prize !== 'pedra' && (
                 <p className="cm-prize">
                     <b>
                         {t('longCup.prizeLabel')}: {t(`longCup.prize.${node.prize}`)}
@@ -545,7 +595,7 @@ const TR_BIG = '(min-width: 1250px) and (min-height: 840px)';
 /**
  * Casa Treino como cena (cara-de-jogo.md, Rota Índigo): a quadra de treino do ginásio com os titulares nas posições e
  * os reservas na beira. Tocar em quem evolui marca e a placa mostra a barra enchendo pela metade; o colchonete é o
- * Descansar (+1 sorteio); se ninguém evolui, o suporte de halteres é o treino de técnica (1 de 2 itens). O botão do
+ * Folga (+₽5 e quem está fora volta); se ninguém evolui, o suporte de halteres é o treino de técnica (1 de 2 itens). O botão do
  * polegar faz o que estiver marcado.
  */
 export function Training() {
@@ -769,7 +819,17 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     ovo: { icon: 'egg', color: '#e0a860' },
     pedra: { icon: 'stone', color: '#8e7c68' },
     centro: { icon: 'heart', color: '#e06a8a' },
+    pc: { icon: 'reroll', color: '#3a7bc8' },
+    safari: { icon: 'paw', color: '#4f9a3a' },
+    cassino: { icon: 'coin', color: '#c9a23a' },
 };
+/** A aposta (Safari Ball, caça-níquel) mostra o resultado na tela antes de valer: a bola balança, as roletas param. */
+const REVEAL_MS = 1700;
+const REVEAL_MS_REDUCED = 700;
+/** As roletas do caça-níquel: 3 estrelas é o prêmio; perdendo, param desencontradas. */
+const REELS_WIN: HudIconKind[] = ['max', 'max', 'max'];
+const REELS_LOSE: HudIconKind[] = ['max', 'coin', 'heart'];
+const REEL_SLOTS = ['esq', 'meio', 'dir'] as const;
 
 /**
  * Evento "?" da Copa longa: a cena (quem fala, grande, e o texto) no meio e as escolhas na barra do polegar. Escolha que
@@ -783,6 +843,8 @@ export function EventScreen() {
     const [who, setWho] = useState<string | null>(null);
     const [captain, setCaptain] = useState<string | null>(null);
     const [evolving, setEvolving] = useState(false);
+    // a aposta que está sendo revelada (a escolha vale quando a animação acaba)
+    const [reveal, setReveal] = useState<{ id: string; won: boolean; card?: PokemonInstance } | null>(null);
     const { t, d } = useT();
     if (!run?.event) return null;
     const ev = run.event;
@@ -791,7 +853,13 @@ export function EventScreen() {
     const nameOf = (u: string) => (byUid.get(u) ? viewInstance(byUid.get(u)!).displayName : '');
     // a pedra ganha no Jogo: o nome dela no título e na fala
     const stoneName = ev.stone ? t(`longCup.stone.${ev.stone}`) : null;
-    const names = stoneName ? [stoneName] : (ev.uids?.map(nameOf) ?? []);
+    // Safari e Cassino: os nomes das cartas à vista ("Bola no {a}")
+    const gambling = ev.id === 'safari' || ev.id === 'cassino';
+    const names = stoneName
+        ? [stoneName]
+        : gambling
+          ? (ev.cards ?? []).map((c) => viewInstance(c).displayName)
+          : (ev.uids?.map(nameOf) ?? []);
     const art = ev.stone ? { icon: EVENT_ART.pedra.icon, color: STONE_COLOR[ev.stone] } : EVENT_ART[ev.id];
     const stone: Stone = ev.stone ?? 'lua';
     // usar a pedra: a tela de evolução da partida (o momento dele) e, quando ela fecha, a escolha vale
@@ -818,9 +886,20 @@ export function EventScreen() {
     const choices = eventChoices(run, ev);
     const picked = choices.find((c) => c.id === choice && c.need !== 'none');
     const targets = picked ? choiceTargets(run, ev, picked.need) : [];
+    const commit = (id: string, target?: string, cap?: string) => {
+        const won = gambleWon(run, ev, id);
+        if (won === null) {
+            chooseEvent(id, target, cap);
+            return;
+        }
+        const card = ev.id === 'safari' ? ev.cards?.[Number(id.slice(4))] : id === 'premio' ? ev.cards?.[0] : undefined;
+        setChoice(null);
+        setReveal({ id, won, card });
+        window.setTimeout(() => chooseEvent(id, target), reduceMotionOn() ? REVEAL_MS_REDUCED : REVEAL_MS);
+    };
     const pick = (id: string) => {
         const c = choices.find((x) => x.id === id)!;
-        if (c.need === 'none') chooseEvent(id);
+        if (c.need === 'none') commit(id);
         else {
             setChoice(id);
             setWho(null);
@@ -875,12 +954,12 @@ export function EventScreen() {
             <div className="draft-head bc-screenhead ev-head">
                 <span className="bc-tag">
                     <HudIcon kind={art.icon} />
-                    {t('longCup.kind.evento')}
+                    {t(ev.id === 'safari' || ev.id === 'cassino' ? `longCup.kind.${ev.id}` : 'longCup.kind.evento')}
                 </span>
                 <h1>{stoneName ?? txt.title}</h1>
             </div>
             {/* a cena atrás do diálogo: quem fala em pé, o emblema do evento e o que está em jogo (cartas, rostos) */}
-            <div className="ev-scene" aria-hidden={!ev.cards?.length}>
+            <div className={`ev-scene ev-${ev.id}`} aria-hidden={!ev.cards?.length}>
                 <i className="ev-floor" />
                 <span className="ev-emblem">
                     {ev.stone ? <StoneMark stone={ev.stone} className="cm-event-stone" /> : <HudIcon kind={art.icon} />}
@@ -902,17 +981,57 @@ export function EventScreen() {
                         )}
                     </span>
                 )}
-                {!!ev.cards?.length && (
+                {!!ev.cards?.length && !reveal && (
                     <div className="cm-event-cards">
-                        {ev.cards.map((c) => (
-                            <FutCard key={c.uid} inst={c} size="sm" />
-                        ))}
+                        {ev.cards.map((c) =>
+                            ev.id === 'safari' ? (
+                                // a chance de fugir na carta (a da bola de pegar fica no botão)
+                                <span key={c.uid} className="ev-wild">
+                                    <FutCard inst={c} size="sm" />
+                                    <small className="ev-flee">
+                                        {t('longCup.flee', { n: Math.round(fleeOf(c) * 100) })}
+                                    </small>
+                                </span>
+                            ) : (
+                                <FutCard key={c.uid} inst={c} size="sm" />
+                            ),
+                        )}
+                    </div>
+                )}
+                {reveal && (
+                    <div className={`ev-reveal ${reveal.won ? 'won' : 'lost'} r-${ev.id}`} role="status">
+                        {ev.id === 'safari' ? (
+                            <span className="ev-ball-row">
+                                {reveal.card && (
+                                    <img className="pixel ev-reveal-mon" src={cardSprite(reveal.card)} alt="" />
+                                )}
+                                <span className="ev-ball">
+                                    <HudIcon kind="dex" />
+                                </span>
+                            </span>
+                        ) : (
+                            <span className="ev-reels">
+                                {REEL_SLOTS.map((slot, i) => (
+                                    <span key={slot} className="ev-reel" style={{ '--i': i } as CSSProperties}>
+                                        <HudIcon kind={(reveal.won ? REELS_WIN : REELS_LOSE)[i]} />
+                                    </span>
+                                ))}
+                            </span>
+                        )}
+                        <b className="ev-reveal-text">
+                            {fmtNames(
+                                t(
+                                    `longCup.reveal.${ev.id === 'safari' ? (reveal.won ? 'pegou' : 'fugiu') : reveal.won ? 'ganhou' : 'perdeu'}`,
+                                ),
+                                [reveal.card ? viewInstance(reveal.card).displayName : ''],
+                            )}
+                        </b>
                     </div>
                 )}
             </div>
             {/* a caixa de diálogo do mapa, com as escolhas como opções (o custo em ₽ à direita) */}
             <div className="ev-dialog">
-                <RoomDialog text={fmtNames(txt.text, names)} onClose={() => {}}>
+                <RoomDialog text={fmtNames(ev.bag ? t('longCup.bagText') : txt.text, names)} onClose={() => {}}>
                     {choices.map((c) => {
                         const [label, effect] = txt.choices[c.id] ?? [c.id, ''];
                         return (
@@ -920,7 +1039,7 @@ export function EventScreen() {
                                 key={c.id}
                                 type="button"
                                 className="ev-opt"
-                                disabled={!c.ok || evolving}
+                                disabled={!c.ok || evolving || !!reveal}
                                 onClick={() => pick(c.id)}
                             >
                                 <HudIcon kind="next" className="ev-cursor" />
@@ -928,6 +1047,9 @@ export function EventScreen() {
                                     <b>{fmtNames(label, names)}</b>
                                     {effect && <small>{fmtNames(effect, names)}</small>}
                                 </span>
+                                {c.chance !== undefined && (
+                                    <span className="ev-chance">{Math.round(c.chance * 100)}%</span>
+                                )}
                                 {c.cost !== 0 && (
                                     <span className={`money ${c.cost > 0 ? 'cost' : 'gain'}`}>
                                         {c.cost > 0 ? '−' : '+'}
@@ -941,7 +1063,7 @@ export function EventScreen() {
             </div>
             {/* escolha que pede alguém do time: o "Quem?" numa sheet (fechar = voltar); Confirmar aplica */}
             <Sheet
-                open={!!picked && !evolving}
+                open={!!picked && !evolving && !reveal}
                 onClose={() => setChoice(null)}
                 title={fmtNames(pickedLabel, names)}
                 className="ev-who-sheet"
@@ -967,7 +1089,7 @@ export function EventScreen() {
                         onClick={() => {
                             if (!who || !picked) return;
                             if (picked.need === 'stone') evolve(picked.id, who);
-                            else chooseEvent(picked.id, who, captain ?? undefined);
+                            else commit(picked.id, who, captain ?? undefined);
                         }}
                     >
                         {t('longCup.confirm')}
@@ -980,7 +1102,11 @@ export function EventScreen() {
 }
 
 /** "{a} e {b}" com os nomes dos envolvidos. */
-const fmtNames = (text: string, names: string[]) => text.replace('{a}', names[0] ?? '').replace('{b}', names[1] ?? '');
+const fmtNames = (text: string, names: string[]) =>
+    text
+        .replace(/\{a\}/g, names[0] ?? '')
+        .replace(/\{b\}/g, names[1] ?? '')
+        .replace(/\{c\}/g, names[2] ?? '');
 
 /** A cascata do grupo: 4 linhas da tabela e 3 rodadas, 250 ms entre uma e outra (~1,6 s). */
 const GROUP_BEATS = [100, ...Array(6).fill(250)];

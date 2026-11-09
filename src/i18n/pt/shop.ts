@@ -17,6 +17,9 @@ export const shop = {
     interestHint: 'Guardar rende juros: ₽1 a cada ₽5, até ₽{cap}.',
     reroll: 'Novas ofertas · ₽{n}',
     rerollFree: 'Novas ofertas · grátis',
+    /** Rota: a troca paga com um sorteio (você tem {n}). */
+    rerollTicket: '1 sorteio',
+    rerollTicketAria: 'Novas ofertas · 1 sorteio (você tem {n})',
     free: 'Grátis',
     rerollLabel: 'Novas ofertas',
     leave: 'Seguir',

@@ -21,10 +21,11 @@ import {
     bestFit,
     captainOptions,
     DRAFT_PICKS,
+    draftOptions,
     playerDraftOptions,
     ROUTE_START_BANNED,
 } from '../engine/draft';
-import { evolutionTarget, evolveInstance, evoProgress, evoThreshold } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, evoProgress, evoThreshold, type Stone } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
 import { createInstance, viewInstance } from '../engine/instance';
@@ -88,7 +89,16 @@ import {
     tickOut,
     YELLOW_CARDS,
 } from './long-cup';
-import { resolveEvent, rollEvent, withKnownEvents } from './long-events';
+import {
+    applySkip,
+    centroEvent,
+    gambleNote,
+    ROTA_VALUES,
+    resolveEvent,
+    rewardRerollable,
+    rollEvent,
+    withKnownEvents,
+} from './long-events';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
 import { withSeenBaseline } from './news';
 import {
@@ -119,6 +129,7 @@ import {
     seenCount,
     tagFromName,
 } from './profile';
+import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { watchSave } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
@@ -524,9 +535,10 @@ export interface GameStore {
     newRun(teamName?: string, seed?: string, daily?: string, mode?: CupMode): void;
     /** Copa longa: entra numa casa do mapa (partida, Mercado, Baú, Treino ou Evento). */
     enterNode(id: string): void;
-    /** Treino da Copa longa: `evo` = enche a barra de evolução de `uid`; `rest` = +1 troca. */
-    /** Treino da Rota: meia barra de evolução, descanso (+1 sorteio) ou, se ninguém evolui, 1 de 2 itens. */
+    /** Treino da Rota: meia barra de evolução, Folga (`rest`: +₽5 e quem está fora volta) ou, se ninguém evolui, 1 de 2 itens. */
     train(choice: 'evo' | 'rest' | 'item', uid?: string): void;
+    /** Rota, no mapa: tira uma pedra da Mochila (a tela da pedra: usar, guardar de volta ou vender). */
+    openBag(stone: Stone): void;
     /** Copa longa: a parte `id` da história já foi contada. */
     tell(id: string): void;
     /** Rota Índigo, no Planalto: joga a próxima rodada do grupo (ou a Final). */
@@ -655,14 +667,38 @@ function rollOptions(run: RunState, slot: SlotRef): PokemonInstance[] {
     return opts.map((o) => rollSpecial(o, run.eventType ?? null));
 }
 
+/**
+ * "Sortear de novo" no 1 de 3 do rival: 3 sorteados do elenco todo dele (titulares e banco), primeiro quem não estava
+ * na mesa. O 1 de 3 pega os 3 melhores de `players`, então passar só os sorteados basta (antes saíam os 3 melhores de
+ * novo, as mesmas cartas, e o sorteio era gasto à toa).
+ */
+function rerollRival(
+    run: RunState,
+    reroll: number,
+    avoid: readonly Reward[] | undefined,
+    defeated: ReturnType<typeof defeatedOf>,
+): ReturnType<typeof defeatedOf> {
+    if (!run.rivalPick || !avoid || !defeated) return defeated;
+    const shown = new Set(avoid.flatMap((r) => (r.kind === 'pokemon' ? [r.inst.speciesId] : [])));
+    const taken = new Set(run.picks.map((p) => p.speciesId));
+    const pool = new Rng(run.seed, `rival-${run.at}-r${reroll}`).shuffle(
+        defeated.players.filter((p) => !taken.has(p.speciesId)),
+    );
+    const players = [...pool.filter((p) => !shown.has(p.speciesId)), ...pool.filter((p) => shown.has(p.speciesId))];
+    return { ...defeated, players: players.slice(0, 3) };
+}
+
 /** Recompensas da fase; o reforço sorteado (não o contratado do adversário) pode vir com edição especial. */
-function rollRewards(run: RunState, reroll: number): Reward[] {
+function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): Reward[] {
     const extra = run.sponsors?.includes('cinnabar') ? 1 : 0;
     // Copa longa: sorteio pela casa do mapa e raridade pelo andar (o Baú vem uma linha acima)
     const node = currentNode(run);
     // treino de técnica (Treino sem ninguém que evolua): só os itens, sem o Pokémon. No grupo `at` ainda é o Treino.
     const training = isLong(run) && node?.kind === 'treino' && !run.group;
-    const defeated = node?.kind === 'bau' || training ? undefined : defeatedOf(run);
+    // Treinador Ás (mapa largo): depois do 1 de 3 do rival, 1 de 3 cartas da raridade mais alta (sem o elenco dele)
+    const ace = isLong(run) && casaOf(node) === 'as' && !run.rivalPick && !run.group && !run.fight;
+    const defeated =
+        node?.kind === 'bau' || training || ace ? undefined : rerollRival(run, reroll, avoid, defeatedOf(run));
     // prêmio da casa: o do Jogo (à vista no mapa) ou o do Ginásio; desafio de evento vale a recompensa de sempre com o
     // garantido dele. No grupo `at` ainda é o Treino: recompensa de sempre.
     const fight = run.fight;
@@ -689,7 +725,26 @@ function rollRewards(run: RunState, reroll: number): Reward[] {
               stone: run.rivalPick && node?.kind === 'jogo' ? node.stone : undefined,
           }
         : undefined;
-    const options = rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
+    // Ás: as 3 melhores de 6 sorteadas duas raridades acima (só a raridade deixava sair um Poliwag 58)
+    const options = ace
+        ? draftOptions(
+              new Rng(run.seed, `as-${run.at}-r${reroll}`),
+              Math.min(6, longRound(run.stage) + ACE_ROUND_UP),
+              new Set(run.picks.map((p) => p.speciesId)),
+              6,
+              node?.types ?? [],
+              'ANY',
+          )
+              .sort((a, b) => viewInstance(b).overall - viewInstance(a).overall)
+              .slice(0, 3)
+              .map(
+                  (inst): Reward => ({
+                      kind: 'pokemon',
+                      inst: { ...inst, uid: `as-${inst.speciesId}-${run.at}` },
+                      from: null,
+                  }),
+              )
+        : rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
     return (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
@@ -769,6 +824,10 @@ const backToRoute = (run: RunState): { run: RunState; screen: Screen } =>
     run.group || (run.map && nextNodes(run.map, run.at ?? null).length === 0)
         ? { run: toGroup(run), screen: 'group' }
         : { run: toMap(run), screen: 'map' };
+
+/** O que paga a próxima troca de vitrine da Rota: a troca grátis do Pular, um sorteio, ou nada (₽). */
+export const shopRerollTicket = (run: RunState): 'free' | 'reroll' | null =>
+    !isLong(run) ? null : (run.shopFree ?? 0) > 0 ? 'free' : run.rerolls > 0 ? 'reroll' : null;
 
 /** Vitrine do Mercado desta fase (a `reroll`-ésima troca). */
 function rollShop(run: RunState, reroll: number): ShopOffer[] {
@@ -1217,7 +1276,7 @@ export const useGame = create<GameStore>()(
                     // depois do 1 de 3 do rival, o prêmio da casa (MT ou item; o ₽ em dobro já entrou na vitória)
                     const node = currentNode(run);
                     const prize = run.rivalPick ? node?.prize : undefined;
-                    if (prize === 'tm' || prize === 'item')
+                    if (prize === 'tm' || prize === 'item' || (prize === 'pokemon' && casaOf(node) === 'as'))
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
                     // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento
                     const stone = stoneEvent(done);
@@ -1936,8 +1995,8 @@ export const useGame = create<GameStore>()(
                 skipReward: () => {
                     const run = getState().run;
                     if (run?.status !== 'reward') return;
-                    // pular o rival não dá sorteio: o prêmio da casa ainda vem
-                    setState(afterReward({ ...run, rerolls: run.rerolls + (run.rivalPick ? 0 : 1) }));
+                    // Rota: a etiqueta à vista no botão (Dispensar o rival: +₽2); Relâmpago: +1 sorteio
+                    setState(afterReward(applySkip(run)));
                 },
 
                 buyOffer: (index, targetUid, forgetSlot, passTo) => {
@@ -2007,12 +2066,20 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     const shop = run?.shop;
                     if (run?.status !== 'shop' || !shop || shop.pack) return;
-                    const price = rerollPrice(shop.rerolls, run.sponsors);
+                    // Rota: a troca grátis (etiqueta do Pular) e depois o sorteio pagam a troca antes do ₽
+                    const free = shopRerollTicket(run);
+                    const price = free ? 0 : rerollPrice(shop.rerolls, run.sponsors);
                     if ((run.money ?? 0) < price) return;
                     const rerolls = shop.rerolls + 1;
                     const offers = rollShop(run, rerolls);
                     setState({
-                        run: { ...run, money: (run.money ?? 0) - price, shop: { ...shop, rerolls, offers, sold: [] } },
+                        run: {
+                            ...run,
+                            money: (run.money ?? 0) - price,
+                            ...(free === 'free' && { shopFree: (run.shopFree ?? 1) - 1 }),
+                            ...(free === 'reroll' && { rerolls: run.rerolls - 1 }),
+                            shop: { ...shop, rerolls, offers, sold: [] },
+                        },
                         dex: seenDex(offers.flatMap((o) => (o.kind === 'pokemon' ? [o.inst] : []))),
                     });
                 },
@@ -2020,7 +2087,8 @@ export const useGame = create<GameStore>()(
                 leaveShop: () => {
                     const run = getState().run;
                     if (run?.status !== 'shop' || run.shop?.pack) return;
-                    if (isLong(run)) setState({ run: toMap(run), match: null, screen: 'map' });
+                    // Rota: de volta pro mapa, ou pro grupo depois do Mercado do Planalto (a última parada)
+                    if (isLong(run)) setState({ ...backToRoute(run), match: null });
                     else setState({ run: toLineup({ ...run, shop: null }), match: null, screen: 'lineup' });
                 },
 
@@ -2078,8 +2146,15 @@ export const useGame = create<GameStore>()(
                     } else if (node.kind === 'treino')
                         setState({ run: { ...base, status: 'treino' }, screen: 'treino' });
                     else {
-                        // Centro Pokémon: a mesma tela do evento, com as escolhas dele
-                        const event = node.kind === 'centro' ? rollEvent(base, 'centro') : rollEvent(base);
+                        // Centro Pokémon: a mesma tela do evento, com as escolhas dele (sem nada pra tratar, o PC do Bill);
+                        // Zona Safari e Cassino (mapa largo) também
+                        const casa = casaOf(node);
+                        const event =
+                            node.kind === 'centro'
+                                ? rollEvent(base, centroEvent(base))
+                                : casa === 'safari' || casa === 'cassino'
+                                  ? rollEvent(base, casa)
+                                  : rollEvent(base);
                         setState({
                             run: { ...base, status: 'event', event },
                             screen: 'event',
@@ -2093,6 +2168,9 @@ export const useGame = create<GameStore>()(
                     if (run?.status !== 'event' || !run.event) return;
                     const next = resolveEvent(run, run.event, choice, target, captain);
                     if (!next) return;
+                    // aposta (Safari, Cassino): a nota diz o resultado; Centro da última parada: segue pro grupo
+                    const gamble = gambleNote(run, run.event, choice, target);
+                    const back = backToRoute({ ...next, event: null });
                     const incoming = next.picks.filter((p) => !run.picks.some((o) => o.uid === p.uid));
                     // a pedra evoluiu alguém: Pokédex e fichário como a evolução da partida
                     const evolved = next.picks.filter((p) =>
@@ -2115,12 +2193,12 @@ export const useGame = create<GameStore>()(
                             }),
                         }),
                         run: {
-                            ...toMap(next),
+                            ...back.run,
                             event: null,
                             eventsSeen: [...(run.eventsSeen ?? []), run.event.id],
                             eventNote: {
                                 id: run.event.id,
-                                choice,
+                                choice: gamble?.choice ?? choice,
                                 ...(target && { target }),
                                 cost: (run.money ?? 0) - (next.money ?? 0),
                                 // os nomes do texto ("{a} vai embora"): quem sai do time não está mais em `picks`
@@ -2130,9 +2208,10 @@ export const useGame = create<GameStore>()(
                                         return p ? viewInstance(p).displayName : '';
                                     }),
                                 }),
+                                ...(gamble && { names: gamble.names }),
                             },
                         },
-                        screen: 'map',
+                        screen: back.screen,
                     });
                 },
 
@@ -2145,7 +2224,15 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     if (run?.status !== 'treino') return;
                     if (choice === 'rest') {
-                        setState(backToRoute({ ...run, rerolls: run.rerolls + 1 }));
+                        // Folga: ₽ e quem está fora volta (o Descanso dava +1 sorteio, o mesmo prêmio fraco do Pular)
+                        setState(
+                            backToRoute({
+                                ...run,
+                                money: (run.money ?? 0) + ROTA_VALUES.folga,
+                                out: undefined,
+                                outWhy: undefined,
+                            }),
+                        );
                         return;
                     }
                     if (choice === 'item') {
@@ -2185,11 +2272,20 @@ export const useGame = create<GameStore>()(
                     });
                 },
 
+                openBag: (stone) => {
+                    const run = getState().run;
+                    if (run?.status !== 'map' || !run.bag?.includes(stone)) return;
+                    setState({
+                        run: { ...run, status: 'event', event: { id: 'pedra', stone, bag: true } },
+                        screen: 'event',
+                    });
+                },
+
                 rerollReward: () => {
                     const run = getState().run;
-                    if (run?.status !== 'reward' || run.rerolls <= 0) return;
+                    if (run?.status !== 'reward' || run.rerolls <= 0 || !rewardRerollable(run)) return;
                     const used = run.rerollsUsed + 1;
-                    const rewards = rollRewards({ ...run, rerollsUsed: used }, used);
+                    const rewards = rollRewards({ ...run, rerollsUsed: used }, used, run.rewards);
                     setState({
                         run: { ...run, rerolls: run.rerolls - 1, rerollsUsed: used, rewards },
                         dex: seenDex(rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []))),

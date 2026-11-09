@@ -10,6 +10,7 @@ import { clubName, itemDesc, itemName, moveFutsal, moveName, typeName } from '..
 import { useT } from '../../i18n/react';
 import { type RunState, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
+import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../store/long-events';
 import { isNovo } from '../../store/profile';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
@@ -64,6 +65,21 @@ export function Reward() {
     const rotaPrize = isLong(run) && !run.group && ROTA_RULES.rivalEveryJogo && !run.rivalPick;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    // Rota: o que o Pular dá, à vista no botão (Dispensar o rival: +₽2)
+    const tag = skipTagOf(run);
+    const evoMon = tag === 'evo' ? skipEvoTarget(run) : undefined;
+    const tagText = tag
+        ? t(`reward.skipTag.${tag}`, {
+              n:
+                  tag === 'dispensar'
+                      ? ROTA_VALUES.dismiss
+                      : tag === 'money'
+                        ? ROTA_VALUES.skipMoney
+                        : ROTA_VALUES.skipRerolls,
+              name: evoMon ? viewInstance(evoMon).displayName : '',
+          })
+        : '';
+    const skipLabel = t(run.rivalPick ? 'reward.skipRival' : tag ? 'reward.skipShort' : 'reward.skip');
     const reward = chosen !== null ? run.rewards[chosen] : null;
     const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
     const pick = (i: number) => {
@@ -273,18 +289,25 @@ export function Reward() {
             <div className="bc-thumbbar reward-bar">
                 <button
                     type="button"
-                    className="btn ghost"
+                    className="btn ghost reward-skip"
+                    aria-label={tag ? t('reward.skipAria', { label: skipLabel, tag: tagText }) : undefined}
                     onClick={() => {
                         skipReward();
                         setChosen(null);
                     }}
                 >
-                    {t(run.rivalPick ? 'reward.skipRival' : 'reward.skip')}
+                    {skipLabel}
+                    {tag && (
+                        // a etiqueta muda com a tela: entra com um pulo curto, não aparece seca
+                        <span key={tagText} className={`bc-tag reward-skip-tag k-${tag}`}>
+                            {tagText}
+                        </span>
+                    )}
                 </button>
                 <button
                     type="button"
                     className="btn"
-                    disabled={run.rerolls <= 0}
+                    disabled={run.rerolls <= 0 || !rewardRerollable(run)}
                     onClick={() => {
                         rerollReward();
                         setChosen(null);

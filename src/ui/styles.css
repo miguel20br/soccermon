@@ -1856,6 +1856,24 @@ button,
 .reward-bar {
     zoom: var(--k-big, 1);
 }
+/* Rota: o Pular mostra o que dá (etiqueta estilo Balatro); a etiqueta entra com um pulo curto a cada tela */
+.reward-skip {
+    gap: 6px;
+    min-width: 0;
+}
+.reward-skip-tag {
+    flex: none;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: reward-tag-in 260ms var(--ease-out) both;
+}
+@keyframes reward-tag-in {
+    from {
+        opacity: 0;
+        scale: 0.8;
+    }
+}
 /* PC: a carta do Pokémon tem o selo NOVO em cima e o chip embaixo; com 330 o chip encostava na dica */
 @media (min-width: 1100px) and (min-height: 720px) {
     .reward-pick3 {

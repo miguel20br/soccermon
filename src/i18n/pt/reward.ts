@@ -11,11 +11,23 @@ export const reward = {
     choose: 'Escolha uma recompensa',
     /** Rota: o 1 de 3 do time rival, antes do prêmio da casa. */
     chooseRival: 'Contrate 1 do rival',
-    skipRival: 'Pular',
+    skipRival: 'Dispensar',
     tipRival: 'Ganhou! Contrate 1 do rival. Depois vem o prêmio da casa.',
-    tipPrize: 'Agora o prêmio da casa. Pular dá +1 sorteio.',
+    tipPrize: 'Agora o prêmio da casa. Pular também dá algo: está no botão.',
     reroll: 'Sortear de novo ({n})',
     skip: 'Pular (+1 sorteio)',
+    /** Rota: o botão "Pular" com a etiqueta do que ele dá (estilo Balatro), sorteada a cada tela. */
+    skipShort: 'Pular',
+    skipTag: {
+        dispensar: '+₽{n}',
+        money: '+₽{n}',
+        rerolls: '+{n} sorteios',
+        shop: 'Troca grátis no Mercado',
+        rival: 'Próximo rival −1',
+        evo: 'Meia barra: {name}',
+    },
+    /** O botão inteiro, pro leitor de tela. */
+    skipAria: '{label}: {tag}',
     tip: 'Pegue um Pokémon do rival, um item ou uma MT.',
     fromClub: 'Do {club}',
     fromClubF: 'Da {club}',

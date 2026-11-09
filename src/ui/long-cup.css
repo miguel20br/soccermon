@@ -1772,7 +1772,7 @@
     cursor: pointer;
     transition: background-color var(--dur-ui) var(--ease-out);
 }
-.ev-opt > span:not(.money) {
+.ev-opt > span:not(.money):not(.ev-chance) {
     display: grid;
     flex: 1;
     min-width: 0;
@@ -2164,5 +2164,261 @@
     }
     .tr-mat {
         width: 60px;
+    }
+}
+
+/* ---------- Mochila (pedras guardadas): no status do mapa, cada pedra é um botão que abre a tela dela ---------- */
+.cm-bag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+}
+.cm-bag-stone {
+    display: inline-flex;
+    align-items: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 2px 6px;
+    border: 2px solid var(--line, rgb(255 255 255 / 20%));
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+    animation: cm-card-in 260ms var(--ease-out) both;
+}
+.cm-bag-stone .cm-stone {
+    margin-right: 0;
+}
+
+/* ---------- mapa largo (opção B da Rota, 4 casas por linha): casas menores, o caminho aceso ---------- */
+.cm-w4 .cm-node {
+    width: 58px;
+}
+.cm-w4 .cm-node > .hud-icon {
+    width: 20px;
+    height: 20px;
+    padding: 7px;
+}
+.cm-w4 .cm-label {
+    padding: 0 3px;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+}
+.cm-w4 .cm-node-rival {
+    top: -14px;
+    left: calc(50% + 4px);
+}
+/* a pedra no alto à esquerda do círculo (embaixo ela cobria o rótulo; no alto à direita fica o capitão do rival) */
+.cm-w4 .cm-node .cm-node-stone {
+    top: -6px;
+    right: calc(50% + 6px);
+}
+.cm-w4 .cm-me {
+    width: 44px;
+    height: 44px;
+}
+/* as ligações que dá pra tomar agora: no mapa largo as linhas se cruzam em X, então a de agora fica acesa */
+.cm-lines line.live {
+    stroke: var(--yellow);
+    stroke-dasharray: 2 5;
+    stroke-width: 3.5;
+}
+/* casas novas: a cor de cada uma (o Ás com borda dupla, como o Ginásio: é partida mais difícil) */
+.cm-node.h-as {
+    --kc: #b8322e;
+}
+.cm-node.h-as .hud-icon {
+    border-style: double;
+    border-width: 4px;
+}
+.cm-node.h-safari {
+    --kc: #4f9a3a;
+}
+.cm-node.h-cassino {
+    --kc: #b8901c;
+}
+.cm-node.h-planalto {
+    --kc: #1f7a5a;
+}
+@media (min-width: 1000px) {
+    .cm-w4 .cm-node {
+        width: 72px;
+    }
+    .cm-w4 .cm-node > .hud-icon {
+        width: 24px;
+        height: 24px;
+        padding: 10px;
+    }
+    .cm-w4 .cm-label {
+        font-size: 10px;
+    }
+    .cm-w4 .cm-me {
+        width: auto;
+        height: auto;
+        max-height: 52px;
+    }
+}
+
+/* ---------- Zona Safari e Cassino: a chance à vista e o resultado na tela ---------- */
+.ev-wild {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+.ev-flee {
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgb(0 0 0 / 72%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+/* 3 cartas na cena: medem pela altura que sobra (com o selo embaixo), e quem fala sai no celular em pé */
+.ev-scene:has(.ev-wild) {
+    padding-block: 4px;
+}
+.ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.6), calc(26 * var(--vw))), 112px);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
+        --fut-w: clamp(56px, min(calc((100 * var(--vh) - 170px) / 1.6), calc(11.5 * var(--vw))), 100px);
+    }
+    .ev-scene:has(.ev-wild) .ev-who {
+        display: none;
+    }
+}
+/* o Cassino: a carta do balcão também mede pela altura (a 320 px ela saía cortada em cima) */
+.ev-scene.ev-cassino {
+    padding-block: 4px;
+}
+.ev-scene.ev-cassino .cm-event-cards .fut-wrap {
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.5), calc(30 * var(--vw))), 130px);
+}
+@media (max-width: 599px) {
+    .ev-scene:has(.ev-wild) .ev-who {
+        display: none;
+    }
+}
+.ev-opt .ev-chance {
+    flex: none;
+    padding: 1px 6px;
+    border: 2px solid #181818;
+    border-radius: 4px;
+    font-family: "Galmuri11", monospace;
+    font-size: 13px;
+    color: #181818;
+}
+.ev-reveal {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    animation: cm-pop 240ms var(--ease-out) both;
+}
+.ev-reveal-text {
+    padding: 4px 12px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 6px;
+    background: var(--panel);
+    font-family: "Galmuri11", monospace;
+    font-size: 20px;
+    color: #fff;
+    /* o resultado só aparece quando a bola para (ou as roletas) */
+    animation: cm-pop 220ms 900ms var(--ease-out) both;
+}
+.ev-reveal.won .ev-reveal-text {
+    background: var(--green);
+    color: var(--bc-ink);
+}
+.ev-ball-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+.ev-reveal-mon {
+    width: 72px;
+    height: auto;
+    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 45%));
+}
+/* pegou: o Pokémon some na bola; fugiu: ele fica e a bola abre */
+.ev-reveal.won .ev-reveal-mon {
+    animation: ev-in-ball 260ms 600ms var(--ease-out) both;
+}
+.ev-ball .hud-icon {
+    width: 40px;
+    height: 40px;
+    padding: 4px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 50%;
+    background: #4f9a3a;
+    color: #fff;
+    animation: ev-shake 300ms 3 ease-in-out;
+}
+.ev-reels {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--bc-ink);
+}
+.ev-reel {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 56px;
+    border-radius: 4px;
+    background: #f4f1e8;
+    color: #b8322e;
+    overflow: hidden;
+}
+.ev-reel .hud-icon {
+    width: 30px;
+    height: 30px;
+    /* cada roleta para um pouco depois da outra */
+    animation: ev-reel 220ms calc(var(--i) * 220ms + 160ms) var(--ease-out) both;
+}
+@keyframes cm-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+}
+@keyframes ev-shake {
+    25% {
+        transform: rotate(-18deg);
+    }
+    75% {
+        transform: rotate(18deg);
+    }
+}
+@keyframes ev-in-ball {
+    to {
+        opacity: 0;
+        transform: scale(0.2) translateX(40px);
+    }
+}
+@keyframes ev-reel {
+    from {
+        opacity: 0;
+        transform: translateY(-120%);
+    }
+}
+:root[data-reduce-motion="true"] .ev-reveal *,
+:root[data-reduce-motion="true"] .ev-reveal {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ev-reveal,
+    .ev-reveal * {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
     }
 }

@@ -452,7 +452,7 @@ export const help: typeof pt = {
                     list: [
                         'The new Pokémon comes in **in place of a sub** (never the captain) and inherits the item of whoever left.',
                         'The item goes to any player; if it already had one, the old item is replaced (and lost).',
-                        'Rerolling costs 1 reroll. **Skip** takes nothing, but gives +1 reroll.',
+                        'Rerolling costs 1 reroll. **Skip** takes nothing, but gives +1 reroll (on the Indigo Route, the button shows what it gives).',
                     ],
                 },
                 {

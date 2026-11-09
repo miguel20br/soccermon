@@ -14,6 +14,25 @@ export const longCup = {
         bau: 'Baú',
         centro: 'Centro Pokémon',
         final: 'Final',
+        as: 'Treinador Ás',
+        safari: 'Zona Safari',
+        cassino: 'Cassino de Celadon',
+        planalto: 'Mercado do Planalto',
+    },
+    /** Nome curto da casa no mapa largo (4 por linha: não cabe "Centro Pokémon" a 320 px). */
+    kindShort: {
+        jogo: 'Jogo',
+        ginasio: 'Ginásio',
+        mercado: 'Mercado',
+        evento: 'Evento',
+        treino: 'Treino',
+        bau: 'Baú',
+        centro: 'Centro',
+        final: 'Final',
+        as: 'Ás',
+        safari: 'Safari',
+        cassino: 'Cassino',
+        planalto: 'Planalto',
     },
     desc: {
         jogo: 'Vitória dá ₽ e o prêmio.',
@@ -22,10 +41,14 @@ export const longCup = {
         ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
         mercado: 'Compre com ₽. O que você guardou rende juros.',
         evento: 'Algo acontece no caminho.',
-        treino: 'Meia barra de evolução (ou um item) ou +1 sorteio.',
+        treino: 'Meia barra de evolução (ou um item) ou Folga (+₽5).',
         bau: 'Recompensa grátis, uma raridade acima.',
-        centro: 'Tira o cartão amarelo ou traz de volta quem está fora.',
+        centro: 'Tira o cartão amarelo ou traz de volta quem está fora. Sem nada pra tratar, o PC do Bill.',
         final: 'Jogo único contra a Liga Índigo.',
+        as: 'Rival mais forte. Vitória dá ₽, 1 de 3 do time dele e uma carta rara.',
+        safari: 'Uma Safari Ball pra 1 de 3 selvagens. Quanto melhor, mais fácil fugir.',
+        cassino: 'Aposte ₽ no caça-níquel (item) ou no balcão de prêmios (Pokémon).',
+        planalto: 'O último Mercado antes do grupo. Gaste o ₽ que sobrou.',
     },
     /** Prêmio do Jogo, à vista no mapa. */
     prize: {
@@ -34,6 +57,7 @@ export const longCup = {
         item: 'Item de tipo',
         money: '₽ em dobro',
         pedra: 'Pedra de evolução',
+        rara: 'Carta rara',
     },
     prizeShort: { pokemon: 'Pokémon', tm: 'MT', item: 'Item', money: '₽ x2', pedra: 'Pedra' },
     prizeDesc: {
@@ -44,7 +68,12 @@ export const longCup = {
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
         pedraRival: 'Evolui na hora. O rival traz um deles no 1 de 3.',
+        rara: 'As 3 melhores de 6 cartas, duas raridades acima.',
     },
+    /** Zona Safari: a chance de a carta fugir. */
+    flee: 'Foge {n}%',
+    /** O resultado da aposta, na tela, antes de voltar pro mapa. */
+    reveal: { pegou: 'Pegou {a}!', fugiu: '{a} fugiu!', ganhou: 'Prêmio!', perdeu: 'Não foi dessa vez' },
     prizeLabel: 'Prêmio',
     /** Pedras de evolução (prêmio de região da Rota). */
     stone: {
@@ -57,6 +86,9 @@ export const longCup = {
     stoneShort: { lua: 'P. Lua', agua: 'P. Água', trovao: 'P. Trovão', folha: 'P. Folha', fogo: 'P. Fogo' },
     stoneWho: 'No seu time: {names}',
     stoneNobody: 'Ninguém do seu time evolui com ela.',
+    /** Mochila do mapa: as pedras guardadas. */
+    bag: 'Mochila',
+    bagText: 'Na Mochila: uma {a}. Quem vai usar?',
     branch: 'Caminho',
     prizeMoney: 'Prêmio',
     rocketMoney: 'Equipe Rocket',
@@ -178,7 +210,7 @@ export const longCup = {
             choices: {
                 respeito: ['"Respeito o time deles"', 'Próximo rival mais fraco.'],
                 provocar: ['Provocar', 'Próximo rival mais forte. Paga cachê.'],
-                sair: ['Sem comentários', ''],
+                sair: ['Fugir dos repórteres', '+1 sorteio.'],
             },
         },
         fosseis: {
@@ -246,7 +278,43 @@ export const longCup = {
             text: 'Olha só, uma {a}! Quem vai usar?',
             choices: {
                 usar: ['Usar', 'Evolui na hora.'],
-                deixar: ['Deixar', ''],
+                guardar: ['Guardar na Mochila', 'Usa depois, em quem entrar no time.'],
+                vender: ['Vender', ''],
+            },
+        },
+        pc: {
+            who: 'bill',
+            title: 'PC do Bill',
+            text: 'O Centro está tranquilo. Quer trocar um reserva por este aqui do meu PC?',
+            choices: {
+                trocar: ['Trocar', 'Ele entra no lugar de um reserva.'],
+                seguir: ['Seguir viagem', ''],
+            },
+        },
+        safari: {
+            who: 'pokemaniac',
+            title: 'Zona Safari',
+            text: 'Uma Safari Ball, uma chance. Quem você pegar entra no lugar de um reserva.',
+            choices: {
+                bola0: ['{a}', ''],
+                bola1: ['{b}', ''],
+                bola2: ['{c}', ''],
+                seguir: ['Seguir viagem', ''],
+                pegou: ['Na Safari Ball!', '{a} entrou no time.'],
+                fugiu: ['Fugiu!', '{a} correu pro mato.'],
+            },
+        },
+        cassino: {
+            who: 'rocker',
+            title: 'Cassino de Celadon',
+            text: 'Fichas, fichas! Hoje o balcão tem {a}.',
+            choices: {
+                girar: ['Caça-níquel', 'Três estrelas: um item pra quem está sem.'],
+                premio: ['Balcão de prêmios', '{a} entra no lugar de um reserva.'],
+                sair: ['Sair', ''],
+                ganhou: ['Prêmio!', '{a} entrou no time.'],
+                ganhouItem: ['Três estrelas!', '{a} ganhou um item.'],
+                perdeu: ['Não foi dessa vez', 'Só o ₽ da aposta.'],
             },
         },
         centro: {
@@ -271,13 +339,13 @@ export const longCup = {
         item: 'Treino de técnica',
         itemLine: 'Escolha 1 de 2 itens (ou MT).',
         itemGo: 'Escolher item',
-        rest: 'Descanso',
-        restLine: '+1 sorteio.',
-        restGo: 'Descansar',
+        rest: 'Folga',
+        restLine: '+₽5 e quem está fora volta.',
+        restGo: 'Dar folga',
         none: 'Ninguém do time evolui.',
         pick: 'Toque em quem treina',
         go: 'Treinar {name}',
-        restSign: '+1 sorteio',
+        restSign: '+₽5',
         pickObj: 'Escolha o treino',
         itemSign: '1 de 2 itens',
     },

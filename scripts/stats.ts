@@ -483,6 +483,25 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
             'Recompensas',
             `${fmt(rewards.length)} (${pct(rewards.filter((e) => bool(e.props.skipped)).length, rewards.length)} puladas)`,
         );
+    // Rota (desde a 0.9.44): quanto se pula em cada tela e o que a etiqueta do Pular deu
+    const rota = rewards.filter((e) => str(e.props.screen));
+    if (rota.length) {
+        const pulou = (k: string) => rota.filter((e) => str(e.props.screen) === k && bool(e.props.skipped)).length;
+        item(
+            'Rota: puladas por tela',
+            count(rota, (e) => str(e.props.screen))
+                .map(([k, n]) => `${k} ${pct(pulou(k), n)}`)
+                .join(' · '),
+        );
+        const tags = rota.filter((e) => str(e.props.tag));
+        if (tags.length)
+            item(
+                'Rota: etiquetas do Pular',
+                count(tags, (e) => str(e.props.tag))
+                    .map(([k, n]) => `${k} ${n}`)
+                    .join(' · '),
+            );
+    }
     tabela(
         ['Fase', 'Partidas', '% vitória', 'Gols/jogo', 'Pênaltis'],
         FASES.map((f, i) => {
