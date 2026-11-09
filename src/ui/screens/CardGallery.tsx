@@ -8,7 +8,6 @@ import {
     type PokemonInstance,
     viewInstance,
 } from '../../engine/instance';
-import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
 import { Rng } from '../../engine/rng';
 import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
 import { SPONSOR_IDS } from '../../engine/sponsors';
@@ -189,60 +188,13 @@ const MAGIKARP: Step[] = [
     { label: 'Gyarados do pacote', inst: sample(130) },
 ];
 
-/** O ▲ da carta (Miguel, 09/11/2026): hoje o ▲ da evolução/edição já está no número e o da habilidade soma por cima. */
+/** O ▲ da carta (Miguel, 09/11/2026, opção 1): o número é o que vale em campo e o ▲ quanto disso é bônus. */
 const ARROW_CARDS: Step[] = [
     { label: 'Magikarp (Swift Swim)', inst: karp },
     { label: 'Gyarados que evoluiu (Swift Swim)', inst: evolveInstance(karp, 130) },
     { label: 'Gyarados do pacote', inst: sample(130) },
     { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
 ];
-const ARROW_OPTIONS: { id: string; title: string; text: string; arrows?: 'campo' | 'base' }[] = [
-    {
-        id: 'hoje',
-        title: 'Hoje',
-        text: 'O número já tem o +2 da evolução e da edição; o ▲ soma isso de novo junto com a habilidade. Não dá pra saber o que vale em campo.',
-    },
-    {
-        id: 'opcao-1',
-        title: 'Opção 1: o número é o que vale em campo',
-        text: 'O número é sempre o valor em campo (com evolução, edição, habilidade e Fada). O ▲ só conta de onde veio: quanto do número é bônus.',
-        arrows: 'campo',
-    },
-    {
-        id: 'opcao-2',
-        title: 'Opção 2: o número é a carta sem bônus',
-        text: 'O número é o do Pokémon sem bônus nenhum. O ▲ soma tudo: número + ▲ = o que vale em campo.',
-        arrows: 'base',
-    },
-];
-
-function ArrowOptions() {
-    return (
-        <>
-            {ARROW_OPTIONS.map((o) => (
-                <div key={o.id} id={`seta-${o.id}`}>
-                    <h3 className="cb-sub">{o.title}</h3>
-                    <p className="muted cb-intro">{o.text}</p>
-                    <div className="cg-row">
-                        {ARROW_CARDS.map(({ label, inst }) => {
-                            const field = applyModifiers(instanceBase(inst), attributeModifiers(inst));
-                            return (
-                                <figure key={label} className="cg-item cb-step">
-                                    <PokeCard2 inst={inst} variant="metal" tipFocus arrows={o.arrows} />
-                                    <figcaption className="muted">
-                                        <b>{label}</b>
-                                        <br />
-                                        em campo: VEL {Math.round(field.pace)} · CHU {Math.round(field.shooting)}
-                                    </figcaption>
-                                </figure>
-                            );
-                        })}
-                    </div>
-                </div>
-            ))}
-        </>
-    );
-}
 
 function Ladder({ steps }: { steps: Step[] }) {
     return (
@@ -496,8 +448,12 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     <Ladder steps={MAGIKARP} />
                 </section>
                 <section className="panel" id="seta">
-                    <h2>O ▲ da carta · 2 opções pro ok do Miguel</h2>
-                    <ArrowOptions />
+                    <h2>O ▲ da carta</h2>
+                    <p className="muted cb-intro">
+                        O número é sempre o que vale em campo (evolução, edição, habilidade, item e Fada). O ▲ diz
+                        quanto desse número é bônus. A nota grande não muda.
+                    </p>
+                    <Ladder steps={ARROW_CARDS} />
                 </section>
                 <section className="panel" id="evento-tipos">
                     <h2>Evento por tipo</h2>

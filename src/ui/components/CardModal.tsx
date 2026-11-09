@@ -15,7 +15,7 @@ import { evolutionTarget, evoThreshold } from '../../engine/evolution';
 import { instanceBase, type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { linksOf } from '../../engine/links';
-import { applyModifiers, attributeModifiers, moveModifiers, moveUses } from '../../engine/modifiers';
+import { applyModifiers, attributeModifiers, cardAttributes, moveModifiers, moveUses } from '../../engine/modifiers';
 import { DRAIN, moveProfile } from '../../engine/moves';
 import {
     abilityDesc,
@@ -171,18 +171,18 @@ function CardBody({
     const picks = run?.picks ?? [];
     const lineup = (run?.lineup ?? []).map((u) => picks.find((p) => p.uid === u)).filter((p) => !!p);
     const onTeam = picks.some((p) => p.uid === inst.uid);
-    const mods = attributeModifiers(
-        inst,
-        onTeam
-            ? {
-                  lineup,
-                  rest: picks.filter((p) => !lineup.includes(p)),
-                  captain: picks.find((p) => p.uid === run?.captainUid) ?? null,
-                  role: position ?? null,
-                  sponsors: run?.sponsors,
-              }
-            : { role: position ?? null },
-    );
+    const ctx = onTeam
+        ? {
+              lineup,
+              rest: picks.filter((p) => !lineup.includes(p)),
+              captain: picks.find((p) => p.uid === run?.captainUid) ?? null,
+              role: position ?? null,
+              sponsors: run?.sponsors,
+          }
+        : { role: position ?? null };
+    const mods = attributeModifiers(inst, ctx);
+    // o número é o que vale em campo e o ▲ quanto disso é bônus (Miguel, 09/11/2026)
+    const card = cardAttributes(inst, ctx);
     const inField = applyModifiers(instanceBase(inst), mods, position ?? null);
     const ovrRole = position ?? view.naturalPosition;
     const cardOvr = positionRating(view.attributes, ovrRole);
@@ -334,8 +334,8 @@ function CardBody({
                 )}
                 <div className="attrs modal-attrs">
                     {ALL_ATTRS.map((k) => {
-                        const v = Math.round(view.attributes[k]);
-                        const delta = Math.round(inField[k] - view.attributes[k]);
+                        const v = card.field[k];
+                        const delta = card.bonus[k];
                         return (
                             <div className="attr" key={k}>
                                 <span>{d.common.attr[k]}</span>

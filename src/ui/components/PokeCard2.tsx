@@ -2,9 +2,9 @@ import { type CSSProperties, memo, useRef } from 'react';
 import type { AttrKey, Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
-import { instanceBase, type PokemonInstance, viewInstance } from '../../engine/instance';
+import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
-import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
+import { cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import {
     type Edition,
@@ -100,11 +100,6 @@ interface PokeCard2Props {
     bare?: boolean;
     /** Outra imagem no lugar do sprite (carta Metal): a proposta da edição Retrô na galeria. */
     art?: string;
-    /**
-     * Proposta do ▲ na galeria (Miguel, 09/11/2026), só lá: 'campo' = o número é o que vale em campo e o ▲ diz quanto
-     * vem de bônus; 'base' = o número é o da carta sem bônus e o ▲ soma tudo. Sem o prop, o de hoje.
-     */
-    arrows?: 'campo' | 'base';
 }
 
 /**
@@ -121,20 +116,19 @@ export function HoloLayer() {
     );
 }
 
-function cardData(inst: PokemonInstance, tr: Translator, position?: Position, arrows?: 'campo' | 'base') {
+function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
     const { rating, display, fit } = ratingAt(inst, pos);
-    // setinha de bônus/penalidade que vai com a carta (edição, habilidade, item, Fada): quanto o atributo
-    // vale a mais (ou a menos) em campo em relação ao Pokémon "puro"
-    const base = instanceBase(inst);
-    const final = applyModifiers(base, attributeModifiers(inst));
+    // o número é o que vale em campo (evolução, edição, habilidade, item, Fada) e o ▲ quanto disso é bônus
+    // em relação ao Pokémon "puro" (Miguel, 09/11/2026)
+    const { field, bonus } = cardAttributes(inst);
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
         label: tr.d.common.attrShort[k],
-        v: Math.round(arrows === 'campo' ? final[k] : arrows === 'base' ? base[k] : view.attributes[k]),
-        delta: Math.round(final[k] - base[k]),
+        v: field[k],
+        delta: bonus[k],
     }));
     // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
     const evo = evoPreview(inst, position);
@@ -180,10 +174,9 @@ export const PokeCard2 = memo(function PokeCard2({
     tipFocus,
     bare,
     art,
-    arrows,
 }: PokeCard2Props) {
     const tr = useT();
-    const d = cardData(inst, tr, position, arrows);
+    const d = cardData(inst, tr, position);
     const holo = isHolo(variant);
     const fig = variant === 'figurinha';
     const metal = variant === 'metal';

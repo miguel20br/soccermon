@@ -203,6 +203,23 @@ export function applyModifiers(base: Attributes, mods: readonly AttrModifier[], 
 }
 
 /**
+ * Atributos da carta (Miguel, 09/11/2026: o número é o que vale em campo e o ▲ diz quanto disso é bônus).
+ * `field` = carta + edição, evolução, habilidade, item e Fada; `bonus` = `field` − carta sem nada, já arredondados.
+ * Com `ctx`, entra também o do time (capitão, sinergias, Patrocínios, vaga).
+ */
+export function cardAttributes(inst: PokemonInstance, ctx: TeamContext = {}) {
+    const base = instanceBase(inst);
+    const raw = applyModifiers(base, attributeModifiers(inst, ctx), ctx.role);
+    const field = {} as Attributes;
+    const bonus = {} as Attributes;
+    for (const k of ALL) {
+        field[k] = Math.round(raw[k]);
+        bonus[k] = field[k] - Math.round(base[k]);
+    }
+    return { field, bonus };
+}
+
+/**
  * Golpe treinado (ensinado por MT, `inst.taught`; Miguel, 22/10/2026): +1 uso por partida, força x1,3 e a IA escolhe
  * ele primeiro entre os golpes que servem na hora. Antes a MT saía 0,38 vez por partida e ensinar não mudava nada.
  */
