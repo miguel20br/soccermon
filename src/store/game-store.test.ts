@@ -36,6 +36,7 @@ import {
 import { groupTable } from './long-cup';
 import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
+import { casaOf } from './rota-map';
 
 const eventChoiceIds = (run: RunState, ev: LongEvent) => eventChoices(run, ev).map((c) => c.id);
 
@@ -859,7 +860,8 @@ describe('Copa longa', () => {
     const winFirstJogo = (prize: Prize, stone?: Stone, from = 0) => {
         for (let s = from; s < from + 30; s++) {
             const run = start(`longa-rival-${s}`);
-            const first = run.map!.nodes.find((n) => n.row === 0)!;
+            // um Jogo de verdade (no mapa largo a 1ª linha também tem o Ás, com o prêmio dele)
+            const first = run.map!.nodes.find((n) => n.row === 0 && !casaOf(n))!;
             const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize, stone } : n)) };
             useGame.setState({ run: { ...run, map } });
             useGame.getState().enterNode(first.id);
