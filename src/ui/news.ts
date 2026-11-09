@@ -48,8 +48,8 @@ export const NEWS: NewsCard[] = [
         until: '2026-12-31',
         title: { pt: 'Time Ultimate · 27/11', en: 'Team Ultimate · Nov 27' },
         text: {
-            pt: 'Meus pacotes guarda o que você ganha, e no Pokémon Picks você escolhe 1 de 3',
-            en: 'My Packs keeps what you win, and in Pokémon Picks you choose 1 of 3',
+            pt: 'Seus pacotes ficam guardados até você abrir, e nos Pokémon Picks você escolhe 1 de 3',
+            en: 'Your packs stay saved until you open them, and in Pokémon Picks you choose 1 of 3',
         },
         art: 'packs',
         to: 'ultimate',
