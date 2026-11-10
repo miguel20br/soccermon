@@ -10,9 +10,9 @@ import {
     FLOOR_METAL,
     ICON_ODDS,
     METAL_ODDS,
-    OPEN_POINTS,
+    OPEN_FICHAS,
     PACK_MAX,
-    REPEAT_POINTS,
+    REPEAT_FICHAS,
     SHINY_ODDS,
 } from '../../store/ultimate/rules';
 import { lastDayPrizes, seasonN } from '../../store/ultimate/season';
@@ -139,14 +139,6 @@ export function Ultimate() {
                                 <CountUp to={u.fichas} />
                             </b>
                         </span>
-                        <span
-                            className="k-res ut-res-pts"
-                            role="img"
-                            aria-label={`${u.packPoints} ${t('ultimate.pointsShort')}`}
-                        >
-                            <HudIcon kind="sparkle" />
-                            <b className="cb-num">{u.packPoints}</b>
-                        </span>
                     </span>
                 }
             />
@@ -240,8 +232,8 @@ export type ShopSeg = 'mine' | 'buy';
 
 /**
  * Loja (ultimate-fc.md, decidido em 09/11): abre em **Meus pacotes · N** (a pilha guardada, um tipo por linha com "x2",
- * Abrir 1 / Abrir todos, o relógio do grátis) e o outro segmento é **Comprar** (Mini por Fichas, escolher carta com
- * pontos, as chances). Nada abre sozinho: o pacote ganho espera aqui até a temporada virar.
+ * Abrir 1 / Abrir todos, o relógio do grátis) e o outro segmento é **Comprar** (Mini, Pick e escolher carta, tudo com
+ * Fichas, as chances). Nada abre sozinho: o pacote ganho espera aqui até a temporada virar.
  */
 function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => void; onPick: (p: UtPick) => void }) {
     const { t, d, lang } = useT();
@@ -475,11 +467,11 @@ function Odds() {
             <p className="ut-rule">
                 <HudIcon kind="reroll" />
                 {t('ultimate.packs.repeatRule')}:{' '}
-                {METALS.map((m) => `${metalLabel(m)} ${REPEAT_POINTS[m]}`).join(' · ')}
+                {METALS.map((m) => `${metalLabel(m)} ${REPEAT_FICHAS[m]}`).join(' · ')}
             </p>
             <p className="ut-rule">
                 <HudIcon kind="sparkle" />
-                {t('ultimate.packs.openRule', { n: OPEN_POINTS })}
+                {t('ultimate.packs.openRule', { n: OPEN_FICHAS })}
             </p>
             <p className="ut-rule">
                 <HudIcon kind="cards" />

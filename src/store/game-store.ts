@@ -501,13 +501,13 @@ export interface GameStore {
     ultimateSaveLive(patch: Partial<Omit<LiveMatch, 'stage'>>): void;
     /** Apito final: Fichas do nível, objetivos, Evoluções e o painel do prêmio; Pokédex e Álbum marcam quem jogou. */
     ultimateFinish(m: MatchResult): void;
-    /** Compra com pontos de pacote a carta da espécie escolhida. null = não deu. */
+    /** Compra com Fichas a carta da espécie escolhida. null = não deu. */
     ultimateBuyCard(speciesId: number): PokemonInstance | null;
     /** Pacote Mini extra com Fichas. */
     ultimateBuyPack(): boolean;
     /** Pokémon Pick: fica com a opção `cardUid` do Pick `uid` (null = não deu). */
     ultimateChoosePick(uid: string, cardUid: string): PokemonInstance | null;
-    /** Pick com pontos de pacote (vai pra Meus pacotes). */
+    /** Pick com Fichas (vai pra Meus pacotes). */
     ultimateBuyPick(metal: Parameters<typeof buyPick>[1]): boolean;
     ultimateStartEvo(uid: string, path: readonly number[]): void;
     ultimateDropEvo(uid: string): void;

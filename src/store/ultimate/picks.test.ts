@@ -9,12 +9,14 @@ import { Rng } from '../../engine/rng';
 import { editionOf } from '../../engine/specials';
 import { metalOf } from '../../ui/rarity';
 import { migrateSave } from '../game-store';
-import { EVENTS, FIRST_PICK, GYMS, gymPick, PICK_POINTS, passReward } from './rules';
+import { EVENTS, FICHAS_PACK_PRICE, FIRST_PICK, GYMS, gymPick, PICK_FICHAS, PICK_PRICE, passReward } from './rules';
 import {
     buyPick,
     choosePick,
     lastPacks,
     mergeUltimate,
+    metalPools,
+    newInMetal,
     newUltimate,
     pickOptions,
     redeem,
@@ -72,6 +74,23 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         expect(pickOptions(u, pick({ min: 'bronze', exact: true })).every((c) => metal(c) === 'bronze')).toBe(true);
     });
 
+    it('Pick comprado nunca sobe de metal: Bronze e Prata completos, o Pick Bronze dá Bronze repetida (Miguel, 10/11)', () => {
+        const u = newUltimate('brecha', T0);
+        const cards = [...metalPools().bronze, ...metalPools().prata].map((id, i) => ({
+            ...createInstance(id, new Rng('own', `${i}`)),
+            uid: `o${i}`,
+        }));
+        const full = { ...u, cards };
+        expect(newInMetal(full, 'bronze')).toBe(0);
+        for (let k = 0; k < 20; k++) {
+            const opts = pickOptions(full, pick({ uid: `b${k}`, min: 'bronze', exact: true }));
+            expect(opts).toHaveLength(3);
+            expect(opts.every((c) => metal(c) === 'bronze')).toBe(true);
+        }
+        // o Pick que não é comprado (piso) continua abrindo pros metais acima
+        expect(pickOptions(full, pick({ min: 'prata' })).every((c) => metal(c) === 'ouro')).toBe(true);
+    });
+
     it('Pick de Evento: toda opção sai Evento, do tipo do evento', () => {
         const ev = EVENTS[0];
         const opts = pickOptions(newUltimate('e', T0), pick({ ...ev.pick!, uid: 'event-x', from: 'event' }));
@@ -92,13 +111,18 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         expect(r.u.firsts).toContain('pack');
     });
 
-    it('Pick com pontos: cobra o preço do metal e guarda em Meus pacotes', () => {
-        const u = { ...newUltimate('b', T0), packPoints: PICK_POINTS.prata };
-        expect(buyPick({ ...u, packPoints: PICK_POINTS.prata - 1 }, 'prata')).toBeNull();
+    it('Pick com Fichas: cobra o preço do metal e guarda em Meus pacotes', () => {
+        const u = { ...newUltimate('b', T0), fichas: PICK_FICHAS.prata };
+        expect(buyPick({ ...u, fichas: PICK_FICHAS.prata - 1 }, 'prata')).toBeNull();
         const v = buyPick(u, 'prata')!;
-        expect(v.packPoints).toBe(0);
+        expect(v.fichas).toBe(0);
         expect(v.picks.at(-1)).toMatchObject({ from: 'shop', min: 'prata', exact: true, n: 3 });
-        expect(v.picks.at(-1)?.uid).not.toBe(buyPick({ ...v, packPoints: 99 }, 'prata')!.picks.at(-1)?.uid);
+        expect(v.picks.at(-1)?.uid).not.toBe(buyPick({ ...v, fichas: 999 }, 'prata')!.picks.at(-1)?.uid);
+    });
+
+    it('o Pick Prata não sai mais barato que o Pacote Mini, e o Pick sai mais barato que escolher a carta', () => {
+        expect(PICK_FICHAS.prata).toBeGreaterThanOrEqual(FICHAS_PACK_PRICE);
+        for (const m of ['bronze', 'prata', 'ouro'] as const) expect(PICK_FICHAS[m]).toBeLessThan(PICK_PRICE[m]);
     });
 
     it('prêmio com Pick espera o Resgatar e vai pra Meus pacotes; o pós-jogo conta o Pick', () => {

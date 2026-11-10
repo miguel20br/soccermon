@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ENGINE_VERSION } from '../../engine/config';
 import { evoPaths } from './evolutions';
-import { FICHAS, FICHAS_PACK_PRICE, FIRST_STEPS } from './rules';
+import { FICHAS, FICHAS_PACK_PRICE, FIRST_STEPS, OPEN_FICHAS } from './rules';
 import {
     finishMatch,
     firstStep,
@@ -42,14 +42,16 @@ describe('Primeiros passos', () => {
         let u = newUltimate('fs', MON);
         u = openPack(u, MON)!.u;
         expect(u.firsts).toEqual(['pack']);
-        expect(u.fichas).toBe(pay('pack'));
+        // todo pacote aberto ainda dá OPEN_FICHAS; o passo "abra o 1º pacote" paga uma vez só
+        expect(u.fichas).toBe(pay('pack') + OPEN_FICHAS);
         u = openPack(u, MON)!.u;
-        expect(u.fichas).toBe(pay('pack'));
+        const opened = pay('pack') + 2 * OPEN_FICHAS;
+        expect(u.fichas).toBe(opened);
         const again = firstStep(firstStep(u, 'lineup'), 'lineup');
-        expect(again.fichas).toBe(pay('pack') + pay('lineup'));
+        expect(again.fichas).toBe(opened + pay('lineup'));
         u = startEvo(again, again.cards[0].uid, evoPaths(again.cards[0])[0])!;
         expect(u.firsts).toContain('evo');
-        expect(u.fichas).toBe(pay('pack') + pay('lineup') + pay('evo'));
+        expect(u.fichas).toBe(opened + pay('lineup') + pay('evo'));
     });
 
     it('a 1ª partida e a 1ª vitória pagam no apito e aparecem no prêmio', () => {

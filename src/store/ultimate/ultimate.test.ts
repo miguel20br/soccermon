@@ -12,7 +12,7 @@ import {
     FIRST_STEPS,
     LEVEL_GAP,
     OBJECTIVES,
-    OPEN_POINTS,
+    OPEN_FICHAS,
     PACK_INTERVAL_MS,
     PACK_MAX,
     PACK_SIZE,
@@ -142,7 +142,7 @@ describe('pacote Mini', () => {
         }
     });
 
-    it('repetida não entra no Clube nem vira ponto sozinha: fica nos Pendentes', () => {
+    it('repetida não entra no Clube nem vira Ficha sozinha: fica nos Pendentes', () => {
         let u = newUltimate('rep', T0);
         const first = rollPack(u);
         // a coleção já tem as mesmas cartas (mesma espécie e edição) e o time está cheio
@@ -152,7 +152,8 @@ describe('pacote Mini', () => {
         const want = res.pack.cards.map((c) => isRepeat(u.cards, c));
         expect(res.pack.repeat).toEqual(want);
         expect(want.some(Boolean)).toBe(true);
-        expect(res.u.packPoints).toBe(OPEN_POINTS);
+        // o pacote aberto dá OPEN_FICHAS (+ o primeiro passo "abra o 1º pacote")
+        expect(res.u.fichas).toBe(OPEN_FICHAS + FIRST_STEPS.find((f) => f.id === 'pack')!.fichas);
         expect(res.u.cards.length).toBe(u.cards.length + want.filter((r) => !r).length);
         expect(res.u.pending.map((p) => p.kind === 'card' && p.card.uid)).toEqual(
             res.pack.cards.filter((_, i) => want[i]).map((c) => c.uid),

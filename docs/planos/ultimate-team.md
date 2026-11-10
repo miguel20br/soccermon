@@ -228,14 +228,14 @@ aprovado. Mudou um número? Muda lá e aqui.
 | Chance por carta | Bronze 62% · Prata 28% · Ouro 10% (metal pela nota no nível 50: ≤64 / 65–74 / 75+) |
 | Piso | todo pacote tem 1 Prata ou melhor (se não saiu, a última vira Prata) |
 | Edições por carta | Shiny 1/64 (1,6%) · Ícone 1% (só os 20 da lista); Evento fica pros eventos |
-| Repetida (mesma espécie e edição) | não entra; vira pontos de pacote: Bronze 1 · Prata 3 · Ouro 8 |
+| Repetida (mesma espécie e edição) | não entra; vira pontos de pacote: Bronze 1 · Prata 3 · Ouro 8 (**09/11: moeda única, vira Fichas: 5 · 15 · 40**, [ultimate-fc.md](ultimate-fc.md#moeda-única-miguel-0911)) |
 | Primeiros pacotes | até o time ter 7 cartas, o pacote não repete espécie que você já tem (2 pacotes = time pronto) |
 | Rival da IA | clube de ginásio sorteado por partida só entre os que montam time a até 2 do alvo (`RIVAL_TOLERANCE`; 02/11); média dos titulares = a sua + Fácil −6 · Normal 0 · Difícil +4 · Mestre +8 (o mais perto entre 12 times do clube) |
 | Fichas (V / E / D) | Fácil 30/15/10 · Normal 50/25/10 · Difícil 80/40/15 · Mestre 120/60/20 |
 | Empate | placar igual no tempo normal (os pênaltis do motor ficam só como festa) |
 | **0.9.32** | |
-| Pontos por pacote aberto | +5 (além das repetidas) |
-| Carta escolhida com pontos | Bronze 15 · Prata 40 · Ouro 100 (a Normal, sem Shiny; Ícone e Evento fora; a espécie que você ainda não tem) |
+| Pontos por pacote aberto | +5 (além das repetidas). **09/11: +25 Fichas** |
+| Carta escolhida com pontos | Bronze 15 · Prata 40 · Ouro 100 (a Normal, sem Shiny; Ícone e Evento fora; a espécie que você ainda não tem). **09/11: em Fichas, 90 · 240 · 600** (×6) |
 | Pacote Mini com Fichas | 150 Fichas (sem teto) |
 | Ponte da Copa | título da Copa = 1 Pacote Mini, até 2 por dia (Brasília); só pra quem já abriu o 1º pacote do modo |
 | Objetivos do dia | jogue 2 → 30 Fichas · vença 1 → 40 Fichas · faça 4 gols → 1 Pacote Mini |
@@ -263,7 +263,7 @@ prévia (é a virada da temporada 0 pra 1).
 |---|---|
 | **0.9.33** | |
 | Temporadas | T1 27/11/2026 a 01/06/2027 (meia-noite de Brasília), tema Kanto clássico; T2 01/06 a 01/12/2027 (Ícones dos líderes, só o nome por enquanto) |
-| Zera na virada | time, cartas do modo, Fichas, pontos de pacote, pacotes ganhos, passe, insígnias, objetivos; nasce com os 2 pacotes grátis |
+| Zera na virada | time, cartas do modo, Fichas, pacotes ganhos, passe, insígnias, objetivos; nasce com os 2 pacotes grátis |
 | Fica (Perfil, no Álbum) | medalha de cada temporada jogada (1 partida já conta), marcos do passe, título "Campeão da Temporada N" (passe completo), a Lenda (carta com mais partidas; empate, a de nota maior), enfeites dos eventos |
 | Pacote Grande | 5 cartas, pelo menos 2 Prata ou melhor (mesmas chances por carta do Mini) |
 | Objetivos da semana | os mesmos, pagando Pacote Grande no lugar do Mini (1:1): jogue 12 → 100 Fichas + 1 Grande · vença 6 → 2 Grandes · vença 3 no Difícil/Mestre → 2 Grandes · vença 2 sem Ouro → 100 Fichas + 1 Grande |

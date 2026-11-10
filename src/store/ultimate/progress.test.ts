@@ -180,19 +180,19 @@ function live(u: UltimateSave): UltimateSave {
     };
 }
 
-describe('loja: pontos de pacote e Fichas', () => {
-    it('pontos compram a carta Normal escolhida, pelo preço do metal; sem pontos ou repetida, não', () => {
+describe('loja: tudo com Fichas', () => {
+    it('Fichas compram a carta Normal escolhida, pelo preço do metal; sem Fichas ou repetida, não', () => {
         const u = ready();
         const id = metalPools().ouro.find((x) => !u.cards.some((c) => c.speciesId === x))!;
-        expect(buyCard({ ...u, packPoints: PICK_PRICE.ouro - 1 }, id)).toBeNull();
-        const r = buyCard({ ...u, packPoints: PICK_PRICE.ouro + 3 }, id)!;
-        expect(r.u.packPoints).toBe(3);
+        expect(buyCard({ ...u, fichas: PICK_PRICE.ouro - 1 }, id)).toBeNull();
+        const r = buyCard({ ...u, fichas: PICK_PRICE.ouro + 3 }, id)!;
+        expect(r.u.fichas).toBe(3);
         expect(r.card).toMatchObject({ speciesId: id, shiny: false });
         expect(r.card.special).toBeUndefined();
         expect(metalOf(viewInstance(r.card).overall)).toBe('ouro');
         expect(r.u.cards.at(-1)).toEqual(r.card);
         // a mesma de novo: você já tem
-        expect(buyCard({ ...r.u, packPoints: 999 }, id)).toBeNull();
+        expect(buyCard({ ...r.u, fichas: 9999 }, id)).toBeNull();
         // bronze custa menos que prata, que custa menos que ouro
         expect(PICK_PRICE.bronze).toBeLessThan(PICK_PRICE.prata);
         expect(PICK_PRICE.prata).toBeLessThan(PICK_PRICE.ouro);

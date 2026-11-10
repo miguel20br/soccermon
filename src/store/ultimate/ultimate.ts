@@ -48,7 +48,7 @@ import {
     type Level,
     METAL_ODDS,
     type Objective,
-    OPEN_POINTS,
+    OPEN_FICHAS,
     type Outcome,
     PACK_INTERVAL_MS,
     PACK_MAX,
@@ -58,11 +58,12 @@ import {
     PASS_MARKS,
     PENDING_MAX,
     PICK_BUY_N,
-    PICK_POINTS,
+    PICK_FICHAS,
     PICK_PRICE,
     type PickSpec,
+    POINTS_TO_FICHAS,
     passReward,
-    REPEAT_POINTS,
+    REPEAT_FICHAS,
     RIVAL_TOLERANCE,
     SHINY_ODDS,
     STARTERS,
@@ -171,10 +172,10 @@ export interface UtPick extends PickSpec {
     ref: string;
 }
 
-/** A última venda rápida (uma carta, ou as repetidas de uma vez): o Desfazer devolve e cobra os pontos de volta. */
+/** A última venda rápida (uma carta, ou as repetidas de uma vez): o Desfazer devolve e cobra as Fichas de volta. */
 export interface UtSold {
     card: PokemonInstance;
-    points: number;
+    fichas: number;
 }
 
 export interface UltimateSave {
@@ -184,16 +185,15 @@ export interface UltimateSave {
     salt: string;
     /** A coleção da temporada. */
     cards: PokemonInstance[];
+    /** A moeda do modo (partidas, objetivos, passe, pacote aberto, venda rápida): compra pacote, Pick e carta. */
     fichas: number;
-    /** Pontos de pacote (cada pacote aberto + repetidas): compram a carta que você escolher. */
-    packPoints: number;
     /** Pacotes grátis guardados pelo relógio (0..PACK_MAX), em Meus pacotes junto dos ganhos. */
     packs: number;
     /** Pacotes ganhos (objetivos, título da Copa, Fichas): sem teto e sem relógio. */
     extraPacks: number;
     /** Pacotes Grandes ganhos (objetivos da semana, passe, líderes). */
     bigPacks: number;
-    /** Cartas compradas com pontos (numera a semente da próxima). */
+    /** Cartas e Picks comprados com Fichas (numera a semente da próxima). */
     bought: number;
     /** De quando conta o relógio do próximo pacote (ms). Cheio, não conta. */
     packAt: number;
@@ -240,7 +240,6 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     salt,
     cards: [],
     fichas: 0,
-    packPoints: 0,
     packs: PACK_START,
     packAt: now,
     extraPacks: 0,
@@ -309,8 +308,8 @@ export function ultimateOf(raw: unknown): UltimateSave {
         ...base,
         season: num(raw.season),
         cards,
-        fichas: num(raw.fichas),
-        packPoints: num(raw.packPoints),
+        // moeda única (09/11): os pontos de pacote de um save de prévia viram Fichas
+        fichas: num(raw.fichas) + num(raw.packPoints) * POINTS_TO_FICHAS,
         packs: typeof raw.packs === 'number' ? num(raw.packs, PACK_MAX) : base.packs,
         packAt: typeof raw.packAt === 'number' && Number.isFinite(raw.packAt) ? raw.packAt : base.packAt,
         extraPacks: num(raw.extraPacks),
@@ -382,7 +381,11 @@ export function ultimateOf(raw: unknown): UltimateSave {
         pending: pendingOf(raw.pending, uids),
         locked: [...new Set(strs(raw.locked).filter((x) => uids.has(x)))],
         sold: Array.isArray(raw.sold)
-            ? raw.sold.flatMap((x) => (isObj(x) && cardOk(x.card) ? [{ card: x.card, points: num(x.points) }] : []))
+            ? raw.sold.flatMap((x) =>
+                  isObj(x) && cardOk(x.card)
+                      ? [{ card: x.card, fichas: 'fichas' in x ? num(x.fichas) : num(x.points) * POINTS_TO_FICHAS }]
+                      : [],
+              )
             : [],
         // campo novo (09/11): sem ele (fatia da 0.9.43) nasce com o "Seu primeiro craque", como o save novo
         picks: Array.isArray(raw.picks) ? picksOf(raw.picks) : base.picks,
@@ -663,7 +666,8 @@ function drawCard(
  * As opções do Pick (ultimate-fc.md): `n` espécies diferentes que você ainda não tem, cada uma no metal sorteado pela
  * chance de sempre com o piso `min` (ou só `min`, se `exact`), do tipo `type` se tiver; edições com as chances de sempre
  * (o do evento sai sempre Evento). Semente `ut-pick-${uid}`: fechar e voltar mostra as mesmas opções (sem rerrolar
- * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida.
+ * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida. O `exact`
+ * (comprado e Ouro do passe) nunca sobe de metal: sem espécie nova nele, sai repetida dele mesmo (Miguel, 10/11).
  */
 export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, now?: number): PokemonInstance[] {
     const rng = new Rng(u.salt, `ut-pick-${p.uid}`);
@@ -671,7 +675,7 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
     const event = forced ?? (now === undefined ? null : eventAt(now));
     const owned = new Set(u.cards.map((c) => c.speciesId));
     const taken = new Set<number>();
-    const above = METALS.filter((m) => rank(m) >= rank(p.min));
+    const above = p.exact ? [p.min] : METALS.filter((m) => rank(m) >= rank(p.min));
     const typed = (id: number) => !p.type || species(id).types.includes(p.type as never);
     return Array.from({ length: p.n }, (_, i) => {
         const rolled = rollMetal(rng);
@@ -715,12 +719,16 @@ export function choosePick(
     return { u: firstStep(next, 'pack'), card, repeat };
 }
 
-/** Pick com pontos de pacote (Comprar): 1 de 3 daquele metal, guardado em Meus pacotes. null = pontos não bastam. */
+/** Quantas espécies do metal você ainda não tem: menos que as opções do Pick `exact` e sai repetida (aviso na tela). */
+export const newInMetal = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
+    metalPools()[metal].filter((id) => !u.cards.some((c) => c.speciesId === id)).length;
+
+/** Pick com Fichas (Comprar): 1 de 3 daquele metal, guardado em Meus pacotes. null = Fichas não bastam. */
 export function buyPick(u: UltimateSave, metal: Metal): UltimateSave | null {
-    if (u.packPoints < PICK_POINTS[metal]) return null;
+    if (u.fichas < PICK_FICHAS[metal]) return null;
     return {
         ...u,
-        packPoints: u.packPoints - PICK_POINTS[metal],
+        fichas: u.fichas - PICK_FICHAS[metal],
         bought: u.bought + 1,
         picks: [...u.picks, { n: PICK_BUY_N, min: metal, exact: true, uid: `shop-${u.bought}`, from: 'shop', ref: '' }],
     };
@@ -746,7 +754,7 @@ export const packsReady = (u: Pick<UltimateSave, 'packs' | 'packAt' | 'extraPack
 /**
  * Abre um pacote. Mini: o grátis primeiro, pra o relógio voltar a contar; depois os ganhos. Grande: só os ganhos. As
  * novas entram na coleção e enchem as vagas vazias do time, cada uma na vaga da posição dela (nunca tiram ninguém);
- * repetida vai pros Pendentes (nada vira ponto sozinho), e todo pacote aberto dá OPEN_POINTS. null = sem pacote, ou
+ * repetida vai pros Pendentes (nada vira Ficha sozinho), e todo pacote aberto dá OPEN_FICHAS. null = sem pacote, ou
  * Pendentes cheio.
  */
 export function openPack(
@@ -769,7 +777,7 @@ export function openPack(
                     ...u.pending,
                     ...cards.filter((_, i) => repeat[i]).map((card): UtPending => ({ kind: 'card', card })),
                 ],
-                packPoints: u.packPoints + OPEN_POINTS,
+                fichas: u.fichas + OPEN_FICHAS,
                 packs: free ? clock.packs - 1 : clock.packs,
                 packAt: clock.packAt,
                 extraPacks: free || big ? u.extraPacks : u.extraPacks - 1,
@@ -861,21 +869,21 @@ export function fillTeam(team: UltimateTeam, fresh: readonly PokemonInstance[]):
 
 // --------------------------------------------------------------------------------------------- loja
 
-/** As espécies que dá pra escolher com pontos naquele metal (a Normal que você ainda não tem). */
+/** As espécies que dá pra escolher com Fichas naquele metal (a Normal que você ainda não tem). */
 export const pickable = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
     metalPools()[metal].filter((id) => !u.cards.some((c) => c.speciesId === id && editionOf(c) === null));
 
 /**
- * Compra com pontos de pacote a carta da espécie escolhida: Normal (sem Shiny, sem Ícone e sem Evento), no metal
- * dela, com o preço do metal. null = sem pontos, espécie que você já tem ou que não existe.
+ * Compra com Fichas a carta da espécie escolhida: Normal (sem Shiny, sem Ícone e sem Evento), no metal
+ * dela, com o preço do metal. null = sem Fichas, espécie que você já tem ou que não existe.
  */
 export function buyCard(u: UltimateSave, speciesId: number): { u: UltimateSave; card: PokemonInstance } | null {
     const metal = METALS.find((m) => metalPools()[m].includes(speciesId));
-    if (!metal || u.packPoints < PICK_PRICE[metal] || !pickable(u, metal).includes(speciesId)) return null;
+    if (!metal || u.fichas < PICK_PRICE[metal] || !pickable(u, metal).includes(speciesId)) return null;
     const inst = createInstance(speciesId, new Rng(u.salt, `ut-buy-${u.bought}`));
     const card: PokemonInstance = { ...inst, uid: `utb${u.bought}-${speciesId}`, shiny: false };
     return {
-        u: { ...addCards(u, [card]), packPoints: u.packPoints - PICK_PRICE[metal], bought: u.bought + 1 },
+        u: { ...addCards(u, [card]), fichas: u.fichas - PICK_PRICE[metal], bought: u.bought + 1 },
         card,
     };
 }
@@ -1186,8 +1194,8 @@ export function redeem(u: UltimateSave, uid?: string): UltimateSave {
     };
 }
 
-/** Pontos da venda rápida da carta (pelo metal). */
-export const sellPoints = (c: PokemonInstance) => REPEAT_POINTS[metalOf(viewInstance(c).overall)];
+/** Fichas da venda rápida da carta (pelo metal). */
+export const sellFichas = (c: PokemonInstance) => REPEAT_FICHAS[metalOf(viewInstance(c).overall)];
 
 /** A carta `uid` pode ir na venda rápida: repetida dos Pendentes, ou do Clube fora do time, destrancada e sem Evolução. */
 export function canSell(u: UltimateSave, uid: string): boolean {
@@ -1201,19 +1209,19 @@ export function canSell(u: UltimateSave, uid: string): boolean {
 }
 
 /**
- * Venda rápida das cartas `uids` (as que podem; as outras ficam): somem e pagam os pontos de pacote. Fica guardada
+ * Venda rápida das cartas `uids` (as que podem; as outras ficam): somem e pagam as Fichas. Fica guardada
  * pro Desfazer (troca a venda anterior).
  */
 export function quickSell(u: UltimateSave, uids: readonly string[]): UltimateSave {
     const ok = new Set(uids.filter((x) => canSell(u, x)));
     if (!ok.size) return u;
     const all = [...u.pending.flatMap((p) => (p.kind === 'card' ? [p.card] : [])), ...u.cards];
-    const sold = all.filter((c) => ok.has(c.uid)).map((card) => ({ card, points: sellPoints(card) }));
+    const sold = all.filter((c) => ok.has(c.uid)).map((card) => ({ card, fichas: sellFichas(card) }));
     return {
         ...u,
         cards: u.cards.filter((c) => !ok.has(c.uid)),
         pending: u.pending.filter((p) => p.kind !== 'card' || !ok.has(p.card.uid)),
-        packPoints: u.packPoints + sold.reduce((s, x) => s + x.points, 0),
+        fichas: u.fichas + sold.reduce((s, x) => s + x.fichas, 0),
         sold,
     };
 }
@@ -1225,12 +1233,12 @@ export const sellRepeats = (u: UltimateSave) =>
         u.pending.flatMap((p) => (p.kind === 'card' ? [p.card.uid] : [])),
     );
 
-/** Dá pra desfazer a última venda: tem venda e os pontos dela ainda estão na carteira. */
-export const canUndoSell = (u: Pick<UltimateSave, 'sold' | 'packPoints'>) =>
-    u.sold.length > 0 && u.packPoints >= u.sold.reduce((s, x) => s + x.points, 0);
+/** Dá pra desfazer a última venda: tem venda e as Fichas dela ainda estão na carteira. */
+export const canUndoSell = (u: Pick<UltimateSave, 'sold' | 'fichas'>) =>
+    u.sold.length > 0 && u.fichas >= u.sold.reduce((s, x) => s + x.fichas, 0);
 
 /**
- * Desfaz a última venda rápida: os pontos voltam e as cartas também, pro Clube (fora do time) ou, se o Clube já tem
+ * Desfaz a última venda rápida: as Fichas voltam e as cartas também, pro Clube (fora do time) ou, se o Clube já tem
  * uma igual, pros Pendentes.
  */
 export function undoSell(u: UltimateSave): UltimateSave {
@@ -1241,7 +1249,7 @@ export function undoSell(u: UltimateSave): UltimateSave {
         if (isRepeat(cards, card)) pending.push({ kind: 'card', card });
         else cards = [...cards, card];
     }
-    return { ...u, cards, pending, packPoints: u.packPoints - u.sold.reduce((s, x) => s + x.points, 0), sold: [] };
+    return { ...u, cards, pending, fichas: u.fichas - u.sold.reduce((s, x) => s + x.fichas, 0), sold: [] };
 }
 
 /** A carta do Clube igual à repetida (mesma espécie e edição). */
@@ -1391,8 +1399,8 @@ export const seasonRecord = (u: UltimateSave): UtSeasonRecord | null =>
         : null;
 
 /**
- * Virada da temporada no relógio `now`: o save de uma temporada anterior zera (time, cartas do modo, Fichas, pontos
- * de pacote, passe, insígnias, objetivos) e começa na temporada nova, com os 2 pacotes de boas-vindas. Fica o legado:
+ * Virada da temporada no relógio `now`: o save de uma temporada anterior zera (time, cartas do modo, Fichas,
+ * passe, insígnias, objetivos) e começa na temporada nova, com os 2 pacotes de boas-vindas. Fica o legado:
  * da temporada que acabou (se você jogou nela; a prévia não conta), a medalha, os marcos, o título de campeão (passe
  * completo) e a Lenda (a carta que mais jogou). Com partida aberta, espera o apito final. Relógio que voltou no tempo
  * não volta a temporada.

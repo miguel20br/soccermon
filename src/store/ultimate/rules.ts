@@ -28,10 +28,17 @@ export const SHINY_ODDS = 1 / 64;
 export const ICON_ODDS = 1 / 100;
 
 /**
- * Venda rápida (a repetida dos Pendentes, ou carta do Clube fora do time e destrancada): pontos de pacote pelo metal.
+ * Moeda única (Miguel, 09/11/2026; ultimate-fc.md, "Moeda única"): os pontos de pacote viraram Fichas. Tudo que dava
+ * ou custava pontos dá e custa POINTS_TO_FICHAS vezes isso em Fichas (a razão Fichas/pontos que um jogador típico ganha
+ * por semana, `scripts/balance/semana-ut.ts`). Também converte os pontos de um save de prévia (`ultimateOf`).
+ */
+export const POINTS_TO_FICHAS = 5;
+
+/**
+ * Venda rápida (a repetida dos Pendentes, ou carta do Clube fora do time e destrancada): Fichas pelo metal.
  * Repetida não entra no Clube: fica em Pendentes até você vender ou trocar (decidido em 02/11/2026).
  */
-export const REPEAT_POINTS: Record<Metal, number> = { bronze: 1, prata: 3, ouro: 8 };
+export const REPEAT_FICHAS: Record<Metal, number> = { bronze: 5, prata: 15, ouro: 40 };
 /** Pendentes (repetidas e prêmios a resgatar): cheio, o pacote pede pra resolver antes de abrir. */
 export const PENDING_MAX = 30;
 
@@ -59,10 +66,13 @@ export const FICHAS: Record<Level, Record<Outcome, number>> = {
 
 // ------------------------------------------------------------------------------------------- 0.9.32
 
-/** Pontos de pacote por pacote aberto, além das repetidas (proteção contra azar, como no TCG Pocket). */
-export const OPEN_POINTS = 5;
-/** Preço em pontos de pacote pra escolher uma carta Normal (sem Shiny). Ícone e Evento ficam fora. */
-export const PICK_PRICE: Record<Metal, number> = { bronze: 15, prata: 40, ouro: 100 };
+/** Fichas por pacote aberto, além das repetidas (proteção contra azar, como os pontos do TCG Pocket). */
+export const OPEN_FICHAS = 25;
+/**
+ * Preço em Fichas pra escolher uma carta Normal (sem Shiny). Ícone e Evento ficam fora. Fator 16 sobre os pontos antigos
+ * (15 · 40 · 100), como o Pick: álbum como meta da temporada (Miguel, 10/11).
+ */
+export const PICK_PRICE: Record<Metal, number> = { bronze: 240, prata: 640, ouro: 1600 };
 /** Pacote Mini extra comprado com Fichas. */
 export const FICHAS_PACK_PRICE = 150;
 /** Ponte da Copa: cada título da Copa vale 1 Pacote Mini no Time Ultimate, até isto por dia (Brasília). */
@@ -113,7 +123,7 @@ const brt = (y: number, m: number, d: number) => Date.UTC(y, m - 1, d, 3);
 
 /**
  * Temporadas (semestrais, decidido em 01/11/2026): começo e fim (meia-noite de Brasília). Antes da T1 é a prévia
- * (temporada 0). No fim, zera time, cartas do modo, Fichas, pontos de pacote e passe; fica no Perfil a medalha, o
+ * (temporada 0). No fim, zera time, cartas do modo, Fichas e passe; fica no Perfil a medalha, o
  * título (passe completo) e a carta mais jogada como Lenda. O tema muda o que sai nos pacotes e os desafios, não o motor.
  */
 export interface Season {
@@ -165,7 +175,7 @@ export function passReward(k: number): PassReward {
 /**
  * Pokémon Pick (ultimate-fc.md, decidido com o Miguel em 09/11/2026): escolha 1 de `n`, as outras somem. `min` é o
  * piso de cada opção (o metal sorteado abaixo dele vira ele, como o piso do pacote); `exact` = só aquele metal (o
- * Pick comprado com pontos); `type` = só do tipo (o Pick do líder); `event` = toda opção sai Evento (o do Natal).
+ * Pick comprado com Fichas); `type` = só do tipo (o Pick do líder); `event` = toda opção sai Evento (o do Natal).
  * Nunca oferece espécie que você já tem.
  */
 export interface PickSpec {
@@ -179,8 +189,11 @@ export interface PickSpec {
 export const FIRST_PICK: PickSpec = { n: 5, min: 'prata' };
 /** Marcos 20 e 40 do passe. */
 export const GOLD_PICK: PickSpec = { n: 3, min: 'ouro', exact: true };
-/** Pick com pontos de pacote em Comprar (1 de 3 daquele metal), mais barato que escolher a espécie (PICK_PRICE). */
-export const PICK_POINTS: Record<Metal, number> = { bronze: 10, prata: 25, ouro: 60 };
+/**
+ * Pick com Fichas em Comprar (1 de 3 daquele metal), mais barato que escolher a espécie (PICK_PRICE). Fator 16 sobre os
+ * pontos antigos (10 · 25 · 60): os 151 em ~10 a 12 semanas, não ~4 (Miguel, 10/11). Nunca sobe de metal (`exact`).
+ */
+export const PICK_FICHAS: Record<Metal, number> = { bronze: 160, prata: 400, ouro: 960 };
 export const PICK_BUY_N = 3;
 
 /**
