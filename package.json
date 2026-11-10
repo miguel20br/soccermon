@@ -24,6 +24,7 @@
     "data": "tsx scripts/build-data.ts",
     "assets:cards": "tsx scripts/fetch-sprites.ts",
     "assets:field": "tsx scripts/build-pmd-atlas.ts",
+    "assets:menu": "tsx scripts/build-menu-sheets.ts",
     "assets:audio": "tsx scripts/fetch-audio.ts",
     "assets:items": "tsx scripts/fetch-items.ts",
     "assets:types": "tsx scripts/fetch-type-icons.ts",

@@ -1,0 +1,52 @@
+import { useEffect, useState } from 'react';
+
+/** Celular pequeno (SE) ou deitado. */
+export const SMALL = '(max-width: 359px), (max-height: 520px)';
+/** PC (e tablet grande). */
+export const BIG = '(min-width: 900px) and (min-height: 700px)';
+
+/**
+ * Escala dos sprites PMD fora da partida (revisão de arte, F3/D2): uma escala inteira por cena e por tamanho de tela,
+ * a mesma em todo ambiente. Celular pequeno ou deitado 1x, celular 2x, PC 3x; nada de 2x, 3x e 4x na mesma cena.
+ * A tabela de quem usa o quê fica em docs/planos/revisao-arte.md.
+ */
+export const sceneScale = (small: boolean, big: boolean) => (small ? 1 : big ? 3 : 2);
+
+/** Media query como estado (sprite maior no desktop, menor no celular pequeno). */
+export function useMq(q: string): boolean {
+    const [on, setOn] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(q).matches);
+    useEffect(() => {
+        const m = matchMedia(q);
+        const f = () => setOn(m.matches);
+        f();
+        m.addEventListener('change', f);
+        return () => m.removeEventListener('change', f);
+    }, [q]);
+    return on;
+}
+
+/** A escala da cena no tamanho de tela de agora (`sceneScale`). */
+export function useSceneScale(): number {
+    return sceneScale(useMq(SMALL), useMq(BIG));
+}
+
+/**
+ * Pixel inteiro na tela (D3): o `zoom` do CSS por cima (palco do PC 1,2/1,35, tela grande 1,25/1,6) multiplicava o
+ * sprite e deixava 2,7x e 4,05x. O sprite desfaz o zoom (`zoom: 1/z`) e desenha com a maior escala inteira em pixels
+ * do aparelho que cabe no tamanho pensado pra cena (`scale` x `z`), nunca maior que ele. Devolve a escala em px do
+ * CSS (já sem o zoom) e o zoom a pôr no sprite.
+ */
+export function realScale(scale: number, z = 1, dpr = 1): { css: number; zoom: number } {
+    const zz = z > 0 ? z : 1;
+    const d = dpr > 0 ? dpr : 1;
+    // folga de 1%: 3 x 1 x 1 não pode virar 2 por erro de ponto flutuante
+    const device = Math.max(1, Math.floor(scale * zz * d + 0.01));
+    return { css: device / d, zoom: 1 / zz };
+}
+
+/**
+ * A escala inteira de uma fileira (D4): a maior até `max` em que o corpo de todos (px, null = sem a animação) cabe em
+ * `fit` px, a mesma pra todos (antes cada um escolhia a sua e o Kakuna ficava 2x ao lado do Gyarados 1x).
+ */
+export const rowScale = (bodies: (number | null)[], fit: number, max: number) =>
+    Math.max(1, Math.min(max, ...bodies.map((b) => (b ? Math.floor(fit / b) : max))));
