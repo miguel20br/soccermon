@@ -24,6 +24,7 @@ import {
     type MatchEvent,
     type MatchSnapshot,
     SNAP_STRIDE,
+    type TeamSetup,
     type TraitFx,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
@@ -32,6 +33,9 @@ import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } fr
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
+    diveDust,
+    dribblePose,
+    dribbleSlowAt,
     type FacingHold,
     type GoalReaction,
     goalReactionAt,
@@ -45,8 +49,11 @@ import {
     maxCertain,
     maxCueNear,
     maxHitAhead,
+    type NamedDribble,
+    namedDribblesOf,
     SOLD_LEAN,
     type SoldDive,
+    saveDivePose,
     soldDivePose,
     soldDives,
 } from '../../ui/match-view';
@@ -183,6 +190,8 @@ export interface MatchSceneData {
     replay?: { clips: ReplayClip[] };
     /** Quadra do ginásio do rival (Copa; src/game/court-themes.ts). Sem ela, a madeira de sempre. */
     court?: LeaderId;
+    /** Os dois times como entraram: a carta de quem dribla dá nome ao drible (`namedDribblesOf`). Sem eles, nenhum. */
+    setups?: [TeamSetup, TeamSetup];
 }
 
 /** Trecho do replay (ticks): toca [from, to] e fica em câmera lenta em [slowFrom, slowTo]. */
@@ -373,11 +382,6 @@ const SD = {
 
 /** Bicuda N1/N2 (lançamento): a câmera lenta só na saída da bola. */
 const MAX_BICUDA_SLOW_TICKS = 24;
-/** Mergulho do goleiro: começa alguns ticks antes do contato e volta depois. */
-const DIVE_LEAD = 6;
-const DIVE_TAIL = 10;
-/** Alcance máximo do mergulho na tela (px). */
-const DIVE_MAX = 1.8 * PPM;
 
 /** Evolução que a tela React mostra grande no meio da tela. */
 export interface MatchEvolution {
@@ -419,6 +423,7 @@ interface DiveInfo {
     gk: number;
     /** Ponto do contato na tela (calculado na 1ª vez). */
     at: { x: number; y: number } | null;
+    dusted: boolean;
 }
 
 const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
@@ -816,6 +821,8 @@ export class MatchScene extends Phaser.Scene {
     private sold: (SoldDive & { toBall: { x: number; y: number } | null; dusted: boolean })[] = [];
     /** Goleiro cabisbaixo depois do gol sofrido. */
     private reacts: GoalReaction[] = [];
+    /** Dribles com nome (só tela); a bola em px no carrinho sai na 1ª vez que aparece. */
+    private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
     /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
@@ -1050,7 +1057,7 @@ export class MatchScene extends Phaser.Scene {
                 : null;
         const noDive = duel && !this.md.replay ? duel.tick : -1;
         this.dives = this.matchEvents.flatMap((e) =>
-            e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null }] : [],
+            e.type === 'save' && e.tick !== noDive ? [{ tick: e.tick, gk: e.by, at: null, dusted: false }] : [],
         );
         this.sold = soldDives(this.snaps, this.matchEvents, FUTSAL_5.teamSize).map((d) => ({
             ...d,
@@ -1058,6 +1065,10 @@ export class MatchScene extends Phaser.Scene {
             dusted: false,
         }));
         this.reacts = goalReactions(this.matchEvents, this.sold, (team, tick) => this.keeperAt(team, tick));
+        // o replay tem a câmera lenta dele; a partida da copa e do duelo, os dribles com nome
+        const setups = this.md.setups;
+        this.named =
+            setups && !this.md.replay ? namedDribblesOf(result, setups).map((d) => ({ ...d, toBall: null })) : [];
         this.fulltimeTick = this.matchEvents.find((e) => e.type === 'fulltime')?.tick ?? Number.POSITIVE_INFINITY;
         this.penaltyStage = this.penalties.map((_, i) => this.penaltyStage[i] ?? 0);
         this.agencySpans();
@@ -2004,7 +2015,10 @@ export class MatchScene extends Phaser.Scene {
         if (next !== undefined && next - this.playTick <= DRAMA_LEAD) {
             drama = 0.25 + 0.75 * ((next - this.playTick) / DRAMA_LEAD);
         }
-        return base * Math.min(drama, this.cine.speedFactor(now));
+        // drible com nome: câmera lenta curta só na 1x (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
+        // Vale a mais lenta das câmeras lentas, sem multiplicar com a do gol
+        const trick = this.md.duel || this.md.reduceMotion ? 1 : dribbleSlowAt(this.named, this.playTick, this.speed);
+        return base * Math.min(drama, this.cine.speedFactor(now), trick);
     }
 
     private locate(tick: number): { index: number; t: number } {
@@ -2037,6 +2051,7 @@ export class MatchScene extends Phaser.Scene {
         const next = this.snaps[Math.min(index + 2, this.snaps.length - 1)];
         const smooth = lerpOk && prev.phase === a.phase && next.phase === b.phase;
         this.reactG.clear();
+        const trick = this.trickNow();
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
             const o = i * SNAP_STRIDE;
@@ -2059,6 +2074,11 @@ export class MatchScene extends Phaser.Scene {
                 );
                 facing = view.faceHold.facing;
             } else view.faceHold = null;
+            // drible com nome: quem dribla sai do lugar (e gira, na roleta); quem ficou morde a finta
+            const tricked = trick && !view.act ? trick : null;
+            const tb = tricked?.d.by === i ? tricked.pose : null;
+            const tm = tricked?.d.marker === i ? tricked.pose : null;
+            if (tb?.spin) facing = (((facing + tb.spin) % 8) + 8) % 8;
             const px = toPx(x, y);
             px.x += view.shift.x;
             px.y += view.shift.y;
@@ -2073,8 +2093,12 @@ export class MatchScene extends Phaser.Scene {
             // gol sofrido: o goleiro fica cabisbaixo um instante (Hurt), de frente pro campo
             const react = act || dive ? null : this.goalReaction(i);
             // onde o corpo está na tela (bote, mergulho): a sombra, o anel e a setinha vão junto
-            const body = { x: px.x + view.lunge.x + (dive?.x ?? 0), y: px.y + view.lunge.y + (dive?.y ?? 0) };
-            view.sprite.setPosition(body.x, body.y).setDepth(base);
+            const body = {
+                x: px.x + view.lunge.x + (dive?.x ?? 0) + (tb?.body.x ?? 0) + (tm?.markerBody.x ?? 0),
+                y: px.y + view.lunge.y + (dive?.y ?? 0) + (tb?.body.y ?? 0) + (tm?.markerBody.y ?? 0),
+            };
+            // quem dribla passa na frente do marcador (os dois ficam um em cima do outro no carrinho)
+            view.sprite.setPosition(body.x, body.y).setDepth(base + (tb ? 40 : 0));
             // entrando da lateral (substituição): anda até a posição; antes disso fica escondido
             let entering: number | null = null;
             if (view.enter) {
@@ -2147,7 +2171,8 @@ export class MatchScene extends Phaser.Scene {
                 view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
-            this.leanBody(view, entering === null ? (dive?.lean ?? this.droop(react)) : null);
+            const bite = tm ? { tilt: tm.markerTilt, sx: 1, sy: 1 } : null;
+            this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react)) : null);
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
@@ -2224,8 +2249,13 @@ export class MatchScene extends Phaser.Scene {
             bp.x += held.x;
             bp.y += held.y;
         }
+        // drible com nome: a bola sai do pé (por cima, por baixo, em volta) e volta pro snapshot no fim
+        if (trick) {
+            bp.x += trick.pose.ball.x;
+            bp.y += trick.pose.ball.y;
+        }
         // bola cruzada: sobe (afasta da sombra) e cresce, como se viesse na direção da câmera
-        const bz = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k);
+        const bz = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k) + (trick?.pose.lift ?? 0) / (PPM * 0.9);
         const lift = bz * PPM * 0.9;
         // quique: a bola que vinha no alto e toca o chão amassa um instante e solta poeira
         if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
@@ -2275,41 +2305,72 @@ export class MatchScene extends Phaser.Scene {
         i: number,
         px: { x: number; y: number },
     ): { x: number; y: number; facing: number; lean?: Lean } | null {
+        const reduce = !!this.md.reduceMotion;
         for (const d of this.dives) {
             if (d.gk !== i) continue;
             const dt = this.playTick - d.tick;
-            if (dt < -DIVE_LEAD || dt > DIVE_TAIL) continue;
+            // no contato: a mesma poeirinha do mergulho vendido (voltando o replay, de novo)
+            const due = diveDust(d.dusted, this.playTick, d.tick, reduce);
+            d.dusted = due.dusted;
             d.at ??= this.ballPxAt(d.tick);
-            const k = dt < 0 ? 1 - (-dt / DIVE_LEAD) ** 2 : 1 - (dt / DIVE_TAIL) ** 2;
-            let ox = d.at.x - px.x;
             // o sprite fica com o pé no chão: mira um pouco abaixo da bola para o corpo cobrir ela
-            let oy = d.at.y + 6 - px.y;
-            const l = Math.hypot(ox, oy);
-            if (l > DIVE_MAX) {
-                ox *= DIVE_MAX / l;
-                oy *= DIVE_MAX / l;
-            }
-            return { x: ox * k, y: oy * k, facing: dir8({ x: ox, y: oy }, 2) };
+            const to = { x: d.at.x - px.x, y: d.at.y + 6 - px.y };
+            const pose = saveDivePose(dt, to, this.players[i].team === 0 ? 1 : -1, reduce);
+            if (!pose) continue;
+            if (due.fire) this.diveDustAt(px.x + pose.x, px.y + pose.y);
+            return { ...pose, facing: dir8(to, 2), lean: pose.k > 0 ? pose : undefined };
         }
         for (const d of this.sold) {
             if (d.gk !== i) continue;
-            if (this.playTick < d.tick) d.dusted = false;
             if (!d.toBall) {
                 const ball = this.ballPxAt(d.goal);
                 const at = this.playerPxAt(d.gk, d.tick);
                 d.toBall = { x: ball.x - at.x, y: ball.y - at.y };
             }
-            const reduce = !!this.md.reduceMotion;
             const pose = soldDivePose(d, this.playTick, this.players[i].team === 0 ? 1 : -1, d.toBall, reduce);
             if (!pose) continue;
             // no contato: poeirinha no pé (uma vez; voltando o replay, de novo)
-            if (!d.dusted && !reduce && this.playTick >= d.tick + SOLD_LEAN.rise) {
-                d.dusted = true;
-                dust(this, px.x + pose.x, px.y + pose.y + 1, 5, px.y - 1);
-            }
+            const due = diveDust(d.dusted, this.playTick, d.tick + SOLD_LEAN.rise, reduce);
+            d.dusted = due.dusted;
+            if (due.fire) this.diveDustAt(px.x + pose.x, px.y + pose.y);
             return { ...pose, lean: pose.k > 0 ? pose : undefined };
         }
         return null;
+    }
+
+    /** O drible com nome na tela agora (pose do `dribblePose`), ou null. */
+    private trickNow() {
+        for (const d of this.named) {
+            if (Math.abs(this.playTick - d.tick) > 12) continue;
+            if (!d.toBall) {
+                const ball = this.ballPxAt(d.tick);
+                const at = this.playerPxAt(d.by, d.tick);
+                d.toBall = { x: ball.x - at.x, y: ball.y - at.y };
+            }
+            const pose = dribblePose(d, this.playTick, d.toBall, !!this.md.reduceMotion);
+            if (pose) return { d, pose };
+        }
+        return null;
+    }
+
+    /**
+     * Nome do drible subindo de quem driblou, como o "DESARME!" (na cor do time): fica no lance, não pega a vaga das
+     * faixas (o chute logo depois chama o gol ou a defesa, que tirava a faixa da tela em 0,1 s).
+     */
+    private namedDribble(e: Extract<MatchEvent, { type: 'tackle' }>) {
+        const d = this.named.find((x) => x.tick === e.tick && x.by === e.victim);
+        if (!d || !this.players[d.by]) return;
+        const color = Phaser.Display.Color.IntegerToColor(this.md.colors[d.team]).rgba;
+        this.popText(d.by, dict().battle.dribble[d.kind], color, 0, 1500);
+        playSfx('kick', 1.5);
+    }
+
+    /**
+     * Poeirinha do mergulho no pé do goleiro: clara com contorno escuro (some no piso laranja sem ele) e por cima do nome
+     * dele, que fica bem no pé (embaixo do nome e da bola ela não aparecia).
+     */
+    private diveDustAt(x: number, y: number) {
+        dust(this, x, y + 1, 9, 5002, 1.4);
     }
 
     /** Reação ao gol sofrido em andamento pro jogador i (0 a 1), ou null. */
@@ -2652,7 +2713,10 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'tackle': {
                 // desarme certo: texto na cor do time de quem roubou, estalo e poeira na bola
-                if (!e.success) break;
+                if (!e.success) {
+                    this.namedDribble(e);
+                    break;
+                }
                 const color = Phaser.Display.Color.IntegerToColor(this.md.colors[this.players[e.by]?.team ?? 0]).rgba;
                 this.popText(e.by, tr('battle.tackleWon'), color);
                 this.kickPop(this.ball.x, this.ball.y + 4, 1.2, 4);

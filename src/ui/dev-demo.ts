@@ -24,6 +24,7 @@ import { type EventId, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { type House, houseOf } from '../store/rota-map';
+import { namedDribblesOf } from './match-view';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -58,6 +59,10 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
  * `&gol=1`: só a jogada em que o golpe, perfeito e já na agenda, entra (sem tocar; as gravações do N3 por tipo); com
  * `&goleiro=1`, a bicuda perfeita na agenda num chute comum do rival (as gravações das bicudas N1, N2 e N3).
+ * `?demo=dribles&tipo=lambreta|roleta|elastico` abre na escalação uma partida de um time de DRI alta (Pikachu,
+ * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
+ * procura a partir da copa N);
+ * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).
  * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
@@ -109,6 +114,7 @@ export function runDevDemo() {
         demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario' &&
+        demo !== 'dribles' &&
         demo !== 'acrescimos' &&
         demo !== 'maximo' &&
         demo !== 'bicuda' &&
@@ -642,6 +648,44 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'dribles') {
+        const q = new URLSearchParams(window.location.search);
+        const tipo = q.get('tipo') ?? 'lambreta';
+        const defesa = q.get('defesa') === '1';
+        let skip = Number(q.get('n') ?? 0);
+        const from = Number(q.get('k') ?? 0);
+        for (let k = from; k < from + 200; k++) {
+            store.newRun('Demo FC', `dri${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`dri${k}`, 'demo');
+            const lineup = [25, 123, 53, 135, 151].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const opp = run.opponents[0];
+            const r = runMatch(FUTSAL_5, team, opp, `${run.seed}-stage-0`);
+            // só no 1º tempo: no intervalo a copa refaz a partida com o que o técnico decidiu
+            const ht = r.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+            const ok = (t: number) => t > 200 && t < ht;
+            const tick = defesa
+                ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
+                : namedDribblesOf(r, [team, opp]).find((d) => d.kind === tipo && ok(d.tick))?.tick;
+            if (tick === undefined || skip-- > 0) continue;
+            const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: ${defesa ? 'defesa' : tipo} no tick ${tick}`);
             return;
         }
         return;

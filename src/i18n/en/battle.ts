@@ -41,6 +41,11 @@ export const battle: typeof pt = {
         catch: 'CLAIMED!',
         punch: 'PUNCHED!',
     },
+    dribble: {
+        lambreta: 'RAINBOW FLICK',
+        roleta: 'ROULETTE',
+        elastico: 'ELASTICO',
+    },
     fulltime: 'FULL TIME',
     bigSave: 'WHAT A SAVE!',
     save: 'SAVE!',

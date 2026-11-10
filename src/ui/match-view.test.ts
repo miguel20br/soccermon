@@ -2,12 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { inMaxZone, maxCallCue, maxCharge } from '../engine/agency';
 import { FUTSAL_5 } from '../engine/config';
 import { aiDraftTeam } from '../engine/draft';
+import { createInstance } from '../engine/instance';
+import { cardAttributes } from '../engine/modifiers';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { Action, type MatchEvent, type MatchSnapshot, SNAP_STRIDE, type TeamSetup } from '../engine/state';
 import { maxCueAt } from './components/Sideline';
 import {
     captainAt,
+    DRIBBLE_KINDS,
+    diveDust,
+    dribblePose,
+    dribbleSlowAt,
     FACE_HOLD_MS,
     GOAL_REACTION_TICKS,
     goalReactionAt,
@@ -21,7 +27,13 @@ import {
     maxHitAhead,
     maxOrderTick,
     maxWaitNext,
+    NAMED_DRIBBLE,
+    type NamedDribble,
+    namedDribbles,
+    namedDribblesOf,
+    SAVE_DIVE,
     SOLD_LEAN,
+    saveDivePose,
     snapAt,
     soldDiveEnd,
     soldDivePose,
@@ -358,5 +370,158 @@ describe('goleiro na tela (o motor fica igual)', () => {
         // direção parada há tempo: a troca é na hora
         expect(holdFacing({ facing: 1, at: 0 }, 2, 1000).facing).toBe(2);
         expect(holdFacing({ facing: 1, at: 900 }, 2, 1000).facing).toBe(1);
+    });
+});
+
+describe('mergulho da defesa (o mesmo do vendido, indo até a bola)', () => {
+    it('inclina pro lado da bola, estica e chega nela no contato; Reduzir movimento só vai até a bola', () => {
+        for (const to of [
+            { x: 10, y: -20 },
+            { x: -6, y: 30 },
+            { x: 80, y: 0 },
+        ]) {
+            const hit = saveDivePose(0, to, 1);
+            expect(hit).not.toBeNull();
+            if (!hit) continue;
+            const reach = Math.min(1, SAVE_DIVE.max / Math.hypot(to.x, to.y));
+            expect(hit.x).toBeCloseTo(to.x * reach);
+            expect(hit.y).toBeCloseTo(to.y * reach);
+            expect(hit.tilt).toBeCloseTo(Math.sign(to.x) * SOLD_LEAN.tilt);
+            expect(hit.sx).toBeGreaterThan(1);
+            const calm = saveDivePose(0, to, 1, true);
+            expect([calm?.tilt, calm?.sx, calm?.sy]).toEqual([0, 1, 1]);
+            expect(calm?.x).toBeCloseTo(hit.x);
+            // fora da janela do mergulho, nada
+            expect(saveDivePose(-SAVE_DIVE.lead - 0.1, to, 1)).toBeNull();
+            expect(saveDivePose(SAVE_DIVE.tail + 0.1, to, 1)).toBeNull();
+        }
+    });
+
+    it('a poeirinha sai uma vez no contato, de novo voltando o replay, e nunca com Reduzir movimento', () => {
+        let dusted = false;
+        const fired: number[] = [];
+        for (const tick of [8, 9, 10, 10.5, 11, 14, 7, 10, 12]) {
+            const r = diveDust(dusted, tick, 10, false);
+            dusted = r.dusted;
+            if (r.fire) fired.push(tick);
+        }
+        expect(fired).toEqual([10, 10]);
+        let calm = false;
+        for (const tick of [9, 10, 11]) {
+            const r = diveDust(calm, tick, 10, true);
+            calm = r.dusted;
+            expect(r.fire).toBe(false);
+        }
+    });
+
+    it('toda defesa das partidas tem o mergulho com pó no contato', () => {
+        let n = 0;
+        for (const seed of [1, 2]) {
+            const r = runMatch(FUTSAL_5, team(`sv-a${seed}`, 'A'), team(`sv-b${seed}`, 'B'), seed, {
+                snapshots: false,
+            });
+            for (const e of r.events) {
+                if (e.type !== 'save') continue;
+                n++;
+                expect(saveDivePose(0, { x: 5, y: 12 }, 1)).not.toBeNull();
+                expect(diveDust(false, e.tick, e.tick, false).fire).toBe(true);
+            }
+        }
+        expect(n).toBeGreaterThan(0);
+    });
+});
+
+describe('dribles com nome (só tela)', () => {
+    const dri = (seed: number) => {
+        const home: TeamSetup = { ...team(`dr-a${seed}`, 'A') };
+        const rng = new Rng(`dr-${seed}`, 'x');
+        home.lineup = [25, 123, 53, 135, 151].map((id) => createInstance(id, rng));
+        const away = team(`dr-b${seed}`, 'B');
+        return { r: runMatch(FUTSAL_5, home, away, seed), setups: [home, away] as [TeamSetup, TeamSetup] };
+    };
+    const games = [1, 2, 3, 4, 5, 6].map(dri);
+    const all =
+        (dri: number, height = 1.5) =>
+        () => ({ dri, height });
+
+    it('só com DRI da carta a partir do corte, no máximo 2 por time, só em carrinho errado no ataque', () => {
+        let total = 0;
+        for (const { r, setups } of games) {
+            expect(namedDribbles(r, all(NAMED_DRIBBLE.dri - 1))).toEqual([]);
+            const list = namedDribbles(r, all(99));
+            total += list.length;
+            for (const t of [0, 1]) expect(list.filter((d) => d.team === t).length).toBeLessThanOrEqual(2);
+            for (const d of list) {
+                const e = r.events.find((x) => x.type === 'tackle' && x.tick === d.tick && x.victim === d.by);
+                expect(e?.type === 'tackle' && !e.success).toBe(true);
+                expect(d.marker).toBe(e?.type === 'tackle' ? e.by : -1);
+                const s = r.snapshots.find((x) => x.tick >= d.tick);
+                const x = s?.p[d.by * SNAP_STRIDE] ?? 0;
+                const toGoal = d.team === 0 ? FUTSAL_5.pitch.length - x : x;
+                expect(toGoal).toBeLessThanOrEqual(FUTSAL_5.pitch.length * NAMED_DRIBBLE.zone + 0.5);
+            }
+            // a carta de verdade: quem driblou com nome tem DRI de 80 pra cima
+            for (const d of namedDribblesOf(r, setups)) {
+                const inst = whoAt(r, setups, d.by, d.tick).inst;
+                expect(inst && cardAttributes(inst).field.dribble).toBeGreaterThanOrEqual(NAMED_DRIBBLE.dri);
+            }
+        }
+        expect(total).toBeGreaterThan(0);
+    });
+
+    it('a variação sai do lance (mesma partida, mesmo drible) e o tamanho do marcador decide roleta ou lambreta', () => {
+        for (const { r } of games) {
+            const tall = namedDribbles(r, all(99, 2));
+            expect(namedDribbles(r, all(99, 2))).toEqual(tall);
+            const short = namedDribbles(r, all(99, 0.4));
+            expect(short.map((d) => d.tick)).toEqual(tall.map((d) => d.tick));
+            for (const [i, d] of tall.entries()) {
+                expect(['elastico', 'roleta']).toContain(d.kind);
+                expect(short[i].kind).toBe(d.kind === 'roleta' ? 'lambreta' : 'elastico');
+            }
+        }
+    });
+
+    it('câmera lenta curta (0,6 a 0,9 s de tela) só na 1x; em 2x pra cima nunca', () => {
+        const d = { tick: 400 } as NamedDribble;
+        // tempo de tela da janela lenta: 1 tick = 50 ms na 1x
+        let ms = 0;
+        for (let t = 380; t < 420; t += 0.01) {
+            const f = dribbleSlowAt([d], t, 1);
+            expect(f).toBeGreaterThanOrEqual(NAMED_DRIBBLE.slow);
+            if (f < 1) ms += (0.01 * 50) / f;
+        }
+        expect(ms).toBeGreaterThan(600);
+        expect(ms).toBeLessThan(900);
+        expect(dribbleSlowAt([d], 400, 1)).toBe(NAMED_DRIBBLE.slow);
+        expect(dribbleSlowAt([d], 300, 1)).toBe(1);
+        for (const speed of [2, 4, 8, 16, 64, 'highlights'])
+            for (let t = 390; t < 410; t += 0.5) expect(dribbleSlowAt([d], t, speed)).toBe(1);
+    });
+
+    it('a animação só enfeita: sai e volta pro snapshot, e com Reduzir movimento é só o nome', () => {
+        const toBall = { x: 9, y: 2 };
+        const N = NAMED_DRIBBLE;
+        for (const kind of DRIBBLE_KINDS) {
+            const d: NamedDribble = { tick: 100, by: 1, marker: 6, team: 0, kind, dir: { x: 1, y: 0 }, side: 1 };
+            expect(dribblePose(d, 100, toBall, true)).toBeNull();
+            expect(dribblePose(d, 100 - N.lead, toBall)).toBeNull();
+            expect(dribblePose(d, 100 + N.tail, toBall)).toBeNull();
+            let peak = 0;
+            let spin = 0;
+            for (let t = 100 - N.lead; t <= 100 + N.tail; t += 0.05) {
+                const p = dribblePose(d, t, toBall);
+                if (!p) continue;
+                peak = Math.max(peak, Math.hypot(p.ball.x, p.ball.y), p.lift);
+                spin = Math.max(spin, Math.abs(p.spin));
+                // perto das pontas, quase no snapshot (sem pulo quando a pose some)
+                const edge = Math.min(t - (100 - N.lead), 100 + N.tail - t);
+                if (edge < 0.1)
+                    for (const v of [p.ball.x, p.ball.y, p.body.x, p.body.y, p.lift, p.markerBody.x, p.markerBody.y])
+                        expect(Math.abs(v)).toBeLessThan(1.5);
+            }
+            expect(peak).toBeGreaterThan(5);
+            if (kind === 'roleta') expect(spin).toBe(8);
+        }
     });
 });

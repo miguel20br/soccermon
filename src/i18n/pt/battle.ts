@@ -48,6 +48,12 @@ export const battle = {
         catch: 'SEGUROU!',
         punch: 'SOCOU!',
     },
+    /** Faixa do drible com nome (a cena: MatchScene.namedDribble). */
+    dribble: {
+        lambreta: 'LAMBRETA',
+        roleta: 'ROLETA',
+        elastico: 'ELÁSTICO',
+    },
     fulltime: 'FIM DE JOGO',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',

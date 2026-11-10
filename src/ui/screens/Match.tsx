@@ -267,6 +267,11 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
                       boards: solo ? undefined : sponsorBoards(run?.sponsors),
+                      // a carta de quem dribla dá nome ao drible (os mesmos times do painel, `lockedSetup` abaixo)
+                      setups:
+                          run && opponent
+                              ? [run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run), opponent]
+                              : undefined,
                   }
                 : null,
         [match?.seed],
