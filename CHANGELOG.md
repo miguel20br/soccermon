@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.47.2 · Números certos no PC (2026-11-10)
+
+### Telas
+- No PC e em tela grande, os números não saem mais com o 9 torto (placar, dinheiro, cartas)
+
 ## 0.9.47.1 · Seu nome em todo lugar (2026-11-10)
 
 ### Consertos

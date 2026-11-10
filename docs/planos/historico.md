@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.47.2 · Números certos no PC (10/11/2026)
+
+Galmuri14 com o zoom do PC: `--gz` (zoom acumulado) em todo `zoom`, regras de Galmuri14 com `--gs` + `font-size: var(--gfs, …)`; a conta (round/sign/abs, dentro de `@supports`) leva o tamanho efetivo pro vizinho bom de 17/18/22/28/40. Ruins a 1920: 144 ⇒ 0.
+
 ## 0.9.47.1 · Seu nome em todo lugar (10/11/2026)
 
 Nome do treinador numa regra só (`trainerNameOf` em src/store/profile.ts): o escolhido, senão o 1º nome do Google (ok do Miguel pro ranking público), senão "Treinador"; `publicInfo` e a barra usam a mesma. Lápis no Perfil. iOS standalone (`navigator.standalone`) usa o login por redirect em vez do popup do GSI (`gsiAllowed`); não testado num iPhone.

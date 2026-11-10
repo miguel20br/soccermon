@@ -9,6 +9,17 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.47.2',
+        date: '2026-11-10',
+        title: 'Números certos no PC',
+        sections: [
+            {
+                title: 'Telas',
+                lines: ['No PC e em tela grande, os números não saem mais com o 9 torto (placar, dinheiro, cartas)'],
+            },
+        ],
+    },
+    {
         version: '0.9.47.1',
         date: '2026-11-10',
         title: 'Seu nome em todo lugar',
@@ -2777,6 +2788,17 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.47.2',
+        date: '2026-11-10',
+        title: 'Clean numbers on PC',
+        sections: [
+            {
+                title: 'Screens',
+                lines: ['On PC and large screens, numbers no longer show a broken 9 (scoreboard, money, cards)'],
+            },
+        ],
+    },
     {
         version: '0.9.47.1',
         date: '2026-11-10',
