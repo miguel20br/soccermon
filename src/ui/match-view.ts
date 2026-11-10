@@ -591,8 +591,8 @@ export function namedDribbles(
     const { length } = FUTSAL_5.pitch;
     const snaps = m.snapshots;
     if (!snaps.length) return [];
-    // golpe no lance (o carrinho com golpe tem holofote e faixa): o drible com nome fica de fora
-    const moveTicks = m.events.flatMap((e) => (e.type === 'move' ? [[e.tick, e.by] as const] : []));
+    // golpe perto do lance (holofote, faixa e câmera lenta dele): o drible com nome fica de fora
+    const moveTicks = m.events.flatMap((e) => (e.type === 'move' ? [e.tick] : []));
     const maxTicks = m.events.flatMap((e) =>
         (e.type === 'max' && e.phase === 'hit') || e.type === 'showdown' ? [e.tick] : [],
     );
@@ -605,7 +605,7 @@ export function namedDribbles(
         if (team === undefined || count[team] >= N.perTeam) continue;
         if (out.length && e.tick - out[out.length - 1].tick < N.gap) continue;
         if (maxTicks.some((t) => Math.abs(t - e.tick) <= N.clearMax)) continue;
-        if (moveTicks.some(([t, who]) => (who === by || who === e.by) && Math.abs(t - e.tick) <= N.clearMove)) continue;
+        if (moveTicks.some((t) => Math.abs(t - e.tick) <= N.clearMove)) continue;
         const now = snapAt(snaps, e.tick);
         // ficou com a bola (o drible que deu certo), com a bola rolando
         if (now.phase !== 'play' || now.owner !== by || snapAt(snaps, e.tick + 2).owner !== by) continue;

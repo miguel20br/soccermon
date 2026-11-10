@@ -2398,7 +2398,8 @@ export class MatchScene extends Phaser.Scene {
             depth: REACT_DEPTH + 2,
             top: true,
             holdMs: big ? N.bannerMs : 700,
-            y: 0.22,
+            // embaixo: em cima a lambreta passava por trás dela e no celular o zoom cortava o nome
+            y: 0.76,
         });
         playSfx('whoosh');
         playCrowd('uuh', 0.7);
