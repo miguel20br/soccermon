@@ -18,7 +18,8 @@ const EXPECTED_HASHES = [
     '744e69e4',
     // motor 27: o rival evolui com a mesma barra do jogador (esta partida tinha evolução do rival)
     '406ebeef',
-    '02a85fc8',
+    // motor 29: a Linha de 3 arma pelo fixo (esta partida passa pela 3-1)
+    '91fe83c6',
     '50785a42',
     // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro
     // capitão, que vale só pro chute que ele alcança; motor 18: a queda do N2/N3 e os efeitos do tipo quando a bola chega;

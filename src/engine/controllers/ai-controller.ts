@@ -424,6 +424,16 @@ export class AIController implements Controller {
         const gy = s.cfg.pitch.width / 2;
         const myRel = toRel(s, p.team, p.pos);
         let best: { target: Vec2; receiver: number; score: number } | null = null;
+        let bestRank = -Infinity;
+        let maxScore = -Infinity;
+        // armação pelo fixo (bug report 10/11/2026, "nunca tocam no fixo na armação"): o ala no nosso campo, se for
+        // passar, prefere o fixo. Só reordena os passes (o valor contra o drible é o do melhor passe sem o bônus), senão
+        // o ala trocava a condução por toque pra trás e o jogo perdia chute. Não vale logo depois do fixo ou da parede
+        // do pivô tocar nele (pingue-pongue)
+        const lk = s.ball.lastKick;
+        const fromBack =
+            lk?.kind === 'pass' && s.tick - lk.tick < 60 && ['FIXO', 'PIVO'].includes(s.players[lk.by].role);
+        const fixoPass = p.role === 'ALA' && myRel.x < s.cfg.pitch.length / 2 && !fromBack ? (style.fixoPass ?? 0) : 0;
         for (const mate of s.players) {
             if (mate.team !== p.team || mate.idx === p.idx) continue;
             const keeper = mate.role === 'GK' && !this.flying(mate);
@@ -451,14 +461,18 @@ export class AIController implements Controller {
             if (TACTIC_SHIFT[s.teams[p.team].tactic].pivotHold > 2 && mate.role === 'PIVO') score += 0.1; // contra-ataque: busca o pivô
             if (mate.role === 'PIVO') score += style.pivotPass ?? 0;
             // recebeu a parede: vai pra cima, não devolve pro pivô (virava pingue-pongue)
-            const lk = s.ball.lastKick;
             if (style.wallPivot && lk?.by === mate.idx && mate.role === 'PIVO' && s.tick - lk.tick < 60) score -= 0.8;
             score += style.passBias ?? 0;
             score += s.rng.range(-0.08, 0.08);
             if (isKeeper && !safe) continue;
-            if (!best || score > best.score) best = { target, receiver: mate.idx, score };
+            const rank = score + (this.leadFixo(mate) ? fixoPass : 0);
+            maxScore = Math.max(maxScore, score);
+            if (rank > bestRank) {
+                bestRank = rank;
+                best = { target, receiver: mate.idx, score };
+            }
         }
-        return best;
+        return best && { ...best, score: maxScore };
     }
 
     private dribbleScore(p: PlayerState, pressure: number): number {

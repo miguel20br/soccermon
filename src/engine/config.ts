@@ -89,8 +89,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 24 a 27: no histórico do git (`git log -S ENGINE_VERSION`).
  * 28 = evolução sem perda (Miguel, 09/11/2026, docs/planos/evolucao-sem-perda.md): a carta que evoluiu herda o máximo de
  *     cada atributo das formas de antes (`evolvedFrom`) e mantém a habilidade que mexe em atributo (Swift Swim).
+ * 29 = Linha de 3 arma pelo fixo (bug report 10/11/2026): o ala no nosso campo, quando passa, prefere o fixo
+ *     (`FormationStyle.fixoPass`, só reordena os passes).
  */
-export const ENGINE_VERSION = 28;
+export const ENGINE_VERSION = 29;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
