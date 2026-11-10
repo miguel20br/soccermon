@@ -3196,10 +3196,13 @@
     .rt-go {
         min-height: 54px;
     }
+    .btn.big.rt-go {
+        padding-inline: 14px;
+    }
     .rm-go .cup-go-txt b {
         font-size: 19px;
     }
-    /* a coluna ao lado do mapa é estreita: em 16 px "Começar a Rota" quebrava em duas linhas coladas */
+    /* a coluna ao lado do mapa é estreita: em 16 px "Começar a Rota" quebrava em duas linhas coladas (e o chanfro do botão perde 12 px de cada lado) */
     .rt-go .cup-go-txt b {
         font-size: 14px;
     }
