@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-// A Galmuri14 é pixel: em 17, 18, 22, 28 e 40 px o navegador quebra o desenho do 9 (e do 6 no 40), o 9 vira "ς"
+// A Galmuri14 é pixel: em 17, 18, 22, 28 e 40 px o navegador quebra o desenho do 9 (e do 6 no 40): sai torto
 // (revisão de 10/11/2026: o contador de taças da Sede). Os vizinhos (16, 19, 21, 23, 27, 29, 39, 41) saem certos.
 const BAD = new Set([17, 18, 22, 28, 40]);
 // carta só muda pela galeria ?cards=1 (com o ok do Miguel); a Rota (long-cup.css) está noutra frente; o título de tela
