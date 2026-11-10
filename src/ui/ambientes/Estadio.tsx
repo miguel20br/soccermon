@@ -20,6 +20,7 @@ import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon } from './metas';
 import { chosenMode, type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
+import { estadioScale } from './sprite-scale';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
@@ -192,13 +193,13 @@ export function Stands({ clubName, led: text, children }: { clubName: string; le
 function Court({
     captain,
     play,
-    small,
+    scale,
     wild,
     look,
 }: {
     captain: { id: number; shiny?: boolean };
     play: boolean;
-    small: boolean;
+    scale: number;
     wild: WildScene;
     look: number;
 }) {
@@ -208,14 +209,14 @@ function Court({
             <i className="es-spot" />
             <WildZone wild={wild} zone="ball" />
             <WildZone wild={wild} zone="edge" />
-            <div className="es-captain">
+            <div className="es-captain" style={{ '--sc': scale } as CSSProperties}>
                 <i className="es-shadow" />
                 <FieldSprite
                     id={captain.id}
                     shiny={captain.shiny}
                     anim="Idle"
                     dir={look}
-                    scale={small ? 1 : 2}
+                    scale={scale}
                     play={play}
                     className="es-mon"
                 />
@@ -264,11 +265,12 @@ const SCARE: Record<string, Pt[]> = {
 /**
  * As zonas do Estádio: o dorminhoco sentado nas fileiras de baixo da arquibancada (fora da faixa do clube), o gandula
  * correndo na linha de fundo e os torcedores/mascotes na beira, dos lados (o meio é do capitão; deitado, só à
- * direita, porque os botões ficam à esquerda). Longe, sprite 1x; perto (beira), 2x; tudo maior no desktop e 1x no
- * celular pequeno.
+ * direita, porque os botões ficam à esquerda). Todos na escala da cena (sceneScale): 1x no celular pequeno ou baixo,
+ * 2x no celular, 4x no PC (estadioScale).
  */
 function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, ZoneDef> {
-    const k = big ? 2 : 1;
+    // uma escala pra cena inteira (revisão de arte, F3): arquibancada, gandula, beira e capitão iguais
+    const k = estadioScale(small, big);
     return {
         stand: {
             ok: (x, y) => y > 0.62 && y < 0.9 && (x < 0.33 || x > 0.67),
@@ -284,7 +286,7 @@ function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, Zo
                 : // longe das paredes do túnel (que cobrem a beira da quadra no celular em pé)
                   (x, y) => y > 0.22 && y < 0.45 && ((x > 0.13 && x < 0.3) || (x > 0.7 && x < 0.87)),
             speed: 0.2,
-            scale: small ? 1 : big ? 3 : 2,
+            scale: k,
         },
     };
 }
@@ -446,7 +448,7 @@ export function Estadio({
                     <Stands clubName={clubName}>
                         <WildZone wild={w} zone="stand" />
                     </Stands>
-                    <Court captain={captain} play={active} small={small} wild={w} look={look} />
+                    <Court captain={captain} play={active} scale={estadioScale(small, big)} wild={w} look={look} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>
                     <i className="es-wall l" />

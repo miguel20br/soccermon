@@ -56,9 +56,8 @@ export function Mi({ k, x, bottom, flip }: { k: KitPiece; x: number; bottom: num
     );
 }
 
-/** Tela baixa (deitado) ou estreita: sprite 1x; desktop 3x. Os mesmos cortes do Estádio. */
-export const SMALL = '(max-width: 359px), (max-height: 520px)';
-export const BIG = '(min-width: 900px) and (min-height: 700px)';
+/** Tela baixa (deitado) ou estreita: sprite 1x; desktop 3x (sprite-scale.ts). */
+export { BIG, SMALL } from './sprite-scale';
 
 /** O chão de um lugar: a faixa livre onde os Pokémon andam (a caixa da zona já fica só no chão). */
 export const floorZone = (scale: number, ok: ZoneDef['ok'] = () => true): Record<string, ZoneDef> => ({

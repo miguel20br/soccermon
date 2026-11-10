@@ -1,91 +1,76 @@
-import { type CSSProperties, createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
+import {
+    type CSSProperties,
+    createContext,
+    type ReactNode,
+    useContext,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import SHINY_MISSING from '../../data/pmd-shiny-missing.json';
 import FEET from '../../data/sprite-feet.json';
 import { ClockCtx } from './clock';
+import { realScale } from './sprite-scale';
 
 type Frame = { x: number; y: number; w: number; h: number };
 interface Atlas {
     frames: Record<string, { frame: Frame }>;
     meta: { size: { w: number; h: number } };
+    /** Durações do AnimData (em 1/60 s), por animação. */
+    anims?: Record<string, { durations: number[] }>;
+}
+/** O JSON da folha do menu (scripts/build-menu-sheets.ts): por animação, o quadro, a 1ª fileira e as durações. */
+export interface MenuSheet {
+    size: { w: number; h: number };
+    anims: Record<string, { w: number; h: number; y: number; n: number; rows: number; durations: number[] }>;
+}
+
+/** A folha do menu da espécie: a shiny (mesma disposição, reusa o JSON) ou a normal, se o PMDCollab não tem a shiny. */
+export const fieldSheet = (id: number, shiny = false) =>
+    `assets/field/menu/${shiny && !(SHINY_MISSING as number[]).includes(id) ? 'shiny/' : ''}${id}.png`;
+
+/** Os quadros "Anim/direção/i" da folha do menu: uma fileira por direção, quadros lado a lado. */
+export function menuAtlas(m: MenuSheet): Atlas {
+    const frames: Atlas['frames'] = {};
+    for (const [anim, a] of Object.entries(m.anims))
+        for (let row = 0; row < a.rows; row++)
+            for (let i = 0; i < a.n; i++)
+                frames[`${anim}/${row}/${i}`] = { frame: { x: i * a.w, y: a.y + row * a.h, w: a.w, h: a.h } };
+    return { frames, meta: { size: m.size }, anims: m.anims };
 }
 
 const atlases = new Map<number, Promise<Atlas | null>>();
-/** A mesma folha da quadra (assets/field, a do Phaser), baixada uma vez por espécie e só quando aparece. */
 const load = (id: number) => {
     let a = atlases.get(id);
     if (!a) {
-        a = fetch(`assets/field/${id}.json`)
-            .then((r) => (r.ok ? (r.json() as Promise<Atlas>) : null))
+        a = fetch(`assets/field/menu/${id}.json`)
+            .then((r) => (r.ok ? (r.json() as Promise<MenuSheet>) : null))
+            .then((m) => (m ? menuAtlas(m) : null))
             .catch(() => null);
         atlases.set(id, a);
     }
     return a;
 };
 
-/** A folha PNG da espécie: a shiny (mesma disposição, reusa o JSON) ou a normal, se o PMDCollab não tem a shiny. */
-export const fieldSheet = (id: number, shiny = false) =>
-    `assets/field/${shiny && !(SHINY_MISSING as number[]).includes(id) ? 'shiny/' : ''}${id}.png`;
-
-/**
- * Folha só do menu: as 4 animações do menu nas 8 direções, uma fileira por (animação, direção), quadros lado a lado.
- * Devolve o atlas novo e de onde vem cada quadro na folha da quadra.
- */
-export function menuLayout(atlas: Atlas): { atlas: Atlas; copies: [Frame, Frame][] } {
-    const frames: Atlas['frames'] = {};
-    const copies: [Frame, Frame][] = [];
-    let w = 0;
-    let y = 0;
-    for (const anim of Object.keys(MS)) {
-        for (let dir = 0; dir < 8; dir++) {
-            let x = 0;
-            let h = 0;
-            for (let i = 0; atlas.frames[`${anim}/${dir}/${i}`]; i++) {
-                const from = atlas.frames[`${anim}/${dir}/${i}`].frame;
-                const to = { x, y, w: from.w, h: from.h };
-                frames[`${anim}/${dir}/${i}`] = { frame: to };
-                copies.push([from, to]);
-                x += from.w;
-                h = Math.max(h, from.h);
-            }
-            w = Math.max(w, x);
-            y += h;
-        }
-    }
-    return { atlas: { frames, meta: { size: { w, h: y } } }, copies };
-}
-
 type Sheet = { atlas: Atlas; url: string };
 const sheets = new Map<string, Promise<Sheet | null>>();
 /**
- * A folha da quadra inteira (até 1584x3904, ~25 MB decodificada) vira uma folha pequena só com o que o menu usa,
- * recortada uma vez num canvas e guardada como blob: o Estádio com 8 espécies ia a ~170 MB de imagem decodificada.
- * Sem canvas (ou se falhar), usa a folha inteira.
+ * A folha só com o que o menu usa (Walk, Idle, Hop, Pose), gerada antes (npm run assets:menu): JSON e PNG baixam
+ * juntos e o sprite só aparece com a imagem já decodificada. Antes o navegador baixava a folha inteira da quadra (até
+ * 3512x3392, ~25 MB decodificada), esperava o JSON pra começar e recortava num canvas: com a página ocupada, o menu
+ * de modos ficava segundos só com as sombras (F7 da revisão de arte).
  */
 const loadSheet = (id: number, shiny = false) => {
-    const src = fieldSheet(id, shiny);
-    let s = sheets.get(src);
+    const url = fieldSheet(id, shiny);
+    let s = sheets.get(url);
     if (!s) {
-        s = load(id).then(async (atlas) => {
-            if (!atlas) return null;
-            try {
-                // ImageBitmap (e não <img>): a folha grande decodificada sai da memória no close(), na hora
-                const big = await createImageBitmap(await (await fetch(src)).blob());
-                const menu = menuLayout(atlas);
-                const canvas = document.createElement('canvas');
-                canvas.width = menu.atlas.meta.size.w;
-                canvas.height = menu.atlas.meta.size.h;
-                const ctx = canvas.getContext('2d');
-                for (const [f, t] of menu.copies) ctx?.drawImage(big, f.x, f.y, f.w, f.h, t.x, t.y, t.w, t.h);
-                big.close();
-                const blob = ctx && (await new Promise<Blob | null>((r) => canvas.toBlob(r)));
-                canvas.width = 0;
-                if (!blob) throw new Error('sem canvas');
-                return { atlas: menu.atlas, url: URL.createObjectURL(blob) };
-            } catch {
-                return { atlas, url: src };
-            }
-        });
-        sheets.set(src, s);
+        const img = new Image();
+        img.src = url;
+        s = Promise.all([load(id), img.decode().catch(() => undefined)]).then(([atlas]) =>
+            atlas ? { atlas, url } : null,
+        );
+        sheets.set(url, s);
     }
     return s;
 };
@@ -95,16 +80,48 @@ const loadSheet = (id: number, shiny = false) => {
  */
 export const SpriteNearCtx = createContext(true);
 
-/** Tempo de cada quadro (ms): o AnimData fica fora do pedaço; o ritmo fixo basta no menu. */
+/**
+ * As animações do menu, com o tempo de cada quadro (ms) de reserva: o de verdade vem do AnimData, no JSON da folha
+ * (o mesmo da partida). Folha velha no cache, sem as durações, usa este.
+ */
 const MS = { Walk: 110, Idle: 170, Hop: 80, Pose: 120 } as const;
 export type FieldAnim = keyof typeof MS;
+/** Tocam uma vez (do `start`) e voltam pro Idle: o Hop em loop deixava o Pokémon quicando acima da sombra. */
+const ONCE = new Set<FieldAnim>(['Hop']);
+
+/** Duração de cada quadro (ms): a do AnimData (1/60 s) se bate com os quadros, senão a de reserva. */
+export function frameMs(atlas: Pick<Atlas, 'anims'> | undefined, anim: FieldAnim, n: number): number[] {
+    const d = atlas?.anims?.[anim]?.durations;
+    return d?.length === n ? d.map((x) => (x * 1000) / 60) : Array<number>(n).fill(MS[anim]);
+}
+
+/** Os quadros de uma animação numa direção. */
+function framesOf(atlas: Atlas | undefined, anim: FieldAnim, dir: number): Frame[] {
+    const out: Frame[] = [];
+    for (let i = 0; atlas?.frames[`${anim}/${dir}/${i}`]; i++) out.push(atlas.frames[`${anim}/${dir}/${i}`].frame);
+    return out;
+}
+
+/** O quadro da animação `t` ms depois do começo: em loop repete; sem loop, -1 depois do último. */
+export function frameAt(ms: number[], t: number, loop: boolean): number {
+    const total = ms.reduce((a, b) => a + b, 0);
+    if (!total || t < 0) return 0;
+    if (!loop && t >= total) return -1;
+    let r = t % total;
+    for (let i = 0; i < ms.length; i++) {
+        if (r < ms[i]) return i;
+        r -= ms[i];
+    }
+    return ms.length - 1;
+}
 
 /**
  * Sprite PMD da quadra num menu (sem Phaser): anda, respira, pula ou faz pose numa das 8 direções (0 = de frente,
  * 2 = direita, 4 = de costas, 6 = esquerda). O pé fica no ponto (left/top do pai, pela altura do pé de cada espécie
  * em sprite-feet.json, a mesma da quadra) e o quadro cresce pra cima. Os quadros andam no relógio da cena
- * (`ClockCtx`): aba escondida, página escondida ou reduzir movimento param tudo junto. `play` falso fica no 1º
- * quadro; `start` (hora do relógio) faz o pulo começar do 1º quadro. Espécie sem a animação (Pose falta em muitas)
+ * (`ClockCtx`), no tempo do AnimData (o mesmo da partida): aba escondida, página escondida ou reduzir movimento param
+ * tudo junto. `play` falso fica no 1º quadro; o pulo (Hop) toca uma vez a partir de `start` (hora do relógio) e volta
+ * pro Idle. Espécie sem a animação (Pose falta em muitas)
  * usa a de respirar. `shiny` usa a folha shiny. `children` fica no topo da cabeça (balão de emote, Zzz). Sem folha, mostra o GIF da carta.
  */
 export function FieldSprite({
@@ -134,6 +151,7 @@ export function FieldSprite({
     const near = useContext(SpriteNearCtx);
     const [sheet, setSheet] = useState<Sheet | null | undefined>(undefined);
     const atlas = sheet?.atlas;
+    // o quadro da vez: i da animação pedida, ou 1000 + i do Idle (depois de um Hop que já tocou)
     const [k, setK] = useState(0);
     const kRef = useRef(0);
     useEffect(() => {
@@ -145,22 +163,38 @@ export function FieldSprite({
         };
     }, [id, shiny, near]);
     const use: FieldAnim = atlas?.frames[`${anim}/${dir}/0`] ? anim : 'Idle';
-    const frames: Frame[] = [];
-    for (let i = 0; atlas?.frames[`${use}/${dir}/${i}`]; i++) frames.push(atlas.frames[`${use}/${dir}/${i}`].frame);
+    const frames = framesOf(atlas, use, dir);
     const n = frames.length;
+    const once = ONCE.has(use);
     // fase própria por espécie: os quadros de todo mundo não viram no mesmo instante
     const phase = start || id * 37;
     useEffect(() => {
-        if (!clock || !play || n < 2) return;
+        if (!clock || !play || (n < 2 && !once)) return;
+        const ms = frameMs(atlas, use, n);
+        const idleMs = frameMs(atlas, 'Idle', framesOf(atlas, 'Idle', dir).length);
         const tick = (t: number) => {
-            const nk = Math.max(0, Math.floor((t - phase) / MS[use]));
+            const i = frameAt(ms, t - phase, !once);
+            const nk = i >= 0 ? i : 1000 + frameAt(idleMs, t - phase, true);
             if (nk === kRef.current) return;
             kRef.current = nk;
             setK(nk);
         };
         tick(clock.t);
         return clock.sub(tick);
-    }, [clock, play, n, use, phase]);
+    }, [clock, play, n, use, phase, once, atlas, dir]);
+    // o zoom do CSS por cima (palco do PC, tela grande): o sprite desfaz e desenha em pixel inteiro (realScale)
+    const ref = useRef<HTMLSpanElement>(null);
+    const [z, setZ] = useState(1);
+    const shown = !!atlas && n > 0;
+    useLayoutEffect(() => {
+        const el = ref.current?.parentElement as (HTMLElement & { currentCSSZoom?: number }) | null | undefined;
+        if (!shown || !el) return;
+        const read = () => setZ(el.currentCSSZoom ?? 1);
+        read();
+        window.addEventListener('resize', read);
+        return () => window.removeEventListener('resize', read);
+    }, [shown]);
+    const r = realScale(scale, z, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1);
     if (sheet === null)
         return (
             <img
@@ -171,24 +205,30 @@ export function FieldSprite({
             />
         );
     if (!sheet || !atlas || !n) return null;
-    const f = frames[play ? k % n : 0];
+    const after = play && k >= 1000 ? framesOf(atlas, 'Idle', dir) : null;
+    const f = after ? after[(k - 1000) % after.length] : frames[play ? k % n : 0];
     const feet = (FEET as Record<string, Partial<Record<string, number>>>)[id];
-    const foot = feet?.[use] ?? 0.7;
+    const foot = feet?.[after ? 'Idle' : use] ?? 0.7;
     return (
         <span
+            ref={ref}
             className={`fs-sprite ${className}`}
             style={{
                 ...style,
                 transform: `translate(-50%, ${-foot * 100}%)`,
-                width: f.w * scale,
-                height: f.h * scale,
+                zoom: r.zoom === 1 ? undefined : r.zoom,
+                width: f.w * r.css,
+                height: f.h * r.css,
                 backgroundImage: `url(${sheet.url})`,
-                backgroundPosition: `${-f.x * scale}px ${-f.y * scale}px`,
-                backgroundSize: `${atlas.meta.size.w * scale}px ${atlas.meta.size.h * scale}px`,
+                backgroundPosition: `${-f.x * r.css}px ${-f.y * r.css}px`,
+                backgroundSize: `${atlas.meta.size.w * r.css}px ${atlas.meta.size.h * r.css}px`,
             }}
         >
             {children && (
-                <span className="fs-head" style={{ top: `${(feet?.top ?? 0.2) * 100}%` }}>
+                <span
+                    className="fs-head"
+                    style={{ top: `${(feet?.top ?? 0.2) * 100}%`, zoom: r.zoom === 1 ? undefined : z }}
+                >
                     {children}
                 </span>
             )}

@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { trainerFrame } from '../../store/missions';
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
+import { ClockCtx, useSceneClock } from '../ambientes/clock';
+import { FieldSprite } from '../ambientes/FieldSprite';
+import { useSceneScale } from '../ambientes/sprite-scale';
 import { clubVars, titleName } from '../profile/club';
 import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
@@ -24,6 +27,9 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     // com "reduzir movimento", vai direto para o cartão final
     const [i, setI] = useState(() => (reduceMotionOn() ? total : 0));
     const mon = entry.squad[i];
+    // o time em PMD, como na quadra (revisão de arte, D1): uma escala inteira pro desfile e outra pra fileira do fim
+    const clock = useSceneClock(true);
+    const scale = useSceneScale();
 
     useEffect(() => {
         if (i >= total) return;
@@ -33,49 +39,66 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     }, [i, total, entry, cries]);
 
     return (
-        <button
-            type="button"
-            className="hall-parade"
-            style={clubVars(clubColorHex(entry.clubColor))}
-            onClick={() => (i < total ? setI(total) : onDone())}
-            aria-label={i < total ? t('title.hall.skip') : t('common.ui.close')}
-        >
-            {mon ? (
-                <div key={i} className="hp-mon">
-                    <img className="pixel" src={cardSprite(mon)} alt="" />
-                    <b>{mon.name}</b>
-                    <span>
-                        {mon.ovr}
-                        {mon.goals > 0 && ` · ${t('title.hall.goals', { n: mon.goals })}`}
-                    </span>
-                </div>
-            ) : (
-                <div className="hp-end">
-                    <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
-                    <b className="hp-club">{entry.club}</b>
-                    <div className="hp-trainer">
-                        {entry.trainer && <TrainerSprite id={entry.trainer} />}
+        <ClockCtx.Provider value={clock}>
+            <button
+                type="button"
+                className="hall-parade"
+                style={clubVars(clubColorHex(entry.clubColor))}
+                onClick={() => (i < total ? setI(total) : onDone())}
+                aria-label={i < total ? t('title.hall.skip') : t('common.ui.close')}
+            >
+                {mon ? (
+                    <div key={i} className="hp-mon">
+                        <span className="hp-stage">
+                            <FieldSprite
+                                id={mon.speciesId}
+                                shiny={mon.shiny}
+                                anim="Idle"
+                                dir={0}
+                                scale={Math.max(3, scale * 2)}
+                            />
+                        </span>
+                        <b>{mon.name}</b>
                         <span>
-                            {trainer}
-                            {entry.trainerTitle && (
-                                <small className={titleClass(entry.trainerTitle).trim() || undefined}>
-                                    {titleName(entry.trainerTitle)}
-                                </small>
-                            )}
+                            {mon.ovr}
+                            {mon.goals > 0 && ` · ${t('title.hall.goals', { n: mon.goals })}`}
                         </span>
                     </div>
-                    <div className="hp-squad">
-                        {entry.squad.map((m) => (
-                            <img key={`${m.speciesId}-${m.name}`} className="pixel" src={cardSprite(m)} alt={m.name} />
-                        ))}
+                ) : (
+                    <div className="hp-end">
+                        <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
+                        <b className="hp-club">{entry.club}</b>
+                        <div className="hp-trainer">
+                            {entry.trainer && <TrainerSprite id={entry.trainer} />}
+                            <span>
+                                {trainer}
+                                {entry.trainerTitle && (
+                                    <small className={titleClass(entry.trainerTitle).trim() || undefined}>
+                                        {titleName(entry.trainerTitle)}
+                                    </small>
+                                )}
+                            </span>
+                        </div>
+                        <div className="hp-squad" style={{ '--s': scale } as CSSProperties}>
+                            {entry.squad.map((m) => (
+                                <span
+                                    key={`${m.speciesId}-${m.name}`}
+                                    className="hp-slot"
+                                    role="img"
+                                    aria-label={m.name}
+                                >
+                                    <FieldSprite id={m.speciesId} shiny={m.shiny} anim="Idle" dir={0} scale={scale} />
+                                </span>
+                            ))}
+                        </div>
+                        {entry.perfect && <span className="perfect-badge">{t('title.hall.perfect')}</span>}
                     </div>
-                    {entry.perfect && <span className="perfect-badge">{t('title.hall.perfect')}</span>}
-                </div>
-            )}
-            <small className={`hp-skip${i < total ? '' : ' done'}`}>
-                {i < total ? t('title.hall.skip') : t('common.ui.close')}
-            </small>
-        </button>
+                )}
+                <small className={`hp-skip${i < total ? '' : ' done'}`}>
+                    {i < total ? t('title.hall.skip') : t('common.ui.close')}
+                </small>
+            </button>
+        </ClockCtx.Provider>
     );
 }
 

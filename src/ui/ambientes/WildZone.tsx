@@ -368,15 +368,4 @@ export function WildZone({ wild, zone, className = '' }: { wild: WildScene; zone
     );
 }
 
-/** Media query como estado (sprite maior no desktop, menor no celular pequeno). */
-export function useMq(q: string): boolean {
-    const [on, setOn] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(q).matches);
-    useEffect(() => {
-        const m = matchMedia(q);
-        const f = () => setOn(m.matches);
-        f();
-        m.addEventListener('change', f);
-        return () => m.removeEventListener('change', f);
-    }, [q]);
-    return on;
-}
+export { useMq } from './sprite-scale';

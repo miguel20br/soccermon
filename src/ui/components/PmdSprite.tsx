@@ -1,4 +1,5 @@
 import { type CSSProperties, useEffect, useState } from 'react';
+import { rowScale } from '../ambientes/sprite-scale';
 import { reduceMotionOn } from '../settings-sync';
 
 interface ExtraAtlas {
@@ -22,6 +23,38 @@ const loadAtlas = (id: number) => {
 };
 
 type Anim = 'Sleep' | 'Sit' | 'Eat' | 'Faint';
+
+/** O corpo (do topo do quadro ao pé, px) na 1ª animação da lista que a espécie tem; sem nenhuma, null. */
+const bodyOf = (a: ExtraAtlas | null, anim: Anim[]) => {
+    const name = anim.find((n) => a?.anims[n]);
+    const f = name && a?.frames[`${name}/0/0`]?.frame;
+    return a && name && f ? f.h * (a.anims[name].foot || 1) : null;
+};
+
+/** `rowScale` da fileira, depois de baixar os atlas de todos (antes disso, undefined: a fileira espera). */
+export function useRowScale(ids: number[], anim: Anim[], fit: number, max: number): number | undefined {
+    const [k, setK] = useState<number>();
+    const key = `${ids.join()}|${anim.join()}|${fit}|${max}`;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: a chave resume ids e anim (listas novas a cada render)
+    useEffect(() => {
+        let on = true;
+        void Promise.all(ids.map(loadAtlas)).then(
+            (as) =>
+                on &&
+                setK(
+                    rowScale(
+                        as.map((a) => bodyOf(a, anim)),
+                        fit,
+                        max,
+                    ),
+                ),
+        );
+        return () => {
+            on = false;
+        };
+    }, [key]);
+    return k;
+}
 /** Não repetem: tocam uma vez e param no último quadro (o desmaio termina no chão). */
 const ONCE = new Set<Anim>(['Faint']);
 

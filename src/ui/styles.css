@@ -123,6 +123,26 @@ button {
 img.pixel {
     image-rendering: pixelated;
 }
+/* sprite PMD dos menus (FieldSprite): aqui, e não no CSS dos ambientes, porque VERSUS, Hall e escalação também usam */
+.fs-sprite {
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+/* sprite reduzido (caixa menor que o arquivo): com pixelated, linhas inteiras somem (o rabo do Mew vira pontinhos);
+   reduzir é com auto (guia da marca). Ampliação inteira continua pixelated. A fumaça acusa img.pixel reduzido. */
+img.pf-avatar,
+img.trainer-sprite,
+.hall-squad img,
+.ut-mode-art :is(.ut-mode-vs, .ut-mode-four) img,
+.ce-tl-goal img,
+img.ce-mini,
+.leader-quote img,
+.st-leader img,
+.rival-evo img,
+.show-seal img {
+    image-rendering: auto;
+}
 
 .app {
     max-width: 1180px;
@@ -558,8 +578,24 @@ img.pixel {
     border-color: var(--yellow);
     box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.4);
 }
-.slot img {
+.slot .slot-mon {
+    position: relative;
+    display: block;
+    align-self: stretch;
     height: 46px;
+    /* respiro entre o pé do sprite e o nome (o Geodude encostava no próprio nome, 10/11) */
+    margin-bottom: 4px;
+}
+/* a posição fica por cima da orelha de quem é alto */
+.slot .pos-badge {
+    position: relative;
+    z-index: 1;
+}
+/* o Pokémon em PMD, como na quadra (revisão de arte, D1): o pé no fundo da caixa, quem é alto cresce pra cima */
+.slot-mon > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 100%;
 }
 .slot .slot-name {
     font-size: 11px;
@@ -1117,7 +1153,7 @@ button,
     padding: 4px;
     gap: 0;
 }
-.formation-board .slot img {
+.formation-board .slot .slot-mon {
     height: 38px;
 }
 .slot.empty {
@@ -1146,7 +1182,7 @@ button,
     font-size: 11px;
     padding: 12px 0;
 }
-.slot img.ghost {
+.slot .slot-mon.ghost {
     opacity: 0.55;
 }
 .slot-rating.alt {
@@ -1449,7 +1485,7 @@ button,
         border-width: 2px;
         min-height: 64px;
     }
-    .slot img {
+    .slot .slot-mon {
         height: 32px;
     }
     .slot .slot-name {
@@ -2077,13 +2113,15 @@ button,
 .card-modal-right h2 {
     margin: 0 0 4px;
 }
-/* rótulos de seção da carta completa no jeito da transmissão */
-.card-modal-right h3 {
-    margin: 14px 0 6px;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+/* títulos de seção da carta completa: caixa normal em Galmuri11 Bold, com respiro (o `.panel h3` do kit vinha
+   depois com a mesma força e colava tudo: aqui com mais especificidade) */
+.card-modal .card-modal-right h3 {
+    margin: 18px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.card-modal .card-modal-right > h3:first-child {
+    margin-top: 0;
 }
 .card-note {
     font-size: 12px;
@@ -6669,7 +6707,7 @@ a.home-tile {
     .formation-board .slot {
         width: 84px;
     }
-    .formation-board .slot img {
+    .formation-board .slot .slot-mon {
         height: 28px;
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
@@ -6774,24 +6812,63 @@ a.home-tile {
     display: grid;
     place-items: center;
     padding: 24px 16px;
+    overflow: hidden;
     border: 0;
-    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--club) 35%, #0b1024) 0, #05070f 70%);
+    /* o azul-noite da marca, o mesmo dos momentos (.k-moment), com os raios na cor do clube (revisão de arte, D9) */
+    background: radial-gradient(120% 90% at 50% 40%, #2a3a7a 0%, #141d48 55%, #070a18 100%);
     color: var(--text);
     font: inherit;
     cursor: pointer;
 }
+.hall-parade::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    width: max(140vw, 140vh);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(
+        from 0deg,
+        color-mix(in srgb, var(--club) 16%, transparent) 0 9deg,
+        transparent 9deg 22.5deg
+    );
+    mask: radial-gradient(closest-side, #000 20%, transparent 75%);
+    animation: hp-rays-turn 24s linear infinite;
+    pointer-events: none;
+}
+@keyframes hp-rays-turn {
+    to {
+        rotate: 360deg;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hall-parade::before {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .hall-parade::before {
+    animation: none;
+}
 .hp-mon,
 .hp-end {
+    position: relative;
     display: grid;
     justify-items: center;
     gap: 8px;
     text-align: center;
     animation: hp-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.hp-mon img {
+.hp-stage {
+    position: relative;
     width: min(46vmin, 240px);
     height: min(46vmin, 240px);
-    object-fit: contain;
+}
+/* o pé perto do fundo da caixa; quem é alto (Onix, Gyarados) cresce pra cima */
+.hp-stage > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 90%;
     filter: drop-shadow(0 0 22px rgb(255 212 71 / 45%));
 }
 .hp-mon b {
@@ -6817,10 +6894,15 @@ a.home-tile {
     justify-content: center;
     gap: 4px;
 }
-.hp-squad img {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
+.hp-slot {
+    position: relative;
+    width: calc(var(--s, 2) * 22px);
+    height: calc(var(--s, 2) * 30px);
+}
+.hp-slot > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 100%;
 }
 .hp-trainer {
     display: flex;
@@ -6859,25 +6941,22 @@ a.home-tile {
     bottom: calc(14px + env(safe-area-inset-bottom));
     color: var(--muted);
 }
-/* fim do desfile: o "Fechar" vira um botão de verdade (antes era um texto apagado no rodapé) */
+/* fim do desfile: o "Fechar" com cara de botão terciário do kit (.btn.ghost: sem face, borda fina); o verde fica
+   pra quem confirma ou segue */
 .hp-skip.done {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 0 28px 5px;
-    /* o botão verde do kit (cara de jogo): chanfrado, base dura, texto com contorno */
-    border: 3px solid var(--cb-ink);
+    padding: 0 28px;
+    border: 2px solid var(--line);
     border-radius: 10px;
-    background: linear-gradient(180deg, var(--green-hi) 0 44%, var(--green-c) 44% 100%);
-    color: #fff;
+    color: var(--text);
     font-size: 16px;
     font-weight: 700;
-    --ol: #06330d;
-    text-shadow: var(--k-out-1);
-    box-shadow:
-        inset 0 -5px 0 var(--green-lo),
-        inset 0 2px 0 rgb(255 255 255 / 55%),
-        0 4px 0 var(--cb-ink);
+    transition: transform var(--dur-toque, 80ms) var(--ease-out);
+}
+.hall-parade:active .hp-skip.done {
+    transform: scale(0.97);
 }
 @keyframes hp-in {
     from {
@@ -6886,7 +6965,7 @@ a.home-tile {
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-    .hp-mon img {
+    .hp-stage {
         width: calc(40 * var(--vh));
         height: calc(40 * var(--vh));
     }
@@ -7292,9 +7371,10 @@ p.muted.center a {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    /* nome comprido ("Seu primeiro craque") quebra em duas linhas em vez de sair cortado com reticências */
+    line-height: 1.15;
+    text-align: center;
+    text-wrap: balance;
 }
 .cpack-burst {
     position: absolute;
@@ -7663,7 +7743,7 @@ body {
 }
 
 /* Carta chegando na vaga (draft, recompensa, troca de lugar): cai de cima com um pulinho */
-.slot img.slot-pop {
+.slot .slot-mon.slot-pop {
     animation: slot-pop 0.36s var(--ease-pop) both;
 }
 @keyframes slot-pop {
@@ -7677,11 +7757,11 @@ body {
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .slot img.slot-pop {
+    .slot .slot-mon.slot-pop {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] .slot img.slot-pop {
+:root[data-reduce-motion="true"] .slot .slot-mon.slot-pop {
     animation: none;
 }
 /* o C do capitão chega com um pulinho na vaga nova (trocou na tática) */
@@ -7872,7 +7952,7 @@ body {
     border-width: 2px;
     border-radius: 8px;
 }
-.prancheta .slot img {
+.prancheta .slot .slot-mon {
     height: 28px;
 }
 /* na prancheta da partida o nome não cabia em 11 px: fica a nota (o sprite já diz quem é) */
@@ -7998,7 +8078,7 @@ body {
     .prancheta .slot {
         width: 58px;
     }
-    .prancheta .slot img {
+    .prancheta .slot .slot-mon {
         height: 22px;
     }
     .prancheta .slot .slot-name,
@@ -8017,7 +8097,7 @@ body {
     .prancheta .slot {
         width: 56px;
     }
-    .prancheta .slot img {
+    .prancheta .slot .slot-mon {
         height: 22px;
     }
     .prancheta .slot .slot-name {

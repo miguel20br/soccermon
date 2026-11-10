@@ -8,12 +8,14 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         width: GAME_W,
         height: GAME_H,
         parent,
-        pixelArt: true,
         backgroundColor: '#5a3820',
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         audio: { noAudio: true }, // áudio é tocado por HTMLAudio/ZzFX (src/game/audio.ts)
         // replay: o clipe 9:16 (src/ui/clip-recorder.ts) copia o quadro do canvas depois de desenhado
-        render: { preserveDrawingBuffer: !!data.replay },
+        // smoothPixelArt (e não pixelArt): pixel quadrado com a borda entre pixels suave. A quadra cabe na tela em escala
+        // quebrada (FIT), e com o vizinho mais próximo do pixelArt linhas inteiras do sprite sumiam no celular
+        // (revisão de arte, F6); os nomes também saem menos borrados
+        render: { smoothPixelArt: true, preserveDrawingBuffer: !!data.replay },
         callbacks: {
             preBoot: (game) => game.registry.set('matchData', data),
         },

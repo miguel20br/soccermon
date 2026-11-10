@@ -657,9 +657,17 @@
     top: max(12.5cqw, 30cqh);
 }
 @media (min-width: 900px) and (min-height: 700px) {
+    /* o capitão na escala da cena (4x, a mesma da beira e da arquibancada); o destaque é a luz e a sombra. A bola
+       sobe acima da cabeça dele (a 4x ele é mais alto) e a sombra acompanha a largura */
     .es-captain {
         top: min(max(12.5cqw, 30cqh), 36cqh);
-        scale: 2;
+    }
+    .es-ball {
+        --juggle: calc(var(--px) * -31);
+    }
+    .es-shadow {
+        left: calc(var(--px) * -8);
+        width: calc(var(--px) * 16);
     }
 }
 /* celular pequeno em pé: o capitão (1x) fica na faixa de quadra entre o telão e as placas, e a bola sobe menos (não
@@ -682,11 +690,6 @@
     border-radius: 50%;
     background: rgb(0 0 0 / 35%);
 }
-.fs-sprite {
-    display: block;
-    image-rendering: pixelated;
-    background-repeat: no-repeat;
-}
 .es-mon {
     position: absolute;
     left: 0;
@@ -698,10 +701,11 @@
 }
 .es-ball {
     position: absolute;
-    left: calc(var(--px) * -2.5);
-    top: calc(var(--px) * -5);
-    width: calc(var(--px) * 5);
-    height: calc(var(--px) * 5);
+    /* a bola na escala dos sprites da cena (--sc): 8 pixels de arte por degrau */
+    left: calc(var(--sc, 2) * -4px);
+    top: calc(var(--sc, 2) * -8px);
+    width: calc(var(--sc, 2) * 8px);
+    height: calc(var(--sc, 2) * 8px);
     animation: es-juggle 0.9s infinite;
 }
 @keyframes es-juggle {
@@ -2923,10 +2927,10 @@
     position: absolute;
     left: 50%;
     top: calc(var(--mi) * 6 + (100% - var(--ui-h) + var(--mi) * 10) / 2);
-    width: max(10px, calc(var(--mi) * 6));
+    width: calc(var(--sc, 2) * 8px);
     height: auto;
     transform: translate(-50%, -50%);
-    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 45%));
+    filter: drop-shadow(0 calc(var(--sc, 2) * 1px) 0 rgb(0 0 0 / 45%));
 }
 @media (orientation: landscape) and (max-height: 520px) {
     .ar-ball {
