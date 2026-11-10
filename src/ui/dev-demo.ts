@@ -20,7 +20,7 @@ import { EventBus } from '../game/EventBus';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
 import { longRound } from '../store/long-cup';
-import { type EventId, rollEvent } from '../store/long-events';
+import { type EventId, gambleWon, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { type House, houseOf } from '../store/rota-map';
@@ -93,6 +93,7 @@ export function runDevDemo() {
         demo !== 'planalto' &&
         demo !== 'treino' &&
         demo !== 'evento' &&
+        demo !== 'centro' &&
         demo !== 'pedra' &&
         demo !== 'grupo' &&
         demo !== 'rota-fim' &&
@@ -340,12 +341,27 @@ export function runDevDemo() {
     }
     // ?demo=mapa: Copa longa no mapa (`&meio=1`: já andou 5 linhas, com ₽, um cartão amarelo e 2 Patrocínios)
     // ?demo=evento&id=carrinho|patrocinador|capitao|olheiro|entrevista|perdido|treinoPuxado|creche
-    if (demo === 'evento') {
+    // `&ganha=1|0&op=girar|premio|bola0`: a aposta já com esse resultado (procura a seed; pra gravar as duas cenas)
+    // ?demo=centro: o Centro Pokémon com um amarelo e um reserva fora (Tirar o amarelo e Tratar ligados)
+    if (demo === 'evento' || demo === 'centro') {
         demoLongMap(store, true);
-        const id = (new URLSearchParams(window.location.search).get('id') ?? 'carrinho') as EventId;
-        const run = useGame.getState().run!;
-        const event = rollEvent(run, id);
-        useGame.setState({ run: { ...run, status: 'event', event }, screen: 'event' });
+        const q = new URLSearchParams(window.location.search);
+        const id = (demo === 'centro' ? 'centro' : (q.get('id') ?? 'carrinho')) as EventId;
+        let run = useGame.getState().run!;
+        if (demo === 'centro') {
+            const sub = run.bench.find((u) => u && u !== run.captainUid)!;
+            run = { ...run, out: { [sub]: 1 }, outWhy: { [sub]: 'lesao' } };
+        }
+        const want = q.get('ganha');
+        const op = q.get('op') ?? (id === 'safari' ? 'bola0' : 'girar');
+        for (let k = 0; want !== null && k < 200; k++) {
+            const r = { ...run, seed: `${run.seed}-${k}` };
+            if (gambleWon(r, rollEvent(r, id), op) === (want === '1')) {
+                run = r;
+                break;
+            }
+        }
+        useGame.setState({ run: { ...run, status: 'event', event: rollEvent(run, id) }, screen: 'event' });
         return;
     }
     // ?demo=pedra&stone=trovao|agua|fogo|folha|lua: a pedra ganha num Jogo, com Eevee e Pikachu no banco

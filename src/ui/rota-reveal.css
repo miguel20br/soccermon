@@ -1,0 +1,816 @@
+/* ---------- As casas da Rota mostrando o resultado (rota-indigo-2.md; RotaReveal.tsx, roteiro em rota-reveal.ts).
+   Tudo em transform/opacity; os tempos vêm do roteiro (--t-*). Um toque (.skip) ou Reduzir movimento: o quadro final. */
+
+/* a ficha do Cassino sem ₽ pra ficha */
+.cm-broke {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--yellow);
+}
+.cm-broke .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+/* a cena mede as peças pela altura que ela tem (cqh): no PC ela é baixa e larga, no celular alta e estreita */
+.ev-scene {
+    container-type: size;
+}
+/* a cena da revelação cobre a cena inteira (antes ia pro lado de quem fala e saía da tela a 390) */
+.ev-scene .ev-reveal {
+    position: absolute;
+    inset: 0;
+    /* o alinhamento antigo (align-self: center) encolhia a caixa absoluta na altura do conteúdo */
+    align-self: stretch;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 10px;
+    padding: 8px;
+    animation: cm-fade-in var(--dur-ui) var(--ease-out) both;
+}
+/* quem fala sai de cena enquanto a aposta roda (a Joy fica: ela é quem cuida) */
+.ev-scene .ev-who {
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
+.ev-scene.revealing:not(.ev-centro) .ev-who {
+    opacity: 0;
+}
+.ev-scene.revealing {
+    cursor: pointer;
+}
+/* a placa do resultado entra quando a cena para (--t-show = o fim menos o tempo dela na tela) */
+.ev-reveal .rv-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 16px);
+    font-size: 18px;
+    line-height: 1.15;
+    text-align: left;
+    animation: cm-pop 220ms var(--t-show, 0ms) var(--ease-out) both;
+}
+.ev-reveal .rv-text > span {
+    display: grid;
+}
+.ev-reveal .rv-text small {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 400;
+}
+.ev-reveal .rv-text .mon-icon {
+    flex: none;
+}
+.rv-out {
+    filter: grayscale(1) brightness(0.9);
+}
+
+/* ---------- caça-níquel: o gabinete vermelho com as lâmpadas, 3 rolos e a bandeja ---------- */
+.rv-slot {
+    --s: clamp(28px, 19cqh, 56px);
+    position: relative;
+    display: grid;
+    justify-items: center;
+    padding: 14px 12px 0;
+    border: 3px solid var(--bc-ink);
+    border-radius: 12px 12px 6px 6px;
+    background: linear-gradient(180deg, #ee6a5f, #c8323c 22%, #8a1f2c);
+    box-shadow:
+        inset 0 0 0 3px rgb(255 255 255 / 12%),
+        0 4px 0 rgb(0 0 0 / 40%);
+}
+.rv-slot-bulbs {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 3px;
+    height: 8px;
+    background: radial-gradient(circle, #ffcb05 0 2.5px, #5a1a2a 3px) 0 50% / 10px 8px repeat-x;
+    animation: rv-chase 0.6s steps(1) infinite;
+}
+@keyframes rv-chase {
+    50% {
+        background-position-x: 5px;
+    }
+}
+.rv-slot.won .rv-slot-bulbs {
+    animation:
+        rv-chase 0.6s steps(1) infinite,
+        rv-flash 160ms var(--t-end) steps(1) 6;
+}
+@keyframes rv-flash {
+    50% {
+        filter: brightness(1.8);
+    }
+}
+.rv-reels {
+    position: relative;
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+}
+.rv-reel {
+    position: relative;
+    width: calc(var(--s) * 1.2);
+    height: calc(var(--s) * 1.6);
+    overflow: hidden;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #a8a294, #f4f1e6 28%, #f4f1e6 72%, #a8a294);
+}
+/* o 3º rolo do "quase": a moldura pisca amarela enquanto ele demora */
+.rv-reel.slow {
+    animation: rv-near 180ms var(--t-near) steps(1) 4;
+}
+@keyframes rv-near {
+    50% {
+        box-shadow: inset 0 0 0 3px var(--yellow);
+    }
+}
+.rv-bump {
+    display: block;
+    /* o "tlec" do rolo travando */
+    animation: rv-bump 200ms var(--dur) var(--ease-out) both;
+}
+@keyframes rv-bump {
+    40% {
+        transform: translateY(calc(var(--s) * 0.12));
+    }
+}
+/* a tira gira pra baixo (do fim dela pro símbolo do resultado, o 2º): rápido no começo, travando no fim */
+.rv-strip {
+    display: grid;
+    transform: translateY(calc((0.3 - 1) * var(--s)));
+    animation: rv-spin var(--dur) cubic-bezier(0.2, 0.6, 0.3, 1) both;
+}
+.rv-reel.slow .rv-strip {
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.08, 1);
+}
+@keyframes rv-spin {
+    from {
+        transform: translateY(calc((0.3 - var(--from)) * var(--s)));
+    }
+}
+.rv-sym {
+    display: grid;
+    place-items: center;
+    height: var(--s);
+}
+.rv-sym .hud-icon {
+    width: calc(var(--s) * 0.68);
+    height: calc(var(--s) * 0.68);
+    stroke-width: 3;
+}
+.rv-sym.s-star .hud-icon {
+    color: #d83838;
+    fill: #ffcb05;
+}
+.rv-sym.s-coin .hud-icon {
+    color: #c9871c;
+}
+.rv-payline {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 50%;
+    height: 2px;
+    background: rgb(216 56 56 / 60%);
+    pointer-events: none;
+}
+/* 3 estrelas: a linha dos rolos acende */
+.rv-slot.won .rv-reels {
+    animation: rv-line 200ms var(--t-end) steps(1) 4;
+}
+@keyframes rv-line {
+    50% {
+        box-shadow: 0 0 0 3px var(--yellow);
+    }
+}
+.rv-tray {
+    position: relative;
+    width: 70%;
+    height: 12px;
+    margin-top: 8px;
+    border-radius: 6px 6px 0 0;
+    background: var(--bc-ink);
+}
+.rv-coin {
+    position: absolute;
+    left: calc(14% + var(--k) * 13%);
+    bottom: 2px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #c9871c;
+    border-radius: 50%;
+    background: var(--yellow);
+    animation: rv-coin 420ms calc(var(--t-end) + 160ms + var(--k) * 70ms) cubic-bezier(0.5, 0, 0.9, 0.5) both;
+}
+@keyframes rv-coin {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--s) * -1.1));
+    }
+    20% {
+        opacity: 1;
+    }
+}
+
+/* ---------- balcão de prêmios: a carta no expositor e a roleta com a fatia verde do tamanho da chance ---------- */
+.rv-counter {
+    --wd: clamp(90px, min(55cqh, 46cqw), 210px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 4cqw, 40px);
+}
+.rv-prize {
+    display: block;
+    /* no expositor (um pouco acima); ganhando, desce pro balcão */
+    transform: translateY(-10px);
+}
+.rv-prize .fut-wrap {
+    --fut-w: clamp(60px, min(40cqh, 36cqw), 140px);
+}
+.rv-counter.won .rv-prize {
+    animation: rv-drop 460ms var(--t-stop) var(--ease-pop, var(--ease-out)) both;
+}
+@keyframes rv-drop {
+    to {
+        transform: translateY(0);
+        filter: drop-shadow(0 0 10px var(--yellow));
+    }
+}
+.rv-counter.lost .rv-prize {
+    animation: rv-dim 300ms var(--t-stop) var(--ease-out) both;
+}
+@keyframes rv-dim {
+    to {
+        filter: grayscale(0.85) brightness(0.7);
+    }
+}
+.rv-wheel-box {
+    position: relative;
+    flex: none;
+    width: var(--wd);
+    height: var(--wd);
+}
+.rv-wheel {
+    position: absolute;
+    inset: 0;
+    border: 4px solid var(--bc-ink);
+    border-radius: 50%;
+    background: conic-gradient(#58c26b 0 var(--slice), #c8323c 0 360deg);
+    box-shadow:
+        inset 0 0 0 4px #c9871c,
+        0 4px 0 rgb(0 0 0 / 40%);
+    transform: rotate(var(--turn));
+    animation: rv-wheel var(--t-stop) cubic-bezier(0.12, 0.62, 0.16, 1) both;
+}
+@keyframes rv-wheel {
+    from {
+        transform: rotate(0deg);
+    }
+}
+.rv-wheel-ticks {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: repeating-conic-gradient(rgb(0 0 0 / 28%) 0 1.4deg, transparent 1.4deg 18deg);
+}
+.rv-hub {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    display: grid;
+    place-items: center;
+    border: 3px solid #c9871c;
+    border-radius: 50%;
+    background: var(--bc-ink);
+    color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: clamp(13px, calc(var(--wd) * 0.12), 20px);
+}
+/* o ponteiro no alto, apontando pra roda */
+.rv-pointer {
+    position: absolute;
+    left: 50%;
+    top: -12px;
+    translate: -50% 0;
+    width: 0;
+    height: 0;
+    border-inline: 11px solid transparent;
+    border-top: 18px solid var(--bc-ink);
+}
+.rv-pointer::after {
+    content: "";
+    position: absolute;
+    left: -7px;
+    top: -16px;
+    border-inline: 7px solid transparent;
+    border-top: 12px solid var(--yellow);
+}
+.rv-counter.won .rv-wheel-box {
+    animation: rv-ring 200ms var(--t-stop) steps(1) 3;
+}
+@keyframes rv-ring {
+    50% {
+        filter: brightness(1.35);
+    }
+}
+
+/* ---------- Zona Safari: a bola em arco, o Pokémon entrando nela, as balançadas e o clique (ou a fuga) ---------- */
+.rv-safari {
+    --hit-h: calc(var(--sc) * 14px);
+    --fx: 64%;
+    --fy: 74%;
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+.rv-wild {
+    position: absolute;
+    left: var(--fx);
+    top: var(--fy);
+    width: 0;
+    height: 0;
+    transform-origin: 0 calc(var(--hit-h) * -0.6);
+    animation: rv-absorb 300ms var(--t-hit) ease-in forwards;
+}
+.rv-wild .fs-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+@keyframes rv-absorb {
+    40% {
+        filter: brightness(2.6) sepia(1) hue-rotate(-50deg) saturate(4);
+    }
+    to {
+        filter: brightness(2.6) sepia(1) hue-rotate(-50deg) saturate(4);
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+/* fugiu: a bola abre, ele sai e corre pro mato */
+.rv-safari.lost .rv-wild {
+    animation:
+        rv-absorb 300ms var(--t-hit) ease-in forwards,
+        rv-popout 200ms var(--t-result) var(--ease-out) forwards,
+        rv-run 700ms calc(var(--t-result) + 250ms) ease-in forwards;
+}
+@keyframes rv-popout {
+    from {
+        transform: scale(0);
+        opacity: 0;
+        filter: brightness(2.6);
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+        filter: none;
+    }
+}
+@keyframes rv-run {
+    from {
+        transform: none;
+        opacity: 1;
+    }
+    to {
+        transform: translateX(min(220px, 40vw));
+        opacity: 0;
+    }
+}
+/* o arco: a camada inteira anda (x e y separados, a bola cai no Pokémon e depois no chão) */
+.rv-arc-x,
+.rv-arc-y {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.rv-arc-x {
+    animation: rv-throw-x var(--t-hit) linear both;
+}
+@keyframes rv-throw-x {
+    from {
+        translate: -54% 0;
+    }
+}
+.rv-arc-y {
+    translate: 0 0;
+    animation:
+        rv-throw-y var(--t-hit) linear both,
+        rv-fall 260ms calc(var(--t-land) - 260ms) linear forwards;
+}
+@keyframes rv-throw-y {
+    0% {
+        translate: 0 30%;
+        animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+    }
+    55% {
+        translate: 0 -34%;
+        animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.4);
+    }
+    100% {
+        translate: 0 calc(var(--hit-h) * -1);
+    }
+}
+@keyframes rv-fall {
+    0% {
+        translate: 0 calc(var(--hit-h) * -1);
+        animation-timing-function: ease-in;
+    }
+    65% {
+        translate: 0 0;
+        animation-timing-function: ease-out;
+    }
+    82% {
+        translate: 0 -7px;
+        animation-timing-function: ease-in;
+    }
+    100% {
+        translate: 0 0;
+    }
+}
+.rv-ball {
+    position: absolute;
+    left: var(--fx);
+    top: var(--fy);
+    width: calc(10px * var(--sc));
+    height: calc(10px * var(--sc));
+    translate: -50% -100%;
+    transform-origin: 50% 100%;
+    background: var(--art) 0 0 / 100% 100% no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 40%));
+    animation:
+        rv-ballspin var(--t-hit) linear both,
+        rv-shake 450ms calc(var(--t-land) + 100ms) ease-in-out var(--shakes) both;
+}
+@keyframes rv-ballspin {
+    from {
+        transform: rotate(-540deg);
+    }
+}
+@keyframes rv-shake {
+    0%,
+    55%,
+    100% {
+        rotate: 0deg;
+    }
+    15% {
+        rotate: -24deg;
+    }
+    35% {
+        rotate: 20deg;
+    }
+}
+/* pegou: o clique (a bola pisca) e 3 estrelinhas */
+.rv-safari.won .rv-ball {
+    animation:
+        rv-ballspin var(--t-hit) linear both,
+        rv-shake 450ms calc(var(--t-land) + 100ms) ease-in-out var(--shakes) both,
+        rv-click 260ms var(--t-result) steps(1) forwards;
+}
+@keyframes rv-click {
+    50% {
+        filter: brightness(1.8) drop-shadow(0 2px 0 rgb(0 0 0 / 40%));
+    }
+    to {
+        filter: brightness(0.85) drop-shadow(0 2px 0 rgb(0 0 0 / 40%));
+    }
+}
+.rv-safari.lost .rv-ball {
+    animation:
+        rv-ballspin var(--t-hit) linear both,
+        rv-shake 450ms calc(var(--t-land) + 100ms) ease-in-out var(--shakes) both,
+        rv-gone 160ms var(--t-result) ease-in forwards;
+}
+@keyframes rv-gone {
+    to {
+        opacity: 0;
+        transform: scale(1.4);
+    }
+}
+.rv-stars {
+    position: absolute;
+    left: var(--fx);
+    top: calc(var(--fy) - 10px * var(--sc));
+    width: 0;
+    height: 0;
+}
+.rv-stars .hud-icon {
+    position: absolute;
+    left: -9px;
+    top: -9px;
+    width: 18px;
+    height: 18px;
+    color: var(--yellow);
+    opacity: 0;
+    animation: rv-star 600ms var(--t-result) var(--ease-out) forwards;
+}
+.rv-stars .hud-icon:nth-child(1) {
+    --sx: -30px;
+}
+.rv-stars .hud-icon:nth-child(2) {
+    --sx: 0px;
+    --sy: -40px;
+}
+.rv-stars .hud-icon:nth-child(3) {
+    --sx: 30px;
+}
+@keyframes rv-star {
+    30% {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        transform: translate(var(--sx), var(--sy, -26px));
+    }
+}
+/* fugiu: o clarão da bola abrindo */
+.rv-burst {
+    position: absolute;
+    left: var(--fx);
+    top: calc(var(--fy) - 5px * var(--sc));
+    width: calc(14px * var(--sc));
+    height: calc(14px * var(--sc));
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0 40%, rgb(255 255 255 / 0%) 70%);
+    opacity: 0;
+    pointer-events: none;
+}
+.rv-safari.lost .rv-burst {
+    animation: rv-burst 340ms var(--t-result) ease-out forwards;
+}
+@keyframes rv-burst {
+    from {
+        opacity: 1;
+        transform: scale(0.3);
+    }
+    to {
+        opacity: 0;
+        transform: scale(2.6);
+    }
+}
+.rv-safari .rv-text {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    translate: -50% 0;
+    white-space: nowrap;
+}
+
+/* ---------- Centro Pokémon: a parede, o balcão, a máquina; as bolas pousam, piscam e o efeito ---------- */
+.ev-scene.ev-centro {
+    --floor: 26%;
+    --counter-h: calc(var(--joy-h, 160px) * 0.4);
+    --mright: 8%;
+    /* 1 pixel da máquina: maior que o do cenário (ela é o que se olha), sempre inteiro; sobe com a altura da cena */
+    --mep: 2px;
+}
+@container (min-height: 250px) {
+    .ev-centro > * {
+        --mep: 3px;
+    }
+}
+@container (min-height: 240px) and (min-width: 700px) {
+    .ev-centro > * {
+        --mep: 4px;
+    }
+}
+.evs-centro .evs-wall {
+    inset: 0 0 var(--floor);
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--ep) * 23),
+            rgb(160 120 120 / 18%) 0 calc(var(--ep) * 24)
+        ),
+        linear-gradient(
+            180deg,
+            #f7efe3 0 54%,
+            #e06a8a 0 calc(54% + var(--ep) * 3),
+            #f6dfe3 0 calc(100% - var(--ep) * 2),
+            #c99aa6 0
+        );
+}
+.evs-centro .evs-heart {
+    position: absolute;
+    left: 50%;
+    top: 9%;
+    width: min(26%, 120px);
+    translate: -50% 0;
+    color: #e06a8a;
+    opacity: 0.35;
+}
+.evs-centro .evs-heart .hud-icon {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.evs-centro .evs-floor {
+    background: repeating-conic-gradient(#ead9c6 0 25%, #dcc6ae 0 50%) 0 0 / calc(var(--ep) * 16) calc(var(--ep) * 16);
+    box-shadow: inset 0 calc(var(--ep) * 2) 0 rgb(0 0 0 / 12%);
+}
+/* o balcão e a máquina vêm depois da Joy no DOM: ela fica atrás do balcão */
+.evs-centro-front {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.evs-counter-c {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--floor);
+    height: var(--counter-h);
+    background: linear-gradient(
+        180deg,
+        #fbf7f0 0 calc(var(--ep) * 3),
+        #1b1b26 0 calc(var(--ep) * 4),
+        #e06a8a 0 calc(100% - var(--ep) * 3),
+        #a8445e 0 calc(100% - var(--ep)),
+        #1b1b26 0
+    );
+}
+.evs-machine,
+.rv-balls {
+    position: absolute;
+    right: var(--mright);
+    bottom: calc(var(--floor) + var(--counter-h) - var(--ep) * 2);
+    width: calc(34 * var(--mep));
+    height: calc(20 * var(--mep));
+}
+.evs-machine {
+    display: block;
+    background: var(--art) 0 0 / 100% 100% no-repeat;
+    image-rendering: pixelated;
+}
+.rv-heal {
+    position: absolute;
+    inset: 0;
+}
+.rv-hball {
+    position: absolute;
+    left: calc((2 + var(--col) * 8) * var(--mep));
+    top: calc((2 + var(--row) * 8) * var(--mep));
+    width: calc(7 * var(--mep));
+    height: calc(7 * var(--mep));
+    background: var(--ball) 0 0 / 100% 100% no-repeat;
+    image-rendering: pixelated;
+    animation:
+        rv-ball-in 180ms var(--t-ball) var(--ease-out) both,
+        rv-blink 1500ms var(--t-jingle) linear;
+}
+@keyframes rv-ball-in {
+    from {
+        opacity: 0;
+        transform: translateY(calc(var(--mep) * -8));
+    }
+}
+@keyframes rv-blink {
+    0%,
+    30%,
+    60% {
+        filter: brightness(2.2) drop-shadow(0 0 4px #fff4c8);
+    }
+    15%,
+    45%,
+    75%,
+    100% {
+        filter: none;
+    }
+}
+/* tirar o amarelo: o cartão aparece em cima do balcão e rasga no fim do jingle */
+.rv-ycard {
+    position: absolute;
+    right: calc(var(--mright) + 17 * var(--mep));
+    bottom: calc(var(--floor) + var(--counter-h) + 24 * var(--mep));
+    width: calc(10 * var(--mep));
+    height: calc(14 * var(--mep));
+    translate: 50% 0;
+    rotate: -8deg;
+    animation: rv-card-in 260ms var(--ease-out) both;
+}
+@keyframes rv-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+}
+.rv-ycard i {
+    position: absolute;
+    inset: 0;
+    border: calc(var(--ep)) solid var(--bc-ink);
+    border-radius: 3px;
+    background: var(--yellow);
+    box-shadow: 0 3px 0 rgb(0 0 0 / 30%);
+}
+.rv-ycard .l {
+    clip-path: polygon(0 0, 55% 0, 42% 22%, 58% 44%, 40% 66%, 56% 84%, 46% 100%, 0 100%);
+    animation: rv-tear-l 520ms var(--t-effect) cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+.rv-ycard .r {
+    clip-path: polygon(55% 0, 100% 0, 100% 100%, 46% 100%, 56% 84%, 40% 66%, 58% 44%, 42% 22%);
+    animation: rv-tear-r 520ms var(--t-effect) cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+@keyframes rv-tear-l {
+    to {
+        transform: translate(-18px, 40px) rotate(-35deg);
+        opacity: 0;
+    }
+}
+@keyframes rv-tear-r {
+    to {
+        transform: translate(18px, 46px) rotate(30deg);
+        opacity: 0;
+    }
+}
+/* tratar quem está fora: eles esperam apagados na frente do balcão e acordam com um pulo */
+.rv-back {
+    position: absolute;
+    left: 16%;
+    bottom: calc(var(--floor) - var(--ep) * 4);
+    display: flex;
+    gap: calc(var(--ep) * 28);
+}
+.rv-back-mon {
+    position: relative;
+    width: 0;
+    height: 0;
+    filter: grayscale(0.9) brightness(0.75);
+    animation: rv-wake 300ms var(--t-effect) var(--ease-out) forwards;
+}
+.rv-back-mon .fs-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+@keyframes rv-wake {
+    to {
+        filter: none;
+    }
+}
+.rv-heal-text {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    translate: -50% 0;
+    white-space: nowrap;
+}
+
+/* ---------- pular (toque) e Reduzir movimento: o último quadro, sem andar (no fim do arquivo e com especificidade
+   maior que a de cada peça: ganha sem !important) ---------- */
+.ev-scene.skip .ev-reveal,
+.ev-scene.skip .ev-reveal * {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+    animation-iteration-count: 1;
+}
+:root[data-reduce-motion="true"] .ev-reveal,
+:root[data-reduce-motion="true"] .ev-reveal * {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+    animation-iteration-count: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ev-scene .ev-reveal,
+    .ev-scene .ev-reveal * {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
+        animation-iteration-count: 1;
+    }
+}
+
+/* a Joy atrás do balcão (o tamanho, inteiro, vem do CenterJoy) */
+.ev-joy {
+    position: absolute;
+    left: 40%;
+    bottom: calc(var(--floor) + var(--ep) * 4);
+    translate: -50% 0;
+    line-height: 0;
+    filter: drop-shadow(0 4px 0 rgb(0 0 0 / 30%));
+    animation: cm-who-in 260ms var(--ease-out) both;
+}
+.ev-joy img {
+    display: block;
+    image-rendering: pixelated;
+}

@@ -69,10 +69,19 @@ export const longCup: typeof pt = {
         pedraRival: 'Evolves right away. The rival brings one in their 1 of 3.',
         rara: 'The best 3 of 6 cards, two rarities up.',
     },
-    flee: 'Flees {n}%',
     /** The sign on the Game Corner wall (event scenery). */
     casinoSign: 'Game Corner',
-    reveal: { pegou: 'Caught {a}!', fugiu: '{a} fled!', ganhou: 'Jackpot!', perdeu: 'Not this time' },
+    reveal: {
+        pegou: 'Caught {a}!',
+        fugiu: '{a} fled!',
+        ganhou: 'Jackpot!',
+        perdeu: 'Not this time',
+        estrelas: 'Three stars!',
+        swap: "Takes {b}'s spot",
+        curou: 'All better! Come again.',
+    },
+    casinoBroke: 'Needs ₽{n} to play',
+    nextStops: 'Next stops',
     prizeLabel: 'Prize',
     /** Evolution stones (the Route's region prizes). */
     stone: {
@@ -313,7 +322,7 @@ export const longCup: typeof pt = {
             },
         },
         centro: {
-            who: 'lass',
+            who: 'nurse',
             title: 'Pokémon Center',
             text: 'Welcome to the Pokémon Center! Shall we look after your team?',
             choices: {

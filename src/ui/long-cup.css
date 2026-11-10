@@ -2272,15 +2272,6 @@
     justify-items: center;
     gap: 4px;
 }
-.ev-flee {
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: rgb(0 0 0 / 72%);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
-}
 /* 3 cartas na cena: medem pela altura que sobra (com o selo embaixo), e quem fala sai no celular em pé */
 .ev-scene:has(.ev-wild) {
     padding-block: 4px;
@@ -2317,15 +2308,6 @@
     font-size: 13px;
     color: #181818;
 }
-.ev-reveal {
-    position: relative;
-    z-index: 1;
-    align-self: center;
-    display: grid;
-    justify-items: center;
-    gap: 10px;
-    animation: cm-pop 240ms var(--ease-out) both;
-}
 .ev-reveal-text {
     padding: 4px 12px;
     border: 3px solid var(--bc-ink);
@@ -2334,60 +2316,10 @@
     font-family: "Galmuri11", monospace;
     font-size: 20px;
     color: #fff;
-    /* o resultado só aparece quando a bola para (ou as roletas) */
-    animation: cm-pop 220ms 900ms var(--ease-out) both;
 }
 .ev-reveal.won .ev-reveal-text {
     background: var(--green);
     color: var(--bc-ink);
-}
-.ev-ball-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 16px;
-}
-.ev-reveal-mon {
-    width: 72px;
-    height: auto;
-    filter: drop-shadow(0 3px 0 rgb(0 0 0 / 45%));
-}
-/* pegou: o Pokémon some na bola; fugiu: ele fica e a bola abre */
-.ev-reveal.won .ev-reveal-mon {
-    animation: ev-in-ball 260ms 600ms var(--ease-out) both;
-}
-.ev-ball .hud-icon {
-    width: 40px;
-    height: 40px;
-    padding: 4px;
-    border: 3px solid var(--bc-ink);
-    border-radius: 50%;
-    background: #4f9a3a;
-    color: #fff;
-    animation: ev-shake 300ms 3 ease-in-out;
-}
-.ev-reels {
-    display: flex;
-    gap: 6px;
-    padding: 8px;
-    border: 3px solid var(--bc-ink);
-    border-radius: 8px;
-    background: var(--bc-ink);
-}
-.ev-reel {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 56px;
-    border-radius: 4px;
-    background: #f4f1e8;
-    color: #b8322e;
-    overflow: hidden;
-}
-.ev-reel .hud-icon {
-    width: 30px;
-    height: 30px;
-    /* cada roleta para um pouco depois da outra */
-    animation: ev-reel 220ms calc(var(--i) * 220ms + 160ms) var(--ease-out) both;
 }
 @keyframes cm-pop {
     from {
@@ -2395,39 +2327,6 @@
         transform: scale(0.85);
     }
 }
-@keyframes ev-shake {
-    25% {
-        transform: rotate(-18deg);
-    }
-    75% {
-        transform: rotate(18deg);
-    }
-}
-@keyframes ev-in-ball {
-    to {
-        opacity: 0;
-        transform: scale(0.2) translateX(40px);
-    }
-}
-@keyframes ev-reel {
-    from {
-        opacity: 0;
-        transform: translateY(-120%);
-    }
-}
-:root[data-reduce-motion="true"] .ev-reveal *,
-:root[data-reduce-motion="true"] .ev-reveal {
-    animation-duration: 1ms;
-    animation-delay: 0ms;
-}
-@media (prefers-reduced-motion: reduce) {
-    .ev-reveal,
-    .ev-reveal * {
-        animation-duration: 1ms;
-        animation-delay: 0ms;
-    }
-}
-
 /* ---------- Safari e Cassino com lugar (revisão de arte, D7): o cenário de pixel do EventSet.tsx, no traço dos
    ambientes. --ep = 1 pixel da arte; as peças repetem na largura (repeat-x) e se apoiam na linha do chão (--floor) ---------- */
 .ev-scene {

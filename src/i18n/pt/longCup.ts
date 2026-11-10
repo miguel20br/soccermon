@@ -71,11 +71,20 @@ export const longCup = {
         rara: 'As 3 melhores de 6 cartas, duas raridades acima.',
     },
     /** Zona Safari: a chance de a carta fugir. */
-    flee: 'Foge {n}%',
     /** O letreiro na parede do Cassino (cenário do evento). */
     casinoSign: 'Cassino',
     /** O resultado da aposta, na tela, antes de voltar pro mapa. */
-    reveal: { pegou: 'Pegou {a}!', fugiu: '{a} fugiu!', ganhou: 'Prêmio!', perdeu: 'Não foi dessa vez' },
+    reveal: {
+        pegou: 'Pegou {a}!',
+        fugiu: '{a} fugiu!',
+        ganhou: 'Prêmio!',
+        perdeu: 'Não foi dessa vez',
+        estrelas: 'Três estrelas!',
+        swap: 'Entra no lugar de {b}',
+        curou: 'Prontinho! Volte sempre.',
+    },
+    casinoBroke: 'Precisa de ₽{n} pra jogar',
+    nextStops: 'Próximas casas',
     prizeLabel: 'Prêmio',
     /** Pedras de evolução (prêmio de região da Rota). */
     stone: {
@@ -321,7 +330,7 @@ export const longCup = {
             },
         },
         centro: {
-            who: 'lass',
+            who: 'nurse',
             title: 'Centro Pokémon',
             text: 'Bem-vindo ao Centro Pokémon! Quer que a gente cuide do seu time?',
             choices: {

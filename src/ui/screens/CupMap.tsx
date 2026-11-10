@@ -29,7 +29,7 @@ import {
     nodeOpponent,
     YELLOW_CARDS,
 } from '../../store/long-cup';
-import { choiceTargets, type EventId, eventChoices, fleeOf, gambleWon, stoners } from '../../store/long-events';
+import { CASSINO, choiceTargets, type EventId, eventChoices, gambleWon, stoners } from '../../store/long-events';
 import { type House, houseOf } from '../../store/rota-map';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
@@ -41,6 +41,16 @@ import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
 import { cardSprite } from '../components/PokeCard';
 import { useMedia } from '../components/Prancheta';
+import {
+    CenterFront,
+    CenterJoy,
+    CenterSet,
+    HealReveal,
+    revealMs,
+    SafariReveal,
+    SlotReveal,
+    WheelReveal,
+} from '../components/RotaReveal';
 import { SponsorSlots } from '../components/SponsorCard';
 import { STONE_COLOR, StoneMark } from '../components/StoneMark';
 import { TypeIcons } from '../components/TypeIcon';
@@ -48,6 +58,7 @@ import { portraitSrc } from '../portrait';
 import { Crest } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
+import { HOLD_MS } from '../rota-reveal';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
 import { useHeld } from '../use-held';
@@ -469,7 +480,7 @@ function NodeSheet({
     onGo,
 }: {
     node: MapNode;
-    run: Parameters<typeof nodeOpponent>[0] & Parameters<typeof stoners>[0];
+    run: Parameters<typeof nodeOpponent>[0] & Parameters<typeof stoners>[0] & { money?: number };
     lang: 'pt' | 'en';
     onGo: () => void;
 }) {
@@ -541,6 +552,13 @@ function NodeSheet({
                         {t(ROTA_RULES.rivalEveryJogo ? 'longCup.prizeDesc.pedraRival' : 'longCup.prizeDesc.pedra')}{' '}
                         {users.length ? t('longCup.stoneWho', { names: users.join(', ') }) : t('longCup.stoneNobody')}
                     </span>
+                </p>
+            )}
+            {/* o Cassino sem ₽ pra ficha: avisa antes de ir (14% das visitas só tinham "Sair") */}
+            {house === 'cassino' && (run.money ?? 0) < CASSINO.spin && (
+                <p className="cm-prize cm-broke">
+                    <HudIcon kind="coin" />
+                    <b>{t('longCup.casinoBroke', { n: CASSINO.spin })}</b>
                 </p>
             )}
             {node.types && node.kind !== 'final' && (
@@ -817,13 +835,19 @@ const EVENT_ART: Record<EventId, { icon: HudIconKind; color: string }> = {
     safari: { icon: 'paw', color: '#4f9a3a' },
     cassino: { icon: 'coin', color: '#c9a23a' },
 };
-/** A aposta (Safari Ball, caça-níquel) mostra o resultado na tela antes de valer: a bola balança, as roletas param. */
-const REVEAL_MS = 1700;
-const REVEAL_MS_REDUCED = 700;
-/** As roletas do caça-níquel: 3 estrelas é o prêmio; perdendo, param desencontradas. */
-const REELS_WIN: HudIconKind[] = ['max', 'max', 'max'];
-const REELS_LOSE: HudIconKind[] = ['max', 'coin', 'heart'];
-const REEL_SLOTS = ['esq', 'meio', 'dir'] as const;
+/**
+ * A cena que mostra o resultado antes de valer (rota-indigo-2.md): a Safari Ball balançando, os rolos do caça-níquel, a
+ * roleta do balcão, a máquina de cura do Centro. A escolha vale quando a cena acaba; um toque pula pro fim.
+ */
+type Reveal = {
+    id: string;
+    won: boolean;
+    card?: PokemonInstance;
+    target?: string;
+    /** A seed da cena (a mesma casa mostra a mesma cena). */
+    key: string;
+    ms: number;
+};
 
 /**
  * Evento "?" da Copa longa: a cena (quem fala, grande, e o texto) no meio e as escolhas na barra do polegar. Escolha que
@@ -837,9 +861,17 @@ export function EventScreen() {
     const [who, setWho] = useState<string | null>(null);
     const [captain, setCaptain] = useState<string | null>(null);
     const [evolving, setEvolving] = useState(false);
-    // a aposta que está sendo revelada (a escolha vale quando a animação acaba)
-    const [reveal, setReveal] = useState<{ id: string; won: boolean; card?: PokemonInstance } | null>(null);
+    // a aposta (ou a cura) que está sendo mostrada: a escolha vale quando a animação acaba
+    const [reveal, setReveal] = useState<Reveal | null>(null);
+    const [skip, setSkip] = useState(false);
+    const done = useRef<(() => void) | null>(null);
     const { t, d } = useT();
+    // a escolha vale no fim da cena; pulando, depois do resultado ficar um instante na tela
+    useEffect(() => {
+        if (!reveal) return;
+        const id = window.setTimeout(() => done.current?.(), skip ? HOLD_MS : reveal.ms);
+        return () => clearTimeout(id);
+    }, [reveal, skip]);
     if (!run?.event) return null;
     const ev = run.event;
     const txt = d.longCup.events[ev.id];
@@ -880,16 +912,32 @@ export function EventScreen() {
     const choices = eventChoices(run, ev);
     const picked = choices.find((c) => c.id === choice && c.need !== 'none');
     const targets = picked ? choiceTargets(run, ev, picked.need) : [];
+    // as bolas da máquina de cura: o time inteiro (titulares e banco), até 6
+    const squad = [...run.lineup, ...run.bench].flatMap((u) => byUid.get(u) ?? []);
     const commit = (id: string, target?: string, cap?: string) => {
+        const key = `${run.seed}-${run.at}-${id}`;
+        const heal = ev.id === 'centro' && (id === 'amarelo' || id === 'voltar');
         const won = gambleWon(run, ev, id);
-        if (won === null) {
+        if (won === null && !heal) {
             chooseEvent(id, target, cap);
             return;
         }
         const card = ev.id === 'safari' ? ev.cards?.[Number(id.slice(4))] : id === 'premio' ? ev.cards?.[0] : undefined;
+        const chance = choices.find((c) => c.id === id)?.chance ?? 0;
+        const ms = heal
+            ? revealMs.heal(squad.length)
+            : ev.id === 'safari'
+              ? revealMs.safari(!!won, key)
+              : id === 'premio'
+                ? revealMs.wheel(chance, !!won, key)
+                : revealMs.slot(!!won, key);
+        done.current = () => {
+            done.current = null;
+            chooseEvent(id, target);
+        };
         setChoice(null);
-        setReveal({ id, won, card });
-        window.setTimeout(() => chooseEvent(id, target), reduceMotionOn() ? REVEAL_MS_REDUCED : REVEAL_MS);
+        setSkip(false);
+        setReveal({ id, won: won ?? true, card, target, key, ms });
     };
     const pick = (id: string) => {
         const c = choices.find((x) => x.id === id)!;
@@ -953,10 +1001,16 @@ export function EventScreen() {
                 <h1>{stoneName ?? txt.title}</h1>
             </div>
             {/* a cena atrás do diálogo: quem fala em pé, o emblema do evento e o que está em jogo (cartas, rostos) */}
-            <div className={`ev-scene ev-${ev.id}`} aria-hidden={!ev.cards?.length}>
+            <div
+                className={`ev-scene ev-${ev.id}${reveal ? ' revealing' : ''}${skip ? ' skip' : ''}`}
+                aria-hidden={!ev.cards?.length && !reveal}
+                onClick={() => reveal && setSkip(true)}
+            >
                 {gambling ? (
                     // Safari e Cassino têm lugar: o cenário de pixel no lugar do chão liso e do emblema
                     <EventSet place={ev.id === 'cassino' ? 'cassino' : 'safari'} />
+                ) : ev.id === 'centro' ? (
+                    <CenterSet />
                 ) : (
                     <>
                         <i className="ev-floor" />
@@ -969,7 +1023,14 @@ export function EventScreen() {
                         </span>
                     </>
                 )}
-                <img className="ev-who" src={`assets/trainers/${txt.who}.png`} alt="" />
+                {ev.id === 'centro' ? (
+                    <>
+                        <CenterJoy />
+                        <CenterFront />
+                    </>
+                ) : (
+                    <img className="ev-who" src={`assets/trainers/${txt.who}.png`} alt="" />
+                )}
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
                     <span className="cm-event-faces">
                         {ev.uids.map((u) =>
@@ -989,14 +1050,11 @@ export function EventScreen() {
                 {!!ev.cards?.length && !reveal && (
                     <div className="cm-event-cards">
                         {ev.id === 'cassino' && <CasinoCounter />}
+                        {/* a chance fica só no botão ("85%"): na carta ela aparecia de novo, ao contrário ("Foge 15%") */}
                         {ev.cards.map((c) =>
                             ev.id === 'safari' ? (
-                                // a chance de fugir na carta (a da bola de pegar fica no botão)
                                 <span key={c.uid} className="ev-wild">
                                     <FutCard inst={c} size="sm" />
-                                    <small className="ev-flee">
-                                        {t('longCup.flee', { n: Math.round(fleeOf(c) * 100) })}
-                                    </small>
                                 </span>
                             ) : (
                                 <FutCard key={c.uid} inst={c} size="sm" />
@@ -1005,33 +1063,57 @@ export function EventScreen() {
                     </div>
                 )}
                 {reveal && (
-                    <div className={`ev-reveal ${reveal.won ? 'won' : 'lost'} r-${ev.id}`} role="status">
-                        {ev.id === 'safari' ? (
-                            <span className="ev-ball-row">
-                                {reveal.card && (
-                                    <img className="pixel ev-reveal-mon" src={cardSprite(reveal.card)} alt="" />
-                                )}
-                                <span className="ev-ball">
-                                    <HudIcon kind="dex" />
-                                </span>
-                            </span>
+                    <div
+                        className={`ev-reveal ${reveal.won ? 'won' : 'lost'} r-${ev.id}`}
+                        role="status"
+                        style={{ '--t-show': `${Math.max(100, reveal.ms - HOLD_MS)}ms` } as CSSProperties}
+                    >
+                        {ev.id === 'centro' ? (
+                            <HealReveal
+                                choice={reveal.id === 'voltar' ? 'voltar' : 'amarelo'}
+                                team={squad}
+                                out={squad.filter((p) => (run.out?.[p.uid] ?? 0) > 0)}
+                                skip={skip}
+                            />
+                        ) : ev.id === 'safari' && reveal.card ? (
+                            <SafariReveal
+                                won={reveal.won}
+                                card={reveal.card}
+                                seedKey={reveal.key}
+                                out={reveal.target ? byUid.get(reveal.target) : undefined}
+                                skip={skip}
+                            />
+                        ) : reveal.id === 'premio' ? (
+                            <>
+                                <WheelReveal
+                                    won={reveal.won}
+                                    chance={choices.find((c) => c.id === 'premio')?.chance ?? 0}
+                                    seedKey={reveal.key}
+                                    card={reveal.card}
+                                    skip={skip}
+                                />
+                                <RevealText
+                                    text={t(`longCup.reveal.${reveal.won ? 'ganhou' : 'perdeu'}`)}
+                                    sub={
+                                        reveal.won && reveal.card && reveal.target
+                                            ? t('longCup.reveal.swap', { b: nameOf(reveal.target) })
+                                            : undefined
+                                    }
+                                />
+                            </>
                         ) : (
-                            <span className="ev-reels">
-                                {REEL_SLOTS.map((slot, i) => (
-                                    <span key={slot} className="ev-reel" style={{ '--i': i } as CSSProperties}>
-                                        <HudIcon kind={(reveal.won ? REELS_WIN : REELS_LOSE)[i]} />
-                                    </span>
-                                ))}
-                            </span>
+                            <>
+                                <SlotReveal won={reveal.won} seedKey={reveal.key} skip={skip} />
+                                <RevealText
+                                    text={t(`longCup.reveal.${reveal.won ? 'estrelas' : 'perdeu'}`)}
+                                    sub={
+                                        reveal.won && reveal.target
+                                            ? fmtNames(txt.choices.ganhouItem?.[1] ?? '', [nameOf(reveal.target)])
+                                            : undefined
+                                    }
+                                />
+                            </>
                         )}
-                        <b className="ev-reveal-text">
-                            {fmtNames(
-                                t(
-                                    `longCup.reveal.${ev.id === 'safari' ? (reveal.won ? 'pegou' : 'fugiu') : reveal.won ? 'ganhou' : 'perdeu'}`,
-                                ),
-                                [reveal.card ? viewInstance(reveal.card).displayName : ''],
-                            )}
-                        </b>
                     </div>
                 )}
             </div>
@@ -1106,6 +1188,16 @@ export function EventScreen() {
         </Stage>
     );
 }
+
+/** O resultado da aposta numa placa (aparece quando a cena para: `--t-end` da cena). */
+const RevealText = ({ text, sub }: { text: string; sub?: string }) => (
+    <span className="ev-reveal-text rv-text">
+        <span>
+            <b>{text}</b>
+            {sub && <small>{sub}</small>}
+        </span>
+    </span>
+);
 
 /** "{a} e {b}" com os nomes dos envolvidos. */
 const fmtNames = (text: string, names: string[]) =>
