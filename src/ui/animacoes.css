@@ -1,20 +1,18 @@
 /* Animações novas (docs/planos/animacoes-novas.md): desfile com flash, insígnia batendo, Estádio campeão, créditos do título */
 
-/* Hall da Fama: cada Pokémon vira foto (o flash branco no meio da entrada) */
-.hp-mon {
-    position: relative;
-}
+/* Hall da Fama: cada Pokémon vira foto (o flash da câmera no meio da entrada). Absoluto no .hall-parade (tela
+   inteira): dentro do .hp-mon, o transform da entrada virava o bloco de referência e o flash era um quadrado branco */
 .hp-flash {
-    position: fixed;
+    position: absolute;
     inset: 0;
-    background: #fff;
+    background: radial-gradient(circle at 50% 42%, #fff 0, rgb(255 255 255 / 55%) 28%, rgb(255 255 255 / 0%) 70%);
     opacity: 0;
     pointer-events: none;
-    animation: hp-flash 0.5s ease-out 0.38s both;
+    animation: hp-flash 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
 }
 @keyframes hp-flash {
     0% {
-        opacity: 0.85;
+        opacity: 0.7;
     }
     100% {
         opacity: 0;

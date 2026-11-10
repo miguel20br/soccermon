@@ -47,9 +47,10 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
             onClick={() => (i < total ? setI(total) : onDone())}
             aria-label={i < total ? t('title.hall.skip') : t('common.ui.close')}
         >
+            {/* fora do .hp-mon: o transform da entrada dele prendia o flash na caixa (o quadrado branco piscando) */}
+            {mon && <i key={`flash-${i}`} className="hp-flash" aria-hidden />}
             {mon ? (
                 <div key={i} className="hp-mon">
-                    <i className="hp-flash" aria-hidden />
                     <img className="pixel" src={cardSprite(mon)} alt="" />
                     <b>{mon.name}</b>
                     <span>
