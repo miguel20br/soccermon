@@ -24,6 +24,10 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Pedra que ninguém usa vai direto pra Mochila, sem tela a mais',
                 ],
             },
+            {
+                title: 'Telas',
+                lines: ['Vitrine de pacotes e Novidades mais lisas em celular fraco (o brilho e a barra não travam mais a tela)'],
+            },
         ],
     },
     {
@@ -2743,6 +2747,10 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'On PC the whole map fits the screen, with a panel of the next spots',
                     'A stone nobody uses goes straight to the Bag, no extra screen',
                 ],
+            },
+            {
+                title: 'Screens',
+                lines: ['Smoother pack showcase and What’s new on low-end phones (the shine and the bar no longer stall the screen)'],
             },
         ],
     },
