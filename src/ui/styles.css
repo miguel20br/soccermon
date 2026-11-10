@@ -578,8 +578,22 @@ img.ce-mini,
     border-color: var(--yellow);
     box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.4);
 }
-.slot img {
+.slot .slot-mon {
+    position: relative;
+    display: block;
+    align-self: stretch;
     height: 46px;
+}
+/* a posição fica por cima da orelha de quem é alto */
+.slot .pos-badge {
+    position: relative;
+    z-index: 1;
+}
+/* o Pokémon em PMD, como na quadra (revisão de arte, D1): o pé no fundo da caixa, quem é alto cresce pra cima */
+.slot-mon > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 100%;
 }
 .slot .slot-name {
     font-size: 11px;
@@ -1137,7 +1151,7 @@ button,
     padding: 4px;
     gap: 0;
 }
-.formation-board .slot img {
+.formation-board .slot .slot-mon {
     height: 38px;
 }
 .slot.empty {
@@ -1166,7 +1180,7 @@ button,
     font-size: 11px;
     padding: 12px 0;
 }
-.slot img.ghost {
+.slot .slot-mon.ghost {
     opacity: 0.55;
 }
 .slot-rating.alt {
@@ -1469,7 +1483,7 @@ button,
         border-width: 2px;
         min-height: 64px;
     }
-    .slot img {
+    .slot .slot-mon {
         height: 32px;
     }
     .slot .slot-name {
@@ -6691,7 +6705,7 @@ a.home-tile {
     .formation-board .slot {
         width: 84px;
     }
-    .formation-board .slot img {
+    .formation-board .slot .slot-mon {
         height: 28px;
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
@@ -6810,10 +6824,16 @@ a.home-tile {
     text-align: center;
     animation: hp-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.hp-mon img {
+.hp-stage {
+    position: relative;
     width: min(46vmin, 240px);
     height: min(46vmin, 240px);
-    object-fit: contain;
+}
+/* o pé perto do fundo da caixa; quem é alto (Onix, Gyarados) cresce pra cima */
+.hp-stage > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 90%;
     filter: drop-shadow(0 0 22px rgb(255 212 71 / 45%));
 }
 .hp-mon b {
@@ -6839,10 +6859,15 @@ a.home-tile {
     justify-content: center;
     gap: 4px;
 }
-.hp-squad img {
-    width: 56px;
-    height: 56px;
-    object-fit: contain;
+.hp-slot {
+    position: relative;
+    width: calc(var(--s, 2) * 22px);
+    height: calc(var(--s, 2) * 30px);
+}
+.hp-slot > .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 100%;
 }
 .hp-trainer {
     display: flex;
@@ -6908,7 +6933,7 @@ a.home-tile {
     }
 }
 @media (orientation: landscape) and (max-height: 520px) {
-    .hp-mon img {
+    .hp-stage {
         width: calc(40 * var(--vh));
         height: calc(40 * var(--vh));
     }
@@ -7686,7 +7711,7 @@ body {
 }
 
 /* Carta chegando na vaga (draft, recompensa, troca de lugar): cai de cima com um pulinho */
-.slot img.slot-pop {
+.slot .slot-mon.slot-pop {
     animation: slot-pop 0.36s var(--ease-pop) both;
 }
 @keyframes slot-pop {
@@ -7700,11 +7725,11 @@ body {
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .slot img.slot-pop {
+    .slot .slot-mon.slot-pop {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] .slot img.slot-pop {
+:root[data-reduce-motion="true"] .slot .slot-mon.slot-pop {
     animation: none;
 }
 /* o C do capitão chega com um pulinho na vaga nova (trocou na tática) */
@@ -7895,7 +7920,7 @@ body {
     border-width: 2px;
     border-radius: 8px;
 }
-.prancheta .slot img {
+.prancheta .slot .slot-mon {
     height: 28px;
 }
 /* na prancheta da partida o nome não cabia em 11 px: fica a nota (o sprite já diz quem é) */
@@ -8021,7 +8046,7 @@ body {
     .prancheta .slot {
         width: 58px;
     }
-    .prancheta .slot img {
+    .prancheta .slot .slot-mon {
         height: 22px;
     }
     .prancheta .slot .slot-name,
@@ -8040,7 +8065,7 @@ body {
     .prancheta .slot {
         width: 56px;
     }
-    .prancheta .slot img {
+    .prancheta .slot .slot-mon {
         height: 22px;
     }
     .prancheta .slot .slot-name {

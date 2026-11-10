@@ -1,7 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
 import { CLUBS } from '../../engine/cup';
 import { rivalTrainer } from '../../engine/cup-map';
-import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
@@ -15,12 +14,14 @@ import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
+import { ClockCtx, useSceneClock } from '../ambientes/clock';
+import { FieldSprite } from '../ambientes/FieldSprite';
+import { useSceneScale } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
-import { cardSprite } from './PokeCard';
 import './versus.css';
 
 const AUTO_START_MS = 4500;
@@ -33,61 +34,65 @@ const SLAM_MS = 1000;
 /** Entre o grito do capitão rival e o do seu (o do rival acaba antes do seu começar, quase sempre). */
 const CRY_GAP_MS = 900;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
-/** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
-const sizeOf = (heightm: number) => Math.min(1.1, Math.max(0.86, 0.94 + 0.1 * Math.log2(Math.max(0.1, heightm))));
 /** Faixa da média igual à das cartas: bronze ≤64, prata 65–74, ouro 75+. */
 const tierOf = (n: number) => (n >= 75 ? 'gold' : n >= 65 ? 'silver' : 'bronze');
 
 /**
- * Foto do time: o capitão na frente e no meio, os outros dois a dois atrás dele, cada fileira um pouco
- * mais alta e menor. dx/dy/h em unidades da altura do capitão (`--u` no CSS).
+ * Foto do time: o capitão na frente e no meio, os outros dois a dois atrás dele, cada fileira um pouco mais alta.
+ * dx/dy em unidades da altura do capitão (`--u` no CSS). O time em PMD, como entra na quadra (revisão de arte, D1):
+ * a mesma escala inteira pra todos, respirando no Idle e virado pro meio.
  */
 const SLOTS = [
-    { dx: 0, dy: 0, h: 1 },
-    { dx: -0.62, dy: 0.14, h: 0.72 },
-    { dx: 0.62, dy: 0.14, h: 0.72 },
-    { dx: -1.08, dy: 0.3, h: 0.56 },
-    { dx: 1.08, dy: 0.3, h: 0.56 },
+    { dx: 0, dy: 0 },
+    { dx: -0.62, dy: 0.14 },
+    { dx: 0.62, dy: 0.14 },
+    { dx: -1.08, dy: 0.3 },
+    { dx: 1.08, dy: 0.3 },
 ];
 
-function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
+function Squad({ team, trainer, dir }: { team: TeamSetup; trainer?: TrainerId; dir: number }) {
+    const clock = useSceneClock(true);
+    // um degrau acima da escala dos lugares: o VERSUS é momento, o time aparece grande
+    const scale = useSceneScale() + 1;
     const order = team.lineup
         .map((p) => ({ p, ovr: viewInstance(p).overall }))
         .sort((a, b) => Number(b.p.uid === team.captainUid) - Number(a.p.uid === team.captainUid) || b.ovr - a.ovr)
         .map(({ p }) => p);
     return (
-        <div className={`vsp-squad${trainer ? ' has-trainer' : ''}`}>
-            {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
-            {trainer && (
-                <img
-                    className={`vsp-trainer${trainerFx(trainer)}`}
-                    src={trainerSrc(trainer)}
-                    alt=""
-                    draggable={false}
-                />
-            )}
-            {order.map((p, i) => {
-                const s = SLOTS[Math.min(i, SLOTS.length - 1)];
-                const style = {
-                    '--dx': s.dx,
-                    '--dy': s.dy,
-                    '--h': s.h * sizeOf(species(p.speciesId).heightm),
-                    // os de trás chegam primeiro, o capitão por último
-                    '--d': `${0.3 + (order.length - 1 - i) * 0.08}s`,
-                    zIndex: 10 - i,
-                } as CSSProperties;
-                return (
+        <ClockCtx.Provider value={clock}>
+            <div className={`vsp-squad${trainer ? ' has-trainer' : ''}`}>
+                {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
+                {trainer && (
                     <img
-                        key={p.uid}
-                        className={`vsp-mon pixel row-${Math.ceil(i / 2)}`}
-                        style={style}
-                        src={cardSprite(p)}
-                        alt={viewInstance(p).displayName}
+                        className={`vsp-trainer${trainerFx(trainer)}`}
+                        src={trainerSrc(trainer)}
+                        alt=""
                         draggable={false}
                     />
-                );
-            })}
-        </div>
+                )}
+                {order.map((p, i) => {
+                    const s = SLOTS[Math.min(i, SLOTS.length - 1)];
+                    const style = {
+                        '--dx': s.dx,
+                        '--dy': s.dy,
+                        // os de trás chegam primeiro, o capitão por último
+                        '--d': `${0.3 + (order.length - 1 - i) * 0.08}s`,
+                        zIndex: 10 - i,
+                    } as CSSProperties;
+                    return (
+                        <span
+                            key={p.uid}
+                            className={`vsp-mon row-${Math.ceil(i / 2)}`}
+                            style={style}
+                            role="img"
+                            aria-label={viewInstance(p).displayName}
+                        >
+                            <FieldSprite id={p.speciesId} shiny={p.shiny} anim="Idle" dir={dir} scale={scale} />
+                        </span>
+                    );
+                })}
+            </div>
+        </ClockCtx.Provider>
     );
 }
 
@@ -241,7 +246,7 @@ function Side({
                         <span>{quote}</span>
                     </p>
                 )}
-                <Squad team={team} trainer={trainer} />
+                <Squad team={team} trainer={trainer} dir={side === 'home' ? 2 : 6} />
             </div>
         </div>
     );

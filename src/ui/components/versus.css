@@ -252,23 +252,23 @@
     background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 60%, #fff 10%), transparent);
     opacity: 0.55;
 }
+/* o ponto do pé (caixa de tamanho zero): o sprite PMD cresce pra cima dele, e o pulo de entrada sai do chão */
 .vsp-mon {
     position: absolute;
     left: calc(50% + var(--dx) * var(--spread) * var(--u));
     bottom: calc(var(--base) + var(--dy) * var(--u));
-    height: calc(var(--h) * var(--u));
-    width: auto;
-    max-width: none;
-    translate: -50% 0;
-    image-rendering: pixelated;
+    width: 0;
+    height: 0;
     pointer-events: none;
     user-select: none;
-    animation: vsp-pop 0.4s var(--d) cubic-bezier(0.2, 0.85, 0.3, 1.25) both;
+    animation: vsp-pop-pmd 0.4s var(--d) cubic-bezier(0.2, 0.85, 0.3, 1.25) both;
+}
+.vsp-mon > .fs-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
 }
 /* sprites olham pra esquerda: o seu time vira pra direita, encarando o rival */
-.is-home .vsp-mon {
-    scale: -1 1;
-}
 .vsp-mon.row-1 {
     filter: brightness(0.86) saturate(0.95);
 }
@@ -587,6 +587,16 @@
     from {
         transform: translateX(var(--hx));
         opacity: 0;
+    }
+}
+@keyframes vsp-pop-pmd {
+    0% {
+        transform: translateY(24px) scale(0.6);
+        opacity: 0;
+    }
+    70% {
+        transform: translateY(-3px) scale(1.04);
+        opacity: 1;
     }
 }
 @keyframes vsp-pop {
