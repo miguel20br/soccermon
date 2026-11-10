@@ -17,6 +17,7 @@ import { LiveRunner } from '../engine/runners/live-runner';
 import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
+import { comemoracaoOf } from '../game/walkout-plan';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
 import { longRound } from '../store/long-cup';
@@ -24,6 +25,7 @@ import { type EventId, gambleWon, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { type House, houseOf } from '../store/rota-map';
+import { namedDribblesOf } from './match-view';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
 /**
@@ -58,6 +60,10 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
  * `&gol=1`: só a jogada em que o golpe, perfeito e já na agenda, entra (sem tocar; as gravações do N3 por tipo); com
  * `&goleiro=1`, a bicuda perfeita na agenda num chute comum do rival (as gravações das bicudas N1, N2 e N3).
+ * `?demo=dribles&tipo=lambreta|roleta|elastico` abre na escalação uma partida de um time de DRI alta (Pikachu,
+ * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
+ * procura a partir da copa N);
+ * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).
  * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
@@ -70,6 +76,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `pressao` e fica nele até o apito, mesmo com o empate).
  */
 let started = false;
+const q0Of = () => new URLSearchParams(window.location.search);
 
 export function runDevDemo() {
     if (!__SMOKE__ || started) return;
@@ -110,12 +117,17 @@ export function runDevDemo() {
         demo !== 'amigos' &&
         demo !== 'platina' &&
         demo !== 'vestiario' &&
+        demo !== 'dribles' &&
         demo !== 'acrescimos' &&
         demo !== 'maximo' &&
         demo !== 'bicuda' &&
         demo !== 'virada' &&
         demo !== 'charanga' &&
-        demo !== 'sala'
+        demo !== 'sala' &&
+        demo !== 'final' &&
+        demo !== 'rota-titulo' &&
+        demo !== 'insignia' &&
+        demo !== 'estadio-campeao'
     )
         return;
     started = true;
@@ -589,7 +601,11 @@ export function runDevDemo() {
         return;
     }
     // ?demo=eliminado: um time fraco que cai (tela de eliminado: "faltou pouco" e "Nova copa" na barra)
-    if (demo === 'campeao' || demo === 'momentos' || demo === 'eliminado') {
+    if (
+        (demo === 'campeao' && !new URLSearchParams(window.location.search).has('taca')) ||
+        demo === 'momentos' ||
+        demo === 'eliminado'
+    ) {
         const lose = demo === 'eliminado';
         for (let k = 0; k < 40; k++) {
             store.newRun('Demo FC', `camp${k}`);
@@ -632,6 +648,110 @@ export function runDevDemo() {
         }
         return;
     }
+    // ?demo=final[&rota=1][&gol=pulo|giro|pose]: a Final (Relâmpago ou Rota) na escalação de um time forte; ao começar,
+    // a 3 s do apito final (vencida: a taça curta, na Rota a invasão) ou, com `gol`, a 3 s de um gol seu de quem
+    // comemora desse jeito (com a partícula do tipo, que só sai na Final)
+    // ?demo=estadio-campeao[&rota=1]: a Home logo depois de um título (a ola, o letreiro e o capitão com a taça)
+    if (demo === 'estadio-campeao') {
+        const rota = q0Of().get('rota') === '1';
+        if (rota) store.newRun('Demo FC', 'est-campeao', undefined, 'longa');
+        else store.newRun('Demo FC', 'est-campeao');
+        const rng = new Rng('est-campeao', 'demo');
+        const lineup = [143, 68, 149, 142, 6].map((id) => createInstance(id, rng));
+        const run = useGame.getState().run!;
+        // depois da transição do newRun (que levaria pro draft)
+        window.setTimeout(
+            () =>
+                useGame.setState({
+                    run: {
+                        ...run,
+                        picks: lineup,
+                        lineup: lineup.map((p) => p.uid),
+                        captainUid: lineup[4].uid,
+                        status: 'champion',
+                    },
+                    screen: 'home',
+                }),
+            700,
+        );
+        return;
+    }
+    // ?demo=insignia[&lider=misty]: a insígnia batendo na volta pra Home (a 1ª vitória contra o líder), com o jingle
+    if (demo === 'insignia') {
+        const lider = q0Of().get('lider') ?? 'misty';
+        const { profile } = useGame.getState();
+        useGame.setState({
+            profile: { ...profile, missionsDone: [...profile.missionsDone.filter((x) => x !== lider), lider] },
+            unlockQueue: [lider],
+            screen: 'home',
+        });
+        return;
+    }
+    // `?demo=campeao&taca=1` = a Final da Relâmpago; `?demo=rota-titulo` = a da Rota (a invasão)
+    const q0 = new URLSearchParams(window.location.search);
+    if (demo === 'final' || demo === 'rota-titulo' || (demo === 'campeao' && q0.has('taca'))) {
+        const q = q0;
+        const rota = q.get('rota') === '1' || demo === 'rota-titulo';
+        const jeito = q.get('gol');
+        for (let k = 0; k < 60; k++) {
+            const seed = `fin${rota ? 'r' : ''}${k}`;
+            const rng = new Rng(seed, 'demo');
+            // Snorlax no gol, Machamp, Dragonite, Aerodactyl e Mewtwo capitão: um de cada jeito (pose, giro); no `gol=pulo`
+            // o Pikachu entra no lugar do Aerodactyl (o Snorlax, do gol, não marca)
+            const ids = jeito === 'pulo' ? [143, 68, 149, 25, 150] : [143, 68, 149, 142, 150];
+            const lineup = ids.map((id) => createInstance(id, rng));
+            const bench = [25, 6].map((id) => createInstance(id, rng));
+            if (rota) demoRotaFinal(store);
+            else store.newRun('Demo FC', seed);
+            const base = useGame.getState().run!;
+            const last = rota ? base.stage : 3;
+            const results = rota
+                ? base.results
+                : Array.from({ length: last }, (_, stage) => ({
+                      stage,
+                      opponent: base.opponents[stage]?.name ?? 'Montanhistas',
+                      score: [3, 1] as [number, number],
+                      shootout: null,
+                      won: true,
+                      final: false,
+                  }));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                stage: last,
+                results,
+                status: 'lineup' as const,
+            };
+            if (!run.opponents[last]) continue;
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[last], true), `${run.seed}-stage-${last}`, {
+                snapshots: false,
+            });
+            if (r.winner !== 0 || r.shootout) continue;
+            const end = r.events.find((e) => e.type === 'fulltime');
+            const goal = jeito
+                ? r.events.find(
+                      (e) =>
+                          e.type === 'goal' &&
+                          e.team === 0 &&
+                          !e.ownGoal &&
+                          comemoracaoOf(r.roster[e.by]?.speciesId ?? 0) === jeito,
+                  )
+                : undefined;
+            if (!end || (jeito && !goal)) continue;
+            const at = (goal ?? end).tick - 60;
+            const live = { stage: last, orders: [], tick: Math.max(1, at), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] final ${seed}: ${goal ? `gol (${jeito})` : 'apito'} no tick ${at + 60}`);
+            return;
+        }
+        return;
+    }
     if (demo === 'vestiario') {
         for (let k = 0; k < 120; k++) {
             store.newRun('Demo FC', `vest${k}`);
@@ -658,6 +778,44 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, ht.tick - 40), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...ready, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${ready.seed}: intervalo no tick ${ht.tick} com troca do rival`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'dribles') {
+        const q = new URLSearchParams(window.location.search);
+        const tipo = q.get('tipo') ?? 'lambreta';
+        const defesa = q.get('defesa') === '1';
+        let skip = Number(q.get('n') ?? 0);
+        const from = Number(q.get('k') ?? 0);
+        for (let k = from; k < from + 200; k++) {
+            store.newRun('Demo FC', `dri${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`dri${k}`, 'demo');
+            const lineup = [25, 123, 53, 135, 151].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const opp = run.opponents[0];
+            const r = runMatch(FUTSAL_5, team, opp, `${run.seed}-stage-0`);
+            // só no 1º tempo: no intervalo a copa refaz a partida com o que o técnico decidiu
+            const ht = r.events.find((e) => e.type === 'halftime')?.tick ?? 0;
+            const ok = (t: number) => t > 200 && t < ht;
+            const tick = defesa
+                ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
+                : namedDribblesOf(r, [team, opp]).find((d) => d.kind === tipo && ok(d.tick))?.tick;
+            if (tick === undefined || skip-- > 0) continue;
+            const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: ${defesa ? 'defesa' : tipo} no tick ${tick}`);
             return;
         }
         return;
@@ -1403,6 +1561,24 @@ function demoBefore(store: ReturnType<typeof useGame.getState>, house: House): s
         screen: 'map',
     });
     return target.id;
+}
+
+/** A Rota parada na escalação da Final (o mapa de sempre, os 7 jogos vencidos e o descanso antes). */
+function demoRotaFinal(store: ReturnType<typeof useGame.getState>) {
+    demoLongMap(store, false);
+    const run = useGame.getState().run!;
+    const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
+    const results = [0, 1, 2, 3, 4, 5, 6].map((stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: [3, 1] as [number, number],
+        shootout: null,
+        won: true,
+        final: false,
+    }));
+    useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 6, money: 22 } });
+    useGame.getState().train('rest');
+    useGame.getState().playNext();
 }
 
 function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {

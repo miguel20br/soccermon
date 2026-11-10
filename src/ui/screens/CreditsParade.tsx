@@ -13,7 +13,15 @@ const SPEED = 42;
  * relógio da cena (para com a aba escondida e não existe com "reduzir movimento"). Pedaço à parte: o FieldSprite e o
  * CSS dos ambientes não entram no pacote da Home.
  */
-export function CreditsParade({ fast }: { fast: { current: number } }) {
+export function CreditsParade({
+    fast,
+    mons: squad = MONS,
+}: {
+    fast: { current: number };
+    /** Quem desfila (os créditos do título: o elenco campeão). */
+    mons?: readonly { id: number; shiny?: boolean }[] | readonly number[];
+}) {
+    const list = squad.map((m) => (typeof m === 'number' ? { id: m, shiny: false } : m));
     const clock = useContext(ClockCtx);
     const box = useRef<HTMLDivElement>(null);
     const mons = useRef<(HTMLSpanElement | null)[]>([]);
@@ -21,12 +29,12 @@ export function CreditsParade({ fast }: { fast: { current: number } }) {
     useEffect(() => {
         const el = box.current;
         if (!el) return;
-        const size = () => setN(Math.min(MONS.length, Math.max(4, Math.round(el.clientWidth / 110))));
+        const size = () => setN(Math.min(list.length, Math.max(4, Math.round(el.clientWidth / 110))));
         size();
         const ro = new ResizeObserver(size);
         ro.observe(el);
         return () => ro.disconnect();
-    }, []);
+    }, [list.length]);
     useEffect(() => {
         const el = box.current;
         if (!clock || !el || !n) return;
@@ -42,16 +50,17 @@ export function CreditsParade({ fast }: { fast: { current: number } }) {
     }, [clock, n, fast]);
     return (
         <div className="cr-parade" ref={box} aria-hidden>
-            {MONS.slice(0, n).map((id, i) => (
+            {list.slice(0, n).map(({ id, shiny }, i) => (
                 <span
-                    key={id}
+                    // biome-ignore lint/suspicious/noArrayIndexKey: o elenco pode repetir espécie
+                    key={`${id}-${i}`}
                     className="cr-mon"
                     ref={(m) => {
                         mons.current[i] = m;
                     }}
                     style={{ transform: 'translateX(-80px)' }}
                 >
-                    <FieldSprite id={id} anim="Walk" dir={2} />
+                    <FieldSprite id={id} shiny={shiny} anim="Walk" dir={2} />
                 </span>
             ))}
         </div>

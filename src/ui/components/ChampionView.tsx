@@ -5,7 +5,7 @@ import { viewInstance } from '../../engine/instance';
 import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
-import { cupLength, isLong } from '../../store/long-cup';
+import { creditsOn, cupLength, isLong, paradeOn } from '../../store/long-cup';
 import { Beat, useCascade } from '../kit/Cascade';
 import { SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -30,6 +30,7 @@ import { HallParade } from './HallParade';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 import { Confetti } from './ResultHero';
+import { TitleCredits } from './TitleCredits';
 import { Trophy } from './Trophy';
 
 /**
@@ -71,12 +72,25 @@ export function ChampionView({
         .map((uid) => run.picks.find((p) => p.uid === uid))
         .filter((p): p is NonNullable<typeof p> => !!p);
     const players = [...stats.values()];
-    const parading = !!(hallEntry && run.champ && !run.champ.paraded);
+    // o desfile só no raro (Rota e 1º título de cada modo); nos repetidos, a taça curta da quadra já fez a festa
+    const rare = useGame((s) => paradeOn(run, s.records, s.daily.filter((e) => e.champion).length));
+    const parading = !!(hallEntry && run.champ && !run.champ.paraded && rare);
+    // os créditos do título: só no fim do Modo História (`creditsOn`; a Rota não chama mais)
+    const storyEnd = creditsOn(run);
+    const markCredited = useGame((s) => s.markCredited);
+    const crediting = !parading && storyEnd && !!run.champ && !run.champ.credited;
 
     return (
         <>
             {hallEntry && parading && (
                 <HallParade entry={hallEntry} trainer={trainerLabel(profile, googleName)} onDone={markParaded} />
+            )}
+            {crediting && (
+                <TitleCredits
+                    team={run.teamName}
+                    squad={squad.map((p) => ({ id: p.speciesId, shiny: p.shiny }))}
+                    onDone={markCredited}
+                />
             )}
             <Stage className="champ-wrap k-stage-rola">
                 <section
@@ -86,9 +100,9 @@ export function ChampionView({
                     <Confetti count={70} />
                     {/* a cascata recomeça quando o desfile do Hall acaba (antes, ela tocaria escondida embaixo dele) */}
                     <ChampBeats
-                        key={parading ? 'hall' : 'go'}
+                        key={parading || crediting ? 'hall' : 'go'}
                         run={run}
-                        quiet={parading}
+                        quiet={parading || crediting}
                         onGoal={() => setSheet('goal')}
                     />
                     <div className="champ-icons">{icons}</div>

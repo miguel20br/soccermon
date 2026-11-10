@@ -431,6 +431,8 @@ export const profile = {
         count: '{n} de {total}',
         /** Ao lado do título da Rota ("0 de 8" parecia o progresso dos 8 jogos). */
         countShort: '{n}/{total}',
+        /** A insígnia batendo na 1ª vitória contra o líder (animacoes-novas.md, A5). */
+        won: 'Você ganhou a {name}!',
         ariaGot: '{name}: conquistada',
         ariaMissing: '{name}: falta (vença o clube de {city} numa copa)',
         help: 'Cada insígnia sai quando você vence o clube do líder numa copa.',

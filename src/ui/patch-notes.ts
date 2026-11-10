@@ -9,6 +9,48 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.45',
+        date: '2026-11-10',
+        title: 'Festa de campeão',
+        sections: [
+            {
+                title: 'Título',
+                lines: [
+                    'Ganhou a copa: o capitão ergue a taça no meio da quadra',
+                    'Ganhou a Rota Índigo: a torcida invade a quadra e joga o capitão pro alto',
+                    'Insígnia nova batendo na tela na 1ª vitória contra cada líder',
+                    'Voltou campeão: o Estádio faz a ola e mostra o título no letreiro',
+                    'O desfile do Hall da Fama fica pros títulos da Rota e pro 1º de cada modo, mais curto',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Cada Pokémon comemora o gol do seu jeito: pulo, giro ou pose',
+                    'Dribles com nome pra quem tem drible alto: lambreta, roleta e elástico, com câmera lenta',
+                    'Goleiro mergulha pro lado da bola, sem sair do gol, e sente quando leva o gol',
+                ],
+            },
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'Uma moeda só: os pontos de pacote viraram Fichas (1 ponto = 5 Fichas)',
+                    'Pick na Loja: Bronze 160 · Prata 400 · Ouro 960 Fichas',
+                    'O Pick comprado não sobe de metal: sem espécie nova, pode sair repetida',
+                ],
+            },
+            {
+                title: 'Visual',
+                lines: [
+                    'Cassino e Zona Safari com cenário próprio',
+                    'Pokémon na mesma escala em cada tela, sem pixel borrado',
+                    'VERSUS, Hall da Fama e escalação com os mesmos Pokémon da partida',
+                    'Menu de modos aparece com os Pokémon de uma vez no PC',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.44.2',
         date: '2026-11-09',
         title: 'Ícones de tipo nítidos',
@@ -2668,6 +2710,48 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.45',
+        date: '2026-11-10',
+        title: 'Champion party',
+        sections: [
+            {
+                title: 'Title',
+                lines: [
+                    'Win the cup: the captain lifts the trophy in the middle of the court',
+                    'Win the Indigo Road: the crowd storms the court and throws the captain in the air',
+                    'A new badge stamps the screen on your first win against each leader',
+                    'Back as champions: the Stadium does the wave and shows the title on the board',
+                    'The Hall of Fame parade is kept for Road titles and the first of each mode, and is shorter',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Each Pokémon celebrates a goal its own way: jump, spin or pose',
+                    'Named dribbles for high-dribble players: rainbow flick, roulette and elastico, in slow motion',
+                    'The keeper dives toward the ball without leaving the goal, and feels it when he concedes',
+                ],
+            },
+            {
+                title: 'Team Ultimate (opens Nov 27)',
+                lines: [
+                    'One currency: pack points became Coins (1 point = 5 Coins)',
+                    'Picks in the Shop: Bronze 160 · Silver 400 · Gold 960 Coins',
+                    'A bought Pick never goes up a metal: with no new species, it can be a repeat',
+                ],
+            },
+            {
+                title: 'Look',
+                lines: [
+                    'Game Corner and Safari Zone with their own scenery',
+                    'Pokémon at one scale per screen, no blurred pixels',
+                    'VERSUS, Hall of Fame and lineup use the same Pokémon as the match',
+                    'The mode menu shows its Pokémon all at once on PC',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.44.2',
         date: '2026-11-09',

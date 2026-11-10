@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.45 · Festa de campeão (10/11/2026)
+
+Sem motor novo (28). Animações de título só no título (`titleCeremony` em src/store/long-cup.ts): taça curta de pixel em toda copa ganha, invasão da torcida no título da Rota (src/game/ceremony.ts), insígnia na 1ª vitória contra cada líder (jingle insignia.mjs), Estádio campeão (ola + LED); desfile do Hall só na Rota e no 1º título de cada modo; créditos guardados pro Modo História. Comemoração de gol por espécie (`comemoracaoOf`), dribles com nome (DRI de campo ≥ 78, 18 m, até 2 por time), goleiro com mergulho visível. Time Ultimate: moeda única (1 ponto = 5 Fichas), Pick ×16 (160/400/960), brecha do Pick fechada. Arte: escala inteira por cena (sprite-scale.ts), PMD no VERSUS/Hall/escalação, Cassino e Safari em pixel, Hall azul, folhas do menu (`npm run assets:menu`). Planos: animacoes-novas.md, revisao-arte.md, ultimate-fc.md.
+
 ## 0.9.44 · Véspera do Time Ultimate (09/11/2026)
 
 Motor 28 (evolução sem perda: a carta que evolui herda o maior de cada atributo das formas anteriores e mantém a habilidade que mexe em atributo; `evolvedFrom`). Time Ultimate com cara de FC (Meus pacotes, Abrir todos, Pokémon Picks, Início em blocos, aba Jogar), Rota A+B (Pular com etiqueta, PC do Bill, Folga, Mochila, mapa largo `mapV`, Ás, Safari, Cassino, Planalto), carta mostra o valor em campo (▲ = bônus, teto 99 na carta), Golpedex com especiais e bicudas, Novidades em tela cheia, goleiro nunca de costas. Planos: ultimate-fc.md, rota-indigo.md, evolucao-sem-perda.md, noticias.md, menos-e-mais.md.

@@ -1,5 +1,30 @@
 # Novidades
 
+## 0.9.45 · Festa de campeão (2026-11-10)
+
+### Título
+- Ganhou a copa: o capitão ergue a taça no meio da quadra
+- Ganhou a Rota Índigo: a torcida invade a quadra e joga o capitão pro alto
+- Insígnia nova batendo na tela na 1ª vitória contra cada líder
+- Voltou campeão: o Estádio faz a ola e mostra o título no letreiro
+- O desfile do Hall da Fama fica pros títulos da Rota e pro 1º de cada modo, mais curto
+
+### Partida
+- Cada Pokémon comemora o gol do seu jeito: pulo, giro ou pose
+- Dribles com nome pra quem tem drible alto: lambreta, roleta e elástico, com câmera lenta
+- Goleiro mergulha pro lado da bola, sem sair do gol, e sente quando leva o gol
+
+### Time Ultimate (abre em 27/11)
+- Uma moeda só: os pontos de pacote viraram Fichas (1 ponto = 5 Fichas)
+- Pick na Loja: Bronze 160 · Prata 400 · Ouro 960 Fichas
+- O Pick comprado não sobe de metal: sem espécie nova, pode sair repetida
+
+### Visual
+- Cassino e Zona Safari com cenário próprio
+- Pokémon na mesma escala em cada tela, sem pixel borrado
+- VERSUS, Hall da Fama e escalação com os mesmos Pokémon da partida
+- Menu de modos aparece com os Pokémon de uma vez no PC
+
 ## 0.9.44.2 · Ícones de tipo nítidos (2026-11-09)
 
 ### Telas
