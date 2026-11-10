@@ -259,6 +259,8 @@ export interface FormationStyle {
     /** Somado ao passe que vai pro Pivô; `longPivot`: a mais quando sai do nosso campo (bola longa, vertical). */
     pivotPass?: number;
     longPivot?: number;
+    /** Armação: o ala no nosso campo, quando passa, prefere o fixo por este tanto (só reordena os passes). */
+    fixoPass?: number;
     /** Somado ao valor de qualquer passe (contra o drible). */
     passBias?: number;
     /** Passe e corre: quem passa dispara em diagonal pra área por estes segundos. */
@@ -306,7 +308,8 @@ export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
         pressBias: 0.01,
         attrs: { passing: 0.95, shooting: 0.95, tackling: 0.97 },
     },
-    // os 3 de trás tocam de lado até achar a bola longa no pivô, que segura de costas e devolve pra quem chega
+    // os 3 de trás tocam de lado (passando pelo fixo) até achar a bola longa no pivô, que segura de costas e devolve
+    // pra quem chega
     '3-1': {
         counters: ['2-2'],
         width: 1.25,
@@ -314,6 +317,7 @@ export const FORMATION_STYLES: Record<FormationId, FormationStyle> = {
         fwdPass: 0.9,
         pivotPass: 0.3,
         longPivot: 0.35,
+        fixoPass: 0.3,
         wallPivot: true,
         attrs: { passing: 1.03, shooting: 1.03 },
         role: { PIVO: { shooting: 1.1, strength: 1.1 } },
