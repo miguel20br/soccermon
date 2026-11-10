@@ -187,6 +187,71 @@ Ressalvas e o que fica pro Miguel:
    muda pouco (as cartas Evento não são repetidas).
 4. O jogador ativo ganha mais pontos por Ficha (6,2): o fator 5 é o do típico. Com o ativo, seria 6 (Pick Prata 150).
 
+### Coleção na temporada: fica fácil rápido demais? (09/11)
+
+Pergunta do Miguel: "considerando que temos só 151 Pokémon, não ficaria muito fácil rápido demais?". Medida com
+`scripts/pesado.sh npx tsx scripts/balance/colecao-ut.ts --saves 6 --semanas 26`: a T1 inteira (27/11 a 28/05, com o
+Natal), partidas do motor no Normal, objetivos, passe e Resgatar como o semana-ut.ts, mas **o robô gasta**: Pacote Mini
+quando dá mais espécie nova por Ficha líquida (o que volta do pacote aberto e da venda), senão o Pick mais barato que
+tem espécie faltando no metal dele; abre tudo, fica com a opção nova de maior nota, vende toda repetida; nunca Escolher
+carta (o Pick é mais barato e também garante espécie nova). Os placares do motor se repetem em todas as economias (o
+rival acompanha o seu time). 151 espécies: Bronze 57 · Prata 26 · **Ouro 68** (32 jogam no gol); 20 Ícones. Erro: com 6
+saves, ±1 semana nas semanas até os 151.
+
+| Típico (2 partidas por dia) | Semanas até os 151 (faixa) | Espécies na 2ª · 4ª · 8ª | Time titular Ouro | Shiny (de 151) na 26ª | Ícones (de 20) na 26ª | Evento na 26ª |
+|---|---|---|---|---|---|---|
+| **Antes** (pontos à parte, Pick 10/25/60 pontos) | **5,0** (4–7) | 113 · 147 · 151 | 1ª semana | 34 (23%) | 8,0 (40%) | 23 |
+| **Depois** (moeda única, Pick ×6) | **3,8** (3–6) | 117 · 150 · 151 | 1ª semana | 44 (29%) | 9,0 (45%) | 30 |
+| Depois, aberto +15 | 5,0 (4–8) | 110 · 145 · 151 | 1ª | 40 (26%) | 8,7 | 24 |
+| Depois, aberto +10 | 5,8 (4–9) | 107 · 141 · 150 | 1ª | 38 (25%) | 7,8 | 23 |
+| Depois, Mini 200 | 3,7 (3–6) | 115 · 149 · 151 | 1ª | 39 (26%) | 8,7 | 26 |
+| Depois, aberto +15 e Mini 200 | 4,3 (3–7) | 110 · 148 · 151 | 1ª | 36 (24%) | 8,0 | 26 |
+| Depois, aberto +10 e Mini 300 | 4,7 (3–8) | 107 · 147 · 151 | 1ª | 35 (23%) | 8,0 | 24 |
+| Depois, Pick ×12 (120/300/720) | 5,7 (4–10) | 101 · 143 · 150 | 1ª | 42 (28%) | 9,8 | 25 |
+| Depois, Pick ×20 (200/500/1200) | **9,7** (5–15) | 99 · 128 · 146 | 1ª | 42 (27%) | 8,5 | 26 |
+| Depois, Pick ×20 e aberto +10 | 13,2 (6–18) | 93 · 121 · 140 | 1ª | 37 (24%) | 8,3 | 26 |
+| Sem comprar nada (só o grátis) | > 26 (148 na 26ª) | 78 · 104 · 124 | 1ª | 26 (17%) | 7,2 | 17 |
+
+| Ativo (4 partidas por dia) | Semanas até os 151 | Espécies na 2ª · 4ª | Shiny na 26ª | Ícones na 26ª |
+|---|---|---|---|---|
+| **Antes** | **4,3** (3–6) | 128 · 148 | 35 (23%) | 8,3 (42%) |
+| **Depois** | **3,5** (2–5) | 139 · 150 | 52 (34%) | 9,8 (49%) |
+| Depois, aberto +15 · +10 | 3,2 · 3,2 | 138 · 136 na 2ª | 48 · 47 | 9,8 · 9,7 |
+| Depois, Mini 200 · aberto +15 e Mini 200 | 4,0 · 4,0 | 137 · 130 na 2ª | 43 · 40 | 9,5 · 9,0 |
+| Depois, Pick ×12 · ×20 · ×20 e aberto +10 | 5,0 · 9,0 · 8,3 | 117 · 109 · 104 na 2ª | 49 · 49 · 41 | 10,5 · 9,8 · 8,5 |
+| Sem comprar nada | > 26 (148) | 87 · 111 | 30 | 6,5 |
+
+O que os números dizem:
+
+1. **Já era rápido antes.** Com os pontos à parte, o típico fechava os 151 em ~5 semanas; a moeda única tira ~1 semana
+   (3,8). O que fecha a coleção é o **Pick, que nunca oferece espécie que você já tem**: sem comprar nada, o grátis
+   (relógio, objetivos, passe, Natal) chega a 124 na 8ª semana e 148 na 26ª; com Pick, cada compra é uma espécie nova
+   garantida. A meta proposta (151 em 8–12 semanas) fica longe nas duas economias.
+2. **As alavancas de Fichas quase não mexem:** pacote aberto +15/+10 e Mini 200/300 dão de 0 a +2 semanas (dentro do
+   ruído no ativo). O robô troca o Mini caro pelo Pick, que segue garantindo espécie nova. **A alavanca que pega é o
+   preço do Pick:** ×20 (200 · 500 · 1.200) leva o típico a ~10 semanas (faixa 5–15) e o ativo a ~9.
+3. **Time titular todo Ouro sai na 1ª semana** em qualquer economia (até sem comprar): 68 das 151 espécies são Ouro e o
+   1º pacote já tem ~10% de Ouro por carta; a meta "fim do 1º mês" não depende de Fichas. Mexer nisso é mexer no
+   metal das espécies ou na chance do Ouro (fora deste bloco).
+4. **Shiny e Ícone não completam** em nenhuma: na 26ª semana o típico tem 29% dos Shiny e 45% dos Ícones (antes 23% e
+   40%). Isso já bate a meta.
+5. **Brecha do Pick (achada na medição, não mexi):** o Pick que não tem espécie nova no metal dele abre pros metais
+   acima. Com Bronze e Prata completos, o **Pick Bronze (60) dá uma Ouro nova** (que custaria 360 no Pick Ouro). O robô
+   que sabe disso ("esperto") fecha os 151 em 3,3 semanas (típico) e 2,7 (ativo). Conserto possível: o Pick comprado
+   (`exact`) só abre pra baixo, ou mostra repetida do metal dele.
+
+Ressalvas: o robô não joga líder (Difícil) nem a Copa (ponte), não faz Evolução, e gasta tudo assim que dá; um jogador
+de verdade guarda Fichas e escolhe pior, então o real deve ser um pouco mais lento. 6 saves por linha (o motor leva ~30
+min por perfil); o `--placares` guarda os placares e cada economia nova roda em segundos.
+
+Decisões pro Miguel (nada disso aplicado; o Pick ×6 está):
+
+- **A. Deixar como está** (151 em ~4 semanas, Shiny e Ícone pra temporada inteira). Minha recomendação, se o objetivo
+  da temporada for o time e os Shiny/Ícones/Evento, não o álbum.
+- **B. Álbum como meta da temporada:** Pick ×20 (200 · 500 · 1.200; Escolher carta subindo junto), ~10 semanas no
+  típico. Não mexer em pacote aberto nem no Mini (quase não muda nada).
+- **C. Fechar a brecha do Pick Bronze dando Ouro** (vale em A ou B).
+
 ## 1. Como o FC faz
 
 Onde não achei fonte e falo do jogo de memória, está marcado **(do jogo, sem fonte)**.
