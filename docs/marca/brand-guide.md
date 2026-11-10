@@ -178,6 +178,8 @@ Uma família só, pixel: **Galmuri** (SIL OFL 1.1, `public/fonts/`, subset gerad
   `font-synthesis-weight: none` no `:root` garante). Quem precisa de peso usa Galmuri11 Bold ou o contorno `.cb-num`.
 - Símbolo novo num texto (seta, estrela) precisa estar no subset: o teste `scripts/fonts.test.ts` acusa e
   `npm run fonts` refaz.
+- A Galmuri14 quebra o desenho do 9 (e do 6) em **17, 18, 22, 28 e 40 px**: use os vizinhos (16, 19, 21, 23, 27, 29,
+  39, 41). `src/ui/galmuri14-size.test.ts` acusa (revisão de 10/11/2026).
 - `-webkit-font-smoothing: none` no corpo: a fonte é pixel, não alise.
 - A palavra SOCCERMON como título é o desenho do logo, nunca a fonte.
 
