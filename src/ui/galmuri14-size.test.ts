@@ -17,7 +17,11 @@ const files = (dir: string): string[] =>
 const rules = files('src')
     .filter((f) => !SKIP_FILES.some((s) => f.endsWith(s)))
     .flatMap((f) =>
-        [...readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+        [
+            ...readFileSync(f, 'utf8')
+                .replace(/\/\*[\s\S]*?\*\//g, '')
+                .matchAll(/([^{}]+)\{([^{}]*)\}/g),
+        ].map((m) => ({
             f,
             sels: m[1]
                 .trim()
