@@ -14,7 +14,7 @@ import { useClubColor } from '../profile/club';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
 import { HudIcon } from './MatchHud';
-import { PmdSprite } from './PmdSprite';
+import { PmdSprite, useRowScale } from './PmdSprite';
 import { cardSprite } from './PokeCard';
 
 /** Linha de número do topo do resultado (seu time x rival). */
@@ -55,6 +55,9 @@ export function Confetti({ count }: { count: number }) {
  * Topo da tela de resultado: título grande (VITÓRIA / CAMPEÕES / FIM DA LINHA), placar com os dois times,
  * o seu time comemorando (o craque com estrela), o caminho da copa e quem vem pela frente.
  */
+/** Eliminado: o time desmaia (PMD Faint; quem não tem, deita pra dormir). */
+const FAINT: ('Faint' | 'Sleep')[] = ['Faint', 'Sleep'];
+
 export function ResultHero({
     run,
     match,
@@ -156,6 +159,8 @@ export function ResultHero({
     // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
     const sadCaptain =
         run?.status === 'eliminated' ? run.picks.find((p) => p.uid === run.captainUid)?.speciesId : undefined;
+    // o time desmaiado numa escala só (a maior até 2x em que todos cabem nos 72 px da fileira)
+    const faintK = useRowScale(sadCaptain ? squad.map((p) => p.speciesId) : [], FAINT, 72, 2);
     const next = run && won && !champion && !groupOut ? run.opponents[run.stage + 1] : null;
     // seu time na cor do clube (Perfil); o rival no uniforme reserva se as cores baterem
     const homeColor = useClubColor();
@@ -271,20 +276,23 @@ export function ResultHero({
                         {sadCaptain ? (
                             // eliminado: o time desmaia (PMD Faint; quem não tem, deita pra dormir)
                             <span role="img" aria-label={p.name}>
-                                <PmdSprite
-                                    id={p.speciesId}
-                                    shiny={p.shiny}
-                                    anim={['Faint', 'Sleep']}
-                                    fit={72}
-                                    className="rh-faint"
-                                    fallback={
-                                        <img
-                                            className="pixel"
-                                            src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
-                                            alt=""
-                                        />
-                                    }
-                                />
+                                {faintK !== undefined && (
+                                    <PmdSprite
+                                        id={p.speciesId}
+                                        shiny={p.shiny}
+                                        anim={FAINT}
+                                        scale={faintK}
+                                        fit={72}
+                                        className="rh-faint"
+                                        fallback={
+                                            <img
+                                                className="pixel"
+                                                src={cardSprite({ speciesId: p.speciesId, shiny: p.shiny })}
+                                                alt=""
+                                            />
+                                        }
+                                    />
+                                )}
                             </span>
                         ) : (
                             <img
