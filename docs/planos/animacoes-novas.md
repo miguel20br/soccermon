@@ -397,3 +397,7 @@ o F2 da revisão de arte.
 - Animal Crossing e Stardew: [Como a Nintendo criou os moradores (Siliconera)](https://www.siliconera.com/nintendo-on-how-animal-crossing-new-horizons-lovable-villagers-were-created/),
   [Festivais (Stardew Valley Wiki)](https://stardewvalleywiki.com/Festivals),
   [Festivais em jogos de fazenda (The Boar)](https://theboar.org/2025/03/celebrating-the-seasons-a-look-at-festivals-in-farm-life-sims).
+
+## Decidido com o Miguel (09/11)
+
+Todas as recomendações aprovadas (1 a 10): invasão só no título da Rota (torcida de pixel na cor do clube + 3–4 selvagens da Rota, 10–12 s, toque pula pra foto final, capitão jogado pro alto cai sentado), taça curta de pixel em todo título, desfile do Hall só na Rota e no 1º título de cada modo (mais curto, PMD, flash), os 3 jeitos de comemorar pros dois times (partícula do tipo só no gol da Final), insígnia com jingle de 2 s, créditos uma vez por save depois do 1º título da Rota, sem clima nem cansaço. Ordem: B1 e A2 primeiro, depois A1, A5 e C2.
