@@ -325,15 +325,15 @@ Antes e depois por item: `arte/depois/*.png` (folhas) e `arte/depois/antes|depoi
 
 | Tela | Celular pequeno ou deitado | Celular (390) | PC (1440) |
 |---|---|---|---|
-| Estádio (e o fundo da Copa do Dia) | 1x (também em pé com até 700 px de altura) | 2x | 3x (antes 2x, 3x e 4x) |
+| Estádio (e o fundo da Copa do Dia) | 1x (também em pé com até 700 px de altura) | 2x | 4x, capitão incluído (10/11; antes 3x) |
 | Lab, Sede, Arena (e o fundo da Arena) | 1x | 2x | 3x (Arena antes 4x) |
 | Rota (mapa, visto de longe) | 1x | 1x | 2x; o nadador junto (antes 2x fixo) |
 | Menu de modos (cena / herói) | 2x / 3x | 2x / 3x | 3x / 4x (herói antes 5x) |
 | Novidades | uma `s` (2 a 5) pela tela, todos iguais | | |
 | Treino (dentro do palco) | 1x | 2x | 3x x zoom 1,35 = 4x |
-| VERSUS | 2x | 3x | 4x |
+| VERSUS | a maior que cabe: 2x a 320, 3x deitado | 4x | 5x (10/11, `fitScale`; antes 2/3/4) |
 | Hall da Fama (desfile / fileira) | 3x / 1x | 4x / 2x | 6x / 3x |
-| Prancheta (escalação, draft, Duelo) | 1x | 1x | 2x pedido; com o zoom de encaixe do palco abaixo de 1, o inteiro de baixo (1x) |
+| Prancheta (escalação, draft, Duelo) | 1x | 2x (10/11) | 2x; zoom de encaixe abaixo de 1 não encolhe mais o sprite (`realScale`) |
 | Fim de copa (desmaiados) | a maior até 2x em que todos cabem em 72 px | | |
 
 Herói do menu de modos com +1 (não +2): é o único lugar com duas escalas na mesma cena; se o Miguel quiser igual, é
@@ -350,13 +350,18 @@ por peça com 6x: ~60 a 90 ms por espécie, mas encadeado atrás do resto da pá
 juntos aos 3,2 s (0,5 s depois do PNG), PNG de 14 a 19 KB no lugar de 42 a 61 KB, imagem decodificada ~3 MB no lugar
 de ~20 MB por espécie.
 
+### Retorno do Miguel (10/11), feito
+
+- **Escalas:** uma acima onde perdeu presença (`estadioScale`, `versusScale` + `fitScale`, `boardScale` em
+  `sprite-scale.ts`). No Estádio do PC a bola sobe mais e a sombra alarga junto com o capitão em 4x.
+- **Cassino e Safari (D7):** cenário de pixel (`src/ui/components/EventSet.tsx`, arte escrita em texto por
+  `pixelArt`): o Cassino com lâmpadas, letreiro, caça-níqueis, carpete e o balcão de fichas atrás da carta; a Safari
+  com céu, nuvens, mata, cerca de madeira, a placa e o mato alto. Etiqueta amarela "Evento" nos dois.
+- **Hall (D9):** azul-noite dos momentos com os raios na cor do clube (só CSS, `.hall-parade::before`); "Fechar" com
+  cara de terciário (`.btn.ghost`).
+
 ### Não feito (fica pra depois)
 
 - Item 8 (pixel da carta, F4): vai pela galeria `?cards=1`.
-- Cassino e Safari (D7), proposta: cenário de pixel no jeito do Lab (balcão com fichas e caça-níquel; grama alta com
-  a cerca de madeira e a placa do Safari), os Pokémon em PMD na escala da cena, e a etiqueta amarela dizendo
-  "Evento" em vez de repetir o título.
-- Fundo do Hall (D9), proposta: o azul-noite da marca com os raios do momento (`.k-moment`) na cor do clube, sem o
-  radial vinho; "Fechar" como botão terciário.
 - A fumaça ainda não acusa `img.pixel` reduzido (o roteiro está em `arte/depois/sonda.mjs`): ligar quando a carta
   passar pela galeria, senão ela falha em toda carta.

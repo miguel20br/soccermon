@@ -6810,14 +6810,47 @@ a.home-tile {
     display: grid;
     place-items: center;
     padding: 24px 16px;
+    overflow: hidden;
     border: 0;
-    background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--club) 35%, #0b1024) 0, #05070f 70%);
+    /* o azul-noite da marca, o mesmo dos momentos (.k-moment), com os raios na cor do clube (revisão de arte, D9) */
+    background: radial-gradient(120% 90% at 50% 40%, #2a3a7a 0%, #141d48 55%, #070a18 100%);
     color: var(--text);
     font: inherit;
     cursor: pointer;
 }
+.hall-parade::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    width: max(140vw, 140vh);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(
+        from 0deg,
+        color-mix(in srgb, var(--club) 16%, transparent) 0 9deg,
+        transparent 9deg 22.5deg
+    );
+    mask: radial-gradient(closest-side, #000 20%, transparent 75%);
+    animation: hp-rays-turn 24s linear infinite;
+    pointer-events: none;
+}
+@keyframes hp-rays-turn {
+    to {
+        rotate: 360deg;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hall-parade::before {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .hall-parade::before {
+    animation: none;
+}
 .hp-mon,
 .hp-end {
+    position: relative;
     display: grid;
     justify-items: center;
     gap: 8px;
@@ -6906,25 +6939,22 @@ a.home-tile {
     bottom: calc(14px + env(safe-area-inset-bottom));
     color: var(--muted);
 }
-/* fim do desfile: o "Fechar" vira um botão de verdade (antes era um texto apagado no rodapé) */
+/* fim do desfile: o "Fechar" com cara de botão terciário do kit (.btn.ghost: sem face, borda fina); o verde fica
+   pra quem confirma ou segue */
 .hp-skip.done {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
-    padding: 0 28px 5px;
-    /* o botão verde do kit (cara de jogo): chanfrado, base dura, texto com contorno */
-    border: 3px solid var(--cb-ink);
+    padding: 0 28px;
+    border: 2px solid var(--line);
     border-radius: 10px;
-    background: linear-gradient(180deg, var(--green-hi) 0 44%, var(--green-c) 44% 100%);
-    color: #fff;
+    color: var(--text);
     font-size: 16px;
     font-weight: 700;
-    --ol: #06330d;
-    text-shadow: var(--k-out-1);
-    box-shadow:
-        inset 0 -5px 0 var(--green-lo),
-        inset 0 2px 0 rgb(255 255 255 / 55%),
-        0 4px 0 var(--cb-ink);
+    transition: transform var(--dur-toque, 80ms) var(--ease-out);
+}
+.hall-parade:active .hp-skip.done {
+    transform: scale(0.97);
 }
 @keyframes hp-in {
     from {
