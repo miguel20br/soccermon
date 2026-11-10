@@ -8,7 +8,7 @@
 }
 .cm-money {
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 18px;
+    font-size: 19px;
 }
 .cm-cards {
     display: inline-flex;
@@ -329,7 +329,7 @@
 .cm-sheet-head b {
     display: block;
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 17px;
+    font-size: 16px;
 }
 .cm-sheet-head small {
     display: block;
@@ -2034,7 +2034,7 @@
     min-width: 28px;
     margin: 0;
     padding: 0 3px;
-    font-size: 18px;
+    font-size: 19px;
     line-height: 26px;
 }
 .gp-tv .gp-note {
@@ -2118,7 +2118,7 @@
     min-width: 26px;
     margin: 0;
     padding: 0 3px;
-    font-size: 18px;
+    font-size: 19px;
     line-height: 26px;
 }
 .gp-day:not(.done) .gp-sc {

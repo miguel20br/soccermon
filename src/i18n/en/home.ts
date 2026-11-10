@@ -118,7 +118,7 @@ export const home: typeof pt = {
         arenaGo: 'Challenge',
         arenaLine: 'Live duel with a friend',
         neonWeek: 'of the week',
-        sedeOf: '{club} club house',
+        sedeOf: '{club} HQ',
         sedeBoard: 'Mission board',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Your first trophy goes here',
