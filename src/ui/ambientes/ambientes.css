@@ -903,6 +903,10 @@
         left: 72%;
         top: min(max(12.5cqw, 30cqh), 62cqh);
     }
+    /* a faixa do clube vai pro lado do capitão: no meio, o telão da coluna da esquerda a cobria (só o "FC" aparecia) */
+    .es-banner {
+        left: 72%;
+    }
     .es-actions {
         width: 100%;
     }
@@ -3195,8 +3199,9 @@
     .rm-go .cup-go-txt b {
         font-size: 19px;
     }
+    /* a coluna ao lado do mapa é estreita: em 16 px "Começar a Rota" quebrava em duas linhas coladas */
     .rt-go .cup-go-txt b {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
