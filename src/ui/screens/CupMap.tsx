@@ -604,6 +604,8 @@ export function Training() {
     const run = useHeld(live?.status === 'treino' ? live : null);
     // o uid de quem treina, ou 'rest' / 'item'
     const [mark, setMark] = useState<string | null>(null);
+    // a hora do toque: o escolhido dá um pulo (Hop toca uma vez) e volta a respirar
+    const [markAt, setMarkAt] = useState(0);
     const clock = useSceneClock(true);
     const wide = useMedia(TR_WIDE);
     const small = useMedia(TR_SMALL);
@@ -621,7 +623,10 @@ export function Training() {
     const resting = mark === 'rest';
     const scale = small ? 1 : big ? 3 : 2;
     const ui = FORMATIONS[run.formation].ui;
-    const toggle = (id: string) => setMark(mark === id ? null : id);
+    const toggle = (id: string) => {
+        setMark(mark === id ? null : id);
+        setMarkAt(clock.t || 1);
+    };
 
     const mon = (p: PokemonInstance, cls: string, style?: CSSProperties) => {
         const evo = canEvo(p);
@@ -633,7 +638,9 @@ export function Training() {
                     id={p.speciesId}
                     shiny={p.shiny}
                     anim={on ? 'Hop' : 'Idle'}
-                    dir={wide ? 2 : 4}
+                    start={on ? markAt : 0}
+                    // de frente no celular (de costas não se via rosto nenhum); deitado e no PC, de lado
+                    dir={wide ? 2 : 0}
                     scale={scale}
                     play={!resting}
                 >
