@@ -156,7 +156,8 @@
 .fc-name {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     color: var(--yellow);
     white-space: nowrap;
 }
@@ -532,6 +533,7 @@
 /* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
 .draft-auto {
     zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
 }
 
 /* a quadra do draft encolhe por zoom (useFitBoard): o texto das vagas compensa pra ficar com pelo menos 9 px na tela */

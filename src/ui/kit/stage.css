@@ -99,6 +99,7 @@
     /* --k-fit: o quanto o zoom desce pra caber (useFitZoom, Stage.tsx) */
     --k-z: calc(var(--k-big, 1) * var(--k-fit, 1));
     zoom: var(--k-z);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-z));
     --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-z));
     --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-z));
 }
@@ -160,7 +161,8 @@
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: clamp(34px, calc(10 * var(--vw)), var(--k-title-max, 64px));
+    --gs: clamp(34px, calc(10 * var(--vw)), var(--k-title-max, 64px));
+    font-size: var(--gfs, clamp(34px, calc(10 * var(--vw)), var(--k-title-max, 64px)));
     line-height: 1;
     letter-spacing: 1px;
     color: var(--yellow);
@@ -463,7 +465,8 @@
 }
 .k-final-prize {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 30px;
+    --gs: 30px;
+    font-size: var(--gfs, 30px);
     color: var(--green-hi);
     text-shadow: var(--k-out-1);
 }
@@ -514,7 +517,8 @@
 /* celular deitado: tudo encolhe pra caber sem rolar */
 @media (max-height: 520px) {
     .k-final .k-moment-title {
-        font-size: 30px;
+        --gs: 30px;
+        font-size: var(--gfs, 30px);
     }
     .k-final-body,
     .k-final .k-moment-body {
@@ -527,7 +531,8 @@
         font-size: 44px;
     }
     .k-final-prize {
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
     .k-final-star {
         flex-direction: row;

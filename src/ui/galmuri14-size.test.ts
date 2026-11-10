@@ -47,4 +47,22 @@ describe('Galmuri14', () => {
         });
         expect(bad).toEqual([]);
     });
+
+    // No PC o zoom do CSS (--ui-zoom, --k-big, --k-fit) multiplica o font-size: 14 px viram 17,5 e o 9 sai torto. A regra
+    // de Galmuri14 escreve `--gs` + `font-size: var(--gfs, ...)` (styles.css) e todo `zoom` avisa o --gz dele.
+    it('font-size de Galmuri14 leva o zoom em conta (var(--gfs)) e todo zoom declara --gz', () => {
+        const noZoom = rules.flatMap((r) => {
+            const fz = r.body.match(/font-size:\s*([^;]+?)\s*(?:!important)?\s*;/)?.[1];
+            if (!fz || /^(0|inherit|initial|unset)$|%|^var\(--gfs/.test(fz)) return [];
+            const own = /font-family:[^;]*Galmuri14/.test(r.body);
+            return r.sels
+                .filter((s) => !SKIP.test(s) && (own || lastClasses(s).some((c) => g14.has(c))))
+                .map((s) => `${r.f}: ${s} (font-size: ${fz})`);
+        });
+        expect(noZoom).toEqual([]);
+        const semGz = rules
+            .filter((r) => /(^|[;\s])zoom:/.test(r.body) && !r.body.includes('--gz:') && !r.sels.includes('html'))
+            .map((r) => `${r.f}: ${r.sels[0]}`);
+        expect(semGz).toEqual([]);
+    });
 });

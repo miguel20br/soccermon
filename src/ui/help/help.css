@@ -81,7 +81,8 @@
 .ob-copy h2 {
     margin: 0 0 6px;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     color: var(--yellow);
     text-shadow: 2px 2px 0 #0e1430;
     line-height: 1.2;

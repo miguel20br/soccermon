@@ -86,7 +86,8 @@
 .sd-text {
     margin: 0;
     font-family: "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1.35;
     text-align: left;
     text-wrap: balance;
@@ -94,16 +95,19 @@
 }
 .sd-box-shout .sd-text {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 24px;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
     line-height: 1.15;
     letter-spacing: 1px;
 }
 @media (min-width: 900px) and (min-height: 700px) {
     .sd-text {
-        font-size: 20px;
+        --gs: 20px;
+        font-size: var(--gfs, 20px);
     }
     .sd-box-shout .sd-text {
-        font-size: 32px;
+        --gs: 32px;
+        font-size: var(--gfs, 32px);
     }
     .sd-name {
         font-size: 12px;
@@ -129,7 +133,8 @@
         padding-top: 4px;
     }
     .sd-box-shout .sd-text {
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
 }
 

@@ -108,7 +108,8 @@
     background: color-mix(in srgb, var(--c) 80%, #000);
     color: #fff;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(10px, 2.6vmin, 13px);
+    --gs: clamp(10px, 2.6vmin, 13px);
+    font-size: var(--gfs, clamp(10px, 2.6vmin, 13px));
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -119,7 +120,8 @@
 }
 .vsp-name {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(16px, 4.4vmin, 36px);
+    --gs: clamp(16px, 4.4vmin, 36px);
+    font-size: var(--gfs, clamp(16px, 4.4vmin, 36px));
     line-height: 1.1;
     color: #fff;
     text-shadow: 2px 2px 0 color-mix(in srgb, var(--c) 55%, #000);
@@ -184,7 +186,8 @@
 }
 .vsp-avg b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(22px, 6.4vmin, 48px);
+    --gs: clamp(22px, 6.4vmin, 48px);
+    font-size: var(--gfs, clamp(22px, 6.4vmin, 48px));
     color: var(--tier);
 }
 .vsp-avg small {
@@ -361,7 +364,8 @@
     top: 50%;
     transform: translate(-50%, -50%) rotate(-8deg);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: var(--F);
+    --gs: var(--F);
+    font-size: var(--gfs, var(--F));
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.05em;

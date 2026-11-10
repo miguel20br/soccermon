@@ -156,7 +156,8 @@
     color: var(--yellow);
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: clamp(26px, calc(8 * var(--vw)), 34px);
+    --gs: clamp(26px, calc(8 * var(--vw)), 34px);
+    font-size: var(--gfs, clamp(26px, calc(8 * var(--vw)), 34px));
     line-height: 1.05;
     letter-spacing: 0;
     text-shadow: var(--k-out-2);
@@ -212,7 +213,8 @@
 /* celular deitado: pouca altura, texto menor */
 @media (orientation: landscape) and (max-height: 520px) {
     .nfs-title {
-        font-size: 24px;
+        --gs: 24px;
+        font-size: var(--gfs, 24px);
     }
     .nfs-text {
         font-size: 13px;
@@ -227,7 +229,8 @@
         padding-left: 48px;
     }
     .nfs-title {
-        font-size: clamp(36px, calc(3.6 * var(--vw)), 52px);
+        --gs: clamp(36px, calc(3.6 * var(--vw)), 52px);
+        font-size: var(--gfs, clamp(36px, calc(3.6 * var(--vw)), 52px));
     }
     .nfs-text {
         font-size: 18px;

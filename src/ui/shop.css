@@ -47,7 +47,8 @@
 }
 .sp-plate b {
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     font-style: italic;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -739,6 +740,7 @@ button.sp-slot:hover {
 }
 .shop-stage .k-stage-action {
     zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
 }
 .shop-reroll {
     flex: 0 1 auto;

@@ -104,7 +104,8 @@ img.pf-avatar:not(.pixel) {
     background: var(--bc-paper);
     color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1.2;
     text-align: center;
 }
@@ -808,7 +809,8 @@ fieldset.pf-field,
     background: var(--c);
     color: var(--ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1.2;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -829,7 +831,8 @@ fieldset.pf-field,
 }
 .pf-preview b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 21px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
 }
 .pf-pv-team {
     display: inline-flex;
@@ -877,7 +880,8 @@ fieldset.pf-field,
 .pf-dex-counts b {
     color: var(--yellow);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 /* a situação (seletor ‹ ›) e o tipo (ícones que rolam de lado) na mesma faixa; no celular, um embaixo do outro */
 .pf-dex-filters {
@@ -1232,7 +1236,8 @@ fieldset.pf-field,
 }
 .pf-num b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1.1;
     color: var(--text);
 }
@@ -1333,7 +1338,8 @@ fieldset.pf-field,
     display: grid;
     justify-items: end;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1;
     color: var(--yellow);
 }
@@ -1522,7 +1528,8 @@ fieldset.pf-field,
 /* o número não pesa mais que o título da seção: 20 px na cor do texto */
 .pf-album-n {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1;
     color: var(--text);
 }

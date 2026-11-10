@@ -119,7 +119,8 @@
     background: #f4f1e6;
     color: #0e1430;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 27px;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
     font-weight: 400;
     line-height: 42px;
     text-align: center;
@@ -138,14 +139,16 @@
 }
 .bc-clock {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1;
     color: var(--yellow);
     white-space: nowrap;
 }
 .bc-clock.txt {
     font-family: "Galmuri11", monospace;
-    font-size: 12px;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -771,7 +774,8 @@
         font-size: 12px;
     }
     .bc-sc {
-        font-size: 24px;
+        --gs: 24px;
+        font-size: var(--gfs, 24px);
         line-height: 36px;
         min-width: 32px;
     }
@@ -972,7 +976,8 @@
     }
     .bc .ht-row .bc-sc {
         min-width: 36px;
-        font-size: 14px;
+        --gs: 14px;
+        font-size: var(--gfs, 14px);
         line-height: 19px;
     }
     .bc .ht-bar {
@@ -1045,7 +1050,8 @@
         min-height: 40px;
     }
     .bc-sc {
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
         line-height: 32px;
         margin-block: 4px;
     }
@@ -1537,7 +1543,8 @@ body:has(.bc-hud) {
     }
     .bc .ht-row .bc-sc {
         min-width: 40px;
-        font-size: 15px;
+        --gs: 15px;
+        font-size: var(--gfs, 15px);
         line-height: 20px;
     }
     .bc .ht-bar {

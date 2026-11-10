@@ -298,7 +298,8 @@
     background: var(--bc-ink);
     color: #fff;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(13px, calc(var(--wd) * 0.12), 20px);
+    --gs: clamp(13px, calc(var(--wd) * 0.12), 20px);
+    font-size: var(--gfs, clamp(13px, calc(var(--wd) * 0.12), 20px));
 }
 /* o ponteiro no alto, apontando pra roda */
 .rv-pointer {

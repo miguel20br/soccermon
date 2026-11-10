@@ -243,7 +243,8 @@
     border-radius: 8px;
     background: var(--c);
     box-shadow: inset 0 calc(-1 * var(--base)) 0 var(--lo);
-    font-size: 12px;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
 }
 /* o chip tem 29 px de desenho e 44 de toque */
 .btn:is(.k-chip, .fut-action, .shop-buy)::before {
@@ -574,7 +575,8 @@
     border-radius: 6px;
     background: var(--cb-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     text-transform: uppercase;
     color: #fff;
 }
@@ -593,7 +595,8 @@
         0 3px 0 var(--cb-ink);
 }
 .k-res .cb-num {
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1;
 }
 .k-res .hud-icon,
@@ -622,7 +625,8 @@
 }
 @media (max-width: 359px) {
     .k-cupbar-stage {
-        font-size: 13px;
+        --gs: 13px;
+        font-size: var(--gfs, 13px);
     }
     .k-cupbar-full {
         display: none;
@@ -695,7 +699,8 @@
 .ht-panel .ht-title {
     color: #fff;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     letter-spacing: 1px;
 }
 .sl-arrow {
@@ -964,7 +969,8 @@
         inset 0 -3px 0 var(--gold-lo),
         var(--lift-1);
     color: var(--cb-ink);
-    font-size: 12px;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
     font-weight: 700;
     line-height: 1.2;
     animation: k-seal-in var(--dur-pop) var(--ease-pop) both;
@@ -986,7 +992,8 @@
     clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%);
     color: #fff;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     font-weight: 400;
     letter-spacing: 0.04em;
     text-shadow: var(--k-out-1);

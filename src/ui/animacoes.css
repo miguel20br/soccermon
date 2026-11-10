@@ -325,7 +325,8 @@
 }
 .tc-head {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(20px, calc(5.5 * var(--vw)), 30px);
+    --gs: clamp(20px, calc(5.5 * var(--vw)), 30px);
+    font-size: var(--gfs, clamp(20px, calc(5.5 * var(--vw)), 30px));
     color: var(--yellow);
 }
 .tc-team {
@@ -345,7 +346,8 @@
 .tc-thanks {
     margin-top: 12px;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
 }
 .tc-parade {
     position: absolute;

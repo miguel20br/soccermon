@@ -220,7 +220,8 @@
 .pf-locker .door-count {
     margin: 0;
     padding: 0;
-    font-size: 14px;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
     line-height: 1;
 }
 .pf-locker .new-dot {

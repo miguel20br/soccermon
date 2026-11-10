@@ -16,7 +16,8 @@
 }
 .lg-date {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     color: var(--yellow);
 }
 /* "Terça-feira, 20 de outubro": só a primeira letra maiúscula */
@@ -77,7 +78,8 @@
 }
 .lg-verdict {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 21px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
     line-height: 1.15;
     color: var(--text);
 }
@@ -196,7 +198,8 @@
 }
 .lg-pos {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--yellow);
     text-align: center;
     font-variant-numeric: tabular-nums;
@@ -311,7 +314,8 @@
 }
 .lg-div b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .lg-div-prata {
     --dc: var(--div-prata);
@@ -349,7 +353,8 @@
 }
 .lg-elo-num b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 34px;
+    --gs: 34px;
+    font-size: var(--gfs, 34px);
     line-height: 1;
     color: var(--text);
     font-variant-numeric: tabular-nums;
@@ -411,7 +416,8 @@
 .lg-ghost-head b,
 .lg-team-row b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1.15;
     color: var(--text);
     overflow-wrap: anywhere;
@@ -489,7 +495,8 @@
 }
 .daily-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--text);
 }
 .daily-card .mode-head span {
@@ -623,7 +630,8 @@
 }
 .lg-count {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(20px, calc(7 * var(--vw)), 28px);
+    --gs: clamp(20px, calc(7 * var(--vw)), 28px);
+    font-size: var(--gfs, clamp(20px, calc(7 * var(--vw)), 28px));
     font-weight: 400;
     line-height: 1.1;
     color: var(--yellow);

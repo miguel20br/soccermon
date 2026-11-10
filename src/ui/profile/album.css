@@ -306,7 +306,8 @@
 .al-ph b {
     font-family: "Galmuri14", monospace;
     font-weight: 400;
-    font-size: 14px;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
@@ -414,7 +415,8 @@
 .al-print b {
     font-family: "Galmuri14", monospace;
     font-weight: 400;
-    font-size: clamp(12px, 15cqi, 20px);
+    --gs: clamp(12px, 15cqi, 20px);
+    font-size: var(--gfs, clamp(12px, 15cqi, 20px));
     line-height: 1;
     color: rgba(14, 20, 48, 0.5);
 }
@@ -700,7 +702,8 @@
 .al-fan-box header b {
     font-family: "Galmuri14", monospace;
     font-weight: 400;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .al-fan-box header span {
     color: var(--muted);
@@ -951,7 +954,8 @@
 }
 .al-cover-gen {
     font-family: "Galmuri14", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     color: var(--yellow);
 }
 .al-cover-region {

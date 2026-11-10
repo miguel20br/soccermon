@@ -555,7 +555,8 @@
     border: var(--px) solid rgb(0 0 0 / 45%);
     box-shadow: 0 var(--px) 0 rgb(0 0 0 / 45%);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: calc(var(--px) * 5);
+    --gs: calc(var(--px) * 5);
+    font-size: var(--gfs, calc(var(--px) * 5));
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -990,7 +991,8 @@
 .rm-head h2 {
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     font-weight: 400;
     line-height: 1.1;
 }
@@ -999,7 +1001,8 @@
     align-items: center;
     gap: 6px;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     color: var(--yellow);
     white-space: nowrap;
 }
@@ -1535,7 +1538,8 @@
 }
 .rm-head .rt-badges {
     flex: none;
-    font-size: 14px;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
 }
 .rm-head .hud-icon {
     width: 18px;
@@ -1855,7 +1859,8 @@
 }
 .ar-neon b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: max(16px, calc(var(--mi) * 11));
+    --gs: max(16px, calc(var(--mi) * 11));
+    font-size: var(--gfs, max(16px, calc(var(--mi) * 11)));
     line-height: 1;
     letter-spacing: 2px;
     color: #ffd2ea;
@@ -1928,7 +1933,8 @@
     align-items: center;
     gap: 4px;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: max(14px, calc(var(--mi) * 8));
+    --gs: max(14px, calc(var(--mi) * 8));
+    font-size: var(--gfs, max(14px, calc(var(--mi) * 8)));
     font-weight: 400;
     line-height: 1;
     color: var(--yellow);
@@ -2112,7 +2118,8 @@
     align-self: center;
     margin-top: calc(var(--mi) * -14);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: max(14px, calc(var(--mi) * 8));
+    --gs: max(14px, calc(var(--mi) * 8));
+    font-size: var(--gfs, max(14px, calc(var(--mi) * 8)));
     color: var(--yellow);
     text-shadow: 2px 2px 0 #0b0920;
 }
@@ -2708,7 +2715,8 @@
 }
 .es-mode b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     line-height: 1.15;
 }
 .es-mode small {
@@ -2881,7 +2889,8 @@
     }
     .rt-head .rt-badges,
     .rm-head .rt-badges {
-        font-size: 13px;
+        --gs: 13px;
+        font-size: var(--gfs, 13px);
     }
 }
 /* Rota no celular pequeno (320x568): o mapa encolhia pouco e a tela rolava 18 px */
@@ -3260,7 +3269,8 @@
 }
 .es-play-verb {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 34px;
+    --gs: 34px;
+    font-size: var(--gfs, 34px);
     line-height: 1;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -3380,7 +3390,8 @@
 }
 .es-pill-txt b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .es-pill-txt small {
     margin-top: 3px;
@@ -3435,7 +3446,8 @@
         min-height: 66px;
     }
     .es-play-verb {
-        font-size: 27px;
+        --gs: 27px;
+        font-size: var(--gfs, 27px);
     }
     .es-pill {
         min-height: 44px;
@@ -3454,7 +3466,8 @@
         min-height: 88px;
     }
     .es-play-verb {
-        font-size: 39px;
+        --gs: 39px;
+        font-size: var(--gfs, 39px);
     }
 }
 
@@ -3468,7 +3481,8 @@
     border: 2px solid var(--cb-ink);
     background: #0e1438;
     box-shadow: inset 0 2px 0 rgb(255 255 255 / 10%);
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--yellow);
 }
 /* os botões menores (Álbum, Golpedex, Treinador, Clube, Amigos): o mesmo azul gordo */

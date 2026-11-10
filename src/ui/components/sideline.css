@@ -867,18 +867,21 @@
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-style: normal;
     font-weight: 700;
-    font-size: 30px;
+    --gs: 30px;
+    font-size: var(--gfs, 30px);
     white-space: nowrap;
     color: var(--yellow);
     --ol: var(--bc-ink);
     text-shadow: var(--k-out-2);
 }
 .q1 .mb-text {
-    font-size: 21px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
     color: #fff;
 }
 .q0 .mb-text {
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     color: #b9c0d8;
 }
 .mb-ring {

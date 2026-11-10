@@ -54,7 +54,8 @@
 .cup-card .mode-head b,
 .rota-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 21px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
     line-height: 1.15;
     color: var(--text);
 }
@@ -153,7 +154,8 @@
 }
 .duel-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--text);
 }
 .duel-card .mode-head span {
@@ -173,7 +175,8 @@
 }
 .duel-card-art b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 13px;
+    --gs: 13px;
+    font-size: var(--gfs, 13px);
     color: var(--red);
     text-shadow: 2px 2px 0 #0e1430;
 }
@@ -255,7 +258,8 @@
     background: var(--bc-paper);
     color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(30px, calc(9 * var(--vw)), 46px);
+    --gs: clamp(30px, calc(9 * var(--vw)), 46px);
+    font-size: var(--gfs, clamp(30px, calc(9 * var(--vw)), 46px));
     font-weight: 400;
     letter-spacing: 6px;
 }
@@ -506,7 +510,8 @@ button.sb-title:hover {
 }
 .duel-timer {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 27px;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
     min-width: 56px;
     text-align: center;
     padding: 6px 10px;
@@ -659,7 +664,8 @@ button.sb-title:hover {
 }
 .duel-final b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 39px;
+    --gs: 39px;
+    font-size: var(--gfs, 39px);
 }
 .duel-final small {
     grid-column: 1 / -1;
@@ -775,6 +781,7 @@ button.sb-title:hover {
 }
 .duel-draft-bar {
     zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
 }
 .duel-draft-bar > .btn {
     flex: 0 1 auto;
@@ -805,7 +812,8 @@ button.sb-title:hover {
     .duel-draft-stage .duel-timer {
         min-width: 44px;
         padding: 2px 8px;
-        font-size: 20px;
+        --gs: 20px;
+        font-size: var(--gfs, 20px);
     }
 }
 .duel-draft-clock {
@@ -1129,7 +1137,8 @@ button.sb-title:hover {
 }
 .duel-lobby-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     font-weight: 400;
     text-shadow: var(--k-out-1);
 }

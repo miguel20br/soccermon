@@ -108,7 +108,8 @@
 }
 .kl-gain {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 24px;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
     color: var(--yellow);
 }
 .kl-cascade-row {

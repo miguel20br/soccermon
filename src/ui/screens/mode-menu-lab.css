@@ -49,7 +49,8 @@
     padding: 12px 14px 14px;
 }
 .mm-poster .cb-num {
-    font-size: 27px;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
 }
 .mm-b-dots {
     display: flex;
@@ -120,7 +121,8 @@
         min-height: 560px;
     }
     .mm-poster .cb-num {
-        font-size: 34px;
+        --gs: 34px;
+        font-size: var(--gfs, 34px);
     }
 }
 

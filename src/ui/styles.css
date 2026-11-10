@@ -88,6 +88,45 @@ html {
 }
 :is(.phaser-container, .room-stage, .story-canvas, .ml-stage) {
     zoom: calc(1 / var(--ui-zoom, 1));
+    --gz: 1;
+}
+
+/*
+ * Galmuri14 e o zoom (10/11/2026): a fonte pixel desenha o 9 (e o 6 no 40) torto quando o tamanho EFETIVO (font-size x
+ * zoom acumulado) arredonda pra 17, 18, 22, 28 ou 40 px (galmuri14-size.test.ts), e o zoom do PC (--ui-zoom, --k-big,
+ * --k-fit contínuo) multiplica os tamanhos e cai nessas faixas. --gz é o zoom acumulado, posto em todo lugar que aplica
+ * `zoom` (o html aqui, o resto nos seletores deles). Regra de Galmuri14 escreve `--gs: <tamanho>; font-size:
+ * var(--gfs, <tamanho>)`: fora das faixas ruins o tamanho fica igual; dentro, vai pro vizinho bom mais perto (16, 19,
+ * 21/23, 27/29, 39/41: no máximo 1,5 px de diferença no tamanho da tela). Só round/sign/abs (Chrome 125, Firefox 118,
+ * Safari 15.4); sem isso o var() cai no tamanho de antes.
+ */
+:root {
+    --gz: var(--ui-zoom, 1);
+}
+*,
+::before,
+::after {
+    --ge: calc(var(--gs) * var(--gz, 1));
+    --gn: round(nearest, var(--ge), 1px);
+    --gf: calc(
+        var(--ge) +
+        (1 - sign(abs(var(--gn) - 17px) - 0.5px)) /
+        2 *
+        (16px - var(--ge)) +
+        (1 - sign(abs(var(--gn) - 18px) - 0.5px)) /
+        2 *
+        (19px - var(--ge)) +
+        (1 - sign(abs(var(--gn) - 22px) - 0.5px)) /
+        2 *
+        (22px + 1px * sign(var(--ge) - 21.99px) - var(--ge)) +
+        (1 - sign(abs(var(--gn) - 28px) - 0.5px)) /
+        2 *
+        (28px + 1px * sign(var(--ge) - 27.99px) - var(--ge)) +
+        (1 - sign(abs(var(--gn) - 40px) - 0.5px)) /
+        2 *
+        (40px + 1px * sign(var(--ge) - 39.99px) - var(--ge))
+    );
+    --gfs: calc(var(--gf) / var(--gz, 1));
 }
 
 * {
@@ -227,7 +266,8 @@ img.ce-mini,
 }
 .logo {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(40px, calc(9 * var(--vw)), 84px);
+    --gs: clamp(40px, calc(9 * var(--vw)), 84px);
+    font-size: var(--gfs, clamp(40px, calc(9 * var(--vw)), 84px));
     color: var(--yellow);
     letter-spacing: 3px;
     text-shadow:
@@ -909,7 +949,8 @@ img.ce-mini,
 }
 .result-hero .big-score {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 48px;
+    --gs: 48px;
+    font-size: var(--gfs, 48px);
     line-height: 1;
 }
 .trophy {
@@ -1518,7 +1559,8 @@ button,
         grid-template-columns: 1fr 1fr;
     }
     .result-hero .big-score {
-        font-size: 39px;
+        --gs: 39px;
+        font-size: var(--gfs, 39px);
     }
     .result-hero h1 {
         font-size: 20px;
@@ -1711,7 +1753,8 @@ button,
 }
 .fut-ovr {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: calc(var(--fut-w) * 0.19);
+    --gs: calc(var(--fut-w) * 0.19);
+    font-size: var(--gfs, calc(var(--fut-w) * 0.19));
     font-weight: 700;
 }
 .fut-pos {
@@ -1891,6 +1934,7 @@ button,
 /* PC: a barra de baixo cresce junto do palco (regra de 1440, stage.css) */
 .reward-bar {
     zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
 }
 /* Rota: o Pular mostra o que dá (etiqueta estilo Balatro); a etiqueta entra com um pulo curto a cada tela */
 .reward-skip {
@@ -2257,7 +2301,8 @@ button,
 .vs-stage {
     font-family: "Galmuri14", "Galmuri11", monospace;
     color: var(--yellow);
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     letter-spacing: 2px;
     text-transform: uppercase;
     animation: vs-fade 0.4s ease both;
@@ -2287,7 +2332,8 @@ button,
 }
 .vs-team-name {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 24px;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
     text-align: center;
     text-shadow: 2px 2px 0 #0e1430;
 }
@@ -2366,7 +2412,8 @@ button,
     display: grid;
     place-items: center;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 30px;
+    --gs: 30px;
+    font-size: var(--gfs, 30px);
     font-weight: 700;
     color: #fff;
     background: linear-gradient(180deg, var(--red) 0 48%, #0e1430 48% 52%, #f4f1e6 52%);
@@ -2440,11 +2487,13 @@ button,
     .vs-badge {
         width: 60px;
         height: 60px;
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
         justify-self: center;
     }
     .vs-team-name {
-        font-size: 19px;
+        --gs: 19px;
+        font-size: var(--gfs, 19px);
     }
     .vs-side {
         padding: 10px 8px;
@@ -3191,7 +3240,8 @@ button,
 }
 .mh-kind {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(16px, calc(2.6 * var(--vw)), 28px);
+    --gs: clamp(16px, calc(2.6 * var(--vw)), 28px);
+    font-size: var(--gfs, clamp(16px, calc(2.6 * var(--vw)), 28px));
     font-weight: 700;
     letter-spacing: 0.04em;
 }
@@ -3281,11 +3331,13 @@ button,
 }
 .mh-sub .mh-kind {
     color: #7dff8a;
-    font-size: clamp(13px, calc(2 * var(--vw)), 20px);
+    --gs: clamp(13px, calc(2 * var(--vw)), 20px);
+    font-size: var(--gfs, clamp(13px, calc(2 * var(--vw)), 20px));
 }
 .mh-rivalEvolve .mh-kind {
     color: #ffe14d;
-    font-size: clamp(13px, calc(2 * var(--vw)), 20px);
+    --gs: clamp(13px, calc(2 * var(--vw)), 20px);
+    font-size: var(--gfs, clamp(13px, calc(2 * var(--vw)), 20px));
 }
 .mh-rivalEvolve .mh-arrow {
     color: #ffe14d;
@@ -3320,7 +3372,8 @@ button,
     border-radius: 4px;
     background: var(--team);
     color: #fff;
-    font-size: clamp(11px, calc(1.6 * var(--vw)), 15px);
+    --gs: clamp(11px, calc(1.6 * var(--vw)), 15px);
+    font-size: var(--gfs, clamp(11px, calc(1.6 * var(--vw)), 15px));
     text-transform: uppercase;
 }
 .mh-rivalEvolve .mh-name {
@@ -3467,7 +3520,8 @@ button,
 .ht-row .bc-sc {
     margin: 0;
     min-width: 46px;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     line-height: 26px;
 }
 /* barra de dois lados (seu time à esquerda, na sua cor) ou de um lado só (o fôlego) */
@@ -4558,7 +4612,8 @@ button,
 .rh-title {
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(44px, calc(9 * var(--vw)), 92px);
+    --gs: clamp(44px, calc(9 * var(--vw)), 92px);
+    font-size: var(--gfs, clamp(44px, calc(9 * var(--vw)), 92px));
     line-height: 1;
     color: #fffbe6;
     -webkit-text-stroke: 0.04em #d91f1c;
@@ -4640,7 +4695,8 @@ button,
     background: #b9bccf;
     color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(36px, calc(7 * var(--vw)), 64px);
+    --gs: clamp(36px, calc(7 * var(--vw)), 64px);
+    font-size: var(--gfs, clamp(36px, calc(7 * var(--vw)), 64px));
     font-weight: 400;
     line-height: 1;
 }
@@ -4684,7 +4740,8 @@ button,
 .rh-gain b {
     color: var(--green);
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .rh-gain small {
     color: var(--muted);
@@ -4892,7 +4949,8 @@ button,
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: clamp(26px, calc(7 * var(--vw)), 36px);
+    --gs: clamp(26px, calc(7 * var(--vw)), 36px);
+    font-size: var(--gfs, clamp(26px, calc(7 * var(--vw)), 36px));
     line-height: 1.05;
     color: var(--yellow);
     text-shadow: var(--k-out-2);
@@ -5014,7 +5072,8 @@ button,
 }
 .option-fit .m-evo {
     margin: 0 0 0 5px;
-    font-size: 1em;
+    --gs: 1em;
+    font-size: var(--gfs, 1em);
     vertical-align: -1px;
 }
 
@@ -5085,7 +5144,8 @@ button,
 .champ-all .bc-sc {
     margin: 0;
     min-width: 46px;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 26px;
 }
 .champ-h {
@@ -5148,7 +5208,8 @@ button,
         display: none;
     }
     .result-stage .rh-title {
-        font-size: 34px;
+        --gs: 34px;
+        font-size: var(--gfs, 34px);
     }
 }
 /* celular deitado: título, placar, os botões-ícone e a ação (o time e o próximo rival ficam pra tela em pé) */
@@ -5158,7 +5219,8 @@ button,
         display: none;
     }
     .result-stage .rh-title {
-        font-size: 30px;
+        --gs: 30px;
+        font-size: var(--gfs, 30px);
     }
     .result-stage .rh-score b {
         font-size: 30px;
@@ -5310,7 +5372,8 @@ button,
 .champ-plate b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 /* secundários do fim (Melhores momentos, Compartilhar): azul baixo e liso, ícone à esquerda, largura do conteúdo, pra
    o Nova copa da barra ser o único gordo. O ::before leva o toque a 44 px sem mudar o desenho */
@@ -6063,7 +6126,8 @@ a.home-tile {
     top: 8px;
     translate: -50% 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 34px;
+    --gs: 34px;
+    font-size: var(--gfs, 34px);
     color: var(--yellow);
     text-shadow:
         3px 3px 0 #2a4ea0,
@@ -6138,7 +6202,8 @@ a.home-tile {
 .home-hero .logo {
     margin-top: -34px;
     position: relative;
-    font-size: clamp(46px, calc(11 * var(--vw)), 96px);
+    --gs: clamp(46px, calc(11 * var(--vw)), 96px);
+    font-size: var(--gfs, clamp(46px, calc(11 * var(--vw)), 96px));
 }
 /* logo em imagem (SVG): ocupa a largura do texto antigo e sobrepõe a borda da quadra igual */
 .home-hero .logo-img {
@@ -6297,7 +6362,8 @@ a.home-tile {
     background: var(--bc-paper);
     color: var(--bc-ink);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     font-weight: 400;
     line-height: 26px;
     text-align: center;
@@ -6438,6 +6504,7 @@ a.home-tile {
     .menu-screen.pf,
     .menu-screen.credits-screen {
         zoom: var(--k-big, 1);
+        --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
         --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
         --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
     }
@@ -6565,7 +6632,8 @@ a.home-tile {
 .credits-card h2 {
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(16px, calc(4.6 * var(--vw)), 22px);
+    --gs: clamp(16px, calc(4.6 * var(--vw)), 22px);
+    font-size: var(--gfs, clamp(16px, calc(4.6 * var(--vw)), 22px));
     color: var(--yellow);
 }
 .credits-card ul {
@@ -6602,7 +6670,8 @@ a.home-tile {
 .cr-thanks {
     margin: 12px 0 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(18px, calc(5.4 * var(--vw)), 26px);
+    --gs: clamp(18px, calc(5.4 * var(--vw)), 26px);
+    font-size: var(--gfs, clamp(18px, calc(5.4 * var(--vw)), 26px));
     color: var(--yellow);
 }
 .cr-ctrl {
@@ -6795,7 +6864,8 @@ a.home-tile {
 }
 @media (max-width: 380px) {
     .rh-title {
-        font-size: 36px;
+        --gs: 36px;
+        font-size: var(--gfs, 36px);
     }
     .rh-squad {
         gap: 2px;
@@ -6893,7 +6963,8 @@ a.home-tile {
 }
 .hp-mon b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(28px, calc(7 * var(--vw)), 48px);
+    --gs: clamp(28px, calc(7 * var(--vw)), 48px);
+    font-size: var(--gfs, clamp(28px, calc(7 * var(--vw)), 48px));
     color: var(--yellow);
 }
 .hp-mon span {
@@ -6903,7 +6974,8 @@ a.home-tile {
 .hp-no {
     font-family: "Galmuri14", "Galmuri11", monospace;
     color: var(--yellow);
-    font-size: clamp(22px, calc(5 * var(--vw)), 34px);
+    --gs: clamp(22px, calc(5 * var(--vw)), 34px);
+    font-size: var(--gfs, clamp(22px, calc(5 * var(--vw)), 34px));
 }
 .hp-club {
     font-size: clamp(26px, calc(6 * var(--vw)), 42px);
@@ -7715,6 +7787,7 @@ p.muted.center a {
 /* no PC o selo cresce junto com o palco (--k-big): no tamanho do celular ele sumia perto dos botões de 1,35x */
 .unlock-seal {
     zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
 }
 
 /* brilho e raios de efeitos (pacote, VERSUS) podem passar da borda: nunca viram rolagem para o lado */
@@ -8357,7 +8430,8 @@ body {
     padding-left: 6px;
     font-style: normal;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     color: var(--yellow);
 }
 @media (max-width: 899px) {

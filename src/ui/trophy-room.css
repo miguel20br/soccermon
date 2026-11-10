@@ -140,7 +140,8 @@
 .tr-card:not(.ghost) small {
     color: var(--yellow);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .tr-go {
     justify-self: start;
@@ -387,6 +388,7 @@
 @media (min-width: 1100px) and (min-height: 720px) {
     .tr-top {
         zoom: 1.25;
+        --gz: calc(var(--ui-zoom, 1) * 1.25);
     }
 }
 .tr-top {

@@ -26,7 +26,8 @@
     background: var(--lcd-dark);
     color: var(--lcd);
     font-family: "Galmuri14", monospace;
-    font-size: min(10px, calc(100cqw / 22));
+    --gs: min(10px, calc(100cqw / 22));
+    font-size: var(--gfs, min(10px, calc(100cqw / 22)));
     letter-spacing: 0.12em;
     text-transform: uppercase;
     white-space: nowrap;

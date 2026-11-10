@@ -113,7 +113,8 @@
 .vt-rival-txt b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
 }
 .vt-rival-txt small {
     color: color-mix(in srgb, var(--cb-ink), transparent 35%);

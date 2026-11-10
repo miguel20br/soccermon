@@ -71,7 +71,8 @@ button.pc2:hover {
     background: #ffcb05;
     color: #222;
     font-family: "Galmuri14", monospace;
-    font-size: 0.75em;
+    --gs: 0.75em;
+    font-size: var(--gfs, 0.75em);
     box-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -265,7 +266,8 @@ button.pc2:hover {
     background: #fbf8ef;
     color: #1b1d2e;
     font-family: "Galmuri14", monospace;
-    font-size: 0.7em;
+    --gs: 0.7em;
+    font-size: var(--gfs, 0.7em);
     z-index: 2;
 }
 .st-ovr {
@@ -287,7 +289,8 @@ button.pc2:hover {
 }
 .st-ovr b {
     font-family: "Galmuri14", monospace;
-    font-size: 1.15em;
+    --gs: 1.15em;
+    font-size: var(--gfs, 1.15em);
     line-height: 1;
 }
 .st-ovr small {
@@ -339,7 +342,8 @@ button.pc2:hover {
 }
 .st-name {
     font-family: "Galmuri14", monospace;
-    font-size: 1em;
+    --gs: 1em;
+    font-size: var(--gfs, 1em);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     white-space: nowrap;
@@ -363,7 +367,8 @@ button.pc2:hover {
 .st-stats b {
     display: block;
     font-family: "Galmuri14", monospace;
-    font-size: 1.3em;
+    --gs: 1.3em;
+    font-size: var(--gfs, 1.3em);
     color: #1b1d2e;
     line-height: 1.1;
 }
@@ -426,13 +431,15 @@ button.pc2:hover {
     flex: 1;
     min-width: 0;
     font-family: "Galmuri14", monospace;
-    font-size: 0.95em;
+    --gs: 0.95em;
+    font-size: var(--gfs, 0.95em);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .tcg-name .pc2-captain {
-    font-size: 0.7em;
+    --gs: 0.7em;
+    font-size: var(--gfs, 0.7em);
     flex: none;
 }
 .tcg-hp {
@@ -440,7 +447,8 @@ button.pc2:hover {
     flex: none;
     color: #c4161c;
     font-family: "Galmuri14", monospace;
-    font-size: 1.05em;
+    --gs: 1.05em;
+    font-size: var(--gfs, 1.05em);
 }
 .tcg-hp small {
     font-size: 0.5em;
@@ -555,7 +563,8 @@ button.pc2:hover {
 }
 .tcg-atk-name {
     font-family: "Galmuri14", monospace;
-    font-size: 0.7em;
+    --gs: 0.7em;
+    font-size: var(--gfs, 0.7em);
     font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
@@ -564,7 +573,8 @@ button.pc2:hover {
 .tcg-dmg {
     display: block;
     font-family: "Galmuri14", monospace;
-    font-size: 0.8em;
+    --gs: 0.8em;
+    font-size: var(--gfs, 0.8em);
 }
 .tcg-atk-desc {
     grid-column: 2 / 4;
@@ -735,7 +745,8 @@ button.pc2:hover {
     align-items: baseline;
     gap: 0.15em;
     font-family: "Galmuri14", monospace;
-    font-size: 1.7em;
+    --gs: 1.7em;
+    font-size: var(--gfs, 1.7em);
     line-height: 1;
 }
 .dex-ovr small {
@@ -779,7 +790,8 @@ button.pc2:hover {
 .dex-name {
     display: block;
     font-family: "Galmuri14", monospace;
-    font-size: 0.82em;
+    --gs: 0.82em;
+    font-size: var(--gfs, 0.82em);
     border-top: 0.08em dashed #306230;
     padding-top: 0.15em;
     white-space: nowrap;
@@ -940,7 +952,8 @@ button.pc2:hover {
 }
 .holo-ovr b {
     font-family: "Galmuri14", monospace;
-    font-size: 2.1em;
+    --gs: 2.1em;
+    font-size: var(--gfs, 2.1em);
     font-weight: 400;
     line-height: 1;
 }
@@ -993,7 +1006,8 @@ button.pc2:hover {
 .holo-name {
     display: block;
     font-family: "Galmuri14", monospace;
-    font-size: 1.05em;
+    --gs: 1.05em;
+    font-size: var(--gfs, 1.05em);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1017,7 +1031,8 @@ button.pc2:hover {
 .holo-stats b {
     color: #fff;
     font-family: "Galmuri14", monospace;
-    font-size: 1.2em;
+    --gs: 1.2em;
+    font-size: var(--gfs, 1.2em);
     font-weight: 400;
 }
 .pc2-holo .pc2-foil {
@@ -2191,7 +2206,8 @@ button.pc2.pc2-fx:hover {
     background: rgba(255, 255, 255, 0.92);
     color: #1b1d2e;
     font-family: "Galmuri14", monospace;
-    font-size: 0.68em;
+    --gs: 0.68em;
+    font-size: var(--gfs, 0.68em);
 }
 .fg-ovr {
     position: absolute;
@@ -2214,7 +2230,8 @@ button.pc2.pc2-fx:hover {
 }
 .fg-ovr b {
     font-family: "Galmuri14", monospace;
-    font-size: 1.2em;
+    --gs: 1.2em;
+    font-size: var(--gfs, 1.2em);
     line-height: 1;
     text-shadow: 0.04em 0 currentColor;
 }
@@ -2280,7 +2297,8 @@ button.pc2.pc2-fx:hover {
 }
 .fg-name {
     font-family: "Galmuri14", monospace;
-    font-size: 0.95em;
+    --gs: 0.95em;
+    font-size: var(--gfs, 0.95em);
     line-height: 1.15;
     white-space: nowrap;
     overflow: hidden;
@@ -2328,7 +2346,8 @@ button.pc2.pc2-fx:hover {
 }
 .fg-stats b {
     font-family: "Galmuri14", monospace;
-    font-size: 1.75em;
+    --gs: 1.75em;
+    font-size: var(--gfs, 1.75em);
     color: #1b1d2e;
 }
 .fg-ribbon {
@@ -2343,7 +2362,8 @@ button.pc2.pc2-fx:hover {
     background: #1b1d2e;
     color: #fff;
     font-family: "Galmuri14", monospace;
-    font-size: 0.6em;
+    --gs: 0.6em;
+    font-size: var(--gfs, 0.6em);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -3289,7 +3309,8 @@ button.pc2.pc2-fx:hover {
     font-family: "Galmuri14", monospace;
     /* 2.9em arredondado pra múltiplo de 3 px (21, 24, 27, 30…): a Galmuri14 quebra o 9 e o 6 em 17, 18, 22, 28 e 40 px e a carta
        escala em qualquer tamanho; nenhum múltiplo de 3 acima de 18 cai na lista (galmuri14-size.test.ts) */
-    font-size: round(nearest, 2.9em, 3px);
+    --gs: round(nearest, 2.9em, 3px);
+    font-size: var(--gfs, round(nearest, 2.9em, 3px));
     line-height: 0.95;
     letter-spacing: -0.02em;
     text-shadow:
@@ -3298,7 +3319,8 @@ button.pc2.pc2-fx:hover {
 }
 .m-pos {
     font-family: "Galmuri14", monospace;
-    font-size: 0.95em;
+    --gs: 0.95em;
+    font-size: var(--gfs, 0.95em);
     letter-spacing: 0.06em;
     padding-bottom: 0.15em;
     border-bottom: 0.08em solid var(--line);
@@ -3329,7 +3351,8 @@ button.pc2.pc2-fx:hover {
     background: #1f9d45;
     color: #fff;
     font-family: "Galmuri14", monospace;
-    font-size: 0.95em;
+    --gs: 0.95em;
+    font-size: var(--gfs, 0.95em);
     line-height: 1.1;
     text-shadow: none;
     box-shadow: 0 0.1em 0 rgba(0, 0, 0, 0.4);
@@ -3378,7 +3401,8 @@ button.pc2.pc2-fx:hover {
     background: rgba(0, 0, 0, 0.75);
     color: #fff;
     font-family: "Galmuri14", monospace;
-    font-size: 0.55em;
+    --gs: 0.55em;
+    font-size: var(--gfs, 0.55em);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -3394,7 +3418,8 @@ button.pc2.pc2-fx:hover {
     border-top: 0.08em solid var(--line);
     border-bottom: 0.08em solid var(--line);
     font-family: "Galmuri14", monospace;
-    font-size: 1.15em;
+    --gs: 1.15em;
+    font-size: var(--gfs, 1.15em);
     line-height: 1.1;
     white-space: nowrap;
 }
@@ -3436,7 +3461,8 @@ button.pc2.pc2-fx:hover {
 }
 .m-stats b {
     font-family: "Galmuri14", monospace;
-    font-size: 1.25em;
+    --gs: 1.25em;
+    font-size: var(--gfs, 1.25em);
     line-height: 1.1;
     min-width: 1.4em;
     text-align: right;
@@ -3675,7 +3701,8 @@ button.pc2.pc2-fx:hover {
 }
 .pr-stamp text {
     font-family: "Galmuri14", monospace;
-    font-size: 8.4px;
+    --gs: 8.4px;
+    font-size: var(--gfs, 8.4px);
     letter-spacing: 0.04em;
     fill: var(--st-ink);
 }

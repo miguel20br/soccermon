@@ -14,7 +14,8 @@
 }
 .fr-code-num {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: clamp(26px, calc(9 * var(--vw)), 36px);
+    --gs: clamp(26px, calc(9 * var(--vw)), 36px);
+    font-size: var(--gfs, clamp(26px, calc(9 * var(--vw)), 36px));
     letter-spacing: 0.08em;
     color: var(--yellow);
     font-variant-numeric: tabular-nums;
@@ -51,7 +52,8 @@
     background: var(--bg-2);
     color: var(--text);
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }

@@ -469,7 +469,8 @@ button.mm-card,
 }
 .mm-peek .m-ovr::after {
     content: "?";
-    font-size: calc(86cqw / 15 * 2.9);
+    --gs: calc(86cqw / 15 * 2.9);
+    font-size: var(--gfs, calc(86cqw / 15 * 2.9));
 }
 /* o brilho do foil passando (só transform: o background-position com blend repintava a carta a cada quadro) */
 .mm-peek::after {
@@ -874,10 +875,12 @@ button.mm-card,
     transform: skewX(-14deg);
 }
 .mm-slice .cb-num {
-    font-size: 21px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
 }
 .mm-slice.on .cb-num {
-    font-size: 27px;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
 }
 /* os itens do modo só na fatia aberta */
 .mm-slice-more {
@@ -1246,7 +1249,8 @@ button.mm-card,
         font-size: 11px;
     }
     .mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on .cb-num {
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
 }
 /* celular baixo (320 x 640) */
@@ -1307,10 +1311,12 @@ button.mm-card,
         scale: 0.5;
     }
     .mm-slice .cb-num {
-        font-size: 14px;
+        --gs: 14px;
+        font-size: var(--gfs, 14px);
     }
     .mm-slice.on .cb-num {
-        font-size: 21px;
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
     .mm-plate {
         padding: 2px 8px 4px;
@@ -1434,10 +1440,12 @@ button.mm-card,
         font-size: 21px;
     }
     .mm-slice .cb-num {
-        font-size: 27px;
+        --gs: 27px;
+        font-size: var(--gfs, 27px);
     }
     .mm-slice.on .cb-num {
-        font-size: 42px;
+        --gs: 42px;
+        font-size: var(--gfs, 42px);
     }
     .mm-c1 .mm-s-historia,
     .mm-c2 .mm-s-historia,

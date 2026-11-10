@@ -7,12 +7,14 @@
     .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) {
         width: min(860px, 100%);
         zoom: var(--k-big, 1);
+        --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
         --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
         --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
     }
     /* a barra fixa de baixo não herda o zoom da tela (descentralizava ~20 px): volta ao tamanho de antes */
     .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) .ut-nav {
         zoom: calc(1 / var(--k-big, 1));
+        --gz: var(--ui-zoom, 1);
     }
 }
 .ut-panel {
@@ -64,7 +66,8 @@
         padding-right: 6px;
     }
     .ut-wallet .cb-num {
-        font-size: 15px;
+        --gs: 15px;
+        font-size: var(--gfs, 15px);
     }
 }
 
@@ -93,7 +96,8 @@
 }
 .ut-pack-info > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .ut-dots {
     display: flex;
@@ -174,7 +178,8 @@
 }
 .ut-metals b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     color: var(--mc);
 }
 .ut-rule {
@@ -295,7 +300,8 @@
 }
 .ut-rival > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .ut-rival small {
     font-size: 12px;
@@ -322,7 +328,8 @@
     align-items: center;
     gap: 8px;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 24px;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
     color: var(--yellow);
     animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) 200ms both;
 }
@@ -691,7 +698,8 @@
 }
 .ut-season-main b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
 }
 .ut-season-main small {
     font-size: 12px;
@@ -840,7 +848,8 @@
     color: var(--yellow);
 }
 .ut-gain.ut-badge {
-    font-size: 14px;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
 }
 [data-reduce-motion="true"] .ut-pass-card {
     animation: none;
@@ -1391,7 +1400,8 @@
 }
 .ut-slot-row > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     text-align: right;
 }
 .ut-slot-pos {
@@ -1571,7 +1581,8 @@
 }
 .ut-stack-info > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1.2;
 }
 .ut-stack-x {
@@ -1734,7 +1745,8 @@
 }
 .ut-hl-text > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1.2;
     color: var(--text);
 }
@@ -2219,7 +2231,8 @@
 }
 .ut-mode-name {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     font-weight: 400;
     line-height: 1.15;
 }

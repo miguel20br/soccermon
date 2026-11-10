@@ -8,7 +8,8 @@
 }
 .cm-money {
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .cm-cards {
     display: inline-flex;
@@ -79,7 +80,8 @@
 }
 .cm-plaque b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: #3a2414;
     white-space: nowrap;
 }
@@ -329,7 +331,8 @@
 .cm-sheet-head b {
     display: block;
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .cm-sheet-head small {
     display: block;
@@ -666,7 +669,8 @@
 .foul-text b {
     display: block;
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     color: var(--yellow);
     animation: foul-stamp 360ms 380ms var(--ease-pop) both;
 }
@@ -1371,7 +1375,8 @@
 .tr-plaque b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .tr-plaque small {
     color: var(--muted);
@@ -1585,7 +1590,8 @@
     bottom: 0;
     color: #fff;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 14px;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
     font-style: normal;
     text-shadow: 0 2px 0 var(--cb-ink);
     animation: tr-zzz 1.6s var(--ease-out) infinite;
@@ -2053,7 +2059,8 @@
     min-width: 28px;
     margin: 0;
     padding: 0 3px;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     line-height: 26px;
 }
 .gp-tv .gp-note {
@@ -2137,7 +2144,8 @@
     min-width: 26px;
     margin: 0;
     padding: 0 3px;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     line-height: 26px;
 }
 .gp-day:not(.done) .gp-sc {
@@ -2177,7 +2185,8 @@
         height: 24px;
     }
     .gp-sc.bc-sc {
-        font-size: 16px;
+        --gs: 16px;
+        font-size: var(--gfs, 16px);
         line-height: 22px;
     }
 }
@@ -2527,7 +2536,8 @@
 .evs-marquee b {
     display: block;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: max(14px, calc(var(--ep) * 7));
+    --gs: max(14px, calc(var(--ep) * 7));
+    font-size: var(--gfs, max(14px, calc(var(--ep) * 7)));
     line-height: 1;
     white-space: nowrap;
     text-transform: uppercase;

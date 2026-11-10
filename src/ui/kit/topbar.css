@@ -87,7 +87,8 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 /* a barra até o próximo nível (as missões em degraus), chanfrada como o botão */
 .res-xp {
@@ -139,7 +140,8 @@
     position: relative;
     z-index: 1;
     margin-top: 4px;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     line-height: 1;
     --ol: var(--gold-ol);
     text-shadow: var(--k-out-1);
@@ -193,7 +195,8 @@
 }
 .res-chip .cb-num {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 19px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     line-height: 1;
 }
 .res-me:focus-visible,
