@@ -135,7 +135,7 @@ export function playMax(name: MaxSound, at?: number) {
 }
 
 /** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`. */
-type SampleName = 'apito' | 'apito-curto' | `torcida-${CrowdCall}-${number}`;
+type SampleName = 'apito' | 'apito-curto' | 'centro' | `torcida-${CrowdCall}-${number}`;
 /** O que a torcida (que torce por você) faz: gol seu, gol do rival, quase. */
 export type CrowdCall = 'gol' | 'vaia' | 'uuh';
 const CROWD_VARIANTS: Record<CrowdCall, number> = { gol: 3, vaia: 2, uuh: 2 };
@@ -165,6 +165,11 @@ function play(name: SampleName, level: number) {
         src.connect(g).connect(ctx.destination);
         src.start();
     });
+}
+
+/** Jingle do Centro Pokémon (2 s, scripts/musica/pecas/centro.mjs), no canal de efeitos. */
+export function playHealJingle() {
+    play('centro', vol.master * vol.sfx);
 }
 
 /** Apito (canal de efeitos). */
