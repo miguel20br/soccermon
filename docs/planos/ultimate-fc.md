@@ -162,8 +162,8 @@ passe. Somando tudo numa carteira, o Pick Prata cai pra ~6% da semana (ressalva 
 | De onde vêm (típico, 4ª semana) | partida 401 · objetivos e passe 638 Fichas; pacote aberto 122 · venda 140 pontos | partida 401 · objetivos e passe 638 · pacote aberto 608 · venda rápida 702 |
 | Pacote aberto | +5 pontos | **+25 Fichas** |
 | Repetida (venda rápida) | Bronze 1 · Prata 3 · Ouro 8 pontos | **Bronze 5 · Prata 15 · Ouro 40 Fichas** |
-| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 200 · Prata 500 · Ouro 1.200 Fichas** (×20, Miguel 10/11; ×6 em 09/11) |
-| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 300 · Prata 800 · Ouro 2.000 Fichas** (×20, 10/11) |
+| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 160 · Prata 400 · Ouro 960 Fichas** (×16, Miguel 10/11; ×20 e ×6 antes) |
+| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 240 · Prata 640 · Ouro 1.600 Fichas** (×16, 10/11) |
 | Pacote Mini na Loja | 150 Fichas | 150 Fichas (igual) |
 | Primeiros passos, objetivos, passe, partidas | Fichas | iguais |
 
@@ -183,7 +183,7 @@ Ressalvas e o que fica pro Miguel:
    Mini a 250–300, ou pacote aberto a +10/+15. Eu deixaria como está até alguém jogar (diversão > realismo).
 2. **Resolvido (Miguel, 09/11): Picks e Escolher carta com fator 6** (Pick 60 · 150 · 360, carta 90 · 240 · 600): o
    Pick Prata (era 125) não sai mais barato que o Mini (150). Teste em `picks.test.ts`. **Trocado em 10/11 pelo fator
-   20** (Pick 200 · 500 · 1.200, carta 300 · 800 · 2.000), ver "Decidido com o Miguel (10/11)" abaixo.
+   16** (Pick 160 · 400 · 960, carta 240 · 640 · 1.600), ver "Decidido com o Miguel (10/11)" abaixo.
 3. O robô sempre abre tudo e vende toda repetida, não compra, não faz líder nem Evolução; com Evento (dezembro) a conta
    muda pouco (as cartas Evento não são repetidas).
 4. O jogador ativo ganha mais pontos por Ficha (6,2): o fator 5 é o do típico. Com o ativo, seria 6 (Pick Prata 150).
@@ -262,7 +262,7 @@ Ele ficou com as recomendações: **B + C**, e o time titular todo Ouro na 1ª s
    repetida", ou "Quase sem…" quando faltam menos que as 3 opções). O Pick do líder, o de Evento e o "Seu primeiro
    craque" (piso, não `exact`) seguem abrindo pros metais acima. Teste em `picks.test.ts` (Bronze e Prata completos: o
    Pick Bronze só dá Bronze).
-2. **Pick ×20:** Bronze 200 · Prata 500 · Ouro 1.200 Fichas; Escolher carta 300 · 800 · 2.000. Seguem as regras de
+2. **Pick ×16 (aplicado):** Bronze 160 · Prata 400 · Ouro 960 Fichas; Escolher carta 240 · 640 · 1.600. Seguem as regras de
    teste: Pick mais barato que Escolher carta em todo metal, Pick Prata ≥ Pacote Mini (150).
 3. Time titular Ouro: sem mudança (a chance do Ouro fica).
 
@@ -283,8 +283,8 @@ que o Pick Bronze oferecia quando o Bronze estava quase completo (fica com a op�
 sozinho já vai de 3,8 pra 7,8 semanas, e o ×20 vai de 9,7 (09/11, brecha aberta) pra **13,0 no típico** e **10,5 no
 ativo**. O ativo cai na meta (8–12); o típico passa 1 semana (fecha entre a 11ª e a 15ª, ainda antes da metade da
 temporada). Shiny e Ícone seguem longe de completar. Se o Miguel quiser o típico dentro dos 8–12: Pick ×16 (160 · 400 ·
-960) dá 11,7 semanas (10–14) no típico e 9,2 (8–11) no ativo, Shiny 40 · 46 e Ícones 8,2 · 10,0 na 26ª (não aplicado;
-`--econ pick16`). Ressalvas de sempre: o robô
+960) dá 11,7 semanas (10–14) no típico e 9,2 (8–11) no ativo, Shiny 40 · 46 e Ícones 8,2 · 10,0 na 26ª (**aplicado
+pelo Miguel em 10/11**; `--econ pick16`). Ressalvas de sempre: o robô
 gasta tudo assim que dá e não joga líder nem Copa.
 
 ## 1. Como o FC faz
