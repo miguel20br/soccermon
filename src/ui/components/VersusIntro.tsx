@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { CLUBS } from '../../engine/cup';
 import { rivalTrainer } from '../../engine/cup-map';
 import { formationOf } from '../../engine/formations';
@@ -16,7 +16,7 @@ import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../stor
 import { tagFromName } from '../../store/profile';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { FieldSprite } from '../ambientes/FieldSprite';
-import { useSceneScale } from '../ambientes/sprite-scale';
+import { BIG, fitScale, SMALL, useMq, versusScale } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
@@ -50,10 +50,8 @@ const SLOTS = [
     { dx: 1.08, dy: 0.3 },
 ];
 
-function Squad({ team, trainer, dir }: { team: TeamSetup; trainer?: TrainerId; dir: number }) {
+function Squad({ team, trainer, dir, scale }: { team: TeamSetup; trainer?: TrainerId; dir: number; scale: number }) {
     const clock = useSceneClock(true);
-    // um degrau acima da escala dos lugares: o VERSUS é momento, o time aparece grande
-    const scale = useSceneScale() + 1;
     const order = team.lineup
         .map((p) => ({ p, ovr: viewInstance(p).overall }))
         .sort((a, b) => Number(b.p.uid === team.captainUid) - Number(a.p.uid === team.captainUid) || b.ovr - a.ovr)
@@ -61,6 +59,8 @@ function Squad({ team, trainer, dir }: { team: TeamSetup; trainer?: TrainerId; d
     return (
         <ClockCtx.Provider value={clock}>
             <div className={`vsp-squad${trainer ? ' has-trainer' : ''}`}>
+                {/* a altura pensada pro capitão (--u), medida pra escolher a escala (useVsScale) */}
+                <i className="vsp-u" />
                 {/* o treinador fica na ponta de fora da foto, atrás dos Pokémon */}
                 {trainer && (
                     <img
@@ -173,9 +173,33 @@ function CoachTag({ onOpen, name, children }: { onOpen?: () => void; name: strin
     );
 }
 
+/**
+ * A escala do VERSUS: dois degraus acima dos lugares (versusScale: o VERSUS é momento, o time aparece grande), ou a
+ * maior que cabe na menor das duas fotos (fitScale); a mesma pros dois times.
+ */
+function useVsScale() {
+    const ref = useRef<HTMLDivElement>(null);
+    const max = versusScale(useMq(SMALL), useMq(BIG));
+    const [scale, setScale] = useState(max);
+    useLayoutEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const read = () => {
+            const us = [...el.querySelectorAll<HTMLElement>('.vsp-u')].map((u) => u.offsetHeight).filter((u) => u > 0);
+            setScale(us.length ? fitScale(Math.min(...us), max) : max);
+        };
+        read();
+        const ro = new ResizeObserver(read);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [max]);
+    return { ref, scale };
+}
+
 function Side({
     team,
     side,
+    scale,
     name,
     tag,
     label,
@@ -186,6 +210,7 @@ function Side({
 }: {
     team: TeamSetup;
     side: 'home' | 'away';
+    scale: number;
     look: ClubLook;
     name: string;
     tag: string;
@@ -246,7 +271,7 @@ function Side({
                         <span>{quote}</span>
                     </p>
                 )}
-                <Squad team={team} trainer={trainer} dir={side === 'home' ? 2 : 6} />
+                <Squad team={team} trainer={trainer} dir={side === 'home' ? 2 : 6} scale={scale} />
             </div>
         </div>
     );
@@ -377,6 +402,7 @@ export function VersusIntro({
     // rival de monotipo (raro): o treinador avisa no lugar da fala de sempre
     const mono = host ? computeSynergies(away.lineup, away.bench).find((s) => s.mono) : undefined;
     const quote = mono ? t('match.vs.mono', { type: typeName(mono.type) }) : hostText?.pre;
+    const vs = useVsScale();
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -390,10 +416,11 @@ export function VersusIntro({
             aria-modal="true"
             aria-label={t('match.vs.aria', { home: home.name, away: awayName })}
         >
-            <div className="vsp-scene">
+            <div className="vsp-scene" ref={vs.ref}>
                 <Side
                     team={away}
                     side="away"
+                    scale={vs.scale}
                     trainer={awayTrainer ?? (rivalTrainer(away.name) as TrainerId | undefined)}
                     name={awayName}
                     coach={awayCoach}
@@ -414,6 +441,7 @@ export function VersusIntro({
                 <Side
                     team={home}
                     side="home"
+                    scale={vs.scale}
                     trainer={activeTrainer(profile)}
                     name={home.name}
                     coach={homeCoach}

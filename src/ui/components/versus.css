@@ -239,6 +239,13 @@
     --u: min(80cqh, 100cqw / 2.4);
     --base: max(0px, (100cqh - 1.12 * var(--u)) / 2);
 }
+/* a altura do capitão, só pra medir (useVsScale) */
+.vsp-u {
+    position: absolute;
+    height: var(--u);
+    visibility: hidden;
+    pointer-events: none;
+}
 /* chão iluminado na cor do clube */
 .vsp-squad::before {
     content: "";

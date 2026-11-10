@@ -20,7 +20,7 @@ import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon } from './metas';
 import { chosenMode, type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
-import { sceneScale } from './sprite-scale';
+import { estadioScale } from './sprite-scale';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
 import { dirOf, type Pt, type Wild } from './wild';
 
@@ -266,11 +266,11 @@ const SCARE: Record<string, Pt[]> = {
  * As zonas do Estádio: o dorminhoco sentado nas fileiras de baixo da arquibancada (fora da faixa do clube), o gandula
  * correndo na linha de fundo e os torcedores/mascotes na beira, dos lados (o meio é do capitão; deitado, só à
  * direita, porque os botões ficam à esquerda). Todos na escala da cena (sceneScale): 1x no celular pequeno ou baixo,
- * 2x no celular, 3x no PC.
+ * 2x no celular, 4x no PC (estadioScale).
  */
 function zonesOf(small: boolean, big: boolean, wide: boolean): Record<string, ZoneDef> {
     // uma escala pra cena inteira (revisão de arte, F3): arquibancada, gandula, beira e capitão iguais
-    const k = sceneScale(small, big);
+    const k = estadioScale(small, big);
     return {
         stand: {
             ok: (x, y) => y > 0.62 && y < 0.9 && (x < 0.33 || x > 0.67),
@@ -448,7 +448,7 @@ export function Estadio({
                     <Stands clubName={clubName}>
                         <WildZone wild={w} zone="stand" />
                     </Stands>
-                    <Court captain={captain} play={active} scale={sceneScale(small, big)} wild={w} look={look} />
+                    <Court captain={captain} play={active} scale={estadioScale(small, big)} wild={w} look={look} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>
                     <i className="es-wall l" />

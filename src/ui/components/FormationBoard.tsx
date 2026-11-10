@@ -11,7 +11,7 @@ import { useT } from '../../i18n/react';
 import { type SlotRef, useGame } from '../../store/game-store';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { FieldSprite } from '../ambientes/FieldSprite';
-import { BIG, useMq } from '../ambientes/sprite-scale';
+import { boardScale, SMALL, useMq } from '../ambientes/sprite-scale';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
@@ -92,9 +92,9 @@ export function FormationBoard({
     const { t, d } = useT();
     // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
     const boardRef = useRef<HTMLDivElement>(null);
-    // o time em PMD, respirando no Idle como na quadra: 1x no celular, 2x no PC (uma escala só pra prancheta toda)
+    // o time em PMD, respirando no Idle como na quadra: 2x (1x no celular pequeno ou deitado), uma escala só pra prancheta
     const clock = useSceneClock(true);
-    const scale = useMq(BIG) ? 2 : 1;
+    const scale = boardScale(useMq(SMALL));
     useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // barra de evolução: o limiar do seu time (Clube Formador baixa)

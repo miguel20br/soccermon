@@ -6,7 +6,7 @@ import { ClockCtx, useSceneClock } from './clock';
 import { CourtFloor, clubVars, Floodlight, Stands } from './Estadio';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon, type Mon } from './metas';
-import { BIG, sceneScale, useMq, useSceneScale } from './sprite-scale';
+import { BIG, estadioScale, useMq, useSceneScale } from './sprite-scale';
 import './ambientes.css';
 
 /** O mesmo corte do Estádio: capitão 1x em tela pequena ou baixa. */
@@ -68,7 +68,7 @@ export function EstadioBackdrop({ mon, led }: { mon: Mon; led: string }) {
                                     shiny={mon.shiny}
                                     anim="Idle"
                                     dir={0}
-                                    scale={sceneScale(small, big)}
+                                    scale={estadioScale(small, big)}
                                     play
                                     className="es-mon"
                                 />
