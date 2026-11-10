@@ -2806,7 +2806,9 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         sections: [
             {
                 title: 'Match',
-                lines: ['In the 3-1, the wingers play the ball back to the fixo in the build-up instead of only cycling with the pivot'],
+                lines: [
+                    'In the 3-1, the wingers play the ball back to the fixo in the build-up instead of only cycling with the pivot',
+                ],
             },
         ],
     },
