@@ -56,6 +56,66 @@
     flex: 1 1 260px;
 }
 
+/* a placa da região nova (estilo HGSS): desce no canto do mapa, fica 1 s e sobe */
+.cm-scroll-wrap {
+    position: relative;
+    min-width: 0;
+}
+.cm-plaque {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    z-index: 8;
+    padding: 6px 14px 7px;
+    border: 3px solid #3a2414;
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(180deg, #d9a066, #c68a50);
+    box-shadow:
+        inset 0 -3px 0 #9a6234,
+        0 4px 0 rgb(0 0 0 / 35%);
+    pointer-events: none;
+    animation: cm-plaque 1700ms 150ms var(--ease-out) both;
+}
+.cm-plaque b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 16px;
+    color: #3a2414;
+    white-space: nowrap;
+}
+/* no celular a página é que rola (o mapa é comprido): a placa fica presa no alto da tela */
+@media (max-width: 699px), (max-width: 999px) and (min-height: 501px) {
+    .cm-plaque {
+        position: fixed;
+        z-index: 45;
+        top: calc(62px + env(safe-area-inset-top, 0px));
+        left: 16px;
+        border-top: 3px solid #3a2414;
+        border-radius: 6px;
+    }
+}
+@keyframes cm-plaque {
+    0% {
+        translate: 0 -110%;
+    }
+    16%,
+    84% {
+        translate: 0 0;
+    }
+    100% {
+        translate: 0 -110%;
+    }
+}
+@keyframes cm-plaque-fade {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: 1;
+    }
+}
 .cm-scroll {
     border-radius: 10px;
     background: var(--bg-2);
@@ -74,11 +134,19 @@
     width: 100%;
     height: 100%;
 }
+/* a teia apagada (rota-indigo-2.md, U6): o que não dá mais pra alcançar quase some, o caminho possível fica claro */
 .cm-lines line {
-    stroke: rgb(255 255 255 / 55%);
-    stroke-width: 3;
+    stroke: rgb(255 255 255 / 14%);
+    stroke-width: 2;
     stroke-dasharray: 2 7;
     stroke-linecap: round;
+    transition:
+        stroke 240ms var(--ease-out),
+        stroke-width 240ms var(--ease-out);
+}
+.cm-lines line.ahead {
+    stroke: rgb(255 255 255 / 60%);
+    stroke-width: 3;
 }
 .cm-lines line.walked {
     stroke: var(--yellow);
@@ -133,6 +201,19 @@
     z-index: 5;
     color: var(--text);
     cursor: pointer;
+    /* voltando pro mapa, as casas da vez acendem em cascata */
+    animation: cm-open 300ms calc(var(--k, 0) * 60ms + 120ms) var(--ease-out) backwards;
+}
+@keyframes cm-open {
+    from {
+        scale: 0.7;
+        opacity: 0.4;
+    }
+}
+/* casa que não dá mais pra alcançar: discreta */
+.cm-node.far {
+    opacity: 0.5;
+    transition: opacity 240ms var(--ease-out);
 }
 .cm-node.open .hud-icon {
     border-color: var(--yellow);
@@ -312,18 +393,26 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .cm-node.open,
     .cm-node.open .hud-icon,
     .cm-sheet,
     .cm-me {
         animation: none;
         transition: none;
     }
+    .cm-plaque {
+        animation-name: cm-plaque-fade;
+    }
 }
+:root[data-reduce-motion="true"] .cm-node.open,
 :root[data-reduce-motion="true"] .cm-node.open .hud-icon,
 :root[data-reduce-motion="true"] .cm-sheet,
 :root[data-reduce-motion="true"] .cm-me {
     animation: none;
     transition: none;
+}
+:root[data-reduce-motion="true"] .cm-plaque {
+    animation-name: cm-plaque-fade;
 }
 .cm-train h2 {
     margin-top: 0;
@@ -373,50 +462,65 @@
 }
 
 /* cor de cada tipo de casa */
-.cm-node.k-jogo {
+.cm-node.k-jogo,
+.cm-legend-row.k-jogo {
     --kc: #3a6fd0;
 }
-.cm-node.k-ginasio {
+.cm-node.k-ginasio,
+.cm-legend-row.k-ginasio {
     --kc: #c9871c;
 }
-.cm-node.k-mercado {
+.cm-node.k-mercado,
+.cm-legend-row.k-mercado {
     --kc: #2f9a63;
 }
-.cm-node.k-evento {
+.cm-node.k-evento,
+.cm-legend-row.k-evento {
     --kc: #7a4bc4;
 }
-.cm-node.k-treino {
+.cm-node.k-treino,
+.cm-legend-row.k-treino {
     --kc: #d1652a;
 }
-.cm-node.k-bau {
+.cm-node.k-bau,
+.cm-legend-row.k-bau {
     --kc: #8a5a30;
 }
-.cm-node.k-final {
+.cm-node.k-final,
+.cm-legend-row.k-final {
     --kc: #2e2f7a;
 }
 .cm-node:disabled:not(.done):not(.at) .hud-icon {
     filter: saturate(0.55) brightness(0.85);
 }
 
-/* o seu capitão: fica na casa atual e anda até a escolhida */
+/* o seu capitão (o PMD dele): fica na casa atual e anda até a escolhida (Walk, virado pra ela). A caixa é o ponto do
+   pé; --dx/--dy põem ele ao lado da casa (ou em cima dela, no mapa largo) */
 .cm-me {
     position: absolute;
     z-index: 4;
-    width: 52px;
-    height: 52px;
-    translate: 34px -50%;
+    width: 0;
+    height: 0;
+    translate: var(--dx, 0) var(--dy, 0);
     pointer-events: none;
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 45%));
-    animation: cm-bob 1.2s ease-in-out infinite;
     transition:
         left 520ms var(--ease-out),
         top 520ms var(--ease-out),
         translate 520ms var(--ease-out);
 }
-@keyframes cm-bob {
-    50% {
-        transform: translateY(-4px);
-    }
+.cm-me .fs-sprite,
+.cm-me .fs-gif {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+.cm-me .fs-gif {
+    width: 44px;
+    translate: -50% -80%;
 }
 
 /* fala da história: o treinador ao lado da caixa de texto dos jogos, presa embaixo da tela */
@@ -1102,19 +1206,6 @@
     }
     .cm-side .cm-sheet-trainer {
         width: 80px;
-    }
-    .cm-me {
-        width: auto;
-        height: auto;
-        max-height: 64px;
-    }
-    .cm-choose {
-        margin: 0;
-        padding: 14px;
-        border: 2px dashed var(--line);
-        border-radius: 8px;
-        text-align: center;
-        animation: cm-fade-in 240ms ease-out both;
     }
 }
 @keyframes cm-side-in {
@@ -2220,10 +2311,6 @@
     top: 8px;
     right: calc(50% + 16px);
 }
-.cm-w4 .cm-me {
-    width: 44px;
-    height: 44px;
-}
 /* as ligações que dá pra tomar agora: no mapa largo as linhas se cruzam em X, então a de agora fica acesa */
 .cm-lines line.live {
     stroke: var(--yellow);
@@ -2231,20 +2318,24 @@
     stroke-width: 3.5;
 }
 /* casas novas: a cor de cada uma (o Ás com borda dupla, como o Ginásio: é partida mais difícil) */
-.cm-node.h-as {
+.cm-node.h-as,
+.cm-legend-row.h-as {
     --kc: #b8322e;
 }
 .cm-node.h-as .hud-icon {
     border-style: double;
     border-width: 4px;
 }
-.cm-node.h-safari {
+.cm-node.h-safari,
+.cm-legend-row.h-safari {
     --kc: #4f9a3a;
 }
-.cm-node.h-cassino {
+.cm-node.h-cassino,
+.cm-legend-row.h-cassino {
     --kc: #b8901c;
 }
-.cm-node.h-planalto {
+.cm-node.h-planalto,
+.cm-legend-row.h-planalto {
     --kc: #1f7a5a;
 }
 @media (min-width: 1000px) {
@@ -2258,11 +2349,6 @@
     }
     .cm-w4 .cm-label {
         font-size: 10px;
-    }
-    .cm-w4 .cm-me {
-        width: auto;
-        height: auto;
-        max-height: 52px;
     }
 }
 
@@ -2504,4 +2590,68 @@
 :root[data-reduce-motion="true"] .evs,
 :root[data-reduce-motion="true"] .evs-bulbs {
     animation: none;
+}
+
+/* PC: o painel do lado sem casa escolhida: as próximas casas (o que cada uma dá); passar o mouse mostra a ficha */
+.cm-legend {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    animation: cm-side-in 240ms var(--ease-out) both;
+}
+.cm-legend-title {
+    margin: 0 4px 4px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.cm-legend-row {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--dur-ui) var(--ease-out);
+}
+.cm-legend-row:hover,
+.cm-legend-row:focus-visible {
+    background: rgb(255 255 255 / 7%);
+}
+.cm-legend-row:focus-visible {
+    outline: 2px solid var(--yellow);
+}
+.cm-legend-row .hud-icon {
+    box-sizing: content-box;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    padding: 6px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: var(--kc, var(--panel-2));
+    color: #fff;
+}
+.cm-legend-row > span {
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+}
+.cm-legend-row small {
+    color: var(--muted);
+    font-size: 12px;
+}
+/* PC baixo (900 px): o mapa inteiro cabe sem rolar, com as casas menores */
+.cm-map.cm-tight .cm-node > .hud-icon {
+    width: 20px;
+    height: 20px;
+    padding: 5px;
+}
+.cm-map.cm-tight .cm-label {
+    font-size: 9px;
+}
+.cm-map.cm-tight .cm-node {
+    gap: 1px;
 }

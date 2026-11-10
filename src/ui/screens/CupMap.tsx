@@ -67,6 +67,7 @@ import '../trophy-room.css';
 import { FORMATIONS } from '../../engine/formations';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { FieldSprite } from '../ambientes/FieldSprite';
+import { boardScale, SMALL, useMq } from '../ambientes/sprite-scale';
 import { Beat, useCascade } from '../kit/Cascade';
 import { InfoSheet, SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -91,6 +92,9 @@ const ICON: Record<House, HudIconKind> = {
 /** Altura da casa (ícone de 50 px + rótulo = 67 px) com folga: linha mais baixa que isso põe uma casa por cima da outra. */
 const ROW_MIN = 72;
 const ROW_MAX = 84;
+/** PC: a linha mais baixa (casas menores, `cm-tight`) e o que a barra de cima e o título tomam da altura. */
+const ROW_TIGHT = 54;
+const WIDE_CHROME = 162;
 /** Faixa do nome no alto de cada região: o nome fica nela e nunca embaixo de uma casa. */
 const NAME_H = 20;
 const regionIndex = (row: number) => MAP_REGIONS.findIndex((r) => row >= r.rows[0] && row <= r.rows[1]);
@@ -163,13 +167,23 @@ export function CupMap() {
     const openBag = useGame((s) => s.openBag);
     const run = useHeld(live?.status === 'map' && live.map ? live : null);
     const [pick, setPick] = useState<string | null>(null);
+    // PC: a última casa aberta sob o mouse (o painel do lado mostra a ficha dela)
+    const [hover, setHover] = useState<string | null>(null);
     const [walking, setWalking] = useState<string | null>(null);
+    // pra onde o capitão olha andando (PMD: 3 = cima-direita, 4 = de costas, 5 = cima-esquerda)
+    const [walkDir, setWalkDir] = useState(4);
+    // a placa da região (estilo HGSS): só quando o mapa abre com o caminho entrando numa região nova
+    const [plaque] = useState(() => enteredRegion(live));
+    const clock = useSceneClock(true);
+    const meScale = boardScale(useMq(SMALL));
     const { t, d, lang } = useT();
     const scroller = useRef<HTMLDivElement>(null);
     const wide = useMedia(WIDE);
     const vh = useViewportH();
     const map = run?.map;
     const open = useMemo(() => new Set(map ? nextNodes(map, run?.at ?? null).map((n) => n.id) : []), [map, run?.at]);
+    // o que ainda dá pra alcançar daqui (as linhas e casas fora disso ficam discretas)
+    const reach = useMemo(() => (map ? reachable(map, run?.at ?? null) : new Set<string>()), [map, run?.at]);
     // o capitão do rival em cada casa de partida aberta (a mesma conta da janela da casa: o mesmo time)
     const rivalIcons = useMemo(() => {
         const out = new Map<string, PokemonInstance>();
@@ -204,14 +218,26 @@ export function CupMap() {
     }, [moneyNow, seedNow]);
 
     if (!run || !map) return null;
+    // PC: o mapa inteiro cabe na altura (sem rolar e sem a última linha cortada); abaixo de ROW_MIN, casas menores
     const rowH = wide
-        ? Math.max(ROW_MIN, Math.min(112, Math.floor((vh - 190) / (map.rows + 0.7))))
+        ? Math.max(
+              ROW_TIGHT,
+              Math.min(112, Math.floor((vh - WIDE_CHROME - MAP_REGIONS.length * NAME_H) / (map.rows + 0.67))),
+          )
         : Math.max(ROW_MIN, Math.min(ROW_MAX, Math.floor((vh - MOBILE_CHROME) / (map.rows + 0.7))));
+    const tight = rowH < ROW_MIN;
     const pad = Math.round(rowH * 0.67);
     const H = map.rows * rowH + MAP_REGIONS.length * NAME_H;
     const width = (row: number) => map.nodes.filter((x) => x.row === row).length;
     // mapa largo (4 casas por linha): casas menores e o capitão em cima da casa dele (ao lado, cobria a vizinha)
     const w4 = map.nodes.some((n) => n.col >= 3);
+    // as casas abertas acendem em cascata, da esquerda pra direita (60 ms entre elas)
+    const openIdx = new Map(
+        map.nodes
+            .filter((n) => open.has(n.id))
+            .sort((a, b) => a.col - b.col)
+            .map((n, i) => [n.id, i]),
+    );
     const pos = (n: MapNode) => ({
         x: nodeX(n.col, width(n.row), w4),
         y: H - (n.row + 0.5) * rowH - regionIndex(n.row) * NAME_H,
@@ -237,13 +263,53 @@ export function CupMap() {
             enterNode(id);
             return;
         }
+        const to = pos(map.nodes.find((n) => n.id === id)!);
+        const dx = to.x - here.x;
+        setWalkDir(dx > 8 ? 3 : dx < -8 ? 5 : 4);
         setWalking(id);
         window.setTimeout(() => enterNode(id), WALK_MS);
     };
     const cards = run.cards ?? 0;
+    const plaqueEl = plaque && (
+        <div className="cm-plaque" aria-hidden>
+            <b>{d.longCup.region[plaque]}</b>
+        </div>
+    );
     // no desktop a ficha e a fala ficam no painel ao lado; no celular, presas embaixo da tela
     const sheet = chosen && !walking && (
         <NodeSheet key={chosen.id} node={chosen} run={run} lang={lang} onGo={() => go2(chosen.id)} />
+    );
+    // PC: sem casa escolhida, a ficha da última sob o mouse; antes disso, as próximas casas numa lista
+    const hovered =
+        wide && !chosen && !walking && hover && open.has(hover) ? map.nodes.find((n) => n.id === hover) : undefined;
+    const peek = hovered && (
+        <NodeSheet key={hovered.id} node={hovered} run={run} lang={lang} onGo={() => go2(hovered.id)} />
+    );
+    const legend = !walking && (
+        <div className="cm-legend bc-surface">
+            <b className="cm-legend-title">{t('longCup.nextStops')}</b>
+            {map.nodes
+                .filter((n) => open.has(n.id))
+                .sort((a, b) => a.col - b.col)
+                .map((n) => {
+                    const h = houseOf(n);
+                    return (
+                        <button
+                            key={n.id}
+                            type="button"
+                            className={`cm-legend-row k-${n.kind}${h !== n.kind ? ` h-${h}` : ''}`}
+                            onMouseEnter={() => setHover(n.id)}
+                            onClick={() => setPick(n.id)}
+                        >
+                            <HudIcon kind={ICON[h]} />
+                            <span>
+                                <b>{t(`longCup.kind.${h}`)}</b>
+                                <small>{t(`longCup.desc.${h}`)}</small>
+                            </span>
+                        </button>
+                    );
+                })}
+        </div>
     );
     const story = untold && !chosen && (
         <div key={untold.id} className={`cm-story who-${untold.who}`}>
@@ -257,188 +323,255 @@ export function CupMap() {
     );
 
     return (
-        <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}${story ? ' has-story' : ''}`}>
-            {/* a fase ("Partida 3 de 8") só na barra da copa (brand guide): aqui ela contava de outro jeito e brigava */}
-            <MenuHead title={t('longCup.title')} hud="map" />
-            <Coach
-                id="rota"
-                targets={['.cm-node.open', '.cm-cards', '.cm-money']}
-                when={played === 0 && !story && !chosen}
-            />
-            <div className="cm-body">
-                <aside className="cm-side">
-                    <div className="cm-status bc-surface">
-                        <span className="money cm-money">
-                            <CountUp
-                                to={run.money ?? 0}
-                                from={lastMapMoney?.seed === run.seed ? lastMapMoney.n : (run.money ?? 0)}
-                                ms={300}
-                                format={(n) => t('shop.money', { n })}
-                            />
-                        </span>
-                        <span
-                            className={`cm-cards${cards > 0 ? ' used' : ''}`}
-                            aria-label={`${t('longCup.cards')}: ${cards}/${YELLOW_CARDS}`}
-                            role="img"
-                        >
-                            <i className={`cm-card${cards > 0 ? ' on' : ''}`} />
-                            {cards}/{YELLOW_CARDS}
-                        </span>
-                        {/* a regra do amarelo: o balão do mapa ensina e o cartão do resultado explica quando cai */}
-                        {/* Mochila: as pedras guardadas; tocar abre a tela da pedra (usar, guardar de volta, vender) */}
-                        {!!run.bag?.length && (
-                            <span className="cm-bag">
-                                <HudIcon kind="bag" />
-                                {[...new Set(run.bag)].map((s) => {
-                                    const n = run.bag!.filter((x) => x === s).length;
+        <ClockCtx.Provider value={clock}>
+            <div className={`menu-screen cm cm-route${chosen ? ' has-sheet' : ''}${story ? ' has-story' : ''}`}>
+                {/* a fase ("Partida 3 de 8") só na barra da copa (brand guide): aqui ela contava de outro jeito e brigava */}
+                <MenuHead title={t('longCup.title')} hud="map" />
+                <Coach
+                    id="rota"
+                    targets={['.cm-node.open', '.cm-cards', '.cm-money']}
+                    when={played === 0 && !story && !chosen}
+                />
+                <div className="cm-body">
+                    <aside className="cm-side">
+                        <div className="cm-status bc-surface">
+                            <span className="money cm-money">
+                                <CountUp
+                                    to={run.money ?? 0}
+                                    from={lastMapMoney?.seed === run.seed ? lastMapMoney.n : (run.money ?? 0)}
+                                    ms={300}
+                                    format={(n) => t('shop.money', { n })}
+                                />
+                            </span>
+                            <span
+                                className={`cm-cards${cards > 0 ? ' used' : ''}`}
+                                aria-label={`${t('longCup.cards')}: ${cards}/${YELLOW_CARDS}`}
+                                role="img"
+                            >
+                                <i className={`cm-card${cards > 0 ? ' on' : ''}`} />
+                                {cards}/{YELLOW_CARDS}
+                            </span>
+                            {/* a regra do amarelo: o balão do mapa ensina e o cartão do resultado explica quando cai */}
+                            {/* Mochila: as pedras guardadas; tocar abre a tela da pedra (usar, guardar de volta, vender) */}
+                            {!!run.bag?.length && (
+                                <span className="cm-bag">
+                                    <HudIcon kind="bag" />
+                                    {[...new Set(run.bag)].map((s) => {
+                                        const n = run.bag!.filter((x) => x === s).length;
+                                        return (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                className="cm-bag-stone"
+                                                aria-label={`${t('longCup.bag')}: ${t(`longCup.stone.${s}`)}`}
+                                                onClick={() => openBag(s)}
+                                            >
+                                                <StoneMark stone={s} />
+                                                {n > 1 && `×${n}`}
+                                            </button>
+                                        );
+                                    })}
+                                </span>
+                            )}
+                            {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
+                        </div>
+                        {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
+                        {wide && (sheet || story || peek || legend)}
+                    </aside>
+
+                    <div className="cm-scroll-wrap">
+                        {plaque && wide && plaqueEl}
+                        <div className="cm-scroll" ref={scroller}>
+                            <div
+                                className={`cm-map${w4 ? ' cm-w4' : ''}${tight ? ' cm-tight' : ''}`}
+                                style={{ height: H + pad }}
+                            >
+                                {REGIONS.map((r, i) => {
+                                    const top = H - (r.rows[1] + 1) * rowH - (i + 1) * NAME_H;
+                                    const h = (r.rows[1] - r.rows[0] + 1) * rowH + NAME_H + (r.rows[0] === 0 ? pad : 0);
+                                    return (
+                                        <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
+                                            <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
+                                            {DECOR_SPOTS.map((p) => (
+                                                <svg
+                                                    key={`${p.x}-${p.y}`}
+                                                    className={`cm-decor d-${r.decor}`}
+                                                    viewBox="0 0 32 32"
+                                                    style={{ left: `${p.x}%`, top: `${p.y}%` } as CSSProperties}
+                                                    aria-hidden
+                                                >
+                                                    <path d={DECOR[r.decor]} />
+                                                </svg>
+                                            ))}
+                                        </div>
+                                    );
+                                })}
+                                <svg
+                                    className="cm-lines"
+                                    viewBox={`0 0 100 ${H + pad}`}
+                                    preserveAspectRatio="none"
+                                    aria-hidden
+                                >
+                                    {map.nodes.flatMap((n) =>
+                                        n.next.map((id) => {
+                                            const to = map.nodes.find((x) => x.id === id)!;
+                                            const a = pos(n);
+                                            const b = pos(to);
+                                            // o caminho que dá pra tomar agora fica aceso (no mapa largo as linhas se cruzam)
+                                            const live = !walking && n.id === (run.at ?? null) && open.has(id);
+                                            // dá pra passar por ela ainda: meio acesa; o resto, discreta
+                                            const ahead = (reach.has(n.id) || n.id === run.at) && reach.has(id);
+                                            return (
+                                                <line
+                                                    key={`${n.id}>${id}`}
+                                                    className={
+                                                        walked.has(`${n.id}>${id}`)
+                                                            ? 'walked'
+                                                            : live
+                                                              ? 'live'
+                                                              : ahead
+                                                                ? 'ahead'
+                                                                : ''
+                                                    }
+                                                    x1={a.x}
+                                                    y1={a.y}
+                                                    x2={b.x}
+                                                    y2={b.y}
+                                                    vectorEffect="non-scaling-stroke"
+                                                />
+                                            );
+                                        }),
+                                    )}
+                                </svg>
+                                {map.nodes.map((n) => {
+                                    const p = pos(n);
+                                    const isOpen = open.has(n.id) && !walking;
+                                    const state =
+                                        n.id === run.at
+                                            ? ' at'
+                                            : path.includes(n.id)
+                                              ? ' done'
+                                              : isOpen
+                                                ? ' open'
+                                                : reach.has(n.id)
+                                                  ? ''
+                                                  : ' far';
+                                    const house = houseOf(n);
                                     return (
                                         <button
-                                            key={s}
+                                            key={n.id}
                                             type="button"
-                                            className="cm-bag-stone"
-                                            aria-label={`${t('longCup.bag')}: ${t(`longCup.stone.${s}`)}`}
-                                            onClick={() => openBag(s)}
+                                            className={`cm-node k-${n.kind}${house !== n.kind ? ` h-${house}` : ''}${state}${pick === n.id ? ' picked' : ''}`}
+                                            style={
+                                                {
+                                                    left: `${p.x}%`,
+                                                    top: p.y,
+                                                    '--k': openIdx.get(n.id) ?? 0,
+                                                } as CSSProperties
+                                            }
+                                            disabled={!isOpen}
+                                            onMouseEnter={() => isOpen && setHover(n.id)}
+                                            aria-label={[
+                                                t(`longCup.kind.${house}`),
+                                                [
+                                                    n.prize && n.prize !== 'pedra' && t(`longCup.prize.${n.prize}`),
+                                                    n.stone && t(`longCup.stone.${n.stone}`),
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' + '),
+                                            ]
+                                                .filter(Boolean)
+                                                .join(': ')}
+                                            onClick={() => {
+                                                setPick(pick === n.id ? null : n.id);
+                                                // quem já escolheu o caminho não precisa mais da fala por cima do mapa
+                                                if (untold) tell(untold.id);
+                                            }}
                                         >
-                                            <StoneMark stone={s} />
-                                            {n > 1 && `×${n}`}
+                                            <HudIcon kind={ICON[house]} />
+                                            {rivalIcons.has(n.id) && (
+                                                <MonIcon
+                                                    className="cm-node-rival"
+                                                    id={rivalIcons.get(n.id)!.speciesId}
+                                                    shiny={rivalIcons.get(n.id)!.shiny}
+                                                />
+                                            )}
+                                            {n.stone && <StoneMark stone={n.stone} className="cm-node-stone" />}
+                                            {/* o Jogo mostra o prêmio no lugar do nome; as casas abertas, os tipos do caminho */}
+                                            <span className="cm-label">
+                                                {n.prize === 'pedra' && n.stone
+                                                    ? t(`longCup.stoneShort.${n.stone}`)
+                                                    : n.prize && house === 'jogo'
+                                                      ? t(`longCup.prizeShort.${n.prize}`)
+                                                      : t(`longCup.${w4 ? 'kindShort' : 'kind'}.${house}`)}
+                                            </span>
+                                            {isOpen && n.types && (
+                                                <span className="cm-node-types">
+                                                    <TypeIcons types={n.types} size={12} />
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
-                            </span>
-                        )}
-                        {!!run.sponsors?.length && <SponsorSlots sponsors={run.sponsors} />}
-                    </div>
-                    {run.eventNote && <EventNote note={run.eventNote} picks={run.picks} />}
-                    {wide && (sheet || story || <p className="cm-choose muted">{t('longCup.choose')}</p>)}
-                </aside>
-
-                <div className="cm-scroll" ref={scroller}>
-                    <div className={`cm-map${w4 ? ' cm-w4' : ''}`} style={{ height: H + pad }}>
-                        {REGIONS.map((r, i) => {
-                            const top = H - (r.rows[1] + 1) * rowH - (i + 1) * NAME_H;
-                            const h = (r.rows[1] - r.rows[0] + 1) * rowH + NAME_H + (r.rows[0] === 0 ? pad : 0);
-                            return (
-                                <div key={r.id} className={`cm-region rg-${r.id}`} style={{ top, height: h }}>
-                                    <span className="cm-region-name">{d.longCup.region[r.id as RegionId]}</span>
-                                    {DECOR_SPOTS.map((p) => (
-                                        <svg
-                                            key={`${p.x}-${p.y}`}
-                                            className={`cm-decor d-${r.decor}`}
-                                            viewBox="0 0 32 32"
-                                            style={{ left: `${p.x}%`, top: `${p.y}%` } as CSSProperties}
-                                            aria-hidden
-                                        >
-                                            <path d={DECOR[r.decor]} />
-                                        </svg>
-                                    ))}
-                                </div>
-                            );
-                        })}
-                        <svg className="cm-lines" viewBox={`0 0 100 ${H + pad}`} preserveAspectRatio="none" aria-hidden>
-                            {map.nodes.flatMap((n) =>
-                                n.next.map((id) => {
-                                    const to = map.nodes.find((x) => x.id === id)!;
-                                    const a = pos(n);
-                                    const b = pos(to);
-                                    // o caminho que dá pra tomar agora fica aceso (no mapa largo as linhas se cruzam)
-                                    const live = !walking && n.id === (run.at ?? null) && open.has(id);
-                                    return (
-                                        <line
-                                            key={`${n.id}>${id}`}
-                                            className={walked.has(`${n.id}>${id}`) ? 'walked' : live ? 'live' : ''}
-                                            x1={a.x}
-                                            y1={a.y}
-                                            x2={b.x}
-                                            y2={b.y}
-                                            vectorEffect="non-scaling-stroke"
+                                {captain && (
+                                    <span
+                                        className={`cm-me${walking ? ' walking' : ''}`}
+                                        style={
+                                            {
+                                                left: `${here.x}%`,
+                                                top: here.y,
+                                                // o pé na parte de baixo da casa: ao lado dela, pro lado do meio do mapa (nunca
+                                                // em cima da próxima); no mapa largo a vizinha está perto, então em cima da dele
+                                                '--dx': w4 ? '0px' : here.x <= 50 ? '40px' : '-40px',
+                                                '--dy': w4 ? (tight ? '10px' : '14px') : '22px',
+                                            } as CSSProperties
+                                        }
+                                    >
+                                        <FieldSprite
+                                            id={captain.speciesId}
+                                            shiny={captain.shiny}
+                                            anim={walking ? 'Walk' : 'Idle'}
+                                            dir={walking ? walkDir : 0}
+                                            scale={meScale}
                                         />
-                                    );
-                                }),
-                            )}
-                        </svg>
-                        {map.nodes.map((n) => {
-                            const p = pos(n);
-                            const isOpen = open.has(n.id) && !walking;
-                            const state =
-                                n.id === run.at ? ' at' : path.includes(n.id) ? ' done' : isOpen ? ' open' : '';
-                            const house = houseOf(n);
-                            return (
-                                <button
-                                    key={n.id}
-                                    type="button"
-                                    className={`cm-node k-${n.kind}${house !== n.kind ? ` h-${house}` : ''}${state}${pick === n.id ? ' picked' : ''}`}
-                                    style={{ left: `${p.x}%`, top: p.y } as CSSProperties}
-                                    disabled={!isOpen}
-                                    aria-label={[
-                                        t(`longCup.kind.${house}`),
-                                        [
-                                            n.prize && n.prize !== 'pedra' && t(`longCup.prize.${n.prize}`),
-                                            n.stone && t(`longCup.stone.${n.stone}`),
-                                        ]
-                                            .filter(Boolean)
-                                            .join(' + '),
-                                    ]
-                                        .filter(Boolean)
-                                        .join(': ')}
-                                    onClick={() => {
-                                        setPick(pick === n.id ? null : n.id);
-                                        // quem já escolheu o caminho não precisa mais da fala por cima do mapa
-                                        if (untold) tell(untold.id);
-                                    }}
-                                >
-                                    <HudIcon kind={ICON[house]} />
-                                    {rivalIcons.has(n.id) && (
-                                        <MonIcon
-                                            className="cm-node-rival"
-                                            id={rivalIcons.get(n.id)!.speciesId}
-                                            shiny={rivalIcons.get(n.id)!.shiny}
-                                        />
-                                    )}
-                                    {n.stone && <StoneMark stone={n.stone} className="cm-node-stone" />}
-                                    {/* o Jogo mostra o prêmio no lugar do nome; as casas abertas, os tipos do caminho */}
-                                    <span className="cm-label">
-                                        {n.prize === 'pedra' && n.stone
-                                            ? t(`longCup.stoneShort.${n.stone}`)
-                                            : n.prize && house === 'jogo'
-                                              ? t(`longCup.prizeShort.${n.prize}`)
-                                              : t(`longCup.${w4 ? 'kindShort' : 'kind'}.${house}`)}
                                     </span>
-                                    {isOpen && n.types && (
-                                        <span className="cm-node-types">
-                                            <TypeIcons types={n.types} size={12} />
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                        {captain && (
-                            <img
-                                className={`cm-me pixel${walking ? ' walking' : ''}`}
-                                src={cardSprite(captain)}
-                                alt=""
-                                style={
-                                    {
-                                        left: `${here.x}%`,
-                                        top: here.y,
-                                        // ao lado da casa, pro lado do meio do mapa: nunca em cima da próxima casa; no mapa
-                                        // largo a vizinha está perto demais, então ele fica em cima da casa dele
-                                        translate: w4
-                                            ? '-50% -78%'
-                                            : here.x <= 50
-                                              ? '34px -50%'
-                                              : 'calc(-100% - 34px) -50%',
-                                    } as CSSProperties
-                                }
-                            />
-                        )}
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {!wide && sheet && createPortal(sheet, document.body)}
-            {!wide && story && createPortal(story, document.body)}
-        </div>
+                {/* no celular a página rola: a placa vai pro body, presa no alto da tela */}
+                {plaque && !wide && createPortal(plaqueEl, document.body)}
+                {!wide && sheet && createPortal(sheet, document.body)}
+                {!wide && story && createPortal(story, document.body)}
+            </div>
+        </ClockCtx.Provider>
     );
+}
+
+/** Tudo que dá pra alcançar no mapa a partir de `at` (null = antes da 1ª casa). */
+export function reachable(map: NonNullable<LongRunFields['map']>, at: string | null): Set<string> {
+    const seen = new Set<string>();
+    const todo = nextNodes(map, at).map((n) => n.id);
+    while (todo.length) {
+        const id = todo.pop()!;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        todo.push(...(map.nodes.find((n) => n.id === id)?.next ?? []));
+    }
+    return seen;
+}
+
+/** A região em que o caminho entra agora (a da próxima linha, se for outra que a da casa atual), ou null. */
+export function enteredRegion(run: LongRunFields | null | undefined): MapRegion | null {
+    const map = run?.map;
+    if (!map) return null;
+    const next = nextNodes(map, run.at ?? null);
+    if (!next.length) return null;
+    const to = regionOfRow(Math.min(...next.map((n) => n.row))).id;
+    const at = run.at ? map.nodes.find((n) => n.id === run.at) : undefined;
+    return at && regionOfRow(at.row).id === to ? null : to;
 }
 
 /** Escolhas de evento em que o alvo é quem sofre o efeito (o nome dele abre a linha). */

@@ -108,7 +108,6 @@ export const longCup = {
     go: 'Ir',
     avg: 'Média {n}',
     rival: 'Rival',
-    choose: 'Escolha o caminho',
     cards: 'Cartão amarelo',
     cardsHint: 'Primeira derrota no mapa. Mais uma e a Rota acaba.',
     yellowTitle: 'Cartão amarelo',

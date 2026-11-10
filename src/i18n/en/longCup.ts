@@ -104,7 +104,6 @@ export const longCup: typeof pt = {
     go: 'Go',
     avg: 'Avg {n}',
     rival: 'Rival',
-    choose: 'Pick your path',
     cards: 'Yellow card',
     cardsHint: 'First loss on the map. One more and the Road is over.',
     yellowTitle: 'Yellow card',
