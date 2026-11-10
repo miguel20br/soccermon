@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 // A Galmuri14 é pixel: em 17, 18, 22, 28 e 40 px o navegador quebra o desenho do 9 (e do 6 no 40): sai torto
 // (revisão de 10/11/2026: o contador de taças da Sede). Os vizinhos (16, 19, 21, 23, 27, 29, 39, 41) saem certos.
 const BAD = new Set([17, 18, 22, 28, 40]);
-// carta só muda pela galeria ?cards=1 (com o ok do Miguel)
-const SKIP = /(^|\W)\.(pc2|m-ovr|dp-chip|diorama-card|bc-sig)/;
+// carta só muda pela galeria ?cards=1 (com o ok do Miguel); a nota .m-ovr usa round() em múltiplos de 3 px
+const SKIP = /(^|\W)\.(diorama-card|bc-sig)/;
 const SKIP_FILES = ['room-lab.css'];
 
 const files = (dir: string): string[] =>
