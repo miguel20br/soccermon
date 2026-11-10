@@ -416,3 +416,20 @@ Todas as recomendações aprovadas (1 a 10): invasão só no título da Rota (to
 - **C2:** Estádio com a ola, o letreiro CAMPEÕES DA … e o capitão com a taça enquanto a copa campeã é a atual.
   Demo `?demo=estadio-campeao[&rota=1]`.
 - **A7:** créditos curtos depois do desfile no 1º título da Rota (`creditsOn`, `champ.credited`). Demo `?demo=rota-fim`.
+
+## Retorno do Miguel e segunda passada (10/11)
+
+- **"Troféu em cada partida?"** Não era: a cerimônia só sai na Final vencida (`titleCeremony` em `long-cup.ts`, com
+  teste das fases). O vídeo da taça curta abria num apito sem nada dizendo que era a Final; agora a taça termina com a
+  placa CAMPEÕES! no alto.
+- **Quadrado branco:** o flash do desfile do Hall era `position: fixed` dentro do `.hp-mon`, que anima `transform`, e
+  piscava como um retângulo em volta do Pokémon; e a taça usava `cam.flash` (no PC, a quadra inteira branca). O flash
+  do Hall cobre a tela, a taça brilha só nela e o clarão do gol virou um véu de 30%.
+- **Créditos:** guardados pro fim do Modo História (`creditsOn`: nenhum modo de hoje chama).
+- **Torcida da invasão:** 40 torcedores em pixel art com cara de gente (cabelo, boné, bandeira, cachecol, pele e altura
+  variadas), pulando cada um no seu ritmo; a placa CAMPEÕES DA ROTA ÍNDIGO fica no alto da tela.
+- **Dribles:** corte de DRI 78 e 18 m do gol (teto de 2 por time). Em 40 partidas: time de DRI alta 1,82 → 1,20 por
+  partida; time médio 1,00 → 0,53.
+- **Polimento:** câmera da cerimônia por curvas e seguindo suave, confete com física, squash & stretch (gol, capitão
+  pro alto, torcida), insígnia com dois anéis, faíscas e saída voando, taça do Estádio no pixel do capitão, retrato do
+  driblador sempre carregado.
