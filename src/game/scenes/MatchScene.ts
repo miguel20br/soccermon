@@ -916,6 +916,17 @@ export class MatchScene extends Phaser.Scene {
                 if (id <= 151 && !this.textures.exists(key)) this.load.image(key, portraitSrc(id, ['determined']));
             }
         }
+        // drible com nome: a faixa mostra o retrato de quem driblou (sem ele, a faixa do Persian saía sem rosto)
+        const setups = this.md.setups;
+        if (setups && !this.md.replay)
+            for (const d of namedDribblesOf(this.md.result, setups)) {
+                const ids = [this.md.result.roster[d.by]?.speciesId, this.md.result.finalRoster[d.by]?.speciesId];
+                for (const id of ids) {
+                    const key = `portrait-${id}`;
+                    if (id && id <= 151 && !this.textures.exists(key))
+                        this.load.image(key, portraitSrc(id, ['determined']));
+                }
+            }
         // duelo da bicuda: os rostos dos painéis de mangá (quem chutou com dor ou espantado, o goleiro decidido)
         const sd = this.md.result.events.find((x) => x.type === 'showdown');
         if (sd?.type === 'showdown')
