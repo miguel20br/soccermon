@@ -8,7 +8,7 @@ import { Rng } from '../engine/rng';
 import { migrateSave, type RunState, useGame } from './game-store';
 import { nodeOpponent } from './long-cup';
 import { eventChoices, gambleNote, gambleWon, resolveEvent, rollEvent } from './long-events';
-import { buildRotaMap, casaOf, houseOf, MAP_V, roleMatchesLayout } from './rota-map';
+import { buildRotaMap, casaOf, houseOf, MAP_V, ROW_ROLES, roleMatchesLayout } from './rota-map';
 
 const SEEDS = Array.from({ length: 300 }, (_, i) => `largo-${i}`);
 
@@ -25,6 +25,15 @@ describe('mapa largo (opção B da Rota Índigo)', () => {
                 expect(map.nodes.filter((n) => n.row === row)).toHaveLength(4);
             const last = map.nodes.filter((n) => n.row === LONG_ROWS - 1).map(houseOf);
             expect([...last].sort()).toEqual(['centro', 'planalto', 'treino']);
+        }
+    });
+
+    it('toda linha de parada tem um Evento "?" (com 2 Mercados ele saía em metade das linhas)', () => {
+        for (const seed of SEEDS) {
+            const map = buildRotaMap(seed);
+            ROW_ROLES.forEach((role, row) => {
+                if (role === 'S') expect(map.nodes.filter((n) => n.row === row).map(houseOf)).toContain('evento');
+            });
         }
     });
 

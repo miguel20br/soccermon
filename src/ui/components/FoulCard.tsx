@@ -7,9 +7,16 @@ import '../long-cup.css';
 /**
  * Cartão da Copa longa no resultado (docs/planos/copa-longa.md). Amarelo: a 1ª derrota fora da Final; o cartão cai
  * girando, bate e fica. Vermelho: a 2ª; o segundo amarelo encosta no primeiro, os dois viram vermelho e o resto do
- * caminho até a Final é bloqueado, casa por casa. Com Reduzir movimento, só o fade (motion.css cuida das animações).
+ * caminho até a Final é bloqueado, casa por casa. Perdoada (derrota na 1ª partida, `forgivenLoss`): o amarelo cai e
+ * apaga, só o contorno fica. Com Reduzir movimento, só o fade (motion.css cuida das animações).
  */
-export function FoulCard({ kind, remaining = 0 }: { kind: 'yellow' | 'red'; remaining?: number }) {
+const TEXT = {
+    forgiven: ['longCup.forgivenTitle', 'longCup.forgivenHint'],
+    yellow: ['longCup.yellowTitle', 'longCup.cardsHint'],
+    red: ['longCup.redTitle', 'longCup.redLine'],
+} as const;
+
+export function FoulCard({ kind, remaining = 0 }: { kind: 'forgiven' | 'yellow' | 'red'; remaining?: number }) {
     const { t } = useT();
     useEffect(() => {
         playSample('apito-curto', 0.9);
@@ -25,8 +32,8 @@ export function FoulCard({ kind, remaining = 0 }: { kind: 'yellow' | 'red'; rema
                 {kind === 'red' && <span className="foul-card c2" />}
             </div>
             <div className="foul-text">
-                <b>{t(kind === 'yellow' ? 'longCup.yellowTitle' : 'longCup.redTitle')}</b>
-                <small>{t(kind === 'yellow' ? 'longCup.cardsHint' : 'longCup.redLine')}</small>
+                <b>{t(TEXT[kind][0])}</b>
+                <small>{t(TEXT[kind][1])}</small>
             </div>
             {kind === 'red' && remaining > 0 && (
                 <div className="foul-road">

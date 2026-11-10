@@ -34,6 +34,12 @@ export const longWinEarnings = (score: readonly number[], sponsors: readonly str
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
+/**
+ * A derrota na 1ª partida da Rota é perdoada: volta pro mapa sem cartão (Miguel, 10/11/2026; rota-indigo-2.md). 20% das
+ * Rotas acabavam na 2ª partida, com o time ainda do draft; no robô o título foi de 30% a 35%.
+ */
+export const forgivenLoss = (run: { mode?: CupMode; results: readonly unknown[] }, won: boolean) =>
+    !won && isLong(run) && run.results.length === 0;
 
 /** Raridade (linha da `TIER_ODDS`) do reforço, do Mercado e do pacote pela partida: pior no começo, melhor no fim. */
 export const LONG_ROUND = [1, 2, 3, 4, 5, 6, 6, 6];
@@ -309,10 +315,11 @@ export function foulOf(run: {
     mode?: CupMode;
     status: string;
     stage: number;
-    results: { won: boolean }[];
-}): 'yellow' | 'red' | null {
-    if (!isLong(run) || run.results.at(-1)?.won !== false) return null;
-    if (run.status === 'map') return 'yellow';
+    results: { won: boolean; forgiven?: boolean }[];
+}): 'forgiven' | 'yellow' | 'red' | null {
+    const last = run.results.at(-1);
+    if (!isLong(run) || last?.won !== false) return null;
+    if (run.status === 'map') return last.forgiven ? 'forgiven' : 'yellow';
     return run.status === 'eliminated' && run.stage < GROUP_START ? 'red' : null;
 }
 

@@ -112,6 +112,9 @@ export const longCup = {
     cards: 'Cartão amarelo',
     cardsHint: 'Primeira derrota no mapa. Mais uma e a Rota acaba.',
     yellowTitle: 'Cartão amarelo',
+    /** Derrota na 1ª partida da Rota: sem cartão. */
+    forgivenTitle: 'Sem cartão',
+    forgivenHint: 'A 1ª partida da Rota é perdoada. A próxima derrota no mapa já vale amarelo.',
     out: 'Fim da linha na partida {n}',
     outHero: 'Fora na partida {n} de {total}',
     redCardTitle: 'DERROTA',

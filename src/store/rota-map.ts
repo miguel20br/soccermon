@@ -104,9 +104,11 @@ export function buildRotaMap(seed: string): CupMap {
             row === 1 ? ['evento', 'treino', 'safari', 'bau'] : ['evento', 'treino', 'safari', 'cassino'],
         );
         if (!shopRows.has(row)) return extra;
-        return rng.chance(0.5)
-            ? ['mercado', extra[0], 'mercado', extra[1]]
-            : [extra[0], 'mercado', extra[1], 'mercado'];
+        // um Evento "?" garantido por linha de parada (Miguel, 10/11; rota-indigo-2.md): com os 2 Mercados ele saía em
+        // metade das linhas. Fica numa das 2 casas que sobram, no lugar que o embaralho já deu (sem sorteio a mais)
+        const two = extra.slice(0, 2);
+        two[extra.indexOf('evento') % 2] = 'evento';
+        return rng.chance(0.5) ? ['mercado', two[0], 'mercado', two[1]] : [two[0], 'mercado', two[1], 'mercado'];
     });
     const rows: RotaNode[][] = houses.map((line, row) =>
         line.map((h, col) => ({

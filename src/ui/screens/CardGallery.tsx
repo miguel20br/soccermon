@@ -533,6 +533,7 @@ function FoulReplay() {
     const [n, setN] = useState(0);
     return (
         <div key={n}>
+            <FoulCard kind="forgiven" />
             <FoulCard kind="yellow" />
             <FoulCard kind="red" remaining={4} />
             <button type="button" className="btn small" onClick={() => setN(n + 1)}>

@@ -108,6 +108,8 @@ export const longCup: typeof pt = {
     cards: 'Yellow card',
     cardsHint: 'First loss on the map. One more and the Road is over.',
     yellowTitle: 'Yellow card',
+    forgivenTitle: 'No card',
+    forgivenHint: 'The first match of the Road is forgiven. The next loss on the map is a yellow.',
     out: 'The road ends at match {n}',
     outHero: 'Out at match {n} of {total}',
     redCardTitle: 'DEFEAT',

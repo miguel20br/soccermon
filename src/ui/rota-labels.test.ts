@@ -93,6 +93,10 @@ describe('Rota Índigo: cartão da derrota', () => {
         expect(foulOf(rota({ status: 'map', stage: 0, results: lost(1) as never }))).toBe('yellow');
         expect(foulOf(rota({ status: 'eliminated', stage: 2, results: lost(3) as never }))).toBe('red');
     });
+    it('derrota perdoada (1ª partida) não é amarelo', () => {
+        const r = [{ ...result(0, false), forgiven: true }];
+        expect(foulOf(rota({ status: 'map', stage: 0, results: r as never }))).toBe('forgiven');
+    });
     it('cair no grupo ou perder a Final não é cartão vermelho (o cartão aparecia na saída do grupo)', () => {
         expect(foulOf(rota({ status: 'eliminated', stage: 6, results: lost(7) as never }))).toBeNull();
         expect(foulOf(rota({ status: 'group', stage: 5, results: lost(6) as never }))).toBeNull();

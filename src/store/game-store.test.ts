@@ -34,7 +34,7 @@ import {
     useGame,
     withSettingDefaults,
 } from './game-store';
-import { groupTable } from './long-cup';
+import { foulOf, groupTable } from './long-cup';
 import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf, stoners } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
 import { casaOf } from './rota-map';
@@ -759,7 +759,7 @@ describe('Copa longa', () => {
         expect(now.opponents[0]?.name).toBeTruthy();
     });
 
-    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota fora da Final é cartão amarelo', () => {
+    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota na 1ª partida é perdoada', () => {
         const run = start('longa-partida');
         // a casa sem pedra (a da pedra abre a tela dela depois do rival)
         useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0 && !n.stone)!.id);
@@ -779,8 +779,39 @@ describe('Copa longa', () => {
             expect(useGame.getState().run!.status).toBe('map');
         } else {
             expect(after.status).toBe('map');
-            expect(after.cards).toBe(1);
+            expect(after.cards ?? 0).toBe(0);
         }
+    });
+
+    it('a 1ª derrota da Rota não dá amarelo; a 2ª no mapa dá, e a 3ª é o vermelho', () => {
+        start('longa-perdoa');
+        const lose = (row: number) => {
+            const now = useGame.getState().run!;
+            const node = now.map!.nodes.find((n) => n.row === row && n.kind === 'jogo' && !n.stone)!;
+            // a casa de antes ligada nela (o mapa largo só abre as casas ligadas à atual)
+            const from = now.map!.nodes.find((n) => n.next.includes(node.id))?.id ?? null;
+            useGame.setState({ run: { ...now, status: 'map', at: from } });
+            useGame.getState().enterNode(node.id);
+            const cur = useGame.getState().run!;
+            const team = playerTeam(cur, 15221311);
+            useGame.getState().lockMatch(team);
+            const m = runMatch(FUTSAL_5, team, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
+            useGame.getState().recordResult({ ...m, winner: 1, score: [0, 3] });
+            return useGame.getState().run!;
+        };
+        const first = lose(0);
+        expect(first.status).toBe('map');
+        expect(first.cards ?? 0).toBe(0);
+        expect(first.results[0].forgiven).toBe(true);
+        expect(foulOf(first)).toBe('forgiven');
+        const second = lose(2);
+        expect(second.status).toBe('map');
+        expect(second.cards).toBe(1);
+        expect(second.results[1].forgiven).toBeUndefined();
+        expect(foulOf(second)).toBe('yellow');
+        const third = lose(5);
+        expect(third.status).toBe('eliminated');
+        expect(foulOf(third)).toBe('red');
     });
 
     it('Mercado é casa do mapa: juros ao entrar, sair volta pro mapa', () => {

@@ -33,12 +33,13 @@ describe('times dos líderes de ginásio', () => {
 
 // Torcida a favor (Miguel, 05/11/2026): menos zebra contra o jogador, só no PVE
 describe('torcida a favor', () => {
-    it('Copa -4%, Rota -7% nas 3 primeiras e -4% depois', () => {
+    it('Copa -4%, Rota -7% nas 3 primeiras e -4% depois; a Final da Rota sem torcida (era a partida mais fácil)', () => {
         for (const o of buildCupOpponents('torcida')) expect(o.crowd).toBe(CROWD);
         expect(longOpponent('torcida', 0, 'jogo', []).crowd).toBe(CROWD_ROUTE_START);
         expect(longOpponent('torcida', 2, 'jogo', []).crowd).toBe(CROWD_ROUTE_START);
         expect(longOpponent('torcida', 3, 'jogo', []).crowd).toBe(CROWD);
-        expect(longOpponent('torcida', 7, 'final', []).crowd).toBe(CROWD);
+        expect(longOpponent('torcida', 6, 'ginasio', []).crowd).toBe(CROWD);
+        expect(longOpponent('torcida', 7, 'final', []).crowd).toBeUndefined();
     });
 
     it('carta = campo: o modificador sai com o rótulo e o fator', () => {

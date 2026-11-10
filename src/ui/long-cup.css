@@ -716,6 +716,25 @@
     color: var(--red);
     animation-delay: 1200ms;
 }
+/* perdoada (1ª partida da Rota): o amarelo cai e apaga, fica só o contorno */
+.foul-forgiven .foul-card {
+    animation-name: foul-drop, foul-void;
+    animation-duration: 560ms, 320ms;
+    animation-delay: 0ms, 900ms;
+    animation-timing-function: var(--ease-pop), var(--ease-out);
+    animation-fill-mode: both, forwards;
+}
+@keyframes foul-void {
+    to {
+        background: transparent;
+        box-shadow: inset 0 0 0 3px var(--yellow);
+        opacity: 0.6;
+    }
+}
+.foul-forgiven .foul-text b {
+    color: var(--green);
+    animation-delay: 1000ms;
+}
 /* o resto do caminho até a Final, bloqueado casa por casa */
 .foul-road {
     position: relative;

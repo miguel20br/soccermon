@@ -434,7 +434,8 @@ export function longOpponent(
         color: club.color,
         formation: club.formation,
         captainUid: d.captainUid,
-        crowd: match < 3 ? CROWD_ROUTE_START : CROWD,
+        // a Final no Planalto sem a torcida a favor (Miguel, 10/11/2026: era a partida mais fácil da Rota)
+        ...(kind !== 'final' && { crowd: match < 3 ? CROWD_ROUTE_START : CROWD }),
     };
 }
 

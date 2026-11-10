@@ -72,6 +72,7 @@ import {
     type CupMode,
     cupLength,
     currentNode,
+    forgivenLoss,
     groupQualified,
     groupTable,
     isFinalStage,
@@ -220,6 +221,8 @@ export interface StageResult {
     replay?: { team: TeamSetup; orders: MatchOrder[]; engine: number };
     /** Rota: o ₽ a mais desta partida (prêmio "₽ em dobro", Equipe Rocket, aposta do Blue). */
     bonus?: MatchBonus;
+    /** Rota: derrota perdoada (a 1ª partida não dá cartão amarelo, `forgivenLoss`). */
+    forgiven?: boolean;
 }
 
 /** Resumo de uma partida guardado no run (o MatchResult inteiro é grande demais para salvar). */
@@ -1858,7 +1861,10 @@ export const useGame = create<GameStore>()(
                     // Rota Índigo: nas eliminatórias (mapa) a 1ª derrota é um cartão amarelo (volta pro mapa) e a 2ª, o
                     // vermelho; no grupo a derrota só dá menos pontos, e quem não fica entre os 2 primeiros sai na 3ª rodada
                     const longRun = isLong(run);
-                    const yellow = !won && longRun && run.stage < GROUP_START && (run.cards ?? 0) < YELLOW_CARDS;
+                    const forgiven = forgivenLoss(run, won);
+                    if (forgiven) result.forgiven = true;
+                    const yellow =
+                        !won && !forgiven && longRun && run.stage < GROUP_START && (run.cards ?? 0) < YELLOW_CARDS;
                     const inGroup = longRun && isGroupStage(run.stage);
                     const groupOut =
                         inGroup &&
@@ -1872,7 +1878,7 @@ export const useGame = create<GameStore>()(
                               : bonus.prize !== undefined && !rivalPick
                                 ? 'map'
                                 : 'reward'
-                          : yellow
+                          : yellow || forgiven
                             ? 'map'
                             : inGroup
                               ? 'group'

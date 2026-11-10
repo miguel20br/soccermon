@@ -569,14 +569,18 @@ export function runDevDemo() {
         return;
     }
     // ?demo=eliminado&rota=1: a Rota no meio do mapa, já com um amarelo; o time fraco perde a próxima e cai
-    // (`&amarelo=1`: sem cartão ainda, a derrota vira o 1º amarelo e volta pro mapa)
+    // (`&amarelo=1`: sem cartão ainda, a derrota vira o 1º amarelo e volta pro mapa; `&perdoada=1`: perde a 1ª partida
+    // da Rota, que não dá cartão)
     if (demo === 'eliminado' && new URLSearchParams(window.location.search).get('rota') === '1') {
-        demoLongMap(store, true);
+        const first = new URLSearchParams(window.location.search).has('perdoada');
+        demoLongMap(store, !first);
         if (new URLSearchParams(window.location.search).has('amarelo'))
             useGame.setState({ run: { ...useGame.getState().run!, cards: 0 } });
         const at = useGame.getState().run!;
         const next = at.map!.nodes.find(
-            (n) => at.map!.nodes.find((x) => x.id === at.at)!.next.includes(n.id) && n.kind === 'jogo',
+            (n) =>
+                n.kind === 'jogo' &&
+                (first ? n.row === 0 : at.map!.nodes.find((x) => x.id === at.at)!.next.includes(n.id)),
         );
         if (!next) return;
         useGame.getState().enterNode(next.id);
