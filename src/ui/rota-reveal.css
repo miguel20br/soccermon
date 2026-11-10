@@ -777,6 +777,51 @@
     white-space: nowrap;
 }
 
+/* ---------- cena baixa (celular pequeno, 320x568: ~125 px): tudo menor e a placa por cima, embaixo ---------- */
+@container (max-height: 200px) {
+    .ev-reveal {
+        gap: 0;
+        padding: 4px;
+    }
+    .ev-reveal .rv-text {
+        position: absolute;
+        left: 50%;
+        top: auto;
+        bottom: 4px;
+        translate: -50% 0;
+        padding: 2px 8px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    .ev-reveal .rv-text small {
+        font-size: 10px;
+    }
+    .ev-reveal .rv-text .mon-icon {
+        display: none;
+    }
+    .rv-slot {
+        --s: 24px;
+        padding-top: 8px;
+        border-width: 2px;
+    }
+    .rv-tray {
+        height: 6px;
+        margin-top: 4px;
+    }
+    .rv-counter {
+        --wd: 70cqh;
+    }
+    /* a carta não cabe: a placa diz quem é ("Scyther entra no lugar de…") */
+    .rv-prize {
+        display: none;
+    }
+    .rv-safari .rv-text,
+    .rv-heal-text {
+        top: 4px;
+        bottom: auto;
+    }
+}
+
 /* ---------- pular (toque) e Reduzir movimento: o último quadro, sem andar (no fim do arquivo e com especificidade
    maior que a de cada peça: ganha sem !important) ---------- */
 .ev-scene.skip .ev-reveal,

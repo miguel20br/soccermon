@@ -78,6 +78,7 @@ export const longCup: typeof pt = {
         perdeu: 'Not this time',
         estrelas: 'Three stars!',
         swap: "Takes {b}'s spot",
+        swapIn: "{a} takes {b}'s spot",
         curou: 'All better! Come again.',
     },
     casinoBroke: 'Needs ₽{n} to play',

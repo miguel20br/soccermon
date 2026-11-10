@@ -1229,7 +1229,10 @@ export function EventScreen() {
                                     text={t(`longCup.reveal.${reveal.won ? 'ganhou' : 'perdeu'}`)}
                                     sub={
                                         reveal.won && reveal.card && reveal.target
-                                            ? t('longCup.reveal.swap', { b: nameOf(reveal.target) })
+                                            ? t('longCup.reveal.swapIn', {
+                                                  a: viewInstance(reveal.card).displayName,
+                                                  b: nameOf(reveal.target),
+                                              })
                                             : undefined
                                     }
                                 />

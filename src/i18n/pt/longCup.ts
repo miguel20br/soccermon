@@ -81,6 +81,7 @@ export const longCup = {
         perdeu: 'Não foi dessa vez',
         estrelas: 'Três estrelas!',
         swap: 'Entra no lugar de {b}',
+        swapIn: '{a} entra no lugar de {b}',
         curou: 'Prontinho! Volte sempre.',
     },
     casinoBroke: 'Precisa de ₽{n} pra jogar',
