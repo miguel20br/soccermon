@@ -215,3 +215,19 @@ export function CheckIcon() {
         </svg>
     );
 }
+
+/** Lápis: o nome é editável. */
+export function PencilIcon({ className = 'pf-ico' }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" aria-hidden>
+            <path
+                d="M4 20 L5 15.5 L15.5 5 A2.1 2.1 0 0 1 19 8.5 L8.5 19 Z M13.5 7 L17 10.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}

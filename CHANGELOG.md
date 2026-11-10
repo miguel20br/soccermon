@@ -1,5 +1,12 @@
 # Novidades
 
+## 0.9.47.1 · Seu nome em todo lugar (2026-11-10)
+
+### Consertos
+- Logado com o Google e sem nome escolhido: a barra de cima e os rankings mostram seu primeiro nome, não "Treinador"
+- Lápis ao lado do nome no Perfil pra mostrar que dá pra editar
+- Login pelo atalho da tela inicial do iPhone
+
 ## 0.9.47 · Final de verdade (2026-11-10)
 
 ### Rota Índigo

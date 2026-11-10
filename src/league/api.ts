@@ -1,8 +1,8 @@
-import { cloudEnabled, cloudUserId, loadCloud } from '../cloud/cloud';
+import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { ENGINE_VERSION } from '../engine/config';
 import type { DuelTeamRecipe } from '../engine/duel-validate';
 import type { MatchOrder, TeamSetup } from '../engine/state';
-import type { Profile } from '../store/profile';
+import { type Profile, trainerNameOf } from '../store/profile';
 import { seasonOf } from './rules';
 
 /**
@@ -11,15 +11,15 @@ import { seasonOf } from './rules';
  * trocam o servidor por um de mentira (src/league/demo.ts).
  */
 
-/** Como você aparece no ranking: o nome do treinador no jogo (nunca o da conta Google) e o clube. */
+/** Como você aparece no ranking: o mesmo nome do Perfil (`trainerNameOf`: nunca o nome completo do Google) e o clube. */
 export interface PublicInfo {
     trainer: string;
     club: string;
     tag: string;
     color: string;
 }
-export const publicInfo = (p: Profile): PublicInfo => ({
-    trainer: p.trainerName.trim().slice(0, 40) || 'Treinador',
+export const publicInfo = (p: Profile, googleName = useCloud.getState().user?.name): PublicInfo => ({
+    trainer: trainerNameOf(p, googleName).slice(0, 40) || 'Treinador',
     club: p.clubName.trim().slice(0, 22) || 'Pallet FC',
     tag: p.clubTag.slice(0, 3) || 'PAL',
     color: p.clubColor,

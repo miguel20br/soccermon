@@ -4,7 +4,15 @@ import { type DuelTeamRecipe, teamRecipe } from '../engine/duel-validate';
 import { simulateLiga } from '../engine/league';
 import { dailyDay, putDaily } from '../store/daily';
 import { useGame } from '../store/game-store';
-import { type DailyRow, type LeagueServer, type LigaOpen, type LigaRow, type LigaStatus, setLeagueServer } from './api';
+import {
+    type DailyRow,
+    type LeagueServer,
+    type LigaOpen,
+    type LigaRow,
+    type LigaStatus,
+    publicInfo,
+    setLeagueServer,
+} from './api';
 import { eloAfter } from './rules';
 
 /**
@@ -109,13 +117,17 @@ export function startLeagueDemo(kind: 'dia' | 'liga', state: string | null) {
     const server: LeagueServer = {
         dailyBegin: async () => ({ day: dailyDay() }),
         dailyReport: async () => true,
-        dailyRanking: async (_day, friends) =>
-            friends
-                ? DAILY_ROWS.filter((r) => r.me || ['Davi', 'Ana Clara'].includes(r.trainer)).map((r, i) => ({
-                      ...r,
-                      pos: i + 1,
-                  }))
-                : DAILY_ROWS,
+        dailyRanking: async (_day, friends) => {
+            // a sua linha com o nome que o jogo mandaria (publicInfo): o mesmo do Perfil e da barra de cima
+            const rows = DAILY_ROWS.map((r) =>
+                r.me ? { ...r, trainer: publicInfo(useGame.getState().profile).trainer } : r,
+            );
+            return friends
+                ? rows
+                      .filter((r) => r.me || ['Davi', 'Ana Clara'].includes(r.trainer))
+                      .map((r, i) => ({ ...r, pos: i + 1 }))
+                : rows;
+        },
         ligaStatus: async (day): Promise<LigaStatus> => ({
             season: day.slice(0, 7),
             elo,
@@ -163,7 +175,7 @@ export function startLeagueDemo(kind: 'dia' | 'liga', state: string | null) {
         },
     };
     setLeagueServer(server);
-    useCloud.setState({ user: { name: 'Miguel', avatar: null }, status: 'saved' });
+    useCloud.setState({ user: { name: 'Miguel Cunha', avatar: null }, status: 'saved' });
     if (kind === 'dia' && state === 'feito') {
         useGame.setState({
             daily: putDaily(useGame.getState().daily, {

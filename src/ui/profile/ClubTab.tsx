@@ -32,7 +32,7 @@ import {
 } from '../../store/profile';
 import { Stepper } from '../kit/controls';
 import { Crest, KitShirt, kitBackground } from './Crest';
-import { avatarGif, bannerText, hexCss, titleName } from './club';
+import { avatarGif, bannerText, hexCss, titleName, trainerLabel } from './club';
 import { CheckIcon, LockIcon, ShinySpark } from './icons';
 import { useMedalView } from './Medals';
 import { NewBadge } from './news';
@@ -137,7 +137,7 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
                             className="pf-input"
                             value={profile.trainerName}
                             maxLength={20}
-                            placeholder={user?.name || t('profile.trainer')}
+                            placeholder={trainerLabel({ ...profile, trainerName: '' }, user?.name)}
                             autoComplete="nickname"
                             onChange={(e) => save({ trainerName: e.target.value })}
                             onBlur={(e) => {

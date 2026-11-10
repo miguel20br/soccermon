@@ -3,7 +3,7 @@ import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { MISSIONS } from '../../store/missions';
-import { hexCss, trainerLabel, useAvatar } from '../profile/club';
+import { hexCss, useAvatar, useTrainerLabel } from '../profile/club';
 import { frameClass, useShowcase } from '../profile/Medals';
 import { NewDot, useNews } from '../profile/news';
 import { reduceMotionOn } from '../settings-sync';
@@ -45,7 +45,7 @@ export function TopBar() {
     const avatar = useAvatar();
     const frame = useShowcase().frame;
     const news = useNews();
-    const name = trainerLabel(profile);
+    const name = useTrainerLabel();
     const lv = trainerLevel(profile.missionsDone.filter((id) => MISSION_IDS.has(id)).length);
     return (
         <div className="amb-res">

@@ -4,7 +4,7 @@ import { SPECIES } from '../../engine/data';
 import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import { DEFAULT_TITLE, MISSIONS, type Mission, missionOfTrainer, type TrainerId } from '../../store/missions';
-import { type Avatar, bannerOf, clubColorHex, type Profile, rivalColor } from '../../store/profile';
+import { type Avatar, bannerOf, clubColorHex, type Profile, rivalColor, trainerNameOf } from '../../store/profile';
 import { CUSTOM_TITLES, titleClass } from '../../store/title-codes';
 import './club.css';
 
@@ -20,10 +20,20 @@ export function clubVars(club: number, rival?: number): CSSProperties {
     return vars as CSSProperties;
 }
 
-/** Nome que aparece para o treinador: o escolhido, senão o da conta Google, senão "Treinador". */
-export function trainerLabel(profile: Profile, googleName?: string | null): string {
-    return profile.trainerName.trim() || googleName?.trim() || t('profile.trainer');
+/** Nome que aparece para o treinador (regra única em `trainerNameOf`): o escolhido, o 1º nome do Google ou "Treinador". */
+export function trainerLabel(
+    profile: Profile,
+    googleName: string | null | undefined = useCloud.getState().user?.name,
+): string {
+    return trainerNameOf(profile, googleName) || t('profile.trainer');
 }
+
+/** `trainerLabel` que acompanha o perfil e o login (o nome da conta chega depois do primeiro desenho). */
+export const useTrainerLabel = () =>
+    trainerLabel(
+        useGame((s) => s.profile),
+        useCloud((s) => s.user?.name),
+    );
 
 /** Texto da faixa da torcida (no idioma da tela, com o nome do clube). */
 export const bannerText = (banner: unknown, club: string) =>

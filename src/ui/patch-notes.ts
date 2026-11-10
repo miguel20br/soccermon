@@ -9,6 +9,21 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.47.1',
+        date: '2026-11-10',
+        title: 'Seu nome em todo lugar',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Logado com o Google e sem nome escolhido: a barra de cima e os rankings mostram seu primeiro nome, não "Treinador"',
+                    'Lápis ao lado do nome no Perfil pra mostrar que dá pra editar',
+                    'Login pelo atalho da tela inicial do iPhone',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.47',
         date: '2026-11-10',
         title: 'Final de verdade',
@@ -2762,6 +2777,21 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.47.1',
+        date: '2026-11-10',
+        title: 'Your name everywhere',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Signed in with Google and no name picked: the top bar and the rankings show your first name, not "Trainer"',
+                    'Pencil next to the name in the Profile to show you can edit it',
+                    'Sign-in from the iPhone home screen shortcut',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.47',
         date: '2026-11-10',

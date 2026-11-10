@@ -48,6 +48,7 @@ export const profile: typeof pt = {
         nameTaken: 'That name belongs to another trainer. Pick another one.',
         clubTaken: 'That club name belongs to another trainer. Pick another one.',
         yourName: 'Your name',
+        editName: 'Edit name',
         avatar: 'Avatar',
         googlePhoto: 'Google account photo',
         avatarHelp:

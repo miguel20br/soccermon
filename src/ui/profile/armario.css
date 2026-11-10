@@ -133,15 +133,37 @@
 }
 /* o nome é botão: o padding leva o toque a 44 px e a margem negativa devolve o lugar */
 .pf-name {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     max-width: 100%;
     padding-block: 13px;
     margin-block: -13px;
+    white-space: nowrap;
+}
+.pf-name > span {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
     text-decoration: underline dotted color-mix(in srgb, var(--text), transparent 60%);
     text-underline-offset: 4px;
+}
+/* lápis: avisa que o nome edita; acende e gira um pouco no toque/hover (nada teleporta: 200 ms) */
+.pf-pencil {
+    width: 0.9em;
+    height: 0.9em;
+    color: var(--muted);
+    transition:
+        color 200ms ease-out,
+        transform 200ms ease-out;
+}
+.pf-name:hover .pf-pencil,
+.pf-name:focus-visible .pf-pencil {
+    color: var(--yellow);
+    transform: rotate(-12deg) scale(1.1);
+}
+.pf-name:active .pf-pencil {
+    transform: rotate(-12deg) scale(0.95);
 }
 .pf-duo.pf-edit .new-dot {
     position: absolute;
