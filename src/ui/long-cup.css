@@ -116,6 +116,9 @@
         background-color 200ms var(--ease-out);
 }
 .cm-label {
+    /* o nome fica por cima do que encostar nele (capitão do rival, pedra) */
+    position: relative;
+    z-index: 2;
     padding: 0 4px;
     border-radius: 3px;
     background: rgb(0 0 0 / 72%);
@@ -2207,13 +2210,15 @@
     letter-spacing: 0.02em;
 }
 .cm-w4 .cm-node-rival {
-    top: -14px;
-    left: calc(50% + 4px);
+    /* do lado do círculo, na altura dele: em cima cobria o nome da casa de cima (linhas apertadas do mapa largo) */
+    top: 2px;
+    left: calc(50% + 12px);
 }
-/* a pedra no alto à esquerda do círculo (embaixo ela cobria o rótulo; no alto à direita fica o capitão do rival) */
+/* a pedra do lado esquerdo do círculo, na altura dele (o capitão do rival fica do lado direito): no alto ela cobria
+   o nome da casa de cima, embaixo o da própria casa */
 .cm-w4 .cm-node .cm-node-stone {
-    top: -6px;
-    right: calc(50% + 6px);
+    top: 8px;
+    right: calc(50% + 16px);
 }
 .cm-w4 .cm-me {
     width: 44px;
