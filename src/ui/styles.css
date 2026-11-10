@@ -7314,9 +7314,10 @@ p.muted.center a {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    /* nome comprido ("Seu primeiro craque") quebra em duas linhas em vez de sair cortado com reticências */
+    line-height: 1.15;
+    text-align: center;
+    text-wrap: balance;
 }
 .cpack-burst {
     position: absolute;
