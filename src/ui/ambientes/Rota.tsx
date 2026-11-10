@@ -324,7 +324,8 @@ export function Rota({
     const [s, setS] = useState(from);
     const [walking, setWalking] = useState(false);
     const walked = useRef(false);
-    // sprite em 2x só com casa grande (desktop); no celular, em pé ou deitado, 1x pra não cobrir as cidades
+    // o mapa é visto de longe: um degrau abaixo dos outros lugares (2x com casa grande no PC; no celular, em pé ou
+    // deitado, 1x pra não cobrir as cidades), e todo mundo nele na mesma escala, o nadador do mar inclusive
     const worldRef = useRef<HTMLDivElement>(null);
     const [big, setBig] = useState(false);
     useEffect(() => {
@@ -398,7 +399,7 @@ export function Rota({
                     {lane !== null && (
                         // o pé do sprite fica no ponto: meio sprite abaixo do meio da faixa
                         <span className="rt-swim" style={{ top: lane + LANE / 3 }}>
-                            <FieldSprite id={swimmer} anim="Walk" dir={2} scale={2} play={active} />
+                            <FieldSprite id={swimmer} anim="Walk" dir={2} scale={scale} play={active} />
                         </span>
                     )}
                 </div>

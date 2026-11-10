@@ -164,7 +164,7 @@ function SceneUltimate({ scale, bare }: { scale: number; bare?: boolean }) {
             <div className="mm-stage">
                 {!bare && <Pack />}
                 <span className="mm-pt" style={at(20, 92)}>
-                    <FieldSprite id={133} anim="Hop" dir={2} scale={scale} />
+                    <FieldSprite id={133} anim="Idle" dir={2} scale={scale} />
                 </span>
             </div>
         </div>
@@ -556,7 +556,8 @@ export function ModeSlices({
                             <Scene id={m} scale={big ? 3 : 2} bare />
                             <i className="mm-burst" />
                         </span>
-                        <Hero id={m} scale={big ? 5 : 3} />
+                        {/* o herói na frente da cena: um degrau acima dela, nunca dois (revisão de arte, D2) */}
+                        <Hero id={m} scale={big ? 4 : 3} />
                         <span className="mm-slice-txt">
                             {playable(m) && (
                                 <span className="tv-onair">

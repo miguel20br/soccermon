@@ -14,6 +14,7 @@ import { ClockCtx, useSceneClock } from './clock';
 import { closestMissions } from './metas';
 import { BIG, floorZone, Mi, ROOM, SMALL } from './Room';
 import { SceneHotspot } from './SceneHotspot';
+import { sceneScale } from './sprite-scale';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
@@ -59,7 +60,7 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const w = useWild(
         clock,
         wild.slice(0, small ? 3 : big ? 6 : 4),
-        floorZone(small ? 1 : big ? 3 : 2),
+        floorZone(sceneScale(small, big)),
         undefined,
         ROOM,
     );

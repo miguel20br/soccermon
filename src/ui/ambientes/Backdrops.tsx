@@ -6,8 +6,7 @@ import { ClockCtx, useSceneClock } from './clock';
 import { CourtFloor, clubVars, Floodlight, Stands } from './Estadio';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon, type Mon } from './metas';
-import { BIG, SMALL } from './Room';
-import { useMq } from './WildZone';
+import { BIG, sceneScale, useMq, useSceneScale } from './sprite-scale';
 import './ambientes.css';
 
 /** O mesmo corte do Estádio: capitão 1x em tela pequena ou baixa. */
@@ -19,8 +18,7 @@ const SMALL_ES = '(max-width: 359px), (max-height: 700px)';
  */
 export function ArenaBackdrop({ rival, reveal }: { rival?: Mon | null; reveal?: boolean }) {
     const clock = useSceneClock(true);
-    const small = useMq(SMALL);
-    const big = useMq(BIG);
+    const scale = useSceneScale();
     const avatar = useGame((s) => s.profile.avatar);
     const [pick] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
     return (
@@ -30,7 +28,7 @@ export function ArenaBackdrop({ rival, reveal }: { rival?: Mon | null; reveal?: 
                     me={avatarMon(avatar)}
                     rival={rival?.id ?? pick}
                     reveal={!!rival && reveal}
-                    scale={small ? 1 : big ? 3 : 2}
+                    scale={scale}
                     active
                 />
             </div>
@@ -45,6 +43,7 @@ export function ArenaBackdrop({ rival, reveal }: { rival?: Mon | null; reveal?: 
 export function EstadioBackdrop({ mon, led }: { mon: Mon; led: string }) {
     const clock = useSceneClock(true);
     const small = useMq(SMALL_ES);
+    const big = useMq(BIG);
     const clubName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const club = useGame((s) => clubColorHex(s.profile.clubColor));
     return (
@@ -69,7 +68,7 @@ export function EstadioBackdrop({ mon, led }: { mon: Mon; led: string }) {
                                     shiny={mon.shiny}
                                     anim="Idle"
                                     dir={0}
-                                    scale={small ? 1 : 2}
+                                    scale={sceneScale(small, big)}
                                     play
                                     className="es-mon"
                                 />

@@ -65,7 +65,7 @@ function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: stri
                 <div className="mm-stage">
                     <span className="mm-pt" style={{ left: '50%', top: '84%' }}>
                         <i className="mm-shadow" />
-                        <FieldSprite id={6} anim="Pose" dir={0} scale={s + 1} />
+                        <FieldSprite id={6} anim="Idle" dir={0} scale={s} />
                     </span>
                     <img className="nf-ball" src="assets/ui/ball.svg" alt="" />
                 </div>
@@ -121,9 +121,10 @@ function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: stri
                         <i />
                         <i />
                     </span>
-                    <span className="mm-pt" style={{ left: '88%', top: '88%' }}>
+                    {/* longe do canto: perto dele o quadro passava da borda da arte e o Meowth saía cortado */}
+                    <span className="mm-pt" style={{ left: '80%', top: '82%' }}>
                         <i className="mm-shadow" />
-                        <FieldSprite id={52} anim="Hop" dir={6} scale={s} />
+                        <FieldSprite id={52} anim="Idle" dir={6} scale={s} />
                     </span>
                     <span className="mm-pt nf-walker" style={{ left: '52%', top: '62%' }}>
                         <i className="mm-shadow" />
@@ -149,7 +150,7 @@ function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: stri
                     </span>
                     <span className="mm-pt" style={{ left: '74%', top: '84%' }}>
                         <i className="mm-shadow" />
-                        <FieldSprite id={94} anim="Pose" dir={6} scale={s + 1} />
+                        <FieldSprite id={94} anim="Pose" dir={6} scale={s} />
                     </span>
                 </div>
             </div>
@@ -172,12 +173,7 @@ function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: stri
                             style={{ left: `${22 + i * 28}%`, top: i === 1 ? '90%' : '82%' }}
                         >
                             <i className="mm-shadow" />
-                            <FieldSprite
-                                id={sp.id}
-                                anim="Idle"
-                                dir={i === 0 ? 2 : i === 1 ? 0 : 6}
-                                scale={i === 1 ? s + 1 : s}
-                            />
+                            <FieldSprite id={sp.id} anim="Idle" dir={i === 0 ? 2 : i === 1 ? 0 : 6} scale={s} />
                         </span>
                     ))}
                 </div>

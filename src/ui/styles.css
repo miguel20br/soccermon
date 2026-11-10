@@ -123,6 +123,26 @@ button {
 img.pixel {
     image-rendering: pixelated;
 }
+/* sprite PMD dos menus (FieldSprite): aqui, e não no CSS dos ambientes, porque VERSUS, Hall e escalação também usam */
+.fs-sprite {
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+/* sprite reduzido (caixa menor que o arquivo): com pixelated, linhas inteiras somem (o rabo do Mew vira pontinhos);
+   reduzir é com auto (guia da marca). Ampliação inteira continua pixelated. A fumaça acusa img.pixel reduzido. */
+img.pf-avatar,
+img.trainer-sprite,
+.hall-squad img,
+.ut-mode-art :is(.ut-mode-vs, .ut-mode-four) img,
+.ce-tl-goal img,
+img.ce-mini,
+.leader-quote img,
+.st-leader img,
+.rival-evo img,
+.show-seal img {
+    image-rendering: auto;
+}
 
 .app {
     max-width: 1180px;

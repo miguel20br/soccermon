@@ -657,9 +657,9 @@
     top: max(12.5cqw, 30cqh);
 }
 @media (min-width: 900px) and (min-height: 700px) {
+    /* o capitão na escala da cena (3x, a mesma da beira e da arquibancada); o destaque é a luz e a sombra */
     .es-captain {
         top: min(max(12.5cqw, 30cqh), 36cqh);
-        scale: 2;
     }
 }
 /* celular pequeno em pé: o capitão (1x) fica na faixa de quadra entre o telão e as placas, e a bola sobe menos (não
@@ -681,11 +681,6 @@
     height: calc(var(--px) * 3);
     border-radius: 50%;
     background: rgb(0 0 0 / 35%);
-}
-.fs-sprite {
-    display: block;
-    image-rendering: pixelated;
-    background-repeat: no-repeat;
 }
 .es-mon {
     position: absolute;

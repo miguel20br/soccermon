@@ -9,7 +9,8 @@ import { PixelTrophy } from '../components/PixelTrophy';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon, type Mon, nextBelt } from './metas';
-import { BIG, floorZone, SMALL, Tile } from './Room';
+import { floorZone, Tile } from './Room';
+import { useSceneScale } from './sprite-scale';
 import { type Blockers, useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
@@ -27,8 +28,7 @@ export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const { t } = useT();
     const clock = useSceneClock(active);
-    const small = useMq(SMALL);
-    const big = useMq(BIG);
+    const scale = useSceneScale();
     const wide = useMq(LANDSCAPE);
     // os Pokémon ambiente ficam na beira da quadra (o meio é do duelo); deitado, só do lado direito (os botões ficam
     // à esquerda)
@@ -36,7 +36,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
         clock,
         wild,
         floorZone(
-            small ? 1 : big ? 3 : 2,
+            scale,
             wide
                 ? (x, y) => x > 0.54 && (Math.abs(x - 0.73) > 0.14 || y > 0.75)
                 : (x, y) => x < 0.24 || x > 0.76 || y > 0.72,
@@ -51,8 +51,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const mine = avatarMon(avatar);
     const belt = nextBelt(wins);
     const liga = ligaCountdown();
-    // os dois do duelo maiores que os de volta: no desktop, 4x (com 3x o meio da quadra ficava vazio)
-    const scale = small ? 1 : big ? 4 : 2;
+    // os dois do duelo na escala da cena, a mesma dos de volta (revisão de arte: nada de 4x ao lado de 3x)
 
     return (
         <ClockCtx.Provider value={clock}>
