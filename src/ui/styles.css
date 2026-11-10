@@ -2097,13 +2097,15 @@ button,
 .card-modal-right h2 {
     margin: 0 0 4px;
 }
-/* rótulos de seção da carta completa no jeito da transmissão */
-.card-modal-right h3 {
-    margin: 14px 0 6px;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+/* títulos de seção da carta completa: caixa normal em Galmuri11 Bold, com respiro (o `.panel h3` do kit vinha
+   depois com a mesma força e colava tudo: aqui com mais especificidade) */
+.card-modal .card-modal-right h3 {
+    margin: 18px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.card-modal .card-modal-right > h3:first-child {
+    margin-top: 0;
 }
 .card-note {
     font-size: 12px;
