@@ -666,7 +666,8 @@ function drawCard(
  * As opções do Pick (ultimate-fc.md): `n` espécies diferentes que você ainda não tem, cada uma no metal sorteado pela
  * chance de sempre com o piso `min` (ou só `min`, se `exact`), do tipo `type` se tiver; edições com as chances de sempre
  * (o do evento sai sempre Evento). Semente `ut-pick-${uid}`: fechar e voltar mostra as mesmas opções (sem rerrolar
- * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida.
+ * recarregando). Sem espécie nova que caiba, abre pros outros metais acima do piso e, no fim, pra repetida. O `exact`
+ * (comprado e Ouro do passe) nunca sobe de metal: sem espécie nova nele, sai repetida dele mesmo (Miguel, 10/11).
  */
 export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, now?: number): PokemonInstance[] {
     const rng = new Rng(u.salt, `ut-pick-${p.uid}`);
@@ -674,7 +675,7 @@ export function pickOptions(u: Pick<UltimateSave, 'salt' | 'cards'>, p: UtPick, 
     const event = forced ?? (now === undefined ? null : eventAt(now));
     const owned = new Set(u.cards.map((c) => c.speciesId));
     const taken = new Set<number>();
-    const above = METALS.filter((m) => rank(m) >= rank(p.min));
+    const above = p.exact ? [p.min] : METALS.filter((m) => rank(m) >= rank(p.min));
     const typed = (id: number) => !p.type || species(id).types.includes(p.type as never);
     return Array.from({ length: p.n }, (_, i) => {
         const rolled = rollMetal(rng);
@@ -717,6 +718,10 @@ export function choosePick(
         : addCards(base, [card]);
     return { u: firstStep(next, 'pack'), card, repeat };
 }
+
+/** Quantas espécies do metal você ainda não tem: menos que as opções do Pick `exact` e sai repetida (aviso na tela). */
+export const newInMetal = (u: Pick<UltimateSave, 'cards'>, metal: Metal) =>
+    metalPools()[metal].filter((id) => !u.cards.some((c) => c.speciesId === id)).length;
 
 /** Pick com Fichas (Comprar): 1 de 3 daquele metal, guardado em Meus pacotes. null = Fichas não bastam. */
 export function buyPick(u: UltimateSave, metal: Metal): UltimateSave | null {

@@ -109,6 +109,8 @@ export const ultimate = {
         buy: 'Pick com Fichas',
         buyHint: 'Escolha 1 de 3 do metal. Vai pra Meus pacotes.',
         bought: 'Pick {metal} guardado em Meus pacotes',
+        noNew: 'Sem espécie nova de {metal}: pode sair repetida',
+        fewNew: 'Quase sem espécie nova de {metal}: pode sair repetida',
     },
     /** Destaque do Início (carrossel). */
     hl: {

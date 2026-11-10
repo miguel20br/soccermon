@@ -162,8 +162,8 @@ passe. Somando tudo numa carteira, o Pick Prata cai pra ~6% da semana (ressalva 
 | De onde vêm (típico, 4ª semana) | partida 401 · objetivos e passe 638 Fichas; pacote aberto 122 · venda 140 pontos | partida 401 · objetivos e passe 638 · pacote aberto 608 · venda rápida 702 |
 | Pacote aberto | +5 pontos | **+25 Fichas** |
 | Repetida (venda rápida) | Bronze 1 · Prata 3 · Ouro 8 pontos | **Bronze 5 · Prata 15 · Ouro 40 Fichas** |
-| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 60 · Prata 150 · Ouro 360 Fichas** (×6, Miguel 09/11) |
-| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 90 · Prata 240 · Ouro 600 Fichas** (×6) |
+| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 200 · Prata 500 · Ouro 1.200 Fichas** (×20, Miguel 10/11; ×6 em 09/11) |
+| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 300 · Prata 800 · Ouro 2.000 Fichas** (×20, 10/11) |
 | Pacote Mini na Loja | 150 Fichas | 150 Fichas (igual) |
 | Primeiros passos, objetivos, passe, partidas | Fichas | iguais |
 
@@ -182,7 +182,8 @@ Ressalvas e o que fica pro Miguel:
    (cada Mini comprado ainda devolve 25 + as repetidas, ~55 Fichas no fim do mês). Se o Mini tiver que continuar raro:
    Mini a 250–300, ou pacote aberto a +10/+15. Eu deixaria como está até alguém jogar (diversão > realismo).
 2. **Resolvido (Miguel, 09/11): Picks e Escolher carta com fator 6** (Pick 60 · 150 · 360, carta 90 · 240 · 600): o
-   Pick Prata (era 125) não sai mais barato que o Mini (150). Teste em `picks.test.ts`.
+   Pick Prata (era 125) não sai mais barato que o Mini (150). Teste em `picks.test.ts`. **Trocado em 10/11 pelo fator
+   20** (Pick 200 · 500 · 1.200, carta 300 · 800 · 2.000), ver "Decidido com o Miguel (10/11)" abaixo.
 3. O robô sempre abre tudo e vende toda repetida, não compra, não faz líder nem Evolução; com Evento (dezembro) a conta
    muda pouco (as cartas Evento não são repetidas).
 4. O jogador ativo ganha mais pontos por Ficha (6,2): o fator 5 é o do típico. Com o ativo, seria 6 (Pick Prata 150).
@@ -244,13 +245,47 @@ Ressalvas: o robô não joga líder (Difícil) nem a Copa (ponte), não faz Evol
 de verdade guarda Fichas e escolhe pior, então o real deve ser um pouco mais lento. 6 saves por linha (o motor leva ~30
 min por perfil); o `--placares` guarda os placares e cada economia nova roda em segundos.
 
-Decisões pro Miguel (nada disso aplicado; o Pick ×6 está):
+Decisões pro Miguel (09/11; respondidas em 10/11, abaixo):
 
 - **A. Deixar como está** (151 em ~4 semanas, Shiny e Ícone pra temporada inteira). Minha recomendação, se o objetivo
   da temporada for o time e os Shiny/Ícones/Evento, não o álbum.
 - **B. Álbum como meta da temporada:** Pick ×20 (200 · 500 · 1.200; Escolher carta subindo junto), ~10 semanas no
   típico. Não mexer em pacote aberto nem no Mini (quase não muda nada).
 - **C. Fechar a brecha do Pick Bronze dando Ouro** (vale em A ou B).
+
+#### Decidido com o Miguel (10/11)
+
+Ele ficou com as recomendações: **B + C**, e o time titular todo Ouro na 1ª semana fica como está.
+
+1. **Brecha fechada:** o Pick comprado (e o de Ouro do passe, `exact`) nunca sobe de metal. Sem espécie nova no metal
+   dele, oferece repetida desse metal; a tela do Pick e a Loja avisam ("Sem espécie nova de Bronze: pode sair
+   repetida", ou "Quase sem…" quando faltam menos que as 3 opções). O Pick do líder, o de Evento e o "Seu primeiro
+   craque" (piso, não `exact`) seguem abrindo pros metais acima. Teste em `picks.test.ts` (Bronze e Prata completos: o
+   Pick Bronze só dá Bronze).
+2. **Pick ×20:** Bronze 200 · Prata 500 · Ouro 1.200 Fichas; Escolher carta 300 · 800 · 2.000. Seguem as regras de
+   teste: Pick mais barato que Escolher carta em todo metal, Pick Prata ≥ Pacote Mini (150).
+3. Time titular Ouro: sem mudança (a chance do Ouro fica).
+
+Medida de novo (`colecao-ut.ts --saves 6 --semanas 26 --econ pick20,depois`, os mesmos placares do motor), com a brecha
+fechada no jogo:
+
+| Perfil | Economia | Semanas até os 151 (faixa) | Espécies na 2ª · 4ª · 8ª | Time titular Ouro | Shiny (de 151) na 26ª | Ícones (de 20) na 26ª | Evento na 26ª |
+|---|---|---|---|---|---|---|---|
+| Típico (2 por dia) | Pick ×6, brecha aberta (09/11) | 3,8 (3–6) | 117 · 150 · 151 | 1ª | 44 (29%) | 9,0 (45%) | 30 |
+| | Pick ×6, brecha fechada | 7,8 (7–9) | 100 · 123 · 150 | 1ª | 41 (27%) | 9,0 (45%) | 21 |
+| | **Pick ×20, brecha fechada (no jogo)** | **13,0** (11–15) | 99 · 120 · 140 | 1ª | **38 (25%)** | **8,5 (43%)** | 32 |
+| Ativo (4 por dia) | Pick ×6, brecha aberta (09/11) | 3,5 (2–5) | 139 · 150 · 151 | 1ª | 52 (34%) | 9,8 (49%) | — |
+| | Pick ×6, brecha fechada | 6,3 (5–7) | 107 · 133 · 151 | 1ª | 49 (32%) | 10,0 (50%) | 24 |
+| | **Pick ×20, brecha fechada (no jogo)** | **10,5** (9–14) | 107 · 128 · 146 | 1ª | **44 (29%)** | **9,5 (48%)** | 34 |
+
+O que mudou da medida de 09/11: a brecha pesava mais do que parecia. Mesmo o robô que não sabe dela pegava a Ouro nova
+que o Pick Bronze oferecia quando o Bronze estava quase completo (fica com a opção de maior nota). Fechada, o Pick ×6
+sozinho já vai de 3,8 pra 7,8 semanas, e o ×20 vai de 9,7 (09/11, brecha aberta) pra **13,0 no típico** e **10,5 no
+ativo**. O ativo cai na meta (8–12); o típico passa 1 semana (fecha entre a 11ª e a 15ª, ainda antes da metade da
+temporada). Shiny e Ícone seguem longe de completar. Se o Miguel quiser o típico dentro dos 8–12: Pick ×16 (160 · 400 ·
+960) dá 11,7 semanas (10–14) no típico e 9,2 (8–11) no ativo, Shiny 40 · 46 e Ícones 8,2 · 10,0 na 26ª (não aplicado;
+`--econ pick16`). Ressalvas de sempre: o robô
+gasta tudo assim que dá e não joga líder nem Copa.
 
 ## 1. Como o FC faz
 

@@ -8,7 +8,8 @@
  * Economias (`ECONS`): "antes" = Fichas e pontos de pacote separados (Fichas: só Mini; pontos: Pick 10/25/60, +5 por
  * pacote aberto, repetida 1/3/8), "depois" = moeda única com o Pick ×6, e as alavancas (pacote aberto +15/+10, Mini 200).
  * As partidas do motor rodam uma vez por save e o placar se repete em todas as economias (o rival acompanha a força do
- * seu time, então o placar quase não depende da coleção; a comparação fica só na economia).
+ * seu time, então o placar quase não depende da coleção; a comparação fica só na economia). Desde 10/11 o Pick comprado
+ * não sobe de metal (o `smart` não ganha mais nada) e o jogo usa o `pick20` (decidido com o Miguel).
  *
  * Uso: scripts/pesado.sh npx tsx scripts/balance/colecao-ut.ts [--saves 8] [--semanas 26] [--econ antes,depois]
  *      [--placares placares.json] (guarda os placares do motor: a 2ª rodada com outras economias leva segundos)
@@ -21,7 +22,7 @@ import { cupRival } from '../../src/engine/cup';
 import { viewInstance } from '../../src/engine/instance';
 import { runMatch } from '../../src/engine/runners/batch-runner';
 import { editionOf, ICONS } from '../../src/engine/specials';
-import { OPEN_FICHAS, REPEAT_FICHAS, SEASONS } from '../../src/store/ultimate/rules';
+import { OPEN_FICHAS, PICK_FICHAS, REPEAT_FICHAS, SEASONS } from '../../src/store/ultimate/rules';
 import {
     buyPack,
     buyPick,
@@ -84,6 +85,7 @@ const ECONS: Econ[] = [
     { id: 'aberto10+mini300', split: false, open: 10, mini: 300, pick: { bronze: 60, prata: 150, ouro: 360 } },
     // a alavanca que pega o Pick (a compra que garante espécie nova)
     { id: 'pick12', split: false, open: 25, mini: 150, pick: { bronze: 120, prata: 300, ouro: 720 } },
+    { id: 'pick16', split: false, open: 25, mini: 150, pick: { bronze: 160, prata: 400, ouro: 960 } },
     { id: 'pick20', split: false, open: 25, mini: 150, pick: { bronze: 200, prata: 500, ouro: 1200 } },
     { id: 'pick20+aberto10', split: false, open: 10, mini: 150, pick: { bronze: 200, prata: 500, ouro: 1200 } },
     { id: 'sem-compra', split: false, open: 25, mini: 150, pick: { bronze: 60, prata: 150, ouro: 360 }, none: true },
@@ -177,13 +179,13 @@ function spend(b: Bot, now: number, e: Econ) {
                 bought = true;
             }
             if (m && b.pts >= e.pick[m]) {
-                b.u = { ...buyPick({ ...b.u, fichas: 360 }, m)!, fichas: b.u.fichas };
+                b.u = { ...buyPick({ ...b.u, fichas: PICK_FICHAS[m] }, m)!, fichas: b.u.fichas };
                 b.pts -= e.pick[m];
                 bought = true;
             }
         } else if (m && pick > mini) {
             if (b.u.fichas >= e.pick[m]) {
-                b.u = { ...buyPick({ ...b.u, fichas: 360 }, m)!, fichas: b.u.fichas - e.pick[m] };
+                b.u = { ...buyPick({ ...b.u, fichas: PICK_FICHAS[m] }, m)!, fichas: b.u.fichas - e.pick[m] };
                 bought = true;
             }
         } else if (b.u.fichas >= e.mini) {

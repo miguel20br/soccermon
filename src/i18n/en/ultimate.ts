@@ -107,6 +107,8 @@ export const ultimate: typeof pt = {
         buy: 'Pick with Coins',
         buyHint: 'Pick 1 of 3 of that metal. Goes to My Packs.',
         bought: '{metal} Pick saved in My Packs',
+        noNew: 'No new {metal} species: you may get a repeat',
+        fewNew: 'Almost no new {metal} species: you may get a repeat',
     },
     hl: {
         title: 'Featured',

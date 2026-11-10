@@ -15,6 +15,8 @@ import {
     choosePick,
     lastPacks,
     mergeUltimate,
+    metalPools,
+    newInMetal,
     newUltimate,
     pickOptions,
     redeem,
@@ -70,6 +72,23 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         expect([passReward(10).big, passReward(30).big, passReward(20).big]).toEqual([1, 1, 0]);
         expect(pickOptions(u, pick({ ...gold })).every((c) => metal(c) === 'ouro')).toBe(true);
         expect(pickOptions(u, pick({ min: 'bronze', exact: true })).every((c) => metal(c) === 'bronze')).toBe(true);
+    });
+
+    it('Pick comprado nunca sobe de metal: Bronze e Prata completos, o Pick Bronze dá Bronze repetida (Miguel, 10/11)', () => {
+        const u = newUltimate('brecha', T0);
+        const cards = [...metalPools().bronze, ...metalPools().prata].map((id, i) => ({
+            ...createInstance(id, new Rng('own', `${i}`)),
+            uid: `o${i}`,
+        }));
+        const full = { ...u, cards };
+        expect(newInMetal(full, 'bronze')).toBe(0);
+        for (let k = 0; k < 20; k++) {
+            const opts = pickOptions(full, pick({ uid: `b${k}`, min: 'bronze', exact: true }));
+            expect(opts).toHaveLength(3);
+            expect(opts.every((c) => metal(c) === 'bronze')).toBe(true);
+        }
+        // o Pick que não é comprado (piso) continua abrindo pros metais acima
+        expect(pickOptions(full, pick({ min: 'prata' })).every((c) => metal(c) === 'ouro')).toBe(true);
     });
 
     it('Pick de Evento: toda opção sai Evento, do tipo do evento', () => {

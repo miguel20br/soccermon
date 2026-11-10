@@ -7,12 +7,12 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
 import { utNow } from '../../store/ultimate/clock';
-import { pickOptions, type UtPick } from '../../store/ultimate/ultimate';
+import { newInMetal, pickOptions, type UtPick } from '../../store/ultimate/ultimate';
 import { CardPack, isBigCard, type PackLook, pitchOf } from '../components/CardPack';
 import { FutCard } from '../components/FutCard';
 import { MomentStage } from '../kit/MomentStage';
 import { preloadWalkout, Walkout } from '../kit/WalkoutStage';
-import { METAL, metalLabel } from '../rarity';
+import { METAL, type Metal, metalLabel } from '../rarity';
 import { reduceMotionOn } from '../reduce-motion';
 import { useTear } from './PackMoment';
 
@@ -39,6 +39,19 @@ export function usePickName() {
             .filter(Boolean)
             .join(' · ');
         return { title, hint };
+    };
+}
+
+/**
+ * O aviso do Pick comprado (`exact`), que nunca sobe de metal: sem espécie nova bastante no metal dele, pode sair
+ * repetida (Miguel, 10/11). null = tem espécie nova pra todas as opções.
+ */
+export function usePickWarn() {
+    const { t } = useT();
+    const u = useGame((s) => s.ultimate);
+    return (metal: Metal, n: number) => {
+        const k = newInMetal(u, metal);
+        return k >= n ? null : t(k ? 'ultimate.pick.fewNew' : 'ultimate.pick.noNew', { metal: metalLabel(metal) });
     };
 }
 
@@ -112,10 +125,12 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
     const tear = useTear();
     const chosen = sel === null ? null : opts[sel];
     const label = name(pick);
+    const warn = usePickWarn()(pick.min, pick.n);
     return (
         <MomentStage label={label.title} className="ut-pick-moment">
             <h2 className="k-moment-title ut-pack-title">{label.title}</h2>
             <p className="ut-pick-sub">{label.hint}</p>
+            {pick.exact && warn && <p className="ut-pick-sub muted">{warn}</p>}
             <div className="ut-tear" {...tear.props} style={{ '--tear': tear.p } as CSSProperties}>
                 <CardPack
                     sealed

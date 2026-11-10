@@ -4,12 +4,13 @@ import { createInstance, type PokemonInstance, viewInstance } from '../../engine
 import { Rng } from '../../engine/rng';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { FICHAS_PACK_PRICE, PICK_FICHAS, PICK_PRICE } from '../../store/ultimate/rules';
+import { FICHAS_PACK_PRICE, PICK_BUY_N, PICK_FICHAS, PICK_PRICE } from '../../store/ultimate/rules';
 import { pickable } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
 import { METAL, type Metal, metalLabel } from '../rarity';
+import { usePickWarn } from './PickMoment';
 
 const METALS: Metal[] = ['bronze', 'prata', 'ouro'];
 
@@ -34,6 +35,7 @@ export function Shop() {
     const list = useMemo(() => pickable(u, metal).sort((a, b) => overallOf(b) - overallOf(a) || a - b), [u, metal]);
     const price = PICK_PRICE[metal];
     const short = price - u.fichas;
+    const warn = usePickWarn();
     return (
         <section className="panel ut-shop bc-surface">
             <h2 className="bc-caption">
@@ -76,6 +78,13 @@ export function Shop() {
                     </button>
                 ))}
             </div>
+            {METALS.map((m) => warn(m, PICK_BUY_N))
+                .filter(Boolean)
+                .map((w) => (
+                    <small key={w} className="muted">
+                        {w}
+                    </small>
+                ))}
             {boughtPick && (
                 <p key={u.bought} className="ut-undo ut-got-line">
                     <HudIcon kind="bag" />
