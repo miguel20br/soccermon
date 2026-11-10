@@ -265,8 +265,6 @@ button.sp-slot:hover {
 }
 .cpack.cpack-type .cpack-body {
     background:
-        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
-        no-repeat,
         repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 22.5deg),
         radial-gradient(
             circle at 50% 45%,
