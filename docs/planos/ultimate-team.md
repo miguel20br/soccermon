@@ -235,7 +235,7 @@ aprovado. Mudou um número? Muda lá e aqui.
 | Empate | placar igual no tempo normal (os pênaltis do motor ficam só como festa) |
 | **0.9.32** | |
 | Pontos por pacote aberto | +5 (além das repetidas). **09/11: +25 Fichas** |
-| Carta escolhida com pontos | Bronze 15 · Prata 40 · Ouro 100 (a Normal, sem Shiny; Ícone e Evento fora; a espécie que você ainda não tem). **09/11: em Fichas, 75 · 200 · 500** |
+| Carta escolhida com pontos | Bronze 15 · Prata 40 · Ouro 100 (a Normal, sem Shiny; Ícone e Evento fora; a espécie que você ainda não tem). **09/11: em Fichas, 90 · 240 · 600** (×6) |
 | Pacote Mini com Fichas | 150 Fichas (sem teto) |
 | Ponte da Copa | título da Copa = 1 Pacote Mini, até 2 por dia (Brasília); só pra quem já abriu o 1º pacote do modo |
 | Objetivos do dia | jogue 2 → 30 Fichas · vença 1 → 40 Fichas · faça 4 gols → 1 Pacote Mini |

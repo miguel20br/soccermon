@@ -68,8 +68,11 @@ export const FICHAS: Record<Level, Record<Outcome, number>> = {
 
 /** Fichas por pacote aberto, além das repetidas (proteção contra azar, como os pontos do TCG Pocket). */
 export const OPEN_FICHAS = 25;
-/** Preço em Fichas pra escolher uma carta Normal (sem Shiny). Ícone e Evento ficam fora. */
-export const PICK_PRICE: Record<Metal, number> = { bronze: 75, prata: 200, ouro: 500 };
+/**
+ * Preço em Fichas pra escolher uma carta Normal (sem Shiny). Ícone e Evento ficam fora. Fator 6 sobre os pontos antigos
+ * (15 · 40 · 100), como o Pick (Miguel, 09/11).
+ */
+export const PICK_PRICE: Record<Metal, number> = { bronze: 90, prata: 240, ouro: 600 };
 /** Pacote Mini extra comprado com Fichas. */
 export const FICHAS_PACK_PRICE = 150;
 /** Ponte da Copa: cada título da Copa vale 1 Pacote Mini no Time Ultimate, até isto por dia (Brasília). */
@@ -186,8 +189,11 @@ export interface PickSpec {
 export const FIRST_PICK: PickSpec = { n: 5, min: 'prata' };
 /** Marcos 20 e 40 do passe. */
 export const GOLD_PICK: PickSpec = { n: 3, min: 'ouro', exact: true };
-/** Pick com Fichas em Comprar (1 de 3 daquele metal), mais barato que escolher a espécie (PICK_PRICE). */
-export const PICK_FICHAS: Record<Metal, number> = { bronze: 50, prata: 125, ouro: 300 };
+/**
+ * Pick com Fichas em Comprar (1 de 3 daquele metal), mais barato que escolher a espécie (PICK_PRICE). Fator 6 sobre os
+ * pontos antigos (10 · 25 · 60), não 5: o Pick Prata não fica mais barato que o Pacote Mini (Miguel, 09/11).
+ */
+export const PICK_FICHAS: Record<Metal, number> = { bronze: 60, prata: 150, ouro: 360 };
 export const PICK_BUY_N = 3;
 
 /**

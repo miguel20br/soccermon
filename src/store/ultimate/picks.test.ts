@@ -9,7 +9,7 @@ import { Rng } from '../../engine/rng';
 import { editionOf } from '../../engine/specials';
 import { metalOf } from '../../ui/rarity';
 import { migrateSave } from '../game-store';
-import { EVENTS, FIRST_PICK, GYMS, gymPick, PICK_FICHAS, passReward } from './rules';
+import { EVENTS, FICHAS_PACK_PRICE, FIRST_PICK, GYMS, gymPick, PICK_FICHAS, PICK_PRICE, passReward } from './rules';
 import {
     buyPick,
     choosePick,
@@ -99,6 +99,11 @@ describe('Pokémon Pick (ultimate-fc.md, decidido em 09/11)', () => {
         expect(v.fichas).toBe(0);
         expect(v.picks.at(-1)).toMatchObject({ from: 'shop', min: 'prata', exact: true, n: 3 });
         expect(v.picks.at(-1)?.uid).not.toBe(buyPick({ ...v, fichas: 999 }, 'prata')!.picks.at(-1)?.uid);
+    });
+
+    it('o Pick Prata não sai mais barato que o Pacote Mini, e o Pick sai mais barato que escolher a carta', () => {
+        expect(PICK_FICHAS.prata).toBeGreaterThanOrEqual(FICHAS_PACK_PRICE);
+        for (const m of ['bronze', 'prata', 'ouro'] as const) expect(PICK_FICHAS[m]).toBeLessThan(PICK_PRICE[m]);
     });
 
     it('prêmio com Pick espera o Resgatar e vai pra Meus pacotes; o pós-jogo conta o Pick', () => {

@@ -63,7 +63,7 @@ da C**. Todas as decisões da seção 8 ficaram na recomendação:
 6. Save novo e temporada nova: 2 Mini + **Pick 1 de 5 Prata ou melhor** ("Seu primeiro craque").
 7. **Pick do líder** (1 de 3 Prata+ do tipo dele) no lugar do Pacote Grande do líder.
 8. Marcos **20 e 40** do passe dão **Pick 1 de 3 Ouro** (10 e 30 seguem Grande).
-9. **Pick com pontos** em Comprar: Bronze 10 · Prata 25 · Ouro 60. *Em Fichas desde a moeda única (09/11): 50 · 125 · 300.*
+9. **Pick com pontos** em Comprar: Bronze 10 · Prata 25 · Ouro 60. *Em Fichas desde a moeda única (09/11): 60 · 150 · 360 (fator 6).*
 10. O Pick **nunca oferece carta que você já tem** (Normal).
 11. Revelação com **silhueta "Quem é esse Pokémon?"** (toque vira, "Virar todas"). *Trocada em 09/11 pela carta de
     costas (abaixo).*
@@ -162,8 +162,8 @@ passe. Somando tudo numa carteira, o Pick Prata cai pra ~6% da semana (ressalva 
 | De onde vêm (típico, 4ª semana) | partida 401 · objetivos e passe 638 Fichas; pacote aberto 122 · venda 140 pontos | partida 401 · objetivos e passe 638 · pacote aberto 608 · venda rápida 702 |
 | Pacote aberto | +5 pontos | **+25 Fichas** |
 | Repetida (venda rápida) | Bronze 1 · Prata 3 · Ouro 8 pontos | **Bronze 5 · Prata 15 · Ouro 40 Fichas** |
-| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 50 · Prata 125 · Ouro 300 Fichas** |
-| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 75 · Prata 200 · Ouro 500 Fichas** |
+| Pick em Comprar (1 de 3 do metal) | Bronze 10 · Prata 25 · Ouro 60 pontos | **Bronze 60 · Prata 150 · Ouro 360 Fichas** (×6, Miguel 09/11) |
+| Escolher carta (a espécie) | Bronze 15 · Prata 40 · Ouro 100 pontos | **Bronze 90 · Prata 240 · Ouro 600 Fichas** (×6) |
 | Pacote Mini na Loja | 150 Fichas | 150 Fichas (igual) |
 | Primeiros passos, objetivos, passe, partidas | Fichas | iguais |
 
@@ -181,8 +181,8 @@ Ressalvas e o que fica pro Miguel:
    da venda e do pacote aberto também compram Pacote Mini. Quem gastar tudo em Mini compra ~15 por semana em vez de ~7
    (cada Mini comprado ainda devolve 25 + as repetidas, ~55 Fichas no fim do mês). Se o Mini tiver que continuar raro:
    Mini a 250–300, ou pacote aberto a +10/+15. Eu deixaria como está até alguém jogar (diversão > realismo).
-2. **Pick Prata (125) sai mais barato que o Mini (150).** Já era assim em tempo de jogo; com uma carteira só, fica à
-   vista. Se o Mini tiver que ser a compra "de entrada": Pick Prata a 150 ou mais.
+2. **Resolvido (Miguel, 09/11): Picks e Escolher carta com fator 6** (Pick 60 · 150 · 360, carta 90 · 240 · 600): o
+   Pick Prata (era 125) não sai mais barato que o Mini (150). Teste em `picks.test.ts`.
 3. O robô sempre abre tudo e vende toda repetida, não compra, não faz líder nem Evolução; com Evento (dezembro) a conta
    muda pouco (as cartas Evento não são repetidas).
 4. O jogador ativo ganha mais pontos por Ficha (6,2): o fator 5 é o do típico. Com o ativo, seria 6 (Pick Prata 150).
