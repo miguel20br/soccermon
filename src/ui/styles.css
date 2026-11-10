@@ -98,35 +98,38 @@ html {
  * `zoom` (o html aqui, o resto nos seletores deles). Regra de Galmuri14 escreve `--gs: <tamanho>; font-size:
  * var(--gfs, <tamanho>)`: fora das faixas ruins o tamanho fica igual; dentro, vai pro vizinho bom mais perto (16, 19,
  * 21/23, 27/29, 39/41: no máximo 1,5 px de diferença no tamanho da tela). Só round/sign/abs (Chrome 125, Firefox 118,
- * Safari 15.4); sem isso o var() cai no tamanho de antes.
+ * Safari 15.4; abs/sign só no Chrome 138): fora disso o @supports não define o --gfs e o var() usa o tamanho de antes.
  */
 :root {
     --gz: var(--ui-zoom, 1);
 }
-*,
-::before,
-::after {
-    --ge: calc(var(--gs) * var(--gz, 1));
-    --gn: round(nearest, var(--ge), 1px);
-    --gf: calc(
-        var(--ge) +
-        (1 - sign(abs(var(--gn) - 17px) - 0.5px)) /
-        2 *
-        (16px - var(--ge)) +
-        (1 - sign(abs(var(--gn) - 18px) - 0.5px)) /
-        2 *
-        (19px - var(--ge)) +
-        (1 - sign(abs(var(--gn) - 22px) - 0.5px)) /
-        2 *
-        (22px + 1px * sign(var(--ge) - 21.99px) - var(--ge)) +
-        (1 - sign(abs(var(--gn) - 28px) - 0.5px)) /
-        2 *
-        (28px + 1px * sign(var(--ge) - 27.99px) - var(--ge)) +
-        (1 - sign(abs(var(--gn) - 40px) - 0.5px)) /
-        2 *
-        (40px + 1px * sign(var(--ge) - 39.99px) - var(--ge))
-    );
-    --gfs: calc(var(--gf) / var(--gz, 1));
+/* sem abs()/sign() (Chrome < 138) o --gfs nem existe e o var() usa o tamanho de antes; com ele inválido, o font-size herdaria do pai */
+@supports (width: calc(sign(1px) * abs(-1px) + round(nearest, 1px, 1px))) {
+    *,
+    ::before,
+    ::after {
+        --ge: calc(var(--gs) * var(--gz, 1));
+        --gn: round(nearest, var(--ge), 1px);
+        --gf: calc(
+            var(--ge) +
+            (1 - sign(abs(var(--gn) - 17px) - 0.5px)) /
+            2 *
+            (16px - var(--ge)) +
+            (1 - sign(abs(var(--gn) - 18px) - 0.5px)) /
+            2 *
+            (19px - var(--ge)) +
+            (1 - sign(abs(var(--gn) - 22px) - 0.5px)) /
+            2 *
+            (22px + 1px * sign(var(--ge) - 21.99px) - var(--ge)) +
+            (1 - sign(abs(var(--gn) - 28px) - 0.5px)) /
+            2 *
+            (28px + 1px * sign(var(--ge) - 27.99px) - var(--ge)) +
+            (1 - sign(abs(var(--gn) - 40px) - 0.5px)) /
+            2 *
+            (40px + 1px * sign(var(--ge) - 39.99px) - var(--ge))
+        );
+        --gfs: calc(var(--gf) / var(--gz, 1));
+    }
 }
 
 * {
