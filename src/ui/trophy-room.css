@@ -250,8 +250,27 @@
     background: #0e1430;
     box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 }
+.room-stage {
+    position: relative;
+}
 .room-stage canvas {
     image-rendering: pixelated;
+}
+/* o Phaser leva ~2 s pra nascer: parede e piso no lugar do preto, que some quando a cena fica pronta */
+.room-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(#4b3426 0 0) 0 62% / 100% 3% no-repeat,
+        linear-gradient(#2c3668 62%, #6b4a33 62%);
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 250ms var(--ease-out);
+}
+.room-stage.is-ready::before {
+    opacity: 0;
 }
 .room-badge {
     justify-self: start;

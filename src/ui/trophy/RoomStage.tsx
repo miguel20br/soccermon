@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { EventBus } from '../../game/EventBus';
 import { ROOM_H, ROOM_W, type RoomSceneData, TrophyRoomScene } from '../../game/scenes/TrophyRoomScene';
 
@@ -30,6 +30,8 @@ export const RoomStage = memo(function RoomStage({
     const hold = useRef(onHold);
     hold.current = onHold;
     const ready = useRef(false);
+    // enquanto o Phaser carrega o palco mostra a parede e o piso (CSS), sem preto; some em 250 ms quando a cena nasce
+    const [shown, setShown] = useState(false);
     const pendingFocus = useRef(focus);
     pendingFocus.current = focus;
 
@@ -38,6 +40,7 @@ export const RoomStage = memo(function RoomStage({
         const onPickEv = (id: string) => pick.current(id);
         const onReady = () => {
             ready.current = true;
+            setShown(true);
             if (pendingFocus.current) EventBus.emit('room:focus', pendingFocus.current);
         };
         const onHoverEv = (id: string | null) => hover.current?.(id);
@@ -67,6 +70,7 @@ export const RoomStage = memo(function RoomStage({
         return () => {
             clearTimeout(timer);
             ready.current = false;
+            setShown(false);
             EventBus.off('room:pick', onPickEv);
             EventBus.off('room:ready', onReady);
             EventBus.off('room:hover', onHoverEv);
@@ -79,5 +83,5 @@ export const RoomStage = memo(function RoomStage({
         if (ready.current) EventBus.emit('room:focus', focus);
     }, [focus]);
 
-    return <div ref={ref} className="room-stage" />;
+    return <div ref={ref} className={`room-stage${shown ? ' is-ready' : ''}`} />;
 });

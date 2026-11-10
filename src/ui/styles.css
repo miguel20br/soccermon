@@ -7670,11 +7670,14 @@ p.muted.center a {
 .unlock-seal {
     position: fixed;
     left: 50%;
-    top: calc(max(6px, env(safe-area-inset-top)) + 64px);
+    /* abaixo do letreiro do ambiente (.rm-head acaba uns 133 px do topo no celular), pra não cobrir o nome */
+    top: calc(max(6px, env(safe-area-inset-top)) + 134px);
     z-index: 260;
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* position: fixed com left: 50% só deixava metade da tela de largura: o texto quebrava em 3 linhas */
+    width: max-content;
     max-width: min(420px, calc(calc(100 * var(--vw)) - 32px));
     translate: -50% 0;
     pointer-events: none;

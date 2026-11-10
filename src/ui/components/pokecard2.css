@@ -3287,7 +3287,9 @@ button.pc2.pc2-fx:hover {
 }
 .m-ovr {
     font-family: "Galmuri14", monospace;
-    font-size: 2.9em;
+    /* 2.9em arredondado pra múltiplo de 3 px (21, 24, 27, 30…): a Galmuri14 quebra o 9 e o 6 em 17, 18, 22, 28 e 40 px e a carta
+       escala em qualquer tamanho; nenhum múltiplo de 3 acima de 18 cai na lista (galmuri14-size.test.ts) */
+    font-size: round(nearest, 2.9em, 3px);
     line-height: 0.95;
     letter-spacing: -0.02em;
     text-shadow:
