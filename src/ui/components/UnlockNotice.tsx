@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -26,6 +26,8 @@ const SEAL_MS = 1200;
 const OUT_MS = 220;
 /** A insígnia batendo: o jingle de 2 s (scripts/musica/pecas/insignia.mjs), a batida aos 560 ms. */
 const BADGE_MS = 2300;
+/** As faíscas da batida, em volta (graus). */
+const SPARKS = [0, 45, 90, 135, 180, 225, 270, 315];
 
 /**
  * Missão cumprida (treinador ou título novo): o selo dourado batendo com o sprite em cima (cara-de-jogo.md, Modais
@@ -83,6 +85,9 @@ export function UnlockNotice() {
             >
                 <span className="bs-badge">
                     <i className="bs-ring" aria-hidden />
+                    {SPARKS.map((a) => (
+                        <i key={a} className="bs-spark" style={{ '--a': `${a}deg` } as CSSProperties} aria-hidden />
+                    ))}
                     <KantoBadge leader={id as TrainerId} earned />
                 </span>
                 <b className="bs-text k-seal" role="status">

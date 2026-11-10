@@ -27,7 +27,9 @@
     }
 }
 
-/* Insígnia batendo (A5): entra girando, bate no meio aos 560 ms (a batida do jingle) com um anel, o texto pula junto */
+/* Insígnia batendo (A5): cai girando, bate no meio aos 560 ms (a batida do jingle) amassando, com dois anéis e faíscas,
+   acende e, na saída, voa pro alto. Anel e faíscas só depois da batida (`forwards`: com `both`, o 1º quadro do anel
+   ficava parado em volta da insígnia ainda girando) */
 .badge-slam {
     position: fixed;
     inset: 0;
@@ -56,20 +58,59 @@
     aspect-ratio: 1;
     animation:
         bs-spin 0.56s cubic-bezier(0.5, 0, 0.75, 0) both,
-        bs-hit 0.36s var(--ease-pop) 0.56s both;
+        bs-hit 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.56s both;
 }
 .bs-badge .kb-badge {
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 4px 0 rgb(0 0 0 / 55%));
+    /* depois da batida, um brilho passa pela insígnia (o metal acendendo), sem caixa em volta */
+    animation: bs-glint 0.5s ease-out 0.62s both;
 }
-.bs-ring {
+/* faíscas douradas saindo da batida, cada uma num ângulo (--a), freando no fim */
+.bs-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin: -5px;
+    background: var(--yellow);
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    opacity: 0;
+    animation: bs-spark 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.56s forwards;
+}
+.bs-spark:nth-child(even) {
+    width: 7px;
+    height: 7px;
+    margin: -3.5px;
+    background: #fff;
+    animation-delay: 0.6s;
+}
+/* sai voando pro alto (pro estojo de insígnias do Perfil), encolhendo e acelerando */
+.badge-slam.out .bs-badge {
+    animation: bs-fly 0.22s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+.badge-slam.out > .bs-text,
+.badge-slam.out > .bs-sub {
+    animation: bs-scrim 0.18s reverse both;
+}
+.bs-ring,
+.bs-ring::after {
     position: absolute;
     inset: 0;
     border: 4px solid var(--yellow);
     border-radius: 50%;
     opacity: 0;
-    animation: bs-ring 0.5s var(--ease-out) 0.56s both;
+    animation: bs-ring 0.5s var(--ease-out) 0.56s forwards;
+}
+/* o segundo anel, mais fino e atrasado (o eco da batida) */
+.bs-ring::after {
+    content: "";
+    inset: -4px;
+    border-width: 2px;
+    border-color: #fff;
+    animation-delay: 0.68s;
 }
 .badge-slam > .bs-text {
     max-width: 22em;
@@ -90,25 +131,56 @@
 }
 @keyframes bs-spin {
     from {
-        transform: perspective(400px) rotateY(-900deg) scale(0.15);
+        transform: perspective(400px) translateY(-18vh) rotateY(-900deg) scale(0.15);
         opacity: 0;
     }
     30% {
         opacity: 1;
     }
     to {
-        transform: perspective(400px) rotateY(0deg) scale(1.3);
+        transform: perspective(400px) translateY(0) rotateY(0deg) scale(1.3);
     }
 }
+/* bate: amassa na horizontal (squash), estica de volta passando um pouco e assenta */
 @keyframes bs-hit {
     from {
         transform: scale(1.3);
     }
-    35% {
-        transform: scale(0.88);
+    22% {
+        transform: scale(1.16, 0.82);
+    }
+    52% {
+        transform: scale(0.95, 1.06);
+    }
+    76% {
+        transform: scale(1.02, 0.98);
     }
     to {
         transform: scale(1);
+    }
+}
+@keyframes bs-glint {
+    30% {
+        filter: drop-shadow(0 4px 0 rgb(0 0 0 / 55%)) brightness(1.55);
+    }
+}
+@keyframes bs-spark {
+    0% {
+        opacity: 1;
+        transform: rotate(var(--a)) translateY(0) scale(0.6);
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: rotate(var(--a)) translateY(calc(min(42vmin, 168px) * -0.85)) scale(1);
+    }
+}
+@keyframes bs-fly {
+    to {
+        transform: translateY(-40vh) scale(0.2);
+        opacity: 0;
     }
 }
 @keyframes bs-ring {
@@ -131,7 +203,7 @@
 :root[data-reduce-motion="true"] .badge-slam {
     animation-name: bs-scrim;
 }
-:root[data-reduce-motion="true"] .bs-ring {
+:root[data-reduce-motion="true"] :is(.bs-ring, .bs-spark) {
     display: none;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -139,7 +211,8 @@
     .badge-slam * {
         animation-name: bs-scrim;
     }
-    .bs-ring {
+    .bs-ring,
+    .bs-spark {
         display: none;
     }
 }
