@@ -287,3 +287,22 @@ evoluem (estimativa pelo elenco final). A barra segue em 14: o que limita é a e
 Aprovado pelo Miguel: o rival do Time Ultimate mira a força (média × química) e não só a média; sem rival à altura, as
 Fichas seguem o nível alcançado. Tabela e ressalvas em [ultimate-team.md](ultimate-team.md) (seção do dia). Não muda o
 motor nem a Liga.
+
+## Rota: 1ª derrota sem amarelo, Final sem torcida e um Evento por linha (10/11/2026, motor 27)
+
+Aprovado pelo Miguel (pesquisa em `rota-indigo-2.md`): a derrota na 1ª partida da Rota não dá cartão (`forgivenLoss`), o
+rival da Final perde a torcida a favor (era −4%, `crowd` ausente) e toda linha de parada tem um Evento "?". Nada no motor:
+o rival é gerado fora dele.
+
+Robô da Rota, mapa largo, 400 Rotas (mesmas seeds; título ±2,3 pp, Final ±3,4 pp):
+
+| | Antes | Depois |
+|---|---:|---:|
+| Título | 30% | 32% |
+| Vitória por partida (1ª..Final) | 63/64/69/60/64/62/61/**73%** | 63/64/66/61/62/62/60/**64%** |
+| Eliminado depois da 2ª / 3ª / 4ª partida | 13 / 10 / 15% | 0 / 10 / 17% |
+| Eliminado no grupo / perdeu a Final | 21 / 11% | 24 / 18% |
+| Chega ao grupo / à Final | 61 / 41% | 73 / 49% |
+| Evento "?" por Rota | 0,41 | 0,71 |
+
+Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 34%); +3% pro rival, 59% (29%); +6%, 49% (24%).
