@@ -137,6 +137,7 @@ import { duckMusic, musicDucked, unduckMusic } from '../music';
 import { N3Story } from '../n3-story';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
+import { comemoracaoOf, GOAL_CELEB_MS, goalCelebPose } from '../walkout-plan';
 
 export { GAME_H, GAME_W } from '../court';
 
@@ -821,6 +822,8 @@ export class MatchScene extends Phaser.Scene {
     private sold: (SoldDive & { toBall: { x: number; y: number } | null; dusted: boolean })[] = [];
     /** Goleiro cabisbaixo depois do gol sofrido. */
     private reacts: GoalReaction[] = [];
+    /** Gols (quem marcou e o tick): a comemoração no jeito da espécie (`goalCelebPose`). */
+    private goalsBy: { by: number; tick: number }[] = [];
     /** Dribles com nome (só tela); a bola em px no carrinho sai na 1ª vez que aparece. */
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
@@ -1065,6 +1068,9 @@ export class MatchScene extends Phaser.Scene {
             dusted: false,
         }));
         this.reacts = goalReactions(this.matchEvents, this.sold, (team, tick) => this.keeperAt(team, tick));
+        this.goalsBy = this.matchEvents.flatMap((e) =>
+            e.type === 'goal' && !e.ownGoal ? [{ by: e.by, tick: e.tick }] : [],
+        );
         // o replay tem a câmera lenta dele; a partida da copa e do duelo, os dribles com nome
         const setups = this.md.setups;
         this.named =
@@ -2133,6 +2139,12 @@ export class MatchScene extends Phaser.Scene {
             const calm = (action === Action.Idle || action === Action.Run) && a.owner !== i && b.owner !== i;
             if (since >= POSE_MS || (since >= 0 && !calm) || dive || react !== null) view.pose = 0;
             const posing = view.pose > 0 && entering === null;
+            // gol: quem marcou comemora no jeito da espécie (pulo, giro ou pose), no mesmo tempo do Celebrate
+            const celeb =
+                action === Action.Celebrate && !act && !dive && react === null && !posing
+                    ? this.goalCeleb(i, facing)
+                    : null;
+            if (celeb) facing = celeb.facing;
             const anim = resolveAnim(
                 view.skin,
                 act
@@ -2145,7 +2157,7 @@ export class MatchScene extends Phaser.Scene {
                           ? since < POSE_CHARGE_MS
                               ? 'Charge'
                               : 'Pose'
-                          : animForAction(action),
+                          : (celeb?.anim ?? animForAction(action)),
             );
             const shown = act
                 ? act.facing
@@ -2379,6 +2391,32 @@ export class MatchScene extends Phaser.Scene {
             if (r.gk !== i) continue;
             const k = goalReactionAt(r, this.playTick);
             if (k !== null) return k;
+        }
+        return null;
+    }
+
+    /** Gol da Final: o tipo de quem marcou saindo do corpo durante a comemoração (dentro dos mesmos 2,5 s). */
+    private celebAura(view: PlayerView) {
+        const type = species(view.speciesId).types[0];
+        this.time.addEvent({
+            delay: 110,
+            repeat: Math.floor(GOAL_CELEB_MS / 110) - 2,
+            callback: () => {
+                const sp = view.sprite;
+                const a = Math.random() * Math.PI * 2;
+                trailParticle(this, type, sp.x + Math.cos(a) * 9, sp.y - 12 + Math.sin(a) * 7, sp.depth + 1);
+            },
+        });
+    }
+
+    /** Comemoração do gol em andamento pro jogador i (o motor segura o Celebrate por 2,5 s), ou null. */
+    private goalCeleb(i: number, facing: number): { anim: string; facing: number } | null {
+        for (let g = this.goalsBy.length - 1; g >= 0; g--) {
+            const { by, tick } = this.goalsBy[g];
+            if (tick > this.playTick) continue;
+            const ms = ((this.playTick - tick) / TICK_RATE) * 1000;
+            if (ms > GOAL_CELEB_MS + 200) return null;
+            if (by === i) return goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
         }
         return null;
     }
@@ -2794,6 +2832,8 @@ export class MatchScene extends Phaser.Scene {
                     playCry(scorer.speciesId, cries, 1.2);
                     this.highlight(e.ownGoal ? 'owngoal' : 'goal', scorer);
                 }
+                // gol da Final: a partícula do tipo de quem marcou sai do corpo enquanto ele comemora
+                if (scorer && !e.ownGoal && this.md.final && !this.md.reduceMotion) this.celebAura(scorer);
                 const sdGoal =
                     this.showdown?.gk === e.by && e.tick >= this.showdown.kick && e.tick < this.showdown.until;
                 this.punch(sdGoal && !this.md.reduceMotion ? 'boom' : this.goalLevel(e));

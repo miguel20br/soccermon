@@ -17,6 +17,7 @@ import { LiveRunner } from '../engine/runners/live-runner';
 import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
+import { comemoracaoOf } from '../game/walkout-plan';
 import { type BinderCard, binderAdd } from '../store/binder';
 import { playerTeam, useGame } from '../store/game-store';
 import { longRound } from '../store/long-cup';
@@ -120,7 +121,8 @@ export function runDevDemo() {
         demo !== 'bicuda' &&
         demo !== 'virada' &&
         demo !== 'charanga' &&
-        demo !== 'sala'
+        demo !== 'sala' &&
+        demo !== 'final'
     )
         return;
     started = true;
@@ -619,6 +621,68 @@ export function runDevDemo() {
                 console.info(`[demo] copa camp${k}: campeão`);
                 return;
             }
+        }
+        return;
+    }
+    // ?demo=final[&rota=1][&gol=pulo|giro|pose]: a Final (Relâmpago ou Rota) na escalação de um time forte; ao começar,
+    // a 3 s do apito final (vencida: a taça curta, na Rota a invasão) ou, com `gol`, a 3 s de um gol seu de quem
+    // comemora desse jeito (com a partícula do tipo, que só sai na Final)
+    if (demo === 'final') {
+        const q = new URLSearchParams(window.location.search);
+        const rota = q.get('rota') === '1';
+        const jeito = q.get('gol');
+        for (let k = 0; k < 60; k++) {
+            const seed = `fin${rota ? 'r' : ''}${k}`;
+            const rng = new Rng(seed, 'demo');
+            // Snorlax no gol, Machamp, Dragonite, Aerodactyl e Mewtwo capitão: um de cada jeito (pulo, pose, giro)
+            const lineup = [143, 68, 149, 142, 150].map((id) => createInstance(id, rng));
+            const bench = [25, 6].map((id) => createInstance(id, rng));
+            if (rota) store.newRun('Demo FC', seed, undefined, 'longa');
+            else store.newRun('Demo FC', seed);
+            const base = useGame.getState().run!;
+            const last = (rota ? 8 : 4) - 1;
+            const results = Array.from({ length: last }, (_, stage) => ({
+                stage,
+                opponent: base.opponents[stage]?.name ?? 'Montanhistas',
+                score: [3, 1] as [number, number],
+                shootout: null,
+                won: true,
+                final: false,
+            }));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                stage: last,
+                results,
+                status: 'lineup' as const,
+            };
+            if (!run.opponents[last]) continue;
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[last], true), `${run.seed}-stage-${last}`, {
+                snapshots: false,
+            });
+            if (r.winner !== 0) continue;
+            const end = r.events.find((e) => e.type === 'fulltime');
+            const goal = jeito
+                ? r.events.find(
+                      (e) =>
+                          e.type === 'goal' &&
+                          e.team === 0 &&
+                          !e.ownGoal &&
+                          comemoracaoOf(r.roster[e.by]?.speciesId ?? 0) === jeito,
+                  )
+                : undefined;
+            if (!end || (jeito && !goal)) continue;
+            const at = (goal ?? end).tick - 60;
+            const live = { stage: last, orders: [], tick: Math.max(1, at), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] final ${seed}: ${goal ? `gol (${jeito})` : 'apito'} no tick ${at + 60}`);
+            return;
         }
         return;
     }

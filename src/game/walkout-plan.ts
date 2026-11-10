@@ -285,6 +285,28 @@ export function comemoracaoOf(speciesId: number): Comemoracao {
     return 'pulo';
 }
 
+/** Quanto dura a comemoração do gol (o `Action.Celebrate` de 2,5 s do motor). */
+export const GOAL_CELEB_MS = 2500;
+/** Giro: um passo de direção a cada tanto (2 voltas inteiras) e depois pula de frente. */
+const GIRO_STEP_MS = 85;
+const GIRO_STEPS = 16;
+/** Pose: junta força (como o "Vamooo!" do capitão) e solta a pose de frente. */
+const POSE_CHARGE_MS = 450;
+
+/**
+ * A comemoração do gol na quadra (MatchScene), no jeito da espécie (`comemoracaoOf`), dentro do tempo que o motor já
+ * segura: pulo = Hop virado pra onde estava; giro = anda girando pelas 8 direções (pião) e pula de frente; pose =
+ * Charge e Pose de frente (sem Pose, o animation-manager cai no Hop). `ms` desde o gol.
+ */
+export function goalCelebPose(kind: Comemoracao, ms: number, facing: number): { anim: string; facing: number } {
+    if (kind === 'giro') {
+        const step = Math.floor(Math.max(0, ms) / GIRO_STEP_MS);
+        return step < GIRO_STEPS ? { anim: 'Walk', facing: (facing + step) % 8 } : { anim: 'Hop', facing: 0 };
+    }
+    if (kind === 'pose') return { anim: ms < POSE_CHARGE_MS ? 'Charge' : 'Pose', facing: 0 };
+    return { anim: 'Hop', facing };
+}
+
 /** As batidas onde o toque para (tocar adianta pra próxima). */
 export function planBeats(p: WalkPlan): number[] {
     const all = [p.sky, p.plate, p.type, p.pos, p.gate, p.enter, p.impact, p.card, p.art, p.end];

@@ -7,6 +7,8 @@ import {
     comemoracaoOf,
     dayCount,
     FX_TYPES,
+    GOAL_CELEB_MS,
+    goalCelebPose,
     JOGADAS,
     jogadaOf,
     planBeats,
@@ -158,5 +160,21 @@ describe('plano do walkout', () => {
         expect(comemoracaoOf(6)).toBe('giro'); // Charizard
         expect(comemoracaoOf(59)).toBe('pulo'); // Arcanine
         expect(comemoracaoOf(132)).toBe('pulo'); // Ditto
+    });
+
+    it('comemoração do gol: o jeito sai só da espécie e cabe nos 2,5 s', () => {
+        // a mesma espécie comemora sempre igual (sem sorteio: o replay e o Duelo mostram o mesmo)
+        for (let id = 1; id <= 151; id++) expect(comemoracaoOf(id)).toBe(comemoracaoOf(id));
+        const kinds = new Set(Array.from({ length: 151 }, (_, i) => comemoracaoOf(i + 1)));
+        expect([...kinds].sort()).toEqual(['giro', 'pose', 'pulo']);
+        // pulo: Hop pra onde estava virado
+        expect(goalCelebPose('pulo', 1000, 3)).toEqual({ anim: 'Hop', facing: 3 });
+        // giro: passa pelas 8 direções e termina pulando de frente antes do fim
+        const dirs = new Set(Array.from({ length: 30 }, (_, i) => goalCelebPose('giro', i * 50, 2).facing));
+        expect(dirs.size).toBe(8);
+        expect(goalCelebPose('giro', GOAL_CELEB_MS - 1, 2)).toEqual({ anim: 'Hop', facing: 0 });
+        // pose: junta força e solta, de frente
+        expect(goalCelebPose('pose', 100, 5)).toEqual({ anim: 'Charge', facing: 0 });
+        expect(goalCelebPose('pose', 1200, 5)).toEqual({ anim: 'Pose', facing: 0 });
     });
 });
