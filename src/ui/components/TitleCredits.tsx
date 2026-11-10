@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { reduceMotionOn } from '../settings-sync';
+import { Logo } from './LogoHits';
 import { HudIcon } from './MatchHud';
 import '../animacoes.css';
 
@@ -49,7 +50,7 @@ export function TitleCredits({
                 aria-label={t('settings.credits.rota.tap')}
             >
                 <div className="tc-roll" style={{ animationDuration: `${ROLL_MS}ms` }}>
-                    <img className="tc-logo" src="assets/ui/logo.svg" alt="Soccermon" width="1441" height="300" />
+                    <Logo className="tc-logo" alt="Soccermon" idle />
                     <b className="tc-head">{t('settings.credits.rota.head')}</b>
                     <span className="tc-team">{team}</span>
                     <span>{t('settings.credits.rota.game')}</span>

@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { playBadgeJingle } from '../../game/audio';
-import { duckMusic, unduckMusic } from '../../game/music';
 import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -54,14 +52,14 @@ export function UnlockNotice() {
         setOut(false);
         skipped.current = false;
         if (badge) {
-            // a música vai pro fundo enquanto o jingle toca
-            duckMusic();
-            playBadgeJingle();
+            // a música vai pro fundo enquanto o jingle toca (sob demanda: o áudio cria o AudioContext ao carregar)
+            void import('../../game/music').then((m) => m.duckMusic());
+            void import('../../game/audio').then((a) => a.playBadgeJingle());
         }
         const fade = window.setTimeout(() => setOut(true), ms - OUT_MS);
         const next = window.setTimeout(() => skipped.current || shift(), ms);
         return () => {
-            if (badge) unduckMusic(false);
+            if (badge) void import('../../game/music').then((m) => m.unduckMusic(false));
             clearTimeout(fade);
             clearTimeout(next);
         };
