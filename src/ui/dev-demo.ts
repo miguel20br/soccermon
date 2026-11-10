@@ -680,8 +680,10 @@ export function runDevDemo() {
         for (let k = 0; k < 60; k++) {
             const seed = `fin${rota ? 'r' : ''}${k}`;
             const rng = new Rng(seed, 'demo');
-            // Snorlax no gol, Machamp, Dragonite, Aerodactyl e Mewtwo capitão: um de cada jeito (pulo, pose, giro)
-            const lineup = [143, 68, 149, 142, 150].map((id) => createInstance(id, rng));
+            // Snorlax no gol, Machamp, Dragonite, Aerodactyl e Mewtwo capitão: um de cada jeito (pose, giro); no `gol=pulo`
+            // o Pikachu entra no lugar do Aerodactyl (o Snorlax, do gol, não marca)
+            const ids = jeito === 'pulo' ? [143, 68, 149, 25, 150] : [143, 68, 149, 142, 150];
+            const lineup = ids.map((id) => createInstance(id, rng));
             const bench = [25, 6].map((id) => createInstance(id, rng));
             if (rota) demoRotaFinal(store);
             else store.newRun('Demo FC', seed);

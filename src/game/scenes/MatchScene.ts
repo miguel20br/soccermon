@@ -2967,7 +2967,7 @@ export class MatchScene extends Phaser.Scene {
                     .clear()
                     .setPosition(capAt.x, capAt.y - capTop * 0.9)
                     .setDepth(capAt.y - 60);
-                c.rays.fillStyle(0xffd75e, 0.2);
+                c.rays.fillStyle(0xffc93c, 0.34);
                 const spin = (t - p.lift) / 2600;
                 for (let r = 0; r < 14; r++) {
                     const a0 = spin + (r / 14) * Math.PI * 2;
@@ -3177,7 +3177,7 @@ export class MatchScene extends Phaser.Scene {
                 .setOrigin(0.5, 0)
                 .setResolution(2);
         const big = text(title, 24, '#ffd75e');
-        const small = sub ? text(sub.toUpperCase(), 13, '#ffffff') : null;
+        const small = sub ? text(sub.toUpperCase(), 15, '#ffffff') : null;
         const pad = 14 * s;
         const w = Math.max(big.width, small?.width ?? 0) + pad * 2;
         const h = big.height + (small ? small.height : 0) + pad * 1.1;
