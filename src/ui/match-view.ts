@@ -547,12 +547,12 @@ export interface NamedDribble {
 }
 
 export const NAMED_DRIBBLE = {
-    /** DRI da carta (`cardAttributes().field.dribble`) a partir da qual o drible ganha nome. */
-    dri: 75,
+    /** DRI de campo da carta (`cardAttributes().field.dribble`) a partir da qual o drible ganha nome (10/11: 75 → 78). */
+    dri: 78,
     /** No máximo por time numa partida. */
     perTeam: 2,
-    /** O 1x1 que conta: o portador a até metade da quadra do gol (20 m de 40). */
-    zone: 0.5,
+    /** O 1x1 que conta: o portador a até 18 m do gol (de 40; 10/11: era a metade, 20 m). */
+    zone: 18 / 40,
     /** Ticks entre dois dribles com nome (3 s) e de folga pro golpe máximo (que tem a câmera lenta dele). */
     gap: 60,
     clearMax: 30,
