@@ -12,6 +12,9 @@ import { markSeen, useHydrated } from '../coach/Coach';
 import { cupStep } from '../components/AccountLink';
 import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
+import { PixelTrophy } from '../components/PixelTrophy';
+import { reduceMotionOn } from '../settings-sync';
+import '../animacoes.css';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { ConfirmSheet } from '../kit/Sheet';
 import { FriendChallenge } from '../profile/FriendsTab';
@@ -148,7 +151,18 @@ export const clubVars = (club: number) =>
  * A arquibancada do outro lado (torcida na cor do clube, flashes, a faixa) e o letreiro de LED embaixo dela: a mesma
  * peça no Estádio, no herói do menu de modos e no fundo da Copa do Dia. `children` entra na arquibancada (o dorminhoco do Estádio).
  */
-export function Stands({ clubName, led: text, children }: { clubName: string; led?: string; children?: ReactNode }) {
+export function Stands({
+    clubName,
+    led: text,
+    ola,
+    children,
+}: {
+    clubName: string;
+    led?: string;
+    /** Voltou campeão: a torcida faz a ola (uma faixa de braços pra cima correndo as fileiras). */
+    ola?: boolean;
+    children?: ReactNode;
+}) {
     const { t } = useT();
     const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
@@ -157,16 +171,37 @@ export function Stands({ clubName, led: text, children }: { clubName: string; le
     const liga = ligaCountdown();
     const news = [week, !playedToday && t('home.amb.ledDaily'), liga && t('home.amb.ledLiga', { d: liga.d })];
     const led = (text ? `${text} · ` : `${news.filter(Boolean).join(' · ')} · `).repeat(3);
+    const stand = useRef<HTMLDivElement>(null);
+    // a ola anda de pedaço em pedaço da torcida (42 px de pixel) até atravessar a arquibancada, fileira por fileira
+    useEffect(() => {
+        const el = stand.current;
+        if (!ola || !el || reduceMotionOn()) return;
+        const tile = 42 * (Number.parseFloat(getComputedStyle(el).getPropertyValue('--px')) || 3);
+        const n = Math.ceil(el.clientWidth / tile) + 3;
+        const runs = [...el.querySelectorAll<HTMLElement>('.es-ola')].map((b, r) =>
+            b.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${n * tile}px)` }], {
+                duration: n * 130 + 1400,
+                delay: r * 130,
+                iterations: Number.POSITIVE_INFINITY,
+                easing: `steps(${n})`,
+            }),
+        );
+        return () => {
+            for (const a of runs) a.cancel();
+        };
+    }, [ola]);
     return (
         <>
-            <div className="es-stand">
+            <div ref={stand} className={`es-stand${ola ? ' es-ola-on' : ''}`}>
                 {Array.from({ length: ROWS }, (_, i) => (
                     <i
                         // biome-ignore lint/suspicious/noArrayIndexKey: fileiras fixas
                         key={i}
                         className="es-row"
                         style={{ '--r': i } as CSSProperties}
-                    />
+                    >
+                        {ola && <b className="es-ola" />}
+                    </i>
                 ))}
                 {FLASHES.map((f) => (
                     <i
@@ -195,12 +230,15 @@ function Court({
     small,
     wild,
     look,
+    champ,
 }: {
     captain: { id: number; shiny?: boolean };
     play: boolean;
     small: boolean;
     wild: WildScene;
     look: number;
+    /** Voltou campeão: a taça de pixel do lado e a pose no lugar da embaixadinha. */
+    champ?: boolean;
 }) {
     return (
         <div className="es-court">
@@ -213,13 +251,17 @@ function Court({
                 <FieldSprite
                     id={captain.id}
                     shiny={captain.shiny}
-                    anim="Idle"
+                    anim={champ ? 'Pose' : 'Idle'}
                     dir={look}
                     scale={small ? 1 : 2}
                     play={play}
                     className="es-mon"
                 />
-                <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
+                {champ ? (
+                    <PixelTrophy kind="taca" metal="ouro" className="es-cup" />
+                ) : (
+                    <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
+                )}
             </div>
         </div>
     );
@@ -365,7 +407,9 @@ export function Estadio({
     // o modo escolhido na pílula (vale enquanto a Home está aberta; voltar de outra tela volta pro padrão)
     const [chosen, setChosen] = useState<ModeId | null>(null);
     const inProgress = !!run && !['eliminated', 'champion'].includes(run.status);
-    const lead = inProgress ? (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0]) : undefined;
+    // voltou campeão (animacoes-novas.md, C2): até a próxima copa, a ola, o letreiro e o capitão com a taça
+    const champ = run?.status === 'champion';
+    const lead = inProgress || champ ? (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0]) : undefined;
     const captain = lead ? { id: lead.speciesId, shiny: lead.shiny } : avatarMon(avatar);
     const play = (seed?: string, mode?: CupMode) => {
         if (inProgress && !confirm) {
@@ -443,10 +487,26 @@ export function Estadio({
                     <Floodlight side="r" />
                 </div>
                 <div className="amb-layer es-arena" style={{ '--depth': 0.3 } as CSSProperties}>
-                    <Stands clubName={clubName}>
+                    <Stands
+                        clubName={clubName}
+                        ola={champ}
+                        led={
+                            champ
+                                ? t('home.amb.ledChamp', {
+                                      cup: (run?.mode === 'longa'
+                                          ? t('home.longCup.title')
+                                          : run?.daily
+                                            ? t('liga.home.dailyTag')
+                                            : t('home.quickCup.title')
+                                      ).toUpperCase(),
+                                      club: run?.teamName.toUpperCase() ?? '',
+                                  })
+                                : undefined
+                        }
+                    >
                         <WildZone wild={w} zone="stand" />
                     </Stands>
-                    <Court captain={captain} play={active} small={small} wild={w} look={look} />
+                    <Court captain={captain} play={active} small={small} wild={w} look={look} champ={champ} />
                 </div>
                 <div className="amb-layer es-tunnel" style={{ '--depth': 0 } as CSSProperties}>
                     <i className="es-wall l" />

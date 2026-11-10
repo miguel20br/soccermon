@@ -91,6 +91,7 @@ export const home: typeof pt = {
         tabs: { lab: 'Lab', rota: 'Road', estadio: 'Stadium', arena: 'Arena', sede: 'Club' },
         skip: 'Tap to skip',
         ledDaily: 'NEW DAILY CUP',
+        ledChamp: '{cup} CHAMPIONS · {club}',
         ledLiga: 'LEAGUE OPENS IN {d} DAYS',
         labTitle: "Oak's Lab",
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */

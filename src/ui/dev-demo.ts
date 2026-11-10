@@ -635,6 +635,31 @@ export function runDevDemo() {
     // ?demo=final[&rota=1][&gol=pulo|giro|pose]: a Final (Relâmpago ou Rota) na escalação de um time forte; ao começar,
     // a 3 s do apito final (vencida: a taça curta, na Rota a invasão) ou, com `gol`, a 3 s de um gol seu de quem
     // comemora desse jeito (com a partícula do tipo, que só sai na Final)
+    // ?demo=estadio-campeao[&rota=1]: a Home logo depois de um título (a ola, o letreiro e o capitão com a taça)
+    if (demo === 'estadio-campeao') {
+        const rota = q0Of().get('rota') === '1';
+        if (rota) store.newRun('Demo FC', 'est-campeao', undefined, 'longa');
+        else store.newRun('Demo FC', 'est-campeao');
+        const rng = new Rng('est-campeao', 'demo');
+        const lineup = [143, 68, 149, 142, 6].map((id) => createInstance(id, rng));
+        const run = useGame.getState().run!;
+        // depois da transição do newRun (que levaria pro draft)
+        window.setTimeout(
+            () =>
+                useGame.setState({
+                    run: {
+                        ...run,
+                        picks: lineup,
+                        lineup: lineup.map((p) => p.uid),
+                        captainUid: lineup[4].uid,
+                        status: 'champion',
+                    },
+                    screen: 'home',
+                }),
+            700,
+        );
+        return;
+    }
     // ?demo=insignia[&lider=misty]: a insígnia batendo na volta pra Home (a 1ª vitória contra o líder), com o jingle
     if (demo === 'insignia') {
         const lider = q0Of().get('lider') ?? 'misty';
