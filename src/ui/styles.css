@@ -7539,7 +7539,7 @@ p.muted.center a {
    Transition: com ela, ligar o fade de novo no fim da troca recomeçava do zero e a tela piscava preta (26/10) */
 @supports not (view-transition-name: none) {
     .app > *:not(.topbar) {
-        animation: screen-in var(--dur-ui) var(--ease-out) both;
+        animation: screen-in var(--dur-ui) var(--ease-out) backwards;
     }
 }
 @keyframes screen-in {
@@ -7549,7 +7549,7 @@ p.muted.center a {
 }
 /* modais: fundo escurece e a caixa cresce um pouco; a saída é instantânea */
 .modal-backdrop {
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 .modal {
     animation: modal-in var(--dur-pop) var(--ease-pop) both;

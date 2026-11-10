@@ -3940,7 +3940,7 @@
     inset: 0;
     overflow: hidden;
     pointer-events: none;
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 /* a quadra sobe: o par do duelo fica no terço de cima, o conteúdo do palco embaixo. O neon do Arcade é da Home */
 .amb-bd .ar-scene {

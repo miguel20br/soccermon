@@ -466,5 +466,5 @@ h3.bc-lbl {
 }
 /* o conteúdo da aba nova entra com fade */
 [role="tabpanel"] > * {
-    animation: screen-in 200ms var(--ease-out) both;
+    animation: screen-in 200ms var(--ease-out) backwards;
 }

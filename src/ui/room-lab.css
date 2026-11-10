@@ -100,7 +100,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
-    animation: screen-in 250ms var(--ease-out) both;
+    animation: screen-in 250ms var(--ease-out) backwards;
 }
 .ls-item {
     position: relative;

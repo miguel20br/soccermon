@@ -510,11 +510,11 @@
 }
 @media (prefers-reduced-motion: reduce) {
     :root:not([data-reduce-motion="false"]) .k-sheet {
-        animation: screen-in 0.2s var(--ease-out) both;
+        animation: screen-in 0.2s var(--ease-out) backwards;
     }
 }
 :root[data-reduce-motion="true"] .k-sheet {
-    animation: screen-in 0.2s var(--ease-out) both;
+    animation: screen-in 0.2s var(--ease-out) backwards;
 }
 
 /* ---------- barra da copa (CupBar.tsx): voltar, a fase em placa, ₽ e sorteios ---------- */
@@ -722,11 +722,11 @@
     }
 }
 :root[data-reduce-motion="true"] .ht-panel {
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 @media (prefers-reduced-motion: reduce) {
     :root:not([data-reduce-motion="false"]) .ht-panel {
-        animation: screen-in var(--dur-ui) var(--ease-out) both;
+        animation: screen-in var(--dur-ui) var(--ease-out) backwards;
     }
 }
 
@@ -791,7 +791,7 @@
     }
 }
 :root[data-reduce-motion="true"] .k-toast {
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 
 /* =====================================================================================================================
