@@ -253,6 +253,13 @@
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-size: 20px;
 }
+.tc-parade {
+    position: absolute;
+    inset: auto 0 0;
+    height: 96px;
+    /* a lista passa por trás do elenco, que anda num chão escuro */
+    background: linear-gradient(transparent, #05070f 40%);
+}
 .tc-parade .cr-parade {
     height: 72px;
     border-bottom: 0;

@@ -147,6 +147,15 @@ export const settings = {
         reportComponents: 'Componentes',
     },
     credits: {
+        /** Créditos curtos depois do 1º título da Rota (uma vez por save). */
+        rota: {
+            head: 'Campeões da Rota Índigo',
+            game: 'Ideia, game design e código: Miguel Cunha',
+            music: 'Música original: Soccermon',
+            sprites: 'Sprites de campo: PMD Sprite Repository (PMDCollab)',
+            fan: 'Fan game sem fins lucrativos. Pokémon © Nintendo, Game Freak, Creatures e The Pokémon Company.',
+            tap: 'Toque pra seguir',
+        },
         title: 'Créditos',
         hold: 'Segure pra acelerar',
         thanks: 'Obrigado por jogar!',

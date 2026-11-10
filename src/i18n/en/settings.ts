@@ -147,6 +147,15 @@ export const settings: typeof pt = {
         reportComponents: 'Components',
     },
     credits: {
+        /** Short credits after the first Indigo Road title (once per save). */
+        rota: {
+            head: 'Indigo Road Champions',
+            game: 'Idea, game design and code: Miguel Cunha',
+            music: 'Original music: Soccermon',
+            sprites: 'Court sprites: PMD Sprite Repository (PMDCollab)',
+            fan: 'Non-profit fan game. Pokémon © Nintendo, Game Freak, Creatures and The Pokémon Company.',
+            tap: 'Tap to continue',
+        },
         title: 'Credits',
         hold: 'Hold to speed up',
         thanks: 'Thanks for playing!',
