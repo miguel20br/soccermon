@@ -28,6 +28,7 @@ import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
 import { clubVars, hexCss, missionText, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
+import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NewDot, useNews } from '../profile/news';
 import {
@@ -152,10 +153,12 @@ export function Profile() {
                         <button
                             type="button"
                             className="pf-edit pf-name"
-                            aria-label={`${edit}: ${t('profile.club.yourName')}`}
+                            aria-label={`${t('profile.club.editName')}: ${trainerLabel(profile, googleName)}`}
+                            title={t('profile.club.editName')}
                             onClick={() => setSheet('nome')}
                         >
-                            {trainerLabel(profile, googleName)}
+                            <span>{trainerLabel(profile, googleName)}</span>
+                            <PencilIcon className="pf-ico pf-pencil" />
                         </button>
                     </h2>
                     <span className={`pf-title-line${titleClass(activeTitle(profile))}`}>

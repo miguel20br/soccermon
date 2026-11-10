@@ -10,7 +10,7 @@ import { lookOfPeer, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { frameTier, parseShowcase } from '../../store/medals';
 import { clubColorHex } from '../../store/profile';
-import { trainerLabel, useAvatar } from '../profile/club';
+import { useAvatar } from '../profile/club';
 import { useShowcase } from '../profile/Medals';
 import { peerInfo, useMyInfo, usePlayerCard } from '../profile/PlayerCard';
 import { Scoreboard } from './MatchHud';
@@ -97,7 +97,7 @@ export function VersusLab({ onExit }: { onExit: () => void }) {
                     awayTag="RIV"
                     awayLabel={t('duel.match.vsRival')}
                     homeCoach={{
-                        name: trainerLabel(profile),
+                        name: me.name,
                         avatar: avatar.src,
                         avatarGoogle: avatar.google,
                         showcase: mine.items,

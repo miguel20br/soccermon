@@ -97,6 +97,16 @@ export interface Profile {
     newsSeen?: string[];
 }
 
+/**
+ * O nome do treinador, o mesmo em todo lugar (Perfil, barra de cima, Duelo, Copa do Dia, Liga, Amigos): o que ele
+ * escolheu; senão o primeiro nome da conta Google (o nome completo nunca sai do aparelho; e-mail nunca); senão ''
+ * (quem chama põe "Treinador").
+ */
+export function trainerNameOf(p: Pick<Profile, 'trainerName'>, googleName?: string | null): string {
+    const first = googleName?.trim().split(/\s+/)[0] ?? '';
+    return p.trainerName.trim() || (first.includes('@') ? '' : first.slice(0, 40));
+}
+
 export const DEFAULT_PROFILE: Profile = {
     trainerName: '',
     avatar: { kind: 'pokemon', speciesId: 25 },

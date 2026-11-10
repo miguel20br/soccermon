@@ -43,6 +43,7 @@ import {
     titleName,
     trainerLabel,
     useAvatar,
+    useTrainerLabel,
 } from './club';
 import { frameClass, ShowcaseRow, useShowcase } from './Medals';
 import { Num } from './NumbersTab';
@@ -175,8 +176,9 @@ export function useMyInfo(): PlayerInfo {
     const cards = useCardShowcase().insts;
     const title = activeTitle(profile);
     const hall = useGame((s) => s.hall);
+    const name = useTrainerLabel();
     return {
-        name: trainerLabel(profile),
+        name,
         trainer: activeTrainer(profile),
         avatar,
         frame: show.frame,
@@ -392,7 +394,7 @@ export function ProfileChip() {
     const avatar = useAvatar();
     const frame = useShowcase().frame;
     const { t } = useT();
-    const name = trainerLabel(profile);
+    const name = useTrainerLabel();
     const news = useNews();
     return (
         <button
