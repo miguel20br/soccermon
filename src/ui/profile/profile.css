@@ -977,7 +977,12 @@ fieldset.pf-field,
     border: 2px solid var(--line);
     background: var(--panel);
     cursor: pointer;
-    contain: layout paint;
+    /* sem "paint": cortava o selo NOVO, que sai 7 px pra cima do canto */
+    contain: layout;
+}
+/* o selo NOVO da Pokédex sobe mais um pouco: no canto de sempre cobria o número e o selo de carreira */
+.pf-cell > .new-badge.corner {
+    top: -10px;
 }
 .pf-cell:hover {
     border-color: var(--yellow);
