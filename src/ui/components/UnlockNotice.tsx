@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { t } from '../../i18n';
+import { dict, t } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { missionById } from '../../store/missions';
+import { KANTO_BADGES, missionById, type TrainerId } from '../../store/missions';
+import { KantoBadge } from './BadgeCase';
+import '../animacoes.css';
 import { useWipeBusy } from '../kit/wipe-store';
 import { missionText, titleName, trainerName } from '../profile/club';
 import { MedalIcon } from '../profile/icons';
@@ -22,6 +24,10 @@ export function noticeLines(id: string): { head: string; task: string } | null {
 /** Quanto o selo fica na tela (batida, pausa e saída); o próximo da fila vem depois. */
 const SEAL_MS = 1200;
 const OUT_MS = 220;
+/** A insígnia batendo: o jingle de 2 s (scripts/musica/pecas/insignia.mjs), a batida aos 560 ms. */
+const BADGE_MS = 2300;
+/** As faíscas da batida, em volta (graus). */
+const SPARKS = [0, 45, 90, 135, 180, 225, 270, 315];
 
 /**
  * Missão cumprida (treinador ou título novo): o selo dourado batendo com o sprite em cima (cara-de-jogo.md, Modais
@@ -36,14 +42,26 @@ export function UnlockNotice() {
     const free = useGame((s) => s.screen === 'home' && !s.tour);
     const busy = useWipeBusy();
     const [out, setOut] = useState(false);
+    // tocou pra pular: a fila anda pelo toque (o relógio da batida não anda de novo)
+    const skipped = useRef(false);
     const on = !!id && free && !busy;
-    // biome-ignore lint/correctness/useExhaustiveDependencies: cada selo da fila (id) ganha o seu 1,2 s
+    // insígnia de Kanto (1ª vitória contra o líder, no máximo 8 por save): entra girando e bate, com o jingle
+    const badge = !!id && (KANTO_BADGES as readonly string[]).includes(id);
+    const ms = badge ? BADGE_MS : SEAL_MS;
+    // biome-ignore lint/correctness/useExhaustiveDependencies: cada selo da fila (id) ganha o seu tempo
     useEffect(() => {
         if (!on) return;
         setOut(false);
-        const fade = window.setTimeout(() => setOut(true), SEAL_MS - OUT_MS);
-        const next = window.setTimeout(shift, SEAL_MS);
+        skipped.current = false;
+        if (badge) {
+            // a música vai pro fundo enquanto o jingle toca (sob demanda: o áudio cria o AudioContext ao carregar)
+            void import('../../game/music').then((m) => m.duckMusic());
+            void import('../../game/audio').then((a) => a.playBadgeJingle());
+        }
+        const fade = window.setTimeout(() => setOut(true), ms - OUT_MS);
+        const next = window.setTimeout(() => skipped.current || shift(), ms);
         return () => {
+            if (badge) void import('../../game/music').then((m) => m.unduckMusic(false));
             clearTimeout(fade);
             clearTimeout(next);
         };
@@ -51,6 +69,34 @@ export function UnlockNotice() {
     const lines = id ? noticeLines(id) : null;
     const m = id ? missionById(id) : undefined;
     if (!on || !lines) return null;
+    if (badge && id)
+        return createPortal(
+            // toque pula (o jingle termina sozinho)
+            <button
+                type="button"
+                key={id}
+                className={`badge-slam${out ? ' out' : ''}`}
+                onClick={() => {
+                    if (skipped.current) return;
+                    skipped.current = true;
+                    setOut(true);
+                    window.setTimeout(shift, OUT_MS);
+                }}
+            >
+                <span className="bs-badge">
+                    <i className="bs-ring" aria-hidden />
+                    {SPARKS.map((a) => (
+                        <i key={a} className="bs-spark" style={{ '--a': `${a}deg` } as CSSProperties} aria-hidden />
+                    ))}
+                    <KantoBadge leader={id as TrainerId} earned />
+                </span>
+                <b className="bs-text k-seal" role="status">
+                    {t('profile.badges.won', { name: dict().profile.badges.names[id] ?? '' })}
+                </b>
+                <small className="bs-sub">{lines.head}</small>
+            </button>,
+            document.body,
+        );
     return createPortal(
         <div key={id} className={`unlock-seal${out ? ' out' : ''}`} role="status">
             {m?.trainer ? <TrainerSprite id={m.trainer} /> : <MedalIcon />}

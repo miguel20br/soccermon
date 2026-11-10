@@ -261,6 +261,8 @@ export interface ChampMemo {
     firstTitles: number[];
     /** O desfile do Hall da Fama já passou (só aparece uma vez). */
     paraded?: boolean;
+    /** Os créditos do 1º título da Rota já passaram (só uma vez). */
+    credited?: boolean;
     /** A ponte da Copa pagou 1 Pacote Mini no Time Ultimate com este título (o aviso no resultado). */
     utBridge?: boolean;
 }
@@ -584,6 +586,7 @@ export interface GameStore {
     recordResult(m: MatchResult): void;
     /** O desfile do Hall da Fama já passou nesta copa. */
     markParaded(): void;
+    markCredited(): void;
     /**
      * Pega a recompensa. MT: `forgetSlot` é a vaga do golpe esquecido (ou o tamanho do moveset, se há vaga).
      * Item: se quem recebe já segura um, `passTo` é quem fica com o antigo (sem `passTo`, o antigo é descartado).
@@ -2015,6 +2018,10 @@ export const useGame = create<GameStore>()(
                 markParaded: () => {
                     const run = getState().run;
                     if (run?.champ && !run.champ.paraded) updateRun({ champ: { ...run.champ, paraded: true } });
+                },
+                markCredited: () => {
+                    const run = getState().run;
+                    if (run?.champ && !run.champ.credited) updateRun({ champ: { ...run.champ, credited: true } });
                 },
 
                 claimReward: (index, targetUid, forgetSlot, passTo) => {

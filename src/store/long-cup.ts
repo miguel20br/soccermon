@@ -318,3 +318,31 @@ export function foulOf(run: {
 
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */
 export const groupQualified = (rows: GroupRow[]) => rows.findIndex((r) => r.you) < 2;
+
+/**
+ * Desfile do Hall da Fama (animacoes-novas.md, decisão 3): só no título da Rota e no 1º título de cada modo
+ * (Relâmpago, Copa do Dia); os repetidos ficam com a taça curta na quadra. `titles`/`longTitles` já contam este
+ * título; `dailyTitles` = Copas do Dia ganhas (com esta, se for uma).
+ */
+export function paradeOn(
+    run: { mode?: CupMode; daily?: string },
+    records: { titles: number; longTitles?: number },
+    dailyTitles: number,
+): boolean {
+    if (run.mode === 'longa') return true;
+    if (run.daily) return dailyTitles <= 1;
+    return records.titles - (records.longTitles ?? 0) - dailyTitles <= 1;
+}
+
+/**
+ * Créditos do título (`TitleCredits`): guardados pro fim do Modo História (Miguel, 10/11: "os créditos melhores só no
+ * fim do Modo História"). Nenhum modo de hoje chama: a Rota parou de chamar.
+ */
+export const creditsOn = (run: { mode?: string }) => run.mode === 'historia';
+
+/**
+ * Cerimônia do título na quadra: só na Final (a MatchScene ainda confere se você venceu). Taça curta em todo título;
+ * na Rota, a invasão. Qualquer outra partida, vencida ou não, acaba no FIM DE JOGO de sempre.
+ */
+export const titleCeremony = (run: ModeRun | null | undefined): 'taca' | 'invasao' | undefined =>
+    run && isFinalStage(run) ? (isLong(run) ? 'invasao' : 'taca') : undefined;

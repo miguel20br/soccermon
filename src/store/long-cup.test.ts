@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { longOpponent } from '../engine/cup-map';
+import { LONG_MATCHES, longOpponent } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
-import { longMatchBonus, longWinEarnings, lossColor, nodeOpponent, ROCKET_BOUNTY } from './long-cup';
+import {
+    creditsOn,
+    longMatchBonus,
+    longWinEarnings,
+    lossColor,
+    nodeOpponent,
+    paradeOn,
+    ROCKET_BOUNTY,
+    titleCeremony,
+} from './long-cup';
 
 describe('lossColor (barrinha da copa na Home)', () => {
     const rota = (status: string, stages: number[]) => ({
@@ -75,5 +84,34 @@ describe('prêmio à vista e desafios (revisão da Rota)', () => {
             true,
         );
         expect(nodeOpponent(run, node).lineup.some((p) => p.speciesId === 145)).toBe(false);
+    });
+});
+
+describe('paradeOn e creditsOn (título: desfile só no raro, créditos uma vez)', () => {
+    it('Rota sempre desfila; Relâmpago e Copa do Dia só no 1º título de cada', () => {
+        expect(paradeOn({ mode: 'longa' }, { titles: 9, longTitles: 3 }, 2)).toBe(true);
+        expect(paradeOn({}, { titles: 1 }, 0)).toBe(true);
+        expect(paradeOn({}, { titles: 2 }, 0)).toBe(false);
+        // o 1º da Relâmpago depois de títulos na Rota e no Dia ainda é o 1º dela
+        expect(paradeOn({}, { titles: 4, longTitles: 2 }, 1)).toBe(true);
+        expect(paradeOn({ daily: '2026-11-10' }, { titles: 5 }, 1)).toBe(true);
+        expect(paradeOn({ daily: '2026-11-10' }, { titles: 5 }, 2)).toBe(false);
+    });
+    it('créditos só no 1º título da Rota', () => {
+        // os créditos ficaram pro fim do Modo História: o 1º título da Rota não chama mais
+        expect(creditsOn({ mode: 'longa' })).toBe(false);
+        expect(creditsOn({})).toBe(false);
+        expect(creditsOn({ mode: 'historia' })).toBe(true);
+    });
+});
+
+describe('titleCeremony (a taça só no título)', () => {
+    it('vitória fora da Final não tem cerimônia; a Final tem taça (Relâmpago) ou invasão (Rota)', () => {
+        for (const stage of [0, 1, 2]) expect(titleCeremony({ stage })).toBeUndefined();
+        expect(titleCeremony({ stage: 3 })).toBe('taca');
+        for (let stage = 0; stage < LONG_MATCHES - 1; stage++)
+            expect(titleCeremony({ mode: 'longa', stage })).toBeUndefined();
+        expect(titleCeremony({ mode: 'longa', stage: LONG_MATCHES - 1 })).toBe('invasao');
+        expect(titleCeremony(null)).toBeUndefined();
     });
 });

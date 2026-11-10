@@ -48,7 +48,16 @@ export const battle = {
         catch: 'SEGUROU!',
         punch: 'SOCOU!',
     },
+    /** Faixa do drible com nome (a cena: MatchScene.namedDribble). */
+    dribble: {
+        lambreta: 'LAMBRETA',
+        roleta: 'ROLETA',
+        elastico: 'ELÁSTICO',
+    },
     fulltime: 'FIM DE JOGO',
+    rotaChamp: 'CAMPEÕES DA ROTA ÍNDIGO',
+    /** Placa da taça curta (a Final da Relâmpago e da Copa do Dia). */
+    cupChamp: 'CAMPEÕES!',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',
     bigPost: 'NA TRAAAVE!',

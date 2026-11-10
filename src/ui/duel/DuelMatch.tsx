@@ -269,6 +269,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                       startPaused: true,
                       mine: side,
                       duel: true,
+                      setups,
                   }
                 : null,
         [match?.seed],

@@ -17,7 +17,7 @@ type Pinnable = Phaser.GameObjects.Container;
 const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /** Tamanho dos textos presos dentro do recorte do clipe (cabem na faixa e seguem legíveis no 9:16). */
-const CROP_TEXT_SCALE = 0.72;
+export const CROP_TEXT_SCALE = 0.72;
 /** Até onde (px do canvas) vai o texto de drama no alto (GOOOOL!, QUE DEFESA!): o letreiro do N1/N2 não entra aí. */
 const DRAMA_BOTTOM = GAME_H * 0.17 + 80;
 
@@ -184,6 +184,21 @@ export class Cinematics {
         this.scene.time.delayedCall(duration, () => {
             if (this.scene.time.now + 5 < this.spotlightUntil) return; // outro golpe estendeu o holofote
             this.clearSpotlight();
+        });
+    }
+
+    /**
+     * Zoom curto num lance (o drible com nome): entra em 180 ms e volta pro meio depois de `holdMs`, a não ser que um
+     * gol, uma defesa ou um golpe tenha assumido a câmera nesse meio tempo.
+     */
+    punchIn(x: number, y: number, zoom: number, holdMs: number) {
+        const cam = this.scene.cameras.main;
+        cam.pan(x, y - 10, 180, 'Sine.easeOut', true);
+        cam.zoomTo(zoom, 180, 'Sine.easeOut', true);
+        this.scene.time.delayedCall(holdMs, () => {
+            if (this.scene.time.now < this.dramaUntil || this.spotlightActive) return;
+            cam.pan(GAME_W / 2, GAME_H / 2, 380, 'Sine.easeInOut', true);
+            cam.zoomTo(1, 380, 'Sine.easeInOut', true);
         });
     }
 

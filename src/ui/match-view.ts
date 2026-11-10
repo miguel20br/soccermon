@@ -1,9 +1,11 @@
-import { bicudaCueNear, inMaxZone, maxCallCue, maxCue } from '../engine/agency';
+import { bicudaCueNear, inMaxZone, maxCallCue, maxCharge, maxCue } from '../engine/agency';
 import type { Position } from '../engine/attributes';
 import { FUTSAL_5 } from '../engine/config';
+import { species } from '../engine/data';
 import { evolveInstance } from '../engine/evolution';
 import { DEFAULT_FORMATION, type FormationId, formationOf } from '../engine/formations';
 import type { PokemonInstance } from '../engine/instance';
+import { cardAttributes } from '../engine/modifiers';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
 import { Action, SNAP_STRIDE } from '../engine/state';
@@ -432,6 +434,51 @@ export function soldDivePose(
     };
 }
 
+/**
+ * Poeirinha do mergulho (vendido ou da defesa): sai uma vez quando o tick passa de `at`; voltando o replay pra antes,
+ * arma de novo. Reduzir movimento: nada.
+ */
+export function diveDust(
+    dusted: boolean,
+    tick: number,
+    at: number,
+    reduce: boolean,
+): { fire: boolean; dusted: boolean } {
+    if (tick < at) return { fire: false, dusted: false };
+    return { fire: !dusted && !reduce, dusted: true };
+}
+
+/** Mergulho da defesa: começa `lead` ticks antes do contato, volta em `tail`, alcança a bola até `max` px. */
+export const SAVE_DIVE = { lead: 6, tail: 10, max: 1.8 * 22 } as const;
+
+/**
+ * Pose do mergulho da defesa `dt` ticks depois do contato: o corpo vai até a bola (`to`, px, do pé até o ponto do
+ * contato; a bola tem que bater nele) e, como no mergulho vendido, inclina até ~20° pro lado da bola e estica. `reduce`
+ * (Reduzir movimento): só vai até a bola, sem esticar nem inclinar.
+ */
+export function saveDivePose(
+    dt: number,
+    to: { x: number; y: number },
+    front: 1 | -1,
+    reduce = false,
+): { x: number; y: number; tilt: number; sx: number; sy: number; k: number } | null {
+    const { lead, tail, max } = SAVE_DIVE;
+    if (dt < -lead || dt > tail) return null;
+    const k = dt < 0 ? 1 - (-dt / lead) ** 2 : 1 - (dt / tail) ** 2;
+    const l = Math.hypot(to.x, to.y);
+    const m = l > max ? max / l : 1;
+    const lean = reduce ? 0 : k;
+    const sign = Math.abs(to.x) > 1e-6 ? Math.sign(to.x) : front;
+    return {
+        x: to.x * m * k,
+        y: to.y * m * k,
+        tilt: lean ? sign * SOLD_LEAN.tilt * lean : 0,
+        sx: 1 + SOLD_LEAN.stretch * lean,
+        sy: 1 - SOLD_LEAN.stretch * 0.6 * lean,
+        k: lean,
+    };
+}
+
 /** Reação do goleiro ao gol sofrido: `gk` fica cabisbaixo de `from` a `from + GOAL_REACTION_TICKS`. */
 export interface GoalReaction {
     gk: number;
@@ -475,4 +522,227 @@ export interface FacingHold {
 export function holdFacing(h: FacingHold | null, want: number, now: number): FacingHold {
     if (!h || (want !== h.facing && now - h.at >= FACE_HOLD_MS)) return { facing: want, at: now };
     return h;
+}
+
+/**
+ * Dribles com nome (só tela; Miguel, 09/11/2026). O motor já decide o 1x1: o carrinho que não leva a bola (`tackle`
+ * com `success: false`) é o portador passando pelo marcador. A tela dá nome e animação a poucos deles: portador com
+ * DRI alta na carta, no ataque, ficando com a bola. A animação só enfeita: ela sai e volta pro snapshot.
+ */
+// a caneta ficou de fora (09/11): no carrinho os dois sprites ficam um em cima do outro e a bola entre as pernas não
+// aparecia no celular
+export type DribbleKind = 'lambreta' | 'roleta' | 'elastico';
+export const DRIBBLE_KINDS: readonly DribbleKind[] = ['lambreta', 'roleta', 'elastico'];
+
+export interface NamedDribble {
+    tick: number;
+    /** Quem driblou (o portador) e quem ficou pra trás. */
+    by: number;
+    marker: number;
+    team: 0 | 1;
+    kind: DribbleKind;
+    /** Pra onde o portador ia (unitário) e de que lado ficou o marcador (+1 à esquerda dessa direção, na tela). */
+    dir: { x: number; y: number };
+    side: 1 | -1;
+}
+
+export const NAMED_DRIBBLE = {
+    /** DRI de campo da carta (`cardAttributes().field.dribble`) a partir da qual o drible ganha nome (10/11: 75 → 78). */
+    dri: 78,
+    /** No máximo por time numa partida. */
+    perTeam: 2,
+    /** O 1x1 que conta: o portador a até 18 m do gol (de 40; 10/11: era a metade, 20 m). */
+    zone: 18 / 40,
+    /** Ticks entre dois dribles com nome (3 s) e de folga pro golpe máximo (que tem a câmera lenta dele). */
+    gap: 60,
+    clearMax: 30,
+    clearMove: 20,
+    /**
+     * Variação pelo lance: marcador vindo de trás (ângulo com a corrida de `behind` pra cima) toma a roleta (alto) ou a lambreta
+     * por cima (baixo); vindo da frente ou do lado, o elástico.
+     */
+    behind: (2 * Math.PI) / 3,
+    tall: 1,
+    /** Janela da animação: ticks antes e depois do carrinho. */
+    lead: 4,
+    tail: 8,
+    /** Câmera lenta (só na 1x): fator e ticks em volta do carrinho, com rampa de `ramp` ticks de cada lado. */
+    slow: 0.3,
+    slowFrom: 2,
+    slowTo: 3,
+    ramp: 2,
+    /** Hit-stop no ápice (ms de quadro parado), zoom da câmera no driblador e quanto a faixa do nome fica (ms). */
+    stopMs: 150,
+    zoom: 1.2,
+    bannerMs: 1100,
+} as const;
+
+/**
+ * Os dribles com nome da partida. `info(idx, tick)`: DRI da carta e altura (m) de quem está na vaga naquele tick.
+ * Variação pelo lance, sem sorteio (`NAMED_DRIBBLE.behind` e `tall`).
+ */
+export function namedDribbles(
+    m: Pick<MatchResult, 'events' | 'snapshots' | 'roster'>,
+    info: (idx: number, tick: number) => { dri: number; height: number },
+    /** Lance já com outra câmera lenta (o botão do golpe máximo aceso): sem drible com nome. */
+    busy: (tick: number) => boolean = () => false,
+): NamedDribble[] {
+    const N = NAMED_DRIBBLE;
+    const { length } = FUTSAL_5.pitch;
+    const snaps = m.snapshots;
+    if (!snaps.length) return [];
+    // golpe perto do lance (holofote, faixa e câmera lenta dele): o drible com nome fica de fora
+    const moveTicks = m.events.flatMap((e) => (e.type === 'move' ? [e.tick] : []));
+    const maxTicks = m.events.flatMap((e) =>
+        (e.type === 'max' && e.phase === 'hit') || e.type === 'showdown' ? [e.tick] : [],
+    );
+    const out: NamedDribble[] = [];
+    const count = [0, 0];
+    for (const e of m.events) {
+        if (e.type !== 'tackle' || e.success) continue;
+        const by = e.victim;
+        const team = m.roster[by]?.team;
+        if (team === undefined || count[team] >= N.perTeam) continue;
+        if (out.length && e.tick - out[out.length - 1].tick < N.gap) continue;
+        if (maxTicks.some((t) => Math.abs(t - e.tick) <= N.clearMax)) continue;
+        if (moveTicks.some((t) => Math.abs(t - e.tick) <= N.clearMove)) continue;
+        const now = snapAt(snaps, e.tick);
+        // ficou com a bola (o drible que deu certo), com a bola rolando
+        if (now.phase !== 'play' || now.owner !== by || snapAt(snaps, e.tick + 2).owner !== by) continue;
+        const o = by * SNAP_STRIDE;
+        const toGoal = team === 0 ? length - now.p[o] : now.p[o];
+        if (toGoal > length * N.zone) continue;
+        if (info(by, e.tick).dri < N.dri || busy(e.tick)) continue;
+        // pra onde ele ia (do tick -2 ao +2; parado, pro gol)
+        const a = snapAt(snaps, e.tick - 2);
+        const b = snapAt(snaps, e.tick + 2);
+        let dx = b.p[o] - a.p[o];
+        let dy = b.p[o + 1] - a.p[o + 1];
+        let l = Math.hypot(dx, dy);
+        if (l < 0.05) [dx, dy, l] = [team === 0 ? 1 : -1, 0, 1];
+        const dir = { x: dx / l, y: dy / l };
+        const mo = e.by * SNAP_STRIDE;
+        const rx = now.p[mo] - now.p[o];
+        const ry = now.p[mo + 1] - now.p[o + 1];
+        const along = rx * dir.x + ry * dir.y;
+        const cross = dir.x * ry - dir.y * rx;
+        const ang = Math.atan2(Math.abs(cross), along);
+        const tall = info(e.by, e.tick).height >= N.tall;
+        let kind: DribbleKind;
+        if (Math.hypot(rx, ry) < 1e-3) kind = DRIBBLE_KINDS[(e.tick + by * 7 + e.by * 3) % DRIBBLE_KINDS.length];
+        else if (ang < N.behind) kind = 'elastico';
+        else kind = tall ? 'roleta' : 'lambreta';
+        out.push({ tick: e.tick, by, marker: e.by, team, kind, dir, side: cross >= 0 ? 1 : -1 });
+        count[team]++;
+    }
+    return out;
+}
+
+/** `namedDribbles` com a carta de quem está em quadra (trocas, evoluções e Transformar até ali). */
+export function namedDribblesOf(m: MatchResult, setups: [TeamSetup, TeamSetup]): NamedDribble[] {
+    const cue = (team: 0 | 1, tick: number) => {
+        const cap = captainAt(m, setups, team, tick).idx;
+        const from = tick - NAMED_DRIBBLE.clearMax;
+        const to = tick + NAMED_DRIBBLE.clearMax;
+        if (cap === null || maxCharge(m.events, team, tick, 5).level < 1) return false;
+        return maxCueNear(m.snapshots, m.events, from, to, team, cap, roleAt(m, setups, cap, tick));
+    };
+    return namedDribbles(
+        m,
+        (idx, tick) => {
+            const inst = whoAt(m, setups, idx, tick).inst;
+            return inst
+                ? { dri: cardAttributes(inst).field.dribble, height: species(inst.speciesId).heightm }
+                : { dri: 0, height: 0 };
+        },
+        (tick) => cue(0, tick) || cue(1, tick),
+    );
+}
+
+/** Câmera lenta do drible com nome no tick: só na 1x (em 2x pra cima, nunca); 1 = sem. */
+export function dribbleSlowAt(list: readonly NamedDribble[], tick: number, speed: number | string): number {
+    if (speed !== 1) return 1;
+    const N = NAMED_DRIBBLE;
+    let f = 1;
+    for (const d of list) {
+        const t = tick - d.tick;
+        if (t < -N.slowFrom - N.ramp || t > N.slowTo + N.ramp) continue;
+        const out = t < -N.slowFrom ? (-N.slowFrom - t) / N.ramp : t > N.slowTo ? (t - N.slowTo) / N.ramp : 0;
+        f = Math.min(f, N.slow + (1 - N.slow) * out);
+    }
+    return f;
+}
+
+/** Enfeite do drible na tela (px): corpo e bola saem do snapshot e voltam pra ele no fim da janela. */
+export interface DribblePose {
+    body: { x: number; y: number };
+    ball: { x: number; y: number };
+    /** Bola mais alta (px), com a sombra no chão. */
+    lift: number;
+    /** Passos de direção a somar na do snapshot (a roleta dá a volta inteira: 8). */
+    spin: number;
+    /** Quem ficou: sai um pouco pro lado dele (no carrinho os dois ficam um em cima do outro) e morde a finta. */
+    markerBody: { x: number; y: number };
+    markerTilt: number;
+}
+
+const bump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+
+/**
+ * Pose do drible no tick (fracionário). `toBall`: px do pé do portador até a bola no carrinho. Fora da janela, ou com
+ * Reduzir movimento, null (só o nome).
+ */
+export function dribblePose(
+    d: NamedDribble,
+    tick: number,
+    toBall: { x: number; y: number },
+    reduce = false,
+): DribblePose | null {
+    const N = NAMED_DRIBBLE;
+    const u = (tick - (d.tick - N.lead)) / (N.lead + N.tail);
+    if (reduce || u <= 0 || u >= 1) return null;
+    const pose: DribblePose = {
+        body: { x: 0, y: 0 },
+        ball: { x: 0, y: 0 },
+        lift: 0,
+        spin: 0,
+        markerBody: { x: 0, y: 0 },
+        markerTilt: 0,
+    };
+    // lado do marcador, na tela (perpendicular à corrida)
+    const px = -d.dir.y * d.side;
+    const py = d.dir.x * d.side;
+    // o marcador vendido: abre pro lado dele (os dois ficavam um em cima do outro), fica pra trás e cambaleia
+    const after = bump((u - 0.25) / 0.75);
+    const apart = (d.kind === 'elastico' ? 16 : 11) * bump(u);
+    pose.markerBody = { x: px * apart - d.dir.x * 9 * after, y: py * apart - d.dir.y * 9 * after };
+    pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * after;
+    if (d.kind === 'lambreta') {
+        // a bola sobe de trás, passa bem por cima da cabeça do marcador e cai na frente (a sombra fica no chão)
+        const arc = (u - 0.05) / 0.8;
+        pose.lift = 64 * bump(arc);
+        // de trás pra frente por cima dele: começa atrás do pé e cai na frente
+        const fwd = 18 * (Math.min(1, Math.max(0, arc)) - 0.5) * bump(u) * 2;
+        pose.ball = { x: d.dir.x * fwd, y: d.dir.y * fwd };
+    } else if (d.kind === 'roleta') {
+        // gira 360° por cima da bola, saindo de lado pra longe do marcador, e a bola dá a volta no pé
+        const v = Math.min(1, Math.max(0, (u - 0.12) / 0.7));
+        pose.spin = Math.min(8, Math.floor(v * 8)) * d.side;
+        const a = 2 * Math.PI * v * d.side;
+        const c = Math.cos(a);
+        const s = Math.sin(a);
+        pose.ball = { x: toBall.x * c - toBall.y * s - toBall.x, y: toBall.x * s + toBall.y * c - toBall.y };
+        const k = -12 * bump(u);
+        pose.body = { x: px * k, y: py * k };
+        pose.ball.x += pose.body.x;
+        pose.ball.y += pose.body.y;
+    } else {
+        // elástico: mostra a bola pro lado do marcador (ele morde e vai junto) e sai rasgando pro outro
+        const w = Math.sin(2 * Math.PI * u) * bump(u) ** 0.5;
+        const k = w > 0 ? 8 * w : 16 * w;
+        pose.body = { x: px * k, y: py * k };
+        pose.ball = { x: px * k * 1.7, y: py * k * 1.7 };
+        pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * Math.max(after, Math.max(0, w));
+    }
+    return pose;
 }
