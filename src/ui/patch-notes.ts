@@ -10,7 +10,7 @@ export interface PatchNotes {
 export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.44.2',
-        date: '2026-11-10',
+        date: '2026-11-09',
         title: 'Ícones de tipo nítidos',
         sections: [
             {
@@ -2670,7 +2670,7 @@ export const PATCH_NOTES: PatchNotes[] = [
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.44.2',
-        date: '2026-11-10',
+        date: '2026-11-09',
         title: 'Sharp type icons',
         sections: [{ title: 'Screens', lines: ["Type icons are sharp at any size (Fairy's bow no longer blurs)"] }],
     },

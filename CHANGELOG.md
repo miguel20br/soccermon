@@ -1,6 +1,6 @@
 # Novidades
 
-## 0.9.44.2 · Ícones de tipo nítidos (2026-11-10)
+## 0.9.44.2 · Ícones de tipo nítidos (2026-11-09)
 
 ### Telas
 - Os ícones de tipo ficaram nítidos em qualquer tamanho (o laço da Fada não borra mais)
