@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { COURTS, WOOD } from './court-themes';
 import { GAME_H, GAME_W, MatchScene, type MatchSceneData } from './scenes/MatchScene';
 
 /** Cria o jogo Phaser só com a cena da partida; o resto da UI é React. */
@@ -8,7 +9,9 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         width: GAME_W,
         height: GAME_H,
         parent,
-        backgroundColor: '#5a3820',
+        // a cor em volta da quadra do ginásio enquanto a cena carrega (antes era o marrom da madeira em toda quadra: na
+        // Final da Rota, uma placa marrom piscava antes da quadra roxa)
+        backgroundColor: (data.court ? COURTS[data.court] : WOOD).surround,
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         audio: { noAudio: true }, // áudio é tocado por HTMLAudio/ZzFX (src/game/audio.ts)
         // replay: o clipe 9:16 (src/ui/clip-recorder.ts) copia o quadro do canvas depois de desenhado
