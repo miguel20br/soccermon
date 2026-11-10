@@ -164,7 +164,7 @@ Uma família só, pixel: **Galmuri** (SIL OFL 1.1, `public/fonts/`, subset gerad
 
 | Estilo | Fonte | Uso |
 |---|---|---|
-| Placar e título de tela | Galmuri14, 20 a 48 px, peso normal | placar (`.bc-sc`), relógio, número grande do resultado. Título de tela: um só, 22 px no celular e 26 px no PC (`.bc-screenhead h1` e o letreiro dos ambientes) |
+| Placar e título de tela | Galmuri14, 20 a 48 px, peso normal | placar (`.bc-sc`), relógio, número grande do resultado. Título de tela: um só, 21 px no celular e 26 px no PC (`.bc-screenhead h1` e o letreiro dos ambientes) |
 | Título de painel e de seção | Galmuri11 Bold 16 px, caixa normal | `h2` do painel, `.bc-caption`, `.champ-h` (Gols, Vitrine de cartas) |
 | Texto | Galmuri11, 14 px, entrelinha 1,45 | tudo que se lê |
 | Botão, rótulo, etiqueta | Galmuri11 Bold | botões, `.bc-tag` e `.bc-lbl` (10 a 12 px, caixa alta, espaço 1 px), nomes |
