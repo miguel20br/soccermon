@@ -460,7 +460,7 @@ describe('dribles com nome (só tela)', () => {
                 const toGoal = d.team === 0 ? FUTSAL_5.pitch.length - x : x;
                 expect(toGoal).toBeLessThanOrEqual(FUTSAL_5.pitch.length * NAMED_DRIBBLE.zone + 0.5);
             }
-            // a carta de verdade: quem driblou com nome tem DRI de 80 pra cima
+            // a carta de verdade: quem driblou com nome tem DRI de campo do corte pra cima
             for (const d of namedDribblesOf(r, setups)) {
                 const inst = whoAt(r, setups, d.by, d.tick).inst;
                 expect(inst && cardAttributes(inst).field.dribble).toBeGreaterThanOrEqual(NAMED_DRIBBLE.dri);
