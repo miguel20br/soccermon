@@ -72,6 +72,8 @@ export const longCup = {
     },
     /** Zona Safari: a chance de a carta fugir. */
     flee: 'Foge {n}%',
+    /** O letreiro na parede do Cassino (cenário do evento). */
+    casinoSign: 'Cassino',
     /** O resultado da aposta, na tela, antes de voltar pro mapa. */
     reveal: { pegou: 'Pegou {a}!', fugiu: '{a} fugiu!', ganhou: 'Prêmio!', perdeu: 'Não foi dessa vez' },
     prizeLabel: 'Prêmio',

@@ -70,6 +70,8 @@ export const longCup: typeof pt = {
         rara: 'The best 3 of 6 cards, two rarities up.',
     },
     flee: 'Flees {n}%',
+    /** The sign on the Game Corner wall (event scenery). */
+    casinoSign: 'Game Corner',
     reveal: { pegou: 'Caught {a}!', fugiu: '{a} fled!', ganhou: 'Jackpot!', perdeu: 'Not this time' },
     prizeLabel: 'Prize',
     /** Evolution stones (the Route's region prizes). */

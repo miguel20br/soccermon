@@ -33,6 +33,7 @@ import { choiceTargets, type EventId, eventChoices, fleeOf, gambleWon, stoners }
 import { type House, houseOf } from '../../store/rota-map';
 import { Coach } from '../coach/Coach';
 import { CountUp } from '../components/CountUp';
+import { CasinoCounter, EventSet } from '../components/EventSet';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { FutCard } from '../components/FutCard';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
@@ -961,16 +962,27 @@ export function EventScreen() {
             <div className="draft-head bc-screenhead ev-head">
                 <span className="bc-tag">
                     <HudIcon kind={art.icon} />
-                    {t(ev.id === 'safari' || ev.id === 'cassino' ? `longCup.kind.${ev.id}` : 'longCup.kind.evento')}
+                    {t('longCup.kind.evento')}
                 </span>
                 <h1>{stoneName ?? txt.title}</h1>
             </div>
             {/* a cena atrás do diálogo: quem fala em pé, o emblema do evento e o que está em jogo (cartas, rostos) */}
             <div className={`ev-scene ev-${ev.id}`} aria-hidden={!ev.cards?.length}>
-                <i className="ev-floor" />
-                <span className="ev-emblem">
-                    {ev.stone ? <StoneMark stone={ev.stone} className="cm-event-stone" /> : <HudIcon kind={art.icon} />}
-                </span>
+                {gambling ? (
+                    // Safari e Cassino têm lugar: o cenário de pixel no lugar do chão liso e do emblema
+                    <EventSet place={ev.id === 'cassino' ? 'cassino' : 'safari'} />
+                ) : (
+                    <>
+                        <i className="ev-floor" />
+                        <span className="ev-emblem">
+                            {ev.stone ? (
+                                <StoneMark stone={ev.stone} className="cm-event-stone" />
+                            ) : (
+                                <HudIcon kind={art.icon} />
+                            )}
+                        </span>
+                    </>
+                )}
                 <img className="ev-who" src={`assets/trainers/${txt.who}.png`} alt="" />
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
                     <span className="cm-event-faces">
@@ -990,6 +1002,7 @@ export function EventScreen() {
                 )}
                 {!!ev.cards?.length && !reveal && (
                     <div className="cm-event-cards">
+                        {ev.id === 'cassino' && <CasinoCounter />}
                         {ev.cards.map((c) =>
                             ev.id === 'safari' ? (
                                 // a chance de fugir na carta (a da bola de pegar fica no botão)

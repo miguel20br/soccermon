@@ -2427,3 +2427,182 @@
         animation-delay: 0ms;
     }
 }
+
+/* ---------- Safari e Cassino com lugar (revisão de arte, D7): o cenário de pixel do EventSet.tsx, no traço dos
+   ambientes. --ep = 1 pixel da arte; as peças repetem na largura (repeat-x) e se apoiam na linha do chão (--floor) ---------- */
+.ev-scene {
+    --ep: 2px;
+}
+@media (max-width: 359px), (max-height: 520px) {
+    .ev-scene {
+        --ep: 1.5px;
+    }
+}
+@media (min-width: 1000px) and (min-height: 700px) {
+    .ev-scene {
+        --ep: 3px;
+    }
+}
+.evs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    animation: evs-in var(--dur-tela) var(--ease-out) both;
+}
+@keyframes evs-in {
+    from {
+        opacity: 0;
+    }
+}
+.evs > *,
+.evs-counter {
+    position: absolute;
+    display: block;
+    image-rendering: pixelated;
+}
+.evs-piece {
+    width: calc(var(--w) * var(--ep));
+    height: calc(var(--h) * var(--ep));
+    background: var(--art) 0 0 / 100% 100% no-repeat;
+}
+.evs-row {
+    left: 0;
+    right: 0;
+    height: calc(var(--h) * var(--ep));
+    background: var(--art) 50% 0 / calc(var(--w) * var(--ep)) 100% repeat-x;
+}
+.evs-floor {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--floor);
+    background: var(--art) 50% 0 / calc(var(--w) * var(--ep)) calc(var(--h) * var(--ep)) repeat;
+}
+/* Cassino de Celadon: parede vinho em painéis com rodapé dourado, lâmpadas no alto, caça-níqueis no carpete */
+.evs-cassino {
+    --floor: 26%;
+}
+.evs-cassino .evs-wall {
+    inset: 0 0 var(--floor);
+    background:
+        linear-gradient(
+            180deg,
+            transparent calc(100% - var(--ep) * 14),
+            #c9871c 0 calc(100% - var(--ep) * 13),
+            #2c0d22 0
+        ),
+        repeating-linear-gradient(90deg, #4a1838 0 calc(var(--ep) * 15), #3a122c 0 calc(var(--ep) * 16));
+}
+.evs-bulbs {
+    top: 0;
+    animation: evs-chase 0.9s steps(1) infinite;
+}
+@keyframes evs-chase {
+    50% {
+        background-position-x: calc(50% + var(--ep) * 4);
+    }
+}
+.evs-slots {
+    bottom: var(--floor);
+}
+/* o letreiro na parede, emoldurado pelas mesmas lâmpadas */
+.evs-marquee {
+    left: 50%;
+    top: calc(var(--ep) * 9);
+    translate: -50% 0;
+    padding: calc(var(--ep) * 7) calc(var(--ep) * 9);
+    border-inline: var(--ep) solid #1b1b26;
+    background:
+        var(--art) 0 0 / calc(var(--ep) * 8) calc(var(--ep) * 6) repeat-x,
+        var(--art) 0 100% / calc(var(--ep) * 8) calc(var(--ep) * 6) repeat-x,
+        #2a0f22;
+    box-shadow: 0 calc(var(--ep) * 2) 0 rgb(0 0 0 / 40%);
+}
+.evs-marquee b {
+    display: block;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: max(14px, calc(var(--ep) * 7));
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--yellow);
+    text-shadow: 0 calc(var(--ep) * 1) 0 #c8323c;
+}
+/* quem fala fica na frente do balcão */
+.ev-cassino .ev-who {
+    z-index: 1;
+}
+.evs-cassino .evs-floor {
+    background-color: #8e2436;
+    box-shadow: inset 0 calc(var(--ep) * 2) 0 rgb(0 0 0 / 35%);
+}
+/* o balcão fica atrás da carta (isolation: o -1 não passa pra trás da cena) */
+.ev-cassino .cm-event-cards {
+    isolation: isolate;
+}
+.evs-counter {
+    z-index: -1;
+    left: 50%;
+    bottom: 0;
+    translate: -50% 0;
+}
+/* Zona Safari: céu em faixas, nuvens, a mata no horizonte, a cerca, a placa e o mato alto na frente */
+.evs-safari {
+    --floor: 46%;
+}
+.evs-sky {
+    inset: 0 0 var(--floor);
+    background: linear-gradient(180deg, #5fb8e6 0 45%, #7cc6ec 0 75%, #a3d9f2 0);
+}
+.evs-cloud {
+    top: 12%;
+    left: 8%;
+}
+.evs-cloud.c2 {
+    top: 24%;
+    left: auto;
+    right: 18%;
+    scale: -1 1;
+}
+.evs-trees {
+    bottom: var(--floor);
+}
+.evs-safari .evs-floor {
+    background-color: #5fae4a;
+}
+.evs-fence {
+    bottom: calc(var(--floor) - var(--ep) * 6);
+}
+.evs-sign {
+    right: 5%;
+    bottom: calc(var(--floor) - var(--ep) * 5);
+    display: grid;
+    place-items: start center;
+}
+.evs-sign b {
+    margin-top: calc(var(--ep) * 3);
+    width: calc(var(--ep) * 48);
+    height: calc(var(--ep) * 12);
+    display: grid;
+    place-items: center;
+    font-family: "Galmuri11", monospace;
+    font-weight: 700;
+    font-size: max(10px, calc(var(--ep) * 5));
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    color: #3a2414;
+}
+.evs-grass {
+    bottom: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .evs,
+    .evs-bulbs {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .evs,
+:root[data-reduce-motion="true"] .evs-bulbs {
+    animation: none;
+}
