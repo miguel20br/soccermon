@@ -8,7 +8,7 @@ import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
 import { clubName, itemDesc, itemName, moveFutsal, moveName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { type RunState, useGame } from '../../store/game-store';
+import { type RunState, stoneToBag, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
 import { ROTA_VALUES, rewardRerollable, skipEvoTarget, skipTagOf } from '../../store/long-events';
 import { isNovo } from '../../store/profile';
@@ -18,6 +18,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { NovoSeal } from '../components/NovoSeal';
+import { StoneMark } from '../components/StoneMark';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
 import { Tip, tipSeq, useFirstCup } from '../help/Tip';
@@ -65,6 +66,7 @@ export function Reward() {
     const rotaPrize = isLong(run) && !run.group && ROTA_RULES.rivalEveryJogo && !run.rivalPick;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
+    const toBag = stoneToBag(run);
     // Rota: o que o Pular dá, à vista no botão (Dispensar o rival: +₽2)
     const tag = skipTagOf(run);
     const evoMon = tag === 'evo' ? skipEvoTarget(run) : undefined;
@@ -213,6 +215,13 @@ export function Reward() {
                         ))}
                     </div>
                 </CardPack>
+                {/* a pedra do Jogo que ninguém usa: vai pra Mochila numa linha aqui, sem tela própria */}
+                {toBag && (
+                    <p className="reward-stone bc-surface" role="status">
+                        <StoneMark stone={toBag} className="reward-stone-gem" />
+                        <span>{t('longCup.stoneToBag', { a: t(`longCup.stone.${toBag}`) })}</span>
+                    </p>
+                )}
                 {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
                 {!reward && !training && (
                     <Tip id="reward-pick" seq={tipSeq(run)}>

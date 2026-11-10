@@ -2014,6 +2014,26 @@ button,
     max-width: 420px;
     margin-inline: auto;
 }
+/* a pedra que ninguém usa: uma linha dentro do prêmio, sem tela própria (rota-indigo-2.md) */
+.reward-stone {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 6px 10px;
+    font-size: 13px;
+    animation: row-in var(--dur-tela) var(--ease-out) both;
+}
+.reward-stone .reward-stone-gem {
+    display: inline-grid;
+    flex: none;
+    color: var(--stone);
+}
+.reward-stone .hud-icon {
+    width: 18px;
+    height: 18px;
+}
 .reward-sheet-desc {
     margin-top: 0;
 }

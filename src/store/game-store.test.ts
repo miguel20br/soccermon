@@ -30,11 +30,12 @@ import {
     type Settings,
     type SlotRef,
     slotRole,
+    stoneToBag,
     useGame,
     withSettingDefaults,
 } from './game-store';
 import { groupTable } from './long-cup';
-import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf } from './long-events';
+import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf, stoners } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
 import { casaOf } from './rota-map';
 
@@ -935,14 +936,31 @@ describe('Copa longa', () => {
             expect(prize.status).toBe('reward');
             expect(prize.rewards.length).toBeGreaterThan(0);
             expect(prize.rewards.every((r) => r.kind === 'item')).toBe(true);
+            // a pedra: a tela dela se alguém do time evolui com ela; senão vai direto pra Mochila (a linha no prêmio)
+            const stoneOutcome = (stone: Stone, from: RunState) => {
+                const uses = stoners(from, stone).length > 0;
+                const now = useGame.getState();
+                if (uses) {
+                    expect(now.screen).toBe('event');
+                    expect(now.run!.event).toEqual({ id: 'pedra', stone });
+                } else {
+                    expect(now.run!.status).toBe('map');
+                    expect(now.run!.event ?? null).toBeNull();
+                    expect(now.run!.bag).toEqual([...(from.bag ?? []), stone]);
+                }
+                return uses;
+            };
+            expect(stoneToBag(prize)).toBe(stoners(prize, 'folha').length ? null : 'folha');
             useGame.getState().claimReward(0, prize.lineup[1]);
-            expect(useGame.getState().screen).toBe('event');
-            expect(useGame.getState().run!.event).toEqual({ id: 'pedra', stone: 'folha' });
+            const used = [stoneOutcome('folha', prize)];
             // ₽ em dobro com pedra: o ₽ na vitória, o rival e a pedra
             winFirstJogo('money', 'lua');
             expect(useGame.getState().run!.results[0].bonus?.prize).toBeGreaterThan(0);
+            const rival = useGame.getState().run!;
             useGame.getState().skipReward();
-            expect(useGame.getState().run!.event).toEqual({ id: 'pedra', stone: 'lua' });
+            used.push(stoneOutcome('lua', rival));
+            // as duas saídas foram vistas nas seeds do teste (senão o teste não prova nada)
+            expect(used).toContain(false);
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
         }
@@ -989,20 +1007,22 @@ describe('Copa longa', () => {
         ROTA_RULES.rivalEveryJogo = true;
         try {
             winFirstJogo('pedra', 'fogo');
+            // um Eevee no banco (ninguém usando a pedra, ela iria direto pra Mochila sem tela)
+            // shiny: o fichário guarda as cartas de edição (a forma nova entra como "evolução")
+            const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', shiny: true };
+            const won = useGame.getState().run!;
+            const leaving = won.bench.find((u) => u !== won.captainUid)!;
+            useGame.setState({
+                run: {
+                    ...won,
+                    picks: [...won.picks.filter((p) => p.uid !== leaving), eevee],
+                    bench: won.bench.map((u) => (u === leaving ? 'eevee' : u)),
+                },
+            });
             useGame.getState().skipReward();
             const now = useGame.getState().run!;
             expect(useGame.getState().screen).toBe('event');
             expect(now.event).toEqual({ id: 'pedra', stone: 'fogo' });
-            // shiny: o fichário guarda as cartas de edição (a forma nova entra como "evolução")
-            const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', shiny: true };
-            const leaving = now.bench.find((u) => u !== now.captainUid)!;
-            useGame.setState({
-                run: {
-                    ...now,
-                    picks: [...now.picks.filter((p) => p.uid !== leaving), eevee],
-                    bench: now.bench.map((u) => (u === leaving ? 'eevee' : u)),
-                },
-            });
             useGame.getState().chooseEvent('usar', 'eevee');
             const after = useGame.getState().run!;
             expect(useGame.getState().screen).toBe('map');

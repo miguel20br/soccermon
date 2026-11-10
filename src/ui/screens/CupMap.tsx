@@ -42,6 +42,7 @@ import { MonIcon } from '../components/MonIcon';
 import { cardSprite } from '../components/PokeCard';
 import { useMedia } from '../components/Prancheta';
 import { SponsorSlots } from '../components/SponsorCard';
+import { STONE_COLOR, StoneMark } from '../components/StoneMark';
 import { TypeIcons } from '../components/TypeIcon';
 import { portraitSrc } from '../portrait';
 import { Crest } from '../profile/Crest';
@@ -49,7 +50,6 @@ import { useClubColor } from '../profile/club';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
 import { RoomDialog } from '../trophy/RoomDialog';
-import { TYPE_COLOR } from '../type-colors';
 import { useHeld } from '../use-held';
 import '../long-cup.css';
 import '../trophy-room.css';
@@ -76,20 +76,6 @@ const ICON: Record<House, HudIconKind> = {
     cassino: 'coin',
     planalto: 'building',
 };
-/** Cor de cada pedra: a do tipo de quem ela evolui (a da Lua, a de Fada do Clefairy). */
-const STONE_COLOR: Record<Stone, string> = {
-    lua: TYPE_COLOR.Fairy,
-    agua: TYPE_COLOR.Water,
-    trovao: TYPE_COLOR.Electric,
-    folha: TYPE_COLOR.Grass,
-    fogo: TYPE_COLOR.Fire,
-};
-/** A gema da pedra, na cor dela. */
-const StoneMark = ({ stone, className = 'cm-stone' }: { stone: Stone; className?: string }) => (
-    <span className={className} style={{ '--stone': STONE_COLOR[stone] } as CSSProperties}>
-        <HudIcon kind="stone" />
-    </span>
-);
 /** Altura de cada linha do mapa (px): cabe na altura da tela, entre o mínimo que dá pra tocar e o máximo que respira. */
 /** Altura da casa (ícone de 50 px + rótulo = 67 px) com folga: linha mais baixa que isso põe uma casa por cima da outra. */
 const ROW_MIN = 72;

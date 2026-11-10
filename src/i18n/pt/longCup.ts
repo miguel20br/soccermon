@@ -88,6 +88,7 @@ export const longCup = {
     stoneShort: { lua: 'P. Lua', agua: 'P. Água', trovao: 'P. Trovão', folha: 'P. Folha', fogo: 'P. Fogo' },
     stoneWho: 'No seu time: {names}',
     stoneNobody: 'Ninguém do seu time evolui com ela.',
+    stoneToBag: '{a} vai pra Mochila: ninguém do time evolui com ela.',
     /** Mochila do mapa: as pedras guardadas. */
     bag: 'Mochila',
     bagText: 'Na Mochila: uma {a}. Quem vai usar?',

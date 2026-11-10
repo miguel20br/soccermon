@@ -97,6 +97,7 @@ import {
     resolveEvent,
     rewardRerollable,
     rollEvent,
+    stoners,
     withKnownEvents,
 } from './long-events';
 import { activeTitle, activeTrainer, matchView, newMissions, stageView } from './missions';
@@ -830,6 +831,18 @@ const stoneEvent = (run: RunState): Pick<RunState, 'status' | 'event'> | null =>
         ? { status: 'event', event: { id: 'pedra', stone: node.stone } }
         : null;
 };
+/**
+ * A pedra do Jogo que vai direto pra Mochila quando esta recompensa fechar (é a última tela antes dela e ninguém do time
+ * evolui com ela), ou null. A tela de recompensa avisa numa linha; quem entrar agora e usar a pedra ainda vê a tela dela.
+ */
+export const stoneToBag = (run: RunState): Stone | null => {
+    if (run.status !== 'reward') return null;
+    const node = currentNode(run);
+    const prize = run.rivalPick ? node?.prize : undefined;
+    if (prize === 'tm' || prize === 'item' || (prize === 'pokemon' && casaOf(node) === 'as')) return null;
+    const stone = stoneEvent(run)?.event?.stone;
+    return stone && !stoners(run, stone).length ? stone : null;
+};
 /** Volta pro lugar certo da Rota: o grupo (já chegou no Planalto) ou o mapa. */
 const backToRoute = (run: RunState): { run: RunState; screen: Screen } =>
     run.group || (run.map && nextNodes(run.map, run.at ?? null).length === 0)
@@ -1289,8 +1302,15 @@ export const useGame = create<GameStore>()(
                     const prize = run.rivalPick ? node?.prize : undefined;
                     if (prize === 'tm' || prize === 'item' || (prize === 'pokemon' && casaOf(node) === 'as'))
                         return { run: { ...done, rewards: rollRewards(done, 0) }, match: null, screen: 'reward' };
-                    // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento
+                    // a pedra do Jogo, por último (depois do rival e do prêmio da casa): quem usa, na tela do evento.
+                    // Ninguém do time evolui com ela: vai direto pra Mochila (a linha no prêmio avisou), sem tela própria
                     const stone = stoneEvent(done);
+                    const unused = stone?.event?.stone && !stoners(done, stone.event.stone).length;
+                    if (unused)
+                        return {
+                            ...backToRoute({ ...done, bag: [...(done.bag ?? []), stone.event!.stone!] }),
+                            match: null,
+                        };
                     if (stone) return { run: { ...done, ...stone }, match: null, screen: 'event' };
                     return { ...backToRoute(done), match: null };
                 }

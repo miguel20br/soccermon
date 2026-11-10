@@ -85,6 +85,7 @@ export const longCup: typeof pt = {
     stoneShort: { lua: 'Moon', agua: 'Water', trovao: 'Thunder', folha: 'Leaf', fogo: 'Fire' },
     stoneWho: 'On your team: {names}',
     stoneNobody: 'Nobody on your team evolves with it.',
+    stoneToBag: '{a} goes in your Bag: nobody on your team evolves with it.',
     bag: 'Bag',
     bagText: "In the Bag: a {a}. Who's using it?",
     branch: 'Path',
