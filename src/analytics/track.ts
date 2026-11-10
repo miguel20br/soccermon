@@ -3,7 +3,7 @@ import { type GameState, liveOf, useGame } from '../store/game-store';
 import { currentNode, isLong } from '../store/long-cup';
 import { skipTagOf } from '../store/long-events';
 import { seenCount } from '../store/profile';
-import { casaOf } from '../store/rota-map';
+import { casaOf, houseOf } from '../store/rota-map';
 import { lineupAverage } from '../ui/rating';
 
 /**
@@ -175,6 +175,18 @@ export function rewardEvent(old: Run, run: Run): Props | null {
     };
 }
 
+/**
+ * O evento `screen`: a tela nova e, saindo do mapa da Rota, a casa escolhida (`casa`: jogo, as, safari…) e a `linha`
+ * dela (0 = Rota 1). Sem migração: o banco aceita qualquer campo em `props` (rota-indigo-2.md, item 5).
+ */
+export function screenProps(s: Pick<GameState, 'screen' | 'run'>, prev: Pick<GameState, 'screen' | 'run'>): Props {
+    // a tela troca depois do `run.at` (a troca de tela espera a transição): quem diz que entrou na casa é o status, que
+    // deixou de ser o mapa; a Mochila (pedra tirada da bolsa) abre o evento sem andar
+    const entered = prev.screen === 'map' && s.run && s.run.status !== 'map' && !s.run.event?.bag;
+    const node = entered ? currentNode(s.run!) : undefined;
+    return { screen: s.screen, ...(node && { casa: houseOf(node), linha: node.row }) };
+}
+
 export function track(name: EventName, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
     if (!ENABLED || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
@@ -205,7 +217,7 @@ export const noteDailyOrigin = (from: string) => {
 function onChange(s: GameState, prev: GameState) {
     // mudanças vindas da nuvem (login em outro aparelho) não são ações do jogador
     if (isApplyingCloud()) return;
-    if (s.screen !== prev.screen) track('screen', { screen: s.screen });
+    if (s.screen !== prev.screen) track('screen', screenProps(s, prev));
     if (s.onboarded && !prev.onboarded) track('onboarding_done');
 
     const run = s.run;

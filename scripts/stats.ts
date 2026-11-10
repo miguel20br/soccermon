@@ -502,6 +502,15 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
                     .join(' · '),
             );
     }
+    // Rota (desde a 0.9.45): a casa escolhida no mapa (o `screen` que sai do mapa leva `casa` e `linha`)
+    const casas = by('screen').filter((e) => str(e.props.casa));
+    if (casas.length)
+        item(
+            'Rota: casas escolhidas',
+            count(casas, (e) => str(e.props.casa))
+                .map(([k, n]) => `${k} ${n}`)
+                .join(' · '),
+        );
     tabela(
         ['Fase', 'Partidas', '% vitória', 'Gols/jogo', 'Pênaltis'],
         FASES.map((f, i) => {

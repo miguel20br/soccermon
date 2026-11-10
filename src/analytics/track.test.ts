@@ -1,6 +1,16 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COACH_EVENTS, EVENT_NAMES, errorGate, firstLeave, isBot, pickedReward, rewardEvent, sendable } from './track';
+import {
+    COACH_EVENTS,
+    EVENT_NAMES,
+    errorGate,
+    firstLeave,
+    isBot,
+    pickedReward,
+    rewardEvent,
+    screenProps,
+    sendable,
+} from './track';
 
 describe('nomes dos eventos', () => {
     it('a lista do cliente é a da última migração do game_events_name_check (fora dela, o lote inteiro dá 400)', () => {
@@ -159,5 +169,36 @@ describe('errorGate', () => {
         expect(gate('QuotaExceededError')).toBe(true);
         const varied = Array.from({ length: 100 }, (_, i) => gate(`erro ${i}`));
         expect(varied.filter(Boolean).length).toBe(26);
+    });
+});
+
+describe('screenProps (a casa escolhida no mapa da Rota)', () => {
+    const map = {
+        rows: 2,
+        nodes: [
+            { id: 'a', row: 0, col: 0, kind: 'jogo', next: ['b'] },
+            { id: 'b', row: 1, col: 0, kind: 'evento', casa: 'cassino', next: [] },
+        ],
+    };
+    const g = (screen: string, at: string | null, status = screen, event?: object) =>
+        // biome-ignore lint/suspicious/noExplicitAny: só os campos que a função lê
+        ({ screen, run: { mode: 'longa', map, at, status, event } }) as any;
+
+    it('saindo do mapa leva a casa e a linha; o resto, só a tela', () => {
+        // o `run.at` muda antes da tela (a troca de tela espera a transição): o anterior já tem a casa nova
+        expect(screenProps(g('event', 'b'), g('map', 'b', 'event'))).toEqual({
+            screen: 'event',
+            casa: 'cassino',
+            linha: 1,
+        });
+        expect(screenProps(g('lineup', 'a'), g('map', 'a', 'lineup'))).toEqual({
+            screen: 'lineup',
+            casa: 'jogo',
+            linha: 0,
+        });
+        expect(screenProps(g('map', 'a'), g('reward', 'a'))).toEqual({ screen: 'map' });
+        // a Mochila (pedra tirada da bolsa) e sair pra Home não são escolher casa
+        expect(screenProps(g('event', 'a', 'event', { bag: true }), g('map', 'a'))).toEqual({ screen: 'event' });
+        expect(screenProps(g('home', 'a', 'map'), g('map', 'a'))).toEqual({ screen: 'home' });
     });
 });
