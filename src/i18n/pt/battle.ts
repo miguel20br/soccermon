@@ -56,6 +56,8 @@ export const battle = {
     },
     fulltime: 'FIM DE JOGO',
     rotaChamp: 'CAMPEÕES DA ROTA ÍNDIGO',
+    /** Placa da taça curta (a Final da Relâmpago e da Copa do Dia). */
+    cupChamp: 'CAMPEÕES!',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',
     bigPost: 'NA TRAAAVE!',

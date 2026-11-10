@@ -85,15 +85,21 @@ import { BattleBox } from '../battle-box';
 import {
     type CeremonyKind,
     type CeremonyPlan,
+    ceremonyCamera,
     ceremonyPlan,
-    ensureFanTextures,
+    FAN_FRAMES,
     type Fan,
+    fanPose,
+    HUDDLE_MS,
     halfMoon,
+    huddle,
     INVADERS,
     invasionFans,
     type Pt,
+    paintFan,
     reducedHold,
     TOSS_MS,
+    tossHeight,
     WALK_MS,
 } from '../ceremony';
 import {
@@ -117,7 +123,7 @@ import {
     TypeFx,
     worldToScreen,
 } from '../cine';
-import { Cinematics, FOCUS_DEPTH } from '../cinematics';
+import { Cinematics, CROP_TEXT_SCALE, FOCUS_DEPTH } from '../cinematics';
 import {
     drawBanner,
     drawBoards,
@@ -936,8 +942,10 @@ export class MatchScene extends Phaser.Scene {
         this.rawZoom = (zoom, ms) => zoomTo(1 + (zoom - 1) * this.zoomDamp, ms, 'Sine.easeInOut', true);
         this.rawPan = (x, y, ms) => pan(x, y, ms, 'Sine.easeInOut', true);
         // o golpe máximo no ar segura a câmera no gol: o resto (holofote, drama, golpe, volta pro meio) espera ele chegar
-        cam.zoomTo = (zoom, ...rest) => (this.frameLocked() ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest));
-        cam.pan = (x, y, ...rest) => (this.frameLocked() ? cam : pan(x, y, ...rest));
+        // a cerimônia do título também manda na câmera (o drama do FIM DE JOGO não puxa ela de volta pro meio)
+        cam.zoomTo = (zoom, ...rest) =>
+            this.frameLocked() || this.cer ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
+        cam.pan = (x, y, ...rest) => (this.frameLocked() || this.cer ? cam : pan(x, y, ...rest));
 
         drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
         for (const team of [0, 1] as const) {
@@ -2633,7 +2641,16 @@ export class MatchScene extends Phaser.Scene {
         /** Hora da cena que vale (o toque pula pra foto: soma no relógio). */
         skip: number;
         fired: Set<string>;
-        actors: { v: PlayerView; from: Pt; to: Pt; celeb: Comemoracao; captain: boolean; rival: boolean }[];
+        actors: {
+            v: PlayerView;
+            from: Pt;
+            to: Pt;
+            /** Colado no capitão quando ele vai pro alto (só a invasão). */
+            hug: Pt;
+            celeb: Comemoracao;
+            captain: boolean;
+            rival: boolean;
+        }[];
         fans: { img: Phaser.GameObjects.Image; f: Fan; key: string; shadow: Phaser.GameObjects.Ellipse }[];
         wild: {
             sp: Phaser.GameObjects.Sprite;
@@ -2648,6 +2665,19 @@ export class MatchScene extends Phaser.Scene {
         rays: Phaser.GameObjects.Graphics | null;
         center: Pt;
         reduce: boolean;
+        /** Câmera: o zoom em que o jogo acabou e o ponto atual (anda atrás do alvo, sem pulo). */
+        camFrom: number;
+        cam: { zoom: number; x: number; y: number };
+        last: number;
+        confetti: {
+            o: Phaser.GameObjects.Rectangle;
+            x: number;
+            y: number;
+            vx: number;
+            vy: number;
+            spin: number;
+            ph: number;
+        }[];
     } | null = null;
 
     /** Os selvagens da invasão (só a Final da Rota): as folhas entram com o resto, na carga da cena. */
@@ -2665,41 +2695,35 @@ export class MatchScene extends Phaser.Scene {
         const cap = mine.find(({ v }) => v.captain) ?? mine[mine.length - 1];
         const rest = mine.filter((m) => m !== cap);
         const moon = halfMoon(center, rest.length);
+        const hug = huddle(moon.captain, rest.length);
         const actors: NonNullable<typeof this.cer>['actors'] = [];
         for (const { v, i } of mine) {
             const k = v === cap.v ? -1 : rest.findIndex((m) => m.v === v);
+            const to = k < 0 ? moon.captain : moon.others[k];
             actors.push({
                 v,
                 from: posOf(i),
-                to: k < 0 ? moon.captain : moon.others[k],
+                to,
+                hug: k < 0 ? to : hug[k],
                 celeb: comemoracaoOf(v.speciesId),
                 captain: k < 0,
                 rival: false,
             });
         }
-        // o rival sai do meio (a foto é do campeão) e fica cabisbaixo
+        // o rival sai de cena pela lateral mais perto (a foto é do campeão) e some no caminho
         for (const [i, v] of this.players.entries()) {
             if (v.team === this.mine) continue;
             const from = posOf(i);
-            const dx = from.x - center.x;
-            const dy = from.y - center.y;
-            const d = Math.hypot(dx, dy) || 1;
-            const push = Math.max(0, 190 - d);
-            actors.push({
-                v,
-                from,
-                to: { x: from.x + (dx / d) * push, y: from.y + (dy / d) * push * 0.6 },
-                celeb: 'pulo',
-                captain: false,
-                rival: true,
-            });
+            const side = from.x < center.x ? -1 : 1;
+            const to = { x: center.x + side * (GAME_W * 0.5 + 40), y: from.y + (from.y < center.y ? -30 : 30) };
+            actors.push({ v, from, to, hug: to, celeb: 'pulo', captain: false, rival: true });
         }
         for (const v of this.players) {
             for (const o of [v.label, v.badge, v.ring, v.arrow]) o?.setVisible(false);
             v.lunge = { x: 0, y: 0 };
             v.shift = { x: 0, y: 0 };
             v.act = null;
-            v.sprite.setAngle(0).setAlpha(1);
+            v.sprite.setAngle(0).setAlpha(1).setScale(SPRITE_SCALE);
             v.sprite.anims.timeScale = 1;
         }
         this.ball.setVisible(false);
@@ -2712,57 +2736,66 @@ export class MatchScene extends Phaser.Scene {
         this.agencyG?.clear();
         this.reactG.clear();
         if (!this.textures.exists('cer-cup')) this.textures.addCanvas('cer-cup', paintCup('ouro'));
-        const cup = this.add.image(0, 0, 'cer-cup').setOrigin(0.5, 1).setScale(1.5).setVisible(false);
+        const cup = this.add.image(0, 0, 'cer-cup').setOrigin(0.5, 1).setScale(2).setVisible(false);
         const club = this.md.colors[this.mine];
         const fans: NonNullable<typeof this.cer>['fans'] = [];
         const wild: NonNullable<typeof this.cer>['wild'] = [];
-        let rays: Phaser.GameObjects.Graphics | null = null;
         if (kind === 'invasao') {
-            ensureFanTextures(this, club);
             const seed = String(this.md.result.seed);
-            for (const f of invasionFans(seed, center, 38, { w: GAME_W, h: GAME_H })) {
-                const key = f.light ? 'fan-l' : 'fan-c';
-                const shadow = this.add.ellipse(f.from.x, f.from.y, 12, 4, 0x000000, 0.25);
-                fans.push({
-                    img: this.add.image(f.from.x, f.from.y, `${key}-0`).setOrigin(0.5, 1).setScale(3),
-                    f,
-                    key,
-                    shadow,
-                });
-            }
+            invasionFans(seed, center, 40, { w: GAME_W, h: GAME_H }).forEach((f, n) => {
+                const key = `cer-fan-${club}-${n}`;
+                for (const fr of FAN_FRAMES)
+                    if (!this.textures.exists(`${key}-${fr}`))
+                        this.textures.addCanvas(`${key}-${fr}`, paintFan(f.look, fr, club));
+                const shadow = this.add.ellipse(f.from.x, f.from.y, 18, 5, 0x000000, 0.28).setVisible(false);
+                const img = this.add
+                    .image(f.from.x, f.from.y, `${key}-run0`)
+                    .setOrigin(0.5, 1)
+                    .setScale(2)
+                    .setVisible(false);
+                fans.push({ img, f, key, shadow });
+            });
+            // os selvagens chegam na multidão (atrás e dos lados do time), não no meio dele
+            const spots = [
+                { x: -128, y: -74 },
+                { x: 150, y: -40 },
+                { x: -158, y: 30 },
+                { x: 132, y: 70 },
+            ];
             INVADERS.forEach((w, k) => {
                 const skin = skinOf(w.id, false);
                 if (!this.textures.exists(atlasKey(skin))) return;
                 createSpeciesAnims(this, skin);
-                const side = k % 2 ? 1 : -1;
-                const to = { x: center.x + side * (70 + k * 12), y: center.y + (k < 2 ? -48 : 44) };
-                const from = { x: to.x + side * 240, y: k < 2 ? -30 : GAME_H + 30 };
-                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(SPRITE_SCALE);
-                const shadow = this.add.ellipse(from.x, from.y, 18, 6, 0x000000, 0.25);
+                const to = { x: center.x + spots[k].x, y: center.y + spots[k].y };
+                const from = { x: to.x + Math.sign(spots[k].x) * 260, y: spots[k].y < 0 ? -30 : GAME_H + 30 };
+                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(SPRITE_SCALE).setVisible(false);
+                const shadow = this.add.ellipse(from.x, from.y, 18, 6, 0x000000, 0.25).setVisible(false);
                 wild.push({ sp, shadow, from, to, fly: w.fly, late: w.late, skin });
             });
-            rays = this.add.graphics().setVisible(false);
         }
+        const cam = this.cameras.main;
+        // a cerimônia manda na câmera: os panos e zooms que ainda andavam (o drama do FIM DE JOGO) param aqui
+        cam.panEffect.reset();
+        cam.zoomEffect.reset();
         this.cer = {
             kind,
             plan,
             t0: this.time.now,
             // Reduzir movimento: só a foto final, parada (`reducedHold`)
             skip: reduce ? plan.end - reducedHold(kind) : 0,
-            fired: new Set(reduce ? ['flash', 'explode', 'land', 'confetti'] : []),
+            fired: new Set(reduce ? ['explode', 'land', 'flash'] : []),
             actors,
             fans,
             wild,
             cup,
-            rays,
+            rays: reduce ? null : this.add.graphics().setVisible(false),
             center,
             reduce,
+            camFrom: cam.zoom,
+            cam: { zoom: cam.zoom, x: cam.midPoint.x, y: cam.midPoint.y },
+            last: this.time.now,
+            confetti: [],
         };
-        // a câmera junta o time (a invasão abre pra quadra inteira caber)
-        if (!reduce) {
-            this.rawPan?.(center.x, center.y - 12, 700);
-            this.rawZoom?.(kind === 'taca' ? 1.6 : 1.5, 700);
-        }
         this.input.on('pointerdown', this.ceremonySkip, this);
         EventBus.on('match:ceremony-skip', this.ceremonySkip, this);
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -2772,21 +2805,28 @@ export class MatchScene extends Phaser.Scene {
         this.ceremonyStep();
     }
 
-    /** Toque: pula pra foto; já na foto, segue (o FinalCard). */
+    /** Toque: pula pra foto (um piscar escuro de 250 ms, nada teleporta); já na foto, segue (o FinalCard). */
     private ceremonySkip() {
         const c = this.cer;
-        if (!c || c.fired.has('end')) return;
+        if (!c || c.fired.has('end') || c.fired.has('skipping')) return;
         const now = this.time.now - c.t0 + c.skip;
-        const photo = c.plan.photo ?? c.plan.lift + 400;
-        if (now < photo) {
-            c.skip += photo - now;
-            for (const k of ['flash', 'explode', 'land', 'confetti']) c.fired.add(k);
-            if (c.plan.invade !== undefined && !c.fired.has('open')) {
-                c.fired.add('open');
-                this.rawZoom(1.2, 250);
-            }
-            for (const f of c.fans) f.img.setVisible(true);
-        } else c.skip += c.plan.end - now;
+        if (now >= c.plan.photo) {
+            c.skip += c.plan.end - now;
+            return;
+        }
+        c.fired.add('skipping');
+        const cam = this.cameras.main;
+        cam.fadeOut(110, 13, 16, 36);
+        this.time.delayedCall(115, () => {
+            const t = this.time.now - c.t0 + c.skip;
+            if (t < c.plan.photo) c.skip += c.plan.photo - t;
+            for (const k of ['explode', 'land', 'flash']) c.fired.add(k);
+            // a câmera já no quadro da foto
+            c.cam.zoom = 0;
+            this.ceremonyStep();
+            cam.fadeIn(160, 13, 16, 36);
+            c.fired.delete('skipping');
+        });
     }
 
     /** Um quadro da cerimônia: tudo sai da hora (o toque e o Reduzir movimento só adiantam o relógio). */
@@ -2794,6 +2834,8 @@ export class MatchScene extends Phaser.Scene {
         const c = this.cer;
         if (!c) return;
         const t = this.time.now - c.t0 + c.skip;
+        const dt = Math.min(50, this.time.now - c.last);
+        c.last = this.time.now;
         const p = c.plan;
         const once = (key: string, at: number, fn: () => void) => {
             if (t >= at && !c.fired.has(key)) {
@@ -2803,181 +2845,236 @@ export class MatchScene extends Phaser.Scene {
         };
         const ease = Phaser.Math.Easing.Sine.InOut;
         const lerp = (a: Pt, b: Pt, k: number) => ({ x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k });
+        // a foto: tudo para no quadro dela (o confete continua caindo)
+        const frozen = p.invade !== undefined && t >= p.photo;
+        const tt = frozen ? p.photo : t;
         let capTop = 0;
         let capAt: Pt = c.center;
+        let capLift = 0;
         for (const a of c.actors) {
             const { v } = a;
-            const walkK = Phaser.Math.Clamp((t - p.gather) / WALK_MS, 0, 1);
-            const at = lerp(a.from, a.to, ease(walkK));
+            const walkK = Phaser.Math.Clamp((tt - p.gather) / (a.rival ? WALK_MS * 1.8 : WALK_MS), 0, 1);
+            let at = lerp(a.from, a.to, ease(walkK));
             const walking = walkK > 0 && walkK < 1;
             let anim = 'Idle';
             let facing = 0;
             let lift = 0;
+            let alpha = 1;
+            let sx = 1;
+            let sy = 1;
             if (a.rival) {
-                anim = walking ? 'Walk' : t >= p.gather ? 'Hurt' : 'Idle';
+                anim = walking ? 'Walk' : tt >= p.gather ? 'Idle' : 'Hurt';
                 facing = walking ? dir8({ x: a.to.x - a.from.x, y: a.to.y - a.from.y }, 0) : 0;
+                // some no caminho (a foto é do campeão)
+                alpha = 1 - Phaser.Math.Easing.Quadratic.In(walkK);
             } else if (walking) {
                 anim = 'Walk';
                 facing = dir8({ x: a.to.x - a.from.x, y: a.to.y - a.from.y }, 0);
-            } else if (t < p.gather && t >= p.jump) {
-                const pose = goalCelebPose(a.celeb, t - p.jump, 0);
+            } else if (tt < p.gather && tt >= p.jump) {
+                const pose = goalCelebPose(a.celeb, tt - p.jump, 0);
                 anim = pose.anim;
                 facing = pose.facing;
-            } else if (a.captain && t >= p.gather) {
-                const toss = p.toss ?? Number.POSITIVE_INFINITY;
-                const up = p.getUp ?? toss;
-                if (t >= toss && t < up) {
-                    // jogado pro alto: sobe duas vezes; na 3ª ninguém segura e ele cai sentado
-                    const k = (t - toss) / TOSS_MS;
-                    const n = Math.min(2, Math.floor(k));
-                    const u = k - n;
-                    const h = [44, 50, 62][n];
-                    lift = k < 3 ? Math.sin(Math.min(1, u) * Math.PI) * h : 0;
-                    anim = k < 3 ? 'Hurt' : 'Trip';
-                    facing = 0;
-                } else if (t >= p.lift) anim = 'Pose';
-                else if (t >= p.charge) anim = 'Charge';
-            } else if (t >= p.lift || (p.ring !== undefined && t >= p.ring && t < (p.toss ?? 0))) {
+                sx = pose.sx;
+                sy = pose.sy;
+            } else if (p.toss !== undefined && p.getUp !== undefined && tt >= p.toss - HUDDLE_MS) {
+                // o capitão vai pro alto: os outros chegam junto, jogam e voltam pra meia-lua
+                const inK = Phaser.Math.Clamp((tt - (p.toss - HUDDLE_MS)) / HUDDLE_MS, 0, 1);
+                const outK = Phaser.Math.Clamp((tt - p.getUp) / HUDDLE_MS, 0, 1);
+                if (!a.captain) at = lerp(lerp(a.to, a.hug, ease(inK)), a.to, ease(outK));
+                const moving = (inK > 0 && inK < 1) || (outK > 0 && outK < 1);
+                if (a.captain) {
+                    const ms = tt - p.toss;
+                    lift = tossHeight(ms);
+                    if (ms >= 0 && tt < p.getUp) anim = ms < TOSS_MS * 3 ? 'Hurt' : 'Trip';
+                    // amassa quando cai nos braços (e no chão, na 3ª) e estica subindo
+                    const k = ms / TOSS_MS;
+                    const near = Math.abs(k - Math.round(k));
+                    if (ms > 0 && k < 3.3 && Math.round(k) >= 1 && near < 0.12) {
+                        const q = 1 - near / 0.12;
+                        sx = 1 + 0.14 * q;
+                        sy = 1 - 0.14 * q;
+                    } else if (lift > 4 && k % 1 < 0.4) sy = 1.06;
+                    else if (tt >= p.lift) anim = 'Pose';
+                    else if (tt >= p.charge) anim = 'Charge';
+                } else if (moving) {
+                    anim = 'Walk';
+                    facing =
+                        outK > 0
+                            ? dir8({ x: a.to.x - a.hug.x, y: a.to.y - a.hug.y }, 0)
+                            : dir8({ x: a.hug.x - a.to.x, y: a.hug.y - a.to.y }, 0);
+                } else if (tt >= p.toss && tt < p.getUp) anim = 'Attack';
+                else if (tt >= p.lift) anim = 'Hop';
+            } else if (a.captain && tt >= p.gather) {
+                if (tt >= p.lift) anim = 'Pose';
+                else if (tt >= p.charge) anim = 'Charge';
+            } else if (tt >= p.lift || (p.ring !== undefined && tt >= p.ring)) {
                 anim = 'Hop';
-            } else if (p.toss !== undefined && t >= p.toss && t < (p.getUp ?? 0)) {
-                anim = 'Attack';
             }
-            if (!a.rival && !a.captain && !walking && t >= p.gather + WALK_MS) {
+            if (!a.rival && !a.captain && !walking && anim !== 'Walk' && tt >= p.gather + WALK_MS) {
                 // de frente pro capitão até ele erguer a taça; depois, pra câmera (a foto)
                 const capt = c.actors.find((x) => x.captain);
-                facing = t < p.lift && capt ? dir8({ x: capt.to.x - a.to.x, y: capt.to.y - a.to.y }, 0) : 0;
+                facing = tt < p.lift && capt ? dir8({ x: capt.to.x - at.x, y: capt.to.y - at.y }, 0) : 0;
             }
-            v.sprite.setPosition(at.x, at.y - lift).setDepth(at.y);
+            v.sprite
+                .setPosition(at.x, at.y - lift)
+                .setDepth(at.y)
+                .setAlpha(alpha)
+                .setScale(SPRITE_SCALE * (c.reduce ? 1 : sx), SPRITE_SCALE * (c.reduce ? 1 : sy));
             v.shadow
                 .setPosition(at.x, at.y + 1)
                 .setDepth(at.y - 2)
-                .setScale(1 - Math.min(0.5, lift / 120));
+                .setAlpha(alpha)
+                .setScale(1 - Math.min(0.55, lift / 110));
             const resolved = resolveAnim(v.skin, anim);
             const key = `${v.skin}/${resolved}/${facing}`;
             if (key !== v.currentKey) {
                 v.sprite.play(key).setOrigin(0.5, footOrigin(v.skin, resolved));
                 v.currentKey = key;
-                // Reduzir movimento: a foto parada
-                if (c.reduce) v.sprite.anims.pause();
+                // Reduzir movimento e a foto: parados
+                if (c.reduce || frozen) v.sprite.anims.pause();
             }
             if (a.captain) {
                 capAt = at;
+                capLift = lift;
                 capTop = bodyHeight(v.skin) * SPRITE_SCALE;
             }
         }
-        // a taça: sobe das mãos pra cima da cabeça
-        const up = Phaser.Math.Clamp((t - p.lift) / 320, 0, 1);
+        // a taça: sobe das mãos pra cima da cabeça (passa do ponto e assenta)
+        const up = Phaser.Math.Clamp((tt - p.lift) / 360, 0, 1);
         c.cup
-            .setVisible(t >= p.lift)
-            .setPosition(capAt.x, capAt.y - capTop * (0.5 + 0.45 * Phaser.Math.Easing.Back.Out(up)))
+            .setVisible(tt >= p.lift)
+            .setPosition(capAt.x, capAt.y - capLift - capTop * (0.45 + 0.5 * Phaser.Math.Easing.Back.Out(up)))
             .setDepth(capAt.y + 1);
         if (c.rays) {
-            const on = t >= p.lift;
-            c.rays.setVisible(on && !c.reduce);
+            const on = tt >= p.lift;
+            c.rays.setVisible(on);
             if (on) {
+                // raios dourados atrás do capitão: crescem com a taça e giram devagar
+                const grow = Phaser.Math.Easing.Back.Out(Phaser.Math.Clamp((t - p.lift) / 420, 0, 1));
+                const R = 150 * grow;
                 c.rays
                     .clear()
-                    .setPosition(capAt.x, capAt.y - capTop * 1.1)
-                    .setDepth(capAt.y - 3);
-                c.rays.fillStyle(this.md.colors[this.mine], 0.32);
-                const spin = c.reduce ? 0 : (t - p.lift) / 2200;
-                for (let r = 0; r < 12; r++) {
-                    const a0 = spin + (r / 12) * Math.PI * 2;
+                    .setPosition(capAt.x, capAt.y - capTop * 0.9)
+                    .setDepth(capAt.y - 60);
+                c.rays.fillStyle(0xffd75e, 0.2);
+                const spin = (t - p.lift) / 2600;
+                for (let r = 0; r < 14; r++) {
+                    const a0 = spin + (r / 14) * Math.PI * 2;
                     c.rays.fillTriangle(
                         0,
                         0,
-                        Math.cos(a0) * 140,
-                        Math.sin(a0) * 140,
-                        Math.cos(a0 + 0.16) * 140,
-                        Math.sin(a0 + 0.16) * 140,
+                        Math.cos(a0) * R,
+                        Math.sin(a0) * R,
+                        Math.cos(a0 + 0.13) * R,
+                        Math.sin(a0 + 0.13) * R,
                     );
                 }
+                c.rays.fillStyle(0xfff3c4, 0.28).fillCircle(0, 0, 26 * grow);
             }
         }
-        // a torcida e os selvagens: descem correndo e pulam no anel
+        // a torcida e os selvagens: descem correndo, desaceleram e pulam na multidão (cada um no seu ritmo)
         if (p.invade !== undefined) {
-            const bob = (ms: number) => (Math.floor(ms / 160) % 2 === 0 ? 0 : 1);
             for (const f of c.fans) {
-                const k = Phaser.Math.Clamp((t - p.invade - f.f.delay) / f.f.dur, 0, 1);
+                const run = (tt - p.invade - f.f.delay) / f.f.dur;
+                const k = Phaser.Math.Clamp(run, 0, 1);
                 const at = lerp(f.f.from, f.f.to, Phaser.Math.Easing.Quadratic.Out(k));
-                const frozen = c.reduce || (p.photo !== undefined && t >= p.photo + 200);
-                const hop = k >= 1 && !frozen ? Math.abs(Math.sin((t + f.f.delay * 3) / 140)) * 5 : 0;
+                const since = tt - p.invade - f.f.delay - f.f.dur;
+                const pose = fanPose(f.f, since >= 0 ? since : tt, k < 1);
+                const on = run > 0;
                 f.img
-                    .setPosition(at.x, at.y - hop)
+                    .setTexture(`${f.key}-${pose.frame}`)
+                    .setPosition(
+                        Math.round(at.x),
+                        Math.round(at.y - pose.air - (k < 1 ? Math.abs(Math.sin(tt / 70)) : 0)),
+                    )
                     .setDepth(at.y - 1)
-                    .setVisible(t >= p.invade);
-                f.img.setTexture(`${f.key}-${frozen ? 1 : bob(t + f.f.delay)}`);
-                f.img.setFlipX(f.f.to.x < f.f.from.x);
+                    .setFlipX(k < 1 ? f.f.to.x < f.f.from.x : f.f.to.x > c.center.x)
+                    .setVisible(on);
                 f.shadow
                     .setPosition(at.x, at.y)
                     .setDepth(at.y - 2)
-                    .setVisible(t >= p.invade);
+                    .setScale(1 - Math.min(0.5, pose.air / 24))
+                    .setVisible(on);
             }
             for (const w of c.wild) {
-                const k = Phaser.Math.Clamp((t - p.invade - 300 - w.late) / 1700, 0, 1);
+                const k = Phaser.Math.Clamp((tt - p.invade - 300 - w.late) / 1700, 0, 1);
                 const at = lerp(w.from, w.to, Phaser.Math.Easing.Sine.Out(k));
-                const air = w.fly ? 34 + Math.sin(t / 220) * 4 : 0;
-                const hop = k >= 1 ? 'Hop' : w.fly ? 'Walk' : 'Walk';
+                const air = w.fly ? 34 + Math.sin(tt / 220) * 4 : 0;
                 const facing = k >= 1 ? 0 : dir8({ x: w.to.x - w.from.x, y: w.to.y - w.from.y }, 0);
-                const resolved = resolveAnim(w.skin, hop);
+                const resolved = resolveAnim(w.skin, k >= 1 ? 'Hop' : 'Walk');
                 const key = `${w.skin}/${resolved}/${facing}`;
-                if (w.sp.anims.currentAnim?.key !== key) w.sp.play(key).setOrigin(0.5, footOrigin(w.skin, resolved));
+                if (w.sp.anims.currentAnim?.key !== key) {
+                    w.sp.play(key).setOrigin(0.5, footOrigin(w.skin, resolved));
+                    if (c.reduce || frozen) w.sp.anims.pause();
+                }
+                const on = tt >= p.invade + 300 + w.late;
                 w.sp
                     .setPosition(at.x, at.y - air)
                     .setDepth(at.y)
-                    .setVisible(t >= p.invade);
+                    .setVisible(on);
                 w.shadow
                     .setPosition(at.x, at.y)
                     .setDepth(at.y - 2)
-                    .setVisible(t >= p.invade);
+                    .setScale(w.fly ? 0.7 : 1)
+                    .setVisible(on);
             }
         }
+        this.stepCeremonyCamera(c, t, dt);
+        this.stepConfetti(c, dt);
         // as batidas (uma vez cada)
         const mineColor = this.md.colors[this.mine];
         const cap = c.actors.find((a) => a.captain);
         if (p.invade !== undefined) {
-            // a câmera abre pra torcida descendo caber
-            once('open', p.invade, () => {
-                if (!c.reduce) this.rawZoom(1.2, 900);
-            });
             once('explode', p.jump, () => {
                 playCrowd('gol');
                 if (cap) playCry(cap.v.speciesId, this.md.cries, 1.15);
                 this.ceremonyFlashes(18, 900);
-                this.confetti(mineColor, 46);
+                this.confettiBurst(c, mineColor, 60);
             });
-            once('land', (p.toss ?? 0) + TOSS_MS * 3 - 30, () => {
+            once('land', (p.toss ?? 0) + TOSS_MS * 3 - 20, () => {
                 playSfx('thud', 0.8);
                 playCrowd('uuh');
-                dust(this, capAt.x, capAt.y + 1, 9, capAt.y + 2, 1.3);
-                if (!c.reduce) this.cameras.main.shake(160, 0.004);
+                dust(this, capAt.x, capAt.y + 1, 10, capAt.y + 2, 1.3);
+                if (!c.reduce) this.cameras.main.shake(140, 0.004);
             });
         }
         once('flash', p.lift, () => {
             playSfx('goal', 1.12);
             if (p.invade === undefined) playCrowd('gol');
             if (cap) playCry(cap.v.speciesId, this.md.cries, 1.2);
-            if (!c.reduce) this.cameras.main.flash(180, 255, 255, 255);
+            // sem clarão na tela inteira (no PC era um retângulo branco piscando): o brilho fica na taça
+            this.fx.burst('Flash', capAt.x, capAt.y - capLift - capTop * 0.95, 1, capAt.y + 2);
             this.ceremonyFlashes(14, 1200);
-            if (p.invade === undefined) this.confetti(mineColor, 40);
+            this.confettiBurst(c, mineColor, p.invade === undefined ? 70 : 50);
         });
-        const photo = p.photo;
-        if (photo !== undefined)
-            once('photo', photo, () => {
+        once('photo', p.photo, () => {
+            if (p.invade !== undefined) {
+                // o clique da câmera da foto
                 playSfx('select', 2.2);
                 playSfx('save', 2.6);
-                if (!c.reduce) this.cameras.main.flash(160, 255, 255, 255);
-                // a foto: todo mundo parado no quadro em que estava
-                for (const a of c.actors) a.v.sprite.anims.pause();
-                for (const w of c.wild) w.sp.anims.pause();
-                this.cine.drama(tr('battle.rotaChamp'), {
-                    color: '#ffd75e',
-                    stroke: Phaser.Display.Color.IntegerToColor(mineColor).rgba,
-                    sub: this.md.teamName,
-                    hold: p.end - photo + 2000,
-                });
-            });
+                this.ceremonyFlashes(10, 400);
+            }
+            this.photoPlate(p.invade !== undefined ? tr('battle.rotaChamp') : tr('battle.cupChamp'), this.md.teamName);
+        });
         once('end', p.end, () => EventBus.emit('match:ceremony-end'));
+    }
+
+    /**
+     * A câmera da cerimônia (`ceremonyCamera`): o alvo anda pelas curvas do roteiro e a câmera vai atrás dele suave
+     * (o toque que pula pra foto não dá tranco). No Reduzir movimento, direto no quadro.
+     */
+    private stepCeremonyCamera(c: NonNullable<typeof this.cer>, t: number, dt: number) {
+        const cam = this.cameras.main;
+        const want = ceremonyCamera(c.kind, c.reduce ? c.plan.end : t, c.camFrom);
+        const zoom = 1 + (want.zoom - 1) * this.zoomDamp;
+        const y = c.center.y - want.up;
+        const snap = c.reduce || c.cam.zoom === 0;
+        const k = snap ? 1 : 1 - Math.exp(-dt / 110);
+        c.cam.zoom = snap ? zoom : c.cam.zoom + (zoom - c.cam.zoom) * k;
+        c.cam.x += (c.center.x - c.cam.x) * k;
+        c.cam.y += (y - c.cam.y) * k;
+        cam.setZoom(c.cam.zoom);
+        cam.centerOn(c.cam.x, c.cam.y);
     }
 
     /** Flashes da torcida na beira da parte da quadra que está na tela. */
@@ -2991,28 +3088,103 @@ export class MatchScene extends Phaser.Scene {
         crowdFlash(this.fx, this, pts, ms, 6000, false);
     }
 
-    /** Confete caindo do alto da tela (cor do clube, branco e dourado). */
-    private confetti(club: number, n: number) {
-        if (this.md.reduceMotion) return;
+    /**
+     * Confete com física: dois canhões nos cantos de baixo atiram pra cima e pro meio; no alto o papel perde força,
+     * cai balançando e girando (a largura vira com o giro, como papel de verdade). Cor do clube, dourado e branco.
+     */
+    private confettiBurst(c: NonNullable<typeof this.cer>, club: number, n: number) {
+        if (c.reduce) return;
         const v = this.cameras.main.worldView;
-        const colors = [club, 0xffffff, 0xffd75e];
+        const light = Phaser.Display.Color.IntegerToColor(club).lighten(25).color;
+        const colors = [club, 0xffd75e, 0xffffff, light, 0xffd75e];
         for (let i = 0; i < n; i++) {
-            const x = v.x + Math.random() * v.width;
-            const piece = this.add
-                .rectangle(x, v.y - 10, 3, 5, colors[i % 3])
-                .setDepth(6500)
-                .setAngle(Math.random() * 360);
-            this.tweens.add({
-                targets: piece,
-                y: v.y + v.height + 10,
-                x: x + (Math.random() - 0.5) * 60,
-                angle: piece.angle + 360 + Math.random() * 360,
-                duration: 1600 + Math.random() * 1400,
-                delay: Math.random() * 500,
-                ease: 'Sine.easeIn',
-                onComplete: () => piece.destroy(),
+            const left = i % 2 === 0;
+            const x = left ? v.x + v.width * 0.04 : v.x + v.width * 0.96;
+            const y = v.y + v.height * 1.02;
+            const a = (left ? -1 : 1) * (0.18 + Math.random() * 0.42);
+            const speed = (0.55 + Math.random() * 0.45) * (v.height / 330);
+            const o = this.add.rectangle(x, y, 3, 5, colors[i % colors.length]).setDepth(6500);
+            c.confetti.push({
+                o,
+                x,
+                y,
+                vx: Math.sin(-a) * speed * 0.9,
+                vy: -Math.cos(a) * speed,
+                spin: (Math.random() - 0.5) * 0.02,
+                ph: Math.random() * Math.PI * 2,
             });
         }
+    }
+
+    private stepConfetti(c: NonNullable<typeof this.cer>, dt: number) {
+        const bottom = this.cameras.main.worldView.bottom + 20;
+        c.confetti = c.confetti.filter((q) => {
+            // gravidade e arrasto do ar; caindo, o papel plana (velocidade máxima baixa) e balança pros lados
+            q.vy += 0.0016 * dt;
+            q.vx *= 0.985 ** (dt / 16);
+            if (q.vy > 0.07) q.vy = 0.07 + (q.vy - 0.07) * 0.9 ** (dt / 16);
+            q.ph += dt * 0.012;
+            q.x += q.vx * dt + (q.vy > 0 ? Math.sin(q.ph) * 0.03 * dt : 0);
+            q.y += q.vy * dt;
+            q.o
+                .setPosition(q.x, q.y)
+                .setRotation(q.o.rotation + q.spin * dt)
+                .setScale(Math.abs(Math.cos(q.ph * 0.8)) * 0.8 + 0.2, 1);
+            if (q.y > bottom && q.vy > 0) {
+                q.o.destroy();
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /**
+     * A placa do título no alto da tela (presa na tela, fora de cima do time): placa escura com a faixa na cor do clube
+     * e sombra dura, o título em dourado e o nome do time embaixo. Desce do alto e assenta.
+     */
+    private photoPlate(title: string, sub?: string) {
+        // a placa ocupa ~60% da largura que aparece (no celular em pé, só um pedaço da quadra): o texto já nasce no
+        // tamanho final (escalar o texto pronto borrava)
+        const shown = this.cine.crop ? this.cine.crop.w / CROP_TEXT_SCALE : GAME_W;
+        const probe = this.add.text(0, 0, title, {
+            fontFamily: 'Galmuri11, monospace',
+            fontSize: '24px',
+            fontStyle: 'bold',
+        });
+        const s = Phaser.Math.Clamp((0.6 * shown) / (probe.width + 28), 0.7, 2.4);
+        probe.destroy();
+        const text = (str: string, size: number, color: string) =>
+            this.add
+                .text(0, 0, str, {
+                    fontFamily: 'Galmuri11, monospace',
+                    fontSize: `${Math.round(size * s)}px`,
+                    fontStyle: 'bold',
+                    color,
+                    stroke: '#0d1024',
+                    strokeThickness: Math.round(4 * s),
+                })
+                .setOrigin(0.5, 0)
+                .setResolution(2);
+        const big = text(title, 24, '#ffd75e');
+        const small = sub ? text(sub.toUpperCase(), 13, '#ffffff') : null;
+        const pad = 14 * s;
+        const w = Math.max(big.width, small?.width ?? 0) + pad * 2;
+        const h = big.height + (small ? small.height : 0) + pad * 1.1;
+        big.setY(pad * 0.5);
+        small?.setY(pad * 0.5 + big.height - 2 * s);
+        const club = this.md.colors[this.mine];
+        const r = Math.round(6 * s);
+        const g = this.add.graphics();
+        g.fillStyle(0x000000, 0.85).fillRoundedRect(-w / 2, 4 * s, w, h, r);
+        g.fillStyle(0x0d1024, 0.96).fillRoundedRect(-w / 2, 0, w, h, r);
+        g.lineStyle(2 * s, 0xffd75e, 0.9).strokeRoundedRect(-w / 2 + s, s, w - 2 * s, h - 2 * s, r);
+        g.fillStyle(club, 1).fillRect(-w / 2 + 8 * s, h - 5 * s, w - 16 * s, 3 * s);
+        const inner = this.add.container(0, -h - 20, small ? [g, big, small] : [g, big]);
+        const holder = this.add.container(0, 0, [inner]).setDepth(9800);
+        // presa na tela, no alto (a câmera da foto deixa o time na metade de baixo)
+        this.cine.pin(holder, GAME_W / 2, GAME_H * 0.03, 1);
+        if (this.md.reduceMotion) inner.setY(0);
+        else this.tweens.add({ targets: inner, y: 0, duration: 420, ease: 'Back.easeOut' });
     }
 
     // ------------------------------------------------------------------ eventos

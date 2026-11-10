@@ -17,7 +17,7 @@ type Pinnable = Phaser.GameObjects.Container;
 const hexColor = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 /** Tamanho dos textos presos dentro do recorte do clipe (cabem na faixa e seguem legíveis no 9:16). */
-const CROP_TEXT_SCALE = 0.72;
+export const CROP_TEXT_SCALE = 0.72;
 /** Até onde (px do canvas) vai o texto de drama no alto (GOOOOL!, QUE DEFESA!): o letreiro do N1/N2 não entra aí. */
 const DRAMA_BOTTOM = GAME_H * 0.17 + 80;
 

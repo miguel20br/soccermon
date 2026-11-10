@@ -48,6 +48,7 @@ export const battle: typeof pt = {
     },
     fulltime: 'FULL TIME',
     rotaChamp: 'INDIGO ROAD CHAMPIONS',
+    cupChamp: 'CHAMPIONS!',
     bigSave: 'WHAT A SAVE!',
     save: 'SAVE!',
     bigPost: 'OFF THE POOOST!',
