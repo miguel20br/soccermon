@@ -287,24 +287,47 @@ export function comemoracaoOf(speciesId: number): Comemoracao {
 
 /** Quanto dura a comemoração do gol (o `Action.Celebrate` de 2,5 s do motor). */
 export const GOAL_CELEB_MS = 2500;
-/** Giro: um passo de direção a cada tanto (2 voltas inteiras) e depois pula de frente. */
-const GIRO_STEP_MS = 85;
+/** Giro: 2 voltas inteiras (16 passos de direção) que aceleram e freiam, e depois pula de frente. */
+const GIRO_MS = 1360;
 const GIRO_STEPS = 16;
 /** Pose: junta força (como o "Vamooo!" do capitão) e solta a pose de frente. */
 const POSE_CHARGE_MS = 450;
+/** Quanto dura a esticada quando a pose solta (e a agachada antes do pulo). */
+const POP_MS = 160;
 
 /**
  * A comemoração do gol na quadra (MatchScene), no jeito da espécie (`comemoracaoOf`), dentro do tempo que o motor já
- * segura: pulo = Hop virado pra onde estava; giro = anda girando pelas 8 direções (pião) e pula de frente; pose =
- * Charge e Pose de frente (sem Pose, o animation-manager cai no Hop). `ms` desde o gol.
+ * segura: pulo = Hop virado pra onde estava, com uma agachada antes; giro = gira pelas 8 direções (pião), começando
+ * devagar, acelerando e freando, e pula de frente; pose = Charge agachando e Pose de frente com uma esticada (sem Pose,
+ * o animation-manager cai no Hop). `ms` desde o gol; `sx`/`sy` = squash & stretch do corpo (1 = normal).
  */
-export function goalCelebPose(kind: Comemoracao, ms: number, facing: number): { anim: string; facing: number } {
+export function goalCelebPose(
+    kind: Comemoracao,
+    ms: number,
+    facing: number,
+): { anim: string; facing: number; sx: number; sy: number } {
+    const t = Math.max(0, ms);
+    const bump = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u));
     if (kind === 'giro') {
-        const step = Math.floor(Math.max(0, ms) / GIRO_STEP_MS);
-        return step < GIRO_STEPS ? { anim: 'Walk', facing: (facing + step) % 8 } : { anim: 'Hop', facing: 0 };
+        const u = Math.min(1, t / GIRO_MS);
+        // ease in-out (seno): os passos ficam mais juntos no meio da volta
+        const step = Math.floor(((1 - Math.cos(Math.PI * u)) / 2) * GIRO_STEPS);
+        if (u < 1) return { anim: 'Walk', facing: (facing + step) % 8, sx: 1, sy: 1 };
+        const k = bump((t - GIRO_MS) / POP_MS);
+        return { anim: 'Hop', facing: 0, sx: 1 + 0.08 * k, sy: 1 - 0.1 * k };
     }
-    if (kind === 'pose') return { anim: ms < POSE_CHARGE_MS ? 'Charge' : 'Pose', facing: 0 };
-    return { anim: 'Hop', facing };
+    if (kind === 'pose') {
+        if (t < POSE_CHARGE_MS) {
+            // junta força: vai agachando (antecipação)
+            const k = Math.sin((Math.PI / 2) * (t / POSE_CHARGE_MS));
+            return { anim: 'Charge', facing: 0, sx: 1 + 0.06 * k, sy: 1 - 0.09 * k };
+        }
+        // solta: estica e assenta
+        const k = bump((t - POSE_CHARGE_MS) / (POP_MS * 1.5));
+        return { anim: 'Pose', facing: 0, sx: 1 - 0.05 * k, sy: 1 + 0.1 * k };
+    }
+    const k = bump(t / POP_MS);
+    return { anim: 'Hop', facing, sx: 1 + 0.08 * k, sy: 1 - 0.1 * k };
 }
 
 /** As batidas onde o toque para (tocar adianta pra próxima). */

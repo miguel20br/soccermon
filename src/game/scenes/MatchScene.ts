@@ -2212,7 +2212,12 @@ export class MatchScene extends Phaser.Scene {
             }
             const bite = tm ? { tilt: tm.markerTilt, sx: 1, sy: 1 } : null;
             if (tb && tricked && tricked.d.kind !== 'lambreta') this.ghost(view, tricked.d.team);
-            this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react)) : null);
+            // comemoração do gol: o squash & stretch do jeito (agacha, estica); Reduzir movimento: sem
+            const celebLean =
+                celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1)
+                    ? { tilt: 0, sx: celeb.sx, sy: celeb.sy }
+                    : null;
+            this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean) : null);
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
@@ -2478,7 +2483,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /** Comemoração do gol em andamento pro jogador i (o motor segura o Celebrate por 2,5 s), ou null. */
-    private goalCeleb(i: number, facing: number): { anim: string; facing: number } | null {
+    private goalCeleb(i: number, facing: number): ReturnType<typeof goalCelebPose> | null {
         for (let g = this.goalsBy.length - 1; g >= 0; g--) {
             const { by, tick } = this.goalsBy[g];
             if (tick > this.playTick) continue;
@@ -3308,7 +3313,14 @@ export class MatchScene extends Phaser.Scene {
                     this.cine.drama(e.ownGoal ? tr('battle.ownGoal') : tr('battle.goal'), {
                         color: '#ffffff',
                         stroke: color,
-                        at: { x: this.ball.x, y: this.ball.y },
+                        // entre a bola na rede e quem marcou (é ele que comemora)
+                        at:
+                            scorer && !e.ownGoal
+                                ? {
+                                      x: (this.ball.x + scorer.sprite.x) / 2,
+                                      y: (this.ball.y + scorer.sprite.y - 16) / 2,
+                                  }
+                                : { x: this.ball.x, y: this.ball.y },
                         sub: scorer ? scorer.name : undefined,
                         // o gol da bicuda do duelo: o GOOOOL! fica o bastante pra ler (o BICUDA! vem depois)
                         hold: sdGoal ? SD.wordMs : undefined,

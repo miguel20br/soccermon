@@ -168,13 +168,21 @@ describe('plano do walkout', () => {
         const kinds = new Set(Array.from({ length: 151 }, (_, i) => comemoracaoOf(i + 1)));
         expect([...kinds].sort()).toEqual(['giro', 'pose', 'pulo']);
         // pulo: Hop pra onde estava virado
-        expect(goalCelebPose('pulo', 1000, 3)).toEqual({ anim: 'Hop', facing: 3 });
+        expect(goalCelebPose('pulo', 1000, 3)).toEqual({ anim: 'Hop', facing: 3, sx: 1, sy: 1 });
+        // agacha antes de pular (squash), e o corpo volta ao normal
+        expect(goalCelebPose('pulo', 80, 3).sy).toBeLessThan(1);
         // giro: passa pelas 8 direções e termina pulando de frente antes do fim
         const dirs = new Set(Array.from({ length: 30 }, (_, i) => goalCelebPose('giro', i * 50, 2).facing));
         expect(dirs.size).toBe(8);
-        expect(goalCelebPose('giro', GOAL_CELEB_MS - 1, 2)).toEqual({ anim: 'Hop', facing: 0 });
+        expect(goalCelebPose('giro', GOAL_CELEB_MS - 1, 2)).toMatchObject({ anim: 'Hop', facing: 0 });
+        // o giro acelera e freia: no meio troca de direção mais rápido que no começo
+        const stepsIn = (a: number, b: number) =>
+            new Set(Array.from({ length: 20 }, (_, i) => goalCelebPose('giro', a + ((b - a) * i) / 20, 0).facing)).size;
+        expect(stepsIn(600, 760)).toBeGreaterThan(stepsIn(0, 160));
         // pose: junta força e solta, de frente
-        expect(goalCelebPose('pose', 100, 5)).toEqual({ anim: 'Charge', facing: 0 });
-        expect(goalCelebPose('pose', 1200, 5)).toEqual({ anim: 'Pose', facing: 0 });
+        expect(goalCelebPose('pose', 100, 5)).toMatchObject({ anim: 'Charge', facing: 0 });
+        expect(goalCelebPose('pose', 400, 5).sy).toBeLessThan(1);
+        expect(goalCelebPose('pose', 560, 5).sy).toBeGreaterThan(1);
+        expect(goalCelebPose('pose', 1200, 5)).toEqual({ anim: 'Pose', facing: 0, sx: 1, sy: 1 });
     });
 });
