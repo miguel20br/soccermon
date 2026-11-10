@@ -47,6 +47,7 @@ export const battle: typeof pt = {
         elastico: 'ELASTICO',
     },
     fulltime: 'FULL TIME',
+    rotaChamp: 'INDIGO ROAD CHAMPIONS',
     bigSave: 'WHAT A SAVE!',
     save: 'SAVE!',
     bigPost: 'OFF THE POOOST!',

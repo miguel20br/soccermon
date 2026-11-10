@@ -5,7 +5,7 @@ import { viewInstance } from '../../engine/instance';
 import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
-import { cupLength, isLong } from '../../store/long-cup';
+import { cupLength, isLong, paradeOn } from '../../store/long-cup';
 import { Beat, useCascade } from '../kit/Cascade';
 import { SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -71,7 +71,9 @@ export function ChampionView({
         .map((uid) => run.picks.find((p) => p.uid === uid))
         .filter((p): p is NonNullable<typeof p> => !!p);
     const players = [...stats.values()];
-    const parading = !!(hallEntry && run.champ && !run.champ.paraded);
+    // o desfile só no raro (Rota e 1º título de cada modo); nos repetidos, a taça curta da quadra já fez a festa
+    const rare = useGame((s) => paradeOn(run, s.records, s.daily.filter((e) => e.champion).length));
+    const parading = !!(hallEntry && run.champ && !run.champ.paraded && rare);
 
     return (
         <>

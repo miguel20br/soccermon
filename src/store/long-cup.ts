@@ -318,3 +318,22 @@ export function foulOf(run: {
 
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */
 export const groupQualified = (rows: GroupRow[]) => rows.findIndex((r) => r.you) < 2;
+
+/**
+ * Desfile do Hall da Fama (animacoes-novas.md, decisão 3): só no título da Rota e no 1º título de cada modo
+ * (Relâmpago, Copa do Dia); os repetidos ficam com a taça curta na quadra. `titles`/`longTitles` já contam este
+ * título; `dailyTitles` = Copas do Dia ganhas (com esta, se for uma).
+ */
+export function paradeOn(
+    run: { mode?: CupMode; daily?: string },
+    records: { titles: number; longTitles?: number },
+    dailyTitles: number,
+): boolean {
+    if (run.mode === 'longa') return true;
+    if (run.daily) return dailyTitles <= 1;
+    return records.titles - (records.longTitles ?? 0) - dailyTitles <= 1;
+}
+
+/** Créditos depois do 1º título da Rota: uma vez por save (`records.longTitles` já conta este). */
+export const creditsOn = (run: { mode?: CupMode }, records: { longTitles?: number }) =>
+    run.mode === 'longa' && records.longTitles === 1;

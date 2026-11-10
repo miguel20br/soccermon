@@ -3,7 +3,15 @@ import { longOpponent } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
-import { longMatchBonus, longWinEarnings, lossColor, nodeOpponent, ROCKET_BOUNTY } from './long-cup';
+import {
+    creditsOn,
+    longMatchBonus,
+    longWinEarnings,
+    lossColor,
+    nodeOpponent,
+    paradeOn,
+    ROCKET_BOUNTY,
+} from './long-cup';
 
 describe('lossColor (barrinha da copa na Home)', () => {
     const rota = (status: string, stages: number[]) => ({
@@ -75,5 +83,22 @@ describe('prêmio à vista e desafios (revisão da Rota)', () => {
             true,
         );
         expect(nodeOpponent(run, node).lineup.some((p) => p.speciesId === 145)).toBe(false);
+    });
+});
+
+describe('paradeOn e creditsOn (título: desfile só no raro, créditos uma vez)', () => {
+    it('Rota sempre desfila; Relâmpago e Copa do Dia só no 1º título de cada', () => {
+        expect(paradeOn({ mode: 'longa' }, { titles: 9, longTitles: 3 }, 2)).toBe(true);
+        expect(paradeOn({}, { titles: 1 }, 0)).toBe(true);
+        expect(paradeOn({}, { titles: 2 }, 0)).toBe(false);
+        // o 1º da Relâmpago depois de títulos na Rota e no Dia ainda é o 1º dela
+        expect(paradeOn({}, { titles: 4, longTitles: 2 }, 1)).toBe(true);
+        expect(paradeOn({ daily: '2026-11-10' }, { titles: 5 }, 1)).toBe(true);
+        expect(paradeOn({ daily: '2026-11-10' }, { titles: 5 }, 2)).toBe(false);
+    });
+    it('créditos só no 1º título da Rota', () => {
+        expect(creditsOn({ mode: 'longa' }, { longTitles: 1 })).toBe(true);
+        expect(creditsOn({ mode: 'longa' }, { longTitles: 2 })).toBe(false);
+        expect(creditsOn({}, { longTitles: 1 })).toBe(false);
     });
 });

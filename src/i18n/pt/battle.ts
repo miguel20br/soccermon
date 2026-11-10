@@ -55,6 +55,7 @@ export const battle = {
         elastico: 'ELÁSTICO',
     },
     fulltime: 'FIM DE JOGO',
+    rotaChamp: 'CAMPEÕES DA ROTA ÍNDIGO',
     bigSave: 'QUE DEFESA!',
     save: 'DEFESA!',
     bigPost: 'NA TRAAAVE!',

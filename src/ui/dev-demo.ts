@@ -122,7 +122,10 @@ export function runDevDemo() {
         demo !== 'virada' &&
         demo !== 'charanga' &&
         demo !== 'sala' &&
-        demo !== 'final'
+        demo !== 'final' &&
+        demo !== 'rota-titulo' &&
+        demo !== 'insignia' &&
+        demo !== 'estadio-campeao'
     )
         return;
     started = true;
@@ -581,7 +584,11 @@ export function runDevDemo() {
         return;
     }
     // ?demo=eliminado: um time fraco que cai (tela de eliminado: "faltou pouco" e "Nova copa" na barra)
-    if (demo === 'campeao' || demo === 'momentos' || demo === 'eliminado') {
+    if (
+        (demo === 'campeao' && !new URLSearchParams(window.location.search).has('taca')) ||
+        demo === 'momentos' ||
+        demo === 'eliminado'
+    ) {
         const lose = demo === 'eliminado';
         for (let k = 0; k < 40; k++) {
             store.newRun('Demo FC', `camp${k}`);
@@ -627,9 +634,11 @@ export function runDevDemo() {
     // ?demo=final[&rota=1][&gol=pulo|giro|pose]: a Final (Relâmpago ou Rota) na escalação de um time forte; ao começar,
     // a 3 s do apito final (vencida: a taça curta, na Rota a invasão) ou, com `gol`, a 3 s de um gol seu de quem
     // comemora desse jeito (com a partícula do tipo, que só sai na Final)
-    if (demo === 'final') {
-        const q = new URLSearchParams(window.location.search);
-        const rota = q.get('rota') === '1';
+    // `?demo=campeao&taca=1` = a Final da Relâmpago; `?demo=rota-titulo` = a da Rota (a invasão)
+    const q0 = new URLSearchParams(window.location.search);
+    if (demo === 'final' || demo === 'rota-titulo' || (demo === 'campeao' && q0.has('taca'))) {
+        const q = q0;
+        const rota = q.get('rota') === '1' || demo === 'rota-titulo';
         const jeito = q.get('gol');
         for (let k = 0; k < 60; k++) {
             const seed = `fin${rota ? 'r' : ''}${k}`;
@@ -637,18 +646,20 @@ export function runDevDemo() {
             // Snorlax no gol, Machamp, Dragonite, Aerodactyl e Mewtwo capitão: um de cada jeito (pulo, pose, giro)
             const lineup = [143, 68, 149, 142, 150].map((id) => createInstance(id, rng));
             const bench = [25, 6].map((id) => createInstance(id, rng));
-            if (rota) store.newRun('Demo FC', seed, undefined, 'longa');
+            if (rota) demoRotaFinal(store);
             else store.newRun('Demo FC', seed);
             const base = useGame.getState().run!;
-            const last = (rota ? 8 : 4) - 1;
-            const results = Array.from({ length: last }, (_, stage) => ({
-                stage,
-                opponent: base.opponents[stage]?.name ?? 'Montanhistas',
-                score: [3, 1] as [number, number],
-                shootout: null,
-                won: true,
-                final: false,
-            }));
+            const last = rota ? base.stage : 3;
+            const results = rota
+                ? base.results
+                : Array.from({ length: last }, (_, stage) => ({
+                      stage,
+                      opponent: base.opponents[stage]?.name ?? 'Montanhistas',
+                      score: [3, 1] as [number, number],
+                      shootout: null,
+                      won: true,
+                      final: false,
+                  }));
             const run = {
                 ...base,
                 formation: '1-2-1' as const,
@@ -666,7 +677,7 @@ export function runDevDemo() {
             const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[last], true), `${run.seed}-stage-${last}`, {
                 snapshots: false,
             });
-            if (r.winner !== 0) continue;
+            if (r.winner !== 0 || r.shootout) continue;
             const end = r.events.find((e) => e.type === 'fulltime');
             const goal = jeito
                 ? r.events.find(
@@ -1495,6 +1506,24 @@ function demoBefore(store: ReturnType<typeof useGame.getState>, house: House): s
         screen: 'map',
     });
     return target.id;
+}
+
+/** A Rota parada na escalação da Final (o mapa de sempre, os 7 jogos vencidos e o descanso antes). */
+function demoRotaFinal(store: ReturnType<typeof useGame.getState>) {
+    demoLongMap(store, false);
+    const run = useGame.getState().run!;
+    const last = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
+    const results = [0, 1, 2, 3, 4, 5, 6].map((stage) => ({
+        stage,
+        opponent: 'Montanhistas',
+        score: [3, 1] as [number, number],
+        shootout: null,
+        won: true,
+        final: false,
+    }));
+    useGame.setState({ run: { ...run, at: last.id, status: 'treino', results, stage: 6, money: 22 } });
+    useGame.getState().train('rest');
+    useGame.getState().playNext();
 }
 
 function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean) {

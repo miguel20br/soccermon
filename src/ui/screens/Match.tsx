@@ -157,6 +157,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
     const [shootout, setShootout] = useState<[number, number] | null>(null);
     const [ended, setEnded] = useState(false);
+    /** Cerimônia do título na quadra (taça ou invasão): o FinalCard espera ela acabar (ou o Pular). */
+    const [ceremony, setCeremony] = useState(false);
     const [orders, setOrders] = useState<MatchOrder[]>(() => resume?.orders ?? []);
     /** Substituições que já aconteceram em campo (uid de quem entrou). */
     const [subsDone, setSubsDone] = useState<string[]>([]);
@@ -260,6 +262,9 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                       startPaused: true,
                       startTick: resume?.tick || undefined,
                       final: !solo && !!run && isFinalStage(run),
+                      // título: a taça na quadra (na Rota, a invasão da torcida antes)
+                      ceremony: !solo && run && isFinalStage(run) ? (isLong(run) ? 'invasao' : 'taca') : undefined,
+                      teamName: run?.teamName,
                       agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
@@ -354,6 +359,10 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             setEnded(true);
             setHalftime(false);
         };
+        const onCeremony = () => setCeremony(true);
+        const onCeremonyEnd = () => setCeremony(false);
+        EventBus.on('match:ceremony', onCeremony);
+        EventBus.on('match:ceremony-end', onCeremonyEnd);
         const onHalftime = () => setHalftime(true);
         const onTimeout = (tick: number) => setTimeoutAt(tick);
         const onPenaltyPick = (tick: number) => setPenPick(tick);
@@ -376,6 +385,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             EventBus.off('match:timeout', onTimeout);
             EventBus.off('match:penalty-pick', onPenaltyPick);
             EventBus.off('match:halftime', onHalftime);
+            EventBus.off('match:ceremony', onCeremony);
+            EventBus.off('match:ceremony-end', onCeremonyEnd);
             EventBus.off('match:event', onEvent);
             EventBus.off('match:replace', commentator.replace);
             EventBus.off('match:tick', onTick);
@@ -1104,6 +1115,15 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                 <span>{t('match.skip')}</span>
                             </button>
                         </>
+                    ) : ceremony ? (
+                        <button
+                            type="button"
+                            className="btn ghost wide cer-skip"
+                            onClick={() => EventBus.emit('match:ceremony-skip')}
+                        >
+                            {t('common.ui.skip')}
+                            <HudIcon kind="skip" />
+                        </button>
                     ) : (
                         <FinalCard
                             score={clock.score}

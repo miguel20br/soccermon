@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { playCry } from '../../game/audio';
+import { playCry, playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { trainerFrame } from '../../store/missions';
@@ -10,8 +10,10 @@ import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
 import { Trophy } from './Trophy';
+import '../animacoes.css';
 
-const STEP_MS = 1700;
+/** Cada Pokémon na foto (era 1,7 s: o desfile ficou só no raro e mais curto, animacoes-novas.md A4). */
+const STEP_MS = 950;
 
 /**
  * Desfile do Hall da Fama, como o do Red/Blue: cada Pokémon do elenco campeão aparece sozinho (com o grito),
@@ -28,8 +30,13 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     useEffect(() => {
         if (i >= total) return;
         playCry(entry.squad[i].speciesId, cries);
+        // o clique da câmera junto com o flash (.hp-flash)
+        const shot = setTimeout(() => playSfx('select', 2.2), 380);
         const id = setTimeout(() => setI((n) => n + 1), STEP_MS);
-        return () => clearTimeout(id);
+        return () => {
+            clearTimeout(id);
+            clearTimeout(shot);
+        };
     }, [i, total, entry, cries]);
 
     return (
@@ -42,6 +49,7 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
         >
             {mon ? (
                 <div key={i} className="hp-mon">
+                    <i className="hp-flash" aria-hidden />
                     <img className="pixel" src={cardSprite(mon)} alt="" />
                     <b>{mon.name}</b>
                     <span>

@@ -1,0 +1,30 @@
+/* Animações novas (docs/planos/animacoes-novas.md): desfile com flash, insígnia batendo, Estádio campeão, créditos do título */
+
+/* Hall da Fama: cada Pokémon vira foto (o flash branco no meio da entrada) */
+.hp-mon {
+    position: relative;
+}
+.hp-flash {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    animation: hp-flash 0.5s ease-out 0.38s both;
+}
+@keyframes hp-flash {
+    0% {
+        opacity: 0.85;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+:root[data-reduce-motion="true"] .hp-flash {
+    display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .hp-flash {
+        display: none;
+    }
+}
