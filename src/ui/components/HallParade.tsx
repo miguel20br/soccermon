@@ -50,7 +50,13 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
                 {mon ? (
                     <div key={i} className="hp-mon">
                         <span className="hp-stage">
-                            <FieldSprite id={mon.speciesId} shiny={mon.shiny} anim="Idle" dir={0} scale={scale * 2} />
+                            <FieldSprite
+                                id={mon.speciesId}
+                                shiny={mon.shiny}
+                                anim="Idle"
+                                dir={0}
+                                scale={Math.max(3, scale * 2)}
+                            />
                         </span>
                         <b>{mon.name}</b>
                         <span>
