@@ -357,3 +357,9 @@ Dependência: 1 e 3 ficam melhores em cima do cenário de pixel da branch `arte-
   [Boons (wiki)](https://hades.fandom.com/wiki/Boons). Inscryption: [Trader (wiki)](https://inscryption.fandom.com/wiki/Trader).
 - Docs da casa: [rota-indigo.md](rota-indigo.md), [rota-indigo-revisao.md](rota-indigo-revisao.md),
   [animacoes-novas.md](animacoes-novas.md), [revisao-arte.md](revisao-arte.md), [menos-e-mais.md](menos-e-mais.md).
+
+## Decidido pelo Miguel (10/11, manhã)
+
+- "Quase" do 3º rolo e roleta do balcão: ficam.
+- Título de tela em 21 px (22 quebra o 9 da Galmuri14); nota da carta sai do tamanho ruim (galeria antes de subir).
+- Equilíbrio aprovado: 1ª derrota da Rota sem cartão amarelo, rival da Final mais forte (deixa de ser a mais fácil), um Evento "?" garantido por linha.
