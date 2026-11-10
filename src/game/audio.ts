@@ -21,6 +21,8 @@ export const SFX = {
     // retorno de toque (src/ui/feedback.ts): voltar desce, sair/perder é um "uó-uó" triste, destrutivo é seco
     back: [0.45, 0, 660, 0, 0.02, 0.07, 1, 1.5, -24, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0],
     sad: [0.7, 0, 392, 0.02, 0.16, 0.32, 2, 1.4, -5, 0, -70, 0.14, 0, 0, 0, 0, 0, 0.6, 0.08],
+    // drible com nome: o vento da bola passando (ruído que desce)
+    whoosh: [0.5, 0.05, 320, 0.04, 0.06, 0.16, 4, 1, -3, 0, 0, 0, 0, 1.2, 0, 0, 0, 0.6, 0.05],
     thud: [0.9, 0, 110, 0, 0.04, 0.22, 3, 1.8, -4, 0, 0, 0, 0, 0.3, 0, 0, 0, 0.6, 0.05],
 } as const;
 
