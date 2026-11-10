@@ -49,6 +49,7 @@ import {
     maxCertain,
     maxCueNear,
     maxHitAhead,
+    NAMED_DRIBBLE,
     type NamedDribble,
     namedDribblesOf,
     SOLD_LEAN,
@@ -848,6 +849,7 @@ export class MatchScene extends Phaser.Scene {
     /** Gols (quem marcou e o tick): a comemoração no jeito da espécie (`goalCelebPose`). */
     private goalsBy: { by: number; tick: number }[] = [];
     /** Dribles com nome (só tela); a bola em px no carrinho sai na 1ª vez que aparece. */
+    private ghostAt = 0;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
@@ -2209,6 +2211,7 @@ export class MatchScene extends Phaser.Scene {
                 view.currentKey = key;
             }
             const bite = tm ? { tilt: tm.markerTilt, sx: 1, sy: 1 } : null;
+            if (tb && tricked && tricked.d.kind !== 'lambreta') this.ghost(view, tricked.d.team);
             this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react)) : null);
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
@@ -2375,6 +2378,24 @@ export class MatchScene extends Phaser.Scene {
         return null;
     }
 
+    /** Rastro do driblador (roleta, elástico): uma cópia do quadro na cor do time a cada 45 ms, sumindo em 260 ms. */
+    private ghost(view: PlayerView, team: 0 | 1) {
+        const now = this.time.now;
+        if (now - this.ghostAt < 45) return;
+        this.ghostAt = now;
+        const sp = view.sprite;
+        const g = this.add
+            .image(sp.x, sp.y, sp.texture.key, sp.frame.name)
+            .setOrigin(sp.originX, sp.originY)
+            .setScale(sp.scaleX, sp.scaleY)
+            .setFlipX(sp.flipX)
+            .setRotation(sp.rotation)
+            .setTint(this.md.colors[team])
+            .setAlpha(0.45)
+            .setDepth(sp.depth - 0.5);
+        this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+    }
+
     /** O drible com nome na tela agora (pose do `dribblePose`), ou null. */
     private trickNow() {
         for (const d of this.named) {
@@ -2391,15 +2412,37 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /**
-     * Nome do drible subindo de quem driblou, como o "DESARME!" (na cor do time): fica no lance, não pega a vaga das
-     * faixas (o chute logo depois chama o gol ou a defesa, que tirava a faixa da tela em 0,1 s).
+     * O ápice do drible com nome: a faixa grande com o nome (a do golpe máximo; o texto do gol ou da defesa que vem logo
+     * depois espera ela sair), o vento e o "uuh" da torcida. Na 1x, sem Reduzir movimento e fora do duelo: hit-stop curto
+     * e zoom no driblador (a câmera lenta vem de `dribbleSlowAt`). Golpe na tela ou câmera presa: só a faixa e o som.
      */
     private namedDribble(e: Extract<MatchEvent, { type: 'tackle' }>) {
         const d = this.named.find((x) => x.tick === e.tick && x.by === e.victim);
-        if (!d || !this.players[d.by]) return;
-        const color = Phaser.Display.Color.IntegerToColor(this.md.colors[d.team]).rgba;
-        this.popText(d.by, dict().battle.dribble[d.kind], color, 0, 1500);
-        playSfx('kick', 1.5);
+        const view = d && this.players[d.by];
+        if (!d || !view) return;
+        const N = NAMED_DRIBBLE;
+        const reduce = !!this.md.reduceMotion;
+        const big = this.speed === 1 && !reduce && !this.md.duel;
+        this.cine.superBanner({
+            portrait: this.cutPortrait(`portrait-${view.speciesId}`),
+            move: dict().battle.dribble[d.kind],
+            typeLabel: view.name,
+            note: null,
+            color: this.md.colors[d.team],
+            typeInk: 0xffffff,
+            fromRight: d.team === 1,
+            reduce,
+            depth: REACT_DEPTH + 2,
+            top: true,
+            holdMs: big ? N.bannerMs : 700,
+            // embaixo: em cima a lambreta passava por trás dela e no celular o zoom cortava o nome
+            y: 0.76,
+        });
+        playSfx('whoosh');
+        playCrowd('uuh', 0.7);
+        if (!big || this.frameLocked() || this.cine.spotlightActive) return;
+        this.holdReal = Math.max(this.holdReal, this.time.now + N.stopMs);
+        this.cine.punchIn(view.sprite.x, view.sprite.y, N.zoom, N.stopMs + N.bannerMs);
     }
 
     /**

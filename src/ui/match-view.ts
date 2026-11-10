@@ -548,11 +548,11 @@ export interface NamedDribble {
 
 export const NAMED_DRIBBLE = {
     /** DRI da carta (`cardAttributes().field.dribble`) a partir da qual o drible ganha nome. */
-    dri: 80,
+    dri: 75,
     /** No máximo por time numa partida. */
     perTeam: 2,
-    /** O 1x1 que conta: o portador a menos de 40% da quadra do gol (16 m de 40). */
-    zone: 0.4,
+    /** O 1x1 que conta: o portador a até metade da quadra do gol (20 m de 40). */
+    zone: 0.5,
     /** Ticks entre dois dribles com nome (3 s) e de folga pro golpe máximo (que tem a câmera lenta dele). */
     gap: 60,
     clearMax: 30,
@@ -567,10 +567,14 @@ export const NAMED_DRIBBLE = {
     lead: 4,
     tail: 8,
     /** Câmera lenta (só na 1x): fator e ticks em volta do carrinho, com rampa de `ramp` ticks de cada lado. */
-    slow: 0.4,
+    slow: 0.3,
     slowFrom: 2,
-    slowTo: 2,
+    slowTo: 3,
     ramp: 2,
+    /** Hit-stop no ápice (ms de quadro parado), zoom da câmera no driblador e quanto a faixa do nome fica (ms). */
+    stopMs: 150,
+    zoom: 1.2,
+    bannerMs: 1100,
 } as const;
 
 /**
@@ -587,8 +591,8 @@ export function namedDribbles(
     const { length } = FUTSAL_5.pitch;
     const snaps = m.snapshots;
     if (!snaps.length) return [];
-    // golpe no lance (o carrinho com golpe tem holofote e faixa): o drible com nome fica de fora
-    const moveTicks = m.events.flatMap((e) => (e.type === 'move' ? [[e.tick, e.by] as const] : []));
+    // golpe perto do lance (holofote, faixa e câmera lenta dele): o drible com nome fica de fora
+    const moveTicks = m.events.flatMap((e) => (e.type === 'move' ? [e.tick] : []));
     const maxTicks = m.events.flatMap((e) =>
         (e.type === 'max' && e.phase === 'hit') || e.type === 'showdown' ? [e.tick] : [],
     );
@@ -601,7 +605,7 @@ export function namedDribbles(
         if (team === undefined || count[team] >= N.perTeam) continue;
         if (out.length && e.tick - out[out.length - 1].tick < N.gap) continue;
         if (maxTicks.some((t) => Math.abs(t - e.tick) <= N.clearMax)) continue;
-        if (moveTicks.some(([t, who]) => (who === by || who === e.by) && Math.abs(t - e.tick) <= N.clearMove)) continue;
+        if (moveTicks.some((t) => Math.abs(t - e.tick) <= N.clearMove)) continue;
         const now = snapAt(snaps, e.tick);
         // ficou com a bola (o drible que deu certo), com a bola rolando
         if (now.phase !== 'play' || now.owner !== by || snapAt(snaps, e.tick + 2).owner !== by) continue;
@@ -708,14 +712,17 @@ export function dribblePose(
     // lado do marcador, na tela (perpendicular à corrida)
     const px = -d.dir.y * d.side;
     const py = d.dir.x * d.side;
-    const apart = 10 * bump(u);
-    pose.markerBody = { x: px * apart, y: py * apart };
+    // o marcador vendido: abre pro lado dele (os dois ficavam um em cima do outro), fica pra trás e cambaleia
+    const after = bump((u - 0.25) / 0.75);
+    const apart = (d.kind === 'elastico' ? 16 : 11) * bump(u);
+    pose.markerBody = { x: px * apart - d.dir.x * 9 * after, y: py * apart - d.dir.y * 9 * after };
+    pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * after;
     if (d.kind === 'lambreta') {
-        // a bola sobe de trás, passa por cima do marcador e cai na frente
+        // a bola sobe de trás, passa bem por cima da cabeça do marcador e cai na frente (a sombra fica no chão)
         const arc = (u - 0.05) / 0.8;
-        pose.lift = 36 * bump(arc);
+        pose.lift = 64 * bump(arc);
         // de trás pra frente por cima dele: começa atrás do pé e cai na frente
-        const fwd = 14 * (Math.min(1, Math.max(0, arc)) - 0.5) * bump(u) * 2;
+        const fwd = 18 * (Math.min(1, Math.max(0, arc)) - 0.5) * bump(u) * 2;
         pose.ball = { x: d.dir.x * fwd, y: d.dir.y * fwd };
     } else if (d.kind === 'roleta') {
         // gira 360° por cima da bola, saindo de lado pra longe do marcador, e a bola dá a volta no pé
@@ -725,16 +732,17 @@ export function dribblePose(
         const c = Math.cos(a);
         const s = Math.sin(a);
         pose.ball = { x: toBall.x * c - toBall.y * s - toBall.x, y: toBall.x * s + toBall.y * c - toBall.y };
-        const k = -10 * bump(u);
+        const k = -12 * bump(u);
         pose.body = { x: px * k, y: py * k };
         pose.ball.x += pose.body.x;
         pose.ball.y += pose.body.y;
     } else {
-        // elástico: mostra a bola pro lado do marcador (ele morde) e sai pro outro
+        // elástico: mostra a bola pro lado do marcador (ele morde e vai junto) e sai rasgando pro outro
         const w = Math.sin(2 * Math.PI * u) * bump(u) ** 0.5;
-        pose.body = { x: px * 12 * w, y: py * 12 * w };
-        pose.ball = { x: px * 20 * w, y: py * 20 * w };
-        pose.markerTilt = (px >= 0 ? 1 : -1) * 0.3 * Math.max(0, w);
+        const k = w > 0 ? 8 * w : 16 * w;
+        pose.body = { x: px * k, y: py * k };
+        pose.ball = { x: px * k * 1.7, y: py * k * 1.7 };
+        pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * Math.max(after, Math.max(0, w));
     }
     return pose;
 }

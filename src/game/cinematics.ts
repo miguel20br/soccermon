@@ -187,6 +187,21 @@ export class Cinematics {
         });
     }
 
+    /**
+     * Zoom curto num lance (o drible com nome): entra em 180 ms e volta pro meio depois de `holdMs`, a não ser que um
+     * gol, uma defesa ou um golpe tenha assumido a câmera nesse meio tempo.
+     */
+    punchIn(x: number, y: number, zoom: number, holdMs: number) {
+        const cam = this.scene.cameras.main;
+        cam.pan(x, y - 10, 180, 'Sine.easeOut', true);
+        cam.zoomTo(zoom, 180, 'Sine.easeOut', true);
+        this.scene.time.delayedCall(holdMs, () => {
+            if (this.scene.time.now < this.dramaUntil || this.spotlightActive) return;
+            cam.pan(GAME_W / 2, GAME_H / 2, 380, 'Sine.easeInOut', true);
+            cam.zoomTo(1, 380, 'Sine.easeInOut', true);
+        });
+    }
+
     /** Atualiza a posição das luzes para acompanhar os Pokémon em destaque. */
     followSpots(positions: Map<number, { x: number; y: number }>) {
         for (const [idx, spot] of this.spots) {

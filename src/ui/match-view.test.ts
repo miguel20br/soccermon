@@ -482,7 +482,7 @@ describe('dribles com nome (só tela)', () => {
         }
     });
 
-    it('câmera lenta curta (0,6 a 0,9 s de tela) só na 1x; em 2x pra cima nunca', () => {
+    it('câmera lenta de 1 a 1,25 s de tela só na 1x; em 2x pra cima nunca', () => {
         const d = { tick: 400 } as NamedDribble;
         // tempo de tela da janela lenta: 1 tick = 50 ms na 1x
         let ms = 0;
@@ -491,8 +491,8 @@ describe('dribles com nome (só tela)', () => {
             expect(f).toBeGreaterThanOrEqual(NAMED_DRIBBLE.slow);
             if (f < 1) ms += (0.01 * 50) / f;
         }
-        expect(ms).toBeGreaterThan(600);
-        expect(ms).toBeLessThan(900);
+        expect(ms).toBeGreaterThan(1000);
+        expect(ms).toBeLessThan(1250);
         expect(dribbleSlowAt([d], 400, 1)).toBe(NAMED_DRIBBLE.slow);
         expect(dribbleSlowAt([d], 300, 1)).toBe(1);
         for (const speed of [2, 4, 8, 16, 64, 'highlights'])
