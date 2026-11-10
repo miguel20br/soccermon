@@ -334,6 +334,15 @@ export function paradeOn(
     return records.titles - (records.longTitles ?? 0) - dailyTitles <= 1;
 }
 
-/** Créditos depois do 1º título da Rota: uma vez por save (`records.longTitles` já conta este). */
-export const creditsOn = (run: { mode?: CupMode }, records: { longTitles?: number }) =>
-    run.mode === 'longa' && records.longTitles === 1;
+/**
+ * Créditos do título (`TitleCredits`): guardados pro fim do Modo História (Miguel, 10/11: "os créditos melhores só no
+ * fim do Modo História"). Nenhum modo de hoje chama: a Rota parou de chamar.
+ */
+export const creditsOn = (run: { mode?: string }) => run.mode === 'historia';
+
+/**
+ * Cerimônia do título na quadra: só na Final (a MatchScene ainda confere se você venceu). Taça curta em todo título;
+ * na Rota, a invasão. Qualquer outra partida, vencida ou não, acaba no FIM DE JOGO de sempre.
+ */
+export const titleCeremony = (run: ModeRun | null | undefined): 'taca' | 'invasao' | undefined =>
+    run && isFinalStage(run) ? (isLong(run) ? 'invasao' : 'taca') : undefined;

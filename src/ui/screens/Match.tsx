@@ -30,7 +30,7 @@ import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
-import { isFinalStage, isLong } from '../../store/long-cup';
+import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
@@ -263,7 +263,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                       startTick: resume?.tick || undefined,
                       final: !solo && !!run && isFinalStage(run),
                       // título: a taça na quadra (na Rota, a invasão da torcida antes)
-                      ceremony: !solo && run && isFinalStage(run) ? (isLong(run) ? 'invasao' : 'taca') : undefined,
+                      ceremony: solo ? undefined : titleCeremony(run),
                       teamName: run?.teamName,
                       agency: true,
                       // o rival joga em casa: a quadra do ginásio dele

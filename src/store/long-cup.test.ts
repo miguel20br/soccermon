@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { longOpponent } from '../engine/cup-map';
+import { LONG_MATCHES, longOpponent } from '../engine/cup-map';
 import { createInstance } from '../engine/instance';
 import { rewardOptions } from '../engine/rewards';
 import { Rng } from '../engine/rng';
@@ -11,6 +11,7 @@ import {
     nodeOpponent,
     paradeOn,
     ROCKET_BOUNTY,
+    titleCeremony,
 } from './long-cup';
 
 describe('lossColor (barrinha da copa na Home)', () => {
@@ -97,8 +98,20 @@ describe('paradeOn e creditsOn (título: desfile só no raro, créditos uma vez)
         expect(paradeOn({ daily: '2026-11-10' }, { titles: 5 }, 2)).toBe(false);
     });
     it('créditos só no 1º título da Rota', () => {
-        expect(creditsOn({ mode: 'longa' }, { longTitles: 1 })).toBe(true);
-        expect(creditsOn({ mode: 'longa' }, { longTitles: 2 })).toBe(false);
-        expect(creditsOn({}, { longTitles: 1 })).toBe(false);
+        // os créditos ficaram pro fim do Modo História: o 1º título da Rota não chama mais
+        expect(creditsOn({ mode: 'longa' })).toBe(false);
+        expect(creditsOn({})).toBe(false);
+        expect(creditsOn({ mode: 'historia' })).toBe(true);
+    });
+});
+
+describe('titleCeremony (a taça só no título)', () => {
+    it('vitória fora da Final não tem cerimônia; a Final tem taça (Relâmpago) ou invasão (Rota)', () => {
+        for (const stage of [0, 1, 2]) expect(titleCeremony({ stage })).toBeUndefined();
+        expect(titleCeremony({ stage: 3 })).toBe('taca');
+        for (let stage = 0; stage < LONG_MATCHES - 1; stage++)
+            expect(titleCeremony({ mode: 'longa', stage })).toBeUndefined();
+        expect(titleCeremony({ mode: 'longa', stage: LONG_MATCHES - 1 })).toBe('invasao');
+        expect(titleCeremony(null)).toBeUndefined();
     });
 });
