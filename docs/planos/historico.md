@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.47.1 · Seu nome em todo lugar (10/11/2026)
+
+Nome do treinador numa regra só (`trainerNameOf` em src/store/profile.ts): o escolhido, senão o 1º nome do Google (ok do Miguel pro ranking público), senão "Treinador"; `publicInfo` e a barra usam a mesma. Lápis no Perfil. iOS standalone (`navigator.standalone`) usa o login por redirect em vez do popup do GSI (`gsiAllowed`); não testado num iPhone.
+
 ## 0.9.47 · Final de verdade (10/11/2026)
 
 Sem motor novo (28). Equilíbrio da Rota aprovado pelo Miguel: derrota na 1ª partida sem amarelo (cartão "Sem cartão"), rival da Final sem `crowd` (73% ⇒ 64% de vitória do robô na Final; título 30% ⇒ 32%), Evento "?" garantido nas linhas de parada (0,41 ⇒ 0,71 por Rota). Galmuri14: título de tela 21 px, nota da carta `round(nearest, 2.9em, 3px)`. Selo de treinador novo em uma linha; Sala de troféus com parede/piso em CSS até `room:ready`. Números em balanceamento-geral.md.
