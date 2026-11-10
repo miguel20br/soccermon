@@ -76,6 +76,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `pressao` e fica nele até o apito, mesmo com o empate).
  */
 let started = false;
+const q0Of = () => new URLSearchParams(window.location.search);
 
 export function runDevDemo() {
     if (!__SMOKE__ || started) return;
@@ -634,6 +635,17 @@ export function runDevDemo() {
     // ?demo=final[&rota=1][&gol=pulo|giro|pose]: a Final (Relâmpago ou Rota) na escalação de um time forte; ao começar,
     // a 3 s do apito final (vencida: a taça curta, na Rota a invasão) ou, com `gol`, a 3 s de um gol seu de quem
     // comemora desse jeito (com a partícula do tipo, que só sai na Final)
+    // ?demo=insignia[&lider=misty]: a insígnia batendo na volta pra Home (a 1ª vitória contra o líder), com o jingle
+    if (demo === 'insignia') {
+        const lider = q0Of().get('lider') ?? 'misty';
+        const { profile } = useGame.getState();
+        useGame.setState({
+            profile: { ...profile, missionsDone: [...profile.missionsDone.filter((x) => x !== lider), lider] },
+            unlockQueue: [lider],
+            screen: 'home',
+        });
+        return;
+    }
     // `?demo=campeao&taca=1` = a Final da Relâmpago; `?demo=rota-titulo` = a da Rota (a invasão)
     const q0 = new URLSearchParams(window.location.search);
     if (demo === 'final' || demo === 'rota-titulo' || (demo === 'campeao' && q0.has('taca'))) {
