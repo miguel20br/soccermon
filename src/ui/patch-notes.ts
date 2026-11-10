@@ -26,7 +26,14 @@ export const PATCH_NOTES: PatchNotes[] = [
             },
             {
                 title: 'Telas',
-                lines: ['Vitrine de pacotes e Novidades mais lisas em celular fraco (o brilho e a barra não travam mais a tela)'],
+                lines: [
+                    'A ficha da Pokédex não fica mais embaixo da barra de cima (o X de fechar aparece)',
+                    'Números sem o 9 torto no placar, no contador de taças e no dinheiro da copa',
+                    'Selo NOVO inteiro na Pokédex',
+                    'Celular deitado: o nome do clube aparece no Estádio e o botão da Rota não quebra',
+                    'Antes da partida a tela já tem a cor do ginásio, não a madeira',
+                    'Vitrine de pacotes e Novidades mais lisas em celular fraco',
+                ],
             },
         ],
     },
@@ -2750,7 +2757,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
             {
                 title: 'Screens',
-                lines: ['Smoother pack showcase and What’s new on low-end phones (the shine and the bar no longer stall the screen)'],
+                lines: [
+                    'The Pokédex sheet no longer sits under the top bar (the close button shows)',
+                    'Numbers without the broken 9 on the scoreboard, the trophy counter and the cup money',
+                    'Full NEW badge in the Pokédex',
+                    'Landscape phone: the club name shows in the Stadium and the Route button no longer wraps',
+                    'Before the match the screen already has the gym color, not wood',
+                    'Smoother pack showcase and What’s new on low-end phones',
+                ],
             },
         ],
     },

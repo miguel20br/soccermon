@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.46 · Rota viva (10/11/2026)
+
+Sem motor novo (28). Rota: Cassino com rolos e "quase" no 3º, roleta do balcão de prêmios, Centro com a Enfermeira Joy (máquina de 6 vagas, jingle centro.mjs), Safari com a bola em arco e 1–3 balanços, mapa com o capitão PMD andando, casas acendendo, placa de região e painel no PC; pedra sem uso vira linha no prêmio; roteiro em src/ui/rota-reveal.ts; telemetria `casa`/`linha` no evento `screen`. Revisão geral: fade das abas com `backwards` (o `both` prendia modais), Galmuri14 fora de 17/18/22/28/40 px (teste galmuri14-size), selo NOVO, celular deitado, cor do ginásio antes da quadra. Fluidez: brilho do pacote e barra das Novidades por transform. Planos: rota-indigo-2.md.
+
 ## 0.9.45 · Festa de campeão (10/11/2026)
 
 Sem motor novo (28). Animações de título só no título (`titleCeremony` em src/store/long-cup.ts): taça curta de pixel em toda copa ganha, invasão da torcida no título da Rota (src/game/ceremony.ts), insígnia na 1ª vitória contra cada líder (jingle insignia.mjs), Estádio campeão (ola + LED); desfile do Hall só na Rota e no 1º título de cada modo; créditos guardados pro Modo História. Comemoração de gol por espécie (`comemoracaoOf`), dribles com nome (DRI de campo ≥ 78, 18 m, até 2 por time), goleiro com mergulho visível. Time Ultimate: moeda única (1 ponto = 5 Fichas), Pick ×16 (160/400/960), brecha do Pick fechada. Arte: escala inteira por cena (sprite-scale.ts), PMD no VERSUS/Hall/escalação, Cassino e Safari em pixel, Hall azul, folhas do menu (`npm run assets:menu`). Planos: animacoes-novas.md, revisao-arte.md, ultimate-fc.md.

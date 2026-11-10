@@ -1,5 +1,23 @@
 # Novidades
 
+## 0.9.46 · Rota viva (2026-11-10)
+
+### Rota Índigo
+- Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta
+- Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga
+- Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)
+- Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa
+- No PC o mapa inteiro cabe na tela, com um painel das próximas casas
+- Pedra que ninguém usa vai direto pra Mochila, sem tela a mais
+
+### Telas
+- A ficha da Pokédex não fica mais embaixo da barra de cima (o X de fechar aparece)
+- Números sem o 9 torto no placar, no contador de taças e no dinheiro da copa
+- Selo NOVO inteiro na Pokédex
+- Celular deitado: o nome do clube aparece no Estádio e o botão da Rota não quebra
+- Antes da partida a tela já tem a cor do ginásio, não a madeira
+- Vitrine de pacotes e Novidades mais lisas em celular fraco
+
 ## 0.9.45 · Festa de campeão (2026-11-10)
 
 ### Título
