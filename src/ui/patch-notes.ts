@@ -9,6 +9,29 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.47',
+        date: '2026-11-10',
+        title: 'Final de verdade',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Perder a 1ª partida da Rota não dá cartão amarelo',
+                    'A Final ficou mais difícil: o rival não joga mais com a torcida contra',
+                    'Toda linha de parada do mapa tem um Evento "?"',
+                ],
+            },
+            {
+                title: 'Telas',
+                lines: [
+                    'Números da carta e dos títulos sem o 9 torto',
+                    'O selo de treinador novo cabe numa linha e não cobre o letreiro',
+                    'A Sala de troféus aparece na hora, sem tela preta enquanto carrega',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.46',
         date: '2026-11-10',
         title: 'Rota viva',
@@ -2739,6 +2762,29 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.47',
+        date: '2026-11-10',
+        title: 'A real Final',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Losing the 1st Route match no longer gives a yellow card',
+                    'The Final got harder: the rival no longer plays with the crowd against them',
+                    'Every stop row on the map has a "?" Event',
+                ],
+            },
+            {
+                title: 'Screens',
+                lines: [
+                    'Card and title numbers without the broken 9',
+                    'The new trainer badge fits on one line and no longer covers the sign',
+                    'The Trophy room shows right away, no black screen while loading',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.46',
         date: '2026-11-10',

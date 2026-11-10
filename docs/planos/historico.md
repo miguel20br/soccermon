@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.47 · Final de verdade (10/11/2026)
+
+Sem motor novo (28). Equilíbrio da Rota aprovado pelo Miguel: derrota na 1ª partida sem amarelo (cartão "Sem cartão"), rival da Final sem `crowd` (73% ⇒ 64% de vitória do robô na Final; título 30% ⇒ 32%), Evento "?" garantido nas linhas de parada (0,41 ⇒ 0,71 por Rota). Galmuri14: título de tela 21 px, nota da carta `round(nearest, 2.9em, 3px)`. Selo de treinador novo em uma linha; Sala de troféus com parede/piso em CSS até `room:ready`. Números em balanceamento-geral.md.
+
 ## 0.9.46 · Rota viva (10/11/2026)
 
 Sem motor novo (28). Rota: Cassino com rolos e "quase" no 3º, roleta do balcão de prêmios, Centro com a Enfermeira Joy (máquina de 6 vagas, jingle centro.mjs), Safari com a bola em arco e 1–3 balanços, mapa com o capitão PMD andando, casas acendendo, placa de região e painel no PC; pedra sem uso vira linha no prêmio; roteiro em src/ui/rota-reveal.ts; telemetria `casa`/`linha` no evento `screen`. Revisão geral: fade das abas com `backwards` (o `both` prendia modais), Galmuri14 fora de 17/18/22/28/40 px (teste galmuri14-size), selo NOVO, celular deitado, cor do ginásio antes da quadra. Fluidez: brilho do pacote e barra das Novidades por transform. Planos: rota-indigo-2.md.

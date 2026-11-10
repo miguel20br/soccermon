@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.47 · Final de verdade (2026-11-10)
+
+### Rota Índigo
+- Perder a 1ª partida da Rota não dá cartão amarelo
+- A Final ficou mais difícil: o rival não joga mais com a torcida contra
+- Toda linha de parada do mapa tem um Evento "?"
+
+### Telas
+- Números da carta e dos títulos sem o 9 torto
+- O selo de treinador novo cabe numa linha e não cobre o letreiro
+- A Sala de troféus aparece na hora, sem tela preta enquanto carrega
+
 ## 0.9.46 · Rota viva (2026-11-10)
 
 ### Rota Índigo
