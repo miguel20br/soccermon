@@ -92,6 +92,8 @@
         left: 16px;
         border-top: 3px solid #3a2414;
         border-radius: 6px;
+        /* descer de trás da barra de cima passava por cima dela: aqui ela aparece e some no lugar */
+        animation-name: cm-plaque-fade;
     }
 }
 @keyframes cm-plaque {
