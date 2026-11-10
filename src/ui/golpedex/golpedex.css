@@ -559,7 +559,7 @@ button.gdx-cell:hover {
 }
 /* o palco do golpe fica pronto depois da aba abrir: a descrição entra com fade (nada aparece de repente) */
 .ml-info {
-    animation: screen-in 200ms var(--ease-out) both;
+    animation: screen-in 200ms var(--ease-out) backwards;
 }
 
 /* ---------- partes: Golpes, Especiais, Bicudas (MaxDex.tsx) ---------- */
@@ -571,7 +571,7 @@ button.gdx-cell:hover {
     display: grid;
     gap: 12px;
     min-width: 0;
-    animation: screen-in 220ms var(--ease-out) both;
+    animation: screen-in 220ms var(--ease-out) backwards;
 }
 .mxd-intro p {
     margin: 0;

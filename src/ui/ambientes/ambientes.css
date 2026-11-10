@@ -903,6 +903,10 @@
         left: 72%;
         top: min(max(12.5cqw, 30cqh), 62cqh);
     }
+    /* a faixa do clube vai pro lado do capitão: no meio, o telão da coluna da esquerda a cobria (só o "FC" aparecia) */
+    .es-banner {
+        left: 72%;
+    }
     .es-actions {
         width: 100%;
     }
@@ -3192,11 +3196,15 @@
     .rt-go {
         min-height: 54px;
     }
+    .btn.big.rt-go {
+        padding-inline: 14px;
+    }
     .rm-go .cup-go-txt b {
         font-size: 19px;
     }
+    /* a coluna ao lado do mapa é estreita: em 16 px "Começar a Rota" quebrava em duas linhas coladas (e o chanfro do botão perde 12 px de cada lado) */
     .rt-go .cup-go-txt b {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
@@ -3372,7 +3380,7 @@
 }
 .es-pill-txt b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 17px;
+    font-size: 16px;
 }
 .es-pill-txt small {
     margin-top: 3px;
@@ -3427,7 +3435,7 @@
         min-height: 66px;
     }
     .es-play-verb {
-        font-size: 28px;
+        font-size: 27px;
     }
     .es-pill {
         min-height: 44px;
@@ -3446,7 +3454,7 @@
         min-height: 88px;
     }
     .es-play-verb {
-        font-size: 40px;
+        font-size: 39px;
     }
 }
 
@@ -3460,7 +3468,7 @@
     border: 2px solid var(--cb-ink);
     background: #0e1438;
     box-shadow: inset 0 2px 0 rgb(255 255 255 / 10%);
-    font-size: 17px;
+    font-size: 16px;
     color: var(--yellow);
 }
 /* os botões menores (Álbum, Golpedex, Treinador, Clube, Amigos): o mesmo azul gordo */
@@ -3940,7 +3948,7 @@
     inset: 0;
     overflow: hidden;
     pointer-events: none;
-    animation: screen-in var(--dur-ui) var(--ease-out) both;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
 }
 /* a quadra sobe: o par do duelo fica no terço de cima, o conteúdo do palco embaixo. O neon do Arcade é da Home */
 .amb-bd .ar-scene {

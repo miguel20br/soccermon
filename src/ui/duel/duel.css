@@ -54,7 +54,7 @@
 .cup-card .mode-head b,
 .rota-card .mode-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 22px;
+    font-size: 21px;
     line-height: 1.15;
     color: var(--text);
 }
@@ -506,7 +506,7 @@ button.sb-title:hover {
 }
 .duel-timer {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 28px;
+    font-size: 27px;
     min-width: 56px;
     text-align: center;
     padding: 6px 10px;
@@ -659,7 +659,7 @@ button.sb-title:hover {
 }
 .duel-final b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 40px;
+    font-size: 39px;
 }
 .duel-final small {
     grid-column: 1 / -1;
@@ -1129,7 +1129,7 @@ button.sb-title:hover {
 }
 .duel-lobby-head b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 400;
     text-shadow: var(--k-out-1);
 }
