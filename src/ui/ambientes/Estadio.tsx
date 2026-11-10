@@ -258,7 +258,7 @@ function Court({
                     className="es-mon"
                 />
                 {champ ? (
-                    <PixelTrophy kind="taca" metal="ouro" className="es-cup" />
+                    <PixelTrophy kind="taca" metal="ouro" className={small ? 'es-cup' : 'es-cup x2'} />
                 ) : (
                     <img className="es-ball" src="assets/ui/ball.svg" alt="" width="16" height="16" />
                 )}
