@@ -9,6 +9,17 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.44.2',
+        date: '2026-11-10',
+        title: 'Ícones de tipo nítidos',
+        sections: [
+            {
+                title: 'Telas',
+                lines: ['Os ícones de tipo ficaram nítidos em qualquer tamanho (o laço da Fada não borra mais)'],
+            },
+        ],
+    },
+    {
         version: '0.9.44.1',
         date: '2026-11-09',
         title: 'Replay no ginásio certo',
@@ -2657,6 +2668,12 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.44.2',
+        date: '2026-11-10',
+        title: 'Sharp type icons',
+        sections: [{ title: 'Screens', lines: ["Type icons are sharp at any size (Fairy's bow no longer blurs)"] }],
+    },
     {
         version: '0.9.44.1',
         date: '2026-11-09',
