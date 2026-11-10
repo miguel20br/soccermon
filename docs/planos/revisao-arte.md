@@ -293,3 +293,9 @@ está em uns dez lugares do código, a maioria CSS.
 8. **F4** carta com escala inteira e sombra dura. Carta, M (galeria antes).
 9. **F7** folha do menu gerada no build (menu de modos não nasce vazio). Tela, M.
 10. **D1** decidir a família por lugar (VERSUS e Hall em PMD). Decisão, depois M por tela.
+
+## Decidido com o Miguel (09/11)
+
+- Fazer tudo o que é só tela de uma vez (top 10: itens 1 a 7 e 9), com antes e depois.
+- Item 8 (tamanho de pixel por carta) passa pela galeria `?cards=1` antes.
+- Item 10: a carta fica com a sprite BW; VERSUS, Hall da Fama e escalação passam pro PMD, igual à partida.
