@@ -252,6 +252,7 @@ export function PackArt({ look, label, type }: { look: PackLook; label?: string;
     return (
         <span className={`cpack${look ? ` cpack-${look}` : ''}${type ? ' cpack-type' : ''}`} style={style} aria-hidden>
             <span className="cpack-body">
+                <i className="cpack-sheen" />
                 {type ? (
                     <>
                         <span className="cpack-pattern" />

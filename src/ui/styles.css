@@ -7326,14 +7326,26 @@ p.muted.center a {
     border: 2px solid var(--edge);
     border-radius: inherit;
     background:
-        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
-        no-repeat,
         var(--holo),
         repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 6%) 0 6deg, transparent 6deg 22.5deg),
         radial-gradient(circle at 50% 50%, #33489a 0%, #172156 50%, #070a18 100%);
+    isolation: isolate;
+}
+/* o brilho que passa: era a 1ª camada do fundo animada por background-position (repintava o pacote todo a cada quadro);
+   agora é uma faixa de 300% da largura que desliza por transform, no mesmo lugar da pilha (acima do fundo, abaixo do resto) */
+.cpack-sheen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    width: 300%;
+    height: 100%;
+    background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%);
+    transform: translateX(106.667%);
+    will-change: transform;
     animation: cpack-sheen 3.2s ease-in-out infinite;
 }
-.cpack-special .cpack-body {
+.cpack-special .cpack-sheen {
     animation-duration: 1.8s;
 }
 /* halo dourado atrás do logo */
@@ -7424,11 +7436,7 @@ p.muted.center a {
 @keyframes cpack-sheen {
     60%,
     100% {
-        background-position:
-            160% 0,
-            0 0,
-            0 0,
-            0 0;
+        transform: translateX(-106.667%);
     }
 }
 @keyframes cpack-hint {
@@ -7446,6 +7454,9 @@ p.muted.center a {
 }
 .is-opening .cpack-burst {
     animation: cpack-burst calc(var(--o) * 0.9) calc(var(--o) * 0.35) ease-out forwards;
+}
+.is-opening .cpack-sheen {
+    animation: none;
 }
 .is-opening .cpack-body {
     animation: cpack-drop 0.32s var(--o) ease-in forwards;

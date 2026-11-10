@@ -418,6 +418,7 @@
     }
     /* o autoplay: a aba da vez enche da esquerda pra direita no tempo do cartão */
     .nfs-nav.auto button.on::before {
+        transform-origin: left;
         animation: nfs-fill var(--ms) linear both;
     }
 }
@@ -431,7 +432,7 @@
 }
 @keyframes nfs-fill {
     from {
-        width: 0;
+        transform: scaleX(0);
     }
 }
 
