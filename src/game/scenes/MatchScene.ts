@@ -5743,7 +5743,23 @@ export class MatchScene extends Phaser.Scene {
         const cam = this.cameras.main;
         if (fx.stop) this.holdReal = Math.max(this.holdReal, this.time.now + fx.stop);
         if (fx.shake[0]) cam.shake(fx.shake[0], fx.shake[1]);
-        if (fx.flash) cam.flash(fx.flash, 255, 255, 255);
+        if (fx.flash && !this.md.reduceMotion) this.softFlash(fx.flash);
+    }
+
+    /**
+     * Clarão do gol: véu branco de 30% que some rápido. O `cam.flash` pintava a quadra inteira de branco puro por um
+     * quadro (no PC, um retângulo branco piscando no meio da tela).
+     */
+    private softFlash(ms: number) {
+        const v = this.cameras.main.worldView;
+        const r = this.add.rectangle(v.centerX, v.centerY, v.width * 1.6, v.height * 1.6, 0xffffff, 0.3).setDepth(9700);
+        this.tweens.add({
+            targets: r,
+            alpha: 0,
+            duration: ms * 1.4,
+            ease: 'Quad.easeOut',
+            onComplete: () => r.destroy(),
+        });
     }
 
     /** Peso do gol: do rival = toque; seu = batida; virada, empate no fim ou gol na final = explosão. */
