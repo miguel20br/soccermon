@@ -1518,7 +1518,7 @@ button,
         grid-template-columns: 1fr 1fr;
     }
     .result-hero .big-score {
-        font-size: 40px;
+        font-size: 39px;
     }
     .result-hero h1 {
         font-size: 20px;
@@ -2237,7 +2237,7 @@ button,
 .vs-stage {
     font-family: "Galmuri14", "Galmuri11", monospace;
     color: var(--yellow);
-    font-size: 18px;
+    font-size: 19px;
     letter-spacing: 2px;
     text-transform: uppercase;
     animation: vs-fade 0.4s ease both;
@@ -2420,11 +2420,11 @@ button,
     .vs-badge {
         width: 60px;
         height: 60px;
-        font-size: 22px;
+        font-size: 21px;
         justify-self: center;
     }
     .vs-team-name {
-        font-size: 18px;
+        font-size: 19px;
     }
     .vs-side {
         padding: 10px 8px;
@@ -3447,7 +3447,7 @@ button,
 .ht-row .bc-sc {
     margin: 0;
     min-width: 46px;
-    font-size: 18px;
+    font-size: 19px;
     line-height: 26px;
 }
 /* barra de dois lados (seu time à esquerda, na sua cor) ou de um lado só (o fôlego) */
@@ -4664,7 +4664,7 @@ button,
 .rh-gain b {
     color: var(--green);
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 18px;
+    font-size: 19px;
 }
 .rh-gain small {
     color: var(--muted);
@@ -5290,7 +5290,7 @@ button,
 .champ-plate b {
     font-family: "Galmuri14", "Galmuri11", monospace;
     font-weight: 400;
-    font-size: 18px;
+    font-size: 19px;
 }
 /* secundários do fim (Melhores momentos, Compartilhar): azul baixo e liso, ícone à esquerda, largura do conteúdo, pra
    o Nova copa da barra ser o único gordo. O ::before leva o toque a 44 px sem mudar o desenho */

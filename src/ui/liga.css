@@ -16,7 +16,7 @@
 }
 .lg-date {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 19px;
     color: var(--yellow);
 }
 /* "Terça-feira, 20 de outubro": só a primeira letra maiúscula */
@@ -77,7 +77,7 @@
 }
 .lg-verdict {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 22px;
+    font-size: 21px;
     line-height: 1.15;
     color: var(--text);
 }

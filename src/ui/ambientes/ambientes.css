@@ -3380,7 +3380,7 @@
 }
 .es-pill-txt b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 17px;
+    font-size: 16px;
 }
 .es-pill-txt small {
     margin-top: 3px;
@@ -3435,7 +3435,7 @@
         min-height: 66px;
     }
     .es-play-verb {
-        font-size: 28px;
+        font-size: 27px;
     }
     .es-pill {
         min-height: 44px;
@@ -3454,7 +3454,7 @@
         min-height: 88px;
     }
     .es-play-verb {
-        font-size: 40px;
+        font-size: 39px;
     }
 }
 
@@ -3468,7 +3468,7 @@
     border: 2px solid var(--cb-ink);
     background: #0e1438;
     box-shadow: inset 0 2px 0 rgb(255 255 255 / 10%);
-    font-size: 17px;
+    font-size: 16px;
     color: var(--yellow);
 }
 /* os botões menores (Álbum, Golpedex, Treinador, Clube, Amigos): o mesmo azul gordo */

@@ -700,7 +700,7 @@
 .al-fan-box header b {
     font-family: "Galmuri14", monospace;
     font-weight: 400;
-    font-size: 18px;
+    font-size: 19px;
 }
 .al-fan-box header span {
     color: var(--muted);
@@ -951,7 +951,7 @@
 }
 .al-cover-gen {
     font-family: "Galmuri14", monospace;
-    font-size: 18px;
+    font-size: 19px;
     color: var(--yellow);
 }
 .al-cover-region {

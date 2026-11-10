@@ -877,7 +877,7 @@ button.mm-card,
     font-size: 21px;
 }
 .mm-slice.on .cb-num {
-    font-size: 28px;
+    font-size: 27px;
 }
 /* os itens do modo só na fatia aberta */
 .mm-slice-more {
@@ -1434,7 +1434,7 @@ button.mm-card,
         font-size: 21px;
     }
     .mm-slice .cb-num {
-        font-size: 28px;
+        font-size: 27px;
     }
     .mm-slice.on .cb-num {
         font-size: 42px;

@@ -93,7 +93,7 @@
 }
 .ut-pack-info > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 19px;
 }
 .ut-dots {
     display: flex;
@@ -174,7 +174,7 @@
 }
 .ut-metals b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 19px;
     color: var(--mc);
 }
 .ut-rule {
@@ -295,7 +295,7 @@
 }
 .ut-rival > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    font-size: 19px;
 }
 .ut-rival small {
     font-size: 12px;
@@ -1734,7 +1734,7 @@
 }
 .ut-hl-text > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.2;
     color: var(--text);
 }
@@ -2219,7 +2219,7 @@
 }
 .ut-mode-name {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 400;
     line-height: 1.15;
 }
