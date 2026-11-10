@@ -9,6 +9,24 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.46',
+        date: '2026-11-10',
+        title: 'Rota viva',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta',
+                    'Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga',
+                    'Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)',
+                    'Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa',
+                    'No PC o mapa inteiro cabe na tela, com um painel das próximas casas',
+                    'Pedra que ninguém usa vai direto pra Mochila, sem tela a mais',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.45',
         date: '2026-11-10',
         title: 'Festa de campeão',
@@ -2710,6 +2728,24 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.46',
+        date: '2026-11-10',
+        title: 'A living Route',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'A real Game Corner: the 3 reels stop one by one, and the prize counter spins a wheel',
+                    'Pokémon Center with Nurse Joy: your team’s balls go into the machine and the yellow card tears',
+                    'Safari Zone: the Safari Ball flies in an arc and shakes up to 3 times before the catch (or it flees)',
+                    'Map: the captain walks to the chosen spot, the next spots light up and each region has a sign',
+                    'On PC the whole map fits the screen, with a panel of the next spots',
+                    'A stone nobody uses goes straight to the Bag, no extra screen',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.45',
         date: '2026-11-10',
