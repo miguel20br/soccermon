@@ -141,7 +141,7 @@ export function ArenaScene({
         return () => window.clearTimeout(id);
     }, [seen]);
     return (
-        <div className="amb-scene ar-scene">
+        <div className="amb-scene ar-scene" style={{ '--sc': scale } as CSSProperties}>
             <div className="amb-layer ar-sky" style={{ '--depth': 0.6 } as CSSProperties} aria-hidden>
                 <i className="es-stars" />
             </div>

@@ -583,6 +583,8 @@ img.ce-mini,
     display: block;
     align-self: stretch;
     height: 46px;
+    /* respiro entre o pé do sprite e o nome (o Geodude encostava no próprio nome, 10/11) */
+    margin-bottom: 4px;
 }
 /* a posição fica por cima da orelha de quem é alto */
 .slot .pos-badge {

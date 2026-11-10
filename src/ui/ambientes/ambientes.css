@@ -701,10 +701,11 @@
 }
 .es-ball {
     position: absolute;
-    left: calc(var(--px) * -2.5);
-    top: calc(var(--px) * -5);
-    width: calc(var(--px) * 5);
-    height: calc(var(--px) * 5);
+    /* a bola na escala dos sprites da cena (--sc): 8 pixels de arte por degrau */
+    left: calc(var(--sc, 2) * -4px);
+    top: calc(var(--sc, 2) * -8px);
+    width: calc(var(--sc, 2) * 8px);
+    height: calc(var(--sc, 2) * 8px);
     animation: es-juggle 0.9s infinite;
 }
 @keyframes es-juggle {
@@ -2926,10 +2927,10 @@
     position: absolute;
     left: 50%;
     top: calc(var(--mi) * 6 + (100% - var(--ui-h) + var(--mi) * 10) / 2);
-    width: max(10px, calc(var(--mi) * 6));
+    width: calc(var(--sc, 2) * 8px);
     height: auto;
     transform: translate(-50%, -50%);
-    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 45%));
+    filter: drop-shadow(0 calc(var(--sc, 2) * 1px) 0 rgb(0 0 0 / 45%));
 }
 @media (orientation: landscape) and (max-height: 520px) {
     .ar-ball {

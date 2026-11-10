@@ -101,7 +101,7 @@ function SceneAtual({ scale, bare }: { scale: number; bare?: boolean }) {
         bare ? cap.id : undefined,
     );
     return (
-        <div className="mm-sc mm-sc-atual" style={clubVars(club)} aria-hidden>
+        <div className="mm-sc mm-sc-atual" style={{ ...clubVars(club), '--sc': scale } as CSSProperties} aria-hidden>
             <Stands clubName={clubName} />
             <div className="es-court mm-court">
                 <CourtFloor />

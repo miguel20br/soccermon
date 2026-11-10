@@ -209,7 +209,7 @@ function Court({
             <i className="es-spot" />
             <WildZone wild={wild} zone="ball" />
             <WildZone wild={wild} zone="edge" />
-            <div className="es-captain">
+            <div className="es-captain" style={{ '--sc': scale } as CSSProperties}>
                 <i className="es-shadow" />
                 <FieldSprite
                     id={captain.id}

@@ -14,15 +14,15 @@ export const sceneScale = (small: boolean, big: boolean) => (small ? 1 : big ? 3
 
 /**
  * Onde a cena pede presença (retorno do Miguel, 10/11), uma escala inteira acima, ainda uma só por cena: o Estádio do
- * PC todo em 4x (capitão, torcida e gandula); o VERSUS duas acima dos lugares (3x pequeno, 4x celular, 5x PC), maior
- * que a BW antiga; a prancheta em 2x (1x só no celular pequeno ou deitado).
+ * PC todo em 4x (capitão, torcida e gandula); o VERSUS duas acima dos lugares (3x pequeno, 4x celular e PC: o PC
+ * voltou pra 4x, 10/11); a prancheta em 2x (1x só no celular pequeno ou deitado).
  */
 export const estadioScale = (small: boolean, big: boolean) => (big ? 4 : sceneScale(small, big));
-export const versusScale = (small: boolean, big: boolean) => sceneScale(small, big) + 2;
+export const versusScale = (small: boolean, big: boolean) => Math.min(4, sceneScale(small, big) + 2);
 export const boardScale = (small: boolean) => (small ? 1 : 2);
 /**
  * A maior escala inteira até `max` em que o time cabe na caixa: `u` é a altura pensada pro capitão (px) e um Pokémon
- * médio em PMD tem uns 30 px de quadro por escala. VERSUS a 320 fica 2x, deitado 3x, 390 4x, PC 5x.
+ * médio em PMD tem uns 30 px de quadro por escala. VERSUS a 320 fica 2x, deitado 3x, 390 e PC 4x.
  */
 export const fitScale = (u: number, max: number) => Math.max(1, Math.min(max, Math.floor(u / 30)));
 
