@@ -75,10 +75,10 @@ export function ChampionView({
     // o desfile só no raro (Rota e 1º título de cada modo); nos repetidos, a taça curta da quadra já fez a festa
     const rare = useGame((s) => paradeOn(run, s.records, s.daily.filter((e) => e.champion).length));
     const parading = !!(hallEntry && run.champ && !run.champ.paraded && rare);
-    // os créditos do 1º título da Rota, uma vez por save (depois do desfile)
-    const firstRota = useGame((s) => creditsOn(run, s.records));
+    // os créditos do título: só no fim do Modo História (`creditsOn`; a Rota não chama mais)
+    const storyEnd = creditsOn(run);
     const markCredited = useGame((s) => s.markCredited);
-    const crediting = !parading && firstRota && !!run.champ && !run.champ.credited;
+    const crediting = !parading && storyEnd && !!run.champ && !run.champ.credited;
 
     return (
         <>

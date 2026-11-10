@@ -13,7 +13,8 @@ const ROLL_MS = 12000;
 const OUT_MS = 240;
 
 /**
- * Créditos do 1º título da Rota (animacoes-novas.md, A7): uma vez por save, curtos (~12 s), o elenco campeão andando
+ * Créditos do título (animacoes-novas.md, A7), guardados pro fim do Modo História (`creditsOn`; a Rota não chama mais
+ * desde 10/11): uma vez por save, curtos (~12 s), o elenco campeão andando
  * em PMD embaixo e "Música original: Soccermon". Toque em qualquer lugar segue; com Reduzir movimento a lista já
  * nasce parada.
  */
