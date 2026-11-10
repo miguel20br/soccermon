@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.48 · Fixo no jogo (2026-11-10)
+
+### Partida
+- Na Linha de 3, os alas voltam a bola pro fixo na armação em vez de só rodar com o pivô
+
 ## 0.9.47.2 · Números certos no PC (2026-11-10)
 
 ### Telas

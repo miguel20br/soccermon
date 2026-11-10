@@ -306,3 +306,7 @@ Robô da Rota, mapa largo, 400 Rotas (mesmas seeds; título ±2,3 pp, Final ±3,
 | Evento "?" por Rota | 0,41 | 0,71 |
 
 Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 34%); +3% pro rival, 59% (29%); +6%, 49% (24%).
+
+## Motor 29: fixo na armação da 3-1 (aprovado pelo Miguel em 10/11/2026)
+
+Relato de jogador: na Linha de 3 a bola roda entre alas e pivô e nunca volta pro fixo. Causa: `bestPass` castiga passe pra trás (`fwdPass`) e o fixo fica ~8 m atrás dos alas; o pivô ganha `pivotPass` + `longPivot`. Ajuste: `fixoPass: 0.3` só na 3-1; muda só o destino (a decisão passe × drible usa o melhor passe sem o bônus), e não vale logo depois do fixo/parede do pivô tocar. 200 jogos: armações com o fixo 34% ⇒ 51%, passes pro fixo 9% ⇒ 17%, gols 3,6/3,9 ⇒ 3,6/3,8, chutes 18,1 ⇒ 17,6; `calibrate --formations` igual dentro do erro (3-1 47% ⇒ 46%). De olho: 3-1 × Losango 51% ⇒ 42% (400 jogos). Losango com 0,2 fica pra outra rodada. Script: `scripts/balance/fixo-armacao.ts`.

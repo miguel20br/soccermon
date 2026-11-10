@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.48 · Fixo no jogo (10/11/2026)
+
+Motor 29 (`liga` republicada): `fixoPass: 0.3` só na 3-1, o ala no nosso campo que vai passar prefere o fixo (armações com o fixo 34% ⇒ 51%). Números em balanceamento-geral.md.
+
 ## 0.9.47.2 · Números certos no PC (10/11/2026)
 
 Galmuri14 com o zoom do PC: `--gz` (zoom acumulado) em todo `zoom`, regras de Galmuri14 com `--gs` + `font-size: var(--gfs, …)`; a conta (round/sign/abs, dentro de `@supports`) leva o tamanho efetivo pro vizinho bom de 17/18/22/28/40. Ruins a 1920: 144 ⇒ 0.

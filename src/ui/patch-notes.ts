@@ -9,6 +9,17 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.48',
+        date: '2026-11-10',
+        title: 'Fixo no jogo',
+        sections: [
+            {
+                title: 'Partida',
+                lines: ['Na Linha de 3, os alas voltam a bola pro fixo na armação em vez de só rodar com o pivô'],
+            },
+        ],
+    },
+    {
         version: '0.9.47.2',
         date: '2026-11-10',
         title: 'Números certos no PC',
@@ -2788,6 +2799,17 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.48',
+        date: '2026-11-10',
+        title: 'Fixo in play',
+        sections: [
+            {
+                title: 'Match',
+                lines: ['In the 3-1, the wingers play the ball back to the fixo in the build-up instead of only cycling with the pivot'],
+            },
+        ],
+    },
     {
         version: '0.9.47.2',
         date: '2026-11-10',
