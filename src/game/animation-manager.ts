@@ -63,6 +63,13 @@ export function animHit(skin: number, anim: string): { frames: number; hit: numb
     return { frames, hit: Math.min(frames - 1, a?.hitFrame ?? Math.floor(frames / 2)) };
 }
 
+/** Durações (quadros de 1/60 s) e o quadro de impacto da animação: o toque na bola cai nele (`strikeFrame`). */
+export function animTiming(skin: number, anim: string): { durations: number[]; hit: number } {
+    const a = EXTRA.get(skin)?.[anim] ?? PMD[baseOf(skin)]?.anims[anim];
+    const durations = a?.durations ?? [1];
+    return { durations, hit: Math.min(durations.length - 1, a?.hitFrame ?? Math.floor(durations.length / 2)) };
+}
+
 /**
  * Cria (uma vez) as 8 direções de cada animação da espécie. Sem a folha carregada não cria nada: a animação sairia
  * sem quadros, ficaria guardada assim (o `exists` não refaz) e o `play` dela quebra o Phaser (getFirstTick).
