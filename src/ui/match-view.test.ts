@@ -21,6 +21,8 @@ import {
     halftimeEnd,
     holdFacing,
     keeperFacing,
+    kickDepartures,
+    kickHold,
     MAX_CUE_EARLY,
     type MaxWait,
     maxCallCueNear,
@@ -38,6 +40,9 @@ import {
     soldDiveEnd,
     soldDivePose,
     soldDives,
+    strikeFrame,
+    strikeLead,
+    strikesNear,
     whoAt,
 } from './match-view';
 
@@ -597,5 +602,60 @@ describe('dribles com nome (só tela)', () => {
                     expect((p?.ball.x ?? 0) * dir.x + (p?.ball.y ?? 0) * dir.y).toBeGreaterThanOrEqual(-0.01);
                 }
             }
+    });
+});
+
+describe('sincronia do toque na bola (só tela)', () => {
+    const home = team('sy-a', 'A');
+    const away = team('sy-b', 'B');
+    const r = runMatch(FUTSAL_5, home, away, 7);
+    const deps = kickDepartures(r.events);
+    // durações de um Attack do PMD (Pikachu): antecipação de 7/60 s até o impacto (quadro 3)
+    const durations = [2, 4, 1, 1, 1, 2, 2, 2, 2, 4];
+    const hit = 3;
+    const TICK_MS = 1000 / FUTSAL_5.tickRate;
+    const index = (tick: number) => {
+        let i = 0;
+        while (i + 1 < r.snapshots.length && r.snapshots[i + 1].tick <= tick) i++;
+        return i;
+    };
+
+    it('passe e chute: o impacto cai no tick em que a bola sai do pé (nunca depois), com a antecipação antes', () => {
+        let n = 0;
+        for (const e of r.events) {
+            if ((e.type !== 'pass' && e.type !== 'shot') || e.tick < 4) continue;
+            const o = e.by * SNAP_STRIDE;
+            const cue = strikesNear(r.snapshots, index(e.tick), o, deps.get(e.by)).find(
+                (c) => Math.abs(c.contact - (e.tick - 1)) < 2,
+            );
+            if (!cue) continue;
+            n++;
+            // a bola sai no começo do tick do evento: o contato é o tick de antes
+            expect(cue.contact).toBe(e.tick - 1);
+            const at = (tick: number) =>
+                strikeFrame(durations, strikeLead(durations, hit) + (tick - cue.contact) * TICK_MS);
+            expect(at(cue.contact)).toBe(hit);
+            expect(at(cue.contact - 1)).toBeLessThan(hit);
+            expect(at(cue.contact - 1)).toBeGreaterThanOrEqual(0);
+            // e a bola fica no pé até lá (sem andar a meia velocidade antes do chute)
+            const a = r.snapshots[index(e.tick - 1)];
+            const b = r.snapshots[index(e.tick - 1) + 1];
+            if (cue.contact > a.tick) expect(kickHold(a.tick, b.tick, cue.contact, cue.contact - 0.5)).toBe(0);
+            expect(kickHold(a.tick, b.tick, cue.contact, b.tick)).toBe(1);
+        }
+        expect(n).toBeGreaterThan(20);
+    });
+
+    it('carrinho: o impacto no meio dos dois snapshots (a bola chega nele), sem pular o passe logo depois', () => {
+        let n = 0;
+        for (const e of r.events) {
+            if (e.type !== 'tackle' || !e.success) continue;
+            const cues = strikesNear(r.snapshots, index(e.tick) + 1, e.by * SNAP_STRIDE, deps.get(e.by));
+            const cue = cues.find((c) => c.action === Action.Tackle && Math.abs(c.contact - e.tick) <= 1);
+            if (!cue) continue;
+            n++;
+            expect(Math.abs(cue.contact - e.tick)).toBeLessThanOrEqual(1);
+        }
+        expect(n).toBeGreaterThan(0);
     });
 });

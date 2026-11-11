@@ -46,6 +46,8 @@ import {
     holdFacing,
     keeperFacing,
     keeperRows,
+    kickDepartures,
+    kickHold,
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
     maxCertain,
@@ -54,11 +56,15 @@ import {
     NAMED_DRIBBLE,
     type NamedDribble,
     namedDribblesOf,
+    SAVE_DIVE,
     SOLD_LEAN,
     type SoldDive,
     saveDivePose,
     soldDivePose,
     soldDives,
+    strikeFrame,
+    strikeLead,
+    strikesNear,
 } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
@@ -67,6 +73,7 @@ import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
     animHit,
+    animTiming,
     atlasKey,
     baseOf,
     bodyHeight,
@@ -284,6 +291,8 @@ type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
 const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
+/** O bote de quem usa um golpe com alvo (ms até chegar nele): a reação do alvo espera ele (11/11: vinha antes). */
+const MOVE_LUNGE_MS = 110;
 /**
  * Câmera lenta do golpe máximo: a quadra cai pra essa velocidade `MAX_CUE_LEAD` ticks antes do botão acender e enquanto
  * ele está aceso (a hora certa dura ~0,4 s de jogo: assim fica ~1,5 s na tela).
@@ -864,6 +873,8 @@ export class MatchScene extends Phaser.Scene {
     /** 1 com a bola no pé de quem dribla, indo a 0 quando ela sai (o enfeite da bola vai junto). */
     private trickOwn = 1;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
+    /** Tick em que a bola sai do pé em cada passe e chute, por jogador (`kickDepartures`). */
+    private departs = new Map<number, number[]>();
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
     /** Drible (0..1) de cada espécie, para o tamanho dos toques de condução. */
@@ -1092,6 +1103,7 @@ export class MatchScene extends Phaser.Scene {
         this.goalTicks = this.dramaTicks;
         this.highlightTicks = this.matchEvents.filter((e) => HIGHLIGHT.has(e.type)).map((e) => e.tick);
         this.maxHits = this.matchEvents.filter((e) => e.type === 'max' && e.phase === 'hit');
+        this.departs = kickDepartures(this.matchEvents);
         this.penalties = this.matchEvents.filter((e): e is PenaltyEvent => e.type === 'penalty');
         // o lance do duelo da bicuda não tem mergulho: o goleiro arma a bicuda e para a bola no pé (`sdWindup`)
         const duel = this.matchEvents.find((e) => e.type === 'showdown');
@@ -2202,29 +2214,45 @@ export class MatchScene extends Phaser.Scene {
                     ? this.goalCeleb(i, facing)
                     : null;
             if (celeb) facing = celeb.facing;
+            // chute, passe e carrinho: a antecipação antes e o impacto no quadro em que a bola sai (`strikesNear`)
+            // a defesa: o impacto do mergulho no tick em que a bola bate nele
+            const strike =
+                dive?.contact !== undefined && !act
+                    ? (this.strikeAt(view, 'Attack', dive.facing, dive.contact, dive.contact + SAVE_DIVE.tail) ?? {
+                          anim: resolveAnim(view.skin, 'Attack'),
+                          facing: dive.facing,
+                          frame: 0,
+                      })
+                    : act || dive || react !== null || posing || celeb || tm
+                      ? null
+                      : this.strikePose(view, o, index);
             const anim = resolveAnim(
                 view.skin,
-                act
-                    ? act.anim
-                    : dive
-                      ? 'Attack'
-                      : react !== null
-                        ? 'Hurt'
-                        : posing
-                          ? since < POSE_CHARGE_MS
-                              ? 'Charge'
-                              : 'Pose'
-                          : (celeb?.anim ?? animForAction(action)),
+                strike
+                    ? strike.anim
+                    : act
+                      ? act.anim
+                      : dive
+                        ? 'Attack'
+                        : react !== null
+                          ? 'Hurt'
+                          : posing
+                            ? since < POSE_CHARGE_MS
+                                ? 'Charge'
+                                : 'Pose'
+                            : (celeb?.anim ?? animForAction(action)),
             );
-            const shown = act
-                ? act.facing
-                : dive
-                  ? dive.facing
-                  : react !== null
-                    ? keeperRows(front).low
-                    : posing
-                      ? 0
-                      : facing;
+            const shown = strike
+                ? strike.facing
+                : act
+                  ? act.facing
+                  : dive
+                    ? dive.facing
+                    : react !== null
+                      ? keeperRows(front).low
+                      : posing
+                        ? 0
+                        : facing;
             const key = `${view.skin}/${anim}/${shown}`;
             if (entering !== null) {
                 const walk = resolveAnim(view.skin, 'Walk');
@@ -2239,6 +2267,13 @@ export class MatchScene extends Phaser.Scene {
                 if (act?.hold) view.sprite.anims.pause();
                 view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
+            }
+            if (strike && entering === null && !view.evolving) {
+                // o quadro sai do tick (não do relógio): na câmera lenta, no 8x e voltando o replay, o impacto fica no toque
+                const anims = view.sprite.anims;
+                if (!anims.isPaused) anims.pause();
+                const fr = anims.currentAnim?.frames[strike.frame];
+                if (fr && anims.currentFrame !== fr) anims.setCurrentFrame(fr);
             }
             const bite = tm
                 ? { tilt: tm.markerTilt, sx: tm.markerSx, sy: tm.markerSy }
@@ -2276,8 +2311,14 @@ export class MatchScene extends Phaser.Scene {
         this.declutterLabels(a.owner, this.game.loop.delta);
         if (focusPos.size) this.cine.followSpots(focusPos);
         this.drawAgency(pxOf);
-        const bx = a.bx + (b.bx - a.bx) * k;
-        const by = a.by + (b.by - a.by) * k;
+        // passe ou chute entre os dois snapshots: a bola fica no pé até sair (o impacto da pose cai nesse tick)
+        const dep =
+            a.owner >= 0 && b.owner !== a.owner
+                ? this.departs.get(a.owner)?.find((t) => t > a.tick && t < b.tick)
+                : undefined;
+        const kb = dep === undefined || !lerpOk ? k : kickHold(a.tick, b.tick, dep, this.playTick);
+        const bx = a.bx + (b.bx - a.bx) * kb;
+        const by = a.by + (b.by - a.by) * kb;
         const bp = toPx(bx, by);
         // condução: a bola fica no pé de quem conduz, girando suave quando ele muda de direção
         // (no motor ela pula para a frente do jogador a cada tick, o que no 1x parecia "teleporte")
@@ -2360,6 +2401,30 @@ export class MatchScene extends Phaser.Scene {
      * Direção e ação do jogador num snapshot, ignorando "piscadas" de um snapshot só (A→B→A), que faziam o
      * sprite virar e voltar ou alternar parado/correndo. Chute, carrinho etc. passam sempre (são curtos).
      */
+    /** O toque na bola de quem está em `view` agora (animação, direção e quadro), ou null (`strikesNear`). */
+    private strikePose(view: PlayerView, o: number, index: number) {
+        for (const c of strikesNear(this.snaps, index, o, this.departs.get(o / SNAP_STRIDE))) {
+            const s = this.strikeAt(view, animForAction(c.action), c.facing, c.contact, c.end);
+            // ainda não começou: o toque de antes pode estar no fim
+            if (s !== undefined) return s;
+        }
+        return null;
+    }
+
+    /**
+     * A animação de toque com o impacto no tick `contact` (o quadro sai do tick, não do relógio): undefined antes da
+     * antecipação, null depois do fim (e de `end`, quando o motor larga a ação).
+     */
+    private strikeAt(view: PlayerView, want: string, facing: number, contact: number, end: number) {
+        const anim = resolveAnim(view.skin, want);
+        const { durations, hit } = animTiming(view.skin, anim);
+        const ms = strikeLead(durations, hit) + ((this.playTick - contact) * 1000) / TICK_RATE;
+        if (ms < 0) return undefined;
+        const total = (durations.reduce((a, b) => a + b, 0) * 1000) / 60;
+        if (ms >= total && this.playTick >= end) return null;
+        return { anim, facing, frame: strikeFrame(durations, ms) };
+    }
+
     private steadyPose(n: number, o: number): { facing: number; action: number } {
         const s = this.snaps;
         const cur = s[Math.min(n, s.length - 1)];
@@ -2390,7 +2455,7 @@ export class MatchScene extends Phaser.Scene {
     private diveOffset(
         i: number,
         px: { x: number; y: number },
-    ): { x: number; y: number; facing: number; lean?: Lean } | null {
+    ): { x: number; y: number; facing: number; lean?: Lean; contact?: number } | null {
         const reduce = !!this.md.reduceMotion;
         for (const d of this.dives) {
             if (d.gk !== i) continue;
@@ -2404,7 +2469,7 @@ export class MatchScene extends Phaser.Scene {
             const pose = saveDivePose(dt, to, this.players[i].team === 0 ? 1 : -1, reduce);
             if (!pose) continue;
             if (due.fire) this.diveDustAt(px.x + pose.x, px.y + pose.y);
-            return { ...pose, facing: dir8(to, 2), lean: pose.k > 0 ? pose : undefined };
+            return { ...pose, facing: dir8(to, 2), lean: pose.k > 0 ? pose : undefined, contact: d.tick };
         }
         for (const d of this.sold) {
             if (d.gk !== i) continue;
@@ -3354,8 +3419,10 @@ export class MatchScene extends Phaser.Scene {
         if (reaction) {
             const show = () =>
                 this.react(reaction, e.tick, showsWord(reaction, this.reactionsAt(e.tick), this.spritePos));
-            // na cena do especial N3 quem caiu reage depois dela (a palavra cobria o capitão no close)
-            const wait = this.n3SceneUntil - this.time.now;
+            // na cena do especial N3 quem caiu reage depois dela (a palavra cobria o capitão no close); no golpe com
+            // alvo, depois do bote de quem atacou chegar nele (`MOVE_LUNGE_MS`): a reação vem depois do contato
+            const lunge = e.type === 'move' && e.target !== null && e.target !== e.by ? MOVE_LUNGE_MS : 0;
+            const wait = Math.max(this.n3SceneUntil - this.time.now, lunge);
             if (wait > 0) this.time.delayedCall(wait, show);
             else show();
         }
@@ -3628,7 +3695,7 @@ export class MatchScene extends Phaser.Scene {
                         targets: view.lunge,
                         x: (dx / d) * 12,
                         y: (dy / d) * 12,
-                        duration: 140,
+                        duration: MOVE_LUNGE_MS,
                         yoyo: true,
                         ease: 'Quad.easeOut',
                     });

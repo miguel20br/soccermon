@@ -977,3 +977,102 @@ export function dribblePose(
     pose.markerSy = 1 + (pose.markerSy - 1) * wM;
     return pose;
 }
+
+/**
+ * Toque na bola na tela (11/11, Miguel: "a bola sai do pé e logo depois ele faz a animação"). O motor marca o chute, o
+ * passe e o carrinho no snapshot seguinte ao toque (`Action.Kick`/`Shoot`/`Tackle`), e a bola já sai do pé no snapshot
+ * de antes; a animação começava ali do quadro 0 e o quadro de impacto do PMD vinha 100 a 600 ms depois da bola. Agora a
+ * tela olha os snapshots à frente: o contato é o último snapshot antes da ação (de onde a bola sai), a antecipação
+ * (os quadros antes do impacto) roda antes dele e o impacto cai no quadro em que a bola sai.
+ */
+const STRIKES: ReadonlySet<number> = new Set([Action.Kick, Action.Shoot, Action.Tackle]);
+/** Quantos snapshots olhar pra trás e pra frente (2 ticks cada): a antecipação mais longa do PMD cabe em 8 ticks. */
+const STRIKE_BACK = 10;
+const STRIKE_AHEAD = 5;
+
+export interface StrikeCue {
+    /** Tick do contato (a bola sai do pé) e o tick em que o motor larga a ação. */
+    contact: number;
+    end: number;
+    action: number;
+    facing: number;
+}
+
+/**
+ * Tick em que a bola sai do pé em cada passe e chute, por jogador: o do evento menos 1 (o motor chuta no começo do tick
+ * do evento). Com o evento num tick par (o do snapshot), a bola vinha "se arrastando" a meia velocidade do snapshot de
+ * antes até ele; a tela segura ela no pé até aqui (`kickHold`) e o impacto cai aqui.
+ */
+export function kickDepartures(events: readonly MatchEvent[]): Map<number, number[]> {
+    const out = new Map<number, number[]>();
+    for (const e of events) {
+        if (e.type !== 'pass' && e.type !== 'shot') continue;
+        const list = out.get(e.by) ?? [];
+        const dep = e.tick - 1;
+        if (list.at(-1) !== dep) list.push(dep);
+        out.set(e.by, list);
+    }
+    return out;
+}
+
+/**
+ * Fração da bola entre os snapshots `a` e `b` (`k`, de 0 a 1) com a saída do pé no tick `dep` (entre os dois): parada
+ * no pé até ele e daí até `b` (sem a bola andando a meia velocidade antes do chute).
+ */
+export function kickHold(aTick: number, bTick: number, dep: number, tick: number): number {
+    if (dep <= aTick || dep >= bTick) return Math.min(1, Math.max(0, (tick - aTick) / (bTick - aTick || 1)));
+    return tick <= dep ? 0 : Math.min(1, (tick - dep) / (bTick - dep));
+}
+
+/**
+ * Os toques na bola do jogador (`o`: deslocamento dele no snapshot) em volta do snapshot `index`, do mais novo pro mais
+ * velho. `deps`: os ticks de saída do pé dele (`kickDepartures`), quando o motor contou.
+ */
+export function strikesNear(
+    snaps: readonly MatchSnapshot[],
+    index: number,
+    o: number,
+    deps: readonly number[] = [],
+): StrikeCue[] {
+    const out: StrikeCue[] = [];
+    const last = snaps.length - 1;
+    for (let n = Math.min(last, index + STRIKE_AHEAD); n >= Math.max(1, index - STRIKE_BACK); n--) {
+        const act = snaps[n].p[o + 3];
+        // um toque logo depois do outro (o carrinho e o passe) também conta
+        if (!STRIKES.has(act) || snaps[n - 1].p[o + 3] === act) continue;
+        let m = n;
+        while (m < last && snaps[m + 1].p[o + 3] === act) m++;
+        out.push({
+            // o chute e o passe: a bola sai do pé no snapshot de antes; o carrinho: ela chega nele no meio dos dois
+            contact:
+                act === Action.Tackle
+                    ? (snaps[n - 1].tick + snaps[n].tick) / 2
+                    : (deps.find((t) => t >= snaps[n - 1].tick && t < snaps[n].tick) ?? snaps[n - 1].tick),
+            end: snaps[Math.min(m + 1, last)].tick,
+            action: act,
+            facing: snaps[n].p[o + 2],
+        });
+    }
+    return out;
+}
+
+/**
+ * Quadro da animação de toque `ms` depois do começo dela (durações em quadros de 1/60 s, as do PMD), ou -1 antes de
+ * começar. O impacto (`hit`) começa em `strikeLead(durations, hit)` ms: é aí que o contato cai.
+ */
+export function strikeFrame(durations: readonly number[], ms: number): number {
+    if (ms < 0) return -1;
+    let acc = 0;
+    for (let i = 0; i < durations.length; i++) {
+        acc += (durations[i] * 1000) / 60;
+        if (ms < acc) return i;
+    }
+    return durations.length - 1;
+}
+
+/** Ms da antecipação: do começo da animação ao quadro de impacto. */
+export function strikeLead(durations: readonly number[], hit: number): number {
+    let acc = 0;
+    for (let i = 0; i < hit; i++) acc += durations[i];
+    return (acc * 1000) / 60;
+}
