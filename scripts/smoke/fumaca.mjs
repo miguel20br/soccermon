@@ -149,8 +149,10 @@ async function copa() {
                 await p.mouse.up();
                 return mid;
             };
+            // save vazio: só o Estádio aceso (as outras abas acendem com o progresso, coach.ts `ambLit`), então o
+            // arrasto estica (elástico) e volta pro Estádio; aba apagada não entra no arrasto
             for (const [kind, from, to, want] of [
-                ['toque', W * 0.8, W * 0.15, 'amb-tab-arena'],
+                ['toque', W * 0.8, W * 0.15, 'amb-tab-estadio'],
                 ['ponteiro', W * 0.15, W * 0.8, 'amb-tab-estadio'],
             ]) {
                 const mid = await drag(kind, from, to);
