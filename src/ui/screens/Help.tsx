@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { ligaShown } from '../../league/rules';
 import { COACH_GROUPS, COACH_REPLAY, type CoachId } from '../../store/coach';
 import { type Screen, useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
@@ -104,7 +105,7 @@ export function Help() {
                     {c.title}
                 </h2>
                 <div className="help-actions">
-                    {COACH_REPLAY.map((id) => (
+                    {COACH_REPLAY.filter((id) => id !== 'liga' || ligaShown()).map((id) => (
                         <button
                             key={id}
                             type="button"

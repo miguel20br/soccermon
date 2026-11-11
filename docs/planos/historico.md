@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.49 · Menos e melhor (11/11/2026)
+
+Sem motor novo (29). Plano menos-e-mais: abas acendem pela progressão (`ambEarned`/`ambLit` em src/store/coach.ts, save antigo com as 5 acesas), Liga escondida até `LIGA_OPENS_AT` − 7 dias (`ligaShown`), Metas (missões + medalhas) e Perfil na Sede, MT fora da vitrine do Mercado, Configurações com 4 opções à vista + Mais opções, Ajuda sem o passo a passo e com 9 regras. Dribles com pose própria (`dribblePose` em src/ui/match-view.ts).
+
 ## 0.9.48 · Fixo no jogo (10/11/2026)
 
 Motor 29 (`liga` republicada): `fixoPass: 0.3` só na 3-1, o ala no nosso campo que vai passar prefere o fixo (armações com o fixo 34% ⇒ 51%). Números em balanceamento-geral.md.

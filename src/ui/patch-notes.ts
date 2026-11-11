@@ -9,6 +9,33 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.49',
+        date: '2026-11-11',
+        title: 'Menos e melhor',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'As abas de baixo acendem conforme você joga: Lab na 1ª partida, Rota e Sede na 1ª copa, Arena na 2ª',
+                    'Metas na Sede: missões e medalhas num lugar só; o armário virou o Perfil',
+                    'A Liga aparece na última semana antes de abrir',
+                    'Configurações com o principal à vista e o resto em Mais opções',
+                    'Ajuda mais curta: Como funciona de cada modo em cima e só as regras que não estão na tela',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: ['O Mercado não vende mais MT: a vaga vira item (a MT continua na recompensa do ginásio)'],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Lambreta com a bola em arco por cima do marcador, roleta com giro de 360° e elástico com a finta que o marcador morde',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.48',
         date: '2026-11-10',
         title: 'Fixo no jogo',
@@ -2799,6 +2826,33 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.49',
+        date: '2026-11-11',
+        title: 'Less and better',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'The bottom tabs light up as you play: Lab on the 1st match, Route and Club House on the 1st cup, Arena on the 2nd',
+                    'Goals in the Club House: missions and medals in one place; the locker is now the Profile',
+                    'The League shows up in the last week before it opens',
+                    'Settings with the essentials up front and the rest under More options',
+                    'Shorter Help: how each mode works on top and only the rules that are not on screen',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: ['The Market no longer sells TMs: that slot becomes an item (TMs are still a gym reward)'],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Rainbow flick with the ball arcing over the defender, a 360° roulette spin and an elastico feint the defender bites on',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.48',
         date: '2026-11-10',

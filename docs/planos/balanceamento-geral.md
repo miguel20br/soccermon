@@ -310,3 +310,7 @@ Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 
 ## Motor 29: fixo na armação da 3-1 (aprovado pelo Miguel em 10/11/2026)
 
 Relato de jogador: na Linha de 3 a bola roda entre alas e pivô e nunca volta pro fixo. Causa: `bestPass` castiga passe pra trás (`fwdPass`) e o fixo fica ~8 m atrás dos alas; o pivô ganha `pivotPass` + `longPivot`. Ajuste: `fixoPass: 0.3` só na 3-1; muda só o destino (a decisão passe × drible usa o melhor passe sem o bônus), e não vale logo depois do fixo/parede do pivô tocar. 200 jogos: armações com o fixo 34% ⇒ 51%, passes pro fixo 9% ⇒ 17%, gols 3,6/3,9 ⇒ 3,6/3,8, chutes 18,1 ⇒ 17,6; `calibrate --formations` igual dentro do erro (3-1 47% ⇒ 46%). De olho: 3-1 × Losango 51% ⇒ 42% (400 jogos). Losango com 0,2 fica pra outra rodada. Script: `scripts/balance/fixo-armacao.ts`.
+
+## MT fora da vitrine do Mercado (aprovado no plano "menos e mais", 10/11/2026)
+
+A MT sai da vitrine (fica na recompensa do ginásio, no 1 de 3 e no prêmio da casa da Rota); na vaga entra um item. Mesmas seeds: Copa Relâmpago (2400 copas) título 25,0% ⇒ 25,6% (+0,6 ± 0,9 pp), ₽ no Mercado 11,7 ⇒ 12,3, itens 0,49 ⇒ 0,75 por copa; Rota (400) 13,2% ⇒ 13,5% (+0,2 ± 1,7 pp). Dentro do erro. O robô não usa MT (como 99,6% dos jogadores).
