@@ -49,6 +49,9 @@ export function installTabBack(away: () => boolean, home: () => void) {
             return;
         }
         marked = isMark(h.state);
+        // a guarda de tela saindo (voltou de uma tela pra uma aba que não tinha marca, ex.: Perfil aberto do Estádio
+        // e o voltar dele pede a Sede) não é o voltar do usuário: `after` marca a aba
+        if (waiting) return;
         if (!marked && away()) home();
     };
     window.addEventListener('popstate', onPop);
