@@ -15,7 +15,6 @@ import { CupBar } from './ui/components/CupBar';
 import { LogoHits } from './ui/components/LogoHits';
 import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
-import { Onboarding } from './ui/components/Onboarding';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
@@ -122,18 +121,10 @@ function MenuBack({ screen }: { screen: Screen }) {
 }
 
 export default function App() {
-    const { screen, settings, tour, run } = useGame();
+    const { screen, settings, run } = useGame();
     const diskFull = useSaveHealth((s) => s.full);
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
-    // passo a passo de boas-vindas: só depois de o save carregar (senão aparece para quem já jogou)
-    const [hydrated, setHydrated] = useState(() => useGame.persist.hasHydrated());
-    useEffect(() => {
-        const off = useGame.persist.onFinishHydration(() => setHydrated(true));
-        // o save pode ter terminado de carregar entre o primeiro render e este efeito
-        if (useGame.persist.hasHydrated()) setHydrated(true);
-        return off;
-    }, []);
     // ?demo=crash (dev e prévias): quebra a renderização para conferir a tela do ErrorBoundary
     if (__SMOKE__ && new URLSearchParams(window.location.search).get('demo') === 'crash') {
         throw new Error('Teste do aviso de erro (?demo=crash)');
@@ -415,7 +406,6 @@ export default function App() {
             {diskFull && !['match', 'liga-match', 'ultimate-match'].includes(screen) && (
                 <Toast tone="bad">{t('common.ui.diskFull')}</Toast>
             )}
-            {hydrated && tour && screen === 'home' && <Onboarding />}
         </div>
     );
 }

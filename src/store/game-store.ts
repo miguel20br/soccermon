@@ -480,8 +480,6 @@ export interface GameStore {
      * visita não abre mais o passo a passo: a Home e o "Nova copa" são o caminho, e as dicas aparecem no lugar.
      */
     onboarded: boolean;
-    /** Passo a passo aberto agora (pedido na Ajuda). Não vai pro save. */
-    tour: boolean;
     /**
      * Copas em andamento guardadas para depois (a mais recente primeiro). Nascem quando o save do aparelho e o
      * da conta têm copas diferentes: a escolhida continua e a outra fica aqui, nunca some sem aviso.
@@ -613,7 +611,6 @@ export interface GameStore {
     updateSettings(patch: Partial<Settings>): void;
     updateProfile(patch: Partial<Profile>): void;
     setOnboarded(done: boolean): void;
-    setTour(open: boolean): void;
     /** Retoma uma copa guardada; a atual, se estiver em andamento, vai para o lugar dela. */
     resumeParked(seed: string): void;
     /** Joga fora uma copa guardada (o jogador confirmou). */
@@ -1345,7 +1342,6 @@ export const useGame = create<GameStore>()(
                 moves: {},
                 career: EMPTY_CAREER,
                 onboarded: false,
-                tour: false,
                 parkedRuns: [],
                 hall: [],
                 binder: [],
@@ -2375,7 +2371,6 @@ export const useGame = create<GameStore>()(
                 updateSettings: (patch) => setState({ settings: { ...getState().settings, ...patch } }),
                 updateProfile: (patch) => setState({ profile: { ...getState().profile, ...patch } }),
                 setOnboarded: (onboarded) => setState({ onboarded }),
-                setTour: (tour) => setState({ tour }),
                 shiftUnlock: () => setState({ unlockQueue: getState().unlockQueue.slice(1) }),
 
                 resumeParked: (seed) => {

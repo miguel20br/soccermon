@@ -57,18 +57,18 @@ function searchIndex(lang: Parameters<typeof helpSections>[0]) {
     };
 }
 
-/** Os 4 blocos da lista de tópicos (ids de `help/content.ts`); tópico que não estiver aqui cai em "Conta e coleção". */
-const HELP_GROUPS: { key: 'team' | 'match' | 'modes' | 'account'; ids: string[] }[] = [
-    { key: 'team', ids: ['basico', 'draft', 'formacoes', 'posicoes', 'cartas', 'tipos', 'itens', 'sinergias'] },
-    { key: 'match', ids: ['golpes', 'golpesJogos', 'status', 'habilidades', 'partida', 'golpeMax'] },
-    { key: 'modes', ids: ['copa', 'recompensas', 'recordes'] },
-    { key: 'account', ids: ['evolucao', 'pokedex', 'conta'] },
+/** Os 2 blocos das regras (ids de `help/content.ts`). */
+const HELP_GROUPS: { key: 'team' | 'match'; ids: string[] }[] = [
+    { key: 'team', ids: ['posicoes', 'cartas', 'tipos', 'sinergias'] },
+    { key: 'match', ids: ['partida', 'golpes', 'status', 'golpeMax', 'evolucao'] },
 ];
 
-/** Ajuda: como jogar, todas as mecânicas (com busca) e perguntas frequentes. */
+/**
+ * Ajuda enxuta (menos-e-mais.md, A3): em cima o "Como funciona" de cada modo (os balões voltam); depois só as regras
+ * que não aparecem na tela (com busca) e as perguntas frequentes.
+ */
 export function Help() {
     const go = useGame((s) => s.go);
-    const setTour = useGame((s) => s.setTour);
     const tipsOn = useGame((s) => s.settings.tips);
     const { d, lang } = useT();
     const tx = d.help.screen;
@@ -98,6 +98,40 @@ export function Help() {
         <div className="menu-screen help-screen">
             <MenuHead title={tx.title} icon="help" onBack={() => go(backTarget('help') ?? 'home')} />
 
+            {/* o principal: rever o balão de cada modo (e as dicas das telas) */}
+            <section className="help-coach" aria-labelledby="help-coach-title">
+                <h2 id="help-coach-title" className="bc-caption">
+                    {c.title}
+                </h2>
+                <div className="help-actions">
+                    {COACH_REPLAY.map((id) => (
+                        <button
+                            key={id}
+                            type="button"
+                            className="btn ghost small"
+                            disabled={redone.includes(id)}
+                            onClick={() => replayCoach(id)}
+                        >
+                            {redone.includes(id) ? c.done : (c as Record<string, string>)[id]}
+                        </button>
+                    ))}
+                    {tipsOn && (
+                        <button
+                            type="button"
+                            className="btn ghost small"
+                            disabled={tipsReset}
+                            onClick={() => {
+                                resetTips();
+                                setTipsReset(true);
+                            }}
+                        >
+                            {tipsReset ? tx.tipsBack : tx.tipsShow}
+                        </button>
+                    )}
+                </div>
+                <small className="muted">{c.hint}</small>
+            </section>
+
             <label className="help-search k-field">
                 <HudIcon kind="search" className="help-search-icon" />
                 <span className="help-sr-only">{tx.searchLabel}</span>
@@ -124,7 +158,7 @@ export function Help() {
                 </div>
             )}
 
-            {/* cada tema é uma linha que abre a sheet (cara-de-jogo.md: acordeão só dentro de sheet), em 4 blocos */}
+            {/* cada regra é uma linha que abre a sheet (cara-de-jogo.md: acordeão só dentro de sheet), em 2 blocos */}
             {HELP_GROUPS.map((g) => {
                 const rows = sections.filter(({ section }) => g.ids.includes(section.id));
                 if (!rows.length) return null;
@@ -181,58 +215,6 @@ export function Help() {
                     </div>
                 </section>
             )}
-
-            {/* uso raro: rever o tutorial e os balões de cada modo ficam no fim, num bloco só */}
-            <section className="help-review" aria-labelledby="help-review-title">
-                <h2 id="help-review-title" className="bc-caption">
-                    {tx.review}
-                </h2>
-                <div className="help-actions">
-                    <button
-                        type="button"
-                        className="btn ghost small"
-                        onClick={() => {
-                            setTour(true);
-                            go('home');
-                        }}
-                    >
-                        {tx.replay}
-                    </button>
-                    {tipsOn && (
-                        <button
-                            type="button"
-                            className="btn ghost small"
-                            disabled={tipsReset}
-                            onClick={() => {
-                                resetTips();
-                                setTipsReset(true);
-                            }}
-                        >
-                            {tipsReset ? tx.tipsBack : tx.tipsShow}
-                        </button>
-                    )}
-                </div>
-
-                <section className="help-coach" aria-labelledby="help-coach-title">
-                    <h2 id="help-coach-title" className="bc-lbl">
-                        {c.title}
-                    </h2>
-                    <div className="help-actions">
-                        {COACH_REPLAY.map((id) => (
-                            <button
-                                key={id}
-                                type="button"
-                                className="btn ghost small"
-                                disabled={redone.includes(id)}
-                                onClick={() => replayCoach(id)}
-                            >
-                                {redone.includes(id) ? c.done : (c as Record<string, string>)[id]}
-                            </button>
-                        ))}
-                    </div>
-                    <small className="muted">{c.hint}</small>
-                </section>
-            </section>
         </div>
     );
 }

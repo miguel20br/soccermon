@@ -70,7 +70,7 @@ export function Coach({
         if (decided.current || !hydrated || !when) return;
         decided.current = true;
         const g = useGame.getState();
-        if (g.settings.tips && !g.tour && !coachSeen(g.profile.coach, id)) setActive(true);
+        if (g.settings.tips && !coachSeen(g.profile.coach, id)) setActive(true);
     }, [hydrated, when, id]);
     useEffect(() => onActive?.(active), [active, onActive]);
 

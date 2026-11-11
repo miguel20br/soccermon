@@ -23,6 +23,13 @@ console.log(
         .join(' '),
     `campeão ${pc(mean(cups.map((c) => +c.champion)))}`,
 );
+const shops = cups.filter((c) => c.shop);
+if (shops.length) {
+    const buys = (k: string) => mean(shops.map((c) => c.shop.filter((x: string) => x.startsWith(k)).length));
+    console.log(
+        `Mercado/copa: gasto ${mean(shops.map((c) => c.spent ?? 0)).toFixed(1)} ₽, sobra ${mean(shops.map((c) => c.money)).toFixed(1)} ₽; compras: patrocínio ${buys('sp:').toFixed(2)} pokémon ${buys('mon').toFixed(2)} pacote ${buys('pack').toFixed(2)} item ${buys('item:').toFixed(2)}; MT à vista ${buys('tm-vista').toFixed(2)}`,
+    );
+}
 console.log(
     `evoluções/copa ${mean(cups.map((c) => c.evolutions)).toFixed(2)} (campeões ${mean(cups.filter((c) => c.champion).map((c) => c.evolutions)).toFixed(2)}); Destaques/copa ${mean(cups.map((c) => c.destaques)).toFixed(2)}`,
 );
