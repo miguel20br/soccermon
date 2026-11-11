@@ -191,8 +191,15 @@ function takeReward(acq: Set<number>) {
     else g().skipReward();
 }
 
+/** ₽ gasto no Mercado e compras por tipo na Rota em andamento (zera no `play`). */
+let shopSpent = 0;
+let shopBuys: Record<string, number> = {};
+
 function shop(policy: Policy, acq: Set<number>) {
     if (policy === 'ouro' || idle(policy)) return g().leaveShop();
+    const m0 = g().run!.money ?? 0;
+    const kinds = g().run!.shop!.offers.map((o) => o.kind);
+    const sold0 = g().run!.shop!.sold.length;
     for (let k = 0; k < 4; k++) {
         const run = g().run!;
         const s = run.shop!;
@@ -226,6 +233,10 @@ function shop(policy: Policy, acq: Set<number>) {
         }
         break;
     }
+    const after = g().run!;
+    shopSpent += m0 - (after.money ?? 0);
+    for (const i of after.shop!.sold.slice(sold0)) shopBuys[kinds[i]] = (shopBuys[kinds[i]] ?? 0) + 1;
+    if (kinds.includes('tm')) shopBuys['tm-vista'] = (shopBuys['tm-vista'] ?? 0) + 1;
     g().leaveShop();
 }
 
@@ -375,6 +386,8 @@ function play(seed: string, policy: Policy) {
     g().newRun('Robô FC', seed, undefined, 'longa');
     g().autoDraft();
     stonesUsed = 0;
+    shopSpent = 0;
+    shopBuys = {};
     const acq = new Set<number>();
     const visits: string[] = [];
     const strength: number[] = [];
@@ -444,6 +457,8 @@ function play(seed: string, policy: Policy) {
         acquired: acq.size,
         acquiredSpecies: [...acq],
         moneyEarned,
+        shopSpent,
+        shopBuys,
         sponsors: run.sponsors?.length ?? 0,
         visits,
         // evoluções do seu time: jogando (nas partidas) e com a pedra
@@ -477,6 +492,10 @@ describe.skipIf(!N)('quanto o caminho importa na Rota', () => {
                 pokemonNovos: avg(rs.map((r) => r.acquired)).toFixed(2),
                 especiesDistintasNoTotal: species.size,
                 ganhoNoMapa: avg(rs.map((r) => r.moneyEarned)).toFixed(1),
+                gastoNoMercado: avg(rs.map((r) => r.shopSpent)).toFixed(1),
+                compras: ['pokemon', 'pack', 'item', 'tm', 'sponsor', 'tm-vista']
+                    .map((k) => `${k} ${avg(rs.map((r) => r.shopBuys[k] ?? 0)).toFixed(2)}`)
+                    .join(', '),
                 evoJogando: avg(rs.map((r) => r.evoPlayed)).toFixed(2),
                 evoPedra: avg(rs.map((r) => r.evoStone)).toFixed(2),
                 visitas: Object.entries(
