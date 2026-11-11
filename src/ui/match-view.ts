@@ -9,6 +9,7 @@ import { cardAttributes } from '../engine/modifiers';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent, MatchSnapshot, PlayerStats, TeamSetup } from '../engine/state';
 import { Action, SNAP_STRIDE } from '../engine/state';
+import { dir8 } from '../engine/vec';
 
 /**
  * Leitura da partida num tick a partir do resultado já simulado (eventos + snapshots): quem está em cada vaga,
@@ -563,8 +564,8 @@ export const NAMED_DRIBBLE = {
      */
     behind: (2 * Math.PI) / 3,
     tall: 1,
-    /** Janela da animação: ticks antes e depois do carrinho. */
-    lead: 4,
+    /** Janela da animação: ticks antes e depois do carrinho (6 antes: o marcador fecha e o driblador arma sem tranco). */
+    lead: 6,
     tail: 8,
     /** Câmera lenta (só na 1x): fator e ticks em volta do carrinho, com rampa de `ramp` ticks de cada lado. */
     slow: 0.3,
@@ -675,74 +676,221 @@ export function dribbleSlowAt(list: readonly NamedDribble[], tick: number, speed
 
 /** Enfeite do drible na tela (px): corpo e bola saem do snapshot e voltam pra ele no fim da janela. */
 export interface DribblePose {
+    /** Quem dribla: deslocamento, direção mostrada (linha da sheet; null = a do snapshot), inclinação e squash. */
     body: { x: number; y: number };
+    face: number | null;
+    tilt: number;
+    sx: number;
+    sy: number;
+    /** A bola: deslocamento e altura (px; a sombra fica no chão). */
     ball: { x: number; y: number };
-    /** Bola mais alta (px), com a sombra no chão. */
     lift: number;
-    /** Passos de direção a somar na do snapshot (a roleta dá a volta inteira: 8). */
-    spin: number;
-    /** Quem ficou: sai um pouco pro lado dele (no carrinho os dois ficam um em cima do outro) e morde a finta. */
+    /** Quem ficou: deslocamento, direção, inclinação, squash e o "?" em cima da cabeça (0 a 1). */
     markerBody: { x: number; y: number };
+    markerFace: number | null;
     markerTilt: number;
+    markerSx: number;
+    markerSy: number;
+    huh: number;
+    /** Rastro na cor do time ligado (giro da roleta, puxada do elástico). */
+    ghost: boolean;
 }
 
+/**
+ * Poeirinha no pé (ticks em relação ao carrinho): o toque de calcanhar da lambreta, a pisada e a saída da roleta, a
+ * pisada da puxada do elástico. A da bola caindo na lambreta sai do quique (`kickPop`).
+ */
+export const DRIBBLE_PUFFS: Record<DribbleKind, readonly number[]> = {
+    lambreta: [-2.4],
+    roleta: [-1.6, 1.4],
+    elastico: [-1.2],
+};
+
 const bump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+/** 0 antes de `a`, 1 depois de `b`, suave (smoothstep) no meio. */
+const ramp = (a: number, b: number, t: number) => {
+    const v = clamp01((t - a) / (b - a));
+    return v * v * (3 - 2 * v);
+};
+const inOut = (v: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(v));
+const outCubic = (v: number) => 1 - (1 - clamp01(v)) ** 3;
+const outBack = (v: number) => {
+    const x = clamp01(v) - 1;
+    return 1 + 2.7 * x ** 3 + 1.7 * x ** 2;
+};
+/** Cambaleio: balança e amortece a partir de `t0`. */
+const wobble = (t: number, t0: number, period: number, decay: number) =>
+    t < t0 ? 0 : Math.sin((2 * Math.PI * (t - t0)) / period) * Math.exp(-(t - t0) / decay);
 
 /**
- * Pose do drible no tick (fracionário). `toBall`: px do pé do portador até a bola no carrinho. Fora da janela, ou com
- * Reduzir movimento, null (só o nome).
+ * Pose do drible no tick (fracionário). Coreografia em ticks em relação ao carrinho (`t`; na 1x a câmera lenta deixa
+ * de -2 a +3 bem devagar e o hit-stop congela o t = 0, o ápice de cada um). `toBall`: px do pé do portador até a bola
+ * no carrinho; `toMarker`: px do portador até o marcador no snapshot de agora (o marcador é posto onde a cena pede e
+ * volta pro lugar dele). Corpo e bola de quem dribla voltam pro snapshot até t = 3,5 (logo depois ele pode passar ou
+ * chutar); o marcador fica no lance até o fim da janela. Fora dela, ou com Reduzir movimento, null (só o nome).
  */
 export function dribblePose(
     d: NamedDribble,
     tick: number,
     toBall: { x: number; y: number },
+    toMarker: { x: number; y: number },
     reduce = false,
+    /** Altura da cabeça do marcador (px acima do pé): a bola da lambreta passa bem acima dela. */
+    markerHead = 60,
 ): DribblePose | null {
     const N = NAMED_DRIBBLE;
-    const u = (tick - (d.tick - N.lead)) / (N.lead + N.tail);
-    if (reduce || u <= 0 || u >= 1) return null;
-    const pose: DribblePose = {
-        body: { x: 0, y: 0 },
-        ball: { x: 0, y: 0 },
-        lift: 0,
-        spin: 0,
-        markerBody: { x: 0, y: 0 },
-        markerTilt: 0,
-    };
-    // lado do marcador, na tela (perpendicular à corrida)
-    const px = -d.dir.y * d.side;
-    const py = d.dir.x * d.side;
-    // o marcador vendido: abre pro lado dele (os dois ficavam um em cima do outro), fica pra trás e cambaleia
-    const after = bump((u - 0.25) / 0.75);
-    const apart = (d.kind === 'elastico' ? 16 : 11) * bump(u);
-    pose.markerBody = { x: px * apart - d.dir.x * 9 * after, y: py * apart - d.dir.y * 9 * after };
-    pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * after;
-    if (d.kind === 'lambreta') {
-        // a bola sobe de trás, passa bem por cima da cabeça do marcador e cai na frente (a sombra fica no chão)
-        const arc = (u - 0.05) / 0.8;
-        pose.lift = 64 * bump(arc);
-        // de trás pra frente por cima dele: começa atrás do pé e cai na frente
-        const fwd = 18 * (Math.min(1, Math.max(0, arc)) - 0.5) * bump(u) * 2;
-        pose.ball = { x: d.dir.x * fwd, y: d.dir.y * fwd };
-    } else if (d.kind === 'roleta') {
-        // gira 360° por cima da bola, saindo de lado pra longe do marcador, e a bola dá a volta no pé
-        const v = Math.min(1, Math.max(0, (u - 0.12) / 0.7));
-        pose.spin = Math.min(8, Math.floor(v * 8)) * d.side;
-        const a = 2 * Math.PI * v * d.side;
+    const t = tick - d.tick;
+    if (reduce || t <= -N.lead || t >= N.tail) return null;
+    // eixos na tela: F pra onde ele corre, S pro lado do marcador
+    const F = d.dir;
+    const S = { x: -d.dir.y * d.side, y: d.dir.x * d.side };
+    const v = (f: number, s: number) => ({ x: F.x * f + S.x * s, y: F.y * f + S.y * s });
+    const rot = (p: { x: number; y: number }, a: number) => {
         const c = Math.cos(a);
         const s = Math.sin(a);
-        pose.ball = { x: toBall.x * c - toBall.y * s - toBall.x, y: toBall.x * s + toBall.y * c - toBall.y };
-        const k = -12 * bump(u);
-        pose.body = { x: px * k, y: py * k };
-        pose.ball.x += pose.body.x;
-        pose.ball.y += pose.body.y;
+        return { x: p.x * c - p.y * s, y: p.x * s + p.y * c };
+    };
+    const lean = (side: { x: number; y: number }, k: number) =>
+        k * (side.x >= 0 ? 1 : -1) * Math.max(0.35, Math.abs(side.x));
+    // o marcador entra no lance (de onde estiver) e volta pro lugar dele no fim
+    const wM = ramp(-N.lead, -3, t) * (1 - ramp(3.5, N.tail, t));
+    const pose: DribblePose = {
+        body: { x: 0, y: 0 },
+        face: null,
+        tilt: 0,
+        sx: 1,
+        sy: 1,
+        ball: { x: 0, y: 0 },
+        lift: 0,
+        markerBody: { x: 0, y: 0 },
+        markerFace: null,
+        markerTilt: 0,
+        markerSx: 1,
+        markerSy: 1,
+        huh: 0,
+        ghost: false,
+    };
+    let mf = 0;
+    let ms = 0;
+    let mFace: { x: number; y: number } | null = null;
+    // o "?" do vendido: pula (Back) e some no fim
+    const huhAt = (t0: number) => outBack((t - t0) / 1.2) * (1 - ramp(5.5, N.tail, t));
+    if (d.kind === 'lambreta') {
+        // pisa, puxa a bola pra trás e agacha; toque de calcanhar (estica): a bola sobe alta por cima da cabeça do
+        // marcador (o ápice no hit-stop), ele recua olhando a bola e vira; quem driblou dá a volta por fora e pega na frente
+        const crouch = t < -2.4 ? ramp(-4.5, -2.5, t) : 0;
+        const kick = t >= -2.4 ? Math.exp(-(t + 2.4) / 0.9) : 0;
+        const run = bump((t + 2.4) / 5.6);
+        const bodyAt = (u: number) => {
+            const r = bump((u + 2.4) / 5.6);
+            return v(12 * r, -40 * r);
+        };
+        pose.body = bodyAt(t);
+        pose.sx = 1 + 0.1 * crouch - 0.08 * kick;
+        pose.sy = 1 - 0.12 * crouch + 0.14 * kick;
+        pose.tilt = lean(F, -0.14 * crouch + 0.12 * kick + 0.1 * run);
+        const heel = v(-10, 0);
+        let ball: { x: number; y: number };
+        if (t < -2.4) {
+            const k = inOut(ramp(-4.5, -2.6, t));
+            ball = { x: toBall.x + (heel.x - toBall.x) * k, y: toBall.y + (heel.y - toBall.y) * k };
+        } else if (t < 2) {
+            // parábola de verdade: anda reto no chão (a sombra) e sobe e desce no ar
+            const u = (t + 2.4) / 4.4;
+            const end = bodyAt(2);
+            const land = { x: end.x + toBall.x + F.x * 6, y: end.y + toBall.y + F.y * 6 };
+            ball = { x: heel.x + (land.x - heel.x) * u, y: heel.y + (land.y - heel.y) * u };
+            // bem acima da cabeça do marcador
+            pose.lift = Math.max(96, markerHead + 40) * 4 * u * (1 - u);
+        } else {
+            // quica na frente e ele domina (a bola encosta no pé)
+            const k = outCubic((t - 2) / 1);
+            const at = { x: pose.body.x + toBall.x, y: pose.body.y + toBall.y };
+            const end = bodyAt(2);
+            const land = { x: end.x + toBall.x + F.x * 6, y: end.y + toBall.y + F.y * 6 };
+            ball = { x: land.x + (at.x - land.x) * k, y: land.y + (at.y - land.y) * k };
+        }
+        pose.ball = { x: ball.x - toBall.x, y: ball.y - toBall.y };
+        // marcador: fecha na frente, recua de frente pra bola que passa por cima e gira pra ver ela cair atrás dele
+        mf = 38 - 76 * inOut((t + 2.5) / 5.5);
+        ms = 22;
+        const turn = inOut((t + 0.4) / 1.8);
+        mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
+        pose.markerTilt = lean(F, 0.12 * bump((t + 1.2) / 2.4)) + lean(S, 0.32 * wobble(t, 1.3, 2.4, 2.2));
+        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.07 * bump((t - 1.3) / 1.2);
+        pose.markerSx = 1 / pose.markerSy;
+        pose.huh = huhAt(0.6);
+    } else if (d.kind === 'roleta') {
+        // pisa na bola (agacha) e gira 360° por cima dela, de costas pro marcador na metade (ápice no hit-stop); sai de
+        // lado, longe dele, empurrando o chão (estica). O marcador dá o bote onde a bola estava e passa reto
+        const plant = ramp(-3, -1.6, t) * (1 - ramp(-1.6, -0.6, t));
+        const push = bump((t - 1) / 1.6);
+        const spin = inOut((t + 1.6) / 3.2);
+        const a = -2 * Math.PI * spin * d.side;
+        const back = 1 - ramp(1.2, 2.4, t);
+        const slide = v(0, -24 * ramp(-1.6, 1.4, t) * back);
+        // gira em volta da bola (raio de meio corpo)
+        const l = Math.hypot(toBall.x, toBall.y);
+        const r = l > 1 ? { x: (toBall.x / l) * 20, y: (toBall.y / l) * 20 } : v(20, 0);
+        const orbit = rot(r, a);
+        pose.body = { x: slide.x + r.x - orbit.x, y: slide.y + r.y - orbit.y };
+        // a bola fica colada e troca de pé no meio do giro
+        const foot = v(0, 6 * Math.sin(2 * Math.PI * spin));
+        pose.ball = { x: slide.x + foot.x, y: slide.y + foot.y };
+        pose.face = spin > 0 && spin < 1 ? dir8(rot(F, a)) : null;
+        // de lado no giro: mais fino; inclina pra dentro da curva
+        pose.sx = 1 + 0.1 * plant - 0.1 * Math.abs(Math.sin(a)) - 0.06 * push;
+        pose.sy = 1 - 0.1 * plant + 0.1 * push;
+        pose.tilt = lean(S, -0.16 * Math.sin(Math.PI * spin)) + lean(F, 0.1 * push);
+        pose.ghost = spin > 0.05 && spin < 0.95;
+        // marcador: ombro a ombro, bote pra dentro (onde a bola estava), passa reto e tropeça
+        const lunge = inOut((t + 1) / 2);
+        const past = outCubic((t - 0.6) / 2.4);
+        mf = -6 + 36 * lunge + 30 * past;
+        ms = 34 - 28 * lunge - 6 * past;
+        mFace = t < -1 ? { x: -toMarker.x, y: -toMarker.y } : F;
+        pose.markerTilt = lean(F, 0.3 * bump((t + 1) / 3.2)) + lean(F, 0.28 * wobble(t, 1.8, 2, 2));
+        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2);
+        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2);
+        pose.huh = huhAt(1.2);
     } else {
-        // elástico: mostra a bola pro lado do marcador (ele morde e vai junto) e sai rasgando pro outro
-        const w = Math.sin(2 * Math.PI * u) * bump(u) ** 0.5;
-        const k = w > 0 ? 8 * w : 16 * w;
-        pose.body = { x: px * k, y: py * k };
-        pose.ball = { x: px * k * 1.7, y: py * k * 1.7 };
-        pose.markerTilt = (px >= 0 ? 1 : -1) * 0.38 * Math.max(after, Math.max(0, w));
+        // elástico: mostra a bola pro lado de fora (o corpo inclina junto), o marcador morde e vai; a bola volta rasgando
+        // pro outro lado (ápice no hit-stop: a bola já do outro lado, o marcador ainda indo pro errado)
+        const fake = outCubic((t + 4) / 2.8) * (1 - ramp(-1.2, 0.2, t));
+        const cut = inOut((t + 1.2) / 1.6);
+        const back = 1 - ramp(1, 3, t);
+        pose.body = v((14 * cut + 4 * fake) * back, (-14 * fake + 26 * cut) * back);
+        const ballOut = v(4 * fake, -30 * fake);
+        const ballCut = v(16 * cut, 34 * cut);
+        pose.ball = { x: (ballOut.x + ballCut.x) * back, y: (ballOut.y + ballCut.y) * back };
+        pose.tilt = lean(S, -0.22 * fake + 0.2 * bump(cut ** 0.7));
+        // pisa pra puxar (agacha) e arranca (estica)
+        pose.sx = 1 + 0.1 * bump((t + 1.6) / 1.2) - 0.06 * bump((t + 0.4) / 1.8);
+        pose.sy = 1 - 0.12 * bump((t + 1.6) / 1.2) + 0.1 * bump((t + 0.4) / 1.8);
+        pose.ghost = t > -1 && t < 1;
+        // marcador: de frente, morde a finta (meio tick atrasado), segue indo pro lado errado e fica pra trás, desequilibrado
+        const bite = outCubic((t + 3.4) / 3);
+        const drift = outCubic((t + 0.2) / 3);
+        mf = 40 - 46 * drift;
+        ms = -26 * bite - 12 * drift;
+        mFace =
+            t < 0.6
+                ? { x: -F.x, y: -F.y }
+                : { x: pose.body.x - (mf * F.x + ms * S.x), y: pose.body.y - (mf * F.y + ms * S.y) };
+        pose.markerTilt =
+            lean(S, -0.36 * bite * (1 - ramp(0.6, 3, t)) - 0.1 * drift) + lean(S, 0.3 * wobble(t, 1.4, 2.2, 2));
+        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t));
+        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t));
+        pose.huh = huhAt(0.8);
     }
+    // quem dribla olha pra onde vai (no snapshot às vezes ele está de lado ou de costas); a roleta tem a dela
+    if (d.kind !== 'roleta' && t > -4.5 && t < 3) pose.face = dir8(F);
+    const want = v(mf, ms);
+    pose.markerBody = { x: (want.x - toMarker.x) * wM, y: (want.y - toMarker.y) * wM };
+    pose.markerFace = mFace && wM > 0.5 ? dir8(mFace) : null;
+    // inclinação e squash do marcador entram e saem com ele
+    pose.markerTilt *= wM;
+    pose.markerSx = 1 + (pose.markerSx - 1) * wM;
+    pose.markerSy = 1 + (pose.markerSy - 1) * wM;
     return pose;
 }
