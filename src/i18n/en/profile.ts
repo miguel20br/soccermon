@@ -567,7 +567,6 @@ export const profile: typeof pt = {
             duelista: 'Duel wins',
         } as Record<string, string>,
     },
-    toSede: 'Go to the Club',
     picker: {
         trainer: 'Your trainer',
         trainerCount: '{n} of {total} unlocked',

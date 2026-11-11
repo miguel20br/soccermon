@@ -11,6 +11,8 @@ import {
     eloExpected,
     LIGA_OPENS_AT,
     ligaCountdown,
+    ligaShown,
+    ligaTeaser,
     pickGhost,
     prevSeason,
     seasonDaysLeft,
@@ -19,6 +21,17 @@ import {
 } from './rules';
 
 describe('Liga fechada até a data', () => {
+    it('some até uma semana antes de abrir (05/01/2027 00:00 de Brasília); aí aparece com a contagem', () => {
+        const show = Date.parse('2027-01-05T00:00:00-03:00');
+        expect(ligaShown(show - 1)).toBe(false);
+        expect(ligaTeaser(show - 1)).toBeNull();
+        expect(ligaShown(show)).toBe(true);
+        expect(ligaTeaser(show)).toEqual({ d: 7, h: '00', m: '00' });
+        expect(ligaTeaser(Date.parse('2026-11-10T12:00:00Z'))).toBeNull();
+        // aberta: nada de contagem, mas continua à vista
+        expect(ligaTeaser(LIGA_OPENS_AT)).toBeNull();
+        expect(ligaShown(LIGA_OPENS_AT)).toBe(true);
+    });
     it('abre à meia-noite de Brasília do dia marcado', () => {
         expect(new Date(LIGA_OPENS_AT).toISOString()).toBe('2027-01-12T03:00:00.000Z');
     });

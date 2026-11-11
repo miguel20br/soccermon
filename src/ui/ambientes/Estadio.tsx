@@ -2,7 +2,7 @@ import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 
 import { weeklyEventType } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { ligaCountdown } from '../../league/rules';
+import { ligaTeaser } from '../../league/rules';
 import { isFirstVisit } from '../../store/coach';
 import { dailyDay } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
@@ -169,7 +169,7 @@ export function Stands({
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
     // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
     const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));
-    const liga = ligaCountdown();
+    const liga = ligaTeaser();
     const news = [week, !playedToday && t('home.amb.ledDaily'), liga && t('home.amb.ledLiga', { d: liga.d })];
     const led = (text ? `${text} · ` : `${news.filter(Boolean).join(' · ')} · `).repeat(3);
     const stand = useRef<HTMLDivElement>(null);

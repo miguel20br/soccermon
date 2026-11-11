@@ -1,4 +1,5 @@
 import { type Screen, useGame } from '../store/game-store';
+import { openTabNext } from './ambientes/nav';
 import { setDoorOrigin, setPageOrigin } from './back-nav';
 
 /**
@@ -42,6 +43,23 @@ export function openDoor(door: Door, tab?: string) {
     const g = useGame.getState();
     if (g.screen !== door) setDoorOrigin(g.screen);
     g.go(door);
+}
+
+/** `?aba=` (ou `?perfil=`) que agora é das Metas (menos-e-mais.md, B2): missões e medalhas moram na Sede. */
+export function metasLink(search: string): boolean {
+    const q = new URLSearchParams(search);
+    return ['missoes', 'medalhas', 'metas'].includes(q.get('aba') ?? q.get('perfil') ?? '');
+}
+
+/** Pedido pra Sede abrir as Metas quando a Home aparecer (a Sede consome; a Home zera se a Sede está apagada). */
+export const metasNext = { on: false };
+
+/** Vai pra Sede com as Metas abertas (a medalha da Sala de troféus, links antigos de missões e medalhas). */
+export function openMetas() {
+    setAba();
+    metasNext.on = true;
+    openTabNext('sede');
+    useGame.getState().go('home');
 }
 
 /** Abre a Ajuda ou os Créditos; o voltar (o `‹` e o do Android) leva pra tela de onde abriu (`backTarget`). */

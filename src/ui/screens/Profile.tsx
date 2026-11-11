@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
@@ -14,38 +14,30 @@ import {
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
-import { closestMissions } from '../ambientes/metas';
 import { openTabNext } from '../ambientes/nav';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { useMenuBackOf } from '../components/MenuHead';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { legacyDoor, openDoor } from '../doors';
+import { legacyDoor, metasLink, openDoor, openMetas } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
-import { clubVars, hexCss, missionText, titleName, trainerLabel, useAvatar } from '../profile/club';
+import { clubVars, hexCss, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
 import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
 import { NewDot, useNews } from '../profile/news';
-import {
-    MissionSummary,
-    RedeemCode,
-    TitlePicker,
-    TrainerPicker,
-    TrainerSprite,
-    useSaveView,
-} from '../profile/TrainerTab';
+import { RedeemCode, TitlePicker, TrainerPicker, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 import '../profile/armario.css';
 
-type SheetId = 'nome' | 'treinadores' | 'titulo' | 'missoes' | 'clube' | 'amigos';
+type SheetId = 'nome' | 'treinadores' | 'titulo' | 'clube' | 'amigos';
 const FLAGS = Array.from({ length: 14 }, (_, i) => i);
-/** `?aba=` (o quadro e os botões da Sede, links antigos `?perfil=`) que já abre uma Sheet. */
-const ABA_SHEET: Record<string, SheetId> = { clube: 'clube', amigos: 'amigos', missoes: 'missoes' };
+/** `?aba=` (os botões da Sede, links antigos `?perfil=`) que já abre uma Sheet. As missões moram nas Metas da Sede. */
+const ABA_SHEET: Record<string, SheetId> = { clube: 'clube', amigos: 'amigos' };
 
 /** Uma porta do armário: ícone, nome e o número (ou o valor de agora). */
 function Locker({
@@ -74,8 +66,8 @@ function Locker({
 }
 
 /**
- * Perfil = o armário do vestiário (cara-de-jogo.md, decisão 9): uma tela sem rolar com o cartão do treinador (o que os
- * outros veem), as missões e as portas: Sala de troféus, Coleção, treinadores (figurinhas), título, clube e amigos.
+ * Perfil = o armário do vestiário da Sede (cara-de-jogo.md, decisão 9; menos-e-mais.md, B3): uma tela sem rolar com o
+ * cartão do treinador (o que os outros veem), treinadores (figurinhas) e título. Voltar leva pra Sede, onde ele mora.
  * Editar mora em Sheet: tocar no nome ou no avatar abre o nome e o avatar.
  */
 export function Profile() {
@@ -87,20 +79,23 @@ export function Profile() {
     const showcase = useShowcase();
     const { cards: shown } = useCardShowcase();
     const updateProfile = useGame((s) => s.updateProfile);
-    const view = useSaveView();
     const { t, d } = useT();
     const news = useNews();
     const has = (prefix: string) => [...news].some((k) => k.startsWith(prefix));
     const cups = cupCounts(hall);
     const look = lookOfProfile(profile);
-    const near = useMemo(() => closestMissions(view, 6), [view]);
     const [sheet, setSheet] = useState<SheetId | null>(null);
     const close = () => setSheet(null);
-    useMenuBackOf(() => go('home'));
+    // o Perfil mora na Sede: voltar cai nela (apagada, no Estádio)
+    useMenuBackOf(() => {
+        openTabNext('sede');
+        go('home');
+    });
 
-    // link antigo (?perfil=medalhas, ?perfil=album…) que agora mora em outra porta; `?aba=clube|amigos|missoes` abre a
-    // Sheet dela (uma vez: some da URL, pra voltar ao Perfil depois não abrir de novo)
+    // link antigo (?perfil=album…) que agora mora em outra porta; missões e medalhas vão pras Metas da Sede;
+    // `?aba=clube|amigos` abre a Sheet dela (uma vez: some da URL, pra voltar ao Perfil depois não abrir de novo)
     useEffect(() => {
+        if (metasLink(window.location.search)) return openMetas();
         const to = legacyDoor();
         if (to) return openDoor(...to);
         const url = new URL(window.location.href);
@@ -224,8 +219,8 @@ export function Profile() {
                 )}
             </header>
 
-            {/* o Perfil é o seu cartão: aqui só o que é de você (treinador e título). Troféus, Clube, Amigos e Missões
-                moram na Sede; a Coleção, no Laboratório */}
+            {/* o Perfil é o seu cartão: aqui só o que é de você (treinador e título). Troféus, Clube, Amigos e Metas
+                moram na Sede (o voltar leva pra ela); a Coleção, no Laboratório */}
             <nav className="pf-lockers" aria-label={t('profile.title')}>
                 <Locker
                     icon={<TrainerSprite id={activeTrainer(profile)} />}
@@ -242,18 +237,6 @@ export function Profile() {
                     onClick={() => setSheet('titulo')}
                 />
             </nav>
-            <button
-                type="button"
-                className="pf-to-sede"
-                onClick={() => {
-                    openTabNext('sede');
-                    go('home');
-                }}
-            >
-                <Crest look={look} className="crest" />
-                {t('profile.toSede')}
-                <HudIcon kind="next" />
-            </button>
 
             <Sheet open={sheet === 'nome'} onClose={close} title={edit} className="pf pf-sheet" style={vars}>
                 <ClubTab part="trainer" />
@@ -280,30 +263,6 @@ export function Profile() {
                     <h3>{t('profile.picker.code')}</h3>
                     <RedeemCode />
                 </section>
-            </Sheet>
-            <Sheet
-                open={sheet === 'missoes'}
-                onClose={close}
-                title={d.profile.tabs.missoes}
-                className="pf pf-sheet"
-                style={vars}
-            >
-                <MissionSummary />
-                <ul className="pf-near">
-                    {near.map((g) => (
-                        <li key={g.m.id}>
-                            <span>{missionText(g.m)}</span>
-                            <span className="pf-near-bar">
-                                <span className="k-bar">
-                                    <i style={{ width: `${(g.n / g.goal) * 100}%` }} />
-                                </span>
-                                <b className="k-num">
-                                    {g.n}/{g.goal}
-                                </b>
-                            </span>
-                        </li>
-                    ))}
-                </ul>
             </Sheet>
             <Sheet
                 open={sheet === 'clube'}

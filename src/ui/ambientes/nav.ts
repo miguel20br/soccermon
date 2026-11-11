@@ -1,10 +1,12 @@
+import { AMB_TABS, type AmbTab } from '../../store/coach';
+
 /**
  * Navegação por ambientes (docs/planos/clash-2x2-menus-arcade.md, parte 2): 5 abas lado a lado, o Estádio no centro
  * é a entrada. É a Home de todo mundo desde a 0.9.21; `?lab=off` volta pra Home de lista (fica na aba do navegador
  * até fechar, ou até `?lab=ambientes`).
  */
-export const TABS = ['lab', 'rota', 'estadio', 'arena', 'sede'] as const;
-export type Tab = (typeof TABS)[number];
+export const TABS = AMB_TABS;
+export type Tab = AmbTab;
 export const START = TABS.indexOf('estadio');
 const LAST = TABS.length - 1;
 /** A aba em que a pessoa estava (voltar de uma tela pra Home cai nela de novo; recarregar volta pro Estádio). */
@@ -56,22 +58,23 @@ export function readAmbientes(): boolean {
 }
 
 /** Posição durante o arrasto (em abas): passou da primeira ou da última, anda um terço (elástico). */
-export function dragPos(from: number, dx: number, width: number): number {
+export function dragPos(from: number, dx: number, width: number, last = LAST): number {
     const p = from - dx / Math.max(1, width);
     if (p < 0) return p / 3;
-    if (p > LAST) return LAST + (p - LAST) / 3;
+    if (p > last) return last + (p - last) / 3;
     return p;
 }
 
 /**
  * Aba ao soltar o dedo: a mais perto de onde a tela parou, ou a vizinha se o gesto foi um peteleco (rápido e com
- * pelo menos 16 px). Nunca pula mais de uma aba por gesto. `vx` em px/ms (negativo = dedo indo pra esquerda).
+ * pelo menos 16 px). Nunca pula mais de uma aba por gesto. `vx` em px/ms (negativo = dedo indo pra esquerda). `last`:
+ * a última das abas acesas (as apagadas ficam fora do arrasto).
  */
-export function snapTab(from: number, dx: number, vx: number, width: number): number {
-    let to = Math.round(dragPos(from, dx, width));
+export function snapTab(from: number, dx: number, vx: number, width: number, last = LAST): number {
+    let to = Math.round(dragPos(from, dx, width, last));
     if (Math.abs(vx) > 0.35 && Math.abs(dx) > 16) to = from + (vx < 0 ? 1 : -1);
     to = Math.max(from - 1, Math.min(from + 1, to));
-    return Math.max(0, Math.min(LAST, to));
+    return Math.max(0, Math.min(last, to));
 }
 
 export type Sky = 'dia' | 'tarde' | 'noite';

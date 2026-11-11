@@ -95,6 +95,8 @@ export interface Profile {
     coach?: string[];
     /** Cartões das Notícias já vistos (ui/news.ts, ids). Sem o campo = nenhum visto. */
     newsSeen?: string[];
+    /** Abas dos ambientes que já acenderam (coach.ts, `ambLit`). Sem o campo = save de antes delas. */
+    ambLit?: string[];
 }
 
 /**

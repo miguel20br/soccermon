@@ -1,11 +1,11 @@
-import { type CSSProperties, useMemo } from 'react';
+import { type CSSProperties, lazy, Suspense, useMemo, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import { cupCounts, METALS } from '../../store/trophies';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { openDoor } from '../doors';
+import { metasNext, openDoor } from '../doors';
 import { playDoor } from '../kit/DoorWipe';
 import { Crest, KitShirt } from '../profile/Crest';
 import { hexCss, missionText } from '../profile/club';
@@ -18,14 +18,16 @@ import { sceneScale } from './sprite-scale';
 import { useMq, useWild, WildZone } from './WildZone';
 import type { Wild } from './wild';
 
+const MetasSheet = lazy(() => import('./MetasSheet'));
+
 /** Bandeirinhas do varal na parede (12, alternando as duas cores do clube). */
 const FLAGS = Array.from({ length: 12 }, (_, i) => i);
 
 /**
  * Sede do clube (Perfil + Sala de troféus): a sala de madeira com o escudo na parede, o varal de bandeirinhas e o
- * tapete nas cores do clube, as taças em cima da vitrine e a lareira (só fora do celular). A meta é a placa da missão
- * mais perto de sair; o botão principal abre a Sala de troféus. Os objetos da cena abrem o resto: a vitrine é a Sala
- * de troféus, o escudo é o Clube, o mural é Amigos e o armário é o Treinador.
+ * tapete nas cores do clube, as taças em cima da vitrine e a lareira (só fora do celular). O botão principal abre as
+ * Metas (missões e medalhas, numa folha por cima da Sede) com a missão mais perto de sair. Os objetos da cena abrem o
+ * resto: a vitrine é a Sala de troféus, o escudo é o Clube, o mural é Amigos e o armário é o Perfil.
  */
 /** O mural de amigos (cortiça com 3 fotos presas), 30 x 24 pixels de arte no traço do kit. */
 function Mural() {
@@ -73,6 +75,9 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
     const goal = useMemo(() => closestMissions(view, 1)[0], [view]);
     const club = profile.clubName || 'Pallet FC';
     const vars = { '--club': hexCss(look.color), '--club2': hexCss(look.color2) } as CSSProperties;
+    // `openMetas()` (a medalha da Sala de troféus, links antigos) pede as Metas abertas quando a Home aparece (a Home zera
+    // o pedido depois do 1º desenho)
+    const [metas, setMetas] = useState(() => metasNext.on);
 
     return (
         <ClockCtx.Provider value={clock}>
@@ -140,8 +145,8 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                                 k="wardrobe"
                                 x={131}
                                 bottom={72}
-                                label={d.profile.tabs.treinador}
-                                onClick={() => openDoor('profile', 'treinador')}
+                                label={t('profile.title')}
+                                onClick={() => openDoor('profile')}
                             />
                             {/* fora do celular: a lareira acesa e a palmeira */}
                             <Mi k="fireplace" x={196} bottom={78} />
@@ -168,14 +173,10 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                     </span>
                 </header>
                 <div className="rm-actions">
-                    {/* a ação principal é o que não tem porta na cena: as Missões (Troféus é a vitrine, o contador e a porta) */}
-                    <button
-                        type="button"
-                        className="btn big cup-go rm-go cb cb-blue"
-                        onClick={() => openDoor('profile', 'missoes')}
-                    >
+                    {/* a ação principal é o que não tem porta na cena: as Metas (Troféus é a vitrine, o contador e a porta) */}
+                    <button type="button" className="btn big cup-go rm-go cb cb-blue" onClick={() => setMetas(true)}>
                         <span className="cup-go-txt">
-                            <b>{d.profile.tabs.missoes}</b>
+                            <b>{t('home.amb.sedeMetas')}</b>
                             <small>{goal ? missionText(goal.m) : t('home.amb.sedeBoard')}</small>
                         </span>
                         {goal && <em className="door-count">{`${goal.n}/${goal.goal}`}</em>}
@@ -183,6 +184,11 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                     </button>
                 </div>
             </div>
+            {metas && (
+                <Suspense fallback={null}>
+                    <MetasSheet onClose={() => setMetas(false)} style={vars} />
+                </Suspense>
+            )}
         </ClockCtx.Provider>
     );
 }

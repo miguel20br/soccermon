@@ -59,4 +59,12 @@ describe('navegação por ambientes', () => {
             'noite',
         ]);
     });
+
+    it('com abas apagadas, o arrasto anda só entre as acesas (last = a última acesa)', () => {
+        const w = 390;
+        // acesas: Lab, Rota, Estádio (posição 2 de 0..2): pra direita não tem mais nada
+        expect(snapTab(2, -250, -1, w, 2)).toBe(2);
+        expect(snapTab(2, 250, 1, w, 2)).toBe(1);
+        expect(dragPos(2, -w, w, 2)).toBeCloseTo(2 + 1 / 3);
+    });
 });

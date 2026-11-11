@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../i18n/react';
-import { ligaCountdown } from '../../league/rules';
+import { ligaTeaser } from '../../league/rules';
 import { LONG_CUP_LIVE } from '../../store/long-cup';
 import { Sheet } from '../kit/Sheet';
 import { HudIcon } from './MatchHud';
@@ -27,15 +27,15 @@ const SOON_ART = [
 
 /**
  * Faixa "Vem aí" da Home: o que ainda não dá pra jogar (Rota Índigo enquanto `LONG_CUP_LIVE` for false, a Liga até
- * `LIGA_OPENS_AT`, e os quatro de home.soon) numa fileira de cartõezinhos com silhueta e cadeado. Tocar abre uma
+ * `LIGA_OPENS_AT`, só na última semana: `ligaTeaser`, e os quatro de home.soon) numa fileira de cartõezinhos com silhueta e cadeado. Tocar abre uma
  * folha com o teaser. Fica embaixo dos modos: mostra o futuro sem disputar com o "Nova copa".
  */
 export function ComingSoon() {
     const { t, d } = useT();
     const [open, setOpen] = useState<string | null>(null);
-    const [liga, setLiga] = useState(() => ligaCountdown());
+    const [liga, setLiga] = useState(() => ligaTeaser());
     useEffect(() => {
-        const id = window.setInterval(() => setLiga(ligaCountdown()), 30000);
+        const id = window.setInterval(() => setLiga(ligaTeaser()), 30000);
         return () => clearInterval(id);
     }, []);
     useEffect(() => {

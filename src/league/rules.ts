@@ -21,6 +21,20 @@ export function ligaCountdown(now = Date.now(), opensAt = LIGA_OPENS_AT) {
     return { d: Math.floor(min / 1440), h: pad(Math.floor(min / 60) % 24), m: pad(min % 60) };
 }
 
+/** Quanto antes de abrir a Liga aparece (menos-e-mais.md, decisão 2): uma semana. */
+export const LIGA_TEASE_MS = 7 * 24 * 3600_000;
+
+/**
+ * A contagem da Liga só na última semana antes de abrir (o letreiro da Arena, o LED do Estádio, a faixa "Vem aí" e a
+ * Sala de troféus); antes disso ela não aparece (só o tópico do menu de modos). `null` = escondida ou já aberta.
+ */
+export function ligaTeaser(now = Date.now(), opensAt = LIGA_OPENS_AT) {
+    return ligaShown(now, opensAt) ? ligaCountdown(now, opensAt) : null;
+}
+
+/** A Liga já aparece (na última semana ou aberta). */
+export const ligaShown = (now = Date.now(), opensAt = LIGA_OPENS_AT) => now >= opensAt - LIGA_TEASE_MS;
+
 /** Chance de vitória esperada (Elo clássico). */
 export const eloExpected = (me: number, opp: number) => 1 / (1 + 10 ** ((opp - me) / 400));
 

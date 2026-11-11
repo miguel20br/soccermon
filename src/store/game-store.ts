@@ -55,7 +55,7 @@ import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
 import { detectLang, type Lang } from '../i18n/lang';
 import { type BinderCard, binderAdd, binderOf } from './binder';
-import { withCoachBaseline } from './coach';
+import { withAmbBaseline, withCoachBaseline } from './coach';
 import {
     type DailyEntry,
     dailyDay,
@@ -1184,11 +1184,13 @@ export function withUnlocks(saved: PersistedSave): PersistedSave {
         runs.flatMap((r) => r?.results ?? []).map(stageView),
     );
     // selo NOVO: save de antes dele conta o que já tinha como visto (depois das missões retroativas)
-    return withCoachBaseline(
-        withSeenBaseline(
-            fresh.length
-                ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
-                : save,
+    return withAmbBaseline(
+        withCoachBaseline(
+            withSeenBaseline(
+                fresh.length
+                    ? { ...save, profile: { ...save.profile, missionsDone: [...save.profile.missionsDone, ...fresh] } }
+                    : save,
+            ),
         ),
     );
 }
@@ -1338,7 +1340,7 @@ export const useGame = create<GameStore>()(
                 run: null,
                 settings: DEFAULT_SETTINGS,
                 records: { cups: 0, titles: 0, perfect: 0 },
-                profile: { ...DEFAULT_PROFILE, seen: [], coach: [] },
+                profile: { ...DEFAULT_PROFILE, seen: [], coach: [], ambLit: [] },
                 dex: {},
                 moves: {},
                 career: EMPTY_CAREER,

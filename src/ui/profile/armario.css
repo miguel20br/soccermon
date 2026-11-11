@@ -410,33 +410,6 @@
     }
 }
 
-/* "Ir pra Sede": o caminho do cartão pros lugares do clube (troféus, clube, amigos, missões) */
-.pf-to-sede {
-    all: unset;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    justify-self: center;
-    min-height: 44px;
-    padding: 6px 14px;
-    color: var(--muted);
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    transition: color 200ms var(--ease-out);
-}
-.pf-to-sede .crest {
-    width: 18px;
-    height: 20px;
-}
-.pf-to-sede:hover {
-    color: var(--text);
-}
-.pf-to-sede:focus-visible {
-    outline: 3px solid var(--yellow);
-    outline-offset: 2px;
-}
 .pf-code-row {
     display: grid;
     gap: 6px;

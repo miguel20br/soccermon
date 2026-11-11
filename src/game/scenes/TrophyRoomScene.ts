@@ -61,6 +61,8 @@ export interface RoomSceneData {
     cards: number;
     tv: { speciesId: number; shiny: boolean } | null;
     mon: { speciesId: number; shiny: boolean };
+    /** A vitrine da Liga (só na semana antes de abrir e depois: `ligaShown`). Sem = mostra. */
+    liga?: boolean;
     /** Objetos com novidade (brilho piscando em cima). */
     fresh: string[];
     /**
@@ -207,23 +209,26 @@ export class TrophyRoomScene extends Phaser.Scene {
             zone(`copa-${m}`, [base, cup, glass]);
             if (d.cups[m]) this.spot(x, 0xffe9b8, 1.5);
         });
-        const ligaBase = lit(
-            this.add
-                .image(LIGA_X, 122, canvasTex('pedestal-big', paintPedestal(34, 30)))
+        // a vitrine da Liga só na semana antes de abrir (e depois)
+        if (d.liga !== false) {
+            const ligaBase = lit(
+                this.add
+                    .image(LIGA_X, 122, canvasTex('pedestal-big', paintPedestal(34, 30)))
+                    .setOrigin(0.5, 1)
+                    .setDepth(122),
+            );
+            const ligaCup = lit(
+                this.add
+                    .image(LIGA_X, 93, canvasTex('cup-liga', paintCup('ghost', true)))
+                    .setOrigin(0.5, 1)
+                    .setDepth(123),
+            );
+            const ligaGlass = this.add
+                .image(LIGA_X, 93, canvasTex('glass-big', paintGlass(40, 48)))
                 .setOrigin(0.5, 1)
-                .setDepth(122),
-        );
-        const ligaCup = lit(
-            this.add
-                .image(LIGA_X, 93, canvasTex('cup-liga', paintCup('ghost', true)))
-                .setOrigin(0.5, 1)
-                .setDepth(123),
-        );
-        const ligaGlass = this.add
-            .image(LIGA_X, 93, canvasTex('glass-big', paintGlass(40, 48)))
-            .setOrigin(0.5, 1)
-            .setDepth(124);
-        zone('liga', [ligaBase, ligaCup, ligaGlass]);
+                .setDepth(124);
+            zone('liga', [ligaBase, ligaCup, ligaGlass]);
+        }
 
         // direita: cortiça da Copa do Dia, broches das medalhas, cinturões do Duelo
         const medals: Phaser.GameObjects.GameObject[] = [wall('mi', 262, 20, 'cork')];

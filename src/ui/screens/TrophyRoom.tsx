@@ -12,6 +12,7 @@ import { EventBus } from '../../game/EventBus';
 import { ROOM_H, ROOM_SPOTS, ROOM_W, type RoomSpot } from '../../game/room-spots';
 import type { TKey } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { ligaShown } from '../../league/rules';
 import { duelWins as duelWinsOf } from '../../store/duels';
 import { useGame } from '../../store/game-store';
 import { medalProgress } from '../../store/medals';
@@ -32,13 +33,13 @@ import { HallList } from '../components/HallParade';
 import { HudIcon } from '../components/MatchHud';
 import { useMenuBackOf } from '../components/MenuHead';
 import { type ArtKind, PixelTrophy } from '../components/PixelTrophy';
-import { initialTab, openDoor } from '../doors';
+import { initialTab, metasLink, openDoor, openMetas } from '../doors';
 import { playDoor } from '../kit/DoorWipe';
 import { Sheet as KitSheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { bannerText, clubVars } from '../profile/club';
-import { MedalsTab, useMedalView } from '../profile/Medals';
+import { useMedalView } from '../profile/Medals';
 import { NumbersTab } from '../profile/NumbersTab';
 import { markSeen, newsCount, useNews } from '../profile/news';
 import { PlatinumBlock } from '../profile/TrainerTab';
@@ -149,7 +150,7 @@ function usePortrait() {
         () => portrait().matches,
     );
 }
-type Sheet = 'lista' | 'medalhas' | 'numeros' | 'hall';
+type Sheet = 'lista' | 'numeros' | 'hall';
 
 /** Um troféu da lista: o desenho (silhueta se falta), o nome, quantos e como ganhar. */
 function TrophyCard({
@@ -175,7 +176,7 @@ function TrophyCard({
     );
 }
 
-/** Painel por cima da sala (medalhas, números, Hall da Fama, a lista de tudo). */
+/** Painel por cima da sala (números, Hall da Fama, a lista de tudo). */
 function SheetPanel({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
     return (
         <KitSheet open onClose={onClose} title={title} className="tr-sheet-panel">
@@ -195,14 +196,14 @@ interface Card {
 /**
  * Sala de troféus = o que eu ganhei (docs/planos/sala-brainstorm.md): o quarto em pixel art com luz é o menu. Tocar num
  * objeto: o resto escurece, a câmera chega perto e o cartão diz o que é, quantos, como ganhar e o histórico (setas
- * passam pro próximo). O que precisa de espaço (medalhas, números, Hall da Fama, a lista de tudo) abre num painel.
+ * passam pro próximo). O que precisa de espaço (números, Hall da Fama, a lista de tudo) abre num painel; as medalhas
+ * moram nas Metas da Sede. A Liga só aparece na semana antes de abrir (`ligaShown`).
  */
 export function TrophyRoom() {
     const { t, d, lang } = useT();
     const go = useGame((s) => s.go);
     const career = useGame((s) => s.career);
     const profile = useGame((s) => s.profile);
-    const updateProfile = useGame((s) => s.updateProfile);
     const hall = useGame((s) => s.hall);
     const daily = useGame((s) => s.daily);
     const records = useGame((s) => s.records);
@@ -236,11 +237,17 @@ export function TrophyRoom() {
             setFocus(TUTORIAL[n].focus);
         }
     };
-    // ?aba=medalhas|numeros (links antigos e prints) abre o painel direto
+    // ?aba=numeros (links antigos e prints) abre o painel direto; ?aba=medalhas vai pras Metas da Sede
     const [sheet, setSheet] = useState<Sheet | null>(() => {
         const tab = initialTab('trophies');
-        return tab === 'trofeus' ? null : tab;
+        return tab === 'trofeus' || tab === 'medalhas' ? null : tab;
     });
+    useEffect(() => {
+        if (metasLink(window.location.search)) openMetas();
+    }, []);
+    // a Liga fica fora da sala (objeto, legenda e setas) até a semana antes de abrir
+    const [showLiga] = useState(() => ligaShown());
+    const order: readonly Obj[] = showLiga ? ORDER : ORDER.filter((o) => o !== 'liga');
 
     const cups = cupCounts(hall);
     const days = dailyCounts(daily);
@@ -280,6 +287,7 @@ export function TrophyRoom() {
         avatar,
         night,
         viewW,
+        showLiga,
     ]);
     // biome-ignore lint/correctness/useExhaustiveDependencies: o quarto só muda quando o que ele mostra muda (sceneKey)
     const scene = useMemo(
@@ -306,6 +314,7 @@ export function TrophyRoom() {
                     ? { speciesId: avatar.speciesId, shiny: avatar.shiny === true }
                     : { speciesId: 25, shiny: false },
             viewW,
+            liga: showLiga,
         }),
         [sceneKey],
     );
@@ -375,7 +384,7 @@ export function TrophyRoom() {
                     title: t('trophies.spots.medals'),
                     badge: `${medals.filter((m) => m.tier > 0).length}/${medals.length}`,
                     lines: [t('trophies.card.medalsLine')],
-                    action: { label: t('trophies.act.medals'), run: () => setSheet('medalhas') },
+                    action: { label: t('trophies.act.medals'), run: openMetas },
                 };
             case 'numeros':
                 return {
@@ -436,8 +445,8 @@ export function TrophyRoom() {
     const card = focus && info(focus);
     const step = (k: number) => {
         if (!focus) return;
-        const i = ORDER.indexOf(focus);
-        setFocus(ORDER[(i + k + ORDER.length) % ORDER.length]);
+        const i = order.indexOf(focus);
+        setFocus(order[(i + k + order.length) % order.length]);
     };
     // setas do teclado passam de objeto, Esc volta pro quarto inteiro
     useEffect(() => {
@@ -529,14 +538,16 @@ export function TrophyRoom() {
                     {/* nomes: de tudo ao segurar, do que está debaixo do mouse ao passar (só o que está à vista) */}
                     {!focus && (hold || hover) && (
                         <div className="room-labels" aria-hidden>
-                            {(hold ? HOLD_LABELS : hover ? [hover] : []).map((id) => {
-                                const at = pos(id, seen);
-                                return at ? (
-                                    <span key={id} className="room-label" style={at}>
-                                        {d.trophies.labels[LABEL_OF[id]]}
-                                    </span>
-                                ) : null;
-                            })}
+                            {(hold ? HOLD_LABELS.filter((o) => showLiga || o !== 'liga') : hover ? [hover] : []).map(
+                                (id) => {
+                                    const at = pos(id, seen);
+                                    return at ? (
+                                        <span key={id} className="room-label" style={at}>
+                                            {d.trophies.labels[LABEL_OF[id]]}
+                                        </span>
+                                    ) : null;
+                                },
+                            )}
                         </div>
                     )}
                     {/* celular em pé: a sala maior, uma parede por vez */}
@@ -578,7 +589,7 @@ export function TrophyRoom() {
 
             {/* teclado e leitor de tela: os objetos em botões (aparecem ao receber o foco) */}
             <nav className="room-legend" aria-label={t('trophies.legendAria')}>
-                {LEGEND.map((l) => {
+                {LEGEND.filter((l) => showLiga || l.label !== 'liga').map((l) => {
                     const on = !!focus && l.has.includes(focus);
                     return (
                         <button
@@ -637,11 +648,6 @@ export function TrophyRoom() {
                 )}
             </KitSheet>
 
-            {sheet === 'medalhas' && (
-                <SheetPanel title={d.trophies.tabs.medalhas} onClose={() => setSheet(null)}>
-                    <MedalsTab save={updateProfile} />
-                </SheetPanel>
-            )}
             {sheet === 'numeros' && (
                 <SheetPanel title={d.trophies.tabs.numeros} onClose={() => setSheet(null)}>
                     <NumbersTab onOpenDex={() => openDoor('collection', 'dex')} />

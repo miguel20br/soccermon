@@ -117,3 +117,43 @@ export function withCoachBaseline(s: PersistedSave): PersistedSave {
 }
 
 export const coachSeen = (coach: readonly string[] | undefined, id: CoachId) => !!coach?.includes(id);
+
+/** As abas dos ambientes, da esquerda pra direita (a Home: `ui/ambientes/nav.ts`). */
+export const AMB_TABS = ['lab', 'rota', 'estadio', 'arena', 'sede'] as const;
+export type AmbTab = (typeof AMB_TABS)[number];
+type Progress = Pick<PersistedSave, 'career' | 'records' | 'duels' | 'hall'>;
+
+/**
+ * As abas que o progresso já acendeu (menos-e-mais.md, §7 C): o Estádio sempre; o Lab na 1ª partida; a Rota e a Sede
+ * na 1ª copa terminada; a Arena na 2ª copa, no 1º título ou depois de um Duelo (o convite abre a sala direto).
+ */
+export function ambEarned(s: Progress): AmbTab[] {
+    const cups = s.records.cups;
+    const titles = Math.max(s.records.titles, s.hall.length);
+    const on: Record<AmbTab, boolean> = {
+        estadio: true,
+        lab: s.career.matches > 0 || cups > 0,
+        rota: cups > 0,
+        sede: cups > 0,
+        arena: cups >= 2 || titles > 0 || s.duels.length > 0,
+    };
+    return AMB_TABS.filter((t) => on[t]);
+}
+
+/** Abas acesas: o que o progresso acendeu mais o que já acendeu antes (`profile.ambLit`): aba nunca apaga. */
+export function ambLit(s: Progress & { profile: { ambLit?: readonly string[] } }): AmbTab[] {
+    const was = new Set(s.profile.ambLit ?? []);
+    const earned = new Set<string>(ambEarned(s));
+    return AMB_TABS.filter((t) => earned.has(t) || was.has(t));
+}
+
+/** Acesas pelo progresso e ainda sem o destaque de "acendeu agora" (o Estádio nasce aceso, sem destaque). */
+export const ambFresh = (s: Progress & { profile: { ambLit?: readonly string[] } }): AmbTab[] =>
+    ambEarned(s).filter((t) => t !== 'estadio' && !s.profile.ambLit?.includes(t));
+
+/** Save de antes das abas acendendo: quem já jogou alguma coisa continua vendo as 5 acesas (sem destaque). */
+export function withAmbBaseline(s: PersistedSave): PersistedSave {
+    if (Array.isArray(s.profile.ambLit)) return s;
+    const played = s.records.cups > 0 || s.career.matches > 0 || s.duels.length > 0 || s.hall.length > 0;
+    return { ...s, profile: { ...s.profile, ambLit: played ? [...AMB_TABS] : [] } };
+}

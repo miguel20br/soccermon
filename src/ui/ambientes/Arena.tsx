@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { playCry } from '../../game/audio';
 import { useT } from '../../i18n/react';
-import { ligaCountdown } from '../../league/rules';
+import { ligaCountdown, ligaTeaser } from '../../league/rules';
 import { duelWins } from '../../store/duels';
 import { useGame } from '../../store/game-store';
 import { HudIcon } from '../components/MatchHud';
@@ -23,7 +23,7 @@ export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
 /**
  * Arena (Duelo): uma quadra de rua à noite, o seu Pokémon de um lado e uma silhueta do outro, o muro e o poste aceso.
  * (o Arcade saiu: ainda não tem data). A meta é o próximo cinturão do Duelo; o botão principal
- * é Desafiar. A Liga, enquanto fechada, é um letreiro no muro com a contagem (tocar abre a Liga).
+ * é Desafiar. A Liga, na semana antes de abrir, é um letreiro no muro com a contagem (tocar abre a Liga); antes, nada.
  */
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const { t } = useT();
@@ -50,7 +50,9 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const [rival] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
     const mine = avatarMon(avatar);
     const belt = nextBelt(wins);
-    const liga = ligaCountdown();
+    // o letreiro só na semana antes de abrir; aberta, vira o tile
+    const liga = ligaTeaser();
+    const ligaOpen = !ligaCountdown();
     // os dois do duelo na escala da cena, a mesma dos de volta (revisão de arte: nada de 4x ao lado de 3x)
 
     return (
@@ -99,7 +101,7 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         <HudIcon kind="next" />
                     </button>
                     {/* o Arcade e a Liga fechada ficam no muro (neon e letreiro): o tile repetia */}
-                    {!liga && (
+                    {ligaOpen && (
                         <div className="amb-tiles">
                             <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
                         </div>

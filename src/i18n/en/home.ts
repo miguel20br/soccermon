@@ -120,6 +120,7 @@ export const home: typeof pt = {
         neonWeek: 'of the week',
         sedeOf: '{club} HQ',
         sedeBoard: 'Mission board',
+        sedeMetas: 'Goals',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Your first trophy goes here',
         sedeTrophies: 'Trophies',

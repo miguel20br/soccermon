@@ -125,6 +125,8 @@ export const home = {
         /** Sede: o quadro de missões e a Sala de troféus. */
         sedeOf: 'Sede do {club}',
         sedeBoard: 'Quadro de missões',
+        /** Missões e medalhas numa folha só, na Sede. */
+        sedeMetas: 'Metas',
         /** Plaquinha na vitrine vazia da Sede (quem ainda não ganhou nada). */
         sedeFirst: 'Seu 1º troféu fica aqui',
         /** Plaquinha da vitrine (abre a Sala de troféus). */

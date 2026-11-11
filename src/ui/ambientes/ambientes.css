@@ -134,7 +134,7 @@
     bottom: 6px;
     left: 0;
     width: calc(100% / var(--n));
-    transform: translateX(calc(var(--pos) * 100%));
+    transform: translateX(calc(var(--bpos) * 100%));
     transition: transform var(--amb-ms) var(--ease-out);
 }
 .amb-ind::before {
@@ -239,7 +239,7 @@
         bottom: auto;
         width: auto;
         height: calc(100% / var(--n));
-        transform: translateY(calc(var(--pos) * 100%));
+        transform: translateY(calc(var(--bpos) * 100%));
     }
     .amb-ind::before {
         inset: 3px 0;
@@ -3626,6 +3626,53 @@
 /* o ícone da aba quica quando ela acende */
 .amb-tab.on .amb-tab-ic {
     animation: cb-pop 360ms var(--ease-pop);
+}
+/* aba que o progresso ainda não acendeu (menos-e-mais.md §7 C): apagada, sem cadeado, sem toque */
+.amb-tab {
+    transition:
+        color var(--amb-ms) var(--ease-out),
+        opacity 250ms var(--ease-out),
+        filter 250ms var(--ease-out);
+}
+.amb-tab.off {
+    opacity: 0.32;
+    filter: grayscale(1);
+    cursor: default;
+}
+/* acabou de acender: o ícone brilha duas vezes e fica a bolinha amarela até sair da Home */
+.amb-tab-new .amb-tab-ic {
+    position: relative;
+    animation: amb-lit 900ms var(--ease-out) 2;
+}
+.amb-tab-new .amb-tab-ic::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--yellow);
+    border: 2px solid var(--bc-ink);
+}
+@keyframes amb-lit {
+    0%,
+    100% {
+        scale: 1;
+        filter: none;
+    }
+    35% {
+        scale: 1.25;
+        filter: brightness(1.8) drop-shadow(0 0 6px var(--yellow));
+    }
+}
+[data-reduce-motion="true"] .amb-tab-new .amb-tab-ic {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .amb-tab-new .amb-tab-ic {
+        animation: none;
+    }
 }
 /* lista de modos aberta: a barra de cima sai do caminho (a lista sobe por baixo dela) */
 .amb-top {

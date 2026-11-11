@@ -1,6 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../i18n/react';
-import { isFirstVisit, rotaNovaDue } from '../../store/coach';
+import { ambFresh, ambLit, isFirstVisit, rotaNovaDue } from '../../store/coach';
 import { useGame } from '../../store/game-store';
 import { LONG_CUP_LIVE } from '../../store/long-cup';
 import { Coach, useHydrated } from '../coach/Coach';
@@ -19,7 +19,7 @@ import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
-import { openPage } from '../doors';
+import { metasNext, openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 import { tvCut } from '../tv';
 import { uiZoom } from '../ui-zoom';
@@ -45,7 +45,26 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     const firstVisit = useGame(isFirstVisit);
     const records = useGame((s) => s.records);
     const coachSeen = useGame((s) => s.profile.coach);
-    const [tab, setTabState] = useState(tabMemory.last);
+    const [rawTab, setTabState] = useState(tabMemory.last);
+    // as abas acendem pela progressão (coach.ts, `ambLit`): a apagada fica na barra, sem painel e fora do arrasto
+    const litKey = useGame((s) => ambLit(s).join(' '));
+    const lit = useMemo(() => litKey.split(' ') as Tab[], [litKey]);
+    const last = lit.length - 1;
+    const isLit = (i: number) => lit.includes(TABS[i]);
+    /** Posição da aba entre as acesas (a do painel e do arrasto). */
+    const ci = (i: number) => lit.indexOf(TABS[i]);
+    const tab = isLit(rawTab) ? rawTab : START;
+    // a aba que acabou de acender ganha o destaque uma vez (fica marcada no save na hora)
+    const [glow, setGlow] = useState<readonly Tab[]>([]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: roda quando o save carrega e quando uma aba acende
+    useEffect(() => {
+        if (!hydrated) return;
+        const s = useGame.getState();
+        const fresh = ambFresh(s);
+        if (!fresh.length) return;
+        setGlow((g) => [...g, ...fresh]);
+        s.updateProfile({ ambLit: [...(s.profile.ambLit ?? []), ...fresh] });
+    }, [hydrated, litKey]);
     // o céu do Estádio e da Rota segue a hora de verdade (dia, fim de tarde, noite); a Arena é sempre à noite
     const [sky] = useState(() => skyOf(new Date().getHours()));
     const [entering, setEntering] = useState<(() => void) | null>(null);
@@ -63,23 +82,34 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     const club = useMemo(() => clubWild(dex), [dex]);
     const lists = useMemo(() => (club.length ? { ...rolled, sede: club } : rolled), [rolled, club]);
     const quota = wildQuota(
-        tab,
-        TABS.map((id) => lists[id].length),
+        ci(tab),
+        lit.map((id) => lists[id].length),
     );
-    const wildOf = (i: number) => lists[TABS[i]].slice(0, quota[i]);
+    const wildOf = (i: number) => lists[TABS[i]].slice(0, quota[ci(i)] ?? 0);
     // a arte do kit (Laboratório, Sede) só baixa quando a aba fica perto da tela, e depois fica
     const seen = useRef(new Set<number>());
-    for (const i of [tab - 1, tab, tab + 1]) seen.current.add(i);
+    for (const j of [ci(tab) - 1, ci(tab), ci(tab) + 1]) if (lit[j]) seen.current.add(TABS.indexOf(lit[j]));
 
-    const setPos = (p: number) => root.current?.style.setProperty('--pos', String(p));
+    /** `--pos` anda entre as acesas; `--bpos` é a mesma posição na barra (que tem as 5), pulando as apagadas. */
+    const barPos = (p: number) => {
+        const c = Math.max(0, Math.min(last, p));
+        const a = TABS.indexOf(lit[Math.floor(c)]);
+        const b = TABS.indexOf(lit[Math.ceil(c)]);
+        return a + (b - a) * (c - Math.floor(c));
+    };
+    const setPos = (p: number) => {
+        root.current?.style.setProperty('--pos', String(p));
+        root.current?.style.setProperty('--bpos', String(barPos(p)));
+    };
     const setTab = (i: number) => {
         tabMemory.last = i;
         setTabState(i);
-        setPos(i);
+        setPos(ci(i));
     };
     // tocar na aba é um corte de TV (a aba troca embaixo da faixa, sem deslizar); o arrasto continua igual
     const tvTab = (i: number) =>
         i !== tab &&
+        isLit(i) &&
         tvCut(() => {
             const r = root.current;
             r?.classList.add('amb-drag');
@@ -117,7 +147,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     // teclado: setas trocam de aba quando o foco está na barra
     const onKey = (e: React.KeyboardEvent) => {
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-        const i = Math.max(0, Math.min(TABS.length - 1, tab + (e.key === 'ArrowRight' ? 1 : -1)));
+        const i = TABS.indexOf(lit[Math.max(0, Math.min(last, ci(tab) + (e.key === 'ArrowRight' ? 1 : -1)))]);
         setTab(i);
         root.current?.querySelector<HTMLElement>(`#amb-tab-${TABS[i]}`)?.focus();
     };
@@ -148,7 +178,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         if (dt > 0) g.vx = 0.7 * ((e.clientX - g.lx) / dt) + 0.3 * g.vx;
         g.lx = e.clientX;
         g.lt = e.timeStamp;
-        setPos(dragPos(tab, dx, width()));
+        setPos(dragPos(ci(tab), dx, width(), last));
     };
     const onUp = (e: React.PointerEvent) => {
         const g = drag.current;
@@ -156,15 +186,19 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         if (!g?.on) return;
         root.current?.classList.remove('amb-drag');
         swallowClick.current = true;
-        const to = snapTab(tab, e.clientX - g.x, g.vx, width());
+        const to = TABS.indexOf(lit[snapTab(ci(tab), e.clientX - g.x, g.vx, width(), last)]);
         // o toque na aba já faz o som (feedback.ts); o arrasto que troca de lugar faz o mesmo
         if (to !== tab) feedback('tap');
         setTab(to);
     };
 
     useEffect(() => {
-        setPos(tab);
+        setPos(ci(tab));
     });
+    // o pedido das Metas vale só pra este desenho (a Sede já leu; apagada, não abre sozinho depois)
+    useEffect(() => {
+        metasNext.on = false;
+    }, []);
 
     // voltar do Android: fora do Estádio, volta pro Estádio
     const tabRef = useRef(tab);
@@ -203,7 +237,7 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
             ref={root}
             className={`amb${entering ? ` amb-entering amb-enter-${TABS[tab]}` : ''}`}
             data-sky={sky}
-            style={{ '--pos': tab, '--n': TABS.length } as CSSProperties}
+            style={{ '--pos': ci(tab), '--bpos': tab, '--n': TABS.length } as CSSProperties}
         >
             <div className="amb-top k-topbar">
                 <TopBar />
@@ -223,21 +257,23 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                     e.stopPropagation();
                 }}
             >
-                {TABS.map((id, i) => (
-                    <section
-                        key={id}
-                        id={`amb-panel-${id}`}
-                        role="tabpanel"
-                        aria-labelledby={`amb-tab-${id}`}
-                        className={`amb-panel amb-${id}${i === tab ? ' on' : ''}`}
-                        style={{ '--i': i } as CSSProperties}
-                        inert={i !== tab}
-                    >
-                        <SpriteNearCtx.Provider value={seen.current.has(i)}>
-                            {view[id](i === tab, wildOf(i), seen.current.has(i))}
-                        </SpriteNearCtx.Provider>
-                    </section>
-                ))}
+                {TABS.map((id, i) =>
+                    !isLit(i) ? null : (
+                        <section
+                            key={id}
+                            id={`amb-panel-${id}`}
+                            role="tabpanel"
+                            aria-labelledby={`amb-tab-${id}`}
+                            className={`amb-panel amb-${id}${i === tab ? ' on' : ''}`}
+                            style={{ '--i': ci(i) } as CSSProperties}
+                            inert={i !== tab}
+                        >
+                            <SpriteNearCtx.Provider value={seen.current.has(i)}>
+                                {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                            </SpriteNearCtx.Provider>
+                        </section>
+                    ),
+                )}
             </div>
             <nav className="amb-bar" aria-label={t('home.amb.tabsAria')}>
                 <div className="amb-tabs" role="tablist" aria-orientation="horizontal" onKeyDown={onKey}>
@@ -251,7 +287,8 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
                             aria-selected={i === tab}
                             aria-controls={`amb-panel-${id}`}
                             tabIndex={i === tab ? 0 : -1}
-                            className={`amb-tab amb-tab-${id}${i === tab ? ' on' : ''}`}
+                            disabled={!isLit(i)}
+                            className={`amb-tab amb-tab-${id}${i === tab ? ' on' : ''}${isLit(i) ? '' : ' off'}${glow.includes(id) ? ' amb-tab-new' : ''}`}
                             onClick={() => tvTab(i) || setTab(i)}
                         >
                             <span className="amb-tab-ic">

@@ -6,6 +6,10 @@ vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, 
 
 import { placeBalloon } from '../ui/coach/place';
 import {
+    AMB_TABS,
+    ambEarned,
+    ambFresh,
+    ambLit,
     COACH_GROUPS,
     COACH_IDS,
     coachSeen,
@@ -188,5 +192,48 @@ describe('balão relampagoJogo', () => {
         expect(relampagoJogoDue([1, 0], false)).toBe(true);
         expect(relampagoJogoDue([0, 2], false)).toBe(true);
         expect(relampagoJogoDue([0, 0], true)).toBe(true);
+    });
+});
+
+describe('abas dos ambientes acendem pela progressão (menos-e-mais.md §7 C)', () => {
+    const fresh = (patch: Partial<PersistedSave> = {}) => {
+        const s = save(patch);
+        return { ...s, profile: { ...s.profile, ambLit: [] } };
+    };
+    const cups = (n: number, titles = 0) => ({ records: { cups: n, titles, perfect: 0 } });
+
+    it('save novo: só o Estádio; 1ª partida acende o Lab; 1ª copa, a Rota e a Sede; 2ª copa ou título, a Arena', () => {
+        expect(ambLit(fresh())).toEqual(['estadio']);
+        expect(ambLit(fresh({ career: { ...EMPTY_CAREER, matches: 1 } }))).toEqual(['lab', 'estadio']);
+        expect(ambLit(fresh({ ...cups(1), career: { ...EMPTY_CAREER, matches: 4 } }))).toEqual([
+            'lab',
+            'rota',
+            'estadio',
+            'sede',
+        ]);
+        expect(ambLit(fresh(cups(2)))).toEqual([...AMB_TABS]);
+        expect(ambLit(fresh(cups(1, 1)))).toEqual([...AMB_TABS]);
+        // o convidado do Duelo já jogou na Arena: ela fica acesa
+        expect(ambEarned(fresh({ duels: [{ id: 'x' } as PersistedSave['duels'][number]] }))).toContain('arena');
+    });
+
+    it('aba acesa nunca apaga; o destaque sai só pra aba recém-acesa (nunca o Estádio)', () => {
+        const s = fresh(cups(1));
+        expect(ambFresh(s)).toEqual(['lab', 'rota', 'sede']);
+        const after = { ...s, profile: { ...s.profile, ambLit: ['lab', 'rota', 'sede', 'arena'] } };
+        expect(ambFresh(after)).toEqual([]);
+        expect(ambLit(after)).toEqual([...AMB_TABS]);
+    });
+
+    it('save antigo (backup v6) continua com as 5 abas acesas e sem destaque; save vazio sem o campo, só o Estádio', () => {
+        for (const lang of ['pt', 'en']) {
+            const backup = JSON.parse(readFileSync(`scripts/fixtures/backup-v6-${lang}.json`, 'utf8'));
+            const s = migrateSave(backup.save, backup.version);
+            expect(ambLit(s)).toEqual([...AMB_TABS]);
+            expect(ambFresh(s)).toEqual([]);
+        }
+        expect(ambLit(withUnlocks(save()))).toEqual(['estadio']);
+        // quem já jogou uma partida antes desta versão também não perde aba
+        expect(ambLit(withUnlocks(save({ career: { ...EMPTY_CAREER, matches: 1 } })))).toEqual([...AMB_TABS]);
     });
 });
