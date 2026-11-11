@@ -45,7 +45,6 @@ export const battle: typeof pt = {
         lambreta: 'RAINBOW FLICK',
         roleta: 'ROULETTE',
         elastico: 'ELASTICO',
-        vaca: 'PELÉ RUN-AROUND',
         chapeu: 'SOMBRERO FLICK',
     },
     fulltime: 'FULL TIME',

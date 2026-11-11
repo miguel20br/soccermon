@@ -53,7 +53,6 @@ export const battle = {
         lambreta: 'LAMBRETA',
         roleta: 'ROLETA',
         elastico: 'ELÁSTICO',
-        vaca: 'DRIBLE DA VACA',
         chapeu: 'CHAPÉU',
     },
     fulltime: 'FIM DE JOGO',

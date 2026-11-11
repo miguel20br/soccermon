@@ -60,7 +60,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * tocado assim que acende, pega quem bloqueia ou defende com o efeito do N1 (`&nivel=1&capitao=55`: a onda do Golduck).
  * `&gol=1`: só a jogada em que o golpe, perfeito e já na agenda, entra (sem tocar; as gravações do N3 por tipo); com
  * `&goleiro=1`, a bicuda perfeita na agenda num chute comum do rival (as gravações das bicudas N1, N2 e N3).
- * `?demo=dribles&tipo=lambreta|roleta|elastico|vaca|chapeu` abre na escalação uma partida de um time de DRI alta (Pikachu,
+ * `?demo=dribles&tipo=lambreta|roleta|elastico|chapeu` abre na escalação uma partida de um time de DRI alta (Pikachu,
  * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
  * procura a partir da copa N);
  * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).

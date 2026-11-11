@@ -488,7 +488,7 @@ describe('dribles com nome (só tela)', () => {
         }
     });
 
-    it('os 5 dribles aparecem e nenhum domina (nenhum passa de 35%)', () => {
+    it('os 4 dribles aparecem e nenhum domina (nenhum passa de 40%)', () => {
         const count: Record<string, number> = {};
         let total = 0;
         for (const { r } of [...games, ...[7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(dri)]) {
@@ -499,7 +499,7 @@ describe('dribles com nome (só tela)', () => {
             }
         }
         expect(Object.keys(count).sort()).toEqual([...DRIBBLE_KINDS].sort());
-        for (const k of DRIBBLE_KINDS) expect(count[k] / total).toBeLessThan(0.35);
+        for (const k of DRIBBLE_KINDS) expect(count[k] / total).toBeLessThan(0.4);
     });
 
     it('faixa do drible: entra e sai devagar (um movimento só com fade), sem o tranco da faixa do golpe', () => {
@@ -573,7 +573,7 @@ describe('dribles com nome (só tela)', () => {
         }
     });
 
-    it('vaca: no ápice a bola e o driblador um de cada lado do marcador; chapéu: a bola no alto em cima dele', () => {
+    it('chapéu: a bola no alto em cima do marcador', () => {
         const toBall = { x: 9, y: 2 };
         const toMarker = { x: -12, y: 8 };
         for (const dir of [
@@ -583,18 +583,8 @@ describe('dribles com nome (só tela)', () => {
         ])
             for (const side of [1, -1] as const) {
                 const base = { tick: 100, by: 1, marker: 6, team: 0 as const, dir, side };
-                const vaca = dribblePose({ ...base, kind: 'vaca' }, 100, toBall, toMarker);
                 const chapeu = dribblePose({ ...base, kind: 'chapeu' }, 100, toBall, toMarker, false, 60);
-                if (!vaca || !chapeu) throw new Error('sem pose');
-                // eixo de lado (perpendicular à corrida): marcador entre a bola e o corpo
-                const S = { x: -dir.y, y: dir.x };
-                const lat = (p: { x: number; y: number }) => p.x * S.x + p.y * S.y;
-                const m = lat({ x: toMarker.x + vaca.markerBody.x, y: toMarker.y + vaca.markerBody.y });
-                const b = lat({ x: toBall.x + vaca.ball.x, y: toBall.y + vaca.ball.y });
-                const body = lat(vaca.body);
-                expect(Math.sign(b - m)).toBe(-Math.sign(body - m));
-                expect(Math.min(Math.abs(b - m), Math.abs(body - m))).toBeGreaterThan(20);
-                expect(vaca.lift).toBe(0);
+                if (!chapeu) throw new Error('sem pose');
                 // chapéu: bola bem acima da cabeça (60 px), sem calcanhar (não vai pra trás do pé antes do toque)
                 expect(chapeu.lift).toBeGreaterThan(60 + 20);
                 for (let t = 94; t < 98; t += 0.25) {

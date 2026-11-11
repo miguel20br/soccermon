@@ -21,6 +21,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'A Liga aparece na última semana antes de abrir',
                     'Configurações com o principal à vista e o resto em Mais opções',
                     'Ajuda mais curta: Como funciona de cada modo em cima e só as regras que não estão na tela',
+                    'Prancheta e VERSUS voltam aos sprites clássicos, com miniaturas menores e os times se encarando',
                 ],
             },
             {
@@ -31,6 +32,8 @@ export const PATCH_NOTES: PatchNotes[] = [
                 title: 'Partida',
                 lines: [
                     'Lambreta com a bola em arco por cima do marcador, roleta com giro de 360° e elástico com a finta que o marcador morde',
+                    'Drible novo: o chapéu, com a bola por cima da cabeça do marcador',
+                    'Chute, passe, desarme e defesa batem na bola no quadro certo (antes a animação vinha atrasada)',
                 ],
             },
         ],
@@ -2839,6 +2842,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'The League shows up in the last week before it opens',
                     'Settings with the essentials up front and the rest under More options',
                     'Shorter Help: how each mode works on top and only the rules that are not on screen',
+                    'Lineup board and VERSUS are back to the classic sprites, with smaller thumbnails and the teams facing each other',
                 ],
             },
             {
@@ -2849,6 +2853,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 title: 'Match',
                 lines: [
                     'Rainbow flick with the ball arcing over the defender, a 360° roulette spin and an elastico feint the defender bites on',
+                    'New dribble: the sombrero flick, lifting the ball over the defender',
+                    'Shots, passes, tackles and saves hit the ball on the right frame (the animation used to lag)',
                 ],
             },
         ],
