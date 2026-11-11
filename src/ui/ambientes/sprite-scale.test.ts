@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boardScale, estadioScale, fitScale, realScale, sceneScale, versusScale } from './sprite-scale';
+import { boardScale, estadioScale, fitScale, realScale, sceneScale, versusDir, versusScale } from './sprite-scale';
 
 describe('escala dos sprites fora da partida (revisão de arte)', () => {
     it('uma escala por tamanho de tela: pequeno 1, celular 2, PC 3', () => {
@@ -34,5 +34,12 @@ describe('escala dos sprites fora da partida (revisão de arte)', () => {
         expect(realScale(2, 1.35, 2).css).toBe(2.5);
         // Windows a 125%: 2 x 1,25 = 2,5 pixels, desce pra 2 (inteiro)
         expect(realScale(2, 1, 1.25).css * 1.25).toBe(2);
+    });
+});
+
+describe('versusDir', () => {
+    it('os dois times se encaram: lado a lado (direita/esquerda) e em pé (rival em cima olha pra baixo)', () => {
+        expect([versusDir('home', false), versusDir('away', false)]).toEqual([2, 6]);
+        expect([versusDir('home', true), versusDir('away', true)]).toEqual([4, 0]);
     });
 });

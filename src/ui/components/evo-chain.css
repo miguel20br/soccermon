@@ -26,8 +26,8 @@
     justify-items: center;
     align-content: start;
     gap: 2px;
-    width: 78px;
-    padding: 4px;
+    width: 62px;
+    padding: 3px;
     border-radius: 9px;
     border: 2px solid var(--line);
     background: var(--bg-2);
@@ -42,8 +42,8 @@
         transform 160ms ease;
 }
 .evo-chain-mon img {
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
     object-fit: contain;
 }
 /* mini carta: nota e posição em cima, com a cor do metal pela nota (bronze/prata/ouro) */
@@ -118,7 +118,7 @@
 }
 @media (max-width: 480px) {
     .evo-chain-mon {
-        width: 70px;
+        width: 56px;
     }
     .evo-chain .pf-evo-arrow {
         width: 14px;

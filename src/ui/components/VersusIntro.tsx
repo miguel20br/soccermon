@@ -16,7 +16,7 @@ import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../stor
 import { tagFromName } from '../../store/profile';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { FieldSprite } from '../ambientes/FieldSprite';
-import { BIG, fitScale, SMALL, useMq, versusScale } from '../ambientes/sprite-scale';
+import { BIG, fitScale, PORTRAIT, SMALL, useMq, versusDir, versusScale } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
@@ -200,6 +200,7 @@ function Side({
     team,
     side,
     scale,
+    portrait,
     name,
     tag,
     label,
@@ -211,6 +212,7 @@ function Side({
     team: TeamSetup;
     side: 'home' | 'away';
     scale: number;
+    portrait: boolean;
     look: ClubLook;
     name: string;
     tag: string;
@@ -271,7 +273,7 @@ function Side({
                         <span>{quote}</span>
                     </p>
                 )}
-                <Squad team={team} trainer={trainer} dir={side === 'home' ? 2 : 6} scale={scale} />
+                <Squad team={team} trainer={trainer} dir={versusDir(side, portrait)} scale={scale} />
             </div>
         </div>
     );
@@ -403,6 +405,7 @@ export function VersusIntro({
     const mono = host ? computeSynergies(away.lineup, away.bench).find((s) => s.mono) : undefined;
     const quote = mono ? t('match.vs.mono', { type: typeName(mono.type) }) : hostText?.pre;
     const vs = useVsScale();
+    const portrait = useMq(PORTRAIT);
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -421,6 +424,7 @@ export function VersusIntro({
                     team={away}
                     side="away"
                     scale={vs.scale}
+                    portrait={portrait}
                     trainer={awayTrainer ?? (rivalTrainer(away.name) as TrainerId | undefined)}
                     name={awayName}
                     coach={awayCoach}
@@ -442,6 +446,7 @@ export function VersusIntro({
                     team={home}
                     side="home"
                     scale={vs.scale}
+                    portrait={portrait}
                     trainer={activeTrainer(profile)}
                     name={home.name}
                     coach={homeCoach}

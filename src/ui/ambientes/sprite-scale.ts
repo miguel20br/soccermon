@@ -65,3 +65,10 @@ export function realScale(scale: number, z = 1, dpr = 1): { css: number; zoom: n
  */
 export const rowScale = (bodies: (number | null)[], fit: number, max: number) =>
     Math.max(1, Math.min(max, ...bodies.map((b) => (b ? Math.floor(fit / b) : max))));
+
+/** Em pé (mesma regra do CSS do VERSUS) o rival fica em cima e você embaixo. */
+export const PORTRAIT = '(max-aspect-ratio: 1 / 1)';
+
+/** Direção PMD (0 baixo, 2 direita, 4 cima, 6 esquerda) pro time do VERSUS encarar o outro: lado a lado, ou empilhado em pé. */
+export const versusDir = (side: 'home' | 'away', portrait: boolean) =>
+    portrait ? (side === 'home' ? 4 : 0) : side === 'home' ? 2 : 6;
