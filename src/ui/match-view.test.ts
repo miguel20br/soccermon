@@ -469,17 +469,39 @@ describe('dribles com nome (só tela)', () => {
         expect(total).toBeGreaterThan(0);
     });
 
-    it('a variação sai do lance (mesma partida, mesmo drible) e o tamanho do marcador decide roleta ou lambreta', () => {
+    it('a variação sai do lance (mesma partida, mesmo drible) e o marcador baixo vindo de trás toma a lambreta', () => {
         for (const { r } of games) {
             const tall = namedDribbles(r, all(99, 2));
             expect(namedDribbles(r, all(99, 2))).toEqual(tall);
             const short = namedDribbles(r, all(99, 0.4));
             expect(short.map((d) => d.tick)).toEqual(tall.map((d) => d.tick));
             for (const [i, d] of tall.entries()) {
-                expect(['elastico', 'roleta']).toContain(d.kind);
-                expect(short[i].kind).toBe(d.kind === 'roleta' ? 'lambreta' : 'elastico');
+                expect(d.kind).not.toBe('lambreta');
+                const behind = d.kind === 'roleta' || d.kind === 'chapeu';
+                expect(short[i].kind).toBe(behind ? 'lambreta' : d.kind);
             }
         }
+    });
+
+    it('os 5 dribles aparecem e nenhum domina (nenhum passa de 35%)', () => {
+        const count: Record<string, number> = {};
+        let total = 0;
+        for (const { r } of [...games, ...[7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(dri)]) {
+            // marcador alto ou baixo conforme a vaga (os dois casos no mesmo jogo)
+            for (const d of namedDribbles(r, (idx) => ({ dri: 99, height: idx % 2 ? 2 : 0.4 }))) {
+                count[d.kind] = (count[d.kind] ?? 0) + 1;
+                total++;
+            }
+        }
+        expect(Object.keys(count).sort()).toEqual([...DRIBBLE_KINDS].sort());
+        for (const k of DRIBBLE_KINDS) expect(count[k] / total).toBeLessThan(0.35);
+    });
+
+    it('faixa do drible: entra e sai devagar (um movimento só com fade), sem o tranco da faixa do golpe', () => {
+        // a do golpe entra em 200 ms com o texto correndo atrás em 300 e sai em 220: no drible parecia piscar
+        expect(NAMED_DRIBBLE.bannerInMs).toBeGreaterThanOrEqual(300);
+        expect(NAMED_DRIBBLE.bannerOutMs).toBeGreaterThanOrEqual(300);
+        expect(NAMED_DRIBBLE.bannerInMs + NAMED_DRIBBLE.bannerMs + NAMED_DRIBBLE.bannerOutMs).toBeGreaterThan(1600);
     });
 
     it('câmera lenta de 1 a 1,25 s de tela só na 1x; em 2x pra cima nunca', () => {
@@ -542,7 +564,38 @@ describe('dribles com nome (só tela)', () => {
             expect(huh).toBeGreaterThan(0.9);
             // a roleta dá a volta inteira: passa pelas 8 direções
             if (kind === 'roleta') expect(faces.size).toBe(8);
-            if (kind === 'lambreta') expect(peak).toBeGreaterThan(90);
+            if (kind === 'lambreta' || kind === 'chapeu') expect(peak).toBeGreaterThan(90);
         }
+    });
+
+    it('vaca: no ápice a bola e o driblador um de cada lado do marcador; chapéu: a bola no alto em cima dele', () => {
+        const toBall = { x: 9, y: 2 };
+        const toMarker = { x: -12, y: 8 };
+        for (const dir of [
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+            { x: -0.6, y: 0.8 },
+        ])
+            for (const side of [1, -1] as const) {
+                const base = { tick: 100, by: 1, marker: 6, team: 0 as const, dir, side };
+                const vaca = dribblePose({ ...base, kind: 'vaca' }, 100, toBall, toMarker);
+                const chapeu = dribblePose({ ...base, kind: 'chapeu' }, 100, toBall, toMarker, false, 60);
+                if (!vaca || !chapeu) throw new Error('sem pose');
+                // eixo de lado (perpendicular à corrida): marcador entre a bola e o corpo
+                const S = { x: -dir.y, y: dir.x };
+                const lat = (p: { x: number; y: number }) => p.x * S.x + p.y * S.y;
+                const m = lat({ x: toMarker.x + vaca.markerBody.x, y: toMarker.y + vaca.markerBody.y });
+                const b = lat({ x: toBall.x + vaca.ball.x, y: toBall.y + vaca.ball.y });
+                const body = lat(vaca.body);
+                expect(Math.sign(b - m)).toBe(-Math.sign(body - m));
+                expect(Math.min(Math.abs(b - m), Math.abs(body - m))).toBeGreaterThan(20);
+                expect(vaca.lift).toBe(0);
+                // chapéu: bola bem acima da cabeça (60 px), sem calcanhar (não vai pra trás do pé antes do toque)
+                expect(chapeu.lift).toBeGreaterThan(60 + 20);
+                for (let t = 94; t < 98; t += 0.25) {
+                    const p = dribblePose({ ...base, kind: 'chapeu' }, t, toBall, toMarker);
+                    expect((p?.ball.x ?? 0) * dir.x + (p?.ball.y ?? 0) * dir.y).toBeGreaterThanOrEqual(-0.01);
+                }
+            }
     });
 });

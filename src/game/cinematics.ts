@@ -582,6 +582,11 @@ export class Cinematics {
         y?: number;
         /** Quem usou (o "X usou" numa placa em cima do golpe; o N3 de linha). */
         who?: string;
+        /**
+         * Entrada e saída mais calmas (ms; o drible com nome): um movimento só, com fade, sem o texto correndo atrás da
+         * faixa. Sem isso, a do golpe: entra em 200 ms (o texto em 300) e sai em 220.
+         */
+        calm?: { inMs: number; outMs: number };
     }) {
         const scene = this.scene;
         const hold = opts.holdMs ?? SUPER_HOLD_MS;
@@ -688,10 +693,27 @@ export class Cinematics {
         const dir = opts.fromRight ? -1 : 1;
         const off = GAME_W / s;
         const out = () => holder.destroy();
+        const calm = opts.calm;
         if (opts.reduce) {
             inner.setAlpha(0);
-            scene.tweens.add({ targets: inner, alpha: 1, duration: 200 });
-            scene.tweens.add({ targets: inner, alpha: 0, delay: hold, duration: 220, onComplete: out });
+            scene.tweens.add({ targets: inner, alpha: 1, duration: calm?.inMs ?? 200 });
+            scene.tweens.add({ targets: inner, alpha: 0, delay: hold, duration: calm?.outMs ?? 220, onComplete: out });
+            return;
+        }
+        if (calm) {
+            // desliza um quarto da tela e acende junto; sai do mesmo jeito pro outro lado
+            inner.setAlpha(0);
+            inner.x = -dir * off * 0.25;
+            scene.tweens.add({ targets: inner, x: 0, alpha: 1, duration: calm.inMs, ease: 'Quart.easeOut' });
+            scene.tweens.add({
+                targets: inner,
+                x: dir * off * 0.25,
+                alpha: 0,
+                delay: hold,
+                duration: calm.outMs,
+                ease: 'Quad.easeIn',
+                onComplete: out,
+            });
             return;
         }
         inner.x = -dir * off;

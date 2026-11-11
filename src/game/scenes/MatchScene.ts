@@ -2506,6 +2506,12 @@ export class MatchScene extends Phaser.Scene {
             .setDepth(REACT_DEPTH + 1);
     }
 
+    /** Altura da faixa do drible (fração da tela): na metade oposta à de quem dribla. */
+    private dribbleBannerY(worldY: number) {
+        const v = this.cameras.main.worldView;
+        return v.height > 0 && (worldY - v.y) / v.height > 0.5 ? 0.2 : 0.76;
+    }
+
     /**
      * O ápice do drible com nome: a faixa grande com o nome (a do golpe máximo; o texto do gol ou da defesa que vem logo
      * depois espera ela sair), o vento e o "uuh" da torcida. Na 1x, sem Reduzir movimento e fora do duelo: hit-stop curto
@@ -2530,8 +2536,10 @@ export class MatchScene extends Phaser.Scene {
             depth: REACT_DEPTH + 2,
             top: true,
             holdMs: big ? N.bannerMs : 700,
-            // embaixo: em cima a lambreta passava por trás dela e no celular o zoom cortava o nome
-            y: 0.76,
+            // longe do lance: embaixo (em cima a lambreta passava por trás dela e no celular o zoom cortava o nome), ou em
+            // cima se o lance está na metade de baixo da tela (no celular em pé a faixa cobria o drible)
+            y: this.dribbleBannerY(view.sprite.y),
+            calm: { inMs: N.bannerInMs, outMs: N.bannerOutMs },
         });
         playSfx('whoosh');
         playCrowd('uuh', 0.7);
