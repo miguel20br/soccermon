@@ -501,27 +501,48 @@ describe('dribles com nome (só tela)', () => {
 
     it('a animação só enfeita: sai e volta pro snapshot, e com Reduzir movimento é só o nome', () => {
         const toBall = { x: 9, y: 2 };
+        // marcador colado atrás e do lado (onde o motor deixa ele no carrinho)
+        const toMarker = { x: -12, y: 8 };
         const N = NAMED_DRIBBLE;
         for (const kind of DRIBBLE_KINDS) {
             const d: NamedDribble = { tick: 100, by: 1, marker: 6, team: 0, kind, dir: { x: 1, y: 0 }, side: 1 };
-            expect(dribblePose(d, 100, toBall, true)).toBeNull();
-            expect(dribblePose(d, 100 - N.lead, toBall)).toBeNull();
-            expect(dribblePose(d, 100 + N.tail, toBall)).toBeNull();
+            expect(dribblePose(d, 100, toBall, toMarker, true)).toBeNull();
+            expect(dribblePose(d, 100 - N.lead, toBall, toMarker)).toBeNull();
+            expect(dribblePose(d, 100 + N.tail, toBall, toMarker)).toBeNull();
             let peak = 0;
-            let spin = 0;
+            const faces = new Set<number>();
+            let huh = 0;
+            let prev: ReturnType<typeof dribblePose> = null;
             for (let t = 100 - N.lead; t <= 100 + N.tail; t += 0.05) {
-                const p = dribblePose(d, t, toBall);
+                const p = dribblePose(d, t, toBall, toMarker);
                 if (!p) continue;
                 peak = Math.max(peak, Math.hypot(p.ball.x, p.ball.y), p.lift);
-                spin = Math.max(spin, Math.abs(p.spin));
+                if (p.face !== null) faces.add(p.face);
+                huh = Math.max(huh, p.huh);
                 // perto das pontas, quase no snapshot (sem pulo quando a pose some)
                 const edge = Math.min(t - (100 - N.lead), 100 + N.tail - t);
                 if (edge < 0.1)
                     for (const v of [p.ball.x, p.ball.y, p.body.x, p.body.y, p.lift, p.markerBody.x, p.markerBody.y])
                         expect(Math.abs(v)).toBeLessThan(1.5);
+                // quem dribla e a bola já de volta no snapshot quando ele pode passar ou chutar (t + 3,5)
+                if (t >= 103.5)
+                    for (const v of [p.ball.x, p.ball.y, p.body.x, p.body.y, p.lift])
+                        expect(Math.abs(v)).toBeLessThan(0.5);
+                // sem teleporte: de um quadro pro outro a bola e os corpos andam pouco (fora a puxada do elástico)
+                if (prev)
+                    for (const [a, b] of [
+                        [p.body, prev.body],
+                        [p.markerBody, prev.markerBody],
+                        [p.ball, prev.ball],
+                    ])
+                        expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(6);
+                prev = p;
             }
             expect(peak).toBeGreaterThan(5);
-            if (kind === 'roleta') expect(spin).toBe(8);
+            expect(huh).toBeGreaterThan(0.9);
+            // a roleta dá a volta inteira: passa pelas 8 direções
+            if (kind === 'roleta') expect(faces.size).toBe(8);
+            if (kind === 'lambreta') expect(peak).toBeGreaterThan(90);
         }
     });
 });

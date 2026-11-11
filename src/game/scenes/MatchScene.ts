@@ -33,6 +33,8 @@ import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } fr
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
+    DRIBBLE_PUFFS,
+    type DribblePose,
     diveDust,
     dribblePose,
     dribbleSlowAt,
@@ -856,6 +858,11 @@ export class MatchScene extends Phaser.Scene {
     private goalsBy: { by: number; tick: number }[] = [];
     /** Dribles com nome (só tela); a bola em px no carrinho sai na 1ª vez que aparece. */
     private ghostAt = 0;
+    /** O "?" em cima de quem levou o drible e o tick do quadro anterior (a poeirinha sai ao cruzar o tick dela). */
+    private huh: Phaser.GameObjects.Text | null = null;
+    private trickTick = 0;
+    /** 1 com a bola no pé de quem dribla, indo a 0 quando ela sai (o enfeite da bola vai junto). */
+    private trickOwn = 1;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
     /** Deslocamento suavizado da bola em relação a quem conduz. */
     private dribble = { owner: -1, x: 0, y: 0, tick: 0, cx: 0, cy: 0, travel: 0, reach: 1 };
@@ -2130,7 +2137,8 @@ export class MatchScene extends Phaser.Scene {
             const tricked = trick && !view.act ? trick : null;
             const tb = tricked?.d.by === i ? tricked.pose : null;
             const tm = tricked?.d.marker === i ? tricked.pose : null;
-            if (tb?.spin) facing = (((facing + tb.spin) % 8) + 8) % 8;
+            if (tb?.face != null) facing = tb.face;
+            if (tm?.markerFace != null) facing = tm.markerFace;
             const px = toPx(x, y);
             px.x += view.shift.x;
             px.y += view.shift.y;
@@ -2173,8 +2181,11 @@ export class MatchScene extends Phaser.Scene {
             // o close do N3 de linha: o nome e a setinha do capitão ficam atrás da cena (a faixa já diz quem é)
             const closeUp = this.n3?.cap === view && !this.n3.home;
             const labelDepth = focused && !closeUp ? FOCUS_DEPTH + 60 : 5000;
-            view.label.setPosition(px.x, px.y + 6).setDepth(labelDepth);
-            view.badge.setPosition(px.x, px.y + 6 + this.nameHeight(view)).setDepth(labelDepth + 1);
+            // no drible com nome o nome vai junto do corpo (os dois saem do lugar e o nome ficava pra trás)
+            const lx = tb || tm ? body.x : px.x;
+            const ly = tb || tm ? body.y : px.y;
+            view.label.setPosition(lx, ly + 6).setDepth(labelDepth);
+            view.badge.setPosition(lx, ly + 6 + this.nameHeight(view)).setDepth(labelDepth + 1);
             this.placeArrow(view, body.x, body.y, labelDepth - 1);
             if (focused) focusPos.set(i, px);
             this.applyIndicators(view, near.p[o + 4], near.p[o + 5]);
@@ -2229,8 +2240,12 @@ export class MatchScene extends Phaser.Scene {
                 view.sprite.setOrigin(0.5, footOrigin(view.skin, anim));
                 view.currentKey = key;
             }
-            const bite = tm ? { tilt: tm.markerTilt, sx: 1, sy: 1 } : null;
-            if (tb && tricked && tricked.d.kind !== 'lambreta') this.ghost(view, tricked.d.team);
+            const bite = tm
+                ? { tilt: tm.markerTilt, sx: tm.markerSx, sy: tm.markerSy }
+                : tb
+                  ? { tilt: tb.tilt, sx: tb.sx, sy: tb.sy }
+                  : null;
+            if (tb?.ghost && tricked) this.ghost(view, tricked.d.team);
             // comemoração do gol: o squash & stretch do jeito (agacha, estica); Reduzir movimento: sem
             const celebLean =
                 celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1)
@@ -2257,6 +2272,7 @@ export class MatchScene extends Phaser.Scene {
                 if (this.sdStage) v.sprite.anims.timeScale = 0;
                 for (const o of [v.label, v.badge, v.ring, v.arrow]) o?.setVisible(false);
             }
+        this.drawHuh(trick);
         this.declutterLabels(a.owner, this.game.loop.delta);
         if (focusPos.size) this.cine.followSpots(focusPos);
         this.drawAgency(pxOf);
@@ -2314,17 +2330,23 @@ export class MatchScene extends Phaser.Scene {
             bp.y += held.y;
         }
         // drible com nome: a bola sai do pé (por cima, por baixo, em volta) e volta pro snapshot no fim
+        // (a bola que saiu do pé dele, num passe ou chute logo depois, larga o enfeite em ~60 ms em vez de voar torta)
+        const mine = trick && (a.owner === trick.d.by || b.owner === trick.d.by) ? 1 : 0;
+        this.trickOwn += (mine - this.trickOwn) * Math.min(1, this.game.loop.delta / 60);
+        const own = trick ? this.trickOwn : 0;
         if (trick) {
-            bp.x += trick.pose.ball.x;
-            bp.y += trick.pose.ball.y;
+            bp.x += trick.pose.ball.x * own;
+            bp.y += trick.pose.ball.y * own;
         }
         // bola cruzada: sobe (afasta da sombra) e cresce, como se viesse na direção da câmera
-        const bz = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k) + (trick?.pose.lift ?? 0) / (PPM * 0.9);
+        const bz0 = Math.max(0, (a.bz ?? 0) + ((b.bz ?? 0) - (a.bz ?? 0)) * k);
+        const bz = bz0 + ((trick?.pose.lift ?? 0) * own) / (PPM * 0.9);
         const lift = bz * PPM * 0.9;
         // quique: a bola que vinha no alto e toca o chão amassa um instante e solta poeira
         if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
         this.lastBz = bz;
-        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale((1 + bz * 0.3) * this.ballPop.v);
+        // a bola do drible cresce pouco no alto (a lambreta virava uma bola gigante); a sombra encolhe pela altura toda
+        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale((1 + bz0 * 0.3 + (bz - bz0) * 0.1) * this.ballPop.v);
         this.ballShadow
             .setPosition(bp.x + 2, bp.y + 2)
             .setDepth(bp.y - 3)
@@ -2420,8 +2442,13 @@ export class MatchScene extends Phaser.Scene {
         this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
     }
 
-    /** O drible com nome na tela agora (pose do `dribblePose`), ou null. */
+    /**
+     * O drible com nome na tela agora (pose do `dribblePose`), ou null. Solta a poeirinha no pé ao passar pelo tick dela
+     * (andando pra frente; voltando o replay, de novo) e põe o "?" em cima de quem ficou.
+     */
     private trickNow() {
+        const prev = this.trickTick;
+        this.trickTick = this.playTick;
         for (const d of this.named) {
             if (Math.abs(this.playTick - d.tick) > 12) continue;
             if (!d.toBall) {
@@ -2429,10 +2456,54 @@ export class MatchScene extends Phaser.Scene {
                 const at = this.playerPxAt(d.by, d.tick);
                 d.toBall = { x: ball.x - at.x, y: ball.y - at.y };
             }
-            const pose = dribblePose(d, this.playTick, d.toBall, !!this.md.reduceMotion);
-            if (pose) return { d, pose };
+            const at = this.playerPxAt(d.by, this.playTick);
+            const mk = this.playerPxAt(d.marker, this.playTick);
+            const toMarker = { x: mk.x - at.x, y: mk.y - at.y };
+            const mv = this.players[d.marker];
+            const head = mv
+                ? (mv.sprite.originY - headTop(mv.skin)) * mv.sprite.frame.realHeight * mv.sprite.scaleY
+                : 60;
+            const pose = dribblePose(d, this.playTick, d.toBall, toMarker, !!this.md.reduceMotion, head);
+            if (!pose) continue;
+            const step = this.playTick - prev;
+            if (step > 0 && step < 2)
+                for (const p of DRIBBLE_PUFFS[d.kind])
+                    if (prev < d.tick + p && this.playTick >= d.tick + p)
+                        dust(this, at.x + pose.body.x, at.y + pose.body.y + 1, 5, at.y + 1, 0.7);
+            return { d, pose };
         }
         return null;
+    }
+
+    /** O "?" de quem levou o drible: pula em cima da cabeça dele e some (tudo pelo tick da pose). */
+    private drawHuh(trick: { d: NamedDribble; pose: DribblePose } | null) {
+        const view = trick && trick.pose.huh > 0.01 ? this.players[trick.d.marker] : null;
+        if (!view || !trick) {
+            this.huh?.setVisible(false);
+            return;
+        }
+        const s = Math.min(this.uiScale, 2);
+        this.huh ??= this.add
+            .text(0, 0, '?', {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: `${Math.round(16 * s)}px`,
+                fontStyle: 'bold',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+            })
+            .setOrigin(0.5, 1)
+            .setResolution(2);
+        const sp = view.sprite;
+        const head = sp.y - (sp.originY - headTop(view.skin)) * sp.frame.realHeight * sp.scaleY;
+        const k = trick.pose.huh;
+        this.huh
+            .setVisible(true)
+            .setPosition(sp.x, head + 14 - 6 * Math.min(1, k))
+            .setScale(Math.max(0.01, k))
+            .setAlpha(Math.min(1, k * 1.5))
+            .setAngle(8 * Math.sin(this.playTick * 1.3))
+            .setDepth(REACT_DEPTH + 1);
     }
 
     /**
