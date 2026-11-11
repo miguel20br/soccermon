@@ -570,7 +570,7 @@ function DataSettings() {
             match: null,
             settings: { ...DEFAULT_SETTINGS, lang, stats },
             records: { cups: 0, titles: 0, perfect: 0 },
-            profile: { ...DEFAULT_PROFILE, seen: [] },
+            profile: { ...DEFAULT_PROFILE, seen: [], ambLit: [] },
             dex: {},
             moves: {},
             career: EMPTY_CAREER,
