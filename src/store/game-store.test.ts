@@ -14,7 +14,7 @@ import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { SIGNATURE } from '../engine/signature-moves';
 import { specialBonus } from '../engine/specials';
-import { teachMove } from '../engine/tm';
+import { canLearn, isProtectedMove, teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
@@ -688,6 +688,21 @@ describe('Mercado (Copa rápida)', () => {
         run = useGame.getState().run!;
         expect(run.bench[1]).toBe(card.uid);
         expect(run.shop!.pack).toBeUndefined();
+    });
+
+    it('save antigo com MT na vitrine aberta: ainda compra e ensina', () => {
+        useGame.setState({ run: ready('mercado-mt-antiga', { money: 20 }) });
+        useGame.getState().skipReward();
+        const run = useGame.getState().run!;
+        const target = run.picks.find((p) => p.uid !== run.captainUid && canLearn(p, 'toxic'));
+        if (!target) throw new Error('ninguém aprende Toxic neste time');
+        const tm = { kind: 'tm' as const, move: 'toxic', leader: null, price: 5 };
+        useGame.setState({ run: { ...run, shop: { ...run.shop!, offers: [...run.shop!.offers, tm] } } });
+        const forget = target.moves.findIndex((_, i) => !isProtectedMove(target, i));
+        useGame.getState().buyOffer(run.shop!.offers.length, target.uid, forget);
+        const after = useGame.getState().run!;
+        expect(after.money).toBe(run.money! - 5);
+        expect(after.picks.find((p) => p.uid === target.uid)!.moves).toContain('toxic');
     });
 
     it('dá pra fechar o pacote sem pegar nenhuma carta e seguir', () => {

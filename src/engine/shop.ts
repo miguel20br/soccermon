@@ -6,7 +6,6 @@ import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import { rollSpecial } from './specials';
 import { has, SPONSOR_FAMILY, SPONSOR_IDS, type SponsorId } from './sponsors';
-import { rollTmOffer } from './tm';
 
 /**
  * Mercado da Copa rápida (docs/planos/copa-roguelike-plano.md): ₽ (Pokédólar) só existe dentro da copa. Depois de
@@ -36,7 +35,6 @@ export const PRICES = {
     pokemon: { bronze: 4, prata: 5, ouro: 7 },
     pack: 6,
     item: 3,
-    tm: 5,
     /** Trocar a vitrine: 2, e +1 a cada vez no mesmo Mercado. */
     reroll: 2,
 } as const;
@@ -83,6 +81,7 @@ export type ShopOffer =
     | { kind: 'pokemon'; inst: PokemonInstance; price: number }
     | { kind: 'pack'; type: TypeName; price: number }
     | { kind: 'item'; item: string; price: number }
+    /** Saiu da vitrine na 0.9.49 (0,4% das compras); fica no tipo pro Mercado aberto num save antigo. */
     | { kind: 'tm'; move: string; leader: string | null; price: number }
     | { kind: 'sponsor'; id: SponsorId; price: number };
 
@@ -133,8 +132,8 @@ interface ShopInput {
 }
 
 /**
- * Vitrine: 2 Pokémon avulsos, 1 pacote de tipo (o da semana ou o do capitão), 1 item ou MT e 1 Patrocínio que você
- * ainda não tem. Loja de Departamentos: +1 Pokémon.
+ * Vitrine: 2 Pokémon avulsos, 1 pacote de tipo (o da semana ou o do capitão), 1 item e 2 Patrocínios que você
+ * ainda não tem. Loja de Departamentos: +1 Pokémon. A MT fica na recompensa do ginásio (menos-e-mais.md, A1).
  */
 export function shopOffers({
     seed,
@@ -171,18 +170,13 @@ export function shopOffers({
         (t): t is TypeName => !!t && left(t) >= 3,
     );
 
-    const tm = rng.chance(0.35) ? rollTmOffer(rng, team) : null;
-    let gear: ShopOffer;
-    if (tm) gear = { kind: 'tm', ...tm, price: PRICES.tm };
-    else {
-        const owned = new Set(team.map((p) => p.item).filter(Boolean));
-        const typed = [...new Set(team.flatMap((p) => species(p.speciesId).types))]
-            .map((t) => TYPE_ITEM_FOR[t])
-            .filter((id) => id && !owned.has(id));
-        const general = ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type' && !owned.has(id));
-        const pool = typed.length && rng.chance(0.5) ? typed : general.length ? general : ITEM_IDS;
-        gear = { kind: 'item', item: rng.pick(pool), price: PRICES.item };
-    }
+    const owned = new Set(team.map((p) => p.item).filter(Boolean));
+    const typed = [...new Set(team.flatMap((p) => species(p.speciesId).types))]
+        .map((t) => TYPE_ITEM_FOR[t])
+        .filter((id) => id && !owned.has(id));
+    const general = ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type' && !owned.has(id));
+    const pool = typed.length && rng.chance(0.5) ? typed : general.length ? general : ITEM_IDS;
+    const gear: ShopOffer = { kind: 'item', item: rng.pick(pool), price: PRICES.item };
 
     const free = SPONSOR_IDS.filter(
         (id) => !sponsors.includes(id) && (matchesLeft > 1 || SPONSOR_FAMILY[id] === 'campo'),
