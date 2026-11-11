@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { boardScale, estadioScale, fitScale, realScale, sceneScale, versusDir, versusScale } from './sprite-scale';
+import { boardScale, estadioScale, realScale, sceneScale } from './sprite-scale';
 
 describe('escala dos sprites fora da partida (revisão de arte)', () => {
     it('uma escala por tamanho de tela: pequeno 1, celular 2, PC 3', () => {
@@ -22,24 +22,14 @@ describe('escala dos sprites fora da partida (revisão de arte)', () => {
         expect(realScale(2, 0.92).css).toBe(2);
         expect(realScale(2, 0.92).zoom * 0.92).toBeCloseTo(1);
     });
-    it('onde pede presença: Estádio do PC 4x, VERSUS 3/4/4, prancheta 2x', () => {
+    it('onde pede presença: Estádio do PC 4x, prancheta do Estádio 2x', () => {
         expect([estadioScale(true, false), estadioScale(false, false), estadioScale(false, true)]).toEqual([1, 2, 4]);
-        expect([versusScale(true, false), versusScale(false, false), versusScale(false, true)]).toEqual([3, 4, 4]);
         expect([boardScale(true), boardScale(false)]).toEqual([1, 2]);
-        // a altura do capitão no VERSUS a 320, 844x390, 390 e 1440 (px medidos)
-        expect([62, 103, 123, 165].map((u) => fitScale(u, 4))).toEqual([2, 3, 4, 4]);
     });
     it('tela com 2 pixels por px (retina): conta em pixel do aparelho', () => {
         expect(realScale(2, 1, 2).css).toBe(2);
         expect(realScale(2, 1.35, 2).css).toBe(2.5);
         // Windows a 125%: 2 x 1,25 = 2,5 pixels, desce pra 2 (inteiro)
         expect(realScale(2, 1, 1.25).css * 1.25).toBe(2);
-    });
-});
-
-describe('versusDir', () => {
-    it('os dois times se encaram: lado a lado (direita/esquerda) e em pé (rival em cima olha pra baixo)', () => {
-        expect([versusDir('home', false), versusDir('away', false)]).toEqual([2, 6]);
-        expect([versusDir('home', true), versusDir('away', true)]).toEqual([4, 0]);
     });
 });

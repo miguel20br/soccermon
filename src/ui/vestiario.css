@@ -422,7 +422,7 @@
         min-height: 0;
         padding: 3px 2px 4px;
     }
-    .vt .formation-board .slot .slot-mon {
+    .vt .formation-board .slot img {
         height: 22px;
     }
     .vt .formation-board .slot .pos-badge {
@@ -456,7 +456,7 @@
         min-height: 0;
         padding: 2px 1px 3px;
     }
-    .vt .formation-board .slot .slot-mon {
+    .vt .formation-board .slot img {
         height: 24px;
     }
     .vt .formation-board .slot .pos-badge {

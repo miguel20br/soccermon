@@ -621,24 +621,8 @@ img.ce-mini,
     border-color: var(--yellow);
     box-shadow: 0 0 0 3px rgba(255, 203, 5, 0.4);
 }
-.slot .slot-mon {
-    position: relative;
-    display: block;
-    align-self: stretch;
+.slot img {
     height: 46px;
-    /* respiro entre o pé do sprite e o nome (o Geodude encostava no próprio nome, 10/11) */
-    margin-bottom: 4px;
-}
-/* a posição fica por cima da orelha de quem é alto */
-.slot .pos-badge {
-    position: relative;
-    z-index: 1;
-}
-/* o Pokémon em PMD, como na quadra (revisão de arte, D1): o pé no fundo da caixa, quem é alto cresce pra cima */
-.slot-mon > .fs-sprite {
-    position: absolute;
-    left: 50%;
-    top: 100%;
 }
 .slot .slot-name {
     font-size: 11px;
@@ -1197,7 +1181,7 @@ button,
     padding: 4px;
     gap: 0;
 }
-.formation-board .slot .slot-mon {
+.formation-board .slot img {
     height: 38px;
 }
 .slot.empty {
@@ -1226,7 +1210,7 @@ button,
     font-size: 11px;
     padding: 12px 0;
 }
-.slot .slot-mon.ghost {
+.slot img.ghost {
     opacity: 0.55;
 }
 .slot-rating.alt {
@@ -1529,7 +1513,7 @@ button,
         border-width: 2px;
         min-height: 64px;
     }
-    .slot .slot-mon {
+    .slot img {
         height: 32px;
     }
     .slot .slot-name {
@@ -6799,7 +6783,7 @@ a.home-tile {
     .formation-board .slot {
         width: 84px;
     }
-    .formation-board .slot .slot-mon {
+    .formation-board .slot img {
         height: 28px;
     }
     /* recompensa deitada: as 3 opções lado a lado, cartas menores, pra o "Escolher" não ficar abaixo da dobra */
@@ -7853,7 +7837,7 @@ body {
 }
 
 /* Carta chegando na vaga (draft, recompensa, troca de lugar): cai de cima com um pulinho */
-.slot .slot-mon.slot-pop {
+.slot img.slot-pop {
     animation: slot-pop 0.36s var(--ease-pop) both;
 }
 @keyframes slot-pop {
@@ -7867,11 +7851,11 @@ body {
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .slot .slot-mon.slot-pop {
+    .slot img.slot-pop {
         animation: none;
     }
 }
-:root[data-reduce-motion="true"] .slot .slot-mon.slot-pop {
+:root[data-reduce-motion="true"] .slot img.slot-pop {
     animation: none;
 }
 /* o C do capitão chega com um pulinho na vaga nova (trocou na tática) */
@@ -8062,7 +8046,7 @@ body {
     border-width: 2px;
     border-radius: 8px;
 }
-.prancheta .slot .slot-mon {
+.prancheta .slot img {
     height: 28px;
 }
 /* na prancheta da partida o nome não cabia em 11 px: fica a nota (o sprite já diz quem é) */
@@ -8188,7 +8172,7 @@ body {
     .prancheta .slot {
         width: 58px;
     }
-    .prancheta .slot .slot-mon {
+    .prancheta .slot img {
         height: 22px;
     }
     .prancheta .slot .slot-name,
@@ -8207,7 +8191,7 @@ body {
     .prancheta .slot {
         width: 56px;
     }
-    .prancheta .slot .slot-mon {
+    .prancheta .slot img {
         height: 22px;
     }
     .prancheta .slot .slot-name {

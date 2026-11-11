@@ -9,15 +9,13 @@ import { cardTypeOf, editionOf } from '../../engine/specials';
 import { computeSynergies } from '../../engine/synergy';
 import { useT } from '../../i18n/react';
 import { type SlotRef, useGame } from '../../store/game-store';
-import { ClockCtx, useSceneClock } from '../ambientes/clock';
-import { FieldSprite } from '../ambientes/FieldSprite';
-import { boardScale, SMALL, useMq } from '../ambientes/sprite-scale';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
 import { monoAura } from './LinkChips';
 import { HudIcon } from './MatchHud';
+import { cardSprite } from './PokeCard';
 
 export type SlotState = 'idle' | 'selected' | 'target' | 'locked';
 
@@ -92,9 +90,6 @@ export function FormationBoard({
     const { t, d } = useT();
     // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
     const boardRef = useRef<HTMLDivElement>(null);
-    // o time em PMD, respirando no Idle como na quadra: 2x (1x no celular pequeno ou deitado), uma escala só pra prancheta
-    const clock = useSceneClock(true);
-    const scale = boardScale(useMq(SMALL));
     useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // barra de evolução: o limiar do seu time (Clube Formador baixa)
@@ -157,9 +152,12 @@ export function FormationBoard({
                 {shown ? (
                     <>
                         {/* chave pelo uid: carta nova na vaga (contratou, ganhou, trocou de lugar) cai com um pulinho */}
-                        <span key={inst?.uid ?? 'ghost'} className={`slot-mon${ghost ? ' ghost' : ' slot-pop'}`}>
-                            <FieldSprite id={shown.speciesId} shiny={shown.shiny} anim="Idle" dir={0} scale={scale} />
-                        </span>
+                        <img
+                            key={inst?.uid ?? 'ghost'}
+                            className={`pixel${ghost ? ' ghost' : ' slot-pop'}`}
+                            src={cardSprite(shown)}
+                            alt=""
+                        />
                         {inst && <span className="slot-name">{viewInstance(inst).displayName}</span>}
                         {r && (
                             <span className={`slot-rating ${r.fit}`}>
@@ -191,22 +189,20 @@ export function FormationBoard({
     };
 
     return (
-        <ClockCtx.Provider value={clock}>
-            <div className={`formation-board${horizontal ? ' horizontal' : ''}`} ref={boardRef}>
-                <div className="court">
-                    {lineup.map((uid, i) =>
-                        slot(
-                            { zone: 'lineup', index: i },
-                            uid,
-                            horizontal
-                                ? { left: `${mirror ? f.ui[i][1] : 100 - f.ui[i][1]}%`, top: `${f.ui[i][0]}%` }
-                                : { left: `${f.ui[i][0]}%`, top: `${f.ui[i][1]}%` },
-                        ),
-                    )}
-                </div>
-                <div className="bench">{bench.map((uid, i) => slot({ zone: 'bench', index: i }, uid))}</div>
-                {footer}
+        <div className={`formation-board${horizontal ? ' horizontal' : ''}`} ref={boardRef}>
+            <div className="court">
+                {lineup.map((uid, i) =>
+                    slot(
+                        { zone: 'lineup', index: i },
+                        uid,
+                        horizontal
+                            ? { left: `${mirror ? f.ui[i][1] : 100 - f.ui[i][1]}%`, top: `${f.ui[i][0]}%` }
+                            : { left: `${f.ui[i][0]}%`, top: `${f.ui[i][1]}%` },
+                    ),
+                )}
             </div>
-        </ClockCtx.Provider>
+            <div className="bench">{bench.map((uid, i) => slot({ zone: 'bench', index: i }, uid))}</div>
+            {footer}
+        </div>
     );
 }
