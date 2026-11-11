@@ -91,7 +91,7 @@ export function FormationCarousel({
             <div
                 className={`fc-stage${drag !== null ? ' dragging' : ''}`}
                 role="group"
-                aria-roledescription={d.help.onboarding.carousel}
+                aria-roledescription={d.help.carousel}
                 aria-label={t('team.draft.chooseFormation')}
             >
                 <button type="button" className="fc-arrow prev" aria-label={t('common.ui.prev')} onClick={() => go(-1)}>

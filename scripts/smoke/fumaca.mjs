@@ -84,12 +84,6 @@ const step = async (p, name, fn) => {
         throw e;
     }
 };
-const skipOnboarding = async (p) => {
-    for (let k = 0; k < 4 && (await vis(p, '.ob-skip')); k++) {
-        await p.locator('.ob-skip').first().click();
-        await p.waitForTimeout(400);
-    }
-};
 
 async function copa() {
     const p = await newPage();
@@ -101,7 +95,6 @@ async function copa() {
             .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .waitFor({ timeout: 30000 });
-        await skipOnboarding(p);
         // a Home de todo mundo é o Estádio dos ambientes; save vazio = 1ª visita: o logo no lugar do placar
         await p.locator('.amb-panel.amb-estadio.on .es-logo').waitFor({ timeout: 10000 });
         await p.waitForTimeout(600);
@@ -279,7 +272,6 @@ async function paginas() {
         await step(p, `página ${path}`, async () => {
             await p.goto(base + path, { waitUntil: 'load' });
             await p.waitForTimeout(3000);
-            await skipOnboarding(p);
             for (const sel of clicks ? clicks.split(';') : []) {
                 await p.locator(sel).first().click({ timeout: 8000 });
                 await p.waitForTimeout(1200);

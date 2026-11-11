@@ -39,7 +39,7 @@ export function UnlockNotice() {
     useT(); // troca de idioma redesenha
     const id = useGame((s) => s.unlockQueue[0]);
     const shift = useGame((s) => s.shiftUnlock);
-    const free = useGame((s) => s.screen === 'home' && !s.tour);
+    const free = useGame((s) => s.screen === 'home');
     const busy = useWipeBusy();
     const [out, setOut] = useState(false);
     // tocou pra pular: a fila anda pelo toque (o relógio da batida não anda de novo)

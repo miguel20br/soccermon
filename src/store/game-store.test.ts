@@ -65,10 +65,9 @@ describe('save', () => {
     });
 
     it('a 1ª copa é a entrada no jogo: sem passo a passo na 1ª visita, começar marca onboarded (funil)', () => {
-        useGame.setState({ onboarded: false, tour: false });
+        useGame.setState({ onboarded: false });
         useGame.getState().newRun('Pallet FC', 'teste-entrada');
         expect(useGame.getState().onboarded).toBe(true);
-        expect(useGame.getState().tour).toBe(false);
     });
 
     it('retomar copa guardada leva pra ela e não deixa a outra como "guardada" na Home (vai e volta infinito)', () => {

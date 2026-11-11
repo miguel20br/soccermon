@@ -16,7 +16,7 @@ export const home = {
     atMarket: 'No Mercado',
     eventWeek: 'Semana do tipo {type}',
     eventText: 'Cartas Evento de {type} podem sair no draft.',
-    helpAria: 'Como jogar (ver o passo a passo de novo)',
+    helpAria: 'Ajuda: como funciona cada modo e as regras',
     helpTitle: 'Como jogar',
     /** Selo da quadra animada do topo (enfeite de transmissão). */
     live: 'AO VIVO',
