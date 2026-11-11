@@ -76,6 +76,9 @@
 .set-more-toggle {
     justify-self: center;
 }
+.set-more .set-group > h2 {
+    margin: 6px 0 2px;
+}
 .set-more {
     display: grid;
     gap: inherit;
@@ -99,13 +102,6 @@
     gap: 0;
     justify-content: flex-start;
 }
-.set-tabs {
-    flex: none;
-}
-.set-tabs [role="tab"] .hud-icon {
-    width: 20px;
-    height: 20px;
-}
 /* a lista rola dentro do painel; a tela não */
 .set-panel {
     flex: 1 1 auto;
@@ -115,8 +111,6 @@
     display: grid;
     align-content: start;
     gap: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
     animation: set-panel-in 220ms var(--ease-out) both;
 }
 @keyframes set-panel-in {
@@ -189,7 +183,7 @@
     }
 }
 
-/* a placa do título em cima das abas (o corpo do palco não tem vão) */
+/* a placa do título em cima do painel (o corpo do palco não tem vão) */
 .settings-screen .menu-head {
     flex: none;
     margin-bottom: 12px;
