@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {}, playCry: () => {} }));
 
-import { cutTo, daysUntil, modeTopics, passers, soonDate, ULTIMATE_AT } from './ModeMenu';
+import { cutTo, daysUntil, modeTopics, passers, sliceTopics, soonDate, ULTIMATE_AT } from './ModeMenu';
 
 describe('menu de modos', () => {
     it('conta os dias até o Ultimate pra cima e para no zero', () => {
@@ -52,5 +52,15 @@ describe('itens do Modo Clássico', () => {
     });
     it('os outros modos não perdem item', () => {
         expect(modeTopics('ultimate', ['a', 'b'], false)).toEqual(['a', 'b']);
+    });
+});
+
+describe('itens embaixo da linha de cada fatia', () => {
+    it('o Ultimate mostra o "Zera a cada temporada"; o Modo História não repete a linha', () => {
+        expect(sliceTopics('ultimate', ['Time da temporada', 'Abra pacotes', 'Zera a cada temporada'], false)).toEqual([
+            'Zera a cada temporada',
+        ]);
+        expect(sliceTopics('historia', ['Os 8 ginásios', 'Insígnias de Kanto', 'Blue de rival'], false)).toEqual([]);
+        expect(sliceTopics('atual', ['a', 'b', 'Liga'], false)).toEqual(['a', 'b']);
     });
 });

@@ -371,10 +371,19 @@ const TOPIC_ICON = ['stopwatch', 'map', 'friends', 'crown'] as const;
 export const modeTopics = (id: ModeId, topics: readonly string[], liga: boolean) =>
     id === 'atual' && !liga ? topics.slice(0, -1) : [...topics];
 
-export function Chips({ id }: { id: ModeId }) {
+/**
+ * Na fatia, embaixo da linha do modo: só o que a linha não diz. No Ultimate, "Zera a cada temporada" (time da temporada
+ * e pacotes já estão na linha); no Modo História, nada (a linha já fala dos ginásios e do Blue).
+ */
+export const sliceTopics = (id: ModeId, topics: readonly string[], liga: boolean) =>
+    id === 'ultimate' ? topics.slice(-1) : id === 'historia' ? [] : modeTopics(id, topics, liga);
+
+export function Chips({ id, slice }: { id: ModeId; slice?: boolean }) {
+    const topics = (slice ? sliceTopics : modeTopics)(id, useMode(id).topics, ligaShown());
+    if (!topics.length) return null;
     return (
         <span className="mm-chips">
-            {modeTopics(id, useMode(id).topics, ligaShown()).map((t, i) => (
+            {topics.map((t, i) => (
                 <span key={t}>
                     {id === 'atual' && <HudIcon kind={TOPIC_ICON[i] ?? 'cup'} />}
                     {t}
@@ -593,8 +602,7 @@ export function ModeSlices({
                                 <span>
                                     {m === 'ultimate' && !playable(m) && <When id={m} />}
                                     <Tag id={m} />
-                                    {/* nos que ainda não chegaram a linha já diz o mesmo que os itens */}
-                                    {m === 'atual' && <Chips id={m} />}
+                                    <Chips id={m} slice />
                                 </span>
                             </span>
                         </span>
