@@ -25,6 +25,7 @@ import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
+import { backTarget } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
 import { readHud } from '../hud-lab';
 import { iosBrowser, promptInstall, useInstall } from '../install';
@@ -176,7 +177,7 @@ export function Settings({ open = false }: { open?: boolean }) {
     const set = updateSettings;
     const { t, d } = useT();
     const lang = useLang();
-    useMenuBackOf(() => go('home'));
+    useMenuBackOf(() => go(backTarget('settings') ?? 'home'));
     return (
         <Stage className="settings-screen">
             {/* a placa do título, como a Coleção (o voltar fica na barra de cima, pelo useMenuBackOf) */}

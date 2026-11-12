@@ -1639,19 +1639,8 @@ button.mm-card,
         display: block;
     }
 }
-/* 320: com o símbolo no lugar do logo sobra lugar pro nome do treinador (nos ambientes ele vira só o avatar) */
+/* 320: com o botão dos Amigos na barra (11/11) o nome não cabe mais: o treinador vira só o avatar, como nos ambientes */
 @media (max-width: 359px) {
-    .mm-top .res-me-txt {
-        display: grid;
-    }
-    .mm-top .res-me {
-        padding-right: 8px;
-        border-radius: 26px 10px 10px 26px;
-    }
-    .mm-top .res-me .pf-avatar {
-        width: 40px;
-        height: 40px;
-    }
     .mm-top .top-actions {
         gap: 4px;
     }

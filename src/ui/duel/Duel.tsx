@@ -52,6 +52,7 @@ import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
+import { backTarget } from '../back-nav';
 import { ArenaBackdrop } from '../kit/backdrop';
 import { InfoSheet, OptionTile, SheetRow } from '../kit/controls';
 import { ConfirmSheet } from '../kit/Sheet';
@@ -1016,7 +1017,7 @@ export function Duel() {
     const home = () => {
         duel.leave(s?.phase === 'done');
         setUrl(null, false);
-        go('home');
+        go(backTarget('duel') ?? 'home');
     };
 
     // etapa nova (lobby, draft, escalação, partida, resultado) abre no topo, como as telas do Copa

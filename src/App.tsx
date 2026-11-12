@@ -8,12 +8,12 @@ import { type Screen, useGame } from './store/game-store';
 import { useSaveHealth } from './store/save-health';
 import { onGoTab, readAmbientes } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
-import { backTarget, installBackNav } from './ui/back-nav';
+import { backTarget, installBackNav, MENU_SCREENS } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
 import { CardModal } from './ui/components/CardModal';
 import { CupBar } from './ui/components/CupBar';
 import { LogoHits } from './ui/components/LogoHits';
-import { MENU_SCREENS, useMenuBack } from './ui/components/MenuHead';
+import { useMenuBack } from './ui/components/MenuHead';
 import { MenuIcon } from './ui/components/MenuIcon';
 import { TopActions } from './ui/components/TopActions';
 import { UnlockNotice } from './ui/components/UnlockNotice';
@@ -39,7 +39,7 @@ import { Liga } from './ui/screens/Liga';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
 import { PositionLab } from './ui/screens/PositionLab';
-import { Profile } from './ui/screens/Profile';
+import { DoorSheets, Profile } from './ui/screens/Profile';
 import { Result } from './ui/screens/Result';
 import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
@@ -101,19 +101,25 @@ function leaveScreen(screen: Screen, to: Screen = 'home') {
 }
 
 /**
- * O voltar da barra de cima das telas de menu: o da tela (MenuHead), ou o mesmo do voltar do Android (`backTarget`,
- * com a confirmação do Duelo rolando).
+ * O voltar de uma tela (o `‹` da barra de cima e o voltar do Android, o mesmo): o da tela (MenuHead), ou o caminho
+ * (`backTarget`, com a confirmação do Duelo rolando). Antes o Android ia pelo caminho e o `‹` pelo da tela, e os
+ * dois discordavam (Perfil: um voltava pro Estádio, o outro pra Sede).
  */
+function goBack(screen: Screen) {
+    const back = useMenuBack.getState().back;
+    if (back) back();
+    else requestBack(() => leaveScreen(screen, backTarget(screen) ?? 'home'));
+}
+
 function MenuBack({ screen }: { screen: Screen }) {
     const { t } = useT();
-    const back = useMenuBack((s) => s.back);
     return (
         <button
             type="button"
             className="help-fab amb-modes"
             aria-label={t('common.ui.back')}
             title={t('common.ui.back')}
-            onClick={() => (back ? back() : requestBack(() => leaveScreen(screen, backTarget(screen) ?? 'home')))}
+            onClick={() => goBack(screen)}
         >
             <MenuIcon kind="back" />
         </button>
@@ -204,7 +210,7 @@ export default function App() {
             installBackNav(
                 () => useGame.getState().screen,
                 (cb) => useGame.subscribe((s, p) => s.screen !== p.screen && cb()),
-                (screen) => requestBack(() => leaveScreen(screen, backTarget(screen) ?? 'home')),
+                goBack,
             ),
         [],
     );
@@ -399,6 +405,7 @@ export default function App() {
             <MomentLayer />
             <DoorLayer />
             <CardModal />
+            <DoorSheets />
             <FriendInvite />
             <FriendVitrine />
             <AccountLink />

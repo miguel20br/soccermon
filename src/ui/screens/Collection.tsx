@@ -25,7 +25,7 @@ export function Collection() {
             <MenuHead
                 title={t('profile.collection')}
                 icon="dex"
-                onBack={() => go(backTarget('collection') ?? 'profile')}
+                onBack={() => go(backTarget('collection') ?? 'home')}
             />
             <div
                 className="pf-tabs k-tabs"
@@ -53,7 +53,7 @@ export function Collection() {
             <div role="tabpanel" id={`col-panel-${tab}`} aria-labelledby={`col-tab-${tab}`}>
                 {tab === 'golpedex' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
-                        <MoveLab bare onExit={() => go('profile')} />
+                        <MoveLab bare onExit={() => go(backTarget('collection') ?? 'home')} />
                     </Suspense>
                 ) : (
                     <DexTab view={tab} onView={setTab} />

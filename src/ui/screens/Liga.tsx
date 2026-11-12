@@ -32,6 +32,7 @@ import { TrainerName } from '../profile/TrainerName';
 import { simulateMatch } from '../sim-client';
 import { RankLine } from './Daily';
 import '../liga.css';
+import { backTarget } from '../back-nav';
 
 const hexOf = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -140,7 +141,9 @@ export function Liga() {
         void refresh();
     };
 
-    const head = <MenuHead title={t('liga.league.title')} hud="crown" onBack={() => go('home')} />;
+    const head = (
+        <MenuHead title={t('liga.league.title')} hud="crown" onBack={() => go(backTarget('liga') ?? 'home')} />
+    );
     // as regras moram no "?" (na tela, no máximo ~12 palavras)
     const rules = (
         <InfoSheet title={t('liga.league.title')}>
