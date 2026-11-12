@@ -8,10 +8,11 @@
  *   --cap-fixo: o capitão do time A é o fixo (o primeiro da formação, se houver mais de um).
  *   --chamado: o capitão do time A fica chamado o jogo todo (pior caso do jogador que chama e esquece).
  *   --agencia: os dois times com o técnico IA da beira da quadra (chama o capitão, como no jogo).
+ *   --losango=0.2: troca o `fixoPass` do Losango (1-2-1) só nesta medição (varredura sem mexer no motor).
  */
 import { FUTSAL_5 } from '../../src/engine/config';
 import { aiDraftTeam } from '../../src/engine/draft';
-import { FORMATIONS, type FormationId, formationOf } from '../../src/engine/formations';
+import { FORMATION_STYLES, FORMATIONS, type FormationId, formationOf } from '../../src/engine/formations';
 import { toRel } from '../../src/engine/match';
 import { COACH_LEADERS } from '../../src/engine/rival-coach';
 import { Rng } from '../../src/engine/rng';
@@ -23,6 +24,8 @@ const N = Number(process.argv[2]) || 60;
 const CAP_FIXO = process.argv.includes('--cap-fixo');
 const AGENCIA = process.argv.includes('--agencia');
 const CHAMADO = process.argv.includes('--chamado');
+const LOSANGO = process.argv.find((a) => a.startsWith('--losango='));
+if (LOSANGO) FORMATION_STYLES['1-2-1'].fixoPass = Number(LOSANGO.split('=')[1]);
 const ids = Object.keys(FORMATIONS) as FormationId[];
 const ROLES = ['GK', 'FIXO', 'ALA', 'PIVO'] as const;
 type Role = (typeof ROLES)[number];
@@ -140,7 +143,7 @@ const pc = (a: number, b: number) => `${Math.round((a / Math.max(1, b)) * 100)}%
 const f1 = (n: number) => n.toFixed(1).replace('.', ',');
 const sum = (r: Record<Role, number>) => ROLES.reduce((a, k) => a + r[k], 0);
 console.log(
-    `fixo na armação: ${N} jogos por formação${CAP_FIXO ? ' (capitão = fixo)' : ''}${AGENCIA ? ' (com técnico)' : ''}${CHAMADO ? ' (capitão chamado sempre)' : ''}, ${((performance.now() - t0) / 1000).toFixed(0)}s`,
+    `fixo na armação: ${N} jogos por formação${CAP_FIXO ? ' (capitão = fixo)' : ''}${AGENCIA ? ' (com técnico)' : ''}${CHAMADO ? ' (capitão chamado sempre)' : ''}${LOSANGO ? ` (Losango fixoPass ${FORMATION_STYLES['1-2-1'].fixoPass})` : ''}, ${((performance.now() - t0) / 1000).toFixed(0)}s`,
 );
 console.log(
     '| Formação | Vagas de fixo | Armação: GK/Fixo/Ala/Pivô (passes) | Armação: fixo por vaga | Total: Fixo/Ala/Pivô | Armações em que o fixo toca | Gols pró/contra | Vitória | Chutes/jogo | Passes/jogo | Capitão chamado (% do tempo) |',

@@ -22,18 +22,22 @@ describe('vantagem tática das formações', () => {
     });
 });
 
-describe('Linha de 3: armação pelo fixo (motor 29)', () => {
-    it('o ala no nosso campo passa nas mesmas horas, mas a bola procura o fixo', () => {
-        const mk = (name: string, f: FormationId): TeamSetup => ({
+describe('armação pelo fixo: Linha de 3 (motor 29) e Losango (motor 30)', () => {
+    it.each([
+        ['3-1', '1-2-1', 0.25],
+        ['1-2-1', '3-1', 0.12], // mais fraco: 4 ⇒ 6 de 42 passes
+    ] as const)('%s: o ala no nosso campo passa nas mesmas horas, mas a bola procura o fixo', (f, rival, share) => {
+        const mk = (name: string, form: FormationId): TeamSetup => ({
             name,
-            ...aiDraftTeam(new Rng(`fixo-${name}`, 'team'), 1, [], f),
+            ...aiDraftTeam(new Rng(`fixo-${name}`, 'team'), 1, [], form),
             tactic: 'balanced',
             color: 0,
-            formation: f,
+            formation: form,
         });
-        const live = new LiveRunner(FUTSAL_5, mk('A', '3-1'), mk('B', '1-2-1'), 'fixo-31');
-        const style = FORMATION_STYLES['3-1'];
+        const live = new LiveRunner(FUTSAL_5, mk('A', f), mk('B', rival), `fixo-${f.replaceAll('-', '')}`);
+        const style = FORMATION_STYLES[f];
         const bonus = style.fixoPass;
+        expect(bonus).toBeGreaterThan(0);
         // cópia do estado (o structuredClone perde a classe do Rng)
         const clone = () => {
             const c = structuredClone(live.state);
@@ -50,7 +54,7 @@ describe('Linha de 3: armação pelo fixo (motor 29)', () => {
         let toFixo = 0;
         let toFixoBefore = 0;
         try {
-            while (!live.finished && passes < 40) {
+            while (!live.finished && passes < 120) {
                 const s = live.state;
                 const o = s.ball.owner;
                 const p = o === null ? null : s.players[o];
@@ -72,6 +76,6 @@ describe('Linha de 3: armação pelo fixo (motor 29)', () => {
         }
         expect(passes).toBeGreaterThanOrEqual(20);
         expect(toFixo).toBeGreaterThan(toFixoBefore);
-        expect(toFixo / passes).toBeGreaterThan(0.25);
+        expect(toFixo / passes).toBeGreaterThan(share);
     });
 });
