@@ -34,7 +34,6 @@ export const duel: typeof pt = {
         replayBtn: 'Replay game',
         replayed: '{n} game voided and replayed|{n} games voided and replayed',
     },
-    modeShort: { ready: 'My team', disputa: 'Snake draft', pacotes: 'Own packs' },
     rules: 'Rules',
     modes: {
         ready: ['My team', 'Each brings their cup team or a Hall of Fame champion.'],

@@ -899,7 +899,8 @@ button.sb-title:hover {
 .duel-stage .duel-code b {
     font-size: clamp(36px, calc(11 * var(--vw)), 56px);
 }
-.duel-stage .duel-local {
+.duel-stage .duel-local,
+.duel-stage .duel-mode-rule {
     margin: 0;
     text-align: center;
     text-shadow: var(--k-out-1);

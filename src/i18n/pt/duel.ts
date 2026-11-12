@@ -34,12 +34,11 @@ export const duel = {
         replayBtn: 'Jogar de novo',
         replayed: '{n} jogo anulado e jogado de novo|{n} jogos anulados e jogados de novo',
     },
-    modeShort: { ready: 'Meu time', disputa: 'Disputa', pacotes: 'Pacotes' },
     rules: 'Regras',
     modes: {
         ready: ['Meu time', 'Cada um entra com o time da copa ou um campeão do Hall da Fama.'],
         disputa: ['Disputa', '4 cartas por rodada: cada um tira 1, as outras 2 queimam.'],
-        pacotes: ['Cada um com seus pacotes', 'Cada um abre seus pacotes escondido. No fim, 30 s vendo o rival.'],
+        pacotes: ['Pacotes', 'Cada um abre seus pacotes escondido. No fim, 30 s vendo o rival.'],
     },
     specials: {
         label: 'Cartas especiais (Shiny, Destaque, Ícone, Evento)',

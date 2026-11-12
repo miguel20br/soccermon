@@ -284,7 +284,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                     <div key={m} className="duel-mode" data-mode={m}>
                         <OptionTile
                             icon={MODE_ICON[m]}
-                            label={d.duel.modeShort[m]}
+                            label={d.duel.modes[m][0]}
                             sub={m === 'ready' && !hasTeam ? t('duel.noTeamShort') : undefined}
                             selected={mode === m}
                             disabled={m === 'ready' && !hasTeam}
@@ -293,6 +293,10 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                     </div>
                 ))}
             </fieldset>
+            {/* a regra do modo escolhido, sem precisar abrir o "?" */}
+            <p className="muted small duel-mode-rule" data-testid="duel-mode-rule" aria-live="polite">
+                {d.duel.modes[mode][1]}
+            </p>
             <SheetRow
                 className="duel-rules"
                 icon="board"

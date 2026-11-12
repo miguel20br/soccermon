@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { pt } from '../../i18n/pt';
 import { CONNECT_GIVEUP_MS, entryCoach, roomBarShown, roomLooksClosed } from './link';
 
 describe('roomLooksClosed', () => {
@@ -24,5 +25,14 @@ describe('roomBarShown', () => {
         expect(roomBarShown('done')).toBe(false);
         expect(roomBarShown('match')).toBe(true);
         expect(roomBarShown('preview')).toBe(true);
+    });
+});
+
+describe('nome dos modos do Duelo', () => {
+    // o bloco dizia "Pacotes" e o "?" e a sala, "Cada um com seus pacotes": agora um nome só, de `duel.modes`
+    it('Pacotes tem um nome só, em todo lugar', () => {
+        expect(pt.duel.modes.pacotes[0]).toBe('Pacotes');
+        expect(JSON.stringify(pt.duel)).not.toContain('Cada um com seus pacotes');
+        expect('modeShort' in pt.duel).toBe(false);
     });
 });
