@@ -78,10 +78,12 @@ import {
     baseOf,
     bodyHeight,
     bodyShift,
+    createExtraAnims,
     createSpeciesAnims,
     footOrigin,
     headTop,
     isShinySkin,
+    preloadExtra,
     preloadSpecies,
     resolveAnim,
     shadowSize,
@@ -96,6 +98,7 @@ import {
     type CeremonyPlan,
     ceremonyCamera,
     ceremonyPlan,
+    endPose,
     FAN_FRAMES,
     type Fan,
     fanPose,
@@ -469,6 +472,8 @@ interface DiveInfo {
 }
 
 const DRAMA = new Set(['goal', 'post', 'save', 'fulltime']);
+/** Pênaltis: depois da cobrança que decide, quem bateu e o goleiro reagem sozinhos antes do time todo (ms). */
+const END_AFTER_SHOOTOUT_MS = 600;
 
 /** Golpe máximo por tipo: a receita de golpe (move-fx.ts) que anima o efeito de cada tipo no N3. */
 const MAX_FX_RECIPE: Record<string, string> = {
@@ -925,6 +930,8 @@ export class MatchScene extends Phaser.Scene {
     preload() {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of [...this.allSpecies(), ...this.ceremonySpecies()]) preloadSpecies(this, id);
+        // o Sit de quem perdeu (fim de jogo): o atlas extra, como a Sala (~3 KB cada)
+        for (const p of this.md.result.finalRoster) preloadExtra(this, skinOf(p.speciesId, p.shiny));
         preloadMoveFx(this);
         // retrato PMD dos capitães (e da forma evoluída) pra faixa do especial N3
         for (const p of [...this.md.result.roster, ...this.md.result.finalRoster]) {
@@ -988,6 +995,7 @@ export class MatchScene extends Phaser.Scene {
             this.players.push(this.createPlayerView(p.speciesId, p.team, p.name, p.shiny, p.captain));
         }
         for (const id of this.allSpecies()) createSpeciesAnims(this, id);
+        for (const p of result.finalRoster) createExtraAnims(this, skinOf(p.speciesId, p.shiny));
 
         this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
         this.trailG = this.add.graphics();
@@ -2296,7 +2304,7 @@ export class MatchScene extends Phaser.Scene {
             view.sprite.anims.timeScale = pace * Phaser.Math.Clamp(factor, 0.3, 4);
             // quem entra caminha no ritmo normal (a partida está parada) e o nome/anel só aparecem quando ele chega
             const arriving = entering !== null;
-            if (arriving || posing) view.sprite.anims.timeScale = 1;
+            if (arriving || posing || (act && this.endOn)) view.sprite.anims.timeScale = 1;
             for (const o of [view.label, view.badge, view.ring, view.shadow, view.arrow]) o?.setVisible(!arriving);
             if (view.status === 1) view.sprite.x += Math.sin(this.time.now / 40) * 1.2; // paralisia: tremidinha
             if (!arriving) this.drawReaction(view, k < 0.5 ? index : Math.min(index + 1, this.snaps.length - 1), i);
@@ -2786,6 +2794,36 @@ export class MatchScene extends Phaser.Scene {
             this.startCeremony(kind);
         }
         EventBus.emit('match:ended');
+    }
+
+    /** O time já reage ao resultado (o pulo e o sentar no ritmo normal, fora da câmera lenta da faixa). */
+    private endOn = false;
+
+    /**
+     * Fim de jogo com cara (docs/planos/animacoes-novas.md, B2): cada um reage ao resultado (`endPose`) com um atraso,
+     * dentro do tempo que a faixa já fica (o `finish` e o FinalCard não esperam). Pelo relógio da cena: segue depois do
+     * apito e na disputa de pênaltis, que não passam pelo `applySnapshot`; a cerimônia do título manda no lugar dela.
+     */
+    private endReact(winner: 0 | 1 | null, lead: number) {
+        const reduce = !!this.md.reduceMotion;
+        for (const team of [0, 1] as const)
+            this.players
+                .filter((v) => v.team === team)
+                .forEach((view, slot) => {
+                    const pose = endPose(team, winner, slot, (a) => resolveAnim(view.skin, a) === a, reduce);
+                    this.time.delayedCall(lead + pose.delay, () => {
+                        if (this.cer || view.evolving || view.enter) return;
+                        this.endOn = true;
+                        const frame = pose.still ? animTiming(view.skin, pose.anim).durations.length - 1 : undefined;
+                        view.act = { anim: pose.anim, facing: pose.facing, frame, hold: pose.still };
+                        const key = `${view.skin}/${pose.anim}/${pose.facing}`;
+                        view.sprite.play(frame === undefined ? key : { key, startFrame: frame });
+                        if (pose.still) view.sprite.anims.pause();
+                        view.sprite.setOrigin(0.5, footOrigin(view.skin, pose.anim)).setAngle(0);
+                        view.sprite.anims.timeScale = 1;
+                        view.currentKey = key;
+                    });
+                });
     }
 
     // ------------------------------------------------------------------ cerimônia do título (A1 e A2)
@@ -3475,13 +3513,16 @@ export class MatchScene extends Phaser.Scene {
             case 'fulltime': {
                 playSample('apito');
                 // fim de jogo: faixa grande; vitória dá um toque, derrota fica no sussurro
-                const [mine, theirs] = this.snaps[this.locate(e.tick).index]?.score ?? [0, 0];
+                const [a, b] = this.snaps[this.locate(e.tick).index]?.score ?? [0, 0];
                 this.cine.drama(tr('battle.fulltime'), {
                     color: '#ffffff',
                     stroke: '#000000',
-                    sub: `${mine} x ${theirs}`,
+                    sub: `${a} x ${b}`,
                 });
-                if (mine > theirs) this.punch('touch');
+                const winner = a > b ? 0 : b > a ? 1 : null;
+                if (winner === this.mine) this.punch('touch');
+                // debaixo da faixa o time reage (empatou: os pênaltis decidem, a reação vem depois da última cobrança)
+                if (!this.penalties.length) this.endReact(winner, 0);
                 break;
             }
             case 'pass':
@@ -4139,8 +4180,11 @@ export class MatchScene extends Phaser.Scene {
                 playCrowd(e.scored ? (mine ? 'gol' : 'vaia') : mine ? 'uuh' : 'gol', 0.7);
                 // a cobrança que decide a disputa pesa: explosão se você ganha, toque se perde
                 const last = this.penalties.at(-1);
-                if (last && last.tick === e.tick && last.by === e.by)
+                if (last && last.tick === e.tick && last.by === e.by) {
                     this.punch(this.md.result.winner === 0 ? 'boom' : 'touch');
+                    // quem bateu e o goleiro reagem primeiro; depois o time todo (fim de jogo com cara)
+                    this.endReact(this.md.result.winner, END_AFTER_SHOOTOUT_MS);
+                }
                 if (this.shootoutOn) {
                     const mid = FUTSAL_5.pitch.width / 2;
                     const shooter = this.viewPos.get(e.by) ?? { x: 33.4, y: mid };
@@ -5077,7 +5121,8 @@ export class MatchScene extends Phaser.Scene {
     private sdSettle() {
         const w = this.sdSave;
         const v = w ? this.players[w.shooter] : undefined;
-        if (!v || !this.showdown || this.playTick < this.showdown.until || (!v.shift.x && !v.shift.y && !v.act)) return;
+        if (!v || this.endOn || !this.showdown || this.playTick < this.showdown.until) return;
+        if (!v.shift.x && !v.shift.y && !v.act) return;
         v.shift.x = 0;
         v.shift.y = 0;
         this.sdAct(v, null);

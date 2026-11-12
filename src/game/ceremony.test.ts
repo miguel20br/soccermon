@@ -3,6 +3,7 @@ import {
     CHARGE_MS,
     ceremonyCamera,
     ceremonyPlan,
+    endPose,
     fanPose,
     halfMoon,
     invasionFans,
@@ -86,5 +87,32 @@ describe('cerimônia do título', () => {
             // na foto o time desce na tela (a placa fica no alto)
             expect(ceremonyCamera(kind, p.end, 1.1).up).toBeGreaterThan(20);
         }
+    });
+});
+
+describe('fim de jogo com cara (B2)', () => {
+    const all = () => true;
+    it('quem ganhou pula, quem perdeu senta, empate fica no Idle', () => {
+        expect(endPose(0, 0, 0, all, false).anim).toBe('Hop');
+        expect(endPose(1, 0, 0, all, false).anim).toBe('Sit');
+        expect(endPose(1, 1, 0, all, false).anim).toBe('Hop');
+        expect(endPose(0, null, 0, all, false).anim).toBe('Idle');
+        expect(endPose(1, null, 0, all, false).anim).toBe('Idle');
+    });
+    it('sem Sit fica cabisbaixo (Hurt); sem nada, Idle sem erro', () => {
+        const semSit = (a: string) => a !== 'Sit';
+        expect(endPose(1, 0, 0, semSit, false).anim).toBe('Hurt');
+        expect(endPose(1, 0, 0, () => false, false).anim).toBe('Idle');
+        expect(endPose(0, 0, 0, () => false, false).anim).toBe('Idle');
+    });
+    it('cada um com um atraso; Reduzir movimento: pose parada, sem pulo', () => {
+        const d = [0, 1, 2, 3, 4].map((s) => endPose(0, 0, s, all, false).delay);
+        expect(d).toEqual([...d].sort((a, b) => a - b));
+        expect(new Set(d).size).toBe(5);
+        const r = endPose(0, 0, 0, all, true);
+        expect(r.anim).toBe('Pose');
+        expect(r.still).toBe(true);
+        expect(endPose(0, 0, 0, (a) => a !== 'Pose', true).anim).toBe('Hop');
+        expect(endPose(0, 0, 0, all, false).still).toBe(false);
     });
 });
