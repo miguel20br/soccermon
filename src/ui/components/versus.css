@@ -128,6 +128,9 @@
 .vsp-meta {
     grid-area: meta;
 }
+.vsp-coachrow {
+    display: contents;
+}
 .vsp-coach {
     grid-area: coach;
     justify-self: start;
@@ -314,8 +317,8 @@
 .vsp-mon {
     position: absolute;
     left: calc(50% + var(--sx, 0px) + var(--dx) * var(--spread) * var(--u));
-    bottom: calc(var(--base) + var(--dy) * var(--u));
-    height: calc(var(--h) * var(--u));
+    bottom: calc(var(--base) + var(--dy) * var(--lift, 1) * var(--u));
+    height: calc(var(--h) * var(--k, 1) * var(--u));
     width: auto;
     max-width: none;
     translate: -50% 0;
@@ -340,7 +343,8 @@
     --u: min(80cqh, 100cqw / 3.15);
 }
 .vsp-trainer {
-    --tx: -1.6;
+    /* 1,35 (era 1,6): a 1,6 o treinador passava da borda da tela no PC e deitado */
+    --tx: -1.35;
     position: absolute;
     left: calc(50% + var(--sx, 0px) + var(--tx) * var(--spread) * var(--u));
     /* o pé do sprite fica a ~12% do fundo do quadro de 80 px */
@@ -359,7 +363,7 @@
     scale: -1 1;
 }
 .is-away .vsp-trainer {
-    --tx: 1.6;
+    --tx: 1.35;
 }
 
 /* ---------- linha de luz ---------- */
@@ -615,21 +619,36 @@
             "crest who avg"
             "crest name avg"
             "crest meta avg"
-            "coach coach coach"
-            "shows shows shows";
+            "coach coach coach";
     }
     .is-away .vsp-head {
         grid-template-areas:
             "avg who crest"
             "avg name crest"
             "avg meta crest"
-            "coach coach coach"
-            "shows shows shows";
+            "coach coach coach";
     }
-    .vsp-side .vsp-who,
-    .vsp-side .vsp-coach,
-    .vsp-side .vsp-shows {
+    .vsp-side .vsp-who {
         justify-self: center;
+    }
+    /* treinador e vitrine numa linha só, no eixo */
+    .vsp-coachrow {
+        grid-area: coach;
+        /* sem largura própria: a linha não alarga as colunas do escudo e da média (cortava a formação no 320) */
+        contain: inline-size;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 6px 8px;
+        margin-top: 4px;
+    }
+    .vsp-side .vsp-avg,
+    .vsp-side .vsp-crest {
+        justify-self: center;
+    }
+    .vsp-coachrow .vsp-shows {
+        margin-top: 0;
     }
     /* foto no eixo da tela (11/11): o treinador na ponta de dentro (o rival à esquerda, o seu à direita), o time todo
        centrado; o resto (0,2 capitão) mais um passo pequeno e igual pros dois lados põe os Pokémon do rival à direita e
@@ -638,6 +657,16 @@
         --spread: 0.82;
         --u: min(84cqh, (100cqw - 16px) / 2.5);
         --sx: calc(var(--side) * 0.06 * var(--u));
+    }
+    /* a tela em pé tem altura de sobra e largura curta: os de trás sobem (aparecem por cima do capitão) e crescem
+       (0,72 e 0,56 do capitão no PC viravam miniatura no celular) */
+    .vsp-mon.row-1 {
+        --k: 1.18;
+        --lift: 1.7;
+    }
+    .vsp-mon.row-2 {
+        --k: 1.32;
+        --lift: 1.5;
     }
     .vsp-squad.has-trainer {
         --u: min(84cqh, (100cqw - 16px) / 2.92);

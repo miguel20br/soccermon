@@ -206,32 +206,35 @@ function Side({
                         <div className="vsp-meta">
                             {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
                         </div>
-                        {coach && (
-                            <CoachTag onOpen={coach.onOpen} name={coach.name}>
-                                {coach.avatar && (
-                                    <img
-                                        className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
-                                        src={coach.avatar}
-                                        alt=""
-                                        referrerPolicy="no-referrer"
-                                    />
-                                )}
-                                <span>
-                                    <b>{coach.name}</b>
-                                    {coach.title && (
-                                        <small>
-                                            <span className={coach.titleLook || undefined}>{coach.title}</span>
-                                        </small>
+                        {/* treinador e vitrine: soltos na grade (deitado e PC), numa linha só no celular em pé */}
+                        <div className="vsp-coachrow">
+                            {coach && (
+                                <CoachTag onOpen={coach.onOpen} name={coach.name}>
+                                    {coach.avatar && (
+                                        <img
+                                            className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
+                                            src={coach.avatar}
+                                            alt=""
+                                            referrerPolicy="no-referrer"
+                                        />
                                     )}
-                                </span>
-                            </CoachTag>
-                        )}
-                        {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
-                        {!!coach?.showcase?.length && (
-                            <div className="vsp-shows">
-                                <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
-                            </div>
-                        )}
+                                    <span>
+                                        <b>{coach.name}</b>
+                                        {coach.title && (
+                                            <small>
+                                                <span className={coach.titleLook || undefined}>{coach.title}</span>
+                                            </small>
+                                        )}
+                                    </span>
+                                </CoachTag>
+                            )}
+                            {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
+                            {!!coach?.showcase?.length && (
+                                <div className="vsp-shows">
+                                    <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className={`vsp-avg ${tierOf(avg)}`}>
                         <b>{avg}</b>
