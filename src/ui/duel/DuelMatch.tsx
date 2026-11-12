@@ -610,7 +610,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
+                    {agency && <MaxBars events={match.events} tick={clock.tick} />}
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
