@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.50 · Cada um no seu lugar (12/11/2026)
+
+Motor 30 (`liga` republicada): `fixoPass` 0,2 no Losango (balanceamento-geral.md, "Motor 30"). Fim de jogo com cara (`endPose` em src/game/ceremony.ts, demo `?demo=fim&res=`). `myMon` (src/ui/ambientes/metas.ts): capitão do último time nos ambientes. Evento `nav` (`trackNav`, migração 20261111120000 aplicada antes). Perfil com "Seus números" e Amigos na barra de cima; Clube, Amigos e Metas viram folhas (`openSheet` em src/ui/doors.ts) e o voltar segue o caminho (src/ui/back-nav.ts).
+
 ## 0.9.49.1 · Joga em qualquer navegador (12/11/2026)
 
 Opera GX com os cookies do site bloqueados: `indexedDB.open` lança na hora, o `set` do idb-keyval estourava dentro do `set` do Zustand e o JOGAR não fazia nada (reproduzido no Playwright forçando o erro). `safeStorage` em src/store/save-health.ts nunca lança: sem IndexedDB o save fica na memória e `blocked` mostra um aviso no Estádio.

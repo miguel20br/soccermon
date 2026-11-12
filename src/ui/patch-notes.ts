@@ -9,6 +9,29 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'Cada um no seu lugar',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)',
+                    'No Losango, os alas também voltam a bola pro fixo na armação',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Seus números no Perfil: aproveitamento, gols pró e contra, títulos por modo, carta favorita e melhor campanha',
+                    'Amigos na barra de cima, em qualquer tela',
+                    'Fechar e voltar levam pra onde você estava (o X do Clube não cai mais no Perfil)',
+                    'O Estádio mostra o capitão do seu último time, não o Pikachu do avatar padrão',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.49.1',
         date: '2026-11-12',
         title: 'Joga em qualquer navegador',
@@ -2842,6 +2865,29 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'Everyone in their place',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Full time with feeling: at the whistle the winners jump and the losers sit down (in shootouts, after the last kick)',
+                    'In the Diamond, the wingers also play the ball back to the fixo in the build-up',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Your numbers in the Profile: win rate, goals for and against, titles by mode, favorite card and best run',
+                    'Friends in the top bar, on every screen',
+                    'Close and back take you where you were (the Club X no longer drops you in the Profile)',
+                    'The Stadium shows the captain of your last team, not the default avatar Pikachu',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.49.1',
         date: '2026-11-12',

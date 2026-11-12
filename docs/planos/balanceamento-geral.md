@@ -311,7 +311,7 @@ Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 
 
 Relato de jogador: na Linha de 3 a bola roda entre alas e pivô e nunca volta pro fixo. Causa: `bestPass` castiga passe pra trás (`fwdPass`) e o fixo fica ~8 m atrás dos alas; o pivô ganha `pivotPass` + `longPivot`. Ajuste: `fixoPass: 0.3` só na 3-1; muda só o destino (a decisão passe × drible usa o melhor passe sem o bônus), e não vale logo depois do fixo/parede do pivô tocar. 200 jogos: armações com o fixo 34% ⇒ 51%, passes pro fixo 9% ⇒ 17%, gols 3,6/3,9 ⇒ 3,6/3,8, chutes 18,1 ⇒ 17,6; `calibrate --formations` igual dentro do erro (3-1 47% ⇒ 46%). De olho: 3-1 × Losango 51% ⇒ 42% (400 jogos). Losango com 0,2 fica pra outra rodada. Script: `scripts/balance/fixo-armacao.ts`.
 
-## Motor 30: fixo na armação do Losango (proposta 11/11/2026, falta o ok do Miguel)
+## Motor 30: fixo na armação do Losango (aprovado pelo Miguel em 12/11/2026, 0.9.50)
 
 Próximo passo do motor 29: o mesmo `fixoPass` no Losango (1-2-1), mais fraco. Varredura com `scripts/balance/fixo-armacao.ts 200 --losango=<v>` (Losango como time A contra as 6 formações):
 

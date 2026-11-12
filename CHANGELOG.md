@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.50 · Cada um no seu lugar (2026-11-12)
+
+### Partida
+- Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)
+- No Losango, os alas também voltam a bola pro fixo na armação
+
+### Menus
+- Seus números no Perfil: aproveitamento, gols pró e contra, títulos por modo, carta favorita e melhor campanha
+- Amigos na barra de cima, em qualquer tela
+- Fechar e voltar levam pra onde você estava (o X do Clube não cai mais no Perfil)
+- O Estádio mostra o capitão do seu último time, não o Pikachu do avatar padrão
+
 ## 0.9.49.1 · Joga em qualquer navegador (2026-11-12)
 
 ### Consertos
