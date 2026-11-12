@@ -1046,3 +1046,171 @@ export function strikeLead(durations: readonly number[], hit: number): number {
     for (let i = 0; i < hit; i++) acc += durations[i];
     return (acc * 1000) / 60;
 }
+
+/**
+ * Squash & stretch dos jogadores fora do gol (12/11, Miguel: "o mesmo tratamento do goleiro levado além"): arrancada e
+ * freada, chute, dominada e choque. Tudo pelo tick (replay e salto pra trás mostram certo); `reduce` (Reduzir movimento):
+ * nada. As frequentes (corrida, dominada) bem sutis; o chute e o choque, maiores.
+ */
+export interface BodyLean {
+    tilt: number;
+    sx: number;
+    sy: number;
+}
+
+/** Arrancada (`go`) ou freada (`stop`) de quem corre, com a direção da corrida (unitária, tela = metros). */
+export interface RunBurst {
+    by: number;
+    tick: number;
+    kind: 'go' | 'stop';
+    dir: { x: number; y: number };
+    dusted: boolean;
+}
+
+/**
+ * Corrida: parado é abaixo de `slow` m/s, correndo acima de `fast`; `gap` ticks entre duas do mesmo jogador; a pose dura
+ * `len` ticks; estica `stretch` e inclina `tilt` rad no máximo.
+ */
+export const RUN_BURST = { slow: 1.8, fast: 3.5, gap: 30, len: 7, stretch: 0.08, tilt: 0.13 } as const;
+
+/** Ações em que a corrida não conta (o motor já tem pose própria pra elas). */
+const NO_RUN: ReadonlySet<number> = new Set([Action.Dive, Action.Hurt, Action.Celebrate, Action.Tackle, Action.Charge]);
+
+/**
+ * Arrancadas e freadas da partida (só a tela): a velocidade média nos 2 snapshots antes e nos 2 depois de cada
+ * snapshot; de parado pra correndo é arrancada, o contrário é freada. Sem saída de bola nem lance parado no meio.
+ */
+export function runBursts(snaps: readonly MatchSnapshot[], players: number): RunBurst[] {
+    const out: RunBurst[] = [];
+    const R = RUN_BURST;
+    const rate = FUTSAL_5.tickRate;
+    for (let i = 0; i < players; i++) {
+        const o = i * SNAP_STRIDE;
+        let last = Number.NEGATIVE_INFINITY;
+        // m/s do snapshot n-1 ao n
+        const v = (n: number) => {
+            const a = snaps[n - 1];
+            const b = snaps[n];
+            return (Math.hypot(b.p[o] - a.p[o], b.p[o + 1] - a.p[o + 1]) * rate) / (b.tick - a.tick || 1);
+        };
+        for (let n = 2; n + 2 < snaps.length; n++) {
+            const s = snaps[n];
+            if (s.tick - last < R.gap) continue;
+            let ok = true;
+            for (let m = n - 2; m <= n + 2 && ok; m++) ok = snaps[m].phase === 'play' && !NO_RUN.has(snaps[m].p[o + 3]);
+            if (!ok) continue;
+            const before = (v(n - 1) + v(n)) / 2;
+            const after = (v(n + 1) + v(n + 2)) / 2;
+            const go = before < R.slow && after > R.fast;
+            const stop = before > R.fast && after < R.slow;
+            if (!go && !stop) continue;
+            const [a, b] = go ? [snaps[n], snaps[n + 2]] : [snaps[n - 2], snaps[n]];
+            const dx = b.p[o] - a.p[o];
+            const dy = b.p[o + 1] - a.p[o + 1];
+            const l = Math.hypot(dx, dy) || 1;
+            out.push({ by: i, tick: s.tick, kind: go ? 'go' : 'stop', dir: { x: dx / l, y: dy / l }, dusted: false });
+            last = s.tick;
+        }
+    }
+    return out.sort((x, y) => x.tick - y.tick);
+}
+
+const sinBump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+/** Inclinação pro lado de `x` (correndo reto pra cima ou pra baixo, um pouco pro lado de onde olha). */
+const leanX = (x: number, k: number) => k * (x >= 0 ? 1 : -1) * Math.max(0.35, Math.abs(x));
+
+/**
+ * Pose da arrancada/freada no tick: arrancada inclina pra frente e estica na direção da corrida (de lado: mais comprido;
+ * pra cima/baixo: mais alto); freada joga o corpo pra trás e amassa (o pé fincando). null fora da janela.
+ */
+export function runBurstPose(b: RunBurst, tick: number, reduce = false): BodyLean | null {
+    const R = RUN_BURST;
+    const t = tick - b.tick;
+    if (reduce || t <= -1 || t >= R.len) return null;
+    // sobe rápido e solta devagar
+    const u = (t + 1) / (R.len + 1);
+    const k = sinBump(u < 0.3 ? u / 0.6 : 0.5 + (u - 0.3) / 1.4);
+    const ax = Math.abs(b.dir.x);
+    const ay = Math.abs(b.dir.y);
+    const s = R.stretch * k;
+    if (b.kind === 'go')
+        return { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 + s * (ax - 0.5 * ay), sy: 1 + s * (ay - 0.5 * ax) };
+    return { tilt: leanX(b.dir.x, -R.tilt * k), sx: 1 + s, sy: 1 - 1.2 * s };
+}
+
+/** Onde sai a poeirinha da corrida (px a partir do pé): atrás na arrancada, na frente na freada. */
+export const runDustAt = (b: RunBurst) => {
+    const k = b.kind === 'go' ? -6 : 7;
+    return { x: b.dir.x * k, y: b.dir.y * k * 0.5 };
+};
+
+/** O chute (`Action.Shoot`): agacha nos `lead` ticks antes do contato e estica no chute, soltando em `tail`. */
+export const KICK_SQUASH = { lead: 4, tail: 5, squash: 0.11, stretch: 0.16, tilt: 0.16 } as const;
+
+/**
+ * Pose do chute `dt` ticks depois do contato (negativo = antes): encolhe (prepara, corpo pra trás) e estica no chute
+ * (corpo pra frente, pro lado de `dirX`, a direção da bola na tela). null fora da janela.
+ */
+export function kickSquash(dt: number, dirX: number, reduce = false): BodyLean | null {
+    const K = KICK_SQUASH;
+    if (reduce || dt <= -K.lead || dt >= K.tail) return null;
+    const pre = dt < 0 ? sinBump((dt + K.lead) / K.lead / 1.15) : 0;
+    const hit = dt >= 0 ? Math.exp(-dt / 1.4) * (1 - dt / K.tail) : 0;
+    return {
+        tilt: leanX(dirX, -0.5 * K.tilt * pre + K.tilt * hit),
+        sx: 1 + K.squash * pre - 0.5 * K.stretch * hit,
+        sy: 1 - K.squash * 1.1 * pre + K.stretch * hit,
+    };
+}
+
+/** A bola chegando no pé de alguém (dominada): quem e o tick do snapshot em que ela passou a ser dele. */
+export interface Trap {
+    by: number;
+    tick: number;
+}
+
+/**
+ * Dominadas da partida: a bola solta num snapshot e de alguém no seguinte, com a bola rolando (a defesa do goleiro tem
+ * o mergulho, que vence a dominada).
+ */
+export function traps(snaps: readonly MatchSnapshot[]): Trap[] {
+    const out: Trap[] = [];
+    for (let n = 1; n < snaps.length; n++) {
+        const a = snaps[n - 1];
+        const s = snaps[n];
+        if (a.owner >= 0 || s.owner < 0 || s.phase !== 'play' || a.phase !== 'play') continue;
+        out.push({ by: s.owner, tick: s.tick });
+    }
+    return out;
+}
+
+/** Dominada: amassa de leve um instante (o corpo amortecendo a bola) e volta, em 5 ticks. */
+export function trapPose(dt: number, reduce = false): BodyLean | null {
+    if (reduce || dt <= -1 || dt >= 4) return null;
+    const k = sinBump((dt + 1) / 5);
+    return { tilt: 0, sx: 1 + 0.05 * k, sy: 1 - 0.07 * k };
+}
+
+/**
+ * Choque no desarme: os dois amassam no contato e inclinam pra longe um do outro (`away`: lado na tela pra onde o corpo
+ * vai, +1 direita). null fora dos 6 ticks.
+ */
+export function bumpPose(dt: number, away: number, reduce = false): BodyLean | null {
+    if (reduce || dt <= -1 || dt >= 6) return null;
+    // bate forte e solta devagar
+    const u = (dt + 1) / 7;
+    const k = sinBump(u < 0.2 ? u / 0.4 : 0.5 + (u - 0.2) / 1.6);
+    return { tilt: 0.16 * k * (away >= 0 ? 1 : -1), sx: 1 + 0.16 * k, sy: 1 - 0.18 * k };
+}
+
+/** O último da lista (em ordem de tick) com tick até `tick`, por busca binária; undefined se não tem. */
+export function latestAt<T extends { tick: number }>(list: readonly T[], tick: number): T | undefined {
+    let lo = 0;
+    let hi = list.length;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (list[mid].tick <= tick) lo = mid + 1;
+        else hi = mid;
+    }
+    return list[lo - 1];
+}

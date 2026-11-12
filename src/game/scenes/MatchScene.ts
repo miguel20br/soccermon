@@ -33,6 +33,8 @@ import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } fr
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
+    type BodyLean,
+    bumpPose,
     DRIBBLE_PUFFS,
     type DribblePose,
     diveDust,
@@ -48,6 +50,8 @@ import {
     keeperRows,
     kickDepartures,
     kickHold,
+    kickSquash,
+    latestAt,
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
     maxCertain,
@@ -56,6 +60,10 @@ import {
     NAMED_DRIBBLE,
     type NamedDribble,
     namedDribblesOf,
+    type RunBurst,
+    runBurstPose,
+    runBursts,
+    runDustAt,
     SAVE_DIVE,
     SOLD_LEAN,
     type SoldDive,
@@ -65,6 +73,9 @@ import {
     strikeFrame,
     strikeLead,
     strikesNear,
+    type Trap,
+    trapPose,
+    traps,
 } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
@@ -688,11 +699,7 @@ interface PlayerView {
 }
 
 /** Corpo inclinado (rad) e esticado (escala em x e y) num mergulho ou reação. */
-interface Lean {
-    tilt: number;
-    sx: number;
-    sy: number;
-}
+type Lean = BodyLean;
 
 /** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
 const POSE_MS = 1600;
@@ -878,6 +885,10 @@ export class MatchScene extends Phaser.Scene {
     /** 1 com a bola no pé de quem dribla, indo a 0 quando ela sai (o enfeite da bola vai junto). */
     private trickOwn = 1;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
+    /** Squash & stretch fora do gol (só tela): arrancadas/freadas e dominadas por jogador, e os choques do desarme. */
+    private runs: RunBurst[][] = [];
+    private trapsBy: Trap[][] = [];
+    private bumps: { tick: number; by: number; victim: number; dusted: boolean }[] = [];
     /** Tick em que a bola sai do pé em cada passe e chute, por jogador (`kickDepartures`). */
     private departs = new Map<number, number[]>();
     /** Deslocamento suavizado da bola em relação a quem conduz. */
@@ -1141,6 +1152,14 @@ export class MatchScene extends Phaser.Scene {
         this.reacts = goalReactions(this.matchEvents, this.sold, (team, tick) => this.keeperAt(team, tick));
         this.goalsBy = this.matchEvents.flatMap((e) =>
             e.type === 'goal' && !e.ownGoal ? [{ by: e.by, tick: e.tick }] : [],
+        );
+        const n = result.roster.length;
+        this.runs = Array.from({ length: n }, () => []);
+        for (const b of runBursts(this.snaps, n)) this.runs[b.by].push(b);
+        this.trapsBy = Array.from({ length: n }, () => []);
+        for (const t of traps(this.snaps)) this.trapsBy[t.by].push(t);
+        this.bumps = this.matchEvents.flatMap((e) =>
+            e.type === 'tackle' && e.success ? [{ tick: e.tick, by: e.by, victim: e.victim, dusted: false }] : [],
         );
         // o replay tem a câmera lenta dele; a partida da copa e do duelo, os dribles com nome
         const setups = this.md.setups;
@@ -2294,7 +2313,12 @@ export class MatchScene extends Phaser.Scene {
                 celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1)
                     ? { tilt: 0, sx: celeb.sx, sy: celeb.sy }
                     : null;
-            this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean) : null);
+            this.leanBody(
+                view,
+                entering === null
+                    ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean ?? this.moveLean(i, px, strike, factor))
+                    : null,
+            );
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
@@ -2414,7 +2438,7 @@ export class MatchScene extends Phaser.Scene {
         for (const c of strikesNear(this.snaps, index, o, this.departs.get(o / SNAP_STRIDE))) {
             const s = this.strikeAt(view, animForAction(c.action), c.facing, c.contact, c.end);
             // ainda não começou: o toque de antes pode estar no fim
-            if (s !== undefined) return s;
+            if (s !== undefined) return s && { ...s, contact: c.contact, action: c.action };
         }
         return null;
     }
@@ -2663,6 +2687,51 @@ export class MatchScene extends Phaser.Scene {
             if (by === i) return goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
         }
         return null;
+    }
+
+    /**
+     * Squash & stretch fora do gol (o do mergulho levado pro resto, 12/11): choque do desarme, chute, dominada e
+     * arrancada/freada, nessa ordem. A poeirinha do choque e da corrida sai uma vez (voltando o replay, de novo); a da
+     * corrida, frequente, só até 2x (no 4x/8x ela piscaria).
+     */
+    private moveLean(
+        i: number,
+        px: { x: number; y: number },
+        strike: { anim: string; contact?: number; action?: number } | null,
+        factor: number,
+    ): Lean | null {
+        if (this.md.reduceMotion) return null;
+        const t = this.playTick;
+        for (const b of this.bumps) {
+            if ((b.by !== i && b.victim !== i) || t - b.tick <= -1 || t - b.tick >= 6) continue;
+            const other = this.playerPxAt(b.by === i ? b.victim : b.by, t);
+            const pose = bumpPose(t - b.tick, px.x - other.x, false);
+            if (b.by === i) {
+                const due = diveDust(b.dusted, t, b.tick, false);
+                b.dusted = due.dusted;
+                if (due.fire)
+                    dust(this, (px.x + other.x) / 2, (px.y + other.y) / 2 + 1, 7, Math.max(px.y, other.y) + 1);
+            }
+            if (pose) return pose;
+        }
+        if (strike?.action === Action.Shoot && strike.contact !== undefined) {
+            const c = strike.contact;
+            const pose = kickSquash(t - c, this.ballPxAt(c + 3).x - this.ballPxAt(c).x);
+            if (pose) return pose;
+        }
+        const trap = latestAt(this.trapsBy[i] ?? [], t + 1);
+        const caught = trap ? trapPose(t - trap.tick) : null;
+        if (caught) return caught;
+        const run = latestAt(this.runs[i] ?? [], t + 1);
+        const pose = run ? runBurstPose(run, t) : null;
+        if (!run || !pose) return null;
+        const due = diveDust(run.dusted, t, run.tick, false);
+        run.dusted = due.dusted;
+        if (due.fire && factor <= 2.5) {
+            const at = runDustAt(run);
+            dust(this, px.x + at.x, px.y + at.y + 1, 3, px.y - 1, 0.55);
+        }
+        return pose;
     }
 
     /** Cabeça baixa na reação ao gol: amassa um pouco e volta (sem o Reduzir movimento). */
