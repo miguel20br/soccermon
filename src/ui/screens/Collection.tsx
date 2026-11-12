@@ -1,4 +1,5 @@
 import { type CSSProperties, lazy, Suspense, useState } from 'react';
+import { trackNav } from '../../analytics/track';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { backTarget } from '../back-nav';
@@ -42,7 +43,10 @@ export function Collection() {
                         aria-selected={tab === id}
                         aria-controls={`col-panel-${id}`}
                         className={`pf-tab${tab === id ? ' active' : ''}`}
-                        onClick={() => setTab(id)}
+                        onClick={() => {
+                            trackNav('sub', `collection.${id}`, `collection.${tab}`);
+                            setTab(id);
+                        }}
                     >
                         <HudIcon kind={TAB_ICON[id]} />
                         <span>{d.profile.tabs[id]}</span>

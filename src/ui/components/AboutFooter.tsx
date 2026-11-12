@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { trackNav } from '../../analytics/track';
 import { reloadForNewVersion } from '../../chunk-reload';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -107,6 +108,7 @@ export function NewsButton() {
                 onPointerDown={load}
                 onClick={() => {
                     load();
+                    trackNav('news', 'news', useGame.getState().screen);
                     setNewIds(new Set(unseen.map((c) => c.id)));
                     setOpen(true);
                 }}
