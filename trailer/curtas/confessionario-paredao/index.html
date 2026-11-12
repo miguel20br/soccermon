@@ -55,8 +55,8 @@
 .veu { position: absolute; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 42%, rgb(30 10 50 / 40%), rgb(7 4 16 / 92%) 75%); }
 .placa { position: absolute; left: 50px; top: 640px; width: 980px; height: 230px; z-index: 30; box-sizing: border-box; border-radius: 34px; display: flex; align-items: center; justify-content: center;
   background: #1a0c2a; border: 12px solid #0e1430; box-shadow: inset 0 0 0 10px #ffcb05, inset 0 0 0 22px #1a0c2a, inset 0 0 0 28px #e8423f, 0 22px 0 rgb(0 0 0 / 45%); }
-.placa b { font-size: 96px; color: #ffcb05; letter-spacing: 2px; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 7px 0 #ff8a1c, 0 14px 0 #e8423f, 0 20px 0 #0e1430; margin-top: -10px; }
-.placa .olho { display: inline-block; width: 70px; height: 70px; margin-right: 22px; border-radius: 50%; background: #e8423f; box-shadow: 0 0 0 10px #0e1430, inset 0 0 0 14px #fff; vertical-align: middle; }
+.placa b { font-size: 84px; color: #ffcb05; letter-spacing: 2px; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 7px 0 #ff8a1c, 0 14px 0 #e8423f, 0 20px 0 #0e1430; margin-top: -10px; }
+.placa .olho { display: inline-block; width: 56px; height: 56px; margin-right: 18px; border-radius: 50%; background: #e8423f; box-shadow: 0 0 0 10px #0e1430, inset 0 0 0 14px #fff; vertical-align: middle; }
 .fita { position: absolute; left: 340px; top: 560px; width: 400px; height: 104px; z-index: 31; display: flex; align-items: center; justify-content: center; background: #0e1430;
   clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%, 8% 50%); }
 .fita::before { content: ""; position: absolute; inset: 10px 14px; background: #e8423f; box-shadow: inset 0 -12px 0 #b02a2a; clip-path: polygon(0 0, 100% 0, 92% 50%, 100% 100%, 0 100%, 8% 50%); }
@@ -75,13 +75,12 @@
 .medalha .disco { position: absolute; box-sizing: border-box; border-radius: 50%; border-style: solid; border-color: #0e1430; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00); }
 .lente { position: absolute; left: 540px; top: 960px; width: 300px; height: 300px; margin: -150px 0 0 -150px; z-index: 55; border-radius: 50%; opacity: 0; box-sizing: border-box;
   background: radial-gradient(circle at 36% 32%, #fffbe0, #ffcb05 40%, #d99a00 75%); border: 18px solid #0e1430; }
-.lente::after { content: "1"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 150px; color: #b07800; }
 .chiado { position: absolute; inset: 0; z-index: 58; opacity: 0; background: repeating-linear-gradient(#e8e8f0 0 6px, #22242e 6px 10px, #8a8ca0 10px 16px, #3a3d4a 16px 22px); }
 .amarelo { position: absolute; inset: 0; z-index: 57; background: #fff3a0; opacity: 0; }
 .zz { position: absolute; left: 0; top: 0; z-index: 61; font-size: 90px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; opacity: 0; }
 .fumaca { position: absolute; left: 0; top: 0; width: 140px; height: 140px; margin: -70px 0 0 -70px; border-radius: 50%; z-index: 45; opacity: 0;
   background: radial-gradient(circle at 40% 40%, #b8b4ae, #6e6a66 70%); border: 8px solid #2a2622; }
-.pergunta { position: absolute; z-index: 60; font-size: 170px; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; opacity: 0; }
+.pergunta { position: absolute; z-index: 60; font-size: 240px; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; opacity: 0; }
 .gota { position: absolute; z-index: 60; width: 34px; height: 48px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: #9fd8ff; box-shadow: 0 0 0 6px #0e1430, inset -6px -6px 0 #5aa8e8; opacity: 0; }
 .banco { position: absolute; left: 140px; top: 1420px; width: 800px; height: 50px; z-index: 9; box-sizing: border-box; background: #c98a4f; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 12px 0 #7a4a2a; }
 .banco::before, .banco::after { content: ""; position: absolute; top: 50px; width: 30px; height: 120px; background: #7a4a2a; border: 8px solid #0e1430; border-top: none; }
@@ -158,11 +157,11 @@
     const punch = (cam, t, k, x, y, cy = 960) => tl.set(cam, { scale: k, x: 540 - x * k, y: cy - y * k, transformOrigin: '0px 0px' }, t);
     const aberto = (cam, t) => tl.set(cam, { scale: 1, x: 0, y: 0 }, t);
     /** Z subindo. */
-    function zs(pai, x, y, t0, t1, tam = 90) {
+    function zs(pai, x, y, t0, t1, tam = 90, sobe = 200) {
       for (let t = t0, k = 0; t < t1 - 0.5; t += 0.6, k++) {
         const z = div(pai, 'zz', `font-size:${tam - (k % 2) * 20}px`);
         z.textContent = 'Z';
-        tl.fromTo(z, { x: x + (k % 2) * 30, y, opacity: 0 }, { keyframes: { opacity: [1, 1, 0] }, x: x + 70 + (k % 2) * 30, y: y - 200, duration: 1.1, ease: 'none', immediateRender: false }, t);
+        tl.fromTo(z, { x: x + (k % 2) * 30, y, opacity: 0 }, { keyframes: { opacity: [1, 1, 0] }, x: x + 70 + (k % 2) * 30, y: y - sobe, duration: 1.1, ease: 'none', immediateRender: false }, t);
       }
     }
 
@@ -247,7 +246,7 @@
     anim(tl, ps, 'Walk', 6, T(9, 0), T(9, 6));
     tl.fromTo(ps.el, { x: 1250 }, { x: 800, duration: T(9, 6) - T(9, 0), ease: 'none', immediateRender: false }, T(9, 0));
     anim(tl, ps, 'Charge', 0, T(9, 6), 28, { vel: 0.8 });
-    const q = div(PC, 'pergunta', 'left:760px;top:1040px');
+    const q = div(PC, 'pergunta', 'left:740px;top:940px');
     q.textContent = '?';
     op(q, T(9, 4));
     tl.fromTo(q, { scale: 0.3 }, { scale: 1, duration: 0.2, ease: 'back.out(3)', immediateRender: false }, T(9, 4));
@@ -374,7 +373,7 @@
       const BY = 1430;
       const sn = ator(FC, '143', { escala: 7, z: 20, x: 400, y: BY + 10, sombra: false });
       anim(tl, sn, 'Sleep', 0, t0, 28, { id: '143x', vel: 0.6 });
-      zs(FC, 440, 1220, t0 + 0.3, 28, 64);
+      zs(FC, 470, 1330, t0 + 0.3, 28, 56, 100);
       const d2 = ator(FC, '132', { escala: 7, z: 21, x: 1200, y: BY });
       anim(tl, d2, 'Walk', 6, t0, T(11, 10), { vel: 0.7 });
       tl.fromTo(d2.el, { x: 1200 }, { x: 640, duration: T(11, 10) - t0, ease: 'none', immediateRender: false }, t0);
@@ -387,7 +386,7 @@
       tl.set(mini.el, { opacity: 1, rotation: -10 }, T(13, 2));
       tl.fromTo(mini.corpo, { scaleX: 1.4, scaleY: 0.6 }, { scaleX: 1, scaleY: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, T(13, 2));
       quadro(tl, mini, 'Idle', 0, 0, T(13, 2), { id: '143d' });
-      zs(FC, 620, 1300, T(13, 6), 28, 50);
+      zs(FC, 640, 1350, T(13, 6), 28, 44, 90);
     }
 
     tl.set({}, {}, 28);
