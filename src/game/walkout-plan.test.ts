@@ -199,8 +199,8 @@ describe('plano do walkout', () => {
                 if (p.lift > 0) expect(p.sy, `${kind} ${ms}`).toBeGreaterThanOrEqual(1);
             }
             expect(high, kind).toBeGreaterThan(12);
-            // amassa na aterrissagem
-            expect(flat, kind).toBeLessThan(0.85);
+            // amassa na aterrissagem (~35%, o reforço)
+            expect(flat, kind).toBeLessThan(0.7);
         }
     });
 });

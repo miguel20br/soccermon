@@ -2679,7 +2679,7 @@ export class MatchScene extends Phaser.Scene {
                 // quem levou o drible perde e amassa: a poeira no pé dele
                 const lose = d.tick + DRIBBLE_LOSE[d.kind];
                 if (prev < lose && this.playTick >= lose) {
-                    dust(this, mk.x + pose.markerBody.x, mk.y + pose.markerBody.y + 1, 6, mk.y + 1, 0.8);
+                    dust(this, mk.x + pose.markerBody.x, mk.y + pose.markerBody.y + 1, 10, mk.y + 1, 1.2);
                     this.sqDebug('poeira', `drible:${d.tick}`, mk);
                 }
             }
@@ -2829,7 +2829,7 @@ export class MatchScene extends Phaser.Scene {
                 const due = diveDust(b.dusted, t, b.tick, false);
                 b.dusted = due.dusted;
                 if (due.fire) {
-                    dust(this, (px.x + other.x) / 2, (px.y + other.y) / 2 + 1, 7, Math.max(px.y, other.y) + 1);
+                    dust(this, (px.x + other.x) / 2, (px.y + other.y) / 2 + 1, 10, Math.max(px.y, other.y) + 1, 1.3);
                     this.sqDebug('poeira', `choque:${b.tick}`, px);
                 }
             }
@@ -2859,7 +2859,7 @@ export class MatchScene extends Phaser.Scene {
         this.sqDebug('corrida', `${i}:${run.tick}`, px);
         if (due.fire && factor <= 2.5) {
             const at = runDustAt(run);
-            dust(this, px.x + at.x, px.y + at.y + 1, 3, px.y - 1, 0.55);
+            dust(this, px.x + at.x, px.y + at.y + 1, 6, px.y - 1, 1);
             this.sqDebug('poeira', `corrida:${i}:${run.tick}`, px);
         }
         return pose;

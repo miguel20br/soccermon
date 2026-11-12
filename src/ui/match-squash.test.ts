@@ -75,7 +75,7 @@ describe('arrancada e freada (squash & stretch, só tela)', () => {
         expect(runBursts(track(choppy), 1)).toHaveLength(1);
     });
 
-    it('arrancada inclina pra frente e estica de lado; freada joga pra trás e amassa; sutil', () => {
+    it('arrancada inclina pra frente e estica de lado; freada joga pra trás e amassa; 15–20% (o reforço)', () => {
         const go = { by: 0, tick: 10, kind: 'go' as const, dir: { x: 1, y: 0 }, dusted: false };
         const stop = { ...go, kind: 'stop' as const };
         let peak = 0;
@@ -89,8 +89,8 @@ describe('arrancada e freada (squash & stretch, só tela)', () => {
             expect(s.sy).toBeLessThanOrEqual(1);
             peak = Math.max(peak, g.sx - 1, 1 - s.sy);
         }
-        expect(peak).toBeGreaterThan(0.05);
-        expect(peak).toBeLessThanOrEqual(0.1);
+        expect(peak).toBeGreaterThan(0.15);
+        expect(peak).toBeLessThanOrEqual(0.2);
         // correndo pra esquerda: inclina pra esquerda; pra baixo na tela: estica na altura
         expect(runBurstPose({ ...go, dir: { x: -1, y: 0 } }, 12)?.tilt).toBeLessThan(0);
         const down = runBurstPose({ ...go, dir: { x: 0, y: 1 } }, 12);
@@ -115,6 +115,8 @@ describe('chute, dominada e choque (squash & stretch, só tela)', () => {
         expect(hit?.sy).toBeGreaterThan(1.1);
         expect(hit?.tilt).toBeGreaterThan(0);
         expect(kickSquash(0.5, -1)?.tilt).toBeLessThan(0);
+        // no nível do goleiro: estica ~30% no contato
+        expect(kickSquash(0, 1)?.sy).toBeCloseTo(1.3);
         expect(kickSquash(-KICK_SQUASH.lead, 1)).toBeNull();
         expect(kickSquash(KICK_SQUASH.tail, 1)).toBeNull();
         expect(kickSquash(0.5, 1, true)).toBeNull();
@@ -214,8 +216,9 @@ describe('dribles com nome: quem perde amassa (só tela)', () => {
             let low = 1;
             for (let t = DRIBBLE_LOSE[kind] - 0.5; t < DRIBBLE_LOSE[kind] + 1.5; t += 0.1)
                 low = Math.min(low, pose(kind, t)?.markerSy ?? 1);
-            expect(low, kind).toBeLessThan(0.9);
-            expect(low, kind).toBeGreaterThan(0.75);
+            // ~30% (o reforço: com 13–17% não dava pra ver)
+            expect(low, kind).toBeLessThan(0.75);
+            expect(low, kind).toBeGreaterThan(0.65);
         }
     });
 

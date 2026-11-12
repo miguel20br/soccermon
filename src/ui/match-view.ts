@@ -845,7 +845,7 @@ export function dribblePose(
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, 0.12 * bump((t + 1.2) / 2.4)) + lean(S, 0.32 * wobble(t, 1.3, 2.4, 2.2));
         // perdeu: amassa forte quando a bola cai atrás dele (`DRIBBLE_LOSE`)
-        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.17 * lose(t, d.kind);
+        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.3 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.6);
     } else if (d.kind === 'roleta') {
@@ -879,8 +879,8 @@ export function dribblePose(
         mFace = t < -1 ? { x: -toMarker.x, y: -toMarker.y } : F;
         pose.markerTilt = lean(F, 0.3 * bump((t + 1) / 3.2)) + lean(F, 0.28 * wobble(t, 1.8, 2, 2));
         // e tropeça: amassa quando passa reto
-        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2) - 0.16 * lose(t, d.kind);
-        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2) + 0.14 * lose(t, d.kind);
+        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2) - 0.3 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2) + 0.26 * lose(t, d.kind);
         pose.huh = huhAt(1.2);
     } else if (d.kind === 'chapeu') {
         // chapéu: de frente, agacha e põe o bico do pé por baixo da bola (sem calcanhar): ela sobe por cima da cabeça do
@@ -924,7 +924,7 @@ export function dribblePose(
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, -0.14 * bump((t + 1.4) / 3)) + lean(S, 0.2 * wobble(t, 2, 2.6, 2.4));
         // a bola cai atrás: ele murcha (amassa) olhando pra ela
-        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3) - 0.17 * lose(t, d.kind);
+        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3) - 0.3 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.3);
     } else {
@@ -954,8 +954,8 @@ export function dribblePose(
         pose.markerTilt =
             lean(S, -0.36 * bite * (1 - ramp(0.6, 3, t)) - 0.1 * drift) + lean(S, 0.3 * wobble(t, 1.4, 2.2, 2));
         // vendido e desequilibrado: amassa ao perder
-        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t)) - 0.13 * lose(t, d.kind);
-        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t)) + 0.1 * lose(t, d.kind);
+        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t)) - 0.25 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t)) + 0.24 * lose(t, d.kind);
         pose.huh = huhAt(0.8);
     }
     // quem dribla olha pra onde vai (no snapshot às vezes ele está de lado ou de costas); a roleta tem a dela
@@ -1072,7 +1072,7 @@ export function strikeLead(durations: readonly number[], hit: number): number {
 /**
  * Squash & stretch dos jogadores fora do gol (12/11, Miguel: "o mesmo tratamento do goleiro levado além"): arrancada e
  * freada, chute, dominada e choque. Tudo pelo tick (replay e salto pra trás mostram certo); `reduce` (Reduzir movimento):
- * nada. As frequentes (corrida, dominada) bem sutis; o chute e o choque, maiores.
+ * nada. Reforço (12/11, "não vi diferença nenhuma"): no nível do goleiro, corrida 16–19%, chute 30%; a dominada sutil.
  */
 export interface BodyLean {
     tilt: number;
@@ -1093,7 +1093,7 @@ export interface RunBurst {
  * Corrida: parado é abaixo de `slow` m/s, correndo acima de `fast`; `gap` ticks entre duas do mesmo jogador; a pose dura
  * `len` ticks; estica `stretch` e inclina `tilt` rad no máximo.
  */
-export const RUN_BURST = { slow: 1.8, fast: 3.5, gap: 30, len: 7, stretch: 0.08, tilt: 0.13 } as const;
+export const RUN_BURST = { slow: 1.8, fast: 3.5, gap: 30, len: 9, stretch: 0.16, tilt: 0.22 } as const;
 
 /** Ações em que a corrida não conta (o motor já tem pose própria pra elas). */
 const NO_RUN: ReadonlySet<number> = new Set([Action.Dive, Action.Hurt, Action.Celebrate, Action.Tackle, Action.Charge]);
@@ -1167,7 +1167,7 @@ export const runDustAt = (b: RunBurst) => {
 };
 
 /** O chute (`Action.Shoot`): agacha nos `lead` ticks antes do contato e estica no chute, soltando em `tail`. */
-export const KICK_SQUASH = { lead: 4, tail: 5, squash: 0.11, stretch: 0.16, tilt: 0.16 } as const;
+export const KICK_SQUASH = { lead: 4, tail: 6, squash: 0.2, stretch: 0.3, tilt: 0.24 } as const;
 
 /**
  * Pose do chute `dt` ticks depois do contato (negativo = antes): encolhe (prepara, corpo pra trás) e estica no chute

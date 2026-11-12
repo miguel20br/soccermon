@@ -296,7 +296,7 @@ const POSE_CHARGE_MS = 450;
 const POP_MS = 160;
 
 /** Pulo da comemoração: quanto sobe (px), quanto fica no ar e quanto dura o amassado da aterrissagem (ms). */
-export const CELEB_HOP = { h: 22, air: 380, h2: 13, air2: 300, land: 170, squash: 0.2, squash2: 0.13 } as const;
+export const CELEB_HOP = { h: 28, air: 380, h2: 18, air2: 300, land: 190, squash: 0.3, squash2: 0.22 } as const;
 
 interface CelebBody {
     sx: number;
@@ -316,7 +316,7 @@ function hop(t: number, t0: number, h: number, air: number, squash: number): Cel
     if (t < t0 + air) {
         const u = (t - t0) / air;
         const s = Math.abs(2 * u - 1);
-        return { lift: h * 4 * u * (1 - u), sx: 1 - 0.06 * s, sy: 1 + 0.1 * s };
+        return { lift: h * 4 * u * (1 - u), sx: 1 - 0.1 * s, sy: 1 + 0.2 * s };
     }
     const k = bump((t - t0 - air) / CELEB_HOP.land);
     return { lift: 0, sx: 1 + squash * k, sy: 1 - squash * 1.15 * k };
@@ -325,7 +325,7 @@ function hop(t: number, t0: number, h: number, air: number, squash: number): Cel
 /** Agacha nos `ms` antes de `t0` (antecipação do pulo). */
 const crouch = (t: number, t0: number, ms: number): CelebBody | null =>
     t >= t0 - ms && t < t0 ? { lift: 0, ...squashOf(Math.sin((Math.PI / 2) * ((t - t0 + ms) / ms))) } : null;
-const squashOf = (k: number) => ({ sx: 1 + 0.08 * k, sy: 1 - 0.1 * k });
+const squashOf = (k: number) => ({ sx: 1 + 0.15 * k, sy: 1 - 0.2 * k });
 
 /**
  * A comemoração do gol na quadra (MatchScene), no jeito da espécie (`comemoracaoOf`), dentro do tempo que o motor já
