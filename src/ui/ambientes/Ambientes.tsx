@@ -35,7 +35,7 @@ const ICON: Record<Tab, HudIconKind> = {
 const ENTER_MS = 860;
 
 /**
- * A Home (navegação por ambientes; `?lab=off` = a Home de lista): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
+ * A Home (navegação por ambientes): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
  * o celular deitado) e o arrasto de lado entre eles. Abre no Estádio. A troca anda 280 ms com o fundo em camadas
  * (céu devagar, cenário médio, botões junto do dedo); com "reduzir movimento", só um fade.
  */

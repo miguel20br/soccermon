@@ -2,7 +2,6 @@ import type { duel as pt } from '../pt/duel';
 
 export const duel: typeof pt = {
     title: 'Duel',
-    line: 'Send a friend the link and play live',
     createRoom: 'Create room',
     newHint: 'Pick the mode and speed, then send the link to your rival.',
     modeLabel: 'Mode',

@@ -1,7 +1,6 @@
 /** Duelo ao vivo por link (docs/planos/multiplayer.md). */
 export const duel = {
     title: 'Duelo',
-    line: 'Mande o link pra um amigo e joguem ao vivo',
     createRoom: 'Criar sala',
     newHint: 'Escolha o modo e a velocidade e mande o link pro rival.',
     modeLabel: 'Modo',

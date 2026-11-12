@@ -408,7 +408,7 @@ export function Rota({
                 <header className="rt-head">
                     <h2>
                         <span className="rt-title">{t('home.longCup.title')}</span>
-                        {/* NOVO até a 1ª Rota (o mesmo selo da Home de lista) */}
+                        {/* NOVO até a 1ª Rota */}
                         {isNew && !records.longCups && !longOn && (
                             <span className="bc-tag rota-new">{t('profile.news.badge')}</span>
                         )}

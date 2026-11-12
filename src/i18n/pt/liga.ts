@@ -13,7 +13,6 @@ export const liga = {
         dailyRanking: 'Ranking de hoje',
         ligaTag: 'Liga',
         ligaLine: 'Contra o time de outro treinador · vale Elo',
-        ligaGo: 'Abrir a Liga',
         ligaSoon: 'Em breve',
         ligaOpensIn: 'Abre em {d}d {h}h {m}m',
         ligaClosed: 'Enquanto a Liga não abre, a Copa do Dia tem ranking.',

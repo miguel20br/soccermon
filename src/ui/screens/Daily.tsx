@@ -7,15 +7,12 @@ import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo, squadOf } from '../../league/api';
-import { ligaCountdown } from '../../league/rules';
 import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
-import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
-import { MenuIcon } from '../components/MenuIcon';
 import { MonIcon } from '../components/MonIcon';
 import { EstadioBackdrop } from '../kit/backdrop';
 import { InfoSheet, SheetRow } from '../kit/controls';
@@ -394,84 +391,5 @@ function TrophyMini() {
             />
             <path d="M10 14 H14 V18 H10 Z M8 18 H16 V21 H8 Z" fill="#c98a52" stroke="#1a1430" strokeWidth="1.6" />
         </svg>
-    );
-}
-
-/**
- * Entrada na Home (embaixo dos modos: o "Nova copa" continua na primeira tela do celular): Copa do Dia com os dias da
- * semana e a Liga (fechada até a data, ver `LigaHomeRow`).
- */
-export function HomeDailyCard() {
-    const { t, lang } = useT();
-    const daily = useGame((s) => s.daily);
-    const go = useGame((s) => s.go);
-    // redesenha quando a copa muda de fase (o botão vira "Continuar")
-    useGame((s) => s.run?.status);
-    const today = dailyDay();
-    const entry = daily.find((e) => e.day === today);
-    const streak = dailyStreak(daily, today);
-    const playing = dailyInPlay();
-    const { begin, busy } = useDailyBegin();
-    return (
-        <div className="panel mode-card daily-card">
-            <div className="dc-row">
-                <span className="dc-icon" aria-hidden>
-                    <MenuIcon kind="daily" />
-                </span>
-                <div className="mode-head">
-                    <b>{t('liga.home.dailyTag')}</b>
-                    <span>{t('liga.home.dailyLine')}</span>
-                    <ol className="lg-days small" aria-label={t('liga.daily.week', { n: streak.weekCount })}>
-                        {streak.week.map((on, i) => (
-                            <li key={streak.days[i]} className={on ? 'on' : ''}>
-                                {dict(lang).liga.daily.weekDays[i]}
-                            </li>
-                        ))}
-                    </ol>
-                </div>
-                <button
-                    type="button"
-                    className="btn dc-go"
-                    disabled={busy}
-                    onClick={() => (entry && !playing ? go('daily') : void begin())}
-                >
-                    {playing
-                        ? t('liga.home.dailyContinue')
-                        : entry
-                          ? t('liga.home.dailyDone')
-                          : t('liga.home.dailyPlay')}
-                </button>
-            </div>
-            <LigaHomeRow />
-        </div>
-    );
-}
-
-/**
- * Linha da Liga no cartão da Home, só depois que ela abre (`LIGA_OPENS_AT`, src/league/rules.ts). Fechada, ela mora
- * na faixa "Vem aí" (ComingSoon) com a contagem; na data aparece aqui sozinha (a conferência roda a cada 30 s).
- */
-function LigaHomeRow() {
-    const { t } = useT();
-    const go = useGame((s) => s.go);
-    const [left, setLeft] = useState(() => ligaCountdown());
-    useEffect(() => {
-        const id = window.setInterval(() => setLeft(ligaCountdown()), 30000);
-        return () => clearInterval(id);
-    }, []);
-    if (left) return null;
-    return (
-        <div className="dc-row">
-            <span className="dc-icon" aria-hidden>
-                <HudIcon kind="crown" />
-            </span>
-            <div className="mode-head">
-                <b>{t('liga.home.ligaTag')}</b>
-                <span>{t('liga.home.ligaLine')}</span>
-            </div>
-            <button type="button" className="btn ghost dc-go" onClick={() => go('liga')}>
-                {t('liga.home.ligaGo')}
-            </button>
-        </div>
     );
 }
