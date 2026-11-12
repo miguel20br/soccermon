@@ -5,7 +5,7 @@ import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
 import { isFriendCode, sendPendingChallenge, useFriends } from '../../friends/api';
-import { rich, useT } from '../../i18n/react';
+import { useT } from '../../i18n/react';
 import {
     bestOfOf,
     DUEL_BEST_OF,
@@ -43,11 +43,11 @@ import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
 import { hexCss, peerAvatar, peerMon, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
-import { TrainerName } from '../profile/TrainerName';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
+import { DuelHistory } from './DuelHistory';
 import { DuelMatch, useCountdown } from './DuelMatch';
 import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
@@ -718,14 +718,6 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     const rival = trainerNames(s)[SIDE[other(role)]];
     // o rival saiu da sala: revanche não tem quem aceite
     const rivalGone = !online[other(role)];
-    // placar contra esse amigo (pelo nome dele no histórico do save)
-    const rivalSaved = s.peers[other(role)]?.name ?? '';
-    const vsRival = history.filter((h) => h.rival === rivalSaved && h.result !== 'void');
-    const h2h = {
-        w: vsRival.filter((h) => h.result === 'win').length,
-        l: vsRival.filter((h) => h.result === 'loss').length,
-        d: vsRival.filter((h) => h.result === 'draw').length,
-    };
     const side = SIDE[role];
     // a partida que esta tela simulou (recarregou a página no resultado: fica só o placar)
     const m = !r.wo && !r.desync ? duel.result : null;
@@ -861,37 +853,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
             {history.length > 0 && (
                 <div className="panel duel-history">
                     <h2>{t('duel.result.history')}</h2>
-                    {vsRival.length > 0 && (
-                        <p className="duel-h2h" data-testid="duel-h2h">
-                            <span className="muted">{t('duel.result.h2hLabel', { name: rival })}</span>{' '}
-                            <b>{t('duel.result.h2h', { w: h2h.w, l: h2h.l, name: rival })}</b>
-                            {h2h.d > 0 && <span className="muted"> · {tn('duel.result.h2hDraws', h2h.d)}</span>}
-                        </p>
-                    )}
-                    {history.slice(0, 8).map((h) => (
-                        <div key={h.id} className="duel-hrow">
-                            <i className={h.result}>
-                                {h.result === 'win'
-                                    ? t('duel.result.win')
-                                    : h.result === 'loss'
-                                      ? t('duel.result.loss')
-                                      : h.result === 'void'
-                                        ? t('duel.result.voidShort')
-                                        : t('duel.result.drawShort')}
-                            </i>
-                            <span>
-                                {rich(t('duel.result.vs'), {
-                                    name: (
-                                        <TrainerName who={{ trainer: h.rival, club: h.rivalClub, code: h.rivalCode }} />
-                                    ),
-                                })}
-                            </span>
-                            <b>
-                                {h.bestOf === 3 && `${t('duel.series.short')} `}
-                                {h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}
-                            </b>
-                        </div>
-                    ))}
+                    <DuelHistory duels={history} rival={s.peers[other(role)]?.name ?? ''} />
                 </div>
             )}
         </div>

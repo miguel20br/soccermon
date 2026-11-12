@@ -6,6 +6,8 @@ import { duelWins } from '../../store/duels';
 import { useGame } from '../../store/game-store';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { DuelHistory } from '../duel/DuelHistory';
+import { Sheet } from '../kit/Sheet';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
 import { avatarMon, type Mon, nextBelt } from './metas';
@@ -26,7 +28,7 @@ export const RIVALS = [6, 9, 3, 94, 149, 130, 65, 68, 143, 59, 26, 112];
  * é Desafiar. A Liga, na semana antes de abrir, é um letreiro no muro com a contagem (tocar abre a Liga); antes, nada.
  */
 export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
-    const { t } = useT();
+    const { t, tn } = useT();
     const clock = useSceneClock(active);
     const scale = useSceneScale();
     const wide = useMq(LANDSCAPE);
@@ -46,7 +48,9 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     );
     const go = useGame((s) => s.go);
     const avatar = useGame((s) => s.profile.avatar);
+    const duels = useGame((s) => s.duels);
     const wins = useGame((s) => duelWins(s.records, s.duels));
+    const [history, setHistory] = useState(false);
     const [rival] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
     const mine = avatarMon(avatar);
     const belt = nextBelt(wins);
@@ -100,14 +104,31 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                         </span>
                         <HudIcon kind="next" />
                     </button>
-                    {/* o Arcade e a Liga fechada ficam no muro (neon e letreiro): o tile repetia */}
-                    {ligaOpen && (
+                    {/* o Arcade e a Liga fechada ficam no muro (neon e letreiro): o tile repetia. Seus duelos: o histórico
+                        e o placar contra cada amigo, que antes só apareciam no fim de um duelo */}
+                    {(ligaOpen || duels.length > 0) && (
                         <div className="amb-tiles">
-                            <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
+                            {duels.length > 0 && (
+                                <Tile
+                                    icon="friends"
+                                    title={t('duel.result.history')}
+                                    sub={tn('duel.result.count', duels.length)}
+                                    onClick={() => setHistory(true)}
+                                />
+                            )}
+                            {ligaOpen && <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />}
                         </div>
                     )}
                 </div>
             </div>
+            <Sheet
+                open={history}
+                onClose={() => setHistory(false)}
+                title={t('duel.result.history')}
+                className="duel-history"
+            >
+                <DuelHistory duels={duels} />
+            </Sheet>
         </ClockCtx.Provider>
     );
 }

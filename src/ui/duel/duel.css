@@ -630,39 +630,6 @@ button.sb-title:hover {
 .duel-final small {
     grid-column: 1 / -1;
 }
-.duel-history {
-    display: grid;
-    gap: 4px;
-    width: 100%;
-    padding: 12px;
-    text-align: left;
-}
-.duel-history h2 {
-    margin: 0 0 4px;
-    font-size: 16px;
-}
-.duel-hrow {
-    display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) auto;
-    gap: 8px;
-    align-items: center;
-    font-size: 14px;
-}
-.duel-hrow i {
-    font-style: normal;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 4px;
-    background: var(--bg-2);
-}
-.duel-hrow i.win {
-    background: var(--green);
-    color: #0e1430;
-}
-.duel-hrow i.loss {
-    background: var(--red);
-}
-
 /* pedido de velocidade: em cima da quadra, pros dois (quem pede, quem responde e o resultado) */
 .speed-ask {
     position: absolute;
@@ -955,11 +922,6 @@ button.sb-title:hover {
     color: var(--muted);
 }
 /* placar contra o mesmo amigo (do histórico do save) */
-.duel-h2h {
-    margin: 0 0 6px;
-    font-size: 14px;
-    overflow-wrap: anywhere;
-}
 /* pronto do duelo (escolha do time, escalação, intervalo): quem está pronto e o botão em 3 estados */
 .ready-bar {
     display: grid;
