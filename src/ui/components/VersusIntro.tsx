@@ -15,6 +15,7 @@ import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
+import { usePixelFit } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
@@ -84,6 +85,7 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
                         src={cardSprite(p)}
                         alt={viewInstance(p).displayName}
                         draggable={false}
+                        data-px="tight"
                     />
                 );
             })}
@@ -204,32 +206,35 @@ function Side({
                         <div className="vsp-meta">
                             {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
                         </div>
-                        {coach && (
-                            <CoachTag onOpen={coach.onOpen} name={coach.name}>
-                                {coach.avatar && (
-                                    <img
-                                        className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
-                                        src={coach.avatar}
-                                        alt=""
-                                        referrerPolicy="no-referrer"
-                                    />
-                                )}
-                                <span>
-                                    <b>{coach.name}</b>
-                                    {coach.title && (
-                                        <small>
-                                            <span className={coach.titleLook || undefined}>{coach.title}</span>
-                                        </small>
+                        {/* treinador e vitrine: soltos na grade (deitado e PC), numa linha só no celular em pé */}
+                        <div className="vsp-coachrow">
+                            {coach && (
+                                <CoachTag onOpen={coach.onOpen} name={coach.name}>
+                                    {coach.avatar && (
+                                        <img
+                                            className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
+                                            src={coach.avatar}
+                                            alt=""
+                                            referrerPolicy="no-referrer"
+                                        />
                                     )}
-                                </span>
-                            </CoachTag>
-                        )}
-                        {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
-                        {!!coach?.showcase?.length && (
-                            <div className="vsp-shows">
-                                <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
-                            </div>
-                        )}
+                                    <span>
+                                        <b>{coach.name}</b>
+                                        {coach.title && (
+                                            <small>
+                                                <span className={coach.titleLook || undefined}>{coach.title}</span>
+                                            </small>
+                                        )}
+                                    </span>
+                                </CoachTag>
+                            )}
+                            {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
+                            {!!coach?.showcase?.length && (
+                                <div className="vsp-shows">
+                                    <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className={`vsp-avg ${tierOf(avg)}`}>
                         <b>{avg}</b>
@@ -372,6 +377,9 @@ export function VersusIntro({
     // rival de monotipo (raro): o treinador avisa no lugar da fala de sempre
     const mono = host ? computeSynergies(away.lineup, away.bench).find((s) => s.mono) : undefined;
     const quote = mono ? t('match.vs.mono', { type: typeName(mono.type) }) : hostText?.pre;
+    // GIF em pixel exato no tamanho pensado (pixelFit)
+    const scene = useRef<HTMLDivElement>(null);
+    usePixelFit(scene);
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -385,7 +393,7 @@ export function VersusIntro({
             aria-modal="true"
             aria-label={t('match.vs.aria', { home: home.name, away: awayName })}
         >
-            <div className="vsp-scene">
+            <div className="vsp-scene" ref={scene}>
                 <Side
                     team={away}
                     side="away"

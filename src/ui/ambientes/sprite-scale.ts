@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { type RefObject, useEffect, useLayoutEffect, useState } from 'react';
+import { uiZoom } from '../ui-zoom';
 
 /** Celular pequeno (SE) ou deitado. */
 export const SMALL = '(max-width: 359px), (max-height: 520px)';
@@ -57,3 +58,57 @@ export function realScale(scale: number, z = 1, dpr = 1): { css: number; zoom: n
  */
 export const rowScale = (bodies: (number | null)[], fit: number, max: number) =>
     Math.max(1, Math.min(max, ...bodies.map((b) => (b ? Math.floor(fit / b) : max))));
+
+/**
+ * Sprite clássico (GIF de frente, 1x) em pixel exato (11/11): cada pixel do GIF vira um número inteiro de pixels da
+ * tela (1, 2, 3…) ou, se o GIF é maior que a caixa, exatamente 1/2, 1/3… (nearest-neighbor tira 1 a cada 2, 3).
+ * Vale o degrau mais perto do tamanho de antes (`target`, px do CSS), sem passar dele mais que `over` (30%); conta em
+ * pixel do aparelho (`z` o zoom do CSS por cima, `dpr` os pixels por px). Devolve a altura em px do CSS.
+ */
+export function pixelFit(target: number, natural: number, z = 1, dpr = 1, over = 1.3): number {
+    const d = (z > 0 ? z : 1) * (dpr > 0 ? dpr : 1);
+    const r = (target * d) / natural;
+    // os degraus em volta de r: ... 1/3, 1/2, 1, 2, 3 ...
+    const lo = r >= 1 ? Math.floor(r + 1e-6) : 1 / Math.ceil(1 / r - 1e-6);
+    const hi = lo >= 1 ? lo + 1 : 1 / (1 / lo - 1);
+    const k = hi <= r * over && hi / r < r / lo ? hi : lo;
+    return (k * natural) / d;
+}
+
+/**
+ * Aplica `pixelFit` nos `img[data-px]` de `root`: a altura que o CSS dá ao sprite é o alvo. `data-px="box"` (vaga da
+ * prancheta) mantém a caixa do CSS (a sobra ou o excesso vai na margem de cima, o pé no mesmo lugar); `data-px="tight"`
+ * (foto do VERSUS, sem folga em volta) passa no máximo 20% do alvo.
+ */
+export function fitPixelSprites(root: ParentNode) {
+    const dpr = typeof devicePixelRatio === 'number' ? devicePixelRatio : 1;
+    for (const img of root.querySelectorAll<HTMLImageElement>('img[data-px]')) {
+        if (!img.naturalHeight) continue;
+        img.style.height = '';
+        img.style.marginTop = '';
+        const t = Number.parseFloat(getComputedStyle(img).height);
+        if (!(t > 0)) continue;
+        const h = pixelFit(t, img.naturalHeight, uiZoom(img), dpr, img.dataset.px === 'tight' ? 1.2 : 1.3);
+        img.style.height = `${h}px`;
+        if (img.dataset.px === 'box') img.style.marginTop = `${t - h}px`;
+    }
+}
+
+/** `fitPixelSprites` a cada render, a cada GIF que carrega e quando a caixa muda de tamanho. */
+export function usePixelFit(ref: RefObject<HTMLElement | null>) {
+    useLayoutEffect(() => {
+        if (ref.current) fitPixelSprites(ref.current);
+    });
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const fit = () => fitPixelSprites(el);
+        el.addEventListener('load', fit, true);
+        const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit);
+        ro?.observe(el);
+        return () => {
+            el.removeEventListener('load', fit, true);
+            ro?.disconnect();
+        };
+    }, [ref]);
+}
