@@ -85,7 +85,7 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
                         src={cardSprite(p)}
                         alt={viewInstance(p).displayName}
                         draggable={false}
-                        data-px=""
+                        data-px="tight"
                     />
                 );
             })}

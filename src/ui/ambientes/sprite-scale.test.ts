@@ -52,6 +52,9 @@ describe('escala dos sprites fora da partida (revisão de arte)', () => {
         expect(pixelFit(38, 72, 1, 3)).toBe(48);
         // passaria de 30% acima: fica no degrau de baixo (Gyarados 84 px: 28, não 56)
         expect(pixelFit(38, 84, 1, 3)).toBe(28);
+        // foto do VERSUS (folga de 20%): Venusaur (71 px) no alvo de 56 px a 2x fica em 1 pixel por pixel, não 71
+        expect(pixelFit(56, 71, 1, 2, 1.2)).toBe(35.5);
+        expect(pixelFit(56, 71, 1, 2)).toBe(71);
         // Pidgeotto (117 px) na vaga de 22 px no PC: 1/5 (23,4 px), o degrau mais perto
         expect(pixelFit(22, 117)).toBeCloseTo(117 / 5);
     });

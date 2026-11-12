@@ -83,10 +83,20 @@
     right: 0;
     padding-right: 16px;
 }
+/* cabeçalho em grade: escudo | quem, nome, formação | média, a média e o escudo na altura do nome; embaixo do texto,
+   o treinador e a vitrine (o rival espelhado, tudo encostado à direita) */
 .vsp-head {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, max-content) auto;
+    grid-template-areas:
+        "crest who avg"
+        "crest name avg"
+        "crest meta avg"
+        ". coach ."
+        ". shows .";
+    justify-content: start;
     align-items: center;
-    gap: 10px;
+    gap: 0 10px;
     animation: vsp-head-in 0.4s 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
 }
 .is-home .vsp-head {
@@ -94,14 +104,46 @@
 }
 .is-away .vsp-head {
     --hx: 28px;
-    flex-direction: row-reverse;
+    grid-template-areas:
+        "avg who crest"
+        "avg name crest"
+        "avg meta crest"
+        ". coach ."
+        ". shows .";
+    justify-content: end;
     text-align: right;
 }
 .vsp-info {
-    flex: 0 1 auto;
-    min-width: 0;
+    display: contents;
+}
+.vsp-crest {
+    grid-area: crest;
+}
+.vsp-avg {
+    grid-area: avg;
+}
+.vsp-name {
+    grid-area: name;
+}
+.vsp-meta {
+    grid-area: meta;
+}
+.vsp-coach {
+    grid-area: coach;
+    justify-self: start;
+}
+.vsp-shows {
+    grid-area: shows;
+    justify-self: start;
+}
+.is-away .vsp-who,
+.is-away .vsp-coach,
+.is-away .vsp-shows {
+    justify-self: end;
 }
 .vsp-who {
+    grid-area: who;
+    justify-self: start;
     display: inline-block;
     max-width: 100%;
     margin-bottom: 3px;
@@ -164,6 +206,18 @@
 }
 .is-away .vsp-shows {
     justify-content: flex-end;
+}
+/* a carta da vitrine num disco do mesmo tamanho das medalhas: a fileira fica num molde só */
+.showcase.vsp-showcase .show-seal {
+    border-radius: 50%;
+    background: rgb(5 6 15 / 70%);
+    box-shadow:
+        inset 0 0 0 2px rgb(255 255 255 / 55%),
+        0 2px 0 #0e1430;
+}
+.showcase.vsp-showcase .show-seal img {
+    width: 24px;
+    height: 24px;
 }
 
 /* média do time, na faixa das cartas (bronze/prata/ouro) */
@@ -249,11 +303,10 @@
     content: "";
     position: absolute;
     left: calc(50% + var(--sx, 0px));
-    bottom: calc(var(--base) + (var(--lift, 0) - 0.1) * var(--u));
+    bottom: calc(var(--base) - 0.1 * var(--u));
     width: calc(2.8 * var(--spread) * var(--u));
     height: calc(0.4 * var(--u));
     translate: -50% 0;
-    rotate: calc(-1 * atan(var(--tilt, 0)));
     border-radius: 50%;
     background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 60%, #fff 10%), transparent);
     opacity: 0.55;
@@ -261,7 +314,7 @@
 .vsp-mon {
     position: absolute;
     left: calc(50% + var(--sx, 0px) + var(--dx) * var(--spread) * var(--u));
-    bottom: calc(var(--base) + (var(--dy) + var(--dx) * var(--spread) * var(--tilt, 0) + var(--lift, 0)) * var(--u));
+    bottom: calc(var(--base) + var(--dy) * var(--u));
     height: calc(var(--h) * var(--u));
     width: auto;
     max-width: none;
@@ -290,8 +343,8 @@
     --tx: -1.6;
     position: absolute;
     left: calc(50% + var(--sx, 0px) + var(--tx) * var(--spread) * var(--u));
-    /* o pé do sprite fica a ~12% do fundo do quadro de 80 px: 0,3 - 0,12 x 1,05 = 0,174 */
-    bottom: calc(var(--base) + (0.174 + var(--tx) * var(--spread) * var(--tilt, 0) + var(--lift, 0)) * var(--u));
+    /* o pé do sprite fica a ~12% do fundo do quadro de 80 px */
+    bottom: calc(var(--base) + 0.3 * var(--u) - 0.12 * 1.05 * var(--u));
     height: calc(1.05 * var(--u));
     width: auto;
     max-width: none;
@@ -551,25 +604,50 @@
         bottom: var(--btn);
         flex-direction: column-reverse;
     }
-    /* em diagonal (11/11): o rival encostado à direita, você à esquerda, cada foto em escada subindo pra direita;
-       os sprites olham pra esquerda (o rival pra baixo, onde você está) e o seu time espelhado pra cima */
+    /* cabeçalho em pé no eixo da tela: o mesmo, espelhado, com o treinador e a vitrine centrados embaixo */
+    .vsp-head,
+    .is-away .vsp-head {
+        justify-content: center;
+        text-align: center;
+    }
+    .vsp-head {
+        grid-template-areas:
+            "crest who avg"
+            "crest name avg"
+            "crest meta avg"
+            "coach coach coach"
+            "shows shows shows";
+    }
+    .is-away .vsp-head {
+        grid-template-areas:
+            "avg who crest"
+            "avg name crest"
+            "avg meta crest"
+            "coach coach coach"
+            "shows shows shows";
+    }
+    .vsp-side .vsp-who,
+    .vsp-side .vsp-coach,
+    .vsp-side .vsp-shows {
+        justify-self: center;
+    }
+    /* foto no eixo da tela (11/11): o treinador na ponta de dentro (o rival à esquerda, o seu à direita), o time todo
+       centrado; o resto (0,2 capitão) mais um passo pequeno e igual pros dois lados põe os Pokémon do rival à direita e
+       os seus à esquerda, se encarando na diagonal (o rival olha pra baixo, o seu time espelhado olha pra cima) */
     .vsp-squad {
-        --spread: 0.76;
-        --tilt: 0.28;
-        --u: min(74cqh, 100cqw / 2.8);
-        /* empurra a foto pro seu lado com a sobra da largura (ponta de fora da foto a ~1,25 capitão do meio) */
-        --sx: calc(var(--side) * max(0px, 50cqw - 1.25 * var(--u)));
+        --spread: 0.82;
+        --u: min(84cqh, (100cqw - 16px) / 2.5);
+        --sx: calc(var(--side) * 0.06 * var(--u));
     }
     .vsp-squad.has-trainer {
-        --u: min(74cqh, 100cqw / 3.3);
-        --sx: calc(var(--side) * max(0px, 50cqw - 1.5 * var(--u)));
+        --u: min(84cqh, (100cqw - 16px) / 2.92);
+        --sx: calc(var(--side) * 0.26 * var(--u));
     }
-    /* a escada fica no meio da área: o rival desce um pouco (a ponta do treinador não sobe no cabeçalho), você sobe */
-    .is-away .vsp-squad {
-        --lift: -0.1;
+    .is-away .vsp-trainer {
+        --tx: -1.6;
     }
-    .is-home .vsp-squad {
-        --lift: 0.1;
+    .is-home .vsp-trainer {
+        --tx: 1.6;
     }
     .vsp-beam .land {
         display: none;
