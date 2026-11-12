@@ -13,3 +13,15 @@ export const duelLink = (code: string, local: boolean, from?: string) =>
 export const CONNECT_GIVEUP_MS = 15000;
 /** Sem resposta do anfitrião há tempo demais, ou sem conexão com o canal (`left`): o link provavelmente morreu. */
 export const roomLooksClosed = (status: string, waitedMs: number) => status === 'left' || waitedMs >= CONNECT_GIVEUP_MS;
+
+/**
+ * O balão da entrada sem conta ("Depois você cria a sala e manda o link") é de quem vai criar a sala. Quem chegou pelo
+ * convite (`code`) não cria nada: o painel já diz "Fulano te chamou" e o balão cobria o Entrar com Google.
+ */
+export const entryCoach = (code: string | null) => (code ? null : ('duelo' as const));
+
+/**
+ * A linha da sala (código e "Sair da sala") em cima das telas de página. No resultado não: lá as saídas são só
+ * Revanche e Voltar ao início (com a linha eram três jeitos de sair).
+ */
+export const roomBarShown = (step: string) => step !== 'done';

@@ -1,50 +1,31 @@
 import type { home as pt } from '../pt/home';
 
 export const home: typeof pt = {
-    soon: [
-        { title: 'Story mode', text: 'Gyms, badges and the Indigo League' },
-        { title: 'Team Ultimate', text: 'Open packs and build your season squad' },
-        { title: 'Full-size football', text: '11-a-side matches' },
-        { title: 'Generation 2', text: 'The Pokémon of Johto' },
-    ],
     draftStep: 'Draft · pick {n} of 7',
-    dex: {
-        label: 'Pokédex',
-        new: '+{n} new',
-    },
     choosingReward: 'Choosing the reward',
     atMarket: 'At the Market',
     eventWeek: '{type}-type week',
-    eventText: '{type} Event cards can turn up in the draft.',
     helpAria: 'Help: how each mode works and the rules',
     helpTitle: 'How to play',
     live: 'LIVE',
     tagline: 'Build your team from the 151 of Kanto and win the Futsal Cup.',
-    confirmNew: 'Starting a new cup erases the {team} one. Are you sure?',
     confirmYes: 'Yes, start a new one',
     newTitle: 'Start a new cup?',
     newText: 'The {team} cup will be erased.',
-    inProgress: 'Cup in progress',
-    cupPath: 'Cup stages',
     resume: 'Continue',
-    teamName: 'Your team name',
     play: 'Play',
     dailyNew: 'Daily Cup',
     dailyNewSub: 'New today',
     playTag: 'Lightning Cup · 4 matches',
-    moreModes: 'More modes',
     newCup: 'New cup',
     quickCup: {
         tag: '4 matches',
         title: 'Lightning Cup',
-        line: 'Knockout from the round of 16 to the final.',
     },
     longCup: {
         tag: '8 matches',
         title: 'Indigo Road',
-        line: 'Cross Kanto to the Indigo Plateau.',
         go: 'Start the Road',
-        note: 'The Indigo Road arrives in the next version.',
     },
     challenge: 'Accept challenge ({seed})',
     tiles: {
@@ -56,12 +37,6 @@ export const home: typeof pt = {
         cards: 'Cards (test)',
     },
     news: "What's new",
-    doors: {
-        profile: ['Profile', 'Trainer, club and friends'],
-        collection: ['Collection', 'Pokédex, Album and Movedex'],
-        trophies: ['Trophy room', 'Trophies, medals and numbers'],
-    },
-    doorsAria: 'Your game',
     footerAria: 'More',
     version: 'Version {v} · {title}',
     /** Notícias: o carrossel do topo das Novidades (ui/news.ts). */
@@ -76,10 +51,7 @@ export const home: typeof pt = {
         versions: 'All versions',
     },
     latest: 'Latest',
-    soonTitle: 'Coming soon',
     soonRibbon: 'Coming soon',
-    /** Contagem da Liga no cartãozinho do Vem aí. */
-    soonDays: '{d}d',
     disclaimer:
         'Soccermon v{v} · Made by Miguel Cunha · Non-profit fan game. Pokémon and all related names, sprites and sounds are © Nintendo, Game Freak, Creatures Inc. and The Pokémon Company. This project is not affiliated with or endorsed by them.',
     privacy: 'Privacy and terms',
@@ -134,7 +106,11 @@ export const home: typeof pt = {
         /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
         preview: 'PREVIEW',
         play: 'PLAY',
-        atual: { name: 'Classic Mode', topics: ['Cup', 'Indigo Road', 'Duel', 'League'] },
+        atual: {
+            name: 'Classic Mode',
+            tag: 'Pick 1 of 3 and build your team for the cup',
+            topics: ['Lightning Cup', 'Indigo Road', 'Duel', 'League'],
+        },
         ultimate: {
             name: 'Team Ultimate',
             when: 'Coming late November',

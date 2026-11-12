@@ -346,10 +346,7 @@ export const help: typeof pt = {
         relampagoVestiario: ['Tap two to swap. The bracket opens from the rival poster.'],
         relampagoJogo: ['Change tactics and make subs. Busy players evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
-        dueloSala: [
-            'Best of 3: same team in every game, lineup can change between them.',
-            'Create the room and send the link to your friend.',
-        ],
+        dueloSala: ['Under Rules: speed, length and Best of 3.', 'Create the room and send the link to your friend.'],
         dia: ['Same draft and same rivals for everyone today.', 'Only the first attempt counts for the ranking.'],
         liga: [
             'Winning raises your Elo, losing lowers it.',
@@ -357,6 +354,16 @@ export const help: typeof pt = {
         ],
         golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
         utRepetida: ["A duplicate doesn't join the Club: sell it or swap it for the one you have."],
+        replayLine: {
+            intro: 'The home screen: pick a mode and play.',
+            rota: 'A long cup across Kanto, gym by gym.',
+            rotaGrupo: 'The end of the Road: a 3-game group and the Final.',
+            relampago: '4-game knockout: lose and you are out.',
+            golpe: "The captain's special shot, in 3 levels.",
+            duelo: 'Live against a friend, by link. No account needed.',
+            dia: 'The same cup for everyone today, with a ranking.',
+            liga: "Against another trainer's saved team. Counts for Elo.",
+        } as Record<string, string>,
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',

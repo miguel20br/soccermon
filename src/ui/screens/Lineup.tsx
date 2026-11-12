@@ -673,46 +673,49 @@ export function LineupEditor({
                     </SheetRow>
                 </section>
 
-                {/* capitão (à vista: escolha de toda partida) e as sinergias, logo embaixo das linhas-resumo */}
-                <section className="panel vt-team">
-                    {onCaptain && (
-                        <section>
-                            <h3 className="bc-lbl">{t('team.lineup.captain')}</h3>
-                            <div className="vt-captains">
-                                {lineupNow.map((inst, i) => (
-                                    <button
-                                        key={inst.uid}
-                                        type="button"
-                                        className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
-                                        aria-pressed={inst.uid === captainUid}
-                                        disabled={locked}
-                                        onClick={() => onCaptain(inst.uid)}
-                                    >
-                                        <img className="pixel" src={cardSprite(inst)} alt="" />
-                                        <span>
-                                            <b>{viewInstance(inst).displayName}</b>
-                                            <small>{d.common.pos[slotsNow[i]]}</small>
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
-                            <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
-                        </section>
-                    )}
-                    {/* sinergias de tipo (o selo do monotipo incluso) e de história numa linha de chips; sem
+                {/* capitão (à vista: escolha de toda partida) e as sinergias, logo embaixo das linhas-resumo. Sem os dois
+                    (o Duelo sem sinergia), o painel não aparece: ficava uma caixa vazia no PC */}
+                {(onCaptain || synergies.length + links.length > 0) && (
+                    <section className="panel vt-team">
+                        {onCaptain && (
+                            <section>
+                                <h3 className="bc-lbl">{t('team.lineup.captain')}</h3>
+                                <div className="vt-captains">
+                                    {lineupNow.map((inst, i) => (
+                                        <button
+                                            key={inst.uid}
+                                            type="button"
+                                            className={`bc-tile${inst.uid === captainUid ? ' on' : ''}`}
+                                            aria-pressed={inst.uid === captainUid}
+                                            disabled={locked}
+                                            onClick={() => onCaptain(inst.uid)}
+                                        >
+                                            <img className="pixel" src={cardSprite(inst)} alt="" />
+                                            <span>
+                                                <b>{viewInstance(inst).displayName}</b>
+                                                <small>{d.common.pos[slotsNow[i]]}</small>
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="tactic-desc">{t('team.lineup.captainDesc')}</p>
+                            </section>
+                        )}
+                        {/* sinergias de tipo (o selo do monotipo incluso) e de história numa linha de chips; sem
                         nenhuma, a seção some */}
-                    {synergies.length + links.length > 0 && (
-                        <section>
-                            <h3 className="bc-lbl">{t('team.lineup.synergies')}</h3>
-                            <div className="row vt-syn">
-                                {synergies.map((s) => (
-                                    <SynergyChip key={s.type} s={s} />
-                                ))}
-                                <LinkChips links={links} />
-                            </div>
-                        </section>
-                    )}
-                </section>
+                        {synergies.length + links.length > 0 && (
+                            <section>
+                                <h3 className="bc-lbl">{t('team.lineup.synergies')}</h3>
+                                <div className="row vt-syn">
+                                    {synergies.map((s) => (
+                                        <SynergyChip key={s.type} s={s} />
+                                    ))}
+                                    <LinkChips links={links} />
+                                </div>
+                            </section>
+                        )}
+                    </section>
+                )}
 
                 <div className="vt-aside">
                     {wide && detailInst && (detail !== null || foldOpenByDefault()) && (

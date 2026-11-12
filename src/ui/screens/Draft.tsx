@@ -148,6 +148,7 @@ export function DraftTeam({
     stateOf,
     label,
     onOpen,
+    benchLabels,
 }: {
     /** A copa ou, no Duelo, o time montado até aqui (formação, titulares e banco). */
     run: DraftTeamRun;
@@ -155,6 +156,8 @@ export function DraftTeam({
     stateOf: (slot: SlotRef, uid: string) => 'idle' | 'locked' | 'target' | 'selected';
     label: string;
     onOpen: () => void;
+    /** Nome das vagas do banco (Duelo: a 1ª é a do capitão). */
+    benchLabels?: string[];
 }) {
     const fitRef = useRef<HTMLDivElement>(null);
     const horizontal = useMedia('(orientation: portrait)');
@@ -169,6 +172,7 @@ export function DraftTeam({
                     byUid={byUid}
                     stateOf={stateOf}
                     horizontal={horizontal}
+                    benchLabels={benchLabels}
                 />
             </div>
             <button type="button" className="dp-open" aria-haspopup="dialog" aria-label={label} onClick={onOpen}>

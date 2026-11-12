@@ -1,108 +1,6 @@
 /* Duelo ao vivo: sala, lobby, draft, prévia, partida e resultado. */
 
-/* Home: os modos. No celular, empilhados (Rota Índigo, Copa Relâmpago, Duelo, Copa do Dia). No PC, em cima a Rota
-   (um pouco mais larga) e a Relâmpago com o mesmo peso e a mesma altura; embaixo Duelo e Copa do Dia lado a lado
-   (.mode-pair), da mesma largura e altura. */
-.home .mode-cards,
-.home .mode-pair {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-    width: min(460px, 100%);
-}
-.home .mode-pair {
-    width: 100%;
-}
-@media (min-width: 900px) {
-    .home .mode-cards {
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-        width: min(880px, 100%);
-    }
-    .home .mode-pair {
-        grid-column: 1 / -1;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-    /* a Relâmpago tem mais coisa (nome do time, semana do tipo): na Rota a arte ocupa a sobra, o botão fica embaixo */
-    .home .rota-card {
-        grid-template-rows: auto minmax(0, 1fr) auto;
-    }
-    /* Duelo e Copa do Dia: o botão desce pra baixo do título e fica no pé do cartão */
-    .home .duel-card,
-    .home .daily-card {
-        align-content: start;
-    }
-}
-.home .mode-cards .menu {
-    width: 100%;
-}
-.home .cup-card {
-    /* coluna que encolhe: sem isto o conteúdo mais largo empurrava tudo pra fora da borda a 320 */
-    grid-template-columns: minmax(0, 1fr);
-    border-color: var(--yellow);
-    text-align: left;
-}
-.home .rota-card {
-    grid-template-columns: minmax(0, 1fr);
-    border-color: var(--yellow);
-    text-align: left;
-}
-.cup-card .mode-head,
-.rota-card .mode-head {
-    display: grid;
-    gap: 2px;
-}
-.cup-card .mode-head b,
-.rota-card .mode-head b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 21px;
-    font-size: var(--gfs, 21px);
-    line-height: 1.15;
-    color: var(--text);
-}
-.cup-card .mode-head span,
-.rota-card .mode-head span:not(.bc-tag) {
-    color: var(--muted);
-    font-size: 12px;
-}
-.rota-card .mode-head b {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 10px;
-    font-size: 26px;
-}
-.rota-new {
-    font-family: inherit;
-}
-/* os 8 líderes de ginásio numa trilha pontilhada: a rota até o Planalto */
-.rota-art {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px 4px;
-}
-.rota-art::before {
-    content: "";
-    position: absolute;
-    inset: 50% 8px auto;
-    border-top: 3px dotted var(--line);
-}
-.rota-art img {
-    position: relative;
-    width: 11.5%;
-    max-width: 64px;
-    aspect-ratio: 1;
-    image-rendering: auto;
-}
-.cup-card .cup-go,
-.rota-card .cup-go {
-    width: 100%;
-    min-width: 0;
-    min-height: 52px;
-    justify-content: space-between;
-    text-align: left;
-}
+/* texto dos botões grandes da Home (Arena, Lab): nome e uma linha embaixo */
 .cup-go-txt {
     display: grid;
     gap: 2px;
@@ -117,68 +15,6 @@
     font-size: 12px;
     font-weight: 400;
     opacity: 0.9;
-}
-/* a semana do tipo: uma linha dentro da Copa (era uma faixa solta no topo da Home) */
-.cup-event {
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    padding: 6px 10px 6px 14px;
-    border-radius: 6px;
-    background: var(--bc-ink);
-    font-size: 12px;
-    line-height: 1.35;
-    color: var(--muted);
-}
-.cup-event .type-icon {
-    flex: none;
-}
-.cup-event b {
-    color: var(--yellow);
-}
-.home .duel-card {
-    display: grid;
-    gap: 10px;
-    padding: 12px 14px;
-    background: var(--bg-2);
-    border-color: var(--line);
-    box-shadow: none;
-    text-align: left;
-}
-.duel-card .mode-head {
-    display: grid;
-    gap: 2px;
-}
-.duel-card .mode-head b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 16px;
-    font-size: var(--gfs, 16px);
-    color: var(--text);
-}
-.duel-card .mode-head span {
-    color: var(--muted);
-    font-size: 12px;
-}
-.duel-card-art {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-}
-.duel-card-art img {
-    height: 30px;
-}
-.duel-card-art .flip {
-    transform: scaleX(-1);
-}
-.duel-card-art b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 13px;
-    font-size: var(--gfs, 13px);
-    color: var(--red);
-    text-shadow: 2px 2px 0 #0e1430;
 }
 
 /* tela do duelo */
@@ -262,49 +98,6 @@
     font-size: var(--gfs, clamp(30px, calc(9 * var(--vw)), 46px));
     font-weight: 400;
     letter-spacing: 6px;
-}
-/* selo BETA: a mesma faixa do "Em breve", em azul */
-.home .beta-ribbon {
-    position: relative;
-    overflow: hidden;
-}
-.home .beta-ribbon::after {
-    content: attr(data-ribbon);
-    position: absolute;
-    top: 11px;
-    right: -26px;
-    padding: 1px 30px;
-    rotate: 35deg;
-    background: #7cc8ff;
-    color: #141a33;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-}
-.duel-beta {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
-}
-.duel-beta a {
-    color: #7cc8ff;
-    /* área de toque de 44 px sem mexer na linha */
-    padding-block: 15px;
-}
-.duel-beta-tag {
-    display: inline-block;
-    padding: 0 6px;
-    border-radius: 4px;
-    background: #7cc8ff;
-    color: #141a33;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    vertical-align: 1px;
-}
-.duel-rule {
-    font-size: 13px;
-    color: var(--yellow);
 }
 .duel-share {
     gap: 8px;
@@ -649,8 +442,7 @@ button.sb-title:hover {
     gap: 14px;
     width: 100%;
 }
-.duel-result > .duel-history,
-.duel-result > .duel-beta {
+.duel-result > .duel-history {
     width: min(640px, 100%);
     margin: 0 auto;
 }
@@ -670,39 +462,6 @@ button.sb-title:hover {
 .duel-final small {
     grid-column: 1 / -1;
 }
-.duel-history {
-    display: grid;
-    gap: 4px;
-    width: 100%;
-    padding: 12px;
-    text-align: left;
-}
-.duel-history h2 {
-    margin: 0 0 4px;
-    font-size: 16px;
-}
-.duel-hrow {
-    display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) auto;
-    gap: 8px;
-    align-items: center;
-    font-size: 14px;
-}
-.duel-hrow i {
-    font-style: normal;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 4px;
-    background: var(--bg-2);
-}
-.duel-hrow i.win {
-    background: var(--green);
-    color: #0e1430;
-}
-.duel-hrow i.loss {
-    background: var(--red);
-}
-
 /* pedido de velocidade: em cima da quadra, pros dois (quem pede, quem responde e o resultado) */
 .speed-ask {
     position: absolute;
@@ -994,12 +753,6 @@ button.sb-title:hover {
     text-align: center;
     color: var(--muted);
 }
-/* placar contra o mesmo amigo (do histórico do save) */
-.duel-h2h {
-    margin: 0 0 6px;
-    font-size: 14px;
-    overflow-wrap: anywhere;
-}
 /* pronto do duelo (escolha do time, escalação, intervalo): quem está pronto e o botão em 3 estados */
 .ready-bar {
     display: grid;
@@ -1120,32 +873,15 @@ button.sb-title:hover {
     display: grid;
     gap: 14px;
 }
-.duel-rules-sheet .duel-beta {
-    font-size: 12px;
-}
 .duel-join-row > b {
     font-weight: 400;
 }
-/* sala de espera: o título com as regras, o código grande e os dois treinadores */
-.duel-lobby-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 4px 10px;
-    text-align: center;
-}
-.duel-lobby-head b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 19px;
-    font-size: var(--gfs, 19px);
-    font-weight: 400;
-    text-shadow: var(--k-out-1);
-}
+/* sala de espera: o código grande e os dois treinadores */
 .duel-stage .duel-code b {
     font-size: clamp(36px, calc(11 * var(--vw)), 56px);
 }
-.duel-stage .duel-local {
+.duel-stage .duel-local,
+.duel-stage .duel-mode-rule {
     margin: 0;
     text-align: center;
     text-shadow: var(--k-out-1);
@@ -1215,11 +951,31 @@ button.sb-title:hover {
 .duel-stage .duel-peer-who small {
     font-size: 11px;
 }
+/* no celular os cartões são estreitos: o nome quebra em 2 linhas e o "Sem conta" desce, em vez de cortar o nome e
+   esconder o selo */
+.duel-stage .duel-peer-who b {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.duel-stage .duel-anon {
+    white-space: nowrap;
+}
 .duel-stage .duel-share .btn {
     font-size: 13px;
 }
 @media (max-width: 359px) {
     .duel-stage .duel-share .btn {
         font-size: 12px;
+    }
+}
+/* PC: o zoom do PC enchia a tela e o painel cobria a dupla da quadra. O vão guarda um lugar pra ela (o useFitZoom
+   encolhe o resto pra caber) e a dupla vai pro meio dele (useTwoCols, Stage.tsx) */
+@media (min-width: 701px) and (min-height: 521px) {
+    .duel-stage.k-stage-place .k-stage-body > .k-stage-gap {
+        flex: 1 0 170px;
+    }
+    /* o meio do vão no meio dos dois (no celular são os pés: lá o vão é alto e a cabeça cabe) */
+    .duel-stage.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle, .ar-ball) {
+        top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h) + 36px);
     }
 }

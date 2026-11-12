@@ -1233,6 +1233,15 @@ button.mm-card,
     content: "·";
     margin-left: 5px;
 }
+/* o que o modo é, numa linha: acima dos itens, no branco do texto (os itens ficam no apagado) */
+.mm-tag {
+    font:
+        12px / 1.25 "Galmuri11",
+        monospace;
+    color: var(--text);
+    white-space: normal;
+    text-shadow: 1px 1px 0 var(--cb-ink);
+}
 .mm-chips .hud-icon {
     display: none;
 }

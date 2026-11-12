@@ -125,7 +125,7 @@ export function NewsButton() {
 
 /**
  * O rodapé do jogo: Ajuda, Créditos, Feedback, Privacidade, GitHub, o idioma e o aviso de direitos (as Novidades
- * moram no canto de cima, `NewsButton`). Na Home de lista fica no fim da tela; com os ambientes, no fim dos Créditos
+ * moram no canto de cima, `NewsButton`). Fica no fim dos Créditos
  * (`lang={false}`: o idioma mora nas Configurações).
  */
 export function AboutFooter({ lang: withLang = true }: { lang?: boolean }) {

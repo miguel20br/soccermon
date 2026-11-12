@@ -54,10 +54,11 @@ function useTwoCols(ref: RefObject<HTMLElement | null>, on: boolean) {
         const refit = () => {
             delete el.dataset.cols;
             if (mq.matches && el.scrollHeight > el.clientHeight + 1) el.dataset.cols = '2';
-            // celular em pé: a dupla da cena desce/sobe pro meio do vão (em tela baixa o vão não fica onde a cena
-            // espera e os blocos cobriam a dupla); vão pequeno demais fica como está
+            // celular em pé (e o Duelo no PC): a dupla da cena desce/sobe pro meio do vão (em tela baixa o vão não fica
+            // onde a cena espera e os blocos cobriam a dupla); vão pequeno demais fica como está
             const gap = el.querySelector(':scope > .k-stage-gap')?.getBoundingClientRect();
-            if (stage && gap && !mq.matches && window.innerWidth <= 700 && gap.height >= 56) {
+            const follow = window.innerWidth <= 700 || !!stage?.classList.contains('duel-stage');
+            if (stage && gap && !mq.matches && follow && gap.height >= 56) {
                 stage.style.setProperty('--k-gap-y', `${Math.round(gap.top + gap.height / 2)}px`);
                 stage.dataset.gap = '';
             } else if (stage) delete stage.dataset.gap;

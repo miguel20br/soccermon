@@ -1,5 +1,4 @@
 /* sílabas do logo que piscam com o gancho de qualquer faixa (LogoHits.tsx): todo logo do jogo passa pelo `Logo` */
-.logo-img,
 .logo-blink {
     position: relative;
     isolation: isolate;
@@ -12,12 +11,6 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    opacity: 0;
-    pointer-events: none;
-}
-.logo-img .logo-hit {
-    position: absolute;
-    inset: 0;
     opacity: 0;
     pointer-events: none;
 }
