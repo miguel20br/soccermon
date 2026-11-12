@@ -282,7 +282,9 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
         cam = cam
             ? camStep(cam, target, zoomed || keep ? null : (carrier ?? ball), dt, view, full, smooth)
             : camStep({ x: target, v: 0 }, target, null, 0, view, full);
-        const next = followOffset(cam.x, view, full);
+        // no pixel inteiro da tela: com fração o navegador reamostra o canvas inteiro e o pixel duro do sprite borra
+        const dpr = (typeof devicePixelRatio === 'number' && devicePixelRatio) || 1;
+        const next = Math.round(followOffset(cam.x, view, full) * dpr) / dpr;
         if (x !== null && Math.abs(next - x) < 0.1) return;
         x = next;
         inner.style.transform = `translateX(${x}px)`;

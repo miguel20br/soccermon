@@ -185,7 +185,9 @@ import { duckMusic, musicDucked, unduckMusic } from '../music';
 import { N3Story } from '../n3-story';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
+import { BASE_SPRITE_SCALE, gridShift, pixelFont, spriteScaleFor } from '../quality';
 import { paintCup } from '../room-art';
+import type { Quality } from '../sharp-canvas';
 import { type Comemoracao, comemoracaoOf, GOAL_CELEB_MS, goalCelebPose } from '../walkout-plan';
 
 export { GAME_H, GAME_W } from '../court';
@@ -306,7 +308,6 @@ const GOAL_LEAD = 16;
 
 type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
-const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
 /** O bote de quem usa um golpe com alvo (ms até chegar nele): a reação do alvo espera ele (11/11: vinha antes). */
 const MOVE_LUNGE_MS = 110;
@@ -926,6 +927,14 @@ export class MatchScene extends Phaser.Scene {
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
+    /** Resolução do canvas (sharp-canvas.ts; o governador de fps mexe nela). */
+    private quality?: Quality;
+    /** Escala do sprite (px do jogo): inteira em pixels do canvas quando dá (`spriteScaleFor`). */
+    private ssNow = BASE_SPRITE_SCALE;
+    /** Resolução dos nomes: 1 pixel do texto por pixel do canvas. */
+    private textRes = 2;
+    /** Objetos levados pro pixel inteiro neste quadro e a posição de antes (voltam depois do desenho). */
+    private readonly snapped: { o: Phaser.GameObjects.Sprite | Phaser.GameObjects.Text; x: number; y: number }[] = [];
     /** Quanto dos zooms dos lances vale (1 = tudo; a quadra grande do ?lab=hud já vem ampliada). */
     private zoomDamp = 1;
     /** Câmera da quadra grande: quem conduz (px do mundo, null com a bola solta) e pra que lado o time da bola ataca. */
@@ -1031,6 +1040,9 @@ export class MatchScene extends Phaser.Scene {
         const onResize = () => this.updateUiScale();
         this.scale.on('resize', onResize);
         this.updateUiScale();
+        this.quality = this.registry.get('quality') as Quality | undefined;
+        this.game.events.on(Phaser.Core.Events.PRE_RENDER, this.pixelGrid, this);
+        this.game.events.on(Phaser.Core.Events.POST_RENDER, this.unsnap, this);
 
         EventBus.on('match:set-speed', this.onSpeed, this);
         EventBus.on('match:skip', this.onSkip, this);
@@ -1065,6 +1077,8 @@ export class MatchScene extends Phaser.Scene {
             EventBus.off('match:hold', this.onHold, this);
             EventBus.off('match:replace', this.onReplace, this);
             this.scale.off('resize', onResize);
+            this.game.events.off(Phaser.Core.Events.PRE_RENDER, this.pixelGrid, this);
+            this.game.events.off(Phaser.Core.Events.POST_RENDER, this.unsnap, this);
         };
         this.sys.events.once('shutdown', () => this.unbind?.());
         this.sys.events.once('destroy', () => this.unbind?.());
@@ -1479,15 +1493,70 @@ export class MatchScene extends Phaser.Scene {
         return { x: (x - cam.midPoint.x) * z + cam.width / 2, y: (y - cam.midPoint.y) * z + cam.height / 2 };
     }
 
+    /**
+     * Pixel duro (antes de cada desenho): a escala do sprite que cai em pixel inteiro do canvas (muda com a tela e o
+     * governador de fps), os nomes na resolução do canvas e sprite e nome com a borda no pixel inteiro (só com a
+     * câmera sem giro nem tremida; sprite em escala quebrada, como no squash e no zoom dos lances, fica onde está e o
+     * smoothPixelArt suaviza a borda). A posição volta depois do desenho (`unsnap`): nada da cena lê o valor mexido.
+     */
+    private pixelGrid() {
+        const res = this.quality?.res ?? 0;
+        if (!res) return;
+        const ss = spriteScaleFor(res);
+        if (ss !== this.ssNow) {
+            this.ssNow = ss;
+            for (const v of this.players)
+                if (!v.evolving && !v.stretched) v.sprite.setScale(ss * (v.flags > 0 && v.flags & FLAG_MINI ? 0.6 : 1));
+        }
+        if (Math.abs(res - this.textRes) > 0.01) {
+            this.textRes = res;
+            for (const v of this.players) {
+                v.label.setResolution(res);
+                v.badge.setResolution(res);
+            }
+            this.updateUiScale();
+        }
+        const cam = this.cameras.main;
+        if ((cam as unknown as { rotation: number }).rotation || cam.shakeEffect.isRunning) return;
+        const z = cam.zoom;
+        const sx = cam.useBounds ? cam.clampX(cam.scrollX) : cam.scrollX;
+        const sy = cam.useBounds ? cam.clampY(cam.scrollY) : cam.scrollY;
+        const ox = cam.width * cam.originX;
+        const oy = cam.height * cam.originY;
+        const whole = (n: number) => Math.abs(n - Math.round(n)) < 1e-3;
+        const snap = (o: Phaser.GameObjects.Sprite | Phaser.GameObjects.Text, flip: boolean) => {
+            const left = o.x - (flip ? o.width - o.displayOriginX : o.displayOriginX) * o.scaleX;
+            const top = o.y - o.displayOriginY * o.scaleY;
+            this.snapped.push({ o, x: o.x, y: o.y });
+            o.x += gridShift(left, sx, ox, cam.x, z, res);
+            o.y += gridShift(top, sy, oy, cam.y, z, res);
+        };
+        for (const v of this.players) {
+            const sp = v.sprite;
+            if (sp.visible && !sp.rotation && whole(sp.scaleX * z * res) && whole(sp.scaleY * z * res))
+                snap(sp, sp.flipX);
+            if (!whole(z)) continue;
+            for (const t of [v.label, v.badge]) if (t.visible && t.alpha > 0 && t.scaleX === 1) snap(t, false);
+        }
+    }
+
+    private unsnap() {
+        for (const s of this.snapped) s.o.setPosition(s.x, s.y);
+        this.snapped.length = 0;
+    }
+
     /** Em telas pequenas o canvas encolhe: textos crescem no mundo para continuarem legíveis. */
     private updateUiScale() {
         const shown = this.scale.displaySize.width || GAME_W;
         this.uiScale = Math.max(1, (GAME_W / shown) * 0.72);
         this.cine.uiScale = this.uiScale;
         const s = Math.min(this.uiScale, 2.3);
+        // a Galmuri11 em múltiplo de 12 px do canvas: pixel da letra inteiro (antes 10-11 px do jogo, quebrado)
+        const name = pixelFont(10 * s, this.textRes);
+        const badge = pixelFont(11 * s, this.textRes);
         for (const v of this.players) {
-            v.label.setFontSize(Math.round(10 * s));
-            v.badge.setFontSize(Math.round(11 * s));
+            v.label.setFontSize(name.size).setStroke('#000000', name.stroke);
+            v.badge.setFontSize(badge.size).setStroke('#000000', badge.stroke);
         }
         // caixa de batalha presa à base da tela (no celular cresce só um pouco)
         const bs = Math.min(this.uiScale, 1.3);
@@ -1511,7 +1580,7 @@ export class MatchScene extends Phaser.Scene {
         if (kit) ring.setFillStyle(kit.color2, 0.55);
         const sprite = this.add
             .sprite(0, 0, atlasKey(skin))
-            .setScale(SPRITE_SCALE)
+            .setScale(this.ssNow)
             .setOrigin(0.5, footOrigin(skin, 'Idle'));
         // seu time (casa) ganha uma setinha vermelha discreta na cabeça
         const arrow =
@@ -1531,12 +1600,12 @@ export class MatchScene extends Phaser.Scene {
         const label = this.add
             .text(0, 0, captain ? `C·${name}` : name, textStyle)
             .setOrigin(0.5, 0)
-            .setResolution(2)
+            .setResolution(this.textRes)
             .setAlpha(this.showsName(team) ? 1 : 0);
         const badge = this.add
             .text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' })
             .setOrigin(0.5, 0)
-            .setResolution(2);
+            .setResolution(this.textRes);
         const view: PlayerView = {
             speciesId,
             skin,
@@ -1742,7 +1811,7 @@ export class MatchScene extends Phaser.Scene {
             0.95,
         );
         // Minimize: fica pequenininho
-        if (!view.evolving) view.sprite.setScale(SPRITE_SCALE * (flags & FLAG_MINI ? 0.6 : 1));
+        if (!view.evolving) view.sprite.setScale(this.ssNow * (flags & FLAG_MINI ? 0.6 : 1));
         this.refreshTint(view);
     }
 
@@ -2763,7 +2832,7 @@ export class MatchScene extends Phaser.Scene {
     /** Inclina e estica o corpo (mergulho, reação) ou devolve ao normal; a rotação sai no drawReaction. */
     private leanBody(view: PlayerView, lean: Lean | null) {
         const sp = view.sprite;
-        const base = SPRITE_SCALE * (view.flags > 0 && view.flags & FLAG_MINI ? 0.6 : 1);
+        const base = this.ssNow * (view.flags > 0 && view.flags & FLAG_MINI ? 0.6 : 1);
         // a cabeça anda no máximo 18 px: o Onix (95 px de altura) inclinado 20° saía da quadra
         const h = Math.max(1, (sp.originY - headTop(view.skin)) * sp.frame.realHeight * base);
         const cap = Math.asin(Math.min(1, 18 / h));
@@ -3005,7 +3074,7 @@ export class MatchScene extends Phaser.Scene {
             v.lunge = { x: 0, y: 0 };
             v.shift = { x: 0, y: 0 };
             v.act = null;
-            v.sprite.setAngle(0).setAlpha(1).setScale(SPRITE_SCALE);
+            v.sprite.setAngle(0).setAlpha(1).setScale(this.ssNow);
             v.sprite.anims.timeScale = 1;
         }
         this.ball.setVisible(false);
@@ -3050,7 +3119,7 @@ export class MatchScene extends Phaser.Scene {
                 createSpeciesAnims(this, skin);
                 const to = { x: center.x + spots[k].x, y: center.y + spots[k].y };
                 const from = { x: to.x + Math.sign(spots[k].x) * 260, y: spots[k].y < 0 ? -30 : GAME_H + 30 };
-                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(SPRITE_SCALE).setVisible(false);
+                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(this.ssNow).setVisible(false);
                 const shadow = this.add.ellipse(from.x, from.y, 18, 6, 0x000000, 0.25).setVisible(false);
                 wild.push({ sp, shadow, from, to, fly: w.fly, late: w.late, skin });
             });
@@ -3201,7 +3270,7 @@ export class MatchScene extends Phaser.Scene {
                 .setPosition(at.x, at.y - lift)
                 .setDepth(at.y)
                 .setAlpha(alpha)
-                .setScale(SPRITE_SCALE * (c.reduce ? 1 : sx), SPRITE_SCALE * (c.reduce ? 1 : sy));
+                .setScale(this.ssNow * (c.reduce ? 1 : sx), this.ssNow * (c.reduce ? 1 : sy));
             v.shadow
                 .setPosition(at.x, at.y + 1)
                 .setDepth(at.y - 2)
@@ -3218,7 +3287,7 @@ export class MatchScene extends Phaser.Scene {
             if (a.captain) {
                 capAt = at;
                 capLift = lift;
-                capTop = bodyHeight(v.skin) * SPRITE_SCALE;
+                capTop = bodyHeight(v.skin) * this.ssNow;
             }
         }
         // a taça: sobe das mãos pra cima da cabeça (passa do ponto e assenta)
@@ -3913,8 +3982,8 @@ export class MatchScene extends Phaser.Scene {
                         this.time.delayedCall(at, () =>
                             this.tweens.add({
                                 targets: sp,
-                                scaleX: SPRITE_SCALE * x,
-                                scaleY: SPRITE_SCALE * y,
+                                scaleX: this.ssNow * x,
+                                scaleY: this.ssNow * y,
                                 duration: ms,
                                 yoyo: true,
                                 ease: 'Sine.easeInOut',
@@ -3938,8 +4007,8 @@ export class MatchScene extends Phaser.Scene {
                     this.refreshTint(view);
                     playCry(e.into, cries, 0.8);
                     this.impact(sp.x, sp.y - 16, 'Psychic');
-                    sp.setScale(SPRITE_SCALE * 0.2);
-                    this.tweens.add({ targets: sp, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+                    sp.setScale(this.ssNow * 0.2);
+                    this.tweens.add({ targets: sp, scale: this.ssNow, duration: 420, ease: 'Back.easeOut' });
                     this.battleBox.push(tr('battle.transformed', { x: view.name, y: into }));
                     if (!cinematic) {
                         this.popText(e.by, `→ ${into}`, '#d9a7ff');
@@ -4233,7 +4302,7 @@ export class MatchScene extends Phaser.Scene {
                         kind: 'blast',
                         strong: true,
                         depth: FOCUS_DEPTH + 70,
-                        baseScale: SPRITE_SCALE,
+                        baseScale: this.ssNow,
                     });
                 if (e.step === 'shot') {
                     // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola;
@@ -4316,7 +4385,7 @@ export class MatchScene extends Phaser.Scene {
         const facing = dir8({ x: bench.x - at.x, y: bench.y - at.y }, 4);
         const ghost = this.add
             .sprite(at.x, at.y, atlasKey(outSpecies))
-            .setScale(SPRITE_SCALE)
+            .setScale(this.ssNow)
             .setDepth(at.y)
             .setOrigin(0.5, footOrigin(outSpecies, walk));
         ghost.play(`${outSpecies}/${walk}/${facing}`);
@@ -4370,8 +4439,8 @@ export class MatchScene extends Phaser.Scene {
     private evolveOnField(view: PlayerView, into: number, newName: string) {
         const oldName = view.name;
         this.finishEvolution(view, into, newName);
-        view.sprite.setScale(SPRITE_SCALE * 1.3);
-        this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+        view.sprite.setScale(this.ssNow * 1.3);
+        this.tweens.add({ targets: view.sprite, scale: this.ssNow, duration: 420, ease: 'Back.easeOut' });
         this.impact(view.sprite.x, view.sprite.y - 16, species(into).types[0]);
         this.battleBox.push(
             tr(view.team !== this.mine ? 'battle.evolvedRival' : 'battle.evolved', {
@@ -6103,7 +6172,7 @@ export class MatchScene extends Phaser.Scene {
             kind: MOVES[moveId] ? moveProfile(moveId).kind : 'blast',
             strong,
             depth: FOCUS_DEPTH + 70,
-            baseScale: SPRITE_SCALE,
+            baseScale: this.ssNow,
             onHit: () => to && this.refreshTint(to),
             // a posição vem do motor a cada quadro: o golpe desloca pelo "lunge" (somado à posição)
             nudge: (who, dx, dy, ms) => {

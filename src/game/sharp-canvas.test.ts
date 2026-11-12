@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { backbufferScale, MAX_RES, type SharpGame, sharpCanvas } from './sharp-canvas';
+import { naturalScale, type SharpGame, sharpCanvas } from './sharp-canvas';
 
 type Box = [number, number, number, number];
 
@@ -8,7 +8,8 @@ function fakeGame(displayW: number) {
     const gl = { viewport: [] as number[], scissor: [] as number[] };
     let prerender = () => {};
     const game = {
-        canvas: { width: 968, height: 528 },
+        canvas: { width: 968, height: 528 } as SharpGame['canvas'],
+        loop: { rawDelta: 16.7 },
         scale: { width: 968, height: 528, displaySize: { width: displayW } },
         renderer: {
             glWrapper: {
@@ -38,14 +39,14 @@ const draw = (g: ReturnType<typeof fakeGame>) => {
 };
 
 describe('canvas da partida na resolução da tela', () => {
-    it('celular em pé (quadra grande, 650 px CSS, DPR 3): canvas 2x, o GL desenha nele inteiro', () => {
+    it('celular em pé (quadra grande, 650 px CSS, DPR 3): canvas 1:1 com a tela (2,01 passa do teto 2 por 1%)', () => {
         const g = fakeGame(650);
         sharpCanvas(g.game as unknown as SharpGame, () => 3);
         g.frame();
-        expect(g.game.canvas).toEqual({ width: 968 * MAX_RES, height: 528 * MAX_RES });
+        expect(g.game.canvas).toEqual({ width: 1950, height: 1064 });
         draw(g);
-        expect(g.gl.viewport).toEqual([0, 0, 1936, 1056]);
-        expect(g.gl.scissor).toEqual([0, 0, 1936, 1056]);
+        expect(g.gl.viewport).toEqual([0, 0, 1950, 1064]);
+        expect(g.gl.scissor).toEqual([0, 0, 1950, 1064]);
         // a cena continua medindo o jogo em 968x528 (câmera, toque, clipe)
         expect(g.game.scale.width).toBe(968);
     });
@@ -69,7 +70,7 @@ describe('canvas da partida na resolução da tela', () => {
         g.game.canvas.width = 968;
         g.game.canvas.height = 528;
         g.frame();
-        expect(g.game.canvas.width).toBe(1936);
+        expect(g.game.canvas.width).toBe(1950);
     });
 
     it('framebuffer de filtro ou textura fica no tamanho dele', () => {
@@ -81,8 +82,30 @@ describe('canvas da partida na resolução da tela', () => {
         expect(g.gl.viewport).toEqual([0, 0, 968, 528]);
     });
 
-    it('escala com teto e piso', () => {
-        expect(backbufferScale(1300, 968, 3)).toBe(MAX_RES);
-        expect(backbufferScale(100, 968, 1)).toBe(0.5);
+    it('escala natural com piso', () => {
+        expect(naturalScale(1300, 968, 3)).toBeCloseTo(4.03, 2);
+        expect(naturalScale(100, 968, 1)).toBe(0.5);
+    });
+
+    it('tela grande: começa no teto 2 e sobe pra 3 quando o aparelho aguenta 60 fps', () => {
+        const g = fakeGame(1300);
+        const q = sharpCanvas(g.game as unknown as SharpGame, () => 3)!;
+        g.frame();
+        expect(g.game.canvas.width).toBe(1936);
+        for (let i = 0; i < 60 * 12; i++) g.frame();
+        expect(q.gov.level).toBe(0);
+        expect(g.game.canvas.width).toBe(2904);
+    });
+
+    it('1:1 com a tela: o CSS do canvas vira o tamanho dele em pixels da tela e ele vai pro pixel inteiro', () => {
+        const g = fakeGame(650);
+        const style = { width: '650px', height: '354.5px', translate: '' };
+        Object.assign(g.game.canvas, { style, getBoundingClientRect: () => ({ left: 10.125, top: 3 }) });
+        sharpCanvas(g.game as unknown as SharpGame, () => 2)!;
+        g.frame();
+        // 968 x 1,343 = 1300 px da tela; o canvas tem 1300 px, então 650 px CSS
+        expect(style.width).toBe('650px');
+        // 10,125 px CSS = 20,25 px da tela: o translate leva pra 20
+        expect(style.translate).toBe('-0.125px 0px');
     });
 });

@@ -1,4 +1,5 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
+import { takeMatchQuality } from '../game/quality';
 import { type GameState, liveOf, useGame } from '../store/game-store';
 import { currentNode, isLong } from '../store/long-cup';
 import { skipTagOf } from '../store/long-events';
@@ -294,6 +295,8 @@ function onChange(s: GameState, prev: GameState) {
                 tactic: run.tactic,
                 // quanto o técnico mexe ao vivo (base pra decidir as mecânicas de agência)
                 ...ordersCount(old.live?.orders ?? []),
+                // qualidade da quadra (src/game/quality.ts): fps médio, p10, DPR e degrau de resolução no fim
+                ...takeMatchQuality(),
             });
         }
         if (run.status !== old.status && (run.status === 'champion' || run.status === 'eliminated')) {
