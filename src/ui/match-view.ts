@@ -1203,6 +1203,18 @@ export function bumpPose(dt: number, away: number, reduce = false): BodyLean | n
     return { tilt: 0.16 * k * (away >= 0 ? 1 : -1), sx: 1 + 0.16 * k, sy: 1 - 0.18 * k };
 }
 
+/**
+ * Bola amassando no impacto (chute forte, trave), `ms` depois dele: achata no eixo do impacto (negativo), volta esticando
+ * (positivo) e assenta. 0 depois de `BALL_SQUASH_MS`.
+ */
+export const BALL_SQUASH_MS = 260;
+export function ballSquashAt(ms: number): number {
+    if (ms < 0 || ms >= BALL_SQUASH_MS) return 0;
+    if (ms < 50) return -Math.sin((Math.PI / 2) * (ms / 50));
+    if (ms < 120) return -1 + 1.6 * Math.sin((Math.PI / 2) * ((ms - 50) / 70));
+    return 0.6 * (1 - (ms - 120) / (BALL_SQUASH_MS - 120)) ** 2;
+}
+
 /** O último da lista (em ordem de tick) com tick até `tick`, por busca binária; undefined se não tem. */
 export function latestAt<T extends { tick: number }>(list: readonly T[], tick: number): T | undefined {
     let lo = 0;

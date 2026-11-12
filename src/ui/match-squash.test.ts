@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Action, type MatchSnapshot, SNAP_STRIDE } from '../engine/state';
+import { POST_SHAKE, postShakeAt } from '../game/court';
 import {
+    ballSquashAt,
     bumpPose,
     KICK_SQUASH,
     kickSquash,
@@ -131,6 +133,28 @@ describe('chute, dominada e choque (squash & stretch, só tela)', () => {
         expect(left?.tilt).toBeLessThan(0);
         expect(bumpPose(6, 5)).toBeNull();
         expect(bumpPose(1, 5, true)).toBeNull();
+    });
+
+    it('bola: achata no impacto, volta esticando e assenta redonda', () => {
+        expect(ballSquashAt(-1)).toBe(0);
+        expect(ballSquashAt(50)).toBeCloseTo(-1);
+        expect(ballSquashAt(120)).toBeCloseTo(0.6);
+        expect(ballSquashAt(259)).toBeCloseTo(0, 3);
+        expect(ballSquashAt(260)).toBe(0);
+        // sem salto entre as fases
+        for (let ms = 1; ms < 260; ms++) expect(Math.abs(ballSquashAt(ms) - ballSquashAt(ms - 1))).toBeLessThan(0.05);
+    });
+
+    it('trave: balança, amortece e para no fim', () => {
+        expect(postShakeAt(0)).toBe(0);
+        expect(postShakeAt(POST_SHAKE.ms)).toBe(0);
+        let max = 0;
+        for (let ms = 0; ms < POST_SHAKE.ms; ms += 5) max = Math.max(max, Math.abs(postShakeAt(ms)));
+        expect(max).toBeGreaterThan(POST_SHAKE.px * 0.5);
+        expect(max).toBeLessThanOrEqual(POST_SHAKE.px);
+        // o 2º balanço é menor que o 1º
+        const half = 1000 / POST_SHAKE.hz / 2;
+        expect(Math.abs(postShakeAt(half * 1.5))).toBeLessThan(Math.abs(postShakeAt(half * 0.5)));
     });
 
     it('latestAt: o último até o tick', () => {

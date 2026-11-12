@@ -34,6 +34,7 @@ import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
     type BodyLean,
+    ballSquashAt,
     bumpPose,
     DRIBBLE_PUFFS,
     type DribblePose,
@@ -158,6 +159,7 @@ import {
     netRipple,
     PPM,
     W as PW,
+    postShake,
     toPx,
 } from '../court';
 import { COURTS, WOOD } from '../court-themes';
@@ -889,6 +891,8 @@ export class MatchScene extends Phaser.Scene {
     private runs: RunBurst[][] = [];
     private trapsBy: Trap[][] = [];
     private bumps: { tick: number; by: number; victim: number; dusted: boolean }[] = [];
+    /** Bola amassando no impacto (chute forte, trave): quando (tempo real), quanto e em que eixo (rad). */
+    private ballSquash = { at: -1e9, amp: 0, angle: 0 };
     /** Tick em que a bola sai do pé em cada passe e chute, por jogador (`kickDepartures`). */
     private departs = new Map<number, number[]>();
     /** Deslocamento suavizado da bola em relação a quem conduz. */
@@ -2419,7 +2423,10 @@ export class MatchScene extends Phaser.Scene {
         if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
         this.lastBz = bz;
         // a bola do drible cresce pouco no alto (a lambreta virava uma bola gigante); a sombra encolhe pela altura toda
-        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale((1 + bz0 * 0.3 + (bz - bz0) * 0.1) * this.ballPop.v);
+        // impacto (chute forte, trave): achata no eixo do impacto e volta esticando (o giro para nesse instante)
+        const sq = this.ballSquashNow();
+        const bs = (1 + bz0 * 0.3 + (bz - bz0) * 0.1) * this.ballPop.v;
+        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale(bs * (1 + sq), bs * (1 - 0.7 * sq));
         this.ballShadow
             .setPosition(bp.x + 2, bp.y + 2)
             .setDepth(bp.y - 3)
@@ -2765,7 +2772,8 @@ export class MatchScene extends Phaser.Scene {
         const dx = x - this.lastBall.x;
         const dy = y - this.lastBall.y;
         const moved = Math.hypot(dx, dy);
-        if (moved < 60) this.ball.rotation += (dx >= 0 ? 1 : -1) * (moved / 8);
+        if (this.ballSquashNow() !== 0) this.ball.rotation = this.ballSquash.angle;
+        else if (moved < 60) this.ball.rotation += (dx >= 0 ? 1 : -1) * (moved / 8);
         this.lastBall = { x, y };
 
         const free = shootout || this.ballFree;
@@ -3604,6 +3612,12 @@ export class MatchScene extends Phaser.Scene {
                 // chute: estalo maior, mais poeira e um toque na câmera quando é chute forte
                 this.kickPop(this.ball.x, this.ball.y + 4, 1.45, 6);
                 if (e.xg >= 0.25) this.punch('touch');
+                // chute forte (ou de golpe): a bola amassa no pé, no eixo pra onde ela vai
+                if (e.xg >= 0.25 || e.moveId) {
+                    const a = this.ballPxAt(e.tick);
+                    const b = this.ballPxAt(e.tick + 3);
+                    this.squashBall(0.34, Math.atan2(b.y - a.y, b.x - a.x));
+                }
                 break;
             case 'save': {
                 // a bicuda do goleiro capitão sai no mesmo tick como 'save': a cena é dela (o caso 'max')
@@ -3705,6 +3719,9 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'post': {
                 playSfx('post');
+                // a bola achata na trave (o gol é em pé na tela: o eixo é o x) e a trave treme
+                this.squashBall(0.45, 0);
+                postShake(this, this.ball.x < toPx(L / 2, 0).x ? 0 : 1, this.ball.y, !!this.md.reduceMotion);
                 if (this.players[e.shooter]?.team === this.mine) playCrowd('uuh');
                 // a espalmada na trave já está na tela ("espalmou na trave!"): a trave só estala
                 const parried = this.matchEvents.some(
@@ -4614,6 +4631,20 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => bit.destroy(),
             });
         }
+    }
+
+    /** Quanto a bola está amassada agora (`ballSquashAt` × força; 0 = redonda). */
+    private ballSquashNow() {
+        const q = this.ballSquash;
+        return q.amp ? q.amp * ballSquashAt(this.time.now - q.at) : 0;
+    }
+
+    /** A bola amassa no impacto (`amp`), no eixo `angle` (rad, tela). Reduzir movimento: nada. */
+    private squashBall(amp: number, angle: number) {
+        if (this.md.reduceMotion) return;
+        this.ballSquash.at = this.time.now;
+        this.ballSquash.amp = amp;
+        this.ballSquash.angle = angle;
     }
 
     /** Contato com a bola: ela "estala" (cresce e volta) e levanta poeira no chão. */

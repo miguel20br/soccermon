@@ -262,3 +262,46 @@ export function netRipple(scene: Phaser.Scene, side: 0 | 1, yPx: number, color: 
         onComplete: () => g.destroy(),
     });
 }
+
+/** A trave tremendo: quanto dura (ms) e o deslocamento máximo (px). */
+export const POST_SHAKE = { ms: 480, px: 3.2, hz: 11 } as const;
+
+/** Deslocamento da trave (px, pra fora do gol) `ms` depois da bolada: balança e amortece até parar. */
+export function postShakeAt(ms: number): number {
+    if (ms < 0 || ms >= POST_SHAKE.ms) return 0;
+    const sec = ms / 1000;
+    return POST_SHAKE.px * Math.sin(2 * Math.PI * POST_SHAKE.hz * sec) * (1 - ms / POST_SHAKE.ms) ** 2;
+}
+
+/**
+ * A bola na trave do gol `side` (0 = o da esquerda), na altura `yPx`: a armação (traves e rede de lado) balança pra
+ * frente e pra trás e amortece, mais perto da trave que levou a bolada. Por cima da pintada, embaixo dos Pokémon.
+ * "Reduzir movimento": nada.
+ */
+export function postShake(scene: Phaser.Scene, side: 0 | 1, yPx: number, reduce: boolean) {
+    if (reduce) return;
+    const g = scene.add.graphics().setDepth(0);
+    const out = side === 0 ? -1 : 1;
+    const x0 = toPx(side === 0 ? 0 : L, 0).x;
+    const top = toPx(0, W / 2 - GW / 2).y;
+    const h = GW * PPM;
+    // 0 = trave de cima, 1 = a de baixo: a que levou a bolada balança inteira, a outra quase nada
+    const hit = Math.min(1, Math.max(0, (yPx - top) / h));
+    scene.tweens.addCounter({
+        from: 0,
+        to: POST_SHAKE.ms,
+        duration: POST_SHAKE.ms,
+        onUpdate: (tw) => {
+            const d = postShakeAt(tw.getValue() ?? 0);
+            const at = (f: number) => d * (0.25 + 0.75 * (1 - Math.abs(f - hit)));
+            const a = at(0);
+            const b = at(1);
+            g.clear().lineStyle(3, 0xffffff, 1);
+            // linha do gol (o travessão visto de cima) e as duas redes de lado, até o fundo
+            g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * b, top + h + b * 0.3);
+            g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * (PPM + a * 0.5), top);
+            g.lineBetween(x0 + out * b, top + h + b * 0.3, x0 + out * (PPM + b * 0.5), top + h);
+        },
+        onComplete: () => g.destroy(),
+    });
+}
