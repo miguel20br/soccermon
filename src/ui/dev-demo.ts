@@ -52,6 +52,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * escalação uma partida que, ao começar, já está a 2 s do intervalo, com 2 no banco e troca do rival no intervalo (o
  * vestiário: várias trocas, desfazer e "O rival trocou"). `?demo=acrescimos` abre na escalação uma partida que você está
  * perdendo no fim: ao começar, já está na Pressão final, a 3 s dos acréscimos do 2º tempo ("+N'" no placar).
+ * `?demo=fim&res=vitoria|derrota|empate` abre na escalação uma partida a 3 s do apito final (empate: a que vai pros
+ * pênaltis): o time reage ao resultado debaixo da faixa FIM DE JOGO.
  * `?demo=maximo` abre na escalação uma partida que, ao começar, está a 2 s do botão do golpe máximo aceso
  * (barra cheia, capitão Dragonite com a bola na zona); `&goleiro=1`: capitão Snorlax no gol (a bicuda, no chute do rival);
  * `&capitao=<id>`: outro pivô capitão (com `&nivel=3`: o efeito do tipo dele no N3, ex. 3 Grama, 68 Lutador; os 12 de
@@ -119,6 +121,7 @@ export function runDevDemo() {
         demo !== 'vestiario' &&
         demo !== 'dribles' &&
         demo !== 'acrescimos' &&
+        demo !== 'fim' &&
         demo !== 'maximo' &&
         demo !== 'bicuda' &&
         demo !== 'virada' &&
@@ -820,6 +823,40 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: ${defesa ? 'defesa' : tipo} no tick ${tick}`);
+            return;
+        }
+        return;
+    }
+    // ?demo=fim&res=vitoria|derrota|empate: a 3 s do apito final (empate = vai pros pênaltis); o time reage no FIM DE JOGO
+    if (demo === 'fim') {
+        const res = new URLSearchParams(window.location.search).get('res') ?? 'vitoria';
+        for (let k = 0; k < 120; k++) {
+            store.newRun('Demo FC', `fim${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`fim${k}`, 'demo');
+            // Snorlax no gol, Pikachu, Charmander, Squirtle e Eevee (os 4 de linha têm o Sit); banco Pidgey e Caterpie
+            const lineup = [143, 25, 4, 7, 133].map((id) => createInstance(id, rng));
+            const bench = [16, 10].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const ok = res === 'empate' ? !!r.shootout : !r.shootout && r.winner === (res === 'derrota' ? 1 : 0);
+            const end = r.events.find((e) => e.type === 'fulltime');
+            if (!ok || !end) continue;
+            const live = { stage: 0, orders: [], tick: end.tick - 60, engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: ${res}, apito no tick ${end.tick}`);
             return;
         }
         return;

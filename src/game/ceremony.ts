@@ -53,6 +53,40 @@ export function ceremonyPlan(kind: CeremonyKind): CeremonyPlan {
     };
 }
 
+/** Fim de jogo com cara (B2): a 1ª reação vem logo depois da faixa FIM DE JOGO entrar; cada um com um atraso. */
+export const END_LEAD_MS = 200;
+export const END_STAGGER_MS = 90;
+
+export interface EndPose {
+    anim: string;
+    /** De frente pra câmera (0). */
+    facing: number;
+    /** Depois do apito (ms): o time não reage todo no mesmo quadro. */
+    delay: number;
+    /** Reduzir movimento: o último quadro, parado (sem pulo). */
+    still: boolean;
+}
+
+/**
+ * A reação no apito final de quem está no `slot` do time: quem ganhou pula (Hop; Reduzir movimento: a Pose, parada),
+ * quem perdeu senta (Sit, do atlas extra) ou fica cabisbaixo (Hurt); empate, Idle. Sem a animação, Idle.
+ */
+export function endPose(
+    team: 0 | 1,
+    winner: 0 | 1 | null,
+    slot: number,
+    has: (anim: string) => boolean,
+    reduce: boolean,
+): EndPose {
+    const wants = winner === null ? [] : winner === team ? (reduce ? ['Pose', 'Hop'] : ['Hop']) : ['Sit', 'Hurt'];
+    return {
+        anim: wants.find(has) ?? 'Idle',
+        facing: 0,
+        delay: END_LEAD_MS + slot * END_STAGGER_MS,
+        still: reduce,
+    };
+}
+
 /** Reduzir movimento: só a foto final, parada, por um instante (a invasão segura a placa 2 s). */
 export const reducedHold = (kind: CeremonyKind) => (kind === 'invasao' ? 2000 : 1200);
 
