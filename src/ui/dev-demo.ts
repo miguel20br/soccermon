@@ -64,7 +64,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `&goleiro=1`, a bicuda perfeita na agenda num chute comum do rival (as gravações das bicudas N1, N2 e N3).
  * `?demo=dribles&tipo=lambreta|roleta|elastico|chapeu` abre na escalação uma partida de um time de DRI alta (Pikachu,
  * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
- * procura a partir da copa N);
+ * procura a partir da copa N; `&gol=1`: só o drible do seu time que vira gol em até 6 s, o "Lance da semana");
  * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).
  * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
@@ -793,6 +793,7 @@ export function runDevDemo() {
         const q = new URLSearchParams(window.location.search);
         const tipo = q.get('tipo') ?? 'lambreta';
         const defesa = q.get('defesa') === '1';
+        const gol = q.get('gol') === '1';
         let skip = Number(q.get('n') ?? 0);
         const from = Number(q.get('k') ?? 0);
         for (let k = from; k < from + 200; k++) {
@@ -818,7 +819,17 @@ export function runDevDemo() {
             const ok = (t: number) => t > 200 && t < ht;
             const tick = defesa
                 ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
-                : namedDribblesOf(r, [team, opp]).find((d) => d.kind === tipo && ok(d.tick))?.tick;
+                : namedDribblesOf(r, [team, opp]).find(
+                      (d) =>
+                          d.kind === tipo &&
+                          ok(d.tick) &&
+                          (!gol ||
+                              (d.team === 0 &&
+                                  r.events.some(
+                                      (e) =>
+                                          e.type === 'goal' && e.team === 0 && e.tick > d.tick && e.tick < d.tick + 120,
+                                  ))),
+                  )?.tick;
             if (tick === undefined || skip-- > 0) continue;
             const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });

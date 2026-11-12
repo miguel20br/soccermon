@@ -126,7 +126,7 @@ function palmas({ gente, espalha, rabo = 0.045 }) {
  * `sala` (envio pra uma sala curta, ~0,25 s, assada na própria batida), `tom` (semitons somados ao `pitch`) e
  * `atraso` (segundos de silêncio antes: dobra de torcida). `I.clap808.com({ ... })` devolve o mesmo clap tratado.
  */
-function amostra(arquivo, { ganho = 1, corte = 0, sala = 0, tom = 0, atraso = 0 } = {}) {
+export function amostra(arquivo, { ganho = 1, corte = 0, sala = 0, tom = 0, atraso = 0 } = {}) {
     const b = readFileSync(new URL(`./amostras/${arquivo}`, import.meta.url));
     const d = b.indexOf('data') + 8;
     const x = Float32Array.from({ length: (b.length - d) >> 1 }, (_, i) => b.readInt16LE(d + 2 * i));
@@ -369,7 +369,7 @@ export class Song {
             p.rec?.push([t, m, len, vel]);
             let s;
             if (typeof inst === 'function')
-                s = inst(m); // amostra pronta (palmas)
+                s = inst(m, len * this.rowAt(Math.floor(t / this.barLen))); // amostra pronta (palmas) ou voz à mão (nota, segundos)
             else {
                 const params = [...inst];
                 if (!drum) params[2] = hz(m);
