@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COURTS, WOOD } from './court-themes';
 import { GAME_H, GAME_W, MatchScene, type MatchSceneData } from './scenes/MatchScene';
+import { type SharpGame, sharpCanvas } from './sharp-canvas';
 
 /** Cria o jogo Phaser só com a cena da partida; o resto da UI é React. */
 export default function startGame(parent: HTMLElement, data: MatchSceneData): Phaser.Game {
@@ -15,12 +16,13 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         audio: { noAudio: true }, // áudio é tocado por HTMLAudio/ZzFX (src/game/audio.ts)
         // replay: o clipe 9:16 (src/ui/clip-recorder.ts) copia o quadro do canvas depois de desenhado
-        // smoothPixelArt (e não pixelArt): pixel quadrado com a borda entre pixels suave. A quadra cabe na tela em escala
-        // quebrada (FIT), e com o vizinho mais próximo do pixelArt linhas inteiras do sprite sumiam no celular
-        // (revisão de arte, F6); os nomes também saem menos borrados
+        // smoothPixelArt (e não pixelArt): pixel quadrado com a borda entre pixels suave. O sprite entra em escala quebrada
+        // (1.8x), e com o vizinho mais próximo do pixelArt linhas inteiras dele sumiam no celular (revisão de arte, F6).
+        // A nitidez vem do canvas na resolução da tela (sharpCanvas, logo abaixo)
         render: { smoothPixelArt: true, preserveDrawingBuffer: !!data.replay },
         callbacks: {
             preBoot: (game) => game.registry.set('matchData', data),
+            postBoot: (game) => sharpCanvas(game as unknown as SharpGame),
         },
         scene: [MatchScene],
     });
