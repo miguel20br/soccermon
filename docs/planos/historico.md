@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.49.1 · Joga em qualquer navegador (12/11/2026)
+
+Opera GX com os cookies do site bloqueados: `indexedDB.open` lança na hora, o `set` do idb-keyval estourava dentro do `set` do Zustand e o JOGAR não fazia nada (reproduzido no Playwright forçando o erro). `safeStorage` em src/store/save-health.ts nunca lança: sem IndexedDB o save fica na memória e `blocked` mostra um aviso no Estádio.
+
 ## 0.9.49 · Menos e melhor (11/11/2026)
 
 Sem motor novo (29). Plano menos-e-mais: abas acendem pela progressão (`ambEarned`/`ambLit` em src/store/coach.ts, save antigo com as 5 acesas), Liga escondida até `LIGA_OPENS_AT` − 7 dias (`ligaShown`), Metas (missões + medalhas) e Perfil na Sede, MT fora da vitrine do Mercado, Configurações com 4 opções à vista + Mais opções, Ajuda sem o passo a passo e com 9 regras. Dribles com pose própria (`dribblePose` em src/ui/match-view.ts). Chapéu como 4º drible (a vaca foi feita e tirada: o Miguel não curtiu); faixa do drible mais calma (`calm`). Sincronia: o quadro de impacto do ataque cai no tick em que a bola sai (`strikesNear`/`kickDepartures`). Prancheta e VERSUS de volta aos GIFs clássicos em pixel exato (`pixelFit` em src/ui/ambientes/sprite-scale.ts); VERSUS em pé centrado, os de trás maiores (`--k`/`--lift`).
