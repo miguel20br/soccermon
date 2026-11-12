@@ -49,7 +49,7 @@ import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelHistory } from './DuelHistory';
 import { DuelMatch, useCountdown } from './DuelMatch';
-import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomLooksClosed } from './link';
+import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomBarShown, roomLooksClosed } from './link';
 import './duel.css';
 import { ArenaBackdrop } from '../kit/backdrop';
 import { InfoSheet, OptionTile, SheetRow } from '../kit/controls';
@@ -377,7 +377,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                         </div>
                         <small className="muted">{t('duel.bestOfHint')}</small>
                     </fieldset>
-                    </div>
+                </div>
             </SheetRow>
             <SheetRow
                 className="duel-join-row"
@@ -709,7 +709,7 @@ function SeriesBox({ s, role }: { s: Shared; role: Role }) {
 }
 
 function DuelResultView({ onHome }: { onHome: () => void }) {
-    const { t, tn, d } = useT();
+    const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
     const online = useDuel((st) => st.online);
@@ -1022,7 +1022,7 @@ export function Duel() {
     return (
         <div className="duel" data-phase={s?.phase ?? 'none'}>
             {!staged && step !== 'match' && head}
-            {room && !staged && (
+            {room && !staged && roomBarShown(step) && (
                 <div className="duel-top row">
                     <span className="muted">{t('duel.room', { code: room })}</span>
                     <button type="button" className="btn small ghost" onClick={back}>

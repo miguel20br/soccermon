@@ -30,7 +30,7 @@ export function DuelHistory({ duels, rival }: { duels: DuelRecord[]; rival?: str
                         {t('duel.result.h2h', {
                             w: vs.filter((h) => h.result === 'win').length,
                             l: vs.filter((h) => h.result === 'loss').length,
-                            name: rival,
+                            name: rival ?? '',
                         })}
                     </b>
                     {vs.some((h) => h.result === 'draw') && (

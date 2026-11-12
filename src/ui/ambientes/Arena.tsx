@@ -116,7 +116,9 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
                                     onClick={() => setHistory(true)}
                                 />
                             )}
-                            {ligaOpen && <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />}
+                            {ligaOpen && (
+                                <Tile icon="crown" title={t('liga.home.ligaTag')} onClick={() => go('liga')} />
+                            )}
                         </div>
                     )}
                 </div>

@@ -19,3 +19,9 @@ export const roomLooksClosed = (status: string, waitedMs: number) => status === 
  * convite (`code`) não cria nada: o painel já diz "Fulano te chamou" e o balão cobria o Entrar com Google.
  */
 export const entryCoach = (code: string | null) => (code ? null : ('duelo' as const));
+
+/**
+ * A linha da sala (código e "Sair da sala") em cima das telas de página. No resultado não: lá as saídas são só
+ * Revanche e Voltar ao início (com a linha eram três jeitos de sair).
+ */
+export const roomBarShown = (step: string) => step !== 'done';

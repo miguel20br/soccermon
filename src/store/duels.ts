@@ -86,7 +86,14 @@ export function rivalTally(duels: DuelRecord[]): RivalTally[] {
     for (const d of duels) {
         if (d.result === 'void') continue;
         const k = d.rivalCode ?? `${d.rival}\n${d.rivalClub}`;
-        const row = by.get(k) ?? { rival: d.rival, rivalClub: d.rivalClub, rivalCode: d.rivalCode, win: 0, draw: 0, loss: 0 };
+        const row = by.get(k) ?? {
+            rival: d.rival,
+            rivalClub: d.rivalClub,
+            rivalCode: d.rivalCode,
+            win: 0,
+            draw: 0,
+            loss: 0,
+        };
         row[d.result]++;
         by.set(k, row);
     }
