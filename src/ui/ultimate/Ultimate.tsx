@@ -42,6 +42,7 @@ import { Play } from './Play';
 import { SeasonBar } from './Season';
 import { Shop } from './Shop';
 import './ultimate.css';
+import { backTarget } from '../back-nav';
 
 const TABS: UtTab[] = ['home', 'play', 'club', 'shop', 'goals'];
 const TAB_ICON: Record<UtTab, HudIconKind> = {
@@ -127,7 +128,7 @@ export function Ultimate() {
             <MenuHead
                 title={t('ultimate.title')}
                 hud="cards"
-                onBack={() => go('home')}
+                onBack={() => go(backTarget('ultimate') ?? 'home')}
                 // "Prévia" só antes da estreia (dev e prévias); depois de 27/11 o modo é de verdade
                 tag={utNow() < ULTIMATE_OPENS_AT ? t('ultimate.preview') : undefined}
                 side={

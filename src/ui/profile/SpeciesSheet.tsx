@@ -22,6 +22,7 @@ import {
     sealsOf,
     topSeal,
 } from '../../store/profile';
+import { useBackLayer } from '../back-nav';
 import { EvoChain, evolutionStages } from '../components/EvoChain';
 import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
@@ -57,6 +58,7 @@ export function SpeciesSheet({
     onNav: (id: number) => void;
     onClose: () => void;
 }) {
+    useBackLayer(true, onClose);
     const dex = useGame((s) => s.dex);
     const moves = useGame((s) => s.moves);
     const cries = useGame((s) => s.settings.cries);

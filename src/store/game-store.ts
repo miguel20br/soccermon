@@ -134,6 +134,7 @@ import {
 import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { safeStorage } from './save-health';
 import { screenTransition } from './screen-transition';
+import { dailyTitlesOf } from './trophies';
 import { utNow } from './ultimate/clock';
 import {
     bridgePays,
@@ -443,6 +444,8 @@ export interface Records {
     /** Copas longas jogadas e ganhas (também contam em `cups`/`titles`: um título é um título). */
     longCups?: number;
     longTitles?: number;
+    /** Copas do Dia ganhas (desde a 0.9.50; antes, só os dias guardados: `dailyTitlesOf`). Também contam em `titles`. */
+    dailyTitles?: number;
     /** Cartas Destaque conquistadas e Ícones escalados. */
     destaques?: number;
     icones?: number;
@@ -2008,6 +2011,10 @@ export const useGame = create<GameStore>()(
                                   ...(isLong(run) && {
                                       longCups: (records.longCups ?? 0) + 1,
                                       longTitles: (records.longTitles ?? 0) + (status === 'champion' ? 1 : 0),
+                                  }),
+                                  ...(run.daily && {
+                                      dailyTitles:
+                                          dailyTitlesOf(records, getState().daily) + (status === 'champion' ? 1 : 0),
                                   }),
                               }
                             : withStar,

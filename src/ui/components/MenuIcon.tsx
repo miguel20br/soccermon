@@ -7,6 +7,7 @@ export type MenuIconKind =
     | 'cards'
     | 'back'
     | 'profile'
+    | 'friends'
     | 'dex'
     | 'help'
     | 'feedback'
@@ -60,6 +61,15 @@ export function MenuIcon({ kind }: { kind: MenuIconKind }) {
                     <path d="M3 19 H29 L26 23 H6 Z" fill="#f4f1e6" />
                     <path d="M16 10 V19" />
                     <circle cx="16" cy="15" r="2.6" fill="#f4f1e6" />
+                </g>
+            )}
+            {kind === 'friends' && (
+                // dois treinadores, um atrás do outro
+                <g stroke="#1a1430" strokeWidth="2" strokeLinejoin="round">
+                    <path d="M13 25 C13 18.5 16.5 16 21 16 C25.5 16 29 18.5 29 25 Z" fill="#3a7bd5" />
+                    <circle cx="21" cy="10" r="4.5" fill="#f4f1e6" />
+                    <path d="M3 29 C3 21.5 7 19 12 19 C17 19 21 21.5 21 29 Z" fill="#e8423f" />
+                    <circle cx="12" cy="12.5" r="5" fill="#f4f1e6" />
                 </g>
             )}
             {kind === 'dex' && (

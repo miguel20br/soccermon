@@ -223,7 +223,12 @@ export function TrophyRoom() {
             EventBus.off('room:view', on);
         };
     }, []);
-    useMenuBackOf(() => (backTarget('trophies') === 'home' ? playDoor(() => go('home')) : go('profile')));
+    useMenuBackOf(() => {
+        const to = backTarget('trophies') ?? 'home';
+        // de volta pra Sede: a porta de madeira fecha (playDoor); pra outra tela, a troca de sempre
+        if (to === 'home') playDoor(() => go('home'));
+        else go(to);
+    });
     const news = useNews();
     const [tut, setTut] = useState<number | null>(firstVisit ? 0 : null);
     const tutNext = () => {

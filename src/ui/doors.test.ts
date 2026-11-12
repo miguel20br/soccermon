@@ -16,3 +16,21 @@ describe('Metas na Sede (menos-e-mais.md, B2)', () => {
         expect(metasLink('')).toBe(false);
     });
 });
+
+describe('Clube e Amigos: folha por cima da tela de agora (11/11)', () => {
+    it('Sede → Clube → X fica na Sede (abria o Perfil por baixo e o X caía nele)', async () => {
+        const { useGame } = await import('../store/game-store');
+        const { openDoor, openSheet, useDoorSheet } = await import('./doors');
+        useGame.setState({ screen: 'home' });
+        openDoor('profile', 'clube');
+        expect(useGame.getState().screen).toBe('home');
+        expect(useDoorSheet.getState().open).toBe('clube');
+        openSheet(null); // o X
+        expect(useGame.getState().screen).toBe('home');
+        // Amigos pela barra de cima, de dentro de outra tela: a tela fica
+        useGame.setState({ screen: 'trophies' });
+        openDoor('profile', 'amigos');
+        expect(useGame.getState().screen).toBe('trophies');
+        expect(useDoorSheet.getState().open).toBe('amigos');
+    });
+});

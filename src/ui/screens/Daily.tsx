@@ -23,6 +23,7 @@ import { Stage } from '../kit/Stage';
 import { TrainerName } from '../profile/TrainerName';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
+import { backTarget } from '../back-nav';
 
 /** Copa do Dia de hoje: está jogando agora (a copa aberta é a do dia). */
 export function dailyInPlay() {
@@ -246,7 +247,7 @@ export function Daily() {
                 ) : undefined
             }
         >
-            <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
+            <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go(backTarget('daily') ?? 'home')} />
             <Coach id="dia" targets={['.dy-panel .lg-date', '[data-testid="daily-play"]']} when={!entry} />
             {/* o vão: a torcida, o letreiro com o dia e o Pokémon da figurinha no meio da quadra */}
             <i className="k-stage-gap" aria-hidden />

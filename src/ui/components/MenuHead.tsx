@@ -1,26 +1,10 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { create } from 'zustand';
 import { useT } from '../../i18n/react';
-import { type Screen, useGame } from '../../store/game-store';
+import { useGame } from '../../store/game-store';
+import { MENU_SCREENS } from '../back-nav';
 import { HudIcon, type HudIconKind } from './MatchHud';
 import { MenuIcon, type MenuIconKind } from './MenuIcon';
-
-/**
- * Telas de menu: em cima, a mesma barra dos ambientes (voltar, treinador, Novidades, Ajuda e Configurações, App.tsx).
- * Partida e draft não, pra ninguém sair sem querer; o Duelo com o jogo rolando só mostra o voltar (que confirma).
- */
-export const MENU_SCREENS: Screen[] = [
-    'settings',
-    'credits',
-    'help',
-    'profile',
-    'collection',
-    'trophies',
-    'daily',
-    'liga',
-    'duel',
-    'ultimate',
-];
 
 /** O voltar da tela de menu aberta: o MenuHead entrega, o botão da barra de cima chama (um voltar só, no mesmo lugar). */
 export const useMenuBack = create<{ back: (() => void) | null }>(() => ({ back: null }));

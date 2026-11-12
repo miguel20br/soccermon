@@ -20,7 +20,7 @@ import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
 import { clubWild, rollAll, type Wild, wildQuota } from './wild';
 import './ambientes.css';
-import { metasNext, openPage } from '../doors';
+import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
 import { tvCut } from '../tv';
 import { uiZoom } from '../ui-zoom';
@@ -198,10 +198,6 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     useEffect(() => {
         setPos(ci(tab));
     });
-    // o pedido das Metas vale só pra este desenho (a Sede já leu; apagada, não abre sozinho depois)
-    useEffect(() => {
-        metasNext.on = false;
-    }, []);
 
     // voltar do Android: fora do Estádio, volta pro Estádio
     const tabRef = useRef(tab);

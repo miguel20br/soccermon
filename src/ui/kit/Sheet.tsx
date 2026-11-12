@@ -1,6 +1,7 @@
 import { type CSSProperties, type ReactNode, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '../../i18n/react';
+import { useBackLayer } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
 
 /**
@@ -29,6 +30,8 @@ export function Sheet({
     const id = useId();
     const box = useRef<HTMLDivElement>(null);
     const { t } = useT();
+    // o voltar do Android fecha a folha (como o X), em vez de sair da tela com ela aberta
+    useBackLayer(open, onClose);
     useEffect(() => {
         if (!open) return;
         // o foco entra na folha: o 1º botão marcado com data-autofocus, senão a própria folha

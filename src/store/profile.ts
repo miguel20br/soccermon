@@ -189,6 +189,17 @@ export const seenCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =
 export const playedCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =>
     list.filter((sp) => isPlayed(dex[sp.id])).length;
 
+/** A carta favorita: quem mais jogou pelo seu time (desempate: minutos, depois o número da Pokédex). */
+export function favoriteSpecies(dex: Dex): number | null {
+    let best: [number, DexEntry] | null = null;
+    for (const [k, e] of Object.entries(dex)) {
+        if (!e.matches) continue;
+        if (!best || e.matches > best[1].matches || (e.matches === best[1].matches && e.minutes > best[1].minutes))
+            best = [Number(k), e];
+    }
+    return best?.[0] ?? null;
+}
+
 /**
  * Espécies que eram novas pra Pokédex no instante em que as cartas da tela nasceram. O jogo grava o "visto" quando a
  * carta aparece, então o selo NOVO não pode olhar a Dex na hora de desenhar: olha esta lista (e a Dex, pras cartas

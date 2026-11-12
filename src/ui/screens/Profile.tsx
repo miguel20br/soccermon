@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
+import { type CSSProperties, lazy, type ReactNode, Suspense, useEffect, useState } from 'react';
 import { useCloud } from '../../cloud/cloud';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
@@ -14,12 +14,12 @@ import {
 import { clubColorHex } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
 import { cupCounts, METALS } from '../../store/trophies';
-import { openTabNext } from '../ambientes/nav';
+import { backTarget } from '../back-nav';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { useMenuBackOf } from '../components/MenuHead';
 import { PixelTrophy } from '../components/PixelTrophy';
-import { legacyDoor, metasLink, openDoor, openMetas } from '../doors';
+import { type DoorSheet, legacyDoor, metasLink, openDoor, openMetas, openSheet, useDoorSheet } from '../doors';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
@@ -29,15 +29,63 @@ import { clubVars, hexCss, titleName, trainerLabel, useAvatar } from '../profile
 import { FriendsTab } from '../profile/FriendsTab';
 import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
+import { MyStats, StatsStrip } from '../profile/MyStats';
 import { NewDot, useNews } from '../profile/news';
 import { RedeemCode, TitlePicker, TrainerPicker, TrainerSprite } from '../profile/TrainerTab';
 import '../profile/profile.css';
 import '../profile/armario.css';
 
-type SheetId = 'nome' | 'treinadores' | 'titulo' | 'clube' | 'amigos';
+type SheetId = 'nome' | 'treinadores' | 'titulo' | 'numeros';
 const FLAGS = Array.from({ length: 14 }, (_, i) => i);
-/** `?aba=` (os botões da Sede, links antigos `?perfil=`) que já abre uma Sheet. As missões moram nas Metas da Sede. */
-const ABA_SHEET: Record<string, SheetId> = { clube: 'clube', amigos: 'amigos' };
+/** `?aba=` (links antigos `?perfil=`) que abre a folha do Clube ou dos Amigos. As missões moram nas Metas. */
+const ABA_SHEET: Record<string, DoorSheet> = { clube: 'clube', amigos: 'amigos' };
+const MetasSheet = lazy(() => import('../ambientes/MetasSheet'));
+
+/** As cores do clube nas folhas (o varal, o escudo, os botões). */
+function useClubVars(): CSSProperties {
+    const profile = useGame((s) => s.profile);
+    const look = lookOfProfile(profile);
+    return { ...clubVars(clubColorHex(profile.clubColor)), '--club2': hexCss(look.color2) } as CSSProperties;
+}
+
+/**
+ * Clube, Amigos e Metas (`openSheet`, doors.ts): folhas por cima da tela em que a pessoa está, no App. Fechar fica
+ * nela; trocar de tela fecha a folha (o "Desafiar" dos Amigos vai pro Duelo).
+ */
+export function DoorSheets() {
+    const open = useDoorSheet((s) => s.open);
+    const { d } = useT();
+    const vars = useClubVars();
+    const close = () => openSheet(null);
+    useEffect(() => useGame.subscribe((s, p) => s.screen !== p.screen && openSheet(null)), []);
+    return (
+        <>
+            <Sheet
+                open={open === 'clube'}
+                onClose={close}
+                title={d.profile.tabs.clube}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <ClubTab part="club" />
+            </Sheet>
+            <Sheet
+                open={open === 'amigos'}
+                onClose={close}
+                title={d.profile.tabs.amigos}
+                className="pf pf-sheet"
+                style={vars}
+            >
+                <FriendsTab />
+            </Sheet>
+            {open === 'metas' && (
+                <Suspense fallback={null}>
+                    <MetasSheet onClose={close} style={vars} />
+                </Suspense>
+            )}
+        </>
+    );
+}
 
 /** Uma porta do armário: ícone, nome e o número (ou o valor de agora). */
 function Locker({
@@ -67,7 +115,8 @@ function Locker({
 
 /**
  * Perfil = o armário do vestiário da Sede (cara-de-jogo.md, decisão 9; menos-e-mais.md, B3): uma tela sem rolar com o
- * cartão do treinador (o que os outros veem), treinadores (figurinhas) e título. Voltar leva pra Sede, onde ele mora.
+ * cartão do treinador (o que os outros veem), os seus números, treinadores (figurinhas) e título. Voltar leva pra tela de
+ * onde ele abriu (`backTarget`).
  * Editar mora em Sheet: tocar no nome ou no avatar abre o nome e o avatar.
  */
 export function Profile() {
@@ -79,21 +128,18 @@ export function Profile() {
     const showcase = useShowcase();
     const { cards: shown } = useCardShowcase();
     const updateProfile = useGame((s) => s.updateProfile);
-    const { t, d } = useT();
+    const { t } = useT();
     const news = useNews();
     const has = (prefix: string) => [...news].some((k) => k.startsWith(prefix));
     const cups = cupCounts(hall);
     const look = lookOfProfile(profile);
     const [sheet, setSheet] = useState<SheetId | null>(null);
     const close = () => setSheet(null);
-    // o Perfil mora na Sede: voltar cai nela (apagada, no Estádio)
-    useMenuBackOf(() => {
-        openTabNext('sede');
-        go('home');
-    });
+    // voltar leva pra onde o Perfil abriu (a Sede pelo armário, o Estádio pela barra de cima…), nunca pra outra
+    useMenuBackOf(() => go(backTarget('profile') ?? 'home'));
 
     // link antigo (?perfil=album…) que agora mora em outra porta; missões e medalhas vão pras Metas da Sede;
-    // `?aba=clube|amigos` abre a Sheet dela (uma vez: some da URL, pra voltar ao Perfil depois não abrir de novo)
+    // `?aba=clube|amigos` abre a folha dela (uma vez: some da URL, pra voltar ao Perfil depois não abrir de novo)
     useEffect(() => {
         if (metasLink(window.location.search)) return openMetas();
         const to = legacyDoor();
@@ -101,13 +147,13 @@ export function Profile() {
         const url = new URL(window.location.href);
         const id = ABA_SHEET[url.searchParams.get('aba') ?? url.searchParams.get('perfil') ?? ''];
         if (!id) return;
-        setSheet(id);
+        openSheet(id);
         url.searchParams.delete('aba');
         url.searchParams.delete('perfil');
         window.history.replaceState(window.history.state, '', url);
     }, []);
 
-    const vars = { ...clubVars(clubColorHex(profile.clubColor)), '--club2': hexCss(look.color2) } as CSSProperties;
+    const vars = useClubVars();
     const edit = t('profile.club.trainerTitle');
 
     return (
@@ -219,8 +265,11 @@ export function Profile() {
                 )}
             </header>
 
-            {/* o Perfil é o seu cartão: aqui só o que é de você (treinador e título). Troféus, Clube, Amigos e Metas
-                moram na Sede (o voltar leva pra ela); a Coleção, no Laboratório */}
+            {/* seus números (o que o amigo vê de você, e mais): a faixa abre a folha inteira */}
+            <StatsStrip onOpen={() => setSheet('numeros')} />
+
+            {/* o Perfil é o seu cartão: aqui só o que é de você (treinador e título). Troféus, Clube e Metas moram
+                na Sede, Amigos na barra de cima; a Coleção, no Laboratório */}
             <nav className="pf-lockers" aria-label={t('profile.title')}>
                 <Locker
                     icon={<TrainerSprite id={activeTrainer(profile)} />}
@@ -265,22 +314,13 @@ export function Profile() {
                 </section>
             </Sheet>
             <Sheet
-                open={sheet === 'clube'}
+                open={sheet === 'numeros'}
                 onClose={close}
-                title={d.profile.tabs.clube}
-                className="pf pf-sheet"
+                title={t('profile.stats.title')}
+                className="pf pf-sheet pf-mine-sheet"
                 style={vars}
             >
-                <ClubTab part="club" />
-            </Sheet>
-            <Sheet
-                open={sheet === 'amigos'}
-                onClose={close}
-                title={d.profile.tabs.amigos}
-                className="pf pf-sheet"
-                style={vars}
-            >
-                <FriendsTab />
+                <MyStats />
             </Sheet>
         </Stage>
     );

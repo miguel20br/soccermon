@@ -1,7 +1,6 @@
+import { create } from 'zustand';
 import { trackNav } from '../analytics/track';
 import { type Screen, useGame } from '../store/game-store';
-import { openTabNext } from './ambientes/nav';
-import { setDoorOrigin, setPageOrigin } from './back-nav';
 
 /**
  * As três portas (docs/planos/menus-e-sala.md): Perfil (quem eu sou), Coleção (o que eu coleciono) e Sala de troféus
@@ -38,12 +37,21 @@ const setAba = (tab?: string) => {
     window.history.replaceState(window.history.state, '', url);
 };
 
+/**
+ * Clube, Amigos e Metas são folhas por cima da tela em que a pessoa está (a Sede, a barra de cima, a Sala): o X fecha
+ * a folha e ela continua onde estava. Antes o Clube e os Amigos abriam o Perfil por baixo, e o X caía nele (11/11).
+ */
+export type DoorSheet = 'clube' | 'amigos' | 'metas';
+export const useDoorSheet = create<{ open: DoorSheet | null }>(() => ({ open: null }));
+export const openSheet = (open: DoorSheet | null) => useDoorSheet.setState({ open });
+const PROFILE_SHEETS: readonly string[] = ['clube', 'amigos'];
+
 /** Abre uma porta (numa aba, se vier); o voltar dela leva pra tela de onde ela abriu (`backTarget`). */
 export function openDoor(door: Door, tab?: string) {
-    setAba(tab);
     const g = useGame.getState();
-    if (g.screen !== door) setDoorOrigin(g.screen);
     trackNav('door', tab ? `${door}.${tab}` : door, g.screen);
+    if (door === 'profile' && tab && PROFILE_SHEETS.includes(tab)) return openSheet(tab as DoorSheet);
+    setAba(tab);
     g.go(door);
 }
 
@@ -53,22 +61,16 @@ export function metasLink(search: string): boolean {
     return ['missoes', 'medalhas', 'metas'].includes(q.get('aba') ?? q.get('perfil') ?? '');
 }
 
-/** Pedido pra Sede abrir as Metas quando a Home aparecer (a Sede consome; a Home zera se a Sede está apagada). */
-export const metasNext = { on: false };
-
-/** Vai pra Sede com as Metas abertas (a medalha da Sala de troféus, links antigos de missões e medalhas). */
+/** As Metas por cima da tela de agora (o botão da Sede, a medalha da Sala de troféus, links antigos). */
 export function openMetas() {
     setAba();
-    metasNext.on = true;
     trackNav('metas', 'metas', useGame.getState().screen);
-    openTabNext('sede');
-    useGame.getState().go('home');
+    openSheet('metas');
 }
 
 /** Abre a Ajuda ou os Créditos; o voltar (o `‹` e o do Android) leva pra tela de onde abriu (`backTarget`). */
 export function openPage(page: Extract<Screen, 'help' | 'credits'>) {
     const g = useGame.getState();
-    if (g.screen !== page) setPageOrigin(g.screen);
     if (page === 'help') trackNav('help', 'help', g.screen);
     g.go(page);
 }
