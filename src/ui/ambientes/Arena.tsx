@@ -8,7 +8,7 @@ import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { avatarMon, type Mon, nextBelt } from './metas';
+import { type Mon, myMon, nextBelt } from './metas';
 import { floorZone, Tile } from './Room';
 import { useSceneScale } from './sprite-scale';
 import { type Blockers, useMq, useWild, WildZone } from './WildZone';
@@ -48,7 +48,10 @@ export function Arena({ active, wild }: { active: boolean; wild: Wild[] }) {
     const avatar = useGame((s) => s.profile.avatar);
     const wins = useGame((s) => duelWins(s.records, s.duels));
     const [rival] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
-    const mine = avatarMon(avatar);
+    const mine = myMon(
+        useGame((s) => s.run),
+        avatar,
+    );
     const belt = nextBelt(wins);
     // o letreiro só na semana antes de abrir; aberta, vira o tile
     const liga = ligaTeaser();

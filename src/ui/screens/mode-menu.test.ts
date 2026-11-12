@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {}, playCry: () => {} }));
 
+import { myMon } from '../ambientes/metas';
 import { cutTo, daysUntil, passers, soonDate, ULTIMATE_AT } from './ModeMenu';
 
 describe('menu de modos', () => {
@@ -32,14 +33,14 @@ describe('menu de modos', () => {
 
 describe('quem toca a bola no Modo Copa', () => {
     it('o Pokémon do avatar puxa o triângulo e continua shiny (o menu mostrava o Mew shiny rosa)', () => {
-        expect(passers({ kind: 'pokemon', speciesId: 151, shiny: true })).toEqual([
+        expect(passers(myMon(null, { kind: 'pokemon', speciesId: 151, shiny: true }))).toEqual([
             { id: 151, shiny: true },
             { id: 4 },
             { id: 7 },
         ]);
-        expect(passers({ kind: 'pokemon', speciesId: 4 }).map((m) => m.id)).toEqual([4, 7, 1]);
-        expect(passers({ kind: 'google' })[0]).toEqual({ id: 25 });
+        expect(passers(myMon(null, { kind: 'pokemon', speciesId: 4 })).map((m) => m.id)).toEqual([4, 7, 1]);
+        expect(passers(myMon(null, { kind: 'google' }))[0]).toEqual({ id: 25 });
         // na fatia o capitão vai grande na frente: sai da roda e o próximo entra
-        expect(passers({ kind: 'pokemon', speciesId: 151 }, 151).map((m) => m.id)).toEqual([4, 7, 1]);
+        expect(passers(myMon(null, { kind: 'pokemon', speciesId: 151 }), 151).map((m) => m.id)).toEqual([4, 7, 1]);
     });
 });

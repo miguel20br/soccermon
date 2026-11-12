@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { avatarMon, closestMissions, countAt, nextBelt, routeTeam, trainerLevel } from './metas';
+import { avatarMon, closestMissions, countAt, myMon, nextBelt, routeTeam, trainerLevel } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -110,5 +110,24 @@ describe('trainerLevel', () => {
             prev = level;
         }
         expect(trainerLevel(-3)).toEqual({ level: 1, n: 0, goal: 1 });
+    });
+});
+
+describe('myMon (o seu Pokémon nos ambientes)', () => {
+    const pika = { kind: 'pokemon', speciesId: 25 } as const;
+    it('depois de eliminado continua o capitão do último time, não o Pikachu do avatar padrão', () => {
+        const run = {
+            picks: [
+                { uid: 'a', speciesId: 7 },
+                { uid: 'b', speciesId: 6, shiny: true },
+            ],
+            captainUid: 'b',
+        };
+        expect(myMon(run, pika)).toEqual({ id: 6, shiny: true });
+        expect(myMon({ ...run, captainUid: null }, pika)).toEqual({ id: 7, shiny: false });
+    });
+    it('sem time montado, o avatar', () => {
+        expect(myMon(null, pika)).toEqual({ id: 25, shiny: false });
+        expect(myMon({ picks: [], captainUid: null }, { kind: 'google' })).toEqual({ id: 25 });
     });
 });
