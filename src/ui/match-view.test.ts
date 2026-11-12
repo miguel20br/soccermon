@@ -491,7 +491,8 @@ describe('dribles com nome (só tela)', () => {
     it('os 4 dribles aparecem e nenhum domina (nenhum passa de 40%)', () => {
         const count: Record<string, number> = {};
         let total = 0;
-        for (const { r } of [...games, ...[7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(dri)]) {
+        // 40 jogos (~80 dribles): com 16 (~33) um drible a mais passava dos 40% (motor 30: lambreta 14/33)
+        for (const { r } of [...games, ...Array.from({ length: 34 }, (_, i) => dri(i + 7))]) {
             // marcador alto ou baixo conforme a vaga (os dois casos no mesmo jogo)
             for (const d of namedDribbles(r, (idx) => ({ dri: 99, height: idx % 2 ? 2 : 0.4 }))) {
                 count[d.kind] = (count[d.kind] ?? 0) + 1;
