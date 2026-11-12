@@ -73,7 +73,27 @@ describe('canvas da partida na resolução da tela', () => {
         expect(g.game.canvas.width).toBe(1950);
     });
 
-    it('framebuffer de filtro ou textura fica no tamanho dele', () => {
+    it('framebuffer do pool (filtros da câmera) nasce na resolução do canvas, com o viewport junto', () => {
+        const g = fakeGame(650);
+        const fb = {
+            width: 968,
+            height: 528,
+            resize(w: number, h: number) {
+                Object.assign(this, { width: w, height: h });
+            },
+        };
+        const pool = { get: (width = 968, height = 528) => ({ width, height, framebuffer: fb }) };
+        Object.assign(g.game.renderer, { drawingContextPool: pool });
+        sharpCanvas(g.game as unknown as SharpGame, () => 3);
+        g.frame();
+        const c = pool.get(968, 528);
+        expect([c.width, fb.width, fb.height]).toEqual([968, 1950, 1064]);
+        g.game.renderer.glWrapper.state.bindings.framebuffer = fb;
+        draw(g);
+        expect(g.gl.viewport).toEqual([0, 0, 1950, 1064]);
+    });
+
+    it('framebuffer fora do pool (textura desenhada) fica no tamanho dele', () => {
         const g = fakeGame(650);
         sharpCanvas(g.game as unknown as SharpGame, () => 3);
         g.frame();

@@ -6,7 +6,9 @@ import { FpsGovernor, QualityStats, resAt } from './quality';
  * por cima do sprite já ampliado 1.8x pelo smoothPixelArt: duas reamostragens, sprite borrado. Aqui o canvas ganha o
  * tamanho exibido × devicePixelRatio e o GL desenha nele inteiro (viewport e tesoura multiplicados), com a projeção
  * ainda em pixels do jogo: câmera, zoom, toque, `scale.width` e tudo que mede o jogo continuam iguais.
- * Os framebuffers (filtros da câmera, texturas desenhadas) ficam no tamanho do jogo.
+ * Os framebuffers dos filtros da câmera (borrão do chicote, quadro de impacto) saem do pool na mesma resolução do
+ * canvas, com o mesmo viewport multiplicado: com o filtro ligado a quadra não cai pra 968x528 no meio do lance. As
+ * texturas desenhadas (quadra, DynamicTexture) não passam pelo pool e ficam no tamanho delas.
  *
  * O teto da escala sai do governador de fps (`quality.ts`): começa em 2, sobe pra 3 se o aparelho aguenta e desce se
  * não. Com o canvas em 1:1 com a tela, o tamanho CSS dele vira o do canvas em pixels da tela e ele vai pro pixel
@@ -25,6 +27,11 @@ interface GlState {
     viewport: Box;
     scissor: { box: Box };
 }
+interface PoolContext {
+    width: number;
+    height: number;
+    framebuffer?: { width: number; height: number; useCanvas?: boolean; resize(w: number, h: number): void };
+}
 /** O pedaço do Phaser que isto usa (o WebGLGlobalWrapper e o Game), pra testar sem o Phaser. */
 export interface SharpGame {
     canvas: {
@@ -36,6 +43,8 @@ export interface SharpGame {
     scale: { width: number; height: number; displaySize: { width: number } };
     loop?: { rawDelta: number };
     renderer: {
+        /** O pool de framebuffers dos filtros (`DrawingContextPool`). */
+        drawingContextPool?: { get(width?: number, height?: number): PoolContext };
         glWrapper?: {
             state: { bindings: { framebuffer?: { useCanvas?: boolean } | null } };
             updateViewport(state: GlState, force?: boolean): void;
@@ -67,21 +76,43 @@ export function sharpCanvas(game: SharpGame, dpr = () => window.devicePixelRatio
         stats: new QualityStats(),
         gov: new FpsGovernor((level) => resAt(level, q.natural)),
     };
-    const onCanvas = () => {
+    // framebuffer do pool na resolução do canvas -> a escala dele
+    const hi = new WeakMap<object, { x: number; y: number }>();
+    const pool = game.renderer.drawingContextPool;
+    if (pool) {
+        const get = pool.get.bind(pool);
+        pool.get = (width, height) => {
+            const c = get(width, height);
+            const fb = c.framebuffer;
+            if (fb && !fb.useCanvas) {
+                const w = Math.round(c.width * k.x);
+                const h = Math.round(c.height * k.y);
+                if (fb.width !== w || fb.height !== h) fb.resize(w, h);
+                hi.set(fb, { x: w / c.width, y: h / c.height });
+            }
+            return c;
+        };
+    }
+    const scaleNow = () => {
         const fb = gl.state.bindings.framebuffer;
-        return !fb || !!fb.useCanvas;
+        return !fb || fb.useCanvas ? k : hi.get(fb);
     };
-    const up = (b: Box): Box => [
-        Math.round(b[0] * k.x),
-        Math.round(b[1] * k.y),
-        Math.round(b[2] * k.x),
-        Math.round(b[3] * k.y),
+    const up = (b: Box, s: { x: number; y: number }): Box => [
+        Math.round(b[0] * s.x),
+        Math.round(b[1] * s.y),
+        Math.round(b[2] * s.x),
+        Math.round(b[3] * s.y),
     ];
     const viewport = gl.updateViewport.bind(gl);
     const scissor = gl.updateScissorBox.bind(gl);
-    gl.updateViewport = (s, force) => viewport(onCanvas() ? { ...s, viewport: up(s.viewport) } : s, force);
-    gl.updateScissorBox = (s, force) =>
-        scissor(onCanvas() ? { ...s, scissor: { ...s.scissor, box: up(s.scissor.box) } } : s, force);
+    gl.updateViewport = (s, force) => {
+        const sc = scaleNow();
+        viewport(sc ? { ...s, viewport: up(s.viewport, sc) } : s, force);
+    };
+    gl.updateScissorBox = (s, force) => {
+        const sc = scaleNow();
+        scissor(sc ? { ...s, scissor: { ...s.scissor, box: up(s.scissor.box, sc) } } : s, force);
+    };
     const off = { x: 0, y: 0 };
     let frames = 0;
     // a cada quadro (barato: só lê números): girar o celular, a quadra grande ligando, o Phaser refazendo o canvas
