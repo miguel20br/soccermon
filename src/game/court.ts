@@ -264,13 +264,13 @@ export function netRipple(scene: Phaser.Scene, side: 0 | 1, yPx: number, color: 
 }
 
 /** A trave tremendo: quanto dura (ms) e o deslocamento máximo (px). */
-export const POST_SHAKE = { ms: 480, px: 3.2, hz: 11 } as const;
+export const POST_SHAKE = { ms: 650, px: 5, hz: 7 } as const;
 
 /** Deslocamento da trave (px, pra fora do gol) `ms` depois da bolada: balança e amortece até parar. */
 export function postShakeAt(ms: number): number {
     if (ms < 0 || ms >= POST_SHAKE.ms) return 0;
     const sec = ms / 1000;
-    return POST_SHAKE.px * Math.sin(2 * Math.PI * POST_SHAKE.hz * sec) * (1 - ms / POST_SHAKE.ms) ** 2;
+    return POST_SHAKE.px * Math.sin(2 * Math.PI * POST_SHAKE.hz * sec) * (1 - ms / POST_SHAKE.ms) ** 1.5;
 }
 
 /**
@@ -296,7 +296,7 @@ export function postShake(scene: Phaser.Scene, side: 0 | 1, yPx: number, reduce:
             const at = (f: number) => d * (0.25 + 0.75 * (1 - Math.abs(f - hit)));
             const a = at(0);
             const b = at(1);
-            g.clear().lineStyle(3, 0xffffff, 1);
+            g.clear().lineStyle(4, 0xffffff, 1);
             // linha do gol (o travessão visto de cima) e as duas redes de lado, até o fundo
             g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * b, top + h + b * 0.3);
             g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * (PPM + a * 0.5), top);
