@@ -106,10 +106,11 @@ export function MaxMeter({
         return (
             <span className={cls} data-lv={lv} style={style} aria-hidden>
                 <span className="mm-seal">
-                    <b key={up} className={`mm-num${up ? ' pop' : ''}`}>
-                        <small>N</small>
+                    {/* span, não b/small: o botão do técnico tem regra pra b e small (bloco, 12 px) */}
+                    <span key={up} className={`mm-num${up ? ' pop' : ''}`}>
+                        <span className="mm-n">N</span>
                         {lv}
-                    </b>
+                    </span>
                 </span>
                 {up > 0 && <i key={`r${up}`} className="mm-burst" />}
             </span>
@@ -120,9 +121,9 @@ export function MaxMeter({
                 <i className="mm-fill" />
                 {up > 0 && <i key={up} className="mm-flash" />}
             </span>
-            <b key={up} className={`mm-stock${up ? ' pop' : ''}`}>
+            <span key={up} className={`mm-stock${up ? ' pop' : ''}`}>
                 N{lv}
-            </b>
+            </span>
         </span>
     );
 }
