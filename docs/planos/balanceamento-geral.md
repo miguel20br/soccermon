@@ -311,6 +311,28 @@ Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 
 
 Relato de jogador: na Linha de 3 a bola roda entre alas e pivô e nunca volta pro fixo. Causa: `bestPass` castiga passe pra trás (`fwdPass`) e o fixo fica ~8 m atrás dos alas; o pivô ganha `pivotPass` + `longPivot`. Ajuste: `fixoPass: 0.3` só na 3-1; muda só o destino (a decisão passe × drible usa o melhor passe sem o bônus), e não vale logo depois do fixo/parede do pivô tocar. 200 jogos: armações com o fixo 34% ⇒ 51%, passes pro fixo 9% ⇒ 17%, gols 3,6/3,9 ⇒ 3,6/3,8, chutes 18,1 ⇒ 17,6; `calibrate --formations` igual dentro do erro (3-1 47% ⇒ 46%). De olho: 3-1 × Losango 51% ⇒ 42% (400 jogos). Losango com 0,2 fica pra outra rodada. Script: `scripts/balance/fixo-armacao.ts`.
 
+## Motor 30: fixo na armação do Losango (proposta 11/11/2026, falta o ok do Miguel)
+
+Próximo passo do motor 29: o mesmo `fixoPass` no Losango (1-2-1), mais fraco. Varredura com `scripts/balance/fixo-armacao.ts 200 --losango=<v>` (Losango como time A contra as 6 formações):
+
+| `fixoPass` | Armações em que o fixo toca | Passes certos pro fixo (armação / total) | Gols pró/contra | Chutes | Passes | Vitória |
+|---|---|---|---|---|---|---|
+| 0 (motor 29) | 36% | 7% / 11% | 4,0/3,8 | 19,3 | 142 | 44% |
+| 0,1 | 39% | 8% / 12% | 4,0/3,8 | 19,0 | 143 | 45% |
+| **0,2** | **45%** | 8% / 14% | 4,1/3,9 | 18,5 | 150 | 44% |
+| 0,3 | 55% | 9% / 17% | 3,6/3,6 | 17,7 | 157 | 42% |
+
+Com 0,3 o Losango vira uma 3-1 lenta (gols 4,0 ⇒ 3,6); 0,2 põe o fixo em +9 pp das armações sem perder gol. `calibrate --formations`, 400 rodadas (antes = o mesmo motor com `fixoPass` 0 no Losango; erro ±0,8 pp na vitória geral, ±1,8 pp por confronto):
+
+| | Antes | Depois |
+|---|---|---|
+| Vitória Losango / 2-2 / 3-1 / 4-0 / 1-1-2 / Ferrolho | 52 / 50 / 45 / 51 / 50 / 52% | 50 / 51 / 46 / 51 / 51 / 52% |
+| Losango: gols pró/contra, chutes, passes, posse | 4,0/3,9, 19,0, 140, 46% | 3,9/3,9, 18,7, 145, 47% |
+| **3-1 × Losango** (vitória da 3-1) | 41% | 43% |
+| Losango × 2-2 / 4-0 / 1-1-2 / Ferrolho | 53 / 53 / 43 / 50% | 52 / 52 / 42 / 49% |
+
+O Losango cai 2 pp (52% ⇒ 50%, de volta ao meio da tabela) e a 3-1 recupera 2 pp nele; o resto da matriz fica igual dentro do erro. 12 das 14 partidas do golden master mudam (todas têm Losango). O teste "nenhum drible passa de 40%" (`match-view.test.ts`) passou a usar 40 jogos: com 16 (~33 dribles) a lambreta dava 14/33 = 42%; com 40 fica em 34%.
+
 ## MT fora da vitrine do Mercado (aprovado no plano "menos e mais", 10/11/2026)
 
 A MT sai da vitrine (fica na recompensa do ginásio, no 1 de 3 e no prêmio da casa da Rota); na vaga entra um item. Mesmas seeds: Copa Relâmpago (2400 copas) título 25,0% ⇒ 25,6% (+0,6 ± 0,9 pp), ₽ no Mercado 11,7 ⇒ 12,3, itens 0,49 ⇒ 0,75 por copa; Rota (400) 13,2% ⇒ 13,5% (+0,2 ± 1,7 pp). Dentro do erro. O robô não usa MT (como 99,6% dos jogadores).
