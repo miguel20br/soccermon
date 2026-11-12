@@ -7,6 +7,10 @@
  *
  *   node scripts/trailer-capture.mjs --cena golpe --seed trailer26 --de 126 --ate 134 --out trailer/clips/golpe
  *
+ * --demo "dribles&tipo=chapeu&gol=1": em vez da cena, um atalho ?demo= que já abre na escalação (o "Lance da semana");
+ * aí --ate +N grava N s de partida a partir de onde ela abre.
+ * --vertical <altura>: câmera fechada pro 9:16, um recorte de <altura> px do canvas (528 = a altura toda) seguindo a
+ * bola, ampliado pra 1080x1920 (pixel nítido); sem os nomes, o marcador vai junto.
  * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal; 0.25 = câmera lenta
  * lisa). --largura: px. --modo canvas|pagina. --nomes / --textos: mantêm os nomes em cima dos Pokémon e os
  * textos do jogo (padrão: sem os dois).
@@ -19,12 +23,14 @@ const args = process.argv.slice(2);
 const arg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
 const cena = arg('--cena');
 const seed = arg('--seed');
+const demo = arg('--demo');
 const from = Number(arg('--de', 0));
-const to = Number(arg('--ate', from + 6));
+const ateArg = arg('--ate', String(from + 6));
+let to = Number(ateArg.replace('+', ''));
 const fps = Number(arg('--fps', 30));
 const speed = Number(arg('--vel', 1));
 const width = Number(arg('--largura', 1920));
-const out = arg('--out', `trailer/clips/${cena}-${seed}`);
+const out = arg('--out', demo ? 'trailer/clips/demo' : `trailer/clips/${cena}-${seed}`);
 // canvas: só o jogo, resolução nativa (rápido). pagina: a área da quadra com o HTML por cima (tela de evolução).
 const modo = arg('--modo', 'canvas');
 // trailer sem os nomes em cima dos Pokémon (quadra mais limpa); --nomes mantém
@@ -32,7 +38,8 @@ const semNomes = !args.includes('--nomes');
 // sem os textos do jogo (letreiros de golpe, GOOOOL, caixa de narração): o zoom do trailer cortaria; o texto do
 // trailer vem da composição. --textos mantém
 const semTextos = !args.includes('--textos');
-if (!cena || !seed) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts)');
+const vertical = Number(arg('--vertical', 0));
+if (!demo && (!cena || !seed)) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts) ou --demo');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
 const DT = 1000 / fps;
@@ -58,6 +65,7 @@ await page.setViewport(
         : { width, height: Math.round(width * 0.75) },
 );
 page.on('pageerror', (e) => console.log('[página]', e.message));
+page.on('console', (m) => m.text().startsWith('[demo]') && console.log(m.text()));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const click = (re) =>
     page.evaluate((src) => {
@@ -68,12 +76,15 @@ const click = (re) =>
         return !!b;
     }, re);
 
-await page.goto(`${process.env.BASE_URL ?? 'http://localhost:8080'}/?demo=trailer&cena=${cena}&seed=${seed}`, {
+const query = demo ?? `trailer&cena=${cena}&seed=${seed}`;
+await page.goto(`${process.env.BASE_URL ?? 'http://localhost:8080'}/?demo=${query}`, {
     waitUntil: 'networkidle0',
     timeout: 300000,
 });
 await wait(2000);
-if (!(await click('^Jogar '))) throw new Error('não achei o botão Jogar (o atalho ?demo=trailer abriu?)');
+if (!demo && !(await click('^Jogar '))) throw new Error('não achei o botão Jogar (o atalho ?demo=trailer abriu?)');
+// o ?demo= abre na escalação com a partida salva: "Voltar pra partida" abre ela parada (a busca da seed pode demorar)
+if (demo) for (let i = 0; i < 600 && !(await click('^Voltar pra partida')); i++) await wait(1000);
 // quadra ocupando a largura toda (sem barra lateral), pra gravar na resolução pedida
 await page.addStyleTag({
     content:
@@ -82,9 +93,14 @@ await page.addStyleTag({
 // pausa o jogo ANTES do "Começar!" (o Ditto se transforma no tick 0)
 for (let i = 0; i < 90; i++) {
     const pronto = await page.evaluate(
-        () =>
-            !!window.__soccermonGame &&
-            [...document.querySelectorAll('button')].some((b) => /^Começar/.test(b.innerText.trim()) && !b.disabled),
+        (demo) =>
+            demo
+                ? !!window.__soccermonGame?.scene.getScene('Match')?.snaps?.length
+                : !!window.__soccermonGame &&
+                  [...document.querySelectorAll('button')].some(
+                      (b) => /^Começar/.test(b.innerText.trim()) && !b.disabled,
+                  ),
+        !!demo,
     );
     if (pronto) break;
     await wait(1000);
@@ -216,29 +232,92 @@ await page.evaluate((semTextos) => {
         );
     };
 }, semTextos);
-await click('^Começar');
+// câmera fechada (--vertical): um recorte 9:16 do canvas seguindo a bola (mola amortecida), ampliado inteiro com o
+// vizinho mais próximo e depois reduzido suave pra 1080x1920 (pixel quadrado sem borrar)
+await page.evaluate(() => {
+    const W = 1080;
+    const H = 1920;
+    const outC = Object.assign(document.createElement('canvas'), { width: W, height: H });
+    const big = document.createElement('canvas');
+    let cam = null;
+    let corte = null;
+    window.__vframe = (src, alto) => {
+        const sc = window.__soccermonGame.scene.getScene('Match');
+        const kx = src.width / (sc.scale.width || src.width);
+        const h = Math.min(alto, src.height);
+        const w = Math.round((h * 9) / 16);
+        // quem segue: o meio entre a bola e quem dribla até o chute, a bola no chute, e quem fez o gol na comemoração
+        let b = sc.ballOnScreen();
+        const t = sc.playTick;
+        const naTela = (i) => sc.onScreen(sc.players[i].sprite.x, sc.players[i].sprite.y);
+        // (a rede balança 0,6 s; aí um corte seco pra quem fez o gol, sem a câmera atravessar a quadra)
+        const gol = sc.goalsBy?.filter((g) => t - g.tick > 12 && t - g.tick < 160).pop();
+        if (gol && gol !== corte) {
+            corte = gol;
+            cam = null;
+        }
+        const drible = sc.named?.find((x) => Math.abs(x.tick - t) < 160);
+        const chute = drible && sc.matchEvents.find((e) => e.type === 'shot' && e.tick > drible.tick);
+        if (gol) b = naTela(gol.by);
+        else if (drible && (!chute || t < chute.tick)) {
+            const q = naTela(drible.by);
+            b = { x: (b.x + q.x) / 2, y: (b.y + q.y) / 2 };
+        }
+        const alvo = {
+            x: Math.max(0, Math.min(src.width - w, b.x * kx - w / 2)),
+            y: Math.max(0, Math.min(src.height - h, b.y * kx - h * 0.55)),
+        };
+        cam = cam ? { x: cam.x + (alvo.x - cam.x) * 0.14, y: cam.y + (alvo.y - cam.y) * 0.14 } : alvo;
+        const k = Math.ceil(H / h);
+        big.width = w * k;
+        big.height = h * k;
+        const g = big.getContext('2d');
+        g.imageSmoothingEnabled = false;
+        g.drawImage(src, cam.x, cam.y, w, h, 0, 0, w * k, h * k);
+        const o = outC.getContext('2d');
+        o.imageSmoothingEnabled = true;
+        o.imageSmoothingQuality = 'high';
+        o.drawImage(big, 0, 0, W, H);
+        return outC.toDataURL('image/png');
+    };
+});
+if (demo) await page.evaluate(() => window.__soccermonBus.emit('match:resume'));
+else await click('^Começar');
 // grab: lê o canvas na mesma chamada do step (WebGL sem preserveDrawingBuffer: lido depois, às vezes sai preto)
 const step = (dt, grab = false) =>
     page.evaluate(
-        async (d, gif, semNomes, grab) => {
+        async (d, gif, semNomes, grab, vertical) => {
             window.__t += d;
             // nomes transparentes ANTES de desenhar (o jogo religa o setVisible a cada quadro; o alpha ele não mexe)
-            if (semNomes) for (const v of window.__soccermonGame.scene.getScene('Match').players) v.label?.setAlpha(0);
+            if (semNomes)
+                for (const v of window.__soccermonGame.scene.getScene('Match').players) {
+                    v.label?.setAlpha(0);
+                    v.badge?.setAlpha(0);
+                    if (v.arrow) v.arrow.willRender = () => false;
+                }
             window.__soccermonGame.step(window.__t, d);
             window.__vadvance(d);
             if (gif) await window.__gifTick();
-            return grab ? document.querySelector('.pitch-wrap canvas').toDataURL('image/png') : null;
+            if (!grab) return null;
+            const src = document.querySelector('.pitch-wrap canvas');
+            return vertical ? window.__vframe(src, vertical) : src.toDataURL('image/png');
         },
         dt,
         modo === 'pagina',
         semNomes,
         grab,
+        vertical,
     );
 
 // 1) avança rápido até o começo do lance (8x, sem gravar)
 await page.evaluate(() => window.__soccermonBus.emit('match:set-speed', 8));
 const t0 = Date.now();
 while ((await tick()) < from * TICK_RATE) await step(DT);
+if (ateArg.startsWith('+')) {
+    // a partida do ?demo= não começa no tick 0: espera o 1º tick dela
+    while ((await tick()) === 0) await step(DT);
+    to += (await tick()) / TICK_RATE;
+}
 console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) / 1000).toFixed(0)} s pra chegar)`);
 
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
