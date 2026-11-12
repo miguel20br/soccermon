@@ -61,8 +61,8 @@ describe('nome em pixel inteiro', () => {
             [10, 3, 36],
         ]) {
             const f = pixelFont(want, res);
-            expect(f.size * res).toBeCloseTo(px, 9);
-            expect(Number.isInteger(Math.round(f.stroke * res * 1e6) / 1e6)).toBe(true);
+            expect(f.size).toBe(px);
+            expect(Number.isInteger(f.stroke)).toBe(true);
         }
     });
 });

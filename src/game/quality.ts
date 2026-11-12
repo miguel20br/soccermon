@@ -28,13 +28,13 @@ export function spriteScaleFor(res: number, base = BASE_SPRITE_SCALE, tol = SPRI
 export const GALMURI11_PX = 12;
 
 /**
- * Fonte de pixel nítida no canvas: o múltiplo de `unit` px do canvas mais perto de `want` px do jogo × `res` (pelo
- * menos 1), devolvido em px do jogo, e o contorno em px inteiros do canvas (cerca de 1,5 pixel da letra pra fora).
+ * Fonte de pixel nítida no canvas, em px do canvas: o múltiplo de `unit` mais perto de `want` px do jogo × `res` (pelo
+ * menos 1) e o contorno em px inteiros (cerca de 1,5 pixel da letra pra fora). O texto é desenhado nesse tamanho e
+ * encolhido por `1 / res` pra px do jogo: 1 pixel do texto por pixel do canvas.
  */
 export function pixelFont(want: number, res: number, unit = GALMURI11_PX): { size: number; stroke: number } {
-    const r = res > 0 ? res : 1;
-    const m = Math.max(1, Math.round((want * r) / unit));
-    return { size: (unit * m) / r, stroke: (2 * Math.ceil(1.5 * m)) / r };
+    const m = Math.max(1, Math.round((want * (res > 0 ? res : 1)) / unit));
+    return { size: unit * m, stroke: 2 * Math.ceil(1.5 * m) };
 }
 
 /**

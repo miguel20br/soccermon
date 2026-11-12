@@ -933,7 +933,7 @@ export class MatchScene extends Phaser.Scene {
     private quality?: Quality;
     /** Escala do sprite (px do jogo): inteira em pixels do canvas quando dá (`spriteScaleFor`). */
     private ssNow = BASE_SPRITE_SCALE;
-    /** Resolução dos nomes e das elipses (sombra, anel): 1 pixel da textura por pixel do canvas. */
+    /** Px do canvas por px do jogo dos nomes e das elipses (sombra, anel): 1 pixel da textura por pixel do canvas. */
     private textRes = 2;
     private readonly ellRes = () => this.textRes;
     private court!: Phaser.GameObjects.Image;
@@ -1516,8 +1516,6 @@ export class MatchScene extends Phaser.Scene {
         if (Math.abs(res - this.textRes) > 0.01) {
             this.textRes = res;
             for (const v of this.players) {
-                v.label.setResolution(res);
-                v.badge.setResolution(res);
                 v.shadow.redraw();
                 v.ring.redraw();
             }
@@ -1550,7 +1548,8 @@ export class MatchScene extends Phaser.Scene {
             if (sp.visible && !sp.rotation && whole(sp.scaleX * z * res) && whole(sp.scaleY * z * res))
                 snap(sp, sp.flipX);
             if (!whole(z)) continue;
-            for (const t of [v.label, v.badge]) if (t.visible && t.alpha > 0 && t.scaleX === 1) snap(t, false);
+            for (const t of [v.label, v.badge])
+                if (t.visible && t.alpha > 0 && whole(t.scaleX * z * res)) snap(t, false);
         }
     }
 
@@ -1565,12 +1564,14 @@ export class MatchScene extends Phaser.Scene {
         this.uiScale = Math.max(1, (GAME_W / shown) * 0.72);
         this.cine.uiScale = this.uiScale;
         const s = Math.min(this.uiScale, 2.3);
-        // a Galmuri11 em múltiplo de 12 px do canvas: pixel da letra inteiro (antes 10-11 px do jogo, quebrado)
+        // a Galmuri11 em múltiplo de 12 px do canvas, desenhada em px do canvas e encolhida pra px do jogo: pixel da
+        // letra inteiro na tela (antes 10-11 px do jogo com resolution 2, letra quebrada e borrada)
         const name = pixelFont(10 * s, this.textRes);
         const badge = pixelFont(11 * s, this.textRes);
+        const k = 1 / this.textRes;
         for (const v of this.players) {
-            v.label.setFontSize(name.size).setStroke('#000000', name.stroke);
-            v.badge.setFontSize(badge.size).setStroke('#000000', badge.stroke);
+            v.label.setFontSize(name.size).setStroke('#000000', name.stroke).setScale(k);
+            v.badge.setFontSize(badge.size).setStroke('#000000', badge.stroke).setScale(k);
         }
         // caixa de batalha presa à base da tela (no celular cresce só um pouco)
         const bs = Math.min(this.uiScale, 1.3);
@@ -1618,12 +1619,8 @@ export class MatchScene extends Phaser.Scene {
         const label = this.add
             .text(0, 0, captain ? `C·${name}` : name, textStyle)
             .setOrigin(0.5, 0)
-            .setResolution(this.textRes)
             .setAlpha(this.showsName(team) ? 1 : 0);
-        const badge = this.add
-            .text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' })
-            .setOrigin(0.5, 0)
-            .setResolution(this.textRes);
+        const badge = this.add.text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' }).setOrigin(0.5, 0);
         const view: PlayerView = {
             speciesId,
             skin,
@@ -1709,13 +1706,13 @@ export class MatchScene extends Phaser.Scene {
                 const rects = [false, true].map((short) => {
                     const w = this.labelWidth(v, short);
                     const x0 = v.label.x - w / 2;
-                    return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.height };
+                    return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.displayHeight };
                 });
                 const fit = firstFit(placed, rects);
                 const crowded = fit < 0;
                 this.setLabelText(v, fit !== 0);
                 if (!crowded) placed.push(rects[fit]);
-                const h = v.label.height;
+                const h = v.label.displayHeight;
                 v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
                 v.label.setAlpha(v.crowd);
                 v.badge.y = v.label.y + h * v.crowd;
@@ -1727,8 +1724,8 @@ export class MatchScene extends Phaser.Scene {
             .filter((v) => v.label.visible && v.label.alpha > 0)
             .sort((a, b) => a.label.y - b.label.y);
         for (const v of views) {
-            const w = v.label.width;
-            const h = v.label.height;
+            const w = v.label.displayWidth;
+            const h = v.label.displayHeight;
             const x0 = v.label.x - w / 2;
             const x1 = x0 + w;
             let y = v.label.y;
@@ -1752,7 +1749,8 @@ export class MatchScene extends Phaser.Scene {
             v.label.setText(was);
             this.labelWidths.set(key, w);
         }
-        return w;
+        // o texto é desenhado em px do canvas e encolhido pra px do jogo (updateUiScale)
+        return w * v.label.scaleX;
     }
 
     private setLabelText(v: PlayerView, short: boolean) {
@@ -1762,7 +1760,7 @@ export class MatchScene extends Phaser.Scene {
 
     /** Altura ocupada pelo nome (zero quando escondido): o status sobe para o lugar dele. */
     private nameHeight(view: PlayerView) {
-        return view.label.alpha > 0 ? view.label.height : 0;
+        return view.label.alpha > 0 ? view.label.displayHeight : 0;
     }
 
     /** Setinha do seu time: logo acima da cabeça (topo visível do sprite no Idle). */
