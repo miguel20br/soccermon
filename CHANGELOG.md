@@ -8,12 +8,15 @@
 - A Liga aparece na última semana antes de abrir
 - Configurações com o principal à vista e o resto em Mais opções
 - Ajuda mais curta: Como funciona de cada modo em cima e só as regras que não estão na tela
+- Prancheta e VERSUS voltam aos sprites clássicos, com miniaturas menores e os times se encarando
 
 ### Copa
 - O Mercado não vende mais MT: a vaga vira item (a MT continua na recompensa do ginásio)
 
 ### Partida
 - Lambreta com a bola em arco por cima do marcador, roleta com giro de 360° e elástico com a finta que o marcador morde
+- Drible novo: o chapéu, com a bola por cima da cabeça do marcador
+- Chute, passe, desarme e defesa batem na bola no quadro certo (antes a animação vinha atrasada)
 
 ## 0.9.48 · Fixo no jogo (2026-11-10)
 
