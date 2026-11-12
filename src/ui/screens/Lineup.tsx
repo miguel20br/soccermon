@@ -192,7 +192,13 @@ export function Lineup() {
                         {!!run.sponsors?.length && (
                             <div className="lineup-sponsors">
                                 <span className="muted">
-                                    {t('shop.sponsors')} · <Money n={run.money ?? 0} />
+                                    {t('shop.sponsors')}
+                                    {isLong(run) && (
+                                        <>
+                                            {' · '}
+                                            <Money n={run.money ?? 0} />
+                                        </>
+                                    )}
                                 </span>
                                 <SponsorSlots sponsors={run.sponsors} />
                             </div>

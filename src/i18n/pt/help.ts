@@ -360,7 +360,7 @@ export const help = {
         rota: [
             'Toque numa casa acesa e depois em Ir.',
             'A 1ª partida não dá cartão. Depois, uma derrota vale amarelo e a segunda, vermelho.',
-            'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
+            'Vitória dá ₽ (o Jogo paga mais). Gaste no Mercado ou guarde pra render juros.',
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
         rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],

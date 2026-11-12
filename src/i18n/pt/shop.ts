@@ -1,4 +1,4 @@
-/** Mercado e Patrocínios da Copa rápida (docs/planos/copa-roguelike-plano.md). */
+/** Mercado e Patrocínios: o Mercado é casa do mapa da Rota; no arcade o Patrocínio vem na recompensa (11/11/2026). */
 export const shop = {
     title: 'Mercado',
     before: 'Próxima fase: {stage}',
