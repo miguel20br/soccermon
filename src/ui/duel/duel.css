@@ -968,3 +968,10 @@ button.sb-title:hover {
         font-size: 12px;
     }
 }
+/* PC: o zoom do PC enchia a tela e o painel cobria a dupla da quadra. O vão guarda um lugar pra ela (o useFitZoom
+   encolhe o resto pra caber) e a dupla vai pro meio dele (useTwoCols, Stage.tsx) */
+@media (min-width: 701px) and (min-height: 521px) {
+    .duel-stage.k-stage-place .k-stage-body > .k-stage-gap {
+        flex: 1 0 150px;
+    }
+}
