@@ -8,7 +8,7 @@ const at = (search: string) => {
     vi.stubGlobal('window', { location: { search } });
 };
 
-describe('prévia da barrinha (?barra, ?carga)', () => {
+describe('carga de prévia (?carga)', () => {
     afterEach(() => vi.unstubAllGlobals());
 
     it('fora do dev e das prévias não mexe em nada', () => {
@@ -42,9 +42,7 @@ describe('prévia da barrinha (?barra, ?carga)', () => {
     });
 
     it('gomos: acende um bloco por nível', () => {
-        const out = renderToStaticMarkup(
-            createElement(MaxMeter, { variant: 'a', max: { charge: 0.8, level: 2 }, size: 'thumb' }),
-        );
+        const out = renderToStaticMarkup(createElement(MaxMeter, { max: { charge: 0.8, level: 2 }, size: 'thumb' }));
         expect(out.match(/mm-cell c\d on/g)).toHaveLength(2);
     });
 });

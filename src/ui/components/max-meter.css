@@ -1,5 +1,5 @@
 /*
- * Barrinha do golpe máximo, prévia das três caras (MaxMeter.tsx, `?barra=a|b|c`). Cor por nível: N1 amarelo, N2
+ * Barrinha do golpe máximo, "Gomos" (MaxMeter.tsx): três blocos. Cor por nível: N1 amarelo, N2
  * laranja, N3 a cor do tipo do capitão (`--mm3`, vermelho sem tipo). Pixel: borda de tinta, sombra dura, degraus.
  * Tamanhos: `mm-thumb` (barra de baixo do celular), `mm-btn` (botão do técnico no PC), `mm-mini` (embaixo do placar).
  */
@@ -7,52 +7,16 @@
     --mm1: var(--yellow);
     --mm2: color-mix(in srgb, var(--yellow), var(--red) 40%);
     --mm3c: var(--mm3, var(--red));
-    /* a cor do nível que já tem (número) e a do próximo (o que está enchendo) */
-    --now: rgba(255, 255, 255, 0.16);
-    --next: var(--mm1);
     position: relative;
     flex: none;
     font-family: "Galmuri14", "Galmuri11", monospace;
     line-height: 1;
 }
-.mm[data-lv="1"] {
-    --now: var(--mm1);
-    --next: var(--mm2);
-}
-.mm[data-lv="2"] {
-    --now: var(--mm2);
-    --next: var(--mm3c);
-}
-.mm[data-lv="3"] {
-    --now: var(--mm3c);
-    --next: var(--mm3c);
-}
-
-/* etiqueta "N2" (selo e estoque): placa na cor do nível, tinta escura; no N0 placa apagada; no N3 (cor do tipo, que
-   pode ser escura) letra branca com contorno */
-.mm-num,
-.mm-stock {
-    /* a cor do nível por cima da tinta (no N0 ela é translúcida) */
-    background: linear-gradient(var(--now), var(--now)), var(--bc-ink);
-    color: var(--bc-ink);
-}
-.mm[data-lv="0"] :is(.mm-num, .mm-stock) {
-    color: var(--text);
-}
-.mm[data-lv="3"] :is(.mm-num, .mm-stock) {
-    color: #fff;
-    text-shadow:
-        1px 1px 0 var(--bc-ink),
-        -1px 0 0 var(--bc-ink),
-        0 -1px 0 var(--bc-ink),
-        1px 0 0 var(--bc-ink);
-}
-
-/* no botão do técnico: gomos e estoque deitados no pé do botão; o selo à direita */
+/* no botão do técnico: gomos deitados no pé do botão */
 .sl-btn.sl-max.mm-host {
     padding-bottom: 16px;
 }
-.sl-max.mm-host .mm-btn:is(.mm-a, .mm-c) {
+.sl-max.mm-host .mm-btn {
     position: absolute;
     left: 8px;
     right: 8px;
@@ -65,20 +29,6 @@
 }
 .sl-max.mm-host > span {
     padding-right: 20px;
-}
-/* o selo: no fluxo, à direita, com a prévia do tipo antes dele */
-.sl-btn.sl-max.mm-host:has(.mm-b) {
-    padding-bottom: 4px;
-}
-.sl-max.mm-host:has(.mm-b) > span {
-    padding-right: 0;
-}
-.sl-max.mm-host:has(.mm-b) .sl-fx {
-    position: static;
-    margin-left: auto;
-}
-.sl-max.mm-host .mm-b {
-    margin-left: 4px;
 }
 /* apagado, só o texto e o ícone ficam fracos: a barrinha continua legível (é ela que diz quanto falta) */
 .sl-btn.sl-max.mm-host[aria-disabled="true"] {
@@ -181,220 +131,6 @@
 }
 .mm-a.mm-mini.flip .mm-cell::before {
     transform-origin: right;
-}
-
-/* ---------- B "Selo": o número grande; a borda enche em degraus até o próximo nível ---------- */
-.mm-b {
-    display: inline-grid;
-    place-items: center;
-}
-.mm-seal {
-    position: relative;
-    display: grid;
-    width: 34px;
-    height: 34px;
-    padding: 3px;
-    border-radius: 6px;
-    /* a borda: o próximo nível enchendo no sentido do relógio, em oitavos */
-    background: conic-gradient(var(--next) calc(var(--p, 0) * 360deg), rgba(0, 0, 0, 0.5) 0);
-    box-shadow:
-        0 0 0 2px var(--bc-ink),
-        0 2px 0 2px var(--bc-ink);
-}
-.mm-num {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1px;
-    border-radius: 3px;
-    font-size: 18px;
-}
-.mm-n {
-    align-self: flex-start;
-    margin-top: 4px;
-    font-size: 9px;
-}
-.mm-num.pop {
-    animation: mm-slam 260ms var(--ease-pop, var(--ease-out));
-}
-@keyframes mm-slam {
-    from {
-        transform: scale(1.9);
-        opacity: 0;
-    }
-}
-/* subiu: um quadrado na cor nova se abre uma vez */
-.mm-burst {
-    position: absolute;
-    inset: 0;
-    border: 3px solid var(--now);
-    border-radius: 6px;
-    pointer-events: none;
-    animation: mm-burst 420ms var(--ease-out) forwards;
-}
-@keyframes mm-burst {
-    to {
-        transform: scale(1.8);
-        opacity: 0;
-    }
-}
-/* N3: um pixel de brilho corre os quatro cantos do selo */
-.mm-b[data-lv="3"] .mm-seal::after {
-    --d: 32px;
-    content: "";
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    left: 0;
-    top: 0;
-    background: #fff;
-    box-shadow: 0 0 0 1px var(--bc-ink);
-    animation: mm-corner 1.6s steps(1) infinite;
-}
-@keyframes mm-corner {
-    0% {
-        translate: -2px -2px;
-    }
-    25% {
-        translate: var(--d) -2px;
-    }
-    50% {
-        translate: var(--d) var(--d);
-    }
-    75% {
-        translate: -2px var(--d);
-    }
-}
-.mm-b.mm-btn .mm-seal {
-    width: 32px;
-    height: 32px;
-}
-.mm-b.mm-btn[data-lv="3"] .mm-seal::after {
-    --d: 30px;
-}
-.mm-b.mm-mini {
-    flex: 1;
-    justify-items: start;
-}
-.mm-b.mm-mini.flip {
-    justify-items: end;
-}
-.mm-b.mm-mini .mm-seal {
-    width: 22px;
-    height: 22px;
-    padding: 2px;
-    border-radius: 4px;
-    box-shadow: 0 0 0 1px var(--bc-ink);
-}
-.mm-b.mm-mini .mm-num {
-    font-size: 12px;
-}
-.mm-b.mm-mini .mm-n,
-.mm-b.mm-mini .mm-seal::after {
-    display: none;
-}
-.mm-b.mm-mini .mm-burst {
-    inset: auto;
-    width: 22px;
-    height: 22px;
-    border-width: 2px;
-}
-
-/* ---------- C "Estoque": uma barra que reenche a cada nível por cima da cor do anterior ---------- */
-.mm-c {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-}
-.mm-bar {
-    position: relative;
-    width: 42px;
-    height: 10px;
-    overflow: hidden;
-    border: 2px solid var(--bc-ink);
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.45);
-}
-/* o nível que já tem fica embaixo (escurecido); o próximo enche por cima */
-.mm-c[data-lv="1"] .mm-bar,
-.mm-c[data-lv="2"] .mm-bar {
-    background: color-mix(in srgb, var(--now), #000 40%);
-}
-.mm-fill {
-    position: absolute;
-    inset: 0;
-    background: var(--next);
-    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);
-    transform: scaleX(var(--p, 0));
-    transform-origin: left;
-    transition: transform 0.3s steps(4);
-}
-/* N3: cheia na cor do tipo, com listras andando devagar */
-.mm-c[data-lv="3"] .mm-fill {
-    background:
-        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.35) 0 3px, transparent 3px 7px) 0 0 / 20px 100%,
-        var(--mm3c);
-    animation: mm-march 1.2s steps(6) infinite;
-}
-@keyframes mm-march {
-    to {
-        background-position:
-            20px 0,
-            0 0;
-    }
-}
-.mm-flash {
-    position: absolute;
-    inset: 0;
-    background: #fff;
-    animation: mm-flash 380ms var(--ease-out) forwards;
-}
-@keyframes mm-flash {
-    to {
-        opacity: 0;
-    }
-}
-.mm-stock {
-    padding: 2px 4px 1px;
-    border-radius: 3px;
-    box-shadow: 0 0 0 1px var(--bc-ink);
-    font-size: 11px;
-}
-.mm-stock.pop {
-    animation: mm-bump 300ms var(--ease-pop, var(--ease-out));
-}
-@keyframes mm-bump {
-    from {
-        transform: scale(1.7);
-    }
-}
-/* deitado (placar e botão do PC): a barra estica e a etiqueta fica na ponta */
-.mm-c:is(.mm-mini, .mm-btn) {
-    flex: 1;
-    flex-direction: row;
-    align-items: center;
-    gap: 4px;
-}
-.mm-c:is(.mm-mini, .mm-btn) .mm-bar {
-    flex: 1;
-    width: auto;
-    height: 8px;
-    border-width: 1px;
-}
-.mm-c.mm-btn .mm-bar {
-    height: 10px;
-    border-width: 2px;
-}
-.mm-c.mm-mini.flip {
-    flex-direction: row-reverse;
-}
-.mm-c.mm-mini.flip .mm-fill {
-    transform-origin: right;
-}
-.mm-c:is(.mm-mini, .mm-btn) .mm-stock {
-    padding: 1px 3px 0;
-    font-size: 10px;
 }
 
 /* placar: as duas barrinhas novas um pouco mais altas que as de hoje */

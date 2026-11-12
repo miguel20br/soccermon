@@ -3,23 +3,7 @@ import type { MaxCharge } from '../../engine/agency';
 import { TYPE_COLOR } from '../type-colors';
 import './max-meter.css';
 
-/**
- * Prévia da barrinha nova do golpe máximo (Miguel, 12/11: "a barrinha de N tá muito feia"). Três caras, atrás de
- * `?barra=a|b|c` só no dev e nas prévias (`__SMOKE__`); sem o parâmetro, a de hoje. Ele escolhe e a escolhida vira padrão.
- *   a "Gomos": três blocos, cada um na cor do nível (amarelo, laranja, tipo); conta-se o nível pelos acesos.
- *   b "Selo": o número do nível grande num selo; a borda enche em degraus até o próximo.
- *   c "Estoque": uma barra só que reenche a cada nível por cima da cor do anterior (barra de super de luta) e o N ao lado.
- */
-export type Barra = 'a' | 'b' | 'c';
-
 const q = () => new URLSearchParams(window.location.search);
-
-export function barraLab(): Barra | null {
-    // o window antes: nos testes (node) o __SMOKE__ nem existe
-    if (typeof window === 'undefined' || !__SMOKE__) return null;
-    const v = q().get('barra');
-    return v === 'a' || v === 'b' || v === 'c' ? v : null;
-}
 
 /** Passos da carga de `?carga=sobe` (12 = 4 por nível) e quanto cada um dura, em ms (relógio da página). */
 const STEPS = 12;
@@ -60,18 +44,17 @@ function useLevelUp(level: number) {
 }
 
 /**
- * A barrinha (as três caras). `size`: `thumb` (botão da barra de baixo do celular), `btn` (botão do desktop) ou `mini`
- * (embaixo do placar, os dois times). `type`: o tipo do capitão (a cor do N3; sem ele, vermelho).
+ * A barrinha "Gomos": três blocos, cada um na cor do nível (amarelo, laranja, tipo do capitão); conta-se o nível pelos
+ * acesos. `size`: `thumb` (barra de baixo do celular), `btn` (botão do desktop) ou `mini` (embaixo do placar).
  */
 export function MaxMeter({
-    variant,
     max,
     type,
     size,
     flip,
 }: {
-    variant: Barra;
     max: MaxCharge;
+    /** O tipo do capitão (a cor do N3; sem ele, vermelho). */
     type?: string;
     size: 'thumb' | 'btn' | 'mini';
     /** O time de lá no placar: a barra enche da direita pra esquerda. */
@@ -79,51 +62,20 @@ export function MaxMeter({
 }) {
     const up = useLevelUp(max.level);
     const lv = max.level;
-    // o quanto do nível de agora já encheu (0 a 1), em degraus de 1/8 no selo (pixel, sem curva lisa)
-    const inLevel = lv >= 3 ? 1 : max.charge * 3 - lv;
-    const style = {
-        '--mm3': type ? TYPE_COLOR[type] : undefined,
-        '--p': variant === 'b' ? Math.floor(inLevel * 8) / 8 : inLevel,
-    } as CSSProperties;
-    const cls = `mm mm-${variant} mm-${size}${flip ? ' flip' : ''}`;
-    if (variant === 'a')
-        return (
-            <span className={cls} data-lv={lv} style={style} aria-hidden>
-                {[1, 2, 3].map((n) => {
-                    const f = Math.min(1, Math.max(0, max.charge * 3 - (n - 1)));
-                    const pop = n === lv && up > 0;
-                    return (
-                        <i
-                            key={pop ? `${n}-${up}` : n}
-                            className={`mm-cell c${n}${lv >= n ? ' on' : ''}${pop ? ' pop' : ''}`}
-                            style={{ '--f': f } as CSSProperties}
-                        />
-                    );
-                })}
-            </span>
-        );
-    if (variant === 'b')
-        return (
-            <span className={cls} data-lv={lv} style={style} aria-hidden>
-                <span className="mm-seal">
-                    {/* span, não b/small: o botão do técnico tem regra pra b e small (bloco, 12 px) */}
-                    <span key={up} className={`mm-num${up ? ' pop' : ''}`}>
-                        <span className="mm-n">N</span>
-                        {lv}
-                    </span>
-                </span>
-                {up > 0 && <i key={`r${up}`} className="mm-burst" />}
-            </span>
-        );
+    const style = { '--mm3': type ? TYPE_COLOR[type] : undefined } as CSSProperties;
     return (
-        <span className={cls} data-lv={lv} style={style} aria-hidden>
-            <span className="mm-bar">
-                <i className="mm-fill" />
-                {up > 0 && <i key={up} className="mm-flash" />}
-            </span>
-            <span key={up} className={`mm-stock${up ? ' pop' : ''}`}>
-                N{lv}
-            </span>
+        <span className={`mm mm-a mm-${size}${flip ? ' flip' : ''}`} data-lv={lv} style={style} aria-hidden>
+            {[1, 2, 3].map((n) => {
+                const f = Math.min(1, Math.max(0, max.charge * 3 - (n - 1)));
+                const pop = n === lv && up > 0;
+                return (
+                    <i
+                        key={pop ? `${n}-${up}` : n}
+                        className={`mm-cell c${n}${lv >= n ? ' on' : ''}${pop ? ' pop' : ''}`}
+                        style={{ '--f': f } as CSSProperties}
+                    />
+                );
+            })}
         </span>
     );
 }

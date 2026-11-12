@@ -859,7 +859,6 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                     <MaxBars
                         events={match.events}
                         tick={clock.tick}
-                        colors={colors}
                         types={[sideline.capType, capTypeAt(match, setups, 1, clock.tick)]}
                     />
                 </div>
