@@ -12,7 +12,7 @@ import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { avatarMon, routeTeam } from './metas';
+import { myMon, routeTeam } from './metas';
 import { useTalkOnce } from './Room';
 import { type Blockers, type Threats, useWild, WildZone, type ZoneDef } from './WildZone';
 import type { Pt, Wild } from './wild';
@@ -315,8 +315,8 @@ export function Rota({
     const longOn = stop !== 'start' || (!!run && isLong(run) && !['eliminated', 'champion'].includes(run.status));
     const otherCup = !!run && !isLong(run) && !['eliminated', 'champion'].includes(run.status);
 
-    // o time: os 3 primeiros da escalação (o capitão na frente) na Rota aberta; senão o seu avatar sozinho em Pallet
-    const team = useMemo(() => routeTeam(run, longOn, avatarMon(avatar)), [longOn, run, avatar]);
+    // o time: os 3 primeiros da escalação (o capitão na frente) na Rota aberta; senão o seu Pokémon (`myMon`) sozinho em Pallet
+    const team = useMemo(() => routeTeam(run, longOn, myMon(run, avatar)), [longOn, run, avatar]);
 
     // a caminhada: na 1ª vez que a aba aparece, da parada anterior até a atual (reduzir movimento: já parado lá)
     const target = ARC[STOP_AT[stop]];

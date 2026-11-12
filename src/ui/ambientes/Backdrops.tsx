@@ -5,7 +5,7 @@ import { ArenaScene, RIVALS } from './Arena';
 import { ClockCtx, useSceneClock } from './clock';
 import { CourtFloor, clubVars, Floodlight, Stands } from './Estadio';
 import { FieldSprite } from './FieldSprite';
-import { avatarMon, type Mon } from './metas';
+import { type Mon, myMon } from './metas';
 import { BIG, estadioScale, useMq, useSceneScale } from './sprite-scale';
 import './ambientes.css';
 
@@ -20,12 +20,13 @@ export function ArenaBackdrop({ rival, reveal }: { rival?: Mon | null; reveal?: 
     const clock = useSceneClock(true);
     const scale = useSceneScale();
     const avatar = useGame((s) => s.profile.avatar);
+    const run = useGame((s) => s.run);
     const [pick] = useState(() => RIVALS[Math.floor(Math.random() * RIVALS.length)]);
     return (
         <ClockCtx.Provider value={clock}>
             <div className="amb-bd amb-bd-arena">
                 <ArenaScene
-                    me={avatarMon(avatar)}
+                    me={myMon(run, avatar)}
                     rival={rival?.id ?? pick}
                     reveal={!!rival && reveal}
                     scale={scale}

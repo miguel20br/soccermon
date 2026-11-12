@@ -8,13 +8,12 @@ import type { Lang } from '../../i18n/lang';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
-import type { Avatar } from '../../store/profile';
 import { clubColorHex } from '../../store/profile';
 import { utNow } from '../../store/ultimate/clock';
 import { ClockCtx, useSceneClock } from '../ambientes/clock';
 import { CourtFloor, clubVars, Stands } from '../ambientes/Estadio';
 import { FieldSprite } from '../ambientes/FieldSprite';
-import { avatarMon, type Mon } from '../ambientes/metas';
+import { avatarMon, type Mon, myMon } from '../ambientes/metas';
 import { TopBar } from '../ambientes/TopBar';
 import { clubWild } from '../ambientes/wild';
 import { KantoBadge } from '../components/BadgeCase';
@@ -67,9 +66,8 @@ const at = (x: number, y: number): CSSProperties => ({ left: `${x}%`, top: `${y}
  * a mesma cena serve no cartão pequeno, no pôster alto e na fatia larga sem esticar nada.
  */
 
-/** Quem toca a bola no Modo Copa: o seu Pokémon do avatar (shiny, se for) puxa o triângulo de passes, com Charmander e Squirtle. */
-export function passers(avatar: Avatar, skip?: number): Mon[] {
-    const lead = avatarMon(avatar);
+/** Quem toca a bola no Modo Copa: o seu Pokémon (`myMon`, shiny se for) puxa o triângulo de passes, com Charmander e Squirtle. */
+export function passers(lead: Mon, skip?: number): Mon[] {
     return [lead, ...[4, 7, 1].filter((id) => id !== lead.id).map((id) => ({ id }))]
         .filter((m) => m.id !== skip)
         .slice(0, 3);
@@ -97,7 +95,10 @@ function SceneAtual({ scale, bare }: { scale: number; bare?: boolean }) {
     const cap = useCaptain();
     // na fatia o capitão vai grande na frente (Hero): na roda de passes entra outro no lugar dele
     const ids = passers(
-        useGame((s) => s.profile.avatar),
+        myMon(
+            useGame((s) => s.run),
+            useGame((s) => s.profile.avatar),
+        ),
         bare ? cap.id : undefined,
     );
     return (

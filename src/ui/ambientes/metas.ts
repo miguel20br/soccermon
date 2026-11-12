@@ -70,6 +70,21 @@ export interface Mon {
 export const avatarMon = (avatar: Avatar): Mon =>
     avatar.kind === 'pokemon' ? { id: avatar.speciesId, shiny: avatar.shiny === true } : { id: 25 };
 
+/**
+ * O seu Pokémon nos ambientes (11/11, reclamação de jogador: "o Pokémon do Estádio não é o meu"): o capitão do último
+ * time, mesmo depois de eliminado; o avatar só pra quem ainda não montou time (o avatar padrão é o Pikachu de todo mundo).
+ */
+export function myMon(
+    run:
+        | { picks: readonly { uid: string; speciesId: number; shiny?: boolean }[]; captainUid?: string | null }
+        | null
+        | undefined,
+    avatar: Avatar,
+): Mon {
+    const p = run?.picks.find((x) => x.uid === run.captainUid) ?? run?.picks[0];
+    return p ? { id: p.speciesId, shiny: p.shiny === true } : avatarMon(avatar);
+}
+
 /** O pedaço da copa que a Rota usa pra montar o time no mapa. */
 interface TeamRun {
     picks: readonly { uid: string; speciesId: number; shiny?: boolean }[];

@@ -21,7 +21,7 @@ import { FriendChallenge } from '../profile/FriendsTab';
 import { dailyInPlay, useDailyBegin } from '../screens/Daily';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
-import { avatarMon } from './metas';
+import { myMon } from './metas';
 import { chosenMode, type Mode, type ModeId, PlayBar, playModes } from './PlayBar';
 import { estadioScale } from './sprite-scale';
 import { type Blockers, type Threats, useMq, useWild, type WildScene, WildZone, type ZoneDef } from './WildZone';
@@ -412,7 +412,7 @@ export function Estadio({
     // voltou campeão (animacoes-novas.md, C2): até a próxima copa, a ola, o letreiro e o capitão com a taça
     const champ = run?.status === 'champion';
     const lead = inProgress || champ ? (run.picks.find((p) => p.uid === run.captainUid) ?? run.picks[0]) : undefined;
-    const captain = lead ? { id: lead.speciesId, shiny: lead.shiny } : avatarMon(avatar);
+    const captain = lead ? { id: lead.speciesId, shiny: lead.shiny } : myMon(run, avatar);
     const play = (seed?: string, mode?: CupMode) => {
         if (inProgress && !confirm) {
             setConfirm({ seed, mode });
