@@ -12,16 +12,16 @@ export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN 
 
 /**
  * Quadra da partida: o Graphics (~26 mil comandos) vira textura uma vez e entra como imagem; desenhado direto, o
- * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem o dobro da resolução pros
- * zooms dos lances (até 1.6) continuarem nítidos.
+ * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem `res` px por px do jogo
+ * (`courtRes`: o dobro no mínimo, pros zooms dos lances, até 1.6, continuarem nítidos; 3 com o canvas a 3).
  */
-export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2) {
     const key = 'court-baked';
     const bake = () => {
-        const g = courtGraphics(scene, theme).setScale(COURT_RES);
+        const g = courtGraphics(scene, theme).setScale(res);
         if (scene.textures.exists(key)) scene.textures.remove(key);
         scene.textures
-            .addDynamicTexture(key, GAME_W * COURT_RES, GAME_H * COURT_RES)
+            .addDynamicTexture(key, GAME_W * res, GAME_H * res)
             ?.draw(g)
             .render();
         g.destroy();
@@ -30,7 +30,7 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const img = scene.add
         .image(0, 0, key)
         .setOrigin(0)
-        .setScale(1 / COURT_RES)
+        .setScale(1 / res)
         .setDepth(-1000);
     // o contexto WebGL perdido (celular em segundo plano, memória) apaga a textura desenhada: refaz quando ele volta
     const renderer = scene.renderer;
@@ -39,10 +39,13 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         img.setTexture(key);
     };
     renderer.on('restorewebgl', restore);
-    scene.events.once('shutdown', () => renderer.off('restorewebgl', restore));
+    // a cena acabando ou a quadra refeita em outra resolução
+    img.once('destroy', () => renderer.off('restorewebgl', restore));
     return img;
 }
-const COURT_RES = 2;
+
+/** Resolução da textura da quadra pra um canvas com `res` px por px do jogo (2 no mínimo; inteira). */
+export const courtRes = (res: number) => Math.max(2, Math.ceil(res - 0.05));
 
 /**
  * Quadra de futsal com a bola no círculo central (a pokébola como símbolo saiu, brand guide): madeira por padrão,

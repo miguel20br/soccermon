@@ -150,6 +150,7 @@ import {
 } from '../cine';
 import { Cinematics, CROP_TEXT_SCALE, FOCUS_DEPTH } from '../cinematics';
 import {
+    courtRes,
     drawBanner,
     drawBoards,
     drawCourt,
@@ -166,6 +167,7 @@ import {
 import { COURTS, WOOD } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
+import { FlatEllipse } from '../flat-ellipse';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import {
     hurtSecondsAt,
@@ -658,8 +660,8 @@ interface PlayerView {
     shiny: boolean;
     captain: boolean;
     sprite: Phaser.GameObjects.Sprite;
-    shadow: Phaser.GameObjects.Ellipse;
-    ring: Phaser.GameObjects.Ellipse;
+    shadow: FlatEllipse;
+    ring: FlatEllipse;
     label: Phaser.GameObjects.Text;
     badge: Phaser.GameObjects.Text;
     /** Setinha vermelha na cabeça dos jogadores do seu time. */
@@ -862,7 +864,7 @@ export class MatchScene extends Phaser.Scene {
     /** Hora (`performance.now`) em que o botão do golpe máximo acendeu, pro bullet time. */
     private cueSince: number | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
-    private ballShadow!: Phaser.GameObjects.Ellipse;
+    private ballShadow!: FlatEllipse;
     private trailG!: Phaser.GameObjects.Graphics;
     private trail: { x: number; y: number; tick: number }[] = [];
     private ballFree = false;
@@ -931,8 +933,11 @@ export class MatchScene extends Phaser.Scene {
     private quality?: Quality;
     /** Escala do sprite (px do jogo): inteira em pixels do canvas quando dá (`spriteScaleFor`). */
     private ssNow = BASE_SPRITE_SCALE;
-    /** Resolução dos nomes: 1 pixel do texto por pixel do canvas. */
+    /** Resolução dos nomes e das elipses (sombra, anel): 1 pixel da textura por pixel do canvas. */
     private textRes = 2;
+    private readonly ellRes = () => this.textRes;
+    private court!: Phaser.GameObjects.Image;
+    private courtRes = 2;
     /** Objetos levados pro pixel inteiro neste quadro e a posição de antes (voltam depois do desenho). */
     private readonly snapped: { o: Phaser.GameObjects.Sprite | Phaser.GameObjects.Text; x: number; y: number }[] = [];
     /** Quanto dos zooms dos lances vale (1 = tudo; a quadra grande do ?lab=hud já vem ampliada). */
@@ -1008,7 +1013,7 @@ export class MatchScene extends Phaser.Scene {
             this.frameLocked() || this.cer ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
         cam.pan = (x, y, ...rest) => (this.frameLocked() || this.cer ? cam : pan(x, y, ...rest));
 
-        drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
+        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
         for (const team of [0, 1] as const) {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
@@ -1022,7 +1027,7 @@ export class MatchScene extends Phaser.Scene {
         for (const id of this.allSpecies()) createSpeciesAnims(this, id);
         for (const p of result.finalRoster) createExtraAnims(this, skinOf(p.speciesId, p.shiny));
 
-        this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
+        this.ballShadow = new FlatEllipse(this, 0, 0, 14, 6, this.ellRes, 0x000000, 0.35);
         this.trailG = this.add.graphics();
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
         this.ball = this.add.image(0, 0, 'ball').setDepth(BALL_DEPTH);
@@ -1513,8 +1518,17 @@ export class MatchScene extends Phaser.Scene {
             for (const v of this.players) {
                 v.label.setResolution(res);
                 v.badge.setResolution(res);
+                v.shadow.redraw();
+                v.ring.redraw();
             }
+            this.ballShadow.redraw();
             this.updateUiScale();
+            // canvas a 3 (tablet, celular grande deitado): a quadra refeita a 3 px por px do jogo
+            if (courtRes(res) !== this.courtRes) {
+                this.courtRes = courtRes(res);
+                this.court.destroy();
+                this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, this.courtRes);
+            }
         }
         const cam = this.cameras.main;
         if ((cam as unknown as { rotation: number }).rotation || cam.shakeEffect.isRunning) return;
@@ -1574,9 +1588,13 @@ export class MatchScene extends Phaser.Scene {
         const color = this.md.colors[team];
         const skin = this.loadedSkin(speciesId, shiny);
         const size = shadowSize(skin);
-        const shadow = this.add.ellipse(0, 0, 14 + size * 6, 6 + size * 2, 0x000000, 0.3);
+        const shadow = new FlatEllipse(this, 0, 0, 14 + size * 6, 6 + size * 2, this.ellRes, 0x000000, 0.3);
         const kit = this.md.kits?.[team];
-        const ring = this.add.ellipse(0, 0, 22 + size * 6, 9 + size * 2).setStrokeStyle(2.5, color, 0.95);
+        const ring = new FlatEllipse(this, 0, 0, 22 + size * 6, 9 + size * 2, this.ellRes).setStrokeStyle(
+            2.5,
+            color,
+            0.95,
+        );
         if (kit) ring.setFillStyle(kit.color2, 0.55);
         const sprite = this.add
             .sprite(0, 0, atlasKey(skin))
