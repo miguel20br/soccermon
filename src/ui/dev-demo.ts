@@ -1228,8 +1228,10 @@ export function runDevDemo() {
             store.newRun('Demo FC', `evo${k}`);
             const run = useGame.getState().run!;
             const rng = new Rng(`evo${k}`, 'demo');
-            // goleiro Geodude, fixo Squirtle, alas Charmander e Bulbasaur, pivô Pikachu
-            const lineup = [74, 7, 4, 1, 25].map((id) => createInstance(id, rng));
+            // goleiro Geodude, fixo Squirtle, alas Charmander e Bulbasaur, pivô Pikachu; `&ids=69,70,...` escolhe o time
+            // e vai direto pra escalação (revisão de nitidez: Bellsprout e Weepinbell perdiam linha)
+            const ids = new URLSearchParams(window.location.search).get('ids')?.split(',').map(Number);
+            const lineup = (ids?.length === 5 ? ids : [74, 7, 4, 1, 25]).map((id) => createInstance(id, rng));
             const ready = {
                 ...run,
                 formation: '1-2-1' as const,
@@ -1244,9 +1246,9 @@ export function runDevDemo() {
                 snapshots: false,
             });
             const evo = r.events.find((e) => e.type === 'evolve' && e.team === team);
-            if (evo && evo.tick < 2400) {
+            if (ids || (evo && evo.tick < 2400)) {
                 useGame.setState({ run: ready, screen: 'lineup' });
-                console.info(`[demo] copa ${ready.seed}: evolução do time ${team} no tick ${evo.tick}`);
+                console.info(`[demo] copa ${ready.seed}: evolução do time ${team} no tick ${evo?.tick}`);
                 return;
             }
         }
