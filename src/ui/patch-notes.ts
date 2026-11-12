@@ -9,6 +9,19 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.49.1',
+        date: '2026-11-12',
+        title: 'Joga em qualquer navegador',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Navegador que bloqueia o save (Opera GX e outros com os cookies do site bloqueados): o JOGAR volta a funcionar, e um aviso explica que o progresso some ao fechar a aba',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.49',
         date: '2026-11-11',
         title: 'Menos e melhor',
@@ -2829,6 +2842,19 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.49.1',
+        date: '2026-11-12',
+        title: 'Plays in any browser',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Browsers that block saves (Opera GX and others with site cookies blocked): PLAY works again, and a notice explains that progress is lost when you close the tab',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.49',
         date: '2026-11-11',

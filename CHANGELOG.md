@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.49.1 · Joga em qualquer navegador (2026-11-12)
+
+### Consertos
+- Navegador que bloqueia o save (Opera GX e outros com os cookies do site bloqueados): o JOGAR volta a funcionar, e um aviso explica que o progresso some ao fechar a aba
+
 ## 0.9.49 · Menos e melhor (2026-11-11)
 
 ### Menus
