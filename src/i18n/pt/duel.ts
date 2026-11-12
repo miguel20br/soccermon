@@ -1,9 +1,6 @@
 /** Duelo ao vivo por link (docs/planos/multiplayer.md). */
 export const duel = {
     title: 'Duelo',
-    beta: 'BETA',
-    betaNote: 'Duelo em beta: se algo estranho acontecer,',
-    betaLink: 'conta pra gente.',
     line: 'Mande o link pra um amigo e joguem ao vivo',
     createRoom: 'Criar sala',
     newHint: 'Escolha o modo e a velocidade e mande o link pro rival.',
@@ -228,7 +225,6 @@ export const duel = {
         h2hLabel: 'Placar geral',
         h2h: 'Você {w} x {l} {name}',
         h2hDraws: '{n} empate|{n} empates',
-        home: 'Voltar pra Home',
         history: 'Seus duelos',
         vs: 'x {name}',
         win: 'V',

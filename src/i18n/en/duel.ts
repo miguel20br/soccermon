@@ -2,9 +2,6 @@ import type { duel as pt } from '../pt/duel';
 
 export const duel: typeof pt = {
     title: 'Duel',
-    beta: 'BETA',
-    betaNote: 'Duels are in beta: if anything weird happens,',
-    betaLink: 'let us know.',
     line: 'Send a friend the link and play live',
     createRoom: 'Create room',
     newHint: 'Pick the mode and speed, then send the link to your rival.',
@@ -228,7 +225,6 @@ export const duel: typeof pt = {
         h2hLabel: 'Head-to-head',
         h2h: 'You {w} x {l} {name}',
         h2hDraws: '{n} draw|{n} draws',
-        home: 'Back to Home',
         history: 'Your duels',
         vs: 'vs {name}',
         win: 'W',

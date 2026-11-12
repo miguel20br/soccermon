@@ -41,7 +41,6 @@ import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
-import { FEEDBACK_URL } from '../links';
 import { hexCss, peerAvatar, peerMon, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
 import { TrainerName } from '../profile/TrainerName';
@@ -109,19 +108,6 @@ function usePeer(local: boolean): Peer | null {
 }
 
 const speedLabel = (sp: PlaybackSpeed, lances: string) => (sp === 'highlights' ? lances : `${sp}x`);
-
-/** Duelo em beta: uma linha com o link do feedback (o mesmo do botão da Home). */
-function BetaNote() {
-    const { t } = useT();
-    return (
-        <p className="duel-beta">
-            <span className="duel-beta-tag">{t('duel.beta')}</span> {t('duel.betaNote')}{' '}
-            <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                {t('duel.betaLink')}
-            </a>
-        </p>
-    );
-}
 
 /**
  * Quem abre o duelo sem conta (ou o link da sala): "Fulano te chamou pra um duelo", o nome do treinador e "Jogar
@@ -191,7 +177,6 @@ function DuelEntry({ code, head }: { code: string | null; head: ReactNode }) {
                 <button type="button" className="duel-google" onClick={() => void signInWithGoogle()}>
                     {t('duel.entry.google')}
                 </button>
-                <BetaNote />
             </div>
         </DuelStage>
     );
@@ -392,8 +377,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                         </div>
                         <small className="muted">{t('duel.bestOfHint')}</small>
                     </fieldset>
-                    <BetaNote />
-                </div>
+                    </div>
             </SheetRow>
             <SheetRow
                 className="duel-join-row"
@@ -815,7 +799,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                       : t(nextUp ? 'duel.series.nextAsk' : 'duel.result.rematchAsk', { name: rival })}
             </button>
             <button type="button" className="btn ghost" onClick={onHome}>
-                {t('duel.result.home')}
+                {t('common.ui.backHome')}
             </button>
         </div>
     );
@@ -910,7 +894,6 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                     ))}
                 </div>
             )}
-            <BetaNote />
         </div>
     );
 }

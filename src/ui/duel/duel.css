@@ -263,45 +263,6 @@
     font-weight: 400;
     letter-spacing: 6px;
 }
-/* selo BETA: a mesma faixa do "Em breve", em azul */
-.home .beta-ribbon {
-    position: relative;
-    overflow: hidden;
-}
-.home .beta-ribbon::after {
-    content: attr(data-ribbon);
-    position: absolute;
-    top: 11px;
-    right: -26px;
-    padding: 1px 30px;
-    rotate: 35deg;
-    background: #7cc8ff;
-    color: #141a33;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-}
-.duel-beta {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
-}
-.duel-beta a {
-    color: #7cc8ff;
-    /* área de toque de 44 px sem mexer na linha */
-    padding-block: 15px;
-}
-.duel-beta-tag {
-    display: inline-block;
-    padding: 0 6px;
-    border-radius: 4px;
-    background: #7cc8ff;
-    color: #141a33;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    vertical-align: 1px;
-}
 .duel-rule {
     font-size: 13px;
     color: var(--yellow);
@@ -649,8 +610,7 @@ button.sb-title:hover {
     gap: 14px;
     width: 100%;
 }
-.duel-result > .duel-history,
-.duel-result > .duel-beta {
+.duel-result > .duel-history {
     width: min(640px, 100%);
     margin: 0 auto;
 }
@@ -1119,9 +1079,6 @@ button.sb-title:hover {
 .duel-rules-sheet {
     display: grid;
     gap: 14px;
-}
-.duel-rules-sheet .duel-beta {
-    font-size: 12px;
 }
 .duel-join-row > b {
     font-weight: 400;
