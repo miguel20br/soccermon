@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../../game/audio', () => ({ playSfx: () => {}, playCry: () => {} }));
 
-import { cutTo, daysUntil, passers, soonDate, ULTIMATE_AT } from './ModeMenu';
+import { cutTo, daysUntil, modeTopics, passers, soonDate, ULTIMATE_AT } from './ModeMenu';
 
 describe('menu de modos', () => {
     it('conta os dias até o Ultimate pra cima e para no zero', () => {
@@ -41,5 +41,16 @@ describe('quem toca a bola no Modo Copa', () => {
         expect(passers({ kind: 'google' })[0]).toEqual({ id: 25 });
         // na fatia o capitão vai grande na frente: sai da roda e o próximo entra
         expect(passers({ kind: 'pokemon', speciesId: 151 }, 151).map((m) => m.id)).toEqual([4, 7, 1]);
+    });
+});
+
+describe('itens do Modo Clássico', () => {
+    const topics = ['Copa Relâmpago', 'Rota Índigo', 'Duelo', 'Liga'];
+    it('a Liga só aparece quando aparece no jogo (antes o menu prometia um modo escondido)', () => {
+        expect(modeTopics('atual', topics, false)).not.toContain('Liga');
+        expect(modeTopics('atual', topics, true)).toContain('Liga');
+    });
+    it('os outros modos não perdem item', () => {
+        expect(modeTopics('ultimate', ['a', 'b'], false)).toEqual(['a', 'b']);
     });
 });

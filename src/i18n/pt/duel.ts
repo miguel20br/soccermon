@@ -41,7 +41,7 @@ export const duel = {
     modeShort: { ready: 'Meu time', disputa: 'Disputa', pacotes: 'Pacotes' },
     rules: 'Regras',
     modes: {
-        ready: ['Meu time', 'Cada um entra com o time da copa ou um campeão do Hall.'],
+        ready: ['Meu time', 'Cada um entra com o time da copa ou um campeão do Hall da Fama.'],
         disputa: ['Disputa', '4 cartas por rodada: cada um tira 1, as outras 2 queimam.'],
         pacotes: ['Cada um com seus pacotes', 'Cada um abre seus pacotes escondido. No fim, 30 s vendo o rival.'],
     },
@@ -58,7 +58,7 @@ export const duel = {
     leaveText: 'A partida espera 1 minuto. Depois, o rival pode ganhar por W.O.',
     leaveYes: 'Sair',
     room: 'Sala {code}',
-    noTeam: 'Jogue uma copa ou escolha Disputa / Cada um com seus pacotes.',
+    noTeam: 'Jogue uma copa ou escolha Disputa ou Pacotes.',
     noTeamShort: 'sem time',
     join: { label: 'Tem um código de sala?', go: 'Entrar' },
     entry: {
@@ -95,8 +95,7 @@ export const duel = {
         you: 'Você',
         rival: 'Rival',
         host: 'criou a sala',
-        guest: 'Convidado',
-        anon: 'Convidado',
+        anon: 'Sem conta',
         away: 'fora da sala',
         ready: 'Pronto',
         notReady: 'Ainda não',

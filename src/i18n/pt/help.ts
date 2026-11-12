@@ -369,10 +369,7 @@ export const help = {
         relampagoVestiario: ['Toque em dois pra trocar. A chave abre no cartaz do rival.'],
         relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
-        dueloSala: [
-            'Melhor de 3: mesmo time nos jogos, escalação ajustável entre eles.',
-            'Crie a sala e mande o link pro amigo.',
-        ],
+        dueloSala: ['Em Regras: velocidade, duração e Melhor de 3.', 'Crie a sala e mande o link pro amigo.'],
         dia: ['Mesmo draft e mesmos rivais pra todo mundo hoje.', 'Só a primeira tentativa conta pro ranking.'],
         liga: [
             'Ganhar sobe o Elo, perder desce.',
@@ -380,6 +377,17 @@ export const help = {
         ],
         golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
         utRepetida: ['Repetida não entra no Clube: venda ou troque pela que você já tem.'],
+        /** "Como funciona" na Ajuda: o que cada um é, numa linha (embaixo do nome). */
+        replayLine: {
+            intro: 'A tela inicial: escolha o modo e jogue.',
+            rota: 'Copa longa por Kanto, de ginásio em ginásio.',
+            rotaGrupo: 'O fim da Rota: grupo de 3 jogos e a Final.',
+            relampago: 'Mata-mata de 4 jogos: perdeu, acabou.',
+            golpe: 'O chute especial do capitão, em 3 níveis.',
+            duelo: 'Ao vivo contra um amigo, pelo link. Sem conta.',
+            dia: 'A mesma copa pra todo mundo hoje, com ranking.',
+            liga: 'Contra o time salvo de outro treinador. Vale Elo.',
+        } as Record<string, string>,
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',

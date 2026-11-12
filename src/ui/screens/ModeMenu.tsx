@@ -6,6 +6,7 @@ import { onBeat } from '../../game/music';
 import { plural } from '../../i18n';
 import type { Lang } from '../../i18n/lang';
 import { useT } from '../../i18n/react';
+import { ligaShown } from '../../league/rules';
 import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
 import type { Avatar } from '../../store/profile';
@@ -360,13 +361,20 @@ export function Play({ sub, off, onClick }: { sub?: string; off?: boolean; onCli
     );
 }
 
-/** Ícone de cada item do modo Copa (na ordem de `home.modes.atual.topics`). */
-const TOPIC_ICON = ['cup', 'map', 'friends', 'crown'] as const;
+/** Ícone de cada item do Modo Clássico (na ordem de `home.modes.atual.topics`, os mesmos das placas do Estádio). */
+const TOPIC_ICON = ['stopwatch', 'map', 'friends', 'crown'] as const;
+
+/**
+ * Os itens do modo. No Clássico a Liga (o último) só aparece quando ela aparece no jogo (`ligaShown`: a semana antes
+ * de abrir); antes, o menu prometia um modo escondido.
+ */
+export const modeTopics = (id: ModeId, topics: readonly string[], liga: boolean) =>
+    id === 'atual' && !liga ? topics.slice(0, -1) : [...topics];
 
 export function Chips({ id }: { id: ModeId }) {
     return (
         <span className="mm-chips">
-            {useMode(id).topics.map((t, i) => (
+            {modeTopics(id, useMode(id).topics, ligaShown()).map((t, i) => (
                 <span key={t}>
                     {id === 'atual' && <HudIcon kind={TOPIC_ICON[i] ?? 'cup'} />}
                     {t}
@@ -374,6 +382,11 @@ export function Chips({ id }: { id: ModeId }) {
             ))}
         </span>
     );
+}
+
+/** O que o modo é, numa linha (em cima dos itens, na fatia aberta). */
+export function Tag({ id }: { id: ModeId }) {
+    return <span className="mm-tag">{useMode(id).tag}</span>;
 }
 
 /** O topo: logo, o treinador, Novidades, Ajuda e a engrenagem (o mesmo canto da Home). Memo: abrir uma fatia não refaz o topo. */
@@ -579,7 +592,9 @@ export function ModeSlices({
                             <span className="mm-slice-more">
                                 <span>
                                     {m === 'ultimate' && !playable(m) && <When id={m} />}
-                                    <Chips id={m} />
+                                    <Tag id={m} />
+                                    {/* nos que ainda não chegaram a linha já diz o mesmo que os itens */}
+                                    {m === 'atual' && <Chips id={m} />}
                                 </span>
                             </span>
                         </span>

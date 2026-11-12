@@ -702,6 +702,9 @@
     position: absolute;
     top: 12px;
     right: 12px;
+    /* na largura do conteúdo, no canto direito: com a largura da tela, o Sair da sala ia pra esquerda (a 390 o código
+       some) e ficava embaixo do voltar */
+    width: auto;
     font-size: 12px;
 }
 .duel:has(.bc) > .duel-top .btn {

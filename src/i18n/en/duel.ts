@@ -58,7 +58,7 @@ export const duel: typeof pt = {
     leaveText: 'The match waits 1 minute. Then your rival can win by walkover.',
     leaveYes: 'Leave',
     room: 'Room {code}',
-    noTeam: 'Play a cup or pick Snake draft / Own packs.',
+    noTeam: 'Play a cup or pick Snake draft or Own packs.',
     noTeamShort: 'no team',
     join: { label: 'Got a room code?', go: 'Join' },
     entry: {
@@ -95,8 +95,7 @@ export const duel: typeof pt = {
         you: 'You',
         rival: 'Rival',
         host: 'created the room',
-        guest: 'Guest',
-        anon: 'Guest',
+        anon: 'No account',
         away: 'away',
         ready: 'Ready',
         notReady: 'Not yet',

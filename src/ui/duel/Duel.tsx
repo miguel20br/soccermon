@@ -42,7 +42,7 @@ import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
 import { FEEDBACK_URL } from '../links';
-import { hexCss, peerAvatar, peerTitle } from '../profile/club';
+import { hexCss, peerAvatar, peerMon, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
 import { TrainerName } from '../profile/TrainerName';
 import { qrPath } from '../qr';
@@ -50,7 +50,7 @@ import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelMatch, useCountdown } from './DuelMatch';
-import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
+import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomLooksClosed } from './link';
 import './duel.css';
 import { ArenaBackdrop } from '../kit/backdrop';
 import { InfoSheet, OptionTile, SheetRow } from '../kit/controls';
@@ -163,7 +163,7 @@ function DuelEntry({ code, head }: { code: string | null; head: ReactNode }) {
                 </button>
             }
         >
-            <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />
+            {entryCoach(code) && <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />}
             <div className="panel duel-center duel-entry">
                 {code ? (
                     <>
@@ -215,15 +215,22 @@ function DuelStage({
     head,
     action,
     className = '',
+    rival,
     children,
 }: {
     head: ReactNode;
     action?: ReactNode;
     className?: string;
+    /** O rival já na sala: o Pokémon do avatar dele no lugar da silhueta. */
+    rival?: Peer;
     children: ReactNode;
 }) {
     return (
-        <Stage className={`k-stage-place duel-stage ${className}`} scene={<ArenaBackdrop />} action={action}>
+        <Stage
+            className={`k-stage-place duel-stage ${className}`}
+            scene={<ArenaBackdrop rival={rival ? peerMon(rival) : null} reveal />}
+            action={action}
+        >
             {head}
             {/* a quadra com os dois do duelo aparece aqui, entre a placa e os blocos */}
             <i className="k-stage-gap" aria-hidden />
@@ -583,6 +590,7 @@ function Lobby({ head }: { head: ReactNode }) {
         <DuelStage
             head={head}
             className={`duel-lobby${rivalIn ? ' full' : ''}`}
+            rival={s.peers[other(role)]}
             action={
                 <button
                     type="button"

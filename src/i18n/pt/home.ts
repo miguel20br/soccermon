@@ -148,7 +148,12 @@ export const home = {
         /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
         preview: 'PRÉVIA',
         play: 'JOGAR',
-        atual: { name: 'Modo Clássico', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
+        atual: {
+            name: 'Modo Clássico',
+            tag: 'Escolha 1 de 3 e monte o time pra copa',
+            /** A Liga (a última) só entra quando aparece no jogo (`modeTopics`, ModeMenu.tsx). */
+            topics: ['Copa Relâmpago', 'Rota Índigo', 'Duelo', 'Liga'],
+        },
         ultimate: {
             name: 'Time Ultimate',
             when: 'Chega fim de novembro',
