@@ -83,6 +83,8 @@ await page.goto(`${process.env.BASE_URL ?? 'http://localhost:8080'}/?demo=${quer
 });
 await wait(2000);
 if (!demo && !(await click('^Jogar '))) throw new Error('não achei o botão Jogar (o atalho ?demo=trailer abriu?)');
+// o ?demo= abre na escalação com a partida salva: "Voltar pra partida" abre ela parada (a busca da seed pode demorar)
+if (demo) for (let i = 0; i < 600 && !(await click('^Voltar pra partida')); i++) await wait(1000);
 // quadra ocupando a largura toda (sem barra lateral), pra gravar na resolução pedida
 await page.addStyleTag({
     content:
@@ -91,9 +93,14 @@ await page.addStyleTag({
 // pausa o jogo ANTES do "Começar!" (o Ditto se transforma no tick 0)
 for (let i = 0; i < 90; i++) {
     const pronto = await page.evaluate(
-        () =>
-            !!window.__soccermonGame &&
-            [...document.querySelectorAll('button')].some((b) => /^Começar/.test(b.innerText.trim()) && !b.disabled),
+        (demo) =>
+            demo
+                ? !!window.__soccermonGame?.scene.getScene('Match')?.snaps?.length
+                : !!window.__soccermonGame &&
+                  [...document.querySelectorAll('button')].some(
+                      (b) => /^Começar/.test(b.innerText.trim()) && !b.disabled,
+                  ),
+        !!demo,
     );
     if (pronto) break;
     await wait(1000);
@@ -233,12 +240,29 @@ await page.evaluate(() => {
     const outC = Object.assign(document.createElement('canvas'), { width: W, height: H });
     const big = document.createElement('canvas');
     let cam = null;
+    let corte = null;
     window.__vframe = (src, alto) => {
         const sc = window.__soccermonGame.scene.getScene('Match');
         const kx = src.width / (sc.scale.width || src.width);
         const h = Math.min(alto, src.height);
         const w = Math.round((h * 9) / 16);
-        const b = sc.ballOnScreen();
+        // quem segue: o meio entre a bola e quem dribla até o chute, a bola no chute, e quem fez o gol na comemoração
+        let b = sc.ballOnScreen();
+        const t = sc.playTick;
+        const naTela = (i) => sc.onScreen(sc.players[i].sprite.x, sc.players[i].sprite.y);
+        // (a rede balança 0,6 s; aí um corte seco pra quem fez o gol, sem a câmera atravessar a quadra)
+        const gol = sc.goalsBy?.filter((g) => t - g.tick > 12 && t - g.tick < 160).pop();
+        if (gol && gol !== corte) {
+            corte = gol;
+            cam = null;
+        }
+        const drible = sc.named?.find((x) => Math.abs(x.tick - t) < 160);
+        const chute = drible && sc.matchEvents.find((e) => e.type === 'shot' && e.tick > drible.tick);
+        if (gol) b = naTela(gol.by);
+        else if (drible && (!chute || t < chute.tick)) {
+            const q = naTela(drible.by);
+            b = { x: (b.x + q.x) / 2, y: (b.y + q.y) / 2 };
+        }
         const alvo = {
             x: Math.max(0, Math.min(src.width - w, b.x * kx - w / 2)),
             y: Math.max(0, Math.min(src.height - h, b.y * kx - h * 0.55)),
@@ -257,7 +281,8 @@ await page.evaluate(() => {
         return outC.toDataURL('image/png');
     };
 });
-await click('^Começar');
+if (demo) await page.evaluate(() => window.__soccermonBus.emit('match:resume'));
+else await click('^Começar');
 // grab: lê o canvas na mesma chamada do step (WebGL sem preserveDrawingBuffer: lido depois, às vezes sai preto)
 const step = (dt, grab = false) =>
     page.evaluate(
@@ -288,7 +313,11 @@ const step = (dt, grab = false) =>
 await page.evaluate(() => window.__soccermonBus.emit('match:set-speed', 8));
 const t0 = Date.now();
 while ((await tick()) < from * TICK_RATE) await step(DT);
-if (ateArg.startsWith('+')) to += (await tick()) / TICK_RATE;
+if (ateArg.startsWith('+')) {
+    // a partida do ?demo= não começa no tick 0: espera o 1º tick dela
+    while ((await tick()) === 0) await step(DT);
+    to += (await tick()) / TICK_RATE;
+}
 console.log(`no ponto: tick ${(await tick()).toFixed(0)} (${((Date.now() - t0) / 1000).toFixed(0)} s pra chegar)`);
 
 // 2) grava quadro a quadro na velocidade pedida, direto do canvas do Phaser (resolução nativa do jogo; o print da
