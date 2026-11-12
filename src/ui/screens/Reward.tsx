@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { ROTA_RULES } from '../../engine/cup-map';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import type { Reward as RewardDef } from '../../engine/rewards';
 import type { ShopOffer } from '../../engine/shop';
 import { editionOf } from '../../engine/specials';
-import { clubName, itemDesc, itemName, moveFutsal, moveName, typeName } from '../../i18n';
+import { clubName, itemDesc, itemName, moveFutsal, moveName, sponsorText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type RunState, stoneToBag, useGame } from '../../store/game-store';
 import { currentNode, isLong } from '../../store/long-cup';
@@ -18,6 +17,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { ExpandIcon, FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { NovoSeal } from '../components/NovoSeal';
+import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { StoneMark } from '../components/StoneMark';
 import { TmCard, TmTeachPanel } from '../components/TmTeach';
 import { TypeIcon } from '../components/TypeIcon';
@@ -33,7 +33,8 @@ import { useHeld } from '../use-held';
 const PACKS_KEY = 'soccermon-packs-opened';
 const FAST_AFTER = 6;
 
-const rewardKey = (r: RewardDef) => (r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.inst.uid);
+const rewardKey = (r: RewardDef) =>
+    r.kind === 'item' ? r.item : r.kind === 'tm' ? `tm-${r.move}` : r.kind === 'sponsor' ? `sp-${r.id}` : r.inst.uid;
 
 /** Selo "quantos golpes este item aproveita": ícone do tipo (ou do item) + número; `full` mostra o texto. */
 function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text: string; full?: boolean }) {
@@ -46,8 +47,8 @@ function FitBadge({ fit, item, text, full }: { fit: ItemFit; item: string; text:
 }
 
 /**
- * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco, item ou MT do ginásio —,
- * ou pular e ganhar +1 reroll.
+ * Recompensa após vitória (estilo Slay the Spire): 1 de 3 — reforço para o banco, item, MT do ginásio ou, no arcade,
+ * às vezes um Patrocínio —, ou pular e ganhar +1 reroll.
  */
 export function Reward() {
     const { run: live, claimReward, skipReward, rerollReward, dex } = useGame();
@@ -62,8 +63,8 @@ export function Reward() {
     const mons = run.rewards.flatMap((r) => (r.kind === 'pokemon' ? [r.inst] : []));
     // treino de técnica da Rota (ninguém evolui): pacote do treino, só itens
     const training = isLong(run) && !run.group && currentNode(run)?.kind === 'treino';
-    // Rota: depois do 1 de 3 do rival vem o prêmio da casa (MT, item), sem Pokémon do rival
-    const rotaPrize = isLong(run) && !run.group && ROTA_RULES.rivalEveryJogo && !run.rivalPick;
+    // Rota: o prêmio da casa (MT, item, carta rara; numa Rota antiga, depois do 1 de 3 do rival)
+    const rotaPrize = isLong(run) && !run.group && !run.rivalPick;
 
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const toBag = stoneToBag(run);
@@ -98,7 +99,9 @@ export function Reward() {
             ? t(run.bench.includes('') ? 'reward.whereGoes' : 'reward.whoLeaves')
             : reward.kind === 'tm'
               ? t('reward.whoLearns')
-              : t('reward.whoHolds')
+              : reward.kind === 'sponsor'
+                ? t('shop.contract')
+                : t('reward.whoHolds')
         : t(run.rivalPick ? 'reward.chooseRival' : 'reward.choose');
 
     // o que foi escolhido, pelo nome (título da sheet de quem recebe) e a regra inteira (o card só tem um resumo)
@@ -108,13 +111,17 @@ export function Reward() {
           ? viewInstance(reward.inst).displayName
           : reward.kind === 'tm'
             ? moveName(reward.move)
-            : itemName(reward.item);
+            : reward.kind === 'sponsor'
+              ? sponsorText(reward.id, lang).name
+              : itemName(reward.item);
     const chosenDesc =
         reward?.kind === 'item'
             ? itemDesc(reward.item, lang)
             : reward?.kind === 'tm'
               ? moveFutsal(reward.move, lang)
-              : null;
+              : reward?.kind === 'sponsor'
+                ? sponsorText(reward.id, lang).desc
+                : null;
 
     return (
         <>
@@ -189,6 +196,16 @@ export function Reward() {
                                                 selected={chosen === i}
                                                 onClick={() => pick(i)}
                                             />
+                                        ) : r.kind === 'sponsor' ? (
+                                            // Patrocínio (arcade): a carta do contrato, do tamanho das outras
+                                            <button
+                                                type="button"
+                                                className={`reward-sp${chosen === i ? ' selected' : ''}`}
+                                                aria-label={sponsorText(r.id, lang).name}
+                                                onClick={() => pick(i)}
+                                            >
+                                                <SponsorCard id={r.id} />
+                                            </button>
                                         ) : (
                                             <button
                                                 type="button"
@@ -281,7 +298,24 @@ export function Reward() {
                             : t('reward.fit.hitLegend', { item: itemName(fitItem) })}
                     </p>
                 )}
-                {reward && (
+                {reward?.kind === 'sponsor' && (
+                    // sem alvo: ocupa uma das 3 vagas até o fim da copa
+                    <div className="panel reward-pick reward-sp-sign" data-exit>
+                        <p className="muted">{t('reward.sponsorHint')}</p>
+                        <SponsorSlots sponsors={run.sponsors ?? []} />
+                        <button
+                            type="button"
+                            className="btn confirm"
+                            onClick={() => {
+                                claimReward(chosen!, '');
+                                setChosen(null);
+                            }}
+                        >
+                            {t('reward.sponsorSign')}
+                        </button>
+                    </div>
+                )}
+                {reward && reward.kind !== 'sponsor' && (
                     <GainTarget
                         key={chosen}
                         gain={reward}

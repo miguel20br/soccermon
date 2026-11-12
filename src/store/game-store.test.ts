@@ -10,10 +10,13 @@ import { evolutionTarget, evolveInstance, type Stone } from '../engine/evolution
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
+import { ARCADE_SPONSORS, type Reward, SPONSOR_REWARD_CHANCE, withSponsor } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
+import { shopOffers, winEarnings } from '../engine/shop';
 import { SIGNATURE } from '../engine/signature-moves';
 import { specialBonus } from '../engine/specials';
+import { SPONSOR_FAMILY } from '../engine/sponsors';
 import { canLearn, isProtectedMove, teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
@@ -34,7 +37,7 @@ import {
     useGame,
     withSettingDefaults,
 } from './game-store';
-import { foulOf, groupTable } from './long-cup';
+import { foulOf, groupTable, longWinEarnings, ROTA_JOGO_PAY } from './long-cup';
 import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf, stoners } from './long-events';
 import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
 import { casaOf } from './rota-map';
@@ -607,7 +610,7 @@ describe('estilo dos gritos: o padrão virou o Novo (0.8.9)', () => {
     });
 });
 
-describe('Mercado (Copa rápida)', () => {
+describe('Arcade (Relâmpago e Copa do Dia): sem ₽ nem Mercado, Patrocínio na recompensa', () => {
     const ready = (seed: string, patch: Partial<RunState> = {}): RunState => {
         useGame.getState().newRun('Pallet FC', seed);
         const rng = new Rng(seed, 'team');
@@ -625,28 +628,108 @@ describe('Mercado (Copa rápida)', () => {
             ...patch,
         };
     };
+    /** Copa antiga (antes de 11/11/2026) parada no Mercado depois da vitória: o save tem que continuar jogável. */
+    const oldShop = (seed: string, patch: Partial<RunState> = {}): RunState => {
+        const run = ready(seed, patch);
+        const sponsors = run.sponsors ?? [];
+        const earned = winEarnings(3, 0, run.money ?? 0, sponsors);
+        const offers = shopOffers({
+            seed,
+            stage: 0,
+            reroll: 0,
+            team: run.picks,
+            sponsors,
+            eventType: null,
+            captain: run.picks[0],
+        });
+        return {
+            ...run,
+            rewards: [],
+            status: 'shop',
+            money: (run.money ?? 0) + earned.total,
+            shop: { stage: 0, rerolls: 0, offers, sold: [], earned },
+        };
+    };
 
-    it('vitória → recompensa → Mercado com o ₽ da vitória → escalação da próxima fase', () => {
-        useGame.setState({ run: ready('mercado-fluxo', { money: 4 }) });
-        useGame.getState().skipReward();
+    it('vitória → recompensa → escalação da próxima fase, sem ₽ (Relâmpago, Copa do Dia e save sem resultado)', () => {
+        for (const patch of [{}, { daily: '2026-10-20' }, { results: [] }]) {
+            useGame.setState({ run: ready('arcade-fluxo', patch) });
+            useGame.getState().skipReward();
+            const run = useGame.getState().run!;
+            expect(run.status).toBe('lineup');
+            expect(run.stage).toBe(1);
+            expect(run.money ?? 0).toBe(0);
+            expect(run.shop ?? null).toBeNull();
+        }
+    });
+
+    it('o Patrocínio da recompensa: um só, que você não tem, de campo ou o Cinnabar; nunca com as vagas cheias', () => {
+        let offered = 0;
+        for (let k = 0; k < 300; k++) {
+            const opts: Reward[] = [
+                { kind: 'item', item: 'scopelens' },
+                { kind: 'item', item: 'leftovers' },
+            ];
+            const owned = k % 3 === 0 ? ['academia', 'charanga'] : [];
+            const out = withSponsor(opts, `sp-${k}`, k % 3, 0, owned, 3 - (k % 3));
+            const sp = out.filter((r) => r.kind === 'sponsor');
+            expect(sp.length).toBeLessThanOrEqual(1);
+            expect(out).toHaveLength(opts.length);
+            for (const r of sp) {
+                offered++;
+                expect(ARCADE_SPONSORS).toContain(r.id);
+                expect(owned).not.toContain(r.id);
+                // com só a Final pela frente o Cinnabar (+1 opção na recompensa) não valeria mais nada
+                if (k % 3 === 2) expect(r.id).not.toBe('cinnabar');
+            }
+            // mesma seed, mesma recompensa
+            expect(withSponsor(opts, `sp-${k}`, k % 3, 0, owned, 3 - (k % 3))).toEqual(out);
+            expect(withSponsor(opts, `sp-${k}`, 0, 0, ['silph', 'academia', 'torcida'], 3)).toBe(opts);
+        }
+        expect(offered / 300).toBeCloseTo(SPONSOR_REWARD_CHANCE, 1);
+        for (const id of ARCADE_SPONSORS) expect(['campo', 'recompensa']).toContain(SPONSOR_FAMILY[id]);
+    });
+
+    it('pegar o Patrocínio ocupa uma vaga e vai pra escalação; o sorteio da recompensa traz Patrocínio às vezes', () => {
+        const run = ready('arcade-patrocinio', {
+            sponsors: ['academia'],
+            rewards: [
+                { kind: 'item', item: 'scopelens' },
+                { kind: 'sponsor', id: 'charanga' },
+            ],
+        });
+        useGame.setState({ run });
+        useGame.getState().claimReward(1, '');
+        const after = useGame.getState().run!;
+        expect(after.sponsors).toEqual(['academia', 'charanga']);
+        expect(after.status).toBe('lineup');
+        // vagas cheias (save mexido): não assina nem sai da tela
+        useGame.setState({ run: { ...run, sponsors: ['academia', 'silph', 'torcida'] } });
+        useGame.getState().claimReward(1, '');
+        expect(useGame.getState().run!.status).toBe('reward');
+        // a recompensa do arcade sorteia Patrocínio; a da Rota, nunca
+        let arcade = 0;
+        for (let k = 0; k < 40; k++) {
+            useGame.setState({ run: ready(`arcade-sorteio-${k}`, { rerolls: 1 }) });
+            useGame.getState().rerollReward();
+            arcade += useGame.getState().run!.rewards.filter((r) => r.kind === 'sponsor').length;
+        }
+        expect(arcade).toBeGreaterThan(0);
+    });
+
+    it('copa antiga parada no Mercado: compra, abre pacote, troca Patrocínio e sai pra escalação', () => {
+        useGame.setState({ run: oldShop('mercado-fluxo', { money: 4 }) });
         let run = useGame.getState().run!;
-        expect(run.status).toBe('shop');
-        expect(useGame.getState().screen).toBe('shop');
-        // 5 da vitória + 3 gols + 2 sem sofrer + 0 de juros (4 guardados)
-        expect(run.shop!.earned.total).toBe(10);
         expect(run.money).toBe(14);
-
         const i = run.shop!.offers.findIndex((o) => o.kind === 'pokemon');
         const offer = run.shop!.offers[i];
         useGame.getState().buyOffer(i, run.bench[0]);
         run = useGame.getState().run!;
         expect(run.money).toBe(14 - offer.price);
-        expect(run.shop!.sold).toEqual([i]);
         expect(run.picks.some((p) => offer.kind === 'pokemon' && p.uid === offer.inst.uid)).toBe(true);
         // vendido não vende de novo
         useGame.getState().buyOffer(i, run.bench[1]);
         expect(useGame.getState().run!.money).toBe(run.money);
-
         useGame.getState().leaveShop();
         run = useGame.getState().run!;
         expect(run.status).toBe('lineup');
@@ -654,9 +737,10 @@ describe('Mercado (Copa rápida)', () => {
         expect(run.shop).toBeNull();
     });
 
-    it('Patrocínio: até 3, o 4º troca por um que sai; sem ₽ não compra', () => {
-        useGame.setState({ run: ready('mercado-patrocinio', { sponsors: ['loja', 'creche', 'cassino'], money: 30 }) });
-        useGame.getState().skipReward();
+    it('Mercado antigo: Patrocínio até 3, o 4º troca por um que sai; sem ₽ não compra', () => {
+        useGame.setState({
+            run: oldShop('mercado-patrocinio', { sponsors: ['loja', 'creche', 'cassino'], money: 30 }),
+        });
         const run = useGame.getState().run!;
         const i = run.shop!.offers.findIndex((o) => o.kind === 'sponsor');
         useGame.getState().buyOffer(i);
@@ -672,9 +756,8 @@ describe('Mercado (Copa rápida)', () => {
         expect(useGame.getState().run!.shop!.sold).toEqual([]);
     });
 
-    it('pacote de tipo: abre, você fica com 1 no lugar de um reserva', () => {
-        useGame.setState({ run: ready('mercado-pacote', { money: 20 }) });
-        useGame.getState().skipReward();
+    it('Mercado antigo: pacote de tipo abre, você fica com 1 no lugar de um reserva', () => {
+        useGame.setState({ run: oldShop('mercado-pacote', { money: 20 }) });
         const i = useGame.getState().run!.shop!.offers.findIndex((o) => o.kind === 'pack');
         useGame.getState().buyOffer(i);
         let run = useGame.getState().run!;
@@ -690,8 +773,7 @@ describe('Mercado (Copa rápida)', () => {
     });
 
     it('save antigo com MT na vitrine aberta: ainda compra e ensina', () => {
-        useGame.setState({ run: ready('mercado-mt-antiga', { money: 20 }) });
-        useGame.getState().skipReward();
+        useGame.setState({ run: oldShop('mercado-mt-antiga', { money: 20 }) });
         const run = useGame.getState().run!;
         const target = run.picks.find((p) => p.uid !== run.captainUid && canLearn(p, 'toxic'));
         if (!target) throw new Error('ninguém aprende Toxic neste time');
@@ -705,8 +787,7 @@ describe('Mercado (Copa rápida)', () => {
     });
 
     it('dá pra fechar o pacote sem pegar nenhuma carta e seguir', () => {
-        useGame.setState({ run: ready('mercado-pular', { money: 20 }) });
-        useGame.getState().skipReward();
+        useGame.setState({ run: oldShop('mercado-pular', { money: 20 }) });
         const run = useGame.getState().run!;
         const card = { ...createInstance(1, new Rng('pular', 'x')), uid: 'pulada' };
         useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [card] } } });
@@ -719,22 +800,12 @@ describe('Mercado (Copa rápida)', () => {
     });
 
     it('não entra um segundo Pokémon da mesma espécie (pacote e vitrine podem trazer o mesmo)', () => {
-        useGame.setState({ run: ready('mercado-repetido', { money: 20 }) });
-        useGame.getState().skipReward();
+        useGame.setState({ run: oldShop('mercado-repetido', { money: 20 }) });
         const run = useGame.getState().run!;
         const twin = { ...createInstance(run.picks[0].speciesId, new Rng('gemeo', 'x')), uid: 'gemeo' };
         useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [twin] } } });
         useGame.getState().claimPack(0, run.bench[0]);
         expect(useGame.getState().run!.picks.some((p) => p.uid === 'gemeo')).toBe(false);
-    });
-
-    it('Copa do Dia e copa sem resultado (save antigo) não têm Mercado', () => {
-        useGame.setState({ run: ready('mercado-dia', { daily: '2026-10-20' }) });
-        useGame.getState().skipReward();
-        expect(useGame.getState().run!.status).toBe('lineup');
-        useGame.setState({ run: ready('mercado-antigo', { results: [] }) });
-        useGame.getState().skipReward();
-        expect(useGame.getState().run!.status).toBe('lineup');
     });
 
     it('Patrocínio de campo vai pro time da partida (carta = campo)', () => {
@@ -773,10 +844,11 @@ describe('Copa longa', () => {
         expect(now.opponents[0]?.name).toBeTruthy();
     });
 
-    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota na 1ª partida é perdoada', () => {
+    it('vitória paga ₽ e vai pro prêmio da casa (ou direto pro mapa); derrota na 1ª partida é perdoada', () => {
         const run = start('longa-partida');
-        // a casa sem pedra (a da pedra abre a tela dela depois do rival)
-        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0 && !n.stone)!.id);
+        // a casa sem pedra (a da pedra abre a tela dela depois do prêmio)
+        const node = run.map!.nodes.find((n) => n.row === 0 && !n.stone && !casaOf(n))!;
+        useGame.getState().enterNode(node.id);
         const cur = useGame.getState().run!;
         const team = playerTeam(cur, 15221311);
         useGame.getState().lockMatch(team);
@@ -785,11 +857,9 @@ describe('Copa longa', () => {
         const after = useGame.getState().run!;
         expect(after.results[0].final).toBe(false);
         if (m.winner === 0) {
-            expect(after.status).toBe('reward');
-            expect(after.money).toBeGreaterThanOrEqual(5);
-            useGame.getState().skipReward();
-            // depois do rival, o prêmio da casa (MT ou item) na mesma tela
-            if (useGame.getState().run!.status === 'reward') useGame.getState().skipReward();
+            expect(after.money).toBeGreaterThanOrEqual(5 + ROTA_JOGO_PAY);
+            expect(after.status).toBe(node.prize === 'money' ? 'map' : 'reward');
+            if (after.status === 'reward') useGame.getState().skipReward();
             expect(useGame.getState().run!.status).toBe('map');
         } else {
             expect(after.status).toBe('map');
@@ -1225,6 +1295,36 @@ describe('Copa longa', () => {
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
         }
+    });
+
+    it('Jogo vencido (11/11/2026): o ₽ no lugar do 1 de 3 do rival, depois só o prêmio da casa', () => {
+        expect(ROTA_RULES.rivalEveryJogo).toBe(false);
+        const { m } = winFirstJogo('tm');
+        const now = useGame.getState().run!;
+        expect(now.rivalPick).toBe(false);
+        expect(now.status).toBe('reward');
+        expect(now.rewards.some((r) => r.kind === 'tm')).toBe(true);
+        expect(now.rewards.every((r) => r.kind !== 'pokemon' && r.kind !== 'sponsor')).toBe(true);
+        expect(now.money).toBe(longWinEarnings(m.score, [], true).total);
+        expect(longWinEarnings(m.score, [], true).total).toBe(longWinEarnings(m.score).total + ROTA_JOGO_PAY);
+        // ₽ em dobro dobra o Jogo inteiro, e não tem tela de recompensa
+        const two = winFirstJogo('money');
+        const paid = useGame.getState().run!;
+        expect(paid.status).toBe('map');
+        expect(paid.money).toBe(2 * longWinEarnings(two.m.score, [], true).total);
+    });
+
+    it('₽ em dobro com pedra: sem tela de recompensa, a pedra vem direto (o "Continuar" do resultado abre ela)', () => {
+        winFirstJogo('money', 'lua');
+        const now = useGame.getState().run!;
+        expect(now.status).toBe('event');
+        expect(now.event).toEqual({ id: 'pedra', stone: 'lua' });
+        useGame.setState({ screen: 'result' });
+        useGame.getState().advance();
+        expect(useGame.getState().screen).toBe('event');
+        useGame.getState().chooseEvent('guardar');
+        expect(useGame.getState().run!.status).toBe('map');
+        expect(useGame.getState().run!.bag).toEqual(['lua']);
     });
 });
 

@@ -48,14 +48,16 @@ export const ROTA_RULES = {
     shopWithTreino: true,
     /** O que vira a casa que a escassez tira (Mercado a mais, ou o Treino junto do Mercado). */
     spare: 'evento' as 'evento' | 'bau',
-    /** Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa (que deixa de ser "Pokémon do rival"). */
-    rivalEveryJogo: true,
+    /**
+     * Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa. Desligado em 11/11/2026 (Miguel): no lugar
+     * do 1 de 3, a vitória paga `ROTA_JOGO_PAY` (src/store/long-cup.ts) pra gastar nos Mercados do mapa.
+     */
+    rivalEveryJogo: false,
     /** Pedras de evolução como prêmio de região. */
     stones: true,
 };
-/** Prêmios que o mapa sorteia agora. */
-export const mapPrizes = (): readonly Prize[] =>
-    ROTA_RULES.rivalEveryJogo ? PRIZES.filter((p) => p !== 'pokemon') : PRIZES;
+/** Prêmios que o mapa sorteia agora ("Pokémon do rival" saiu com o 1 de 3 do rival em todo Jogo, e não voltou). */
+export const mapPrizes = (): readonly Prize[] => PRIZES.filter((p) => p !== 'pokemon');
 
 export interface MapNode {
     /** `r<linha>c<coluna>`. */

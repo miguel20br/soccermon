@@ -15,7 +15,7 @@ import { formationOf } from '../../src/engine/formations';
 import { type PokemonInstance, slotRating } from '../../src/engine/instance';
 import { Rng } from '../../src/engine/rng';
 import { runMatch } from '../../src/engine/runners/batch-runner';
-import { playerTeam, type RunState, useGame } from '../../src/store/game-store';
+import { playerTeam, type RunState, shopRerollTicket, useGame } from '../../src/store/game-store';
 import { choiceTargets, eventChoices, stoners } from '../../src/store/long-events';
 
 const N = Number(process.env.SIM ?? 0);
@@ -200,7 +200,7 @@ function shop(policy: Policy, acq: Set<number>) {
     const m0 = g().run!.money ?? 0;
     const kinds = g().run!.shop!.offers.map((o) => o.kind);
     const sold0 = g().run!.shop!.sold.length;
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < 8; k++) {
         const run = g().run!;
         const s = run.shop!;
         const money = run.money ?? 0;
@@ -229,6 +229,11 @@ function shop(policy: Policy, acq: Set<number>) {
         const holder = run.lineup.find((u) => !run.picks.find((p) => p.uid === u)?.item);
         if (item && holder) {
             g().buyOffer(item.i, holder);
+            continue;
+        }
+        // sobra ₽ pra mais uma compra depois da troca: troca a vitrine (até 2 vezes por Mercado)
+        if (s.rerolls < 2 && money - (shopRerollTicket(run) ? 0 : 2 + s.rerolls) >= 7) {
+            g().rerollShop();
             continue;
         }
         break;
@@ -345,6 +350,11 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
             stonesUsed++;
             return go('usar', t.find((u) => run.lineup.includes(u)) ?? t[0]);
         }
+        default: {
+            // Safari, Cassino e eventos novos: a 1ª escolha que dá pra fazer (no 1º alvo), senão a saída
+            const c = ok.find((x) => !EXITS.includes(x.id)) ?? ok[0];
+            if (c) return go(c.id, c.need === 'none' ? undefined : choiceTargets(run, ev, c.need)[0]);
+        }
     }
 }
 
@@ -392,10 +402,24 @@ function play(seed: string, policy: Policy) {
     const visits: string[] = [];
     const strength: number[] = [];
     let moneyEarned = 0;
+    let screens = 0;
+    let rewardScreens = 0;
     let mapEnd: { avg: number; items: number; money: number } | null = null;
     for (let guard = 0; guard < 120; guard++) {
         const run = g().run!;
         if (run.status === 'champion' || run.status === 'eliminated') break;
+        screens++;
+        if (process.env.TRACE)
+            process.stdout.write(
+                `${run.status}${
+                    run.event
+                        ? `:${run.event.id}[${eventChoices(run, run.event)
+                              .map((c) => `${c.id}${c.ok ? '' : '!'}/${c.need}`)
+                              .join(',')}]`
+                        : ''
+                } `,
+            );
+        if (run.status === 'reward') rewardScreens++;
         if (run.status === 'map') {
             const node = pickNode(policy, nextNodes(run.map!, run.at ?? null), rng);
             visits.push(node.kind);
@@ -457,8 +481,11 @@ function play(seed: string, policy: Policy) {
         acquired: acq.size,
         acquiredSpecies: [...acq],
         moneyEarned,
+        moneyLeft: run.money ?? 0,
         shopSpent,
         shopBuys,
+        screens,
+        rewardScreens,
         sponsors: run.sponsors?.length ?? 0,
         visits,
         // evoluções do seu time: jogando (nas partidas) e com a pedra
@@ -493,6 +520,10 @@ describe.skipIf(!N)('quanto o caminho importa na Rota', () => {
                 especiesDistintasNoTotal: species.size,
                 ganhoNoMapa: avg(rs.map((r) => r.moneyEarned)).toFixed(1),
                 gastoNoMercado: avg(rs.map((r) => r.shopSpent)).toFixed(1),
+                sobrando: avg(rs.map((r) => r.moneyLeft)).toFixed(1),
+                patrocinios: avg(rs.map((r) => r.sponsors)).toFixed(2),
+                telas: avg(rs.map((r) => r.screens)).toFixed(1),
+                telasDeRecompensa: avg(rs.map((r) => r.rewardScreens)).toFixed(1),
                 compras: ['pokemon', 'pack', 'item', 'tm', 'sponsor', 'tm-vista']
                     .map((k) => `${k} ${avg(rs.map((r) => r.shopBuys[k] ?? 0)).toFixed(2)}`)
                     .join(', '),

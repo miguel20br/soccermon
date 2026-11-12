@@ -138,9 +138,15 @@ export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null 
                 const was = before.get(p.uid);
                 if (r.kind === 'pokemon') return p.uid === r.inst.uid && !was;
                 if (r.kind === 'tm') return !!was && p.moves.includes(r.move) && !was.moves.includes(r.move);
+                if (r.kind === 'sponsor') return false;
                 return !!was && p.item === r.item && was.item !== r.item;
             }),
-        ) ?? null
+        ) ??
+        // Patrocínio da recompensa (arcade): entra nas vagas, não no time
+        old.rewards.find(
+            (r) => r.kind === 'sponsor' && !old.sponsors?.includes(r.id) && run.sponsors?.includes(r.id),
+        ) ??
+        null
     );
 }
 
@@ -169,7 +175,15 @@ export function rewardEvent(old: Run, run: Run): Props | null {
         rerolls_left: run.rerolls,
         skipped: !got,
         kind: got?.kind ?? null,
-        what: got ? (got.kind === 'pokemon' ? got.inst.speciesId : got.kind === 'tm' ? got.move : got.item) : null,
+        what: got
+            ? got.kind === 'pokemon'
+                ? got.inst.speciesId
+                : got.kind === 'tm'
+                  ? got.move
+                  : got.kind === 'sponsor'
+                    ? got.id
+                    : got.item
+            : null,
         // Rota: qual tela e, pulando, o que a etiqueta do Pular deu
         ...(isLong(old) && { screen: rewardScreen(old), tag: got ? null : skipTagOf(old) }),
     };

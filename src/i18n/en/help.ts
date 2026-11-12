@@ -337,7 +337,7 @@ export const help: typeof pt = {
         rota: [
             'Tap a lit node, then Go.',
             'The first match gives no card. After that, a loss is a yellow and the second one is red.',
-            'Wins pay ₽. Spend it at the Market or save it to earn interest.',
+            'Wins pay ₽ (a Match pays more). Spend it at the Market or save it to earn interest.',
         ],
         rotaGrupo: ['Losing here costs no card.'],
         rotaNova: ['New: Indigo Road, a long cup through the Kanto gyms.'],

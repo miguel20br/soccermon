@@ -31,18 +31,10 @@ import type { PokemonInstance } from '../engine/instance';
 import { createInstance, viewInstance } from '../engine/instance';
 import { type MatchDigest, matchDigest, type PlayerLine, playerLines, teamTotals } from '../engine/match-stats';
 import { everyoneIn, mvpScore } from '../engine/mvp';
-import { type Reward, rewardOptions } from '../engine/rewards';
+import { type Reward, rewardOptions, withSponsor } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import type { MatchResult } from '../engine/runners/batch-runner';
-import {
-    interestOf,
-    packCards,
-    rerollPrice,
-    type ShopOffer,
-    type ShopState,
-    shopOffers,
-    winEarnings,
-} from '../engine/shop';
+import { interestOf, packCards, rerollPrice, type ShopOffer, type ShopState, shopOffers } from '../engine/shop';
 import {
     DESTAQUE_LEVEL_UP_RATING,
     DESTAQUE_MAX_LEVEL,
@@ -79,6 +71,7 @@ import {
     isGroupStage,
     isLong,
     isOut,
+    jogoPays,
     type LongRunFields,
     longMatchBonus,
     longRound,
@@ -344,9 +337,6 @@ export interface RunState extends LongRunFields {
     /** Pacotes de tipo abertos na copa (entra na seed do próximo). */
     packs?: number;
 }
-
-/** O Mercado vem depois da recompensa de cada vitória, menos na Copa do Dia (e não há Mercado depois da final). */
-export const hasShop = (run: Pick<RunState, 'daily' | 'mode'>) => !run.daily && !isLong(run);
 
 export interface LiveMatch {
     stage: number;
@@ -760,9 +750,13 @@ function rollRewards(run: RunState, reroll: number, avoid?: readonly Reward[]): 
                   }),
               )
         : rewardOptions(run.seed, run.stage, reroll, run.picks, defeated, extra, long);
-    return (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
+    const out = (training ? options.filter((r) => r.kind !== 'pokemon') : options).map((r) =>
         r.kind === 'pokemon' && !r.from ? { ...r, inst: rollSpecial(r.inst, run.eventType ?? null) } : r,
     );
+    // arcade (Relâmpago e Copa do Dia): sem Mercado, o Patrocínio vem às vezes aqui
+    return isLong(run)
+        ? out
+        : withSponsor(out, run.seed, run.stage, reroll, run.sponsors ?? [], cupLength(run) - run.stage - 1);
 }
 
 /** A recompensa ou a compra entra no time (o mesmo caminho pra recompensa grátis e o Mercado). null = alvo inválido. */
@@ -833,6 +827,16 @@ const stoneEvent = (run: RunState): Pick<RunState, 'status' | 'event'> | null =>
     return node?.kind === 'jogo' && node.stone && !run.fight && !run.group
         ? { status: 'event', event: { id: 'pedra', stone: node.stone } }
         : null;
+};
+/**
+ * Rota: a vitória abre a tela de recompensa? Desde 11/11/2026 o Jogo paga ₽ no lugar do 1 de 3 do rival, então só o
+ * prêmio da casa abre (MT, item, a carta rara do Ás, o Pokémon de um mapa antigo); o ₽ em dobro volta pro mapa. Ginásio,
+ * desafio de evento e grupo continuam com a deles.
+ */
+const prizeScreen = (run: RunState): boolean => {
+    const node = currentNode(run);
+    if (!isLong(run) || run.group || run.fight || node?.kind !== 'jogo') return true;
+    return node.prize === 'tm' || node.prize === 'item' || node.prize === 'pokemon' || casaOf(node) === 'as';
 };
 /**
  * A pedra do Jogo que vai direto pra Mochila quando esta recompensa fechar (é a última tela antes dela e ninguém do time
@@ -1298,7 +1302,7 @@ export const useGame = create<GameStore>()(
                     dex: markOvr(getState().dex, changed.map(ovrOf)),
                 };
             };
-            /** Saindo da recompensa: Mercado (com o ₽ da vitória) ou direto pra escalação da próxima fase. */
+            /** Saindo da recompensa: na Rota, o prêmio da casa, a pedra ou o mapa; no arcade, a escalação da próxima fase. */
             const afterReward = (run: RunState): Partial<GameStore> => {
                 const done = { ...run, rewards: [], rivalPick: false };
                 if (isLong(run)) {
@@ -1319,18 +1323,8 @@ export const useGame = create<GameStore>()(
                     if (stone) return { run: { ...done, ...stone }, match: null, screen: 'event' };
                     return { ...backToRoute(done), match: null };
                 }
-                const res = run.results.find((r) => r.stage === run.stage);
-                if (!hasShop(run) || !res) return { run: toLineup(done), match: null, screen: 'lineup' };
-                const sponsors = run.sponsors ?? [];
-                const earned = winEarnings(res.score[0], res.score[1], run.money ?? 0, sponsors);
-                const money = (run.money ?? 0) + earned.total;
-                const shop = { stage: run.stage, rerolls: 0, offers: rollShop(done, 0), sold: [], earned };
-                return {
-                    run: { ...done, money, shop, status: 'shop' },
-                    dex: seenDex(shop.offers.flatMap((o) => (o.kind === 'pokemon' ? [o.inst] : []))),
-                    match: null,
-                    screen: 'shop',
-                };
+                // arcade: sem ₽ nem Mercado desde 11/11/2026 (o Patrocínio vem na própria recompensa)
+                return { run: toLineup(done), match: null, screen: 'lineup' };
             };
             return {
                 screen: 'home',
@@ -1873,9 +1867,9 @@ export const useGame = create<GameStore>()(
                         : won
                           ? last
                               ? 'champion'
-                              : bonus.prize !== undefined && !rivalPick
-                                ? 'map'
-                                : 'reward'
+                              : rivalPick || prizeScreen(run)
+                                ? 'reward'
+                                : 'map'
                           : yellow || forgiven
                             ? 'map'
                             : inGroup
@@ -1895,12 +1889,14 @@ export const useGame = create<GameStore>()(
                             money: Math.max(
                                 0,
                                 (run.money ?? 0) +
-                                    (won ? longWinEarnings(m.score, run.sponsors).total : 0) +
+                                    (won ? longWinEarnings(m.score, run.sponsors, jogoPays(run)).total : 0) +
                                     bonusTotal(bonus),
                             ),
                         }),
                     };
                     if (next.status === 'map') next.fight = null;
+                    // Jogo vencido sem tela de prêmio (₽ em dobro): a pedra dele vem direto
+                    if (won && next.status === 'map') Object.assign(next, stoneEvent(next));
                     // Ovo da Creche: uma partida a menos; na hora dele, nasce no banco
                     if (next.egg) {
                         if (next.egg.left > 1) next.egg = { ...next.egg, left: next.egg.left - 1 };
@@ -2052,6 +2048,13 @@ export const useGame = create<GameStore>()(
                     const run = getState().run;
                     const reward = run?.rewards[index];
                     if (run?.status !== 'reward' || !reward) return;
+                    if (reward.kind === 'sponsor') {
+                        // Patrocínio da recompensa (arcade): ocupa uma vaga, sem alvo; com as vagas cheias ele nem vem
+                        const sponsors = run.sponsors ?? [];
+                        if (sponsors.length >= MAX_SPONSORS || sponsors.includes(reward.id)) return;
+                        setState(afterReward({ ...run, sponsors: [...sponsors, reward.id] }));
+                        return;
+                    }
                     const got = grant(run, reward, targetUid, forgetSlot, passTo);
                     if (!got) return;
                     // em dois passos: a vitrine do Mercado marca os vistos em cima da Pokédex já com a carta nova
@@ -2365,6 +2368,7 @@ export const useGame = create<GameStore>()(
                     else if (run?.status === 'shop') setState({ screen: 'shop' });
                     else if (run?.status === 'map') setState({ match: null, screen: 'map' });
                     else if (run?.status === 'group') setState({ match: null, screen: 'group' });
+                    else if (run?.status === 'event') setState({ match: null, screen: 'event' });
                     else setState({ match: null, screen: 'home' });
                 },
 

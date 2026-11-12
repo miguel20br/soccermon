@@ -10,10 +10,11 @@ import type { Stone } from '../engine/evolution';
 import { FORMATIONS, type FormationId } from '../engine/formations';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { inMaxZoneOf } from '../engine/match';
-import { rewardOptions } from '../engine/rewards';
+import { rewardOptions, withSponsor } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import { LiveRunner } from '../engine/runners/live-runner';
+import { shopOffers, winEarnings } from '../engine/shop';
 import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
@@ -33,7 +34,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * partida termina empatada e vai para os pênaltis, já na tela de escalação. `?demo=ditto` monta um time
  * com Ditto e Mew + Mewtwo (sinergia Gênese) cuja primeira partida tem combo. `?demo=evolucao` monta um time
  * de iniciais cuja primeira partida tem evolução do seu time logo no começo (`&rival=1`: do rival). `?demo=campeao` joga uma copa
- * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10, Charanga e Clube Formador à venda; `&novos=2` Olheiro e Preparador). `?demo=mt` abre a recompensa depois das oitavas com
+ * inteira com um time forte e para na tela do título (`?demo=momentos` é a mesma: Melhores momentos e gol da copa). `?demo=mercado` abre o Mercado de uma copa antiga parada nele depois das quartas (₽, 2 Patrocínios; `&novos=1` com os 4 de 23/10, Charanga e Clube Formador à venda; `&novos=2` Olheiro e Preparador). `?demo=mt` abre a recompensa depois das oitavas com
  * uma MT do ginásio entre as 3 cartas (Charmeleon, Caterpie e cia. para testar quem aprende). `?demo=conta&tipo=levar|juntar|juntar1|copa|outra|guardada`
  * mostra a pergunta depois do login (com resumos de mentira; os botões só fecham) ou a copa guardada na tela inicial. `?demo=trailer&cena=<cena>&seed=<seed>[&gk=<id>]` abre na escalação a
  * partida que a caça de lances (scripts/trailer-hunt.ts) escolheu para o trailer. `?demo=escanteio` monta um time de
@@ -94,6 +95,8 @@ export function runDevDemo() {
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'patrocinio' &&
+        demo !== 'rota-vitoria' &&
         demo !== 'mercado' &&
         demo !== 'mapa' &&
         demo !== 'as' &&
@@ -351,6 +354,46 @@ export function runDevDemo() {
         }
         return;
     }
+    // ?demo=patrocinio: a recompensa do Relâmpago depois das oitavas com um Patrocínio entre as 3 (`&vagas=2`: 2 já
+    // assinados)
+    if (demo === 'patrocinio') {
+        const owned = new URLSearchParams(window.location.search).has('vagas') ? ['academia', 'charanga'] : [];
+        for (let k = 0; k < 200; k++) {
+            store.newRun('Demo FC', `sp${k}`);
+            const run = useGame.getState().run!;
+            const rng = new Rng(`sp${k}`, 'demo');
+            const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+            const bench = [10, 92].map((id) => createInstance(id, rng));
+            const picks = [...lineup, ...bench];
+            const opp = run.opponents[0];
+            const base = rewardOptions(run.seed, 0, 0, picks, {
+                name: opp.name,
+                players: [...opp.lineup, ...opp.bench],
+            });
+            const rewards = withSponsor(base, run.seed, 0, 0, owned, 3);
+            if (!rewards.some((r) => r.kind === 'sponsor') || !rewards.some((r) => r.kind === 'pokemon')) continue;
+            useGame.setState({
+                run: {
+                    ...run,
+                    formation: '1-2-1',
+                    picks,
+                    lineup: lineup.map((p) => p.uid),
+                    bench: bench.map((p) => p.uid),
+                    captainUid: lineup[2].uid,
+                    draftRound: 7,
+                    status: 'reward',
+                    sponsors: owned,
+                    results: [
+                        { stage: 0, opponent: opp.name, score: [3, 1], shootout: null, won: true, destaqueUid: null },
+                    ],
+                    rewards,
+                },
+                screen: 'reward',
+            });
+            return;
+        }
+        return;
+    }
     // ?demo=mapa: Copa longa no mapa (`&meio=1`: já andou 5 linhas, com ₽, um cartão amarelo e 2 Patrocínios)
     // ?demo=evento&id=carrinho|patrocinador|capitao|olheiro|entrevista|perdido|treinoPuxado|creche
     // `&ganha=1|0&op=girar|premio|bola0`: a aposta já com esse resultado (procura a seed; pra gravar as duas cenas)
@@ -571,7 +614,9 @@ export function runDevDemo() {
     // ?demo=eliminado&rota=1: a Rota no meio do mapa, já com um amarelo; o time fraco perde a próxima e cai
     // (`&amarelo=1`: sem cartão ainda, a derrota vira o 1º amarelo e volta pro mapa; `&perdoada=1`: perde a 1ª partida
     // da Rota, que não dá cartão)
-    if (demo === 'eliminado' && new URLSearchParams(window.location.search).get('rota') === '1') {
+    // ?demo=rota-vitoria: o mesmo, com um time forte que vence o Jogo (o resultado mostra o ₽ que a vitória pagou)
+    const rotaWin = demo === 'rota-vitoria';
+    if (rotaWin || (demo === 'eliminado' && new URLSearchParams(window.location.search).get('rota') === '1')) {
         const first = new URLSearchParams(window.location.search).has('perdoada');
         demoLongMap(store, !first);
         if (new URLSearchParams(window.location.search).has('amarelo'))
@@ -585,7 +630,9 @@ export function runDevDemo() {
         if (!next) return;
         useGame.getState().enterNode(next.id);
         const rng = new Rng('rota-demo', 'demo');
-        const lineup = [129, 10, 13, 16, 19].map((id) => createInstance(id, rng));
+        const lineup = (rotaWin ? [143, 68, 151, 142, 150] : [129, 10, 13, 16, 19]).map((id) =>
+            createInstance(id, rng),
+        );
         const cur = useGame.getState().run!;
         useGame.setState({
             run: {
@@ -1521,7 +1568,28 @@ function demoShop(store: ReturnType<typeof useGame.getState>) {
             sponsors: novos ? [...slots] : ['silph', 'creche'],
         },
     });
-    useGame.getState().skipReward();
+    // o Relâmpago não abre mais o Mercado (11/11/2026): este é o de uma copa antiga parada nele (o mesmo da Rota)
+    const r = useGame.getState().run!;
+    const sponsors = r.sponsors ?? [];
+    const earned = winEarnings(3, 0, r.money ?? 0, sponsors);
+    const offers = shopOffers({
+        seed: r.seed,
+        stage: r.stage,
+        reroll: 0,
+        team: r.picks,
+        sponsors,
+        eventType: r.eventType ?? null,
+        captain: lineup[2],
+    });
+    useGame.setState({
+        run: {
+            ...r,
+            status: 'shop',
+            money: 12 + earned.total,
+            shop: { stage: 1, rerolls: 0, offers, sold: [], earned },
+        },
+        screen: 'shop',
+    });
     // &novos=1: os Patrocínios de 23/10 (Olheiro e Preparador nas vagas, Charanga e Clube Formador na vitrine)
     const shop = novos ? useGame.getState().run?.shop : null;
     if (shop) {

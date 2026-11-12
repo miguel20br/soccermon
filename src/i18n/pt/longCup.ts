@@ -35,7 +35,7 @@ export const longCup = {
         planalto: 'Planalto',
     },
     desc: {
-        jogo: 'Vitória dá ₽ e o prêmio.',
+        jogo: 'Vitória dá ₽ pro Mercado e o prêmio.',
         /** Com o Pokémon do rival em todo Jogo (ROTA_RULES.rivalEveryJogo). */
         jogoRival: 'Vitória dá ₽, 1 de 3 do time rival e o prêmio.',
         ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
@@ -45,7 +45,7 @@ export const longCup = {
         bau: 'Recompensa grátis, uma raridade acima.',
         centro: 'Tira o cartão amarelo ou traz de volta quem está fora. Sem nada pra tratar, o PC do Bill.',
         final: 'Jogo único contra a Liga Índigo.',
-        as: 'Rival mais forte. Vitória dá ₽, 1 de 3 do time dele e uma carta rara.',
+        as: 'Rival mais forte. Vitória dá ₽ e uma carta rara.',
         safari: 'Uma Safari Ball pra 1 de 3 selvagens. Quanto melhor, mais fácil fugir.',
         cassino: 'Aposte ₽ no caça-níquel (item) ou no balcão de prêmios (Pokémon).',
         planalto: 'O último Mercado antes do grupo. Gaste o ₽ que sobrou.',
@@ -64,7 +64,7 @@ export const longCup = {
         pokemon: 'Escolha 1 de 3 do time dele.',
         tm: 'Escolha 1 de 3 MTs.',
         item: 'Escolha 1 de 3 itens, os do tipo do caminho primeiro.',
-        money: 'O ₽ da vitória vem em dobro, sem recompensa.',
+        money: 'O ₽ da vitória vem em dobro.',
         moneyRival: 'O ₽ da vitória vem em dobro.',
         pedra: 'Quem evolui com ela evolui na hora.',
         pedraRival: 'Evolui na hora. O rival traz um deles no 1 de 3.',

@@ -1,11 +1,10 @@
 import { type CSSProperties, useState } from 'react';
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
-import { winEarnings } from '../../engine/shop';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { hasShop, useGame } from '../../store/game-store';
-import { isGroupStage, isLong, longWinEarnings } from '../../store/long-cup';
+import { useGame } from '../../store/game-store';
+import { isGroupStage, isLong, jogoPays, longWinEarnings } from '../../store/long-cup';
 import { Beat, useCascade } from '../kit/Cascade';
 import { MomentStage } from '../kit/MomentStage';
 import { CountUp } from './CountUp';
@@ -55,13 +54,7 @@ export function FinalCard({
     // Rota: caiu no grupo mesmo ganhando a última rodada (a Final não vem)
     const groupOut = !!run && isLong(run) && run.status === 'eliminated' && isGroupStage(run.stage);
     const paid = !!run && won && !champion && !groupOut;
-    const prize = !paid
-        ? null
-        : hasShop(run)
-          ? winEarnings(score[0], score[1], run.money ?? 0, run.sponsors ?? []).total
-          : isLong(run)
-            ? longWinEarnings(score, run.sponsors).total
-            : null;
+    const prize = paid && isLong(run) ? longWinEarnings(score, run.sponsors, jogoPays(run)).total : null;
     const star = match ? matchMvp(match, side) : null;
     const next = paid ? run.opponents[run.stage + 1] : null;
     const gaps = [0, ...(prize ? [500] : []), ...(star ? [450] : []), ...(next ? [500] : [])];

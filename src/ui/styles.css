@@ -2005,6 +2005,36 @@ button,
 .reward-pick3 .tm-card .tactic-desc {
     -webkit-line-clamp: 2;
 }
+/* Patrocínio na recompensa do arcade: a carta do contrato no tamanho das outras */
+.reward-sp {
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.reward-pick3 .reward-sp .sp-card {
+    box-sizing: border-box;
+    width: var(--fut-w);
+    aspect-ratio: 190 / 268;
+    min-height: 0;
+    transition: box-shadow 200ms var(--ease-out);
+}
+.reward-sp:hover .sp-card,
+.reward-sp.selected .sp-card {
+    box-shadow:
+        0 0 0 3px var(--yellow),
+        0 4px 0 rgb(0 0 0 / 45%);
+}
+.reward-sp-sign {
+    display: grid;
+    gap: 10px;
+}
+.reward-sp-sign p {
+    margin: 0;
+}
 /* celular em pé e alto (390x844): duas em cima e a terceira embaixo, no centro; as cartas ocupam o vazio em vez de
    três de 113 px no meio da tela. A altura dá a conta: 2 x (carta 1,41 + botão 50) + 14 de vão cabem no que sobra do
    palco depois da barra de cima, do título, da dica, do "Seu time" e da barra de baixo (460 px). Abaixo de 790 de

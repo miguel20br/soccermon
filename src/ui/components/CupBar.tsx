@@ -1,7 +1,7 @@
 import { useLayoutEffect, useState } from 'react';
 import { cupStageName, cupStageShort, dict, type Lang } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { hasShop, type RunState, type Screen, useGame } from '../../store/game-store';
+import { type RunState, type Screen, useGame } from '../../store/game-store';
 import { cupMatchNow, isLong } from '../../store/long-cup';
 import { CountUp } from './CountUp';
 import { HudIcon } from './MatchHud';
@@ -74,7 +74,8 @@ export function CupBar({ onBack }: { onBack: () => void }) {
     const { t, d, lang } = useT();
     if (!run) return null;
     const stage = isLong(run) ? cupBarStage(run, screen, lang) : null;
-    const money = hasShop(run) || isLong(run);
+    // ₽ só na Rota (o arcade não tem desde 11/11/2026; uma copa antiga parada no Mercado ainda mostra)
+    const money = isLong(run) || run.status === 'shop';
     return (
         <div className="k-cupbar">
             <button type="button" className="k-icon-btn" onClick={onBack} aria-label={t('common.ui.backHome')}>
