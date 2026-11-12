@@ -30,6 +30,7 @@ export const reward = {
     skipAria: '{label}: {tag}',
     tip: 'Pegue um Pokémon do rival, um item ou uma MT.',
     /** Patrocínio na recompensa (Relâmpago e Copa do Dia, que não têm Mercado). */
+    tipSponsor: 'Pegue um Pokémon do rival, um item ou o Patrocínio.',
     sponsorHint: 'Vale até o fim da copa e ocupa uma das 3 vagas.',
     sponsorSign: 'Assinar contrato',
     fromClub: 'Do {club}',

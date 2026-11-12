@@ -1895,8 +1895,13 @@ export const useGame = create<GameStore>()(
                         }),
                     };
                     if (next.status === 'map') next.fight = null;
-                    // Jogo vencido sem tela de prêmio (₽ em dobro): a pedra dele vem direto
-                    if (won && next.status === 'map') Object.assign(next, stoneEvent(next));
+                    // Jogo vencido sem tela de prêmio (₽ em dobro): a pedra dele vem direto; se ninguém do time usa, vai
+                    // pra Mochila com a nota no mapa (como no prêmio, sem tela própria)
+                    const stone = won && next.status === 'map' ? stoneEvent(next) : null;
+                    if (stone?.event?.stone && !stoners(next, stone.event.stone).length) {
+                        next.bag = [...(next.bag ?? []), stone.event.stone];
+                        next.eventNote = { id: 'pedra', choice: 'guardar', cost: 0 };
+                    } else if (stone) Object.assign(next, stone);
                     // Ovo da Creche: uma partida a menos; na hora dele, nasce no banco
                     if (next.egg) {
                         if (next.egg.left > 1) next.egg = { ...next.egg, left: next.egg.left - 1 };

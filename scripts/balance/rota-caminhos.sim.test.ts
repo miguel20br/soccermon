@@ -131,7 +131,17 @@ function mapStats(seeds: number) {
  * Réguas: `nada` = sempre à esquerda, pula toda recompensa, não compra, recusa todo evento e descansa no Treino (só a
  * evolução faz o time crescer); `partidas` = igual, mas pega a recompensa das vitórias (o que todo caminho dá igual).
  */
-type Policy = 'esquerda' | 'direita' | 'ouro' | 'pokemon' | 'ginasio' | 'aleatorio' | 'pedras' | 'nada' | 'partidas';
+type Policy =
+    | 'esquerda'
+    | 'direita'
+    | 'ouro'
+    | 'pokemon'
+    | 'ginasio'
+    | 'aleatorio'
+    | 'pedras'
+    | 'nada'
+    | 'partidas'
+    | 'mercado';
 const idle = (p: Policy) => p === 'nada' || p === 'partidas';
 
 const ovrIn = (run: RunState, uid: string, k: number) => {
@@ -346,7 +356,7 @@ function event(policy: Policy, rng: Rng, acq: Set<number>) {
         case 'pedra': {
             // a pedra em quem ganha mais com ela (titular primeiro)
             const t = choiceTargets(run, ev, 'stone');
-            if (!has('usar') || !t.length) return go('deixar');
+            if (!has('usar') || !t.length) return go('guardar');
             stonesUsed++;
             return go('usar', t.find((u) => run.lineup.includes(u)) ?? t[0]);
         }
@@ -369,6 +379,8 @@ function pickNode(policy: Policy, open: MapNode[], rng: Rng): MapNode {
             usable(n) || (depth > 0 && n.next.some((id) => reach(nodeById(run.map!, id)!, depth - 1)));
         return byCol.find(usable) ?? byCol.find((n) => reach(n, 3)) ?? byCol[0];
     }
+    // `mercado`: como o jogador com ₽ no bolso, vai no Mercado quando tem ₽10+; senão à esquerda
+    if (policy === 'mercado') return byCol.find((n) => n.kind === 'mercado' && (g().run!.money ?? 0) >= 10) ?? byCol[0];
     if (policy === 'esquerda' || idle(policy)) return byCol[0];
     if (policy === 'direita') return byCol.at(-1)!;
     if (policy === 'aleatorio') return rng.pick(open);
@@ -384,6 +396,7 @@ function pickNode(policy: Policy, open: MapNode[], rng: Rng): MapNode {
         direita: {},
         aleatorio: {},
         pedras: {},
+        mercado: {},
     };
     // o prêmio à vista desempata entre Jogos (e pesa pro ouro e pro pokemon)
     const want: Partial<Record<Policy, string>> = { ouro: 'money', pokemon: 'pokemon', ginasio: 'item' };

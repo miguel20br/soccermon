@@ -25,6 +25,7 @@ export const reward: typeof pt = {
     },
     skipAria: '{label}: {tag}',
     tip: 'Take a rival Pokémon, an item or a TM.',
+    tipSponsor: 'Take a rival Pokémon, an item or the Sponsor.',
     sponsorHint: 'Lasts until the end of the cup and takes one of the 3 slots.',
     sponsorSign: 'Sign the contract',
     fromClub: 'From {club}',

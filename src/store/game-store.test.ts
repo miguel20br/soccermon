@@ -973,13 +973,24 @@ describe('Copa longa', () => {
     });
 
     /** Vence o 1º Jogo com o prêmio `prize` (procura a seed em que o time pronto ganha). */
-    const winFirstJogo = (prize: Prize, stone?: Stone, from = 0) => {
+    const winFirstJogo = (prize: Prize, stone?: Stone, from = 0, benchSpecies?: number) => {
         for (let s = from; s < from + 30; s++) {
             const run = start(`longa-rival-${s}`);
             // um Jogo de verdade (no mapa largo a 1ª linha também tem o Ás, com o prêmio dele)
             const first = run.map!.nodes.find((n) => n.row === 0 && !casaOf(n))!;
             const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize, stone } : n)) };
-            useGame.setState({ run: { ...run, map } });
+            // `benchSpecies`: um reserva trocado por essa espécie (quem usa a pedra, por exemplo)
+            const out = run.bench.find((u) => u !== run.captainUid)!;
+            const mon = benchSpecies
+                ? { ...createInstance(benchSpecies, new Rng(`b${s}`, 'x')), uid: 'reserva' }
+                : null;
+            const swap = mon
+                ? {
+                      picks: [...run.picks.filter((p) => p.uid !== out), mon],
+                      bench: run.bench.map((u) => (u === out ? 'reserva' : u)),
+                  }
+                : {};
+            useGame.setState({ run: { ...run, map, ...swap } });
             useGame.getState().enterNode(first.id);
             const cur = useGame.getState().run!;
             const team = playerTeam(cur, 15221311);
@@ -1314,17 +1325,24 @@ describe('Copa longa', () => {
         expect(paid.money).toBe(2 * longWinEarnings(two.m.score, [], true).total);
     });
 
-    it('₽ em dobro com pedra: sem tela de recompensa, a pedra vem direto (o "Continuar" do resultado abre ela)', () => {
-        winFirstJogo('money', 'lua');
+    it('₽ em dobro com pedra: sem tela de recompensa, a pedra vem direto (o "Continuar" abre ela) ou vai pra Mochila', () => {
+        // um Clefairy no banco: a Pedra da Lua tem quem usar
+        winFirstJogo('money', 'lua', 0, 35);
         const now = useGame.getState().run!;
         expect(now.status).toBe('event');
         expect(now.event).toEqual({ id: 'pedra', stone: 'lua' });
         useGame.setState({ screen: 'result' });
         useGame.getState().advance();
         expect(useGame.getState().screen).toBe('event');
-        useGame.getState().chooseEvent('guardar');
-        expect(useGame.getState().run!.status).toBe('map');
-        expect(useGame.getState().run!.bag).toEqual(['lua']);
+        useGame.getState().chooseEvent('usar', 'reserva');
+        expect(useGame.getState().run!.picks.find((p) => p.uid === 'reserva')!.speciesId).toBe(36);
+        // ninguém usa (um Caterpie no lugar): direto pra Mochila, com a nota no mapa
+        winFirstJogo('money', 'lua', 0, 10);
+        const bag = useGame.getState().run!;
+        if (stoners(bag, 'lua').length) return;
+        expect(bag.status).toBe('map');
+        expect(bag.bag).toEqual(['lua']);
+        expect(bag.eventNote).toMatchObject({ id: 'pedra', choice: 'guardar' });
     });
 });
 

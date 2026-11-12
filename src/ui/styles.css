@@ -2028,6 +2028,28 @@ button,
         0 0 0 3px var(--yellow),
         0 4px 0 rgb(0 0 0 / 45%);
 }
+/* carta estreita (celular): o efeito inteiro aparece; a linha do contrato sai e a carta cresce pra baixo se faltar */
+@media (max-width: 700px) {
+    .reward-pick3 .reward-sp .sp-card {
+        aspect-ratio: auto;
+        min-height: calc(var(--fut-w) * 1.41);
+    }
+    .reward-pick3 .reward-sp .sp-plate {
+        padding: 18px 6px 8px;
+        gap: 4px;
+    }
+    .reward-pick3 .reward-sp .sp-plate .hud-icon {
+        width: 30px;
+        height: 30px;
+    }
+    .reward-pick3 .reward-sp .sp-contract {
+        padding: 6px 6px 8px;
+        gap: 4px;
+    }
+    .reward-pick3 .reward-sp .sp-sign {
+        display: none;
+    }
+}
 .reward-sp-sign {
     display: grid;
     gap: 10px;

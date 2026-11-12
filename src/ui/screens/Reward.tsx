@@ -242,7 +242,15 @@ export function Reward() {
                 {/* a dica fica embaixo das opções que ela explica (só na 1ª copa) */}
                 {!reward && !training && (
                     <Tip id="reward-pick" seq={tipSeq(run)}>
-                        {t(run.rivalPick ? 'reward.tipRival' : rotaPrize ? 'reward.tipPrize' : 'reward.tip')}
+                        {t(
+                            run.rivalPick
+                                ? 'reward.tipRival'
+                                : rotaPrize
+                                  ? 'reward.tipPrize'
+                                  : run.rewards.some((r) => r.kind === 'sponsor')
+                                    ? 'reward.tipSponsor'
+                                    : 'reward.tip',
+                        )}
                     </Tip>
                 )}
                 {/* o time inteiro numa sheet: compara com o elenco sem a quadra empurrar as cartas pra baixo */}

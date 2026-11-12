@@ -33,7 +33,7 @@ export const LONG_CUP_LIVE = true;
  * O ₽ a mais do Jogo vencido, no lugar do 1 de 3 do time rival (Miguel, 11/11/2026: na Rota a vitória paga ₽ e você
  * gasta nos Mercados do mapa; balanceamento-geral.md, "Modos arcade × Rota").
  */
-export const ROTA_JOGO_PAY = 6;
+export const ROTA_JOGO_PAY = 3;
 
 /**
  * O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta.
