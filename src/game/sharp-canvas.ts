@@ -41,7 +41,7 @@ export interface SharpGame {
         getBoundingClientRect?: () => { left: number; top: number };
     };
     scale: { width: number; height: number; displaySize: { width: number } };
-    loop?: { rawDelta: number };
+    loop?: { rawDelta: number; running?: boolean };
     renderer: {
         /** O pool de framebuffers dos filtros (`DrawingContextPool`). */
         drawingContextPool?: { get(width?: number, height?: number): PoolContext };
@@ -119,7 +119,8 @@ export function sharpCanvas(game: SharpGame, dpr = () => window.devicePixelRatio
     // (scale.resize volta ele pro tamanho do jogo) e o governador mudando de degrau caem aqui
     game.events.on('prerender', () => {
         const { canvas, scale } = game;
-        const dt = game.loop?.rawDelta ?? 0;
+        // loop parado e avançado à mão (gravação do trailer, game.step): o tempo de quadro não é do aparelho
+        const dt = game.loop?.running === false ? 0 : (game.loop?.rawDelta ?? 0);
         q.stats.frame(dt);
         q.gov.frame(dt);
         const d = dpr();

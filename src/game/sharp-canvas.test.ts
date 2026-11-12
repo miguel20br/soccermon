@@ -88,7 +88,7 @@ describe('canvas da partida na resolução da tela', () => {
         g.frame();
         const c = pool.get(968, 528);
         expect([c.width, fb.width, fb.height]).toEqual([968, 1950, 1064]);
-        g.game.renderer.glWrapper.state.bindings.framebuffer = fb;
+        g.game.renderer.glWrapper.state.bindings.framebuffer = fb as { useCanvas?: boolean };
         draw(g);
         expect(g.gl.viewport).toEqual([0, 0, 1950, 1064]);
     });
