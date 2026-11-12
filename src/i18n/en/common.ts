@@ -4,6 +4,8 @@ import type { common as pt } from '../pt/common';
 export const common: typeof pt = {
     ui: {
         diskFull: 'No space left on this device: your progress is not being saved. Free some space and come back.',
+        saveBlocked:
+            'Your browser is blocking saves: you can play, but progress is lost when you close the tab. Allow cookies for soccermon.com.',
         skip: 'Skip',
         tapToContinue: 'Tap to continue',
         howItWorks: 'How it works',

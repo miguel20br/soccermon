@@ -6,6 +6,8 @@
 export const common = {
     ui: {
         diskFull: 'Sem espaço no aparelho: seu progresso não está sendo salvo. Libere espaço e volte.',
+        saveBlocked:
+            'O navegador está bloqueando o save: dá pra jogar, mas o progresso some ao fechar a aba. Libere os cookies do soccermon.com.',
         skip: 'Pular',
         tapToContinue: 'Toque pra continuar',
         howItWorks: 'Como funciona',
