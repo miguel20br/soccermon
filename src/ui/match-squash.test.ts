@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Action, type MatchSnapshot, SNAP_STRIDE } from '../engine/state';
+import { FUTSAL_5 } from '../engine/config';
+import { aiDraftTeam } from '../engine/draft';
+import { Rng } from '../engine/rng';
+import { runMatch } from '../engine/runners/batch-runner';
+import { Action, type MatchSnapshot, SNAP_STRIDE, type TeamSetup } from '../engine/state';
 import { POST_SHAKE, postShakeAt } from '../game/court';
 import {
     ballSquashAt,
@@ -9,6 +13,7 @@ import {
     dribblePose,
     KICK_SQUASH,
     kickSquash,
+    kicks,
     latestAt,
     RUN_BURST,
     runBurstPose,
@@ -113,6 +118,28 @@ describe('chute, dominada e choque (squash & stretch, só tela)', () => {
         expect(kickSquash(-KICK_SQUASH.lead, 1)).toBeNull();
         expect(kickSquash(KICK_SQUASH.tail, 1)).toBeNull();
         expect(kickSquash(0.5, 1, true)).toBeNull();
+    });
+
+    it('chute comum também amassa: o tick vem do evento, não da ação do snapshot (o motor marca Kick)', () => {
+        const team = (seed: string): TeamSetup => ({
+            name: seed,
+            ...aiDraftTeam(new Rng(seed, 'team'), 0),
+            tactic: 'balanced',
+            color: 0,
+        });
+        const r = runMatch(FUTSAL_5, team('sq-a'), team('sq-b'), 'sq-kick');
+        const plain = r.events.flatMap((e) => (e.type === 'shot' && !e.moveId ? [e] : []));
+        expect(plain.length).toBeGreaterThan(3);
+        const k = kicks(r.events);
+        for (const e of plain) {
+            // a causa: no snapshot o chute comum é Kick, como o passe (a pose olhava só pro Shoot)
+            const snap = r.snapshots.find((s) => s.tick > e.tick);
+            expect(snap?.p[e.by * SNAP_STRIDE + 3]).not.toBe(Action.Shoot);
+            const mine = k.filter((x) => x.by === e.by);
+            const at = latestAt(mine, e.tick + 0.5 + KICK_SQUASH.lead);
+            expect(at?.tick).toBe(e.tick);
+            expect(kickSquash(0.5, 1)?.sy).toBeGreaterThan(1.1);
+        }
     });
 
     it('dominada: a bola solta que vira de alguém, com a bola rolando; amassa de leve', () => {

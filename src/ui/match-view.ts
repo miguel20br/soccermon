@@ -1206,6 +1206,15 @@ export function traps(snaps: readonly MatchSnapshot[]): Trap[] {
     return out;
 }
 
+/**
+ * Chutes a gol da partida (o evento `shot`): quem e o tick em que a bola sai do pé. Pelo evento e não pela ação do
+ * snapshot: o motor marca o chute comum como `Action.Kick` (igual ao passe) e só o de golpe como `Action.Shoot`, e
+ * assim o squash do chute quase nunca aparecia (12/11).
+ */
+export function kicks(events: readonly MatchEvent[]): Trap[] {
+    return events.flatMap((e) => (e.type === 'shot' ? [{ by: e.by, tick: e.tick }] : []));
+}
+
 /** Dominada: amassa de leve um instante (o corpo amortecendo a bola) e volta, em 5 ticks. */
 export function trapPose(dt: number, reduce = false): BodyLean | null {
     if (reduce || dt <= -1 || dt >= 4) return null;

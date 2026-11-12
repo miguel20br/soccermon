@@ -52,7 +52,9 @@ import {
     keeperRows,
     kickDepartures,
     kickHold,
+    KICK_SQUASH,
     kickSquash,
+    kicks,
     latestAt,
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
@@ -273,6 +275,9 @@ const CROWD_FADE_MS = 180;
 const SMOKE_VEL = __SMOKE__
     ? Math.min(64, Math.max(1, Number(new URLSearchParams(location.search).get('vel')) || 1))
     : 1;
+
+/** `?squashdebug=1` (modo fumaça): conta cada squash & stretch que dispara (`window.__squashDebug`) e pisca o nome dele. */
+const SQUASH_DEBUG = __SMOKE__ && new URLSearchParams(location.search).get('squashdebug') === '1';
 
 /** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
 interface AgencySpan {
@@ -888,12 +893,15 @@ export class MatchScene extends Phaser.Scene {
     /** O "?" em cima de quem levou o drible e o tick do quadro anterior (a poeirinha sai ao cruzar o tick dela). */
     private huh: Phaser.GameObjects.Text | null = null;
     private trickTick = 0;
+    /** Os squash & stretch já contados no `?squashdebug=1`. */
+    private sqSeen = new Set<string>();
     /** 1 com a bola no pé de quem dribla, indo a 0 quando ela sai (o enfeite da bola vai junto). */
     private trickOwn = 1;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
     /** Squash & stretch fora do gol (só tela): arrancadas/freadas e dominadas por jogador, e os choques do desarme. */
     private runs: RunBurst[][] = [];
     private trapsBy: Trap[][] = [];
+    private kicksBy: Trap[][] = [];
     private bumps: { tick: number; by: number; victim: number; dusted: boolean }[] = [];
     /** Bola amassando no impacto (chute forte, trave): quando (tempo real), quanto e em que eixo (rad). */
     private ballSquash = { at: -1e9, amp: 0, angle: 0 };
@@ -1182,6 +1190,8 @@ export class MatchScene extends Phaser.Scene {
         for (const b of runBursts(this.snaps, n)) this.runs[b.by].push(b);
         this.trapsBy = Array.from({ length: n }, () => []);
         for (const t of traps(this.snaps)) this.trapsBy[t.by].push(t);
+        this.kicksBy = Array.from({ length: n }, () => []);
+        for (const k of kicks(this.matchEvents)) this.kicksBy[k.by]?.push(k);
         this.bumps = this.matchEvents.flatMap((e) =>
             e.type === 'tackle' && e.success ? [{ tick: e.tick, by: e.by, victim: e.victim, dusted: false }] : [],
         );
@@ -2406,7 +2416,7 @@ export class MatchScene extends Phaser.Scene {
             this.leanBody(
                 view,
                 entering === null
-                    ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean ?? this.moveLean(i, px, strike, factor))
+                    ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean ?? this.moveLean(i, px, factor))
                     : null,
             );
             if (dive && entering === null && !view.evolving) this.holdBody(view);
@@ -2537,7 +2547,7 @@ export class MatchScene extends Phaser.Scene {
         for (const c of strikesNear(this.snaps, index, o, this.departs.get(o / SNAP_STRIDE))) {
             const s = this.strikeAt(view, animForAction(c.action), c.facing, c.contact, c.end);
             // ainda não começou: o toque de antes pode estar no fim
-            if (s !== undefined) return s && { ...s, contact: c.contact, action: c.action };
+            if (s !== undefined) return s;
         }
         return null;
     }
@@ -2668,9 +2678,12 @@ export class MatchScene extends Phaser.Scene {
                         dust(this, at.x + pose.body.x, at.y + pose.body.y + 1, 5, at.y + 1, 0.7);
                 // quem levou o drible perde e amassa: a poeira no pé dele
                 const lose = d.tick + DRIBBLE_LOSE[d.kind];
-                if (prev < lose && this.playTick >= lose)
+                if (prev < lose && this.playTick >= lose) {
                     dust(this, mk.x + pose.markerBody.x, mk.y + pose.markerBody.y + 1, 6, mk.y + 1, 0.8);
+                    this.sqDebug('poeira', `drible:${d.tick}`, mk);
+                }
             }
+            if (this.playTick >= d.tick + DRIBBLE_LOSE[d.kind]) this.sqDebug('drible', `${d.tick}`, mk);
             return { d, pose };
         }
         return null;
@@ -2788,7 +2801,10 @@ export class MatchScene extends Phaser.Scene {
             if (tick > this.playTick) continue;
             const ms = ((this.playTick - tick) / TICK_RATE) * 1000;
             if (ms > GOAL_CELEB_MS + 200) return null;
-            if (by === i) return goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
+            if (by !== i) continue;
+            const pose = goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
+            if (pose.lift > 0 || pose.sy !== 1) this.sqDebug('gol', `${i}:${tick}`, this.players[i].sprite);
+            return pose;
         }
         return null;
     }
@@ -2801,7 +2817,6 @@ export class MatchScene extends Phaser.Scene {
     private moveLean(
         i: number,
         px: { x: number; y: number },
-        strike: { anim: string; contact?: number; action?: number } | null,
         factor: number,
     ): Lean | null {
         if (this.md.reduceMotion) return null;
@@ -2813,29 +2828,62 @@ export class MatchScene extends Phaser.Scene {
             if (b.by === i) {
                 const due = diveDust(b.dusted, t, b.tick, false);
                 b.dusted = due.dusted;
-                if (due.fire)
+                if (due.fire) {
                     dust(this, (px.x + other.x) / 2, (px.y + other.y) / 2 + 1, 7, Math.max(px.y, other.y) + 1);
+                    this.sqDebug('poeira', `choque:${b.tick}`, px);
+                }
             }
-            if (pose) return pose;
+            if (pose) {
+                this.sqDebug('choque', `${i}:${b.tick}`, px);
+                return pose;
+            }
         }
-        if (strike?.action === Action.Shoot && strike.contact !== undefined) {
-            const c = strike.contact;
+        const kick = latestAt(this.kicksBy[i] ?? [], t + KICK_SQUASH.lead);
+        if (kick) {
+            const c = kick.tick;
             const pose = kickSquash(t - c, this.ballPxAt(c + 3).x - this.ballPxAt(c).x);
-            if (pose) return pose;
+            if (pose) {
+                this.sqDebug('chute', `${i}:${c}`, px);
+                return pose;
+            }
         }
         const trap = latestAt(this.trapsBy[i] ?? [], t + 1);
         const caught = trap ? trapPose(t - trap.tick) : null;
+        if (caught && trap) this.sqDebug('dominada', `${i}:${trap.tick}`, px);
         if (caught) return caught;
         const run = latestAt(this.runs[i] ?? [], t + 1);
         const pose = run ? runBurstPose(run, t) : null;
         if (!run || !pose) return null;
         const due = diveDust(run.dusted, t, run.tick, false);
         run.dusted = due.dusted;
+        this.sqDebug('corrida', `${i}:${run.tick}`, px);
         if (due.fire && factor <= 2.5) {
             const at = runDustAt(run);
             dust(this, px.x + at.x, px.y + at.y + 1, 3, px.y - 1, 0.55);
+            this.sqDebug('poeira', `corrida:${i}:${run.tick}`, px);
         }
         return pose;
+    }
+
+    /** `?squashdebug=1`: conta o efeito `kind` (uma vez por `key`) e pisca o nome dele em cima de quem fez. */
+    private sqDebug(kind: string, key: string, at: { x: number; y: number }) {
+        if (!SQUASH_DEBUG || this.sqSeen.has(`${kind}:${key}`)) return;
+        this.sqSeen.add(`${kind}:${key}`);
+        const w = window as unknown as { __squashDebug?: Record<string, number> };
+        w.__squashDebug ??= {};
+        w.__squashDebug[kind] = (w.__squashDebug[kind] ?? 0) + 1;
+        const y = at.y - (kind === 'poeira' ? 20 : 56);
+        const tx = this.add
+            .text(at.x, y, kind.toUpperCase(), {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: '12px',
+                color: kind === 'poeira' ? '#ffe08a' : '#7cf7ff',
+                stroke: '#000',
+                strokeThickness: 3,
+            })
+            .setOrigin(0.5)
+            .setDepth(9000);
+        this.tweens.add({ targets: tx, y: y - 16, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
     }
 
     /** Cabeça baixa na reação ao gol: amassa um pouco e volta (sem o Reduzir movimento). */
