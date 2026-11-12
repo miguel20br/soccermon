@@ -9,6 +9,7 @@ import { cardTypeOf, editionOf } from '../../engine/specials';
 import { computeSynergies } from '../../engine/synergy';
 import { useT } from '../../i18n/react';
 import { type SlotRef, useGame } from '../../store/game-store';
+import { usePixelFit } from '../ambientes/sprite-scale';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
@@ -90,6 +91,8 @@ export function FormationBoard({
     const { t, d } = useT();
     // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
     const boardRef = useRef<HTMLDivElement>(null);
+    // GIF em pixel exato dentro da caixa de sempre (pixelFit)
+    usePixelFit(boardRef);
     useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
     // barra de evolução: o limiar do seu time (Clube Formador baixa)
@@ -157,6 +160,7 @@ export function FormationBoard({
                             className={`pixel${ghost ? ' ghost' : ' slot-pop'}`}
                             src={cardSprite(shown)}
                             alt=""
+                            data-px="box"
                         />
                         {inst && <span className="slot-name">{viewInstance(inst).displayName}</span>}
                         {r && (
