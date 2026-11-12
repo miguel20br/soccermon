@@ -255,6 +255,9 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
               ? t('duel.draft.rivalPicking', { name: rival, s: left })
               : t('duel.draft.progress', { name: rival, n: rivalCount });
 
+    // a 1ª escolha é o capitão e cai na 1ª vaga do banco: ela diz "Capitão", não "Banco"
+    const benchLabels = [t('duel.draft.captain'), t('common.ui.bench')];
+
     return (
         <>
             <Stage className="draft-stage pick-stage duel-draft-stage" scene={<i className="k-stage-light" />}>
@@ -292,6 +295,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                         run={{ formation: '1-2-1', ...myBoard }}
                         byUid={new Map(mine.map((p) => [p.uid, p]))}
                         stateOf={stateOf}
+                        benchLabels={benchLabels}
                         label={t('duel.draft.yourTeam')}
                         onOpen={() => {
                             setView(role);
@@ -404,8 +408,7 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                     bench={board.bench}
                     byUid={new Map(shown.map((p) => [p.uid, p]))}
                     captainUid={shown[0]?.uid ?? null}
-                    // a 1ª escolha é o capitão e cai na 1ª vaga do banco: ela diz "Capitão", não "Banco"
-                    benchLabels={[t('duel.draft.captain'), t('common.ui.bench')]}
+                    benchLabels={benchLabels}
                     emptyLabel={t('duel.draft.empty')}
                     stateOf={stateOf}
                     footer={

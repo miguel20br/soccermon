@@ -972,6 +972,10 @@ button.sb-title:hover {
    encolhe o resto pra caber) e a dupla vai pro meio dele (useTwoCols, Stage.tsx) */
 @media (min-width: 701px) and (min-height: 521px) {
     .duel-stage.k-stage-place .k-stage-body > .k-stage-gap {
-        flex: 1 0 150px;
+        flex: 1 0 170px;
+    }
+    /* o meio do vão no meio dos dois (no celular são os pés: lá o vão é alto e a cabeça cabe) */
+    .duel-stage.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle, .ar-ball) {
+        top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h) + 36px);
     }
 }
