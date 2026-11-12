@@ -193,6 +193,10 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
     let swapping = false;
     let raf = 0;
     let inner: HTMLElement | null = null;
+    // largura da janela e do canvas: lidas de novo só quando a caixa ou o canvas mudam de tamanho (ler em todo quadro,
+    // depois do transform do quadro anterior, forçava um layout por quadro: ~10% da thread com CPU 4x)
+    let measured: { view: number; full: number } | null = null;
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => (measured = null));
     // a quadra anda com transform; o Phaser só precisa da posição nova do canvas na hora do toque (medir em todo
     // quadro forçava um layout por quadro)
     const onDown = () => readyScene()?.scale.updateBounds();
@@ -205,6 +209,20 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
         mode = null;
     };
     EventBus.on('current-scene-ready', onReady);
+    const measure = (box: HTMLElement, el: HTMLElement, scene: NonNullable<ReturnType<typeof readyScene>>) => {
+        const view = box.clientWidth;
+        const size = `${view}x${box.clientHeight}`;
+        if (size !== sizedFor) {
+            sizedFor = size;
+            // a altura que a caixa dá (o canvas sem tamanho próprio enche ela) e a largura pra mostrar viewShare
+            sizeCourt(el, null);
+            const aspect = el.offsetWidth / (el.offsetHeight || 1);
+            sizeCourt(el, Math.min(el.offsetHeight, view / CAM.viewShare / aspect));
+            scene.scale.refresh();
+            cam = null;
+        }
+        return { view, full: el.offsetWidth };
+    };
     const tick = () => {
         raf = requestAnimationFrame(tick);
         const scene = readyScene();
@@ -212,6 +230,9 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
         if (!inner?.isConnected) {
             inner = box?.querySelector<HTMLElement>('.phaser-container') ?? null;
             sizedFor = '';
+            measured = null;
+            if (box) ro?.observe(box);
+            if (inner) ro?.observe(inner);
         }
         if (!scene || !box || !inner || swapping) return;
         const want = followRef.current;
@@ -227,6 +248,7 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
                 el.style.transform = '';
                 sizeCourt(el, null);
                 sizedFor = '';
+                measured = null;
                 cam = null;
                 x = null;
                 if (!want) sc?.setClipView(0, sc.scale.width);
@@ -246,18 +268,8 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
             return;
         }
         if (!want) return;
-        const view = box.clientWidth;
-        const size = `${view}x${box.clientHeight}`;
-        if (size !== sizedFor) {
-            sizedFor = size;
-            // a altura que a caixa dá (o canvas sem tamanho próprio enche ela) e a largura pra mostrar viewShare
-            sizeCourt(inner, null);
-            const aspect = inner.offsetWidth / (inner.offsetHeight || 1);
-            sizeCourt(inner, Math.min(inner.offsetHeight, view / CAM.viewShare / aspect));
-            scene.scale.refresh();
-            cam = null;
-        }
-        const full = inner.offsetWidth;
+        if (!measured || !ro) measured = measure(box, inner, scene);
+        const { view, full } = measured;
         if (!full || full <= view) return;
         const k = full / (scene.scale.width || full);
         const now = performance.now();
@@ -293,6 +305,7 @@ export function followCourt(wrap: RefObject<HTMLElement | null>, followRef: { re
     raf = requestAnimationFrame(tick);
     return () => {
         cancelAnimationFrame(raf);
+        ro?.disconnect();
         EventBus.off('current-scene-ready', onReady);
         host?.removeEventListener('pointerdown', onDown, true);
         host?.removeEventListener('touchstart', onDown, true);
