@@ -22,6 +22,7 @@ import { gradeDelta, holdRing, MAX_BEAT, maxRing, maxTap } from '../max-beat';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR, TYPE_DARK_TEXT } from '../type-colors';
 import { HudIcon, hex } from './MatchHud';
+import { type Barra, barraLab, cargaLab, MaxMeter } from './MaxMeter';
 import { TypeIcon } from './TypeIcon';
 import './sideline.css';
 
@@ -58,6 +59,8 @@ export interface AgencyView {
  */
 const lastCharge: { events?: readonly MatchEvent[]; len: number; tick: number; value: MaxCharge }[] = [];
 export function chargeAt(events: readonly MatchEvent[], team: 0 | 1, tick: number): MaxCharge {
+    const fake = team === 0 ? cargaLab() : null;
+    if (fake) return fake;
     const c = lastCharge[team];
     if (c && c.events === events && c.len === events.length && c.tick === tick) return c.value;
     const value = maxCharge(events, team, tick, 5);
@@ -360,6 +363,7 @@ export function SidelineControls({
     const tap = useMaxTap(onMax, lit);
     const look = levelLook(view);
     const face = maxFace(view, a);
+    const barra = barraLab();
     return (
         <div className="sl">
             <div className="bc-row">
@@ -393,7 +397,7 @@ export function SidelineControls({
                 {!hideFly && <FlyGkButton view={view} canAct={canAct} onFlyGk={onFlyGk} />}
                 <button
                     type="button"
-                    className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}`}
+                    className={`sl-btn sl-max lv3${lit ? ' ready' : view.max.level >= 1 ? ' full' : ''}${barra ? ' mm-host' : ''}`}
                     title={`${a.maxHint} ${face.hint}`}
                     aria-keyshortcuts="M"
                     // aria-disabled e não disabled: fica no Tab e o leitor acha o botão antes de ele acender
@@ -415,7 +419,11 @@ export function SidelineControls({
                         </small>
                     </span>
                     <FxBadge view={view} />
-                    <i className="sl-fill" aria-hidden />
+                    {barra ? (
+                        <MaxMeter variant={barra} max={view.max} type={view.capType} size="btn" />
+                    ) : (
+                        <i className="sl-fill" aria-hidden />
+                    )}
                 </button>
                 {/* o leitor de tela avisa quando acende (o texto do botão muda a cada %; aqui só a hora certa) */}
                 <span className="sr-only" aria-live="polite">
@@ -453,12 +461,13 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
     }, [why]);
     const live = view.maxPending;
     const face = maxFace(view, a);
+    const barra = barraLab();
     return (
         // a cor do N3 no invólucro: o botão e o anel (irmão dele) herdam
         <span className="bc-maxwrap" style={look.style}>
             <button
                 type="button"
-                className={`bc-maxthumb${lit ? ' ready' : ''}${live ? ' live' : ''}`}
+                className={`bc-maxthumb${lit ? ' ready' : ''}${live ? ' live' : ''}${barra ? ' mm-host' : ''}`}
                 aria-keyshortcuts="M"
                 aria-disabled={!lit}
                 aria-label={`${face.name}: ${live ? a.maxActive : lit ? a.maxReady : maxLevelLabel(view.max.level, a.maxLevel)}`}
@@ -467,14 +476,18 @@ export function MaxThumb({ view, canAct, onMax }: { view: AgencyView; canAct: bo
                 data-lv={look['data-lv']}
                 style={{ '--fill': view.max.charge } as CSSProperties}
             >
-                <i className="bc-maxthumb-fill" aria-hidden />
+                {!barra && <i className="bc-maxthumb-fill" aria-hidden />}
                 <HudIcon kind={face.icon} />
-                {/* nível em 3 gomos: "N0" sozinho não se lê (a bicuda é o desenho; os gomos, o quanto já carregou) */}
-                <span className="bc-maxpips" aria-hidden>
-                    {[1, 2, 3].map((n) => (
-                        <i key={n} className={view.max.level >= n ? 'on' : undefined} />
-                    ))}
-                </span>
+                {barra ? (
+                    <MaxMeter variant={barra} max={view.max} type={view.capType} size="thumb" />
+                ) : (
+                    // nível em 3 gomos: "N0" sozinho não se lê (a bicuda é o desenho; os gomos, o quanto já carregou)
+                    <span className="bc-maxpips" aria-hidden>
+                        {[1, 2, 3].map((n) => (
+                            <i key={n} className={view.max.level >= n ? 'on' : undefined} />
+                        ))}
+                    </span>
+                )}
             </button>
             {lit && <QteRing key={view.maxCue || ''} duck={view.maxCue === 'hora'} />}
             {why && (
@@ -583,12 +596,31 @@ export function MaxBars({
     events,
     tick,
     colors,
+    types,
 }: {
     events: readonly MatchEvent[];
     tick: number;
     colors: [number, number];
+    /** Tipo do capitão de cada time (a cor do N3 na barrinha nova, `?barra=`). */
+    types?: [string | undefined, string | undefined];
 }) {
     const { t } = useT();
+    const barra: Barra | null = barraLab();
+    if (barra)
+        return (
+            <div className="sl-maxbars mm-bars" title={t('match.agency.maxHint')}>
+                {([0, 1] as const).map((team) => (
+                    <MaxMeter
+                        key={team}
+                        variant={barra}
+                        max={chargeAt(events, team, tick)}
+                        type={types?.[team]}
+                        size="mini"
+                        flip={team === 1}
+                    />
+                ))}
+            </div>
+        );
     return (
         <div className="sl-maxbars" title={t('match.agency.maxHint')}>
             {([0, 1] as const).map((team) => {

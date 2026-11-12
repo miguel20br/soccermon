@@ -856,7 +856,12 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    <MaxBars events={match.events} tick={clock.tick} colors={colors} />
+                    <MaxBars
+                        events={match.events}
+                        tick={clock.tick}
+                        colors={colors}
+                        types={[sideline.capType, capTypeAt(match, setups, 1, clock.tick)]}
+                    />
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
