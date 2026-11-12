@@ -717,7 +717,23 @@ export const DRIBBLE_PUFFS: Record<DribbleKind, readonly number[]> = {
     chapeu: [-2],
 };
 
+/**
+ * Quem levou o drible perde (ticks em relação ao carrinho): a bola caindo atrás dele na lambreta e no chapéu, o tropeço
+ * da roleta, o desequilíbrio do elástico. Ali ele amassa (`dribblePose`) e solta a poeirinha no pé.
+ */
+export const DRIBBLE_LOSE: Record<DribbleKind, number> = {
+    lambreta: 1.2,
+    roleta: 1.6,
+    elastico: 1.2,
+    chapeu: 1.8,
+};
+
 const bump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+/** O amassado de quem perdeu: sobe rápido no `DRIBBLE_LOSE` e solta em ~1,6 tick. */
+const lose = (t: number, kind: DribbleKind) => {
+    const u = (t - DRIBBLE_LOSE[kind] + 0.3) / 1.9;
+    return bump(u < 0.25 ? u * 2 : 0.5 + (u - 0.25) / 1.5);
+};
 /** 0 antes de `a`, 1 depois de `b`, suave (smoothstep) no meio. */
 const ramp = (a: number, b: number, t: number) => {
     const v = clamp01((t - a) / (b - a));
@@ -828,7 +844,8 @@ export function dribblePose(
         const turn = inOut((t + 0.4) / 1.8);
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, 0.12 * bump((t + 1.2) / 2.4)) + lean(S, 0.32 * wobble(t, 1.3, 2.4, 2.2));
-        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.07 * bump((t - 1.3) / 1.2);
+        // perdeu: amassa forte quando a bola cai atrás dele (`DRIBBLE_LOSE`)
+        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.17 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.6);
     } else if (d.kind === 'roleta') {
@@ -861,8 +878,9 @@ export function dribblePose(
         ms = 34 - 28 * lunge - 6 * past;
         mFace = t < -1 ? { x: -toMarker.x, y: -toMarker.y } : F;
         pose.markerTilt = lean(F, 0.3 * bump((t + 1) / 3.2)) + lean(F, 0.28 * wobble(t, 1.8, 2, 2));
-        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2);
-        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2);
+        // e tropeça: amassa quando passa reto
+        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2) - 0.16 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2) + 0.14 * lose(t, d.kind);
         pose.huh = huhAt(1.2);
     } else if (d.kind === 'chapeu') {
         // chapéu: de frente, agacha e põe o bico do pé por baixo da bola (sem calcanhar): ela sobe por cima da cabeça do
@@ -878,10 +896,12 @@ export function dribblePose(
             return v(4 * r, 34 * wide * bs * r);
         };
         pose.body = bodyAt(t);
-        pose.sx = 1 + 0.1 * crouch - 0.08 * scoop;
-        pose.sy = 1 - 0.12 * crouch + 0.16 * scoop;
+        // a bola cai na frente e ele amortece (amassa na aterrissagem dela, t = 2)
+        const land = bump((t - 1.6) / 1.6);
+        pose.sx = 1 + 0.1 * crouch - 0.08 * scoop + 0.12 * land;
+        pose.sy = 1 - 0.12 * crouch + 0.16 * scoop - 0.15 * land;
         pose.tilt = lean(F, -0.1 * crouch - 0.1 * scoop + 0.1 * bump((t + 1) / 3.4));
-        const land = (() => {
+        const drop = (() => {
             const b = bodyAt(2);
             return { x: b.x + F.x * 6, y: b.y + F.y * 6 };
         })();
@@ -891,11 +911,11 @@ export function dribblePose(
         } else if (t < 2) {
             const u = (t + 2) / 4;
             const from = v(3, 0);
-            pose.ball = { x: from.x + (land.x - from.x) * u, y: from.y + (land.y - from.y) * u };
+            pose.ball = { x: from.x + (drop.x - from.x) * u, y: from.y + (drop.y - from.y) * u };
             pose.lift = Math.max(90, markerHead + 34) * 4 * u * (1 - u);
         } else {
             const k = outCubic((t - 2) / 1);
-            pose.ball = { x: land.x + (pose.body.x - land.x) * k, y: land.y + (pose.body.y - land.y) * k };
+            pose.ball = { x: drop.x + (pose.body.x - drop.x) * k, y: drop.y + (pose.body.y - drop.y) * k };
         }
         // marcador: plantado de frente, estica olhando a bola subir, vira devagar quando ela cai atrás e fica
         mf = 40 - 70 * inOut((t + 3) / 6.5);
@@ -903,7 +923,8 @@ export function dribblePose(
         const turn = inOut((t - 0.8) / 2.2);
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, -0.14 * bump((t + 1.4) / 3)) + lean(S, 0.2 * wobble(t, 2, 2.6, 2.4));
-        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3);
+        // a bola cai atrás: ele murcha (amassa) olhando pra ela
+        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3) - 0.17 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.3);
     } else {
@@ -932,8 +953,9 @@ export function dribblePose(
                 : { x: pose.body.x - (mf * F.x + ms * S.x), y: pose.body.y - (mf * F.y + ms * S.y) };
         pose.markerTilt =
             lean(S, -0.36 * bite * (1 - ramp(0.6, 3, t)) - 0.1 * drift) + lean(S, 0.3 * wobble(t, 1.4, 2.2, 2));
-        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t));
-        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t));
+        // vendido e desequilibrado: amassa ao perder
+        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t)) - 0.13 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t)) + 0.1 * lose(t, d.kind);
         pose.huh = huhAt(0.8);
     }
     // quem dribla olha pra onde vai (no snapshot às vezes ele está de lado ou de costas); a roleta tem a dela

@@ -4,6 +4,9 @@ import { POST_SHAKE, postShakeAt } from '../game/court';
 import {
     ballSquashAt,
     bumpPose,
+    DRIBBLE_KINDS,
+    DRIBBLE_LOSE,
+    dribblePose,
     KICK_SQUASH,
     kickSquash,
     latestAt,
@@ -163,5 +166,34 @@ describe('chute, dominada e choque (squash & stretch, só tela)', () => {
         expect(latestAt(l, 5)?.tick).toBe(5);
         expect(latestAt(l, 8)?.tick).toBe(5);
         expect(latestAt(l, 99)?.tick).toBe(9);
+    });
+});
+
+describe('dribles com nome: quem perde amassa (só tela)', () => {
+    const d = (kind: (typeof DRIBBLE_KINDS)[number]) => ({
+        tick: 100,
+        by: 0,
+        marker: 5,
+        team: 0 as const,
+        kind,
+        dir: { x: 1, y: 0 },
+        side: 1 as const,
+    });
+    const pose = (kind: (typeof DRIBBLE_KINDS)[number], t: number) =>
+        dribblePose(d(kind), 100 + t, { x: 6, y: 0 }, { x: 40, y: 0 });
+
+    it('a vítima amassa quando perde, em todos os dribles', () => {
+        for (const kind of DRIBBLE_KINDS) {
+            let low = 1;
+            for (let t = DRIBBLE_LOSE[kind] - 0.5; t < DRIBBLE_LOSE[kind] + 1.5; t += 0.1)
+                low = Math.min(low, pose(kind, t)?.markerSy ?? 1);
+            expect(low, kind).toBeLessThan(0.9);
+            expect(low, kind).toBeGreaterThan(0.75);
+        }
+    });
+
+    it('chapéu: quem dribla amassa quando a bola cai e ele domina', () => {
+        expect(pose('chapeu', 2.4)?.sy).toBeLessThan(0.9);
+        expect(pose('chapeu', 2.4)?.sx).toBeGreaterThan(1.05);
     });
 });

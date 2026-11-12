@@ -36,6 +36,7 @@ import {
     type BodyLean,
     ballSquashAt,
     bumpPose,
+    DRIBBLE_LOSE,
     DRIBBLE_PUFFS,
     type DribblePose,
     diveDust,
@@ -2420,7 +2421,11 @@ export class MatchScene extends Phaser.Scene {
         const bz = bz0 + ((trick?.pose.lift ?? 0) * own) / (PPM * 0.9);
         const lift = bz * PPM * 0.9;
         // quique: a bola que vinha no alto e toca o chão amassa um instante e solta poeira
-        if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
+        // (e achata em pé: o chapéu e a lambreta caindo, o cruzamento)
+        if (this.lastBz > 0.25 && bz < 0.03) {
+            this.kickPop(bp.x, bp.y, 0.75, 4);
+            this.squashBall(0.4, Math.PI / 2);
+        }
         this.lastBz = bz;
         // a bola do drible cresce pouco no alto (a lambreta virava uma bola gigante); a sombra encolhe pela altura toda
         // impacto (chute forte, trave): achata no eixo do impacto e volta esticando (o giro para nesse instante)
@@ -2570,10 +2575,15 @@ export class MatchScene extends Phaser.Scene {
             const pose = dribblePose(d, this.playTick, d.toBall, toMarker, !!this.md.reduceMotion, head);
             if (!pose) continue;
             const step = this.playTick - prev;
-            if (step > 0 && step < 2)
+            if (step > 0 && step < 2) {
                 for (const p of DRIBBLE_PUFFS[d.kind])
                     if (prev < d.tick + p && this.playTick >= d.tick + p)
                         dust(this, at.x + pose.body.x, at.y + pose.body.y + 1, 5, at.y + 1, 0.7);
+                // quem levou o drible perde e amassa: a poeira no pé dele
+                const lose = d.tick + DRIBBLE_LOSE[d.kind];
+                if (prev < lose && this.playTick >= lose)
+                    dust(this, mk.x + pose.markerBody.x, mk.y + pose.markerBody.y + 1, 6, mk.y + 1, 0.8);
+            }
             return { d, pose };
         }
         return null;
