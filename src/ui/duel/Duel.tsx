@@ -561,7 +561,7 @@ function VersionBanner({ s }: { s: Shared }) {
 }
 
 /** Sala de espera: o código grande pra mandar, os dois treinadores e o Pronto no polegar. */
-function Lobby({ head }: { head: ReactNode }) {
+function Lobby({ head }: { head: ReactElement<{ title?: string; tag?: string }> }) {
     const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
@@ -574,9 +574,20 @@ function Lobby({ head }: { head: ReactNode }) {
     // Time pronto sem time pra levar (quem entrou pelo link num save novo): o Pronto travaria a sala na escolha do time
     const hasTeam = useHasReadyTeam();
     const noTeam = s.mode === 'ready' && !hasTeam;
+    // o título da sala e as regras na placa de cima (soltos em cima da quadra, sem placa, ficavam perdidos)
+    const rules = [
+        d.duel.modes[s.mode][0],
+        speedLabel(s.speed, t('match.highlights')),
+        durationOf(s) === 'short' && d.duel.durations.short,
+        bestOfOf(s) === 3 && d.duel.bestOf[3],
+        s.mode === 'ready' && specialRuleText(specialLimitOf(s), t),
+    ];
     return (
         <DuelStage
-            head={head}
+            head={cloneElement(head, {
+                title: rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle'),
+                tag: rules.filter(Boolean).join(' · '),
+            })}
             className={`duel-lobby${rivalIn ? ' full' : ''}`}
             rival={s.peers[other(role)]}
             action={
@@ -593,22 +604,6 @@ function Lobby({ head }: { head: ReactNode }) {
                 </button>
             }
         >
-            <p className="duel-lobby-head">
-                <b>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</b>
-                <span className="bc-tag">
-                    {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
-                    {durationOf(s) === 'short' && ` · ${d.duel.durations.short}`}
-                    {bestOfOf(s) === 3 && ` · ${d.duel.bestOf[3]}`}
-                    {s.mode === 'ready' && (
-                        <>
-                            {' · '}
-                            <span className="duel-rule" data-testid="duel-rule">
-                                {specialRuleText(specialLimitOf(s), t)}
-                            </span>
-                        </>
-                    )}
-                </span>
-            </p>
             <InviteBox s={s} local={local} compact={rivalIn} />
             {sent && !rivalIn && (
                 <p

@@ -47,6 +47,8 @@ interface Props {
     horizontal?: boolean;
     /** Quadra deitada espelhada: o gol do time à direita (o time 1 na quadra da partida). */
     mirror?: boolean;
+    /** Nome de cada vaga do banco (sem = "Banco"); no draft do Duelo a 1ª é a do capitão. */
+    benchLabels?: string[];
 }
 
 /**
@@ -78,6 +80,7 @@ export function FormationBoard({
     preview,
     projection,
     stateOf,
+    benchLabels,
     onSlot,
     emptyLabel: emptyProp,
     footer,
@@ -114,7 +117,10 @@ export function FormationBoard({
 
     const slot = (ref: SlotRef, uid: string, style?: CSSProperties) => {
         const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
-        const label = ref.zone === 'bench' ? t('common.ui.bench') : d.team.board.slot[f.slots[ref.index]];
+        const label =
+            ref.zone === 'bench'
+                ? (benchLabels?.[ref.index] ?? t('common.ui.bench'))
+                : d.team.board.slot[f.slots[ref.index]];
         const fullLabel = ref.zone === 'bench' ? label : d.common.pos[f.slots[ref.index]];
         const state = stateOf?.(ref, uid) ?? 'idle';
         const inst = uid ? byUid.get(uid) : undefined;

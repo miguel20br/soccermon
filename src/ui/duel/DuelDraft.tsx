@@ -404,6 +404,8 @@ export function DuelDraft({ s, role }: { s: Shared; role: Role }) {
                     bench={board.bench}
                     byUid={new Map(shown.map((p) => [p.uid, p]))}
                     captainUid={shown[0]?.uid ?? null}
+                    // a 1ª escolha é o capitão e cai na 1ª vaga do banco: ela diz "Capitão", não "Banco"
+                    benchLabels={[t('duel.draft.captain'), t('common.ui.bench')]}
                     emptyLabel={t('duel.draft.empty')}
                     stateOf={stateOf}
                     footer={

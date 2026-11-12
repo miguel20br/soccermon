@@ -99,10 +99,6 @@
     font-weight: 400;
     letter-spacing: 6px;
 }
-.duel-rule {
-    font-size: 13px;
-    color: var(--yellow);
-}
 .duel-share {
     gap: 8px;
     justify-content: center;
@@ -880,22 +876,7 @@ button.sb-title:hover {
 .duel-join-row > b {
     font-weight: 400;
 }
-/* sala de espera: o título com as regras, o código grande e os dois treinadores */
-.duel-lobby-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 4px 10px;
-    text-align: center;
-}
-.duel-lobby-head b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 19px;
-    font-size: var(--gfs, 19px);
-    font-weight: 400;
-    text-shadow: var(--k-out-1);
-}
+/* sala de espera: o código grande e os dois treinadores */
 .duel-stage .duel-code b {
     font-size: clamp(36px, calc(11 * var(--vw)), 56px);
 }
@@ -969,6 +950,15 @@ button.sb-title:hover {
 }
 .duel-stage .duel-peer-who small {
     font-size: 11px;
+}
+/* no celular os cartões são estreitos: o nome quebra em 2 linhas e o "Sem conta" desce, em vez de cortar o nome e
+   esconder o selo */
+.duel-stage .duel-peer-who b {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.duel-stage .duel-anon {
+    white-space: nowrap;
 }
 .duel-stage .duel-share .btn {
     font-size: 13px;
