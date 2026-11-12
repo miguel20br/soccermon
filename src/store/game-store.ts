@@ -132,7 +132,7 @@ import {
     tagFromName,
 } from './profile';
 import { ACE_ROUND_UP, casaOf } from './rota-map';
-import { watchSave } from './save-health';
+import { safeStorage } from './save-health';
 import { screenTransition } from './screen-transition';
 import { utNow } from './ultimate/clock';
 import {
@@ -639,11 +639,7 @@ export function resumeScreenOf(status: RunStatus): Screen {
 export const isCupInProgress = (run: RunState | null | undefined): run is RunState =>
     !!run && run.status !== 'eliminated' && run.status !== 'champion';
 
-const idbStorage: StateStorage = {
-    getItem: async (name) => (await get(name)) ?? null,
-    setItem: (name, value) => watchSave(set(name, value)),
-    removeItem: (name) => del(name),
-};
+const idbStorage: StateStorage = safeStorage({ get, set, del });
 
 /** Seed da Rota travada: a mesma até a Rota terminar. */
 export const routeSeed = (l: { salt: string; n: number }) => `rota-${l.salt}-${l.n}`;

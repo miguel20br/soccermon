@@ -123,6 +123,7 @@ function MenuBack({ screen }: { screen: Screen }) {
 export default function App() {
     const { screen, settings, run } = useGame();
     const diskFull = useSaveHealth((s) => s.full);
+    const saveBlocked = useSaveHealth((s) => s.blocked);
     // idioma: o App redesenha na troca e leva junto as telas que usam t() fora de hook
     const { t } = useT();
     // ?demo=crash (dev e prévias): quebra a renderização para conferir a tela do ErrorBoundary
@@ -406,6 +407,7 @@ export default function App() {
             {diskFull && !['match', 'liga-match', 'ultimate-match'].includes(screen) && (
                 <Toast tone="bad">{t('common.ui.diskFull')}</Toast>
             )}
+            {saveBlocked && screen === 'home' && <Toast tone="bad">{t('common.ui.saveBlocked')}</Toast>}
         </div>
     );
 }
