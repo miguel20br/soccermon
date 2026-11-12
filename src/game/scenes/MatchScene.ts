@@ -48,11 +48,11 @@ import {
     goalReactions,
     halftimeEnd,
     holdFacing,
+    KICK_SQUASH,
     keeperFacing,
     keeperRows,
     kickDepartures,
     kickHold,
-    KICK_SQUASH,
     kickSquash,
     kicks,
     latestAt,
@@ -2814,11 +2814,7 @@ export class MatchScene extends Phaser.Scene {
      * arrancada/freada, nessa ordem. A poeirinha do choque e da corrida sai uma vez (voltando o replay, de novo); a da
      * corrida, frequente, só até 2x (no 4x/8x ela piscaria).
      */
-    private moveLean(
-        i: number,
-        px: { x: number; y: number },
-        factor: number,
-    ): Lean | null {
+    private moveLean(i: number, px: { x: number; y: number }, factor: number): Lean | null {
         if (this.md.reduceMotion) return null;
         const t = this.playTick;
         for (const b of this.bumps) {
