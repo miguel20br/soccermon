@@ -93,6 +93,9 @@ describe('arrancada e freada (squash & stretch, só tela)', () => {
         expect(peak).toBeLessThanOrEqual(0.2);
         // correndo pra esquerda: inclina pra esquerda; pra baixo na tela: estica na altura
         expect(runBurstPose({ ...go, dir: { x: -1, y: 0 } }, 12)?.tilt).toBeLessThan(0);
+        // na diagonal também estica inteiro (antes misturava os eixos e dava ~5%)
+        const diag = runBurstPose({ ...go, dir: { x: Math.SQRT1_2, y: Math.SQRT1_2 } }, 12);
+        expect(diag?.sy).toBeGreaterThan(1.1);
         const down = runBurstPose({ ...go, dir: { x: 0, y: 1 } }, 12);
         expect(down?.sy).toBeGreaterThan(1);
         expect(down?.sx).toBeLessThan(1);

@@ -1152,11 +1152,12 @@ export function runBurstPose(b: RunBurst, tick: number, reduce = false): BodyLea
     // sobe rápido e solta devagar
     const u = (t + 1) / (R.len + 1);
     const k = sinBump(u < 0.3 ? u / 0.6 : 0.5 + (u - 0.3) / 1.4);
-    const ax = Math.abs(b.dir.x);
-    const ay = Math.abs(b.dir.y);
     const s = R.stretch * k;
+    // de lado: mais comprido; na diagonal ou pra cima/baixo: mais alto (a mistura dos dois eixos na diagonal dava ~5%)
     if (b.kind === 'go')
-        return { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 + s * (ax - 0.5 * ay), sy: 1 + s * (ay - 0.5 * ax) };
+        return Math.abs(b.dir.x) > 0.8
+            ? { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 + s, sy: 1 - 0.5 * s }
+            : { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 - 0.5 * s, sy: 1 + s };
     return { tilt: leanX(b.dir.x, -R.tilt * k), sx: 1 + s, sy: 1 - 1.2 * s };
 }
 
