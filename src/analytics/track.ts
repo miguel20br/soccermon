@@ -67,6 +67,7 @@ export const EVENT_NAMES = [
     'duel_join',
     'duel_match_end',
     'first_leave',
+    'nav',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 
@@ -193,6 +194,19 @@ export function track(name: EventName, props: Props = {}) {
     queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
     if (queue.length >= MAX_QUEUE) flush();
     else timer ??= setTimeout(() => flush(), FLUSH_MS);
+}
+
+/**
+ * O evento `nav`: a pessoa foi pra outro lugar do menu. `kind` = o tipo ('tab' aba do ambiente, 'door' porta, 'sub' aba
+ * dentro da porta, 'metas', 'news', 'mode' fatia do menu de modos, 'help'), `to` e `from` = ids curtos, e `extra` (ex.:
+ * `lit`, quantas abas acesas). Só ação da pessoa chama (toque, tecla, arrasto), nunca a troca automática da Home. Fica
+ * nos pontos únicos de cada caminho (`setTab`, `openDoor`, `openPage`...), não nas telas. Sem dado pessoal.
+ */
+export const navProps = (kind: string, to: string, from: string, extra: Props = {}): Props | null =>
+    to === from ? null : { kind, to, from, ...extra };
+export function trackNav(kind: string, to: string, from: string, extra: Props = {}) {
+    const p = navProps(kind, to, from, extra);
+    if (p) track('nav', p);
 }
 
 /** Domínio de quem mandou a pessoa (linkedin.com, github.com…), ou o utm_source do link. */

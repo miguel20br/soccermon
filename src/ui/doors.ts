@@ -1,3 +1,4 @@
+import { trackNav } from '../analytics/track';
 import { type Screen, useGame } from '../store/game-store';
 import { openTabNext } from './ambientes/nav';
 import { setDoorOrigin, setPageOrigin } from './back-nav';
@@ -42,6 +43,7 @@ export function openDoor(door: Door, tab?: string) {
     setAba(tab);
     const g = useGame.getState();
     if (g.screen !== door) setDoorOrigin(g.screen);
+    trackNav('door', tab ? `${door}.${tab}` : door, g.screen);
     g.go(door);
 }
 
@@ -58,6 +60,7 @@ export const metasNext = { on: false };
 export function openMetas() {
     setAba();
     metasNext.on = true;
+    trackNav('metas', 'metas', useGame.getState().screen);
     openTabNext('sede');
     useGame.getState().go('home');
 }
@@ -66,6 +69,7 @@ export function openMetas() {
 export function openPage(page: Extract<Screen, 'help' | 'credits'>) {
     const g = useGame.getState();
     if (g.screen !== page) setPageOrigin(g.screen);
+    if (page === 'help') trackNav('help', 'help', g.screen);
     g.go(page);
 }
 

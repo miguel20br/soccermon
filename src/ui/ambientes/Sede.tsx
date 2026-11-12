@@ -1,4 +1,5 @@
 import { type CSSProperties, lazy, Suspense, useMemo, useState } from 'react';
+import { trackNav } from '../../analytics/track';
 import { useT } from '../../i18n/react';
 import { lookOfProfile } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
@@ -174,7 +175,14 @@ export function Sede({ active, wild, near }: { active: boolean; wild: Wild[]; ne
                 </header>
                 <div className="rm-actions">
                     {/* a ação principal é o que não tem porta na cena: as Metas (Troféus é a vitrine, o contador e a porta) */}
-                    <button type="button" className="btn big cup-go rm-go cb cb-blue" onClick={() => setMetas(true)}>
+                    <button
+                        type="button"
+                        className="btn big cup-go rm-go cb cb-blue"
+                        onClick={() => {
+                            trackNav('metas', 'metas', 'sede');
+                            setMetas(true);
+                        }}
+                    >
                         <span className="cup-go-txt">
                             <b>{t('home.amb.sedeMetas')}</b>
                             <small>{goal ? missionText(goal.m) : t('home.amb.sedeBoard')}</small>

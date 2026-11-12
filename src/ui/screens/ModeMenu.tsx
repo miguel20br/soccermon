@@ -1,5 +1,6 @@
 import { type CSSProperties, memo, useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
+import { trackNav } from '../../analytics/track';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { onBeat } from '../../game/music';
@@ -536,6 +537,7 @@ export function ModeSlices({
     const anims = useRef<Animation[]>([]);
     const open = (m: ModeId) => {
         if (m === sel) return;
+        trackNav('mode', m, sel);
         const el = stack.current;
         if (!el) return setSel(m);
         anims.current = flipSlices(el, anims.current, () => flushSync(() => setSel(m)));

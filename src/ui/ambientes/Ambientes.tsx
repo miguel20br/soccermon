@@ -1,4 +1,5 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { trackNav } from '../../analytics/track';
 import { useT } from '../../i18n/react';
 import { ambFresh, ambLit, isFirstVisit, rotaNovaDue } from '../../store/coach';
 import { useGame } from '../../store/game-store';
@@ -102,6 +103,8 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
         root.current?.style.setProperty('--bpos', String(barPos(p)));
     };
     const setTab = (i: number) => {
+        // só chamado por ação da pessoa (toque, tecla, arrasto, botão das Notícias); a troca automática usa setTabState
+        trackNav('tab', TABS[i], TABS[tab], { lit: lit.length });
         tabMemory.last = i;
         setTabState(i);
         setPos(ci(i));

@@ -6,6 +6,7 @@ import {
     errorGate,
     firstLeave,
     isBot,
+    navProps,
     pickedReward,
     rewardEvent,
     screenProps,
@@ -200,5 +201,21 @@ describe('screenProps (a casa escolhida no mapa da Rota)', () => {
         // a Mochila (pedra tirada da bolsa) e sair pra Home não são escolher casa
         expect(screenProps(g('event', 'a', 'event', { bag: true }), g('map', 'a'))).toEqual({ screen: 'event' });
         expect(screenProps(g('home', 'a', 'map'), g('map', 'a'))).toEqual({ screen: 'home' });
+    });
+});
+
+describe('nav', () => {
+    it('está na lista de nomes (e, pelo teste acima, na migração) e leva só ids curtos', () => {
+        expect(EVENT_NAMES).toContain('nav');
+        expect(navProps('tab', 'rota', 'estadio', { lit: 3 })).toEqual({
+            kind: 'tab',
+            to: 'rota',
+            from: 'estadio',
+            lit: 3,
+        });
+    });
+
+    it('não sai quando não saiu do lugar (toque na aba em que já está)', () => {
+        expect(navProps('tab', 'rota', 'rota')).toBeNull();
     });
 });
