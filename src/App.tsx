@@ -6,7 +6,7 @@ import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { useSaveHealth } from './store/save-health';
-import { onGoTab, readAmbientes } from './ui/ambientes/nav';
+import { onGoTab } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav } from './ui/back-nav';
 import { AccountLink } from './ui/components/AccountLink';
@@ -34,7 +34,6 @@ import { CupMap, EventScreen, GroupScreen, Training } from './ui/screens/CupMap'
 import { Daily } from './ui/screens/Daily';
 import { Draft } from './ui/screens/Draft';
 import { Help } from './ui/screens/Help';
-import { Home } from './ui/screens/Home';
 import { Liga } from './ui/screens/Liga';
 import { Lineup } from './ui/screens/Lineup';
 import { Match } from './ui/screens/Match';
@@ -66,7 +65,7 @@ const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ d
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
 const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
-// a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save; `?lab=off` = Home de lista
+// a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save
 const loadAmbientes = () => import('./ui/ambientes/Ambientes');
 const Ambientes = lazy(() => loadAmbientes().then((m) => ({ default: m.Ambientes })));
 // o menu de modos (antes da Home, pra quem já jogou): pedaço à parte também
@@ -145,7 +144,6 @@ export default function App() {
             return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
     });
-    const [ambientes] = useState(readAmbientes);
     const [ultimateLab] = useState(readUltimate);
     // menu de modos: decidido uma vez, quando o save carrega (modeMenuDue); 'in'/'out' = fade com a Home embaixo
     const [menu, setMenu] = useState<'in' | 'on' | 'out' | null>(null);
@@ -157,12 +155,12 @@ export default function App() {
                 if (menuDecided.current) return;
                 menuDecided.current = true;
                 const s = useGame.getState();
-                if (ambientes && s.screen === 'home' && modeMenuDue(s, window.location.search)) {
+                if (s.screen === 'home' && modeMenuDue(s, window.location.search)) {
                     setMenu('on');
                     void loadAmbientes(); // o JOGAR não espera a rede
                 }
             }),
-        [ambientes],
+        [],
     );
     const fadeTimer = useRef(0);
     const fadeMenu = (from: 'in' | 'out', to: 'on' | null) => {
@@ -350,26 +348,23 @@ export default function App() {
                     )}
                 </header>
             )}
-            {screen === 'home' &&
-                (ambientes ? (
-                    <>
-                        {/* cada um no seu Suspense: a Home carregando embaixo não tira o menu da tela no fade */}
-                        <Suspense fallback={null}>
-                            {menu !== 'on' && <Ambientes onModes={() => tvMenu('on') || fadeMenu('in', 'on')} />}
-                        </Suspense>
-                        <Suspense fallback={null}>
-                            {menu && (
-                                <ModeMenu
-                                    phase={menu}
-                                    onPlay={() => tvMenu(null) || fadeMenu('out', null)}
-                                    onUltimate={ultimateLab ? () => useGame.getState().go('ultimate') : undefined}
-                                />
-                            )}
-                        </Suspense>
-                    </>
-                ) : (
-                    <Home />
-                ))}
+            {screen === 'home' && (
+                <>
+                    {/* cada um no seu Suspense: a Home carregando embaixo não tira o menu da tela no fade */}
+                    <Suspense fallback={null}>
+                        {menu !== 'on' && <Ambientes onModes={() => tvMenu('on') || fadeMenu('in', 'on')} />}
+                    </Suspense>
+                    <Suspense fallback={null}>
+                        {menu && (
+                            <ModeMenu
+                                phase={menu}
+                                onPlay={() => tvMenu(null) || fadeMenu('out', null)}
+                                onUltimate={ultimateLab ? () => useGame.getState().go('ultimate') : undefined}
+                            />
+                        )}
+                    </Suspense>
+                </>
+            )}
             {screen === 'draft' && <Draft />}
             {screen === 'lineup' && <Lineup />}
             {screen === 'match' && <Match />}

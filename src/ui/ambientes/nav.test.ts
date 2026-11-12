@@ -1,25 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { ambientesOn, dragPos, START, skyOf, snapTab, TABS } from './nav';
+import { dragPos, START, skyOf, snapTab, TABS } from './nav';
 
 describe('navegação por ambientes', () => {
     it('abre no Estádio, a aba do meio', () => {
         expect(TABS[START]).toBe('estadio');
         expect(START).toBe(Math.floor(TABS.length / 2));
-    });
-
-    it('a Home de todo mundo são os ambientes (sem nada na URL nem na aba)', () => {
-        expect(ambientesOn('', null)).toBe(true);
-        expect(ambientesOn('?lab=golpes', null)).toBe(true);
-        expect(ambientesOn('?demo=mapa', null)).toBe(true);
-        expect(ambientesOn('?seed=ABC123', null)).toBe(true);
-    });
-
-    it('?lab=off volta pra Home de lista e fica assim na aba; ?lab=ambientes religa', () => {
-        expect(ambientesOn('?lab=off', null)).toBe(false);
-        expect(ambientesOn('', '0')).toBe(false);
-        expect(ambientesOn('?demo=mapa', '0')).toBe(false);
-        expect(ambientesOn('?lab=ambientes', '0')).toBe(true);
-        expect(ambientesOn('', '1')).toBe(true);
     });
 
     it('arrastar mais da metade troca de aba; menos volta pra mesma', () => {
