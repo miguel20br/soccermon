@@ -295,39 +295,74 @@ const POSE_CHARGE_MS = 450;
 /** Quanto dura a esticada quando a pose solta (e a agachada antes do pulo). */
 const POP_MS = 160;
 
+/** Pulo da comemoração: quanto sobe (px), quanto fica no ar e quanto dura o amassado da aterrissagem (ms). */
+export const CELEB_HOP = { h: 22, air: 380, h2: 13, air2: 300, land: 170, squash: 0.2, squash2: 0.13 } as const;
+
+interface CelebBody {
+    sx: number;
+    sy: number;
+    /** Altura do corpo acima do chão (px; a sombra fica no chão). */
+    lift: number;
+}
+
+const bump = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u));
+
+/**
+ * Um pulo que sai em `t0` (ms): estica subindo e descendo (redondo no alto), cai e amassa `squash` na aterrissagem.
+ * null fora dele.
+ */
+function hop(t: number, t0: number, h: number, air: number, squash: number): CelebBody | null {
+    if (t < t0 || t >= t0 + air + CELEB_HOP.land) return null;
+    if (t < t0 + air) {
+        const u = (t - t0) / air;
+        const s = Math.abs(2 * u - 1);
+        return { lift: h * 4 * u * (1 - u), sx: 1 - 0.06 * s, sy: 1 + 0.1 * s };
+    }
+    const k = bump((t - t0 - air) / CELEB_HOP.land);
+    return { lift: 0, sx: 1 + squash * k, sy: 1 - squash * 1.15 * k };
+}
+
+/** Agacha nos `ms` antes de `t0` (antecipação do pulo). */
+const crouch = (t: number, t0: number, ms: number): CelebBody | null =>
+    t >= t0 - ms && t < t0 ? { lift: 0, ...squashOf(Math.sin((Math.PI / 2) * ((t - t0 + ms) / ms))) } : null;
+const squashOf = (k: number) => ({ sx: 1 + 0.08 * k, sy: 1 - 0.1 * k });
+
 /**
  * A comemoração do gol na quadra (MatchScene), no jeito da espécie (`comemoracaoOf`), dentro do tempo que o motor já
- * segura: pulo = Hop virado pra onde estava, com uma agachada antes; giro = gira pelas 8 direções (pião), começando
- * devagar, acelerando e freando, e pula de frente; pose = Charge agachando e Pose de frente com uma esticada (sem Pose,
- * o animation-manager cai no Hop). `ms` desde o gol; `sx`/`sy` = squash & stretch do corpo (1 = normal).
+ * segura: pulo = agacha e pula duas vezes (Hop) virado pra onde estava; giro = gira pelas 8 direções (pião), começando
+ * devagar, acelerando e freando, e pula de frente; pose = Charge agachando, salta e solta a Pose de frente (sem Pose,
+ * o animation-manager cai no Hop). Todo pulo amassa ao aterrissar (12/11). `ms` desde o gol; `sx`/`sy` = squash &
+ * stretch do corpo (1 = normal); `lift` = altura do pulo (px).
  */
 export function goalCelebPose(
     kind: Comemoracao,
     ms: number,
     facing: number,
-): { anim: string; facing: number; sx: number; sy: number } {
+): { anim: string; facing: number } & CelebBody {
     const t = Math.max(0, ms);
-    const bump = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u));
+    const H = CELEB_HOP;
+    const still = { sx: 1, sy: 1, lift: 0 };
     if (kind === 'giro') {
         const u = Math.min(1, t / GIRO_MS);
         // ease in-out (seno): os passos ficam mais juntos no meio da volta
         const step = Math.floor(((1 - Math.cos(Math.PI * u)) / 2) * GIRO_STEPS);
-        if (u < 1) return { anim: 'Walk', facing: (facing + step) % 8, sx: 1, sy: 1 };
-        const k = bump((t - GIRO_MS) / POP_MS);
-        return { anim: 'Hop', facing: 0, sx: 1 + 0.08 * k, sy: 1 - 0.1 * k };
+        if (u < 1) return { anim: 'Walk', facing: (facing + step) % 8, ...still };
+        const body = crouch(t, GIRO_MS + POP_MS, POP_MS) ?? hop(t, GIRO_MS + POP_MS, H.h, H.air, H.squash);
+        return { anim: 'Hop', facing: 0, ...(body ?? still) };
     }
     if (kind === 'pose') {
-        if (t < POSE_CHARGE_MS) {
-            // junta força: vai agachando (antecipação)
-            const k = Math.sin((Math.PI / 2) * (t / POSE_CHARGE_MS));
-            return { anim: 'Charge', facing: 0, sx: 1 + 0.06 * k, sy: 1 - 0.09 * k };
-        }
-        // solta: estica e assenta
-        const k = bump((t - POSE_CHARGE_MS) / (POP_MS * 1.5));
-        return { anim: 'Pose', facing: 0, sx: 1 - 0.05 * k, sy: 1 + 0.1 * k };
+        // junta força: vai agachando (antecipação)
+        if (t < POSE_CHARGE_MS)
+            return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / POSE_CHARGE_MS))) };
+        // solta: salta esticado e assenta na pose
+        const body = hop(t, POSE_CHARGE_MS, H.h2 + 4, H.air2, H.squash);
+        return { anim: 'Pose', facing: 0, ...(body ?? still) };
     }
-    const k = bump(t / POP_MS);
-    return { anim: 'Hop', facing, sx: 1 + 0.08 * k, sy: 1 - 0.1 * k };
+    const body =
+        crouch(t, POP_MS, POP_MS) ??
+        hop(t, POP_MS, H.h, H.air, H.squash) ??
+        hop(t, POP_MS + H.air + H.land + 60, H.h2, H.air2, H.squash2);
+    return { anim: 'Hop', facing, ...(body ?? still) };
 }
 
 /** As batidas onde o toque para (tocar adianta pra próxima). */

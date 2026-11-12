@@ -2315,7 +2315,7 @@ export class MatchScene extends Phaser.Scene {
             if (tb?.ghost && tricked) this.ghost(view, tricked.d.team);
             // comemoração do gol: o squash & stretch do jeito (agacha, estica); Reduzir movimento: sem
             const celebLean =
-                celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1)
+                celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1 || celeb.lift > 0)
                     ? { tilt: 0, sx: celeb.sx, sy: celeb.sy }
                     : null;
             this.leanBody(
@@ -2325,6 +2325,8 @@ export class MatchScene extends Phaser.Scene {
                     : null,
             );
             if (dive && entering === null && !view.evolving) this.holdBody(view);
+            // e o pulo dela sai do chão (a sombra fica)
+            if (celebLean && entering === null && !view.evolving) view.sprite.y -= celeb?.lift ?? 0;
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);

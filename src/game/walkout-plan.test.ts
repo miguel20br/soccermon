@@ -168,7 +168,7 @@ describe('plano do walkout', () => {
         const kinds = new Set(Array.from({ length: 151 }, (_, i) => comemoracaoOf(i + 1)));
         expect([...kinds].sort()).toEqual(['giro', 'pose', 'pulo']);
         // pulo: Hop pra onde estava virado
-        expect(goalCelebPose('pulo', 1000, 3)).toEqual({ anim: 'Hop', facing: 3, sx: 1, sy: 1 });
+        expect(goalCelebPose('pulo', 1500, 3)).toEqual({ anim: 'Hop', facing: 3, sx: 1, sy: 1, lift: 0 });
         // agacha antes de pular (squash), e o corpo volta ao normal
         expect(goalCelebPose('pulo', 80, 3).sy).toBeLessThan(1);
         // giro: passa pelas 8 direções e termina pulando de frente antes do fim
@@ -183,6 +183,24 @@ describe('plano do walkout', () => {
         expect(goalCelebPose('pose', 100, 5)).toMatchObject({ anim: 'Charge', facing: 0 });
         expect(goalCelebPose('pose', 400, 5).sy).toBeLessThan(1);
         expect(goalCelebPose('pose', 560, 5).sy).toBeGreaterThan(1);
-        expect(goalCelebPose('pose', 1200, 5)).toEqual({ anim: 'Pose', facing: 0, sx: 1, sy: 1 });
+        expect(goalCelebPose('pose', 1200, 5)).toEqual({ anim: 'Pose', facing: 0, sx: 1, sy: 1, lift: 0 });
+    });
+
+    it('comemoração: todo jeito pula e amassa ao aterrissar (o pulo de verdade, com a sombra no chão)', () => {
+        for (const kind of ['pulo', 'giro', 'pose'] as const) {
+            let high = 0;
+            let landed = false;
+            let flat = 1;
+            for (let ms = 0; ms < GOAL_CELEB_MS; ms += 10) {
+                const p = goalCelebPose(kind, ms, 0);
+                high = Math.max(high, p.lift);
+                if (high > 0 && p.lift === 0) landed = true;
+                if (landed) flat = Math.min(flat, p.sy);
+                if (p.lift > 0) expect(p.sy, `${kind} ${ms}`).toBeGreaterThanOrEqual(1);
+            }
+            expect(high, kind).toBeGreaterThan(12);
+            // amassa na aterrissagem
+            expect(flat, kind).toBeLessThan(0.85);
+        }
     });
 });
