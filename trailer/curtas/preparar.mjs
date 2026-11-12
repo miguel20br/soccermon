@@ -13,13 +13,16 @@ const A = `${JOGO}/public/assets`;
 // e o goleiro 107 Hitmonchan; deles 94 Gengar, 68 Machamp, 65 Alakazam, 124 Jynx, 150 Mewtwo e o goleiro 76 Golem ·
 // torcida (de costas, embaixo da tela)
 // EP 2: 129 Magikarp (e a roleta usa os retratos) · EP 3: 95 Onix (a 3ª tentativa do Ditto)
-const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95];
+// EP 2 do Vestiário: 100 Voltorb (a bola que não é bola)
+const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
 const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
     // A foto: os closes falando (o Psyduck gritando, o Pikachu, o Magikarp gritando, o Squirtle marrento)
     '54-shouting', '25-shouting', '129-shouting', '7-determined',
     // o EP inteiro: o Ditto (EU TAMBÉM!) e o Jigglypuff (DEIXA QUE EU ANIMO)
-    '132-joyous', '39-inspired'];
+    '132-joyous', '39-inspired',
+    // Saco de bolas: o Voltorb
+    '100', '100-angry'];
 
 mkdirSync(`${OUT}/sp`, { recursive: true });
 mkdirSync(`${OUT}/som`, { recursive: true });
@@ -76,7 +79,7 @@ copyFileSync(`${JOGO}/public/fonts/Galmuri11-Bold.woff2`, `${OUT}/Galmuri11-Bold
 
 // música: a peça editada na partitura, normalizada pra −14 LUFS (2 passadas do loudnorm, ganho linear)
 execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`], { stdio: 'inherit' });
-for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado', 'foto', 'paredao']) {
+for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado', 'foto', 'paredao', 'bolas']) {
     const wav = `${OUT}/som/${nome}.wav`;
     const err = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'], {
         encoding: 'utf8',
@@ -87,5 +90,5 @@ for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atras
     console.log(nome, `medido ${m.input_i} LUFS → −14`);
 }
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ apontando pra cá
-for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'vestiario-atrasado', 'vestiario-foto', 'confessionario-paredao']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
+for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'vestiario-atrasado', 'vestiario-foto', 'confessionario-paredao', 'vestiario-bolas']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
 console.log('midia pronta');
