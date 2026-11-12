@@ -1,5 +1,6 @@
 import type { Metal } from '../ui/rarity';
 import { type DailyEntry, winsOf } from './daily';
+import type { Records } from './game-store';
 import type { HallEntry } from './profile';
 
 /**
@@ -85,3 +86,31 @@ export function roomLevel(titles: number): { level: RoomLevel; n: number; next: 
 
 /** Taças por metal em lista, como vão na vitrine do cartão (o pedaço da sala que os outros veem). */
 export const cupList = (n: MetalCount): [number, number, number] => [n.bronze, n.prata, n.ouro];
+
+/**
+ * Copas do Dia ganhas: o contador (desde a 0.9.50) ou os dias guardados no save (os 60 últimos), o que for maior. Os
+ * dois andam juntos daqui pra frente; o contador só existe pra não perder título quando o dia sai da lista.
+ */
+export const dailyTitlesOf = (r: Pick<Records, 'dailyTitles'>, daily: Pick<DailyEntry, 'champion'>[]) =>
+    Math.max(r.dailyTitles ?? 0, daily.filter((e) => e.champion).length);
+
+/** Títulos por modo (o seu Perfil): `titles` conta os três, a Rota e o Dia têm contador próprio. */
+export function titlesByMode(r: Pick<Records, 'titles' | 'longTitles' | 'dailyTitles'>, daily: DailyEntry[]) {
+    const dia = dailyTitlesOf(r, daily);
+    const rota = r.longTitles ?? 0;
+    return { relampago: Math.max(0, r.titles - rota - dia), dia, rota };
+}
+
+/** Metal pelo número, nos degraus da sala (5 e 25 títulos) ou dos cinturões (10, 50, 100 vitórias). null = nenhum. */
+export function tierMetal(n: number, steps: readonly number[]): Metal | null {
+    const i = steps.filter((s) => n >= s).length;
+    return i ? METALS[i - 1] : null;
+}
+export const TITLE_STEPS = [1, ROOM_LEVELS[1].titles, ROOM_LEVELS[2].titles] as const;
+export const BELT_STEPS = [BELTS[0].wins, BELTS[1].wins, BELTS[2].wins] as const;
+
+/** A melhor campanha do Hall: o metal da taça primeiro (perfeita > sem pênaltis > campeão), depois o saldo. */
+export function bestTitle(hall: HallEntry[]): HallEntry | null {
+    const score = (h: HallEntry) => METALS.indexOf(cupMetal(h)) * 1e4 + h.scores.reduce((s, [a, b]) => s + a - b, 0);
+    return hall.reduce<HallEntry | null>((best, h) => (!best || score(h) > score(best) ? h : best), null);
+}

@@ -6,6 +6,7 @@ import { clubName, cupStageName, cupStageShort } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { isPerfectCup, type RunState, useGame } from '../../store/game-store';
 import { creditsOn, cupLength, isLong, paradeOn } from '../../store/long-cup';
+import { dailyTitlesOf } from '../../store/trophies';
 import { Beat, useCascade } from '../kit/Cascade';
 import { SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
@@ -73,7 +74,7 @@ export function ChampionView({
         .filter((p): p is NonNullable<typeof p> => !!p);
     const players = [...stats.values()];
     // o desfile só no raro (Rota e 1º título de cada modo); nos repetidos, a taça curta da quadra já fez a festa
-    const rare = useGame((s) => paradeOn(run, s.records, s.daily.filter((e) => e.champion).length));
+    const rare = useGame((s) => paradeOn(run, s.records, dailyTitlesOf(s.records, s.daily)));
     const parading = !!(hallEntry && run.champ && !run.champ.paraded && rare);
     // os créditos do título: só no fim do Modo História (`creditsOn`; a Rota não chama mais)
     const storyEnd = creditsOn(run);
