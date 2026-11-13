@@ -13,3 +13,5 @@ Em 23/10 o Miguel mudou o ritmo de lançamento: "quero que eles sejam menos freq
 **Why:** subir frente por frente gerou consertos depois do ar (ex.: Novidades da 0.9.15 com números velhos), e ele passou a corrigir coisa pequena demais.
 
 **How to apply:** juntar várias frentes numa branch de integração; antes do "pode subir", fazer uma revisão dupla (números das Novidades batendo com o código, prints, copa inteira no navegador headless, textos PT/EN). Cada atualização ganha um trailerzinho 9:16: um curta da novidade principal, terminando em "isso + X + Y e muito mais · soccermon.com", na régua de [[feedback-video-sem-inspiracao]].
+
+**13/11/2026:** depois de fechar as frentes atuais (0.9.51 e o que estiver em andamento), quando o jogo estiver "redondinho", **no máximo uma atualização por semana** ("garantir qualidade acima de tudo"). Juntar tudo da semana numa versão só; consertos urgentes são a exceção a combinar com ele.

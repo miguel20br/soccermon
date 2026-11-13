@@ -3,12 +3,12 @@
 - [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
 - [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
 - [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
-- [Retomar (estado 09/11)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.44 integrada na v0944; ut-fc, rota-a e goleiro-tela rodando; ep. 1 do Vestiário agendado
+- [Retomar (estado 12/11)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.50 no ar; v0951 em integração (economia, barra N A, Duelo 1–7); ep. 14/15 em produção
 - [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
 - [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
 - [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
 - [Vídeo sem inspiração](feedback-video-sem-inspiracao.md) — régua = trailer v3; fórmula do Snorlax (1 herói, começo/meio/fim) > mistura de conceitos; rascunho curto antes
-- [Versões menos frequentes](feedback-versoes-menos-frequentes.md) — desde 23/10: juntar frentes, revisão dupla antes de subir, trailerzinho por atualização
+- [Versões menos frequentes](feedback-versoes-menos-frequentes.md) — desde 23/10: juntar frentes, revisão dupla, trailerzinho; após a 0.9.51 e o jogo redondo, 1 atualização por semana (13/11)
 - [Postar pelo Chrome](reference-postar-pelo-chrome.md) — conta pessoal + perfil Miguel, /add-dir dos vídeos, aba nova por rede, pegadinhas de IG/TikTok/YT
 - [Modo mochila](feedback-modo-mochila.md) — Claude pode desligar sozinho; on [horas]|off|status
 - [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)
@@ -23,3 +23,8 @@
 - [Pode subir só o aprovado](feedback-pode-subir-so-o-aprovado.md) — o que ele não viu (vídeo, falas, feature) fica fora da versão ou é perguntado pelo nome
 - [Cutscene rara pode ser longa](feedback-cutscene-rara-pode-ser-longa.md) — evento ultra raro dura o que precisar; só encurtar o que se repete
 - [Roteiro: guia, não fórmula](feedback-roteiro-guia-nao-formula.md) — episódio precisa de miolo cômico; estrutura é guia; nome do episódio no começo
+- [Comemorações com peso](feedback-animacoes-celebracao.md) — troféu só no título, créditos só no fim do Modo História, torcida com volume, sempre polir antes de mostrar
+- [Sprites clássicos](feedback-sprites-classicos.md) — prancheta e VERSUS com o sprite estático antigo, não o PMD chibi; times se encarando
+- [Modos arcade e Rota](project-modos-arcade-e-rota.md) — 11/11: Rota com ₽ + Mercado; Copa do Dia/Jogo Rápido só recompensa 1 de 3, sem Mercado
+- [Um agente pesado por vez](feedback-um-agente-pesado-por-vez.md) — 3 agentes com navegador/check/render estouram a RAM e o oomd fecha a sessão
+- [Patch notes diretas](feedback-patch-notes-diretas.md) — Novidades sem metáfora: "Adicionadas novas animações de final de jogo"
