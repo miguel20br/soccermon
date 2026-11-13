@@ -53,6 +53,18 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 Trailerzinhos das 0.9.40, 0.9.41 e 0.9.43 (pendentes): proposta de arquivar, o jogo já mudou e o trailer do Time
 Ultimate cobre a novidade.
 
+## A partir de 15/11: três posts por semana, um gênero cada (Miguel, 12/11)
+
+| Dia | Série | Gênero | O que entra | O que não entra |
+|---|---|---|---|---|
+| ter 19h | Vestiário do Pallet FC | mockumentary (The Office: cena + "talking head" olhando pra câmera) | história do elenco; eles são atores | notícia, número, patch |
+| sex 19h | Soccermon News | jornalístico (bancada, vinheta, trechos do jogo) | quadros fixos, comentário da galera quando tiver, convidado da semana | enredo e fofoca da série (a série só como manchete) |
+| dom 19h | Lance da semana | clipe de jogo, 7–15 s, começa no lance | lance nosso; depois, clipes da galera mandados na DM (exportar clipe do jogo) | |
+
+- **BBB:** minissérie de 3 episódios perto do Time Ultimate (27/11), "quem vai ser trocado por carta?", enquete nos stories.
+- **Paredão (14) e Confessionário saíram da pauta.** O Paredão vai pra ideia do BBB. O ep. 15 "Saco de bolas" vira o teste do mockumentary.
+- **Clipes da galera:** só depois que o exportar clipe estiver redondo.
+
 ## Registro (toda segunda)
 
 | Semana | Post | Views | Assistiu tudo | Compart. | Cliques no site | Nota |
