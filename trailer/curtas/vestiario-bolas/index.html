@@ -1,19 +1,20 @@
 <!doctype html>
 <!--
-  Vestiário do Pallet FC, "Saco de bolas": o EPISÓDIO 2, 9:16. Roteiro em ROTEIRO.md. Versão mockumentary (38 s, 13/11/2026):
+  Vestiário do Pallet FC, "Bola fora": o EPISÓDIO 2, 9:16. Roteiro em ROTEIRO.md. v3 (34 s, 13/11/2026): abre direto no
+  Magikarp com a cartela da série por cima (sem a abertura de 4 s). Versão mockumentary:
   as cenas do rascunho 1 (26 s) com 3 talking heads de 4 s na salinha do material (Magikarp, Pikachu, Psyduck), sem
   plateia; a trilha para durante eles (os 4 pedaços de a-musica*) e fica o zumbido da sala (som/sala.ogg).
   O Magikarp despeja o saco de bolas; o Pikachu chuta duas no golzinho, comemorando antes; a última "bola" é o Voltorb
   dormindo de costas. KABOOM, todo mundo tostado, "…FOI GOL?". Abertura e helpers vêm do "A foto do time".
   Trilha scripts/musica/pecas/livre-bolas.mjs: 120 BPM, compasso = 2 s. Tempos: T(compasso da música, linha), que soma
-  os talking heads que vieram antes (TH em 6, 14 e 28 s).
+  os talking heads que vieram antes (TH em 2, 10 e 24 s) e tira os 4 s da abertura.
   Render: (de trailer/curtas) ../../scripts/pesado.sh npx hyperframes render vestiario-bolas -q draft -w 1 --no-browser-gpu
 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=1080, height=1920" />
-<title>Soccermon · Saco de bolas</title>
+<title>Soccermon · Bola fora</title>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <script src="midia/sprites.js"></script>
 <script src="midia/som/bolas.js"></script>
@@ -99,7 +100,10 @@
 /* 0 · a abertura: a logo da série, brincalhona (as letras quicam uma a uma, cada uma no seu ângulo; o ponto é uma bola;
    o Snorlax dorme em cima da placa, o Pikachu espia atrás, o Magikarp pula por cima) e o episódio */
 .veu { position: absolute; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, rgb(16 24 61 / 55%), rgb(7 10 24 / 90%) 78%); }
-.serie { position: absolute; left: 60px; top: 470px; width: 960px; height: 420px; z-index: 30; }
+.cartela { position: absolute; left: 0; top: 0; width: 1080px; height: 900px; z-index: 60; }
+/* a faixa escura atrás da cartela (tapa a lousa enquanto ela está no ar) */
+.cartela::before { content: ""; position: absolute; left: 0; top: 0; width: 1080px; height: 720px; background: linear-gradient(#070a18 80%, rgb(7 10 24 / 0%)); }
+.serie { position: absolute; left: 60px; top: 30px; width: 960px; height: 420px; z-index: 30; }
 .serie .placa { position: absolute; left: 0; top: 110px; width: 960px; height: 270px; z-index: 2; box-sizing: border-box; border-radius: 40px;
   background: #10183d; border: 12px solid #0e1430; box-shadow: inset 0 0 0 10px #ffcb05, inset 0 0 0 22px #10183d, inset 0 0 0 28px #2a4ea0, 0 22px 0 rgb(0 0 0 / 45%); transform-origin: 50% 100%; }
 .serie .letras { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 2px; }
@@ -146,8 +150,8 @@
   background: linear-gradient(#ff8a1c 0 40%, #f8f8f0 40% 58%, #ff8a1c 58%); }
 .cone u { position: absolute; left: -10px; top: 100px; width: 116px; height: 20px; background: #ff8a1c; border: 6px solid #0e1430; border-radius: 4px; box-sizing: border-box; }
 .vinheta { position: absolute; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(ellipse 80% 60% at 45% 55%, transparent 55%, rgb(5 8 20 / 55%)); }
-.sub { position: absolute; left: 40px; width: 1000px; top: 1490px; z-index: 50; text-align: center; font-size: 64px; line-height: 1.2; letter-spacing: 1px;
-  color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; text-shadow: 0 6px 0 #0e1430; }
+.sub { position: absolute; left: 40px; width: 1000px; bottom: 310px; z-index: 50; text-align: center; font-size: 90px; line-height: 1.15; letter-spacing: 3px; text-wrap: balance;
+  color: #f8f8f0; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; }
 .prancheta { position: absolute; left: 0; top: 0; width: 140px; height: 180px; box-sizing: border-box; z-index: 5; border: 8px solid #0e1430; border-radius: 10px;
   background: radial-gradient(circle at 75% 80%, #120804 0 16%, transparent 28%), linear-gradient(#5a3a1e, #3a2410); }
 .prancheta::before { content: ""; position: absolute; left: 12px; top: 24px; right: 12px; bottom: 14px;
@@ -158,9 +162,8 @@
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="38">
-  <div id="cena" class="clip" data-start="0" data-duration="38">
-    <div id="abertura" class="cena set"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="veu"></div></div>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="34">
+  <div id="cena" class="clip" data-start="0" data-duration="34">
     <div id="vest" class="cena set"><div id="cam" class="camada"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="lousa-pe"></div>
       <div class="lousa"><span>HOJE</span><b>TREINO</b></div>
     </div></div>
@@ -169,26 +172,27 @@
     <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"></div></div>
   </div>
   <div class="flash" id="flash"></div>
-  <!-- a trilha em 4 pedaços: corta seco no talking head (6, 14, 28 s) e volta de onde parou no corte de volta -->
-  <audio id="a-musica" class="clip" src="midia/som/bolas-14.wav" data-start="0" data-duration="6" data-media-start="0" data-fade-out="0.03"></audio>
-  <audio id="a-musica2" class="clip" src="midia/som/bolas-14.wav" data-start="10" data-duration="4" data-media-start="6" data-fade-in="0.02" data-fade-out="0.03"></audio>
-  <audio id="a-musica3" class="clip" src="midia/som/bolas-14.wav" data-start="18" data-duration="10" data-media-start="10" data-fade-in="0.02" data-fade-out="0.03"></audio>
-  <audio id="a-musica4" class="clip" src="midia/som/bolas-14.wav" data-start="32" data-duration="6" data-media-start="20" data-fade-in="0.02" data-fade-out="0.4"></audio>
-  <audio id="a-sala1" class="clip" src="som/sala.ogg" data-start="6" data-duration="4" data-media-start="0"></audio>
-  <audio id="a-sala2" class="clip" src="som/sala.ogg" data-start="14" data-duration="4" data-media-start="0"></audio>
-  <audio id="a-sala3" class="clip" src="som/sala.ogg" data-start="28" data-duration="4" data-media-start="0"></audio>
-  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="4.5" data-duration="1.22" data-media-start="0" data-volume="0.7"></audio>
-  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="11.0" data-duration="0.92" data-media-start="0"></audio>
-  <audio id="a-ps" class="clip" src="som/54.ogg" data-start="19.1" data-duration="0.84" data-media-start="0"></audio>
-  <audio id="a-vt" class="clip" src="som/100.ogg" data-start="21.0" data-duration="0.9" data-media-start="0" data-volume="0.8"></audio>
-  <audio id="a-ps2" class="clip" src="som/54.ogg" data-start="31.2" data-duration="0.84" data-media-start="0" data-volume="0.6"></audio>
+  <!-- a trilha em 4 pedaços (começa no compasso 2 da peça): corta seco no talking head (2, 10, 24 s) e volta de onde parou -->
+  <audio id="a-musica" class="clip" src="midia/som/bolas-14.wav" data-start="0" data-duration="2" data-media-start="4" data-fade-out="0.03"></audio>
+  <audio id="a-musica2" class="clip" src="midia/som/bolas-14.wav" data-start="6" data-duration="4" data-media-start="6" data-fade-in="0.02" data-fade-out="0.03"></audio>
+  <audio id="a-musica3" class="clip" src="midia/som/bolas-14.wav" data-start="14" data-duration="10" data-media-start="10" data-fade-in="0.02" data-fade-out="0.03"></audio>
+  <audio id="a-musica4" class="clip" src="midia/som/bolas-14.wav" data-start="28" data-duration="6" data-media-start="20" data-fade-in="0.02" data-fade-out="0.4"></audio>
+  <audio id="a-sala1" class="clip" src="som/sala.ogg" data-start="2" data-duration="4" data-media-start="0"></audio>
+  <audio id="a-sala2" class="clip" src="som/sala.ogg" data-start="10" data-duration="4" data-media-start="0"></audio>
+  <audio id="a-sala3" class="clip" src="som/sala.ogg" data-start="24" data-duration="4" data-media-start="0"></audio>
+  <audio id="a-mk" class="clip" src="som/129.ogg" data-start="0.5" data-duration="1.22" data-media-start="0" data-volume="0.7"></audio>
+  <audio id="a-pk" class="clip" src="som/25.ogg" data-start="7.0" data-duration="0.92" data-media-start="0"></audio>
+  <audio id="a-ps" class="clip" src="som/54.ogg" data-start="15.1" data-duration="0.84" data-media-start="0"></audio>
+  <audio id="a-vt" class="clip" src="som/100.ogg" data-start="17.0" data-duration="0.9" data-media-start="0" data-volume="0.8"></audio>
+  <audio id="a-ps2" class="clip" src="som/54.ogg" data-start="27.2" data-duration="0.84" data-media-start="0" data-volume="0.6"></audio>
 
   <script>
     const { div, ator, anim, quadro, poeira, flash, estouro, telaFinal, piscada, bola } = C;
     // os talking heads (2 compassos = 4 s cada) entram antes dos compassos 3, 5 e 10 da música: T empurra o resto
     const TH = [3, 5, 10];
-    const T = (b, l = 0) => C.T(b, l) + 4 * TH.filter((c) => b >= c).length;
-    const FIM = 38;
+    // v3: o vídeo começa no compasso 2 (sem a abertura): tudo 4 s antes
+    const T = (b, l = 0) => C.T(b, l) - 4 + 4 * TH.filter((c) => b >= c).length;
+    const FIM = 34;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
@@ -198,7 +202,7 @@
       tl.set(sel, { opacity: 1 }, t);
       tl.fromTo(sel, { scale: s }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, t);
     };
-    const CENAS = ['#abertura', '#vest', '#mesa', '#sala', '#fim'];
+    const CENAS = ['#vest', '#mesa', '#sala', '#fim'];
     /** Corte seco: só a cena `id` no ar a partir de t. */
     const corta = (id, t) => {
       ver(CENAS, t, false);
@@ -341,21 +345,16 @@
     }
 
     // ====================================================================================================
-    // 0–1 · ABERTURA (4 s): a logo da série brincalhona no vestiário apagado. A fita VESTIÁRIO DO e a placa carimbam no
-    //       1; as letras de PALLET FC caem quicando uma por semicolcheia (linhas 2 a 10), cada uma no seu ângulo e na
-    //       sua altura; o ponto do meio é uma bola que chega girando (linha 8). Na linha 12 o Snorlax despenca em cima da
-    //       placa e dorme. No compasso 1: EPISÓDIO 1 · A FOTO DO TIME carimba (linha 0), as orelhas do Pikachu espiam
-    //       por trás da placa (4) e o Magikarp pula por cima de tudo (6 a 13); as letras fazem a ola quando ele passa
+    // O GANCHO (v3, 13/11): sem os 4 s de abertura; o vídeo já abre no Magikarp arrastando o saco, e a cartela da série
+    // (VESTIÁRIO DO · PALLET FC, EP. 2, BOLA FORA) carimba por cima da lousa nos primeiros 2 s e sobe
     // ====================================================================================================
     {
-      const v = $('abertura');
-      [10, 170, 760, 920].forEach((x) => div(v, 'armario', `left:${x}px`));
-      const serie = div(v, 'serie');
+      const cart = div(VEST, 'cartela');
+      const serie = div(cart, 'serie');
       const placa = div(serie, 'placa');
       const letras = div(placa, 'letras');
       const fita = div(serie, 'fita');
       fita.innerHTML = '<span>VESTIÁRIO DO</span>';
-      // as letras, cada uma no seu ângulo e na sua altura (a bola é o ponto do meio)
       const ROT = [-8, 5, -3, 7, -6, 4, 0, -5, 8];
       const DY = [6, -12, 8, -6, 12, -8, 4, 10, -10];
       const els = [...'PALLET', null, ...'FC'].map((c) => {
@@ -369,68 +368,21 @@
         desenho(bo, arte(BOLA, { X: PRETO, w: '#f8f8f0', S: '#c8d0f0', P: '#e8423f' }), 7, 3);
         return bo;
       });
-      op(els, 0, false);
       els.forEach((el, i) => {
-        const t = T(0, 2 + i);
         tl.set(el, { y: DY[i], rotation: ROT[i] }, 0);
-        op(el, t);
-        if (i === 6) {
-          // a bola chega rolando de cima, girando
-          tl.fromTo(el, { y: DY[i] - 380, x: -160, rotation: -360 }, { y: DY[i], x: 0, rotation: 0, duration: 0.4, ease: 'bounce.out', immediateRender: false }, t);
-        } else tl.fromTo(el, { y: DY[i] - 360 }, { y: DY[i], duration: 0.34, ease: 'bounce.out', immediateRender: false }, t);
+        tl.fromTo(el, { y: DY[i] - 200 }, { y: DY[i], duration: 0.22, ease: 'bounce.out', immediateRender: false }, 0.04 * i);
       });
-      carimbo(placa, T(0, 0), 1.5);
-      carimbo(fita, T(0, 1), 1.8);
-      // o Snorlax despenca na placa (linha 12): a placa amassa, as letras pulam, e ele dorme
-      const sn0 = ator(serie, '143x', { escala: 6, z: 4, x: 830, y: 124, sombra: false });
-      anim(tl, sn0, 'Sleep', 0, 0, T(2, 0), { vel: 0.4 });
-      const tS = T(0, 12);
-      op(sn0.el, 0, false);
-      op(sn0.el, tS - 0.18);
-      tl.fromTo(sn0.el, { y: -520 }, { y: 124, duration: 0.18, ease: 'power2.in', immediateRender: false }, tS - 0.18);
-      tl.fromTo(sn0.corpo, { scaleY: 0.7, scaleX: 1.2 }, { scaleY: 1, scaleX: 1, duration: 0.4, ease: 'elastic.out(1, 0.45)', immediateRender: false }, tS);
-      tl.fromTo(placa, { scaleY: 0.9 }, { scaleY: 1, duration: 0.35, ease: 'elastic.out(1, 0.4)', immediateRender: false }, tS);
-      els.forEach((el, i) => tl.to(el, { keyframes: { y: [DY[i] - 30 - 4 * (i % 3), DY[i]] }, duration: 0.24, ease: 'power1.inOut' }, tS + 0.02 * i));
-      for (const [t, k] of [[T(0, 14), 0], [T(1, 8), 1]]) {
-        const z = div(serie, 'zz');
-        z.textContent = 'Z';
-        tl.set(z, { x: 880, y: -20, fontSize: 64 }, 0);
-        tl.fromTo(z, { opacity: 0, scale: 0.7 + 0.2 * k }, { opacity: 1, duration: 0.2, immediateRender: false }, t);
-        tl.to(z, { x: 960, y: -160, duration: 1.1, ease: 'sine.out' }, t);
-        tl.to(z, { opacity: 0, duration: 0.3 }, t + 0.8);
-      }
-      // o episódio
-      const epi = div(v, 'epi', 'top:960px');
-      epi.textContent = 'EPISÓDIO 2';
-      const ep = div(v, 'ep', 'top:1060px');
-      ep.innerHTML = '<b>SACO DE BOLAS</b>';
+      carimbo(placa, 0, 1.3);
+      carimbo(fita, 0.05, 1.6);
+      const epi = div(cart, 'epi', 'top:440px');
+      epi.textContent = 'EP. 2';
+      const ep = div(cart, 'ep', 'top:530px');
+      ep.innerHTML = '<b>BOLA FORA</b>';
       op([epi, ep], 0, false);
-      carimbo(epi, T(1, 0), 1.8);
-      carimbo(ep, T(1, 0) + 0.06, 2.2);
-      // as orelhas do Pikachu espiam por trás da placa (à esquerda da fita) e mexem
-      const pk0 = ator(serie, 25, { escala: 6, z: 1, x: 120, y: 340, sombra: false });
-      anim(tl, pk0, 'Idle', 0, 0, T(2, 0), { vel: 0.8 });
-      tl.fromTo(pk0.el, { y: 340 }, { y: 185, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, T(1, 4));
-      tl.to(pk0.corpo, { keyframes: { rotation: [-6, 6, -4, 0] }, duration: 0.6, ease: 'sine.inOut' }, T(1, 8));
-      // o Magikarp pula por cima de tudo, girando
-      const mk0 = ator(v, 129, { escala: 6, z: 40, x: -300, y: 1000, sombra: false });
-      anim(tl, mk0, 'Idle', 2, 0, T(2, 0));
-      const t1 = T(1, 5);
-      const t2 = T(1, 15);
-      const tm = (t1 + t2) / 2;
-      tl.fromTo(mk0.el, { x: -300 }, { x: 1380, duration: t2 - t1, ease: 'none', immediateRender: false }, t1);
-      tl.fromTo(mk0.corpo, { y: 0 }, { y: -700, duration: tm - t1, ease: 'power2.out', immediateRender: false }, t1);
-      tl.to(mk0.corpo, { y: 0, duration: t2 - tm, ease: 'power2.in' }, tm);
-      tl.fromTo(mk0.spr, { rotation: 0 }, { rotation: 360, duration: t2 - t1, ease: 'none', immediateRender: false }, t1);
-      // a ola: cada letra pula quando ele passa por cima
-      els.forEach((el, i) => tl.to(el, { keyframes: { y: [DY[i] - 46, DY[i]] }, duration: 0.26, ease: 'power1.inOut' }, t1 + (t2 - t1) * (0.2 + 0.065 * i)));
-      // os brilhinhos em volta da placa
-      [[-10, 120, T(0, 10)], [950, 360, T(1, 2)], [40, 400, T(1, 6)], [700, 60, T(1, 10)], [930, 110, T(1, 12)], [470, 410, T(0, 14)]].forEach(([x, y, t]) => {
-        const b = div(serie, 'brilho', 'z-index:5');
-        tl.set(b, { x, y }, 0);
-        tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.2, rotation: 90, duration: 0.35, ease: 'sine.out', immediateRender: false }, t);
-        tl.to(b, { opacity: 0, duration: 0.15 }, t + 0.3);
-      });
+      carimbo(epi, 0.35, 1.8);
+      carimbo(ep, 0.41, 2.2);
+      tl.to(cart, { y: -900, duration: 0.3, ease: 'power2.in' }, 2.0);
+      op(cart, 2.3, false);
     }
 
 
@@ -484,7 +436,6 @@
     tl.to(saco, { rotation: -70, duration: 0.2, ease: 'back.out(2)' }, T(2, 6));
     tl.to(saco, { x: xS(80), y: CHAO - 60, rotation: -100, scale: 0.8, duration: 0.3, ease: 'power2.in' }, T(2, 14));
     tl.set(saco, { zIndex: 5 }, T(2, 14));
-    tarja('MAGIKARP', 'CAPITÃO', T(2, 2), T(3, 0) - 4);
     const SPOTS = [[460, 0], [560, 1], [780, 2], [700, 3], [880, 4]];
     const bolas = SPOTS.map(([x, k]) => {
       const b = bola(cam, { d: 96, z: 22, x: 200, y: CHAO });
@@ -642,6 +593,7 @@
       const a = naSala(129, t);
       anim(tl, a, 'Idle', 0, t, t + 4, { vel: 0.6 });
       const m = medalha(a);
+      tarja('MAGIKARP', 'CAPITÃO', t + 0.15, t + 2.3, SALA, 1240);
       legenda('O material é comigo.', t + 0.3, t + 1.8);
       tl.to(m.d, { keyframes: { scaleX: [0, -1.3, 0, 1.4], scaleY: [1.1, 1.25, 1.35, 1.4] }, duration: 0.4, ease: 'none' }, t + 1.9);
       const b = div(SALA, 'brilho', 'z-index:45');
@@ -658,6 +610,19 @@
       const a = naSala(25, t);
       quadro(tl, a, 'Pose', 0, 1, t);
       legenda('Eu comemoro antes.', t + 0.3, t + 1.7);
+      // na pausa, uma faísca curta na bochecha (a da direita da tela), sem virar piada
+      {
+        const tf = t + 1.9;
+        const [cx, cy] = [545, 1105];
+        estouro(tl, SALA, cx, cy, tf, { tam: 90, cor: '#ffe14d', anel: false, dur: 0.22 });
+        for (const [dx, dy, r] of [[70, -50, 20], [80, 30, -30]]) {
+          const z = div(SALA, 'raio', 'z-index:45');
+          z.innerHTML = RAIO;
+          tl.set(z, { x: cx + dx, y: cy + dy, rotation: r, scale: 0.6 }, 0);
+          tl.set(z, { opacity: 1 }, tf);
+          tl.set(z, { opacity: 0 }, tf + 0.25);
+        }
+      }
       legenda('Economiza tempo.', t + 2.3, t + 3.8);
     }
     // 3 · PSYDUCK (28–32), tostado, a prancheta queimada na mão (tarja PSYDUCK · TÉCNICO): olha a prancheta, olha a lente;
@@ -671,7 +636,7 @@
       const pr = div(a.corpo, 'prancheta');
       tl.set(pr, { x: 110, y: -330, rotation: 8, filter: 'brightness(0.85)' }, 0);
       anim(tl, a, 'Idle', 0, t, t + 1.7, { vel: 0.6 });
-      tarja('PSYDUCK', 'TÉCNICO', t + 0.15, t + 2.3, SALA, 1340);
+      tarja('PSYDUCK', 'TÉCNICO', t + 0.15, t + 2.3, SALA, 1240);
       legenda('Eu contei treze bolas.', t + 0.3, t + 1.8);
       anim(tl, a, 'Idle', 1, t + 1.8, t + 2.3, { vel: 0.6 });
       anim(tl, a, 'Idle', 0, t + 2.3, t + 3.2, { vel: 0.6 });
@@ -711,7 +676,6 @@
       tl.fromTo(v2.corpo, { scaleY: 1 }, { keyframes: { scaleY: [0.85, 1.08, 1] }, duration: 0.3, ease: 'none', immediateRender: false }, T(12, 2));
     }
 
-    corta('#abertura', 0);
     tl.set({}, {}, FIM);
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;

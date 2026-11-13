@@ -1,4 +1,4 @@
-// Vestiário do Pallet FC, EP 2 "Saco de bolas" (13 compassos, 26 s; roteiro em trailer/curtas/vestiario-bolas/ROTEIRO.md).
+// Vestiário do Pallet FC, EP 2 "Bola fora" (13 compassos, 26 s; o curta v3 usa do compasso 2 em diante; roteiro em trailer/curtas/vestiario-bolas/ROTEIRO.md).
 // No molde da livre-foto: o tema do Vestiário abre (TEMA, a toalha no ta-DÁ) e o funk da casa embaixo. Sem plateia
 // (13/11: o Vestiário virou mockumentary; a cena remonta com os talking heads e a trilha para durante eles).
 // O Magikarp despeja o saco (as bolas quicando no xilofone, cada uma uma nota), o Pikachu chuta duas no armário (chute,
@@ -12,7 +12,7 @@ import { bass, drum, I, ins, MAJOR, mel, Song, SR, stabs, thirdBelow } from '../
 import { chute, deslize, k12, rede, ronco, som } from './livre-ginasio.mjs';
 import { TEMA, toalha } from './livre-foto.mjs';
 
-export const meta = { titulo: 'Saco de bolas', tela: 'Vestiário do Pallet FC (EP 2)' };
+export const meta = { titulo: 'Bola fora', tela: 'Vestiário do Pallet FC (EP 2)' };
 
 /** O KABOOM: o estalo, o grave que despenca e o ruído que vai abafando (a fumaça). */
 const kaboom = som(

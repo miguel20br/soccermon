@@ -1,4 +1,13 @@
-# Vestiário do Pallet FC · EP 2 "Saco de bolas" (38 s, mockumentary, 13/11/2026)
+# Vestiário do Pallet FC · EP 2 "Bola fora" (34 s, mockumentary v3, 13/11/2026)
+
+**Versão 3 (13/11):** o título virou **"Bola fora"** ("Saco de bolas" tinha duplo sentido). Gancho: sem os 4 s da
+abertura; o vídeo abre no Magikarp arrastando o saco, com a cartela da série (VESTIÁRIO DO · PALLET FC, EP. 2, BOLA
+FORA) carimbada por cima da lousa de 0 a 2 s numa faixa escura, que sobe. A trilha começa no compasso 2 da peça. A tarja
+MAGIKARP · CAPITÃO foi pro talking head dele (a cartela ocupa os 2 s da cena). Legendas dos talking heads 40% maiores
+(90 px, contorno de 20 px como as cartelas), base em y 1610 (acima dos 15% de baixo), quebra equilibrada. Na pausa do
+Pikachu, uma faísca curta na bochecha. Talking heads em **2–6, 10–14 e 24–28 s**; tela final de 28 a 34 s.
+
+## Versão 2 (38 s)
 
 **Versão 2 (13/11, teste do formato mockumentary; roteiro em `docs/marketing/ep15-mockumentary.md` da pauta 17/11):** as
 cenas do rascunho 1 com 3 talking heads de 2 compassos (4 s) na salinha do material (parede com faixa amarela, lâmpada,
