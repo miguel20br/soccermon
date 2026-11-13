@@ -174,7 +174,7 @@
 - O time passa mais a bola pro capitão chamado
 - Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo
 
-## 0.9.42.1 · Bicuda sai fora do tempo (2026-11-05)
+## 0.9.42.1 · Bicuda sai mesmo com toque atrasado (2026-11-05)
 
 ### Goleiro capitão
 - A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)

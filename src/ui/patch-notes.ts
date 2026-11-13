@@ -328,7 +328,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.42.1',
         date: '2026-11-05',
-        title: 'Bicuda sai fora do tempo',
+        title: 'Bicuda sai mesmo com toque atrasado',
         sections: [
             {
                 title: 'Goleiro capitão',
