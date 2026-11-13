@@ -44,8 +44,8 @@ Legenda: "<série>, ep. N. Joga grátis: soccermon.com/ig" (`/tt` no TikTok, `/y
 |---|---|---|---|---|---|
 | 13 | seg 09/11 19h (Miguel adiantou em 09/11) | Vestiário do Pallet FC | **A foto do time:** o Psyduck tenta a foto da inscrição na Liga e cada um estraga uma; a final sai a cara deles, com o Slowpoke borrado (troca "O atrasado", 08/11) | VESTIÁRIO DO PALLET FC · A FOTO | **agendado** (09/11) nas 3 redes pelo Buffer: 54 s, música própria (tema do Vestiário em `livre-foto.mjs`), `soccermon-midia/9-vestiario-a-foto-do-time.mp4` |
 | 14 | sex 13/11 19h | Confessionário | **Paredão:** quem vai pro banco? Magikarp faz campanha com a medalha, Pikachu faz pose, Snorlax dorme na cabine; quem sai é o Ditto, que estava fingindo ser o Psyduck | CONFESSIONÁRIO · DIA 1 | aprovado (07/11) |
-| 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | aprovado (07/11) |
-| 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | aprovado (07/11) |
+| 15 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas:** o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri | VESTIÁRIO DO PALLET FC | vira o item 20 (mockumentary, 13/11) |
+| 16 | sex 20/11 19h | Confessionário | **Sem a medalha:** o Magikarp chora porque perdeu a medalha; corta pro Ditto usando ela | CONFESSIONÁRIO · DIA 2 | saiu da grade (12/11); a sexta virou o Soccermon News |
 | 17 | ter 24/11 19h | Vestiário do Pallet FC | **O pacote:** o Magikarp abre o 1º pacote do Time Ultimate e sai ele mesmo, carta bronze; o Snorlax acorda pra ver | TIME ULTIMATE 27/11 | aprovado (07/11) |
 | 18 | sex 27/11 19h | Lançamento | Trailer do Time Ultimate + comentário com o link | TIME ULTIMATE | aprovado (07/11) (o trailer passa pelo Miguel) |
 | 19 | ter 01/12 19h | Confessionário | **Prova do líder:** prova de segurar a bola na cabeça; o Snorlax ganha dormindo | CONFESSIONÁRIO · DIA 3 | aprovado (07/11) |
@@ -64,6 +64,21 @@ Ultimate cobre a novidade.
 - **BBB:** minissérie de 3 episódios perto do Time Ultimate (27/11), "quem vai ser trocado por carta?", enquete nos stories.
 - **Paredão (14) e Confessionário saíram da pauta.** O Paredão vai pra ideia do BBB. O ep. 15 "Saco de bolas" vira o teste do mockumentary.
 - **Clipes da galera:** só depois que o exportar clipe estiver redondo.
+
+## Semana de 17 a 22/11 (proposta de 13/11, falta o ok)
+
+Numeração continua daqui (a lista 20–31 do `pallet-fc-temporada-1.md` era da grade antiga). Os três vão nas 3 redes
+(TikTok + Reels + Shorts) pelo Buffer, com o comentário do link no TikTok. Vídeo pronto 2 dias antes, pro Miguel ver.
+
+| # | Quando | Série | O quê | Texto na tela | Legenda (TikTok; `/ig` e `/yt` nas outras) | Status |
+|---|---|---|---|---|---|---|
+| 20 | ter 17/11 19h | Vestiário do Pallet FC | **Saco de bolas** (ep. 2) com 3 talking heads, o teste do mockumentary: Magikarp ("O material é comigo."), Pikachu ("Eu comemoro antes."), Psyduck ("Eu contei treze bolas."). 26 s → 38 s. Roteiro: `docs/marketing/ep15-mockumentary.md` | VESTIÁRIO DO PALLET FC · SACO DE BOLAS | Nunca confie na última bola do saco 💥 Vestiário do Pallet FC, ep. 2. Joga grátis: soccermon.com/tt | proposto |
+| 21 | sex 20/11 19h | Soccermon News #1 | Alakazam e Meowth na bancada, Porygon de convidado. Plantão (barra Gomos, Seus duelos, a bola amassa), Número da semana (Patrocínio em 40%, ₽3 por Jogo na Rota), Convidado (sprites nítidos, mais leve no celular), Vem aí (Time Ultimate em 7 dias). 38 s. Roteiro: `docs/marketing/news-01.md` | SOCCERMON NEWS #1 · SAIU A 0.9.51 | Chegou a 0.9.51 do Soccermon! ⚽ Qual novidade você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt | proposto · **[CONFIRMAR] só com a 0.9.51 no ar até 20/11**; sem ela, sai com a 0.9.50 + Vem aí |
+| 22 | dom 22/11 19h | Lance da semana #1 | **Os 4 dribles:** lambreta, roleta, elástico e chapéu, um lance cada, 12–15 s, começa no primeiro drible. Regravar (`?demo=dribles`, worktree `lance1`) | LAMBRETA · ROLETA · ELÁSTICO · CHAPÉU (a faixa do jogo) | Qual drible você vai dar primeiro? ⚽ Joga grátis: soccermon.com/tt | proposto · a regravar |
+
+Dom 15/11 fica sem post nesta proposta: o `lance-01-chapeu.mp4` (pronto) vira o trecho do chapéu no 22.
+
+Pra aprovar: "ok 20–22" (ou "ok 20, 22" se a 0.9.51 não tiver data).
 
 ## Registro (toda segunda)
 
