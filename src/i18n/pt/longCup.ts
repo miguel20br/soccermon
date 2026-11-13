@@ -39,15 +39,15 @@ export const longCup = {
         /** Com o Pokémon do rival em todo Jogo (ROTA_RULES.rivalEveryJogo). */
         jogoRival: 'Vitória dá ₽, 1 de 3 do time rival e o prêmio.',
         ginasio: 'Rival bem mais forte. Vencendo: carta do líder, MT e insígnia.',
-        mercado: 'Compre com ₽. O que você guardou rende juros.',
+        mercado: 'Compre com ₽. Cada ₽5 guardados rendem ₽1 (até ₽3).',
         evento: 'Algo acontece no caminho.',
         treino: 'Meia barra de evolução (ou um item) ou Folga (+₽5).',
         bau: 'Recompensa grátis, uma raridade acima.',
         centro: 'Tira o cartão amarelo ou traz de volta quem está fora. Sem nada pra tratar, o PC do Bill.',
         final: 'Jogo único contra a Liga Índigo.',
         as: 'Rival mais forte. Vitória dá ₽ e uma carta rara.',
-        safari: 'Uma Safari Ball pra 1 de 3 selvagens. Quanto melhor, mais fácil fugir.',
-        cassino: 'Aposte ₽ no caça-níquel (item) ou no balcão de prêmios (Pokémon).',
+        safari: 'Uma Safari Ball pra 1 de 3 selvagens. Pega: 85% bronze, 65% prata, 45% ouro.',
+        cassino: 'Caça-níquel: ₽3, 50% de item. Balcão de prêmios: ₽8, 60% de Pokémon.',
         planalto: 'O último Mercado antes do grupo. Gaste o ₽ que sobrou.',
     },
     /** Prêmio do Jogo, à vista no mapa. */

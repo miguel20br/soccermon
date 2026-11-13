@@ -14,7 +14,8 @@ export const match = {
     added: "+{min}'",
     /** Pressão final: quem perde nos últimos minutos vai pra cima (a mesma regra pros dois times). */
     finalPressure: 'Pressão final',
-    finalPressureHint: 'Nos últimos 3 minutos, quem está perdendo ataca com tudo. Vale pros dois times.',
+    finalPressureHint:
+        'Últimos 3 minutos: quem está perdendo vai pro ataque com chute +6%, passe e drible +4%, velocidade +3%. Vale pros dois times.',
     half: ['1º tempo', '2º tempo'],
     subPending: '{in} entrando no lugar de {out}',
     /** No intervalo a troca entra na volta do 2º tempo. */
@@ -238,12 +239,12 @@ export const match = {
                 slp: 'faz dormir',
                 infatuation: 'encanta',
                 flinch: 'faz recuar',
-                seed: 'planta a semente em',
-                blind: 'joga areia nos olhos de',
-                web: 'prende na teia',
-                push: 'leva pra trás',
+                seed: 'suga o fôlego de',
+                blind: 'atrapalha a mira de',
+                web: 'deixa lento',
+                push: 'empurra pra trás',
                 lift: 'joga pro alto',
-                numb: 'deixa a mão dormente de',
+                numb: 'faz espalmar a próxima defesa de',
                 root: 'prende no lugar',
                 drain: 'tira {n} pontos da barra do time de',
             } as Record<string, string>,

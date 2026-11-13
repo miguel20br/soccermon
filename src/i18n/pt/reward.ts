@@ -23,7 +23,7 @@ export const reward = {
         money: '+₽{n}',
         rerolls: '+{n} sorteios',
         shop: 'Troca grátis no Mercado',
-        rival: 'Próximo rival −1',
+        rival: 'Próximo rival mais fraco',
         evo: 'Meia barra: {name}',
     },
     /** O botão inteiro, pro leitor de tela. */

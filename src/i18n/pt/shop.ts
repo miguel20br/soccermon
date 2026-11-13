@@ -79,7 +79,7 @@ export const shop = {
         olheiro: {
             name: 'Olheiro de Viridian',
             short: 'OLHEIRO',
-            desc: 'Mercado e pacotes com Pokémon mais raros.',
+            desc: 'Pokémon do Mercado e dos pacotes saem com a raridade da fase seguinte.',
         },
         preparador: { name: 'Preparador de Lavender', short: 'LAVENDER', desc: '+6 de fôlego pro time todo.' },
         charanga: { name: 'Charanga de Pewter', short: 'CHARANGA', desc: '+4 em tudo enquanto o time perde.' },

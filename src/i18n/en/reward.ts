@@ -20,7 +20,7 @@ export const reward: typeof pt = {
         money: '+₽{n}',
         rerolls: '+{n} rerolls',
         shop: 'Free Market refresh',
-        rival: 'Next rival −1',
+        rival: 'Next rival weaker',
         evo: 'Half bar: {name}',
     },
     skipAria: '{label}: {tag}',
