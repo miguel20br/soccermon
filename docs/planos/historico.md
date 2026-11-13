@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.52 · Descrições mais diretas (13/11/2026)
+
+Motor 30 (só texto em src/engine/moves.ts e items.ts, partida igual). ~100 descrições de mecânica em PT e EN reescritas com o efeito e o número do motor (golpes, verbo do N1 do golpe máximo, itens, táticas, Ajuda, Rota); 11 que não batiam com o código corrigidas. 3-1: `down` −Passe pra frente (`fwdPass` 0,9). Última versão fora do ritmo; daqui pra frente, 1 por semana.
+
 ## 0.9.51 · Sprites nítidos, novas animações e Duelo (13/11/2026)
 
 Motor 30 (sem mudança de partida). Canvas na resolução da tela (src/game/sharp-canvas.ts) e pixel duro com escala inteira e governador de fps (src/game/quality.ts; telemetria `fps`, `fps_p10`, `dpr`, `res_level` no `match_end`). Sombra e anel em textura (flat-ellipse.ts) puseram o sprite como 2ª textura do lote: no WebGL por software o id chegava 0,99999994 e cortava faixas; src/game/texid-fix.ts arredonda no shader. Squash & stretch no jogo de linha (src/ui/match-view.ts, `?squashdebug=1`; o chute comum vinha como `Kick`). Arcade sem ₽ nem Mercado (`SPONSOR_REWARD_CHANCE` 0,4), Rota com `ROTA_JOGO_PAY` 3. Barrinha de N em Gomos. Duelo sem BETA, Seus duelos (src/ui/duel/DuelHistory.tsx). Tela inicial antiga (`?lab=off`) removida.

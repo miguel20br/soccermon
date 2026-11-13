@@ -1,6 +1,6 @@
 ---
 name: feedback-patch-notes-diretas
-description: Novidades/patch notes em linguagem direta, sem metáfora nem frase de efeito
+description: Novidades, títulos de versão e descrições dentro do jogo (golpe máximo, itens, dicas) em linguagem direta, sem metáfora; flavor só onde precisa
 metadata:
   type: feedback
 ---
@@ -9,4 +9,6 @@ Patch notes (Novidades, `src/ui/patch-notes.ts`) em linguagem direta: "Adicionad
 
 **Why:** o Miguel achou as notas "super metafóricas" (13/11/2026).
 
-**How to apply:** toda versão nova; regra também está na skill soccermon-lancamento (passo 6). Títulos de versão não foram discutidos. Relacionado: [[feedback-texto-sem-cara-de-ia]].
+Títulos de versão também (13/11). Em 13/11 ele estendeu a regra às descrições dentro do jogo (golpe máximo, golpes, itens, táticas, dicas): dizer o que a coisa faz, com o número do código. Fica com flavor só o que exige (nomes, falas, narração, cutscenes, Pokédex).
+
+**How to apply:** toda versão nova (skill soccermon-lancamento, passo 6) e todo texto novo de mecânica no jogo. Relacionado: [[feedback-texto-sem-cara-de-ia]].

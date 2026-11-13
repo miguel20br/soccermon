@@ -9,6 +9,21 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Descrições mais diretas',
+        sections: [
+            {
+                title: 'Textos do jogo',
+                lines: [
+                    'Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo',
+                    'Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço',
+                    'Formação 3-1: o ponto fraco agora é "−Passe pra frente" (era "−Lenta")',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.51',
         date: '2026-11-13',
         title: 'Sprites nítidos, novas animações e Duelo',
@@ -2917,6 +2932,21 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Clearer descriptions',
+        sections: [
+            {
+                title: 'Game text',
+                lines: [
+                    'Move, max move, item, tactic, Indigo Road and Help descriptions state the effect with the game numbers',
+                    'Fixed descriptions that did not match the game: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, 2-2 formation and Boost',
+                    '3-1 formation: the weakness now reads "−Forward passing" (was "−Slow")',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.51',
         date: '2026-11-13',

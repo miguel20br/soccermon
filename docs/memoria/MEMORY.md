@@ -27,4 +27,4 @@
 - [Sprites clássicos](feedback-sprites-classicos.md) — prancheta e VERSUS com o sprite estático antigo, não o PMD chibi; times se encarando
 - [Modos arcade e Rota](project-modos-arcade-e-rota.md) — 11/11: Rota com ₽ + Mercado; Copa do Dia/Jogo Rápido só recompensa 1 de 3, sem Mercado
 - [Um agente pesado por vez](feedback-um-agente-pesado-por-vez.md) — 3 agentes com navegador/check/render estouram a RAM e o oomd fecha a sessão
-- [Patch notes diretas](feedback-patch-notes-diretas.md) — Novidades sem metáfora: "Adicionadas novas animações de final de jogo"
+- [Textos diretos](feedback-patch-notes-diretas.md) — Novidades, títulos e descrições no jogo sem metáfora ("Adicionadas novas animações de final de jogo"); flavor só em nomes/falas
