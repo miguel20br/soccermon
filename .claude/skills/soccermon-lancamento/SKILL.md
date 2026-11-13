@@ -29,7 +29,7 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    com troca no intervalo, save antigo, Duelo em 2 páginas se mexeu em `src/net`/`src/ui/duel`; 320 e deitado. A
    prévia da Vercel tem os `?demo=` e `?vel=N` (modo fumaça): dá pra pular direto pra tela.
 6. **Novidades** em `src/ui/patch-notes.ts`, PT (`PATCH_NOTES`) e EN (`PATCH_NOTES_EN`), a mais nova primeiro:
-   - título curto da versão ("Balanceamento geral e o seu treinador");
+   - título curto da versão ("Menus mais simples"; título direto, sem metáfora);
    - seções por assunto; mudança de número sempre "antes ⇒ depois" (Onix: Fixo 63 ⇒ 70);
    - Pokémon em "buff" e "nerf e ajuste";
    - linguagem direta, sem metáfora nem frase de efeito: "Adicionadas novas animações de final de jogo", não "Fim
