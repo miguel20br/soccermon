@@ -1,4 +1,42 @@
-# Vestiário do Pallet FC · EP 2 "Bola fora" (41 s, mockumentary v4, 13/11/2026)
+# Vestiário do Pallet FC · EP 2 "Bola fora" (47 s, mockumentary v5, 13/11/2026)
+
+**Versão 5 (13/11, pra postar sex 13/11 19h):** comédia no ritmo de The Office (timing, silêncio, olhar pra câmera), a
+trilha que não para e animação polida. A peça vai na ordem do curta pelo `MAPAS.bolas` de `musica.mjs` (25 compassos;
+16 e 17 são a cama dos talking heads, 18 fecha a tag). No `index.html`, as cenas mantêm a numeração da v4 e `CENA` leva
+pro compasso do curta.
+
+| Seg. | Plano | Texto |
+|---|---|---|
+| 0 | Magikarp despeja o saco (puxa antes); cartela por cima, sai com overshoot antes do corte | VESTIÁRIO DO PALLET FC · EP. 2 · BOLA FORA |
+| 2 | **TH Magikarp** (tarja no alto); na 2ª fala o Voltorb aparece na estante atrás dele e pisca uma vez | Eu que organizo o material. / Conferi bola por bola. |
+| 6 | Pikachu entra; chuta (agacha antes), vira comemorando com a bola no ar; ela amassa na rede atrás dele | — |
+| 10 | **TH Pikachu** (6 s) em idle; faísca na pausa | Sabe como é, / eu gosto de comemorar antes. / Economiza tempo. |
+| 16–26 | Breque, olhos do Voltorb, câmera lenta, chute, KABOOM (como na v4) | ESSA NÃO! |
+| 26 | **O olhar:** punch-in fixo no Psyduck tostado olhando pra lente, 1 s, a trilha para | — |
+| 27 | Chuva de bolas; uma cai na barriga do Snorlax, ele abraça a bola e deita de lado | — |
+| 29 | Punch-in no golzinho: o Voltorb lá dentro, tostado e tonto; punch-in no Pikachu tostado na pose, respiro, pulinho fraco | Gol. |
+| 31 | Magikarp apita, sai fumaça | — |
+| 33 | **TH Psyduck** | Eu contei treze bolas. / A gente tem doze. |
+| 37 | **Tag:** o Magikarp conta as bolas da tábua de baixo; o Voltorb pisca na cara dele; susto, silêncio, corte seco | …onze, doze, tre— |
+| 41 | Tela final | Temos que chutar! · soccermon.com |
+
+Polimento: `salto()` com antecipação, esticada, squash na aterrissagem e overshoot; `respira()` em quem fica parado num
+quadro; a bola amassa na rede e a rede estufa; impactos com squash (barriga do Snorlax, chuva de bolas); tarjas com
+`back.out`/`back.in`.
+
+## Gerar (v5)
+
+```bash
+JOGO=<checkout da main> scripts/pesado.sh node trailer/curtas/preparar.mjs     # sprites + música (bolas-14.wav, na ordem do curta)
+# a trilha do curta: do 4 s da peça, 1 s de silêncio no olhar do Psyduck (26 s do vídeo) e ~10 dB a menos nos talking
+# heads e na tag (2–6, 10–16 e 33–41 s); o filtro está no histórico da sessão de 13/11, resumo:
+#   [0]atrim=4:30 | 1 s de anullsrc | [0]atrim=30, concat, volume='1-0.684*max(janelas com rampa de 0,2 s)'
+#   → trailer/curtas/midia/som/bolas-curta.wav
+cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render vestiario-bolas -q high -w 1 --no-browser-gpu -o vestiario-bolas/render/v5.mp4
+scripts/pesado.sh trailer/curtas/finalizar.sh <render.mp4> <saida>
+```
+
+## Versão 4 (41 s)
 
 **Versão 4 (13/11, pedidos do Miguel depois da v3):** miolo mais longo e a mania do Pikachu na tela. A peça
 (`livre-bolas.mjs`) foi pra 16 compassos; o curta usa do 2 ao 15.
