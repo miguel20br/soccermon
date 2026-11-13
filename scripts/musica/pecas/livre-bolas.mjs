@@ -37,7 +37,7 @@ const kaboom = som(
 const XILO = { vol: 0.32, a: 0.001, r: 0.16, shape: 1, sv: 0.08, d: 0.06 };
 
 export default function bolas() {
-    const S = new Song({ bpm: 120, bars: 19, swing: 0.12, tail: 2 });
+    const S = new Song({ bpm: 120, bars: 20, swing: 0.12, tail: 2 });
     const met = S.part('metais', I.brass, { pan: 0.2, gain: 0.45, corte: 3000, rev: 0.2 });
     const met2 = S.part('metais2', I.brass, { pan: -0.2, gain: 0.4, corte: 2600, rev: 0.2 });
     const ep = S.part('piano', I.epiano, { pan: -0.25, gain: 0.55, rev: 0.3 });
@@ -123,12 +123,12 @@ export default function bolas() {
     entra(3, 'Bb7');
     mel(pc, 3, ['C6:1 F6:1 A6:1 C7:2 r:3 F7:1 r:1 F7:1 r:5'], { vel: 0.7 });
     zap.note(3 * 16 + 8, 0, 0, 1);
-    // 4 · chute 1 (2) no armário (5), comemora (6–8); chute 2 (10) e de novo (13)
+    // 4 · chute 1 (4) no gol (8), comemora (6–7) com a bola no ar; chute 2 (12) e a rede (15), comemora (14)
     groove(4, 'F7');
-    ch.note(4 * 16 + 2, 0, 0, 1);
-    rd.note(4 * 16 + 5, 0, 0, 0.8);
-    ch.note(4 * 16 + 10, 0, 0, 1);
-    rd.note(4 * 16 + 13, 0, 0, 0.8);
+    ch.note(4 * 16 + 4, 0, 0, 1);
+    rd.note(4 * 16 + 8, 0, 0, 0.8);
+    ch.note(4 * 16 + 12, 0, 0, 1);
+    rd.note(4 * 16 + 15, 0, 0, 0.8);
     mel(pc, 4, ['r:6 A6:1 C7:1 r:6 A6:1 C7:1'], { vel: 0.7 });
     // 5 · breque: a última "bola" (punch-in) é o Voltorb dormindo e ronca baixinho (2); aberto (8): o Pikachu toma
     //     distância de costas, um passo por nota no xilofone, e o tímpano começa a rufar
@@ -171,6 +171,7 @@ export default function bolas() {
     // 12 · o Magikarp apita… e só sai fumaça (4); o funk volta (12)
     ap.note(12 * 16 + 2, 72, 1, 0.5);
     fumo.note(12 * 16 + 4, 4, 0, 0.8);
+    for (const [r, v] of [[6, 0.5], [8, 0.55], [10, 0.6], [12, 0.65]]) fumo.note(12 * 16 + r, 4 - r / 3, 0, v);
     groove(12, 'C7', { leve: true });
 
     // 13–15 · TELA FINAL: SOC-CER-MON (13: 8, 11, 14) e as palmas; o tema curto e a toalha (14); o Voltorb rola de volta pro
@@ -201,5 +202,9 @@ export default function bolas() {
     drum(kk, 18, 1, 'X.........x.....', { vel: 0.8 });
     drum(hh, 18, 1, 'x.x.x.x.x.x.....', { vel: 0.6 });
     bass(bs, 18, 'F', '0:3 r:3 5:2 0:2 r:6', { vel: 0.7 });
+    // 19 · (v6) os olhares do Pikachu: um plim de xilofone em cada virada de cabeça (0, 3) e o "Gol?" (9) na tuba, subindo
+    //      no fim, que nem pergunta
+    mel(xi, 19, ['C6:1 r:2 A5:1 r:12'], { vel: 0.45 });
+    mel(tuba, 19, ['r:9 C2:2 r:1 F2:2 r:2'], { vel: 0.5 });
     return S;
 }

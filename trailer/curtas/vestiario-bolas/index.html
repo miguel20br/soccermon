@@ -34,7 +34,7 @@
 .armario::after { content: ""; position: absolute; right: 18px; top: 300px; width: 14px; height: 64px; background: #c8d0f0; border: 5px solid #0e1430; border-radius: 4px; }
 .piso { position: absolute; left: 0; top: 1290px; width: 1080px; height: 630px;
   background: repeating-conic-gradient(#3a4560 0 25%, #333d56 0 50%) 0 0 / 120px 120px; box-shadow: inset 0 18px 0 rgb(0 0 0 / 30%); }
-.banco-v { position: absolute; left: -20px; top: 1250px; width: 1120px; height: 60px; z-index: 9; box-sizing: border-box; background: #c98a4f; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 14px 0 #7a4a2a; }
+.banco-v { position: absolute; left: 340px; top: 1250px; width: 760px; height: 60px; z-index: 9; box-sizing: border-box; background: #c98a4f; border: 8px solid #0e1430; border-radius: 10px; box-shadow: 0 14px 0 #7a4a2a; }
 .banco-v::before, .banco-v::after { content: ""; position: absolute; top: 60px; width: 34px; height: 130px; background: #7a4a2a; border: 8px solid #0e1430; border-top: none; }
 .banco-v::before { left: 110px; } .banco-v::after { right: 110px; }
 .lousa-pe { position: absolute; left: 516px; top: 560px; width: 48px; height: 50px; background: #7a4a2a; border: 8px solid #0e1430; z-index: 2; }
@@ -134,8 +134,8 @@
 #fim .site { top: 1000px; }
 #fim .selo { top: 1085px; }
 #fim .credito { top: 1225px; }
-.golzinho { position: absolute; left: 30px; top: 1150px; width: 250px; height: 310px; z-index: 6; box-sizing: border-box; border: 16px solid #f8f8f0; border-bottom: none; border-radius: 6px 6px 0 0;
-  box-shadow: 0 0 0 7px #0e1430, inset 0 0 0 7px #0e1430; background: repeating-linear-gradient(45deg, rgb(255 255 255 / 30%) 0 3px, transparent 3px 26px), repeating-linear-gradient(-45deg, rgb(255 255 255 / 30%) 0 3px, transparent 3px 26px), rgb(14 20 48 / 35%); }
+.gol { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+.gol svg { position: absolute; left: 0; top: 0; overflow: visible; }
 .saco { position: absolute; left: 0; top: 0; width: 230px; height: 200px; z-index: 22; border-radius: 45% 45% 40% 40%; box-sizing: border-box; border: 10px solid #0e1430; transform-origin: 50% 90%;
   background: repeating-linear-gradient(45deg, #2a4ea0 0 6px, transparent 6px 30px), repeating-linear-gradient(-45deg, #2a4ea0 0 6px, transparent 6px 30px), radial-gradient(circle at 35% 40%, #f8f8f0 0 18%, transparent 19%), radial-gradient(circle at 65% 55%, #f8f8f0 0 18%, transparent 19%), #c8d0f0; }
 /* a salinha do material (os talking heads): câmera parada, parede com a faixa pintada embaixo, a lâmpada, a estante
@@ -167,26 +167,29 @@
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="47">
-  <div id="cena" class="clip" data-start="0" data-duration="47">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="49">
+  <div id="cena" class="clip" data-start="0" data-duration="49">
     <div id="vest" class="cena set"><div id="cam" class="camada"><div class="parede"></div><div class="piso"></div><div class="banco-v"></div><div class="lousa-pe"></div>
       <div class="lousa"><span>HOJE</span><b>TREINO</b></div>
     </div></div>
     <div id="mesa" class="cena mesa"></div>
     <div id="sala" class="cena sala"><div class="sala-parede"></div><div class="sala-piso"></div><div class="lampada"></div><div class="vinheta"></div></div>
+    <div id="fila" class="cena sala"><div class="sala-parede"></div><div class="sala-piso"></div><div class="lampada"></div><div id="fila-cam" class="camada"></div><div class="vinheta"></div></div>
     <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"></div></div>
   </div>
   <div class="flash" id="flash"></div>
   <!-- a trilha inteira, já na ordem do curta: abaixa ~10 dB nos talking heads e na tag e para 1 s no olhar do Psyduck
        (trailer/curtas/vestiario-bolas/ROTEIRO.md, "Gerar") -->
-  <audio id="a-musica" class="clip" src="midia/som/bolas-curta.wav" data-start="0" data-duration="47" data-media-start="0" data-fade-out="0.4"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/bolas-curta.wav" data-start="0" data-duration="49" data-media-start="0" data-fade-out="0.4"></audio>
   <audio id="a-sala" class="clip" src="som/sala.ogg" data-start="26" data-duration="1" data-media-start="1"></audio>
+  <audio id="a-sala2" class="clip" src="som/sala.ogg" data-start="42.5" data-duration="0.5" data-media-start="2"></audio>
   <audio id="a-mk" class="clip" src="som/129.ogg" data-start="0.5" data-duration="1.22" data-media-start="0" data-volume="0.7"></audio>
   <audio id="a-pk" class="clip" src="som/25.ogg" data-start="7.0" data-duration="0.92" data-media-start="0"></audio>
+  <audio id="a-bzzt" class="clip" src="som/bzzt.ogg" data-start="13.8" data-duration="0.32" data-media-start="0" data-volume="0.45"></audio>
   <audio id="a-ps" class="clip" src="som/54-lento.ogg" data-start="20.81" data-duration="1.5" data-media-start="0"></audio>
   <audio id="a-vt" class="clip" src="som/100.ogg" data-start="23.0" data-duration="0.9" data-media-start="0" data-volume="0.8"></audio>
-  <audio id="a-ps2" class="clip" src="som/54.ogg" data-start="36.2" data-duration="0.84" data-media-start="0" data-volume="0.6"></audio>
-  <audio id="a-vt2" class="clip" src="som/100.ogg" data-start="39.0" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
+  <audio id="a-ps2" class="clip" src="som/54.ogg" data-start="38.2" data-duration="0.84" data-media-start="0" data-volume="0.6"></audio>
+  <audio id="a-vt2" class="clip" src="som/100.ogg" data-start="41.85" data-duration="0.6" data-media-start="0" data-volume="0.5"></audio>
 
   <script>
     const { div, ator, anim, quadro, poeira, flash, estouro, telaFinal, piscada, bola } = C;
@@ -195,17 +198,17 @@
     // compassos dela (a trilha não para: bolas-curta.wav abaixa uns 10 dB por baixo das falas). As cenas seguem numeradas
     // como na v4 (2–15); CENA leva pro compasso do curta. O olhar do Psyduck (1 s de silêncio de verdade) entra antes do
     // compasso 15 do curta, e a trilha já vem com ele emendado.
-    const CENA = { 2: 2, 3: 5, 4: 6, 5: 10, 6: 11, 7: 12, 8: 13, 9: 14, 10: 15, 11: 16, 12: 17, 13: 22, 14: 23, 15: 24 };
+    const CENA = { 2: 2, 3: 5, 4: 6, 5: 10, 6: 11, 7: 12, 8: 13, 9: 14, 10: 15, 11: 16, 16: 17, 12: 18, 13: 23, 14: 24, 15: 25 }; // 16: os olhares e o "Gol?" (v6)
     const TC = (c, l = 0) => C.T(c, l) - 4 + (c >= 15 ? 1 : 0);
     const T = (b, l = 0) => {
       if (!(b in CENA)) throw new Error(`compasso de cena ${b}`);
       return TC(CENA[b], l);
     };
-    const TH_INI = [TC(3), TC(7), TC(18)];
+    const TH_INI = [TC(3), TC(7), TC(19)];
     const TH_DUR = [4, 6, 4];
-    const TAG = TC(20);
+    const TAG = TC(21);
     const OLHAR = TC(15) - 1;
-    const FIM = TC(24, 16);
+    const FIM = TC(25, 16);
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
@@ -228,7 +231,7 @@
       tl.set(sel, { opacity: 1 }, t);
       tl.fromTo(sel, { scale: s }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, t);
     };
-    const CENAS = ['#vest', '#mesa', '#sala', '#fim'];
+    const CENAS = ['#vest', '#mesa', '#sala', '#fila', '#fim'];
     /** Corte seco: só a cena `id` no ar a partir de t. */
     const corta = (id, t) => {
       ver(CENAS, t, false);
@@ -418,11 +421,30 @@
     const cam = $('cam');
     gsap.set(cam, { transformOrigin: '0px 0px' });
     [10, 170, 760, 920].forEach((x) => div(cam, 'armario', `left:${x}px`));
-    const gz = div(cam, 'golzinho');
-    gsap.set(gz, { transformOrigin: '50% 100%' });
+    // o golzinho (v6): apoiado no chão do vestiário, de frente pra câmera, com profundidade (o quadro de trás encolhe pro
+    // ponto de fuga), rede no fundo e nas laterais e sombra no chão. Fundo em z 8 (atrás de quem entra), trave da frente
+    // em z 12 (a bola que entra passa entre os dois)
+    const GF = { x: 24, y: 1240, w: 280, h: 300 }; // trave da frente (base no chão em y 1540)
+    const GT = { x: 88, y: 1200, w: 246, h: 262 }; // quadro de trás (12% em direção ao ponto de fuga)
+    const rede = '<defs><pattern id="rede" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H22M0 0V22" stroke="#f8f8f0" stroke-opacity="0.55" stroke-width="3"/></pattern></defs>';
+    const pts = (...p) => p.map((q) => q.join(',')).join(' ');
+    const gz = div(cam, 'gol', 'z-index:8');
+    gz.innerHTML = `<svg width="1080" height="1920">${rede}
+      <ellipse cx="${GF.x + GF.w / 2 + 30}" cy="${GF.y + GF.h + 4}" rx="${GF.w / 2 + 50}" ry="26" fill="rgb(0 0 0 / 30%)"/>
+      <polygon points="${pts([GT.x, GT.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GT.x, GT.y + GT.h])}" fill="rgb(14 20 48 / 45%)"/>
+      <polygon points="${pts([GT.x, GT.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GT.x, GT.y + GT.h])}" fill="url(#rede)"/>
+      <polygon points="${pts([GF.x, GF.y], [GT.x, GT.y], [GT.x, GT.y + GT.h], [GF.x, GF.y + GF.h])}" fill="url(#rede)"/>
+      <polygon points="${pts([GF.x + GF.w, GF.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GF.x + GF.w, GF.y + GF.h])}" fill="url(#rede)"/>
+      <polygon points="${pts([GF.x, GF.y], [GF.x + GF.w, GF.y], [GT.x + GT.w, GT.y], [GT.x, GT.y])}" fill="url(#rede)"/>
+      <path d="M${GT.x} ${GT.y + GT.h}V${GT.y}H${GT.x + GT.w}V${GT.y + GT.h}M${GF.x} ${GF.y}L${GT.x} ${GT.y}M${GF.x + GF.w} ${GF.y}L${GT.x + GT.w} ${GT.y}M${GF.x} ${GF.y + GF.h}L${GT.x} ${GT.y + GT.h}M${GF.x + GF.w} ${GF.y + GF.h}L${GT.x + GT.w} ${GT.y + GT.h}" stroke="#0e1430" stroke-width="14" fill="none" stroke-linejoin="round"/>
+      <path d="M${GT.x} ${GT.y + GT.h}V${GT.y}H${GT.x + GT.w}V${GT.y + GT.h}M${GF.x} ${GF.y}L${GT.x} ${GT.y}M${GF.x + GF.w} ${GF.y}L${GT.x + GT.w} ${GT.y}M${GF.x} ${GF.y + GF.h}L${GT.x} ${GT.y + GT.h}M${GF.x + GF.w} ${GF.y + GF.h}L${GT.x + GT.w} ${GT.y + GT.h}" stroke="#c8d0e0" stroke-width="6" fill="none" stroke-linejoin="round"/></svg>`;
+    gsap.set(gz, { transformOrigin: `${GT.x + GT.w / 2}px ${GT.y + GT.h}px` });
+    const gf = div(cam, 'gol', 'z-index:12');
+    const trave = `M${GF.x} ${GF.y + GF.h}V${GF.y}H${GF.x + GF.w}V${GF.y + GF.h}`;
+    gf.innerHTML = `<svg width="1080" height="1920"><path d="${trave}" stroke="#0e1430" stroke-width="30" fill="none" stroke-linejoin="round"/><path d="${trave}" stroke="#f8f8f0" stroke-width="16" fill="none" stroke-linejoin="round"/><path d="M${GF.x + 4} ${GF.y + 6}H${GF.x + GF.w - 4}" stroke="#c8d0e0" stroke-width="4"/></svg>`;
     const BANCO = 1262;
     const CHAO = 1500;
-    const GOL = [150, 1330]; // onde a bola entra
+    const GOL = [195, 1500]; // onde a bola para, dentro do gol (no chão, entre o fundo e a trave)
     /** Corte seco pro vestiário; com `foco`, punch-in de escala `k` com o ponto `foco` em (540, sy) da tela. */
     const plano = (t, foco = null, sy = 1000, k = 2) => {
       corta('#vest', t);
@@ -431,7 +453,21 @@
       const ty = foco ? Math.max(-1920 * (e - 1), Math.min(0, sy - e * foco[1])) : 0;
       tl.set(cam, { x: tx, y: ty, scale: e }, t);
     };
-    const TOSTADO = 'brightness(0.42) sepia(0.8) saturate(1.4)';
+    const TOSTADO = 'brightness(0.62) sepia(0.7) saturate(1.3)'; // v6: tostado, mas dá pra ler o sprite
+    /** Nuvem de fumaça em pixel art (22×16, 3 tons: luz em cima à esquerda, sombra embaixo à direita, contorno). */
+    const nuvem = (tons) => {
+      const C0 = [[6, 8, 4.6], [11, 6, 5.2], [16, 8, 4.4], [9, 10, 4.2], [14, 10, 4.4]];
+      const dentro = (x, y) => C0.some(([cx, cy, r]) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r);
+      const rects = [];
+      for (let y = 0; y < 16; y++)
+        for (let x = 0; x < 22; x++) {
+          if (!dentro(x + 0.5, y + 0.5)) continue;
+          const c = !dentro(x + 2.5, y + 2.5) ? tons[2] : !dentro(x - 1.5, y - 1.5) ? tons[0] : tons[1];
+          rects.push([x, y, 1, 1, c]);
+        }
+      return contorno(rects);
+    };
+
     const sn = ator(cam, 143, { escala: 11, z: 10, x: 540, y: BANCO + 6, sombra: false });
     const mk = ator(cam, 129, { escala: 10, z: 21, x: -200, y: CHAO });
     const pk = ator(cam, 25, { escala: 10, z: 25, x: 1250, y: CHAO });
@@ -458,21 +494,21 @@
     const xS = (x) => x - 170;
     op(mk.el, T(2, 0));
     anim(tl, mk, 'Walk', 2, T(2, 0), T(2, 6));
-    tl.fromTo(mk.el, { x: -200 }, { x: 330, duration: T(2, 6) - T(2, 0), ease: 'none', immediateRender: false }, T(2, 0));
-    tl.fromTo(saco, { x: xS(-200), y: CHAO - 150 }, { x: xS(330), duration: T(2, 6) - T(2, 0), ease: 'none', immediateRender: false }, T(2, 0));
+    tl.fromTo(mk.el, { x: -200 }, { x: 430, duration: T(2, 6) - T(2, 0), ease: 'power1.out', immediateRender: false }, T(2, 0));
+    tl.fromTo(saco, { x: xS(-200), y: CHAO - 150 }, { x: xS(430), duration: T(2, 6) - T(2, 0), ease: 'power1.out', immediateRender: false }, T(2, 0));
     anim(tl, mk, 'Idle', 0, T(2, 6), T(13, 0));
     tl.to(saco, { rotation: 14, duration: 0.12, ease: 'power2.out' }, T(2, 6) - 0.12);
     tl.to(saco, { rotation: -70, duration: 0.2, ease: 'back.out(2)' }, T(2, 6));
-    tl.to(saco, { x: xS(80), y: CHAO - 60, rotation: -100, scale: 0.8, duration: 0.3, ease: 'power2.in' }, T(2, 12));
+    tl.to(saco, { x: xS(560), y: CHAO - 70, rotation: -100, scale: 0.8, duration: 0.3, ease: 'power2.in' }, T(2, 12));
     tl.to(saco, { keyframes: { scaleY: [0.62, 0.86, 0.8], scaleX: [0.95, 0.78, 0.8] }, duration: 0.2, ease: 'power1.out' }, T(2, 12) + 0.3);
     tl.set(saco, { zIndex: 5 }, T(2, 12));
-    const SPOTS = [[460, 0], [560, 1], [780, 2], [700, 3], [880, 4]];
+    const SPOTS = [[575, 0], [1010, 1], [930, 2], [690, 3], [820, 4]];
     const bolas = SPOTS.map(([x, k]) => {
       const b = bola(cam, { d: 96, z: 22, x: 200, y: CHAO });
       op(b.el, 0, false);
       const t = T(2, 6 + 1.6 * k);
       op(b.el, t);
-      tl.fromTo(b.el, { x: 200, y: CHAO - 120 }, { x, y: CHAO, duration: 0.45, ease: 'none', immediateRender: false }, t);
+      tl.fromTo(b.el, { x: 330, y: CHAO - 120 }, { x, y: CHAO, duration: 0.45, ease: 'power1.out', immediateRender: false }, t);
       tl.fromTo(b.corpo, { y: 0 }, { keyframes: { y: [-160, 0, -50, 0] }, duration: 0.45, ease: 'none', immediateRender: false }, t);
       tl.fromTo(b.gira, { rotation: 0 }, { rotation: 400, duration: 0.45, ease: 'power1.out', immediateRender: false }, t);
       return { b, x };
@@ -480,7 +516,7 @@
     // o Voltorb rola junto (de costas: sem olhos, parece bola), z entre as bolas
     op(vt.el, T(2, 11));
     quadro(tl, vt, 'Idle', 4, 0, T(2, 11));
-    tl.fromTo(vt.el, { x: 220, y: CHAO - 100 }, { x: 640, y: CHAO + 20, duration: 0.5, ease: 'none', immediateRender: false }, T(2, 11));
+    tl.fromTo(vt.el, { x: 330, y: CHAO - 100 }, { x: 640, y: CHAO + 20, duration: 0.5, ease: 'power1.out', immediateRender: false }, T(2, 11));
     tl.fromTo(vt.corpo, { y: 0 }, { keyframes: { y: [-140, 0, -40, 0] }, duration: 0.5, ease: 'none', immediateRender: false }, T(2, 11));
     tl.to(vt.corpo, { scaleY: 0.94, duration: 0.5, ease: 'sine.inOut', repeat: 23, yoyo: true }, T(3, 0));
 
@@ -489,11 +525,11 @@
     // 3 · o Pikachu entra (0–6) e já comemora ANTES de chutar qualquer coisa (8: a pose, o choquinho)
     op(pk.el, T(3, 0));
     anim(tl, pk, 'Walk', 6, T(3, 0), T(3, 6));
-    tl.fromTo(pk.el, { x: 1250 }, { x: 900, duration: T(3, 6) - T(3, 0), ease: 'none', immediateRender: false }, T(3, 0));
+    tl.fromTo(pk.el, { x: 1250 }, { x: 1060, duration: T(3, 6) - T(3, 0), ease: 'power1.out', immediateRender: false }, T(3, 0));
     anim(tl, pk, 'Idle', 0, T(3, 6), T(3, 8));
     quadro(tl, pk, 'Pose', 0, 1, T(3, 8));
     salto(pk, T(3, 8), 70, 0.35);
-    estouro(tl, cam, 900, CHAO - 380, T(3, 8), { tam: 200 });
+    estouro(tl, cam, 1060, CHAO - 380, T(3, 8), { tam: 200 });
     tarja('PIKACHU', 'ALA', T(3, 2), T(4, 0));
     // 4 · a mania: chuta e, com a bola ainda no ar, já vira pra câmera comemorando (pose, pulinho); a bola entra no
     //     golzinho atrás dele, sem ele olhar. Chute 1 (2) e chute 2 (10); as redes em 5 e 13
@@ -503,27 +539,54 @@
       tl.to(gz, { keyframes: { scaleX: [1.05, 0.98, 1], scaleY: [0.96, 1.02, 1] }, duration: 0.3, ease: 'sine.out' }, t);
       poeira(tl, cam, GOL[0], GOL[1] + 30, t, { n: 4, r: 70, tam: 28 });
     };
-    const chuta = (b, t) => {
-      // antecipação: agacha e puxa a perna (0,14 s); o chute; a bola sai amassada e faz o arco até a rede
-      quadro(tl, pk, 'Shoot', 6, 4, t - 0.14);
-      tl.to(pk.corpo, { keyframes: [{ scaleY: 0.88, scaleX: 1.08, duration: 0.12, ease: 'power2.out' }, { scaleY: 1.06, scaleX: 0.96, duration: 0.08, ease: 'power2.out' }, { scaleY: 1, scaleX: 1, duration: 0.1, ease: 'back.out(3)' }] }, t - 0.12);
-      quadro(tl, pk, 'Shoot', 6, 7, t);
-      tl.to(b.b.el, { x: GOL[0], y: GOL[1], duration: 0.36, ease: 'power1.out' }, t);
-      tl.to(b.b.corpo, { keyframes: { y: [-220, 0], easeEach: 'sine.inOut' }, duration: 0.36, ease: 'none' }, t);
-      tl.to(b.b.gira, { rotation: '-=720', duration: 0.36, ease: 'power1.out' }, t);
-      tl.fromTo(b.b.el, { scaleX: 1 }, { keyframes: { scaleX: [0.8, 1.1, 1], scaleY: [1.2, 0.95, 1] }, duration: 0.16, ease: 'power1.out', immediateRender: false }, t);
-      tl.set(b.b.el, { zIndex: 7 }, t + 0.3);
-      naRede(b.b, t + 0.36);
-      poeira(tl, cam, b.x, CHAO, t);
-      quadro(tl, pk, 'Pose', 0, 1, t + 0.12);
-      salto(pk, t + 0.16, 60, 0.3);
+    /**
+     * O chute do Pikachu (pra esquerda), contato em t com ele em xc: corrida desde t0 (acelerando), a última passada mais
+     * longa (sobe e estica), a perna de apoio planta do lado da bola (amassa e inclina pra trás), o contato (inclina pra
+     * frente) e o follow-through (a perna segue, o corpo vai junto e volta passando um pouco).
+     */
+    const chutePk = (t, xc, t0) => {
+      anim(tl, pk, 'Walk', 6, t0, t - 0.3, { vel: 1.8 });
+      tl.to(pk.el, { x: xc + 60, duration: t - 0.3 - t0, ease: 'power1.in' }, t0);
+      quadro(tl, pk, 'Shoot', 6, 1, t - 0.3);
+      quadro(tl, pk, 'Shoot', 6, 2, t - 0.2);
+      tl.to(pk.el, { x: xc, duration: 0.18, ease: 'power2.out' }, t - 0.3);
+      quadro(tl, pk, 'Shoot', 6, 3, t - 0.12);
+      quadro(tl, pk, 'Shoot', 6, 5, t);
+      quadro(tl, pk, 'Shoot', 6, 7, t + 0.06);
+      quadro(tl, pk, 'Shoot', 6, 9, t + 0.12);
+      quadro(tl, pk, 'Shoot', 6, 10, t + 0.18);
+      tl.to(pk.el, { x: xc - 28, duration: 0.25, ease: 'power2.out' }, t);
+      tl.to(pk.corpo, { keyframes: [
+        { y: -22, scaleX: 1.12, scaleY: 0.92, rotation: -6, duration: 0.1, ease: 'power2.out' },
+        { y: 0, scaleX: 1.08, scaleY: 0.88, rotation: 5, duration: 0.08, ease: 'power2.in' },
+        { scaleX: 1.02, scaleY: 0.97, rotation: 5, duration: 0.1, ease: 'sine.inOut' },
+        { scaleX: 1.08, scaleY: 0.94, rotation: -12, duration: 0.06, ease: 'power3.out' },
+        { scaleX: 1, scaleY: 1, rotation: 3, duration: 0.18, ease: 'power2.out' },
+        { rotation: 0, duration: 0.12, ease: 'back.out(3)' },
+      ] }, t - 0.3);
+      poeira(tl, cam, xc + 10, CHAO, t - 0.12, { n: 4, r: 60, tam: 24 });
     };
-    anim(tl, pk, 'Idle', 6, T(4, 0), T(4, 1));
-    tl.to(pk.el, { x: 880, duration: 0.2, ease: 'power2.out' }, T(4, 0));
-    chuta(bolas[4], T(4, 2));
-    anim(tl, pk, 'Walk', 6, T(4, 8), T(4, 9.5));
-    tl.to(pk.el, { x: 790, duration: T(4, 9.5) - T(4, 8), ease: 'power1.inOut' }, T(4, 8));
-    chuta(bolas[3], T(4, 10));
+    /** A bola sai amassada do pé em t, faz o arco e entra no gol em t + dur. */
+    const bolaPraRede = (b, t, dur) => {
+      tl.to(b.b.el, { x: GOL[0], y: GOL[1], duration: dur, ease: 'power1.out' }, t);
+      tl.to(b.b.corpo, { keyframes: { y: [-240, 0], easeEach: 'sine.inOut' }, duration: dur, ease: 'none' }, t);
+      tl.to(b.b.gira, { rotation: '-=720', duration: dur, ease: 'power1.out' }, t);
+      tl.fromTo(b.b.el, { scaleX: 1 }, { keyframes: { scaleX: [0.8, 1.1, 1], scaleY: [1.2, 0.95, 1] }, duration: 0.16, ease: 'power1.out', immediateRender: false }, t);
+      tl.set(b.b.el, { zIndex: 10 }, t + dur * 0.7);
+      naRede(b.b, t + dur);
+      poeira(tl, cam, b.x, CHAO, t);
+    };
+    /** A mania: logo depois do contato, com a bola no ar, ele vira pra câmera comemorando (pose, pulinho). */
+    const comemora = (t) => {
+      quadro(tl, pk, 'Pose', 0, 1, t);
+      salto(pk, t + 0.05, 60, 0.3);
+    };
+    chutePk(T(4, 4), 905, T(3, 13));
+    bolaPraRede(bolas[4], T(4, 4), 0.5);
+    comemora(T(4, 4) + 0.24);
+    chutePk(T(4, 12), 775, T(4, 8.5));
+    bolaPraRede(bolas[3], T(4, 12), 0.375);
+    comemora(T(4, 12) + 0.24);
 
     // 5 · punch-in na última "bola": respira e solta um z (0–7); aberto (8): o Pikachu toma distância andando de costas,
     //     sem olhar pra "bola"
@@ -589,16 +652,12 @@
     // 8 · aberto: o Pikachu chega (0–3) e chuta o Voltorb (4), que sobe girando pro lado do gol; ele já vira pra câmera
     //     comemorando (5); punch-in (8): o Voltorb no ar, piscando branco (o aviso de sempre)
     plano(T(8, 0));
-    anim(tl, pk, 'Walk', 6, T(8, 0), T(8, 3.5), { vel: 1.6 });
-    tl.to(pk.el, { x: 730, duration: T(8, 3.5) - T(8, 0), ease: 'none' }, T(8, 0));
-    quadro(tl, pk, 'Shoot', 6, 4, T(8, 3.5));
-    quadro(tl, pk, 'Shoot', 6, 7, T(8, 4));
+    chutePk(T(8, 4), 725, T(8, 0));
     poeira(tl, cam, 640, CHAO, T(8, 4));
     const BOOM = [380, 1000];
     tl.to(vt.el, { x: BOOM[0], y: BOOM[1] + 60, duration: T(8, 8) - T(8, 4), ease: 'power2.out' }, T(8, 4));
     tl.to(vt.spr, { rotation: -540, duration: T(8, 8) - T(8, 4), ease: 'power2.out' }, T(8, 4));
-    quadro(tl, pk, 'Pose', 0, 1, T(8, 5));
-    salto(pk, T(8, 5), 60, 0.3);
+    comemora(T(8, 4) + 0.24);
     plano(T(8, 8), [BOOM[0], BOOM[1] - 60], 960);
     tl.set(vt.spr, { rotation: 0 }, T(8, 8));
     anim(tl, vt, 'Idle', 0, T(8, 8), T(9, 0));
@@ -653,7 +712,7 @@
       }
       // as bolas que estavam no chão e as do saco voam pra fora da tela, girando
       const voa = [[-260, -300], [1300, 200], [300, -260], [1320, -120], [-280, 700], [760, -280], [120, -300], [1000, -300]];
-      const fontes = [[460, CHAO], [780, CHAO], [560, CHAO], [BOOM[0], BOOM[1]], [25, CHAO - 40], [25, CHAO - 40], [BOOM[0], BOOM[1]], [25, CHAO - 40]];
+      const fontes = [[575, CHAO], [1010, CHAO], [930, CHAO], [BOOM[0], BOOM[1]], [480, CHAO - 50], [480, CHAO - 50], [BOOM[0], BOOM[1]], [480, CHAO - 50]];
       voa.forEach(([x, y], k) => {
         const b = k < 3 ? bolas[k].b : bola(cam, { d: 96, z: 40, x: fontes[k][0], y: fontes[k][1] });
         if (k >= 3) op(b.el, 0, false);
@@ -665,18 +724,6 @@
         op(b.el, t + 1, false);
       });
       // a fumaça em pixel art: 3 camadas (fundo escuro, meio, frente clara), cada nuvem cresce do centro e baixa no seu tempo
-      const nuvem = (E, tons) => {
-        const C0 = [[6, 8, 4.6], [11, 6, 5.2], [16, 8, 4.4], [9, 10, 4.2], [14, 10, 4.4]];
-        const dentro = (x, y) => C0.some(([cx, cy, r]) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r);
-        const rects = [];
-        for (let y = 0; y < 16; y++)
-          for (let x = 0; x < 22; x++) {
-            if (!dentro(x + 0.5, y + 0.5)) continue;
-            const c = !dentro(x + 2.5, y + 2.5) ? tons[2] : !dentro(x - 1.5, y - 1.5) ? tons[0] : tons[1];
-            rects.push([x, y, 1, 1, c]);
-          }
-        return contorno(rects);
-      };
       const CAMADAS = [
         { z: 40, tons: ['#a8a29a', '#6e6862', '#45403c'], E: 22, fim: [T(9, 11), T(9, 14.5)], n: 7 },
         { z: 42, tons: ['#d8d2c8', '#a49e94', '#6e6862'], E: 18, fim: [T(9, 9), T(9, 13)], n: 8 },
@@ -685,9 +732,11 @@
       CAMADAS.forEach(({ z, tons, E, fim, n }, c) => {
         for (let k = 0; k < n; k++) {
           const w = div(VEST, 'nuvemp', `z-index:${z}`);
-          desenho(w, nuvem(E, tons), E, 1);
-          const x = 120 + ((k * 389 + c * 170) % 860);
-          const y = 380 + ((k * 613 + c * 290) % 1300);
+          desenho(w, nuvem(tons), E, 1);
+          // as primeiras de cada camada caem em cima de cada um (Psyduck, Magikarp, Snorlax, Pikachu, o gol): a fumaça pega
+          // todo mundo; o resto se espalha pela tela
+          const ALVOS = [[200, 1560], [440, 1360], [540, 1120], [800, 1340], [190, 1400], [650, 1560]];
+          const [x, y] = k < 4 ? ALVOS[(k + 2 * c) % ALVOS.length] : [120 + ((k * 389 + c * 170) % 860), 380 + ((k * 613 + c * 290) % 1300)];
           const s = 1.3 + ((k * 7 + c) % 4) * 0.2;
           const t0 = t + 0.03 + 0.04 * k + 0.05 * c;
           const td = fim[0] + ((fim[1] - fim[0]) * k) / n;
@@ -699,17 +748,17 @@
           tl.to(w, { y: y - 8 * E - 220, scale: s * 1.3, opacity: 0, duration: 0.6, ease: 'power1.in' }, td);
         }
       });
-      // por baixo da fumaça (linha 4): todos tostados, o Psyduck voou pra beira, o Voltorb novinho no chão; o Pikachu
-      // continua na pose de comemoração, com o pelo arrepiado
+      // por baixo da fumaça (linha 4): todos tostados (o Psyduck voou pra beira, o Voltorb caiu dentro do gol); o Pikachu
+      // continua na pose de comemoração
       const t4 = T(9, 4);
       // o Voltorb caiu DENTRO do golzinho (atrás da rede), tostado e tonto: balança e as estrelinhas giram
-      tl.set(vt.el, { x: GOL[0] + 10, y: GOL[1] + 110, zIndex: 5 }, t4);
-      tl.set(vt.spr, { filter: 'brightness(0.62) sepia(0.7) saturate(1.3)' }, t4);
+      tl.set(vt.el, { x: GOL[0] + 10, y: GOL[1] + 6, zIndex: 10 }, t4);
+      tl.set(vt.spr, { filter: TOSTADO }, t4);
       op(vt.el, t4);
       tl.to(vt.corpo, { rotation: 10, duration: 0.45, ease: 'sine.inOut', repeat: 25, yoyo: true }, t4);
       for (let k = 0; k < 3; k++) {
         const e = div(cam, 'brilho', 'z-index:30;background:#ffe14d');
-        const [cx, cy] = [GOL[0] + 10, GOL[1] - 10];
+        const [cx, cy] = [GOL[0] + 10, GOL[1] - 120];
         tl.set(e, { x: cx, y: cy, scale: 0.55, opacity: 0 }, 0);
         tl.set(e, { opacity: 1 }, t4);
         tl.to(e, { keyframes: { x: [cx - 70, cx, cx + 70, cx, cx - 70], y: [cy, cy - 22, cy, cy + 22, cy], easeEach: 'sine.inOut' }, duration: 0.9, ease: 'none', repeat: 12 }, t4 + 0.3 * k);
@@ -722,12 +771,6 @@
       tl.set(saco, { filter: TOSTADO }, t4);
       tl.set(medV.m, { filter: TOSTADO }, t4);
       quadro(tl, pk, 'Pose', 0, 1, t4);
-      const up = (x, y) => [[x, y - 1, 2, 1, '#fff700'], [x, y - 3, 1, 2, '#fff700']];
-      const dir = (x, y) => [[x + 1, y, 1, 2, '#fff700'], [x + 2, y, 2, 1, '#fff700']];
-      const esq = (x, y) => [[x - 1, y, 1, 2, '#fff700'], [x - 3, y, 2, 1, '#fff700']];
-      const pelo = pix(pk, 'Pose', [...up(15, 5), ...up(17, 5), ...dir(23, 9), ...dir(23, 12), ...esq(9, 8), ...dir(25, 16), ...dir(22, 20), ...esq(9, 19), ...esq(10, 22)], { z: 1 });
-      tl.set(pelo, { filter: TOSTADO, opacity: 0 }, 0);
-      op(pelo, t4);
     }
     anim(tl, vt, 'Idle', 0, T(9, 4), T(13, 0));
     // O OLHAR (1 s, a trilha para): a fumaça baixou; punch-in fixo no Psyduck tostado, olhando pra lente, sem falar nada
@@ -736,7 +779,7 @@
     // 10 · a fumaça termina de baixar; as bolas caem do teto (1, 3, 5, 10, 12); punch-in no Snorlax (4): uma cai na barriga
     //      dele (6), ela afunda e devolve a bola, que quica pro chão; ele só vira de lado (9) e continua dormindo
     {
-      const chuva = [[1010, CHAO, 1], [250, CHAO, 3], [960, CHAO, 5], [380, CHAO, 10], [470, CHAO, 12]];
+      const chuva = [[1010, CHAO, 1], [600, CHAO, 3], [940, CHAO, 5], [660, CHAO, 10], [985, CHAO, 12]]; // longe do Magikarp e do gol
       for (const [x, y, r] of chuva) {
         const b = bola(cam, { d: 96, z: 22, x, y: -150 });
         tl.set(b.corpo, { filter: TOSTADO }, 0);
@@ -773,27 +816,40 @@
       plano(T(10, 4), [540, 1150], 1000);
       zzz(T(10, 12), 700, 860);
     }
-    // 11 · punch-in no golzinho (0): o Voltorb lá dentro, tostado e tonto, as estrelinhas girando; punch-in no Pikachu (6),
-    //      tostado, de pelo arrepiado e ainda na pose de comemoração; respiro (0,45 s) e um "Gol." seco, cansado, em
-    //      legenda, com um pulinho fraco
-    plano(T(11, 0), [GOL[0] + 120, GOL[1] - 10], 1050);
-    plano(T(11, 6), [800, 1300], 1100);
+    // 11 · punch-in no golzinho (0–7): o Voltorb lá dentro, tostado e tonto, as estrelinhas girando. Punch-in no Pikachu
+    //      (8), tostado e ainda na pose; ele olha pro Psyduck (12), pro Magikarp (16 · 0), pro Psyduck de novo (16 · 3),
+    //      pra câmera (16 · 6) e, depois de um respiro, pergunta: "Gol?" (16 · 9). Cada olhar ~0,4 s
+    plano(T(11, 0), [GOL[0] + 110, GOL[1] - 110], 1000);
+    plano(T(11, 8), [800, 1300], 1100);
     {
+      const olhar = [[T(11, 12), 7], [T(16, 0), 6], [T(16, 3), 7], [T(16, 6), 0]];
+      olhar.forEach(([t, d], k) => {
+        anim(tl, pk, 'Idle', d, t, k < 3 ? olhar[k + 1][0] : T(12, 0), { vel: 0.6 });
+        tl.to(pk.corpo, { keyframes: [{ rotation: d === 0 ? 0 : -3, duration: 0.08, ease: 'power2.out' }, { rotation: 0, duration: 0.12, ease: 'back.out(3)' }] }, t);
+      });
       const d = div(VEST, 'sub');
-      d.textContent = 'Gol.';
+      d.textContent = 'Gol?';
       op(d, 0, false);
-      op(d, T(11, 9.5));
+      op(d, T(16, 9));
       op(d, T(12, 0) - 0.05, false);
-      salto(pk, T(11, 10.5), 16, 0.32);
     }
-    // 12 · punch-in no capitão: ele apita… e só sai fumaça (4)
-    plano(T(12, 0), [330, CHAO - 150], 1100);
-    {
-      const f = div(cam, 'fumaca');
-      tl.fromTo(f, { x: 360, y: CHAO - 230, scale: 0.3, opacity: 0 }, { x: 420, y: CHAO - 420, scale: 1.1, opacity: 1, duration: 0.6, ease: 'power1.out', immediateRender: false }, T(12, 4));
-      tl.to(f, { opacity: 0, duration: 0.3 }, T(12, 12));
-    }
-    tl.to(mk.corpo, { keyframes: { scaleY: [0.9, 1.12, 0.94, 1], easeEach: 'sine.inOut' }, duration: 0.4, ease: 'none' }, T(12, 2.5));
+    // 12 · punch-in no capitão, tostado: ele enche o peito, sopra o apito… e saem baforadas de fumaça, uma atrás da outra,
+    //      cada uma maior, subindo (4, 6, 8, 10, 12)
+    plano(T(12, 0), [450, 1380], 1150, 2.6);
+    tl.to(mk.corpo, { keyframes: [{ scaleY: 1.12, scaleX: 0.94, duration: 0.25, ease: 'sine.out' }, { scaleY: 0.92, scaleX: 1.06, duration: 0.1, ease: 'power2.in' }, { scaleY: 1, scaleX: 1, duration: 0.15, ease: 'back.out(2)' }] }, T(12, 2.5) - 0.25);
+    [4, 6, 8, 10, 12].forEach((r, k) => {
+      const t = T(12, r);
+      const E = 6 + k;
+      const w = div(cam, 'nuvemp', 'z-index:30');
+      desenho(w, nuvem(['#d8d2c8', '#a49e94', '#6e6862']), E, 1);
+      gsap.set(w, { transformOrigin: `${11 * E}px ${8 * E}px` });
+      const [x0, y0] = [440, 1430]; // a boca (o apito)
+      tl.set(w, { x: x0 - 11 * E, y: y0 - 8 * E, scale: 0.2, opacity: 0 }, 0);
+      tl.set(w, { opacity: 1 }, t);
+      tl.to(w, { x: x0 - 11 * E + 40 + 25 * k, y: y0 - 8 * E - 220 - 50 * k, scale: 1 + 0.15 * k, duration: 0.9, ease: 'power2.out' }, t);
+      tl.to(w, { opacity: 0, duration: 0.35, ease: 'power1.in' }, t + 0.75);
+      tl.to(mk.corpo, { keyframes: [{ scaleX: 0.92, scaleY: 1.06, duration: 0.06, ease: 'power2.out' }, { scaleX: 1, scaleY: 1, duration: 0.14, ease: 'back.out(3)' }] }, t);
+    });
 
     medV.prende();
 
@@ -807,7 +863,7 @@
     const TABUAS = [700, 960, 1220];
     const baixo = [];
     {
-      // a estante de metal à direita: 2 pés, 3 tábuas, bolas e cones (na de cima, um vão em 805 pro Voltorb do TH 1)
+      // a estante de metal à direita: 2 pés, 3 tábuas, bolas e cones
       for (const x of [560, 1010]) div(SALA, 'est-pe', `left:${x}px;top:430px;height:900px`);
       for (const y of TABUAS) div(SALA, 'est-tabua', `left:540px;top:${y}px;width:510px`);
       const cone = (x, y) => {
@@ -815,7 +871,7 @@
         c.innerHTML = '<i></i><b></b><u></u>';
         return c;
       };
-      for (const x of [600, 700, 900]) bola(SALA, { d: 100, z: 5, x, y: TABUAS[0] + 4 });
+      for (const x of [600, 700, 800, 900]) bola(SALA, { d: 100, z: 5, x, y: TABUAS[0] + 4 });
       bola(SALA, { d: 100, z: 5, x: 700, y: TABUAS[1] + 4 });
       baixo.push(bola(SALA, { d: 100, z: 5, x: 950, y: TABUAS[2] + 4 }).el);
       cone(990, TABUAS[0]);
@@ -843,15 +899,6 @@
       op(d, t0);
       op(d, t1, false);
     };
-    /** O Voltorb fingindo de bola numa tábua da estante (de frente, parado, que nem bola), de t0 a t1. */
-    const voltorbNaEstante = (x, tabua, t0, t1, escala = 5) => {
-      const v = ator(SALA, 100, { escala, z: 6, x, y: TABUAS[tabua] + 2, sombra: false });
-      op(v.el, 0, false);
-      op(v.el, t0);
-      op(v.el, t1, false);
-      quadro(tl, v, 'Idle', 0, 0, t0);
-      return v;
-    };
     /** Uma piscada (as pálpebras do Voltorb fecham por `d` s) no quadro 0 do Idle de frente. */
     const piscada1 = (v, t, d = 0.16) => {
       const V = '#ff875f';
@@ -861,8 +908,7 @@
       op(p, t);
       op(p, t + d, false);
     };
-    // 1 · MAGIKARP (2–6), limpinho, medalha no peito. Entre as falas ele vira a medalha pra câmera (ninguém pediu). Na
-    //     2ª fala, o Voltorb aparece na estante atrás dele, no meio das bolas, e pisca uma vez; ele não percebe
+    // 1 · MAGIKARP (2–6), limpinho, medalha no peito. Entre as falas ele vira a medalha pra câmera (ninguém pediu)
     {
       const t = TH_INI[0];
       corta('#sala', t);
@@ -870,15 +916,13 @@
       anim(tl, a, 'Idle', 0, t, t + 4, { vel: 0.6 });
       const m = medalha(a);
       tarja('MAGIKARP', 'CAPITÃO', t + 0.15, t + 2.3, SALA, TARJA_Y);
-      legenda('Eu que organizo o material.', t + 0.3, t + 1.9);
-      tl.to(m.d, { keyframes: { scaleX: [0, -1.3, 0, 1.4], scaleY: [1.1, 1.25, 1.35, 1.4], easeEach: 'sine.inOut' }, duration: 0.4, ease: 'none' }, t + 1.95);
+      legenda('Hoje é dia de organizar material.', t + 0.3, t + 2.0);
+      tl.to(m.d, { keyframes: { scaleX: [0, -1.3, 0, 1.4], scaleY: [1.1, 1.25, 1.35, 1.4], easeEach: 'sine.inOut' }, duration: 0.4, ease: 'none' }, t + 2.05);
       const b = div(SALA, 'brilho', 'z-index:45');
       tl.set(b, { x: XT + 20, y: YT - 40 }, 0);
-      tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.6, rotation: 90, duration: 0.35, ease: 'back.out(2)', immediateRender: false }, t + 2.3);
-      tl.to(b, { opacity: 0, duration: 0.15 }, t + 2.6);
-      legenda('Conferi bola por bola.', t + 2.55, t + 3.9);
-      const v = voltorbNaEstante(805, 0, t + 2.55, t + 4, 6);
-      piscada1(v, t + 3.3);
+      tl.fromTo(b, { opacity: 1, scale: 0.2, rotation: 0 }, { scale: 1.6, rotation: 90, duration: 0.35, ease: 'back.out(2)', immediateRender: false }, t + 2.4);
+      tl.to(b, { opacity: 0, duration: 0.15 }, t + 2.7);
+      legenda('Conferi bola por bola.', t + 2.65, t + 3.95);
       m.prende();
     }
     // 2 · PIKACHU (10–16), em idle (respirando); respiro entre as falas e, na pausa, uma faísca curta na bochecha
@@ -889,19 +933,35 @@
       anim(tl, a, 'Idle', 0, t, t + TH_DUR[1], { vel: 0.7 });
       legenda('Sabe como é,', t + 0.4, t + 1.4);
       legenda('eu gosto de comemorar antes.', t + 1.4, t + 3.4);
+      // na pausa: raios em zigue-zague saem das duas bochechas (3 quadros em pixel art, trocando a cada 0,07 s), um brilho
+      // rápido e o "bzzt" (som/bzzt.ogg)
       {
-        const tf = t + 3.85;
-        const [cx, cy] = [496, 1166];
-        estouro(tl, SALA, cx, cy, tf, { tam: 90, cor: '#ffe14d', anel: false, dur: 0.22 });
-        for (const [dx, dy, r] of [[70, -50, 20], [80, 30, -30]]) {
-          const z = div(SALA, 'raio', 'z-index:45');
-          z.innerHTML = RAIO;
-          tl.set(z, { x: cx + dx, y: cy + dy, rotation: r, scale: 0.6 }, 0);
-          tl.set(z, { opacity: 1 }, tf);
-          tl.set(z, { opacity: 0 }, tf + 0.25);
+        const tf = t + 3.8;
+        const RAIOS = [
+          ['y.......', 'yy......', '.yyyyy..', '....yy..', '....yyyy', '.......y'],
+          ['yy......', '.yy.....', '..yyy...', '....yyyy', '.....yy.', '......yy'],
+          ['y.......', '.yyy....', '...yy...', '..yyyyy.', '......yy', '.......y'],
+        ];
+        const E = 12;
+        for (const [cx, cy, lado] of [[505, 1185, 1], [245, 1185, -1]]) {
+          const quadros = RAIOS.map((l) => {
+            const linhas = lado > 0 ? l : l.map((r) => [...r].reverse().join(''));
+            const d = desenho(SALA, contorno(arte(linhas, { y: '#ffe14d' })), E, 46);
+            tl.set(d, { x: lado > 0 ? cx : cx - 8 * E, y: cy - 3 * E, opacity: 0 }, 0);
+            return d;
+          });
+          [0, 1, 2, 0].forEach((q, k) => {
+            op(quadros[q], tf + 0.07 * k);
+            op(quadros[q], tf + 0.07 * (k + 1), false);
+          });
+          const g = div(SALA, 'brilho', 'z-index:45;background:#fff6a8');
+          tl.set(g, { x: cx, y: cy, opacity: 0 }, 0);
+          tl.fromTo(g, { opacity: 1, scale: 0.3, rotation: 0 }, { scale: 1.4, rotation: 45, duration: 0.16, ease: 'power2.out', immediateRender: false }, tf);
+          tl.to(g, { opacity: 0, duration: 0.1 }, tf + 0.16);
         }
+        tl.fromTo('#flash', { opacity: 0.3 }, { opacity: 0, duration: 0.12, ease: 'power2.out', immediateRender: false }, tf);
       }
-      legenda('Economiza tempo.', t + 4.35, t + 5.85);
+      legenda('Economiza tempo.', t + 4.4, t + 5.85);
     }
     // 3 · PSYDUCK (33–37), tostado, a prancheta queimada na mão (tarja PSYDUCK · TÉCNICO): olha a prancheta, olha a lente;
     //     no fim segura a cabeça com as duas mãos e a prancheta cai
@@ -929,34 +989,54 @@
         tl.to(f, { opacity: 0, duration: 0.4 }, t + 1.6 + 1.5 * k);
       }
     }
-    // A TAG (37–41), cold open ao contrário: o Magikarp, de lado, conta as bolas da tábua de baixo ("…onze, doze, tre—");
-    // o Voltorb, no meio delas, pisca bem na cara dele; o susto, o silêncio, e corte seco pro logo
+    // A TAG (39–43), cold open ao contrário: o Magikarp, de lado em primeiro plano, conta as bolas da prateleira em voz
+    // alta ("…dez, onze, doze…"); a cada número aparece uma bola e a câmera anda com o olhar dele pela fileira. O Voltorb
+    // NÃO aparece antes: no "tre—" a câmera chega na 13ª, que é ele; respiro, ele pisca, o Magikarp percebe e congela;
+    // 0,5 s de silêncio e corte seco pro logo
     {
       const t = TAG;
-      corta('#sala', t);
-      op(baixo, t, false);
-      const a = naSala(129, t, 4, { escala: 14, x: 470, y: 1450 });
-      anim(tl, a, 'Idle', 2, t, t + 4, { vel: 0.6 });
-      const m = medalha(a);
-      for (const x of [790, 890, 990]) {
-        const b = bola(SALA, { d: 100, z: 5, x, y: TABUAS[2] + 4 });
+      const FILA = $('fila');
+      const FC2 = $('fila-cam');
+      corta('#fila', t);
+      div(FC2, 'est-tabua', 'left:-700px;top:1000px;width:4200px');
+      for (const x of [-400, 400, 1300, 2200, 3100]) div(FC2, 'est-pe', `left:${x}px;top:420px;height:910px`);
+      div(FC2, 'est-tabua', 'left:-700px;top:420px;width:4200px');
+      const PASSO = 600;
+      const X = (n) => 640 + (n - 10) * PASSO; // a bola n na fileira (a 10ª no meio da tela no começo)
+      bola(FC2, { d: 190, z: 5, x: X(9), y: 1004 });
+      const conta = [['…dez,', 0.35], ['…dez, onze,', 0.95], ['…dez, onze, doze,', 1.55]];
+      conta.forEach(([txt, dt], k) => {
+        const tc = t + dt;
+        if (k > 0) tl.to(FC2, { x: -(k * PASSO), duration: 0.3, ease: 'power2.inOut' }, tc - 0.1);
+        const b = bola(FC2, { d: 190, z: 5, x: X(10 + k), y: 1004 });
         op(b.el, 0, false);
-        op(b.el, t);
-        op(b.el, t + 4, false);
+        op(b.el, tc + 0.12);
+        tl.fromTo(b.corpo, { scale: 0 }, { scale: 1, duration: 0.28, ease: 'back.out(2.4)', immediateRender: false }, tc + 0.12);
+        const d = div(FILA, 'sub');
+        d.textContent = txt;
+        op(d, 0, false);
+        op(d, tc);
+        op(d, tc + 0.6, false);
+      });
+      // o "tre—": a câmera chega na 13ª, que é o Voltorb (de frente, parado, fingindo de bola)
+      tl.to(FC2, { x: -3 * PASSO, duration: 0.3, ease: 'power2.inOut' }, t + 2.15);
+      {
+        const d = div(FILA, 'sub');
+        d.textContent = '…dez, onze, doze, tre—';
+        op(d, 0, false);
+        op(d, t + 2.15);
+        op(d, t + 3.5, false);
       }
-      const v = voltorbNaEstante(690, 2, t, t + 4, 6);
-      const conta = (txt, tc, x) => {
-        legenda(txt, tc, txt.endsWith('—') ? t + 3.2 : tc + 0.6);
-        tl.to(a.corpo, { keyframes: { y: [-14, 0], rotation: [4, 0], easeEach: 'sine.inOut' }, duration: 0.24, ease: 'none' }, tc);
-      };
-      conta('…onze,', t + 0.4);
-      conta('…onze, doze,', t + 1.0);
-      conta('…onze, doze, tre—', t + 1.6);
-      piscada1(v, t + 2.0, 0.18);
-      // o susto: dá um pulinho pra trás e fica parado olhando (respira), até o corte
-      tl.to(a.el, { keyframes: [{ x: 440, duration: 0.12, ease: 'power2.out' }, { x: 450, duration: 0.2, ease: 'back.out(3)' }] }, t + 2.25);
-      tl.to(a.corpo, { keyframes: [{ scaleY: 1.15, scaleX: 0.9, duration: 0.1, ease: 'power2.out' }, { scaleY: 1, scaleX: 1, duration: 0.25, ease: 'back.out(3)' }] }, t + 2.25);
-      m.prende();
+      const v = ator(FC2, 100, { escala: 12, z: 6, x: X(13), y: 1002, sombra: false });
+      quadro(tl, v, 'Idle', 0, 0, 0);
+      piscada1(v, t + 2.85, 0.2);
+      // o Magikarp em primeiro plano, de lado olhando a fileira; acena a cabeça a cada número; no susto, congela
+      const a = ator(FILA, 129, { escala: 17, z: 30, x: 170, y: 1430 });
+      anim(tl, a, 'Idle', 2, t, t + 3.05, { vel: 0.6 });
+      conta.forEach(([, dt]) => tl.to(a.corpo, { keyframes: { y: [-16, 0], rotation: [5, 0], easeEach: 'sine.inOut' }, duration: 0.26, ease: 'none' }, t + dt));
+      tl.to(a.corpo, { keyframes: { y: [-16, 0], rotation: [5, 0], easeEach: 'sine.inOut' }, duration: 0.26, ease: 'none' }, t + 2.15);
+      quadro(tl, a, 'Idle', 2, 0, t + 3.05);
+      tl.to(a.corpo, { keyframes: [{ scaleY: 1.14, scaleX: 0.9, y: -10, duration: 0.08, ease: 'power2.out' }, { scaleY: 1, scaleX: 1, y: 0, duration: 0.18, ease: 'back.out(3)' }] }, t + 3.05);
     }
 
     // 13–15 · TELA FINAL: o logo (SOC-CER-MON no 13: 8, 11, 14), o site e o selo; embaixo, o saco com as bolas; o
