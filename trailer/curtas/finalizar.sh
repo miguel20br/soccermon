@@ -6,15 +6,15 @@
 set -euo pipefail
 IN=${1:?render}; OUT=${2:?saida}
 mkdir -p "$(dirname "$OUT")"
-lufs() { ffmpeg -hide_banner -i "$1" -af ebur128 -f null - 2>&1 | sed -n 's/^ *I: *\(.*\) LUFS/\1/p' | tail -1; }
+lufs() { ffmpeg -hide_banner -threads 2 -i "$1" -af ebur128 -f null - 2>&1 | sed -n 's/^ *I: *\(.*\) LUFS/\1/p' | tail -1; }
 ganho=$(awk -v i="$(lufs "$IN")" 'BEGIN { print -14 - i }')
-ffmpeg -v error -y -i "$IN" -c:v copy -af "volume=${ganho}dB,alimiter=limit=0.708:level=false,aresample=48000" -c:a aac -b:a 192k -movflags +faststart "$OUT.mp4"
+ffmpeg -v error -y -threads 2 -i "$IN" -c:v copy -af "volume=${ganho}dB,alimiter=limit=0.708:level=false,aresample=48000" -c:a aac -b:a 192k -movflags +faststart "$OUT.mp4"
 # celular: bitrate pra caber em 9 MiB (o limite da extensão é 10 MB), no máximo 1450k
 dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$IN")
 kb=$(awk -v d="$dur" 'BEGIN { k = int(9 * 8 * 1024 / d - 128); print (k > 1450 ? 1450 : k) }')
 P=$(mktemp -d)
-ffmpeg -v error -y -i "$OUT.mp4" -c:v libx264 -preset slow -b:v "${kb}k" -pass 1 -passlogfile "$P/x" -an -f mp4 /dev/null
-ffmpeg -v error -y -i "$OUT.mp4" -c:v libx264 -preset slow -b:v "${kb}k" -pass 2 -passlogfile "$P/x" -c:a aac -b:a 128k -movflags +faststart "$OUT-celular.mp4"
+ffmpeg -v error -y -threads 2 -i "$OUT.mp4" -c:v libx264 -preset slow -b:v "${kb}k" -pass 1 -passlogfile "$P/x" -an -f mp4 /dev/null
+ffmpeg -v error -y -threads 2 -i "$OUT.mp4" -c:v libx264 -preset slow -b:v "${kb}k" -pass 2 -passlogfile "$P/x" -c:a aac -b:a 128k -movflags +faststart "$OUT-celular.mp4"
 rm -rf "${P:?}"
 for f in "$OUT.mp4" "$OUT-celular.mp4"; do
   echo "$(basename "$f"): $(du -h "$f" | cut -f1), $(lufs "$f") LUFS, vídeo ${kb}k no -celular"

@@ -1,6 +1,21 @@
-# Vestiário do Pallet FC · EP 2 "Saco de bolas" (26 s, rascunho 1, 12/11/2026)
+# Vestiário do Pallet FC · EP 2 "Saco de bolas" (38 s, mockumentary, 13/11/2026)
 
-Pauta 15 (aprovado em 07/11): o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça, plateia ri. Formato F1
+**Versão 2 (13/11, teste do formato mockumentary; roteiro em `docs/marketing/ep15-mockumentary.md` da pauta 17/11):** as
+cenas do rascunho 1 com 3 talking heads de 2 compassos (4 s) na salinha do material (parede com faixa amarela, lâmpada,
+estante de metal com bolas e cones), câmera parada, personagem em x 400 olhando pra lente, a fala em legenda embaixo
+(frase normal, sem balão). **Sem plateia** (tirada da `livre-bolas.mjs`). A trilha corta seco no talking head e volta de
+onde parou (4 pedaços de `bolas-14.wav`); durante ele só o zumbido da sala (`som/sala.ogg`, ruído marrom + 120 Hz).
+No `index.html`, `T(compasso, linha)` soma 4 s por talking head já passado, então os tempos das cenas não mudaram.
+
+| Seg. | Talking head | Legenda |
+|---|---|---|
+| 6–10 | Magikarp, medalha no peito; entre as falas vira a medalha pra câmera (brilho) | O material é comigo. / Conferi bola por bola. |
+| 14–18 | Pikachu parado na pose | Eu comemoro antes. / Economiza tempo. |
+| 28–32 | Psyduck tostado com a prancheta queimada (tarja PSYDUCK · TÉCNICO); olha a prancheta, olha a lente, segura a cabeça e a prancheta cai | Eu contei treze bolas. / A gente tem doze. |
+
+## Rascunho 1 (26 s, 12/11/2026)
+
+Pauta 15 (aprovado em 07/11): o Pikachu chuta o Voltorb achando que é a bola; explosão, fumaça (no rascunho 1, a plateia ria). Formato F1
 da [bíblia](../BIBLIA.md) (sitcom multicâmera: aberto + punch-in, plateia, tarja NOME · POSIÇÃO). Abertura, cenário e
 helpers copiados do "A foto do time" (EP 1).
 

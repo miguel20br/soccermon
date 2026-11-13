@@ -1,13 +1,14 @@
 // Vestiário do Pallet FC, EP 2 "Saco de bolas" (13 compassos, 26 s; roteiro em trailer/curtas/vestiario-bolas/ROTEIRO.md).
-// No molde da livre-foto: o tema do Vestiário abre (TEMA, a toalha no ta-DÁ), o funk da casa embaixo e a plateia.
+// No molde da livre-foto: o tema do Vestiário abre (TEMA, a toalha no ta-DÁ) e o funk da casa embaixo. Sem plateia
+// (13/11: o Vestiário virou mockumentary; a cena remonta com os talking heads e a trilha para durante eles).
 // O Magikarp despeja o saco (as bolas quicando no xilofone, cada uma uma nota), o Pikachu chuta duas no armário (chute,
 // rede, o pícolo comemorando ANTES), e a última bola é o Voltorb: breque, o tímpano rufando, o "ESSA NÃO!" do Psyduck
 // na tuba; o chute, os olhos do Voltorb abrem (o sino sozinho, silêncio) e o KABOOM (o estrondo, o prato e a tremida).
-// Fumaça, a risada grande, "…FOI GOL?" e o apito do Magikarp que só solta fumaça. Tela final em Fá: SOC-CER-MON, o tema
+// Fumaça, "…FOI GOL?" e o apito do Magikarp que só solta fumaça. Tela final em Fá: SOC-CER-MON, o tema
 // curto e o "tan-tan-TAAN".
 // 120 BPM, 4/4, swing 0,12, compasso = 2 s. Fá.
 import { kazoo, mola, plim, sobe as chiado, splash } from '../curtas.mjs';
-import { amostra, bass, drum, I, ins, MAJOR, mel, Song, SR, stabs, thirdBelow } from '../synth.mjs';
+import { bass, drum, I, ins, MAJOR, mel, Song, SR, stabs, thirdBelow } from '../synth.mjs';
 import { chute, deslize, k12, rede, ronco, som } from './livre-ginasio.mjs';
 import { TEMA, toalha } from './livre-foto.mjs';
 
@@ -66,11 +67,6 @@ export default function bolas() {
     const arrasta = S.part('arrasta', deslize(180, 120, 0.4), { drum: true, gain: 0.3 });
     const boom = S.part('kaboom', kaboom, { drum: true, gain: 1.3, rev: 0.25 });
     const zz = S.part('ronco', ronco, { drum: true, gain: 0.5, rev: 0.15 });
-    const risoC = S.part('risoCurto', amostra('plateia-riso-curto.wav'), { drum: true, gain: 0.9 });
-    const risoM = S.part('risoMedio', amostra('plateia-riso-medio.wav'), { drum: true, gain: 0.95 });
-    const risoG = S.part('risoGrande', amostra('plateia-riso-grande.wav'), { drum: true, gain: 0.85 });
-    const aplauso = S.part('aplauso', amostra('plateia-aplauso.wav'), { drum: true, gain: 0.8 });
-    const uuh = S.part('uuh', amostra('plateia-aww.wav', { tom: -3 }), { drum: true, gain: 0.8 });
 
     const F = MAJOR(5);
     const BASS = '0:2 8:1~ r:1 5:2 r:2 0:1 r:1 s:2 5:2 3:2';
@@ -85,7 +81,6 @@ export default function bolas() {
     const entra = (b, c, op) => {
         drum(cr, b, 1, 'X...............', { vel: 0.7 });
         groove(b, c, op);
-        aplauso.note(b * 16, 0, 0, 0.8);
     };
 
     // 0–1 · ABERTURA: o tema do Vestiário (a placa, a toalha, as letras no xilofone, o ta-DÁ)
@@ -123,11 +118,10 @@ export default function bolas() {
     plof.note(2 * 16 + 6, 72, 1, 0.8);
     mel(xi, 2, ['r:6 C7:1 A6:1 F6:1 C7:1 G6:1 D7:1 A6:1 F6:1 C6:2'], { vel: 0.7 });
     zz.note(2 * 16 + 12, -2, 0, 0.6);
-    // 3 · o Pikachu entra (aplauso, o pícolo) e comemora ANTES de chutar (8: zap); riso
+    // 3 · o Pikachu entra (o pícolo) e comemora ANTES de chutar (8: zap)
     entra(3, 'Bb7');
     mel(pc, 3, ['C6:1 F6:1 A6:1 C7:2 r:3 F7:1 r:1 F7:1 r:5'], { vel: 0.7 });
     zap.note(3 * 16 + 8, 0, 0, 1);
-    risoC.note(3 * 16 + 11, 0, 0, 0.9);
     // 4 · chute 1 (2) no armário (5), comemora (6–8); chute 2 (10) e de novo (13)
     groove(4, 'F7');
     ch.note(4 * 16 + 2, 0, 0, 1);
@@ -140,27 +134,23 @@ export default function bolas() {
     drum(cr, 5, 1, 'x...............', { vel: 0.5 });
     drum(tp, 5, 1, '....x.x.x.x.xxxx', { vel: 0.5 });
     mel(tuba, 5, ['r:8 C3:2 B2:2 Bb2:2 A2:2']);
-    uuh.note(5 * 16 + 10, 0, 0, 0.8);
     // 6 · o Pikachu corre (0–3) e chuta (4); punch-in (6): o Voltorb ABRE OS OLHOS no ar (8: o plim e silêncio)
     drum(sn, 6, 1, 'x.x.x...........', { vel: 0.8 });
     ch.note(6 * 16 + 4, 0, 0, 1.1);
     mel(pc, 6, ['F6:1 A6:1 C7:1 F7:1 r:12'], { vel: 0.8 });
     pl.note(6 * 16 + 8, 0, 0, 1);
     mel(kz, 6, ['r:11 F4:1 r:1 E4:3'], { vel: 0.5 });
-    // 7 · KABOOM (0); a fumaça; a plateia explode (6)
+    // 7 · KABOOM (0); a fumaça
     boom.note(7 * 16, 0, 0, 1);
     drum(cr, 7, 1, 'X...............');
     drum(tp, 7, 1, 'X...............');
     fumo.note(7 * 16 + 2, 0, 0, 0.7);
-    risoG.note(7 * 16 + 6, 0, 0, 1);
-    // 8 · todos tostados; "…FOI GOL?" (6), risada (10)
+    // 8 · todos tostados; "…FOI GOL?" (6)
     mel(tuba, 8, ['F2:2 r:2 C2:2 r:10'], { vel: 0.6 });
     mel(met2, 8, ['r:4 C4:4 B3:4 Bb3:4'], { vel: 0.4 });
-    risoM.note(8 * 16 + 10, 0, 0, 1);
-    // 9 · o Magikarp apita… e só sai fumaça (4); riso (8); o funk volta (12)
+    // 9 · o Magikarp apita… e só sai fumaça (4); o funk volta (12)
     ap.note(9 * 16 + 2, 72, 1, 0.5);
     fumo.note(9 * 16 + 4, 4, 0, 0.8);
-    risoC.note(9 * 16 + 8, 0, 0, 1);
     groove(9, 'C7', { leve: true });
 
     // 10–12 · TELA FINAL: SOC-CER-MON (10: 8, 11, 14) e as palmas; o tema curto e a toalha (11); o Voltorb rola de volta pro
@@ -181,6 +171,5 @@ export default function bolas() {
     mel(bs, 12, ['r:4 C2:1 r:1 C2:1 r:1 F1:6 r:2']);
     drum(kk, 12, 1, '....x.x.X.......');
     drum(cr, 12, 1, '........X.......');
-    aplauso.note(12 * 16 + 9, 0, 0, 0.8);
     return S;
 }
