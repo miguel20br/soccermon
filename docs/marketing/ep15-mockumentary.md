@@ -57,8 +57,7 @@ nada. O 2 arma o chute: ele comemora antes, então nem olha o que está chutando
 | 28 | **Talking head 3 (Psyduck)** | PSYDUCK · TÉCNICO · Eu contei treze bolas. / A gente tem doze. |
 | 32 | Tela final; o Voltorb volta pro meio das bolas e pisca | Temos que chutar! · soccermon.com |
 
-**Pergunta pro Miguel:** no mockumentary a cena também fica sem plateia? Neste episódio a risada continua nas cenas
-porque o vídeo já existe; a partir do ep. 3 dá pra tirar de vez.
+**Decidido (Miguel, 13/11):** sem plateia em todo o mockumentary, inclusive neste episódio: tirar a risada gravada das cenas ao remontar.
 
 ## Legenda do post
 
