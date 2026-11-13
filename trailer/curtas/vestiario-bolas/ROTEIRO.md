@@ -1,4 +1,28 @@
-# Vestiário do Pallet FC · EP 2 "Bola fora" (47 s, mockumentary v5, 13/11/2026)
+# Vestiário do Pallet FC · EP 2 "Bola fora" (49 s, mockumentary v6, 13/11/2026)
+
+**Versão 6 (13/11, notas do Miguel na v5):**
+- TH Magikarp: "Hoje é dia de organizar material." / "Conferi bola por bola." (sem o Voltorb na estante).
+- Chute do Pikachu (`chutePk`): corrida acelerando, última passada longa (sobe e estica), perna de apoio do lado da bola
+  (Shoot 3, amassa e inclina pra trás), contato (Shoot 5, inclina pra frente), follow-through (Shoot 7, 9, 10, o corpo
+  segue 28 px e volta com overshoot). Os chutes no gol caem nas linhas 4 e 12 (redes em 8 e 15).
+- O golzinho em SVG, apoiado no chão (base em y 1540), com quadro de trás em perspectiva, rede no fundo e nas laterais e
+  sombra; o banco começa em x 340 (não atravessa o gol); o Magikarp para em 430 e o saco cai atrás dele: a frente do gol
+  fica livre.
+- TH Pikachu: raios em zigue-zague em pixel art saindo das duas bochechas (3 quadros), brilho e `som/bzzt.ogg`.
+- Explosão: as primeiras nuvens de cada camada caem em cima de cada um (Psyduck, Magikarp, Snorlax, Pikachu, gol);
+  todos saem tostados (tostado mais claro, legível).
+- O "Gol?": punch-in no Pikachu, ele olha pro Psyduck, pro Magikarp, pro Psyduck e pra câmera (~0,4 s cada, um plim de
+  xilofone em cada virada: compasso 19 da peça) e pergunta "Gol?".
+- O apito: 5 baforadas em pixel art saindo do apito, cada uma maior, subindo.
+- A tag vira a contagem: prateleira comprida (`#fila`), o Magikarp ao lado contando "…dez, onze, doze"; a cada número
+  uma bola aparece e a câmera anda pela fileira (passo de 600 px, a próxima fica fora da tela); no "tre—" a câmera chega
+  no Voltorb (13ª), ele pisca, o Magikarp congela, 0,5 s de silêncio (a trilha zera em 42,5 s) e corte seco.
+
+Trilha do curta: `ffmpeg -i trailer/curtas/midia/som/bolas-14.wav -/filter_complex trailer/curtas/vestiario-bolas/trilha-filtro.txt
+-map "[o]" -ar 48000 trailer/curtas/midia/som/bolas-curta.wav` (corta do 4 s, 1 s de silêncio no olhar, abaixa nos
+talking heads e na tag, zera os 0,5 s antes do logo).
+
+## Versão 5 (47 s)
 
 **Versão 5 (13/11, pra postar sex 13/11 19h):** comédia no ritmo de The Office (timing, silêncio, olhar pra câmera), a
 trilha que não para e animação polida. A peça vai na ordem do curta pelo `MAPAS.bolas` de `musica.mjs` (25 compassos;

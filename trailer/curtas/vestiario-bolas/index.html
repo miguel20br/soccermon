@@ -491,15 +491,15 @@
     //     costas, uma "bola" vermelha e branca: o Voltorb
     plano(T(2, 0));
     const saco = div(cam, 'saco');
-    const xS = (x) => x - 170;
+    const xS = (x) => x - 120; // v6: o saco vem colado no Magikarp, sem passar na frente do gol
     op(mk.el, T(2, 0));
     anim(tl, mk, 'Walk', 2, T(2, 0), T(2, 6));
     tl.fromTo(mk.el, { x: -200 }, { x: 430, duration: T(2, 6) - T(2, 0), ease: 'power1.out', immediateRender: false }, T(2, 0));
     tl.fromTo(saco, { x: xS(-200), y: CHAO - 150 }, { x: xS(430), duration: T(2, 6) - T(2, 0), ease: 'power1.out', immediateRender: false }, T(2, 0));
     anim(tl, mk, 'Idle', 0, T(2, 6), T(13, 0));
-    tl.to(saco, { rotation: 14, duration: 0.12, ease: 'power2.out' }, T(2, 6) - 0.12);
-    tl.to(saco, { rotation: -70, duration: 0.2, ease: 'back.out(2)' }, T(2, 6));
-    tl.to(saco, { x: xS(560), y: CHAO - 70, rotation: -100, scale: 0.8, duration: 0.3, ease: 'power2.in' }, T(2, 12));
+    tl.to(saco, { rotation: -14, duration: 0.12, ease: 'power2.out' }, T(2, 6) - 0.12);
+    tl.to(saco, { rotation: 70, duration: 0.2, ease: 'back.out(2)' }, T(2, 6)); // v6: vira pra direita, longe do gol
+    tl.to(saco, { x: xS(600), y: CHAO - 70, rotation: 100, scale: 0.8, duration: 0.3, ease: 'power2.in' }, T(2, 12));
     tl.to(saco, { keyframes: { scaleY: [0.62, 0.86, 0.8], scaleX: [0.95, 0.78, 0.8] }, duration: 0.2, ease: 'power1.out' }, T(2, 12) + 0.3);
     tl.set(saco, { zIndex: 5 }, T(2, 12));
     const SPOTS = [[575, 0], [1010, 1], [930, 2], [690, 3], [820, 4]];
