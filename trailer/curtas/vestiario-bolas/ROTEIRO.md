@@ -1,4 +1,29 @@
-# Vestiário do Pallet FC · EP 2 "Bola fora" (34 s, mockumentary v3, 13/11/2026)
+# Vestiário do Pallet FC · EP 2 "Bola fora" (41 s, mockumentary v4, 13/11/2026)
+
+**Versão 4 (13/11, pedidos do Miguel depois da v3):** miolo mais longo e a mania do Pikachu na tela. A peça
+(`livre-bolas.mjs`) foi pra 16 compassos; o curta usa do 2 ao 15.
+
+| Seg. | C | Plano | Texto |
+|---|---|---|---|
+| 0 | 2 | Magikarp despeja o saco; cartela da série por cima | VESTIÁRIO DO PALLET FC · EP. 2 · BOLA FORA |
+| 2 | TH | **Magikarp** (tarja no alto, y 600, acima da cabeça) | Eu que organizo o material. / Conferi bola por bola. |
+| 6 | 3–4 | Pikachu entra (tarja ALA); nos dois chutes ele chuta e já vira pra câmera comemorando (pose, pulinho) com a bola no ar; ela entra atrás dele | — |
+| 10 | TH (5 s) | **Pikachu** na pose; faísca na bochecha na pausa | Sabe como é, / eu gosto de comemorar antes. / Economiza tempo. |
+| 15 | 5 | Punch-in na "bola" que ronca; aberto: o Pikachu toma distância andando de costas | — |
+| 17 | 6 | Close: o Voltorb vira de frente e abre os olhos devagar (pálpebras em 3 passos); aberto: o Pikachu vira e corre | — |
+| 19 | 7 | Câmera lenta, cor desbotada, vai-e-vem: olho do Voltorb (3x), Pikachu correndo devagar, Psyduck entrando devagar (grito desacelerado), olho, pé | ESSA NÃO! |
+| 21 | 8 | Chute; o Voltorb sobe pro lado do gol; o Pikachu já comemora de costas pra ele; punch-in no Voltorb piscando | — |
+| 23 | 9 | KABOOM atrás do Pikachu: clarão branco de 2 quadros, tremida, onda de choque que empurra ele (segue na pose), faíscas, destroços, as bolas voam pra fora da tela, fumaça em pixel art em 3 camadas que baixam em tempos diferentes | — |
+| 25 | 10 | Chuva de bolas tostadas; punch-in: uma cai na barriga do Snorlax, quica pro chão e ele só deita de lado no banco | — |
+| 27 | 11 | Voltorb pula feliz; punch-in no Pikachu tostado, na pose, pelo arrepiado | …FOI GOL? |
+| 29 | 12 | Punch-in: o Magikarp apita, sai fumaça | — |
+| 31 | TH | **Psyduck** tostado (tarja no alto) | Eu contei treze bolas. / A gente tem doze. |
+| 35 | 13–15 | Tela final | Temos que chutar! · soccermon.com |
+
+Som: a trilha corta seco nos talking heads (4 pedaços de `bolas-14.wav`), `som/sala.ogg` com 5,2 s (o TH do Pikachu tem
+5 s), `som/54-lento.ogg` (o grito do Psyduck desacelerado: `asetrate=32728*0.55`).
+
+## Versão 3 (34 s)
 
 **Versão 3 (13/11):** o título virou **"Bola fora"** ("Saco de bolas" tinha duplo sentido). Gancho: sem os 4 s da
 abertura; o vídeo abre no Magikarp arrastando o saco, com a cartela da série (VESTIÁRIO DO · PALLET FC, EP. 2, BOLA

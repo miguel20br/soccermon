@@ -1,4 +1,5 @@
-// Vestiário do Pallet FC, EP 2 "Bola fora" (13 compassos, 26 s; o curta v3 usa do compasso 2 em diante; roteiro em trailer/curtas/vestiario-bolas/ROTEIRO.md).
+// Vestiário do Pallet FC, EP 2 "Bola fora" (16 compassos, 32 s; v4 de 13/11: o suspense do 5 ao 7 e a chuva de bolas no 10;
+// o curta usa do compasso 2 em diante; roteiro em trailer/curtas/vestiario-bolas/ROTEIRO.md).
 // No molde da livre-foto: o tema do Vestiário abre (TEMA, a toalha no ta-DÁ) e o funk da casa embaixo. Sem plateia
 // (13/11: o Vestiário virou mockumentary; a cena remonta com os talking heads e a trilha para durante eles).
 // O Magikarp despeja o saco (as bolas quicando no xilofone, cada uma uma nota), o Pikachu chuta duas no armário (chute,
@@ -36,7 +37,7 @@ const kaboom = som(
 const XILO = { vol: 0.32, a: 0.001, r: 0.16, shape: 1, sv: 0.08, d: 0.06 };
 
 export default function bolas() {
-    const S = new Song({ bpm: 120, bars: 13, swing: 0.12, tail: 2 });
+    const S = new Song({ bpm: 120, bars: 16, swing: 0.12, tail: 2 });
     const met = S.part('metais', I.brass, { pan: 0.2, gain: 0.45, corte: 3000, rev: 0.2 });
     const met2 = S.part('metais2', I.brass, { pan: -0.2, gain: 0.4, corte: 2600, rev: 0.2 });
     const ep = S.part('piano', I.epiano, { pan: -0.25, gain: 0.55, rev: 0.3 });
@@ -129,47 +130,66 @@ export default function bolas() {
     ch.note(4 * 16 + 10, 0, 0, 1);
     rd.note(4 * 16 + 13, 0, 0, 0.8);
     mel(pc, 4, ['r:6 A6:1 C7:1 r:6 A6:1 C7:1'], { vel: 0.7 });
-    // 5 · breque: a última "bola" (punch-in) é o Voltorb dormindo; o tímpano rufa baixinho; o Psyduck (8): ESSA NÃO!, a tuba
+    // 5 · breque: a última "bola" (punch-in) é o Voltorb dormindo e ronca baixinho (2); aberto (8): o Pikachu toma
+    //     distância de costas, um passo por nota no xilofone, e o tímpano começa a rufar
     drum(kk, 5, 1, 'X...............');
     drum(cr, 5, 1, 'x...............', { vel: 0.5 });
-    drum(tp, 5, 1, '....x.x.x.x.xxxx', { vel: 0.5 });
-    mel(tuba, 5, ['r:8 C3:2 B2:2 Bb2:2 A2:2']);
-    // 6 · o Pikachu corre (0–3) e chuta (4); punch-in (6): o Voltorb ABRE OS OLHOS no ar (8: o plim e silêncio)
-    drum(sn, 6, 1, 'x.x.x...........', { vel: 0.8 });
-    ch.note(6 * 16 + 4, 0, 0, 1.1);
-    mel(pc, 6, ['F6:1 A6:1 C7:1 F7:1 r:12'], { vel: 0.8 });
-    pl.note(6 * 16 + 8, 0, 0, 1);
-    mel(kz, 6, ['r:11 F4:1 r:1 E4:3'], { vel: 0.5 });
-    // 7 · KABOOM (0); a fumaça
-    boom.note(7 * 16, 0, 0, 1);
-    drum(cr, 7, 1, 'X...............');
-    drum(tp, 7, 1, 'X...............');
-    fumo.note(7 * 16 + 2, 0, 0, 0.7);
-    // 8 · todos tostados; "…FOI GOL?" (6)
-    mel(tuba, 8, ['F2:2 r:2 C2:2 r:10'], { vel: 0.6 });
-    mel(met2, 8, ['r:4 C4:4 B3:4 Bb3:4'], { vel: 0.4 });
-    // 9 · o Magikarp apita… e só sai fumaça (4); o funk volta (12)
-    ap.note(9 * 16 + 2, 72, 1, 0.5);
-    fumo.note(9 * 16 + 4, 4, 0, 0.8);
-    groove(9, 'C7', { leve: true });
+    zz.note(5 * 16 + 2, 5, 0, 0.35);
+    mel(xi, 5, ['r:8 C6:2 A5:2 F5:2 C5:2'], { vel: 0.5 });
+    drum(tp, 5, 1, '............x.x.', { vel: 0.35 });
+    // 6 · close: o Voltorb abre os olhos devagar (o sino sozinho, 2 e 8); aberto (8): o Pikachu vira e começa a correr
+    mel(sino, 6, ['r:2 C5:6 r:2 F5:6'], { vel: 0.5 });
+    drum(tp, 6, 1, '....x.x.x.x.xxxx', { vel: 0.5 });
+    drum(sn, 6, 1, '........x...x...', { vel: 0.5 });
+    // 7 · câmera lenta, vai-e-vem: o olho (0), o Pikachu correndo devagar (3), o Psyduck "ESSA NÃO!" arrastado (6–11:
+    //     a tuba e o kazoo lentos), o olho e o pé (12–15); o tímpano rufando o compasso inteiro
+    drum(tp, 7, 1, 'xxxxxxxxxxxxxxxx', { vel: 0.55 });
+    drum(cr, 7, 1, 'x.....x.........', { vel: 0.4 });
+    mel(tuba, 7, ['r:6 C3:3 B2:3 Bb2:2 A2:2']);
+    mel(kz, 7, ['r:6 F3:6 r:4'], { vel: 0.5 });
+    pl.note(7 * 16 + 12, -5, 0, 0.6);
+    // 8 · o Pikachu chega (0–3) e chuta (4); punch-in (6): o Voltorb no ar, piscando (8: o plim e silêncio)
+    drum(sn, 8, 1, 'x.x.x...........', { vel: 0.8 });
+    ch.note(8 * 16 + 4, 0, 0, 1.1);
+    mel(pc, 8, ['F6:1 A6:1 C7:1 F7:1 r:12'], { vel: 0.8 });
+    pl.note(8 * 16 + 8, 0, 0, 1);
+    mel(kz, 8, ['r:11 F4:1 r:1 E4:3'], { vel: 0.5 });
+    // 9 · KABOOM (0); a fumaça em camadas (2 e 8)
+    boom.note(9 * 16, 0, 0, 1);
+    drum(cr, 9, 1, 'X.......x.......');
+    drum(tp, 9, 1, 'X...............');
+    fumo.note(9 * 16 + 2, 0, 0, 0.7);
+    fumo.note(9 * 16 + 8, -3, 0, 0.45);
+    // 10 · a fumaça baixa e as bolas caem do teto (uma nota cada: 1, 3, 5, 10, 12); uma cai na barriga do Snorlax (6: BOING)
+    //      e ele só vira de lado (9: o ronco)
+    mel(xi, 10, ['r:1 C7:2 A6:2 F6:1 r:4 G6:2 D6:2 r:2'], { vel: 0.6 });
+    bo.note(10 * 16 + 6, 10, 0, 0.9);
+    zz.note(10 * 16 + 9, -2, 0, 0.6);
+    // 11 · todos tostados; "…FOI GOL?" (6)
+    mel(tuba, 11, ['F2:2 r:2 C2:2 r:10'], { vel: 0.6 });
+    mel(met2, 11, ['r:4 C4:4 B3:4 Bb3:4'], { vel: 0.4 });
+    // 12 · o Magikarp apita… e só sai fumaça (4); o funk volta (12)
+    ap.note(12 * 16 + 2, 72, 1, 0.5);
+    fumo.note(12 * 16 + 4, 4, 0, 0.8);
+    groove(12, 'C7', { leve: true });
 
-    // 10–12 · TELA FINAL: SOC-CER-MON (10: 8, 11, 14) e as palmas; o tema curto e a toalha (11); o Voltorb rola de volta pro
-    //         saco (11, 8) e pisca (12, 2): "tan-tan-TAAN" (12: 4, 6, 8)
-    groove(10, 'F', { leve: true });
+    // 13–15 · TELA FINAL: SOC-CER-MON (13: 8, 11, 14) e as palmas; o tema curto e a toalha (14); o Voltorb rola de volta pro
+    //         saco (14, 8) e pisca (15, 2): "tan-tan-TAAN" (15: 4, 6, 8)
+    groove(13, 'F', { leve: true });
     for (const [dt, iv, len] of [[8, 7, 3], [11, 4, 3], [14, 12, 2]]) {
-        met.note(10 * 16 + dt, 65 + iv, len, 1);
-        met2.note(10 * 16 + dt, 53 + iv, len, 0.7);
+        met.note(13 * 16 + dt, 65 + iv, len, 1);
+        met2.note(13 * 16 + dt, 53 + iv, len, 0.7);
     }
-    drum(cl, 11, 1, '....x.x.........', { vel: 0.9 });
-    mel(met, 11, ['C5:1 F5:1 A5:2 G5:1 r:1 F5+A5+C6:2! r:8']);
-    tl.note(11 * 16 + 6, 0, 0, 1.1);
-    drum(kk, 11, 1, 'X.....X.........');
-    mel(bs, 11, ['F2:1 r:1 F2:1 r:1 C2:1 r:1 F1:2 r:8']);
-    mel(xi, 11, ['r:8 C7:1 A6:1 F6:1 C6:1 r:4'], { vel: 0.6 });
-    pl.note(12 * 16 + 2, 2, 0, 0.8);
-    mel(met, 12, ['r:4 C5+F5:1 r:1 C5+F5:1 r:1 F5+A5+C6:6! r:2']);
-    mel(bs, 12, ['r:4 C2:1 r:1 C2:1 r:1 F1:6 r:2']);
-    drum(kk, 12, 1, '....x.x.X.......');
-    drum(cr, 12, 1, '........X.......');
+    drum(cl, 14, 1, '....x.x.........', { vel: 0.9 });
+    mel(met, 14, ['C5:1 F5:1 A5:2 G5:1 r:1 F5+A5+C6:2! r:8']);
+    tl.note(14 * 16 + 6, 0, 0, 1.1);
+    drum(kk, 14, 1, 'X.....X.........');
+    mel(bs, 14, ['F2:1 r:1 F2:1 r:1 C2:1 r:1 F1:2 r:8']);
+    mel(xi, 14, ['r:8 C7:1 A6:1 F6:1 C6:1 r:4'], { vel: 0.6 });
+    pl.note(15 * 16 + 2, 2, 0, 0.8);
+    mel(met, 15, ['r:4 C5+F5:1 r:1 C5+F5:1 r:1 F5+A5+C6:6! r:2']);
+    mel(bs, 15, ['r:4 C2:1 r:1 C2:1 r:1 F1:6 r:2']);
+    drum(kk, 15, 1, '....x.x.X.......');
+    drum(cr, 15, 1, '........X.......');
     return S;
 }
