@@ -1,4 +1,4 @@
-# Vestiário do Pallet FC, ep. 2 "Saco de bolas": versão mockumentary (pauta 20, ter 17/11 19h)
+# Vestiário do Pallet FC, ep. 2 "Bola fora": versão mockumentary (pauta 20, ter 17/11 19h)
 
 O vídeo já existe: `~/Vídeos/soccermon-postar/pauta-14-15/15-saco-de-bolas.mp4` (26 s). Roteiro dele:
 `trailer/curtas/vestiario-bolas/ROTEIRO.md` (worktree `ep14`). Esta versão é o teste do formato novo do Vestiário
