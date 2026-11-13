@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.51 · Sprites nítidos, novas animações e Duelo (13/11/2026)
+
+Motor 30 (sem mudança de partida). Canvas na resolução da tela (src/game/sharp-canvas.ts) e pixel duro com escala inteira e governador de fps (src/game/quality.ts; telemetria `fps`, `fps_p10`, `dpr`, `res_level` no `match_end`). Sombra e anel em textura (flat-ellipse.ts) puseram o sprite como 2ª textura do lote: no WebGL por software o id chegava 0,99999994 e cortava faixas; src/game/texid-fix.ts arredonda no shader. Squash & stretch no jogo de linha (src/ui/match-view.ts, `?squashdebug=1`; o chute comum vinha como `Kick`). Arcade sem ₽ nem Mercado (`SPONSOR_REWARD_CHANCE` 0,4), Rota com `ROTA_JOGO_PAY` 3. Barrinha de N em Gomos. Duelo sem BETA, Seus duelos (src/ui/duel/DuelHistory.tsx). Tela inicial antiga (`?lab=off`) removida.
+
 ## 0.9.50 · Cada um no seu lugar (12/11/2026)
 
 Motor 30 (`liga` republicada): `fixoPass` 0,2 no Losango (balanceamento-geral.md, "Motor 30"). Fim de jogo com cara (`endPose` em src/game/ceremony.ts, demo `?demo=fim&res=`). `myMon` (src/ui/ambientes/metas.ts): capitão do último time nos ambientes. Evento `nav` (`trackNav`, migração 20261111120000 aplicada antes). Perfil com "Seus números" e Amigos na barra de cima; Clube, Amigos e Metas viram folhas (`openSheet` em src/ui/doors.ts) e o voltar segue o caminho (src/ui/back-nav.ts).
