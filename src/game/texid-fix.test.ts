@@ -1,14 +1,14 @@
 import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
-import { roundTexId, TEXID_FIX } from './swiftshader-texid.mjs';
+import { installTexIdFix, roundTexId } from './texid-fix';
 
 // os pedaços do shader do lote do Phaser que escolhem a textura pelo id interpolado
 const require = createRequire(import.meta.url);
-const phaser = (f: string) => require(`../node_modules/phaser/src/renderer/webgl/shaders/${f}`) as string;
+const phaser = (f: string) => require(`../../node_modules/phaser/src/renderer/webgl/shaders/${f}`) as string;
 const getTexture = phaser('GetTexture-glsl.js');
 const getTexRes = phaser('GetTexRes-glsl.js');
 
-describe('sprite cortado no SwiftShader (id da textura interpolado)', () => {
+describe('sprite cortado no WebGL por software (id da textura interpolado)', () => {
     it('o Phaser ainda compara o id interpolado com == (se mudar, este conserto pode sair)', () => {
         expect(getTexture).toMatch(/outTexDatum == 0\.0/);
         expect(getTexRes).toMatch(/float texId = outTexDatum;/);
@@ -23,7 +23,7 @@ describe('sprite cortado no SwiftShader (id da textura interpolado)', () => {
         expect(roundTexId('varying float outTexDatum;')).toBe('varying float outTexDatum;');
     });
 
-    it('o script da página reescreve só o fragment shader', () => {
+    it('instalado no WebGL, reescreve só o fragment shader, uma vez', () => {
         const seen: string[] = [];
         class Ctx {
             FRAGMENT_SHADER = 1;
@@ -35,18 +35,15 @@ describe('sprite cortado no SwiftShader (id da textura interpolado)', () => {
                 seen.push(src);
             }
         }
-        const g = globalThis as unknown as { window?: unknown };
-        const old = g.window;
-        g.window = { WebGLRenderingContext: Ctx };
-        try {
-            new Function(TEXID_FIX)();
-            const gl = new Ctx();
-            gl.shaderSource({ type: 0 }, 'void main(){ outTexDatum = inTexDatum; }');
-            gl.shaderSource({ type: 1 }, getTexture);
-        } finally {
-            g.window = old;
-        }
-        expect(seen[0]).toBe('void main(){ outTexDatum = inTexDatum; }');
+        const w = { WebGLRenderingContext: Ctx, WebGL2RenderingContext: undefined };
+        installTexIdFix(w as never);
+        installTexIdFix(w as never);
+        const gl = new Ctx();
+        const vert = 'void main(){ outTexDatum = inTexDatum; }';
+        gl.shaderSource({ type: 0 }, vert);
+        gl.shaderSource({ type: 1 }, getTexture);
+        expect(seen[0]).toBe(vert);
         expect(seen[1]).toContain('if (floor(outTexDatum + 0.5) == 0.0)');
+        expect(seen[1]).not.toContain('floor(floor(');
     });
 });

@@ -7,7 +7,6 @@
 // lateral. Resultado em <pasta>/res-<copa|paginas>-<LxA>.json. Playwright: o pacote `playwright` se estiver instalado
 // (CI), senão o do cache do npx (env PLAYWRIGHT muda o caminho). PW_CHANNEL=chrome usa o Chrome do sistema (CI).
 import fs from 'node:fs';
-import { TEXID_FIX } from '../swiftshader-texid.mjs';
 
 const NPX_PLAYWRIGHT = '/home/bartolomeu/.npm/_npx/9833c18b2d85bc59/node_modules/playwright/index.mjs';
 const pw = await import(process.env.PLAYWRIGHT ?? 'playwright').catch(() => import(NPX_PLAYWRIGHT));
@@ -33,8 +32,6 @@ const newPage = async () => {
         hasTouch: mobile,
         isMobile: mobile,
     });
-    // WebGL por software (CI): sem isto some uma faixa do sprite em alguns quadros (swiftshader-texid.mjs)
-    await ctx.addInitScript(TEXID_FIX);
     // balões do tutorial (Coach.tsx) cobrem a tela: a fumaça testa o jogo, então pula todos que aparecerem
     await ctx.addInitScript(() => {
         setInterval(() => document.querySelector('.coach-skip')?.click(), 300);

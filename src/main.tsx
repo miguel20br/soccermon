@@ -8,6 +8,7 @@ import { startChunkReload } from './chunk-reload';
 import { startCloudSync } from './cloud/cloud';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { startFriendsLive } from './friends/api';
+import { installTexIdFix } from './game/texid-fix';
 import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startExitMotion } from './ui/exit-motion';
@@ -35,6 +36,8 @@ window.addEventListener('unhandledrejection', (e) => {
 
 // versão nova no ar com a aba aberta: pedaço com hash que sumiu recarrega a página uma vez
 startChunkReload();
+// antes de qualquer jogo Phaser: sprite sem faixa sumida no WebGL por software (game/texid-fix.ts)
+installTexIdFix();
 
 // endereço antigo (soccermon.vercel.app) leva o jogador e o save para o soccermon.com
 void moveToNewDomain();
