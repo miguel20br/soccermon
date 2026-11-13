@@ -165,7 +165,7 @@ export const common = {
             name: 'Linha de 3 (3-1)',
             description: 'Toca atrás até achar o pivô, que devolve pra quem chega.',
             up: '+Bola no pivô +Parede',
-            down: '−Lenta',
+            down: '−Passe pra frente',
         },
         '4-0': {
             name: 'Rodízio (4-0)',

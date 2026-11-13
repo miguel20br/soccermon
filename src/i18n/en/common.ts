@@ -151,7 +151,7 @@ export const common: typeof pt = {
             name: 'Back Three (3-1)',
             description: 'Passes at the back until it finds the pivot, who lays it off.',
             up: '+Pivot target +Layoff',
-            down: '−Slow',
+            down: '−Forward passing',
         },
         '4-0': {
             name: 'Rotation (4-0)',
