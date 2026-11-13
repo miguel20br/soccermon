@@ -1,4 +1,17 @@
-# Vestiário do Pallet FC · EP 2 "Bola fora" (49 s, mockumentary v6, 13/11/2026)
+# Vestiário do Pallet FC · EP 2 "Bola fora" (49 s, mockumentary v7, 13/11/2026)
+
+**Versão 7 (13/11):**
+- O golzinho fica **de lado**, em três quartos, na ponta esquerda, com a boca virada pro Pikachu: poste e travessão de
+  cá brancos, o lado de lá mais fino, rede no lado, no teto e no fundo (a rede do fundo estufa quando a bola entra),
+  sombra no chão. Os dois chutes vão na horizontal e entram pela boca; o Voltorb é chutado pro gol, estufa a rede, cai
+  lá dentro (na frente das bolas), pisca e explode ali, e depois da fumaça continua tonto lá dentro.
+- Revisão quadro a quadro (4 quadros/s nos trechos de ação), consertos: o Pikachu entra inteiro na tela (975); a
+  tarja ALA vai pra baixo da linha dos pés (não cobre o Magikarp); a comemoração do 2º chute acaba antes do corte pro
+  talking head; a fumaça termina de baixar antes do corte pro olhar do Psyduck; o Psyduck entra em 335 (fora do close
+  no olho, sem tampar o Voltorb no gol) e voa pra 650 na explosão (longe do Magikarp no apito); o apito tem 4 baforadas
+  e a última some antes do corte.
+
+## Versão 6 (49 s)
 
 **Versão 6 (13/11, notas do Miguel na v5):**
 - TH Magikarp: "Hoje é dia de organizar material." / "Conferi bola por bola." (sem o Voltorb na estante).
