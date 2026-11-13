@@ -24,7 +24,7 @@
 - Seus duelos na Arena: os últimos 8 e o placar contra cada amigo
 - Criar sala mostra a regra do modo escolhido em uma linha
 - Fim do duelo com Revanche e Voltar ao início
-- A barrinha do golpe máximo tem a cor do tipo do capitão de cada time
+- O N3 da barrinha tem a cor do tipo do capitão de cada time (saía vermelho)
 - Consertos de layout no celular e no PC (sala, draft, escalação e partida)
 
 ### Menus
