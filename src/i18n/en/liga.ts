@@ -14,7 +14,6 @@ export const liga: typeof pt = {
         dailyRanking: "Today's ranking",
         ligaTag: 'League',
         ligaLine: "Against another trainer's team · Elo rated",
-        ligaGo: 'Open the League',
         ligaSoon: 'Soon',
         ligaOpensIn: 'Opens in {d}d {h}h {m}m',
         ligaClosed: 'Until the League opens, the Daily Cup has a ranking.',

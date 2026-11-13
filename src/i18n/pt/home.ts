@@ -1,52 +1,32 @@
 /** Tela inicial. */
 export const home = {
-    soon: [
-        { title: 'Modo história', text: 'Ginásios, insígnias e a Liga Índigo' },
-        { title: 'Time Ultimate', text: 'Abra pacotes e monte o time da temporada' },
-        { title: 'Futebol de campo', text: 'Partidas 11 contra 11' },
-        { title: 'Geração 2', text: 'Os Pokémon de Johto' },
-    ],
     draftStep: 'Draft · escolha {n} de 7',
-    /** Barra da Pokédex que enche ao voltar de uma copa. */
-    dex: {
-        label: 'Pokédex',
-        new: '+{n} novo|+{n} novos',
-    },
     choosingReward: 'Escolhendo a recompensa',
     atMarket: 'No Mercado',
     eventWeek: 'Semana do tipo {type}',
-    eventText: 'Cartas Evento de {type} podem sair no draft.',
     helpAria: 'Ajuda: como funciona cada modo e as regras',
     helpTitle: 'Como jogar',
     /** Selo da quadra animada do topo (enfeite de transmissão). */
     live: 'AO VIVO',
     tagline: 'Monte seu time com os 151 de Kanto e ganhe a Copa de Futsal.',
-    confirmNew: 'Começar outra copa apaga a do {team}. Tem certeza?',
     confirmYes: 'Sim, começar outra',
     newTitle: 'Começar outra copa?',
     newText: 'A copa do {team} será apagada.',
-    inProgress: 'Copa em andamento',
-    cupPath: 'Fases da copa',
     resume: 'Continuar',
-    teamName: 'Nome do seu time',
-    /** 1ª visita: a Home só com este botão. */
+    /** O verbo do botão gordo do Estádio. */
     play: 'Jogar',
     dailyNew: 'Copa do Dia',
     dailyNewSub: 'Nova hoje',
     playTag: 'Copa Relâmpago · 4 jogos',
-    moreModes: 'Mais modos',
     newCup: 'Nova copa',
     quickCup: {
         tag: '4 jogos',
         title: 'Copa Relâmpago',
-        line: 'Mata-mata das oitavas à final.',
     },
     longCup: {
         tag: '8 jogos',
         title: 'Rota Índigo',
-        line: 'Atravesse Kanto até o Planalto Índigo.',
         go: 'Começar a Rota',
-        note: 'A Rota Índigo chega na próxima versão.',
     },
     challenge: 'Aceitar desafio ({seed})',
     tiles: {
@@ -58,12 +38,6 @@ export const home = {
         cards: 'Cartas (teste)',
     },
     news: 'Novidades',
-    doors: {
-        profile: ['Perfil', 'Treinador, clube e amigos'],
-        collection: ['Coleção', 'Pokédex, Álbum e Golpedex'],
-        trophies: ['Sala de troféus', 'Taças, medalhas e números'],
-    },
-    doorsAria: 'Seu jogo',
     footerAria: 'Mais',
     version: 'Versão {v} · {title}',
     /** Notícias: o carrossel do topo das Novidades (ui/news.ts). */
@@ -78,10 +52,7 @@ export const home = {
         versions: 'Todas as versões',
     },
     latest: 'Mais recente',
-    soonTitle: 'Vem aí',
     soonRibbon: 'Em breve',
-    /** Contagem da Liga no cartãozinho do Vem aí. */
-    soonDays: '{d}d',
     disclaimer:
         'Soccermon v{v} · Criado por Miguel Cunha · Fan game sem fins lucrativos. Pokémon e todos os nomes, sprites e sons relacionados são © Nintendo, Game Freak, Creatures Inc. e The Pokémon Company. Este projeto não é afiliado nem endossado por eles.',
     privacy: 'Privacidade e termos',
@@ -148,7 +119,12 @@ export const home = {
         /** Selo do Time Ultimate com a bandeira ?lab=ultimate (só dev e prévias). */
         preview: 'PRÉVIA',
         play: 'JOGAR',
-        atual: { name: 'Modo Clássico', topics: ['Copa', 'Rota Índigo', 'Duelo', 'Liga'] },
+        atual: {
+            name: 'Modo Clássico',
+            tag: 'Escolha 1 de 3 e monte o time pra copa',
+            /** A Liga (a última) só entra quando aparece no jogo (`modeTopics`, ModeMenu.tsx). */
+            topics: ['Copa Relâmpago', 'Rota Índigo', 'Duelo', 'Liga'],
+        },
         ultimate: {
             name: 'Time Ultimate',
             when: 'Chega fim de novembro',

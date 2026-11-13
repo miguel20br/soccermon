@@ -336,3 +336,58 @@ O Losango cai 2 pp (52% ⇒ 50%, de volta ao meio da tabela) e a 3-1 recupera 2 
 ## MT fora da vitrine do Mercado (aprovado no plano "menos e mais", 10/11/2026)
 
 A MT sai da vitrine (fica na recompensa do ginásio, no 1 de 3 e no prêmio da casa da Rota); na vaga entra um item. Mesmas seeds: Copa Relâmpago (2400 copas) título 25,0% ⇒ 25,6% (+0,6 ± 0,9 pp), ₽ no Mercado 11,7 ⇒ 12,3, itens 0,49 ⇒ 0,75 por copa; Rota (400) 13,2% ⇒ 13,5% (+0,2 ± 1,7 pp). Dentro do erro. O robô não usa MT (como 99,6% dos jogadores).
+
+## Modos arcade × Rota (11/11)
+
+Decisão do Miguel (11/11/2026): Relâmpago e Copa do Dia ficam arcade (só a recompensa 1 de 3, sem ₽ nem Mercado); a
+Rota Índigo fica com a economia (o Jogo vencido paga ₽ no lugar do 1 de 3 do rival, e você gasta nas casas de Mercado).
+
+**O que mudou**
+
+- Arcade: sem ₽, sem Mercado, sem juros e sem `winEarnings` (a barra da copa só mostra ₽ na Rota). Em 40% das telas de
+  recompensa (`SPONSOR_REWARD_CHANCE`, `src/engine/rewards.ts`) um Patrocínio entra no lugar do último item: um só, que
+  você ainda não tem, com vaga livre, e só os que valem sem ₽ (os 8 de campo e o Cinnabar; o Cinnabar não vem antes da
+  Final). Os de ₽ e de Mercado (Fã-Clube, Cassino, S.S. Anne, Loja, Creche, Safari, Olheiro) ficam só na Rota.
+- Copa antiga parada no Mercado continua: compra, sai e vai pra escalação (teste com o Mercado montado como no save).
+- Rota: `ROTA_RULES.rivalEveryJogo` desligado; o Jogo vencido (fora desafio de evento e grupo) soma `ROTA_JOGO_PAY = 3`
+  ao ₽ da vitória (`src/store/long-cup.ts`); "₽ em dobro" dobra tudo. O prêmio da casa (MT, item, carta rara do Ás),
+  o Ginásio, os desafios e o grupo continuam com a recompensa deles. No ₽ em dobro com pedra, a pedra vem direto (ou
+  vai pra Mochila com a nota no mapa, se ninguém usa).
+
+**Números** (robô do store, mesmas seeds antes e depois; `scripts/balance/arcade.sim.test.ts`, 400 copas por modo, e
+`scripts/balance/rota-caminhos.sim.test.ts`, 450 Rotas: 150 sempre à esquerda, 150 à direita e 150 que vão no Mercado
+com ₽10+). Título pareado: copas que viraram título menos as que deixaram de ser.
+
+| | Relâmpago antes | depois | Dia antes | depois | Rota antes | depois (₽3) |
+|---|---:|---:|---:|---:|---:|---:|
+| Título | 30,0% | 27,8% | 31,0% | 29,3% | 31,8% | 34,9% |
+| Diferença pareada | | −2,3 ± 2,8 pp | | −1,8 ± 2,3 pp | | +3,1 ± 2,6 pp |
+| Patrocínios por copa | 0,51 | 0,75 | 0 | 0,77 | 1,28 | 1,50 |
+| Patrocínios dos campeões | 0,89 | 1,14 | 0 | 1,18 | | |
+| Título com / sem Patrocínio | 54% / 10% | 37% / 16% | – | 40% / 16% | | |
+| Compras no Mercado | 2,46 | 0 | 0 | 0 | 2,26 | 2,77 |
+| ₽ ganho / sobrando | 16,2 / 2,6 | 0 | 0 | 0 | 40,8 / 24,8 | 50,4 / 27,7 |
+| Telas por copa (decisão) | 6,8 | 4,9 | 4,9 | 4,9 | 27,6 | 25,7 |
+| Telas de recompensa | 1,95 | 1,95 | 1,94 | 1,93 | 6,3 | 4,1 |
+| Pokémon novos na Rota | | | | | 3,44 | 2,65 |
+
+Rota por política, com o ₽ do Jogo em 0, 3 e 6 (título pareado contra antes):
+
+| ₽ a mais por Jogo | à esquerda | à direita | vai no Mercado | todas |
+|---:|---:|---:|---:|---:|
+| 0 | +3,3 ± 4,7 | +2,7 ± 4,3 | +2,0 ± 4,9 | +2,7 ± 2,7 |
+| **3** | +1,3 ± 4,4 | −1,3 ± 4,3 | +9,3 ± 4,8 | +3,1 ± 2,6 |
+| 6 | −0,7 ± 4,4 | +0,7 ± 4,6 | +10,7 ± 4,7 | +3,6 ± 2,6 |
+
+**Leitura**
+
+- Arcade: o título fica dentro do ruído (−2 pp, menos de 1 erro). O Patrocínio aparece mais que antes (0,75 contra 0,51
+  por copa) e 36 dos 111 campeões do Relâmpago terminam com 2 ou 3: o combo fica mais fácil de montar, como o Miguel
+  pediu. O "título com Patrocínio" caiu de 54% pra 37% porque antes só comprava quem já vinha ganhando (o ₽ vem da
+  vitória); agora vem pra todo mundo. A copa ficou ~2 telas mais curta (o Mercado saiu).
+- Rota: tirar o 1 de 3 do rival quase não mexe no título do robô (com ₽0 dá +2,7 ± 2,7, ruído). O ₽ a mais pesa pra
+  quem vai atrás do Mercado: com ₽3 esse robô compra 4 coisas por Rota (eram 3,1) e o título dele sobe ~9 pp; com ₽6,
+  ~11 pp. **Recomendação: ₽3** (fica perto do "Dispensar +₽2" que o robô já pegava quando o rival não servia, a Rota não
+  fica mais difícil e quem planeja o caminho pelo Mercado é premiado). Se o Miguel achar fácil pro comprador, ₽2.
+- Ressalvas: o robô joga na equilibrada, escolhe pela nota e sempre pega o Patrocínio quando ele aparece; ninguém viu a
+  olho. A frequência de 40% e o ₽3 são os primeiros números pra jogar na prévia.

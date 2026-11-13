@@ -14,7 +14,6 @@ import {
     mapPrizes,
     nextNodes,
     nodeById,
-    PRIZES,
     REGION_STONES,
     ROTA_RULES,
     ROUTE_TEAMS,
@@ -145,15 +144,15 @@ describe('ramos e prêmios (revisão da Rota)', () => {
         }
     });
 
-    it('com o Pokémon do rival em todo Jogo, o prêmio do mapa é MT, item ou ₽ em dobro (nunca o Pokémon de novo)', () => {
+    it('o prêmio do mapa é MT, item ou ₽ em dobro (o Pokémon do rival não volta, com ou sem o 1 de 3 do rival)', () => {
         const before = ROTA_RULES.rivalEveryJogo;
         try {
-            ROTA_RULES.rivalEveryJogo = true;
-            expect([...mapPrizes()].sort()).toEqual(['item', 'money', 'tm']);
-            for (let s = 0; s < 100; s++)
-                for (const n of buildCupMap(`rival-${s}`).nodes) expect(n.prize).not.toBe('pokemon');
-            ROTA_RULES.rivalEveryJogo = false;
-            expect(mapPrizes()).toEqual(PRIZES);
+            for (const on of [true, false]) {
+                ROTA_RULES.rivalEveryJogo = on;
+                expect([...mapPrizes()].sort()).toEqual(['item', 'money', 'tm']);
+                for (let s = 0; s < 100; s++)
+                    for (const n of buildCupMap(`rival-${s}`).nodes) expect(n.prize).not.toBe('pokemon');
+            }
         } finally {
             ROTA_RULES.rivalEveryJogo = before;
         }

@@ -137,13 +137,13 @@ export const help: typeof pt = {
             blocks: [
                 {
                     list: [
-                        ['Paralyzed', 'Pace −40% and Dribbling −15%.'],
-                        ['Asleep', 'out of the play for a moment.'],
-                        ['Frozen', 'stands still for a moment.'],
-                        ['Poisoned', 'slowly loses stamina.'],
-                        ['Burned', 'Shooting and Physical −20% and slowly loses stamina.'],
-                        ['Confused', 'Passing −30% and Shooting −15%.'],
-                        ['Infatuated', '(Cute Charm) freezes up for a moment.'],
+                        ['Paralyzed', 'Pace −40% and Dribbling −15% for 6 s.'],
+                        ['Asleep', 'out of the play for 2.5 s.'],
+                        ['Frozen', 'stands still for 2.5 s.'],
+                        ['Poisoned', 'loses stamina for 10 s.'],
+                        ['Burned', 'Shooting and Physical −20% and loses stamina for 8 s.'],
+                        ['Confused', 'Passing −30% and Shooting −15% for 4 s.'],
+                        ['Infatuated', '(Cute Charm) freezes up for 1.5 s.'],
                         ['Flinched', "(Bite, King's Rock…) loses the timing of the play."],
                     ],
                 },
@@ -167,7 +167,7 @@ export const help: typeof pt = {
                         ],
                         [
                             'Story synergy',
-                            'famous Kanto duos and groups get a bonus together on the court and can pull off a **combo**: a pass from one, a shot from the other, 20% stronger and more accurate (once per half). **Special** ones (all 3 Legendary Birds, all 3 starters, Mew + Mewtwo) give more when complete and the cards glow together. Type + story add up to +15%.',
+                            'famous Kanto duos and groups get a bonus together on the court and can pull off a **combo**: a pass from one, a shot from the other, 20% stronger and 50% more accurate (once per half). **Special** ones (all 3 Legendary Birds, all 3 starters, Mew + Mewtwo) give more when complete and the cards glow together. Type + story add up to +15%.',
                         ],
                     ],
                 },
@@ -183,9 +183,11 @@ export const help: typeof pt = {
                 },
                 { dyn: 'tactics' },
                 {
-                    p: '**Stamina:** drops with effort (less for high-HP Pokémon) and tired players perform worse. Half-time restores a little. The rival team may take off its most tired player at half-time.',
+                    p: '**Stamina:** drops with effort (less for high-HP Pokémon) and tired players perform worse (−28% on attributes at zero stamina). Half-time restores 30% of stamina. The rival team may take off its most tired player at half-time.',
                 },
-                { p: '**Grit:** a team losing by 3 or more grows into the game. A comeback is always possible.' },
+                {
+                    p: '**Grit:** losing by 3 goals or more, the team gets +6% on all attributes, plus 3% per goal of difference above 3 (max +14%).',
+                },
                 {
                     p: "**Penalties:** a draw at the end goes to 5 kicks per team and then sudden death. The best shooters take them, and the kicker's type against the goalkeeper's counts.",
                 },
@@ -337,7 +339,7 @@ export const help: typeof pt = {
         rota: [
             'Tap a lit node, then Go.',
             'The first match gives no card. After that, a loss is a yellow and the second one is red.',
-            'Wins pay ₽. Spend it at the Market or save it to earn interest.',
+            'Wins pay ₽ (a Match pays more). Spend it at the Market or save it to earn interest.',
         ],
         rotaGrupo: ['Losing here costs no card.'],
         rotaNova: ['New: Indigo Road, a long cup through the Kanto gyms.'],
@@ -346,10 +348,7 @@ export const help: typeof pt = {
         relampagoVestiario: ['Tap two to swap. The bracket opens from the rival poster.'],
         relampagoJogo: ['Change tactics and make subs. Busy players evolve.'],
         duelo: ['Join without an account. Then you create the room and send the link.'],
-        dueloSala: [
-            'Best of 3: same team in every game, lineup can change between them.',
-            'Create the room and send the link to your friend.',
-        ],
+        dueloSala: ['Under Rules: speed, length and Best of 3.', 'Create the room and send the link to your friend.'],
         dia: ['Same draft and same rivals for everyone today.', 'Only the first attempt counts for the ranking.'],
         liga: [
             'Winning raises your Elo, losing lowers it.',
@@ -357,6 +356,16 @@ export const help: typeof pt = {
         ],
         golpe: ["Bar at L1: your captain's max move is unlocked.", 'Tap as the green circle closes.'],
         utRepetida: ["A duplicate doesn't join the Club: sell it or swap it for the one you have."],
+        replayLine: {
+            intro: 'The home screen: pick a mode and play.',
+            rota: 'A long cup across Kanto, gym by gym.',
+            rotaGrupo: 'The end of the Road: a 3-game group and the Final.',
+            relampago: '4-game knockout: lose and you are out.',
+            golpe: "The captain's special shot, in 3 levels.",
+            duelo: 'Live against a friend, by link. No account needed.',
+            dia: 'The same cup for everyone today, with a ranking.',
+            liga: "Against another trainer's saved team. Counts for Elo.",
+        } as Record<string, string>,
         replay: {
             title: 'How it works',
             hint: 'The balloons come back the next time you enter the mode.',

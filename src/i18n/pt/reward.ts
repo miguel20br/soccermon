@@ -13,7 +13,7 @@ export const reward = {
     chooseRival: 'Contrate 1 do rival',
     skipRival: 'Dispensar',
     tipRival: 'Ganhou! Contrate 1 do rival. Depois vem o prêmio da casa.',
-    tipPrize: 'Agora o prêmio da casa. Pular também dá algo: está no botão.',
+    tipPrize: 'O prêmio da casa. Pular também dá algo: está no botão.',
     reroll: 'Sortear de novo ({n})',
     skip: 'Pular (+1 sorteio)',
     /** Rota: o botão "Pular" com a etiqueta do que ele dá (estilo Balatro), sorteada a cada tela. */
@@ -23,12 +23,16 @@ export const reward = {
         money: '+₽{n}',
         rerolls: '+{n} sorteios',
         shop: 'Troca grátis no Mercado',
-        rival: 'Próximo rival −1',
+        rival: 'Próximo rival mais fraco',
         evo: 'Meia barra: {name}',
     },
     /** O botão inteiro, pro leitor de tela. */
     skipAria: '{label}: {tag}',
     tip: 'Pegue um Pokémon do rival, um item ou uma MT.',
+    /** Patrocínio na recompensa (Relâmpago e Copa do Dia, que não têm Mercado). */
+    tipSponsor: 'Pegue um Pokémon do rival, um item ou o Patrocínio.',
+    sponsorHint: 'Vale até o fim da copa e ocupa uma das 3 vagas.',
+    sponsorSign: 'Assinar contrato',
     fromClub: 'Do {club}',
     fromClubF: 'Da {club}',
     reinforcement: 'Reforço',

@@ -312,6 +312,7 @@ Antes e depois por item: `arte/depois/*.png` (folhas) e `arte/depois/antes|depoi
 | F3 + D2 | Uma escala por cena (`src/ui/ambientes/sprite-scale.ts`, tabela abaixo). Estádio sem o `scale: 2` do capitão; Arena sem o 4x. |
 | F5 | Capitão rival do lado direito do círculo e a pedra do lado esquerdo, na altura dele; rótulo por cima. |
 | F6 | `smoothPixelArt` no lugar de `pixelArt` (só `src/game/main.ts`). Sprites sem linha sumindo e nomes legíveis no celular. Nome com `resolution` maior fica pra quem mexe no `MatchScene`. |
+| F6b | Pixel duro de volta (`src/game/quality.ts`): sprite em escala inteira de pixels do canvas (até 15% da 1.8; 4 px no celular em pé, 3 deitado, 2 no PC 1920; o PC 1440 fica em 1.8 suave) e na grade, canvas 1:1 com a tela, nomes em múltiplo de 12 px, governador de fps (teto 2 → 3 se aguenta, desce se não) e fps/DPR/degrau no `match_end`. |
 | D3 | O sprite desfaz o `zoom` do CSS por cima (`realScale`) e desenha no maior inteiro que cabe: Treino 4,05x virou 4x. |
 | F7 | Folha do menu gerada antes (`npm run assets:menu`, `public/assets/field/menu/`), JSON e PNG baixam juntos. Causa medida abaixo. |
 | 10 (D1) | VERSUS, desfile e fileira do Hall da Fama e as vagas da prancheta em PMD, Idle, escala inteira. Carta continua BW. |

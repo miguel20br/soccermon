@@ -7,6 +7,7 @@ import { onBeat } from '../../game/music';
 import { plural } from '../../i18n';
 import type { Lang } from '../../i18n/lang';
 import { useT } from '../../i18n/react';
+import { ligaShown } from '../../league/rules';
 import { useGame } from '../../store/game-store';
 import { KANTO_BADGES } from '../../store/missions';
 import { clubColorHex } from '../../store/profile';
@@ -362,13 +363,29 @@ export function Play({ sub, off, onClick }: { sub?: string; off?: boolean; onCli
     );
 }
 
-/** Ícone de cada item do modo Copa (na ordem de `home.modes.atual.topics`). */
-const TOPIC_ICON = ['cup', 'map', 'friends', 'crown'] as const;
+/** Ícone de cada item do Modo Clássico (na ordem de `home.modes.atual.topics`, os mesmos das placas do Estádio). */
+const TOPIC_ICON = ['stopwatch', 'map', 'friends', 'crown'] as const;
 
-export function Chips({ id }: { id: ModeId }) {
+/**
+ * Os itens do modo. No Clássico a Liga (o último) só aparece quando ela aparece no jogo (`ligaShown`: a semana antes
+ * de abrir); antes, o menu prometia um modo escondido.
+ */
+export const modeTopics = (id: ModeId, topics: readonly string[], liga: boolean) =>
+    id === 'atual' && !liga ? topics.slice(0, -1) : [...topics];
+
+/**
+ * Na fatia, embaixo da linha do modo: só o que a linha não diz. No Ultimate, "Zera a cada temporada" (time da temporada
+ * e pacotes já estão na linha); no Modo História, nada (a linha já fala dos ginásios e do Blue).
+ */
+export const sliceTopics = (id: ModeId, topics: readonly string[], liga: boolean) =>
+    id === 'ultimate' ? topics.slice(-1) : id === 'historia' ? [] : modeTopics(id, topics, liga);
+
+export function Chips({ id, slice }: { id: ModeId; slice?: boolean }) {
+    const topics = (slice ? sliceTopics : modeTopics)(id, useMode(id).topics, ligaShown());
+    if (!topics.length) return null;
     return (
         <span className="mm-chips">
-            {useMode(id).topics.map((t, i) => (
+            {topics.map((t, i) => (
                 <span key={t}>
                     {id === 'atual' && <HudIcon kind={TOPIC_ICON[i] ?? 'cup'} />}
                     {t}
@@ -376,6 +393,11 @@ export function Chips({ id }: { id: ModeId }) {
             ))}
         </span>
     );
+}
+
+/** O que o modo é, numa linha (em cima dos itens, na fatia aberta). */
+export function Tag({ id }: { id: ModeId }) {
+    return <span className="mm-tag">{useMode(id).tag}</span>;
 }
 
 /** O topo: logo, o treinador, Novidades, Ajuda e a engrenagem (o mesmo canto da Home). Memo: abrir uma fatia não refaz o topo. */
@@ -582,7 +604,8 @@ export function ModeSlices({
                             <span className="mm-slice-more">
                                 <span>
                                     {m === 'ultimate' && !playable(m) && <When id={m} />}
-                                    <Chips id={m} />
+                                    <Tag id={m} />
+                                    <Chips id={m} slice />
                                 </span>
                             </span>
                         </span>

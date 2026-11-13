@@ -9,14 +9,85 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
-        version: '0.9.50',
-        date: '2026-11-12',
-        title: 'Cada um no seu lugar',
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Descrições mais diretas',
+        sections: [
+            {
+                title: 'Aviso',
+                lines: ['A partir de agora, uma atualização por semana'],
+            },
+            {
+                title: 'Textos do jogo',
+                lines: [
+                    'Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo',
+                    'Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço',
+                    'Formação 3-1: o ponto fraco agora é "−Passe pra frente" (era "−Lenta")',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sprites nítidos, novas animações e Duelo',
         sections: [
             {
                 title: 'Partida',
                 lines: [
-                    'Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)',
+                    'Pokémon nítidos em qualquer tela, sem borrão',
+                    'Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta',
+                    'Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol',
+                    'A bola amassa no chute forte e na trave, e a trave treme',
+                    'Mais poeira nas arrancadas, nos choques e nos dribles',
+                    'Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)',
+                    'Nova barrinha do golpe máximo, em gomos',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago e Copa do Dia',
+                lines: [
+                    'Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado',
+                    'Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa',
+                    'Pedra do ₽ em dobro vai pra Mochila se ninguém usa',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Saiu do BETA',
+                    'Seus duelos na Arena: os últimos 8 e o placar contra cada amigo',
+                    'Criar sala mostra a regra do modo escolhido em uma linha',
+                    'Fim do duelo com Revanche e Voltar ao início',
+                    'O N3 da barrinha tem a cor do tipo do capitão de cada time (saía vermelho)',
+                    'Consertos de layout no celular e no PC (sala, draft, escalação e partida)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Cada modo diz em uma linha o que é, no menu de modos e na Ajuda',
+                    'Time Ultimate: volta o aviso "Zera a cada temporada"',
+                    'Novidades com textos e títulos mais diretos',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'Animações de fim de jogo e Perfil com números',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Adicionadas novas animações de final de jogo',
                     'No Losango, os alas também voltam a bola pro fixo na armação',
                 ],
             },
@@ -47,7 +118,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.49',
         date: '2026-11-11',
-        title: 'Menos e melhor',
+        title: 'Menus mais simples',
         sections: [
             {
                 title: 'Menus',
@@ -77,7 +148,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.48',
         date: '2026-11-10',
-        title: 'Fixo no jogo',
+        title: 'Fixo na armação da Linha de 3',
         sections: [
             {
                 title: 'Partida',
@@ -114,7 +185,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.47',
         date: '2026-11-10',
-        title: 'Final de verdade',
+        title: 'Final mais difícil e Eventos na Rota',
         sections: [
             {
                 title: 'Rota Índigo',
@@ -137,14 +208,14 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.46',
         date: '2026-11-10',
-        title: 'Rota viva',
+        title: 'Animações na Rota Índigo',
         sections: [
             {
                 title: 'Rota Índigo',
                 lines: [
-                    'Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta',
-                    'Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga',
-                    'Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)',
+                    'Adicionadas animações no Cassino',
+                    'Adicionadas animações no Centro Pokémon',
+                    'Adicionadas animações na Zona Safari',
                     'Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa',
                     'No PC o mapa inteiro cabe na tela, com um painel das próximas casas',
                     'Pedra que ninguém usa vai direto pra Mochila, sem tela a mais',
@@ -166,7 +237,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.45',
         date: '2026-11-10',
-        title: 'Festa de campeão',
+        title: 'Comemoração de título',
         sections: [
             {
                 title: 'Título',
@@ -233,7 +304,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.44',
         date: '2026-11-09',
-        title: 'Véspera do Time Ultimate',
+        title: 'Meus pacotes e Pokémon Picks',
         sections: [
             {
                 title: 'Time Ultimate (abre em 27/11)',
@@ -297,7 +368,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.43',
         date: '2026-11-05',
-        title: 'Torcida a favor',
+        title: 'Rivais com atributos menores',
         sections: [
             {
                 title: 'Copa e Rota',
@@ -313,7 +384,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.42.2',
         date: '2026-11-05',
-        title: 'Capitão chamado',
+        title: 'Capitão chamado ataca mais',
         sections: [
             {
                 title: 'Golpe máximo',
@@ -328,7 +399,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.42.1',
         date: '2026-11-05',
-        title: 'Bicuda sempre sai',
+        title: 'Bicuda sai mesmo com toque atrasado',
         sections: [
             {
                 title: 'Goleiro capitão',
@@ -389,7 +460,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.41',
         date: '2026-11-04',
-        title: 'Golpes de cinema',
+        title: 'Câmera de cinema no N3',
         sections: [
             {
                 title: 'Golpe máximo',
@@ -411,7 +482,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.40',
         date: '2026-11-03',
-        title: 'Counter',
+        title: 'Bicuda N3 contra o golpe máximo',
         sections: [
             {
                 title: 'Counter',
@@ -437,7 +508,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.39.1',
         date: '2026-11-03',
-        title: 'Bicuda de volta',
+        title: 'Duelo da bicuda sai por enquanto',
         sections: [
             {
                 title: 'Ajustes',
@@ -533,7 +604,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.38',
         date: '2026-11-03',
-        title: 'Walkout',
+        title: 'Entrada de carta rara em campo',
         sections: [
             {
                 title: 'Pacotes',
@@ -563,7 +634,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.37',
         date: '2026-11-02',
-        title: 'No ar',
+        title: 'Troca de tela estilo TV',
         sections: [
             {
                 title: 'Transmissão',
@@ -634,7 +705,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.34',
         date: '2026-11-02',
-        title: 'Tudo à vista',
+        title: 'Painel completo no PC',
         sections: [
             {
                 title: 'Partida',
@@ -657,7 +728,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.33',
         date: '2026-11-02',
-        title: 'Partida de TV',
+        title: 'Partida no PC com layout do celular',
         sections: [
             {
                 title: 'Partida',
@@ -704,7 +775,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.32',
         date: '2026-11-02',
-        title: 'Cara de jogo',
+        title: 'Telas de Duelo, Liga e Copa do Dia',
         sections: [
             {
                 title: 'Arena',
@@ -744,7 +815,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.31',
         date: '2026-11-02',
-        title: 'Golpe máximo de verdade',
+        title: 'Animações novas do golpe máximo',
         sections: [
             {
                 title: 'Golpe máximo',
@@ -831,7 +902,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.30',
         date: '2026-11-01',
-        title: 'Golpe universal',
+        title: 'Todo capitão usa o golpe máximo',
         sections: [
             {
                 title: 'Golpe máximo',
@@ -866,7 +937,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.29',
         date: '2026-10-31',
-        title: 'Rota nova',
+        title: 'Mapa da Rota com ramos e prêmios',
         sections: [
             {
                 title: 'Rota Índigo',
@@ -898,7 +969,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.28',
         date: '2026-10-30',
-        title: 'Golpe caprichado',
+        title: 'Anel-alvo e sons do golpe máximo',
         sections: [
             {
                 title: 'Golpe máximo',
@@ -1020,7 +1091,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.24',
         date: '2026-10-28',
-        title: 'Beira da quadra',
+        title: 'Quadra maior no celular',
         sections: [
             {
                 title: 'Partida nova',
@@ -1088,7 +1159,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.23.2',
         date: '2026-10-27',
-        title: 'Faxina',
+        title: 'Painéis mais leves',
         sections: [
             {
                 title: 'Menos coisa na tela',
@@ -1146,7 +1217,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.23',
         date: '2026-10-26',
-        title: 'Vestiário',
+        title: 'Lousa de tática na escalação',
         sections: [
             {
                 title: 'Escalação no vestiário',
@@ -1196,7 +1267,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.22',
         date: '2026-10-26',
-        title: 'Botão de apertar',
+        title: 'Botões com relevo e cores',
         sections: [
             {
                 title: 'Visual novo',
@@ -1223,7 +1294,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.21',
         date: '2026-10-25',
-        title: 'Cada modo no seu lugar',
+        title: 'Tela inicial com cinco lugares',
         sections: [
             {
                 title: 'Nova tela inicial',
@@ -1809,7 +1880,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.2',
         date: '2026-10-21',
-        title: 'Casa arrumada',
+        title: 'Tela inicial reorganizada',
         sections: [
             {
                 title: 'Tela inicial',
@@ -2866,14 +2937,85 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
-        version: '0.9.50',
-        date: '2026-11-12',
-        title: 'Everyone in their place',
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Clearer descriptions',
+        sections: [
+            {
+                title: 'Notice',
+                lines: ['From now on, one update per week'],
+            },
+            {
+                title: 'Game text',
+                lines: [
+                    'Move, max move, item, tactic, Indigo Road and Help descriptions state the effect with the game numbers',
+                    'Fixed descriptions that did not match the game: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, 2-2 formation and Boost',
+                    '3-1 formation: the weakness now reads "−Forward passing" (was "−Slow")',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sharp sprites, new animations and Duel',
         sections: [
             {
                 title: 'Match',
                 lines: [
-                    'Full time with feeling: at the whistle the winners jump and the losers sit down (in shootouts, after the last kick)',
+                    'Sharp Pokémon on any screen, no blur',
+                    'Lighter on phones: resolution adjusts itself when the device can’t keep up',
+                    'New animations: Pokémon stretch and squash when running, kicking, controlling, colliding, getting dribbled and landing a goal celebration',
+                    'The ball squashes on hard shots and on the post, and the post shakes',
+                    'More dust on sprints, collisions and dribbles',
+                    'Names above the Pokémon without broken letters (bigger on PC)',
+                    'New max move bar, in segments',
+                ],
+            },
+            {
+                title: 'Lightning Cup and Daily Cup',
+                lines: [
+                    'After a win there is only the pick 1 of 3 reward, no ₽ or Market',
+                    'A Sponsor shows up in the reward on 40% of wins (field sponsors or the Cinnabar Lab)',
+                ],
+            },
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Won Match: rival’s pick 1 of 3 ⇒ ₽3 extra to spend at the map Markets',
+                    'An unused stone from double ₽ goes to the Bag',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'Out of BETA',
+                    'Your duels in the Arena: the last 8 and the score against each friend',
+                    'Create room shows the chosen mode’s rule in one line',
+                    'Duel end with Rematch and Back to start',
+                    'The bar’s N3 takes the type color of each team’s captain (it showed red)',
+                    'Layout fixes on phone and PC (room, draft, lineup and match)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Each mode says what it is in one line, in the mode menu and in Help',
+                    'Team Ultimate: the "Resets every season" note is back',
+                    'Patch notes with more direct text and titles',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'End-of-match animations and Profile stats',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Added new end-of-match animations',
                     'In the Diamond, the wingers also play the ball back to the fixo in the build-up',
                 ],
             },
@@ -2904,7 +3046,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.49',
         date: '2026-11-11',
-        title: 'Less and better',
+        title: 'Simpler menus',
         sections: [
             {
                 title: 'Menus',
@@ -2934,7 +3076,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.48',
         date: '2026-11-10',
-        title: 'Fixo in play',
+        title: 'Pivot in build-up on the 3-line',
         sections: [
             {
                 title: 'Match',
@@ -2973,7 +3115,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.47',
         date: '2026-11-10',
-        title: 'A real Final',
+        title: 'Harder Final and Events on the Route',
         sections: [
             {
                 title: 'Indigo Route',
@@ -2996,14 +3138,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.46',
         date: '2026-11-10',
-        title: 'A living Route',
+        title: 'Indigo Route animations',
         sections: [
             {
                 title: 'Indigo Route',
                 lines: [
-                    'A real Game Corner: the 3 reels stop one by one, and the prize counter spins a wheel',
-                    'Pokémon Center with Nurse Joy: your team’s balls go into the machine and the yellow card tears',
-                    'Safari Zone: the Safari Ball flies in an arc and shakes up to 3 times before the catch (or it flees)',
+                    'Added Game Corner animations',
+                    'Added Pokémon Center animations',
+                    'Added Safari Zone animations',
                     'Map: the captain walks to the chosen spot, the next spots light up and each region has a sign',
                     'On PC the whole map fits the screen, with a panel of the next spots',
                     'A stone nobody uses goes straight to the Bag, no extra screen',
@@ -3025,7 +3167,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.45',
         date: '2026-11-10',
-        title: 'Champion party',
+        title: 'Title celebration',
         sections: [
             {
                 title: 'Title',
@@ -3087,7 +3229,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.44',
         date: '2026-11-09',
-        title: 'Team Ultimate eve',
+        title: 'My packs and Pokémon Picks',
         sections: [
             {
                 title: 'Team Ultimate (opens on 11/27)',
@@ -3151,7 +3293,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.43',
         date: '2026-11-05',
-        title: 'Home crowd',
+        title: 'Rivals with lower stats',
         sections: [
             {
                 title: 'Cup and Road',
@@ -3167,7 +3309,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.42.2',
         date: '2026-11-05',
-        title: 'Called captain',
+        title: 'Called captain attacks more',
         sections: [
             {
                 title: 'Max move',
@@ -3182,7 +3324,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.42.1',
         date: '2026-11-05',
-        title: 'The big boot always goes',
+        title: 'Bicuda works with late timing',
         sections: [
             {
                 title: 'Keeper captain',
@@ -3243,7 +3385,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.41',
         date: '2026-11-04',
-        title: 'Movie moves',
+        title: 'Cinematic camera on N3',
         sections: [
             {
                 title: 'Max move',
@@ -3265,7 +3407,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.40',
         date: '2026-11-03',
-        title: 'Counter',
+        title: 'Bicuda N3 against the max move',
         sections: [
             {
                 title: 'Counter',
@@ -3291,7 +3433,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.39.1',
         date: '2026-11-03',
-        title: 'Punt is back',
+        title: 'Bicuda duel removed for now',
         sections: [
             {
                 title: 'Tweaks',
@@ -3387,7 +3529,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.38',
         date: '2026-11-03',
-        title: 'Walkout',
+        title: 'Rare card entrance on the pitch',
         sections: [
             {
                 title: 'Packs',
@@ -3417,7 +3559,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.37',
         date: '2026-11-02',
-        title: 'On air',
+        title: 'TV-style screen changes',
         sections: [
             {
                 title: 'Broadcast',
@@ -3488,7 +3630,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.34',
         date: '2026-11-02',
-        title: 'All in view',
+        title: 'Full panel on PC',
         sections: [
             {
                 title: 'Match',
@@ -3511,7 +3653,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.33',
         date: '2026-11-02',
-        title: 'TV match',
+        title: 'Match on PC with the mobile layout',
         sections: [
             {
                 title: 'Match',
@@ -3558,7 +3700,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.32',
         date: '2026-11-02',
-        title: 'Game feel',
+        title: 'Duel, League and Daily Cup screens',
         sections: [
             {
                 title: 'Arena',
@@ -3598,7 +3740,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.31',
         date: '2026-11-02',
-        title: 'The real max move',
+        title: 'New max move animations',
         sections: [
             {
                 title: 'Max move',
@@ -3685,7 +3827,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.30',
         date: '2026-11-01',
-        title: 'Universal max move',
+        title: 'Every captain uses the max move',
         sections: [
             {
                 title: 'Max move',
@@ -3720,7 +3862,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.29',
         date: '2026-10-31',
-        title: 'New Route',
+        title: 'Route map with branches and rewards',
         sections: [
             {
                 title: 'Indigo Road',
@@ -3752,7 +3894,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.28',
         date: '2026-10-30',
-        title: 'Polished max move',
+        title: 'Target ring and max move sounds',
         sections: [
             {
                 title: 'Max move',
@@ -3874,7 +4016,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.24',
         date: '2026-10-28',
-        title: 'Courtside',
+        title: 'Bigger pitch on mobile',
         sections: [
             {
                 title: 'New match screen',
@@ -3942,7 +4084,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.23.2',
         date: '2026-10-27',
-        title: 'Cleanup',
+        title: 'Lighter panels',
         sections: [
             {
                 title: 'Less on screen',
@@ -4000,7 +4142,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.23',
         date: '2026-10-26',
-        title: 'Locker room',
+        title: 'Tactics board in the lineup',
         sections: [
             {
                 title: 'Lineup in the locker room',
@@ -4050,7 +4192,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.22',
         date: '2026-10-26',
-        title: 'Press the button',
+        title: 'Raised, color-coded buttons',
         sections: [
             {
                 title: 'New look',
@@ -4077,7 +4219,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.21',
         date: '2026-10-25',
-        title: 'Every mode in its own place',
+        title: 'Home with five places',
         sections: [
             {
                 title: 'New home screen',
@@ -4518,7 +4660,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.2',
         date: '2026-10-21',
-        title: 'House in order',
+        title: 'Reorganized home screen',
         sections: [
             {
                 title: 'Home screen',

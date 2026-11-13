@@ -6,7 +6,15 @@ import type { TeamSetup } from '../../engine/state';
 import { clubName, cupStageName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import type { RunState } from '../../store/game-store';
-import { cupLength, groupTable, isFinalStage, isGroupStage, isLong, longWinEarnings } from '../../store/long-cup';
+import {
+    cupLength,
+    groupTable,
+    isFinalStage,
+    isGroupStage,
+    isLong,
+    jogoPays,
+    longWinEarnings,
+} from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
 import { useCascade } from '../kit/Cascade';
 import { portraitSrc } from '../portrait';
@@ -148,7 +156,7 @@ export function ResultHero({
     // Rota: o ₽ que a vitória acabou de render (o mapa só mostra o total)
     const gain =
         run && isLong(run) && !duel && won && !champion && !groupOut
-            ? longWinEarnings(match.score, run.sponsors)
+            ? longWinEarnings(match.score, run.sponsors, jogoPays(run))
             : null;
     const gainParts = gain
         ? (['win', 'goals', 'clean', 'bonus'] as const).flatMap((k) =>

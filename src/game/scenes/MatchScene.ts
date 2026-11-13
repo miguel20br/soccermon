@@ -33,6 +33,10 @@ import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } fr
 import { bannerInk } from '../../store/profile';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
+    type BodyLean,
+    ballSquashAt,
+    bumpPose,
+    DRIBBLE_LOSE,
     DRIBBLE_PUFFS,
     type DribblePose,
     diveDust,
@@ -44,10 +48,14 @@ import {
     goalReactions,
     halftimeEnd,
     holdFacing,
+    KICK_SQUASH,
     keeperFacing,
     keeperRows,
     kickDepartures,
     kickHold,
+    kickSquash,
+    kicks,
+    latestAt,
     MAX_CUE_EARLY,
     MAX_CUE_LATCH,
     maxCertain,
@@ -56,6 +64,10 @@ import {
     NAMED_DRIBBLE,
     type NamedDribble,
     namedDribblesOf,
+    type RunBurst,
+    runBurstPose,
+    runBursts,
+    runDustAt,
     SAVE_DIVE,
     SOLD_LEAN,
     type SoldDive,
@@ -65,6 +77,9 @@ import {
     strikeFrame,
     strikeLead,
     strikesNear,
+    type Trap,
+    trapPose,
+    traps,
 } from '../../ui/match-view';
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
@@ -137,6 +152,7 @@ import {
 } from '../cine';
 import { Cinematics, CROP_TEXT_SCALE, FOCUS_DEPTH } from '../cinematics';
 import {
+    courtRes,
     drawBanner,
     drawBoards,
     drawCourt,
@@ -147,11 +163,13 @@ import {
     netRipple,
     PPM,
     W as PW,
+    postShake,
     toPx,
 } from '../court';
 import { COURTS, WOOD } from '../court-themes';
 import { EventBus } from '../EventBus';
 import { blinkSchedule, evolutionView, RIVAL_EVO_MS } from '../evolution-view';
+import { FlatEllipse } from '../flat-ellipse';
 import { drawStars, drawStatusIcon, dust, effectWord, readableColor, shockwave } from '../hit-fx';
 import {
     hurtSecondsAt,
@@ -171,7 +189,9 @@ import { duckMusic, musicDucked, unduckMusic } from '../music';
 import { N3Story } from '../n3-story';
 import { claimOverlay, PRIO_GOAL } from '../overlay-slot';
 import { cutPortraitBg } from '../portrait-cut';
+import { BASE_SPRITE_SCALE, gridShift, pixelFont, spriteScaleFor } from '../quality';
 import { paintCup } from '../room-art';
+import type { Quality } from '../sharp-canvas';
 import { type Comemoracao, comemoracaoOf, GOAL_CELEB_MS, goalCelebPose } from '../walkout-plan';
 
 export { GAME_H, GAME_W } from '../court';
@@ -256,6 +276,9 @@ const SMOKE_VEL = __SMOKE__
     ? Math.min(64, Math.max(1, Number(new URLSearchParams(location.search).get('vel')) || 1))
     : 1;
 
+/** `?squashdebug=1` (modo fumaça): conta cada squash & stretch que dispara (`window.__squashDebug`) e pisca o nome dele. */
+const SQUASH_DEBUG = __SMOKE__ && new URLSearchParams(location.search).get('squashdebug') === '1';
+
 /** Janela do golpe máximo e período do goleiro-linha (pra aura na quadra). */
 interface AgencySpan {
     idx: number;
@@ -292,7 +315,6 @@ const GOAL_LEAD = 16;
 
 type PenaltyEvent = Extract<MatchEvent, { type: 'penalty' }>;
 
-const SPRITE_SCALE = 1.8;
 const TICK_RATE = FUTSAL_5.tickRate;
 /** O bote de quem usa um golpe com alvo (ms até chegar nele): a reação do alvo espera ele (11/11: vinha antes). */
 const MOVE_LUNGE_MS = 110;
@@ -643,8 +665,8 @@ interface PlayerView {
     shiny: boolean;
     captain: boolean;
     sprite: Phaser.GameObjects.Sprite;
-    shadow: Phaser.GameObjects.Ellipse;
-    ring: Phaser.GameObjects.Ellipse;
+    shadow: FlatEllipse;
+    ring: FlatEllipse;
     label: Phaser.GameObjects.Text;
     badge: Phaser.GameObjects.Text;
     /** Setinha vermelha na cabeça dos jogadores do seu time. */
@@ -688,11 +710,7 @@ interface PlayerView {
 }
 
 /** Corpo inclinado (rad) e esticado (escala em x e y) num mergulho ou reação. */
-interface Lean {
-    tilt: number;
-    sx: number;
-    sy: number;
-}
+type Lean = BodyLean;
 
 /** Pose do capitão (emote "Vamooo!"): quanto dura e quanto dela é juntando força antes da pose (tempo real). */
 const POSE_MS = 1600;
@@ -851,7 +869,7 @@ export class MatchScene extends Phaser.Scene {
     /** Hora (`performance.now`) em que o botão do golpe máximo acendeu, pro bullet time. */
     private cueSince: number | null = null;
     private ballGlow!: Phaser.GameObjects.Arc;
-    private ballShadow!: Phaser.GameObjects.Ellipse;
+    private ballShadow!: FlatEllipse;
     private trailG!: Phaser.GameObjects.Graphics;
     private trail: { x: number; y: number; tick: number }[] = [];
     private ballFree = false;
@@ -875,9 +893,18 @@ export class MatchScene extends Phaser.Scene {
     /** O "?" em cima de quem levou o drible e o tick do quadro anterior (a poeirinha sai ao cruzar o tick dela). */
     private huh: Phaser.GameObjects.Text | null = null;
     private trickTick = 0;
+    /** Os squash & stretch já contados no `?squashdebug=1`. */
+    private sqSeen = new Set<string>();
     /** 1 com a bola no pé de quem dribla, indo a 0 quando ela sai (o enfeite da bola vai junto). */
     private trickOwn = 1;
     private named: (NamedDribble & { toBall: { x: number; y: number } | null })[] = [];
+    /** Squash & stretch fora do gol (só tela): arrancadas/freadas e dominadas por jogador, e os choques do desarme. */
+    private runs: RunBurst[][] = [];
+    private trapsBy: Trap[][] = [];
+    private kicksBy: Trap[][] = [];
+    private bumps: { tick: number; by: number; victim: number; dusted: boolean }[] = [];
+    /** Bola amassando no impacto (chute forte, trave): quando (tempo real), quanto e em que eixo (rad). */
+    private ballSquash = { at: -1e9, amp: 0, angle: 0 };
     /** Tick em que a bola sai do pé em cada passe e chute, por jogador (`kickDepartures`). */
     private departs = new Map<number, number[]>();
     /** Deslocamento suavizado da bola em relação a quem conduz. */
@@ -910,6 +937,17 @@ export class MatchScene extends Phaser.Scene {
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
     private uiScale = 1;
+    /** Resolução do canvas (sharp-canvas.ts; o governador de fps mexe nela). */
+    private quality?: Quality;
+    /** Escala do sprite (px do jogo): inteira em pixels do canvas quando dá (`spriteScaleFor`). */
+    private ssNow = BASE_SPRITE_SCALE;
+    /** Px do canvas por px do jogo dos nomes e das elipses (sombra, anel): 1 pixel da textura por pixel do canvas. */
+    private textRes = 2;
+    private readonly ellRes = () => this.textRes;
+    private court!: Phaser.GameObjects.Image;
+    private courtRes = 2;
+    /** Objetos levados pro pixel inteiro neste quadro e a posição de antes (voltam depois do desenho). */
+    private readonly snapped: { o: Phaser.GameObjects.Sprite | Phaser.GameObjects.Text; x: number; y: number }[] = [];
     /** Quanto dos zooms dos lances vale (1 = tudo; a quadra grande do ?lab=hud já vem ampliada). */
     private zoomDamp = 1;
     /** Câmera da quadra grande: quem conduz (px do mundo, null com a bola solta) e pra que lado o time da bola ataca. */
@@ -983,7 +1021,7 @@ export class MatchScene extends Phaser.Scene {
             this.frameLocked() || this.cer ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
         cam.pan = (x, y, ...rest) => (this.frameLocked() || this.cer ? cam : pan(x, y, ...rest));
 
-        drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
+        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
         for (const team of [0, 1] as const) {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
@@ -997,7 +1035,7 @@ export class MatchScene extends Phaser.Scene {
         for (const id of this.allSpecies()) createSpeciesAnims(this, id);
         for (const p of result.finalRoster) createExtraAnims(this, skinOf(p.speciesId, p.shiny));
 
-        this.ballShadow = this.add.ellipse(0, 0, 14, 6, 0x000000, 0.35);
+        this.ballShadow = new FlatEllipse(this, 0, 0, 14, 6, this.ellRes, 0x000000, 0.35);
         this.trailG = this.add.graphics();
         this.ballGlow = this.add.circle(0, 0, 13, 0xffffff, 0).setBlendMode(Phaser.BlendModes.ADD);
         this.ball = this.add.image(0, 0, 'ball').setDepth(BALL_DEPTH);
@@ -1015,6 +1053,9 @@ export class MatchScene extends Phaser.Scene {
         const onResize = () => this.updateUiScale();
         this.scale.on('resize', onResize);
         this.updateUiScale();
+        this.quality = this.registry.get('quality') as Quality | undefined;
+        this.game.events.on(Phaser.Core.Events.PRE_RENDER, this.pixelGrid, this);
+        this.game.events.on(Phaser.Core.Events.POST_RENDER, this.unsnap, this);
 
         EventBus.on('match:set-speed', this.onSpeed, this);
         EventBus.on('match:skip', this.onSkip, this);
@@ -1049,6 +1090,8 @@ export class MatchScene extends Phaser.Scene {
             EventBus.off('match:hold', this.onHold, this);
             EventBus.off('match:replace', this.onReplace, this);
             this.scale.off('resize', onResize);
+            this.game.events.off(Phaser.Core.Events.PRE_RENDER, this.pixelGrid, this);
+            this.game.events.off(Phaser.Core.Events.POST_RENDER, this.unsnap, this);
         };
         this.sys.events.once('shutdown', () => this.unbind?.());
         this.sys.events.once('destroy', () => this.unbind?.());
@@ -1141,6 +1184,16 @@ export class MatchScene extends Phaser.Scene {
         this.reacts = goalReactions(this.matchEvents, this.sold, (team, tick) => this.keeperAt(team, tick));
         this.goalsBy = this.matchEvents.flatMap((e) =>
             e.type === 'goal' && !e.ownGoal ? [{ by: e.by, tick: e.tick }] : [],
+        );
+        const n = result.roster.length;
+        this.runs = Array.from({ length: n }, () => []);
+        for (const b of runBursts(this.snaps, n)) this.runs[b.by].push(b);
+        this.trapsBy = Array.from({ length: n }, () => []);
+        for (const t of traps(this.snaps)) this.trapsBy[t.by].push(t);
+        this.kicksBy = Array.from({ length: n }, () => []);
+        for (const k of kicks(this.matchEvents)) this.kicksBy[k.by]?.push(k);
+        this.bumps = this.matchEvents.flatMap((e) =>
+            e.type === 'tackle' && e.success ? [{ tick: e.tick, by: e.by, victim: e.victim, dusted: false }] : [],
         );
         // o replay tem a câmera lenta dele; a partida da copa e do duelo, os dribles com nome
         const setups = this.md.setups;
@@ -1455,15 +1508,80 @@ export class MatchScene extends Phaser.Scene {
         return { x: (x - cam.midPoint.x) * z + cam.width / 2, y: (y - cam.midPoint.y) * z + cam.height / 2 };
     }
 
+    /**
+     * Pixel duro (antes de cada desenho): a escala do sprite que cai em pixel inteiro do canvas (muda com a tela e o
+     * governador de fps), os nomes na resolução do canvas e sprite e nome com a borda no pixel inteiro (só com a
+     * câmera sem giro nem tremida; sprite em escala quebrada, como no squash e no zoom dos lances, fica onde está e o
+     * smoothPixelArt suaviza a borda). A posição volta depois do desenho (`unsnap`): nada da cena lê o valor mexido.
+     */
+    private pixelGrid() {
+        const res = this.quality?.res ?? 0;
+        if (!res) return;
+        const ss = spriteScaleFor(res);
+        if (ss !== this.ssNow) {
+            this.ssNow = ss;
+            for (const v of this.players)
+                if (!v.evolving && !v.stretched) v.sprite.setScale(ss * (v.flags > 0 && v.flags & FLAG_MINI ? 0.6 : 1));
+        }
+        if (Math.abs(res - this.textRes) > 0.01) {
+            this.textRes = res;
+            for (const v of this.players) {
+                v.shadow.redraw();
+                v.ring.redraw();
+            }
+            this.ballShadow.redraw();
+            this.updateUiScale();
+            // canvas a 3 (tablet, celular grande deitado): a quadra refeita a 3 px por px do jogo
+            if (courtRes(res) !== this.courtRes) {
+                this.courtRes = courtRes(res);
+                this.court.destroy();
+                this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, this.courtRes);
+            }
+        }
+        const cam = this.cameras.main;
+        if ((cam as unknown as { rotation: number }).rotation || cam.shakeEffect.isRunning) return;
+        const z = cam.zoom;
+        const sx = cam.useBounds ? cam.clampX(cam.scrollX) : cam.scrollX;
+        const sy = cam.useBounds ? cam.clampY(cam.scrollY) : cam.scrollY;
+        const ox = cam.width * cam.originX;
+        const oy = cam.height * cam.originY;
+        const whole = (n: number) => Math.abs(n - Math.round(n)) < 1e-3;
+        const snap = (o: Phaser.GameObjects.Sprite | Phaser.GameObjects.Text, flip: boolean) => {
+            const left = o.x - (flip ? o.width - o.displayOriginX : o.displayOriginX) * o.scaleX;
+            const top = o.y - o.displayOriginY * o.scaleY;
+            this.snapped.push({ o, x: o.x, y: o.y });
+            o.x += gridShift(left, sx, ox, cam.x, z, res);
+            o.y += gridShift(top, sy, oy, cam.y, z, res);
+        };
+        for (const v of this.players) {
+            const sp = v.sprite;
+            if (sp.visible && !sp.rotation && whole(sp.scaleX * z * res) && whole(sp.scaleY * z * res))
+                snap(sp, sp.flipX);
+            if (!whole(z)) continue;
+            for (const t of [v.label, v.badge])
+                if (t.visible && t.alpha > 0 && whole(t.scaleX * z * res)) snap(t, false);
+        }
+    }
+
+    private unsnap() {
+        for (const s of this.snapped) s.o.setPosition(s.x, s.y);
+        this.snapped.length = 0;
+    }
+
     /** Em telas pequenas o canvas encolhe: textos crescem no mundo para continuarem legíveis. */
     private updateUiScale() {
         const shown = this.scale.displaySize.width || GAME_W;
         this.uiScale = Math.max(1, (GAME_W / shown) * 0.72);
         this.cine.uiScale = this.uiScale;
         const s = Math.min(this.uiScale, 2.3);
+        // a Galmuri11 em múltiplo de 12 px do canvas, desenhada em px do canvas e encolhida pra px do jogo: pixel da
+        // letra inteiro na tela (antes 10-11 px do jogo com resolution 2, letra quebrada e borrada)
+        const name = pixelFont(10 * s, this.textRes);
+        const badge = pixelFont(11 * s, this.textRes);
+        const k = 1 / this.textRes;
         for (const v of this.players) {
-            v.label.setFontSize(Math.round(10 * s));
-            v.badge.setFontSize(Math.round(11 * s));
+            v.label.setFontSize(name.size).setStroke('#000000', name.stroke).setScale(k);
+            v.badge.setFontSize(badge.size).setStroke('#000000', badge.stroke).setScale(k);
         }
         // caixa de batalha presa à base da tela (no celular cresce só um pouco)
         const bs = Math.min(this.uiScale, 1.3);
@@ -1481,13 +1599,17 @@ export class MatchScene extends Phaser.Scene {
         const color = this.md.colors[team];
         const skin = this.loadedSkin(speciesId, shiny);
         const size = shadowSize(skin);
-        const shadow = this.add.ellipse(0, 0, 14 + size * 6, 6 + size * 2, 0x000000, 0.3);
+        const shadow = new FlatEllipse(this, 0, 0, 14 + size * 6, 6 + size * 2, this.ellRes, 0x000000, 0.3);
         const kit = this.md.kits?.[team];
-        const ring = this.add.ellipse(0, 0, 22 + size * 6, 9 + size * 2).setStrokeStyle(2.5, color, 0.95);
+        const ring = new FlatEllipse(this, 0, 0, 22 + size * 6, 9 + size * 2, this.ellRes).setStrokeStyle(
+            2.5,
+            color,
+            0.95,
+        );
         if (kit) ring.setFillStyle(kit.color2, 0.55);
         const sprite = this.add
             .sprite(0, 0, atlasKey(skin))
-            .setScale(SPRITE_SCALE)
+            .setScale(this.ssNow)
             .setOrigin(0.5, footOrigin(skin, 'Idle'));
         // seu time (casa) ganha uma setinha vermelha discreta na cabeça
         const arrow =
@@ -1507,12 +1629,8 @@ export class MatchScene extends Phaser.Scene {
         const label = this.add
             .text(0, 0, captain ? `C·${name}` : name, textStyle)
             .setOrigin(0.5, 0)
-            .setResolution(2)
             .setAlpha(this.showsName(team) ? 1 : 0);
-        const badge = this.add
-            .text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' })
-            .setOrigin(0.5, 0)
-            .setResolution(2);
+        const badge = this.add.text(0, 0, '', { ...textStyle, fontSize: '11px', fontStyle: 'bold' }).setOrigin(0.5, 0);
         const view: PlayerView = {
             speciesId,
             skin,
@@ -1598,13 +1716,13 @@ export class MatchScene extends Phaser.Scene {
                 const rects = [false, true].map((short) => {
                     const w = this.labelWidth(v, short);
                     const x0 = v.label.x - w / 2;
-                    return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.height };
+                    return { x0, x1: x0 + w, y0: v.label.y, y1: v.label.y + v.label.displayHeight };
                 });
                 const fit = firstFit(placed, rects);
                 const crowded = fit < 0;
                 this.setLabelText(v, fit !== 0);
                 if (!crowded) placed.push(rects[fit]);
-                const h = v.label.height;
+                const h = v.label.displayHeight;
                 v.crowd = Phaser.Math.Clamp(v.crowd + (crowded ? -step : step), 0, 1);
                 v.label.setAlpha(v.crowd);
                 v.badge.y = v.label.y + h * v.crowd;
@@ -1616,8 +1734,8 @@ export class MatchScene extends Phaser.Scene {
             .filter((v) => v.label.visible && v.label.alpha > 0)
             .sort((a, b) => a.label.y - b.label.y);
         for (const v of views) {
-            const w = v.label.width;
-            const h = v.label.height;
+            const w = v.label.displayWidth;
+            const h = v.label.displayHeight;
             const x0 = v.label.x - w / 2;
             const x1 = x0 + w;
             let y = v.label.y;
@@ -1641,7 +1759,8 @@ export class MatchScene extends Phaser.Scene {
             v.label.setText(was);
             this.labelWidths.set(key, w);
         }
-        return w;
+        // o texto é desenhado em px do canvas e encolhido pra px do jogo (updateUiScale)
+        return w * v.label.scaleX;
     }
 
     private setLabelText(v: PlayerView, short: boolean) {
@@ -1651,7 +1770,7 @@ export class MatchScene extends Phaser.Scene {
 
     /** Altura ocupada pelo nome (zero quando escondido): o status sobe para o lugar dele. */
     private nameHeight(view: PlayerView) {
-        return view.label.alpha > 0 ? view.label.height : 0;
+        return view.label.alpha > 0 ? view.label.displayHeight : 0;
     }
 
     /** Setinha do seu time: logo acima da cabeça (topo visível do sprite no Idle). */
@@ -1718,7 +1837,7 @@ export class MatchScene extends Phaser.Scene {
             0.95,
         );
         // Minimize: fica pequenininho
-        if (!view.evolving) view.sprite.setScale(SPRITE_SCALE * (flags & FLAG_MINI ? 0.6 : 1));
+        if (!view.evolving) view.sprite.setScale(this.ssNow * (flags & FLAG_MINI ? 0.6 : 1));
         this.refreshTint(view);
     }
 
@@ -2291,11 +2410,18 @@ export class MatchScene extends Phaser.Scene {
             if (tb?.ghost && tricked) this.ghost(view, tricked.d.team);
             // comemoração do gol: o squash & stretch do jeito (agacha, estica); Reduzir movimento: sem
             const celebLean =
-                celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1)
+                celeb && !this.md.reduceMotion && (celeb.sx !== 1 || celeb.sy !== 1 || celeb.lift > 0)
                     ? { tilt: 0, sx: celeb.sx, sy: celeb.sy }
                     : null;
-            this.leanBody(view, entering === null ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean) : null);
+            this.leanBody(
+                view,
+                entering === null
+                    ? (dive?.lean ?? bite ?? this.droop(react) ?? celebLean ?? this.moveLean(i, px, factor))
+                    : null,
+            );
             if (dive && entering === null && !view.evolving) this.holdBody(view);
+            // e o pulo dela sai do chão (a sombra fica)
+            if (celebLean && entering === null && !view.evolving) view.sprite.y -= celeb?.lift ?? 0;
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);
@@ -2392,10 +2518,17 @@ export class MatchScene extends Phaser.Scene {
         const bz = bz0 + ((trick?.pose.lift ?? 0) * own) / (PPM * 0.9);
         const lift = bz * PPM * 0.9;
         // quique: a bola que vinha no alto e toca o chão amassa um instante e solta poeira
-        if (this.lastBz > 0.25 && bz < 0.03) this.kickPop(bp.x, bp.y, 0.75, 4);
+        // (e achata em pé: o chapéu e a lambreta caindo, o cruzamento)
+        if (this.lastBz > 0.25 && bz < 0.03) {
+            this.kickPop(bp.x, bp.y, 0.75, 4);
+            this.squashBall(0.4, Math.PI / 2);
+        }
         this.lastBz = bz;
         // a bola do drible cresce pouco no alto (a lambreta virava uma bola gigante); a sombra encolhe pela altura toda
-        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale((1 + bz0 * 0.3 + (bz - bz0) * 0.1) * this.ballPop.v);
+        // impacto (chute forte, trave): achata no eixo do impacto e volta esticando (o giro para nesse instante)
+        const sq = this.ballSquashNow();
+        const bs = (1 + bz0 * 0.3 + (bz - bz0) * 0.1) * this.ballPop.v;
+        this.ball.setPosition(bp.x, bp.y - 4 - lift).setScale(bs * (1 + sq), bs * (1 - 0.7 * sq));
         this.ballShadow
             .setPosition(bp.x + 2, bp.y + 2)
             .setDepth(bp.y - 3)
@@ -2539,10 +2672,18 @@ export class MatchScene extends Phaser.Scene {
             const pose = dribblePose(d, this.playTick, d.toBall, toMarker, !!this.md.reduceMotion, head);
             if (!pose) continue;
             const step = this.playTick - prev;
-            if (step > 0 && step < 2)
+            if (step > 0 && step < 2) {
                 for (const p of DRIBBLE_PUFFS[d.kind])
                     if (prev < d.tick + p && this.playTick >= d.tick + p)
                         dust(this, at.x + pose.body.x, at.y + pose.body.y + 1, 5, at.y + 1, 0.7);
+                // quem levou o drible perde e amassa: a poeira no pé dele
+                const lose = d.tick + DRIBBLE_LOSE[d.kind];
+                if (prev < lose && this.playTick >= lose) {
+                    dust(this, mk.x + pose.markerBody.x, mk.y + pose.markerBody.y + 1, 10, mk.y + 1, 1.2);
+                    this.sqDebug('poeira', `drible:${d.tick}`, mk);
+                }
+            }
+            if (this.playTick >= d.tick + DRIBBLE_LOSE[d.kind]) this.sqDebug('drible', `${d.tick}`, mk);
             return { d, pose };
         }
         return null;
@@ -2660,9 +2801,85 @@ export class MatchScene extends Phaser.Scene {
             if (tick > this.playTick) continue;
             const ms = ((this.playTick - tick) / TICK_RATE) * 1000;
             if (ms > GOAL_CELEB_MS + 200) return null;
-            if (by === i) return goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
+            if (by !== i) continue;
+            const pose = goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
+            if (pose.lift > 0 || pose.sy !== 1) this.sqDebug('gol', `${i}:${tick}`, this.players[i].sprite);
+            return pose;
         }
         return null;
+    }
+
+    /**
+     * Squash & stretch fora do gol (o do mergulho levado pro resto, 12/11): choque do desarme, chute, dominada e
+     * arrancada/freada, nessa ordem. A poeirinha do choque e da corrida sai uma vez (voltando o replay, de novo); a da
+     * corrida, frequente, só até 2x (no 4x/8x ela piscaria).
+     */
+    private moveLean(i: number, px: { x: number; y: number }, factor: number): Lean | null {
+        if (this.md.reduceMotion) return null;
+        const t = this.playTick;
+        for (const b of this.bumps) {
+            if ((b.by !== i && b.victim !== i) || t - b.tick <= -1 || t - b.tick >= 6) continue;
+            const other = this.playerPxAt(b.by === i ? b.victim : b.by, t);
+            const pose = bumpPose(t - b.tick, px.x - other.x, false);
+            if (b.by === i) {
+                const due = diveDust(b.dusted, t, b.tick, false);
+                b.dusted = due.dusted;
+                if (due.fire) {
+                    dust(this, (px.x + other.x) / 2, (px.y + other.y) / 2 + 1, 10, Math.max(px.y, other.y) + 1, 1.3);
+                    this.sqDebug('poeira', `choque:${b.tick}`, px);
+                }
+            }
+            if (pose) {
+                this.sqDebug('choque', `${i}:${b.tick}`, px);
+                return pose;
+            }
+        }
+        const kick = latestAt(this.kicksBy[i] ?? [], t + KICK_SQUASH.lead);
+        if (kick) {
+            const c = kick.tick;
+            const pose = kickSquash(t - c, this.ballPxAt(c + 3).x - this.ballPxAt(c).x);
+            if (pose) {
+                this.sqDebug('chute', `${i}:${c}`, px);
+                return pose;
+            }
+        }
+        const trap = latestAt(this.trapsBy[i] ?? [], t + 1);
+        const caught = trap ? trapPose(t - trap.tick) : null;
+        if (caught && trap) this.sqDebug('dominada', `${i}:${trap.tick}`, px);
+        if (caught) return caught;
+        const run = latestAt(this.runs[i] ?? [], t + 1);
+        const pose = run ? runBurstPose(run, t) : null;
+        if (!run || !pose) return null;
+        const due = diveDust(run.dusted, t, run.tick, false);
+        run.dusted = due.dusted;
+        this.sqDebug('corrida', `${i}:${run.tick}`, px);
+        if (due.fire && factor <= 2.5) {
+            const at = runDustAt(run);
+            dust(this, px.x + at.x, px.y + at.y + 1, 6, px.y - 1, 1);
+            this.sqDebug('poeira', `corrida:${i}:${run.tick}`, px);
+        }
+        return pose;
+    }
+
+    /** `?squashdebug=1`: conta o efeito `kind` (uma vez por `key`) e pisca o nome dele em cima de quem fez. */
+    private sqDebug(kind: string, key: string, at: { x: number; y: number }) {
+        if (!SQUASH_DEBUG || this.sqSeen.has(`${kind}:${key}`)) return;
+        this.sqSeen.add(`${kind}:${key}`);
+        const w = window as unknown as { __squashDebug?: Record<string, number> };
+        w.__squashDebug ??= {};
+        w.__squashDebug[kind] = (w.__squashDebug[kind] ?? 0) + 1;
+        const y = at.y - (kind === 'poeira' ? 20 : 56);
+        const tx = this.add
+            .text(at.x, y, kind.toUpperCase(), {
+                fontFamily: 'Galmuri11, monospace',
+                fontSize: '12px',
+                color: kind === 'poeira' ? '#ffe08a' : '#7cf7ff',
+                stroke: '#000',
+                strokeThickness: 3,
+            })
+            .setOrigin(0.5)
+            .setDepth(9000);
+        this.tweens.add({ targets: tx, y: y - 16, alpha: 0, duration: 900, onComplete: () => tx.destroy() });
     }
 
     /** Cabeça baixa na reação ao gol: amassa um pouco e volta (sem o Reduzir movimento). */
@@ -2675,7 +2892,7 @@ export class MatchScene extends Phaser.Scene {
     /** Inclina e estica o corpo (mergulho, reação) ou devolve ao normal; a rotação sai no drawReaction. */
     private leanBody(view: PlayerView, lean: Lean | null) {
         const sp = view.sprite;
-        const base = SPRITE_SCALE * (view.flags > 0 && view.flags & FLAG_MINI ? 0.6 : 1);
+        const base = this.ssNow * (view.flags > 0 && view.flags & FLAG_MINI ? 0.6 : 1);
         // a cabeça anda no máximo 18 px: o Onix (95 px de altura) inclinado 20° saía da quadra
         const h = Math.max(1, (sp.originY - headTop(view.skin)) * sp.frame.realHeight * base);
         const cap = Math.asin(Math.min(1, 18 / h));
@@ -2696,7 +2913,8 @@ export class MatchScene extends Phaser.Scene {
         const dx = x - this.lastBall.x;
         const dy = y - this.lastBall.y;
         const moved = Math.hypot(dx, dy);
-        if (moved < 60) this.ball.rotation += (dx >= 0 ? 1 : -1) * (moved / 8);
+        if (this.ballSquashNow() !== 0) this.ball.rotation = this.ballSquash.angle;
+        else if (moved < 60) this.ball.rotation += (dx >= 0 ? 1 : -1) * (moved / 8);
         this.lastBall = { x, y };
 
         const free = shootout || this.ballFree;
@@ -2916,7 +3134,7 @@ export class MatchScene extends Phaser.Scene {
             v.lunge = { x: 0, y: 0 };
             v.shift = { x: 0, y: 0 };
             v.act = null;
-            v.sprite.setAngle(0).setAlpha(1).setScale(SPRITE_SCALE);
+            v.sprite.setAngle(0).setAlpha(1).setScale(this.ssNow);
             v.sprite.anims.timeScale = 1;
         }
         this.ball.setVisible(false);
@@ -2961,7 +3179,7 @@ export class MatchScene extends Phaser.Scene {
                 createSpeciesAnims(this, skin);
                 const to = { x: center.x + spots[k].x, y: center.y + spots[k].y };
                 const from = { x: to.x + Math.sign(spots[k].x) * 260, y: spots[k].y < 0 ? -30 : GAME_H + 30 };
-                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(SPRITE_SCALE).setVisible(false);
+                const sp = this.add.sprite(from.x, from.y, atlasKey(skin)).setScale(this.ssNow).setVisible(false);
                 const shadow = this.add.ellipse(from.x, from.y, 18, 6, 0x000000, 0.25).setVisible(false);
                 wild.push({ sp, shadow, from, to, fly: w.fly, late: w.late, skin });
             });
@@ -3112,7 +3330,7 @@ export class MatchScene extends Phaser.Scene {
                 .setPosition(at.x, at.y - lift)
                 .setDepth(at.y)
                 .setAlpha(alpha)
-                .setScale(SPRITE_SCALE * (c.reduce ? 1 : sx), SPRITE_SCALE * (c.reduce ? 1 : sy));
+                .setScale(this.ssNow * (c.reduce ? 1 : sx), this.ssNow * (c.reduce ? 1 : sy));
             v.shadow
                 .setPosition(at.x, at.y + 1)
                 .setDepth(at.y - 2)
@@ -3129,7 +3347,7 @@ export class MatchScene extends Phaser.Scene {
             if (a.captain) {
                 capAt = at;
                 capLift = lift;
-                capTop = bodyHeight(v.skin) * SPRITE_SCALE;
+                capTop = bodyHeight(v.skin) * this.ssNow;
             }
         }
         // a taça: sobe das mãos pra cima da cabeça (passa do ponto e assenta)
@@ -3535,6 +3753,12 @@ export class MatchScene extends Phaser.Scene {
                 // chute: estalo maior, mais poeira e um toque na câmera quando é chute forte
                 this.kickPop(this.ball.x, this.ball.y + 4, 1.45, 6);
                 if (e.xg >= 0.25) this.punch('touch');
+                // chute forte (ou de golpe): a bola amassa no pé, no eixo pra onde ela vai
+                if (e.xg >= 0.25 || e.moveId) {
+                    const a = this.ballPxAt(e.tick);
+                    const b = this.ballPxAt(e.tick + 3);
+                    this.squashBall(0.34, Math.atan2(b.y - a.y, b.x - a.x));
+                }
                 break;
             case 'save': {
                 // a bicuda do goleiro capitão sai no mesmo tick como 'save': a cena é dela (o caso 'max')
@@ -3636,6 +3860,9 @@ export class MatchScene extends Phaser.Scene {
             }
             case 'post': {
                 playSfx('post');
+                // a bola achata na trave (o gol é em pé na tela: o eixo é o x) e a trave treme
+                this.squashBall(0.45, 0);
+                postShake(this, this.ball.x < toPx(L / 2, 0).x ? 0 : 1, this.ball.y, !!this.md.reduceMotion);
                 if (this.players[e.shooter]?.team === this.mine) playCrowd('uuh');
                 // a espalmada na trave já está na tela ("espalmou na trave!"): a trave só estala
                 const parried = this.matchEvents.some(
@@ -3815,8 +4042,8 @@ export class MatchScene extends Phaser.Scene {
                         this.time.delayedCall(at, () =>
                             this.tweens.add({
                                 targets: sp,
-                                scaleX: SPRITE_SCALE * x,
-                                scaleY: SPRITE_SCALE * y,
+                                scaleX: this.ssNow * x,
+                                scaleY: this.ssNow * y,
                                 duration: ms,
                                 yoyo: true,
                                 ease: 'Sine.easeInOut',
@@ -3840,8 +4067,8 @@ export class MatchScene extends Phaser.Scene {
                     this.refreshTint(view);
                     playCry(e.into, cries, 0.8);
                     this.impact(sp.x, sp.y - 16, 'Psychic');
-                    sp.setScale(SPRITE_SCALE * 0.2);
-                    this.tweens.add({ targets: sp, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+                    sp.setScale(this.ssNow * 0.2);
+                    this.tweens.add({ targets: sp, scale: this.ssNow, duration: 420, ease: 'Back.easeOut' });
                     this.battleBox.push(tr('battle.transformed', { x: view.name, y: into }));
                     if (!cinematic) {
                         this.popText(e.by, `→ ${into}`, '#d9a7ff');
@@ -4135,7 +4362,7 @@ export class MatchScene extends Phaser.Scene {
                         kind: 'blast',
                         strong: true,
                         depth: FOCUS_DEPTH + 70,
-                        baseScale: SPRITE_SCALE,
+                        baseScale: this.ssNow,
                     });
                 if (e.step === 'shot') {
                     // a animação do tipo (receita de um golpe do tipo, de quem chutou até o goleiro) e o estouro na bola;
@@ -4218,7 +4445,7 @@ export class MatchScene extends Phaser.Scene {
         const facing = dir8({ x: bench.x - at.x, y: bench.y - at.y }, 4);
         const ghost = this.add
             .sprite(at.x, at.y, atlasKey(outSpecies))
-            .setScale(SPRITE_SCALE)
+            .setScale(this.ssNow)
             .setDepth(at.y)
             .setOrigin(0.5, footOrigin(outSpecies, walk));
         ghost.play(`${outSpecies}/${walk}/${facing}`);
@@ -4272,8 +4499,8 @@ export class MatchScene extends Phaser.Scene {
     private evolveOnField(view: PlayerView, into: number, newName: string) {
         const oldName = view.name;
         this.finishEvolution(view, into, newName);
-        view.sprite.setScale(SPRITE_SCALE * 1.3);
-        this.tweens.add({ targets: view.sprite, scale: SPRITE_SCALE, duration: 420, ease: 'Back.easeOut' });
+        view.sprite.setScale(this.ssNow * 1.3);
+        this.tweens.add({ targets: view.sprite, scale: this.ssNow, duration: 420, ease: 'Back.easeOut' });
         this.impact(view.sprite.x, view.sprite.y - 16, species(into).types[0]);
         this.battleBox.push(
             tr(view.team !== this.mine ? 'battle.evolvedRival' : 'battle.evolved', {
@@ -4545,6 +4772,20 @@ export class MatchScene extends Phaser.Scene {
                 onComplete: () => bit.destroy(),
             });
         }
+    }
+
+    /** Quanto a bola está amassada agora (`ballSquashAt` × força; 0 = redonda). */
+    private ballSquashNow() {
+        const q = this.ballSquash;
+        return q.amp ? q.amp * ballSquashAt(this.time.now - q.at) : 0;
+    }
+
+    /** A bola amassa no impacto (`amp`), no eixo `angle` (rad, tela). Reduzir movimento: nada. */
+    private squashBall(amp: number, angle: number) {
+        if (this.md.reduceMotion) return;
+        this.ballSquash.at = this.time.now;
+        this.ballSquash.amp = amp;
+        this.ballSquash.angle = angle;
     }
 
     /** Contato com a bola: ela "estala" (cresce e volta) e levanta poeira no chão. */
@@ -5991,7 +6232,7 @@ export class MatchScene extends Phaser.Scene {
             kind: MOVES[moveId] ? moveProfile(moveId).kind : 'blast',
             strong,
             depth: FOCUS_DEPTH + 70,
-            baseScale: SPRITE_SCALE,
+            baseScale: this.ssNow,
             onHit: () => to && this.refreshTint(to),
             // a posição vem do motor a cada quadro: o golpe desloca pelo "lunge" (somado à posição)
             nudge: (who, dx, dy, ms) => {

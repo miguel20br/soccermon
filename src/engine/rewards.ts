@@ -5,6 +5,7 @@ import { type Stone, stoneInto, stoneUsers } from './evolution';
 import { createInstance, type PokemonInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
+import { MAX_SPONSORS, SPONSOR_FAMILY, SPONSOR_IDS, type SponsorId } from './sponsors';
 import { rollTmOffer, rollTmOffers, TM_REWARD_CHANCE } from './tm';
 
 /**
@@ -17,7 +18,9 @@ import { rollTmOffer, rollTmOffers, TM_REWARD_CHANCE } from './tm';
 export type Reward =
     | { kind: 'pokemon'; inst: PokemonInstance; from: string | null }
     | { kind: 'item'; item: string }
-    | { kind: 'tm'; move: string; leader: string | null };
+    | { kind: 'tm'; move: string; leader: string | null }
+    /** Modos arcade (Relâmpago e Copa do Dia): o Patrocínio vem às vezes na recompensa, já que lá não tem Mercado. */
+    | { kind: 'sponsor'; id: SponsorId };
 
 /** Raridade do reforço sorteado sobe a cada fase. */
 const REINFORCEMENT_ROUND = [3, 5, 6];
@@ -204,4 +207,35 @@ function baseOptions(
     const last = options.map((o) => o.kind).lastIndexOf('item');
     if (offer && last >= 0) options[last] = { kind: 'tm', ...offer };
     return options;
+}
+
+/**
+ * Modos arcade (Relâmpago e Copa do Dia, sem ₽ nem Mercado desde 11/11/2026): chance de um Patrocínio entrar na
+ * recompensa, no lugar do último item. Sorteio à parte: o resto da recompensa da mesma seed não muda.
+ */
+export const SPONSOR_REWARD_CHANCE = 0.4;
+/** Os que valem sem ₽ nem Mercado: os de campo e o Laboratório de Cinnabar (+1 opção na recompensa). */
+export const ARCADE_SPONSORS = SPONSOR_IDS.filter((id) => SPONSOR_FAMILY[id] === 'campo' || id === 'cinnabar');
+
+/**
+ * A recompensa do arcade com o Patrocínio (às vezes): um só, que você ainda não tem, e só com vaga livre. Com só a
+ * Final pela frente (`matchesLeft` 1) não vem o Cinnabar, que não teria mais recompensa onde valer.
+ */
+export function withSponsor(
+    options: Reward[],
+    seed: string,
+    stage: number,
+    reroll: number,
+    owned: readonly string[],
+    matchesLeft: number,
+): Reward[] {
+    if (owned.length >= MAX_SPONSORS) return options;
+    const rng = new Rng(seed, `reward-sp-${stage}-r${reroll}`);
+    if (!rng.chance(SPONSOR_REWARD_CHANCE)) return options;
+    const pool = ARCADE_SPONSORS.filter((id) => !owned.includes(id) && (matchesLeft > 1 || id !== 'cinnabar'));
+    const last = options.map((o) => o.kind).lastIndexOf('item');
+    const at = last >= 0 ? last : options.length - 1;
+    if (!pool.length || at < 0) return options;
+    const id = rng.pick(pool);
+    return options.map((o, i) => (i === at ? { kind: 'sponsor', id } : o));
 }

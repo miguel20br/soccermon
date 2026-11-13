@@ -51,7 +51,7 @@ export const ITEMS: Record<string, ItemData> = {
         name: 'Leftovers',
         kind: 'leftovers',
         sprite: 'leftovers',
-        desc: 'Recupera fôlego aos poucos durante o jogo.',
+        desc: 'Recupera 0,15% de fôlego por segundo.',
     },
     choiceband: {
         id: 'choiceband',
@@ -72,7 +72,7 @@ export const ITEMS: Record<string, ItemData> = {
         name: 'Focus Sash',
         kind: 'focussash',
         sprite: 'focus-sash',
-        desc: 'Goleiro: segura o primeiro chute certo de gol. Linha: ignora o primeiro status.',
+        desc: 'Goleiro: segura o 1º chute no gol. Linha: ignora o 1º status.',
     },
     scopelens: {
         id: 'scopelens',
@@ -86,14 +86,14 @@ export const ITEMS: Record<string, ItemData> = {
         name: 'Lum Berry',
         kind: 'lumberry',
         sprite: 'lum-berry',
-        desc: 'Cura o primeiro status sofrido na partida.',
+        desc: 'Bloqueia o 1º status vindo do rival na partida.',
     },
     kingsrock: {
         id: 'kingsrock',
         name: "King's Rock",
         kind: 'kingsrock',
         sprite: 'kings-rock',
-        desc: 'Golpes que acertam podem fazer o rival hesitar.',
+        desc: 'Golpes de dano que acertam têm 30% de chance de atordoar o rival por 0,7 s.',
     },
     ...Object.fromEntries(
         TYPE_ITEMS.map(([id, name, type]) => [

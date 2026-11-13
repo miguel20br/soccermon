@@ -92,12 +92,12 @@ export const common = {
     } as Record<string, string>,
     /** O que o status faz (painel do Pokémon na partida). */
     statusEffect: {
-        1: 'Paralisado: mais lento',
+        1: 'Paralisado: velocidade −40%, drible −15%',
         2: 'Dormindo: não joga',
         3: 'Envenenado: perde fôlego',
-        4: 'Queimado: chuta e tromba mais fraco',
+        4: 'Queimado: chute e força −20%',
         5: 'Congelado: não joga',
-        6: 'Confuso: erra passe e chute',
+        6: 'Confuso: passe −30%, chute −15%',
     } as Record<number, string>,
     tier: {
         common: 'Comum',
@@ -159,13 +159,13 @@ export const common = {
             name: 'Quadrado (2-2)',
             description: 'Joga aberto, em duplas, com o fixo passando por fora.',
             up: '+Pelos lados +Ultrapassagem',
-            down: '−Toque curto',
+            down: '−Passe −Chute',
         },
         '3-1': {
             name: 'Linha de 3 (3-1)',
             description: 'Toca atrás até achar o pivô, que devolve pra quem chega.',
             up: '+Bola no pivô +Parede',
-            down: '−Lenta',
+            down: '−Passe pra frente',
         },
         '4-0': {
             name: 'Rodízio (4-0)',
@@ -233,13 +233,13 @@ export const common = {
     } as Record<string, { name: string; desc: string; combo: string }>,
     /** Descrição dos itens (o nome é o oficial em inglês, igual nas duas línguas). */
     itemDesc: {
-        leftovers: 'Recupera fôlego aos poucos durante o jogo.',
+        leftovers: 'Recupera 0,15% de fôlego por segundo.',
         choiceband: 'Chute +15%, mas só o primeiro golpe pode ser usado.',
         quickclaw: '+15% nas divididas (desarmes e proteção de bola).',
         focussash: 'Goleiro: segura o 1º chute no gol. Linha: ignora o 1º status.',
         scopelens: '20% de chance de chute crítico (mais forte e preciso).',
-        lumberry: 'Cura o primeiro status sofrido na partida.',
-        kingsrock: 'Golpes que acertam podem fazer o rival hesitar.',
+        lumberry: 'Bloqueia o 1º status vindo do rival na partida.',
+        kingsrock: 'Golpes de dano que acertam têm 30% de chance de atordoar o rival por 0,7 s.',
     } as Record<string, string>,
     /** Itens de tipo; {type} é o nome do tipo como o motor guarda (em inglês). */
     typeItemDesc: 'Golpes do tipo {type} ficam 20% mais fortes.',
@@ -320,7 +320,7 @@ export const common = {
         debuff: 'enfraquece rival',
         status: 'status no rival',
         heal: 'recupera fôlego',
-        flavor: '...nada?',
+        flavor: 'sem efeito',
         special: 'efeito especial',
     } as Record<string, string>,
     /** Linhas de bônus da carta (engine/modifiers.ts); {pct} já vem com sinal ("+5%"). */

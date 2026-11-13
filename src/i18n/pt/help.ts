@@ -156,13 +156,13 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
         blocks: [
             {
                 list: [
-                    ['Paralisado', 'Velocidade −40% e Drible −15%.'],
-                    ['Dormindo', 'fica fora do lance por um instante.'],
-                    ['Congelado', 'fica parado por um instante.'],
-                    ['Envenenado', 'perde fôlego aos poucos.'],
-                    ['Queimado', 'Chute e Força −20% e perde fôlego aos poucos.'],
-                    ['Confuso', 'Passe −30% e Chute −15%.'],
-                    ['Apaixonado', '(Cute Charm) trava por um instante.'],
+                    ['Paralisado', 'Velocidade −40% e Drible −15% por 6 s.'],
+                    ['Dormindo', 'fica fora do lance por 2,5 s.'],
+                    ['Congelado', 'fica parado por 2,5 s.'],
+                    ['Envenenado', 'perde fôlego por 10 s.'],
+                    ['Queimado', 'Chute e Força −20% e perde fôlego por 8 s.'],
+                    ['Confuso', 'Passe −30% e Chute −15% por 4 s.'],
+                    ['Apaixonado', '(Cute Charm) trava por 1,5 s.'],
                     ['Hesitante', '(Bite, King’s Rock…) perde o tempo da jogada.'],
                 ],
             },
@@ -186,7 +186,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ],
                     [
                         'Sinergia de história',
-                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e mais preciso (1 vez por tempo). As **especiais** (os 3 Pássaros Lendários, os 3 iniciais, Mew + Mewtwo) completas dão mais e as cartas brilham juntas. Tipo + história somam até +15%.',
+                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e 50% mais preciso (1 vez por tempo). As **especiais** (os 3 Pássaros Lendários, os 3 iniciais, Mew + Mewtwo) completas dão mais e as cartas brilham juntas. Tipo + história somam até +15%.',
                     ],
                 ],
             },
@@ -202,9 +202,11 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
             { dyn: 'tactics' },
             {
-                p: '**Fôlego:** cai com o esforço (menos pra quem tem HP alto) e cansado rende menos. O intervalo recupera um pouco. O time rival pode trocar o mais cansado no intervalo.',
+                p: '**Fôlego:** cai com o esforço (menos pra quem tem HP alto) e cansado rende menos (−28% nos atributos com o fôlego zerado). O intervalo recupera 30% do fôlego. O time rival pode trocar o mais cansado no intervalo.',
             },
-            { p: '**Garra:** quem está perdendo por 3 ou mais cresce no jogo. Virada é sempre possível.' },
+            {
+                p: '**Garra:** perdendo por 3 gols ou mais, o time ganha +6% em todos os atributos, mais 3% por gol de diferença acima de 3 (máximo +14%).',
+            },
             {
                 p: '**Pênaltis:** empate no fim vai pra 5 cobranças por time e depois morte súbita. Batem os melhores chutadores, e o tipo do batedor contra o do goleiro conta.',
             },
@@ -360,7 +362,7 @@ export const help = {
         rota: [
             'Toque numa casa acesa e depois em Ir.',
             'A 1ª partida não dá cartão. Depois, uma derrota vale amarelo e a segunda, vermelho.',
-            'Vitória dá ₽. Gaste no Mercado ou guarde pra render juros.',
+            'Vitória dá ₽ (o Jogo paga mais). Gaste no Mercado ou guarde pra render juros.',
         ],
         rotaGrupo: ['Aqui a derrota não dá cartão.'],
         rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],
@@ -369,10 +371,7 @@ export const help = {
         relampagoVestiario: ['Toque em dois pra trocar. A chave abre no cartaz do rival.'],
         relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
         duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
-        dueloSala: [
-            'Melhor de 3: mesmo time nos jogos, escalação ajustável entre eles.',
-            'Crie a sala e mande o link pro amigo.',
-        ],
+        dueloSala: ['Em Regras: velocidade, duração e Melhor de 3.', 'Crie a sala e mande o link pro amigo.'],
         dia: ['Mesmo draft e mesmos rivais pra todo mundo hoje.', 'Só a primeira tentativa conta pro ranking.'],
         liga: [
             'Ganhar sobe o Elo, perder desce.',
@@ -380,6 +379,17 @@ export const help = {
         ],
         golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
         utRepetida: ['Repetida não entra no Clube: venda ou troque pela que você já tem.'],
+        /** "Como funciona" na Ajuda: o que cada um é, numa linha (embaixo do nome). */
+        replayLine: {
+            intro: 'A tela inicial: escolha o modo e jogue.',
+            rota: 'Copa longa por Kanto, de ginásio em ginásio.',
+            rotaGrupo: 'O fim da Rota: grupo de 3 jogos e a Final.',
+            relampago: 'Mata-mata de 4 jogos: perdeu, acabou.',
+            golpe: 'O chute especial do capitão, em 3 níveis.',
+            duelo: 'Ao vivo contra um amigo, pelo link. Sem conta.',
+            dia: 'A mesma copa pra todo mundo hoje, com ranking.',
+            liga: 'Contra o time salvo de outro treinador. Vale Elo.',
+        } as Record<string, string>,
         replay: {
             title: 'Como funciona',
             hint: 'Os balões voltam na próxima vez que você entrar no modo.',

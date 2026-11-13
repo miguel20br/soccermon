@@ -381,82 +381,93 @@ export const SECONDARY_PICK: Record<string, StatusKind[]> = { triattack: ['brn',
  * tela escolhe pelo idioma com `moveExplain()`. O motor não lê nada disso.
  */
 const EXPLAIN = {
-    counter: 'Reação: na primeira vez que receber um golpe ou carrinho, devolve no atacante (1 vez por partida).',
-    haze: 'Névoa: tira status e reforços/enfraquecimentos de todo mundo em volta (dos dois times).',
-    mist: 'O time fica imune a enfraquecimentos por 12 segundos.',
-    teleport: 'Some e reaparece em outro ponto da quadra: foge da marcação.',
-    mirrormove: 'Repete o último golpe que o rival usou.',
-    mimic: 'Copia o último golpe que o rival usou e fica com ele até o fim da partida.',
+    counter:
+        'Reação: na primeira vez que receber um golpe ou carrinho, anula e atordoa o atacante por 0,9 s (1 vez por partida).',
+    haze: 'Névoa: tira status, reforços, enfraquecimentos e Leech Seed de todo mundo a 6 m (dos dois times).',
+    mist: 'Por 12 segundos, golpes que só enfraquecem (Growl, Leer...) não pegam no time.',
+    teleport:
+        'Some e reaparece 8 m à frente se o time está com a bola (8 m atrás se não está), numa faixa sorteada da quadra.',
+    mirrormove: 'Repete o último golpe que o time rival usou.',
+    mimic: 'Copia o último golpe que o time rival usou e fica com ele até o fim da partida.',
     metronome: 'Balança o dedo e solta um golpe aleatório!',
-    substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
-    leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos pra quem usou (Planta é imune).',
-    bide: 'Aguenta firme 3 s e depois solta uma onda que empurra e atordoa quem está perto: quanto mais apanhou, mais forte.',
-    rage: 'Fúria por 15 s: chute e força sobem, e cada carrinho ou golpe que sofre deixa ainda mais forte (até 3 vezes).',
-    conversion: 'Copia o tipo do rival mais perto por 12 s (muda a vantagem de tipo) e tira os enfraquecimentos.',
-    disable: 'Trava um golpe que o rival mais perto ainda tinha pra usar.',
-    roar: 'Rugido: o rival mais perto foge de volta pro campo dele e larga a bola.',
-    whirlwind: 'Ventania que empurra os rivais em volta e sopra a bola solta pra longe.',
-    splash: 'Pula e espirra água: fica difícil de desarmar por um instante (mas é só isso mesmo).',
+    substitute:
+        'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele por até 15 s (custa 8% do fôlego).',
+    leechseed:
+        'Planta uma semente no rival mais perto (até 6 m): por 12 s, passa 1,2% do fôlego dele por segundo pra quem usou (Planta é imune).',
+    bide: 'Segura 3 s (+30% de força) contando as pancadas e depois empurra e atordoa os rivais a 3,5 m: quanto mais apanhou, mais forte (até 3 pancadas).',
+    rage: 'Fúria por 15 s: +10% de chute e força, e cada carrinho ou golpe que sofre soma mais 5% (até 3 vezes).',
+    conversion:
+        'Copia o tipo do rival mais perto por 12 s (muda a vantagem de tipo), tira os enfraquecimentos e dá +8% em velocidade, drible, chute, passe e desarme por 10 s.',
+    disable: 'Trava o golpe mais forte que o rival mais perto (até 6 m) ainda tem pra usar.',
+    roar: 'Rugido: o rival mais perto (até 5 m) corre 1,6 s de volta pro campo dele e larga a bola.',
+    whirlwind: 'Ventania: empurra 2,8 m os rivais a 4,5 m e manda pra longe a bola solta que estiver a até 7 m.',
+    splash: 'Pula e espirra água: fica 30% mais difícil de desarmar por 1,5 s (mas é só isso mesmo).',
     transform:
-        'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos. (O Ditto já entra transformado pela habilidade Impostor.)',
+        'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos. (O Ditto já entra transformado pela habilidade Imposter.)',
     // F1 área
-    acid: 'Com a bola: chute colocado. Sem a bola: jato de ácido em todos os rivais a 4 m.',
+    acid: 'Com a bola: chute colocado. Sem a bola: empurra e atordoa todos os rivais a 4 m.',
     blizzard:
-        'Com a bola: chute colocado que pode congelar o goleiro. Sem a bola: nevasca em todos os rivais a 4 m, com chance de congelar.',
-    bubble: 'Com a bola: chute colocado. Sem a bola: bolhas em todos os rivais a 4 m (podem deixar lentos).',
+        'Com a bola: chute colocado que pode congelar o goleiro. Sem a bola: empurra e atordoa todos os rivais a 4 m, com chance de congelar.',
+    bubble: 'Com a bola: chute colocado. Sem a bola: empurra e atordoa todos os rivais a 4 m (pode deixar lentos).',
     growl: 'Rugido em área: chute e força de todos os rivais a 4 m caem.',
-    leer: 'Encarada em área: os rivais a 4 m travam um instante e desarmam pior.',
+    leer: 'Encarada em área: os rivais a 4 m param 0,3 s e perdem 8% de desarme e força por 10 s.',
     tailwhip: 'Rabinho em área: desarme e força de todos os rivais a 4 m caem.',
-    screech: 'Grito em área: desarme e força dos rivais a 4 m caem bastante.',
+    screech: 'Grito em área: desarme e força dos rivais a 4 m caem 16% por 10 s.',
     stringshot: 'Teia em área: todos os rivais a 4 m ficam lentos.',
     poisongas: 'Nuvem de gás: tenta envenenar todos os rivais a 3 m.',
-    rockslide: 'Com a bola: chute forte. Sem a bola: chuva de pedras em todos os rivais a 4 m, que podem hesitar.',
-    rollingkick: 'Com a bola: chute forte. Sem a bola: chute giratório que derruba todo mundo a 2 m.',
+    rockslide: 'Com a bola: chute forte. Sem a bola: empurra e atordoa todos os rivais a 4 m, que podem hesitar.',
+    rollingkick: 'Com a bola: chute forte. Sem a bola: chute giratório que derruba todos os rivais a 2 m.',
     earthquake:
         'Com a bola: chute fortíssimo. Sem a bola: tremor de 4 m que derruba TODO MUNDO em volta, até companheiro.',
     surf: 'Com a bola: chute colocado. Sem a bola: onda que empurra todo mundo a 4 m, até companheiro.',
     swift: 'Estrelas que nunca erram: o chute não pode ser bloqueado por jogador de linha (só o goleiro). Sem a bola, acerta todos os rivais a 4 m.',
-    razorleaf: 'Folhas afiadas: chute com chance alta de crítico. Sem a bola, corta todos os rivais a 4 m.',
+    razorleaf: 'Folhas afiadas: chute com 20% a 35% de crítico. Sem a bola, acerta todos os rivais a 4 m.',
     razorwind:
-        'Carrega 0,6 s parado e solta lâminas de vento: chute com crítico fácil, ou todos os rivais a 4 m sem a bola. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s parado e sai mais forte: chute com 20% a 35% de crítico ou, sem a bola, acerta todos os rivais a 4 m. Se levar carrinho carregando, perde o golpe.',
     // F2 crítico
-    slash: 'Corte com crítico fácil: o chute sai mais forte e certeiro; o carrinho crítico ganha direto.',
-    karatechop: 'Golpe de caratê com crítico fácil: chute mais forte e certeiro; carrinho crítico ganha direto.',
-    crabhammer: 'Martelada com crítico fácil: chute fortíssimo; carrinho crítico ganha direto.',
+    slash: 'Corte com 20% a 35% de crítico: o chute crítico sai 25% mais rápido e mais certeiro; o carrinho crítico ganha direto.',
+    karatechop:
+        'Golpe de caratê com 20% a 35% de crítico: o chute crítico sai 25% mais rápido e mais certeiro; carrinho crítico ganha direto.',
+    crabhammer:
+        'Martelada com 20% a 35% de crítico: chute fortíssimo, 25% mais rápido no crítico; carrinho crítico ganha direto.',
     skyattack:
-        'Carrega 0,6 s brilhando e sai o chute mais forte do jogo, com crítico fácil. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s brilhando e sai o chute mais forte do jogo, com 20% a 35% de crítico. Se levar carrinho carregando, perde o golpe.',
     focusenergy:
-        'Concentra: o próximo chute ou carrinho é crítico garantido (às vezes falha, como o Focus Energy bugado da Gen 1).',
+        'Concentra: o próximo chute ou carrinho é crítico garantido (falha 1 vez em 16, como o Focus Energy bugado da Gen 1).',
     // F3 carga
     solarbeam:
-        'Carrega 0,6 s parado juntando sol e solta o chute mais forte do jogo. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s parado e solta um chute colocado forte e muito certeiro. Se levar carrinho carregando, perde o golpe.',
     skullbash: 'Abaixa a cabeça 0,6 s (ninguém tira a bola dele nesse tempo) e solta uma cabeçada fortíssima.',
-    hyperbeam: 'Raio fortíssimo, mas fica parado recarregando depois. Se fizer gol, não recarrega (como na Gen 1).',
+    hyperbeam:
+        'Chute fortíssimo (sem a bola, acerta o rival mais perto), mas depois fica 0,9 s parado recarregando. Se fizer gol, não recarrega (como na Gen 1).',
     // F4 some do mapa
-    fly: 'Voa 0,8 s (ninguém alcança): com a bola, passa por cima da marcação e finaliza; sem a bola, cai em cima de quem conduz e dá o bote.',
-    dig: 'Cava 0,8 s (ninguém alcança): com a bola, reaparece mais à frente e finaliza; sem a bola, sai do chão embaixo de quem conduz e dá o bote.',
+    fly: 'Voa 0,8 s (ninguém alcança): com a bola, avança 2 m e chuta; sem a bola, cai em cima de quem conduz (até 8 m) e tenta o desarme.',
+    dig: 'Cava 0,8 s (ninguém alcança): com a bola, reaparece 2 m à frente e chuta; sem a bola, sai do chão embaixo de quem conduz (até 8 m) e tenta o desarme.',
     // F5 prioridade
     quickattack:
         'Prioridade: sem a bola, avança 2 m e desarma na hora, sem esperar; com a bola, arrancada e chute ou passe de primeira.',
-    agility: 'Arrancada longa: fica bem mais veloz por 5 segundos.',
+    agility: 'Arrancada longa: +28% de velocidade e +10% de drible por 5 segundos.',
     // F6 mira
     drillpeck: 'Broca: chute forte que fura o primeiro bloqueio no caminho.',
     cut: 'Corte: chute que fura o primeiro bloqueio; o carrinho não perde força por trás.',
-    eggbomb: 'Chute de cobertura: a bola vai por cima dos bloqueios e o goleiro alcança menos (mas é impreciso).',
-    sandattack: 'Areia no olho: o rival mais perto chuta e passa bem torto por 6 s.',
-    kinesis: 'Entorta a colher: o próximo chute do rival mais perto sai bem torto.',
-    flash: 'Clarão: todos os rivais a 7 m chutam e passam torto por 5 s.',
-    smokescreen: 'Cortina de fumaça no chão (3 m, 5 s): chute e passe de dentro dela saem tortos, pros dois times.',
+    eggbomb:
+        'Chute de cobertura: a bola vai por cima dos bloqueios e o goleiro alcança 20% menos (mas o golpe erra 25% das vezes).',
+    sandattack: 'Areia no olho: o rival mais perto (até 6 m) erra o dobro no chute e no passe por 6 s.',
+    kinesis: 'Entorta a colher: o próximo chute do rival mais perto (até 6 m) nos próximos 10 s erra 2,5 vezes mais.',
+    flash: 'Clarão: todos os rivais a 7 m erram 60% mais no chute e no passe por 5 s.',
+    smokescreen:
+        'Cortina de fumaça no chão (3 m, 5 s) em cima do rival mais perto: chute e passe de dentro dela erram 80% mais, pros dois times.',
     // F7 dano fixo
     sonicboom:
-        'Dano fixo: chute de velocidade fixa (não depende do atributo nem do tipo). Sem a bola, estrondo que atordoa o rival um tempo fixo (Fantasma é imune).',
+        'Dano fixo: chute sempre a 20 m/s (não depende do atributo nem do tipo). Sem a bola, atordoa o rival mais perto por 0,6 s (Fantasma é imune).',
     dragonrage:
-        'Dano fixo: chute de velocidade fixa alta, sem vantagem de tipo do goleiro. Sem a bola, atordoa o rival um tempo fixo.',
+        'Dano fixo: chute sempre a 24 m/s, sem vantagem de tipo do goleiro. Sem a bola, atordoa o rival mais perto por 0,8 s.',
     nightshade:
-        'Dano fixo: chute de velocidade fixa, ignora o tipo do goleiro. Sem a bola, atordoa um tempo fixo e pega até Normal.',
+        'Dano fixo: chute sempre a 23 m/s, ignora o tipo do goleiro. Sem a bola, atordoa o rival mais perto por 0,8 s e pega até Normal.',
     seismictoss:
-        'Arremesso: no carrinho, joga o rival 3 m e deixa 1 s no chão, sem depender da força. Com a bola, chute de velocidade fixa.',
-    psywave: 'Onda psíquica de força sorteada: pode sair uma bomba ou uma bola murcha.',
+        'Arremesso: no carrinho, joga o rival 3 m e deixa 1 s no chão, sem depender da força. Com a bola, chute sempre a 22 m/s.',
+    psywave:
+        'Força sorteada entre 50% e 150% da normal: com a bola, chute; sem a bola, empurra e atordoa o rival mais perto.',
     superfang: 'Presa: o carrinho que acerta tira metade do fôlego do rival.',
     lowkick: 'Rasteira: derruba mais quem é pesado (um Snorlax fica uns 2 s no chão).',
     // F8 multi-acerto e alcance
@@ -464,13 +475,16 @@ const EXPLAIN = {
     twineedle: 'Duas agulhadas: duas tentativas de desarme, cada uma pode envenenar.',
     bonemerang:
         'Bumerangue: desarme de longe (2,8 m), duas tentativas; o chute, se o goleiro espalmar ou alguém bloquear, volta pro pé dele.',
-    furyattack: 'De 2 a 5 tentativas de desarme seguidas (cada uma mais fraca).',
-    furyswipes: 'De 2 a 5 arranhões: tentativas de desarme seguidas (cada uma mais fraca).',
-    doubleslap: 'De 2 a 5 tapas: tentativas de desarme seguidas (cada uma mais fraca).',
-    cometpunch: 'De 2 a 5 socos: tentativas de desarme seguidas (cada uma mais fraca).',
-    barrage: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
-    pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
-    spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar pro pé dele se for defendido.',
+    furyattack: 'De 2 a 5 tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    furyswipes: 'De 2 a 5 arranhões: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    doubleslap: 'De 2 a 5 tapas: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    cometpunch: 'De 2 a 5 socos: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    barrage:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
+    pinmissile:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
+    spikecannon:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
     vinewhip: 'Chicote: desarme de longe (2,8 m).',
     slam: 'Pancada com a cauda ou a vinha: com a bola, chute forte; sem a bola, desarme de longe (2,8 m).',
     boneclub: 'Osso na mão: desarme de longe (2,8 m), que pode fazer o rival hesitar.',
@@ -479,18 +493,19 @@ const EXPLAIN = {
     wrap: 'Enrola de longe (2,8 m): quem conduz e quem usou ficam presos 1,2 s e a bola sobra.',
     bind: 'Amarra de longe (2,8 m): quem conduz e quem usou ficam presos 1,2 s e a bola sobra.',
     clamp: 'Fecha a concha: rouba a bola e ninguém tira dele por 1 s.',
-    firespin: 'Anel de fogo no chão (2 m, 4 s): queima e deixa lento o rival que passar.',
-    constrict: 'Aperta: o rival fica lento 2 s.',
+    firespin: 'Anel de fogo no chão (2 m, 4 s): o rival que passar fica 25% mais lento e pode ser queimado.',
+    constrict: 'Aperta: o rival fica 40% mais lento por 2 s.',
     // F10 contador que cresce
-    toxic: 'Veneno que piora: o fôlego escorre cada vez mais rápido (até 3x) por 12 s.',
+    toxic: 'Veneno que piora: o rival mais perto perde fôlego cada vez mais rápido (até 3x) por 12 s.',
     // F11 esquiva e muro
-    doubleteam: 'Dois clones: os próximos 2 carrinhos ou golpes nele acertam um clone.',
-    minimize: 'Fica pequenininho 4 s: muito difícil de desarmar (Stomp ignora).',
-    acidarmor: 'Derrete: por 3 s os carrinhos passam direto por ele.',
-    withdraw: 'Entra no casco 1,5 s: ninguém tira a bola dele, mas anda devagar.',
+    doubleteam: 'Dois clones por até 15 s: os próximos 2 carrinhos ou golpes nele acertam um clone.',
+    minimize: 'Fica pequenininho 4 s: carrinhos nele saem 40% mais fracos (Stomp ignora).',
+    acidarmor: 'Derrete: por 3 s nenhum carrinho tira a bola dele.',
+    withdraw: 'Entra no casco 1,5 s: ninguém tira a bola dele, mas anda 40% mais devagar.',
     defensecurl: 'Enrola: o próximo carrinho que sofrer não tira a bola.',
     harden: 'Endurece: o próximo carrinho que sofrer não tira a bola.',
-    lightscreen: 'Parede de luz: por 15 s, golpes especiais e de status contra o seu time pegam pela metade.',
+    lightscreen:
+        'Parede de luz: por 15 s, golpes especiais contra o seu time pegam pela metade e os de sono, paralisia, veneno e confusão têm metade da chance.',
     reflect: 'Parede: por 15 s, os carrinhos contra o seu time saem 30% mais fracos.',
     barrier: 'Muro invisível 3 s na frente dele: bloqueia o próximo chute que passar perto.',
     stomp: 'Pisão: com a bola, chute forte; sem a bola, desarme que pode fazer hesitar e ignora quem está pequenininho (Minimize).',
@@ -499,8 +514,8 @@ const EXPLAIN = {
     strength: 'Carrinho-trator: quando ganha a dividida, empurra o rival 2,5 m.',
     softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 8 m.',
     dreameater:
-        'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo, devora o sonho dele e suga o dobro.',
-    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante pra olhar.',
+        'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo a até 7 m, mira nele e suga o dobro.',
+    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m ficam parados 0,4 s.',
 };
 
 /** Golpes que têm explicação própria (a tradução em inglês precisa ter todas). */

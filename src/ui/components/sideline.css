@@ -66,16 +66,6 @@
     outline: 3px solid var(--yellow);
     outline-offset: -1px;
 }
-/* golpe máximo: a barra enche o botão por baixo; cheia, ele pulsa em amarelo */
-.sl-fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 5px;
-    width: calc(var(--fill, 0) * 100%);
-    background: var(--yellow);
-    transition: width 0.3s ease;
-}
 .sl-max.ready {
     background: var(--lvc, var(--yellow));
     color: var(--lvink, var(--bc-ink));
@@ -302,70 +292,12 @@
     filter: none;
     transform: scale(1.15);
 }
-.sl-max.lv3 .sl-fill,
-.sl-maxbar.lv3 i {
-    /* os 3 gomos: duas divisas fixas por cima do enchimento */
-    -webkit-mask:
-        linear-gradient(
-            90deg,
-            #000 calc(33.33% - 1px),
-            transparent 0 calc(33.33% + 1px),
-            #000 0 calc(66.66% - 1px),
-            transparent 0 calc(66.66% + 1px),
-            #000 0
-        )
-        0 0 / calc(100% / var(--fill, 1)) 100% no-repeat;
-    mask:
-        linear-gradient(
-            90deg,
-            #000 calc(33.33% - 1px),
-            transparent 0 calc(33.33% + 1px),
-            #000 0 calc(66.66% - 1px),
-            transparent 0 calc(66.66% + 1px),
-            #000 0
-        )
-        0 0 / calc(100% / var(--fill, 1)) 100% no-repeat;
-}
-.sl-maxbar.lv3 {
-    height: 5px;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.14) calc(33.33% - 1px),
-        transparent 0 calc(33.33% + 1px),
-        rgba(255, 255, 255, 0.14) 0 calc(66.66% - 1px),
-        transparent 0 calc(66.66% + 1px),
-        rgba(255, 255, 255, 0.14) 0
-    );
-}
-
 /* barrinhas do golpe máximo embaixo do placar */
 .sl-maxbars {
     display: flex;
     justify-content: space-between;
     gap: 40%;
     padding: 0 2px;
-}
-.sl-maxbar {
-    flex: 1;
-    height: 4px;
-    overflow: hidden;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.12);
-}
-.sl-maxbar i {
-    display: block;
-    height: 100%;
-    width: calc(var(--fill, 0) * 100%);
-    background: var(--tc);
-    transition: width 0.3s ease;
-}
-.sl-maxbar.t1 i {
-    margin-left: auto;
-}
-.sl-maxbar.full i,
-.sl-maxbar.live i {
-    background: var(--yellow);
-    animation: sl-glow 0.6s ease-in-out infinite alternate;
 }
 @keyframes sl-glow {
     to {
@@ -674,7 +606,6 @@
     animation-name: sl-ring-fade;
 }
 [data-reduce-motion="true"] .sl-max.ready,
-[data-reduce-motion="true"] .sl-maxbar i,
 [data-reduce-motion="true"] .sl-tag-max {
     animation: none;
 }
@@ -757,41 +688,12 @@
     font-size: 12px;
     cursor: pointer;
 }
-.bc-maxthumb .hud-icon,
-.bc-maxpips {
+.bc-maxthumb .hud-icon {
     position: relative;
 }
 .bc-maxthumb .hud-icon {
     width: 24px;
     height: 24px;
-}
-.bc-maxpips {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-.bc-maxpips i {
-    width: 7px;
-    height: 7px;
-    border: 2px solid currentColor;
-    border-radius: 50%;
-    opacity: 0.55;
-    transition:
-        background-color 0.25s ease,
-        opacity 0.25s ease;
-}
-.bc-maxpips i.on {
-    background: currentColor;
-    opacity: 1;
-}
-.bc-maxthumb-fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 6px;
-    width: calc(var(--fill, 0) * 100%);
-    background: var(--yellow);
-    transition: width 0.3s ease;
 }
 .bc-maxthumb.ready {
     background: var(--lvc, var(--yellow));

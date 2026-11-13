@@ -62,8 +62,8 @@ export const NEWS: NewsCard[] = [
         until: '2027-01-15',
         title: { pt: 'Rota nova', en: 'New Road' },
         text: {
-            pt: 'Mapa mais largo, a Zona Safari e o Cassino no caminho da Copa longa',
-            en: 'A wider map, the Safari Zone and the Game Corner on the Long Cup path',
+            pt: 'Mapa mais largo, a Zona Safari e o Cassino no caminho da Rota Índigo',
+            en: 'A wider map, the Safari Zone and the Game Corner on the Indigo Road',
         },
         art: 'rota',
         to: 'rota',

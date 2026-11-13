@@ -5,7 +5,7 @@ import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
 import { matchMvp } from '../../engine/mvp';
 import { isFriendCode, sendPendingChallenge, useFriends } from '../../friends/api';
-import { rich, useT } from '../../i18n/react';
+import { useT } from '../../i18n/react';
 import {
     bestOfOf,
     DUEL_BEST_OF,
@@ -41,16 +41,15 @@ import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
 import { duelInPlay, LeaveConfirm } from '../leave-guard';
-import { FEEDBACK_URL } from '../links';
-import { hexCss, peerAvatar, peerTitle } from '../profile/club';
+import { hexCss, peerAvatar, peerMon, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard, usePublicPeer } from '../profile/PlayerCard';
-import { TrainerName } from '../profile/TrainerName';
 import { qrPath } from '../qr';
 import { heroStats, MatchDetails } from '../screens/Result';
 import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
+import { DuelHistory } from './DuelHistory';
 import { DuelMatch, useCountdown } from './DuelMatch';
-import { CONNECT_GIVEUP_MS, duelLink, isLocalDuel, roomLooksClosed } from './link';
+import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomBarShown, roomLooksClosed } from './link';
 import './duel.css';
 import { backTarget } from '../back-nav';
 import { ArenaBackdrop } from '../kit/backdrop';
@@ -111,19 +110,6 @@ function usePeer(local: boolean): Peer | null {
 
 const speedLabel = (sp: PlaybackSpeed, lances: string) => (sp === 'highlights' ? lances : `${sp}x`);
 
-/** Duelo em beta: uma linha com o link do feedback (o mesmo do botão da Home). */
-function BetaNote() {
-    const { t } = useT();
-    return (
-        <p className="duel-beta">
-            <span className="duel-beta-tag">{t('duel.beta')}</span> {t('duel.betaNote')}{' '}
-            <a href={FEEDBACK_URL} target="_blank" rel="noopener">
-                {t('duel.betaLink')}
-            </a>
-        </p>
-    );
-}
-
 /**
  * Quem abre o duelo sem conta (ou o link da sala): "Fulano te chamou pra um duelo", o nome do treinador e "Jogar
  * agora" (login anônimo, só pro canal da sala). Entrar com o Google fica de segunda opção (guarda o histórico na
@@ -164,7 +150,7 @@ function DuelEntry({ code, head }: { code: string | null; head: ReactNode }) {
                 </button>
             }
         >
-            <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />
+            {entryCoach(code) && <Coach id="duelo" targets={['[data-testid="duel-play-now"]']} />}
             <div className="panel duel-center duel-entry">
                 {code ? (
                     <>
@@ -192,7 +178,6 @@ function DuelEntry({ code, head }: { code: string | null; head: ReactNode }) {
                 <button type="button" className="duel-google" onClick={() => void signInWithGoogle()}>
                     {t('duel.entry.google')}
                 </button>
-                <BetaNote />
             </div>
         </DuelStage>
     );
@@ -216,15 +201,22 @@ function DuelStage({
     head,
     action,
     className = '',
+    rival,
     children,
 }: {
     head: ReactNode;
     action?: ReactNode;
     className?: string;
+    /** O rival já na sala: o Pokémon do avatar dele no lugar da silhueta. */
+    rival?: Peer;
     children: ReactNode;
 }) {
     return (
-        <Stage className={`k-stage-place duel-stage ${className}`} scene={<ArenaBackdrop />} action={action}>
+        <Stage
+            className={`k-stage-place duel-stage ${className}`}
+            scene={<ArenaBackdrop rival={rival ? peerMon(rival) : null} reveal />}
+            action={action}
+        >
             {head}
             {/* a quadra com os dois do duelo aparece aqui, entre a placa e os blocos */}
             <i className="k-stage-gap" aria-hidden />
@@ -293,7 +285,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                     <div key={m} className="duel-mode" data-mode={m}>
                         <OptionTile
                             icon={MODE_ICON[m]}
-                            label={d.duel.modeShort[m]}
+                            label={d.duel.modes[m][0]}
                             sub={m === 'ready' && !hasTeam ? t('duel.noTeamShort') : undefined}
                             selected={mode === m}
                             disabled={m === 'ready' && !hasTeam}
@@ -302,6 +294,10 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                     </div>
                 ))}
             </fieldset>
+            {/* a regra do modo escolhido, sem precisar abrir o "?" */}
+            <p className="muted small duel-mode-rule" data-testid="duel-mode-rule" aria-live="polite">
+                {d.duel.modes[mode][1]}
+            </p>
             <SheetRow
                 className="duel-rules"
                 icon="board"
@@ -386,7 +382,6 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                         </div>
                         <small className="muted">{t('duel.bestOfHint')}</small>
                     </fieldset>
-                    <BetaNote />
                 </div>
             </SheetRow>
             <SheetRow
@@ -567,7 +562,7 @@ function VersionBanner({ s }: { s: Shared }) {
 }
 
 /** Sala de espera: o código grande pra mandar, os dois treinadores e o Pronto no polegar. */
-function Lobby({ head }: { head: ReactNode }) {
+function Lobby({ head }: { head: ReactElement<{ title?: string; tag?: string }> }) {
     const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
@@ -580,10 +575,22 @@ function Lobby({ head }: { head: ReactNode }) {
     // Time pronto sem time pra levar (quem entrou pelo link num save novo): o Pronto travaria a sala na escolha do time
     const hasTeam = useHasReadyTeam();
     const noTeam = s.mode === 'ready' && !hasTeam;
+    // o título da sala e as regras na placa de cima (soltos em cima da quadra, sem placa, ficavam perdidos)
+    const rules = [
+        d.duel.modes[s.mode][0],
+        speedLabel(s.speed, t('match.highlights')),
+        durationOf(s) === 'short' && d.duel.durations.short,
+        bestOfOf(s) === 3 && d.duel.bestOf[3],
+        s.mode === 'ready' && specialRuleText(specialLimitOf(s), t),
+    ];
     return (
         <DuelStage
-            head={head}
+            head={cloneElement(head, {
+                title: rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle'),
+                tag: rules.filter(Boolean).join(' · '),
+            })}
             className={`duel-lobby${rivalIn ? ' full' : ''}`}
+            rival={s.peers[other(role)]}
             action={
                 <button
                     type="button"
@@ -598,22 +605,6 @@ function Lobby({ head }: { head: ReactNode }) {
                 </button>
             }
         >
-            <p className="duel-lobby-head">
-                <b>{rivalIn ? t('duel.lobby.title') : t('duel.lobby.inviteTitle')}</b>
-                <span className="bc-tag">
-                    {d.duel.modes[s.mode][0]} · {speedLabel(s.speed, t('match.highlights'))}
-                    {durationOf(s) === 'short' && ` · ${d.duel.durations.short}`}
-                    {bestOfOf(s) === 3 && ` · ${d.duel.bestOf[3]}`}
-                    {s.mode === 'ready' && (
-                        <>
-                            {' · '}
-                            <span className="duel-rule" data-testid="duel-rule">
-                                {specialRuleText(specialLimitOf(s), t)}
-                            </span>
-                        </>
-                    )}
-                </span>
-            </p>
             <InviteBox s={s} local={local} compact={rivalIn} />
             {sent && !rivalIn && (
                 <p
@@ -718,7 +709,7 @@ function SeriesBox({ s, role }: { s: Shared; role: Role }) {
 }
 
 function DuelResultView({ onHome }: { onHome: () => void }) {
-    const { t, tn, d } = useT();
+    const { t, d } = useT();
     const s = useDuel((st) => st.shared)!;
     const role = useDuel((st) => st.role)!;
     const online = useDuel((st) => st.online);
@@ -727,14 +718,6 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     const rival = trainerNames(s)[SIDE[other(role)]];
     // o rival saiu da sala: revanche não tem quem aceite
     const rivalGone = !online[other(role)];
-    // placar contra esse amigo (pelo nome dele no histórico do save)
-    const rivalSaved = s.peers[other(role)]?.name ?? '';
-    const vsRival = history.filter((h) => h.rival === rivalSaved && h.result !== 'void');
-    const h2h = {
-        w: vsRival.filter((h) => h.result === 'win').length,
-        l: vsRival.filter((h) => h.result === 'loss').length,
-        d: vsRival.filter((h) => h.result === 'draw').length,
-    };
     const side = SIDE[role];
     // a partida que esta tela simulou (recarregou a página no resultado: fica só o placar)
     const m = !r.wo && !r.desync ? duel.result : null;
@@ -808,7 +791,7 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                       : t(nextUp ? 'duel.series.nextAsk' : 'duel.result.rematchAsk', { name: rival })}
             </button>
             <button type="button" className="btn ghost" onClick={onHome}>
-                {t('duel.result.home')}
+                {t('common.ui.backHome')}
             </button>
         </div>
     );
@@ -870,40 +853,9 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
             {history.length > 0 && (
                 <div className="panel duel-history">
                     <h2>{t('duel.result.history')}</h2>
-                    {vsRival.length > 0 && (
-                        <p className="duel-h2h" data-testid="duel-h2h">
-                            <span className="muted">{t('duel.result.h2hLabel', { name: rival })}</span>{' '}
-                            <b>{t('duel.result.h2h', { w: h2h.w, l: h2h.l, name: rival })}</b>
-                            {h2h.d > 0 && <span className="muted"> · {tn('duel.result.h2hDraws', h2h.d)}</span>}
-                        </p>
-                    )}
-                    {history.slice(0, 8).map((h) => (
-                        <div key={h.id} className="duel-hrow">
-                            <i className={h.result}>
-                                {h.result === 'win'
-                                    ? t('duel.result.win')
-                                    : h.result === 'loss'
-                                      ? t('duel.result.loss')
-                                      : h.result === 'void'
-                                        ? t('duel.result.voidShort')
-                                        : t('duel.result.drawShort')}
-                            </i>
-                            <span>
-                                {rich(t('duel.result.vs'), {
-                                    name: (
-                                        <TrainerName who={{ trainer: h.rival, club: h.rivalClub, code: h.rivalCode }} />
-                                    ),
-                                })}
-                            </span>
-                            <b>
-                                {h.bestOf === 3 && `${t('duel.series.short')} `}
-                                {h.wo ? 'W.O.' : `${h.score[0]} x ${h.score[1]}`}
-                            </b>
-                        </div>
-                    ))}
+                    <DuelHistory duels={history} rival={s.peers[other(role)]?.name ?? ''} />
                 </div>
             )}
-            <BetaNote />
         </div>
     );
 }
@@ -1070,7 +1022,7 @@ export function Duel() {
     return (
         <div className="duel" data-phase={s?.phase ?? 'none'}>
             {!staged && step !== 'match' && head}
-            {room && !staged && (
+            {room && !staged && roomBarShown(step) && (
                 <div className="duel-top row">
                     <span className="muted">{t('duel.room', { code: room })}</span>
                     <button type="button" className="btn small ghost" onClick={back}>

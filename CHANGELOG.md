@@ -1,9 +1,51 @@
 # Novidades
 
-## 0.9.50 · Cada um no seu lugar (2026-11-12)
+## 0.9.52 · Descrições mais diretas (2026-11-13)
+
+### Aviso
+- A partir de agora, uma atualização por semana
+
+### Textos do jogo
+- Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo
+- Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço
+- Formação 3-1: o ponto fraco agora é "−Passe pra frente" (era "−Lenta")
+
+## 0.9.51 · Sprites nítidos, novas animações e Duelo (2026-11-13)
 
 ### Partida
-- Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)
+- Pokémon nítidos em qualquer tela, sem borrão
+- Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta
+- Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol
+- A bola amassa no chute forte e na trave, e a trave treme
+- Mais poeira nas arrancadas, nos choques e nos dribles
+- Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)
+- Nova barrinha do golpe máximo, em gomos
+
+### Copa Relâmpago e Copa do Dia
+- Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado
+- Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)
+
+### Rota Índigo
+- Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa
+- Pedra do ₽ em dobro vai pra Mochila se ninguém usa
+
+### Duelo
+- Saiu do BETA
+- Seus duelos na Arena: os últimos 8 e o placar contra cada amigo
+- Criar sala mostra a regra do modo escolhido em uma linha
+- Fim do duelo com Revanche e Voltar ao início
+- O N3 da barrinha tem a cor do tipo do capitão de cada time (saía vermelho)
+- Consertos de layout no celular e no PC (sala, draft, escalação e partida)
+
+### Menus
+- Cada modo diz em uma linha o que é, no menu de modos e na Ajuda
+- Time Ultimate: volta o aviso "Zera a cada temporada"
+- Novidades com textos e títulos mais diretos
+
+## 0.9.50 · Animações de fim de jogo e Perfil com números (2026-11-12)
+
+### Partida
+- Adicionadas novas animações de final de jogo
 - No Losango, os alas também voltam a bola pro fixo na armação
 
 ### Menus
@@ -17,7 +59,7 @@
 ### Consertos
 - Navegador que bloqueia o save (Opera GX e outros com os cookies do site bloqueados): o JOGAR volta a funcionar, e um aviso explica que o progresso some ao fechar a aba
 
-## 0.9.49 · Menos e melhor (2026-11-11)
+## 0.9.49 · Menus mais simples (2026-11-11)
 
 ### Menus
 - As abas de baixo acendem conforme você joga: Lab na 1ª partida, Rota e Sede na 1ª copa, Arena na 2ª
@@ -35,7 +77,7 @@
 - Drible novo: o chapéu, com a bola por cima da cabeça do marcador
 - Chute, passe, desarme e defesa batem na bola no quadro certo (antes a animação vinha atrasada)
 
-## 0.9.48 · Fixo no jogo (2026-11-10)
+## 0.9.48 · Fixo na armação da Linha de 3 (2026-11-10)
 
 ### Partida
 - Na Linha de 3, os alas voltam a bola pro fixo na armação em vez de só rodar com o pivô
@@ -52,7 +94,7 @@
 - Lápis ao lado do nome no Perfil pra mostrar que dá pra editar
 - Login pelo atalho da tela inicial do iPhone
 
-## 0.9.47 · Final de verdade (2026-11-10)
+## 0.9.47 · Final mais difícil e Eventos na Rota (2026-11-10)
 
 ### Rota Índigo
 - Perder a 1ª partida da Rota não dá cartão amarelo
@@ -64,12 +106,12 @@
 - O selo de treinador novo cabe numa linha e não cobre o letreiro
 - A Sala de troféus aparece na hora, sem tela preta enquanto carrega
 
-## 0.9.46 · Rota viva (2026-11-10)
+## 0.9.46 · Animações na Rota Índigo (2026-11-10)
 
 ### Rota Índigo
-- Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta
-- Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga
-- Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)
+- Adicionadas animações no Cassino
+- Adicionadas animações no Centro Pokémon
+- Adicionadas animações na Zona Safari
 - Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa
 - No PC o mapa inteiro cabe na tela, com um painel das próximas casas
 - Pedra que ninguém usa vai direto pra Mochila, sem tela a mais
@@ -82,7 +124,7 @@
 - Antes da partida a tela já tem a cor do ginásio, não a madeira
 - Vitrine de pacotes e Novidades mais lisas em celular fraco
 
-## 0.9.45 · Festa de campeão (2026-11-10)
+## 0.9.45 · Comemoração de título (2026-11-10)
 
 ### Título
 - Ganhou a copa: o capitão ergue a taça no meio da quadra
@@ -118,7 +160,7 @@
 - Os melhores momentos tocam no ginásio do rival, não na quadra padrão
 - Novidades: o texto do Time Ultimate
 
-## 0.9.44 · Véspera do Time Ultimate (2026-11-09)
+## 0.9.44 · Meus pacotes e Pokémon Picks (2026-11-09)
 
 ### Time Ultimate (abre em 27/11)
 - Meus pacotes: o pacote fica guardado até você abrir, e o Abrir todos abre a pilha de uma vez
@@ -159,7 +201,7 @@
 - Sortear de novo no rival devolvia as mesmas 3 cartas
 - Celular em pé: a quadra que segue a bola travava em erro depois da partida
 
-## 0.9.43 · Torcida a favor (2026-11-05)
+## 0.9.43 · Rivais com atributos menores (2026-11-05)
 
 ### Copa e Rota
 - Torcida a favor: os rivais jogam com 4% a menos nos atributos ⇒ menos zebra contra você
@@ -167,14 +209,14 @@
 - O rival evolui com a mesma barra que você: 10 ⇒ 14
 - Duelo e Liga continuam sem torcida
 
-## 0.9.42.2 · Capitão chamado (2026-11-05)
+## 0.9.42.2 · Capitão chamado ataca mais (2026-11-05)
 
 ### Golpe máximo
 - Chamou o capitão num ataque: agora ala e pivô também conduzem até a zona e chutam, como o fixo já fazia
 - O time passa mais a bola pro capitão chamado
 - Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo
 
-## 0.9.42.1 · Bicuda sempre sai (2026-11-05)
+## 0.9.42.1 · Bicuda sai mesmo com toque atrasado (2026-11-05)
 
 ### Goleiro capitão
 - A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)
@@ -208,7 +250,7 @@
 - Nova copa no fim da Rota não dá mais erro
 - Quem vence a Rota conquista a Liga Índigo
 
-## 0.9.41 · Golpes de cinema (2026-11-04)
+## 0.9.41 · Câmera de cinema no N3 (2026-11-04)
 
 ### Golpe máximo
 - N3 com câmera de cinema: close no capitão, impacto no chute e a rede estufando no gol
@@ -221,7 +263,7 @@
 ### Duelo
 - A tela de quem entrou na sala não fica mais parada no fim de jogo
 
-## 0.9.40 · Counter (2026-11-03)
+## 0.9.40 · Bicuda N3 contra o golpe máximo (2026-11-03)
 
 ### Counter
 - Goleiro capitão com a bicuda N3 revida o golpe máximo N3 do rival e o tempo para
@@ -236,7 +278,7 @@
 - Telões com tipo e posição também nas cartas de ouro
 - Jogadas com bola mais calmas e a versão curta com 3 s
 
-## 0.9.39.1 · Bicuda de volta (2026-11-03)
+## 0.9.39.1 · Duelo da bicuda sai por enquanto (2026-11-03)
 
 ### Ajustes
 - O duelo da bicuda sai por enquanto: a bicuda N3 volta a ser o contra-ataque de sempre
@@ -291,7 +333,7 @@
 ### PC
 - O selo do treinador desbloqueado cresce com a tela
 
-## 0.9.38 · Walkout (2026-11-03)
+## 0.9.38 · Entrada de carta rara em campo (2026-11-03)
 
 ### Pacotes
 - Carta rara no pacote do Mercado entra em campo: estádio, telões com o tipo e a posição, silhueta e a carta aparecendo
@@ -305,7 +347,7 @@
 - Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular
 - Sai o selo SMN que ficava boiando na tela
 
-## 0.9.37 · No ar (2026-11-02)
+## 0.9.37 · Troca de tela estilo TV (2026-11-02)
 
 ### Transmissão
 - Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade
@@ -343,7 +385,7 @@
 - Verde é só pra confirmar: botões que só levam a outra tela ficam azuis
 - Configurações com título e abas curtas
 
-## 0.9.34 · Tudo à vista (2026-11-02)
+## 0.9.34 · Painel completo no PC (2026-11-02)
 
 ### Partida
 - No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado
@@ -355,7 +397,7 @@
 - Draft mostra o seu time numa quadrinha junto das 3 escolhas
 - Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar
 
-## 0.9.33 · Partida de TV (2026-11-02)
+## 0.9.33 · Partida no PC com layout do celular (2026-11-02)
 
 ### Partida
 - No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo
@@ -384,7 +426,7 @@
 ### Conserto
 - O ícone do tipo voltou a aparecer no pacote de tipo
 
-## 0.9.32 · Cara de jogo (2026-11-02)
+## 0.9.32 · Telas de Duelo, Liga e Copa do Dia (2026-11-02)
 
 ### Arena
 - Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande
@@ -407,7 +449,7 @@
 - Configurações em abas, cada opção numa linha
 - Resgatar código foi pras Configurações
 
-## 0.9.31 · Golpe máximo de verdade (2026-11-02)
+## 0.9.31 · Animações novas do golpe máximo (2026-11-02)
 
 ### Golpe máximo
 - N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol
@@ -463,7 +505,7 @@
 - Time Ultimate e Modo História com a faixa EM BREVE e a data, mais escuros que o Modo Copa
 - O menu não pisca mais ao abrir nem ao trocar de modo
 
-## 0.9.30 · Golpe universal (2026-11-01)
+## 0.9.30 · Todo capitão usa o golpe máximo (2026-11-01)
 
 ### Golpe máximo
 - Todo capitão solta o golpe máximo, e o golpe é sempre um chute
@@ -484,7 +526,7 @@
 - A pedra é atalho: quem evolui por pedra continua evoluindo jogando
 - A Pedra da Lua dos Fósseis do Mt. Moon também evolui na hora
 
-## 0.9.29 · Rota nova (2026-10-31)
+## 0.9.29 · Mapa da Rota com ramos e prêmios (2026-10-31)
 
 ### Rota Índigo
 - Cada ramo do mapa tem os seus tipos, e todo Jogo mostra o prêmio antes de você ir
@@ -502,7 +544,7 @@
 - Na ordem dos cobradores, cada um mostra o chute
 - No celular, a câmera da disputa não corta mais o gol
 
-## 0.9.28 · Golpe caprichado (2026-10-30)
+## 0.9.28 · Anel-alvo e sons do golpe máximo (2026-10-30)
 
 ### Golpe máximo
 - O anel agora fecha em cima de um anel-alvo parado, que acende na hora do perfeito
@@ -573,7 +615,7 @@
 ### Corrigido
 - As gavetas sobem mais suaves no celular
 
-## 0.9.24 · Beira da quadra (2026-10-28)
+## 0.9.24 · Quadra maior no celular (2026-10-28)
 
 ### Partida nova
 - No celular em pé, a quadra ficou com o dobro do tamanho e a câmera acompanha a bola
@@ -611,7 +653,7 @@
 - Retomar uma copa guardada ficava trocando de copa sem sair do lugar
 - Escalação com o celular deitado cabe sem rolar
 
-## 0.9.23.2 · Faxina (2026-10-27)
+## 0.9.23.2 · Painéis mais leves (2026-10-27)
 
 ### Menos coisa na tela
 - Painéis mais leves: borda fina, sem moldura grossa e sem caixa dentro de caixa
@@ -644,7 +686,7 @@
 - O botão fica aceso mais tempo e o jogo quase para enquanto ele brilha, até no 8x e no Duelo
 - O chute do golpe vai em câmera lenta com a bola brilhando, e o nome do golpe de nível 3 fica mais tempo na tela
 
-## 0.9.23 · Vestiário (2026-10-26)
+## 0.9.23 · Lousa de tática na escalação (2026-10-26)
 
 ### Escalação no vestiário
 - A escalação fica numa lousa de tática: a Chave e a Tática são quadros pendurados, cada um abre a sua janela
@@ -674,7 +716,7 @@
 - A tela não pisca mais preta ao trocar de menu
 - O Esperar do Golpe Máximo saía da tela em celular pequeno
 
-## 0.9.22 · Botão de apertar (2026-10-26)
+## 0.9.22 · Botões com relevo e cores (2026-10-26)
 
 ### Visual novo
 - Botões com relevo no jogo inteiro: afundam e quicam no toque, com som
@@ -690,7 +732,7 @@
 - O aviso rápido não cobre mais o botão de baixo
 - A confirmação de Abandonar copa não fica mais atrás da barra do Jogar
 
-## 0.9.21 · Cada modo no seu lugar (2026-10-25)
+## 0.9.21 · Tela inicial com cinco lugares (2026-10-25)
 
 ### Nova tela inicial
 - A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar
@@ -1027,7 +1069,7 @@
 - Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
 - No PC, a vitrine do cartão do Perfil ficou maior e centralizada
 
-## 0.9.2 · Casa arrumada (2026-10-21)
+## 0.9.2 · Tela inicial reorganizada (2026-10-21)
 
 ### Tela inicial
 - Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo

@@ -104,18 +104,22 @@ export function Help() {
                 <h2 id="help-coach-title" className="bc-caption">
                     {c.title}
                 </h2>
-                <div className="help-actions">
+                {/* cada modo diz em 1 linha o que ele é; tocar traz o balão de volta */}
+                <div className="help-modes">
                     {COACH_REPLAY.filter((id) => id !== 'liga' || ligaShown()).map((id) => (
                         <button
                             key={id}
                             type="button"
-                            className="btn ghost small"
+                            className="btn ghost help-mode"
                             disabled={redone.includes(id)}
                             onClick={() => replayCoach(id)}
                         >
-                            {redone.includes(id) ? c.done : (c as Record<string, string>)[id]}
+                            <b>{(c as Record<string, string>)[id]}</b>
+                            <small>{redone.includes(id) ? c.done : d.help.coach.replayLine[id]}</small>
                         </button>
                     ))}
+                </div>
+                <div className="help-actions">
                     {tipsOn && (
                         <button
                             type="button"

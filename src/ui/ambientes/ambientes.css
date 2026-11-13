@@ -2849,9 +2849,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.rt-head .rota-new {
-    flex: none;
-}
 .sd-head-crest {
     display: inline-block;
     margin-right: 8px;
@@ -3771,13 +3768,8 @@
 
 /* Arena: a Liga fechada vira uma linha discreta (era um card tracejado ao lado do "em breve" da Dupla) */
 
-/* 320 e 360: nada de nome cortado. O selo NOVO da Rota sai (o título vale mais), a Sede mostra só o nome do clube e a
-   pílula do modo perde o ícone (sobra espaço pro "Copa Relâmpago" inteiro) */
-@media (max-width: 359px), (orientation: landscape) and (max-height: 520px) {
-    .rt-head .rota-new {
-        display: none;
-    }
-}
+/* 320 e 360: nada de nome cortado. A Sede mostra só o nome do clube e a pílula do modo perde o ícone (sobra espaço
+   pro "Copa Relâmpago" inteiro) */
 @media (max-width: 359px) {
     .amb-sede .rm-full {
         display: none;

@@ -717,7 +717,23 @@ export const DRIBBLE_PUFFS: Record<DribbleKind, readonly number[]> = {
     chapeu: [-2],
 };
 
+/**
+ * Quem levou o drible perde (ticks em relação ao carrinho): a bola caindo atrás dele na lambreta e no chapéu, o tropeço
+ * da roleta, o desequilíbrio do elástico. Ali ele amassa (`dribblePose`) e solta a poeirinha no pé.
+ */
+export const DRIBBLE_LOSE: Record<DribbleKind, number> = {
+    lambreta: 1.2,
+    roleta: 1.6,
+    elastico: 1.2,
+    chapeu: 1.8,
+};
+
 const bump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+/** O amassado de quem perdeu: sobe rápido no `DRIBBLE_LOSE` e solta em ~1,6 tick. */
+const lose = (t: number, kind: DribbleKind) => {
+    const u = (t - DRIBBLE_LOSE[kind] + 0.3) / 1.9;
+    return bump(u < 0.25 ? u * 2 : 0.5 + (u - 0.25) / 1.5);
+};
 /** 0 antes de `a`, 1 depois de `b`, suave (smoothstep) no meio. */
 const ramp = (a: number, b: number, t: number) => {
     const v = clamp01((t - a) / (b - a));
@@ -828,7 +844,8 @@ export function dribblePose(
         const turn = inOut((t + 0.4) / 1.8);
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, 0.12 * bump((t + 1.2) / 2.4)) + lean(S, 0.32 * wobble(t, 1.3, 2.4, 2.2));
-        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.07 * bump((t - 1.3) / 1.2);
+        // perdeu: amassa forte quando a bola cai atrás dele (`DRIBBLE_LOSE`)
+        pose.markerSy = 1 + 0.06 * bump((t + 1.2) / 2.4) - 0.3 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.6);
     } else if (d.kind === 'roleta') {
@@ -861,8 +878,9 @@ export function dribblePose(
         ms = 34 - 28 * lunge - 6 * past;
         mFace = t < -1 ? { x: -toMarker.x, y: -toMarker.y } : F;
         pose.markerTilt = lean(F, 0.3 * bump((t + 1) / 3.2)) + lean(F, 0.28 * wobble(t, 1.8, 2, 2));
-        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2);
-        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2);
+        // e tropeça: amassa quando passa reto
+        pose.markerSy = 1 - 0.08 * bump((t + 0.8) / 2.2) - 0.3 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.06 * bump((t + 0.8) / 2.2) + 0.26 * lose(t, d.kind);
         pose.huh = huhAt(1.2);
     } else if (d.kind === 'chapeu') {
         // chapéu: de frente, agacha e põe o bico do pé por baixo da bola (sem calcanhar): ela sobe por cima da cabeça do
@@ -878,10 +896,12 @@ export function dribblePose(
             return v(4 * r, 34 * wide * bs * r);
         };
         pose.body = bodyAt(t);
-        pose.sx = 1 + 0.1 * crouch - 0.08 * scoop;
-        pose.sy = 1 - 0.12 * crouch + 0.16 * scoop;
+        // a bola cai na frente e ele amortece (amassa na aterrissagem dela, t = 2)
+        const land = bump((t - 1.6) / 1.6);
+        pose.sx = 1 + 0.1 * crouch - 0.08 * scoop + 0.12 * land;
+        pose.sy = 1 - 0.12 * crouch + 0.16 * scoop - 0.15 * land;
         pose.tilt = lean(F, -0.1 * crouch - 0.1 * scoop + 0.1 * bump((t + 1) / 3.4));
-        const land = (() => {
+        const drop = (() => {
             const b = bodyAt(2);
             return { x: b.x + F.x * 6, y: b.y + F.y * 6 };
         })();
@@ -891,11 +911,11 @@ export function dribblePose(
         } else if (t < 2) {
             const u = (t + 2) / 4;
             const from = v(3, 0);
-            pose.ball = { x: from.x + (land.x - from.x) * u, y: from.y + (land.y - from.y) * u };
+            pose.ball = { x: from.x + (drop.x - from.x) * u, y: from.y + (drop.y - from.y) * u };
             pose.lift = Math.max(90, markerHead + 34) * 4 * u * (1 - u);
         } else {
             const k = outCubic((t - 2) / 1);
-            pose.ball = { x: land.x + (pose.body.x - land.x) * k, y: land.y + (pose.body.y - land.y) * k };
+            pose.ball = { x: drop.x + (pose.body.x - drop.x) * k, y: drop.y + (pose.body.y - drop.y) * k };
         }
         // marcador: plantado de frente, estica olhando a bola subir, vira devagar quando ela cai atrás e fica
         mf = 40 - 70 * inOut((t + 3) / 6.5);
@@ -903,7 +923,8 @@ export function dribblePose(
         const turn = inOut((t - 0.8) / 2.2);
         mFace = rot({ x: -F.x, y: -F.y }, Math.PI * turn * d.side);
         pose.markerTilt = lean(F, -0.14 * bump((t + 1.4) / 3)) + lean(S, 0.2 * wobble(t, 2, 2.6, 2.4));
-        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3);
+        // a bola cai atrás: ele murcha (amassa) olhando pra ela
+        pose.markerSy = 1 + 0.09 * bump((t + 1.4) / 3) - 0.3 * lose(t, d.kind);
         pose.markerSx = 1 / pose.markerSy;
         pose.huh = huhAt(0.3);
     } else {
@@ -932,8 +953,9 @@ export function dribblePose(
                 : { x: pose.body.x - (mf * F.x + ms * S.x), y: pose.body.y - (mf * F.y + ms * S.y) };
         pose.markerTilt =
             lean(S, -0.36 * bite * (1 - ramp(0.6, 3, t)) - 0.1 * drift) + lean(S, 0.3 * wobble(t, 1.4, 2.2, 2));
-        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t));
-        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t));
+        // vendido e desequilibrado: amassa ao perder
+        pose.markerSy = 1 - 0.1 * bite * (1 - ramp(0.5, 3, t)) - 0.25 * lose(t, d.kind);
+        pose.markerSx = 1 + 0.07 * bite * (1 - ramp(0.5, 3, t)) + 0.24 * lose(t, d.kind);
         pose.huh = huhAt(0.8);
     }
     // quem dribla olha pra onde vai (no snapshot às vezes ele está de lado ou de costas); a roleta tem a dela
@@ -1045,4 +1067,194 @@ export function strikeLead(durations: readonly number[], hit: number): number {
     let acc = 0;
     for (let i = 0; i < hit; i++) acc += durations[i];
     return (acc * 1000) / 60;
+}
+
+/**
+ * Squash & stretch dos jogadores fora do gol (12/11, Miguel: "o mesmo tratamento do goleiro levado além"): arrancada e
+ * freada, chute, dominada e choque. Tudo pelo tick (replay e salto pra trás mostram certo); `reduce` (Reduzir movimento):
+ * nada. Reforço (12/11, "não vi diferença nenhuma"): no nível do goleiro, corrida 16–19%, chute 30%; a dominada sutil.
+ */
+export interface BodyLean {
+    tilt: number;
+    sx: number;
+    sy: number;
+}
+
+/** Arrancada (`go`) ou freada (`stop`) de quem corre, com a direção da corrida (unitária, tela = metros). */
+export interface RunBurst {
+    by: number;
+    tick: number;
+    kind: 'go' | 'stop';
+    dir: { x: number; y: number };
+    dusted: boolean;
+}
+
+/**
+ * Corrida: parado é abaixo de `slow` m/s, correndo acima de `fast`; `gap` ticks entre duas do mesmo jogador; a pose dura
+ * `len` ticks; estica `stretch` e inclina `tilt` rad no máximo.
+ */
+export const RUN_BURST = { slow: 1.8, fast: 3.5, gap: 30, len: 9, stretch: 0.16, tilt: 0.22 } as const;
+
+/** Ações em que a corrida não conta (o motor já tem pose própria pra elas). */
+const NO_RUN: ReadonlySet<number> = new Set([Action.Dive, Action.Hurt, Action.Celebrate, Action.Tackle, Action.Charge]);
+
+/**
+ * Arrancadas e freadas da partida (só a tela): a velocidade média nos 2 snapshots antes e nos 2 depois de cada
+ * snapshot; de parado pra correndo é arrancada, o contrário é freada. Sem saída de bola nem lance parado no meio.
+ */
+export function runBursts(snaps: readonly MatchSnapshot[], players: number): RunBurst[] {
+    const out: RunBurst[] = [];
+    const R = RUN_BURST;
+    const rate = FUTSAL_5.tickRate;
+    for (let i = 0; i < players; i++) {
+        const o = i * SNAP_STRIDE;
+        let last = Number.NEGATIVE_INFINITY;
+        // m/s do snapshot n-1 ao n
+        const v = (n: number) => {
+            const a = snaps[n - 1];
+            const b = snaps[n];
+            return (Math.hypot(b.p[o] - a.p[o], b.p[o + 1] - a.p[o + 1]) * rate) / (b.tick - a.tick || 1);
+        };
+        for (let n = 2; n + 2 < snaps.length; n++) {
+            const s = snaps[n];
+            if (s.tick - last < R.gap) continue;
+            let ok = true;
+            for (let m = n - 2; m <= n + 2 && ok; m++) ok = snaps[m].phase === 'play' && !NO_RUN.has(snaps[m].p[o + 3]);
+            if (!ok) continue;
+            const before = (v(n - 1) + v(n)) / 2;
+            const after = (v(n + 1) + v(n + 2)) / 2;
+            const go = before < R.slow && after > R.fast;
+            const stop = before > R.fast && after < R.slow;
+            if (!go && !stop) continue;
+            const [a, b] = go ? [snaps[n], snaps[n + 2]] : [snaps[n - 2], snaps[n]];
+            const dx = b.p[o] - a.p[o];
+            const dy = b.p[o + 1] - a.p[o + 1];
+            const l = Math.hypot(dx, dy) || 1;
+            out.push({ by: i, tick: s.tick, kind: go ? 'go' : 'stop', dir: { x: dx / l, y: dy / l }, dusted: false });
+            last = s.tick;
+        }
+    }
+    return out.sort((x, y) => x.tick - y.tick);
+}
+
+const sinBump = (v: number) => (v <= 0 || v >= 1 ? 0 : Math.sin(Math.PI * v));
+/** Inclinação pro lado de `x` (correndo reto pra cima ou pra baixo, um pouco pro lado de onde olha). */
+const leanX = (x: number, k: number) => k * (x >= 0 ? 1 : -1) * Math.max(0.35, Math.abs(x));
+
+/**
+ * Pose da arrancada/freada no tick: arrancada inclina pra frente e estica na direção da corrida (de lado: mais comprido;
+ * pra cima/baixo: mais alto); freada joga o corpo pra trás e amassa (o pé fincando). null fora da janela.
+ */
+export function runBurstPose(b: RunBurst, tick: number, reduce = false): BodyLean | null {
+    const R = RUN_BURST;
+    const t = tick - b.tick;
+    if (reduce || t <= -1 || t >= R.len) return null;
+    // sobe rápido e solta devagar
+    const u = (t + 1) / (R.len + 1);
+    const k = sinBump(u < 0.3 ? u / 0.6 : 0.5 + (u - 0.3) / 1.4);
+    const s = R.stretch * k;
+    // de lado: mais comprido; na diagonal ou pra cima/baixo: mais alto (a mistura dos dois eixos na diagonal dava ~5%)
+    if (b.kind === 'go')
+        return Math.abs(b.dir.x) > 0.8
+            ? { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 + s, sy: 1 - 0.5 * s }
+            : { tilt: leanX(b.dir.x, R.tilt * k), sx: 1 - 0.5 * s, sy: 1 + s };
+    return { tilt: leanX(b.dir.x, -R.tilt * k), sx: 1 + s, sy: 1 - 1.2 * s };
+}
+
+/** Onde sai a poeirinha da corrida (px a partir do pé): atrás na arrancada, na frente na freada. */
+export const runDustAt = (b: RunBurst) => {
+    const k = b.kind === 'go' ? -6 : 7;
+    return { x: b.dir.x * k, y: b.dir.y * k * 0.5 };
+};
+
+/** O chute (`Action.Shoot`): agacha nos `lead` ticks antes do contato e estica no chute, soltando em `tail`. */
+export const KICK_SQUASH = { lead: 4, tail: 6, squash: 0.2, stretch: 0.3, tilt: 0.24 } as const;
+
+/**
+ * Pose do chute `dt` ticks depois do contato (negativo = antes): encolhe (prepara, corpo pra trás) e estica no chute
+ * (corpo pra frente, pro lado de `dirX`, a direção da bola na tela). null fora da janela.
+ */
+export function kickSquash(dt: number, dirX: number, reduce = false): BodyLean | null {
+    const K = KICK_SQUASH;
+    if (reduce || dt <= -K.lead || dt >= K.tail) return null;
+    const pre = dt < 0 ? sinBump((dt + K.lead) / K.lead / 1.15) : 0;
+    const hit = dt >= 0 ? Math.exp(-dt / 1.4) * (1 - dt / K.tail) : 0;
+    return {
+        tilt: leanX(dirX, -0.5 * K.tilt * pre + K.tilt * hit),
+        sx: 1 + K.squash * pre - 0.5 * K.stretch * hit,
+        sy: 1 - K.squash * 1.1 * pre + K.stretch * hit,
+    };
+}
+
+/** A bola chegando no pé de alguém (dominada): quem e o tick do snapshot em que ela passou a ser dele. */
+export interface Trap {
+    by: number;
+    tick: number;
+}
+
+/**
+ * Dominadas da partida: a bola solta num snapshot e de alguém no seguinte, com a bola rolando (a defesa do goleiro tem
+ * o mergulho, que vence a dominada).
+ */
+export function traps(snaps: readonly MatchSnapshot[]): Trap[] {
+    const out: Trap[] = [];
+    for (let n = 1; n < snaps.length; n++) {
+        const a = snaps[n - 1];
+        const s = snaps[n];
+        if (a.owner >= 0 || s.owner < 0 || s.phase !== 'play' || a.phase !== 'play') continue;
+        out.push({ by: s.owner, tick: s.tick });
+    }
+    return out;
+}
+
+/**
+ * Chutes a gol da partida (o evento `shot`): quem e o tick em que a bola sai do pé. Pelo evento e não pela ação do
+ * snapshot: o motor marca o chute comum como `Action.Kick` (igual ao passe) e só o de golpe como `Action.Shoot`, e
+ * assim o squash do chute quase nunca aparecia (12/11).
+ */
+export function kicks(events: readonly MatchEvent[]): Trap[] {
+    return events.flatMap((e) => (e.type === 'shot' ? [{ by: e.by, tick: e.tick }] : []));
+}
+
+/** Dominada: amassa de leve um instante (o corpo amortecendo a bola) e volta, em 5 ticks. */
+export function trapPose(dt: number, reduce = false): BodyLean | null {
+    if (reduce || dt <= -1 || dt >= 4) return null;
+    const k = sinBump((dt + 1) / 5);
+    return { tilt: 0, sx: 1 + 0.05 * k, sy: 1 - 0.07 * k };
+}
+
+/**
+ * Choque no desarme: os dois amassam no contato e inclinam pra longe um do outro (`away`: lado na tela pra onde o corpo
+ * vai, +1 direita). null fora dos 6 ticks.
+ */
+export function bumpPose(dt: number, away: number, reduce = false): BodyLean | null {
+    if (reduce || dt <= -1 || dt >= 6) return null;
+    // bate forte e solta devagar
+    const u = (dt + 1) / 7;
+    const k = sinBump(u < 0.2 ? u / 0.4 : 0.5 + (u - 0.2) / 1.6);
+    return { tilt: 0.16 * k * (away >= 0 ? 1 : -1), sx: 1 + 0.16 * k, sy: 1 - 0.18 * k };
+}
+
+/**
+ * Bola amassando no impacto (chute forte, trave), `ms` depois dele: achata no eixo do impacto (negativo), volta esticando
+ * (positivo) e assenta. 0 depois de `BALL_SQUASH_MS`.
+ */
+export const BALL_SQUASH_MS = 260;
+export function ballSquashAt(ms: number): number {
+    if (ms < 0 || ms >= BALL_SQUASH_MS) return 0;
+    if (ms < 50) return -Math.sin((Math.PI / 2) * (ms / 50));
+    if (ms < 120) return -1 + 1.6 * Math.sin((Math.PI / 2) * ((ms - 50) / 70));
+    return 0.6 * (1 - (ms - 120) / (BALL_SQUASH_MS - 120)) ** 2;
+}
+
+/** O último da lista (em ordem de tick) com tick até `tick`, por busca binária; undefined se não tem. */
+export function latestAt<T extends { tick: number }>(list: readonly T[], tick: number): T | undefined {
+    let lo = 0;
+    let hi = list.length;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (list[mid].tick <= tick) lo = mid + 1;
+        else hi = mid;
+    }
+    return list[lo - 1];
 }

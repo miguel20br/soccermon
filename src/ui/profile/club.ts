@@ -67,6 +67,13 @@ export function peerAvatar(p: { avatar?: unknown; avatarGoogle?: unknown }): { s
     return { src: SPECIES.some((sp) => sp.id === id) ? avatarGif(id, !!m?.[1]) : avatarGif(25), google: false };
 }
 
+/** O Pokémon do avatar do rival (pra cena da Arena, sem a silhueta quando ele já está na sala); foto ou lixo = Pikachu. */
+export function peerMon(p: { avatar?: unknown }): { id: number; shiny: boolean } {
+    const m = SPRITE_SRC.exec(typeof p.avatar === 'string' ? p.avatar : '');
+    const id = Number(m?.[2]);
+    return SPECIES.some((sp) => sp.id === id) ? { id, shiny: !!m?.[1] } : { id: 25, shiny: false };
+}
+
 /** Avatar do perfil, pronto para usar (lê o perfil e a conta). */
 export function useAvatar() {
     const avatar = useGame((s) => s.profile.avatar);

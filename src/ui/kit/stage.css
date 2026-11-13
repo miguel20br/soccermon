@@ -653,11 +653,12 @@
     .k-stage-place .k-stage-body[data-cols="2"] > .k-stage-gap {
         display: none;
     }
-    .app:has(.k-stage-body[data-cols="2"]) .amb-bd :is(.ar-duel, .ar-circle) {
+    .app:has(.k-stage-body[data-cols="2"]) .amb-bd :is(.ar-duel, .ar-circle, .ar-ball) {
         left: 86%;
     }
 }
-/* em pé: a dupla no meio do vão de verdade (useTwoCols mede; a quadra começa embaixo da parede) */
-.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle) {
+/* em pé: a dupla no meio do vão de verdade (useTwoCols mede; a quadra começa embaixo da parede). A bola vai junto:
+   parada no meio da cena ela caía em cima do VS (Criar sala) ou do título da sala */
+.k-stage-place[data-gap] .amb-bd :is(.ar-duel, .ar-circle, .ar-ball) {
     top: calc(var(--k-gap-y) - var(--wall-top) - var(--wall-h));
 }

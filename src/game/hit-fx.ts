@@ -156,29 +156,49 @@ export function effectWord(
     return w;
 }
 
-/** Poeira do tombo, no pé de quem cai. */
+/**
+ * Bolinhas de poeira reaproveitadas por cena (a corrida solta poeira toda hora: sem criar e destruir um objeto por
+ * bolinha). A cena encerrando destrói as bolinhas; o pool some junto.
+ */
+const dustPool = new WeakMap<Phaser.Scene, Phaser.GameObjects.Arc[]>();
+
+function puff(scene: Phaser.Scene, x: number, y: number, r: number, depth: number) {
+    let pool = dustPool.get(scene);
+    if (!pool) {
+        pool = [];
+        dustPool.set(scene, pool);
+        scene.events.once('shutdown', () => dustPool.delete(scene));
+    }
+    const p = pool.pop();
+    if (p?.active) return { pool, p: p.setPosition(x, y).setRadius(r).setScale(1).setAlpha(0.95).setVisible(true) };
+    // clara com contorno escuro: aparece em qualquer piso (a bege sumia no laranja da madeira)
+    const fresh = scene.add.circle(x, y, r, 0xf4ecdc, 0.95).setStrokeStyle(1.5, 0x3a2a1c, 0.8);
+    return { pool, p: fresh.setDepth(depth) };
+}
+
+/** Poeira do tombo, no pé de quem cai (e do mergulho, da corrida, do drible e do choque). */
 export function dust(scene: Phaser.Scene, x: number, y: number, n: number, depth: number, size = 1) {
     for (let i = 0; i < n; i++) {
         const a = (i / n) * Math.PI * 2 + Math.random() * 0.5;
         const cx = Math.cos(a);
         const cy = Math.sin(a);
-        // clara com contorno escuro: aparece em qualquer piso (a bege sumia no laranja da madeira); nasce um pouco fora
-        // do pé (no centro ficava atrás da bola) e some só no fim
-        const p = scene.add
-            .circle(x + cx * 4 * size, y + cy * size, (2 + Math.random() * 2) * size, 0xf4ecdc, 0.95)
-            .setStrokeStyle(1.5, 0x3a2a1c, 0.8)
-            .setDepth(depth);
+        // nasce um pouco fora do pé (no centro ficava atrás da bola) e some só no fim
+        const { pool, p } = puff(scene, x + cx * 4 * size, y + cy * size, (2 + Math.random() * 2) * size, depth);
+        p.setDepth(depth);
         const duration = (320 + Math.random() * 140) * size;
         scene.tweens.add({
             targets: p,
             x: x + cx * (12 + Math.random() * 8) * size,
             y: y + cy * 4 * size - 2,
             scale: 2,
+            alpha: { value: 0, ease: 'Quad.easeIn' },
             duration,
             ease: 'Quad.easeOut',
-            onComplete: () => p.destroy(),
+            onComplete: () => {
+                p.setVisible(false);
+                if (dustPool.get(scene) === pool) pool.push(p);
+            },
         });
-        scene.tweens.add({ targets: p, alpha: 0, duration, ease: 'Quad.easeIn' });
     }
 }
 

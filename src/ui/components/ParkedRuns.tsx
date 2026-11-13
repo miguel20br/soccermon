@@ -5,7 +5,7 @@ import { cupStep } from './AccountLink';
 
 /**
  * Copas guardadas (vieram de um conflito entre aparelho e conta): retomar troca de lugar com a atual (pede
- * confirmação se tiver uma em andamento), descartar pede confirmação sempre. Home de lista e Estádio.
+ * confirmação se tiver uma em andamento), descartar pede confirmação sempre. Fica no Estádio.
  */
 export function ParkedRuns() {
     const { t } = useT();

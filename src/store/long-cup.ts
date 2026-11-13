@@ -12,6 +12,7 @@ import {
     type MapNode,
     matchIndexOfRow,
     nodeById,
+    ROTA_RULES,
 } from '../engine/cup-map';
 import type { Stone } from '../engine/evolution';
 import { Rng } from '../engine/rng';
@@ -28,9 +29,20 @@ export type CupMode = 'longa';
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
 export const LONG_CUP_LIVE = true;
 
-/** O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta. */
-export const longWinEarnings = (score: readonly number[], sponsors: readonly string[] = []) =>
-    winEarnings(score[0], score[1], 0, sponsors);
+/**
+ * O ₽ a mais do Jogo vencido, no lugar do 1 de 3 do time rival (Miguel, 11/11/2026: na Rota a vitória paga ₽ e você
+ * gasta nos Mercados do mapa; balanceamento-geral.md, "Modos arcade × Rota").
+ */
+export const ROTA_JOGO_PAY = 3;
+
+/**
+ * O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta.
+ * `jogo`: o Jogo vencido, que soma o `ROTA_JOGO_PAY` na vitória.
+ */
+export function longWinEarnings(score: readonly number[], sponsors: readonly string[] = [], jogo = false) {
+    const e = winEarnings(score[0], score[1], 0, sponsors);
+    return jogo ? { ...e, win: e.win + ROTA_JOGO_PAY, total: e.total + ROTA_JOGO_PAY } : e;
+}
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
@@ -137,7 +149,7 @@ export function longMatchBonus(
     const out: MatchBonus = {};
     const node = currentNode(run);
     if (won && node?.kind === 'jogo' && node.prize === 'money' && !run.fight)
-        out.prize = longWinEarnings(score, run.sponsors).total;
+        out.prize = longWinEarnings(score, run.sponsors, jogoPays(run)).total;
     if (won && run.fight === 'rocket') out.rocket = ROCKET_BOUNTY;
     if (run.bet) out.bet = won && score[0] - score[1] >= 2 ? run.bet : -run.bet;
     return out;
@@ -192,6 +204,10 @@ export const newLongFields = (seed: string): LongRunFields => ({
 export const currentNode = (run: LongRunFields): MapNode | undefined =>
     run.map && run.at ? nodeById(run.map, run.at) : undefined;
 
+/** O Jogo vencido agora paga o `ROTA_JOGO_PAY` (sem o 1 de 3 do rival)? Desafio de evento e grupo não. */
+export const jogoPays = (run: LongRunFields): boolean =>
+    isLong(run) && !ROTA_RULES.rivalEveryJogo && !run.group && !run.fight && currentNode(run)?.kind === 'jogo';
+
 /**
  * A partida que a barra da copa e o "Continuar" mostram ("Partida 4 de 8"). Na Rota a próxima a jogar é sempre a conta
  * das jogadas (`played` = `results.length`; o mapa e o grupo contam assim) e `stage` é a última em que você entrou: ela
@@ -212,20 +228,6 @@ export function cupMatchNow(
 
 /** A partida `stage` é da fase de grupos? */
 export const isGroupStage = (stage: number) => stage >= GROUP_START && stage < FINAL_MATCH;
-/**
- * Cor da derrota na barrinha da copa: vermelho = eliminou (na Rota, só o 2º amarelo); amarelo = a derrota que a
- * Rota perdoa no mapa; neutro = derrota no grupo (não dá cartão).
- */
-export const lossColor = (
-    run: { mode?: CupMode; status: string; results: readonly { stage: number }[] },
-    stage: number,
-): 'red' | 'yellow' | 'plain' =>
-    !isLong(run) || (run.status === 'eliminated' && stage === run.results.at(-1)?.stage)
-        ? 'red'
-        : isGroupStage(stage)
-          ? 'plain'
-          : 'yellow';
-
 /** Pontos no grupo: vitória 3, vitória nos pênaltis 2, derrota nos pênaltis 1, derrota 0. */
 export const groupPoints = (won: boolean, shootout: boolean) => (won ? (shootout ? 2 : 3) : shootout ? 1 : 0);
 
