@@ -2,6 +2,9 @@
 
 ## 0.9.52 · Descrições mais diretas (2026-11-13)
 
+### Aviso
+- A partir de agora, uma atualização por semana
+
 ### Textos do jogo
 - Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo
 - Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço

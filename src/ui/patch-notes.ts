@@ -14,6 +14,10 @@ export const PATCH_NOTES: PatchNotes[] = [
         title: 'Descrições mais diretas',
         sections: [
             {
+                title: 'Aviso',
+                lines: ['A partir de agora, uma atualização por semana'],
+            },
+            {
                 title: 'Textos do jogo',
                 lines: [
                     'Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo',
@@ -2937,6 +2941,10 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
         date: '2026-11-13',
         title: 'Clearer descriptions',
         sections: [
+            {
+                title: 'Notice',
+                lines: ['From now on, one update per week'],
+            },
             {
                 title: 'Game text',
                 lines: [
