@@ -16,7 +16,7 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Partida',
                 lines: [
-                    'Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)',
+                    'Adicionadas novas animações de final de jogo',
                     'No Losango, os alas também voltam a bola pro fixo na armação',
                 ],
             },
@@ -142,9 +142,9 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Rota Índigo',
                 lines: [
-                    'Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta',
-                    'Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga',
-                    'Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)',
+                    'Adicionadas animações no Cassino',
+                    'Adicionadas animações no Centro Pokémon',
+                    'Adicionadas animações na Zona Safari',
                     'Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa',
                     'No PC o mapa inteiro cabe na tela, com um painel das próximas casas',
                     'Pedra que ninguém usa vai direto pra Mochila, sem tela a mais',
@@ -2873,7 +2873,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Match',
                 lines: [
-                    'Full time with feeling: at the whistle the winners jump and the losers sit down (in shootouts, after the last kick)',
+                    'Added new end-of-match animations',
                     'In the Diamond, the wingers also play the ball back to the fixo in the build-up',
                 ],
             },
@@ -3001,9 +3001,9 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Indigo Route',
                 lines: [
-                    'A real Game Corner: the 3 reels stop one by one, and the prize counter spins a wheel',
-                    'Pokémon Center with Nurse Joy: your team’s balls go into the machine and the yellow card tears',
-                    'Safari Zone: the Safari Ball flies in an arc and shakes up to 3 times before the catch (or it flees)',
+                    'Added Game Corner animations',
+                    'Added Pokémon Center animations',
+                    'Added Safari Zone animations',
                     'Map: the captain walks to the chosen spot, the next spots light up and each region has a sign',
                     'On PC the whole map fits the screen, with a panel of the next spots',
                     'A stone nobody uses goes straight to the Bag, no extra screen',

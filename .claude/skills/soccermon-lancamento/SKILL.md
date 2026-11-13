@@ -32,6 +32,8 @@ então **nada vai pra `main` sem o "pode subir" do Miguel** na conversa, mesmo c
    - título curto da versão ("Balanceamento geral e o seu treinador");
    - seções por assunto; mudança de número sempre "antes ⇒ depois" (Onix: Fixo 63 ⇒ 70);
    - Pokémon em "buff" e "nerf e ajuste";
+   - linguagem direta, sem metáfora nem frase de efeito: "Adicionadas novas animações de final de jogo", não "Fim
+     de jogo com cara: quem ganhou pula…" (Miguel, 13/11);
    - nada de emoji.
 7. `npm run changelog` (gera o `CHANGELOG.md`) e `npm version X.Y.Z --no-git-tag-version`.
    **Número com 4 partes** (0.8.8.1, 0.8.8.2…; usado em 19/10 pra separar o que subiu no mesmo dia): o npm só aceita

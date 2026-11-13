@@ -3,7 +3,7 @@
 ## 0.9.50 · Cada um no seu lugar (2026-11-12)
 
 ### Partida
-- Fim de jogo com cara: no apito, quem ganhou pula e quem perdeu senta (nos pênaltis, depois da última cobrança)
+- Adicionadas novas animações de final de jogo
 - No Losango, os alas também voltam a bola pro fixo na armação
 
 ### Menus
@@ -67,9 +67,9 @@
 ## 0.9.46 · Rota viva (2026-11-10)
 
 ### Rota Índigo
-- Cassino de verdade: os 3 rolos param um por um, e o balcão de prêmios gira uma roleta
-- Centro Pokémon com a Enfermeira Joy: as bolas do time entram na máquina e o cartão amarelo rasga
-- Zona Safari: a Safari Ball vai em arco e balança até 3 vezes antes de pegar (ou ele foge)
+- Adicionadas animações no Cassino
+- Adicionadas animações no Centro Pokémon
+- Adicionadas animações na Zona Safari
 - Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa
 - No PC o mapa inteiro cabe na tela, com um painel das próximas casas
 - Pedra que ninguém usa vai direto pra Mochila, sem tela a mais
