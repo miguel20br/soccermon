@@ -18,6 +18,7 @@
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import puppeteer from 'puppeteer-core';
+import { TEXID_FIX } from './swiftshader-texid.mjs';
 
 const args = process.argv.slice(2);
 const arg = (k, d) => (args.includes(k) ? args[args.indexOf(k) + 1] : d);
@@ -59,6 +60,8 @@ const browser = await puppeteer.launch({
     env: { ...process.env, LANG: 'pt_BR.UTF-8', LANGUAGE: 'pt_BR' },
 });
 const page = await browser.newPage();
+// SwiftShader: sem isto some uma faixa do sprite em alguns quadros (swiftshader-texid.mjs)
+await page.evaluateOnNewDocument(TEXID_FIX);
 await page.setViewport(
     modo === 'pagina'
         ? { width: 1280, height: 960, deviceScaleFactor: width / 1280 }
