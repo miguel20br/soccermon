@@ -1,5 +1,37 @@
 # Novidades
 
+## 0.9.51 · Sprites nítidos, novas animações e Duelo (2026-11-13)
+
+### Partida
+- Pokémon nítidos em qualquer tela, sem borrão
+- Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta
+- Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol
+- A bola amassa no chute forte e na trave, e a trave treme
+- Mais poeira nas arrancadas, nos choques e nos dribles
+- Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)
+- Nova barrinha do golpe máximo, em gomos
+
+### Copa Relâmpago e Copa do Dia
+- Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado
+- Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)
+
+### Rota Índigo
+- Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa
+- Pedra do ₽ em dobro vai pra Mochila se ninguém usa
+
+### Duelo
+- Saiu do BETA
+- Seus duelos na Arena: os últimos 8 e o placar contra cada amigo
+- Criar sala mostra a regra do modo escolhido em uma linha
+- Fim do duelo com Revanche e Voltar ao início
+- A barrinha do golpe máximo tem a cor do tipo do capitão de cada time
+- Consertos de layout no celular e no PC (sala, draft, escalação e partida)
+
+### Menus
+- Cada modo diz em uma linha o que é, no menu de modos e na Ajuda
+- Time Ultimate: volta o aviso "Zera a cada temporada"
+- Novidades com textos e títulos mais diretos
+
 ## 0.9.50 · Animações de fim de jogo e Perfil com números (2026-11-12)
 
 ### Partida

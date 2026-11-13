@@ -9,6 +9,58 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sprites nítidos, novas animações e Duelo',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Pokémon nítidos em qualquer tela, sem borrão',
+                    'Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta',
+                    'Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol',
+                    'A bola amassa no chute forte e na trave, e a trave treme',
+                    'Mais poeira nas arrancadas, nos choques e nos dribles',
+                    'Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)',
+                    'Nova barrinha do golpe máximo, em gomos',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago e Copa do Dia',
+                lines: [
+                    'Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado',
+                    'Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa',
+                    'Pedra do ₽ em dobro vai pra Mochila se ninguém usa',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Saiu do BETA',
+                    'Seus duelos na Arena: os últimos 8 e o placar contra cada amigo',
+                    'Criar sala mostra a regra do modo escolhido em uma linha',
+                    'Fim do duelo com Revanche e Voltar ao início',
+                    'A barrinha do golpe máximo tem a cor do tipo do capitão de cada time',
+                    'Consertos de layout no celular e no PC (sala, draft, escalação e partida)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Cada modo diz em uma linha o que é, no menu de modos e na Ajuda',
+                    'Time Ultimate: volta o aviso "Zera a cada temporada"',
+                    'Novidades com textos e títulos mais diretos',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.50',
         date: '2026-11-12',
         title: 'Animações de fim de jogo e Perfil com números',
@@ -2865,6 +2917,58 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sharp sprites, new animations and Duel',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Sharp Pokémon on any screen, no blur',
+                    'Lighter on phones: resolution adjusts itself when the device can’t keep up',
+                    'New animations: Pokémon stretch and squash when running, kicking, controlling, colliding, getting dribbled and landing a goal celebration',
+                    'The ball squashes on hard shots and on the post, and the post shakes',
+                    'More dust on sprints, collisions and dribbles',
+                    'Names above the Pokémon without broken letters (bigger on PC)',
+                    'New max move bar, in segments',
+                ],
+            },
+            {
+                title: 'Lightning Cup and Daily Cup',
+                lines: [
+                    'After a win there is only the pick 1 of 3 reward, no ₽ or Market',
+                    'A Sponsor shows up in the reward on 40% of wins (field sponsors or the Cinnabar Lab)',
+                ],
+            },
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Won Match: rival’s pick 1 of 3 ⇒ ₽3 extra to spend at the map Markets',
+                    'An unused stone from double ₽ goes to the Bag',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'Out of BETA',
+                    'Your duels in the Arena: the last 8 and the score against each friend',
+                    'Create room shows the chosen mode’s rule in one line',
+                    'Duel end with Rematch and Back to start',
+                    'The max move bar takes the type color of each team’s captain',
+                    'Layout fixes on phone and PC (room, draft, lineup and match)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Each mode says what it is in one line, in the mode menu and in Help',
+                    'Team Ultimate: the "Resets every season" note is back',
+                    'Patch notes with more direct text and titles',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.50',
         date: '2026-11-12',
