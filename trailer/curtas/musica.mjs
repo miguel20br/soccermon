@@ -22,6 +22,9 @@ export const MAPAS = {
     snorlax: [0, 1, 5, 6, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 20, 1],
     // as 5 rodadas inteiras (2 a 22) | a festa: SOC-CER-MON em Mi (23–24), sobe um tom (27–28) e fecha em Fá# (31)
     penaltis: [...Array.from({ length: 21 }, (_, i) => i + 2), 23, 24, 27, 28, 31],
+    // Bola fora v5: abertura | saco | cama TH1 | Pikachu e os chutes | cama TH2 (3) | breque, olhos, câmera lenta, chute,
+    // KABOOM, chuva, gol, apito | cama TH3 | cama + fim da tag | tela final
+    bolas: [0, 1, 2, 16, 17, 3, 4, 16, 17, 16, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17, 16, 18, 13, 14, 15],
 };
 
 /** Refaz o Song pro mapa (chamado no 1º `part`, depois do construtor e do `masterAt` da peça). */

@@ -37,7 +37,7 @@ const kaboom = som(
 const XILO = { vol: 0.32, a: 0.001, r: 0.16, shape: 1, sv: 0.08, d: 0.06 };
 
 export default function bolas() {
-    const S = new Song({ bpm: 120, bars: 16, swing: 0.12, tail: 2 });
+    const S = new Song({ bpm: 120, bars: 19, swing: 0.12, tail: 2 });
     const met = S.part('metais', I.brass, { pan: 0.2, gain: 0.45, corte: 3000, rev: 0.2 });
     const met2 = S.part('metais2', I.brass, { pan: -0.2, gain: 0.4, corte: 2600, rev: 0.2 });
     const ep = S.part('piano', I.epiano, { pan: -0.25, gain: 0.55, rev: 0.3 });
@@ -191,5 +191,15 @@ export default function bolas() {
     mel(bs, 15, ['r:4 C2:1 r:1 C2:1 r:1 F1:6 r:2']);
     drum(kk, 15, 1, '....x.x.X.......');
     drum(cr, 15, 1, '........X.......');
+
+    // 16–18 · a CAMA dos talking heads e da tag (v5: a música não para neles, segue por baixo e o curta abaixa uns 10 dB):
+    //         o funk leve em F7 (16) e Bb7 (17); o 18 fecha a tag e esvazia pro corte seco no logo
+    groove(16, 'F7', { leve: true });
+    stabs(ep, 16, 'F7', [0, 6, 10], { low: 57, n: 4, vel: 0.5 });
+    groove(17, 'Bb7', { leve: true });
+    stabs(ep, 17, 'Bb7', [0, 6, 10], { low: 58, n: 4, vel: 0.5 });
+    drum(kk, 18, 1, 'X.........x.....', { vel: 0.8 });
+    drum(hh, 18, 1, 'x.x.x.x.x.x.....', { vel: 0.6 });
+    bass(bs, 18, 'F', '0:3 r:3 5:2 0:2 r:6', { vel: 0.7 });
     return S;
 }
