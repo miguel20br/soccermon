@@ -421,30 +421,34 @@
     const cam = $('cam');
     gsap.set(cam, { transformOrigin: '0px 0px' });
     [10, 170, 760, 920].forEach((x) => div(cam, 'armario', `left:${x}px`));
-    // o golzinho (v6): apoiado no chão do vestiário, de frente pra câmera, com profundidade (o quadro de trás encolhe pro
-    // ponto de fuga), rede no fundo e nas laterais e sombra no chão. Fundo em z 8 (atrás de quem entra), trave da frente
-    // em z 12 (a bola que entra passa entre os dois)
-    const GF = { x: 24, y: 1240, w: 280, h: 300 }; // trave da frente (base no chão em y 1540)
-    const GT = { x: 88, y: 1200, w: 246, h: 262 }; // quadro de trás (12% em direção ao ponto de fuga)
-    const rede = '<defs><pattern id="rede" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H22M0 0V22" stroke="#f8f8f0" stroke-opacity="0.55" stroke-width="3"/></pattern></defs>';
+    // o golzinho (v7): DE LADO, em perfil, na ponta esquerda, com a boca virada pro Pikachu (direita). Apoiado no chão,
+    // com a trave de trás inclinada, o quadro do lado de lá mais fino (profundidade) e sombra. Camadas: o lado de lá, o
+    // teto e o fundo (z 8), a rede do fundo, que estufa (z 9), a bola que entra (z 10), a rede do lado de cá e a trave
+    // de cá (z 12)
+    const N = { pT: [300, 1245], pB: [300, 1545], fT: [110, 1245], fB: [70, 1545] }; // lado de cá: poste, topo de trás, pé de trás
+    const L = { pT: [322, 1225], pB: [322, 1520], fT: [132, 1225], fB: [92, 1520] }; // lado de lá (mais alto e à direita)
+    const rede = (id, op) => `<defs><pattern id="${id}" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H20M0 0V20" stroke="#f8f8f0" stroke-opacity="${op}" stroke-width="3"/></pattern></defs>`;
     const pts = (...p) => p.map((q) => q.join(',')).join(' ');
+    const quadroGol = (Q) => `M${Q.pB} L${Q.pT} L${Q.fT} L${Q.fB} Z`;
     const gz = div(cam, 'gol', 'z-index:8');
-    gz.innerHTML = `<svg width="1080" height="1920">${rede}
-      <ellipse cx="${GF.x + GF.w / 2 + 30}" cy="${GF.y + GF.h + 4}" rx="${GF.w / 2 + 50}" ry="26" fill="rgb(0 0 0 / 30%)"/>
-      <polygon points="${pts([GT.x, GT.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GT.x, GT.y + GT.h])}" fill="rgb(14 20 48 / 45%)"/>
-      <polygon points="${pts([GT.x, GT.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GT.x, GT.y + GT.h])}" fill="url(#rede)"/>
-      <polygon points="${pts([GF.x, GF.y], [GT.x, GT.y], [GT.x, GT.y + GT.h], [GF.x, GF.y + GF.h])}" fill="url(#rede)"/>
-      <polygon points="${pts([GF.x + GF.w, GF.y], [GT.x + GT.w, GT.y], [GT.x + GT.w, GT.y + GT.h], [GF.x + GF.w, GF.y + GF.h])}" fill="url(#rede)"/>
-      <polygon points="${pts([GF.x, GF.y], [GF.x + GF.w, GF.y], [GT.x + GT.w, GT.y], [GT.x, GT.y])}" fill="url(#rede)"/>
-      <path d="M${GT.x} ${GT.y + GT.h}V${GT.y}H${GT.x + GT.w}V${GT.y + GT.h}M${GF.x} ${GF.y}L${GT.x} ${GT.y}M${GF.x + GF.w} ${GF.y}L${GT.x + GT.w} ${GT.y}M${GF.x} ${GF.y + GF.h}L${GT.x} ${GT.y + GT.h}M${GF.x + GF.w} ${GF.y + GF.h}L${GT.x + GT.w} ${GT.y + GT.h}" stroke="#0e1430" stroke-width="14" fill="none" stroke-linejoin="round"/>
-      <path d="M${GT.x} ${GT.y + GT.h}V${GT.y}H${GT.x + GT.w}V${GT.y + GT.h}M${GF.x} ${GF.y}L${GT.x} ${GT.y}M${GF.x + GF.w} ${GF.y}L${GT.x + GT.w} ${GT.y}M${GF.x} ${GF.y + GF.h}L${GT.x} ${GT.y + GT.h}M${GF.x + GF.w} ${GF.y + GF.h}L${GT.x + GT.w} ${GT.y + GT.h}" stroke="#c8d0e0" stroke-width="6" fill="none" stroke-linejoin="round"/></svg>`;
-    gsap.set(gz, { transformOrigin: `${GT.x + GT.w / 2}px ${GT.y + GT.h}px` });
+    gz.innerHTML = `<svg width="1080" height="1920">${rede('redeL', 0.45)}
+      <ellipse cx="195" cy="1550" rx="190" ry="24" fill="rgb(0 0 0 / 30%)"/>
+      <polygon points="${pts(L.pT, L.fT, L.fB, L.pB)}" fill="rgb(14 20 48 / 35%)"/>
+      <polygon points="${pts(L.pT, L.fT, L.fB, L.pB)}" fill="url(#redeL)"/>
+      <polygon points="${pts(N.pT, L.pT, L.fT, N.fT)}" fill="url(#redeL)"/>
+      <path d="${quadroGol(L)}" stroke="#0e1430" stroke-width="12" fill="none" stroke-linejoin="round"/>
+      <path d="${quadroGol(L)}" stroke="#aeb6cc" stroke-width="5" fill="none" stroke-linejoin="round"/>
+      <path d="M${N.pT}L${L.pT}M${N.fT}L${L.fT}M${N.pB}L${L.pB}M${N.fB}L${L.fB}" stroke="#0e1430" stroke-width="12"/>
+      <path d="M${N.pT}L${L.pT}M${N.fT}L${L.fT}M${N.pB}L${L.pB}M${N.fB}L${L.fB}" stroke="#aeb6cc" stroke-width="5"/></svg>`;
+    // a rede do fundo (entre a trave de trás de cá e a de lá): é ela que estufa quando a bola entra
+    const gr = div(cam, 'gol', 'z-index:9');
+    gr.innerHTML = `<svg width="1080" height="1920">${rede('redeF', 0.6)}<polygon points="${pts(N.fT, L.fT, L.fB, N.fB)}" fill="url(#redeF)"/></svg>`;
     const gf = div(cam, 'gol', 'z-index:12');
-    const trave = `M${GF.x} ${GF.y + GF.h}V${GF.y}H${GF.x + GF.w}V${GF.y + GF.h}`;
-    gf.innerHTML = `<svg width="1080" height="1920"><path d="${trave}" stroke="#0e1430" stroke-width="30" fill="none" stroke-linejoin="round"/><path d="${trave}" stroke="#f8f8f0" stroke-width="16" fill="none" stroke-linejoin="round"/><path d="M${GF.x + 4} ${GF.y + 6}H${GF.x + GF.w - 4}" stroke="#c8d0e0" stroke-width="4"/></svg>`;
-    const BANCO = 1262;
-    const CHAO = 1500;
-    const GOL = [195, 1500]; // onde a bola para, dentro do gol (no chão, entre o fundo e a trave)
+    gf.innerHTML = `<svg width="1080" height="1920">${rede('redeN', 0.35)}
+      <polygon points="${pts(N.pT, N.fT, N.fB, N.pB)}" fill="url(#redeN)"/>
+      <path d="${quadroGol(N)}" stroke="#0e1430" stroke-width="28" fill="none" stroke-linejoin="round"/>
+      <path d="${quadroGol(N)}" stroke="#f8f8f0" stroke-width="14" fill="none" stroke-linejoin="round"/></svg>`;
+    const GOL = [180, 1508]; // onde a bola para, no chão de dentro do gol
     /** Corte seco pro vestiário; com `foco`, punch-in de escala `k` com o ponto `foco` em (540, sy) da tela. */
     const plano = (t, foco = null, sy = 1000, k = 2) => {
       corta('#vest', t);
@@ -536,7 +540,7 @@
     /** A bola entra no golzinho em t: amassa contra a rede, a rede estufa e volta, poeirinha. */
     const naRede = (b, t) => {
       tl.to(b.el, { keyframes: { scaleX: [0.62, 1.12, 1], scaleY: [1.3, 0.92, 1] }, duration: 0.24, ease: 'power1.out' }, t);
-      tl.to(gz, { keyframes: { scaleX: [1.05, 0.98, 1], scaleY: [0.96, 1.02, 1] }, duration: 0.3, ease: 'sine.out' }, t);
+      tl.to(gr, { keyframes: { x: [-22, 6, 0], easeEach: 'sine.out' }, duration: 0.35, ease: 'none' }, t);
       poeira(tl, cam, GOL[0], GOL[1] + 30, t, { n: 4, r: 70, tam: 28 });
     };
     /**
@@ -569,10 +573,11 @@
     /** A bola sai amassada do pé em t, faz o arco e entra no gol em t + dur. */
     const bolaPraRede = (b, t, dur) => {
       tl.to(b.b.el, { x: GOL[0], y: GOL[1], duration: dur, ease: 'power1.out' }, t);
-      tl.to(b.b.corpo, { keyframes: { y: [-240, 0], easeEach: 'sine.inOut' }, duration: dur, ease: 'none' }, t);
+      tl.to(b.b.corpo, { keyframes: { y: [-90, -20], easeEach: 'sine.inOut' }, duration: dur, ease: 'none' }, t);
+      tl.to(b.b.corpo, { y: 0, duration: 0.15, ease: 'bounce.out' }, t + dur);
       tl.to(b.b.gira, { rotation: '-=720', duration: dur, ease: 'power1.out' }, t);
       tl.fromTo(b.b.el, { scaleX: 1 }, { keyframes: { scaleX: [0.8, 1.1, 1], scaleY: [1.2, 0.95, 1] }, duration: 0.16, ease: 'power1.out', immediateRender: false }, t);
-      tl.set(b.b.el, { zIndex: 10 }, t + dur * 0.7);
+      tl.set(b.b.el, { zIndex: 10 }, t + dur * 0.55);
       naRede(b.b, t + dur);
       poeira(tl, cam, b.x, CHAO, t);
     };
@@ -654,11 +659,19 @@
     plano(T(8, 0));
     chutePk(T(8, 4), 725, T(8, 0));
     poeira(tl, cam, 640, CHAO, T(8, 4));
-    const BOOM = [380, 1000];
-    tl.to(vt.el, { x: BOOM[0], y: BOOM[1] + 60, duration: T(8, 8) - T(8, 4), ease: 'power2.out' }, T(8, 4));
-    tl.to(vt.spr, { rotation: -540, duration: T(8, 8) - T(8, 4), ease: 'power2.out' }, T(8, 4));
+    const BOOM = [190, 1420];
+    {
+      const t = T(8, 4);
+      const d = T(8, 7) - t;
+      tl.to(vt.el, { x: GOL[0] + 10, y: GOL[1] + 4, duration: d, ease: 'power1.out' }, t);
+      tl.to(vt.corpo, { keyframes: { y: [-130, -40], easeEach: 'sine.inOut' }, duration: d, ease: 'none' }, t);
+      tl.to(vt.corpo, { y: 0, duration: 0.2, ease: 'bounce.out' }, t + d);
+      tl.to(vt.spr, { rotation: -720, duration: d, ease: 'power2.out' }, t);
+      tl.set(vt.el, { zIndex: 10 }, t + d * 0.55);
+      naRede(vt, t + d);
+    }
     comemora(T(8, 4) + 0.24);
-    plano(T(8, 8), [BOOM[0], BOOM[1] - 60], 960);
+    plano(T(8, 8), [GOL[0] + 60, GOL[1] - 120], 1000);
     tl.set(vt.spr, { rotation: 0 }, T(8, 8));
     anim(tl, vt, 'Idle', 0, T(8, 8), T(9, 0));
     quadro(tl, pk, 'Pose', 0, 1, T(8, 8));
@@ -819,7 +832,7 @@
     // 11 · punch-in no golzinho (0–7): o Voltorb lá dentro, tostado e tonto, as estrelinhas girando. Punch-in no Pikachu
     //      (8), tostado e ainda na pose; ele olha pro Psyduck (12), pro Magikarp (16 · 0), pro Psyduck de novo (16 · 3),
     //      pra câmera (16 · 6) e, depois de um respiro, pergunta: "Gol?" (16 · 9). Cada olhar ~0,4 s
-    plano(T(11, 0), [GOL[0] + 110, GOL[1] - 110], 1000);
+    plano(T(11, 0), [GOL[0] + 90, GOL[1] - 110], 1000);
     plano(T(11, 8), [800, 1300], 1100);
     {
       const olhar = [[T(11, 12), 7], [T(16, 0), 6], [T(16, 3), 7], [T(16, 6), 0]];
