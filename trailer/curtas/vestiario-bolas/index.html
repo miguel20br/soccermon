@@ -425,30 +425,32 @@
     // com a trave de trás inclinada, o quadro do lado de lá mais fino (profundidade) e sombra. Camadas: o lado de lá, o
     // teto e o fundo (z 8), a rede do fundo, que estufa (z 9), a bola que entra (z 10), a rede do lado de cá e a trave
     // de cá (z 12)
-    const N = { pT: [300, 1245], pB: [300, 1545], fT: [110, 1245], fB: [70, 1545] }; // lado de cá: poste, topo de trás, pé de trás
-    const L = { pT: [322, 1225], pB: [322, 1520], fT: [132, 1225], fB: [92, 1520] }; // lado de lá (mais alto e à direita)
+    // três quartos: o lado de lá fica mais alto e à direita (72, −65), e a boca (entre o poste de cá e o de lá) aparece
+    const N = { pT: [300, 1245], pB: [300, 1545], fT: [120, 1300], fB: [80, 1545] }; // lado de cá: poste, topo de trás, pé de trás
+    const L = { pT: [372, 1180], pB: [372, 1480], fT: [192, 1235], fB: [152, 1480] }; // lado de lá
     const rede = (id, op) => `<defs><pattern id="${id}" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H20M0 0V20" stroke="#f8f8f0" stroke-opacity="${op}" stroke-width="3"/></pattern></defs>`;
     const pts = (...p) => p.map((q) => q.join(',')).join(' ');
-    const quadroGol = (Q) => `M${Q.pB} L${Q.pT} L${Q.fT} L${Q.fB} Z`;
+    const linha = (d, w, cor) => `<path d="${d}" stroke="${cor}" stroke-width="${w}" fill="none" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const ladoLa = `M${L.pB}L${L.pT}L${L.fT}L${L.fB}ZM${N.fT}L${L.fT}M${N.pB}L${L.pB}M${N.fB}L${L.fB}`;
     const gz = div(cam, 'gol', 'z-index:8');
     gz.innerHTML = `<svg width="1080" height="1920">${rede('redeL', 0.45)}
-      <ellipse cx="195" cy="1550" rx="190" ry="24" fill="rgb(0 0 0 / 30%)"/>
+      <ellipse cx="235" cy="1532" rx="210" ry="30" fill="rgb(0 0 0 / 30%)"/>
       <polygon points="${pts(L.pT, L.fT, L.fB, L.pB)}" fill="rgb(14 20 48 / 35%)"/>
       <polygon points="${pts(L.pT, L.fT, L.fB, L.pB)}" fill="url(#redeL)"/>
       <polygon points="${pts(N.pT, L.pT, L.fT, N.fT)}" fill="url(#redeL)"/>
-      <path d="${quadroGol(L)}" stroke="#0e1430" stroke-width="12" fill="none" stroke-linejoin="round"/>
-      <path d="${quadroGol(L)}" stroke="#aeb6cc" stroke-width="5" fill="none" stroke-linejoin="round"/>
-      <path d="M${N.pT}L${L.pT}M${N.fT}L${L.fT}M${N.pB}L${L.pB}M${N.fB}L${L.fB}" stroke="#0e1430" stroke-width="12"/>
-      <path d="M${N.pT}L${L.pT}M${N.fT}L${L.fT}M${N.pB}L${L.pB}M${N.fB}L${L.fB}" stroke="#aeb6cc" stroke-width="5"/></svg>`;
+      ${linha(ladoLa, 12, '#0e1430')}${linha(ladoLa, 5, '#aeb6cc')}</svg>`;
     // a rede do fundo (entre a trave de trás de cá e a de lá): é ela que estufa quando a bola entra
     const gr = div(cam, 'gol', 'z-index:9');
     gr.innerHTML = `<svg width="1080" height="1920">${rede('redeF', 0.6)}<polygon points="${pts(N.fT, L.fT, L.fB, N.fB)}" fill="url(#redeF)"/></svg>`;
+    // o lado de cá (rede clarinha, a bola aparece por trás) e as traves de cá e o travessão da boca, brancos
+    const ladoCa = `M${N.pB}L${N.pT}L${N.fT}L${N.fB}ZM${N.pT}L${L.pT}`;
     const gf = div(cam, 'gol', 'z-index:12');
-    gf.innerHTML = `<svg width="1080" height="1920">${rede('redeN', 0.35)}
+    gf.innerHTML = `<svg width="1080" height="1920">${rede('redeN', 0.3)}
       <polygon points="${pts(N.pT, N.fT, N.fB, N.pB)}" fill="url(#redeN)"/>
-      <path d="${quadroGol(N)}" stroke="#0e1430" stroke-width="28" fill="none" stroke-linejoin="round"/>
-      <path d="${quadroGol(N)}" stroke="#f8f8f0" stroke-width="14" fill="none" stroke-linejoin="round"/></svg>`;
-    const GOL = [180, 1508]; // onde a bola para, no chão de dentro do gol
+      ${linha(ladoCa, 28, '#0e1430')}${linha(ladoCa, 14, '#f8f8f0')}</svg>`;
+    const BANCO = 1262;
+    const CHAO = 1500;
+    const GOL = [205, 1500]; // onde a bola para, no chão de dentro do gol
     /** Corte seco pro vestiário; com `foco`, punch-in de escala `k` com o ponto `foco` em (540, sy) da tela. */
     const plano = (t, foco = null, sy = 1000, k = 2) => {
       corta('#vest', t);
@@ -571,8 +573,8 @@
       poeira(tl, cam, xc + 10, CHAO, t - 0.12, { n: 4, r: 60, tam: 24 });
     };
     /** A bola sai amassada do pé em t, faz o arco e entra no gol em t + dur. */
-    const bolaPraRede = (b, t, dur) => {
-      tl.to(b.b.el, { x: GOL[0], y: GOL[1], duration: dur, ease: 'power1.out' }, t);
+    const bolaPraRede = (b, t, dur, fim = GOL) => {
+      tl.to(b.b.el, { x: fim[0], y: fim[1], duration: dur, ease: 'power1.out' }, t);
       tl.to(b.b.corpo, { keyframes: { y: [-90, -20], easeEach: 'sine.inOut' }, duration: dur, ease: 'none' }, t);
       tl.to(b.b.corpo, { y: 0, duration: 0.15, ease: 'bounce.out' }, t + dur);
       tl.to(b.b.gira, { rotation: '-=720', duration: dur, ease: 'power1.out' }, t);
@@ -587,10 +589,10 @@
       salto(pk, t + 0.05, 60, 0.3);
     };
     chutePk(T(4, 4), 905, T(3, 13));
-    bolaPraRede(bolas[4], T(4, 4), 0.5);
+    bolaPraRede(bolas[4], T(4, 4), 0.5, [140, 1486]); // as bolas param no fundo do gol: o Voltorb cai na frente delas
     comemora(T(4, 4) + 0.24);
     chutePk(T(4, 12), 775, T(4, 8.5));
-    bolaPraRede(bolas[3], T(4, 12), 0.375);
+    bolaPraRede(bolas[3], T(4, 12), 0.375, [168, 1498]);
     comemora(T(4, 12) + 0.24);
 
     // 5 · punch-in na última "bola": respira e solta um z (0–7); aberto (8): o Pikachu toma distância andando de costas,
@@ -645,9 +647,9 @@
     tl.to(pk.el, { x: 900, duration: T(8, 0) - T(7, 0), ease: 'none' }, T(7, 0));
     plano(T(7, 3), [935, CHAO - 260], 1000);
     op(ps.el, T(7, 6));
-    plano(T(7, 6), [230, 1500], 1000);
+    plano(T(7, 6), [400, 1500], 1000);
     anim(tl, ps, 'Charge', 0, T(7, 6), T(9, 0), { vel: 0.3 });
-    tl.fromTo(ps.el, { x: 70 }, { x: 170, duration: T(7, 12) - T(7, 6), ease: 'power1.out', immediateRender: false }, T(7, 6));
+    tl.fromTo(ps.el, { x: 290 }, { x: 380, duration: T(7, 12) - T(7, 6), ease: 'power1.out', immediateRender: false }, T(7, 6));
     {
       const b = fala(VEST, 'ESSA NÃO!', T(7, 6.5), T(7, 12), 540, 800, 130);
       tl.to(b, { scale: 1.25, duration: T(7, 12) - T(7, 6.5) - 0.2, ease: 'none' }, T(7, 6.5) + 0.18);
@@ -659,15 +661,15 @@
     plano(T(8, 0));
     chutePk(T(8, 4), 725, T(8, 0));
     poeira(tl, cam, 640, CHAO, T(8, 4));
-    const BOOM = [190, 1420];
+    const BOOM = [225, 1400];
     {
       const t = T(8, 4);
       const d = T(8, 7) - t;
-      tl.to(vt.el, { x: GOL[0] + 10, y: GOL[1] + 4, duration: d, ease: 'power1.out' }, t);
+      tl.to(vt.el, { x: GOL[0] + 15, y: GOL[1] + 8, duration: d, ease: 'power1.out' }, t);
       tl.to(vt.corpo, { keyframes: { y: [-130, -40], easeEach: 'sine.inOut' }, duration: d, ease: 'none' }, t);
       tl.to(vt.corpo, { y: 0, duration: 0.2, ease: 'bounce.out' }, t + d);
       tl.to(vt.spr, { rotation: -720, duration: d, ease: 'power2.out' }, t);
-      tl.set(vt.el, { zIndex: 10 }, t + d * 0.55);
+      tl.set(vt.el, { zIndex: 11 }, t + d * 0.55);
       naRede(vt, t + d);
     }
     comemora(T(8, 4) + 0.24);
@@ -748,7 +750,7 @@
           desenho(w, nuvem(tons), E, 1);
           // as primeiras de cada camada caem em cima de cada um (Psyduck, Magikarp, Snorlax, Pikachu, o gol): a fumaça pega
           // todo mundo; o resto se espalha pela tela
-          const ALVOS = [[200, 1560], [440, 1360], [540, 1120], [800, 1340], [190, 1400], [650, 1560]];
+          const ALVOS = [[380, 1580], [440, 1360], [540, 1120], [800, 1340], [220, 1400], [620, 1580]];
           const [x, y] = k < 4 ? ALVOS[(k + 2 * c) % ALVOS.length] : [120 + ((k * 389 + c * 170) % 860), 380 + ((k * 613 + c * 290) % 1300)];
           const s = 1.3 + ((k * 7 + c) % 4) * 0.2;
           const t0 = t + 0.03 + 0.04 * k + 0.05 * c;
@@ -765,7 +767,7 @@
       // continua na pose de comemoração
       const t4 = T(9, 4);
       // o Voltorb caiu DENTRO do golzinho (atrás da rede), tostado e tonto: balança e as estrelinhas giram
-      tl.set(vt.el, { x: GOL[0] + 10, y: GOL[1] + 6, zIndex: 10 }, t4);
+      tl.set(vt.el, { x: GOL[0] + 15, y: GOL[1] + 8, zIndex: 11 }, t4);
       tl.set(vt.spr, { filter: TOSTADO }, t4);
       op(vt.el, t4);
       tl.to(vt.corpo, { rotation: 10, duration: 0.45, ease: 'sine.inOut', repeat: 25, yoyo: true }, t4);
@@ -778,7 +780,7 @@
         op(e, T(13, 0), false);
       }
       for (const a of [mk, pk, ps, sn]) tl.set(a.spr, { filter: TOSTADO }, t4);
-      tl.set(ps.el, { x: 180, rotation: -6 }, t4);
+      tl.set(ps.el, { x: 600, rotation: -6 }, t4);
       anim(tl, ps, 'Idle', 0, t4, T(13, 0), { vel: 0.5 });
       respira(pk, t4, T(13, 0));
       tl.set(saco, { filter: TOSTADO }, t4);
@@ -787,7 +789,7 @@
     }
     anim(tl, vt, 'Idle', 0, T(9, 4), T(13, 0));
     // O OLHAR (1 s, a trilha para): a fumaça baixou; punch-in fixo no Psyduck tostado, olhando pra lente, sem falar nada
-    plano(OLHAR, [180, 1580], 1000, 3);
+    plano(OLHAR, [600, 1580], 1000, 3);
     plano(T(10, 0));
     // 10 · a fumaça termina de baixar; as bolas caem do teto (1, 3, 5, 10, 12); punch-in no Snorlax (4): uma cai na barriga
     //      dele (6), ela afunda e devolve a bola, que quica pro chão; ele só vira de lado (9) e continua dormindo
