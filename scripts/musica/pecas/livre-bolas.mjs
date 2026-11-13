@@ -171,7 +171,7 @@ export default function bolas() {
     // 12 · o Magikarp apita… e só sai fumaça (4); o funk volta (12)
     ap.note(12 * 16 + 2, 72, 1, 0.5);
     fumo.note(12 * 16 + 4, 4, 0, 0.8);
-    for (const [r, v] of [[6, 0.5], [8, 0.55], [10, 0.6], [12, 0.65]]) fumo.note(12 * 16 + r, 4 - r / 3, 0, v);
+    for (const [r, v] of [[6, 0.5], [8, 0.55], [10, 0.6]]) fumo.note(12 * 16 + r, 4 - r / 3, 0, v);
     groove(12, 'C7', { leve: true });
 
     // 13–15 · TELA FINAL: SOC-CER-MON (13: 8, 11, 14) e as palmas; o tema curto e a toalha (14); o Voltorb rola de volta pro
