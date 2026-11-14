@@ -23,6 +23,16 @@ export interface MatchConfig {
     halftimeRecovery: number; // fôlego recuperado no intervalo
     /** Acréscimos de cada tempo, em minutos do relógio exibido (sorteados no `rng` da partida); sem = não tem. */
     stoppage?: { min: number; max: number };
+    /**
+     * Efeito do tipo do capitão no golpe máximo N3 (fase 1 de docs/planos/golpe-maximo-por-tipo.md): ligado pra todo
+     * mundo no FUTSAL_5 desde a 0.9.16 (copa, Duelo e Liga). Sem = o N3 de força pura.
+     */
+    maxType?: boolean;
+    /**
+     * Duelo da bicuda (motor 21): ligado no FUTSAL_5 desde o motor 23 (o Miguel aprovou a v3 da cutscene em 03/11/2026;
+     * no motor 22 ficou desligado). Sem = a bicuda N3 contra o N3 é o counter do motor 20.
+     */
+    showdown?: boolean;
 }
 
 /**
@@ -42,8 +52,48 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 5 = 0.8.8 (barra cheia de antes só evolui depois de ele fazer algo na partida: nada de evoluir no apito inicial).
  * 6 = 0.8.8 (edições em camadas: shiny +1 junto de outra edição, Evento leva MVP, MVP +1 por nível; sem teto além do 99 do atributo).
  * 7 = acréscimos de 1 a 3 minutos por tempo e Pressão final (quem perde nos últimos 3 minutos vai pra cima).
+ * 8 = revisão dos golpes: 1 golpe de cada tipo próprio, sem 2 golpes iguais, Gengar com Sludge, Harden/Slam/Amnesia/
+ *     Tri Attack/Explosion/paredes consertados e o Fly levando a bola 2 m (docs/planos/golpes-revisao.md).
+ * 9 = formações que jogam diferente (IA: triângulos, lados, pivô parede, rodízio, jogo direto, bloco baixo) e
+ *     vantagem tática de 1,5% (docs/planos/formacoes.md).
+ * 10 = beira da quadra 2 (docs/planos/beira-da-quadra-2.md): troca e prancheta volantes (na hora), golpe máximo na hora
+ *     certa e defesa máxima, sem gritos, goleiro-linha balanceado; golpe treinado (MT: +1 uso, x1,3
+ *     de força, IA prioriza) e Mega Drain/BubbleBeam/Fissure mais fortes.
+ * 11 = golpe máximo em 3 níveis com a nota do toque na batida (docs/planos/golpe-maximo-niveis.md).
+ * 12 = Patrocínios novos (docs/planos/patrocinios-novos.md): Charanga (+4 em tudo enquanto perde), Preparador (+6 de
+ *     fôlego) e Clube Formador (o seu time evolui com 10); chute N3 mira mais pro meio do gol (`AGENCY.maxAim`) e,
+ *     com `maxType`, o efeito do tipo do capitão no N3 (docs/planos/golpe-maximo-por-tipo.md).
+ * 13 = assinaturas do golpe máximo (fase 2 de golpe-maximo-por-tipo.md): com `maxType`, o N3 do capitão das 12
+ *     espécies de `MAX_SIGNATURE` troca o efeito do tipo por um próprio (`AGENCY.maxSig`).
+ * 14 = N3 quase indefensável: mira mais no meio e mais precisa, goleiro e linha com 15% da chance de defender
+ *     (`AGENCY.maxLevelShot`, `maxAim`).
+ * 15 = defesa máxima vale o lance e só gasta quando defende (sem chute, a barra volta inteira; `AGENCY.maxGkTicks`) e
+ *     zona do golpe máximo do pivô 15 ⇒ 18 m (`AGENCY.maxZone`).
+ * 16 = gomo do golpe máximo 12 ⇒ 10 pontos (`AGENCY.maxLevelPts`): o N3 chega mais (Miguel, 30/10/2026).
+ * 17 = golpe máximo universal (docs/planos/golpe-universal.md): N1 passa o status do tipo, N2 derruba a linha, N3 sempre
+ *     no alvo, curva sozinha pro canto longe do goleiro; o goleiro capitão dá a bicuda (o parry dele: qualquer chute no
+ *     gol, toque fora = defesa de sempre; N3 passa pela defesa normal do goleiro rival) e a defesa máxima sai.
+ * 18 = a queda do N2/N3 (e da bicuda N2) acontece quando a bola chega em cada um, não no chute (`maxKnock`/`landKnocks`;
+ *     Miguel, 01/11/2026: "a bicuda tá derrubando a galera antes da bola chegar"). Os números não mudaram.
+ * 19 = golpe máximo de linha armado até o próximo chute do capitão da zona, sem o prazo de `maxArmTicks` (só a bicuda
+ *     ainda tem prazo); sai no nível da barra na hora do chute e cancela sem gastar no intervalo e no fim (evento
+ *     `maxArm`). O Duelo carimba a ordem 2 s à frente e o capitão já não estava com a bola (Miguel, 02/11/2026).
+ * 20 = Snorlax, Lickitung e Wigglytuff ganham Fixo de secundária (`POSITION_OVERRIDES`; Miguel, 03/11/2026).
+ * 21 = duelo da bicuda (Miguel, 03/11/2026): o goleiro capitão que alcança o N3 do rival com a bicuda N3 segura, a
+ *     partida para 9 s (fase `showdown`, a cutscene com as falas) e a bicuda é gol sempre, com a comemoração de 6 s
+ *     (`AGENCY.showdown`). A bicuda N1/N2 (contra qualquer chute) e a N3 contra os outros chutes não mudaram.
+ * 22 = o duelo da bicuda sai do ar (`MatchConfig.showdown` desligado; Miguel não tinha aprovado): a bicuda N3 contra o N3
+ *     volta a ser o counter do motor 20. Só o `?demo=bicuda` ainda abre o duelo.
+ * 23 = o duelo da bicuda volta, aprovado (v3: tempo parado no contato, câmera de cinema, falas novas): parada de 15,25 s
+ *     e comemoração de 8 s (`AGENCY.showdown`), `MatchConfig.showdown` ligado no FUTSAL_5.
+ * 24 a 27: no histórico do git (`git log -S ENGINE_VERSION`).
+ * 28 = evolução sem perda (Miguel, 09/11/2026, docs/planos/evolucao-sem-perda.md): a carta que evoluiu herda o máximo de
+ *     cada atributo das formas de antes (`evolvedFrom`) e mantém a habilidade que mexe em atributo (Swift Swim).
+ * 29 = Linha de 3 arma pelo fixo (bug report 10/11/2026): o ala no nosso campo, quando passa, prefere o fixo
+ *     (`FormationStyle.fixoPass`, só reordena os passes).
+ * 30 = o Losango também arma pelo fixo (`fixoPass` 0,2, mais fraco que o 0,3 da 3-1; Miguel, 11/11/2026).
  */
-export const ENGINE_VERSION = 7;
+export const ENGINE_VERSION = 30;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
@@ -58,6 +108,8 @@ export const FUTSAL_5: MatchConfig = {
     penaltyKicks: 5,
     halftimeRecovery: 0.3,
     stoppage: STOPPAGE,
+    maxType: true,
+    showdown: true,
 };
 
 /**

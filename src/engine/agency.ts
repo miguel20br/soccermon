@@ -1,98 +1,343 @@
 /**
- * Agência do técnico na partida (EXPERIMENTO, docs/planos/pesquisas/agencia.md): gritos, pedido de tempo,
- * goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. Tudo entra só por ordem do técnico (`MatchOrder`):
- * sem ordem nova, a partida é bit a bit a de antes (o interruptor fica na tela, não no motor).
+ * Agência do técnico na partida (beira da quadra, no ar desde a 0.9.6; docs/planos/beira-da-quadra-2.md): pedido de
+ * tempo, goleiro-linha, golpe máximo do capitão e ordem dos pênaltis. Tudo entra só por ordem do técnico
+ * (`MatchOrder`): sem ordem nova, a partida é bit a bit a de antes (o interruptor fica na tela, não no motor).
+ * Os gritos saíram em 21/10/2026 (Miguel: confundiam mais que ajudavam; a tática já faz esse papel).
  *
- * Números daqui são a 1ª proposta pro Miguel testar (nada aprovado): mexer só com o antes/depois do técnico robô
- * (`scripts/balance/coach.ts`).
+ * Mexer nos números só com o antes/depois do técnico robô (`scripts/balance/coach.ts`) e do
+ * `scripts/balance/goleiro-linha.ts`.
  */
-import type { AttrKey } from './attributes';
-import type { MatchEvent } from './state';
+import type { Position } from './attributes';
+import type { StatusKind } from './moves';
+import { type MatchEvent, type MatchSnapshot, type MaxN1Fx, SNAP_STRIDE } from './state';
+import { expectedGoals } from './xg';
 
-export type Shout = 'attack' | 'lock' | 'calm' | 'press';
-export const SHOUT_KINDS: readonly Shout[] = ['attack', 'lock', 'calm', 'press'];
-
-/** Efeito de cada grito: atributos do time, fôlego (gasto × e recuperação por segundo) e viés da IA. */
-export interface ShoutFx {
-    attrs: Partial<Record<AttrKey, number>>;
-    drain: number;
-    regen: number;
-    /** Somados ao TACTIC_SHIFT da tática atual (ai-controller.ts). */
-    attack: number;
-    defend: number;
-    shootBias: number;
-    pressBias: number;
-}
-
-export const SHOUTS: Record<Shout, ShoutFx> = {
-    // Pra cima!: chuta mais e pressiona, gasta fôlego 1,5x
-    attack: {
-        attrs: { shooting: 1.06 },
-        drain: 1.5,
-        regen: 0,
-        attack: 1,
-        defend: 1,
-        shootBias: -0.01,
-        pressBias: 0.03,
-    },
-    // Fecha a casinha!: +desarme e +posicionamento, recua; chute pior
-    lock: {
-        attrs: { tackling: 1.06, positioning: 1.06, shooting: 0.95 },
-        drain: 1,
-        regen: 0,
-        attack: -1,
-        defend: -1.5,
-        shootBias: 0.005,
-        pressBias: 0,
-    },
-    // Calma!: +passe, gasta menos e recupera um pouco o fôlego; chuta menos
-    calm: {
-        attrs: { passing: 1.06 },
-        drain: 0.7,
-        regen: 0.003,
-        attack: 0,
-        defend: 0,
-        shootBias: 0.005,
-        pressBias: 0,
-    },
-    // Abafa!: marcação lá em cima, o marcador dá bote mais vezes; fôlego 2x
-    press: {
-        attrs: { tackling: 1.03 },
-        drain: 2,
-        regen: 0,
-        attack: 0.5,
-        defend: 2.5,
-        shootBias: 0,
-        pressBias: 0.08,
-    },
-};
+/** O que o N1 passa: um status dos jogos, o recuo (flinch) ou um efeito do `AGENCY.maxN1`. */
+export type MaxN1Kind = StatusKind | 'infatuation' | 'flinch' | 'seed' | 'push' | MaxN1Fx;
 
 export const AGENCY = {
-    /** Gritos por partida, duração e recarga (ticks a 20 Hz: 2,5 e 3 minutos do relógio no futsal 5). */
-    shoutLimit: 3,
-    shoutTicks: 450,
-    shoutCooldownTicks: 540,
     /** Pedido de tempo: 1 por tempo, fôlego +5% pra quem pediu e +3% pro rival (Miguel, 18/10/2026), parada de 3 s. */
     timeoutEnergy: 0.05,
     timeoutRivalEnergy: 0.03,
     timeoutTicks: 60,
-    /** Golpe máximo: janela de 20 s pra sair (Miguel, 18/10/2026); se passar, a barra volta pela metade. */
-    maxTicks: 400,
-    maxRefund: 0.5,
-    /** Pontos pra encher a barra (lances do time; ver `MAX_POINTS`). */
-    maxFull: 22,
+    /**
+     * Golpe máximo da bicuda (o capitão goleiro): a ordem fica armada esse tanto esperando o chute do rival; passou sem
+     * ele, nada acontece e a barra continua como estava. O capitão de linha, desde o motor 19, fica armado até o próximo
+     * chute da zona, sem prazo (o Duelo carimba a ordem 2 s à frente; `startMax` em match.ts).
+     */
+    maxArmTicks: 100,
     /** Perdendo por 1 enche 1,5x; por 2 ou mais, 2x. */
     maxBehind: [1, 1.5, 2],
-    /** Reforço do capitão durante a janela (a aura) e o chute máximo. */
-    maxBuff: { shooting: 1.15, pace: 1.08, dribble: 1.1 } as Partial<Record<AttrKey, number>>,
-    maxGkBuff: 1.3,
-    maxShot: { power: 1.55, accuracy: 1.6 },
-    /** Distância do gol em que o capitão solta o golpe máximo. */
-    maxRange: 20,
-    /** Goleiro-linha: o rival chuta no gol vazio de até aqui, se o goleiro estiver longe do gol. */
+    /**
+     * Golpe máximo em 3 níveis (motor 11, docs/planos/golpe-maximo-niveis.md): a barra tem 3 gomos de `maxLevelPts`, o
+     * toque gasta a barra toda e o golpe sai no nível dela; depois volta a encher. Índice = nível (o 0 não solta). N2 =
+     * o máximo de 1 nível do motor 10. `rivalReach`: alcance do goleiro rival nesse chute.
+     * `save`/`block`: fator na chance de defesa do goleiro e de bloqueio da linha. N3 quase indefensável (motor 14,
+     * Miguel 26/10/2026): 57% ⇒ 82% de gol; a bicuda do goleiro capitão rival ainda tira (motor 17). Gomo de 12 ⇒ 10 (motor
+     * 16, Miguel 30/10/2026: "raramente chega no N3"): N3 por jogo 0,16 ⇒ 0,36, gols 8,16 ⇒ 8,20 (`calibrate --agencia`).
+     */
+    maxLevelPts: 10,
+    maxLevelShot: [
+        null,
+        { power: 1.25, accuracy: 1.3, rivalReach: 1, save: 1, block: 1 },
+        { power: 1.55, accuracy: 1.6, rivalReach: 1, save: 1, block: 1 },
+        { power: 2.2, accuracy: 3, rivalReach: 0.7, save: 0.15, block: 0.15 },
+    ],
+    /**
+     * Golpe máximo universal (motor 17, docs/planos/golpe-universal.md), por cima dos números do nível: N1 passa o
+     * efeito do tipo do capitão (`maxFxType`, com `MatchConfig.maxType`) em quem bloqueia ou defende; `[efeito, s]`, sem
+     * `s` dura o de sempre. Tabela fechada com o Miguel em 02/11/2026: os status dos jogos e os efeitos do `maxN1`.
+     */
+    maxStatus: {
+        Fire: ['brn'],
+        Electric: ['par', 1.5],
+        Poison: ['psn'],
+        Ice: ['frz', 1],
+        Fairy: ['infatuation'],
+        Psychic: ['slp', 1],
+        Ghost: ['confusion'],
+        Normal: ['flinch', 0.6],
+        Grass: ['seed'],
+        Ground: ['blind'],
+        Bug: ['web'],
+        Water: ['push'],
+        Flying: ['lift'],
+        Fighting: ['numb'],
+        Rock: ['root'],
+        Dragon: ['drain'],
+    } as Record<string, readonly [MaxN1Kind, number?]>,
+    /**
+     * Efeitos do N1 que não são status (02/11/2026). Semente = Leech Seed (`seed` s, o fôlego vai pro capitão); areia =
+     * o `blind` do Sand Attack; teia: velocidade x`webPace` por `web` s; água: `push` m pra trás; alto: `lift` s no ar,
+     * fora do lance; mão dormente: a próxima defesa comum dele não encaixa; preso: `root` s sem andar (ainda defende);
+     * Dragão: o time de quem bloqueou ou defendeu perde `drain` pontos da barra.
+     */
+    maxN1: { seed: 12, web: 3, webPace: 0.5, push: 2, lift: 1, root: 2, drain: 5 },
+    /**
+     * Defesa do golpe máximo, N1 a N3 (Miguel 01/11/2026: "nunca encaixada"): o goleiro espalma, `post` das vezes na
+     * trave (a bola vai até o poste a `postSpeed` m/s e volta viva; colada na linha, sai de `postMin` m dela) e o resto
+     * pra escanteio. Quem espalmou fica `gkLock` s sem dominar a sobra (está no chão). O counter é a bicuda (`bicuda`):
+     * goleiro capitão com o golpe máximo armado pra esse chute; contra golpe máximo ela vai no gol rival em todo nível.
+     */
+    maxParry: { post: 0.35, postSpeed: 10, postMin: 0.3, gkLock: 1 },
+    /**
+     * Duelo da bicuda (motor 21, Miguel 03/11/2026): o goleiro capitão alcança o N3 do rival com a bicuda N3 armada
+     * (toque bom ou perfeito; a bicuda N1/N2 contra o N3 é o counter de sempre) e segura. A partida para `seconds` s (a cutscene com as falas dos dois),
+     * ele chuta e é gol sempre: a bola vai reta pro canto longe do goleiro rival a `speed` m/s, todo mundo parado, sem
+     * ninguém tocar. A comemoração fica `goal` s (a de um gol comum, 3 s). De 9 s e 6 s pra 15,25 s e 8 s na v3 da cutscene
+     * (Miguel, 03/11/2026: "não dá pra ler", "a cutscene longa é ultra rara, é uma recompensa"); ligada no FUTSAL_5 desde
+     * o motor 23 (`MatchConfig.showdown`).
+     */
+    showdown: { seconds: 15.25, speed: 26, goal: 8 },
+    /** N2 e N3: rival de linha a até `knockR` m da linha do chute cai `knockStun` s (o goleiro não cai). */
+    knockR: 1.5,
+    knockStun: 1,
+    /** N3 sempre no alvo: a bola entra pelo menos tanto (m) pra dentro da trave. */
+    maxPost: 0.3,
+    /**
+     * Efeito na bola (todo golpe máximo, Miguel 30/10/2026): curva sozinha pro canto longe do goleiro, com teto desta
+     * fração da curva do Psíquico (`maxType.curve`). O N3 Psíquico fica com a curva dele, sem somar.
+     */
+    maxCurve: 0.5,
+    /**
+     * Mira do chute N3 (decisão 12 de golpe-maximo-por-tipo.md, motor 12): o alvo chega pro meio do gol nessa fração
+     * da distância (a IA mira a 0,3 m da trave e 43% dos N3 iam pra fora; o goleiro com alcance x0,7 ainda não chega). 0,6 ⇒ 0,35 no
+     * motor 14: 17% ⇒ 4% pra fora.
+     */
+    maxAim: 0.35,
+    /**
+     * Efeito do tipo do capitão no chute N3 (fase 1 de golpe-maximo-por-tipo.md, `MatchConfig.maxType`): vem por cima
+     * dos números do N3. `reach`: alcance do goleiro rival nesse chute, por tipo (x0,7 do N3 vezes isto).
+     */
+    maxType: {
+        reach: { Grass: 0.86, Ice: 0.85, Ghost: 0.8, Dragon: 0.8, Fairy: 0.85, Ground: 0.8 } as Record<string, number>,
+        /** Água e Gelo: rivais a até `lineR` m da linha do chute. A onda empurra a linha `push` m e o goleiro `gkPush`. */
+        lineR: 2,
+        push: 2.5,
+        gkPush: 1,
+        /** Gelo: congela quem está na linha por `freeze` s. */
+        freeze: 1,
+        /** Terrestre: derruba (`quakeStun` s) quem está a até `quakeR` m do gol; Voador e Levitate não caem. */
+        quakeR: 6,
+        quakeStun: 0.6,
+        /** Elétrico: bola x`speed` e paralisia de `par` s em quem bloqueia ou defende. */
+        speed: 1.15,
+        par: 1.5,
+        /** Fogo, Normal e Pedra: a espalmada sai curta (fração da velocidade) e fica na área. */
+        parryShort: 0.15,
+        /** Normal: o goleiro que espalma cai `gkStun` s. */
+        gkStun: 1,
+        /** Venenoso: nuvem de `cloudR` m na frente do gol por `cloudT` s (envenena e quem está nela não bloqueia). */
+        cloudR: 4,
+        cloudT: 5,
+        /** Psíquico: a curva leva a bola pro canto longe do goleiro, no máximo `curve` m por metro (~8°). */
+        curve: 0.14,
+        /** Inseto: chance de o goleiro pular na isca (sem defesa). */
+        decoy: 0.5,
+        /** Lutador: emenda o rebote a até `volleyR` m com a força e a mira do N2. */
+        volleyR: 6,
+        /** Dragão: sem gol, o capitão fica em fúria (chute e velocidade x`fury`) por `furyT` s. */
+        fury: 1.15,
+        furyT: 6,
+    },
+    /**
+     * Fase 2, assinaturas (motor 13, com `MatchConfig.maxType`): o N3 do capitão das 12 espécies de `MAX_SIGNATURE`
+     * (signature-moves.ts) troca o efeito do tipo por um próprio, montado com as peças dos tipos (`MAX_FX_PIECES`) e
+     * umas novas. `type`: cor, rastro e ícone; `reach`: alcance do goleiro rival (vezes o x0,7 do N3); `curve`: teto da
+     * curva (Psíquico = `maxType.curve`). Mew (Metronome) sorteia um tipo; Ditto (Transform) copia o capitão rival.
+     */
+    maxSig: {
+        hyperbeam: { type: 'Normal', pieces: ['pierceAll'], reach: 0.85 },
+        bodyslam: { type: 'Normal', pieces: ['pierceAll', 'slam', 'gkFall', 'shock', 'shortParry'] },
+        fireblast: { type: 'Fire', pieces: ['star', 'shortParry'] },
+        blizzard: { type: 'Ice', pieces: ['snowArea', 'mark'], reach: 0.9 },
+        hydropump: { type: 'Water', pieces: ['wave', 'cannon'] },
+        flamethrower: { type: 'Fire', pieces: ['flyIn', 'lob', 'burn', 'shortParry'] },
+        thunderbolt: { type: 'Electric', pieces: ['fast', 'chain', 'shock'] },
+        dreameater: { type: 'Ghost', pieces: ['sure', 'mark'], reach: 0.75 },
+        psychic: { type: 'Psychic', pieces: ['curve', 'mark'], reach: 0.9, curve: 0.2 },
+        tsunami: { type: 'Water', pieces: ['tsunami', 'furyNow'] },
+        metronome: { type: 'Psychic', pieces: [] },
+        transform: { type: 'Normal', pieces: [] },
+    } as Record<string, { type: string; pieces: readonly MaxPiece[]; reach?: number; curve?: number }>,
+    /** Números das peças novas das assinaturas. */
+    maxSigFx: {
+        /** Fire Blast: estrela de fogo na frente do gol; quem está a `starR` m cai `starStun` s e se queima. */
+        starR: 4,
+        starStun: 0.6,
+        /** Blizzard: a área rival inteira congela `snow` s (o goleiro só escorrega: `reach`). */
+        snow: 1.2,
+        /** Flamethrower: o Charizard voa até `flyIn` m rumo ao gol antes de chutar (nunca a menos de 4 m da linha). */
+        flyIn: 2,
+        /** Thunderbolt: o raio salta do goleiro pros `chainN` rivais mais perto dele (até `chainR` m). */
+        chainN: 2,
+        chainR: 10,
+        /** Tsunami: todos os rivais vão `tsunami` m pro lado (o goleiro `maxType.gkPush`). */
+        tsunami: 3,
+        /** Body Slam: o Snorlax se joga no chute; rival de linha a até `slamR` m dele cai `slamStun` s e fica paralisado. */
+        slamR: 4,
+        slamStun: 1,
+        /**
+         * Hydro Pump: o 2º canhão sai no rebote (defesa, até a que segura, bloqueio ou trave) e na sobra (chute pra fora):
+         * a bola volta pro Blastoise e quem defendeu ou bloqueou fica `cannonStun` s sem reação.
+         */
+        cannonStun: 0.5,
+    },
+    /**
+     * Nota do toque na batida (`q` da ordem: 0 fora, 1 bom, 2 perfeito): quanto da parte extra do nível vale. Fora nunca
+     * zera (diversão antes de punição). Ordem sem `q` vale como bom.
+     */
+    maxGrade: [0.4, 0.7, 1],
+    /**
+     * Zona do golpe máximo pela posição do capitão (Miguel, 22/10/2026: com 15 m pra todos o fixo quase nunca tinha a
+     * hora certa): até `range` metros do gol e com ângulo (xG mínimo, a mesma conta da IA pra chutar). O xG de 0,06 só
+     * chega a ~19,8 m no meio, então o fixo tem o dele. O goleiro: a zona do rival (o técnico IA arma a bicuda). Pivô 15 ⇒ 18 m
+     * no motor 15: a IA dele chuta de ~16 m e 61% dos chutes ficavam fora da zona (o botão não acendia).
+     */
+    maxZone: {
+        GK: { range: 15, xg: 0.06 },
+        PIVO: { range: 18, xg: 0.06 },
+        ALA: { range: 18, xg: 0.06 },
+        FIXO: { range: 22, xg: 0.05 },
+    },
+    /**
+     * Goleiro-linha (5 contra 4): com a bola, a linha passa e chuta melhor e sobe mais (metros a mais na posição de
+     * ataque). O custo: o rival chuta no gol vazio de até `emptyNetRange`, se o goleiro estiver a mais de
+     * `emptyNetGkAway` do gol. Ajustado com scripts/balance/goleiro-linha.ts (beira-da-quadra-2.md).
+     */
+    flyPass: 1.12,
+    flyShot: 1.1,
+    flyPush: 2,
     emptyNetRange: 26,
     emptyNetGkAway: 7,
 } as const;
+
+/**
+ * Peças dos efeitos do N3: cada tipo da fase 1 é um conjunto delas, e as assinaturas (`AGENCY.maxSig`) remontam as
+ * mesmas peças com umas novas (star, snowArea, flyIn, chain, tsunami, furyNow e cannon: o voleio de qualquer distância).
+ */
+export type MaxPiece =
+    | 'pierceAll'
+    | 'pierce1'
+    | 'sure'
+    | 'lob'
+    | 'fast'
+    | 'wave'
+    | 'iceLine'
+    | 'quake'
+    | 'cloud'
+    | 'trail'
+    | 'curve'
+    | 'decoy'
+    | 'mark'
+    | 'burn'
+    | 'gkFall'
+    | 'shortParry'
+    | 'shock'
+    | 'fury'
+    | 'volley'
+    | 'cannon'
+    | 'typeless'
+    | 'star'
+    | 'snowArea'
+    | 'flyIn'
+    | 'chain'
+    | 'slam'
+    | 'tsunami'
+    | 'furyNow';
+
+export const MAX_FX_PIECES: Record<string, readonly MaxPiece[]> = {
+    Normal: ['pierceAll', 'gkFall', 'shortParry'],
+    Fire: ['trail', 'burn', 'shortParry'],
+    Water: ['wave'],
+    Electric: ['fast', 'shock'],
+    Grass: ['mark'],
+    Ice: ['iceLine'],
+    Fighting: ['volley'],
+    Poison: ['cloud'],
+    Ground: ['quake'],
+    Flying: ['lob'],
+    Psychic: ['curve'],
+    Bug: ['decoy'],
+    Rock: ['pierce1', 'shortParry'],
+    Ghost: ['sure'],
+    Dragon: ['typeless', 'fury'],
+    Fairy: ['mark'],
+};
+
+/** Peças do efeito `fx` (um tipo ou uma assinatura). */
+export const maxFxPieces = (fx: string): readonly MaxPiece[] => AGENCY.maxSig[fx]?.pieces ?? MAX_FX_PIECES[fx] ?? [];
+export const fxHas = (fx: string | null | undefined, piece: MaxPiece) => !!fx && maxFxPieces(fx).includes(piece);
+/** Tipo de um efeito (a assinatura tem o dela): cor, rastro da bola e ícone. */
+export const fxTypeOf = (fx: string) => AGENCY.maxSig[fx]?.type ?? fx;
+
+interface Pitch {
+    length: number;
+    width: number;
+    goalWidth: number;
+}
+
+/**
+ * Na zona do golpe máximo de quem ataca o gol do time `team` (o time 0 ataca o gol de x = length), pela posição do
+ * capitão `role` (`AGENCY.maxZone`). Regra única: botão da tela, motor, IA, técnico rival e robô passam por aqui.
+ */
+export function inMaxZone(x: number, y: number, team: 0 | 1, pitch: Pitch, role: Position): boolean {
+    const { range, xg } = AGENCY.maxZone[role];
+    const gx = team === 0 ? pitch.length : 0;
+    const gy = pitch.width / 2;
+    const dx = x - gx;
+    const dy = y - gy;
+    if (dx * dx + dy * dy >= range * range) return false;
+    return expectedGoals({ x, y }, gx, gy, pitch.goalWidth) >= xg;
+}
+
+/**
+ * Hora do golpe máximo no quadro (a tela acende o botão por aqui; o motor usa a mesma zona): o capitão de linha com a
+ * bola na zona. A do goleiro capitão (a bicuda) sai dos eventos: `bicudaCueNear`.
+ */
+export function maxCue(
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
+    team: 0 | 1,
+    capIdx: number | null,
+    capRole: Position,
+    pitch: Pitch,
+): boolean {
+    if (capIdx === null || snap.phase !== 'play' || capRole === 'GK' || snap.owner !== capIdx) return false;
+    const x = snap.p[snap.owner * SNAP_STRIDE];
+    const y = snap.p[snap.owner * SNAP_STRIDE + 1];
+    return inMaxZone(x, y, team, pitch, capRole);
+}
+
+/**
+ * Hora da bicuda em algum tick de `from` a `to`: só o chute que o goleiro capitão `capIdx` vai alcançar mesmo (evento
+ * `gkReach`), do chute até um tick antes do toque nele (a ordem vale no começo do tick dela). Chute bloqueado, pra fora,
+ * na trave ou que passa longe dele não acende (Miguel, 30/10/2026).
+ */
+export function bicudaCueNear(events: readonly MatchEvent[], from: number, to: number, capIdx: number): boolean {
+    for (const e of events) {
+        if (e.type === 'gkReach' && e.by === capIdx && e.from <= to && e.tick > from) return true;
+        if (e.tick > to + 200) return false;
+    }
+    return false;
+}
+
+/**
+ * "Chamar o capitão" (29/10/2026): com capitão de linha, o botão acende em todo ataque do time (a bola nossa no campo de
+ * ataque), não só na hora certa. O toque arma a ordem (até o próximo chute da zona), a bola procura o capitão e o golpe sai no
+ * chute dele da zona: o motor é o mesmo de sempre. A câmera lenta continua só na hora certa (`maxCue`).
+ */
+export function maxCallCue(
+    snap: Pick<MatchSnapshot, 'owner' | 'p' | 'phase'>,
+    team: 0 | 1,
+    capRole: Position,
+    pitch: Pitch,
+    teamSize = 5,
+): boolean {
+    if (capRole === 'GK' || snap.phase !== 'play' || snap.owner < 0) return false;
+    if ((snap.owner < teamSize ? 0 : 1) !== team) return false;
+    const x = snap.p[snap.owner * SNAP_STRIDE];
+    return team === 0 ? x > pitch.length / 2 : x < pitch.length / 2;
+}
 
 /** Lances que enchem a barra do golpe máximo (pontos por lance do time). */
 const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5, goal: 1 } as const;
@@ -100,10 +345,8 @@ const MAX_POINTS = { tackle: 1, interception: 0.5, save: 1, shot: 0.5, move: 0.5
 export interface MaxCharge {
     /** 0..1 */
     charge: number;
-    /** Janela aberta (soltou e o golpe ainda não saiu). */
-    active: boolean;
-    /** Já saiu (1 por partida). */
-    used: boolean;
+    /** Gomos cheios (0–3). */
+    level: number;
 }
 
 /**
@@ -117,30 +360,24 @@ export function maxCharge(
     teamSize = 5,
 ): MaxCharge {
     let pts = 0;
-    let active = false;
-    let used = false;
     let behind = 0;
-    const full = AGENCY.maxFull;
+    const per = AGENCY.maxLevelPts;
+    const full = 3 * per;
     // o time 0 tem os índices 0..teamSize-1 (createMatch)
     const teamOf = (idx: number) => (idx < teamSize ? 0 : 1);
     for (const e of events) {
         if (e.tick > upTo) break;
+        // o golpe gasta a barra toda e ela volta a encher
         if (e.type === 'max') {
-            if (e.team !== team) continue;
-            if (e.phase === 'start') {
-                active = true;
-                pts = 0;
-            } else if (e.phase === 'hit') {
-                active = false;
-                used = true;
-            } else {
-                active = false;
-                pts = full * AGENCY.maxRefund;
-            }
+            if (e.team === team) pts = 0;
+            continue;
+        }
+        // N1 Dragão: o time de quem bloqueou ou defendeu perde pontos
+        if (e.type === 'status' && e.status === 'drain') {
+            if (teamOf(e.target) === team) pts = Math.max(0, pts - AGENCY.maxN1.drain);
             continue;
         }
         if (e.type === 'goal') behind = e.team === team ? behind - 1 : behind + 1;
-        if (active || used) continue;
         let p = 0;
         if (e.type === 'tackle' && e.success && teamOf(e.by) === team) p = MAX_POINTS.tackle;
         else if (e.type === 'interception' && teamOf(e.by) === team) p = MAX_POINTS.interception;
@@ -152,19 +389,8 @@ export function maxCharge(
         const k = AGENCY.maxBehind[Math.min(2, Math.max(0, behind))];
         pts = Math.min(full, pts + p * k);
     }
-    return { charge: used ? 0 : pts / full, active, used };
+    return { charge: pts / full, level: Math.floor(pts / per) };
 }
 
-/** Grito ativo de um time no tick (pelos eventos; a tela usa pra mostrar o balão). */
-export function shoutAt(events: readonly MatchEvent[], team: 0 | 1, tick: number): Shout | null {
-    for (let i = events.length - 1; i >= 0; i--) {
-        const e = events[i];
-        if (e.tick > tick || e.type !== 'shout' || e.team !== team) continue;
-        return tick < e.tick + AGENCY.shoutTicks ? e.shout : null;
-    }
-    return null;
-}
-
-/** Quantos gritos o time já deu até o tick. */
-export const shoutsUsed = (events: readonly MatchEvent[], team: 0 | 1, tick = Number.POSITIVE_INFINITY) =>
-    events.filter((e) => e.type === 'shout' && e.team === team && e.tick <= tick).length;
+/** Força do efeito no nível e na nota do toque: a nota escala só a parte extra (perfeito 100%, bom 70%, fora 40%). */
+export const maxGraded = (x: number, q: 0 | 1 | 2) => (q === 2 ? x : 1 + (x - 1) * AGENCY.maxGrade[q]);

@@ -1,3 +1,7 @@
+---
+description: Regra "nada teleporta" e o backlog de telas para ajustar.
+---
+
 # Nada teleporta (backlog, pedido do Miguel em 20/10/2026)
 
 Mesma regra do Tutti (`~/Projects/midgar/tutti-ai/docs/adr/0005-nada-teleporta.md`): **toda troca de tela, entrada,

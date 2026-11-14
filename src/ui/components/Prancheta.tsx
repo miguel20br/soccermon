@@ -1,12 +1,15 @@
 import { type CSSProperties, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { FORMATIONS, type FormationId } from '../../engine/formations';
+import { FORMATIONS, type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { SNAP_STRIDE, type TeamSetup } from '../../engine/state';
 import { EventBus } from '../../game/EventBus';
 import { formationText, statusName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { Stepper } from '../kit/controls';
+import { ConfirmSheet } from '../kit/Sheet';
 import { boardAt, snapAt, whoAt } from '../match-view';
+import { subSummary } from '../rating';
 import { FormationBoard } from './FormationBoard';
 import { cardSprite } from './PokeCard';
 
@@ -26,6 +29,8 @@ export function useMedia(query: string): boolean {
             return () => m.removeEventListener('change', cb);
         },
         () => window.matchMedia(query).matches,
+        // render do servidor (testes): sem tela, nenhuma consulta bate
+        () => false,
     );
 }
 
@@ -51,7 +56,7 @@ const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((
  *
  * Com `edit`, dá pra mudar a prancheta: a formação no seletor e, tocando num jogador em quadra e depois em outro, os
  * dois trocam de vaga (cada vaga mostra a nota do selecionado naquela posição). Nada vale antes do "Confirmar", e a
- * mudança entra na próxima bola parada. Com `onSub`, um em quadra e um do banco (em qualquer ordem) é a
+ * mudança vale na hora (volante). Com `onSub`, um em quadra e um do banco (em qualquer ordem) é a
  * substituição, na hora, sem painel: a troca mandada (`subs`) já aparece feita na prancheta, com o "Entra" no reserva.
  */
 export function Prancheta({
@@ -91,11 +96,12 @@ export function Prancheta({
         over?: boolean;
     };
 }) {
-    const { t, lang } = useT();
+    const { t, d, lang } = useT();
     const [team, setTeam] = useState<0 | 1>(side);
     /** Rascunho da prancheta (ainda não confirmado) e o jogador em quadra selecionado pra trocar de vaga. */
     const [draft, setDraft] = useState<BoardPlan | null>(null);
     const [pick, setPick] = useState<string | null>(selectedUid?.uid ?? null);
+    const [ask, setAsk] = useState<SubPlan | null>(null);
     useEffect(() => {
         if (selectedUid) setPick(selectedUid.uid);
     }, [selectedUid]);
@@ -157,6 +163,12 @@ export function Prancheta({
     const pickedBench = picked && !shown.order.includes(picked) ? picked : null;
     const pickedInst = picked ? view.byUid.get(picked) : undefined;
 
+    // a substituição só vale depois do "Confirmar": mostra a nota de cada um na vaga de quem sai
+    const askOut = ask ? view.byUid.get(ask.outUid) : undefined;
+    const askIn = ask ? view.byUid.get(ask.inUid) : undefined;
+    const askRole = ask ? formationOf(shown.formation).slots[shown.order.indexOf(ask.outUid)] : undefined;
+    const sum = askOut && askIn && askRole ? subSummary(askOut, askIn, askRole) : null;
+
     return (
         <div className={`panel prancheta${horizontal ? ' horizontal' : ''}`}>
             <div className="tp-tabs" role="tablist" aria-label={t('match.board.title')}>
@@ -176,25 +188,25 @@ export function Prancheta({
             </div>
             {editing && (
                 <div className="pr-edit">
-                    <label className="pr-formation">
+                    <div className="pr-formation">
                         <span>{t('match.board.formation')}</span>
-                        <select
+                        <Stepper
+                            label={t('match.board.formation')}
                             value={shown.formation}
                             disabled={!canEdit}
-                            onChange={(e) => setDraft({ formation: e.target.value as FormationId, order: shown.order })}
-                        >
-                            {(Object.keys(FORMATIONS) as FormationId[]).map((id) => (
-                                <option key={id} value={id}>
-                                    {formationText(id, lang).name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                            wrap
+                            options={(Object.keys(FORMATIONS) as FormationId[]).map((id) => ({
+                                value: id,
+                                label: formationText(id, lang).name,
+                            }))}
+                            onChange={(formation) => setDraft({ formation, order: shown.order })}
+                        />
+                    </div>
                     {changed && plan && (
                         <div className="pr-actions">
                             <button
                                 type="button"
-                                className="btn small primary"
+                                className="btn small confirm"
                                 disabled={!canEdit}
                                 onClick={() => {
                                     setPick(null);
@@ -268,11 +280,11 @@ export function Prancheta({
                         if (!subbing) return;
                         if (picked && !pickedBench) {
                             setPick(null);
-                            onSub?.(picked, uid);
+                            setAsk({ outUid: picked, inUid: uid });
                         } else setPick(picked === uid ? null : uid);
                     } else if (pickedBench) {
                         setPick(null);
-                        onSub?.(uid, pickedBench);
+                        setAsk({ outUid: uid, inUid: pickedBench });
                     } else if (!picked || picked === uid) setPick(picked ? null : uid);
                     else {
                         // os dois trocam de vaga no rascunho
@@ -305,6 +317,23 @@ export function Prancheta({
                           ? t('match.board.hintOver')
                           : t('match.board.hintMine')}
             </small>
+            {ask && askOut && askIn && askRole && sum && (
+                <ConfirmSheet
+                    open
+                    calm
+                    onClose={() => setAsk(null)}
+                    title={t('match.board.subConfirmTitle')}
+                    text={t('match.board.subConfirmText', {
+                        out: viewInstance(askOut).displayName,
+                        outN: sum.out.display,
+                        in: viewInstance(askIn).displayName,
+                        inN: sum.in.display,
+                        pos: d.common.pos[askRole],
+                    })}
+                    confirm={t('match.board.confirm')}
+                    onConfirm={() => onSub?.(ask.outUid, ask.inUid)}
+                />
+            )}
         </div>
     );
 }

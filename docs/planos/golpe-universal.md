@@ -1,0 +1,238 @@
+---
+description: Golpe máximo universal (todo capitão chuta; o do goleiro capitão é a bicuda, que é o parry), efeito na bola automático e o N3 com cena de especial; decisões de 30/10/2026.
+---
+
+# Golpe máximo universal + bicuda (30/10/2026)
+
+Ideia de um amigo do Miguel, que ele aprovou ("concordo com tudo") em 30/10/2026. Motivo: a defesa máxima do goleiro é confusa,
+só vale no N3 e quase ninguém usa. Agora todo golpe máximo é um chute; o do goleiro capitão é a bicuda (o parry).
+Protótipo na branch `golpe-universal`. A 0.9.28 sai antes, sem isto.
+
+## Regras
+
+**Capitão de linha: o golpe máximo é o chute.**
+
+| Nível | Efeito |
+|---|---|
+| N1 | Chute forte + **status do tipo** em quem bloqueia ou defende. |
+| N2 | O N1 + **derruba os jogadores de linha na linha do chute** (o goleiro não cai). |
+| N3 | **Sempre no alvo** (a bicuda do goleiro capitão rival ainda pode devolver) + o N2 + o efeito do tipo ou a assinatura de hoje, com a **cena de especial** (estilo Street Fighter) antes do chute. |
+
+Status por tipo (ponto de partida): Fogo queima, Elétrico paralisa, Venenoso envenena, Gelo congela, Psíquico confunde,
+Normal atordoa. Fantasma fica como está na tabela (confunde); nada de status que não existe nos jogos. Os outros tipos se
+fecham com o Miguel.
+
+**Goleiro capitão: o golpe máximo dele é a bicuda, e a bicuda é o parry** (correção do Miguel, 30/10/2026: uma mecânica
+só, sem botão de parry à parte e sem parry pra goleiro que não é capitão).
+- Com a barra pronta, o chute do rival que o goleiro vai alcançar mesmo (golpe máximo do rival inclusive) acende a hora
+  certa: o mesmo anel do golpe máximo, na chegada da bola. Chute que um zagueiro bloqueia antes, que vai pra fora ou na
+  trave, ou que passa longe do goleiro não acende (Miguel, 30/10/2026). O motor solta o evento `gkReach` quando o goleiro
+  capitão chega na bola; a tela olha à frente nos eventos (`bicudaCueNear`), do chute até um tick antes do toque.
+- O toque vale só pra aquele chute (Miguel, 30/10/2026): o pedido prende no chute do rival que está no ar (ou no que vem,
+  se o rival já está com a bola na zona do goleiro) e some com ele, sem gastar a barra, se o goleiro não chegar nela.
+  Fora dessa hora a ordem nem arma (o toque atrasado não fica 5 s esperando o chute seguinte).
+- Toque na hora (bom ou perfeito): em vez de encaixar, o goleiro devolve com a bicuda e derruba quem estiver no caminho.
+  N1 e N2: lançamento forte pro companheiro mais à frente no campo rival (o N2 derruba a linha no caminho). N3: chute
+  N3 no gol rival (sempre no alvo, status, efeito do tipo), mas o goleiro rival defende como num chute normal (sem o
+  alcance e a chance reduzidos do N3): não é gol automático.
+- Toque fora: a defesa de sempre daquele chute. Gasta a barra (evento `max` `miss`, a tela mostra o "fora").
+- Gasta a barra toda, como o golpe máximo de linha.
+- O rival usa a mesma regra pelo técnico IA quando o goleiro dele é o capitão (arma quando o nosso atacante entra na
+  zona, nota sorteada como a do golpe máximo; o pedido vale só pro chute seguinte e some com ele).
+
+**Efeito na bola (pedido do Miguel, automático desde 30/10/2026):** todo golpe máximo, em qualquer nível, curva sozinho
+pro canto longe do goleiro, sem arrastar. Usa a mesma conta da curva do Psíquico, com metade do teto. O N3 Psíquico fica
+com a curva dele, mais forte, sem somar.
+
+## Polimento (pedido do Miguel: "tudo bem polido, a música na medida, efeitos especiais legais")
+
+- A cena do N3: congela a tela, close no capitão, fundo na cor do tipo, o nome do golpe gigante, depois o chute.
+- Sons e estouros próprios pra bicuda, na família do pacote D.
+- A música abaixa só na hora certa e volta com a virada.
+
+## Motor
+
+- Muda o resultado das partidas: motor 17 e republicar a `liga`.
+- Os números de antes e depois vão pro Miguel antes de valer. Medir com `npm run calibrate -- --n 400 --agencia` e
+  `scripts/balance/coach.ts`.
+
+## Números do motor 17 (n=400, 30/10/2026; aprovados em 30/10)
+
+Bicuda = parry (regra corrigida de 30/10). `calibrate --agencia` (os dois times com o técnico IA) e
+`scripts/balance/coach.ts` (técnico robô, 400 partidas por política). O motor 16 é o da `main` (o motor não mudou nos 38
+commits da 0.9.28, então a coluna é a medida antes, com as mesmas seeds); a coluna do meio é o protótipo anterior (parry à
+parte, já removido).
+
+| Medida | Motor 16 (main) | Motor 17 com parry à parte (saiu) | Motor 17 (bicuda = parry) |
+|---|---:|---:|---:|
+| Gols/jogo | 8,10 | 7,77 | 8,29 |
+| Golpe máximo por jogo (N1/N2/N3) | 0,86 (0,04/0,48/0,34) | 0,96 (0,05/0,56/0,34) | 0,94 (0,04/0,56/0,33) |
+| Golpe de linha que vira gol (N1/N2/N3) | 55% (24/36/93) | 15% (16/11/24) | **72%** (40/63/93) |
+| Bicudas por jogo (N1/N2/N3) | — | 0,15 (0/0,07/0,08) | 0,14 (0/0,07/0,07) |
+| Bicuda N3 que vira gol (do time, em 4 s) | — | 6% | **92%** |
+| Bicuda com toque fora (vira defesa, gasta a barra) | — | — | 0,01/jogo |
+| Técnico robô de linha, Δ vitória (random/good/n1/n3) | +2,3 a +5,3 pp | +6,3 a +11,5 pp | +10,5 / +8,5 / +10,0 / +6,0 pp (±2–3) |
+| Técnico robô goleiro, Δ vitória (random/good/n1/n3) | +3,3 a +4,3 pp | +9,0 a +12,8 pp | +7,8 / +10,5 / +11,3 / +7,5 pp (±2–3) |
+| Técnico robô contra o técnico IA (good / n3) | +2,5 / +4,8 pp | +5,0 / +4,3 pp | +8,5 / +6,5 pp |
+| Robô goleiro: bicudas por jogo (good), gol do time depois | — | — | 0,86 (N1/N2/N3 0,50/0,20/0,16), 0,14 gol |
+
+**Aprovado em 30/10 (Miguel):** a bicuda N3 fica como está (92% de gol); o golpe de linha fica mais forte como está
+(72%); o toque fora da bicuda gasta a barra. Os números do motor 17 valem assim.
+
+### Anel só no chute que chega (30/10/2026, depois da aprovação)
+
+O anel da bicuda acende só no chute que o goleiro capitão alcança e o toque vale só pra ele (regras acima). Medida com o
+mesmo `calibrate --n 400 --agencia` (mesmas seeds); só a bicuda e o golpe máximo mudam, os números não foram mexidos:
+
+| Medida | Antes (toque armado 5 s) | Depois (só aquele chute) |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,29 |
+| Golpe máximo por jogo (N1/N2/N3) | 0,94 (0,04/0,56/0,33) | 0,92 (0,04/0,55/0,33) |
+| Bicudas por jogo (N1/N2/N3) | 0,14 (0/0,07/0,07) | 0,12 (0/0,06/0,06) |
+| Bicuda N3 que vira gol (do time, em 4 s) | 92% | 92% |
+| Bicuda com toque fora | 0,01/jogo | 0,01/jogo |
+| Goleiro capitão alcança o chute (`gkReach`) | — | 4,73/jogo |
+
+Na tela (`?demo=maximo&goleiro=1&nivel=3`, headless 390x844): o botão acendeu 6 ticks antes do chute que o Snorlax
+alcançou e a bicuda N3 saiu no toque dele na bola, logo depois do toque na tela.
+
+O que estava em aberto antes da decisão:
+- **Bicuda N3 ainda é quase gol certo (92%; robô goleiro n3: 85%)**, mesmo passando pela defesa normal do goleiro rival:
+  hipótese (não medida): o chute N3 sai a ~2,2x de força, a conta de defesa do goleiro cai pro piso (5%) com bola tão
+  rápida, e a curva automática leva pro canto (no teste com o goleiro parado, a curva sozinha já tira a bola do alcance). Pra ficar defensável de verdade, opções: a bicuda N3 com menos força (ex.: a do N2), ou
+  um piso de defesa maior pra ela. Nada mexido.
+- O golpe de linha voltou a valer (72% de gol, contra 55% no motor 16): o N1 e o N2 subiram muito (24⇒40%, 36⇒63%).
+- O técnico robô ganha +6 a +11 pp de vitória com o golpe máximo (motor 16: +2 a +5): o golpe máximo pesa mais no
+  resultado.
+- Toque fora da bicuda: gasta a barra (como pedido "gasta como o golpe máximo"). Alternativa: não gastar no fora.
+
+## Ritmo do golpe (01/11/2026, branch `golpe-ritmo`, motor 18)
+
+Relato do Miguel jogando a 0.9.30, causa vista e conserto:
+
+- **Música "em silêncio"**: o fundo do anel era 650 Hz e metade do volume (~14 dB abaixo, medido no navegador) e, sem
+  toque, durava a hora certa inteira (~9 s); troca de trecho no meio (minuto, Pressão final) deixava o passa-baixa
+  fechado até o fim da faixa (`unduckMusic` comparava o objeto, o trecho novo divide o filtro). Agora: fundo de ~6 dB
+  (`DUCK`), volta quando o anel fecha sem toque e a troca de trecho não prende o filtro.
+- **Círculo verde do perfeito**: o alvo acendia branco com brilho na cor do nível por 100 ms; agora acende verde, e o
+  "PERFEITO!" e o anel do estouro também (o texto saía cortado na borda: o estouro fica a 100 px dela).
+- **Botão que aparece e some**: o "chamar o capitão" apagava a cada passe pra trás (29% das vezes aceso menos de 1 s
+  de jogo, medido em 12 partidas). Agora fica até o anel fechar e pelo menos 1,2 s (`steadyCue`); gol, saída de bola,
+  intervalo e a bicuda depois do toque do goleiro apagam na hora. Depois: 1% no 1x.
+- **N3**: a cena era metade no 4x e nada no 8x (quem joga no 8x só via a câmera lenta); agora vale em toda velocidade,
+  com raios saindo do capitão, o stinger `max-stinger` (`scripts/musica/pecas/especial-n3.mjs`: subida na cena, o
+  chute e o SOC-CER-MON em Lá menor) e, no chute, a câmera abre no gol atacado inteiro (`n3ShotFrame`; virou `lockMaxFrame` em 01/11, abaixo).
+- **Queda antes da bola (motor 18)**: `maxKnock` derrubava todo mundo na linha no tick do chute; agora cada um cai
+  quando a bola chega nele (`landKnocks`). `calibrate --n 200 --agencia`, mesmas seeds: gols 8,31 ⇒ 8,29; golpe de
+  linha que vira gol 74% ⇒ 71% (N2 65% ⇒ 61%, N3 93% ⇒ 96%), dentro do erro. Números de equilíbrio não mexidos.
+- **Bola do golpe**: partículas do tipo mais densas, brilho e rastro maiores por nível (`MAX_BALL_FX`).
+- **Efeitos do tipo na chegada da bola** (ok do Miguel, 01/11): a onda, o tsunami e o gelo na linha pegam cada um
+  quando a bola chega; nevasca, terremoto, estrela, raio, nuvem e rastro de fogo, quando ela chega na área deles (o que
+  é do goleiro, 2 m antes). O Body Slam continua no chute (é o Snorlax se jogando). Quem a onda tira da linha não cai
+  de novo. `calibrate --n 200 --agencia`: gols 8,29 ⇒ 8,29; golpe de linha que vira gol 71% ⇒ 71%.
+- **Letreiro do drama** ("GOLPE MÁXIMO N2!") cortado nas bordas na quadra grande do celular: medido no texto e
+  encaixado na faixa que aparece.
+
+
+## Explicação na tela (01/11/2026, branch `golpe-explica`)
+
+Pedido do Miguel: dizer quando cada nível libera e o que ele dá. Os textos saem de `src/ui/max-levels.ts`, que lê o
+motor (`AGENCY.maxLevelPts`, `maxBehind`, `maxLevelShot`, `maxStatus`, `maxGrade`, os pontos por lance medidos no
+próprio `maxCharge`, `maxFxType` e `MAX_SIGNATURE`): número novo no motor muda o texto junto.
+- Partida: aviso curto quando a barra do seu time sobe ("N2 liberado: derruba quem estiver no caminho") e a legenda
+  "Golpe máximo" (abre num toque) embaixo dos botões da beira da quadra, com os níveis já liberados acesos.
+- Carta completa: seção "Golpe máximo" com o golpe, o tipo, o que N1/N2/N3 fazem pra ele (bicuda se a posição é gol)
+  e como liberar.
+- Tutorial: balão `golpe` na 1ª vez que a barra chega no N1 (volta pela Ajuda), seção "Golpe máximo do capitão" na
+  Ajuda (com o status e o efeito de cada tipo) e um 4º passo no "Como jogar".
+
+O nome da seção é "Golpe máximo" (não "Golpe especial"): na carta, "Golpe especial" já é o tipo de golpe (o `blast`).
+
+## Golpe com show, gol inteiro e defesa que nunca encaixa (01/11/2026, branch `golpe-show`, motor 18)
+
+Pedidos do Miguel jogando: "as animações dos golpes N1 a N3 têm que ser beeem melhores; a N3 um super hiper mega golpe
+especial", "o golpe máximo ainda tá cortando o gol" e a regra nova (aprovada): defesa de golpe máximo nunca é encaixada.
+
+**Regra da defesa (motor 18, `AGENCY.maxParry`).** O chute de golpe máximo (N1 a N3, a bicuda que chuta inclusive) que
+o goleiro defende nunca vira posse dele: espalma na trave (35%, `post`; a bola vai até o poste a 10 m/s e o quique da
+trave a devolve viva) ou pra escanteio (o resto, `deflectOut`). A espalmada curta do N3 (Fogo, Normal, Pedra) e a bola
+colada na linha vão sempre na trave. Quem espalmou fica 1 s sem dominar a sobra (`gkLock`). O evento `save` leva
+`parry: 'corner' | 'post'`. **Counter**: é a bicuda de sempre (goleiro capitão, barra no N1+, toque bom ou perfeito na
+hora dela; o técnico IA do rival arma igual), sem chance sorteada: com a condição, devolve sempre; contra golpe máximo
+ela vai no gol rival em todo nível (N1 e N2 também chutam, com a força do nível) e gasta a barra.
+
+`calibrate --n 200 --agencia`, mesmas seeds (o `calibrate` sem técnico não muda: 7,88 gols, 68,8%):
+
+| Medida | Antes | Depois |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,24 |
+| Mais forte vence | 63,0% | 65,2% |
+| Golpe de linha que vira gol (N1/N2/N3) | 71% (50/61/96) | 70% (38/63/96) |
+| Defesa de golpe máximo por jogo | 0,18 | 0,18 |
+| ...encaixe / espalmada pra frente | 0% / 76% | 0% / 0% |
+| ...escanteio / trave / counter | 19% / 0% / 5% | 62% / 32% / 5% |
+| ...goleiro com a bola em 2 s | 62% | 16% (o counter e a sobra do escanteio) |
+
+**Câmera (o gol cortado).** Causa, medida no `?demo=maximo` em 390x844 (quadros com a bola andando e o gol atacado fora):
+N1 85%, N2 57%, N3 22%. Em pé a quadra grande seguia a bola com a mola de 0,6 s e a folga à frente com teto, e o N1/N2
+punha zoom no capitão (`lightZoom`/drama), que a quadra grande segue: a janela ficava no capitão e chegava no gol junto
+com a bola. Conserto num ponto só: `lockMaxFrame` (MatchScene) segura o gol do chute até o desfecho, pan e zoom dos
+outros lances esperam (a `cameras.main` passa pela trava), deitado/PC volta pro zoom 1 (até o zoom que enquadrava quem
+chuta e o gol cortava na transição, com a câmera presa na borda) e em pé a janela segura o gol (`keepTarget`,
+court-follow.ts, mola de 0,07 s). A carga do N1/N2 e o hit-stop do chute N3 seguram a bola até o gol estar no quadro
+(`maxHold`, solto no próprio chute: o timer do Phaser atrasa em quadro lento). Depois: 0 quadros cortados com a bola
+andando em 390x844, 844x390 e 1440x900, no 1x, 2x e 8x. A câmera lenta do golpe não multiplica mais a do drama (o voo do
+N3 levava ~4 s; a cena inteira do N3 agora dura ~3 s). O counter de longe voa a 0,6x.
+
+**Show (só tela, `src/game/max-show.ts`).** N1 dourado: carga curta (a quadra para 0,2 s), estouro no pé, cauda curta,
+anel na chegada. N2 na cor do tipo: carga de 0,3 s com faíscas sugadas, onda, clarão, cometa e a onda do tipo na chegada.
+N3: congela num clarão, o fundo vira a arte do tipo (chamas, ondas, raios, folhas, cristais, anéis, bolhas, almas,
+corações, estouros, vento), energia girando no capitão, cut-in do rosto e a faixa do golpe (saem no chute), onda de
+choque, a bola vira o projétil do tipo (cauda grossa e enfeite: raios, labaredas, anéis, estilhaços) e a chegada explode
+com tremida forte. Espalmada: "espalmou pra escanteio/na trave!" com faísca na luva; counter: "DEVOLVEU!". "Reduzir
+movimento": nada gira nem pisca.
+
+**Música.** Stinger v2 (`pecas/especial-n3.mjs`, mesmo SOC-CER-MON): subida de -30 a -18 dB RMS, respiro de 0,1 s e o
+impacto a -10 dB na linha 10 (1 s, o chute da cena, `N3_STINGER_KICK_MS`); a v1 ficava entre -16 e -12 sem contraste.
+Na cena a faixa quase some (`DUCK_N3`, ~-22 dB e 450 Hz; a virada do toque é calada) e volta de uma vez no chute. N1, N2 e
+a bicuda tocam o som no fim da carga (o chute na tela) e a faixa volta na virada do toque (max-beat.ts), sem ficar abafada.
+
+### Decidido com o Miguel (02/11/2026)
+
+"Por mim perfeito do 1 ao 3": defesa de golpe máximo 35% na trave e o resto pra escanteio, counter (bicuda) sempre que a condição vale; sem zoom no lance do golpe deitado e no PC; textos "DEVOLVEU!" e "Espalmou na trave!/pra escanteio!". Stinger v2: ouvindo.
+
+## N1 por tipo e nomes do N3 (02/11/2026, branch `golpe-n1`, motor 18)
+
+Tabela aprovada pelo Miguel ("100%"). O N1 (e o N2 e o N3, que levam o efeito do anterior) passa isto em quem bloqueia
+ou defende; números em `AGENCY.maxStatus` e `AGENCY.maxN1`, força e precisão dos níveis não mexidas.
+
+| Tipo | Efeito do N1 | Como funciona no motor |
+|---|---|---|
+| Fogo | queima | status `brn`, igual |
+| Elétrico | paralisa | status `par` 1,5 s, igual |
+| Venenoso | envenena | status `psn`, igual |
+| Gelo | congela | status `frz` 1 s, igual |
+| Fada | encanta | `infatuation`, igual |
+| Psíquico | faz dormir | status `slp` 1 s (era confundir) |
+| Fantasma | confunde | `confusion`, igual |
+| Normal | recua (flinch): perde a próxima ação | 0,6 s sem ação, palavra ATORDOADO |
+| Planta | semente | o Leech Seed (12 s, o fôlego vai pro capitão que chutou; Planta não pega) |
+| Terrestre | areia nos olhos | o `blind` do Sand Attack: erro do chute e do passe x2 por 6 s |
+| Inseto | teia | velocidade x0,5 por 3 s (o debuff de velocidade do String Shot, mais forte) |
+| Água | a água leva 2 m pra trás | o empurrão do Surf, no sentido do chute (palavra MOLHADO) |
+| Voador | vai pro alto, 1 s fora do lance | o voo do Fly parado no lugar, sem o pouso (ninguém alcança ele) |
+| Lutador | mão dormente | a próxima defesa comum dele não encaixa (a de golpe máximo já nunca encaixa) |
+| Pedra | preso no lugar 2 s | não anda, mas ainda defende e chuta |
+| Dragão | o time rival perde 5 pontos da barra | evento `status` `drain`, que o `maxCharge` desconta |
+
+Na tela: a palavra de reação de cada efeito (AREIA, NA TEIA, PRO ALTO, DORMENTE, PRESO, BARRA -5) na cor do tipo, com a
+partícula do tipo, e a linha na caixa de narração. Os nomes do N3 viraram os golpes dos jogos (Giga Impact, Surf,
+Thunder…), com os gritos e as descrições novas do Miguel, em PT e EN.
+
+`calibrate --n 200 --agencia`, mesmas seeds, antes/depois (o N1 sai só 0,06 por jogo, então o N1 que vira gol é ruído):
+
+| Medida | Antes | Depois |
+|---|---:|---:|
+| Gols/jogo | 8,29 | 8,29 |
+| Golpe de linha que vira gol (N1/N2/N3) | 71% (50/61/96) | 73% (42/65/96) |
+| Mais forte (Δ≥3) vence | 63,0% | 65,9% |

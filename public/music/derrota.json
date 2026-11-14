@@ -1,0 +1,22 @@
+{
+ "faixa": "derrota",
+ "titulo": "Derrota (bola pra frente)",
+ "tela": "Resultado: derrota",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 5.236372,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 3.636372,
+   "amostras": [
+    0,
+    160364
+   ],
+   "bpm": 132,
+   "compassos": 2
+  }
+ ]
+}

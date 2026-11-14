@@ -1,3 +1,7 @@
+---
+description: Plano para a partida ficar gostosa de jogar: impacto, câmera lenta, rastro e sons.
+---
+
 # Plano "jogo gostoso" (0.8.3 em diante, 16/10/2026)
 
 Pedido do Miguel: o jogo tem que ficar **gostoso de jogar** (number go up, fluidez, dopamina, vontade de jogar

@@ -1,0 +1,314 @@
+import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { trackNav } from '../../analytics/track';
+import { useT } from '../../i18n/react';
+import { ambFresh, ambLit, isFirstVisit, rotaNovaDue } from '../../store/coach';
+import { useGame } from '../../store/game-store';
+import { LONG_CUP_LIVE } from '../../store/long-cup';
+import { Coach, useHydrated } from '../coach/Coach';
+import { HudIcon, type HudIconKind } from '../components/MatchHud';
+import { TopActions } from '../components/TopActions';
+import { feedback } from '../feedback';
+import { reduceMotionOn } from '../settings-sync';
+import { Arena } from './Arena';
+import { Estadio } from './Estadio';
+import { SpriteNearCtx } from './FieldSprite';
+import { Lab } from './Lab';
+import { dragPos, onGoTab, START, skyOf, snapTab, TABS, type Tab, tabMemory } from './nav';
+import { Rota } from './Rota';
+import { Sede } from './Sede';
+import { TopBar } from './TopBar';
+import { installTabBack } from './tab-back';
+import { clubWild, rollAll, type Wild, wildQuota } from './wild';
+import './ambientes.css';
+import { openPage } from '../doors';
+import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
+import { tvCut } from '../tv';
+import { uiZoom } from '../ui-zoom';
+
+const ICON: Record<Tab, HudIconKind> = {
+    lab: 'flask',
+    rota: 'map',
+    estadio: 'stadium',
+    arena: 'friends',
+    sede: 'building',
+};
+/** Duração da entrada num modo (exceção ao ADR 0004, ver ADR 0008): um toque pula. */
+const ENTER_MS = 860;
+
+/**
+ * A Home (navegação por ambientes): 5 lugares lado a lado, a barra de abas embaixo (coluna à esquerda com
+ * o celular deitado) e o arrasto de lado entre eles. Abre no Estádio. A troca anda 280 ms com o fundo em camadas
+ * (céu devagar, cenário médio, botões junto do dedo); com "reduzir movimento", só um fade.
+ */
+export function Ambientes({ onModes }: { onModes?: () => void }) {
+    const { t, d } = useT();
+    const hydrated = useHydrated();
+    const firstVisit = useGame(isFirstVisit);
+    const records = useGame((s) => s.records);
+    const coachSeen = useGame((s) => s.profile.coach);
+    const [rawTab, setTabState] = useState(tabMemory.last);
+    // as abas acendem pela progressão (coach.ts, `ambLit`): a apagada fica na barra, sem painel e fora do arrasto
+    const litKey = useGame((s) => ambLit(s).join(' '));
+    const lit = useMemo(() => litKey.split(' ') as Tab[], [litKey]);
+    const last = lit.length - 1;
+    const isLit = (i: number) => lit.includes(TABS[i]);
+    /** Posição da aba entre as acesas (a do painel e do arrasto). */
+    const ci = (i: number) => lit.indexOf(TABS[i]);
+    const tab = isLit(rawTab) ? rawTab : START;
+    // a aba que acabou de acender ganha o destaque uma vez (fica marcada no save na hora)
+    const [glow, setGlow] = useState<readonly Tab[]>([]);
+    // biome-ignore lint/correctness/useExhaustiveDependencies: roda quando o save carrega e quando uma aba acende
+    useEffect(() => {
+        if (!hydrated) return;
+        const s = useGame.getState();
+        const fresh = ambFresh(s);
+        if (!fresh.length) return;
+        setGlow((g) => [...g, ...fresh]);
+        s.updateProfile({ ambLit: [...(s.profile.ambLit ?? []), ...fresh] });
+    }, [hydrated, litKey]);
+    // o céu do Estádio e da Rota segue a hora de verdade (dia, fim de tarde, noite); a Arena é sempre à noite
+    const [sky] = useState(() => skyOf(new Date().getHours()));
+    const [entering, setEntering] = useState<(() => void) | null>(null);
+    const root = useRef<HTMLDivElement>(null);
+    const stage = useRef<HTMLDivElement>(null);
+    const drag = useRef<{ x: number; y: number; on: boolean; lx: number; lt: number; vx: number } | null>(null);
+    const swallowClick = useRef(false);
+    // os Pokémon ambiente: sorteio novo a cada abertura, puxando pra quem você já viu na Pokédex
+    const [rolled] = useState(() => {
+        const dex = useGame.getState().dex;
+        return rollAll((id) => !!dex[id]);
+    });
+    // na Sede andam os mais usados do clube (sem partida jogada, o sorteio de sempre)
+    const dex = useGame((s) => s.dex);
+    const club = useMemo(() => clubWild(dex), [dex]);
+    const lists = useMemo(() => (club.length ? { ...rolled, sede: club } : rolled), [rolled, club]);
+    const quota = wildQuota(
+        ci(tab),
+        lit.map((id) => lists[id].length),
+    );
+    const wildOf = (i: number) => lists[TABS[i]].slice(0, quota[ci(i)] ?? 0);
+    // a arte do kit (Laboratório, Sede) só baixa quando a aba fica perto da tela, e depois fica
+    const seen = useRef(new Set<number>());
+    for (const j of [ci(tab) - 1, ci(tab), ci(tab) + 1]) if (lit[j]) seen.current.add(TABS.indexOf(lit[j]));
+
+    /** `--pos` anda entre as acesas; `--bpos` é a mesma posição na barra (que tem as 5), pulando as apagadas. */
+    const barPos = (p: number) => {
+        const c = Math.max(0, Math.min(last, p));
+        const a = TABS.indexOf(lit[Math.floor(c)]);
+        const b = TABS.indexOf(lit[Math.ceil(c)]);
+        return a + (b - a) * (c - Math.floor(c));
+    };
+    const setPos = (p: number) => {
+        root.current?.style.setProperty('--pos', String(p));
+        root.current?.style.setProperty('--bpos', String(barPos(p)));
+    };
+    const setTab = (i: number) => {
+        // só chamado por ação da pessoa (toque, tecla, arrasto, botão das Notícias); a troca automática usa setTabState
+        trackNav('tab', TABS[i], TABS[tab], { lit: lit.length });
+        tabMemory.last = i;
+        setTabState(i);
+        setPos(ci(i));
+    };
+    // tocar na aba é um corte de TV (a aba troca embaixo da faixa, sem deslizar); o arrasto continua igual
+    const tvTab = (i: number) =>
+        i !== tab &&
+        isLit(i) &&
+        tvCut(() => {
+            const r = root.current;
+            r?.classList.add('amb-drag');
+            setTab(i);
+            requestAnimationFrame(() => requestAnimationFrame(() => r?.classList.remove('amb-drag')));
+        });
+
+    // o botão das Notícias pede uma aba (`goTab`): troca com o corte de TV, como tocar na aba
+    const tvTabNow = useRef(tvTab);
+    tvTabNow.current = tvTab;
+    useEffect(() => onGoTab((i) => tvTabNow.current(i)), []);
+
+    // entrar num modo: a câmera anda até a quadra (ou o time sai pela estrada) e aí a copa começa; um toque pula
+    const enter = (action: () => void) => {
+        if (reduceMotionOn()) {
+            action();
+            return;
+        }
+        let done = false;
+        // a tela fica no escuro até a copa trocar de tela (senão o Estádio aparece de novo, já com a copa nova, por um
+        // quadro); se a troca não vier, o escuro sai sozinho
+        const finish = () => {
+            if (done) return;
+            done = true;
+            action();
+            window.setTimeout(() => setEntering(null), 800);
+        };
+        setEntering(() => finish);
+        // a transição de momento (desenho sorteado) emenda no fim da câmera: cobre a tela e a copa troca embaixo
+        window.setTimeout(() => !done && playMoment(randomArt(), finish), ENTER_MS - WIPE_IN_MS);
+        // se o momento não vier (aba em segundo plano), a copa começa assim mesmo
+        window.setTimeout(finish, ENTER_MS + 600);
+    };
+
+    // teclado: setas trocam de aba quando o foco está na barra
+    const onKey = (e: React.KeyboardEvent) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        const i = TABS.indexOf(lit[Math.max(0, Math.min(last, ci(tab) + (e.key === 'ArrowRight' ? 1 : -1)))]);
+        setTab(i);
+        root.current?.querySelector<HTMLElement>(`#amb-tab-${TABS[i]}`)?.focus();
+    };
+
+    // em px da tela, como o clientX do arrasto (zoom da tela grande)
+    const width = () => (stage.current?.clientWidth || window.innerWidth) * uiZoom();
+    const onDown = (e: React.PointerEvent) => {
+        if (e.button !== 0 || entering) return;
+        swallowClick.current = false;
+        drag.current = { x: e.clientX, y: e.clientY, on: false, lx: e.clientX, lt: e.timeStamp, vx: 0 };
+    };
+    const onMove = (e: React.PointerEvent) => {
+        const g = drag.current;
+        if (!g) return;
+        const dx = e.clientX - g.x;
+        const dy = e.clientY - g.y;
+        if (!g.on) {
+            if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+                drag.current = null;
+                return;
+            }
+            if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+            g.on = true;
+            stage.current?.setPointerCapture(e.pointerId);
+            root.current?.classList.add('amb-drag');
+        }
+        const dt = e.timeStamp - g.lt;
+        if (dt > 0) g.vx = 0.7 * ((e.clientX - g.lx) / dt) + 0.3 * g.vx;
+        g.lx = e.clientX;
+        g.lt = e.timeStamp;
+        setPos(dragPos(ci(tab), dx, width(), last));
+    };
+    const onUp = (e: React.PointerEvent) => {
+        const g = drag.current;
+        drag.current = null;
+        if (!g?.on) return;
+        root.current?.classList.remove('amb-drag');
+        swallowClick.current = true;
+        const to = TABS.indexOf(lit[snapTab(ci(tab), e.clientX - g.x, g.vx, width(), last)]);
+        // o toque na aba já faz o som (feedback.ts); o arrasto que troca de lugar faz o mesmo
+        if (to !== tab) feedback('tap');
+        setTab(to);
+    };
+
+    useEffect(() => {
+        setPos(ci(tab));
+    });
+
+    // voltar do Android: fora do Estádio, volta pro Estádio
+    const tabRef = useRef(tab);
+    tabRef.current = tab;
+    const back = useRef<ReturnType<typeof installTabBack> | null>(null);
+    useEffect(() => {
+        const tb = installTabBack(
+            () => tabRef.current !== START,
+            () => {
+                tabMemory.last = START;
+                setTabState(START);
+            },
+        );
+        back.current = tb;
+        return () => {
+            tb.off();
+            back.current = null;
+        };
+    }, []);
+    useEffect(() => {
+        back.current?.sync();
+    });
+
+    const view: Record<Tab, (active: boolean, wild: Wild[], near: boolean) => ReactNode> = {
+        lab: (active, wild, near) => <Lab active={active} wild={wild} near={near} />,
+        rota: (active, wild) => <Rota active={active} enter={enter} wild={wild} entering={!!entering} />,
+        estadio: (active, wild) => (
+            <Estadio active={active} enter={enter} wild={wild} entering={!!entering} onModes={onModes} />
+        ),
+        arena: (active, wild) => <Arena active={active} wild={wild} />,
+        sede: (active, wild, near) => <Sede active={active} wild={wild} near={near} />,
+    };
+
+    return (
+        <div
+            ref={root}
+            className={`amb${entering ? ` amb-entering amb-enter-${TABS[tab]}` : ''}`}
+            data-sky={sky}
+            style={{ '--pos': ci(tab), '--bpos': tab, '--n': TABS.length } as CSSProperties}
+        >
+            <div className="amb-top k-topbar">
+                <TopBar />
+                <TopActions help={() => openPage('help')} profile={false} />
+            </div>
+            <div
+                ref={stage}
+                className="amb-stage"
+                onPointerDown={onDown}
+                onPointerMove={onMove}
+                onPointerUp={onUp}
+                onPointerCancel={onUp}
+                onClickCapture={(e) => {
+                    if (!swallowClick.current) return;
+                    swallowClick.current = false;
+                    e.preventDefault();
+                    e.stopPropagation();
+                }}
+            >
+                {TABS.map((id, i) =>
+                    !isLit(i) ? null : (
+                        <section
+                            key={id}
+                            id={`amb-panel-${id}`}
+                            role="tabpanel"
+                            aria-labelledby={`amb-tab-${id}`}
+                            className={`amb-panel amb-${id}${i === tab ? ' on' : ''}`}
+                            style={{ '--i': ci(i) } as CSSProperties}
+                            inert={i !== tab}
+                        >
+                            <SpriteNearCtx.Provider value={seen.current.has(i)}>
+                                {view[id](i === tab, wildOf(i), seen.current.has(i))}
+                            </SpriteNearCtx.Provider>
+                        </section>
+                    ),
+                )}
+            </div>
+            <nav className="amb-bar" aria-label={t('home.amb.tabsAria')}>
+                <div className="amb-tabs" role="tablist" aria-orientation="horizontal" onKeyDown={onKey}>
+                    <i className="amb-ind" aria-hidden />
+                    {TABS.map((id, i) => (
+                        <button
+                            key={id}
+                            id={`amb-tab-${id}`}
+                            type="button"
+                            role="tab"
+                            aria-selected={i === tab}
+                            aria-controls={`amb-panel-${id}`}
+                            tabIndex={i === tab ? 0 : -1}
+                            disabled={!isLit(i)}
+                            className={`amb-tab amb-tab-${id}${i === tab ? ' on' : ''}${isLit(i) ? '' : ' off'}${glow.includes(id) ? ' amb-tab-new' : ''}`}
+                            onClick={() => tvTab(i) || setTab(i)}
+                        >
+                            <span className="amb-tab-ic">
+                                <HudIcon kind={ICON[id]} />
+                            </span>
+                            <span className="amb-tab-lbl">{d.home.amb.tabs[id]}</span>
+                        </button>
+                    ))}
+                </div>
+            </nav>
+            {/* balões (fora do palco: o painel tem transform e cortaria o balão): o da Home depois da 1ª copa (o JOGAR
+                e a Ajuda) e "Agora tem a Rota Índigo" apontando a aba; só no Estádio */}
+            {tab === START && hydrated && !firstVisit && (
+                <Coach id="intro" targets={['[data-coach="quick"]', '[data-coach="help"]']} />
+            )}
+            {tab === START && LONG_CUP_LIVE && (
+                <Coach id="rotaNova" targets={['#amb-tab-rota']} when={rotaNovaDue(records, coachSeen)} />
+            )}
+            {entering && (
+                <button type="button" className="amb-skip" aria-label={t('home.amb.skip')} onClick={entering} />
+            )}
+        </div>
+    );
+}

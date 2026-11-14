@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-ltsurge",
+ "titulo": "Ponte pra tema-ltsurge: o choque elétrico e o rufo de banda (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.109342,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.666667,
+   "amostras": [
+    0,
+    73500
+   ],
+   "bpm": 144,
+   "compassos": 1
+  }
+ ]
+}

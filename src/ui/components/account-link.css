@@ -1,19 +1,8 @@
 /* ---------- pergunta depois do login (AccountLink) ---------- */
-.link-backdrop {
-    /* acima do passo a passo de boas-vindas: é uma decisão que trava a sincronização */
-    z-index: 130;
-}
-.link-modal {
+.k-sheet.link-modal {
     width: min(640px, 100%);
-    display: grid;
     gap: 12px;
     padding: 20px;
-}
-.link-modal h2 {
-    margin: 0;
-    font-size: 18px;
-    line-height: 1.25;
-    padding-right: 0;
 }
 .link-lead,
 .link-note {

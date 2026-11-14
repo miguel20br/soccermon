@@ -1,13 +1,17 @@
 import { Fragment, type ReactNode, useMemo, useState } from 'react';
 import { fmt } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { useGame } from '../../store/game-store';
+import { ligaShown } from '../../league/rules';
+import { COACH_GROUPS, COACH_REPLAY, type CoachId } from '../../store/coach';
+import { type Screen, useGame } from '../../store/game-store';
 import { MenuHead } from '../components/MenuHead';
 import { blockText, faqEntries, type HelpBlock, helpSections, normalize } from '../help/content';
 import { resetTips } from '../help/Tip';
 import { FEEDBACK_URL } from '../links';
 import '../help/help.css';
+import { backTarget } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
+import { SheetRow } from '../kit/controls';
 
 /** `**negrito**` → <b>. */
 function rich(text: string): ReactNode {
@@ -54,56 +58,86 @@ function searchIndex(lang: Parameters<typeof helpSections>[0]) {
     };
 }
 
-/** Ajuda: como jogar, todas as mecânicas (com busca) e perguntas frequentes. */
+/** Os 2 blocos das regras (ids de `help/content.ts`). */
+const HELP_GROUPS: { key: 'team' | 'match'; ids: string[] }[] = [
+    { key: 'team', ids: ['posicoes', 'cartas', 'tipos', 'sinergias'] },
+    { key: 'match', ids: ['partida', 'golpes', 'status', 'golpeMax', 'evolucao'] },
+];
+
+/**
+ * Ajuda enxuta (menos-e-mais.md, A3): em cima o "Como funciona" de cada modo (os balões voltam); depois só as regras
+ * que não aparecem na tela (com busca) e as perguntas frequentes.
+ */
 export function Help() {
     const go = useGame((s) => s.go);
-    const setTour = useGame((s) => s.setTour);
     const tipsOn = useGame((s) => s.settings.tips);
     const { d, lang } = useT();
     const tx = d.help.screen;
     const index = useMemo(() => searchIndex(lang), [lang]);
     const [query, setQuery] = useState('');
     const [tipsReset, setTipsReset] = useState(false);
+    const c = d.help.coach.replay;
+    const updateProfile = useGame((s) => s.updateProfile);
+    const [redone, setRedone] = useState<CoachId[]>([]);
+    // "Como funciona": o balão do modo volta; nos modos com tela própria já abre a tela
+    const replayCoach = (id: CoachId) => {
+        const drop = COACH_GROUPS[id];
+        updateProfile({ coach: (useGame.getState().profile.coach ?? []).filter((x) => !drop.includes(x as CoachId)) });
+        const screen: Partial<Record<CoachId, Screen>> = { intro: 'home', duelo: 'duel', dia: 'daily', liga: 'liga' };
+        if (screen[id]) go(screen[id]);
+        else setRedone([...redone, id]);
+    };
     const q = normalize(query.trim());
     const terms = q.split(/\s+/).filter(Boolean);
     const match = (text: string) => terms.every((t) => text.includes(t));
 
     const sections = index.sections.filter((s) => !terms.length || match(s.text));
     const faq = index.faq.filter((f) => !terms.length || match(f.text));
-    const searching = terms.length > 0;
-    const nothing = searching && !sections.length && !faq.length;
+    const nothing = terms.length > 0 && !sections.length && !faq.length;
 
     return (
         <div className="menu-screen help-screen">
-            <MenuHead title={tx.title} icon="help" onBack={() => go('home')} />
+            <MenuHead title={tx.title} icon="help" onBack={() => go(backTarget('help') ?? 'home')} />
 
-            <div className="help-actions">
-                <button
-                    type="button"
-                    className="btn outline"
-                    onClick={() => {
-                        setTour(true);
-                        go('home');
-                    }}
-                >
-                    {tx.replay}
-                </button>
-                {tipsOn && (
-                    <button
-                        type="button"
-                        className="btn ghost small"
-                        disabled={tipsReset}
-                        onClick={() => {
-                            resetTips();
-                            setTipsReset(true);
-                        }}
-                    >
-                        {tipsReset ? tx.tipsBack : tx.tipsShow}
-                    </button>
-                )}
-            </div>
+            {/* o principal: rever o balão de cada modo (e as dicas das telas) */}
+            <section className="help-coach" aria-labelledby="help-coach-title">
+                <h2 id="help-coach-title" className="bc-caption">
+                    {c.title}
+                </h2>
+                {/* cada modo diz em 1 linha o que ele é; tocar traz o balão de volta */}
+                <div className="help-modes">
+                    {COACH_REPLAY.filter((id) => id !== 'liga' || ligaShown()).map((id) => (
+                        <button
+                            key={id}
+                            type="button"
+                            className="btn ghost help-mode"
+                            disabled={redone.includes(id)}
+                            onClick={() => replayCoach(id)}
+                        >
+                            <b>{(c as Record<string, string>)[id]}</b>
+                            <small>{redone.includes(id) ? c.done : d.help.coach.replayLine[id]}</small>
+                        </button>
+                    ))}
+                </div>
+                <div className="help-actions">
+                    {tipsOn && (
+                        <button
+                            type="button"
+                            className="btn ghost small"
+                            disabled={tipsReset}
+                            onClick={() => {
+                                resetTips();
+                                setTipsReset(true);
+                            }}
+                        >
+                            {tipsReset ? tx.tipsBack : tx.tipsShow}
+                        </button>
+                    )}
+                </div>
+                <small className="muted">{c.hint}</small>
+            </section>
 
-            <label className="help-search">
+            <label className="help-search k-field">
                 <HudIcon kind="search" className="help-search-icon" />
                 <span className="help-sr-only">{tx.searchLabel}</span>
                 <input
@@ -129,34 +163,43 @@ export function Help() {
                 </div>
             )}
 
-            {sections.length > 0 && (
-                <div className="help-list">
-                    {sections.map(({ section }) => (
-                        <details
-                            key={`${section.id}${searching ? '-q' : ''}`}
-                            className="panel help-section"
-                            open={searching || undefined}
-                        >
-                            <summary>
-                                <img
-                                    className="pixel help-sprite"
-                                    src={`assets/cards/${section.sprite}.gif`}
-                                    alt=""
-                                    loading="lazy"
-                                />
-                                <span>{section.title}</span>
-                                <HudIcon kind="down" className="help-caret" />
-                            </summary>
-                            <div className="help-body">
-                                {section.blocks.map((b, i) => (
-                                    // biome-ignore lint/suspicious/noArrayIndexKey: blocos fixos da seção
-                                    <Block key={i} block={b} />
-                                ))}
-                            </div>
-                        </details>
-                    ))}
-                </div>
-            )}
+            {/* cada regra é uma linha que abre a sheet (cara-de-jogo.md: acordeão só dentro de sheet), em 2 blocos */}
+            {HELP_GROUPS.map((g) => {
+                const rows = sections.filter(({ section }) => g.ids.includes(section.id));
+                if (!rows.length) return null;
+                return (
+                    <section key={g.key} className="help-group" aria-labelledby={`help-g-${g.key}`}>
+                        <h2 id={`help-g-${g.key}`} className="bc-caption">
+                            {tx.groups[g.key]}
+                        </h2>
+                        <div className="help-list">
+                            {rows.map(({ section }) => (
+                                <SheetRow
+                                    key={section.id}
+                                    className="help-row"
+                                    icon={
+                                        <img
+                                            className="pixel help-sprite"
+                                            src={`assets/cards/${section.sprite}.gif`}
+                                            alt=""
+                                            loading="lazy"
+                                        />
+                                    }
+                                    label={section.title}
+                                    title={section.title}
+                                >
+                                    <div className="help-body">
+                                        {section.blocks.map((b, i) => (
+                                            // biome-ignore lint/suspicious/noArrayIndexKey: blocos fixos da seção
+                                            <Block key={i} block={b} />
+                                        ))}
+                                    </div>
+                                </SheetRow>
+                            ))}
+                        </div>
+                    </section>
+                );
+            })}
 
             {faq.length > 0 && (
                 <section className="help-faq" aria-labelledby="help-faq-title">
@@ -165,22 +208,14 @@ export function Help() {
                     </h2>
                     <div className="help-list">
                         {faq.map(({ faq: f }) => (
-                            <details
-                                key={`${f.q}${searching ? '-q' : ''}`}
-                                className="panel help-section faq"
-                                open={searching || undefined}
-                            >
-                                <summary>
-                                    <span>{f.q}</span>
-                                    <HudIcon kind="down" className="help-caret" />
-                                </summary>
+                            <SheetRow key={f.q} className="help-row faq" label={f.q} title={f.q}>
                                 <div className="help-body">
                                     {f.a.map((b, i) => (
                                         // biome-ignore lint/suspicious/noArrayIndexKey: blocos fixos da resposta
                                         <Block key={i} block={b} />
                                     ))}
                                 </div>
-                            </details>
+                            </SheetRow>
                         ))}
                     </div>
                 </section>

@@ -1,6 +1,30 @@
-- [Soccermon project](soccermon-project.md) — fan game Pokémon Gen1 + futsal sim, AGPL, sem lucro; arquitetura deve suportar carreira/modo jogável futuro
-- [Miguel é fã de Pokémon](user-pokemon-fan.md) — conhece a franquia; gosta de pesquisa ampla de repos/skills antes de planejar
-- [Diversão > realismo no Soccermon](feedback-fun-over-realism.md) — não otimizar gols/passes realistas; priorizar golpes/stats visíveis e ritmo
-- [Posições: decidir junto](feedback-collaborate-balance.md) — mudanças de posição/fórmula só com ok do Miguel; mostrar antes/depois e perguntar
-- [Design de cartas](feedback-card-design.md) — minimalista, bronze/prata/ouro pela nota, nota e atributos grandes, raridade só como acabamento
-- [Agência do jogador](feedback-player-agency.md) — nada automático no time dele (substituição só se pedir); eventos grandes com animação e gatilho exigente
+- [Navegador sem janela](feedback-browser-sem-janela.md) — testes sempre headless; contas pessoais no Brave/perfil pessoal do Chrome
+- [Não travar com questionário](feedback-nao-travar-com-questionario.md) — com entrega esperando, perguntar em texto e seguir entregando
+- [Social media em lote](feedback-social-media-em-lote.md) — Claude cuida das redes; só vai ao ar o que está na pauta semanal que ele aprovou numa linha
+- [Texto sem cara de IA](feedback-texto-sem-cara-de-ia.md) — falas curtas e naturais; ginásio continua ginásio (não "quadra")
+- [Economia de tokens](feedback-economia-de-tokens.md) — agente novo por rodada, Sonnet/Haiku quando der, máx. 3 em paralelo, CLAUDE.md enxuto
+- [Retomar (estado 12/11)](retomar-frentes-21-10.md) — LER PRIMEIRO: 0.9.50 no ar; v0951 em integração (economia, barra N A, Duelo 1–7); ep. 14/15 em produção
+- [Gosto musical](feedback-gosto-musical.md) — Rocket é a régua; sons criativos (moedas); clap clássico 808/909 em vez do sintetizado
+- [Música aprovada entra na hora](feedback-musica-aprovou-entra.md) — aprovou no localhost:8000 → converte e liga numa branch de música sem perguntar de novo
+- [Versão 1.0 ainda não](feedback-sem-1-0-ainda.md) — Miguel não quer lançar a 1.0 ainda; seguir 0.9.x (0.9.10, 0.9.11…)
+- [Vídeo sem inspiração](feedback-video-sem-inspiracao.md) — régua = trailer v3; fórmula do Snorlax (1 herói, começo/meio/fim) > mistura de conceitos; rascunho curto antes
+- [Versões menos frequentes](feedback-versoes-menos-frequentes.md) — desde 23/10: juntar frentes, revisão dupla, trailerzinho; após a 0.9.51 e o jogo redondo, 1 atualização por semana (13/11)
+- [Postar pelo Chrome](reference-postar-pelo-chrome.md) — conta pessoal + perfil Miguel, /add-dir dos vídeos, aba nova por rede, pegadinhas de IG/TikTok/YT
+- [Modo mochila](feedback-modo-mochila.md) — Claude pode desligar sozinho; on [horas]|off|status
+- [Menus como ambientes](project-menus-ambientes.md) — visão 25/10: cada modo uma tela-ambiente, barra embaixo + arrastar (estilo Clash)
+- [QA dos ambientes e conceitos](feedback-qa-ambientes-e-conceitos.md) — antes do pode subir: tocar nos Pokémon dos 5 ambientes, olhar sobreposição 390/1440; mostrar conceitos que já existem na pasta
+- [Postar pelo Buffer](reference-postar-pelo-buffer.md) — API do Buffer nas 3 redes, ids, repo soccermon-midia, canal YT é a conta de marca miguel20br
+- [Sem Hacker News](feedback-sem-hacker-news.md) — Show HN cancelado em 28/10; não sugerir HN de novo
+- [Música animada é o padrão](feedback-musica-animada-ditto.md) — livre-ditto (EP 3) aprovada como novo padrão: funk animado, motivo do protagonista, BOING de assinatura
+- [Menu de modos](project-menu-de-modos.md) — 29/10: menu antes do Estádio, UT fim de nov/2026, Natal em dez, Modo História 2027; nome final Time Ultimate (não "Modo Treinador")
+- [Golpe universal](project-golpe-universal.md) — 30/10: todo capitão chuta, bicuda do goleiro, parry, efeito na bola, N3 especial; 0.9.29 depois da 0.9.28
+- [Sem Artifacts](feedback-sem-artifacts.md) — nunca publicar Artifact/Claude Docs nesta conta; entregar arquivo local
+- [Itens quebrados que combam](feedback-itens-quebrados-combam.md) — jogadores amam combo forte (juros + gol dá dinheiro); não nerfar por conservadorismo, sem extrapolar
+- [Pode subir só o aprovado](feedback-pode-subir-so-o-aprovado.md) — o que ele não viu (vídeo, falas, feature) fica fora da versão ou é perguntado pelo nome
+- [Cutscene rara pode ser longa](feedback-cutscene-rara-pode-ser-longa.md) — evento ultra raro dura o que precisar; só encurtar o que se repete
+- [Roteiro: guia, não fórmula](feedback-roteiro-guia-nao-formula.md) — episódio precisa de miolo cômico; estrutura é guia; nome do episódio no começo
+- [Comemorações com peso](feedback-animacoes-celebracao.md) — troféu só no título, créditos só no fim do Modo História, torcida com volume, sempre polir antes de mostrar
+- [Sprites clássicos](feedback-sprites-classicos.md) — prancheta e VERSUS com o sprite estático antigo, não o PMD chibi; times se encarando
+- [Modos arcade e Rota](project-modos-arcade-e-rota.md) — 11/11: Rota com ₽ + Mercado; Copa do Dia/Jogo Rápido só recompensa 1 de 3, sem Mercado
+- [Um agente pesado por vez](feedback-um-agente-pesado-por-vez.md) — 3 agentes com navegador/check/render estouram a RAM e o oomd fecha a sessão
+- [Textos diretos](feedback-patch-notes-diretas.md) — Novidades, títulos e descrições no jogo sem metáfora ("Adicionadas novas animações de final de jogo"); flavor só em nomes/falas

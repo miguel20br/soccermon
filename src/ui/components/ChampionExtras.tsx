@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
@@ -25,23 +25,38 @@ function Mini({ speciesId, shiny, name }: { speciesId: number; shiny?: boolean; 
 
 /** Recordes que o título trouxe (calculados no apito final, antes de somar no perfil). */
 export function TitleRecords({ run, rarity }: { run: RunState; rarity: Rarity | null }) {
-    const { t } = useT();
+    const { t, lang } = useT();
     const c = run.champ;
     if (!c) return null;
     const items: string[] = [c.titleNo === 1 ? t('title.records.first') : t('title.records.title', { n: c.titleNo })];
     if (c.perfectNo) items.push(t('title.records.perfect', { n: c.perfectNo }));
     for (const b of c.newBests.slice(0, 2))
         items.push(t('title.records.best', { name: b.name, r: b.rating.toFixed(1) }));
-    for (const id of c.firstTitles.slice(0, 2)) items.push(t('title.records.firstTitle', { name: species(id).name }));
     if (run.startedAt && run.endedAt) items.push(t('title.records.time', { t: duration(run.endedAt - run.startedAt) }));
     const rare = rarity && rarest(run, rarity);
     if (rare) items.push(t('title.records.rare', { p: rare.pct, name: rare.name }));
+    // o 1º título de cada Pokémon numa linha só, embaixo dos selos (3 selos empilhados gritavam junto com o título)
+    const firsts = c.firstTitles.slice(0, 3).map((id) => species(id).name);
     return (
-        <ul className="ce-records">
-            {items.map((s) => (
-                <li key={s}>{s}</li>
-            ))}
-        </ul>
+        <>
+            <ul className="ce-records">
+                {items.map((s, i) => (
+                    // o 1º (o título) é o selo dourado; os outros, azul-noite
+                    <li key={s} className={`k-seal${i ? ' k-seal-dark' : ''}`} style={{ '--i': i } as CSSProperties}>
+                        {s}
+                    </li>
+                ))}
+            </ul>
+            {firsts.length > 0 && (
+                <p className="ce-firsts">
+                    {t('title.records.firstTitles', {
+                        names: new Intl.ListFormat(lang === 'pt' ? 'pt-BR' : 'en', { type: 'conjunction' }).format(
+                            firsts,
+                        ),
+                    })}
+                </p>
+            )}
+        </>
     );
 }
 
@@ -61,15 +76,20 @@ const AWARDS: { id: string; score: (a: Agg) => number; show: (a: Agg) => string;
     { id: 'master', score: (a) => a.movesUsed, show: (a) => String(a.movesUsed) },
 ];
 
-export function CupAwards({ run }: { run: RunState }) {
-    const { t } = useT();
+/** Os prêmios da copa (quem ganhou cada um e o número); o Campeão põe os 2 primeiros em destaque. */
+export function cupAwardList(run: RunState) {
     const players = aggregate(run.results);
-    const list = AWARDS.flatMap((aw) => {
+    return AWARDS.flatMap((aw) => {
         const pool = players.filter((a) => aw.score(a) > 0 && (aw.min?.(a) ?? true));
         if (!pool.length) return [];
         const who = pool.reduce((a, b) => (aw.score(b) > aw.score(a) ? b : a));
         return [{ id: aw.id, who, v: aw.show(who) }];
     });
+}
+
+export function CupAwards({ run }: { run: RunState }) {
+    const { t } = useT();
+    const list = cupAwardList(run);
     if (!list.length) return null;
     return (
         <>

@@ -1,15 +1,22 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { computeAttributes } from '../../engine/attributes';
 import { SPECIES, species } from '../../engine/data';
 import { evolveInstance } from '../../engine/evolution';
-import { createInstance, evolutionBonus, type PokemonInstance, viewInstance } from '../../engine/instance';
+import {
+    createInstance,
+    evolutionBonus,
+    instanceBase,
+    type PokemonInstance,
+    viewInstance,
+} from '../../engine/instance';
 import { Rng } from '../../engine/rng';
 import { type Edition, EVENT_TYPES, ICONS, type Special, specialBonus } from '../../engine/specials';
 import { SPONSOR_IDS } from '../../engine/sponsors';
+import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
 import { FoulCard } from '../components/FoulCard';
+import { FutCard } from '../components/FutCard';
 import { PokeCard2 } from '../components/PokeCard2';
 import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
@@ -21,6 +28,8 @@ import { TYPE_PT } from '../type-colors';
  * (?cards=1&arquivo=1, `CardArchive.tsx`, carregado só nessa rota).
  */
 const CardArchive = lazy(() => import('./CardArchive').then((m) => ({ default: m.CardArchive })));
+/** Proposta da edição Retrô (sprite de Game Boy): pedaço à parte, só na galeria. */
+const RetroCards = lazy(() => import('./RetroCards').then((m) => ({ default: m.RetroCards })));
 
 function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null } = {}): PokemonInstance {
     const inst = createInstance(speciesId, new Rng(`galeria-${speciesId}`));
@@ -28,6 +37,13 @@ function sample(speciesId: number, opts: { shiny?: boolean; item?: string | null
 }
 
 const SHOWCASE_DEFAULT = sample(150, { item: 'twistedspoon' });
+
+/** Golpe treinado: Clefairy com Thunderbolt ensinado por MT (selo "MT" onde o golpe aparece). */
+const TAUGHT_SAMPLE = (() => {
+    const inst = sample(35);
+    const slot = inst.moves.findIndex((_, i) => !isProtectedMove(inst, i));
+    return teachMove(inst, 'thunderbolt', slot) ?? inst;
+})();
 
 /** A mesma carta em cada edição especial (pra vitrine e pra galeria). */
 function withEdition(inst: PokemonInstance, ed: Edition | 'none'): PokemonInstance {
@@ -140,7 +156,7 @@ interface Step {
 }
 function stepNumbers(inst: PokemonInstance) {
     const view = viewInstance(inst);
-    const base = computeAttributes(view.species, inst.level);
+    const base = instanceBase(inst);
     const bonus = specialBonus(inst) + evolutionBonus(inst);
     const keys = Object.keys(base) as (keyof typeof base)[];
     const at99 = keys.filter((k) => base[k] + bonus >= 99).length;
@@ -163,6 +179,21 @@ const CATERPIE: Step[] = [
     ...[1, 2, 3].map((n) => ({ label: `Shiny Evento MVP ${n}`, inst: caterpie(true, evt('Bug', n)) })),
     { label: 'Evoluiu: Metapod', inst: evolveInstance(bugMvp3, 11) },
     { label: 'Evoluiu: Butterfree', inst: evolveInstance(evolveInstance(bugMvp3, 11), 12) },
+];
+
+const karp: PokemonInstance = { ...sample(129), ability: 'swiftswim' };
+const MAGIKARP: Step[] = [
+    { label: 'Magikarp (clube, sem vaga)', inst: karp },
+    { label: 'Evoluiu na Ala: Gyarados', inst: evolveInstance(karp, 130, 'ALA') },
+    { label: 'Gyarados do pacote', inst: sample(130) },
+];
+
+/** O ▲ da carta (Miguel, 09/11/2026, opção 1): o número é o que vale em campo e o ▲ quanto disso é bônus. */
+const ARROW_CARDS: Step[] = [
+    { label: 'Magikarp (Swift Swim)', inst: karp },
+    { label: 'Gyarados que evoluiu (Swift Swim)', inst: evolveInstance(karp, 130) },
+    { label: 'Gyarados do pacote', inst: sample(130) },
+    { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
 ];
 
 function Ladder({ steps }: { steps: Step[] }) {
@@ -317,6 +348,9 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
             </div>
 
             <div className="cg-v06">
+                <Suspense fallback={null}>
+                    <RetroCards />
+                </Suspense>
                 <section className="panel" id="cartoes">
                     <h2>Cartão amarelo e vermelho (Copa longa, tela de resultado)</h2>
                     <p className="tactic-desc">
@@ -408,6 +442,18 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     <Ladder steps={MEWTWO} />
                     <h3 className="cb-sub">Caterpie até Butterfree (Evento Inseto, shiny, MVP 3 e 2 evoluções)</h3>
                     <Ladder steps={CATERPIE} />
+                    <h3 className="cb-sub" id="magikarp">
+                        Magikarp e o selo de evolução
+                    </h3>
+                    <Ladder steps={MAGIKARP} />
+                </section>
+                <section className="panel" id="seta">
+                    <h2>O ▲ da carta</h2>
+                    <p className="muted cb-intro">
+                        O número é sempre o que vale em campo (evolução, edição, habilidade, item e Fada). O ▲ diz
+                        quanto desse número é bônus. A nota grande não muda.
+                    </p>
+                    <Ladder steps={ARROW_CARDS} />
                 </section>
                 <section className="panel" id="evento-tipos">
                     <h2>Evento por tipo</h2>
@@ -452,6 +498,18 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         ))}
                     </div>
                 </section>
+                <section className="panel" id="mt">
+                    <h2>Golpe treinado (MT)</h2>
+                    <p className="tactic-desc">
+                        Golpe ensinado por MT: +1 uso por partida, 30% mais forte e a IA usa ele primeiro. O selo MT
+                        aparece em todo lugar que mostra o golpe (carta, painel, prévia). Toque na carta pra ver a
+                        lista.
+                    </p>
+                    <div className="cg-row">
+                        <FutCard inst={TAUGHT_SAMPLE} fullButton />
+                        <PokeCard2 inst={TAUGHT_SAMPLE} variant="tcg" size="md" />
+                    </div>
+                </section>
                 <section className="panel">
                     <h2>Ícones ({ICON_SAMPLES.length})</h2>
                     <div className="cg-row cg-icons">
@@ -475,6 +533,7 @@ function FoulReplay() {
     const [n, setN] = useState(0);
     return (
         <div key={n}>
+            <FoulCard kind="forgiven" />
             <FoulCard kind="yellow" />
             <FoulCard kind="red" remaining={4} />
             <button type="button" className="btn small" onClick={() => setN(n + 1)}>

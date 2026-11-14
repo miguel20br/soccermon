@@ -1,0 +1,135 @@
+/* Conceito B do menu de modos (?lab=menu-modos); o C (fatias) é o menu de verdade (mode-menu.css). */
+/* ========================================================================== B: carrossel de pôsteres */
+.mm-b-track {
+    --pw: min(calc(74 * var(--vw)), 360px);
+    flex: 1;
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    margin: 0 -16px;
+    padding: 10px calc((100% - var(--pw)) / 2 + 16px) 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+.mm-b-track::-webkit-scrollbar {
+    display: none;
+}
+.mm-poster {
+    flex: none;
+    width: var(--pw);
+    min-height: 460px;
+    scroll-snap-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    transform: scale(0.9);
+    filter: brightness(0.6) saturate(0.8);
+    transition:
+        transform var(--dur-tela) var(--ease-out),
+        filter var(--dur-tela) var(--ease-out);
+}
+.mm-poster .mm-sc {
+    position: relative;
+    inset: auto;
+    flex: 1;
+    min-height: 0;
+    border-bottom: 3px solid var(--cb-ink);
+}
+.mm-poster.on {
+    transform: none;
+    filter: none;
+}
+.mm-poster-txt {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px 14px;
+}
+.mm-poster .cb-num {
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+}
+.mm-b-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.mm-b-dots button {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: 2px solid var(--cb-ink);
+    border-radius: 2px;
+    background: var(--line);
+    transition:
+        width var(--dur-ui) var(--ease-out),
+        background var(--dur-ui) var(--ease-out);
+}
+.mm-b-dots button.on {
+    width: 26px;
+    background: var(--yellow);
+}
+.mm-b-cta {
+    display: grid;
+    width: min(100%, 420px);
+    margin: 0 auto;
+}
+.mm-swap {
+    grid-area: 1 / 1;
+    display: grid;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+    pointer-events: none;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-ui) var(--ease-out);
+}
+.mm-swap.on {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+}
+.mm-b-soon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 64px;
+    border: 3px dashed var(--line);
+    border-radius: 10px;
+    background: #1b2147;
+    color: var(--yellow);
+    font:
+        700 15px / 1 "Galmuri11",
+        monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.mm-b-soon .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+@media (min-width: 900px) {
+    .mm-b-track {
+        --pw: 380px;
+    }
+    .mm-poster {
+        min-height: 560px;
+    }
+    .mm-poster .cb-num {
+        --gs: 34px;
+        font-size: var(--gfs, 34px);
+    }
+}
+
+/* ---------- seletor do laboratório ---------- */
+.mm-switch {
+    position: fixed;
+    z-index: 20;
+    right: 12px;
+    bottom: 12px;
+}

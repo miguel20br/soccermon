@@ -1,0 +1,67 @@
+{
+ "faixa": "tema-erika",
+ "titulo": "Tema da Erika",
+ "tela": "Líder de ginásio: Erika (Celadon)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 61.534966,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.285714,
+   "amostras": [
+    0,
+    189000
+   ],
+   "bpm": 112,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.285714,
+   "fim": 61.534966,
+   "amostras": [
+    189000,
+    2713692
+   ],
+   "bpm": 112,
+   "compassos": 25
+  }
+ ],
+ "swing": 0.06,
+ "swingEm": 16,
+ "tempos": [
+  [
+   21.428571,
+   104
+  ],
+  [
+   23.736264,
+   96
+  ],
+  [
+   26.236264,
+   88
+  ],
+  [
+   28.963536,
+   80
+  ],
+  [
+   37.963536,
+   112
+  ]
+ ],
+ "gancho": {
+  "hits": [
+   [
+    57.249,
+    57.659,
+    58.053
+   ]
+  ]
+ }
+}

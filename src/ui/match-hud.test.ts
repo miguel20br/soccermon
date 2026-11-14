@@ -2,16 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { MatchResult } from '../engine/runners/batch-runner';
 import type { MatchEvent } from '../engine/state';
 import { setLang } from '../i18n';
-import {
-    AUTO_RESULT_MS,
-    autoResultStep,
-    type Clock,
-    clockLabel,
-    clockParts,
-    finalOutcome,
-    pickTab,
-    subSuggestion,
-} from './components/MatchHud';
+import { type Clock, clockLabel, clockParts, finalOutcome, pickTab, subSuggestion } from './components/MatchHud';
 import { clockExtrasAt, PRESSURE_BINS, pressureUntil } from './match-view';
 
 const ev = (e: Partial<MatchEvent> & { type: MatchEvent['type'] }) => ({ half: 1, ...e }) as MatchEvent;
@@ -98,16 +89,7 @@ describe('relógio do placar em duas linhas', () => {
     });
 });
 
-describe('fim de jogo: vai sozinho pro resultado', () => {
-    it('espera ~3 s e vai', () => {
-        expect(AUTO_RESULT_MS).toBe(3000);
-        expect(autoResultStep(0, false)).toBe('wait');
-        expect(autoResultStep(2900, false)).toBe('wait');
-        expect(autoResultStep(3000, false)).toBe('go');
-    });
-    it('um toque na quadra segura: nunca vai sozinho', () => {
-        expect(autoResultStep(10_000, true)).toBe('held');
-    });
+describe('fim de jogo', () => {
     it('faixa do placar: vitória, derrota, empate e pênaltis, do lado de quem vê', () => {
         expect(finalOutcome([5, 4], null, 0)).toBe('win');
         expect(finalOutcome([5, 4], null, 1)).toBe('loss');

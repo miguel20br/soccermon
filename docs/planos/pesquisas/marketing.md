@@ -1,3 +1,7 @@
+---
+description: Diagnóstico de marketing e plano de 4 semanas para a 0.8.6 e a 0.8.7.
+---
+
 # Marketing do Soccermon: diagnóstico, pesquisa e plano de 4 semanas (0.8.6 e 0.8.7)
 
 Feito em 18/10/2026 a partir de `npm run stats -- --dias 7`, `gh` (releases, Discussions, tráfego do repo), git log e

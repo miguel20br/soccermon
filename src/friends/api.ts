@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { type PublicInfo, publicInfo } from '../league/api';
 import type { Peer } from '../net/duel-state';
+import { type ClubLook, lookOfPeer } from '../store/club-kit';
 import { duelWins } from '../store/duels';
 import { type GameState, useGame } from '../store/game-store';
-import { playedCount } from '../store/profile';
+import { clubColorHex, playedCount } from '../store/profile';
 
 /**
  * Amigos (docs/planos/amigos.md): código de amigo, pedido → aceite, lista, desafiar pro Duelo, remover e bloquear.
@@ -28,7 +29,16 @@ export interface FriendRow {
     room_at: string | null;
     /** Amigo com o jogo aberto nos últimos 150 s (só vem pra amigo aceito). */
     online?: boolean;
+    /** Formato, símbolo, 2ª cor e uniforme, tirados da vitrine dele (20261029120000_escudo_do_amigo.sql). Dado de fora. */
+    escudo?: unknown;
 }
+
+/** O escudo do amigo: o de verdade quando vem `escudo` (lookOfPeer valida cada campo); sem ele, o padrão na cor dele. */
+export const friendLook = (r: Pick<FriendRow, 'club_color' | 'escudo'>): ClubLook =>
+    lookOfPeer({
+        ...(r.escudo && typeof r.escudo === 'object' ? r.escudo : {}),
+        clubColor: clubColorHex(r.club_color),
+    });
 
 export type AskStatus =
     | 'enviado'
@@ -120,6 +130,10 @@ export const normalizeFriendCode = (s: string) =>
         .slice(0, FRIEND_CODE_LEN);
 /** "K7M2QXAB" → "K7M2 QXAB" (fácil de ditar). */
 export const formatFriendCode = (code: string) => `${code.slice(0, 4)} ${code.slice(4)}`;
+
+/** Respostas do amigos_desafiar (qualquer outra coisa, ou erro do RPC, vira 'offline'). */
+const CHALLENGE_STATUS = ['enviado', 'nao_achei', 'rapido_demais', 'sala', 'offline'] as const;
+export type ChallengeStatus = (typeof CHALLENGE_STATUS)[number];
 
 /** Desafio vale 15 minutos (o banco também confere). */
 export const CHALLENGE_MS = 15 * 60 * 1000;
@@ -257,6 +271,8 @@ interface FriendsState {
     status: 'loading' | 'ok' | 'off' | 'error' | null;
     /** "Desafiar" foi tocado: a próxima sala criada no Duelo chama esse amigo. */
     challenging: { code: string; trainer: string } | null;
+    /** O que o banco respondeu ao desafio da sala que acabou de nascer (a sala mostra; erro pede o link). */
+    challengeSent: { trainer: string; status: ChallengeStatus } | null;
     /** Salas dos avisos que a pessoa fechou (o aviso por cima da tela não volta). */
     dismissed: string[];
     /** A aba Amigos está aberta (o aviso por cima não repete o que a lista já mostra). */
@@ -268,12 +284,15 @@ export const useFriends = create<FriendsState>(() => ({
     rows: null,
     status: null,
     challenging: null,
+    challengeSent: null,
     dismissed: [],
     listOpen: false,
 }));
-// saiu do Duelo sem criar a sala: o desafio não fica pendurado pra próxima vez
-useGame.subscribe((s) => {
-    if (s.screen !== 'duel' && useFriends.getState().challenging) useFriends.setState({ challenging: null });
+// saiu do Duelo sem criar a sala: o desafio não fica pendurado pra próxima vez. Só na troca de tela saindo do Duelo:
+// a tela nova chega depois do resto do estado (screen-transition.ts), e olhar só `screen !== 'duel'` apagava o
+// desafio no caminho do Perfil pro Duelo (o convite nunca saía)
+useGame.subscribe((s, prev) => {
+    if (prev.screen === 'duel' && s.screen !== 'duel') useFriends.setState({ challenging: null, challengeSent: null });
 });
 
 let cardKey = '';
@@ -348,12 +367,23 @@ export async function friendAction<T>(fn: (s: FriendsServer) => Promise<T>): Pro
     return r;
 }
 
+/** "Desafiar": guarda o amigo e abre o Duelo; a sala que nascer chama ele (sendPendingChallenge). */
+export function challengeFriend(r: { code: string; trainer: string }) {
+    useFriends.setState({ challenging: { code: r.code, trainer: r.trainer } });
+    useGame.getState().go('duel');
+}
+
 /** Depois que a sala do Duelo nasce: manda o desafio pro amigo escolhido no "Desafiar". */
 export async function sendPendingChallenge(room: string) {
     const c = useFriends.getState().challenging;
     if (!c) return null;
-    useFriends.setState({ challenging: null });
-    return server.challenge(c.code, room);
+    useFriends.setState({ challenging: null, challengeSent: null });
+    const r = await server.challenge(c.code, room).catch(() => 'offline');
+    const status: ChallengeStatus = (CHALLENGE_STATUS as readonly string[]).includes(r)
+        ? (r as ChallengeStatus)
+        : 'offline';
+    useFriends.setState({ challengeSent: { trainer: c.trainer, status } });
+    return status;
 }
 
 // ------------------------------------------------------------------ online e avisos na hora

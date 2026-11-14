@@ -40,15 +40,24 @@ describe('vitrine', () => {
         expect(shopOffers({ ...base, reroll: 1 })).not.toEqual(shopOffers(base));
     });
 
-    it('2 Pokémon, pacote, item ou MT e um Patrocínio que você não tem', () => {
+    it('2 Pokémon, pacote, item e um Patrocínio que você não tem', () => {
         const kinds = shopOffers(base).map((o) => o.kind);
         expect(kinds.filter((k) => k === 'pokemon')).toHaveLength(2);
         expect(kinds).toContain('pack');
-        expect(kinds.some((k) => k === 'item' || k === 'tm')).toBe(true);
+        expect(kinds).toContain('item');
         const all = SPONSOR_IDS.filter((id) => id !== 'silph');
         expect(shopOffers({ ...base, sponsors: all }).find((o) => o.kind === 'sponsor')).toMatchObject({ id: 'silph' });
         const loja = shopOffers({ ...base, sponsors: ['loja'] }).filter((o) => o.kind === 'pokemon');
         expect(loja).toHaveLength(3);
+    });
+
+    it('MT não vai mais pra vitrine (fica na recompensa do ginásio); a vaga é sempre um item', () => {
+        for (let r = 0; r < 40; r++)
+            for (const stage of [0, 1, 2]) {
+                const kinds = shopOffers({ ...base, seed: `mt-${r}`, stage }).map((o) => o.kind);
+                expect(kinds).not.toContain('tm');
+                expect(kinds.filter((k) => k === 'item')).toHaveLength(1);
+            }
     });
 
     it('pacote nunca sai de um tipo que o time já tem inteiro (pacote vazio travava o Mercado)', () => {

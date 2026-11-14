@@ -186,11 +186,12 @@ export class ClipRecorder {
         const cropW = (src.height * COURT.w) / COURT.h;
         const kx = src.width / (this.scene.scale.width || src.width);
         const ball = this.scene.ballOnScreen();
-        const target = Math.max(0, Math.min(src.width - cropW, ball.x * kx - cropW / 2));
+        // camX em px do jogo: o governador de fps pode trocar a resolução do canvas no meio do clipe
+        const target = Math.max(0, Math.min((src.width - cropW) / kx, ball.x - cropW / kx / 2));
         this.camX = this.camX === null ? target : this.camX + (target - this.camX) * 0.12;
-        this.scene.setClipView(this.camX / kx, cropW / kx);
+        this.scene.setClipView(this.camX, cropW / kx);
         ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(src, this.camX, 0, cropW, src.height, COURT.x, COURT.y, COURT.w, COURT.h);
+        ctx.drawImage(src, this.camX * kx, 0, cropW, src.height, COURT.x, COURT.y, COURT.w, COURT.h);
         ctx.fillStyle = INK;
         ctx.fillRect(0, COURT.y - 6, CLIP_W, 6);
         ctx.fillRect(0, COURT.y + COURT.h, CLIP_W, 6);

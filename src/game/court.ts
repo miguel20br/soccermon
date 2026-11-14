@@ -11,10 +11,48 @@ export const GAME_H = W * PPM + MARGIN * 2;
 export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN + y * PPM });
 
 /**
- * Quadra de futsal com a pokébola no círculo central: madeira por padrão, ou a do ginásio (`COURTS` em
- * court-themes.ts). Um Graphics só, desenhado uma vez.
+ * Quadra da partida: o Graphics (~26 mil comandos) vira textura uma vez e entra como imagem; desenhado direto, o
+ * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem `res` px por px do jogo
+ * (`courtRes`: o dobro no mínimo, pros zooms dos lances, até 1.6, continuarem nítidos; 3 com o canvas a 3).
  */
-export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2) {
+    const key = 'court-baked';
+    const bake = () => {
+        const g = courtGraphics(scene, theme).setScale(res);
+        if (scene.textures.exists(key)) scene.textures.remove(key);
+        scene.textures
+            .addDynamicTexture(key, GAME_W * res, GAME_H * res)
+            ?.draw(g)
+            .render();
+        g.destroy();
+    };
+    bake();
+    const img = scene.add
+        .image(0, 0, key)
+        .setOrigin(0)
+        .setScale(1 / res)
+        .setDepth(-1000);
+    // o contexto WebGL perdido (celular em segundo plano, memória) apaga a textura desenhada: refaz quando ele volta
+    const renderer = scene.renderer;
+    const restore = () => {
+        bake();
+        img.setTexture(key);
+    };
+    renderer.on('restorewebgl', restore);
+    // a cena acabando ou a quadra refeita em outra resolução
+    img.once('destroy', () => renderer.off('restorewebgl', restore));
+    return img;
+}
+
+/** Resolução da textura da quadra pra um canvas com `res` px por px do jogo (2 no mínimo; inteira). */
+export const courtRes = (res: number) => Math.max(2, Math.ceil(res - 0.05));
+
+/**
+ * Quadra de futsal com a bola no círculo central (a pokébola como símbolo saiu, brand guide): madeira por padrão,
+ * ou a do ginásio (`COURTS` em court-themes.ts). Um Graphics só (o lab de quadras tira foto dele; a partida usa
+ * `drawCourt`).
+ */
+export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
     const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
@@ -34,15 +72,17 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
     const mid = toPx(L / 2, W / 2);
     g.lineBetween(mid.x, tl.y, mid.x, tl.y + W * PPM);
     g.strokeCircle(mid.x, mid.y, 3 * PPM);
-    g.fillStyle(0xe8423f, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, Math.PI, 0, false)
-        .fillPath();
-    g.fillStyle(0xffffff, 0.35)
-        .slice(mid.x, mid.y, 2.2 * PPM, 0, Math.PI, false)
-        .fillPath();
-    g.lineStyle(2, 0xffffff, 0.95).lineBetween(mid.x - 2.2 * PPM, mid.y, mid.x + 2.2 * PPM, mid.y);
-    g.fillStyle(0xffffff, 1).fillCircle(mid.x, mid.y, 0.55 * PPM);
-    g.lineStyle(2, 0x333333, 0.6).strokeCircle(mid.x, mid.y, 0.55 * PPM);
+    // a bola de futsal pintada no meio: disco claro, o pentágono do centro e as 5 costuras
+    const R = 2.2 * PPM;
+    const vx = (i: number, r: number) => mid.x + r * Math.sin((i * 2 * Math.PI) / 5);
+    const vy = (i: number, r: number) => mid.y - r * Math.cos((i * 2 * Math.PI) / 5);
+    g.fillStyle(0xffffff, 0.35).fillCircle(mid.x, mid.y, R);
+    g.fillStyle(0x0e1430, 0.4).beginPath();
+    for (let i = 0; i < 5; i++) g[i ? 'lineTo' : 'moveTo'](vx(i, 0.42 * R), vy(i, 0.42 * R));
+    g.closePath().fillPath();
+    g.lineStyle(2, 0x0e1430, 0.4);
+    for (let i = 0; i < 5; i++) g.lineBetween(vx(i, 0.42 * R), vy(i, 0.42 * R), vx(i, R), vy(i, R));
+    g.lineStyle(2, 0xffffff, 0.95).strokeCircle(mid.x, mid.y, R);
 
     g.lineStyle(2, 0xffffff, 0.95);
     areaPath(g, 0, false);
@@ -59,7 +99,6 @@ export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         }
         g.lineStyle(3, 0xffffff, 1).strokeRect(top.x, top.y, PPM, GW * PPM);
     }
-    g.setDepth(-1000);
     return g;
 }
 
@@ -179,4 +218,93 @@ export function ensureBallTexture(scene: Phaser.Scene) {
     g.lineStyle(1.5, 0x222222, 1).strokeCircle(cx, cy, r);
     g.generateTexture('ball', r * 2 + 2, r * 2 + 2);
     g.destroy();
+}
+
+/**
+ * A rede do gol `side` (0 = o da esquerda) estufando com a bola que entrou na altura `yPx` (px da tela): o fundo vai pra
+ * fora (até 0,9 m: cabe na beira da quadra) e os fios abrem em volta de onde a bola bateu, tremendo até parar (`ms`).
+ * Desenhada por cima da rede pintada, embaixo dos Pokémon. "Reduzir movimento": estufa uma vez e volta, sem tremer.
+ */
+export function netRipple(scene: Phaser.Scene, side: 0 | 1, yPx: number, color: number, reduce: boolean, ms = 1500) {
+    const g = scene.add.graphics().setDepth(0);
+    const out = side === 0 ? -1 : 1;
+    const x0 = toPx(side === 0 ? 0 : L, 0).x;
+    const top = toPx(0, W / 2 - GW / 2).y;
+    const h = GW * PPM;
+    const hit = Math.min(1, Math.max(0, (yPx - top) / h));
+    // o tanto que cada ponto da rede anda: 0 nas traves e na linha do gol, o máximo onde a bola bateu
+    const near = (f: number) => Math.sin(Math.PI * f) * (0.35 + 0.65 * Math.exp(-((f - hit) * (f - hit)) / 0.06));
+    const draw = (t: number) => {
+        // estufa na hora e vai murchando, tremendo (sec = segundos)
+        const sec = (t * ms) / 1000;
+        const amp = (reduce ? 1 : Math.exp(-1.4 * sec) * (0.75 + 0.25 * Math.cos(20 * sec))) * (1 - t) * 0.9 * PPM;
+        // o ponto (d = 0 na linha do gol, 1 no fundo; f = 0 numa trave, 1 na outra)
+        const at = (d: number, f: number) => ({
+            x: x0 + out * d * (PPM + amp * near(f)),
+            y: top + f * h + Math.sign(f - hit) * amp * 0.3 * Math.sin(Math.PI * d) * near(f),
+        });
+        const line = (pts: { x: number; y: number }[]) => {
+            g.beginPath().moveTo(pts[0].x, pts[0].y);
+            for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+            g.strokePath();
+        };
+        const alpha = 0.95 * (1 - t * 0.5);
+        g.clear();
+        g.lineStyle(2.5, 0xffffff, alpha);
+        for (let i = 0; i <= 6; i++) line(Array.from({ length: 7 }, (_, j) => at(j / 6, i / 6)));
+        for (const d of [1 / 3, 2 / 3, 1]) {
+            g.lineStyle(d === 1 ? 4 : 2.5, d === 1 ? color : 0xffffff, alpha);
+            line(Array.from({ length: 13 }, (_, j) => at(d, j / 12)));
+        }
+    };
+    scene.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: ms,
+        onUpdate: (tw) => draw(tw.getValue() ?? 1),
+        onComplete: () => g.destroy(),
+    });
+}
+
+/** A trave tremendo: quanto dura (ms) e o deslocamento máximo (px). */
+export const POST_SHAKE = { ms: 650, px: 5, hz: 7 } as const;
+
+/** Deslocamento da trave (px, pra fora do gol) `ms` depois da bolada: balança e amortece até parar. */
+export function postShakeAt(ms: number): number {
+    if (ms < 0 || ms >= POST_SHAKE.ms) return 0;
+    const sec = ms / 1000;
+    return POST_SHAKE.px * Math.sin(2 * Math.PI * POST_SHAKE.hz * sec) * (1 - ms / POST_SHAKE.ms) ** 1.5;
+}
+
+/**
+ * A bola na trave do gol `side` (0 = o da esquerda), na altura `yPx`: a armação (traves e rede de lado) balança pra
+ * frente e pra trás e amortece, mais perto da trave que levou a bolada. Por cima da pintada, embaixo dos Pokémon.
+ * "Reduzir movimento": nada.
+ */
+export function postShake(scene: Phaser.Scene, side: 0 | 1, yPx: number, reduce: boolean) {
+    if (reduce) return;
+    const g = scene.add.graphics().setDepth(0);
+    const out = side === 0 ? -1 : 1;
+    const x0 = toPx(side === 0 ? 0 : L, 0).x;
+    const top = toPx(0, W / 2 - GW / 2).y;
+    const h = GW * PPM;
+    // 0 = trave de cima, 1 = a de baixo: a que levou a bolada balança inteira, a outra quase nada
+    const hit = Math.min(1, Math.max(0, (yPx - top) / h));
+    scene.tweens.addCounter({
+        from: 0,
+        to: POST_SHAKE.ms,
+        duration: POST_SHAKE.ms,
+        onUpdate: (tw) => {
+            const d = postShakeAt(tw.getValue() ?? 0);
+            const at = (f: number) => d * (0.25 + 0.75 * (1 - Math.abs(f - hit)));
+            const a = at(0);
+            const b = at(1);
+            g.clear().lineStyle(4, 0xffffff, 1);
+            // linha do gol (o travessão visto de cima) e as duas redes de lado, até o fundo
+            g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * b, top + h + b * 0.3);
+            g.lineBetween(x0 + out * a, top - a * 0.3, x0 + out * (PPM + a * 0.5), top);
+            g.lineBetween(x0 + out * b, top + h + b * 0.3, x0 + out * (PPM + b * 0.5), top + h);
+        },
+        onComplete: () => g.destroy(),
+    });
 }

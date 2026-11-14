@@ -91,6 +91,22 @@ export interface Profile {
     redeemedTitles: string[];
     /** Selo NOVO (news.ts): o que já foi visto. Sem o campo = save de antes dele (o que já tinha conta como visto). */
     seen?: string[];
+    /** Balões do tutorial já mostrados (coach.ts). Sem o campo = save de antes deles (o que já jogou conta como visto). */
+    coach?: string[];
+    /** Cartões das Notícias já vistos (ui/news.ts, ids). Sem o campo = nenhum visto. */
+    newsSeen?: string[];
+    /** Abas dos ambientes que já acenderam (coach.ts, `ambLit`). Sem o campo = save de antes delas. */
+    ambLit?: string[];
+}
+
+/**
+ * O nome do treinador, o mesmo em todo lugar (Perfil, barra de cima, Duelo, Copa do Dia, Liga, Amigos): o que ele
+ * escolheu; senão o primeiro nome da conta Google (o nome completo nunca sai do aparelho; e-mail nunca); senão ''
+ * (quem chama põe "Treinador").
+ */
+export function trainerNameOf(p: Pick<Profile, 'trainerName'>, googleName?: string | null): string {
+    const first = googleName?.trim().split(/\s+/)[0] ?? '';
+    return p.trainerName.trim() || (first.includes('@') ? '' : first.slice(0, 40));
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -172,6 +188,27 @@ export const seenCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =
 /** Jogaram pelo seu time (`isPlayed`): Pokédex, Carvalho dourado, medalha Elenco, platina e Kanto completo. */
 export const playedCount = (dex: Dex, list: readonly { id: number }[] = SPECIES) =>
     list.filter((sp) => isPlayed(dex[sp.id])).length;
+
+/** A carta favorita: quem mais jogou pelo seu time (desempate: minutos, depois o número da Pokédex). */
+export function favoriteSpecies(dex: Dex): number | null {
+    let best: [number, DexEntry] | null = null;
+    for (const [k, e] of Object.entries(dex)) {
+        if (!e.matches) continue;
+        if (!best || e.matches > best[1].matches || (e.matches === best[1].matches && e.minutes > best[1].minutes))
+            best = [Number(k), e];
+    }
+    return best?.[0] ?? null;
+}
+
+/**
+ * Espécies que eram novas pra Pokédex no instante em que as cartas da tela nasceram. O jogo grava o "visto" quando a
+ * carta aparece, então o selo NOVO não pode olhar a Dex na hora de desenhar: olha esta lista (e a Dex, pras cartas
+ * que ainda não foram gravadas, como a recompensa). Não vai pro save.
+ */
+export const freshSpecies = new Set<number>();
+
+/** O selo NOVO: a espécie ainda não estava na Pokédex quando a carta apareceu. */
+export const isNovo = (dex: Dex, speciesId: number) => !dex[speciesId] || freshSpecies.has(speciesId);
 
 /** Marca espécies como vistas (não mexe em quem já está na Dex). Devolve o mesmo objeto se nada mudou. */
 export function markSeen(dex: Dex, ids: Iterable<number>): Dex {

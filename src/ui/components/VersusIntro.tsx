@@ -5,15 +5,17 @@ import { species } from '../../engine/data';
 import { formationOf } from '../../engine/formations';
 import { viewInstance } from '../../engine/instance';
 import type { TeamSetup } from '../../engine/state';
+import { computeSynergies } from '../../engine/synergy';
 import { GYM_TM } from '../../engine/tm';
-import { playSfx } from '../../game/audio';
-import { clubName, formationText } from '../../i18n';
+import { playCry, playSfx } from '../../game/audio';
+import { clubName, formationText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type ClubLook, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
 import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
+import { usePixelFit } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
@@ -29,6 +31,8 @@ const INTRO_MS = 1650;
 export const SLOW_MS = 15000;
 /** Quando o VS bate na tela (casa com o atraso + 60% de `vsp-slam` no versus.css). */
 const SLAM_MS = 1000;
+/** Entre o grito do capitão rival e o do seu (o do rival acaba antes do seu começar, quase sempre). */
+const CRY_GAP_MS = 900;
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 /** Tamanho natural moderado: o Pikachu fica um pouco menor que o Dragonite, sem sumir. */
 const sizeOf = (heightm: number) => Math.min(1.1, Math.max(0.86, 0.94 + 0.1 * Math.log2(Math.max(0.1, heightm))));
@@ -81,6 +85,7 @@ function Squad({ team, trainer }: { team: TeamSetup; trainer?: TrainerId }) {
                         src={cardSprite(p)}
                         alt={viewInstance(p).displayName}
                         draggable={false}
+                        data-px="tight"
                     />
                 );
             })}
@@ -116,14 +121,14 @@ export function VsStartButton({
         );
     if (startsIn !== undefined)
         return (
-            <div className={`btn primary vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
+            <div className={`btn primary big vs-start vs-countdown${ready ? '' : ' loading'}`} role="status">
                 {ready ? t('match.vs.startsIn', { s: startsIn }) : t('match.vs.loading')}
             </div>
         );
     return (
         <button
             type="button"
-            className={`btn primary vs-start${ready ? '' : ' loading'}`}
+            className={`btn primary big vs-start${ready ? '' : ' loading'}`}
             disabled={!ready}
             aria-busy={!ready}
             onClick={ready ? onStart : undefined}
@@ -201,32 +206,35 @@ function Side({
                         <div className="vsp-meta">
                             {formationText(formationOf(team.formation).id).name} · {d.common.tactic[team.tactic]}
                         </div>
-                        {coach && (
-                            <CoachTag onOpen={coach.onOpen} name={coach.name}>
-                                {coach.avatar && (
-                                    <img
-                                        className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
-                                        src={coach.avatar}
-                                        alt=""
-                                        referrerPolicy="no-referrer"
-                                    />
-                                )}
-                                <span>
-                                    <b>{coach.name}</b>
-                                    {coach.title && (
-                                        <small>
-                                            <span className={coach.titleLook || undefined}>{coach.title}</span>
-                                        </small>
+                        {/* treinador e vitrine: soltos na grade (deitado e PC), numa linha só no celular em pé */}
+                        <div className="vsp-coachrow">
+                            {coach && (
+                                <CoachTag onOpen={coach.onOpen} name={coach.name}>
+                                    {coach.avatar && (
+                                        <img
+                                            className={`${coach.avatarGoogle ? '' : 'pixel'}${frameClass(coach.frame ?? 0)}`}
+                                            src={coach.avatar}
+                                            alt=""
+                                            referrerPolicy="no-referrer"
+                                        />
                                     )}
-                                </span>
-                            </CoachTag>
-                        )}
-                        {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
-                        {!!coach?.showcase?.length && (
-                            <div className="vsp-shows">
-                                <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
-                            </div>
-                        )}
+                                    <span>
+                                        <b>{coach.name}</b>
+                                        {coach.title && (
+                                            <small>
+                                                <span className={coach.titleLook || undefined}>{coach.title}</span>
+                                            </small>
+                                        )}
+                                    </span>
+                                </CoachTag>
+                            )}
+                            {/* vitrine de medalhas embaixo do treinador (as cartas ficam no cartão dele) */}
+                            {!!coach?.showcase?.length && (
+                                <div className="vsp-shows">
+                                    <ShowcaseRow items={coach.showcase} className="vsp-showcase" />
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className={`vsp-avg ${tierOf(avg)}`}>
                         <b>{avg}</b>
@@ -302,18 +310,25 @@ export function VersusIntro({
     const club = CLUBS.find((c) => c.name === away.name);
     const final = club?.city === 'Indigo Plateau';
 
-    // som do VS batendo; com "reduzir movimento" o VS já aparece no lugar, então o som vem junto
+    // som do VS batendo e, logo depois, o grito dos dois capitães (o rival, depois o seu); com "reduzir movimento" o VS
+    // já aparece no lugar, então o som vem junto
+    const captainOf = (t: TeamSetup) => (t.lineup.find((p) => p.uid === t.captainUid) ?? t.lineup[0])?.speciesId;
+    const cryIds = useRef([captainOf(away), captainOf(home)]);
     useEffect(() => {
+        const timers: number[] = [];
         const slam = () => {
             playSfx('shot', final ? 0.5 : 0.7);
             if (final) playSfx('post', 0.6);
+            const cries = useGame.getState().settings.cries;
+            cryIds.current.forEach((id, i) => {
+                if (id) timers.push(window.setTimeout(() => playCry(id, cries, 0.8), 250 + i * CRY_GAP_MS));
+            });
         };
-        if (reduceMotionOn()) {
-            slam();
-            return;
-        }
-        const timer = window.setTimeout(slam, SLAM_MS);
-        return () => clearTimeout(timer);
+        if (reduceMotionOn()) slam();
+        else timers.push(window.setTimeout(slam, SLAM_MS));
+        return () => {
+            for (const id of timers) clearTimeout(id);
+        };
     }, [final]);
 
     // quadra demorando: depois de SLOW_MS sem ficar pronta, troca o botão pelo aviso (cada tentativa zera a conta)
@@ -359,6 +374,12 @@ export function VersusIntro({
     // o treinador do rival: o líder do ginásio ou, nos times da Rota, a classe de treinador (Caçador de Insetos…)
     const host = awayTrainer || awayCoach ? undefined : rivalTrainer(away.name);
     const hostText = host ? d.match.leaders[host as keyof typeof d.match.leaders] : undefined;
+    // rival de monotipo (raro): o treinador avisa no lugar da fala de sempre
+    const mono = host ? computeSynergies(away.lineup, away.bench).find((s) => s.mono) : undefined;
+    const quote = mono ? t('match.vs.mono', { type: typeName(mono.type) }) : hostText?.pre;
+    // GIF em pixel exato no tamanho pensado (pixelFit)
+    const scene = useRef<HTMLDivElement>(null);
+    usePixelFit(scene);
     const style = {
         '--home': hex(looks.home.color),
         '--away': hex(looks.away.color),
@@ -372,7 +393,7 @@ export function VersusIntro({
             aria-modal="true"
             aria-label={t('match.vs.aria', { home: home.name, away: awayName })}
         >
-            <div className="vsp-scene">
+            <div className="vsp-scene" ref={scene}>
                 <Side
                     team={away}
                     side="away"
@@ -391,7 +412,7 @@ export function VersusIntro({
                                 ? t('match.vs.host', { leader: hostText.name, city: club.city })
                                 : (hostText?.name ?? t('match.vs.rival')))
                     }
-                    quote={hostText?.pre}
+                    quote={quote}
                 />
                 <Side
                     team={home}

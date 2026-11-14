@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-giovanni",
+ "titulo": "Ponte pra tema-giovanni: o tremor de terra e o órgão de igreja (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.761111,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.4,
+   "amostras": [
+    0,
+    105840
+   ],
+   "bpm": 100,
+   "compassos": 1
+  }
+ ]
+}

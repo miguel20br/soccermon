@@ -1,7 +1,7 @@
-// Copa inteira como um jogador razoável. Uso: npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
+// Copa inteira como um jogador razoável. Uso: [RIVAL=0] [SPONSORS=a,b] [FROM=n (1ª copa por formação)] npx tsx cup.ts <shard> <nshards> <out> [cupsPorFormação]
 import { writeFileSync } from 'node:fs';
 import type { Position } from '../../src/engine/attributes';
-import { buildCupOpponents } from '../../src/engine/cup';
+import { buildCupOpponents, cupRival } from '../../src/engine/cup';
 import { MOVES } from '../../src/engine/data';
 import { captainOptions, playerDraftOptions } from '../../src/engine/draft';
 import { evolutionTarget, evolveInstance, evoProgress } from '../../src/engine/evolution';
@@ -117,7 +117,9 @@ function cup(seed: string, formation: FormationId) {
     let destaques = 0;
     // Mercado (STRAT 'mercado'): ₽ e Patrocínios da copa
     let money = 0;
-    const sponsors: string[] = [];
+    let earned = 0;
+    // SPONSORS=preparador,charanga: Patrocínios desde a 1ª partida (título por Patrocínio, patrocinios-novos.md)
+    const sponsors: string[] = process.env.SPONSORS?.split(',').filter(Boolean) ?? [];
     const shopLog: string[] = [];
     for (let stage = 0; stage < 4; stage++) {
         const team: TeamSetup = {
@@ -131,7 +133,8 @@ function cup(seed: string, formation: FormationId) {
             manualSubs: true,
             ...(sponsors.length && { sponsors: [...sponsors] }),
         };
-        const opp = opponents[stage];
+        // o rival com o técnico IA da beira da quadra, como no jogo (0.9.6; RIVAL=0 tira)
+        const opp = cupRival(opponents[stage], process.env.RIVAL !== '0');
         const eligible = team.lineup.filter(
             (p) => p.ability !== 'imposter' && evolutionTarget(p.speciesId, p.uid) !== null,
         ).length;
@@ -237,15 +240,7 @@ function cup(seed: string, formation: FormationId) {
         if (taken === 'skip') {
             const it = rw.find((r) => r.kind === 'item');
             if (it && it.kind === 'item') {
-                const data = ITEMS[it.item];
-                const starters = lineup.map(byUid);
-                let holder: PokemonInstance | undefined;
-                if (data.kind === 'type')
-                    holder = starters.find(
-                        (p) => !p.item && p.moves.some((mv) => MOVES[mv]?.type === data.type && MOVES[mv].power > 0),
-                    );
-                else if (data.kind === 'focussash') holder = starters[0].item ? undefined : starters[0];
-                else holder = [...starters].reverse().find((p) => !p.item);
+                const holder = holderFor(it.item);
                 if (holder) {
                     const h = holder;
                     picks[picks.indexOf(h)] = { ...h, item: it.item };
@@ -256,9 +251,23 @@ function cup(seed: string, formation: FormationId) {
         if (taken === 'skip') rerolls++;
         (stages.at(-1) as Record<string, unknown>).reward = taken;
         if (STRAT === 'mercado') {
-            money += winEarnings(m.score[0], m.score[1], money, sponsors).total;
+            const e = winEarnings(m.score[0], m.score[1], money, sponsors).total;
+            money += e;
+            earned += e;
             shop(stage);
         }
+    }
+
+    /** Quem segura o item: o de tipo vai em quem tem golpe do tipo; a Faixa no 1º titular; o resto no último sem item. */
+    function holderFor(item: string): PokemonInstance | undefined {
+        const data = ITEMS[item];
+        const starters = lineup.map(byUid);
+        if (data.kind === 'type')
+            return starters.find(
+                (p) => !p.item && p.moves.some((mv) => MOVES[mv]?.type === data.type && MOVES[mv].power > 0),
+            );
+        if (data.kind === 'focussash') return starters[0].item ? undefined : starters[0];
+        return [...starters].reverse().find((p) => !p.item);
     }
 
     /** Robô do Mercado: Patrocínio de campo primeiro, depois o Pokémon (avulso ou do pacote) que mais melhora uma vaga. */
@@ -302,7 +311,17 @@ function cup(seed: string, formation: FormationId) {
             const best = cards.reduce((a, c) => (viewInstance(c).overall > viewInstance(a).overall ? c : a), cards[0]);
             if (best) sign(best, pack.price, 'pack');
         }
+        // a vaga de equipamento: item com quem segurar (a MT o robô não usa, como 99,6% dos jogadores)
+        const gear = offers.find((o) => o.kind === 'item');
+        const holder = gear?.kind === 'item' ? holderFor(gear.item) : undefined;
+        if (gear?.kind === 'item' && holder && money >= gear.price) {
+            money -= gear.price;
+            picks[picks.indexOf(holder)] = { ...holder, item: gear.item };
+            shopLog.push(`item:${gear.item}`);
+        }
+        if (offers.some((o) => o.kind === 'tm')) shopLog.push('tm-vista');
     }
+    const spent = earned - money;
     return {
         seed,
         formation,
@@ -319,6 +338,7 @@ function cup(seed: string, formation: FormationId) {
         stages,
         rerollsLeft: rerolls,
         money,
+        spent,
         sponsors,
         shop: shopLog,
     };
@@ -351,7 +371,7 @@ const forms = Object.keys(FORMATIONS) as FormationId[];
 const res: object[] = [];
 let j = 0;
 for (const f of forms)
-    for (let n = 0; n < PER; n++) {
+    for (let n = Number(process.env.FROM ?? 0); n < PER; n++) {
         if (j++ % nshards !== shard) continue;
         res.push(cup(`audit-${f}-${n}`, f));
     }

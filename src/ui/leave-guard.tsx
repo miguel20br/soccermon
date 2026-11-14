@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { useT } from '../i18n/react';
 import { useDuel } from '../net/session';
 import { useGame } from '../store/game-store';
-import './leave-guard.css';
+import { ConfirmSheet } from './kit/Sheet';
 
 /**
  * Confirmação ao sair de uma partida em andamento (Configurações > Partida). Sair no meio não perde nada:
@@ -12,11 +11,13 @@ import './leave-guard.css';
  */
 const useLeave = create<{ pending: (() => void) | null }>(() => ({ pending: null }));
 
+/** Jogo do Duelo rolando (escolha do time, draft, prévia, partida): sair da sala no meio pede confirmação. */
+export const duelInPlay = (phase: string | undefined) => ['team', 'draft', 'preview', 'match'].includes(phase ?? '');
+
 /** Partida rolando: tela da partida, time travado e sem resultado gravado. */
 function matchInProgress() {
     const { screen, run } = useGame.getState();
-    if (screen === 'duel')
-        return ['team', 'draft', 'preview', 'match'].includes(useDuel.getState().shared?.phase ?? '');
+    if (screen === 'duel') return duelInPlay(useDuel.getState().shared?.phase);
     return screen === 'match' && run?.status === 'lineup' && !!run.lockedTeam;
 }
 
@@ -26,64 +27,27 @@ export function requestLeave(leave: () => void) {
     else leave();
 }
 
-/** Janela "Sair da partida?" (fica montada na tela da partida). */
+/** Voltar do sistema: com partida rolando abre a confirmação mesmo se a configuração pedir para não perguntar. */
+export function requestBack(leave: () => void) {
+    if (matchInProgress()) useLeave.setState({ pending: leave });
+    else leave();
+}
+
+/** "Sair da partida?" em sheet (fica montada na tela da partida). */
 export function LeaveConfirm() {
     const pending = useLeave((s) => s.pending);
-    const stay = useRef<HTMLButtonElement>(null);
     const { t } = useT();
-    useEffect(() => {
-        if (!pending) return;
-        stay.current?.focus();
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') useLeave.setState({ pending: null });
-        };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [pending]);
     // ao sair da tela da partida por outro caminho, a pergunta some junto
     useEffect(() => () => useLeave.setState({ pending: null }), []);
-    if (!pending) return null;
-    const close = () => useLeave.setState({ pending: null });
-    // portal: dentro da quadra o `position: fixed` ficaria preso ao contêiner dela
-    return createPortal(
-        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e os botões cobrem o teclado
-        <div
-            className="modal-backdrop leave-backdrop"
-            role="presentation"
-            onClick={close}
-            // o Phaser escuta mousedown na janela inteira: sem isso, tocar aqui "tocaria" no Pokémon embaixo
-            onMouseDown={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-        >
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche a janela */}
-            <div
-                className="panel leave-confirm"
-                role="alertdialog"
-                aria-modal="true"
-                aria-labelledby="leave-title"
-                aria-describedby="leave-text"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 id="leave-title">{t('settings.leave.title')}</h2>
-                <p id="leave-text">{t('settings.leave.text')}</p>
-                <div className="leave-actions">
-                    <button ref={stay} type="button" className="btn" onClick={close}>
-                        {t('settings.leave.stay')}
-                    </button>
-                    <button
-                        type="button"
-                        className="btn primary"
-                        onClick={() => {
-                            close();
-                            pending();
-                        }}
-                    >
-                        {t('settings.leave.leave')}
-                    </button>
-                </div>
-            </div>
-        </div>,
-        document.body,
+    return (
+        <ConfirmSheet
+            open={!!pending}
+            onClose={() => useLeave.setState({ pending: null })}
+            title={t('settings.leave.title')}
+            text={t('settings.leave.text')}
+            cancel={t('settings.leave.stay')}
+            confirm={t('settings.leave.leave')}
+            onConfirm={() => pending?.()}
+        />
     );
 }

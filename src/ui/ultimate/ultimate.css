@@ -1,0 +1,2407 @@
+/* Time Ultimate (0.9.31, ?lab=ultimate): kit da transmissão + o que é só desta tela */
+.menu-screen.ut:has(.lineup-grid) {
+    width: min(1180px, 100%);
+}
+/* PC: o Início do Time Ultimate cresce com a tela (como a Coleção, styles.css) em vez de ficar numa coluna de 720 px */
+@media (min-width: 1100px) and (min-height: 720px) {
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) {
+        width: min(860px, 100%);
+        zoom: var(--k-big, 1);
+        --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
+        --vw: calc(1vw / var(--ui-zoom, 1) / var(--k-big, 1));
+        --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
+    }
+    /* a barra fixa de baixo não herda o zoom da tela (descentralizava ~20 px): volta ao tamanho de antes */
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) .ut-nav {
+        zoom: calc(1 / var(--k-big, 1));
+        --gz: var(--ui-zoom, 1);
+    }
+}
+.ut-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    /* backwards: terminada a entrada, o painel fica sem transform (com ele, a barra fixa do JOGAR grudava no
+       painel em vez do pé da tela e cobria o fim da lista) */
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) backwards;
+}
+@keyframes ut-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+[data-reduce-motion="true"] .ut-panel {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ut-panel {
+        animation: none;
+    }
+}
+
+/* carteira no canto do placar (como as moedas do FC): as Fichas na plaquinha da barra da copa */
+.menu-head-side {
+    flex: none;
+    margin-left: auto;
+}
+.ut-wallet {
+    display: flex;
+    gap: 6px;
+}
+.ut-wallet .k-res {
+    height: 32px;
+}
+@media (max-width: 400px) {
+    .ut-hub .menu-head h1 {
+        font-size: 18px;
+    }
+    .ut-hub .menu-head .menu-head-ic {
+        display: none;
+    }
+    .ut-wallet {
+        gap: 4px;
+    }
+    .ut-wallet .k-res {
+        padding-right: 6px;
+    }
+    .ut-wallet .cb-num {
+        --gs: 15px;
+        font-size: var(--gfs, 15px);
+    }
+}
+
+/* o rótulo do pacote acompanha a largura dele (6,4cqw) mas não desce de 9 px (o "PACOTE MINI" ficava em 6 px) */
+.ut .cpack-label {
+    font-size: max(9px, 6.4cqw);
+    letter-spacing: 0.06em;
+}
+/* pacote fechado */
+.ut-pack {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+}
+.ut-pack > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 96px;
+}
+.ut-pack-info {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+}
+.ut-pack-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+}
+.ut-dots {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-dots i {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 2px solid var(--line);
+    transition: background-color 240ms var(--ease-out);
+}
+.ut-dots i.on {
+    background: var(--green);
+    border-color: var(--green);
+}
+.ut-dots small,
+.ut-timer {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-timer .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* pacote aberto */
+.ut-open {
+    display: grid;
+    gap: 14px;
+}
+
+/* chances */
+.ut-odds {
+    display: grid;
+    gap: 8px;
+}
+.ut-odds .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ut-odds .bc-caption .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.ut-metals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-metals li {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    border-bottom: 3px solid var(--mc);
+}
+.ut-metals i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--mc);
+}
+.ut-metals span {
+    font-size: 12px;
+}
+.ut-metals b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+    color: var(--mc);
+}
+.ut-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    font-size: 12px;
+}
+.ut-rule .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+
+/* coleção */
+.ut-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    justify-items: center;
+    gap: 10px;
+}
+/* celular: 3 por linha (2 no de 320), a carta encolhe pra caber */
+@media (max-width: 520px) {
+    .ut-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .ut-cards .fut-wrap {
+        --fut-w: calc((100 * var(--vw) - 44px) / 3);
+    }
+}
+@media (max-width: 360px) {
+    .ut-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ut-cards .fut-wrap {
+        --fut-w: calc((100 * var(--vw) - 38px) / 2);
+    }
+}
+.ut-empty {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    text-align: center;
+}
+
+/* reservas */
+.ut-reserves {
+    display: grid;
+    gap: 8px;
+}
+.ut-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.btn.ut-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-left: 3px solid var(--mc, transparent);
+}
+.ut-chip small {
+    font-size: 11px;
+    opacity: 0.75;
+}
+.ut-chip b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+.ut-captain h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-captain .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* jogar */
+.ut-level {
+    display: grid;
+    gap: 10px;
+}
+.ut-level .bc-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.ut-prizes {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: center;
+}
+.ut-prizes th,
+.ut-prizes td {
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--line);
+}
+.ut-prizes tbody th {
+    text-align: left;
+    font-weight: normal;
+}
+.ut-prizes tr.on {
+    background: var(--panel-2);
+    color: var(--yellow);
+    transition: background-color 240ms var(--ease-out);
+}
+.ut-prizes tr.on th {
+    font-weight: bold;
+}
+.ut-rival,
+.ut-live {
+    display: grid;
+    gap: 6px;
+}
+.ut-rival > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+}
+.ut-rival small {
+    font-size: 12px;
+}
+
+/* prêmio */
+.ut-prize {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+}
+.ut-verdict {
+    font-size: 28px;
+}
+.ut-prize.is-win .ut-verdict {
+    color: var(--green);
+}
+.ut-prize.is-loss .ut-verdict {
+    color: var(--red);
+}
+.ut-gain {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
+    color: var(--yellow);
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) 200ms both;
+}
+.ut-gain .hud-icon {
+    width: 28px;
+    height: 28px;
+}
+@keyframes ut-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+}
+[data-reduce-motion="true"] .ut-gain {
+    animation: none;
+}
+
+@media (max-width: 380px) {
+    .ut-pack {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+    }
+    .ut-pack-info {
+        justify-items: center;
+    }
+}
+
+/* 0.9.32: pacotes ganhos, loja, química, metas e Evoluções */
+.ut-extra {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.ut-extra .hud-icon,
+.ut-shop .bc-caption .hud-icon,
+.ut-chem .bc-caption .hud-icon,
+.ut-goals .bc-caption .hud-icon,
+.ut-evos .bc-caption .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.ut-shop .bc-caption,
+.ut-chem .bc-caption,
+.ut-goals .bc-caption,
+.ut-evos .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* loja */
+.ut-shop,
+.ut-chem,
+.ut-goals,
+.ut-evos {
+    display: grid;
+    gap: 8px;
+}
+.ut-shop-pack {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.ut-shop-pack > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-shop-pack small {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.ut-shop-pack .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+.ut-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+    border-bottom: 3px solid var(--mc);
+}
+.ut-seg small {
+    display: block;
+    font-size: 11px;
+    opacity: 0.8;
+}
+.ut-pick-list {
+    max-height: 196px;
+    overflow-y: auto;
+    padding: 2px;
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+.btn.ut-chip.on {
+    outline: 2px solid var(--yellow);
+    outline-offset: 1px;
+}
+.ut-got {
+    display: grid;
+    gap: 10px;
+    justify-items: center;
+    text-align: center;
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) both;
+}
+
+/* química */
+.ut-chem-avg {
+    margin-left: auto;
+    color: var(--green);
+    font-size: 13px;
+}
+.ut-chem-players,
+.ut-chem-near,
+.ut-goal-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-chem-players li {
+    display: grid;
+    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.ut-chem-players li > small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.ut-chem-players li > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-chem-players li > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    color: var(--muted);
+}
+.ut-chem-players li.on > b {
+    color: var(--green);
+}
+.ut-off {
+    font-style: normal;
+    font-size: 11px;
+    color: var(--red);
+}
+.ut-chem-on {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.ut-chem-type {
+    gap: 4px;
+    font-size: 12px;
+}
+.ut-chem-near li {
+    display: grid;
+    gap: 2px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    font-size: 12px;
+}
+.ut-chem-near .row {
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.ut-chem-owned {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    color: var(--green);
+}
+
+/* metas */
+.ut-reset {
+    margin-left: auto;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+}
+.ut-goal-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 96px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    transition: opacity 240ms var(--ease-out);
+}
+.ut-goal-list li > span:first-child {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-goal-list b {
+    font-size: 13px;
+}
+.ut-goal-list small {
+    font-size: 11px;
+    color: var(--yellow);
+}
+.ut-goal-list li.done {
+    grid-template-columns: minmax(0, 1fr) 96px 18px;
+    opacity: 0.7;
+}
+.ut-goal-list li.done small {
+    color: var(--green);
+}
+.ut-goal-list li > .hud-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--green);
+}
+.ut-bar {
+    position: relative;
+    display: block;
+    height: 18px;
+    border-radius: 8px;
+    background: var(--bc-ink-2, #0e1430);
+    overflow: hidden;
+}
+.ut-bar > i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 100%;
+    background: var(--green);
+    transform: scaleX(var(--p));
+    transform-origin: left;
+    transition: transform 280ms var(--ease-out);
+}
+.ut-bar > small {
+    position: relative;
+    display: block;
+    padding: 0 8px;
+    font-size: 11px;
+    line-height: 18px;
+    color: #fff;
+    /* contorno inteiro: o número passa por cima do verde (branco sobre verde sem contorno não lê) */
+    text-shadow:
+        1px 0 0 #000,
+        -1px 0 0 #000,
+        0 1px 0 #000,
+        0 -1px 0 #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Evoluções */
+.ut-evo-none {
+    margin: 0;
+}
+.ut-evo,
+.ut-evo-start {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+.ut-evo.ready {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+.ut-evo-cards {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.ut-evo-cards > .hud-icon {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    color: var(--yellow);
+}
+.ut-evo-cards .fut-wrap {
+    --fut-w: min(130px, calc((100 * var(--vw) - 110px) / 2));
+}
+.ut-evo-info {
+    display: grid;
+    gap: 6px;
+}
+.ut-evo-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ut-note {
+    color: var(--green);
+    font-size: 12px;
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) both;
+}
+@media (min-width: 720px) {
+    .ut-evo {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+    }
+}
+
+/* prêmio: os objetivos que pagaram */
+.ut-prize-goals {
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+}
+.ut-prize-goals small {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--green);
+}
+.ut-prize-goals .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* 5 abas no celular de 320: o rótulo encolhe antes de cortar */
+@media (max-width: 380px) {
+    .ut .k-tabs {
+        gap: 2px;
+        padding-inline: 0;
+    }
+    .ut .k-tabs > [role="tab"] {
+        font-size: 11px;
+        letter-spacing: -0.8px;
+        padding-inline: 0;
+        min-width: 0;
+    }
+}
+[data-reduce-motion="true"] .ut-pick-list,
+[data-reduce-motion="true"] .ut-got,
+[data-reduce-motion="true"] .ut-evo,
+[data-reduce-motion="true"] .ut-evo-start,
+[data-reduce-motion="true"] .ut-note {
+    animation: none;
+}
+
+/* 0.9.33: temporada, passe, Pacote Grande, evento e líderes */
+.ut-season {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 8px 12px;
+}
+.ut-season-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+.ut-season-main b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
+}
+.ut-season-main small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-season .hud-icon,
+.ut-pass .bc-caption .hud-icon,
+.ut-gyms .bc-caption .hud-icon,
+.ut-event .bc-caption .hud-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+.ut-season-main .hud-icon {
+    align-self: center;
+}
+.ut-season .ut-timer {
+    margin-left: auto;
+}
+.ut-season-event {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-basis: 100%;
+    font-size: 12px;
+    color: var(--yellow);
+}
+.ut-pass,
+.ut-gyms {
+    display: grid;
+    gap: 8px;
+}
+.ut-pass .bc-caption,
+.ut-gyms .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ut-pass-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+}
+.ut-pass-card {
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) both;
+}
+.ut-pass-lock {
+    display: grid;
+    place-items: center;
+    gap: 4px;
+    width: 92px;
+    aspect-ratio: 5 / 7;
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    text-align: center;
+    font-size: 11px;
+}
+.ut-pass-lock .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+.ut-pass-info {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+.ut-pass-info > b {
+    font-size: 16px;
+}
+.ut-pass-info small {
+    font-size: 11px;
+}
+.ut-pass-done {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--green);
+    font-size: 12px;
+}
+.ut-pass-done .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+.ut-marks,
+.ut-gym-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-marks li {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    font-size: 12px;
+}
+.ut-marks li b {
+    color: var(--yellow);
+    text-align: center;
+}
+.ut-gym-list li {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--panel-2);
+    transition: opacity 240ms var(--ease-out);
+}
+.ut-gym-list .kb-badge {
+    width: 32px;
+    height: 32px;
+}
+.ut-gym-list li > span {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-gym-list b {
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-gym-list small {
+    font-size: 11px;
+    color: var(--muted);
+}
+.ut-gym-list small.ok {
+    color: var(--green);
+}
+.ut-badge .kb-badge {
+    width: 28px;
+    height: 28px;
+}
+.ut-rule-event {
+    color: var(--yellow);
+}
+.ut-gain.ut-badge {
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
+}
+[data-reduce-motion="true"] .ut-pass-card {
+    animation: none;
+}
+
+/* Primeiros passos: o próximo em destaque (sem barra: cada um é feito ou não) */
+.ut-first .ut-goal-list li,
+.ut-first .ut-goal-list li.done {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.ut-first .ut-goal-list li.next {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+
+/* JOGAR com o objetivo do momento embaixo */
+.ut-go > span {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+}
+.ut-go-goal {
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: none;
+    opacity: 0.9;
+}
+
+/* pacote em tela cheia: rasgar com o dedo, leque, Guardar */
+.ut-pack-moment .k-moment-body {
+    gap: 12px;
+}
+.ut-pack-title {
+    font-size: clamp(22px, calc(6 * var(--vw)), 40px);
+}
+.ut-tear {
+    width: 100%;
+    touch-action: none;
+}
+.ut-tear .is-closed .cpack-top {
+    transform-origin: 0 100%;
+    transform: translate(calc(var(--tear, 0) * 18%), calc(var(--tear, 0) * -40%)) rotate(calc(var(--tear, 0) * -9deg));
+}
+.ut-tear .is-closed .cpack {
+    transform: rotate(calc(var(--tear, 0) * 2deg));
+}
+.ut-tear .cpack-hint {
+    display: none;
+}
+.ut-tear-hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+}
+/* o Grande (5 cartas) quebra em 3 + 2 no celular em pé; deitado e no desktop, uma fileira só */
+.ut-pick {
+    --k-cols: min(var(--k-n, 3), 3);
+    --k-rows: 2;
+    --k-card-w: min(
+        170px,
+        calc((min(calc(100 * var(--vw)), 720px) - 32px - (var(--k-cols) - 1) * var(--k-gap)) / var(--k-cols)),
+        calc((calc(100 * var(--vh)) - 230px) / (1.41 * var(--k-rows)) - var(--k-gap))
+    );
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.ut-pick > * {
+    width: var(--k-card-w);
+}
+.ut-pick:not(:has(> :nth-child(4))) {
+    --k-rows: 1;
+}
+@media (orientation: landscape) {
+    .ut-pick {
+        --k-cols: var(--k-n, 3);
+        --k-rows: 1;
+    }
+}
+.ut-pick .walk-held {
+    visibility: hidden;
+}
+
+/* pós-jogo: o que dá pra abrir, por último, e os dois botões */
+.ut-prize-extra {
+    display: grid;
+    gap: 6px;
+    justify-items: center;
+}
+.ut-prize-packs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+.ut-prize-packs > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 56px;
+}
+.ut-prize-packs > span {
+    display: grid;
+    gap: 2px;
+}
+.ut-prize-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+.ut-prize-actions .btn.wide {
+    flex: 1 1 160px;
+}
+
+/* ---------- 02/11: o esqueleto do UT do FC (Início · Elenco · Clube · Loja · Metas, barra embaixo) ---------- */
+.ut-hub {
+    --ut-nav-h: 64px;
+    padding-bottom: calc(var(--ut-nav-h) + 16px + env(safe-area-inset-bottom));
+}
+.ut-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background: var(--bc-ink);
+    border-top: 2px solid var(--bc-edge);
+    box-shadow: 0 -3px 0 rgb(0 0 0 / 25%);
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.ut-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    max-width: 560px;
+    height: var(--ut-nav-h);
+    margin: 0 auto;
+}
+.ut-ind {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: calc(100% / var(--n));
+    transform: translateX(calc(var(--pos) * 100%));
+    transition: transform 260ms var(--ease-out);
+}
+.ut-ind::before {
+    content: "";
+    position: absolute;
+    inset: 0 4px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    border-bottom: 3px solid var(--yellow);
+}
+.ut-tab {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 200ms var(--ease-out);
+}
+.ut-tab.on {
+    color: var(--yellow);
+}
+.ut-tab:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: -4px;
+    border-radius: 8px;
+}
+.ut-tab-ic {
+    position: relative;
+    display: grid;
+}
+.ut-tab .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.ut-tab-lbl {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+/* tem coisa pra resolver ali */
+.ut-dot {
+    position: absolute;
+    top: -2px;
+    right: -6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--red);
+    border: 2px solid var(--bc-ink);
+    animation: ut-in 220ms var(--ease-out) both;
+}
+/* o número no lugar do ponto (FC): quantos esperam você ali */
+.ut-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--red);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+}
+.ut-dot.ut-count {
+    top: -6px;
+    right: -12px;
+    width: auto;
+    height: 18px;
+}
+.ut-b-head .ut-count {
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.bc-seg .ut-dot {
+    position: static;
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-hub {
+        padding-bottom: 16px;
+        padding-left: calc(76px + env(safe-area-inset-left));
+    }
+    /* começa embaixo da linha de cima (voltar, perfil): a coluna não cobre o botão de voltar */
+    .ut-nav {
+        top: 64px;
+        right: auto;
+        border-top: 2px solid var(--bc-edge);
+        border-top-right-radius: 10px;
+        width: calc(76px + env(safe-area-inset-left));
+        border-right: 2px solid var(--bc-edge);
+        box-shadow: 3px 0 0 rgb(0 0 0 / 25%);
+        padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .ut-tabs {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+        height: 100%;
+    }
+    .ut-ind {
+        top: 0;
+        left: 6px;
+        right: 6px;
+        bottom: auto;
+        width: auto;
+        height: calc(100% / var(--n));
+        transform: translateY(calc(var(--pos) * 100%));
+    }
+    .ut-ind::before {
+        inset: 3px 0;
+        border-bottom: 0;
+        border-left: 3px solid var(--yellow);
+    }
+    .ut-tab .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Início: o mosaico de blocos, cada um com o estado dele; o JOGAR gordo embaixo */
+.ut-home {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.ut-block {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 10px 12px;
+    text-align: left;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    transition:
+        transform 160ms var(--ease-out),
+        box-shadow 160ms var(--ease-out);
+}
+.ut-block:active {
+    transform: translateY(2px);
+}
+.ut-block:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.ut-block > b {
+    font-size: 13px;
+    line-height: 1.3;
+}
+.ut-block > small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-b-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.ut-b-head .hud-icon {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    color: var(--yellow);
+}
+.ut-b-head b {
+    font-size: 14px;
+    white-space: nowrap;
+}
+.ut-b-head small {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+}
+.ut-b-hot {
+    color: var(--yellow);
+}
+.ut-b-pending {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    --tc: var(--yellow);
+}
+.ut-b-pending > small {
+    grid-column: 1;
+}
+.ut-b-pending > .ut-b-last {
+    grid-column: 1 / -1;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--red) 22%, transparent);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.25;
+    text-align: left;
+}
+.ut-b-pending .ut-b-cta {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    pointer-events: none;
+}
+/* a quadrinha do Elenco: os 5 titulares de pé, a vaga embaixo */
+.ut-b-court {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 8px 4px 4px;
+    border-radius: 8px;
+    background: repeating-linear-gradient(90deg, rgb(255 255 255 / 4%) 0 18px, transparent 18px 36px), var(--bc-ink-3);
+}
+.ut-b-court > span {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-b-court img,
+.ut-b-court i {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+.ut-b-court i {
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+}
+.ut-b-court small {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+}
+.ut-b-court .cap small {
+    color: var(--yellow);
+}
+.ut-b-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.ut-b-badges > * {
+    width: 26px;
+    height: 26px;
+}
+.ut-level-chip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    color: var(--muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.ut-level-chip b {
+    color: var(--blue);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.ut-level-chip .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.ut-gyms-sheet .ut-gyms {
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+.ut-gyms-sheet .ut-gyms > .bc-caption {
+    display: none;
+}
+/* Clube */
+.ut-club-seg > button {
+    flex: 1 1 0;
+}
+.ut-undo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 10px;
+    font-size: 13px;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-undo > span {
+    flex: 1;
+    min-width: 0;
+}
+.ut-undo > .hud-icon {
+    color: var(--green);
+}
+.ut-pos-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.ut-club-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+.ut-club-tools > small {
+    margin-left: auto;
+}
+.ut-club-tools .btn.on {
+    outline: 2px solid var(--yellow);
+    outline-offset: 1px;
+}
+.ut-cards {
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-filters {
+    display: grid;
+    gap: 8px;
+}
+.ut-filters .bc-seg > button {
+    flex: 1 1 0;
+}
+.ut-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.ut-types > button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    cursor: pointer;
+    transition: border-color 160ms var(--ease-out);
+}
+.ut-types > button.on {
+    border-color: var(--yellow);
+}
+/* listas de vaga (Trocar o ALA, Escalar) */
+.ut-slot-list {
+    display: grid;
+    gap: 4px;
+    margin: 8px 0;
+    padding: 0;
+    list-style: none;
+    max-height: min(60vh, 460px);
+    overflow-y: auto;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-slot-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto 2.6em 2.6em;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+}
+.ut-slot-row:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+.ut-slot-row > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-slot-row > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    text-align: right;
+}
+.ut-slot-pos {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+}
+.ut-slot-row > i {
+    width: 32px;
+    height: 32px;
+}
+.ut-slot-row.fit-off {
+    color: var(--muted);
+}
+.ut-slot-row.fit-off > b {
+    color: var(--red);
+}
+.ut-diff {
+    font-weight: 700;
+    text-align: right;
+    color: var(--muted);
+}
+.ut-diff.up {
+    color: var(--green);
+}
+.ut-diff.down {
+    color: var(--red);
+}
+.ut-compare {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+.ut-compare-line {
+    text-align: center;
+}
+/* Pendentes */
+.ut-pend-head {
+    display: grid;
+    gap: 8px;
+}
+.ut-pend-all {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ut-pend-all > .btn {
+    flex: 1 1 140px;
+}
+.ut-pend-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-pend {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 10px;
+    padding: 8px 10px;
+}
+.ut-pend .fut-wrap {
+    --fut-w: 84px;
+}
+.ut-pend-prize .cpack {
+    width: 56px;
+}
+.ut-pend-info {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.ut-pend-info b {
+    font-size: 13px;
+}
+.ut-pend-info small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-pend-acts {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+[data-reduce-motion="true"] :is(.ut-cards, .ut-slot-list, .ut-undo, .ut-dot),
+[data-reduce-motion="true"] .ut-ind {
+    animation: none;
+    transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(.ut-cards, .ut-slot-list, .ut-undo, .ut-dot) {
+        animation: none;
+    }
+    .ut-ind {
+        transition: none;
+    }
+}
+/* na folha o painel perde a moldura (.panel .panel, kit.css), mas a faixa do clube fica: o texto não encosta nela */
+.k-sheet .ut-level .ut-rival {
+    padding: 10px 12px 10px 20px;
+}
+.ut-pend-coin {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bc-ink-3);
+    color: var(--yellow);
+}
+.ut-pend-coin .hud-icon {
+    width: 30px;
+    height: 30px;
+}
+
+/* ---------- 09/11: Loja > Meus pacotes (a pilha guardada) e Comprar ---------- */
+.ut-shop-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.ut-seg-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-stack {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 4px 12px;
+    list-style: none;
+}
+.ut-stack-row {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: center;
+    gap: 6px 14px;
+    padding: 12px 0;
+    animation: ut-in 220ms var(--ease-out) both;
+}
+.ut-stack-row + .ut-stack-row {
+    border-top: 2px solid var(--line);
+}
+/* a pilha: o de trás aparece torto atrás do da frente */
+.ut-stack-art {
+    position: relative;
+    display: grid;
+    grid-row: span 2;
+    padding: 6px 8px 0 0;
+}
+.ut-stack-art > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 64px;
+}
+.ut-stack-art > .cpack + .cpack {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    z-index: -1;
+    transform: rotate(7deg);
+    opacity: 0.75;
+}
+.ut-stack-art {
+    isolation: isolate;
+}
+.ut-stack-info {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.ut-stack-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    line-height: 1.2;
+}
+.ut-stack-x {
+    color: var(--yellow);
+}
+.ut-stack-info > small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-stack-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.ut-stack-acts > .btn {
+    flex: 1 1 auto;
+    min-height: 40px;
+}
+.ut-stack-empty .ut-timer {
+    justify-content: center;
+}
+.ut-stack-event {
+    padding: 0 4px;
+}
+.ut-stack-clock {
+    justify-content: center;
+}
+@media (min-width: 720px) {
+    .ut-stack-row {
+        grid-template-columns: 96px minmax(0, 1fr) auto;
+    }
+    .ut-stack-art {
+        grid-row: auto;
+    }
+    .ut-stack-art > .cpack {
+        width: 84px;
+    }
+    .ut-stack-acts > .btn {
+        flex: none;
+        min-width: 120px;
+    }
+}
+
+/* Abrir todos: o resumo (todas as cartas pela nota, como a lista de itens do FC) */
+.ut-sum {
+    --k-cols: 4;
+    --k-card-w: min(
+        120px,
+        calc((min(calc(100 * var(--vw)), 860px) - 32px - (var(--k-cols) - 1) * var(--k-gap)) / var(--k-cols))
+    );
+    grid-template-columns: repeat(auto-fill, var(--k-card-w));
+    max-height: calc(100 * var(--vh) - 250px);
+    overflow-y: auto;
+    padding: 4px 2px;
+}
+@media (orientation: landscape) {
+    .ut-sum {
+        --k-cols: 6;
+    }
+}
+@media (min-width: 900px) {
+    .ut-sum {
+        --k-cols: 6;
+    }
+}
+.ut-pack-moment.is-many .k-moment-body {
+    width: min(100%, 860px);
+}
+/* o resumo entra (os pacotes já saíram um por um, com o leque de sempre) */
+.ut-sum {
+    animation: ut-in 260ms var(--ease-out) both;
+}
+.ut-pack-count {
+    font-size: 0.6em;
+    color: var(--muted);
+}
+.ut-sum-line {
+    margin: 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--yellow);
+}
+.ut-sum-line .hud-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: -3px;
+}
+.ut-sum-full {
+    margin: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--red) 22%, transparent);
+    font-size: 13px;
+    text-align: center;
+}
+.ut-pack-acts {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+}
+
+.ut-pick-moment .ut-pick-all {
+    min-width: 180px;
+}
+/* Pick com Fichas (Comprar) */
+.ut-pick-buy > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    /* metal em cima, o preço embaixo (como o seletor do Escolher carta): "Prata · 125 Fichas" não cabia em 390 */
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.15;
+    height: auto;
+    padding-block: 6px;
+}
+.ut-pick-buy > .btn small {
+    font-size: 0.8em;
+    opacity: 0.85;
+}
+.ut-got-line {
+    padding: 8px 10px;
+}
+
+/* ---------- 09/11: destaque do Início (carrossel), cartão do time, selo Nova ---------- */
+.ut-hl {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+.ut-hl-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    border-radius: 10px;
+}
+.ut-hl-track::-webkit-scrollbar {
+    display: none;
+}
+.ut-hl-slide {
+    scroll-snap-align: start;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 96px;
+    --tc: var(--yellow);
+}
+.ut-hl-slide.is-event {
+    --tc: var(--blue);
+}
+.ut-hl-text {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.ut-hl-text > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    line-height: 1.2;
+    color: var(--text);
+}
+.ut-hl-text > small {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--muted);
+}
+.ut-hl-slide .ut-b-cta {
+    pointer-events: none;
+}
+/* a pilha desenhada: até 3 pacotes encavalados */
+.ut-hl-packs {
+    position: relative;
+    display: flex;
+    isolation: isolate;
+}
+.ut-hl-packs > .cpack {
+    position: relative;
+    inset: auto;
+    transform: none;
+    width: 46px;
+}
+.ut-hl-packs > .cpack + .cpack {
+    margin-left: -30px;
+    transform: rotate(8deg) translateY(2px);
+    z-index: -1;
+}
+.ut-hl-packs > .cpack + .cpack + .cpack {
+    transform: rotate(16deg) translateY(4px);
+    z-index: -2;
+}
+.ut-hl-ic {
+    width: 40px;
+    height: 40px;
+    color: var(--yellow);
+}
+.ut-hl-dots {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+.ut-hl-dots > button {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+}
+.ut-hl-dots > button::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--line);
+    transition:
+        width 220ms var(--ease-out),
+        background-color 220ms var(--ease-out);
+}
+.ut-hl-dots > button.on::before {
+    width: 20px;
+    background: var(--yellow);
+}
+@media (max-width: 360px) {
+    .ut-hl-slide {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+    .ut-hl-slide .ut-b-cta {
+        grid-column: 1 / -1;
+        justify-self: end;
+    }
+}
+/* a nota do time grande no bloco do Elenco */
+.ut-b-ovr {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.ut-b-ovr > b {
+    font-size: 22px;
+    line-height: 1;
+    color: var(--yellow);
+}
+/* cartão do time em cima da prancheta */
+.ut-teamcard {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+}
+.ut-teamcard > span {
+    display: grid;
+    gap: 2px;
+}
+.ut-teamcard > .ut-teamcard-ovr {
+    font-size: 44px;
+    line-height: 1;
+    color: var(--yellow);
+}
+.ut-teamcard b {
+    font-size: 15px;
+}
+.ut-teamcard-str {
+    justify-items: end;
+    text-align: right;
+}
+.ut-teamcard-str b {
+    font-size: 22px;
+}
+/* selo Nova: a carta que chegou desde a última visita */
+.ut-new-wrap {
+    position: relative;
+    display: grid;
+    justify-items: center;
+}
+.ut-new {
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    translate: -50% 0;
+    padding: 2px 8px;
+    border: 2px solid var(--bc-edge);
+    border-radius: 6px;
+    background: var(--yellow);
+    color: var(--bc-ink, #111);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
+    animation: ut-pop 320ms var(--ease-pop, var(--ease-out)) 120ms both;
+}
+[data-reduce-motion="true"] .ut-new {
+    animation: none;
+}
+
+/* losangos de química (rascunho atrás de ?losangos=1, Chemistry.tsx) */
+.ut-chem-players li:has(.ut-dia) {
+    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto auto;
+}
+.ut-dia {
+    display: inline-flex;
+    gap: 3px;
+}
+.ut-dia i {
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--line);
+    transform: rotate(45deg);
+    transition: background-color 220ms var(--ease-out);
+}
+.ut-dia i.on {
+    border-color: var(--green);
+    background: var(--green);
+}
+/* o número do bloco nunca sai pra fora: no 320 ele fica só na aba Loja */
+.ut-b-head .ut-count {
+    flex: none;
+}
+@media (max-width: 360px) {
+    .ut-b-head .ut-count {
+        display: none;
+    }
+}
+
+/* ---------- 09/11 (retorno do Miguel): o Início em blocos de pesos diferentes, a aba Jogar e o Pick de costas ---------- */
+/* celular em pé: 2 colunas, o JOGAR na largura toda e alto; o Clube alto à esquerda, Loja e Metas à direita */
+.ut-home {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+        "pend pend"
+        "play play"
+        "club shop"
+        "club goals"
+        "hl hl";
+    align-items: stretch;
+}
+.ut-b-pending {
+    grid-area: pend;
+}
+.ut-b-jogar {
+    grid-area: play;
+}
+.ut-b-club {
+    grid-area: club;
+}
+.ut-b-shop {
+    grid-area: shop;
+}
+.ut-b-goals {
+    grid-area: goals;
+}
+.ut-home > .ut-hl {
+    grid-area: hl;
+}
+/* Jogar · Modos de jogo (retorno de 09/11: "não com textura de botão"): um painel como os outros, com a faixa dourada,
+   a arte do modo liberado (o rival da vez) e as miniaturas apagadas dos que vêm depois */
+.ut-b-jogar {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    align-content: stretch;
+}
+.ut-b-modes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    min-height: 0;
+}
+.ut-b-modes > .ut-mode-art {
+    height: 64px;
+}
+.ut-b-modes .ut-mode-team img {
+    width: 48px;
+    height: 48px;
+}
+.ut-b-modes > .ut-mode-art .ut-mode-vs img {
+    width: 56px;
+    height: 56px;
+}
+.ut-b-soon {
+    display: grid;
+    grid-template-columns: repeat(2, 52px);
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 4px;
+}
+.ut-b-soon > .ut-mode-art {
+    height: auto;
+    min-height: 0;
+    border-radius: 6px;
+    filter: grayscale(1);
+    opacity: 0.6;
+}
+.ut-b-soon .ut-mode-vs {
+    gap: 2px;
+}
+.ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+    width: 26px;
+    height: 26px;
+}
+.ut-b-soon .ut-mode-four img + img {
+    margin-left: -14px;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback {
+    width: 14px;
+    border-width: 1px;
+    border-radius: 3px;
+    box-shadow: none;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(1) {
+    translate: 2px 1px;
+}
+.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(3) {
+    translate: -2px 1px;
+}
+.ut-b-soon .ut-mode-slots {
+    grid-template-columns: repeat(3, 7px);
+    gap: 2px;
+}
+.ut-b-soon .ut-mode-slots i {
+    border-width: 1px;
+    border-radius: 2px;
+}
+.ut-b-soon .ut-mode-slots i:nth-child(n + 4) {
+    translate: 4.5px 0;
+}
+/* Clube: o cartão do time (a nota grande, a química e os 5 titulares em 3 + 2) */
+.ut-b-club .ut-b-ovr > b {
+    font-size: 32px;
+}
+.ut-b-club .ut-b-ovr small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-b-club .ut-b-court {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 6px;
+}
+.ut-b-club .ut-b-court img,
+.ut-b-club .ut-b-court i {
+    width: 100%;
+    max-width: 48px;
+    height: auto;
+    aspect-ratio: 1;
+}
+.ut-block > .ut-b-pick {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--yellow);
+}
+.ut-b-pick .hud-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+.ut-b-goals > small + .ut-bar {
+    margin-top: -2px;
+}
+/* deitado e PC: mosaico (o JOGAR 2 x 2, o Clube alto, Loja e Metas empilhadas, o destaque largo embaixo) */
+@media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
+    .ut-home {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-areas:
+            "pend pend pend pend"
+            "play play club shop"
+            "play play club goals"
+            "hl hl hl hl";
+    }
+    .ut-b-modes > .ut-mode-art {
+        height: auto;
+        min-height: 64px;
+    }
+    /* o 2 x 2 é alto: o time do rival em 3 + 2, maior */
+    .ut-b-modes .ut-mode-team {
+        --sp: 48px;
+        flex-wrap: wrap;
+        align-content: center;
+        max-width: calc(3 * var(--sp));
+    }
+    .ut-b-modes .ut-mode-team img {
+        flex: none;
+        width: var(--sp);
+        height: var(--sp);
+    }
+    .ut-b-soon {
+        grid-template-columns: repeat(2, 64px);
+    }
+    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+        width: 32px;
+        height: 32px;
+    }
+    .ut-b-soon .ut-mode-backs .ut-cardback {
+        width: 18px;
+    }
+}
+@media (min-width: 1100px) and (min-height: 720px) {
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home, .ut-modes) {
+        width: min(1240px, 100%);
+    }
+    .ut-panel:not(:has(.ut-home, .ut-modes)) {
+        width: min(760px, 100%);
+        margin: 0 auto;
+    }
+    .ut-b-jogar {
+        gap: 8px;
+        padding: 14px 16px 14px 22px;
+    }
+    .ut-b-jogar > b {
+        font-size: 15px;
+    }
+    .ut-b-modes .ut-mode-team {
+        --sp: 64px;
+    }
+    .ut-b-soon {
+        grid-template-columns: repeat(2, 84px);
+    }
+    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
+        width: 40px;
+        height: 40px;
+    }
+    .ut-b-soon .ut-mode-four img + img {
+        margin-left: -20px;
+    }
+    .ut-b-soon .ut-mode-backs .ut-cardback {
+        width: 22px;
+    }
+    .ut-b-club .ut-b-court img,
+    .ut-b-club .ut-b-court i {
+        max-width: 64px;
+    }
+}
+
+/* aba Jogar: um cartão por modo; Batalhas de Treinador na largura toda, os que vêm depois em preto e branco */
+.ut-modes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.ut-mode {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+}
+.ut-mode.is-battles {
+    grid-column: 1 / -1;
+    gap: 10px;
+}
+.ut-mode-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: repeating-linear-gradient(90deg, rgb(255 255 255 / 4%) 0 18px, transparent 18px 36px), var(--bc-ink-3);
+}
+.ut-mode-art img {
+    image-rendering: pixelated;
+}
+.ut-mode-team,
+.ut-mode-vs,
+.ut-mode-four,
+.ut-mode-backs {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-width: 0;
+    height: 100%;
+}
+.ut-mode-team img {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    align-self: center;
+}
+.ut-mode-vs {
+    gap: 12px;
+}
+.ut-mode-vs img,
+.ut-mode-four img {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    object-position: bottom;
+}
+/* os dois se encaram */
+.ut-mode-vs img:last-child {
+    transform: scaleX(-1);
+}
+.ut-mode-four img + img {
+    margin-left: -18px;
+}
+.ut-mode-backs {
+    align-items: center;
+}
+.ut-mode-backs .ut-cardback {
+    width: 40px;
+    border-width: 2px;
+}
+.ut-mode-backs .ut-cardback:nth-child(1) {
+    rotate: -10deg;
+    translate: 6px 4px;
+}
+.ut-mode-backs .ut-cardback:nth-child(3) {
+    rotate: 10deg;
+    translate: -6px 4px;
+}
+.ut-mode-backs .ut-cardback:nth-child(2) {
+    z-index: 1;
+}
+.ut-mode-slots {
+    display: grid;
+    grid-template-columns: repeat(3, 24px);
+    justify-content: center;
+    gap: 6px;
+}
+.ut-mode-slots i {
+    aspect-ratio: 1;
+    border: 2px dashed var(--line);
+    border-radius: 6px;
+}
+.ut-mode-slots i:nth-child(n + 4) {
+    translate: 15px 0;
+}
+.ut-mode-text {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+.ut-mode-name {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    font-weight: 400;
+    line-height: 1.15;
+}
+.ut-mode-text small {
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--muted);
+}
+.ut-mode-gives {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--yellow);
+}
+.ut-mode-gives .hud-icon {
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+.ut-mode-next {
+    display: grid;
+    gap: 2px;
+}
+.ut-mode-next small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-mode-gyms {
+    display: grid;
+    gap: 6px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bc-ink-3);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.ut-mode-gyms:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.ut-mode.is-locked .ut-mode-art {
+    filter: grayscale(1);
+    opacity: 0.6;
+}
+.ut-mode.is-locked :is(.ut-mode-name, .ut-mode-gives) {
+    color: var(--muted);
+}
+.ut-mode-lock {
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.ut-mode-lock .hud-icon {
+    width: 12px;
+    height: 12px;
+}
+.ut-mode-text .ut-mode-cond {
+    color: var(--text);
+}
+@media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
+    .ut-modes {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .ut-mode.is-battles {
+        grid-column: span 2;
+        grid-row: span 2;
+    }
+}
+
+/* o verso da carta: o símbolo do Soccermon no escuro, na moldura do metal */
+.ut-cardback {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: var(--fut-w, 120px);
+    aspect-ratio: 190 / 268;
+    border: 3px solid var(--mc, var(--line));
+    border-radius: 10px;
+    background:
+        radial-gradient(
+            70% 50% at 50% 45%,
+            color-mix(in srgb, var(--mc, var(--blue)) 30%, transparent),
+            transparent 70%
+        ),
+        repeating-linear-gradient(135deg, rgb(255 255 255 / 4%) 0 8px, transparent 8px 16px), var(--cb-ink);
+    box-shadow:
+        inset 0 0 0 3px rgb(0 0 0 / 55%),
+        0 4px 0 var(--bc-edge);
+}
+.ut-cardback img {
+    width: 58%;
+    height: auto;
+}
+/* Pick: as duas faces no mesmo lugar; virar dobra o verso e a frente entra com a saída de carta do pacote de sempre
+   (cpack-out, o mesmo giro do leque e do "Sortear de novo"), com o brilho da carta grande */
+.ut-pick-face {
+    display: grid;
+    justify-items: center;
+}
+.ut-pick-face > * {
+    grid-area: 1 / 1;
+}
+.ut-pick-face.up > .ut-pick-back {
+    pointer-events: none;
+    animation: ut-fold 120ms ease-in var(--flip-at, 0ms) forwards;
+}
+.ut-pick-face.up > .ut-pick-flip {
+    animation: cpack-out 0.46s calc(var(--flip-at, 0ms) + 120ms) cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+.ut-pick-face.up > .ut-pick-flip.big .fut-wrap {
+    animation: opt-glow 0.9s calc(var(--flip-at, 0ms) + 370ms) ease-out;
+}
+@keyframes ut-fold {
+    to {
+        opacity: 0;
+        transform: perspective(900px) rotateY(-90deg) scale(0.9);
+    }
+}
+.ut-pick-back {
+    align-self: start;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out);
+}
+.ut-pick-face:not(.up) > .ut-pick-back:active {
+    transform: translateY(2px);
+}
+.ut-pick-back:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.ut-pick-flip {
+    display: grid;
+    justify-items: center;
+}
+.ut-pick-opt.on .fut-card {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
+[data-reduce-motion="true"] .ut-pick-face.up > *,
+[data-reduce-motion="true"] .ut-pick-face.up .fut-wrap {
+    animation: none;
+}
+[data-reduce-motion="true"] .ut-pick-face.up > .ut-pick-back {
+    opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .ut-pick-face.up > *,
+    .ut-pick-face.up .fut-wrap {
+        animation: none;
+    }
+    .ut-pick-face.up > .ut-pick-back {
+        opacity: 0;
+    }
+}

@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { playCry } from '../../game/audio';
+import { claimOverlay, onOverlayClaim, overlayFreeIn, PRIO_REACTION } from '../../game/overlay-slot';
 import { useT } from '../../i18n/react';
 import { EMOTES, type EmoteKind } from '../../net/duel-state';
 import { duel, useDuel } from '../../net/session';
@@ -13,13 +14,15 @@ const SHOW_MS = 2600;
 const NOTE_MS = 4000;
 /** Copa: emote que a reprodução passou há mais que isso (pulou pro fim, voltou pra partida) não aparece. */
 const LATE_TICKS = 60;
+/** Celular: quanto (ms) a reação do rival espera o gol ou o golpe sair da quadra antes de desistir. */
+const REACTION_WAIT_MS = 2500;
 
 /** Grito do capitão no tom do emote (respeita o volume dos gritos; o Grito do capitão sai mais alto). */
 function cry(speciesId: number, kind: EmoteKind) {
     playCry(speciesId, useGame.getState().settings.cries, kind === 'grito' ? 1.2 : 0.8, FACE[kind].rate);
 }
 
-type Shown = { kind: EmoteKind; at: number };
+type Shown = { kind: EmoteKind; at: number; leaving?: boolean };
 
 /** O valor mais novo sem virar dependência do efeito (o capitão que evolui não reprisa o último emote). */
 function useLatest<T>(value: T) {
@@ -65,7 +68,7 @@ function Pop({
     );
     return (
         <div
-            className={`emote-pop ${i ? 'right' : 'left'} ${FACE[e.kind].move}`}
+            className={`emote-pop ${i ? 'right' : 'left'} ${FACE[e.kind].move}${e.leaving ? ' leaving' : ''}`}
             style={{ '--tc': color } as CSSProperties}
             role="status"
             data-emote-pop={e.kind}
@@ -209,6 +212,7 @@ export function RivalEmotes({
     const [note, showNote, hideNote] = useNote();
     // começa de onde a partida está: voltar pra uma partida no meio não reprisa os emotes de antes
     const prev = useRef(tick);
+    const waitRef = useRef(0);
     const sp = useLatest(speciesId);
     const pose = useLatest(onPose);
     useEffect(() => {
@@ -217,13 +221,32 @@ export function RivalEmotes({
         if (muted || tick <= from) return;
         const hit = plan.filter((p) => p.tick > from && p.tick <= tick && tick - p.tick < LATE_TICKS).at(-1);
         if (!hit) return;
-        setShown({ kind: hit.kind, at: Date.now() });
-        cry(sp.current, hit.kind);
-        if (hit.kind === 'grito') pose.current?.();
+        const show = () => {
+            if (!claimOverlay('emote', PRIO_REACTION, SHOW_MS)) return false;
+            setShown({ kind: hit.kind, at: Date.now() });
+            cry(sp.current, hit.kind);
+            if (hit.kind === 'grito') pose.current?.();
+            return true;
+        };
+        // celular: a reação é a última da fila (overlay-slot.ts); espera o gol ou o golpe sair, senão fica de fora
+        if (show()) return;
+        const wait = overlayFreeIn(PRIO_REACTION);
+        if (wait > REACTION_WAIT_MS) return;
+        clearTimeout(waitRef.current);
+        waitRef.current = window.setTimeout(show, wait + 50);
     }, [tick, plan, muted, sp, pose]);
     useEffect(() => {
+        const off = onOverlayClaim((id) => {
+            if (id !== 'emote') setShown((s) => s && { ...s, leaving: true });
+        });
+        return () => {
+            off();
+            clearTimeout(waitRef.current);
+        };
+    }, []);
+    useEffect(() => {
         if (!shown) return;
-        const id = window.setTimeout(() => setShown(null), SHOW_MS);
+        const id = window.setTimeout(() => setShown(null), shown.leaving ? 220 : SHOW_MS);
         return () => clearTimeout(id);
     }, [shown]);
     useEffect(() => {

@@ -1,0 +1,43 @@
+/* Time Ultimate no Perfil (0.9.33): o que fica das temporadas (medalha, título, Lenda, enfeites) */
+.ut-legacy {
+    display: grid;
+    gap: 10px;
+}
+.ut-legacy .bc-caption,
+.ut-legacy b {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ut-legacy .hud-icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+}
+.ut-legacy-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.ut-legacy-row > span {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+.ut-legacy-title {
+    color: var(--yellow);
+}
+.ut-ornaments {
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.ut-ornaments .k-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--yellow);
+}

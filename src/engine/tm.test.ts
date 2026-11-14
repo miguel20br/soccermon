@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { FUTSAL_5 } from './config';
 import { buildCupOpponents, CLUBS } from './cup';
 import { MOVES, SPECIES, species } from './data';
 import { evolveInstance } from './evolution';
 import { createInstance, type PokemonInstance } from './instance';
-import { defaultMoveset } from './moves';
+import { createMatch } from './match';
+import { moveModifiers, moveUses, TAUGHT_MOVE } from './modifiers';
+import { defaultMoveset, moveProfile } from './moves';
 import { rewardOptions } from './rewards';
 import { Rng } from './rng';
 import { SIGNATURE } from './signature-moves';
@@ -151,5 +154,38 @@ describe('MT do ginásio', () => {
             }
         }
         expect(checked).toBeGreaterThan(0);
+    });
+
+    it('golpe treinado: +1 uso, força x1,3 na carta e em campo, e a IA escolhe ele primeiro', () => {
+        const [p] = make([35]); // Clefairy aprende Thunderbolt por MT
+        const slot = p.moves.findIndex((_, i) => !isProtectedMove(p, i));
+        const t = teachMove(p, 'thunderbolt', slot)!;
+        expect(moveUses(t, 'thunderbolt')).toBe(moveProfile('thunderbolt').uses + TAUGHT_MOVE.uses);
+        expect(moveModifiers(t).find((m) => m.moveId === 'thunderbolt' && m.ref === 'mt')?.factor).toBe(1.3);
+        // o mesmo golpe aprendido sem MT não ganha nada
+        expect(moveModifiers({ ...t, taught: [] }).some((m) => m.ref === 'mt')).toBe(false);
+        // em campo: os usos da partida contam o +1
+        const team = (lineup: PokemonInstance[]) => ({
+            name: 'A',
+            lineup,
+            bench: [],
+            captainUid: lineup[0].uid,
+            tactic: 'balanced' as const,
+            color: 0,
+        });
+        const rest = make([1, 4, 7, 39], 'tm-campo');
+        const s = createMatch(
+            FUTSAL_5,
+            team([rest[0], t, ...rest.slice(1)]),
+            team(make([16, 19, 21, 23, 27], 'b')),
+            'mt',
+        );
+        const pl = s.players.find((q) => q.inst.uid === t.uid)!;
+        expect(pl.moveUses[slot]).toBe(moveProfile('thunderbolt').uses + 1);
+    });
+
+    it('MTs fracas mais fortes: Mega Drain e BubbleBeam 100, Fissure 50% de acerto', () => {
+        expect([MOVES.megadrain.power, MOVES.bubblebeam.power, MOVES.fissure.accuracy]).toEqual([100, 100, 50]);
+        expect(moveProfile('fissure').data.accuracy).toBe(50);
     });
 });

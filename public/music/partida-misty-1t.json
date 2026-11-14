@@ -1,0 +1,75 @@
+{
+ "faixa": "partida-misty-1t",
+ "titulo": "Partida: Misty",
+ "tela": "Partida (ginásio de Cerulean)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 122.109932,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 40,
+   "amostras": [
+    0,
+    1764000
+   ],
+   "bpm": 72,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 40,
+   "fim": 77.402608,
+   "amostras": [
+    1764000,
+    3413455
+   ],
+   "bpm": 77,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 77.402608,
+   "fim": 112.524558,
+   "amostras": [
+    3413455,
+    4962333
+   ],
+   "bpm": 82,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 112.524558,
+   "fim": 119.109932,
+   "amostras": [
+    4962333,
+    5252748
+   ],
+   "bpm": 82,
+   "compassos": 3
+  }
+ ],
+ "gancho": {
+  "hits": [
+   [
+    112.525,
+    113.073,
+    113.622
+   ],
+   [
+    114.72,
+    115.268,
+    115.817
+   ]
+  ]
+ }
+}

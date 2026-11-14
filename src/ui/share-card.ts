@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { viewInstance } from '../engine/instance';
-import { clubName, dict, fmt, getLang, type Lang, tn } from '../i18n';
+import { clubName, cupStageShort, dict, fmt, getLang, type Lang, tn } from '../i18n';
 import { isPerfectCup, type RunState, useGame } from '../store/game-store';
 import { isGoldTrainer, isHoloTrainer, type TrainerId, trainerSrc } from '../store/missions';
 import { cardSprite } from './components/PokeCard';
@@ -54,7 +54,7 @@ export function shareCardData(
         color: hex(color),
         perfect: isPerfectCup(run) ? d.card.perfect : null,
         games: run.results.map((r) => ({
-            stage: d.hero.stageShort[r.stage] ?? '',
+            stage: cupStageShort(run, r.stage, d.hero.stageShort),
             score: `${r.score[0]} x ${r.score[1]}`,
             pens: r.shootout ? fmt(d.card.pens, { a: r.shootout[0], b: r.shootout[1] }) : null,
             opponent: clubName(r.opponent, lang),
@@ -286,12 +286,16 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         y += ph + (sq ? 22 : 40);
     }
 
-    // os 4 jogos: quadrados verde/vermelho com placar e rival
+    // os jogos: quadrados verde/vermelho com placar e rival (4 na Relâmpago; a Rota Índigo tem até 8, em 2 fileiras)
     const gap = sq ? 16 : 20;
-    const gs = sq ? 180 : 225;
-    const gx0 = cx - (data.games.length * gs + (data.games.length - 1) * gap) / 2;
+    const perRow = data.games.length > 4 ? Math.ceil(data.games.length / 2) : data.games.length;
+    const rows = Math.ceil(data.games.length / perRow);
+    const gs = rows > 1 ? (sq ? 120 : 160) : sq ? 180 : 225;
+    const y0 = y;
     data.games.forEach((g, i) => {
-        const x = gx0 + i * (gs + gap);
+        const inRow = Math.min(perRow, data.games.length - Math.floor(i / perRow) * perRow);
+        const x = cx - (inRow * gs + (inRow - 1) * gap) / 2 + (i % perRow) * (gs + gap);
+        const y = y0 + Math.floor(i / perRow) * (gs + gap);
         const mid = x + gs / 2;
         box(ctx, x, y, gs, gs, g.won ? '#2fa84f' : '#e8423f');
         fitFont(ctx, g.stage, sq ? 24 : 30, gs - 20, false);
@@ -305,7 +309,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
         fitFont(ctx, g.opponent, sq ? 22 : 26, gs - 20, false);
         text(ctx, g.opponent, mid, y + gs * 0.88, '#ffffff', 2);
     });
-    y += gs + (sq ? 40 : 70);
+    y = y0 + rows * gs + (rows - 1) * gap + (sq ? 40 : rows > 1 ? 40 : 70);
 
     // time titular: sprites, nome e o C do capitão
     const cw = sq ? 190 : 200;
@@ -339,7 +343,7 @@ export async function drawShareCard(data: ShareCardData, format: CardFormat): Pr
             text(ctx, 'C', bx, by + r * 0.45, INK);
         }
     });
-    y += sh + (sq ? 56 : 110);
+    y += sh + (sq ? 56 : rows > 1 ? 70 : 110);
 
     // artilheiro
     if (data.scorer && scorerImg) {

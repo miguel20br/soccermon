@@ -1,17 +1,20 @@
 import { type CSSProperties, type ReactNode, useRef } from 'react';
 import { species } from '../../engine/data';
-import { EVO_THRESHOLD } from '../../engine/evolution';
+import { evoThreshold } from '../../engine/evolution';
 import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
 import { cardTypeOf, editionOf } from '../../engine/specials';
+import { computeSynergies } from '../../engine/synergy';
 import { useT } from '../../i18n/react';
-import type { SlotRef } from '../../store/game-store';
+import { type SlotRef, useGame } from '../../store/game-store';
+import { usePixelFit } from '../ambientes/sprite-scale';
 import { editionLabel, finishOf, METAL, metalOf } from '../rarity';
 import { ratingAt } from '../rating';
 import { useSwapMotion } from '../swap-motion';
 import { TYPE_COLOR } from '../type-colors';
+import { monoAura } from './LinkChips';
 import { HudIcon } from './MatchHud';
 import { cardSprite } from './PokeCard';
 
@@ -44,6 +47,27 @@ interface Props {
     horizontal?: boolean;
     /** Quadra deitada espelhada: o gol do time à direita (o time 1 na quadra da partida). */
     mirror?: boolean;
+    /** Nome de cada vaga do banco (sem = "Banco"); no draft do Duelo a 1ª é a do capitão. */
+    benchLabels?: string[];
+}
+
+/**
+ * O visual da carta numa vaga (metal pela nota, lendário, edições especiais), sem os atributos: as classes `sc` e as
+ * cores (`--rar` o anel do metal, `--t1` a cor do Evento).
+ */
+export function cardLook(inst: PokemonInstance): { className: string; style: CSSProperties } {
+    const tier = species(inst.speciesId).tier;
+    const edition = editionOf(inst);
+    const metal = metalOf(viewInstance(inst).overall);
+    // anel na cor do metal da carta (lendário: creme e dourado)
+    const ring = tier === 'legendary' ? '#f2d878' : METAL[metal].color;
+    const className = edition
+        ? `sc sc-${edition}`
+        : tier === 'legendary'
+          ? 'sc sc-lendario'
+          : `sc sc-${metal}${finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`;
+    // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água, não de Pedra)
+    return { className, style: { '--rar': ring, '--t1': TYPE_COLOR[cardTypeOf(inst)] } as CSSProperties };
 }
 
 /** Mini-quadra vertical com as vagas da formação + banco. Usada no draft, na escalação e nas recompensas. */
@@ -56,6 +80,7 @@ export function FormationBoard({
     preview,
     projection,
     stateOf,
+    benchLabels,
     onSlot,
     emptyLabel: emptyProp,
     footer,
@@ -69,17 +94,33 @@ export function FormationBoard({
     const { t, d } = useT();
     // nada teleporta: quem muda de vaga (troca, substituição) desliza do lugar antigo pro novo
     const boardRef = useRef<HTMLDivElement>(null);
+    // GIF em pixel exato dentro da caixa de sempre (pixelFit)
+    usePixelFit(boardRef);
     useSwapMotion(boardRef, `${formation}|${lineup.join()}|${bench.join()}|${horizontal}`, 320);
     const emptyLabel = emptyProp ?? t('team.board.empty');
+    // barra de evolução: o limiar do seu time (Clube Formador baixa)
+    const evoMax = evoThreshold(useGame((s) => s.run?.sponsors));
     // sinergia especial completa (os 3 pássaros, os 3 iniciais, Mew + Mewtwo): as cartas brilham juntas
     const aura = new Map<string, string>();
     for (const l of computeLinks(lineup.flatMap((u) => byUid.get(u) ?? []))) {
         if (l.full && l.def.special) for (const uid of l.members) aura.set(uid, l.def.id);
     }
+    // monotipo: os do tipo brilham na cor dele (com 6 ou 7, o banco do tipo também)
+    const squad = [...lineup, ...bench].flatMap((u) => byUid.get(u) ?? []);
+    const mono = computeSynergies(
+        lineup.flatMap((u) => byUid.get(u) ?? []),
+        bench.flatMap((u) => byUid.get(u) ?? []),
+    ).find((s) => s.mono);
+    const monoUids = new Set(
+        mono ? squad.filter((p) => species(p.speciesId).types.includes(mono.type)).map((p) => p.uid) : [],
+    );
 
     const slot = (ref: SlotRef, uid: string, style?: CSSProperties) => {
         const role = ref.zone === 'bench' ? 'ANY' : f.slots[ref.index];
-        const label = ref.zone === 'bench' ? t('common.ui.bench') : d.team.board.slot[f.slots[ref.index]];
+        const label =
+            ref.zone === 'bench'
+                ? (benchLabels?.[ref.index] ?? t('common.ui.bench'))
+                : d.team.board.slot[f.slots[ref.index]];
         const fullLabel = ref.zone === 'bench' ? label : d.common.pos[f.slots[ref.index]];
         const state = stateOf?.(ref, uid) ?? 'idle';
         const inst = uid ? byUid.get(uid) : undefined;
@@ -90,34 +131,22 @@ export function FormationBoard({
         // projeção do selecionado (não no banco nem na própria vaga dele)
         const proj = projection && ref.zone === 'lineup' && uid !== projection.uid ? ratingAt(projection, role) : null;
         const projClass = proj ? (proj.fit === 'off' ? ' proj-bad' : ' proj-good') : '';
-        // cor da raridade (anel) e marca da edição especial
         const tier = inst ? species(inst.speciesId).tier : null;
         const edition = inst ? editionOf(inst) : null;
-        // anel na cor do metal da carta (lendário: creme e dourado)
-        const ring = inst
-            ? tier === 'legendary'
-                ? '#f2d878'
-                : METAL[metalOf(viewInstance(inst).overall)].color
-            : null;
-        // visual da carta (metal pela nota, lendário, edições especiais), sem os atributos
-        const look = inst
-            ? edition
-                ? `sc sc-${edition}`
-                : tier === 'legendary'
-                  ? 'sc sc-lendario'
-                  : `sc sc-${metalOf(viewInstance(inst).overall)}${tier && finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`
-            : '';
-        // Evento: a cor (e o fundo da vaga) é a do tipo do evento, não a do 1º tipo do Pokémon (Kabutops de Água, não de Pedra)
-        const t1 = inst ? TYPE_COLOR[cardTypeOf(inst)] : undefined;
-        const rarStyle = ring ? ({ ...style, '--rar': ring, '--t1': t1 } as CSSProperties) : style;
+        const card = inst ? cardLook(inst) : null;
+        const look = card?.className ?? '';
+        const rarStyle = card ? ({ ...style, ...card.style } as CSSProperties) : style;
         const dim = inst && dimOf?.(inst) ? ' dim' : '';
-        const glow = inst && ref.zone === 'lineup' && aura.has(inst.uid) ? ` aura aura-${aura.get(inst.uid)}` : '';
+        const linkGlow = inst && ref.zone === 'lineup' && aura.has(inst.uid);
+        const monoGlow = !!mono && !!inst && monoUids.has(inst.uid) && (ref.zone === 'lineup' || mono.mono! > 5);
+        const glow = linkGlow ? ` aura aura-${aura.get(inst!.uid)}` : monoGlow ? ' aura aura-mono' : '';
+        const glowStyle = !linkGlow && monoGlow ? monoAura(mono!.type) : undefined;
         return (
             <button
                 type="button"
                 key={`${ref.zone}-${ref.index}`}
                 className={`slot ${inst ? 'filled' : 'empty'} ${state}${projClass}${tier ? ` rar-${tier}` : ''}${dim}${glow} ${look}`}
-                style={rarStyle}
+                style={glowStyle ? { ...rarStyle, ...glowStyle } : rarStyle}
                 data-uid={inst?.uid}
                 disabled={!clickable}
                 onClick={() => onSlot?.(ref, uid)}
@@ -137,6 +166,7 @@ export function FormationBoard({
                             className={`pixel${ghost ? ' ghost' : ' slot-pop'}`}
                             src={cardSprite(shown)}
                             alt=""
+                            data-px="box"
                         />
                         {inst && <span className="slot-name">{viewInstance(inst).displayName}</span>}
                         {r && (
@@ -146,13 +176,13 @@ export function FormationBoard({
                             </span>
                         )}
                         {inst?.item && <img className="pixel slot-item" src={itemSprite(inst.item)} alt="" />}
-                        {inst?.evo ? (
+                        {inst?.evo && inst.evo > 0 ? (
                             <i
                                 className="slot-evo"
                                 title={t('team.board.evo', {
-                                    n: Math.min(100, Math.round((inst.evo / EVO_THRESHOLD) * 100)),
+                                    n: Math.min(100, Math.round((inst.evo / evoMax) * 100)),
                                 })}
-                                style={{ '--evo': Math.min(1, inst.evo / EVO_THRESHOLD) } as CSSProperties}
+                                style={{ '--evo': Math.min(1, inst.evo / evoMax) } as CSSProperties}
                             />
                         ) : null}
                         {edition && (

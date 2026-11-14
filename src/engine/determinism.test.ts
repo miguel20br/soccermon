@@ -9,7 +9,34 @@ import { Rng } from './rng';
  * Golden master: mudou de propósito o resultado das partidas? Atualize os hashes aqui e suba `ENGINE_VERSION`
  * no mesmo commit. `npm run determinismo` confere os mesmos hashes no Chromium, Firefox e WebKit.
  */
-const EXPECTED_HASHES = ['e032fc1b', '28a1cd04', '84293c15', 'ee4f60e9', '47bbb3e7', 'f402aea6'];
+const EXPECTED_HASHES = [
+    // motor 30: o Losango arma pelo fixo; muda toda partida que tem um Losango (12 das 14)
+    // motor 20: Snorlax, Lickitung e Wigglytuff com Fixo de secundária mudam a escalação da IA (2ª, 3ª, 4ª, 6ª, 12ª, 14ª)
+    // motor 17: o chute que vem no gol saiu dos quadros (a bicuda acende pelo evento `gkReach`, que só sai com o goleiro
+    // capitão); a 2ª e a 4ª voltaram ao hash do motor 16
+    '2aef9dd9',
+    'd591c5c9',
+    '6e5c859a',
+    // motor 27: o rival evolui com a mesma barra do jogador (esta partida tinha evolução do rival)
+    '30eb124a',
+    // motor 29: a Linha de 3 arma pelo fixo (esta partida passa pela 3-1)
+    'ce7f5118',
+    '50785a42',
+    // daqui até as assinaturas, as partidas com golpe máximo pedido (motor 17: golpe máximo universal e a bicuda do goleiro
+    // capitão, que vale só pro chute que ele alcança; motor 18: a queda do N2/N3 e os efeitos do tipo quando a bola chega;
+    // motor 19: o de linha armado até o chute e o evento `maxArm`, também nas assinaturas; motor 26: o capitão chamado
+    // conduz até a zona em qualquer vaga e o time passa mais pra ele)
+    'c7f2f2fd',
+    '5c6cf2b3',
+    '974dc961',
+    '70f7ebe1',
+    // assinaturas do golpe máximo (motor 13): Mew, Dragonite e Ditto (motor 18: a defesa do golpe máximo espalma pra
+    // escanteio ou na trave, nunca encaixa; 02/11: o N1 por tipo)
+    'ee1b153f',
+    '0590ff29',
+    '6fadd490',
+    '95384375',
+];
 
 describe('determinismo entre navegadores', () => {
     it('partidas fixas dão sempre o mesmo hash', () => {

@@ -1,0 +1,156 @@
+/*
+ * Barrinha do golpe máximo, "Gomos" (MaxMeter.tsx): três blocos. Cor por nível: N1 amarelo, N2
+ * laranja, N3 a cor do tipo do capitão (`--mm3`, vermelho sem tipo). Pixel: borda de tinta, sombra dura, degraus.
+ * Tamanhos: `mm-thumb` (barra de baixo do celular), `mm-btn` (botão do técnico no PC), `mm-mini` (embaixo do placar).
+ */
+.mm {
+    --mm1: var(--yellow);
+    --mm2: color-mix(in srgb, var(--yellow), var(--red) 40%);
+    --mm3c: var(--mm3, var(--red));
+    position: relative;
+    flex: none;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    line-height: 1;
+}
+/* no botão do técnico: gomos deitados no pé do botão */
+.sl-btn.sl-max.mm-host {
+    padding-bottom: 16px;
+}
+.sl-max.mm-host .mm-btn {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 5px;
+}
+.sl-max.mm-host .sl-fx {
+    right: 4px;
+    bottom: auto;
+    top: 4px;
+}
+.sl-max.mm-host > span {
+    padding-right: 20px;
+}
+/* apagado, só o texto e o ícone ficam fracos: a barrinha continua legível (é ela que diz quanto falta) */
+.sl-btn.sl-max.mm-host[aria-disabled="true"] {
+    opacity: 1;
+}
+.sl-btn.sl-max.mm-host[aria-disabled="true"] > :not(.mm) {
+    opacity: 0.45;
+}
+.bc-maxthumb.mm-host {
+    gap: 6px;
+}
+
+/* ---------- A "Gomos": três blocos, cada um na cor do nível dele ---------- */
+.mm-a {
+    display: flex;
+    gap: 2px;
+}
+.mm-cell {
+    --c: var(--mm1);
+    position: relative;
+    width: 10px;
+    height: 20px;
+    overflow: hidden;
+    border: 2px solid var(--bc-ink);
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.45);
+}
+.mm-cell.c2 {
+    --c: var(--mm2);
+}
+.mm-cell.c3 {
+    --c: var(--mm3c);
+}
+/* enchendo: xadrez de 2 px na cor do bloco (o "ainda não" do pixel art), subindo em degraus; cheio: cor lisa com o
+   fio de luz à esquerda */
+.mm-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-conic-gradient(var(--c) 0 25%, transparent 0 50%) 0 0 / 4px 4px;
+    /* sobe por transform (sem mexer no layout), em degraus */
+    transform: scaleY(var(--f, 0));
+    transform-origin: bottom;
+    transition: transform 0.3s steps(4);
+}
+.mm-cell.on::before {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 0 2px, transparent 0), var(--c);
+}
+.mm-cell.pop {
+    animation: mm-pop 320ms var(--ease-pop, var(--ease-out));
+}
+@keyframes mm-pop {
+    from {
+        transform: scale(1.6);
+        filter: brightness(2.4);
+    }
+}
+/* N3: um brilho atravessa os três blocos, um depois do outro, a cada 2,4 s */
+.mm-a[data-lv="3"] .mm-cell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.75) 30% 60%, transparent 60%);
+    transform: translateX(-130%);
+    animation: mm-sweep 2.4s steps(6) infinite;
+}
+.mm-a[data-lv="3"] .mm-cell.c2::after {
+    animation-delay: 90ms;
+}
+.mm-a[data-lv="3"] .mm-cell.c3::after {
+    animation-delay: 180ms;
+}
+@keyframes mm-sweep {
+    25%,
+    100% {
+        transform: translateX(130%);
+    }
+}
+/* deitados (placar e botão do PC): enchem pro lado */
+.mm-a:is(.mm-mini, .mm-btn) {
+    flex: 1;
+}
+.mm-a:is(.mm-mini, .mm-btn) .mm-cell {
+    flex: 1;
+    width: auto;
+    height: 8px;
+    border-width: 1px;
+    border-radius: 1px;
+}
+.mm-a.mm-btn .mm-cell {
+    height: 9px;
+    border-width: 2px;
+}
+.mm-a:is(.mm-mini, .mm-btn) .mm-cell::before {
+    transform: scaleX(var(--f, 0));
+    transform-origin: left;
+}
+.mm-a.mm-mini.flip {
+    flex-direction: row-reverse;
+}
+.mm-a.mm-mini.flip .mm-cell::before {
+    transform-origin: right;
+}
+
+/* placar: as duas barrinhas novas um pouco mais altas que as de hoje */
+.sl-maxbars.mm-bars {
+    align-items: center;
+    padding: 2px 2px 0;
+}
+
+/* sem movimento: só a cor e o número mudam (seletor dobrado pra ganhar dos de cima sem !important) */
+[data-reduce-motion="true"] .mm.mm[data-lv] *,
+[data-reduce-motion="true"] .mm.mm[data-lv] *::before,
+[data-reduce-motion="true"] .mm.mm[data-lv] *::after {
+    animation: none;
+    transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mm.mm[data-lv] *,
+    .mm.mm[data-lv] *::before,
+    .mm.mm[data-lv] *::after {
+        animation: none;
+        transition: none;
+    }
+}

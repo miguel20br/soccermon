@@ -1,3 +1,7 @@
+---
+description: Plano dos emotes do Duelo, inspirados no Clash Royale.
+---
+
 # Emotes do Duelo, versão Clash Royale (0.8.7)
 
 Pedido do Miguel (relatório da 0.8.6): "deixar os emotes bem mais legais, inspirados no Clash Royale".

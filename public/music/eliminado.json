@@ -1,0 +1,22 @@
+{
+ "faixa": "eliminado",
+ "titulo": "Eliminado v4",
+ "tela": "Eliminado",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 6.854558,
+ "secoes": [
+  {
+   "nome": "tudo",
+   "loop": false,
+   "inicio": 0,
+   "fim": 5.24576,
+   "amostras": [
+    0,
+    231338
+   ],
+   "bpm": 132,
+   "compassos": 3
+  }
+ ]
+}

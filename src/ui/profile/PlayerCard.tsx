@@ -1,11 +1,20 @@
-import { type CSSProperties, useEffect, useMemo, useRef } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { useCloud } from '../../cloud/cloud';
 import { SPECIES } from '../../engine/data';
 import type { PokemonInstance } from '../../engine/instance';
-import { type FriendNumbers, type FriendRow, type FriendTitle, type PublicPeer, useFriends } from '../../friends/api';
+import {
+    challengeFriend,
+    type FriendNumbers,
+    type FriendRow,
+    type FriendTitle,
+    isFriendCode,
+    type PublicPeer,
+    useFriends,
+} from '../../friends/api';
 import { useT } from '../../i18n/react';
 import type { Peer } from '../../net/duel-state';
+import { useDuel } from '../../net/session';
 import { parseCardShowcase } from '../../store/binder';
 import { type ClubLook, lookOfPeer, lookOfProfile, peerLookFields } from '../../store/club-kit';
 import { headToHead } from '../../store/duels';
@@ -19,6 +28,8 @@ import { useCardModal } from '../card-modal';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
+import { Sheet } from '../kit/Sheet';
+import { requestLeave } from '../leave-guard';
 import { AddFriendButton } from './AddFriendButton';
 import { useCardShowcase } from './Album';
 import { Crest } from './Crest';
@@ -32,6 +43,7 @@ import {
     titleName,
     trainerLabel,
     useAvatar,
+    useTrainerLabel,
 } from './club';
 import { frameClass, ShowcaseRow, useShowcase } from './Medals';
 import { Num } from './NumbersTab';
@@ -56,6 +68,10 @@ export interface PlayerInfo {
     other: boolean;
     /** Id da conta de quem está na sala (o servidor de amigos acha o cartão dele por aqui). */
     id?: string;
+    /** Código de amigo (pedir amizade por ele; o botão sabe se já são amigos ou se o pedido já foi). */
+    code?: string;
+    /** Quem não é amigo, aberto de um ranking: só nome e clube (a vitrine só amigo lê). */
+    bare?: boolean;
     anon?: boolean;
     /** Taças da Copa por metal (bronze, prata, ouro): o pedaço da sala de troféus. */
     cups: [number, number, number];
@@ -88,6 +104,7 @@ export function peerInfo(p: Peer, other = true): PlayerInfo {
         cups: parseCups(p.cups),
         other,
         id: str(p.id, 64),
+        code: typeof p.code === 'string' && isFriendCode(p.code) ? p.code : undefined,
         anon: p.anon === true,
     };
 }
@@ -159,8 +176,9 @@ export function useMyInfo(): PlayerInfo {
     const cards = useCardShowcase().insts;
     const title = activeTitle(profile);
     const hall = useGame((s) => s.hall);
+    const name = useTrainerLabel();
     return {
-        name: trainerLabel(profile),
+        name,
         trainer: activeTrainer(profile),
         avatar,
         frame: show.frame,
@@ -219,41 +237,29 @@ export const usePlayerCard = create<{ info: PlayerInfo | null; open(i: PlayerInf
 export function PlayerCardModal() {
     const { info, close } = usePlayerCard();
     const { t } = useT();
-    const ref = useRef<HTMLDivElement>(null);
     const open = !!info;
 
     useEffect(() => {
         if (!open) return;
-        // Esc com a carta inteira aberta por cima fecha só a carta
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !useCardModal.getState().inst && close();
-        window.addEventListener('keydown', onKey);
         const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        ref.current?.focus({ preventScroll: true });
-        return () => {
-            window.removeEventListener('keydown', onKey);
-            back?.focus({ preventScroll: true });
-        };
-    }, [open, close]);
+        return () => back?.focus({ preventScroll: true });
+    }, [open]);
+    // com a carta inteira aberta por cima, Esc e toque fora fecham só a carta
+    const closeIfTop = useCallback(() => {
+        if (!useCardModal.getState().inst) close();
+    }, [close]);
 
     if (!info) return null;
     return (
-        // biome-ignore lint/a11y/noStaticElementInteractions: clicar fora fecha; Esc e o botão fechar cobrem o teclado
-        <div className="modal-backdrop" onClick={close} role="presentation">
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: só impede que o clique dentro feche */}
-            <div
-                ref={ref}
-                tabIndex={-1}
-                className={`modal panel pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
-                style={{ '--club': hexCss(info.look.color), '--tc': hexCss(info.look.color) } as CSSProperties}
-                role="dialog"
-                aria-modal="true"
-                aria-label={t('profile.card.aria', { name: info.name })}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button type="button" className="modal-close" onClick={close} aria-label={t('common.ui.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <header className="pcard-head">
+        <Sheet
+            open
+            onClose={closeIfTop}
+            title={info.name}
+            style={{ '--club': hexCss(info.look.color), '--tc': hexCss(info.look.color) } as CSSProperties}
+            className={`pcard bc-surface bc-stripe${trainerFrame(info.trainer)}`}
+        >
+            <header className="pcard-head">
+                {!info.bare && (
                     <div className="pf-duo">
                         <TrainerSprite id={info.trainer} className="pf-duo-trainer" />
                         <img
@@ -263,63 +269,64 @@ export function PlayerCardModal() {
                             referrerPolicy="no-referrer"
                         />
                     </div>
-                    <div className="pf-who">
-                        <h2>{info.name}</h2>
-                        {info.title.name && (
-                            <span className={`pf-title-line${info.title.look ? ` ${info.title.look}` : ''}`}>
-                                {info.title.name}
-                            </span>
-                        )}
-                        <span className="pf-clubline">
-                            <Crest look={info.look} className="crest pf-crest" />
-                            {info.clubName} · <b>{info.clubTag}</b>
+                )}
+                <div className="pf-who">
+                    {info.title.name && (
+                        <span className={`pf-title-line${info.title.look ? ` ${info.title.look}` : ''}`}>
+                            {info.title.name}
                         </span>
-                        {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
-                    </div>
-                </header>
-                <ShowcaseRow items={info.showcase} className="pcard-medals" />
-                {info.cups.some((n) => n > 0) && (
-                    <div
-                        className="pcard-cups"
-                        role="img"
-                        aria-label={`${t('trophies.cardTrophies')}: ${info.cups.join(' · ')}`}
-                    >
-                        {METALS.map((m, i) =>
-                            info.cups[i] ? (
-                                <span key={m} className="pcard-cup">
-                                    <PixelTrophy kind="taca" metal={m} />
-                                    <b>{t('trophies.times', { n: info.cups[i] })}</b>
-                                </span>
-                            ) : null,
-                        )}
-                    </div>
-                )}
-                <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>
-                {info.cards.length ? (
-                    <ul className="pcard-cards">
-                        {info.cards.map((p) => (
-                            <li key={p.uid}>
-                                <FutCard inst={p} />
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
-                )}
-                {info.friend && <FriendPart f={info.friend} name={info.name} />}
-                {info.other && info.id && (
-                    <div className="pcard-friend">
-                        <AddFriendButton peer={{ id: info.id, anon: info.anon }} />
-                    </div>
-                )}
-            </div>
-        </div>
+                    )}
+                    <span className="pf-clubline">
+                        <Crest look={info.look} className="crest pf-crest" />
+                        {info.clubName} · <b>{info.clubTag}</b>
+                    </span>
+                    {info.anon && <span className="duel-anon pcard-anon">{t('duel.lobby.anon')}</span>}
+                </div>
+            </header>
+            {info.bare && <p className="muted pcard-empty">{t('profile.card.notFriend')}</p>}
+            {!info.bare && <ShowcaseRow items={info.showcase} className="pcard-medals" />}
+            {info.cups.some((n) => n > 0) && (
+                <div
+                    className="pcard-cups"
+                    role="img"
+                    aria-label={`${t('trophies.cardTrophies')}: ${info.cups.join(' · ')}`}
+                >
+                    {METALS.map((m, i) =>
+                        info.cups[i] ? (
+                            <span key={m} className="pcard-cup">
+                                <PixelTrophy kind="taca" metal={m} />
+                                <b>{t('trophies.times', { n: info.cups[i] })}</b>
+                            </span>
+                        ) : null,
+                    )}
+                </div>
+            )}
+            {!info.bare && <h3 className="bc-lbl pcard-lbl">{t('profile.card.cards')}</h3>}
+            {info.bare ? null : info.cards.length ? (
+                <ul className="pcard-cards">
+                    {info.cards.map((p) => (
+                        <li key={p.uid}>
+                            <FutCard inst={p} />
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="muted pcard-empty">{t('profile.card.noCards')}</p>
+            )}
+            {info.friend && <FriendPart f={info.friend} name={info.name} />}
+            {info.other && !info.friend && (info.id || info.code) && (
+                <div className="pcard-friend">
+                    <AddFriendButton peer={{ id: info.id, code: info.code, anon: info.anon }} />
+                </div>
+            )}
+        </Sheet>
     );
 }
 
 /** O que só o perfil do amigo tem: números, os últimos títulos e "vocês no Duelo". */
 function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: string }) {
     const { t, lang } = useT();
+    const inRoom = useGame((g) => g.screen === 'duel') && !!useDuel.getState().room;
     const duels = useGame((s) => s.duels);
     const vs = headToHead(duels, { code: f.code, trainer: name, club: f.club });
     const total = vs.win + vs.draw + vs.loss;
@@ -360,6 +367,22 @@ function FriendPart({ f, name }: { f: NonNullable<PlayerInfo['friend']>; name: s
             <p className="pcard-h2h" data-testid="friend-h2h">
                 {total ? t('profile.card.h2hLine', { w: vs.win, d: vs.draw, l: vs.loss }) : t('profile.card.h2hNone')}
             </p>
+            {/* já dentro de uma sala do Duelo o convite não teria sala nova pra ir: sem o botão */}
+            {!inRoom && (
+                <div className="pcard-friend">
+                    <button
+                        type="button"
+                        className="btn outline"
+                        onClick={() => {
+                            usePlayerCard.getState().close();
+                            // no meio de uma partida, pergunta antes de sair (como o voltar)
+                            requestLeave(() => challengeFriend({ code: f.code, trainer: name }));
+                        }}
+                    >
+                        <HudIcon kind="play" /> {t('friends.challenge')}
+                    </button>
+                </div>
+            )}
         </>
     );
 }
@@ -371,7 +394,7 @@ export function ProfileChip() {
     const avatar = useAvatar();
     const frame = useShowcase().frame;
     const { t } = useT();
-    const name = trainerLabel(profile);
+    const name = useTrainerLabel();
     const news = useNews();
     return (
         <button

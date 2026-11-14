@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-draft",
+ "titulo": "Ponte pra draft: as três cartas virando (sinos em 3-3-2)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.811429,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.222222,
+   "amostras": [
+    0,
+    98000
+   ],
+   "bpm": 108,
+   "compassos": 1
+  }
+ ]
+}

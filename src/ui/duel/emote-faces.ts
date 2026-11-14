@@ -1,8 +1,6 @@
-import portraits from '../../data/portraits.json';
 import type { MatchEvent } from '../../engine/state';
 import type { EmoteKind } from '../../net/duel-state';
-
-const HAS = portraits as Record<string, string[]>;
+import { portraitSrc } from '../portrait';
 
 /**
  * Cada emote é o capitão com uma cara do PMDCollab (a 1ª que a espécie tiver; sem nenhuma, o rosto normal), o
@@ -21,8 +19,7 @@ export const FACE: Record<EmoteKind, { faces: string[]; move: 'hop' | 'shake' | 
 };
 
 export function emoteFace(speciesId: number, kind: EmoteKind): string {
-    const face = FACE[kind].faces.find((f) => HAS[speciesId]?.includes(f));
-    return `assets/portraits/${speciesId}${face ? `-${face}` : ''}.png`;
+    return portraitSrc(speciesId, FACE[kind].faces);
 }
 
 /** Emote do líder rival na Copa: em que tick aparece e qual. */

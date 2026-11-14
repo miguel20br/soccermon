@@ -16,7 +16,8 @@
 }
 .lg-date {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 18px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
     color: var(--yellow);
 }
 /* "Terça-feira, 20 de outubro": só a primeira letra maiúscula */
@@ -77,7 +78,8 @@
 }
 .lg-verdict {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 22px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
     line-height: 1.15;
     color: var(--text);
 }
@@ -196,7 +198,8 @@
 }
 .lg-pos {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--yellow);
     text-align: center;
     font-variant-numeric: tabular-nums;
@@ -247,6 +250,44 @@
     height: 20px;
 }
 
+/* time em ícones: segunda linha da linha do ranking; capitão com a plaquinha C */
+.lg-squad {
+    grid-column: 2 / -1;
+    display: flex;
+    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+    animation: lg-squad-in 250ms ease-out both;
+}
+.lg-squad-mon {
+    position: relative;
+    flex: none;
+    line-height: 0;
+}
+.lg-squad-mon.cap::after {
+    content: "C";
+    position: absolute;
+    right: -1px;
+    top: 0;
+    padding: 0 3px;
+    border-radius: 3px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font:
+        9px / 12px "Galmuri11",
+        monospace;
+}
+@keyframes lg-squad-in {
+    from {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lg-squad {
+        animation: none;
+    }
+}
+
 /* divisão: escudo na cor do metal */
 .lg-div {
     display: inline-flex;
@@ -273,7 +314,8 @@
 }
 .lg-div b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .lg-div-prata {
     --dc: var(--div-prata);
@@ -311,7 +353,8 @@
 }
 .lg-elo-num b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 34px;
+    --gs: 34px;
+    font-size: var(--gfs, 34px);
     line-height: 1;
     color: var(--text);
     font-variant-numeric: tabular-nums;
@@ -373,7 +416,8 @@
 .lg-ghost-head b,
 .lg-team-row b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     line-height: 1.15;
     color: var(--text);
     overflow-wrap: anywhere;
@@ -418,92 +462,6 @@
 .lg .btn.big {
     width: 100%;
 }
-
-/* Home: Copa do Dia e Liga, um cartão de duas linhas embaixo da Copa e do Duelo */
-.home .daily-card {
-    display: grid;
-    gap: 10px;
-    padding: 12px 14px;
-    background: var(--bg-2);
-    border-color: var(--line);
-    box-shadow: none;
-    text-align: left;
-}
-.dc-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-}
-.dc-icon .menu-icon {
-    width: 34px;
-    height: 34px;
-}
-.daily-card .mode-head {
-    display: grid;
-    gap: 2px;
-}
-.daily-card .mode-head b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
-    color: var(--text);
-}
-.daily-card .mode-head span {
-    color: var(--muted);
-    font-size: 12px;
-}
-.dc-go {
-    min-height: 44px;
-    white-space: nowrap;
-}
-@media (max-width: 360px) {
-    .dc-row {
-        grid-template-columns: auto minmax(0, 1fr);
-    }
-    .dc-go {
-        grid-column: 1 / -1;
-    }
-}
-
-/* Liga fechada até LIGA_OPENS_AT: a linha vira um botão que conta o porquê */
-.dc-liga {
-    display: grid;
-    gap: 8px;
-}
-.dc-locked {
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    /* o cadeado fica na mesma linha até em 320 px (a linha aberta joga o botão pra baixo) */
-    grid-template-columns: auto minmax(0, 1fr) auto;
-}
-.dc-locked .dc-icon {
-    opacity: 0.55;
-    filter: grayscale(0.6);
-}
-.daily-card .dc-locked .mode-head .bc-tag {
-    margin-left: 4px;
-    color: var(--bc-ink);
-    font-size: 10px;
-    vertical-align: 2px;
-}
-.dc-locked .mode-head > span {
-    font-variant-numeric: tabular-nums;
-}
-.dc-lock {
-    margin-right: 6px;
-    color: var(--muted);
-}
-.dc-locked:focus-visible {
-    outline: 2px solid var(--yellow);
-    outline-offset: 4px;
-    border-radius: 6px;
-}
 /* Ranking do dia: Todos / Amigos */
 .lg-scope {
     margin: 2px 0 8px;
@@ -542,4 +500,174 @@
 }
 .lg-sticker small {
     font-size: 12px;
+}
+
+/* ---------- Liga no palco da Arena (cara-de-jogo.md, decisão 8): letreiro em cima, rival e linhas embaixo ---------- */
+.lg-stage .lg-hero {
+    gap: 6px;
+}
+/* o letreiro enxuto (a quadra aparece logo embaixo): Elo e "ELO" na mesma linha */
+.lg-stage .lg-season {
+    padding: 10px 14px;
+}
+.lg-stage .lg-elo-num {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.lg-stage .lg-elo-num b {
+    font-size: 28px;
+}
+.lg-stage .lg-season-top small {
+    margin-left: auto;
+}
+.lg-stage .lg-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 8px;
+    text-align: center;
+}
+.lg-closed {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    text-align: center;
+}
+.lg-count {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: clamp(20px, calc(7 * var(--vw)), 28px);
+    font-size: var(--gfs, clamp(20px, calc(7 * var(--vw)), 28px));
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--yellow);
+    font-variant-numeric: tabular-nums;
+}
+.lg-rows {
+    display: grid;
+    gap: 8px;
+}
+.lg-stage .lg-ghost {
+    gap: 6px;
+}
+.lg-stage .lg-msg {
+    text-align: center;
+}
+/* tela baixa: o letreiro e o rival encolhem pra quadra aparecer entre eles */
+@media (max-height: 700px) {
+    .lg-stage .panel {
+        padding: 10px 12px;
+    }
+    .lg-stage .lg-elo-num b {
+        font-size: 22px;
+    }
+    .lg-stage .lg-ghost-head b {
+        font-size: 16px;
+    }
+    .lg-stage :is(.lg-season .lg-hint, .lg-ghost .bc-lbl) {
+        display: none;
+    }
+    .lg-stage .lg-squad img {
+        width: 32px;
+        height: 32px;
+    }
+    .lg-stage .k-sheetrow {
+        min-height: 42px;
+        padding-block: 6px;
+    }
+    /* as duas linhas lado a lado (o nome do time e a posição ficam pra Sheet) */
+    .lg-rows {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .lg-rows .k-sheetrow .muted {
+        display: none;
+    }
+}
+@media (max-width: 359px) {
+    .lg-stage .lg-season-top small {
+        display: none;
+    }
+}
+
+/* ---------- Copa do Dia no palco do Estádio: o dia, a semana e a figurinha num painel; o ranking numa Sheet ---------- */
+.dy-panel {
+    gap: 8px;
+}
+.dy-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.dy-done {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+.dy-scores {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+}
+.dy-scores li {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 2px 4px;
+    border-radius: 5px;
+    background: var(--bc-ink-2);
+    text-align: center;
+    white-space: nowrap;
+}
+.dy-week {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+}
+.dy-week small {
+    color: var(--muted);
+    font-size: 12px;
+}
+.dy-week .lg-days li {
+    width: 28px;
+    height: 28px;
+}
+.dy-sticker {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-size: 13px;
+}
+.dy-sticker small {
+    color: var(--muted);
+    font-size: 12px;
+}
+@media (max-width: 359px) {
+    .dy-week .lg-days {
+        gap: 4px;
+    }
+    .dy-week .lg-days li {
+        width: 24px;
+        height: 24px;
+    }
+}
+/* o desafio do dia, à esquerda e maior que o resto do painel */
+.dy-panel .lg-line {
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 15px;
+}
+/* Copa do Dia deitada em 2 colunas: o painel inteiro não cabia embaixo do título (o título ficava sozinho na 1ª coluna)
+   e o Ranking ia pra uma 3ª coluna fora da tela. O painel quebra entre as colunas, cada pedaço com a moldura */
+@media (orientation: landscape) and (max-height: 520px) {
+    .dy-stage .k-stage-body[data-cols="2"] > .dy-panel {
+        break-inside: auto;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+    .dy-stage .k-stage-body[data-cols="2"] > .dy-panel > * {
+        break-inside: avoid;
+    }
 }

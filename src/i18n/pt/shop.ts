@@ -1,4 +1,4 @@
-/** Mercado e Patrocínios da Copa rápida (docs/planos/copa-roguelike-plano.md). */
+/** Mercado e Patrocínios: o Mercado é casa do mapa da Rota; no arcade o Patrocínio vem na recompensa (11/11/2026). */
 export const shop = {
     title: 'Mercado',
     before: 'Próxima fase: {stage}',
@@ -6,6 +6,8 @@ export const shop = {
     wallet: 'Seu ₽',
     earned: {
         title: 'A vitória rendeu',
+        /** Mercado da Rota sem vitória nova (vindo de um amarelo): só os juros. */
+        titleInterest: 'Seu ₽ rendeu',
         win: 'Vitória',
         goals: 'Gols',
         clean: 'Sem sofrer gol',
@@ -15,8 +17,14 @@ export const shop = {
     interestHint: 'Guardar rende juros: ₽1 a cada ₽5, até ₽{cap}.',
     reroll: 'Novas ofertas · ₽{n}',
     rerollFree: 'Novas ofertas · grátis',
+    /** Rota: a troca paga com um sorteio (você tem {n}). */
+    rerollTicket: '1 sorteio',
+    rerollTicketAria: 'Novas ofertas · 1 sorteio (você tem {n})',
+    free: 'Grátis',
+    rerollLabel: 'Novas ofertas',
     leave: 'Seguir',
     buy: 'Comprar · ₽{n}',
+    buyPlain: 'Comprar',
     sold: 'Comprado',
     owned: 'Já está no time',
     priceShort: '₽{price} · falta ₽{n}',
@@ -67,6 +75,18 @@ export const shop = {
             name: 'Patrocínio Master',
             short: 'MASTER',
             desc: 'Capitão com +2 em tudo, +1 por Patrocínio a mais.',
+        },
+        olheiro: {
+            name: 'Olheiro de Viridian',
+            short: 'OLHEIRO',
+            desc: 'Pokémon do Mercado e dos pacotes saem com a raridade da fase seguinte.',
+        },
+        preparador: { name: 'Preparador de Lavender', short: 'LAVENDER', desc: '+6 de fôlego pro time todo.' },
+        charanga: { name: 'Charanga de Pewter', short: 'CHARANGA', desc: '+4 em tudo enquanto o time perde.' },
+        formador: {
+            name: 'Clube Formador de Pallet',
+            short: 'PALLET',
+            desc: 'A barra de evolução do seu time enche 40% mais rápido.',
         },
     } as Record<string, { name: string; short: string; desc: string }>,
 };

@@ -1,0 +1,303 @@
+/*
+ * A barra de cima (TopBar.tsx): o treinador com o nível, os títulos e a Pokédex x/151, e a engrenagem. Nasceu nos
+ * ambientes (0.9.22); desde a 0.9.23 também fica em cima das telas de menu (Perfil, Ajuda, Coleção, Troféus,
+ * Configurações), no lugar do logo. Nos ambientes ela flutua (.amb-top em ambientes.css).
+ */
+/* ---------- a barra de cima: o treinador, os títulos e a Pokédex ---------- */
+.k-topbar {
+    left: calc(12px + env(safe-area-inset-left));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.k-topbar .top-actions {
+    gap: 6px;
+}
+.k-topbar .help-fab {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    transition: transform 320ms var(--ease-pop);
+}
+/* toque de 44 px (o desenho fica com 40) */
+.k-topbar .help-fab {
+    position: relative;
+}
+.k-topbar .help-fab::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+}
+.k-topbar .help-fab:active {
+    transform: translateY(3px) scale(0.95);
+    transition-duration: 60ms;
+}
+.k-topbar .help-fab .menu-icon {
+    width: 24px;
+    height: 24px;
+}
+.amb-res {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.res-me {
+    --club: var(--red);
+    position: relative;
+    flex: 0 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 56px;
+    padding: 2px 12px 2px 2px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 28px 10px 10px 28px;
+    background: linear-gradient(180deg, #3b4a8f 0 46%, #2a3570 46%);
+    box-shadow:
+        inset 0 -4px 0 #1a2150,
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+}
+.res-me .pf-avatar {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-width: 2px;
+    box-shadow: none;
+}
+.res-me-txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.1;
+}
+.res-me-txt b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+}
+/* a barra até o próximo nível (as missões em degraus), chanfrada como o botão */
+.res-xp {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-width: 56px;
+    height: 9px;
+    margin-top: 4px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 3px;
+    background: #10173a;
+    overflow: hidden;
+}
+.res-xp i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 100%;
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    transform: scaleX(var(--k, 0));
+    transform-origin: left;
+    transition: transform var(--dur-tela) var(--ease-out);
+}
+/* a estrela do nível, no canto do avatar, com o número contornado */
+.res-lv {
+    position: absolute;
+    left: -8px;
+    bottom: -10px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    filter: drop-shadow(0 2px 0 var(--cb-ink));
+}
+.res-lv::before,
+.res-lv::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(50% 0, 63% 33%, 98% 36%, 71% 58%, 80% 94%, 50% 75%, 20% 94%, 29% 58%, 2% 36%, 37% 33%);
+    background: var(--cb-ink);
+}
+.res-lv::after {
+    inset: 3px;
+    background: linear-gradient(180deg, var(--gold-hi) 0 48%, var(--yellow) 48%);
+}
+.res-lv .cb-num {
+    position: relative;
+    z-index: 1;
+    margin-top: 4px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    line-height: 1;
+    --ol: var(--gold-ol);
+    text-shadow: var(--k-out-1);
+}
+.res-of {
+    margin-left: -3px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.res-chip {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 36px;
+    margin-left: 12px;
+    padding: 0 8px 0 19px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: #0e1438;
+    box-shadow:
+        inset 0 2px 0 rgb(255 255 255 / 10%),
+        0 3px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+}
+/* o ícone grande saindo da placa pela esquerda */
+.res-chip > :first-child {
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    translate: 0 -50%;
+}
+.res-cup .tr-art {
+    width: 32px;
+    height: auto;
+    filter: drop-shadow(0 2px 0 var(--cb-ink));
+}
+.res-dex .hud-icon {
+    box-sizing: content-box;
+    width: 18px;
+    height: 18px;
+    padding: 5px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+}
+.res-chip .cb-num {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+    line-height: 1;
+}
+.res-me:focus-visible,
+.res-chip:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* a bolinha de novidade do Perfil, no canto do avatar */
+.res-me > .new-dot.res-dot {
+    top: -3px;
+    left: 38px;
+    right: auto;
+    width: 12px;
+    height: 12px;
+}
+/* celular em pé: Ajuda e Configurações menores, pra sobrar o nome do treinador */
+@media (max-width: 429px) {
+    .k-topbar .help-fab {
+        width: 40px;
+        height: 40px;
+    }
+    .res-me {
+        height: 52px;
+    }
+    .res-me .pf-avatar {
+        width: 44px;
+        height: 44px;
+    }
+    .res-me-txt b {
+        font-size: 14px;
+    }
+    /* o x/151 e o nível disputam lugar com o nome: placas mais justas */
+    .res-chip {
+        margin-left: 10px;
+        padding-right: 5px;
+    }
+    .res-of {
+        margin-left: -4px;
+        font-size: 10px;
+    }
+    .res-xp {
+        min-width: 44px;
+    }
+}
+/* celular estreito: o treinador vira só o avatar */
+@media (max-width: 359px) {
+    .res-me-txt {
+        display: none;
+    }
+    .res-me {
+        padding-right: 2px;
+        border-radius: 24px;
+    }
+}
+/* deitado: a barra fica no canto direito, compacta (a coluna da esquerda é do telão e do JOGAR) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-topbar {
+        left: auto;
+        top: calc(6px + env(safe-area-inset-top));
+    }
+    .res-me-txt {
+        display: none;
+    }
+    .res-me {
+        height: 40px;
+        padding-right: 2px;
+        border-radius: 22px;
+    }
+    .res-me .pf-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    .res-chip {
+        height: 32px;
+    }
+    .k-topbar .help-fab {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* em cima das telas de menu (App.tsx): a mesma barra dos ambientes, no mesmo lugar (.amb-top): voltar no canto de
+   cima à esquerda, o treinador logo depois e Novidades, Ajuda e Configurações à direita */
+.k-menubar {
+    position: absolute;
+    z-index: 20;
+    top: calc(10px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+}
+/* deitado: nos ambientes a barra vai pro canto direito (a coluna da esquerda é do telão); no menu não há telão, o
+   voltar fica no canto esquerdo */
+@media (orientation: landscape) and (max-height: 520px) {
+    .k-menubar.k-topbar {
+        left: calc(12px + env(safe-area-inset-left));
+    }
+}
+
+/* PC (1024 px ou mais): os botões da barra de cima com 44 px */
+@media (min-width: 1024px) and (min-height: 700px) {
+    .k-topbar .help-fab {
+        width: 44px;
+        height: 44px;
+    }
+}

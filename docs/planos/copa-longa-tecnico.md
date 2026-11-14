@@ -1,3 +1,7 @@
+---
+description: Plano técnico da Copa longa: estado, mapa, eventos e save.
+---
+
 # Copa longa: plano técnico (0.9.1, rascunho de 20/10/2026)
 
 Continuação de [copa-roguelike.md](copa-roguelike.md) e [copa-roguelike-plano.md](copa-roguelike-plano.md) (etapa 2).

@@ -1,0 +1,164 @@
+/* Duelo da bicuda (ShowdownOverlay.tsx): a caixa de fala do PMD por cima da quadra escurecida, embaixo dela. */
+.sd-dock {
+    /* rosto PMD: celular 56, tela grande 72 */
+    --sd-face: 56px;
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 8;
+    display: grid;
+    justify-items: center;
+    pointer-events: none;
+    transition: opacity 250ms var(--ease-out);
+}
+.sd-dock.sd-leaving {
+    opacity: 0;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sd-dock {
+        --sd-face: 72px;
+        bottom: 12px;
+    }
+}
+
+/*
+ * A caixa de fala (PMD): o rosto do lado de quem fala, o nome numa plaquinha clara presa na borda de cima, o texto
+ * sempre à esquerda, grande, em até 2 linhas equilibradas, letra por letra (Miguel, 03/11/2026: "dá pra formatar melhor").
+ */
+.sd-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(580px, 100%);
+    min-height: calc(var(--sd-face) + 16px);
+    margin-top: 12px;
+    padding: 8px 16px 8px 8px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 3px var(--tc),
+        0 4px 0 var(--bc-edge);
+    animation: sd-box-in 200ms var(--ease-out) both;
+}
+.sd-box-g {
+    flex-direction: row-reverse;
+    padding: 8px 8px 8px 16px;
+}
+.sd-face {
+    flex: none;
+    width: var(--sd-face);
+    height: var(--sd-face);
+    border: 3px solid var(--bc-edge);
+    border-radius: 6px;
+    background: var(--panel);
+}
+.sd-talk {
+    min-width: 0;
+    flex: 1;
+    padding: 6px 0 2px;
+}
+/* a plaquinha do nome: clara, com a faixa na cor do time, encaixada na borda de cima, em cima do texto */
+.sd-name {
+    position: absolute;
+    top: -13px;
+    left: calc(var(--sd-face) + 22px);
+    padding: 0 10px 0 8px;
+    border: 2px solid var(--bc-edge);
+    border-left: 7px solid var(--tc);
+    border-radius: 4px;
+    background: var(--bc-paper);
+    color: var(--bc-ink);
+    box-shadow: 0 2px 0 var(--bc-edge);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 18px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.sd-box-g .sd-name {
+    left: 16px;
+}
+.sd-text {
+    margin: 0;
+    font-family: "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    line-height: 1.35;
+    text-align: left;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+}
+.sd-box-shout .sd-text {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 24px;
+    font-size: var(--gfs, 24px);
+    line-height: 1.15;
+    letter-spacing: 1px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sd-text {
+        --gs: 20px;
+        font-size: var(--gfs, 20px);
+    }
+    .sd-box-shout .sd-text {
+        --gs: 32px;
+        font-size: var(--gfs, 32px);
+    }
+    .sd-name {
+        font-size: 12px;
+        line-height: 20px;
+    }
+}
+.sd-ch {
+    animation: sd-type 1ms steps(1) both;
+}
+
+/* celular deitado: pouca altura, rosto menor e a caixa mais baixa (o texto continua 16) */
+@media (max-height: 480px) {
+    .sd-dock {
+        --sd-face: 44px;
+        bottom: 4px;
+    }
+    .sd-box {
+        width: min(520px, 100%);
+        min-height: calc(var(--sd-face) + 10px);
+        padding-block: 5px;
+    }
+    .sd-talk {
+        padding-top: 4px;
+    }
+    .sd-box-shout .sd-text {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+
+@keyframes sd-box-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+@keyframes sd-type {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Reduzir movimento: a fala vem inteira e a caixa só faz o fade (sem subir) */
+:root[data-reduce-motion="true"] .sd-ch {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .sd-box {
+    animation: sd-fade 200ms var(--ease-out) both;
+}
+@keyframes sd-fade {
+    from {
+        opacity: 0;
+    }
+}

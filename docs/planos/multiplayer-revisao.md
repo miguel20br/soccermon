@@ -1,3 +1,7 @@
+---
+description: Revisão crítica do duelo ao vivo e do desenho da liga.
+---
+
 # Revisão do duelo ao vivo (17/10/2026)
 
 Revisão crítica do desenho em `multiplayer.md` (decisões, "Pesquisa técnica (17/10)" e o que foi decidido depois),

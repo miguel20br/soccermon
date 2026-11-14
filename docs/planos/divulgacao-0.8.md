@@ -1,3 +1,7 @@
+---
+description: Plano de divulgação da 0.8: um canal por dia, UTM por canal e placar toda segunda.
+---
+
 # Plano de divulgação da 0.8 (a partir de 16/10/2026)
 
 Objetivo: levar gente a jogar e **aprender distribuição** (regra 4 do Plano do Midgar: construir em público).

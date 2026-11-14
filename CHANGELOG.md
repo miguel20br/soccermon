@@ -1,6 +1,1063 @@
 # Novidades
 
-## 0.9.2.1 · Álbum leve e vitrine fácil
+## 0.9.52 · Descrições mais diretas (2026-11-13)
+
+### Aviso
+- A partir de agora, uma atualização por semana
+
+### Textos do jogo
+- Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo
+- Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço
+- Formação 3-1: o ponto fraco agora é "−Passe pra frente" (era "−Lenta")
+
+## 0.9.51 · Sprites nítidos, novas animações e Duelo (2026-11-13)
+
+### Partida
+- Pokémon nítidos em qualquer tela, sem borrão
+- Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta
+- Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol
+- A bola amassa no chute forte e na trave, e a trave treme
+- Mais poeira nas arrancadas, nos choques e nos dribles
+- Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)
+- Nova barrinha do golpe máximo, em gomos
+
+### Copa Relâmpago e Copa do Dia
+- Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado
+- Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)
+
+### Rota Índigo
+- Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa
+- Pedra do ₽ em dobro vai pra Mochila se ninguém usa
+
+### Duelo
+- Saiu do BETA
+- Seus duelos na Arena: os últimos 8 e o placar contra cada amigo
+- Criar sala mostra a regra do modo escolhido em uma linha
+- Fim do duelo com Revanche e Voltar ao início
+- O N3 da barrinha tem a cor do tipo do capitão de cada time (saía vermelho)
+- Consertos de layout no celular e no PC (sala, draft, escalação e partida)
+
+### Menus
+- Cada modo diz em uma linha o que é, no menu de modos e na Ajuda
+- Time Ultimate: volta o aviso "Zera a cada temporada"
+- Novidades com textos e títulos mais diretos
+
+## 0.9.50 · Animações de fim de jogo e Perfil com números (2026-11-12)
+
+### Partida
+- Adicionadas novas animações de final de jogo
+- No Losango, os alas também voltam a bola pro fixo na armação
+
+### Menus
+- Seus números no Perfil: aproveitamento, gols pró e contra, títulos por modo, carta favorita e melhor campanha
+- Amigos na barra de cima, em qualquer tela
+- Fechar e voltar levam pra onde você estava (o X do Clube não cai mais no Perfil)
+- O Estádio mostra o capitão do seu último time, não o Pikachu do avatar padrão
+
+## 0.9.49.1 · Joga em qualquer navegador (2026-11-12)
+
+### Consertos
+- Navegador que bloqueia o save (Opera GX e outros com os cookies do site bloqueados): o JOGAR volta a funcionar, e um aviso explica que o progresso some ao fechar a aba
+
+## 0.9.49 · Menus mais simples (2026-11-11)
+
+### Menus
+- As abas de baixo acendem conforme você joga: Lab na 1ª partida, Rota e Sede na 1ª copa, Arena na 2ª
+- Metas na Sede: missões e medalhas num lugar só; o armário virou o Perfil
+- A Liga aparece na última semana antes de abrir
+- Configurações com o principal à vista e o resto em Mais opções
+- Ajuda mais curta: Como funciona de cada modo em cima e só as regras que não estão na tela
+- Prancheta e VERSUS voltam aos sprites clássicos, com miniaturas menores e os times se encarando
+
+### Copa
+- O Mercado não vende mais MT: a vaga vira item (a MT continua na recompensa do ginásio)
+
+### Partida
+- Lambreta com a bola em arco por cima do marcador, roleta com giro de 360° e elástico com a finta que o marcador morde
+- Drible novo: o chapéu, com a bola por cima da cabeça do marcador
+- Chute, passe, desarme e defesa batem na bola no quadro certo (antes a animação vinha atrasada)
+
+## 0.9.48 · Fixo na armação da Linha de 3 (2026-11-10)
+
+### Partida
+- Na Linha de 3, os alas voltam a bola pro fixo na armação em vez de só rodar com o pivô
+
+## 0.9.47.2 · Números certos no PC (2026-11-10)
+
+### Telas
+- No PC e em tela grande, os números não saem mais com o 9 torto (placar, dinheiro, cartas)
+
+## 0.9.47.1 · Seu nome em todo lugar (2026-11-10)
+
+### Consertos
+- Logado com o Google e sem nome escolhido: a barra de cima e os rankings mostram seu primeiro nome, não "Treinador"
+- Lápis ao lado do nome no Perfil pra mostrar que dá pra editar
+- Login pelo atalho da tela inicial do iPhone
+
+## 0.9.47 · Final mais difícil e Eventos na Rota (2026-11-10)
+
+### Rota Índigo
+- Perder a 1ª partida da Rota não dá cartão amarelo
+- A Final ficou mais difícil: o rival não joga mais com a torcida contra
+- Toda linha de parada do mapa tem um Evento "?"
+
+### Telas
+- Números da carta e dos títulos sem o 9 torto
+- O selo de treinador novo cabe numa linha e não cobre o letreiro
+- A Sala de troféus aparece na hora, sem tela preta enquanto carrega
+
+## 0.9.46 · Animações na Rota Índigo (2026-11-10)
+
+### Rota Índigo
+- Adicionadas animações no Cassino
+- Adicionadas animações no Centro Pokémon
+- Adicionadas animações na Zona Safari
+- Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa
+- No PC o mapa inteiro cabe na tela, com um painel das próximas casas
+- Pedra que ninguém usa vai direto pra Mochila, sem tela a mais
+
+### Telas
+- A ficha da Pokédex não fica mais embaixo da barra de cima (o X de fechar aparece)
+- Números sem o 9 torto no placar, no contador de taças e no dinheiro da copa
+- Selo NOVO inteiro na Pokédex
+- Celular deitado: o nome do clube aparece no Estádio e o botão da Rota não quebra
+- Antes da partida a tela já tem a cor do ginásio, não a madeira
+- Vitrine de pacotes e Novidades mais lisas em celular fraco
+
+## 0.9.45 · Comemoração de título (2026-11-10)
+
+### Título
+- Ganhou a copa: o capitão ergue a taça no meio da quadra
+- Ganhou a Rota Índigo: a torcida invade a quadra e joga o capitão pro alto
+- Insígnia nova batendo na tela na 1ª vitória contra cada líder
+- Voltou campeão: o Estádio faz a ola e mostra o título no letreiro
+- O desfile do Hall da Fama fica pros títulos da Rota e pro 1º de cada modo, mais curto
+
+### Partida
+- Cada Pokémon comemora o gol do seu jeito: pulo, giro ou pose
+- Dribles com nome pra quem tem drible alto: lambreta, roleta e elástico, com câmera lenta
+- Goleiro mergulha pro lado da bola, sem sair do gol, e sente quando leva o gol
+
+### Time Ultimate (abre em 27/11)
+- Uma moeda só: os pontos de pacote viraram Fichas (1 ponto = 5 Fichas)
+- Pick na Loja: Bronze 160 · Prata 400 · Ouro 960 Fichas
+- O Pick comprado não sobe de metal: sem espécie nova, pode sair repetida
+
+### Visual
+- Cassino e Zona Safari com cenário próprio
+- Pokémon na mesma escala em cada tela, sem pixel borrado
+- VERSUS, Hall da Fama e escalação com os mesmos Pokémon da partida
+- Menu de modos aparece com os Pokémon de uma vez no PC
+
+## 0.9.44.2 · Ícones de tipo nítidos (2026-11-09)
+
+### Telas
+- Os ícones de tipo ficaram nítidos em qualquer tamanho (o laço da Fada não borra mais)
+
+## 0.9.44.1 · Replay no ginásio certo (2026-11-09)
+
+### Consertos
+- Os melhores momentos tocam no ginásio do rival, não na quadra padrão
+- Novidades: o texto do Time Ultimate
+
+## 0.9.44 · Meus pacotes e Pokémon Picks (2026-11-09)
+
+### Time Ultimate (abre em 27/11)
+- Meus pacotes: o pacote fica guardado até você abrir, e o Abrir todos abre a pilha de uma vez
+- Pokémon Picks: escolha 1 de 3, com as cartas de costas até você virar
+- Início em blocos e a aba Jogar: Batalhas de Treinador, e os outros modos em breve
+- O rival olha a força do seu time (média × química), não só a média
+- Sem rival à altura, a partida paga as Fichas do nível que ele alcançou
+- Mestre com o time do 1º mês: 60 ⇒ 36 Fichas por partida
+
+### Rota Índigo
+- Mapa largo: mais caminhos e casas novas (Treinador Ás, Zona Safari, Cassino de Celadon)
+- A última parada vira escolha: Treino, Mercado do Planalto ou Centro
+- Pular mostra o prêmio à vista: ₽, troca grátis no Mercado, rival −1, sorteios
+- Centro sem ninguém pra tratar vira o PC do Bill
+- Descanso do Treino vira Folga: +₽5 e quem está fora volta
+- Pedra sem uso vai pra Mochila (ou vende por ₽4)
+- Quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela
+
+### Evolução
+- A carta que evolui não perde atributo: fica com o maior de cada um entre as formas
+- Poliwhirl ⇒ Poliwrath: VEL 66 ⇒ 84
+- A habilidade que mexe em atributo fica (o Gyarados mantém o Swift Swim)
+- O selo de evolução mostra a posição da forma nova
+- A ficha da carta mostra a linha evolutiva
+- O número do atributo na carta é o que vale em campo, e o ▲ diz quanto é bônus
+
+### Copa e partida
+- O golpe máximo do rival também chega em câmera lenta, como o seu
+- O goleiro nunca fica de costas pro chute, mergulha pro lado da bola e sente o gol
+
+### Telas
+- Novidades em tela cheia: notícias com arte e as notas da versão
+- Golpedex: os especiais e as bicudas do goleiro
+- Ainda não jogou a Copa do Dia de hoje? O JOGAR mostra ela primeiro
+- Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo
+
+### Consertos
+- Sortear de novo no rival devolvia as mesmas 3 cartas
+- Celular em pé: a quadra que segue a bola travava em erro depois da partida
+
+## 0.9.43 · Rivais com atributos menores (2026-11-05)
+
+### Copa e Rota
+- Torcida a favor: os rivais jogam com 4% a menos nos atributos ⇒ menos zebra contra você
+- Nas 3 primeiras partidas da Rota, 7% a menos
+- O rival evolui com a mesma barra que você: 10 ⇒ 14
+- Duelo e Liga continuam sem torcida
+
+## 0.9.42.2 · Capitão chamado ataca mais (2026-11-05)
+
+### Golpe máximo
+- Chamou o capitão num ataque: agora ala e pivô também conduzem até a zona e chutam, como o fixo já fazia
+- O time passa mais a bola pro capitão chamado
+- Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo
+
+## 0.9.42.1 · Bicuda sai mesmo com toque atrasado (2026-11-05)
+
+### Goleiro capitão
+- A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)
+- N1 e N2 sempre cruzam pro companheiro, inclusive contra o golpe máximo do rival; o N3 sempre chuta no gol
+
+## 0.9.42 · Monotipo (2026-11-05)
+
+### Sinergia de monotipo
+- Os 5 em quadra do mesmo tipo: Monotipo, +10% ⇒ +12%
+- Com o banco do tipo: 6 no elenco +16% e 7 no elenco +22%
+- Selo próprio e as cartas do tipo brilham na cor dele
+- O teto de +15% das sinergias saiu: tipo e história somam inteiros
+
+### Líderes de ginásio
+- Time do líder com pelo menos 4 titulares do tipo dele, e o capitão também do tipo
+- Nada de contra-tipo nem lendário de fora no time do ginásio (sem Charizard na Misty)
+- Quando o rival vem de monotipo, o treinador avisa antes do jogo
+- Oitavas um pouco mais tranquilas; a Liga Índigo continua levando quem quiser
+
+### Telas mais arrumadas
+- Escalação: tática, formação e bola parada em linhas que abrem; sinergias só quando existem
+- Resultado com um botão principal e cada carta uma vez só
+- Partida no PC cabe na tela, abre nos Lances, e escanteio e goleiro-linha ficam na aba Time
+- No celular, o botão do golpe máximo mostra os 3 gomos de nível
+- Estádio, menu de modos, Ajuda, Perfil, Sede e Configurações com menos repetição
+- Uma dica por vez entre Resultado, Recompensa e Mercado
+
+## 0.9.41.1 · Fim da Rota (2026-11-04)
+
+### Rota Índigo
+- Nova copa no fim da Rota não dá mais erro
+- Quem vence a Rota conquista a Liga Índigo
+
+## 0.9.41 · Câmera de cinema no N3 (2026-11-04)
+
+### Golpe máximo
+- N3 com câmera de cinema: close no capitão, impacto no chute e a rede estufando no gol
+- Cada tipo deixa a sua marca no N3: chão em brasa, raio que ricocheteia, bola fantasma e mais 13
+- As 12 assinaturas ganham um toque próprio, do Hyper Beam ao Metronome do Mew
+- N2 com a onda que derruba a linha desenhada no chão, na cor do tipo
+- N1 na cor do tipo, com o nome do golpe colado em quem chutou
+- Bicudas com o pé do goleiro, impacto e rastro até onde a bola vai
+
+### Duelo
+- A tela de quem entrou na sala não fica mais parada no fim de jogo
+
+## 0.9.40 · Bicuda N3 contra o golpe máximo (2026-11-03)
+
+### Counter
+- Goleiro capitão com a bicuda N3 revida o golpe máximo N3 do rival e o tempo para
+- Os dois conversam no tempo parado, com câmera de cinema e painéis de mangá
+- A bicuda de primeira cruza a quadra e é sempre gol, com a comemoração mais longa do jogo
+- Falas próprias pra 16 duelos e vários Pokémon, do Magikarp ao Slowpoke
+
+### Walkout
+- Carta de ouro revela com o efeito do tipo: Gelo congela a tela, Fogo queima e mais 14
+- Vidro quebrando só nas edições especiais
+- Cada raridade com o seu céu de estádio
+- Telões com tipo e posição também nas cartas de ouro
+- Jogadas com bola mais calmas e a versão curta com 3 s
+
+## 0.9.39.1 · Duelo da bicuda sai por enquanto (2026-11-03)
+
+### Ajustes
+- O duelo da bicuda sai por enquanto: a bicuda N3 volta a ser o contra-ataque de sempre
+- Walkout com as jogadas da 0.9.38
+
+## 0.9.39 · Duelo da bicuda (2026-11-03)
+
+### Duelo da bicuda
+- Goleiro capitão com a bicuda N3 segura o golpe máximo N3 do rival e a partida para
+- Os dois ficam frente a frente e conversam, depois vem a bicuda de gol a gol
+- A bicuda do duelo é sempre gol, com a comemoração mais longa do jogo
+- Falas próprias pra 16 duelos e 14 Pokémon, de Charmander x Charizard a Magikarp
+
+### Sugestões da galera
+- Sinergias na aba Time da partida
+- Draft: a carta mostra a sinergia que ela ativa (+Psíquico 2)
+- Draft: toque num Pokémon da prancheta pra ver a carta dele
+- Selo NOVO no Pokémon que ainda não está na sua Pokédex
+- Campeão: seu time em cada jogo do Caminho do título. Toque pra ver a escalação
+
+### Walkout
+- Jogadas com bola mais calmas: embaixadinha, drible, tremor, bicicleta, voo e canhão
+
+### Celular
+- Escalação no 320 cabe sem rolar
+- Mercado deitado: o Comprar fica embaixo da carta
+- Recompensa: cartas maiores e o texto da MT inteiro
+- Partida deitada: quadra maior e os botões na coluna da direita
+- Arena e Copa do Dia no 320: as placas não cobrem os letreiros
+- Vagas do Draft com texto maior no 320
+
+### Perfil
+- O aviso de avatar novo fica no canto do avatar
+
+## 0.9.38.2 · Fixo de secundária (2026-11-03)
+
+### Posições
+- Snorlax ganha Fixo de secundária: Fixo 59 ⇒ 77
+- Lickitung ganha Fixo de secundária: Fixo 49 ⇒ 64
+- Wigglytuff ganha Fixo de secundária: Fixo 37 ⇒ 48
+
+## 0.9.38.1 · Ajustes de tela (2026-11-03)
+
+### Celular
+- Copa do Dia deitada: o Ranking aparece (saía da tela)
+- Draft: os selos das cartas e o Escalar do banco não vazam mais no 320 e no 390
+- JOGAR do Estádio, faixa EM BREVE do menu e a fala do Prof. Carvalho na Rota cabem inteiros
+- Duelo: Compartilhar dentro do botão e a sala de espera deitada sem cortar os nomes
+- Mercado deitado: a seta não cobre o preço e a descrição do item termina inteira
+- Sala de troféus no 320: o fim da fala e o Próximo à vista
+
+### PC
+- O selo do treinador desbloqueado cresce com a tela
+
+## 0.9.38 · Entrada de carta rara em campo (2026-11-03)
+
+### Pacotes
+- Carta rara no pacote do Mercado entra em campo: estádio, telões com o tipo e a posição, silhueta e a carta aparecendo
+- Três níveis: raro (Ouro 75 a 84), muito raro (Ouro 85+, Shiny e Evento) e especial (Ícone e Destaque)
+- Cada Pokémon entra com uma jogada: embaixadinha, bicicleta, cabeçada, drible, voo, chama e mais
+- Pular depois de 1 segundo. Do 2º raro do dia em diante, a versão curta
+
+## 0.9.37.1 · Copa Relâmpago no lugar (2026-11-02)
+
+### Menus
+- Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular
+- Sai o selo SMN que ficava boiando na tela
+
+## 0.9.37 · Troca de tela estilo TV (2026-11-02)
+
+### Transmissão
+- Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade
+- Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida
+- Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE
+- Arrastar entre as telas no celular continua igual
+
+## 0.9.36 · Lab, Sede e Créditos (2026-11-02)
+
+### Lab e Sede
+- Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex
+- Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador
+- A missão da Sede numa placa com a barra de progresso
+
+### Copa
+- Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos
+- Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo
+- Mercado: Novas ofertas com a etiqueta grátis também no celular
+
+### Menus
+- Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar
+- Liga numa placa na parede da Arena
+- Com copa em andamento, o modo aparece no lugar do Continuar repetido
+
+## 0.9.35 · Prancheta no draft (2026-11-02)
+
+### Draft
+- Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição
+- No celular em pé a prancheta fica deitada, com o gol à esquerda
+- As 3 cartas cabem inteiras em qualquer tela
+
+### Menus
+- Fim de copa com o Nova copa como o único botão grande
+- Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar
+- Verde é só pra confirmar: botões que só levam a outra tela ficam azuis
+- Configurações com título e abas curtas
+
+## 0.9.34 · Painel completo no PC (2026-11-02)
+
+### Partida
+- No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado
+- O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar
+- No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)
+
+### Copa
+- Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver
+- Draft mostra o seu time numa quadrinha junto das 3 escolhas
+- Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar
+
+## 0.9.33 · Partida no PC com layout do celular (2026-11-02)
+
+### Partida
+- No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo
+- Tática, Trocar, Tempo e Lances abrem cada um a sua janela. A página não rola mais
+- Narração como legenda de TV embaixo da quadra
+- No 4x e no 8x a quadra fica entre as duas torcidas
+- Intervalo com placar de TV e placa de substituição
+
+### Copa
+- Escalação com placas na parede: o cartaz do rival, o quadro da tática e a prancheta da formação
+- Mercado com o ₽ contando na entrada e as cartas em prateleiras
+- Treino da Rota numa quadra: toque em quem treina ou deite no colchonete
+- Evento com a caixa de diálogo e Grupo com placar de TV
+
+### Duelo e Arena
+- Draft do Duelo com a mesma cara do draft da Copa, sem rolar
+- Duelo, Liga e Copa do Dia cabem com o celular deitado
+
+### Coleção e avisos
+- Pokédex com seletor no lugar das pílulas, e o Prof. Carvalho na Pokédex vazia
+- Treinador desbloqueado aparece num selo na volta pro menu, não no meio da comemoração
+- A dica da formação não cobre mais as palavras
+
+## 0.9.32.1 · Ícone do pacote de tipo (2026-11-02)
+
+### Conserto
+- O ícone do tipo voltou a aparecer no pacote de tipo
+
+## 0.9.32 · Telas de Duelo, Liga e Copa do Dia (2026-11-02)
+
+### Arena
+- Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande
+- Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra
+- Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra
+
+### Perfil
+- Perfil virou armário: cartão, missões e 6 portas, sem rolar
+- Sala de troféus em tela cheia. Toque num objeto pra ver a ficha
+- Treinadores viraram figurinhas
+
+### Draft
+- Formação em carrossel, uma quadra grande por vez
+- Escolha 1 de 3 sem rolar a tela
+- Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando
+- Textos de regra mais curtos
+
+### Menus
+- Novidades num cartaz, com as versões antigas numa lista
+- Configurações em abas, cada opção numa linha
+- Resgatar código foi pras Configurações
+
+## 0.9.31 · Animações novas do golpe máximo (2026-11-02)
+
+### Golpe máximo
+- N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol
+- Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada
+- O gol aparece inteiro do chute até a bola chegar, em qualquer câmera
+- O alvo acende verde no perfeito, e o botão do golpe não pisca mais
+- Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também
+- O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio
+- Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival
+- Bola com rastro e partículas do tipo, mais forte a cada nível
+
+### N1 por tipo
+- Psíquico: confunde ⇒ faz dormir
+- Normal: derruba ⇒ faz recuar
+- Planta: faz dormir ⇒ planta a semente (Leech Seed)
+- Terrestre: derruba ⇒ areia nos olhos (Sand Attack)
+- Inseto: envenena ⇒ prende na teia (String Shot)
+- Água: derruba ⇒ leva 2 m pra trás
+- Voador: confunde ⇒ joga pro alto
+- Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote
+- Pedra: derruba ⇒ preso no lugar por 2 s
+- Dragão: paralisa ⇒ tira 5 pontos da barra do time rival
+- Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais
+
+### Golpe máximo explicado
+- Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão
+- Seção Golpe máximo na ficha de cada Pokémon
+- Ajuda, Como jogar e um balão de primeira vez sobre o golpe
+
+### Capitão e câmera
+- Troque o capitão na Tática, entre as partidas
+- Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz
+
+### Cara de jogo
+- Fim de partida em tela cheia, com placar, ₽, craque e próximo rival
+- Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta
+- Recompensa com as 3 opções do mesmo tamanho, sem rolar
+- Pacote do Mercado em tela cheia, com o walkout pra carta ouro
+- Resultado e Eliminado sem rolar
+- Seletor ‹ valor › no lugar das listas e do volume
+- Fim do Duelo com a mesma tela do fim de partida
+- No PC, essas telas crescem e ocupam a tela
+- Walkout completo na 1ª carta ouro do dia; nas outras, mais curto
+- Ajuda com gavetas no lugar das listas que abriam
+
+### Menu de modos
+- Modo Copa agora é Modo Clássico
+- Time Ultimate e Modo História em preto e branco até chegarem
+
+## 0.9.30.1 · Menu de modos mais claro (2026-11-01)
+
+### Menu de modos
+- Time Ultimate e Modo História com a faixa EM BREVE e a data, mais escuros que o Modo Copa
+- O menu não pisca mais ao abrir nem ao trocar de modo
+
+## 0.9.30 · Todo capitão usa o golpe máximo (2026-11-01)
+
+### Golpe máximo
+- Todo capitão solta o golpe máximo, e o golpe é sempre um chute
+- N1: chute forte que deixa o status do tipo em quem bloqueia ou defende (Fogo queima, Elétrico paralisa, Gelo congela…)
+- N2: o N1 e ainda derruba quem estiver no caminho da bola
+- N3: sempre no alvo, com a cena de especial antes do chute e o efeito do tipo
+- A bola curva sozinha pro canto longe do goleiro
+
+### Goleiro
+- A bicuda entra no lugar da defesa máxima: com a barra pronta, toque quando o chute rival vem e o goleiro capitão devolve com tudo
+- No N1 e no N2 ele lança o companheiro mais à frente; no N3 a bola vai direto no gol rival
+- O botão só acende no chute que o goleiro vai alcançar
+
+### Rota Índigo
+- Pedras de evolução: um Jogo de cada região dá a pedra dali junto do prêmio (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)
+- O rival dessa casa traz um que evolui com a pedra no 1 de 3, e quem você usar evolui na hora
+- No Eevee a pedra escolhe a forma: Vaporeon, Jolteon ou Flareon
+- A pedra é atalho: quem evolui por pedra continua evoluindo jogando
+- A Pedra da Lua dos Fósseis do Mt. Moon também evolui na hora
+
+## 0.9.29 · Mapa da Rota com ramos e prêmios (2026-10-31)
+
+### Rota Índigo
+- Cada ramo do mapa tem os seus tipos, e todo Jogo mostra o prêmio antes de você ir
+- Toda vitória num Jogo contrata 1 de 3 do time rival, e depois vem o prêmio da casa
+- Ginásio mais difícil (rival +2), com a carta do líder garantida, a MT dele e um item
+- Até 2 Mercados por caminho, e a linha do Baú pode ser um Centro Pokémon, que tira o amarelo ou traz de volta quem estava fora
+- Eventos novos: Fósseis do Mt. Moon, Pássaro lendário, Assalto da Equipe Rocket, Aposta do Blue, Juiz da Liga e Ovo da Creche
+- Nos eventos e no Treino, tocar marca e um botão confirma
+
+### Menu de modos
+- Os três modos em fatias, estilo tela de seleção de luta, com o seu capitão saindo da borda
+- O Modo Treinador agora se chama Time Ultimate, e os modos que ainda não chegaram mostram a data
+
+### Pênaltis
+- Na ordem dos cobradores, cada um mostra o chute
+- No celular, a câmera da disputa não corta mais o gol
+
+## 0.9.28 · Anel-alvo e sons do golpe máximo (2026-10-30)
+
+### Golpe máximo
+- O anel agora fecha em cima de um anel-alvo parado, que acende na hora do perfeito
+- O toque responde na hora: no perfeito, clarão, estrelas, moedas e a quadra treme
+- Sons novos para o toque e para cada nível
+- O N3 chega mais rápido: cada nível da barra pede 10 pontos em vez de 12
+
+### Menus
+- Música nova nos menus, mais calma e com o SOC-CER-MON de leve
+- O logo pisca o SOC-CER-MON no ritmo da música em todas as telas
+- Toda tela de menu tem a mesma barra em cima, com o voltar sempre no mesmo lugar, e o treinador ficou maior
+- As Novidades ficam no canto de cima, com um pontinho quando sai versão nova
+- No Estádio, cada modo tem a sua placa em cima do JOGAR
+- Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede
+- O Duelo ganhou a cara das outras telas de menu
+- O símbolo do Soccermon entrou no lugar da pokébola nas taças e nos escudos
+
+### Mais leve
+- A partida e a Rota gastam bem menos processador no celular, e os menus usam metade da memória
+- O jogo abre mais rápido
+
+### Corrigido
+- O mapa da Rota contava a partida de dois jeitos diferentes
+- A barra da copa não some mais ao rolar o mapa
+- A Ajuda e os Créditos voltam pra tela de onde você abriu
+- Vender o capitão que estava no banco deixava um fantasma no time
+- Com o celular deitado, o botão de ir pra casa do mapa da Rota ficava fora da tela
+- A Final mostrava o nome do Planalto Índigo em inglês
+
+## 0.9.27 · Modos de jogo (2026-10-30)
+
+### Modos de jogo
+- Quem já jogou começa num menu de modos: Modo Copa (tudo o que já existe), Modo Treinador (chega no fim de novembro) e Modo História (2027)
+
+### Golpe máximo
+- Um anel fecha uma vez no ritmo da música: toque quando ele encostar. Cada nível tem cara e som próprios, e o perfeito tem som de perfeito
+- Na hora do golpe a música abaixa e a quadra desacelera
+- Chame o capitão: o botão acende em todo ataque do seu time e a bola procura ele. O fixo chamado conduz até a zona e chuta de lá
+- O pivô solta o golpe de mais longe, igual ao ala
+- A defesa máxima só gasta a barra quando defende: sem chute, a barra volta inteira. O goleiro capitão usa no N3
+
+### Sede e Laboratório
+- Os Pokémon desviam dos móveis e param de vez em quando
+- Toque várias vezes seguidas num Pokémon e ele cai de costas
+
+### Corrigido
+- O Mew shiny do seu treinador aparece shiny no mapa da Rota
+
+## 0.9.26 · Escudos (2026-10-29)
+
+### Amigos
+- Cada amigo aparece com o escudo de verdade do clube dele: formato, símbolo e cores
+
+### Corrigido
+- O acento de letras como o Í de Índigo não fica mais cortado nos letreiros e nos nomes
+- No computador, a Sede e o Laboratório preenchem a tela
+- Depois de uma atualização, o jogo aberto há muito tempo recarrega sozinho em vez de dar erro
+
+## 0.9.25 · Amigos (2026-10-29)
+
+### Amigos
+- Toque no nome de qualquer treinador (rankings, Liga, Duelo, lista de amigos) pra ver o perfil, pedir amizade ou desafiar
+- O escudo do clube aparece ao lado do nome dos seus amigos
+
+### Duelo
+- O Desafiar da lista de amigos voltou a mandar o convite. Na sala aparece se ele chegou
+
+### Corrigido
+- As gavetas sobem mais suaves no celular
+
+## 0.9.24 · Quadra maior no celular (2026-10-28)
+
+### Partida nova
+- No celular em pé, a quadra ficou com o dobro do tamanho e a câmera acompanha a bola
+- Tática, Trocar, Tempo e Lances viraram 4 botões perto do polegar
+- Em Configurações você escolhe até que velocidade a câmera fica de perto
+
+### Duelo
+- Se a sala do link demora pra abrir, aparece o botão Jogar uma copa enquanto você espera
+
+### Menus
+- O logo do Soccermon voltou pra tela inicial
+
+### Corrigido
+- No computador, a barra de velocidade cabe inteira na tela
+- Com o celular deitado, o intervalo cabe sem texto cortado
+- O zoom no escanteio não mostra mais o fundo escuro fora da quadra
+
+## 0.9.23.3 · Pedidos dos jogadores (2026-10-27)
+
+### Golpe Máximo
+- O chute do nível 3 ficou quase indefensável: 57% ⇒ 82% de gol. A defesa máxima do goleiro ainda pode parar
+
+### Partida
+- Substituição pede confirmação e mostra a nota de quem sai e de quem entra naquela vaga
+- No Duelo, as abas de baixo também ficam fechadas até você tocar
+
+### Menus
+- A Sede tem os Pokémon que você mais usa andando pela sala. Toque no artilheiro pra ver os gols
+- Escalação no celular: o botão Carta abre a carta de quem está selecionado
+- Cartão do treinador no celular com as 3 cartas lado a lado
+- Copa do Dia: o ranking de hoje fica embaixo do JOGAR, e depois de jogar o botão leva pra ele
+- Cartas do pacote no ritmo da música virou opção em Configurações (vem desligada)
+
+### Corrigido
+- Retomar uma copa guardada ficava trocando de copa sem sair do lugar
+- Escalação com o celular deitado cabe sem rolar
+
+## 0.9.23.2 · Painéis mais leves (2026-10-27)
+
+### Menos coisa na tela
+- Painéis mais leves: borda fina, sem moldura grossa e sem caixa dentro de caixa
+- Instruções e dicas só aparecem na primeira copa. Depois elas ficam na Ajuda (?)
+- A barra de cima mostra só o treinador. Troféus, Pokédex e insígnias ficam no lugar de cada um
+- O Estádio perdeu os 4 quadros de metas, e o logo grande só aparece na primeira visita
+- O Prof. Carvalho fala uma vez só. A Sede mostra a missão mais perto de sair, e a Arena junta a Liga numa linha
+
+### Copa
+- Escalação: a formação abre numa janela com os bônus, o rival vira uma linha e a carta só aparece quando você toca num Pokémon
+- Resultado mais curto: posse, chutes e a chave ficam em Estatísticas, e o treinador desbloqueado vira um aviso que some
+- Mercado: o que a vitória rendeu cabe numa frase
+- Partida no celular: uma coisa por vez em cima da quadra (o gol primeiro), e as abas de baixo ficam fechadas até você tocar
+
+### Em toda tela
+- Monitor grande: tudo fica maior, sem a coluninha perdida no meio
+- Celular deitado: a Escalação, o Draft e o Resultado cabem na tela
+- Nada de nome cortado em celular pequeno
+- Avatar shiny agora aparece shiny no Estádio e na Arena
+
+## 0.9.23.1 · Ajustes nos lugares (2026-10-26)
+
+### Corrigido
+- Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece
+- A quadra da Arena ganhou as áreas, os gols e os escanteios
+- Fechar uma janela (Tática, carta, confirmação) não pisca mais escuro
+- As cartas do draft voltaram a mostrar os atributos como antes
+
+### Golpe Máximo
+- O botão fica aceso mais tempo e o jogo quase para enquanto ele brilha, até no 8x e no Duelo
+- O chute do golpe vai em câmera lenta com a bola brilhando, e o nome do golpe de nível 3 fica mais tempo na tela
+
+## 0.9.23 · Lousa de tática na escalação (2026-10-26)
+
+### Escalação no vestiário
+- A escalação fica numa lousa de tática: a Chave e a Tática são quadros pendurados, cada um abre a sua janela
+- A prancheta encosta na lousa e o time inteiro aparece na primeira tela do celular
+- Na copa, a barra de cima mostra a fase, os ₽ e os sorteios
+
+### Mais simples
+- Janelas sobem de baixo no celular, com o X redondo. Toda confirmação virou uma janela curta
+- O pacote da vitória abre sozinho, e Pular e Sortear de novo ficam juntos embaixo
+- O fim de jogo espera você tocar em Ver resultado
+- Treinador ou título novo aparece logo abaixo do placar
+- Mercado mais curto: os Patrocínios ficam numa linha que abre a janela
+- Draft sem a mesma instrução repetida, e os atributos das cartas maiores
+- O Golpe Máximo fica sempre à vista na barra de baixo da partida. Tocar antes da hora explica quando acende
+
+### Visual novo
+- Estádio: as metas sobem pra arquibancada e o botão de jogar fica embaixo, com a quadra livre
+- Começar a copa, entrar em quadra e virar campeão ganham uma transição com papel de parede (um desenho diferente a cada vez)
+- Perfil, Coleção, Sala de troféus, Ajuda e Configurações com a barra de cima, abas de pasta e barras de progresso novas
+- Intervalo, ordem dos pênaltis e Campeão no mesmo estilo dos botões
+- O aviso rápido desce do topo: verde quando deu certo, vermelho quando deu errado
+
+### Novo
+- Jogar como app: nas Configurações, Instalar põe o Soccermon na tela inicial do Android, em tela cheia (no iPhone, Compartilhar e Adicionar à Tela de Início)
+
+### Corrigido
+- A tela não pisca mais preta ao trocar de menu
+- O Esperar do Golpe Máximo saía da tela em celular pequeno
+
+## 0.9.22 · Botões com relevo e cores (2026-10-26)
+
+### Visual novo
+- Botões com relevo no jogo inteiro: afundam e quicam no toque, com som
+- A cor diz o que o botão faz: dourado joga, verde segue ou compra, azul é o resto, vermelho só pra apagar ou sair
+- Um botão grande por tela, o do próximo passo. Comprar e Escalar viraram um selo na própria carta
+- Painéis com moldura grossa e o título numa placa, igual ao Estádio
+- O que está escolhido fica sempre em azul
+
+### Melhorado
+- Nível de treinador na barra de cima: sobe com as missões cumpridas
+- Draft: as 3 cartas cabem na primeira tela do celular
+- Monta pra mim ficou mais discreto: quem quer escolher escolhe
+- O aviso rápido não cobre mais o botão de baixo
+- A confirmação de Abandonar copa não fica mais atrás da barra do Jogar
+
+## 0.9.21 · Tela inicial com cinco lugares (2026-10-25)
+
+### Nova tela inicial
+- A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar
+- Estádio: um JOGAR dourado, a pílula pra escolher o modo e quatro metas à vista (Copa do Dia, missão, insígnias e cinturão)
+- Rota Índigo: o mapa de Kanto com as insígnias e o seu time onde parou
+- Laboratório do Carvalho: Pokédex, Álbum e Golpedex
+- Arena: Duelo e Liga
+- Sede do clube: Sala de troféus, perfil e o quadro de missões
+- Pokémon selvagens andam, dormem e brincam em cada lugar. Toque neles
+- O céu acompanha a hora do dia
+
+### Alterado
+- Novidades, Ajuda, Créditos e o resto do rodapé ficaram nas Configurações
+- Quem prefere a tela antiga ainda abre com ?lab=off no endereço
+
+## 0.9.20 · Textos revistos e a 1ª partida (2026-10-25)
+
+### Melhorado
+- Textos do jogo revistos (Home, draft, partida e narração): frases mais curtas e naturais, "pra" no lugar de "para"
+- Os golpes aparecem com o nome oficial em inglês em todo o jogo
+- Tática Equilibrada mostra o número certo (+4% / +3%)
+- A dica do intervalo ficou mais clara
+
+### Corrigido
+- O balão "Mude a tática…" agora aparece só depois do 1º gol ou no intervalo da 1ª partida
+
+## 0.9.19 · Rota Índigo e celular deitado (2026-10-24)
+
+### Adicionado
+- Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)
+
+### Corrigido
+- Celular deitado pequeno: as recompensas depois da partida cabem na tela sem rolar
+- Celular deitado pequeno: os botões do intervalo (Substituir e Começar o 2º tempo) ficam sempre à vista
+
+## 0.9.18 · Assinaturas e primeira visita (2026-10-24)
+
+### Assinaturas do nível 3
+- 12 Pokémon trocam o efeito do tipo no golpe máximo nível 3 por um golpe só deles, com animação e faixa próprias
+- Dragonite, Hiper Raio: fura todos os bloqueios. Alcance do goleiro rival x0,8 ⇒ x0,85 (Fúria do dragão ⇒ raio)
+- Snorlax, Pancada: se joga no chute e quem estiver a até 4 m dele cai 1 s e fica paralisado
+- Snorlax no gol, Soneca: na defesa máxima nível 3 deita na frente do gol. Alcance x1,4 ⇒ x1,8
+- Arcanine, Estrela de fogo: estoura na frente do gol e quem estiver a até 4 m dela cai 0,6 s e se queima
+- Articuno, Nevasca: a área rival inteira congela 1,2 s (antes, só quem estava na linha do chute, 1 s)
+- Blastoise, Dois canhões: o 1º não entrou? A bola volta pra ele e ele emenda de qualquer distância
+- Charizard, Voo em chamas: voa até 2 m rumo ao gol, chuta por cima e queima o goleiro que defender
+- Pikachu, Raio em cadeia: o raio salta do goleiro pros 2 rivais mais perto e paralisa 1,5 s
+- Gengar, Come-sonho: o goleiro cochila, alcance x0,8 ⇒ x0,75, até goleiro Normal (antes ele não caía)
+- Mewtwo, Telecinese: a bola curva até ~11° pro canto longe do goleiro (antes ~8°) e o goleiro fica com alcance x0,9
+- Gyarados, Tsunami: empurra todos os rivais 3 m (antes só a linha do chute, 2,5 m) e fica em fúria por 6 s
+- Mew, Metrônomo: sorteia um dos 16 efeitos de tipo a cada golpe máximo
+- Ditto, Transformação: copia o efeito do capitão rival, até a assinatura dele
+- Evoluiu pra forma final no meio da copa? A assinatura vem junto
+- Golpe que pega vários de uma vez (a Pancada do Snorlax) mostra PARALISADO uma vez só, no do meio; os outros ficam com o ícone
+- A caixa de batalha sai da frente quando entra o gol ou a faixa do nível 3
+- Nome comprido na faixa (PANCADA DO SNORLAX) encolhe pra caber no celular em pé
+
+### Primeira visita
+- Quem chega pela 1ª vez vê a Home com um botão só: Jogar (Copa Relâmpago, 4 jogos). Os outros modos ficam em Mais modos
+- Na 1ª copa, Monta pra mim vira o botão principal do draft, e o balão explica ele antes de ensinar a montar na mão
+- Quem já jogou continua caindo na Home de sempre
+
+### Celular e consertos
+- Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir
+- Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos
+- Celular em pé: depois de escolher a ordem dos pênaltis, a quadra volta pra tela (a disputa ficava fora da vista)
+
+## 0.9.17 · Nível 3 de especial e quem leva o golpe (2026-10-23)
+
+### Golpe máximo nível 3
+- A quadra congela 0,3 s na cor do tipo e uma faixa atravessa a tela com o retrato do capitão
+- Na faixa: o golpe, o efeito do tipo ("Hyper Beam · efeito Dragão") e a nota do toque, PERFEITO! ou BOM
+- No gol, na defesa, no bloqueio ou na trave sai uma onda de choque na cor do tipo
+
+### Golpes em quadra
+- Quem é atingido por um golpe de efeito é empurrado pra trás e ganha a palavra na cor do tipo: QUEIMADO, CONFUSO, DERRUBADO
+- Rasteira, arremesso, carrinho com golpe e o nível 3 de Normal e Terrestre derrubam: o Pokémon tomba e fica com estrelinhas
+- O status virou um ícone com um anel que mostra quanto falta, no lugar de PAR e BRN
+- No painel do jogador: quem causou o status e quanto falta ("Zubat foi confundido por Psychic (2 s)")
+- Chute com golpe: o rastro da bola agora tem a partícula do tipo (fogo sobe, água pinga). Antes saía sempre a estrelinha do Normal
+
+### Celular e tutorial
+- Celular deitado de tela baixa: golpe máximo e Esperar ficam lado a lado, sem tampar a quadra
+- Tocar fora do balão do tutorial fecha o balão e já vale pro botão tocado
+- Na 1ª visita, o balão não rola mais a página à toa e o logo da Home não some
+
+## 0.9.16 · Golpe máximo por tipo e 4 Patrocínios (2026-10-23)
+
+### Golpe máximo por tipo
+- No nível 3, o golpe máximo ganha o efeito do tipo do capitão: um efeito pra cada um dos 16 tipos
+- Charizard solta a Bola em chamas, Blastoise empurra a defesa com a Onda e Gengar atravessa o zagueiro com a Bola fantasma
+- Alakazam curva a bola, Dugtrio derruba os zagueiros a até 6 m do gol e Scyther solta o Enxame: o goleiro pode pular na isca
+- Pikachu solta o Raio: bola x1,15 mais rápida e quem bloquear ou defender fica paralisado por 1,5 s
+- O ícone do tipo aparece no botão: apagado nos níveis 1 e 2, aceso no 3
+- Botão Esperar: guarda o golpe máximo pro próximo nível sem câmera lenta
+- Capitão de dois tipos: vale o tipo do golpe máximo, se for um dos tipos dele
+- Os líderes rivais também usam o efeito do capitão deles
+- O chute do nível 3 mira mais pro meio do gol: bem menos bola pra fora
+
+### Patrocínios
+- 4 Patrocínios novos no Mercado, ₽10 cada
+- Olheiro de Viridian: Pokémon avulsos e pacotes do Mercado com a raridade da fase seguinte
+- Preparador de Lavender: +6 de fôlego pro time todo
+- Charanga de Pewter: +4 em tudo enquanto o time perde. Quando ela entra, aparece "A CHARANGA ENTROU" na quadra
+- Clube Formador de Pallet: pontos pro seu time evoluir 14 ⇒ 10
+
+## 0.9.15 · Rota de baby (2026-10-23)
+
+### Rota Índigo
+- A Rota começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho
+- Nota média do time no começo da Rota: 79,5 ⇒ 64,6
+- Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo
+- Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma
+- Os rivais do começo ficaram mais fracos: 1ª partida -1 ⇒ -2 e 2ª partida 0 ⇒ -1
+
+## 0.9.14 · Golpe máximo em 3 níveis, na batida (2026-10-23)
+
+### Golpe máximo
+- A barra agora tem 3 níveis e enche de novo depois de usar: golpe máximo por partida 1 ⇒ vários (a barra recarrega)
+- Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo: força do chute x1,55 ⇒ x1,25 / x1,55 / x2,2 (níveis 1 / 2 / 3)
+- No nível 3 o goleiro rival fica com alcance x0,7 nesse chute
+- Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte
+- Sem som, o anel segue um pulso na tela
+- Tocou um pouco antes de acender? O golpe sai no próximo chute
+- Os líderes também tocam na batida, e o Lance quase sempre acerta
+
+### Defesa máxima
+- Com o capitão no gol, o nível dá mais tempo de defesa: 4 s ⇒ 0,75 s / 4 s / 6 s (níveis 1 / 2 / 3)
+- O toque perfeito segura a bola
+
+## 0.9.13 · Novidades mais fáceis de ler (2026-10-22)
+
+### Novidades
+- A versão mais nova fica no topo, em destaque, com a data
+- As antigas ficam recolhidas: toque para abrir
+
+## 0.9.12 · No ritmo da música (2026-10-22)
+
+### Música
+- A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura
+- As cartas do draft viram na batida da música
+
+## 0.9.11 · Viradas na música e temas dos líderes (2026-10-22)
+
+### Música
+- Avançar na copa troca a música com virada de bateria e uma ponte
+- Cada ponte tem o som da tela que entra
+- O VERSUS entra com virada, ponte e prato
+- Voltar pra Home continua trocando só no tempo da batida
+
+### Líderes
+- Erika, Koga, Sabrina, Blaine e Giovanni ganharam tema próprio antes da partida
+
+## 0.9.10 · Time no ranking e acabamento (2026-10-22)
+
+### Copa do Dia
+- O ranking mostra o time de cada treinador, com o capitão marcado
+- A formação avisa quando a tentativa não entra no ranking
+
+### Rota Índigo
+- Final perdida aparece como vice, e o segundo amarelo como cartão vermelho
+- Patrocínios do mapa com ícone e nome no celular
+- A formação da Rota tem botão de voltar
+
+### Acabamento
+- Tecla M dispara o golpe máximo
+- O volume da música não estala mais ao mexer
+- Na Sala de troféus a fala não tampa as taças no celular
+- Derrota perdoada fica amarela na barra da Home
+
+## 0.9.9 · Música no tempo e voltar do Android (2026-10-22)
+
+### Música
+- A logo da Abertura pisca a cada SOC-CER-MON da música
+- A música troca de tela no tempo da batida
+- Disputa de pênaltis com música própria até a cobrança decisiva
+- Os Créditos tocam "A última partida"
+- Lt. Surge ganhou tema próprio antes da partida
+- A Pressão final segura a música até o apito
+- Saiu a vinheta da virada no placar
+
+### Celular
+- O botão voltar do Android sai da tela em vez de fechar o jogo
+- Resultado e escalação mais curtos, com partes que abrem e fecham
+- No draft em pé, as vagas do time ficam fixas no topo
+
+## 0.9.8 · Gritos mais baixos (2026-10-22)
+
+### Som
+- Escolher no draft agora é silencioso: só a música toca
+- Os gritos dos Pokémon ficaram bem mais baixos, atrás da música
+
+## 0.9.7 · Música no jogo e Rota com escolhas (2026-10-22)
+
+### Música
+- Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus
+- Brock, Misty e Equipe Rocket têm tema e música de partida próprios
+- Rota 1, Mt. Moon e Cerulean tocam a música da região no mapa
+- Virou o placar no 2º tempo? Toca a vinheta da virada
+- Volume da música nas Configurações (zero desliga)
+
+### Rota Índigo
+- O mapa agora tem bifurcações de verdade: quase toda rota tem escolha
+- Os treinadores da Rota jogam com o tipo deles (Ornitólogo tem pássaro)
+- Treino sem ninguém pra evoluir vira Treino de técnica: escolha um item ou MT
+- Resultado mostra o ₽ ganho, e o evento diz o que aconteceu
+- Mapa melhor no celular, em pé e deitado
+- Quem cai no grupo não vê mais "Vitória!"
+- Quem estava no meio de uma Rota pode ver rivais diferentes nas próximas casas
+
+### Primeira vez
+- Balões curtos mostram onde tocar na primeira vez em cada modo; dá pra pular e rever na Ajuda
+
+### Acessibilidade e consertos
+- Jogo inteiro pelo teclado, com foco visível, e o golpe máximo avisa o leitor de tela
+- "Sorteio" é o nome único pra sortear de novo
+- O Duelo ganhou cabeçalho e botão de voltar
+
+## 0.9.6 · Beira da quadra e MTs mais fortes (2026-10-22)
+
+### Beira da quadra
+- Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão
+- A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m
+- Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa
+- Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás
+- Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora
+- O treinador rival da Copa usa as mesmas armas
+- Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram
+
+### MTs
+- O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT
+- Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%
+
+## 0.9.5 · Cada formação joga de um jeito (2026-10-21)
+
+### Formações
+- Losango: triângulos e passe curto por dentro
+- Quadrado: a bola vai pelos lados
+- Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira
+- Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque
+- Dois pivôs: jogo direto, chute logo depois de roubar a bola
+- Ferrolho: bloco baixo e fechado, saída rápida
+- Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa
+
+### Golpes
+- Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios
+
+## 0.9.4 · Duelo melhor de 3 e Rota polida (2026-10-21)
+
+### Duelo
+- Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro
+- Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou
+
+### Rota Índigo
+- Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos
+- O mapa usa a tela toda no PC
+- Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra
+- Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria
+
+## 0.9.3.2 · Rota Índigo na frente (2026-10-21)
+
+### Tela inicial
+- Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO
+- Duelo e Copa do Dia embaixo, um do lado do outro
+- No celular, o botão da Rota ocupa a largura toda
+
+## 0.9.3.1 · Pokédex com texto e Pokémon com mais caras (2026-10-21)
+
+### Coleção
+- A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex
+
+### Pokémon mais vivos
+- O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote
+- Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come
+- Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado
+- Eliminado: o time aparece caído e o capitão com lágrima
+
+### Rota Índigo e Copa Relâmpago
+- O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones
+- A chave da copa mostra o capitão de cada clube
+
+## 0.9.3 · Golpes revisados (2026-10-21)
+
+### Cada um com o seu tipo
+- Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)
+- Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)
+- Gastly e Haunter: Hypnosis ⇒ Toxic
+- Zubat e Golbat: Supersonic ⇒ Toxic
+- Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic
+- Beedrill: Agility ⇒ Toxic
+- Charizard: Fire Blast ⇒ Fly
+- Hitmonchan: Agility ⇒ Counter
+- Gyarados: Splash ⇒ Hyper Beam
+
+### Sem golpe repetido
+- Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage
+- Raichu: Thunderbolt ⇒ Agility
+- Arcanine: Flamethrower ⇒ Take Down
+- Hitmonlee: Jump Kick ⇒ Double Kick
+- Staryu: Hydro Pump ⇒ Psychic
+- Omanyte: Hydro Pump ⇒ Surf
+
+### Golpes que agora fazem o que prometem
+- Harden segura a bola no próximo carrinho (como o Defense Curl)
+- Slam alcança mais longe (2,8 m)
+- Amnesia sobe passe, chute e leitura
+- Tri Attack pode queimar, congelar ou paralisar
+- Explosion pega todo mundo a 4 m
+- Light Screen e Reflect não dão mais chute escondido
+- Fly e Dig com a bola levam ela 2 m (era 4)
+
+### Textos
+- Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)
+
+## 0.9.2.2 · A Rota Índigo volta (2026-10-21)
+
+### Rota Índigo
+- A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar
+- Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)
+- Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa
+- A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas
+- Nova copa no fim de uma Rota começa outra Rota
+- Titular machucado: o aviso aparece do lado do Jogar
+
+## 0.9.2.1 · Álbum leve e vitrine fácil (2026-10-21)
 
 ### Álbum
 - O Álbum não trava mais ao abrir e virar a página (só a página à vista é montada e o brilho holo anima só na carta em foco)
@@ -12,7 +1069,7 @@
 - Arraste uma carta sobre a outra (ou toque numa e depois na outra) pra mudar a ordem; vale no Perfil, no perfil do amigo e no Duelo
 - No PC, a vitrine do cartão do Perfil ficou maior e centralizada
 
-## 0.9.2 · Casa arrumada
+## 0.9.2 · Tela inicial reorganizada (2026-10-21)
 
 ### Tela inicial
 - Nova copa grande e no topo; Duelo e Copa do Dia lado a lado, do tamanho do conteúdo
@@ -49,14 +1106,14 @@
 - O PC aparece inteiro, a TV na frente do móvel e as fotos das cartas sem esticar
 - A câmera não fica mais presa aproximada depois de um toque rápido
 
-## 0.9.1.1 · Cartas de volta
+## 0.9.1.1 · Cartas de volta (2026-10-21)
 
 ### Consertos
 - A vitrine mostra a sua melhor carta de verdade daquele Pokémon (antes podia ficar presa na versão padrão, Destaque I ou Ícone sem MVP)
 - Mudança só no Álbum agora sobe pra nuvem
 - Carta perdida de antes do Álbum (19/10) volta por código: Perfil → Treinador → Resgatar código
 
-## 0.9.1 · Rota Índigo
+## 0.9.1 · Rota Índigo (2026-10-21)
 
 ### Rota Índigo (modo novo)
 - A copa longa: um mapa de Kanto de baixo pra cima (Rota 1, Floresta de Viridian, Mt. Moon, Cerulean, Estrada da Vitória, Planalto Índigo), com partidas, Ginásios, Mercado, Baú, Treino e eventos "?"
@@ -80,7 +1137,7 @@
 ### Contas
 - Nome de treinador e de clube são únicos (quem já tinha fica com o nome)
 
-## 0.9.0.5 · Tudo na prancheta
+## 0.9.0.5 · Tudo na prancheta (2026-10-21)
 
 ### Toque direto
 - Substituição: toque em quem sai e em quem entra na prancheta e a troca já vale, com as cartas deslizando (sai o painel de lista)
@@ -92,7 +1149,7 @@
 - Pacote aberto pode ser fechado sem pegar nenhuma carta (Não quero nenhuma, seguir)
 - A vitrine de cartas aparece no cartão do Perfil
 
-## 0.9.0.4 · Golpes e Patrocínios explicados
+## 0.9.0.4 · Golpes e Patrocínios explicados (2026-10-21)
 
 ### Mais claro
 - MT: ao escolher qual golpe esquecer, cada golpe mostra o que faz em quadra
@@ -102,14 +1159,14 @@
 ### Mercado
 - No Mercado antes da Final só aparecem Patrocínios de campo (os de ₽ não teriam mais onde valer)
 
-## 0.9.0.3 · Pacote e Patrocínios
+## 0.9.0.3 · Pacote e Patrocínios (2026-10-21)
 
 ### Mercado
 - O pacote comprado abre de verdade: rasga e as cartas saem uma a uma, e o desenho do tipo ficou nítido
 - Dois Patrocínios pra escolher em cada Mercado
 - O preço mostra quanto falta (₽10 · falta ₽1)
 
-## 0.9.0.2 · Ajustes da semana
+## 0.9.0.2 · Ajustes da semana (2026-10-21)
 
 ### Consertos
 - Sala de troféus: se o seu avatar é shiny, o Pokémon que passeia na sala também é
@@ -119,13 +1176,13 @@
 ### Mercado
 - A carta do Patrocínio diz que é Patrocínio, e a prateleira explica as 3 vagas (Pokémon, pacote e item não ocupam vaga)
 
-## 0.9.0.1 · Mercado organizado
+## 0.9.0.1 · Mercado organizado (2026-10-21)
 
 ### Mercado
 - O Mercado ficou em prateleiras: Contratações, Pacote e item, e Patrocínios (com as suas 3 vagas logo embaixo)
 - A carta do Patrocínio fica na horizontal, pra não se confundir com as cartas de Pokémon
 
-## 0.9.0 · Mercado e Patrocínios
+## 0.9.0 · Mercado e Patrocínios (2026-10-20)
 
 ### Mercado
 - Depois da recompensa de cada vitória, a Copa ganha um Mercado: gaste ₽ (Pokédólar) em Pokémon, pacote de tipo, item, MT ou Patrocínio
@@ -145,7 +1202,7 @@
 - A tela inicial separa os dois modos da Copa: a Copa rápida (a de sempre, 4 partidas) e a Copa longa, com mapa, eventos e tesouros (em breve)
 - Tudo mora no Perfil: a Sala de troféus e a Coleção abrem logo abaixo do seu cartão
 
-## 0.8.9 · Sala de troféus e menus novos
+## 0.8.9 · Sala de troféus e menus novos (2026-10-20)
 
 ### Sala de troféus
 - Uma sala de verdade, em pixel art, pra tudo que você ganhou: taças da Copa (bronze, prata e ouro pela campanha), a Liga, medalhões da Copa do Dia, cinturões do Duelo, broches das medalhas, o diploma da Platina e o Hall da Fama em polaroids
@@ -170,7 +1227,7 @@
 - Toda troca de tela tem transição; as abas deslizam; janelas saem com fade; no draft, a carta contratada voa até a vaga
 - Celular em pé: nomes de Pokémon colados na quadra somem com fade em vez de se embolar
 
-## 0.8.8.4 · Álbum em livro
+## 0.8.8.4 · Álbum em livro (2026-10-20)
 
 ### Álbum de figurinhas
 - O álbum virou livro: uma estante com o Álbum da Geração 1 (Kanto). Toque na capa e ele abre
@@ -183,7 +1240,7 @@
 ### Correções
 - "Ver todos na Pokédex" (Números) agora sobe até a Pokédex em vez de abrir no meio da lista
 
-## 0.8.8.3 · Cartas em camadas e álbum de figurinhas
+## 0.8.8.3 · Cartas em camadas e álbum de figurinhas (2026-10-19)
 
 ### Cartas em camadas
 - O shiny vai por cima de qualquer edição e soma +1: Shiny Ícone, Shiny Evento, Shiny Destaque
@@ -217,7 +1274,7 @@
 ### Correções
 - VERSUS: o botão só deixa começar com a quadra carregada (antes levava a uma partida vazia). Se demorar, aparece "Tentar de novo"
 
-## 0.8.8.2 · Logo novo e faixas da torcida
+## 0.8.8.2 · Logo novo e faixas da torcida (2026-10-19)
 
 ### Logo novo
 - Logo novo: a carta holo com a bola (também na aba do navegador, no ícone do celular e na prévia do link)
@@ -230,7 +1287,7 @@
 ### Liga
 - Liga ranqueada fechada por enquanto: o timer na Home mostra quando ela abre
 
-## 0.8.8.1 · Melhores momentos, Copa do Dia e medalhas
+## 0.8.8.1 · Melhores momentos, Copa do Dia e medalhas (2026-10-19)
 
 ### Copa do Dia
 - Copa do Dia: a mesma copa pra todo mundo (mesmo draft, mesmos rivais), uma tentativa por dia e ranking do dia. Sem conta, você joga fora do ranking
@@ -309,13 +1366,13 @@
 - Avatar shiny: toque no Pokémon com o brilho no canto e escolha a versão normal ou a shiny
 - Avatares centralizados e o shiny não passa mais da borda
 
-## 0.8.8 · Ícone MVP e conquistas retroativas
+## 0.8.8 · Ícone MVP e conquistas retroativas (2026-10-19)
 
 ### Consertos
 - Carta Ícone agora pode ser o craque da partida: continua Ícone (com o fundo de galáxia), ganha o selo "MVP", "MVP 2" e "MVP 3" e +1 em todos os atributos por selo (até +5). Antes o prêmio pulava pro próximo jogador
 - Quem foi campeão com Mew e Mewtwo, com os 3 pássaros lendários ou com um Rattata antes dessas missões existirem agora ganha a conquista ao abrir o jogo (sai do Hall da Fama)
 
-## 0.8.7 · Emotes, selos e faixa da torcida
+## 0.8.7 · Emotes, selos e faixa da torcida (2026-10-19)
 
 ### Duelo
 - Emotes novos: o seu capitão aparece grandão com cara de alegria, choro ou bronca, e grita junto. 8 emotes, com "Nãão!" e "Grrr!" novos
@@ -336,7 +1393,7 @@
 - Pedido de tempo (1 por tempo): +5% de fôlego pro seu time e +3% pro rival, e uma pausa pra trocar e mexer na prancheta
 - Goleiro-linha, golpe máximo do capitão (a barra enche mais rápido quando você está perdendo) e a ordem dos pênaltis
 
-## 0.8.6 · Lendas douradas e prancheta ao vivo
+## 0.8.6 · Lendas douradas e prancheta ao vivo (2026-10-18)
 
 ### Missões lendárias
 - 6 treinadores dourados por feitos absurdos: Ash (copa perfeita, sem sofrer gol), Lance (campeão com os 3 pássaros na final), Joey (campeão com um Rattata), Red (5 copas seguidas), Blue (virar a final depois de perder por 3) e Prof. Carvalho (jogar com os 151)
@@ -390,7 +1447,7 @@
 - Ajuda sem cortar no celular, aviso de desbloqueio sem cobrir o topo e botões maiores pra tocar
 - Treinadores lendários bloqueados com brilho dourado, pra dar vontade de caçar
 
-## 0.8.5 · Escanteio e duelo ao vivo
+## 0.8.5 · Escanteio e duelo ao vivo (2026-10-18)
 
 ### Duelo ao vivo (BETA)
 - Desafie um amigo por link: os dois veem a mesma partida ao mesmo tempo
@@ -416,7 +1473,7 @@
 - A mesma partida em todo navegador (contas próprias no motor)
 - Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
 
-## 0.8.4 · Balanceamento geral e o seu treinador
+## 0.8.4 · Balanceamento geral e o seu treinador (2026-10-17)
 
 ### Seu treinador
 - 38 treinadores de Kanto (Red, Leaf, líderes de ginásio, Elite 4, Prof. Carvalho, Equipe Rocket...) destravados por 42 missões
@@ -465,7 +1522,7 @@
 - Draft no celular deitado: faixa numa linha só e cartas alinhadas
 - Partida que estava no meio na hora da atualização recomeça do 0 a 0 (a copa e o time ficam)
 
-## 0.8.3 · Partida com peso, pacote de cartas e torcida
+## 0.8.3 · Partida com peso, pacote de cartas e torcida (2026-10-16)
 
 ### Partida
 - Torcida de verdade: murmúrio que cresce quando a bola chega perto do gol, grito no gol, "uuuh" na trave e na defesa e palmas no fim; o apito é de juiz de verdade
@@ -511,7 +1568,7 @@
 - Marcador não gasta mais golpe dando bote de longe
 - Som das cartas saindo do pacote corrigido
 
-## 0.8.2 · Hall da Fama e o título do jeito que merece
+## 0.8.2 · Hall da Fama e o título do jeito que merece (2026-10-16)
 
 ### Tela de campeão
 - Hall da Fama: no título, o elenco desfila um por um com o grito, como no Red/Blue, e a copa fica guardada para sempre na aba Hall da Fama do Perfil
@@ -530,12 +1587,12 @@
 - Mimic como na Gen 1: o golpe copiado fica no lugar dele até o fim da partida
 - Movedex não passa mais da largura da tela no celular
 
-## 0.8.1 · Ajustes do lançamento
+## 0.8.1 · Ajustes do lançamento (2026-10-15)
 
 ### Corrigido
 - As marcas de tipo no fundo das cartas voltaram a aparecer (a imagem não carregava no site)
 
-## 0.8.0 · Perfil, Pokédex e golpes novos
+## 0.8.0 · Perfil, Pokédex e golpes novos (2026-10-15)
 
 ### Golpes novos
 - Os golpes agora fazem o que faziam nos jogos: Earthquake e Surf pegam todo mundo em volta (até companheiro), Slash e Karate Chop dão crítico, Solar Beam e Sky Attack carregam, Fly e Dig somem do mapa, Swift nunca erra, Night Shade e Dragon Rage dão dano fixo, Toxic piora com o tempo, Double Team cria clones e muito mais
@@ -567,7 +1624,7 @@
 - Entrar na conta depois de jogar como visitante não perde mais os recordes da nuvem
 - Descrição da tática Equilibrado: ela dá +3% de passe e posicionamento
 
-## 0.7.3 · Beta aberta
+## 0.7.3 · Beta aberta (2026-10-14)
 
 ### Lançamento
 - O Soccermon agora é beta aberta: o jogo está completo e segue recebendo ajustes
@@ -588,7 +1645,7 @@
 - Ícone próprio ao adicionar o jogo à tela inicial
 - Novidades com as versões separadas
 
-## 0.7.2 · Trocas que contam e privacidade
+## 0.7.2 · Trocas que contam e privacidade (2026-10-14)
 
 ### Alterado
 - Quem entra na troca passa a contar para sinergia de tipo, duplas de história e capitão
@@ -599,7 +1656,7 @@
 - Apagar minha conta, em Configurações: remove login, perfil e save da nuvem
 - Página de privacidade e termos
 
-## 0.7.1 · Revisão completa
+## 0.7.1 · Revisão completa (2026-10-14)
 
 ### Corrigido
 - Save na nuvem: abrir o jogo em outro aparelho não apaga mais a copa salva
@@ -618,7 +1675,7 @@
 - Gráficos sem emoji: bolinhas desenhadas marcam os gols
 - Esc e teclado funcionam na evolução e nas Novidades
 
-## 0.7 · Contas, evolução e golpes de verdade
+## 0.7 · Contas, evolução e golpes de verdade (2026-10-14)
 
 ### Adicionado
 - Entrar com Google: copa e recordes salvos na nuvem

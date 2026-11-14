@@ -1,4 +1,4 @@
-import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, type ReactNode, type Ref, useEffect, useMemo, useState } from 'react';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { CORNER_PLANS } from '../../engine/runners/live-runner';
 import { type CornerPlan, type Phase, TACTIC_LABEL, type Tactic } from '../../engine/state';
@@ -286,11 +286,11 @@ export const ICONS = {
     dex: 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM3 12h6.5M14.5 12H21M12 9.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z',
     // beira da quadra (agência do técnico, experimento)
     shout: 'M3 10v4h4l7 5V5L7 10zM17 9a4 4 0 0 1 0 6M19.5 6a8 8 0 0 1 0 12',
-    calm: 'M3 10c3-3 6-3 9 0s6 3 9 0M3 16c3-3 6-3 9 0s6 3 9 0',
-    press: 'M4 4l5 5M20 4l-5 5M4 20l5-5M20 20l-5-5M12 8v8M8 12h8',
     timeout: 'M4 5h16M12 5v15M8 20h8',
     flyGk: 'M12 21V8M7 13l5-5 5 5M5 4h14',
     max: 'M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 16.9l-5.9 3.3 1.3-6.6L2.5 9l6.6-.8z',
+    // bicuda do goleiro capitão: a chuteira e a bola saindo
+    bicuda: 'M4 3v11a2 2 0 0 0 2 2h9a2.5 2.5 0 0 0 0-5H9V3M6 19v2M10 19v2M14 19v2M18.5 3.5a2 2 0 1 0 0 4 2 2 0 1 0 0-4M13 7h2',
     // duas cartas, uma atrás da outra (aba Fichário do Perfil)
     cards: 'M9 7h10v14H9zM5 17V3h10',
     // medalha com fita (aba Medalhas do Perfil)
@@ -330,11 +330,22 @@ export const ICONS = {
     egg: 'M12 3c4 0 7 6 7 11a7 7 0 0 1-14 0c0-5 3-11 7-11zM8 14l2 1.5 2-1.5 2 1.5 2-1.5',
     leaf: 'M5 19C5 10 11 4 20 4c0 9-6 15-15 15zM5 19l8-8',
     building: 'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',
+    // abas dos ambientes (?lab=ambientes): mapa dobrado (Rota) e a arquibancada oval (Estádio)
+    map: 'M3 6.5l6-2.5 6 2.5 6-2.5v13.5l-6 2.5-6-2.5-6 2.5zM9 4v13.5M15 6.5V20',
+    stadium: 'M3 9c0-2.2 4-4 9-4s9 1.8 9 4v6c0 2.2-4 4-9 4s-9-1.8-9-4zM3 9c0 2.2 4 4 9 4s9-1.8 9-4M8 12.6v6M16 12.6v6',
     bike: 'M3.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M14.5 17a3 3 0 1 0 6 0 3 3 0 1 0-6 0M6.5 17L10 9h5l2.5 8M10 9l3 8M13 6h3',
     book: 'M3 5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H21z',
     crown: 'M4 19h16M5 16L3 7l5 4 4-6 4 6 5-4-2 9z',
+    // Patrocínios de 23/10/2026: Preparador (cronômetro), Charanga (bumbo com baquetas), Clube Formador (broto)
+    stopwatch: 'M12 21a8 8 0 1 0 0-16 8 8 0 1 0 0 16M12 9v4l2.5 2.5M10 2h4M12 2v3M18.5 6.5L20 5',
+    drum: 'M4 10a8 3 0 1 0 16 0a8 3 0 1 0-16 0M4 10v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7M8 12.7v7M16 12.7v7M6 2l4 5M18 2l-4 5',
+    sprout: 'M12 21v-9M12 12C12 8 9 6 5 6c0 4 3 6 7 6zM12 10c0-4 3-6 7-6 0 4-3 6-7 6zM7 21h10',
     // Copa longa (src/ui/screens/CupMap.tsx)
     chest: 'M4 10a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v9H4zM4 12h16M12 10v5',
+    /** Ficha do Game Corner (Time Ultimate): a moeda com o aro de dentro. */
+    coin: 'M12 3a9 9 0 1 1 0 18a9 9 0 1 1 0-18M12 7.5a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9',
+    /** Brilho: a estrela de 4 pontas do brilho da carta. */
+    sparkle: 'M12 3l2 7l7 2l-7 2l-2 7l-2-7l-7-2l7-2z',
     question: 'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01',
     // eventos da Rota Índigo
     medkit: 'M4 8h16v12H4zM9 8V5h6v3M12 11v6M9 14h6',
@@ -346,6 +357,16 @@ export const ICONS = {
     paw: 'M7 11a2 2 0 1 0 0-.01M17 11a2 2 0 1 0 0-.01M10 7a2 2 0 1 0 0-.01M14 7a2 2 0 1 0 0-.01M8 18c0-3 2-5 4-5s4 2 4 5c0 1.5-1.5 2-4 2s-4-.5-4-2z',
     dumbbell: 'M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12',
     yellow: 'M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z',
+    // pedra de evolução (prêmio de região da Rota): a gema lapidada
+    stone: 'M8 3h8l5 6-9 12L3 9zM3 9h18M9.5 9L12 21l2.5-12M8 3l1.5 6M16 3l-1.5 6',
+    // formações (src/ui/formation-info.ts; o Ferrolho usa o cadeado)
+    fDiamond: 'M12 3l8 9-8 9-8-9z',
+    fSquare: 'M4 4h16v16H4zM12 16V8M8.5 11.5L12 8l3.5 3.5',
+    fPivot: 'M4 20h4M10 20h4M16 20h4M12 16V5M8 9l4-4 4 4',
+    fRotation: 'M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3M18 3v3.7h-3.7M6 21v-3.7h3.7',
+    fTwin: 'M7 20V6M3 10l4-4 4 4M17 20V6M13 10l4-4 4 4',
+    // vantagem tática (a formação que encaixa contra a do rival)
+    edge: 'M3 17l6-6 4 4 8-8M15 7h6v6',
 } as const;
 export type HudIconKind = keyof typeof ICONS;
 
@@ -397,13 +418,29 @@ export function useCoachTab(tabs: readonly CoachTab[], fallback: CoachTab): [Coa
     return [pickTab(tab, tabs, fallback), pick];
 }
 
+/**
+ * Celular: o painel do técnico nasce fechado (a quadra fica com a tela), abre ao tocar numa aba e fecha ao tocar na
+ * aba aberta. No desktop fica sempre aberto. Usado pela Copa e pelo Duelo.
+ */
+export function useCoachFold(wide: boolean, tab: CoachTab, setTab: (tab: CoachTab) => void) {
+    const [coachOpen, setCoachOpen] = useState(false);
+    const open = wide || coachOpen;
+    const showTab = (k: CoachTab) => {
+        setTab(k);
+        setCoachOpen(true);
+    };
+    const pickTab = (k: CoachTab) => (open && !wide && k === tab ? setCoachOpen(false) : showTab(k));
+    return { open, showTab, pickTab };
+}
+
 export function CoachTabs({
     tabs,
     active,
     onPick,
 }: {
     tabs: readonly CoachTab[];
-    active: CoachTab;
+    /** null: nenhuma aberta (o painel do celular nasce fechado). */
+    active: CoachTab | null;
     onPick: (tab: CoachTab) => void;
 }) {
     const { t } = useT();
@@ -467,6 +504,45 @@ function Dots({ n, cls }: { n: number; cls: string }) {
     );
 }
 
+/** Instrução de escanteio (Time do painel; no Duelo, junto da tática). */
+export function CornerControls({
+    corner,
+    canChange,
+    onCorner,
+}: {
+    corner: CornerPlan;
+    canChange: boolean;
+    onCorner: (c: CornerPlan) => void;
+}) {
+    const { t, d } = useT();
+    return (
+        <>
+            <div className="bc-row row-corner">
+                <span className="bc-lbl">
+                    <HudIcon kind="flag" />
+                    {t('match.corner')}
+                </span>
+            </div>
+            <div className="bc-seg corner-seg" title={t('match.cornerHint')}>
+                {CORNER_PLANS.map((pl) => (
+                    <button
+                        key={pl}
+                        type="button"
+                        className={corner === pl ? 'on' : undefined}
+                        aria-pressed={corner === pl}
+                        disabled={!canChange}
+                        onClick={() => onCorner(pl)}
+                    >
+                        <HudIcon kind={CORNER_ICON[pl]} />
+                        <span>{d.common.cornerPlan[pl]}</span>
+                        <small>{d.match.coach.cornerSub[pl]}</small>
+                    </button>
+                ))}
+            </div>
+        </>
+    );
+}
+
 /**
  * Tática (estilos em peças com ícone, sem limite de trocas), escanteio e o botão Substituir. Cada peça diz em
  * palavras simples o que muda, com a régua ATQ/DEF e o selo "Valendo" na ativa; ao tocar sobe um aviso curto.
@@ -489,7 +565,8 @@ export function TacticControls({
     pending: boolean;
     error?: string | null;
     onTactic: (t: Tactic) => void;
-    onCorner: (c: CornerPlan) => void;
+    /** Sem = sem escanteio aqui (na partida da copa ele mora na aba Time). */
+    onCorner?: (c: CornerPlan) => void;
     canSub: boolean;
     /** Leva pra prancheta (a troca é tocando em quem sai e em quem entra). Sem = sem botão (no intervalo o painel já tem). */
     onSub?: () => void;
@@ -534,9 +611,7 @@ export function TacticControls({
                                 role="img"
                                 aria-label={t('match.coach.meter', { a: atk, d: def })}
                             >
-                                {t('match.coach.atk')}
                                 <Dots n={atk} cls="atk" />
-                                {t('match.coach.def')}
                                 <Dots n={def} cls="def" />
                             </span>
                         </button>
@@ -549,28 +624,7 @@ export function TacticControls({
                 </p>
             )}
             {error && <span className="error-text">{error}</span>}
-            <div className="bc-row row-corner">
-                <span className="bc-lbl">
-                    <HudIcon kind="flag" />
-                    {t('match.corner')}
-                </span>
-            </div>
-            <div className="bc-seg corner-seg" title={t('match.cornerHint')}>
-                {CORNER_PLANS.map((pl) => (
-                    <button
-                        key={pl}
-                        type="button"
-                        className={corner === pl ? 'on' : undefined}
-                        aria-pressed={corner === pl}
-                        disabled={!canChange}
-                        onClick={() => onCorner(pl)}
-                    >
-                        <HudIcon kind={CORNER_ICON[pl]} />
-                        <span>{d.common.cornerPlan[pl]}</span>
-                        <small>{d.match.coach.cornerSub[pl]}</small>
-                    </button>
-                ))}
-            </div>
+            {onCorner && <CornerControls corner={corner} canChange={canChange} onCorner={onCorner} />}
             {onSub && (
                 <button type="button" className="bc-subbtn" disabled={!canSub} onClick={onSub}>
                     <HudIcon kind="sub" />
@@ -587,39 +641,13 @@ export function TacticControls({
     );
 }
 
-/** Fim de jogo: quanto tempo a quadra espera antes de ir sozinha pro resultado. */
-export const AUTO_RESULT_MS = 3000;
-
-/** Passo da ida automática pro resultado: esperando, já pode ir, ou o técnico segurou (fica na quadra). */
-export function autoResultStep(elapsedMs: number, held: boolean): 'wait' | 'go' | 'held' {
-    if (held) return 'held';
-    return elapsedMs >= AUTO_RESULT_MS ? 'go' : 'wait';
-}
-
 /**
- * Depois do apito final vai sozinho pro resultado em AUTO_RESULT_MS; `hold()` (um toque na quadra ou no painel)
- * segura e a tela fica esperando o "Ver resultado". `left` = fração do tempo que falta (1 → 0), pro botão encher.
+ * Fim de jogo: a faixa do placar fica por cima da quadra até um toque nela ou no painel (`hold()`), pra rever a
+ * quadra. Não vai sozinho pro resultado (revisao-caminho.md item 7: o automático tirava o jogador antes de ler).
  */
-export function useAutoResult(ended: boolean, onGo: () => void): { held: boolean; hold: () => void; left: number } {
+export function useFinalHold(ended: boolean): { held: boolean; hold: () => void } {
     const [held, setHeld] = useState(false);
-    const [left, setLeft] = useState(1);
-    const go = useRef(onGo);
-    go.current = onGo;
-    useEffect(() => {
-        if (!ended || held) return;
-        const start = performance.now();
-        let gone = false;
-        const id = window.setInterval(() => {
-            const elapsed = performance.now() - start;
-            setLeft(Math.max(0, 1 - elapsed / AUTO_RESULT_MS));
-            if (!gone && autoResultStep(elapsed, false) === 'go') {
-                gone = true;
-                go.current();
-            }
-        }, 100);
-        return () => clearInterval(id);
-    }, [ended, held]);
-    return { held, hold: () => ended && setHeld(true), left };
+    return { held, hold: () => ended && setHeld(true) };
 }
 
 /** Resultado da partida do ponto de vista de `side` (pênaltis desempatam). */
@@ -627,64 +655,6 @@ export function finalOutcome(score: [number, number], shootout: [number, number]
     const [a, b] = shootout && score[0] === score[1] ? shootout : score;
     const diff = side === 0 ? a - b : b - a;
     return diff > 0 ? 'win' : diff < 0 ? 'loss' : 'draw';
-}
-
-/** Faixa grande do fim de jogo por cima da quadra: VITÓRIA!/DERROTA/EMPATE e o placar. */
-export function FinalBanner({
-    score,
-    shootout,
-    side,
-    names,
-}: {
-    score: [number, number];
-    shootout: [number, number] | null;
-    side: 0 | 1;
-    names: [string, string];
-}) {
-    const { t } = useT();
-    const outcome = finalOutcome(score, shootout, side);
-    return (
-        <div className={`final-banner ${outcome}`} role="status">
-            <b>{t(`match.final.${outcome}`)}</b>
-            <span>
-                {names[side]} {score[side]} x {score[side === 0 ? 1 : 0]}
-                {shootout && ` (${t('match.penalties', { a: shootout[side], b: shootout[side === 0 ? 1 : 0] })})`}
-            </span>
-        </div>
-    );
-}
-
-/** Botão do fim de jogo: enche enquanto conta os segundos pra ir sozinho; segurado, vira o botão de sempre. */
-export function ResultButton({
-    label,
-    onGo,
-    auto,
-}: {
-    label: string;
-    onGo: () => void;
-    auto: { held: boolean; hold: () => void; left: number };
-}) {
-    const { t } = useT();
-    const counting = !auto.held;
-    return (
-        <>
-            <button
-                type="button"
-                className={`btn primary bc-result${counting ? ' counting' : ''}`}
-                style={{ '--fill': 1 - auto.left } as CSSProperties}
-                onClick={onGo}
-            >
-                {counting
-                    ? t('match.goingResult', { s: Math.max(1, Math.ceil((auto.left * AUTO_RESULT_MS) / 1000)) })
-                    : label}
-            </button>
-            {counting && (
-                <button type="button" className="btn ghost bc-stay" onClick={auto.hold}>
-                    {t('match.stay')}
-                </button>
-            )}
-        </>
-    );
 }
 
 /** Narração completa (aba Lances; no celular sem abas ela recolhe). */

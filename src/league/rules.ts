@@ -10,7 +10,7 @@ export const ELO_START = 1000;
  * contagem. **Pra mudar a data, troque só esta linha** (hora de Brasília, UTC−3). Passou dela, a Liga abre sozinha,
  * sem deploy. O `?demo=liga` (dev) entra mesmo fechada.
  */
-export const LIGA_OPENS_AT = Date.parse('2026-12-01T00:00:00-03:00');
+export const LIGA_OPENS_AT = Date.parse('2027-01-12T00:00:00-03:00');
 
 /** Quanto falta pra Liga abrir, em dias, horas e minutos; `null` = aberta. */
 export function ligaCountdown(now = Date.now(), opensAt = LIGA_OPENS_AT) {
@@ -20,6 +20,20 @@ export function ligaCountdown(now = Date.now(), opensAt = LIGA_OPENS_AT) {
     const pad = (n: number) => String(n).padStart(2, '0');
     return { d: Math.floor(min / 1440), h: pad(Math.floor(min / 60) % 24), m: pad(min % 60) };
 }
+
+/** Quanto antes de abrir a Liga aparece (menos-e-mais.md, decisão 2): uma semana. */
+export const LIGA_TEASE_MS = 7 * 24 * 3600_000;
+
+/**
+ * A contagem da Liga só na última semana antes de abrir (o letreiro da Arena, o LED do Estádio, a faixa "Vem aí" e a
+ * Sala de troféus); antes disso ela não aparece (só o tópico do menu de modos). `null` = escondida ou já aberta.
+ */
+export function ligaTeaser(now = Date.now(), opensAt = LIGA_OPENS_AT) {
+    return ligaShown(now, opensAt) ? ligaCountdown(now, opensAt) : null;
+}
+
+/** A Liga já aparece (na última semana ou aberta). */
+export const ligaShown = (now = Date.now(), opensAt = LIGA_OPENS_AT) => now >= opensAt - LIGA_TEASE_MS;
 
 /** Chance de vitória esperada (Elo clássico). */
 export const eloExpected = (me: number, opp: number) => 1 / (1 + 10 ** ((opp - me) / 400));

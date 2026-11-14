@@ -4,7 +4,15 @@ import { type DuelTeamRecipe, teamRecipe } from '../engine/duel-validate';
 import { simulateLiga } from '../engine/league';
 import { dailyDay, putDaily } from '../store/daily';
 import { useGame } from '../store/game-store';
-import { type DailyRow, type LeagueServer, type LigaOpen, type LigaRow, type LigaStatus, setLeagueServer } from './api';
+import {
+    type DailyRow,
+    type LeagueServer,
+    type LigaOpen,
+    type LigaRow,
+    type LigaStatus,
+    publicInfo,
+    setLeagueServer,
+} from './api';
 import { eloAfter } from './rules';
 
 /**
@@ -24,15 +32,28 @@ const row = (pos: number, trainer: string, club: string, color: string, extra: P
     ga: 4,
     done: true,
     me: false,
+    squad: [pos * 3, 25, 6 + pos, 94, 130],
+    captain: pos % 5,
     ...extra,
 });
 
 const DAILY_ROWS: DailyRow[] = [
-    row(1, 'Davi', 'Viridian Verde', 'verde', { champion: true, gf: 15, ga: 3 }),
+    // os códigos de amigo (servidor com a migração 20261028200000): Davi é amigo no `?demo=amigos`, Bia te pediu, o
+    // Gary dá pra adicionar; o "Treinador" (sem código) fica só texto
+    row(1, 'Davi', 'Viridian Verde', 'verde', { champion: true, gf: 15, ga: 3, code: 'VRDN4GRN' }),
     row(2, 'Ana Clara', 'Lavender Assombro', 'roxo', { champion: true, gf: 11, ga: 5 }),
     row(3, 'Miguel', 'Pallet FC', 'vermelho', { wins: 3, gf: 10, ga: 6, me: true }),
-    row(4, 'Treinador', 'Cinnabar Chama Eterna Futebol', 'laranja', { wins: 2, gf: 7, ga: 7 }),
-    row(5, 'Bia', 'Cerulean', 'azul', { wins: 1, gf: 3, ga: 2, done: false }),
+    row(4, 'Gary', 'Pallet Rival', 'roxo', { wins: 3, gf: 9, ga: 7, code: 'CHAR2ZRD' }),
+    row(5, 'Treinador', 'Cinnabar Chama Eterna Futebol', 'laranja', { wins: 2, gf: 7, ga: 7 }),
+    row(6, 'Bia', 'Cerulean', 'azul', {
+        wins: 1,
+        gf: 3,
+        ga: 2,
+        done: false,
+        squad: null,
+        captain: null,
+        code: 'CRLN5BLU',
+    }),
 ];
 
 const LIGA_ROWS: LigaRow[] = [
@@ -96,13 +117,17 @@ export function startLeagueDemo(kind: 'dia' | 'liga', state: string | null) {
     const server: LeagueServer = {
         dailyBegin: async () => ({ day: dailyDay() }),
         dailyReport: async () => true,
-        dailyRanking: async (_day, friends) =>
-            friends
-                ? DAILY_ROWS.filter((r) => r.me || ['Davi', 'Ana Clara'].includes(r.trainer)).map((r, i) => ({
-                      ...r,
-                      pos: i + 1,
-                  }))
-                : DAILY_ROWS,
+        dailyRanking: async (_day, friends) => {
+            // a sua linha com o nome que o jogo mandaria (publicInfo): o mesmo do Perfil e da barra de cima
+            const rows = DAILY_ROWS.map((r) =>
+                r.me ? { ...r, trainer: publicInfo(useGame.getState().profile).trainer } : r,
+            );
+            return friends
+                ? rows
+                      .filter((r) => r.me || ['Davi', 'Ana Clara'].includes(r.trainer))
+                      .map((r, i) => ({ ...r, pos: i + 1 }))
+                : rows;
+        },
         ligaStatus: async (day): Promise<LigaStatus> => ({
             season: day.slice(0, 7),
             elo,
@@ -150,7 +175,7 @@ export function startLeagueDemo(kind: 'dia' | 'liga', state: string | null) {
         },
     };
     setLeagueServer(server);
-    useCloud.setState({ user: { name: 'Miguel', avatar: null }, status: 'saved' });
+    useCloud.setState({ user: { name: 'Miguel Cunha', avatar: null }, status: 'saved' });
     if (kind === 'dia' && state === 'feito') {
         useGame.setState({
             daily: putDaily(useGame.getState().daily, {

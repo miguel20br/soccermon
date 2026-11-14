@@ -1,3 +1,5 @@
+import { create } from 'zustand';
+import { trackNav } from '../analytics/track';
 import { type Screen, useGame } from '../store/game-store';
 
 /**
@@ -31,13 +33,46 @@ const setAba = (tab?: string) => {
     url.searchParams.delete('perfil');
     if (tab) url.searchParams.set('aba', tab);
     else url.searchParams.delete('aba');
-    window.history.replaceState(null, '', url);
+    // mantém o estado (a marca da aba da Sede, `tab-back.ts`): só a URL muda
+    window.history.replaceState(window.history.state, '', url);
 };
 
-/** Abre uma porta (numa aba, se vier). */
+/**
+ * Clube, Amigos e Metas são folhas por cima da tela em que a pessoa está (a Sede, a barra de cima, a Sala): o X fecha
+ * a folha e ela continua onde estava. Antes o Clube e os Amigos abriam o Perfil por baixo, e o X caía nele (11/11).
+ */
+export type DoorSheet = 'clube' | 'amigos' | 'metas';
+export const useDoorSheet = create<{ open: DoorSheet | null }>(() => ({ open: null }));
+export const openSheet = (open: DoorSheet | null) => useDoorSheet.setState({ open });
+const PROFILE_SHEETS: readonly string[] = ['clube', 'amigos'];
+
+/** Abre uma porta (numa aba, se vier); o voltar dela leva pra tela de onde ela abriu (`backTarget`). */
 export function openDoor(door: Door, tab?: string) {
+    const g = useGame.getState();
+    trackNav('door', tab ? `${door}.${tab}` : door, g.screen);
+    if (door === 'profile' && tab && PROFILE_SHEETS.includes(tab)) return openSheet(tab as DoorSheet);
     setAba(tab);
-    useGame.getState().go(door);
+    g.go(door);
+}
+
+/** `?aba=` (ou `?perfil=`) que agora é das Metas (menos-e-mais.md, B2): missões e medalhas moram na Sede. */
+export function metasLink(search: string): boolean {
+    const q = new URLSearchParams(search);
+    return ['missoes', 'medalhas', 'metas'].includes(q.get('aba') ?? q.get('perfil') ?? '');
+}
+
+/** As Metas por cima da tela de agora (o botão da Sede, a medalha da Sala de troféus, links antigos). */
+export function openMetas() {
+    setAba();
+    trackNav('metas', 'metas', useGame.getState().screen);
+    openSheet('metas');
+}
+
+/** Abre a Ajuda ou os Créditos; o voltar (o `‹` e o do Android) leva pra tela de onde abriu (`backTarget`). */
+export function openPage(page: Extract<Screen, 'help' | 'credits'>) {
+    const g = useGame.getState();
+    if (page === 'help') trackNav('help', 'help', g.screen);
+    g.go(page);
 }
 
 /** A aba com que a porta abre: `?aba=`, ou o `?perfil=` antigo que aponta pra ela. */
@@ -46,7 +81,8 @@ export function initialTab<D extends Door>(door: D): DoorTab<D> {
     const tabs = DOOR_TABS[door] as readonly string[];
     const aba = q.get('aba');
     if (aba && tabs.includes(aba)) return aba as DoorTab<D>;
-    const legacy = LEGACY[q.get('perfil') ?? ''];
+    // `?aba=missoes` (o quadro da Sede): a aba Treinador, rolada até as missões (Perfil)
+    const legacy = LEGACY[q.get('perfil') ?? aba ?? ''];
     if (legacy?.[0] === door) return legacy[1] as DoorTab<D>;
     return tabs[0] as DoorTab<D>;
 }

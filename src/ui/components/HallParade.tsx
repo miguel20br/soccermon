@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
-import { playCry } from '../../game/audio';
+import { type CSSProperties, useEffect, useState } from 'react';
+import { playCry, playSfx } from '../../game/audio';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { trainerFrame } from '../../store/missions';
 import { clubColorHex, type HallEntry } from '../../store/profile';
 import { titleClass } from '../../store/title-codes';
+import { ClockCtx, useSceneClock } from '../ambientes/clock';
+import { FieldSprite } from '../ambientes/FieldSprite';
+import { useSceneScale } from '../ambientes/sprite-scale';
 import { clubVars, titleName } from '../profile/club';
 import { TrainerSprite } from '../profile/TrainerTab';
 import { reduceMotionOn } from '../settings-sync';
 import { cardSprite } from './PokeCard';
+import { Trophy } from './Trophy';
+import '../animacoes.css';
 
-const STEP_MS = 1700;
+/** Cada Pokémon na foto (era 1,7 s: o desfile ficou só no raro e mais curto, animacoes-novas.md A4). */
+const STEP_MS = 950;
 
 /**
  * Desfile do Hall da Fama, como o do Red/Blue: cada Pokémon do elenco campeão aparece sozinho (com o grito),
@@ -23,111 +29,152 @@ export function HallParade({ entry, trainer, onDone }: { entry: HallEntry; train
     // com "reduzir movimento", vai direto para o cartão final
     const [i, setI] = useState(() => (reduceMotionOn() ? total : 0));
     const mon = entry.squad[i];
+    // o time em PMD, como na quadra (revisão de arte, D1): uma escala inteira pro desfile e outra pra fileira do fim
+    const clock = useSceneClock(true);
+    const scale = useSceneScale();
 
     useEffect(() => {
         if (i >= total) return;
         playCry(entry.squad[i].speciesId, cries);
+        // o clique da câmera junto com o flash (.hp-flash)
+        const shot = setTimeout(() => playSfx('select', 2.2), 380);
         const id = setTimeout(() => setI((n) => n + 1), STEP_MS);
-        return () => clearTimeout(id);
+        return () => {
+            clearTimeout(id);
+            clearTimeout(shot);
+        };
     }, [i, total, entry, cries]);
 
     return (
-        <button
-            type="button"
-            className="hall-parade"
-            style={clubVars(clubColorHex(entry.clubColor))}
-            onClick={() => (i < total ? setI(total) : onDone())}
-            aria-label={i < total ? t('title.hall.skip') : t('common.ui.close')}
-        >
-            {mon ? (
-                <div key={i} className="hp-mon">
-                    <img className="pixel" src={cardSprite(mon)} alt="" />
-                    <b>{mon.name}</b>
-                    <span>
-                        {mon.ovr}
-                        {mon.goals > 0 && ` · ${t('title.hall.goals', { n: mon.goals })}`}
-                    </span>
-                </div>
-            ) : (
-                <div className="hp-end">
-                    <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
-                    <b className="hp-club">{entry.club}</b>
-                    <div className="hp-trainer">
-                        {entry.trainer && <TrainerSprite id={entry.trainer} />}
+        <ClockCtx.Provider value={clock}>
+            <button
+                type="button"
+                className="hall-parade"
+                style={clubVars(clubColorHex(entry.clubColor))}
+                onClick={() => (i < total ? setI(total) : onDone())}
+                aria-label={i < total ? t('title.hall.skip') : t('common.ui.close')}
+            >
+                {/* fora do .hp-mon: o transform da entrada dele prendia o flash na caixa (o quadrado branco piscando) */}
+                {mon && <i key={`flash-${i}`} className="hp-flash" aria-hidden />}
+                {mon ? (
+                    <div key={i} className="hp-mon">
+                        <span className="hp-stage">
+                            <FieldSprite
+                                id={mon.speciesId}
+                                shiny={mon.shiny}
+                                anim="Idle"
+                                dir={0}
+                                scale={Math.max(3, scale * 2)}
+                            />
+                        </span>
+                        <b>{mon.name}</b>
                         <span>
-                            {trainer}
-                            {entry.trainerTitle && (
-                                <small className={titleClass(entry.trainerTitle).trim() || undefined}>
-                                    {titleName(entry.trainerTitle)}
-                                </small>
-                            )}
+                            {mon.ovr}
+                            {mon.goals > 0 && ` · ${t('title.hall.goals', { n: mon.goals })}`}
                         </span>
                     </div>
-                    <div className="hp-squad">
-                        {entry.squad.map((m) => (
-                            <img key={`${m.speciesId}-${m.name}`} className="pixel" src={cardSprite(m)} alt={m.name} />
-                        ))}
+                ) : (
+                    <div className="hp-end">
+                        <span className="hp-no">{t('title.hall.entry', { n: entry.titleNo })}</span>
+                        <b className="hp-club">{entry.club}</b>
+                        <div className="hp-trainer">
+                            {entry.trainer && <TrainerSprite id={entry.trainer} />}
+                            <span>
+                                {trainer}
+                                {entry.trainerTitle && (
+                                    <small className={titleClass(entry.trainerTitle).trim() || undefined}>
+                                        {titleName(entry.trainerTitle)}
+                                    </small>
+                                )}
+                            </span>
+                        </div>
+                        <div className="hp-squad" style={{ '--s': scale } as CSSProperties}>
+                            {entry.squad.map((m) => (
+                                <span
+                                    key={`${m.speciesId}-${m.name}`}
+                                    className="hp-slot"
+                                    role="img"
+                                    aria-label={m.name}
+                                >
+                                    <FieldSprite id={m.speciesId} shiny={m.shiny} anim="Idle" dir={0} scale={scale} />
+                                </span>
+                            ))}
+                        </div>
+                        {entry.perfect && <span className="perfect-badge">{t('title.hall.perfect')}</span>}
                     </div>
-                    {entry.perfect && <span className="perfect-badge">{t('title.hall.perfect')}</span>}
-                </div>
-            )}
-            <small className={`hp-skip${i < total ? '' : ' done'}`}>
-                {i < total ? t('title.hall.skip') : t('common.ui.close')}
-            </small>
-        </button>
+                )}
+                <small className={`hp-skip${i < total ? '' : ' done'}`}>
+                    {i < total ? t('title.hall.skip') : t('common.ui.close')}
+                </small>
+            </button>
+        </ClockCtx.Provider>
     );
 }
 
-/** Lista do Hall da Fama (Perfil): um cartão por título, do mais recente ao mais antigo. */
 /** Os títulos do Hall da Fama (`only`: só estes, pela copa; a sala de troféus filtra pelo metal da taça). */
 export function HallList({ only }: { only?: string[] } = {}) {
     const { t, lang } = useT();
     const all = useGame((s) => s.hall);
     const hall = only ? all.filter((h) => only.includes(h.id)) : all;
     if (!hall.length) return <p className="muted">{t('title.hall.empty')}</p>;
+    // Relâmpago e Rota ficam separadas, cada uma com a sua taça
+    const groups = [
+        { rota: false, name: t('home.quickCup.title'), list: hall.filter((h) => h.mode !== 'longa') },
+        { rota: true, name: t('longCup.title'), list: hall.filter((h) => h.mode === 'longa') },
+    ].filter((g) => g.list.length);
     return (
-        <ol className="hall-list">
-            {hall.map((h) => (
-                <li
-                    key={h.id}
-                    className={`hall-card${trainerFrame(h.trainer)}`}
-                    style={clubVars(clubColorHex(h.clubColor))}
-                >
-                    <div className="hall-head">
-                        <b>{t('title.hall.entry', { n: h.titleNo })}</b>
-                        <span className="muted">
-                            {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
-                        </span>
-                    </div>
-                    <div className="hall-club-row">
-                        {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
-                        <span className="hall-club">
-                            {h.club}
-                            {h.trainerTitle && (
-                                <small className={titleClass(h.trainerTitle).trim() || undefined}>
-                                    {titleName(h.trainerTitle)}
-                                </small>
-                            )}
-                        </span>
-                    </div>
-                    <div className="hall-squad">
-                        {h.squad.map((m) => (
-                            <img
-                                key={`${m.speciesId}-${m.name}`}
-                                className="pixel"
-                                src={cardSprite(m)}
-                                alt={m.name}
-                                title={m.name}
-                            />
+        <div className="hall-groups">
+            {groups.map((g) => (
+                <section key={g.name} className="hall-group">
+                    <h3 className="hall-group-h">
+                        <Trophy size={28} rota={g.rota} />
+                        {g.name}
+                        <span className="muted">{g.list.length}</span>
+                    </h3>
+                    <ol className="hall-list">
+                        {g.list.map((h) => (
+                            <li
+                                key={h.id}
+                                className={`hall-card${trainerFrame(h.trainer)}`}
+                                style={clubVars(clubColorHex(h.clubColor))}
+                            >
+                                <div className="hall-head">
+                                    <b>{t('title.hall.entry', { n: h.titleNo })}</b>
+                                    <span className="muted">
+                                        {new Date(h.date).toLocaleDateString(lang === 'pt' ? 'pt-BR' : 'en-US')}
+                                    </span>
+                                </div>
+                                <div className="hall-club-row">
+                                    {h.trainer && <TrainerSprite id={h.trainer} className="hall-trainer" />}
+                                    <span className="hall-club">
+                                        {h.club}
+                                        {h.trainerTitle && (
+                                            <small className={titleClass(h.trainerTitle).trim() || undefined}>
+                                                {titleName(h.trainerTitle)}
+                                            </small>
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="hall-squad">
+                                    {h.squad.map((m) => (
+                                        <img
+                                            key={`${m.speciesId}-${m.name}`}
+                                            className="pixel"
+                                            src={cardSprite(m)}
+                                            alt={m.name}
+                                            title={m.name}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="muted hall-scores">
+                                    {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
+                                    {h.perfect && ` · ${t('title.hall.perfect')}`}
+                                </span>
+                            </li>
                         ))}
-                    </div>
-                    <span className="muted hall-scores">
-                        {h.mode === 'longa' && <b className="hall-mode">{t('longCup.title')} · </b>}
-                        {h.scores.map((s) => `${s[0]}x${s[1]}`).join(' · ')}
-                        {h.perfect && ` · ${t('title.hall.perfect')}`}
-                    </span>
-                </li>
+                    </ol>
+                </section>
             ))}
-        </ol>
+        </div>
     );
 }

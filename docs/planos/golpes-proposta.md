@@ -1,3 +1,7 @@
+---
+description: Proposta de função para os golpes esquecidos e de efeito da Gen 1 em cada golpe.
+---
+
 # Golpes: função para os 44 esquecidos + cada golpe com a cara da Gen 1 (proposta)
 
 > Só pesquisa e proposta. Nada foi alterado no repo. Números tirados rodando o código atual (v0.8.0) com `tsx`

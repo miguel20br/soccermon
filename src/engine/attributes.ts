@@ -277,13 +277,16 @@ export function outOfPositionFactor(natural: Position, playing: Position): numbe
 export const POSITION_OVERRIDES: Record<number, Position[]> = {
     11: ['ALA'], // Metapod: a linha do Caterpie pode ficar na Ala até o Butterfree
     14: ['ALA'], // Kakuna: idem, do Weedle ao Beedrill
+    40: ['FIXO'], // Wigglytuff: o balão que estufa e fecha a defesa (Miguel, 03/11/2026)
     48: ['ALA'], // Venonat: dá pra apostar no Venomoth (Ala 80) desde o draft
     62: ['ALA'], // Poliwrath: o Poliwhirl que evolui na Ala não cai pra 53
     76: ['PIVO'], // Golem: a pedra rolando (o Graveler jogava de Pivô)
     95: ['GK'], // Onix: a muralha de pedra
     112: ['FIXO', 'PIVO'], // Rhydon: o rinoceronte de broca também tromba na linha
+    108: ['FIXO'], // Lickitung: o corpão que trava a entrada da área (Miguel, 03/11/2026)
     122: ['GK'], // Mr. Mime: a parede invisível (Barrier, Reflect)
     132: ['GK', 'FIXO', 'ALA', 'PIVO'], // Ditto: joga em qualquer posição (vira o melhor dela em campo)
+    143: ['FIXO'], // Snorlax: a muralha que dorme na frente do gol também segura a linha (Miguel, 03/11/2026)
     151: ['FIXO', 'PIVO', 'GK'], // Mew: aprende todas as MTs, joga em qualquer lugar
 };
 

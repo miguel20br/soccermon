@@ -1,3 +1,7 @@
+---
+description: Relatório da 0.8.6 e as decisões do Miguel sobre ela.
+---
+
 # Relatório da noite: 0.8.6 pronta pra subir (18/10/2026)
 
 Pedido do Miguel (17/10, antes de dormir): auditoria completa do site, o que dá pra mudar já na 0.8.6, revamp da

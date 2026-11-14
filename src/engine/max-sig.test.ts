@@ -1,0 +1,253 @@
+import { describe, expect, it } from 'vitest';
+import { AGENCY } from './agency';
+import { IDLE } from './commands';
+import { FUTSAL_5, withConfig } from './config';
+import { aiDraftTeam } from './draft';
+import { createInstance } from './instance';
+import { createMatch, maxFxType, step } from './match';
+import { Rng } from './rng';
+import { MAX_SIGNATURE } from './signature-moves';
+import type { MatchEvent, MatchState, TeamSetup } from './state';
+import { v } from './vec';
+
+/**
+ * Golpe máximo por Pokémon, fase 2 (assinaturas, motor 13): o mesmo lance de max-type.test.ts. Capitão (pivô, idx 4)
+ * da espécie pedida a 10 m do gol com o N3 armado; goleiro rival (idx 5) no gol, um zagueiro (idx 6) na linha do chute
+ * a 4 m do gol e o resto longe. O capitão chuta no tick 1.
+ */
+function team(seed: string): TeamSetup {
+    return { name: seed, ...aiDraftTeam(new Rng(seed, 'team'), 1), tactic: 'balanced', color: 0, manualSubs: true };
+}
+
+interface Opts {
+    seed?: string;
+    /** Sem o efeito do N3 (`maxType: false`, o N3 de força pura): a base pra comparar. */
+    noType?: boolean;
+    gk?: number;
+    /** Capitão rival (idx 7) dessa espécie (o Ditto copia o efeito dele). */
+    rivalCap?: number;
+    defAt?: { x: number; y: number };
+    gkY?: number;
+    /** Pra onde o capitão chuta (padrão: no gol). */
+    aim?: { x: number; y: number };
+    /** Sem o efeito na bola (motor 17: a curva leva o N3 pra longe do goleiro), pra ver o que vem depois da defesa. */
+    straight?: boolean;
+}
+
+function scene(id: number, o: Opts = {}) {
+    const A = team('ms-a');
+    const B = team('ms-b');
+    const cap = createInstance(id, new Rng('ms-cap', String(id)));
+    const home = { ...A, lineup: A.lineup.map((p, i) => (i === 4 ? cap : p)), captainUid: cap.uid };
+    const awayLine = B.lineup.map((p, i) =>
+        i === 0 && o.gk
+            ? createInstance(o.gk, new Rng('ms-gk'))
+            : i === 2 && o.rivalCap
+              ? createInstance(o.rivalCap, new Rng('ms-rc'))
+              : p,
+    );
+    const away = { ...B, lineup: awayLine, captainUid: awayLine[o.rivalCap ? 2 : 0].uid };
+    const cfg = o.noType ? withConfig({ maxType: false }) : FUTSAL_5;
+    const s = createMatch(cfg, home, away, o.seed ?? 'ms');
+    s.phase = 'play';
+    const far = [v(8, 3), v(8, 17), v(4, 10), v(12, 10), v(15, 5), v(15, 15), v(20, 3)];
+    s.players.forEach((p, i) => {
+        p.pos = far[i % far.length];
+        p.vel = v(0, 0);
+    });
+    s.players[4].pos = v(30, 10);
+    s.players[5].pos = v(39.3, o.gkY ?? 10);
+    s.players[6].pos = o.defAt ? v(o.defAt.x, o.defAt.y) : v(36, 10.15);
+    s.ball.owner = 4;
+    s.ball.pos = v(30.3, 10);
+    s.teams[0].agency.max = { idx: 4, until: 100, level: 3, q: 2 };
+    const cmds = s.players.map(() => IDLE);
+    cmds[4] = { type: 'shoot', target: o.aim ? v(o.aim.x, o.aim.y) : v(40, 10.6), power: 1 };
+    const tune = AGENCY as { maxCurve: number };
+    const curve = tune.maxCurve;
+    if (o.straight) tune.maxCurve = 0;
+    try {
+        step(s, cmds);
+    } finally {
+        tune.maxCurve = curve;
+    }
+    return s;
+}
+
+const idle = (s: MatchState, n: number) => {
+    for (let i = 0; i < n && !s.finished; i++)
+        step(
+            s,
+            s.players.map(() => IDLE),
+        );
+};
+/** Anda o lance até `cond` valer (a bola chegar em quem o efeito pega), no máximo `n` ticks. */
+const till = (s: MatchState, cond: (s: MatchState) => boolean, n = 14) => {
+    for (let i = 0; i < n && !cond(s) && !s.finished; i++) idle(s, 1);
+    return s;
+};
+const of = <T extends MatchEvent['type']>(s: MatchState, type: T) =>
+    s.events.filter((e): e is Extract<MatchEvent, { type: T }> => e.type === type);
+const fxOf = (s: MatchState) => of(s, 'maxFx').find((e) => e.step === 'shot')?.fx;
+
+/** Roda o lance em várias seeds até `pick` achar o que procura (bloqueio, defesa…). */
+function until(id: number, pick: (s: MatchState) => boolean, o: Opts = {}, n = 300) {
+    for (let k = 0; k < n; k++) {
+        const s = scene(id, { ...o, seed: `ms-${k}` });
+        idle(s, 30);
+        if (pick(s)) return s;
+    }
+    return null;
+}
+const n3 = AGENCY.maxLevelShot[3].rivalReach;
+const saved = (s: MatchState) => of(s, 'save').some((e) => e.by === 5);
+const noDef = { defAt: { x: 10, y: 2 } };
+
+describe('golpe máximo por Pokémon (fase 2, assinaturas)', () => {
+    it('12 assinaturas, ligadas no FUTSAL_5; os outros capitães seguem com o efeito do tipo', () => {
+        expect(Object.keys(MAX_SIGNATURE)).toHaveLength(12);
+        for (const [id, sig] of Object.entries(MAX_SIGNATURE)) {
+            expect(AGENCY.maxSig[sig]).toBeDefined();
+            if (sig === 'metronome' || sig === 'transform') continue;
+            expect(fxOf(scene(Number(id)))).toBe(sig);
+        }
+        // Venusaur e Machamp não têm assinatura: o efeito é o do tipo
+        for (const id of [3, 68]) {
+            const s = scene(id);
+            const inst = createInstance(id, new Rng('ms-cap', String(id)));
+            expect(fxOf(s)).toBe(maxFxType(inst.moves, id, s.players[4].sp.types));
+        }
+        expect(FUTSAL_5.maxType).toBe(true);
+    });
+
+    it('Dragonite (Hyper Beam): fura todos os bloqueios e o goleiro alcança x0,85', () => {
+        for (let k = 0; k < 20; k++) {
+            const s = scene(149, { seed: `ms-hb-${k}` });
+            idle(s, 30);
+            expect(of(s, 'block').filter((e) => e.by === 6)).toHaveLength(0);
+        }
+        expect(scene(149).ball.shot?.gkReach).toBeCloseTo(n3 * 0.85, 6);
+    });
+
+    it('Snorlax (Body Slam): se joga no chute (o rival perto cai e fica paralisado); o goleiro que defende também', () => {
+        const slam = scene(143, { defAt: { x: 31, y: 12 } });
+        expect(slam.players[6].stun).toBeGreaterThan(0);
+        expect(slam.players[6].status?.kind).toBe('par');
+        expect(of(slam, 'maxFx').some((e) => e.step === 'hit' && e.target === 6)).toBe(true);
+        // sem o efeito (N3 de força pura) ninguém perto cai no chute
+        expect(scene(143, { defAt: { x: 31, y: 12 }, noType: true }).players[6].stun).toBe(0);
+        const s = until(143, saved, noDef);
+        expect(s).not.toBeNull();
+        const gk = s!.players[5];
+        expect(gk.status?.kind).toBe('par');
+        expect(of(s!, 'maxFx').some((e) => e.step === 'hit' && e.target === 5)).toBe(true);
+    });
+
+    it('Arcanine (Fire Blast): a estrela derruba e queima o zagueiro perto do gol', () => {
+        const s = scene(59);
+        // a estrela acende quando a bola chega na frente do gol, não no chute (Miguel, 01/11)
+        expect(s.players[6].stun).toBe(0);
+        till(s, (x) => x.players[6].stun > 0);
+        expect(s.players[6].stun).toBeGreaterThan(0);
+        expect(s.players[6].status?.kind).toBe('brn');
+    });
+
+    it('Articuno (Blizzard): a área inteira congela, até quem está fora da linha do chute', () => {
+        const s = scene(144, { defAt: { x: 36, y: 14 } });
+        expect(s.players[6].status).toBeNull();
+        till(s, (x) => !!x.players[6].status);
+        expect(s.players[6].status?.kind).toBe('frz');
+        expect(s.players[5].status).toBeNull();
+        expect(scene(144, { defAt: { x: 36, y: 14 } }).ball.shot?.gkReach).toBeCloseTo(n3 * 0.9, 6);
+    });
+
+    it('Blastoise (Hydro Pump): a onda empurra e, se o goleiro espalma, ele emenda de primeira', () => {
+        const wave = till(scene(9), (x) => of(x, 'knockback').some((e) => e.target === 6));
+        expect(Math.abs(wave.players[6].pos.y - 10.15)).toBeGreaterThanOrEqual(AGENCY.maxType.push - 0.01);
+        const s = until(9, (x) => saved(x) && !of(x, 'save').some((e) => e.caught), { ...noDef, straight: true });
+        expect(s).not.toBeNull();
+        idle(s!, 40);
+        expect(of(s!, 'shot').filter((e) => e.by === 4).length).toBeGreaterThanOrEqual(2);
+        // a sobra pra fora sumiu no motor 17: o N3 vai sempre no alvo, mesmo mirando fora
+        expect(scene(9, { ...noDef, aim: { x: 40, y: 15 } }).ball.shot?.onTarget).toBe(true);
+    });
+
+    it('Charizard (Flamethrower): voa 2 m rumo ao gol, chuta por cima e queima o goleiro que defende', () => {
+        const s = scene(6);
+        expect(s.players[4].pos.x).toBeGreaterThan(31.5);
+        expect(s.ball.vz).toBeGreaterThan(0);
+        const off = scene(6, { noType: true });
+        expect(off.players[4].pos.x).toBeLessThan(30.5);
+        const burn = until(6, saved, noDef);
+        expect(burn?.players[5].status?.kind).toBe('brn');
+    });
+
+    it('Pikachu (Thunderbolt): o raio salta do goleiro pros 2 rivais mais perto e paralisa', () => {
+        const s = scene(25, { defAt: { x: 37, y: 13 } });
+        // o raio sai quando a bola chega no goleiro, não no chute
+        expect(of(s, 'maxFx').filter((e) => e.step === 'hit')).toEqual([]);
+        till(s, (x) => !!x.players[6].status);
+        expect(s.players[6].status?.kind).toBe('par');
+        const hits = of(s, 'maxFx').filter((e) => e.step === 'hit');
+        expect(hits[0].target).toBe(5);
+        expect(hits.length).toBeGreaterThanOrEqual(2);
+        expect(hits.length).toBeLessThanOrEqual(1 + AGENCY.maxSigFx.chainN);
+    });
+
+    it('Gengar (Dream Eater): atravessa a defesa e o goleiro dorme (alcance x0,75), até goleiro Normal', () => {
+        for (let k = 0; k < 20; k++) {
+            const s = scene(94, { seed: `ms-de-${k}` });
+            idle(s, 30);
+            expect(of(s, 'block').filter((e) => e.by === 6)).toHaveLength(0);
+        }
+        expect(scene(94, { gk: 143 }).ball.shot?.gkReach).toBeCloseTo(n3 * 0.75, 6);
+    });
+
+    it('Mewtwo (Psychic): curva mais que o Psíquico do tipo, pro canto longe do goleiro', () => {
+        const sig = scene(150, { gkY: 9.3 }).ball.shot?.curve ?? 0;
+        // Alakazam: Psíquico puro, sem assinatura (a curva do efeito do tipo)
+        const type = scene(65, { gkY: 9.3 }).ball.shot?.curve ?? 0;
+        expect(sig).toBeGreaterThan(0);
+        expect(sig).toBeGreaterThanOrEqual(type);
+        expect(scene(150, { gkY: 10.7 }).ball.shot?.curve).toBeLessThan(0);
+    });
+
+    it('Gyarados (Tsunami): empurra todos os rivais, até os longe do chute, e fica em fúria', () => {
+        const s = scene(130);
+        // quem está atrás do chute leva a onda na saída; o zagueiro na frente do gol e o goleiro, quando a bola chega
+        expect(of(s, 'knockback').map((e) => e.target)).not.toEqual(expect.arrayContaining([5]));
+        expect(of(s, 'knockback').map((e) => e.target)).not.toEqual(expect.arrayContaining([6]));
+        till(s, (x) => of(x, 'knockback').length >= 5);
+        expect(of(s, 'knockback').length).toBe(5);
+        expect(s.players[4].buffs.some((b) => b.attr === 'shooting' && b.factor > 1)).toBe(true);
+    });
+
+    it('Mew (Metronome): sorteia um efeito de tipo com o rng da partida (mesma seed, mesmo efeito)', () => {
+        const got = new Set<string>();
+        for (let k = 0; k < 30; k++) {
+            const a = scene(151, { seed: `ms-mew-${k}` });
+            const b = scene(151, { seed: `ms-mew-${k}` });
+            expect(fxOf(a)).toBe(fxOf(b));
+            expect(of(a, 'maxFx')[0]).toMatchObject({ fx: 'metronome', step: 'hit' });
+            got.add(fxOf(a)!);
+        }
+        expect(got.size).toBeGreaterThanOrEqual(6);
+    });
+
+    it('Ditto (Transform): copia o efeito do capitão rival; Ditto contra Ditto vira Normal', () => {
+        const s = scene(132, { rivalCap: 149 });
+        expect(of(s, 'maxFx')[0]).toMatchObject({ fx: 'transform', step: 'hit' });
+        expect(fxOf(s)).toBe('hyperbeam');
+        expect(fxOf(scene(132, { rivalCap: 132 }))).toBe('Normal');
+    });
+
+    it('o lance com assinatura é determinístico (mesma seed, mesmos eventos)', () => {
+        for (const id of [151, 9, 25, 130, 6]) {
+            const a = scene(id, { seed: 'ms-det' });
+            const b = scene(id, { seed: 'ms-det' });
+            idle(a, 60);
+            idle(b, 60);
+            expect(JSON.stringify(a.events)).toBe(JSON.stringify(b.events));
+        }
+    });
+});

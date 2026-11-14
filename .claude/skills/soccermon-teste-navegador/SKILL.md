@@ -54,6 +54,10 @@ Esses atalhos valem no dev, nas **prévias da Vercel** e no CI (modo fumaça, `_
 
 ## Roteiro de fumaça antes de lançar
 
+**Modo novo** (ou modo religado) só vai ao ar depois de jogado de ponta a ponta na tela, clicando como o jogador, até
+o fim (título ou eliminação). O robô do store não basta: a Rota Índigo passou nele e quebrou na 1ª partida em produção
+(21/10/2026, 9 bugs).
+
 1. Home → pular boas-vindas → "Nova copa" → formação → draft inteiro (capitão, vagas, banco).
 2. Escalação → partida em 8x → **no intervalo, uma troca** (quem entrou tem que estar em quadra no 2º tempo, a faixa
    "Substituição na próxima saída de bola" some, o botão volta) → resultado.

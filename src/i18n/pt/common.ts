@@ -5,10 +5,21 @@
  */
 export const common = {
     ui: {
+        diskFull: 'Sem espaço no aparelho: seu progresso não está sendo salvo. Libere espaço e volte.',
+        saveBlocked:
+            'O navegador está bloqueando o save: dá pra jogar, mas o progresso some ao fechar a aba. Libere os cookies do soccermon.com.',
+        skip: 'Pular',
+        tapToContinue: 'Toque pra continuar',
+        howItWorks: 'Como funciona',
+        seeAll: 'Ver tudo',
+        prev: 'Anterior',
+        next: 'Próximo',
         close: 'Fechar',
         cancel: 'Cancelar',
         back: 'Voltar',
         backHome: 'Voltar ao início',
+        cupMoney: 'Pokédólares da copa: {n}',
+        cupRerolls: 'Sorteios: {n}',
         continue: 'Continuar',
         yes: 'Sim',
         no: 'Não',
@@ -81,12 +92,12 @@ export const common = {
     } as Record<string, string>,
     /** O que o status faz (painel do Pokémon na partida). */
     statusEffect: {
-        1: 'Paralisado: mais lento',
+        1: 'Paralisado: velocidade −40%, drible −15%',
         2: 'Dormindo: não joga',
         3: 'Envenenado: perde fôlego',
-        4: 'Queimado: chuta e tromba mais fraco',
+        4: 'Queimado: chute e força −20%',
         5: 'Congelado: não joga',
-        6: 'Confuso: erra passe e chute',
+        6: 'Confuso: passe −30%, chute −15%',
     } as Record<number, string>,
     tier: {
         common: 'Comum',
@@ -140,29 +151,41 @@ export const common = {
     formation: {
         '1-2-1': {
             name: 'Losango (1-2-1)',
-            description: 'Equilíbrio clássico: um fixo, dois alas abertos e um pivô de referência.',
+            description: 'Triângulos curtos pelo meio.',
+            up: '+Toque curto +Por dentro',
+            down: '−Profundidade',
         },
         '2-2': {
             name: 'Quadrado (2-2)',
-            description: 'Dois fixos protegendo atrás, ala e pivô na frente. Sólido e direto.',
+            description: 'Joga aberto, em duplas, com o fixo passando por fora.',
+            up: '+Pelos lados +Ultrapassagem',
+            down: '−Passe −Chute',
         },
         '3-1': {
             name: 'Linha de 3 (3-1)',
-            description: 'Linha recuada de três e um pivô sozinho lá na frente.',
+            description: 'Toca atrás até achar o pivô, que devolve pra quem chega.',
+            up: '+Bola no pivô +Parede',
+            down: '−Passe pra frente',
         },
         '4-0': {
             name: 'Rodízio (4-0)',
-            description: 'Sem pivô: quatro trocando de lugar. Muita posse e passe.',
+            description: 'Os quatro giram de lugar, passam e correm.',
+            up: '+Giro +Passe e corre',
+            down: '−Sem pivô',
         },
         '1-1-2': {
             name: 'Dois pivôs (1-1-2)',
-            description: 'Ataque pesado: dois pivôs na área rival e um fixo atrás.',
+            description: 'Bola rápida pros dois da frente e chute cedo.',
+            up: '+Jogo direto +Chute',
+            down: '−Desarme',
         },
         ferrolho: {
             name: 'Ferrolho (3 fixos)',
-            description: 'Três fixos na frente do goleiro e um pivô pro contra-ataque.',
+            description: 'Fecha atrás e sai no contra-ataque.',
+            up: '+Bloco baixo +Contra-ataque',
+            down: '−Pouca posse',
         },
-    } as Record<string, { name: string; description: string }>,
+    } as Record<string, { name: string; description: string; up: string; down: string }>,
     /** Sinergias de história (engine/links.ts). */
     link: {
         genese: { name: 'Gênese', desc: 'Mew e Mewtwo, o original e o clone.', combo: 'Psíquico Duplo' },
@@ -210,13 +233,13 @@ export const common = {
     } as Record<string, { name: string; desc: string; combo: string }>,
     /** Descrição dos itens (o nome é o oficial em inglês, igual nas duas línguas). */
     itemDesc: {
-        leftovers: 'Recupera fôlego aos poucos durante o jogo.',
+        leftovers: 'Recupera 0,15% de fôlego por segundo.',
         choiceband: 'Chute +15%, mas só o primeiro golpe pode ser usado.',
         quickclaw: '+15% nas divididas (desarmes e proteção de bola).',
         focussash: 'Goleiro: segura o 1º chute no gol. Linha: ignora o 1º status.',
         scopelens: '20% de chance de chute crítico (mais forte e preciso).',
-        lumberry: 'Cura o primeiro status sofrido na partida.',
-        kingsrock: 'Golpes que acertam podem fazer o rival hesitar.',
+        lumberry: 'Bloqueia o 1º status vindo do rival na partida.',
+        kingsrock: 'Golpes de dano que acertam têm 30% de chance de atordoar o rival por 0,7 s.',
     } as Record<string, string>,
     /** Itens de tipo; {type} é o nome do tipo como o motor guarda (em inglês). */
     typeItemDesc: 'Golpes do tipo {type} ficam 20% mais fortes.',
@@ -297,7 +320,7 @@ export const common = {
         debuff: 'enfraquece rival',
         status: 'status no rival',
         heal: 'recupera fôlego',
-        flavor: '...nada?',
+        flavor: 'sem efeito',
         special: 'efeito especial',
     } as Record<string, string>,
     /** Linhas de bônus da carta (engine/modifiers.ts); {pct} já vem com sinal ("+5%"). */
@@ -310,10 +333,13 @@ export const common = {
         captain: 'Capitão: +3%',
         captainSame: 'Mesmo tipo do capitão: {pct}',
         captainAura: 'Aura do capitão: {pct}',
+        monoSynergy: 'Monotipo: {pct}',
         typeSynergy: 'Sinergia de tipo: {pct}',
         storySynergy: 'Sinergia de história: {pct}',
         offPosition: 'Fora da posição: {pct}',
+        crowd: 'Torcida a favor: {pct}',
         moveBoost: '{name}: +{n}%',
         choiceLocked: 'Choice Band: travado',
+        taughtMove: 'Golpe treinado (MT): +{n}%',
     },
 };

@@ -1,0 +1,33 @@
+{
+ "faixa": "mercado-funk",
+ "titulo": "Mercado funk",
+ "tela": "Mercado",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 55.384626,
+ "secoes": [
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 0,
+   "fim": 55.384626,
+   "amostras": [
+    0,
+    2442462
+   ],
+   "bpm": 104,
+   "compassos": 24
+  }
+ ],
+ "swing": 0.14,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    25.385,
+    25.837,
+    26.25
+   ]
+  ]
+ }
+}

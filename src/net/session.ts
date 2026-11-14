@@ -13,6 +13,7 @@ import {
     applyPreview,
     bestFor,
     clockAdjust,
+    type DuelBestOf,
     type DuelDuration,
     type DuelMode,
     duelPace,
@@ -144,7 +145,8 @@ interface Kept {
     shared: Shared;
     /** Topo da corrente de cada partida da sala (nº da partida → segredo). */
     tops: Record<number, string>;
-    recorded?: number[];
+    /** O que já foi pro save: o nº da partida (Pokédex) e `duelo-<nº>` (histórico; a série grava no fim). */
+    recorded?: (number | string)[];
     /** Escolhas lacradas de "cada um com seus pacotes" (partida, cartas e sais). */
     packs?: { game: number; picks: PokemonInstance[]; salts: string[] };
     /** Escolha lacrada da fase (time pronto ou prévia); sem ela = desfiz o pronto (ou ainda não dei). */
@@ -288,13 +290,24 @@ class DuelSession {
         specialLimit: SpecialLimit = DEFAULT_SPECIAL_LIMIT,
         duration: DuelDuration = 'normal',
         agency = false,
+        bestOf: DuelBestOf = 1,
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
             crypto.getRandomValues(b);
             return b[0] % n;
         });
-        const shared = newShared(room, peer, mode, speed, randomSecret().slice(0, 16), specialLimit, duration, agency);
+        const shared = newShared(
+            room,
+            peer,
+            mode,
+            speed,
+            randomSecret().slice(0, 16),
+            specialLimit,
+            duration,
+            agency,
+            bestOf,
+        );
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);
         this.open(room, peer, local, 'host', shared, false);
@@ -892,6 +905,11 @@ class DuelSession {
             // apito final na minha tela: grava o placar da partida que eu simulei
             if (this.final && cur.phase === 'match' && !cur.result && this.due(`ended-${cur.game}`))
                 this.dispatch({ k: 'ended' });
+        } else if (s.result) {
+            // o host já gravou o fim: a partida dele acabou e ele não manda mais o minuto. A minha tela, parada à frente
+            // esperando o relógio dele (velocidade 0), não espera mais ninguém: senão nunca chegava no apito (04/11/2026,
+            // 1 em 5 Duelos no "Lances", o host terminava entre duas batidas)
+            this.setRate(1);
         }
         // batida com o número da última mensagem (quem perdeu alguma percebe): de quem aplica, o relógio; do outro, o
         // minuto da tela dele (o host que voltou pula pra ele). O host ainda voltando não manda o minuto dele
@@ -1083,10 +1101,10 @@ class DuelSession {
         this.dispatch({ k: 'rematch', commit: chain[0] });
     }
 
-    /** Já gravei o histórico desta partida? (marca na hora). */
-    markRecorded(game: number): boolean {
-        if (!this.kept || this.kept.recorded?.includes(game)) return false;
-        this.kept.recorded = [...(this.kept.recorded ?? []), game];
+    /** Já gravei isto desta partida? (marca na hora). */
+    markRecorded(key: number | string): boolean {
+        if (!this.kept || this.kept.recorded?.includes(key)) return false;
+        this.kept.recorded = [...(this.kept.recorded ?? []), key];
         const { room, me } = this.view;
         if (room) writeKept(room, me, this.kept);
         return true;

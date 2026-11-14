@@ -13,7 +13,8 @@
 }
 .kb-count {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 16px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
     color: var(--yellow);
 }
 .kb-grid {

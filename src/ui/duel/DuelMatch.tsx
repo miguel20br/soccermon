@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FUTSAL_5 } from '../../engine/config';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerOrder,
@@ -11,14 +12,15 @@ import {
     isTacticOrder,
     type LineupOrder,
     type MatchEvent,
+    type MaxGrade,
     SNAP_STRIDE,
     type Tactic,
     type TacticChange,
 } from '../../engine/state';
-import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { skinOf } from '../../game/skin';
 import { formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import {
@@ -35,8 +37,10 @@ import {
     ordersOf,
     other,
     type Role,
+    type Shared,
     SIDE,
     SPEED_ASK_MS,
+    seriesOf,
     trainerNames,
 } from '../../net/duel-state';
 import { baseSeedOf, holdTick, openedSegments } from '../../net/seal';
@@ -50,31 +54,44 @@ import type { TrainerId } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Commentator, type CommentLine } from '../commentary';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
+import { FinalCard } from '../components/FinalCard';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
     type CoachTab,
     CoachTabs,
-    FinalBanner,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
-    ResultButton,
     Scoreboard,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
-    useAutoResult,
     useClockParts,
+    useCoachFold,
     useCoachTab,
+    useFinalHold,
 } from '../components/MatchHud';
+import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
-import { agencyView, MaxBars, PenaltyOrderPanel, SidelineControls, SidelineOverlay } from '../components/Sideline';
+import { ShowdownOverlay } from '../components/ShowdownOverlay';
+import {
+    agencyView,
+    capFxType,
+    capIsGk,
+    capTypeAt,
+    MaxBars,
+    MaxCueButton,
+    maxCueSteady,
+    PenaltyOrderPanel,
+    SidelineControls,
+    SidelineOverlay,
+} from '../components/Sideline';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
 import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
@@ -84,6 +101,13 @@ import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { EmoteBar, EmoteBubbles } from './Emotes';
 import { ReadyBar } from './ReadyBar';
+
+/** Melhor de 3: "Jogo 2 · 1 x 0" (o seu lado primeiro); null na sala de 1 jogo. */
+export function seriesLabel(s: Shared, role: Role, t: ReturnType<typeof useT>['t']): string | null {
+    const v = seriesOf(s);
+    if (v.bestOf === 1) return null;
+    return t('duel.series.tag', { n: v.game, a: v.wins[role], b: v.wins[other(role)] });
+}
 
 /** Segundos que faltam até `at` (relógio da sala), atualizando sozinho. */
 export function useCountdown(at: number | undefined): number {
@@ -119,6 +143,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const away = s.teams.guest!;
     const setups: [typeof home, typeof away] = [home, away];
     const myTeam = setups[side];
+    const stage = seriesLabel(s, role, t) ?? t('duel.title');
 
     const [match, setMatch] = useState<MatchResult | null>(null);
     /** Versão do log (`logVersion`) que a partida na tela já tem. */
@@ -140,6 +165,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const wide = useMedia(WIDE);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
     const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
+    const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
     /** Celular: os emotes abrem por cima da barra de baixo. */
     const [emotesOpen, setEmotesOpen] = useState(false);
     const [fulltime, setFulltime] = useState(false);
@@ -243,6 +269,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                       startPaused: true,
                       mine: side,
                       duel: true,
+                      setups,
                   }
                 : null,
         [match?.seed],
@@ -282,12 +309,14 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
         const onReady = () => setSceneReady(true);
         EventBus.on('current-scene-ready', onReady);
         EventBus.on('match:event', onEvent);
+        EventBus.on('match:replace', commentator.replace);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
         EventBus.on('match:halftime', onHalftime);
         return () => {
             EventBus.off('match:halftime', onHalftime);
             EventBus.off('match:event', onEvent);
+            EventBus.off('match:replace', commentator.replace);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
             EventBus.off('current-scene-ready', onReady);
@@ -348,7 +377,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
-    const auto = useAutoResult(ended, onSeeResult);
+    const auto = useFinalHold(ended);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
     useEffect(() => {
         if (ended)
@@ -417,7 +446,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     const myIdx = match.roster.filter((r) => r.team === side).map((r) => r.idx);
     // posição agora de quem está em cada vaga (a prancheta pode ter mudado)
     const slots = myIdx.map((idx) => roleAt(match, setups, idx, tickRef.current));
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = (mineLog.filter((o) => isLineupOrder(o)) as LineupOrder[]).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === side && e.tick >= lastBoard.tick);
@@ -467,7 +496,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     };
     // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
     const openBoard = (uid?: string) => {
-        setTab('board');
+        showTab('board');
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
@@ -512,19 +541,28 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
     );
     // beira da quadra (experimento): só com a sala do host ligada; as ordens passam pelo carimbo do host
     const agency = !!s.agency;
-    const sideline = agencyView(match.events, s.log, side, clock.tick);
+    const sideline = {
+        ...agencyView(match.events, s.log, side, clock.tick, agency && maxCueSteady(match, setups, side, clock.tick)),
+        fxType: capFxType(match, setups, side, clock.tick),
+        capType: capTypeAt(match, setups, side, clock.tick),
+        bicuda: capIsGk(match, setups, side, clock.tick),
+    };
+    // golpe máximo: o carimbo do host põe a ordem um pouco à frente (rede); o motor deixa armada até o próximo chute do
+    // capitão da zona (motor 19) e o botão mostra "armado" até sair (`maxArmedAt`)
+    const sendMax = (q: MaxGrade) => order({ kind: 'max', q });
+    const capPlan = agency ? captainPlan(match, setups, side, clock.tick) : null;
     const tactics = agency ? (
         <>
             {tacticControls}
             <SidelineControls
                 view={sideline}
                 canAct={canChange}
-                onShout={(shout) => order({ kind: 'shout', shout })}
                 onTimeout={halftime ? undefined : () => order({ kind: 'timeout' })}
                 onFlyGk={(on) => order({ kind: 'flyGk', on })}
-                onMax={() => order({ kind: 'max' })}
+                onMax={sendMax}
                 onPens={() => setPensOpen(true)}
             />
+            <MaxLegend plan={capPlan} level={sideline.max.level} />
         </>
     ) : (
         tacticControls
@@ -536,7 +574,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                 <VersusIntro
                     home={myTeam}
                     away={setups[side === 0 ? 1 : 0]}
-                    stage={t('duel.title')}
+                    stage={stage}
                     ready={sceneReady}
                     onDone={() => {}}
                     awayTrainer={rivalPeer?.trainer as TrainerId | undefined}
@@ -561,7 +599,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         score={clock.score}
                         clock={clockParts}
                         pressure={pressureNow}
-                        stage={t('duel.title')}
+                        stage={stage}
                         coaches={[badge(s.peers.host), badge(s.peers.guest)]}
                     >
                         <EmoteBubbles
@@ -572,7 +610,13 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
+                    {agency && (
+                        <MaxBars
+                            events={match.events}
+                            tick={clock.tick}
+                            types={[capTypeAt(match, setups, 0, clock.tick), capTypeAt(match, setups, 1, clock.tick)]}
+                        />
+                    )}
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
@@ -598,11 +642,19 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                 names={teamNames}
                             />
                         )}
+                        {agency && <MaxCueButton view={sideline} canAct={canChange} onMax={sendMax} />}
+                        {agency && (
+                            <MaxLevelCue
+                                events={match.events}
+                                tick={clock.tick}
+                                side={side}
+                                plan={capPlan}
+                                color={hex(colors[side])}
+                            />
+                        )}
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
-                        {ended && !auto.held && (
-                            <FinalBanner score={clock.score} shootout={shootout} side={side} names={teamNames} />
-                        )}
+                        <ShowdownOverlay />
                         <PlayerInspect
                             match={match}
                             setups={setups}
@@ -685,6 +737,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                                         name: nameOf(uid),
                                         sprite: inst ? cardSprite(inst) : '',
                                         gk: slots[i] === 'GK',
+                                        shot: inst ? cardAttributes(inst).field.shooting : undefined,
                                     };
                                 })}
                                 onKeep={() => setPensOpen(false)}
@@ -701,51 +754,58 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
-                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
-                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
-                        {tab === 'tactic' && tactics}
-                        {tab === 'board' && (
-                            <Prancheta
-                                match={match}
-                                setups={setups}
-                                side={side}
-                                tick={clock.tick}
-                                names={teamNames}
-                                selectedUid={subOut}
-                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
-                                onSub={
-                                    canSub
-                                        ? (outUid, inUid) => {
-                                              setSubOut(null);
-                                              order({ kind: 'sub', outUid, inUid });
-                                          }
-                                        : undefined
-                                }
-                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
-                                edit={{
-                                    enabled: canChange,
-                                    pending: pendingBoard,
-                                    over,
-                                    onConfirm: ({ formation, order: o }) =>
-                                        canChange && order({ kind: 'lineup', formation, order: o }),
-                                }}
-                            />
-                        )}
-                        {tab === 'team' && (
-                            <TeamPanel
-                                match={match}
-                                setups={setups}
-                                tick={clock.tick}
-                                teamNames={teamNames}
-                                interactive={sceneReady && !ended}
-                                side={side}
-                            />
-                        )}
-                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                <div
+                    className={`panel bc-coach${open ? '' : ' closed'}`}
+                    ref={coachRef}
+                    onPointerDownCapture={auto.hold}
+                >
+                    <CoachTabs tabs={tabs} active={open ? tab : null} onPick={pickTab} />
+                    <div className="bc-fold" inert={!open}>
+                        <div>
+                            <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                                {tab === 'tactic' && tactics}
+                                {tab === 'board' && (
+                                    <Prancheta
+                                        match={match}
+                                        setups={setups}
+                                        side={side}
+                                        tick={clock.tick}
+                                        names={teamNames}
+                                        selectedUid={subOut}
+                                        onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                                        onSub={
+                                            canSub
+                                                ? (outUid, inUid) => {
+                                                      setSubOut(null);
+                                                      order({ kind: 'sub', outUid, inUid });
+                                                  }
+                                                : undefined
+                                        }
+                                        subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
+                                        edit={{
+                                            enabled: canChange,
+                                            pending: pendingBoard,
+                                            over,
+                                            onConfirm: ({ formation, order: o }) =>
+                                                canChange && order({ kind: 'lineup', formation, order: o }),
+                                        }}
+                                    />
+                                )}
+                                {tab === 'team' && (
+                                    <TeamPanel
+                                        match={match}
+                                        setups={setups}
+                                        tick={clock.tick}
+                                        teamNames={teamNames}
+                                        interactive={sceneReady && !ended}
+                                        side={side}
+                                    />
+                                )}
+                                {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
+                            </div>
+                        </div>
                     </div>
                     {wide && tab !== 'feed' && lines.length > 0 && (
                         <div className="bc-recent">
@@ -788,7 +848,16 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             </div>
                         </fieldset>
                     ) : (
-                        <ResultButton label={t('duel.match.seeResult')} onGo={onSeeResult} auto={auto} />
+                        // a mesma cartela do fim de partida da Copa (placar, craque do seu lado); só mostra
+                        <FinalCard
+                            score={clock.score}
+                            shootout={shootout}
+                            names={teamNames}
+                            colors={colors}
+                            liga={false}
+                            duel={{ side, match, label: t('duel.match.seeResult') }}
+                            onGo={onSeeResult}
+                        />
                     )}
                     {wide ? (
                         <EmoteBar captain={captains[side]} />
@@ -805,6 +874,12 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                         </button>
                     )}
                 </div>
+                {/* desktop: velocidade logo embaixo da narração e a tática por último (em 1280x720 a barra caía da tela) */}
+                {wide && (
+                    <div className="bc-deskbar" onPointerDownCapture={auto.hold}>
+                        {tactics}
+                    </div>
+                )}
             </div>
         </>
     );
@@ -853,7 +928,7 @@ function SpeedAsk({ rivalName }: { rivalName: string }) {
                 <span className="row sa-actions">
                     <button
                         type="button"
-                        className="btn small primary"
+                        className="btn small confirm"
                         data-testid="speed-yes"
                         onClick={() => duel.dispatch({ k: 'speedAnswer', yes: true })}
                     >

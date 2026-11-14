@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-escalacao",
+ "titulo": "Ponte pra escalacao: a prancheta (cinco peças magnéticas)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.496009,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.068957,
+   "amostras": [
+    0,
+    91241
+   ],
+   "bpm": 116,
+   "compassos": 1
+  }
+ ]
+}

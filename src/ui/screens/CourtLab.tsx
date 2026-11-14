@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { type CSSProperties, useEffect, useState } from 'react';
 import { CLUBS } from '../../engine/cup';
 import type { LeaderId } from '../../engine/rival-coach';
-import { drawCourt, GAME_H, GAME_W } from '../../game/court';
+import { courtGraphics, GAME_H, GAME_W } from '../../game/court';
 import { COURTS } from '../../game/court-themes';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -23,7 +23,7 @@ function useCourtImages(): Partial<Record<LeaderId, string>> {
             create() {
                 const out: Partial<Record<LeaderId, string>> = {};
                 for (const club of CLUBS) {
-                    const g = drawCourt(this, COURTS[club.leader]);
+                    const g = courtGraphics(this, COURTS[club.leader]);
                     const canvas = document.createElement('canvas');
                     canvas.width = GAME_W;
                     canvas.height = GAME_H;

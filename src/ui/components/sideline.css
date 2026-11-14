@@ -1,18 +1,8 @@
-/* Beira da quadra (agência do técnico, experimento): no kit da transmissão (broadcast-kit.css). */
+/* Beira da quadra (agência do técnico): no kit da transmissão (broadcast-kit.css). */
 .sl {
     display: grid;
     gap: 8px;
     margin-top: 4px;
-}
-.sl-beta {
-    margin-left: 6px;
-    padding: 0 6px;
-    border-radius: 4px;
-    background: var(--yellow);
-    color: var(--bc-ink);
-    font-size: 9px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
 }
 .sl {
     min-width: 0;
@@ -21,36 +11,8 @@
     flex-wrap: wrap;
     row-gap: 2px;
 }
-.sl-count {
-    margin-left: auto;
-    text-align: right;
-}
-.sl-shouts {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 6px;
-}
-.bc .sl-shout {
-    flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    min-height: 54px;
-    padding: 4px;
-    text-align: center;
-}
-.bc .sl-shout b {
-    font-size: 11px;
-    line-height: 1.15;
-}
-.bc .sl-shout.on,
-.bc .sl-shout.on:disabled {
-    background: var(--yellow);
-    color: var(--bc-ink);
-    opacity: 1;
-    filter: none;
-}
-.sl-shout:disabled:not(.on),
-.sl-btn:disabled {
+.sl-btn:disabled,
+.sl-btn[aria-disabled="true"] {
     opacity: 0.45;
     cursor: not-allowed;
 }
@@ -104,63 +66,238 @@
     outline: 3px solid var(--yellow);
     outline-offset: -1px;
 }
-/* golpe máximo: a barra enche o botão por baixo; cheia, ele pulsa em amarelo */
-.sl-fill {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    height: 5px;
-    width: calc(var(--fill, 0) * 100%);
-    background: var(--yellow);
-    transition: width 0.3s ease;
-}
 .sl-max.ready {
-    background: var(--yellow);
-    color: var(--bc-ink);
-    animation: sl-pulse 0.9s ease-in-out infinite alternate;
+    background: var(--lvc, var(--yellow));
+    color: var(--lvink, var(--bc-ink));
 }
 .sl-max.ready small {
-    color: var(--bc-ink);
+    color: var(--lvink, var(--bc-ink));
+}
+.sl-max.full {
+    outline: 2px dashed var(--yellow);
+    outline-offset: -1px;
 }
 .sl-max.live {
     outline: 3px solid #fff;
 }
-@keyframes sl-pulse {
-    to {
-        box-shadow:
-            0 3px 0 var(--bc-ink),
-            0 0 14px 2px var(--yellow);
+/* o botão grande na quadra: aparece só na hora certa, embaixo, no meio ("Esperar" ao lado) */
+.sl-cue-row {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    z-index: 5;
+    display: flex;
+    gap: 8px;
+    max-width: calc(100% - 16px);
+    transform: translateX(-50%);
+}
+.sl-cue-row.is-leaving {
+    animation: leave-fade 180ms var(--ease-out) both;
+}
+.sl-cue {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 18px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 10px;
+    background: var(--lvc, var(--yellow));
+    box-shadow: 0 4px 0 var(--bc-ink);
+    color: var(--lvink, var(--bc-ink));
+    font: inherit;
+    font-size: 15px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    /* sem pulso próprio: o ritmo é o do anel (um tiro só) */
+    animation: sl-cue-in 0.2s var(--ease-out);
+}
+.sl-cue:active {
+    transform: translateY(2px);
+}
+/* "Esperar": o mesmo botão, sem o amarelo nem o pulso (o golpe é o chamariz) */
+.sl-cue.sl-wait {
+    padding: 8px 14px;
+    background: var(--panel-2);
+    color: var(--text);
+    animation: sl-cue-in 0.2s var(--ease-out);
+}
+.sl-cue .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+@keyframes sl-cue-in {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
     }
 }
 
+/* golpe máximo em 3 níveis: anel da batida que fecha no botão, o nível ao lado e a barra em 3 gomos */
+.sl-cue.lv3 {
+    overflow: visible;
+}
+.sl-ring-at {
+    --ring-d: 40px;
+    position: relative;
+    display: inline-flex;
+}
+/* QTE de um tiro só: o círculo nasce 4x maior e fecha uma vez (--q de 0 a 1) em cima do alvo, no 1 do compasso */
+.sl-ring,
+.sl-ring-target {
+    --perfect: #7dffb0;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--ring-d);
+    height: var(--ring-d);
+    margin: calc(var(--ring-d) / -2) 0 0 calc(var(--ring-d) / -2);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.sl-ring {
+    border: var(--ring-w, 2px) solid #fff;
+    transform: scale(calc(1 + (1 - var(--q, 0)) * 3));
+    opacity: calc(0.35 + var(--q, 0) * 0.65);
+    box-shadow:
+        0 0 0 2px var(--bc-ink),
+        inset 0 0 0 2px var(--bc-ink);
+}
+/* o alvo: parado no tamanho final, tracejado escuro com fio branco (lê no botão amarelo e na quadra); na janela do
+   perfeito acende branco e incha um pouco */
+.sl-ring-target {
+    border: 3px dashed var(--bc-ink);
+    box-shadow:
+        0 0 0 1px #fff,
+        inset 0 0 0 1px #fff;
+    transition:
+        transform 0.08s,
+        opacity 0.2s;
+}
+/* a janela do perfeito: o alvo acende VERDE (a cor do "PERFEITO!" na quadra), em qualquer nível (Miguel, 01/11: "não tá
+   mostrando o círculo verde quando fica perfeito"; antes acendia branco com brilho na cor do nível) */
+.sl-ring-target.now {
+    border: 4px solid var(--perfect);
+    transform: scale(1.18);
+    box-shadow:
+        0 0 0 2px var(--bc-ink),
+        0 0 16px 7px var(--perfect);
+}
+.sl-ring-target.hit {
+    opacity: 0;
+}
+/* encostou: acende na cor do nível e se desfaz */
+.sl-ring.hit {
+    border-color: var(--lvc, var(--yellow));
+    animation: sl-ring-hit 300ms var(--ease-out) forwards;
+}
+@keyframes sl-ring-hit {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(1.4);
+        opacity: 0;
+    }
+}
+@keyframes sl-ring-fade {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+/*
+ * Cara por nível (C1): N1 amarelo e quieto; N2 laranja, tremida leve e anel mais grosso; N3 na cor do tipo
+ * (--lvc/--lvink no estilo, Sideline.tsx), tremida forte e contorno duplo. Sem movimento: só a cor.
+ */
+.sl-cue[data-lv="2"],
+.sl-max.ready[data-lv="2"],
+.bc-maxthumb.ready[data-lv="2"] {
+    --lvc: color-mix(in srgb, var(--yellow), var(--red) 40%);
+    --ring-w: 3px;
+    --sh: 1px;
+}
+.sl-cue[data-lv="3"],
+.sl-max.ready[data-lv="3"],
+.bc-maxthumb.ready[data-lv="3"] {
+    --ring-w: 4px;
+    --sh: 2px;
+    outline: 3px solid var(--lvc, var(--yellow));
+    outline-offset: 2px;
+}
+.sl-cue[data-lv="2"] {
+    animation:
+        sl-cue-in 0.2s var(--ease-out),
+        sl-shake 0.14s linear 0.2s infinite;
+}
+.sl-cue[data-lv="3"] {
+    animation:
+        sl-cue-in 0.2s var(--ease-out),
+        sl-shake 0.09s linear 0.2s infinite;
+}
+.bc-maxthumb.ready[data-lv="2"] {
+    animation: sl-shake 0.14s linear infinite;
+}
+.bc-maxthumb.ready[data-lv="3"] {
+    animation: sl-shake 0.09s linear infinite;
+}
+/* o anel do celular mora fora do botão: pega o nível do irmão */
+.bc-maxthumb.ready[data-lv="2"] ~ :is(.sl-ring, .sl-ring-target) {
+    --lvc: color-mix(in srgb, var(--yellow), var(--red) 40%);
+    --ring-w: 3px;
+}
+.bc-maxthumb.ready[data-lv="3"] ~ .sl-ring {
+    --ring-w: 4px;
+}
+@keyframes sl-shake {
+    25% {
+        translate: var(--sh) calc(var(--sh) * -0.5);
+    }
+    50% {
+        translate: calc(var(--sh) * -1) 0;
+    }
+    75% {
+        translate: 0 var(--sh);
+    }
+}
+.sl-cue-lv {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    font-size: 12px;
+}
+/* golpe máximo por tipo (?tipo=1): o ícone do efeito no 3º gomo; apagado até o N3, aceso no N3 */
+.sl-fx {
+    display: inline-flex;
+    opacity: 0.35;
+    filter: grayscale(1);
+    transition:
+        opacity 250ms var(--ease-out),
+        filter 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.sl-max .sl-fx {
+    position: absolute;
+    right: 4px;
+    bottom: 7px;
+}
+.sl-fx.on {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.15);
+}
 /* barrinhas do golpe máximo embaixo do placar */
 .sl-maxbars {
     display: flex;
     justify-content: space-between;
     gap: 40%;
     padding: 0 2px;
-}
-.sl-maxbar {
-    flex: 1;
-    height: 4px;
-    overflow: hidden;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.12);
-}
-.sl-maxbar i {
-    display: block;
-    height: 100%;
-    width: calc(var(--fill, 0) * 100%);
-    background: var(--tc);
-    transition: width 0.3s ease;
-}
-.sl-maxbar.t1 i {
-    margin-left: auto;
-}
-.sl-maxbar.full i,
-.sl-maxbar.live i {
-    background: var(--yellow);
-    animation: sl-glow 0.6s ease-in-out infinite alternate;
 }
 @keyframes sl-glow {
     to {
@@ -192,40 +329,6 @@
     right: 8px;
     align-items: flex-end;
 }
-.sl-balloon {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 8px;
-    border: 2px solid var(--bc-ink);
-    border-left: 5px solid var(--tc);
-    border-radius: 10px;
-    background: var(--bc-paper);
-    color: var(--bc-ink);
-    font-size: 12px;
-    text-transform: uppercase;
-    box-shadow: 0 2px 0 var(--bc-ink);
-    animation: sl-pop 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
-}
-/* rabinho do balão */
-.sl-balloon::after {
-    content: "";
-    position: absolute;
-    bottom: -7px;
-    left: 14px;
-    border: 6px solid transparent;
-    border-top-color: var(--bc-ink);
-    border-bottom: 0;
-}
-.sl-side.t1 .sl-balloon {
-    border-left: 2px solid var(--bc-ink);
-    border-right: 5px solid var(--tc);
-}
-.sl-side.t1 .sl-balloon::after {
-    left: auto;
-    right: 14px;
-}
 .sl-tag {
     display: flex;
     align-items: center;
@@ -239,8 +342,7 @@
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
-.sl-tag .hud-icon,
-.sl-balloon .hud-icon {
+.sl-tag .hud-icon {
     width: 14px;
     height: 14px;
 }
@@ -288,42 +390,39 @@
 }
 
 /* painel do tempo e dos pênaltis (o mesmo do intervalo) */
-.sl-panel .sl-compact {
-    margin: 4px 0 8px;
-}
 .sl-pens {
     display: grid;
-    gap: 4px;
-    margin: 6px 0 10px;
+    gap: 6px;
+    margin: 8px 0 12px;
     padding: 0;
     list-style: none;
 }
 .sl-pens li {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
-    padding: 4px 6px;
-    border-radius: 6px;
-    background: var(--bc-ink-3);
-    opacity: 0.6;
+    opacity: 0.55;
 }
 .sl-pens li.in {
     opacity: 1;
 }
-.sl-pens img {
-    width: 28px;
-    height: 28px;
+/* o número da vez, numa bolinha: os 5 que batem em dourado */
+.sl-pen-n {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: var(--panel-2);
+    color: var(--text);
+    font-weight: 700;
 }
-.sl-pens b {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.sl-pens small {
-    color: var(--muted);
+.sl-pens li.in .sl-pen-n {
+    background: var(--yellow);
+    color: var(--bc-ink);
 }
 /* tocar em um e depois em outro troca os dois */
 .sl-pen-who {
@@ -332,31 +431,78 @@
     align-items: center;
     gap: 8px;
     min-width: 0;
-    min-height: 36px;
-    padding: 0 4px;
-    border: 2px solid transparent;
-    border-radius: 6px;
-    background: none;
+    min-height: 48px;
+    padding: 2px 8px 2px 2px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--bc-ink-3);
     color: inherit;
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.2s var(--ease-out);
+    transition:
+        background-color 0.2s var(--ease-out),
+        box-shadow 0.2s var(--ease-out);
 }
 .sl-pen-who.on {
-    border-color: var(--yellow);
+    background: var(--pick-fill);
+    box-shadow: var(--pick-ring);
 }
-.sl-pen-n {
-    width: 18px;
-    color: var(--yellow);
+.sl-pens img {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+}
+.sl-pen-name {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.15;
+}
+.sl-pen-name b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sl-pen-name small {
+    color: var(--muted);
+}
+/* o chute da carta, na cor da faixa (bronze/prata/ouro, como a carta) */
+.sl-pen-shot {
+    display: grid;
+    flex: none;
+    place-items: center;
+    gap: 2px;
+    min-width: 40px;
+    padding: 3px 4px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 6px;
+    color: var(--bc-ink);
+    font-size: 17px;
     font-weight: 700;
-    text-align: center;
+    line-height: 1;
+}
+.sl-pen-shot small {
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+.sl-pen-shot.ouro {
+    background: linear-gradient(160deg, #fff3b8 0%, #e8c24a 48%, #b48a18 100%);
+}
+.sl-pen-shot.prata {
+    background: linear-gradient(160deg, #fbfcfe 0%, #d3d8e1 48%, #9aa2b0 100%);
+}
+.sl-pen-shot.bronze {
+    background: linear-gradient(160deg, #f0c493 0%, #c98a52 48%, #8f5a2e 100%);
 }
 .sl-arrow {
     display: grid;
+    flex: none;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border: 2px solid var(--bc-ink);
     border-radius: 6px;
     background: var(--panel-2);
@@ -364,13 +510,13 @@
     cursor: pointer;
 }
 .sl-arrow:disabled {
-    opacity: 0.3;
-    cursor: default;
+    visibility: hidden;
 }
 
 @media (max-width: 360px) {
-    .bc .sl-shout b {
-        font-size: 10px;
+    /* celular estreito: as setas comiam o nome; tocar em dois já troca (e o toque funciona no teclado) */
+    .sl-pens .sl-arrow {
+        display: none;
     }
     .sl-btn {
         gap: 4px;
@@ -385,8 +531,291 @@
     }
 }
 
+/* Charanga de Pewter: aviso curto embaixo do meio da quadra (entra em 240 ms, fica, sai em 240 ms) */
+.sl-charanga {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-bottom: 3px solid var(--tc);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    color: var(--text);
+    font-size: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    animation: sl-charanga 2.4s linear both;
+}
+.sl-charanga .hud-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--tc);
+}
+@keyframes sl-charanga {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.7);
+        animation-timing-function: cubic-bezier(0.2, 1.4, 0.4, 1);
+    }
+    10%,
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+@keyframes sl-charanga-fade {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: 1;
+    }
+}
+[data-reduce-motion="true"] .sl-charanga {
+    animation-name: sl-charanga-fade;
+}
+
+[data-reduce-motion="true"] .sl-cue,
+[data-reduce-motion="true"] .sl-cue[data-lv] {
+    animation: sl-fade-in 0.2s var(--ease-out);
+}
+[data-reduce-motion="true"] .bc-maxthumb[data-lv] {
+    animation: none;
+}
+@keyframes sl-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+/* sem movimento: o anel não fecha, só vai acendendo até a hora e some */
+[data-reduce-motion="true"] .sl-ring {
+    transform: none;
+}
+[data-reduce-motion="true"] .sl-ring.hit {
+    animation-name: sl-ring-fade;
+}
 [data-reduce-motion="true"] .sl-max.ready,
-[data-reduce-motion="true"] .sl-maxbar i,
 [data-reduce-motion="true"] .sl-tag-max {
     animation: none;
+}
+
+/* celular deitado: a barra de velocidade (fixa embaixo) cobre o pé da quadra; o golpe e o "Esperar" sobem acima dela */
+@media (orientation: landscape) and (max-height: 520px) {
+    .sl-cue-row {
+        bottom: calc(10% + 44px);
+    }
+}
+/*
+ * Deitado baixinho (568x320, 320 de altura): empilhados, os dois tampavam metade da quadra. Viram duas pílulas lado a
+ * lado no pé da quadra, menores: o golpe fica com ícone, nível e tipo (o nome continua pro leitor de tela), toque de 44 px.
+ */
+@media (orientation: landscape) and (max-height: 360px) {
+    .sl-cue-row {
+        bottom: calc(44px + 2px);
+        gap: 6px;
+    }
+    .sl-cue,
+    .sl-cue.sl-wait {
+        gap: 4px;
+        min-height: 36px;
+        padding: 3px 10px;
+        border-width: 2px;
+        border-radius: 22px;
+        box-shadow: 0 3px 0 var(--bc-ink);
+        font-size: 11px;
+    }
+    .sl-cue .sl-ring-at {
+        --ring-d: 30px;
+    }
+    .sl-cue .hud-icon {
+        width: 16px;
+        height: 16px;
+    }
+    /* desenho de 36 px, toque de 44: a área de toque passa 4 px pra fora de cada lado (+2 da borda) */
+    .sl-cue::after {
+        content: "";
+        position: absolute;
+        inset: -6px;
+    }
+    .sl-cue-name {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+}
+
+/*
+ * Golpe máximo na barra de baixo (MaxThumb, celular): o mesmo botão sempre à vista; a barra enche por dentro em 3 gomos.
+ * Aceso = amarelo pulsando. Na aba Tática (abaixo da quadra) ele sai: um lugar só.
+ */
+.bc-coach .sl-max {
+    display: none;
+}
+/* o anel do celular mora em volta do botão da barra de baixo */
+.bc-maxwrap {
+    --ring-d: 58px;
+    position: relative;
+    flex: none;
+    display: flex;
+}
+.bc-maxthumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 44px;
+    padding: 0 10px;
+    overflow: hidden;
+    border: 3px solid #000;
+    border-radius: 8px;
+    background: var(--panel-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.bc-maxthumb .hud-icon {
+    position: relative;
+}
+.bc-maxthumb .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.bc-maxthumb.ready {
+    background: var(--lvc, var(--yellow));
+    color: var(--lvink, var(--bc-ink));
+}
+.bc-maxthumb.live {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.bc-maxthumb:active {
+    transform: translateY(2px);
+}
+.bc-maxwhy {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    width: max-content;
+    max-width: min(220px, calc(calc(100 * var(--vw)) - 24px));
+    padding: 8px 10px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--paper, #f8f8f0);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    color: var(--bc-ink);
+    font-size: 12px;
+    line-height: 1.35;
+    animation: sl-cue-in 0.2s var(--ease-out);
+}
+
+/* celular em pé: o golpe e o "Esperar" cabem na largura (no 360 o "Esperar" saía da tela) */
+@media (max-width: 420px) {
+    .sl-cue-row {
+        left: 8px;
+        right: 8px;
+        justify-content: center;
+        max-width: none;
+        transform: none;
+    }
+    .sl-cue {
+        min-width: 0;
+        gap: 6px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    .sl-cue.sl-wait {
+        flex: none;
+        padding: 8px 10px;
+    }
+}
+
+/* a resposta do toque no golpe máximo (max-burst.ts): camada fixa no centro do botão, por cima de tudo */
+.max-burst {
+    position: fixed;
+    z-index: 600;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+/* perfeito: o anel do estouro e o texto em verde, como o alvo na janela do perfeito */
+.max-burst.q2 {
+    --bc: #7dffb0;
+}
+.max-burst.q2 .mb-text {
+    color: #7dffb0;
+}
+.max-burst > i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+}
+.mb-text {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-style: normal;
+    font-weight: 700;
+    --gs: 30px;
+    font-size: var(--gfs, 30px);
+    white-space: nowrap;
+    color: var(--yellow);
+    --ol: var(--bc-ink);
+    text-shadow: var(--k-out-2);
+}
+.q1 .mb-text {
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
+    color: #fff;
+}
+.q0 .mb-text {
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+    color: #b9c0d8;
+}
+.mb-ring {
+    width: 44px;
+    height: 44px;
+    border: 4px solid var(--bc);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--bc-ink);
+}
+.mb-ring + .mb-ring {
+    border-color: #fff;
+    border-width: 3px;
+}
+.mb-bit.star {
+    width: 16px;
+    height: 16px;
+    background: var(--bc);
+    clip-path: polygon(50% 0, 63% 33%, 98% 36%, 71% 58%, 80% 94%, 50% 75%, 20% 94%, 29% 58%, 2% 36%, 37% 33%);
+}
+.q1 .mb-bit.star {
+    background: #fff;
+}
+.mb-bit.coin {
+    width: 13px;
+    height: 13px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--gold-hi, #fff2a8) 0 45%, var(--yellow) 45%);
+}
+/* o clarão cobre a tela toda (a camada é fixa e sem transform: o fixo do filho volta pra janela) */
+.mb-flash {
+    position: fixed !important;
+    inset: 0;
+    background: #fff;
 }

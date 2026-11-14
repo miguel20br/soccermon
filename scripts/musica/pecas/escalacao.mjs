@@ -16,7 +16,7 @@ import { bass, drum, GANCHO, I, ins, MINOR, mel, padChord, Song, stabs, thirdBel
 export const meta = { titulo: 'Escalação (prancheta)', tela: 'Escalação' };
 
 // peça magnética na prancheta: "tok" grave de madeira com um estalo
-const PECA = ins({ vol: 0.4, freq: 520, a: 0.001, r: 0.05, shape: 1, slide: -3, sv: 0.15, d: 0.012 });
+export const PECA = ins({ vol: 0.4, freq: 520, a: 0.001, r: 0.05, shape: 1, slide: -3, sv: 0.15, d: 0.012 });
 const PECAS = [0, 3, 6, 10, 12];
 // timbres mais quentes (8b): ataque mais lento e onda mais cheia que os de I; o abafado vem do `corte` da faixa
 const METAIS = ins({ vol: 0.38, a: 0.06, r: 0.16, shape: 2, curve: 0.8, sv: 0.8, d: 0.1, filter: -3200 });

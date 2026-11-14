@@ -1,13 +1,1862 @@
 /** Notas da atualização mostradas na Home ("Novidades"). A mais nova primeiro. */
 export interface PatchNotes {
     version: string;
+    /** Dia do lançamento, AAAA-MM-DD (da tag). */
+    date: string;
     title: string;
     sections: { title: string; lines: string[] }[];
 }
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Descrições mais diretas',
+        sections: [
+            {
+                title: 'Aviso',
+                lines: ['A partir de agora, uma atualização por semana'],
+            },
+            {
+                title: 'Textos do jogo',
+                lines: [
+                    'Descrições de golpes, golpe máximo, itens, táticas, Rota Índigo e Ajuda dizem o efeito com os números do jogo',
+                    'Corrigidas descrições que não batiam com o jogo: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, formação 2-2 e Reforço',
+                    'Formação 3-1: o ponto fraco agora é "−Passe pra frente" (era "−Lenta")',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sprites nítidos, novas animações e Duelo',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Pokémon nítidos em qualquer tela, sem borrão',
+                    'Mais leve no celular: a resolução se ajusta sozinha quando o aparelho não aguenta',
+                    'Novas animações: os Pokémon esticam e amassam ao correr, chutar, dominar, trombar, levar drible e aterrissar no gol',
+                    'A bola amassa no chute forte e na trave, e a trave treme',
+                    'Mais poeira nas arrancadas, nos choques e nos dribles',
+                    'Nomes em cima dos Pokémon sem letra quebrada (maiores no PC)',
+                    'Nova barrinha do golpe máximo, em gomos',
+                ],
+            },
+            {
+                title: 'Copa Relâmpago e Copa do Dia',
+                lines: [
+                    'Depois da vitória fica só a recompensa 1 de 3, sem ₽ nem Mercado',
+                    'Patrocínio na recompensa em 40% das vitórias (de campo ou o Laboratório de Cinnabar)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Jogo vencido: 1 de 3 do rival ⇒ ₽3 a mais pra gastar nos Mercados do mapa',
+                    'Pedra do ₽ em dobro vai pra Mochila se ninguém usa',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Saiu do BETA',
+                    'Seus duelos na Arena: os últimos 8 e o placar contra cada amigo',
+                    'Criar sala mostra a regra do modo escolhido em uma linha',
+                    'Fim do duelo com Revanche e Voltar ao início',
+                    'O N3 da barrinha tem a cor do tipo do capitão de cada time (saía vermelho)',
+                    'Consertos de layout no celular e no PC (sala, draft, escalação e partida)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Cada modo diz em uma linha o que é, no menu de modos e na Ajuda',
+                    'Time Ultimate: volta o aviso "Zera a cada temporada"',
+                    'Novidades com textos e títulos mais diretos',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'Animações de fim de jogo e Perfil com números',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Adicionadas novas animações de final de jogo',
+                    'No Losango, os alas também voltam a bola pro fixo na armação',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Seus números no Perfil: aproveitamento, gols pró e contra, títulos por modo, carta favorita e melhor campanha',
+                    'Amigos na barra de cima, em qualquer tela',
+                    'Fechar e voltar levam pra onde você estava (o X do Clube não cai mais no Perfil)',
+                    'O Estádio mostra o capitão do seu último time, não o Pikachu do avatar padrão',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.49.1',
+        date: '2026-11-12',
+        title: 'Joga em qualquer navegador',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Navegador que bloqueia o save (Opera GX e outros com os cookies do site bloqueados): o JOGAR volta a funcionar, e um aviso explica que o progresso some ao fechar a aba',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.49',
+        date: '2026-11-11',
+        title: 'Menus mais simples',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'As abas de baixo acendem conforme você joga: Lab na 1ª partida, Rota e Sede na 1ª copa, Arena na 2ª',
+                    'Metas na Sede: missões e medalhas num lugar só; o armário virou o Perfil',
+                    'A Liga aparece na última semana antes de abrir',
+                    'Configurações com o principal à vista e o resto em Mais opções',
+                    'Ajuda mais curta: Como funciona de cada modo em cima e só as regras que não estão na tela',
+                    'Prancheta e VERSUS voltam aos sprites clássicos, com miniaturas menores e os times se encarando',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: ['O Mercado não vende mais MT: a vaga vira item (a MT continua na recompensa do ginásio)'],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Lambreta com a bola em arco por cima do marcador, roleta com giro de 360° e elástico com a finta que o marcador morde',
+                    'Drible novo: o chapéu, com a bola por cima da cabeça do marcador',
+                    'Chute, passe, desarme e defesa batem na bola no quadro certo (antes a animação vinha atrasada)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.48',
+        date: '2026-11-10',
+        title: 'Fixo na armação da Linha de 3',
+        sections: [
+            {
+                title: 'Partida',
+                lines: ['Na Linha de 3, os alas voltam a bola pro fixo na armação em vez de só rodar com o pivô'],
+            },
+        ],
+    },
+    {
+        version: '0.9.47.2',
+        date: '2026-11-10',
+        title: 'Números certos no PC',
+        sections: [
+            {
+                title: 'Telas',
+                lines: ['No PC e em tela grande, os números não saem mais com o 9 torto (placar, dinheiro, cartas)'],
+            },
+        ],
+    },
+    {
+        version: '0.9.47.1',
+        date: '2026-11-10',
+        title: 'Seu nome em todo lugar',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Logado com o Google e sem nome escolhido: a barra de cima e os rankings mostram seu primeiro nome, não "Treinador"',
+                    'Lápis ao lado do nome no Perfil pra mostrar que dá pra editar',
+                    'Login pelo atalho da tela inicial do iPhone',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.47',
+        date: '2026-11-10',
+        title: 'Final mais difícil e Eventos na Rota',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Perder a 1ª partida da Rota não dá cartão amarelo',
+                    'A Final ficou mais difícil: o rival não joga mais com a torcida contra',
+                    'Toda linha de parada do mapa tem um Evento "?"',
+                ],
+            },
+            {
+                title: 'Telas',
+                lines: [
+                    'Números da carta e dos títulos sem o 9 torto',
+                    'O selo de treinador novo cabe numa linha e não cobre o letreiro',
+                    'A Sala de troféus aparece na hora, sem tela preta enquanto carrega',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.46',
+        date: '2026-11-10',
+        title: 'Animações na Rota Índigo',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Adicionadas animações no Cassino',
+                    'Adicionadas animações no Centro Pokémon',
+                    'Adicionadas animações na Zona Safari',
+                    'Mapa: o capitão anda até a casa escolhida, as casas da vez acendem e cada região tem placa',
+                    'No PC o mapa inteiro cabe na tela, com um painel das próximas casas',
+                    'Pedra que ninguém usa vai direto pra Mochila, sem tela a mais',
+                ],
+            },
+            {
+                title: 'Telas',
+                lines: [
+                    'A ficha da Pokédex não fica mais embaixo da barra de cima (o X de fechar aparece)',
+                    'Números sem o 9 torto no placar, no contador de taças e no dinheiro da copa',
+                    'Selo NOVO inteiro na Pokédex',
+                    'Celular deitado: o nome do clube aparece no Estádio e o botão da Rota não quebra',
+                    'Antes da partida a tela já tem a cor do ginásio, não a madeira',
+                    'Vitrine de pacotes e Novidades mais lisas em celular fraco',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.45',
+        date: '2026-11-10',
+        title: 'Comemoração de título',
+        sections: [
+            {
+                title: 'Título',
+                lines: [
+                    'Ganhou a copa: o capitão ergue a taça no meio da quadra',
+                    'Ganhou a Rota Índigo: a torcida invade a quadra e joga o capitão pro alto',
+                    'Insígnia nova batendo na tela na 1ª vitória contra cada líder',
+                    'Voltou campeão: o Estádio faz a ola e mostra o título no letreiro',
+                    'O desfile do Hall da Fama fica pros títulos da Rota e pro 1º de cada modo, mais curto',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Cada Pokémon comemora o gol do seu jeito: pulo, giro ou pose',
+                    'Dribles com nome pra quem tem drible alto: lambreta, roleta e elástico, com câmera lenta',
+                    'Goleiro mergulha pro lado da bola, sem sair do gol, e sente quando leva o gol',
+                ],
+            },
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'Uma moeda só: os pontos de pacote viraram Fichas (1 ponto = 5 Fichas)',
+                    'Pick na Loja: Bronze 160 · Prata 400 · Ouro 960 Fichas',
+                    'O Pick comprado não sobe de metal: sem espécie nova, pode sair repetida',
+                ],
+            },
+            {
+                title: 'Visual',
+                lines: [
+                    'Cassino e Zona Safari com cenário próprio',
+                    'Pokémon na mesma escala em cada tela, sem pixel borrado',
+                    'VERSUS, Hall da Fama e escalação com os mesmos Pokémon da partida',
+                    'Menu de modos aparece com os Pokémon de uma vez no PC',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.44.2',
+        date: '2026-11-09',
+        title: 'Ícones de tipo nítidos',
+        sections: [
+            {
+                title: 'Telas',
+                lines: ['Os ícones de tipo ficaram nítidos em qualquer tamanho (o laço da Fada não borra mais)'],
+            },
+        ],
+    },
+    {
+        version: '0.9.44.1',
+        date: '2026-11-09',
+        title: 'Replay no ginásio certo',
+        sections: [
+            {
+                title: 'Consertos',
+                lines: [
+                    'Os melhores momentos tocam no ginásio do rival, não na quadra padrão',
+                    'Novidades: o texto do Time Ultimate',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.44',
+        date: '2026-11-09',
+        title: 'Meus pacotes e Pokémon Picks',
+        sections: [
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'Meus pacotes: o pacote fica guardado até você abrir, e o Abrir todos abre a pilha de uma vez',
+                    'Pokémon Picks: escolha 1 de 3, com as cartas de costas até você virar',
+                    'Início em blocos e a aba Jogar: Batalhas de Treinador, e os outros modos em breve',
+                    'O rival olha a força do seu time (média × química), não só a média',
+                    'Sem rival à altura, a partida paga as Fichas do nível que ele alcançou',
+                    'Mestre com o time do 1º mês: 60 ⇒ 36 Fichas por partida',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Mapa largo: mais caminhos e casas novas (Treinador Ás, Zona Safari, Cassino de Celadon)',
+                    'A última parada vira escolha: Treino, Mercado do Planalto ou Centro',
+                    'Pular mostra o prêmio à vista: ₽, troca grátis no Mercado, rival −1, sorteios',
+                    'Centro sem ninguém pra tratar vira o PC do Bill',
+                    'Descanso do Treino vira Folga: +₽5 e quem está fora volta',
+                    'Pedra sem uso vai pra Mochila (ou vende por ₽4)',
+                    'Quem sai do banco deixa a vaga vazia, e o próximo reforço entra nela',
+                ],
+            },
+            {
+                title: 'Evolução',
+                lines: [
+                    'A carta que evolui não perde atributo: fica com o maior de cada um entre as formas',
+                    'Poliwhirl ⇒ Poliwrath: VEL 66 ⇒ 84',
+                    'A habilidade que mexe em atributo fica (o Gyarados mantém o Swift Swim)',
+                    'O selo de evolução mostra a posição da forma nova',
+                    'A ficha da carta mostra a linha evolutiva',
+                    'O número do atributo na carta é o que vale em campo, e o ▲ diz quanto é bônus',
+                ],
+            },
+            {
+                title: 'Copa e partida',
+                lines: [
+                    'O golpe máximo do rival também chega em câmera lenta, como o seu',
+                    'O goleiro nunca fica de costas pro chute, mergulha pro lado da bola e sente o gol',
+                ],
+            },
+            {
+                title: 'Telas',
+                lines: [
+                    'Novidades em tela cheia: notícias com arte e as notas da versão',
+                    'Golpedex: os especiais e as bicudas do goleiro',
+                    'Ainda não jogou a Copa do Dia de hoje? O JOGAR mostra ela primeiro',
+                    'Sem espaço no aparelho: o jogo avisa que o progresso não está sendo salvo',
+                ],
+            },
+            {
+                title: 'Consertos',
+                lines: [
+                    'Sortear de novo no rival devolvia as mesmas 3 cartas',
+                    'Celular em pé: a quadra que segue a bola travava em erro depois da partida',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.43',
+        date: '2026-11-05',
+        title: 'Rivais com atributos menores',
+        sections: [
+            {
+                title: 'Copa e Rota',
+                lines: [
+                    'Torcida a favor: os rivais jogam com 4% a menos nos atributos ⇒ menos zebra contra você',
+                    'Nas 3 primeiras partidas da Rota, 7% a menos',
+                    'O rival evolui com a mesma barra que você: 10 ⇒ 14',
+                    'Duelo e Liga continuam sem torcida',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42.2',
+        date: '2026-11-05',
+        title: 'Capitão chamado ataca mais',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Chamou o capitão num ataque: agora ala e pivô também conduzem até a zona e chutam, como o fixo já fazia',
+                    'O time passa mais a bola pro capitão chamado',
+                    'Bicuda: se o chute do rival não chega no goleiro, ela fica guardada pro próximo',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42.1',
+        date: '2026-11-05',
+        title: 'Bicuda sai mesmo com toque atrasado',
+        sections: [
+            {
+                title: 'Goleiro capitão',
+                lines: [
+                    'A bicuda sai mesmo com o toque fora da hora, só que mais fraca (antes o goleiro só defendia e a barra ia embora)',
+                    'N1 e N2 sempre cruzam pro companheiro, inclusive contra o golpe máximo do rival; o N3 sempre chuta no gol',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42',
+        date: '2026-11-05',
+        title: 'Monotipo',
+        sections: [
+            {
+                title: 'Sinergia de monotipo',
+                lines: [
+                    'Os 5 em quadra do mesmo tipo: Monotipo, +10% ⇒ +12%',
+                    'Com o banco do tipo: 6 no elenco +16% e 7 no elenco +22%',
+                    'Selo próprio e as cartas do tipo brilham na cor dele',
+                    'O teto de +15% das sinergias saiu: tipo e história somam inteiros',
+                ],
+            },
+            {
+                title: 'Líderes de ginásio',
+                lines: [
+                    'Time do líder com pelo menos 4 titulares do tipo dele, e o capitão também do tipo',
+                    'Nada de contra-tipo nem lendário de fora no time do ginásio (sem Charizard na Misty)',
+                    'Quando o rival vem de monotipo, o treinador avisa antes do jogo',
+                    'Oitavas um pouco mais tranquilas; a Liga Índigo continua levando quem quiser',
+                ],
+            },
+            {
+                title: 'Telas mais arrumadas',
+                lines: [
+                    'Escalação: tática, formação e bola parada em linhas que abrem; sinergias só quando existem',
+                    'Resultado com um botão principal e cada carta uma vez só',
+                    'Partida no PC cabe na tela, abre nos Lances, e escanteio e goleiro-linha ficam na aba Time',
+                    'No celular, o botão do golpe máximo mostra os 3 gomos de nível',
+                    'Estádio, menu de modos, Ajuda, Perfil, Sede e Configurações com menos repetição',
+                    'Uma dica por vez entre Resultado, Recompensa e Mercado',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.41.1',
+        date: '2026-11-04',
+        title: 'Fim da Rota',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: ['Nova copa no fim da Rota não dá mais erro', 'Quem vence a Rota conquista a Liga Índigo'],
+            },
+        ],
+    },
+    {
+        version: '0.9.41',
+        date: '2026-11-04',
+        title: 'Câmera de cinema no N3',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'N3 com câmera de cinema: close no capitão, impacto no chute e a rede estufando no gol',
+                    'Cada tipo deixa a sua marca no N3: chão em brasa, raio que ricocheteia, bola fantasma e mais 13',
+                    'As 12 assinaturas ganham um toque próprio, do Hyper Beam ao Metronome do Mew',
+                    'N2 com a onda que derruba a linha desenhada no chão, na cor do tipo',
+                    'N1 na cor do tipo, com o nome do golpe colado em quem chutou',
+                    'Bicudas com o pé do goleiro, impacto e rastro até onde a bola vai',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['A tela de quem entrou na sala não fica mais parada no fim de jogo'],
+            },
+        ],
+    },
+    {
+        version: '0.9.40',
+        date: '2026-11-03',
+        title: 'Bicuda N3 contra o golpe máximo',
+        sections: [
+            {
+                title: 'Counter',
+                lines: [
+                    'Goleiro capitão com a bicuda N3 revida o golpe máximo N3 do rival e o tempo para',
+                    'Os dois conversam no tempo parado, com câmera de cinema e painéis de mangá',
+                    'A bicuda de primeira cruza a quadra e é sempre gol, com a comemoração mais longa do jogo',
+                    'Falas próprias pra 16 duelos e vários Pokémon, do Magikarp ao Slowpoke',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: [
+                    'Carta de ouro revela com o efeito do tipo: Gelo congela a tela, Fogo queima e mais 14',
+                    'Vidro quebrando só nas edições especiais',
+                    'Cada raridade com o seu céu de estádio',
+                    'Telões com tipo e posição também nas cartas de ouro',
+                    'Jogadas com bola mais calmas e a versão curta com 3 s',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.39.1',
+        date: '2026-11-03',
+        title: 'Duelo da bicuda sai por enquanto',
+        sections: [
+            {
+                title: 'Ajustes',
+                lines: [
+                    'O duelo da bicuda sai por enquanto: a bicuda N3 volta a ser o contra-ataque de sempre',
+                    'Walkout com as jogadas da 0.9.38',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.39',
+        date: '2026-11-03',
+        title: 'Duelo da bicuda',
+        sections: [
+            {
+                title: 'Duelo da bicuda',
+                lines: [
+                    'Goleiro capitão com a bicuda N3 segura o golpe máximo N3 do rival e a partida para',
+                    'Os dois ficam frente a frente e conversam, depois vem a bicuda de gol a gol',
+                    'A bicuda do duelo é sempre gol, com a comemoração mais longa do jogo',
+                    'Falas próprias pra 16 duelos e 14 Pokémon, de Charmander x Charizard a Magikarp',
+                ],
+            },
+            {
+                title: 'Sugestões da galera',
+                lines: [
+                    'Sinergias na aba Time da partida',
+                    'Draft: a carta mostra a sinergia que ela ativa (+Psíquico 2)',
+                    'Draft: toque num Pokémon da prancheta pra ver a carta dele',
+                    'Selo NOVO no Pokémon que ainda não está na sua Pokédex',
+                    'Campeão: seu time em cada jogo do Caminho do título. Toque pra ver a escalação',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: ['Jogadas com bola mais calmas: embaixadinha, drible, tremor, bicicleta, voo e canhão'],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'Escalação no 320 cabe sem rolar',
+                    'Mercado deitado: o Comprar fica embaixo da carta',
+                    'Recompensa: cartas maiores e o texto da MT inteiro',
+                    'Partida deitada: quadra maior e os botões na coluna da direita',
+                    'Arena e Copa do Dia no 320: as placas não cobrem os letreiros',
+                    'Vagas do Draft com texto maior no 320',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: ['O aviso de avatar novo fica no canto do avatar'],
+            },
+        ],
+    },
+    {
+        version: '0.9.38.2',
+        date: '2026-11-03',
+        title: 'Fixo de secundária',
+        sections: [
+            {
+                title: 'Posições',
+                lines: [
+                    'Snorlax ganha Fixo de secundária: Fixo 59 ⇒ 77',
+                    'Lickitung ganha Fixo de secundária: Fixo 49 ⇒ 64',
+                    'Wigglytuff ganha Fixo de secundária: Fixo 37 ⇒ 48',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.38.1',
+        date: '2026-11-03',
+        title: 'Ajustes de tela',
+        sections: [
+            {
+                title: 'Celular',
+                lines: [
+                    'Copa do Dia deitada: o Ranking aparece (saía da tela)',
+                    'Draft: os selos das cartas e o Escalar do banco não vazam mais no 320 e no 390',
+                    'JOGAR do Estádio, faixa EM BREVE do menu e a fala do Prof. Carvalho na Rota cabem inteiros',
+                    'Duelo: Compartilhar dentro do botão e a sala de espera deitada sem cortar os nomes',
+                    'Mercado deitado: a seta não cobre o preço e a descrição do item termina inteira',
+                    'Sala de troféus no 320: o fim da fala e o Próximo à vista',
+                ],
+            },
+            {
+                title: 'PC',
+                lines: ['O selo do treinador desbloqueado cresce com a tela'],
+            },
+        ],
+    },
+    {
+        version: '0.9.38',
+        date: '2026-11-03',
+        title: 'Entrada de carta rara em campo',
+        sections: [
+            {
+                title: 'Pacotes',
+                lines: [
+                    'Carta rara no pacote do Mercado entra em campo: estádio, telões com o tipo e a posição, silhueta e a carta aparecendo',
+                    'Três níveis: raro (Ouro 75 a 84), muito raro (Ouro 85+, Shiny e Evento) e especial (Ícone e Destaque)',
+                    'Cada Pokémon entra com uma jogada: embaixadinha, bicicleta, cabeçada, drible, voo, chama e mais',
+                    'Pular depois de 1 segundo. Do 2º raro do dia em diante, a versão curta',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.37.1',
+        date: '2026-11-02',
+        title: 'Copa Relâmpago no lugar',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'Com copa em andamento, o nome Copa Relâmpago cabe centralizado na placa do celular',
+                    'Sai o selo SMN que ficava boiando na tela',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'Troca de tela estilo TV',
+        sections: [
+            {
+                title: 'Transmissão',
+                lines: [
+                    'Toda troca de tela vira um corte de TV. Com Reduzir movimento continua o fade',
+                    'Letreiro do canal no canto, com o nome da tela, e AO VIVO na partida',
+                    'Menu de modos mais limpo, com cara de canal: 1 AO VIVO, e os que vêm aí em faixa de EM BREVE',
+                    'Arrastar entre as telas no celular continua igual',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, Sede e Créditos',
+        sections: [
+            {
+                title: 'Lab e Sede',
+                lines: [
+                    'Os botões viraram objetos da cena: a estante abre a Pokédex, o fichário o Álbum e a lousa a Golpedex',
+                    'Na Sede: a vitrine abre os Troféus, o escudo o Clube, o mural os Amigos e o armário o Treinador',
+                    'A missão da Sede numa placa com a barra de progresso',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Grupo da Rota e Campeão com placar de TV, e Ver tudo pra tabela e os números completos',
+                    'Intervalo sem título repetido, com o Substituir separado do Começar o 2º tempo',
+                    'Mercado: Novas ofertas com a etiqueta grátis também no celular',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Créditos rolando como fim de jogo, com os Pokémon desfilando. Segure pra acelerar',
+                    'Liga numa placa na parede da Arena',
+                    'Com copa em andamento, o modo aparece no lugar do Continuar repetido',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Prancheta no draft',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'Enquanto você escolhe 1 de 3, o seu time aparece na prancheta da escalação, com cada um na sua posição',
+                    'No celular em pé a prancheta fica deitada, com o gol à esquerda',
+                    'As 3 cartas cabem inteiras em qualquer tela',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Fim de copa com o Nova copa como o único botão grande',
+                    'Títulos maiores e em caixa normal, textos pequenos maiores e botões pequenos mais fáceis de tocar',
+                    'Verde é só pra confirmar: botões que só levam a outra tela ficam azuis',
+                    'Configurações com título e abas curtas',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'Painel completo no PC',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'No PC volta o painel completo: táticas abertas embaixo da quadra, formação e time ao lado',
+                    'O botão do golpe máximo só acende quando a bola está no pé do capitão, pronto pra chutar',
+                    'No Duelo o golpe máximo fica armado até o próximo chute do capitão (antes valia por uns 5 segundos)',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação com táticas, formações e escanteio abertos na tela, sem precisar tocar pra ver',
+                    'Draft mostra o seu time numa quadrinha junto das 3 escolhas',
+                    'Fim de partida volta a rolar: carta Destaque, evoluções, gols e estatísticas logo abaixo do placar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.33',
+        date: '2026-11-02',
+        title: 'Partida no PC com layout do celular',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'No PC a partida tem o layout do celular: quadra grande, placar em cima e a barra de 4 botões embaixo',
+                    'Tática, Trocar, Tempo e Lances abrem cada um a sua janela. A página não rola mais',
+                    'Narração como legenda de TV embaixo da quadra',
+                    'No 4x e no 8x a quadra fica entre as duas torcidas',
+                    'Intervalo com placar de TV e placa de substituição',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação com placas na parede: o cartaz do rival, o quadro da tática e a prancheta da formação',
+                    'Mercado com o ₽ contando na entrada e as cartas em prateleiras',
+                    'Treino da Rota numa quadra: toque em quem treina ou deite no colchonete',
+                    'Evento com a caixa de diálogo e Grupo com placar de TV',
+                ],
+            },
+            {
+                title: 'Duelo e Arena',
+                lines: [
+                    'Draft do Duelo com a mesma cara do draft da Copa, sem rolar',
+                    'Duelo, Liga e Copa do Dia cabem com o celular deitado',
+                ],
+            },
+            {
+                title: 'Coleção e avisos',
+                lines: [
+                    'Pokédex com seletor no lugar das pílulas, e o Prof. Carvalho na Pokédex vazia',
+                    'Treinador desbloqueado aparece num selo na volta pro menu, não no meio da comemoração',
+                    'A dica da formação não cobre mais as palavras',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Ícone do pacote de tipo',
+        sections: [{ title: 'Conserto', lines: ['O ícone do tipo voltou a aparecer no pacote de tipo'] }],
+    },
+    {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Telas de Duelo, Liga e Copa do Dia',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duelo na quadra da Arena: 3 modos em blocos, regras num "?" e o código da sala grande',
+                    'Liga com contagem grande enquanto está fechada; aberta, o rival aparece na quadra',
+                    'Copa do Dia no Estádio, com torcida e a figurinha do dia no meio da quadra',
+                ],
+            },
+            {
+                title: 'Perfil',
+                lines: [
+                    'Perfil virou armário: cartão, missões e 6 portas, sem rolar',
+                    'Sala de troféus em tela cheia. Toque num objeto pra ver a ficha',
+                    'Treinadores viraram figurinhas',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formação em carrossel, uma quadra grande por vez',
+                    'Escolha 1 de 3 sem rolar a tela',
+                    'Dicas de primeira vez sem escurecer a tela: um dedo aponta e você segue jogando',
+                    'Textos de regra mais curtos',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Novidades num cartaz, com as versões antigas numa lista',
+                    'Configurações em abas, cada opção numa linha',
+                    'Resgatar código foi pras Configurações',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'Animações novas do golpe máximo',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'N1, N2 e N3 com animação nova. O N3 virou especial: fundo do tipo, cut-in, bola virando projétil e explosão no gol',
+                    'Música do N3 que explode no chute. No N1 e no N2 a música não fica mais abafada',
+                    'O gol aparece inteiro do chute até a bola chegar, em qualquer câmera',
+                    'O alvo acende verde no perfeito, e o botão do golpe não pisca mais',
+                    'Quem está no caminho cai quando a bola chega, não no chute. Os efeitos do tipo também',
+                    'O goleiro nunca encaixa golpe máximo: espalma na trave ou pra escanteio',
+                    'Goleiro capitão com a barra devolve o golpe de bicuda direto no gol rival',
+                    'Bola com rastro e partículas do tipo, mais forte a cada nível',
+                ],
+            },
+            {
+                title: 'N1 por tipo',
+                lines: [
+                    'Psíquico: confunde ⇒ faz dormir',
+                    'Normal: derruba ⇒ faz recuar',
+                    'Planta: faz dormir ⇒ planta a semente (Leech Seed)',
+                    'Terrestre: derruba ⇒ areia nos olhos (Sand Attack)',
+                    'Inseto: envenena ⇒ prende na teia (String Shot)',
+                    'Água: derruba ⇒ leva 2 m pra trás',
+                    'Voador: confunde ⇒ joga pro alto',
+                    'Lutador: derruba ⇒ mão dormente, a próxima defesa vira rebote',
+                    'Pedra: derruba ⇒ preso no lugar por 2 s',
+                    'Dragão: paralisa ⇒ tira 5 pontos da barra do time rival',
+                    'Nomes novos no N3: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast e mais',
+                ],
+            },
+            {
+                title: 'Golpe máximo explicado',
+                lines: [
+                    'Aviso quando cada nível libera e legenda do que o N1, o N2 e o N3 dão',
+                    'Seção Golpe máximo na ficha de cada Pokémon',
+                    'Ajuda, Como jogar e um balão de primeira vez sobre o golpe',
+                ],
+            },
+            {
+                title: 'Capitão e câmera',
+                lines: [
+                    'Troque o capitão na Tática, entre as partidas',
+                    'Celular em pé: câmera mais aberta e suave, com espaço pro ataque de quem conduz',
+                ],
+            },
+            {
+                title: 'Cara de jogo',
+                lines: [
+                    'Fim de partida em tela cheia, com placar, ₽, craque e próximo rival',
+                    'Campeão em 3 batidas: taça, destaques e caminho do título. As estatísticas ficam numa gaveta',
+                    'Recompensa com as 3 opções do mesmo tamanho, sem rolar',
+                    'Pacote do Mercado em tela cheia, com o walkout pra carta ouro',
+                    'Resultado e Eliminado sem rolar',
+                    'Seletor ‹ valor › no lugar das listas e do volume',
+                    'Fim do Duelo com a mesma tela do fim de partida',
+                    'No PC, essas telas crescem e ocupam a tela',
+                    'Walkout completo na 1ª carta ouro do dia; nas outras, mais curto',
+                    'Ajuda com gavetas no lugar das listas que abriam',
+                ],
+            },
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Modo Copa agora é Modo Clássico',
+                    'Time Ultimate e Modo História em preto e branco até chegarem',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.30.1',
+        date: '2026-11-01',
+        title: 'Menu de modos mais claro',
+        sections: [
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Time Ultimate e Modo História com a faixa EM BREVE e a data, mais escuros que o Modo Copa',
+                    'O menu não pisca mais ao abrir nem ao trocar de modo',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.30',
+        date: '2026-11-01',
+        title: 'Todo capitão usa o golpe máximo',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Todo capitão solta o golpe máximo, e o golpe é sempre um chute',
+                    'N1: chute forte que deixa o status do tipo em quem bloqueia ou defende (Fogo queima, Elétrico paralisa, Gelo congela…)',
+                    'N2: o N1 e ainda derruba quem estiver no caminho da bola',
+                    'N3: sempre no alvo, com a cena de especial antes do chute e o efeito do tipo',
+                    'A bola curva sozinha pro canto longe do goleiro',
+                ],
+            },
+            {
+                title: 'Goleiro',
+                lines: [
+                    'A bicuda entra no lugar da defesa máxima: com a barra pronta, toque quando o chute rival vem e o goleiro capitão devolve com tudo',
+                    'No N1 e no N2 ele lança o companheiro mais à frente; no N3 a bola vai direto no gol rival',
+                    'O botão só acende no chute que o goleiro vai alcançar',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Pedras de evolução: um Jogo de cada região dá a pedra dali junto do prêmio (Fogo na Rota 1, Folha na Floresta, Lua no Mt. Moon, Água e Trovão em Cerulean)',
+                    'O rival dessa casa traz um que evolui com a pedra no 1 de 3, e quem você usar evolui na hora',
+                    'No Eevee a pedra escolhe a forma: Vaporeon, Jolteon ou Flareon',
+                    'A pedra é atalho: quem evolui por pedra continua evoluindo jogando',
+                    'A Pedra da Lua dos Fósseis do Mt. Moon também evolui na hora',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.29',
+        date: '2026-10-31',
+        title: 'Mapa da Rota com ramos e prêmios',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Cada ramo do mapa tem os seus tipos, e todo Jogo mostra o prêmio antes de você ir',
+                    'Toda vitória num Jogo contrata 1 de 3 do time rival, e depois vem o prêmio da casa',
+                    'Ginásio mais difícil (rival +2), com a carta do líder garantida, a MT dele e um item',
+                    'Até 2 Mercados por caminho, e a linha do Baú pode ser um Centro Pokémon, que tira o amarelo ou traz de volta quem estava fora',
+                    'Eventos novos: Fósseis do Mt. Moon, Pássaro lendário, Assalto da Equipe Rocket, Aposta do Blue, Juiz da Liga e Ovo da Creche',
+                    'Nos eventos e no Treino, tocar marca e um botão confirma',
+                ],
+            },
+            {
+                title: 'Menu de modos',
+                lines: [
+                    'Os três modos em fatias, estilo tela de seleção de luta, com o seu capitão saindo da borda',
+                    'O Modo Treinador agora se chama Time Ultimate, e os modos que ainda não chegaram mostram a data',
+                ],
+            },
+            {
+                title: 'Pênaltis',
+                lines: [
+                    'Na ordem dos cobradores, cada um mostra o chute',
+                    'No celular, a câmera da disputa não corta mais o gol',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.28',
+        date: '2026-10-30',
+        title: 'Anel-alvo e sons do golpe máximo',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'O anel agora fecha em cima de um anel-alvo parado, que acende na hora do perfeito',
+                    'O toque responde na hora: no perfeito, clarão, estrelas, moedas e a quadra treme',
+                    'Sons novos para o toque e para cada nível',
+                    'O N3 chega mais rápido: cada nível da barra pede 10 pontos em vez de 12',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Música nova nos menus, mais calma e com o SOC-CER-MON de leve',
+                    'O logo pisca o SOC-CER-MON no ritmo da música em todas as telas',
+                    'Toda tela de menu tem a mesma barra em cima, com o voltar sempre no mesmo lugar, e o treinador ficou maior',
+                    'As Novidades ficam no canto de cima, com um pontinho quando sai versão nova',
+                    'No Estádio, cada modo tem a sua placa em cima do JOGAR',
+                    'Da Sede, uma porta abre pra Sala de troféus, e o voltar volta pra Sede',
+                    'O Duelo ganhou a cara das outras telas de menu',
+                    'O símbolo do Soccermon entrou no lugar da pokébola nas taças e nos escudos',
+                ],
+            },
+            {
+                title: 'Mais leve',
+                lines: [
+                    'A partida e a Rota gastam bem menos processador no celular, e os menus usam metade da memória',
+                    'O jogo abre mais rápido',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'O mapa da Rota contava a partida de dois jeitos diferentes',
+                    'A barra da copa não some mais ao rolar o mapa',
+                    'A Ajuda e os Créditos voltam pra tela de onde você abriu',
+                    'Vender o capitão que estava no banco deixava um fantasma no time',
+                    'Com o celular deitado, o botão de ir pra casa do mapa da Rota ficava fora da tela',
+                    'A Final mostrava o nome do Planalto Índigo em inglês',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.27',
+        date: '2026-10-30',
+        title: 'Modos de jogo',
+        sections: [
+            {
+                title: 'Modos de jogo',
+                lines: [
+                    'Quem já jogou começa num menu de modos: Modo Copa (tudo o que já existe), Modo Treinador (chega no fim de novembro) e Modo História (2027)',
+                ],
+            },
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'Um anel fecha uma vez no ritmo da música: toque quando ele encostar. Cada nível tem cara e som próprios, e o perfeito tem som de perfeito',
+                    'Na hora do golpe a música abaixa e a quadra desacelera',
+                    'Chame o capitão: o botão acende em todo ataque do seu time e a bola procura ele. O fixo chamado conduz até a zona e chuta de lá',
+                    'O pivô solta o golpe de mais longe, igual ao ala',
+                    'A defesa máxima só gasta a barra quando defende: sem chute, a barra volta inteira. O goleiro capitão usa no N3',
+                ],
+            },
+            {
+                title: 'Sede e Laboratório',
+                lines: [
+                    'Os Pokémon desviam dos móveis e param de vez em quando',
+                    'Toque várias vezes seguidas num Pokémon e ele cai de costas',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['O Mew shiny do seu treinador aparece shiny no mapa da Rota'],
+            },
+        ],
+    },
+    {
+        version: '0.9.26',
+        date: '2026-10-29',
+        title: 'Escudos',
+        sections: [
+            {
+                title: 'Amigos',
+                lines: ['Cada amigo aparece com o escudo de verdade do clube dele: formato, símbolo e cores'],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'O acento de letras como o Í de Índigo não fica mais cortado nos letreiros e nos nomes',
+                    'No computador, a Sede e o Laboratório preenchem a tela',
+                    'Depois de uma atualização, o jogo aberto há muito tempo recarrega sozinho em vez de dar erro',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.25',
+        date: '2026-10-29',
+        title: 'Amigos',
+        sections: [
+            {
+                title: 'Amigos',
+                lines: [
+                    'Toque no nome de qualquer treinador (rankings, Liga, Duelo, lista de amigos) pra ver o perfil, pedir amizade ou desafiar',
+                    'O escudo do clube aparece ao lado do nome dos seus amigos',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['O Desafiar da lista de amigos voltou a mandar o convite. Na sala aparece se ele chegou'],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['As gavetas sobem mais suaves no celular'],
+            },
+        ],
+    },
+    {
+        version: '0.9.24',
+        date: '2026-10-28',
+        title: 'Quadra maior no celular',
+        sections: [
+            {
+                title: 'Partida nova',
+                lines: [
+                    'No celular em pé, a quadra ficou com o dobro do tamanho e a câmera acompanha a bola',
+                    'Tática, Trocar, Tempo e Lances viraram 4 botões perto do polegar',
+                    'Em Configurações você escolhe até que velocidade a câmera fica de perto',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['Se a sala do link demora pra abrir, aparece o botão Jogar uma copa enquanto você espera'],
+            },
+            {
+                title: 'Menus',
+                lines: ['O logo do Soccermon voltou pra tela inicial'],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'No computador, a barra de velocidade cabe inteira na tela',
+                    'Com o celular deitado, o intervalo cabe sem texto cortado',
+                    'O zoom no escanteio não mostra mais o fundo escuro fora da quadra',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.3',
+        date: '2026-10-27',
+        title: 'Pedidos dos jogadores',
+        sections: [
+            {
+                title: 'Golpe Máximo',
+                lines: [
+                    'O chute do nível 3 ficou quase indefensável: 57% ⇒ 82% de gol. A defesa máxima do goleiro ainda pode parar',
+                ],
+            },
+            {
+                title: 'Partida',
+                lines: [
+                    'Substituição pede confirmação e mostra a nota de quem sai e de quem entra naquela vaga',
+                    'No Duelo, as abas de baixo também ficam fechadas até você tocar',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'A Sede tem os Pokémon que você mais usa andando pela sala. Toque no artilheiro pra ver os gols',
+                    'Escalação no celular: o botão Carta abre a carta de quem está selecionado',
+                    'Cartão do treinador no celular com as 3 cartas lado a lado',
+                    'Copa do Dia: o ranking de hoje fica embaixo do JOGAR, e depois de jogar o botão leva pra ele',
+                    'Cartas do pacote no ritmo da música virou opção em Configurações (vem desligada)',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Retomar uma copa guardada ficava trocando de copa sem sair do lugar',
+                    'Escalação com o celular deitado cabe sem rolar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.2',
+        date: '2026-10-27',
+        title: 'Painéis mais leves',
+        sections: [
+            {
+                title: 'Menos coisa na tela',
+                lines: [
+                    'Painéis mais leves: borda fina, sem moldura grossa e sem caixa dentro de caixa',
+                    'Instruções e dicas só aparecem na primeira copa. Depois elas ficam na Ajuda (?)',
+                    'A barra de cima mostra só o treinador. Troféus, Pokédex e insígnias ficam no lugar de cada um',
+                    'O Estádio perdeu os 4 quadros de metas, e o logo grande só aparece na primeira visita',
+                    'O Prof. Carvalho fala uma vez só. A Sede mostra a missão mais perto de sair, e a Arena junta a Liga numa linha',
+                ],
+            },
+            {
+                title: 'Copa',
+                lines: [
+                    'Escalação: a formação abre numa janela com os bônus, o rival vira uma linha e a carta só aparece quando você toca num Pokémon',
+                    'Resultado mais curto: posse, chutes e a chave ficam em Estatísticas, e o treinador desbloqueado vira um aviso que some',
+                    'Mercado: o que a vitória rendeu cabe numa frase',
+                    'Partida no celular: uma coisa por vez em cima da quadra (o gol primeiro), e as abas de baixo ficam fechadas até você tocar',
+                ],
+            },
+            {
+                title: 'Em toda tela',
+                lines: [
+                    'Monitor grande: tudo fica maior, sem a coluninha perdida no meio',
+                    'Celular deitado: a Escalação, o Draft e o Resultado cabem na tela',
+                    'Nada de nome cortado em celular pequeno',
+                    'Avatar shiny agora aparece shiny no Estádio e na Arena',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.1',
+        date: '2026-10-26',
+        title: 'Ajustes nos lugares',
+        sections: [
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Tocar num Pokémon fazia ele pular de lugar. Agora ele só dá o pulinho, e quem precisa mudar de lugar some e reaparece',
+                    'A quadra da Arena ganhou as áreas, os gols e os escanteios',
+                    'Fechar uma janela (Tática, carta, confirmação) não pisca mais escuro',
+                    'As cartas do draft voltaram a mostrar os atributos como antes',
+                ],
+            },
+            {
+                title: 'Golpe Máximo',
+                lines: [
+                    'O botão fica aceso mais tempo e o jogo quase para enquanto ele brilha, até no 8x e no Duelo',
+                    'O chute do golpe vai em câmera lenta com a bola brilhando, e o nome do golpe de nível 3 fica mais tempo na tela',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23',
+        date: '2026-10-26',
+        title: 'Lousa de tática na escalação',
+        sections: [
+            {
+                title: 'Escalação no vestiário',
+                lines: [
+                    'A escalação fica numa lousa de tática: a Chave e a Tática são quadros pendurados, cada um abre a sua janela',
+                    'A prancheta encosta na lousa e o time inteiro aparece na primeira tela do celular',
+                    'Na copa, a barra de cima mostra a fase, os ₽ e os sorteios',
+                ],
+            },
+            {
+                title: 'Mais simples',
+                lines: [
+                    'Janelas sobem de baixo no celular, com o X redondo. Toda confirmação virou uma janela curta',
+                    'O pacote da vitória abre sozinho, e Pular e Sortear de novo ficam juntos embaixo',
+                    'O fim de jogo espera você tocar em Ver resultado',
+                    'Treinador ou título novo aparece logo abaixo do placar',
+                    'Mercado mais curto: os Patrocínios ficam numa linha que abre a janela',
+                    'Draft sem a mesma instrução repetida, e os atributos das cartas maiores',
+                    'O Golpe Máximo fica sempre à vista na barra de baixo da partida. Tocar antes da hora explica quando acende',
+                ],
+            },
+            {
+                title: 'Visual novo',
+                lines: [
+                    'Estádio: as metas sobem pra arquibancada e o botão de jogar fica embaixo, com a quadra livre',
+                    'Começar a copa, entrar em quadra e virar campeão ganham uma transição com papel de parede (um desenho diferente a cada vez)',
+                    'Perfil, Coleção, Sala de troféus, Ajuda e Configurações com a barra de cima, abas de pasta e barras de progresso novas',
+                    'Intervalo, ordem dos pênaltis e Campeão no mesmo estilo dos botões',
+                    'O aviso rápido desce do topo: verde quando deu certo, vermelho quando deu errado',
+                ],
+            },
+            {
+                title: 'Novo',
+                lines: [
+                    'Jogar como app: nas Configurações, Instalar põe o Soccermon na tela inicial do Android, em tela cheia (no iPhone, Compartilhar e Adicionar à Tela de Início)',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'A tela não pisca mais preta ao trocar de menu',
+                    'O Esperar do Golpe Máximo saía da tela em celular pequeno',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.22',
+        date: '2026-10-26',
+        title: 'Botões com relevo e cores',
+        sections: [
+            {
+                title: 'Visual novo',
+                lines: [
+                    'Botões com relevo no jogo inteiro: afundam e quicam no toque, com som',
+                    'A cor diz o que o botão faz: dourado joga, verde segue ou compra, azul é o resto, vermelho só pra apagar ou sair',
+                    'Um botão grande por tela, o do próximo passo. Comprar e Escalar viraram um selo na própria carta',
+                    'Painéis com moldura grossa e o título numa placa, igual ao Estádio',
+                    'O que está escolhido fica sempre em azul',
+                ],
+            },
+            {
+                title: 'Melhorado',
+                lines: [
+                    'Nível de treinador na barra de cima: sobe com as missões cumpridas',
+                    'Draft: as 3 cartas cabem na primeira tela do celular',
+                    'Monta pra mim ficou mais discreto: quem quer escolher escolhe',
+                    'O aviso rápido não cobre mais o botão de baixo',
+                    'A confirmação de Abandonar copa não fica mais atrás da barra do Jogar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.21',
+        date: '2026-10-25',
+        title: 'Tela inicial com cinco lugares',
+        sections: [
+            {
+                title: 'Nova tela inicial',
+                lines: [
+                    'A tela inicial virou cinco lugares, numa barra embaixo: Laboratório, Rota Índigo, Estádio, Arena e Sede. Toque ou arraste de lado pra trocar',
+                    'Estádio: um JOGAR dourado, a pílula pra escolher o modo e quatro metas à vista (Copa do Dia, missão, insígnias e cinturão)',
+                    'Rota Índigo: o mapa de Kanto com as insígnias e o seu time onde parou',
+                    'Laboratório do Carvalho: Pokédex, Álbum e Golpedex',
+                    'Arena: Duelo e Liga',
+                    'Sede do clube: Sala de troféus, perfil e o quadro de missões',
+                    'Pokémon selvagens andam, dormem e brincam em cada lugar. Toque neles',
+                    'O céu acompanha a hora do dia',
+                ],
+            },
+            {
+                title: 'Alterado',
+                lines: [
+                    'Novidades, Ajuda, Créditos e o resto do rodapé ficaram nas Configurações',
+                    'Quem prefere a tela antiga ainda abre com ?lab=off no endereço',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.20',
+        date: '2026-10-25',
+        title: 'Textos revistos e a 1ª partida',
+        sections: [
+            {
+                title: 'Melhorado',
+                lines: [
+                    'Textos do jogo revistos (Home, draft, partida e narração): frases mais curtas e naturais, "pra" no lugar de "para"',
+                    'Os golpes aparecem com o nome oficial em inglês em todo o jogo',
+                    'Tática Equilibrada mostra o número certo (+4% / +3%)',
+                    'A dica do intervalo ficou mais clara',
+                ],
+            },
+            {
+                title: 'Corrigido',
+                lines: ['O balão "Mude a tática…" agora aparece só depois do 1º gol ou no intervalo da 1ª partida'],
+            },
+        ],
+    },
+    {
+        version: '0.9.19',
+        date: '2026-10-24',
+        title: 'Rota Índigo e celular deitado',
+        sections: [
+            {
+                title: 'Adicionado',
+                lines: ['Depois da 1ª copa, um balão na tela inicial apresenta a Rota Índigo (aparece uma vez só)'],
+            },
+            {
+                title: 'Corrigido',
+                lines: [
+                    'Celular deitado pequeno: as recompensas depois da partida cabem na tela sem rolar',
+                    'Celular deitado pequeno: os botões do intervalo (Substituir e Começar o 2º tempo) ficam sempre à vista',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.18',
+        date: '2026-10-24',
+        title: 'Assinaturas e primeira visita',
+        sections: [
+            {
+                title: 'Assinaturas do nível 3',
+                lines: [
+                    '12 Pokémon trocam o efeito do tipo no golpe máximo nível 3 por um golpe só deles, com animação e faixa próprias',
+                    'Dragonite, Hiper Raio: fura todos os bloqueios. Alcance do goleiro rival x0,8 ⇒ x0,85 (Fúria do dragão ⇒ raio)',
+                    'Snorlax, Pancada: se joga no chute e quem estiver a até 4 m dele cai 1 s e fica paralisado',
+                    'Snorlax no gol, Soneca: na defesa máxima nível 3 deita na frente do gol. Alcance x1,4 ⇒ x1,8',
+                    'Arcanine, Estrela de fogo: estoura na frente do gol e quem estiver a até 4 m dela cai 0,6 s e se queima',
+                    'Articuno, Nevasca: a área rival inteira congela 1,2 s (antes, só quem estava na linha do chute, 1 s)',
+                    'Blastoise, Dois canhões: o 1º não entrou? A bola volta pra ele e ele emenda de qualquer distância',
+                    'Charizard, Voo em chamas: voa até 2 m rumo ao gol, chuta por cima e queima o goleiro que defender',
+                    'Pikachu, Raio em cadeia: o raio salta do goleiro pros 2 rivais mais perto e paralisa 1,5 s',
+                    'Gengar, Come-sonho: o goleiro cochila, alcance x0,8 ⇒ x0,75, até goleiro Normal (antes ele não caía)',
+                    'Mewtwo, Telecinese: a bola curva até ~11° pro canto longe do goleiro (antes ~8°) e o goleiro fica com alcance x0,9',
+                    'Gyarados, Tsunami: empurra todos os rivais 3 m (antes só a linha do chute, 2,5 m) e fica em fúria por 6 s',
+                    'Mew, Metrônomo: sorteia um dos 16 efeitos de tipo a cada golpe máximo',
+                    'Ditto, Transformação: copia o efeito do capitão rival, até a assinatura dele',
+                    'Evoluiu pra forma final no meio da copa? A assinatura vem junto',
+                    'Golpe que pega vários de uma vez (a Pancada do Snorlax) mostra PARALISADO uma vez só, no do meio; os outros ficam com o ícone',
+                    'A caixa de batalha sai da frente quando entra o gol ou a faixa do nível 3',
+                    'Nome comprido na faixa (PANCADA DO SNORLAX) encolhe pra caber no celular em pé',
+                ],
+            },
+            {
+                title: 'Primeira visita',
+                lines: [
+                    'Quem chega pela 1ª vez vê a Home com um botão só: Jogar (Copa Relâmpago, 4 jogos). Os outros modos ficam em Mais modos',
+                    'Na 1ª copa, Monta pra mim vira o botão principal do draft, e o balão explica ele antes de ensinar a montar na mão',
+                    'Quem já jogou continua caindo na Home de sempre',
+                ],
+            },
+            {
+                title: 'Celular e consertos',
+                lines: [
+                    'Celular em pé: quando dois nomes se encostam na quadra, o nome encurta pra 5 letras antes de sumir',
+                    'Save que carregava antes da tela: o balão do tutorial sumia e a Home de quem voltou ficava sem os modos',
+                    'Celular em pé: depois de escolher a ordem dos pênaltis, a quadra volta pra tela (a disputa ficava fora da vista)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.17',
+        date: '2026-10-23',
+        title: 'Nível 3 de especial e quem leva o golpe',
+        sections: [
+            {
+                title: 'Golpe máximo nível 3',
+                lines: [
+                    'A quadra congela 0,3 s na cor do tipo e uma faixa atravessa a tela com o retrato do capitão',
+                    'Na faixa: o golpe, o efeito do tipo ("Hyper Beam · efeito Dragão") e a nota do toque, PERFEITO! ou BOM',
+                    'No gol, na defesa, no bloqueio ou na trave sai uma onda de choque na cor do tipo',
+                ],
+            },
+            {
+                title: 'Golpes em quadra',
+                lines: [
+                    'Quem é atingido por um golpe de efeito é empurrado pra trás e ganha a palavra na cor do tipo: QUEIMADO, CONFUSO, DERRUBADO',
+                    'Rasteira, arremesso, carrinho com golpe e o nível 3 de Normal e Terrestre derrubam: o Pokémon tomba e fica com estrelinhas',
+                    'O status virou um ícone com um anel que mostra quanto falta, no lugar de PAR e BRN',
+                    'No painel do jogador: quem causou o status e quanto falta ("Zubat foi confundido por Psychic (2 s)")',
+                    'Chute com golpe: o rastro da bola agora tem a partícula do tipo (fogo sobe, água pinga). Antes saía sempre a estrelinha do Normal',
+                ],
+            },
+            {
+                title: 'Celular e tutorial',
+                lines: [
+                    'Celular deitado de tela baixa: golpe máximo e Esperar ficam lado a lado, sem tampar a quadra',
+                    'Tocar fora do balão do tutorial fecha o balão e já vale pro botão tocado',
+                    'Na 1ª visita, o balão não rola mais a página à toa e o logo da Home não some',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.16',
+        date: '2026-10-23',
+        title: 'Golpe máximo por tipo e 4 Patrocínios',
+        sections: [
+            {
+                title: 'Golpe máximo por tipo',
+                lines: [
+                    'No nível 3, o golpe máximo ganha o efeito do tipo do capitão: um efeito pra cada um dos 16 tipos',
+                    'Charizard solta a Bola em chamas, Blastoise empurra a defesa com a Onda e Gengar atravessa o zagueiro com a Bola fantasma',
+                    'Alakazam curva a bola, Dugtrio derruba os zagueiros a até 6 m do gol e Scyther solta o Enxame: o goleiro pode pular na isca',
+                    'Pikachu solta o Raio: bola x1,15 mais rápida e quem bloquear ou defender fica paralisado por 1,5 s',
+                    'O ícone do tipo aparece no botão: apagado nos níveis 1 e 2, aceso no 3',
+                    'Botão Esperar: guarda o golpe máximo pro próximo nível sem câmera lenta',
+                    'Capitão de dois tipos: vale o tipo do golpe máximo, se for um dos tipos dele',
+                    'Os líderes rivais também usam o efeito do capitão deles',
+                    'O chute do nível 3 mira mais pro meio do gol: bem menos bola pra fora',
+                ],
+            },
+            {
+                title: 'Patrocínios',
+                lines: [
+                    '4 Patrocínios novos no Mercado, ₽10 cada',
+                    'Olheiro de Viridian: Pokémon avulsos e pacotes do Mercado com a raridade da fase seguinte',
+                    'Preparador de Lavender: +6 de fôlego pro time todo',
+                    'Charanga de Pewter: +4 em tudo enquanto o time perde. Quando ela entra, aparece "A CHARANGA ENTROU" na quadra',
+                    'Clube Formador de Pallet: pontos pro seu time evoluir 14 ⇒ 10',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Rota de baby',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota começa na forma-base: o capitão e o draft saem como Charmander, Machop, Magikarp, e o time evolui pelo caminho',
+                    'Nota média do time no começo da Rota: 79,5 ⇒ 64,6',
+                    'Os mais fortes sem evolução (Snorlax, Lapras, lendários) só aparecem de reforço, depois do começo',
+                    'Sair da Rota e voltar traz o mesmo sorteio: a Rota só muda quando você termina uma',
+                    'Os rivais do começo ficaram mais fracos: 1ª partida -1 ⇒ -2 e 2ª partida 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Golpe máximo em 3 níveis, na batida',
+        sections: [
+            {
+                title: 'Golpe máximo',
+                lines: [
+                    'A barra agora tem 3 níveis e enche de novo depois de usar: golpe máximo por partida 1 ⇒ vários (a barra recarrega)',
+                    'Solte no nível 1 ou segure pro nível 3, o chute mais forte do jogo: força do chute x1,55 ⇒ x1,25 / x1,55 / x2,2 (níveis 1 / 2 / 3)',
+                    'No nível 3 o goleiro rival fica com alcance x0,7 nesse chute',
+                    'Toque quando o anel fechar no botão, na batida da música: PERFEITO! sai mais forte',
+                    'Sem som, o anel segue um pulso na tela',
+                    'Tocou um pouco antes de acender? O golpe sai no próximo chute',
+                    'Os líderes também tocam na batida, e o Lance quase sempre acerta',
+                ],
+            },
+            {
+                title: 'Defesa máxima',
+                lines: [
+                    'Com o capitão no gol, o nível dá mais tempo de defesa: 4 s ⇒ 0,75 s / 4 s / 6 s (níveis 1 / 2 / 3)',
+                    'O toque perfeito segura a bola',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Novidades mais fáceis de ler',
+        sections: [
+            {
+                title: 'Novidades',
+                lines: [
+                    'A versão mais nova fica no topo, em destaque, com a data',
+                    'As antigas ficam recolhidas: toque para abrir',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.12',
+        date: '2026-10-22',
+        title: 'No ritmo da música',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo pisca no SOC-CER-MON de qualquer música, não só na Abertura',
+                    'As cartas do draft viram na batida da música',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.11',
+        date: '2026-10-22',
+        title: 'Viradas na música e temas dos líderes',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'Avançar na copa troca a música com virada de bateria e uma ponte',
+                    'Cada ponte tem o som da tela que entra',
+                    'O VERSUS entra com virada, ponte e prato',
+                    'Voltar pra Home continua trocando só no tempo da batida',
+                ],
+            },
+            {
+                title: 'Líderes',
+                lines: ['Erika, Koga, Sabrina, Blaine e Giovanni ganharam tema próprio antes da partida'],
+            },
+        ],
+    },
+    {
+        version: '0.9.10',
+        date: '2026-10-22',
+        title: 'Time no ranking e acabamento',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'O ranking mostra o time de cada treinador, com o capitão marcado',
+                    'A formação avisa quando a tentativa não entra no ranking',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Final perdida aparece como vice, e o segundo amarelo como cartão vermelho',
+                    'Patrocínios do mapa com ícone e nome no celular',
+                    'A formação da Rota tem botão de voltar',
+                ],
+            },
+            {
+                title: 'Acabamento',
+                lines: [
+                    'Tecla M dispara o golpe máximo',
+                    'O volume da música não estala mais ao mexer',
+                    'Na Sala de troféus a fala não tampa as taças no celular',
+                    'Derrota perdoada fica amarela na barra da Home',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.9',
+        date: '2026-10-22',
+        title: 'Música no tempo e voltar do Android',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'A logo da Abertura pisca a cada SOC-CER-MON da música',
+                    'A música troca de tela no tempo da batida',
+                    'Disputa de pênaltis com música própria até a cobrança decisiva',
+                    'Os Créditos tocam "A última partida"',
+                    'Lt. Surge ganhou tema próprio antes da partida',
+                    'A Pressão final segura a música até o apito',
+                    'Saiu a vinheta da virada no placar',
+                ],
+            },
+            {
+                title: 'Celular',
+                lines: [
+                    'O botão voltar do Android sai da tela em vez de fechar o jogo',
+                    'Resultado e escalação mais curtos, com partes que abrem e fecham',
+                    'No draft em pé, as vagas do time ficam fixas no topo',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.8',
+        date: '2026-10-22',
+        title: 'Gritos mais baixos',
+        sections: [
+            {
+                title: 'Som',
+                lines: [
+                    'Escolher no draft agora é silencioso: só a música toca',
+                    'Os gritos dos Pokémon ficaram bem mais baixos, atrás da música',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.7',
+        date: '2026-10-22',
+        title: 'Música no jogo e Rota com escolhas',
+        sections: [
+            {
+                title: 'Música',
+                lines: [
+                    'Trilha própria em todas as telas: Abertura, draft, escalação, Mercado, partidas, Planalto e Sala de troféus',
+                    'Brock, Misty e Equipe Rocket têm tema e música de partida próprios',
+                    'Rota 1, Mt. Moon e Cerulean tocam a música da região no mapa',
+                    'Virou o placar no 2º tempo? Toca a vinheta da virada',
+                    'Volume da música nas Configurações (zero desliga)',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'O mapa agora tem bifurcações de verdade: quase toda rota tem escolha',
+                    'Os treinadores da Rota jogam com o tipo deles (Ornitólogo tem pássaro)',
+                    'Treino sem ninguém pra evoluir vira Treino de técnica: escolha um item ou MT',
+                    'Resultado mostra o ₽ ganho, e o evento diz o que aconteceu',
+                    'Mapa melhor no celular, em pé e deitado',
+                    'Quem cai no grupo não vê mais "Vitória!"',
+                    'Quem estava no meio de uma Rota pode ver rivais diferentes nas próximas casas',
+                ],
+            },
+            {
+                title: 'Primeira vez',
+                lines: ['Balões curtos mostram onde tocar na primeira vez em cada modo; dá pra pular e rever na Ajuda'],
+            },
+            {
+                title: 'Acessibilidade e consertos',
+                lines: [
+                    'Jogo inteiro pelo teclado, com foco visível, e o golpe máximo avisa o leitor de tela',
+                    '"Sorteio" é o nome único pra sortear de novo',
+                    'O Duelo ganhou cabeçalho e botão de voltar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.6',
+        date: '2026-10-22',
+        title: 'Beira da quadra e MTs mais fortes',
+        sections: [
+            {
+                title: 'Beira da quadra',
+                lines: [
+                    'Golpe máximo: a barra enche com os lances do time e o botão acende na hora do chute do capitão',
+                    'A zona do chute muda com a posição do capitão: pivô 15 m, ala 18 m, fixo 22 m',
+                    'Capitão no gol vira defesa máxima: o próximo chute que ele alcança é defesa',
+                    'Goleiro-linha: o goleiro sobe e o time ataca com 5 contra 4, com o gol vazio atrás',
+                    'Pedido de tempo: 1 por tempo, o time recupera fôlego e as trocas valem na hora',
+                    'O treinador rival da Copa usa as mesmas armas',
+                    'Troca e prancheta valem na hora, com a bola rolando; os gritos do técnico saíram',
+                ],
+            },
+            {
+                title: 'MTs',
+                lines: [
+                    'O golpe ensinado por MT sai mais vezes, bate mais forte e ganha o selo MT',
+                    'Mega Drain 40 ⇒ 100 de poder, BubbleBeam 65 ⇒ 100, Fissure acerta 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.5',
+        date: '2026-10-21',
+        title: 'Cada formação joga de um jeito',
+        sections: [
+            {
+                title: 'Formações',
+                lines: [
+                    'Losango: triângulos e passe curto por dentro',
+                    'Quadrado: a bola vai pelos lados',
+                    'Linha de 3: o pivô vem buscar, faz a parede e quem chega bate de primeira',
+                    'Rodízio: os quatro trocam de vaga o tempo todo e saem rápido no contra-ataque',
+                    'Dois pivôs: jogo direto, chute logo depois de roubar a bola',
+                    'Ferrolho: bloco baixo e fechado, saída rápida',
+                    'Cada formação leva vantagem contra outra; o ícone na escalação mostra quando encaixa',
+                ],
+            },
+            {
+                title: 'Golpes',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey e Jolteon têm golpes próprios',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        date: '2026-10-21',
+        title: 'Duelo melhor de 3 e Rota polida',
+        sections: [
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3 com o mesmo time: a série tem placar de jogos no quadro',
+                    'Jogo anulado é jogado de novo; sair entre os jogos dá vitória por W.O. pra quem ficou',
+                ],
+            },
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'Textos revistos: cartão amarelo explicado em uma regra só, "Fim da linha" e eventos mais curtos',
+                    'O mapa usa a tela toda no PC',
+                    'Quem está fora aparece com o motivo (lesão, creche ou cansaço) e não entra em quadra',
+                    'Hall da Fama separado em Copa Relâmpago e Rota Índigo, com taça índigo própria',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        date: '2026-10-21',
+        title: 'Rota Índigo na frente',
+        sections: [
+            {
+                title: 'Tela inicial',
+                lines: [
+                    'Rota Índigo e Copa Relâmpago lado a lado no PC, com a Rota maior e o selo NOVO',
+                    'Duelo e Copa do Dia embaixo, um do lado do outro',
+                    'No celular, o botão da Rota ocupa a largura toda',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        date: '2026-10-21',
+        title: 'Pokédex com texto e Pokémon com mais caras',
+        sections: [
+            {
+                title: 'Coleção',
+                lines: ['A ficha do Pokémon e a carta aberta do Álbum trazem o texto da Pokédex'],
+            },
+            {
+                title: 'Pokémon mais vivos',
+                lines: [
+                    'O Pokémon grita quando você escolhe no draft, no VERSUS e na carta grande do pacote',
+                    'Sala de troféus: à noite ele dorme de verdade; de dia às vezes senta ou come',
+                    'Rota Índigo: o time cochila no Descanso, faz cara de dor no carrinho e fica tonto no treino puxado',
+                    'Eliminado: o time aparece caído e o capitão com lágrima',
+                ],
+            },
+            {
+                title: 'Rota Índigo e Copa Relâmpago',
+                lines: [
+                    'O mapa mostra o capitão rival em cada casa de partida e o time dele em ícones',
+                    'A chave da copa mostra o capitão de cada clube',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3',
+        date: '2026-10-21',
+        title: 'Golpes revisados',
+        sections: [
+            {
+                title: 'Cada um com o seu tipo',
+                lines: [
+                    'Todo Pokémon leva pelo menos 1 golpe de cada tipo dele (quando a Gen 1 deixa)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly e Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat e Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino e Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'Sem golpe repetido',
+                lines: [
+                    'Charmander e Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Golpes que agora fazem o que prometem',
+                lines: [
+                    'Harden segura a bola no próximo carrinho (como o Defense Curl)',
+                    'Slam alcança mais longe (2,8 m)',
+                    'Amnesia sobe passe, chute e leitura',
+                    'Tri Attack pode queimar, congelar ou paralisar',
+                    'Explosion pega todo mundo a 4 m',
+                    'Light Screen e Reflect não dão mais chute escondido',
+                    'Fly e Dig com a bola levam ela 2 m (era 4)',
+                ],
+            },
+            {
+                title: 'Textos',
+                lines: [
+                    'Todo golpe explica o que faz em quadra com os números (quanto tempo, quem é imune, quanto acerta, o preço pra quem usa)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        date: '2026-10-21',
+        title: 'A Rota Índigo volta',
+        sections: [
+            {
+                title: 'Rota Índigo',
+                lines: [
+                    'A Rota está de volta: a 1ª partida quebrava a escalação (consertado) e ela foi jogada inteira antes de voltar',
+                    'Continuar num evento "?" volta pro evento (antes caía na escalação e repetia a partida)',
+                    'Cartão amarelo e derrota no grupo dizem DERROTA (não Fim da linha); o vermelho só sai na 2ª derrota no mapa',
+                    'A copa salva, o campeão (x/8), o gol da copa e o card do título falam da partida da Rota, não das Oitavas',
+                    'Nova copa no fim de uma Rota começa outra Rota',
+                    'Titular machucado: o aviso aparece do lado do Jogar',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Álbum leve e vitrine fácil',
         sections: [
             {
@@ -30,7 +1879,8 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.2',
-        title: 'Casa arrumada',
+        date: '2026-10-21',
+        title: 'Tela inicial reorganizada',
         sections: [
             {
                 title: 'Tela inicial',
@@ -89,6 +1939,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cartas de volta',
         sections: [
             {
@@ -103,6 +1954,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Rota Índigo',
         sections: [
             {
@@ -144,6 +1996,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Tudo na prancheta',
         sections: [
             {
@@ -166,6 +2019,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Golpes e Patrocínios explicados',
         sections: [
             {
@@ -186,6 +2040,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Pacote e Patrocínios',
         sections: [
             {
@@ -200,6 +2055,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Ajustes da semana',
         sections: [
             {
@@ -220,6 +2076,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Mercado organizado',
         sections: [
             {
@@ -233,6 +2090,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Mercado e Patrocínios',
         sections: [
             {
@@ -266,6 +2124,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Sala de troféus e menus novos',
         sections: [
             {
@@ -307,6 +2166,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'Álbum em livro',
         sections: [
             {
@@ -328,6 +2188,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Cartas em camadas e álbum de figurinhas',
         sections: [
             {
@@ -381,6 +2242,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'Logo novo e faixas da torcida',
         sections: [
             {
@@ -405,6 +2267,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Melhores momentos, Copa do Dia e medalhas',
         sections: [
             {
@@ -521,6 +2384,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Ícone MVP e conquistas retroativas',
         sections: [
             {
@@ -534,6 +2398,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, selos e faixa da torcida',
         sections: [
             {
@@ -571,6 +2436,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Lendas douradas e prancheta ao vivo',
         sections: [
             {
@@ -653,6 +2519,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Escanteio e duelo ao vivo',
         sections: [
             {
@@ -692,6 +2559,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Balanceamento geral e o seu treinador',
         sections: [
             {
@@ -766,6 +2634,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Partida com peso, pacote de cartas e torcida',
         sections: [
             {
@@ -831,6 +2700,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall da Fama e o título do jeito que merece',
         sections: [
             {
@@ -863,6 +2733,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Ajustes do lançamento',
         sections: [
             {
@@ -873,6 +2744,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Perfil, Pokédex e golpes novos',
         sections: [
             {
@@ -924,6 +2796,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Beta aberta',
         sections: [
             {
@@ -958,6 +2831,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Trocas que contam e privacidade',
         sections: [
             {
@@ -979,6 +2853,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Revisão completa',
         sections: [
             {
@@ -1008,6 +2883,7 @@ export const PATCH_NOTES: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Contas, evolução e golpes de verdade',
         sections: [
             {
@@ -1061,7 +2937,1706 @@ export const PATCH_NOTES: PatchNotes[] = [
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
     {
+        version: '0.9.52',
+        date: '2026-11-13',
+        title: 'Clearer descriptions',
+        sections: [
+            {
+                title: 'Notice',
+                lines: ['From now on, one update per week'],
+            },
+            {
+                title: 'Game text',
+                lines: [
+                    'Move, max move, item, tactic, Indigo Road and Help descriptions state the effect with the game numbers',
+                    'Fixed descriptions that did not match the game: Lum Berry, Rolling Kick, Solar Beam, Mist, Light Screen, Mirror Move, Mimic, Disable, Conversion, 2-2 formation and Boost',
+                    '3-1 formation: the weakness now reads "−Forward passing" (was "−Slow")',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.51',
+        date: '2026-11-13',
+        title: 'Sharp sprites, new animations and Duel',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Sharp Pokémon on any screen, no blur',
+                    'Lighter on phones: resolution adjusts itself when the device can’t keep up',
+                    'New animations: Pokémon stretch and squash when running, kicking, controlling, colliding, getting dribbled and landing a goal celebration',
+                    'The ball squashes on hard shots and on the post, and the post shakes',
+                    'More dust on sprints, collisions and dribbles',
+                    'Names above the Pokémon without broken letters (bigger on PC)',
+                    'New max move bar, in segments',
+                ],
+            },
+            {
+                title: 'Lightning Cup and Daily Cup',
+                lines: [
+                    'After a win there is only the pick 1 of 3 reward, no ₽ or Market',
+                    'A Sponsor shows up in the reward on 40% of wins (field sponsors or the Cinnabar Lab)',
+                ],
+            },
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Won Match: rival’s pick 1 of 3 ⇒ ₽3 extra to spend at the map Markets',
+                    'An unused stone from double ₽ goes to the Bag',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'Out of BETA',
+                    'Your duels in the Arena: the last 8 and the score against each friend',
+                    'Create room shows the chosen mode’s rule in one line',
+                    'Duel end with Rematch and Back to start',
+                    'The bar’s N3 takes the type color of each team’s captain (it showed red)',
+                    'Layout fixes on phone and PC (room, draft, lineup and match)',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Each mode says what it is in one line, in the mode menu and in Help',
+                    'Team Ultimate: the "Resets every season" note is back',
+                    'Patch notes with more direct text and titles',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.50',
+        date: '2026-11-12',
+        title: 'End-of-match animations and Profile stats',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Added new end-of-match animations',
+                    'In the Diamond, the wingers also play the ball back to the fixo in the build-up',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Your numbers in the Profile: win rate, goals for and against, titles by mode, favorite card and best run',
+                    'Friends in the top bar, on every screen',
+                    'Close and back take you where you were (the Club X no longer drops you in the Profile)',
+                    'The Stadium shows the captain of your last team, not the default avatar Pikachu',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.49.1',
+        date: '2026-11-12',
+        title: 'Plays in any browser',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Browsers that block saves (Opera GX and others with site cookies blocked): PLAY works again, and a notice explains that progress is lost when you close the tab',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.49',
+        date: '2026-11-11',
+        title: 'Simpler menus',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'The bottom tabs light up as you play: Lab on the 1st match, Route and Club House on the 1st cup, Arena on the 2nd',
+                    'Goals in the Club House: missions and medals in one place; the locker is now the Profile',
+                    'The League shows up in the last week before it opens',
+                    'Settings with the essentials up front and the rest under More options',
+                    'Shorter Help: how each mode works on top and only the rules that are not on screen',
+                    'Lineup board and VERSUS are back to the classic sprites, with smaller thumbnails and the teams facing each other',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: ['The Market no longer sells TMs: that slot becomes an item (TMs are still a gym reward)'],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Rainbow flick with the ball arcing over the defender, a 360° roulette spin and an elastico feint the defender bites on',
+                    'New dribble: the sombrero flick, lifting the ball over the defender',
+                    'Shots, passes, tackles and saves hit the ball on the right frame (the animation used to lag)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.48',
+        date: '2026-11-10',
+        title: 'Pivot in build-up on the 3-line',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'In the 3-1, the wingers play the ball back to the fixo in the build-up instead of only cycling with the pivot',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.47.2',
+        date: '2026-11-10',
+        title: 'Clean numbers on PC',
+        sections: [
+            {
+                title: 'Screens',
+                lines: ['On PC and large screens, numbers no longer show a broken 9 (scoreboard, money, cards)'],
+            },
+        ],
+    },
+    {
+        version: '0.9.47.1',
+        date: '2026-11-10',
+        title: 'Your name everywhere',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    'Signed in with Google and no name picked: the top bar and the rankings show your first name, not "Trainer"',
+                    'Pencil next to the name in the Profile to show you can edit it',
+                    'Sign-in from the iPhone home screen shortcut',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.47',
+        date: '2026-11-10',
+        title: 'Harder Final and Events on the Route',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Losing the 1st Route match no longer gives a yellow card',
+                    'The Final got harder: the rival no longer plays with the crowd against them',
+                    'Every stop row on the map has a "?" Event',
+                ],
+            },
+            {
+                title: 'Screens',
+                lines: [
+                    'Card and title numbers without the broken 9',
+                    'The new trainer badge fits on one line and no longer covers the sign',
+                    'The Trophy room shows right away, no black screen while loading',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.46',
+        date: '2026-11-10',
+        title: 'Indigo Route animations',
+        sections: [
+            {
+                title: 'Indigo Route',
+                lines: [
+                    'Added Game Corner animations',
+                    'Added Pokémon Center animations',
+                    'Added Safari Zone animations',
+                    'Map: the captain walks to the chosen spot, the next spots light up and each region has a sign',
+                    'On PC the whole map fits the screen, with a panel of the next spots',
+                    'A stone nobody uses goes straight to the Bag, no extra screen',
+                ],
+            },
+            {
+                title: 'Screens',
+                lines: [
+                    'The Pokédex sheet no longer sits under the top bar (the close button shows)',
+                    'Numbers without the broken 9 on the scoreboard, the trophy counter and the cup money',
+                    'Full NEW badge in the Pokédex',
+                    'Landscape phone: the club name shows in the Stadium and the Route button no longer wraps',
+                    'Before the match the screen already has the gym color, not wood',
+                    'Smoother pack showcase and What’s new on low-end phones',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.45',
+        date: '2026-11-10',
+        title: 'Title celebration',
+        sections: [
+            {
+                title: 'Title',
+                lines: [
+                    'Win the cup: the captain lifts the trophy in the middle of the court',
+                    'Win the Indigo Road: the crowd storms the court and throws the captain in the air',
+                    'A new badge stamps the screen on your first win against each leader',
+                    'Back as champions: the Stadium does the wave and shows the title on the board',
+                    'The Hall of Fame parade is kept for Road titles and the first of each mode, and is shorter',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Each Pokémon celebrates a goal its own way: jump, spin or pose',
+                    'Named dribbles for high-dribble players: rainbow flick, roulette and elastico, in slow motion',
+                    'The keeper dives toward the ball without leaving the goal, and feels it when he concedes',
+                ],
+            },
+            {
+                title: 'Team Ultimate (opens Nov 27)',
+                lines: [
+                    'One currency: pack points became Coins (1 point = 5 Coins)',
+                    'Picks in the Shop: Bronze 160 · Silver 400 · Gold 960 Coins',
+                    'A bought Pick never goes up a metal: with no new species, it can be a repeat',
+                ],
+            },
+            {
+                title: 'Look',
+                lines: [
+                    'Game Corner and Safari Zone with their own scenery',
+                    'Pokémon at one scale per screen, no blurred pixels',
+                    'VERSUS, Hall of Fame and lineup use the same Pokémon as the match',
+                    'The mode menu shows its Pokémon all at once on PC',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.44.2',
+        date: '2026-11-09',
+        title: 'Sharp type icons',
+        sections: [{ title: 'Screens', lines: ["Type icons are sharp at any size (Fairy's bow no longer blurs)"] }],
+    },
+    {
+        version: '0.9.44.1',
+        date: '2026-11-09',
+        title: 'Replays on the right court',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: [
+                    "Highlights now play on the rival's gym court, not the default one",
+                    "What's new: the Team Ultimate text",
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.44',
+        date: '2026-11-09',
+        title: 'My packs and Pokémon Picks',
+        sections: [
+            {
+                title: 'Team Ultimate (opens on 11/27)',
+                lines: [
+                    'My Packs: a pack waits until you open it, and Open all opens the whole stack',
+                    'Pokémon Picks: choose 1 of 3, cards face down until you flip them',
+                    'Home in blocks and the Play tab: Trainer Battles, with more modes coming soon',
+                    "The rival looks at your team's strength (average × chemistry), not just the average",
+                    'With no rival at your level, the match pays the Coins of the level it reached',
+                    'Master with a 1st-month team: 60 ⇒ 36 Coins per match',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Wide map: more paths and new stops (Ace Trainer, Safari Zone, Celadon Game Corner)',
+                    'The last stop is a choice: Training, Plateau Market or Center',
+                    'Skip shows its reward up front: ₽, a free Market refresh, rival −1, rerolls',
+                    "A Center with no one to heal becomes Bill's PC",
+                    'Training rest becomes Day off: +₽5 and whoever is out comes back',
+                    'An unused stone goes to the Bag (or sells for ₽4)',
+                    'Whoever leaves the bench leaves an empty slot, and the next signing takes it',
+                ],
+            },
+            {
+                title: 'Evolution',
+                lines: [
+                    'An evolving card never loses a stat: it keeps the highest of each across its forms',
+                    'Poliwhirl ⇒ Poliwrath: PAC 66 ⇒ 84',
+                    'An ability that changes stats stays (Gyarados keeps Swift Swim)',
+                    "The evolution badge shows the new form's position",
+                    "The card's sheet shows the evolution line",
+                    'A stat on the card is what it is worth on the pitch, and the ▲ shows how much is bonus',
+                ],
+            },
+            {
+                title: 'Cup and match',
+                lines: [
+                    "The rival's max move also comes in slow motion, like yours",
+                    'The keeper never turns his back on a shot, dives toward the ball and feels the goal',
+                ],
+            },
+            {
+                title: 'Screens',
+                lines: [
+                    "What's new goes full screen: news with art and the release notes",
+                    "Movedex: special moves and the keeper's punts",
+                    "Haven't played today's Daily Cup? PLAY shows it first",
+                    'Out of storage: the game warns that your progress is not being saved',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'Rerolling the rival pick gave back the same 3 cards',
+                    'Phone upright: the court that follows the ball got stuck in an error after the match',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.43',
+        date: '2026-11-05',
+        title: 'Rivals with lower stats',
+        sections: [
+            {
+                title: 'Cup and Road',
+                lines: [
+                    'Home crowd: rivals play with 4% lower stats ⇒ fewer upsets against you',
+                    'In the first 3 matches of the Road, 7% lower',
+                    'Rivals evolve with the same bar as you: 10 ⇒ 14',
+                    'Duel and League stay without the crowd',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42.2',
+        date: '2026-11-05',
+        title: 'Called captain attacks more',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Called your captain during an attack: wingers and pivots now also carry the ball into the zone and shoot, as defenders already did',
+                    'The team passes more to the called captain',
+                    "Big boot: if the rival's shot doesn't reach the keeper, it stays ready for the next one",
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42.1',
+        date: '2026-11-05',
+        title: 'Bicuda works with late timing',
+        sections: [
+            {
+                title: 'Keeper captain',
+                lines: [
+                    'The big boot goes even when the tap is off the beat, just weaker (before, the keeper only saved and the bar was gone)',
+                    "L1 and L2 always send a long ball to a teammate, even against the rival's max move; L3 always shoots at goal",
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.42',
+        date: '2026-11-05',
+        title: 'Monotype',
+        sections: [
+            {
+                title: 'Monotype synergy',
+                lines: [
+                    'All 5 on court of the same type: Monotype, +10% ⇒ +12%',
+                    'With the bench of that type: 6 in the squad +16% and 7 in the squad +22%',
+                    'Its own badge, and the cards of that type glow in its color',
+                    'The +15% synergy cap is gone: type and story synergies stack in full',
+                ],
+            },
+            {
+                title: 'Gym Leaders',
+                lines: [
+                    "Leader teams have at least 4 starters of the leader's type, and a captain of that type",
+                    'No counter-types or off-type legendaries in gym teams (no Charizard for Misty)',
+                    'When the rival brings a monotype team, the trainer warns you before kick-off',
+                    'Round of 16 a bit easier; the Indigo League still brings whoever it wants',
+                ],
+            },
+            {
+                title: 'Tidier screens',
+                lines: [
+                    'Lineup: tactic, formation and set pieces in rows that open; synergies only when there are any',
+                    'Result with one main button and each card shown once',
+                    'Match on PC fits the screen, opens on Plays, and corners and fly goalkeeper live in the Team tab',
+                    'On phones, the max move button shows its 3 level pips',
+                    'Stadium, mode menu, Help, Profile, Club and Settings with less repetition',
+                    'One tip at a time across Result, Reward and Shop',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.41.1',
+        date: '2026-11-04',
+        title: 'End of the Road',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: ['New cup at the end of the Road no longer crashes', 'Winning the Road wins the Indigo League'],
+            },
+        ],
+    },
+    {
+        version: '0.9.41',
+        date: '2026-11-04',
+        title: 'Cinematic camera on N3',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Level 3 with movie camera moves: close-up on the captain, impact on the shot and the net bulging on a goal',
+                    'Each type leaves its mark on level 3: burning floor, bouncing lightning, ghost ball and 13 more',
+                    'The 12 signatures get their own touch, from Hyper Beam to Mew Metronome',
+                    'Level 2 draws the wave that knocks down the line on the floor, in the type colour',
+                    'Level 1 in the type colour, with the move name next to the shooter',
+                    'Punts with the keeper foot, impact and a trail to where the ball goes',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ['The guest screen no longer gets stuck at full time'],
+            },
+        ],
+    },
+    {
+        version: '0.9.40',
+        date: '2026-11-03',
+        title: 'Bicuda N3 against the max move',
+        sections: [
+            {
+                title: 'Counter',
+                lines: [
+                    'A captain keeper with a level 3 punt hits back the rival level 3 max move and time stops',
+                    'The two talk while time is frozen, with movie camera moves and manga panels',
+                    'The first-time punt crosses the court and is always a goal, with the longest celebration in the game',
+                    'Special lines for 16 matchups and many Pokémon, from Magikarp to Slowpoke',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: [
+                    'Gold cards reveal with their type effect: Ice freezes the screen, Fire burns it and 14 more',
+                    'Breaking glass only on special editions',
+                    'Each rarity with its own stadium sky',
+                    'Type and position screens on gold cards too',
+                    'Calmer ball tricks and the short version at 3 s',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.39.1',
+        date: '2026-11-03',
+        title: 'Bicuda duel removed for now',
+        sections: [
+            {
+                title: 'Tweaks',
+                lines: [
+                    'The keeper showdown is out for now: the level 3 punt is the usual counter again',
+                    'Walkout with the 0.9.38 ball tricks',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.39',
+        date: '2026-11-03',
+        title: 'Keeper showdown',
+        sections: [
+            {
+                title: 'Keeper showdown',
+                lines: [
+                    'A captain keeper with a level 3 punt holds the rival level 3 max move and the match stops',
+                    'The two face off and talk, then comes the punt from goal to goal',
+                    'The showdown punt is always a goal, with the longest celebration in the game',
+                    'Special lines for 16 matchups and 14 Pokémon, from Charmander vs Charizard to Magikarp',
+                ],
+            },
+            {
+                title: 'Player suggestions',
+                lines: [
+                    'Synergies in the match Team tab',
+                    'Draft: the card shows the synergy it unlocks (+Psychic 2)',
+                    'Draft: tap a Pokémon on the board to see its card',
+                    'NEW tag on Pokémon not yet in your Pokédex',
+                    'Champion: your team in every game of the road to the title. Tap to see the lineup',
+                ],
+            },
+            {
+                title: 'Walkout',
+                lines: ['Calmer ball tricks: keepy-ups, dribble, stomp, bicycle kick, flight and cannon'],
+            },
+            {
+                title: 'Phone',
+                lines: [
+                    'Lineup at 320 fits without scrolling',
+                    'Sideways Market: Buy sits under the card',
+                    'Reward: bigger cards and the whole TM text',
+                    'Sideways match: bigger court and the buttons in the right column',
+                    'Arena and Daily Cup at 320: signs no longer cover the marquees',
+                    'Bigger Draft slot labels at 320',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: ['The new avatar dot sits on the avatar corner'],
+            },
+        ],
+    },
+    {
+        version: '0.9.38.2',
+        date: '2026-11-03',
+        title: 'Defender as a second position',
+        sections: [
+            {
+                title: 'Positions',
+                lines: [
+                    'Snorlax can now play Defender: Defender 59 ⇒ 77',
+                    'Lickitung can now play Defender: Defender 49 ⇒ 64',
+                    'Wigglytuff can now play Defender: Defender 37 ⇒ 48',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.38.1',
+        date: '2026-11-03',
+        title: 'Screen fixes',
+        sections: [
+            {
+                title: 'Phone',
+                lines: [
+                    'Daily Cup on a sideways phone: the Ranking shows (it was off screen)',
+                    'Draft: card tags and the bench Pick button no longer overflow at 320 and 390',
+                    'Stadium PLAY, the COMING SOON strip and Prof. Oak on the Route fit whole',
+                    'Duel: Share inside its button and the sideways waiting room without cut names',
+                    'Sideways Market: the arrow no longer covers the price and item text ends whole',
+                    'Trophy room at 320: the end of the line and Next in view',
+                ],
+            },
+            {
+                title: 'PC',
+                lines: ['The unlocked trainer seal grows with the screen'],
+            },
+        ],
+    },
+    {
+        version: '0.9.38',
+        date: '2026-11-03',
+        title: 'Rare card entrance on the pitch',
+        sections: [
+            {
+                title: 'Packs',
+                lines: [
+                    'A rare card in a Market pack walks out: stadium, big screens with type and position, silhouette and the card reveal',
+                    'Three tiers: rare (Gold 75 to 84), very rare (Gold 85+, Shiny and Event) and special (Icon and Highlight)',
+                    'Each Pokémon comes in with a move: keepy-ups, bicycle kick, header, dribble, flight, flame and more',
+                    'Skip after 1 second. From the 2nd rare of the day on, the short version',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.37.1',
+        date: '2026-11-02',
+        title: 'Lightning Cup in place',
+        sections: [
+            {
+                title: 'Menus',
+                lines: [
+                    'With a cup in progress, the Lightning Cup name fits centered on its phone tile',
+                    'The floating SMN channel bug is gone',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.37',
+        date: '2026-11-02',
+        title: 'TV-style screen changes',
+        sections: [
+            {
+                title: 'Broadcast',
+                lines: [
+                    'Every screen change is a TV cut. With Reduce motion it stays a fade',
+                    'Channel bug in the corner with the screen name, and LIVE during matches',
+                    'Cleaner mode menu that looks like a channel: 1 LIVE, and what is coming in a COMING SOON strip',
+                    'Swiping between screens on phones works the same',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.36',
+        date: '2026-11-02',
+        title: 'Lab, HQ and Credits',
+        sections: [
+            {
+                title: 'Lab and HQ',
+                lines: [
+                    'Buttons became objects in the scene: the shelf opens the Pokédex, the binder the Album and the board the Movedex',
+                    'At the HQ: the cabinet opens Trophies, the crest the Club, the board Friends and the locker the Trainer',
+                    'The HQ mission on a sign with a progress bar',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Indigo group and Champions with a TV scoreboard, and See all for the full table and numbers',
+                    'Halftime without the repeated title, with Substitute apart from Start the 2nd half',
+                    'Market: New offers with the free tag on phones too',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'Credits roll like a game ending, with Pokémon parading. Hold to speed up',
+                    'League on a sign on the Arena wall',
+                    'With a cup in progress, the mode shows instead of a repeated Continue',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.35',
+        date: '2026-11-02',
+        title: 'Draft board',
+        sections: [
+            {
+                title: 'Draft',
+                lines: [
+                    'While you pick 1 of 3, your team shows on the lineup board, each one in their position',
+                    'On a phone held upright the board lies sideways, goal on the left',
+                    'The 3 cards fit whole on any screen',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'End of cup with New cup as the only big button',
+                    'Bigger titles in normal case, small text bigger and small buttons easier to tap',
+                    'Green only confirms: buttons that just open another screen are blue',
+                    'Settings with a title and short tabs',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.34',
+        date: '2026-11-02',
+        title: 'Full panel on PC',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'On PC the full panel is back: tactics open under the court, formation and team on the side',
+                    "The max move button only lights up when the ball is at the captain's feet, ready to shoot",
+                    "In Duels the max move stays armed until the captain's next shot (it used to last about 5 seconds)",
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Lineup with tactics, formations and corners open on screen, no tapping needed',
+                    'The draft shows your team on a small court next to the 3 picks',
+                    'End of match scrolls again: Star Player card, evolutions, goals and stats right under the score',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.33',
+        date: '2026-11-02',
+        title: 'Match on PC with the mobile layout',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'On PC the match uses the phone layout: big court, score on top and the 4-button bar at the bottom',
+                    'Tactics, Swap, Time and Plays each open their own window. The page no longer scrolls',
+                    'Commentary as a TV caption under the court',
+                    'At 4x and 8x the court sits between both crowds',
+                    'Half time with a TV scoreboard and a substitution board',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    "Lineup with boards on the wall: the rival's poster, the tactics board and the formation clipboard",
+                    'Market with the ₽ counting up on entry and cards on shelves',
+                    'Route training on a court: tap who trains or lie down on the mat',
+                    'Event with the dialog box and Group with a TV scoreboard',
+                ],
+            },
+            {
+                title: 'Duel and Arena',
+                lines: [
+                    "Duel draft looks like the Cup's draft, no scrolling",
+                    'Duel, League and Daily Cup fit with the phone sideways',
+                ],
+            },
+            {
+                title: 'Collection and notices',
+                lines: [
+                    'Pokédex with a selector instead of pills, and Prof. Oak on an empty Pokédex',
+                    'New trainer unlocks show as a seal back at the menu, not during a celebration',
+                    'The formation tip no longer covers the words',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.32.1',
+        date: '2026-11-02',
+        title: 'Type pack icon',
+        sections: [{ title: 'Fix', lines: ['The type icon shows up on type packs again'] }],
+    },
+    {
+        version: '0.9.32',
+        date: '2026-11-02',
+        title: 'Duel, League and Daily Cup screens',
+        sections: [
+            {
+                title: 'Arena',
+                lines: [
+                    'Duel on the Arena court: 3 modes as blocks, rules behind a "?" and a big room code',
+                    'League with a big countdown while closed; when open, the rival shows up on the court',
+                    'Daily Cup in the Stadium, with the crowd and the daily sticker in the middle of the court',
+                ],
+            },
+            {
+                title: 'Profile',
+                lines: [
+                    'Profile is now a locker: card, missions and 6 doors, no scrolling',
+                    'Full-screen Trophy room. Tap an object to see its card',
+                    'Trainers are now stickers',
+                ],
+            },
+            {
+                title: 'Draft',
+                lines: [
+                    'Formation carousel, one big court at a time',
+                    'Pick 1 of 3 without scrolling',
+                    'First-time tips no longer darken the screen: a finger points and you keep playing',
+                    'Shorter rule texts',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'News on a poster, older versions in a list',
+                    'Settings in tabs, one option per row',
+                    'Redeem code moved to Settings',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.31',
+        date: '2026-11-02',
+        title: 'New max move animations',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'New animations for L1, L2 and L3. L3 is now a true special: type background, cut-in, the ball turns into a projectile and explodes at the goal',
+                    'L3 music explodes on the shot. On L1 and L2 the music no longer stays muffled',
+                    'The whole goal stays in frame from the shot until the ball arrives, on every camera',
+                    'The target turns green on a perfect tap, and the max move button no longer flickers',
+                    'Players in the path fall when the ball reaches them, not on the shot. Type effects too',
+                    'Keepers never catch a max move: they parry it onto the post or out for a corner',
+                    'A captain keeper with the bar sends the max move straight back at the rival goal',
+                    'Type trail and particles on the ball, stronger at each level',
+                ],
+            },
+            {
+                title: 'L1 by type',
+                lines: [
+                    'Psychic: confuses ⇒ puts to sleep',
+                    'Normal: knocks down ⇒ makes them flinch',
+                    'Grass: puts to sleep ⇒ plants a seed (Leech Seed)',
+                    'Ground: knocks down ⇒ sand in the eyes (Sand Attack)',
+                    'Bug: poisons ⇒ caught in a web (String Shot)',
+                    'Water: knocks down ⇒ pushes them 2 m back',
+                    'Flying: confuses ⇒ throws them in the air',
+                    'Fighting: knocks down ⇒ numb hands, the next save becomes a rebound',
+                    'Rock: knocks down ⇒ stuck in place for 2 s',
+                    "Dragon: paralyzes ⇒ takes 5 points off the rival team's bar",
+                    'New L3 names: Giga Impact, Surf, Thunder, Double Kick, Shadow Ball, Moonblast and more',
+                ],
+            },
+            {
+                title: 'Max move explained',
+                lines: [
+                    'A notice when each level unlocks and a legend of what L1, L2 and L3 do',
+                    "Max move section on every Pokémon's card",
+                    'Help, How to play and a first-time tip about the max move',
+                ],
+            },
+            {
+                title: 'Captain and camera',
+                lines: [
+                    'Change your captain in Tactics, between matches',
+                    'Portrait phones: a wider, smoother camera with room ahead of the ball carrier',
+                ],
+            },
+            {
+                title: 'Game feel',
+                lines: [
+                    'Full-screen full time, with score, ₽, man of the match and next opponent',
+                    'Champion in 3 beats: trophy, highlights and the road to the title. Stats live in a drawer',
+                    'Reward with the 3 options the same size, no scrolling',
+                    'Market pack in full screen, with the walkout for gold cards',
+                    'Result and Eliminated with no scrolling',
+                    '‹ value › selector instead of lists and the volume slider',
+                    'Duel full time with the same screen as the Cup',
+                    'On PC these screens grow to fill the screen',
+                    "Full walkout for the day's first gold card; shorter after that",
+                    'Help with drawers instead of accordions',
+                ],
+            },
+            {
+                title: 'Mode menu',
+                lines: [
+                    'Cup Mode is now Classic Mode',
+                    'Ultimate Team and Story Mode in black and white until they arrive',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.30.1',
+        date: '2026-11-01',
+        title: 'Clearer mode menu',
+        sections: [
+            {
+                title: 'Mode menu',
+                lines: [
+                    'Ultimate Team and Story Mode get the COMING SOON tape with the date, darker than Cup Mode',
+                    'The menu no longer flickers when opening or switching modes',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.30',
+        date: '2026-11-01',
+        title: 'Every captain uses the max move',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'Every captain can use the max move, and it is always a shot',
+                    'L1: a strong shot that leaves the type status on whoever blocks or saves it (Fire burns, Electric paralyzes, Ice freezes…)',
+                    "L2: L1 plus it knocks down anyone in the ball's path",
+                    'L3: always on target, with a special-move scene before the shot and the type effect',
+                    'The ball curves on its own toward the corner away from the keeper',
+                ],
+            },
+            {
+                title: 'Goalkeeper',
+                lines: [
+                    'The big boot replaces the max save: with the bar ready, tap when the rival shot comes and your captain keeper boots it back hard',
+                    'On L1 and L2 he launches the teammate furthest forward; on L3 the ball goes straight at the rival goal',
+                    'The button only lights up on shots the keeper will reach',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    "Evolution stones: one Match in each region gives that region's stone on top of the prize (Fire on Route 1, Leaf in the Forest, Moon on Mt. Moon, Water and Thunder in Cerulean)",
+                    'The rival on that space brings one who evolves with the stone in the 1 of 3, and whoever you use it on evolves right away',
+                    'On Eevee the stone picks the form: Vaporeon, Jolteon or Flareon',
+                    'The stone is a shortcut: stone evolvers still evolve by playing',
+                    'The Moon Stone from the Mt. Moon Fossils also evolves right away',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.29',
+        date: '2026-10-31',
+        title: 'Route map with branches and rewards',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Each branch of the map has its own types, and every Match shows its prize before you go',
+                    "Every Match win signs 1 of 3 from the rival team, then comes the space's prize",
+                    "Tougher Gym (rival +2), with the leader's card guaranteed, their TM and an item",
+                    'Up to 2 Markets per path, and the Chest row can be a Pokémon Center that clears the yellow card or brings back who was out',
+                    "New events: Mt. Moon Fossils, Legendary bird, Team Rocket ambush, Blue's bet, League referee and Day Care Egg",
+                    'In events and Training, a tap selects and a button confirms',
+                ],
+            },
+            {
+                title: 'Mode menu',
+                lines: [
+                    'The three modes as slices, fighting-game select style, with your captain popping out',
+                    'Trainer Mode is now Team Ultimate, and the modes that are not out yet show their date',
+                ],
+            },
+            {
+                title: 'Penalties',
+                lines: [
+                    "The taker order shows each one's shooting",
+                    'On phones, the shootout camera no longer cuts off the goal',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.28',
+        date: '2026-10-30',
+        title: 'Target ring and max move sounds',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'The ring now closes onto a fixed target ring that lights up at the perfect moment',
+                    'Your tap answers right away: on a perfect, a flash, stars, coins and the court shakes',
+                    'New sounds for the tap and for each level',
+                    'L3 comes sooner: each level of the bar takes 10 points instead of 12',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'New menu music, calmer, with a light SOC-CER-MON',
+                    'The logo flashes SOC-CER-MON to the beat on every screen',
+                    'Every menu screen has the same top bar, with back always in the same spot, and the trainer badge is bigger',
+                    'News lives in the top corner, with a dot when a new version is out',
+                    'In the Stadium, each mode has its own tile above PLAY',
+                    'From the Club, a door opens to the Trophy room, and back returns to the Club',
+                    'Duel now looks like the other menu screens',
+                    'The Soccermon symbol replaces the Poké Ball on trophies and crests',
+                ],
+            },
+            {
+                title: 'Lighter',
+                lines: [
+                    'Matches and the Indigo Road use much less CPU on phones, and the menus use half the memory',
+                    'The game opens faster',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The Indigo Road map counted the match in two different ways',
+                    'The cup bar no longer scrolls away on the map',
+                    'Help and Credits go back to the screen you opened them from',
+                    'Selling a captain who was on the bench left a ghost in the team',
+                    'With the phone sideways, the button to enter an Indigo Road map node was off screen',
+                    'The Final showed the Indigo Plateau name in Portuguese',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.27',
+        date: '2026-10-30',
+        title: 'Game modes',
+        sections: [
+            {
+                title: 'Game modes',
+                lines: [
+                    'If you have played before, you start at a mode menu: Cup Mode (everything that exists today), Trainer Mode (coming late November) and Story Mode (2027)',
+                ],
+            },
+            {
+                title: 'Max move',
+                lines: [
+                    'A ring closes once to the beat of the music: tap when it lands. Each level has its own look and sound, and a perfect sounds like one',
+                    'When the max move comes, the music dips and the court slows down',
+                    'Call your captain: the button lights up on every attack and the ball looks for them. A called fixo carries the ball to their zone and shoots from there',
+                    'The pivô unleashes it from farther out, like the ala',
+                    'The max save only spends the bar when it saves: with no shot, the bar comes back full. A keeper captain uses it at L3',
+                ],
+            },
+            {
+                title: 'Club and Lab',
+                lines: [
+                    'Pokémon walk around the furniture and stop now and then',
+                    'Tap a Pokémon many times in a row and it falls on its back',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: ["Your trainer's shiny Mew shows up shiny on the Road map"],
+            },
+        ],
+    },
+    {
+        version: '0.9.26',
+        date: '2026-10-29',
+        title: 'Crests',
+        sections: [
+            {
+                title: 'Friends',
+                lines: ["Each friend shows their club's real crest: shape, symbol and colors"],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Accents on capital letters are no longer cut off on signs and names',
+                    'On desktop, the Club and the Lab fill the screen',
+                    'After an update, a game left open for a long time reloads by itself instead of showing an error',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.25',
+        date: '2026-10-29',
+        title: 'Friends',
+        sections: [
+            {
+                title: 'Friends',
+                lines: [
+                    "Tap any trainer's name (rankings, League, Duel, friends list) to see their profile, add them or challenge them",
+                    "Your friends' club crest shows next to their name",
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ['Challenge from the friends list sends the invite again. The room shows whether it arrived'],
+            },
+            {
+                title: 'Fixed',
+                lines: ['Sheets slide up more smoothly on phones'],
+            },
+        ],
+    },
+    {
+        version: '0.9.24',
+        date: '2026-10-28',
+        title: 'Bigger pitch on mobile',
+        sections: [
+            {
+                title: 'New match screen',
+                lines: [
+                    'On a phone held upright, the court is twice as big and the camera follows the ball',
+                    'Tactics, Swap, Time and Plays are now 4 buttons near your thumb',
+                    'In Settings you pick up to which speed the camera stays close',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ['If the room from a link takes a while to open, a Play a cup button shows up while you wait'],
+            },
+            {
+                title: 'Menus',
+                lines: ['The Soccermon logo is back on the home screen'],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'On desktop, the speed bar fits on screen',
+                    'With the phone sideways, halftime fits without cut-off text',
+                    'The corner kick zoom no longer shows the dark area outside the court',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.3',
+        date: '2026-10-27',
+        title: 'Player requests',
+        sections: [
+            {
+                title: 'Max Move',
+                lines: [
+                    'The level 3 shot is now almost unstoppable: 57% ⇒ 82% goals. The keeper max save can still stop it',
+                ],
+            },
+            {
+                title: 'Match',
+                lines: [
+                    'Substitutions ask for confirmation and show the rating of who leaves and who comes in at that spot',
+                    'In Duels the bottom tabs also stay closed until you tap',
+                ],
+            },
+            {
+                title: 'Menus',
+                lines: [
+                    'The Club has your most used Pokémon walking around. Tap the top scorer to see the goals',
+                    'Lineup on phones: the Card button opens the selected Pokémon card',
+                    'Trainer card on phones with the 3 cards side by side',
+                    "Daily Cup: today's ranking sits under PLAY, and after playing the button takes you there",
+                    'Pack cards on the music beat is now an option in Settings (off by default)',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Resuming a saved cup kept swapping cups without leaving the screen',
+                    'Lineup with the phone in landscape fits without scrolling',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.2',
+        date: '2026-10-27',
+        title: 'Lighter panels',
+        sections: [
+            {
+                title: 'Less on screen',
+                lines: [
+                    'Lighter panels: thin borders, no heavy frames and no boxes inside boxes',
+                    'Instructions and tips only show in your first cup. After that they live in Help (?)',
+                    'The top bar shows just the trainer. Trophies, Pokédex and badges stay in their own places',
+                    'The Stadium lost the 4 goal boards, and the big logo only shows on your first visit',
+                    'Prof. Oak speaks only once. The Club shows the mission closest to done, and the Arena puts the League in one line',
+                ],
+            },
+            {
+                title: 'Cup',
+                lines: [
+                    'Lineup: the formation opens in a sheet with its bonuses, the rival is one line and the card only shows when you tap a Pokémon',
+                    'Shorter result: possession, shots and the bracket are in Stats, and a new trainer is a notice that fades away',
+                    'Market: what the win paid fits in one sentence',
+                    'Match on phones: one thing at a time over the court (goals first), and the bottom tabs stay closed until you tap',
+                ],
+            },
+            {
+                title: 'Every screen',
+                lines: [
+                    'Big monitors: everything is bigger, no more tiny column in the middle',
+                    'Phone in landscape: Lineup, Draft and Result fit the screen',
+                    'No more cut names on small phones',
+                    'A shiny avatar now shows shiny in the Stadium and the Arena',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23.1',
+        date: '2026-10-26',
+        title: 'Place fixes',
+        sections: [
+            {
+                title: 'Fixed',
+                lines: [
+                    'Tapping a Pokémon made it jump to another spot. Now it just hops, and anyone who needs to move fades out and back in',
+                    'The Arena court now has the boxes, the goals and the corners',
+                    'Closing a panel (Tactics, card, confirmation) no longer flashes dark',
+                    'Draft cards show their stats like before again',
+                ],
+            },
+            {
+                title: 'Max Move',
+                lines: [
+                    'The button stays lit longer and the game nearly stops while it glows, even at 8x and in Duels',
+                    "The move's shot flies in slow motion with a glowing ball, and the level 3 move name stays on screen longer",
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.23',
+        date: '2026-10-26',
+        title: 'Tactics board in the lineup',
+        sections: [
+            {
+                title: 'Lineup in the locker room',
+                lines: [
+                    'The lineup sits on a tactics board: the Bracket and Tactics are boards on the wall, each one opens its own panel',
+                    'The clipboard sits right below, and the whole team fits on the first phone screen',
+                    'During a cup, the top bar shows the round, your ₽ and your rerolls',
+                ],
+            },
+            {
+                title: 'Simpler',
+                lines: [
+                    'Panels slide up from the bottom on phones, with a round X. Every confirmation is a short panel',
+                    'The victory pack opens by itself, and Skip and Reroll sit together at the bottom',
+                    'Full time waits for you to tap See result',
+                    'A new trainer or title shows right below the score',
+                    'Shorter Market: Sponsors sit on one line that opens a panel',
+                    'Draft without the same instruction repeated, and bigger card attributes',
+                    'The Max Move is always in view on the bottom bar of the match. Tapping it early tells you when it lights up',
+                ],
+            },
+            {
+                title: 'New look',
+                lines: [
+                    'Stadium: goals move up to the stands and the play button sits at the bottom, leaving the court clear',
+                    'Starting a cup, walking on court and winning the title get a wallpaper transition (a different drawing each time)',
+                    'Profile, Collection, Trophy room, Help and Settings with the top bar, folder tabs and new progress bars',
+                    'Halftime, penalty order and Champion in the same style as the buttons',
+                    'Quick notices drop from the top: green when it worked, red when it failed',
+                ],
+            },
+            {
+                title: 'New',
+                lines: [
+                    'Play as an app: in Settings, Install puts Soccermon on your Android home screen, full screen (on iPhone, Share and Add to Home Screen)',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The screen no longer flashes black when switching menus',
+                    'The Max Move Wait button went off screen on small phones',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.22',
+        date: '2026-10-26',
+        title: 'Raised, color-coded buttons',
+        sections: [
+            {
+                title: 'New look',
+                lines: [
+                    'Raised buttons across the whole game: they sink and bounce when tapped, with sound',
+                    'The color tells what a button does: gold plays, green moves on or buys, blue is everything else, red only to delete or leave',
+                    'One big button per screen, for the next step. Buy and Pick became a tag on the card itself',
+                    'Panels with a thick frame and the title on a plaque, like the Stadium',
+                    'Whatever is selected is always blue',
+                ],
+            },
+            {
+                title: 'Improved',
+                lines: [
+                    'Trainer level on the top bar: it goes up with the missions you complete',
+                    'Draft: the 3 cards fit on the first phone screen',
+                    'Auto-draft is more low-key now: if you want to pick, you pick',
+                    'The quick notice no longer covers the bottom button',
+                    'The Leave cup confirmation no longer hides behind the Play bar',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.21',
+        date: '2026-10-25',
+        title: 'Home with five places',
+        sections: [
+            {
+                title: 'New home screen',
+                lines: [
+                    'The home screen is now five places on a bottom bar: Lab, Road, Stadium, Arena and Club. Tap or swipe to switch',
+                    'Stadium: a big golden PLAY, a pill to pick the mode and four goals in view (Daily Cup, mission, badges and belt)',
+                    'Indigo Road: the Kanto map with your badges and your team where you stopped',
+                    "Oak's Lab: Pokédex, Album and Movedex",
+                    'Arena: Duel and League',
+                    'Club house: Trophy room, profile and the mission board',
+                    'Wild Pokémon walk, nap and play in every place. Tap them',
+                    'The sky follows the time of day',
+                ],
+            },
+            {
+                title: 'Changed',
+                lines: [
+                    "What's new, Help, Credits and the rest of the footer moved to Settings",
+                    'The old home screen still opens with ?lab=off in the address',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.20',
+        date: '2026-10-25',
+        title: 'Reworded texts and the 1st match',
+        sections: [
+            {
+                title: 'Improved',
+                lines: [
+                    'Game texts reviewed (home, draft, match and commentary): shorter, more natural lines',
+                    'Moves show their official English names across the whole game',
+                    'The Balanced tactic shows the right numbers (+4% / +3%)',
+                    'The halftime tip is clearer',
+                ],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'The "Change the tactic..." tip now shows only after the 1st goal or at halftime of the 1st match',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.19',
+        date: '2026-10-24',
+        title: 'Indigo Road and landscape phones',
+        sections: [
+            {
+                title: 'Added',
+                lines: ['After your 1st cup, a tip on the home screen introduces the Indigo Road (shown only once)'],
+            },
+            {
+                title: 'Fixed',
+                lines: [
+                    'Small phones in landscape: the post-match rewards fit on screen without scrolling',
+                    'Small phones in landscape: the halftime buttons (Substitute and Start the 2nd half) are always visible',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.18',
+        date: '2026-10-24',
+        title: 'Signatures and first visit',
+        sections: [
+            {
+                title: 'Level 3 signatures',
+                lines: [
+                    '12 Pokémon swap the type effect of their level 3 max move for one of their own, with its own animation and banner',
+                    "Dragonite, Hyper Beam: pierces every block. Rival keeper's reach x0.8 ⇒ x0.85 (Dragon Fury ⇒ beam)",
+                    'Snorlax, Snorlax Slam: throws itself into the shot and anyone within 4 m falls for 1 s and is paralyzed',
+                    'Snorlax in goal, Goal Nap: on a level 3 max save it lies down in front of the goal. Reach x1.4 ⇒ x1.8',
+                    'Arcanine, Fire Star: a fire star bursts in front of the goal and anyone within 4 m of it falls for 0.6 s and is burned',
+                    'Articuno, Blizzard: the whole rival box freezes for 1.2 s (before, only players on the shot line, 1 s)',
+                    "Blastoise, Twin Cannons: the first one didn't go in? The ball comes back and it fires again from any distance",
+                    'Charizard, Flaming Flight: flies up to 2 m toward goal, shoots high and burns the keeper who saves it',
+                    'Pikachu, Chain Lightning: the bolt jumps from the keeper to the 2 closest rivals and paralyzes for 1.5 s',
+                    'Gengar, Dream Eater: the keeper dozes off, reach x0.8 ⇒ x0.75, even a Normal keeper (it used to be immune)',
+                    'Mewtwo, Telekinesis: the ball curves up to ~11° to the far corner (before ~8°) and the keeper gets reach x0.9',
+                    'Gyarados, Tsunami: pushes every rival 3 m (before only the shot line, 2.5 m) and goes into a 6 s rage',
+                    'Mew, Metronome: rolls one of the 16 type effects on every max move',
+                    "Ditto, Transform: copies the rival captain's effect, signature included",
+                    'Evolved into the final form mid-cup? The signature comes along',
+                    'A move that hits several at once (Snorlax Slam) shows PARALYZED only once, on the middle one; the others keep the icon',
+                    'The battle box gets out of the way when a goal or the level 3 banner comes in',
+                    'Long names on the banner (SNORLAX SLAM) shrink to fit a phone in portrait',
+                ],
+            },
+            {
+                title: 'First visit',
+                lines: [
+                    'First-time players see a Home with a single button: Play (Lightning Cup, 4 matches). The other modes sit under More modes',
+                    'In the first cup, Auto-draft becomes the main draft button, and the tip explains it before teaching how to pick by hand',
+                    'Returning players still land on the usual Home',
+                ],
+            },
+            {
+                title: 'Phone and fixes',
+                lines: [
+                    'Phone in portrait: when two names touch on the court, the name shortens to 5 letters before hiding',
+                    'Save loading before the screen: the tutorial tip disappeared and returning players saw a Home without the modes',
+                    'Phone in portrait: after picking the penalty order, the court scrolls back into view (the shootout used to happen off screen)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.17',
+        date: '2026-10-23',
+        title: 'Level 3 special and who takes the hit',
+        sections: [
+            {
+                title: 'Max move level 3',
+                lines: [
+                    "The court freezes for 0.3 s in the type's color and a banner crosses the screen with the captain's portrait",
+                    'On the banner: the move, the type effect ("Hyper Beam · Dragon effect") and your timing, PERFECT! or GOOD',
+                    "A goal, save, block or post sends out a shockwave in the type's color",
+                ],
+            },
+            {
+                title: 'Moves on the court',
+                lines: [
+                    "Whoever is hit by an effect move is pushed back and gets the word in the type's color: BURNED, CONFUSED, KNOCKED DOWN",
+                    'Low kicks, throws, tackles with a move and Normal and Ground level 3 knock players down: the Pokémon falls and sees stars',
+                    'Status is now an icon with a ring showing how long is left, instead of PAR and BRN',
+                    'On the player panel: who caused the status and how long is left ("Zubat became confused from Psychic (2 s)")',
+                    "Shot with a move: the ball trail now has the type's particle (fire rises, water drips). Before, it was always Normal's little star",
+                ],
+            },
+            {
+                title: 'Phone and tutorial',
+                lines: [
+                    'Short phone screen in landscape: max move and Wait sit side by side, without covering the court',
+                    'Tapping outside the tutorial balloon closes it and also counts for the button you tapped',
+                    'On the first visit, the balloon no longer scrolls the page for nothing and the Home logo stays',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.16',
+        date: '2026-10-23',
+        title: 'Max move by type and 4 Sponsors',
+        sections: [
+            {
+                title: 'Max move by type',
+                lines: [
+                    "At level 3, the max move gets the effect of the captain's type: one effect for each of the 16 types",
+                    'Charizard fires the Fireball, Blastoise pushes the defense with the Wave and Gengar goes through the defender with the Ghost Ball',
+                    'Alakazam curves the ball, Dugtrio knocks down the defenders within 6 m of the goal and Scyther sends the Swarm: the keeper may take the bait',
+                    'Pikachu fires Lightning: the ball is x1.15 faster and whoever blocks or saves it is paralyzed for 1.5 s',
+                    'The type icon shows on the button: dim at levels 1 and 2, lit at 3',
+                    'Wait button: save the max move for the next level, no slow motion',
+                    "Dual-type captain: the max move's type counts, if it is one of the captain's types",
+                    "Rival leaders also use their captain's effect",
+                    'The level 3 shot aims closer to the middle of the goal: far fewer shots go wide',
+                ],
+            },
+            {
+                title: 'Sponsors',
+                lines: [
+                    '4 new Sponsors in the Market, ₽10 each',
+                    'Viridian Scout: single Pokémon and packs in the Market with the next stage rarity',
+                    'Lavender Trainer: +6 stamina for the whole team',
+                    'Pewter Drum Band: +4 to everything while your team is losing. When it starts, "THE DRUMS KICK IN" shows on the court',
+                    'Pallet Youth Club: points for your team to evolve 14 ⇒ 10',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.15',
+        date: '2026-10-23',
+        title: 'Baby route',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'The Route starts at base forms: the captain and the draft come out as Charmander, Machop, Magikarp, and the team evolves along the way',
+                    'Average team rating at the start of the Route: 79.5 ⇒ 64.6',
+                    'The strongest Pokémon with no evolution (Snorlax, Lapras, legendaries) only show up as reinforcements, after the start',
+                    'Leave the Route and come back to the same draw: the Route only changes when you finish one',
+                    'The early rivals got weaker: match 1 -1 ⇒ -2 and match 2 0 ⇒ -1',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.14',
+        date: '2026-10-23',
+        title: 'Max move in 3 levels, on the beat',
+        sections: [
+            {
+                title: 'Max move',
+                lines: [
+                    'The bar now has 3 levels and refills after use: max moves per match 1 ⇒ several (the bar recharges)',
+                    'Release at level 1 or hold for level 3, the strongest shot in the game: shot power x1.55 ⇒ x1.25 / x1.55 / x2.2 (levels 1 / 2 / 3)',
+                    'At level 3 the rival keeper has x0.7 reach on that shot',
+                    'Tap when the ring closes on the button, on the beat of the music: PERFECT! hits harder',
+                    'With no sound, the ring follows an on-screen pulse',
+                    'Tapped a bit before it lit up? The move comes out on the next shot',
+                    'Leaders also tap on the beat, and Lance almost always nails it',
+                ],
+            },
+            {
+                title: 'Max save',
+                lines: [
+                    'With the captain in goal, the level gives more save time: 4 s ⇒ 0.75 s / 4 s / 6 s (levels 1 / 2 / 3)',
+                    'A perfect tap holds the ball',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.13',
+        date: '2026-10-22',
+        title: 'Patch notes that are easier to read',
+        sections: [
+            {
+                title: 'Patch notes',
+                lines: [
+                    'The newest version sits on top, highlighted, with its date',
+                    'Older ones are collapsed: tap to open',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.6',
+        date: '2026-10-22',
+        title: 'Touchline and stronger TMs',
+        sections: [
+            {
+                title: 'Touchline',
+                lines: [
+                    "Max move: your team's plays fill the bar and the button lights up when your captain can shoot",
+                    'The shooting zone depends on the captain: pivot 15 m, winger 18 m, defender 22 m',
+                    'A captain in goal gets a max save: the next shot he can reach is saved',
+                    'Flying keeper: the keeper joins the attack for 5 against 4, leaving the goal empty',
+                    'Time-out: 1 per half, the team gets its breath back and subs apply right away',
+                    'Cup rival coaches use the same tools',
+                    'Subs and board changes apply right away, with the ball in play; coach shouts are gone',
+                ],
+            },
+            {
+                title: 'TMs',
+                lines: [
+                    'A move taught by TM comes out more often, hits harder and gets the TM badge',
+                    'Mega Drain 40 ⇒ 100 power, BubbleBeam 65 ⇒ 100, Fissure accuracy 30% ⇒ 50%',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.5',
+        date: '2026-10-21',
+        title: 'Every formation plays its own way',
+        sections: [
+            {
+                title: 'Formations',
+                lines: [
+                    'Diamond: triangles and short passes through the middle',
+                    'Square: the ball goes down the flanks',
+                    'Back Three: the pivot drops, lays it off and the runner shoots first time',
+                    'Rotation: all four swap spots all the time and break fast',
+                    'Twin Pivots: direct play, shooting right after winning the ball',
+                    'Lockdown: low, compact block and a quick break',
+                    'Each formation has an edge over another; the icon on the lineup shows when it fits',
+                ],
+            },
+            {
+                title: 'Moves',
+                lines: [
+                    'Nidorino, Venonat, Bellsprout, Weepinbell, Victreebel, Slowbro, Chansey and Jolteon have their own moves',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.4',
+        date: '2026-10-21',
+        title: 'Best-of-3 Duel and a polished Road',
+        sections: [
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3 with the same team: the scoreboard shows the series score',
+                    'A voided game is replayed; leaving between games is a walkover win for whoever stayed',
+                ],
+            },
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'Rewritten texts: one yellow card rule, "End of the road" and shorter events',
+                    'The map uses the whole screen on desktop',
+                    'Players who are out show why (injury, daycare or tired) and stay off the court',
+                    'Hall of Fame split into Lightning Cup and Indigo Road, with its own indigo trophy',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.2',
+        date: '2026-10-21',
+        title: 'Indigo Road up front',
+        sections: [
+            {
+                title: 'Home screen',
+                lines: [
+                    'Indigo Road and Lightning Cup side by side on desktop, with the Road bigger and a NEW tag',
+                    'Duel and Daily Cup below, next to each other',
+                    'On phones, the Road button takes the full width',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3.1',
+        date: '2026-10-21',
+        title: 'Pokédex entries and more faces',
+        sections: [
+            {
+                title: 'Collection',
+                lines: ['The Pokémon sheet and the open Album card show the Pokédex entry'],
+            },
+            {
+                title: 'Livelier Pokémon',
+                lines: [
+                    'Pokémon cry when you pick them in the draft, in the VERSUS and on the big pack card',
+                    'Trophy room: at night it really sleeps; in the day it sometimes sits or eats',
+                    'Indigo Road: the team naps at Rest, winces on a tackle and gets dizzy in hard training',
+                    'Knocked out: the team lies on the floor and the captain sheds a tear',
+                ],
+            },
+            {
+                title: 'Indigo Road and Lightning Cup',
+                lines: [
+                    'The map shows the rival captain on each match node and their team as icons',
+                    'The cup bracket shows each club captain',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.3',
+        date: '2026-10-21',
+        title: 'Moves reviewed',
+        sections: [
+            {
+                title: 'Each one with its own type',
+                lines: [
+                    'Every Pokémon has at least 1 move of each of its types (when Gen 1 allows it)',
+                    'Gengar: Confuse Ray ⇒ Sludge (Dream Eater, Hypnosis, Night Shade, Sludge)',
+                    'Gastly and Haunter: Hypnosis ⇒ Toxic',
+                    'Zubat and Golbat: Supersonic ⇒ Toxic',
+                    'Nidoran♂, Nidorino and Nidoking: Focus Energy ⇒ Toxic; Nidoqueen: Counter ⇒ Toxic',
+                    'Beedrill: Agility ⇒ Toxic',
+                    'Charizard: Fire Blast ⇒ Fly',
+                    'Hitmonchan: Agility ⇒ Counter',
+                    'Gyarados: Splash ⇒ Hyper Beam',
+                ],
+            },
+            {
+                title: 'No repeated moves',
+                lines: [
+                    'Charmander and Charmeleon: Fire Blast ⇒ Dragon Rage',
+                    'Raichu: Thunderbolt ⇒ Agility',
+                    'Arcanine: Flamethrower ⇒ Take Down',
+                    'Hitmonlee: Jump Kick ⇒ Double Kick',
+                    'Staryu: Hydro Pump ⇒ Psychic',
+                    'Omanyte: Hydro Pump ⇒ Surf',
+                ],
+            },
+            {
+                title: 'Moves that now do what they promise',
+                lines: [
+                    'Harden keeps the ball on the next tackle (like Defense Curl)',
+                    'Slam reaches further (2.8 m)',
+                    'Amnesia raises passing, shooting and reading',
+                    'Tri Attack can burn, freeze or paralyze',
+                    'Explosion hits everyone within 4 m',
+                    'Light Screen and Reflect no longer give hidden shooting',
+                    'Fly and Dig with the ball carry it 2 m (was 4)',
+                ],
+            },
+            {
+                title: 'Texts',
+                lines: [
+                    'Every move explains what it does on the court with numbers (how long, who is immune, how often it hits, the cost to the user)',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.2.2',
+        date: '2026-10-21',
+        title: 'Indigo Road is back',
+        sections: [
+            {
+                title: 'Indigo Road',
+                lines: [
+                    'The Road is back: the 1st match broke the lineup screen (fixed) and it was played start to finish before coming back',
+                    'Continuing on a "?" event goes back to the event (it used to open the lineup and replay the match)',
+                    'A yellow card or a group loss says DEFEAT (not End of the line); the red card only comes on the 2nd loss on the map',
+                    'The saved cup, champion screen (x/8), goal of the cup and title card name the Road match, not the Round of 16',
+                    'New cup at the end of a Road starts another Road',
+                    'Injured starter: the warning shows next to Play',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.2.1',
+        date: '2026-10-21',
         title: 'Light album, easy showcase',
         sections: [
             {
@@ -1084,7 +4659,8 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.2',
-        title: 'House in order',
+        date: '2026-10-21',
+        title: 'Reorganized home screen',
         sections: [
             {
                 title: 'Home screen',
@@ -1143,6 +4719,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1.1',
+        date: '2026-10-21',
         title: 'Cards back',
         sections: [
             {
@@ -1157,6 +4734,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.1',
+        date: '2026-10-21',
         title: 'Indigo Road',
         sections: [
             {
@@ -1198,6 +4776,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.5',
+        date: '2026-10-21',
         title: 'Everything on the board',
         sections: [
             {
@@ -1220,6 +4799,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.4',
+        date: '2026-10-21',
         title: 'Moves and Sponsors explained',
         sections: [
             {
@@ -1240,6 +4820,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.3',
+        date: '2026-10-21',
         title: 'Packs and Sponsors',
         sections: [
             {
@@ -1254,6 +4835,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.2',
+        date: '2026-10-21',
         title: 'Weekly fixes',
         sections: [
             {
@@ -1274,6 +4856,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0.1',
+        date: '2026-10-21',
         title: 'Tidier Market',
         sections: [
             {
@@ -1287,6 +4870,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.9.0',
+        date: '2026-10-20',
         title: 'Market and Sponsors',
         sections: [
             {
@@ -1320,6 +4904,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.9',
+        date: '2026-10-20',
         title: 'Trophy room and new menus',
         sections: [
             {
@@ -1361,6 +4946,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.4',
+        date: '2026-10-20',
         title: 'The album is a book',
         sections: [
             {
@@ -1382,6 +4968,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.3',
+        date: '2026-10-19',
         title: 'Layered cards and sticker album',
         sections: [
             {
@@ -1435,6 +5022,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.2',
+        date: '2026-10-19',
         title: 'New logo and fan banners',
         sections: [
             {
@@ -1459,6 +5047,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8.1',
+        date: '2026-10-19',
         title: 'Highlights, Daily Cup and medals',
         sections: [
             {
@@ -1575,6 +5164,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.8',
+        date: '2026-10-19',
         title: 'Icon MVP and retroactive achievements',
         sections: [
             {
@@ -1588,6 +5178,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.7',
+        date: '2026-10-19',
         title: 'Emotes, seals and supporter banners',
         sections: [
             {
@@ -1625,6 +5216,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.6',
+        date: '2026-10-18',
         title: 'Golden legends and live tactics board',
         sections: [
             {
@@ -1707,6 +5299,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.5',
+        date: '2026-10-18',
         title: 'Corners and live duels',
         sections: [
             {
@@ -1746,6 +5339,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.4',
+        date: '2026-10-17',
         title: 'Full rebalance and your trainer',
         sections: [
             {
@@ -1820,6 +5414,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.3',
+        date: '2026-10-16',
         title: 'Weighty matches, card packs and a crowd',
         sections: [
             {
@@ -1885,6 +5480,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.2',
+        date: '2026-10-16',
         title: 'Hall of Fame and a title screen worth the trophy',
         sections: [
             {
@@ -1917,6 +5513,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.1',
+        date: '2026-10-15',
         title: 'Launch fixes',
         sections: [
             {
@@ -1927,6 +5524,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.8.0',
+        date: '2026-10-15',
         title: 'Profile, Pokédex and new moves',
         sections: [
             {
@@ -1978,6 +5576,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.3',
+        date: '2026-10-14',
         title: 'Open beta',
         sections: [
             {
@@ -2012,6 +5611,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.2',
+        date: '2026-10-14',
         title: 'Substitutions that count and privacy',
         sections: [
             {
@@ -2033,6 +5633,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7.1',
+        date: '2026-10-14',
         title: 'Full review',
         sections: [
             {
@@ -2062,6 +5663,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     },
     {
         version: '0.7',
+        date: '2026-10-14',
         title: 'Accounts, evolution and real moves',
         sections: [
             {

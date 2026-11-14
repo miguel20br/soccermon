@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-campeao",
+ "titulo": "Ponte pra campeao: o rufar, os tímpanos e a torcida no clap dobrado",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.994036,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.4,
+   "amostras": [
+    0,
+    105840
+   ],
+   "bpm": 100,
+   "compassos": 1
+  }
+ ]
+}

@@ -1,5 +1,5 @@
 /**
- * Ajuda ("Como jogar"), dicas e passo a passo de boas-vindas.
+ * Ajuda: "Como funciona" de cada modo, as regras que não aparecem na tela e as perguntas frequentes.
  *
  * Blocos das seções: `p` = parágrafo; `list` = lista (texto, ou [termo, explicação]); `dyn` = lista montada
  * com os números do motor (src/ui/help/content.ts); `link` = botão para o feedback. `**negrito**` funciona e
@@ -8,29 +8,19 @@
 export type HelpDictBlock =
     | { p: string }
     | { list: (string | [string, string])[] }
-    | { dyn: 'formations' | 'items' | 'links' | 'tactics' | 'gyms' }
+    | { dyn: 'links' | 'tactics' | 'maxLevels' | 'maxTypes' }
     | { link: string };
 
 export type HelpSectionId =
-    | 'basico'
-    | 'draft'
-    | 'formacoes'
     | 'posicoes'
     | 'cartas'
     | 'tipos'
     | 'golpes'
-    | 'golpesJogos'
     | 'status'
-    | 'habilidades'
-    | 'itens'
     | 'sinergias'
     | 'partida'
-    | 'evolucao'
-    | 'copa'
-    | 'recompensas'
-    | 'recordes'
-    | 'pokedex'
-    | 'conta';
+    | 'golpeMax'
+    | 'evolucao';
 
 export interface HelpDictSection {
     title: string;
@@ -38,60 +28,6 @@ export interface HelpDictSection {
 }
 
 const sections: Record<HelpSectionId, HelpDictSection> = {
-    basico: {
-        title: 'O básico',
-        blocks: [
-            {
-                p: 'Soccermon é um draft roguelike com os **151 Pokémon de Kanto** jogando **futsal 5 contra 5**. Cada copa é uma run: você monta o time, encara 4 jogos de mata-mata e tenta levantar a taça.',
-            },
-            {
-                list: [
-                    ['Draft', 'escolha a formação, o capitão e depois 1 de 3 Pokémon por vaga.'],
-                    ['Escalação', 'ajuste titulares, banco, itens e tática antes de cada jogo.'],
-                    ['Partida', 'é simulada. Você é o técnico: tática, substituição e muita torcida.'],
-                    ['Copa', '{stages}. Perdeu, a copa acaba (mas a Pokédex e os recordes ficam).'],
-                ],
-            },
-        ],
-    },
-    draft: {
-        title: 'Draft',
-        blocks: [
-            { p: 'São **{picks} escolhas**: 5 titulares + {bench} reservas.' },
-            {
-                list: [
-                    ['1. Formação', 'define as vagas da quadra (dá pra trocar depois, na escalação).'],
-                    [
-                        '2. Capitão',
-                        'saem 3 candidatos raros, épicos ou lendários, de qualquer posição. Escolha um e toque na vaga em que ele vai jogar (o número na vaga é a nota dele ali).',
-                    ],
-                    [
-                        '3. As outras vagas',
-                        'toque numa vaga livre da quadra ou do banco: saem 3 Pokémon que jogam naquela posição (no banco vale qualquer um). Você leva 1.',
-                    ],
-                ],
-            },
-            {
-                list: [
-                    'As 3 opções nunca repetem um Pokémon que você já tem e têm pelo menos 2 tipos diferentes.',
-                    'A raridade melhora ao longo do draft. A vaga de Pivô (a posição mais rara) puxa um pouco mais.',
-                    'Cada opção avisa se ele é **de origem** na posição, se **também joga** ali ou se vai **improvisado**, e se ativa alguma sinergia de história.',
-                ],
-            },
-            {
-                p: '**Sortear de novo (reroll):** troca as 3 opções. Você começa com {rerolls}, e eles valem pra copa toda: servem no draft e nas recompensas. Pular uma recompensa dá +1.',
-            },
-        ],
-    },
-    formacoes: {
-        title: 'Formações',
-        blocks: [
-            {
-                p: 'Todas têm goleiro + 4 na linha. A formação muda as vagas do draft e como o time se posiciona em campo.',
-            },
-            { dyn: 'formations' },
-        ],
-    },
     posicoes: {
         title: 'Posições e atributos',
         blocks: [
@@ -198,7 +134,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                 list: [
                     [
                         'Prender',
-                        'Bind, Wrap, Clamp e Fire Spin atordoam o alvo um instante e deixam lento; Constrict só deixa lento. Cada um tem ainda um jeito próprio (veja "Golpes que fazem o que faziam nos jogos").',
+                        'Bind, Wrap, Clamp e Fire Spin atordoam o alvo um instante e deixam lento; Constrict só deixa lento. Cada um tem ainda um jeito próprio (veja na Golpedex).',
                     ],
                     ['Nocaute', 'Fissure, Guillotine e Horn Drill erram muito, mas quando acertam derrubam o rival.'],
                     [
@@ -215,122 +151,24 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             { p: 'E sim: o Splash do Magikarp é só Splash mesmo. A graça é evoluir.' },
         ],
     },
-    golpesJogos: {
-        title: 'Golpes que fazem o que faziam nos jogos',
-        blocks: [
-            {
-                p: 'Muitos golpes ganharam o jeito que tinham na Gen 1, adaptado à quadra. A carta completa e a Golpedex explicam cada um.',
-            },
-            {
-                list: [
-                    [
-                        'Área',
-                        'Earthquake, Surf, Blizzard, Rock Slide, Growl, Leer… pegam todos os rivais em volta (Earthquake e Surf, até companheiro). Quem está com a bola e leva, solta.',
-                    ],
-                    [
-                        'Crítico',
-                        'Slash, Karate Chop, Razor Leaf, Crabhammer: chute mais forte e certeiro, e carrinho crítico ganha direto. **Focus Energy** garante o próximo crítico (e às vezes falha, como o bug da Gen 1).',
-                    ],
-                    [
-                        'Carga',
-                        'Solar Beam, Skull Bash, Sky Attack, Razor Wind: param um instante carregando e saem mais fortes. Levou carrinho na carga, perdeu o golpe. Hyper Beam que vira gol não recarrega.',
-                    ],
-                    [
-                        'Fly e Dig',
-                        'somem por um instante (ninguém alcança): com a bola, avançam e finalizam; sem a bola, caem em cima de quem conduz.',
-                    ],
-                    [
-                        'Prioridade',
-                        'Quick Attack desarma na hora, sem esperar; com a bola, arrancada e chute de primeira. Agility dura mais.',
-                    ],
-                    [
-                        'Mira',
-                        'Swift nunca erra e jogador de linha não bloqueia; Drill Peck e Cut furam o bloqueio; Egg Bomb vai por cima. Sand Attack, Kinesis, Flash e Smokescreen entortam a mira do rival.',
-                    ],
-                    [
-                        'Dano fixo',
-                        'Sonic Boom, Dragon Rage, Night Shade, Seismic Toss: chute de velocidade fixa, sem depender de atributo nem de tipo. Super Fang tira metade do fôlego; Low Kick derruba mais quem é pesado.',
-                    ],
-                    [
-                        'Multi-acerto',
-                        'Double Kick, Fury Swipes, Double Slap, Pin Missile…: de 2 a 5 tentativas de desarme seguidas. Bonemerang, Barrage e companhia podem devolver a bola ao pé de quem chutou.',
-                    ],
-                    [
-                        'Prender',
-                        'Wrap e Bind prendem os dois e a bola sobra; Clamp rouba e segura; Fire Spin deixa um anel de fogo no chão; Constrict deixa lento.',
-                    ],
-                    [
-                        'Toxic, Rage e Bide',
-                        'Toxic piora com o tempo; Rage fica mais forte a cada pancada; Bide aguenta firme e depois solta tudo em quem está perto.',
-                    ],
-                    [
-                        'Clones e muro',
-                        'Double Team cria clones que levam os próximos golpes; Minimize, Acid Armor, Withdraw e Defense Curl protegem a bola; Barrier ergue um muro que segura um chute.',
-                    ],
-                    [
-                        'Controle de campo',
-                        'Roar faz o rival fugir e largar a bola; Whirlwind e Gust sopram a bola; Strength empurra; Conversion copia o tipo do rival; Soft-Boiled cura um companheiro; Pay Day faz todo mundo parar para olhar as moedas.',
-                    ],
-                ],
-            },
-        ],
-    },
     status: {
         title: 'Status',
         blocks: [
             {
                 list: [
-                    ['Paralisado', 'Velocidade −40% e Drible −15%.'],
-                    ['Dormindo', 'fica fora do lance por um instante.'],
-                    ['Congelado', 'fica parado por um instante.'],
-                    ['Envenenado', 'perde fôlego aos poucos.'],
-                    ['Queimado', 'Chute e Força −20% e perde fôlego aos poucos.'],
-                    ['Confuso', 'Passe −30% e Chute −15%.'],
-                    ['Apaixonado', '(Cute Charm) trava por um instante.'],
+                    ['Paralisado', 'Velocidade −40% e Drible −15% por 6 s.'],
+                    ['Dormindo', 'fica fora do lance por 2,5 s.'],
+                    ['Congelado', 'fica parado por 2,5 s.'],
+                    ['Envenenado', 'perde fôlego por 10 s.'],
+                    ['Queimado', 'Chute e Força −20% e perde fôlego por 8 s.'],
+                    ['Confuso', 'Passe −30% e Chute −15% por 4 s.'],
+                    ['Apaixonado', '(Cute Charm) trava por 1,5 s.'],
                     ['Hesitante', '(Bite, King’s Rock…) perde o tempo da jogada.'],
                 ],
             },
             {
                 p: 'Status passa sozinho depois de um tempo. Habilidades e itens podem evitar ou encurtar (Limber, Insomnia, Lum Berry…).',
             },
-        ],
-    },
-    habilidades: {
-        title: 'Habilidades',
-        blocks: [
-            {
-                p: 'Várias habilidades viraram passivas de futsal (a carta completa mostra o efeito). Alguns exemplos:',
-            },
-            {
-                list: [
-                    ['Velocidade', 'Swift Swim, Chlorophyll, Run Away, Quick Feet.'],
-                    ['Ataque', 'Hustle (Chute +15%, Passe −8%), Sniper, Iron Fist, Technician (golpes fracos +50%).'],
-                    ['Reta final', 'Overgrow, Blaze, Torrent e Swarm: +15% em Chute e Drible com o fôlego baixo.'],
-                    [
-                        'Aura',
-                        'Intimidate (rivais perto chutam pior), Unnerve, Stench, Pressure (rivais perto cansam mais).',
-                    ],
-                    [
-                        'Contato',
-                        'Static, Poison Point, Flame Body, Effect Spore e Cute Charm: quem desarma pode sair com status.',
-                    ],
-                    ['Pancada', 'Anger Point, Defiant, Justified, Steadfast: ficam mais fortes ao sofrer desarme.'],
-                    ['Com status', 'Guts e Marvel Scale ficam mais fortes quando estão com status.'],
-                    ['Fôlego', 'Regenerator, Rain Dish, Ice Body e outras recuperam fôlego durante o jogo.'],
-                    ['Imposter', 'o Ditto vira o melhor Pokémon da posição dele em campo.'],
-                ],
-            },
-        ],
-    },
-    itens: {
-        title: 'Itens',
-        blocks: [
-            {
-                p: 'Cada Pokémon segura **1 item**. Eles vêm das recompensas da copa, e na escalação dá pra passar o item de um Pokémon pra outro (toque no jogador e use "Passar para").',
-            },
-            { dyn: 'items' },
-            { p: '**Itens de tipo** ({typeItems}): golpes daquele tipo ficam 20% mais fortes.' },
-            { p: 'Da semifinal em diante os adversários também entram em quadra com itens.' },
         ],
     },
     sinergias: {
@@ -348,7 +186,7 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
                     ],
                     [
                         'Sinergia de história',
-                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e mais preciso (1 vez por tempo). As **especiais** (os 3 Pássaros Lendários, os 3 iniciais, Mew + Mewtwo) completas dão mais e as cartas brilham juntas. Tipo + história somam até +15%.',
+                        'duplas e grupos famosos de Kanto ganham bônus juntos em quadra e podem soltar um **combo**: passe de um, chute do outro, 20% mais forte e 50% mais preciso (1 vez por tempo). As **especiais** (os 3 Pássaros Lendários, os 3 iniciais, Mew + Mewtwo) completas dão mais e as cartas brilham juntas. Tipo + história somam até +15%.',
                     ],
                 ],
             },
@@ -362,31 +200,40 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             {
                 p: 'Dois tempos de 20 minutos (no relógio do jogo). A partida é **simulada**: os Pokémon jogam sozinhos e você comanda da beira da quadra.',
             },
-            {
-                list: [
-                    ['Velocidade', '1x, 2x, 4x, 8x ou Lances (só os melhores momentos). Ou pule para o fim.'],
-                    ['Tática', 'mude quantas vezes quiser durante a partida (veja abaixo).'],
-                    [
-                        'Substituir',
-                        'escolha quem sai e quem entra. A troca acontece na próxima bola parada (saída de bola, tiro de meta ou intervalo). Nada é automático no seu time.',
-                    ],
-                    [
-                        'Painel',
-                        'toque num Pokémon na quadra (ou na lista do time) pra ver fôlego, barra de evolução, atributos do momento, números da partida e golpes.',
-                    ],
-                ],
-            },
             { dyn: 'tactics' },
             {
-                p: '**Fôlego:** cai com o esforço (menos pra quem tem HP alto) e cansado rende menos. O intervalo recupera um pouco. O time rival pode trocar o mais cansado no intervalo.',
+                p: '**Fôlego:** cai com o esforço (menos pra quem tem HP alto) e cansado rende menos (−28% nos atributos com o fôlego zerado). O intervalo recupera 30% do fôlego. O time rival pode trocar o mais cansado no intervalo.',
             },
-            { p: '**Garra:** quem está perdendo por 3 ou mais cresce no jogo. Virada é sempre possível.' },
             {
-                p: '**Pênaltis:** empate no fim vai para 5 cobranças por time e depois morte súbita. Batem os melhores chutadores, e o tipo do batedor contra o do goleiro conta.',
+                p: '**Garra:** perdendo por 3 gols ou mais, o time ganha +6% em todos os atributos, mais 3% por gol de diferença acima de 3 (máximo +14%).',
+            },
+            {
+                p: '**Pênaltis:** empate no fim vai pra 5 cobranças por time e depois morte súbita. Batem os melhores chutadores, e o tipo do batedor contra o do goleiro conta.',
             },
             {
                 p: 'Saiu no meio? A escalação fica travada e, ao voltar, a mesma partida continua de onde estava.',
             },
+        ],
+    },
+    golpeMax: {
+        title: 'Golpe máximo do capitão',
+        blocks: [
+            {
+                p: 'Todo capitão tem um **golpe máximo**, com 3 níveis: **N1**, **N2** e **N3**. {maxWho}',
+            },
+            { p: '{maxFill}' },
+            { dyn: 'maxLevels' },
+            {
+                p: '**Na hora certa:** com capitão de linha, o botão acende com a bola no pé dele perto do gol, e o golpe sai na hora. {maxTiming} Atalho: M. **Esperar** guarda pro próximo nível.',
+            },
+            {
+                p: '**Capitão no gol:** o golpe dele é a **bicuda**. O botão acende só no chute do rival que ele vai alcançar. No toque, em vez de defender, ele devolve: no N1 e no N2 num lançamento pro ataque (o N2 derruba quem estiver no caminho); no N3, chutando no gol rival. Toque fora da hora: a bicuda sai do mesmo jeito, só que mais fraca.',
+            },
+            {
+                p: 'O status do N1 e o efeito do N3 vêm do tipo do golpe, se ele for de um tipo do Pokémon (senão, do 1º tipo dele):',
+            },
+            { dyn: 'maxTypes' },
+            { p: 'Na carta completa de cada Pokémon tem a seção **Golpe máximo**, com o que ele faz em cada nível.' },
         ],
     },
     evolucao: {
@@ -407,95 +254,6 @@ const sections: Record<HelpSectionId, HelpDictSection> = {
             },
         ],
     },
-    copa: {
-        title: 'A Copa',
-        blocks: [
-            {
-                p: '{stages}, sempre mata-mata. Os 3 primeiros adversários são ginásios de Kanto sorteados; a final é sempre contra a **{league}**. A dificuldade sobe a cada fase.',
-            },
-            { dyn: 'gyms' },
-            {
-                p: 'Antes de cada jogo dá pra ver as cartas do adversário na escalação. Perdeu, a copa acaba. Ganhou a final: campeão! Ganhar sem sofrer gol em nenhum jogo é **copa perfeita**.',
-            },
-        ],
-    },
-    recompensas: {
-        title: 'Recompensas',
-        blocks: [
-            { p: 'Depois de cada vitória (menos a final) você escolhe **1 de 3**:' },
-            {
-                list: [
-                    [
-                        'Contratar',
-                        'um dos melhores Pokémon do time que você acabou de eliminar (sem o item dele). Se não houver ninguém novo pra você, vem um reforço sorteado.',
-                    ],
-                    ['2 itens', 'itens de tipo tendem a puxar os tipos do seu time.'],
-                    [
-                        'MT do ginásio',
-                        'em {tmOdds}% das vitórias, um dos itens vira a MT que o líder dava na Gen 1 (Brock: Bide, Misty: BubbleBeam, Lt. Surge: Thunderbolt, Erika: Mega Drain, Koga: Toxic, Sabrina: Psywave, Blaine: Fire Blast, Giovanni: Fissure). Se ninguém do seu time aprende, vem um golpe raro, que nenhum Pokémon leva de fábrica.',
-                    ],
-                ],
-            },
-            {
-                list: [
-                    'O Pokémon novo entra **no lugar de um reserva** (nunca do capitão) e herda o item de quem saiu.',
-                    'O item vai pra qualquer jogador; se ele já tinha um, o item antigo é substituído (e some).',
-                    'Sortear de novo gasta 1 reroll. **Pular** não pega nada, mas dá +1 reroll.',
-                ],
-            },
-            {
-                list: [
-                    'MT: você escolhe quem aprende (só quem aprende o golpe nos jogos) e qual golpe ele esquece. O golpe-assinatura nunca é esquecido.',
-                    'O golpe ensinado continua depois da evolução (se a forma nova também aprende).',
-                    'Os ginásios rivais também entram em quadra com a MT do líder (até 2 Pokémon por time).',
-                ],
-            },
-        ],
-    },
-    recordes: {
-        title: 'Recordes e desafios',
-        blocks: [
-            {
-                p: 'A tela inicial guarda seus recordes: copas jogadas, títulos, copas perfeitas, cartas Destaque, evoluções e Ícones.',
-            },
-            {
-                p: '**Desafio:** cada copa tem uma seed. Ao compartilhar, vai um link com ?seed= no fim: quem abre joga a mesma copa, com os mesmos adversários e os mesmos sorteios. Quem vai mais longe?',
-            },
-        ],
-    },
-    pokedex: {
-        title: 'Perfil, Coleção e Sala de troféus',
-        blocks: [
-            {
-                list: [
-                    [
-                        'Pokédex',
-                        '**visto** = apareceu no seu draft, nas recompensas ou no time adversário. **Jogou** = entrou em quadra pelo seu time por pelo menos 1 minuto. Guarda partidas, títulos e a maior nota de cada um.',
-                    ],
-                    ['Golpedex', 'os golpes entram quando aparecem em campo nas suas partidas (dos dois times).'],
-                    [
-                        'Três portas na tela inicial',
-                        '**Perfil** (treinador, título, clube e amigos), **Coleção** (Pokédex, Álbum e Golpedex) e **Sala de troféus** (taças, medalhas e números da carreira).',
-                    ],
-                ],
-            },
-        ],
-    },
-    conta: {
-        title: 'Conta e nuvem',
-        blocks: [
-            {
-                p: 'Sem conta, tudo fica salvo **neste navegador, neste aparelho**. Toque em **Entrar com Google** na tela inicial pra guardar o save na nuvem e continuar em outro aparelho.',
-            },
-            {
-                list: [
-                    'Ao entrar, vale o save mais recente (do aparelho ou da nuvem).',
-                    'Recordes, Pokédex, Golpedex e carreira juntam o melhor dos dois: nada de progresso se perde.',
-                    'Dá pra apagar a conta e o save da nuvem em Configurações.',
-                ],
-            },
-        ],
-    },
 };
 
 const faq: { q: string; a: HelpDictBlock[] }[] = [
@@ -512,7 +270,12 @@ const faq: { q: string; a: HelpDictBlock[] }[] = [
     },
     {
         q: 'Como salvar em outro aparelho?',
-        a: [{ p: 'Entre com Google nos dois aparelhos. O save vai pra nuvem e acompanha sua conta.' }],
+        a: [
+            { p: 'Entre com Google nos dois aparelhos. O save vai pra nuvem e acompanha sua conta.' },
+            {
+                p: 'Ao entrar, vale o save mais recente. Recordes, Pokédex e carreira juntam o melhor dos dois. A conta se apaga em Configurações.',
+            },
+        ],
     },
     {
         q: 'Posso jogar offline?',
@@ -561,44 +324,84 @@ export const help = {
         tacticLine: '{feel}. {attrs}{drain}.',
         drainMore: '; cansa mais ({pct})',
         drainLess: '; cansa menos ({pct})',
-        formationLine: '{positions} (e o goleiro). {description}',
         linkTerm: '{name} ({pct})',
         linkLine: '{desc} Combo: {combo}.',
-        gymLine: 'tipo {types}, {formation}, {tactic}.',
+        /** Golpe máximo: os 3 níveis em geral (o da carta é o de cada Pokémon). */
+        maxRow: [
+            'chute com {pw} de força e o status do tipo em quem bloquear ou defender.',
+            'chute com {pw} e derruba quem estiver no caminho (o goleiro não cai).',
+            'chute com {pw}, sempre no alvo, com a cena do especial e o efeito do tipo (12 Pokémon têm assinatura própria).',
+        ],
+        maxTypeLine: 'N1 {st} quem bloquear ou defender · N3: {fx}.',
     },
     screen: {
         title: 'Ajuda',
-        replay: 'Ver o passo a passo de novo',
-        tipsBack: 'Dicas de volta nas telas',
+        tipsBack: 'As dicas voltaram à tela.',
         tipsShow: 'Mostrar as dicas de novo',
         searchLabel: 'Buscar na ajuda',
-        searchPlaceholder: 'Buscar: evolução, pênaltis, itens…',
+        searchPlaceholder: 'Buscar: evolução, pênaltis, status…',
         nothing: 'Nada encontrado pra “{query}”.',
         notFound: 'Não achou o que queria?',
         askUs: 'Pergunta pra gente',
+        groups: { team: 'Montar o time', match: 'A partida' },
         faq: 'Perguntas frequentes',
     },
+    /** Leitor de tela: o carrossel de formações. */
+    carousel: 'carrossel',
     tip: {
         label: 'Dica:',
         close: 'Fechar dica',
     },
-    onboarding: {
-        count: 'Como jogar · {n}/{total}',
+    coach: {
         skip: 'Pular',
-        carousel: 'carrossel',
-        step: 'passo',
-        stepOf: '{n} de {total}',
-        goToStep: 'Ir para o passo {n}: {title}',
-        prev: 'Anterior',
         next: 'Próximo',
-        go: 'Bora jogar',
-        welcomeTitle: 'Bem-vindo ao Soccermon',
-        welcomeText: 'Os **151 de Kanto** num futsal 5 contra 5. Monte o time e ganhe a copa.',
-        draftTitle: 'Draft: 1 de 3',
-        draftText: 'Toque numa vaga: saem 3 Pokémon e você leva 1. Não gostou? **Sorteie de novo**.',
-        coachTitle: 'Você é o técnico',
-        coachText: 'Mude a tática e troque quem cansar. Quem joga muito **evolui no meio do jogo**!',
-        tactic: 'Tática',
-        sub: 'Substituir',
+        done: 'Entendi',
+        count: '{n} de {total}',
+        label: 'Dica do tutorial',
+        intro: ['Primeira vez? Comece pela Copa Relâmpago: 4 jogos, uns 10 minutos.', 'As regras ficam aqui.'],
+        rota: [
+            'Toque numa casa acesa e depois em Ir.',
+            'A 1ª partida não dá cartão. Depois, uma derrota vale amarelo e a segunda, vermelho.',
+            'Vitória dá ₽ (o Jogo paga mais). Gaste no Mercado ou guarde pra render juros.',
+        ],
+        rotaGrupo: ['Aqui a derrota não dá cartão.'],
+        rotaNova: ['Agora tem a Rota Índigo: copa longa pelos ginásios de Kanto.'],
+        relampago: ['Mata-mata de 4 jogos: perdeu, acabou. Escolha a formação.'],
+        relampagoDraft: ['Toque numa vaga: saem 3 e você leva 1.'],
+        relampagoVestiario: ['Toque em dois pra trocar. A chave abre no cartaz do rival.'],
+        relampagoJogo: ['Mude a tática e troque jogadores. Quem joga muito evolui.'],
+        duelo: ['Entre sem conta. Depois você cria a sala e manda o link.'],
+        dueloSala: ['Em Regras: velocidade, duração e Melhor de 3.', 'Crie a sala e mande o link pro amigo.'],
+        dia: ['Mesmo draft e mesmos rivais pra todo mundo hoje.', 'Só a primeira tentativa conta pro ranking.'],
+        liga: [
+            'Ganhar sobe o Elo, perder desce.',
+            'Você enfrenta o time salvo de outro treinador. Ele não precisa estar online.',
+        ],
+        golpe: ['Barra no N1: o golpe máximo do capitão liberou.', 'Toque quando o círculo verde fechar.'],
+        utRepetida: ['Repetida não entra no Clube: venda ou troque pela que você já tem.'],
+        /** "Como funciona" na Ajuda: o que cada um é, numa linha (embaixo do nome). */
+        replayLine: {
+            intro: 'A tela inicial: escolha o modo e jogue.',
+            rota: 'Copa longa por Kanto, de ginásio em ginásio.',
+            rotaGrupo: 'O fim da Rota: grupo de 3 jogos e a Final.',
+            relampago: 'Mata-mata de 4 jogos: perdeu, acabou.',
+            golpe: 'O chute especial do capitão, em 3 níveis.',
+            duelo: 'Ao vivo contra um amigo, pelo link. Sem conta.',
+            dia: 'A mesma copa pra todo mundo hoje, com ranking.',
+            liga: 'Contra o time salvo de outro treinador. Vale Elo.',
+        } as Record<string, string>,
+        replay: {
+            title: 'Como funciona',
+            hint: 'Os balões voltam na próxima vez que você entrar no modo.',
+            done: 'Vai aparecer de novo',
+            intro: 'Estádio',
+            rota: 'Rota Índigo',
+            rotaGrupo: 'Planalto',
+            relampago: 'Copa Relâmpago',
+            duelo: 'Duelo',
+            dia: 'Copa do Dia',
+            liga: 'Liga',
+            golpe: 'Golpe máximo',
+        },
     },
 };

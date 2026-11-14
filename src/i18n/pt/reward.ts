@@ -4,21 +4,46 @@ export const reward = {
     /** Fase fora da lista (não acontece na copa normal). */
     cup: 'Copa',
     whoLeaves: 'Quem sai do banco?',
+    /** Reforço com vaga vazia no banco (um reserva saiu na Copa longa). */
+    whereGoes: 'Onde ele entra?',
     whoLearns: 'Quem aprende o golpe?',
     whoHolds: 'Quem vai segurar o item?',
     choose: 'Escolha uma recompensa',
+    /** Rota: o 1 de 3 do time rival, antes do prêmio da casa. */
+    chooseRival: 'Contrate 1 do rival',
+    skipRival: 'Dispensar',
+    tipRival: 'Ganhou! Contrate 1 do rival. Depois vem o prêmio da casa.',
+    tipPrize: 'O prêmio da casa. Pular também dá algo: está no botão.',
     reroll: 'Sortear de novo ({n})',
-    skip: 'Pular (+1 reroll)',
-    tip: 'Ganhou! Pegue um Pokémon do rival, um item ou uma MT. Pular dá +1 reroll.',
+    skip: 'Pular (+1 sorteio)',
+    /** Rota: o botão "Pular" com a etiqueta do que ele dá (estilo Balatro), sorteada a cada tela. */
+    skipShort: 'Pular',
+    skipTag: {
+        dispensar: '+₽{n}',
+        money: '+₽{n}',
+        rerolls: '+{n} sorteios',
+        shop: 'Troca grátis no Mercado',
+        rival: 'Próximo rival mais fraco',
+        evo: 'Meia barra: {name}',
+    },
+    /** O botão inteiro, pro leitor de tela. */
+    skipAria: '{label}: {tag}',
+    tip: 'Pegue um Pokémon do rival, um item ou uma MT.',
+    /** Patrocínio na recompensa (Relâmpago e Copa do Dia, que não têm Mercado). */
+    tipSponsor: 'Pegue um Pokémon do rival, um item ou o Patrocínio.',
+    sponsorHint: 'Vale até o fim da copa e ocupa uma das 3 vagas.',
+    sponsorSign: 'Assinar contrato',
     fromClub: 'Do {club}',
+    fromClubF: 'Da {club}',
     reinforcement: 'Reforço',
     chosen: 'Escolhido',
     sign: 'Contratar',
     pick: 'Escolher',
     item: 'Item',
     swapWhich: 'Trocar por qual reserva?',
-    giveTo: 'Entregar para…',
-    itemGoesToNew: ' ({item} vai para o reforço)',
+    swapOrEmpty: 'Na vaga ou no lugar de um reserva?',
+    giveTo: 'Entregar pra…',
+    itemGoesToNew: ' ({item} vai pro reforço)',
     replacesItem: ' (troca a {item})',
     passesItem: ' (depois você escolhe pra quem vai a {item})',
     passTitle: 'Pra quem vai a {item}?',
@@ -37,6 +62,8 @@ export const reward = {
         skip: 'Mostrar as cartas',
         /** Escrito no pacote da recompensa, embaixo do logo. */
         label: 'Pacote da vitória',
+        /** Treino de técnica da Rota (ninguém evolui): só itens. */
+        training: 'Pacote do treino',
     },
     /** Item que depende dos golpes de quem segura (tipo, King's Rock): src/ui/item-fit.ts. */
     fit: {
@@ -52,10 +79,11 @@ export const reward = {
         hm: 'MO',
         rareMove: 'Golpe raro',
         fromLeader: 'Do {leader}',
-        rareChest: 'Baú raro',
+        rareChest: 'MT rara',
         learners: '{n} do seu time aprende|{n} do seu time aprendem',
         rarelyUsed: ' · quase ninguém usa',
-        taughtTitle: 'Ensinado por MT',
+        taughtTitle: 'Golpe treinado (MT): +1 uso e 30% mais forte',
+        trained: 'Golpe treinado: +1 uso por partida e 30% mais forte.',
         whoLearns: 'Quem aprende {move}?',
         alreadyKnows: 'já sabe',
         cantLearn: 'não aprende',

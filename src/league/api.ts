@@ -1,8 +1,8 @@
-import { cloudEnabled, cloudUserId, loadCloud } from '../cloud/cloud';
+import { cloudEnabled, cloudUserId, loadCloud, useCloud } from '../cloud/cloud';
 import { ENGINE_VERSION } from '../engine/config';
 import type { DuelTeamRecipe } from '../engine/duel-validate';
 import type { MatchOrder, TeamSetup } from '../engine/state';
-import type { Profile } from '../store/profile';
+import { type Profile, trainerNameOf } from '../store/profile';
 import { seasonOf } from './rules';
 
 /**
@@ -11,15 +11,15 @@ import { seasonOf } from './rules';
  * trocam o servidor por um de mentira (src/league/demo.ts).
  */
 
-/** Como você aparece no ranking: o nome do treinador no jogo (nunca o da conta Google) e o clube. */
+/** Como você aparece no ranking: o mesmo nome do Perfil (`trainerNameOf`: nunca o nome completo do Google) e o clube. */
 export interface PublicInfo {
     trainer: string;
     club: string;
     tag: string;
     color: string;
 }
-export const publicInfo = (p: Profile): PublicInfo => ({
-    trainer: p.trainerName.trim().slice(0, 40) || 'Treinador',
+export const publicInfo = (p: Profile, googleName = useCloud.getState().user?.name): PublicInfo => ({
+    trainer: trainerNameOf(p, googleName).slice(0, 40) || 'Treinador',
     club: p.clubName.trim().slice(0, 22) || 'Pallet FC',
     tag: p.clubTag.slice(0, 3) || 'PAL',
     color: p.clubColor,
@@ -37,6 +37,19 @@ export interface DailyRow {
     ga: number;
     done: boolean;
     me: boolean;
+    /** Código de amigo (só pra quem entrou com o Google; servidor sem a migração 20261028200000 não manda). */
+    code?: string | null;
+    /** Os 5 titulares (ids de espécie) e a vaga do capitão (0 a 4). Nulos em linha sem time (e em servidor sem a migração). */
+    squad?: number[] | null;
+    captain?: number | null;
+}
+
+/** Os ícones do ranking: só aceita 5 ids inteiros válidos; qualquer outra coisa vira "sem time". */
+export function squadOf(r: Pick<DailyRow, 'squad' | 'captain'>): { ids: number[]; captain: number } | null {
+    const ids = r.squad;
+    if (!Array.isArray(ids) || ids.length !== 5 || !ids.every((n) => Number.isInteger(n) && n >= 1)) return null;
+    const c = r.captain;
+    return { ids, captain: typeof c === 'number' && Number.isInteger(c) && c >= 0 && c < 5 ? c : -1 };
 }
 
 export interface LigaRow {
@@ -50,6 +63,8 @@ export interface LigaRow {
     wins: number;
     losses: number;
     me: boolean;
+    /** Código de amigo (só pra quem entrou com o Google; servidor sem a migração 20261028200000 não manda). */
+    code?: string | null;
 }
 
 export interface GhostInfo {
@@ -220,5 +235,7 @@ export const setLeagueServer = (s: LeagueServer) => {
 export const league = (): LeagueServer => server;
 /** Tem servidor (Supabase configurado, ou o de mentira do `?demo=`). */
 export const leagueOnline = () => cloudEnabled || server !== real;
+/** O servidor de mentira do `?demo=dia|liga` (dev): a Liga abre mesmo antes de `LIGA_OPENS_AT`. */
+export const leagueDemo = () => server !== real;
 export const isError = (x: unknown): x is { error: string } =>
     !!x && typeof x === 'object' && typeof (x as { error?: unknown }).error === 'string';

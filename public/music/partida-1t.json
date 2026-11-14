@@ -1,0 +1,77 @@
+{
+ "faixa": "partida-1t",
+ "titulo": "Partida v4 (base)",
+ "tela": "Partida",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 98.52941,
+ "secoes": [
+  {
+   "nome": "nivel1",
+   "intensidade": 1,
+   "loop": true,
+   "inicio": 0,
+   "fim": 32,
+   "amostras": [
+    0,
+    1411200
+   ],
+   "bpm": 120,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel2",
+   "intensidade": 2,
+   "loop": true,
+   "inicio": 32,
+   "fim": 62,
+   "amostras": [
+    1411200,
+    2734200
+   ],
+   "bpm": 128,
+   "compassos": 16
+  },
+  {
+   "nome": "nivel3",
+   "intensidade": 3,
+   "loop": true,
+   "inicio": 62,
+   "fim": 90.235283,
+   "amostras": [
+    2734200,
+    3979376
+   ],
+   "bpm": 136,
+   "compassos": 16
+  },
+  {
+   "nome": "fim",
+   "loop": false,
+   "inicio": 90.235283,
+   "fim": 95.52941,
+   "amostras": [
+    3979376,
+    4212847
+   ],
+   "bpm": 136,
+   "compassos": 3
+  }
+ ],
+ "swing": 0.06,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    90.235,
+    90.573,
+    90.897
+   ],
+   [
+    92,
+    92.337,
+    92.662
+   ]
+  ]
+ }
+}

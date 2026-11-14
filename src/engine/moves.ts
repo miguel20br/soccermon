@@ -1,5 +1,6 @@
 import levelMoves from '../data/level-moves.json';
-import { MOVES, type MoveData, type Species } from './data';
+import type { AttrKey } from './attributes';
+import { MOVES, type MoveData, SPECIES, type Species } from './data';
 import { SIGNATURE } from './signature-moves';
 
 /**
@@ -164,6 +165,8 @@ export const MOVE_TRAITS: Record<string, Trait[]> = {
     doublekick: ['multi2'],
     twineedle: ['multi2'],
     bonemerang: ['multi2', 'rebound', 'reach'],
+    // Slam: cauda longa ou vinha (Pikachu, Tangela, Dratini...): desarme de longe
+    slam: ['reach'],
     furyattack: ['multi25'],
     furyswipes: ['multi25'],
     doubleslap: ['multi25'],
@@ -190,6 +193,8 @@ export const MOVE_TRAITS: Record<string, Trait[]> = {
     acidarmor: ['melt'],
     withdraw: ['shell'],
     defensecurl: ['curl'],
+    // Harden: na Gen 1 era igual ao Defense Curl e ao Withdraw (Def +1)
+    harden: ['curl'],
     barrier: ['wall'],
     stomp: ['stompMini'],
     // F12
@@ -232,7 +237,8 @@ export const MOVE_TUNING = {
     chargePower: 1.3,
     // F4 voo / buraco
     airTime: 0.8,
-    airCarry: 4,
+    /** Com a bola, o voo/buraco leva a bola tantos metros rumo ao gol antes do chute (era 4: virava gol fácil). */
+    airCarry: 2,
     airPounceRange: 8,
     // F5 prioridade
     quickRange: 3.3,
@@ -309,7 +315,65 @@ export const MOVE_TUNING = {
     gkSaveTime: 1.2,
     coinRadius: 3,
     coinStun: 0.4,
+    // reforço e enfraquecimento: fator por estágio da Gen 1 e duração
+    buffStep: 0.07,
+    buffTime: 12,
+    debuffStep: 0.08,
+    debuffTime: 10,
+    /** Cura (Recover, Soft-Boiled...): fôlego = base + força × golpe. Rest enche tudo. */
+    healBase: 0.1,
+    healPower: 0.3,
+    // o preço dos golpes fortíssimos (DRAWBACK)
+    recoilEnergy: 0.04,
+    crashEnergy: 0.08,
+    crashStun: 0.6,
+    rampageChance: 0.5,
+    rechargeStun: 0.9,
+    faintEnergy: 0.15,
+    faintStun: 1.6,
+    /** Raio da explosão (Gen 1: Explosion 170 × Self-Destruct 130). */
+    blastRadius: { explosion: 4, selfdestruct: 3 } as Record<string, number>,
+    /** Nocaute que acerta: segundos no chão. */
+    ohkoStun: 2.2,
 };
+
+/** Atributos que cada estágio da Gen 1 mexe em campo. */
+export const BOOST_TO_ATTR: Record<string, AttrKey[]> = {
+    atk: ['shooting', 'strength'],
+    def: ['tackling', 'strength'],
+    spa: ['passing', 'shooting'],
+    spd: ['positioning'],
+    spe: ['pace'],
+    accuracy: ['passing'],
+    evasion: ['dribble'],
+};
+
+/** Quanto dura cada status (s). */
+export const STATUS_DURATION: Record<string, number> = {
+    par: 6,
+    slp: 2.5,
+    psn: 10,
+    brn: 8,
+    frz: 2.5,
+    confusion: 4,
+    infatuation: 1.5,
+};
+
+/**
+ * Reforço próprio do golpe, no lugar do dado: Amnesia é o Special +2 da Gen 1 (ataque e defesa especial juntos);
+ * as paredes não sobem atributo (o efeito delas é a parede).
+ */
+const SELF_BOOSTS: Record<string, Partial<Record<string, number>>> = {
+    amnesia: { spa: 2, spd: 2 },
+    lightscreen: {},
+    reflect: {},
+};
+/** O que o golpe de reforço sobe (sem dado: Focus Energy e companhia sobem chute/força). */
+export const selfBoostsOf = (moveId: string): Partial<Record<string, number>> =>
+    SELF_BOOSTS[moveId] ?? MOVES[moveId]?.selfBoosts ?? { atk: 1 };
+
+/** Secundário sorteado: Tri Attack queima, congela ou paralisa (Gen 2 em diante). */
+export const SECONDARY_PICK: Record<string, StatusKind[]> = { triattack: ['brn', 'frz', 'par'] };
 
 /**
  * O que cada golpe faz no futsal (os especiais e os que ganharam traço). Os outros usam o texto do tipo.
@@ -317,121 +381,141 @@ export const MOVE_TUNING = {
  * tela escolhe pelo idioma com `moveExplain()`. O motor não lê nada disso.
  */
 const EXPLAIN = {
-    counter: 'Reação: na primeira vez que receber um golpe ou carrinho, devolve no atacante (1 vez por partida).',
-    haze: 'Névoa: tira status e reforços/enfraquecimentos de todo mundo em volta (dos dois times).',
-    mist: 'O time fica imune a enfraquecimentos por 12 segundos.',
-    teleport: 'Some e reaparece em outro ponto da quadra: foge da marcação.',
-    mirrormove: 'Repete o último golpe que o rival usou.',
-    mimic: 'Copia o último golpe que o rival usou e fica com ele até o fim da partida.',
+    counter:
+        'Reação: na primeira vez que receber um golpe ou carrinho, anula e atordoa o atacante por 0,9 s (1 vez por partida).',
+    haze: 'Névoa: tira status, reforços, enfraquecimentos e Leech Seed de todo mundo a 6 m (dos dois times).',
+    mist: 'Por 12 segundos, golpes que só enfraquecem (Growl, Leer...) não pegam no time.',
+    teleport:
+        'Some e reaparece 8 m à frente se o time está com a bola (8 m atrás se não está), numa faixa sorteada da quadra.',
+    mirrormove: 'Repete o último golpe que o time rival usou.',
+    mimic: 'Copia o último golpe que o time rival usou e fica com ele até o fim da partida.',
     metronome: 'Balança o dedo e solta um golpe aleatório!',
-    substitute: 'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele (custa um pouco de fôlego).',
-    leechseed: 'Planta uma semente no rival: o fôlego dele escorre aos poucos para quem usou (Planta é imune).',
-    bide: 'Aguenta firme 3 s e depois solta uma onda que empurra e atordoa quem está perto: quanto mais apanhou, mais forte.',
-    rage: 'Fúria por 15 s: chute e força sobem, e cada carrinho ou golpe que sofre deixa ainda mais forte (até 3 vezes).',
-    conversion: 'Copia o tipo do rival mais perto por 12 s (muda a vantagem de tipo) e tira os enfraquecimentos.',
-    disable: 'Trava um golpe que o rival mais perto ainda tinha para usar.',
-    roar: 'Rugido: o rival mais perto foge de volta para o campo dele e larga a bola.',
-    whirlwind: 'Ventania que empurra os rivais em volta e sopra a bola solta para longe.',
-    splash: 'Pula e espirra água: fica difícil de desarmar por um instante (mas é só isso mesmo).',
-    transform: 'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos.',
+    substitute:
+        'Cria um boneco que aguenta o próximo golpe ou carrinho no lugar dele por até 15 s (custa 8% do fôlego).',
+    leechseed:
+        'Planta uma semente no rival mais perto (até 6 m): por 12 s, passa 1,2% do fôlego dele por segundo pra quem usou (Planta é imune).',
+    bide: 'Segura 3 s (+30% de força) contando as pancadas e depois empurra e atordoa os rivais a 3,5 m: quanto mais apanhou, mais forte (até 3 pancadas).',
+    rage: 'Fúria por 15 s: +10% de chute e força, e cada carrinho ou golpe que sofre soma mais 5% (até 3 vezes).',
+    conversion:
+        'Copia o tipo do rival mais perto por 12 s (muda a vantagem de tipo), tira os enfraquecimentos e dá +8% em velocidade, drible, chute, passe e desarme por 10 s.',
+    disable: 'Trava o golpe mais forte que o rival mais perto (até 6 m) ainda tem pra usar.',
+    roar: 'Rugido: o rival mais perto (até 5 m) corre 1,6 s de volta pro campo dele e larga a bola.',
+    whirlwind: 'Ventania: empurra 2,8 m os rivais a 4,5 m e manda pra longe a bola solta que estiver a até 7 m.',
+    splash: 'Pula e espirra água: fica 30% mais difícil de desarmar por 1,5 s (mas é só isso mesmo).',
+    transform:
+        'Vira uma cópia do rival mais perto: pega os atributos melhores dele por 12 segundos. (O Ditto já entra transformado pela habilidade Imposter.)',
     // F1 área
-    acid: 'Com a bola: chute colocado. Sem a bola: jato de ácido em todos os rivais a 4 m.',
+    acid: 'Com a bola: chute colocado. Sem a bola: empurra e atordoa todos os rivais a 4 m.',
     blizzard:
-        'Com a bola: chute colocado que pode congelar o goleiro. Sem a bola: nevasca em todos os rivais a 4 m, com chance de congelar.',
-    bubble: 'Com a bola: chute colocado. Sem a bola: bolhas em todos os rivais a 4 m (podem deixar lentos).',
+        'Com a bola: chute colocado que pode congelar o goleiro. Sem a bola: empurra e atordoa todos os rivais a 4 m, com chance de congelar.',
+    bubble: 'Com a bola: chute colocado. Sem a bola: empurra e atordoa todos os rivais a 4 m (pode deixar lentos).',
     growl: 'Rugido em área: chute e força de todos os rivais a 4 m caem.',
-    leer: 'Encarada em área: os rivais a 4 m travam um instante e desarmam pior.',
+    leer: 'Encarada em área: os rivais a 4 m param 0,3 s e perdem 8% de desarme e força por 10 s.',
     tailwhip: 'Rabinho em área: desarme e força de todos os rivais a 4 m caem.',
-    screech: 'Grito em área: desarme e força dos rivais a 4 m caem bastante.',
+    screech: 'Grito em área: desarme e força dos rivais a 4 m caem 16% por 10 s.',
     stringshot: 'Teia em área: todos os rivais a 4 m ficam lentos.',
     poisongas: 'Nuvem de gás: tenta envenenar todos os rivais a 3 m.',
-    rockslide: 'Com a bola: chute forte. Sem a bola: chuva de pedras em todos os rivais a 4 m, que podem hesitar.',
-    rollingkick: 'Com a bola: chute forte. Sem a bola: chute giratório que derruba todo mundo a 2 m.',
+    rockslide: 'Com a bola: chute forte. Sem a bola: empurra e atordoa todos os rivais a 4 m, que podem hesitar.',
+    rollingkick: 'Com a bola: chute forte. Sem a bola: chute giratório que derruba todos os rivais a 2 m.',
     earthquake:
         'Com a bola: chute fortíssimo. Sem a bola: tremor de 4 m que derruba TODO MUNDO em volta, até companheiro.',
     surf: 'Com a bola: chute colocado. Sem a bola: onda que empurra todo mundo a 4 m, até companheiro.',
     swift: 'Estrelas que nunca erram: o chute não pode ser bloqueado por jogador de linha (só o goleiro). Sem a bola, acerta todos os rivais a 4 m.',
-    razorleaf: 'Folhas afiadas: chute com chance alta de crítico. Sem a bola, corta todos os rivais a 4 m.',
+    razorleaf: 'Folhas afiadas: chute com 20% a 35% de crítico. Sem a bola, acerta todos os rivais a 4 m.',
     razorwind:
-        'Carrega 0,6 s parado e solta lâminas de vento: chute com crítico fácil, ou todos os rivais a 4 m sem a bola. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s parado e sai mais forte: chute com 20% a 35% de crítico ou, sem a bola, acerta todos os rivais a 4 m. Se levar carrinho carregando, perde o golpe.',
     // F2 crítico
-    slash: 'Corte com crítico fácil: o chute sai mais forte e certeiro; o carrinho crítico ganha direto.',
-    karatechop: 'Golpe de caratê com crítico fácil: chute mais forte e certeiro; carrinho crítico ganha direto.',
-    crabhammer: 'Martelada com crítico fácil: chute fortíssimo; carrinho crítico ganha direto.',
+    slash: 'Corte com 20% a 35% de crítico: o chute crítico sai 25% mais rápido e mais certeiro; o carrinho crítico ganha direto.',
+    karatechop:
+        'Golpe de caratê com 20% a 35% de crítico: o chute crítico sai 25% mais rápido e mais certeiro; carrinho crítico ganha direto.',
+    crabhammer:
+        'Martelada com 20% a 35% de crítico: chute fortíssimo, 25% mais rápido no crítico; carrinho crítico ganha direto.',
     skyattack:
-        'Carrega 0,6 s brilhando e sai o chute mais forte do jogo, com crítico fácil. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s brilhando e sai o chute mais forte do jogo, com 20% a 35% de crítico. Se levar carrinho carregando, perde o golpe.',
     focusenergy:
-        'Concentra: o próximo chute ou carrinho é crítico garantido (às vezes falha, como o Focus Energy bugado da Gen 1).',
+        'Concentra: o próximo chute ou carrinho é crítico garantido (falha 1 vez em 16, como o Focus Energy bugado da Gen 1).',
     // F3 carga
     solarbeam:
-        'Carrega 0,6 s parado juntando sol e solta o chute mais forte do jogo. Se levar carrinho carregando, perde o golpe.',
+        'Carrega 0,6 s parado e solta um chute colocado forte e muito certeiro. Se levar carrinho carregando, perde o golpe.',
     skullbash: 'Abaixa a cabeça 0,6 s (ninguém tira a bola dele nesse tempo) e solta uma cabeçada fortíssima.',
-    hyperbeam: 'Raio fortíssimo, mas fica parado recarregando depois. Se fizer gol, não recarrega (como na Gen 1).',
+    hyperbeam:
+        'Chute fortíssimo (sem a bola, acerta o rival mais perto), mas depois fica 0,9 s parado recarregando. Se fizer gol, não recarrega (como na Gen 1).',
     // F4 some do mapa
-    fly: 'Voa 0,8 s (ninguém alcança): com a bola, passa por cima da marcação e finaliza; sem a bola, cai em cima de quem conduz e dá o bote.',
-    dig: 'Cava 0,8 s (ninguém alcança): com a bola, reaparece mais à frente e finaliza; sem a bola, sai do chão embaixo de quem conduz e dá o bote.',
+    fly: 'Voa 0,8 s (ninguém alcança): com a bola, avança 2 m e chuta; sem a bola, cai em cima de quem conduz (até 8 m) e tenta o desarme.',
+    dig: 'Cava 0,8 s (ninguém alcança): com a bola, reaparece 2 m à frente e chuta; sem a bola, sai do chão embaixo de quem conduz (até 8 m) e tenta o desarme.',
     // F5 prioridade
     quickattack:
         'Prioridade: sem a bola, avança 2 m e desarma na hora, sem esperar; com a bola, arrancada e chute ou passe de primeira.',
-    agility: 'Arrancada longa: fica bem mais veloz por 5 segundos.',
+    agility: 'Arrancada longa: +28% de velocidade e +10% de drible por 5 segundos.',
     // F6 mira
     drillpeck: 'Broca: chute forte que fura o primeiro bloqueio no caminho.',
     cut: 'Corte: chute que fura o primeiro bloqueio; o carrinho não perde força por trás.',
-    eggbomb: 'Chute de cobertura: a bola vai por cima dos bloqueios e o goleiro alcança menos (mas é impreciso).',
-    sandattack: 'Areia no olho: o rival mais perto chuta e passa bem torto por 6 s.',
-    kinesis: 'Entorta a colher: o próximo chute do rival mais perto sai bem torto.',
-    flash: 'Clarão: todos os rivais a 7 m chutam e passam torto por 5 s.',
-    smokescreen: 'Cortina de fumaça no chão (3 m, 5 s): chute e passe de dentro dela saem tortos, para os dois times.',
+    eggbomb:
+        'Chute de cobertura: a bola vai por cima dos bloqueios e o goleiro alcança 20% menos (mas o golpe erra 25% das vezes).',
+    sandattack: 'Areia no olho: o rival mais perto (até 6 m) erra o dobro no chute e no passe por 6 s.',
+    kinesis: 'Entorta a colher: o próximo chute do rival mais perto (até 6 m) nos próximos 10 s erra 2,5 vezes mais.',
+    flash: 'Clarão: todos os rivais a 7 m erram 60% mais no chute e no passe por 5 s.',
+    smokescreen:
+        'Cortina de fumaça no chão (3 m, 5 s) em cima do rival mais perto: chute e passe de dentro dela erram 80% mais, pros dois times.',
     // F7 dano fixo
     sonicboom:
-        'Dano fixo: chute de velocidade fixa (não depende do atributo nem do tipo). Sem a bola, estrondo que atordoa o rival um tempo fixo (Fantasma é imune).',
+        'Dano fixo: chute sempre a 20 m/s (não depende do atributo nem do tipo). Sem a bola, atordoa o rival mais perto por 0,6 s (Fantasma é imune).',
     dragonrage:
-        'Dano fixo: chute de velocidade fixa alta, sem vantagem de tipo do goleiro. Sem a bola, atordoa o rival um tempo fixo.',
+        'Dano fixo: chute sempre a 24 m/s, sem vantagem de tipo do goleiro. Sem a bola, atordoa o rival mais perto por 0,8 s.',
     nightshade:
-        'Dano fixo: chute de velocidade fixa, ignora o tipo do goleiro. Sem a bola, atordoa um tempo fixo e pega até Normal.',
+        'Dano fixo: chute sempre a 23 m/s, ignora o tipo do goleiro. Sem a bola, atordoa o rival mais perto por 0,8 s e pega até Normal.',
     seismictoss:
-        'Arremesso: no carrinho, joga o rival 3 m e deixa 1 s no chão, sem depender da força. Com a bola, chute de velocidade fixa.',
-    psywave: 'Onda psíquica de força sorteada: pode sair uma bomba ou uma bola murcha.',
+        'Arremesso: no carrinho, joga o rival 3 m e deixa 1 s no chão, sem depender da força. Com a bola, chute sempre a 22 m/s.',
+    psywave:
+        'Força sorteada entre 50% e 150% da normal: com a bola, chute; sem a bola, empurra e atordoa o rival mais perto.',
     superfang: 'Presa: o carrinho que acerta tira metade do fôlego do rival.',
     lowkick: 'Rasteira: derruba mais quem é pesado (um Snorlax fica uns 2 s no chão).',
     // F8 multi-acerto e alcance
     doublekick: 'Dois chutes: sem a bola, duas tentativas de desarme seguidas.',
     twineedle: 'Duas agulhadas: duas tentativas de desarme, cada uma pode envenenar.',
     bonemerang:
-        'Bumerangue: desarme de longe (2,8 m), duas tentativas; o chute, se o goleiro espalmar ou alguém bloquear, volta para o pé dele.',
-    furyattack: 'De 2 a 5 tentativas de desarme seguidas (cada uma mais fraca).',
-    furyswipes: 'De 2 a 5 arranhões: tentativas de desarme seguidas (cada uma mais fraca).',
-    doubleslap: 'De 2 a 5 tapas: tentativas de desarme seguidas (cada uma mais fraca).',
-    cometpunch: 'De 2 a 5 socos: tentativas de desarme seguidas (cada uma mais fraca).',
-    barrage: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
-    pinmissile: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
-    spikecannon: 'De 2 a 5 tentativas de desarme; o chute pode voltar para o pé dele se for defendido.',
+        'Bumerangue: desarme de longe (2,8 m), duas tentativas; o chute, se o goleiro espalmar ou alguém bloquear, volta pro pé dele.',
+    furyattack: 'De 2 a 5 tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    furyswipes: 'De 2 a 5 arranhões: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    doubleslap: 'De 2 a 5 tapas: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    cometpunch: 'De 2 a 5 socos: tentativas de desarme seguidas (cada uma 15% mais fraca).',
+    barrage:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
+    pinmissile:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
+    spikecannon:
+        'De 2 a 5 tentativas de desarme; se o chute for defendido ou bloqueado, volta pro pé dele em 50% das vezes.',
     vinewhip: 'Chicote: desarme de longe (2,8 m).',
+    slam: 'Pancada com a cauda ou a vinha: com a bola, chute forte; sem a bola, desarme de longe (2,8 m).',
     boneclub: 'Osso na mão: desarme de longe (2,8 m), que pode fazer o rival hesitar.',
     rockthrow: 'Pedrada: desarme de longe (2,8 m).',
     // F9 prender
     wrap: 'Enrola de longe (2,8 m): quem conduz e quem usou ficam presos 1,2 s e a bola sobra.',
     bind: 'Amarra de longe (2,8 m): quem conduz e quem usou ficam presos 1,2 s e a bola sobra.',
     clamp: 'Fecha a concha: rouba a bola e ninguém tira dele por 1 s.',
-    firespin: 'Anel de fogo no chão (2 m, 4 s): queima e deixa lento o rival que passar.',
-    constrict: 'Aperta: o rival fica lento 2 s.',
+    firespin: 'Anel de fogo no chão (2 m, 4 s): o rival que passar fica 25% mais lento e pode ser queimado.',
+    constrict: 'Aperta: o rival fica 40% mais lento por 2 s.',
     // F10 contador que cresce
-    toxic: 'Veneno que piora: o fôlego escorre cada vez mais rápido (até 3x) por 12 s.',
+    toxic: 'Veneno que piora: o rival mais perto perde fôlego cada vez mais rápido (até 3x) por 12 s.',
     // F11 esquiva e muro
-    doubleteam: 'Dois clones: os próximos 2 carrinhos ou golpes nele acertam um clone.',
-    minimize: 'Fica pequenininho 4 s: muito difícil de desarmar (Stomp ignora).',
-    acidarmor: 'Derrete: por 3 s os carrinhos passam direto por ele.',
-    withdraw: 'Entra no casco 1,5 s: ninguém tira a bola dele, mas anda devagar.',
+    doubleteam: 'Dois clones por até 15 s: os próximos 2 carrinhos ou golpes nele acertam um clone.',
+    minimize: 'Fica pequenininho 4 s: carrinhos nele saem 40% mais fracos (Stomp ignora).',
+    acidarmor: 'Derrete: por 3 s nenhum carrinho tira a bola dele.',
+    withdraw: 'Entra no casco 1,5 s: ninguém tira a bola dele, mas anda 40% mais devagar.',
     defensecurl: 'Enrola: o próximo carrinho que sofrer não tira a bola.',
+    harden: 'Endurece: o próximo carrinho que sofrer não tira a bola.',
+    lightscreen:
+        'Parede de luz: por 15 s, golpes especiais contra o seu time pegam pela metade e os de sono, paralisia, veneno e confusão têm metade da chance.',
+    reflect: 'Parede: por 15 s, os carrinhos contra o seu time saem 30% mais fracos.',
     barrier: 'Muro invisível 3 s na frente dele: bloqueia o próximo chute que passar perto.',
     stomp: 'Pisão: com a bola, chute forte; sem a bola, desarme que pode fazer hesitar e ignora quem está pequenininho (Minimize).',
     // F12 controle de campo
-    gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta para longe.',
+    gust: 'Com a bola: chute colocado. Sem a bola: rajada que empurra o rival e sopra a bola solta pra longe.',
     strength: 'Carrinho-trator: quando ganha a dividida, empurra o rival 2,5 m.',
     softboiled: 'Cura o fôlego dele e o do companheiro mais cansado a 8 m.',
     dreameater:
-        'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo, devora o sonho dele e suga o dobro.',
-    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m param um instante para olhar.',
+        'Com a bola: chute colocado. Sem a bola: suga o fôlego do rival mais perto; se tiver alguém dormindo a até 7 m, mira nele e suga o dobro.',
+    payday: 'Chuva de moedas: com a bola, chute; sem a bola, os rivais a 3 m ficam parados 0,4 s.',
 };
 
 /** Golpes que têm explicação própria (a tradução em inglês precisa ter todas). */
@@ -687,20 +771,163 @@ function stageCap(sp: Species): number {
 }
 
 /**
+ * O que o golpe faz em campo, além da força, da precisão e do tipo: dois golpes com a mesma chave são "iguais" (Ember e
+ * Fire Blast; Thunder e Thunderbolt). Usado para não pôr dois iguais no mesmo moveset.
+ */
+export function moveBehavior(id: string): string {
+    const p = moveProfile(id);
+    const sec = p.data.secondary;
+    return [
+        p.kind,
+        (MOVE_TRAITS[id] ?? []).join('+'),
+        DRAWBACK[id] ?? '',
+        DRAIN[id] ? 'drain' : '',
+        TRAP.has(id) ? 'trap' : '',
+        OHKO.has(id) ? 'ohko' : '',
+        p.status ?? '',
+        sec?.status ?? sec?.volatile ?? '',
+        sec?.boosts ? Object.keys(sec.boosts).join('/') : '',
+        p.kind === 'buff' || p.kind === 'debuff' || p.kind === 'special' ? id : '',
+    ].join('|');
+}
+
+/**
  * Moveset padrão com cara de "jogo de verdade":
  * 0) golpe-assinatura da espécie (src/engine/signature-moves.ts)
  * 1) melhor golpe STAB da categoria mais forte da espécie (Atk vs SpA)
  * 2) melhor golpe de dano de outro tipo ou outra categoria (cobertura)
  * 3) utilitário: status > arrancada > buff > debuff > cura
  * 4) melhor restante, preferindo um tipo ainda não coberto
- * Espécies com learnset curto (Magikarp, Ditto…) ficam com menos de 4.
+ * Em 2 e 4, golpe de mesmo efeito de um que já entrou vale bem menos (sem Flamethrower + Fire Blast).
+ * Depois: as trocas decididas com o Miguel (MOVESET_SWAP) e a regra do tipo próprio (1 golpe de cada tipo da espécie,
+ * se o learnset da Gen 1 tiver). Espécies com learnset curto (Magikarp, Ditto…) ficam com menos de 4.
  */
 /** Quem tem moveset fixo de propósito: o Magikarp é o Magikarp (a graça é evoluir). */
 const FIXED_MOVESET: Record<number, string[]> = { 129: ['splash', 'tackle'] };
 
+/**
+ * Trocas na mão (sai → entra), decididas com o Miguel em 21/10/2026. Rodam antes da regra do tipo próprio, então
+ * uma troca que já põe o tipo que faltava dispensa a regra.
+ * - Gengar: o Confuse Ray vira Sludge (exceção fora da Gen 1, `LEARNSET_EXTRA` em data.ts) e o combo Hypnosis →
+ *   Dream Eater fica. Sem a linha, a regra do tipo próprio tiraria o Hypnosis e poria o Toxic.
+ * - Hitmonchan: os 3 socos ficam e entra o Counter (Lutador, nível 53) no lugar do Agility.
+ * - Gyarados: o Splash herdado do Magikarp vira Hyper Beam (nível 52 na Gen 1).
+ */
+export const MOVESET_SWAP: Readonly<Record<number, Readonly<Record<string, string>>>> = {
+    94: { confuseray: 'sludge' },
+    107: { agility: 'counter' },
+    130: { splash: 'hyperbeam' },
+};
+/** Fora da regra do tipo próprio: a Butterfree guarda os pós (o único Inseto dela seria String Shot). */
+const TYPE_RULE_SKIP = new Set([12]);
+/**
+ * Fora da regra "sem 2 iguais" (o Miguel não viu a troca ainda): o Ponyta guarda Ember + Fire Blast (a regra daria
+ * Toxic) e a Tangela guarda Vine Whip + Slam (os dois com alcance; a regra daria Solar Beam).
+ */
+const DUP_RULE_SKIP = new Set([77, 114]);
+
+const MOVESET_CACHE = new Map<number, readonly string[]>();
+
+/**
+ * Espécies SEM relação não dividem 3 ou 4 golpes do moveset padrão (aprovado pelo Miguel, ENGINE_VERSION 9).
+ * Ligado, o `defaultMoveset` usa `uniqueMovesets()`. Ver docs/planos/golpes-revisao.md, seção 8.
+ */
+export const UNIQUE_MOVESETS = true;
+
 export function defaultMoveset(sp: Species): string[] {
-    if (FIXED_MOVESET[sp.id]) return FIXED_MOVESET[sp.id];
-    const profiles = sp.learnset.map(moveProfile);
+    if (FIXED_MOVESET[sp.id]) return [...FIXED_MOVESET[sp.id]];
+    if (UNIQUE_MOVESETS) return [...(uniqueMovesets().get(sp.id) ?? baseMoveset(sp))];
+    return [...baseMoveset(sp)];
+}
+
+function baseMoveset(sp: Species): readonly string[] {
+    let ms = MOVESET_CACHE.get(sp.id);
+    if (!ms) {
+        ms = buildMoveset(sp);
+        MOVESET_CACHE.set(sp.id, ms);
+    }
+    return ms;
+}
+
+const lineRoot = (id: number): number => {
+    const p = SPECIES[id - 1]?.prevo;
+    return p && p <= 151 ? lineRoot(p) : id;
+};
+
+/**
+ * Fora da unicidade (Miguel, 21/10/2026), junto com os pares deles: a troca deixaria o Wigglytuff estranho e o Staryu
+ * mais fraco. Ficam as 8 trocas aprovadas.
+ */
+const UNIQUE_SKIP = new Set([40, 120]);
+
+let uniqueCache: Map<number, string[]> | null = null;
+/**
+ * Regra da unicidade (protótipo): quando duas espécies de linhas evolutivas diferentes dividem 3 ou 4 golpes, a de
+ * número maior troca 1 golpe dividido pelo melhor golpe do learnset dela que nenhuma das duas leva. O novo é da mesma
+ * classe (dano por dano, status por status), não repete efeito nem tipo de fora, tem nota de pelo menos 90% e, no
+ * dano, força de pelo menos 90% e precisão parecida (não tira poder). Nunca sai a assinatura nem o único golpe de um
+ * tipo da espécie. Sem troca boa, fica como está. Mesma linha evolutiva parecida não é problema (Miguel, 21/10/2026).
+ */
+export function uniqueMovesets(): Map<number, string[]> {
+    if (uniqueCache) return uniqueCache;
+    const mons = SPECIES.filter((sp) => sp.id <= 151 && !FIXED_MOVESET[sp.id] && sp.learnset.length > 1);
+    const sets = new Map(mons.map((sp) => [sp.id, [...baseMoveset(sp)]]));
+    const shared = (a: string[], b: string[]) => a.filter((m) => b.includes(m));
+    const isDamage = (m: string) => ['strike', 'blast'].includes(moveProfile(m).kind);
+    for (let pass = 0; pass < 3; pass++) {
+        let changed = false;
+        for (const a of mons)
+            for (const b of mons) {
+                if (b.id <= a.id || lineRoot(a.id) === lineRoot(b.id) || UNIQUE_SKIP.has(a.id) || UNIQUE_SKIP.has(b.id))
+                    continue;
+                const ma = sets.get(a.id)!;
+                const mb = sets.get(b.id)!;
+                if (shared(ma, mb).length < 3) continue;
+                const fix = trySwap(b, mb, ma) ?? trySwap(a, ma, mb);
+                if (fix) {
+                    sets.set(fix.id, fix.moves);
+                    changed = true;
+                }
+            }
+        if (!changed) break;
+    }
+    function trySwap(sp: Species, mine: string[], other: string[]): { id: number; moves: string[] } | null {
+        const { damageScore, utilityScore } = scorer(sp);
+        const score = (m: string) => Math.max(damageScore(moveProfile(m)), utilityScore(moveProfile(m)));
+        const ownCount = (t: string) => mine.filter((m) => MOVES[m].type === t).length;
+        const outs = shared(mine, other)
+            .filter((m) => m !== SIGNATURE[sp.id])
+            .filter((m) => !(sp.types.includes(MOVES[m].type) && ownCount(MOVES[m].type) === 1))
+            .sort((x, y) => score(x) - score(y));
+        // não tira poder: dano com força e precisão parecidas (nada de nocaute ou golpe de risco no lugar); utilitário
+        // do mesmo jeito (status por status, arrancada por arrancada)
+        const weaker = (m: string, out: string) => {
+            const [pm, po] = [moveProfile(m), moveProfile(out)];
+            if (!isDamage(out)) return pm.kind !== po.kind;
+            if ((OHKO.has(m) || RISKY.has(m)) && !OHKO.has(out) && !RISKY.has(out)) return true;
+            return pm.strength < 0.9 * po.strength || pm.data.accuracy < po.data.accuracy - 10;
+        };
+        for (const out of outs) {
+            const rest = mine.filter((m) => m !== out);
+            let best: string | null = null;
+            for (const m of sp.learnset) {
+                if (mine.includes(m) || other.includes(m) || isDamage(m) !== isDamage(out)) continue;
+                if (rest.some((r) => moveBehavior(r) === moveBehavior(m))) continue;
+                const t = MOVES[m].type;
+                if (!sp.types.includes(t) && rest.some((r) => MOVES[r].type === t)) continue;
+                if (score(m) < 0.9 * score(out) || weaker(m, out)) continue;
+                if (!best || score(m) > score(best)) best = m;
+            }
+            if (best) return { id: sp.id, moves: mine.map((m) => (m === out ? best! : m)) };
+        }
+        return null;
+    }
+    uniqueCache = sets;
+    return sets;
+}
+
+/** As notas que o moveset padrão dá a cada golpe da espécie (dano e utilitário). */
+function scorer(sp: Species) {
     const physical = sp.baseStats.atk >= sp.baseStats.spa;
     const levels = LEVEL_MOVES[sp.id] ?? {};
     const cap = stageCap(sp);
@@ -739,6 +966,12 @@ export function defaultMoveset(sp: Species): string[] {
                 return 0;
         }
     };
+    return { damageScore, utilityScore };
+}
+
+function buildMoveset(sp: Species): string[] {
+    const profiles = sp.learnset.map(moveProfile);
+    const { damageScore, utilityScore } = scorer(sp);
     const chosen: MoveProfile[] = [];
     const best = (score: (p: MoveProfile) => number) => {
         let top: MoveProfile | null = null;
@@ -754,6 +987,9 @@ export function defaultMoveset(sp: Species): string[] {
         if (top) chosen.push(top);
         return top;
     };
+    // golpe de mesmo efeito de um que já entrou vale bem menos
+    const dup = (p: MoveProfile) =>
+        !DUP_RULE_SKIP.has(sp.id) && chosen.some((c) => moveBehavior(c.id) === moveBehavior(p.id)) ? 0.4 : 1;
     const signature = profiles.find((p) => p.id === SIGNATURE[sp.id]);
     if (signature) chosen.push(signature);
     const first =
@@ -763,7 +999,7 @@ export function defaultMoveset(sp: Species): string[] {
         if (!first) return sc;
         const sameType = p.data.type === first.data.type;
         const sameKind = p.kind === first.kind;
-        return sc * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
+        return sc * dup(p) * (sameType ? (sameKind ? 0.3 : 0.6) : 1.1);
     });
     // assinatura de suporte (Sing, Glare…) já é o utilitário
     const isUtility = (p: MoveProfile | undefined) => !!p && p.kind !== 'strike' && p.kind !== 'blast';
@@ -772,11 +1008,53 @@ export function defaultMoveset(sp: Species): string[] {
     if (chosen.length < 4) {
         best((p) =>
             Math.max(
-                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1),
+                damageScore(p) * (types.has(p.data.type) ? 0.5 : 1) * dup(p),
                 utilityScore(p) * 0.9,
                 p.kind === 'flavor' ? 1 : 0,
             ),
         );
     }
+    for (const [out, inn] of Object.entries(MOVESET_SWAP[sp.id] ?? {})) {
+        const i = chosen.findIndex((p) => p.id === out);
+        if (i >= 0 && sp.learnset.includes(inn)) chosen[i] = moveProfile(inn);
+    }
+    if (!TYPE_RULE_SKIP.has(sp.id)) ownTypeRule(sp, profiles, chosen, signature, damageScore, utilityScore);
     return chosen.slice(0, 4).map((p) => p.id);
+}
+
+/**
+ * Regra do tipo próprio (Miguel, 21/10/2026: o Gengar não tinha golpe Venenoso): para cada tipo da espécie sem
+ * golpe, entra o golpe do tipo de melhor nota (dano ou utilitário), se o learnset tiver. Sai, nesta ordem: um da
+ * mesma classe (dano por dano, utilitário por utilitário), um de efeito repetido, um de tipo de fora repetido, um de
+ * tipo de fora, um do tipo próprio repetido. Nunca sai a assinatura nem o único golpe de um tipo da espécie.
+ */
+function ownTypeRule(
+    sp: Species,
+    profiles: MoveProfile[],
+    chosen: MoveProfile[],
+    signature: MoveProfile | undefined,
+    damageScore: (p: MoveProfile) => number,
+    utilityScore: (p: MoveProfile) => number,
+) {
+    const isDamage = (p: MoveProfile) => p.kind === 'strike' || p.kind === 'blast';
+    const score = (p: MoveProfile) => Math.max(damageScore(p), utilityScore(p));
+    const own = (t: string) => sp.types.includes(t as never);
+    for (const t of sp.types) {
+        if (chosen.some((p) => p.data.type === t)) continue;
+        let cand: MoveProfile | null = null;
+        for (const p of profiles)
+            if (p.data.type === t && !chosen.includes(p) && (!cand || score(p) > score(cand))) cand = p;
+        if (!cand) continue;
+        const c = cand;
+        const count = (ty: string) => chosen.filter((p) => p.data.type === ty).length;
+        const rank = (p: MoveProfile) =>
+            (isDamage(p) === isDamage(c) ? 100 : 0) +
+            (chosen.some((o) => o !== p && moveBehavior(o.id) === moveBehavior(p.id)) ? 40 : 0) +
+            (!own(p.data.type) && count(p.data.type) > 1 ? 30 : !own(p.data.type) ? 20 : 10);
+        const victims = chosen
+            .map((p, i) => ({ p, i }))
+            .filter(({ p }) => p !== signature && !(own(p.data.type) && count(p.data.type) === 1))
+            .sort((a, b) => rank(b.p) - rank(a.p) || score(a.p) - score(b.p) || b.i - a.i);
+        if (victims.length) chosen[victims[0].i] = c;
+    }
 }

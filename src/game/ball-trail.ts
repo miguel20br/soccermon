@@ -87,9 +87,12 @@ const SPAWN: Record<string, Spawn> = {
     },
 };
 
+/** Partícula usada pelo tipo (o motor manda 'Fire'; antes caía tudo na estrelinha do Normal). */
+export const trailKind = (type: string): string => (SPAWN[type.toLowerCase()] ? type.toLowerCase() : 'normal');
+
 /** Uma partícula do rastro do tipo `type` na posição da bola. */
 export function trailParticle(scene: Phaser.Scene, type: string, x: number, y: number, depth: number) {
-    const spawn = SPAWN[type] ?? SPAWN.normal;
+    const spawn = SPAWN[trailKind(type)];
     spawn(scene, x, y, hexToNumber(TYPE_COLOR[type] ?? '#ffffff'), depth);
 }
 

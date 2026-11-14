@@ -1,0 +1,34 @@
+{
+ "faixa": "penaltis-espera",
+ "titulo": "Pênaltis (jogo)",
+ "tela": "Partida: disputa de pênaltis",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 15.652176,
+ "secoes": [
+  {
+   "nome": "entrada",
+   "loop": false,
+   "inicio": 0,
+   "fim": 5.217392,
+   "amostras": [
+    0,
+    230087
+   ],
+   "bpm": 92,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 5.217392,
+   "fim": 10.434784,
+   "amostras": [
+    230087,
+    460174
+   ],
+   "bpm": 92,
+   "compassos": 2
+  }
+ ]
+}

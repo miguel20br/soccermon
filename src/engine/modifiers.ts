@@ -1,13 +1,13 @@
 import { abilityEffect } from './abilities';
-import { type Attributes, type AttrKey, computeAttributes, type Position, positionFactor } from './attributes';
+import { type Attributes, type AttrKey, type Position, positionFactor } from './attributes';
 import { ABILITIES, MOVES, species } from './data';
-import { evolutionBonus, instancePositions, type PokemonInstance } from './instance';
+import { evolutionBonus, instanceBase, instancePositions, type PokemonInstance } from './instance';
 import { ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { specialBonus } from './specials';
 import { sponsorBonuses } from './sponsors';
-import { computeSynergies, SYNERGY_CAP, synergyFactor } from './synergy';
+import { computeSynergies, synergyFactor } from './synergy';
 
 /**
  * De onde vêm os bônus e penalidades de um Pokémon. É a MESMA regra que o motor usa para montar o jogador
@@ -27,7 +27,8 @@ export type ModSource =
     | 'sinergia'
     | 'historia'
     | 'posicao'
-    | 'patrocinio';
+    | 'patrocinio'
+    | 'torcida';
 
 export interface AttrModifier {
     source: ModSource;
@@ -53,10 +54,16 @@ export interface MoveModifier {
 
 export interface TeamContext {
     lineup?: readonly PokemonInstance[];
+    /** Resto do elenco (reservas e quem já saiu): só conta pro monotipo. */
+    rest?: readonly PokemonInstance[];
     captain?: PokemonInstance | null;
     role?: Position | null;
     /** Patrocínios da copa (ids). Os de campo somam pontos; sem eles a partida é a de sempre. */
     sponsors?: readonly string[];
+    /** O time perde no placar agora (Charanga de Pewter). Fora da partida é sempre falso. */
+    losing?: boolean;
+    /** `TeamSetup.crowd`. */
+    crowd?: number;
 }
 
 const ALL: AttrKey[] = [
@@ -142,7 +149,7 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
             });
         }
     }
-    for (const b of sponsorBonuses(inst, ctx.sponsors, ctx.captain, ctx.role)) {
+    for (const b of sponsorBonuses(inst, ctx.sponsors, ctx.captain, ctx.role, ctx.losing)) {
         const what = b.attrs === 'all' ? 'em tudo' : ATTR_NAME[b.attrs[0]].toLowerCase();
         mods.push({
             source: 'patrocinio',
@@ -153,16 +160,26 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
         });
     }
     if (lineup.length) {
-        const syn = synergyFactor(computeSynergies(lineup), sp.types);
+        const all = computeSynergies(lineup, ctx.rest);
+        const syn = synergyFactor(all, sp.types);
+        const mono = all.find((s) => s.mono && s.bonus === syn && sp.types.includes(s.type));
         if (syn > 1)
-            mods.push({ source: 'sinergia', label: `Sinergia de tipo: ${pct(syn)}`, attrs: 'all', factor: syn });
-        // tipo × história com teto: um time montado pra isso não passa de +15%
-        const link = Math.min(linkFactor(computeLinks(lineup), inst.uid), SYNERGY_CAP / syn);
+            mods.push({
+                source: 'sinergia',
+                label: `${mono ? 'Monotipo' : 'Sinergia de tipo'}: ${pct(syn)}`,
+                ref: mono ? 'mono' : undefined,
+                attrs: 'all',
+                factor: syn,
+            });
+        // tipo × história somam sem teto (Miguel, 04/11/2026: o teto de +15% saiu)
+        const link = linkFactor(computeLinks(lineup), inst.uid);
         if (link > 1)
             mods.push({ source: 'historia', label: `Sinergia de história: ${pct(link)}`, attrs: 'all', factor: link });
     }
+    if (ctx.crowd)
+        mods.push({ source: 'torcida', label: `Torcida a favor: ${pct(ctx.crowd)}`, attrs: 'all', factor: ctx.crowd });
     if (ctx.role) {
-        const base = computeAttributes(sp, inst.level);
+        const base = instanceBase(inst);
         const f = positionFactor(instancePositions(inst, base), ctx.role, base);
         if (f !== 1) mods.push({ source: 'posicao', label: `Fora da posição: ${pct(f)}`, attrs: 'role', factor: f });
     }
@@ -185,7 +202,40 @@ export function applyModifiers(base: Attributes, mods: readonly AttrModifier[], 
     return out;
 }
 
-/** Golpes fortalecidos ou travados (item de tipo, Technician, Choice Band). */
+/**
+ * Atributos da carta (Miguel, 09/11/2026: o número é o que vale em campo e o ▲ diz quanto disso é bônus).
+ * `field` = carta + edição, evolução, habilidade, item e Fada; `bonus` = `field` − carta sem nada, já arredondados.
+ * Com `ctx`, entra também o do time (capitão, sinergias, Patrocínios, vaga).
+ */
+/** Teto do número de atributo na carta (o motor pode passar disso com habilidade). */
+export const CARD_MAX = 99;
+
+export function cardAttributes(inst: PokemonInstance, ctx: TeamContext = {}) {
+    const base = instanceBase(inst);
+    const raw = applyModifiers(base, attributeModifiers(inst, ctx), ctx.role);
+    const field = {} as Attributes;
+    const bonus = {} as Attributes;
+    for (const k of ALL) {
+        // a carta para em 99 (Miguel, 09/11); em campo vale o número inteiro (Rapidash Run Away: 101) e o ▲ é o bônus todo
+        field[k] = Math.min(CARD_MAX, Math.round(raw[k]));
+        bonus[k] = Math.round(raw[k]) - Math.round(base[k]);
+    }
+    return { field, bonus };
+}
+
+/**
+ * Golpe treinado (ensinado por MT, `inst.taught`; Miguel, 22/10/2026): +1 uso por partida, força x1,3 e a IA escolhe
+ * ele primeiro entre os golpes que servem na hora. Antes a MT saía 0,38 vez por partida e ensinar não mudava nada.
+ */
+export const TAUGHT_MOVE = { power: 1.3, uses: 1 } as const;
+
+export const isTaught = (inst: PokemonInstance, moveId: string) => inst.taught?.includes(moveId) ?? false;
+
+/** Usos do golpe por partida (sem a trava da Choice Band, que o motor aplica por vaga). */
+export const moveUses = (inst: PokemonInstance, moveId: string) =>
+    moveProfile(moveId).uses + (isTaught(inst, moveId) ? TAUGHT_MOVE.uses : 0);
+
+/** Golpes fortalecidos ou travados (item de tipo, Technician, golpe treinado, Choice Band). */
 export function moveModifiers(inst: PokemonInstance): MoveModifier[] {
     const out: MoveModifier[] = [];
     const ability = abilityEffect(inst.ability);
@@ -203,6 +253,8 @@ export function moveModifiers(inst: PokemonInstance): MoveModifier[] {
                 factor: ability.weakMoveBoost,
             });
         }
+        if (isTaught(inst, m))
+            out.push({ moveId: m, label: 'Golpe treinado (MT): +30%', ref: 'mt', factor: TAUGHT_MOVE.power });
         if (inst.item === 'choiceband' && i > 0)
             out.push({ moveId: m, label: 'Choice Band: travado', ref: 'choiceband', factor: 0 });
     });

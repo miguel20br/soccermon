@@ -1,0 +1,55 @@
+{
+ "faixa": "recompensa",
+ "titulo": "Recompensa",
+ "tela": "Recompensa",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 32.90322,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.935488,
+   "amostras": [
+    0,
+    85355
+   ],
+   "bpm": 124,
+   "compassos": 1
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 1.935488,
+   "fim": 32.90322,
+   "amostras": [
+    85355,
+    1451032
+   ],
+   "bpm": 124,
+   "compassos": 16
+  }
+ ],
+ "swing": 0.1,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    25.161,
+    25.536,
+    25.887
+   ],
+   [
+    27.097,
+    27.472,
+    27.823
+   ],
+   [
+    29.032,
+    29.407,
+    29.758
+   ]
+  ]
+ }
+}

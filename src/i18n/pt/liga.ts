@@ -1,6 +1,7 @@
 /** Copa do Dia e Liga ranqueada com times fantasma (docs/planos/liga.md). */
 export const liga = {
     stage: 'Liga',
+    ranking: 'Ranking',
     retry: 'Tentar de novo',
     stageShort: 'LIGA',
     home: {
@@ -8,13 +9,13 @@ export const liga = {
         dailyLine: 'A mesma copa pra todo mundo hoje',
         dailyPlay: 'Jogar hoje',
         dailyContinue: 'Continuar',
-        dailyDone: 'Ver o dia',
+        dailyDone: 'Ver ranking',
+        dailyRanking: 'Ranking de hoje',
         ligaTag: 'Liga',
         ligaLine: 'Contra o time de outro treinador · vale Elo',
-        ligaGo: 'Abrir a Liga',
         ligaSoon: 'Em breve',
         ligaOpensIn: 'Abre em {d}d {h}h {m}m',
-        ligaClosed: 'A Liga abre quando tiver mais gente jogando. Enquanto isso, a Copa do Dia tem ranking todo dia.',
+        ligaClosed: 'Enquanto a Liga não abre, a Copa do Dia tem ranking.',
     },
     daily: {
         tag: 'Copa do Dia',
@@ -30,6 +31,7 @@ export const liga = {
         wins: '1 vitória|{n} vitórias',
         abandoned: 'Copa encerrada',
         unranked: 'fora do ranking',
+        unrankedNote: 'Esta Copa do Dia não entra no ranking.',
         next: 'Próxima Copa do Dia em {h}h{m}',
         share: 'Compartilhar',
         copied: 'Copiado!',
@@ -45,6 +47,7 @@ export const liga = {
         scopeFriends: 'Amigos',
         rankingTitle: 'Ranking do dia',
         rankingEmpty: 'Ninguém no ranking ainda. Seja o primeiro!',
+        captain: 'capitão',
         rankingLogin:
             'O ranking é de quem entra com Google. Aparece só o nome do treinador e o do clube (Perfil), nunca o da conta.',
         rankingOff: 'O ranking precisa do servidor do jogo. A Copa do Dia funciona igual sem ele.',
@@ -61,12 +64,12 @@ export const liga = {
         },
     },
     league: {
-        tag: 'Liga',
         title: 'Liga ranqueada',
         line: 'Você enfrenta o time salvo de outro treinador, comandado pela IA. Não precisa estar online junto. Vale Elo.',
         needCloud: 'A Liga precisa do servidor do jogo: jogue em soccermon.com.',
         needLogin:
             'A Liga é com conta Google: seu time vira um fantasma que os outros enfrentam, e o ranking mostra o nome do treinador e do clube.',
+        needLoginShort: 'Entre com Google pra jogar a Liga.',
         season: 'Temporada de {month}',
         daysLeft: 'termina hoje|faltam {n} dias',
         division: { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro', lenda: 'Lenda' },
@@ -76,6 +79,8 @@ export const liga = {
         noGames: 'Nenhuma partida nesta temporada ainda',
         teamTitle: 'Seu time na Liga',
         teamNone: 'Nenhum time inscrito ainda.',
+        teamShort: 'Seu time',
+        teamNoneShort: 'nenhum',
         ovr: 'nota {ovr}',
         register: 'Inscrever o time da copa',
         update: 'Trocar pelo time da copa',

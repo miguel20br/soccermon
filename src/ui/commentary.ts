@@ -97,6 +97,10 @@ export class Commentator {
     private olympicShot = false;
     /** Time com técnico IA (rival que reage): o aviso dele já narra o grito e a tática, sem repetir. */
     private coached: [boolean, boolean];
+    /** Bicudas (`tick:goleiro`): a defesa do mesmo tick fica muda, a fala é a da bicuda. */
+    private bicudas: Set<string>;
+    /** Duelo da bicuda: o tick do chute (a bicuda de gol a gol tem fala própria). */
+    private showdownKicks: Set<number> = new Set();
 
     constructor(result: MatchResult, teamNames: [string, string]) {
         this.names = result.roster.map((p) => p.name);
@@ -105,11 +109,32 @@ export class Commentator {
         this.roles = result.roster.map((p) => p.role);
         this.teamNames = teamNames;
         this.rng = new Rng(result.seed, 'commentary');
+        this.bicudas = new Set();
+        this.replace(result);
         this.coached = [0, 1].map((t) => result.events.some((e) => e.type === 'coach' && e.team === t)) as [
             boolean,
             boolean,
         ];
     }
+
+    /**
+     * A partida foi refeita (ordem do técnico, `match:replace`): a narração segue a nova. Sem isso, a bicuda pedida no
+     * meio do jogo não estava na partida de antes e a defesa do mesmo tick falava ("voa e manda pra fora").
+     */
+    replace = (result: MatchResult) => {
+        this.bicudas = new Set(
+            result.events
+                .filter((e) => e.type === 'max' && e.phase === 'hit' && this.roles[e.by] === 'GK')
+                .map((e) => `${e.tick}:${e.type === 'max' ? e.by : -1}`),
+        );
+        // duelo da bicuda: a defesa que segura o N3 fica muda (a fala é a do duelo) e o chute tem a dele
+        this.showdownKicks = new Set();
+        for (const e of result.events) {
+            if (e.type !== 'showdown') continue;
+            this.bicudas.add(`${e.tick}:${e.gk}`);
+            this.showdownKicks.add(e.kick);
+        }
+    };
 
     private n(idx: number | null | undefined): string {
         return idx === null || idx === undefined ? '???' : (this.names[idx] ?? '???');
@@ -166,6 +191,8 @@ export class Commentator {
             }
             case 'shot': {
                 const w = this.n(e.by);
+                // a bicuda do duelo já tem a fala dela (no 'max' do mesmo tick)
+                if (this.showdownKicks.has(e.tick)) return null;
                 if (e.moveId) {
                     const m = MOVES[e.moveId]?.name ?? e.moveId;
                     return line(say(c.shotMove, { w, m }), 'big', this.teams[e.by]);
@@ -173,7 +200,10 @@ export class Commentator {
                 if (e.xg > 0.3) return line(say(c.oneOnOne, { w }), 'big', this.teams[e.by]);
                 return line(this.pick(c.shots, { w }), 'normal', this.teams[e.by]);
             }
+            case 'showdown':
+                return line(say(c.showdown, { x: this.n(e.gk), w: this.n(e.shooter) }), 'big', this.teams[e.gk]);
             case 'save':
+                if (this.bicudas.has(`${e.tick}:${e.by}`)) return null;
                 return line(
                     this.pick(e.caught ? c.saveCaught : c.saveParried, { x: this.n(e.by) }),
                     'big',
@@ -398,20 +428,11 @@ export class Commentator {
                 const vars = {
                     leader: dict().match.leaders[e.leader].name,
                     team: this.teamNames[e.team],
-                    shout: e.call === 'shout' ? dict().match.agency.shout[e.shout] : '',
                     tactic: e.call === 'tactic' ? dict().common.tactic[e.tactic] : '',
                 };
-                const text =
-                    e.call === 'flyGk' ? (e.on ? k.flyGkOn : k.flyGkOff) : e.call === 'shout' ? k.shout : k[e.call];
+                const text = e.call === 'flyGk' ? (e.on ? k.flyGkOn : k.flyGkOff) : k[e.call];
                 return line(say(text, vars), e.call === 'timeout' || e.call === 'max' ? 'big' : 'whistle', e.team);
             }
-            case 'shout':
-                if (this.coached[e.team]) return null;
-                return line(
-                    say(c.shout, { team: this.teamNames[e.team], shout: dict().match.agency.shout[e.shout] }),
-                    'whistle',
-                    e.team,
-                );
             case 'timeout':
                 return line(say(c.timeout, { team: this.teamNames[e.team] }), 'whistle', e.team);
             case 'flyGk':
@@ -421,15 +442,12 @@ export class Commentator {
                     e.team,
                 );
             case 'max': {
+                // só o golpe que saiu vira fala (a bicuda com o toque fora fica no goleiro)
+                if (e.phase !== 'hit') return null;
                 const m = e.moveId ? (MOVES[e.moveId]?.name ?? e.moveId) : '';
-                const text =
-                    e.phase === 'start'
-                        ? c.maxStart
-                        : e.phase === 'miss'
-                          ? c.maxMiss
-                          : this.roles[e.by] === 'GK'
-                            ? c.maxGk
-                            : c.maxHit;
+                if (this.showdownKicks.has(e.tick))
+                    return line(say(c.showdownKick, { w: this.n(e.by) }), 'big', e.team);
+                const text = this.roles[e.by] === 'GK' ? c.maxGk : c.maxHit;
                 return line(say(text, { x: this.n(e.by), m }), 'big', e.team);
             }
             case 'end':

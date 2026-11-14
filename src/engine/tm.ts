@@ -184,6 +184,15 @@ export function rollTmOffer(rng: Rng, team: readonly PokemonInstance[], clubName
     return rare.length ? { move: rng.pick(rare), leader: null } : null;
 }
 
+/** Até `n` MTs diferentes que alguém do time aprende: a do líder primeiro (se `clubName` é ginásio), depois raras. */
+export function rollTmOffers(rng: Rng, team: readonly PokemonInstance[], n: number, clubName?: string): TmOffer[] {
+    const first = rollTmOffer(rng, team, clubName);
+    const out = first?.leader ? [first] : [];
+    const rare = rareMovePool().filter((m) => team.some((p) => canLearn(p, m)) && !out.some((o) => o.move === m));
+    for (const move of rng.shuffle([...rare]).slice(0, n - out.length)) out.push({ move, leader: null });
+    return out;
+}
+
 /** Instância com o golpe na 4ª vaga (ou na última que não é a assinatura). */
 function withMove(inst: PokemonInstance, move: string): PokemonInstance {
     if (inst.moves.length < 4) return teachMove(inst, move, inst.moves.length) ?? inst;

@@ -1,6 +1,9 @@
 import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import pkg from '../package.json' with { type: 'json' };
+
+const CLAUDE_DIR = fileURLToPath(new URL('../.claude/', import.meta.url));
 
 export default defineConfig({
     base: './',
@@ -15,5 +18,8 @@ export default defineConfig({
         __SMOKE__: 'true',
     },
     worker: { format: 'es' },
-    server: { port: 8080 },
+    // worktrees de outros agentes (.claude/worktrees) escrevendo arquivo não recarregam a página (estragava medição e
+    // teste). Só a .claude da raiz deste checkout: o glob '**/.claude/**' ignorava também o src/ de quem roda o dev
+    // num worktree (o caminho dele passa por .claude/worktrees) e o dev parava de recarregar.
+    server: { port: 8080, watch: { ignored: [(p) => `${p}/`.startsWith(CLAUDE_DIR)] } },
 });

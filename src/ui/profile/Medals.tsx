@@ -258,7 +258,7 @@ export function MedalsTab({ save }: { save: (patch: Partial<Profile>) => void })
                                               })}
                                     </span>
                                     <span
-                                        className="md-bar"
+                                        className={`k-bar${next === null ? ' full' : ''}`}
                                         role="progressbar"
                                         aria-valuemin={0}
                                         aria-valuemax={next ?? value}

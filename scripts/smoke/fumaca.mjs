@@ -32,6 +32,10 @@ const newPage = async () => {
         hasTouch: mobile,
         isMobile: mobile,
     });
+    // balões do tutorial (Coach.tsx) cobrem a tela: a fumaça testa o jogo, então pula todos que aparecerem
+    await ctx.addInitScript(() => {
+        setInterval(() => document.querySelector('.coach-skip')?.click(), 300);
+    });
     const p = await ctx.newPage();
     p.on('pageerror', (e) => errors.add(`pageerror: ${e.message}`));
     p.on('console', (m) => {
@@ -80,12 +84,6 @@ const step = async (p, name, fn) => {
         throw e;
     }
 };
-const skipOnboarding = async (p) => {
-    for (let k = 0; k < 4 && (await vis(p, '.ob-skip')); k++) {
-        await p.locator('.ob-skip').first().click();
-        await p.waitForTimeout(400);
-    }
-};
 
 async function copa() {
     const p = await newPage();
@@ -94,26 +92,88 @@ async function copa() {
     await step(p, 'home', async () => {
         await p.goto(`${base}/?vel=16`, { waitUntil: 'load' });
         await p
-            .getByRole('button', { name: /Nova copa/ })
+            .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .waitFor({ timeout: 30000 });
-        await skipOnboarding(p);
+        // a Home de todo mundo é o Estádio dos ambientes; save vazio = 1ª visita: o logo no lugar do placar
+        await p.locator('.amb-panel.amb-estadio.on .es-logo').waitFor({ timeout: 10000 });
         await p.waitForTimeout(600);
         await shot(p, '01-home', true);
     });
+    // celular: arrastar entre as abas da Home desliza com o dedo (o --pos acompanha, fracionário) e solta na vizinha,
+    // sem o corte de TV (que é só do toque na aba e da troca de tela); vale pro toque (CDP) e pro ponteiro (mouse)
+    if (mobile)
+        await step(p, 'arrastar entre as abas', async () => {
+            await p.evaluate(() => {
+                window.__cuts = 0;
+                new MutationObserver((ms) => {
+                    for (const m of ms)
+                        for (const n of m.addedNodes) if (n.classList?.contains('tv-cut')) window.__cuts++;
+                }).observe(document.body, { childList: true });
+            });
+            const cdp = await p.context().newCDPSession(p);
+            const pos = () =>
+                p.evaluate(() => {
+                    const r = document.querySelector('.amb');
+                    return { pos: Number(r.style.getPropertyValue('--pos')), drag: r.classList.contains('amb-drag') };
+                });
+            const on = () => p.evaluate(() => document.querySelector('.amb-tab.on')?.id);
+            const y = Math.round(H * 0.45);
+            const drag = async (kind, from, to) => {
+                const xs = Array.from({ length: 9 }, (_, k) => Math.round(from + ((to - from) * k) / 8));
+                if (kind === 'toque') {
+                    const tp = (type, x) =>
+                        cdp.send('Input.dispatchTouchEvent', {
+                            type,
+                            touchPoints: type === 'touchEnd' ? [] : [{ x, y }],
+                        });
+                    await tp('touchStart', xs[0]);
+                    for (const x of xs.slice(1, 5)) await tp('touchMove', x);
+                    const mid = await pos();
+                    for (const x of xs.slice(5)) await tp('touchMove', x);
+                    await tp('touchEnd');
+                    return mid;
+                }
+                await p.mouse.move(xs[0], y);
+                await p.mouse.down();
+                for (const x of xs.slice(1, 5)) await p.mouse.move(x, y);
+                const mid = await pos();
+                for (const x of xs.slice(5)) await p.mouse.move(x, y);
+                await p.mouse.up();
+                return mid;
+            };
+            // save vazio: só o Estádio aceso (as outras abas acendem com o progresso, coach.ts `ambLit`), então o
+            // arrasto estica (elástico) e volta pro Estádio; aba apagada não entra no arrasto
+            for (const [kind, from, to, want] of [
+                ['toque', W * 0.8, W * 0.15, 'amb-tab-estadio'],
+                ['ponteiro', W * 0.15, W * 0.8, 'amb-tab-estadio'],
+            ]) {
+                const mid = await drag(kind, from, to);
+                if (!mid.drag || mid.pos % 1 === 0)
+                    throw new Error(`${kind}: no meio do arrasto a aba não acompanha o dedo (${JSON.stringify(mid)})`);
+                await p.waitForTimeout(500);
+                const tab = await on();
+                if (tab !== want) throw new Error(`${kind}: o arrasto parou em ${tab}, esperado ${want}`);
+            }
+            const cuts = await p.evaluate(() => window.__cuts);
+            if (cuts) throw new Error(`o arrasto disparou ${cuts} corte(s) de TV`);
+        });
     await step(p, 'nova copa e formação', async () => {
         await p
-            .getByRole('button', { name: /Nova copa/ })
+            .getByRole('button', { name: /Nova copa|Jogar Copa/ })
             .first()
             .click();
-        await p.locator('.formation-option').first().waitFor({ timeout: 15000 });
+        await p.locator('.fc-choose').waitFor({ timeout: 15000 });
         await shot(p, '02-formacao');
-        await p.locator('.formation-option').nth(1).click();
+        // carrossel: a 2ª formação e "Escolher"
+        await p.locator('.fc-arrow.next').click();
+        await p.waitForTimeout(400);
+        await p.locator('.fc-choose').click();
     });
     await step(p, 'draft', async () => {
         for (let round = 0; round < 30; round++) {
             await p.waitForTimeout(500);
-            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-grid'))) break;
+            if ((await vis(p, '.btn.primary.wide')) && !(await vis(p, '.draft-stage'))) break;
             for (let k = 0; k < 8 && (await vis(p, '.cpack-btn')); k++) {
                 await p.locator('.cpack-btn').first().click();
                 await p.waitForTimeout(400);
@@ -135,6 +195,22 @@ async function copa() {
         await p.locator('.btn.primary.wide').waitFor({ timeout: 15000 });
         await shot(p, '04-escalacao', true);
     });
+    await step(p, 'abandonar em sheet', async () => {
+        // a confirmação ficava atrás da barra do Jogar (0.9.22): agora é sheet e tem que estar por cima de tudo
+        await p.locator('.vt-rival').click();
+        await p.locator('.vt-board-sheet .btn.ghost.danger').click();
+        const danger = p.locator('.k-confirm .btn.danger');
+        await danger.waitFor({ timeout: 5000 });
+        await p.waitForTimeout(400);
+        const onTop = await danger.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            return el.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2));
+        });
+        if (!onTop) throw new Error('o botão de abandonar está coberto');
+        await shot(p, '04b-abandonar');
+        await p.locator('.k-confirm .btn.ghost').click();
+        await p.locator('.k-confirm').waitFor({ state: 'detached', timeout: 5000 });
+    });
     await step(p, '1ª partida', async () => {
         await p.locator('.btn.primary.wide').click();
         await p.locator('button.vs-start:not([disabled])').waitFor({ timeout: 40000 });
@@ -148,6 +224,14 @@ async function copa() {
             .catch(() => {});
         await p.waitForTimeout(3000);
         await shot(p, '06-partida');
+        // celular: o golpe máximo tem que estar à vista sem rolar (antes ficava na aba Tática, abaixo da quadra)
+        if (mobile) {
+            const inView = await p
+                .locator('.bc-maxthumb')
+                .evaluate((el) => el.getBoundingClientRect().bottom <= window.innerHeight)
+                .catch(() => false);
+            if (!inView) throw new Error('o golpe máximo não está à vista no celular');
+        }
         await p.locator('.bc-skip:not([disabled])').click({ timeout: 15000 });
         for (let i = 0; i < 240 && !(await btn(/^Ver resultado/).isVisible()); i++) {
             if (await vis(p, '.ht-panel'))
@@ -168,15 +252,8 @@ async function copa() {
             await reward.click();
             await p.waitForTimeout(1500);
             await shot(p, '09-recompensa');
-            // ganhou: depois da recompensa vem o Mercado (0.9.0); compra o que der e segue pra escalação
+            // ganhou: a Relâmpago não tem Mercado desde 11/11/2026; pular a recompensa vai direto pra escalação
             await btn(/^Pular/).click({ timeout: 10000 });
-            await p.locator('.shop-grid').waitFor({ timeout: 15000 });
-            await p.waitForTimeout(800);
-            await shot(p, '10-mercado', true);
-            const buy = p.locator('.shop-offer:has(.sp-card) .shop-buy:not([disabled])');
-            if (await buy.count()) await buy.first().click();
-            await p.waitForTimeout(600);
-            await btn(/^Seguir/).click({ timeout: 10000 });
             await p.locator('.btn.primary.wide').waitFor({ timeout: 15000 });
             await shot(p, '11-escalacao-2', true);
         }
@@ -190,7 +267,6 @@ async function paginas() {
         await step(p, `página ${path}`, async () => {
             await p.goto(base + path, { waitUntil: 'load' });
             await p.waitForTimeout(3000);
-            await skipOnboarding(p);
             for (const sel of clicks ? clicks.split(';') : []) {
                 await p.locator(sel).first().click({ timeout: 8000 });
                 await p.waitForTimeout(1200);

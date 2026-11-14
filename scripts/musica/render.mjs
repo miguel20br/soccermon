@@ -5,7 +5,11 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ritmoDe } from './ganchos.mjs';
 import { Song, SR, writeWav } from './synth.mjs';
+
+// o gravador de notas acha o SOC-CER-MON pro .json (`ritmoDe`); o áudio sai igual
+Song.recording = true;
 
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);
@@ -71,6 +75,7 @@ for (const name of todo) {
                         bpm: m.bpm,
                         compassos: m.ate - m.de,
                     })),
+                    ...ritmoDe(song),
                 },
                 null,
                 1,

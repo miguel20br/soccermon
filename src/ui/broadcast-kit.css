@@ -17,7 +17,7 @@
     --bc-paper: #f4f1e6;
     --bc-edge: #000;
     /* altura da barra do polegar (o fim da página não fica embaixo dela) */
-    --bc-thumb-h: 72px;
+    --bc-thumb-h: calc(72px + env(safe-area-inset-bottom));
 }
 
 .hud-icon {
@@ -26,14 +26,15 @@
     flex: none;
 }
 
-/* ---------- superfície de placar ---------- */
+/* ---------- superfície de placar: moldura preta grossa, filete claro por dentro e base dura (o material do kit) ---------- */
 .bc-surface {
     position: relative;
     background: var(--bc-ink);
-    border: 0;
-    border-bottom: 2px solid var(--bc-edge);
-    border-radius: 6px;
-    box-shadow: none;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in, #39447a),
+        0 4px 0 var(--bc-edge);
 }
 /* faixa lateral na cor do time (ou amarela) */
 .bc-stripe {
@@ -47,7 +48,7 @@
     bottom: 0;
     width: 6px;
     background: var(--tc, var(--yellow));
-    border-radius: 6px 0 0 6px;
+    border-radius: 5px 0 0 5px;
 }
 
 /* ---------- etiqueta da fase / seção (a pílula amarela do placar) ---------- */
@@ -65,7 +66,7 @@
     white-space: nowrap;
 }
 
-/* ---------- cabeçalho de tela em forma de placar ---------- */
+/* ---------- cabeçalho de tela: a placa do Estádio (moldura preta, faixa de cima na cor, base dura) ---------- */
 .bc-screenhead {
     position: relative;
     display: flex;
@@ -73,26 +74,20 @@
     gap: 10px;
     min-width: 0;
     margin: 0;
-    padding: 10px 14px 10px 18px;
+    padding: 9px 14px 9px 14px;
     background: var(--bc-ink);
-    border-bottom: 2px solid var(--bc-edge);
-    border-radius: 6px;
-}
-.bc-screenhead::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 6px;
-    background: var(--tc, var(--yellow));
-    border-radius: 6px 0 0 6px;
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--tc, var(--yellow));
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in, #39447a),
+        0 4px 0 var(--bc-edge);
 }
 /* a etiqueta senta em cima do placar, como a fase na partida */
 .bc-screenhead > .bc-tag {
     position: absolute;
-    left: 18px;
-    top: 0;
+    left: 12px;
+    top: -5px;
     transform: translateY(-100%);
     max-width: calc(100% - 24px);
     overflow: hidden;
@@ -107,47 +102,43 @@
     min-width: 0;
     margin: 0;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
     font-weight: 400;
     line-height: 1.2;
     color: var(--text);
     letter-spacing: 1px;
 }
+/* o título de tela é um só: 21 px no celular e 26 px no PC, como o letreiro dos ambientes (.rm-head h2) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .bc-screenhead h1,
+    .bc-screenhead h2 {
+        font-size: 26px;
+    }
+}
 
-/* ---------- título de painel: plaquinha escura com a faixa amarela (o "lower third" da TV) ----------
-   Vale pra todo painel de fora da partida (.bc tem o desenho dela) e pros títulos das telas de campeão. */
+/* ---------- título de painel e de seção: texto simples (a placa fica só no título da tela, uma por tela) ----------
+   Vale pra todo painel de fora da partida (.bc tem o desenho dela) e pros títulos das telas de campeão. Um estilo só:
+   Galmuri11 Bold 16 px em caixa normal (caixa alta é só da etiqueta: .bc-tag e .bc-lbl). */
 .bc-caption,
 :where(.panel:not(.bc *, .modal)) > h2:first-child,
 .champ-h {
-    position: relative;
     display: block;
-    width: fit-content;
     max-width: 100%;
-    margin: 0 0 12px;
-    padding: 5px 12px 4px 16px;
-    background: var(--bc-ink);
-    border-bottom: 2px solid var(--bc-edge);
-    border-radius: 4px;
+    margin: 0 0 10px;
     color: var(--text);
     font-family: "Galmuri11", monospace;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 1.35;
-    text-transform: uppercase;
-    overflow-wrap: anywhere;
-}
-.bc-caption::before,
-:where(.panel:not(.bc *, .modal)) > h2:first-child::before,
-.champ-h::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    background: var(--tc, var(--yellow));
-    border-radius: 4px 0 0 4px;
+    line-height: 1.2;
+    /* numa linha: o que passa vira reticências (o nome do clube é o que corta) */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* o acento da maiúscula ("NÍVEL") e a cedilha passam da linha de 1.2 e o overflow cortava: folga dentro da caixa,
+       devolvida na margem, pra altura e a posição do título não mudarem */
+    padding-block: 0.2em;
+    margin-block: -0.2em calc(10px - 0.2em);
 }
 
 /* ---------- rótulo de seção ("ESTILO DE JOGO") ---------- */
@@ -202,9 +193,9 @@ h3.bc-lbl {
 }
 .bc-tabs button.on,
 .bc-tabs button[aria-selected="true"] {
-    color: var(--yellow);
-    border-bottom-color: var(--yellow);
-    background: var(--panel);
+    color: #fff;
+    border-bottom-color: var(--pick-fill);
+    background: var(--pick-fill);
 }
 .bc-tabs button:focus-visible {
     outline: 3px solid #fff;
@@ -238,15 +229,16 @@ h3.bc-lbl {
 }
 .bc-tile small {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     color: var(--muted);
 }
 .bc-tile.on {
-    border-color: var(--yellow);
+    border-color: var(--blue-hi);
     background: #3a3f5f;
+    box-shadow: var(--pick-ring);
 }
 .bc-tile.on .hud-icon {
-    color: var(--yellow);
+    color: var(--blue-hi);
 }
 .bc-tile:active:not(:disabled) {
     transform: translateY(2px);
@@ -255,6 +247,7 @@ h3.bc-lbl {
     outline: 3px solid #fff;
     outline-offset: 2px;
 }
+/* apagado só o que não dá pra tocar (escalação travada na partida); o não escolhido que dá pra tocar fica em --text */
 .bc-tile:disabled {
     cursor: not-allowed;
     opacity: 0.45;
@@ -288,11 +281,12 @@ h3.bc-lbl {
     white-space: nowrap;
     cursor: pointer;
 }
+/* escolhido em azul: o dourado cheio fica só pro JOGAR */
 .bc-seg button.on,
 .bc-seg button[aria-pressed="true"],
 .bc-seg button[aria-checked="true"] {
-    background: var(--yellow);
-    color: var(--bc-ink);
+    background: var(--pick-fill, var(--blue));
+    color: #fff;
 }
 .bc-seg button.asking {
     box-shadow: inset 0 0 0 2px var(--yellow);
@@ -325,6 +319,27 @@ h3.bc-lbl {
     font-size: 12px;
     line-height: 1.3;
     color: var(--muted);
+    /* nada teleporta: a instrução da vez entra (ex.: "escolha 1 do pacote" no Mercado) */
+    animation: tb-hint-in 220ms var(--ease-out) both;
+}
+@keyframes tb-hint-in {
+    from {
+        opacity: 0;
+        translate: 0 4px;
+    }
+}
+@keyframes tb-hint-fade {
+    from {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tb-hint {
+        animation-name: tb-hint-fade;
+    }
+}
+:root[data-reduce-motion="true"] .tb-hint {
+    animation-name: tb-hint-fade;
 }
 @media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
     .bc-thumbbar {
@@ -341,7 +356,8 @@ h3.bc-lbl {
             max(12px, env(safe-area-inset-left));
         flex-wrap: nowrap;
         background: var(--bc-ink);
-        border-top: 3px solid var(--line);
+        border-top: 4px solid var(--bc-edge);
+        box-shadow: inset 0 2px 0 var(--frame-in, #39447a);
     }
     .bc-thumbbar.ask {
         flex-wrap: wrap;
@@ -364,7 +380,11 @@ h3.bc-lbl {
         min-height: 44px;
     }
     .app:has(.bc-thumbbar) {
-        padding-bottom: calc(var(--bc-thumb-h) + 16px + env(safe-area-inset-bottom));
+        padding-bottom: calc(var(--bc-thumb-h) + 16px);
+    }
+    /* rolar até algo (foco, scrollIntoView) para acima da barra, não atrás dela (o "Abandonar copa" sumia ali) */
+    html:has(.bc-thumbbar) {
+        scroll-padding-bottom: calc(var(--bc-thumb-h) + 16px);
     }
     /* cada tela entra com fade (.app > *): a opacidade animada cria um contexto de empilhamento, e os blocos
        seguintes pintariam por cima da barra. O bloco que tem a barra sobe acima dos irmãos (abaixo dos modais). */
@@ -390,6 +410,15 @@ h3.bc-lbl {
         flex: 0 1 420px;
     }
 }
+/* 320: a instrução ao lado do primário deixava "Jogar partida 3 de 8" em três linhas; ela sobe pra linha de cima */
+@media (max-width: 380px) {
+    .bc-thumbbar:has(> .tb-hint) {
+        flex-wrap: wrap;
+    }
+    .bc-thumbbar > .tb-hint {
+        flex-basis: 100%;
+    }
+}
 
 /* ---------- Nada teleporta: o marcador da opção ativa desliza (src/ui/tab-slide.ts) ---------- */
 .bc-tabs.has-ind,
@@ -411,11 +440,10 @@ h3.bc-lbl {
 }
 .bc-seg.has-ind::before {
     border-radius: 6px;
-    background: var(--yellow);
+    background: var(--blue-c, var(--blue));
 }
 .bc-tabs.has-ind::before {
-    border-bottom: 3px solid var(--yellow);
-    background: var(--panel);
+    background: var(--pick-fill);
 }
 .bc-tabs.ind-ready::before,
 .bc-seg.ind-ready::before {
@@ -439,5 +467,5 @@ h3.bc-lbl {
 }
 /* o conteúdo da aba nova entra com fade */
 [role="tabpanel"] > * {
-    animation: screen-in 200ms var(--ease-out) both;
+    animation: screen-in 200ms var(--ease-out) backwards;
 }

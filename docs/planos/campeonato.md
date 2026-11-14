@@ -1,3 +1,7 @@
+---
+description: Ideias do Miguel para a Rota Índigo virar um campeonato com chaveamento até a copa.
+---
+
 # Campeonato da Liga Índigo: as ideias do Miguel juntas (21/10/2026)
 
 O Miguel jogou ideias soltas depois de ver a Rota Índigo: "inventar que é um campeonato, com chaveamento até a copa",

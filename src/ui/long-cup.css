@@ -5,11 +5,11 @@
     align-items: center;
     gap: 8px 14px;
     padding: 10px 14px;
-    margin-bottom: 10px;
 }
 .cm-money {
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 18px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
 }
 .cm-cards {
     display: inline-flex;
@@ -18,23 +18,109 @@
     font-weight: 700;
     color: var(--muted);
 }
-.cm-cards .hud-icon {
-    width: 18px;
+/* o cartão amarelo do status: vazio (tracejado) até a 1ª derrota, depois cheio */
+.cm-card {
+    width: 13px;
     height: 18px;
+    border-radius: 2px;
+    border: 2px dashed var(--yellow);
+    opacity: 0.7;
+}
+.cm-card.on {
+    border: 0;
+    background: var(--yellow);
+    box-shadow: 0 2px 0 rgb(0 0 0 / 40%);
+    opacity: 1;
+    rotate: -8deg;
+    animation: cm-card-in 300ms var(--ease-out) both;
+}
+@keyframes cm-card-in {
+    from {
+        opacity: 0;
+        translate: 0 -10px;
+    }
 }
 .cm-cards.used {
     color: var(--yellow);
 }
-.cm-cards.used .hud-icon {
-    fill: var(--yellow);
+.cm-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.cm-side {
+    display: grid;
+    gap: 12px;
+    align-content: start;
 }
 .cm-status .sp-slots {
     flex: 1 1 260px;
 }
 
+/* a placa da região nova (estilo HGSS): desce no canto do mapa, fica 1 s e sobe */
+.cm-scroll-wrap {
+    position: relative;
+    min-width: 0;
+}
+.cm-plaque {
+    position: absolute;
+    left: 12px;
+    top: 0;
+    z-index: 8;
+    padding: 6px 14px 7px;
+    border: 3px solid #3a2414;
+    border-top: 0;
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(180deg, #d9a066, #c68a50);
+    box-shadow:
+        inset 0 -3px 0 #9a6234,
+        0 4px 0 rgb(0 0 0 / 35%);
+    pointer-events: none;
+    animation: cm-plaque 1700ms 150ms var(--ease-out) both;
+}
+.cm-plaque b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    color: #3a2414;
+    white-space: nowrap;
+}
+/* no celular a página é que rola (o mapa é comprido): a placa fica presa no alto da tela */
+@media (max-width: 699px), (max-width: 999px) and (min-height: 501px) {
+    .cm-plaque {
+        position: fixed;
+        z-index: 45;
+        top: calc(62px + env(safe-area-inset-top, 0px));
+        left: 16px;
+        border-top: 3px solid #3a2414;
+        border-radius: 6px;
+        /* descer de trás da barra de cima passava por cima dela: aqui ela aparece e some no lugar */
+        animation-name: cm-plaque-fade;
+    }
+}
+@keyframes cm-plaque {
+    0% {
+        translate: 0 -110%;
+    }
+    16%,
+    84% {
+        translate: 0 0;
+    }
+    100% {
+        translate: 0 -110%;
+    }
+}
+@keyframes cm-plaque-fade {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    10%,
+    90% {
+        opacity: 1;
+    }
+}
 .cm-scroll {
-    max-height: min(72vh, 760px);
-    overflow-y: auto;
     border-radius: 10px;
     background: var(--bg-2);
     border: 3px solid var(--bc-ink);
@@ -52,11 +138,19 @@
     width: 100%;
     height: 100%;
 }
+/* a teia apagada (rota-indigo-2.md, U6): o que não dá mais pra alcançar quase some, o caminho possível fica claro */
 .cm-lines line {
-    stroke: rgb(255 255 255 / 55%);
-    stroke-width: 3;
+    stroke: rgb(255 255 255 / 14%);
+    stroke-width: 2;
     stroke-dasharray: 2 7;
     stroke-linecap: round;
+    transition:
+        stroke 240ms var(--ease-out),
+        stroke-width 240ms var(--ease-out);
+}
+.cm-lines line.ahead {
+    stroke: rgb(255 255 255 / 60%);
+    stroke-width: 3;
 }
 .cm-lines line.walked {
     stroke: var(--yellow);
@@ -94,30 +188,41 @@
         background-color 200ms var(--ease-out);
 }
 .cm-label {
+    /* o nome fica por cima do que encostar nele (capitão do rival, pedra) */
+    position: relative;
+    z-index: 2;
     padding: 0 4px;
     border-radius: 3px;
-    background: rgb(0 0 0 / 45%);
+    background: rgb(0 0 0 / 72%);
     color: #fff;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     white-space: nowrap;
-    opacity: 0.7;
-    transition: opacity 200ms var(--ease-out);
 }
 .cm-node.open {
+    z-index: 5;
     color: var(--text);
     cursor: pointer;
+    /* voltando pro mapa, as casas da vez acendem em cascata */
+    animation: cm-open 300ms calc(var(--k, 0) * 60ms + 120ms) var(--ease-out) backwards;
+}
+@keyframes cm-open {
+    from {
+        scale: 0.7;
+        opacity: 0.4;
+    }
+}
+/* casa que não dá mais pra alcançar: discreta */
+.cm-node.far {
+    opacity: 0.5;
+    transition: opacity 240ms var(--ease-out);
 }
 .cm-node.open .hud-icon {
     border-color: var(--yellow);
     background: var(--panel-2);
     animation: cm-pulse 1.6s var(--ease-out) infinite;
-}
-.cm-node.open .cm-label,
-.cm-node.at .cm-label {
-    opacity: 1;
 }
 .cm-node.open:hover .hud-icon,
 .cm-node.picked .hud-icon {
@@ -183,6 +288,41 @@
 .cm.has-sheet {
     padding-bottom: 220px;
 }
+/* a fala da região também prende embaixo: dá espaço pra casa aberta subir acima dela */
+.cm.has-story {
+    padding-bottom: 200px;
+}
+/* o que o último evento fez, numa linha acima do mapa */
+.cm-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.35;
+    animation: cm-fade-in 240ms var(--ease-out) both;
+}
+.cm-note-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--ev);
+    color: #fff;
+}
+.cm-note-icon .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+/* o prêmio e a pedra da mesma casa ficam juntos (só o gap da ficha entre eles) */
+.cm-prize:has(+ .cm-prize) {
+    margin-bottom: 0;
+}
+.cm-prize + .cm-prize {
+    margin-top: 0;
+}
 .cm-sheet-head {
     display: flex;
     align-items: center;
@@ -191,7 +331,8 @@
 .cm-sheet-head b {
     display: block;
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 17px;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
 }
 .cm-sheet-head small {
     display: block;
@@ -216,28 +357,67 @@
     gap: 6px;
     font-size: 13px;
 }
+.cm-rival-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+}
+.cm-types {
+    display: inline-flex;
+    gap: 4px;
+}
 .cm-rival-team {
     display: flex;
     gap: 6px;
 }
-.cm-rival-team img {
-    width: 44px;
-    height: 44px;
+.cm-rival-team {
+    flex-wrap: wrap;
+}
+/* o capitão do rival espiando a casa de partida aberta (entra junto com a casa, sem pular) */
+.cm-node-rival {
+    position: absolute;
+    top: -12px;
+    left: calc(50% + 8px);
+    z-index: 1;
+    animation: cm-rival-in 240ms var(--ease-out) both;
+}
+@keyframes cm-rival-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+:root[data-reduce-motion="true"] .cm-node-rival {
+    animation-name: cm-fade-in;
+}
+@keyframes cm-fade-in {
+    from {
+        opacity: 0;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .cm-node.open,
     .cm-node.open .hud-icon,
     .cm-sheet,
     .cm-me {
         animation: none;
         transition: none;
     }
+    .cm-plaque {
+        animation-name: cm-plaque-fade;
+    }
 }
+:root[data-reduce-motion="true"] .cm-node.open,
 :root[data-reduce-motion="true"] .cm-node.open .hud-icon,
 :root[data-reduce-motion="true"] .cm-sheet,
 :root[data-reduce-motion="true"] .cm-me {
     animation: none;
     transition: none;
+}
+:root[data-reduce-motion="true"] .cm-plaque {
+    animation-name: cm-plaque-fade;
 }
 .cm-train h2 {
     margin-top: 0;
@@ -258,66 +438,94 @@
     background: var(--green);
 }
 
-/* no celular os Patrocínios do mapa viram só o emblema (o nome aparece ao tocar, no title) */
+/* no celular os Patrocínios do mapa ficam numa linha de 3 (ícone + nome curto, cortado com reticências; tocar abre o efeito) */
 @media (max-width: 480px) {
     .cm-status .sp-slots {
         flex-basis: 100%;
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .cm-status .sp-slot {
-        justify-content: center;
-        min-height: 34px;
+    .cm-status .sp-slot-li {
+        min-width: 0;
     }
     .cm-status .sp-slot-name {
         display: none;
     }
+    .cm-status .sp-slot-short {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .cm-status .sp-slot {
+        min-width: 0;
+        overflow: hidden;
+        min-height: 34px;
+        padding: 4px 6px;
+        gap: 4px;
+        font-size: 11px;
+    }
 }
 
 /* cor de cada tipo de casa */
-.cm-node.k-jogo {
+.cm-node.k-jogo,
+.cm-legend-row.k-jogo {
     --kc: #3a6fd0;
 }
-.cm-node.k-ginasio {
+.cm-node.k-ginasio,
+.cm-legend-row.k-ginasio {
     --kc: #c9871c;
 }
-.cm-node.k-mercado {
+.cm-node.k-mercado,
+.cm-legend-row.k-mercado {
     --kc: #2f9a63;
 }
-.cm-node.k-evento {
+.cm-node.k-evento,
+.cm-legend-row.k-evento {
     --kc: #7a4bc4;
 }
-.cm-node.k-treino {
+.cm-node.k-treino,
+.cm-legend-row.k-treino {
     --kc: #d1652a;
 }
-.cm-node.k-bau {
+.cm-node.k-bau,
+.cm-legend-row.k-bau {
     --kc: #8a5a30;
 }
-.cm-node.k-final {
+.cm-node.k-final,
+.cm-legend-row.k-final {
     --kc: #2e2f7a;
 }
 .cm-node:disabled:not(.done):not(.at) .hud-icon {
     filter: saturate(0.55) brightness(0.85);
 }
 
-/* o seu capitão: fica na casa atual e anda até a escolhida */
+/* o seu capitão (o PMD dele): fica na casa atual e anda até a escolhida (Walk, virado pra ela). A caixa é o ponto do
+   pé; --dx/--dy põem ele ao lado da casa (ou em cima dela, no mapa largo) */
 .cm-me {
     position: absolute;
     z-index: 4;
-    width: 52px;
-    height: 52px;
-    translate: -50% -100%;
-    margin-top: -18px;
+    width: 0;
+    height: 0;
+    translate: var(--dx, 0) var(--dy, 0);
     pointer-events: none;
     filter: drop-shadow(0 3px 0 rgb(0 0 0 / 45%));
-    animation: cm-bob 1.2s ease-in-out infinite;
     transition:
         left 520ms var(--ease-out),
-        top 520ms var(--ease-out);
+        top 520ms var(--ease-out),
+        translate 520ms var(--ease-out);
 }
-@keyframes cm-bob {
-    50% {
-        transform: translateY(-4px);
-    }
+.cm-me .fs-sprite,
+.cm-me .fs-gif {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+}
+.cm-me .fs-gif {
+    width: 44px;
+    translate: -50% -80%;
 }
 
 /* fala da história: o treinador ao lado da caixa de texto dos jogos, presa embaixo da tela */
@@ -390,23 +598,22 @@
 .rg-planalto {
     --rg: radial-gradient(circle at 50% 70%, #6d6fd6, #2e2f7a 70%);
 }
+/* nome da região na horizontal, na faixa de cima da região (NAME_H no CupMap.tsx), fora do caminho das casas */
 .cm-region-name {
     position: absolute;
-    left: 3px;
-    top: 50%;
-    z-index: 1;
-    translate: 0 -50%;
-    padding: 6px 2px;
+    left: 6px;
+    top: 2px;
+    /* por cima do cenário da borda */
+    z-index: 2;
+    padding: 3px 7px 2px;
     border-radius: 4px;
-    background: rgb(0 0 0 / 45%);
+    background: var(--bc-ink);
     color: #fff;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
     white-space: nowrap;
-    writing-mode: vertical-rl;
-    rotate: 180deg;
 }
 
 /* ---------- cartão amarelo e vermelho no resultado (src/ui/components/FoulCard.tsx) ---------- */
@@ -462,7 +669,8 @@
 .foul-text b {
     display: block;
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     color: var(--yellow);
     animation: foul-stamp 360ms 380ms var(--ease-pop) both;
 }
@@ -511,6 +719,25 @@
 .foul-red .foul-text b {
     color: var(--red);
     animation-delay: 1200ms;
+}
+/* perdoada (1ª partida da Rota): o amarelo cai e apaga, fica só o contorno */
+.foul-forgiven .foul-card {
+    animation-name: foul-drop, foul-void;
+    animation-duration: 560ms, 320ms;
+    animation-delay: 0ms, 900ms;
+    animation-timing-function: var(--ease-pop), var(--ease-out);
+    animation-fill-mode: both, forwards;
+}
+@keyframes foul-void {
+    to {
+        background: transparent;
+        box-shadow: inset 0 0 0 3px var(--yellow);
+        opacity: 0.6;
+    }
+}
+.foul-forgiven .foul-text b {
+    color: var(--green);
+    animation-delay: 1000ms;
 }
 /* o resto do caminho até a Final, bloqueado casa por casa */
 .foul-road {
@@ -592,18 +819,105 @@
     animation-delay: 0ms !important;
 }
 
-/* ---------- evento "?" ---------- */
-.cm-event {
+/* ---------- evento "?": a cena no meio (quem fala, grande, e o texto), as escolhas na barra do polegar ---------- */
+.menu-screen.cm-ev {
     display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    padding: 14px 14px 14px 20px;
+    flex-direction: column;
+}
+.cm-event {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 220px;
+    padding: 20px 18px 20px 24px;
     margin-bottom: 12px;
+    text-align: center;
 }
 .cm-event p {
     margin: 0;
-    font-size: 15px;
+    max-width: 34ch;
+    font-size: 17px;
     line-height: 1.4;
+    text-wrap: balance;
+}
+.cm-ev .cm-story-who {
+    width: 128px;
+}
+/* com o "Quem?" aberto a cena encolhe: quem escolhe precisa ver o time */
+.cm-ev.asking .cm-event {
+    flex: none;
+    min-height: 0;
+    flex-direction: row;
+    text-align: left;
+    padding-block: 12px;
+}
+@media (max-width: 380px) {
+    .cm-event {
+        min-height: 160px;
+        padding-block: 14px;
+    }
+    .cm-ev .cm-story-who {
+        width: 96px;
+    }
+    .cm-event p {
+        font-size: 15px;
+    }
+}
+.cm-ev.asking .cm-story-who {
+    width: 56px;
+}
+/* os rostos do carrinho já estão no "Quem?" */
+.cm-ev.asking .cm-event-faces {
+    display: none;
+}
+.cm-who h2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    margin-top: 0;
+}
+.cm-who h2 small {
+    display: block;
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 12px;
+    font-weight: normal;
+    color: var(--muted);
+}
+.cm-who h3 {
+    margin: 10px 0 6px;
+    font-size: 13px;
+}
+.cm-bar-in {
+    animation: tb-hint-in 220ms var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-bar-in {
+        animation-name: tb-hint-fade;
+    }
+}
+:root[data-reduce-motion="true"] .cm-bar-in {
+    animation-name: tb-hint-fade;
+}
+/* tocar marca (azul), o botão confirma: o mesmo azul do escolhido nas escolhas */
+.target-btn {
+    transition:
+        border-color 200ms var(--ease-out),
+        box-shadow 200ms var(--ease-out),
+        background-color 200ms var(--ease-out),
+        scale var(--dur-solta) var(--ease-pop);
+}
+.target-btn[aria-pressed="true"],
+.target-btn[aria-pressed="true"]:hover {
+    border-color: var(--blue-hi);
+    background: #3a3f5f;
+    box-shadow: var(--pick-ring);
+}
+.cm-train-go {
+    margin-top: 12px;
 }
 .cm-event-cards {
     display: flex;
@@ -617,6 +931,26 @@
     display: grid;
     gap: 8px;
 }
+@media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
+    /* a cena ocupa a altura até a barra (a metade de baixo ficava vazia) */
+    .menu-screen.cm-ev {
+        min-height: calc(100 * var(--vh) - var(--bc-thumb-h) - 48px);
+    }
+    .bc-thumbbar.cm-choices {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bc-thumbbar.cm-choices > * {
+        flex: none;
+    }
+    /* Voltar · Confirmar lado a lado */
+    .cm-ev.asking .bc-thumbbar.cm-choices {
+        flex-direction: row;
+    }
+    .cm-ev.asking .bc-thumbbar.cm-choices > .btn.primary {
+        flex: 1 1 0;
+    }
+}
 .cm-choice.bc-tile {
     justify-content: space-between;
     min-height: 60px;
@@ -628,9 +962,6 @@
 }
 .cm-choice.bc-tile small {
     font-size: 12px;
-}
-.cm-choice.on {
-    border-color: var(--yellow);
 }
 .cm-choice:disabled {
     opacity: 0.5;
@@ -684,39 +1015,6 @@
 .cm-event {
     --tc: var(--ev);
 }
-.cm-event-emblem {
-    flex: none;
-    align-self: center;
-    display: grid;
-    place-items: center;
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    border: 3px solid var(--bc-ink);
-    background: var(--ev);
-    color: #fff;
-    box-shadow: 0 4px 0 rgb(0 0 0 / 40%);
-    animation: ev-pop 320ms var(--ease-pop) both;
-}
-.cm-event-emblem .hud-icon {
-    width: 36px;
-    height: 36px;
-}
-@keyframes ev-pop {
-    from {
-        opacity: 0;
-        scale: 0.6;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .cm-event-emblem {
-        animation: none;
-    }
-}
-:root[data-reduce-motion="true"] .cm-event-emblem {
-    animation: none;
-}
-
 /* ---------- fase de grupos no Planalto ---------- */
 .gp-table {
     display: grid;
@@ -735,7 +1033,8 @@
 .gp-row > :nth-child(n + 3) {
     text-align: center;
 }
-.gp-head {
+/* a linha de cabeçalho da tabela (a placa do título da tela também é .gp-head, e não leva a caixa alta) */
+.gp-row.gp-head {
     min-height: 26px;
     color: var(--muted);
     font-size: 10px;
@@ -750,21 +1049,34 @@
     color: var(--yellow);
 }
 .gp-team {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    /* bloco (não flex): o "…" só aparece em texto de bloco; em flex o nome era cortado seco ("Lavender As") */
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 .gp-team i {
-    flex: none;
+    display: inline-block;
     width: 6px;
     height: 20px;
+    margin-right: 8px;
     border-radius: 2px;
+    vertical-align: middle;
     background: var(--tc);
 }
+/* 320: as colunas de número cedem espaço pro nome do time */
+@media (max-width: 380px) {
+    .gp-row {
+        grid-template-columns: 18px 1fr 22px 30px 28px;
+        gap: 4px;
+    }
+    .gp-table {
+        padding: 8px;
+    }
+}
 .gp-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     margin-top: 8px;
     color: var(--muted);
     font-size: 11px;
@@ -798,12 +1110,1579 @@
     align-items: center;
     gap: 6px;
 }
+.gp-day-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.gp-types {
+    display: inline-flex;
+    gap: 6px;
+}
 .gp-trainer {
-    width: 28px;
+    width: 32px;
     height: auto;
     image-rendering: pixelated;
 }
 .gp-pen {
     color: var(--muted);
     font-size: 10px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-node-rival {
+        animation-name: cm-fade-in;
+    }
+}
+
+/* Treino › Descansar: o time cochilando (PMD Sleep), encostado um no outro */
+.cm-rest-squad {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0 4px;
+    margin: 4px 0 16px;
+}
+/* rosto PMD no lugar do sprite: dor no carrinho, tontura no treino puxado */
+.cm-face,
+.mini img.cm-face {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.cm-event-faces {
+    display: flex;
+    flex: none;
+    gap: 6px;
+    animation: cm-rival-in 240ms 120ms var(--ease-out) both;
+}
+.cm-event-faces .cm-face {
+    width: 56px;
+    height: 56px;
+    border: 2px solid var(--bc-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-event-faces {
+        animation-name: cm-fade-in;
+    }
+}
+:root[data-reduce-motion="true"] .cm-event-faces {
+    animation-name: cm-fade-in;
+}
+/* ---------- desktop: o mapa ocupa a altura da tela e o painel do lado tem o status, a ficha da casa e as falas ---------- */
+@media (min-width: 1000px), (min-width: 700px) and (max-height: 500px) {
+    .menu-screen.cm-route {
+        width: min(1240px, 100% - 48px);
+    }
+    .cm-body {
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 18px;
+        align-items: start;
+    }
+    .cm-side {
+        order: 2;
+        position: sticky;
+        top: 12px;
+    }
+    .cm-scroll {
+        max-height: calc(calc(100 * var(--vh)) - 150px);
+        overflow-y: auto;
+    }
+    .cm-status {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px 14px;
+    }
+    .cm-status .sp-slots {
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .cm.has-sheet,
+    .cm.has-story {
+        padding-bottom: 0;
+    }
+    .cm-side .cm-sheet.bc-surface,
+    .cm-side .cm-story {
+        position: static;
+        width: auto;
+        translate: none;
+        box-shadow: 0 4px 0 rgb(0 0 0 / 35%);
+        animation: cm-side-in 240ms var(--ease-out) both;
+    }
+    .cm-side .cm-story {
+        flex-direction: column;
+        align-items: center;
+        box-shadow: none;
+    }
+    /* o "Continuar" embaixo do texto: ao lado (invisível até o texto acabar), ele espremia a fala em ~110 px */
+    .cm-side .cm-story .room-dialog {
+        align-self: stretch;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cm-side .cm-story .room-dialog-go {
+        align-self: flex-end;
+    }
+    /* pixel art em escala inteira: o treinador a 2x, o da ficha e o capitão no tamanho do sprite */
+    .cm-side .cm-story-who {
+        width: 160px;
+    }
+    .cm-side .cm-sheet-trainer {
+        width: 80px;
+    }
+}
+@keyframes cm-side-in {
+    from {
+        opacity: 0;
+        translate: 0 8px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cm-side .cm-sheet.bc-surface,
+    .cm-side .cm-story {
+        animation-name: cm-fade-in;
+    }
+}
+:root[data-reduce-motion="true"] .cm-side .cm-sheet.bc-surface,
+:root[data-reduce-motion="true"] .cm-side .cm-story {
+    animation-name: cm-fade-in;
+}
+
+/* evento no desktop: a tela aproveita a largura (treinador a 2x, texto maior, escolhas lado a lado) */
+@media (min-width: 1000px) {
+    .menu-screen.cm-ev {
+        width: min(1040px, 100% - 48px);
+    }
+    .cm-ev .cm-event {
+        gap: 16px;
+        padding: 28px 28px 28px 32px;
+    }
+    .cm-ev .cm-event p {
+        font-size: 19px;
+    }
+    .cm-ev .cm-story-who {
+        width: 160px;
+    }
+    .cm-ev .cm-choices {
+        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 12px;
+    }
+}
+/* celular deitado: status (₽, cartão, 3 Patrocínios) + ficha não cabem na altura, e o "Ir" ficava abaixo da tela sem
+   rolagem (o painel é preso). A ficha e a fala vêm primeiro e o painel rola */
+@media (min-width: 700px) and (max-height: 500px) {
+    .cm-side {
+        max-height: calc(calc(100 * var(--vh)) - 90px);
+        overflow-y: auto;
+    }
+    .cm-side .cm-sheet,
+    .cm-side .cm-story {
+        order: -1;
+    }
+    /* o treinador a 1x e a fala menor: a 2x ele empurrava a fala pra baixo da tela */
+    .cm-side .cm-story-who {
+        width: 80px;
+    }
+    .cm-side .cm-story .room-dialog-text {
+        font-size: 13px;
+    }
+}
+/* celular deitado: painel mais estreito e a janela do mapa com a altura da tela */
+@media (max-height: 500px) and (min-width: 700px) and (max-width: 999px) {
+    .cm-body {
+        grid-template-columns: minmax(0, 1fr) 270px;
+        gap: 12px;
+    }
+    .cm-scroll {
+        max-height: calc(calc(100 * var(--vh)) - 90px);
+    }
+}
+
+/* ---------- pedras de evolução (prêmio de região) ---------- */
+.cm-stone,
+.cm-node-stone,
+.cm-event-stone {
+    display: inline-grid;
+    place-items: center;
+    color: var(--stone);
+    vertical-align: middle;
+}
+.cm-stone {
+    margin-right: 4px;
+}
+.cm-node .cm-node-stone {
+    position: absolute;
+    /* embaixo à esquerda do círculo: em cima ficam o capitão do rival e o nome da região */
+    top: 30px;
+    right: calc(50% + 12px);
+    z-index: 1;
+}
+.cm-node .cm-node-stone .hud-icon {
+    width: 14px;
+    height: 14px;
+    padding: 3px;
+    border-width: 2px;
+    background: var(--panel);
+    color: var(--stone);
+    stroke-width: 3;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+}
+.cm-event-stone .hud-icon {
+    width: 48px;
+    height: 48px;
+}
+
+/* ---------- Treino em cena (cara-de-jogo.md, Rota Índigo): a quadra de treino do ginásio com o time ---------- */
+.tr-stage .k-stage-body {
+    justify-content: flex-start;
+    gap: 8px;
+    padding-top: 4px;
+}
+.tr-head {
+    flex: none;
+    margin-bottom: 0;
+}
+.tr-head h1 {
+    display: inline;
+}
+.tr-head .k-info {
+    vertical-align: middle;
+    margin-left: 8px;
+}
+/* a placa do que está marcado: nome, a barra com a metade que o treino enche (prévia) */
+.tr-plaque {
+    flex: none;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    min-height: 62px;
+    padding: 8px 12px;
+    align-content: center;
+    text-align: center;
+    animation: row-in var(--dur-ui) var(--ease-out) both;
+}
+/* sem nada marcado a placa vira só o subtítulo da tela */
+.tr-plaque.tr-sub {
+    min-height: 0;
+    padding: 0;
+}
+.tr-plaque.tr-sub small {
+    font-size: 13px;
+}
+.tr-plaque b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+}
+.tr-plaque small {
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+.tr-bar {
+    position: relative;
+    width: min(260px, 86%);
+    height: 12px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    overflow: hidden;
+}
+.tr-bar i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+.tr-bar-now {
+    width: var(--p);
+    background: var(--green);
+}
+.tr-bar .tr-bar-add {
+    left: var(--p);
+    width: calc(var(--q) - var(--p));
+    background: repeating-linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--green), #fff 50%) 0 4px,
+        var(--green) 4px 8px
+    );
+    transform-origin: left;
+    animation:
+        tr-fill 700ms 120ms var(--ease-out) both,
+        tr-pulse 1.4s 900ms ease-in-out infinite;
+}
+@keyframes tr-fill {
+    from {
+        transform: scaleX(0);
+    }
+}
+@keyframes tr-pulse {
+    50% {
+        opacity: 0.55;
+    }
+}
+.tr-gym {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+/* a quadra: o piso de madeira do ginásio, as linhas, um cone e a escada de agilidade */
+.tr-court {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    max-width: 100%;
+    aspect-ratio: 3 / 4;
+    border: 4px solid #fff;
+    border-radius: 6px;
+    background: repeating-linear-gradient(90deg, #c98a4f 0 24px, #cf9358 24px 48px);
+    box-shadow:
+        inset 0 0 0 3px #7a4a2a,
+        var(--lift-1);
+}
+.tr-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.tr-lines * {
+    fill: none;
+    stroke: rgb(255 255 255 / 0.8);
+    stroke-width: 0.8;
+    vector-effect: non-scaling-stroke;
+}
+.tr-gym.wide .tr-court {
+    flex: 0 1 auto;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+}
+.tr-gym.wide .tr-lines {
+    rotate: 90deg;
+    width: 75%;
+    height: 133.3%;
+    left: 12.5%;
+    top: -16.65%;
+}
+.tr-cone {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--yellow);
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 35%));
+}
+.tr-cone.c1 {
+    left: 12%;
+    top: 22%;
+}
+.tr-cone.c2 {
+    right: 12%;
+    top: 22%;
+}
+.tr-ladder {
+    position: absolute;
+    left: 50%;
+    top: 25%;
+    width: 30%;
+    height: 8px;
+    translate: -50% 0;
+    background: repeating-linear-gradient(90deg, var(--yellow) 0 2px, transparent 2px 14px);
+    border-block: 2px solid var(--yellow);
+    opacity: 0.85;
+}
+.tr-gym.wide .tr-cone.c1 {
+    left: 22%;
+    top: 12%;
+}
+.tr-gym.wide .tr-cone.c2 {
+    left: 22%;
+    top: auto;
+    right: auto;
+    bottom: 12%;
+}
+.tr-gym.wide .tr-ladder {
+    left: auto;
+    right: 4%;
+    top: 50%;
+    width: 8px;
+    height: 30%;
+    translate: 0 -50%;
+    background: repeating-linear-gradient(180deg, var(--yellow) 0 2px, transparent 2px 14px);
+    border-block: 0;
+    border-inline: 2px solid var(--yellow);
+}
+/* cada Pokémon: o pé no ponto da posição; quem evolui é botão (com a barrinha), quem não evolui só treina */
+.tr-mon {
+    all: unset;
+    position: absolute;
+    width: 60px;
+    height: 70px;
+    translate: -50% -78%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.tr-mon.still {
+    cursor: default;
+}
+.tr-mon .fs-sprite {
+    position: absolute;
+    left: 50%;
+    top: 78%;
+    display: block;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    transition: filter var(--dur-ui) var(--ease-out);
+}
+.tr-mon .fs-gif {
+    transform: translate(-50%, -90%);
+}
+.tr-shadow {
+    position: absolute;
+    left: 50%;
+    top: 78%;
+    width: 34px;
+    height: 10px;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 30%);
+    transition:
+        box-shadow var(--dur-ui) var(--ease-out),
+        background-color var(--dur-ui) var(--ease-out);
+}
+.tr-mon.on .tr-shadow {
+    background: color-mix(in srgb, var(--blue-hi), transparent 45%);
+    box-shadow: 0 0 0 3px var(--blue-hi);
+}
+.tr-mon:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+.tr-mon .tr-evo {
+    position: absolute;
+    left: 50%;
+    top: calc(78% + 7px);
+    width: 40px;
+    height: 6px;
+    margin: 0;
+    translate: -50% 0;
+    border: 2px solid var(--cb-ink);
+    box-sizing: content-box;
+}
+.tr-mon:active .fs-sprite {
+    filter: brightness(1.2);
+}
+/* descansando: o time cochila (para de mexer e o "z" sobe da cabeça) */
+.tr-gym.resting .tr-mon .fs-sprite {
+    filter: brightness(0.85) saturate(0.8);
+}
+.tr-zzz {
+    position: absolute;
+    left: 60%;
+    bottom: 0;
+    color: #fff;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
+    font-style: normal;
+    text-shadow: 0 2px 0 var(--cb-ink);
+    animation: tr-zzz 1.6s var(--ease-out) infinite;
+}
+@keyframes tr-zzz {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+    40% {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+        translate: 8px -14px;
+    }
+}
+/* a beira da quadra: os reservas e os objetos (colchonete, halteres) */
+.tr-side {
+    flex: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+}
+.tr-benchrow {
+    display: flex;
+    gap: 2px;
+}
+.tr-mon.bench {
+    position: relative;
+    translate: none;
+    width: 52px;
+    height: 58px;
+}
+.tr-objs {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+.tr-obj {
+    all: unset;
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: end;
+    gap: 4px;
+    min-width: 84px;
+    min-height: 58px;
+    padding: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        transform var(--dur-solta) var(--ease-pop),
+        box-shadow var(--dur-ui) var(--ease-out),
+        background-color var(--dur-ui) var(--ease-out);
+}
+.tr-obj:active {
+    transform: scale(0.95);
+    transition-duration: var(--dur-toque);
+}
+.tr-obj.on {
+    background: color-mix(in srgb, var(--blue-hi), transparent 80%);
+    box-shadow: var(--pick-ring);
+}
+.tr-obj:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* a placa pendurada em cima do objeto */
+.tr-sign {
+    order: -1;
+    padding: 2px 8px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: var(--lift-1);
+}
+/* o colchonete: a esteira azul com o travesseiro */
+.tr-mat {
+    position: relative;
+    width: 76px;
+    height: 22px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 6px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--blue) 0 10px,
+        color-mix(in srgb, var(--blue), #000 18%) 10px 12px
+    );
+    box-shadow: var(--lift-1);
+}
+.tr-mat::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 3px;
+    width: 18px;
+    height: 10px;
+    border-radius: 4px;
+    background: var(--bc-paper);
+}
+.tr-rack .hud-icon {
+    width: 40px;
+    height: 40px;
+    color: var(--text);
+    filter: drop-shadow(0 2px 0 var(--cb-ink));
+}
+/* PC e deitado: a quadra deitada, os reservas e os objetos numa coluna ao lado */
+.tr-gym.wide {
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    gap: 16px;
+}
+.tr-gym.wide .tr-side {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .tr-stage .k-stage-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(190px, 240px);
+        grid-template-rows: auto minmax(0, 1fr);
+        column-gap: 12px;
+        row-gap: 6px;
+    }
+    .tr-stage .tr-head {
+        display: none;
+    }
+    .tr-gym {
+        display: contents;
+    }
+    .tr-court {
+        grid-column: 1;
+        grid-row: 1 / -1;
+        justify-self: center;
+        height: 100%;
+    }
+    .tr-plaque {
+        grid-column: 2;
+        grid-row: 1;
+    }
+    .tr-side {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: center;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .tr-bar-add,
+    .tr-zzz {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .tr-bar-add,
+:root[data-reduce-motion="true"] .tr-zzz {
+    animation: none;
+}
+
+/* ---------- Evento como cena de RPG (cara-de-jogo.md, Rota Índigo): a cena atrás, o diálogo com as opções embaixo ---------- */
+.ev-stage .k-stage-body {
+    justify-content: flex-start;
+    gap: 8px;
+    padding-top: 4px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+.ev-head {
+    flex: none;
+    margin-bottom: 0;
+}
+.ev-head .bc-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.ev-head .bc-tag .hud-icon {
+    width: 12px;
+    height: 12px;
+    stroke-width: 3;
+}
+.ev-scene {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 110px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 14px;
+    padding: 12px 12px 7%;
+    overflow: hidden;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--ev), var(--bg) 55%), var(--bg) 75%);
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+}
+.ev-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24%;
+    border-top: 3px solid color-mix(in srgb, var(--ev), #000 35%);
+    background: repeating-linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--ev), #000 58%) 0 22px,
+        color-mix(in srgb, var(--ev), #000 64%) 22px 44px
+    );
+}
+.ev-emblem {
+    position: absolute;
+    top: 8%;
+    right: 6%;
+    width: min(28%, 120px);
+    color: color-mix(in srgb, var(--ev), #fff 35%);
+    opacity: 0.4;
+}
+.ev-emblem .hud-icon {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.ev-emblem .cm-event-stone {
+    display: block;
+    opacity: 2.5;
+}
+.ev-emblem .cm-event-stone .hud-icon {
+    width: 100%;
+    height: auto;
+}
+.ev-who {
+    position: relative;
+    height: min(62%, 220px);
+    min-height: 72px;
+    width: auto;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 0 rgb(0 0 0 / 45%));
+    animation: cm-who-in 260ms var(--ease-out) both;
+}
+.ev-scene .cm-event-faces,
+.ev-scene .cm-event-cards {
+    position: relative;
+    margin: 0;
+}
+/* com carta na cena, quem fala encolhe e a carta mede pela altura que sobra */
+.ev-scene:has(.cm-event-cards) .ev-who {
+    height: min(46%, 160px);
+}
+.ev-scene .cm-event-cards .fut-wrap {
+    --fut-w: clamp(84px, min(calc((100 * var(--vh) - 470px) / 1.41), calc(42 * var(--vw))), 150px);
+}
+.ev-scene .cm-event-cards {
+    flex-wrap: nowrap;
+    animation: row-in var(--dur-tela) 120ms var(--ease-out) both;
+}
+.ev-dialog {
+    flex: none;
+}
+.ev-dialog .room-dialog {
+    position: relative;
+    inset: auto;
+}
+.room-dialog.has-opts {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+.room-dialog-opts {
+    display: grid;
+    gap: 2px;
+    border-top: 2px dashed rgb(24 24 24 / 25%);
+    padding-top: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-ui) var(--ease-out);
+}
+.room-dialog-opts.ready {
+    opacity: 1;
+    pointer-events: auto;
+}
+.ev-opt {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 4px 6px 4px 2px;
+    border-radius: 4px;
+    color: #181818;
+    cursor: pointer;
+    transition: background-color var(--dur-ui) var(--ease-out);
+}
+.ev-opt > span:not(.money):not(.ev-chance) {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    line-height: 1.2;
+}
+.ev-opt b {
+    font-family: "Galmuri11", monospace;
+    font-size: 15px;
+}
+.ev-opt small {
+    font-size: 12px;
+    color: #4a4a52;
+}
+.ev-cursor {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: #d83838;
+    stroke-width: 3.2;
+    opacity: 0;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        translate var(--dur-ui) var(--ease-out);
+    translate: -3px 0;
+}
+.ev-opt:hover,
+.ev-opt:focus-visible {
+    background: rgb(24 24 24 / 7%);
+}
+.ev-opt:hover .ev-cursor,
+.ev-opt:focus-visible .ev-cursor,
+.ev-opt:active .ev-cursor {
+    opacity: 1;
+    translate: 0 0;
+}
+.ev-opt:focus-visible {
+    outline: 2px solid #181818;
+}
+.ev-opt:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.ev-opt .money {
+    flex: none;
+    white-space: nowrap;
+    font-size: 15px;
+}
+.ev-opt .money.cost {
+    color: var(--red-dark);
+}
+.ev-opt .money.gain {
+    color: color-mix(in srgb, var(--green), #000 45%);
+}
+/* o "Quem?" na sheet */
+.ev-who-sheet h3 {
+    margin: 8px 0 6px;
+    font-size: 13px;
+}
+.ev-who-effect {
+    margin: 0;
+}
+.ev-who-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+.ev-who-bar .btn.primary {
+    flex: 1 1 0;
+    max-width: 260px;
+}
+/* celular deitado: o título sai, a cena à esquerda e o diálogo à direita */
+@media (orientation: landscape) and (max-height: 520px) {
+    .ev-stage .k-stage-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 1.1fr);
+        align-items: stretch;
+        column-gap: 12px;
+    }
+    .ev-stage .ev-head {
+        display: none;
+    }
+    .ev-scene {
+        min-height: 0;
+    }
+    .ev-scene .cm-event-cards .fut-wrap {
+        --fut-w: clamp(70px, calc((100 * var(--vh) - 150px) / 1.41), 130px);
+    }
+    .ev-dialog {
+        align-self: center;
+    }
+}
+/* PC: a cena larga, o diálogo embaixo com no máximo 760 px */
+@media (min-width: 1000px) {
+    .ev-dialog {
+        width: min(760px, 100%);
+        margin-inline: auto;
+    }
+    .ev-scene {
+        width: min(960px, 100%);
+        margin-inline: auto;
+    }
+}
+
+/* ---------- Grupo no Planalto em placar de TV (cara-de-jogo.md, Rota Índigo) ---------- */
+.gp-stage .k-stage-body {
+    justify-content: safe center;
+    gap: 10px;
+    padding-top: 4px;
+}
+.gp-head {
+    flex: none;
+    margin-bottom: 0;
+}
+.gp-tv {
+    flex: none;
+    gap: 3px;
+    margin: 0;
+    padding: 6px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+}
+.gp-tv .gp-row:not(.gp-head) {
+    position: relative;
+    min-height: 34px;
+    padding-right: 4px;
+    border: 0;
+    border-radius: 4px;
+    background: var(--bc-ink-2);
+}
+.gp-tv .gp-head {
+    min-height: 18px;
+    border: 0;
+}
+/* a linha da Final: os 2 primeiros com a placa verde da posição */
+.gp-tv .gp-pos {
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    border-radius: 4px 0 0 4px;
+    background: var(--bc-ink-3);
+    color: var(--muted);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+}
+.gp-tv .gp-row.up .gp-pos {
+    background: var(--green);
+    color: var(--cb-ink);
+}
+.gp-tv .gp-row.up:nth-child(3) {
+    margin-bottom: 4px;
+    box-shadow: 0 4px 0 -2px var(--green);
+}
+.gp-tv .gp-row.you {
+    background: color-mix(in srgb, var(--yellow), var(--bc-ink-2) 82%);
+}
+.gp-pts.bc-sc {
+    justify-self: center;
+    min-width: 28px;
+    margin: 0;
+    padding: 0 3px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+    line-height: 26px;
+}
+.gp-tv .gp-note {
+    margin: 4px 4px 0;
+}
+.gp-note .k-seeall {
+    margin-left: auto;
+}
+/* a tabela inteira (Ver tudo): gols pró e contra entram antes do saldo */
+.gp-all .gp-row {
+    grid-template-columns: 20px minmax(0, 1fr) repeat(4, 24px) 32px;
+    gap: 4px;
+}
+/* as rodadas: placas de jogo com os dois escudos; a próxima pulsa em dourado */
+.gp-stage .gp-days {
+    flex: none;
+    margin: 0;
+    gap: 8px;
+}
+.gp-stage .gp-day {
+    gap: 4px;
+    padding: 6px 10px 8px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+}
+/* linhas e rodadas entram pela cascata (.k-beat); a próxima rodada pulsa depois de entrar */
+.gp-stage .gp-day.now {
+    box-shadow:
+        inset 0 0 0 2px var(--yellow),
+        var(--lift-1);
+}
+.gp-stage .gp-day.now.k-beat.on {
+    animation:
+        k-pop-in var(--dur-pop) var(--ease-pop) both,
+        gp-now 1.6s 600ms ease-in-out infinite;
+}
+@keyframes gp-now {
+    50% {
+        box-shadow:
+            inset 0 0 0 2px var(--yellow),
+            0 3px 0 var(--cb-ink),
+            0 0 0 4px color-mix(in srgb, var(--yellow), transparent 60%);
+    }
+}
+.gp-stage .gp-day.now .gp-day-tag {
+    color: var(--yellow);
+}
+.gp-game.mine {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+}
+.gp-crest {
+    width: 26px;
+    height: 28px;
+}
+.gp-crest-wrap {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    align-items: flex-end;
+    gap: 2px;
+}
+.gp-crest-wrap .gp-trainer {
+    width: 24px;
+}
+.gp-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.gp-name.away {
+    text-align: right;
+}
+.gp-sc.bc-sc {
+    min-width: 26px;
+    margin: 0;
+    padding: 0 3px;
+    --gs: 19px;
+    font-size: var(--gfs, 19px);
+    line-height: 26px;
+}
+.gp-day:not(.done) .gp-sc {
+    opacity: 0.55;
+}
+.gp-game.mine .gp-pen {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
+.gp-other {
+    justify-content: center;
+    font-size: 12px;
+}
+.gp-stage .gp-types .type-icon {
+    width: 14px;
+    height: 14px;
+}
+/* celular deitado: tabela e rodadas lado a lado, sem o título */
+@media (orientation: landscape) and (max-height: 520px) {
+    .gp-stage .k-stage-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        column-gap: 12px;
+    }
+    .gp-stage .gp-head {
+        display: none;
+    }
+    .gp-stage .gp-days {
+        gap: 10px;
+    }
+    .gp-game.mine {
+        font-size: 13px;
+    }
+    .gp-crest {
+        width: 22px;
+        height: 24px;
+    }
+    .gp-sc.bc-sc {
+        --gs: 16px;
+        font-size: var(--gfs, 16px);
+        line-height: 22px;
+    }
+}
+/* tela baixa (320x640 e deitado): a etiqueta da rodada vira aba na borda de cima da placa e as linhas da tabela
+   encolhem, pra caber tudo sem rolar */
+@media (max-height: 700px) {
+    /* o título sai (a partida está na barra da copa; a tabela diz que é o grupo) */
+    .gp-stage .gp-head {
+        display: none;
+    }
+    .gp-tv .gp-row:not(.gp-head) {
+        min-height: 30px;
+    }
+    .gp-stage .gp-days {
+        gap: 12px;
+    }
+    .gp-stage .gp-day {
+        position: relative;
+        padding: 8px 8px 4px;
+    }
+    .gp-stage .gp-day-head {
+        position: absolute;
+        top: -9px;
+        left: 8px;
+        right: 8px;
+    }
+    .gp-stage .gp-day-tag {
+        padding: 0 6px;
+        border-radius: 3px;
+        background: var(--cb-ink);
+    }
+}
+/* 320: menos folga nas placas */
+@media (max-width: 359px) {
+    .gp-game.mine {
+        gap: 4px;
+        font-size: 13px;
+    }
+    .gp-crest {
+        width: 22px;
+        height: 24px;
+    }
+}
+/* PC: tabela e rodadas lado a lado, centradas */
+@media (min-width: 1000px) {
+    .gp-stage .k-stage-body {
+        display: grid;
+        grid-template-columns: minmax(0, 520px) minmax(0, 460px);
+        justify-content: center;
+        align-content: center;
+        column-gap: 24px;
+    }
+    .gp-head {
+        grid-column: 1 / -1;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .gp-stage .gp-day.now.k-beat.on {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .gp-stage .gp-day.now.k-beat.on {
+    animation: none;
+}
+/* PC grande: o Pokémon a 3x pede uma área de toque maior */
+@media (min-width: 1250px) and (min-height: 840px) {
+    .tr-mon {
+        width: 84px;
+        height: 100px;
+    }
+    .tr-mon.bench {
+        width: 76px;
+        height: 90px;
+    }
+}
+/* deitado a barra é estreita: o botão do polegar não quebra o nome em duas linhas */
+@media (orientation: landscape) and (max-height: 520px) {
+    .tr-stage .k-stage-action .btn {
+        white-space: nowrap;
+    }
+}
+/* 320: os reservas, os halteres e o colchonete cabem na linha */
+@media (max-width: 359px) {
+    .tr-side {
+        gap: 6px;
+    }
+    .tr-objs {
+        gap: 4px;
+    }
+    .tr-obj {
+        min-width: 0;
+    }
+    .tr-mon.bench {
+        width: 44px;
+    }
+    .tr-sign {
+        padding: 2px 5px;
+        font-size: 10px;
+    }
+    .tr-mat {
+        width: 60px;
+    }
+}
+
+/* ---------- Mochila (pedras guardadas): no status do mapa, cada pedra é um botão que abre a tela dela ---------- */
+.cm-bag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+}
+.cm-bag-stone {
+    display: inline-flex;
+    align-items: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 2px 6px;
+    border: 2px solid var(--line, rgb(255 255 255 / 20%));
+    border-radius: 6px;
+    background: var(--panel);
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+    animation: cm-card-in 260ms var(--ease-out) both;
+}
+.cm-bag-stone .cm-stone {
+    margin-right: 0;
+}
+
+/* ---------- mapa largo (opção B da Rota, 4 casas por linha): casas menores, o caminho aceso ---------- */
+.cm-w4 .cm-node {
+    width: 58px;
+}
+.cm-w4 .cm-node > .hud-icon {
+    width: 20px;
+    height: 20px;
+    padding: 7px;
+}
+.cm-w4 .cm-label {
+    padding: 0 3px;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+}
+.cm-w4 .cm-node-rival {
+    /* do lado do círculo, na altura dele: em cima cobria o nome da casa de cima (linhas apertadas do mapa largo) */
+    top: 2px;
+    left: calc(50% + 12px);
+}
+/* a pedra do lado esquerdo do círculo, na altura dele (o capitão do rival fica do lado direito): no alto ela cobria
+   o nome da casa de cima, embaixo o da própria casa */
+.cm-w4 .cm-node .cm-node-stone {
+    top: 8px;
+    right: calc(50% + 16px);
+}
+/* as ligações que dá pra tomar agora: no mapa largo as linhas se cruzam em X, então a de agora fica acesa */
+.cm-lines line.live {
+    stroke: var(--yellow);
+    stroke-dasharray: 2 5;
+    stroke-width: 3.5;
+}
+/* casas novas: a cor de cada uma (o Ás com borda dupla, como o Ginásio: é partida mais difícil) */
+.cm-node.h-as,
+.cm-legend-row.h-as {
+    --kc: #b8322e;
+}
+.cm-node.h-as .hud-icon {
+    border-style: double;
+    border-width: 4px;
+}
+.cm-node.h-safari,
+.cm-legend-row.h-safari {
+    --kc: #4f9a3a;
+}
+.cm-node.h-cassino,
+.cm-legend-row.h-cassino {
+    --kc: #b8901c;
+}
+.cm-node.h-planalto,
+.cm-legend-row.h-planalto {
+    --kc: #1f7a5a;
+}
+@media (min-width: 1000px) {
+    .cm-w4 .cm-node {
+        width: 72px;
+    }
+    .cm-w4 .cm-node > .hud-icon {
+        width: 24px;
+        height: 24px;
+        padding: 10px;
+    }
+    .cm-w4 .cm-label {
+        font-size: 10px;
+    }
+}
+
+/* ---------- Zona Safari e Cassino: a chance à vista e o resultado na tela ---------- */
+.ev-wild {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+}
+/* 3 cartas na cena: medem pela altura que sobra (com o selo embaixo), e quem fala sai no celular em pé */
+.ev-scene:has(.ev-wild) {
+    padding-block: 4px;
+}
+.ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.6), calc(26 * var(--vw))), 112px);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ev-scene:has(.ev-wild) .cm-event-cards .fut-wrap {
+        --fut-w: clamp(56px, min(calc((100 * var(--vh) - 170px) / 1.6), calc(11.5 * var(--vw))), 100px);
+    }
+    .ev-scene:has(.ev-wild) .ev-who {
+        display: none;
+    }
+}
+/* o Cassino: a carta do balcão também mede pela altura (a 320 px ela saía cortada em cima) */
+.ev-scene.ev-cassino {
+    padding-block: 4px;
+}
+.ev-scene.ev-cassino .cm-event-cards .fut-wrap {
+    --fut-w: clamp(56px, min(calc((100 * var(--vh) - 500px) / 1.5), calc(30 * var(--vw))), 130px);
+}
+@media (max-width: 599px) {
+    .ev-scene:has(.ev-wild) .ev-who {
+        display: none;
+    }
+}
+.ev-opt .ev-chance {
+    flex: none;
+    padding: 1px 6px;
+    border: 2px solid #181818;
+    border-radius: 4px;
+    font-family: "Galmuri11", monospace;
+    font-size: 13px;
+    color: #181818;
+}
+.ev-reveal-text {
+    padding: 4px 12px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 6px;
+    background: var(--panel);
+    font-family: "Galmuri11", monospace;
+    font-size: 20px;
+    color: #fff;
+}
+.ev-reveal.won .ev-reveal-text {
+    background: var(--green);
+    color: var(--bc-ink);
+}
+@keyframes cm-pop {
+    from {
+        opacity: 0;
+        transform: scale(0.85);
+    }
+}
+/* ---------- Safari e Cassino com lugar (revisão de arte, D7): o cenário de pixel do EventSet.tsx, no traço dos
+   ambientes. --ep = 1 pixel da arte; as peças repetem na largura (repeat-x) e se apoiam na linha do chão (--floor) ---------- */
+.ev-scene {
+    --ep: 2px;
+}
+@media (max-width: 359px), (max-height: 520px) {
+    .ev-scene {
+        --ep: 1.5px;
+    }
+}
+@media (min-width: 1000px) and (min-height: 700px) {
+    .ev-scene {
+        --ep: 3px;
+    }
+}
+.evs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    animation: evs-in var(--dur-tela) var(--ease-out) both;
+}
+@keyframes evs-in {
+    from {
+        opacity: 0;
+    }
+}
+.evs > *,
+.evs-counter {
+    position: absolute;
+    display: block;
+    image-rendering: pixelated;
+}
+.evs-piece {
+    width: calc(var(--w) * var(--ep));
+    height: calc(var(--h) * var(--ep));
+    background: var(--art) 0 0 / 100% 100% no-repeat;
+}
+.evs-row {
+    left: 0;
+    right: 0;
+    height: calc(var(--h) * var(--ep));
+    background: var(--art) 50% 0 / calc(var(--w) * var(--ep)) 100% repeat-x;
+}
+.evs-floor {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--floor);
+    background: var(--art) 50% 0 / calc(var(--w) * var(--ep)) calc(var(--h) * var(--ep)) repeat;
+}
+/* Cassino de Celadon: parede vinho em painéis com rodapé dourado, lâmpadas no alto, caça-níqueis no carpete */
+.evs-cassino {
+    --floor: 26%;
+}
+.evs-cassino .evs-wall {
+    inset: 0 0 var(--floor);
+    background:
+        linear-gradient(
+            180deg,
+            transparent calc(100% - var(--ep) * 14),
+            #c9871c 0 calc(100% - var(--ep) * 13),
+            #2c0d22 0
+        ),
+        repeating-linear-gradient(90deg, #4a1838 0 calc(var(--ep) * 15), #3a122c 0 calc(var(--ep) * 16));
+}
+.evs-bulbs {
+    top: 0;
+    animation: evs-chase 0.9s steps(1) infinite;
+}
+@keyframes evs-chase {
+    50% {
+        background-position-x: calc(50% + var(--ep) * 4);
+    }
+}
+.evs-slots {
+    bottom: var(--floor);
+}
+/* o letreiro na parede, emoldurado pelas mesmas lâmpadas */
+.evs-marquee {
+    left: 50%;
+    top: calc(var(--ep) * 9);
+    translate: -50% 0;
+    padding: calc(var(--ep) * 7) calc(var(--ep) * 9);
+    border-inline: var(--ep) solid #1b1b26;
+    background:
+        var(--art) 0 0 / calc(var(--ep) * 8) calc(var(--ep) * 6) repeat-x,
+        var(--art) 0 100% / calc(var(--ep) * 8) calc(var(--ep) * 6) repeat-x,
+        #2a0f22;
+    box-shadow: 0 calc(var(--ep) * 2) 0 rgb(0 0 0 / 40%);
+}
+.evs-marquee b {
+    display: block;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: max(14px, calc(var(--ep) * 7));
+    font-size: var(--gfs, max(14px, calc(var(--ep) * 7)));
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--yellow);
+    text-shadow: 0 calc(var(--ep) * 1) 0 #c8323c;
+}
+/* quem fala fica na frente do balcão */
+.ev-cassino .ev-who {
+    z-index: 1;
+}
+.evs-cassino .evs-floor {
+    background-color: #8e2436;
+    box-shadow: inset 0 calc(var(--ep) * 2) 0 rgb(0 0 0 / 35%);
+}
+/* o balcão fica atrás da carta (isolation: o -1 não passa pra trás da cena) */
+.ev-cassino .cm-event-cards {
+    isolation: isolate;
+}
+.evs-counter {
+    z-index: -1;
+    left: 50%;
+    bottom: 0;
+    translate: -50% 0;
+}
+/* Zona Safari: céu em faixas, nuvens, a mata no horizonte, a cerca, a placa e o mato alto na frente */
+.evs-safari {
+    --floor: 46%;
+}
+.evs-sky {
+    inset: 0 0 var(--floor);
+    background: linear-gradient(180deg, #5fb8e6 0 45%, #7cc6ec 0 75%, #a3d9f2 0);
+}
+.evs-cloud {
+    top: 12%;
+    left: 8%;
+}
+.evs-cloud.c2 {
+    top: 24%;
+    left: auto;
+    right: 18%;
+    scale: -1 1;
+}
+.evs-trees {
+    bottom: var(--floor);
+}
+.evs-safari .evs-floor {
+    background-color: #5fae4a;
+}
+.evs-fence {
+    bottom: calc(var(--floor) - var(--ep) * 6);
+}
+.evs-sign {
+    right: 5%;
+    bottom: calc(var(--floor) - var(--ep) * 5);
+    display: grid;
+    place-items: start center;
+}
+.evs-sign b {
+    margin-top: calc(var(--ep) * 3);
+    width: calc(var(--ep) * 48);
+    height: calc(var(--ep) * 12);
+    display: grid;
+    place-items: center;
+    font-family: "Galmuri11", monospace;
+    font-weight: 700;
+    font-size: max(10px, calc(var(--ep) * 5));
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    color: #3a2414;
+}
+.evs-grass {
+    bottom: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .evs,
+    .evs-bulbs {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .evs,
+:root[data-reduce-motion="true"] .evs-bulbs {
+    animation: none;
+}
+
+/* PC: o painel do lado sem casa escolhida: as próximas casas (o que cada uma dá); passar o mouse mostra a ficha */
+.cm-legend {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    animation: cm-side-in 240ms var(--ease-out) both;
+}
+.cm-legend-title {
+    margin: 0 4px 4px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.cm-legend-row {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--dur-ui) var(--ease-out);
+}
+.cm-legend-row:hover,
+.cm-legend-row:focus-visible {
+    background: rgb(255 255 255 / 7%);
+}
+.cm-legend-row:focus-visible {
+    outline: 2px solid var(--yellow);
+}
+.cm-legend-row .hud-icon {
+    box-sizing: content-box;
+    flex: none;
+    width: 18px;
+    height: 18px;
+    padding: 6px;
+    border: 2px solid var(--bc-ink);
+    border-radius: 50%;
+    background: var(--kc, var(--panel-2));
+    color: #fff;
+}
+.cm-legend-row > span {
+    display: grid;
+    min-width: 0;
+    line-height: 1.25;
+}
+.cm-legend-row small {
+    color: var(--muted);
+    font-size: 12px;
+}
+/* PC baixo (900 px): o mapa inteiro cabe sem rolar, com as casas menores */
+.cm-map.cm-tight .cm-node > .hud-icon {
+    width: 20px;
+    height: 20px;
+    padding: 5px;
+}
+.cm-map.cm-tight .cm-label {
+    font-size: 9px;
+}
+.cm-map.cm-tight .cm-node {
+    gap: 1px;
 }

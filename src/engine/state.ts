@@ -1,5 +1,4 @@
 import type { AbilityEffect } from './abilities';
-import type { Shout } from './agency';
 import type { Attributes, AttrKey, Position } from './attributes';
 import type { MatchConfig } from './config';
 import type { Species, TypeName } from './data';
@@ -34,6 +33,8 @@ export interface TeamSetup {
     formation?: FormationId;
     /** uid do capitão (dá aura ao time). */
     captainUid?: string | null;
+    /** Torcida a favor do jogador (só rivais da Copa e da Rota; Duelo e Liga não têm): multiplica os atributos do time. */
+    crowd?: number;
     /** Só o técnico troca (time do jogador): sem substituição automática no intervalo. */
     manualSubs?: boolean;
     /** Instrução de escanteio (padrão: Variar). */
@@ -47,6 +48,11 @@ export interface TeamSetup {
     coach?: LeaderId;
     /** Patrocínios da copa (src/engine/sponsors.ts): os de campo dão bônus pela regra única (modifiers.ts). */
     sponsors?: string[];
+    /**
+     * Só o `?demo=bicuda` (src/ui/dev-demo.ts): nesse tick o capitão rival chuta o N3 no gol deste time e o goleiro
+     * capitão daqui está com a bicuda armada (o duelo da bicuda). Nunca vem da rede: Duelo e Liga montam o time pela receita.
+     */
+    demoBicudaAt?: number;
 }
 
 /** Mudança de tática agendada (tática ao vivo: a partida é resimulada com a agenda). */
@@ -59,7 +65,10 @@ export interface TacticChange {
     tactic: Tactic;
 }
 
-/** Substituição pedida pelo técnico: entra na próxima saída de bola depois de `tick`. */
+/**
+ * Substituição pedida pelo técnico: volante, entra no tick dela (quem entra vem da lateral perto do banco). Se quem sai
+ * está com a bola, espera ele soltar; na bola parada e no intervalo entra no lugar dele, como antes.
+ */
 export interface SubOrder {
     tick: number;
     team: 0 | 1;
@@ -80,8 +89,8 @@ export interface CornerOrder {
 
 /**
  * Mudança de prancheta: formação nova e quem joga em cada vaga (`order[i]` = uid de quem vai pra vaga i, uma
- * permutação de quem está em quadra). Entra na próxima bola parada depois de `tick`, como a substituição; sem limite,
- * mas só uma pendente por time (a nova substitui a que ainda não entrou). Quem saiu numa troca vale como quem entrou
+ * permutação de quem está em quadra). Vale na hora, como a substituição (volante, 21/10/2026); sem limite, mas só uma
+ * pendente por time (a nova substitui a que ainda não entrou). Quem saiu numa troca vale como quem entrou
  * no lugar dele (troca e prancheta na mesma bola parada dão o mesmo resultado em qualquer ordem).
  */
 export interface LineupOrder {
@@ -94,18 +103,20 @@ export interface LineupOrder {
 }
 
 /**
- * Agência do técnico (experimento, src/engine/agency.ts): grito (vale na hora), pedido de tempo e goleiro-linha (na
- * próxima bola parada), golpe máximo do capitão (na hora, se a barra estiver cheia) e a ordem dos cobradores de
- * pênalti (uids, guardada até a disputa). Sem essas ordens a partida é a de sempre.
+ * Agência do técnico (experimento, src/engine/agency.ts): pedido de tempo (na próxima bola parada), goleiro-linha (na
+ * hora), golpe máximo do capitão (armado na hora, sai na hora certa se a barra estiver cheia) e a ordem dos cobradores de
+ * pênalti (uids, guardada até a disputa). Sem essas ordens a partida é a de sempre. O grito saiu (21/10/2026): ordem
+ * antiga com `kind: 'shout'` não passa no `validOrder` e é ignorada.
  */
 export type AgencyOrder =
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'shout'; shout: Shout }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'timeout' }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'flyGk'; on: boolean }
-    | { tick: number; team: 0 | 1; seq?: number; kind: 'max' }
+    /** `q`: nota do toque na batida (0 fora, 1 bom, 2 perfeito; sem = bom). */
+    | { tick: number; team: 0 | 1; seq?: number; kind: 'max'; q?: MaxGrade }
     | { tick: number; team: 0 | 1; seq?: number; kind: 'penalties'; order: string[] };
 export type AgencyKind = AgencyOrder['kind'];
-export const AGENCY_KINDS: readonly AgencyKind[] = ['shout', 'timeout', 'flyGk', 'max', 'penalties'];
+export type MaxGrade = 0 | 1 | 2;
+export const AGENCY_KINDS: readonly AgencyKind[] = ['timeout', 'flyGk', 'max', 'penalties'];
 
 /** Ordens do técnico durante a partida (a partida é resimulada com a agenda inteira). */
 export type MatchOrder = TacticChange | SubOrder | CornerOrder | LineupOrder | AgencyOrder;
@@ -147,6 +158,8 @@ export interface PendingBonus {
     fixedSpeed?: number;
     /** Golpe carregado (Solar Beam, Sky Attack...): já passou pela carga. */
     charged?: boolean;
+    /** Lutador (golpe máximo N3): chuta de primeira quando a bola voltar pro pé. */
+    volley?: boolean;
 }
 
 /** Estado dos traços de golpe (src/engine/moves.ts → MOVE_TRAITS) em cada jogador. */
@@ -179,6 +192,10 @@ export interface TraitState {
     typeCopy: { types: TypeName[]; t: number } | null;
     /** Roar: fugindo para o próprio campo. */
     flee: { dir: Vec2; t: number } | null;
+    /** N1 Lutador: mão dormente, a próxima defesa dele não encaixa. */
+    numb: boolean;
+    /** N1 Pedra: segundos preso no lugar (não anda, ainda defende). */
+    root: number;
 }
 
 /** Zona no chão (Smokescreen, Fire Spin, muro do Barrier). */
@@ -255,6 +272,8 @@ export interface PlayerState {
 
 export interface ShotInfo {
     by: number;
+    /** Tick do chute (a bicuda do goleiro capitão vale só pra ele: `MaxArm.shot`). */
+    tick: number;
     xg: number;
     moveId: string | null;
     moveType: string;
@@ -263,6 +282,21 @@ export interface ShotInfo {
     onTarget: boolean;
     /** Drill Peck/Cut: já furou o primeiro bloqueio. */
     pierced?: boolean;
+    /** Golpe máximo N3: alcance do goleiro rival nesse chute (`AGENCY.maxLevelShot`). */
+    gkReach?: number;
+    /** Golpe máximo: fator na chance de defesa do goleiro e de bloqueio da linha (`AGENCY.maxLevelShot`). */
+    gkSave?: number;
+    blockMult?: number;
+    /** Golpe máximo N3 com o efeito do tipo do capitão (`MatchConfig.maxType`): o tipo. */
+    fx?: string;
+    /** Psíquico: aceleração lateral da bola (m/s² em y) enquanto o chute vive. */
+    curve?: number;
+    /** Inseto: o goleiro pulou na isca (sem defesa nesse chute). */
+    decoy?: boolean;
+    /** Golpe máximo (motor 17): o nível e o tipo do status que ele passa em quem bloqueia ou defende (`AGENCY.maxStatus`). */
+    max?: { level: 1 | 2 | 3; status: string | null };
+    /** Dragão: sem vantagem de tipo pra nenhum lado. */
+    typeless?: boolean;
 }
 
 export interface BallState {
@@ -279,7 +313,19 @@ export interface BallState {
     assistCandidate: number | null;
 }
 
-export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime';
+export type Phase = 'kickoff' | 'play' | 'goal' | 'restart' | 'corner' | 'halftime' | 'fulltime' | 'showdown';
+
+/**
+ * Duelo da bicuda (motor 21): o goleiro capitão `gk` segurou o N3 de `shooter` com a bicuda N3 armada. A partida para
+ * (`AGENCY.showdown`) e, no tick `kick`, ele chuta (`kicked`): a bola vai reta pro gol rival, sem ninguém tocar.
+ */
+export interface Showdown {
+    gk: number;
+    shooter: number;
+    q: MaxGrade;
+    kick: number;
+    kicked: boolean;
+}
 
 /** Escanteio em andamento: a jogada sorteada e a disputa que vem quando a bola chega. */
 export interface SetPiece {
@@ -333,19 +379,27 @@ export interface TeamRuntime {
     agency: AgencyRuntime;
 }
 
+export interface MaxArm {
+    idx: number;
+    /** Só a bicuda do goleiro: vale até esse tick. O de linha fica armado até o próximo chute da zona (motor 19). */
+    until?: number;
+    /** Bicuda: o chute do rival (`ShotInfo.tick`) a que o toque vale; acabou o chute, o pedido some sem gastar. */
+    shot?: number;
+    level: 1 | 2 | 3;
+    q: MaxGrade;
+}
+
 export interface AgencyRuntime {
-    shout: { kind: Shout; until: number } | null;
-    shoutsUsed: number;
-    /** Próximo grito só a partir deste tick (recarga). */
-    shoutReadyAt: number;
     /** Pedido de tempo já usado em cada tempo, e o que espera a próxima bola parada. */
     timeouts: [boolean, boolean];
     timeoutPending: boolean;
-    /** Goleiro-linha ligado agora e a troca que espera a próxima bola parada (null = nenhuma). */
+    /** Goleiro-linha ligado agora (liga e desliga na hora). */
     flyGk: boolean;
-    flyGkPending: boolean | null;
-    /** Golpe máximo solto: quem (índice do capitão) e até que tick a janela vale. */
-    max: { idx: number; until: number } | null;
+    /**
+     * Golpe máximo pedido: quem (índice do capitão), armado esperando a hora certa (o próximo chute da zona, sem prazo;
+     * o goleiro, a bicuda no próximo chute no gol que ele alcança, até `until`).
+     */
+    max: MaxArm | null;
     /** Ordem dos cobradores de pênalti (uids; null = pelo chute, como sempre). */
     penaltyOrder: string[] | null;
 }
@@ -365,7 +419,24 @@ export type MatchEvent = MatchEventBase &
         | { type: 'tackle'; by: number; victim: number; success: boolean }
         | { type: 'skill'; by: number }
         | { type: 'shot'; by: number; xg: number; moveId: string | null }
-        | { type: 'save'; by: number; shooter: number; caught: boolean }
+        | {
+              type: 'save';
+              by: number;
+              shooter: number;
+              caught: boolean;
+              /** Golpe máximo defendido (nunca encaixa): espalmou pra escanteio ou na trave (`AGENCY.maxParry`). */
+              parry?: 'corner' | 'post';
+          }
+        /**
+         * O goleiro capitão `by` alcançou o chute que saiu no tick `from` (defendendo, com a bicuda ou não): a hora da
+         * bicuda na tela vai de `from` até aqui (`bicudaCueNear`).
+         */
+        | { type: 'gkReach'; by: number; shooter: number; from: number }
+        /**
+         * Duelo da bicuda (motor 21): o goleiro capitão `gk` (time `team`) segurou o N3 de `shooter` com a bicuda N3; a
+         * partida para até o tick `kick`, quando ele chuta e é gol (a cutscene com as falas vai nesse intervalo). `q`: o toque.
+         */
+        | { type: 'showdown'; team: 0 | 1; gk: number; shooter: number; kick: number; q: MaxGrade }
         | { type: 'block'; by: number; shooter: number }
         | { type: 'post'; shooter: number }
         | { type: 'wide'; shooter: number }
@@ -403,7 +474,7 @@ export type MatchEvent = MatchEventBase &
         | {
               type: 'status';
               target: number;
-              status: StatusKind | 'infatuation' | 'flinch' | 'seed';
+              status: StatusKind | 'infatuation' | 'flinch' | 'seed' | MaxN1Fx;
               by: number | null;
               source: string;
           }
@@ -455,6 +526,8 @@ export type MatchEvent = MatchEventBase &
               outSpeciesId: number;
               inSpeciesId: number;
               inShiny: boolean;
+              /** Troca volante (com a bola rolando): quem entra vem da lateral perto do banco. */
+              fly?: boolean;
           }
         /** Mudança de prancheta: a formação nova e o jogador (`idx`) em cada vaga, na ordem das vagas. */
         | { type: 'lineup'; team: 0 | 1; formation: FormationId; idx: number[] }
@@ -462,17 +535,39 @@ export type MatchEvent = MatchEventBase &
         | { type: 'penalty'; by: number; gk: number; scored: boolean; round: number; shootout: [number, number] }
         | { type: 'end'; winner: 0 | 1 | null; score: [number, number]; shootout: [number, number] | null }
         // agência do técnico (experimento)
-        | { type: 'shout'; team: 0 | 1; shout: Shout }
         | { type: 'timeout'; team: 0 | 1 }
         /** Goleiro-linha ligou/desligou (`by` = o goleiro). */
         | { type: 'flyGk'; team: 0 | 1; on: boolean; by: number }
-        /** Golpe máximo: abriu a janela, saiu (`hit`: o chute, ou a janela do goleiro) ou passou sem sair (`miss`). */
-        | { type: 'max'; team: 0 | 1; by: number; phase: 'start' | 'hit' | 'miss'; moveId?: string | null }
+        /** Golpe máximo armado (`on`) ou cancelado sem gastar (intervalo, fim, capitão saiu, a bicuda que passou). */
+        | { type: 'maxArm'; team: 0 | 1; on: boolean }
+        /**
+         * Golpe máximo: `hit` = saiu (o chute do capitão de linha, ou a bicuda do goleiro). Desde o motor 17 o motor solta
+         * `hit` e `miss` (a bicuda com o toque fora: gasta a barra e vira a defesa de sempre); `start` era da defesa
+         * máxima, que saiu (a tela ainda lê; TODO tirar na fase da tela).
+         */
+        | {
+              type: 'max';
+              team: 0 | 1;
+              by: number;
+              phase: 'start' | 'hit' | 'miss';
+              moveId?: string | null;
+              /** Nível que saiu e nota do toque (a tela mostra "PERFEITO!"). */
+              level?: 1 | 2 | 3;
+              q?: MaxGrade;
+          }
+        /**
+         * Efeito do tipo no golpe máximo N3 (`MatchConfig.maxType`): `shot` no chute (a animação do tipo), `hit` quando
+         * pega alguém (`target`: o goleiro na isca, quem levou o raio, o capitão em fúria…).
+         */
+        | { type: 'maxFx'; by: number; fx: string; step: 'shot' | 'hit'; target: number | null }
         /** Técnico IA avisou a ordem (vale `RIVAL_COACH.leadTicks` depois; src/engine/rival-coach.ts). */
         | ({ type: 'coach'; team: 0 | 1; leader: LeaderId } & CoachCall)
     );
 
 export type MatchEventType = MatchEvent['type'];
+
+/** Efeitos do N1 do golpe máximo que não são status (`AGENCY.maxN1`): areia, teia, alto, mão dormente, preso, barra. */
+export type MaxN1Fx = 'blind' | 'web' | 'lift' | 'numb' | 'root' | 'drain';
 
 export type TraitFx =
     | 'crit'
@@ -577,6 +672,8 @@ export interface MatchState {
     pressure: 0 | 1 | null;
     phase: Phase;
     phaseTimer: number;
+    /** Duelo da bicuda em andamento (fase `showdown`). */
+    showdown: Showdown | null;
     kickoffTeam: 0 | 1;
     teams: [TeamRuntime, TeamRuntime];
     players: PlayerState[];
@@ -594,6 +691,26 @@ export interface MatchState {
     lastMove: [string | null, string | null];
     /** Zonas no chão (fumaça, anel de fogo, muro). */
     zones: Zone[];
+    /**
+     * O que o golpe máximo faz nos rivais esperando a bola: a queda do N2/N3 (e da bicuda N2), a onda, o gelo e os
+     * efeitos de área do N3 acontecem quando a bola chega em cada um (`at` metros de `from` na direção `dir`), não no
+     * chute. Valem só pra esse chute (`kick`, o `ball.lastKick` dele): a bola parada, dominada ou chutada de novo antes
+     * cancela o que falta. `kind`: queda, empurrão (`m` metros), gelo (`m` segundos) ou efeito de área (`piece`).
+     */
+    knocks: {
+        kind: 'knock' | 'push' | 'freeze' | 'piece';
+        idx: number;
+        by: number;
+        moveId: string;
+        fx: string;
+        piece?: string;
+        m: number;
+        from: Vec2;
+        dir: Vec2;
+        goal: Vec2;
+        at: number;
+        kick: object;
+    }[];
     /** Escanteio em andamento (cobrança e disputa). */
     setPiece: SetPiece | null;
     ball: BallState;

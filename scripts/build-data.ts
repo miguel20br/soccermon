@@ -1,45 +1,41 @@
 /**
- * Gera os dados estáticos dos 151 a partir do @pkmn/dex (MIT) + textos pt-BR do pokerogue-locales (AGPL).
+ * Gera os dados estáticos de cada geração a partir do @pkmn/dex (MIT) + textos pt-BR do pokerogue-locales (AGPL).
  *
  * Decisões:
- * - Elenco e learnsets: Gen 1 (Red/Blue/Yellow).
+ * - Elenco e learnsets: os da geração (Gen 1 = Red/Blue/Yellow, Gen 2 = Gold/Silver/Crystal).
  * - Stats base, tipos, golpes e habilidades: dados modernos (Gen 1 não tinha SpA/SpD separados nem habilidades).
+ * - A Gen 1 vai pra `src/data` (a que o jogo usa); as outras pra `src/data/gen<N>`, fora do jogo até serem ligadas.
  *
- * Uso: npm run data
+ * Uso: npm run data [-- --gen 1|2]
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { Generations } from '@pkmn/data';
 import { Dex } from '@pkmn/dex';
+import { cachedJson, dataDir, GENS, type Gen, gensFromArgs, pool } from './lib/download';
 
-const OUT = 'src/data';
 const POKEAPI = 'https://raw.githubusercontent.com/PokeAPI/api-data/master/data/api/v2';
 
 /** Altura (m) e formato do corpo, do PokeAPI — o @pkmn/dex não traz nenhum dos dois. */
 async function fetchBodies(ids: number[]): Promise<Map<number, { heightm: number; shape: string }>> {
-    const bodies = new Map<number, { heightm: number; shape: string }>();
-    const getJson = async (url: string) => {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Falha ao buscar ${url}: ${res.status}`);
-        return res.json();
+    const getJson = async <T>(path: string) => {
+        const json = await cachedJson<T>(`${POKEAPI}/${path}/index.json`, `pokeapi/${path}.json`);
+        if (!json) throw new Error(`Falha ao buscar ${path}`);
+        return json;
     };
-    const queue = [...ids];
-    await Promise.all(
-        Array.from({ length: 8 }, async () => {
-            while (queue.length) {
-                const id = queue.shift() as number;
-                const [mon, spec] = await Promise.all([
-                    getJson(`${POKEAPI}/pokemon/${id}/index.json`) as Promise<{ height: number }>,
-                    getJson(`${POKEAPI}/pokemon-species/${id}/index.json`) as Promise<{ shape: { name: string } }>,
-                ]);
-                bodies.set(id, { heightm: mon.height / 10, shape: spec.shape.name });
-            }
-        }),
-    );
-    return bodies;
+    const rows = await pool(ids, 8, async (id) => {
+        const [mon, spec] = await Promise.all([
+            getJson<{ height: number }>(`pokemon/${id}`),
+            getJson<{ shape: { name: string } }>(`pokemon-species/${id}`),
+        ]);
+        return [id, { heightm: mon.height / 10, shape: spec.shape.name }] as const;
+    });
+    return new Map(rows);
 }
 const LOCALES = 'https://raw.githubusercontent.com/pagefaultgames/pokerogue-locales/main/pt-BR';
-const LEGENDARY = new Set([144, 145, 146, 150, 151]);
-const PSEUDO = new Set([149]);
+const LEGENDARY = new Set([144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251]);
+const PSEUDO = new Set([149, 248]);
+/** Nome oficial com o símbolo (o Showdown escreve "Nidoran-F"). */
+const NAME_FIX: Record<string, string> = { 'Nidoran-F': 'Nidoran♀', 'Nidoran-M': 'Nidoran♂' };
 
 const toId = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -61,19 +57,20 @@ function tierOf(num: number, bst: number): 'common' | 'uncommon' | 'rare' | 'epi
     return 'common';
 }
 
-async function main() {
+async function buildGen(gen: Gen, ptMoves: Locale, ptAbilities: Locale) {
     const gens = new Generations(Dex);
-    const g1 = gens.get(1);
-    const [ptMoves, ptAbilities] = await Promise.all([fetchLocale('move.json'), fetchLocale('ability.json')]);
+    const g = gens.get(gen);
+    const [lo, hi] = GENS[gen];
+    const roster = [...g.species].filter((s) => s.num >= lo && s.num <= hi).sort((a, b) => a.num - b.num);
 
     const pokemon = [];
     const moveIds = new Set<string>();
     const abilityIds = new Set<string>();
 
-    const bodies = await fetchBodies([...g1.species].map((s) => s.num));
-    for (const s1 of g1.species) {
+    const bodies = await fetchBodies(roster.map((s) => s.num));
+    for (const s1 of roster) {
         const s = Dex.species.get(s1.id);
-        const learnable = await g1.learnsets.learnable(s1.id);
+        const learnable = await g.learnsets.learnable(s1.id);
         const learnset = Object.keys(learnable ?? {}).sort();
         for (const m of learnset) moveIds.add(m);
 
@@ -83,7 +80,7 @@ async function main() {
         const bst = Object.values(s.baseStats).reduce((a, b) => a + b, 0);
         const evolvesTo = s.evos
             .map((name) => Dex.species.get(name))
-            .filter((e) => e.num <= 151 && !e.forme)
+            .filter((e) => e.num <= hi && !e.forme)
             .map((e) => ({
                 id: e.num,
                 level: e.evoLevel ?? null,
@@ -94,7 +91,7 @@ async function main() {
         pokemon.push({
             id: s.num,
             slug: s.id,
-            name: s.name,
+            name: NAME_FIX[s.name] ?? s.name,
             types: s.types,
             baseStats: s.baseStats,
             bst,
@@ -102,7 +99,7 @@ async function main() {
             abilities,
             learnset,
             evolvesTo,
-            prevo: s.prevo && Dex.species.get(s.prevo).num <= 151 ? Dex.species.get(s.prevo).num : null,
+            prevo: s.prevo && Dex.species.get(s.prevo).num <= hi ? Dex.species.get(s.prevo).num : null,
             heightm: bodies.get(s.num)?.heightm ?? 1,
             shape: bodies.get(s.num)?.shape ?? 'upright',
             weightkg: s.weightkg,
@@ -146,6 +143,21 @@ async function main() {
         abilities[id] = { id, name: a.name, shortDesc: a.shortDesc, descPt: ptAbilities[id]?.description ?? null };
     }
 
+    const out = dataDir(gen);
+    await mkdir(out, { recursive: true });
+    await writeFile(`${out}/pokemon.json`, `${JSON.stringify(pokemon, null, 1)}\n`);
+    await writeFile(`${out}/moves.json`, `${JSON.stringify(moves, null, 1)}\n`);
+    await writeFile(`${out}/abilities.json`, `${JSON.stringify(abilities, null, 1)}\n`);
+
+    const missingPt = Object.values(moves).filter((m) => !(m as { descPt: string | null }).descPt).length;
+    console.log(
+        `gen ${gen} → ${out}: pokemon ${pokemon.length} · moves ${moveIds.size} (sem pt-BR: ${missingPt}) · abilities ${abilityIds.size}`,
+    );
+}
+
+/** Tabela de tipos (moderna, a mesma pra todas as gerações). */
+async function buildTypechart() {
+    const gens = new Generations(Dex);
     const typeNames = [...gens.get(9).types]
         .map((t) => t.name)
         .filter((t) => t !== 'Stellar' && t !== '???')
@@ -157,16 +169,16 @@ async function main() {
         for (const def of typeNames) typechart[atk][def] = g9.types.totalEffectiveness(atk as never, [def as never]);
     }
 
-    await mkdir(OUT, { recursive: true });
-    await writeFile(`${OUT}/pokemon.json`, `${JSON.stringify(pokemon, null, 1)}\n`);
-    await writeFile(`${OUT}/moves.json`, `${JSON.stringify(moves, null, 1)}\n`);
-    await writeFile(`${OUT}/abilities.json`, `${JSON.stringify(abilities, null, 1)}\n`);
-    await writeFile(`${OUT}/typechart.json`, `${JSON.stringify({ types: typeNames, chart: typechart }, null, 1)}\n`);
+    await writeFile('src/data/typechart.json', `${JSON.stringify({ types: typeNames, chart: typechart }, null, 1)}\n`);
+    console.log(`types: ${typeNames.length}`);
+}
 
-    const missingPt = Object.values(moves).filter((m) => !(m as { descPt: string | null }).descPt).length;
-    console.log(
-        `pokemon: ${pokemon.length} · moves: ${moveIds.size} (sem pt-BR: ${missingPt}) · abilities: ${abilityIds.size} · types: ${typeNames.length}`,
-    );
+type Locale = Awaited<ReturnType<typeof fetchLocale>>;
+
+async function main() {
+    const [ptMoves, ptAbilities] = await Promise.all([fetchLocale('move.json'), fetchLocale('ability.json')]);
+    for (const gen of gensFromArgs()) await buildGen(gen, ptMoves, ptAbilities);
+    await buildTypechart();
 }
 
 main().catch((e) => {

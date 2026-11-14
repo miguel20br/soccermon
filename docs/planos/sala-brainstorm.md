@@ -1,3 +1,7 @@
+---
+description: Brainstorm do que implementar na Sala de troféus.
+---
+
 # Sala de troféus: brainstorm do que implementar (20/10/2026)
 
 Onde estamos: o Miguel não gostou do quarto FireRed desenhado por código (o traço é o maior problema) nem do 3D,

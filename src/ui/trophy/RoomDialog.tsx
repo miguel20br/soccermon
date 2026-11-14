@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../i18n/react';
 import { reduceMotionOn } from '../settings-sync';
 
@@ -14,10 +14,13 @@ export function RoomDialog({
     text,
     action,
     onClose,
+    children,
 }: {
     text: string;
     action?: { label: string; run: () => void };
     onClose: () => void;
+    /** Opções do diálogo (evento da Rota): aparecem embaixo do texto quando ele acaba. */
+    children?: ReactNode;
 }) {
     const { t } = useT();
     const [n, setN] = useState(() => (reduceMotionOn() ? text.length : 0));
@@ -41,7 +44,7 @@ export function RoomDialog({
     }, [onClose]);
     const done = n >= text.length;
     return (
-        <div className="room-dialog" role="status" data-exit>
+        <div className={`room-dialog${children ? ' has-opts' : ''}`} role="status" data-exit>
             <button
                 type="button"
                 className="room-dialog-text"
@@ -68,6 +71,7 @@ export function RoomDialog({
                     {action.label}
                 </button>
             )}
+            {children && <div className={`room-dialog-opts${done ? ' ready' : ''}`}>{children}</div>}
             <span className="pf-sr">{t('trophies.say.close')}</span>
         </div>
     );

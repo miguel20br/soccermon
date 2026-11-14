@@ -1,12 +1,20 @@
 import { type CSSProperties, memo, useRef } from 'react';
-import { type AttrKey, computeAttributes, type Position } from '../../engine/attributes';
+import type { AttrKey, Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
-import { evolvedRating } from '../../engine/evolution';
+import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
-import { applyModifiers, attributeModifiers } from '../../engine/modifiers';
+import { cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
-import { type Edition, editionOf, ICON_CHANCE, mvpLevel, specialBonus } from '../../engine/specials';
+import {
+    type Edition,
+    editionOf,
+    ICON_CHANCE,
+    mvpLevel,
+    specialBonus,
+    themeOfTypes,
+    themeTypeOf,
+} from '../../engine/specials';
 import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
 import { type Translator, useT } from '../../i18n/react';
 import type { CareerSeal } from '../../store/profile';
@@ -16,6 +24,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
+import { TaughtMark } from './TaughtMark';
 import { Tip } from './Tip';
 import { TypeIcons } from './TypeIcon';
 import { useHoloPointer } from './useHoloPointer';
@@ -89,6 +98,8 @@ interface PokeCard2Props {
      * só a beirada. Uma carta inteira são ~90 nós; o álbum cheio tinha 2 delas escondidas atrás de cada figurinha.
      */
     bare?: boolean;
+    /** Outra imagem no lugar do sprite (carta Metal): a proposta da edição Retrô na galeria. */
+    art?: string;
 }
 
 /**
@@ -110,18 +121,17 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
     const { rating, display, fit } = ratingAt(inst, pos);
-    // setinha de bônus/penalidade que vai com a carta (edição, habilidade, item, Fada): quanto o atributo
-    // vale a mais (ou a menos) em campo em relação ao Pokémon "puro"
-    const base = computeAttributes(sp, inst.level);
-    const final = applyModifiers(base, attributeModifiers(inst));
+    // o número é o que vale em campo (evolução, edição, habilidade, item, Fada) e o ▲ quanto disso é bônus
+    // em relação ao Pokémon "puro" (Miguel, 09/11/2026)
+    const { field, bonus } = cardAttributes(inst);
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
         label: tr.d.common.attrShort[k],
-        v: Math.round(view.attributes[k]),
-        delta: Math.round(final[k] - base[k]),
+        v: field[k],
+        delta: bonus[k],
     }));
-    // selo de evolução: a nota que ele vira na mesma vaga se evoluir (carta = campo)
-    const evo = evolvedRating(inst, pos);
+    // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
+    const evo = evoPreview(inst, position);
     const t1 = TYPE_COLOR[sp.types[0]] ?? '#888';
     const t2 = TYPE_COLOR[sp.types[1] ?? sp.types[0]] ?? t1;
     return {
@@ -163,6 +173,7 @@ export const PokeCard2 = memo(function PokeCard2({
     seal,
     tipFocus,
     bare,
+    art,
 }: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
@@ -206,7 +217,7 @@ export const PokeCard2 = memo(function PokeCard2({
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
-        const theme = d.sp.types[0] === 'Normal' && d.sp.types[1] ? d.sp.types[1] : d.sp.types[0];
+        const theme = themeOfTypes(d.sp.types);
         classes.push(`holo-${theme.toLowerCase()}`);
         if (edition) classes.push('is-special', `sp-${edition}`);
     }
@@ -239,6 +250,7 @@ export const PokeCard2 = memo(function PokeCard2({
             metalLabel={metalLabel(tr, metalTier, metalFinish)}
             seal={seal}
             tipFocus={!!tipFocus && !onClick}
+            art={art}
         />
     ) : fig ? (
         <Figurinha inst={inst} d={d} captain={captain} edition={edition} />
@@ -346,18 +358,15 @@ function Metal({
     metalLabel: label,
     seal,
     tipFocus,
+    art,
 }: VariantProps & {
     edition: Edition | null;
     metalLabel: string;
     seal?: PokeCard2Props['seal'];
     tipFocus: boolean;
+    art?: string;
 }) {
-    const theme =
-        edition === 'evento' && inst.special?.type
-            ? inst.special.type
-            : d.sp.types[0] === 'Normal' && d.sp.types[1]
-              ? d.sp.types[1]
-              : d.sp.types[0];
+    const theme = themeTypeOf(inst);
     const tag = layerTag(d.tr, inst, edition);
     const mvp = mvpLevel(inst);
     const dLevel = edition === 'destaque' ? mvp : 0;
@@ -384,9 +393,9 @@ function Metal({
                         <TypeIcons types={d.sp.types} />
                     </span>
                     {captain && <span className="pc2-captain">C</span>}
-                    {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} />}
+                    {d.evo && <EvoBadge evo={d.evo} now={d.rating} tr={d.tr} pos={d.evo.pos} />}
                 </span>
-                <img className="pixel m-art" src={cardSprite(inst)} alt="" loading="lazy" draggable={false} />
+                <img className="pixel m-art" src={art ?? cardSprite(inst)} alt="" loading="lazy" draggable={false} />
                 {d.item && <img className="pixel m-item" src={itemSprite(d.item.id)} alt={d.item.name} />}
                 {tag && (
                     <Tip className="m-tag" text={editionTip(tr, inst, edition)} focusable={tipFocus}>
@@ -498,17 +507,34 @@ function MvpStamp({ level }: { level: number }) {
 }
 
 /** Selo "vira 85": seta desenhada + a nota depois de evoluir (para baixo se a forma nova joga pior na vaga). */
-export function EvoBadge({ evo, now, tr }: { evo: { into: number; rating: number }; now: number; tr: Translator }) {
+export function EvoBadge({
+    evo,
+    now,
+    tr,
+    pos,
+}: {
+    evo: { into: number; rating: number };
+    now: number;
+    tr: Translator;
+    /** Posição da nota (fora da vaga: a principal da forma nova). */
+    pos?: Position;
+}) {
     const down = evo.rating < now;
+    const name = SPECIES[evo.into - 1].name;
     return (
         <span
             className={`m-evo${down ? ' down' : ''}`}
-            title={tr.t('team.card.evoTitle', { name: SPECIES[evo.into - 1].name, r: evo.rating })}
+            title={
+                pos
+                    ? tr.t('team.card.evoTitlePos', { name, r: evo.rating, pos: tr.d.common.pos[pos] })
+                    : tr.t('team.card.evoTitle', { name, r: evo.rating })
+            }
         >
             <svg viewBox="0 0 10 10" aria-hidden="true" focusable="false">
                 <path d={down ? 'M5 9 1 4.5h2.5V1h3v3.5H9z' : 'M5 1 9 5.5H6.5V9h-3V5.5H1z'} />
             </svg>
             <b>{evo.rating}</b>
+            {pos && <small className="m-evo-pos">{tr.d.common.posShort[pos]}</small>}
         </span>
     );
 }
@@ -656,7 +682,10 @@ function Tcg({ inst, d, captain }: VariantProps) {
                                     />
                                 ))}
                             </span>
-                            <b className="tcg-atk-name">{moveName(m)}</b>
+                            <b className="tcg-atk-name">
+                                {moveName(m)}
+                                <TaughtMark inst={inst} move={m} />
+                            </b>
                             <span className="tcg-dmg">{data.power || ''}</span>
                             <small className="tcg-atk-desc">{d.tr.d.team.card.kindTcg[moveProfile(m).kind]}</small>
                         </span>

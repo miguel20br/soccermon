@@ -12,9 +12,18 @@
  */
 const GSI_ORIGINS = ['https://soccermon.com', 'https://soccermon.vercel.app', 'http://localhost:8080'];
 
+/**
+ * O botão do Google só onde ele funciona: origem cadastrada e fora do atalho da tela inicial do iPhone/iPad
+ * (`navigator.standalone`). Lá o botão abre o Google numa janela à parte (popup) que não devolve o login pro app, e a
+ * conta "só entra pelo Safari" (relato de 10/11). No atalho fica o login por redirecionamento: a página vai pro
+ * Google e volta pro soccermon.com na mesma janela, onde o PKCE troca o código pela sessão.
+ */
+export const gsiAllowed = (origin: string, nav: { standalone?: boolean }) =>
+    GSI_ORIGINS.includes(origin) && nav.standalone !== true;
+
 /** Client ID do OAuth (Web) do Google. É público por natureza (vai no HTML de qualquer site com o botão). */
 export const GOOGLE_CLIENT_ID: string =
-    typeof location !== 'undefined' && GSI_ORIGINS.includes(location.origin)
+    typeof location !== 'undefined' && gsiAllowed(location.origin, navigator as { standalone?: boolean })
         ? (import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
         : '';
 

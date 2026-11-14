@@ -1,3 +1,7 @@
+---
+description: Proposta da Copa roguelike: mapa, mercado, eventos e o "algo maior".
+---
+
 # Copa roguelike: mapa, loja, eventos e o "algo maior" (proposta, 20/10/2026)
 
 Pedido do Miguel (20/10, depois de conversar com um amigo, e "concordo com TUDO, só não sei como implementar nem se

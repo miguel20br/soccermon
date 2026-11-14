@@ -1,6 +1,8 @@
-import { CLUBS, type ClubTemplate } from './cup';
+import { CLUBS, type ClubTemplate, CROWD, CROWD_ROUTE_START, GYM_THEME_MIN } from './cup';
 import { species } from './data';
 import { aiDraftTeam } from './draft';
+import { type Stone, stoneUsers } from './evolution';
+import { createInstance, viewInstance } from './instance';
 import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import type { TeamSetup } from './state';
@@ -11,7 +13,51 @@ import { equipRivalTms, RIVAL_GYM_TM_MAX } from './tm';
  * só de partida (Jogo ou Ginásio) ou só de parada (Mercado, Evento, Treino, Baú), então **toda rota tem as mesmas 8
  * partidas** (7 na Rota + a Final contra a Liga Índigo) e o tempo da copa é previsível (~35 min).
  */
-export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'bau' | 'final';
+export type NodeKind = 'jogo' | 'ginasio' | 'mercado' | 'evento' | 'treino' | 'bau' | 'centro' | 'final';
+
+/**
+ * Prêmio do Jogo, à vista no mapa (revisão da Rota, Hades): 1 de 3 Pokémon do rival, 1 de 3 MTs, 1 de 3 itens (os de
+ * tipo do ramo primeiro) ou o ₽ da vitória em dobro, sem recompensa.
+ */
+export type Prize = 'pokemon' | 'tm' | 'item' | 'money' | 'pedra';
+// `pedra` = o prêmio da primeira versão das pedras (a pedra no lugar do prêmio): só Rota guardada antes de 01/11/2026
+export const PRIZES: readonly Prize[] = ['pokemon', 'tm', 'item', 'money'];
+
+/**
+ * Pedras de evolução como prêmio de região (decisão 8 da revisão da Rota): um Jogo da linha de partida de cada região
+ * dá a pedra dela, junto do prêmio da casa, e o rival dessa casa traz no 1 de 3 um que evolui com ela
+ * (`rivalStoneMon`). Usar a pedra evolui na hora quem evolui com ela. O mapa não tem Celadon nem
+ * Cinnabar: a Pedra de Fogo fica na Rota 1 (de Pallet sai o mar pra Cinnabar) e a do Trovão em Cerulean (a Usina fica
+ * na Rota 10, saindo de lá), junto da d'Água.
+ */
+export const REGION_STONES: Readonly<Partial<Record<MapRegion, readonly Stone[]>>> = {
+    rota1: ['fogo'],
+    floresta: ['folha'],
+    mtmoon: ['lua'],
+    cerulean: ['agua', 'trovao'],
+};
+
+/**
+ * Regras da Rota que o robô de caminhos (scripts/balance/rota-caminhos.sim.test.ts) liga e desliga pra medir. Mexer
+ * aqui muda o mapa e a recompensa das Rotas novas (o save guarda o mapa); não muda partida nenhuma.
+ */
+export const ROTA_RULES = {
+    /** Escassez: no máximo tantos Mercados por caminho. */
+    maxShops: 2,
+    /** Mercado e Treino de parada podem cair no mesmo caminho. */
+    shopWithTreino: true,
+    /** O que vira a casa que a escassez tira (Mercado a mais, ou o Treino junto do Mercado). */
+    spare: 'evento' as 'evento' | 'bau',
+    /**
+     * Todo Jogo vencido dá 1 de 3 do time rival e depois o prêmio da casa. Desligado em 11/11/2026 (Miguel): no lugar
+     * do 1 de 3, a vitória paga `ROTA_JOGO_PAY` (src/store/long-cup.ts) pra gastar nos Mercados do mapa.
+     */
+    rivalEveryJogo: false,
+    /** Pedras de evolução como prêmio de região. */
+    stones: true,
+};
+/** Prêmios que o mapa sorteia agora ("Pokémon do rival" saiu com o 1 de 3 do rival em todo Jogo, e não voltou). */
+export const mapPrizes = (): readonly Prize[] => PRIZES.filter((p) => p !== 'pokemon');
 
 export interface MapNode {
     /** `r<linha>c<coluna>`. */
@@ -21,6 +67,12 @@ export interface MapNode {
     kind: NodeKind;
     /** Casas da linha de cima em que dá pra ir daqui. */
     next: string[];
+    /** Tipos do ramo (a coluna): rival, Baú, Mercado e prêmio puxam eles. Mapa de antes da revisão não tem. */
+    types?: string[];
+    /** Prêmio do Jogo. Mapa de antes da revisão não tem (a recompensa de sempre). */
+    prize?: Prize;
+    /** A pedra que o Jogo dá junto do prêmio (Rota guardada antes de 01/11/2026: no lugar dele, `prize: 'pedra'`). */
+    stone?: Stone;
 }
 
 export interface CupMap {
@@ -43,10 +95,51 @@ export const FINAL_MATCH = GROUP_START + GROUP_GAMES;
 /** Partidas de uma Copa longa (contando a Final). */
 export const LONG_MATCHES = FINAL_MATCH + 1;
 
+/** Regiões de Kanto no mapa, de baixo pra cima: primeira e última linha (a tela desenha, a música troca por elas). */
+export const MAP_REGIONS = [
+    { id: 'rota1', rows: [0, 1] },
+    { id: 'floresta', rows: [2, 3] },
+    { id: 'mtmoon', rows: [4, 5] },
+    { id: 'cerulean', rows: [6, 7] },
+    { id: 'vitoria', rows: [8, 8] },
+] as const;
+export type MapRegion = (typeof MAP_REGIONS)[number]['id'];
+export const regionOfRow = (row: number) =>
+    MAP_REGIONS.find((r) => row >= r.rows[0] && row <= r.rows[1]) ?? MAP_REGIONS[0];
+
 export const isMatchKind = (k: NodeKind) => k === 'jogo' || k === 'ginasio' || k === 'final';
 
 /** Quantas partidas vêm antes desta linha (a 1ª partida é a 0). */
 export const matchIndexOfRow = (row: number) => LAYOUT.slice(0, row).filter((r) => r === 'M').length;
+
+/**
+ * Ramos do mapa (PokéRogue): cada coluna é um caminho de Kanto com os seus tipos, sorteados 3 por mapa (esquerda, meio,
+ * direita). Linha de 2 casas tem só a esquerda e a direita.
+ */
+export const BRANCHES: readonly (readonly string[])[] = [
+    ['Water', 'Grass'],
+    ['Rock', 'Ground', 'Fighting'],
+    ['Ghost', 'Psychic'],
+    ['Electric', 'Fire'],
+    ['Normal', 'Bug'],
+    ['Poison', 'Flying'],
+];
+const laneOf = (col: number, w: number) => (w === 1 ? 1 : w === 2 ? col * 2 : col);
+
+/** Ginásio a partir desta partida (a 2ª). */
+export const GYM_FROM_MATCH = 1;
+
+/** Todos os caminhos do mapa, da 1ª linha ao Treino. */
+export function mapPaths(nodes: readonly MapNode[]): MapNode[][] {
+    const byId = new Map(nodes.map((n) => [n.id, n]));
+    const out: MapNode[][] = [];
+    const walk = (n: MapNode, acc: MapNode[]) => {
+        if (!n.next.length) out.push([...acc, n]);
+        for (const id of n.next) walk(byId.get(id)!, [...acc, n]);
+    };
+    for (const n of nodes.filter((x) => x.row === 0)) walk(n, []);
+    return out;
+}
 
 export function buildCupMap(seed: string): CupMap {
     const rng = new Rng(seed, 'long-map');
@@ -55,15 +148,16 @@ export function buildCupMap(seed: string): CupMap {
         const w = widths[row];
         let kinds: NodeKind[];
         if (r === 'T') kinds = ['treino'];
-        else if (r === 'B') kinds = Array(w).fill('bau');
+        // a linha do Baú vira escolha: Baú ou Centro Pokémon
+        else if (r === 'B') kinds = rng.shuffle<NodeKind>(w === 2 ? ['bau', 'centro'] : ['bau', 'centro', 'bau']);
         else if (r === 'S') {
-            // toda linha de parada tem Mercado e Evento (sempre dá pra escolher); a 3ª casa é Treino
+            // Mercado, Evento e (com 3 casas) Treino; a escassez (abaixo) tira o que um caminho não pode ter dois
             kinds = rng.shuffle<NodeKind>(w === 2 ? ['mercado', 'evento'] : ['mercado', 'evento', 'treino']);
         } else {
-            // Ginásio (elite opcional) só a partir da 3ª partida, no máximo 1 por linha, sempre com um Jogo ao lado
+            // Ginásio (elite opcional) a partir da 2ª partida, no máximo 1 por linha, sempre com um Jogo ao lado
             kinds = Array(w).fill('jogo');
             const nth = matchIndexOfRow(row);
-            if (nth >= 2 && rng.chance(0.75)) {
+            if (nth >= GYM_FROM_MATCH && rng.chance(0.75)) {
                 kinds[rng.int(0, w - 1)] = 'ginasio';
             }
         }
@@ -79,7 +173,58 @@ export function buildCupMap(seed: string): CupMap {
             for (let j = lo; j <= hi; j++) n.next.push(rows[row + 1][j].id);
         });
     }
-    return { nodes: rows.flat(), rows: LAYOUT.length };
+    // Uma diagonal a mais por vão entre casas vizinhas que não dividem destino (plano: copa-longa-tecnico.md). Ou a da
+    // esquerda ganha a casa à direita do seu destino, ou a da direita a da esquerda; nunca as duas, senão cruza. Sorteio
+    // próprio: o resto do mapa não muda.
+    const diag = new Rng(seed, 'long-map-diag');
+    const col = (id: string) => Number(id.slice(id.indexOf('c') + 1));
+    for (let row = 0; row < rows.length - 1; row++) {
+        const up = rows[row + 1];
+        if (up.length === 1) continue;
+        for (let i = 0; i < rows[row].length - 1; i++) {
+            const [left, right] = [rows[row][i], rows[row][i + 1]];
+            const maxL = Math.max(...left.next.map(col));
+            const minR = Math.min(...right.next.map(col));
+            if (maxL >= minR) continue; // já dividem uma casa: já tem escolha
+            if (diag.chance(0.5) && maxL + 1 < up.length) left.next.push(up[maxL + 1].id);
+            else if (minR - 1 >= 0) right.next.unshift(up[minR - 1].id);
+        }
+    }
+    const nodes = rows.flat();
+    // Escassez: no máximo `maxShops` Mercados por caminho e (sem `shopWithTreino`) Mercado e Treino nunca no mesmo
+    // caminho. A casa que sobra (a mais de cima) vira `spare` (Evento ou Baú). Sem sorteio: o resto do mapa não muda.
+    const stopTreino = (n: MapNode) => n.kind === 'treino' && LAYOUT[n.row] === 'S';
+    const { maxShops, shopWithTreino } = ROTA_RULES;
+    for (let guard = 0; guard < 50; guard++) {
+        const bad = mapPaths(nodes).find((p) => {
+            const shops = p.filter((n) => n.kind === 'mercado').length;
+            return shops > maxShops || (shops > 0 && !shopWithTreino && p.some(stopTreino));
+        });
+        if (!bad) break;
+        bad.filter((n) => n.kind === 'mercado' || stopTreino(n)).at(-1)!.kind = ROTA_RULES.spare;
+    }
+    // ramos e prêmios: sorteios próprios (o resto do mapa não muda)
+    const br = new Rng(seed, 'long-map-branch');
+    const lanes = br.shuffle([...BRANCHES]).slice(0, 3);
+    const pz = new Rng(seed, 'long-map-prize');
+    for (const line of rows) {
+        const prizes = pz.shuffle([...mapPrizes()]);
+        let k = 0;
+        for (const n of line) {
+            n.types = [...lanes[laneOf(n.col, line.length)]];
+            if (n.kind === 'jogo') n.prize = prizes[k++];
+        }
+    }
+    // pedras: um Jogo por pedra da região, junto do prêmio dele; sorteio próprio (o resto do mapa não muda)
+    const st = new Rng(seed, 'long-map-stone');
+    for (const line of ROTA_RULES.stones ? rows : []) {
+        const stones = REGION_STONES[regionOfRow(line[0].row).id] ?? [];
+        const jogos = st.shuffle(line.filter((n) => n.kind === 'jogo'));
+        stones.slice(0, jogos.length).forEach((stone, i) => {
+            jogos[i].stone = stone;
+        });
+    }
+    return { nodes, rows: LAYOUT.length };
 }
 
 export const nodeById = (map: CupMap, id: string) => map.nodes.find((n) => n.id === id);
@@ -180,8 +325,47 @@ export const ROUTE_TEAMS: (Omit<ClubTemplate, 'leader' | 'city'> & { trainer: st
 export const rivalTrainer = (name: string): string | undefined =>
     ROUTE_TEAMS.find((t) => t.name === name)?.trainer ?? CLUBS.find((c) => c.name === name)?.leader;
 
-/** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. Ginásio +1, até 3. */
-const LONG_DIFFICULTY = [-1, 0, 0, 1, 1, 1, 1, 4];
+/** Tipos do rival (o time da Rota ou o clube do ginásio) pelo nome. */
+export const rivalTypes = (name: string): string[] =>
+    ROUTE_TEAMS.find((t) => t.name === name)?.types ?? CLUBS.find((c) => c.name === name)?.types ?? [];
+
+/** Titulares do tipo do treinador num time da Rota (o Ornitólogo tem pássaros). */
+export const ROUTE_THEME_MIN = 3;
+
+/** Força do rival pela partida (0 a 6 na Rota, 7 = Final): fácil no começo, puxado no fim. */
+const LONG_DIFFICULTY = [-2, -1, 0, 1, 1, 1, 1, 4];
+/** Ginásio de elite (Slay the Spire): o rival vem bem mais forte. */
+export const GYM_SHIFT = 2;
+/** Desafio de evento (Pássaro lendário, Equipe Rocket): o rival vem mais forte. */
+export const CHALLENGE_SHIFT = 2;
+/** O pássaro lendário de cada evento. */
+export const LEGENDARY_BIRD = 145;
+
+/** O Pokémon que o líder entrega na vitória do Ginásio (a carta forte dele na Gen 1). */
+export const LEADER_ACE: Readonly<Record<string, number>> = {
+    'Pewter Rochedo': 95,
+    'Cerulean Cascata': 121,
+    'Vermilion Voltagem': 26,
+    'Celadon Arco-Íris': 45,
+    'Fuchsia Ninjas': 110,
+    'Saffron Mentes': 65,
+    'Cinnabar Vulcão': 59,
+    'Viridian Terra': 112,
+    'Lavender Assombro': 94,
+};
+
+export interface OpponentOpts {
+    /** Evento (entrevista, desafio): o rival entra mais fraco (−) ou mais forte (+). */
+    shift?: number;
+    /** Tipos do ramo: o rival sai dos times que têm um deles (se ainda tiver um que você não enfrentou). */
+    types?: readonly string[];
+    /** Esse time, sem sorteio (Equipe Rocket do evento). */
+    club?: string;
+    /** Espécie que entra de titular (o pássaro lendário). */
+    boss?: number;
+    /** Casa da pedra: o time traz um que evolui com ela (no banco, se ainda não tem). */
+    stone?: Stone;
+}
 /** Itens do rival pela partida. */
 const LONG_ITEMS = [0, 0, 0, 1, 0, 0, 1, 3];
 
@@ -194,25 +378,52 @@ export function longOpponent(
     match: number,
     kind: NodeKind,
     faced: readonly string[],
-    /** Evento (entrevista): o próximo rival entra mais fraco (−1) ou mais forte (+1). */
-    shift = 0,
+    { shift = 0, types, club: only, boss, stone }: OpponentOpts = {},
 ): TeamSetup {
     const rng = new Rng(seed, `long-${match}-${kind}`);
     const indigo = CLUBS[CLUBS.length - 1];
     let club: Omit<ClubTemplate, 'leader' | 'city'>;
     if (kind === 'final') club = indigo;
     else {
-        const pool = kind === 'ginasio' ? CLUBS.filter((c) => c !== indigo) : ROUTE_TEAMS;
+        const all = kind === 'ginasio' ? CLUBS.filter((c) => c !== indigo) : ROUTE_TEAMS;
+        const pool = only ? [...ROUTE_TEAMS, ...CLUBS].filter((c) => c.name === only) : all;
         const fresh = pool.filter((c) => !faced.includes(c.name));
-        club = rng.pick(fresh.length ? fresh : pool);
+        const typed = types?.length ? fresh.filter((c) => c.types.some((t) => types.includes(t))) : [];
+        club = rng.pick(typed.length ? typed : fresh.length ? fresh : pool);
     }
     const base = LONG_DIFFICULTY[Math.min(match, LONG_DIFFICULTY.length - 1)];
-    const difficulty = Math.max(-1, Math.min(4, (kind === 'ginasio' ? Math.min(3, base + 1) : base) + shift));
-    const d = aiDraftTeam(rng, difficulty, club.types, club.formation);
+    const difficulty = Math.max(-2, Math.min(4, base + (kind === 'ginasio' ? GYM_SHIFT : 0) + shift));
+    // treinador da Rota joga com o tipo dele: pelo menos 3 dos 5 titulares; o líder (ginásio e Final), 4
+    const d = aiDraftTeam(
+        rng,
+        difficulty,
+        club.types,
+        club.formation,
+        kind === 'jogo' ? ROUTE_THEME_MIN : GYM_THEME_MIN,
+        kind === 'final',
+    );
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);
         h.item = rng.pick([...ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
+    }
+    // o pássaro lendário entra no lugar do titular mais fraco (nunca o goleiro nem o capitão)
+    if (boss !== undefined) {
+        const at = d.lineup
+            .map((p, i) => ({ i, ovr: viewInstance(p).overall }))
+            .filter(({ i }) => i > 0 && d.lineup[i].uid !== d.captainUid)
+            .sort((a, b) => a.ovr - b.ovr)[0]?.i;
+        if (at !== undefined)
+            d.lineup[at] = { ...createInstance(boss, new Rng(seed, `long-boss-${match}`)), uid: `boss-${match}` };
+    }
+    // casa da pedra: um dos que evoluem com ela no lugar do reserva mais fraco (sorteio próprio, o resto não muda)
+    const users = stone ? stoneUsers(stone) : [];
+    const team = [...d.lineup, ...d.bench];
+    if (users.length && !team.some((p) => users.includes(p.speciesId))) {
+        const sr = new Rng(seed, `long-stone-${match}`);
+        const weakest = d.bench.reduce((w, p) => (viewInstance(p).overall < viewInstance(w).overall ? p : w));
+        const id = sr.pick(users.filter((u) => !team.some((p) => p.speciesId === u)));
+        d.bench[d.bench.indexOf(weakest)] = { ...createInstance(id, sr), uid: `stone-${match}` };
     }
     // só o Ginásio e a Final levam a MT do líder
     const tmRng = new Rng(seed, `long-tm-${match}`);
@@ -225,6 +436,8 @@ export function longOpponent(
         color: club.color,
         formation: club.formation,
         captainUid: d.captainUid,
+        // a Final no Planalto sem a torcida a favor (Miguel, 10/11/2026: era a partida mais fácil da Rota)
+        ...(kind !== 'final' && { crowd: match < 3 ? CROWD_ROUTE_START : CROWD }),
     };
 }
 

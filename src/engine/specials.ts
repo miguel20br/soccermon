@@ -65,6 +65,17 @@ export function editionOf(inst: PokemonInstance): Edition | null {
 }
 
 /** O tipo que pinta a carta: o do evento na carta Evento, senão o 1º tipo do Pokémon. */
+/**
+ * O tipo que a carta mostra: o símbolo no fundo, o telão do walkout e o efeito que revela a carta ouro. Normal com um 2º
+ * tipo mostra o 2º (o Pidgeot é Voador); a carta Evento mostra o tipo do evento.
+ */
+export const themeOfTypes = (types: readonly string[]) => (types[0] === 'Normal' && types[1] ? types[1] : types[0]);
+export function themeTypeOf(inst: Pick<PokemonInstance, 'speciesId' | 'special'>): string {
+    return inst.special?.kind === 'evento' && inst.special.type
+        ? inst.special.type
+        : themeOfTypes(species(inst.speciesId).types);
+}
+
 export function cardTypeOf(inst: Pick<PokemonInstance, 'speciesId' | 'special'>): string {
     return inst.special?.kind === 'evento' && inst.special.type ? inst.special.type : species(inst.speciesId).types[0];
 }

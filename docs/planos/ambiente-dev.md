@@ -1,3 +1,7 @@
+---
+description: Produção, staging e prévias da Vercel, e o que falta para ter um ambiente de teste protegido.
+---
+
 # Ambiente de desenvolvimento: produção, staging e prévias (15/10/2026)
 
 Pedido do Miguel: ter staging, testar builds na Vercel sem estar no ar, e o endereço antigo indo para o

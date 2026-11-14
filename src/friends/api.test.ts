@@ -1,5 +1,22 @@
-import { describe, expect, it } from 'vitest';
-import { type FriendRow, formatFriendCode, groupFriends, isFriendCode, normalizeFriendCode } from './api';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
+
+import { DEFAULT_LOOK } from '../store/club-kit';
+import { useGame } from '../store/game-store';
+import { clubColorHex } from '../store/profile';
+import {
+    type FriendRow,
+    type FriendsServer,
+    formatFriendCode,
+    friendLook,
+    groupFriends,
+    isFriendCode,
+    normalizeFriendCode,
+    sendPendingChallenge,
+    setFriendsServer,
+    useFriends,
+} from './api';
 
 const row = (trainer: string, status: FriendRow['status'], room?: string, roomAt?: number): FriendRow => ({
     code: `${trainer.toUpperCase().slice(0, 4).padEnd(4, 'X')}2345`,
@@ -65,5 +82,62 @@ describe('lista de amigos', () => {
         expect(g.challenges.map((r) => r.trainer)).toEqual(['Ana', 'Davi']);
         expect(g.friends.find((r) => r.trainer === 'Gabi')?.room).toBeNull();
         expect(g.friends.find((r) => r.trainer === 'Davi')?.room).toBe('K7M2QX');
+    });
+});
+
+describe('Desafiar', () => {
+    it('o amigo escolhido sobrevive à troca pro Duelo, o convite sai com a sala e a resposta fica pra sala mostrar', async () => {
+        const sent: string[] = [];
+        let answer = 'enviado';
+        setFriendsServer({
+            challenge: async (code: string, room: string) => {
+                sent.push(`${code}:${room}`);
+                return answer;
+            },
+        } as unknown as FriendsServer);
+        const gabriel = { code: 'PWTR7RCK', trainer: 'Gabriel' };
+        useGame.getState().go('profile');
+        useFriends.setState({ challenging: gabriel });
+        useGame.getState().go('duel');
+        // a troca de tela chega depois do resto do estado: antes, isso apagava o amigo e o convite nunca saía
+        expect(useFriends.getState().challenging).toEqual(gabriel);
+        expect(await sendPendingChallenge('K7M2QX')).toBe('enviado');
+        expect(sent).toEqual(['PWTR7RCK:K7M2QX']);
+        expect(useFriends.getState().challengeSent).toEqual({ trainer: 'Gabriel', status: 'enviado' });
+        // resposta estranha do servidor vira 'offline' (a sala pede o link)
+        answer = 'precisa_conta';
+        useFriends.setState({ challenging: gabriel });
+        expect(await sendPendingChallenge('ABCDEF')).toBe('offline');
+        // saiu do Duelo: nada fica pendurado
+        useFriends.setState({ challenging: gabriel });
+        useGame.getState().go('home');
+        expect(useFriends.getState().challenging).toBeNull();
+        expect(useFriends.getState().challengeSent).toBeNull();
+    });
+});
+
+describe('escudo do amigo', () => {
+    it('usa o escudo de verdade que vem da vitrine e valida cada campo (dado de fora)', () => {
+        const base = row('Ana', 'amigo');
+        // sem `escudo` (cliente antigo, ou sem vitrine): o padrão na cor do clube
+        expect(friendLook(base)).toEqual({ ...DEFAULT_LOOK, color: clubColorHex('vermelho') });
+        expect(friendLook({ ...base, escudo: null })).toEqual(friendLook(base));
+        expect(
+            friendLook({
+                ...base,
+                escudo: { color2: 0x3a3f4b, kitPattern: 'meio', crestShape: 'hexagono', crestSymbol: 'lua' },
+            }),
+        ).toEqual({
+            color: clubColorHex('vermelho'),
+            color2: 0x3a3f4b,
+            pattern: 'meio',
+            shape: 'hexagono',
+            symbol: 'lua',
+        });
+        // campo estragado vira o padrão; o escudo não troca a cor do clube
+        expect(
+            friendLook({ ...base, escudo: { color2: 'x', crestShape: '<b>', crestSymbol: 7, clubColor: 0x000000 } }),
+        ).toEqual({ ...DEFAULT_LOOK, color: clubColorHex('vermelho') });
+        expect(friendLook({ ...base, escudo: 'hexagono' })).toEqual(friendLook(base));
     });
 });

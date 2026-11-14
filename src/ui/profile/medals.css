@@ -109,18 +109,6 @@
     font-size: 12px;
     font-weight: 700;
 }
-.md-bar {
-    display: block;
-    height: 6px;
-    border-radius: 3px;
-    background: rgb(255 255 255 / 10%);
-    overflow: hidden;
-}
-.md-bar i {
-    display: block;
-    height: 100%;
-    background: var(--yellow);
-}
 .md-steps {
     display: flex;
     gap: 4px;

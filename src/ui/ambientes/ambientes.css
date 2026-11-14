@@ -1,0 +1,4075 @@
+/* Navegação por ambientes (?lab=ambientes, src/ui/ambientes): 5 lugares lado a lado, barra de abas, fundo em camadas.
+   --pos = aba atual (fracionária durante o arrasto); cada painel tem --i, e cada camada --depth (0 = anda junto com o
+   dedo, 0.6 = anda devagar). --px = 1 pixel da arte.
+   Camadas de cada ambiente, de trás pra frente: fundo (céu, mar: --depth 0.6), meio (arquibancada, quadra, mapa, onde
+   ficam os Pokémon ambiente), frente (o túnel: --depth 0) e UI (.amb-ui, botões). O que anda em JS (quadros dos
+   sprites, Pokémon ambiente, caminhada do time) roda num relógio só por ambiente (clock.ts), parado fora da tela. */
+.amb {
+    --bar-h: 68px;
+    --px: 3px;
+    /* 1 pixel do kit de móveis (Laboratório, Sede) e da Arena */
+    --mi: 2px;
+    --amb-ms: 280ms;
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: var(--bg);
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+/* o fundo de palco (fim do arquivo) usa as mesmas medidas de pixel de arte */
+.amb-bd {
+    --px: 3px;
+    --mi: 2px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb,
+    .amb-bd {
+        --px: 4px;
+        --mi: 3px;
+    }
+}
+@media (max-height: 700px) {
+    .amb,
+    .amb-bd {
+        --px: 2px;
+    }
+}
+@media (max-width: 359px), (max-height: 700px) {
+    .amb,
+    .amb-bd {
+        --mi: 1.5px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb,
+    .amb-bd {
+        --mi: 1px;
+    }
+}
+.amb-top {
+    position: absolute;
+    z-index: 20;
+    top: calc(10px + env(safe-area-inset-top));
+    right: calc(12px + env(safe-area-inset-right));
+}
+.amb-stage {
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y;
+}
+.amb-panel {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform: translate3d(calc((var(--i) - var(--pos)) * 100%), 0, 0);
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-layer {
+    position: absolute;
+    inset: 0;
+}
+.amb-layer,
+.amb-par {
+    transform: translate3d(calc((var(--i) - var(--pos)) * var(--depth, 0) * -100%), 0, 0);
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-drag .amb-panel,
+.amb-drag .amb-layer,
+.amb-drag .amb-par,
+.amb-drag .amb-ind {
+    transition: none;
+}
+/* o fade de "[role=tabpanel] > *" (broadcast-kit.css) não vale aqui: o painel vizinho aparece durante o arrasto */
+.amb .amb-panel > * {
+    animation: none;
+}
+.amb-scene {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.amb-ui {
+    position: relative;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: calc(env(safe-area-inset-top) + 72px) calc(16px + env(safe-area-inset-right)) 14px
+        calc(16px + env(safe-area-inset-left));
+}
+.amb-ui::-webkit-scrollbar {
+    display: none;
+}
+
+/* ---------- barra de abas ---------- */
+.amb-bar {
+    position: relative;
+    z-index: 10;
+    background: var(--bc-ink);
+    border-top: 2px solid var(--bc-edge);
+    box-shadow: 0 -3px 0 rgb(0 0 0 / 25%);
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.amb-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    max-width: 560px;
+    height: var(--bar-h);
+    margin: 0 auto;
+}
+.amb-ind {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: calc(100% / var(--n));
+    transform: translateX(calc(var(--bpos) * 100%));
+    transition: transform var(--amb-ms) var(--ease-out);
+}
+.amb-ind::before {
+    content: "";
+    position: absolute;
+    inset: 0 4px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    border-bottom: 3px solid var(--yellow);
+}
+.amb-tab {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--amb-ms) var(--ease-out);
+}
+.amb-tab .hud-icon {
+    width: 24px;
+    height: 24px;
+}
+.amb-tab-lbl {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.amb-tab.on {
+    color: var(--yellow);
+}
+.amb-tab:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: -4px;
+    border-radius: 8px;
+}
+/* o Estádio é o maior, no centro, subindo pra fora da barra (o "Batalha" do Clash) */
+.amb-tab-estadio .amb-tab-ic {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin-top: -24px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    border: 3px solid var(--bc-edge);
+    box-shadow: 0 3px 0 var(--bc-edge);
+    color: var(--text);
+    transition:
+        background var(--amb-ms) var(--ease-out),
+        color var(--amb-ms) var(--ease-out);
+}
+.amb-tab-estadio .hud-icon {
+    width: 28px;
+    height: 28px;
+}
+.amb-tab-estadio.on .amb-tab-ic {
+    background: var(--yellow);
+    color: var(--bc-ink);
+}
+
+/* celular deitado: a barra vira coluna estreita à esquerda */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb {
+        --bar-h: auto;
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-columns: 76px minmax(0, 1fr);
+    }
+    .amb-bar {
+        grid-row: 1;
+        grid-column: 1;
+        border-top: 0;
+        border-right: 2px solid var(--bc-edge);
+        box-shadow: 3px 0 0 rgb(0 0 0 / 25%);
+        padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    .amb-stage {
+        grid-row: 1;
+        grid-column: 2;
+    }
+    .amb-tabs {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: repeat(var(--n), minmax(0, 1fr));
+        height: 100%;
+    }
+    .amb-ind {
+        top: 0;
+        left: 6px;
+        right: 6px;
+        bottom: auto;
+        width: auto;
+        height: calc(100% / var(--n));
+        transform: translateY(calc(var(--bpos) * 100%));
+    }
+    .amb-ind::before {
+        inset: 3px 0;
+        border-bottom: 0;
+        border-left: 3px solid var(--yellow);
+    }
+    .amb-tab-estadio .amb-tab-ic {
+        width: 40px;
+        height: 40px;
+        margin-top: 0;
+    }
+    .amb-tab-estadio .hud-icon {
+        width: 22px;
+        height: 22px;
+    }
+    .amb-tab .hud-icon {
+        width: 20px;
+        height: 20px;
+    }
+    .amb-ui {
+        padding-top: calc(env(safe-area-inset-top) + 12px);
+    }
+}
+
+/* ---------- entrar num modo (ADR 0008): 760 ms, um toque pula ---------- */
+.amb-skip {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.amb-entering::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+    background: var(--bg);
+    animation: amb-enter-fade 860ms ease-in both;
+}
+@keyframes amb-enter-fade {
+    0%,
+    76% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+.amb-entering .amb-panel.on .amb-ui > * {
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+.amb-enter-estadio .amb-estadio .es-scene {
+    animation: amb-bob 215ms steps(2) 4;
+}
+.amb-enter-estadio .amb-estadio .es-arena {
+    transform-origin: 50% 62%;
+    animation: amb-arena 860ms cubic-bezier(0.5, 0, 0.75, 0.4) both;
+}
+.amb-enter-estadio .amb-estadio .es-sky {
+    animation: amb-sky 860ms ease-in both;
+}
+.amb-enter-estadio .amb-estadio .es-tunnel {
+    transform-origin: 50% 58%;
+    animation: amb-tunnel 860ms cubic-bezier(0.45, 0, 0.7, 0.5) both;
+}
+/* a luz dos refletores na saída do túnel */
+.amb-enter-estadio .amb-estadio .es-scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: radial-gradient(60% 45% at 50% 55%, #fff6d6, rgb(255 246 214 / 0%));
+    animation: amb-glare 860ms ease-in both;
+}
+/* a câmera anda pelo túnel (passos), as paredes passam pelos lados e a quadra cresce na saída */
+@keyframes amb-bob {
+    50% {
+        translate: 0 calc(var(--px) * -1.5);
+    }
+}
+@keyframes amb-tunnel {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: scale(2.1);
+        opacity: 1;
+    }
+    85%,
+    100% {
+        transform: scale(3.6);
+        opacity: 0;
+    }
+}
+@keyframes amb-arena {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.14);
+    }
+    100% {
+        transform: scale(1.9) translateY(-5%);
+    }
+}
+@keyframes amb-sky {
+    to {
+        transform: scale(1.3);
+    }
+}
+@keyframes amb-glare {
+    0%,
+    45% {
+        opacity: 0;
+    }
+    72% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0.2;
+    }
+}
+.amb-enter-rota .amb-rota .rt-world {
+    transform: scale(2.4);
+    transform-origin: var(--fx) var(--fy);
+    transition: transform 860ms cubic-bezier(0.55, 0, 0.8, 0.4);
+}
+
+/* ======================================================================================== Estádio */
+.es-scene {
+    --stand-top: 24%;
+    /* 4 fileiras de 10 px de arte + o degrau de baixo */
+    --stand-h: calc(var(--px) * 44);
+}
+/* tela baixa (320, deitado): a arquibancada sobe pra baixo do placar e sobra quadra pro capitão */
+@media (max-height: 700px) {
+    .es-scene {
+        --stand-top: 10%;
+    }
+}
+.es-sky {
+    background: linear-gradient(180deg, #070b1e 0%, #111a44 45%, #1f2b62 100%);
+}
+/* estrelas de 1 px de arte (sombras de um ponto só), metade piscando */
+.es-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--px);
+    height: var(--px);
+    background: #fff;
+    box-shadow:
+        calc(12 * var(--vw)) calc(3 * var(--vh)) #fff,
+        calc(27 * var(--vw)) calc(8 * var(--vh)) #c9d4ff,
+        calc(41 * var(--vw)) calc(2 * var(--vh)) #fff,
+        calc(58 * var(--vw)) calc(6 * var(--vh)) #fff,
+        calc(73 * var(--vw)) calc(11 * var(--vh)) #c9d4ff,
+        calc(88 * var(--vw)) calc(4 * var(--vh)) #fff,
+        calc(6 * var(--vw)) calc(13 * var(--vh)) #c9d4ff,
+        calc(35 * var(--vw)) calc(14 * var(--vh)) #fff,
+        calc(64 * var(--vw)) calc(15 * var(--vh)) #fff,
+        calc(95 * var(--vw)) calc(12 * var(--vh)) #c9d4ff;
+}
+.es-stars.s2 {
+    left: calc(4 * var(--vw));
+    top: calc(1 * var(--vh));
+    box-shadow:
+        calc(18 * var(--vw)) calc(6 * var(--vh)) #fff,
+        calc(47 * var(--vw)) calc(10 * var(--vh)) #fff,
+        calc(69 * var(--vw)) calc(2 * var(--vh)) #c9d4ff,
+        calc(83 * var(--vw)) calc(9 * var(--vh)) #fff,
+        calc(22 * var(--vw)) calc(15 * var(--vh)) #fff;
+    animation: es-twinkle 6s steps(2) infinite;
+}
+@keyframes es-twinkle {
+    50% {
+        opacity: 0.2;
+    }
+}
+.es-flood {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 9%);
+    width: calc(var(--px) * 24);
+    height: calc(var(--px) * 40);
+    overflow: visible;
+}
+.es-flood.l {
+    left: 7%;
+}
+.es-flood.r {
+    right: 7%;
+    scale: -1 1;
+}
+.es-beam {
+    fill: #fff3c4;
+    opacity: 0.1;
+    animation: es-beam 7s steps(5) infinite;
+}
+@keyframes es-beam {
+    40% {
+        opacity: 0.14;
+    }
+    60% {
+        opacity: 0.08;
+    }
+}
+.es-bulb {
+    fill: #fff6d6;
+}
+.es-bulb.b1 {
+    fill: #ffe27a;
+}
+.es-bulb.b2 {
+    fill: #fff;
+}
+
+/* a arquibancada do outro lado: 4 fileiras de torcida com cadeiras vazias, cores puxadas pro azul do estádio e
+   quase parada (de vez em quando um levanta os braços): é fundo, o olho vai pro JOGAR e pros Pokémon */
+.es-stand {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--stand-top);
+    height: var(--stand-h);
+    background: #121838;
+}
+.es-row {
+    display: block;
+    height: calc(var(--px) * 10);
+    border-bottom: var(--px) solid #222a58;
+    background-color: #161d48;
+    background-image: var(--crowd);
+    background-repeat: repeat-x;
+    background-size: calc(var(--px) * 42) calc(var(--px) * 18);
+    background-position: calc(var(--r) * var(--px) * 17) var(--px);
+    image-rendering: pixelated;
+    filter: brightness(calc(0.5 + var(--r) * 0.07)) saturate(0.75);
+    animation: es-cheer calc(5.5s + var(--r) * 1.7s) steps(1) infinite;
+    animation-delay: calc(var(--r) * -2.3s);
+}
+/* um levanta os braços por menos de meio segundo, e a fileira volta a ficar parada */
+@keyframes es-cheer {
+    90%,
+    97% {
+        background-position-y: calc(var(--px) * -8);
+    }
+}
+/* a cobertura da arquibancada, com a fileira de refletores piscando de leve */
+.es-stand::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: calc(var(--px) * 5);
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--px) * 5),
+            #fff3c4 calc(var(--px) * 5) calc(var(--px) * 8),
+            transparent calc(var(--px) * 8) calc(var(--px) * 13)
+        )
+        0 calc(var(--px) * 2) / 100% calc(var(--px) * 2) no-repeat,
+        #0b1026;
+    border-bottom: var(--px) solid #000;
+}
+.es-stand::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--px) * 4);
+    background: #2c3868;
+    border-top: var(--px) solid #4b5a9a;
+}
+.es-flash {
+    position: absolute;
+    width: var(--px);
+    height: var(--px);
+    background: #fff;
+    opacity: 0;
+    box-shadow: 0 0 0 var(--px) rgb(255 255 255 / 30%);
+    animation: es-flash 11s steps(1) infinite;
+}
+@keyframes es-flash {
+    97% {
+        opacity: 0.8;
+    }
+    98% {
+        opacity: 0;
+    }
+}
+/* a faixa da torcida, na cor do clube, balançando de leve */
+.es-banner {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: calc(var(--px) * 3);
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 calc(var(--px) * 4);
+    line-height: calc(var(--px) * 8);
+    background: var(--club);
+    color: var(--club-ink);
+    border: var(--px) solid rgb(0 0 0 / 45%);
+    box-shadow: 0 var(--px) 0 rgb(0 0 0 / 45%);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: calc(var(--px) * 5);
+    font-size: var(--gfs, calc(var(--px) * 5));
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    animation: es-flag 5s steps(2) infinite;
+}
+@keyframes es-flag {
+    50% {
+        transform: translateX(-50%) skewY(-1.5deg);
+    }
+}
+/* o letreiro de LED entre a arquibancada e a quadra */
+.es-led {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--stand-top) + var(--stand-h));
+    height: calc(var(--px) * 8);
+    display: flex;
+    align-items: center;
+    /* corta só dos lados (o letreiro corre): o acento do Í pode passar por cima da borda no celular baixo */
+    overflow: clip visible;
+    background: #070a1a;
+    border-top: var(--px) solid #000;
+    border-bottom: var(--px) solid #000;
+}
+.es-led span {
+    flex: none;
+    white-space: pre;
+    /* 12 px = a grade da Galmuri11 (1 pixel da fonte = 1 px): fora dela o acento de 1 pixel (Í, Â) sumia no LED */
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: rgb(255 203 5 / 62%);
+    animation: es-marquee 48s linear infinite;
+}
+.es-led::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, transparent 0 2px, rgb(7 10 26 / 55%) 2px 3px);
+}
+@keyframes es-marquee {
+    to {
+        transform: translateX(-50%);
+    }
+}
+/* a quadra: tábuas em perspectiva, as linhas, o refletor passeando e o capitão no meio */
+.es-court {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--stand-top) + var(--stand-h) + var(--px) * 8);
+    container-type: size;
+    bottom: 0;
+    /* sem corte: no desktop (capitão 2x) a bola sobe acima da quadra e sumia atrás do letreiro; o piso (SVG) já se
+       corta sozinho. Na frente da faixa do clube (z 1) e do dorminhoco da arquibancada (z 2) */
+    z-index: 3;
+}
+.es-floor {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.es-lines {
+    stroke: rgb(244 241 230 / 85%);
+    stroke-width: 0.8;
+}
+.es-court::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(10 14 40 / 45%), transparent 35%, transparent 60%, rgb(5 8 22 / 55%));
+}
+.es-spot {
+    position: absolute;
+    left: 50%;
+    top: 4%;
+    width: 70%;
+    height: 55%;
+    background: radial-gradient(closest-side, rgb(255 244 200 / 24%), transparent);
+    transform: translateX(-85%);
+    animation: es-spot 16s ease-in-out infinite alternate;
+}
+@keyframes es-spot {
+    to {
+        transform: translateX(-15%);
+    }
+}
+/* o pé do capitão no meio do círculo central (cy = 30 de 100 no desenho da quadra, cortado pelo lado maior); a
+   camada é a dos Pokémon ambiente com o pé na mesma altura (10 + 30 x altura, WildZone.zOf): quem está mais embaixo
+   passa na frente dele, quem está mais em cima, atrás */
+.es-captain {
+    position: absolute;
+    z-index: 19;
+    left: 50%;
+    top: max(12.5cqw, 30cqh);
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    /* o capitão na escala da cena (4x, a mesma da beira e da arquibancada); o destaque é a luz e a sombra. A bola
+       sobe acima da cabeça dele (a 4x ele é mais alto) e a sombra acompanha a largura */
+    .es-captain {
+        top: min(max(12.5cqw, 30cqh), 36cqh);
+    }
+    .es-ball {
+        --juggle: calc(var(--px) * -31);
+    }
+    .es-shadow {
+        left: calc(var(--px) * -8);
+        width: calc(var(--px) * 16);
+    }
+}
+/* celular pequeno em pé: o capitão (1x) fica na faixa de quadra entre o telão e as placas, e a bola sobe menos (não
+   passa por trás do telão) */
+@media (max-height: 700px) and (orientation: portrait) {
+    .es-captain {
+        z-index: 17;
+        top: min(max(12.5cqw, 30cqh), 25cqh);
+    }
+    .es-ball {
+        --juggle: calc(var(--px) * -15);
+    }
+}
+.es-shadow {
+    position: absolute;
+    left: calc(var(--px) * -6);
+    top: calc(var(--px) * -1.5);
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 3);
+    border-radius: 50%;
+    background: rgb(0 0 0 / 35%);
+}
+.es-mon {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.es-mon.fs-gif {
+    transform: translate(-50%, -100%) scale(2);
+    transform-origin: 50% 100%;
+}
+.es-ball {
+    position: absolute;
+    /* a bola na escala dos sprites da cena (--sc): 8 pixels de arte por degrau */
+    left: calc(var(--sc, 2) * -4px);
+    top: calc(var(--sc, 2) * -8px);
+    width: calc(var(--sc, 2) * 8px);
+    height: calc(var(--sc, 2) * 8px);
+    animation: es-juggle 0.9s infinite;
+}
+@keyframes es-juggle {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    }
+    50% {
+        transform: translateY(var(--juggle, calc(var(--px) * -22))) rotate(180deg);
+        animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.3);
+    }
+}
+/* a boca do túnel: paredes de bloco, a viga de cima com degraus e a luminária */
+.es-tunnel {
+    --brick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' shape-rendering='crispEdges'%3E%3Crect width='16' height='8' fill='%231b2142'/%3E%3Crect x='0' y='0' width='7' height='3' fill='%23262d55'/%3E%3Crect x='8' y='0' width='8' height='3' fill='%23232a50'/%3E%3Crect x='0' y='4' width='3' height='3' fill='%23232a50'/%3E%3Crect x='4' y='4' width='8' height='3' fill='%23283060'/%3E%3Crect x='13' y='4' width='3' height='3' fill='%23262d55'/%3E%3Crect x='0' y='0' width='7' height='1' fill='%232f3768'/%3E%3Crect x='4' y='4' width='8' height='1' fill='%232f3768'/%3E%3C/svg%3E");
+    --wall: clamp(22px, calc(7 * var(--vw)), 96px);
+    --lintel: calc(env(safe-area-inset-top) + var(--px) * 18);
+}
+.es-wall,
+.es-lintel {
+    position: absolute;
+    background: var(--brick) 0 0 / calc(var(--px) * 16) calc(var(--px) * 8);
+    image-rendering: pixelated;
+}
+.es-wall {
+    top: 0;
+    bottom: 0;
+    width: var(--wall);
+}
+.es-wall.l {
+    left: 0;
+    border-right: var(--px) solid #3b4676;
+}
+.es-wall.r {
+    right: 0;
+    border-left: var(--px) solid #3b4676;
+}
+/* os degraus do arco, 2 de cada lado, embaixo da viga */
+.es-wall::before,
+.es-wall::after {
+    content: "";
+    position: absolute;
+    top: var(--lintel);
+    background: inherit;
+    border-bottom: var(--px) solid #3b4676;
+}
+.es-wall::before {
+    width: calc(var(--px) * 8);
+    height: calc(var(--px) * 4);
+}
+.es-wall::after {
+    width: calc(var(--px) * 4);
+    height: calc(var(--px) * 8);
+}
+.es-wall.l::before,
+.es-wall.l::after {
+    left: 100%;
+}
+.es-wall.r::before,
+.es-wall.r::after {
+    right: 100%;
+}
+.es-lintel {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--lintel);
+    border-bottom: var(--px) solid #3b4676;
+    box-shadow: 0 var(--px) 0 rgb(0 0 0 / 50%);
+}
+.es-lamp {
+    position: absolute;
+    left: 50%;
+    top: var(--lintel);
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 3);
+    transform: translateX(-50%);
+    background: #fff1b8;
+    border: var(--px) solid #0b1026;
+    border-top: 0;
+}
+.es-lamp::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: calc(46 * var(--vw));
+    height: calc(26 * var(--vh));
+    transform: translateX(-50%);
+    clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+    background: linear-gradient(180deg, rgb(255 236 160 / 18%), transparent);
+}
+/* o chão do túnel em perspectiva (mais largo perto de quem olha), com o tapete na cor do clube até a quadra */
+.es-mat {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 17%;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--px) * 6),
+            rgb(0 0 0 / 22%) calc(var(--px) * 6) calc(var(--px) * 7)
+        ),
+        #1a2042;
+    clip-path: polygon(var(--wall) 0, calc(100% - var(--wall)) 0, 100% 100%, 0 100%);
+    border-top: var(--px) solid #3b4676;
+}
+.es-mat::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--px) * 6),
+            rgb(0 0 0 / 18%) calc(var(--px) * 6) calc(var(--px) * 7)
+        ),
+        var(--club);
+    clip-path: polygon(38% 0, 62% 0, 76% 100%, 24% 100%);
+    filter: brightness(0.75);
+}
+.es-tunnel::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40%;
+    background: linear-gradient(180deg, transparent, rgb(6 9 22 / 55%) 70%, rgb(6 9 22 / 70%));
+}
+
+/* o placar da Copa do Dia, pendurado */
+.es-ui {
+    justify-content: space-between;
+}
+.es-cable {
+    position: absolute;
+    bottom: calc(100% + 3px);
+    width: 3px;
+    height: calc(100 * var(--vh));
+    background: #0b1026;
+}
+.es-cable.l {
+    left: 18%;
+}
+.es-cable.r {
+    right: 18%;
+}
+.es-actions {
+    display: grid;
+    gap: 10px;
+    width: min(460px, 100%);
+}
+.es-play {
+    width: 100%;
+    min-height: 68px;
+    justify-content: space-between;
+    text-align: left;
+}
+.es-play .cup-go-txt b {
+    font-size: 24px;
+}
+.es-play .cup-go-txt small {
+    font-size: 13px;
+}
+/* deitado: telão e botões numa coluna à esquerda; o capitão e as placas à direita, à vista */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-ui {
+        --es-col: min(380px, 52%);
+        display: grid;
+        grid-template-columns: var(--es-col) minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px 16px;
+    }
+    .es-top {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+        width: 100%;
+        gap: 6px;
+        padding: 8px 10px;
+    }
+    .es-logo {
+        width: min(220px, 100%);
+    }
+    .es-actions {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    .es-captain {
+        left: 72%;
+        top: min(max(12.5cqw, 30cqh), 62cqh);
+    }
+    /* a faixa do clube vai pro lado do capitão: no meio, o telão da coluna da esquerda a cobria (só o "FC" aparecia) */
+    .es-banner {
+        left: 72%;
+    }
+    .es-actions {
+        width: 100%;
+    }
+    .es-play {
+        min-height: 56px;
+    }
+    .es-play .cup-go-txt b {
+        font-size: 19px;
+    }
+}
+
+/* ======================================================================================== Rota Índigo */
+.rt-scene {
+    background: #17306a;
+}
+/* o mar: ondinhas de pixel correndo de lado sem parar (o fundo nunca fica parado) */
+.rt-sea,
+.rt-map {
+    --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect x='2' y='4' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='5' y='3' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='10' y='11' width='3' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3Crect x='13' y='10' width='2' height='1' fill='%23ffffff' fill-opacity='.22'/%3E%3C/svg%3E");
+}
+.rt-sea {
+    overflow: hidden;
+    image-rendering: pixelated;
+}
+/* as ondas numa camada um ladrilho mais larga que anda com transform: o compositor move, o mar não repinta */
+.rt-sea::before,
+.rt-map::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 calc(var(--px) * -16);
+    background: var(--wave) 0 0 / var(--tile) auto;
+    animation: rt-waves 4.8s linear infinite;
+    --tile: calc(var(--px) * 16);
+}
+/* o Lapras atravessando o mar de fundo, devagar */
+.rt-swim {
+    position: absolute;
+    left: 0;
+    top: 30%;
+    animation: rt-swim 38s linear infinite;
+    animation-delay: -6s;
+}
+.rt-swim .fs-sprite {
+    position: absolute;
+}
+@keyframes rt-swim {
+    from {
+        transform: translateX(-80px);
+    }
+    to {
+        transform: translateX(calc(calc(100 * var(--vw)) + 80px));
+    }
+}
+@keyframes rt-waves {
+    to {
+        transform: translateX(var(--tile));
+    }
+}
+.rt-ui {
+    gap: 10px;
+}
+.rt-map {
+    margin-top: auto;
+}
+.rt-go {
+    margin-top: auto;
+}
+.rt-head,
+.rm-head {
+    width: min(640px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bc-ink);
+    border-bottom: 2px solid var(--bc-edge);
+    border-radius: 6px;
+}
+.rt-head h2,
+.rm-head h2 {
+    margin: 0;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
+    font-weight: 400;
+    line-height: 1.1;
+}
+.rt-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
+    color: var(--yellow);
+    white-space: nowrap;
+}
+.rt-badges .kb-badge {
+    width: 20px;
+    height: 20px;
+}
+.rt-map {
+    position: relative;
+    flex: none;
+    container-type: inline-size;
+    width: min(100%, 760px, calc((calc(100 * var(--dvh)) - 372px) * 3 / 2));
+    min-width: 240px;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow:
+        0 0 0 3px #f4f1e6,
+        0 6px 0 3px var(--bc-edge);
+    background: #3a74d0;
+}
+/* ladrilho de 8% da largura do mapa (a camada tem 108%, daí o 8/108); a velocidade é a de antes (o fundo andava
+   7,36% em 4,8 s), agora sem o pulo no fim do ciclo */
+.rt-map::before {
+    left: -8%;
+    --tile: calc(100% * 8 / 108);
+    animation-duration: 5.2s;
+}
+/* o desenho do mapa (24 x 16 casas); a caixa (.rt-map) pode mostrar só um pedaço dele */
+.rt-world {
+    position: absolute;
+    inset: 0;
+}
+/* celular em pé: o mapa cresce na altura e mostra o lado oeste inteiro (o caminho da Rota e as 8 insígnias); só
+   Lavender fica de fora. Bem mais mapa e bem menos mar vazio em volta */
+@media (orientation: portrait) and (max-width: 700px) {
+    .rt-map {
+        width: min(calc(100% + 16px), calc((calc(100 * var(--dvh)) - 360px) * 23 / 20));
+        min-width: 0;
+        aspect-ratio: 23 / 20;
+    }
+    .rt-world {
+        inset: 0 auto 0 0;
+        aspect-ratio: 3 / 2;
+    }
+}
+.rt-land,
+.rt-trail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+/* camada própria: o tracejado andando (.rt-next) repinta só a trilha, não o mapa embaixo */
+.rt-trail {
+    will-change: transform;
+}
+.rt-foam {
+    fill: #7fb4f2;
+}
+.rt-coast {
+    fill: #2c5a2e;
+}
+.rt-road {
+    fill: none;
+    stroke: #ead8a2;
+    stroke-width: 0.34;
+    stroke-linecap: square;
+}
+.rt-road.sea {
+    stroke: #d6e8ff;
+    stroke-width: 0.18;
+    stroke-dasharray: 0.35 0.3;
+    stroke-linecap: butt;
+}
+.rt-trail polyline {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.rt-path {
+    stroke: rgb(14 20 48 / 55%);
+    stroke-width: 0.16;
+    stroke-dasharray: 0.3 0.25;
+}
+.rt-done {
+    stroke: var(--yellow);
+    stroke-width: 0.3;
+}
+.rt-next {
+    stroke: #fff;
+    stroke-width: 0.22;
+    stroke-dasharray: 0.32 0.28;
+    animation: rt-march 0.9s linear infinite;
+}
+@keyframes rt-march {
+    to {
+        stroke-dashoffset: -0.6;
+    }
+}
+.rt-city,
+.rt-plateau,
+.rt-gym,
+.rt-walker,
+.rt-here,
+.rt-cloud {
+    position: absolute;
+}
+.rt-city {
+    width: 4.2%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: #f4f1e6;
+    border: 2px solid var(--bc-edge);
+    border-radius: 2px;
+}
+.rt-city.home {
+    background: var(--red);
+}
+.rt-plateau {
+    width: 6%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: var(--yellow);
+    border: 2px solid var(--bc-edge);
+    border-radius: 2px;
+    box-shadow:
+        inset 0 0 0 3px var(--yellow),
+        inset 0 0 0 6px var(--bc-ink);
+    animation: rt-goal 1.4s steps(2) infinite;
+}
+@keyframes rt-goal {
+    50% {
+        box-shadow:
+            inset 0 0 0 3px #fff3b0,
+            inset 0 0 0 6px var(--bc-ink);
+    }
+}
+.rt-gym {
+    width: 6.4%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+}
+.rt-gym .kb-badge {
+    width: 100%;
+    height: 100%;
+}
+.rt-gym.got .kb-badge {
+    filter: drop-shadow(0 1px 0 var(--bc-edge));
+    animation: rt-shine 4.2s steps(1) infinite;
+    animation-delay: var(--d, 0s);
+}
+@keyframes rt-shine {
+    96% {
+        filter: drop-shadow(0 1px 0 var(--bc-edge)) brightness(1.5);
+    }
+}
+.rt-gym:not(.got) .kb-badge {
+    filter: grayscale(1) brightness(1.6);
+    opacity: 0.4;
+}
+/* nuvens de pixel atravessando o mapa; a sombra é outro elemento, no chão (embaixo do time e dos Pokémon), deslocada
+   pra baixo e pra direita como o sol da tarde, com a mesma forma e a mesma corrida */
+.rt-world {
+    --cloud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6' shape-rendering='crispEdges'%3E%3Crect x='4' y='0' width='5' height='1' fill='%23fff'/%3E%3Crect x='2' y='1' width='9' height='1' fill='%23fff'/%3E%3Crect x='10' y='1' width='3' height='1' fill='%23fff'/%3E%3Crect x='1' y='2' width='14' height='2' fill='%23fff'/%3E%3Crect x='0' y='4' width='16' height='1' fill='%23fff'/%3E%3Crect x='1' y='5' width='14' height='1' fill='%23d6e2f5'/%3E%3C/svg%3E");
+}
+.rt-cloud,
+.rt-shade {
+    left: 0;
+    width: 16%;
+    aspect-ratio: 16 / 6;
+    pointer-events: none;
+    animation: rt-cloud 48s linear infinite;
+}
+.rt-cloud {
+    z-index: 60;
+    background: var(--cloud) 0 0 / 100% 100%;
+    image-rendering: pixelated;
+    opacity: 0.9;
+}
+.rt-shade {
+    position: absolute;
+    z-index: 6;
+    margin: 5% 0 0 3%;
+    background: rgb(12 34 30 / 26%);
+    -webkit-mask: var(--cloud) 0 0 / 100% 100%;
+    mask: var(--cloud) 0 0 / 100% 100%;
+}
+.rt-world .k1 {
+    top: 8%;
+    animation-delay: -12s;
+}
+.rt-world .k2 {
+    top: 44%;
+    width: 12%;
+    animation-duration: 64s;
+    animation-delay: -40s;
+}
+.rt-world .k3 {
+    top: 70%;
+    animation-duration: 56s;
+    animation-delay: -24s;
+}
+@keyframes rt-cloud {
+    from {
+        transform: translateX(-110%);
+    }
+    to {
+        transform: translateX(640%);
+    }
+}
+.rt-walker {
+    width: 0;
+    height: 0;
+}
+.rt-mon {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.rt-mon.fs-gif {
+    height: 30px;
+    transform: translate(-50%, -90%);
+}
+.rt-here {
+    z-index: 65;
+    transform: translate(-50%, -100%);
+    pointer-events: none;
+}
+/* a caixa de fala do FireRed: quem fala naquele trecho da estrada */
+.rt-talk {
+    width: min(640px, 100%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 6px 6px;
+    background: #f8f8f0;
+    color: #1d1d2c;
+    border: 3px solid #2a2a3c;
+    border-radius: 6px;
+    box-shadow:
+        inset 0 0 0 2px #f8f8f0,
+        inset 0 0 0 4px #7a7a9a,
+        0 4px 0 var(--bc-edge);
+}
+.rt-talk-face {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    overflow: hidden;
+    display: grid;
+    justify-items: center;
+}
+.rt-talk-face img {
+    width: 80px;
+    height: 80px;
+    margin-top: -6px;
+}
+.rt-talk p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+}
+.rt-talk b {
+    color: var(--red-dark);
+}
+.rt-go,
+.rm-go {
+    width: min(460px, 100%);
+    min-height: 64px;
+    justify-content: space-between;
+    text-align: left;
+}
+.rt-go .cup-go-txt b,
+.rm-go .cup-go-txt b {
+    font-size: 20px;
+}
+@media (max-width: 360px) {
+    .rt-go .cup-go-txt b {
+        font-size: 16px;
+    }
+}
+@media (min-width: 1000px) and (min-height: 700px) {
+    .rt-map {
+        width: min(100%, 820px, calc((calc(100 * var(--dvh)) - 380px) * 3 / 2));
+    }
+}
+/* deitado: o mapa à esquerda na altura toda, o resto numa coluna ao lado */
+@media (orientation: landscape) and (max-height: 520px) {
+    .rt-ui {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px 12px;
+        padding-top: calc(env(safe-area-inset-top) + 10px);
+    }
+    .rt-map {
+        grid-row: 1 / span 3;
+        grid-column: 1;
+        width: auto;
+        min-width: 0;
+        height: calc(calc(100 * var(--dvh)) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 30px);
+    }
+    .rt-head {
+        grid-column: 2;
+        margin-top: 52px;
+        flex-wrap: wrap;
+    }
+    .rt-head h2 {
+        font-size: 16px;
+    }
+    .rt-talk {
+        grid-column: 2;
+        align-self: center;
+    }
+    .rt-go {
+        grid-column: 2;
+        min-height: 54px;
+    }
+    .rt-go .cup-go-txt b {
+        font-size: 16px;
+    }
+}
+/* deitado e estreito: o mapa vai pro fundo e a fala some (o botão fica no canto do mar) */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rt-ui {
+        display: flex;
+        padding: 10px 12px;
+    }
+    .rt-map {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        height: calc(100% - 20px);
+    }
+    .rt-talk,
+    .rt-head {
+        display: none;
+    }
+    .rt-go {
+        position: absolute;
+        z-index: 2;
+        right: 12px;
+        bottom: 10px;
+        width: min(250px, 50%);
+        min-height: 52px;
+    }
+    .rt-go .cup-go-txt small {
+        display: none;
+    }
+}
+
+/* ======================================================================================== Laboratório, Arena, Sede */
+/* Lugares de dentro (Laboratório, Sede): o teto escuro, a parede numa faixa e o chão; os móveis do kit (Room.tsx) num
+   conjunto de 190 px de arte no meio (o que passa disso só aparece em tela larga). Medidas em --mi. A UI segue o
+   desenho da Rota: o letreiro em cima, o cenário no meio, a fala ou o quadro e os botões embaixo. */
+.rm-scene {
+    --wall-top: 126px;
+    --wall-h: calc(var(--mi) * 64);
+    /* altura da UI de baixo: o chão dos Pokémon termina antes dela */
+    --ui-h: 180px;
+    --set-x: 50%;
+    background: #0d1129;
+}
+@media (max-height: 700px) {
+    .rm-scene {
+        --wall-top: 116px;
+        --ui-h: 120px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .rm-scene {
+        --wall-top: 170px;
+        --ui-h: 210px;
+    }
+}
+/* PC: o kit em 4 px, pra sala encher a tela larga (em 3 px sobrava chão vazio dos lados e embaixo do tapete) */
+@media (min-width: 1200px) and (min-height: 860px) {
+    .rm-scene {
+        --mi: 4px;
+        --wall-top: 140px;
+    }
+}
+.rm-room {
+    overflow: hidden;
+}
+.rm-wall,
+.rm-floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+.rm-wall {
+    top: var(--wall-top);
+    height: var(--wall-h);
+    border-top: calc(var(--mi) * 3) solid var(--rm-cap);
+    box-shadow: 0 calc(var(--mi) * -1) 0 #05070f;
+}
+.rm-floor {
+    top: calc(var(--wall-top) + var(--wall-h));
+    bottom: 0;
+    image-rendering: pixelated;
+}
+/* o chão escurece embaixo, onde ficam os botões (o olho fica no botão, não no piso) */
+.rm-floor::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgb(6 8 22 / 18%), transparent 25%, rgb(6 8 22 / 70%) 85%);
+}
+.rm-set {
+    position: absolute;
+    left: var(--set-x);
+    top: var(--wall-top);
+    width: calc(var(--mi) * 190);
+    height: var(--wall-h);
+    transform: translateX(-50%);
+}
+.mi {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: calc(var(--w) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+    background:
+        url("/assets/room/mi/Interiors_free_32x32.png") calc(var(--sx) * var(--mi) * -1)
+        calc(var(--sy) * var(--mi) * -1) / calc(512 * var(--mi)) calc(2848 * var(--mi)) no-repeat;
+    image-rendering: pixelated;
+}
+.mi.flip {
+    scale: -1 1;
+}
+/* objeto da cena que abre uma tela (SceneHotspot.tsx): o desenho e a plaquinha num botão só, nas medidas do .mi */
+.hs {
+    position: absolute;
+    left: calc(var(--x) * var(--mi));
+    top: calc(var(--y) * var(--mi));
+    width: calc(var(--w) * var(--mi));
+    height: calc(var(--h) * var(--mi));
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: translate var(--dur-solta) var(--ease-pop);
+}
+/* o toque tem pelo menos 44 px, mesmo com o desenho menor */
+.hs::before {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((var(--h) * var(--mi) - 44px) / 2)) min(0px, calc((var(--w) * var(--mi) - 44px) / 2));
+}
+.hs:active {
+    translate: 0 2px;
+    transition-duration: var(--dur-toque);
+}
+.hs:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+}
+.hs > svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+/* a plaquinha: o nome (e a contagem) na base do objeto, sempre à vista */
+.hs-plate {
+    position: absolute;
+    z-index: 100;
+    left: 50%;
+    top: calc(100% + var(--plate) * 1px);
+    translate: -50% -50%;
+    display: grid;
+    justify-items: center;
+    padding: 0.17em 0.6em 0.25em;
+    border: max(2px, calc(var(--mi) * 0.75)) solid var(--cb-ink);
+    border-radius: 4px;
+    background: var(--bc-ink);
+    box-shadow: 0 max(2px, calc(var(--mi) * 0.75)) 0 var(--cb-ink);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    /* cresce com o palco: 12 px no celular, 18 no PC (--mi 4) */
+    font-size: max(12px, calc(var(--mi) * 4.5));
+    font-weight: 700;
+    line-height: 1.15;
+    white-space: nowrap;
+    transition: border-color var(--dur-ui) var(--ease-out);
+}
+.hs-plate small {
+    font-size: max(11px, calc(var(--mi) * 4));
+    color: var(--yellow);
+}
+.hs:hover .hs-plate {
+    border-color: var(--blue-hi);
+}
+/* pisca 1 vez quando a aba acende (só cor: vale com Reduzir movimento) */
+.amb-panel.on .hs-plate {
+    animation: hs-blink 700ms var(--ease-out) 420ms;
+}
+@keyframes hs-blink {
+    35% {
+        border-color: var(--yellow);
+        background: var(--yellow);
+        color: var(--bc-ink);
+    }
+}
+.rm-walk {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--wall-top) + var(--wall-h) + var(--mi) * 6);
+    bottom: var(--ui-h);
+}
+.rm-ui {
+    gap: 10px;
+}
+.rm-head {
+    margin-bottom: auto;
+}
+.rm-head h2 {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+.rm-head .rt-badges {
+    flex: none;
+    --gs: 14px;
+    font-size: var(--gfs, 14px);
+}
+.rm-head .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.rm-belt.tr-art {
+    width: 26px;
+    height: auto;
+}
+.rm-head .rm-belt.tr-taca {
+    width: 18px;
+}
+.rm-actions {
+    display: grid;
+    gap: 10px;
+    width: min(460px, 100%);
+}
+.rm-go {
+    width: 100%;
+}
+.rm-talk {
+    width: min(460px, 100%);
+}
+.amb-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.amb-tile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 50px;
+    min-width: 0;
+    padding: 6px 10px;
+}
+.amb-tile .hud-icon {
+    flex: none;
+    width: 20px;
+    height: 20px;
+}
+.amb-tile > span {
+    min-width: 0;
+}
+.amb-tile b {
+    display: block;
+    overflow: hidden;
+    overflow-wrap: normal;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    line-height: 1.15;
+}
+.amb-tile small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+}
+.amb-tile.bc-tile small {
+    font-family: "Galmuri11", monospace;
+    color: var(--yellow);
+}
+/* ainda não abre: tracejado, sem sombra, apagado */
+.amb-tile.soon {
+    border: 2px dashed var(--line);
+    border-radius: 8px;
+    background: rgb(12 16 40 / 70%);
+    color: var(--muted);
+}
+
+/* ---------- Laboratório do Carvalho: parede verde-água com rodapé, piso de ladrilho creme ---------- */
+.lb-scene {
+    --rm-cap: #e9efe6;
+}
+.lb-scene .rm-wall {
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 31),
+            rgb(40 70 70 / 12%) calc(var(--mi) * 31) calc(var(--mi) * 32)
+        ),
+        linear-gradient(
+            180deg,
+            #a9cdc1 0 56%,
+            #d9a57f 56% calc(56% + var(--mi) * 2),
+            #a9cdc1 calc(56% + var(--mi) * 2) 86%,
+            #d9a57f 86% calc(86% + var(--mi) * 2),
+            #9cbdb2 calc(86% + var(--mi) * 2) calc(100% - var(--mi) * 4),
+            #6b7f7c calc(100% - var(--mi) * 4)
+        );
+}
+.lb-scene .rm-floor {
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23b3ad8a'/%3E%3Crect x='1' y='1' width='14' height='14' fill='%23c2bb95'/%3E%3Crect x='1' y='1' width='14' height='1' fill='%23cec8a4'/%3E%3Crect x='0' y='15' width='16' height='1' fill='%239c9473'/%3E%3Crect x='15' y='0' width='1' height='16' fill='%239c9473'/%3E%3C/svg%3E")
+        0 0 / calc(var(--mi) * 16) calc(var(--mi) * 16);
+}
+/* as 3 pokébolas dos iniciais, em cima da estante */
+.lb-balls {
+    position: absolute;
+    z-index: 81;
+    left: calc(var(--mi) * 26);
+    top: calc(var(--mi) * 4);
+    width: calc(var(--mi) * 22);
+    height: calc(var(--mi) * 6);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='6' shape-rendering='crispEdges'%3E%3Cg id='b'%3E%3Crect x='1' y='0' width='4' height='1' fill='%231d1d2c'/%3E%3Crect x='0' y='1' width='6' height='4' fill='%231d1d2c'/%3E%3Crect x='1' y='1' width='4' height='2' fill='%23e8443a'/%3E%3Crect x='1' y='3' width='4' height='1' fill='%23f4f1e6'/%3E%3Crect x='2' y='2' width='2' height='2' fill='%23f4f1e6'/%3E%3Crect x='1' y='5' width='4' height='1' fill='%231d1d2c'/%3E%3C/g%3E%3Cuse href='%23b' x='8'/%3E%3Cuse href='%23b' x='16'/%3E%3C/svg%3E")
+        0 0 / 100% 100%;
+    image-rendering: pixelated;
+}
+
+/* ---------- Sede do clube: madeira escura, piso de tábuas, as cores do clube no varal, no tapete e no escudo ---------- */
+.sd-scene {
+    --rm-cap: #efe6d6;
+    --ui-h: 270px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .sd-scene {
+        --ui-h: 290px;
+    }
+}
+/* o quadro de missões é alto: no celular pequeno o chão dos Pokémon fica só na faixa logo abaixo da parede */
+@media (max-height: 700px) and (orientation: portrait) {
+    .sd-scene {
+        --ui-h: 220px;
+    }
+}
+.sd-scene .rm-wall {
+    background:
+        repeating-linear-gradient(
+            90deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 22%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        linear-gradient(180deg, #7b5240 0 calc(100% - var(--mi) * 5), #4e3226 calc(100% - var(--mi) * 5));
+}
+.sd-scene .rm-floor {
+    background:
+        repeating-linear-gradient(
+            180deg,
+            transparent 0 calc(var(--mi) * 7),
+            rgb(0 0 0 / 20%) calc(var(--mi) * 7) calc(var(--mi) * 8)
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #9a6a45 0 calc(var(--mi) * 23),
+            #8e603d calc(var(--mi) * 23) calc(var(--mi) * 24)
+        );
+}
+/* o varal de bandeirinhas na parede, alternando as duas cores do clube */
+.sd-flags {
+    position: absolute;
+    left: calc(var(--mi) * -10);
+    right: calc(var(--mi) * -10);
+    top: calc(var(--mi) * 2);
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--mi) solid #2a1a14;
+}
+.sd-flags li {
+    width: calc(var(--mi) * 8);
+    height: calc(var(--mi) * 9);
+    background: var(--club);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+.sd-flags li:nth-child(even) {
+    background: var(--club2);
+}
+.sd-crest,
+.sd-mural {
+    filter: drop-shadow(0 var(--mi) 0 rgb(0 0 0 / 40%));
+}
+.sd-cups {
+    position: absolute;
+    z-index: 73;
+    left: calc(var(--mi) * 7);
+    top: calc(var(--mi) * 30);
+    width: calc(var(--mi) * 48);
+    display: flex;
+    justify-content: center;
+    gap: var(--mi);
+    align-items: flex-end;
+}
+.sd-cups .tr-art {
+    width: calc(var(--mi) * 16);
+    height: calc(var(--mi) * 14);
+}
+/* o fogo da lareira, aceso e devagar */
+.sd-fire {
+    position: absolute;
+    z-index: 79;
+    left: calc(var(--mi) * 218);
+    top: calc(var(--mi) * 60);
+    width: calc(var(--mi) * 20);
+    height: calc(var(--mi) * 8);
+    background: radial-gradient(closest-side, rgb(255 190 90 / 55%), transparent);
+    animation: sd-fire 3.6s steps(3) infinite alternate;
+}
+@keyframes sd-fire {
+    to {
+        opacity: 0.55;
+    }
+}
+/* a camisa do clube num quadro (só em tela larga, à esquerda) */
+.sd-frame {
+    position: absolute;
+    left: calc(var(--mi) * -116);
+    top: calc(var(--mi) * 14);
+    display: grid;
+    place-items: center;
+    width: calc(var(--mi) * 34);
+    height: calc(var(--mi) * 34);
+    background: #e8e0cc;
+    border: calc(var(--mi) * 2) solid #3a2418;
+    box-shadow: 0 var(--mi) 0 rgb(0 0 0 / 35%);
+}
+.sd-shirt {
+    display: block;
+    width: calc(var(--mi) * 24);
+    height: calc(var(--mi) * 22);
+    clip-path: polygon(32% 0, 68% 0, 100% 20%, 88% 42%, 78% 36%, 78% 100%, 22% 100%, 22% 36%, 12% 42%, 0 20%);
+}
+.sd-rug {
+    position: absolute;
+    z-index: 0;
+    left: calc(var(--mi) * 46);
+    top: calc(var(--mi) * 84);
+    width: calc(var(--mi) * 98);
+    height: calc(var(--mi) * 34);
+    background: var(--club);
+    border: calc(var(--mi) * 3) solid var(--club2);
+    box-shadow:
+        inset 0 0 0 calc(var(--mi) * 3) var(--club),
+        inset 0 0 0 calc(var(--mi) * 4) var(--club2),
+        0 var(--mi) 0 rgb(0 0 0 / 35%);
+    filter: brightness(0.62) saturate(0.75);
+}
+.sd-head-crest {
+    width: 22px;
+    height: 24px;
+}
+/* ---------- Arena: quadra de rua à noite, o muro com o neon do Arcade, o poste ---------- */
+.ar-scene {
+    --wall-top: 130px;
+    --wall-h: calc(var(--mi) * 46);
+    --ui-h: 196px;
+}
+@media (max-height: 700px) {
+    .ar-scene {
+        --wall-top: 104px;
+        --ui-h: 270px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-scene {
+        --wall-top: 150px;
+        --ui-h: 200px;
+    }
+}
+.ar-sky {
+    background: linear-gradient(180deg, #080a1f 0%, #15123a calc(var(--wall-top) + 10px), #1d1846 100%);
+}
+.ar-wall {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    top: var(--wall-top);
+    height: var(--wall-h);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8' shape-rendering='crispEdges'%3E%3Crect width='16' height='8' fill='%23221a3c'/%3E%3Crect x='0' y='0' width='7' height='3' fill='%23302449'/%3E%3Crect x='8' y='0' width='8' height='3' fill='%232c2145'/%3E%3Crect x='0' y='4' width='3' height='3' fill='%232c2145'/%3E%3Crect x='4' y='4' width='8' height='3' fill='%2333274e'/%3E%3Crect x='13' y='4' width='3' height='3' fill='%23302449'/%3E%3C/svg%3E")
+        0 0 / calc(var(--mi) * 16) calc(var(--mi) * 8);
+    image-rendering: pixelated;
+    border-top: calc(var(--mi) * 2) solid #3d3160;
+    border-bottom: calc(var(--mi) * 2) solid #0b0920;
+}
+/* o alambrado em cima do muro */
+.ar-fence {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: calc(var(--mi) * 26);
+    background:
+        repeating-linear-gradient(
+            45deg,
+            transparent 0 calc(var(--mi) * 5),
+            rgb(150 160 210 / 16%) calc(var(--mi) * 5) calc(var(--mi) * 6)
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent 0 calc(var(--mi) * 5),
+            rgb(150 160 210 / 16%) calc(var(--mi) * 5) calc(var(--mi) * 6)
+        );
+    border-top: var(--mi) solid rgb(150 160 210 / 30%);
+}
+/* o neon do Arcade (homenagem ao Game Corner de Celadon): rosa e azul, respirando devagar */
+.ar-neon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    justify-items: center;
+    padding: calc(var(--mi) * 3) calc(var(--mi) * 8) calc(var(--mi) * 4);
+    border: var(--mi) solid rgb(255 120 190 / 70%);
+    border-radius: calc(var(--mi) * 3);
+    background: rgb(10 6 24 / 70%);
+    box-shadow:
+        0 0 calc(var(--mi) * 4) rgb(255 90 170 / 40%),
+        inset 0 0 calc(var(--mi) * 3) rgb(255 90 170 / 25%);
+    transform: translate(-50%, -50%);
+    text-transform: uppercase;
+    white-space: nowrap;
+    animation: ar-neon 6s ease-in-out infinite alternate;
+}
+.ar-neon b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: max(16px, calc(var(--mi) * 11));
+    font-size: var(--gfs, max(16px, calc(var(--mi) * 11)));
+    line-height: 1;
+    letter-spacing: 2px;
+    color: #ffd2ea;
+    text-shadow:
+        0 0 4px #ff5fa8,
+        0 0 10px rgb(255 80 160 / 60%);
+}
+.ar-neon small {
+    font-family: "Galmuri11", monospace;
+    font-size: max(10px, calc(var(--mi) * 5));
+    letter-spacing: 2px;
+    color: #c9f6ff;
+    text-shadow: 0 0 4px #4fd8ff;
+}
+@keyframes ar-neon {
+    to {
+        box-shadow:
+            0 0 calc(var(--mi) * 6) rgb(255 90 170 / 55%),
+            inset 0 0 calc(var(--mi) * 4) rgb(255 90 170 / 35%);
+    }
+}
+/* o papel colado por cima: ainda não abriu */
+.ar-tape {
+    position: absolute;
+    right: -18px;
+    bottom: -12px;
+    padding: 2px 6px;
+    background: #efe4c0;
+    color: #3a2a1a;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-shadow: none;
+    rotate: -6deg;
+}
+/* o letreiro da Liga fechada: uma placa do kit pregada no muro, à direita do neon; tocar abre a Liga */
+.ar-liga {
+    all: unset;
+    position: absolute;
+    z-index: 2;
+    left: 84%;
+    top: 50%;
+    display: grid;
+    justify-items: center;
+    gap: calc(var(--mi) * 1);
+    padding: calc(var(--mi) * 2) calc(var(--mi) * 5) calc(var(--mi) * 2.5);
+    border: 2px solid var(--cb-ink);
+    border-radius: 6px;
+    background: var(--bc-ink);
+    box-shadow:
+        inset 0 0 0 2px var(--yellow),
+        0 3px 0 var(--cb-ink);
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: scale var(--dur-solta) var(--ease-pop);
+}
+/* a área de toque passa de 44 px por fora da placa */
+.ar-liga::before {
+    content: "";
+    position: absolute;
+    inset: -8px -6px;
+}
+.ar-liga b {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: max(14px, calc(var(--mi) * 8));
+    font-size: var(--gfs, max(14px, calc(var(--mi) * 8)));
+    font-weight: 400;
+    line-height: 1;
+    color: var(--yellow);
+    text-shadow: var(--k-out-1);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.ar-liga .hud-icon {
+    width: 1em;
+    height: 1em;
+}
+.ar-liga small {
+    font-size: max(11px, calc(var(--mi) * 5.5));
+    font-weight: 700;
+    color: var(--text);
+}
+.ar-liga:active {
+    scale: 0.94;
+    transition-duration: var(--dur-toque);
+}
+.ar-liga:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+}
+/* em pé e baixo (320x640) o cabeçalho cobre o muro: o letreiro desce pra beira de baixo dele */
+@media (max-height: 700px) {
+    .ar-liga {
+        top: 100%;
+    }
+}
+/* 320x640: o muro desce pra baixo da placa do título (ela cobria o ARCADE), o neon vai um pouco pra esquerda e a placa da
+   Liga encosta na borda direita: o papel "EM BREVE" não chega mais nela */
+@media (max-width: 359px) and (max-height: 700px) and (orientation: portrait) {
+    .ar-scene {
+        --wall-top: 134px;
+    }
+    .ar-neon {
+        left: 44%;
+    }
+    .ar-tape {
+        right: -8px;
+    }
+    .ar-liga {
+        left: auto;
+        right: 6px;
+        translate: 0 0;
+        transform: translateY(-50%);
+    }
+}
+/* desktop: mais perto do neon (a 84% ficava solto no muro comprido) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-liga {
+        left: 70%;
+    }
+}
+/* o poste à esquerda, com a luz caindo na quadra */
+.ar-lamp {
+    position: absolute;
+    z-index: 1;
+    left: 8%;
+    top: calc(100% - var(--wall-h) + var(--mi) * 12);
+    width: calc(var(--mi) * 3);
+    height: calc(var(--wall-h) + var(--mi) * 8);
+    background: #0b0920;
+}
+/* a luz do poste, parada (sem piscar) */
+.ar-lamp::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--mi) * -6);
+    top: calc(var(--mi) * -4);
+    width: calc(var(--mi) * 30);
+    height: calc(var(--mi) * 16);
+    background: radial-gradient(closest-side, rgb(255 233 168 / 30%), transparent);
+}
+.ar-lamp::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(var(--mi) * 14);
+    height: calc(var(--mi) * 4);
+    background: #0b0920;
+    border-bottom: var(--mi) solid #ffe9a8;
+}
+.ar-court {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--wall-top) + var(--wall-h));
+    bottom: 0;
+    background:
+        radial-gradient(40% 30% at 14% 0%, rgb(255 233 168 / 16%), transparent),
+        linear-gradient(180deg, #2b2a52, #1f1e40 60%, #141330);
+}
+.ar-lines {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: calc(var(--mi) * 6);
+    width: 88%;
+    height: calc(100% - var(--ui-h) + var(--mi) * 10);
+    overflow: visible;
+    fill: none;
+    stroke: rgb(236 232 255 / 58%);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+/* o piso pintado da quadra de rua (azul gasto) e os gols e o pênalti em destaque */
+.ar-lines .ar-paint {
+    fill: rgb(86 96 190 / 22%);
+    stroke: none;
+}
+.ar-lines .ar-goal {
+    stroke: #ffe066;
+    stroke-width: 3;
+}
+.ar-lines .ar-spot {
+    stroke-width: 5;
+    stroke-linecap: round;
+}
+.ar-lines * {
+    vector-effect: non-scaling-stroke;
+}
+/* o círculo do meio (achatado: a quadra está deitada) */
+.ar-circle,
+.ar-duel {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--mi) * 6 + (100% - var(--ui-h) + var(--mi) * 10) / 2);
+}
+.ar-circle {
+    width: calc(var(--mi) * 44);
+    height: calc(var(--mi) * 30);
+    border: 2px solid rgb(236 232 255 / 58%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+/* onde os Pokémon andam: a quadra que fica à vista, acima dos botões */
+.ar-walk {
+    position: absolute;
+    inset: 0 0 var(--ui-h);
+}
+.ar-glow {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 70%;
+    height: 70%;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgb(160 140 255 / 10%), transparent);
+}
+.ar-duel {
+    display: flex;
+    align-items: flex-end;
+    gap: calc(var(--mi) * 20);
+    transform: translateX(-50%);
+}
+.ar-side {
+    position: relative;
+    width: 0;
+    height: 0;
+}
+.ar-side .fs-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+/* quem vai encarar: silhueta com o contorno aceso de leve */
+.ar-side.rival .fs-sprite {
+    filter: brightness(0) drop-shadow(1px 0 0 #7d70d0) drop-shadow(-1px 0 0 #7d70d0) drop-shadow(0 -1px 0 #7d70d0);
+}
+.ar-side.rival .fs-sprite.ar-head {
+    visibility: hidden;
+    filter: none;
+}
+.ar-head .ar-ask {
+    visibility: visible;
+}
+.ar-vs {
+    align-self: center;
+    margin-top: calc(var(--mi) * -14);
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: max(14px, calc(var(--mi) * 8));
+    font-size: var(--gfs, max(14px, calc(var(--mi) * 8)));
+    color: var(--yellow);
+    text-shadow: 2px 2px 0 #0b0920;
+}
+.ar-ask {
+    position: absolute;
+    left: 0;
+    bottom: calc(var(--mi) * 3);
+    transform: translateX(-50%);
+    padding: 0 calc(var(--mi) * 2);
+    background: #f8f8f0;
+    border: var(--mi) solid #1d1d2c;
+    font-family: "Galmuri11", monospace;
+    font-size: max(10px, calc(var(--mi) * 6));
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #3a6fd8;
+}
+.ar-ui {
+    gap: 10px;
+}
+
+/* deitado: os botões numa coluna à esquerda e o lugar à direita, à vista */
+@media (orientation: landscape) and (max-height: 520px) {
+    .rm-scene,
+    .ar-scene {
+        --wall-top: 70px;
+        --ui-h: 0px;
+        --set-x: 72%;
+    }
+    /* as salas em 1,5: em 1 px as plaquinhas dos objetos não cabiam lado a lado */
+    .rm-scene {
+        --mi: 1.5px;
+    }
+    .rm-walk {
+        left: 52%;
+    }
+    .rm-ui,
+    .ar-ui {
+        width: min(380px, 52%);
+        align-items: stretch;
+        gap: 8px;
+        padding-top: calc(env(safe-area-inset-top) + 10px);
+    }
+    .rm-head {
+        margin-top: 0;
+    }
+    .rm-head h2 {
+        font-size: 15px;
+    }
+    .rm-talk,
+    .rm-go .cup-go-txt small {
+        display: none;
+    }
+    .rm-go {
+        min-height: 52px;
+    }
+    .ar-duel,
+    .ar-circle {
+        left: 73%;
+        top: 50%;
+    }
+    .ar-lamp {
+        left: 54%;
+    }
+    .ar-neon {
+        left: 76%;
+    }
+    .ar-liga {
+        left: 92%;
+        top: 50%;
+    }
+    .ar-lines {
+        left: 50%;
+        width: 46%;
+        height: calc(100% - var(--mi) * 12);
+    }
+    .rm-go .cup-go-txt b {
+        font-size: 15px;
+    }
+    .amb-tiles {
+        gap: 6px;
+    }
+    .amb-tile,
+    .amb-tiles.three .amb-tile {
+        min-height: 38px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 4px 2px;
+    }
+    .amb-tile .hud-icon {
+        display: none;
+    }
+    .amb-tile b,
+    .amb-tiles.three .amb-tile b {
+        white-space: normal;
+        font-size: 11px;
+    }
+    .amb-tile small {
+        font-size: 10px;
+    }
+}
+/* celular pequeno em pé: a fala do Carvalho sai, e o quadro mostra 2 missões */
+@media (max-height: 640px) and (orientation: portrait) {
+    .rm-talk {
+        display: none;
+    }
+    .rm-go {
+        min-height: 56px;
+    }
+    .rm-ui {
+        gap: 8px;
+    }
+    .amb-tiles.three .amb-tile {
+        min-height: 42px;
+        flex-direction: row;
+        padding: 4px 6px;
+    }
+    .amb-tiles.three .amb-tile .hud-icon {
+        display: none;
+    }
+}
+
+/* ======================================================================================== Pokémon ambiente */
+.wild-zone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.wild {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+.wild-mon {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.wild-mon.fs-gif {
+    height: 28px;
+    transform: translate(-50%, -90%);
+}
+.wild-shadow {
+    position: absolute;
+    left: -7px;
+    top: -2px;
+    width: 14px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 28%);
+}
+/* quem voa: o sprite no alto e a sombra no chão, menor */
+.wild.fly .wild-mon {
+    margin-top: -18px;
+}
+.wild.fly .wild-shadow {
+    left: -5px;
+    width: 10px;
+    background: rgb(0 0 0 / 20%);
+}
+/* dormindo: respira devagar (o quadro fica parado) */
+.wild.asleep .wild-mon {
+    animation: wild-breathe 2.4s steps(2) infinite;
+    transform-origin: 50% 100%;
+}
+@keyframes wild-breathe {
+    50% {
+        scale: 1 0.96;
+    }
+}
+.fs-head {
+    position: absolute;
+    left: 50%;
+    width: 0;
+    height: 0;
+}
+/* tocou 5 vezes seguidas: cai de costas (gira no pé, amassa no baque, quica), fica tonto no chão e levanta.
+   1900 ms = FALL_MS (wild.ts); o baque aos 240 ms = FALL_HIT_MS (WildZone.tsx) */
+.wild.fallen .wild-mon {
+    transform-origin: 0 0;
+    animation: wild-fall 1900ms both;
+}
+@keyframes wild-fall {
+    0% {
+        rotate: 0deg;
+        scale: 1 1;
+        animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+    }
+    13% {
+        rotate: -84deg;
+        scale: 1.1 0.84;
+        animation-timing-function: var(--ease-out);
+    }
+    19% {
+        rotate: -72deg;
+        scale: 0.96 1.04;
+        animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+    }
+    25%,
+    86% {
+        rotate: -82deg;
+        scale: 1 1;
+        animation-timing-function: var(--ease-out);
+    }
+    100% {
+        rotate: 0deg;
+        scale: 1 1;
+    }
+}
+.wild.fallen .wild-shadow {
+    transform-origin: 100% 50%;
+    animation: wild-fall-shadow 1900ms both;
+}
+@keyframes wild-fall-shadow {
+    13%,
+    86% {
+        scale: 2.2 1;
+    }
+}
+/* as estrelinhas da tontura: em volta da cabeça, desfeito o giro do corpo deitado */
+.wild-dizzy {
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    rotate: 82deg;
+    animation: wild-dizzy 1900ms both;
+}
+@keyframes wild-dizzy {
+    0%,
+    14%,
+    86%,
+    100% {
+        opacity: 0;
+    }
+    18%,
+    82% {
+        opacity: 1;
+    }
+}
+.wild-dizzy i {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #ffd84a;
+    box-shadow:
+        3px 0 #ffd84a,
+        -3px 0 #ffd84a,
+        0 3px #ffd84a,
+        0 -3px #ffd84a;
+    translate: 11px 0;
+    animation: wild-orbit 800ms linear infinite;
+}
+.wild-dizzy i:nth-child(2) {
+    translate: -6px 4px;
+    animation-delay: -267ms;
+}
+.wild-dizzy i:nth-child(3) {
+    translate: -6px -4px;
+    animation-delay: -533ms;
+}
+@keyframes wild-orbit {
+    0%,
+    100% {
+        translate: 11px 0;
+    }
+    12.5% {
+        translate: 7.8px 3px;
+    }
+    25% {
+        translate: 0 4.2px;
+    }
+    37.5% {
+        translate: -7.8px 3px;
+    }
+    50% {
+        translate: -11px 0;
+    }
+    62.5% {
+        translate: -7.8px -3px;
+    }
+    75% {
+        translate: 0 -4.2px;
+    }
+    87.5% {
+        translate: 7.8px -3px;
+    }
+}
+/* reduzir movimento (o settings-sync sempre marca a raiz): já deitado, as estrelas paradas, sem queda nem giro */
+:root[data-reduce-motion="true"] .wild.fallen .wild-mon {
+    animation: none;
+    rotate: -82deg;
+}
+:root[data-reduce-motion="true"] .wild.fallen .wild-shadow,
+:root[data-reduce-motion="true"] .wild-dizzy,
+:root[data-reduce-motion="true"] .wild-dizzy i {
+    animation: none;
+}
+.wild-bubble {
+    position: absolute;
+    left: -9px;
+    bottom: 2px;
+    width: 18px;
+    height: 20px;
+    animation: wild-pop 160ms var(--ease-out) both;
+    transform-origin: 50% 100%;
+}
+.wild-goals {
+    position: absolute;
+    left: 0;
+    bottom: 4px;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 4px 2px 3px;
+    border: 1px solid #1d1d2c;
+    background: #f8f8f0;
+    color: #1d1d2c;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    animation: wild-pop 200ms var(--ease-out) both;
+    transform-origin: 50% 100%;
+}
+.wild-goals svg {
+    width: 10px;
+    height: 10px;
+    fill: currentColor;
+}
+@keyframes wild-pop {
+    from {
+        transform: scale(0.3);
+        opacity: 0;
+    }
+}
+.wild-zzz {
+    position: absolute;
+    left: 2px;
+    bottom: 0;
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: #f4f1e6;
+    text-shadow: 1px 1px 0 #0b1026;
+}
+.wild-zzz b {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    opacity: 0;
+    animation: wild-z 2.7s linear infinite;
+}
+.wild-zzz b:nth-child(2) {
+    animation-delay: 0.9s;
+}
+.wild-zzz b:nth-child(3) {
+    animation-delay: 1.8s;
+    font-size: 13px;
+}
+@keyframes wild-z {
+    10%,
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(10px, -22px);
+    }
+}
+
+/* ======================================================================================== revisão (0.9.21) */
+/* o telão pendurado no teto: o logo grande (o arquivo, sem efeito) e, embaixo, o placar da Copa do Dia (na 1ª visita,
+   a frase). É a vitrine: o nome do jogo e o que dá pra jogar hoje */
+.es-top {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    width: min(380px, 100%);
+    padding: 14px 14px 12px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 1px 1px, rgb(255 203 5 / 8%) 1px, transparent 1.5px) 0 0 / 4px 4px,
+        #090d22;
+    box-shadow:
+        0 0 0 3px #39447a,
+        0 7px 0 3px var(--bc-edge);
+    container-type: inline-size;
+}
+.es-logo {
+    margin: 0;
+    width: min(330px, 100%);
+}
+.es-logo-btn {
+    all: unset;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 200ms var(--ease-out);
+}
+.es-logo-btn:active {
+    transform: scale(0.97);
+}
+.es-logo-btn:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 4px;
+}
+.es-logo img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.es-tagline {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    text-align: center;
+    color: var(--text);
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-top {
+        width: 480px;
+        padding: 18px 20px 14px;
+    }
+    .es-logo {
+        width: 420px;
+    }
+}
+
+/* celular baixo em pé (320x568): telão e copa em andamento mais compactos, pra sobrar quadra pro capitão */
+@media (orientation: portrait) and (max-height: 640px) {
+    .es-top {
+        gap: 6px;
+        padding: 10px 10px 8px;
+    }
+    .es-logo {
+        width: min(230px, 100%);
+    }
+}
+/* o rodapé do Estádio (padrão Clash): o JOGAR grande com o modo escrito e, ao lado, o gatilho "Modos" */
+.es-go {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.es-go.has-modes {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+.es-play .cup-go-txt {
+    min-width: 0;
+}
+/* o modo no JOGAR em até 2 linhas ("Pallet FC · Draft · escolha 1 de 7" não cabe numa no celular) */
+.es-play .cup-go-txt small {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.2;
+}
+.es-modes-btn {
+    flex-direction: column;
+    gap: 2px;
+    min-width: 72px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+.es-modes-btn .hud-icon {
+    width: 22px;
+    height: 22px;
+    transition: transform 250ms var(--ease-out);
+}
+.es-modes-btn.open {
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+.es-modes-btn.open .hud-icon {
+    transform: rotate(180deg);
+}
+.es-modes-btn:focus-visible,
+.es-mode:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+/* os modos: sobem de trás do JOGAR (250 ms), todos do mesmo tamanho e com cara de botão */
+.es-modes {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 10px);
+    z-index: 3;
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    background: var(--bc-ink);
+    box-shadow: 0 5px 0 var(--bc-edge);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out),
+        visibility 0s linear 250ms;
+}
+.es-modes.open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+        opacity 250ms var(--ease-out),
+        transform 250ms var(--ease-out);
+}
+.es-mode {
+    --mode: var(--yellow);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 10px;
+    min-height: 54px;
+    padding: 6px 12px 6px 8px;
+    font: inherit;
+    text-align: left;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 22%),
+        0 3px 0 var(--cb-ink);
+    cursor: pointer;
+    transition:
+        transform 200ms var(--ease-out),
+        filter 200ms var(--ease-out);
+}
+.es-mode > .es-mode-go {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    color: var(--muted);
+}
+.es-mode:hover {
+    filter: brightness(1.15);
+}
+.es-mode:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #0e1430;
+}
+.es-mode:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.es-mode.m-quick {
+    --mode: var(--red);
+}
+.es-mode.m-long {
+    --mode: var(--green);
+}
+.es-mode.m-duel {
+    --mode: var(--blue);
+}
+.es-mode-ic {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: var(--mode);
+    color: var(--bc-ink);
+}
+.es-mode.m-quick .es-mode-ic,
+.es-mode.m-duel .es-mode-ic {
+    color: #fff;
+}
+.es-mode-ic .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.es-mode b,
+.es-mode small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.es-mode b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
+    line-height: 1.15;
+}
+.es-mode small {
+    font-size: 12px;
+    color: var(--muted);
+}
+/* celular baixo: modos mais baixos, pra caber os 6 acima do JOGAR */
+@media (max-height: 640px) {
+    .es-modes {
+        gap: 6px;
+        padding: 8px;
+    }
+    .es-mode {
+        min-height: 44px;
+        padding-block: 4px;
+    }
+    .es-mode-ic {
+        width: 28px;
+        height: 28px;
+    }
+}
+/* deitado: os modos em duas colunas, da largura da tela (a coluna da esquerda é estreita) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-ui {
+        container-type: inline-size;
+    }
+    .es-modes {
+        right: auto;
+        width: min(560px, 100cqw);
+        grid-template-columns: 1fr 1fr;
+    }
+    /* tela baixa: só o nome (com a legenda, o seletor passava por baixo da ajuda e do perfil) */
+    .es-modes {
+        gap: 6px;
+        padding: 8px;
+    }
+    .es-mode {
+        grid-template-rows: auto;
+        min-height: 40px;
+        padding-block: 3px;
+    }
+    .es-mode-ic {
+        grid-row: auto;
+        width: 26px;
+        height: 26px;
+    }
+    .es-mode > .es-mode-go {
+        grid-row: auto;
+    }
+    .es-mode b {
+        font-size: 13px;
+    }
+    .es-mode small {
+        display: none;
+    }
+    .es-modes-btn {
+        min-width: 60px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-mode {
+        min-height: 60px;
+    }
+    .es-mode b {
+        font-size: 17px;
+    }
+    .es-mode small {
+        font-size: 13px;
+    }
+}
+/* reduzir movimento: os modos só aparecem (sem subir) */
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .es-modes {
+        transform: none;
+    }
+}
+[data-reduce-motion="true"] .es-modes {
+    transform: none;
+}
+/* e o JOGAR chama: um anel de luz em volta, devagar (some com "reduzir movimento") */
+.es-first .es-play.primary {
+    position: relative;
+}
+.es-first .es-play.primary::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 3px solid var(--yellow);
+    border-radius: 12px;
+    opacity: 0;
+    pointer-events: none;
+    animation: es-call 2.4s var(--ease-out) infinite;
+}
+@keyframes es-call {
+    0% {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+    25% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    60%,
+    100% {
+        opacity: 0;
+        transform: scale(1.03);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .es-first .es-play.primary::after {
+        animation: none;
+    }
+}
+/* letreiros: uma linha sempre (deitado quebrava em 2); o que não cabe ganha reticências */
+.rt-head h2,
+.rm-head h2 {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rt-head h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.rt-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sd-head-crest {
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: -4px;
+}
+.rm-short {
+    display: none;
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .rm-head h2,
+    .rt-head h2 {
+        font-size: 14px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rm-full {
+        display: none;
+    }
+    .rm-short {
+        display: inline;
+    }
+    .es-ui {
+        --es-col: min(380px, 60%);
+    }
+    .es-logo {
+        width: min(200px, 100%);
+    }
+}
+
+/* celular estreito (320): letreiro menor, pro nome e o selo caberem */
+@media (max-width: 359px) {
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 16px;
+    }
+    .rt-head .rt-badges,
+    .rm-head .rt-badges {
+        --gs: 13px;
+        font-size: var(--gfs, 13px);
+    }
+}
+/* Rota no celular pequeno (320x568): o mapa encolhia pouco e a tela rolava 18 px */
+@media (orientation: portrait) and (max-width: 700px) and (max-height: 640px) {
+    .rt-map {
+        width: min(calc(100% + 16px), calc((calc(100 * var(--dvh)) - 384px) * 23 / 20));
+    }
+}
+
+/* vitrine vazia: o lugar da 1ª taça reservado, com a plaquinha */
+.sd-cups.empty {
+    --tr-ghost: rgb(255 244 214 / 70%);
+}
+.sd-plaque {
+    position: absolute;
+    z-index: 74;
+    left: calc(var(--mi) * 31);
+    top: calc(var(--mi) * 50);
+    width: max(calc(var(--mi) * 52), 86px);
+    transform: translateX(-50%);
+    padding: 2px 3px;
+    background: #f1e6c4;
+    border: 2px solid #3a2418;
+    border-radius: 2px;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+    font-family: "Galmuri11", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    color: #3a2418;
+}
+
+/* Arena no desktop: a quadra do tamanho do duelo (era a tela toda, com o meio vazio) e a bola no círculo */
+@media (min-width: 900px) and (min-height: 700px) {
+    .ar-lines,
+    .ar-walk {
+        left: max(6%, calc(50% - 400px));
+        right: max(6%, calc(50% - 400px));
+        width: auto;
+    }
+    .ar-duel {
+        gap: calc(var(--mi) * 26);
+    }
+}
+.ar-ball {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--mi) * 6 + (100% - var(--ui-h) + var(--mi) * 10) / 2);
+    width: calc(var(--sc, 2) * 8px);
+    height: auto;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 calc(var(--sc, 2) * 1px) 0 rgb(0 0 0 / 45%));
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ar-ball {
+        left: 73%;
+        top: 50%;
+    }
+}
+/* a silhueta lê melhor: escura mas com os traços do sprite e um contorno aceso mais grosso (virava mancha) */
+.ar-side.rival .fs-sprite {
+    filter: grayscale(1) brightness(0.24) drop-shadow(2px 0 0 #8e82e6) drop-shadow(-2px 0 0 #8e82e6)
+        drop-shadow(0 -2px 0 #8e82e6);
+}
+/* tocar na silhueta mostra quem é, por um instante */
+.ar-side.rival.seen .fs-sprite:not(.ar-head) {
+    filter: drop-shadow(0 0 6px rgb(142 130 230 / 70%));
+    transition: filter 220ms var(--ease-out);
+}
+.ar-side.rival.seen .ar-head {
+    visibility: hidden;
+}
+.ar-side.rival.seen .ar-ask {
+    visibility: hidden;
+}
+.ar-tap {
+    position: absolute;
+    z-index: 3;
+    width: calc(var(--mi) * 40);
+    height: calc(var(--mi) * 40);
+    transform: translate(-50%, -100%);
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+/* tocar num Pokémon ambiente: ele pula (o sprite é o alvo; a cena continua sem clique no resto). A camada dos
+   botões deixa o toque passar onde não tem botão, senão ela cobria a cena inteira */
+.wild {
+    pointer-events: auto;
+    cursor: pointer;
+}
+.amb-ui {
+    pointer-events: none;
+}
+.amb-ui > * {
+    pointer-events: auto;
+}
+
+/* céu de verdade: dia e fim de tarde no Estádio e na Rota (a noite é o desenho de sempre) */
+.amb[data-sky="dia"] .es-sky {
+    background: linear-gradient(180deg, #3d7fd6 0%, #69a6e8 55%, #a9d2f4 100%);
+}
+.amb[data-sky="tarde"] .es-sky {
+    background: linear-gradient(180deg, #2a2a66 0%, #8a4f86 50%, #f08a5c 100%);
+}
+.amb[data-sky="dia"] .es-stars {
+    display: none;
+}
+.amb[data-sky="tarde"] .es-stars {
+    opacity: 0.4;
+}
+.amb[data-sky="dia"] .es-beam {
+    opacity: 0.04;
+}
+/* a Rota à noite: o mar e o chão escurecem, as cidades e o caminho acendem; sem sombra de nuvem (não tem sol) */
+.amb[data-sky="noite"] .rt-scene {
+    background: #0e1f4d;
+}
+.amb[data-sky="noite"] .rt-world::after,
+.amb[data-sky="tarde"] .rt-world::after {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    background: rgb(14 22 70 / 42%);
+}
+.amb[data-sky="tarde"] .rt-world::after {
+    background: rgb(240 120 60 / 16%);
+}
+.amb[data-sky="noite"] .rt-trail,
+.amb[data-sky="noite"] .rt-city,
+.amb[data-sky="noite"] .rt-plateau,
+.amb[data-sky="noite"] .rt-gym {
+    z-index: 2;
+}
+.amb[data-sky="noite"] .rt-city {
+    background: #ffe39a;
+    box-shadow: 0 0 0 2px rgb(255 214 110 / 35%);
+}
+.amb[data-sky="noite"] .rt-city.home {
+    background: var(--red);
+}
+.amb[data-sky="noite"] .rt-shade {
+    display: none;
+}
+.amb[data-sky="noite"] .rt-cloud {
+    opacity: 0.45;
+}
+
+/* ---------- reduzir movimento: sem paralaxe nem câmera; a troca é um fade de 200 ms ---------- */
+:root[data-reduce-motion="true"] .amb-panel,
+:root[data-reduce-motion="true"] .amb-layer,
+:root[data-reduce-motion="true"] .amb-par {
+    transform: none;
+}
+:root[data-reduce-motion="true"] .amb-panel {
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out);
+}
+:root[data-reduce-motion="true"] .amb-panel.on {
+    opacity: 1;
+}
+:root[data-reduce-motion="true"] .amb *,
+:root[data-reduce-motion="true"] .amb *::before,
+:root[data-reduce-motion="true"] .amb *::after {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .es-led span {
+    transform: translateX(-12%);
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .amb-panel,
+    :root:not([data-reduce-motion="false"]) .amb-layer,
+    :root:not([data-reduce-motion="false"]) .amb-par {
+        transform: none;
+    }
+    :root:not([data-reduce-motion="false"]) .amb-panel {
+        opacity: 0;
+        transition: opacity 200ms var(--ease-out);
+    }
+    :root:not([data-reduce-motion="false"]) .amb-panel.on {
+        opacity: 1;
+    }
+    :root:not([data-reduce-motion="false"]) .amb * {
+        animation: none;
+    }
+}
+
+/* o que está fora da tela não gasta: animação parada até a aba aparecer (no fim do arquivo: ganha das de cima) */
+.amb .amb-panel:not(.on) *,
+.amb .amb-panel:not(.on) *::before,
+.amb .amb-panel:not(.on) *::after {
+    animation-play-state: paused;
+}
+
+/* Pokémon ambiente sem lugar livre na tela (atrás de botão, sala pequena): some num fade em vez de aparecer cortado */
+.wild {
+    transition: opacity 250ms var(--ease-out);
+}
+.wild.off {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ======================================================================================== polida (0.9.21, 2ª revisão) */
+/* o letreiro de cada lugar: placa com moldura e sombra dura, a faixa de cima na cor do lugar (a mesma das placas do
+   Estádio: Rota verde, Arena azul), o nome maior e a meta numa plaquinha à direita */
+.amb-lab {
+    --place: var(--yellow);
+}
+.amb-rota {
+    --place: var(--green);
+}
+.amb-arena {
+    --place: var(--blue);
+}
+.amb-sede {
+    --place: var(--club, var(--yellow));
+}
+.rt-head,
+.rm-head {
+    padding: 9px 10px 9px 14px;
+    border: 3px solid var(--bc-edge);
+    border-top: 5px solid var(--place, var(--yellow));
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--bc-edge);
+}
+.rt-head h2,
+.rm-head h2 {
+    font-size: 21px;
+}
+.rt-head .rt-badges,
+.rm-head .rt-badges {
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #1b2147;
+    box-shadow: inset 0 0 0 2px #2a3366;
+}
+@media (max-width: 359px) {
+    .rm-head h2 {
+        font-size: 18px;
+    }
+    /* o nome da Rota divide a placa com o selo NOVO e as insígnias */
+    .rt-head h2 {
+        font-size: 16px;
+    }
+}
+/* tela baixa: a placa mais fina, pra não cobrir a parede (o neon da Arena) */
+@media (max-height: 700px) {
+    .rt-head,
+    .rm-head {
+        padding-block: 5px;
+        border-top-width: 4px;
+        box-shadow: 0 3px 0 var(--bc-edge);
+    }
+}
+/* celular em pé: o nome curto onde o comprido não cabe (Laboratório) */
+@media (max-width: 429px) {
+    .amb-lab .rm-full {
+        display: none;
+    }
+    .amb-lab .rm-short {
+        display: inline;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .rt-head,
+    .rm-head {
+        padding-block: 6px;
+        border-top-width: 4px;
+    }
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 16px;
+    }
+    .rt-head .rt-badges,
+    .rm-head .rt-badges {
+        padding: 2px 6px;
+    }
+}
+/* o botão principal de cada lugar do mesmo tamanho do JOGAR do Estádio */
+.rm-go,
+.rt-go {
+    min-height: 68px;
+    justify-content: space-between;
+    text-align: left;
+}
+.rm-go .cup-go-txt b,
+.rt-go .cup-go-txt b {
+    font-size: 24px;
+}
+.rm-go .cup-go-txt small,
+.rt-go .cup-go-txt small {
+    font-size: 13px;
+}
+/* no dourado (Começar a Rota, Desafiar) o subtítulo vai em negrito, como o do JOGAR: o fino sumia no amarelo */
+.cb-gold.cup-go .cup-go-txt small {
+    font-weight: 700;
+}
+@media (max-width: 359px) {
+    .rm-go .cup-go-txt b,
+    .rt-go .cup-go-txt b {
+        font-size: 20px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .rm-go {
+        min-height: 52px;
+    }
+    .rt-go {
+        min-height: 54px;
+    }
+    .btn.big.rt-go {
+        padding-inline: 14px;
+    }
+    .rm-go .cup-go-txt b {
+        font-size: 19px;
+    }
+    /* a coluna ao lado do mapa é estreita: em 16 px "Começar a Rota" quebrava em duas linhas coladas (e o chanfro do botão perde 12 px de cada lado) */
+    .rt-go .cup-go-txt b {
+        font-size: 14px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rm-go .cup-go-txt b {
+        font-size: 17px;
+        white-space: nowrap;
+    }
+}
+/* desktop: a frase do Estádio e os letreiros maiores (a quadra é grande) */
+@media (min-width: 900px) and (min-height: 700px) {
+    .es-tagline {
+        font-size: 15px;
+    }
+    .rt-head h2,
+    .rm-head h2 {
+        font-size: 26px;
+    }
+}
+
+/* ======================================================================================== apelo Clash (0.9.21, 3ª passada) */
+/* O botão (.cb, .cb-gold/-blue/-green), os tokens e o brilho viraram o kit global (src/ui/kit/kit.css, 0.9.22). Aqui
+   fica só o que é dos ambientes: os títulos e placas com o contorno grosso. */
+.amb .es-pill b,
+.amb .res-me-txt b,
+.amb .rt-head h2,
+.amb .rm-head h2,
+.amb .rt-badges,
+.amb .es-mode b {
+    text-shadow: var(--k-out-2);
+}
+.amb .res-me:active,
+.amb .es-pill:active {
+    transform: translateY(4px) scale(0.97);
+    transition-duration: 60ms;
+}
+
+/* ---------- o JOGAR (o "BATTLE") ---------- */
+.amb .es-play {
+    width: 100%;
+    min-height: 80px;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    /* o contorno do JOGAR passa 3 px da letra (e 6 px embaixo): com 8 px em cima ele encostava na borda e cortava,
+       e com 2 px de vão a sombra de baixo pisava no subtítulo */
+    gap: 6px;
+    padding: 12px 16px 12px;
+    border-radius: 14px;
+    text-align: center;
+}
+.amb .es-play:disabled {
+    filter: grayscale(0.6);
+}
+.es-play-verb {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 34px;
+    font-size: var(--gfs, 34px);
+    line-height: 1;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.amb .es-play .es-play-verb {
+    --ol: #3d1c00;
+    text-shadow:
+        -3px -3px 0 var(--ol),
+        0 -3px 0 var(--ol),
+        3px -3px 0 var(--ol),
+        3px 0 0 var(--ol),
+        3px 3px 0 var(--ol),
+        0 3px 0 var(--ol),
+        -3px 3px 0 var(--ol),
+        -3px 0 0 var(--ol),
+        0 6px 0 var(--ol);
+}
+.amb .es-play .es-play-sub {
+    font-size: 13px;
+    line-height: 1.2;
+}
+/* o anel da 1ª visita (o JOGAR chama) segue no botão novo */
+.es-first .es-play::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border: 3px solid var(--yellow);
+    border-radius: 16px;
+    opacity: 0;
+    pointer-events: none;
+    animation: es-call 2.4s var(--ease-out) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .es-first .es-play::after,
+    :root:not([data-reduce-motion="false"]) .cb-shine::before {
+        animation: none;
+    }
+}
+
+/* ---------- a pílula do modo, em cima do JOGAR ---------- */
+.es-go.has-modes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+.es-pick {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+.amb .es-arrow {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+}
+.es-arrow .hud-icon {
+    width: 22px;
+    height: 22px;
+}
+.m-continue,
+.m-challenge,
+.m-daily {
+    --mode: var(--yellow);
+}
+.m-quick {
+    --mode: var(--red);
+}
+.m-long {
+    --mode: var(--green);
+}
+.m-duel {
+    --mode: var(--blue);
+}
+.es-pill {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 50px;
+    padding: 4px 10px 4px 5px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgb(255 255 255 / 9%) 0 46%, transparent 46%), #161d45;
+    box-shadow:
+        inset 0 0 0 2px color-mix(in srgb, var(--mode), transparent 35%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 320ms var(--ease-pop);
+    animation: cb-pop 360ms var(--ease-pop);
+}
+.es-pill .es-mode-ic {
+    grid-row: auto;
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 8px;
+    box-shadow: inset 0 -3px 0 rgb(0 0 0 / 25%);
+}
+.es-pill-txt {
+    display: grid;
+    min-width: 0;
+    line-height: 1.1;
+}
+.es-pill-txt b,
+.es-pill-txt small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.es-pill-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+}
+.es-pill-txt small {
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--muted);
+}
+.es-pill-caret {
+    width: 20px;
+    height: 20px;
+    color: var(--yellow);
+    transition: transform 250ms var(--ease-out);
+}
+.es-pill.open .es-pill-caret {
+    transform: rotate(180deg);
+}
+.es-pill:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+@keyframes cb-pop {
+    0% {
+        scale: 0.85;
+    }
+    55% {
+        scale: 1.06;
+    }
+    100% {
+        scale: 1;
+    }
+}
+/* a lista de modos: o escolhido com o anel dourado do kit (seleção = anel, nunca botão cheio) */
+.es-mode.on {
+    outline: 3px solid var(--yellow);
+    outline-offset: 1px;
+}
+.es-mode b {
+    color: #fff;
+}
+.es-mode-ic {
+    background: var(--mode);
+}
+
+/* ---------- o Estádio: UI no alto, botões embaixo ---------- */
+.es-ui {
+    justify-content: flex-start;
+}
+.es-actions {
+    margin-top: auto;
+}
+@media (max-height: 640px) {
+    .amb .es-play {
+        min-height: 66px;
+    }
+    .es-play-verb {
+        --gs: 27px;
+        font-size: var(--gfs, 27px);
+    }
+    .es-pill {
+        min-height: 44px;
+    }
+    .es-pill .es-mode-ic {
+        width: 30px;
+        height: 30px;
+    }
+    .amb .es-arrow {
+        width: 40px;
+        height: 40px;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb .es-play {
+        min-height: 88px;
+    }
+    .es-play-verb {
+        --gs: 39px;
+        font-size: var(--gfs, 39px);
+    }
+}
+
+/* ---------- letreiros e placas dos 4 lugares no mesmo sistema ---------- */
+.rt-head h2,
+.rm-head h2 {
+    color: #fff;
+}
+.rt-head .rt-badges,
+.rm-head .rt-badges {
+    border: 2px solid var(--cb-ink);
+    background: #0e1438;
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 10%);
+    --gs: 16px;
+    font-size: var(--gfs, 16px);
+    color: var(--yellow);
+}
+/* os botões menores (Álbum, Golpedex, Treinador, Clube, Amigos): o mesmo azul gordo */
+.amb .amb-tile.bc-tile {
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--blue-hi) 0 44%, var(--blue-c) 44% 100%);
+    box-shadow:
+        inset 0 -5px 0 var(--blue-lo),
+        inset 0 2px 0 rgb(255 255 255 / 45%),
+        0 4px 0 var(--cb-ink);
+    color: #fff;
+    transition: transform 320ms var(--ease-pop);
+    --ol: #071647;
+}
+.amb .amb-tile.bc-tile:active {
+    transform: translateY(3px) scale(0.97);
+    transition-duration: 60ms;
+}
+.amb .amb-tile.bc-tile b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    text-shadow:
+        -1px -1px 0 var(--ol),
+        1px -1px 0 var(--ol),
+        1px 1px 0 var(--ol),
+        -1px 1px 0 var(--ol),
+        0 2px 0 var(--ol);
+}
+.amb .amb-tile.bc-tile small {
+    color: #fff3a8;
+    text-shadow: 0 1px 0 var(--ol);
+}
+.amb .amb-tile.bc-tile .hud-icon {
+    color: #fff;
+    filter: drop-shadow(0 2px 0 var(--ol));
+}
+/* o botão principal de cada lugar: texto à esquerda, seta à direita, no mesmo chanfro */
+.amb .rm-go,
+.amb .rt-go {
+    border-radius: 12px;
+}
+.amb .rm-go .cup-go-txt b,
+.amb .rt-go .cup-go-txt b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+}
+
+/* ---------- o Estádio como arena: a quadra mais viva e o capitão num palco de luz ---------- */
+.es-lines {
+    stroke: #fff;
+    stroke-width: 1;
+}
+.es-court::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: max(12.5cqw, 30cqh);
+    width: min(78cqw, 520px);
+    aspect-ratio: 5 / 2;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 236 150 / 55%), rgb(255 200 80 / 25%) 55%, transparent);
+    pointer-events: none;
+    animation: es-stage 3.2s ease-in-out infinite alternate;
+}
+@keyframes es-stage {
+    to {
+        opacity: 0.7;
+    }
+}
+@media (max-height: 700px) and (orientation: portrait) {
+    .es-court::before {
+        top: min(max(12.5cqw, 30cqh), 25cqh);
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-court::before {
+        left: 72%;
+        top: min(max(12.5cqw, 30cqh), 62cqh);
+        width: 46cqw;
+    }
+}
+.es-floor rect:nth-child(odd) {
+    fill: #dd8a43;
+}
+.es-floor rect:nth-child(even) {
+    fill: #c97735;
+}
+
+/* ---------- juice: o pop de entrada ao abrir a aba ---------- */
+.amb-panel.on .amb-ui > :not(.amb-par, .es-top),
+.amb-panel.on .amb-tiles > * {
+    animation: amb-pop 460ms var(--ease-pop) backwards;
+    animation-delay: calc(80ms + var(--k, 0) * 70ms);
+}
+.amb-panel.on .es-top {
+    animation: amb-drop 520ms var(--ease-pop) 40ms backwards;
+}
+.amb-ui > :nth-child(2),
+.amb-tiles > :nth-child(2) {
+    --k: 1;
+}
+.amb-ui > :nth-child(3),
+.amb-tiles > :nth-child(3) {
+    --k: 2;
+}
+.amb-ui > :nth-child(4) {
+    --k: 3;
+}
+.amb-ui > :nth-child(5) {
+    --k: 4;
+}
+.amb-panel.on .amb-tiles > * {
+    animation-delay: calc(200ms + var(--k, 0) * 70ms);
+}
+@keyframes amb-pop {
+    0% {
+        scale: 0.6;
+    }
+    55% {
+        scale: 1.07;
+    }
+    80% {
+        scale: 0.98;
+    }
+    100% {
+        scale: 1;
+    }
+}
+@keyframes amb-drop {
+    0% {
+        translate: 0 -70px;
+    }
+    65% {
+        translate: 0 6px;
+    }
+    100% {
+        translate: 0 0;
+    }
+}
+/* o ícone da aba quica quando ela acende */
+.amb-tab.on .amb-tab-ic {
+    animation: cb-pop 360ms var(--ease-pop);
+}
+/* aba que o progresso ainda não acendeu (menos-e-mais.md §7 C): apagada, sem cadeado, sem toque */
+.amb-tab {
+    transition:
+        color var(--amb-ms) var(--ease-out),
+        opacity 250ms var(--ease-out),
+        filter 250ms var(--ease-out);
+}
+.amb-tab.off {
+    opacity: 0.32;
+    filter: grayscale(1);
+    cursor: default;
+}
+/* acabou de acender: o ícone brilha duas vezes e fica a bolinha amarela até sair da Home */
+.amb-tab-new .amb-tab-ic {
+    position: relative;
+    animation: amb-lit 900ms var(--ease-out) 2;
+}
+.amb-tab-new .amb-tab-ic::after {
+    content: "";
+    position: absolute;
+    top: -2px;
+    right: -6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--yellow);
+    border: 2px solid var(--bc-ink);
+}
+@keyframes amb-lit {
+    0%,
+    100% {
+        scale: 1;
+        filter: none;
+    }
+    35% {
+        scale: 1.25;
+        filter: brightness(1.8) drop-shadow(0 0 6px var(--yellow));
+    }
+}
+[data-reduce-motion="true"] .amb-tab-new .amb-tab-ic {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .amb-tab-new .amb-tab-ic {
+        animation: none;
+    }
+}
+/* lista de modos aberta: a barra de cima sai do caminho (a lista sobe por baixo dela) */
+.amb-top {
+    transition: opacity 220ms var(--ease-out);
+}
+.amb:has(.amb-panel.on .es-modes.open) .amb-top {
+    opacity: 0;
+    pointer-events: none;
+}
+/* celular baixo: a lista só com os nomes, pra caber os 5 modos acima da pílula */
+@media (max-height: 640px) and (orientation: portrait) {
+    .es-mode {
+        grid-template-rows: auto;
+        min-height: 40px;
+    }
+    .es-mode .es-mode-ic,
+    .es-mode > .es-mode-go {
+        grid-row: auto;
+    }
+    .es-mode small {
+        display: none;
+    }
+}
+/* deitado: tudo começa embaixo da barra de cima; no Estádio, as metas embaixo à direita (o capitão em cima delas) */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-ui:not(.rt-ui) {
+        padding-top: calc(env(safe-area-inset-top) + 54px);
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 700px) {
+    .rt-map {
+        top: calc(50% + 24px);
+        height: calc(100% - 68px);
+    }
+}
+/* a barra de abas no mesmo chanfro: a aba acesa vira um botão azul, o Estádio dourado */
+.amb-ind::before {
+    border: 3px solid var(--cb-ink);
+    border-bottom-width: 3px;
+    background: linear-gradient(180deg, var(--blue-hi) 0 44%, var(--blue-c) 44%);
+    box-shadow: inset 0 -4px 0 var(--blue-lo);
+}
+.amb-tab.on {
+    color: #fff;
+}
+.amb-tab.on .amb-tab-lbl {
+    text-shadow:
+        -1px -1px 0 var(--cb-ink),
+        1px -1px 0 var(--cb-ink),
+        1px 1px 0 var(--cb-ink),
+        -1px 1px 0 var(--cb-ink);
+}
+.amb-tab-estadio .amb-tab-ic {
+    border-color: var(--cb-ink);
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 25%),
+        0 3px 0 var(--cb-ink);
+}
+.amb-tab-estadio.on .amb-tab-ic {
+    background: linear-gradient(180deg, var(--gold-hi) 0 44%, var(--yellow) 44%);
+    color: var(--cb-ink);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-ind::before {
+        border-left-width: 3px;
+    }
+}
+/* o selo NOVO dentro do letreiro não leva o contorno do título */
+.rt-head h2 .bc-tag {
+    text-shadow: none;
+}
+
+/* contorno de texto só de 16 px pra cima (kit B): título e subtítulo de 10 a 15 px dos botões e fichas são chapados */
+.amb .amb-tile.bc-tile b,
+.amb .amb-tile.bc-tile small,
+.amb .es-play .es-play-sub,
+.amb .res-me-txt b,
+.amb .amb-tab.on .amb-tab-lbl {
+    text-shadow: none;
+}
+
+/*
+ * Estádio de quem já jogou (variante B, escolhida em 26/10, docs/planos/revamp-ui/estadio-*-variantes.jpg): as metas
+ * sobem pra arquibancada, logo abaixo do telão (só ícone e número; o nome fica no toque e no leitor de tela), e o jogar
+ * fica no pé. A quadra fica livre pros Pokémon. Celular deitado continua no layout de colunas.
+ */
+@media not ((orientation: landscape) and (max-height: 520px)) {
+    .es-ui .es-top {
+        order: 0;
+    }
+    .es-ui .es-actions {
+        order: 2;
+        margin-top: auto;
+    }
+}
+
+/* Arena: a Liga fechada vira uma linha discreta (era um card tracejado ao lado do "em breve" da Dupla) */
+
+/* 320 e 360: nada de nome cortado. A Sede mostra só o nome do clube e a pílula do modo perde o ícone (sobra espaço
+   pro "Copa Relâmpago" inteiro) */
+@media (max-width: 359px) {
+    .amb-sede .rm-full {
+        display: none;
+    }
+    .amb-sede .rm-short {
+        display: inline;
+    }
+    .es-pill > .es-mode-ic {
+        display: none;
+    }
+    .es-pill {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding-left: 10px;
+    }
+}
+@media (max-width: 359px) {
+    .es-pick {
+        gap: 5px;
+    }
+    .amb .es-arrow {
+        width: 36px;
+        height: 36px;
+    }
+    .es-pill-txt b {
+        font-size: 15px;
+    }
+    .es-pill-caret {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+/* deitado: só o logo, menor (a frase sai), pra não cobrir a arquibancada */
+@media (orientation: landscape) and (max-height: 520px) {
+    .es-top {
+        padding: 6px 10px;
+    }
+    .es-top .es-logo {
+        width: min(170px, 100%);
+    }
+    .es-tagline {
+        display: none;
+    }
+}
+
+/* "Ranking de hoje" (Copa do Dia ainda não jogada): chip por cima da quadra, à direita, acima das placas. Sempre
+   montado: entra e sai com fade e não mexe no layout (antes empurrava a fileira ~48 px pra cima) */
+.es-actions {
+    position: relative;
+}
+.es-rank {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 4px 10px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    background: var(--panel);
+    box-shadow: 0 3px 0 var(--cb-ink);
+    color: #fff;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    translate: 0 6px;
+    transition:
+        opacity 220ms var(--ease-out),
+        translate 220ms var(--ease-out),
+        visibility 0s linear 220ms;
+}
+.es-rank.on {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition-delay: 0s;
+}
+.es-rank .hud-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--yellow);
+}
+
+/* ---------- uma placa por modo, em cima do JOGAR (PlayBar.tsx, 30/10) ---------- */
+.es-rail {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+.es-tile {
+    --mode: var(--yellow);
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 4px;
+    padding: 6px 4px 7px;
+    font: inherit;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 3px solid var(--cb-ink);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 22%),
+        0 3px 0 var(--cb-ink);
+    cursor: pointer;
+    transition:
+        transform 200ms var(--ease-out),
+        filter 200ms var(--ease-out),
+        background-color 200ms var(--ease-out),
+        color 200ms var(--ease-out);
+}
+.es-tile.m-quick {
+    --mode: var(--red);
+}
+.es-tile.m-long {
+    --mode: var(--green);
+}
+.es-tile.m-duel {
+    --mode: var(--blue);
+}
+.es-tile .es-mode-ic {
+    width: 32px;
+    height: 32px;
+    filter: saturate(0.6) brightness(0.85);
+    transition: filter 200ms var(--ease-out);
+}
+.es-tile.m-quick .es-mode-ic,
+.es-tile.m-duel .es-mode-ic {
+    color: #fff;
+}
+.es-tile b {
+    max-width: 100%;
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    line-height: 1.15;
+    text-align: center;
+}
+/* com 5 placas (copa em andamento) a escolhida alarga pro nome dela caber: "Relâmpago" é uma palavra só e passava da
+   borda da placa no 390, descentralizada */
+.es-rail.many .es-tile {
+    transition-property: transform, filter, background-color, color, flex-grow;
+}
+.es-rail.many .es-tile.on {
+    flex-grow: 1.7;
+}
+/* 320: nome em 10 px (o mínimo do guia), em até 2 linhas; a placa perde 1 px de borda e quase todo o respiro do lado
+   pra "Relâmpago" caber inteiro. Com 5 placas (copa em andamento) não cabe: a escolhida alarga com o nome e as outras
+   ficam só com o ícone (o nome vai no leitor de tela e embaixo do JOGAR quando ela é escolhida) */
+@media (max-width: 359px) {
+    .es-rail {
+        gap: 3px;
+    }
+    .es-tile {
+        padding: 6px 1px 7px;
+        border-width: 2px;
+    }
+    .es-tile b {
+        font-size: 12px;
+    }
+    .es-rail.many .es-tile.on {
+        flex-grow: 2;
+    }
+    .es-rail.many .es-tile:not(.on) b {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+}
+/* a escolhida sobe, acende e ganha a borda azul (escolhido = azul, brand guide); a cor do modo fica só no ícone */
+.es-tile.on {
+    transform: translateY(-5px);
+    color: #fff;
+    background: #2f3d82;
+    border-color: var(--blue-hi);
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 22%),
+        0 0 0 2px var(--cb-ink),
+        0 7px 0 var(--cb-ink);
+}
+.es-tile.on .es-mode-ic {
+    filter: none;
+}
+.es-tile:hover:not(.on) {
+    filter: brightness(1.15);
+}
+.es-tile:active {
+    transform: translateY(1px);
+}
+.es-tile:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.es-tile:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+/* deitado baixinho: placas só com ícone (o nome vai no JOGAR e no leitor de tela) */
+@media (orientation: landscape) and (max-height: 400px) {
+    .es-tile {
+        padding: 4px;
+    }
+    .es-tile b {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+    }
+}
+[data-reduce-motion="true"] .es-tile.on {
+    transform: none;
+}
+
+/* ---------- fundo de palco (Backdrops.tsx): o lugar atrás do Duelo, da Liga e da Copa do Dia ---------- */
+.amb-bd {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    animation: screen-in var(--dur-ui) var(--ease-out) backwards;
+}
+/* a quadra sobe: o par do duelo fica no terço de cima, o conteúdo do palco embaixo. O neon do Arcade é da Home */
+.amb-bd .ar-scene {
+    --wall-top: 64px;
+    --ui-h: 58%;
+}
+.amb-bd :is(.ar-neon, .ar-lamp) {
+    display: none;
+}
+@media (max-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 44px;
+        --ui-h: 64%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .ar-scene {
+        --wall-top: 70px;
+        --ui-h: 47%;
+    }
+}
+/* deitado: o conteúdo na coluna da esquerda e a quadra à direita, como na aba da Home */
+@media (orientation: landscape) and (max-height: 520px) {
+    .amb-bd .ar-scene {
+        --wall-top: 50px;
+        --ui-h: 0px;
+    }
+}
+/* Estádio (Copa do Dia): a arquibancada sobe pra baixo da placa e o Pokémon da figurinha fica no vão do palco */
+.amb-bd .es-scene {
+    --stand-top: 14%;
+}
+@media (max-height: 700px) {
+    .amb-bd .es-scene {
+        --stand-top: 9%;
+    }
+}
+/* 320x640: a placa do título (mais alta com o nome em 2 linhas) cobria a faixa do clube na arquibancada */
+@media (max-width: 359px) and (max-height: 700px) and (orientation: portrait) {
+    .amb-bd .es-scene {
+        --stand-top: 14%;
+    }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    .amb-bd .es-captain {
+        top: 19cqh;
+    }
+}
+
+/* PC (1024 px ou mais): a barra de abas com rótulo de 12 px e ícone maior (10 px sumia numa tela de 1440) */
+@media (min-width: 1024px) and (min-height: 700px) {
+    .amb-tab-lbl {
+        font-size: 12px;
+    }
+    .amb-tab .hud-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* Sede: o texto da missão no botão das Missões fica numa linha só (com o número ao lado) */
+.sd-ui .rm-go .cup-go-txt {
+    min-width: 0;
+    flex: 1;
+}
+.sd-ui .rm-go .cup-go-txt small {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

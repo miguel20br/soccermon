@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { abilityEffect } from './abilities';
 import type { Command } from './commands';
 import { FUTSAL_5 } from './config';
-import { species } from './data';
+import { MOVES, SPECIES, species } from './data';
+import { monProblems } from './duel-validate';
 import { createInstance } from './instance';
 import { checkEvolutions, createMatch, ownGoalX, step } from './match';
-import { defaultMoveset, MOVE_EXPLAIN, MOVE_TRAITS, MOVE_TUNING, moveProfile } from './moves';
+import { defaultMoveset, MOVE_EXPLAIN, MOVE_TRAITS, MOVE_TUNING, moveBehavior, moveProfile } from './moves';
 import { Rng } from './rng';
 import type { MatchEvent, MatchState, TeamSetup } from './state';
 import { len, v } from './vec';
@@ -508,5 +509,125 @@ describe('traços de golpe: bola parada, intervalo e fim', () => {
         const ev = run(s, { 5: { type: 'useMove', slot: 0 } });
         expect(target.status).toBeNull();
         expect(ev.some((e) => e.type === 'ability' && e.by === 3 && e.blocked)).toBe(true);
+    });
+});
+
+describe('revisão dos golpes (docs/planos/golpes-revisao.md)', () => {
+    it('todo Pokémon tem 1 golpe de cada tipo dele quando o learnset tem (fora a Butterfree)', () => {
+        const bad: string[] = [];
+        for (const sp of SPECIES) {
+            if (sp.id === 129 || sp.id === 12) continue;
+            const ms = defaultMoveset(sp);
+            for (const t of sp.types)
+                if (sp.learnset.some((m) => MOVES[m].type === t) && !ms.some((m) => MOVES[m].type === t))
+                    bad.push(`${sp.name} (${t})`);
+        }
+        expect(bad).toEqual([]);
+    });
+
+    it('nenhum moveset leva 2 golpes de mesmo efeito (fora Ponyta e Tangela, que o Miguel ainda vai ver)', () => {
+        const bad = SPECIES.filter((sp) => {
+            if (sp.id === 77 || sp.id === 114) return false;
+            const b = defaultMoveset(sp).map(moveBehavior);
+            return new Set(b).size !== b.length;
+        }).map((sp) => sp.name);
+        expect(bad).toEqual([]);
+    });
+
+    it('as trocas decididas: Gengar com Sludge e o combo do Hypnosis, Hitmonchan com Counter, Gyarados sem Splash', () => {
+        expect([...defaultMoveset(species(94))].sort()).toEqual(['dreameater', 'hypnosis', 'nightshade', 'sludge']);
+        expect([...defaultMoveset(species(107))].sort()).toEqual(['counter', 'firepunch', 'icepunch', 'thunderpunch']);
+        expect(defaultMoveset(species(130))).toContain('hyperbeam');
+        expect(SPECIES.filter((sp) => defaultMoveset(sp).includes('splash')).map((sp) => sp.id)).toEqual([129]);
+    });
+
+    it('Duelo aceita carta salva com o moveset de antes (Gengar com Confuse Ray) e recusa golpe fora do learnset', () => {
+        const mon = { speciesId: 94, ability: 'cursedbody', shiny: false, taught: [] as string[] };
+        const ab = species(94).abilities[0];
+        const old = { ...mon, ability: ab, moves: ['dreameater', 'nightshade', 'confuseray', 'hypnosis'] };
+        expect(monProblems(old, 'x')).toEqual([]);
+        expect(monProblems({ ...old, moves: ['dreameater', 'sludge'] }, 'x')).toEqual([]);
+        expect(monProblems({ ...old, moves: ['surf'] }, 'x')).not.toEqual([]);
+    });
+
+    it('C1 Harden: o próximo carrinho sofrido não tira a bola', () => {
+        const s = scene({}, { 0: ['harden'] });
+        s.players[5].pos = v(20, 10);
+        s.players[0].pos = v(21, 10);
+        giveBall(s, 5);
+        run(s, { 5: { type: 'useMove', slot: 0 } });
+        s.players[0].tackleCooldown = 0;
+        const ev = run(s, { 0: { type: 'tackle', targetId: 5 } });
+        expect(traits(ev, 'curl')).toHaveLength(1);
+        expect(s.ball.owner).toBe(5);
+    });
+
+    it('C2 Slam: desarme de longe (2,6 m) quando o golpe acerta', () => {
+        let tried = 0;
+        for (let i = 0; i < 12 && tried < 3; i++) {
+            const s = scene({ 0: ['slam'] }, {}, `slam-${i}`);
+            s.players[5].pos = v(20, 10);
+            s.players[0].pos = v(22.6, 10);
+            giveBall(s, 5);
+            const ev = run(s, {
+                0: [
+                    { type: 'useMove', slot: 0 },
+                    { type: 'tackle', targetId: 5 },
+                ],
+            });
+            const used = ev.find((e) => e.type === 'move');
+            if (used?.type !== 'move' || !used.hit) continue;
+            tried++;
+            expect(ev.some((e) => e.type === 'tackle' && e.by === 0)).toBe(true);
+        }
+        expect(tried).toBeGreaterThan(0);
+    });
+
+    it('C3 Amnesia sobe passe, chute e leitura (Special +2); as paredes não sobem atributo', () => {
+        const s = scene({ 0: ['amnesia', 'lightscreen'] });
+        run(s, { 0: { type: 'useMove', slot: 0 } });
+        const attrs = s.players[0].buffs.map((b) => b.attr).sort();
+        expect(attrs).toEqual(['passing', 'positioning', 'shooting']);
+        expect(s.players[0].buffs.every((b) => Math.abs(b.factor - 1.14) < 1e-9)).toBe(true);
+        const w = scene({ 0: ['lightscreen'] });
+        run(w, { 0: { type: 'useMove', slot: 0 } });
+        expect(w.players[0].buffs).toEqual([]);
+        expect(w.teams[0].screens.light).toBeGreaterThan(0);
+    });
+
+    it('C4 Tri Attack: o secundário queima, congela ou paralisa', () => {
+        const seen = new Set<string>();
+        for (let i = 0; i < 40; i++) {
+            const s = scene({ 0: ['triattack'] }, {}, `tri-${i}`);
+            s.players[0].pos = v(20, 10);
+            s.players[5].pos = v(22, 10);
+            run(s, { 0: { type: 'useMove', slot: 0 } });
+            const st = s.players[5].status?.kind;
+            if (st) seen.add(st);
+        }
+        expect([...seen].every((k) => ['brn', 'frz', 'par'].includes(k))).toBe(true);
+        expect(seen.size).toBeGreaterThanOrEqual(2);
+    });
+
+    it('C5 Explosion pega a 3,5 m; Self-Destruct não', () => {
+        const hits = (move: string) => {
+            const s = scene({ 0: [move] }, {}, `boom-${move}`);
+            s.players[0].pos = v(20, 10);
+            s.players[5].pos = v(23.5, 10);
+            const ev = run(s, { 0: { type: 'useMove', slot: 0 } });
+            return ev.some((e) => e.type === 'knockback' && e.target === 5);
+        };
+        expect(hits('explosion')).toBe(true);
+        expect(hits('selfdestruct')).toBe(false);
+    });
+
+    it('Fly com a bola leva a bola só 2 m rumo ao gol', () => {
+        const s = scene({ 0: ['fly'] });
+        s.players[0].pos = v(15, 10);
+        giveBall(s, 0);
+        run(s, { 0: { type: 'useMove', slot: 0 } });
+        const air = s.players[0].fx.air;
+        if (air) expect(Math.abs(air.to.x - air.from.x)).toBeCloseTo(MOVE_TUNING.airCarry, 0);
+        expect(MOVE_TUNING.airCarry).toBe(2);
     });
 });

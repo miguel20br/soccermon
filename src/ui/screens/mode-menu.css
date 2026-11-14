@@ -1,0 +1,1656 @@
+/* Menu de modos (antes da Home, ModeMenu.tsx) e as peças que os conceitos do ?lab=menu-modos usam. Prefixo mm-. */
+.mm-root {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* fundo com profundidade: luz do refletor no alto, roxo do pacote embaixo e a vinheta nas beiradas */
+    background:
+        radial-gradient(130% 90% at 50% 40%, transparent 50%, rgb(3 5 16 / 75%) 100%),
+        radial-gradient(90% 55% at 50% -5%, #34449a 0%, transparent 70%),
+        radial-gradient(70% 45% at 90% 105%, rgb(125 62 224 / 38%), transparent 70%),
+        radial-gradient(60% 40% at 0% 100%, rgb(30 139 255 / 18%), transparent 70%), var(--bg);
+    color: var(--text);
+}
+/* raios parados atrás de tudo (bem fracos, presos ao centro). Não giram: a camada tem 240vw e, girando, era
+   recomposta a cada quadro (no celular, o maior peso do menu parado) */
+.mm-root::before {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    left: 50%;
+    top: 30%;
+    width: max(calc(240 * var(--vw)), calc(240 * var(--vh)));
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(rgb(255 203 5 / 7%) 0 7deg, transparent 7deg 20deg);
+    mask: radial-gradient(closest-side, #000 10%, transparent 70%);
+    pointer-events: none;
+}
+/* poeira de luz subindo devagar: pontinhos dourados e azuis num ladrilho de 240 px */
+.mm-root::after {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: calc(100% + 240px);
+    background:
+        radial-gradient(circle, rgb(255 203 5 / 55%) 1.5px, transparent 2px) 30px 40px / 240px 240px,
+        radial-gradient(circle, rgb(160 190 255 / 45%) 1.5px, transparent 2px) 170px 150px / 240px 240px,
+        radial-gradient(circle, rgb(255 255 255 / 30%) 1px, transparent 1.5px) 110px 210px / 240px 240px,
+        radial-gradient(circle, rgb(255 203 5 / 30%) 1px, transparent 1.5px) 220px 90px / 240px 240px;
+    pointer-events: none;
+    animation: mm-dust 24s linear infinite;
+}
+@keyframes mm-dust {
+    to {
+        transform: translateY(-240px);
+    }
+}
+.mm-root > div:first-child {
+    min-height: calc(100 * var(--dvh));
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 16px 16px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+/* ---------- topo: logo, treinador e a engrenagem ---------- */
+.mm-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+}
+.mm-top .top-actions {
+    margin-left: auto;
+}
+.mm-brand {
+    flex: none;
+    display: flex;
+}
+.mm-logo {
+    width: clamp(120px, calc(34 * var(--vw)), 220px);
+    height: auto;
+    flex: none;
+}
+.mm-symbol {
+    display: none;
+    width: 40px;
+    height: 40px;
+}
+.mm-top .k-chip,
+.mm-top > :nth-child(2) {
+    min-width: 0;
+}
+
+/* ---------- peças em comum ---------- */
+.mm-card,
+.mm-poster,
+.mm-slice {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    box-shadow:
+        inset 0 0 0 3px var(--frame-in),
+        var(--lift-2);
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
+}
+.mm-top {
+    animation-delay: 0ms;
+}
+@keyframes mm-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.9);
+    }
+}
+button.mm-card,
+.mm-poster,
+.mm-slice {
+    cursor: pointer;
+}
+.mm-ribbon {
+    position: absolute;
+    z-index: 4;
+    top: 12px;
+    left: -3px;
+    padding: 4px 10px 4px 12px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    border: 3px solid var(--cb-ink);
+    border-left: 0;
+    border-radius: 0 6px 6px 0;
+    font:
+        700 10px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+    box-shadow: var(--lift-1);
+}
+.mm-when {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    align-self: flex-start;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: #1b2147;
+    box-shadow: inset 0 0 0 2px #2a3366;
+    color: var(--yellow);
+    font:
+        700 10px / 1.1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.mm-when .hud-icon {
+    width: 13px;
+    height: 13px;
+    stroke-width: 3;
+    flex: none;
+}
+.mm-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.mm-chips > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px 4px 6px;
+    border-radius: 6px;
+    background: #141a3d;
+    box-shadow:
+        inset 0 0 0 2px #2c3670,
+        0 2px 0 var(--cb-ink);
+    font:
+        700 12px / 1.1 "Galmuri11",
+        monospace;
+    white-space: nowrap;
+}
+.mm-chips .hud-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--yellow);
+    flex: none;
+}
+.mm-play {
+    width: 100%;
+    min-height: 64px;
+    flex-direction: column;
+    gap: 2px;
+}
+.mm-play b {
+    font-size: 28px;
+    line-height: 1;
+    -webkit-text-stroke: calc(1em / 14) #fff;
+}
+.mm-play small {
+    font-size: 12px;
+}
+/* nome do modo: a mesma letra gorda do JOGAR (Galmuri14 em negrito com o contorno de 2 px), em caixa alta */
+.mm-card .cb-num,
+.mm-poster .cb-num,
+.mm-slice .cb-num {
+    display: block;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    /* um pixel da fonte a mais em cada traço (a Galmuri14 grande fica fina): tamanhos em múltiplos de 14 */
+    -webkit-text-stroke: calc(1em / 14) #fff;
+}
+
+/* ---------- as cenas: fundo no cartão inteiro, palco 16:10 preso embaixo ---------- */
+.mm-sc {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    container-type: size;
+}
+.mm-stage {
+    position: absolute;
+    left: 50%;
+    bottom: var(--sb, 0px);
+    z-index: 1;
+    width: var(--sw, min(100cqw, 170cqh));
+    aspect-ratio: 1.6;
+    translate: -50% 0;
+}
+.mm-pt {
+    position: absolute;
+    width: 0;
+    height: 0;
+    z-index: 2;
+}
+.mm-pt .fs-sprite {
+    position: absolute;
+}
+
+/* ---------- o Estádio (as peças de verdade, src/ui/ambientes/Estadio.tsx): céu, torcida, LED e a quadra ---------- */
+.mm-sc-atual {
+    --px: 2px;
+    --stand-top: calc(var(--px) * 6);
+    /* no celular, 3 fileiras de torcida (2 na tela baixa): a quadra fica com o espaço */
+    --stand-h: calc(var(--px) * 34);
+    background: linear-gradient(180deg, #070b1e 0%, #111a44 60%, #1f2b62 100%);
+}
+/* as fileiras de cima somem atrás da cobertura (a faixa e o degrau ficam embaixo, como no Estádio) */
+.mm-sc-atual .es-stand {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    clip-path: inset(calc(var(--px) * -5) 0 0 0);
+}
+.mm-sc-atual .es-row {
+    flex: none;
+}
+@media (max-height: 700px), (max-width: 359px) {
+    .mm-sc-atual {
+        --stand-h: calc(var(--px) * 24);
+    }
+}
+@media (min-width: 900px) {
+    .mm-sc-atual {
+        --px: 3px;
+        --stand-h: calc(var(--px) * 44);
+    }
+}
+@media (min-width: 1200px) and (min-height: 800px) {
+    .mm-sc-atual {
+        --px: 4px;
+    }
+}
+/* a roda de passes: 3,6 s pra volta toda, 1,2 s por toque (a bola chega, para no pé e sai no bote do próximo) */
+.mm-court {
+    --lap: 3.6s;
+}
+.mm-shadow {
+    position: absolute;
+    left: calc(var(--px) * -6);
+    top: calc(var(--px) * -1.5);
+    width: calc(var(--px) * 12);
+    height: calc(var(--px) * 3);
+    border-radius: 50%;
+    background: rgb(0 0 0 / 35%);
+}
+.mm-kick {
+    z-index: 19;
+    animation: mm-kick var(--lap) var(--ease-out) infinite;
+    animation-delay: calc(var(--k) * var(--lap) / 3);
+}
+@keyframes mm-kick {
+    0% {
+        transform: none;
+    }
+    3% {
+        transform: scale(1.12, 0.86);
+    }
+    8% {
+        transform: translateY(calc(var(--px) * -4)) scale(0.96, 1.06);
+    }
+    13%,
+    100% {
+        transform: none;
+    }
+}
+.mm-pass {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 20;
+    width: 0;
+    height: 0;
+    translate: 27cqw 46cqh;
+    animation: mm-pass var(--lap) infinite;
+}
+.mm-pass .mm-shadow {
+    left: calc(var(--sc, 2) * -4px);
+    width: calc(var(--sc, 2) * 8px);
+    height: calc(var(--sc, 2) * 2.5px);
+}
+/* a bola sai do pé de quem toca (o ponto dos PASS em ModeMenu.tsx) e para no pé do próximo */
+@keyframes mm-pass {
+    0% {
+        translate: 27cqw 46cqh;
+        animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+    }
+    28%,
+    33.3% {
+        translate: 73cqw 36cqh;
+        animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+    }
+    61%,
+    66.6% {
+        translate: 56cqw 84cqh;
+        animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1);
+    }
+    94%,
+    100% {
+        translate: 27cqw 46cqh;
+    }
+}
+.mm-ball {
+    position: absolute;
+    left: calc(var(--sc, 2) * -4px);
+    top: calc(var(--sc, 2) * -8px);
+    width: calc(var(--sc, 2) * 8px);
+    height: calc(var(--sc, 2) * 8px);
+    animation: mm-hop calc(var(--lap) / 3) infinite;
+}
+@keyframes mm-hop {
+    0% {
+        transform: none;
+        animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+    }
+    38% {
+        transform: translateY(calc(var(--px) * -8)) rotate(200deg);
+        animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4);
+    }
+    78%,
+    100% {
+        transform: rotate(400deg);
+    }
+}
+
+/* ---------- pacote: o do jogo (PackArt), com a carta ouro de verdade espiando ---------- */
+.mm-sc-ult {
+    background: radial-gradient(circle at 58% 62%, #8b4cf0 0%, #3d1786 48%, #1a0a45 100%);
+}
+.mm-rays {
+    position: absolute;
+    left: 58%;
+    top: 60%;
+    width: max(200cqw, 200cqh);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(rgb(255 203 5 / 26%) 0 8deg, transparent 8deg 24deg);
+    mask: radial-gradient(closest-side, #000 15%, transparent 60%);
+    animation: mm-spin 24s linear infinite;
+}
+@keyframes mm-spin {
+    to {
+        rotate: 360deg;
+    }
+}
+.mm-pack {
+    position: absolute;
+    left: 60%;
+    /* pela fatia (cq), não pelo palco: na fatia fechada o pacote e a carta ficam grandes; nunca mais alto que o espaço
+       acima do texto (--sb) com a carta subindo (um terço a mais), nem mais largo que a fatia */
+    bottom: 6cqh;
+    height: min(64cqh, calc((94cqh - var(--sb, 0px) - 8px) * 0.75), 110cqw);
+    aspect-ratio: 63 / 88;
+    translate: -50% 0;
+    container-type: inline-size;
+    transform-origin: 50% 90%;
+    animation: mm-shake 3.2s var(--ease-out) infinite;
+}
+.mm-pack .cpack {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    animation: none;
+}
+@keyframes mm-shake {
+    0%,
+    2%,
+    100% {
+        transform: none;
+    }
+    5% {
+        transform: rotate(-6deg);
+    }
+    8% {
+        transform: rotate(6deg);
+    }
+    11% {
+        transform: rotate(-4deg);
+    }
+    14% {
+        transform: rotate(3deg) scale(1.04);
+    }
+    18% {
+        transform: none;
+    }
+}
+/* o brilho do pacote e o da carta de verdade correm por background-position com blend (repintam a cada quadro): no
+   menu eles ficam parados e quem passa é o foil do .mm-peek::after, só com transform */
+.mm-pack .cpack *,
+.mm-pack .cpack *::before,
+.mm-pack .cpack *::after,
+.mm-pack .pc2 *,
+.mm-pack .pc2 *::before,
+.mm-pack .pc2 *::after {
+    animation: none;
+}
+/* depois do tremor, a carta ouro sobe do pacote: a carta Metal do jogo, com o Pokémon em silhueta (quem é?) */
+.mm-peek {
+    position: absolute;
+    z-index: 1;
+    left: 7%;
+    top: 0;
+    width: 86%;
+    border-radius: calc(86cqw / 15 * 0.8);
+    overflow: hidden;
+    transform: translateY(-38%);
+    animation: mm-peek 3.2s var(--ease-pop) infinite;
+}
+.mm-peek .pc2 {
+    width: 100%;
+    font-size: calc(86cqw / 15);
+}
+.mm-peek .m-art {
+    filter: brightness(0) drop-shadow(0 0 2px rgb(255 255 255 / 60%));
+}
+.mm-peek :is(.m-types, .m-tag, .pc2-glare, .m-pos, .m-name, .m-stats) {
+    visibility: hidden;
+}
+/* a nota não entrega quem é: "?" no lugar */
+.mm-peek .m-ovr {
+    font-size: 0;
+}
+.mm-peek .m-ovr::after {
+    content: "?";
+    --gs: calc(86cqw / 15 * 2.9);
+    font-size: var(--gfs, calc(86cqw / 15 * 2.9));
+}
+/* o brilho do foil passando (só transform: o background-position com blend repintava a carta a cada quadro) */
+.mm-peek::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 60%;
+    z-index: 3;
+    background: linear-gradient(115deg, transparent 20%, rgb(255 255 255 / 38%) 50%, transparent 80%);
+    transform: translateX(-110%);
+    animation: mm-foil 3.2s linear infinite;
+}
+@keyframes mm-foil {
+    0%,
+    30% {
+        transform: translateX(-110%);
+    }
+    65%,
+    100% {
+        transform: translateX(180%);
+    }
+}
+@keyframes mm-peek {
+    0%,
+    16% {
+        transform: translateY(6%);
+    }
+    24%,
+    94% {
+        transform: translateY(-38%);
+    }
+    100% {
+        transform: translateY(6%);
+    }
+}
+
+/* ---------- ginásio de Kanto ao fim da tarde ---------- */
+.mm-sc-his {
+    background: linear-gradient(180deg, #2b1f5c 0%, #8d3f87 45%, #ff9a5a 100%);
+}
+.mm-ground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(var(--sw, min(100cqw, 170cqh)) / 1.6 * 0.3 + var(--sb, 0px));
+    background:
+        radial-gradient(circle at 2px 2px, #4f8a49 1.5px, transparent 2px) 0 0 / 9px 7px,
+        #3b6b3a;
+    box-shadow: 0 -4px 0 #2e5530;
+}
+.mm-sun {
+    position: absolute;
+    left: 84%;
+    top: 40%;
+    width: 16%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    border-radius: 50%;
+    background: #ffd27a;
+    box-shadow: 0 0 0 6px rgb(255 210 122 / 30%);
+}
+/* o halo respira por transform/opacity (box-shadow animado repintava a cena) */
+.mm-sun::after {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: rgb(255 210 122 / 18%);
+    animation: mm-sun 5s ease-in-out infinite alternate;
+}
+@keyframes mm-sun {
+    from {
+        transform: scale(0.75);
+        opacity: 0.4;
+    }
+}
+.mm-gym {
+    position: absolute;
+    left: 3%;
+    bottom: 29%;
+    width: 62%;
+    aspect-ratio: 100 / 60;
+}
+.mm-gym-art {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+/* a insígnia da Rocha no frontão */
+.mm-gym-crest {
+    position: absolute;
+    left: 50%;
+    top: 22%;
+    width: 9%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+}
+.mm-gym-crest .kb-badge {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+/* as 8 insígnias na faixa da fachada, acendendo uma por uma */
+.mm-badges {
+    position: absolute;
+    left: 10%;
+    width: 80%;
+    top: 51.7%;
+    height: 11.7%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+.mm-badges > span {
+    height: 80%;
+    aspect-ratio: 1;
+}
+.mm-badges .kb-badge {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: grayscale(1) brightness(0.45);
+    animation: mm-badge 6.4s steps(1, end) infinite;
+    animation-delay: calc(var(--i) * 0.4s);
+}
+@keyframes mm-badge {
+    0% {
+        filter: none;
+        transform: scale(1.35);
+    }
+    6%,
+    55% {
+        filter: none;
+        transform: none;
+    }
+    60%,
+    100% {
+        filter: grayscale(1) brightness(0.45);
+        transform: none;
+    }
+}
+/* a placa do ginásio na frente, em dois postes (a do FireRed) */
+.mm-sign {
+    position: absolute;
+    z-index: 2;
+    left: 3%;
+    bottom: 13%;
+    padding: 2px 5px;
+    background: #f3ead2;
+    border: 2px solid var(--cb-ink);
+    border-radius: 2px;
+    box-shadow:
+        inset 0 -2px 0 #c9b98f,
+        0 2px 0 rgb(0 0 0 / 35%);
+    color: var(--cb-ink);
+    font:
+        700 10px / 1.1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+.mm-sign::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 100%;
+    left: 20%;
+    right: 20%;
+    height: 7px;
+    border-inline: 3px solid #6b4a2a;
+}
+.mm-path {
+    position: absolute;
+    left: 26%;
+    bottom: 0;
+    width: 16%;
+    height: 30%;
+    background: #c9a46a;
+    clip-path: polygon(30% 0, 70% 0, 100% 100%, 0 100%);
+}
+.mm-bulba {
+    left: 52%;
+    top: 97%;
+}
+.mm-blue {
+    position: absolute;
+    z-index: 3;
+    width: 0;
+    height: 0;
+}
+.mm-blue img {
+    position: absolute;
+    left: -40px;
+    bottom: 0;
+    width: 80px;
+    height: 80px;
+    transform: scaleX(-1);
+}
+/* o balão sai da cabeça do Blue (a ponta aponta pra ele) e cresce pra esquerda */
+.mm-say {
+    position: absolute;
+    right: -26px;
+    bottom: 84px;
+    padding: 5px 8px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 6px;
+    background: #f8f8f0;
+    color: #1d1d2c;
+    font:
+        12px / 1.15 "Galmuri11",
+        monospace;
+    white-space: nowrap;
+    box-shadow: 0 2px 0 rgb(0 0 0 / 35%);
+    transform-origin: calc(100% - 26px) 100%;
+    animation: mm-say 4.8s var(--ease-pop) infinite;
+}
+.mm-say::after {
+    content: "";
+    position: absolute;
+    right: 20px;
+    top: 100%;
+    width: 10px;
+    height: 7px;
+    background: var(--cb-ink);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+@keyframes mm-say {
+    0%,
+    6% {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+    12%,
+    78% {
+        opacity: 1;
+        transform: none;
+    }
+    84%,
+    100% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* ========================================================================== fatias na diagonal (estilo Smash) */
+/*
+ * Cada fatia: o fundo recortado na diagonal (.mm-slice-bg, com a cena), o herói por cima e fora do recorte (fura a
+ * borda, como a arte de lutador) e o nome numa placa inclinada. As fatias ficam sobre o fundo creme da pilha: o vão
+ * entre os recortes vira a divisória grossa. A fatia não tem transform nem filtro parado (senão vira camada própria e o
+ * herói de uma passa por cima do nome da outra): os nomes ficam sempre por cima dos heróis.
+ */
+.mm-slice {
+    --g: 5px;
+    pointer-events: none;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: none;
+    animation: mm-slide var(--dur-tela) var(--ease-out) backwards;
+    animation-delay: calc(var(--n, 0) * 70ms);
+}
+.mm-slice > :is(.mm-slice-bg, .mm-slice-txt) {
+    pointer-events: auto;
+}
+@keyframes mm-slide {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--from, -1) * 48px));
+    }
+}
+.mm-s-historia {
+    --from: 1;
+}
+/* a cor de cada modo: Copa na quadra e no dourado, Ultimate no roxo do pacote, História no pôr do sol */
+.mm-s-atual {
+    --mc: #ffb31a;
+    --mc2: #f0641e;
+}
+.mm-s-ultimate {
+    --mc: #a56bff;
+    --mc2: #5b22c9;
+}
+.mm-s-historia {
+    --mc: #ff6f91;
+    --mc2: #e84a3c;
+}
+.mm-slice-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--mc2);
+    clip-path: var(--clip);
+}
+/* camada fixa pro FLIP: sem isso o fim da animação desmontava a camada e a cena sumia um quadro (a fatia piscava na
+   cor do modo, 01/11) */
+.mm-slice-bg,
+.mm-slice-bg > .mm-sc {
+    will-change: transform;
+}
+/* fechada um tico mais calma que a aberta, nunca apagada: um véu escuro por cima (filtro na cena inteira fazia cada
+   quadro de sprite repintar a fatia toda) */
+.mm-slice-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: rgb(0 0 0 / 15%);
+    pointer-events: none;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice:is(.on, :hover, :focus-visible) .mm-slice-bg::before {
+    opacity: 0;
+}
+/* os trancados bem mais escuros: dá pra ver a cena, mas fica claro que ainda não abriu */
+.mm-slice.mm-locked .mm-slice-bg::before {
+    background: rgb(10 6 28 / 50%);
+}
+.mm-slice.mm-locked:is(.on, :hover, :focus-visible) .mm-slice-bg::before {
+    opacity: 0.45;
+}
+/* os trancados em preto e branco (cena, herói, fundo e placa); a faixa e o selo da data seguem no amarelo */
+.mm-slice.mm-locked {
+    --mc: #9d9aa6;
+    --mc2: #45434d;
+}
+.mm-slice.mm-locked :is(.mm-slice-bg > .mm-sc, .mm-hero) {
+    filter: grayscale(1);
+}
+/* o banho da cor do modo por cima da cena (onde vai o nome) */
+.mm-slice-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: linear-gradient(var(--wash-dir, 0deg), var(--mc2) 0%, transparent var(--wash, 42%));
+    opacity: 0.92;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .mm-slice-bg::after {
+    opacity: 0.7;
+}
+/* raios girando atrás do herói, só na aberta */
+.mm-burst {
+    position: absolute;
+    z-index: 2;
+    left: var(--hx, 70%);
+    top: var(--hy, 50%);
+    width: 150%;
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: repeating-conic-gradient(rgb(255 255 255 / 30%) 0 7deg, transparent 7deg 20deg);
+    mask: radial-gradient(closest-side, #000 8%, transparent 60%);
+    opacity: 0;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice.on .mm-burst {
+    opacity: 1;
+    animation: mm-spin 30s linear infinite;
+}
+/* na fatia, quem gira é o .mm-burst (só na aberta): dois raios girando juntos dobravam a conta */
+.mm-slice .mm-rays {
+    animation: none;
+}
+/* as insígnias só acendem com a fatia aberta (fechada, elas nem aparecem) */
+.mm-slice:not(.on) .mm-badges .kb-badge {
+    animation: none;
+}
+.mm-slice-txt {
+    position: absolute;
+    z-index: 6;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+/* o nome numa placa de luta: inclinada, na cor do modo, com o contorno e a sombra dura */
+.mm-plate {
+    position: relative;
+    z-index: 0;
+    /* embaixo, a ponta esquerda desce com a inclinação: a margem segura os itens */
+    margin: 2px 0 8px 4px;
+    padding: 3px 12px 5px;
+    rotate: -3deg;
+}
+.mm-plate::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(180deg, var(--mc) 0 50%, var(--mc2) 50% 100%);
+    border: 3px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow:
+        inset 0 3px 0 rgb(255 255 255 / 35%),
+        4px 4px 0 var(--cb-ink);
+    transform: skewX(-14deg);
+}
+.mm-slice .cb-num {
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
+}
+.mm-slice.on .cb-num {
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+}
+/* os itens do modo só na fatia aberta */
+.mm-slice-more {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice-more > * {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+.mm-slice.on .mm-slice-more {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+/* o selo do trancado: "EM BREVE" na tinta e a data grande no dourado, inclinado como a placa do nome */
+.mm-soon {
+    display: inline-flex;
+    align-items: stretch;
+    margin-left: 4px;
+    border: 2px solid var(--cb-ink);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--cb-ink);
+    rotate: -3deg;
+    white-space: nowrap;
+}
+.mm-soon > span {
+    display: flex;
+    align-items: center;
+    padding: 2px 6px 1px;
+    background: var(--cb-ink);
+    color: var(--yellow);
+    font:
+        700 12px / 1 "Galmuri11",
+        monospace;
+    letter-spacing: 0.06em;
+}
+.mm-soon > b {
+    padding: 3px 8px 2px;
+    background: var(--yellow);
+    color: var(--cb-ink);
+    font:
+        700 17px / 1 "Galmuri14",
+        monospace;
+}
+.mm-slice.on .mm-soon {
+    animation: mm-when-pop 320ms var(--ease-pop);
+}
+/* tocar num trancado: a placa da data acende */
+.mm-slice .mm-when {
+    transition:
+        background-color var(--dur-ui) var(--ease-out),
+        color var(--dur-ui) var(--ease-out);
+}
+.mm-slice.on .mm-when {
+    background: var(--yellow);
+    color: var(--cb-ink);
+    animation: mm-when-pop 320ms var(--ease-pop);
+}
+@keyframes mm-when-pop {
+    40% {
+        transform: scale(1.12);
+    }
+}
+.mm-slice .mm-badges {
+    transition: opacity var(--dur-tela) var(--ease-out);
+}
+.mm-slice:not(.on) .mm-badges {
+    opacity: 0;
+}
+/* a faixa do clube vai pra direita (o nome do modo fica à esquerda) */
+.mm-slice .es-banner {
+    left: auto;
+    right: 8%;
+    transform: none;
+}
+
+/* ---------- o herói: fora do recorte, por cima da cena e embaixo dos nomes ---------- */
+.mm-hero {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+/* só o do Blue é contêiner (o balão mede a fatia): no capitão e no pacote, contêiner que muda de tamanho ao abrir a
+   fatia refazia o estilo do pacote e da carta inteiros; as medidas deles vão em % da caixa do herói (= a fatia) */
+.mm-hero-historia {
+    container-type: size;
+}
+.mm-cap {
+    left: var(--hx, 70%);
+    top: var(--hy, 80%);
+    z-index: 1;
+    animation: mm-bob 1.2s ease-in-out infinite alternate;
+}
+.mm-cap .mm-shadow {
+    --px: 3px;
+}
+@keyframes mm-bob {
+    to {
+        translate: 0 -3px;
+    }
+}
+.mm-hero .mm-pack {
+    left: var(--hx, 70%);
+    top: auto;
+    bottom: var(--hb, 10%);
+    height: var(--hh, 60%);
+}
+.mm-hero .mm-blue {
+    left: var(--hx, 80%);
+    top: var(--hy, 90%);
+}
+.mm-hero .mm-blue img {
+    left: calc(var(--bs, 80px) / -2);
+    width: var(--bs, 80px);
+    height: var(--bs, 80px);
+}
+.mm-hero .mm-say {
+    bottom: calc(var(--bs, 80px) * 0.95);
+}
+
+/* ---------- JOGAR: o brilho pulsa (na batida da música do menu, ModeMenu.tsx; sem música, sozinho) ---------- */
+.mm-play-ring {
+    position: absolute;
+    z-index: -2;
+    inset: -7px;
+    border: 3px solid var(--yellow);
+    border-radius: 13px;
+    opacity: 0;
+    pointer-events: none;
+}
+/* o brilho em volta: sombra pintada uma vez, só a opacidade anima (filtro animado repintava o botão a cada quadro) */
+.mm-play-glow {
+    position: absolute;
+    z-index: -3;
+    inset: 0;
+    border-radius: 10px;
+    box-shadow: 0 0 14px 3px rgb(255 203 5 / 55%);
+    opacity: 0;
+    pointer-events: none;
+    animation: mm-glow 1.6s ease-in-out infinite;
+}
+@keyframes mm-glow {
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ========================================================================== celular em pé */
+.mm-c-stack {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    /* o herói fura a borda de cima e de baixo, nunca o lado da tela */
+    overflow-x: clip;
+    /* tinta, não creme: o fundo aparece na entrada (antes das fatias) e no meio do FLIP, e o creme piscava (01/11) */
+    background: var(--cb-ink);
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px var(--cb-ink);
+}
+.mm-slice-txt {
+    top: calc(var(--tt, 0px) + 10px);
+}
+/* palco: na largura toda, preso embaixo */
+.mm-slice {
+    --sb: 0px;
+    --sw: min(100cqw, calc(100cqh * 1.6));
+}
+
+/* ---------- c1: as três empilhadas, cortes fortes, a aberta maior ---------- */
+.mm-c1 .mm-c-stack {
+    --cut: 46px;
+    display: flex;
+    flex-direction: column;
+}
+.mm-c1 .mm-slice {
+    flex: 1 1 0;
+    min-height: 150px;
+    margin-top: calc(-1 * var(--cut) + var(--g));
+    --clip: polygon(0 var(--cut), 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --tt: var(--cut);
+}
+.mm-c1 .mm-slice:first-child {
+    margin-top: 0;
+    --clip: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --tt: 0px;
+}
+.mm-c1 .mm-slice:last-child {
+    --clip: polygon(0 var(--cut), 100% 0, 100% 100%, 0 100%);
+}
+.mm-c1 .mm-slice.on {
+    flex-grow: 2.3;
+}
+.mm-c1 .mm-slice {
+    --wash-dir: 180deg;
+}
+.mm-c1 .mm-slice:not(.on) {
+    --sw: min(62cqw, calc((100cqh - var(--cut)) * 1.6));
+}
+.mm-c1 .mm-slice:not(.on) .mm-stage {
+    left: auto;
+    right: 0;
+    translate: none;
+}
+.mm-c1 .mm-s-atual {
+    --hx: 74%;
+    --hy: 86%;
+}
+.mm-c1 .mm-s-ultimate {
+    --hx: 80%;
+    --hb: calc(var(--cut) * 0.6);
+    --hh: min(calc(100% - var(--cut) * 0.3), 150px);
+}
+.mm-c1 .mm-s-historia {
+    --hx: 86%;
+    --hy: 98%;
+    --bs: 80px;
+}
+.mm-c1 .mm-slice.on.mm-s-historia {
+    --bs: 160px;
+}
+
+/* ---------- c2: o Copa grande em cima e os dois trancados lado a lado embaixo (o padrão) ---------- */
+/*
+ * A divisória de cima é uma reta só, de ponta a ponta (cai k da largura W): no Copa é a borda de baixo; nas duas de
+ * baixo, a de cima. A do meio também é inclinada (sl pra cada lado). Contas em cqw (a pilha é o contêiner).
+ */
+.mm-c2 .mm-c-stack {
+    --k: 0.12;
+    --cut: calc(var(--k) * 100cqw);
+    --sl: 18px;
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* os "em breve" bem menores que o Clássico (até o Ultimate abrir, 27/11: `.mm-ut-open`) */
+    grid-template-rows: 3fr 1fr;
+}
+/* o Ultimate abriu: a fileira de baixo volta a ter altura (os tamanhos menores de tela e o FLIP continuam mandando) */
+.mm-c2 .mm-ut-open {
+    grid-template-rows: 1.75fr 1fr;
+}
+.mm-c2 .mm-c-stack.mm-sel-ultimate,
+.mm-c2 .mm-c-stack.mm-sel-historia {
+    grid-template-rows: 0.9fr 1fr;
+}
+.mm-c2 .mm-slice {
+    --g: 6px;
+    min-height: 0;
+}
+.mm-c2 .mm-s-atual {
+    grid-column: 1 / 3;
+    --clip: polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), 0 100%);
+    --wash-dir: 180deg;
+    --wash: 30%;
+    --hx: 82%;
+    --hy: calc(100% - var(--cut) - 14px);
+}
+/* a torcida desce pra baixo do nome (o nome fica no céu, na cor do modo) */
+.mm-c1 .mm-s-atual .mm-sc-atual,
+.mm-c2 .mm-s-atual .mm-sc-atual {
+    --stand-top: 122px;
+}
+.mm-c2 .mm-s-ultimate,
+.mm-c2 .mm-s-historia {
+    margin-top: calc(-1 * var(--cut));
+    --tt: auto;
+}
+.mm-c2 .mm-s-ultimate {
+    margin-right: calc(-1 * var(--sl));
+    /* o pacote mais a carta subindo (um terço a mais) cabem na fatia: a ponta da carta só encosta na divisória */
+    --hh: min(calc((100% - var(--hb)) / 1.3), 170px);
+    --clip: polygon(
+        0 calc(var(--cut) + var(--g)),
+        calc(100% - var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
+        calc(100% - 2 * var(--sl) - var(--g)) 100%,
+        0 100%
+    );
+    --hx: 50%;
+    --hb: 104px;
+}
+.mm-c2 .mm-s-historia {
+    margin-left: calc(-1 * var(--sl));
+    --clip: polygon(
+        calc(2 * var(--sl) + var(--g)) calc(var(--k) * (50cqw - var(--sl)) + var(--g)),
+        100% var(--g),
+        100% 100%,
+        var(--g) 100%
+    );
+    --hx: 72%;
+    --hy: calc(100% - 92px);
+    --bs: 160px;
+}
+/* nome embaixo nas duas de baixo; o palco sobe pra cena caber acima dele */
+.mm-c2 .mm-s-ultimate .mm-slice-txt,
+.mm-c2 .mm-s-historia .mm-slice-txt {
+    top: auto;
+    bottom: 12px;
+}
+.mm-c2 .mm-s-historia .mm-slice-txt {
+    left: calc(var(--sl) + 12px);
+}
+.mm-c2 .mm-s-ultimate .mm-slice-txt {
+    right: calc(var(--sl) + 12px);
+}
+.mm-c2 .mm-s-ultimate,
+.mm-c2 .mm-s-historia {
+    --sb: 64px;
+    --sw: min(100cqw, calc((100cqh - 64px) * 1.6));
+}
+.mm-c2 .mm-s-historia .mm-say {
+    width: max-content;
+    max-width: calc(100cqw - 48px);
+    white-space: normal;
+    font-size: 11px;
+}
+/* aberta, o palco sobe acima do nome e dos itens (eles cobriam o ginásio) */
+.mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on {
+    --sb: 150px;
+    --sw: min(100cqw, calc((100cqh - 150px) * 1.6));
+}
+/* aberta, o pacote e o Blue sobem pros itens caberem embaixo deles */
+.mm-c2 .mm-s-ultimate.on {
+    --hb: 176px;
+}
+.mm-c2 .mm-s-historia.on {
+    --hy: calc(100% - 168px);
+}
+.mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-chips > span {
+    white-space: normal;
+}
+
+/* os itens do modo são uma linha de texto (Copa · Rota Índigo · Duelo · Liga), sem moldura de botão: não são botões */
+.mm-chips {
+    gap: 0 5px;
+}
+.mm-chips > span {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--muted);
+}
+.mm-chips > span:not(:last-child)::after {
+    content: "·";
+    margin-left: 5px;
+}
+/* o que o modo é, numa linha: acima dos itens, no branco do texto (os itens ficam no apagado) */
+.mm-tag {
+    font:
+        12px / 1.25 "Galmuri11",
+        monospace;
+    color: var(--text);
+    white-space: normal;
+    text-shadow: 1px 1px 0 var(--cb-ink);
+}
+.mm-chips .hud-icon {
+    display: none;
+}
+
+/* celular em pé: itens um tico menores (a Galmuri11 no tamanho dela) e, nas duas de baixo, o nome aberto cabe na fatia */
+/* em pé com altura de sobra, o pacote aberto fica acima do AO VIVO */
+@media (max-width: 899px) and (min-width: 360px) and (min-height: 701px) and (orientation: portrait) {
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        --hb: 116px;
+    }
+}
+@media (max-width: 899px) and (orientation: portrait) {
+    .mm-slice .mm-chips > span {
+        font-size: 11px;
+    }
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on .cb-num {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+/* celular baixo (320 x 640) */
+@media (max-height: 700px) and (orientation: portrait) {
+    .mm-c1 .mm-slice {
+        min-height: 128px;
+    }
+    .mm-c1 .mm-c-stack {
+        --cut: 36px;
+    }
+    .mm-c2 .mm-c-stack {
+        grid-template-rows: 1.6fr 1fr;
+    }
+    .mm-c2 .mm-c-stack.mm-sel-ultimate,
+    .mm-c2 .mm-c-stack.mm-sel-historia {
+        grid-template-rows: 0.8fr 1fr;
+    }
+    /* a contagem fica de fora (a data está no selo e no botão de baixo): o nome e os itens cabem na fatia */
+    .mm-c2 .mm-slice-more .mm-when {
+        display: none;
+    }
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia).on {
+        --sb: 130px;
+        --sw: min(100cqw, calc((100cqh - 130px) * 1.6));
+    }
+    .mm-c2 .mm-s-atual .mm-sc-atual {
+        --stand-top: 112px;
+    }
+    .mm-c2 .mm-s-ultimate {
+        --hb: 84px;
+        --hh: min(calc((100% - var(--hb)) / 1.3), 120px);
+    }
+    .mm-c2 .mm-s-ultimate.on {
+        --hb: 150px;
+    }
+    .mm-c2 .mm-s-historia {
+        --bs: 80px;
+        --hy: calc(100% - 80px);
+    }
+    .mm-c2 .mm-s-historia.on {
+        --hy: calc(100% - 146px);
+    }
+}
+/* 320: os quatro itens numa linha só */
+@media (max-width: 359px) {
+    .mm-chips {
+        gap: 4px;
+    }
+    .mm-chips > span {
+        gap: 3px;
+        padding: 3px 5px 3px 4px;
+        font-size: 11px;
+    }
+    .mm-chips .hud-icon {
+        display: none;
+    }
+    .mm-sc-his .mm-pt {
+        scale: 0.5;
+    }
+    .mm-slice .cb-num {
+        --gs: 14px;
+        font-size: var(--gfs, 14px);
+    }
+    .mm-slice.on .cb-num {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+    .mm-plate {
+        padding: 2px 8px 4px;
+    }
+    /* 320: sem altura pra encolher os trancados; e o selo some neles fechados (a faixa já diz "EM BREVE" e a data) */
+    .mm-c2 .mm-c-stack {
+        grid-template-rows: 1.45fr 1fr;
+    }
+    .mm-slice:not(.on) .mm-soon {
+        display: none;
+    }
+}
+
+/* ========================================================================== PC e celular deitado: lado a lado */
+@media (min-width: 900px), (orientation: landscape) and (max-height: 560px) {
+    .mm-c-stack,
+    .mm-c1 .mm-c-stack,
+    .mm-c2 .mm-c-stack {
+        --cut: 70px;
+        display: flex;
+        flex-direction: row;
+        grid-template-rows: none;
+        container-type: normal;
+    }
+    .mm-c1 .mm-slice,
+    .mm-c2 .mm-slice {
+        flex: 1 1 0;
+        min-height: 0;
+        margin: 0 0 0 calc(-1 * var(--cut) + var(--g));
+        --clip: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+        --wash-dir: 0deg;
+        --wash: 42%;
+    }
+    .mm-c1 .mm-slice:first-child,
+    .mm-c2 .mm-slice:first-child {
+        margin-left: 0;
+        --clip: polygon(0 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+    }
+    .mm-c1 .mm-slice:last-child,
+    .mm-c2 .mm-slice:last-child {
+        --clip: polygon(var(--cut) 0, 100% 0, 100% 100%, 0 100%);
+    }
+    .mm-slice.on {
+        flex-grow: 2.4;
+    }
+    /* os trancados fechados um tico mais estreitos */
+    .mm-slice:not(.mm-s-atual, .on) {
+        flex-grow: 0.8;
+    }
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        flex-grow: 1.3;
+    }
+    .mm-slice-txt,
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
+        top: auto;
+        left: calc(var(--cut) * 0.3 + 14px);
+        right: calc(var(--cut) + 14px);
+        bottom: 18px;
+    }
+    .mm-slice:first-child .mm-slice-txt {
+        left: 18px;
+    }
+    .mm-slice,
+    .mm-c1 .mm-slice:not(.on),
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) {
+        --sb: 90px;
+        --sw: min(150cqw, 110cqh);
+    }
+    .mm-slice.on,
+    .mm-c2 .mm-slice.on {
+        --sb: 140px;
+        --sw: min(100cqw, 130cqh);
+    }
+    .mm-c1 .mm-slice:not(.on) .mm-stage,
+    .mm-c2 .mm-s-historia .mm-stage {
+        left: 50%;
+        right: auto;
+        width: var(--sw);
+        translate: -50% 0;
+    }
+    /* heróis: o capitão na quadra, o pacote no meio da fatia, o Blue na frente do ginásio */
+    .mm-c1 .mm-s-atual,
+    .mm-c2 .mm-s-atual {
+        --hx: 62%;
+        --hy: calc(100% - 150px);
+    }
+    .mm-c1 .mm-s-ultimate,
+    .mm-c2 .mm-s-ultimate,
+    .mm-c2 .mm-s-ultimate.on {
+        --hx: 50%;
+        --hb: calc(var(--sb) + 4%);
+        --hh: min(42%, calc((96% - var(--sb)) * 0.75));
+    }
+    /* aberta (larga), o pacote vai pra direita do nome e dos itens, com os raios atrás */
+    .mm-c1 .mm-s-ultimate.on,
+    .mm-c2 .mm-s-ultimate.on {
+        --hx: 74%;
+        --hh: min(56%, calc((96% - var(--sb)) * 0.75));
+    }
+    .mm-c1 .mm-s-atual .mm-sc-atual,
+    .mm-c2 .mm-s-atual .mm-sc-atual {
+        --stand-top: calc(var(--px) * 6);
+    }
+    .mm-c1 .mm-s-historia,
+    .mm-c2 .mm-s-historia,
+    .mm-c1 .mm-slice.on.mm-s-historia,
+    .mm-c2 .mm-s-historia.on {
+        --hx: 70%;
+        --hy: calc(100% - var(--sb) + 4px);
+        --bs: 80px;
+    }
+}
+@media (min-width: 900px) {
+    .mm-c-stack {
+        min-height: 560px;
+    }
+    .mm-soon > span {
+        font-size: 12px;
+    }
+    .mm-soon > b {
+        font-size: 21px;
+    }
+    .mm-slice .cb-num {
+        --gs: 27px;
+        font-size: var(--gfs, 27px);
+    }
+    .mm-slice.on .cb-num {
+        --gs: 42px;
+        font-size: var(--gfs, 42px);
+    }
+    .mm-c1 .mm-s-historia,
+    .mm-c2 .mm-s-historia,
+    .mm-c1 .mm-slice.on.mm-s-historia {
+        --bs: 160px;
+    }
+}
+/* celular deitado: tudo numa tela, o JOGAR sem rolar */
+@media (orientation: landscape) and (max-height: 560px) {
+    .mm-root > div:first-child {
+        gap: 8px;
+        padding: 6px calc(16px + env(safe-area-inset-right)) 10px calc(16px + env(safe-area-inset-left));
+    }
+    .mm-top {
+        min-height: 36px;
+    }
+    .mm-logo {
+        width: 130px;
+    }
+    .mm-c-stack,
+    .mm-c1 .mm-c-stack,
+    .mm-c2 .mm-c-stack {
+        --cut: 36px;
+    }
+    .mm-slice,
+    .mm-c1 .mm-slice:not(.on),
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) {
+        --sb: 70px;
+        --sw: min(150cqw, calc((96cqh - 70px) * 1.6));
+    }
+    .mm-slice.on,
+    .mm-c2 .mm-slice.on {
+        --sb: 60px;
+        --sw: min(100cqw, calc((96cqh - 60px) * 1.6));
+    }
+    .mm-c1 .mm-s-atual,
+    .mm-c2 .mm-s-atual {
+        --hy: calc(100% - 70px);
+    }
+    .mm-play,
+    .mm-soon-cta {
+        min-height: 50px;
+    }
+    .mm-play b {
+        font-size: 22px;
+    }
+    /* o texto chega mais perto do corte diagonal (a faixa do EM BREVE embaixo ainda cabe antes dele) */
+    .mm-slice-txt,
+    .mm-c2 :is(.mm-s-ultimate, .mm-s-historia) .mm-slice-txt {
+        right: calc(var(--cut) * 0.6 + 10px);
+    }
+    /* aberto, o pacote sobe pra cima do AO VIVO e do nome */
+    .mm-ut-open .mm-s-ultimate:not(.on) {
+        --hb: 118px;
+        --hh: 38%;
+    }
+}
+/* o JOGAR fica no polegar; com um trancado aberto, o "Chega em…" toma o lugar dele (os dois na mesma célula) */
+.mm-c-cta {
+    position: sticky;
+    z-index: 6;
+    bottom: 12px;
+    display: grid;
+    width: min(100%, 460px);
+    margin: 0 auto;
+    animation: mm-in var(--dur-pop) var(--ease-pop) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
+}
+.mm-c-cta > .btn {
+    grid-area: 1 / 1;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-solta) var(--ease-pop),
+        box-shadow var(--dur-solta) var(--ease-pop),
+        visibility 0s;
+}
+.mm-c-cta > .btn.off {
+    opacity: 0;
+    transform: scale(0.94);
+    visibility: hidden;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-ui) var(--ease-out),
+        visibility 0s var(--dur-ui);
+}
+/* não joga: face escura (o dourado é só do JOGAR), a data em amarelo e a faixa da cor do modo embaixo */
+.mm-soon-cta {
+    --c: #1f2752;
+    --hi: #2b3570;
+    --lo: #121838;
+    width: 100%;
+    min-height: 64px;
+    flex-direction: column;
+    gap: 3px;
+}
+.mm-cta-ultimate {
+    --lo: #5b22c9;
+}
+.mm-cta-historia {
+    --lo: #c23a52;
+}
+.mm-soon-cta b {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--yellow);
+    font-size: 21px;
+    line-height: 1;
+    text-transform: uppercase;
+}
+.mm-soon-cta b .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.mm-soon-cta small {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #c9d4ff;
+}
+.mm-soon-cta small .hud-icon {
+    width: 13px;
+    height: 13px;
+    stroke-width: 3;
+}
+
+/* ---------- o menu de verdade: por cima da Home (abaixo de avisos e modais) ---------- */
+.mm-menu {
+    z-index: 85;
+}
+.mm-menu.mm-in {
+    animation: mm-fade var(--dur-tela) var(--ease-out) both;
+}
+@keyframes mm-fade {
+    from {
+        opacity: 0;
+    }
+}
+/* JOGAR: o corte pro Estádio. A quadra do Modo Copa cresce até encher a tela (--cut-*, ModeMenu.tsx) e o menu some por
+   cima do Estádio, que já está embaixo e tem a mesma torcida, o LED e a quadra */
+.mm-menu.mm-out {
+    overflow: hidden;
+    pointer-events: none;
+    animation: mm-cut-fade var(--dur-tela) linear both;
+}
+.mm-menu.mm-out > div {
+    transform-origin: 0 0;
+    animation: mm-cut var(--dur-tela) cubic-bezier(0.55, 0, 0.75, 0.3) both;
+}
+@keyframes mm-cut {
+    to {
+        transform: translate(var(--cut-x, 0px), var(--cut-y, 0px)) scale(var(--cut-s, 1.04));
+    }
+}
+@keyframes mm-cut-fade {
+    0%,
+    55% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+/* reduzir movimento (o atributo também segue o prefers-reduced-motion): cenas paradas, entrada e saída só com fade */
+:root[data-reduce-motion="true"] .mm-root *,
+:root[data-reduce-motion="true"] .mm-root *::before,
+:root[data-reduce-motion="true"] .mm-root *::after,
+:root[data-reduce-motion="true"] .mm-root::before,
+:root[data-reduce-motion="true"] .mm-root::after {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .mm-root :is(.mm-card, .mm-poster, .mm-slice, .mm-top) {
+    animation: mm-fade var(--dur-tela) var(--ease-out) both;
+}
+:root[data-reduce-motion="true"] .mm-root .mm-slice {
+    animation: mm-fade var(--dur-tela) var(--ease-out) backwards;
+}
+:root[data-reduce-motion="true"] .mm-slice .mm-sc {
+    transition: none;
+}
+/* celular em pé: logo, treinador (maior desde 30/10) e 2 botões dividem a linha; logo e vãos menores pro nome caber */
+@media (max-width: 429px) {
+    .mm-top {
+        gap: 6px;
+    }
+    .mm-top .mm-logo {
+        display: none;
+    }
+    .mm-top .mm-symbol {
+        display: block;
+    }
+}
+/* 320: com o botão dos Amigos na barra (11/11) o nome não cabe mais: o treinador vira só o avatar, como nos ambientes */
+@media (max-width: 359px) {
+    .mm-top .top-actions {
+        gap: 4px;
+    }
+}

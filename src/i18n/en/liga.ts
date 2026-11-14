@@ -2,6 +2,7 @@ import type { liga as pt } from '../pt/liga';
 
 export const liga: typeof pt = {
     stage: 'League',
+    ranking: 'Ranking',
     retry: 'Try again',
     stageShort: 'LEAGUE',
     home: {
@@ -9,13 +10,13 @@ export const liga: typeof pt = {
         dailyLine: 'The same cup for everyone today',
         dailyPlay: 'Play today',
         dailyContinue: 'Continue',
-        dailyDone: 'See today',
+        dailyDone: 'See ranking',
+        dailyRanking: "Today's ranking",
         ligaTag: 'League',
         ligaLine: "Against another trainer's team · Elo rated",
-        ligaGo: 'Open the League',
         ligaSoon: 'Soon',
         ligaOpensIn: 'Opens in {d}d {h}h {m}m',
-        ligaClosed: 'The League opens when more people are playing. Meanwhile, the Daily Cup has a ranking every day.',
+        ligaClosed: 'Until the League opens, the Daily Cup has a ranking.',
     },
     daily: {
         tag: 'Daily Cup',
@@ -31,6 +32,7 @@ export const liga: typeof pt = {
         wins: '1 win|{n} wins',
         abandoned: 'Cup ended',
         unranked: 'unranked',
+        unrankedNote: "Today's cup is not ranked.",
         next: 'Next Daily Cup in {h}h{m}',
         share: 'Share',
         copied: 'Copied!',
@@ -46,6 +48,7 @@ export const liga: typeof pt = {
         scopeFriends: 'Friends',
         rankingTitle: "Today's ranking",
         rankingEmpty: 'Nobody in the ranking yet. Be the first!',
+        captain: 'captain',
         rankingLogin:
             "The ranking is for players signed in with Google. It only shows your trainer and club names (Profile), never the account's.",
         rankingOff: 'The ranking needs the game server. The Daily Cup works the same without it.',
@@ -62,12 +65,12 @@ export const liga: typeof pt = {
         },
     },
     league: {
-        tag: 'League',
         title: 'Ranked League',
         line: "You face another trainer's saved team, coached by the AI. No need to be online together. Elo rated.",
         needCloud: 'The League needs the game server: play at soccermon.com.',
         needLogin:
             'The League needs a Google account: your team becomes a ghost others play against, and the ranking shows your trainer and club names.',
+        needLoginShort: 'Sign in with Google to play the League.',
         season: '{month} season',
         daysLeft: 'ends today|{n} days left',
         division: { bronze: 'Bronze', prata: 'Silver', ouro: 'Gold', lenda: 'Legend' },
@@ -77,6 +80,8 @@ export const liga: typeof pt = {
         noGames: 'No matches this season yet',
         teamTitle: 'Your League team',
         teamNone: 'No team signed up yet.',
+        teamShort: 'Your team',
+        teamNoneShort: 'none',
         ovr: 'rating {ovr}',
         register: 'Sign up your cup team',
         update: 'Swap for your cup team',

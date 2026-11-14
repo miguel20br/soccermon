@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-partida-1t",
+ "titulo": "Ponte pra partida-1t: o apito do juiz (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.472494,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2,
+   "amostras": [
+    0,
+    88200
+   ],
+   "bpm": 120,
+   "compassos": 1
+  }
+ ]
+}

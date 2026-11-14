@@ -1,21 +1,26 @@
 import { type CSSProperties, useEffect, useState } from 'react';
+import { noteDailyOrigin } from '../../analytics/track';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
-import { species } from '../../engine/data';
+import { SPECIES_BY_ID, species } from '../../engine/data';
 import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
-import { type DailyRow, isError, league, leagueOnline, publicInfo } from '../../league/api';
-import { ligaCountdown } from '../../league/rules';
+import { type DailyRow, isError, league, leagueOnline, publicInfo, squadOf } from '../../league/api';
 import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
+import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
 import { MenuHead } from '../components/MenuHead';
-import { MenuIcon } from '../components/MenuIcon';
-import { cardSprite } from '../components/PokeCard';
+import { MonIcon } from '../components/MonIcon';
+import { EstadioBackdrop } from '../kit/backdrop';
+import { InfoSheet, SheetRow } from '../kit/controls';
+import { Stage } from '../kit/Stage';
+import { TrainerName } from '../profile/TrainerName';
 import { SITE_URL, shareText } from '../share';
 import '../liga.css';
+import { backTarget } from '../back-nav';
 
 /** Copa do Dia de hoje: está jogando agora (a copa aberta é a do dia). */
 export function dailyInPlay() {
@@ -31,7 +36,7 @@ export function useDailyBegin() {
     const [busy, setBusy] = useState(false);
     const [note, setNote] = useState<string | null>(null);
     const { t } = useT();
-    const begin = async () => {
+    const begin = async (from: 'jogar' | 'tela' = 'tela') => {
         const s = useGame.getState();
         const today = dailyDay();
         if (dailyInPlay()) {
@@ -48,6 +53,7 @@ export function useDailyBegin() {
             s.go('daily');
             return;
         }
+        noteDailyOrigin(from);
         setBusy(true);
         setNote(null);
         let ranked = false;
@@ -100,14 +106,22 @@ export function RankLine({
     color,
     trainer,
     club,
+    tag,
+    code,
     me,
+    squad,
     children,
 }: {
     pos: number;
     color: string;
     trainer: string;
     club: string;
+    tag?: string;
+    /** Código de amigo do treinador (o nome abre o perfil dele). */
+    code?: string | null;
     me: boolean;
+    /** Time em ícones (só a Copa do Dia manda). */
+    squad?: ReturnType<typeof squadOf>;
     children: React.ReactNode;
 }) {
     const { t } = useT();
@@ -119,12 +133,25 @@ export function RankLine({
             <b className="lg-pos">{pos}</b>
             <span className="lg-who">
                 <b>
-                    {trainer}
+                    <TrainerName who={{ trainer, club, club_tag: tag, club_color: color, code, me }} />
                     {me && <em className="lg-you">{t('liga.daily.you')}</em>}
                 </b>
                 <small>{club}</small>
             </span>
             <span className="lg-num">{children}</span>
+            {squad && (
+                <span className="lg-squad">
+                    {squad.ids.map((id, i) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: 5 vagas fixas, a mesma espécie pode repetir
+                        <span key={i} className={`lg-squad-mon${i === squad.captain ? ' cap' : ''}`}>
+                            <MonIcon
+                                id={id}
+                                label={`${SPECIES_BY_ID.get(id)?.name ?? id}${i === squad.captain ? `, ${t('liga.daily.captain')}` : ''}`}
+                            />
+                        </span>
+                    ))}
+                </span>
+            )}
         </li>
     );
 }
@@ -178,22 +205,56 @@ export function Daily() {
         }
     };
     const wins = entry ? winsOf(entry) : 0;
+    // já jogou hoje (acabou, ou largou e a copa aberta é outra): o resultado no lugar do convite
+    const done = !!entry && (entry.done || !playing);
+    const date = dayLabel(today, lang);
+    const sticker = dailySticker(today);
+    const myRow = Array.isArray(rows) ? rows.find((r) => r.me) : undefined;
+    // a regra inteira mora no "?" (na tela, no máximo ~12 palavras por texto)
+    const rules = (
+        <InfoSheet title={t('liga.daily.tag')}>
+            <p>{t('liga.daily.line')}</p>
+            {!user && <p>{t('liga.daily.guestHint')}</p>}
+            <p>
+                {tn('liga.daily.total', streak.total)}
+                {nextGoal && ` ${t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}`}
+            </p>
+        </InfoSheet>
+    );
 
     return (
-        <div className="menu-screen lg">
-            <MenuHead title={t('liga.daily.tag')} tag={t('liga.daily.tag')} icon="daily" onBack={() => go('home')} />
-
-            <section className="panel lg-hero bc-surface bc-stripe">
-                <span className="lg-date">{dayLabel(today, lang)}</span>
-                <p className="lg-line">{t('liga.daily.line')}</p>
-                {entry?.done || (entry && !playing) ? (
-                    <div className="lg-done">
-                        <span className="lg-path" aria-hidden>
-                            {CUP_STAGES.map((st, i) => {
-                                const r = entry.results[i];
-                                return <i key={st} className={r ? (r.won ? 'won' : 'lost') : ''} />;
-                            })}
-                        </span>
+        <Stage
+            className="k-stage-place lg-stage dy-stage lg"
+            scene={<EstadioBackdrop mon={{ id: sticker }} led={`${t('liga.daily.tag')} · ${date}`.toUpperCase()} />}
+            action={
+                !done ? (
+                    <button
+                        type="button"
+                        className="btn primary big"
+                        data-testid="daily-play"
+                        disabled={busy}
+                        onClick={() => void begin()}
+                    >
+                        {playing ? t('liga.daily.continue') : t('liga.daily.play')}
+                    </button>
+                ) : entry.results.length > 0 ? (
+                    <button type="button" className="btn big" onClick={share}>
+                        {shared ? t('liga.daily.copied') : t('liga.daily.share')}
+                    </button>
+                ) : undefined
+            }
+        >
+            <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go(backTarget('daily') ?? 'home')} />
+            <Coach id="dia" targets={['.dy-panel .lg-date', '[data-testid="daily-play"]']} when={!entry} />
+            {/* o vão: a torcida, o letreiro com o dia e o Pokémon da figurinha no meio da quadra */}
+            <i className="k-stage-gap" aria-hidden />
+            <section className="panel lg-hero dy-panel bc-surface bc-stripe">
+                <div className="dy-top">
+                    <span className="lg-date">{date}</span>
+                    {rules}
+                </div>
+                {done ? (
+                    <div className="lg-done dy-done">
                         <b className="lg-verdict">
                             {entry.champion
                                 ? t('liga.daily.champion')
@@ -202,78 +263,59 @@ export function Daily() {
                                   : t('liga.daily.abandoned')}
                         </b>
                         {!entry.ranked && <span className="lg-chip">{t('liga.daily.unranked')}</span>}
-                        <ul className="lg-scores">
-                            {entry.results.map((r) => (
-                                <li key={r.opponent} className={r.won ? 'won' : 'lost'}>
-                                    <b>
-                                        {r.score[0]}x{r.score[1]}
-                                    </b>
-                                    {r.shootout && (
-                                        <small>
-                                            {' '}
-                                            ({r.shootout[0]}x{r.shootout[1]})
-                                        </small>
-                                    )}{' '}
-                                    {clubName(r.opponent)}
-                                </li>
-                            ))}
+                        <ul className="lg-scores dy-scores">
+                            {CUP_STAGES.map((st, i) => {
+                                const r = entry.results[i];
+                                return (
+                                    <li
+                                        key={st}
+                                        className={r ? (r.won ? 'won' : 'lost') : ''}
+                                        title={r ? clubName(r.opponent) : undefined}
+                                    >
+                                        <b>{r ? `${r.score[0]}x${r.score[1]}` : '·'}</b>
+                                        {r?.shootout && (
+                                            <small>
+                                                {' '}
+                                                ({r.shootout[0]}x{r.shootout[1]})
+                                            </small>
+                                        )}
+                                    </li>
+                                );
+                            })}
                         </ul>
-                        <div className="row lg-actions">
-                            {entry.results.length > 0 && (
-                                <button type="button" className="btn primary" onClick={share}>
-                                    {shared ? t('liga.daily.copied') : t('liga.daily.share')}
-                                </button>
-                            )}
-                            <span className="lg-next">{t('liga.daily.next', clock)}</span>
-                        </div>
                     </div>
                 ) : (
-                    <div className="lg-start">
-                        <button type="button" className="btn primary big" disabled={busy} onClick={() => void begin()}>
-                            {playing ? t('liga.daily.continue') : t('liga.daily.play')}
-                        </button>
-                        {!playing && isCupInProgress(run) && (
-                            <small className="lg-hint">{t('liga.daily.parkHint', { team: run.teamName })}</small>
-                        )}
-                        {!playing && !user && <small className="lg-hint">{t('liga.daily.guestHint')}</small>}
-                    </div>
+                    <p className="lg-line">{t('liga.home.dailyLine')}</p>
                 )}
+                <div className="dy-week">
+                    <ol className="lg-days" aria-label={t('liga.daily.week', { n: streak.weekCount })}>
+                        {streak.week.map((on, i) => (
+                            <li key={streak.days[i]} className={on ? 'on' : ''}>
+                                {dict(lang).liga.daily.weekDays[i]}
+                            </li>
+                        ))}
+                    </ol>
+                    <small>{tn('liga.daily.inARow', inARow)}</small>
+                </div>
+                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia (ele está na quadra) */}
+                <p className="dy-sticker">
+                    <b>{t('liga.daily.stickerTitle', { name: species(sticker).name })}</b>
+                    <small>{entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}</small>
+                </p>
+                {!done && !playing && isCupInProgress(run) && (
+                    <small className="lg-hint">{t('liga.daily.parkHint', { team: run.teamName })}</small>
+                )}
+                {done && <span className="lg-next">{t('liga.daily.next', clock)}</span>}
                 {note && <p className="lg-note">{note}</p>}
             </section>
 
-            <section className="panel lg-week bc-surface">
-                <span className="bc-lbl">{t('liga.daily.week', { n: streak.weekCount })}</span>
-                <ol className="lg-days">
-                    {streak.week.map((on, i) => (
-                        <li key={streak.days[i]} className={on ? 'on' : ''}>
-                            {dict(lang).liga.daily.weekDays[i]}
-                        </li>
-                    ))}
-                </ol>
-                <small>{tn('liga.daily.total', streak.total)}</small>
-                {/* dias seguidos e o próximo marco (7: título Fiel da Copa; 30: a Garota Dourada) */}
-                <p className="lg-inarow">
-                    <b>{tn('liga.daily.inARow', inARow)}</b>{' '}
-                    {nextGoal && (
-                        <span className="muted">
-                            {t('liga.daily.nextGoal', { n: nextGoal.days - inARow, prize: nextGoal.prize })}
-                        </span>
-                    )}
-                </p>
-                {/* a figurinha de hoje: o mesmo Pokémon pra todo mundo que termina a Copa do Dia */}
-                <div className="lg-sticker">
-                    <img className="pixel" src={cardSprite({ speciesId: dailySticker(today), shiny: false })} alt="" />
-                    <span>
-                        <b>{t('liga.daily.stickerTitle', { name: species(dailySticker(today)).name })}</b>
-                        <small className="muted">
-                            {entry?.done ? t('liga.daily.stickerGot') : t('liga.daily.stickerHow')}
-                        </small>
-                    </span>
-                </div>
-            </section>
-
-            <section className="panel lg-rank bc-surface">
-                <h2 className="bc-caption">{t('liga.daily.rankingTitle')}</h2>
+            <SheetRow
+                icon="chart"
+                label={t('liga.ranking')}
+                hint={myRow ? `${myRow.pos}º` : undefined}
+                title={t('liga.daily.rankingTitle')}
+                className="dy-rank-open"
+            >
                 {hasFriends && user && (
                     <div className="bc-seg segmented lg-scope">
                         {[false, true].map((f) => (
@@ -306,7 +348,10 @@ export function Daily() {
                                 color={r.club_color}
                                 trainer={r.trainer}
                                 club={r.club}
+                                tag={r.club_tag}
+                                code={r.code}
                                 me={r.me}
+                                squad={squadOf(r)}
                             >
                                 <b>{r.champion ? <TrophyMini /> : `${r.wins}/4`}</b>
                                 <small>
@@ -324,8 +369,8 @@ export function Daily() {
                         <AccountBar />
                     </>
                 )}
-            </section>
-        </div>
+            </SheetRow>
+        </Stage>
     );
 }
 
@@ -347,84 +392,5 @@ function TrophyMini() {
             />
             <path d="M10 14 H14 V18 H10 Z M8 18 H16 V21 H8 Z" fill="#c98a52" stroke="#1a1430" strokeWidth="1.6" />
         </svg>
-    );
-}
-
-/**
- * Entrada na Home (embaixo dos modos: o "Nova copa" continua na primeira tela do celular): Copa do Dia com os dias da
- * semana e a Liga (fechada até a data, ver `LigaHomeRow`).
- */
-export function HomeDailyCard() {
-    const { t, lang } = useT();
-    const daily = useGame((s) => s.daily);
-    const go = useGame((s) => s.go);
-    // redesenha quando a copa muda de fase (o botão vira "Continuar")
-    useGame((s) => s.run?.status);
-    const today = dailyDay();
-    const entry = daily.find((e) => e.day === today);
-    const streak = dailyStreak(daily, today);
-    const playing = dailyInPlay();
-    const { begin, busy } = useDailyBegin();
-    return (
-        <div className="panel mode-card daily-card">
-            <div className="dc-row">
-                <span className="dc-icon" aria-hidden>
-                    <MenuIcon kind="daily" />
-                </span>
-                <div className="mode-head">
-                    <b>{t('liga.home.dailyTag')}</b>
-                    <span>{t('liga.home.dailyLine')}</span>
-                    <ol className="lg-days small" aria-label={t('liga.daily.week', { n: streak.weekCount })}>
-                        {streak.week.map((on, i) => (
-                            <li key={streak.days[i]} className={on ? 'on' : ''}>
-                                {dict(lang).liga.daily.weekDays[i]}
-                            </li>
-                        ))}
-                    </ol>
-                </div>
-                <button
-                    type="button"
-                    className="btn dc-go"
-                    disabled={busy}
-                    onClick={() => (entry && !playing ? go('daily') : void begin())}
-                >
-                    {playing
-                        ? t('liga.home.dailyContinue')
-                        : entry
-                          ? t('liga.home.dailyDone')
-                          : t('liga.home.dailyPlay')}
-                </button>
-            </div>
-            <LigaHomeRow />
-        </div>
-    );
-}
-
-/**
- * Linha da Liga no cartão da Home, só depois que ela abre (`LIGA_OPENS_AT`, src/league/rules.ts). Fechada, ela mora
- * na faixa "Vem aí" (ComingSoon) com a contagem; na data aparece aqui sozinha (a conferência roda a cada 30 s).
- */
-function LigaHomeRow() {
-    const { t } = useT();
-    const go = useGame((s) => s.go);
-    const [left, setLeft] = useState(() => ligaCountdown());
-    useEffect(() => {
-        const id = window.setInterval(() => setLeft(ligaCountdown()), 30000);
-        return () => clearInterval(id);
-    }, []);
-    if (left) return null;
-    return (
-        <div className="dc-row">
-            <span className="dc-icon" aria-hidden>
-                <MenuIcon kind="liga" />
-            </span>
-            <div className="mode-head">
-                <b>{t('liga.home.ligaTag')}</b>
-                <span>{t('liga.home.ligaLine')}</span>
-            </div>
-            <button type="button" className="btn ghost dc-go" onClick={() => go('liga')}>
-                {t('liga.home.ligaGo')}
-            </button>
-        </div>
     );
 }

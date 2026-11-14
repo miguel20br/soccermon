@@ -21,6 +21,12 @@ export interface DuelRecord {
     /** Vitória ou derrota por W.O. */
     wo?: boolean;
     /**
+     * Melhor de 3: a série inteira é um duelo (o placar é o de vitórias na série e o resultado, o da série); `games` é o
+     * placar de cada jogo, o seu lado primeiro. Sem o campo = 1 jogo.
+     */
+    bestOf?: 3;
+    games?: [number, number][];
+    /**
      * Registro do duelo (src/net/record.ts): tudo pra refazer a partida (dessincronização, replay). Só os mais
      * recentes guardam (cabe na nuvem).
      */
@@ -61,3 +67,35 @@ export function headToHead(duels: DuelRecord[], rival: { code: string; trainer: 
 /** Vitórias no Duelo: o contador (o histórico guarda só os 30 últimos) ou o histórico, o que for maior. */
 export const duelWins = (records: { duelWins?: number }, duels: DuelRecord[]) =>
     Math.max(records.duelWins ?? 0, duels.filter((d) => d.result === 'win').length);
+
+export interface RivalTally {
+    rival: string;
+    rivalClub: string;
+    rivalCode?: string;
+    win: number;
+    draw: number;
+    loss: number;
+}
+
+/**
+ * Placar contra cada rival ("Seus duelos", na Arena): um por amigo (pelo código; sem código, pelo nome e o clube), o do
+ * duelo mais recente primeiro. Partida anulada não conta.
+ */
+export function rivalTally(duels: DuelRecord[]): RivalTally[] {
+    const by = new Map<string, RivalTally>();
+    for (const d of duels) {
+        if (d.result === 'void') continue;
+        const k = d.rivalCode ?? `${d.rival}\n${d.rivalClub}`;
+        const row = by.get(k) ?? {
+            rival: d.rival,
+            rivalClub: d.rivalClub,
+            rivalCode: d.rivalCode,
+            win: 0,
+            draw: 0,
+            loss: 0,
+        };
+        row[d.result]++;
+        by.set(k, row);
+    }
+    return [...by.values()];
+}

@@ -171,6 +171,11 @@
 .tm-done-text.show {
     opacity: 1;
 }
+.tm-done-text.tm-trained {
+    min-height: 0;
+    font-size: 13px;
+    color: var(--yellow);
+}
 
 @media (max-width: 420px) {
     .tm-moves {

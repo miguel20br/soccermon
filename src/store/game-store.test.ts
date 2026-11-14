@@ -4,16 +4,20 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
+import { type Prize, ROTA_RULES } from '../engine/cup-map';
 import { bestFit, DRAFT_PICKS } from '../engine/draft';
-import { evolutionTarget, evolveInstance } from '../engine/evolution';
+import { evolutionTarget, evolveInstance, type Stone } from '../engine/evolution';
 import { formationOf } from '../engine/formations';
 import { createInstance, type PokemonInstance, slotRating } from '../engine/instance';
 import { playerLines } from '../engine/match-stats';
+import { ARCADE_SPONSORS, type Reward, SPONSOR_REWARD_CHANCE, withSponsor } from '../engine/rewards';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
+import { shopOffers, winEarnings } from '../engine/shop';
 import { SIGNATURE } from '../engine/signature-moves';
 import { specialBonus } from '../engine/specials';
-import { teachMove } from '../engine/tm';
+import { SPONSOR_FAMILY } from '../engine/sponsors';
+import { canLearn, isProtectedMove, teachMove } from '../engine/tm';
 import { profile as enProfile } from '../i18n/en/profile';
 import { profile as ptProfile } from '../i18n/pt/profile';
 import { type DuelRecord, mergeDuels } from './duels';
@@ -26,12 +30,19 @@ import {
     playerTeam,
     type RunState,
     SAVE_VERSION,
+    type Settings,
     type SlotRef,
     slotRole,
+    stoneToBag,
     useGame,
+    withSettingDefaults,
 } from './game-store';
-import { groupTable } from './long-cup';
-import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, recordMatchInDex } from './profile';
+import { foulOf, groupTable, longWinEarnings, ROTA_JOGO_PAY } from './long-cup';
+import { applySkip, choiceTargets, eventChoices, type LongEvent, skipTagOf, stoners } from './long-events';
+import { BANNER_COUNT, bannerOf, EDITION_BIT, EMPTY_ENTRY, isNovo, recordMatchInDex } from './profile';
+import { casaOf } from './rota-map';
+
+const eventChoiceIds = (run: RunState, ev: LongEvent) => eventChoices(run, ev).map((c) => c.id);
 
 describe('save', () => {
     it('v4 → v5: perfil com o nome do time, Pokédex com a copa em andamento e sem boas-vindas', () => {
@@ -57,10 +68,21 @@ describe('save', () => {
     });
 
     it('a 1ª copa é a entrada no jogo: sem passo a passo na 1ª visita, começar marca onboarded (funil)', () => {
-        useGame.setState({ onboarded: false, tour: false });
+        useGame.setState({ onboarded: false });
         useGame.getState().newRun('Pallet FC', 'teste-entrada');
         expect(useGame.getState().onboarded).toBe(true);
-        expect(useGame.getState().tour).toBe(false);
+    });
+
+    it('retomar copa guardada leva pra ela e não deixa a outra como "guardada" na Home (vai e volta infinito)', () => {
+        const g = useGame.getState();
+        g.newRun('Time A', 'seed-a');
+        const a = useGame.getState().run!;
+        useGame.setState({ screen: 'home', parkedRuns: [{ ...a, seed: 'seed-b', teamName: 'Time B', status: 'map' }] });
+        useGame.getState().resumeParked('seed-b');
+        const s = useGame.getState();
+        expect(s.run!.teamName).toBe('Time B');
+        expect(s.screen).toBe('map');
+        expect(s.parkedRuns.map((r) => r.teamName)).toEqual(['Time A']);
     });
 
     it('draft marca as opções como vistas e a nova copa usa o nome do clube', () => {
@@ -180,6 +202,9 @@ describe('backup antigo (scripts/fixtures)', () => {
             for (const e of played) expect((e.editions ?? 0) & EDITION_BIT.normal).toBeTruthy();
             for (const e of Object.values(save.dex).filter((x) => x.matches === 0)) expect(e.editions).toBeUndefined();
             expect(save.settings.goalCry).toBe(true);
+            // 0.9.7: volume da música (configuração) e balões do tutorial (perfil) migram juntos
+            expect(save.settings.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+            expect(save.profile.coach).toContain('intro');
             // faixa da torcida (0.8.7): campo opcional, save antigo fica com a 1ª frase
             expect(save.profile.banner).toBeUndefined();
             expect(bannerOf(save.profile.banner)).toBe(0);
@@ -585,7 +610,7 @@ describe('estilo dos gritos: o padrão virou o Novo (0.8.9)', () => {
     });
 });
 
-describe('Mercado (Copa rápida)', () => {
+describe('Arcade (Relâmpago e Copa do Dia): sem ₽ nem Mercado, Patrocínio na recompensa', () => {
     const ready = (seed: string, patch: Partial<RunState> = {}): RunState => {
         useGame.getState().newRun('Pallet FC', seed);
         const rng = new Rng(seed, 'team');
@@ -603,28 +628,108 @@ describe('Mercado (Copa rápida)', () => {
             ...patch,
         };
     };
+    /** Copa antiga (antes de 11/11/2026) parada no Mercado depois da vitória: o save tem que continuar jogável. */
+    const oldShop = (seed: string, patch: Partial<RunState> = {}): RunState => {
+        const run = ready(seed, patch);
+        const sponsors = run.sponsors ?? [];
+        const earned = winEarnings(3, 0, run.money ?? 0, sponsors);
+        const offers = shopOffers({
+            seed,
+            stage: 0,
+            reroll: 0,
+            team: run.picks,
+            sponsors,
+            eventType: null,
+            captain: run.picks[0],
+        });
+        return {
+            ...run,
+            rewards: [],
+            status: 'shop',
+            money: (run.money ?? 0) + earned.total,
+            shop: { stage: 0, rerolls: 0, offers, sold: [], earned },
+        };
+    };
 
-    it('vitória → recompensa → Mercado com o ₽ da vitória → escalação da próxima fase', () => {
-        useGame.setState({ run: ready('mercado-fluxo', { money: 4 }) });
-        useGame.getState().skipReward();
+    it('vitória → recompensa → escalação da próxima fase, sem ₽ (Relâmpago, Copa do Dia e save sem resultado)', () => {
+        for (const patch of [{}, { daily: '2026-10-20' }, { results: [] }]) {
+            useGame.setState({ run: ready('arcade-fluxo', patch) });
+            useGame.getState().skipReward();
+            const run = useGame.getState().run!;
+            expect(run.status).toBe('lineup');
+            expect(run.stage).toBe(1);
+            expect(run.money ?? 0).toBe(0);
+            expect(run.shop ?? null).toBeNull();
+        }
+    });
+
+    it('o Patrocínio da recompensa: um só, que você não tem, de campo ou o Cinnabar; nunca com as vagas cheias', () => {
+        let offered = 0;
+        for (let k = 0; k < 300; k++) {
+            const opts: Reward[] = [
+                { kind: 'item', item: 'scopelens' },
+                { kind: 'item', item: 'leftovers' },
+            ];
+            const owned = k % 3 === 0 ? ['academia', 'charanga'] : [];
+            const out = withSponsor(opts, `sp-${k}`, k % 3, 0, owned, 3 - (k % 3));
+            const sp = out.filter((r) => r.kind === 'sponsor');
+            expect(sp.length).toBeLessThanOrEqual(1);
+            expect(out).toHaveLength(opts.length);
+            for (const r of sp) {
+                offered++;
+                expect(ARCADE_SPONSORS).toContain(r.id);
+                expect(owned).not.toContain(r.id);
+                // com só a Final pela frente o Cinnabar (+1 opção na recompensa) não valeria mais nada
+                if (k % 3 === 2) expect(r.id).not.toBe('cinnabar');
+            }
+            // mesma seed, mesma recompensa
+            expect(withSponsor(opts, `sp-${k}`, k % 3, 0, owned, 3 - (k % 3))).toEqual(out);
+            expect(withSponsor(opts, `sp-${k}`, 0, 0, ['silph', 'academia', 'torcida'], 3)).toBe(opts);
+        }
+        expect(offered / 300).toBeCloseTo(SPONSOR_REWARD_CHANCE, 1);
+        for (const id of ARCADE_SPONSORS) expect(['campo', 'recompensa']).toContain(SPONSOR_FAMILY[id]);
+    });
+
+    it('pegar o Patrocínio ocupa uma vaga e vai pra escalação; o sorteio da recompensa traz Patrocínio às vezes', () => {
+        const run = ready('arcade-patrocinio', {
+            sponsors: ['academia'],
+            rewards: [
+                { kind: 'item', item: 'scopelens' },
+                { kind: 'sponsor', id: 'charanga' },
+            ],
+        });
+        useGame.setState({ run });
+        useGame.getState().claimReward(1, '');
+        const after = useGame.getState().run!;
+        expect(after.sponsors).toEqual(['academia', 'charanga']);
+        expect(after.status).toBe('lineup');
+        // vagas cheias (save mexido): não assina nem sai da tela
+        useGame.setState({ run: { ...run, sponsors: ['academia', 'silph', 'torcida'] } });
+        useGame.getState().claimReward(1, '');
+        expect(useGame.getState().run!.status).toBe('reward');
+        // a recompensa do arcade sorteia Patrocínio; a da Rota, nunca
+        let arcade = 0;
+        for (let k = 0; k < 40; k++) {
+            useGame.setState({ run: ready(`arcade-sorteio-${k}`, { rerolls: 1 }) });
+            useGame.getState().rerollReward();
+            arcade += useGame.getState().run!.rewards.filter((r) => r.kind === 'sponsor').length;
+        }
+        expect(arcade).toBeGreaterThan(0);
+    });
+
+    it('copa antiga parada no Mercado: compra, abre pacote, troca Patrocínio e sai pra escalação', () => {
+        useGame.setState({ run: oldShop('mercado-fluxo', { money: 4 }) });
         let run = useGame.getState().run!;
-        expect(run.status).toBe('shop');
-        expect(useGame.getState().screen).toBe('shop');
-        // 5 da vitória + 3 gols + 2 sem sofrer + 0 de juros (4 guardados)
-        expect(run.shop!.earned.total).toBe(10);
         expect(run.money).toBe(14);
-
         const i = run.shop!.offers.findIndex((o) => o.kind === 'pokemon');
         const offer = run.shop!.offers[i];
         useGame.getState().buyOffer(i, run.bench[0]);
         run = useGame.getState().run!;
         expect(run.money).toBe(14 - offer.price);
-        expect(run.shop!.sold).toEqual([i]);
         expect(run.picks.some((p) => offer.kind === 'pokemon' && p.uid === offer.inst.uid)).toBe(true);
         // vendido não vende de novo
         useGame.getState().buyOffer(i, run.bench[1]);
         expect(useGame.getState().run!.money).toBe(run.money);
-
         useGame.getState().leaveShop();
         run = useGame.getState().run!;
         expect(run.status).toBe('lineup');
@@ -632,9 +737,10 @@ describe('Mercado (Copa rápida)', () => {
         expect(run.shop).toBeNull();
     });
 
-    it('Patrocínio: até 3, o 4º troca por um que sai; sem ₽ não compra', () => {
-        useGame.setState({ run: ready('mercado-patrocinio', { sponsors: ['loja', 'creche', 'cassino'], money: 30 }) });
-        useGame.getState().skipReward();
+    it('Mercado antigo: Patrocínio até 3, o 4º troca por um que sai; sem ₽ não compra', () => {
+        useGame.setState({
+            run: oldShop('mercado-patrocinio', { sponsors: ['loja', 'creche', 'cassino'], money: 30 }),
+        });
         const run = useGame.getState().run!;
         const i = run.shop!.offers.findIndex((o) => o.kind === 'sponsor');
         useGame.getState().buyOffer(i);
@@ -650,9 +756,8 @@ describe('Mercado (Copa rápida)', () => {
         expect(useGame.getState().run!.shop!.sold).toEqual([]);
     });
 
-    it('pacote de tipo: abre, você fica com 1 no lugar de um reserva', () => {
-        useGame.setState({ run: ready('mercado-pacote', { money: 20 }) });
-        useGame.getState().skipReward();
+    it('Mercado antigo: pacote de tipo abre, você fica com 1 no lugar de um reserva', () => {
+        useGame.setState({ run: oldShop('mercado-pacote', { money: 20 }) });
         const i = useGame.getState().run!.shop!.offers.findIndex((o) => o.kind === 'pack');
         useGame.getState().buyOffer(i);
         let run = useGame.getState().run!;
@@ -667,9 +772,22 @@ describe('Mercado (Copa rápida)', () => {
         expect(run.shop!.pack).toBeUndefined();
     });
 
+    it('save antigo com MT na vitrine aberta: ainda compra e ensina', () => {
+        useGame.setState({ run: oldShop('mercado-mt-antiga', { money: 20 }) });
+        const run = useGame.getState().run!;
+        const target = run.picks.find((p) => p.uid !== run.captainUid && canLearn(p, 'toxic'));
+        if (!target) throw new Error('ninguém aprende Toxic neste time');
+        const tm = { kind: 'tm' as const, move: 'toxic', leader: null, price: 5 };
+        useGame.setState({ run: { ...run, shop: { ...run.shop!, offers: [...run.shop!.offers, tm] } } });
+        const forget = target.moves.findIndex((_, i) => !isProtectedMove(target, i));
+        useGame.getState().buyOffer(run.shop!.offers.length, target.uid, forget);
+        const after = useGame.getState().run!;
+        expect(after.money).toBe(run.money! - 5);
+        expect(after.picks.find((p) => p.uid === target.uid)!.moves).toContain('toxic');
+    });
+
     it('dá pra fechar o pacote sem pegar nenhuma carta e seguir', () => {
-        useGame.setState({ run: ready('mercado-pular', { money: 20 }) });
-        useGame.getState().skipReward();
+        useGame.setState({ run: oldShop('mercado-pular', { money: 20 }) });
         const run = useGame.getState().run!;
         const card = { ...createInstance(1, new Rng('pular', 'x')), uid: 'pulada' };
         useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [card] } } });
@@ -682,22 +800,12 @@ describe('Mercado (Copa rápida)', () => {
     });
 
     it('não entra um segundo Pokémon da mesma espécie (pacote e vitrine podem trazer o mesmo)', () => {
-        useGame.setState({ run: ready('mercado-repetido', { money: 20 }) });
-        useGame.getState().skipReward();
+        useGame.setState({ run: oldShop('mercado-repetido', { money: 20 }) });
         const run = useGame.getState().run!;
         const twin = { ...createInstance(run.picks[0].speciesId, new Rng('gemeo', 'x')), uid: 'gemeo' };
         useGame.setState({ run: { ...run, shop: { ...run.shop!, pack: [twin] } } });
         useGame.getState().claimPack(0, run.bench[0]);
         expect(useGame.getState().run!.picks.some((p) => p.uid === 'gemeo')).toBe(false);
-    });
-
-    it('Copa do Dia e copa sem resultado (save antigo) não têm Mercado', () => {
-        useGame.setState({ run: ready('mercado-dia', { daily: '2026-10-20' }) });
-        useGame.getState().skipReward();
-        expect(useGame.getState().run!.status).toBe('lineup');
-        useGame.setState({ run: ready('mercado-antigo', { results: [] }) });
-        useGame.getState().skipReward();
-        expect(useGame.getState().run!.status).toBe('lineup');
     });
 
     it('Patrocínio de campo vai pro time da partida (carta = campo)', () => {
@@ -736,9 +844,11 @@ describe('Copa longa', () => {
         expect(now.opponents[0]?.name).toBeTruthy();
     });
 
-    it('vitória vai pra recompensa e depois pro mapa (sem Mercado); derrota fora da Final é cartão amarelo', () => {
+    it('vitória paga ₽ e vai pro prêmio da casa (ou direto pro mapa); derrota na 1ª partida é perdoada', () => {
         const run = start('longa-partida');
-        useGame.getState().enterNode(run.map!.nodes.find((n) => n.row === 0)!.id);
+        // a casa sem pedra (a da pedra abre a tela dela depois do prêmio)
+        const node = run.map!.nodes.find((n) => n.row === 0 && !n.stone && !casaOf(n))!;
+        useGame.getState().enterNode(node.id);
         const cur = useGame.getState().run!;
         const team = playerTeam(cur, 15221311);
         useGame.getState().lockMatch(team);
@@ -747,14 +857,45 @@ describe('Copa longa', () => {
         const after = useGame.getState().run!;
         expect(after.results[0].final).toBe(false);
         if (m.winner === 0) {
-            expect(after.status).toBe('reward');
-            expect(after.money).toBeGreaterThanOrEqual(5);
-            useGame.getState().skipReward();
+            expect(after.money).toBeGreaterThanOrEqual(5 + ROTA_JOGO_PAY);
+            expect(after.status).toBe(node.prize === 'money' ? 'map' : 'reward');
+            if (after.status === 'reward') useGame.getState().skipReward();
             expect(useGame.getState().run!.status).toBe('map');
         } else {
             expect(after.status).toBe('map');
-            expect(after.cards).toBe(1);
+            expect(after.cards ?? 0).toBe(0);
         }
+    });
+
+    it('a 1ª derrota da Rota não dá amarelo; a 2ª no mapa dá, e a 3ª é o vermelho', () => {
+        start('longa-perdoa');
+        const lose = (row: number) => {
+            const now = useGame.getState().run!;
+            const node = now.map!.nodes.find((n) => n.row === row && n.kind === 'jogo' && !n.stone)!;
+            // a casa de antes ligada nela (o mapa largo só abre as casas ligadas à atual)
+            const from = now.map!.nodes.find((n) => n.next.includes(node.id))?.id ?? null;
+            useGame.setState({ run: { ...now, status: 'map', at: from } });
+            useGame.getState().enterNode(node.id);
+            const cur = useGame.getState().run!;
+            const team = playerTeam(cur, 15221311);
+            useGame.getState().lockMatch(team);
+            const m = runMatch(FUTSAL_5, team, cur.opponents[cur.stage], `${cur.seed}-stage-${cur.stage}`);
+            useGame.getState().recordResult({ ...m, winner: 1, score: [0, 3] });
+            return useGame.getState().run!;
+        };
+        const first = lose(0);
+        expect(first.status).toBe('map');
+        expect(first.cards ?? 0).toBe(0);
+        expect(first.results[0].forgiven).toBe(true);
+        expect(foulOf(first)).toBe('forgiven');
+        const second = lose(2);
+        expect(second.status).toBe('map');
+        expect(second.cards).toBe(1);
+        expect(second.results[1].forgiven).toBeUndefined();
+        expect(foulOf(second)).toBe('yellow');
+        const third = lose(5);
+        expect(third.status).toBe('eliminated');
+        expect(foulOf(third)).toBe('red');
     });
 
     it('Mercado é casa do mapa: juros ao entrar, sair volta pro mapa', () => {
@@ -773,19 +914,435 @@ describe('Copa longa', () => {
         expect(useGame.getState().run!.status).toBe('map');
     });
 
-    it('Treino: barra de evolução enche metade, ou +1 troca', () => {
+    it('Treino: barra de evolução enche metade, ou Folga (+₽5 e quem está fora volta)', () => {
         const base = start('longa-treino');
         // Charmander no banco: alguém que evolui com certeza
         const evolver = { ...createInstance(4, new Rng('treino', 'x')), uid: 'charmander' };
         const run = { ...base, picks: [...base.picks.slice(0, -1), evolver], bench: [base.bench[0], 'charmander'] };
         expect(evolutionTarget(evolver.speciesId, evolver.uid)).not.toBeNull();
-        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.setState({ run: { ...run, status: 'treino', money: 3, out: { charmander: 2 } } });
         useGame.getState().train('rest');
-        expect(useGame.getState().run!.rerolls).toBe(run.rerolls + 1);
+        // a Folga: ₽ e quem está fora volta (o Descanso dava +1 sorteio, que não tinha onde gastar)
+        expect(useGame.getState().run!.rerolls).toBe(run.rerolls);
+        expect(useGame.getState().run!.money).toBe(8);
+        expect(useGame.getState().run!.out).toBeUndefined();
         useGame.setState({ run: { ...run, status: 'treino' } });
         useGame.getState().train('evo', evolver.uid);
         expect(useGame.getState().run!.status).toBe('map');
         expect(useGame.getState().run!.picks.find((p) => p.uid === evolver.uid)!.evo).toBe(7);
+        // com alguém que evolui, o treino de técnica não vale
+        useGame.setState({ run: { ...run, status: 'treino' } });
+        useGame.getState().train('item');
+        expect(useGame.getState().run!.status).toBe('treino');
+    });
+
+    it('Treino sem ninguém que evolua: 1 de 2 itens (sem Pokémon, também no sorteio); depois o grupo', () => {
+        const base = start('longa-treino-item');
+        // time de quem não evolui mais (Tauros, Lapras, Snorlax, Kangaskhan, Scyther, Pinsir, Aerodactyl)
+        const done = [128, 131, 143, 115, 123, 127, 142].map((id, i) => ({
+            ...createInstance(id, new Rng('treino-item', `${i}`)),
+            uid: `d${i}`,
+        }));
+        expect(done.every((p) => evolutionTarget(p.speciesId, p.uid) === null)).toBe(true);
+        const last = base.map!.nodes.find((n) => n.row === base.map!.rows - 1 && n.kind === 'treino')!;
+        const run = {
+            ...base,
+            picks: done,
+            lineup: done.slice(0, 5).map((p) => p.uid),
+            bench: done.slice(5).map((p) => p.uid),
+            captainUid: 'd0',
+            at: last.id,
+            rerolls: 1,
+            status: 'treino' as const,
+        };
+        useGame.setState({ run });
+        useGame.getState().train('item');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('reward');
+        expect(now.rewards).toHaveLength(2);
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        useGame.getState().rerollReward();
+        now = useGame.getState().run!;
+        expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+        const i = now.rewards.findIndex((r) => r.kind === 'item');
+        if (i >= 0) {
+            useGame.getState().claimReward(i, 'd1');
+            expect(useGame.getState().run!.picks.find((p) => p.uid === 'd1')!.item).toBeTruthy();
+        } else useGame.getState().skipReward();
+        expect(useGame.getState().run!.status).toBe('group');
+    });
+
+    /** Vence o 1º Jogo com o prêmio `prize` (procura a seed em que o time pronto ganha). */
+    const winFirstJogo = (prize: Prize, stone?: Stone, from = 0, benchSpecies?: number) => {
+        for (let s = from; s < from + 30; s++) {
+            const run = start(`longa-rival-${s}`);
+            // um Jogo de verdade (no mapa largo a 1ª linha também tem o Ás, com o prêmio dele)
+            const first = run.map!.nodes.find((n) => n.row === 0 && !casaOf(n))!;
+            const map = { ...run.map!, nodes: run.map!.nodes.map((n) => (n === first ? { ...n, prize, stone } : n)) };
+            // `benchSpecies`: um reserva trocado por essa espécie (quem usa a pedra, por exemplo)
+            const out = run.bench.find((u) => u !== run.captainUid)!;
+            const mon = benchSpecies
+                ? { ...createInstance(benchSpecies, new Rng(`b${s}`, 'x')), uid: 'reserva' }
+                : null;
+            const swap = mon
+                ? {
+                      picks: [...run.picks.filter((p) => p.uid !== out), mon],
+                      bench: run.bench.map((u) => (u === out ? 'reserva' : u)),
+                  }
+                : {};
+            useGame.setState({ run: { ...run, map, ...swap } });
+            useGame.getState().enterNode(first.id);
+            const cur = useGame.getState().run!;
+            const team = playerTeam(cur, 15221311);
+            useGame.getState().lockMatch(team);
+            const m = runMatch(FUTSAL_5, team, cur.opponents[0], `${cur.seed}-stage-0`);
+            useGame.getState().recordResult(m);
+            if (m.winner === 0) return { m, rival: cur.opponents[0].name, s };
+        }
+        throw new Error('nenhuma vitória');
+    };
+
+    it('todo Jogo vencido (regra ligada): 1 de 3 do rival, depois o prêmio da casa', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            const { rival } = winFirstJogo('tm');
+            let now = useGame.getState().run!;
+            expect(now.status).toBe('reward');
+            expect(now.rivalPick).toBe(true);
+            expect(now.rewards).toHaveLength(3);
+            expect(now.rewards.every((r) => r.kind === 'pokemon')).toBe(true);
+            expect(now.rewards.some((r) => r.kind === 'pokemon' && r.from === rival)).toBe(true);
+            // Dispensar o rival: +₽2 (antes não dava nada) e abre o prêmio (MT) na mesma tela
+            const rerolls = now.rerolls;
+            const money = now.money ?? 0;
+            expect(skipTagOf(now)).toBe('dispensar');
+            useGame.getState().skipReward();
+            now = useGame.getState().run!;
+            expect(now.status).toBe('reward');
+            expect(now.rivalPick).toBe(false);
+            expect(now.rerolls).toBe(rerolls);
+            expect(now.money).toBe(money + 2);
+            expect(now.rewards.some((r) => r.kind === 'tm')).toBe(true);
+            expect(now.rewards.every((r) => r.kind !== 'pokemon')).toBe(true);
+            // o prêmio da casa: pular dá a etiqueta que estava no botão
+            const want = applySkip(now);
+            expect(skipTagOf(now)).not.toBeNull();
+            useGame.getState().skipReward();
+            const after = useGame.getState().run!;
+            expect(after.status).toBe('map');
+            for (const k of ['rerolls', 'money', 'shopFree', 'rivalShift', 'picks'] as const)
+                expect(after[k]).toEqual(want[k]);
+
+            // ₽ em dobro: o ₽ entra na vitória, o rival vem igual, e depois volta pro mapa
+            const { m } = winFirstJogo('money');
+            now = useGame.getState().run!;
+            expect(now.results[0].bonus?.prize).toBeGreaterThan(0);
+            expect(now.status).toBe('reward');
+            expect(now.rewards.every((r) => r.kind === 'pokemon')).toBe(true);
+            const w = now.rewards.findIndex((r) => r.kind === 'pokemon');
+            const leaving = now.bench.find((u) => u !== now.captainUid)!;
+            useGame.getState().claimReward(w, leaving);
+            expect(useGame.getState().run!.status).toBe('map');
+            expect(m.winner).toBe(0);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Jogo com pedra: o rival, o prêmio da casa e depois a pedra (junto, não no lugar)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('item', 'folha');
+            expect(useGame.getState().run!.rivalPick).toBe(true);
+            useGame.getState().skipReward();
+            // o prêmio da casa continua lá
+            const prize = useGame.getState().run!;
+            expect(prize.status).toBe('reward');
+            expect(prize.rewards.length).toBeGreaterThan(0);
+            expect(prize.rewards.every((r) => r.kind === 'item')).toBe(true);
+            // a pedra: a tela dela se alguém do time evolui com ela; senão vai direto pra Mochila (a linha no prêmio)
+            const stoneOutcome = (stone: Stone, from: RunState) => {
+                const uses = stoners(from, stone).length > 0;
+                const now = useGame.getState();
+                if (uses) {
+                    expect(now.screen).toBe('event');
+                    expect(now.run!.event).toEqual({ id: 'pedra', stone });
+                } else {
+                    expect(now.run!.status).toBe('map');
+                    expect(now.run!.event ?? null).toBeNull();
+                    expect(now.run!.bag).toEqual([...(from.bag ?? []), stone]);
+                }
+                return uses;
+            };
+            expect(stoneToBag(prize)).toBe(stoners(prize, 'folha').length ? null : 'folha');
+            useGame.getState().claimReward(0, prize.lineup[1]);
+            const used = [stoneOutcome('folha', prize)];
+            // ₽ em dobro com pedra: o ₽ na vitória, o rival e a pedra
+            winFirstJogo('money', 'lua');
+            expect(useGame.getState().run!.results[0].bonus?.prize).toBeGreaterThan(0);
+            const rival = useGame.getState().run!;
+            useGame.getState().skipReward();
+            used.push(stoneOutcome('lua', rival));
+            // as duas saídas foram vistas nas seeds do teste (senão o teste não prova nada)
+            expect(used).toContain(false);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('ponta a ponta: o Pikachu do 1 de 3 do rival vira Raichu com a Pedra do Trovão da mesma casa', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            // a seed em que o rival trouxe o Pikachu (na outra ele traz o Eevee)
+            let from = 0;
+            let i = -1;
+            for (let k = 0; k < 20 && i < 0; k++) {
+                from = winFirstJogo('tm', 'trovao', from).s + 1;
+                const run = useGame.getState().run!;
+                expect(run.rewards.some((r) => r.kind === 'pokemon' && [25, 133].includes(r.inst.speciesId))).toBe(
+                    true,
+                );
+                i = run.rewards.findIndex((r) => r.kind === 'pokemon' && r.inst.speciesId === 25);
+            }
+            expect(i).toBeGreaterThanOrEqual(0);
+            const run = useGame.getState().run!;
+            const pika = run.rewards[i];
+            const leaving = run.bench.find((u) => u !== run.captainUid)!;
+            useGame.getState().claimReward(i, leaving);
+            const uid = pika.kind === 'pokemon' ? pika.inst.uid : '';
+            expect(useGame.getState().run!.bench).toContain(uid);
+            // a MT da casa, depois a pedra: quem acabou de entrar já pode usar
+            expect(useGame.getState().run!.status).toBe('reward');
+            useGame.getState().skipReward();
+            const ev = useGame.getState().run!;
+            expect(ev.event).toEqual({ id: 'pedra', stone: 'trovao' });
+            expect(choiceTargets(ev, ev.event!, 'stone')).toContain(uid);
+            useGame.getState().chooseEvent('usar', uid);
+            expect(useGame.getState().screen).toBe('map');
+            expect(useGame.getState().run!.picks.find((p) => p.uid === uid)!.speciesId).toBe(26);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Rota guardada antes (pedra no lugar do prêmio): depois do rival, a tela da pedra; usar evolui na hora (Eevee + Pedra de Fogo = Flareon)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('pedra', 'fogo');
+            // um Eevee no banco (ninguém usando a pedra, ela iria direto pra Mochila sem tela)
+            // shiny: o fichário guarda as cartas de edição (a forma nova entra como "evolução")
+            const eevee = { ...createInstance(133, new Rng('p', 'e')), uid: 'eevee', shiny: true };
+            const won = useGame.getState().run!;
+            const leaving = won.bench.find((u) => u !== won.captainUid)!;
+            useGame.setState({
+                run: {
+                    ...won,
+                    picks: [...won.picks.filter((p) => p.uid !== leaving), eevee],
+                    bench: won.bench.map((u) => (u === leaving ? 'eevee' : u)),
+                },
+            });
+            useGame.getState().skipReward();
+            const now = useGame.getState().run!;
+            expect(useGame.getState().screen).toBe('event');
+            expect(now.event).toEqual({ id: 'pedra', stone: 'fogo' });
+            useGame.getState().chooseEvent('usar', 'eevee');
+            const after = useGame.getState().run!;
+            expect(useGame.getState().screen).toBe('map');
+            expect(after.picks.find((p) => p.uid === 'eevee')!.speciesId).toBe(136);
+            expect(after.eventNote).toMatchObject({ id: 'pedra', choice: 'usar', target: 'eevee' });
+            expect(useGame.getState().binder.some((c) => c.id === '136:shiny' && c.from === 'evolucao')).toBe(true);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Sortear de novo no rival: cartas novas do elenco todo dele (antes voltavam as mesmas 3)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = true;
+        try {
+            winFirstJogo('tm');
+            const now = useGame.getState().run!;
+            const opp = now.opponents[now.stage];
+            const roster = new Set([...opp.lineup, ...opp.bench].map((p) => p.speciesId));
+            const species = (r: RunState) => r.rewards.flatMap((x) => (x.kind === 'pokemon' ? [x.inst.speciesId] : []));
+            const first = species(now);
+            useGame.setState({ run: { ...now, rerolls: 1 } });
+            useGame.getState().rerollReward();
+            const again = useGame.getState().run!;
+            expect(again.rerolls).toBe(0);
+            expect(species(again)).toHaveLength(3);
+            for (const sp of species(again)) expect(roster.has(sp)).toBe(true);
+            // o elenco do rival (5 + banco) tem mais de 3 contratáveis: vem pelo menos uma carta nova
+            expect(species(again).some((sp) => !first.includes(sp))).toBe(true);
+            // sem ninguém novo no elenco, o botão apaga e o sorteio não é gasto
+            const only = { ...opp, lineup: opp.lineup.filter((p) => first.includes(p.speciesId)), bench: [] };
+            const stuck = { ...now, rerolls: 1, opponents: now.opponents.map((o, i) => (i === now.stage ? only : o)) };
+            useGame.setState({ run: stuck });
+            useGame.getState().rerollReward();
+            expect(useGame.getState().run!.rerolls).toBe(1);
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Mercado da Rota: a troca grátis do Pular e depois o sorteio pagam a troca de vitrine antes do ₽', () => {
+        const run = start('longa-mercado-sorteio');
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const shopNode = run.map!.nodes.find((n) => n.kind === 'mercado')!;
+        const map = {
+            ...run.map!,
+            nodes: run.map!.nodes.map((n) => (n === first ? { ...n, next: [shopNode.id] } : n)),
+        };
+        useGame.setState({ run: { ...run, map, at: first.id, money: 10, rerolls: 1, shopFree: 1 } });
+        useGame.getState().enterNode(shopNode.id);
+        const offers = useGame.getState().run!.shop!.offers;
+        const money = useGame.getState().run!.money;
+        useGame.getState().rerollShop();
+        let now = useGame.getState().run!;
+        expect(now.shop!.offers).not.toEqual(offers);
+        expect([now.money, now.shopFree, now.rerolls]).toEqual([money, 0, 1]);
+        useGame.getState().rerollShop();
+        now = useGame.getState().run!;
+        expect([now.money, now.rerolls]).toEqual([money, 0]);
+        useGame.getState().rerollShop();
+        now = useGame.getState().run!;
+        expect(now.money).toBeLessThan(money!);
+    });
+
+    it('Mochila: a pedra que ninguém usa fica guardada e evolui quem entrar depois; ou vende', () => {
+        const run = start('longa-mochila');
+        const ev = { id: 'pedra' as const, stone: 'fogo' as const };
+        useGame.setState({ run: { ...run, status: 'event', event: ev } });
+        expect(eventChoiceIds(run, ev)).toEqual(['usar', 'guardar', 'vender']);
+        useGame.getState().chooseEvent('guardar');
+        let now = useGame.getState().run!;
+        expect(now.status).toBe('map');
+        expect(now.bag).toEqual(['fogo']);
+        // entra um Growlithe: tira da Mochila e usa
+        const growl = { ...createInstance(58, new Rng('mochila', 'g')), uid: 'growl' };
+        const leaving = now.bench.find((u) => u !== now.captainUid)!;
+        useGame.setState({
+            run: {
+                ...now,
+                picks: [...now.picks.filter((p) => p.uid !== leaving), growl],
+                bench: now.bench.map((u) => (u === leaving ? 'growl' : u)),
+            },
+        });
+        useGame.getState().openBag('agua');
+        expect(useGame.getState().run!.status).toBe('map');
+        useGame.getState().openBag('fogo');
+        now = useGame.getState().run!;
+        expect(now.event).toEqual({ id: 'pedra', stone: 'fogo', bag: true });
+        // guardar de volta não duplica
+        useGame.getState().chooseEvent('guardar');
+        expect(useGame.getState().run!.bag).toEqual(['fogo']);
+        useGame.getState().openBag('fogo');
+        useGame.getState().chooseEvent('usar', 'growl');
+        now = useGame.getState().run!;
+        expect(now.picks.find((p) => p.uid === 'growl')!.speciesId).toBe(59);
+        expect(now.bag).toBeUndefined();
+        // vender: +₽4
+        useGame.setState({ run: { ...now, status: 'event', event: { id: 'pedra', stone: 'lua' }, money: 1 } });
+        useGame.getState().chooseEvent('vender');
+        expect(useGame.getState().run!.money).toBe(5);
+        expect(useGame.getState().run!.bag).toBeUndefined();
+    });
+
+    it('Centro sem nada pra tratar vira o PC do Bill: um reserva por uma carta à vista', () => {
+        const run = start('longa-pc');
+        const centro = { id: 'c-test', row: 0, col: 0, kind: 'centro' as const, next: [] };
+        const map = { ...run.map!, nodes: [...run.map!.nodes.filter((n) => n.row !== 0), centro] };
+        useGame.setState({ run: { ...run, map, cards: 0 } });
+        useGame.getState().enterNode('c-test');
+        const now = useGame.getState().run!;
+        expect(now.event?.id).toBe('pc');
+        const card = now.event!.cards![0];
+        const leaving = now.bench.find((u) => u !== now.captainUid)!;
+        useGame.getState().chooseEvent('trocar', leaving);
+        const after = useGame.getState().run!;
+        expect(after.bench).toContain(card.uid);
+        expect(after.picks.some((p) => p.uid === leaving)).toBe(false);
+        // com amarelo, é o Centro de sempre
+        useGame.setState({ run: { ...run, map, cards: 1, at: null, path: [] } });
+        useGame.getState().enterNode('c-test');
+        expect(useGame.getState().run!.event?.id).toBe('centro');
+    });
+
+    it('Rota guardada antes da 0.9.44 (sem Mochila nem troca grátis): carrega e as telas novas funcionam', () => {
+        const run = start('longa-guardada');
+        // como o 0.9.43 salvava: sem `bag`, sem `shopFree`, com a nota de "Deixar" a pedra
+        const old = { ...run, eventNote: { id: 'pedra', choice: 'deixar', cost: 0 } } as RunState;
+        delete (old as Partial<RunState>).bag;
+        delete (old as Partial<RunState>).shopFree;
+        const save = migrateSave({ run: old, records: { cups: 0, titles: 0, perfect: 0 } }, SAVE_VERSION);
+        expect(save.run?.bag).toBeUndefined();
+        expect(save.run?.shopFree).toBeUndefined();
+        useGame.setState({ run: { ...save.run!, status: 'event', event: { id: 'pedra', stone: 'agua' } } });
+        useGame.getState().chooseEvent('guardar');
+        expect(useGame.getState().run!.bag).toEqual(['agua']);
+        const shopNode = run.map!.nodes.find((n) => n.kind === 'mercado')!;
+        const first = run.map!.nodes.find((n) => n.row === 0)!;
+        const map = {
+            ...run.map!,
+            nodes: run.map!.nodes.map((n) => (n === first ? { ...n, next: [shopNode.id] } : n)),
+        };
+        useGame.setState({ run: { ...save.run!, map, at: first.id, rerolls: 0, money: 10 } });
+        useGame.getState().enterNode(shopNode.id);
+        const money = useGame.getState().run!.money!;
+        useGame.getState().rerollShop();
+        expect(useGame.getState().run!.money).toBeLessThan(money);
+    });
+
+    it('regra desligada: ₽ em dobro volta direto pro mapa (sem recompensa)', () => {
+        const before = ROTA_RULES.rivalEveryJogo;
+        ROTA_RULES.rivalEveryJogo = false;
+        try {
+            winFirstJogo('money');
+            expect(useGame.getState().run!.status).toBe('map');
+        } finally {
+            ROTA_RULES.rivalEveryJogo = before;
+        }
+    });
+
+    it('Jogo vencido (11/11/2026): o ₽ no lugar do 1 de 3 do rival, depois só o prêmio da casa', () => {
+        expect(ROTA_RULES.rivalEveryJogo).toBe(false);
+        const { m } = winFirstJogo('tm');
+        const now = useGame.getState().run!;
+        expect(now.rivalPick).toBe(false);
+        expect(now.status).toBe('reward');
+        expect(now.rewards.some((r) => r.kind === 'tm')).toBe(true);
+        expect(now.rewards.every((r) => r.kind !== 'pokemon' && r.kind !== 'sponsor')).toBe(true);
+        expect(now.money).toBe(longWinEarnings(m.score, [], true).total);
+        expect(longWinEarnings(m.score, [], true).total).toBe(longWinEarnings(m.score).total + ROTA_JOGO_PAY);
+        // ₽ em dobro dobra o Jogo inteiro, e não tem tela de recompensa
+        const two = winFirstJogo('money');
+        const paid = useGame.getState().run!;
+        expect(paid.status).toBe('map');
+        expect(paid.money).toBe(2 * longWinEarnings(two.m.score, [], true).total);
+    });
+
+    it('₽ em dobro com pedra: sem tela de recompensa, a pedra vem direto (o "Continuar" abre ela) ou vai pra Mochila', () => {
+        // um Clefairy no banco: a Pedra da Lua tem quem usar
+        winFirstJogo('money', 'lua', 0, 35);
+        const now = useGame.getState().run!;
+        expect(now.status).toBe('event');
+        expect(now.event).toEqual({ id: 'pedra', stone: 'lua' });
+        useGame.setState({ screen: 'result' });
+        useGame.getState().advance();
+        expect(useGame.getState().screen).toBe('event');
+        useGame.getState().chooseEvent('usar', 'reserva');
+        expect(useGame.getState().run!.picks.find((p) => p.uid === 'reserva')!.speciesId).toBe(36);
+        // ninguém usa (um Caterpie no lugar): direto pra Mochila, com a nota no mapa
+        winFirstJogo('money', 'lua', 0, 10);
+        const bag = useGame.getState().run!;
+        if (stoners(bag, 'lua').length) return;
+        expect(bag.status).toBe('map');
+        expect(bag.bag).toEqual(['lua']);
+        expect(bag.eventNote).toMatchObject({ id: 'pedra', choice: 'guardar' });
     });
 });
 
@@ -794,7 +1351,7 @@ describe('Rota Índigo: fase de grupos', () => {
         useGame.getState().newRun('Pallet FC', 'grupo-1', undefined, 'longa');
         useGame.getState().autoDraft();
         const run = useGame.getState().run!;
-        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1)!;
+        const treino = run.map!.nodes.find((n) => n.row === run.map!.rows - 1 && n.kind === 'treino')!;
         // 4 partidas das eliminatórias "jogadas" (só os resultados), parado no Treino
         const results = [0, 1, 2, 3].map((stage) => ({
             stage,
@@ -843,5 +1400,94 @@ describe('Rota Índigo: fase de grupos', () => {
         const rows = groupTable({ seed: 'tab', teamName: 'Eu', group: { rivals }, results }, 0);
         expect(rows.find((r) => r.you)!.pts).toBe(6);
         expect(rows.reduce((n, r) => n + r.played, 0)).toBe(12);
+    });
+});
+
+describe('Música (configuração nova)', () => {
+    it('save antigo sem musicVolume ganha o padrão e mantém o resto', () => {
+        const { musicVolume: _m, ...old } = { ...DEFAULT_SETTINGS, volume: 0.2 };
+        const s = withSettingDefaults(old as Settings);
+        expect(s.musicVolume).toBe(DEFAULT_SETTINGS.musicVolume);
+        expect(s.volume).toBe(0.2);
+        expect(withSettingDefaults({ ...DEFAULT_SETTINGS, musicVolume: 0 }).musicVolume).toBe(0);
+    });
+});
+
+describe('trocar o capitão na escalação', () => {
+    const g = () => useGame.getState();
+    const lineupRun = () => {
+        g().newRun('Pallet FC', 'teste-capitao');
+        g().autoDraft();
+        return g().run!;
+    };
+
+    it('outro titular vira capitão; banco, travado e fora da escalação não', () => {
+        const run = lineupRun();
+        expect(run.status).toBe('lineup');
+        const novo = run.lineup.find((u) => u !== run.captainUid)!;
+        g().setCaptain(novo);
+        expect(g().run!.captainUid).toBe(novo);
+        expect(playerTeam(g().run!).captainUid).toBe(novo);
+        // reserva não vira capitão (a aura e o golpe máximo são de quem está em quadra)
+        g().setCaptain(run.bench[0]);
+        expect(g().run!.captainUid).toBe(novo);
+        // com a partida travada (saiu no meio e voltou) não troca: a partida segue com o time que começou
+        g().lockMatch(playerTeam(g().run!));
+        g().setCaptain(run.captainUid!);
+        expect(g().run!.captainUid).toBe(novo);
+        // fora da escalação (recompensa, mapa...) também não
+        useGame.setState({ run: { ...g().run!, lockedTeam: null, status: 'reward' } });
+        g().setCaptain(run.captainUid!);
+        expect(g().run!.captainUid).toBe(novo);
+    });
+
+    it('a proteção do banco vai pro capitão novo: o antigo pode sair por um reforço, o novo não', () => {
+        const run = lineupRun();
+        const old = run.captainUid!;
+        const novo = run.lineup.find((u) => u !== old)!;
+        g().setCaptain(novo);
+        // os dois vão pro banco (troca com os dois primeiros reservas)
+        g().swapSlots({ zone: 'lineup', index: g().run!.lineup.indexOf(old) }, { zone: 'bench', index: 0 });
+        g().swapSlots({ zone: 'lineup', index: g().run!.lineup.indexOf(novo) }, { zone: 'bench', index: 1 });
+        expect(g().run!.bench.slice(0, 2)).toEqual([old, novo]);
+        const ids = new Set(g().run!.picks.map((p) => p.speciesId));
+        const sp = [1, 4, 7, 25, 133, 143].find((id) => !ids.has(id))!;
+        const inst = { ...createInstance(sp, new Rng('cap', 'reforco')), uid: 'reforco' };
+        const reward = { kind: 'pokemon' as const, inst, from: null };
+        useGame.setState({ run: { ...g().run!, status: 'reward', rewards: [reward] } });
+        g().claimReward(0, novo);
+        expect(g().run!.picks.some((p) => p.uid === novo)).toBe(true);
+        expect(g().run!.status).toBe('reward');
+        g().claimReward(0, old);
+        expect(g().run!.picks.some((p) => p.uid === old)).toBe(false);
+        expect(g().run!.bench).toContain('reforco');
+    });
+
+    // a barra do golpe máximo é contada dos eventos de cada partida (maxCharge): começa vazia, nada passa de uma pra outra
+    it('a próxima partida sai com o capitão novo', () => {
+        const run = lineupRun();
+        const novo = run.lineup.find((u) => u !== run.captainUid)!;
+        g().setCaptain(novo);
+        const team = playerTeam(g().run!);
+        const m = runMatch(FUTSAL_5, team, team, 'teste-capitao-barra');
+        expect(m.roster.find((r) => r.team === 0 && r.captain)?.uid).toBe(novo);
+    });
+});
+
+describe('selo NOVO (Pokédex de antes das cartas aparecerem)', () => {
+    it('as opções do draft são novas mesmo com o "visto" já gravado; na 2ª vez deixam de ser', () => {
+        const g = () => useGame.getState();
+        useGame.setState({ dex: {} });
+        g().newRun('Pallet FC', 'teste-novo');
+        g().chooseFormation(g().run!.formation);
+        const cap = g().run!.options;
+        // o "visto" já foi gravado quando a carta nasceu: ler só a Dex diria que ninguém é novo
+        for (const o of cap) expect(g().dex[o.speciesId]).toBeDefined();
+        for (const o of cap) expect(isNovo(g().dex, o.speciesId)).toBe(true);
+        // capitão escolhido, próxima rodada: novo só quem não estava na Dex antes dela
+        g().pick(cap[0].uid, { zone: 'lineup', index: 0 });
+        const before = new Set(Object.keys(g().dex).map(Number));
+        g().chooseSlot({ zone: 'lineup', index: 1 });
+        for (const o of g().run!.options) expect(isNovo(g().dex, o.speciesId)).toBe(!before.has(o.speciesId));
     });
 });

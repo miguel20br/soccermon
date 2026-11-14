@@ -18,6 +18,10 @@ export const SPONSOR_ICON: Record<SponsorId, HudIconKind> = {
     academia: 'book',
     torcida: 'shout',
     master: 'crown',
+    olheiro: 'binoculars',
+    preparador: 'stopwatch',
+    charanga: 'drum',
+    formador: 'sprout',
 };
 
 /** Cor de marca de cada Patrocínio (placa da carta, vaga e placa na beira da quadra). */
@@ -34,6 +38,10 @@ export const SPONSOR_BRAND: Record<SponsorId, string> = {
     academia: '#b8681c',
     torcida: '#d93a2b',
     master: '#7238b0',
+    olheiro: '#1d7f73',
+    preparador: '#6a5fb0',
+    charanga: '#8a5a3c',
+    formador: '#3f8f3a',
 };
 
 /** Placas da beira da quadra: os Patrocínios da copa com o nome curto e a cor da marca. */
@@ -124,11 +132,15 @@ export function SponsorSlots({ sponsors, onPick }: { sponsors: readonly string[]
                                 type="button"
                                 className={`sp-slot${shown === id ? ' on' : ''}`}
                                 style={brand}
+                                aria-label={txt.name}
                                 aria-expanded={onPick ? undefined : shown === id}
                                 onClick={() => (onPick ? onPick(id) : setOpen(shown === id ? null : id))}
                             >
                                 <HudIcon kind={SPONSOR_ICON[id]} />
                                 <span className="sp-slot-name">{txt.name}</span>
+                                <span className="sp-slot-short" aria-hidden="true">
+                                    {txt.short}
+                                </span>
                             </button>
                         </li>
                     );

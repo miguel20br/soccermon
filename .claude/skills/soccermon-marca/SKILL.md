@@ -31,7 +31,8 @@ mexer. Aqui fica o que conferir sempre.
 - [ ] Só tokens: `--bg`, `--panel`, `--panel-2`, `--line`, `--text`, `--muted`, `--yellow`, `--red`, `--blue`,
       `--green`, `--bc-ink*`. Hex solto só se for cor de tipo (`TYPE_COLOR`), de metal/raridade (`rarity.ts`) ou do
       logo.
-- [ ] Dourado é destaque (etiqueta, seleção); vermelho é a ação principal; um por tela.
+- [ ] Cor por função (guia, "Cor"): dourado joga (um JOGAR por tela), verde confirma ou compra, azul é secundário,
+      vermelho só perigo ou fechar dentro da confirmação. Relevo (base escura) = dá pra tocar; um botão gordo por tela, lista vira chip; painel tem moldura com título em placa; escolhido = azul.
 - [ ] Contraste da tabela do guia: branco sobre verde não; texto pequeno no vermelho vai em `--red-dark`.
 - [ ] Sombra dura (sem blur), raios 4/6/8/10, borda de baixo preta no placar.
 
@@ -55,6 +56,9 @@ mexer. Aqui fica o que conferir sempre.
 
 ## Movimento
 
+- [ ] **Nada teleporta:** toda troca de tela, entrada, saída e mudança de estado tem transição (200–300 ms); nada pula
+      de posição. Use o que já existe (`src/ui/view-transition.ts`, `tab-slide.ts`, `exit-motion.ts`) e confira com
+      `npm run teleporte`. Backlog em `docs/planos/nada-teleporta.md`.
 - [ ] `--ease-out` pra tudo, `--ease-pop` só no pop de jogo. Anime `transform`/`opacity`.
 - [ ] Testou com **Reduzir movimento** ligado (Configurações › Acessibilidade, ou `data-reduce-motion="true"`) e com
       `prefers-reduced-motion`. Loop infinito só em decoração leve.
@@ -63,7 +67,12 @@ mexer. Aqui fica o que conferir sempre.
 
 - [ ] Curto e direto. No jogo, até ~12 palavras por texto. Legenda de vídeo: 2 a 5 palavras, caixa alta, a feature
       dita ("EVOLUÇÕES NO MEIO DO JOGO", "MULTIPLAYER ONLINE", "COPA RANKEADA").
-- [ ] Sem ironia, sem piada empilhada, sem tricolon ("Monte. Escale. Evolua.").
+- [ ] Sem ironia, sem piada empilhada, sem tricolon ("Monte. Escale. Evolua."), sem "não é X, é Y", sem dois-pontos
+      dramático nem frase de efeito (recusada em 21/10: "Em Kanto, ginásio virou quadra: …", "cara de IA").
+- [ ] Nomes do cânone ficam: ginásio, líder, insígnia (nunca "quadra" no lugar de ginásio).
+- [ ] Interface = rótulo curto (nome + desenho + ícone, +/− em 2–3 palavras: "Pewter → Ferrolho (3 fixos)"); frase só
+      onde é explicação. Não explique o óbvio nem repita regra. Mecânica nova aparece explicada numa linha, na hora.
+- [ ] Fala de personagem soa como o personagem (o Brock fala como Brock); a regra vai no rótulo, não na fala.
 - [ ] Humor de fã só em momento pontual (abertura do vídeo, tagline, faixas da torcida, posts), de preferência
       paródia de coisa real: "ABAIXA QUE É HYPER BEAM", "Sua insígnia é minha!", "Confia no professor!".
 - [ ] Jargão Pokémon pode (PP, super efetivo, insígnia, MT); golpe com o nome oficial em inglês.

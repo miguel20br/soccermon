@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-blaine",
+ "titulo": "Ponte pra tema-blaine: o fogo e o cencerro na clave (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.511633,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.068957,
+   "amostras": [
+    0,
+    91241
+   ],
+   "bpm": 116,
+   "compassos": 1
+  }
+ ]
+}

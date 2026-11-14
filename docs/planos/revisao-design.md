@@ -1,3 +1,7 @@
+---
+description: Revisão de design das telas e o que simplificar na 0.9.2.
+---
+
 # Revisão de design: o jogo está virando um amontoado?
 
 21/10/2026, em cima da branch `v091`. Prints headless a 390x844, 1440x900, 320x568 (as telas mais cheias) e 844x390

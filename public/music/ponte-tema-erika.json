@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-erika",
+ "titulo": "Ponte pra tema-erika: o borrifo de perfume e a flauta (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 3.554127,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.142857,
+   "amostras": [
+    0,
+    94500
+   ],
+   "bpm": 112,
+   "compassos": 1
+  }
+ ]
+}

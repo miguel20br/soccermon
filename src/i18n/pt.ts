@@ -16,10 +16,12 @@ import { result } from './pt/result';
 import { reward } from './pt/reward';
 import { settings } from './pt/settings';
 import { shop } from './pt/shop';
+import { showdown } from './pt/showdown';
 import { stats } from './pt/stats';
 import { team } from './pt/team';
 import { title } from './pt/title';
 import { trophies } from './pt/trophies';
+import { ultimate } from './pt/ultimate';
 
 /**
  * Dicionário em português: a fonte da verdade. Cada área fica num arquivo em ./pt/ e tem o par em ./en/
@@ -50,6 +52,8 @@ export const pt = {
     shop,
     longCup,
     bracket,
+    ultimate,
+    showdown,
 };
 
 export type Dict = typeof pt;

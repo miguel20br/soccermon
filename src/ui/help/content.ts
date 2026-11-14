@@ -1,32 +1,16 @@
-import { CLUBS } from '../../engine/cup';
-import { BENCH_SIZE, DRAFT_PICKS } from '../../engine/draft';
+import { AGENCY, MAX_FX_PIECES } from '../../engine/agency';
 import { TACTIC_MODS } from '../../engine/effective';
-import { FORMATIONS } from '../../engine/formations';
-import { ITEMS } from '../../engine/items';
 import { LINKS } from '../../engine/links';
 import { ICON_CHANCE, ICONS, SPECIAL_BONUS } from '../../engine/specials';
 import type { Tactic } from '../../engine/state';
-import { TM_REWARD_CHANCE } from '../../engine/tm';
-import {
-    clubName,
-    dict,
-    fmt,
-    formationText,
-    itemDesc,
-    itemName,
-    type Lang,
-    linkText,
-    pct,
-    typeName,
-    type Vars,
-} from '../../i18n';
+import { dict, fmt, type Lang, linkText, pct, typeName, type Vars } from '../../i18n';
 import type { HelpDictBlock } from '../../i18n/pt/help';
-import { START_REROLLS } from '../../store/game-store';
 import { FEEDBACK_URL } from '../links';
+import { maxFillText, maxFxText, maxStatusVerb, maxTimingText } from '../max-levels';
 
 /**
  * Ajuda montada no idioma do jogo. Os textos ficam em src/i18n/{pt,en}/help.ts; os números vêm direto do
- * motor (formações, itens, sinergias, táticas, clubes), então a Ajuda não fica desatualizada quando eles mudam.
+ * motor (sinergias, táticas, golpe máximo), então a Ajuda não fica desatualizada quando eles mudam.
  *
  * Formato: `p` = parágrafo; `list` = lista (string, ou [termo, explicação]). `**negrito**` funciona.
  */
@@ -50,25 +34,15 @@ export interface FaqEntry {
 
 /** Ordem das seções e o sprite de cada uma. */
 const SECTION_SPRITES = {
-    basico: 25,
-    draft: 133,
-    formacoes: 68,
     posicoes: 95,
     cartas: 6,
     tipos: 9,
-    golpes: 129,
-    golpesJogos: 18,
-    status: 39,
-    habilidades: 94,
-    itens: 143,
     sinergias: 150,
     partida: 26,
+    golpes: 129,
+    status: 39,
+    golpeMax: 130,
     evolucao: 4,
-    copa: 149,
-    recompensas: 52,
-    recordes: 151,
-    pokedex: 137,
-    conta: 132,
 } as const;
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
@@ -77,24 +51,6 @@ function dynamicList(kind: Extract<HelpDictBlock, { dyn: string }>['dyn'], lang:
     const d = dict(lang);
     const g = d.help.gen;
     switch (kind) {
-        case 'formations':
-            return Object.values(FORMATIONS).map((f): [string, string] => {
-                const text = formationText(f.id, lang);
-                return [
-                    text.name,
-                    fmt(g.formationLine, {
-                        positions: f.slots
-                            .slice(1)
-                            .map((s) => d.common.pos[s])
-                            .join(', '),
-                        description: text.description,
-                    }),
-                ];
-            });
-        case 'items':
-            return Object.values(ITEMS)
-                .filter((i) => i.kind !== 'type')
-                .map((i): [string, string] => [itemName(i.id), itemDesc(i.id, lang)]);
         case 'links':
             return LINKS.map((l): [string, string] => {
                 const text = linkText(l.id, lang);
@@ -113,14 +69,15 @@ function dynamicList(kind: Extract<HelpDictBlock, { dyn: string }>['dyn'], lang:
                     mods.drain === 1 ? '' : fmt(mods.drain > 1 ? g.drainMore : g.drainLess, { pct: pct(mods.drain) });
                 return [d.common.tactic[t], fmt(g.tacticLine, { feel: g.tacticFeel[t], attrs, drain })];
             });
-        case 'gyms':
-            return CLUBS.filter((c) => c.city !== 'Indigo Plateau').map((c): [string, string] => [
-                clubName(c.name, lang),
-                fmt(g.gymLine, {
-                    types: c.types.map((t) => typeName(t, lang)).join('/'),
-                    formation: formationText(c.formation, lang).name,
-                    tactic: d.common.tactic[c.tactic],
-                }),
+        case 'maxLevels':
+            return ([1, 2, 3] as const).map((lv): [string, string] => [
+                fmt(d.match.agency.maxLevelShort, { n: lv }),
+                fmt(g.maxRow[lv - 1], { pw: pct(AGENCY.maxLevelShot[lv].power) }),
+            ]);
+        case 'maxTypes':
+            return Object.keys(MAX_FX_PIECES).map((type): [string, string] => [
+                typeName(type, lang),
+                fmt(g.maxTypeLine, { st: maxStatusVerb(type, lang), fx: maxFxText(type, lang).name }),
             ]);
     }
 }
@@ -138,21 +95,13 @@ function buildBlock(b: HelpDictBlock, vars: Vars, lang: Lang): HelpBlock {
 
 function varsFor(lang: Lang): Vars {
     const d = dict(lang);
-    const league = CLUBS.find((c) => c.city === 'Indigo Plateau');
     return {
-        stages: d.common.stage.join(' → '),
-        picks: DRAFT_PICKS,
-        bench: BENCH_SIZE,
-        rerolls: START_REROLLS,
         bonus: SPECIAL_BONUS,
         iconCount: Object.keys(ICONS).length,
         iconOdds: Math.round(1 / ICON_CHANCE),
-        tmOdds: Math.round(TM_REWARD_CHANCE * 100),
-        league: league ? clubName(league.name, lang) : clubName('Liga Índigo', lang),
-        typeItems: Object.values(ITEMS)
-            .filter((i) => i.kind === 'type')
-            .map((i) => itemName(i.id))
-            .join(', '),
+        maxWho: d.match.agency.levels.who,
+        maxFill: maxFillText(lang),
+        maxTiming: maxTimingText(lang),
     };
 }
 

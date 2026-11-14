@@ -1,0 +1,80 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it } from 'vitest';
+import { chosenMode, type Mode, PlayBar, playModes, playSub } from './PlayBar';
+
+const noop = () => {};
+const m = (id: Mode['id'], title: string, sub = ''): Mode => ({ id, title, sub, icon: 'next', go: noop });
+const html = (main: Mode, sheet: Mode[]) => renderToStaticMarkup(createElement(PlayBar, { main, sheet, onPick: noop }));
+
+/**
+ * Retorno do Miguel (30/10, "o seletor de modos tá muito burocrático, dar um espacinho pra cada modo"): uma placa por
+ * modo em cima do JOGAR (no lugar da pílula com setas e lista); o JOGAR dourado joga a placa acesa.
+ */
+describe('JOGAR e placas de modos do Estádio', () => {
+    it('o padrão é a copa em andamento; senão o desafio do link; senão a Copa Relâmpago', () => {
+        const base = { challenge: null, firstVisit: false };
+        expect(playModes({ ...base, inProgress: false }).main).toBe('quick');
+        expect(playModes({ ...base, inProgress: true }).main).toBe('continue');
+        expect(playModes({ ...base, inProgress: false, challenge: 'ABC123' }).main).toBe('challenge');
+        expect(playModes({ ...base, inProgress: true, challenge: 'ABC123' }).main).toBe('continue');
+    });
+
+    it('Copa do Dia nova vira o JOGAR só para quem já fez copa, sem copa nem desafio em andamento', () => {
+        const base = { challenge: null, firstVisit: false, inProgress: false };
+        expect(playModes({ ...base, dailyNew: true }).main).toBe('daily');
+        expect(playModes({ ...base, dailyNew: false }).main).toBe('quick'); // nunca jogou copa, ou já fez a de hoje
+        expect(playModes({ ...base, dailyNew: true, inProgress: true }).main).toBe('continue');
+        expect(playModes({ ...base, dailyNew: true, challenge: 'ABC123' }).main).toBe('challenge');
+    });
+
+    it('a lista tem só os modos do Estádio (Continuar só com copa em andamento); Rota e Duelo moram nas abas', () => {
+        expect(playModes({ inProgress: false, challenge: null, firstVisit: false }).sheet).toEqual(['quick', 'daily']);
+        expect(playModes({ inProgress: true, challenge: null, firstVisit: false }).sheet).toEqual([
+            'continue',
+            'quick',
+            'daily',
+        ]);
+    });
+
+    it('o escolhido vale enquanto estiver na lista; senão volta pro padrão', () => {
+        const plan = playModes({ inProgress: true, challenge: null, firstVisit: false });
+        expect(chosenMode(plan, null)).toBe('continue');
+        expect(chosenMode(plan, 'daily')).toBe('daily');
+        // a copa acabou: o "Continuar" escolhido sai da lista e o JOGAR volta pra Relâmpago
+        expect(chosenMode(playModes({ inProgress: false, challenge: null, firstVisit: false }), 'continue')).toBe(
+            'quick',
+        );
+    });
+
+    it('1ª visita: sem placas, o JOGAR diz o modo embaixo', () => {
+        const plan = playModes({ inProgress: false, challenge: null, firstVisit: true });
+        expect(plan).toEqual({ main: 'quick', sheet: [] });
+        const out = html(m('quick', 'Copa Relâmpago', 'Copa Relâmpago · 4 jogos'), []);
+        expect(out).not.toContain('es-rail');
+        expect(out).toMatch(/es-play[^>]*>.*Jogar.*es-play-sub[^>]*>Copa Relâmpago · 4 jogos/);
+    });
+
+    it('uma placa por modo, a escolhida acesa; o JOGAR diz o verbo e o modo embaixo', () => {
+        const cont = { ...m('continue', 'Continuar', 'Pallet FC · Quartas de final'), verb: 'Continuar' };
+        const sheet = [cont, m('quick', 'Copa Relâmpago'), m('daily', 'Copa do Dia')];
+        const out = html(cont, sheet);
+        expect(out.match(/class="es-tile /g)).toHaveLength(3);
+        expect(out).toMatch(/aria-pressed="true" class="es-tile m-continue on"/);
+        expect(out.match(/aria-pressed="true"/g)).toHaveLength(1);
+        expect(out).toMatch(/es-play-verb">Continuar<.*es-play-sub">Pallet FC · Quartas de final</);
+    });
+
+    it('a linha de baixo do JOGAR não repete o verbo do botão', () => {
+        expect(playSub({ title: 'Copa do Dia', sub: 'Jogar hoje', verb: 'Jogar hoje' }, true)).toBe('Copa do Dia');
+        expect(playSub({ title: 'Continuar', sub: 'Pallet FC · Partida 3 de 8', verb: 'Continuar' }, true)).toBe(
+            'Pallet FC · Partida 3 de 8',
+        );
+        // a placa de "continuar" já diz a copa: a linha de baixo só leva o passo
+        expect(
+            playSub({ id: 'continue', title: 'Copa Relâmpago', sub: 'Pallet FC · Oitavas', verb: 'Continuar' }, true),
+        ).toBe('Pallet FC · Oitavas');
+        expect(playSub({ title: 'Duelo', sub: 'Com amigos' }, true)).toBe('Duelo · Com amigos');
+        expect(playSub({ title: 'Copa Relâmpago', sub: '4 jogos' }, false)).toBe('4 jogos');
+    });
+});

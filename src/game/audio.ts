@@ -1,12 +1,13 @@
 import { ZZFX, zzfx } from 'zzfx';
 import type { CryStyle } from '../store/game-store';
 import { CRY_FADE_AT, CRY_MAX_MS, cryGain, cryPlayMs } from './cry-level';
+import { MAX_EXTRA, MAX_MOVE, MAX_TAP, type MaxSound } from './max-sfx';
 
 /**
  * Áudio da partida: gritos dos Pokémon (arquivos .ogg do PokeAPI/cries) + efeitos procedurais (ZzFX).
  * Os efeitos não precisam de arquivo — são gerados na hora.
  */
-const SFX = {
+export const SFX = {
     // parâmetros gerados no editor do ZzFX (killedbyapixel.github.io/ZzFX)
     kick: [0.9, 0.05, 140, 0, 0.01, 0.06, 4, 2.2, -8, 0, 0, 0, 0, 0.3, 0, 0, 0, 0.6, 0.02],
     shot: [1.2, 0.05, 90, 0, 0.02, 0.12, 4, 2.6, -6, 0, 0, 0, 0, 0.6, 0, 0.1, 0, 0.5, 0.04],
@@ -20,10 +21,18 @@ const SFX = {
     // retorno de toque (src/ui/feedback.ts): voltar desce, sair/perder é um "uó-uó" triste, destrutivo é seco
     back: [0.45, 0, 660, 0, 0.02, 0.07, 1, 1.5, -24, 0, 0, 0, 0, 0, 0, 0, 0, 0.6, 0],
     sad: [0.7, 0, 392, 0.02, 0.16, 0.32, 2, 1.4, -5, 0, -70, 0.14, 0, 0, 0, 0, 0, 0.6, 0.08],
+    // drible com nome: o vento da bola passando (ruído que desce)
+    whoosh: [0.5, 0.05, 320, 0.04, 0.06, 0.16, 4, 1, -3, 0, 0, 0, 0, 1.2, 0, 0, 0, 0.6, 0.05],
     thud: [0.9, 0, 110, 0, 0.04, 0.22, 3, 1.8, -4, 0, 0, 0, 0, 0.3, 0, 0, 0, 0.6, 0.05],
 } as const;
 
 export type SfxName = keyof typeof SFX;
+
+/**
+ * Ganho base de cada canal (antes de `geral × canal` das Configurações). Medidos com `npx tsx scripts/niveis-audio.ts`;
+ * alvos na skill soccermon-musica (§6): o grito é tempero, fica atrás da música (era 0,55: ~12 dB acima dela).
+ */
+export const GAIN = { cry: 0.13, sfx: 0.35, sample: 0.7 };
 
 /** Volume geral e de cada canal (0..1). Gritos e efeitos tocam com `geral × canal`. */
 const vol = { master: 0.6, cries: 1, sfx: 1, crowd: 1 };
@@ -31,7 +40,7 @@ const vol = { master: 0.6, cries: 1, sfx: 1, crowd: 1 };
 let goalCryOn = true;
 
 const applyZzfx = () => {
-    ZZFX.volume = 0.35 * vol.master * vol.sfx;
+    ZZFX.volume = GAIN.sfx * vol.master * vol.sfx;
 };
 
 /** Volume geral (compatível com as chamadas antigas). */
@@ -50,20 +59,85 @@ export function setGoalCry(on: boolean) {
     goalCryOn = on;
 }
 
-/** `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). */
-export function playSfx(name: SfxName, pitch = 1) {
+/**
+ * `pitch` multiplica a frequência (1 = normal; 2^(1/12) ≈ 1,06 = um semitom acima). `at` = hora do AudioContext em
+ * que o som sai (no tempo da música: `heardAt` em `music.ts`); sem ela, já. Devolve a fonte (pra calar antes).
+ */
+export function playSfx(name: SfxName, pitch = 1, at?: number): AudioBufferSourceNode | undefined {
     if (vol.master * vol.sfx <= 0) return;
     try {
         const p = [...SFX[name]] as number[];
         p[2] *= pitch;
-        zzfx(...p);
+        if (at === undefined) return zzfx(...p);
+        const c = ZZFX.audioContext;
+        const s = ZZFX.buildSamples(...p);
+        const b = c.createBuffer(1, s.length, ZZFX.sampleRate);
+        b.getChannelData(0).set(s);
+        const src = c.createBufferSource();
+        src.buffer = b;
+        const g = c.createGain();
+        g.gain.value = ZZFX.volume;
+        src.connect(g).connect(c.destination);
+        src.start(Math.max(at, c.currentTime));
+        return src;
     } catch {
         // contexto de áudio ainda bloqueado pelo navegador (antes da primeira interação)
     }
 }
 
+/** Sons do golpe máximo (`public/sfx/max-<som>.mp3`), baixados juntos na primeira vez que o anel acende. */
+type MaxBuf = { buf: AudioBuffer; skip: number };
+let maxP: Promise<Map<MaxSound, MaxBuf> | null> | null = null;
+/**
+ * Silêncio do começo (s): o WebKit não corta o atraso do codificador do mp3 (~25 ms, `MP3_DELAY_S` no `music.ts`);
+ * pulando até o golpe, o perfeito cai na batida em todo navegador.
+ */
+export function leadIn(ch: ArrayLike<number>, sampleRate: number): number {
+    let i = 0;
+    while (i < ch.length && Math.abs(ch[i]) < 0.01) i++;
+    return Math.min(i / sampleRate, 0.05);
+}
+export const loadMaxSfx = () =>
+    (maxP ??= Promise.all(
+        [...Object.values(MAX_TAP), ...Object.values(MAX_MOVE), ...MAX_EXTRA].map(async (name) => {
+            // um arquivo que falha fica mudo sozinho (os outros tocam); se algum falhou, a próxima chamada tenta de novo
+            try {
+                const r = await fetch(`sfx/max-${name}.mp3`);
+                if (!r.ok) return null;
+                const buf = await ZZFX.audioContext.decodeAudioData(await r.arrayBuffer());
+                return [name, { buf, skip: leadIn(buf.getChannelData(0), buf.sampleRate) }] as const;
+            } catch {
+                return null;
+            }
+        }),
+    ).then((e) => {
+        const ok = e.filter((x) => x !== null);
+        if (ok.length < e.length) maxP = null;
+        return ok.length ? new Map(ok) : null;
+    }));
+
+/** Som do golpe máximo (`MAX_TAP`/`MAX_MOVE` em `max-sfx.ts`) no canal de efeitos; `at` como no `playSfx`. */
+export function playMax(name: MaxSound, at?: number) {
+    if (vol.master * vol.sfx <= 0) return;
+    void loadMaxSfx().then((m) => {
+        const s = m?.get(name);
+        if (!s) return;
+        try {
+            const c = ZZFX.audioContext;
+            const src = c.createBufferSource();
+            src.buffer = s.buf;
+            const g = c.createGain();
+            g.gain.value = ZZFX.volume;
+            src.connect(g).connect(c.destination);
+            src.start(Math.max(at ?? 0, c.currentTime), s.skip);
+        } catch {
+            // sem áudio
+        }
+    });
+}
+
 /** Sons gravados (apito do trailer, torcida): `public/assets/sfx/{nome}.mp3`. */
-type SampleName = 'apito' | 'apito-curto' | `torcida-${CrowdCall}-${number}`;
+type SampleName = 'apito' | 'apito-curto' | 'insignia' | 'centro' | `torcida-${CrowdCall}-${number}`;
 /** O que a torcida (que torce por você) faz: gol seu, gol do rival, quase. */
 export type CrowdCall = 'gol' | 'vaia' | 'uuh';
 const CROWD_VARIANTS: Record<CrowdCall, number> = { gol: 3, vaia: 2, uuh: 2 };
@@ -87,12 +161,22 @@ function play(name: SampleName, level: number) {
         const ctx = ZZFX.audioContext;
         if (!buf || ctx.state !== 'running') return;
         const g = ctx.createGain();
-        g.gain.value = 0.7 * level;
+        g.gain.value = GAIN.sample * level;
         const src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(g).connect(ctx.destination);
         src.start();
     });
+}
+
+/** Jingle da insígnia batendo (2 s, scripts/musica/pecas/insignia.mjs), no canal de efeitos. */
+export function playBadgeJingle() {
+    play('insignia', vol.master * vol.sfx);
+}
+
+/** Jingle do Centro Pokémon (2 s, scripts/musica/pecas/centro.mjs), no canal de efeitos. */
+export function playHealJingle() {
+    play('centro', vol.master * vol.sfx);
 }
 
 /** Apito (canal de efeitos). */
@@ -144,7 +228,7 @@ function cry(speciesId: number, style: CryStyle, volume: number, rate = 1) {
         cryCache.set(url, audio);
     }
     const node = audio.cloneNode(true) as HTMLAudioElement;
-    const level = Math.min(1, 0.55 * volume * cryGain(speciesId, style));
+    const level = Math.min(1, GAIN.cry * volume * cryGain(speciesId, style));
     node.volume = level;
     if (rate !== 1) {
         node.preservesPitch = false;

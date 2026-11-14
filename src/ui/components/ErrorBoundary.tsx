@@ -79,7 +79,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, CrashState
                     <h2>{t('settings.crash.title')}</h2>
                     <p className="muted">{t('settings.crash.saved')}</p>
                     <div className="row crash-actions">
-                        <button type="button" className="btn primary" onClick={this.home}>
+                        <button type="button" className="btn confirm" onClick={this.home}>
                             {t('settings.crash.home')}
                         </button>
                         <button type="button" className="btn ghost" onClick={() => window.location.reload()}>

@@ -4,6 +4,7 @@ import type { AttrKey, Position } from '../../engine/attributes';
 import { MOVES, type Tier } from '../../engine/data';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
+import { cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import { abilityDesc, abilityName, dict, itemDesc, itemName, moveFutsal, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -39,6 +40,7 @@ function attrColor(v: number) {
 export function AttrBars({ inst, keys }: { inst: PokemonInstance; keys?: AttrKey[] }) {
     const { d } = useT();
     const view = viewInstance(inst);
+    const { field } = cardAttributes(inst);
     const list =
         keys ??
         (view.naturalPosition === 'GK'
@@ -56,7 +58,7 @@ export function AttrBars({ inst, keys }: { inst: PokemonInstance; keys?: AttrKey
     return (
         <div className="attrs">
             {list.map((k) => {
-                const v = Math.round(view.attributes[k]);
+                const v = field[k];
                 return (
                     <div className="attr" key={k}>
                         <span>{d.common.attr[k]}</span>

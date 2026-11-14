@@ -1,3 +1,7 @@
+---
+description: Proposta da Copa longa (Rota Índigo) e as decisões de design.
+---
+
 # Copa longa (0.9.1): proposta (21/10/2026)
 
 Etapa 2 da Copa roguelike ([copa-roguelike-plano.md](copa-roguelike-plano.md)). Pesquisa em duas partes:

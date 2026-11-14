@@ -1,5 +1,6 @@
 import { type RefObject, useLayoutEffect, useRef } from 'react';
 import { reduceMotionOn } from './reduce-motion';
+import { uiZoom } from './ui-zoom';
 
 /**
  * Nada teleporta: quando `key` muda, cada `[data-uid]` dentro de `box` que mudou de lugar desliza do lugar antigo pro
@@ -15,9 +16,10 @@ export function useSwapMotion(box: RefObject<HTMLElement | null>, key: string, s
     const measure = (animate: boolean) => {
         const rects = new Map<string, { left: number; top: number }>();
         const origin = box.current?.getBoundingClientRect();
+        const z = uiZoom();
         for (const el of box.current?.querySelectorAll<HTMLElement>('[data-uid]') ?? []) {
             const b = el.getBoundingClientRect();
-            const r = { left: b.left - (origin?.left ?? 0), top: b.top - (origin?.top ?? 0) };
+            const r = { left: (b.left - (origin?.left ?? 0)) / z, top: (b.top - (origin?.top ?? 0)) / z };
             const uid = el.dataset.uid ?? '';
             const was = last.current.get(uid);
             rects.set(uid, r);

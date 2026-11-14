@@ -10,6 +10,7 @@ import {
     useRef,
     useState,
 } from 'react';
+
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
@@ -37,11 +38,14 @@ import { toggleShowcase } from '../../store/medals';
 import { newsKey } from '../../store/news';
 import { albumCount, albumSlots, type Dex, type DexEntry, GENERATIONS, hasSticker } from '../../store/profile';
 import { useCardModal } from '../card-modal';
+import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PokeCard2 } from '../components/PokeCard2';
 import { reduceMotionOn } from '../reduce-motion';
 import { useSwapMotion } from '../swap-motion';
+import { uiZoom } from '../ui-zoom';
 import { speciesGif } from './club';
+import { DexText } from './DexText';
 import { NewBadge, useNews } from './news';
 import './album.css';
 
@@ -378,14 +382,17 @@ export function AlbumView({
                 { label: t('profile.album.sheet'), onClick: () => onSheet(sp.id, [sp.id]) },
             ],
             extra: (
-                <Versions
-                    rows={list}
-                    current={r.id}
-                    front={frontId}
-                    shown={shownIds}
-                    name={nameOf}
-                    onPick={(x) => openRow(sp, x)}
-                />
+                <>
+                    <DexText id={sp.id} className="al-dex-text" />
+                    <Versions
+                        rows={list}
+                        current={r.id}
+                        front={frontId}
+                        shown={shownIds}
+                        name={nameOf}
+                        onPick={(x) => openRow(sp, x)}
+                    />
+                </>
             ),
         });
     };
@@ -533,7 +540,7 @@ export function AlbumView({
                             aria-label={t('profile.album.coverAria', { gen: g.gen, region: g.region })}
                         >
                             <span className="al-cover-face">
-                                <img className="al-cover-logo" src="assets/ui/logo.svg" alt="" draggable={false} />
+                                <Logo className="al-cover-logo" />
                                 <b className="al-cover-title">{t('profile.album.coverTitle')}</b>
                                 <span className="al-cover-gen">{t('profile.album.coverGen', { gen: g.gen })}</span>
                                 <span className="al-cover-region">{g.region}</span>
@@ -649,8 +656,8 @@ export function AlbumView({
                     </span>
                     <span className="pf-sr">{t('profile.dex.stickersAria', { n: total.got, total: total.total })}</span>
                 </b>
-                <div className="pf-bar" aria-hidden>
-                    <i className="played" style={{ width: `${(total.got / total.total) * 100}%` }} />
+                <div className={`k-bar${total.got >= total.total ? ' full' : ''}`} aria-hidden>
+                    <i style={{ width: `${(total.got / total.total) * 100}%` }} />
                 </div>
                 <small className="muted">{t('profile.album.help')}</small>
             </div>
@@ -768,7 +775,9 @@ function ShowcaseEditor({
             d.el.classList.add('drag');
             setSel(null);
         }
-        d.el.style.translate = `${dx}px ${dy}px`;
+        // o zoom que vale na carta (a raiz e, no PC, o da Coleção): o deslocamento acompanha o dedo
+        const z = uiZoom(d.el);
+        d.el.style.translate = `${dx / z}px ${dy / z}px`;
         const j = slotAt(e.clientX, e.clientY);
         setOver(j >= 0 && j !== d.i && j < ids.length ? j : null);
     };

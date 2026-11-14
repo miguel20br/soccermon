@@ -1,3 +1,7 @@
+---
+description: Proposta e protótipo da lista de amigos e do perfil do amigo.
+---
+
 # Amigos
 
 Pedido do Miguel (19/10/2026): "um botão de adicionar amigo é necessário". Proposta + protótipo na branch `amigos`

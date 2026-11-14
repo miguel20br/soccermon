@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-tema-sabrina",
+ "titulo": "Ponte pra tema-sabrina: o teletransporte e a celesta em tons inteiros (com riser e prato)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 4.189252,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 2.307687,
+   "amostras": [
+    0,
+    101769
+   ],
+   "bpm": 104,
+   "compassos": 1
+  }
+ ]
+}

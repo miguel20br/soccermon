@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { type AttrKey, POSITIONS, type Position } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
-import { evolvedRating } from '../../engine/evolution';
+import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import { editionOf } from '../../engine/specials';
 import { dict, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
@@ -12,6 +13,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { TypeBadge } from './PokeCard';
 import { PokeCard2 } from './PokeCard2';
+import { TaughtMark } from './TaughtMark';
 
 /** Nomes dos atributos em português (no idioma do jogo: `dict().common.attr`). */
 export const ATTR_SHORT: Record<AttrKey, string> = dict('pt').common.attr;
@@ -85,7 +87,7 @@ export function FutCard({
     const pos = position ?? view.naturalPosition;
     const { display } = ratingAt(inst, pos);
     const edition = editionOf(inst);
-    const evo = evolvedRating(inst, pos);
+    const evo = evoPreview(inst, position);
 
     useEffect(
         () => () => {
@@ -130,9 +132,10 @@ export function FutCard({
     const positions = POSITIONS.map((p) => ({ p, ...ratingAt(inst, p) }))
         .filter((x) => view.positions.includes(x.p))
         .sort((a, b) => b.rating - a.rating);
+    const { field } = cardAttributes(inst);
     const best = (Object.keys(ATTR_SHORT) as AttrKey[])
         .filter((k) => k !== 'goalkeeping' || pos === 'GK')
-        .map((k) => ({ k, v: Math.round(view.attributes[k]) }))
+        .map((k) => ({ k, v: field[k] }))
         .sort((a, b) => b.v - a.v)
         .slice(0, 3);
 
@@ -157,7 +160,8 @@ export function FutCard({
                     evo: evo ? t('team.card.evoAria', { name: SPECIES[evo.into - 1].name, r: evo.rating }) : '',
                 })}
             >
-                <PokeCard2 inst={inst} variant="metal" position={pos} captain={captain} />
+                {/* sem vaga, a carta usa a posição principal; o selo de evolução projeta na principal da forma nova */}
+                <PokeCard2 inst={inst} variant="metal" position={position} captain={captain} />
                 {ribbon && <span className="fut-ribbon">{ribbon}</span>}
 
                 {peek && (
@@ -184,6 +188,7 @@ export function FutCard({
                             {inst.moves.map((m) => (
                                 <i key={m} style={{ borderColor: TYPE_COLOR[MOVES[m].type] }}>
                                     {moveName(m)}
+                                    <TaughtMark inst={inst} move={m} />
                                 </i>
                             ))}
                         </span>
@@ -209,7 +214,7 @@ export function FutCard({
                 // ação repetida em grade (3 cartas, vitrine): contorno amarelo; o vermelho fica pra ação da tela
                 <button
                     type="button"
-                    className={`btn small${action.primary ? ' outline' : ''} fut-action`}
+                    className={`btn small${action.primary ? ' confirm' : ''} fut-action`}
                     onClick={action.onClick}
                 >
                     {action.label}

@@ -1,6 +1,11 @@
 import { cloudApi, isApplyingCloud, takeLoginPending, useCloud } from '../cloud/cloud';
-import { type GameState, useGame } from '../store/game-store';
+import { takeMatchQuality } from '../game/quality';
+import { type GameState, liveOf, useGame } from '../store/game-store';
+import { currentNode, isLong } from '../store/long-cup';
+import { skipTagOf } from '../store/long-events';
 import { seenCount } from '../store/profile';
+import { casaOf, houseOf } from '../store/rota-map';
+import { lineupAverage } from '../ui/rating';
 
 /**
  * Estatísticas anônimas do jogo, gravadas na tabela `game_events` do Supabase (só inserir; ninguém lê
@@ -18,9 +23,64 @@ interface Row {
     device: string;
 }
 
-/** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. */
-const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com';
+/**
+ * Robô não é jogador: navegador automatizado (Playwright, Puppeteer, Selenium: `navigator.webdriver`, inclusive os
+ * nossos testes no ar, que abrem em 1280x720 e contavam como "desktop novo") e os rastreadores que rodam JavaScript.
+ * Pela lista de nomes, não por "bot" solto: celular CUBOT tem "bot" no user agent, e o app de busca da Yandex
+ * (gente) tem "YandexSearch"; os robôs dela trazem "yandex.com/bots".
+ */
+export const isBot = (nav: { webdriver?: boolean; userAgent?: string }) =>
+    nav.webdriver === true ||
+    /googlebot|google-inspectiontool|bingbot|yandex\.com\/bots|baiduspider|duckduckbot|applebot|ahrefs|semrush|petalbot|bytespider|gptbot|claudebot|headlesschrome|lighthouse|crawler|spider/i.test(
+        nav.userAgent ?? '',
+    );
+
+/** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. Robô também não. */
+const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com' && !isBot(navigator);
 const FLUSH_MS = 8000;
+
+/**
+ * Nomes que o banco aceita (`game_events_name_check`, última migração em `supabase/migrations/`). Um nome fora da
+ * lista faz o POST do lote inteiro dar 400 e o lote some; por isso `track` só aceita estes e confere de novo na hora.
+ */
+export const EVENT_NAMES = [
+    'session_start',
+    'screen',
+    'onboarding_done',
+    'run_start',
+    'formation',
+    'pick',
+    'match_end',
+    'run_end',
+    'reward',
+    'run_abandon',
+    'club_color',
+    'setting',
+    'login',
+    'error',
+    'share',
+    'shop_buy',
+    'shop_leave',
+    'coach_shown',
+    'coach_next',
+    'coach_skip',
+    'match_skip',
+    'duel_join',
+    'duel_match_end',
+    'first_leave',
+    'nav',
+] as const;
+export type EventName = (typeof EVENT_NAMES)[number];
+
+/**
+ * Balões do tutorial (`coach_*`): ligados desde que a migração `20261022180000_eventos_tutorial.sql` entrou em produção
+ * (22/10/2026). Nome novo de evento: migração antes, senão o servidor recusa.
+ */
+export const COACH_EVENTS = true;
+
+/** Vai pro banco: está na lista e, se é do tutorial, a migração já entrou. */
+export const sendable = (name: string) =>
+    (EVENT_NAMES as readonly string[]).includes(name) && (COACH_EVENTS || !name.startsWith('coach_'));
 const MAX_QUEUE = 50;
 
 const session = (() => {
@@ -69,12 +129,99 @@ function flush(keepalive = false) {
     });
 }
 
-export function track(name: string, props: Props = {}) {
+type Run = NonNullable<GameState['run']>;
+
+/** Qual das recompensas oferecidas entrou no time (o store não guarda o índice escolhido). */
+export function pickedReward(old: Run, run: Run): Run['rewards'][number] | null {
+    const before = new Map(old.picks.map((p) => [p.uid, p]));
+    return (
+        old.rewards.find((r) =>
+            run.picks.some((p) => {
+                const was = before.get(p.uid);
+                if (r.kind === 'pokemon') return p.uid === r.inst.uid && !was;
+                if (r.kind === 'tm') return !!was && p.moves.includes(r.move) && !was.moves.includes(r.move);
+                if (r.kind === 'sponsor') return false;
+                return !!was && p.item === r.item && was.item !== r.item;
+            }),
+        ) ??
+        // Patrocínio da recompensa (arcade): entra nas vagas, não no time
+        old.rewards.find(
+            (r) => r.kind === 'sponsor' && !old.sponsors?.includes(r.id) && run.sponsors?.includes(r.id),
+        ) ??
+        null
+    );
+}
+
+/** Tela de recompensa da Rota: o 1 de 3 do rival, o prêmio da casa, o Baú, o Treino, o Ginásio, o desafio ou o grupo. */
+const rewardScreen = (run: Run) => {
+    const kind = currentNode(run)?.kind;
+    if (run.rivalPick) return 'rival';
+    if (run.group) return 'grupo';
+    if (run.fight) return 'desafio';
+    // o prêmio do Treinador Ás (mapa largo): a carta rara
+    if (casaOf(currentNode(run)) === 'as') return 'as';
+    return kind === 'bau' || kind === 'treino' || kind === 'ginasio' ? kind : 'premio';
+};
+
+/**
+ * A recompensa resolvida (pegou ou pulou), ou null. Na Rota a tela seguinte é o mapa, um evento, o grupo ou outra
+ * recompensa (o prêmio da casa depois do rival); antes só contava a escalação e o Mercado, e nenhuma recompensa da
+ * Rota chegava no `npm run stats`. Sortear de novo não conta (a tela continua a mesma).
+ */
+export function rewardEvent(old: Run, run: Run): Props | null {
+    if (old.status !== 'reward') return null;
+    if (run.status === 'reward' && (run.rewards === old.rewards || run.rerollsUsed !== old.rerollsUsed)) return null;
+    const got = pickedReward(old, run);
+    return {
+        stage: old.stage,
+        rerolls_left: run.rerolls,
+        skipped: !got,
+        kind: got?.kind ?? null,
+        what: got
+            ? got.kind === 'pokemon'
+                ? got.inst.speciesId
+                : got.kind === 'tm'
+                  ? got.move
+                  : got.kind === 'sponsor'
+                    ? got.id
+                    : got.item
+            : null,
+        // Rota: qual tela e, pulando, o que a etiqueta do Pular deu
+        ...(isLong(old) && { screen: rewardScreen(old), tag: got ? null : skipTagOf(old) }),
+    };
+}
+
+/**
+ * O evento `screen`: a tela nova e, saindo do mapa da Rota, a casa escolhida (`casa`: jogo, as, safari…) e a `linha`
+ * dela (0 = Rota 1). Sem migração: o banco aceita qualquer campo em `props` (rota-indigo-2.md, item 5).
+ */
+export function screenProps(s: Pick<GameState, 'screen' | 'run'>, prev: Pick<GameState, 'screen' | 'run'>): Props {
+    // a tela troca depois do `run.at` (a troca de tela espera a transição): quem diz que entrou na casa é o status, que
+    // deixou de ser o mapa; a Mochila (pedra tirada da bolsa) abre o evento sem andar
+    const entered = prev.screen === 'map' && s.run && s.run.status !== 'map' && !s.run.event?.bag;
+    const node = entered ? currentNode(s.run!) : undefined;
+    return { screen: s.screen, ...(node && { casa: houseOf(node), linha: node.row }) };
+}
+
+export function track(name: EventName, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
-    if (!ENABLED || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
+    if (!ENABLED || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
     queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
     if (queue.length >= MAX_QUEUE) flush();
     else timer ??= setTimeout(() => flush(), FLUSH_MS);
+}
+
+/**
+ * O evento `nav`: a pessoa foi pra outro lugar do menu. `kind` = o tipo ('tab' aba do ambiente, 'door' porta, 'sub' aba
+ * dentro da porta, 'metas', 'news', 'mode' fatia do menu de modos, 'help'), `to` e `from` = ids curtos, e `extra` (ex.:
+ * `lit`, quantas abas acesas). Só ação da pessoa chama (toque, tecla, arrasto), nunca a troca automática da Home. Fica
+ * nos pontos únicos de cada caminho (`setTab`, `openDoor`, `openPage`...), não nas telas. Sem dado pessoal.
+ */
+export const navProps = (kind: string, to: string, from: string, extra: Props = {}): Props | null =>
+    to === from ? null : { kind, to, from, ...extra };
+export function trackNav(kind: string, to: string, from: string, extra: Props = {}) {
+    const p = navProps(kind, to, from, extra);
+    if (p) track('nav', p);
 }
 
 /** Domínio de quem mandou a pessoa (linkedin.com, github.com…), ou o utm_source do link. */
@@ -90,17 +237,29 @@ function referrer(): string | null {
     }
 }
 
+let dailyFrom: string | null = null;
+/** De onde a Copa do Dia foi começada ('jogar' = botão JOGAR do Estádio, 'tela' = tela da Copa do Dia): vai no `run_start`. */
+export const noteDailyOrigin = (from: string) => {
+    dailyFrom = from;
+};
+
 function onChange(s: GameState, prev: GameState) {
     // mudanças vindas da nuvem (login em outro aparelho) não são ações do jogador
     if (isApplyingCloud()) return;
-    if (s.screen !== prev.screen) track('screen', { screen: s.screen });
+    if (s.screen !== prev.screen) track('screen', screenProps(s, prev));
     if (s.onboarded && !prev.onboarded) track('onboarding_done');
 
     const run = s.run;
     const old = prev.run;
     // retomar uma copa guardada não é começar copa nova
     if (run && run.seed !== old?.seed && !(prev.parkedRuns ?? []).some((p) => p.seed === run.seed))
-        track('run_start', { challenge: new URLSearchParams(location.search).has('seed'), daily: !!run.daily });
+        track('run_start', {
+            challenge: new URLSearchParams(location.search).has('seed'),
+            daily: !!run.daily,
+            from: run.daily ? dailyFrom : null,
+            // Rota Índigo ('longa'): 8 partidas, então `stage` não é a fase da Relâmpago
+            mode: run.mode ?? null,
+        });
     if (run && old && run.seed === old.seed) {
         if (old.status === 'formation' && run.status === 'captain') track('formation', { formation: run.formation });
         if (run.picks.length > old.picks.length) {
@@ -117,8 +276,16 @@ function onChange(s: GameState, prev: GameState) {
         }
         if (run.results.length > old.results.length) {
             const r = run.results.at(-1)!;
+            const rival = old.opponents[r.stage];
             track('match_end', {
                 stage: r.stage,
+                // diferença de nota (seu time - rival): é o que mede a zebra de verdade
+                delta:
+                    old.lockedTeam && rival
+                        ? lineupAverage(old.lockedTeam.lineup, old.lockedTeam.formation) -
+                          lineupAverage(rival.lineup, rival.formation)
+                        : null,
+                mode: run.mode ?? null,
                 won: r.won,
                 gf: r.score[0],
                 ga: r.score[1],
@@ -128,6 +295,8 @@ function onChange(s: GameState, prev: GameState) {
                 tactic: run.tactic,
                 // quanto o técnico mexe ao vivo (base pra decidir as mecânicas de agência)
                 ...ordersCount(old.live?.orders ?? []),
+                // qualidade da quadra (src/game/quality.ts): fps médio, p10, DPR e degrau de resolução no fim
+                ...takeMatchQuality(),
             });
         }
         if (run.status !== old.status && (run.status === 'champion' || run.status === 'eliminated')) {
@@ -135,6 +304,7 @@ function onChange(s: GameState, prev: GameState) {
             track('run_end', {
                 champion: run.status === 'champion',
                 stage: r?.stage ?? 0,
+                mode: run.mode ?? null,
                 perfect: run.status === 'champion' && run.results.every((x) => x.won && x.score[1] === 0),
                 // raridade na tela do título ("só 3% dos campeões tinham..."): espécies do elenco e o capitão
                 squad: [...run.lineup, ...run.bench]
@@ -175,9 +345,8 @@ function onChange(s: GameState, prev: GameState) {
                 rerolls: old.shop?.rerolls ?? 0,
                 sponsors: (run.sponsors ?? []).join(','),
             });
-        if (old.status === 'reward' && (run.status === 'lineup' || run.status === 'shop')) {
-            track('reward', { stage: old.stage, rerolls_left: run.rerolls, skipped: run.picks === old.picks });
-        }
+        const reward = rewardEvent(old, run);
+        if (reward) track('reward', reward);
     }
     if (old && !run) track('run_abandon', { stage: old.stage, status: old.status });
 
@@ -188,11 +357,33 @@ function onChange(s: GameState, prev: GameState) {
             k !== 'criesVolume' &&
             k !== 'sfxVolume' &&
             k !== 'crowdVolume' &&
+            k !== 'musicVolume' &&
             s.settings[k] !== prev.settings[k]
         ) {
             track('setting', { key: k, value: String(s.settings[k]) });
         }
     }
+}
+
+/**
+ * Em que passo a pessoa largou o jogo (aba escondida ou fechada) antes de chegar ao apito da 1ª partida: tela, passo da
+ * copa, quantas cartas já tinha, onde a partida estava e quanto tempo de página. Null depois da 1ª partida.
+ */
+export function firstLeave(
+    g: Pick<GameState, 'screen' | 'run' | 'records' | 'settings' | 'career'>,
+    secs: number,
+): Props | null {
+    const run = g.run;
+    // career.matches conta até partida de copa abandonada (cups só sobe no fim da copa)
+    if (g.records.cups > 0 || g.career.matches > 0 || (run?.results.length ?? 0) > 0) return null;
+    return {
+        screen: g.screen,
+        status: run?.status ?? null,
+        picks: run?.picks.length ?? 0,
+        tick: liveOf(run)?.tick ?? null,
+        speed: String(g.settings.speed),
+        secs: Math.round(secs),
+    };
 }
 
 /** Mensagem de erro curta e sem endereços (URLs podem levar tokens ou dados da sessão). */
@@ -201,6 +392,22 @@ const errorText = (e: unknown) =>
         .replace(/https?:\/\/\S+/g, '<url>')
         .replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>')
         .slice(0, 160);
+
+/**
+ * Teto de erros por sessão: um laço que repete o erro a cada quadro mandava dezenas de milhares de linhas (69 mil em 3
+ * sessões da 0.9.10). A mesma mensagem vai no máximo `same` vezes, e no total `total`; o resto da sessão fica de fora.
+ */
+export function errorGate(same = 3, total = 30) {
+    const seen = new Map<string, number>();
+    let sent = 0;
+    return (msg: string) => {
+        const n = (seen.get(msg) ?? 0) + 1;
+        seen.set(msg, n);
+        if (n > same || sent >= total) return false;
+        sent++;
+        return true;
+    };
+}
 
 /** Liga as estatísticas (uma vez, no início do app). */
 export function startAnalytics() {
@@ -217,6 +424,17 @@ export function startAnalytics() {
             dex_seen: seenCount(g.dex),
         });
         useGame.subscribe(onChange);
+        // saída antes da 1ª partida: uma vez por sessão (quem volta e joga aparece no match_end depois)
+        let left = false;
+        const leave = () => {
+            const p = left ? null : firstLeave(useGame.getState(), performance.now() / 1000);
+            if (!p) return;
+            left = true;
+            track('first_leave', p);
+            flush(true);
+        };
+        document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && leave());
+        window.addEventListener('pagehide', leave);
     };
     // espera o save carregar (senão todo mundo parece novo)
     if (useGame.persist.hasHydrated()) begin();
@@ -226,8 +444,13 @@ export function startAnalytics() {
         // merged = o progresso do aparelho foi junto para a conta; choice = qual copa continuou (se houve escolha)
         if (s.lastLink && s.lastLink !== prev.lastLink && takeLoginPending()) track('login', { ...s.lastLink });
     });
-    window.addEventListener('error', (e) => track('error', { msg: errorText(e.message ?? e.error) }));
-    window.addEventListener('unhandledrejection', (e) => track('error', { msg: errorText(e.reason) }));
+    const gate = errorGate();
+    const report = (e: unknown) => {
+        const msg = errorText(e);
+        if (gate(msg)) track('error', { msg });
+    };
+    window.addEventListener('error', (e) => report(e.message ?? e.error));
+    window.addEventListener('unhandledrejection', (e) => report(e.reason));
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
 }
 

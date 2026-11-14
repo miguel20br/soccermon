@@ -1,0 +1,50 @@
+{
+ "faixa": "tema-rocket",
+ "titulo": "Tema da Equipe Rocket",
+ "tela": "Equipe Rocket",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 57.857143,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.285714,
+   "amostras": [
+    0,
+    189000
+   ],
+   "bpm": 112,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.285714,
+   "fim": 57.857143,
+   "amostras": [
+    189000,
+    2551500
+   ],
+   "bpm": 112,
+   "compassos": 25
+  }
+ ],
+ "swing": 0.12,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    17.143,
+    17.561,
+    17.946
+   ],
+   [
+    51.429,
+    51.846,
+    52.232
+   ]
+  ]
+ }
+}

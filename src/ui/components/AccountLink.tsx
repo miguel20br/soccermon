@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { answerLink, declineLink, dismissNotice, type LinkAsk, useCloud } from '../../cloud/cloud';
 import type { CupSummary, SaveSummary, Side } from '../../cloud/reconcile-plan';
-import { stageName, t } from '../../i18n';
+import { cupStageName, stageName, t } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { cupMatchNow, isLong } from '../../store/long-cup';
+import { Sheet } from '../kit/Sheet';
 import './account-link.css';
 
-/** Fase da copa como na tela inicial: "Draft · escolha 3 de 7", "Escolhendo a recompensa", "Semifinal". */
-export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound'>): string {
+/**
+ * Fase da copa como na tela inicial: "Draft · escolha 3 de 7", "Escolhendo a recompensa", "Semifinal". Na Rota Índigo
+ * nunca é uma fase da Relâmpago: "Rota Índigo · Partida 3 de 8" (a de agora na escalação; fora dela, a próxima).
+ */
+export function cupStep(cup: Pick<CupSummary, 'status' | 'stage' | 'draftRound' | 'mode' | 'played'>): string {
     if (cup.status === 'formation' || cup.status === 'captain' || cup.status === 'drafting')
         return t('home.draftStep', { n: Math.min(cup.draftRound + 1, 7) });
     if (cup.status === 'reward') return t('home.choosingReward');
     if (cup.status === 'shop') return t('home.atMarket');
+    if (isLong(cup)) return `${t('longCup.title')} · ${cupStageName(cup, cupMatchNow(cup))}`;
     return stageName(cup.stage);
 }
 
@@ -54,13 +60,15 @@ function SideCard({
                 {s.parked > 0 && <li>{tn('account.parked', s.parked)}</li>}
             </ul>
             {pick && (
-                <button type="button" className="btn primary link-pick" disabled={busy} onClick={pick}>
+                <button type="button" className="btn confirm link-pick" disabled={busy} onClick={pick}>
                     {pickLabel}
                 </button>
             )}
         </section>
     );
 }
+
+const noop = () => {};
 
 function AskDialog({ ask }: { ask: LinkAsk }) {
     const { t } = useT();
@@ -88,66 +96,62 @@ function AskDialog({ ask }: { ask: LinkAsk }) {
     const kept = ask.keep === 'device' ? ask.device.cup : ask.cloud?.cup;
 
     return (
-        <div className="modal-backdrop link-backdrop" role="presentation">
-            <div className="modal panel link-modal" role="dialog" aria-modal="true" aria-labelledby="link-title">
-                <h2 id="link-title">{title}</h2>
-                <p className="link-lead">
-                    {lead}
-                    {ask.cupChoice && (
-                        <>
-                            {' '}
-                            <b className="link-q">{t('account.which')}</b>
-                        </>
-                    )}
-                </p>
-                <div className={`link-sides${ask.cloud ? ' two' : ''}`}>
-                    <SideCard
-                        label={t('account.device')}
-                        s={ask.device}
-                        busy={busy}
-                        pick={ask.cupChoice ? () => answer('device') : undefined}
-                        pickLabel={t('account.pickDevice')}
-                    />
-                    {ask.cloud && (
-                        <SideCard
-                            label={t('account.cloud')}
-                            s={ask.cloud}
-                            busy={busy}
-                            pick={ask.cupChoice ? () => answer('cloud') : undefined}
-                            pickLabel={t('account.pickCloud')}
-                        />
-                    )}
-                </div>
-                {ask.kind === 'bring' && <p className="link-note">{t('account.bring.after')}</p>}
-                {ask.kind !== 'bring' && <p className="link-note link-best">{t('account.best')}</p>}
-                {ask.cupChoice ? (
-                    <p className="link-note">{t('account.parkedNote')}</p>
-                ) : (
-                    ask.kind === 'merge' &&
-                    kept && (
-                        <p className="link-note">{t('account.continues', { team: kept.team, step: cupStep(kept) })}</p>
-                    )
+        // sem fechar por fora: é uma decisão (o "Agora não" é a saída)
+        <Sheet open onClose={noop} title={title} alert className="link-modal">
+            <p className="link-lead">
+                {lead}
+                {ask.cupChoice && (
+                    <>
+                        {' '}
+                        <b className="link-q">{t('account.which')}</b>
+                    </>
                 )}
-                <div className="link-actions">
-                    {!ask.cupChoice && (
-                        <button
-                            type="button"
-                            className="btn primary big"
-                            disabled={busy}
-                            onClick={() => answer(ask.keep)}
-                            // biome-ignore lint/a11y/noAutofocus: o foco vai para a resposta principal da janela que acabou de abrir
-                            autoFocus
-                        >
-                            {ask.kind === 'bring' ? t('account.bring.yes') : t('account.merge.yes')}
-                        </button>
-                    )}
-                    <button type="button" className="btn ghost" disabled={busy} onClick={decline}>
-                        {t('account.notNow')}
-                    </button>
-                    <span className="muted link-hint">{t('account.notNowHint')}</span>
-                </div>
+            </p>
+            <div className={`link-sides${ask.cloud ? ' two' : ''}`}>
+                <SideCard
+                    label={t('account.device')}
+                    s={ask.device}
+                    busy={busy}
+                    pick={ask.cupChoice ? () => answer('device') : undefined}
+                    pickLabel={t('account.pickDevice')}
+                />
+                {ask.cloud && (
+                    <SideCard
+                        label={t('account.cloud')}
+                        s={ask.cloud}
+                        busy={busy}
+                        pick={ask.cupChoice ? () => answer('cloud') : undefined}
+                        pickLabel={t('account.pickCloud')}
+                    />
+                )}
             </div>
-        </div>
+            {ask.kind === 'bring' && <p className="link-note">{t('account.bring.after')}</p>}
+            {ask.kind !== 'bring' && <p className="link-note link-best">{t('account.best')}</p>}
+            {ask.cupChoice ? (
+                <p className="link-note">{t('account.parkedNote')}</p>
+            ) : (
+                ask.kind === 'merge' &&
+                kept && <p className="link-note">{t('account.continues', { team: kept.team, step: cupStep(kept) })}</p>
+            )}
+            <div className="link-actions">
+                {!ask.cupChoice && (
+                    <button
+                        type="button"
+                        className="btn confirm big"
+                        disabled={busy}
+                        onClick={() => answer(ask.keep)}
+                        // biome-ignore lint/a11y/noAutofocus: o foco vai para a resposta principal da janela que acabou de abrir
+                        autoFocus
+                    >
+                        {ask.kind === 'bring' ? t('account.bring.yes') : t('account.merge.yes')}
+                    </button>
+                )}
+                <button type="button" className="btn ghost" disabled={busy} onClick={decline}>
+                    {t('account.notNow')}
+                </button>
+                <span className="muted link-hint">{t('account.notNowHint')}</span>
+            </div>
+        </Sheet>
     );
 }
 

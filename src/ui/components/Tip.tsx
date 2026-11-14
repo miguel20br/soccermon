@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { uiZoom } from '../ui-zoom';
 import './tip.css';
 
 /** Toque longo que abre a dica (o mesmo tempo da info rápida da carta). */
@@ -46,10 +47,19 @@ export function Tip({
             setPos(null);
             return;
         }
-        const r = ref.current.getBoundingClientRect();
-        const b = bubble.current.getBoundingClientRect();
+        // tela grande: as medidas vêm em px da tela e o estilo vale em px do CSS (ui-zoom.ts)
+        const z = uiZoom();
+        const px = (d: DOMRect) => ({
+            left: d.left / z,
+            top: d.top / z,
+            width: d.width / z,
+            height: d.height / z,
+            bottom: d.bottom / z,
+        });
+        const r = px(ref.current.getBoundingClientRect());
+        const b = px(bubble.current.getBoundingClientRect());
         const gap = 8;
-        const left = Math.min(Math.max(gap, r.left + r.width / 2 - b.width / 2), window.innerWidth - b.width - gap);
+        const left = Math.min(Math.max(gap, r.left + r.width / 2 - b.width / 2), window.innerWidth / z - b.width - gap);
         const above = r.top - b.height - gap;
         setPos({ left, top: above >= gap ? above : r.bottom + gap });
     }, [open]);

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { ENGINE_VERSION } from '../../engine/config';
+import { clubLeader } from '../../engine/cup';
+import type { LeaderId } from '../../engine/rival-coach';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
-import { clubName, fmt, moveName, stageName } from '../../i18n';
+import { clubName, cupStageName, fmt, moveName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { PhaserGame } from '../../PhaserGame';
 import { type RunState, useGame } from '../../store/game-store';
@@ -17,6 +18,8 @@ import { downloadBlob } from '../share-card';
 import { simulateMatch } from '../sim-client';
 import { cardSprite } from './PokeCard';
 import './moments.css';
+import { InfoSheet } from '../kit/controls';
+import { Sheet } from '../kit/Sheet';
 import { HudIcon } from './MatchHud';
 
 type Mode = 'watch' | 'record' | 'clip';
@@ -38,6 +41,7 @@ export function Moments({
     colors,
     cup = false,
     banners,
+    court,
     onClose,
 }: {
     result: MatchResult;
@@ -47,6 +51,8 @@ export function Moments({
     /** Gol da copa (etiqueta própria no clipe). */
     cup?: boolean;
     banners?: [string | null, string | null];
+    /** Quadra do ginásio do rival, a mesma da partida (sem ela o replay caía na quadra padrão). */
+    court?: LeaderId;
     onClose: () => void;
 }) {
     const { t, d } = useT();
@@ -80,6 +86,7 @@ export function Moments({
             chanceSpeed: 1,
             reduceMotion: reduce,
             banners,
+            court,
             replay: { clips: mode === 'record' ? [clips[recIndex]] : clips.slice(index) },
         };
     }, [run]);
@@ -144,12 +151,6 @@ export function Moments({
         },
         [clip],
     );
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [onClose]);
-
     const restart = (from = 0) => {
         setIndex(from);
         setDone(false);
@@ -176,91 +177,83 @@ export function Moments({
         }
     };
 
-    // no body: dentro da tela de resultado o painel animado vira o "fixed" dele e o modal sai do lugar
-    return createPortal(
-        <div className="modal-backdrop moments-backdrop" role="presentation">
-            <div
-                className="modal panel moments-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-label={cup ? t('moments.cup.h') : t('moments.title')}
-            >
-                <button type="button" className="modal-close" onClick={onClose} aria-label={t('moments.close')}>
-                    <HudIcon kind="close" />
-                </button>
-                <div className="bc-screenhead moments-head">
-                    <span className="bc-tag">
-                        {cup ? t('moments.cup.h') : t('moments.of', { n: index + 1, total: clips.length })}
-                    </span>
-                    <h2>{current ? momentCaption(current, d.moments.kind) : ''}</h2>
-                </div>
+    return (
+        <Sheet
+            open
+            onClose={onClose}
+            title={current ? momentCaption(current, d.moments.kind) : cup ? t('moments.cup.h') : t('moments.title')}
+            className="moments-modal"
+        >
+            <div className="bc-screenhead moments-head">
+                <span className="bc-tag">
+                    {cup ? t('moments.cup.h') : t('moments.of', { n: index + 1, total: clips.length })}
+                </span>
+            </div>
 
-                {mode === 'clip' && clip ? (
-                    <div className="moments-clip">
-                        <video src={clip.url} controls autoPlay muted loop playsInline />
-                        <p className="muted">
-                            {t('moments.ready')} · {(clip.blob.size / 1e6).toFixed(1)} MB
-                        </p>
-                        <div className="row moments-actions">
-                            <button
-                                type="button"
-                                className="btn outline"
-                                onClick={() => file && downloadBlob(file, file.name)}
-                            >
-                                {t('moments.download')}
+            {mode === 'clip' && clip ? (
+                <div className="moments-clip">
+                    <video src={clip.url} controls autoPlay muted loop playsInline />
+                    <p className="muted">
+                        {t('moments.ready')} · {(clip.blob.size / 1e6).toFixed(1)} MB
+                    </p>
+                    <div className="row moments-actions">
+                        <button
+                            type="button"
+                            className="btn outline"
+                            onClick={() => file && downloadBlob(file, file.name)}
+                        >
+                            {t('moments.download')}
+                        </button>
+                        {canShare && (
+                            <button type="button" className="btn" onClick={share}>
+                                {t('moments.share')}
                             </button>
-                            {canShare && (
-                                <button type="button" className="btn primary" onClick={share}>
-                                    {t('moments.share')}
+                        )}
+                        <button type="button" className="btn ghost" onClick={() => restart(recIndex)}>
+                            {t('moments.back')}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="moments-court">
+                        <PhaserGame key={run} data={sceneData} />
+                    </div>
+                    {mode === 'record' ? (
+                        <div className="moments-rec" role="status">
+                            <div className="moments-bar">
+                                <i style={{ width: `${Math.round(progress * 100)}%` }} />
+                            </div>
+                            <b>{t('moments.recording', { p: Math.round(progress * 100) })}</b>
+                            <small className="muted">{t('moments.recordingNote')}</small>
+                        </div>
+                    ) : (
+                        <div className="row moments-actions">
+                            {done ? (
+                                <button type="button" className="btn confirm" onClick={() => restart(0)}>
+                                    {t('moments.again')}
+                                </button>
+                            ) : (
+                                index < clips.length - 1 && (
+                                    <button type="button" className="btn confirm" onClick={next}>
+                                        {t('moments.next')}
+                                    </button>
+                                )
+                            )}
+                            {mime && (
+                                <button type="button" className="btn outline" onClick={record}>
+                                    {t('moments.export')}
                                 </button>
                             )}
-                            <button type="button" className="btn ghost" onClick={() => restart(recIndex)}>
-                                {t('moments.back')}
+                            <button type="button" className="btn ghost" onClick={onClose}>
+                                {t('moments.close')}
                             </button>
                         </div>
-                    </div>
-                ) : (
-                    <>
-                        <div className="moments-court">
-                            <PhaserGame key={run} data={sceneData} />
-                        </div>
-                        {mode === 'record' ? (
-                            <div className="moments-rec" role="status">
-                                <div className="moments-bar">
-                                    <i style={{ width: `${Math.round(progress * 100)}%` }} />
-                                </div>
-                                <b>{t('moments.recording', { p: Math.round(progress * 100) })}</b>
-                                <small className="muted">{t('moments.recordingNote')}</small>
-                            </div>
-                        ) : (
-                            <div className="row moments-actions">
-                                {done ? (
-                                    <button type="button" className="btn primary" onClick={() => restart(0)}>
-                                        {t('moments.again')}
-                                    </button>
-                                ) : (
-                                    index < clips.length - 1 && (
-                                        <button type="button" className="btn primary" onClick={next}>
-                                            {t('moments.next')}
-                                        </button>
-                                    )
-                                )}
-                                {mime && (
-                                    <button type="button" className="btn outline" onClick={record}>
-                                        {t('moments.export')}
-                                    </button>
-                                )}
-                                <button type="button" className="btn ghost" onClick={onClose}>
-                                    {t('moments.close')}
-                                </button>
-                            </div>
-                        )}
-                        {error && <p className="muted moments-error">{error}</p>}
-                    </>
-                )}
-            </div>
-        </div>,
-        document.body,
+                    )}
+                    {error && <p className="muted moments-error">{error}</p>}
+                </>
+            )}
+        </Sheet>
     );
 }
 
@@ -326,19 +319,24 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                 })}
                 alt=""
             />
-            <span className="bc-lbl">{t('moments.cup.h')}</span>
+            <span className="bc-lbl cupgoal-lbl">
+                {t('moments.cup.h')}
+                {/* o critério inteiro no "?" (cara-de-jogo.md, decisão 13: regra na tela até ~12 palavras) */}
+                <InfoSheet title={t('moments.cup.h')}>
+                    <p>{t('moments.cup.rule')}</p>
+                </InfoSheet>
+            </span>
             <span className="cupgoal-line">
                 {t('moments.cup.line', {
                     name: pick.goal.name,
                     team: clubName(stage.opponent),
-                    stage: stageName(pick.stage),
+                    stage: cupStageName(run, pick.stage),
                     min: pick.goal.minute,
                 })}
             </span>
             <span className="muted cupgoal-why">
                 {t('moments.cup.why', { reasons: reasons.join(', ') || tx.plain })}
             </span>
-            <small className="muted cupgoal-rule">{t('moments.cup.rule')}</small>
             {live || replay ? (
                 <button type="button" className="btn outline" onClick={watch} disabled={busy}>
                     <HudIcon kind="play" /> {busy ? t('moments.loading') : t('moments.cup.watch')}
@@ -355,6 +353,7 @@ export function CupGoalCard({ run, match }: { run: RunState; match: MatchResult 
                     colors={colors}
                     cup
                     banners={[bannerText(profile.banner, run.teamName || profile.clubName), null]}
+                    court={clubLeader(opponent.name)}
                     onClose={() => setOpen(null)}
                 />
             )}
@@ -386,6 +385,7 @@ export function MomentsButton({ run, match }: { run: RunState; match: MatchResul
                     names={names}
                     colors={colors}
                     banners={[bannerText(profile.banner, run.teamName || profile.clubName), null]}
+                    court={opponent ? clubLeader(opponent.name) : undefined}
                     onClose={() => setOpen(false)}
                 />
             )}

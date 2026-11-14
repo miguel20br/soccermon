@@ -1,9 +1,9 @@
 import type Phaser from 'phaser';
 import pmdAnims from '../data/pmd-anims.json';
-import shinyMissing from '../data/pmd-shiny-missing.json';
 import spriteFeet from '../data/sprite-feet.json';
 import { species } from '../engine/data';
 import { Action } from '../engine/state';
+import { baseOf, isShinySkin } from './skin';
 
 /**
  * Animações dos sprites PMD (inspirado no animation-manager do Pokémon Auto Chess).
@@ -16,6 +16,8 @@ interface PmdAnimInfo {
     rows: number;
     durations: number[];
     hitFrame: number | null;
+    /** Atlas extra: o pé em fração da altura do quadro (o sprite-feet.json só tem as de quadra). */
+    foot?: number;
 }
 
 const PMD = pmdAnims as unknown as Record<string, { shadowSize: number; anims: Record<string, PmdAnimInfo> }>;
@@ -31,19 +33,9 @@ const FALLBACK: Record<string, string[]> = {
     Hurt: ['Idle'],
 };
 
-const LOOPING = new Set(['Idle', 'Walk', 'Hop', 'Charge']);
+const LOOPING = new Set(['Idle', 'Walk', 'Hop', 'Charge', 'Sleep', 'Sit', 'Eat']);
 
-/**
- * "Skin" do sprite em campo: o número da espécie, ou espécie + SHINY_SKIN para a folha shiny de verdade
- * (scripts/build-pmd-shiny.ts; mesma disposição da normal, então reusa o JSON). Espécie sem shiny no PMDCollab
- * fica com a normal (e a tinta amarelada de antes).
- */
-export const SHINY_SKIN = 10000;
-const NO_SHINY = new Set(shinyMissing as number[]);
-export const skinOf = (speciesId: number, shiny: boolean) =>
-    shiny && !NO_SHINY.has(speciesId) ? speciesId + SHINY_SKIN : speciesId;
-export const baseOf = (skin: number) => skin % SHINY_SKIN;
-export const isShinySkin = (skin: number) => skin >= SHINY_SKIN;
+export { baseOf, isShinySkin, SHINY_SKIN, skinOf } from './skin';
 
 export const atlasKey = (skin: number) => `pmd-${skin}`;
 
@@ -56,6 +48,7 @@ export function preloadSpecies(scene: Phaser.Scene, skin: number) {
 }
 
 export function resolveAnim(skin: number, anim: string): string {
+    if (EXTRA.get(skin)?.[anim]) return anim;
     const info = PMD[baseOf(skin)]?.anims;
     if (!info) return 'Idle';
     if (info[anim]) return anim;
@@ -63,14 +56,58 @@ export function resolveAnim(skin: number, anim: string): string {
     return 'Idle';
 }
 
+/** Quantos quadros a animação tem e o do impacto (o PMD marca; sem marca, o do meio): a pose congelada do chute. */
+export function animHit(skin: number, anim: string): { frames: number; hit: number } {
+    const a = PMD[baseOf(skin)]?.anims[anim];
+    const frames = a?.frames ?? 1;
+    return { frames, hit: Math.min(frames - 1, a?.hitFrame ?? Math.floor(frames / 2)) };
+}
+
+/** Durações (quadros de 1/60 s) e o quadro de impacto da animação: o toque na bola cai nele (`strikeFrame`). */
+export function animTiming(skin: number, anim: string): { durations: number[]; hit: number } {
+    const a = EXTRA.get(skin)?.[anim] ?? PMD[baseOf(skin)]?.anims[anim];
+    const durations = a?.durations ?? [1];
+    return { durations, hit: Math.min(durations.length - 1, a?.hitFrame ?? Math.floor(durations.length / 2)) };
+}
+
 /**
  * Cria (uma vez) as 8 direções de cada animação da espécie. Sem a folha carregada não cria nada: a animação sairia
  * sem quadros, ficaria guardada assim (o `exists` não refaz) e o `play` dela quebra o Phaser (getFirstTick).
  */
 export function createSpeciesAnims(scene: Phaser.Scene, skin: number) {
-    const info = PMD[baseOf(skin)]?.anims ?? {};
     const key = atlasKey(skin);
     if (!scene.textures.exists(key)) return;
+    addAnims(scene, skin, key, PMD[baseOf(skin)]?.anims ?? {});
+}
+
+/**
+ * Animações de fora da quadra (Sleep, Sit, Eat, Faint), num atlas à parte (scripts/build-pmd-atlas.ts --extra): só
+ * quem usa (a Sala de troféus) carrega. As durações vêm no próprio JSON (o Phaser guarda em texture.customData).
+ */
+const EXTRA = new Map<number, Record<string, PmdAnimInfo>>();
+export const extraKey = (skin: number) => `pmd-x-${skin}`;
+
+export function preloadExtra(scene: Phaser.Scene, skin: number) {
+    const key = extraKey(skin);
+    const id = baseOf(skin);
+    if (!scene.textures.exists(key))
+        scene.load.atlas(
+            key,
+            `assets/field/extra/${isShinySkin(skin) ? 'shiny/' : ''}${id}.png`,
+            `assets/field/extra/${id}.json`,
+        );
+}
+
+/** Cria as animações do atlas extra (sem a folha carregada, nada: a tela cai no Idle pelo `resolveAnim`). */
+export function createExtraAnims(scene: Phaser.Scene, skin: number) {
+    const key = extraKey(skin);
+    if (!scene.textures.exists(key)) return;
+    const info = (scene.textures.get(key).customData as { anims?: Record<string, PmdAnimInfo> }).anims ?? {};
+    EXTRA.set(skin, info);
+    addAnims(scene, skin, key, info);
+}
+
+function addAnims(scene: Phaser.Scene, skin: number, key: string, info: Record<string, PmdAnimInfo>) {
     for (const [name, a] of Object.entries(info)) {
         for (let dir = 0; dir < 8; dir++) {
             const animKey = `${skin}/${name}/${dir}`;
@@ -115,6 +152,52 @@ function bodyCenter(frame: Phaser.Textures.Frame): { x: number; y: number } {
     return n ? { x: sx / n, y: sy / n } : { x: w / 2, y: h / 2 };
 }
 
+const frameBoxes = new Map<string, { x0: number; y0: number; x1: number; y1: number }>();
+
+/**
+ * Onde o corpo está de fato no sprite (o desenho, sem a sobra transparente do quadro do PMD), em px do mundo: pra
+ * enquadrar alguém sem cortar asa nem rabo. Medido uma vez por quadro.
+ */
+export function spriteBox(sprite: Phaser.GameObjects.Sprite): { x: number; y: number; w: number; h: number } {
+    const f = sprite.frame;
+    const key = `${f.texture.key}|${f.name}`;
+    let b = frameBoxes.get(key);
+    if (!b) {
+        const w = f.cutWidth;
+        const h = f.cutHeight;
+        b = { x0: 0, y0: 0, x1: w, y1: h };
+        probe ??= document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        if (probe) {
+            probe.canvas.width = w;
+            probe.canvas.height = h;
+            probe.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, w, h, 0, 0, w, h);
+            const px = probe.getImageData(0, 0, w, h).data;
+            let x0 = w;
+            let y0 = h;
+            let x1 = 0;
+            let y1 = 0;
+            for (let i = 3; i < px.length; i += 4) {
+                if (px[i] <= 20) continue;
+                const k = (i - 3) / 4;
+                const x = k % w;
+                const y = Math.floor(k / w);
+                x0 = Math.min(x0, x);
+                x1 = Math.max(x1, x + 1);
+                y0 = Math.min(y0, y);
+                y1 = Math.max(y1, y + 1);
+            }
+            if (x1 > x0) b = { x0, y0, x1, y1 };
+        }
+        frameBoxes.set(key, b);
+    }
+    const sx = Math.abs(sprite.scaleX);
+    const sy = Math.abs(sprite.scaleY);
+    const left = sprite.x - sprite.originX * f.cutWidth * sx;
+    const top = sprite.y - sprite.originY * f.cutHeight * sy;
+    const x0 = sprite.flipX ? f.cutWidth - b.x1 : b.x0;
+    return { x: left + x0 * sx, y: top + b.y0 * sy, w: (b.x1 - b.x0) * sx, h: (b.y1 - b.y0) * sy };
+}
+
 /**
  * Quanto o corpo andou dentro do quadro atual em relação ao 1º quadro da mesma animação e direção (px do quadro,
  * sem escala). O Attack do PMD dá um bote de 1 a 3 m dentro do próprio quadro; quem já posiciona o sprite (o
@@ -150,7 +233,7 @@ const HOVER = 0.05;
  */
 export function footOrigin(skin: number, anim: string): number {
     const feet = FEET[baseOf(skin)];
-    const ratio = feet?.[anim] ?? feet?.Idle ?? 0.78;
+    const ratio = EXTRA.get(skin)?.[anim]?.foot ?? feet?.[anim] ?? feet?.Idle ?? 0.78;
     const hover = HOVER_SHAPES.has(species(baseOf(skin)).shape) ? HOVER : 0;
     return Math.min(0.97, ratio + 0.015 - hover);
 }

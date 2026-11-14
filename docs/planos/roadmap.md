@@ -1,4 +1,8 @@
-# Roadmap do Soccermon (atualizado em 16/10/2026)
+---
+description: Roadmap do Soccermon: o que vem depois.
+---
+
+# Roadmap do Soccermon (atualizado em 23/10/2026)
 
 **Plano de lançamento e versões 0.8.3 → 1.0: [lancamento.md](lancamento.md).** Tela de campeão: [tela-campeao.md](tela-campeao.md).
 
@@ -17,6 +21,24 @@ As memórias de preferência do Miguel (cópia das do Claude no PC) estão em [.
 | 0.7.2 | Bônus de time recalculados nas trocas e evoluções, privacidade e "Apagar minha conta", preparação para abrir o repo |
 | 0.8 | Perfil, Pokédex, Golpedex, golpes da Gen 1, MT do ginásio, jogo em inglês, estatísticas anônimas |
 | 0.8.2 | Hall da Fama com desfile, prêmios e seleção da copa, recordes, gols da campanha, card do título 9:16/1:1, celular deitado, Mimic |
+| 0.8.3–0.8.9 | Partida com peso, escanteio, Duelo ao vivo, Copa do Dia, melhores momentos, emotes, álbum de figurinhas, Sala de troféus |
+| 0.9.0–0.9.5 | Mercado e Patrocínios, Rota Índigo, golpes revisados, Duelo melhor de 3, formações com comportamento |
+| 0.9.6–0.9.13 | Beira da quadra, MTs mais fortes, música própria no jogo (temas dos líderes, viradas, tudo na batida), time no ranking |
+| 0.9.14–0.9.16 | Golpe máximo em 3 níveis na batida e por tipo, Rota de baby (pré-evoluções), 4 patrocínios novos, botão Esperar |
+
+## Agora (24/10/2026)
+
+Ritmo novo: versões menos frequentes e polidas, revisão dupla antes do "pode subir", trailerzinho por versão.
+
+- **0.9.18 (revisão dupla na `int-0918`, esperando o "pode subir"):** 12 assinaturas do golpe máximo (motor 13,
+  [golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)), Home da 1ª visita com um botão só e "Monta pra mim"
+  principal na 1ª copa ([funil-boas-vindas.md](funil-boas-vindas.md)), nome curto na quadra em pé
+  ([nomes-na-quadra.md](nomes-na-quadra.md)) e títulos dos creators (só o hash). Na subida: Edge Function `liga` com
+  o motor 13.
+- **Decidir com o Miguel:** faixa do Hiper Raio do Dragonite diz "assinatura · Normal" (o tipo que o motor dá à
+  assinatura); trocar pra Dragão muda cor, rastro e ícone.
+- **Depois:** goleiro por tipo ([golpe-maximo-por-tipo.md](golpe-maximo-por-tipo.md)); patrocínio Agente (botão
+  Vender) e revisão do S.S. Anne ([patrocinios-novos.md](patrocinios-novos.md)); jogo de ritmo como ideia.
 
 ## Agora (antes de divulgar)
 
@@ -30,7 +52,7 @@ Polimento combinado em 15/10/2026 (antes de divulgar):
 - [x] "Como jogar" curto na primeira copa (3–4 dicas que dá pra fechar e não voltam)
 - [x] Botão "Dar feedback / reportar bug" na Home e no resultado, apontando pro Discussions
 - [x] Celular deitado: "Nova copa" fica abaixo da dobra (diminuir quadra/logo; visual: decidir com o Miguel)
-- [ ] Quadra em pé: nomes dos Pokémon se embolam (esconder quando juntos ou só os do seu time; decidir)
+- [x] Quadra em pé: nomes dos Pokémon se embolam (regra de prioridade + nome curto de 5 letras antes de esconder; A+C, 23/10/2026)
 
 Depois do lançamento: contador anônimo de jogadores (Vercel Analytics + página de privacidade), Phaser
 carregado só na partida (Home mais rápida; JS hoje ~600 KB gzip), monitoramento de erros, melhores momentos
@@ -67,6 +89,10 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
   `traducao`; o que depende dos golpes novos e da MT fica em `docs/planos/traducao-pendente.md`.
 
 ### Mais adiante (vitrine "Em breve" do menu)
+- **Sinergia de monotipo (Miguel, 03/11/2026):** uma sinergia nova, bem mais forte que a de tipo, pro time com 6
+  Pokémon do mesmo tipo. Hoje 5 do mesmo tipo dão +10% e o teto de sinergia é +15% (`SYNERGY_CAP` em
+  `src/engine/synergy.ts`). Decidir junto: quais 6 contam (5 titulares mais 1 do banco, ou o elenco inteiro), o
+  tamanho do bônus e se passa do teto. Mexe no motor (`ENGINE_VERSION` e `liga`).
 - **Modo história**: ginásios, insígnias e a Liga Índigo contados como história.
 - **Multiplayer**: desafiar o time de um amigo (o desafio por seed já existe como primeiro passo).
 - **Futebol de campo 11x11** (`MatchConfig` já é paramétrico para 7v7/11v11).
@@ -82,6 +108,9 @@ Plano do trailer e dos posts de lançamento (LinkedIn como projeto pessoal, X co
 - **Ultimate Team no Em breve (20/10/2026):** o Miguel quer dois modos principais, o futsal casual (Copa) e o
   Ultimate Team (time da temporada, pacotes, reset por temporada). Proposta com opções e decisões em
   [ultimate-team.md](ultimate-team.md); se entra na 1.0 é a decisão 6 de lá.
+- **Ferramentas de vídeo (24/10/2026):** o HyperFrames foi para a 0.8.191 (correções de memória no render).
+  Para trailer e curtas, testar a Lemo-Opuscar (plugin do Claude Code, MIT), que roda tudo na máquina: nenhum
+  sprite vai para serviço externo. Gerador online (Higgsfield e afins) nunca com asset do jogo. Avaliação em `~/Projects/MAB/_pesquisa/` (ferramentas-skills.md e ferramentas-plataformas.md).
 
 ## Decisões que continuam valendo
 

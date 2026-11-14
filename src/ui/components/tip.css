@@ -12,7 +12,7 @@
 .tip-bubble {
     position: fixed;
     z-index: 1000;
-    max-width: min(260px, calc(100vw - 16px));
+    max-width: min(260px, calc(calc(100 * var(--vw)) - 16px));
     padding: 7px 10px;
     border-radius: 6px;
     border-top: 2px solid var(--yellow, #ffcb05);
@@ -24,7 +24,7 @@
     line-height: 1.35;
     text-align: left;
     pointer-events: none;
-    animation: tip-in 0.12s var(--ease-out, ease-out);
+    animation: tip-in var(--dur-ui) var(--ease-out);
 }
 .tip-bubble[hidden] {
     display: none;

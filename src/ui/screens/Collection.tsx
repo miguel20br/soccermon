@@ -1,6 +1,8 @@
 import { type CSSProperties, lazy, Suspense, useState } from 'react';
+import { trackNav } from '../../analytics/track';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
+import { backTarget } from '../back-nav';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { DOOR_TABS, type DoorTab, initialTab } from '../doors';
@@ -21,9 +23,13 @@ export function Collection() {
     const news = useNews();
     return (
         <div className="menu-screen pf">
-            <MenuHead title={t('profile.collection')} icon="dex" onBack={() => go('profile')} />
+            <MenuHead
+                title={t('profile.collection')}
+                icon="dex"
+                onBack={() => go(backTarget('collection') ?? 'home')}
+            />
             <div
-                className="pf-tabs bc-tabs"
+                className="pf-tabs k-tabs"
                 role="tablist"
                 aria-label={t('profile.collection')}
                 style={{ '--n': DOOR_TABS.collection.length } as CSSProperties}
@@ -37,7 +43,10 @@ export function Collection() {
                         aria-selected={tab === id}
                         aria-controls={`col-panel-${id}`}
                         className={`pf-tab${tab === id ? ' active' : ''}`}
-                        onClick={() => setTab(id)}
+                        onClick={() => {
+                            trackNav('sub', `collection.${id}`, `collection.${tab}`);
+                            setTab(id);
+                        }}
                     >
                         <HudIcon kind={TAB_ICON[id]} />
                         <span>{d.profile.tabs[id]}</span>
@@ -48,7 +57,7 @@ export function Collection() {
             <div role="tabpanel" id={`col-panel-${tab}`} aria-labelledby={`col-tab-${tab}`}>
                 {tab === 'golpedex' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
-                        <MoveLab bare onExit={() => go('profile')} />
+                        <MoveLab bare onExit={() => go(backTarget('collection') ?? 'home')} />
                     </Suspense>
                 ) : (
                     <DexTab view={tab} onView={setTab} />

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { track } from '../../analytics/track';
 import { FUTSAL_5 } from '../../engine/config';
-import { CUP_STAGES, clubLeader, cupRival } from '../../engine/cup';
+import { clubLeader, cupRival } from '../../engine/cup';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
+import { cardAttributes } from '../../engine/modifiers';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import {
     type CornerPlan,
@@ -12,49 +14,68 @@ import {
     isTacticOrder,
     type MatchEvent,
     type MatchOrder,
+    type MaxGrade,
     SNAP_STRIDE,
     type Tactic,
+    type TeamSetup,
 } from '../../engine/state';
-import { skinOf } from '../../game/animation-manager';
 import { setVolume } from '../../game/audio';
 import { EventBus } from '../../game/EventBus';
 import type { MatchSceneData } from '../../game/scenes/MatchScene';
+import { skinOf } from '../../game/skin';
 import { clubName, cupStageName, cupStageShort, formationText } from '../../i18n';
 import { rich, useT } from '../../i18n/react';
 import { ligaRun, useLiga } from '../../league/liga-store';
 import { PhaserGame } from '../../PhaserGame';
 import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/club-kit';
+import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
+import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
+import { ultimateRun } from '../../store/ultimate/ultimate';
+import { Coach } from '../coach/Coach';
 import { Commentator, type CommentLine } from '../commentary';
+import { BattleText } from '../components/BattleText';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
+import { FinalCard } from '../components/FinalCard';
 import { HalftimePanel, rivalHtSubs } from '../components/HalftimePanel';
 import { MatchHighlight } from '../components/MatchHighlight';
 import {
     type Clock,
     type CoachTab,
     CoachTabs,
-    FinalBanner,
+    CornerControls,
     HudIcon,
     hex,
     MatchFeed,
     PressureBar,
-    ResultButton,
     Scoreboard,
     subSuggestion,
     TacticControls,
     TIRED_HINT,
     Ticker,
-    useAutoResult,
     useClockParts,
+    useCoachFold,
     useCoachTab,
+    useFinalHold,
 } from '../components/MatchHud';
+import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
 import { cardSprite } from '../components/PokeCard';
 import { type BoardPlan, Prancheta, useMedia, WIDE } from '../components/Prancheta';
+import { ShowdownOverlay } from '../components/ShowdownOverlay';
 import {
     agencyView,
+    CharangaCue,
+    capFxType,
+    capIsGk,
+    capTypeAt,
+    FlyGkControl,
     MaxBars,
+    MaxCueButton,
+    MaxThumb,
+    maxCueAt,
+    maxLit,
     PenaltyOrderPanel,
     type PenaltyTaker,
     SidelineControls,
@@ -64,12 +85,19 @@ import {
 import { sponsorBoards } from '../components/SponsorCard';
 import { TeamPanel } from '../components/TeamPanel';
 import { VersusIntro } from '../components/VersusIntro';
+import { useCourtFollow } from '../court-follow';
 import { RivalEmotes } from '../duel/Emotes';
 import { rivalEmotes } from '../duel/emote-faces';
+import { readHud } from '../hud-lab';
+import { CourtStands } from '../kit/backdrop';
+import { playMoment } from '../kit/MomentWipe';
+import { Sheet } from '../kit/Sheet';
 import { LeaveConfirm } from '../leave-guard';
-import { captainAt, clockExtrasAt, roleAt, snapAt } from '../match-view';
+import { captainAt, clockExtrasAt, type MaxWait, maxOrderTick, maxWaitNext, roleAt, snapAt } from '../match-view';
+import { maxTap } from '../max-beat';
+import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
-import { agencyOn, reduceMotionOn } from '../settings-sync';
+import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
@@ -90,16 +118,34 @@ const HIGHLIGHTS_MULT = 4;
 const SAVE_EVERY_MS = 1500;
 
 /** `liga`: partida contra um time fantasma (src/league): a mesma tela, com a partida da Liga no lugar da copa. */
-export function Match({ liga = false }: { liga?: boolean }) {
-    const store = useGame();
-    const { match, settings, updateSettings, setMatch, go } = store;
+/** Sheets da partida no ?lab=hud: Tática, Trocar (Posições), Tempo e Lances. */
+type HudSheet = 'tactic' | 'board' | 'time' | 'feed';
+
+/** `ultimate`: partida do Time Ultimate contra a IA (src/store/ultimate): a mesma tela, como a da Liga. */
+export function Match({ liga = false, ultimate = false }: { liga?: boolean; ultimate?: boolean }) {
+    /** Partida de uma fase só, fora da copa (Liga ou Time Ultimate). */
+    const solo = liga || ultimate;
+    // seletores, não a loja inteira: qualquer mudança da loja fora da partida (perfil, missões, nuvem) redesenhava a tela
+    const match = useGame((s) => s.match);
+    const settings = useGame((s) => s.settings);
+    const updateSettings = useGame((s) => s.updateSettings);
+    const setMatch = useGame((s) => s.setMatch);
+    const go = useGame((s) => s.go);
+    const cupRun = useGame((s) => s.run);
+    const cupSaveLive = useGame((s) => s.saveLive);
+    const cupRecordResult = useGame((s) => s.recordResult);
     const ligaOpen = useLiga((s) => s.open);
     // a partida da Liga vira uma copa de 1 fase (montada uma vez: as ordens vêm do estado da tela)
     const ligaRunRef = useRef(liga && ligaOpen ? ligaRun(ligaOpen, useLiga.getState().live) : null);
-    const run = liga ? ligaRunRef.current : store.run;
-    const saveLive = liga ? useLiga.getState().saveLive : store.saveLive;
+    const ultimateRunRef = useRef(ultimate ? ultimateRun(useGame.getState()) : null);
+    const run = liga ? ligaRunRef.current : ultimate ? ultimateRunRef.current : cupRun;
+    const saveLive = liga ? useLiga.getState().saveLive : ultimate ? useGame.getState().ultimateSaveLive : cupSaveLive;
     // na Liga quem grava é o servidor: o apito final manda as ordens e ele refaz a partida
-    const recordResult = liga ? useLiga.getState().finish : store.recordResult;
+    const recordResult = liga
+        ? useLiga.getState().finish
+        : ultimate
+          ? useGame.getState().ultimateFinish
+          : cupRecordResult;
     const saveLiveRef = useRef(saveLive);
     saveLiveRef.current = saveLive;
     const { t, d } = useT();
@@ -111,6 +157,8 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [clock, setClock] = useState<Clock>({ tick: 0, minute: 0, half: 1, score: [0, 0], phase: 'kickoff' });
     const [shootout, setShootout] = useState<[number, number] | null>(null);
     const [ended, setEnded] = useState(false);
+    /** Cerimônia do título na quadra (taça ou invasão): o FinalCard espera ela acabar (ou o Pular). */
+    const [ceremony, setCeremony] = useState(false);
     const [orders, setOrders] = useState<MatchOrder[]>(() => resume?.orders ?? []);
     /** Substituições que já aconteceram em campo (uid de quem entrou). */
     const [subsDone, setSubsDone] = useState<string[]>([]);
@@ -119,6 +167,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const halftimeRef = useRef<HTMLDivElement>(null);
     const [subOut, setSubOut] = useState<{ uid: string } | null>(null);
     const [pending, setPending] = useState(false);
+    /** "Esperar" no golpe máximo (`maxWaitNext`): apaga o aviso; a quadra sai da câmera lenta (`match:max-wait`). */
+    const [maxWait, setMaxWait] = useState<MaxWait | null>(null);
+    useEffect(() => {
+        EventBus.emit('match:max-wait', maxWait !== null);
+    }, [maxWait]);
     /** A cena Phaser só escuta comandos depois de carregar; até lá os controles ficam travados. */
     const [sceneReady, setSceneReady] = useState(false);
     /** Se a quadra demorar demais (celular fraco, aba em segundo plano), oferece recarregar. */
@@ -129,17 +182,29 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const [sceneKey, setSceneKey] = useState(0);
     const [fulltime, setFulltime] = useState(false);
     const [tacticError, setTacticError] = useState<string | null>(null);
-    /** Beira da quadra (experimento): ligado na entrada da partida, não muda no meio. */
-    const agency = useRef(agencyOn(settings.agency)).current;
     /** Tick do pedido de tempo em que a quadra está parada (null = jogando). */
     const [timeoutAt, setTimeoutAt] = useState<number | null>(null);
     /** Tick do apito final, parado pra escolher a ordem dos pênaltis. */
     const [penPick, setPenPick] = useState<number | null>(null);
+    /** O balão da 1ª partida aberto: o do golpe especial espera ele fechar (um balão por vez). */
+    const [jogoOn, setJogoOn] = useState(false);
+    const [golpeOn, setGolpeOn] = useState(false);
     const alive = useRef(true);
     // painel do técnico: no desktop a Tática fica embaixo da quadra e as abas abrem na Prancheta
     const wide = useMedia(WIDE);
+    // ?lab=hud (revamp-ui §3.5, variante A): no celular em pé, quadra grande seguindo a bola e o painel vira 4 botões
+    const [hudLab] = useState(readHud);
+    const portrait = useMedia('(orientation: portrait)');
+    const hud = hudLab && !wide && portrait;
+    const [hudSheet, setHudSheet] = useState<HudSheet | null>(null);
+    const [hudFeedTab, setHudFeedTab] = useState<CoachTab>('feed');
+    const pitchRef = useRef<HTMLDivElement>(null);
+    // até a velocidade escolhida em Configurações (padrão 2x) a câmera segue o lance; acima, a quadra inteira
+    const camFollow = settings.camFollow ?? 2;
+    useCourtFollow(hud, pitchRef, typeof settings.speed === 'number' && settings.speed <= camFollow);
     const tabs: CoachTab[] = wide ? ['board', 'team', 'feed'] : ['tactic', 'board', 'team', 'feed'];
-    const [tab, setTab] = useCoachTab(tabs, wide ? 'board' : 'tactic');
+    const [tab, setTab] = useCoachTab(tabs, wide ? 'feed' : 'tactic');
+    const { open, showTab, pickTab } = useCoachFold(wide, tab, setTab);
     const latest = useRef<MatchResult | null>(match);
     const recorded = useRef(false);
     const tickRef = useRef(0);
@@ -196,14 +261,22 @@ export function Match({ liga = false }: { liga?: boolean }) {
                       ),
                       startPaused: true,
                       startTick: resume?.tick || undefined,
-                      final: !liga && run?.stage === CUP_STAGES.length - 1,
-                      agency,
+                      final: !solo && !!run && isFinalStage(run),
+                      // título: a taça na quadra (na Rota, a invasão da torcida antes)
+                      ceremony: solo ? undefined : titleCeremony(run),
+                      teamName: run?.teamName,
+                      agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
                       kits: [fieldKit(looks[0]), fieldKit(looks[1])],
-                      boards: liga ? undefined : sponsorBoards(run?.sponsors),
+                      boards: solo ? undefined : sponsorBoards(run?.sponsors),
+                      // a carta de quem dribla dá nome ao drible (os mesmos times do painel, `lockedSetup` abaixo)
+                      setups:
+                          run && opponent
+                              ? [run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run), opponent]
+                              : undefined,
                   }
                 : null,
         [match?.seed],
@@ -286,6 +359,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
             setEnded(true);
             setHalftime(false);
         };
+        const onCeremony = () => setCeremony(true);
+        const onCeremonyEnd = () => setCeremony(false);
+        EventBus.on('match:ceremony', onCeremony);
+        EventBus.on('match:ceremony-end', onCeremonyEnd);
         const onHalftime = () => setHalftime(true);
         const onTimeout = (tick: number) => setTimeoutAt(tick);
         const onPenaltyPick = (tick: number) => setPenPick(tick);
@@ -300,6 +377,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         };
         EventBus.on('current-scene-ready', onReady);
         EventBus.on('match:event', onEvent);
+        EventBus.on('match:replace', commentator.replace);
         EventBus.on('match:tick', onTick);
         EventBus.on('match:ended', onEnded);
         EventBus.on('match:halftime', onHalftime);
@@ -307,7 +385,10 @@ export function Match({ liga = false }: { liga?: boolean }) {
             EventBus.off('match:timeout', onTimeout);
             EventBus.off('match:penalty-pick', onPenaltyPick);
             EventBus.off('match:halftime', onHalftime);
+            EventBus.off('match:ceremony', onCeremony);
+            EventBus.off('match:ceremony-end', onCeremonyEnd);
             EventBus.off('match:event', onEvent);
+            EventBus.off('match:replace', commentator.replace);
             EventBus.off('match:tick', onTick);
             EventBus.off('match:ended', onEnded);
             EventBus.off('current-scene-ready', onReady);
@@ -318,15 +399,45 @@ export function Match({ liga = false }: { liga?: boolean }) {
     const extras = clockExtrasAt(match?.events ?? [], clock.tick, clock.half);
     const clockParts = useClockParts({ ...clock, added: extras.added }, fulltime || ended, shootout, halftime);
     const pressureNow = halftime || fulltime || ended ? null : extras.pressure;
+    // música da partida: faixa do tempo e trecho pela intensidade (troca na linha do compasso)
+    const pressing = pressureNow !== null;
+    // partida retomada: espera o 1º tick (senão buscaria a faixa do 1º tempo à toa)
+    const musicOn = clock.tick > 0 || !resume?.tick;
+    // disputa de pênaltis: espera entre as cobranças, e o fim na cobrança decisiva
+    const penaltis = fulltime || ended ? penaltyMusic(match?.events ?? [], clock.tick) : null;
+    useEffect(() => {
+        if (musicOn)
+            matchMusic({
+                half: clock.half,
+                minute: clock.minute,
+                pressure: pressing,
+                opponent: opponent?.name,
+                intro: !introDone,
+                ended: ended || fulltime,
+                penaltis,
+            });
+    }, [musicOn, clock.half, clock.minute, pressing, opponent?.name, introDone, ended, fulltime, penaltis]);
     // o capitão do líder rival reage aos gols (emote do Duelo, só na tela)
     const rivalPlan = useMemo(() => (match ? rivalEmotes(match.events, 1) : []), [match]);
     // fim de jogo: vai sozinho pro resultado; um toque na quadra ou no painel segura
-    const auto = useAutoResult(ended, () => go(liga ? 'liga' : 'result'));
+    const auto = useFinalHold(ended);
     // fim de jogo: a quadra volta pra tela (no celular a página pode ter ficado rolada desde o intervalo)
     useEffect(() => {
         if (ended)
             scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
     }, [ended]);
+    // atalho do teclado: M dispara o golpe máximo na hora certa (o botão grande só aparece por ~1 s); E/W, "Esperar"
+    const maxKey = useRef<(key: string) => void>(() => {});
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+            if (e.target instanceof HTMLElement && e.target.matches('input, textarea, select, [contenteditable]'))
+                return;
+            maxKey.current(e.key.toLowerCase());
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, []);
     if (!run || !match || !sceneData || !opponent) return null;
 
     const lockedSetup = run.lockedTeam ? { ...run.lockedTeam, manualSubs: true } : playerTeam(run);
@@ -379,7 +490,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
         try {
             const result = await simulateMatch(
                 lockedSetup,
-                cupRival(opponent, agency),
+                cupRival(opponent, true),
                 `${run.seed}-stage-${run.stage}`,
                 schedule,
             );
@@ -403,22 +514,66 @@ export function Match({ liga = false }: { liga?: boolean }) {
         sendOrder((tick) => ({ tick, team: 0, kind: 'corner', corner }));
     };
 
-    // beira da quadra (experimento): gritos, tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
-    const sideline = agencyView(match.events, orders, 0, clock.tick);
+    // beira da quadra: tempo, goleiro-linha e golpe máximo, pelo mesmo caminho das ordens
+    const setups: [TeamSetup, TeamSetup] = [lockedSetup, opponent];
+    // só com o chute certo (`maxCueAt` com `certain`): sem o botão firme do Duelo, que ficava aceso sem a bola no pé
+    const cue = maxCueAt(match, setups, 0, clock.tick, true);
+    const agency = agencyView(match.events, orders, 0, clock.tick, cue);
+    const wait = maxWaitNext(maxWait, agency.max.level, !!cue);
+    // o botão aceso, o toque armado ou o golpe máximo (de qualquer time) no ar: a hora é dele, sem balão por cima
+    const maxBusy =
+        !!cue ||
+        agency.maxPending ||
+        match.events.some(
+            (e) =>
+                e.type === 'max' &&
+                e.phase === 'hit' &&
+                e.tick <= clock.tick &&
+                clock.tick < e.tick + 3 * FUTSAL_5.tickRate,
+        );
+    if (wait !== maxWait) setMaxWait(wait);
+    const sideline = {
+        ...agency,
+        fxType: capFxType(match, setups, 0, clock.tick),
+        capType: capTypeAt(match, setups, 0, clock.tick),
+        bicuda: capIsGk(match, setups, 0, clock.tick),
+        maxWaiting: wait !== null,
+    };
     const canAgency = canChangeTactic && penPick === null;
-    const sidelineControls = (
+    // golpe máximo: vale no snapshot do quadro da tela (`maxOrderTick`), antes da decisão do capitão (com +1 a IA
+    // chutava antes e o lance passava; a quadra espera a partida nova; é um lance, não um plano). O toque que chega com
+    // a hora já passada (o capitão chutou ou perdeu a bola entre o quadro e o dedo) não manda nada
+    const sendMax = (q: MaxGrade) => {
+        const at = maxOrderTick(tickRef.current);
+        if (maxCueAt(match, setups, 0, at, true)) sendOrder((tick) => ({ tick, team: 0, kind: 'max', q }), at);
+    };
+    const lit = canAgency && maxLit(sideline);
+    const waitMax = () => setMaxWait({ level: sideline.max.level });
+    maxKey.current = (key) => {
+        if (!lit) return;
+        if (key === 'm') sendMax(maxTap());
+        else if (key === d.match.agency.maxWaitKey.toLowerCase()) waitMax();
+    };
+    const sidelineButtons = (
         <SidelineControls
             view={sideline}
             canAct={canAgency}
-            onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
             onTimeout={
                 timeoutAt === null && !halftime
                     ? () => sendOrder((tick) => ({ tick, team: 0, kind: 'timeout' }))
                     : undefined
             }
             onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
-            onMax={() => sendOrder((tick) => ({ tick, team: 0, kind: 'max' }))}
+            onMax={sendMax}
+            hideFly
         />
+    );
+    const capPlan = captainPlan(match, setups, 0, clock.tick);
+    const sidelineControls = (
+        <>
+            {sidelineButtons}
+            <MaxLegend plan={capPlan} level={agency.max.level} />
+        </>
     );
 
     const changeTactic = (tactic: Tactic) => {
@@ -463,11 +618,16 @@ export function Match({ liga = false }: { liga?: boolean }) {
     };
     // Substituir (botão, intervalo, pedido de tempo, sugestão): abre a prancheta, já com quem sai marcado se tiver
     const openBoard = (uid?: string) => {
-        setTab('board');
+        if (hud) {
+            setSubOut(uid ? { uid } : null);
+            setHudSheet('board');
+            return;
+        }
+        showTab('board');
         setSubOut(uid ? { uid } : null);
         requestAnimationFrame(() => coachRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
     };
-    // prancheta: sem limite, a última mandada vale na próxima bola parada (pendente até o evento passar na tela)
+    // prancheta: sem limite, a última mandada vale na hora (pendente até o evento passar na tela)
     const lastBoard = orders.filter(isLineupOrder).at(-1);
     const boardEv =
         lastBoard && match.events.find((e) => e.type === 'lineup' && e.team === 0 && e.tick >= lastBoard.tick);
@@ -493,7 +653,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
         return p ? cardSprite(p) : '';
     };
 
-    const stage = liga ? t('liga.stage') : cupStageName(run, run.stage) || t('match.cup');
+    const stage = liga
+        ? t('liga.stage')
+        : ultimate
+          ? t('ultimate.match.stage')
+          : cupStageName(run, run.stage) || t('match.cup');
 
     const finishIntro = () => {
         if (introDoneRef.current) return;
@@ -535,20 +699,17 @@ export function Match({ liga = false }: { liga?: boolean }) {
             pending={pending}
             error={tacticError}
             onTactic={changeTactic}
-            onCorner={changeCorner}
             canSub={canSub}
-            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes)
-            onSub={halftime ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
+            // no intervalo o Substituir mora no painel do intervalo (antes aparecia duas vezes); no ?lab=hud, no Trocar
+            onSub={halftime || hud ? undefined : () => openBoard(tired ? tiredSlot.uid : undefined)}
             tired={tired}
         />
     );
-    const tactics = agency ? (
+    const tactics = (
         <>
             {tacticControls}
             {sidelineControls}
         </>
-    ) : (
-        tacticControls
     );
     // ordem dos pênaltis: quem está em quadra no apito final, na ordem do motor (pelo chute); o goleiro no fim
     const penaltyTakers = (): PenaltyTaker[] => {
@@ -562,13 +723,95 @@ export function Match({ liga = false }: { liga?: boolean }) {
             .sort((a, b) => Number(a.role === 'GK') - Number(b.role === 'GK') || shooting(b.uid) - shooting(a.uid))
             .map(({ uid, role }) => {
                 const inst = byUid.get(uid);
-                return { uid, name: nameOf(uid), sprite: inst ? cardSprite(inst) : '', gk: role === 'GK' };
+                return {
+                    uid,
+                    name: nameOf(uid),
+                    sprite: inst ? cardSprite(inst) : '',
+                    gk: role === 'GK',
+                    shot: inst ? cardAttributes(inst).field.shooting : 0,
+                };
             });
     };
     const resumeFromPens = () => {
         setPenPick(null);
+        // no celular, o "Manter ordem" fica embaixo da dobra: a quadra volta pra tela antes da disputa
+        scoreboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
         EventBus.emit('match:resume');
     };
+
+    // 1ª partida da Relâmpago (fora da Liga e do Time Ultimate): o balão dela vem antes do balão do golpe (um balão por vez)
+    const jogoFirst = !solo && !!run && !run.daily && !isLong(run) && run.results.length === 0;
+    const jogoCoach = (
+        <Coach
+            id="relampagoJogo"
+            targets={[hud ? '.bc-hudbar' : '.bc-coach .bc-tabs']}
+            when={
+                jogoFirst &&
+                // não abre por cima do botão do golpe máximo aceso nem do lance dele
+                !maxBusy &&
+                !golpeOn &&
+                relampagoJogoDue(clock.score, halftime)
+            }
+            // e, já aberto, some enquanto o botão acende (golpe máximo ou bicuda) ou o golpe sai, e volta depois
+            pause={maxBusy}
+            onActive={setJogoOn}
+        />
+    );
+    // golpe universal: a 1ª vez que a barra chega no N1, com o botão apagado (não por cima da hora de tocar)
+    const golpeCoach = (
+        <Coach
+            id="golpe"
+            // celular: o botão da barra de baixo; desktop: as barrinhas embaixo do placar
+            targets={wide ? ['.sl-maxbars', '.sl-maxbars'] : ['.bc-maxthumb', '.bc-maxthumb']}
+            when={
+                !liga &&
+                agency.max.level >= 1 &&
+                !maxBusy &&
+                !jogoOn &&
+                (!jogoFirst || coachSeen(profileClub.coach, 'relampagoJogo'))
+            }
+            pause={maxBusy}
+            onActive={setGolpeOn}
+        />
+    );
+    /** O conteúdo de cada aba do técnico (no painel ou na sheet do ?lab=hud). */
+    const pane = (k: CoachTab) =>
+        k === 'board' ? (
+            <Prancheta
+                match={match}
+                setups={[lockedSetup, opponent]}
+                side={0}
+                tick={clock.tick}
+                names={teamNames}
+                selectedUid={subOut}
+                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
+                onSub={canSub ? orderSub : undefined}
+                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
+                edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
+            />
+        ) : k === 'team' ? (
+            <>
+                <div className="bc-teamctl">
+                    <CornerControls corner={currentCorner} canChange={canChangeTactic} onCorner={changeCorner} />
+                    <FlyGkControl
+                        view={sideline}
+                        canAct={canAgency}
+                        onFlyGk={(on) => sendOrder((tick) => ({ tick, team: 0, kind: 'flyGk', on }))}
+                    />
+                </div>
+                <TeamPanel
+                    match={match}
+                    setups={[lockedSetup, opponent]}
+                    tick={clock.tick}
+                    teamNames={teamNames}
+                    interactive={sceneReady && !ended}
+                />
+            </>
+        ) : k === 'feed' ? (
+            <MatchFeed lines={lines} colors={colors} />
+        ) : (
+            tactics
+        );
 
     return (
         <>
@@ -578,11 +821,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                     away={opponent}
                     stage={stage}
                     ready={sceneReady}
-                    onDone={finishIntro}
+                    onDone={() => playMoment('bola', finishIntro)}
                     onRetry={() => setSceneKey((k) => k + 1)}
                 />
             )}
-            <div className="bc">
+            <div className={`bc${hud ? ' bc-hud' : ''}`}>
                 <div className="bc-head" ref={scoreboardRef}>
                     <Scoreboard
                         names={teamNames}
@@ -592,7 +835,13 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         score={clock.score}
                         clock={clockParts}
                         pressure={pressureNow}
-                        stage={liga ? t('liga.stageShort') : cupStageShort(run, run.stage, d.match.stageShort) || stage}
+                        stage={
+                            liga
+                                ? t('liga.stageShort')
+                                : ultimate
+                                  ? t('ultimate.match.stageShort')
+                                  : cupStageShort(run, run.stage, d.match.stageShort) || stage
+                        }
                     >
                         <RivalEmotes
                             plan={rivalPlan}
@@ -607,35 +856,47 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         />
                     </Scoreboard>
                     <PressureBar match={match} tick={clock.tick} minute={clock.minute} colors={colors} over={over} />
-                    {agency && <MaxBars events={match.events} tick={clock.tick} colors={colors} />}
+                    <MaxBars
+                        events={match.events}
+                        tick={clock.tick}
+                        types={[sideline.capType, capTypeAt(match, setups, 1, clock.tick)]}
+                    />
                 </div>
 
                 <div className="bc-stage" onPointerDownCapture={auto.hold}>
-                    <div className="pitch-wrap">
+                    <div className={`pitch-wrap${hud ? ' hud-follow' : ''}`} ref={pitchRef}>
+                        {/* quadra inteira no celular em pé (4x, 8x): a torcida nas bandas em cima e embaixo */}
+                        {hud && <CourtStands names={teamNames} colors={colors} />}
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (
                             <div className="phaser-container" />
                         )}
-                        <Ticker lines={lines} colors={colors} />
-                        {agency && (
-                            <SidelineOverlay
-                                events={match.events}
-                                tick={clock.tick}
-                                colors={colors}
-                                names={teamNames}
-                            />
+                        {/* partida nova: a caixa de texto da batalha no lugar da faixa da narração */}
+                        {hud ? (
+                            <BattleText lines={lines} colors={colors} speed={settings.speed} />
+                        ) : wide ? null : (
+                            <Ticker lines={lines} colors={colors} />
                         )}
+                        <SidelineOverlay events={match.events} tick={clock.tick} colors={colors} names={teamNames} />
+                        <CharangaCue events={match.events} tick={clock.tick} setups={setups} colors={colors} />
+                        <MaxLevelCue
+                            events={match.events}
+                            tick={clock.tick}
+                            side={0}
+                            plan={capPlan}
+                            color={hex(colors[0])}
+                        />
+                        <MaxCueButton view={sideline} canAct={canAgency} onMax={sendMax} onWait={waitMax} />
                         <MatchHighlight teamNames={teamNames} colors={[hex(colors[0]), hex(colors[1])]} />
                         <EvolutionOverlay />
-                        {ended && !auto.held && (
-                            <FinalBanner score={clock.score} shootout={shootout} side={0} names={teamNames} />
-                        )}
+                        <ShowdownOverlay />
                         <LeaveConfirm />
                         <PlayerInspect
                             match={match}
                             setups={[lockedSetup, opponent]}
                             tactics={[currentTactic, opponent.tactic]}
+                            onSub={hud && canSub ? (uid) => openBoard(uid) : undefined}
                         />
                     </div>
                     {sceneSlow && !sceneReady && (
@@ -644,7 +905,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         </button>
                     )}
                     {halftime && (
-                        <div className="ht-wrap" ref={halftimeRef}>
+                        <div className="ht-wrap" ref={halftimeRef} data-exit>
                             <HalftimePanel
                                 match={match}
                                 names={teamNames}
@@ -674,9 +935,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     inName: nameOf(o.inUid),
                                     outName: nameOf(o.outUid),
                                     sprite: spriteOf(o.inUid),
+                                    outSprite: spriteOf(o.outUid),
                                     onUndo: canChangeTactic ? () => undoSub(o) : undefined,
                                 }))}
                                 rivalSubs={rivalHtSubs(match, 1)}
+                                colors={[hex(colors[0]), hex(colors[1])]}
                                 onContinue={() => {
                                     setHalftime(false);
                                     EventBus.emit('match:resume');
@@ -685,7 +948,7 @@ export function Match({ liga = false }: { liga?: boolean }) {
                         </div>
                     )}
                     {timeoutAt !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <TimeoutPanel
                                 canSub={canSub}
                                 onSub={() => openBoard()}
@@ -693,20 +956,11 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     setTimeoutAt(null);
                                     EventBus.emit('match:resume');
                                 }}
-                            >
-                                <SidelineControls
-                                    compact
-                                    view={sideline}
-                                    canAct={canAgency}
-                                    onShout={(shout) => sendOrder((tick) => ({ tick, team: 0, kind: 'shout', shout }))}
-                                    onFlyGk={() => {}}
-                                    onMax={() => {}}
-                                />
-                            </TimeoutPanel>
+                            />
                         </div>
                     )}
                     {penPick !== null && (
-                        <div className="ht-wrap">
+                        <div className="ht-wrap" data-exit>
                             <PenaltyOrderPanel
                                 takers={penaltyTakers()}
                                 busy={pending}
@@ -728,44 +982,97 @@ export function Match({ liga = false }: { liga?: boolean }) {
                             {t('match.boardPending', { formation: formationText(pendingBoard.formation).name })}
                         </div>
                     )}
-                    {wide && <div className="bc-deskbar">{tactics}</div>}
                 </div>
 
-                <div className="panel bc-coach" ref={coachRef} onPointerDownCapture={auto.hold}>
-                    <CoachTabs tabs={tabs} active={tab} onPick={setTab} />
-                    <div className={`bc-pane pane-${tab}`} role="tabpanel">
-                        {tab === 'tactic' && tactics}
-                        {tab === 'board' && (
-                            <Prancheta
-                                match={match}
-                                setups={[lockedSetup, opponent]}
-                                side={0}
-                                tick={clock.tick}
-                                names={teamNames}
-                                selectedUid={subOut}
-                                onMine={(_, idx) => idx !== null && EventBus.emit('match:inspect-request', idx)}
-                                onSub={canSub ? orderSub : undefined}
-                                subs={subOrders.filter((o) => !subsDone.includes(o.inUid))}
-                                edit={{ enabled: canChangeTactic, pending: pendingBoard, onConfirm: orderBoard, over }}
-                            />
-                        )}
-                        {tab === 'team' && (
-                            <TeamPanel
-                                match={match}
-                                setups={[lockedSetup, opponent]}
-                                tick={clock.tick}
-                                teamNames={teamNames}
-                                interactive={sceneReady && !ended}
-                            />
-                        )}
-                        {tab === 'feed' && <MatchFeed lines={lines} colors={colors} />}
-                    </div>
-                    {wide && tab !== 'feed' && lines.length > 0 && (
-                        <div className="bc-recent">
-                            <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                {hud ? (
+                    <>
+                        {jogoCoach}
+                        {golpeCoach}
+                        {/* ?lab=hud: 4 botões no lugar das abas; cada um abre a sua sheet (o estado fica à vista) */}
+                        <nav className="bc-hudbar" aria-label={t('match.coach.title')}>
+                            {(
+                                [
+                                    ['tactic', currentTactic, t('match.coach.tactic'), d.common.tactic[currentTactic]],
+                                    ['board', 'sub', t('match.coach.hudSwap'), t('match.coach.board')],
+                                    [
+                                        'time',
+                                        'timeout',
+                                        t('match.coach.hudTime'),
+                                        sideline.timeoutPending
+                                            ? d.match.agency.timeoutPending
+                                            : sideline.timeoutUsed
+                                              ? d.match.agency.timeoutUsed
+                                              : d.match.agency.timeoutPerHalf,
+                                    ],
+                                    [
+                                        'feed',
+                                        'feed',
+                                        t('match.coach.feed'),
+                                        lines[0] ? `${Math.floor(lines[0].minute)}'` : '',
+                                    ],
+                                ] as const
+                            ).map(([k, icon, label, sub]) => (
+                                <button
+                                    key={k}
+                                    type="button"
+                                    className={`bc-hudbtn${hudSheet === k ? ' on' : ''}`}
+                                    aria-haspopup="dialog"
+                                    onClick={() => setHudSheet(k)}
+                                >
+                                    <HudIcon kind={icon} />
+                                    <b>{label}</b>
+                                    <small>{sub}</small>
+                                </button>
+                            ))}
+                        </nav>
+                        <Sheet
+                            open={hudSheet !== null}
+                            onClose={() => setHudSheet(null)}
+                            title={
+                                hudSheet === 'board'
+                                    ? t('match.coach.hudSwap')
+                                    : hudSheet === 'time'
+                                      ? t('match.coach.hudTime')
+                                      : hudSheet === 'feed'
+                                        ? t('match.coach.feed')
+                                        : t('match.coach.tactic')
+                            }
+                            className={`hud-sheet hud-${hudSheet ?? 'tactic'}`}
+                        >
+                            {hudSheet === 'tactic' && tacticControls}
+                            {hudSheet === 'board' && pane('board')}
+                            {hudSheet === 'time' && sidelineControls}
+                            {hudSheet === 'feed' && (
+                                <>
+                                    <CoachTabs tabs={['feed', 'team']} active={hudFeedTab} onPick={setHudFeedTab} />
+                                    {pane(hudFeedTab)}
+                                </>
+                            )}
+                        </Sheet>
+                    </>
+                ) : (
+                    <div
+                        className={`panel bc-coach${open ? '' : ' closed'}`}
+                        ref={coachRef}
+                        onPointerDownCapture={auto.hold}
+                    >
+                        {jogoCoach}
+                        {golpeCoach}
+                        <CoachTabs tabs={tabs} active={open ? tab : null} onPick={pickTab} />
+                        <div className="bc-fold" inert={!open}>
+                            <div>
+                                <div className={`bc-pane pane-${tab}`} role="tabpanel">
+                                    {tab === 'tactic' ? tactics : pane(tab)}
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
+                        {wide && tab !== 'feed' && lines.length > 0 && (
+                            <div className="bc-recent">
+                                <MatchFeed lines={lines.slice(0, 3)} colors={colors} />
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="bc-thumb">
                     {!ended ? (
@@ -788,26 +1095,62 @@ export function Match({ liga = false }: { liga?: boolean }) {
                                     ),
                                 )}
                             </fieldset>
+                            {/* celular: o golpe máximo sempre à vista na barra fixa (na aba Tática ficava abaixo da quadra) */}
+                            {!wide && <MaxThumb view={sideline} canAct={canAgency} onMax={sendMax} />}
                             <button
                                 type="button"
                                 className="bc-skip"
                                 disabled={pending || !sceneReady}
                                 aria-label={t('match.skip')}
                                 title={t('match.skip')}
-                                onClick={() => EventBus.emit('match:skip')}
+                                onClick={() => {
+                                    // quem pula a partida e em qual (1ª copa?): base pra decidir o ritmo da 1ª partida
+                                    track('match_skip', {
+                                        stage: run.stage,
+                                        mode: run.mode ?? null,
+                                        liga,
+                                        speed: String(settings.speed),
+                                        first_cup: useGame.getState().records.cups === 0,
+                                    });
+                                    EventBus.emit('match:skip');
+                                }}
                             >
                                 <HudIcon kind="skip" />
                                 <span>{t('match.skip')}</span>
                             </button>
                         </>
+                    ) : ceremony ? (
+                        <button
+                            type="button"
+                            className="btn ghost wide cer-skip"
+                            onClick={() => EventBus.emit('match:ceremony-skip')}
+                        >
+                            {t('common.ui.skip')}
+                            <HudIcon kind="skip" />
+                        </button>
                     ) : (
-                        <ResultButton
-                            label={t('match.seeResult')}
-                            onGo={() => go(liga ? 'liga' : 'result')}
-                            auto={auto}
+                        <FinalCard
+                            score={clock.score}
+                            shootout={shootout}
+                            names={teamNames}
+                            colors={colors}
+                            liga={liga}
+                            heading={solo}
+                            onGo={() =>
+                                // título: o troféu cobre a quadra e a festa aparece embaixo
+                                !solo && useGame.getState().run?.status === 'champion'
+                                    ? playMoment('trofeu', () => go('result'))
+                                    : go(liga ? 'liga' : ultimate ? 'ultimate' : 'result')
+                            }
                         />
                     )}
                 </div>
+                {/* desktop: velocidade logo embaixo da narração e a tática por último (em 1280x720 a barra caía da tela) */}
+                {wide && (
+                    <div className="bc-deskbar compact" onPointerDownCapture={auto.hold}>
+                        {tactics}
+                    </div>
+                )}
             </div>
         </>
     );

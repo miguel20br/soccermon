@@ -1,3 +1,7 @@
+---
+description: Auditoria headless do site na 0.8.6, com o que quebrou em cada tela.
+---
+
 # Auditoria do Soccermon 0.8.6 (branch int-086), 18/10/2026
 
 Escopo: worktree `int-086` rodando no dev server (porta 8110), Playwright headless em 320x568, 390x844, 844x390

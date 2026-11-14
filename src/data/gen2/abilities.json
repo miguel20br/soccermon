@@ -1,0 +1,554 @@
+{
+ "analytic": {
+  "id": "analytic",
+  "name": "Analytic",
+  "shortDesc": "This Pokemon's attacks have 1.3x power if it is the last to move in a turn.",
+  "descPt": "Aumenta o poder do movimento do Pokémon em 30% se ele for o último a agir nesse turno."
+ },
+ "blaze": {
+  "id": "blaze",
+  "name": "Blaze",
+  "shortDesc": "At 1/3 or less of its max HP, this Pokemon's offensive stat is 1.5x with Fire attacks.",
+  "descPt": "Aumenta o poder dos movimentos do tipo Fogo em 50% quando os PS do Pokémon caem para 1/3 ou menos."
+ },
+ "chlorophyll": {
+  "id": "chlorophyll",
+  "name": "Chlorophyll",
+  "shortDesc": "If Sunny Day is active, this Pokemon's Speed is doubled.",
+  "descPt": "Duplica o atributo de Velocidade do Pokémon sob luz solar intensa."
+ },
+ "competitive": {
+  "id": "competitive",
+  "name": "Competitive",
+  "shortDesc": "This Pokemon's Sp. Atk is raised by 2 for each of its stats that is lowered by a foe.",
+  "descPt": "Aumenta drasticamente o atributo Atq. Esp. do Pokémon quando seus atributos são reduzidos por um Pokémon adversário."
+ },
+ "compoundeyes": {
+  "id": "compoundeyes",
+  "name": "Compound Eyes",
+  "shortDesc": "This Pokemon's moves have their accuracy multiplied by 1.3.",
+  "descPt": "Os olhos compostos do Pokémon aumentam sua precisão em 30%."
+ },
+ "contrary": {
+  "id": "contrary",
+  "name": "Contrary",
+  "shortDesc": "If this Pokemon has a stat stage raised it is lowered instead, and vice versa.",
+  "descPt": "Inverte quaisquer alterações nos atributos que afetem o Pokémon, de modo que as tentativas de aumentá-los acabam por reduzi-los — e as tentativas de reduzi-los acabam por aumentá-los."
+ },
+ "cutecharm": {
+  "id": "cutecharm",
+  "name": "Cute Charm",
+  "shortDesc": "30% chance of infatuating Pokemon of the opposite gender if they make contact.",
+  "descPt": "O Pokémon tem 30% de chance de encantar os atacantes que entrarem em contato direto com ele."
+ },
+ "damp": {
+  "id": "damp",
+  "name": "Damp",
+  "shortDesc": "Prevents Explosion/Mind Blown/Misty Explosion/Self-Destruct/Aftermath while active.",
+  "descPt": "O Pokémon neutraliza o ambiente ao seu redor, impedindo que todos os Pokémon usem movimentos explosivos, como “Self-Destruct”, ou causem dano com “Aftermath”."
+ },
+ "download": {
+  "id": "download",
+  "name": "Download",
+  "shortDesc": "On switch-in, Attack or Sp. Atk is raised 1 stage based on the foes' weaker Defense.",
+  "descPt": "O Pokémon compara os atributos de Defesa e Def. Esp. do Pokémon adversário antes de aumentar seu próprio atributo de Ataque ou Atq. Esp. — o que for mais eficaz."
+ },
+ "drizzle": {
+  "id": "drizzle",
+  "name": "Drizzle",
+  "shortDesc": "On switch-in, this Pokemon summons Rain Dance.",
+  "descPt": "Convoca chuva por 5 turnos quando o Pokémon entra em uma batalha. Aumenta o poder dos ataques do tipo Água em 50% e reduz pela metade o dano causado pelos ataques do tipo Fogo."
+ },
+ "earlybird": {
+  "id": "earlybird",
+  "name": "Early Bird",
+  "shortDesc": "This Pokemon's sleep counter drops by 2 instead of 1.",
+  "descPt": "O Pokémon acorda duas vezes mais rápido que outros Pokémon."
+ },
+ "flamebody": {
+  "id": "flamebody",
+  "name": "Flame Body",
+  "shortDesc": "30% chance a Pokemon making contact with this Pokemon will be burned.",
+  "descPt": "O contato com o Pokémon tem 30% de chance de queimar o atacante."
+ },
+ "flashfire": {
+  "id": "flashfire",
+  "name": "Flash Fire",
+  "shortDesc": "This Pokemon's Fire attacks do 1.5x damage if hit by one Fire move; Fire immunity.",
+  "descPt": "Se atingido por um movimento do tipo Fogo, o Pokémon absorve as chamas e as utiliza para aumentar em 50% o poder dos seus próprios movimentos do tipo Fogo."
+ },
+ "forewarn": {
+  "id": "forewarn",
+  "name": "Forewarn",
+  "shortDesc": "On switch-in, this Pokemon is alerted to the foes' move with the highest power.",
+  "descPt": "Quando entra em batalha, o Pokémon pode dizer um dos movimentos do Pokémon adversário."
+ },
+ "friendguard": {
+  "id": "friendguard",
+  "name": "Friend Guard",
+  "shortDesc": "This Pokemon's allies receive 3/4 damage from other Pokemon's attacks.",
+  "descPt": "Os aliados próximos ao Pokémon em batalha recebem 25% de redução de dano."
+ },
+ "frisk": {
+  "id": "frisk",
+  "name": "Frisk",
+  "shortDesc": "On switch-in, this Pokemon identifies the held items of all opposing Pokemon.",
+  "descPt": "Quando entra em batalha, o Pokémon pode checar a Habilidade do adversário."
+ },
+ "gluttony": {
+  "id": "gluttony",
+  "name": "Gluttony",
+  "shortDesc": "This Pokemon eats Berries at 1/2 max HP or less instead of their usual 1/4 max HP.",
+  "descPt": "Se o Pokémon estiver segurando uma Fruta para comer quando seus PS caírem para 1/4 ou menos do máximo, ele comerá essa Fruta quando seus PS caírem para 1/2 ou menos do máximo."
+ },
+ "guts": {
+  "id": "guts",
+  "name": "Guts",
+  "shortDesc": "If this Pokemon is statused, its Attack is 1.5x; ignores burn halving physical damage.",
+  "descPt": "Esse Pokémon é tão corajoso que, quando está sob o efeito de uma condição de status, seu atributo de Ataque aumenta em 50%. Estar queimado não reduz pela metade o dano causado pelos ataques físicos do Pokémon."
+ },
+ "healer": {
+  "id": "healer",
+  "name": "Healer",
+  "shortDesc": "30% chance this Pokemon's ally has its status cured at the end of each turn.",
+  "descPt": "O Pokémon tem 50% de chance de curar as condições de status de seus aliados no final de cada turno."
+ },
+ "honeygather": {
+  "id": "honeygather",
+  "name": "Honey Gather",
+  "shortDesc": "No competitive use.",
+  "descPt": "O Pokémon coleta Mel, que é vendido por dinheiro após uma batalha ser vencida, mesmo que ele não tenha participado."
+ },
+ "hugepower": {
+  "id": "hugepower",
+  "name": "Huge Power",
+  "shortDesc": "This Pokemon's Attack is doubled.",
+  "descPt": "Dobra o Ataque do Pokémon."
+ },
+ "hustle": {
+  "id": "hustle",
+  "name": "Hustle",
+  "shortDesc": "This Pokemon's Attack is 1.5x and accuracy of its physical attacks is 0.8x.",
+  "descPt": "Aumenta o atributo Ataque do Pokémon em 50%, mas reduz a precisão dos seus movimentos físicos em 20%."
+ },
+ "hydration": {
+  "id": "hydration",
+  "name": "Hydration",
+  "shortDesc": "This Pokemon has its status cured at the end of each turn if Rain Dance is active.",
+  "descPt": "Cura as condições de status do Pokémon no final de cada turno em que chove."
+ },
+ "hypercutter": {
+  "id": "hypercutter",
+  "name": "Hyper Cutter",
+  "shortDesc": "Prevents other Pokemon from lowering this Pokemon's Attack stat stage.",
+  "descPt": "As poderosas pinças do Pokémon impedem que outros Pokémon diminuam seu atributo de Ataque."
+ },
+ "illuminate": {
+  "id": "illuminate",
+  "name": "Illuminate",
+  "shortDesc": "This Pokemon's accuracy can't be lowered by others; ignores their evasiveness stat.",
+  "descPt": "Ao iluminar o ambiente ao seu redor, o Pokémon evita que sua precisão seja reduzida. Se este Pokémon for o seu líder na batalha, aumenta a chance de batalhas duplas."
+ },
+ "immunity": {
+  "id": "immunity",
+  "name": "Immunity",
+  "shortDesc": "This Pokemon cannot be poisoned. Gaining this Ability while poisoned cures it.",
+  "descPt": "O sistema imunológico do Pokémon impede que ele seja envenenado."
+ },
+ "infiltrator": {
+  "id": "infiltrator",
+  "name": "Infiltrator",
+  "shortDesc": "Moves ignore substitutes and foe's Reflect/Light Screen/Safeguard/Mist/Aurora Veil.",
+  "descPt": "Os movimentos do Pokémon não são afetados pelas barreiras, substitutos e similares do alvo."
+ },
+ "innerfocus": {
+  "id": "innerfocus",
+  "name": "Inner Focus",
+  "shortDesc": "This Pokemon cannot be made to flinch. Immune to Intimidate.",
+  "descPt": "A concentração intensa do Pokémon impede que ele hesite ou seja afetado pela habilidade Intimidate."
+ },
+ "insomnia": {
+  "id": "insomnia",
+  "name": "Insomnia",
+  "shortDesc": "This Pokemon cannot fall asleep. Gaining this Ability while asleep cures it.",
+  "descPt": "A insônia do Pokémon impede que ele fique sonolento ou seja adormecido."
+ },
+ "intimidate": {
+  "id": "intimidate",
+  "name": "Intimidate",
+  "shortDesc": "On switch-in, this Pokemon lowers the Attack of opponents by 1 stage.",
+  "descPt": "Quando o Pokémon entra em uma batalha, ele intimida os Pokémon adversários e os faz temer, reduzindo seus atributos de Ataque."
+ },
+ "ironfist": {
+  "id": "ironfist",
+  "name": "Iron Fist",
+  "shortDesc": "This Pokemon's punch-based attacks have 1.2x power. Sucker Punch is not boosted.",
+  "descPt": "Aumenta o poder dos movimentos de soco em 20%."
+ },
+ "keeneye": {
+  "id": "keeneye",
+  "name": "Keen Eye",
+  "shortDesc": "This Pokemon's accuracy can't be lowered by others; ignores their evasiveness stat.",
+  "descPt": "A visão aguçada do Pokémon ignora as alterações na evasão dos alvos e impede que sua precisão seja reduzida."
+ },
+ "leafguard": {
+  "id": "leafguard",
+  "name": "Leaf Guard",
+  "shortDesc": "If Sunny Day is active, this Pokemon cannot be statused and Rest will fail for it.",
+  "descPt": "O Pokémon fica imune a condições de status sob luz solar intensa."
+ },
+ "levitate": {
+  "id": "levitate",
+  "name": "Levitate",
+  "shortDesc": "This Pokemon is immune to Ground; Gravity/Ingrain/Smack Down/Iron Ball nullify it.",
+  "descPt": "O Pokémon flutua acima do solo, o que o torna imune a ataques do tipo Terrestre, bem como a Spikes, Toxic Spikes e Sticky Web."
+ },
+ "lightmetal": {
+  "id": "lightmetal",
+  "name": "Light Metal",
+  "shortDesc": "This Pokemon's weight is halved.",
+  "descPt": "Divide o peso do Pokémon pela metade."
+ },
+ "lightningrod": {
+  "id": "lightningrod",
+  "name": "Lightning Rod",
+  "shortDesc": "This Pokemon draws Electric moves to itself to raise Sp. Atk by 1; Electric immunity.",
+  "descPt": "O Pokémon absorve todos os movimentos do tipo Elétrico. Em vez de sofrer danos com eles, seu atributo de Atq. Esp. é aumentado."
+ },
+ "magicbounce": {
+  "id": "magicbounce",
+  "name": "Magic Bounce",
+  "shortDesc": "This Pokemon blocks certain Status moves and bounces them back to the user.",
+  "descPt": "O Pokémon reflete os movimentos de status em vez de ser atingido por eles."
+ },
+ "magicguard": {
+  "id": "magicguard",
+  "name": "Magic Guard",
+  "shortDesc": "This Pokemon can only be damaged by direct attacks.",
+  "descPt": "O Pokémon só sofre danos de ataques diretos."
+ },
+ "magmaarmor": {
+  "id": "magmaarmor",
+  "name": "Magma Armor",
+  "shortDesc": "This Pokemon cannot be frozen. Gaining this Ability while frozen cures it.",
+  "descPt": "A camada de magma quente do Pokémon impede que ele seja congelado."
+ },
+ "moody": {
+  "id": "moody",
+  "name": "Moody",
+  "shortDesc": "Boosts a random stat (except accuracy/evasion) +2 and another stat -1 every turn.",
+  "descPt": "A cada turno, um dos atributos do Pokémon será aumentado drasticamente, mas outro será reduzido. Precisão e evasão estão excluídas."
+ },
+ "moxie": {
+  "id": "moxie",
+  "name": "Moxie",
+  "shortDesc": "This Pokemon's Attack is raised by 1 stage if it attacks and KOes another Pokemon.",
+  "descPt": "O Pokémon demonstra arrogância, e isso faz com que seu Ataque aumente após derrotar qualquer Pokémon."
+ },
+ "multiscale": {
+  "id": "multiscale",
+  "name": "Multiscale",
+  "shortDesc": "If this Pokemon is at full HP, damage taken from attacks is halved.",
+  "descPt": "Reduz pela metade a quantidade de dano que o Pokémon recebe enquanto seus PS estiverem cheios."
+ },
+ "naturalcure": {
+  "id": "naturalcure",
+  "name": "Natural Cure",
+  "shortDesc": "This Pokemon has its non-volatile status condition cured when it switches out.",
+  "descPt": "As condições de status do Pokémon são curadas quando ele é substituído."
+ },
+ "oblivious": {
+  "id": "oblivious",
+  "name": "Oblivious",
+  "shortDesc": "This Pokemon cannot be infatuated or taunted. Immune to Intimidate.",
+  "descPt": "O Pokémon é indiferente, o que o impede de se deixar levar pela paixão, cair em provocações ou ser afetado pela habilidade Intimidate."
+ },
+ "overcoat": {
+  "id": "overcoat",
+  "name": "Overcoat",
+  "shortDesc": "This Pokemon is immune to powder moves, Sandstorm damage, and Effect Spore.",
+  "descPt": "O Pokémon não sofre danos causados por tempestades de areia ou granizo. Também está protegido dos efeitos de pós e esporos."
+ },
+ "overgrow": {
+  "id": "overgrow",
+  "name": "Overgrow",
+  "shortDesc": "At 1/3 or less of its max HP, this Pokemon's offensive stat is 1.5x with Grass attacks.",
+  "descPt": "Aumenta o poder dos movimentos do tipo Planta em 50% quando os PS do Pokémon caem para 1/3 ou menos."
+ },
+ "owntempo": {
+  "id": "owntempo",
+  "name": "Own Tempo",
+  "shortDesc": "This Pokemon cannot be confused. Immune to Intimidate.",
+  "descPt": "O Pokémon mantém seu próprio ritmo, o que impede que ele fique confuso. Além disso, ele não é afetado pela habilidade Intimidate."
+ },
+ "pickpocket": {
+  "id": "pickpocket",
+  "name": "Pickpocket",
+  "shortDesc": "If this Pokemon has no item and is hit by a contact move, it steals the attacker's item.",
+  "descPt": "O Pokémon rouba um item que os atacantes que entram em contato direto com ele estão segurando."
+ },
+ "pickup": {
+  "id": "pickup",
+  "name": "Pickup",
+  "shortDesc": "If this Pokemon has no item, it finds one used by an adjacent Pokemon this turn.",
+  "descPt": "O Pokémon pode pegar um item que outro Pokémon usou durante uma batalha, mesmo que não tenha participado dela."
+ },
+ "plus": {
+  "id": "plus",
+  "name": "Plus",
+  "shortDesc": "If an active ally has this Ability or the Minus Ability, this Pokemon's Sp. Atk is 1.5x.",
+  "descPt": "Aumenta o atributo de Atq. Esp. do Pokémon em 50% se um aliado com a habilidade Plus ou Minus também estiver em batalha."
+ },
+ "poisonpoint": {
+  "id": "poisonpoint",
+  "name": "Poison Point",
+  "shortDesc": "30% chance a Pokemon making contact with this Pokemon will be poisoned.",
+  "descPt": "O contato com o Pokémon tem 30% de chance de envenenar o atacante."
+ },
+ "prankster": {
+  "id": "prankster",
+  "name": "Prankster",
+  "shortDesc": "This Pokemon's Status moves have priority raised by 1, but Dark types are immune.",
+  "descPt": "Dá prioridade aos movimentos de status do Pokémon. Os Pokémon do tipo Sombrio são imunes a esses movimentos."
+ },
+ "pressure": {
+  "id": "pressure",
+  "name": "Pressure",
+  "shortDesc": "If this Pokemon is the target of a foe's move, that move loses one additional PP.",
+  "descPt": "Coloca os Pokémon adversários sob pressão, fazendo com que gastem 1 PP a mais ao usarem movimentos contra ele."
+ },
+ "quickfeet": {
+  "id": "quickfeet",
+  "name": "Quick Feet",
+  "shortDesc": "If this Pokemon is statused, its Speed is 1.5x; ignores Speed drop from paralysis.",
+  "descPt": "Quando o Pokémon tem uma condição de status, seu atributo Velocidade é aumentado em 50%. Estar paralisado não reduz o atributo Velocidade do Pokémon."
+ },
+ "rattled": {
+  "id": "rattled",
+  "name": "Rattled",
+  "shortDesc": "Speed is raised 1 stage if hit by a Bug-, Dark-, or Ghost-type attack, or Intimidated.",
+  "descPt": "O Pokémon fica assustado quando atingido por um ataque do tipo Sombrio, Fantasma ou Inseto, ou se for intimidado, o que aumenta seu atributo de Velocidade."
+ },
+ "regenerator": {
+  "id": "regenerator",
+  "name": "Regenerator",
+  "shortDesc": "This Pokemon restores 1/3 of its maximum HP, rounded down, when it switches out.",
+  "descPt": "O Pokémon tem 1/3 de seus PS máximos restaurados quando retirado da batalha."
+ },
+ "rockhead": {
+  "id": "rockhead",
+  "name": "Rock Head",
+  "shortDesc": "This Pokemon does not take recoil damage besides Struggle/Life Orb/crash damage.",
+  "descPt": "Protege o Pokémon de dano reverso."
+ },
+ "runaway": {
+  "id": "runaway",
+  "name": "Run Away",
+  "shortDesc": "No competitive use.",
+  "descPt": "Permite uma fuga garantida dos Pokémon selvagens, além de ignorar qualquer efeito que normalmente impediria o Pokémon de ser trocado."
+ },
+ "sandstream": {
+  "id": "sandstream",
+  "name": "Sand Stream",
+  "shortDesc": "On switch-in, this Pokemon summons Sandstorm.",
+  "descPt": "Convoca uma tempestade de areia por 5 turnos quando o Pokémon entra em uma batalha. Os Pokémon do tipo Pedra têm sua Defesa Especial aumentada em 50%. Pokémon que não sejam dos tipos Pedra, Terra ou Aço sofrerão dano igual a 1/16 de seus PS máximos no final de cada turno."
+ },
+ "sandveil": {
+  "id": "sandveil",
+  "name": "Sand Veil",
+  "shortDesc": "If Sandstorm is active, this Pokemon's evasiveness is 1.25x; immunity to Sandstorm.",
+  "descPt": "Aumenta a evasão do Pokémon em 25% durante uma tempestade de areia. Além disso, o Pokémon não sofre dano causado por tempestades de areia."
+ },
+ "sapsipper": {
+  "id": "sapsipper",
+  "name": "Sap Sipper",
+  "shortDesc": "This Pokemon's Attack is raised 1 stage if hit by a Grass move; Grass immunity.",
+  "descPt": "O Pokémon não sofre danos quando atingido por movimentos do tipo Planta. Em vez disso, o seu atributo de Ataque é aumentado."
+ },
+ "scrappy": {
+  "id": "scrappy",
+  "name": "Scrappy",
+  "shortDesc": "Fighting, Normal moves hit Ghost. Immune to Intimidate.",
+  "descPt": "O Pokémon pode atingir Pokémon do tipo Fantasma com movimentos do tipo Normal e Lutador. Também não é afetado por Intimidate."
+ },
+ "serenegrace": {
+  "id": "serenegrace",
+  "name": "Serene Grace",
+  "shortDesc": "This Pokemon's moves have their secondary effect chance doubled.",
+  "descPt": "Duplica a chance de ocorrerem efeitos adicionais quando o Pokémon usa seus movimentos. Isso não afeta os itens."
+ },
+ "shadowtag": {
+  "id": "shadowtag",
+  "name": "Shadow Tag",
+  "shortDesc": "Prevents foes from choosing to switch unless they also have this Ability.",
+  "descPt": "O Pokémon pisa nas sombras dos Pokémon adversários para impedir que eles fujam ou sejam trocados."
+ },
+ "shedskin": {
+  "id": "shedskin",
+  "name": "Shed Skin",
+  "shortDesc": "This Pokemon has a 33% chance to have its status cured at the end of each turn.",
+  "descPt": "O Pokémon tem 30% de chance de curar suas próprias condições de status no final de cada turno, trocando de pele."
+ },
+ "sheerforce": {
+  "id": "sheerforce",
+  "name": "Sheer Force",
+  "shortDesc": "This Pokemon's attacks with secondary effects have 1.3x power; nullifies the effects.",
+  "descPt": "Remove quaisquer efeitos adicionais dos movimentos do Pokémon, mas aumenta o poder dos movimentos em 30%."
+ },
+ "skilllink": {
+  "id": "skilllink",
+  "name": "Skill Link",
+  "shortDesc": "This Pokemon's multi-hit attacks always hit the maximum number of times.",
+  "descPt": "Faz com que movimentos de repetição acertem sempre o máximo de vezes possível."
+ },
+ "sniper": {
+  "id": "sniper",
+  "name": "Sniper",
+  "shortDesc": "If this Pokemon strikes with a critical hit, the damage is multiplied by 1.5.",
+  "descPt": "Se o ataque do Pokémon causar um golpe crítico, o ataque é potencializado em 1,5x adicional, causando 2,25x o dano normal."
+ },
+ "snowcloak": {
+  "id": "snowcloak",
+  "name": "Snow Cloak",
+  "shortDesc": "If Snow is active, this Pokemon's evasiveness is 1.25x.",
+  "descPt": "Aumenta a evasão do Pokémon em 25% na neve ou no granizo. Além disso, o Pokémon não sofre dano algum causado pelo granizo."
+ },
+ "solarpower": {
+  "id": "solarpower",
+  "name": "Solar Power",
+  "shortDesc": "If Sunny Day is active, this Pokemon's Sp. Atk is 1.5x; loses 1/8 max HP per turn.",
+  "descPt": "O Atq. Esp. do Pokémon é aumentado em 50% sob luz solar intensa, mas ele perde 1/8 dos seus PS máximos no final de cada turno."
+ },
+ "speedboost": {
+  "id": "speedboost",
+  "name": "Speed Boost",
+  "shortDesc": "This Pokemon's Speed is raised 1 stage at the end of each full turn on the field.",
+  "descPt": "O atributo de Velocidade do Pokémon é aumentado a cada turno."
+ },
+ "static": {
+  "id": "static",
+  "name": "Static",
+  "shortDesc": "30% chance a Pokemon making contact with this Pokemon will be paralyzed.",
+  "descPt": "O Pokémon está carregado de eletricidade estática e tem 30% de chance de paralisar os atacantes que o atingirem com um movimento de contato."
+ },
+ "steadfast": {
+  "id": "steadfast",
+  "name": "Steadfast",
+  "shortDesc": "If this Pokemon flinches, its Speed is raised by 1 stage.",
+  "descPt": "A determinação do Pokémon aumenta o seu atributo de Velocidade sempre que ele hesita."
+ },
+ "sturdy": {
+  "id": "sturdy",
+  "name": "Sturdy",
+  "shortDesc": "If this Pokemon is at full HP, it survives one hit with at least 1 HP. Immune to OHKO.",
+  "descPt": "O Pokémon não pode ser derrotado com um único golpe enquanto os seus PS estiverem cheios. Movimentos que causam nocaute com um único golpe também não conseguirão derrotá-lo."
+ },
+ "suctioncups": {
+  "id": "suctioncups",
+  "name": "Suction Cups",
+  "shortDesc": "This Pokemon cannot be forced to switch out by another Pokemon's attack or item.",
+  "descPt": "O Pokémon usa ventosas para permanecer no mesmo lugar. Isso o protege de movimentos e itens que o forçariam a sair de campo."
+ },
+ "superluck": {
+  "id": "superluck",
+  "name": "Super Luck",
+  "shortDesc": "This Pokemon's critical hit ratio is raised by 1 stage.",
+  "descPt": "O Pokémon tem tanta sorte que as taxas de golpe crítico de seus movimentos são aumentadas em um nível."
+ },
+ "swarm": {
+  "id": "swarm",
+  "name": "Swarm",
+  "shortDesc": "At 1/3 or less of its max HP, this Pokemon's offensive stat is 1.5x with Bug attacks.",
+  "descPt": "Aumenta o poder dos movimentos do tipo Inseto em 50% quando os PS do Pokémon caem para 1/3 ou menos."
+ },
+ "swiftswim": {
+  "id": "swiftswim",
+  "name": "Swift Swim",
+  "shortDesc": "If Rain Dance is active, this Pokemon's Speed is doubled.",
+  "descPt": "Duplica o atributo de velocidade do Pokémon na chuva."
+ },
+ "synchronize": {
+  "id": "synchronize",
+  "name": "Synchronize",
+  "shortDesc": "If another Pokemon burns/poisons/paralyzes this Pokemon, it also gets that status.",
+  "descPt": "Se o Pokémon sofrer queimadura, paralisia, envenenamento ou envenenamento grave devido a um movimento ou habilidade de outro Pokémon, ele também ficará sujeito à mesma condição de status. Se esse Pokémon for o seu primeiro a entrar na batalha, os Pokémon selvagens adversários terão a mesma natureza que ele."
+ },
+ "technician": {
+  "id": "technician",
+  "name": "Technician",
+  "shortDesc": "This Pokemon's moves of 60 power or less have 1.5x power, including Struggle.",
+  "descPt": "Aumenta em 50% os movimentos com poder base igual ou inferior a 60."
+ },
+ "telepathy": {
+  "id": "telepathy",
+  "name": "Telepathy",
+  "shortDesc": "This Pokemon does not take damage from attacks made by its allies.",
+  "descPt": "O Pokémon antecipa e se esquiva dos ataques de seus aliados."
+ },
+ "thickfat": {
+  "id": "thickfat",
+  "name": "Thick Fat",
+  "shortDesc": "Fire-/Ice-type moves against this Pokemon deal damage with a halved offensive stat.",
+  "descPt": "O Pokémon é protegido por uma camada espessa de gordura, que reduz pela metade o dano recebido de ataques dos tipos Fogo e Gelo."
+ },
+ "tintedlens": {
+  "id": "tintedlens",
+  "name": "Tinted Lens",
+  "shortDesc": "This Pokemon's attacks that are not very effective on a target deal double damage.",
+  "descPt": "Os ataques “pouco eficazes” do Pokémon causam o dobro de dano."
+ },
+ "torrent": {
+  "id": "torrent",
+  "name": "Torrent",
+  "shortDesc": "At 1/3 or less of its max HP, this Pokemon's offensive stat is 1.5x with Water attacks.",
+  "descPt": "Aumenta o poder dos movimentos do tipo Água em 50% quando os PS do Pokémon caem para 1/3 ou menos."
+ },
+ "trace": {
+  "id": "trace",
+  "name": "Trace",
+  "shortDesc": "On switch-in, or when it can, this Pokemon copies a random adjacent foe's Ability.",
+  "descPt": "Quando entra em batalha, o Pokémon copia a Habilidade de um Pokémon adversário."
+ },
+ "unaware": {
+  "id": "unaware",
+  "name": "Unaware",
+  "shortDesc": "This Pokemon ignores other Pokemon's stat stages when taking or doing damage.",
+  "descPt": "O Pokémon ignora as mudanças nos atributos do Pokémon adversário ao atacar ou defender."
+ },
+ "unnerve": {
+  "id": "unnerve",
+  "name": "Unnerve",
+  "shortDesc": "While this Pokemon is active, it prevents opposing Pokemon from using their Berries.",
+  "descPt": "Enerva Pokémon adversários, impossibilitando que eles consumam Frutas."
+ },
+ "vitalspirit": {
+  "id": "vitalspirit",
+  "name": "Vital Spirit",
+  "shortDesc": "This Pokemon cannot fall asleep. Gaining this Ability while asleep cures it.",
+  "descPt": "O Pokémon está cheio de vitalidade, e isso impede que ele fique sonolento ou seja adormecido."
+ },
+ "voltabsorb": {
+  "id": "voltabsorb",
+  "name": "Volt Absorb",
+  "shortDesc": "This Pokemon heals 1/4 of its max HP when hit by Electric moves; Electric immunity.",
+  "descPt": "Se for atingido por um movimento do tipo Elétrico, o Pokémon recupera 1/4 dos seus PS máximos em vez de sofrer danos."
+ },
+ "waterabsorb": {
+  "id": "waterabsorb",
+  "name": "Water Absorb",
+  "shortDesc": "This Pokemon heals 1/4 of its max HP when hit by Water moves; Water immunity.",
+  "descPt": "Se for atingido por um movimento do tipo Água, o Pokémon recupera 1/4 dos seus PS máximos em vez de sofrer danos."
+ },
+ "waterveil": {
+  "id": "waterveil",
+  "name": "Water Veil",
+  "shortDesc": "This Pokemon cannot be burned. Gaining this Ability while burned cures it.",
+  "descPt": "O véu de água do Pokémon impede que ele seja queimado."
+ },
+ "weakarmor": {
+  "id": "weakarmor",
+  "name": "Weak Armor",
+  "shortDesc": "If a physical attack hits this Pokemon, Defense is lowered by 1, Speed is raised by 2.",
+  "descPt": "O atributo de Defesa do Pokémon é reduzido quando ele sofre danos de movimentos físicos, mas seu atributo de Velocidade é drasticamente aumentado."
+ }
+}

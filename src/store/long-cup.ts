@@ -1,16 +1,24 @@
 import { CUP_STAGES } from '../engine/cup';
 import {
-    buildCupMap,
+    CHALLENGE_SHIFT,
     type CupMap,
     FINAL_MATCH,
     GROUP_GAMES,
     GROUP_START,
+    isMatchKind,
+    LEGENDARY_BIRD,
     LONG_MATCHES,
+    longOpponent,
     type MapNode,
+    matchIndexOfRow,
     nodeById,
+    ROTA_RULES,
 } from '../engine/cup-map';
+import type { Stone } from '../engine/evolution';
 import { Rng } from '../engine/rng';
+import { winEarnings } from '../engine/shop';
 import type { TeamSetup } from '../engine/state';
+import { ACE_SHIFT, buildRotaMap, casaOf, MAP_V } from './rota-map';
 
 /**
  * Copa longa (docs/planos/copa-longa.md): o que muda numa copa com `mode: 'longa'`. Sem `mode` é a Copa rápida de
@@ -19,10 +27,31 @@ import type { TeamSetup } from '../engine/state';
 export type CupMode = 'longa';
 
 /** A Copa longa aparece na Home quando a 0.9.1 estiver pronta (até lá, só pelo `?demo=mapa`). */
-export const LONG_CUP_LIVE = false;
+export const LONG_CUP_LIVE = true;
+
+/**
+ * O ₽ a mais do Jogo vencido, no lugar do 1 de 3 do time rival (Miguel, 11/11/2026: na Rota a vitória paga ₽ e você
+ * gasta nos Mercados do mapa; balanceamento-geral.md, "Modos arcade × Rota").
+ */
+export const ROTA_JOGO_PAY = 3;
+
+/**
+ * O ₽ que uma vitória na Rota rende na hora (os juros só entram ao abrir um Mercado). Resultado e store usam esta conta.
+ * `jogo`: o Jogo vencido, que soma o `ROTA_JOGO_PAY` na vitória.
+ */
+export function longWinEarnings(score: readonly number[], sponsors: readonly string[] = [], jogo = false) {
+    const e = winEarnings(score[0], score[1], 0, sponsors);
+    return jogo ? { ...e, win: e.win + ROTA_JOGO_PAY, total: e.total + ROTA_JOGO_PAY } : e;
+}
 
 /** Cartões amarelos: na Copa longa uma derrota fora da Final não elimina; a segunda é o vermelho. */
 export const YELLOW_CARDS = 1;
+/**
+ * A derrota na 1ª partida da Rota é perdoada: volta pro mapa sem cartão (Miguel, 10/11/2026; rota-indigo-2.md). 20% das
+ * Rotas acabavam na 2ª partida, com o time ainda do draft; no robô o título foi de 30% a 35%.
+ */
+export const forgivenLoss = (run: { mode?: CupMode; results: readonly unknown[] }, won: boolean) =>
+    !won && isLong(run) && run.results.length === 0;
 
 /** Raridade (linha da `TIER_ODDS`) do reforço, do Mercado e do pacote pela partida: pior no começo, melhor no fim. */
 export const LONG_ROUND = [1, 2, 3, 4, 5, 6, 6, 6];
@@ -42,6 +71,8 @@ export const longRound = (stage: number) => LONG_ROUND[Math.min(stage, LONG_ROUN
 export interface LongRunFields {
     mode?: CupMode;
     map?: CupMap;
+    /** Versão do mapa: 2 = o mapa largo (src/store/rota-map.ts). Sem = o estreito (Rota guardada antes dele). */
+    mapV?: number;
     /** Casa em que você está (null = ainda não entrou no mapa). */
     at?: string | null;
     /** Casas por onde passou, em ordem. */
@@ -52,18 +83,108 @@ export interface LongRunFields {
     told?: string[];
     /** Quem está fora e por quantas partidas (lesão, Creche, treino puxado). Fica no banco e não entra. */
     out?: Record<string, number>;
+    /** Por que cada um de `out` está fora (sem = save de antes: só "Fora"). Sobra de quem já voltou não importa. */
+    outWhy?: Record<string, OutWhy>;
     /** Evento da entrevista: o próximo rival entra mais fraco (−1) ou mais forte (+1). */
     rivalShift?: number;
     /** Eventos já vistos nesta copa (não repetem). */
     eventsSeen?: string[];
     /** Fase de grupos no Planalto: os 3 rivais do seu grupo, na ordem das rodadas. */
     group?: { rivals: TeamSetup[] } | null;
+    /** O que a última escolha de evento fez (a nota no mapa até a próxima casa). */
+    eventNote?: { id: string; choice: string; target?: string; cost: number; names?: string[] } | null;
     /** Evento aberto (status 'event'). */
     event?: import('./long-events').LongEvent | null;
+    /** Desafio de evento pra próxima partida do mapa (Pássaro lendário, Equipe Rocket): rival +2 com prêmio próprio. */
+    challenge?: Challenge | null;
+    /** O desafio da partida de agora (até voltar pro mapa): o prêmio da vitória sai dele. */
+    fight?: Challenge | null;
+    /** Aposta do Blue na próxima partida: vitória por 2+ gols ganha esse ₽; senão perde. */
+    bet?: number | null;
+    /** A recompensa aberta é o 1 de 3 do time rival (ROTA_RULES.rivalEveryJogo); o prêmio da casa vem depois. */
+    rivalPick?: boolean;
+    /** Ovo da Creche: nasce no banco depois de `left` partidas. */
+    egg?: { left: number; speciesId: number } | null;
+    /** Mochila: pedras guardadas pra quem entrar no time depois (sem = vazia; Rota de antes da 0.9.44 não tem). */
+    bag?: Stone[];
+    /** Trocas grátis de vitrine no Mercado (etiqueta do Pular). Sem = 0. */
+    shopFree?: number;
 }
+
+export type Challenge = 'lendario' | 'rocket';
+/** ₽ a mais por vencer a Equipe Rocket do assalto. */
+export const ROCKET_BOUNTY = 8;
+
+/** Rival da casa de partida (a prévia do mapa e a partida usam esta conta: o mesmo time). */
+export function nodeOpponent(
+    run: { seed: string; opponents: readonly (TeamSetup | null | undefined)[] } & Pick<
+        LongRunFields,
+        'rivalShift' | 'challenge'
+    >,
+    node: MapNode,
+): TeamSetup {
+    const faced = run.opponents.flatMap((o) => (o ? [o.name] : []));
+    const ch = node.kind === 'final' ? null : run.challenge;
+    return longOpponent(run.seed, matchIndexOfRow(node.row), node.kind, faced, {
+        shift: (run.rivalShift ?? 0) + (ch ? CHALLENGE_SHIFT : 0) + (casaOf(node) === 'as' ? ACE_SHIFT : 0),
+        types: node.types,
+        ...(ch === 'rocket' && { club: 'Equipe Rocket' }),
+        ...(ch === 'lendario' && { boss: LEGENDARY_BIRD }),
+        // a casa da pedra (sem desafio, que não dá a pedra): o rival traz um que evolui com ela
+        ...(!ch && node.kind === 'jogo' && node.stone && { stone: node.stone }),
+    });
+}
+
+/** O ₽ a mais desta partida da Rota: prêmio "₽ em dobro", recompensa da Equipe Rocket e a aposta do Blue. */
+export interface MatchBonus {
+    prize?: number;
+    rocket?: number;
+    bet?: number;
+}
+export function longMatchBonus(
+    run: LongRunFields & { sponsors?: string[] },
+    score: readonly number[],
+    won: boolean,
+): MatchBonus {
+    const out: MatchBonus = {};
+    const node = currentNode(run);
+    if (won && node?.kind === 'jogo' && node.prize === 'money' && !run.fight)
+        out.prize = longWinEarnings(score, run.sponsors, jogoPays(run)).total;
+    if (won && run.fight === 'rocket') out.rocket = ROCKET_BOUNTY;
+    if (run.bet) out.bet = won && score[0] - score[1] >= 2 ? run.bet : -run.bet;
+    return out;
+}
+export const bonusTotal = (b: MatchBonus | undefined) => (b?.prize ?? 0) + (b?.rocket ?? 0) + (b?.bet ?? 0);
+
+/** "Nova copa" no fim de uma copa: o mesmo modo (Rota começa outra Rota; Relâmpago e Copa do Dia, a Relâmpago). */
+export const nextCupMode = (run: { mode?: CupMode; daily?: string }): CupMode | undefined =>
+    run.daily ? undefined : run.mode;
 
 /** Está fora (machucado ou na Creche)? */
 export const isOut = (run: LongRunFields, uid: string) => (run.out?.[uid] ?? 0) > 0;
+
+/** Motivo de estar fora: carrinho no treino, Creche ou treino puxado. */
+export type OutWhy = 'lesao' | 'creche' | 'cansado';
+/** Selo de quem está fora: o motivo e quantas partidas faltam pra voltar (null = está disponível). */
+export const outOf = (run: LongRunFields, uid: string): { why: OutWhy | 'fora'; n: number } | null =>
+    isOut(run, uid) ? { why: run.outWhy?.[uid] ?? 'fora', n: run.out![uid] } : null;
+
+/**
+ * Troca na escalação que põe em quadra alguém que está fora? (quem está fora fica no banco; tirar ele da quadra pode)
+ * `a` e `b` são as duas vagas da troca.
+ */
+export function putsOutOnCourt(
+    run: LongRunFields & { lineup: string[]; bench: string[] },
+    a: { zone: 'lineup' | 'bench'; index: number },
+    b: { zone: 'lineup' | 'bench'; index: number },
+): boolean {
+    const uidAt = (r: typeof a) => (r.zone === 'lineup' ? run.lineup : run.bench)[r.index];
+    // quem vai pra quadra: o da vaga do banco, se a outra é da quadra
+    if (a.zone === b.zone) return false;
+    const fromBench = a.zone === 'bench' ? a : b;
+    const u = uidAt(fromBench);
+    return !!u && isOut(run, u);
+}
 /** Depois de uma partida, cada um que estava fora tem uma partida a menos pra voltar. */
 export function tickOut(out: Record<string, number> | undefined): Record<string, number> | undefined {
     if (!out) return out;
@@ -73,7 +194,8 @@ export function tickOut(out: Record<string, number> | undefined): Record<string,
 
 export const newLongFields = (seed: string): LongRunFields => ({
     mode: 'longa',
-    map: buildCupMap(seed),
+    map: buildRotaMap(seed),
+    mapV: MAP_V,
     at: null,
     path: [],
     cards: 0,
@@ -81,6 +203,28 @@ export const newLongFields = (seed: string): LongRunFields => ({
 
 export const currentNode = (run: LongRunFields): MapNode | undefined =>
     run.map && run.at ? nodeById(run.map, run.at) : undefined;
+
+/** O Jogo vencido agora paga o `ROTA_JOGO_PAY` (sem o 1 de 3 do rival)? Desafio de evento e grupo não. */
+export const jogoPays = (run: LongRunFields): boolean =>
+    isLong(run) && !ROTA_RULES.rivalEveryJogo && !run.group && !run.fight && currentNode(run)?.kind === 'jogo';
+
+/**
+ * A partida que a barra da copa e o "Continuar" mostram ("Partida 4 de 8"). Na Rota a próxima a jogar é sempre a conta
+ * das jogadas (`played` = `results.length`; o mapa e o grupo contam assim) e `stage` é a última em que você entrou: ela
+ * só vale enquanto é a de agora (escalação) e no resultado e na recompensa dela (`onResult`, ou a recompensa aberta numa
+ * casa de partida ou no grupo). Na Relâmpago, a fase (`stage`).
+ */
+export function cupMatchNow(
+    run: { mode?: CupMode; status: string; stage: number; played?: number } & Pick<
+        LongRunFields,
+        'at' | 'map' | 'group'
+    >,
+    onResult = false,
+): number {
+    if (!isLong(run)) return run.stage;
+    const ofMatch = run.status === 'reward' && (!!run.group || isMatchKind(currentNode(run)?.kind ?? 'bau'));
+    return onResult || ofMatch ? run.stage : Math.min(run.played ?? run.stage, LONG_MATCHES - 1);
+}
 
 /** A partida `stage` é da fase de grupos? */
 export const isGroupStage = (stage: number) => stage >= GROUP_START && stage < FINAL_MATCH;
@@ -165,5 +309,49 @@ export function groupTable(
     );
 }
 
+/**
+ * Cartão da derrota que acabou de acontecer: amarelo (a 1ª no mapa, volta pro mapa) ou vermelho (a 2ª no mapa, fora).
+ * Cair no grupo ou perder a Final não é cartão.
+ */
+export function foulOf(run: {
+    mode?: CupMode;
+    status: string;
+    stage: number;
+    results: { won: boolean; forgiven?: boolean }[];
+}): 'forgiven' | 'yellow' | 'red' | null {
+    const last = run.results.at(-1);
+    if (!isLong(run) || last?.won !== false) return null;
+    if (run.status === 'map') return last.forgiven ? 'forgiven' : 'yellow';
+    return run.status === 'eliminated' && run.stage < GROUP_START ? 'red' : null;
+}
+
 /** Passou do grupo? (os 2 primeiros vão pra Final; só faz sentido com as 3 rodadas jogadas) */
 export const groupQualified = (rows: GroupRow[]) => rows.findIndex((r) => r.you) < 2;
+
+/**
+ * Desfile do Hall da Fama (animacoes-novas.md, decisão 3): só no título da Rota e no 1º título de cada modo
+ * (Relâmpago, Copa do Dia); os repetidos ficam com a taça curta na quadra. `titles`/`longTitles` já contam este
+ * título; `dailyTitles` = Copas do Dia ganhas (com esta, se for uma).
+ */
+export function paradeOn(
+    run: { mode?: CupMode; daily?: string },
+    records: { titles: number; longTitles?: number },
+    dailyTitles: number,
+): boolean {
+    if (run.mode === 'longa') return true;
+    if (run.daily) return dailyTitles <= 1;
+    return records.titles - (records.longTitles ?? 0) - dailyTitles <= 1;
+}
+
+/**
+ * Créditos do título (`TitleCredits`): guardados pro fim do Modo História (Miguel, 10/11: "os créditos melhores só no
+ * fim do Modo História"). Nenhum modo de hoje chama: a Rota parou de chamar.
+ */
+export const creditsOn = (run: { mode?: string }) => run.mode === 'historia';
+
+/**
+ * Cerimônia do título na quadra: só na Final (a MatchScene ainda confere se você venceu). Taça curta em todo título;
+ * na Rota, a invasão. Qualquer outra partida, vencida ou não, acaba no FIM DE JOGO de sempre.
+ */
+export const titleCeremony = (run: ModeRun | null | undefined): 'taca' | 'invasao' | undefined =>
+    run && isFinalStage(run) ? (isLong(run) ? 'invasao' : 'taca') : undefined;

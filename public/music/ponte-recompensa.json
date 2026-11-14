@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-recompensa",
+ "titulo": "Ponte pra recompensa: o baralho embaralhando e as três cartas",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.522948,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.935488,
+   "amostras": [
+    0,
+    85355
+   ],
+   "bpm": 124,
+   "compassos": 1
+  }
+ ]
+}

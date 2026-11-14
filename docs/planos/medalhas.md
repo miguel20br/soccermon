@@ -1,3 +1,7 @@
+---
+description: Medalhas com degraus, vitrine, escudo e uniforme do clube, como aprovado.
+---
+
 # Medalhas com degraus, vitrine, escudo e uniforme (aprovado em 19/10/2026, na 0.8.8)
 
 Itens 12–14 do `relatorio-0.8.6.md` (decididos pelo Miguel em 18/10: medalhas com degraus, vitrine com borda e

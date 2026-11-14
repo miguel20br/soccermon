@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-vitoria-gancho",
+ "titulo": "Ponte pra vitoria-gancho: o rufar crescendo e o \"hey\" do clap 808",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 2.415238,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.967211,
+   "amostras": [
+    0,
+    86754
+   ],
+   "bpm": 122,
+   "compassos": 1
+  }
+ ]
+}

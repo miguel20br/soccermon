@@ -1,0 +1,21 @@
+{
+ "faixa": "ponte-cerulean",
+ "titulo": "Ponte pra cerulean: a harpa em onda e as bolhas subindo",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 2.221066,
+ "secoes": [
+  {
+   "nome": "ponte",
+   "loop": false,
+   "inicio": 0,
+   "fim": 1.818186,
+   "amostras": [
+    0,
+    80182
+   ],
+   "bpm": 99,
+   "compassos": 1
+  }
+ ]
+}

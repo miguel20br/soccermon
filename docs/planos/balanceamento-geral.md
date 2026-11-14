@@ -1,3 +1,7 @@
+---
+description: Rascunho e decisões do balanceamento geral da 0.8.4: espécies, golpes, itens e posições.
+---
+
 # Balanceamento geral (próximo update, rascunho de 17/10/2026)
 
 Pedido do Miguel: o próximo update é o balanceamento do jogo inteiro (151 Pokémon, golpes, itens, habilidades,
@@ -177,3 +181,213 @@ Pivô (90 ⇒ 89; `SPECIES_TUNING` goleiro −5, desarme −6, chute +4, força 
 | Dragonite | Pivô 90 | Pivô 89 |
 
 Calibragem (400 partidas): 6,84 gols por jogo (meta 5–7), favorito vence 62,6% (meta 60–65%), goleadas 1,8%.
+
+## MTs mais fortes: aprovado pelo Miguel em 21/10 (opção B + A nas 3 piores), ENGINE_VERSION 10
+
+Queixa: ele "quase nunca fica em dúvida entre pegar" a MT. Medido: a MT saía 0,40 vez por partida e ensinar não mudava a
+vitória (+0,5 ±2,4 pp, 1600 pares). Regra em `src/engine/modifiers.ts` (`TAUGHT_MOVE`, carta = campo); dados em
+`src/engine/data.ts` (`MOVE_DATA_TUNING`). Vale também pras MTs do rival da copa (`equipRivalTms`).
+
+| O quê | Antes ⇒ depois |
+|---|---|
+| Golpe treinado (ensinado por MT) | +1 uso, força x1,3, a IA escolhe ele primeiro, selo MT onde o golpe aparece |
+| Mega Drain / BubbleBeam (poder) | 40 ⇒ 100 / 65 ⇒ 100 |
+| Fissure (acerto) | 30% ⇒ 50% |
+
+MT ensinada × não ensinada (mesmo time, mesma seed, 200 pares por MT, ±2σ):
+
+| MT | usos/jogo antes ⇒ depois | Δ vitória antes | Δ vitória depois |
+|---|---|---:|---:|
+| Bide | 0,96 ⇒ 1,86 | −1,0 ±8,0 | −1,5 ±8,3 |
+| BubbleBeam | 0,28 ⇒ 0,63 | 0,0 ±7,1 | +4,0 ±7,5 |
+| Thunderbolt | 0,27 ⇒ 0,56 | +1,5 ±5,8 | +1,0 ±6,6 |
+| Mega Drain | 0,28 ⇒ 0,71 | −1,0 ±5,8 | 0,0 ±5,5 |
+| Toxic | 0,65 ⇒ 1,19 | +1,5 ±7,2 | +6,0 ±7,8 |
+| Psywave | 0,23 ⇒ 0,58 | +2,5 ±6,1 | −3,0 ±6,8 |
+| Fire Blast | 0,35 ⇒ 0,63 | −2,5 ±6,9 | −0,5 ±6,9 |
+| Fissure | 0,20 ⇒ 0,39 | +3,0 ±6,6 | −1,5 ±7,3 |
+| **Todas** | **0,40 ⇒ 0,82** | **+0,5 ±2,4** | **+0,6 ±2,5** |
+
+O uso dobrou; o efeito na vitória continua dentro do ruído (um golpe a mais por partida pesa pouco num jogo de ~300
+passes). Nenhuma MT ficou dominante (a maior, Toxic +6, está dentro do erro). Calibrate n=200: gols/jogo 7,72 ⇒ 7,88,
+favorito 66,7% ⇒ 68,8% (ruído; o draft da IA não ensina MT). Formações (n=200): nenhuma mexeu mais que 2 pp
+(1-2-1 51/51, 2-2 50/50, 3-1 47/47, 4-0 50/51, 1-1-2 50/50, Ferrolho 53/51). Copa (360 copas, rival com MT): oitavas
+78% ⇒ 76%, quartas 70% ⇒ 65%, semi 59% ⇒ 61%, final 55% ⇒ 52%, título 18% ⇒ 16% (erro de ~±4 pp no título).
+
+## Golpe máximo: zona por posição, aprovada pelo Miguel em 22/10 (0.9.6, ENGINE_VERSION 10)
+
+Pivô 15 m, ala 18 m, fixo 22 m (xG mínimo 0,05 no fixo; `AGENCY.maxZone`). Hora certa por capitão: pivô 62% ⇒ 62%, ala
+34% ⇒ 88%, fixo 6% ⇒ 67% das partidas. Técnico robô (n=400): golpe máximo random +1,3 ⇒ +1,8 pp, good +2,5 ⇒ +3,5 pp
+(dentro do erro). Números, copa com o técnico IA do rival e ressalvas em [beira-da-quadra-2.md](beira-da-quadra-2.md).
+
+## N3 quase indefensável: aprovado pelo Miguel em 26/10 (0.9.24, ENGINE_VERSION 14)
+
+Pedido dele: "o nv3 devia ser quase indefensável". Medido com `POL=n3 MAXTIPO=1 scripts/balance/maximo-tipo.ts 400`
+(~140 chutes N3, ±4 pp). A defesa máxima do goleiro rival continua parando o N3 (decisão 2 dele: "quase", não "sempre").
+
+| | Antes | Depois |
+|---|---|---|
+| `maxAim` | 0,6 | 0,35 |
+| N3 `accuracy` | 2 | 3 |
+| N3 `save` / `block` (novos) | 1 / 1 | 0,15 / 0,15 (perfeito; bom 0,4, fora 0,66) |
+| Gol / fora / defesa / bloqueio / trave | 57 / 17 / 13 / 5 / 6% | 82 / 4 / 6 / 1 / 5% |
+
+O calibrate não mede (o robô não aperta o botão); efeito estimado de +0,1 gol/jogo pra quem guarda o N3. O rival da
+copa também usa N3: vale igual contra o jogador.
+
+## Monotipo e times dos líderes (04/11/2026, motor 24)
+
+Aprovado pelo Miguel ("o teto tem que ser removido", "apoio G1 a G6"; números da sinergia delegados a mim).
+
+| O quê | Antes | Depois |
+|---|---|---|
+| 5 do mesmo tipo em quadra | +10% | Monotipo +12% |
+| 6 do tipo no elenco (5 + 1 reserva) | — | +16% |
+| 7 do tipo no elenco | — | +22% |
+| Teto tipo × história | +15% | sem teto |
+| Líder de ginásio (e Final) | sem mínimo do tipo | 4 dos 5 titulares do tipo (Rota segue 3) |
+| Capitão do líder | melhor nota | melhor do tipo (a Final, elite, segue a melhor nota) |
+| Fora do tipo (ginásio e Rota) | qualquer um | sem contra-tipo nem lendário (Final livre) |
+| Oitavas | dificuldade -1, sem item | -2 (pior das opções) e 1 item |
+
+Time monotipo contra time do mesmo nível (8 tipos × 200, ±1,2 pp; o monotipo sai 1,3 de nota mais fraco): +10% 54%,
++15% 60%, +20% 65%, +25% 70%. Copa por fase (600 copas, `scripts/balance/cup.ts`, ±2–4 pp): antes 73/64/54/42%,
+título 11%; depois 81/58/51/60%, título 14%. Ressalvas: a final ficou acima da meta (50–55%) e as quartas abaixo;
+a Rota não foi medida por fase.
+
+## Capitão chamado (05/11/2026, motor 26)
+
+Relatos de "N3 não chuta": o golpe chamado num ataque esperava o capitão chutar da zona. N3 chamado saindo em até 30 s
+(116 casos): 54% ⇒ 86%; mediana entre os que saíram de 4–10 s ⇒ 4–6 s (amostra em oitavos, conta grossa). Jogador que chama em todo ataque, toque bom (240 partidas, ±3 pp):
+V/E/D 52/16/32 ⇒ 62/10/28, gols 4,40 x 3,70 ⇒ 4,94 x 3,90, golpes por jogo 2,74 ⇒ 3,44. Quem puxa o ganho é a condução,
+não o passe (só a condução: 63/10/28). `calibrate --agencia` igual: o técnico IA só usa a hora certa.
+
+## Torcida a favor (05/11/2026, motor 27)
+
+Miguel: menos zebra contra o jogador no PVE, x1 equilibrado. Aprovado: rival evolui com 14 (era 10), `crowd` −4% na Copa e na
+Rota, −7% nas 3 primeiras da Rota, visível no painel do rival, Time Ultimate de fora.
+
+Real, 14 dias: Copa 77/74/62/59%, Rota 52/57/56/61/63/60/68/71%, título 20% nas duas (quase tudo antes da 0.9.42).
+
+| Simulação | Antes | Depois |
+|---|---|---|
+| Só as regras, robô fixo (2.000 partidas, ±2,2 pp), geral | 59% | 67% |
+| Mesma medida, time 0–4 / 5–9 / 10–14 / 15+ melhor | 51/59/63/81% | 64/62/75/88% |
+| Copa inteira, 600 copas, robô da nota | 81/58/51/60%, título 14% | 85/70/60/67%, título 24% |
+| Rota inteira, 200 rotas | 53/47/57/51/43/53/55/68%, título 14% | 68/61/66/65/49/51/57/64%, título 22% |
+
+Ressalvas: o grupo do Planalto segue perto de 50% e a final da Copa passa da meta antiga (50–55%).
+
+Barra de evolução (robô, 600 copas por linha): 14 ⇒ 12 ⇒ 10 quase não muda. Robô da nota 0,36 ⇒ 0,38 por copa; robô que escolhe
+quem evolui 1,95 ⇒ 2,15 ⇒ 2,35. Real na Copa: 0,63 por copa, 39% das copas com alguma, só 20% das cartas escolhidas ainda
+evoluem (estimativa pelo elenco final). A barra segue em 14: o que limita é a escolha no draft.
+
+## Time Ultimate: rival pela força (06/11/2026, motor 27)
+
+Aprovado pelo Miguel: o rival do Time Ultimate mira a força (média × química) e não só a média; sem rival à altura, as
+Fichas seguem o nível alcançado. Tabela e ressalvas em [ultimate-team.md](ultimate-team.md) (seção do dia). Não muda o
+motor nem a Liga.
+
+## Rota: 1ª derrota sem amarelo, Final sem torcida e um Evento por linha (10/11/2026, motor 27)
+
+Aprovado pelo Miguel (pesquisa em `rota-indigo-2.md`): a derrota na 1ª partida da Rota não dá cartão (`forgivenLoss`), o
+rival da Final perde a torcida a favor (era −4%, `crowd` ausente) e toda linha de parada tem um Evento "?". Nada no motor:
+o rival é gerado fora dele.
+
+Robô da Rota, mapa largo, 400 Rotas (mesmas seeds; título ±2,3 pp, Final ±3,4 pp):
+
+| | Antes | Depois |
+|---|---:|---:|
+| Título | 30% | 32% |
+| Vitória por partida (1ª..Final) | 63/64/69/60/64/62/61/**73%** | 63/64/66/61/62/62/60/**64%** |
+| Eliminado depois da 2ª / 3ª / 4ª partida | 13 / 10 / 15% | 0 / 10 / 17% |
+| Eliminado no grupo / perdeu a Final | 21 / 11% | 24 / 18% |
+| Chega ao grupo / à Final | 61 / 41% | 73 / 49% |
+| Evento "?" por Rota | 0,41 | 0,71 |
+
+Na mesma Final (mesmos times), a torcida em −4% dava 70% de vitória (título 34%); +3% pro rival, 59% (29%); +6%, 49% (24%).
+
+## Motor 29: fixo na armação da 3-1 (aprovado pelo Miguel em 10/11/2026)
+
+Relato de jogador: na Linha de 3 a bola roda entre alas e pivô e nunca volta pro fixo. Causa: `bestPass` castiga passe pra trás (`fwdPass`) e o fixo fica ~8 m atrás dos alas; o pivô ganha `pivotPass` + `longPivot`. Ajuste: `fixoPass: 0.3` só na 3-1; muda só o destino (a decisão passe × drible usa o melhor passe sem o bônus), e não vale logo depois do fixo/parede do pivô tocar. 200 jogos: armações com o fixo 34% ⇒ 51%, passes pro fixo 9% ⇒ 17%, gols 3,6/3,9 ⇒ 3,6/3,8, chutes 18,1 ⇒ 17,6; `calibrate --formations` igual dentro do erro (3-1 47% ⇒ 46%). De olho: 3-1 × Losango 51% ⇒ 42% (400 jogos). Losango com 0,2 fica pra outra rodada. Script: `scripts/balance/fixo-armacao.ts`.
+
+## Motor 30: fixo na armação do Losango (aprovado pelo Miguel em 12/11/2026, 0.9.50)
+
+Próximo passo do motor 29: o mesmo `fixoPass` no Losango (1-2-1), mais fraco. Varredura com `scripts/balance/fixo-armacao.ts 200 --losango=<v>` (Losango como time A contra as 6 formações):
+
+| `fixoPass` | Armações em que o fixo toca | Passes certos pro fixo (armação / total) | Gols pró/contra | Chutes | Passes | Vitória |
+|---|---|---|---|---|---|---|
+| 0 (motor 29) | 36% | 7% / 11% | 4,0/3,8 | 19,3 | 142 | 44% |
+| 0,1 | 39% | 8% / 12% | 4,0/3,8 | 19,0 | 143 | 45% |
+| **0,2** | **45%** | 8% / 14% | 4,1/3,9 | 18,5 | 150 | 44% |
+| 0,3 | 55% | 9% / 17% | 3,6/3,6 | 17,7 | 157 | 42% |
+
+Com 0,3 o Losango vira uma 3-1 lenta (gols 4,0 ⇒ 3,6); 0,2 põe o fixo em +9 pp das armações sem perder gol. `calibrate --formations`, 400 rodadas (antes = o mesmo motor com `fixoPass` 0 no Losango; erro ±0,8 pp na vitória geral, ±1,8 pp por confronto):
+
+| | Antes | Depois |
+|---|---|---|
+| Vitória Losango / 2-2 / 3-1 / 4-0 / 1-1-2 / Ferrolho | 52 / 50 / 45 / 51 / 50 / 52% | 50 / 51 / 46 / 51 / 51 / 52% |
+| Losango: gols pró/contra, chutes, passes, posse | 4,0/3,9, 19,0, 140, 46% | 3,9/3,9, 18,7, 145, 47% |
+| **3-1 × Losango** (vitória da 3-1) | 41% | 43% |
+| Losango × 2-2 / 4-0 / 1-1-2 / Ferrolho | 53 / 53 / 43 / 50% | 52 / 52 / 42 / 49% |
+
+O Losango cai 2 pp (52% ⇒ 50%, de volta ao meio da tabela) e a 3-1 recupera 2 pp nele; o resto da matriz fica igual dentro do erro. 12 das 14 partidas do golden master mudam (todas têm Losango). O teste "nenhum drible passa de 40%" (`match-view.test.ts`) passou a usar 40 jogos: com 16 (~33 dribles) a lambreta dava 14/33 = 42%; com 40 fica em 34%.
+
+## MT fora da vitrine do Mercado (aprovado no plano "menos e mais", 10/11/2026)
+
+A MT sai da vitrine (fica na recompensa do ginásio, no 1 de 3 e no prêmio da casa da Rota); na vaga entra um item. Mesmas seeds: Copa Relâmpago (2400 copas) título 25,0% ⇒ 25,6% (+0,6 ± 0,9 pp), ₽ no Mercado 11,7 ⇒ 12,3, itens 0,49 ⇒ 0,75 por copa; Rota (400) 13,2% ⇒ 13,5% (+0,2 ± 1,7 pp). Dentro do erro. O robô não usa MT (como 99,6% dos jogadores).
+
+## Modos arcade × Rota (11/11)
+
+Decisão do Miguel (11/11/2026): Relâmpago e Copa do Dia ficam arcade (só a recompensa 1 de 3, sem ₽ nem Mercado); a
+Rota Índigo fica com a economia (o Jogo vencido paga ₽ no lugar do 1 de 3 do rival, e você gasta nas casas de Mercado).
+
+**O que mudou**
+
+- Arcade: sem ₽, sem Mercado, sem juros e sem `winEarnings` (a barra da copa só mostra ₽ na Rota). Em 40% das telas de
+  recompensa (`SPONSOR_REWARD_CHANCE`, `src/engine/rewards.ts`) um Patrocínio entra no lugar do último item: um só, que
+  você ainda não tem, com vaga livre, e só os que valem sem ₽ (os 8 de campo e o Cinnabar; o Cinnabar não vem antes da
+  Final). Os de ₽ e de Mercado (Fã-Clube, Cassino, S.S. Anne, Loja, Creche, Safari, Olheiro) ficam só na Rota.
+- Copa antiga parada no Mercado continua: compra, sai e vai pra escalação (teste com o Mercado montado como no save).
+- Rota: `ROTA_RULES.rivalEveryJogo` desligado; o Jogo vencido (fora desafio de evento e grupo) soma `ROTA_JOGO_PAY = 3`
+  ao ₽ da vitória (`src/store/long-cup.ts`); "₽ em dobro" dobra tudo. O prêmio da casa (MT, item, carta rara do Ás),
+  o Ginásio, os desafios e o grupo continuam com a recompensa deles. No ₽ em dobro com pedra, a pedra vem direto (ou
+  vai pra Mochila com a nota no mapa, se ninguém usa).
+
+**Números** (robô do store, mesmas seeds antes e depois; `scripts/balance/arcade.sim.test.ts`, 400 copas por modo, e
+`scripts/balance/rota-caminhos.sim.test.ts`, 450 Rotas: 150 sempre à esquerda, 150 à direita e 150 que vão no Mercado
+com ₽10+). Título pareado: copas que viraram título menos as que deixaram de ser.
+
+| | Relâmpago antes | depois | Dia antes | depois | Rota antes | depois (₽3) |
+|---|---:|---:|---:|---:|---:|---:|
+| Título | 30,0% | 27,8% | 31,0% | 29,3% | 31,8% | 34,9% |
+| Diferença pareada | | −2,3 ± 2,8 pp | | −1,8 ± 2,3 pp | | +3,1 ± 2,6 pp |
+| Patrocínios por copa | 0,51 | 0,75 | 0 | 0,77 | 1,28 | 1,50 |
+| Patrocínios dos campeões | 0,89 | 1,14 | 0 | 1,18 | | |
+| Título com / sem Patrocínio | 54% / 10% | 37% / 16% | – | 40% / 16% | | |
+| Compras no Mercado | 2,46 | 0 | 0 | 0 | 2,26 | 2,77 |
+| ₽ ganho / sobrando | 16,2 / 2,6 | 0 | 0 | 0 | 40,8 / 24,8 | 50,4 / 27,7 |
+| Telas por copa (decisão) | 6,8 | 4,9 | 4,9 | 4,9 | 27,6 | 25,7 |
+| Telas de recompensa | 1,95 | 1,95 | 1,94 | 1,93 | 6,3 | 4,1 |
+| Pokémon novos na Rota | | | | | 3,44 | 2,65 |
+
+Rota por política, com o ₽ do Jogo em 0, 3 e 6 (título pareado contra antes):
+
+| ₽ a mais por Jogo | à esquerda | à direita | vai no Mercado | todas |
+|---:|---:|---:|---:|---:|
+| 0 | +3,3 ± 4,7 | +2,7 ± 4,3 | +2,0 ± 4,9 | +2,7 ± 2,7 |
+| **3** | +1,3 ± 4,4 | −1,3 ± 4,3 | +9,3 ± 4,8 | +3,1 ± 2,6 |
+| 6 | −0,7 ± 4,4 | +0,7 ± 4,6 | +10,7 ± 4,7 | +3,6 ± 2,6 |
+
+**Leitura**
+
+- Arcade: o título fica dentro do ruído (−2 pp, menos de 1 erro). O Patrocínio aparece mais que antes (0,75 contra 0,51
+  por copa) e 36 dos 111 campeões do Relâmpago terminam com 2 ou 3: o combo fica mais fácil de montar, como o Miguel
+  pediu. O "título com Patrocínio" caiu de 54% pra 37% porque antes só comprava quem já vinha ganhando (o ₽ vem da
+  vitória); agora vem pra todo mundo. A copa ficou ~2 telas mais curta (o Mercado saiu).
+- Rota: tirar o 1 de 3 do rival quase não mexe no título do robô (com ₽0 dá +2,7 ± 2,7, ruído). O ₽ a mais pesa pra
+  quem vai atrás do Mercado: com ₽3 esse robô compra 4 coisas por Rota (eram 3,1) e o título dele sobe ~9 pp; com ₽6,
+  ~11 pp. **Recomendação: ₽3** (fica perto do "Dispensar +₽2" que o robô já pegava quando o rival não servia, a Rota não
+  fica mais difícil e quem planeja o caminho pelo Mercado é premiado). Se o Miguel achar fácil pro comprador, ₽2.
+- Ressalvas: o robô joga na equilibrada, escolhe pela nota e sempre pega o Patrocínio quando ele aparece; ninguém viu a
+  olho. A frequência de 40% e o ₽3 são os primeiros números pra jogar na prévia.

@@ -18,14 +18,22 @@ import {
     useGame,
 } from '../../store/game-store';
 import { DEFAULT_PROFILE, EMPTY_CAREER, seenCount } from '../../store/profile';
-import { MenuHead } from '../components/MenuHead';
+import { AccountBar } from '../components/AccountBar';
+import { MenuHead, useMenuBackOf } from '../components/MenuHead';
+import { openPage } from '../doors';
 import { leaveWith } from '../feedback';
 import { privacyUrl } from '../links';
 import { reduceMotionOn } from '../settings-sync';
 import '../settings.css';
+import { backTarget } from '../back-nav';
 import { HudIcon } from '../components/MatchHud';
+import { readHud } from '../hud-lab';
+import { iosBrowser, promptInstall, useInstall } from '../install';
+import { InfoSheet, Stepper } from '../kit/controls';
+import { ConfirmSheet, Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
 
-/** Seletor segmentado do kit da transmissão (o ativo fica amarelo). */
+/** Opção de jogo ‹ valor › (cara-de-jogo.md, decisão 12): o seletor do kit; com 2 valores, as duas setas alternam. */
 function Segmented<T extends string | number | boolean>({
     label,
     value,
@@ -37,46 +45,62 @@ function Segmented<T extends string | number | boolean>({
     options: { value: T; label: string }[];
     onPick: (v: T) => void;
 }) {
-    return (
-        <div className="bc-seg segmented" title={label}>
-            {options.map((o) => (
-                <button
-                    key={String(o.value)}
-                    type="button"
-                    aria-pressed={value === o.value}
-                    className={value === o.value ? 'on' : undefined}
-                    onClick={() => onPick(o.value)}
-                >
-                    {o.label}
-                </button>
-            ))}
-        </div>
-    );
+    return <Stepper label={label} value={value} options={options} onChange={onPick} wrap={options.length === 2} />;
 }
 
-/** Linha de configuração: nome, explicação curta e o controle embaixo. */
+/** Linha de opção: o nome à esquerda, o valor ‹ › à direita; a explicação mora no "?" (≤12 palavras na tela). */
 function Row({ title, hint, children }: { title: string; hint?: ReactNode; children: ReactNode }) {
     return (
         <div className="set-row">
             <div className="set-label">
                 <b>{title}</b>
-                {hint && <span>{hint}</span>}
+                {hint && (
+                    <InfoSheet title={title}>
+                        <p>{hint}</p>
+                    </InfoSheet>
+                )}
             </div>
             {children}
         </div>
     );
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
+/** "Jogar como app": o botão de instalar (Android) ou a dica do iPhone; some quando já está instalado. */
+function InstallGroup() {
+    const { prompt, installed } = useInstall();
+    const { t } = useT();
+    if (installed || (!prompt && !iosBrowser())) return null;
     return (
-        <section className="panel set-group">
-            <h2>{title}</h2>
+        <Group title={t('settings.install.title')}>
+            <Row
+                title={t('settings.install.title')}
+                hint={prompt ? t('settings.install.hint') : t('settings.install.ios')}
+            >
+                {prompt && (
+                    <button type="button" className="btn confirm" onClick={() => void promptInstall()}>
+                        <HudIcon kind="download" />
+                        {t('settings.install.btn')}
+                    </button>
+                )}
+            </Row>
+        </Group>
+    );
+}
+
+/** Bloco de linhas; o título só aparece nos blocos de "Mais opções" (no essencial fica pro leitor de tela). */
+function Group({ title, show, children }: { title: string; show?: boolean; children: ReactNode }) {
+    return (
+        <section className="set-group" aria-label={title}>
+            {show && <h2 className="bc-caption">{title}</h2>}
             {children}
         </section>
     );
 }
 
-/** Slider 0–100% que toca uma amostra ao soltar. */
+/** Volumes de 0 a 100% de 10 em 10 (o seletor ‹ › do kit no lugar do slider). */
+const VOLUME_STEPS = Array.from({ length: 11 }, (_, i) => ({ value: i / 10, label: `${i * 10}%` }));
+
+/** Seletor ‹ 0–100% › que toca uma amostra a cada troca. */
 function VolumeSlider({
     label,
     value,
@@ -90,19 +114,17 @@ function VolumeSlider({
 }) {
     return (
         <div className="volume-row">
-            <input
-                aria-label={label}
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={value}
-                onChange={(e) => onChange(Number(e.target.value))}
-                onMouseUp={preview}
-                onTouchEnd={preview}
-                onKeyUp={preview}
+            <Stepper
+                label={label}
+                // volume salvo fora da grade (0,35 de antes): mostra o degrau mais perto
+                value={Math.round(value * 10) / 10}
+                options={VOLUME_STEPS}
+                onChange={(v) => {
+                    onChange(v);
+                    // a amostra sai no volume novo (depois de a mudança chegar no áudio)
+                    requestAnimationFrame(preview);
+                }}
             />
-            <b>{Math.round(value * 100)}%</b>
         </div>
     );
 }
@@ -141,219 +163,248 @@ const onOff = (on: string, off: string) => [
     { value: false, label: off },
 ];
 
-export function Settings() {
+/**
+ * Configurações enxutas (menos-e-mais.md, B1): à vista só o que todo mundo mexe (velocidade, volume, idioma e
+ * movimento); o resto fica em "Mais opções", em três blocos (Som, Partida, Dados). Nenhuma opção some: o valor salvo
+ * de cada uma continua valendo. `open` abre "Mais opções" (testes).
+ */
+export function Settings({ open = false }: { open?: boolean }) {
     const { settings, updateSettings, go } = useGame();
-    const [more, setMore] = useState(false);
+    const [more, setMore] = useState(open);
+    const [hudOn] = useState(readHud);
+    // a quadra grande só liga no celular (o WIDE da Prancheta; importar ela puxaria o motor pra cá)
+    const [wide] = useState(() => window.matchMedia('(min-width: 1051px)').matches);
     const set = updateSettings;
-    const { t } = useT();
+    const { t, d } = useT();
     const lang = useLang();
+    useMenuBackOf(() => go(backTarget('settings') ?? 'home'));
     return (
-        <div className="menu-screen settings-screen">
-            <MenuHead title={t('settings.screen.title')} icon="settings" onBack={() => go('home')} />
+        <Stage className="settings-screen">
+            {/* a placa do título, como a Coleção (o voltar fica na barra de cima, pelo useMenuBackOf) */}
+            <MenuHead title={t('settings.screen.title')} icon="settings" />
+            <div className="panel set-panel">
+                <Group title={t('settings.screen.title')}>
+                    <Row title={t('settings.screen.speed')}>
+                        <Segmented
+                            label={t('settings.screen.speed')}
+                            value={settings.speed}
+                            options={speedOptions(t)}
+                            onPick={(speed) => set({ speed })}
+                        />
+                    </Row>
+                    <Row title={t('settings.screen.volume')}>
+                        <VolumeSlider
+                            label={t('settings.screen.volume')}
+                            value={settings.volume}
+                            onChange={(volume) => set({ volume })}
+                            preview={() => playSfx('kick')}
+                        />
+                    </Row>
+                    <Row title={t('settings.screen.langLabel')}>
+                        <Segmented<Lang>
+                            label={t('settings.screen.langLabel')}
+                            value={lang}
+                            options={[
+                                { value: 'pt', label: t('settings.screen.langPt') },
+                                { value: 'en', label: t('settings.screen.langEn') },
+                            ]}
+                            onPick={(l) => set({ lang: l })}
+                        />
+                    </Row>
+                    <Row
+                        title={t('settings.screen.motion')}
+                        hint={
+                            settings.reduceMotion === 'system'
+                                ? t('settings.screen.motionHintSystem', {
+                                      state: t(
+                                          reduceMotionOn('system')
+                                              ? 'settings.screen.motionReduced'
+                                              : 'settings.screen.motionNormal',
+                                      ),
+                                  })
+                                : t('settings.screen.motionHint')
+                        }
+                    >
+                        <Segmented
+                            label={t('settings.screen.motion')}
+                            value={settings.reduceMotion}
+                            options={motionOptions(t)}
+                            onPick={(reduceMotion) => set({ reduceMotion })}
+                        />
+                    </Row>
+                </Group>
 
-            <Group title={t('settings.screen.langLabel')}>
-                <div className="set-row">
-                    <Segmented<Lang>
-                        label={t('settings.screen.langLabel')}
-                        value={lang}
-                        options={[
-                            { value: 'pt', label: t('settings.screen.langPt') },
-                            { value: 'en', label: t('settings.screen.langEn') },
-                        ]}
-                        onPick={(l) => set({ lang: l })}
-                    />
-                </div>
-            </Group>
-
-            <Group title={t('settings.screen.sound')}>
-                <Row title={t('settings.screen.volume')}>
-                    <VolumeSlider
-                        label={t('settings.screen.volume')}
-                        value={settings.volume}
-                        onChange={(volume) => set({ volume })}
-                        preview={() => playSfx('kick')}
-                    />
-                </Row>
-                <Row title={t('settings.screen.cries')} hint={t('settings.screen.criesHint')}>
-                    <VolumeSlider
-                        label={t('settings.screen.criesVolume')}
-                        value={settings.criesVolume}
-                        onChange={(criesVolume) => set({ criesVolume })}
-                        preview={() => playCry(25, settings.cries)}
-                    />
-                </Row>
-            </Group>
-
-            <Group title={t('settings.screen.match')}>
-                <Row title={t('settings.screen.speed')} hint={t('settings.screen.speedHint')}>
-                    <Segmented
-                        label={t('settings.screen.speed')}
-                        value={settings.speed}
-                        options={speedOptions(t)}
-                        onPick={(speed) => set({ speed })}
-                    />
-                </Row>
-            </Group>
-
-            <Group title={t('settings.screen.accessibility')}>
-                <Row
-                    title={t('settings.screen.motion')}
-                    hint={
-                        settings.reduceMotion === 'system'
-                            ? t('settings.screen.motionHintSystem', {
-                                  state: t(
-                                      reduceMotionOn('system')
-                                          ? 'settings.screen.motionReduced'
-                                          : 'settings.screen.motionNormal',
-                                  ),
-                              })
-                            : t('settings.screen.motionHint')
-                    }
+                <button
+                    type="button"
+                    className="btn ghost small set-more-toggle"
+                    aria-expanded={more}
+                    aria-controls="set-more"
+                    onClick={() => setMore(!more)}
                 >
-                    <Segmented
-                        label={t('settings.screen.motion')}
-                        value={settings.reduceMotion}
-                        options={motionOptions(t)}
-                        onPick={(reduceMotion) => set({ reduceMotion })}
-                    />
-                </Row>
-            </Group>
+                    <HudIcon kind={more ? 'up' : 'down'} />
+                    {t('settings.screen.more')}
+                </button>
 
-            <Group title={t('settings.screen.help')}>
-                <Row title={t('settings.screen.tips')} hint={t('settings.screen.tipsHint')}>
-                    <Segmented
-                        label={t('settings.screen.tips')}
-                        value={settings.tips}
-                        options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
-                        onPick={(tips) => set({ tips })}
-                    />
-                </Row>
-            </Group>
+                {more && (
+                    <div id="set-more" className="set-more" data-exit="collapse">
+                        <Group title={t('settings.screen.sound')} show>
+                            <Row title={t('settings.screen.music')}>
+                                <VolumeSlider
+                                    label={t('settings.screen.musicVolume')}
+                                    value={settings.musicVolume ?? DEFAULT_SETTINGS.musicVolume}
+                                    onChange={(musicVolume) => set({ musicVolume })}
+                                    preview={() => undefined}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.sfx')}>
+                                <VolumeSlider
+                                    label={t('settings.screen.sfxVolume')}
+                                    value={settings.sfxVolume}
+                                    onChange={(sfxVolume) => set({ sfxVolume })}
+                                    preview={() => playSfx('kick')}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.crowd')}>
+                                <VolumeSlider
+                                    label={t('settings.screen.crowdVolume')}
+                                    value={settings.crowdVolume}
+                                    onChange={(crowdVolume) => set({ crowdVolume })}
+                                    preview={() => playCrowd('gol')}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.cries')}>
+                                <VolumeSlider
+                                    label={t('settings.screen.criesVolume')}
+                                    value={settings.criesVolume}
+                                    onChange={(criesVolume) => set({ criesVolume })}
+                                    preview={() => playCry(25, settings.cries)}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.criesStyle')}>
+                                <Segmented
+                                    label={t('settings.screen.criesStyle')}
+                                    value={settings.cries}
+                                    options={[
+                                        { value: 'legacy', label: t('settings.screen.criesLegacy') },
+                                        { value: 'latest', label: t('settings.screen.criesLatest') },
+                                    ]}
+                                    onPick={(cries) => {
+                                        set({ cries, criesChosen: true });
+                                        playCry(25, cries);
+                                    }}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.goalCry')}>
+                                <Segmented
+                                    label={t('settings.screen.goalCry')}
+                                    value={settings.goalCry}
+                                    options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                    onPick={(goalCry) => set({ goalCry })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.packBeat')} hint={t('settings.screen.packBeatHint')}>
+                                <Segmented
+                                    label={t('settings.screen.packBeat')}
+                                    value={!!settings.packOnBeat}
+                                    options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                    onPick={(packOnBeat) => set({ packOnBeat })}
+                                />
+                            </Row>
+                        </Group>
 
-            {/* o que pouca gente muda fica fechado (revisão de design, item 15): à vista só o essencial */}
-            <button
-                type="button"
-                className="btn ghost set-more-toggle"
-                aria-expanded={more}
-                aria-controls="set-more"
-                onClick={() => setMore(!more)}
-            >
-                <HudIcon kind={more ? 'up' : 'down'} />
-                {t('settings.screen.more')}
+                        <Group title={t('settings.screen.match')} show>
+                            {/* partida nova (padrão; ?lab=hud-off desliga): até que velocidade a câmera fica de perto */}
+                            {hudOn && !wide && (
+                                <Row title={t('settings.screen.camFollow')} hint={t('settings.screen.camFollowHint')}>
+                                    <Segmented
+                                        label={t('settings.screen.camFollow')}
+                                        value={settings.camFollow ?? 2}
+                                        options={[
+                                            { value: 1, label: '1x' },
+                                            { value: 2, label: '2x' },
+                                            { value: 4, label: '4x' },
+                                            { value: 8, label: '8x' },
+                                            { value: 0, label: t('settings.screen.camNever') },
+                                        ]}
+                                        onPick={(camFollow) => set({ camFollow })}
+                                    />
+                                </Row>
+                            )}
+                            <Row title={t('settings.screen.chance')}>
+                                <Segmented
+                                    label={t('settings.screen.chance')}
+                                    value={settings.chanceSpeed}
+                                    options={chanceOptions(t)}
+                                    onPick={(chanceSpeed) => set({ chanceSpeed })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.cinematic')}>
+                                <Segmented
+                                    label={t('settings.screen.cinematic')}
+                                    value={settings.cinematic}
+                                    options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
+                                    onPick={(cinematic) => set({ cinematic })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.names')}>
+                                <Segmented
+                                    label={t('settings.screen.names')}
+                                    value={settings.namesOnField}
+                                    options={namesOptions(t)}
+                                    onPick={(namesOnField) => set({ namesOnField })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.arrow')} hint={t('settings.screen.arrowHint')}>
+                                <Segmented
+                                    label={t('settings.screen.arrow')}
+                                    value={settings.arrowSize}
+                                    options={arrowOptions(t)}
+                                    onPick={(arrowSize) => set({ arrowSize })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.confirmLeave')}>
+                                <Segmented
+                                    label={t('settings.screen.confirmLeaveLabel')}
+                                    value={settings.confirmLeave}
+                                    options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
+                                    onPick={(confirmLeave) => set({ confirmLeave })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.haptics')}>
+                                <Segmented
+                                    label={t('settings.screen.haptics')}
+                                    value={settings.haptics !== false}
+                                    options={onOff(t('settings.screen.hapticsOn'), t('settings.screen.hapticsOff'))}
+                                    onPick={(haptics) => set({ haptics })}
+                                />
+                            </Row>
+                            <Row title={t('settings.screen.tips')}>
+                                <Segmented
+                                    label={t('settings.screen.tips')}
+                                    value={settings.tips}
+                                    options={onOff(t('settings.screen.onPl'), t('settings.screen.offPl'))}
+                                    onPick={(tips) => set({ tips })}
+                                />
+                            </Row>
+                        </Group>
+
+                        {/* entrar com o Google, instalar, backup e apagar */}
+                        <Group title={t('settings.data.title')} show>
+                            <AccountBar />
+                        </Group>
+                        <InstallGroup />
+                        <DataSettings />
+                        <AccountSettings />
+                    </div>
+                )}
+            </div>
+            {/* os Créditos (e o rodapé de site: Ajuda, Feedback, Privacidade, GitHub, direitos) ficam fora do painel */}
+            <button type="button" className="k-sheetrow set-about" onClick={() => openPage('credits')}>
+                <HudIcon kind="book" />
+                <b>{d.home.tiles.credits}</b>
+                <HudIcon kind="next" />
             </button>
-            {more && (
-                <div id="set-more" className="set-more" data-exit="collapse">
-                    <Group title={t('settings.screen.sound')}>
-                        <Row title={t('settings.screen.sfx')} hint={t('settings.screen.sfxHint')}>
-                            <VolumeSlider
-                                label={t('settings.screen.sfxVolume')}
-                                value={settings.sfxVolume}
-                                onChange={(sfxVolume) => set({ sfxVolume })}
-                                preview={() => playSfx('kick')}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.crowd')} hint={t('settings.screen.crowdHint')}>
-                            <VolumeSlider
-                                label={t('settings.screen.crowdVolume')}
-                                value={settings.crowdVolume}
-                                onChange={(crowdVolume) => set({ crowdVolume })}
-                                preview={() => playCrowd('gol')}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.goalCry')} hint={t('settings.screen.goalCryHint')}>
-                            <Segmented
-                                label={t('settings.screen.goalCry')}
-                                value={settings.goalCry}
-                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                                onPick={(goalCry) => set({ goalCry })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.criesStyle')}>
-                            <Segmented
-                                label={t('settings.screen.criesStyle')}
-                                value={settings.cries}
-                                options={[
-                                    { value: 'legacy', label: t('settings.screen.criesLegacy') },
-                                    { value: 'latest', label: t('settings.screen.criesLatest') },
-                                ]}
-                                onPick={(cries) => {
-                                    set({ cries, criesChosen: true });
-                                    playCry(25, cries);
-                                }}
-                            />
-                        </Row>
-                    </Group>
-                    <Group title={t('settings.screen.match')}>
-                        <Row title={t('settings.screen.cinematic')} hint={t('settings.screen.cinematicHint')}>
-                            <Segmented
-                                label={t('settings.screen.cinematic')}
-                                value={settings.cinematic}
-                                options={onOff(t('settings.screen.cinematicOn'), t('settings.screen.cinematicOff'))}
-                                onPick={(cinematic) => set({ cinematic })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.chance')} hint={t('settings.screen.chanceHint')}>
-                            <Segmented
-                                label={t('settings.screen.chance')}
-                                value={settings.chanceSpeed}
-                                options={chanceOptions(t)}
-                                onPick={(chanceSpeed) => set({ chanceSpeed })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.names')}>
-                            <Segmented
-                                label={t('settings.screen.names')}
-                                value={settings.namesOnField}
-                                options={namesOptions(t)}
-                                onPick={(namesOnField) => set({ namesOnField })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.arrow')} hint={t('settings.screen.arrowHint')}>
-                            <Segmented
-                                label={t('settings.screen.arrow')}
-                                value={settings.arrowSize}
-                                options={arrowOptions(t)}
-                                onPick={(arrowSize) => set({ arrowSize })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.confirmLeave')} hint={t('settings.screen.confirmLeaveHint')}>
-                            <Segmented
-                                label={t('settings.screen.confirmLeaveLabel')}
-                                value={settings.confirmLeave}
-                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                                onPick={(confirmLeave) => set({ confirmLeave })}
-                            />
-                        </Row>
-                        <Row title={t('settings.screen.haptics')} hint={t('settings.screen.hapticsHint')}>
-                            <Segmented
-                                label={t('settings.screen.haptics')}
-                                value={settings.haptics !== false}
-                                options={onOff(t('settings.screen.hapticsOn'), t('settings.screen.hapticsOff'))}
-                                onPick={(haptics) => set({ haptics })}
-                            />
-                        </Row>
-                    </Group>
-                    <Group title={t('settings.screen.experiments')}>
-                        <Row title={t('settings.screen.agency')} hint={t('settings.screen.agencyHint')}>
-                            <Segmented
-                                label={t('settings.screen.agencyLabel')}
-                                value={!!settings.agency}
-                                options={onOff(t('settings.screen.on'), t('settings.screen.off'))}
-                                onPick={(agency) => set({ agency })}
-                            />
-                        </Row>
-                    </Group>
-                </div>
-            )}
-
-            <DataSettings />
-            <AccountSettings />
-            <p className="muted center">
-                <a href={privacyUrl()} target="_blank" rel="noopener">
-                    {t('settings.screen.privacy')}
-                </a>
-            </p>
-        </div>
+        </Stage>
     );
 }
 
@@ -493,7 +544,7 @@ function DataSettings() {
             match: null,
             settings: { ...DEFAULT_SETTINGS, lang, stats },
             records: { cups: 0, titles: 0, perfect: 0 },
-            profile: { ...DEFAULT_PROFILE, seen: [] },
+            profile: { ...DEFAULT_PROFILE, seen: [], ambLit: [] },
             dex: {},
             moves: {},
             career: EMPTY_CAREER,
@@ -527,7 +578,7 @@ function DataSettings() {
                     onPick={(v) => updateSettings({ stats: v })}
                 />
             </Row>
-            <Row title={t('settings.data.backup')} hint={t('settings.data.backupHint')}>
+            <Row title={t('settings.data.backup')}>
                 <div className="set-actions">
                     <button
                         type="button"
@@ -557,79 +608,74 @@ function DataSettings() {
                 </div>
             </Row>
 
-            {summary && (
-                <div className="set-confirm" role="alert">
-                    <b>{t('settings.data.restoreTitle')}</b>
-                    <span>
-                        {dateLabel(pending.exportedAt)
-                            ? t('settings.data.savedOn', { date: dateLabel(pending.exportedAt) ?? '' })
-                            : ''}
-                        {t('settings.data.summary', {
-                            cups: summary.records.cups,
-                            titles: summary.records.titles,
-                            seen,
-                        })}
-                        {summary.run && !['eliminated', 'champion'].includes(summary.run.status)
-                            ? t('settings.data.withRun')
-                            : ''}
-                        .
-                    </span>
-                    <span>
-                        {t('settings.data.replaces')}
-                        {user ? t('settings.data.replacesCloud') : ''}
-                    </span>
-                    <div className="set-actions">
-                        <button type="button" className="btn small primary" onClick={restore}>
-                            {t('settings.data.restoreBtn')}
-                        </button>
-                        <button type="button" className="btn small ghost" onClick={() => setPending(null)}>
-                            {t('common.ui.cancel')}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
-                {wipe === 'idle' ? (
-                    <div>
-                        <button
-                            type="button"
-                            className="btn small danger"
-                            onClick={() => {
-                                setPending(null);
-                                setMsg(null);
-                                setWipe('confirm');
-                            }}
-                        >
-                            {t('settings.data.wipe')}
-                        </button>
-                    </div>
-                ) : (
-                    <div className="set-confirm danger" role="alert">
-                        <b>{t('settings.data.wipeTitle')}</b>
-                        <span>{t('settings.data.wipeWhat')}</span>
-                        {user && <span>{t('settings.data.wipeCloud')}</span>}
-                        <div className="set-actions">
-                            <button
-                                type="button"
-                                className="btn small primary"
-                                disabled={wipe === 'busy'}
-                                data-fx="none"
-                                onClick={() => leaveWith('danger', () => void wipeDevice())}
-                            >
-                                {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipeYes')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn small ghost"
-                                disabled={wipe === 'busy'}
-                                onClick={() => setWipe('idle')}
-                            >
+            {/* restaurar substitui o progresso: confirmação em sheet (verde: não é perigo, é uma troca escolhida) */}
+            <Sheet
+                open={!!summary}
+                onClose={() => setPending(null)}
+                title={t('settings.data.restoreTitle')}
+                alert
+                className="k-confirm"
+            >
+                {summary && (
+                    <>
+                        <p>
+                            {dateLabel(pending.exportedAt)
+                                ? t('settings.data.savedOn', { date: dateLabel(pending.exportedAt) ?? '' })
+                                : ''}
+                            {t('settings.data.summary', {
+                                cups: summary.records.cups,
+                                titles: summary.records.titles,
+                                seen,
+                            })}
+                            {summary.run && !['eliminated', 'champion'].includes(summary.run.status)
+                                ? t('settings.data.withRun')
+                                : ''}
+                            .
+                        </p>
+                        <p>
+                            {t('settings.data.replaces')}
+                            {user ? t('settings.data.replacesCloud') : ''}
+                        </p>
+                        <div className="k-confirm-actions">
+                            <button type="button" className="btn ghost" onClick={() => setPending(null)} data-autofocus>
                                 {t('common.ui.cancel')}
                             </button>
+                            <button type="button" className="btn confirm" onClick={restore}>
+                                {t('settings.data.restoreBtn')}
+                            </button>
                         </div>
-                    </div>
+                    </>
                 )}
+            </Sheet>
+
+            <Row title={t('settings.data.wipe')} hint={t('settings.data.wipeHint')}>
+                <div>
+                    <button
+                        type="button"
+                        className="btn small ghost danger"
+                        disabled={wipe === 'busy'}
+                        onClick={() => {
+                            setPending(null);
+                            setMsg(null);
+                            setWipe('confirm');
+                        }}
+                    >
+                        {wipe === 'busy' ? t('settings.data.wiping') : t('settings.data.wipe')}
+                    </button>
+                </div>
+                <ConfirmSheet
+                    open={wipe === 'confirm'}
+                    onClose={() => setWipe((w) => (w === 'confirm' ? 'idle' : w))}
+                    title={t('settings.data.wipeTitle')}
+                    text={
+                        user
+                            ? `${t('settings.data.wipeWhat')} ${t('settings.data.wipeCloud')}`
+                            : t('settings.data.wipeWhat')
+                    }
+                    confirm={t('settings.data.wipeYes')}
+                    onConfirm={() => leaveWith('danger', () => void wipeDevice())}
+                    quiet
+                />
             </Row>
 
             {msg && (
@@ -664,30 +710,25 @@ function AccountSettings() {
             ) : (
                 <>
                     <p>{rich(t('settings.account.signedAs'), { name: <b>{user?.name}</b> })}</p>
-                    {step === 'confirm' || step === 'busy' ? (
-                        <div className="row">
-                            <button type="button" className="btn primary" disabled={step === 'busy'} onClick={remove}>
-                                {step === 'busy' ? t('settings.account.deleting') : t('settings.account.deleteYes')}
-                            </button>
-                            <button
-                                type="button"
-                                className="btn ghost"
-                                disabled={step === 'busy'}
-                                onClick={() => setStep('idle')}
-                            >
-                                {t('common.ui.cancel')}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="row">
-                            <button type="button" className="btn ghost small" onClick={() => setStep('confirm')}>
-                                {t('settings.account.delete')}
-                            </button>
-                            {step === 'error' && (
-                                <span className="error-text">{t('settings.account.deleteFailed')}</span>
-                            )}
-                        </div>
-                    )}
+                    <div className="row">
+                        <button
+                            type="button"
+                            className="btn ghost small danger"
+                            disabled={step === 'busy'}
+                            onClick={() => setStep('confirm')}
+                        >
+                            {step === 'busy' ? t('settings.account.deleting') : t('settings.account.delete')}
+                        </button>
+                        {step === 'error' && <span className="error-text">{t('settings.account.deleteFailed')}</span>}
+                    </div>
+                    <ConfirmSheet
+                        open={step === 'confirm'}
+                        onClose={() => setStep((x) => (x === 'confirm' ? 'idle' : x))}
+                        title={t('settings.account.deleteTitle')}
+                        text={t('settings.account.deleteWhat')}
+                        confirm={t('settings.account.deleteYes')}
+                        onConfirm={remove}
+                    />
                 </>
             )}
         </section>

@@ -1,0 +1,263 @@
+/*
+ * Walkout final (WalkoutStage.tsx + game/scenes/WalkoutScene.ts, pesquisas/ut-walkout.md). O canvas do Phaser cobre a
+ * tela; por cima, a placa da edição e a carta. --u = px por unidade de um palco de 360x640 (medido em JS). Tudo que
+ * anda vem do relógio da cena (transform/opacity inline): aqui só a forma de cada peça.
+ */
+.wk-ph {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: #000;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    animation: wk-fade 200ms var(--ease-out) both;
+}
+.wk-ph-host,
+.wk-ph-host canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+.wk-ph-host canvas {
+    image-rendering: pixelated;
+}
+.wk-ph-skip {
+    position: absolute;
+    top: max(12px, env(safe-area-inset-top));
+    right: 12px;
+    z-index: 3;
+    animation: wk-fade 240ms var(--ease-out) both;
+}
+.wk-ph-go {
+    position: absolute;
+    left: 50%;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    z-index: 3;
+    min-width: 220px;
+    translate: -50% 0;
+    animation: wk-rise 260ms var(--ease-out) both;
+}
+@keyframes wk-fade {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes wk-rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
+/* ---------- placa da edição (ou do metal) ---------- */
+.wk-seal {
+    display: block;
+    padding: calc(12 * var(--u)) calc(26 * var(--u));
+    border: calc(4 * var(--u)) solid #000;
+    border-radius: calc(8 * var(--u));
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-weight: 400;
+    --gs: calc(44 * var(--u));
+    font-size: var(--gfs, calc(44 * var(--u)));
+    line-height: 1;
+    letter-spacing: calc(3 * var(--u));
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: var(--k-out-2);
+    background: #222;
+    box-shadow: 0 calc(6 * var(--u)) 0 #000;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.wk-plate {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+}
+.wk-seal-icone {
+    background:
+        radial-gradient(ellipse 70% 60% at 25% 30%, rgb(140 100 255 / 0.9), transparent 70%),
+        radial-gradient(ellipse 70% 60% at 80% 90%, rgb(255 90 200 / 0.9), transparent 70%), #1a0f4a;
+    box-shadow:
+        inset 0 0 0 calc(3 * var(--u)) #c9a6ff,
+        0 calc(6 * var(--u)) 0 #000;
+}
+.wk-seal-destaque {
+    color: #ffd75e;
+    background:
+        repeating-linear-gradient(135deg, rgb(255 215 90 / 0.15) 0 2px, transparent 2px 10px),
+        linear-gradient(160deg, #2b2b30, #000);
+    box-shadow:
+        inset 0 0 0 calc(3 * var(--u)) #d9b23c,
+        0 calc(6 * var(--u)) 0 #000;
+}
+.wk-seal-evento {
+    background: color-mix(in srgb, var(--c1), #000 30%);
+    box-shadow:
+        inset 0 0 0 calc(3 * var(--u)) #fff,
+        0 calc(6 * var(--u)) 0 #000;
+}
+.wk-seal-shiny {
+    color: #2a2140;
+    text-shadow: none;
+    background: linear-gradient(135deg, #ffe3f3 0%, #e3f1ff 30%, #e9ffe9 55%, #fff4dc 80%, #f3e3ff 100%);
+    box-shadow:
+        inset 0 0 0 calc(3 * var(--u)) #fff,
+        0 calc(6 * var(--u)) 0 #000;
+}
+.wk-seal-ouro {
+    color: #3b2a05;
+    text-shadow: 0 calc(2 * var(--u)) 0 #fff3b8;
+    background:
+        repeating-linear-gradient(135deg, rgb(255 255 255 / 0.18) 0 2px, transparent 2px 12px),
+        linear-gradient(180deg, #fff2b0, #e8c24a 45%, #b88a24);
+    box-shadow:
+        inset 0 0 0 calc(3 * var(--u)) #7a5a14,
+        0 calc(6 * var(--u)) 0 #000;
+}
+
+/* ---------- a carta ---------- */
+.wk-card {
+    position: absolute;
+    left: 50%;
+    top: 41%;
+    width: calc(210 * var(--u));
+    translate: -50% -50%;
+    perspective: calc(900 * var(--u));
+    pointer-events: none;
+}
+.wk-card .fut-wrap {
+    --fut-w: calc(210 * var(--u));
+}
+.wk-card-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 190%;
+    aspect-ratio: 1;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--l1) 70%, transparent), transparent 70%);
+}
+.wk-card-spin {
+    position: relative;
+    transform-style: preserve-3d;
+}
+.wk-card-face {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(12 * var(--u));
+}
+.wk-card-face,
+.wk-card-back {
+    backface-visibility: hidden;
+}
+.wk-card-back {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    border: calc(4 * var(--u)) solid var(--l1);
+    border-radius: calc(12 * var(--u));
+    transform: rotateY(180deg);
+    background:
+        radial-gradient(ellipse 70% 50% at 50% 40%, color-mix(in srgb, var(--l2) 45%, transparent), transparent 70%),
+        #0b0726;
+    box-shadow: inset 0 0 0 calc(3 * var(--u)) #000;
+}
+.wk-card-back img {
+    width: 46%;
+    height: auto;
+}
+/* especial: a carta vem sem a arte e a arte entra depois (--wk-art de 0 a 1) */
+.wk-card-noart .m-art {
+    opacity: var(--wk-art);
+    scale: calc(0.6 + 0.4 * var(--wk-art));
+}
+.wk-card-shine,
+.wk-card-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+.wk-card-shine {
+    background: linear-gradient(
+        105deg,
+        transparent 35%,
+        rgb(255 255 255 / 0.55) 47%,
+        rgb(255 255 255 / 0.2) 53%,
+        transparent 60%
+    );
+}
+.wk-card-flash {
+    background: #fff;
+}
+.wk-seal-calm {
+    position: absolute;
+    left: 50%;
+    top: calc(-58 * var(--u));
+    translate: -50% 0;
+    font-size: calc(24 * var(--u));
+}
+
+/* versão 2: raios girando atrás da carta e o brilho correndo na borda (um conic girando dentro de um anel) */
+.wk-card-rays {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300%;
+    aspect-ratio: 1;
+    background: repeating-conic-gradient(
+        from 0deg,
+        color-mix(in srgb, var(--l1) 60%, transparent) 0deg 5deg,
+        transparent 5deg 15deg
+    );
+    mask: radial-gradient(closest-side, #000 18%, transparent 72%);
+    will-change: transform;
+}
+.wk-card-edge {
+    position: absolute;
+    inset: calc(-5 * var(--u));
+    overflow: hidden;
+    border-radius: calc(16 * var(--u));
+}
+.wk-card-edge > i {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 160%;
+    aspect-ratio: 1;
+    background: conic-gradient(
+        transparent 0deg 220deg,
+        var(--l2) 290deg,
+        #fff 320deg,
+        var(--l1) 340deg,
+        transparent 360deg
+    );
+    will-change: transform;
+}
+/* o aquecimento: montado quase invisível antes do 1º quadro (o navegador rasteriza e compila os shaders agora) */
+.wk-warm {
+    position: absolute;
+    inset: 0;
+    opacity: 0.004;
+    pointer-events: none;
+}
+
+/* ---------- laboratório (?lab=walkout) ---------- */
+.wkl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px 24px;
+}
+.wkl-presets {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+.wkl-open {
+    min-width: 220px;
+}

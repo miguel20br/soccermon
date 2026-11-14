@@ -12,6 +12,8 @@ export interface BracketTeam {
     name: string;
     color: number;
     you?: boolean;
+    /** Ícone do capitão (só quem tem time de verdade: você e os seus rivais). */
+    icon?: { speciesId: number; shiny?: boolean };
 }
 export interface BracketMatch {
     a: BracketTeam;
@@ -42,11 +44,11 @@ function scoreFor(rng: Rng, w: 0 | 1): [number, number] {
 export function relampagoBracket(
     seed: string,
     you: BracketTeam,
-    opponents: readonly { name: string; color: number }[],
+    opponents: readonly BracketTeam[],
     results: readonly CupResultLite[],
 ): BracketMatch[][] {
     const rng = new Rng(seed, 'bracket');
-    const opp = opponents.slice(0, 4).map((o) => ({ name: o.name, color: o.color }));
+    const opp = opponents.slice(0, 4).map((o) => ({ name: o.name, color: o.color, icon: o.icon }));
     const others = rng.shuffle(pool().filter((t) => !opp.some((o) => o.name === t.name))).slice(0, 11);
     // oitavas: você × rival 1 na chave 0; rival 2 na 1 (quartas com você), rival 3 na 2 (semi), a Liga na 4 (final)
     const seats: BracketTeam[] = [

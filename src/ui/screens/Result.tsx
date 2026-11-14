@@ -13,14 +13,15 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName, cupStageName } from '../../i18n';
+import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { lineupPosition, useGame } from '../../store/game-store';
-import { cupLength, isFinalStage, isLong } from '../../store/long-cup';
+import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
-import { BracketPeek } from '../components/Bracket';
+import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
 import { ChampionView } from '../components/ChampionView';
 import { CupGains } from '../components/CupGains';
+import { foldOpenByDefault } from '../components/Fold';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
 import { LeaderQuote } from '../components/LeaderQuote';
@@ -28,9 +29,11 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { CupGoalCard, MomentsButton } from '../components/Moments';
 import { cardSprite } from '../components/PokeCard';
 import { type HeroStat, ResultHero } from '../components/ResultHero';
-import { UnlockStrip } from '../components/UnlockNotice';
 import { feedback } from '../feedback';
-import { Tip } from '../help/Tip';
+import { Tip, tipSeq } from '../help/Tip';
+import { Sheet } from '../kit/Sheet';
+import { Stage } from '../kit/Stage';
+import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
@@ -49,12 +52,15 @@ import {
     ShotMapChart,
     TeamLegend,
 } from '../stats/StatsCharts';
-import { useHeld } from '../use-held';
+import { useHeldPair } from '../use-held';
 
 type Tab = 'times' | 'jogadores' | 'graficos' | 'copa';
 /** Abas (o rótulo vem do dicionário: result.tabs). */
 const TABS: Tab[] = ['times', 'jogadores', 'graficos', 'copa'];
 const TAB_ICON: Record<Tab, HudIconKind> = { times: 'team', jogadores: 'players', graficos: 'chart', copa: 'cup' };
+type Part = 'destaques' | 'stats';
+const PARTS: Part[] = ['destaques', 'stats'];
+const PART_ICON: Record<Part, HudIconKind> = { destaques: 'max', stats: 'chart' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 /** Copa em que o som de eliminado já tocou (voltar pro resultado não toca de novo). */
@@ -62,10 +68,13 @@ let sadSeed: string | null = null;
 
 export function Result() {
     const { run: liveRun, match: liveMatch, advance, newRun, go } = useGame();
-    const run = useHeld(liveRun);
-    const match = useHeld(liveMatch);
+    const held = useHeldPair(liveRun, liveMatch);
+    const run = held?.run;
+    const match = held?.match;
     const { t } = useT();
-    const [shared, setShared] = useState<string | null>(null);
+    const [shared, setShared] = useState<{ text: string; ok: boolean } | null>(null);
+    // o que sai da tela pra uma sheet: a chave
+    const [sheet, setSheet] = useState<'bracket' | null>(null);
     const clubColor = useClubColor();
     // card do título pronto antes do toque: o menu de compartilhar exige o gesto recente do jogador
     const [card, setCard] = useState<Blob | null>(null);
@@ -106,12 +115,25 @@ export function Result() {
 
     const champion = run.status === 'champion';
     const eliminated = run.status === 'eliminated';
+    // os detalhes da partida (destaques, carta Destaque, gols, estatísticas): embaixo do palco, rolando (sem botão)
+    const details = (
+        <MatchDetails
+            match={match}
+            names={names}
+            initialTab={tab}
+            cupTab={<CupStats results={run.results} mode={run.mode} />}
+            goalsExtra={<GoalsExtra run={run} evolutions={evolutions} destaque={destaque} />}
+            openPart
+        />
+    );
     const share = async () => {
         const res = await shareRun(run, card);
         track('share', { kind: card ? 'image' : 'text', result: res, champion });
-        setShared(
-            res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
-        );
+        setShared({
+            text:
+                res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
+            ok: res === 'copied' || res === 'shared',
+        });
         // aviso em pílula que some sozinho (antes ficava como texto cinza para sempre)
         window.setTimeout(() => setShared(null), 2200);
     };
@@ -121,61 +143,57 @@ export function Result() {
         track('share', { kind: `download-${format}`, result: 'shared', champion });
     };
 
-    // Copa longa: cartão amarelo (1ª derrota fora da Final) ou vermelho (a 2ª), com o resto do caminho bloqueado
-    const lost = run.results.at(-1)?.won === false;
-    const foul =
-        isLong(run) && lost
-            ? run.status === 'map'
-                ? 'yellow'
-                : run.status === 'eliminated' && !isFinalStage(run)
-                  ? 'red'
-                  : null
-            : null;
+    const foul = foulOf(run);
 
-    const actions = (
+    // fim da copa: Melhores momentos e Compartilhar (ou o ranking da Copa do Dia) lado a lado
+    const icons = (
         <>
-            {eliminated && <NearMiss run={run} />}
-            {foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
-            {eliminated && <CupGains run={run} />}
-            {(eliminated || champion) && <CupGoalCard run={run} match={match} />}
-            <div className="row" style={{ justifyContent: 'center' }}>
-                <MomentsButton run={run} match={match} />
-                {(eliminated || champion) &&
-                    (run.daily ? (
-                        // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
-                        <button type="button" className="btn outline" onClick={() => go('daily')}>
-                            {t('liga.daily.rankingTitle')}
-                        </button>
-                    ) : (
-                        <button type="button" className="btn outline" onClick={share}>
-                            {t('result.share')}
-                        </button>
-                    ))}
-            </div>
-            {/* fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado */}
-            <div className="bc-thumbbar">
-                {eliminated || champion ? (
-                    <>
-                        <button type="button" className="btn ghost" onClick={advance}>
-                            {t('result.menu')}
-                        </button>
-                        <button type="button" className="btn primary big" onClick={() => newRun(run.teamName)}>
-                            {t('result.newCup')}
-                            <HudIcon kind="next" />
-                        </button>
-                    </>
+            <MomentsButton run={run} match={match} />
+            {(eliminated || champion) &&
+                (run.daily ? (
+                    // Copa do Dia: o ranking e o compartilhar (estilo Wordle) ficam na tela do dia
+                    <button type="button" className="btn outline" onClick={() => go('daily')}>
+                        {t('liga.daily.rankingTitle')}
+                    </button>
                 ) : (
-                    <button type="button" className="btn primary big" onClick={advance}>
-                        {run.status === 'map' ? t('longCup.backToMap') : t('result.chooseReward')}
+                    <button type="button" className="btn outline" onClick={share}>
+                        <HudIcon kind="upload" /> {t('result.share')}
+                    </button>
+                ))}
+        </>
+    );
+    const thumb = (
+        // fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado
+        <div className="bc-thumbbar">
+            {eliminated || champion ? (
+                <>
+                    <button type="button" className="btn ghost" onClick={advance}>
+                        {t('result.menu')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn primary big"
+                        onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                    >
+                        {t('result.newCup')}
                         <HudIcon kind="next" />
                     </button>
-                )}
-            </div>
-            {shared && (
-                <div className="toast-pill" role="status">
-                    {shared}
-                </div>
+                </>
+            ) : (
+                <button type="button" className="btn confirm big" onClick={advance}>
+                    {run.status === 'map'
+                        ? t('longCup.backToMap')
+                        : run.status === 'group'
+                          ? t('longCup.backToGroup')
+                          : t('result.chooseReward')}
+                    <HudIcon kind="next" />
+                </button>
             )}
+        </div>
+    );
+    // o resto do fim da copa: baixar o card do título e dar feedback (embaixo dos detalhes)
+    const extra = (
+        <>
             {champion && (
                 <div className="row" style={{ justifyContent: 'center', alignItems: 'center' }}>
                     <span className="muted">{t('result.card.download')}</span>
@@ -202,105 +220,175 @@ export function Result() {
             )}
         </>
     );
+    const bracket = run.status === 'reward' && !isLong(run);
+    // o palco do resultado (cara-de-jogo.md): placar, fala e a ação gorda no polegar; Melhores momentos e Ver a chave
+    // viram links pequenos colados no placar. O resto (destaques, carta Destaque, evoluções, gols) vem rolando
+    const links = (
+        <div className="res-icons rh-links">
+            {icons}
+            {bracket && (
+                <button type="button" className="btn ghost" aria-haspopup="dialog" onClick={() => setSheet('bracket')}>
+                    <HudIcon kind="cup" /> {t('bracket.show')}
+                </button>
+            )}
+        </div>
+    );
+    const actions = (
+        <>
+            {eliminated && <NearMiss run={run} />}
+            {thumb}
+        </>
+    );
+    const toast = shared && <Toast tone={shared.ok ? 'ok' : 'bad'}>{shared.text}</Toast>;
+
+    if (champion)
+        return (
+            <>
+                <ChampionView
+                    run={run}
+                    icons={icons}
+                    thumb={thumb}
+                    goal={<CupGoalCard run={run} match={match} />}
+                    extra={
+                        <>
+                            {run.champ?.utBridge && (
+                                <p className="res-ut-bridge">
+                                    <HudIcon kind="bag" />
+                                    {t('result.utBridge')}
+                                </p>
+                            )}
+                            <LeaderQuote
+                                club={opponent.name}
+                                won
+                                color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
+                            />
+                            <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>
+                            {details}
+                            {extra}
+                        </>
+                    }
+                />
+                {toast}
+            </>
+        );
 
     return (
         <>
-            {champion ? (
-                <ChampionView run={run} actions={actions} />
-            ) : (
+            {toast}
+            <Stage className="result-stage k-stage-rola">
                 <ResultHero
                     run={run}
                     match={match}
                     opponent={opponent}
                     names={names}
                     mvpUid={ourStar?.uid ?? null}
-                    stats={heroStats(match, t)}
+                    foul={foul && <FoulCard kind={foul} remaining={cupLength(run) - run.results.length} />}
                     actions={actions}
+                    links={links}
                 />
-            )}
-            {/* Copa Relâmpago: venceu, você sobe na chave (num toque; a fase nova entra com brilho) */}
-            {!champion && run.status === 'reward' && !isLong(run) && (
-                <BracketPeek
-                    rounds={relampagoBracket(
-                        run.seed,
-                        { name: run.teamName, color: clubColor },
-                        run.opponents,
-                        run.results,
-                    )}
-                    current={run.stage + 1}
-                    fresh
-                />
-            )}
-            {/* fora do título a fala vem no topo do resultado (ResultHero) */}
-            {champion && (
-                <LeaderQuote
-                    club={opponent.name}
-                    won
-                    color={`#${rivalColor(clubColor, opponent.color).toString(16).padStart(6, '0')}`}
-                />
-            )}
-            <UnlockStrip />
-            {/* dica na hora certa (era uma página do passo a passo de boas-vindas) */}
-            <Tip id="result-dex">{t('result.dexTip')}</Tip>
-            {champion && <h2 className="champ-h champ-final-h">{t('result.finalDetails')}</h2>}
+            </Stage>
+            <section className="res-more" aria-label={t('result.champ.statsBtn')}>
+                {eliminated && <CupGains run={run} />}
+                {/* o gol da copa saiu da fileira de botões (pesava mais que o Nova copa) e fica no relato, rolando */}
+                {eliminated && <CupGoalCard run={run} match={match} />}
+                {details}
+                {extra}
+                {/* a dica no fim da página, não entre o placar e o botão; na 1ª vitória quem fala é a da Recompensa
+                    (uma dica por sequência Resultado → Recompensa → Mercado) */}
+                {(run.results.length > 1 || run.status !== 'reward') && (
+                    <Tip id="result-dex" seq={tipSeq(run)}>
+                        {t('result.dexTip')}
+                    </Tip>
+                )}
+            </section>
+            {/* Copa Relâmpago: venceu, você sobe na chave (a fase nova entra com brilho) */}
+            <Sheet open={sheet === 'bracket'} onClose={() => setSheet(null)} title={t('bracket.show')}>
+                {bracket && (
+                    <Bracket
+                        rounds={relampagoBracket(
+                            run.seed,
+                            bracketYou(run.teamName, clubColor, run.picks, run.captainUid),
+                            bracketRivals(run.opponents),
+                            run.results,
+                        )}
+                        current={run.stage + 1}
+                        fresh
+                    />
+                )}
+            </Sheet>
+        </>
+    );
+}
 
-            <MatchDetails
-                match={match}
-                names={names}
-                initialTab={tab}
-                cupTab={<CupStats results={run.results} mode={run.mode} />}
-                goalsExtra={
-                    <>
-                        {evolutions.length > 0 && (
-                            <div className="destaque-box">
-                                <h2>{evolutions.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
-                                <p className="tactic-desc">{t('result.evolvedNote')}</p>
-                                <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    {evolutions.map(({ inst, from }) => (
-                                        <div key={inst.uid} className="evolved-card">
-                                            <span className="muted">
-                                                {species(from).name} → {species(inst.speciesId).name}
-                                            </span>
-                                            <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
-                                        </div>
-                                    ))}
-                                </div>
+/** Evoluções e a carta Destaque da partida (embaixo dos gols, nos detalhes). */
+function GoalsExtra({
+    run,
+    evolutions,
+    destaque,
+}: {
+    run: NonNullable<ReturnType<typeof useGame.getState>['run']>;
+    evolutions: { inst: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number]; from: number }[];
+    destaque: NonNullable<ReturnType<typeof useGame.getState>['run']>['picks'][number] | null | undefined;
+}) {
+    const { t } = useT();
+    // quem evoluiu e virou Destaque aparece uma vez só: na caixa do Destaque, com a linha da evolução
+    const destaqueEvo = destaque ? evolutions.find((e) => e.inst.uid === destaque.uid) : undefined;
+    const evolved = destaqueEvo ? evolutions.filter((e) => e !== destaqueEvo) : evolutions;
+    return (
+        <>
+            {evolved.length > 0 && (
+                <div className="destaque-box">
+                    <h2>{evolved.length > 1 ? t('result.evolvedMany') : t('result.evolvedOne')}</h2>
+                    <p className="tactic-desc">{t('result.evolvedNote')}</p>
+                    <div className="row" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+                        {evolved.map(({ inst, from }) => (
+                            <div key={inst.uid} className="evolved-card">
+                                <span className="muted">
+                                    {species(from).name} → {species(inst.speciesId).name}
+                                </span>
+                                <FutCard inst={inst} size="sm" position={lineupPosition(run, inst.uid)} />
                             </div>
-                        )}
-                        {destaque && (
-                            <div className="destaque-box">
-                                <h2>
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpTitle', {
-                                              ed: editionLabel(destaque.special.kind),
-                                              n: destaque.special.level ?? 1,
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
-                                          : t('result.destaqueTitle')}
-                                </h2>
-                                <p className="tactic-desc">
-                                    {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
-                                        ? t('result.mvpText', {
-                                              name: destaque.nickname ?? species(destaque.speciesId).name,
-                                              bonus: specialBonus(destaque),
-                                          })
-                                        : (destaque.special?.level ?? 1) > 1
-                                          ? t('result.destaqueLevelText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })
-                                          : t('result.destaqueText', {
-                                                name: destaque.nickname ?? species(destaque.speciesId).name,
-                                                bonus: specialBonus(destaque),
-                                            })}
-                                </p>
-                                <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
-                            </div>
-                        )}
-                    </>
-                }
-            />
+                        ))}
+                    </div>
+                </div>
+            )}
+            {destaque && (
+                <div className="destaque-box">
+                    <h2>
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpTitle', {
+                                  ed: editionLabel(destaque.special.kind),
+                                  n: destaque.special.level ?? 1,
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelTitle', { n: destaque.special?.level ?? 1 })
+                              : t('result.destaqueTitle')}
+                    </h2>
+                    <p className="tactic-desc">
+                        {destaque.special?.kind === 'icone' || destaque.special?.kind === 'evento'
+                            ? t('result.mvpText', {
+                                  name: destaque.nickname ?? species(destaque.speciesId).name,
+                                  bonus: specialBonus(destaque),
+                              })
+                            : (destaque.special?.level ?? 1) > 1
+                              ? t('result.destaqueLevelText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })
+                              : t('result.destaqueText', {
+                                    name: destaque.nickname ?? species(destaque.speciesId).name,
+                                    bonus: specialBonus(destaque),
+                                })}
+                    </p>
+                    {destaqueEvo && (
+                        <span className="muted">
+                            {species(destaqueEvo.from).name} → {species(destaque.speciesId).name} ·{' '}
+                            {t('result.evolvedNote')}
+                        </span>
+                    )}
+                    <FutCard inst={destaque} size="sm" position={lineupPosition(run, destaque.uid)} />
+                </div>
+            )}
         </>
     );
 }
@@ -310,15 +398,14 @@ function NearMiss({ run }: { run: NonNullable<ReturnType<typeof useGame.getState
     const { t } = useT();
     const last = run.results.at(-1);
     if (!last || last.won) return null;
-    const stage = cupStageName(run, last.stage);
     const n = last.score[1] - last.score[0];
     return (
         <p className="near-miss">
             {last.shootout
-                ? t('result.nearMiss.pens', { stage })
+                ? t('result.nearMiss.pens')
                 : n <= 1
-                  ? t('result.nearMiss.one', { stage })
-                  : t('result.nearMiss.more', { stage, n })}
+                  ? t('result.nearMiss.one')
+                  : t('result.nearMiss.more', { n })}
         </p>
     );
 }
@@ -350,7 +437,10 @@ export function MatchDetails({
     cupTab,
     initialTab = 'times',
     side = 0,
+    openPart = false,
 }: {
+    /** Já abre na pasta Destaques (no Resultado: quem virou Destaque aparece rolando, sem tocar). */
+    openPart?: boolean;
     match: MatchResult;
     names: [string, string];
     /** Seu lado (no duelo o convidado é o 1): a lista "O rival evoluiu" é do outro. */
@@ -361,6 +451,8 @@ export function MatchDetails({
 }) {
     const { t, tn, d } = useT();
     const [tab, setTab] = useState<Tab>(initialTab);
+    // as duas pastas (destaques, estatísticas): no PC abre a 1ª; no celular em pé começa fechada (tocar na aberta fecha)
+    const [part, setPart] = useState<Part | null>(() => (openPart || foldOpenByDefault() ? 'destaques' : null));
     const mvp = matchMvp(match);
     const goals = match.events.filter((e) => e.type === 'goal');
     // evoluções do rival: lembrete pra quem não viu na quadra
@@ -378,180 +470,227 @@ export function MatchDetails({
     const leaderList = leaders(lines);
 
     return (
-        <>
-            <div className="two-col">
-                <div className="panel">
-                    <h2>{t('result.highlights')}</h2>
-                    <div className="st-leaders">
-                        {leaderList.map((l) => (
-                            <div key={l.id} className="st-leader">
-                                <img
-                                    className="pixel"
-                                    src={cardSprite({ speciesId: l.line.speciesId, shiny: l.line.shiny })}
-                                    alt=""
-                                />
-                                <div>
-                                    <span className="muted">{leaderTitle(l)}</span>
-                                    <b>{l.line.name}</b>
-                                    <small>
-                                        <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
-                                        {names[l.line.team]} · {leaderValue(l)}
-                                    </small>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="panel">
-                    <h2>{t('result.goals')}</h2>
-                    <div className="scorers">
-                        {goals.length === 0 && <span className="muted">{t('result.noGoals')}</span>}
-                        {goals.map(
-                            (g) =>
-                                g.type === 'goal' && (
-                                    <div key={g.tick}>
-                                        <span className="muted">{Math.floor(g.minute)}'</span> {nameAt(g.by, g.tick)}
-                                        {g.ownGoal ? t('result.ownGoal') : ''} — {names[g.team]}
-                                        {g.assist !== null && (
-                                            <span className="muted">
-                                                {t('result.assist', { name: nameAt(g.assist, g.tick) })}
-                                            </span>
-                                        )}
+        <div className="res-folder">
+            <div className="k-tabs res-parts" role="tablist">
+                {PARTS.map((id) => (
+                    <button
+                        key={id}
+                        type="button"
+                        role="tab"
+                        id={`res-part-${id}`}
+                        aria-selected={part === id}
+                        aria-controls={`res-pane-${id}`}
+                        onClick={() => setPart(part === id ? null : id)}
+                    >
+                        <HudIcon kind={PART_ICON[id]} />
+                        <span>{t(id === 'destaques' ? 'result.foldHighlights' : 'result.foldStats')}</span>
+                    </button>
+                ))}
+            </div>
+            {part === 'destaques' && (
+                <div
+                    className="two-col k-pane"
+                    role="tabpanel"
+                    id="res-pane-destaques"
+                    aria-labelledby="res-part-destaques"
+                >
+                    <div className="panel">
+                        <h2>{t('result.highlights')}</h2>
+                        <div className="st-leaders">
+                            {/* o craque da partida numa linha só, no lugar da "Melhor nota" (antes eram duas e mais um
+                                bloco embaixo dos gols) */}
+                            {mvp && (
+                                <div className="st-leader st-leader-mvp">
+                                    <img className="pixel" src={cardSprite(mvp)} alt="" />
+                                    <div>
+                                        <span className="muted">{t('result.mvp')}</span>
+                                        <b>{mvp.name}</b>
+                                        <small>
+                                            <i style={{ background: mvp.team === 0 ? homeC() : awayC() }} />
+                                            {names[mvp.team]} · {tn('common.count.goals', mvp.stats.goals)} ·{' '}
+                                            {tn('common.count.assists', mvp.stats.assists)}
+                                            {mvp.stats.saves > 0 && <> · {tn('common.count.saves', mvp.stats.saves)}</>}
+                                        </small>
                                     </div>
-                                ),
+                                </div>
+                            )}
+                            {leaderList
+                                .filter((l) => !mvp || l.id !== 'rating')
+                                .map((l) => (
+                                    <div key={l.id} className="st-leader">
+                                        <img
+                                            className="pixel"
+                                            src={cardSprite({ speciesId: l.line.speciesId, shiny: l.line.shiny })}
+                                            alt=""
+                                        />
+                                        <div>
+                                            <span className="muted">{leaderTitle(l)}</span>
+                                            <b>{l.line.name}</b>
+                                            <small>
+                                                <i style={{ background: l.line.team === 0 ? homeC() : awayC() }} />
+                                                {names[l.line.team]} · {leaderValue(l)}
+                                            </small>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                    <div className="panel">
+                        <h2>{t('result.goals')}</h2>
+                        <div className="scorers">
+                            {goals.length === 0 && <span className="muted">{t('result.noGoals')}</span>}
+                            {goals.map(
+                                (g) =>
+                                    g.type === 'goal' && (
+                                        <div key={g.tick}>
+                                            <span className="muted">{Math.floor(g.minute)}'</span>{' '}
+                                            {nameAt(g.by, g.tick)}
+                                            {g.ownGoal ? t('result.ownGoal') : ''} — {names[g.team]}
+                                            {g.assist !== null && (
+                                                <span className="muted">
+                                                    {t('result.assist', { name: nameAt(g.assist, g.tick) })}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ),
+                            )}
+                        </div>
+                        {goalsExtra}
+                        {rivalEvos.length > 0 && (
+                            <>
+                                <h2 style={{ marginTop: 16 }}>{t('result.rivalEvolved')}</h2>
+                                {rivalEvos.map((e) => (
+                                    <div key={`${e.tick}-${e.uid}`} className="mini rival-evo">
+                                        <img
+                                            className="pixel"
+                                            src={cardSprite({
+                                                speciesId: e.into,
+                                                shiny: !!lines.find((x) => x.uid === e.uid)?.shiny,
+                                            })}
+                                            alt=""
+                                        />
+                                        <div>
+                                            <b>
+                                                {species(e.from).name} → {species(e.into).name}
+                                            </b>{' '}
+                                            <span className="muted">
+                                                ({names[e.team]}, {Math.floor(e.minute)}')
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
                         )}
                     </div>
-                    {goalsExtra}
-                    {rivalEvos.length > 0 && (
-                        <>
-                            <h2 style={{ marginTop: 16 }}>{t('result.rivalEvolved')}</h2>
-                            {rivalEvos.map((e) => (
-                                <div key={`${e.tick}-${e.uid}`} className="mini rival-evo">
-                                    <img
-                                        className="pixel"
-                                        src={cardSprite({
-                                            speciesId: e.into,
-                                            shiny: !!lines.find((x) => x.uid === e.uid)?.shiny,
-                                        })}
-                                        alt=""
-                                    />
-                                    <div>
-                                        <b>
-                                            {species(e.from).name} → {species(e.into).name}
-                                        </b>{' '}
-                                        <span className="muted">
-                                            ({names[e.team]}, {Math.floor(e.minute)}')
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </>
-                    )}
-                    {mvp && (
-                        <>
-                            <h2 style={{ marginTop: 16 }}>{t('result.mvp')}</h2>
-                            <div className="mini" style={{ display: 'inline-flex' }}>
-                                <img className="pixel" src={cardSprite(mvp)} alt="" />
-                                <div>
-                                    <b>{mvp.name}</b> <span className="muted">({names[mvp.team]})</span>
-                                    <div className="muted">
-                                        {tn('common.count.goals', mvp.stats.goals)} ·{' '}
-                                        {tn('common.count.assists', mvp.stats.assists)} ·{' '}
-                                        {tn('common.count.saves', mvp.stats.saves)} ·{' '}
-                                        {tn('common.count.tackles', mvp.stats.tacklesWon)}
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
                 </div>
-            </div>
+            )}
 
-            <div className="panel st-panel">
-                <div className="st-tabs bc-tabs" role="tablist">
-                    {TABS.filter((id) => id !== 'copa' || cupTab).map((id) => (
-                        <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}>
-                            <HudIcon kind={TAB_ICON[id]} />
-                            <span>{d.result.tabs[id]}</span>
-                        </button>
-                    ))}
-                </div>
-                {tab !== 'copa' && <TeamLegend names={names} />}
-                {tab === 'copa' && cupTab}
-                {tab === 'times' && (
-                    <CompareRows
-                        rows={[
-                            {
-                                label: t('result.rows.possession'),
-                                home: Math.round(match.possession[0] * 100),
-                                away: Math.round(match.possession[1] * 100),
-                                fmt: (v) => `${v}%`,
-                            },
-                            { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
-                            {
-                                label: t('result.rows.onTarget'),
-                                home: totals[0].shotsOnTarget,
-                                away: totals[1].shotsOnTarget,
-                            },
-                            {
-                                label: t('result.rows.danger'),
-                                home: Math.round(danger.reduce((s, d) => s + d.home, 0) * 100) / 100,
-                                away: Math.round(danger.reduce((s, d) => s + d.away, 0) * 100) / 100,
-                                fmt: (v) => v.toFixed(2),
-                            },
-                            {
-                                label: t('result.rows.passesCompleted'),
-                                home: totals[0].passesCompleted,
-                                away: totals[1].passesCompleted,
-                            },
-                            {
-                                label: t('result.rows.passAccuracy'),
-                                home: pctOf(totals[0].passesCompleted, totals[0].passes),
-                                away: pctOf(totals[1].passesCompleted, totals[1].passes),
-                                fmt: (v) => `${v}%`,
-                            },
-                            { label: t('result.rows.tackles'), home: totals[0].tacklesWon, away: totals[1].tacklesWon },
-                            {
-                                label: t('result.rows.interceptions'),
-                                home: totals[0].interceptions,
-                                away: totals[1].interceptions,
-                            },
-                            { label: t('result.rows.saves'), home: totals[0].saves, away: totals[1].saves },
-                            {
-                                label: t('result.rows.corners'),
-                                home: match.events.filter((e) => e.type === 'corner' && e.team === 0).length,
-                                away: match.events.filter((e) => e.type === 'corner' && e.team === 1).length,
-                            },
-                            { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
-                            {
-                                label: t('result.rows.distance'),
-                                home: totals[0].distance,
-                                away: totals[1].distance,
-                                fmt: (v) => `${(v / 1000).toFixed(1)} km`,
-                            },
-                        ]}
-                    />
-                )}
-                {tab === 'jogadores' && <PlayerTable lines={lines} names={names} />}
-                {tab === 'graficos' && (
-                    <div className="st-charts">
-                        <div>
-                            <h3>{t('result.dangerTitle')}</h3>
-                            <p className="muted st-sub">{t('result.dangerSub', { home: names[0], away: names[1] })}</p>
-                            <DangerChart data={danger} names={names} />
-                        </div>
-                        <div>
-                            <h3>{t('result.possessionTitle')}</h3>
-                            <PossessionChart data={possessionByPeriod(match)} names={names} />
-                        </div>
-                        <div>
-                            <h3>{t('result.shotMapTitle')}</h3>
-                            <p className="muted st-sub">{t('result.shotMapSub', { home: names[0], away: names[1] })}</p>
-                            <ShotMapChart shots={shotMap(match, nameAt)} />
-                        </div>
+            {part === 'stats' && (
+                <div
+                    className="panel st-panel k-pane"
+                    role="tabpanel"
+                    id="res-pane-stats"
+                    aria-labelledby="res-part-stats"
+                >
+                    <div className="st-tabs bc-tabs" role="tablist">
+                        {TABS.filter((id) => id !== 'copa' || cupTab).map((id) => (
+                            <button
+                                key={id}
+                                type="button"
+                                role="tab"
+                                aria-selected={tab === id}
+                                onClick={() => setTab(id)}
+                            >
+                                <HudIcon kind={TAB_ICON[id]} />
+                                <span>{d.result.tabs[id]}</span>
+                            </button>
+                        ))}
                     </div>
-                )}
-            </div>
-        </>
+                    {tab !== 'copa' && <TeamLegend names={names} />}
+                    {tab === 'copa' && cupTab}
+                    {tab === 'times' && (
+                        <CompareRows
+                            rows={[
+                                {
+                                    label: t('result.rows.possession'),
+                                    home: Math.round(match.possession[0] * 100),
+                                    away: Math.round(match.possession[1] * 100),
+                                    fmt: (v) => `${v}%`,
+                                },
+                                { label: t('result.rows.shots'), home: totals[0].shots, away: totals[1].shots },
+                                {
+                                    label: t('result.rows.onTarget'),
+                                    home: totals[0].shotsOnTarget,
+                                    away: totals[1].shotsOnTarget,
+                                },
+                                {
+                                    label: t('result.rows.danger'),
+                                    home: Math.round(danger.reduce((s, d) => s + d.home, 0) * 100) / 100,
+                                    away: Math.round(danger.reduce((s, d) => s + d.away, 0) * 100) / 100,
+                                    fmt: (v) => v.toFixed(2),
+                                },
+                                {
+                                    label: t('result.rows.passesCompleted'),
+                                    home: totals[0].passesCompleted,
+                                    away: totals[1].passesCompleted,
+                                },
+                                {
+                                    label: t('result.rows.passAccuracy'),
+                                    home: pctOf(totals[0].passesCompleted, totals[0].passes),
+                                    away: pctOf(totals[1].passesCompleted, totals[1].passes),
+                                    fmt: (v) => `${v}%`,
+                                },
+                                {
+                                    label: t('result.rows.tackles'),
+                                    home: totals[0].tacklesWon,
+                                    away: totals[1].tacklesWon,
+                                },
+                                {
+                                    label: t('result.rows.interceptions'),
+                                    home: totals[0].interceptions,
+                                    away: totals[1].interceptions,
+                                },
+                                { label: t('result.rows.saves'), home: totals[0].saves, away: totals[1].saves },
+                                {
+                                    label: t('result.rows.corners'),
+                                    home: match.events.filter((e) => e.type === 'corner' && e.team === 0).length,
+                                    away: match.events.filter((e) => e.type === 'corner' && e.team === 1).length,
+                                },
+                                { label: t('result.rows.moves'), home: totals[0].movesUsed, away: totals[1].movesUsed },
+                                {
+                                    label: t('result.rows.distance'),
+                                    home: totals[0].distance,
+                                    away: totals[1].distance,
+                                    fmt: (v) => `${(v / 1000).toFixed(1)} km`,
+                                },
+                            ]}
+                        />
+                    )}
+                    {tab === 'jogadores' && <PlayerTable lines={lines} names={names} />}
+                    {tab === 'graficos' && (
+                        <div className="st-charts">
+                            <div>
+                                <h3>{t('result.dangerTitle')}</h3>
+                                <p className="muted st-sub">
+                                    {t('result.dangerSub', { home: names[0], away: names[1] })}
+                                </p>
+                                <DangerChart data={danger} names={names} />
+                            </div>
+                            <div>
+                                <h3>{t('result.possessionTitle')}</h3>
+                                <PossessionChart data={possessionByPeriod(match)} names={names} />
+                            </div>
+                            <div>
+                                <h3>{t('result.shotMapTitle')}</h3>
+                                <p className="muted st-sub">
+                                    {t('result.shotMapSub', { home: names[0], away: names[1] })}
+                                </p>
+                                <ShotMapChart shots={shotMap(match, nameAt)} />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }

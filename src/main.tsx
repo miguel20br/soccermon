@@ -4,26 +4,40 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { startAnalytics } from './analytics/track';
+import { startChunkReload } from './chunk-reload';
 import { startCloudSync } from './cloud/cloud';
 import { importFromOldDomain, moveToNewDomain } from './cloud/domain-move';
 import { startFriendsLive } from './friends/api';
+import { installTexIdFix } from './game/texid-fix';
 import { startLeagueSync } from './league/sync';
 import { ErrorBoundary } from './ui/components/ErrorBoundary';
 import { startExitMotion } from './ui/exit-motion';
 import { startTapFeedback } from './ui/feedback';
+import { startInstall } from './ui/install';
+import { startMusicSync } from './ui/music-sync';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
+import { startThumbbarSpace } from './ui/thumbbar-space';
 import { startScreenTransitions } from './ui/view-transition';
 import './ui/styles.css';
 import './ui/broadcast-kit.css';
+import './ui/kit/kit.css';
 
 // erros fora do React (eventos, timers, promessas): só registra no console com prefixo claro, sem esconder nada
 window.addEventListener('error', (e) => {
+    // aviso benigno do navegador (um ResizeObserver mexeu no layout e a medida nova fica pro quadro seguinte, como no
+    // useFitZoom/useTwoCols do palco): não é erro do jogo, e como console.error derrubava a fumaça no PC
+    if (!e.error && /^ResizeObserver loop/.test(e.message)) return;
     console.error('[Soccermon] erro não tratado:', e.error ?? e.message, `${e.filename}:${e.lineno}:${e.colno}`);
 });
 window.addEventListener('unhandledrejection', (e) => {
     console.error('[Soccermon] promessa rejeitada sem tratamento:', e.reason);
 });
+
+// versão nova no ar com a aba aberta: pedaço com hash que sumiu recarrega a página uma vez
+startChunkReload();
+// antes de qualquer jogo Phaser: sprite sem faixa sumida no WebGL por software (game/texid-fix.ts)
+installTexIdFix();
 
 // endereço antigo (soccermon.vercel.app) leva o jogador e o save para o soccermon.com
 void moveToNewDomain();
@@ -31,8 +45,10 @@ void importFromOldDomain();
 
 startScreenTransitions();
 startTabSlide();
+startThumbbarSpace();
 startExitMotion();
 startTapFeedback();
+startInstall();
 
 // contas e save na nuvem (só liga se o Supabase estiver configurado)
 startCloudSync();
@@ -42,6 +58,8 @@ startLeagueSync();
 startFriendsLive();
 // volume por canal e "reduzir movimento" (Configurações)
 startSettingsSync();
+// música de cada tela (baixa só a faixa da tela atual; toca depois do primeiro toque)
+startMusicSync();
 // visitas e velocidade (Vercel, sem cookie) e estatísticas anônimas do jogo (Supabase)
 if (import.meta.env.PROD) {
     inject();

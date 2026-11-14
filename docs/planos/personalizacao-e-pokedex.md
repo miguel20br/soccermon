@@ -1,3 +1,7 @@
+---
+description: Brainstorm de Meu clube e Pokédex, antes de virarem plano.
+---
+
 # Brainstorm: "Meu clube" (personalização) e Pokédex (15/10/2026)
 
 Ideias pra discutir com o Miguel, não é plano aprovado. Ligado ao [roadmap](roadmap.md) (Pokédex/álbum já estava

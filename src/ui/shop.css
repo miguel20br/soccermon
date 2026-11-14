@@ -47,7 +47,8 @@
 }
 .sp-plate b {
     font-family: "Galmuri14", var(--font, inherit);
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     font-style: italic;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -130,6 +131,10 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+/* nome curto: só onde o nome inteiro não cabe (status do mapa no celular) */
+.sp-slot-short {
+    display: none;
+}
 .sp-slot.free {
     border-style: dashed;
     border-color: var(--line);
@@ -158,30 +163,17 @@ button.sp-slot:hover {
 }
 
 /* ---------- tela do Mercado ---------- */
-.shop-wallet {
-    font-family: "Galmuri14", var(--font, inherit);
-    font-size: 22px;
-}
-.shop-earned {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px 16px;
-    font-size: 13px;
-}
-.shop-earned-title {
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 10px;
-    color: var(--yellow);
-}
-.shop-earned-line b {
-    color: var(--yellow);
-}
-.shop-earned-hint {
-    flex-basis: 100%;
+/* títulos das prateleiras: texto simples, sem placa */
+.shop-shelves .shop-shelf-title {
+    width: auto;
+    margin: 0 0 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
     font-size: 12px;
+    color: var(--muted);
 }
 .shop-grid {
     display: grid;
@@ -196,7 +188,8 @@ button.sp-slot:hover {
     grid-template-rows: 1fr auto;
     justify-items: center;
     align-self: stretch;
-    gap: 8px;
+    /* o chip de comprar encosta na borda de baixo da carta */
+    gap: 0;
     width: var(--fut-w);
     transition:
         opacity 250ms var(--ease-out),
@@ -208,8 +201,14 @@ button.sp-slot:hover {
     min-height: 250px;
     height: 100%;
 }
-.shop-offer > .btn {
-    width: 100%;
+.k-pack > .shop-buy {
+    margin-top: 6px;
+}
+/* patrocínio: o chip no canto de baixo do contrato */
+.k-sponsor > .shop-buy {
+    margin-top: -10px;
+    margin-right: 14px;
+    justify-self: end;
 }
 .shop-offer.sold {
     opacity: 0.45;
@@ -267,8 +266,6 @@ button.sp-slot:hover {
 }
 .cpack.cpack-type .cpack-body {
     background:
-        linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 22%) 48%, transparent 60%) -160% 0 / 300% 100%
-        no-repeat,
         repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 255 255 / 7%) 0 6deg, transparent 6deg 22.5deg),
         radial-gradient(
             circle at 50% 45%,
@@ -285,7 +282,6 @@ button.sp-slot:hover {
     position: absolute;
     inset: -30%;
     background: var(--ticon) 0 0 / 15cqw auto repeat;
-    image-rendering: pixelated;
     opacity: 0.14;
     rotate: -18deg;
 }
@@ -294,8 +290,6 @@ button.sp-slot:hover {
     width: 44%;
     height: auto;
     margin-top: 4cqw;
-    /* o ícone do tipo é pixel art de 36 px: esticado com pixelated fica nítido (com borrão ficava ruim) */
-    image-rendering: pixelated;
     filter: drop-shadow(0 3px 8px rgb(0 0 0 / 60%)) drop-shadow(0 0 14px rgb(255 255 255 / 35%));
 }
 .cpack.cpack-type .cpack-label {
@@ -319,41 +313,30 @@ button.sp-slot:hover {
 .shop-shelf {
     margin-top: 14px;
 }
-.shop-shelf-title {
-    display: inline-block;
-    margin: 0 0 8px;
-    padding: 3px 10px 2px;
-    border-radius: 4px;
-    background: var(--bc-ink);
-    color: var(--yellow);
-    font-size: 11px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
 .shop-shelf .shop-grid {
     margin: 0;
 }
 /* o Patrocínio na horizontal: placa da marca à esquerda, contrato à direita, comprar embaixo */
-.shelf-sponsor .shop-offer {
+.shop-sponsor-sheet .shop-offer {
     width: 100%;
     max-width: 560px;
     grid-template-rows: auto auto;
     margin-bottom: 10px;
 }
-.shelf-sponsor .sp-card {
+.shop-sponsor-sheet .sp-card {
     width: 100%;
     min-height: 0;
     grid-template-columns: 132px 1fr;
     grid-template-rows: none;
 }
-.shelf-sponsor .sp-plate {
+.shop-sponsor-sheet .sp-plate {
     align-content: center;
 }
-.shelf-sponsor .sp-contract {
+.shop-sponsor-sheet .sp-contract {
     justify-items: start;
     text-align: left;
 }
-.shelf-sponsor .sp-sign {
+.shop-sponsor-sheet .sp-sign {
     width: 100%;
 }
 
@@ -363,8 +346,39 @@ button.sp-slot:hover {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
     gap: 0 24px;
 }
-.shelf-sponsor {
+/* a linha dos Patrocínios (abre a sheet): de ponta a ponta, embaixo das prateleiras */
+.shop-sponsor-row {
     grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 52px;
+    margin-top: 16px;
+    padding: 8px 14px 11px;
+    border: 3px solid var(--cb-ink);
+    border-radius: 10px;
+    background: var(--panel-2);
+    box-shadow:
+        inset 0 -4px 0 rgb(0 0 0 / 30%),
+        0 3px 0 var(--cb-ink);
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+}
+.shop-sponsor-row b {
+    margin-right: auto;
+}
+.shop-sponsor-row:active {
+    transform: translateY(2px);
+}
+.shop-sponsor-row:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+.shop-sponsor-sheet .reward-pick h3 {
+    margin: 0 0 8px;
 }
 
 /* a carta diz que é Patrocínio (não é carta de Pokémon) */
@@ -391,20 +405,6 @@ button.sp-slot:hover {
     margin: -2px 0 8px;
     color: var(--muted);
     font-size: 12px;
-}
-
-/* desktop: os 2 Patrocínios da vitrine lado a lado */
-@media (min-width: 900px) {
-    .shelf-sponsor {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0 16px;
-    }
-    .shelf-sponsor > .shop-shelf-title,
-    .shelf-sponsor > .shop-shelf-hint,
-    .shelf-sponsor > .sp-slots {
-        grid-column: 1 / -1;
-    }
 }
 
 /* tocar no Patrocínio mostra o que ele faz */
@@ -476,4 +476,382 @@ button.sp-slot:hover {
 .sp-price .hud-icon {
     width: 12px;
     height: 12px;
+}
+
+/* pacote da Copa em tela cheia (PackMoment, cara-de-jogo.md): o leque no meio, a carta do walkout guardada até a vez dela */
+.shop-pack-moment .k-moment-body {
+    gap: 12px;
+}
+.shop-pack-title {
+    font-size: clamp(22px, calc(6 * var(--vw)), 40px);
+}
+.shop-pick {
+    --k-pick-reserve: 300px;
+}
+.walk-held {
+    visibility: hidden;
+}
+.shop-pack-moment .reward-team-row {
+    width: min(420px, 100%);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .shop-pack-title {
+        display: none;
+    }
+    .shop-pick {
+        --k-pick-reserve: 170px;
+    }
+}
+
+/*
+ * Mercado em palco (cara-de-jogo.md, Mercado; ref. loja do Balatro): nada rola. A vitrine numa prateleira e os
+ * Patrocínios na de baixo, cada uma corre de lado com a seta. A carta mede pela altura que sobra (--shop-reserve).
+ */
+/* o título encosta na barra da copa (centrado sobravam ~90 px vazios em cima) */
+.shop-stage .k-stage-body {
+    justify-content: flex-start;
+    gap: 8px;
+    padding-top: 4px;
+}
+.shop-shelves-wrap {
+    display: contents;
+}
+.shop-head {
+    flex: none;
+    margin-bottom: 0;
+}
+.shop-head .draft-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.shop-earned-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.shop-earned-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+.shop-rail {
+    position: relative;
+    min-width: 0;
+}
+.shop-rail-track {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding: 6px 2px 8px;
+}
+.shop-rail-track::-webkit-scrollbar {
+    display: none;
+}
+.shop-rail-track > * {
+    flex: none;
+    scroll-snap-align: start;
+}
+/* a seta lateral: só aparece com algo daquele lado (entra e sai com fade) */
+.shop-rail-arrow {
+    all: unset;
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    translate: 0 -50%;
+    border: 3px solid var(--cb-ink);
+    border-radius: 50%;
+    background: var(--bc-ink);
+    color: var(--yellow);
+    box-shadow:
+        inset 0 0 0 2px var(--frame-in),
+        var(--lift-1);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity var(--dur-ui) var(--ease-out),
+        transform var(--dur-solta) var(--ease-pop);
+}
+.shop-rail-arrow.on {
+    opacity: 1;
+    pointer-events: auto;
+}
+.shop-rail-arrow:active {
+    transform: scale(0.86);
+    transition-duration: var(--dur-toque);
+}
+.shop-rail-arrow:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.shop-rail-arrow .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.shop-rail-arrow.prev {
+    left: -6px;
+}
+.shop-rail-arrow.next {
+    right: -6px;
+}
+
+/* a vitrine: as duas prateleiras lado a lado, a carta pela altura que sobra */
+.shop-rack {
+    --shop-reserve: 430px;
+    --shop-w: clamp(
+        96px,
+        min(calc(42 * var(--vw)), calc((100 * var(--vh) - var(--shop-reserve)) / 1.41)),
+        var(--k-card-max, 190px)
+    );
+    flex: none;
+}
+.shop-rack .shop-rail-track {
+    gap: 18px;
+}
+.shop-rack .shop-shelf {
+    margin: 0;
+}
+/* um rótulo só nas prateleiras (Contratações, Pacote e item, Patrocínios): etiqueta Bold 12 px caixa alta, a contagem
+   e a seta à direita */
+.shop-stage .shop-shelf-title {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.shop-rack .shop-grid {
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    --fut-w: var(--shop-w);
+}
+.shop-rack .fut-wrap {
+    --fut-w: var(--shop-w);
+}
+.shop-rack .shop-offer > .card,
+.shop-rack .shop-offer > .sp-card {
+    min-height: 0;
+}
+.shop-rack .shop-offer > .card.item-card {
+    height: auto;
+}
+.shop-rack .shop-pack-offer .sp-desc {
+    font-size: 11px;
+    line-height: 1.25;
+}
+.shop-rack .shop-buy {
+    margin-top: 6px;
+}
+/* pacote, item e MT: o Comprar embaixo do texto, não por cima (o chip do kit sobe 6 px pra encostar na moldura da
+   carta do Pokémon e cobria a 2ª linha do "3 cartas Elétrico. Você fica com 1"); o cartão cresce com o texto */
+.shop-rack .shop-offer:is(.k-pack, .k-item, .k-tm) > .shop-buy {
+    margin-top: 6px;
+}
+/* PC: o cartão da MT cresce com o texto ("2 do seu time aprendem" cortava); no celular a altura não sobra */
+@media (min-width: 1000px) {
+    .shop-rack .reward-pick3 .item-card {
+        aspect-ratio: auto;
+        min-height: calc(var(--fut-w) * 1.41);
+    }
+    .shop-rack .reward-pick3 .tm-card .tactic-desc {
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+    }
+}
+
+/* os Patrocínios: o contrato deitado (placa à esquerda), o nome da prateleira abre as 3 vagas */
+.shop-sponsor-shelf {
+    flex: none;
+    margin: 0;
+    min-width: 0;
+}
+.shop-stage .shop-sponsor-row {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    min-height: 0;
+    margin: 0 0 2px;
+    padding: 4px 2px;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
+.shop-stage .shop-sponsor-row .hud-icon {
+    width: 16px;
+    height: 16px;
+}
+.shop-stage .shop-sponsor-row b {
+    margin-right: auto;
+    font-weight: 700;
+}
+.shop-sponsor-rail .shop-offer {
+    width: min(330px, calc(100 * var(--vw) - 56px));
+    grid-template-rows: auto auto;
+}
+.shop-sponsor-rail .sp-card {
+    width: 100%;
+    min-height: 0;
+    grid-template-columns: 96px 1fr;
+    grid-template-rows: none;
+}
+.shop-sponsor-rail .sp-plate {
+    align-content: center;
+    gap: 4px;
+    padding: 18px 6px 8px;
+}
+.shop-sponsor-rail .sp-plate .hud-icon {
+    width: 30px;
+    height: 30px;
+}
+.shop-sponsor-rail .sp-plate b {
+    font-size: 11px;
+}
+.shop-sponsor-rail .sp-contract {
+    justify-items: start;
+    gap: 3px;
+    padding: 6px 10px 8px;
+    text-align: left;
+}
+.shop-sponsor-rail .sp-name {
+    font-size: 13px;
+}
+.shop-sponsor-rail .sp-desc {
+    font-size: 12px;
+    line-height: 1.25;
+}
+.shop-sponsor-rail .sp-sign {
+    width: 100%;
+    margin-top: 0;
+}
+.shop-sponsor-rail .shop-offer > .shop-buy {
+    margin-top: -12px;
+}
+.shop-stage .k-stage-action {
+    zoom: var(--k-big, 1);
+    --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
+}
+.shop-reroll {
+    flex: 0 1 auto;
+    min-width: 0;
+    gap: 6px;
+}
+.shop-reroll .bc-tag {
+    flex: none;
+}
+/* 320: a placa da marca estreita (só o ícone) e o texto do contrato menor */
+@media (max-width: 359px) {
+    .shop-sponsor-rail .sp-card {
+        grid-template-columns: 64px 1fr;
+    }
+    .shop-sponsor-rail .sp-plate b {
+        display: none;
+    }
+    .shop-sponsor-rail .sp-desc {
+        font-size: 11px;
+    }
+}
+/* na prateleira o contrato fica só com o preço (a regra das vagas mora na sheet) e a placa sem a fita */
+.shop-sponsor-rail .sp-sign {
+    font-size: 0;
+}
+.shop-sponsor-rail .sp-sign .sp-price {
+    margin-left: auto;
+    font-size: 13px;
+}
+.shop-sponsor-rail .sp-ribbon {
+    display: none;
+}
+.shop-sponsor-rail .sp-card .sp-plate {
+    padding-top: 8px;
+}
+
+/* celular baixinho (320x640): a carta perde a sobra do contrato */
+@media (max-height: 700px) {
+    .shop-rack {
+        --shop-reserve: 490px;
+    }
+    .shop-sponsor-rail .sp-fam {
+        display: none;
+    }
+}
+/* celular deitado: a vitrine com a altura toda à esquerda; o título e os Patrocínios numa coluna à direita */
+@media (orientation: landscape) and (max-height: 520px) {
+    .shop-stage .k-stage-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+        grid-template-rows: auto 1fr;
+        align-content: start;
+        column-gap: 14px;
+        row-gap: 4px;
+    }
+    .shop-head {
+        grid-column: 2;
+        grid-row: 1;
+    }
+    .shop-head h1 {
+        font-size: 18px;
+    }
+    .shop-rack {
+        --shop-reserve: 245px;
+        grid-column: 1;
+        grid-row: 1 / -1;
+    }
+    /* o chip de comprar fica embaixo da carta (preso na borda ele cobria a 3ª linha de atributos e a descrição) */
+    .shop-rack .shop-offer > .shop-buy {
+        margin-top: 4px;
+    }
+    /* a descrição do item termina numa linha inteira (antes cortava no meio da 4ª) */
+    .shop-rack .item-card .tactic-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .shop-sponsor-shelf {
+        grid-column: 2;
+        grid-row: 2;
+        min-height: 0;
+    }
+    /* sobra um vão pra seta da prateleira: na largura toda ela cobria o preço do contrato */
+    .shop-sponsor-rail .shop-offer {
+        width: calc(100% - 30px);
+    }
+    .shop-sponsor-rail .sp-fam {
+        display: none;
+    }
+}
+/* PC: as duas prateleiras centradas, a vitrine cresce com o palco */
+@media (min-width: 1000px) {
+    /* o Comprar do Patrocínio dentro do contrato, no canto de baixo (pendurado na borda ele passava do cartão) */
+    .shop-sponsor-rail .shop-offer {
+        position: relative;
+    }
+    .shop-sponsor-rail .sp-contract {
+        padding-bottom: 40px;
+    }
+    .shop-sponsor-rail .shop-offer > .shop-buy {
+        position: absolute;
+        right: 12px;
+        bottom: 10px;
+        margin: 0;
+    }
+    .shop-rail-track {
+        justify-content: safe center;
+    }
+    .shop-rack {
+        --shop-reserve: 480px;
+    }
 }

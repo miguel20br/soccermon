@@ -1,3 +1,7 @@
+---
+description: Pesquisa e proposta de personalização e coleção.
+---
+
 # Personalização e coleção: pesquisa e proposta (18/10/2026)
 
 Pedido do Miguel: "MUITA personalização, coletáveis, colecionáveis, etc. Todas essas coisas prendem os players e

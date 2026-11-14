@@ -64,6 +64,9 @@
         emote-in 0.32s var(--ease-pop) both,
         emote-out 0.22s ease-in 2.35s forwards;
 }
+.emote-pop.leaving {
+    animation: emote-out 0.2s ease-in forwards;
+}
 .emote-pop.left {
     left: 10px;
     transform-origin: top left;

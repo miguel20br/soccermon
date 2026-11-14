@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import pg from 'pg';
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
+import { ehMaratona, ehVersaoAntiga, MAX_COPAS, VERSOES_RECENTES, versoesRecentes } from './funil-criterio';
 
 // ---------- opções ----------
 
@@ -255,25 +256,40 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     }
     const etapa = (s: string): number => {
         const n = nomesPorSessao.get(s) ?? new Set();
-        if (n.has('champion')) return 5;
-        if (n.has('run_end')) return 4;
-        if (n.has('match_end')) return 3;
-        if ([...n].some((x) => RUN.has(x))) return 2;
-        if (n.has('onboarding_done') || bool(starts.get(s)?.props.returning)) return 1;
+        if (n.has('champion')) return 4;
+        if (n.has('run_end')) return 3;
+        if (n.has('match_end')) return 2;
+        if ([...n].some((x) => RUN.has(x))) return 1;
         return 0;
     };
-    const ETAPAS = [
-        'Abriu o jogo',
-        'Passou das boas-vindas',
-        'Começou/retomou copa',
-        'Jogou partida',
-        'Terminou copa',
-        'Campeão',
-    ];
+    // Desde a 0.9.2 não há tela de boas-vindas: "passou das boas-vindas" = "começou a copa", então a etapa saiu.
+    const ETAPAS = ['Abriu o jogo', 'Começou a copa', 'Chegou ao apito da 1ª', 'Terminou a copa', 'Campeão'];
     const funil = (ss: string[]) => ETAPAS.map((_, i) => ss.filter((s) => etapa(s) >= i).length);
-    const fTodas = funil(sessions);
-    const fNovas = funil(novas);
-    titulo('3. Funil por sessão');
+    // Fora do funil (o evento só guarda `lab` e a origem; user agent não é gravado): ?lab=, quem entrou pelo convite
+    // do Duelo (1ª tela vista é a do Duelo) e o navegador de dentro do TikTok/Instagram (origem tiktok/instagram).
+    const primeiraTela = (s: string) => str(evs.find((e) => e.session === s && e.name === 'screen')?.props.screen);
+    const grupo = (s: string): string => {
+        if (starts.get(s)?.props.lab) return 'lab';
+        if (/^duel/.test(primeiraTela(s))) return 'convite do Duelo';
+        if (['tiktok', 'instagram'].includes(canalDe(s))) return 'TikTok/Instagram';
+        return '';
+    };
+    const foraDoFunil = sessions.filter((s) => grupo(s) && novas.includes(s));
+    // Critério (documentado no título do funil): tira maratona e versão antiga, que distorcem as taxas.
+    const recentes = versoesRecentes(evs.flatMap((e) => (e.app_version ? [e.app_version] : [])));
+    const versaoDe = (s: string) =>
+        evs.filter((e) => e.session === s && e.app_version).at(-1)?.app_version ?? undefined;
+    const maratona = (s: string) => ehMaratona(by('run_start').filter((e) => e.session === s).length);
+    const foraCriterio = (s: string) => maratona(s) || ehVersaoAntiga(versaoDe(s), recentes);
+    const dentro = sessions.filter((s) => !grupo(s) && !foraCriterio(s));
+    const foraTodas = sessions.filter((s) => grupo(s)).length;
+    const foraCrit = sessions.filter((s) => !grupo(s) && foraCriterio(s)).length;
+    const fTodas = funil(dentro);
+    const fNovas = funil(dentro.filter((s) => novas.includes(s)));
+    titulo('3. Funil por sessão (sem lab, convite do Duelo e TikTok/Instagram)');
+    nota(
+        `Critério: fora ${fmt(foraCrit)} sessões de maratona (mais de ${MAX_COPAS} copas) ou de versão antiga (fora das ${VERSOES_RECENTES} mais novas: ${[...recentes].join(', ')}). "Chegou ao apito da 1ª" é o evento match_end, não "jogou".`,
+    );
     tabela(
         ['Etapa', 'Sessões', '% do total', 'Queda', '', 'Novas', '% novas'],
         ETAPAS.map((nome, i) => [
@@ -286,14 +302,67 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
             pct(fNovas[i], fNovas[0]),
         ]),
     );
-    nota('"Passou das boas-vindas" inclui quem já tinha passado antes (sessão voltando).');
+    nota(`Fora do funil: ${fmt(foraTodas)} sessões (novas e voltando); a tabela de baixo mostra as novas.`);
+    nota('"Começou a copa" inclui quem retomou uma copa (sessão voltando); a coluna Novas é a 1ª copa de verdade.');
+    line();
+    line(MD ? '**Funil por aparelho (só sessões novas)**' : '  Funil por aparelho (só sessões novas)');
+    const tipo = (s: string) => {
+        const d = str(starts.get(s)?.props.device) || str(evs.find((e) => e.session === s)?.device);
+        return d.startsWith('mobile') ? 'celular' : d || '?';
+    };
+    const funilDe = (ss: string[]) => {
+        const f = funil(ss);
+        return [f[0], f[1], pct(f[1], f[0]), f[2], pct(f[2], f[1]), pct(f[2], f[0])];
+    };
+    const novasDentro = dentro.filter((s) => novas.includes(s));
+    const FH = [
+        'Sessões novas',
+        'Começou a copa',
+        'Abriu → começou',
+        'Chegou ao apito da 1ª',
+        'Começou → jogou',
+        'Abriu → jogou',
+    ];
+    tabela(
+        ['Aparelho', ...FH],
+        count(novasDentro, tipo).map(([a]) => [a, ...funilDe(novasDentro.filter((s) => tipo(s) === a))]),
+    );
+    // Sem nenhum toque: só o session_start (e o balão que aparece sozinho). Robô que roda JavaScript e quem fecha a aba
+    // sem clicar em nada ficam aqui; o tempo na página não dá pra medir (os eventos chegam em lote, created_at é do lote).
+    const PASSIVO = new Set(['session_start', 'coach_shown', 'error']);
+    const semToque = (s: string) => [...(nomesPorSessao.get(s) ?? [])].every((n) => PASSIVO.has(n));
+    line();
+    line(MD ? '**Sessões novas por aparelho: toque e origem**' : '  Sessões novas por aparelho: toque e origem');
+    tabela(
+        ['Aparelho', 'Novas', 'Sem nenhum toque', 'Tocou → começou', 'Origens (novas)'],
+        count(novasDentro, tipo).map(([a]) => {
+            const ss = novasDentro.filter((s) => tipo(s) === a);
+            const tocou = ss.filter((s) => !semToque(s));
+            return [
+                a,
+                ss.length,
+                `${ss.length - tocou.length} (${pct(ss.length - tocou.length, ss.length)})`,
+                `${tocou.filter((s) => etapa(s) >= 1).length}/${tocou.length}`,
+                count(ss, canalDe)
+                    .slice(0, 4)
+                    .map(([c, n]) => `${c} ${n}`)
+                    .join(' · '),
+            ];
+        }),
+    );
+    line();
+    line(MD ? '**Fora do funil (só sessões novas)**' : '  Fora do funil (só sessões novas)');
+    tabela(
+        ['Grupo', ...FH],
+        count(foraDoFunil, grupo).map(([g]) => [g, ...funilDe(foraDoFunil.filter((s) => grupo(s) === g))]),
+    );
     // maior vazamento: pelas novas se tiver gente suficiente (é quem mostra a primeira impressão)
     const base = fNovas[0] >= 5 ? fNovas : fTodas;
     let vaz = { i: 0, perda: 0, pessoas: 0 };
     for (let i = 1; i < base.length; i++) {
         const perda = base[i - 1] ? (base[i - 1] - base[i]) / base[i - 1] : 0;
         // campeão depende de ganhar, não de interface: fica fora do "vazamento"
-        if (i < 5 && perda > vaz.perda) vaz = { i, perda, pessoas: base[i - 1] - base[i] };
+        if (i < 4 && perda > vaz.perda) vaz = { i, perda, pessoas: base[i - 1] - base[i] };
     }
     if (vaz.i) {
         if (MD) line();
@@ -308,12 +377,54 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
             .map((e) => e.session),
     );
     if (comAuto.size) {
-        const comecou = sessions.filter((s) => etapa(s) >= 2);
-        const jogou = (ss: string[]) => pct(ss.filter((s) => etapa(s) >= 3).length, ss.length);
+        const comecou = dentro.filter((s) => etapa(s) >= 1);
+        const jogou = (ss: string[]) => pct(ss.filter((s) => etapa(s) >= 2).length, ss.length);
         const usou = comecou.filter((s) => comAuto.has(s));
         const naMao = comecou.filter((s) => !comAuto.has(s));
         line(
             `${MD ? '' : '  '}${bold('Monta pra mim')}: ${fmt(usou.length)} de ${fmt(comecou.length)} sessões que começaram copa (${jogou(usou)} jogaram partida; na mão: ${jogou(naMao)})`,
+        );
+    }
+
+    // 0.9.24: convite do Duelo medido pelo Duelo (duel_join/duel_match_end), não pela copa
+    const temEv = (nome: string) => new Set(by(nome).map((e) => e.session));
+    const convite = foraDoFunil.filter((s) => grupo(s) === 'convite do Duelo');
+    if (convite.length && by('duel_join').length) {
+        const [entrou, terminou] = [temEv('duel_join'), temEv('duel_match_end')];
+        line(
+            `${MD ? '' : '  '}${bold('Convite do Duelo')}: ${fmt(convite.length)} sessões novas, ${fmt(convite.filter((s) => entrou.has(s)).length)} entraram na sala, ${fmt(convite.filter((s) => terminou.has(s)).length)} terminaram um jogo`,
+        );
+    }
+    // 0.9.24: quem toca em "Pular pro fim" (base pra decidir o ritmo da 1ª partida)
+    const pulos = by('match_skip');
+    if (pulos.length) {
+        const na1a = pulos.filter((e) => bool(e.props.first_cup));
+        line(
+            `${MD ? '' : '  '}${bold('Pular pro fim')}: ${fmt(pulos.length)} toques em ${fmt(new Set(pulos.map((e) => e.session)).size)} sessões (${fmt(na1a.length)} na 1ª copa, ${fmt(na1a.filter((e) => Number(e.props.stage) === 0).length)} na 1ª partida dela)`,
+        );
+    }
+
+    // first_leave: onde largou quem saiu antes do apito da 1ª partida (tela/passo da copa). Trocar de aba e voltar
+    // também manda o evento: conta só sessões sem match_end, e o último passo de cada uma.
+    const jogou = new Set(by('match_end').map((e) => e.session));
+    const largou = [
+        ...new Map(
+            by('first_leave')
+                .filter((e) => !jogou.has(e.session))
+                .map((e) => [e.session, e]),
+        ).values(),
+    ];
+    if (largou.length) {
+        const passo = (e: (typeof largou)[number]) =>
+            [str(e.props.screen), str(e.props.status)].filter(Boolean).join('/') || '?';
+        line(
+            `${MD ? '' : '  '}${bold('Saiu antes da 1ª partida')}: ${fmt(new Set(largou.map((e) => e.session)).size)} sessões · ${count(
+                largou,
+                passo,
+            )
+                .slice(0, 6)
+                .map(([p, n]) => `${p} ${n}`)
+                .join(' · ')}`,
         );
     }
 
@@ -334,8 +445,8 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
                 ss.length,
                 pct(ss.length, sessions.length),
                 ss.filter((s) => novas.includes(s)).length,
-                pct(f[2], f[0]),
-                pct(f[4], f[0]),
+                pct(f[1], f[0]),
+                pct(f[3], f[0]),
             ];
         }),
     );
@@ -371,6 +482,34 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         item(
             'Recompensas',
             `${fmt(rewards.length)} (${pct(rewards.filter((e) => bool(e.props.skipped)).length, rewards.length)} puladas)`,
+        );
+    // Rota (desde a 0.9.44): quanto se pula em cada tela e o que a etiqueta do Pular deu
+    const rota = rewards.filter((e) => str(e.props.screen));
+    if (rota.length) {
+        const pulou = (k: string) => rota.filter((e) => str(e.props.screen) === k && bool(e.props.skipped)).length;
+        item(
+            'Rota: puladas por tela',
+            count(rota, (e) => str(e.props.screen))
+                .map(([k, n]) => `${k} ${pct(pulou(k), n)}`)
+                .join(' · '),
+        );
+        const tags = rota.filter((e) => str(e.props.tag));
+        if (tags.length)
+            item(
+                'Rota: etiquetas do Pular',
+                count(tags, (e) => str(e.props.tag))
+                    .map(([k, n]) => `${k} ${n}`)
+                    .join(' · '),
+            );
+    }
+    // Rota (desde a 0.9.45): a casa escolhida no mapa (o `screen` que sai do mapa leva `casa` e `linha`)
+    const casas = by('screen').filter((e) => str(e.props.casa));
+    if (casas.length)
+        item(
+            'Rota: casas escolhidas',
+            count(casas, (e) => str(e.props.casa))
+                .map(([k, n]) => `${k} ${n}`)
+                .join(' · '),
         );
     tabela(
         ['Fase', 'Partidas', '% vitória', 'Gols/jogo', 'Pênaltis'],
@@ -547,7 +686,7 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     // vercel.app é o endereço antigo (e as prévias), não um canal de divulgação
     const melhor = canais
         .filter(([c, ss]) => ss.length >= 5 && c !== 'vercel.app' && c !== 'vercel')
-        .map(([c, ss]) => ({ c, n: ss.length, conv: funil(ss)[2] / ss.length }))
+        .map(([c, ss]) => ({ c, n: ss.length, conv: funil(ss)[1] / ss.length }))
         .sort((a, b) => b.conv - a.conv)[0];
     const foco =
         vaz.i && vaz.perda >= 0.4

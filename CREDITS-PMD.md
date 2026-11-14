@@ -34,10 +34,10 @@ empilhadas num único atlas PNG. Sprites originais de Pokémon Mystery Dungeon �
 | 26 | Raichu | CHUNSOFT, Grimlin, Top_Kec |
 | 27 | Sandshrew | CHUNSOFT, Emboarger, 3P1C |
 | 28 | Sandslash | CHUNSOFT, Emmuffin, XModxGodX |
-| 29 | Nidoran-F | CHUNSOFT |
+| 29 | Nidoran♀ | CHUNSOFT |
 | 30 | Nidorina | CHUNSOFT |
 | 31 | Nidoqueen | CHUNSOFT |
-| 32 | Nidoran-M | CHUNSOFT |
+| 32 | Nidoran♂ | CHUNSOFT |
 | 33 | Nidorino | CHUNSOFT |
 | 34 | Nidoking | CHUNSOFT |
 | 35 | Clefairy | CHUNSOFT |
@@ -157,3 +157,103 @@ empilhadas num único atlas PNG. Sprites originais de Pokémon Mystery Dungeon �
 | 149 | Dragonite | CHUNSOFT, SethY, Deeshura |
 | 150 | Mewtwo | CHUNSOFT, JFain |
 | 151 | Mew | CHUNSOFT, JFain |
+| 152 | Chikorita | CHUNSOFT |
+| 153 | Bayleef | CHUNSOFT |
+| 154 | Meganium | CHUNSOFT |
+| 155 | Cyndaquil | CHUNSOFT |
+| 156 | Quilava | CHUNSOFT, JFain |
+| 157 | Typhlosion | CHUNSOFT, Emmuffin |
+| 158 | Totodile | CHUNSOFT |
+| 159 | Croconaw | CHUNSOFT |
+| 160 | Feraligatr | CHUNSOFT |
+| 161 | Sentret | CHUNSOFT, Emmuffin, Neat_Neato |
+| 162 | Furret | CHUNSOFT, Neat_Neato |
+| 163 | Hoothoot | CHUNSOFT |
+| 164 | Noctowl | CHUNSOFT, Emmuffin |
+| 165 | Ledyba | CHUNSOFT, JFain |
+| 166 | Ledian | CHUNSOFT |
+| 167 | Spinarak | CHUNSOFT |
+| 168 | Ariados | CHUNSOFT |
+| 169 | Crobat | CHUNSOFT |
+| 170 | Chinchou | CHUNSOFT |
+| 171 | Lanturn | CHUNSOFT, JFain |
+| 172 | Pichu | CHUNSOFT, Spikey-Valentine |
+| 173 | Cleffa | CHUNSOFT |
+| 174 | Igglybuff | CHUNSOFT |
+| 175 | Togepi | CHUNSOFT |
+| 176 | Togetic | CHUNSOFT, Emmuffin, XModxGodX |
+| 177 | Natu | CHUNSOFT, Hanbei |
+| 178 | Xatu | CHUNSOFT |
+| 179 | Mareep | CHUNSOFT, Emmuffin |
+| 180 | Flaaffy | CHUNSOFT, Emmuffin |
+| 181 | Ampharos | CHUNSOFT |
+| 182 | Bellossom | CHUNSOFT |
+| 183 | Marill | CHUNSOFT, JFain |
+| 184 | Azumarill | CHUNSOFT |
+| 185 | Sudowoodo | CHUNSOFT |
+| 186 | Politoed | CHUNSOFT |
+| 187 | Hoppip | CHUNSOFT |
+| 188 | Skiploom | CHUNSOFT |
+| 189 | Jumpluff | CHUNSOFT |
+| 190 | Aipom | CHUNSOFT, JFain |
+| 191 | Sunkern | CHUNSOFT, Emboarger |
+| 192 | Sunflora | CHUNSOFT |
+| 193 | Yanma | CHUNSOFT |
+| 194 | Wooper | CHUNSOFT, Caitemis, Anon, Uni |
+| 195 | Quagsire | CHUNSOFT |
+| 196 | Espeon | CHUNSOFT |
+| 197 | Umbreon | CHUNSOFT, JFain, Emmuffin |
+| 198 | Murkrow | CHUNSOFT, Smalusion, Caitemis |
+| 199 | Slowking | CHUNSOFT |
+| 200 | Misdreavus | CHUNSOFT, Emboarger |
+| 201 | Unown | CHUNSOFT |
+| 202 | Wobbuffet | CHUNSOFT |
+| 203 | Girafarig | CHUNSOFT, JFain |
+| 204 | Pineco | CHUNSOFT |
+| 205 | Forretress | CHUNSOFT |
+| 206 | Dunsparce | CHUNSOFT, G〜, Hanbei |
+| 207 | Gligar | CHUNSOFT, JFain |
+| 208 | Steelix | CHUNSOFT |
+| 209 | Snubbull | CHUNSOFT, Emmuffin |
+| 210 | Granbull | CHUNSOFT |
+| 211 | Qwilfish | CHUNSOFT |
+| 212 | Scizor | CHUNSOFT |
+| 213 | Shuckle | CHUNSOFT |
+| 214 | Heracross | CHUNSOFT |
+| 215 | Sneasel | CHUNSOFT, JFain, Grimlin |
+| 216 | Teddiursa | CHUNSOFT, Emmuffin |
+| 217 | Ursaring | CHUNSOFT |
+| 218 | Slugma | CHUNSOFT |
+| 219 | Magcargo | CHUNSOFT |
+| 220 | Swinub | CHUNSOFT, Caitemis |
+| 221 | Piloswine | CHUNSOFT |
+| 222 | Corsola | CHUNSOFT |
+| 223 | Remoraid | CHUNSOFT |
+| 224 | Octillery | CHUNSOFT |
+| 225 | Delibird | CHUNSOFT, G〜, FlowerSnek |
+| 226 | Mantine | CHUNSOFT |
+| 227 | Skarmory | CHUNSOFT |
+| 228 | Houndour | CHUNSOFT, JFain |
+| 229 | Houndoom | CHUNSOFT |
+| 230 | Kingdra | CHUNSOFT |
+| 231 | Phanpy | CHUNSOFT |
+| 232 | Donphan | CHUNSOFT, Emmuffin |
+| 233 | Porygon2 | CHUNSOFT |
+| 234 | Stantler | CHUNSOFT |
+| 235 | Smeargle | CHUNSOFT, Emmuffin |
+| 236 | Tyrogue | CHUNSOFT, Caitemis |
+| 237 | Hitmontop | CHUNSOFT |
+| 238 | Smoochum | CHUNSOFT, baronessfaron |
+| 239 | Elekid | CHUNSOFT |
+| 240 | Magby | CHUNSOFT, Emboarger |
+| 241 | Miltank | CHUNSOFT |
+| 242 | Blissey | CHUNSOFT |
+| 243 | Raikou | CHUNSOFT |
+| 244 | Entei | CHUNSOFT |
+| 245 | Suicune | CHUNSOFT |
+| 246 | Larvitar | CHUNSOFT, JFain |
+| 247 | Pupitar | CHUNSOFT |
+| 248 | Tyranitar | CHUNSOFT |
+| 249 | Lugia | CHUNSOFT |
+| 250 | Ho-Oh | CHUNSOFT |
+| 251 | Celebi | CHUNSOFT, Smalusion, Emmuffin |

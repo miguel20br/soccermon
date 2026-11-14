@@ -30,3 +30,21 @@ describe('vaga da carta Evento na prancheta', () => {
         expect(html).not.toContain(`--t1:${TYPE_COLOR.Rock}`);
     });
 });
+
+describe('nome das vagas do banco', () => {
+    // no draft do Duelo a 1ª escolha (o capitão) cai na 1ª vaga do banco, que dizia "Banco"
+    it('a vaga pode ter nome próprio (Capitão); sem nome, continua Banco', () => {
+        const board = (benchLabels?: string[]) =>
+            renderToStaticMarkup(
+                createElement(FormationBoard, {
+                    formation: '1-2-1',
+                    lineup: [],
+                    bench: ['', ''],
+                    byUid: new Map(),
+                    benchLabels,
+                } as never),
+            );
+        expect(board(['Capitão', 'Banco'])).toContain('Capitão');
+        expect(board()).not.toContain('Capitão');
+    });
+});
