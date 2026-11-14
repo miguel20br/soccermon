@@ -15,7 +15,11 @@
  * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal; 0.25 = câmera lenta
  * lisa). --largura: px. --modo canvas|pagina. --nomes / --textos: mantêm os nomes em cima dos Pokémon e os
  * textos do jogo (padrão: sem os dois). --faixa: sem os textos, mas com a faixa do drible com nome (no --vertical ela
- * entra no recorte, como no clipe do jogo).
+ * entra no recorte, como no clipe do jogo). --faixa-y <0..1>: a faixa sempre nessa altura do recorte (a mesma em todos os
+ * lances, pra casar com o que a edição põe do lado); --faixa-atraso <ms>: a faixa entra esse tanto depois (no chapéu, depois
+ * que a bola passou por cima de onde ela fica).
+ * --lento "a:b:f[:r],...": câmera lenta de verdade (o jogo inteiro anda f do passo, sprites e tweens juntos) entre os
+ * segundos de partida a e b (os mesmos do --de/--ate; tick/20), com rampa suave de r s (padrão 0,3) de cada lado.
  * CHROME_PATH aponta o Chromium/Chrome; BASE_URL o servidor de dev (padrão http://localhost:8080).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -42,6 +46,25 @@ const semNomes = !args.includes('--nomes');
 const semTextos = !args.includes('--textos');
 const comFaixa = args.includes('--faixa');
 const vertical = Number(arg('--vertical', 0));
+const faixaY = arg('--faixa-y') === undefined ? null : Number(arg('--faixa-y'));
+const faixaAtraso = Number(arg('--faixa-atraso', 0));
+const lentos = (arg('--lento') ?? '')
+    .split(',')
+    .filter(Boolean)
+    .map((x) => {
+        const [a, b, f, r = 0.3] = x.split(':').map(Number);
+        return { a, b, f, r };
+    });
+/** Fator da câmera lenta no segundo `t` do lance (1 = normal), com rampa em S. */
+const lentoEm = (t) => {
+    let k = 1;
+    for (const { a, b, f, r } of lentos) {
+        const fora = t < a ? (a - t) / r : t > b ? (t - b) / r : 0;
+        const s = Math.min(1, fora);
+        k = Math.min(k, f + (1 - f) * s * s * (3 - 2 * s));
+    }
+    return k;
+};
 if (!demo && (!cena || !seed)) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts) ou --demo');
 
 const TICK_RATE = 20; // FUTSAL_5.tickRate
@@ -141,7 +164,7 @@ await page.evaluate(
             // --faixa: a faixa grande (drible com nome, golpe) nasce com os textos visíveis
             if (comFaixa) {
                 const banner = sc.cine.superBanner.bind(sc.cine);
-                sc.cine.superBanner = (...a) => {
+                const agora = (...a) => {
                     const [t, c] = [sc.add.text, sc.add.container];
                     Object.assign(sc.add, { text: addText, container: addContainer });
                     try {
@@ -150,6 +173,9 @@ await page.evaluate(
                         Object.assign(sc.add, { text: t, container: c });
                     }
                 };
+                // (o setTimeout aqui já é o do relógio falso: anda com o jogo, inclusive na câmera lenta)
+                sc.cine.superBanner = (...a) =>
+                    window.__faixaAtraso ? window.setTimeout(() => agora(...a), window.__faixaAtraso) : agora(...a);
             }
         }
         // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
@@ -259,6 +285,14 @@ await page.evaluate(
     semTextos,
     comFaixa,
 );
+await page.evaluate(
+    (y, ms) => {
+        window.__faixaY = y;
+        window.__faixaAtraso = ms;
+    },
+    faixaY,
+    faixaAtraso,
+);
 // câmera fechada (--vertical): um recorte 9:16 do canvas seguindo a bola (mola amortecida), ampliado inteiro com o
 // vizinho mais próximo e depois reduzido suave pra 1080x1920 (pixel quadrado sem borrar)
 await page.evaluate(() => {
@@ -288,7 +322,10 @@ await page.evaluate(() => {
         if (gol) b = naTela(gol.by);
         else if (drible && (!chute || t < chute.tick)) {
             const q = naTela(drible.by);
-            b = { x: (b.x + q.x) / 2, y: (b.y + q.y) / 2 };
+            // no próprio drible, mais perto de quem dribla: com o meio, a bola no alto (lambreta, chapéu) puxava a câmera
+            // pra cima e o Pokémon ia pra beira de baixo do quadro (embaixo da legenda do app); só nele, a bola saía por cima
+            const k = Math.abs(t - drible.tick) < 24 ? 0.3 : 0.5;
+            b = { x: q.x + (b.x - q.x) * k, y: q.y + (b.y - q.y) * k };
         }
         const alvo = {
             x: Math.max(0, Math.min(src.width - w, b.x * kx - w / 2)),
@@ -302,7 +339,7 @@ await page.evaluate(() => {
         // e encolhem na mesma conta (o clipe do jogo pega a altura toda; este, só `h` px dela), com folga de 20% pros
         // botões do app na direita
         for (const pin of sc.cine.pins.values()) {
-            pin.fy ??= pin.sy / altura;
+            pin.fy ??= window.__faixaY ?? pin.sy / altura;
             pin.k0 ??= pin.scale;
             pin.sy = (cam.y + pin.fy * h) / kx;
             pin.scale = (0.8 * pin.k0 * h) / src.height;
@@ -388,7 +425,7 @@ while ((await tick()) < to * TICK_RATE) {
         console.log(`o relógio parou no tick ${agora.toFixed(0)}; parando`);
         break;
     }
-    const url = await step(DT, modo !== 'pagina');
+    const url = await step(DT * lentoEm(agora / TICK_RATE), modo !== 'pagina');
     let b64;
     if (modo === 'pagina') {
         ({ data: b64 } = await cdp.send('Page.captureScreenshot', { format: 'png', clip: box }));

@@ -66,7 +66,8 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=dribles&tipo=lambreta|roleta|elastico|chapeu` abre na escalação uma partida de um time de DRI alta (Pikachu,
  * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
  * procura a partir da copa N; `&gol=1`: só o drible do seu time que vira gol em até 6 s, o "Lance da semana";
- * `&nosso=1`: só os dribles do seu time);
+ * `&nosso=1`: só os dribles do seu time; `&quem=<nº da Pokédex>`: só os dribles desse Pokémon; `&time=143,25,6,94,151`:
+ * outro time, goleiro primeiro e capitão por último);
  * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).
  * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
@@ -845,11 +846,13 @@ export function runDevDemo() {
         const nosso = q.get('nosso') === '1';
         let skip = Number(q.get('n') ?? 0);
         const from = Number(q.get('k') ?? 0);
+        const quem = Number(q.get('quem') ?? 0);
+        const ids = q.get('time')?.split(',').map(Number) ?? [25, 123, 53, 135, 151];
         for (let k = from; k < from + 200; k++) {
             store.newRun('Demo FC', `dri${k}`);
             const base = useGame.getState().run!;
             const rng = new Rng(`dri${k}`, 'demo');
-            const lineup = [25, 123, 53, 135, 151].map((id) => createInstance(id, rng));
+            const lineup = ids.map((id) => createInstance(id, rng));
             const run = {
                 ...base,
                 formation: '1-2-1' as const,
@@ -873,6 +876,7 @@ export function runDevDemo() {
                           d.kind === tipo &&
                           ok(d.tick) &&
                           (!nosso || d.team === 0) &&
+                          (!quem || lineup.find((p) => p.uid === r.roster[d.by].uid)?.speciesId === quem) &&
                           (!gol ||
                               (d.team === 0 &&
                                   r.events.some(
