@@ -152,13 +152,13 @@ export default function news() {
     // 8–9 · a Rota (C8, 8): o ₽ sobe moeda por moeda, as 9 do +₽9 (pentatônica de Dó subindo, uma por linha)
     for (const [k, p] of [0, 3, 5, 7, 10, 12, 15, 17, 19].entries()) moeda.note(8 * 16 + 10 + k, p - 5, 0, 0.75);
     groove(9, 'F7');
-    // 9 · PAY DAY! (8): o Meowth canta alto, os metais batem, e chovem 11 moedas descendo a escala (o Meowth junta no C10, 5)
+    // 9 · PAY DAY! (8): o Meowth canta alto, os metais batem, e chovem 9 moedas descendo a escala (o Meowth junta no C10, 3)
     mel(mia, 9, ['r:8 C6:3 G5:5']);
     stabs(met, 9, 'F9', [8, [11, 3]], { low: 60, n: 4 });
     drum(cr, 9, 1, '........X.......');
-    for (let k = 0; k < 11; k++) moeda.note(9 * 16 + 10 + k, 31 - Math.round(k * 2), 0, 0.85 - k * 0.03);
-    // o Meowth junta tudo (C10, 5): ka-ching
-    for (const [k, p] of [24, 31].entries()) moeda.note(10 * 16 + 6 + k, p, 0, 0.9);
+    for (let k = 0; k < 9; k++) moeda.note(9 * 16 + 10 + k, 31 - Math.round(k * 2.5), 0, 0.85 - k * 0.03);
+    // o Meowth junta tudo (C10, 3): ka-ching
+    for (const [k, p] of [24, 31].entries()) moeda.note(10 * 16 + 4 + k, p, 0, 0.9);
     groove(10, 'Cm7');
 
     // 10–11 · CONVIDADO: o Porygon chega (C10, 8) e a banda inteira fica borrada (BORRADO); ele canta "An-tes eu e-ra

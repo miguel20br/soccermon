@@ -390,9 +390,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       anim(tl, MEO, 'Hop', 0, t0, t0 + 0.6, { loop: false });
       anim(tl, MEO, 'Idle', 0, t0 + 0.6, FIM);
       flash(tl, t0, 0.4, 0.2);
-      // 11 moedas descendo (uma por linha da música, do C9 linha 10), quicando no tampo da bancada
+      // 9 moedas descendo (uma por linha da música, do C9 linha 10), quicando no tampo da bancada
       const caidas = [];
-      for (let k = 0; k < 11; k++) {
+      for (let k = 0; k < 9; k++) {
         const t = T(9, 10) + k * 0.125 - 0.3;
         const x = 120 + ((k * 263) % 560);
         const yf = 1150 - ((k * 37) % 30);
@@ -402,9 +402,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.fromTo(m, { y: -80, rotation: 0 }, { y: yf, rotation: 200 + k * 30, duration: 0.3, ease: 'power2.in', immediateRender: false }, t);
         tl.to(m, { keyframes: { y: [yf - 40, yf] }, duration: 0.2, ease: 'sine.inOut' }, t + 0.3);
       }
-      // o Meowth junta: o golpe de pata (Attack) e as moedas escorregam pra ele e somem
-      const tj = T(10, 5);
-      anim(tl, MEO, 'Attack', 0, tj, tj + 0.6, { loop: false });
+      // o Meowth junta: puxa com as patas (Charge; o bote do Attack passava da bancada) e as moedas escorregam pra ele e somem
+      const tj = T(10, 3);
+      anim(tl, MEO, 'Charge', 0, tj, tj + 0.6, { loop: false });
       anim(tl, MEO, 'Idle', 0, tj + 0.6, FIM);
       caidas.forEach(([m], k) => {
         tl.to(m, { x: 560, y: 1080, scale: 0.4, duration: 0.25, ease: 'power2.in' }, tj + 0.1 + (k % 6) * 0.03);
