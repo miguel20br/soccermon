@@ -142,12 +142,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   </div>
   <!-- molduras das telas do jogo (o vídeo vai por cima, fora de elemento com tempo) -->
   <div class="moldura" id="m-gomos" style="left:48px;top:742px;width:984px;height:493px"></div>
-  <div class="moldura" id="m-duelos" style="left:28px;top:508px;width:1024px;height:867px"></div>
-  <div class="moldura" id="m-patro" style="left:28px;top:588px;width:1024px;height:617px"></div>
+  <div class="moldura" id="m-duelos" style="left:28px;top:468px;width:1024px;height:950px"></div>
+  <div class="moldura" id="m-patro" style="left:28px;top:468px;width:1024px;height:950px"></div>
   <div class="moldura" id="m-rota" style="left:28px;top:478px;width:1024px;height:793px"></div>
   <!-- a contagem de níveis da barra, o destaque do Patrocínio e o contador de ₽ -->
   <div class="nivel" id="nivel"><b id="nv1">N1</b><b id="nv2">N2</b><b id="nv3">N3</b></div>
-  <div class="destaque" id="dest-patro" style="left:705px;top:640px;width:330px;height:505px"></div>
+  <div class="destaque" id="dest-patro" style="left:696px;top:774px;width:318px;height:616px"></div>
   <div class="contador" id="contador"><i>₽</i><b id="conta">27</b></div>
   <div id="fx-moedas"></div>
   <div class="carta3d" id="carta"><div class="sombra-c"></div><div class="gira" id="gira"><div class="verso"><img src="midia/logo-simbolo.svg" alt="" /></div><div class="face"></div></div></div>
@@ -163,9 +163,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <video id="v-gol1" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="0" data-duration="1.1" data-media-start="1.5"></video>
   <video id="v-gol2" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="1.1" data-duration="0.9" data-media-start="4.4"></video>
   <video id="v-gomos" class="painel" src="midia/news/gomos.mp4" muted playsinline data-start="4" data-duration="3" data-media-start="0.617" style="left:60px;top:754px;width:960px;height:469px"></video>
-  <video id="v-duelos" class="painel" src="midia/news/duelos-c.mp4" muted playsinline data-start="7" data-duration="3" data-media-start="0" style="left:40px;top:520px;width:1000px;height:843px"></video>
+  <video id="v-duelos" class="painel" src="midia/news/duelos-c.mp4" muted playsinline data-start="7" data-duration="3" data-media-start="0.55" style="left:40px;top:480px;width:1000px;height:926px"></video>
   <video id="v-trave" class="jogo" src="midia/news/trave.mp4" muted playsinline data-start="10" data-duration="3" data-media-start="0.55"></video>
-  <video id="v-patro" class="painel" src="midia/news/patrocinio-c.mp4" muted playsinline data-start="15" data-duration="2" data-media-start="0" style="left:40px;top:600px;width:1000px;height:593px"></video>
+  <video id="v-patro" class="painel" src="midia/news/patrocinio-c.mp4" muted playsinline data-start="15" data-duration="2" data-media-start="0" style="left:40px;top:480px;width:1000px;height:926px"></video>
   <video id="v-rota" class="painel" src="midia/news/rota-c.mp4" muted playsinline data-start="17" data-duration="2" data-media-start="0" style="left:40px;top:490px;width:1000px;height:769px"></video>
   <video id="v-close" class="jogo" src="midia/news/close.mp4" muted playsinline data-start="24" data-duration="4" data-media-start="0"></video>
 
@@ -390,9 +390,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       anim(tl, MEO, 'Hop', 0, t0, t0 + 0.6, { loop: false });
       anim(tl, MEO, 'Idle', 0, t0 + 0.6, FIM);
       flash(tl, t0, 0.4, 0.2);
-      // 22 moedas descendo (uma por linha da música, do C9 linha 10), quicando no tampo da bancada
+      // 11 moedas descendo (uma por linha da música, do C9 linha 10), quicando no tampo da bancada
       const caidas = [];
-      for (let k = 0; k < 22; k++) {
+      for (let k = 0; k < 11; k++) {
         const t = T(9, 10) + k * 0.125 - 0.3;
         const x = 120 + ((k * 263) % 560);
         const yf = 1150 - ((k * 37) % 30);
@@ -403,7 +403,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.to(m, { keyframes: { y: [yf - 40, yf] }, duration: 0.2, ease: 'sine.inOut' }, t + 0.3);
       }
       // o Meowth junta: o golpe de pata (Attack) e as moedas escorregam pra ele e somem
-      const tj = T(10, 6);
+      const tj = T(10, 5);
       anim(tl, MEO, 'Attack', 0, tj, tj + 0.6, { loop: false });
       anim(tl, MEO, 'Idle', 0, tj + 0.6, FIM);
       caidas.forEach(([m], k) => {
@@ -495,7 +495,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       // os três na bancada pequena: pulam juntos no MON
       const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
       const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
-      const p = ator(FC, 137, { escala: 10, z: 20, x: 750, y: 1320 });
+      const p = ator(FC, 137, { escala: 10, z: 20, x: 750, y: 1270 });
       for (const [x, d] of [[a, 0], [m, 0], [p, 0]]) {
         anim(tl, x, 'Idle', d, t0, FIM);
         tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, T(19, 6));

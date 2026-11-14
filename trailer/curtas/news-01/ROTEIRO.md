@@ -20,7 +20,7 @@ plantão e trechos do jogo; sem voz, a fala vai em legenda embaixo (até 5 palav
 | 13–15 | Número da semana | Meowth de perto (a câmera chega), tarja MEOWTH · ECONOMIA; o 40% no telão em 14 s | Esse quadro é meu. | PATROCÍNIO NA RECOMPENSA (14 s) |
 | 15–17 | Número da semana | o 1 de 3: o pacote abre e o Patrocínio (Charanga de Pewter) ganha a moldura dourada | — | (segue) |
 | 17–19 | Número da semana | vitória num Jogo da Rota (+₽9); as 9 moedas voam pro contador, 27 → 36 | — | ₽3 POR JOGO NA ROTA |
-| 19–21 | Número da semana | bancada: chovem 22 moedas, o Meowth pula e junta tudo com a pata | Pay Day! | (segue) |
+| 19–21 | Número da semana | bancada: chovem 11 moedas, o Meowth pula e junta tudo com a pata | Pay Day! | (segue) |
 | 21–24 | Convidado | Porygon chega na cadeira; ele e o estúdio borrados; tarja PORYGON · CONVIDADO | Antes eu era borrado. | — |
 | 24–28 | Convidado | a quadra de perto, nítida, o lance correndo | Agora eu tenho quina. | SPRITES NÍTIDOS |
 | 28–30 | Convidado | o Porygon gira uma vez na cadeira | — | MAIS LEVE NO CELULAR |
