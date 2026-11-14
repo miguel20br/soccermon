@@ -2,7 +2,7 @@ import { type LinkAsk, useCloud } from '../cloud/cloud';
 import type { SaveSummary } from '../cloud/reconcile-plan';
 import { maxCharge } from '../engine/agency';
 import { ENGINE_VERSION, FUTSAL_5 } from '../engine/config';
-import { clubLeader, cupRival } from '../engine/cup';
+import { CLUBS, clubLeader, cupRival } from '../engine/cup';
 import { isMatchKind, matchIndexOfRow } from '../engine/cup-map';
 import { SPECIES, species } from '../engine/data';
 import { aiDraftTeam } from '../engine/draft';
@@ -67,7 +67,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * Scyther, Persian, Jolteon, Mew) que, ao começar, está a 3 s desse drible com nome (`&n=1`: o segundo achado; `&k=N`:
  * procura a partir da copa N; `&gol=1`: só o drible do seu time que vira gol em até 6 s, o "Lance da semana";
  * `&nosso=1`: só os dribles do seu time; `&quem=<nº da Pokédex>`: só os dribles desse Pokémon; `&time=143,25,6,94,151`:
- * outro time, goleiro primeiro e capitão por último);
+ * outro time, goleiro primeiro e capitão por último; `&rival=74,66,56,57,106`: o rival com esses Pokémon, no clube da
+ * cidade `&clube=` (padrão Vermilion: a quadra e a cor dele); `&em=<tick>` com `&k=N`: abre a 3 s desse tick da copa N,
+ * sem procurar drible);
  * `&defesa=1`: a 3 s de uma defesa do goleiro rival (o mergulho com a poeirinha).
  * `?demo=monotipo&n=5|6|7` abre na escalação um time todo Água, com 0, 1 ou 2 reservas Água (selo e aura do monotipo).
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
@@ -848,6 +850,9 @@ export function runDevDemo() {
         const from = Number(q.get('k') ?? 0);
         const quem = Number(q.get('quem') ?? 0);
         const ids = q.get('time')?.split(',').map(Number) ?? [25, 123, 53, 135, 151];
+        const rivalIds = q.get('rival')?.split(',').map(Number);
+        const club = CLUBS.find((c) => c.city === (q.get('clube') ?? 'Vermilion')) ?? CLUBS[0];
+        const em = Number(q.get('em') ?? 0);
         for (let k = from; k < from + 200; k++) {
             store.newRun('Demo FC', `dri${k}`);
             const base = useGame.getState().run!;
@@ -864,26 +869,43 @@ export function runDevDemo() {
                 status: 'lineup' as const,
             };
             const team = { ...playerTeam(run), manualSubs: true };
-            const opp = run.opponents[0];
+            const rl = rivalIds?.map((id) => createInstance(id, rng));
+            const opp = rl
+                ? {
+                      name: club.name,
+                      lineup: rl,
+                      bench: [],
+                      tactic: club.tactic,
+                      color: club.color,
+                      formation: club.formation,
+                      captainUid: rl[4].uid,
+                  }
+                : run.opponents[0];
+            run.opponents = [opp, ...run.opponents.slice(1)];
             const r = runMatch(FUTSAL_5, team, opp, `${run.seed}-stage-0`);
             // só no 1º tempo: no intervalo a copa refaz a partida com o que o técnico decidiu
             const ht = r.events.find((e) => e.type === 'halftime')?.tick ?? 0;
             const ok = (t: number) => t > 200 && t < ht;
-            const tick = defesa
-                ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
-                : namedDribblesOf(r, [team, opp]).find(
-                      (d) =>
-                          d.kind === tipo &&
-                          ok(d.tick) &&
-                          (!nosso || d.team === 0) &&
-                          (!quem || lineup.find((p) => p.uid === r.roster[d.by].uid)?.speciesId === quem) &&
-                          (!gol ||
-                              (d.team === 0 &&
-                                  r.events.some(
-                                      (e) =>
-                                          e.type === 'goal' && e.team === 0 && e.tick > d.tick && e.tick < d.tick + 120,
-                                  ))),
-                  )?.tick;
+            const tick = em
+                ? em
+                : defesa
+                  ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
+                  : namedDribblesOf(r, [team, opp]).find(
+                        (d) =>
+                            d.kind === tipo &&
+                            ok(d.tick) &&
+                            (!nosso || d.team === 0) &&
+                            (!quem || lineup.find((p) => p.uid === r.roster[d.by].uid)?.speciesId === quem) &&
+                            (!gol ||
+                                (d.team === 0 &&
+                                    r.events.some(
+                                        (e) =>
+                                            e.type === 'goal' &&
+                                            e.team === 0 &&
+                                            e.tick > d.tick &&
+                                            e.tick < d.tick + 120,
+                                    ))),
+                    )?.tick;
             if (tick === undefined || skip-- > 0) continue;
             const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
