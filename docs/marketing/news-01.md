@@ -1,57 +1,76 @@
 # Soccermon News #1 (pauta 21, sex 20/11 19h)
 
-Jornalístico, sem trama de sitcom: bancada, vinheta de plantão e trechos do jogo. Nada do enredo do Pallet FC.
-Duração: 41 s. Sem voz: as falas entram em legenda embaixo, até 5 palavras cada.
+Telejornal de verdade (v3, aprovado pelo Miguel em 14/11): o Alakazam apresenta, o Meowth é o repórter ao vivo da
+Rota e um jogador do Pallet FC é o convidado do estúdio. As falas entram numa caixa de diálogo no estilo dos jogos de
+Pokémon (nome de quem fala, texto letra por letra, 3 a 3,5 s cada); a manchete fica parada em cima durante cada
+matéria. Sem voz. ~65 s.
 
-A 0.9.51 subiu em 13/11 (e a 0.9.52, só de textos, no mesmo dia): os estão resolvidos.
+**Regras do News** (Miguel, 14/11):
+- abre com o apresentador se apresentando e a escalada de 3 matérias principais, "e mais";
+- notícia boba não entra (conserto pequeno, como os sprites que deixaram de ficar borrados: o ideal é ninguém ter visto
+  o bug). Semana fraca de novidade ganha quadro: bastidores do Vestiário do Pallet FC, um jogador deles no estúdio;
+- cada matéria diz o que mudou em palavras que quem nunca jogou entende e explica o termo do jogo na primeira vez;
+  a piada sai da notícia.
 
-O que entrou na 0.9.51 (`git log origin/main..origin/v0951`, 13/11):
-- Copa do Dia e Relâmpago sem ₽ nem Mercado; Patrocínio em 40% das recompensas (`SPONSOR_REWARD_CHANCE = 0.4`);
-- Rota: o Jogo vencido paga ₽3 (`ROTA_JOGO_PAY = 3`) no lugar do 1 de 3 do rival;
-- barrinha de N nova, a versão Gomos;
-- Duelo sem o BETA: Seus duelos na Arena (os últimos 8 e o placar contra cada amigo), Revanche no fim;
-- canvas na resolução da tela (sprites nítidos), governador de fps e qualidade (mais leve no celular);
-- squash & stretch: a bola amassa no chute forte, a trave treme, quem faz o gol pula e amassa ao aterrissar.
-
-## Elenco desta semana
-
-- **Alakazam · APRESENTADOR:** sério, segura a colher como caneta.
-- **Meowth · ECONOMIA:** tudo que é ₽ passa por ele.
-- **Convidado da semana: Porygon**, que é feito de pixel e veio falar dos sprites nítidos.
-
-Quadros: Plantão, Número da semana, Convidado da semana e Vem aí (com o anúncio: uma atualização por semana, pedido do Miguel em 13/11).
+A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogadas".
 
 ## Roteiro
 
-| Seg. | Quadro | Imagem | Fala (legenda) | Cartela |
-|---|---|---|---|---|
-| 0 | Gancho | Trecho do jogo em câmera lenta: o artilheiro pula, amassa ao aterrissar, a rede balança | — | SAIU A 0.9.51 |
-| 2 | Vinheta | Vinheta de plantão (1 s) e a bancada. Tarjas ALAKAZAM · APRESENTADOR e MEOWTH · ECONOMIA | Alakazam: Boa noite. | SOCCERMON NEWS #1 |
-| 4 | Plantão | A barrinha de N enchendo gomo por gomo até o N3 | — | BARRA DE GOLPE NOVA |
-| 7 | Plantão | Arena, Seus duelos: o placar contra cada amigo | — | PLACAR CONTRA CADA AMIGO |
-| 10 | Plantão | Chute forte: a bola amassa, bate na trave, a trave treme | — | A BOLA AMASSA |
-| 13 | Número da semana | Meowth na bancada; o 40% grande na tela; corta pra recompensa 1 de 3 com o Patrocínio no lugar do último item | Meowth: Esse quadro é meu. | PATROCÍNIO NA RECOMPENSA |
-| 17 | Número da semana | Trecho da Rota: vitória num Jogo e o ₽ subindo. Volta pra bancada: chovem moedas e o Meowth junta tudo com as patas | Meowth: Pay Day! | ₽3 POR JOGO NA ROTA |
-| 21 | Convidado da semana | Porygon na cadeira ao lado da bancada. Tarja PORYGON · CONVIDADO | Porygon: Antes eu era borrado. | — |
-| 24 | Convidado da semana | Close de um Pokémon na quadra no celular, nítido, a partida correndo lisa | Porygon: Agora eu tenho quina. | SPRITES NÍTIDOS |
-| 28 | Convidado da semana | O Porygon gira uma vez na cadeira | — | MAIS LEVE NO CELULAR |
-| 30 | Vem aí | Alakazam na bancada; atrás, um calendário com uma bola em cada semana | Alakazam: Agora é uma atualização por semana. | ATUALIZAÇÃO TODA SEMANA |
-| 33 | Vem aí | Alakazam; atrás, a fatia do Time Ultimate no menu de modos e uma carta ouro virando | Alakazam: Sexta que vem, Time Ultimate. | TIME ULTIMATE 27/11 |
-| 36 | Vem aí | A carta termina de virar | — | FALTAM 7 DIAS |
-| 38 | Tela final | soccermon.com | — | Temos que chutar! · soccermon.com |
+**Abertura**
+| Imagem | Fala | Manchete |
+|---|---|---|
+| Gol em câmera lenta, o artilheiro amassa ao cair; vinheta de plantão | — | SOCCERMON NEWS #1 |
+| Bancada | **Alakazam:** Boa noite! Eu sou o Alakazam, seu apresentador desta noite. | |
+| Bancada | **Alakazam:** No Soccermon News de hoje: as novidades da versão 0.9.51, e mais. | |
 
-**Gravação:** os trechos do jogo saem da prévia da v0951 no modo fumaça (`?vel=`), 9:16, sem nome em cima dos
-Pokémon. A bancada é animada como os curtas (sprites PMD). Música: vinheta de plantão curta, própria, no molde da
-`livre-ditto`.
+**Escalada** (imagem rápida de cada matéria, ~2,5 s cada)
+| Imagem | Fala | Manchete |
+|---|---|---|
+| A recompensa 1 de 3 com o Patrocínio | **Alakazam:** A Copa do Dia muda a recompensa da vitória. | RECOMPENSA NOVA NA COPA DO DIA |
+| Meowth de microfone na Rota | **Alakazam:** Nosso repórter entra ao vivo da Rota Índigo. | AO VIVO DA ROTA ÍNDIGO |
+| A fatia do Time Ultimate no menu | **Alakazam:** O Time Ultimate já tem data pra abrir. | TIME ULTIMATE TEM DATA |
+| Silhueta do Psyduck atrás da porta do estúdio | **Alakazam:** E mais: o técnico do Pallet FC aqui no estúdio. | E MAIS |
 
-**Vocês disseram** entra a partir do #2, quando tiver comentário bom de algum post. **Previsão do meta** fica pra
-semana em que mudar equilíbrio.
+**Matéria 1: Copa do Dia**
+| Imagem | Fala | Manchete |
+|---|---|---|
+| Recompensa 1 de 3 | **Alakazam:** Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou. | RECOMPENSA NOVA |
+| A carta do Patrocínio | **Alakazam:** Em 4 de cada 10 vitórias, uma das opções é um Patrocínio… | |
+| A carta ampliada ("+4 em tudo enquanto o time perde") | **Alakazam:** …um bônus forte que vale pro time inteiro. | |
+
+**Matéria 2: ao vivo da Rota**
+| Imagem | Fala | Manchete |
+|---|---|---|
+| Bancada | **Alakazam:** Agora, ao vivo da Rota Índigo, nosso repórter Meowth. | AO VIVO · ROTA ÍNDIGO |
+| Meowth na quadra, de microfone | **Meowth:** Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. | |
+| Chovem moedas, o Meowth enche os bolsos | **Alakazam:** Meowth, essas moedas são dos jogadores. | |
+| Meowth com as bochechas cheias | **Meowth:** Que moedas? | |
+
+**Quadro: Vestiário do Pallet FC**
+| Imagem | Fala | Manchete |
+|---|---|---|
+| Trecho do ep. 2 "Bola fora": o Voltorb explode no chute do Pikachu | **Alakazam:** No Vestiário do Pallet FC, uma bola explodiu no treino. | VESTIÁRIO DO PALLET FC |
+| Psyduck na cadeira do convidado, ainda tostado, prancheta queimada | **Alakazam:** Psyduck, como um Voltorb foi parar no saco de bolas? | PSYDUCK · TÉCNICO |
+| Psyduck olha a prancheta | **Psyduck:** Eu contei treze bolas. | |
+| Psyduck segura a cabeça | **Psyduck:** A gente tem doze. | |
+
+**Aviso e Time Ultimate**
+| Imagem | Fala | Manchete |
+|---|---|---|
+| Calendário com uma bola em cada semana | **Alakazam:** Um aviso: a partir de agora, sai atualização nova toda semana. | TODA SEMANA |
+| Tela do Time Ultimate | **Alakazam:** E na sexta que vem, dia 27, abre o Time Ultimate… | TIME ULTIMATE · 27/11 |
+| A carta ouro virando | **Alakazam:** …o modo novo em que você abre pacotes e monta o time da temporada. | |
+| Bancada com os três | **Alakazam:** Boa noite, e temos que chutar! | |
+| Tela final | — | Temos que chutar! · soccermon.com |
+
+Fora desta edição: sprites nítidos (conserto), barra de golpe, a bola amassando, Seus duelos (o Duelo saindo do BETA
+pode abrir o #2).
 
 ## Legenda do post
 
 **TikTok**
 > Chegou a 0.9.51 do Soccermon! ⚽ Qual novidade você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt
-> #pokemon #futsal #soccermon #meowth #porygon
+> #pokemon #futsal #soccermon #meowth #psyduck
 
 **Instagram (Reels)**
 > Chegou a 0.9.51 do Soccermon! ⚽ Qual novidade você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/ig (link na bio)
