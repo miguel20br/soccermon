@@ -1,12 +1,14 @@
 <!doctype html>
 <!--
-  Soccermon News #1 (9:16, 41 s): o jornal da semana da 0.9.51. Roteiro em ROTEIRO.md (docs/marketing/news-01.md).
+  Soccermon News #1 v2 (9:16, 35 s, mais calma): o jornal da semana da 0.9.51. Roteiro em ROTEIRO.md. Regra de leitura:
+  um texto por vez (cartela, tarja ou fala), cada um parado no mínimo 2 s, até 5 palavras.
   Bancada animada com os sprites PMD (Alakazam apresentador, Meowth da economia, Porygon convidado), vinheta de plantão e
   trechos do jogo gravados headless: os lances da quadra pelo scripts/trailer-capture.mjs (--demo dribles&evento=goal|post,
-  --vertical) e as telas pelo capturar.mjs desta pasta (relógio parado, 30 fps). Sem voz: a fala vai em legenda embaixo.
-  Música: scripts/musica/pecas/news-plantao.mjs (120 BPM, compasso = 2 s), em midia/som/news-14.wav. Tempos: T(compasso,
+  --vertical) e as telas pelo capturar.mjs desta pasta (relógio parado, 30 fps); a barra de golpe em gomos-lento.mp4
+  (os gomos acendem em 4,25, 5 e 6 s). Sem voz: a fala vai em legenda embaixo.
+  Música: scripts/musica/pecas/news-plantao.mjs (120 BPM, compasso = 2 s, 18 compassos), em midia/som/news-14.wav. Tempos: T(compasso,
   linha) da música.
-  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v1.mp4
+  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v2.mp4
 -->
 <html lang="pt-BR">
 <head>
@@ -26,10 +28,7 @@
   background: radial-gradient(circle at 50% 45%, #2a4ea0, #10183d 75%); border: 12px solid #0e1430; box-shadow: 0 0 0 8px #3a5bb0, 0 0 0 16px #0e1430, 0 24px 0 16px rgb(0 0 0 / 40%); }
 .telao .raios { left: 50%; top: 50%; }
 .telao > .tela { position: absolute; inset: 0; opacity: 0; display: flex; align-items: center; justify-content: center; }
-.telao .marca { flex-direction: column; gap: 6px; }
-.telao .marca b { font-size: 92px; letter-spacing: 6px; color: #ffcb05; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; }
-.telao .marca span { font-size: 54px; letter-spacing: 10px; color: #f8f8f0; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
-.telao .quadro b { font-size: 70px; color: #f8f8f0; letter-spacing: 4px; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-align: center; line-height: 1.15; }
+.telao .marca img { width: 300px; filter: drop-shadow(0 12px 0 #0e1430); }
 .telao .pct { font-size: 300px; line-height: 1; color: #ffcb05; -webkit-text-stroke: 26px #0e1430; paint-order: stroke fill; text-shadow: 0 18px 0 #0e1430; letter-spacing: 6px; }
 /* o calendário: as quatro sextas, uma bola em cada */
 .cal { flex-direction: column; gap: 26px; }
@@ -41,14 +40,15 @@
 .cal .dia small { font-size: 30px; color: #2a3a7a; letter-spacing: 2px; margin-top: -18px; }
 .cal .dia .bolinha { width: 120px; height: 120px; opacity: 0; }
 .cal .dia.ut { background: #ffcb05; }
-.fatia { position: absolute; left: 30px; top: 50%; width: 560px; margin: -253px 0 0 0; image-rendering: auto; opacity: 0; border-radius: 12px; }
+#m-fatia img { display: block; width: 100%; height: 100%; border-radius: 10px; }
+#t-pct { align-items: flex-start; padding-top: 40px; box-sizing: border-box; }
 /* a bancada: tampo amarelo e a frente com o letreiro */
-.mesa-n { position: absolute; left: 30px; top: 1140px; width: 720px; height: 260px; z-index: 30; }
-.mesa-n .tampo { position: absolute; left: 0; top: 0; width: 720px; height: 46px; box-sizing: border-box; border-radius: 14px; background: #ffcb05; border: 8px solid #0e1430; }
-.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: 660px; height: 160px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
+.mesa-n { position: absolute; left: 30px; top: 1140px; width: var(--w, 720px); height: 260px; z-index: 30; }
+.mesa-n .tampo { position: absolute; left: 0; top: 0; width: 100%; height: 46px; box-sizing: border-box; border-radius: 14px; background: #ffcb05; border: 8px solid #0e1430; }
+.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: calc(100% - 60px); height: 160px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
   box-shadow: inset 0 0 0 8px #2a4ea0; display: flex; align-items: center; justify-content: center; gap: 22px; }
-.mesa-n .frente b { font-size: 56px; letter-spacing: 4px; color: #ffcb05; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; line-height: 1; text-align: left; }
-.mesa-n .frente b span { color: #f8f8f0; }
+.mesa-n .frente img { height: 104px; }
+.mesa-n .frente i { width: 120px; height: 18px; border-radius: 9px; background: #ffcb05; border: 6px solid #0e1430; }
 .cadeira { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 8; }
 .cadeira .encosto { position: absolute; left: -110px; top: -300px; width: 220px; height: 230px; box-sizing: border-box; border-radius: 30px 30px 14px 14px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -16px 0 #b02a2a; }
 .cadeira .assento { position: absolute; left: -130px; top: -90px; width: 260px; height: 56px; box-sizing: border-box; border-radius: 16px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -12px 0 #b02a2a; z-index: 2; }
@@ -67,30 +67,24 @@
 .globo { position: absolute; left: 540px; top: 470px; width: 0; height: 0; z-index: 4; }
 .globo svg { position: absolute; left: -130px; top: -130px; width: 260px; height: 260px; overflow: visible; }
 /* o selo do programa no canto (quadro da vez) */
-#bug { position: absolute; left: 40px; top: 150px; z-index: 70; display: flex; align-items: stretch; opacity: 0; }
-#bug b { padding: 8px 18px; background: #e8423f; color: #fff; font-size: 34px; letter-spacing: 2px; border: 6px solid #0e1430; border-radius: 12px 0 0 12px; }
-#bug span { padding: 8px 18px; background: #10183d; color: #f8f8f0; font-size: 34px; letter-spacing: 2px; border: 6px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; min-width: 40px; }
+#bug { position: absolute; left: 40px; top: 140px; z-index: 70; display: flex; align-items: stretch; opacity: 0; }
+#bug b { padding: 6px 14px; background: #e8423f; color: #fff; font-size: 28px; letter-spacing: 2px; border: 6px solid #0e1430; border-radius: 12px 0 0 12px; }
+#bug span { padding: 6px 14px; background: #10183d; color: #c8d0f0; font-size: 28px; letter-spacing: 2px; border: 6px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; min-width: 40px; }
 /* cartela (caixa alta, 2 a 5 palavras) */
-.cartela-n { position: absolute; left: 60px; width: 960px; top: 230px; height: 220px; z-index: 72; display: flex; align-items: center; justify-content: center; text-align: center;
+.cartela-n { position: absolute; left: 60px; width: 960px; top: 230px; height: 220px; z-index: 85; display: flex; align-items: center; justify-content: center; text-align: center;
   font-size: 86px; line-height: 1.12; letter-spacing: 3px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; opacity: 0; }
 .cartela-n span b { color: #ffcb05; font-weight: 700; }
 /* a fala (legenda) e a tarja NOME · FUNÇÃO */
-.fala-n { position: absolute; left: 60px; width: 960px; top: 1490px; height: 140px; z-index: 74; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.15;
-  font-size: 64px; letter-spacing: 2px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; opacity: 0; }
-.tarja { position: absolute; top: 1400px; z-index: 73; display: flex; align-items: stretch; opacity: 0; }
-.tarja b { padding: 8px 20px; background: #ffcb05; color: #0e1430; font-size: 48px; letter-spacing: 2px; border: 7px solid #0e1430; border-radius: 12px 0 0 12px; }
-.tarja span { padding: 8px 18px; background: #10183d; color: #f8f8f0; font-size: 36px; letter-spacing: 2px; border: 7px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; display: flex; align-items: center; }
+.fala-n { position: absolute; left: 60px; width: 960px; top: 1490px; height: 140px; z-index: 85; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.15;
+  font-size: 76px; letter-spacing: 2px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; opacity: 0; }
+.tarja { position: absolute; top: 1400px; z-index: 85; display: flex; align-items: stretch; opacity: 0; }
+.tarja b { padding: 10px 24px; background: #ffcb05; color: #0e1430; font-size: 64px; letter-spacing: 2px; border: 7px solid #0e1430; border-radius: 12px 0 0 12px; }
+.tarja span { padding: 10px 22px; background: #10183d; color: #f8f8f0; font-size: 48px; letter-spacing: 2px; border: 7px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; display: flex; align-items: center; }
 /* as telas do jogo num painel com moldura (o vídeo fica por cima da moldura, fora dela no DOM) */
 .moldura { position: absolute; z-index: 20; box-sizing: border-box; border-radius: 22px; border: 12px solid #0e1430; background: #0e1430; box-shadow: 0 0 0 8px #ffcb05, 0 0 0 16px #0e1430, 0 26px 0 14px rgb(0 0 0 / 45%); opacity: 0; }
 video.jogo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 10; }
 video.painel { position: absolute; z-index: 21; border-radius: 10px; }
-.nivel { position: absolute; left: 540px; top: 620px; width: 0; height: 0; z-index: 25; }
-.nivel b { position: absolute; left: -160px; top: -90px; width: 320px; text-align: center; font-size: 150px; line-height: 1; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; opacity: 0; }
 .destaque { position: absolute; z-index: 24; box-sizing: border-box; border: 10px solid #ffcb05; border-radius: 22px; box-shadow: 0 0 0 7px #0e1430, inset 0 0 0 7px #0e1430; opacity: 0; }
-.contador { position: absolute; left: 290px; top: 1290px; width: 500px; height: 150px; z-index: 26; box-sizing: border-box; border-radius: 75px; display: flex; align-items: center; justify-content: center; gap: 26px;
-  background: #10183d; border: 12px solid #0e1430; box-shadow: 0 0 0 8px #ffcb05, 0 0 0 16px #0e1430; opacity: 0; }
-.contador i { width: 96px; height: 96px; border-radius: 50%; background: #ffcb05; border: 8px solid #0e1430; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 56px; color: #0e1430; }
-.contador b { font-size: 100px; color: #f8f8f0; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; min-width: 160px; text-align: left; }
 /* moedas (Pay Day, Rota): disco dourado com o ₽ */
 .moeda { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; z-index: 40; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00);
   border: 7px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 34px; color: #7a4a00; opacity: 0; }
@@ -113,8 +107,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="41">
-  <div id="cena" class="clip" data-start="0" data-duration="41">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="35">
+  <div id="cena" class="clip" data-start="0" data-duration="35">
     <!-- vinheta de plantão -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="faixa" id="fx1" style="top:300px;background:#e8423f"></div>
@@ -124,56 +118,44 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       <div class="placa-n" id="placa"><div class="fundo"></div><div class="l1">SOCCERMON</div><div class="l2">NEWS</div></div>
       <div class="n1" id="n1">#1</div>
     </div>
-    <!-- o estúdio: telão, bancada, a cadeira do convidado -->
+    <!-- o estúdio: telão, bancada larga (os três cabem atrás dela), a cadeira do convidado -->
     <div id="banc" class="cena estudio"><div id="cam" class="camada"><div class="grade"></div><div class="piso-n"></div>
       <div class="telao" id="telao"><div class="raios" id="raios-tel"></div>
-        <div class="tela marca" id="t-marca"><b>SOCCERMON</b><span>NEWS</span></div>
-        <div class="tela quadro" id="t-numero"><b>NÚMERO<br>DA SEMANA</b></div>
+        <div class="tela marca" id="t-marca"><img src="midia/logo-simbolo.svg" alt="" /></div>
         <div class="tela" id="t-pct"><span class="pct">40%</span></div>
-        <div class="tela quadro" id="t-conv"><b>CONVIDADO<br>DA SEMANA</b></div>
         <div class="tela cal" id="t-cal"><div class="topo"><i></i><i></i><i></i><i></i></div><div class="dias" id="dias"></div></div>
-        <div class="tela" id="t-fatia"><img class="fatia" id="fatia" src="midia/news/ultimate-fatia.png" alt="" /></div>
       </div>
-      <div class="cadeira" id="cadeira" style="transform:translate(850px,1330px)"><div class="encosto" id="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
-      <div class="mesa-n"><div class="tampo"></div><div class="frente"><b>SOCCERMON<br><span>NEWS</span></b></div></div>
+      <div class="cadeira" id="cadeira" style="transform:translate(840px,1330px)"><div class="encosto" id="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
+      <div class="mesa-n" style="--w:1020px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div>
     </div></div>
     <div id="fundo" class="cena estudio"><div class="raios" id="raios-fundo"></div></div>
-    <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"><div class="mesa-n" id="mesa-fim" style="left:180px;top:1240px"><div class="tampo"></div><div class="frente"><b>SOCCERMON<br><span>NEWS</span></b></div></div></div></div>
+    <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"><div class="mesa-n" id="mesa-fim" style="left:180px;top:1240px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div></div></div>
   </div>
-  <!-- molduras das telas do jogo (o vídeo vai por cima, fora de elemento com tempo) -->
+  <!-- moldura da barra de golpe (o vídeo vai por cima, fora de elemento com tempo) e o destaque dourado do Patrocínio -->
   <div class="moldura" id="m-gomos" style="left:48px;top:742px;width:984px;height:493px"></div>
-  <div class="moldura" id="m-duelos" style="left:28px;top:468px;width:1024px;height:950px"></div>
-  <div class="moldura" id="m-patro" style="left:28px;top:468px;width:1024px;height:950px"></div>
-  <div class="moldura" id="m-rota" style="left:28px;top:478px;width:1024px;height:793px"></div>
-  <!-- a contagem de níveis da barra, o destaque do Patrocínio e o contador de ₽ -->
-  <div class="nivel" id="nivel"><b id="nv1">N1</b><b id="nv2">N2</b><b id="nv3">N3</b></div>
-  <div class="destaque" id="dest-patro" style="left:696px;top:774px;width:318px;height:616px"></div>
-  <div class="contador" id="contador"><i>₽</i><b id="conta">27</b></div>
+  <div class="moldura" id="m-fatia" style="left:90px;top:560px;width:900px;height:814px"><img src="midia/news/ultimate-fatia.png" alt="" /></div>
+  <div class="destaque" id="dest-patro" style="left:364px;top:608px;width:512px;height:864px"></div>
   <div id="fx-moedas"></div>
   <div class="carta3d" id="carta"><div class="sombra-c"></div><div class="gira" id="gira"><div class="verso"><img src="midia/logo-simbolo.svg" alt="" /></div><div class="face"></div></div></div>
-  <div id="bug"><b>AO VIVO</b><span id="bug-q">PLANTÃO</span></div>
+  <div id="bug"><b>AO VIVO</b><span>PLANTÃO</span></div>
   <div class="cartela-n" id="cartela"><span id="cartela-t"></span></div>
   <div class="tarja" id="tj-ala" style="left:40px"><b>ALAKAZAM</b><span>APRESENTADOR</span></div>
-  <div class="tarja" id="tj-meo" style="left:40px"><b>MEOWTH</b><span>ECONOMIA</span></div>
   <div class="tarja" id="tj-por" style="left:40px"><b>PORYGON</b><span>CONVIDADO</span></div>
   <div class="fala-n" id="fala"><span id="fala-t"></span></div>
   <div class="flash" id="flash"></div>
 
   <!-- trechos do jogo -->
-  <video id="v-gol1" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="0" data-duration="1.1" data-media-start="1.5"></video>
-  <video id="v-gol2" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="1.1" data-duration="0.9" data-media-start="4.4"></video>
-  <video id="v-gomos" class="painel" src="midia/news/gomos.mp4" muted playsinline data-start="4" data-duration="3" data-media-start="0.617" style="left:60px;top:754px;width:960px;height:469px"></video>
-  <video id="v-duelos" class="painel" src="midia/news/duelos-c.mp4" muted playsinline data-start="7" data-duration="3" data-media-start="0.55" style="left:40px;top:480px;width:1000px;height:926px"></video>
-  <video id="v-trave" class="jogo" src="midia/news/trave.mp4" muted playsinline data-start="10" data-duration="3" data-media-start="0.55"></video>
-  <video id="v-patro" class="painel" src="midia/news/patrocinio-c.mp4" muted playsinline data-start="15" data-duration="2" data-media-start="0" style="left:40px;top:480px;width:1000px;height:926px"></video>
-  <video id="v-rota" class="painel" src="midia/news/rota-c.mp4" muted playsinline data-start="17" data-duration="2" data-media-start="0" style="left:40px;top:490px;width:1000px;height:769px"></video>
-  <video id="v-close" class="jogo" src="midia/news/close.mp4" muted playsinline data-start="24" data-duration="4" data-media-start="0"></video>
+  <video id="v-gol1" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="0" data-duration="1" data-media-start="1.3"></video>
+  <video id="v-gol2" class="jogo" src="midia/news/gol-pulo.mp4" muted playsinline data-start="1" data-duration="1" data-media-start="0" style="transform:scale(1.35);transform-origin:540px 520px"></video>
+  <video id="v-gomos" class="painel" src="midia/news/gomos-lento.mp4" muted playsinline data-start="3" data-duration="5" data-media-start="0" style="left:60px;top:754px;width:960px;height:469px"></video>
+  <video id="v-patro" class="painel" src="midia/news/patrocinio-c.mp4" muted playsinline data-start="10" data-duration="2" data-media-start="0" style="left:-700px;top:135px;width:1620px;height:1500px;border-radius:0;clip-path:inset(225px 0 0 0)"></video>
+  <video id="v-close" class="jogo" src="midia/news/close.mp4" muted playsinline data-start="18.5" data-duration="2.5" data-media-start="0.65"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="41" data-media-start="0" data-fade-out="0.5"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="35" data-media-start="0" data-fade-out="0.6"></audio>
 
   <script>
     const { T, div, ator, anim, quadro, flash, estouro, telaFinal, piscada } = C;
-    const FIM = 41;
+    const FIM = 35;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
@@ -182,69 +164,50 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       ver(CENAS, t, false);
       if (id) ver(id, t);
     };
-    /** Some de vez em t (o .cena começa escondido). */
     const BANC = $('cam');
 
-    // ===== textos: cartela, fala, tarjas e o selo do quadro =====
+    // ===== textos: UM por vez, cada um parado no mínimo 2 s (cartela no alto, tarja ou fala embaixo) =====
+    // [início, fim, texto]; a entrada é um pulinho de 0,1 s com o texto já inteiro
     const CARTELAS = [
-      [0, 2, 'SAIU A <b>0.9.51</b>'],
-      [3, 4, 'SOCCERMON NEWS <b>#1</b>'],
-      [4, 7, 'BARRA DE GOLPE <b>NOVA</b>'],
-      [7, 10, 'PLACAR CONTRA <b>CADA AMIGO</b>'],
-      [10, 13, 'A BOLA <b>AMASSA</b>'],
-      [14, 17, '<b>PATROCÍNIO</b> NA RECOMPENSA'],
-      [17, 21, '<b>₽3</b> POR JOGO NA ROTA'],
-      [24, 28, 'SPRITES <b>NÍTIDOS</b>'],
-      [28, 30, 'MAIS LEVE NO <b>CELULAR</b>'],
-      [30, 33, 'ATUALIZAÇÃO <b>TODA SEMANA</b>'],
-      [33, 36, '<b>TIME ULTIMATE</b> 27/11'],
-      [36, 38, 'FALTAM <b>7 DIAS</b>'],
+      [3.05, 5.5, 'BARRA DE GOLPE <b>NOVA</b>'],
+      [5.6, 8.0, 'ATÉ O <b>N3</b>'],
+      [10.0, 12.0, '<b>PATROCÍNIO</b> NA RECOMPENSA'],
+      [23.4, 26.0, 'ATUALIZAÇÃO <b>TODA SEMANA</b>'],
+      [30.0, 32.0, 'FALTAM <b>7 DIAS</b>'],
     ];
     for (const [a, z, txt] of CARTELAS) {
       tl.set('#cartela-t', { innerHTML: txt }, a);
       tl.set('#cartela', { opacity: 1 }, a);
-      tl.fromTo('#cartela', { scale: 1.35 }, { scale: 1, duration: 0.22, ease: 'back.out(2.2)', immediateRender: false }, a);
-      if (!CARTELAS.some(([b]) => Math.abs(b - z) < 1e-6)) tl.to('#cartela', { opacity: 0, duration: 0.15 }, z - 0.15);
+      tl.fromTo('#cartela', { scale: 1.08 }, { scale: 1, duration: 0.1, ease: 'power2.out', immediateRender: false }, a);
+      tl.set('#cartela', { opacity: 0 }, z);
     }
     const FALAS = [
-      [3.06, 4, 'Boa noite.'],
-      [13.0, 14.6, 'Esse quadro é meu.'],
-      [19.0, 21, 'Pay Day!'],
-      [21.5, 24, 'Antes eu era borrado.'],
-      [24.4, 27.6, 'Agora eu tenho quina.'],
-      [30.1, 31.55, 'Agora é uma atualização'],
-      [31.55, 33, 'por semana.'],
-      [33.25, 36, 'Sexta que vem, Time Ultimate.'],
+      [12.0, 14.0, 'Pay Day!'],
+      [16.45, 18.5, 'Antes eu era borrado.'],
+      [18.5, 21.0, 'Agora eu tenho quina.'],
     ];
     for (const [a, z, txt] of FALAS) {
       tl.set('#fala-t', { textContent: txt }, a);
       tl.set('#fala', { opacity: 1 }, a);
-      tl.fromTo('#fala', { y: 16 }, { y: 0, duration: 0.15, ease: 'power2.out', immediateRender: false }, a);
+      tl.fromTo('#fala', { y: 8 }, { y: 0, duration: 0.1, ease: 'power2.out', immediateRender: false }, a);
       if (!FALAS.some(([b]) => Math.abs(b - z) < 1e-6)) tl.set('#fala', { opacity: 0 }, z);
     }
-    /** Tarja entra pela esquerda com overshoot e sai pro mesmo lado. */
-    const tarja = (id, a, z, y = 1345) => {
-      tl.set(id, { opacity: 1, top: y }, a);
-      tl.fromTo(id, { x: -700 }, { x: 0, duration: 0.25, ease: 'back.out(1.6)', immediateRender: false }, a);
-      tl.to(id, { x: -800, duration: 0.18, ease: 'power2.in' }, z - 0.18);
+    /** Tarja NOME · FUNÇÃO: entra pela esquerda em 0,18 s e some de uma vez (sozinha na tela). */
+    const tarja = (id, a, z) => {
+      tl.set(id, { opacity: 1 }, a);
+      tl.fromTo(id, { x: -900 }, { x: 0, duration: 0.18, ease: 'power3.out', immediateRender: false }, a);
       tl.set(id, { opacity: 0 }, z);
     };
-    tarja('#tj-ala', 3.0, 4.0, 1345);
-    tarja('#tj-meo', 3.12, 4.0, 1425);
-    tarja('#tj-meo', 13.0, 15.0);
-    tarja('#tj-por', 21.0, 24.0);
-    tarja('#tj-ala', 30.0, 31.6);
-    const QUADROS = [[4, 'PLANTÃO'], [13, 'NÚMERO DA SEMANA'], [21, 'CONVIDADO DA SEMANA'], [30, 'VEM AÍ']];
-    tl.set('#bug', { opacity: 1 }, 3.0);
-    for (const [a, q] of QUADROS) {
-      tl.set('#bug-q', { textContent: q }, a);
-      tl.fromTo('#bug', { scale: 1.12 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false, transformOrigin: '0% 50%' }, a);
-    }
-    tl.set('#bug', { opacity: 0 }, 38);
+    tarja('#tj-por', 14.1, 16.4);
+    tarja('#tj-ala', 21.05, 23.35);
+    // o selo pequeno do plantão: parado do começo da barra até a tela final
+    tl.set('#bug', { opacity: 0.9 }, 3.0);
+    tl.set('#bug', { opacity: 0 }, 32);
 
-    // ===== 0–2 · o gancho: o gol em câmera lenta (gol.mp4: a bola entra na rede; corte pro artilheiro pulando) =====
+    // ===== 0–2 · o gancho: o gol em câmera lenta (a bola entra; o flash do gol em 0,7 s) e o artilheiro pulando
+    // (gol-pulo.mp4: o pulo de 5,35 a 5,65 s do gol.mp4 a 0,6x, de perto) =====
     corta(null, 0);
-    flash(tl, 1.1, 0.5, 0.2);
+    flash(tl, 1, 0.5, 0.2);
 
     // ===== 2–3 · VINHETA DE PLANTÃO =====
     {
@@ -265,96 +228,60 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       estouro(tl, $('vin'), 855, 1115, T(1, 4), { tam: 260 });
     }
 
-    // ===== o estúdio: os três =====
-    // sentados atrás da bancada (tampo em 1140): o pé fica escondido, aparece do peito pra cima
-    const ALA = ator(BANC, 65, { escala: 16, z: 20, x: 250, y: 1250 });
-    // a sombra do Meowth fica atrás da bancada (nunca aparece): sem ela, o bote do Attack não conta como sombra solta
-    const MEO = ator(BANC, 52, { escala: 16, z: 20, x: 560, y: 1200, sombra: false });
-    const POR = ator(BANC, 137, { escala: 13, z: 12, x: 850, y: 1240, opacity: 0 });
+    // ===== o estúdio: os três atrás da bancada larga (o Porygon na cadeira dele, longe da borda) =====
+    const ALA = ator(BANC, 65, { escala: 16, z: 20, x: 230, y: 1250 });
+    const MEO = ator(BANC, 52, { escala: 16, z: 20, x: 520, y: 1200, sombra: false });
+    const POR = ator(BANC, 137, { escala: 13, z: 12, x: 840, y: 1240, opacity: 0 });
     gsap.set($('cadeira'), { opacity: 0 });
-    // o Alakazam e o Meowth respiram o tempo todo (Idle de frente); o Porygon só depois que chega
     anim(tl, ALA, 'Idle', 0, 0, FIM);
     anim(tl, MEO, 'Idle', 0, 0, FIM);
-    const telas = ['#t-marca', '#t-numero', '#t-pct', '#t-conv', '#t-cal', '#t-fatia'];
+    const telas = ['#t-marca', '#t-pct', '#t-cal'];
     const telao = (id, t) => {
       tl.set(telas, { opacity: 0 }, t);
       tl.set(id, { opacity: 1 }, t);
       tl.fromTo(id, { scale: 0.8 }, { scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
     };
-    tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 120, duration: FIM, ease: 'none', immediateRender: false }, 0);
+    tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 100, duration: FIM, ease: 'none', immediateRender: false }, 0);
     /** Câmera da bancada: escala e posição (origem no canto). */
-    const camera = (t, s = 1, x = 0, y = 0, d = 0) => (d ? tl.to('#cam', { scale: s, x, y, duration: d, ease: 'power2.inOut' }, t) : tl.set('#cam', { scale: s, x, y }, t));
+    const camera = (t, s = 1, x = 0, y = 0, d = 0) => (d ? tl.to('#cam', { scale: s, x, y, duration: d, ease: 'sine.inOut' }, t) : tl.set('#cam', { scale: s, x, y }, t));
     gsap.set('#cam', { transformOrigin: '0px 0px' });
 
-    // 3–4 · a bancada: "Boa noite." (a colher: o Alakazam levanta a colher, um brilho no 8 do C1)
+    // ===== 3–8 · a barra de golpe nova: os gomos acendem devagar até o N3 (gomos-lento.mp4: 4,25 s, 5 s e 6 s) =====
     {
-      const t0 = T(1, 8);
-      corta('#banc', t0);
-      camera(t0, 1);
-      telao('#t-marca', t0);
-      tl.to(ALA.corpo, { keyframes: { y: [-10, 0], rotation: [-3, 0] }, duration: 0.3, ease: 'sine.inOut' }, t0 + 0.1);
-      const br = div($('banc'), 'brilho-n');
-      gsap.set(br, { x: 380, y: 860 });
-      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.6, rotation: 90, opacity: 0, duration: 0.4, ease: 'power2.out', immediateRender: false }, t0);
-    }
-
-    // ===== 4–7 · PLANTÃO: a barrinha de N (Gomos) enchendo até o N3 =====
-    {
-      const t0 = 4;
+      const t0 = 3;
       corta('#fundo', t0);
-      tl.fromTo('#raios-fundo', { rotation: 0 }, { rotation: 40, duration: 9, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo('#raios-fundo', { rotation: 0 }, { rotation: 30, duration: 5, ease: 'none', immediateRender: false }, t0);
       ver('#m-gomos', t0);
-      ver('#m-gomos', 7, false);
+      ver('#m-gomos', 8, false);
       tl.fromTo('#m-gomos', { scale: 0.85 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-      // N1, N2 e N3 grandes em cima da barra, no gomo que acende (gomos.mp4: quadros 41, 60 e 82 a partir de 0,617 s)
-      const NIV = [[T(2, 6), '#nv1'], [T(2, 11), '#nv2'], [T(3, 1), '#nv3']];
-      NIV.forEach(([t, id], i) => {
-        tl.set(['#nv1', '#nv2', '#nv3'], { opacity: 0 }, t);
-        tl.set(id, { opacity: 1 }, t);
-        tl.fromTo(id, { scale: 2 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, t);
-        estouro(tl, document.getElementById('nivel').parentElement, 540, 620, t, { tam: 180 + 60 * i, cor: ['#ffcb05', '#ff8a1c', '#ff5c8a'][i] });
-      });
-      tl.set('#nv3', { opacity: 0 }, 7);
+      [[4.25, 568], [5.0, 700], [6.0, 828]].forEach(([t, x], i) =>
+        estouro(tl, $('fx-moedas'), x, 988, t, { tam: 180 + 70 * i, cor: ['#ffcb05', '#ff8a1c', '#ff5c8a'][i] }),
+      );
     }
-    // ===== 7–10 · Seus duelos: o placar contra cada amigo =====
-    {
-      const t0 = 7;
-      ver('#m-duelos', t0);
-      ver('#m-duelos', 10, false);
-      tl.fromTo('#m-duelos', { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-    }
-    // ===== 10–13 · a bola amassa (trave.mp4 de 0,55 s: o chute em 10,52 s, a trave em 12,4 s) =====
-    corta(null, 10);
-    flash(tl, 12.4, 0.35, 0.18);
 
-    // ===== 13–15 · NÚMERO DA SEMANA: o Meowth; o 40% no telão =====
+    // ===== 8–10 · o Meowth e o 40% no telão =====
     {
-      const t0 = T(6, 8);
+      const t0 = 8;
       corta('#banc', t0);
-      camera(t0, 1.08, -45, -80);
-      camera(t0, 1.15, -84, -150, 1.6);
-      telao('#t-numero', t0);
-      // ele levanta a pata pra câmera no "é meu"
-      anim(tl, MEO, 'Pose', 0, t0 + 0.6, t0 + 1.4, { loop: false });
-      anim(tl, MEO, 'Idle', 0, t0 + 1.4, FIM);
-      telao('#t-pct', T(7, 0));
-      tl.fromTo('#t-pct .pct', { rotation: -8 }, { rotation: 0, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, T(7, 0));
-      flash(tl, T(7, 0), 0.4, 0.2);
+      camera(t0, 1.12, -60, -60);
+      camera(t0, 1.18, -95, -110, 2);
+      telao('#t-pct', t0);
+      tl.fromTo('#t-pct .pct', { rotation: -8 }, { rotation: 0, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
+      flash(tl, t0, 0.4, 0.2);
+      anim(tl, MEO, 'Pose', 0, t0 + 0.3, t0 + 1.1, { loop: false });
+      anim(tl, MEO, 'Idle', 0, t0 + 1.1, FIM);
     }
-    // ===== 15–17 · o 1 de 3 com o Patrocínio no lugar do último =====
+    // ===== 10–12 · o 1 de 3 de perto: o Patrocínio (Charanga de Pewter) ganha a moldura dourada =====
     {
-      const t0 = T(7, 8);
+      const t0 = 10;
       corta('#fundo', t0);
-      ver('#m-patro', t0);
-      ver('#m-patro', 17, false);
-      tl.fromTo('#m-patro', { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-      // o pacote abre em ~0,4 s; o Patrocínio ganha a moldura dourada pulsando
-      tl.set('#dest-patro', { opacity: 1 }, t0 + 0.75);
-      tl.fromTo('#dest-patro', { scale: 1.3 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0 + 0.75);
-      tl.to('#dest-patro', { scale: 1.04, duration: 0.25, ease: 'sine.inOut', repeat: 3, yoyo: true }, t0 + 1.0);
-      tl.set('#dest-patro', { opacity: 0 }, 17);
+      tl.fromTo('#raios-fundo', { rotation: 30 }, { rotation: 45, duration: 2, ease: 'none', immediateRender: false }, t0);
+      tl.set('#dest-patro', { opacity: 1 }, t0 + 0.6);
+      tl.fromTo('#dest-patro', { scale: 1.2 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0 + 0.6);
+      tl.to('#dest-patro', { scale: 1.03, duration: 0.3, ease: 'sine.inOut', repeat: 3, yoyo: true }, t0 + 0.85);
+      tl.set('#dest-patro', { opacity: 0 }, 12);
     }
-    // ===== 17–19 · a Rota: vitória num Jogo, o +₽9 e o ₽ subindo moeda por moeda =====
+    // ===== 12–14 · PAY DAY!: chovem moedas na bancada e o Meowth junta tudo com as patas =====
     const FX = $('fx-moedas');
     const moeda = (x, y) => {
       const m = div(FX, 'moeda');
@@ -363,142 +290,121 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       return m;
     };
     {
-      const t0 = T(8, 8);
-      ver('#m-rota', t0);
-      ver('#m-rota', 19, false);
-      tl.fromTo('#m-rota', { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-      tl.set('#contador', { opacity: 1 }, t0 + 0.2);
-      tl.fromTo('#contador', { scale: 0.4 }, { scale: 1, duration: 0.25, ease: 'back.out(2.4)', immediateRender: false }, t0 + 0.2);
-      // as 9 moedas do +₽9 (linha 10 do C8 em diante, uma por linha, como na música): saem do +₽9 e caem no contador
-      for (let k = 0; k < 9; k++) {
-        const t = T(8, 10 + k) - 0.28;
-        const m = moeda(205 + k * 6, 1005);
-        tl.set(m, { opacity: 1 }, t);
-        tl.fromTo(m, { x: 205 + k * 6, y: 1005 }, { keyframes: { x: [300, 380], y: [960, 1365], easeEach: 'sine.inOut' }, duration: 0.28, ease: 'none', immediateRender: false }, t);
-        tl.set(m, { opacity: 0 }, t + 0.28);
-        tl.set('#conta', { textContent: String(28 + k) }, t + 0.28);
-        tl.fromTo('#contador', { scale: 1.08 }, { scale: 1, duration: 0.12, ease: 'power2.out', immediateRender: false }, t + 0.28);
-      }
-      tl.set('#contador', { opacity: 0 }, 19);
-    }
-    // ===== 19–21 · PAY DAY!: chovem moedas na bancada e o Meowth junta tudo com as patas =====
-    {
-      const t0 = T(9, 8);
+      const t0 = 12;
       corta('#banc', t0);
       camera(t0, 1);
       telao('#t-marca', t0);
       anim(tl, MEO, 'Hop', 0, t0, t0 + 0.6, { loop: false });
       anim(tl, MEO, 'Idle', 0, t0 + 0.6, FIM);
-      flash(tl, t0, 0.4, 0.2);
-      // 9 moedas descendo (uma por linha da música, do C9 linha 10), quicando no tampo da bancada
+      // 9 moedas: cada uma pousa no tampo na nota dela (linhas 3 a 11 do C6)
       const caidas = [];
       for (let k = 0; k < 9; k++) {
-        const t = T(9, 10) + k * 0.125 - 0.3;
-        const x = 120 + ((k * 263) % 560);
+        const pouso = T(6, 3 + k);
+        const x = 120 + ((k * 263) % 600);
         const yf = 1150 - ((k * 37) % 30);
         const m = moeda(x, -80);
-        caidas.push([m, x, yf]);
-        tl.set(m, { opacity: 1 }, t);
-        tl.fromTo(m, { y: -80, rotation: 0 }, { y: yf, rotation: 200 + k * 30, duration: 0.3, ease: 'power2.in', immediateRender: false }, t);
-        tl.to(m, { keyframes: { y: [yf - 40, yf] }, duration: 0.2, ease: 'sine.inOut' }, t + 0.3);
+        caidas.push(m);
+        tl.set(m, { opacity: 1 }, pouso - 0.3);
+        tl.fromTo(m, { y: -80, rotation: 0 }, { y: yf, rotation: 200 + k * 30, duration: 0.3, ease: 'power2.in', immediateRender: false }, pouso - 0.3);
+        tl.to(m, { keyframes: { y: [yf - 40, yf] }, duration: 0.2, ease: 'sine.inOut' }, pouso);
       }
-      // o Meowth junta: puxa com as patas (Charge; o bote do Attack passava da bancada) e as moedas escorregam pra ele e somem
-      const tj = T(10, 3);
-      anim(tl, MEO, 'Charge', 0, tj, tj + 0.6, { loop: false });
-      anim(tl, MEO, 'Idle', 0, tj + 0.6, FIM);
-      caidas.forEach(([m], k) => {
-        tl.to(m, { x: 560, y: 1080, scale: 0.4, duration: 0.25, ease: 'power2.in' }, tj + 0.1 + (k % 6) * 0.03);
-        tl.set(m, { opacity: 0 }, tj + 0.35 + (k % 6) * 0.03);
+      // ele puxa com as patas (Charge) no ka-ching (C6, 12) e as moedas escorregam pra ele
+      const tj = T(6, 12) - 0.1;
+      anim(tl, MEO, 'Charge', 0, tj, tj + 0.5, { loop: false });
+      anim(tl, MEO, 'Idle', 0, tj + 0.5, FIM);
+      caidas.forEach((m, k) => {
+        tl.to(m, { x: 520, y: 1080, scale: 0.4, duration: 0.22, ease: 'power2.in' }, tj + 0.05 + (k % 5) * 0.025);
+        tl.set(m, { opacity: 0 }, tj + 0.27 + (k % 5) * 0.025);
       });
-      estouro(tl, $('banc'), 560, 1050, tj + 0.4, { tam: 200 });
+      estouro(tl, $('banc'), 520, 1050, tj + 0.35, { tam: 200 });
     }
 
-    // ===== 21–24 · CONVIDADO DA SEMANA: o Porygon na cadeira, borrado =====
+    // ===== 14–18,5 · o convidado: o Porygon chega na cadeira, ele e o estúdio borrados =====
     {
-      const t0 = T(10, 8);
-      telao('#t-conv', t0);
+      const t0 = 14;
+      camera(t0, 1.15, -266, -190);
+      telao('#t-marca', t0);
       tl.set(['#cadeira', POR.el], { opacity: 1 }, t0);
-      // ele chega aparecendo em pixels (sobe da cadeira) e fica borrado até o "quina"
       tl.fromTo(POR.corpo, { scaleY: 0, scaleX: 1.4 }, { scaleY: 1, scaleX: 1, duration: 0.3, ease: 'back.out(2.5)', immediateRender: false }, t0);
       anim(tl, POR, 'Idle', 6, t0, FIM);
       tl.set(POR.spr, { filter: 'blur(9px)' }, t0);
       tl.set('#banc', { filter: 'blur(3px)' }, t0);
-      tl.set('#banc', { filter: 'none' }, 24);
-      tl.set(POR.spr, { filter: 'none' }, 24);
+      tl.set('#banc', { filter: 'none' }, 18.5);
+      tl.set(POR.spr, { filter: 'none' }, 18.5);
     }
-    // 24–28 · SPRITES NÍTIDOS: corta pra quadra de perto (close.mp4), um flash no "quina"
-    corta(null, 24);
-    flash(tl, 24, 0.8, 0.25);
-    // 28–30 · ele gira uma vez na cadeira (as 8 direções do Idle) e a cadeira gira junto
-    {
-      const t0 = T(14, 0);
-      corta('#banc', t0);
-      camera(t0, 1.1, -190, -140);
-      telao('#t-conv', t0);
-      const dirs = [6, 5, 4, 3, 2, 1, 0, 7, 6];
-      dirs.forEach((d, i) => quadro(tl, POR, 'Idle', d, 0, t0 + i * 0.07));
-      anim(tl, POR, 'Idle', 6, t0 + dirs.length * 0.07, FIM);
-      tl.fromTo('#encosto', { scaleX: 1 }, { keyframes: { scaleX: [0.2, -1, -0.2, 1] }, duration: dirs.length * 0.07, ease: 'none', immediateRender: false }, t0);
-      tl.to(POR.corpo, { keyframes: { y: [-30, 0] }, duration: 0.3, ease: 'power2.out' }, t0 + dirs.length * 0.07);
-    }
+    // 18,5–21 · corta pra quadra de perto (close.mp4 de 0,65 s: sem o ícone de status, termina no chute do Persian)
+    corta(null, 18.5);
+    flash(tl, 18.5, 0.8, 0.25);
 
-    // ===== 30–33 · VEM AÍ: o Alakazam; no telão, o calendário com uma bola em cada sexta =====
+    // ===== 21–26 · o Alakazam; no telão, o calendário com uma bola em cada sexta =====
     const DIAS = ['20/11', '27/11', '04/12', '11/12'];
     const bolinhaSVG = () => `<svg class="bolinha" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#fff"/><polygon points="${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return `${9 + Math.cos(a) * 3.2},${9 + Math.sin(a) * 3.2}`; }).join(' ')}" fill="#1d1d1d"/>${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + Math.PI / 5 + (i * 2 * Math.PI) / 5; return `<circle cx="${9 + Math.cos(a) * 7.2}" cy="${9 + Math.sin(a) * 7.2}" r="1.8" fill="#1d1d1d"/>`; }).join('')}<circle cx="9" cy="9" r="8" fill="none" stroke="#0e1430" stroke-width="1.6"/></svg>`;
     $('dias').innerHTML = DIAS.map((d, i) => `<div class="dia${i === 1 ? ' ut' : ''}"><span>${d}</span><small>SEXTA</small>${bolinhaSVG()}</div>`).join('');
     {
-      const t0 = T(15, 0);
-      camera(t0, 1.18, 0, -90);
-      tl.set(POR.el, { opacity: 0 }, t0);
-      tl.set('#cadeira', { opacity: 0 }, t0);
+      const t0 = 21;
+      corta('#banc', t0);
+      camera(t0, 1.08, -20, -40);
+      tl.set([POR.el, '#cadeira'], { opacity: 0 }, t0);
       telao('#t-cal', t0);
       flash(tl, t0, 0.4, 0.2);
+      // a colher: ele levanta e brilha (o "ting")
+      tl.to(ALA.corpo, { keyframes: { y: [-12, 0], rotation: [-3, 0] }, duration: 0.35, ease: 'sine.inOut' }, t0 + 0.05);
+      const br = div($('banc'), 'brilho-n');
+      gsap.set(br, { x: 360, y: 880 });
+      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.6, rotation: 90, opacity: 0, duration: 0.4, ease: 'power2.out', immediateRender: false }, t0);
+      // uma bola por sexta, na nota de sino dela
       const bs = [...document.querySelectorAll('#dias .bolinha')];
-      [T(15, 4), T(15, 8), T(15, 12), T(16, 0)].forEach((t, i) => {
-        tl.set(bs[i], { opacity: 1 }, t);
+      [T(11, 12), T(12, 0), T(12, 4), T(12, 8)].forEach((t, i) => {
+        tl.set(bs[i], { opacity: 1 }, t - 0.16);
         tl.fromTo(bs[i], { y: -260, scaleY: 1 }, { keyframes: [{ y: 0, duration: 0.16, ease: 'power2.in' }, { scaleY: 0.7, scaleX: 1.2, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }], immediateRender: false }, t - 0.16);
       });
-      tl.to(ALA.corpo, { keyframes: { rotation: [-4, 3, 0] }, duration: 0.6, ease: 'sine.inOut' }, t0 + 0.2);
+      tl.to(ALA.corpo, { keyframes: { rotation: [-4, 3, 0] }, duration: 0.6, ease: 'sine.inOut' }, T(12, 8));
     }
-    // ===== 33–38 · Time Ultimate: a fatia no telão e a carta ouro virando =====
+    // ===== 26–28,8 · o Time Ultimate: a fatia da tela do jogo ampliada (TIME ULTIMATE, EM BREVE 27/11) é o texto =====
     {
-      const t0 = T(16, 8);
-      camera(t0, 1);
-      telao('#t-fatia', t0);
-      tl.set('#fatia', { opacity: 1 }, t0);
-      // a carta sai do telão girando e cresce até o meio da tela; termina de virar (a face) em 36,0 s
-      // a carta sai do pacote da fatia (à esquerda no telão) e vem pra direita, na frente do telão
-      tl.set('#carta', { opacity: 1 }, T(17, 0));
-      tl.fromTo('#carta', { x: -260, y: -250, scale: 0.2 }, { x: 150, y: -140, scale: 0.85, duration: 1.4, ease: 'power2.out', immediateRender: false }, T(17, 0));
-      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 900, duration: T(18, 0) - T(17, 0), ease: 'power2.inOut', immediateRender: false }, T(17, 0));
-      flash(tl, T(18, 0), 0.7, 0.3);
-      estouro(tl, document.body.querySelector('#root'), 760, 840, T(18, 0), { tam: 480, dur: 0.5 });
-      tl.to('#carta', { keyframes: { y: [-160, -140] }, duration: 1, ease: 'sine.inOut', repeat: 1, yoyo: true }, T(18, 2));
-      tl.set('#carta', { opacity: 0 }, 38);
-      tl.to(ALA.corpo, { keyframes: { y: [-14, 0] }, duration: 0.3, ease: 'power2.out' }, T(18, 0));
+      const t0 = 26;
+      corta('#fundo', t0);
+      tl.fromTo('#raios-fundo', { rotation: 45 }, { rotation: 75, duration: FIM - t0, ease: 'none', immediateRender: false }, t0);
+      flash(tl, t0, 0.4, 0.2);
+      ver('#m-fatia', t0);
+      tl.fromTo('#m-fatia', { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
+      tl.to('#m-fatia', { scale: 1.04, duration: 2.55, ease: 'sine.inOut' }, t0 + 0.25);
+      tl.to('#m-fatia', { opacity: 0, scale: 0.9, duration: 0.35, ease: 'power2.in' }, 28.9);
+    }
+    // ===== 28,8–32 · a carta ouro sai do pacote da fatia girando e vira no meio da tela (sem ninguém atrás) =====
+    {
+      const t0 = 28.8;
+      const tv = T(15, 0);
+      tl.set('#carta', { opacity: 1, left: 540 }, t0);
+      tl.fromTo('#carta', { x: 39, y: -240, scale: 0.2 }, { x: 0, y: 80, scale: 1.2, duration: tv - t0, ease: 'power2.out', immediateRender: false }, t0);
+      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 540, duration: tv - t0, ease: 'power2.inOut', immediateRender: false }, t0);
+      flash(tl, tv, 0.6, 0.25);
+      estouro(tl, $('fx-moedas'), 540, 1060, tv, { tam: 520, dur: 0.5 });
+      tl.to('#carta', { keyframes: { y: [60, 80] }, duration: 0.9, ease: 'sine.inOut', repeat: 1, yoyo: true }, tv + 0.1);
+      tl.set('#carta', { opacity: 0 }, 32);
     }
 
-    // ===== 38–41 · TELA FINAL: o logo (SOC-CER-MON no 0, 3 e 6 do C19), os três na bancada, o site =====
+    // ===== 32–35 · TELA FINAL: o logo (SOC-CER-MON no 0, 3 e 6 do C16), Temos que chutar!, o site, os três na bancada =====
     {
-      const t0 = T(19, 0);
+      const t0 = T(16, 0);
       const fim = $('fim');
       const FC = $('fim-cena');
       telaFinal(fim);
       corta('#fim', t0);
-      tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 25, duration: FIM - t0, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 20, duration: FIM - t0, ease: 'none', immediateRender: false }, t0);
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
-      piscada(tl, [T(19, 0), T(19, 3), T(19, 6)]);
-      tl.set('#tag', { opacity: 1 }, T(19, 8));
-      tl.fromTo('#tag', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(19, 8));
-      tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, t0 + 0.3);
+      piscada(tl, [T(16, 0), T(16, 3), T(16, 6)]);
+      tl.set('#tag', { opacity: 1 }, T(16, 8));
+      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(16, 8));
+      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 0.3);
       // os três na bancada pequena: pulam juntos no MON
       const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
       const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
       const p = ator(FC, 137, { escala: 10, z: 20, x: 750, y: 1270 });
-      for (const [x, d] of [[a, 0], [m, 0], [p, 0]]) {
-        anim(tl, x, 'Idle', d, t0, FIM);
-        tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, T(19, 6));
+      for (const x of [a, m, p]) {
+        anim(tl, x, 'Idle', 0, t0, FIM);
+        tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, T(16, 6));
       }
     }
 
