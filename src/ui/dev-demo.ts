@@ -137,7 +137,8 @@ export function runDevDemo() {
         demo !== 'final' &&
         demo !== 'rota-titulo' &&
         demo !== 'insignia' &&
-        demo !== 'estadio-campeao'
+        demo !== 'estadio-campeao' &&
+        demo !== 'duelos'
     )
         return;
     started = true;
@@ -179,6 +180,39 @@ export function runDevDemo() {
     if (demo === 'amigos') {
         const params = new URLSearchParams(window.location.search);
         void import('../friends/demo').then((m) => m.startFriendsDemo(params));
+        return;
+    }
+    // ?demo=duelos: a Arena com "Seus duelos" (o placar contra cada amigo) já cheio, pra gravar o Soccermon News
+    if (demo === 'duelos') {
+        const dia = 86_400_000;
+        const vs: [string, string, string, number, number][] = [
+            ['Ana', 'Celadon FC', 'ANA-4821', 5, 3],
+            ['Rafa', 'Vermilion EC', 'RAF-1937', 2, 4],
+            ['Leo', 'Pewter United', 'LEO-7710', 3, 3],
+            ['Bia', 'Cerulean SC', 'BIA-5503', 4, 1],
+        ];
+        // um duelo de cada amigo por dia, alternando: os últimos 8 têm os quatro
+        const duels = vs
+            .flatMap(([rival, rivalClub, rivalCode, w, l], i) =>
+                Array.from({ length: w + l }, (_, k) => {
+                    // w vitórias espalhadas (7 é primo com 5, 6 e 8: cada k cai numa posição diferente)
+                    const win = (k * 7 + i) % (w + l) < w;
+                    return {
+                        id: `demo-${i}-${k}`,
+                        date: Date.now() - (k * vs.length + i) * dia,
+                        mode: 'ready' as const,
+                        rival,
+                        rivalClub,
+                        rivalCode,
+                        score: (win ? [3, 1 + (k % 2)] : [1, 2 + (k % 2)]) as [number, number],
+                        shootout: null,
+                        result: win ? ('win' as const) : ('loss' as const),
+                    };
+                }),
+            )
+            .sort((x, y) => y.date - x.date);
+        useGame.setState({ duels });
+        void import('./ambientes/nav').then((m) => m.goTab('arena'));
         return;
     }
     if (demo === 'platina') {
@@ -853,6 +887,8 @@ export function runDevDemo() {
         const rivalIds = q.get('rival')?.split(',').map(Number);
         const club = CLUBS.find((c) => c.city === (q.get('clube') ?? 'Vermilion')) ?? CLUBS[0];
         const em = Number(q.get('em') ?? 0);
+        // &evento=post|goal: abre antes da 1ª bola na trave (ou do 1º gol) do seu time no 1º tempo (Soccermon News)
+        const evento = q.get('evento');
         for (let k = from; k < from + 200; k++) {
             store.newRun('Demo FC', `dri${k}`);
             const base = useGame.getState().run!;
@@ -886,30 +922,34 @@ export function runDevDemo() {
             // só no 1º tempo: no intervalo a copa refaz a partida com o que o técnico decidiu
             const ht = r.events.find((e) => e.type === 'halftime')?.tick ?? 0;
             const ok = (t: number) => t > 200 && t < ht;
+            const nossoLance = (e: (typeof r.events)[number]) =>
+                (e.type === 'post' && r.roster[e.shooter].team === 0) || (e.type === 'goal' && e.team === 0);
             const tick = em
                 ? em
-                : defesa
-                  ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
-                  : namedDribblesOf(r, [team, opp]).find(
-                        (d) =>
-                            d.kind === tipo &&
-                            ok(d.tick) &&
-                            (!nosso || d.team === 0) &&
-                            (!quem || lineup.find((p) => p.uid === r.roster[d.by].uid)?.speciesId === quem) &&
-                            (!gol ||
-                                (d.team === 0 &&
-                                    r.events.some(
-                                        (e) =>
-                                            e.type === 'goal' &&
-                                            e.team === 0 &&
-                                            e.tick > d.tick &&
-                                            e.tick < d.tick + 120,
-                                    ))),
-                    )?.tick;
+                : evento
+                  ? r.events.find((e) => e.type === evento && ok(e.tick) && nossoLance(e))?.tick
+                  : defesa
+                    ? r.events.find((e) => e.type === 'save' && ok(e.tick) && r.roster[e.by].team === 1)?.tick
+                    : namedDribblesOf(r, [team, opp]).find(
+                          (d) =>
+                              d.kind === tipo &&
+                              ok(d.tick) &&
+                              (!nosso || d.team === 0) &&
+                              (!quem || lineup.find((p) => p.uid === r.roster[d.by].uid)?.speciesId === quem) &&
+                              (!gol ||
+                                  (d.team === 0 &&
+                                      r.events.some(
+                                          (e) =>
+                                              e.type === 'goal' &&
+                                              e.team === 0 &&
+                                              e.tick > d.tick &&
+                                              e.tick < d.tick + 120,
+                                      ))),
+                      )?.tick;
             if (tick === undefined || skip-- > 0) continue;
             const live = { stage: 0, orders: [], tick: tick - 60, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
-            console.info(`[demo] copa ${run.seed}: ${defesa ? 'defesa' : tipo} no tick ${tick}`);
+            console.info(`[demo] copa ${run.seed}: ${evento ?? (defesa ? 'defesa' : tipo)} no tick ${tick}`);
             return;
         }
         return;

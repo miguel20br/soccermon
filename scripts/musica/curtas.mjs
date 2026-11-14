@@ -443,3 +443,44 @@ export const musculo = ({ torto = 0, cai = 0 } = {}) =>
         },
         { solta: 0.08, pk: 0.55 },
     );
+
+// ---------- Soccermon News #1 ----------
+/** A voz do Meowth (assinatura do quadro Número da semana): um "mi-áu" cantado. Serra com um chiado de gato, as duas
+ * formantes andando de "i" pra "a" e fechando em "u" ao longo da nota, e a nota que entra um pouco acima e assenta. */
+export const miau = voz(
+    (f, d, r) => {
+        let ph = 0;
+        let ru = 0;
+        const [f1, f2] = [svf(0.35), svf(0.3)];
+        const lerp = (a, b, x) => a + (b - a) * x;
+        return (t) => {
+            const u = Math.min(1, t / Math.max(0.08, d));
+            // i (400/2300) → a (850/1350) na metade → u (420/900) no fim
+            const F1 = u < 0.45 ? lerp(400, 850, u / 0.45) : lerp(850, 420, (u - 0.45) / 0.55);
+            const F2 = u < 0.45 ? lerp(2300, 1350, u / 0.45) : lerp(1350, 900, (u - 0.45) / 0.55);
+            const vib = 1 + 0.025 * Math.min(1, t / 0.15) * Math.sin(TAU * 6 * t);
+            ph += (f * (1 + 0.06 * Math.exp(-t / 0.06)) * vib) / SR;
+            ru += 0.5 * (r() * 2 - 1 - ru);
+            const src = (ph % 1) * 2 - 1 + 0.12 * ru;
+            return (f1(src, F1) + 0.8 * f2(src, F2) + 0.1 * src) * envNota(t, d, 0.02, 0.08);
+        };
+    },
+    { solta: 0.1 },
+);
+/** A voz do Porygon (assinatura do Convidado da semana): bipe digital. Onda quadrada que entra com um arpejo de
+ * computador (oitava e quinta em 1/40 s cada), segura a nota com a amplitude em 8 degraus e amostrada a 11 kHz: o
+ * pixel no som (com `corte` baixo na faixa, ele fica "borrado"). */
+export const bit = voz(
+    (f, d) => {
+        let ph = 0;
+        let held = 0;
+        let n = 0;
+        return (t) => {
+            const k = t < 0.05 ? [2, 1.5][Math.floor(t / 0.025)] : 1;
+            ph += (f * k) / SR;
+            if (n++ % 4 === 0) held = (ph % 1 < 0.5 ? 1 : -1) * envNota(t, d, 0.004, 0.03);
+            return Math.round(held * 4) / 4;
+        };
+    },
+    { solta: 0.04, pk: 0.4 },
+);
