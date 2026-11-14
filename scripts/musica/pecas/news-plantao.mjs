@@ -123,9 +123,9 @@ export default function news() {
     sino.note(3 * 16 + 1, 96, 4, 1);
     stabs(met, 3, 'F9', [[1, 3]], { low: 60, n: 4 });
     drum(cr, 3, 1, '.X..............');
-    // o Duelo (C3, 8): o plim do aviso, e os metais respondem
-    pl.note(3 * 16 + 10, 0, 0, 1);
-    mel(met2, 3, ['r:12 Eb4:1 F4:1 G4:2'], { vel: 0.7 });
+    // o Duelo (C3, 12: a gaveta sobe): o plim do aviso, e os metais respondem
+    pl.note(3 * 16 + 12, 0, 0, 1);
+    mel(met2, 3, ['r:13 Eb4:1 F4:1 G4:1'], { vel: 0.7 });
     groove(4, 'Cm7');
     pl.note(4 * 16 + 4, 2, 0, 0.8);
     mel(met, 4, ['r:8 G4:2 Bb4:2 C5:2 Eb5:2'], { vel: 0.7 });

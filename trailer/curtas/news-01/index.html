@@ -41,11 +41,11 @@
 .cal .dia small { font-size: 30px; color: #2a3a7a; letter-spacing: 2px; margin-top: -18px; }
 .cal .dia .bolinha { width: 120px; height: 120px; opacity: 0; }
 .cal .dia.ut { background: #ffcb05; }
-.fatia { position: absolute; left: 50%; top: 50%; width: 650px; margin: -294px 0 0 -325px; image-rendering: auto; opacity: 0; border-radius: 12px; }
+.fatia { position: absolute; left: 30px; top: 50%; width: 560px; margin: -253px 0 0 0; image-rendering: auto; opacity: 0; border-radius: 12px; }
 /* a bancada: tampo amarelo e a frente com o letreiro */
 .mesa-n { position: absolute; left: 30px; top: 1140px; width: 720px; height: 260px; z-index: 30; }
 .mesa-n .tampo { position: absolute; left: 0; top: 0; width: 720px; height: 46px; box-sizing: border-box; border-radius: 14px; background: #ffcb05; border: 8px solid #0e1430; }
-.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: 660px; height: 222px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
+.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: 660px; height: 160px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
   box-shadow: inset 0 0 0 8px #2a4ea0; display: flex; align-items: center; justify-content: center; gap: 22px; }
 .mesa-n .frente b { font-size: 56px; letter-spacing: 4px; color: #ffcb05; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; line-height: 1; text-align: left; }
 .mesa-n .frente b span { color: #f8f8f0; }
@@ -75,8 +75,8 @@
   font-size: 86px; line-height: 1.12; letter-spacing: 3px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; opacity: 0; }
 .cartela-n span b { color: #ffcb05; font-weight: 700; }
 /* a fala (legenda) e a tarja NOME · FUNÇÃO */
-.fala-n { position: absolute; left: 40px; width: 1000px; top: 1490px; height: 120px; z-index: 74; display: flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap;
-  font-size: 66px; letter-spacing: 2px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; opacity: 0; }
+.fala-n { position: absolute; left: 60px; width: 960px; top: 1490px; height: 140px; z-index: 74; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.15;
+  font-size: 64px; letter-spacing: 2px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; opacity: 0; }
 .tarja { position: absolute; top: 1400px; z-index: 73; display: flex; align-items: stretch; opacity: 0; }
 .tarja b { padding: 8px 20px; background: #ffcb05; color: #0e1430; font-size: 48px; letter-spacing: 2px; border: 7px solid #0e1430; border-radius: 12px 0 0 12px; }
 .tarja span { padding: 8px 18px; background: #10183d; color: #f8f8f0; font-size: 36px; letter-spacing: 2px; border: 7px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; display: flex; align-items: center; }
@@ -84,7 +84,7 @@
 .moldura { position: absolute; z-index: 20; box-sizing: border-box; border-radius: 22px; border: 12px solid #0e1430; background: #0e1430; box-shadow: 0 0 0 8px #ffcb05, 0 0 0 16px #0e1430, 0 26px 0 14px rgb(0 0 0 / 45%); opacity: 0; }
 video.jogo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 10; }
 video.painel { position: absolute; z-index: 21; border-radius: 10px; }
-.nivel { position: absolute; left: 540px; top: 560px; width: 0; height: 0; z-index: 25; }
+.nivel { position: absolute; left: 540px; top: 620px; width: 0; height: 0; z-index: 25; }
 .nivel b { position: absolute; left: -160px; top: -90px; width: 320px; text-align: center; font-size: 150px; line-height: 1; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; opacity: 0; }
 .destaque { position: absolute; z-index: 24; box-sizing: border-box; border: 10px solid #ffcb05; border-radius: 22px; box-shadow: 0 0 0 7px #0e1430, inset 0 0 0 7px #0e1430; opacity: 0; }
 .contador { position: absolute; left: 290px; top: 1290px; width: 500px; height: 150px; z-index: 26; box-sizing: border-box; border-radius: 75px; display: flex; align-items: center; justify-content: center; gap: 26px;
@@ -97,7 +97,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .brilho-n { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: #fff; z-index: 45; opacity: 0;
   clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
 /* a carta ouro virando (verso: o símbolo do jogo) */
-.carta3d { position: absolute; left: 610px; top: 980px; width: 0; height: 0; z-index: 50; perspective: 1800px; }
+.carta3d { position: absolute; left: 610px; top: 980px; width: 0; height: 0; z-index: 50; perspective: 1800px; opacity: 0; }
 .carta3d .gira { position: absolute; left: -220px; top: -304px; width: 440px; height: 608px; transform-style: preserve-3d; }
 .carta3d .face, .carta3d .verso { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 26px; }
 .carta3d .face { background: url(midia/news/carta-ouro.png) center / 100% 100% no-repeat; transform: rotateY(180deg); }
@@ -134,7 +134,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         <div class="tela cal" id="t-cal"><div class="topo"><i></i><i></i><i></i><i></i></div><div class="dias" id="dias"></div></div>
         <div class="tela" id="t-fatia"><img class="fatia" id="fatia" src="midia/news/ultimate-fatia.png" alt="" /></div>
       </div>
-      <div class="cadeira" id="cadeira" style="transform:translate(880px,1330px)"><div class="encosto" id="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
+      <div class="cadeira" id="cadeira" style="transform:translate(850px,1330px)"><div class="encosto" id="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
       <div class="mesa-n"><div class="tampo"></div><div class="frente"><b>SOCCERMON<br><span>NEWS</span></b></div></div>
     </div></div>
     <div id="fundo" class="cena estudio"><div class="raios" id="raios-fundo"></div></div>
@@ -223,14 +223,14 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       if (!FALAS.some(([b]) => Math.abs(b - z) < 1e-6)) tl.set('#fala', { opacity: 0 }, z);
     }
     /** Tarja entra pela esquerda com overshoot e sai pro mesmo lado. */
-    const tarja = (id, a, z, y = 1400) => {
+    const tarja = (id, a, z, y = 1345) => {
       tl.set(id, { opacity: 1, top: y }, a);
       tl.fromTo(id, { x: -700 }, { x: 0, duration: 0.25, ease: 'back.out(1.6)', immediateRender: false }, a);
       tl.to(id, { x: -800, duration: 0.18, ease: 'power2.in' }, z - 0.18);
       tl.set(id, { opacity: 0 }, z);
     };
-    tarja('#tj-ala', 3.0, 4.0, 1300);
-    tarja('#tj-meo', 3.12, 4.0, 1400);
+    tarja('#tj-ala', 3.0, 4.0, 1345);
+    tarja('#tj-meo', 3.12, 4.0, 1425);
     tarja('#tj-meo', 13.0, 15.0);
     tarja('#tj-por', 21.0, 24.0);
     tarja('#tj-ala', 30.0, 31.6);
@@ -266,10 +266,11 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     }
 
     // ===== o estúdio: os três =====
-    const ALA = ator(BANC, 65, { escala: 12, z: 20, x: 250, y: 1330 });
+    // sentados atrás da bancada (tampo em 1140): o pé fica escondido, aparece do peito pra cima
+    const ALA = ator(BANC, 65, { escala: 16, z: 20, x: 250, y: 1250 });
     // a sombra do Meowth fica atrás da bancada (nunca aparece): sem ela, o bote do Attack não conta como sombra solta
-    const MEO = ator(BANC, 52, { escala: 12, z: 20, x: 560, y: 1250, sombra: false });
-    const POR = ator(BANC, 137, { escala: 11, z: 12, x: 880, y: 1240, opacity: 0 });
+    const MEO = ator(BANC, 52, { escala: 16, z: 20, x: 560, y: 1200, sombra: false });
+    const POR = ator(BANC, 137, { escala: 13, z: 12, x: 850, y: 1240, opacity: 0 });
     gsap.set($('cadeira'), { opacity: 0 });
     // o Alakazam e o Meowth respiram o tempo todo (Idle de frente); o Porygon só depois que chega
     anim(tl, ALA, 'Idle', 0, 0, FIM);
@@ -311,7 +312,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.set(['#nv1', '#nv2', '#nv3'], { opacity: 0 }, t);
         tl.set(id, { opacity: 1 }, t);
         tl.fromTo(id, { scale: 2 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, t);
-        estouro(tl, document.getElementById('nivel').parentElement, 540, 560, t, { tam: 180 + 60 * i, cor: ['#ffcb05', '#ff8a1c', '#ff5c8a'][i] });
+        estouro(tl, document.getElementById('nivel').parentElement, 540, 620, t, { tam: 180 + 60 * i, cor: ['#ffcb05', '#ff8a1c', '#ff5c8a'][i] });
       });
       tl.set('#nv3', { opacity: 0 }, 7);
     }
@@ -330,8 +331,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     {
       const t0 = T(6, 8);
       corta('#banc', t0);
-      camera(t0, 1.12, -150, -150);
-      camera(t0, 1.25, -330, -300, 1.6);
+      camera(t0, 1.08, -45, -80);
+      camera(t0, 1.15, -84, -150, 1.6);
       telao('#t-numero', t0);
       // ele levanta a pata pra câmera no "é meu"
       anim(tl, MEO, 'Pose', 0, t0 + 0.6, t0 + 1.4, { loop: false });
@@ -466,12 +467,13 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       telao('#t-fatia', t0);
       tl.set('#fatia', { opacity: 1 }, t0);
       // a carta sai do telão girando e cresce até o meio da tela; termina de virar (a face) em 36,0 s
-      tl.set('#carta', { opacity: 1 }, T(16, 12));
-      tl.fromTo('#carta', { x: -70, y: -230, scale: 0.25 }, { x: -70, y: -40, scale: 1, duration: 1.4, ease: 'power2.out', immediateRender: false }, T(16, 12));
-      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 900, duration: T(18, 0) - T(16, 12), ease: 'power2.inOut', immediateRender: false }, T(16, 12));
+      // a carta sai do pacote da fatia (à esquerda no telão) e vem pra direita, na frente do telão
+      tl.set('#carta', { opacity: 1 }, T(17, 0));
+      tl.fromTo('#carta', { x: -260, y: -250, scale: 0.2 }, { x: 150, y: -140, scale: 0.85, duration: 1.4, ease: 'power2.out', immediateRender: false }, T(17, 0));
+      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 900, duration: T(18, 0) - T(17, 0), ease: 'power2.inOut', immediateRender: false }, T(17, 0));
       flash(tl, T(18, 0), 0.7, 0.3);
-      estouro(tl, document.body.querySelector('#root'), 540, 950, T(18, 0), { tam: 520, dur: 0.5 });
-      tl.to('#carta', { keyframes: { y: [-60, -40] }, duration: 1, ease: 'sine.inOut', repeat: 1, yoyo: true }, T(18, 2));
+      estouro(tl, document.body.querySelector('#root'), 760, 840, T(18, 0), { tam: 480, dur: 0.5 });
+      tl.to('#carta', { keyframes: { y: [-160, -140] }, duration: 1, ease: 'sine.inOut', repeat: 1, yoyo: true }, T(18, 2));
       tl.set('#carta', { opacity: 0 }, 38);
       tl.to(ALA.corpo, { keyframes: { y: [-14, 0] }, duration: 0.3, ease: 'power2.out' }, T(18, 0));
     }
@@ -491,9 +493,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.fromTo('#tag', { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, T(19, 8));
       tl.to(['#site', '#selo', '#credito'], { opacity: 1, duration: 0.2 }, t0 + 0.3);
       // os três na bancada pequena: pulam juntos no MON
-      const a = ator(FC, 65, { escala: 8, z: 20, x: 330, y: 1380 });
-      const m = ator(FC, 52, { escala: 8, z: 20, x: 540, y: 1340 });
-      const p = ator(FC, 137, { escala: 8, z: 20, x: 750, y: 1360 });
+      const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
+      const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
+      const p = ator(FC, 137, { escala: 10, z: 20, x: 750, y: 1320 });
       for (const [x, d] of [[a, 0], [m, 0], [p, 0]]) {
         anim(tl, x, 'Idle', d, t0, FIM);
         tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, T(19, 6));
