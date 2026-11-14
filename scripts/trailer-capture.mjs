@@ -9,11 +9,13 @@
  *
  * --demo "dribles&tipo=chapeu&gol=1": em vez da cena, um atalho ?demo= que já abre na escalação (o "Lance da semana");
  * aí --ate +N grava N s de partida a partir de onde ela abre.
- * --vertical <altura>: câmera fechada pro 9:16, um recorte de <altura> px do canvas (528 = a altura toda) seguindo a
- * bola, ampliado pra 1080x1920 (pixel nítido); sem os nomes, o marcador vai junto.
+ * --vertical <altura>: câmera fechada pro 9:16, um recorte de <altura> px do canvas seguindo a bola (528 = metade dos
+ * ~1047 do canvas de 1920 de largura, o zoom do Lance da semana), ampliado pra 1080x1920 (pixel nítido); sem os
+ * nomes, o marcador vai junto.
  * --de/--ate: segundos de partida (os da caça). --vel: velocidade de reprodução (1 = normal; 0.25 = câmera lenta
  * lisa). --largura: px. --modo canvas|pagina. --nomes / --textos: mantêm os nomes em cima dos Pokémon e os
- * textos do jogo (padrão: sem os dois).
+ * textos do jogo (padrão: sem os dois). --faixa: sem os textos, mas com a faixa do drible com nome (no --vertical ela
+ * entra no recorte, como no clipe do jogo).
  * CHROME_PATH aponta o Chromium/Chrome; BASE_URL o servidor de dev (padrão http://localhost:8080).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -38,6 +40,7 @@ const semNomes = !args.includes('--nomes');
 // sem os textos do jogo (letreiros de golpe, GOOOOL, caixa de narração): o zoom do trailer cortaria; o texto do
 // trailer vem da composição. --textos mantém
 const semTextos = !args.includes('--textos');
+const comFaixa = args.includes('--faixa');
 const vertical = Number(arg('--vertical', 0));
 if (!demo && (!cena || !seed)) throw new Error('use --cena e --seed (veja scripts/trailer-hunt.ts) ou --demo');
 
@@ -119,119 +122,143 @@ await page.evaluate(() => {
 });
 const ended = () => page.evaluate(() => window.__fim);
 const tick = () => page.evaluate(() => window.__tick);
-await page.evaluate((semTextos) => {
-    const g = window.__soccermonGame;
-    if (semTextos) {
-        // tudo que for texto (ou contêiner com texto) já nasce invisível; a caixa de narração some
-        const sc = g.scene.getScene('Match');
-        const temTexto = (o) => o?.type === 'Text' || (Array.isArray(o?.list) && o.list.some(temTexto));
-        const addText = sc.add.text.bind(sc.add);
-        sc.add.text = (...a) => addText(...a).setVisible(false);
-        const addContainer = sc.add.container.bind(sc.add);
-        sc.add.container = (...a) => {
-            const c = addContainer(...a);
-            if (temTexto(c)) c.setVisible(false);
-            return c;
-        };
-        sc.battleBox?.container?.setVisible(false);
-    }
-    // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
-    // dentro do mundo do jogo; ela segue indo atrás do lance, só que para na borda
-    {
-        const cam = g.scene.getScene('Match').cameras.main;
-        cam.setBounds(0, 0, cam.width, cam.height);
-    }
-    g.loop.sleep();
-    window.__t = g.loop.now || performance.now();
-    // relógio falso pra parte em HTML (tela de evolução, faixas): setTimeout e animações CSS andam com o jogo
-    let vnow = performance.now();
-    let seq = 1e7;
-    const timers = new Map();
-    window.setTimeout = (fn, ms = 0, ...a) => {
-        const id = seq++;
-        timers.set(id, { at: vnow + Number(ms || 0), fn: () => fn(...a) });
-        return id;
-    };
-    window.clearTimeout = (id) => timers.delete(id);
-    window.__vadvance = (dt) => {
-        const alvo = vnow + dt;
-        for (;;) {
-            let prox = null;
-            for (const [id, t] of timers) if (t.at <= alvo && (!prox || t.at < prox[1].at)) prox = [id, t];
-            if (!prox) break;
-            vnow = prox[1].at;
-            timers.delete(prox[0]);
-            try {
-                prox[1].fn();
-            } catch (e) {
-                console.error(e);
-            }
-        }
-        vnow = alvo;
-        window.__vnow = vnow;
-        for (const an of document.getAnimations()) {
-            if (an.__vt === undefined) {
-                an.pause();
-                an.__vt = Number(an.currentTime ?? 0);
-            } else {
-                an.__vt += dt;
-                an.currentTime = an.__vt;
-            }
-        }
-    };
-    // GIFs animados (sprites na tela de evolução, VERSUS) andam no relógio real: decodifica os quadros e troca no
-    // compasso do relógio falso, respeitando a duração de cada quadro
-    const gifs = new Map();
-    const loadGif = (src) => {
-        if (!gifs.has(src))
-            gifs.set(
-                src,
-                (async () => {
-                    const dec = new ImageDecoder({ data: await (await fetch(src)).arrayBuffer(), type: 'image/gif' });
-                    await dec.tracks.ready;
-                    const c = document.createElement('canvas');
-                    const urls = [];
-                    const durs = [];
-                    for (let i = 0; i < dec.tracks.selectedTrack.frameCount; i++) {
-                        const { image } = await dec.decode({ frameIndex: i });
-                        c.width = image.displayWidth;
-                        c.height = image.displayHeight;
-                        const ctx = c.getContext('2d');
-                        ctx.clearRect(0, 0, c.width, c.height);
-                        ctx.drawImage(image, 0, 0);
-                        urls.push(c.toDataURL());
-                        durs.push(Math.max(20, (image.duration ?? 100000) / 1000));
-                        image.close();
+await page.evaluate(
+    (semTextos, comFaixa) => {
+        const g = window.__soccermonGame;
+        if (semTextos) {
+            // tudo que for texto (ou contêiner com texto) já nasce invisível; a caixa de narração some
+            const sc = g.scene.getScene('Match');
+            const temTexto = (o) => o?.type === 'Text' || (Array.isArray(o?.list) && o.list.some(temTexto));
+            const addText = sc.add.text.bind(sc.add);
+            sc.add.text = (...a) => addText(...a).setVisible(false);
+            const addContainer = sc.add.container.bind(sc.add);
+            sc.add.container = (...a) => {
+                const c = addContainer(...a);
+                if (temTexto(c)) c.setVisible(false);
+                return c;
+            };
+            sc.battleBox?.container?.setVisible(false);
+            // --faixa: a faixa grande (drible com nome, golpe) nasce com os textos visíveis
+            if (comFaixa) {
+                const banner = sc.cine.superBanner.bind(sc.cine);
+                sc.cine.superBanner = (...a) => {
+                    const [t, c] = [sc.add.text, sc.add.container];
+                    Object.assign(sc.add, { text: addText, container: addContainer });
+                    try {
+                        return banner(...a);
+                    } finally {
+                        Object.assign(sc.add, { text: t, container: c });
                     }
-                    return { urls, durs, total: durs.reduce((a, b) => a + b, 0) };
-                })(),
+                };
+            }
+        }
+        // a câmera do jogo vai até o gol no GOOOOL e passa da borda da quadra (aparece o fundo de fora): prende ela
+        // dentro do mundo do jogo; ela segue indo atrás do lance, só que para na borda
+        {
+            const cam = g.scene.getScene('Match').cameras.main;
+            cam.setBounds(0, 0, cam.width, cam.height);
+        }
+        g.loop.sleep();
+        // os tweens (faixas, letreiros) andam pelo Date.now(), não pelo passo do jogo: gravando a ~3 quadros/s eles corriam
+        // 10x (a faixa do drible sumia em 5 quadros). Aqui andam o mesmo `d` de cada quadro gravado
+        const tw = g.scene.getScene('Match').tweens;
+        tw.getDelta = () => window.__tweenDt ?? 0;
+        window.__t = g.loop.now || performance.now();
+        // relógio falso pra parte em HTML (tela de evolução, faixas): setTimeout e animações CSS andam com o jogo
+        let vnow = performance.now();
+        let seq = 1e7;
+        const timers = new Map();
+        window.setTimeout = (fn, ms = 0, ...a) => {
+            const id = seq++;
+            timers.set(id, { at: vnow + Number(ms || 0), fn: () => fn(...a) });
+            return id;
+        };
+        window.clearTimeout = (id) => timers.delete(id);
+        window.__vadvance = (dt) => {
+            const alvo = vnow + dt;
+            for (;;) {
+                let prox = null;
+                for (const [id, t] of timers) if (t.at <= alvo && (!prox || t.at < prox[1].at)) prox = [id, t];
+                if (!prox) break;
+                vnow = prox[1].at;
+                timers.delete(prox[0]);
+                try {
+                    prox[1].fn();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            vnow = alvo;
+            window.__vnow = vnow;
+            for (const an of document.getAnimations()) {
+                if (an.__vt === undefined) {
+                    an.pause();
+                    an.__vt = Number(an.currentTime ?? 0);
+                } else {
+                    an.__vt += dt;
+                    an.currentTime = an.__vt;
+                }
+            }
+        };
+        // GIFs animados (sprites na tela de evolução, VERSUS) andam no relógio real: decodifica os quadros e troca no
+        // compasso do relógio falso, respeitando a duração de cada quadro
+        const gifs = new Map();
+        const loadGif = (src) => {
+            if (!gifs.has(src))
+                gifs.set(
+                    src,
+                    (async () => {
+                        const dec = new ImageDecoder({
+                            data: await (await fetch(src)).arrayBuffer(),
+                            type: 'image/gif',
+                        });
+                        await dec.tracks.ready;
+                        const c = document.createElement('canvas');
+                        const urls = [];
+                        const durs = [];
+                        for (let i = 0; i < dec.tracks.selectedTrack.frameCount; i++) {
+                            const { image } = await dec.decode({ frameIndex: i });
+                            c.width = image.displayWidth;
+                            c.height = image.displayHeight;
+                            const ctx = c.getContext('2d');
+                            ctx.clearRect(0, 0, c.width, c.height);
+                            ctx.drawImage(image, 0, 0);
+                            urls.push(c.toDataURL());
+                            durs.push(Math.max(20, (image.duration ?? 100000) / 1000));
+                            image.close();
+                        }
+                        return { urls, durs, total: durs.reduce((a, b) => a + b, 0) };
+                    })(),
+                );
+            return gifs.get(src);
+        };
+        window.__gifTick = async () => {
+            const imgs = [...document.querySelectorAll('img')].filter((im) =>
+                /\.gif(\?|$)/.test(im.dataset.gifSrc || im.getAttribute('src') || ''),
             );
-        return gifs.get(src);
-    };
-    window.__gifTick = async () => {
-        const imgs = [...document.querySelectorAll('img')].filter((im) =>
-            /\.gif(\?|$)/.test(im.dataset.gifSrc || im.getAttribute('src') || ''),
-        );
-        await Promise.all(
-            imgs.map(async (im) => {
-                const attr = im.getAttribute('src') || '';
-                if (!attr.startsWith('data:') && attr !== im.dataset.gifSrc) {
-                    im.dataset.gifSrc = attr;
-                    im.dataset.gifT0 = String(window.__vnow ?? 0);
-                }
-                const g = await loadGif(new URL(im.dataset.gifSrc, location.href).href);
-                let t = ((window.__vnow ?? 0) - Number(im.dataset.gifT0)) % g.total;
-                let i = 0;
-                while (i < g.durs.length - 1 && t >= g.durs[i]) t -= g.durs[i++];
-                if (im.dataset.gifFrame !== String(i)) {
-                    im.dataset.gifFrame = String(i);
-                    im.src = g.urls[i];
-                    await im.decode().catch(() => {});
-                }
-            }),
-        );
-    };
-}, semTextos);
+            await Promise.all(
+                imgs.map(async (im) => {
+                    const attr = im.getAttribute('src') || '';
+                    if (!attr.startsWith('data:') && attr !== im.dataset.gifSrc) {
+                        im.dataset.gifSrc = attr;
+                        im.dataset.gifT0 = String(window.__vnow ?? 0);
+                    }
+                    const g = await loadGif(new URL(im.dataset.gifSrc, location.href).href);
+                    let t = ((window.__vnow ?? 0) - Number(im.dataset.gifT0)) % g.total;
+                    let i = 0;
+                    while (i < g.durs.length - 1 && t >= g.durs[i]) t -= g.durs[i++];
+                    if (im.dataset.gifFrame !== String(i)) {
+                        im.dataset.gifFrame = String(i);
+                        im.src = g.urls[i];
+                        await im.decode().catch(() => {});
+                    }
+                }),
+            );
+        };
+    },
+    semTextos,
+    comFaixa,
+);
 // câmera fechada (--vertical): um recorte 9:16 do canvas seguindo a bola (mola amortecida), ampliado inteiro com o
 // vizinho mais próximo e depois reduzido suave pra 1080x1920 (pixel quadrado sem borrar)
 await page.evaluate(() => {
@@ -268,6 +295,18 @@ await page.evaluate(() => {
             y: Math.max(0, Math.min(src.height - h, b.y * kx - h * 0.55)),
         };
         cam = cam ? { x: cam.x + (alvo.x - cam.x) * 0.14, y: cam.y + (alvo.y - cam.y) * 0.14 } : alvo;
+        // os textos presos (a faixa) vão pra dentro do recorte, como no clipe do jogo (vale do próximo quadro em diante)
+        // (o recorte é só um pedaço da altura do canvas: a altura de cada texto preso vai pra mesma fração do recorte)
+        sc.setClipView(cam.x / kx, w / kx);
+        const altura = src.height / kx;
+        // e encolhem na mesma conta (o clipe do jogo pega a altura toda; este, só `h` px dela), com folga de 20% pros
+        // botões do app na direita
+        for (const pin of sc.cine.pins.values()) {
+            pin.fy ??= pin.sy / altura;
+            pin.k0 ??= pin.scale;
+            pin.sy = (cam.y + pin.fy * h) / kx;
+            pin.scale = (0.8 * pin.k0 * h) / src.height;
+        }
         const k = Math.ceil(H / h);
         big.width = w * k;
         big.height = h * k;
@@ -295,7 +334,9 @@ const step = (dt, grab = false) =>
                     v.badge?.setAlpha(0);
                     if (v.arrow) v.arrow.willRender = () => false;
                 }
+            window.__tweenDt = d;
             window.__soccermonGame.step(window.__t, d);
+            window.__tweenDt = 0;
             window.__vadvance(d);
             if (gif) await window.__gifTick();
             if (!grab) return null;
