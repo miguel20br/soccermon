@@ -25,7 +25,20 @@
  * 2: gira no lugar; 3: estrelinhas e balança; 4: cai sentado com as estrelinhas e fica lá até o fim). --foco: a câmera fica
  * em quem dribla (a bola puxa pouco) o lance todo (com --gol, até o chute; aí vai com a bola). --palco <tick>: palco
  * limpo, só na tela: do começo da gravação até esse tick os outros (fora quem dribla, quem leva o drible e os de
- * --palco-fica <índices>) andam deslocados o bastante pra ficar fora do recorte, e voltam pro lugar em 1 s. --so-lento: só a câmera lenta do --lento (sem as do jogo). --sem-poeira: sem a poeirinha do mergulho do goleiro (ela tapava a rede).
+ * --palco-fica <índices>) andam deslocados o bastante pra ficar fora do recorte, e voltam pro lugar em 1 s.
+ * --so-lento: só a câmera lenta do --lento (sem as do jogo). --sem-poeira: sem a poeirinha do mergulho do goleiro.
+ * Passe encenado (só na tela, pra emendar lances de partidas diferentes numa jogada só; a bola nunca anda sozinha):
+ * --chega "A:ang[:v]": a bola chega rolando no pé de quem dribla no tick A, vinda de fora do recorte na direção ang
+ * (graus, 0 = andando pra direita, 90 = pra baixo; v em m por tick, padrão 0,55) e fica no pé dele até o drible.
+ * --sai "P:ang": no toque do tick P (passe ou chute de verdade) a bola sai rasteira na direção ang até sair do recorte,
+ * e ele chuta virado pra lá. --marcador "dx:dy": quem leva o drible fica esse tanto (m) pro lado até o bote (colado,
+ * um sprite ficava em cima do outro). No --drible, quem leva o drible fica sem status (a mesma cara em todos os lances)
+ * e as estrelinhas dele saem --estrelas vezes maiores (padrão 2); a câmera (--foco) segura quem dribla, quem leva e a
+ * bola até o passe dentro do quadro, longe da coluna de botões do app e da faixa. --gol: sem o golpe entre o drible e o
+ * chute, a bola sem o efeito do tipo, a câmera chega antes na rede, a bola entra no fundo e a rede estufa; na
+ * comemoração, sem bola e sem os anéis. --queda "dx:dy": no --tonto 4 ele cai esse tanto pro lado. --festa-y <0..1>: a
+ * altura do marcador sentado no recorte na comemoração (padrão 0,62). As marcas de pênalti (o pontinho parecia bola)
+ * somem do recorte. Cada quadro leva em quadros.json `qa` (posições no recorte, pra conferência quadro a quadro).
  * CHROME_PATH aponta o Chromium/Chrome; BASE_URL o servidor de dev (padrão http://localhost:8080).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -62,6 +75,12 @@ const soLento = args.includes('--so-lento');
 const golClip = args.includes('--gol');
 const palco = arg('--palco') === undefined ? null : Number(arg('--palco'));
 const palcoFica = (arg('--palco-fica') ?? '').split(',').filter(Boolean).map(Number);
+const chega = arg('--chega');
+const sai = arg('--sai');
+const estrelas = Number(arg('--estrelas', 2));
+const festaY = Number(arg('--festa-y', 0.62));
+const marcador = arg('--marcador');
+const [quedaDx, quedaDy] = (arg('--queda') ?? '0:0').split(':').map(Number);
 const lentos = (arg('--lento') ?? '')
     .split(',')
     .filter(Boolean)
@@ -309,13 +328,31 @@ await page.evaluate(
 );
 // --drible / --tonto / --sem-poeira (tudo só na tela)
 await page.evaluate(
-    (drible, tonto, foco, semPoeira, soLento, golClip, palco, palcoFica, alto) => {
+    async (
+        drible,
+        tonto,
+        foco,
+        semPoeira,
+        soLento,
+        golClip,
+        palco,
+        palcoFica,
+        alto,
+        chega,
+        sai,
+        estrelas,
+        festaY,
+        marcador,
+        queda,
+    ) => {
         const sc = window.__soccermonGame.scene.getScene('Match');
         // só a câmera lenta do --lento (sem a do drible, a do gol chegando e a dos textos do jogo, que multiplicavam)
         // (e sem o bullet time do botão do golpe máximo aceso: o capitão perto do gol)
         if (soLento) {
             sc.md.cinematic = false;
             sc.maxCueNow = () => false;
+            // (e sem a aura do golpe máximo pronto em volta do capitão: o anel amarelo e o brilho atrás dele)
+            sc.maxReady = () => null;
             sc.maxHits = [];
         }
         window.__foco = foco;
@@ -339,9 +376,141 @@ await page.evaluate(
         const side = dir.x * ry - dir.y * rx >= 0 ? 1 : -1;
         const mine = { tick, by, marker: mk, team: 0, kind, dir, side, toBall: null };
         const v = sc.players[mk];
-        // o tonto começa depois da pose do drible (a mordida da finta), quando ele já perdeu
+        window.__festaY = festaY;
+        // quem leva o drible fica com a mesma cara em todos os lances: sem status (a paralisia verde da Estática, a
+        // espiral da confusão) nem o ícone e o nome da habilidade que deu o status
+        for (const q of sc.snaps) {
+            q.p[mo + 4] = 0;
+            q.p[mo + 5] = 0;
+        }
+        for (let i = sc.matchEvents.length - 1; i >= 0; i--) {
+            const x = sc.matchEvents[i];
+            if (Math.abs(x.tick - tick) > 60) continue;
+            if ((x.type === 'status' && x.target === mk) || (x.type === 'ability' && x.by === by))
+                sc.matchEvents.splice(i, 1);
+        }
+        // passe encenado: a direção em graus vira vetor e a linha da folha PMD (dir8 do motor)
+        const rad = (g) => [Math.cos((g * Math.PI) / 180), Math.sin((g * Math.PI) / 180)];
+        const row8 = (g) => [6, 5, 4, 3, 2, 1, 0, 7, 6][Math.round((((g + 540) % 360) - 180) / 45) + 4];
+        if (chega) {
+            // (m por tick: 0,55 = 11 m/s, entra no recorte uns 6 ticks antes de chegar)
+            const [A, ang, V = 0.55] = chega.split(':').map(Number);
+            const [ux, uy] = rad(ang);
+            const at = snap(A);
+            const [ex, ey] = [at.p[o] + 0.4 * ux, at.p[o + 1] + 0.4 * uy];
+            for (const q of sc.snaps) {
+                if (q.tick >= A - 40 && q.tick < A) {
+                    Object.assign(q, {
+                        owner: -1,
+                        bx: ex - ux * V * (A - q.tick),
+                        by: ey - uy * V * (A - q.tick),
+                        bz: 0,
+                        bfx: '',
+                    });
+                    q.p[o + 2] = row8(ang + 180); // olhando pra bola que vem
+                } else if (q.tick >= A && q.tick < tick && q.owner !== by)
+                    Object.assign(q, { owner: by, bx: q.p[o] + 0.4 * ux, by: q.p[o + 1] + 0.4 * uy, bz: 0, bfx: '' });
+            }
+        }
+        // --marcador "dx:dy": o marcador colado demais em quem dribla (um sprite em cima do outro) fica esse tanto (m) pro
+        // lado até o bote: chega no lugar dele num bote rápido, de 8 a 3 ticks antes do drible
+        if (marcador) {
+            const [dx, dy] = marcador.split(':').map(Number);
+            for (const q of sc.snaps) {
+                if (q.tick > tick - 3) continue;
+                const u = Math.min(1, (tick - 3 - q.tick) / 5);
+                const f = u * u * (3 - 2 * u);
+                q.p[mo] += dx * f;
+                q.p[mo + 1] += dy * f;
+            }
+        }
+        if (sai) {
+            const [P, ang] = sai.split(':').map(Number);
+            const [ux, uy] = rad(ang);
+            const V = 0.75; // passe rasteiro forte (15 m/s)
+            const at = snap(P);
+            const [sx, sy] = [at.p[o] + 0.4 * ux, at.p[o + 1] + 0.4 * uy];
+            for (const q of sc.snaps) {
+                if (q.tick >= P - 6 && q.tick <= P + 3) q.p[o + 2] = row8(ang);
+                if (q.tick > P && q.tick <= P + 60)
+                    Object.assign(q, {
+                        owner: -1,
+                        bx: sx + ux * V * (q.tick - P),
+                        by: sy + uy * V * (q.tick - P),
+                        bz: 0,
+                        bfx: '',
+                    });
+            }
+        }
+        // estrelinhas de quem levou o drible maiores (no 9:16 do celular as do jogo somem)
+        {
+            const { drawStars } = await import('/src/game/hit-fx.ts');
+            const orig = sc.drawReaction.bind(sc);
+            sc.drawReaction = (view, n, i) => {
+                const d = view.down;
+                if (view !== v || !d || d.tumble || sc.playTick < d.from || sc.playTick >= d.to)
+                    return orig(view, n, i);
+                view.down = null;
+                try {
+                    orig(view, n, i);
+                } finally {
+                    view.down = d;
+                }
+                const sp = view.sprite;
+                const b = sp.getBounds();
+                const s = Math.min(sc.uiScale, 2.3) * 0.8 * estrelas;
+                drawStars(sc.reactG, sp.x, b.top + b.height * 0.12 - 4 * s, s, sc.time.now);
+            };
+        }
+        // --gol: a bola sem o efeito do tipo (a aura roxa do Voo tapava o goleiro e a rede), a rede estufando e, na
+        // comemoração, sem bola (ela volta pro meio pra saída e ficava solta no quadro)
+        if (golClip) {
+            const g = sc.matchEvents.find((x) => x.type === 'goal' && x.team === 0 && x.tick > tick);
+            for (const q of sc.snaps) if (q.tick > tick) q.bfx = '';
+            // sem golpe entre o drible e o gol (o Voo levava o Charizard pra fora do quadro e deixava a aura roxa no
+            // marcador): ele conduz no chão e chuta
+            for (let i = sc.matchEvents.length - 1; i >= 0; i--) {
+                const x = sc.matchEvents[i];
+                if (
+                    x.by === by &&
+                    (x.type === 'move' || x.type === 'trait') &&
+                    x.tick > tick &&
+                    x.tick <= (g?.tick ?? tick)
+                )
+                    sc.matchEvents.splice(i, 1);
+            }
+            for (const q of sc.snaps) if (q.tick > tick) q.p[o + 5] &= ~(8 | 16 | 32);
+            // a bola entra no fundo da rede (o motor para ela na linha do gol; com a rede estufando ela fica lá dentro)
+            if (g)
+                for (const q of sc.snaps)
+                    if (q.tick >= g.tick - 1 && q.tick <= g.tick + 40) {
+                        const L = 40;
+                        const dentro = L - 0.1 + Math.min(1, (q.tick - g.tick + 1) / 3) * 0.85;
+                        q.bx = q.bx > L / 2 ? Math.max(q.bx, dentro) : Math.min(q.bx, L - dentro);
+                    }
+            const { netRipple } = await import('/src/game/court.ts');
+            const he = sc.handleEvent.bind(sc);
+            sc.handleEvent = (e, ...r) => {
+                he(e, ...r);
+                if (e === g) netRipple(sc, 1, sc.ball.y, 0xffffff, false, 1800);
+            };
+            if (g) {
+                const fora = () => sc.playTick > g.tick + 12;
+                for (const o of [sc.ball, sc.ballShadow]) {
+                    const wr = o.willRender.bind(o);
+                    o.willRender = (cam) => !fora() && wr(cam);
+                }
+                // e sem os anéis no chão (o vermelho dos 4 pulando ficava em cima da cabeça do marcador sentado)
+                for (const pv of sc.players) {
+                    const wr = pv.ring.willRender.bind(pv.ring);
+                    pv.ring.willRender = (cam) => !fora() && wr(cam);
+                }
+            }
+        }
+        // o tonto começa depois da pose do drible (a mordida da finta), quando ele já perdeu (o giro e as estrelinhas,
+        // logo que ele perde: o passe sai uns 6 ticks depois do drible e o plano acaba com a bola saindo)
         // (as estrelinhas não mexem na pose: começam logo que ele perde)
-        const t0 = tick + (tonto === 3 ? 4 : 9);
+        const t0 = tick + (tonto === 2 || tonto === 3 ? 4 : tonto === 4 ? 6 : 9);
         let feito = 0;
         let montado = false;
         // palco: deslocamento fixo de cada um dos outros (m), o menor que deixa ele fora do recorte em volta de quem
@@ -365,12 +534,16 @@ await page.evaluate(
             const RAMPA = 20;
             for (let j = 0; j < sc.players.length; j++) {
                 if (j === by || j === mk || palcoFica.includes(j)) continue;
+                // (no --gol, o nosso time volta pro lugar no gol: vem pra comemoração; o rival fica longe até o fim)
+                const fim = golClip && gol && sc.players[j].team === 0 ? Math.min(palco, gol.tick) : palco;
                 const fora = (ox, oy) =>
-                    janela.every(
-                        (q) =>
-                            Math.abs(q.p[j * 7] + ox - centro(q)[0]) > hx ||
-                            Math.abs(q.p[j * 7 + 1] + oy - centro(q)[1]) > hy,
-                    );
+                    janela
+                        .filter((q) => q.tick <= fim)
+                        .every(
+                            (q) =>
+                                Math.abs(q.p[j * 7] + ox - centro(q)[0]) > hx ||
+                                Math.abs(q.p[j * 7 + 1] + oy - centro(q)[1]) > hy,
+                        );
                 let best = null;
                 for (let r = 0; r <= 24 && !best; r += 0.5)
                     for (const [ox, oy] of [
@@ -382,8 +555,8 @@ await page.evaluate(
                         if (!best && fora(ox, oy)) best = [ox, oy];
                 if (!best || (!best[0] && !best[1])) continue;
                 for (const q of sc.snaps) {
-                    if (q.tick < t0p - 1 || q.tick > palco + RAMPA) continue;
-                    const u = Math.max(0, Math.min(1, (palco + RAMPA - q.tick) / RAMPA));
+                    if (q.tick < t0p - 1 || q.tick > fim + RAMPA) continue;
+                    const u = Math.max(0, Math.min(1, (fim + RAMPA - q.tick) / RAMPA));
                     const f = u * u * (3 - 2 * u);
                     q.p[j * 7] += best[0] * f;
                     q.p[j * 7 + 1] += best[1] * f;
@@ -395,12 +568,13 @@ await page.evaluate(
             const g = sc.matchEvents.find((x) => x.type === 'goal' && x.team === 0 && x.tick > tick);
             if (!g) return;
             const pin = snap(t0);
-            const [cx, cy] = [pin.p[mo], pin.p[mo + 1] - 2.2];
+            const [cx, cy] = [pin.p[mo] + queda[0], pin.p[mo + 1] + queda[1] - 2];
+            // (mais abertos: com 1 m entre eles o Mew sumia atrás do Charizard)
             const vagas = [
-                [-1.55, 0],
-                [-0.5, 0.2],
-                [0.55, 0.2],
-                [1.6, 0],
+                [-1.75, -0.3],
+                [-0.6, 0.25],
+                [0.6, 0.25],
+                [1.75, -0.3],
             ];
             const time = [];
             for (let j = 0; j < sc.players.length; j++) if (sc.players[j].team === 0 && !sc.isKeeper(j)) time.push(j);
@@ -411,7 +585,7 @@ await page.evaluate(
             const de = new Map(time.map((j) => [j, [snap(a0).p[j * 7], snap(a0).p[j * 7 + 1]]]));
             for (const q of sc.snaps) {
                 if (q.tick < a0) continue;
-                const u = Math.min(1, (q.tick - a0) / 26);
+                const u = Math.min(1, (q.tick - a0) / 20);
                 const f = u * u * (3 - 2 * u);
                 time.forEach((j, n) => {
                     const [vx, vy] = vagas[ordem[n]];
@@ -427,6 +601,15 @@ await page.evaluate(
                 return sc.onScreen(m.x, m.y);
             };
         };
+        // --queda "dx:dy": no tombo ele cai esse tanto (m) pro lado (o Charizard grande passava por cima dele)
+        if (tonto === 4 && (queda[0] || queda[1]))
+            for (const q of sc.snaps)
+                if (q.tick > tick && q.tick < t0) {
+                    const u = (q.tick - tick) / (t0 - tick);
+                    const f = u * u * (3 - 2 * u);
+                    q.p[mo] += queda[0] * f;
+                    q.p[mo + 1] += queda[1] * f;
+                }
         if (golClip && tonto === 4) festa();
         window.__vitimaStep = () => {
             if (sc.named?.[0] !== mine) sc.named = [mine];
@@ -446,7 +629,7 @@ await page.evaluate(
             } else if (tonto === 4) {
                 if (!feito) {
                     // fica onde caiu até o fim (só na tela: as posições dele nos snapshots dali pra frente)
-                    const [px, py, pf] = [snap(t0).p[mo], snap(t0).p[mo + 1], snap(t0).p[mo + 2]];
+                    const [px, py, pf] = [snap(t0).p[mo] + queda[0], snap(t0).p[mo + 1] + queda[1], snap(t0).p[mo + 2]];
                     for (const s of sc.snaps)
                         if (s.tick >= t0) {
                             s.p[mo] = px;
@@ -474,6 +657,12 @@ await page.evaluate(
     palco,
     palcoFica,
     vertical,
+    chega,
+    sai,
+    estrelas,
+    festaY,
+    marcador,
+    [quedaDx, quedaDy],
 );
 // câmera fechada (--vertical): um recorte 9:16 do canvas seguindo a bola (mola amortecida), ampliado inteiro com o
 // vizinho mais próximo e depois reduzido suave pra 1080x1920 (pixel quadrado sem borrar)
@@ -483,6 +672,8 @@ await page.evaluate(() => {
     const outC = Object.assign(document.createElement('canvas'), { width: W, height: H });
     const big = document.createElement('canvas');
     const pad = document.createElement('canvas');
+    const fix = document.createElement('canvas');
+    const [MARGEM, PPM_] = [44, 22]; // court.ts: MARGIN e PPM (a quadra tem 40 x 20 m)
     let cam = null;
     let corte = null;
     window.__vframe = (src, alto) => {
@@ -523,17 +714,82 @@ await page.evaluate(() => {
                 b = { x: q.x * 0.65 + m.x * 0.35, y: q.y * 0.65 + m.y * 0.35 };
             }
         }
+        // --gol, do chute em diante: a câmera vai antes pra rede (onde a bola para no gol) e espera a bola chegar no meio
+        // do quadro (seguindo a bola, ela chegava na beira direita, na coluna de botões do app)
+        const golEv =
+            window.__golClip && chute && t >= chute.tick && !gol
+                ? sc.matchEvents.find((e) => e.type === 'goal' && e.tick > chute.tick)
+                : null;
+        if (golEv) {
+            // (sem passar da bola: ela fica sempre no quadro, pelo menos a 15% da beira esquerda)
+            const fim = sc.ballPxAt(golEv.tick + 3);
+            const rede = sc.onScreen(fim.x, fim.y);
+            b = { x: Math.min(rede.x, b.x + (0.35 * w) / kx), y: rede.y + (b.y - rede.y) * 0.3 };
+        }
         const alvo = {
-            x: Math.max(0, Math.min(src.width - w, b.x * kx - w / 2)),
-            // (na festa, o marcador sentado a 78% da altura e a festa em cima dele)
+            x: Math.max(-w / 2, Math.min(src.width - w / 2, b.x * kx - w / 2)),
+            // (na festa, o marcador sentado a --festa-y da altura e a festa em cima dele)
             y: window.__foco
-                ? b.y * kx - h * (gol && window.__fimAlvo ? 0.78 : 0.48)
+                ? b.y * kx - h * (gol && window.__fimAlvo ? window.__festaY : 0.48)
                 : Math.max(0, Math.min(src.height - h, b.y * kx - h * 0.55)),
         };
-        cam = cam ? { x: cam.x + (alvo.x - cam.x) * 0.14, y: cam.y + (alvo.y - cam.y) * 0.14 } : alvo;
+        // --foco, no lance: quem dribla, quem leva (com o "?" e as estrelinhas em cima) e a bola até o passe ficam dentro do
+        // quadro, longe da coluna de botões do app (direita) e da legenda (embaixo); não cabe tudo: o meio deles
+        if (window.__foco && drible && !gol && (!chute || t < chute.tick || !window.__golClip)) {
+            // (a cabeça com o "?" em cima: uns 17% do recorte acima do pé)
+            // (quem levou o drible só até sentar: no chapéu ele fica sentado pra trás e a câmera vai com quem conduz)
+            const quem = t < drible.tick + 18 || !window.__golClip ? [drible.by, drible.marker] : [drible.by];
+            const pts = quem.map((i) => {
+                const f = naTela(i);
+                return [f.x * kx, f.y * kx - 0.17 * h, f.y * kx + 0.02 * h];
+            });
+            // (a bola, só do bote ao passe: chegando de fora ela não puxa a câmera)
+            // (e até o toque pra fora: o passe que sai do quadro arrastava a câmera e o marcador ficava pra trás, cortado)
+            const toque = sc.matchEvents.find(
+                (e) => (e.type === 'pass' || e.type === 'shot') && e.by === drible.by && e.tick > drible.tick,
+            );
+            if (t > drible.tick - 6 && t < Math.min(drible.tick + 12, toque?.tick ?? Number.POSITIVE_INFINITY)) {
+                const bp = sc.onScreen(sc.ball.x, sc.ball.y);
+                pts.push([bp.x * kx, bp.y * kx - 0.03 * h, bp.y * kx + 0.03 * h]);
+            }
+            const antes = { ...alvo };
+            const cabe = (lo, hi, a0, a1, L, at) => {
+                if (hi - lo > (a1 - a0) * L) return (lo + hi) / 2 - ((a0 + a1) / 2) * L;
+                if (lo < at + a0 * L) return lo - a0 * L;
+                if (hi > at + a1 * L) return hi - a1 * L;
+                return at;
+            };
+            alvo.x = cabe(Math.min(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[0])), 0.16, 0.7, w, alvo.x);
+            alvo.x = Math.max(-w / 2, Math.min(src.width - w / 2, alvo.x));
+            // (e longe da faixa: embaixo dela, ou em cima, conforme a altura dela)
+            const fy = window.__faixaY ?? 0.74;
+            const [y0, y1] = fy > 0.5 ? [0.1, fy - 0.11] : [fy + 0.1, 0.8];
+            alvo.y = cabe(Math.min(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[2])), y0, y1, h, alvo.y);
+            // (puxada pela regra: a câmera vai mais rápido, senão o marcador empurrado pela finta escapa do quadro)
+            if (Math.abs(alvo.x - antes.x) + Math.abs(alvo.y - antes.y) > 2 || Math.abs(t - drible.tick) < 16)
+                window.__camRapida = 2;
+        }
+        const rate = golEv ? 0.35 : window.__camRapida-- > 0 ? 0.5 : 0.14;
+        cam = cam ? { x: cam.x + (alvo.x - cam.x) * rate, y: cam.y + (alvo.y - cam.y) * rate } : alvo;
         // os textos presos (a faixa) vão pra dentro do recorte, como no clipe do jogo (vale do próximo quadro em diante)
         // (o recorte é só um pedaço da altura do canvas: a altura de cada texto preso vai pra mesma fração do recorte)
         sc.setClipView(cam.x / kx, w / kx);
+        // pra conferência quadro a quadro (qa-lance.py): onde estão no recorte (0..1) quem dribla, quem leva e a bola
+        {
+            const fr = (p) => [(p.x * kx - cam.x) / w, (p.y * kx - cam.y) / h];
+            const n0 = sc.named?.[0];
+            const vis = (o) => o.visible && o.alpha > 0.01 && (!o.willRender || o.willRender(sc.cameras.main));
+            window.__qaMeta = {
+                dbg: [cam.x, alvo.x, window.__camRapida, t, drible?.tick ?? null, chute?.tick ?? null, !!gol],
+                bola: vis(sc.ball) ? fr(sc.onScreen(sc.ball.x, sc.ball.y)) : null,
+                quem: n0 ? fr(naTela(n0.by)) : null,
+                vitima: n0 ? fr(naTela(n0.marker)) : null,
+                vitimaTopo: n0
+                    ? fr(sc.onScreen(sc.players[n0.marker].sprite.x, sc.players[n0.marker].sprite.getBounds().top))
+                    : null,
+                faixa: [...sc.cine.pins.values()].map((pin) => pin.fy ?? null),
+            };
+        }
         const altura = src.height / kx;
         // e encolhem na mesma conta (o clipe do jogo pega a altura toda; este, só `h` px dela), com folga de 20% pros
         // botões do app na direita
@@ -548,18 +804,43 @@ await page.evaluate(() => {
         big.height = h * k;
         const g = big.getContext('2d');
         g.imageSmoothingEnabled = false;
-        if (cam.y < 0 || cam.y + h > src.height) {
+        // sem as marcas de pênalti (6 e 10 m): no quadro fechado o pontinho branco parecia uma segunda bola solta. Tapa com
+        // o piso do lado (a placa de metal se repete); não tapa com alguém ou a bola em cima
+        fix.width = src.width;
+        fix.height = src.height;
+        const fg = fix.getContext('2d');
+        fg.drawImage(src, 0, 0);
+        {
+            const z = sc.cameras.main.zoom || 1;
+            const r = Math.ceil(4 * z * kx);
+            // (alguém em cima da marca ou do pedaço de piso que vai tapar)
+            const perto = (p) =>
+                [sc.ball, ...sc.players.map((pv) => pv.sprite)].some((o) => {
+                    if (!o.visible) return false;
+                    const q = sc.onScreen(o.x, o.y);
+                    const [x, y] = [q.x * kx, q.y * kx];
+                    // (a bola é pequena; o Pokémon sobe do pé)
+                    if (o === sc.ball) return Math.abs(x - p.x + r) < 4 * r && Math.abs(y - p.y) < 3 * r;
+                    return x > p.x - 5.5 * r && x < p.x + 2.5 * r && y > p.y - r && y < p.y + 9 * r;
+                });
+            for (const mx of [6, 10, 34, 30]) {
+                const m = sc.onScreen(MARGEM + mx * PPM_, MARGEM + 10 * PPM_);
+                const p = { x: m.x * kx, y: m.y * kx };
+                if (perto(p)) continue;
+                fg.drawImage(src, p.x - r - 2.5 * r, p.y - r, 2 * r, 2 * r, p.x - r, p.y - r, 2 * r, 2 * r);
+            }
+        }
+        if (cam.y < 0 || cam.y + h > src.height || cam.x < 0 || cam.x + w > src.width) {
             // passou da borda do canvas: completa com a cor de fora da quadra (pega no canto do canvas)
-            pad.width = src.width;
+            pad.width = src.width + 2 * w;
             pad.height = src.height + 2 * h;
             const pg = pad.getContext('2d');
-            pg.drawImage(src, 0, h);
-            const [r, gg, bb] = pg.getImageData(2, h + 2, 1, 1).data;
+            const [r, gg, bb] = fg.getImageData(2, 2, 1, 1).data;
             pg.fillStyle = `rgb(${r},${gg},${bb})`;
-            pg.fillRect(0, 0, pad.width, h);
-            pg.fillRect(0, h + src.height, pad.width, h);
-            g.drawImage(pad, cam.x, cam.y + h, w, h, 0, 0, w * k, h * k);
-        } else g.drawImage(src, cam.x, cam.y, w, h, 0, 0, w * k, h * k);
+            pg.fillRect(0, 0, pad.width, pad.height);
+            pg.drawImage(fix, w, h);
+            g.drawImage(pad, cam.x + w, cam.y + h, w, h, 0, 0, w * k, h * k);
+        } else g.drawImage(fix, cam.x, cam.y, w, h, 0, 0, w * k, h * k);
         const o = outC.getContext('2d');
         o.imageSmoothingEnabled = true;
         o.imageSmoothingQuality = 'high';
@@ -654,6 +935,7 @@ while ((await tick()) < to * TICK_RATE) {
                 bx: (sc.ball.x - v.x) / v.width,
                 by: (sc.ball.y - v.y) / v.height,
                 zoom: cam.zoom,
+                qa: window.__qaMeta ?? null,
             };
         }),
     );

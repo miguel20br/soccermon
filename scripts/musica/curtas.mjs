@@ -400,3 +400,46 @@ export const plim = som(
     },
     { pk: 0.45, corte: 9000 },
 );
+
+// ---------- Lance da semana nº 2 (os 4 dribles) ----------
+/** A cuíca (assinatura do Lance #2: a torcida rindo do Machop). Tambor de fricção: a nota escorrega no ataque ("uí", que
+ * sobe `sobe` semitons até a nota) ou cai depois dela (`forma: 'cai'`, o "uóóó" do tombo), com o anasalado do couro
+ * (formante em 1,1 kHz), o chiado da vareta e um balanço que entorta mais com `torto` (0 a 1: o Machop mais tonto). */
+export const cuica = ({ forma = 'ui', sobe = 5, torto = 0 } = {}) =>
+    voz(
+        (f, d, r) => {
+            let ph = 0;
+            let ru = 0;
+            const [a, b] = [bp(1100, 2.2), bp(2600, 3)];
+            return (t) => {
+                const u = Math.min(1, t / Math.max(0.05, d));
+                // "uí": entra `sobe` abaixo e chega na nota em 40% da nota; "cai": sai da nota e escorrega `sobe` pra baixo
+                const st = forma === 'cai' ? -sobe * u ** 1.6 : -sobe * Math.max(0, 1 - t / (0.4 * d)) ** 2;
+                const vib = torto * 1.6 * Math.sin(TAU * (5 + 3 * torto) * t) * Math.min(1, t / 0.08);
+                ph += (f * 2 ** ((st + vib) / 12)) / SR;
+                ru += 0.3 * (r() * 2 - 1 - ru);
+                const x = Math.sin(TAU * ph) + 0.55 * Math.sin(2 * TAU * ph) + 0.3 * Math.sin(3 * TAU * ph) + 0.25 * ru;
+                const env = Math.min(1, t / 0.012) * (t < d ? 1 - 0.35 * u : Math.max(0, 1 - (t - d) / 0.06) * 0.65);
+                return (0.55 * a(x) + 0.25 * b(x) + 0.35 * x) * env;
+            };
+        },
+        { solta: 0.07, pk: 0.5 },
+    );
+/** O Machop se exibindo (assinatura da música B do Lance #2): metal grave de músculo, serrote com formantes de "ô" e um
+ * rosnado (o braço tremendo de força). `torto` (0 a 1) desafina e balança (tonto); `cai` escorrega `cai` semitons pra
+ * baixo ao longo da nota (o tombo). */
+export const musculo = ({ torto = 0, cai = 0 } = {}) =>
+    voz(
+        (f, d) => {
+            let ph = 0;
+            const [a, b] = [bp(520, 2.5), bp(1150, 3)];
+            return (t) => {
+                const u = Math.min(1, t / Math.max(0.05, d));
+                const st = -0.6 * torto - cai * u ** 1.4 + torto * 0.9 * Math.sin(TAU * 4.5 * t) * Math.min(1, t / 0.1);
+                ph += (f * 2 ** (st / 12)) / SR;
+                const x = ((ph % 1) * 2 - 1) * (1 + 0.18 * Math.sin(TAU * 31 * t));
+                return (0.7 * a(x) + 0.35 * b(x) + 0.12 * x) * envNota(t, d, 0.02, 0.07);
+            };
+        },
+        { solta: 0.08, pk: 0.55 },
+    );
