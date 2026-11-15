@@ -1,8 +1,54 @@
 ---
-description: Soccermon News #1 v6 (68,6 s, 9:16), telejornal com falas na caixa de diálogo; na v6 os números das notícias viram gráfico e animação (troféus, barras +4, contador de ₽, folhinha 27/11, pacote abrindo); linha do tempo real, regra de leitura, música e como gerar.
+description: Soccermon News #1 v7 (75,6 s, 9:16), telejornal com falas na caixa de diálogo; na v7 o Pikachu apresenta, entram GCs, selo do canal, cabeça da matéria no telão, sonora do Magikarp e o link ao vivo em tela dividida com atraso de satélite; linha do tempo real, regra de leitura, música e como gerar.
 ---
 
-# Soccermon News #1 v6 (68,6 s, 15/11/2026)
+# Soccermon News #1 v7 (75,6 s, 15/11/2026)
+
+Na v7 o Miguel pediu (sobre a v6):
+
+- **a recompensa sem distração** (19,5–21,8): as duas opções que não são o Patrocínio (a carta do Growlithe com a faixa
+  e o Charcoal) já chegam escuras e borradas (`blur 10px`, brilho 0,32): nenhum texto delas se lê. Em 20,6 um holofote
+  (feixe de luz e o resto escurecido) acende na Charanga de Pewter, que cresce 13% com uma moldura dourada. A cartela 1
+  da escalada e o telão da cabeça da matéria usam o mesmo recorte (a tela borrada, só a Charanga acesa);
+- **o Pikachu apresenta** (é do elenco do Pallet FC; o Alakazam não é): todas as cenas da bancada, as falas ("Boa noite!
+  Eu sou o Pikachu…"), a caixa (PIKACHU) e a tela final. Voz nova `pika` em `scripts/musica/curtas.mjs` (pulso estreito,
+  entra uma quinta acima e cai na nota em 25 ms, tremolo rápido: um "pi" por nota, curtinho); o "ting" da colher virou o
+  choquinho (o Pose do PMD e faíscas amarelas nas bochechas, com o mesmo sino). A carta das barras +4 agora é a do
+  **Onix** (a da galeria, já desenhada pelo `cartas.mjs`: VEL 62, CHU 32, PAS 32, DRI 47, DES 86, FOR 94, todas com +4 sem
+  bater no teto de 99). Depois do clipe do Vestiário (o Pikachu chutando o Voltorb), o Pikachu olha pro lado, sem graça,
+  com uma gota de suor (48,5–49, o "plim" e a tuba descendo) antes de perguntar;
+- **cara de reportagem de TV:**
+  - **GC** (tarja de nome: o nome numa faixa amarela com a ponta vermelha, o cargo embaixo, entra de lado e sai) na
+    primeira aparição de cada um: PIKACHU · APRESENTADOR (4,8–7), MAGIKARP · JOGADOR DO PALLET FC (28,55–30,65), MEOWTH ·
+    REPÓRTER · ROTA ÍNDIGO e PIKACHU · ESTÚDIO (as tarjas da tela dividida, 32,25–38,05) e PSYDUCK · TÉCNICO DO PALLET FC
+    (49,6–51,6). A manchete do bloco do Psyduck deixou de ser "PSYDUCK · TÉCNICO" (agora é o GC) e segue VESTIÁRIO DO
+    PALLET FC;
+  - **selo do canal** no canto de cima (x 40, y 96 a 166: o símbolo, **19:00** com os dois-pontos piscando e **AO VIVO**
+    com o ponto piscando) durante a bancada e o link (no estúdio e na Rota; nos VTs ele sai). O AO VIVO saiu da aba da
+    manchete (ficava duplicado);
+  - **cabeça da matéria com telão** (18,5–19,5): o Pikachu chama a matéria 1 no plano MEDIO com a recompensa no telão
+    e corta pro VT em tela cheia em 19,5;
+  - **link ao vivo com atraso de satélite** (31–38,3): 31 a bancada com o Meowth esperando no telão; em 32 a tela
+    divide (o estúdio à esquerda, a Rota à direita, cada metade com a sua tarja, entrando dos lados); o Pikachu diz
+    "…Boa noite, Meowth." e o Meowth fica parado 1 s (34,3–35,3: o quadro congela, a imagem dele treme duas vezes, o
+    Pikachu inclina a cabeça; a banda para e ficam as cordas e dois bips de satélite); em 35,3 "Boa noite, Pikachu!" (o
+    Meowth pula e faz pose) e em 38,3 o corte pra ele em tela cheia, com as falas de antes;
+  - **a canopla** no microfone do pedestal: o cubinho azul com o **SN** amarelo, logo abaixo da cabeça do microfone;
+  - **sonora na matéria 1** (28–31): depois do "…vale pro time inteiro.", corte seco pra quadra do Pallet FC: o
+    Magikarp de perto (com a medalha de capitão e o microfone do News), o Snorlax dormindo no gol lá atrás, e a fala "A
+    gente tava perdendo. A charanga tocou e o time inteiro ficou mais forte." (74 letras: só essa fala vai em 39 px pra
+    caber em 2 linhas). A voz dele é o PLOF (`splash`); no "A charanga tocou" ele quica e a medalha brilha;
+- **consertos da v6:** ducking (nos 0,75 s em que cada voz entra, tudo que não é voz abaixa 6 dB): a fala do pacote foi
+  de 1,8 pra 6,9 dB acima da banda e todas as falas ficam de 6,9 a 13,4 dB acima; o "Muito obrigado pela companhia"
+  ganhou empurrão de 13% em 3,5 s, pulinho, o choquinho no "boa noite" e uma reverência (67,5); a pergunta ao Psyduck
+  ganhou a câmera andando até ele (DOIS → DOIS_PSY em 3,5 s), o Pikachu se inclinando pro Psyduck e o Psyduck se
+  encolhendo na prancheta; no pacote, depois de virar, o Mewtwo vem pro meio da tela 2,3x maior (63,75) e as outras
+  quatro apagam: os atributos dele se leem no celular; o 27/11 ficou só na folhinha (a manchete virou TIME ULTIMATE e a
+  fatia do jogo foi recortada acima do selo EM BREVE 27/11); o 9 do painel de ₽ não encosta mais na borda (150 px e o
+  bloco 30 px pra esquerda); o Pidgey e o Rattata foram pra baixo do painel (y 905 e 930); as moedas do Pay Day caem do
+  alto da tela (passam por trás do painel) e quicam em volta do Meowth, em vez de sair da cara dele.
+
+## Antes: a v6 (68,6 s)
 
 Roteiro aprovado em `docs/marketing/news-01.md` (pauta 21, sex 20/11 19h). A v1 (41 s) ficou "frenética"; a v2 (35 s,
 sem falas) "vaga"; a v3 (86,5 s, telejornal com falas) agradou no formato. Na v4, pelo feedback do Miguel:
@@ -87,35 +133,34 @@ ou animação, cada um com um som pequeno no tempo da música. Falas, caixa, man
 - nunca dois textos novos juntos: quando a manchete troca, a caixa fecha e a fala nova começa 0,3 s depois. Por isso o
   bloco com manchete nova tem no mínimo 3,3 s e o sem tem 3 s.
 
-## Linha do tempo (música: 120 BPM, compasso = 2 s)
+## Linha do tempo (v7; música: 120 BPM, compasso = 2 s)
 
-"Texto" = quando a fala começa a aparecer; ela fica inteira até o fim do bloco.
+"Texto" = quando a fala começa a aparecer; ela fica inteira até o fim do bloco. Selo = o selo do canal no canto de cima.
 
 | Seg. | Manchete | Quem | Fala (texto a partir de) | Imagem |
 |---|---|---|---|---|
 | 0–2 | — | — | — | o gol em câmera lenta (recortado) e o artilheiro pulando |
 | 2–4 | — | — | — | vinheta de plantão (placa SOCCERMON NEWS, a bola girando, o selo #1) |
-| 4–7,3 | SOCCERMON NEWS #1 | Alakazam | Boa noite! Eu sou o Alakazam, seu apresentador desta noite. (4,3) | bancada (ABERTO), a cadeira do convidado vazia; o Shoot e o "ting" da colher |
-| 7,3–10,5 | | Alakazam | Hoje: as novidades da versão 0.9.51, e mais. (7,3) | bancada (MEDIO); no telão, VERSÃO NOVA e o 0.9.51 carimbado em 7,5, pulsando no tempo; varrida em 10,5 |
-| 10,5–12,5 | — (banner HOJE NO SOCCERMON NEWS) | — | cartela 1 · RECOMPENSA NOVA NA COPA DO DIA | a tela do 1 de 3 |
-| 12,5–14,5 | | — | cartela 2 · AO VIVO DA ROTA ÍNDIGO | o Meowth de microfone (pose em 13,1) |
-| 14,5–16,5 | | — | cartela 3 · A DATA DO TIME ULTIMATE | a fatia do Time Ultimate |
-| 16,5–18,5 | | — | cartela + · E MAIS: O TÉCNICO DO PALLET FC NO ESTÚDIO | a porta; a silhueta do Psyduck inclina a cabeça no "psy?" (17,3) |
-| 18,5–21,8 | RECOMPENSA NOVA | Alakazam | Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou. (18,8) | a tela do 1 de 3; as 3 opções entram uma a uma (19 · 19,35 · 19,7) |
-| 21,8–24,8 | | Alakazam | Em 4 de cada 10 vitórias, uma das opções é um Patrocínio… (21,8) | 10 troféus; 4 acendem com o selo do Patrocínio (22,3 · 22,8 · 23,3 · 23,8), contador 4/10; a carta do Patrocínio (24,1) |
-| 24,8–28 | | Alakazam | …um bônus forte que vale pro time inteiro. (24,8) | a carta do Pikachu, o placar 0 × 1 PERDENDO (25,3) e as 6 barras ganhando +4 (25,6 a 26,85) |
-| 28–31,3 | AO VIVO · ROTA ÍNDIGO | Alakazam | Agora, ao vivo da Rota Índigo, nosso repórter Meowth. (28,3) | bancada (MEDIO); no telão, o Meowth na quadra da Rota, de pedestal, esperando; em 31 a câmera entra no telão |
-| 31,3–34,3 | | Meowth | Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. (31,3) | o Meowth na quadra, de perto, o pedestal na frente; pulinho no começo; Pidgey e Rattata ao fundo; o painel do ₽: vitória 1 (32,5, ₽3) e 2 (33,5, ₽6) |
-| 34,3–37,5 | | Meowth | Três vitórias, ₽9. Pay Day! (34,3) | a vitória 3 (34,5, ₽9); a câmera abre um pouco; um pulo (35, à mão: o Hop do PMD sumia atrás do painel do ₽), o amuleto brilha e 14 moedas saem em arco e caem em volta (35,58–36,88); pose no ka-ching (36,9) |
-| 37,5–41,5 | VESTIÁRIO DO PALLET FC | Alakazam | No Vestiário do Pallet FC, uma bola explodiu no treino. (37,8) | o trecho do EP 2 numa moldura de VT: o chute (38,1), o KABOOM (39,5) |
-| 41,5–44,8 | PSYDUCK · TÉCNICO | Alakazam | Psyduck, o que vocês fizeram com o Voltorb? (41,8) | o Alakazam e o Psyduck (DOIS), tostado na cadeira, a fumacinha no alto da cabeça; ele olha a prancheta |
-| 44,8–48 | | Psyduck | Agora ele é reserva. (44,8) | corte pro banco do Pallet FC: o Voltorb de colete respira e pisca (45,8 e 46,15); em 46,6 o Psyduck de perto (PSY) balançando |
-| 48–51,5 | TODA SEMANA | Alakazam | Um aviso: a partir de agora, sai atualização nova toda semana. (48,3) | bancada (MEDIO), o Shoot e o "ting"; no telão, o calendário das 4 sextas (49, 49,5, 50 e 50,5) |
-| 51,5–55 | TIME ULTIMATE · 27/11 | Alakazam | E na sexta que vem, dia 27, abre o Time Ultimate… (51,8) | a fatia do Time Ultimate e a folhinha: 20 a 27/11 passando, o 27/11 carimba em 52,5 |
-| 55–58,5 | | Alakazam | …o modo novo em que você abre pacotes e monta o time da temporada. (55) | o pacote cai (55), treme, rasga (55,45); 5 cartas caem na escalação e viram (56 a 56,36); o Mewtwo 93 vira por último (56,5, flash) e cresce |
-| 58,5–62 | SOCCERMON NEWS #1 | Alakazam | Muito obrigado pela companhia, e boa noite! (58,8) | o Alakazam de perto (ALA); o Shoot e o "ting" em 59,6 |
-| 62–65 | | Todos | Temos que chutar! (62) | a bancada com os três (ABERTO): pulam juntos no grito (62,3) e no "TAR" (62,8) e fazem pose (63,3) |
-| 65–68,6 | — | — | — | tela final: logo com a piscada SOC-CER-MON, Temos que chutar! (65,35), soccermon.com (65,5), os três pulando no MON; o "ting" em 66,5 |
+| 4–7,3 | SOCCERMON NEWS #1 | Pikachu | Boa noite! Eu sou o Pikachu, seu apresentador desta noite. (4,3) | bancada (ABERTO), selo; o choquinho; GC PIKACHU · APRESENTADOR (4,8–7) |
+| 7,3–10,5 | | Pikachu | Hoje: as novidades da versão 0.9.51, e mais. (7,3) | bancada (MEDIO); no telão, VERSÃO NOVA e o 0.9.51 carimbado em 7,5; varrida em 10,5 |
+| 10,5–18,5 | — (HOJE NO SOCCERMON NEWS) | — | as 4 cartelas de 2 s (1 · recompensa, só a Charanga acesa; 2 · Meowth; 3 · Time Ultimate; + · a porta) | |
+| 18,5–21,8 | RECOMPENSA NOVA | Pikachu | Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou. (18,8) | 18,5 a cabeça: bancada (MEDIO), a recompensa no telão; 19,5 o VT: as 3 opções entram (19,65 · 19,9 · 20,15), as duas outras escuras e borradas; 20,6 o holofote na Charanga |
+| 21,8–24,8 | | Pikachu | Em 4 de cada 10 vitórias, uma das opções é um Patrocínio… (21,8) | 10 troféus, 4 acendem (22,3 · 22,8 · 23,3 · 23,8), 4/10; a carta do Patrocínio (24,1) |
+| 24,8–28 | | Pikachu | …um bônus forte que vale pro time inteiro. (24,8) | a carta do Onix, 0 × 1 PERDENDO (25,3), as 6 barras +4 (25,6 a 26,85) |
+| 28–31 | | Magikarp | A gente tava perdendo. A charanga tocou e o time inteiro ficou mais forte. (28) | a sonora: o Magikarp na quadra, de medalha e microfone; o Snorlax dorme no gol; GC (28,55–30,65); ele quica em 29,5 |
+| 31–35,3 | AO VIVO · ROTA ÍNDIGO | Pikachu | Agora, ao vivo da Rota Índigo, nosso repórter Meowth. Boa noite, Meowth. (31,3) | 31 bancada (MEDIO), o Meowth no telão; 32 a tela dividida com as tarjas; 34,3–35,3 o atraso do satélite (o Meowth parado) |
+| 35,3–38,3 | | Meowth | Boa noite, Pikachu! (35,3) | a tela dividida; o Meowth pula e faz pose |
+| 38,3–41,3 | | Meowth | Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. (38,3) | o Meowth em tela cheia, selo; o painel do ₽: vitórias em 39,5 (₽3), 40,5 (₽6) |
+| 41,3–44,5 | | Meowth | Três vitórias, ₽9. Pay Day! (41,3) | a vitória 3 (41,5, ₽9); o pulo (42), 14 moedas caem do alto e quicam em volta (42,6–43,77); pose no ka-ching (43,9) |
+| 44,5–48,5 | VESTIÁRIO DO PALLET FC | Pikachu | No Vestiário do Pallet FC, uma bola explodiu no treino. (44,8) | o trecho do EP 2 numa moldura de VT: o chute (45,1), o KABOOM (46,5) |
+| 48,5–52 | | Pikachu | Psyduck, o que vocês fizeram com o Voltorb? (49) | bancada (DOIS), selo; 48,5–49 o Pikachu olha pro lado com a gota de suor; a câmera anda até o Psyduck; GC PSYDUCK (49,6–51,6) |
+| 52–55 | | Psyduck | Agora ele é reserva. (52) | o banco: o Voltorb de colete pisca (53 e 53,35); 53,6 o Psyduck de perto balançando |
+| 55–58,5 | TODA SEMANA | Pikachu | Um aviso: a partir de agora, sai atualização nova toda semana. (55,3) | bancada (MEDIO), o choquinho; o calendário das 4 sextas (56 a 57,5) |
+| 58,5–62 | TIME ULTIMATE | Pikachu | E na sexta que vem, dia 27, abre o Time Ultimate… (58,8) | a fatia (sem o selo da data) e a folhinha: 20 a 27/11, o 27/11 carimba em 59,5 |
+| 62–65,5 | | Pikachu | …o modo novo em que você abre pacotes e monta o time da temporada. (62) | o pacote cai, rasga (62,45), as 5 cartas viram (63 a 63,36), o Mewtwo vira em 63,5 e vem pro meio grande (63,75) |
+| 65,5–69 | SOCCERMON NEWS #1 | Pikachu | Muito obrigado pela companhia, e boa noite! (65,8) | o Pikachu de perto (ALA_FIM, empurrão de 13%), o choquinho (66,6) e a reverência (67,5) |
+| 69–72 | | Todos | Temos que chutar! (69) | os três na bancada pulam no grito (69,3) e no "TAR" (69,8) e fazem pose (70,3) |
+| 72–75,6 | — | — | — | tela final: logo com a piscada, Temos que chutar!, soccermon.com, os três pulando no MON |
 
 ## Música
 
@@ -154,6 +199,7 @@ banda em todas as falas (veja o relatório da v5).
 ## Gerar
 
 ```bash
+# v7: as vozes contra a banda (só as vozes x todo o resto, RMS dos 0,6 s de cada fala): de 6,9 a 13,4 dB
 # a música (só a do News): news.wav + news.js, depois −14 LUFS em news-14.wav (o mesmo loudnorm de 2 passadas do preparar.mjs)
 scripts/pesado.sh node trailer/curtas/musica.mjs trailer/curtas/midia/som news
 # (ou scripts/pesado.sh node trailer/curtas/preparar.mjs, que refaz sprites e todas as trilhas)
@@ -164,8 +210,8 @@ scripts/pesado.sh node trailer/curtas/musica.mjs trailer/curtas/midia/som news
 BASE_URL=http://localhost:<p> node trailer/curtas/news-01/cartas.mjs trailer/curtas/midia/news/cartas 25 143 95 26 130 150 pack
 #   bola-fora.mp4   = 22 a 26 s do render v7 do EP 2 (worktree ep14, trailer/curtas/vestiario-bolas/render/v7.mp4), sem som, crf 14
 node trailer/qa-quadros.mjs trailer/curtas/news-01                      # 0 problema(s)
-cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v6.mp4
-scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v6.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v6
+cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v7.mp4
+scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v7.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v7
 ```
 
-A v5c (68,6 s) está no commit d91dbca5; a v4 (65,5 s) no acf287e6; a v3 (86,5 s) no a43c731a; a v2 (35 s) e a v1, nos anteriores.
+A v6 (68,6 s) está no commit f01b7ac1; a v5c (68,6 s) no d91dbca5; a v4 (65,5 s) no acf287e6; a v3 (86,5 s) no a43c731a; a v2 (35 s) e a v1, nos anteriores.

@@ -514,6 +514,20 @@ export const psy = voz(
     },
     { solta: 0.12 },
 );
+/** A voz do Pikachu (apresentador do News #1 v7, 15/11): blips agudos e curtos, um "pi" por nota. Pulso estreito (25%,
+ * mais fino que a quadrada do `bit`) que entra uma quinta acima e cai na nota em 25 ms (o "pi" do choquinho), com um
+ * tremolo rápido e o corte seco: cada nota é uma sílaba. Diferente do `miau` (formantes andando) e do `psy` (grave). */
+export const pika = voz(
+    (f, d) => {
+        let ph = 0;
+        return (t) => {
+            ph += (f * (1 + 0.5 * Math.exp(-t / 0.025)) * (1 + 0.025 * Math.sin(TAU * 13 * t))) / SR;
+            const x = ph % 1;
+            return (x < 0.25 ? 1 : -0.33) * (0.8 + 0.2 * Math.cos(TAU * 22 * t)) * envNota(t, d, 0.003, 0.03);
+        };
+    },
+    { solta: 0.04, pk: 0.42 },
+);
 /** O "blip" da caixa de diálogo (News #1 v5): uma letra digitando, como nos RPGs de 8 bits. Quadrada curtinha (40 ms)
  * com um degrau de oitava no ataque e queda rápida. Bateria: `pitch` em semitons a partir de Lá 5 (880 Hz). */
 export const blip = som(
