@@ -12,7 +12,9 @@ matéria. Sem voz. ~65 s.
 - cada matéria diz o que mudou em palavras que quem nunca jogou entende e explica o termo do jogo na primeira vez;
   a piada sai da notícia.
 
-A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogadas".
+A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogadas". Na v3 (86 s) o Miguel não
+gostou do Psyduck repetindo a fala do episódio (o callback em si agradou), achou estranho o "Que moedas?" e a
+escalada parecia notícia dada rápido: na v4 ela vira sumário com cartelas.
 
 ## Roteiro
 
@@ -21,15 +23,17 @@ A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogad
 |---|---|---|
 | Gol em câmera lenta, o artilheiro amassa ao cair; vinheta de plantão | — | SOCCERMON NEWS #1 |
 | Bancada | **Alakazam:** Boa noite! Eu sou o Alakazam, seu apresentador desta noite. | |
-| Bancada | **Alakazam:** No Soccermon News de hoje: as novidades da versão 0.9.51, e mais. | |
+| Bancada | **Alakazam:** Hoje: as novidades da versão 0.9.51, e mais. | |
 
-**Escalada** (imagem rápida de cada matéria, ~2,5 s cada)
-| Imagem | Fala | Manchete |
-|---|---|---|
-| A recompensa 1 de 3 com o Patrocínio | **Alakazam:** A Copa do Dia muda a recompensa da vitória. | RECOMPENSA NOVA NA COPA DO DIA |
-| Meowth de microfone na Rota | **Alakazam:** Nosso repórter entra ao vivo da Rota Índigo. | AO VIVO DA ROTA ÍNDIGO |
-| A fatia do Time Ultimate no menu | **Alakazam:** O Time Ultimate já tem data pra abrir. | TIME ULTIMATE TEM DATA |
-| Silhueta do Psyduck atrás da porta do estúdio | **Alakazam:** E mais: o técnico do Pallet FC aqui no estúdio. | E MAIS |
+**Escalada** (v4: cartelas de destaque, não matéria). Banner fixo HOJE NO SOCCERMON NEWS; sem caixa de fala; cada
+destaque é uma cartela grande com imagem pequena, 2 s cada, com uma batida da vinheta em cada troca. Fica claro que é
+o sumário, não a notícia.
+| Imagem | Cartela |
+|---|---|
+| A recompensa 1 de 3 com o Patrocínio | 1 · RECOMPENSA NOVA NA COPA DO DIA |
+| Meowth de microfone | 2 · AO VIVO DA ROTA ÍNDIGO |
+| A fatia do Time Ultimate | 3 · A DATA DO TIME ULTIMATE |
+| Silhueta do Psyduck atrás da porta do estúdio | E MAIS: O TÉCNICO DO PALLET FC NO ESTÚDIO |
 
 **Matéria 1: Copa do Dia**
 | Imagem | Fala | Manchete |
@@ -43,16 +47,14 @@ A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogad
 |---|---|---|
 | Bancada | **Alakazam:** Agora, ao vivo da Rota Índigo, nosso repórter Meowth. | AO VIVO · ROTA ÍNDIGO |
 | Meowth na quadra, de microfone | **Meowth:** Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. | |
-| Chovem moedas, o Meowth enche os bolsos | **Alakazam:** Meowth, essas moedas são dos jogadores. | |
-| Meowth com as bochechas cheias | **Meowth:** Que moedas? | |
+| Chovem moedas em volta do Meowth (o golpe dele) | **Meowth:** Três vitórias, ₽9. Pay Day! | |
 
 **Quadro: Vestiário do Pallet FC**
 | Imagem | Fala | Manchete |
 |---|---|---|
 | Trecho do ep. 2 "Bola fora": o Voltorb explode no chute do Pikachu | **Alakazam:** No Vestiário do Pallet FC, uma bola explodiu no treino. | VESTIÁRIO DO PALLET FC |
-| Psyduck na cadeira do convidado, ainda tostado, prancheta queimada | **Alakazam:** Psyduck, como um Voltorb foi parar no saco de bolas? | PSYDUCK · TÉCNICO |
-| Psyduck olha a prancheta | **Psyduck:** Eu contei treze bolas. | |
-| Psyduck segura a cabeça | **Psyduck:** A gente tem doze. | |
+| Psyduck na cadeira do convidado, ainda tostado, prancheta queimada | **Alakazam:** Psyduck, o que vocês fizeram com o Voltorb? | PSYDUCK · TÉCNICO |
+| Corte pro banco do Pallet FC: o Voltorb sentado no banco, de colete, pisca | **Psyduck:** Agora ele é reserva. | |
 
 **Aviso e Time Ultimate**
 | Imagem | Fala | Manchete |
