@@ -1,6 +1,6 @@
 // Foto parada da dupla do News #1 (15/11): o Raichu (terno do gravata.mjs) e o Machoke (terno.mjs) na bancada.
 // Monta news-01/render/teste-machoke (fora do git): o estúdio do index.html, sem vídeo nem som, e a cena.js no lugar da
-// linha do tempo; a cor do terno e a direção do Machoke saem do ?cor=<preto|vinho|caramelo>&dir=<0|7>.
+// linha do tempo; a cor do terno e a direção do Machoke saem do ?cor=<marinho|preto>&dir=<0|7>.
 //   node trailer/curtas/news-01/teste-machoke/montar.mjs && scripts/pesado.sh node trailer/curtas/news-01/teste-machoke/foto.mjs <png>
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';

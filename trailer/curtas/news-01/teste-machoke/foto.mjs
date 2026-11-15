@@ -1,6 +1,7 @@
 // Foto parada da dupla Raichu e Machoke (News #1, 15/11), sem render de vídeo: abre a cena montada (montar.mjs) num
 // Chromium headless e tira o print da bancada com o Machoke de frente e em 3/4, em cada cor de terno (uma coluna por
-// cor). Embaixo de cada bancada, o quadro 0 (parado) e o 1 (a flexão) do Machoke vestido em zoom 2x (26 px por pixel).
+// cor). Embaixo de cada bancada, o quadro 0 (parado) e o 1 (a flexão) do Machoke vestido em zoom 2x (26 px por pixel);
+// no pé, a tira com todos os quadros do Idle na cor TIRA= (padrão: a 1ª).
 //   node trailer/curtas/news-01/teste-machoke/montar.mjs && scripts/pesado.sh node trailer/curtas/news-01/teste-machoke/foto.mjs <png>
 import { createRequire } from 'node:module';
 import { ANIM, CORES, DIRS } from './terno.mjs';
@@ -28,7 +29,7 @@ for (const cor of cores)
 await browser.close();
 
 const txt = (t, w, h, tam, cor = '#ffcb05') => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><text x="${w / 2}" y="${h - 16}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${tam}" fill="${cor}" text-anchor="middle">${t}</text></svg>`);
-const NOME = { preto: 'PRETO COM BRILHO NA BORDA', vinho: 'VINHO', caramelo: 'CARAMELO, GRAVATA AZUL' };
+const NOME = { marinho: 'AZUL-MARINHO', preto: 'PRETO' };
 const E = 26, GAP = 24, CROP = [3, 1, 26, 28]; // col, lin, larg, alt do quadro ampliado (26 px por pixel: 2x o Raichu)
 const TW = CROP[2] * E, TH = CROP[3] * E;
 const CW = Math.max(CORTE.width, 2 * TW + GAP), M = 40; // uma coluna por cor
@@ -58,5 +59,21 @@ for (const [k, cor] of cores.entries()) {
     y += TH + 50;
   }
 }
+// a tira: todos os quadros do Idle (de frente e 3/4) na cor TIRA, pra conferir que a gravata anda com o tronco
+const TIRA = process.env.TIRA ?? cores[0], ET = 10, GT = 14;
+camadas.push({ input: txt(`TODOS OS QUADROS DO IDLE · ${NOME[TIRA]} · 10x`, W, 70, 40), left: 0, top: y });
+y += 80;
+const fundoT = await sharp({ create: { width: CROP[2] * ET, height: CROP[3] * ET, channels: 4, background: '#5a1c26' } }).png().toBuffer();
+const x0t = (W - 8 * CROP[2] * ET - 7 * GT) / 2;
+let n = 0;
+for (const dir of DIRS)
+  for (let q = 0; q < ANIM.rects[dir].length; q++, n++) {
+    const [fx, fy] = ANIM.rects[dir][q];
+    const x = x0t + n * (CROP[2] * ET + GT);
+    const img = await sharp(`${R}midia/sp/67-${TIRA}.png`).extract({ left: fx + CROP[0], top: fy + CROP[1], width: CROP[2], height: CROP[3] }).resize(CROP[2] * ET, CROP[3] * ET, { kernel: 'nearest' }).png().toBuffer();
+    camadas.push({ input: fundoT, left: x, top: y }, { input: img, left: x, top: y });
+    camadas.push({ input: txt(`${dir ? '3/4' : 'frente'} ${q} · ${ANIM.dur[q]}t`, CROP[2] * ET, 46, 26, '#c3c8d8'), left: x, top: y + CROP[3] * ET });
+  }
+y += CROP[3] * ET + 70;
 await sharp({ create: { width: W, height: y, channels: 4, background: '#0e1430' } }).composite(camadas).png().toFile(SAIDA);
 console.log(`ok: ${SAIDA}`);
