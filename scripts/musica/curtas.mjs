@@ -528,6 +528,44 @@ export const pika = voz(
     },
     { solta: 0.04, pk: 0.42 },
 );
+/** A voz do Raichu (teste da dupla do News #1, 15/11): o "rai" curto. Pulso de 1/3 (mais cheio que o 25% do `pika`)
+ * que entra uma quarta acima e cai em 30 ms, com um filtro que abre no ataque e fecha (o "ai") e um chiado de faísca
+ * por baixo. Soa bem de Sol 4 a Ré 5: aguda e curta, uma quarta abaixo do Pikachu. */
+export const raichu = voz(
+    (f, d, r) => {
+        let ph = 0;
+        const fl = svf(0.45);
+        return (t) => {
+            const u = Math.min(1, t / Math.max(0.05, d));
+            ph += (f * (1 + 0.33 * Math.exp(-t / 0.03) - 0.05 * u) * (1 + 0.02 * Math.sin(TAU * 9 * t))) / SR;
+            const src = (ph % 1 < 0.33 ? 1 : -0.5) + 0.1 * (r() * 2 - 1);
+            return (0.45 * src + 0.8 * fl(src, 700 + 1600 * Math.exp(-t / 0.05))) * envNota(t, d, 0.004, 0.04);
+        };
+    },
+    { solta: 0.05, pk: 0.45 },
+);
+/** A voz do Machamp (teste da dupla do News #1, 15/11): o "HA!" grave e forte. Serra com a oitava de baixo em
+ * quadrada, um "h" de sopro no ataque, as formantes abrindo de "o" pra "a" em 60 ms e saturação (tanh) pro peito.
+ * Soa bem de Lá 2 a Ré 3. */
+export const machamp = voz(
+    (f, d, r) => {
+        let ph = 0;
+        let ru = 0;
+        const [f1, f2] = [svf(0.3), svf(0.3)];
+        return (t) => {
+            const n = r() * 2 - 1;
+            const u = Math.min(1, t / Math.max(0.08, d));
+            const a = Math.min(1, t / 0.06);
+            ph += (f * (1 + 0.1 * Math.exp(-t / 0.02) - 0.05 * u)) / SR;
+            ru += 0.3 * (n - ru);
+            const src = (ph % 1) * 2 - 1 + ((ph * 0.5) % 1 < 0.5 ? 0.5 : -0.5) + 0.15 * ru;
+            const y = f1(src, 480 + 270 * a) + 0.6 * f2(src, 850 + 400 * a) + 0.15 * src;
+            const h = t < 0.03 ? n * (1 - t / 0.03) * 0.5 : 0;
+            return Math.tanh(1.8 * y) * envNota(t, d, 0.008, 0.08) + h;
+        };
+    },
+    { solta: 0.1, pk: 0.55 },
+);
 /** O "blip" da caixa de diálogo (News #1 v5): uma letra digitando, como nos RPGs de 8 bits. Quadrada curtinha (40 ms)
  * com um degrau de oitava no ataque e queda rápida. Bateria: `pitch` em semitons a partir de Lá 5 (880 Hz). */
 export const blip = som(
