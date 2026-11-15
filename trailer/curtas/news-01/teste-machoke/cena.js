@@ -28,7 +28,7 @@
     const A = SPR[26].anims.Idle;
     apresentador(RX, SPR[26].folha, SPR[26].tam, ...A.rects[0][0], A.w, A.h, 28);
     const dir = Number(q.get('dir') ?? 0);
-    apresentador(GX, MACH.folhas[q.get('cor') ?? 'azul'], MACH.tam, ...MACH.rects[dir][0], MACH.w, MACH.h, MACH.linha, EM);
+    apresentador(GX, MACH.folhas[q.get('cor') ?? 'preto'], MACH.tam, ...MACH.rects[dir][0], MACH.w, MACH.h, MACH.linha, EM);
 
     // as canecas (a do Machoke azul)
     const CANECA = ['######..', '#kkkk#..', '#NMMM###', '#NMMM#.#', '#NMMM###', '#OMMO#..', '.####...'];

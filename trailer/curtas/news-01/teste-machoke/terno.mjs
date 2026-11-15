@@ -5,8 +5,8 @@
 // boca, mãos, pés, cueca e cinto ficam como no sprite.
 // O Idle do Machoke tem 2 poses: o quadro 0 (parado, 40 ticks) e os quadros 1–3 (a flexão, 4 ticks cada, a mesma pose
 // subindo e descendo 1 px). Cada pose tem um molde; cada quadro acha a âncora (o canto da crista) e o molde anda junto.
-//   import { vestir, ANIM, CORES } from './terno.mjs'; await vestir(folhaDoJogo, folhaNova, 'azul')
-//   node trailer/curtas/news-01/teste-machoke/terno.mjs <pasta>   (folhas das 2 cores + prévia 10x, e confere as poses)
+//   import { vestir, ANIM, CORES } from './terno.mjs'; await vestir(folhaDoJogo, folhaNova, 'preto')
+//   node trailer/curtas/news-01/teste-machoke/terno.mjs <pasta>   (folhas das 3 cores + prévia 10x, e confere as poses)
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 
@@ -26,16 +26,20 @@ export const ANIM = {
   })),
 };
 export const TAM = [JSON67.meta.size.w, JSON67.meta.size.h];
-export const LINHA = 21; // a linha do quadro no tampo da mesa (o cinto do quadro 0 fica logo acima dela)
+export const LINHA = 22; // a linha do quadro no tampo da mesa (1 abaixo do cinto: a gravata desce até a ponta)
 export const DIRS = [0, 7];
 
 const hex = (h) => [Number.parseInt(h.slice(1, 3), 16), Number.parseInt(h.slice(3, 5), 16), Number.parseInt(h.slice(5, 7), 16), 255];
-// terno: L lapela (luz), S luz, s meio, z sombra, Z sombra funda; um pouco mais claro que o azul-marinho do Raichu
+// 2º teste (15/11): o cinza-azulado e o grafite sumiam na pele lilás do Machoke ("tá da cor da pele dele"); agora só
+// cores longe do lilás. Terno: L lapela, S luz, s meio, z sombra, Z sombra funda, R brilho de 1 px na borda (só no preto,
+// pra não virar bloco). Gravata: K nó, H luz, G meio, D sombra.
+const OURO = { K: '#b07c00', H: '#fff3a0', G: '#ffcb05', D: '#b07c00' };
 export const CORES = {
-  azul: { L: '#a6b2c8', S: '#7e8ba5', s: '#636f8a', z: '#4a546d', Z: '#353d52' }, // cinza-azulado médio
-  grafite: { L: '#a3a3ad', S: '#7b7b86', s: '#60606b', z: '#484851', Z: '#33333a' },
+  preto: { L: '#5c5c70', S: '#45454f', s: '#2f2f38', z: '#212128', Z: '#141418', R: '#868a96', ...OURO },
+  vinho: { L: '#c4566a', S: '#a63a50', s: '#82263b', z: '#5f192b', Z: '#40101d', ...OURO },
+  caramelo: { L: '#f3d9a6', S: '#e0b475', s: '#c08f50', z: '#956736', Z: '#6b4522', K: '#16204a', H: '#4f66a8', G: '#2a3b7c', D: '#16204a' },
 };
-const FIXAS = { '#': '#000000', W: '#f4f4ec', w: '#c3c8d8', H: '#fff3a0', G: '#ffcb05', D: '#b07c00', K: '#b07c00' }; // gravata dourada
+const FIXAS = { '#': '#000000', W: '#f4f4ec', w: '#c3c8d8' };
 const CRISTA = ['#fff700', '#dfb700', '#a76f00'];
 const lum = (h) => 0.3 * Number.parseInt(h.slice(1, 3), 16) + 0.59 * Number.parseInt(h.slice(3, 5), 16) + 0.11 * Number.parseInt(h.slice(5, 7), 16);
 // os tons do Machoke: #d7c7ef (208) → S, #a797c7 e o rosa #ff875f (161, 166) → s, #7f6f97 e o vermelho #d73f00 (120, 102) → z, #5f4777 (84) → Z
@@ -52,12 +56,12 @@ const MOLDES = {
     '......xxxx...........xxxx.......',
     '.....xxxxxL.........Lxxxxx......',
     '.....xxxxxL.........Lxxxxx......',
-    '....xxxxxxLW.......WLxxxxxx.....',
-    '....xxxx.LWWWWKKKWWWWL.xxxx.....',
-    '....xxx..xLWWWHGDWWWLx..xxx.....',
-    '....xxx...xLWWHGDWWLx...xxx.....',
-    '.....xxx...............xxx......',
-    '................................',
+    '....xxxxxxxLW.......WLxxxxxx....',
+    '....xxxxx.xxLWW...WWLxx.xxxx....',
+    '....xxxx..xxxLWKKKWLxxx..xxx....',
+    '.....xxx...xxLWHGDWLxx...xxx....',
+    '.....xxx....zsLWGWLsz..xxx......',
+    '.............ssLDLss............',
     '...........x.......x............',
     '..........xxxx...xxxx...........',
     '..........xxxx...xxxx...........',
@@ -96,11 +100,11 @@ const MOLDES = {
     '.......x..........xxxxxxx.......',
     '.......xx.........Lxxxxxx.......',
     '......xxxx......WLxxxxxxxx......',
-    '......xxxxW.KKWWWLxx.xx.xx......',
-    '.....xxxx.LWHDWWLxxx..xxxx......',
+    '......xxxxLW...WWLxx.xx.xx......',
+    '.....xxxx.LWKKWWLxxx..xxxx......',
     '.....x.xx..LHDWLxxx..xxxx.......',
-    '...............xxx...xxxx.......',
-    '................................',
+    '.............GLzxxx..xxxx.......',
+    '.............Dss................',
     '...........x....................',
     '..........xxx...................',
     '..........xxx...xx..............',
@@ -157,7 +161,7 @@ function ancora(px, w, h) {
 }
 
 /** Veste a folha `entrada` (a do jogo) na cor `nome` e grava em `saida`. Devolve a âncora de cada quadro. */
-export async function vestir(entrada, saida, nome = 'azul') {
+export async function vestir(entrada, saida, nome = 'preto') {
   const { data: b, info } = await sharp(entrada).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const orig = Buffer.from(b); // o molde lê o quadro original, pinta na cópia
   const P = { ...FIXAS, ...CORES[nome] };
@@ -180,6 +184,7 @@ export async function vestir(entrada, saida, nome = 'azul') {
       for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (px(i, j) !== ref.px(i - di, j - dj)) dif++;
       if (dif) throw new Error(`Idle ${dir}/${q}: ${dif} pixels diferentes da pose ${pose} deslocada (${di}, ${dj})`);
       const { de, m } = MOLDES[pose];
+      const terno = [];
       m.forEach((linha, k) => [...linha].forEach((c, i0) => {
         if (c === '.') return;
         const [i, j] = [i0 + di, de + k + dj];
@@ -188,8 +193,13 @@ export async function vestir(entrada, saida, nome = 'azul') {
         if (c === 'x') {
           if (!atual || atual === '#000000' || CRISTA.includes(atual) || atual === '#ffffff') return;
           b.set(hex(P[tom(atual)]), at(i, j));
+          terno.push([i, j]);
         } else b.set(hex(P[c]), at(i, j));
       }));
+      // R: o pixel do terno colado no contorno de fora (preto com o vazio do lado), em cima ou dos lados, acende como luz
+      // de recorte nos ombros e braços; embaixo não (a luz vem de cima), e da mesa pra baixo não precisa
+      const fora = (i, j) => px(i, j) === '#000000' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, c]) => !px(i + a, j + c));
+      if (P.R) for (const [i, j] of terno) if (j < LINHA + dj && [[1, 0], [-1, 0], [0, -1]].some(([a, c]) => fora(i + a, j + c))) b.set(hex(P.R), at(i, j));
       log.push(`${dir}/${q}: (${ai}, ${aj})`);
     }
   }
