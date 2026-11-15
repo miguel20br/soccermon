@@ -46,7 +46,7 @@ o sumário, não a notícia.
 | Imagem | Fala | Manchete |
 |---|---|---|
 | Bancada | **Alakazam:** Agora, ao vivo da Rota Índigo, nosso repórter Meowth. | AO VIVO · ROTA ÍNDIGO |
-| Meowth na quadra, de microfone | **Meowth:** Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. | |
+| Meowth na quadra, com o microfone num pedestal na frente dele (sem mãozinha) | **Meowth:** Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. | |
 | Chovem moedas em volta do Meowth (o golpe dele) | **Meowth:** Três vitórias, ₽9. Pay Day! | |
 
 **Quadro: Vestiário do Pallet FC**
@@ -62,7 +62,8 @@ o sumário, não a notícia.
 | Calendário com uma bola em cada semana | **Alakazam:** Um aviso: a partir de agora, sai atualização nova toda semana. | TODA SEMANA |
 | Tela do Time Ultimate | **Alakazam:** E na sexta que vem, dia 27, abre o Time Ultimate… | TIME ULTIMATE · 27/11 |
 | A carta ouro virando | **Alakazam:** …o modo novo em que você abre pacotes e monta o time da temporada. | |
-| Bancada com os três | **Alakazam:** Boa noite, e temos que chutar! | |
+| Bancada | **Alakazam:** Muito obrigado pela companhia, e boa noite! | |
+| Os três na bancada, pulando juntos | **Todos:** Temos que chutar! | |
 | Tela final | — | Temos que chutar! · soccermon.com |
 
 Fora desta edição: sprites nítidos (conserto), barra de golpe, a bola amassando, Seus duelos (o Duelo saindo do BETA
