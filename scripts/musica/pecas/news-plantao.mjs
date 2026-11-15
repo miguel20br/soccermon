@@ -3,6 +3,9 @@
 // caixa no tempo, baixo andando, chimbal em colcheia), um blip por letra enquanto a caixa digita (o tom de cada um),
 // uma varrida em cada troca de matéria e a despedida nova: o "boa noite" do Alakazam e o "Temos que chutar!" dos três
 // juntos (teremim, mi-áu e psy no mesmo grito). A v4 tinha 15 falas e 65,5 s.
+// v6 ("texto demais": os números viram gráfico): um som pequeno em cada animação nova (o carimbo do 0.9.51, as cartas
+// da recompensa, o ding de cada troféu, a subida de cada barra +4, a moeda do ₽ 3 → 6 → 9, o tique dos dias até o 27/11,
+// o papel rasgando no pacote e as cartas virando em dó-mi-sol-dó); o Pay Day anda 0,35 s e a carta ouro vira em 56,5.
 // A v1 foi "frenética", a v2 "vaga", a v3 boa mas longa (86,5 s): a v4
 // corta a escalada num sumário de cartelas, troca o "Que moedas?" pelo Pay Day e o "doze" pelo Voltorb no banco.
 // Vinheta de plantão própria, no molde do livre-ditto. O motivo do jornal ("plan-tão, NO-tí-cia, já!"): Dó Dó Sol↑ Fá
@@ -17,7 +20,7 @@
 // na carta; os três cantam o SOC-CER-MON e acaba no "ting".
 // 120 BPM, 4/4, compasso = 2 s (linha = 1/8 s). Os tempos abaixo são os segundos do vídeo (index.html); da escalada em
 // diante a cama anda meio tempo deslocada (compassos x,25 = 10,5 s + 2k), pra batida cair na troca de cartela.
-import { blip, miau, psy, sobe, teremim, varrida } from '../curtas.mjs';
+import { aparece, blip, miau, psy, rasga, sobe, teremim, varrida } from '../curtas.mjs';
 import { bass, drum, GANCHO, I, MAJOR, mel, midi, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 import { kaboom } from './livre-bolas.mjs';
 import { chute, rede, torcida } from './livre-ginasio.mjs';
@@ -55,7 +58,7 @@ const PASSO = 0.05;
 /** A escalada: uma cartela a cada 2 s a partir de 10,5 s. */
 export const CARTELAS = [10.5, 12.5, 14.5, 16.5];
 /** As moedas do Pay Day caindo no chão (s), iguais a window.__moedas do index.html. */
-export const MOEDAS = Array.from({ length: 14 }, (_, k) => 35.23 + k * 0.1);
+export const MOEDAS = Array.from({ length: 14 }, (_, k) => 35.58 + k * 0.1);
 /** A banda (bateria, baixo, acordes) sai nestes trechos (s): o "E mais", o vestiário e o Voltorb no banco. */
 export const BREQUES = [
     [16.5, 18.5],
@@ -103,6 +106,12 @@ export default function news() {
     const cr = S.part('prato', I.crash, { drum: true, gain: 0.3 });
     const bl = S.part('blip', blip, { drum: true, gain: 0.32, pan: 0.05, rev: 0.05 });
     const vr = S.part('varrida', varrida, { drum: true, gain: 0.55, rev: 0.2 });
+    // v6
+    const rs = S.part('rasga', rasga, { drum: true, gain: 0.7, pan: 0.1, rev: 0.12 });
+    const ap = S.part('aparece', aparece, { drum: true, gain: 0.32, pan: -0.1, rev: 0.1 });
+    const tq = S.part('tique', I.block, { pan: 0.15, gain: 0.5 });
+    const tm = S.part('tom', I.tom, { drum: true, gain: 0.45 });
+    const sk = S.part('shaker', I.shaker, { drum: true, gain: 0.5, pan: 0.2 });
 
     const bb = MAJOR(10); // Dó dórico = as notas de Si♭ maior
     const eb = MAJOR(3);
@@ -220,6 +229,11 @@ export default function news() {
             r += Number(l);
         }
     });
+    // v6 · o 0.9.51 carimba no telão (7,5): bumbo, tom e dois sinos (baixinhos: a fala está no ar)
+    kk.note(R(7.5), 0, 0, 0.6);
+    tm.note(R(7.5), 0, 0, 0.45);
+    sino.note(R(7.5), 96, 2, 0.4);
+    sino.note(R(7.5) + 1, 103, 3, 0.4);
     // o "ting" da colher: o Alakazam se apresenta (4,3 s) e se despede (fim)
     colher.note(R(4.3), 98, 4, 0.75);
     // v5: o "ting" também no aviso (48,3) e no "boa noite" da despedida (59,6)
@@ -251,18 +265,37 @@ export default function news() {
     // COPA DO DIA (18,5): prato, o motivo curto; o Patrocínio ganha a moldura dourada (22,3) e a carta amplia (25)
     cr.note(R(18.5), 0, 0, 0.6);
     mel(toque, 18.5 / 2, ['C5:2 C5:1 G5:3 r:10']);
-    for (const [k, m] of [91, 96, 100].entries()) sino.note(R(22.3) + k, m, 2, 0.7);
-    for (const [k, m] of [84, 87, 91, 94, 98].entries()) sino.note(R(25.0) + k * 2, m, 2, 0.55);
+    // v6 · as 3 opções da recompensa entram (19 · 19,35 · 19,7): um "bwoop" cada, subindo
+    for (const [k, s] of [19.0, 19.35, 19.7].entries()) ap.note(s * 8, k * 3, 0, 0.9);
+    // v6 · os 4 troféus que acendem (22,3 · 22,8 · 23,3 · 23,8): um ding cada, subindo; a carta do Patrocínio em 24,1
+    for (const [k, m] of [91, 94, 98, 103].entries()) sino.note(R(22.3 + k * 0.5), m, 3, 0.8);
+    ap.note(24.1 * 8, 5, 0, 1);
+    // v6 · o placar PERDENDO (25,3): a tuba cai "uon-uon"; cada barra ganha +4 (25,6 a 26,85, uma por colcheia): o bumbo
+    // da Charanga e uma subida curta de dois bips, cada barra um degrau acima
+    tuba.note(25.3 * 8, 43, 1, 0.55);
+    tuba.note(25.3 * 8 + 1, 38, 1.4, 0.5);
+    [25.6, 25.85, 26.1, 26.35, 26.6, 26.85].forEach((s, k) => {
+        const m = [72, 74, 76, 77, 79, 81][k];
+        tm.note(s * 8, 4, 0, 0.8);
+        pulso.note(s * 8, m, 0.9, 0.6);
+        pulso.note(s * 8 + 0.9, m + 12, 0.9, 0.55);
+    });
 
     // AO VIVO DA ROTA (28): prato e o motivo inteiro nos metais
     cr.note(R(28.0), 0, 0, 0.8);
     mel(toque, 14, [MOTIVO], { vel: 0.8 });
-    // PAY DAY (34,3): o amuleto brilha no pulo (34,8); as 14 moedas caem descendo a escala; o ka-ching na pose (36,55)
-    sino.note(R(34.8), 103, 2, 0.7);
+    // v6 · o ₽ da Rota: cada vitória (32,5 · 33,5 · 34,5) é uma moeda "ka-ching" e o contador sobe 3 → 6 → 9
+    for (const [k, s] of [32.5, 33.5, 34.5].entries()) {
+        moeda.note(R(s), 24 + k * 2, 0, 0.6);
+        moeda.note(R(s) + 1, 31 + k * 2, 0, 0.6);
+        sino.note(R(s), [86, 89, 93][k], 2, 0.3);
+    }
+    // PAY DAY (v6: o pulo em 35): o amuleto brilha no pulo (35,15); as 14 moedas caem descendo a escala; o ka-ching na pose (36,9)
+    sino.note(35.15 * 8, 103, 2, 0.7);
     MOEDAS.forEach((s, k) => {
         moeda.note(R(s), 31 - Math.round(k * 1.6), 0, 0.8 - k * 0.02);
     });
-    for (const [k, p] of [24, 31].entries()) moeda.note(R(36.55) + k, p, 0, 0.9);
+    for (const [k, p] of [24, 31].entries()) moeda.note(36.9 * 8 + k, p, 0, 0.9);
 
     // VESTIÁRIO (37,5–41,5): o trecho do EP 2. Tuba e tímpano na espera, o chute (38,1) e o KABOOM (39,5)
     mel(tuba, 37.5 / 2, ['C2:4 Db2:4 C2:8'], { vel: 0.45 });
@@ -294,16 +327,28 @@ export default function news() {
     cr.note(R(51.5), 0, 0, 0.7);
     manchete(51.5, 'Dm9', 93);
     mel(ter, R(52.3) / 16, ['A4:2 A4:1 C5:2 D5:3 r:8'], { vel: 0.6 });
-    // 55–56: Si♭7, a carta sai do pacote girando (riser 53–56) e vira em 56 (prato e fanfarra em Mi♭)
-    ris3.note(R(53.0), 0, 0, 1);
-    drum(kk, 27.5, 1, 'X...X...X.......', { vel: 0.7 }); // v5: abaixo da fala (55 s)
-    drum(sn, 27.5, 1, 'x.x.xxxx........', { vel: 0.45 });
-    drum(tp, 27.5, 1, 'x...xxXX........', { vel: 0.5 });
+    // v6 · a folhinha: um tique por dia (20 a 27/11, de 51,85 a 52,5) e o carimbo do 27 (bumbo, prato e sino)
+    for (let k = 0; k < 8; k++) tq.note((51.85 + k * 0.093) * 8, 84 + k, 1, 0.55 + 0.04 * k);
+    kk.note(52.5 * 8, 0, 0, 0.9);
+    cr.note(52.5 * 8, 0, 0, 0.5);
+    sino.note(52.5 * 8, 98, 3, 0.6);
+    // 55–56,5: Si♭7, o pacote cai (55), treme (55,2: o chocalho), rasga (55,45) e as cartas saem (55,55 a 56,03: um
+    // "bwoop" cada); viram em dó-mi-sol-dó de Si♭ (56 · 56,12 · 56,24 · 56,36) e a carta ouro vira em 56,5 (prato e
+    // fanfarra em Mi♭; o riser vai de 53,5 a 56,5)
+    ris3.note(R(53.5), 0, 0, 1);
+    tm.note(55.0 * 8 + 1, 0, 0, 0.45);
+    for (let k = 0; k < 4; k++) sk.note((55.2 + k * 0.06) * 8, 0, 0, 0.5);
+    rs.note(55.45 * 8, 0, 0, 0.75);
+    for (const [k, s] of [55.55, 55.67, 55.79, 55.91, 56.03].entries()) ap.note(s * 8, 2 + k, 0, 0.4);
+    for (const [k, s] of [56.0, 56.12, 56.24, 56.36].entries()) sino.note(s * 8, [82, 86, 89, 94][k], 1, 0.7);
+    drum(kk, 27.75, 1, 'X...X...X.......', { vel: 0.7 }); // v5: abaixo da fala (55 s); v6: 0,5 s depois, cai na carta ouro
+    drum(sn, 27.75, 1, 'x.x.xxxx........', { vel: 0.45 });
+    drum(tp, 27.75, 1, 'x...xxXX........', { vel: 0.5 });
     bass(bs, 27.5, 'Bb7', '0:2 0:2 5:2 s:2 r:8', { vel: 0.7 });
-    padChord(cor, 27.5, 'Bb7', 8, { low: 56, n: 4, vel: 0.6 });
-    cr.note(R(56.0), 0, 0, 1);
-    mel(met, 28, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
-    stabs(toque, 28, 'Ebmaj7', [[0, 8]], { low: 58, n: 4, vel: 0.6 });
+    padChord(cor, 27.5, 'Bb7', 12, { low: 56, n: 4, vel: 0.6 });
+    cr.note(R(56.5), 0, 0, 1);
+    mel(met, 28.25, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
+    stabs(toque, 28.25, 'Ebmaj7', [[0, 8]], { low: 58, n: 4, vel: 0.6 });
 
     // "TEMOS QUE CHUTAR!" (62): a caixa digita com os três blips juntos e em 62,3 os três gritam no mesmo ritmo
     // (Te-mos-que-chu-TAR: o teremim em cima, o mi-áu uma oitava abaixo e o psy no grave); prato e metais no "TAR"

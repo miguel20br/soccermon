@@ -543,3 +543,22 @@ export const varrida = som(
     },
     { pk: 0.4 },
 );
+/** O papel rasgando (News #1 v6, a tampa do pacote): ruído agudo num passa-faixa, picotado em fibras (estalos curtos e
+ * irregulares) que vão rareando em 0,35 s; o centro desce um pouco no fim, quando a tampa sai. */
+export const rasga = som(
+    0.4,
+    (p, r) => {
+        const fl = svf(0.8);
+        let fibra = 0;
+        let prox = 0;
+        return (t) => {
+            if (t >= prox) {
+                fibra = 0.35 + 0.65 * r();
+                prox = t + 0.004 + 0.012 * r() * (1 + 3 * t);
+            }
+            const env = Math.min(1, t / 0.01) * Math.max(0, 1 - t / 0.35) ** 1.3;
+            return fl(r() * 2 - 1, (3400 - 1400 * Math.min(1, t / 0.35)) * k12(p)) * fibra * env;
+        };
+    },
+    { pk: 0.45 },
+);
