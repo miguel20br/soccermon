@@ -1,224 +1,278 @@
-// Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md). v2 (14/11): 35 s, mais calma,
-// na linha do tempo nova (gol, barra de golpe, Meowth, Porygon, Alakazam, Time Ultimate, tela final).
-// Vinheta de plantão própria, no molde do livre-ditto: funk animado, um motivo que conta a história e cada personagem
-// com a voz dele na banda. O motivo do jornal ("plan-tão, NO-tí-cia, já!"): Dó Dó Sol↑ Fá Mi♭ Fá, Si♭ Dó, Dó dórico.
-// Vozes: o Alakazam é o teremim (a colher que entorta: o "ting" de sino), o Meowth é o "mi-áu" (`miau`) com as moedas,
-// o Porygon é o bipe digital (`bit`). A história na música: o gol em câmera lenta sobe (riser e tímpano) até a vinheta;
-// na barra de golpe cada gomo aceso é um degrau de sino (Mi♭, Sol, Dó); o Meowth canta o quadro dele, o 40% é a caixa
-// registradora, o Patrocínio brilha e o "Pay Day!" vira chuva de moedas descendo a escala; no Porygon a banda inteira
-// fica BORRADA (passa-baixa em 650 Hz) e abre de uma vez no "agora eu tenho quina" (o zap); a virada leva pra Ré (sobe
-// um tom) no Vem aí, com o Alakazam no teremim e uma nota de sino por semana do calendário; o Time Ultimate cresce em
-// Si♭7 e a carta vira em Mi♭ maior, com as 7 notas do "faltam 7 dias" descendo; na tela final os três cantam o
-// SOC-CER-MON juntos (teremim, mi-áu e bipe) com as palmas, e acaba no "ting" da colher.
-// 120 BPM, 4/4, compasso = 2 s, 18 compassos (o vídeo usa 35 s). Os quadros que começam no meio do compasso (3 s, 21 s)
-// entram no tempo 3, como anacruse. Mais calma que a v1: o groove fica leve nos trechos com texto pra ler.
-// Dó dórico → Ré dórico (21 s) → Mi♭ maior (30 s).
-import { bit, miau, sobe, teremim } from '../curtas.mjs';
-import { bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
-import { deslize, rede, torcida, zap } from './livre-ginasio.mjs';
+// Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md). v3 (14/11): telejornal com
+// falas numa caixa de diálogo (21 falas, 86,5 s). A v1 foi "frenética", a v2 "vaga": a v3 fica leve e respira enquanto a
+// caixa está na tela, e só reage nos lugares certos.
+// Vinheta de plantão própria, no molde do livre-ditto. O motivo do jornal ("plan-tão, NO-tí-cia, já!"): Dó Dó Sol↑ Fá
+// Mi♭ Fá, Si♭ Dó, Dó dórico. Cada um fala com a própria voz enquanto o texto aparece na caixa (os ~0,5 s da digitação):
+// o Alakazam é o teremim (e a colher que entorta é o "ting" de sino), o Meowth é o "mi-áu" (`miau`) e o Psyduck é o
+// "psy?" (`psy`: grave, confuso, sobe no fim).
+// Reações: o gol em câmera lenta sobe até a vinheta; cada manchete nova ganha um toque curto (sino e metais); o "E mais"
+// segura a banda e o Psyduck pergunta atrás da porta; o Patrocínio brilha; o AO VIVO da Rota tem o motivo nos metais;
+// as moedas chovem descendo a escala e o Meowth junta no ka-ching; no "Que moedas?" a banda para e ele assobia (e cai
+// uma moeda do bolso); o KABOOM do Voltorb (o mesmo do EP 2); o "dong" triste no "A gente tem doze."; o calendário com
+// uma nota por semana; sobe pra Ré no Time Ultimate e pra Mi♭ maior na carta; os três cantam o SOC-CER-MON e acaba no
+// "ting".
+// 120 BPM, 4/4, compasso = 2 s (linha = 1/8 s): os tempos abaixo são os segundos do vídeo (index.html) em linhas.
+import { miau, psy, sobe, teremim } from '../curtas.mjs';
+import { bass, drum, GANCHO, I, MAJOR, mel, midi, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
+import { kaboom } from './livre-bolas.mjs';
+import { chute, rede, torcida } from './livre-ginasio.mjs';
 
 export const meta = { titulo: 'Soccermon News: plantão', tela: 'Soccermon News #1 (vídeo)' };
 
-/** O borrado do Porygon (s): a banda passa por um passa-baixa até ele dizer que agora tem quina. */
-export const BORRADO = [14, 18.5];
 /** O motivo do jornal (um compasso, Dó dórico). */
 export const MOTIVO = 'C5:2 C5:1 G5:3 F5:1 Eb5:1 F5:2 r:2 Bb4:2 C5:2';
+/** Segundo do vídeo → linha da peça. */
+const R = (s) => Math.round(s * 8);
+/** Quem fala e quando o texto começa a aparecer (s), igual ao index.html. */
+export const FALAS = [
+    ['ala', 4.5],
+    ['ala', 8.0],
+    ['ala', 12.0],
+    ['ala', 16.0],
+    ['ala', 20.0],
+    ['ala', 24.0],
+    ['ala', 28.0],
+    ['ala', 31.5],
+    ['ala', 35.0],
+    ['ala', 39.0],
+    ['meo', 42.5],
+    ['ala', 46.0],
+    ['meo', 49.5],
+    ['ala', 53.5],
+    ['ala', 57.5],
+    ['psy', 61.0],
+    ['psy', 64.5],
+    ['ala', 68.5],
+    ['ala', 72.5],
+    ['ala', 76.0],
+    ['ala', 79.5],
+];
+/** A banda (bateria, baixo, acordes) sai nestes trechos (s): o "E mais", o "Que moedas?", o vestiário e o "doze". */
+export const BREQUES = [
+    [23.5, 27.5],
+    [49.5, 52.5],
+    [53.0, 57.0],
+    [65.0, 68.0],
+];
 
 export default function news() {
-    const S = new Song({ bpm: 120, bars: 18, swing: 0.1, tail: 2.5 });
-    const [b0, b1] = BORRADO;
-    const borr = (t) => Math.min(1, Math.max(0, (t - b0) / 0.03)) * Math.min(1, Math.max(0, (b1 - t) / 0.04));
-    /** Uma faixa em dobro: a limpa e a borrada, trocando no BORRADO. */
-    const duo = (nome, inst, o = {}) => {
-        const a = S.part(nome, inst, { ...o, gainAt: (t) => 1 - borr(t) });
-        const b = S.part(`${nome}-borrado`, inst, { ...o, corte: 650, gainAt: borr });
-        return {
-            song: S,
-            note: (r, ...x) => {
-                a.note(r, ...x);
-                b.note(r, ...x);
-            },
-        };
-    };
+    const S = new Song({ bpm: 120, bars: 44, swing: 0.1, tail: 2.5 });
+    const rampa = (t, a, z) => Math.min(1, Math.max(0, (t - a) / 0.04)) * Math.min(1, Math.max(0, (z - t) / 0.08));
+    const banda = (t) => BREQUES.reduce((g, [a, z]) => g * (1 - rampa(t, a, z)), 1);
+    const B = { gainAt: banda };
 
-    const ter = S.part('teremim', teremim, { pan: -0.1, gain: 0.6, rev: 0.25, echo: { rows: 3, fb: 0.25, mix: 0.15 } });
-    const mia = S.part('miau', miau, { pan: 0.12, gain: 1.05, corte: 4200, rev: 0.18 });
-    const bip = duo('bit', bit, { pan: 0.05, gain: 0.55, rev: 0.12, echo: { rows: 3, fb: 0.2, mix: 0.12 } });
-    const colher = S.part('colher', I.bell, { pan: -0.2, gain: 1.6, rev: 0.4, echo: { rows: 4, fb: 0.3, mix: 0.3 } });
-    const sino = S.part('sino', I.bell, { pan: 0.2, gain: 1.4, rev: 0.3 });
-    const met = duo('metais', I.brass, { pan: 0.2, gain: 0.45, corte: 3000, rev: 0.2 });
-    const met2 = duo('metais2', I.brass, { pan: -0.2, gain: 0.4, corte: 2600, rev: 0.2 });
-    const cor = S.part('cordas', I.strings, { pan: -0.1, gain: 0.85, rev: 0.35 });
-    const pulso = duo('pulso', I.pulse, { pan: 0.3, gain: 0.35, corte: 3600, echo: { rows: 3, fb: 0.25, mix: 0.2 } });
-    const bs = duo('baixo', I.slap, { gain: 0.5, corte: 2500 });
+    const ter = S.part('teremim', teremim, { pan: -0.1, gain: 0.5, rev: 0.25, echo: { rows: 3, fb: 0.25, mix: 0.15 } });
+    const mia = S.part('miau', miau, { pan: 0.12, gain: 0.95, corte: 4200, rev: 0.18 });
+    const ps = S.part('psy', psy, { pan: 0.08, gain: 1.0, corte: 5000, rev: 0.15 });
+    const colher = S.part('colher', I.bell, { pan: -0.2, gain: 1.5, rev: 0.4, echo: { rows: 4, fb: 0.3, mix: 0.3 } });
+    const sino = S.part('sino', I.bell, { pan: 0.2, gain: 1.2, rev: 0.3 });
+    const dong = S.part('dong', I.bell, { gain: 2.2, rev: 0.55, corte: 2200 });
+    const met = S.part('metais', I.brass, { pan: 0.2, gain: 0.42, corte: 3000, rev: 0.2, ...B });
+    const met2 = S.part('metais2', I.brass, { pan: -0.2, gain: 0.36, corte: 2600, rev: 0.2, ...B });
+    const toque = S.part('toque', I.brass, { pan: 0.1, gain: 0.4, corte: 3000, rev: 0.25 });
+    const cor = S.part('cordas', I.strings, { pan: -0.1, gain: 0.7, rev: 0.35 });
+    const ep = S.part('epiano', I.epiano, { pan: -0.15, gain: 0.55, rev: 0.25, ...B });
+    const pulso = S.part('pulso', I.pulse, { pan: 0.3, gain: 0.3, corte: 3600, echo: { rows: 3, fb: 0.25, mix: 0.2 } });
+    const bs = S.part('baixo', I.slap, { gain: 0.45, corte: 2400, ...B });
     const tuba = S.part('tuba', I.tuba, { gain: 0.55 });
-    const gt = duo('guitarra', I.chank, { pan: -0.35, gain: 1.5 });
-    const cv = duo('clav', I.clav, { pan: 0.35, gain: 0.45, corte: 2600 });
-    const moeda = S.part('moedas', I.coin, { drum: true, pan: 0.25, gain: 1.1, rev: 0.15 });
+    const gt = S.part('guitarra', I.chank, { pan: -0.35, gain: 1.2, ...B });
+    const moeda = S.part('moedas', I.coin, { drum: true, pan: 0.25, gain: 1.0, rev: 0.15 });
+    const assobio = S.part('assobio', I.whistle, { drum: true, pan: 0.2, gain: 0.7, rev: 0.3 });
+    const assobio2 = S.part('assobio2', I.whistleDown, { drum: true, pan: 0.2, gain: 0.7, rev: 0.3 });
     const rd = S.part('rede', rede, { drum: true, pan: 0.1, gain: 0.8, rev: 0.3 });
+    const pe = S.part('chute', chute, { drum: true, gain: 0.9 });
+    const boom = S.part('kaboom', kaboom, { drum: true, gain: 1.7, rev: 0.25 });
     const fundo = S.part('estadio', torcida(2.2, 0.9, 0.9), { drum: true, gain: 0.45, rev: 0.4 });
     const ris = S.part('riser', sobe(2), { drum: true, gain: 0.45 });
-    const ris2 = S.part('riser2', sobe(4), { drum: true, gain: 0.4 });
-    const zp = S.part('zap', zap, { drum: true, gain: 0.7, rev: 0.2 });
-    const gira = S.part('gira', deslize(260, 1500, 0.55), { drum: true, pan: 0.1, gain: 0.55, rev: 0.25 });
+    const ris3 = S.part('riser3', sobe(3), { drum: true, gain: 0.35 });
     const cl = S.part('palmas', I.clap808.com({ ganho: 0.5, corte: 6800, sala: 0.3 }), {
         drum: true,
         gain: 0.8,
         rev: 0.15,
     });
-    const kk = duo('bumbo', I.kick, { drum: true, gain: 0.6 });
-    const sn = duo('caixa', I.snare, { drum: true, gain: 0.3 });
-    const hh = duo('chimbal', I.hat, { drum: true, pan: 0.3, gain: 0.42 });
-    const tp = S.part('timpano', I.timp, { drum: true, gain: 0.2 });
-    const tom = S.part('tons', I.tom, { drum: true, gain: 0.35 });
-    const cr = S.part('prato', I.crash, { drum: true, gain: 0.38 });
+    const kk = S.part('bumbo', I.kick, { drum: true, gain: 0.55, ...B });
+    const sn = S.part('caixa', I.snare, { drum: true, gain: 0.28, ...B });
+    const hh = S.part('chimbal', I.hat, { drum: true, pan: 0.3, gain: 0.36, ...B });
+    const tp = S.part('timpano', I.timp, { drum: true, gain: 0.22 });
+    const cr = S.part('prato', I.crash, { drum: true, gain: 0.3 });
 
-    const BASS = '0:2 8:1~ r:1 5:2 r:2 0:1 r:1 s:2 5:2 3:2';
-    /** O funk do jornal (`s` = semitons acima). `leve`: só o esqueleto. */
-    const groove = (b, c0, { s = 0, leve = false } = {}) => {
-        const c = transpose(c0, s);
-        drum(kk, b, 1, leve ? 'X.........x.....' : 'X.....x...x..x..');
-        drum(sn, b, 1, leve ? '....x.......x...' : '....X..o.o..X..o', { vel: leve ? 0.7 : 1 });
-        drum(hh, b, 1, leve ? 'x.x.x.x.x.x.x.x.' : 'x.xx.x.xx.xx.x.x', { vel: leve ? 0.7 : 1 });
-        bass(bs, b, c, leve ? '0:3 r:3 5:2 0:2 r:2 s:2 5:2' : BASS, { vel: leve ? 0.8 : 1 });
-        stabs(gt, b, c, [2, 6, 10, 14], { low: 60, n: 3, vel: leve ? 0.7 : 1 });
-        if (!leve) stabs(cv, b, c, [3, 7, 11], { low: 62, n: 3, vel: 0.7 });
-    };
     const bb = MAJOR(10); // Dó dórico = as notas de Si♭ maior
+    const eb = MAJOR(3);
+    /** Respirando (enquanto a caixa está na tela): bumbo no 1, aro no 3, chimbal macio, baixo comprido e o piano. */
+    const ar = (b, c0, s = 0) => {
+        const c = transpose(c0, s);
+        drum(kk, b, 1, 'X.........x.....', { vel: 0.75 });
+        drum(sn, b, 1, '........x.......', { vel: 0.5 });
+        drum(hh, b, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.5 });
+        bass(bs, b, c, '0:6 r:2 5:4 r:2 s:2', { vel: 0.7 });
+        stabs(
+            ep,
+            b,
+            c,
+            [
+                [0, 6],
+                [10, 5],
+            ],
+            { low: 60, n: 4, vel: 0.5 },
+        );
+    };
+    /** O funk do jornal, leve (escalada, matérias). */
+    const leve = (b, c0, s = 0) => {
+        const c = transpose(c0, s);
+        drum(kk, b, 1, 'X.........x.....', { vel: 0.85 });
+        drum(sn, b, 1, '....x.......x...', { vel: 0.6 });
+        drum(hh, b, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.6 });
+        bass(bs, b, c, '0:3 r:3 5:2 0:2 r:2 s:2 5:2', { vel: 0.8 });
+        stabs(gt, b, c, [2, 6, 10, 14], { low: 60, n: 3, vel: 0.6 });
+        stabs(ep, b, c, [[0, 4]], { low: 60, n: 4, vel: 0.35 });
+    };
+    /** Toque de manchete nova: um acorde curto dos metais e o sino (no instante da troca, antes do texto). */
+    const manchete = (s, sym, nota = 91) => {
+        stabs(toque, 0, sym, [[R(s), 2]], { low: 60, n: 4, vel: 0.7 });
+        sino.note(R(s), nota, 2, 0.6);
+    };
 
-    // 0 · o gol em câmera lenta: cordas abrindo, riser, tímpano rufando; a rede (6) e a torcida no pulo do artilheiro (8)
+    // 0 · o gol em câmera lenta: cordas abrindo, riser, tímpano rufando; a rede (6) e a torcida no pulo (8)
     padChord(cor, 0, 'Cm9', 16, { low: 55, n: 4, vel: 0.55 });
     ris.note(0, 0, 0, 1);
     mel(tuba, 0, ['C2:16'], { vel: 0.6 });
     rd.note(6, 0, 0, 0.9);
     fundo.note(8, 0, 0, 0.9);
     drum(tp, 0, 1, '........x.x.xxXX', { vel: 0.7 });
-    // 1 · VINHETA: prato e a cabeça do motivo nos metais (em terças); no 8 (3 s) entra a barra de golpe: o groove leve
-    // começa no tempo 3 e o pulso pinga o acorde
+    // 1 · VINHETA (2–4 s): prato, o motivo inteiro nos metais em terças, tímpano; o baixo puxa pra bancada
     drum(cr, 1, 1, 'X...............');
     drum(kk, 1, 1, 'X.....X.X.......');
     drum(tp, 1, 1, 'X.....X.........', { vel: 0.8 });
-    mel(met, 1, ['C5:2 C5:1 G5:3 F5:1 Eb5:1 r:8']);
-    mel(met2, 1, ['C5:2 C5:1 G5:3 F5:1 Eb5:1 r:8'], { shift: -12, harm: thirdBelow(bb), vel: 0.8 });
-    stabs(met, 1, 'Cm7', [[6, 2]], { low: 55, n: 4, vel: 0.7 });
+    mel(met, 1, [MOTIVO]);
+    mel(met2, 1, [MOTIVO], { shift: -12, harm: thirdBelow(bb), vel: 0.8 });
     drum(hh, 1, 1, '........x.x.x.x.', { vel: 0.6 });
-    drum(sn, 1, 1, '............x...', { vel: 0.6 });
     bass(bs, 1, 'Cm7', 'r:8 0:3 r:3 5:2', { vel: 0.8 });
-    stabs(pulso, 1, 'Cm9', [8], { low: 60, n: 4, vel: 0.6 });
 
-    // 2–3 · a barra de golpe: o motivo inteiro nos metais; cada gomo aceso é um degrau de sino (Mi♭ no 2, Sol no 8 e o
-    // Dó do N3 no 1 do C3) com um acorde curto; o N3 tem prato e o acorde cheio
-    groove(2, 'Cm7', { leve: true });
-    mel(met, 2, [MOTIVO], { vel: 0.8 });
-    mel(met2, 2, [MOTIVO], { shift: -12, harm: thirdBelow(bb), vel: 0.55 });
-    sino.note(2 * 16 + 2, 87, 2, 0.9);
-    stabs(pulso, 2, 'Ebmaj7', [2], { low: 63, n: 3, vel: 0.8 });
-    sino.note(2 * 16 + 8, 91, 2, 0.95);
-    stabs(pulso, 2, 'Gm7', [8], { low: 67, n: 3, vel: 0.85 });
-    groove(3, 'F7');
-    sino.note(3 * 16, 96, 4, 1);
-    stabs(met, 3, 'F9', [[0, 3]], { low: 60, n: 4 });
-    drum(cr, 3, 1, 'X...............');
-    mel(met2, 3, ['r:8 G4:2 Bb4:2 C5:2 Eb5:2'], { vel: 0.6 });
+    // a cama: respirando no estúdio, leve nas matérias (a banda some nos BREQUES)
+    const CAMA = [
+        // [compasso, acorde, modo, semitons]
+        ...[2, 3, 4, 5].map((b) => [b, b % 2 ? 'F7' : 'Cm7', ar]),
+        ...Array.from({ length: 13 }, (_, k) => [6 + k, k % 2 ? 'F7' : 'Cm7', leve]), // 6–18: escalada e Copa
+        ...Array.from({ length: 9 }, (_, k) => [19 + k, k % 2 ? 'Cm7' : 'F7', leve]), // 19–27: Rota e vestiário
+        ...[28, 29, 30, 31, 32, 33].map((b) => [b, b % 2 ? 'Ab' : 'Cm7', ar]), // o Psyduck no estúdio
+        [34, 'Cm7', leve],
+        [35, 'F7', leve], // toda semana
+        [36, 'Cm7', leve, 2],
+        [37, 'F7', leve, 2], // Time Ultimate, em Ré
+        [39, 'Ebmaj7', ar],
+        [40, 'Ab', ar],
+        [41, 'Bb7', ar], // "Boa noite"; o 2º tempo do 41 já é a tela final
+    ];
+    for (const [b, c, modo, s = 0] of CAMA) modo(b, c, s);
 
-    // 4 · o Meowth e o 40% no telão: a caixa registradora (moedas em acorde) no 1, e ele canta "mi-áu, é meu" (4)
-    groove(4, 'Cm7', { leve: true });
-    drum(cr, 4, 1, 'X...............');
-    for (const [k, p] of [0, 4, 7, 12].entries()) moeda.note(4 * 16 + k, p, 0, 0.9);
-    mel(mia, 4, ['r:4 G4:1 G4:1 Bb4:2 G4:1 C5:1 Eb5:3 r:3']);
-    drum(moeda, 4, 1, '..............x.', { pitch: 0, vel: 0.5 });
-    // 5 · o 1 de 3: o pacote abre (0), o Patrocínio ganha a moldura dourada (5: um brilho de sino) e os metais respondem
-    groove(5, 'F7', { leve: true });
-    stabs(met, 5, 'F9', [[0, 2]], { low: 60, n: 4, vel: 0.7 });
-    sino.note(5 * 16 + 5, 96, 2, 0.8);
-    sino.note(5 * 16 + 6, 100, 3, 0.6);
-    mel(met2, 5, ['r:8 C5:2 Bb4:2 G4:4'], { vel: 0.6 });
-    drum(moeda, 5, 1, '......x.......x.', { vel: 0.5 });
-    // 6 · PAY DAY! (0): o Meowth canta alto, os metais batem, chovem 9 moedas descendo a escala (uma por linha, 3 a 11,
-    // cada uma pousa na bancada na nota dela) e ele junta tudo no ka-ching (12)
-    groove(6, 'Cm7');
-    drum(cr, 6, 1, 'X...............');
-    mel(mia, 6, ['C6:3 G5:5 r:8']);
-    stabs(met, 6, 'Cm9', [0, [3, 3]], { low: 60, n: 4 });
-    for (let k = 0; k < 9; k++) moeda.note(6 * 16 + 3 + k, 31 - Math.round(k * 2.5), 0, 0.85 - k * 0.03);
-    for (const [k, p] of [24, 31].entries()) moeda.note(6 * 16 + 12 + k, p, 0, 0.9);
+    // as vozes: cada fala começa com quem fala, por cima da digitação (~0,5 s)
+    const FRASES = {
+        ala: ['G5:2 C6:2', 'Eb5:1 G5:1 C6:2', 'C6:2 Bb5:1 G5:1', 'F5:1 G5:1 Bb5:2'],
+        meo: ['G4:2 Eb5:3', 'C5:1 G5:4'],
+        psy: ['A2:4', 'G2:5'],
+    };
+    const VOZ = { ala: [ter, 0.7], meo: [mia, 0.9], psy: [ps, 1] };
+    FALAS.forEach(([quem, s], i) => {
+        const frase = FRASES[quem][i % FRASES[quem].length];
+        let r = R(s);
+        const [P, v] = VOZ[quem];
+        for (const tok of frase.split(' ')) {
+            const [n, l] = tok.split(':');
+            P.note(r, midi(n), Number(l), v);
+            r += Number(l);
+        }
+    });
+    // o "ting" da colher: o Alakazam se apresenta (4,5 s) e se despede (fim)
+    colher.note(R(4.5), 98, 4, 0.75);
 
-    // 7–9 · CONVIDADO: o Porygon sobe na cadeira (7, o deslize) e a banda inteira fica borrada (BORRADO); no C8 ele canta
-    // "An-tes eu e-ra bor-ra-do" no bipe, abafado
-    groove(7, 'F7', { leve: true });
-    gira.note(7 * 16, 0, 0, 0.8);
-    mel(bip, 7, ['r:2 C6:1 G6:1 C7:2 r:10'], { vel: 0.8 });
-    groove(8, 'Cm7', { leve: true });
-    mel(bip, 8, ['r:3 G5:1 G5:1 Bb5:1 G5:1 F5:1 Eb5:1 F5:2 G5:2 C5:3']);
-    // 9 · ABRE no 4 (18,5 s): prato e zap, e "A-go-ra eu te-nho qui-na" nítido
-    groove(9, 'F7');
-    drum(cr, 9, 1, '....X...........');
-    zp.note(9 * 16 + 4, 0, 0, 1);
-    mel(bip, 9, ['r:4 C6:1 C6:1 Bb5:1 C6:1 Eb6:2 F6:1 G6:5']);
-    // 10 · o pulso digital em semicolcheias e a virada (Lá7); no 8 (21 s) o VEM AÍ entra em Ré
-    for (let r = 0; r < 8; r++) pulso.note(10 * 16 + r, [65, 69, 72, 75][r % 4] + 12, 1, r % 4 ? 0.6 : 0.85);
-    drum(kk, 10, 1, 'X.....x.X.....x.');
-    drum(sn, 10, 1, '....x.xx........', { vel: 0.8 });
-    drum(tom, 10, 1, '....x.x.........', { pitch: 0, vel: 0.8 });
-    stabs(met, 10, 'A7', [[6, 2]], { low: 57, n: 4 });
-    bass(bs, 10, 'A7', 'r:6 0:2 r:8');
-    // VEM AÍ (Ré dórico): prato, o Alakazam com o motivo no teremim (cruza o compasso) e a colher (o "ting")
-    drum(cr, 10, 1, '........X.......');
-    drum(hh, 10, 1, '........x.x.x.x.', { vel: 0.7 });
-    bass(bs, 10, 'Dm7', 'r:8 0:3 r:1 5:2 s:2', { vel: 0.8 });
-    colher.note(10 * 16 + 8, 98, 4, 0.8);
-    mel(ter, 10, ['r:8 D5:2 D5:1 A5:3 G5:1 F5:1'], { vel: 0.9 });
-    mel(ter, 11, ['G5:2 r:2 C5:2 D5:4 r:6'], { vel: 0.9 });
-    groove(11, 'Cm7', { s: 2, leve: true });
-    // 11–12 · uma nota de sino por semana do calendário (23,5, 24, 24,5 e 25 s), subindo
-    for (const [r, m] of [
-        [11 * 16 + 12, 86],
-        [12 * 16, 89],
-        [12 * 16 + 4, 93],
-        [12 * 16 + 8, 98],
+    // ESCALADA: um toque por manchete (11,5 · 15,5 · 19,5); a do Meowth tem um mi-áu curtinho
+    manchete(11.5, 'Cm9', 87);
+    manchete(15.5, 'F9', 91);
+    mia.note(R(17.4), 79, 3, 0.55);
+    manchete(19.5, 'Ebmaj7', 94);
+    // "E MAIS" (23,5–27,5): a banda segura; tímpano grave, cordas suspensas e o "psy?" atrás da porta (26 s)
+    tp.note(R(23.5), -5, 0, 0.9);
+    padChord(cor, 0, 'Abmaj7', 30, { low: 55, n: 4, vel: 0.5, at: R(23.5) });
+    for (const s of [24.5, 25.5]) pulso.note(R(s), 67, 2, 0.5);
+    ps.note(R(26.0), 43, 4, 0.9);
+    ris.note(R(25.5), 0, 0, 0.6);
+
+    // COPA DO DIA (27,5): o motivo volta curto; o Patrocínio ganha a moldura dourada (32) e a carta amplia (35)
+    cr.note(R(27.5), 0, 0, 0.6);
+    mel(toque, 13.75, ['C5:2 C5:1 G5:3 r:10']);
+    for (const [k, m] of [91, 96, 100].entries()) sino.note(R(32.0) + k, m, 2, 0.7);
+    for (const [k, m] of [84, 87, 91, 94, 98].entries()) sino.note(R(35.2) + k * 2, m, 2, 0.55);
+
+    // AO VIVO DA ROTA (38,5): prato e o motivo inteiro nos metais
+    cr.note(R(38.5), 0, 0, 0.8);
+    mel(toque, 19.25, [MOTIVO], { vel: 0.8 });
+    // as moedas (46,4–47,6): nove, uma por linha, descendo a escala; o Meowth junta tudo no ka-ching (48,1)
+    for (let k = 0; k < 9; k++) moeda.note(R(46.4) + k, 31 - Math.round(k * 2.5), 0, 0.8 - k * 0.03);
+    for (const [k, p] of [24, 31].entries()) moeda.note(R(48.1) + k, p, 0, 0.9);
+    // "Que moedas?" (49,5–52,5): a banda para; ele assobia de inocente (50,1) e cai uma moeda do bolso (51,5)
+    padChord(cor, 0, 'Fm7', 24, { low: 55, n: 4, vel: 0.35, at: R(49.5) });
+    assobio.note(R(50.1), 0, 0, 0.8);
+    assobio2.note(R(50.5), 0, 0, 0.8);
+    moeda.note(R(51.5), 12, 0, 0.9);
+    moeda.note(R(51.7), 7, 0, 0.4);
+
+    // VESTIÁRIO (53–57): o trecho do EP 2. Tuba e tímpano na espera, o chute (53,6) e o KABOOM (55); a fumaça é o rabo
+    mel(tuba, 26.5, ['C2:4 Db2:4 C2:8'], { vel: 0.45 });
+    drum(tp, 26.5, 1, '....x...x...xxxx', { vel: 0.35 });
+    pe.note(R(53.6), 0, 0, 1);
+    boom.note(R(55.0), 0, 0, 1);
+    padChord(cor, 0, 'Cm', 16, { low: 48, n: 3, vel: 0.35, at: R(55.4) });
+
+    // PSYDUCK NO ESTÚDIO (57): manchete; "Eu contei treze bolas." (61); "A gente tem doze." (64,5) e o DONG (65)
+    manchete(57.0, 'Abmaj7', 84);
+    dong.note(R(65.0), 48, 16, 1);
+    dong.note(R(65.0), 36, 16, 0.6);
+    mel(tuba, 32.5, ['Eb2:4 D2:4 r:8']);
+    tuba.note(R(66.0), 37, 12, 0.6); // Db: desce mais um
+    padChord(cor, 0, 'Fm', 22, { low: 53, n: 3, vel: 0.3, at: R(65.3) });
+
+    // TODA SEMANA (68): prato, toque; uma nota de sino por sexta do calendário (69,5 · 70 · 70,5 · 71)
+    cr.note(R(68.0), 0, 0, 0.6);
+    manchete(68.0, 'Cm9', 91);
+    for (const [s, m] of [
+        [69.5, 86],
+        [70.0, 89],
+        [70.5, 93],
+        [71.0, 98],
     ])
-        sino.note(r, m, 2, 0.9);
-    groove(12, 'F7', { s: 2, leve: true });
-    mel(met, 12, ['r:10 A4:2 C5:2 D5:2'], { vel: 0.55 });
+        sino.note(R(s), m, 2, 0.75);
+    // TIME ULTIMATE · 27/11 (72): sobe pra Ré; o teremim canta "Ti-me Ul-ti-ma-te" depois da fala (73,2)
+    cr.note(R(72.0), 0, 0, 0.7);
+    manchete(72.0, 'Dm9', 93);
+    mel(ter, 36.5, ['A4:2 A4:1 C5:2 D5:3 r:8'], { vel: 0.6 });
+    // 38 (76–78): Si♭7, a carta sai do pacote girando (riser 74–77) e vira em 77 (prato e fanfarra em Mi♭)
+    ris3.note(R(74.0), 0, 0, 1);
+    drum(kk, 38, 1, 'X...X...X.......');
+    drum(sn, 38, 1, 'x.x.xxxx........', { vel: 0.6 });
+    drum(tp, 38, 1, 'x...xxXX........', { vel: 0.7 });
+    bass(bs, 38, 'Bb7', '0:2 0:2 5:2 s:2 r:8');
+    padChord(cor, 38, 'Bb7', 8, { low: 56, n: 4, vel: 0.6 });
+    cr.note(R(77.0), 0, 0, 1);
+    mel(met, 38.5, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
+    stabs(toque, 38.5, 'Ebmaj7', [[0, 8]], { low: 58, n: 4, vel: 0.6 });
 
-    // 13 · o Time Ultimate no telão: prato, riser de 4 s até a carta virar, o Alakazam canta "Ti-me Ul-ti-ma-te"
-    drum(cr, 13, 1, 'X...............');
-    ris2.note(13 * 16, 0, 0, 1);
-    groove(13, 'Cm7', { s: 2 });
-    mel(ter, 13, ['A4:2 A4:1 C5:2 D5:3 r:8']);
-    drum(sn, 13, 1, '........x.x.x.x.', { vel: 0.5 });
-    // 14 · Si♭7 (o V de Mi♭): a carta sai do pacote e gira
-    drum(kk, 14, 1, 'X...X...X...X...');
-    drum(sn, 14, 1, 'x.x.x.x.xxxxxxxx', { vel: 0.7 });
-    drum(sn, 14, 1, '............xxXX', { vel: 0.5 });
-    drum(tp, 14, 1, 'x.......x...xxXX', { vel: 0.7 });
-    bass(bs, 14, 'Bb7', '0:2 0:2 r:2 0:2 5:2 r:2 s:2 8:2');
-    padChord(cor, 14, 'Bb7', 16, { low: 56, n: 4, vel: 0.7 });
-    mel(ter, 14, ['F5:2 Eb5:1 D5:1 C5:2 Bb4:2 C5:4 D5:4']);
-    for (let r = 0; r < 16; r += 2)
-        pulso.note(14 * 16 + r, [58, 62, 65, 68][(r / 2) % 4] + 12 * Math.floor(r / 8), 2, 0.7);
-
-    // 15 · Mi♭ maior: a carta ouro vira (prato); os metais em fanfarra e as 7 notas do "faltam 7 dias" descendo no sino
-    const eb = MAJOR(3);
-    drum(cr, 15, 1, 'X...............');
-    groove(15, 'Ebmaj7');
-    mel(met, 15, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
-    for (const [k, m] of [94, 92, 91, 89, 87, 86, 84].entries()) sino.note(15 * 16 + 2 + k * 2, m, 1, 0.75);
-    // 16 · TELA FINAL: os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e bipe) e as palmas respondem
-    groove(16, 'Ab');
-    drum(cr, 16, 1, 'X...............');
-    mel(ter, 16, [GANCHO.em({ tom: 3, oitava: -1 })]);
-    mel(mia, 16, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
-    mel(bip, 16, [GANCHO.em({ tom: 3 })], { vel: 0.7 });
-    mel(met, 16, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.6 });
-    drum(cl, 16, 1, GANCHO.palmas, { vel: 0.9 });
-    padChord(cor, 16, 'Ab', 16, { low: 56, n: 4, vel: 0.6 });
-    // 17 · fim (34 s): Mi♭ no 1 e o "ting" da colher
-    drum(cr, 17, 1, 'X...............');
-    drum(kk, 17, 1, 'X...............');
-    stabs(met, 17, 'Eb', [[0, 4]], { low: 58, n: 4 });
-    bass(bs, 17, 'Eb', '0:4 r:12');
-    mel(tuba, 17, ['Eb2:6 r:10'], { vel: 0.8 });
-    colher.note(17 * 16, 99, 6, 1);
+    // TELA FINAL (83): os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e o psy uma oitava abaixo) e as palmas
+    cr.note(R(83.0), 0, 0, 0.9);
+    // 42 (84–86): a última levada, em Lá♭, e o Mi♭ no 85
+    drum(kk, 42, 1, 'X.....x.X.......');
+    drum(sn, 42, 1, '....x...........', { vel: 0.6 });
+    drum(hh, 42, 1, 'x.x.x.x.........', { vel: 0.6 });
+    bass(bs, 42, 'Ab', '0:3 r:1 5:2 0:2 r:8', { vel: 0.8 });
+    mel(ter, 41.5, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
+    mel(mia, 41.5, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.7 });
+    mel(ps, 41.5, [GANCHO.em({ tom: 3, oitava: -3 })], { vel: 0.8 });
+    mel(met, 41.5, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.5 });
+    drum(cl, 41.5, 1, GANCHO.palmas, { vel: 0.9 });
+    padChord(cor, 41.5, 'Ab', 8, { low: 56, n: 4, vel: 0.55 });
+    // 85: Mi♭ e o "ting" da colher, que fica soando até o fim
+    cr.note(R(85.0), 0, 0, 0.8);
+    stabs(toque, 42.5, 'Eb', [[0, 6]], { low: 58, n: 4 });
+    mel(tuba, 42.5, ['Eb2:8 r:8']);
+    colher.note(R(85.0), 99, 6, 1);
     return S;
 }

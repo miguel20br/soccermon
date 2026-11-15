@@ -1,14 +1,15 @@
 <!doctype html>
 <!--
-  Soccermon News #1 v2 (9:16, 35 s, mais calma): o jornal da semana da 0.9.51. Roteiro em ROTEIRO.md. Regra de leitura:
-  um texto por vez (cartela, tarja ou fala), cada um parado no mínimo 2 s, até 5 palavras.
-  Bancada animada com os sprites PMD (Alakazam apresentador, Meowth da economia, Porygon convidado), vinheta de plantão e
-  trechos do jogo gravados headless: os lances da quadra pelo scripts/trailer-capture.mjs (--demo dribles&evento=goal|post,
-  --vertical) e as telas pelo capturar.mjs desta pasta (relógio parado, 30 fps); a barra de golpe em gomos-lento.mp4
-  (os gomos acendem em 4,25, 5 e 6 s). Sem voz: a fala vai em legenda embaixo.
-  Música: scripts/musica/pecas/news-plantao.mjs (120 BPM, compasso = 2 s, 18 compassos), em midia/som/news-14.wav. Tempos: T(compasso,
-  linha) da música.
-  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v2.mp4
+  Soccermon News #1 v3 (9:16, 86,5 s): telejornal de verdade, com falas. Roteiro em docs/marketing/news-01.md (pauta) e
+  a linha do tempo real em ROTEIRO.md. O Alakazam apresenta, o Meowth entra ao vivo da Rota e o Psyduck (técnico do
+  Pallet FC, ainda tostado do EP 2) é o convidado.
+  Regra de leitura: a fala vai numa caixa de diálogo dos jogos de Pokémon (nome, texto letra por letra em 0,5 s, a
+  setinha piscando quando completa) e fica inteira 3 s; a manchete fica parada em cima a matéria inteira. Nunca dois
+  textos novos juntos: quando a manchete troca, a caixa fecha e a fala nova só começa 0,5 s depois.
+  Trechos do jogo: as telas do capturar.mjs (midia/news: recompensa.png, ultimate-fatia.png, menu-fatias.png), o gol
+  (gol.mp4, gol-pulo.mp4) e o KABOOM do Vestiário EP 2 "Bola fora" (bola-fora.mp4: 22 a 26 s do render v7 do ep14).
+  Música: scripts/musica/pecas/news-plantao.mjs (120 BPM, 44 compassos), em midia/som/news-14.wav.
+  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v3.mp4
 -->
 <html lang="pt-BR">
 <head>
@@ -24,12 +25,12 @@
 .estudio { background: radial-gradient(circle at 50% 38%, #2a3a7a, #070a18 78%); }
 .estudio .grade { position: absolute; inset: 0; background-image: linear-gradient(90deg, rgb(255 255 255 / 4%) 2px, transparent 2px), linear-gradient(rgb(255 255 255 / 4%) 2px, transparent 2px); background-size: 90px 90px; }
 /* o telão atrás da bancada */
-.telao { position: absolute; left: 90px; top: 470px; width: 900px; height: 560px; box-sizing: border-box; overflow: hidden; border-radius: 26px;
+.telao { position: absolute; left: 90px; top: 400px; width: 900px; height: 560px; box-sizing: border-box; overflow: hidden; border-radius: 26px;
   background: radial-gradient(circle at 50% 45%, #2a4ea0, #10183d 75%); border: 12px solid #0e1430; box-shadow: 0 0 0 8px #3a5bb0, 0 0 0 16px #0e1430, 0 24px 0 16px rgb(0 0 0 / 40%); }
 .telao .raios { left: 50%; top: 50%; }
 .telao > .tela { position: absolute; inset: 0; opacity: 0; display: flex; align-items: center; justify-content: center; }
 .telao .marca img { width: 300px; filter: drop-shadow(0 12px 0 #0e1430); }
-.telao .pct { font-size: 300px; line-height: 1; color: #ffcb05; -webkit-text-stroke: 26px #0e1430; paint-order: stroke fill; text-shadow: 0 18px 0 #0e1430; letter-spacing: 6px; }
+.telao #t-meo { background: repeating-linear-gradient(#cf9358 0 60px, #c68649 60px 120px); }
 /* o calendário: as quatro sextas, uma bola em cada */
 .cal { flex-direction: column; gap: 26px; }
 .cal .topo { width: 780px; height: 70px; border-radius: 16px; background: #e8423f; border: 8px solid #0e1430; display: flex; align-items: center; justify-content: center; gap: 120px; box-sizing: border-box; }
@@ -40,21 +41,75 @@
 .cal .dia small { font-size: 30px; color: #2a3a7a; letter-spacing: 2px; margin-top: -18px; }
 .cal .dia .bolinha { width: 120px; height: 120px; opacity: 0; }
 .cal .dia.ut { background: #ffcb05; }
-#m-fatia img { display: block; width: 100%; height: 100%; border-radius: 10px; }
-#t-pct { align-items: flex-start; padding-top: 40px; box-sizing: border-box; }
-/* a bancada: tampo amarelo e a frente com o letreiro */
-.mesa-n { position: absolute; left: 30px; top: 1140px; width: var(--w, 720px); height: 260px; z-index: 30; }
+/* a bancada do apresentador (curta: o convidado senta ao lado, de corpo inteiro) */
+.mesa-n { position: absolute; left: 60px; top: 1080px; width: var(--w, 600px); height: 260px; z-index: 30; }
 .mesa-n .tampo { position: absolute; left: 0; top: 0; width: 100%; height: 46px; box-sizing: border-box; border-radius: 14px; background: #ffcb05; border: 8px solid #0e1430; }
-.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: calc(100% - 60px); height: 160px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
-  box-shadow: inset 0 0 0 8px #2a4ea0; display: flex; align-items: center; justify-content: center; gap: 22px; }
+.mesa-n .frente { position: absolute; left: 30px; top: 38px; width: calc(100% - 60px); height: 200px; box-sizing: border-box; background: #10183d; border: 8px solid #0e1430; border-top: none;
+  box-shadow: inset 0 0 0 8px #2a4ea0; display: flex; align-items: flex-start; padding-top: 34px; justify-content: center; gap: 22px; }
 .mesa-n .frente img { height: 104px; }
-.mesa-n .frente i { width: 120px; height: 18px; border-radius: 9px; background: #ffcb05; border: 6px solid #0e1430; }
+.mesa-n .frente i { width: 100px; height: 18px; margin-top: 44px; border-radius: 9px; background: #ffcb05; border: 6px solid #0e1430; }
 .cadeira { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 8; }
-.cadeira .encosto { position: absolute; left: -110px; top: -300px; width: 220px; height: 230px; box-sizing: border-box; border-radius: 30px 30px 14px 14px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -16px 0 #b02a2a; }
-.cadeira .assento { position: absolute; left: -130px; top: -90px; width: 260px; height: 56px; box-sizing: border-box; border-radius: 16px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -12px 0 #b02a2a; z-index: 2; }
+.cadeira .encosto { position: absolute; left: -120px; top: -330px; width: 240px; height: 260px; box-sizing: border-box; border-radius: 30px 30px 14px 14px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -16px 0 #b02a2a; }
+.cadeira .assento { position: absolute; left: -150px; top: -90px; width: 300px; height: 60px; box-sizing: border-box; border-radius: 16px; background: #e8423f; border: 8px solid #0e1430; box-shadow: inset 0 -12px 0 #b02a2a; z-index: 30; }
 .cadeira .pe { position: absolute; left: -14px; top: -40px; width: 28px; height: 200px; background: #2b3045; border: 7px solid #0e1430; }
 .cadeira .base { position: absolute; left: -100px; top: 150px; width: 200px; height: 28px; border-radius: 14px; background: #2b3045; border: 7px solid #0e1430; }
-.piso-n { position: absolute; left: 0; top: 1300px; width: 1080px; height: 620px; background: linear-gradient(#1a2350, #0b1028); box-shadow: inset 0 14px 0 rgb(0 0 0 / 35%); }
+.piso-n { position: absolute; left: 0; top: 1240px; width: 1080px; height: 680px; background: linear-gradient(#1a2350, #0b1028); box-shadow: inset 0 14px 0 rgb(0 0 0 / 35%); }
+/* a prancheta queimada do Psyduck (a do EP 2) */
+.prancheta { position: absolute; left: 0; top: 0; width: 140px; height: 180px; box-sizing: border-box; z-index: 5; border: 8px solid #0e1430; border-radius: 10px;
+  background: radial-gradient(circle at 75% 80%, #120804 0 16%, transparent 28%), linear-gradient(#5a3a1e, #3a2410); }
+.prancheta::before { content: ""; position: absolute; left: 12px; top: 24px; right: 12px; bottom: 14px;
+  background: radial-gradient(circle at 80% 85%, #1a0e06 0 22%, transparent 34%), radial-gradient(circle at 15% 25%, #4a3218 0 10%, transparent 18%),
+    repeating-linear-gradient(transparent 0 20px, #6a5a44 20px 25px), #c4b08c;
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 84% 76%, 70% 68%, 52% 88%, 34% 82%, 18% 100%, 0 100%); }
+.prancheta::after { content: ""; position: absolute; left: 38px; top: -16px; width: 48px; height: 26px; box-sizing: border-box; background: #6e6e78; border: 6px solid #0e1430; border-radius: 6px; }
+.fumaca { position: absolute; left: 0; top: 0; width: 120px; height: 90px; margin: -45px 0 0 -60px; border-radius: 50%; background: #b8b4ae; border: 7px solid #0e1430; opacity: 0; }
+/* o microfone do repórter */
+.micro { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 25; }
+.micro svg { position: absolute; left: -40px; top: -60px; width: 80px; height: 220px; overflow: visible; }
+/* a porta do estúdio (o "e mais"): o vidro fosco com a silhueta do convidado */
+.porta { position: absolute; left: 300px; top: 380px; width: 480px; height: 880px; box-sizing: border-box; border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #8a5a32, #a06a3c 50%, #8a5a32);
+  border: 12px solid #0e1430; box-shadow: 0 0 0 10px #3a2a20, 0 0 0 18px #0e1430; z-index: 5; }
+.porta .vidro { position: absolute; left: 60px; top: 60px; width: 336px; height: 420px; box-sizing: border-box; overflow: hidden; border: 10px solid #0e1430; border-radius: 10px;
+  background: radial-gradient(circle at 50% 40%, #fff6c8, #d8c890 70%); }
+.porta .vidro::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgb(255 255 255 / 35%) 0 18%, transparent 18% 30%, rgb(255 255 255 / 22%) 30% 36%, transparent 36%); }
+.porta .macaneta { position: absolute; left: 380px; top: 500px; width: 44px; height: 44px; border-radius: 50%; background: #ffcb05; border: 8px solid #0e1430; }
+.porta .luz { position: absolute; left: 150px; top: -110px; width: 156px; height: 60px; border-radius: 12px; background: #e8423f; border: 8px solid #0e1430; box-shadow: 0 0 40px 10px rgb(232 66 63 / 55%); }
+/* manchete (rodapé de telejornal, em cima) e o selo AO VIVO pequeno ao lado */
+#manchete { position: absolute; left: 40px; top: 214px; width: 1000px; height: 100px; z-index: 85; opacity: 0; filter: drop-shadow(0 10px 0 rgb(0 0 0 / 40%)); }
+#manchete .selo-v { position: absolute; left: 22px; top: -46px; height: 54px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: #e8423f; color: #fff; font-size: 26px; letter-spacing: 2px; border: 7px solid #0e1430; border-bottom: none; border-radius: 12px 12px 0 0; white-space: nowrap; }
+#manchete .selo-v i { width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+#manchete .barra { position: absolute; inset: 0; overflow: hidden; background: #10183d; border: 8px solid #0e1430; border-radius: 16px; box-shadow: inset 0 -10px 0 #ffcb05; }
+#manchete .barra span { position: absolute; left: 24px; right: 16px; top: 0; bottom: 10px; display: flex; align-items: center; color: #fff; font-size: var(--manchete, 46px); letter-spacing: 2px; white-space: nowrap; }
+/* a caixa de diálogo dos jogos de Pokémon */
+#caixa { position: absolute; left: 28px; top: 1300px; width: 1024px; height: 230px; box-sizing: border-box; z-index: 85; opacity: 0; background: #f8f8f0; border: 10px solid #0e1430; border-radius: 24px;
+  box-shadow: inset 0 0 0 7px #f8f8f0, inset 0 0 0 13px #4a6ac8, 0 14px 0 rgb(0 0 0 / 45%); }
+#caixa .nome { position: absolute; left: 34px; top: -62px; height: 62px; padding: 0 26px; box-sizing: border-box; display: flex; align-items: center; background: #10183d; color: #ffcb05;
+  border: 8px solid #0e1430; border-bottom: none; border-radius: 16px 16px 0 0; font-size: 36px; letter-spacing: 3px; }
+#caixa .txt { position: absolute; left: 40px; right: 34px; top: 34px; bottom: 28px; color: #1c2238; font-size: var(--corpo, 43px); line-height: 1.32; letter-spacing: 0; opacity: 0; }
+#caixa .txt b { font-weight: 700; white-space: nowrap; }
+#caixa .txt s { text-decoration: none; visibility: hidden; }
+#caixa .seta { position: absolute; right: 22px; bottom: 26px; width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 22px solid #e8423f; opacity: 0; }
+/* as telas do jogo num painel com moldura */
+.moldura { position: absolute; z-index: 20; box-sizing: border-box; border-radius: 22px; border: 12px solid #0e1430; background: #0e1430; overflow: hidden;
+  box-shadow: 0 0 0 8px #ffcb05, 0 0 0 16px #0e1430, 0 26px 0 14px rgb(0 0 0 / 45%); opacity: 0; }
+.moldura img { display: block; width: 100%; height: 100%; border-radius: 10px; }
+video.jogo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 10; }
+video.painel { position: absolute; z-index: 21; border-radius: 10px; }
+.destaque { position: absolute; z-index: 24; box-sizing: border-box; border: 10px solid #ffcb05; border-radius: 22px; box-shadow: 0 0 0 7px #0e1430, inset 0 0 0 7px #0e1430; opacity: 0; }
+#carta-patro { position: absolute; left: 284px; top: 340px; width: 512px; height: 896px; z-index: 26; border-radius: 26px; opacity: 0;
+  background: url(midia/news/recompensa.png) -1152px -520px / 1728px 1600px no-repeat; box-shadow: 0 0 0 10px #ffcb05, 0 0 0 17px #0e1430, 0 26px 0 14px rgb(0 0 0 / 45%); }
+/* moedas: disco dourado com o ₽ */
+.moeda { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; z-index: 40; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00);
+  border: 7px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 34px; color: #7a4a00; opacity: 0; }
+.brilho-n { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: #fff; z-index: 45; opacity: 0;
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+/* a carta ouro virando (verso: o símbolo do jogo) */
+.carta3d { position: absolute; left: 540px; top: 860px; width: 0; height: 0; z-index: 50; perspective: 1800px; opacity: 0; }
+.carta3d .gira { position: absolute; left: -220px; top: -304px; width: 440px; height: 608px; transform-style: preserve-3d; }
+.carta3d .face, .carta3d .verso { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 26px; }
+.carta3d .face { background: url(midia/news/carta-ouro.png) center / 100% 100% no-repeat; transform: rotateY(180deg); }
+.carta3d .verso { box-sizing: border-box; background: radial-gradient(circle at 50% 45%, #2a4ea0, #10183d 70%); border: 14px solid #ffcb05; box-shadow: inset 0 0 0 8px #0e1430; display: flex; align-items: center; justify-content: center; }
+.carta3d .verso img { width: 260px; }
 /* a vinheta de plantão */
 .vinheta-n { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
 .faixa { position: absolute; left: -100px; width: 1280px; height: 120px; transform: rotate(-8deg); border-top: 10px solid #0e1430; border-bottom: 10px solid #0e1430; }
@@ -66,49 +121,15 @@
   background: #e8423f; border: 12px solid #0e1430; box-shadow: 0 16px 0 #8c1d1b; font-size: 100px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; transform: rotate(6deg); opacity: 0; }
 .globo { position: absolute; left: 540px; top: 470px; width: 0; height: 0; z-index: 4; }
 .globo svg { position: absolute; left: -130px; top: -130px; width: 260px; height: 260px; overflow: visible; }
-/* o selo do programa no canto (quadro da vez) */
-#bug { position: absolute; left: 40px; top: 140px; z-index: 70; display: flex; align-items: stretch; opacity: 0; }
-#bug b { padding: 6px 14px; background: #e8423f; color: #fff; font-size: 28px; letter-spacing: 2px; border: 6px solid #0e1430; border-radius: 12px 0 0 12px; }
-#bug span { padding: 6px 14px; background: #10183d; color: #c8d0f0; font-size: 28px; letter-spacing: 2px; border: 6px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; min-width: 40px; }
-/* cartela (caixa alta, 2 a 5 palavras) */
-.cartela-n { position: absolute; left: 60px; width: 960px; top: 230px; height: 220px; z-index: 85; display: flex; align-items: center; justify-content: center; text-align: center;
-  font-size: 86px; line-height: 1.12; letter-spacing: 3px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; opacity: 0; }
-.cartela-n span b { color: #ffcb05; font-weight: 700; }
-/* a fala (legenda) e a tarja NOME · FUNÇÃO */
-.fala-n { position: absolute; left: 60px; width: 960px; top: 1490px; height: 140px; z-index: 85; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.15;
-  font-size: 76px; letter-spacing: 2px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #0e1430; opacity: 0; }
-.tarja { position: absolute; top: 1400px; z-index: 85; display: flex; align-items: stretch; opacity: 0; }
-.tarja b { padding: 10px 24px; background: #ffcb05; color: #0e1430; font-size: 64px; letter-spacing: 2px; border: 7px solid #0e1430; border-radius: 12px 0 0 12px; }
-.tarja span { padding: 10px 22px; background: #10183d; color: #f8f8f0; font-size: 48px; letter-spacing: 2px; border: 7px solid #0e1430; border-left: none; border-radius: 0 12px 12px 0; display: flex; align-items: center; }
-/* as telas do jogo num painel com moldura (o vídeo fica por cima da moldura, fora dela no DOM) */
-.moldura { position: absolute; z-index: 20; box-sizing: border-box; border-radius: 22px; border: 12px solid #0e1430; background: #0e1430; box-shadow: 0 0 0 8px #ffcb05, 0 0 0 16px #0e1430, 0 26px 0 14px rgb(0 0 0 / 45%); opacity: 0; }
-video.jogo { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; z-index: 10; }
-video.painel { position: absolute; z-index: 21; border-radius: 10px; }
-.destaque { position: absolute; z-index: 24; box-sizing: border-box; border: 10px solid #ffcb05; border-radius: 22px; box-shadow: 0 0 0 7px #0e1430, inset 0 0 0 7px #0e1430; opacity: 0; }
-/* moedas (Pay Day, Rota): disco dourado com o ₽ */
-.moeda { position: absolute; left: 0; top: 0; width: 70px; height: 70px; margin: -35px 0 0 -35px; z-index: 40; box-sizing: border-box; border-radius: 50%; background: radial-gradient(circle at 38% 35%, #fff3a0, #ffcb05 45%, #d99a00);
-  border: 7px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 34px; color: #7a4a00; opacity: 0; }
-.brilho-n { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: #fff; z-index: 45; opacity: 0;
-  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
-/* a carta ouro virando (verso: o símbolo do jogo) */
-.carta3d { position: absolute; left: 610px; top: 980px; width: 0; height: 0; z-index: 50; perspective: 1800px; opacity: 0; }
-.carta3d .gira { position: absolute; left: -220px; top: -304px; width: 440px; height: 608px; transform-style: preserve-3d; }
-.carta3d .face, .carta3d .verso { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 26px; }
-.carta3d .face { background: url(midia/news/carta-ouro.png) center / 100% 100% no-repeat; transform: rotateY(180deg); }
-.carta3d .verso { box-sizing: border-box; background: radial-gradient(circle at 50% 45%, #2a4ea0, #10183d 70%); border: 14px solid #ffcb05; box-shadow: inset 0 0 0 8px #0e1430; display: flex; align-items: center; justify-content: center; }
-.carta3d .verso img { width: 260px; }
-.carta3d .sombra-c { position: absolute; left: -200px; top: 330px; width: 400px; height: 60px; border-radius: 50%; background: rgb(0 0 0 / 35%); }
 /* tela final */
 #fim #logo { top: 330px; }
 #fim .tag { top: 560px; }
 #fim .site { top: 680px; }
-#fim .selo { top: 780px; }
-#fim .credito { top: 1540px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="35">
-  <div id="cena" class="clip" data-start="0" data-duration="35">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="86.5">
+  <div id="cena" class="clip" data-start="0" data-duration="86.5">
     <!-- vinheta de plantão -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="faixa" id="fx1" style="top:300px;background:#e8423f"></div>
@@ -118,170 +139,273 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       <div class="placa-n" id="placa"><div class="fundo"></div><div class="l1">SOCCERMON</div><div class="l2">NEWS</div></div>
       <div class="n1" id="n1">#1</div>
     </div>
-    <!-- o estúdio: telão, bancada larga (os três cabem atrás dela), a cadeira do convidado -->
+    <!-- o estúdio: telão, a bancada do apresentador e a cadeira do convidado ao lado -->
     <div id="banc" class="cena estudio"><div id="cam" class="camada"><div class="grade"></div><div class="piso-n"></div>
       <div class="telao" id="telao"><div class="raios" id="raios-tel"></div>
         <div class="tela marca" id="t-marca"><img src="midia/logo-simbolo.svg" alt="" /></div>
-        <div class="tela" id="t-pct"><span class="pct">40%</span></div>
+        <div class="tela" id="t-meo"></div>
         <div class="tela cal" id="t-cal"><div class="topo"><i></i><i></i><i></i><i></i></div><div class="dias" id="dias"></div></div>
       </div>
-      <div class="cadeira" id="cadeira" style="transform:translate(840px,1330px)"><div class="encosto" id="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
-      <div class="mesa-n" style="--w:1020px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div>
+      <div class="cadeira" id="cadeira" style="transform:translate(830px,1300px)"><div class="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
+      <div class="mesa-n"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div>
     </div></div>
+    <!-- ao vivo da Rota: a quadra, o Meowth de microfone -->
+    <div id="rota" class="cena"><div id="rota-cam" class="camada"></div></div>
+    <!-- o "e mais": a porta do estúdio, a silhueta atrás do vidro -->
+    <div id="porta-c" class="cena estudio"><div class="grade"></div><div class="piso-n"></div>
+      <div class="porta"><div class="luz"></div><div class="vidro" id="vidro"></div><div class="macaneta"></div></div>
+    </div>
     <div id="fundo" class="cena estudio"><div class="raios" id="raios-fundo"></div></div>
-    <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"><div class="mesa-n" id="mesa-fim" style="left:180px;top:1240px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div></div></div>
+    <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"><div class="mesa-n" id="mesa-fim" style="left:180px;top:1240px;--w:720px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div></div></div>
   </div>
-  <!-- moldura da barra de golpe (o vídeo vai por cima, fora de elemento com tempo) e o destaque dourado do Patrocínio -->
-  <div class="moldura" id="m-gomos" style="left:48px;top:742px;width:984px;height:493px"></div>
-  <div class="moldura" id="m-fatia" style="left:90px;top:560px;width:900px;height:814px"><img src="midia/news/ultimate-fatia.png" alt="" /></div>
-  <div class="destaque" id="dest-patro" style="left:364px;top:608px;width:512px;height:864px"></div>
+  <!-- as telas do jogo -->
+  <div class="moldura" id="m-rec" style="left:40px;top:330px;width:1000px;height:928px"><img src="midia/news/recompensa.png" alt="" /></div>
+  <div class="destaque" id="dest-patro" style="left:693px;top:630px;width:304px;height:517px"></div>
+  <div id="carta-patro"></div>
+  <div class="moldura" id="m-fatia" style="left:90px;top:370px;width:900px;height:814px"><img src="midia/news/ultimate-fatia.png" alt="" /></div>
+  <div class="moldura" id="m-menu" style="left:40px;top:520px;width:1000px;height:467px"><img src="midia/news/menu-fatias.png" alt="" /></div>
+  <div class="destaque" id="dest-ut" style="left:70px;top:548px;width:462px;height:422px"></div>
+  <div class="moldura" id="m-vt" style="left:264px;top:306px;width:552px;height:963px"></div>
   <div id="fx-moedas"></div>
-  <div class="carta3d" id="carta"><div class="sombra-c"></div><div class="gira" id="gira"><div class="verso"><img src="midia/logo-simbolo.svg" alt="" /></div><div class="face"></div></div></div>
-  <div id="bug"><b>AO VIVO</b><span>PLANTÃO</span></div>
-  <div class="cartela-n" id="cartela"><span id="cartela-t"></span></div>
-  <div class="tarja" id="tj-ala" style="left:40px"><b>ALAKAZAM</b><span>APRESENTADOR</span></div>
-  <div class="tarja" id="tj-por" style="left:40px"><b>PORYGON</b><span>CONVIDADO</span></div>
-  <div class="fala-n" id="fala"><span id="fala-t"></span></div>
+  <div class="carta3d" id="carta"><div class="gira" id="gira"><div class="verso"><img src="midia/logo-simbolo.svg" alt="" /></div><div class="face"></div></div></div>
+  <div id="manchete"><div class="selo-v"><i id="ponto"></i>AO VIVO</div><div class="barra" id="barra"></div></div>
+  <div id="caixa"><div class="nome" id="nome"></div><div class="seta" id="seta"></div></div>
   <div class="flash" id="flash"></div>
 
   <!-- trechos do jogo -->
   <video id="v-gol1" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="0" data-duration="1" data-media-start="1.3"></video>
   <video id="v-gol2" class="jogo" src="midia/news/gol-pulo.mp4" muted playsinline data-start="1" data-duration="1" data-media-start="0" style="transform:scale(1.35);transform-origin:540px 520px"></video>
-  <video id="v-gomos" class="painel" src="midia/news/gomos-lento.mp4" muted playsinline data-start="3" data-duration="5" data-media-start="0" style="left:60px;top:754px;width:960px;height:469px"></video>
-  <video id="v-patro" class="painel" src="midia/news/patrocinio-c.mp4" muted playsinline data-start="10" data-duration="2" data-media-start="0" style="left:-700px;top:135px;width:1620px;height:1500px;border-radius:0;clip-path:inset(225px 0 0 0)"></video>
-  <video id="v-close" class="jogo" src="midia/news/close.mp4" muted playsinline data-start="18.5" data-duration="2.5" data-media-start="0.65"></video>
+  <video id="v-bola" class="painel" src="midia/news/bola-fora.mp4" muted playsinline data-start="53" data-duration="4" data-media-start="0" style="left:276px;top:318px;width:528px;height:939px"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="35" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="86.5" data-media-start="0" data-fade-out="0.6"></audio>
 
   <script>
-    const { T, div, ator, anim, quadro, flash, estouro, telaFinal, piscada } = C;
-    const FIM = 35;
+    const { T, div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra } = C;
+    const FIM = 86.5;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
-    const CENAS = ['#vin', '#banc', '#fundo', '#fim'];
+    const CENAS = ['#vin', '#banc', '#rota', '#porta-c', '#fundo', '#fim'];
     const corta = (id, t) => {
       ver(CENAS, t, false);
       if (id) ver(id, t);
     };
-    const BANC = $('cam');
-
-    // ===== textos: UM por vez, cada um parado no mínimo 2 s (cartela no alto, tarja ou fala embaixo) =====
-    // [início, fim, texto]; a entrada é um pulinho de 0,1 s com o texto já inteiro
-    const CARTELAS = [
-      [3.05, 5.5, 'BARRA DE GOLPE <b>NOVA</b>'],
-      [5.6, 8.0, 'ATÉ O <b>N3</b>'],
-      [10.0, 12.0, '<b>PATROCÍNIO</b> NA RECOMPENSA'],
-      [23.4, 26.0, 'ATUALIZAÇÃO <b>TODA SEMANA</b>'],
-      [30.0, 32.0, 'FALTAM <b>7 DIAS</b>'],
-    ];
-    for (const [a, z, txt] of CARTELAS) {
-      tl.set('#cartela-t', { innerHTML: txt }, a);
-      tl.set('#cartela', { opacity: 1 }, a);
-      tl.fromTo('#cartela', { scale: 1.08 }, { scale: 1, duration: 0.1, ease: 'power2.out', immediateRender: false }, a);
-      tl.set('#cartela', { opacity: 0 }, z);
-    }
-    const FALAS = [
-      [12.0, 14.0, 'Pay Day!'],
-      [16.45, 18.5, 'Antes eu era borrado.'],
-      [18.5, 21.0, 'Agora eu tenho quina.'],
-    ];
-    for (const [a, z, txt] of FALAS) {
-      tl.set('#fala-t', { textContent: txt }, a);
-      tl.set('#fala', { opacity: 1 }, a);
-      tl.fromTo('#fala', { y: 8 }, { y: 0, duration: 0.1, ease: 'power2.out', immediateRender: false }, a);
-      if (!FALAS.some(([b]) => Math.abs(b - z) < 1e-6)) tl.set('#fala', { opacity: 0 }, z);
-    }
-    /** Tarja NOME · FUNÇÃO: entra pela esquerda em 0,18 s e some de uma vez (sozinha na tela). */
-    const tarja = (id, a, z) => {
-      tl.set(id, { opacity: 1 }, a);
-      tl.fromTo(id, { x: -900 }, { x: 0, duration: 0.18, ease: 'power3.out', immediateRender: false }, a);
-      tl.set(id, { opacity: 0 }, z);
+    const PAINEIS = ['#m-rec', '#dest-patro', '#carta-patro', '#m-fatia', '#m-menu', '#dest-ut', '#m-vt'];
+    /** Só estes painéis no ar a partir de t (o resto some). */
+    const paineis = (t, ...on) => {
+      tl.set(PAINEIS.filter((p) => !on.includes(p)), { opacity: 0 }, t);
+      for (const p of on) tl.set(p, { opacity: 1 }, t);
     };
-    tarja('#tj-por', 14.1, 16.4);
-    tarja('#tj-ala', 21.05, 23.35);
-    // o selo pequeno do plantão: parado do começo da barra até a tela final
-    tl.set('#bug', { opacity: 0.9 }, 3.0);
-    tl.set('#bug', { opacity: 0 }, 32);
+    const entra = (id, t, de = 0.9) => tl.fromTo(id, { scale: de }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t);
 
-    // ===== 0–2 · o gancho: o gol em câmera lenta (a bola entra; o flash do gol em 0,7 s) e o artilheiro pulando
-    // (gol-pulo.mp4: o pulo de 5,35 a 5,65 s do gol.mp4 a 0,6x, de perto) =====
+    // ===================== a linha do tempo: manchete (M) e as falas =====================
+    // Cada fala: [início do bloco, quem, texto, manchete nova ou null]. Com manchete nova, a manchete troca no início do
+    // bloco e o texto só começa 0,5 s depois; sem, o texto começa no início. O texto aparece em 0,5 s e fica inteiro
+    // até o próximo bloco (3 s).
+    const ALA = 'ALAKAZAM', MEO = 'MEOWTH', PSY = 'PSYDUCK';
+    const ROTEIRO = [
+      [4.0, ALA, 'Boa noite! Eu sou o Alakazam, seu apresentador desta noite.', 'SOCCERMON NEWS #1'],
+      [8.0, ALA, 'No Soccermon News de hoje: as novidades da versão 0.9.51, e mais.'],
+      [11.5, ALA, 'A Copa do Dia muda a recompensa da vitória.', 'RECOMPENSA NOVA NA COPA DO DIA'],
+      [15.5, ALA, 'Nosso repórter entra ao vivo da Rota Índigo.', 'AO VIVO DA ROTA ÍNDIGO'],
+      [19.5, ALA, 'O Time Ultimate já tem data pra abrir.', 'TIME ULTIMATE TEM DATA'],
+      [23.5, ALA, 'E mais: o técnico do Pallet FC aqui no estúdio.', 'E MAIS'],
+      [27.5, ALA, 'Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou.', 'RECOMPENSA NOVA'],
+      [31.5, ALA, 'Em 4 de cada 10 vitórias, uma das opções é um Patrocínio…'],
+      [35.0, ALA, '…um bônus forte que vale pro time inteiro.'],
+      [38.5, ALA, 'Agora, ao vivo da Rota Índigo, nosso repórter Meowth.', 'AO VIVO · ROTA ÍNDIGO'],
+      [42.5, MEO, 'Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado.'],
+      [46.0, ALA, 'Meowth, essas moedas são dos jogadores.'],
+      [49.5, MEO, 'Que moedas?'],
+      [53.0, ALA, 'No Vestiário do Pallet FC, uma bola explodiu no treino.', 'VESTIÁRIO DO PALLET FC'],
+      [57.0, ALA, 'Psyduck, como um Voltorb foi parar no saco de bolas?', 'PSYDUCK · TÉCNICO'],
+      [61.0, PSY, 'Eu contei treze bolas.'],
+      [64.5, PSY, 'A gente tem doze.'],
+      [68.0, ALA, 'Um aviso: a partir de agora, sai atualização nova toda semana.', 'TODA SEMANA'],
+      [72.0, ALA, 'E na sexta que vem, dia 27, abre o Time Ultimate…', 'TIME ULTIMATE · 27/11'],
+      [76.0, ALA, '…o modo novo em que você abre pacotes e monta o time da temporada.'],
+      [79.5, ALA, 'Boa noite, e temos que chutar!'],
+    ];
+    const FIM_FALAS = 83.0;
+    const DIGITA = 0.5;
+    const CAIXA = $('caixa');
+    // os textos: cada palavra num <b> (não quebra no meio), cada letra num <s> que aparece na vez dela
+    const blocos = ROTEIRO.map(([s, quem, texto, manchete], i) => {
+      const a = manchete ? s + 0.5 : s;
+      const z = i + 1 < ROTEIRO.length ? ROTEIRO[i + 1][0] : FIM_FALAS;
+      const el = div(CAIXA, 'txt');
+      el.innerHTML = texto.split(' ').map((p) => `<b>${Array.from(p).map((c) => `<s>${c}</s>`).join('')}</b>`).join(' ');
+      return { s, a, z, quem, texto, manchete, el, letras: [...el.querySelectorAll('s')] };
+    });
+    const barra = $('barra');
+    for (const b of blocos) {
+      // manchete nova: a caixa fecha, a manchete troca (varre da esquerda em 0,3 s); a caixa volta em a
+      if (b.manchete) {
+        const sp = div(barra, '');
+        sp.appendChild(document.createElement('span'));
+        sp.firstChild.textContent = b.manchete;
+        sp.style.cssText = 'position:absolute;inset:0;opacity:0';
+        b.sp = sp;
+        tl.set(barra.children, { opacity: 0 }, b.s);
+        tl.set(sp, { opacity: 1 }, b.s);
+        tl.fromTo(sp, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.3, ease: 'power2.out', immediateRender: false }, b.s);
+        tl.set(CAIXA, { opacity: 0 }, b.s);
+        tl.set(CAIXA, { opacity: 1 }, b.a);
+        tl.fromTo(CAIXA, { y: 24 }, { y: 0, duration: 0.15, ease: 'power2.out', immediateRender: false }, b.a);
+      }
+      tl.set('#nome', { textContent: b.quem }, b.a);
+      tl.set(CAIXA.querySelectorAll('.txt'), { opacity: 0 }, b.a);
+      tl.set(b.el, { opacity: 1 }, b.a);
+      const n = b.letras.length;
+      b.letras.forEach((l, i) => tl.set(l, { visibility: 'visible' }, b.a + (DIGITA * i) / n));
+      // a setinha pisca quando o texto completa
+      tl.set('#seta', { opacity: 0 }, b.a);
+      for (let t = b.a + DIGITA + 0.1, k = 0; t < b.z - 0.05; t += 0.3, k++) tl.set('#seta', { opacity: k % 2 ? 0 : 1 }, t);
+      tl.set('#seta', { opacity: 0 }, b.z);
+    }
+    // a manchete com o selo: entra com a bancada, sai na tela final; o ponto do AO VIVO pisca
+    tl.set('#manchete', { opacity: 1 }, 4.0);
+    tl.fromTo('#manchete', { y: -30 }, { y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, 4.0);
+    for (let t = 4.0, k = 0; t < FIM_FALAS; t += 0.5, k++) tl.set('#ponto', { opacity: k % 2 ? 0.25 : 1 }, t);
+    tl.set(['#manchete', CAIXA], { opacity: 0 }, FIM_FALAS);
+    const B = Object.fromEntries(blocos.map((b, i) => [i + 1, b]));
+
+    // ===================== 0–2 · o gancho: o gol em câmera lenta e o artilheiro pulando =====================
     corta(null, 0);
     flash(tl, 1, 0.5, 0.2);
 
-    // ===== 2–3 · VINHETA DE PLANTÃO =====
+    // ===================== 2–4 · VINHETA DE PLANTÃO =====================
     {
-      const t0 = T(1, 0);
+      const t0 = 2;
       corta('#vin', t0);
       flash(tl, t0, 0.9, 0.3);
-      tl.fromTo('#raios-vin', { rotation: 0 }, { rotation: 60, duration: 1, ease: 'none', immediateRender: false }, t0);
-      tl.fromTo('#fx1', { x: -1400 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0);
-      tl.fromTo('#fx2', { x: 1400 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0 + 0.06);
-      tl.fromTo('#fx3', { x: -1400 }, { x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0 + 0.12);
-      tl.fromTo('#placa', { scale: 0.3, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(2.4)', immediateRender: false }, t0);
-      // a bola que gira como um globo em cima da placa
+      tl.fromTo('#raios-vin', { rotation: 0 }, { rotation: 80, duration: 2, ease: 'none', immediateRender: false }, t0);
+      tl.fromTo('#fx1', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0);
+      tl.fromTo('#fx2', { x: 1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.08);
+      tl.fromTo('#fx3', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.16);
+      tl.fromTo('#placa', { scale: 0.3, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false }, t0);
       $('globo').innerHTML = `<svg viewBox="0 0 18 18"><g id="globo-g" style="transform-origin:9px 9px"><circle cx="9" cy="9" r="8" fill="#fff"/><polygon points="${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return `${9 + Math.cos(a) * 3.2},${9 + Math.sin(a) * 3.2}`; }).join(' ')}" fill="#1d1d1d"/>${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + Math.PI / 5 + (i * 2 * Math.PI) / 5; return `<circle cx="${9 + Math.cos(a) * 7.2}" cy="${9 + Math.sin(a) * 7.2}" r="1.8" fill="#1d1d1d"/>`; }).join('')}<circle cx="9" cy="9" r="8" fill="none" stroke="#0e1430" stroke-width="1.6"/></g></svg>`;
-      tl.fromTo('#globo', { y: -500 }, { y: 0, duration: 0.3, ease: 'bounce.out', immediateRender: false }, t0 + 0.05);
-      tl.fromTo('#globo-g', { rotation: 0 }, { rotation: 400, duration: 1, ease: 'power1.out', immediateRender: false }, t0);
-      tl.set('#n1', { opacity: 1 }, T(1, 4));
-      tl.fromTo('#n1', { scale: 2.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, T(1, 4));
-      estouro(tl, $('vin'), 855, 1115, T(1, 4), { tam: 260 });
+      tl.fromTo('#globo', { y: -500 }, { y: 0, duration: 0.35, ease: 'bounce.out', immediateRender: false }, t0 + 0.05);
+      tl.fromTo('#globo-g', { rotation: 0 }, { rotation: 600, duration: 2, ease: 'power1.out', immediateRender: false }, t0);
+      tl.set('#n1', { opacity: 1 }, T(1, 8));
+      tl.fromTo('#n1', { scale: 2.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, T(1, 8));
+      estouro(tl, $('vin'), 855, 1115, T(1, 8), { tam: 260 });
     }
 
-    // ===== o estúdio: os três atrás da bancada larga (o Porygon na cadeira dele, longe da borda) =====
-    const ALA = ator(BANC, 65, { escala: 16, z: 20, x: 230, y: 1250 });
-    const MEO = ator(BANC, 52, { escala: 16, z: 20, x: 520, y: 1200, sombra: false });
-    const POR = ator(BANC, 137, { escala: 13, z: 12, x: 840, y: 1240, opacity: 0 });
-    gsap.set($('cadeira'), { opacity: 0 });
-    anim(tl, ALA, 'Idle', 0, 0, FIM);
-    anim(tl, MEO, 'Idle', 0, 0, FIM);
-    const telas = ['#t-marca', '#t-pct', '#t-cal'];
+    // ===================== o estúdio =====================
+    const CAM = $('cam');
+    gsap.set(CAM, { transformOrigin: '0px 0px' });
+    const camera = (t, s = 1, x = 0, y = 0, d = 0) => (d ? tl.to(CAM, { scale: s, x, y, duration: d, ease: 'sine.inOut' }, t) : tl.set(CAM, { scale: s, x, y }, t));
+    const XA = 250; // o Alakazam na bancada
+    const XC = 830; // a cadeira do convidado
+    const AL = ator(CAM, 65, { escala: 15, z: 20, x: XA, y: 1150 });
+    const ME = ator(CAM, 52, { escala: 14, z: 20, x: 500, y: 1120, opacity: 0 });
+    const PS = ator(CAM, 54, { escala: 13, z: 12, x: XC, y: 1214, opacity: 0, sombra: false });
+    const TOSTADO = 'brightness(0.66) sepia(0.65) saturate(1.3)';
+    gsap.set(PS.spr, { filter: TOSTADO });
+    const prancheta = div(PS.corpo, 'prancheta');
+    gsap.set(prancheta, { x: 36, y: -250, rotation: 8, scale: 0.85, filter: 'brightness(0.85)' });
+    anim(tl, AL, 'Idle', 0, 0, FIM);
+    anim(tl, ME, 'Idle', 0, 0, FIM);
+    anim(tl, PS, 'Idle', 0, 0, FIM, { vel: 0.6 });
+    const telas = ['#t-marca', '#t-meo', '#t-cal'];
     const telao = (id, t) => {
       tl.set(telas, { opacity: 0 }, t);
       tl.set(id, { opacity: 1 }, t);
-      tl.fromTo(id, { scale: 0.8 }, { scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
+      tl.fromTo(id, { scale: 0.85 }, { scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
     };
-    tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 100, duration: FIM, ease: 'none', immediateRender: false }, 0);
-    /** Câmera da bancada: escala e posição (origem no canto). */
-    const camera = (t, s = 1, x = 0, y = 0, d = 0) => (d ? tl.to('#cam', { scale: s, x, y, duration: d, ease: 'sine.inOut' }, t) : tl.set('#cam', { scale: s, x, y }, t));
-    gsap.set('#cam', { transformOrigin: '0px 0px' });
+    tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 200, duration: FIM, ease: 'none', immediateRender: false }, 0);
+    /** O Alakazam fala: um aceno com a colher no começo do texto (o corpo balança de leve). */
+    const acena = (t) => tl.to(AL.corpo, { keyframes: { y: [-10, 0], rotation: [-2.5, 0] }, duration: 0.4, ease: 'sine.inOut' }, t);
+    const ting = (t) => {
+      const br = div(CAM, 'brilho-n');
+      gsap.set(br, { x: XA + 120, y: 760 });
+      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.6, rotation: 90, opacity: 0, duration: 0.45, ease: 'power2.out', immediateRender: false }, t);
+    };
 
-    // ===== 3–8 · a barra de golpe nova: os gomos acendem devagar até o N3 (gomos-lento.mp4: 4,25 s, 5 s e 6 s) =====
-    {
-      const t0 = 3;
-      corta('#fundo', t0);
-      tl.fromTo('#raios-fundo', { rotation: 0 }, { rotation: 30, duration: 5, ease: 'none', immediateRender: false }, t0);
-      ver('#m-gomos', t0);
-      ver('#m-gomos', 8, false);
-      tl.fromTo('#m-gomos', { scale: 0.85 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-      [[4.25, 568], [5.0, 700], [6.0, 828]].forEach(([t, x], i) =>
-        estouro(tl, $('fx-moedas'), x, 988, t, { tam: 180 + 70 * i, cor: ['#ffcb05', '#ff8a1c', '#ff5c8a'][i] }),
-      );
-    }
+    // 4–11,5 · L1 e L2: o Alakazam se apresenta (o "ting" da colher) e chama as notícias
+    corta('#banc', 4.0);
+    paineis(4.0);
+    camera(4.0, 1);
+    telao('#t-marca', 4.0);
+    flash(tl, 4.0, 0.6, 0.25);
+    acena(B[1].a);
+    ting(B[1].a);
+    camera(B[2].s, 1, 0, 0);
+    camera(B[2].s, 1.12, -40, -110, 3.4);
+    acena(B[2].a);
 
-    // ===== 8–10 · o Meowth e o 40% no telão =====
-    {
-      const t0 = 8;
-      corta('#banc', t0);
-      camera(t0, 1.12, -60, -60);
-      camera(t0, 1.18, -95, -110, 2);
-      telao('#t-pct', t0);
-      tl.fromTo('#t-pct .pct', { rotation: -8 }, { rotation: 0, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
-      flash(tl, t0, 0.4, 0.2);
-      anim(tl, MEO, 'Pose', 0, t0 + 0.3, t0 + 1.1, { loop: false });
-      anim(tl, MEO, 'Idle', 0, t0 + 1.1, FIM);
-    }
-    // ===== 10–12 · o 1 de 3 de perto: o Patrocínio (Charanga de Pewter) ganha a moldura dourada =====
-    {
-      const t0 = 10;
-      corta('#fundo', t0);
-      tl.fromTo('#raios-fundo', { rotation: 30 }, { rotation: 45, duration: 2, ease: 'none', immediateRender: false }, t0);
-      tl.set('#dest-patro', { opacity: 1 }, t0 + 0.6);
-      tl.fromTo('#dest-patro', { scale: 1.2 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0 + 0.6);
-      tl.to('#dest-patro', { scale: 1.03, duration: 0.3, ease: 'sine.inOut', repeat: 3, yoyo: true }, t0 + 0.85);
-      tl.set('#dest-patro', { opacity: 0 }, 12);
-    }
-    // ===== 12–14 · PAY DAY!: chovem moedas na bancada e o Meowth junta tudo com as patas =====
+    // ===================== ESCALADA =====================
+    // 11,5 · Copa do Dia: a tela da recompensa (o Patrocínio na direita)
+    corta('#fundo', B[3].s);
+    tl.fromTo('#raios-fundo', { rotation: 0 }, { rotation: 40, duration: 16, ease: 'none', immediateRender: false }, B[3].s);
+    paineis(B[3].s, '#m-rec');
+    entra('#m-rec', B[3].s);
+    tl.to('#m-rec', { scale: 1.03, duration: 3.6, ease: 'sine.inOut' }, B[3].s + 0.3);
+    // 15,5 · o Meowth de microfone na quadra da Rota
+    const RC = $('rota-cam');
+    quadra(RC, 'madeira', { K: 95, gy: 420 });
+    gsap.set(RC, { transformOrigin: '540px 1000px' });
+    const MR = ator(RC, 52, { escala: 17, z: 20, x: 540, y: 1130 });
+    const micro = div(MR.corpo, 'micro');
+    micro.innerHTML = '<svg viewBox="0 0 40 110"><rect x="15" y="34" width="10" height="70" rx="4" fill="#2b3045" stroke="#0e1430" stroke-width="4"/><rect x="11" y="30" width="18" height="10" rx="3" fill="#e8423f" stroke="#0e1430" stroke-width="3"/><circle cx="20" cy="17" r="15" fill="#c8d0f0" stroke="#0e1430" stroke-width="4"/><path d="M9 12h22M8 19h24M11 26h18" stroke="#8a94b8" stroke-width="2.5"/></svg>';
+    gsap.set(micro, { x: -150, y: -300, rotation: 24 });
+    const rotaEm = (t) => {
+      corta('#rota', t);
+      paineis(t);
+      tl.set(MR.el, { opacity: 1 }, t);
+    };
+    anim(tl, MR, 'Idle', 0, 0, FIM);
+    rotaEm(B[4].s);
+    tl.fromTo(RC, { scale: 1.08 }, { scale: 1, duration: 4, ease: 'sine.out', immediateRender: false }, B[4].s);
+    anim(tl, MR, 'Pose', 0, B[4].s + 1.9, B[4].s + 2.6, { loop: false });
+    anim(tl, MR, 'Idle', 0, B[4].s + 2.6, FIM);
+    // 19,5 · a fatia do Time Ultimate no menu de modos
+    corta('#fundo', B[5].s);
+    paineis(B[5].s, '#m-fatia');
+    entra('#m-fatia', B[5].s);
+    tl.to('#m-fatia', { scale: 1.04, duration: 3.6, ease: 'sine.inOut' }, B[5].s + 0.3);
+    // 23,5 · E MAIS: a porta do estúdio; atrás do vidro, a silhueta do Psyduck (inclina a cabeça no "psy?", 26 s)
+    corta('#porta-c', B[6].s);
+    paineis(B[6].s);
+    const SIL = ator($('vidro'), 54, { escala: 11, z: 2, x: 168, y: 520, sombra: false });
+    gsap.set(SIL.spr, { filter: 'brightness(0) blur(3px)', opacity: 0.78 });
+    anim(tl, SIL, 'Idle', 0, 0, FIM, { vel: 0.6 });
+    tl.fromTo(SIL.el, { x: 40 }, { x: 168, duration: 1.2, ease: 'sine.out', immediateRender: false }, B[6].s);
+    tl.to(SIL.corpo, { keyframes: { rotation: [0, -14, -14, 0] }, duration: 1.2, ease: 'sine.inOut' }, 25.9);
+
+    // ===================== MATÉRIA 1 · COPA DO DIA (27,5–38,5) =====================
+    corta('#fundo', B[7].s);
+    tl.fromTo('#raios-fundo', { rotation: 40 }, { rotation: 80, duration: 11, ease: 'none', immediateRender: false }, B[7].s);
+    paineis(B[7].s, '#m-rec');
+    entra('#m-rec', B[7].s);
+    // 31,5: a moldura dourada no Patrocínio (no sino de 32 s)
+    tl.set('#dest-patro', { opacity: 1 }, 32.0);
+    tl.fromTo('#dest-patro', { scale: 1.2 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, 32.0);
+    tl.to('#dest-patro', { scale: 1.03, duration: 0.4, ease: 'sine.inOut', repeat: 5, yoyo: true }, 32.25);
+    // 35: a carta sai da tela e fica grande no meio ("+4 em tudo enquanto o time perde")
+    paineis(B[9].s, '#m-rec', '#carta-patro');
+    tl.to('#m-rec', { opacity: 0.35, duration: 0.25 }, B[9].s);
+    tl.fromTo('#carta-patro', { x: 302, y: 110, scale: 0.59 }, { x: 0, y: 0, scale: 1, duration: 0.4, ease: 'back.out(1.6)', immediateRender: false }, B[9].s);
+    tl.to('#carta-patro', { keyframes: { y: [0, -14, 0] }, duration: 2.6, ease: 'sine.inOut' }, B[9].s + 0.45);
+
+    // ===================== MATÉRIA 2 · AO VIVO DA ROTA (38,5–53) =====================
+    // 38,5: a bancada; no telão, o Meowth ao vivo na quadra (de microfone)
+    corta('#banc', B[10].s);
+    paineis(B[10].s);
+    camera(B[10].s, 1);
+    telao('#t-meo', B[10].s);
+    const MT = ator($('t-meo'), 52, { escala: 9, z: 2, x: 450, y: 470 });
+    anim(tl, MT, 'Idle', 0, 0, FIM);
+    const microT = div(MT.corpo, 'micro');
+    microT.innerHTML = micro.innerHTML;
+    gsap.set(microT, { x: -80, y: -160, rotation: 24, scale: 0.55 });
+    acena(B[10].a);
+    // 42,5: o Meowth na quadra, ao vivo
+    rotaEm(B[11].s);
+    tl.set(RC, { scale: 1 }, B[11].s);
+    flash(tl, B[11].s, 0.4, 0.2);
+    // 46: chovem moedas (46,4–47,6, uma por linha da música) e ele puxa tudo pros bolsos (48,1)
     const FX = $('fx-moedas');
     const moeda = (x, y) => {
       const m = div(FX, 'moeda');
@@ -290,103 +414,130 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       return m;
     };
     {
-      const t0 = 12;
-      corta('#banc', t0);
-      camera(t0, 1);
-      telao('#t-marca', t0);
-      anim(tl, MEO, 'Hop', 0, t0, t0 + 0.6, { loop: false });
-      anim(tl, MEO, 'Idle', 0, t0 + 0.6, FIM);
-      // 9 moedas: cada uma pousa no tampo na nota dela (linhas 3 a 11 do C6)
       const caidas = [];
       for (let k = 0; k < 9; k++) {
-        const pouso = T(6, 3 + k);
-        const x = 120 + ((k * 263) % 600);
-        const yf = 1150 - ((k * 37) % 30);
+        const pouso = 46.4 + k * 0.125;
+        const x = 230 + ((k * 263) % 620);
+        const yf = 1150 - ((k * 37) % 40);
         const m = moeda(x, -80);
         caidas.push(m);
-        tl.set(m, { opacity: 1 }, pouso - 0.3);
-        tl.fromTo(m, { y: -80, rotation: 0 }, { y: yf, rotation: 200 + k * 30, duration: 0.3, ease: 'power2.in', immediateRender: false }, pouso - 0.3);
+        tl.set(m, { opacity: 1 }, pouso - 0.35);
+        tl.fromTo(m, { y: -80, rotation: 0 }, { y: yf, rotation: 200 + k * 30, duration: 0.35, ease: 'power2.in', immediateRender: false }, pouso - 0.35);
         tl.to(m, { keyframes: { y: [yf - 40, yf] }, duration: 0.2, ease: 'sine.inOut' }, pouso);
       }
-      // ele puxa com as patas (Charge) no ka-ching (C6, 12) e as moedas escorregam pra ele
-      const tj = T(6, 12) - 0.1;
-      anim(tl, MEO, 'Charge', 0, tj, tj + 0.5, { loop: false });
-      anim(tl, MEO, 'Idle', 0, tj + 0.5, FIM);
+      anim(tl, MR, 'Hop', 0, 46.6, 47.2, { loop: false });
+      anim(tl, MR, 'Idle', 0, 47.2, FIM);
+      const tj = 48.0;
+      anim(tl, MR, 'Charge', 0, tj, tj + 0.6, { loop: false });
+      anim(tl, MR, 'Idle', 0, tj + 0.6, FIM);
       caidas.forEach((m, k) => {
-        tl.to(m, { x: 520, y: 1080, scale: 0.4, duration: 0.22, ease: 'power2.in' }, tj + 0.05 + (k % 5) * 0.025);
-        tl.set(m, { opacity: 0 }, tj + 0.27 + (k % 5) * 0.025);
+        tl.to(m, { x: 540, y: 1000, scale: 0.4, duration: 0.25, ease: 'power2.in' }, tj + 0.05 + (k % 5) * 0.025);
+        tl.set(m, { opacity: 0 }, tj + 0.3 + (k % 5) * 0.025);
       });
-      estouro(tl, $('banc'), 520, 1050, tj + 0.35, { tam: 200 });
+      estouro(tl, $('rota'), 540, 980, tj + 0.35, { tam: 200 });
+      // as bochechas cheias: ele fica redondo
+      tl.to(MR.corpo, { scaleX: 1.12, scaleY: 0.96, duration: 0.2, ease: 'back.out(3)' }, tj + 0.4);
     }
-
-    // ===== 14–18,5 · o convidado: o Porygon chega na cadeira, ele e o estúdio borrados =====
+    // 49,5: "Que moedas?": olha pro lado, assobiando (50,1), e cai uma moeda do bolso (51,5)
     {
-      const t0 = 14;
-      camera(t0, 1.15, -266, -190);
-      telao('#t-marca', t0);
-      tl.set(['#cadeira', POR.el], { opacity: 1 }, t0);
-      tl.fromTo(POR.corpo, { scaleY: 0, scaleX: 1.4 }, { scaleY: 1, scaleX: 1, duration: 0.3, ease: 'back.out(2.5)', immediateRender: false }, t0);
-      anim(tl, POR, 'Idle', 6, t0, FIM);
-      tl.set(POR.spr, { filter: 'blur(9px)' }, t0);
-      tl.set('#banc', { filter: 'blur(3px)' }, t0);
-      tl.set('#banc', { filter: 'none' }, 18.5);
-      tl.set(POR.spr, { filter: 'none' }, 18.5);
+      anim(tl, MR, 'Idle', 2, 50.0, 51.4);
+      anim(tl, MR, 'Idle', 6, 51.4, 51.9);
+      anim(tl, MR, 'Idle', 0, 51.9, FIM);
+      const m = moeda(590, 1010);
+      tl.set(m, { opacity: 1 }, 51.4);
+      tl.fromTo(m, { y: 1010, rotation: 0 }, { keyframes: [{ y: 1150, duration: 0.12, ease: 'power2.in' }, { y: 1110, duration: 0.1, ease: 'power2.out' }, { y: 1150, duration: 0.1, ease: 'power2.in' }], rotation: 300, immediateRender: false }, 51.4);
+      tl.to(m, { x: 650, rotation: 400, duration: 0.6, ease: 'power1.out' }, 51.72);
+      tl.set(m, { opacity: 0 }, 53.0);
+      tl.to(MR.corpo, { scaleX: 1, scaleY: 1, duration: 0.2 }, 53.0);
     }
-    // 18,5–21 · corta pra quadra de perto (close.mp4 de 0,65 s: sem o ícone de status, termina no chute do Persian)
-    corta(null, 18.5);
-    flash(tl, 18.5, 0.8, 0.25);
 
-    // ===== 21–26 · o Alakazam; no telão, o calendário com uma bola em cada sexta =====
+    // ===================== QUADRO · VESTIÁRIO DO PALLET FC (53–68) =====================
+    // 53: o trecho do EP 2 numa moldura de VT (o chute em 53,6, o KABOOM em 55)
+    corta('#fundo', B[14].s);
+    tl.fromTo('#raios-fundo', { rotation: 80 }, { rotation: 100, duration: 4, ease: 'none', immediateRender: false }, B[14].s);
+    paineis(B[14].s, '#m-vt');
+    entra('#m-vt', B[14].s, 0.95);
+    tl.set('#m-vt', { opacity: 0 }, 57.0);
+    // 57: o Psyduck na cadeira do convidado, tostado, a prancheta queimada na mão; a fumacinha ainda sai da cabeça
+    corta('#banc', B[15].s);
+    paineis(B[15].s);
+    camera(B[15].s, 1);
+    telao('#t-marca', B[15].s);
+    tl.set(PS.el, { opacity: 1 }, B[15].s);
+    acena(B[15].a);
+    // (só no plano aberto: de perto a fumaça ficava solta no telão)
+    for (const k of [0, 1]) {
+      const f = div(CAM, 'fumaca', 'z-index:14');
+      const t = 57.3 + 1.7 * k;
+      tl.fromTo(f, { x: XC - 20 + 40 * (k % 2), y: 900, scale: 0.25, opacity: 0 }, { y: 800, scale: 0.5, opacity: 0.8, duration: 1.4, ease: 'sine.out', immediateRender: false }, t);
+      tl.to(f, { opacity: 0, duration: 0.4 }, t + 1.3);
+    }
+    // 61: de perto; "Eu contei treze bolas.": ele olha a prancheta
+    camera(B[16].s, 1.4, 540 - XC * 1.4, 900 - 1050 * 1.4);
+    tl.to(prancheta, { rotation: -6, y: -270, duration: 0.3, ease: 'sine.inOut' }, B[16].s + 0.1);
+    tl.to(PS.corpo, { rotation: 6, duration: 0.3, ease: 'sine.inOut' }, B[16].s + 0.1);
+    tl.to(PS.corpo, { rotation: 0, duration: 0.3, ease: 'sine.inOut' }, B[16].s + 2.0);
+    // 64,5: "A gente tem doze.": segura a cabeça com as duas mãos e a prancheta cai (no "dong", 65)
+    anim(tl, PS, 'Charge', 0, 65.0, 67.6, { vel: 0.8, loop: false });
+    anim(tl, PS, 'Idle', 0, 67.6, FIM, { vel: 0.6 });
+    tl.to(prancheta, { y: -120, rotation: 80, duration: 0.3, ease: 'power2.in' }, 65.0);
+    tl.to(prancheta, { keyframes: { rotation: [92, 76, 80], easeEach: 'sine.out' }, duration: 0.25, ease: 'none' }, 65.3);
+    tl.to(PS.corpo, { y: 6, duration: 0.6, ease: 'sine.inOut' }, 65.2);
+
+    // ===================== AVISO · TODA SEMANA (68–72) =====================
     const DIAS = ['20/11', '27/11', '04/12', '11/12'];
     const bolinhaSVG = () => `<svg class="bolinha" viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#fff"/><polygon points="${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return `${9 + Math.cos(a) * 3.2},${9 + Math.sin(a) * 3.2}`; }).join(' ')}" fill="#1d1d1d"/>${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + Math.PI / 5 + (i * 2 * Math.PI) / 5; return `<circle cx="${9 + Math.cos(a) * 7.2}" cy="${9 + Math.sin(a) * 7.2}" r="1.8" fill="#1d1d1d"/>`; }).join('')}<circle cx="9" cy="9" r="8" fill="none" stroke="#0e1430" stroke-width="1.6"/></svg>`;
     $('dias').innerHTML = DIAS.map((d, i) => `<div class="dia${i === 1 ? ' ut' : ''}"><span>${d}</span><small>SEXTA</small>${bolinhaSVG()}</div>`).join('');
     {
-      const t0 = 21;
-      corta('#banc', t0);
-      camera(t0, 1.08, -20, -40);
-      tl.set([POR.el, '#cadeira'], { opacity: 0 }, t0);
+      const t0 = B[18].s;
+      tl.to(PS.corpo, { y: 0, duration: 0.3 }, t0);
+      camera(t0, 1);
       telao('#t-cal', t0);
-      flash(tl, t0, 0.4, 0.2);
-      // a colher: ele levanta e brilha (o "ting")
-      tl.to(ALA.corpo, { keyframes: { y: [-12, 0], rotation: [-3, 0] }, duration: 0.35, ease: 'sine.inOut' }, t0 + 0.05);
-      const br = div($('banc'), 'brilho-n');
-      gsap.set(br, { x: 360, y: 880 });
-      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.6, rotation: 90, opacity: 0, duration: 0.4, ease: 'power2.out', immediateRender: false }, t0);
-      // uma bola por sexta, na nota de sino dela
+      acena(B[18].a);
       const bs = [...document.querySelectorAll('#dias .bolinha')];
-      [T(11, 12), T(12, 0), T(12, 4), T(12, 8)].forEach((t, i) => {
+      [69.5, 70.0, 70.5, 71.0].forEach((t, i) => {
         tl.set(bs[i], { opacity: 1 }, t - 0.16);
         tl.fromTo(bs[i], { y: -260, scaleY: 1 }, { keyframes: [{ y: 0, duration: 0.16, ease: 'power2.in' }, { scaleY: 0.7, scaleX: 1.2, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }], immediateRender: false }, t - 0.16);
       });
-      tl.to(ALA.corpo, { keyframes: { rotation: [-4, 3, 0] }, duration: 0.6, ease: 'sine.inOut' }, T(12, 8));
-    }
-    // ===== 26–28,8 · o Time Ultimate: a fatia da tela do jogo ampliada (TIME ULTIMATE, EM BREVE 27/11) é o texto =====
-    {
-      const t0 = 26;
-      corta('#fundo', t0);
-      tl.fromTo('#raios-fundo', { rotation: 45 }, { rotation: 75, duration: FIM - t0, ease: 'none', immediateRender: false }, t0);
-      flash(tl, t0, 0.4, 0.2);
-      ver('#m-fatia', t0);
-      tl.fromTo('#m-fatia', { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t0);
-      tl.to('#m-fatia', { scale: 1.04, duration: 2.55, ease: 'sine.inOut' }, t0 + 0.25);
-      tl.to('#m-fatia', { opacity: 0, scale: 0.9, duration: 0.35, ease: 'power2.in' }, 28.9);
-    }
-    // ===== 28,8–32 · a carta ouro sai do pacote da fatia girando e vira no meio da tela (sem ninguém atrás) =====
-    {
-      const t0 = 28.8;
-      const tv = T(15, 0);
-      tl.set('#carta', { opacity: 1, left: 540 }, t0);
-      tl.fromTo('#carta', { x: 39, y: -240, scale: 0.2 }, { x: 0, y: 80, scale: 1.2, duration: tv - t0, ease: 'power2.out', immediateRender: false }, t0);
-      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 540, duration: tv - t0, ease: 'power2.inOut', immediateRender: false }, t0);
-      flash(tl, tv, 0.6, 0.25);
-      estouro(tl, $('fx-moedas'), 540, 1060, tv, { tam: 520, dur: 0.5 });
-      tl.to('#carta', { keyframes: { y: [60, 80] }, duration: 0.9, ease: 'sine.inOut', repeat: 1, yoyo: true }, tv + 0.1);
-      tl.set('#carta', { opacity: 0 }, 32);
     }
 
-    // ===== 32–35 · TELA FINAL: o logo (SOC-CER-MON no 0, 3 e 6 do C16), Temos que chutar!, o site, os três na bancada =====
+    // ===================== TIME ULTIMATE (72–79,5) =====================
+    // 72: o menu de modos, a fatia do Time Ultimate com a moldura dourada
+    corta('#fundo', B[19].s);
+    tl.fromTo('#raios-fundo', { rotation: 100 }, { rotation: 140, duration: 7.5, ease: 'none', immediateRender: false }, B[19].s);
+    paineis(B[19].s, '#m-menu');
+    entra('#m-menu', B[19].s);
+    tl.set('#dest-ut', { opacity: 1 }, 73.0);
+    tl.fromTo('#dest-ut', { scale: 1.15 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, 73.0);
+    tl.to('#dest-ut', { scale: 1.03, duration: 0.4, ease: 'sine.inOut', repeat: 4, yoyo: true }, 73.25);
+    // 76: a carta ouro sai do pacote da fatia girando e vira em 77 (flash), no meio, sem ninguém atrás
     {
-      const t0 = T(16, 0);
+      const t0 = B[20].s;
+      const tv = 77.0;
+      tl.to(['#m-menu', '#dest-ut'], { opacity: 0, scale: 0.92, duration: 0.35, ease: 'power2.in' }, t0 + 0.1);
+      tl.set('#carta', { opacity: 1 }, t0);
+      tl.fromTo('#carta', { x: -217, y: -242, scale: 0.15 }, { x: 0, y: 0, scale: 1.1, duration: tv - t0, ease: 'power2.out', immediateRender: false }, t0);
+      tl.fromTo('#gira', { rotationY: 0 }, { rotationY: 540, duration: tv - t0, ease: 'power2.inOut', immediateRender: false }, t0);
+      flash(tl, tv, 0.6, 0.25);
+      estouro(tl, $('fx-moedas'), 540, 860, tv, { tam: 520, dur: 0.5 });
+      tl.to('#carta', { keyframes: { y: [-16, 0] }, duration: 1.2, ease: 'sine.inOut', repeat: 1, yoyo: true }, tv + 0.1);
+      tl.set('#carta', { opacity: 0 }, B[21].s);
+    }
+
+    // ===================== 79,5 · "Boa noite": a bancada com os três =====================
+    corta('#banc', B[21].s);
+    paineis(B[21].s);
+    camera(B[21].s, 1);
+    telao('#t-marca', B[21].s);
+    tl.set(ME.el, { opacity: 1 }, B[21].s);
+    acena(B[21].a);
+    anim(tl, ME, 'Pose', 0, 81.0, 81.8, { loop: false });
+    anim(tl, ME, 'Idle', 0, 81.8, FIM);
+    tl.to(PS.corpo, { keyframes: { y: [0, -24, 0] }, duration: 0.4, ease: 'sine.inOut' }, 81.2);
+
+    // ===================== 83 · TELA FINAL: logo (SOC-CER-MON), Temos que chutar!, o site, os três pulando no MON =====================
+    {
+      const t0 = FIM_FALAS;
       const fim = $('fim');
       const FC = $('fim-cena');
       telaFinal(fim);
@@ -394,18 +545,22 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.fromTo('#raios-fim', { rotation: 0 }, { rotation: 20, duration: FIM - t0, ease: 'none', immediateRender: false }, t0);
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
-      piscada(tl, [T(16, 0), T(16, 3), T(16, 6)]);
-      tl.set('#tag', { opacity: 1 }, T(16, 8));
-      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, T(16, 8));
-      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 0.3);
-      // os três na bancada pequena: pulam juntos no MON
+      piscada(tl, [t0, t0 + 0.375, t0 + 0.75]);
+      tl.set('#tag', { opacity: 1 }, t0 + 1.0);
+      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 1.0);
+      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 1.6);
       const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
       const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
-      const p = ator(FC, 137, { escala: 10, z: 20, x: 750, y: 1270 });
+      const p = ator(FC, 54, { escala: 10, z: 20, x: 750, y: 1300 });
+      gsap.set(p.spr, { filter: TOSTADO });
       for (const x of [a, m, p]) {
         anim(tl, x, 'Idle', 0, t0, FIM);
-        tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, T(16, 6));
+        tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, t0 + 0.75);
       }
+      // o "ting" da colher no fim (85 s)
+      const br = div(FC, 'brilho-n');
+      gsap.set(br, { x: 420, y: 1060 });
+      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.8, rotation: 90, opacity: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, 85.0);
     }
 
     tl.set({}, {}, FIM);

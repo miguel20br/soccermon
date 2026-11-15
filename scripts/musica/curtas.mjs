@@ -484,3 +484,33 @@ export const bit = voz(
     },
     { solta: 0.04, pk: 0.4 },
 );
+/** A voz do Psyduck (convidado do News #1, 14/11): "psy?" grave e atrapalhado. O estalo do "p", o chiado do "s" e a
+ * vogal "ai" numa serra grave que balança fora do tempo (a cabeça doendo) e sobe no fim, como pergunta. Soa bem de
+ * Sol 2 a Dó 3. */
+export const psy = voz(
+    (f, d, r) => {
+        let ph = 0;
+        let ru = 0;
+        const [f1, f2, chi] = [svf(0.3), svf(0.25), svf(0.2)];
+        const lerp = (a, b, x) => a + (b - a) * x;
+        const S0 = 0.075; // o "ps" antes da vogal
+        return (t) => {
+            const n = r() * 2 - 1;
+            const p = t < 0.012 ? n * (1 - t / 0.012) * 0.7 : 0;
+            const s = t > 0.01 && t < S0 ? chi(n, 5200) * Math.sin((Math.PI * (t - 0.01)) / (S0 - 0.01)) * 1.4 : 0;
+            const tv = t - S0;
+            if (tv < 0) return p + s;
+            const dv = Math.max(0.1, d - S0);
+            const u = Math.min(1, tv / dv);
+            const wob = 1 + 0.04 * Math.sin(TAU * 4.3 * tv + 1.7 * Math.sin(TAU * 1.1 * tv));
+            const sobe = 1 + 0.32 * Math.max(0, (u - 0.5) / 0.5) ** 2; // a pergunta: ~5 semitons no fim
+            ph += (f * wob * sobe) / SR;
+            ru += 0.4 * (n - ru);
+            const src = (ph % 1) * 2 - 1 + 0.1 * ru;
+            const F1 = lerp(720, 340, u);
+            const F2 = lerp(1050, 1850, u);
+            return p + s + (f1(src, F1) + 0.7 * f2(src, F2) + 0.12 * src) * envNota(tv, dv, 0.03, 0.1);
+        };
+    },
+    { solta: 0.12 },
+);

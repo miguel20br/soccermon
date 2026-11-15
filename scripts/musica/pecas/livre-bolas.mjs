@@ -16,7 +16,7 @@ import { TEMA, toalha } from './livre-foto.mjs';
 export const meta = { titulo: 'Bola fora', tela: 'Vestiário do Pallet FC (EP 2)' };
 
 /** O KABOOM: o estalo, o grave que despenca e o ruído que vai abafando (a fumaça). */
-const kaboom = som(
+export const kaboom = som(
     2.2,
     (p, r) => {
         let ph = 0;
