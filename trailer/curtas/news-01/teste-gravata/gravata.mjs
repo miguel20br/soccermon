@@ -171,7 +171,7 @@ function maior(px, w, h, cores) {
 }
 
 /** Veste um quadro (fx, fy, w, h) do buffer `b` (largura `W`). Devolve a âncora, pra conferência. */
-function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola) {
+function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola, desce) {
   const px = (i, j) => (i < 0 || j < 0 || i >= w || j >= h ? null : cor(b, ((fy + j) * W + fx + i) * 4));
   const put = (i, j, c) => { if (i >= 0 && j >= 0 && i < w && j < h) b.set(c, ((fy + j) * W + fx + i) * 4); };
   const G = { ...P, ...tecido, ...GRAVATA[id] };
@@ -183,9 +183,9 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola) {
     const bt = Math.min(...bar.map(([, j]) => j));
     const [i0, i1] = [Math.min(...is), Math.max(...is)];
     const L = dir === 0 ? Math.floor((i0 + i1) / 2) : i1 - 3;
-    [ox, oy, carimbo] = [L - 3, bt - 2, RAICHU[dir]];
-    // o terno: o tronco e os braços (o rabo e as bochechas de fora), pelo brilho de antes
-    terno = { top: bt - 2, i0: L - 7, i1: L + (dir === 0 ? 7 : 6), barreira: ['#dfb700', '#fff700'], claro: 225, medio: 170 };
+    [ox, oy, carimbo] = [L - 3, bt - 2 + desce, RAICHU[dir]];
+    // o terno: o tronco e os braços (o rabo e as bochechas de fora), pelo brilho de antes; `desce` baixa a gola
+    terno = { top: oy, i0: L - 7, i1: L + (dir === 0 ? 7 : 6), barreira: ['#dfb700', '#fff700'], claro: 225, medio: 170 };
   } else {
     const bico = maior(px, w, h, ['#ffe79f', '#dfaf67', '#bf7727']);
     const bb = Math.max(...bico.map(([, j]) => j));
@@ -223,14 +223,15 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola) {
 const DIRS = { 26: [0, 1], 55: [0, 7] };
 /** Lê a folha do jogo de `id`, veste os quadros do Idle das direções da cena e grava em `saida`; `cores` troca o pano
  * do terno (L, S, s, z e o Z, a sombra funda; o resto da paleta é ignorado) e `gola` (A, B ou C de GOLA) marca a
- * divisão entre a cara e o terno do Raichu. */
-export async function vestir(id, variante, entrada, saida, cores = PANO, gola = null) {
+ * divisão entre a cara e o terno do Raichu; `desce` baixa o começo do terno do Raichu (gola, lapela e V) em N linhas,
+ * deixando o pescoço e o peito de cima no pelo do sprite. */
+export async function vestir(id, variante, entrada, saida, cores = PANO, gola = null, desce = 0) {
   const tecido = pano(cores);
   const { data, info } = await sharp(entrada).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const A = SPR[id].anims.Idle;
   const log = [];
   for (const dir of DIRS[id])
-    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h, tecido, gola)}`));
+    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h, tecido, gola, desce)}`));
   await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(saida);
   return log;
 }

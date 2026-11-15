@@ -1,6 +1,6 @@
-// Foto parada da divisão entre a cara e o terno do Raichu (News #1, 15/11), os dois no marinho: uma coluna por opção
-// (a atual e as GOLA do gravata.mjs), com a bancada de frente e o peito do Raichu em zoom 2x (26 px por pixel), de
-// frente e em 3/4.
+// Foto parada da gola do Raichu (News #1, 15/11), os dois no marinho: uma coluna por altura (a atual e a gola 1, 2 e 3
+// linhas mais baixa, o `desce` do gravata.mjs; as A/B/C do GOLA o Miguel recusou: "a gola tá muito alta"), com a
+// bancada de frente e o peito do Raichu em zoom 2x (26 px por pixel), de frente e em 3/4.
 //   node trailer/curtas/news-01/teste-machoke/montar.mjs && scripts/pesado.sh node trailer/curtas/news-01/teste-machoke/gola.mjs <png>
 import { createRequire } from 'node:module';
 import { recorte } from '../teste-gravata/gravata.mjs';
@@ -12,9 +12,9 @@ const [SAIDA] = process.argv.slice(2);
 const R = new URL('../render/teste-machoke/', import.meta.url).pathname;
 const OPCOES = [
   ['marinho', 'ATUAL'],
-  ['marinho-A', 'A: PONTAS DA GOLA'],
-  ['marinho-B', 'B: SOMBRA NO QUEIXO'],
-  ['marinho-C', 'C: A + B'],
+  ['marinho-d1', 'GOLA −1'],
+  ['marinho-d2', 'GOLA −2'],
+  ['marinho-d3', 'GOLA −3'],
 ];
 
 const CORTE = { x: 0, y: 360, width: 1080, height: 890 }; // do telão às tarjas
