@@ -26,7 +26,7 @@ const P = {
 };
 /** O pano do terno (L lapela, S luz, s meio, z sombra): o do 1º teste, ou outro passado ao vestir (igualar com o Machoke). */
 export const PANO = { L: '#56628f', S: '#3a4570', s: '#2a3358', z: '#1b2140' };
-const pano = (p) => Object.fromEntries(['L', 'S', 's', 'z'].map((k) => [k, hex(p[k])]));
+const pano = (p) => Object.fromEntries(['L', 'S', 's', 'z', 'Z'].filter((k) => p[k]).map((k) => [k, hex(p[k])]));
 // gravata: H luz, G meio, D sombra, K nó
 export const GRAVATA = {
   26: { H: hex('#ff7a6a'), G: hex('#e8423f'), D: hex('#9c1f1f'), K: hex('#9c1f1f') },
@@ -57,6 +57,20 @@ const RAICHU = {
     '..wD....',
   ],
 };
+// A divisão entre a cara e o terno (15/11: o laranja passava direto pro azul). Origem = (a do RAICHU - 4, a linha do
+// queixo, 1 acima da gola). 'o' põe na sombra o pixel da cara que tem o terno ou a camisa logo embaixo (o laranja e o
+// amarelo viram os tons escuros do próprio sprite): a linha do queixo. Escurecer o terno embaixo do queixo não
+// aparecia (o marinho já é escuro), então a sombra fica do lado da cara.
+//   A: as pontas da gola subindo 1 px dos lados do nó, encostando no queixo
+//   B: 1 px de sombra no queixo, encostado na gola
+//   C: A + B
+export const GOLA = {
+  A: { 0: ['......W..W....'], 1: ['......W..w....'] },
+  B: { 0: ['oooooooooooooo'], 1: ['oooooooooooooo'] },
+  C: { 0: ['oooooo.oo.oooo'], 1: ['oooooo.oo.oooo'] }, // a sombra antes, as pontas por cima (aplicar() roda A depois)
+};
+const SOMBRA = { '#ffaf47': '#a75f1f', '#df871f': '#a75f1f', '#fff700': '#b78727', '#dfb700': '#b78727' }; // cara: tom -> sombra
+
 // Golduck de frente: origem = (centro do bico - 4, ponta do bico). O nó fica no contorno de baixo do bico (o peito
 // dele é só 1 linha, o bico tampa o resto) e a gravata desce pelo vão entre as pernas até a mesa. Em 3/4: origem =
 // (ponta de baixo do bico + 4, mesma linha); o peito aparece à direita do bico e a gravata desce por ele.
@@ -157,7 +171,7 @@ function maior(px, w, h, cores) {
 }
 
 /** Veste um quadro (fx, fy, w, h) do buffer `b` (largura `W`). Devolve a âncora, pra conferência. */
-function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido) {
+function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola) {
   const px = (i, j) => (i < 0 || j < 0 || i >= w || j >= h ? null : cor(b, ((fy + j) * W + fx + i) * 4));
   const put = (i, j, c) => { if (i >= 0 && j >= 0 && i < w && j < h) b.set(c, ((fy + j) * W + fx + i) * 4); };
   const G = { ...P, ...tecido, ...GRAVATA[id] };
@@ -194,19 +208,29 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido) {
         put(i, j, l > terno.claro ? G.S : l > terno.medio ? G.s : G.z);
       }
   carimbo.forEach((linha, dj) => [...linha].forEach((k, di) => { if (k !== '.') put(ox + di, oy + dj, G[k]); }));
+  if (id === 26 && gola) {
+    const roupa = [G.L, G.S, G.s, G.z, G.W, G.w, G.K].map((c) => cor(c, 0));
+    for (const g of gola === 'C' ? ['C', 'A'] : [gola])
+      GOLA[g][dir].forEach((linha, dj) => [...linha].forEach((k, di) => {
+        const [i, j] = [ox - 4 + di, oy - 1 + dj];
+        if (k === 'o') { if (SOMBRA[px(i, j)] && roupa.includes(px(i, j + 1))) put(i, j, hex(SOMBRA[px(i, j)])); }
+        else if (k !== '.') put(i, j, G[k]);
+      }));
+  }
   return [ox, oy];
 }
 
 const DIRS = { 26: [0, 1], 55: [0, 7] };
 /** Lê a folha do jogo de `id`, veste os quadros do Idle das direções da cena e grava em `saida`; `cores` troca o pano
- * do terno (L, S, s, z; o resto da paleta, como o Z do Machoke, é ignorado). */
-export async function vestir(id, variante, entrada, saida, cores = PANO) {
+ * do terno (L, S, s, z e o Z, a sombra funda; o resto da paleta é ignorado) e `gola` (A, B ou C de GOLA) marca a
+ * divisão entre a cara e o terno do Raichu. */
+export async function vestir(id, variante, entrada, saida, cores = PANO, gola = null) {
   const tecido = pano(cores);
   const { data, info } = await sharp(entrada).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const A = SPR[id].anims.Idle;
   const log = [];
   for (const dir of DIRS[id])
-    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h, tecido)}`));
+    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h, tecido, gola)}`));
   await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(saida);
   return log;
 }
