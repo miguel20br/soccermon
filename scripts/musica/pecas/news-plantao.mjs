@@ -1,5 +1,5 @@
 // Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md). v5 (14/11): telejornal com
-// falas numa caixa de diálogo (16 falas, 67 s). Na v5 ("meio desanimada"): a banda anda por baixo das falas (bumbo e
+// falas numa caixa de diálogo (16 falas, 68,6 s). Na v5 ("meio desanimada"): a banda anda por baixo das falas (bumbo e
 // caixa no tempo, baixo andando, chimbal em colcheia), um blip por letra enquanto a caixa digita (o tom de cada um),
 // uma varrida em cada troca de matéria e a despedida nova: o "boa noite" do Alakazam e o "Temos que chutar!" dos três
 // juntos (teremim, mi-áu e psy no mesmo grito). A v4 tinha 15 falas e 65,5 s.
@@ -44,8 +44,8 @@ export const FALAS = [
     ['ala', 48.3],
     ['ala', 51.8],
     ['ala', 55.0],
-    ['ala', 58.5],
-    ['todos', 61.5],
+    ['ala', 58.8], // v5c: a despedida tem manchete (SOCCERMON NEWS #1), o texto entra 0,3 s depois
+    ['todos', 62.0],
 ];
 /** As varridas entre matérias (s): o meio da varrida, quando a cena troca (igual ao index.html). */
 export const VARRIDAS = [10.5, 18.5, 28.0, 37.5, 48.0, 51.5, 58.5];
@@ -64,7 +64,7 @@ export const BREQUES = [
 ];
 
 export default function news() {
-    const S = new Song({ bpm: 120, bars: 34, swing: 0.1, tail: 2.5 });
+    const S = new Song({ bpm: 120, bars: 35, swing: 0.1, tail: 2.5 });
     const rampa = (t, a, z) => Math.min(1, Math.max(0, (t - a) / 0.04)) * Math.min(1, Math.max(0, (z - t) / 0.08));
     const banda = (t) => BREQUES.reduce((g, [a, z]) => g * (1 - rampa(t, a, z)), 1);
     const B = { gainAt: banda };
@@ -179,8 +179,8 @@ export default function news() {
         [26.25, 'Cm7', leve, 2], // Time Ultimate, em Ré
         [28.25, 'Ebmaj7', ar],
         [29.25, 'Ab', ar], // "Muito obrigado pela companhia, e boa noite!"
-        [30.25, 'Bb7', ar], // "Temos que chutar!" (o grito em 61,8)
-        [31.25, 'Bb7', leve], // os três pulando; a tela final em 64,5
+        [30.25, 'Bb7', ar], // a despedida até 62
+        [31.25, 'Bb7', leve], // "Temos que chutar!" (o grito em 62,3); a tela final em 65
     ];
     for (const [b, c, modo, s = 0] of CAMA) modo(b, c, s);
     // 10–10,5: a caixa puxa a escalada
@@ -222,9 +222,10 @@ export default function news() {
     });
     // o "ting" da colher: o Alakazam se apresenta (4,3 s) e se despede (fim)
     colher.note(R(4.3), 98, 4, 0.75);
-    // v5: o "ting" também no aviso (48,3) e no "boa noite" da despedida (59,3)
+    // v5: o "ting" também no aviso (48,3) e no "boa noite" da despedida (59,6)
     colher.note(R(48.3), 98, 4, 0.6);
-    colher.note(R(59.3), 98, 4, 0.75);
+    colher.note(R(59.6), 98, 4, 0.75);
+    manchete(58.5, 'Ebmaj7', 91); // v5c: a manchete SOCCERMON NEWS #1 na despedida
     // as varridas entre matérias: o pico do "fuuuh" (0,2 s depois do início) cai no corte
     for (const s of VARRIDAS) vr.note((s - 0.2) * 8, 0, 0, 1);
     // v5: o Psyduck balançando (46,6): a tuba balança junto
@@ -304,36 +305,46 @@ export default function news() {
     mel(met, 28, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
     stabs(toque, 28, 'Ebmaj7', [[0, 8]], { low: 58, n: 4, vel: 0.6 });
 
-    // "TEMOS QUE CHUTAR!" (61,5): a caixa digita com os três blips juntos e em 61,8 os três gritam no mesmo ritmo
+    // "TEMOS QUE CHUTAR!" (62): a caixa digita com os três blips juntos e em 62,3 os três gritam no mesmo ritmo
     // (Te-mos-que-chu-TAR: o teremim em cima, o mi-áu uma oitava abaixo e o psy no grave); prato e metais no "TAR"
-    // (62,3), quando eles pulam de novo
+    // (62,8), quando eles pulam de novo; riser e virada até a tela final (65)
     const GRITO = 'G5:1 G5:1 G5:1 Bb5:1 C6:5 r:7';
-    mel(ter, 61.8 / 2, [GRITO], { vel: 0.85 });
-    mel(mia, 61.8 / 2, [GRITO], { shift: -12, vel: 0.85 });
-    mel(ps, 61.8 / 2, [GRITO], { shift: -36, vel: 0.9 });
-    mel(met, 61.8 / 2, [GRITO], { shift: -12, harm: thirdBelow(bb), vel: 0.45 });
-    kk.note(R(61.8), 0, 0, 0.9);
-    cr.note(R(62.3), 0, 0, 0.9);
-    stabs(toque, 0, 'Bb7', [[R(62.3), 3]], { low: 58, n: 4, vel: 0.7 });
-    ris.note(R(62.5), 0, 0, 0.7);
-    drum(sn, 31.25, 1, '............xxXX', { vel: 0.6 });
+    mel(ter, 62.3 / 2, [GRITO], { vel: 0.85 });
+    mel(mia, 62.3 / 2, [GRITO], { shift: -12, vel: 0.85 });
+    mel(ps, 62.3 / 2, [GRITO], { shift: -36, vel: 0.9 });
+    mel(met, 62.3 / 2, [GRITO], { shift: -12, harm: thirdBelow(bb), vel: 0.45 });
+    kk.note(R(62.3), 0, 0, 0.9);
+    cr.note(R(62.8), 0, 0, 0.9);
+    stabs(toque, 0, 'Bb7', [[R(62.8), 3]], { low: 58, n: 4, vel: 0.7 });
+    ris.note(R(63.0), 0, 0, 0.7);
+    drum(sn, 31.5, 1, '............xxXX', { vel: 0.6 });
 
-    // TELA FINAL (64,5): os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e o psy uma oitava abaixo) e as palmas
-    cr.note(R(64.5), 0, 0, 0.9);
-    drum(kk, 32.25, 1, 'X.....x.X.....x.');
-    drum(sn, 32.25, 1, '....x.......x...', { vel: 0.6 });
-    drum(hh, 32.25, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.55 });
-    bass(bs, 32.25, 'Ab', '0:3 r:1 5:2 0:2 r:8', { vel: 0.8 });
-    mel(ter, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
-    mel(mia, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.7 });
-    mel(ps, 32.25, [GANCHO.em({ tom: 3, oitava: -3 })], { vel: 0.8 });
-    mel(met, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.5 });
-    drum(cl, 32.25, 1, GANCHO.palmas, { vel: 0.9 });
-    padChord(cor, 32.25, 'Ab', 8, { low: 56, n: 4, vel: 0.55 });
-    // 66: Mi♭ e o "ting" da colher, que fica soando até o fim (67)
-    cr.note(R(66.0), 0, 0, 0.8);
-    stabs(toque, 0, 'Eb', [[R(66.0), 6]], { low: 58, n: 4 });
-    tuba.note(R(66.0), 39, 8, 1);
-    colher.note(R(66.0), 99, 6, 1);
+    // TELA FINAL (65): os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e o psy uma oitava abaixo) e as palmas
+    cr.note(R(65.0), 0, 0, 0.9);
+    drum(kk, 32.5, 1, 'X.....x.X.....x.');
+    drum(sn, 32.5, 1, '....x.......x...', { vel: 0.6 });
+    drum(hh, 32.5, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.55 });
+    bass(bs, 32.5, 'Ab', '0:3 r:1 5:2 0:2 r:8', { vel: 0.8 });
+    mel(ter, 32.5, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
+    mel(mia, 32.5, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.7 });
+    mel(ps, 32.5, [GANCHO.em({ tom: 3, oitava: -3 })], { vel: 0.8 });
+    mel(met, 32.5, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.5 });
+    drum(cl, 32.5, 1, GANCHO.palmas, { vel: 0.9 });
+    padChord(cor, 32.5, 'Ab', 8, { low: 56, n: 4, vel: 0.55 });
+    // 66,5: Mi♭ e o "ting" da colher
+    cr.note(R(66.5), 0, 0, 0.8);
+    stabs(toque, 0, 'Eb', [[R(66.5), 6]], { low: 58, n: 4 });
+    tuba.note(R(66.5), 39, 8, 1);
+    colher.note(R(66.5), 99, 6, 1);
+    // v5c · o compasso de fecho (66,5–68,5): a banda puxa em Mi♭ e fecha com tudo em 67,5 (prato, bumbo, tuba e metais);
+    // o vídeo acaba em 68,6 com o acorde ainda soando
+    drum(kk, 33.25, 1, 'X.....x.X.......');
+    drum(sn, 33.25, 1, '....x.xxX.......', { vel: 0.6 });
+    drum(hh, 33.25, 1, 'x.x.x.x.........', { vel: 0.5 });
+    bass(bs, 33.25, 'Eb', '0:2 5:2 8:2 s:2 0:4 r:4', { vel: 0.8 });
+    mel(met, 33.25, ['Eb5:1 G5:1 Bb5:2 r:4 Eb6:4 r:4'], { harm: thirdBelow(eb), vel: 0.6 });
+    cr.note(R(67.5), 0, 0, 1);
+    tuba.note(R(67.5), 39, 8, 0.9);
+    padChord(cor, 0, 'Eb', 8, { low: 55, n: 4, vel: 0.6, at: R(67.5) });
     return S;
 }

@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Soccermon News #1 v5 (9:16, 67 s): telejornal com falas. Roteiro em docs/marketing/news-01.md (pauta) e a linha do
+  Soccermon News #1 v5c (9:16, 68,6 s): telejornal com falas. Roteiro em docs/marketing/news-01.md (pauta) e a linha do
   tempo real em ROTEIRO.md. O Alakazam apresenta, o Meowth entra ao vivo da Rota (e solta o Pay Day) e o Psyduck
   (técnico do Pallet FC, ainda tostado do EP 2) é o convidado; o Voltorb aparece no banco, de colete.
   Regra de leitura: a fala vai numa caixa de diálogo dos jogos de Pokémon (nome, texto letra por letra em 0,3 s, a
@@ -15,7 +15,7 @@
   reações com as animações PMD (o Shoot do Alakazam no "ting", o Hop do Meowth no Pay Day, o Charge do Psyduck
   balançando), varrida entre matérias, a manchete desliza, o microfone do Meowth num pedestal e a despedida nova (o
   Alakazam agradece e os três gritam "Temos que chutar!" pulando na bancada).
-  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v5b.mp4
+  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v5c.mp4
 -->
 <html lang="pt-BR">
 <head>
@@ -181,8 +181,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="67">
-  <div id="cena" class="clip" data-start="0" data-duration="67">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="68.6">
+  <div id="cena" class="clip" data-start="0" data-duration="68.6">
     <!-- vinheta de plantão -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="faixa" id="fx1" style="top:300px;background:#e8423f"></div>
@@ -248,11 +248,11 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <video id="v-gol2" class="jogo" src="midia/news/gol-pulo.mp4" muted playsinline data-start="1" data-duration="1" data-media-start="0" style="transform:scale(1.0667);transform-origin:0px 0px"></video>
   <video id="v-bola" class="painel" src="midia/news/bola-fora.mp4" muted playsinline data-start="37.5" data-duration="4" data-media-start="0" style="left:276px;top:318px;width:528px;height:939px"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="67" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="68.6" data-media-start="0" data-fade-out="0.6"></audio>
 
   <script>
     const { T, div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra } = C;
-    const FIM = 67;
+    const FIM = 68.6;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
@@ -307,10 +307,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       [48.0, ALA, 'Um aviso: a partir de agora, sai atualização nova toda semana.', 'TODA SEMANA'],
       [51.5, ALA, 'E na sexta que vem, dia 27, abre o Time Ultimate…', 'TIME ULTIMATE · 27/11'],
       [55.0, ALA, '…o modo novo em que você abre pacotes e monta o time da temporada.'],
-      [58.5, ALA, 'Muito obrigado pela companhia, e boa noite!'],
-      [61.5, TODOS, 'Temos que chutar!'],
+      [58.5, ALA, 'Muito obrigado pela companhia, e boa noite!', 'SOCCERMON NEWS #1'],
+      [62.0, TODOS, 'Temos que chutar!'],
     ];
-    const FIM_FALAS = 64.5;
+    const FIM_FALAS = 65.0;
     const DIGITA = 0.3;
     const RESPIRO = 0.3;
     const CAIXA = $('caixa');
@@ -734,27 +734,27 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#carta', { opacity: 0 }, B[15].s);
     }
 
-    // ===================== 58,5 · a despedida: o Alakazam agradece; 61,5 · os três: "Temos que chutar!" =====================
+    // ===================== 58,5 · a despedida (manchete SOCCERMON NEWS #1): o Alakazam agradece; 62 · os três: "Temos que chutar!" =====================
     corta('#banc', B[15].s);
     paineis(B[15].s);
     plano(B[15].s, 'ALA');
     telao(null, B[15].s);
     acena(B[15].a);
-    tinge(B[15].s + 0.8); // o "ting" no "boa noite"
-    // 61,5: corte pro plano aberto, os três na bancada; pulam juntos no grito (61,8) e no "TAR" (62,3)
+    tinge(B[15].a + 0.8); // o "ting" no "boa noite"
+    // 62: corte pro plano aberto, os três na bancada; pulam juntos no grito (62,3) e no "TAR" (62,8)
     plano(B[16].s, 'ABERTO');
     telao('#t-marca', B[16].s);
     tl.set(ME.el, { opacity: 1 }, B[16].s);
     // (o Hop do PMD sobe ~40 px da folha: nessa escala eles voavam por cima do telão; aqui o pulo é à mão, de 70 px)
     for (const a of [AL, ME, PS])
-      for (const t of [61.8, 62.3])
+      for (const t of [62.3, 62.8])
         tl.to(a.corpo, { keyframes: [{ y: -70, scaleY: 1.06, duration: 0.15, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.15, ease: 'power2.in' }, { scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.1, ease: 'back.out(3)' }] }, t);
     // e fecham numa pose: o Meowth e o Psyduck no Pose do PMD, o Alakazam com as colheres pra cima
-    reage(ME, 'Pose', 62.8, 0.37);
-    reage(PS, 'Pose', 62.8, 0.37);
-    reage(AL, 'Shoot', 62.8, 0.55);
+    reage(ME, 'Pose', 63.3, 0.37);
+    reage(PS, 'Pose', 63.3, 0.37);
+    reage(AL, 'Shoot', 63.3, 0.55);
 
-    // ===================== 64,5 · TELA FINAL: logo (SOC-CER-MON), Temos que chutar!, o site, os três pulando no MON =====================
+    // ===================== 65 · TELA FINAL (3,6 s; o site fica 3 s na tela): logo (SOC-CER-MON), Temos que chutar!, o site, os três pulando no MON =====================
     {
       const t0 = FIM_FALAS;
       const fim = $('fim');
@@ -765,9 +765,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
       piscada(tl, [t0, t0 + 0.375, t0 + 0.75]);
-      tl.set('#tag', { opacity: 1 }, t0 + 0.9);
-      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 0.9);
-      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 1.2);
+      tl.set('#tag', { opacity: 1 }, t0 + 0.35);
+      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 0.35);
+      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 0.5);
       const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
       const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
       const p = ator(FC, 54, { escala: 10, z: 20, x: 750, y: 1300 });
@@ -776,7 +776,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         anim(tl, x, 'Idle', 0, t0, FIM);
         tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, t0 + 0.75);
       }
-      // o "ting" da colher no fim (66 s, o Mi♭)
+      // o "ting" da colher no fim (66,5 s, o Mi♭)
       const br = div(FC, 'brilho-n');
       gsap.set(br, { x: 420, y: 1060 });
       tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.8, rotation: 90, opacity: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, t0 + 1.5);

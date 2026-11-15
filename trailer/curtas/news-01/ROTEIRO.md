@@ -1,8 +1,8 @@
 ---
-description: Soccermon News #1 v5 (67 s, 9:16), telejornal com falas na caixa de diálogo, escalada em cartelas, câmera de telejornal e despedida dos três; linha do tempo real, regra de leitura, música e como gerar.
+description: Soccermon News #1 v5 (68,6 s, 9:16), telejornal com falas na caixa de diálogo, escalada em cartelas, câmera de telejornal e despedida dos três; linha do tempo real, regra de leitura, música e como gerar.
 ---
 
-# Soccermon News #1 v5 (67 s, 14/11/2026)
+# Soccermon News #1 v5 (68,6 s, 14/11/2026)
 
 Roteiro aprovado em `docs/marketing/news-01.md` (pauta 21, sex 20/11 19h). A v1 (41 s) ficou "frenética"; a v2 (35 s,
 sem falas) "vaga"; a v3 (86,5 s, telejornal com falas) agradou no formato. Na v4, pelo feedback do Miguel:
@@ -26,8 +26,10 @@ Na v5 o Miguel aprovou o resto da v4 e pediu três coisas:
 
 - **despedida nova:** sai o "Boa noite, e temos que chutar!". O Alakazam diz "Muito obrigado pela companhia, e boa
   noite!" (com o "ting") e depois vem a caixa **TODOS** com "Temos que chutar!": os três na bancada pulam juntos duas
-  vezes (no grito e no "TAR") e fecham numa pose; na música o teremim, o mi-áu e o psy gritam juntos. A tela final vem
-  3 s depois (64,5) e ficou com 2,5 s;
+  vezes (no grito e no "TAR") e fecham numa pose; na música o teremim, o mi-áu e o psy gritam juntos. Os dois planos
+  da despedida têm a manchete SOCCERMON NEWS #1 (entra com a varrida, como as outras; por isso a fala do Alakazam vai
+  de 58,5 a 62). A tela final (65 a 68,6) tem 3,6 s, com o soccermon.com 3,1 s na tela, e a música ganhou um compasso
+  de fecho em Mi♭ (v5c);
 - **microfone num pedestal:** saiu a pata desenhada. O microfone fica num pedestal na frente do Meowth, do lado, com a
   cabeça na altura da boca e sem cobrir a cara; o pedestal é filho do pé (fica no chão quando ele pula) e o Meowth tem
   as poses normais do sprite (na cartela 2, no telão e na Rota);
@@ -42,7 +44,7 @@ Na v5 o Miguel aprovou o resto da v4 e pediu três coisas:
     o banco corta em 46,6 pro Psyduck de perto balançando (o Charge do PMD, a mão na cabeça, e a fumacinha); o
     Voltorb respira no banco (antes ficava parado num quadro);
   - **transições:** uma varrida (faixa inclinada com o símbolo, da direita pra esquerda) cobre a tela no instante de
-    cada troca de matéria (10,5 · 18,5 · 28 · 37,5 · 48 · 51,5 · 58,5) com um "fuuuh" na música; a manchete nova
+    cada troca de matéria (10,5 · 18,5 · 28 · 37,5 · 48 · 51,5 · 58,5, a despedida) com um "fuuuh" na música; a manchete nova
     entra deslizando da direita atrás dela;
   - **música:** a banda anda por baixo das falas (bumbo e caixa no tempo, baixo andando, chimbal em colcheia, piano no
     contratempo) e um blip por letra enquanto a caixa digita (7 blips em 0,3 s, o tom de cada um: Alakazam médio,
@@ -83,13 +85,13 @@ Na v5 o Miguel aprovou o resto da v4 e pediu três coisas:
 | 48–51,5 | TODA SEMANA | Alakazam | Um aviso: a partir de agora, sai atualização nova toda semana. (48,3) | bancada (MEDIO), o Shoot e o "ting"; no telão, o calendário das 4 sextas (49, 49,5, 50 e 50,5) |
 | 51,5–55 | TIME ULTIMATE · 27/11 | Alakazam | E na sexta que vem, dia 27, abre o Time Ultimate… (51,8) | o menu de modos; a moldura dourada na fatia (52,3) |
 | 55–58,5 | | Alakazam | …o modo novo em que você abre pacotes e monta o time da temporada. (55) | a carta ouro sai do pacote girando e vira em 56 (flash) |
-| 58,5–61,5 | | Alakazam | Muito obrigado pela companhia, e boa noite! (58,5) | o Alakazam de perto (ALA); o Shoot e o "ting" em 59,3 |
-| 61,5–64,5 | | Todos | Temos que chutar! (61,5) | a bancada com os três (ABERTO): pulam juntos no grito (61,8) e no "TAR" (62,3) e fazem pose (62,8) |
-| 64,5–67 | — | — | — | tela final: logo com a piscada SOC-CER-MON, Temos que chutar!, soccermon.com, os três pulando no MON; o "ting" em 66 |
+| 58,5–62 | SOCCERMON NEWS #1 | Alakazam | Muito obrigado pela companhia, e boa noite! (58,8) | o Alakazam de perto (ALA); o Shoot e o "ting" em 59,6 |
+| 62–65 | | Todos | Temos que chutar! (62) | a bancada com os três (ABERTO): pulam juntos no grito (62,3) e no "TAR" (62,8) e fazem pose (63,3) |
+| 65–68,6 | — | — | — | tela final: logo com a piscada SOC-CER-MON, Temos que chutar! (65,35), soccermon.com (65,5), os três pulando no MON; o "ting" em 66,5 |
 
 ## Música
 
-`scripts/musica/pecas/news-plantao.mjs`, 34 compassos na v5 (120 BPM, Dó dórico). Até 10,5 s a cama anda no compasso;
+`scripts/musica/pecas/news-plantao.mjs`, 35 compassos na v5c (120 BPM, Dó dórico). Até 10,5 s a cama anda no compasso;
 da escalada em diante ela anda meio compasso deslocada (compassos x,25), pra batida cair em cada troca de cartela. No
 estúdio, o groove anda por baixo das falas (bumbo e caixa no tempo, chimbal em colcheia, baixo andando, piano no
 contratempo); nas matérias, o funk leve. Cada fala começa com a voz de quem fala por cima da digitação (o teremim do
@@ -104,9 +106,9 @@ o motivo nos metais no AO VIVO; o sino quando o Patrocínio ganha a moldura e um
 um brilho de sino no pulo, as 14 moedas descendo a escala e o ka-ching na pose (sem assobio); no vestiário a tuba e o
 tímpano esperam, o chute e o KABOOM do EP 2; no corte pro banco a banda para, a tuba dá duas notas baixinhas e o
 Voltorb pisca no "plim-plim" (sino agudo, duas notas); uma nota de sino por sexta do calendário; sobe pra Ré no Time
-Ultimate, riser até a carta virar em Mi♭ maior; o "ting" no "boa noite" (59,3); em 61,8 os três gritam "Te-mos-que-chu-TAR"
-juntos (teremim em cima, mi-áu uma oitava abaixo, psy no grave) com prato e metais no "TAR"; na tela final (64,5) os três
-cantam o SOC-CER-MON e acaba no "ting" em 66. A banda só sai nas pausas cômicas, os `BREQUES` (16,5–18,5 o "psy?" atrás
+Ultimate, riser até a carta virar em Mi♭ maior; o "ting" no "boa noite" (59,6); em 62,3 os três gritam "Te-mos-que-chu-TAR"
+juntos (teremim em cima, mi-áu uma oitava abaixo, psy no grave) com prato e metais no "TAR"; na tela final (65) os três
+cantam o SOC-CER-MON, o "ting" em 66,5 e o compasso de fecho em Mi♭ fecha com tudo em 67,5 (35 compassos). A banda só sai nas pausas cômicas, os `BREQUES` (16,5–18,5 o "psy?" atrás
 da porta, 37,5–41,5 o KABOOM e 44,8–46,6 o Voltorb piscando), mas sempre fica algo soando. −14 LUFS.
 
 Vozes contra a banda (as faixas medidas separadas, RMS dos 0,6 s de cada fala): as vozes ficam de 3 a 8 dB acima da
@@ -123,8 +125,8 @@ scripts/pesado.sh node trailer/curtas/musica.mjs trailer/curtas/midia/som news
 #   menu-fatias.png = ultimate/0029.png recortado em 1080x490 a partir de y 1200
 #   bola-fora.mp4   = 22 a 26 s do render v7 do EP 2 (worktree ep14, trailer/curtas/vestiario-bolas/render/v7.mp4), sem som, crf 14
 node trailer/qa-quadros.mjs trailer/curtas/news-01                      # 0 problema(s)
-cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v5b.mp4
-scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v5b.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v5
+cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v5c.mp4
+scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v5c.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v5
 ```
 
 A v4 (65,5 s) está no commit acf287e6; a v3 (86,5 s) no a43c731a; a v2 (35 s) e a v1, nos anteriores.
