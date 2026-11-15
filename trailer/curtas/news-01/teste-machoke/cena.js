@@ -26,7 +26,7 @@
     const apresentador = (x, folha, tam, fx, fy, w, h, linha, e = E) =>
       div($('cam'), 'spr', `z-index:20;left:${x - (w * e) / 2}px;top:${MESA - linha * e}px;width:${w * e}px;height:${h * e}px;background-image:url(${folha});background-size:${tam[0] * e}px ${tam[1] * e}px;background-position:${-fx * e}px ${-fy * e}px;image-rendering:pixelated`);
     const A = SPR[26].anims.Idle;
-    apresentador(RX, SPR[26].folha, SPR[26].tam, ...A.rects[0][0], A.w, A.h, 28);
+    apresentador(RX, MACH.raichu[q.get('rcor')] ?? SPR[26].folha, SPR[26].tam, ...A.rects[0][0], A.w, A.h, 28);
     const dir = Number(q.get('dir') ?? 0);
     apresentador(GX, MACH.folhas[q.get('cor') ?? 'preto'], MACH.tam, ...MACH.rects[dir][0], MACH.w, MACH.h, MACH.linha, EM);
 

@@ -9,6 +9,7 @@
 //   node trailer/curtas/news-01/teste-machoke/terno.mjs <pasta>   (folhas das cores + prévia 10x, e confere as poses)
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
+import { PANO } from '../teste-gravata/gravata.mjs';
 
 const sharp = createRequire(import.meta.url)('sharp');
 const RAIZ = new URL('../../../../', import.meta.url).pathname;
@@ -37,6 +38,8 @@ const hex = (h) => [Number.parseInt(h.slice(1, 3), 16), Number.parseInt(h.slice(
 const OURO = { K: '#b07c00', H: '#fff3a0', G: '#ffcb05', D: '#b07c00' };
 export const CORES = {
   marinho: { L: '#5a6cb8', S: '#34488f', s: '#273874', z: '#1b2856', Z: '#111a3a', ...OURO },
+  // o pano do Raichu (gravata.mjs, PANO) nos 5 tons do Machoke: L, S, s e z iguais, Z um degrau abaixo do z
+  raichu: { ...PANO, Z: '#10142a', ...OURO },
   preto: { L: '#4a4f62', S: '#33353f', s: '#25262e', z: '#1a1b21', Z: '#111115', R: '#3d4358', ...OURO },
 };
 const FIXAS = { '#': '#000000', W: '#f4f4ec', w: '#c3c8d8' };

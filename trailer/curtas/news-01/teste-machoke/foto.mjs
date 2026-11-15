@@ -29,7 +29,7 @@ for (const cor of cores)
 await browser.close();
 
 const txt = (t, w, h, tam, cor = '#ffcb05') => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><text x="${w / 2}" y="${h - 16}" font-family="DejaVu Sans, sans-serif" font-weight="bold" font-size="${tam}" fill="${cor}" text-anchor="middle">${t}</text></svg>`);
-const NOME = { marinho: 'AZUL-MARINHO', preto: 'PRETO' };
+const NOME = { marinho: 'AZUL-MARINHO', raichu: 'AZUL DO RAICHU', preto: 'PRETO' };
 const E = 26, GAP = 24, CROP = [3, 1, 26, 28]; // col, lin, larg, alt do quadro ampliado (26 px por pixel: 2x o Raichu)
 const TW = CROP[2] * E, TH = CROP[3] * E;
 const CW = Math.max(CORTE.width, 2 * TW + GAP), M = 40; // uma coluna por cor

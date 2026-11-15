@@ -24,6 +24,9 @@ const P = {
   W: hex('#f4f4ec'), // camisa
   w: hex('#c3c8d8'),
 };
+/** O pano do terno (L lapela, S luz, s meio, z sombra): o do 1º teste, ou outro passado ao vestir (igualar com o Machoke). */
+export const PANO = { L: '#56628f', S: '#3a4570', s: '#2a3358', z: '#1b2140' };
+const pano = (p) => Object.fromEntries(['L', 'S', 's', 'z'].map((k) => [k, hex(p[k])]));
 // gravata: H luz, G meio, D sombra, K nó
 export const GRAVATA = {
   26: { H: hex('#ff7a6a'), G: hex('#e8423f'), D: hex('#9c1f1f'), K: hex('#9c1f1f') },
@@ -154,10 +157,10 @@ function maior(px, w, h, cores) {
 }
 
 /** Veste um quadro (fx, fy, w, h) do buffer `b` (largura `W`). Devolve a âncora, pra conferência. */
-function quadro(id, variante, dir, b, W, fx, fy, w, h) {
+function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido) {
   const px = (i, j) => (i < 0 || j < 0 || i >= w || j >= h ? null : cor(b, ((fy + j) * W + fx + i) * 4));
   const put = (i, j, c) => { if (i >= 0 && j >= 0 && i < w && j < h) b.set(c, ((fy + j) * W + fx + i) * 4); };
-  const G = { ...P, ...GRAVATA[id] };
+  const G = { ...P, ...tecido, ...GRAVATA[id] };
   const fundo = LINHA[id] + 2;
   let ox, oy, carimbo, terno;
   if (id === 26) {
@@ -195,13 +198,15 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h) {
 }
 
 const DIRS = { 26: [0, 1], 55: [0, 7] };
-/** Lê a folha do jogo de `id`, veste os quadros do Idle das direções da cena e grava em `saida`. */
-export async function vestir(id, variante, entrada, saida) {
+/** Lê a folha do jogo de `id`, veste os quadros do Idle das direções da cena e grava em `saida`; `cores` troca o pano
+ * do terno (L, S, s, z; o resto da paleta, como o Z do Machoke, é ignorado). */
+export async function vestir(id, variante, entrada, saida, cores = PANO) {
+  const tecido = pano(cores);
   const { data, info } = await sharp(entrada).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const A = SPR[id].anims.Idle;
   const log = [];
   for (const dir of DIRS[id])
-    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h)}`));
+    A.rects[dir].forEach(([fx, fy], q) => log.push(`${dir}/${q}: ${quadro(id, variante, dir, data, info.width, fx, fy, A.w, A.h, tecido)}`));
   await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).png().toFile(saida);
   return log;
 }
