@@ -1,5 +1,9 @@
-// Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md). v4 (14/11): telejornal com
-// falas numa caixa de diálogo (15 falas, 65,5 s). A v1 foi "frenética", a v2 "vaga", a v3 boa mas longa (86,5 s): a v4
+// Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md). v5 (14/11): telejornal com
+// falas numa caixa de diálogo (16 falas, 67 s). Na v5 ("meio desanimada"): a banda anda por baixo das falas (bumbo e
+// caixa no tempo, baixo andando, chimbal em colcheia), um blip por letra enquanto a caixa digita (o tom de cada um),
+// uma varrida em cada troca de matéria e a despedida nova: o "boa noite" do Alakazam e o "Temos que chutar!" dos três
+// juntos (teremim, mi-áu e psy no mesmo grito). A v4 tinha 15 falas e 65,5 s.
+// A v1 foi "frenética", a v2 "vaga", a v3 boa mas longa (86,5 s): a v4
 // corta a escalada num sumário de cartelas, troca o "Que moedas?" pelo Pay Day e o "doze" pelo Voltorb no banco.
 // Vinheta de plantão própria, no molde do livre-ditto. O motivo do jornal ("plan-tão, NO-tí-cia, já!"): Dó Dó Sol↑ Fá
 // Mi♭ Fá, Si♭ Dó, Dó dórico. Cada um fala com a própria voz enquanto o texto aparece na caixa (os ~0,3 s da digitação):
@@ -13,7 +17,7 @@
 // na carta; os três cantam o SOC-CER-MON e acaba no "ting".
 // 120 BPM, 4/4, compasso = 2 s (linha = 1/8 s). Os tempos abaixo são os segundos do vídeo (index.html); da escalada em
 // diante a cama anda meio tempo deslocada (compassos x,25 = 10,5 s + 2k), pra batida cair na troca de cartela.
-import { miau, psy, sobe, teremim } from '../curtas.mjs';
+import { blip, miau, psy, sobe, teremim, varrida } from '../curtas.mjs';
 import { bass, drum, GANCHO, I, MAJOR, mel, midi, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 import { kaboom } from './livre-bolas.mjs';
 import { chute, rede, torcida } from './livre-ginasio.mjs';
@@ -36,12 +40,18 @@ export const FALAS = [
     ['meo', 34.3],
     ['ala', 37.8],
     ['ala', 41.8],
-    ['psy', 45.1],
+    ['psy', 44.8, 0.3], // a voz entra 0,3 s depois (depois do corte pro banco); os blips, com o texto
     ['ala', 48.3],
     ['ala', 51.8],
     ['ala', 55.0],
     ['ala', 58.5],
+    ['todos', 61.5],
 ];
+/** As varridas entre matérias (s): o meio da varrida, quando a cena troca (igual ao index.html). */
+export const VARRIDAS = [10.5, 18.5, 28.0, 37.5, 48.0, 51.5, 58.5];
+/** A caixa digita em 0,3 s: um blip a cada 0,05 s (7 por fala). */
+const DIGITA = 0.3;
+const PASSO = 0.05;
 /** A escalada: uma cartela a cada 2 s a partir de 10,5 s. */
 export const CARTELAS = [10.5, 12.5, 14.5, 16.5];
 /** As moedas do Pay Day caindo no chão (s), iguais a window.__moedas do index.html. */
@@ -50,11 +60,11 @@ export const MOEDAS = Array.from({ length: 14 }, (_, k) => 35.23 + k * 0.1);
 export const BREQUES = [
     [16.5, 18.5],
     [37.5, 41.5],
-    [44.8, 48.0],
+    [44.8, 46.6], // o Voltorb pisca; a banda volta no corte pro Psyduck balançando
 ];
 
 export default function news() {
-    const S = new Song({ bpm: 120, bars: 33, swing: 0.1, tail: 2.5 });
+    const S = new Song({ bpm: 120, bars: 34, swing: 0.1, tail: 2.5 });
     const rampa = (t, a, z) => Math.min(1, Math.max(0, (t - a) / 0.04)) * Math.min(1, Math.max(0, (z - t) / 0.08));
     const banda = (t) => BREQUES.reduce((g, [a, z]) => g * (1 - rampa(t, a, z)), 1);
     const B = { gainAt: banda };
@@ -91,25 +101,30 @@ export default function news() {
     const hh = S.part('chimbal', I.hat, { drum: true, pan: 0.3, gain: 0.36, ...B });
     const tp = S.part('timpano', I.timp, { drum: true, gain: 0.22 });
     const cr = S.part('prato', I.crash, { drum: true, gain: 0.3 });
+    const bl = S.part('blip', blip, { drum: true, gain: 0.32, pan: 0.05, rev: 0.05 });
+    const vr = S.part('varrida', varrida, { drum: true, gain: 0.55, rev: 0.2 });
 
     const bb = MAJOR(10); // Dó dórico = as notas de Si♭ maior
     const eb = MAJOR(3);
-    /** Respirando (enquanto a caixa está na tela): bumbo no 1, aro no 3, chimbal macio, baixo comprido e o piano. */
+    /** O groove do estúdio (enquanto a caixa está na tela): bumbo e caixa no tempo, chimbal em colcheia, o baixo
+     * andando e o piano em contratempo. Na v4 ele "respirava" (bumbo no 1, aro no 3, baixo comprido) e ficou parado. */
     const ar = (b, c0, s = 0) => {
         const c = transpose(c0, s);
-        drum(kk, b, 1, 'X.........x.....', { vel: 0.75 });
-        drum(sn, b, 1, '........x.......', { vel: 0.5 });
+        drum(kk, b, 1, 'X.....x.X.....x.', { vel: 0.7 });
+        drum(sn, b, 1, '....x..o....x...', { vel: 0.5 });
         drum(hh, b, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.5 });
-        bass(bs, b, c, '0:6 r:2 5:4 r:2 s:2', { vel: 0.7 });
+        bass(bs, b, c, '0:2 r:1 0:1 5:2 8:2 r:1 s:1 5:2 3:2 2:2', { vel: 0.65 });
         stabs(
             ep,
             b,
             c,
             [
-                [0, 6],
-                [10, 5],
+                [2, 2],
+                [6, 2],
+                [10, 2],
+                [14, 1],
             ],
-            { low: 60, n: 4, vel: 0.5 },
+            { low: 60, n: 4, vel: 0.38 },
         );
     };
     /** O funk do jornal, leve (escalada, matérias). */
@@ -163,8 +178,9 @@ export default function news() {
         [25.25, 'F7', leve, 2], // toda semana; o fim dela já sobe pra Ré
         [26.25, 'Cm7', leve, 2], // Time Ultimate, em Ré
         [28.25, 'Ebmaj7', ar],
-        [29.25, 'Ab', ar],
-        [30.25, 'Bb7', ar], // "Boa noite"; de 61,5 em diante já é a tela final
+        [29.25, 'Ab', ar], // "Muito obrigado pela companhia, e boa noite!"
+        [30.25, 'Bb7', ar], // "Temos que chutar!" (o grito em 61,8)
+        [31.25, 'Bb7', leve], // os três pulando; a tela final em 64,5
     ];
     for (const [b, c, modo, s = 0] of CAMA) modo(b, c, s);
     // 10–10,5: a caixa puxa a escalada
@@ -177,9 +193,26 @@ export default function news() {
         psy: ['A2:4', 'G2:5'],
     };
     const VOZ = { ala: [ter, 0.7], meo: [mia, 0.9], psy: [ps, 1] };
+    // o blip de cada letra: o tom de cada um (Alakazam médio, Meowth agudo, Psyduck grave) e um desenho de fala que muda
+    // a cada fala (sobe, desce, pergunta)
+    const TOM = { ala: -2, meo: 7, psy: -14 };
+    const DESENHO = [0, 2, 4, 2, 5, 3, 0, 1, 3, 5, 2, 0];
     FALAS.forEach(([quem, s], i) => {
+        const quems = quem === 'todos' ? ['ala', 'meo', 'psy'] : [quem];
+        const n = Math.round(DIGITA / PASSO) + 1;
+        for (let k = 0; k < n; k++)
+            for (const q of quems)
+                bl.note(
+                    (s + k * PASSO) * 8,
+                    TOM[q] + DESENHO[(k + i) % DESENHO.length],
+                    0,
+                    (0.75 - 0.05 * (k % 2)) * (quems.length > 1 ? 0.55 : 1),
+                );
+    });
+    FALAS.forEach(([quem, s, atraso = 0], i) => {
+        if (quem === 'todos') return; // o grito dos três vem depois
         const frase = FRASES[quem][i % FRASES[quem].length];
-        let r = R(s);
+        let r = R(s + atraso);
         const [P, v] = VOZ[quem];
         for (const tok of frase.split(' ')) {
             const [n, l] = tok.split(':');
@@ -189,6 +222,15 @@ export default function news() {
     });
     // o "ting" da colher: o Alakazam se apresenta (4,3 s) e se despede (fim)
     colher.note(R(4.3), 98, 4, 0.75);
+    // v5: o "ting" também no aviso (48,3) e no "boa noite" da despedida (59,3)
+    colher.note(R(48.3), 98, 4, 0.6);
+    colher.note(R(59.3), 98, 4, 0.75);
+    // as varridas entre matérias: o pico do "fuuuh" (0,2 s depois do início) cai no corte
+    for (const s of VARRIDAS) vr.note((s - 0.2) * 8, 0, 0, 1);
+    // v5: o Psyduck balançando (46,6): a tuba balança junto
+    tuba.note(R(46.6), 36, 1, 0.4);
+    tuba.note(R(46.85), 35, 1, 0.35);
+    tuba.note(R(47.1), 36, 2, 0.4);
 
     // ESCALADA (10,5–18,5): uma batida da vinheta em cada cartela (bumbo, tímpano e a cabeça do motivo nos metais, uma
     // terça acima a cada uma); a do Meowth tem um mi-áu curtinho; na 4ª ("E mais") a banda segura e o "psy?" sai da porta
@@ -216,7 +258,9 @@ export default function news() {
     mel(toque, 14, [MOTIVO], { vel: 0.8 });
     // PAY DAY (34,3): o amuleto brilha no pulo (34,8); as 14 moedas caem descendo a escala; o ka-ching na pose (36,55)
     sino.note(R(34.8), 103, 2, 0.7);
-    MOEDAS.forEach((s, k) => moeda.note(R(s), 31 - Math.round(k * 1.6), 0, 0.8 - k * 0.02));
+    MOEDAS.forEach((s, k) => {
+        moeda.note(R(s), 31 - Math.round(k * 1.6), 0, 0.8 - k * 0.02);
+    });
     for (const [k, p] of [24, 31].entries()) moeda.note(R(36.55) + k, p, 0, 0.9);
 
     // VESTIÁRIO (37,5–41,5): o trecho do EP 2. Tuba e tímpano na espera, o chute (38,1) e o KABOOM (39,5)
@@ -251,32 +295,45 @@ export default function news() {
     mel(ter, R(52.3) / 16, ['A4:2 A4:1 C5:2 D5:3 r:8'], { vel: 0.6 });
     // 55–56: Si♭7, a carta sai do pacote girando (riser 53–56) e vira em 56 (prato e fanfarra em Mi♭)
     ris3.note(R(53.0), 0, 0, 1);
-    drum(kk, 27.5, 1, 'X...X...X.......');
-    drum(sn, 27.5, 1, 'x.x.xxxx........', { vel: 0.6 });
-    drum(tp, 27.5, 1, 'x...xxXX........', { vel: 0.7 });
-    bass(bs, 27.5, 'Bb7', '0:2 0:2 5:2 s:2 r:8');
+    drum(kk, 27.5, 1, 'X...X...X.......', { vel: 0.7 }); // v5: abaixo da fala (55 s)
+    drum(sn, 27.5, 1, 'x.x.xxxx........', { vel: 0.45 });
+    drum(tp, 27.5, 1, 'x...xxXX........', { vel: 0.5 });
+    bass(bs, 27.5, 'Bb7', '0:2 0:2 5:2 s:2 r:8', { vel: 0.7 });
     padChord(cor, 27.5, 'Bb7', 8, { low: 56, n: 4, vel: 0.6 });
     cr.note(R(56.0), 0, 0, 1);
     mel(met, 28, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
     stabs(toque, 28, 'Ebmaj7', [[0, 8]], { low: 58, n: 4, vel: 0.6 });
 
-    // TELA FINAL (61,5): os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e o psy uma oitava abaixo) e as palmas
-    cr.note(R(61.5), 0, 0, 0.9);
-    // 31,25 (62,5–64,5): a última levada, em Lá♭, e o Mi♭ em 63,5
-    drum(kk, 31.25, 1, 'X.....x.X.......');
-    drum(sn, 31.25, 1, '....x...........', { vel: 0.6 });
-    drum(hh, 31.25, 1, 'x.x.x.x.........', { vel: 0.6 });
-    bass(bs, 31.25, 'Ab', '0:3 r:1 5:2 0:2 r:8', { vel: 0.8 });
-    mel(ter, 30.75, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
-    mel(mia, 30.75, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.7 });
-    mel(ps, 30.75, [GANCHO.em({ tom: 3, oitava: -3 })], { vel: 0.8 });
-    mel(met, 30.75, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.5 });
-    drum(cl, 30.75, 1, GANCHO.palmas, { vel: 0.9 });
-    padChord(cor, 30.75, 'Ab', 8, { low: 56, n: 4, vel: 0.55 });
-    // 63,5: Mi♭ e o "ting" da colher, que fica soando até o fim
-    cr.note(R(63.5), 0, 0, 0.8);
-    stabs(toque, 31.75, 'Eb', [[0, 6]], { low: 58, n: 4 });
-    mel(tuba, 31.75, ['Eb2:8 r:8']);
-    colher.note(R(63.5), 99, 6, 1);
+    // "TEMOS QUE CHUTAR!" (61,5): a caixa digita com os três blips juntos e em 61,8 os três gritam no mesmo ritmo
+    // (Te-mos-que-chu-TAR: o teremim em cima, o mi-áu uma oitava abaixo e o psy no grave); prato e metais no "TAR"
+    // (62,3), quando eles pulam de novo
+    const GRITO = 'G5:1 G5:1 G5:1 Bb5:1 C6:5 r:7';
+    mel(ter, 61.8 / 2, [GRITO], { vel: 0.85 });
+    mel(mia, 61.8 / 2, [GRITO], { shift: -12, vel: 0.85 });
+    mel(ps, 61.8 / 2, [GRITO], { shift: -36, vel: 0.9 });
+    mel(met, 61.8 / 2, [GRITO], { shift: -12, harm: thirdBelow(bb), vel: 0.45 });
+    kk.note(R(61.8), 0, 0, 0.9);
+    cr.note(R(62.3), 0, 0, 0.9);
+    stabs(toque, 0, 'Bb7', [[R(62.3), 3]], { low: 58, n: 4, vel: 0.7 });
+    ris.note(R(62.5), 0, 0, 0.7);
+    drum(sn, 31.25, 1, '............xxXX', { vel: 0.6 });
+
+    // TELA FINAL (64,5): os três cantam o SOC-CER-MON em Mi♭ (teremim, mi-áu e o psy uma oitava abaixo) e as palmas
+    cr.note(R(64.5), 0, 0, 0.9);
+    drum(kk, 32.25, 1, 'X.....x.X.....x.');
+    drum(sn, 32.25, 1, '....x.......x...', { vel: 0.6 });
+    drum(hh, 32.25, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.55 });
+    bass(bs, 32.25, 'Ab', '0:3 r:1 5:2 0:2 r:8', { vel: 0.8 });
+    mel(ter, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.8 });
+    mel(mia, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { vel: 0.7 });
+    mel(ps, 32.25, [GANCHO.em({ tom: 3, oitava: -3 })], { vel: 0.8 });
+    mel(met, 32.25, [GANCHO.em({ tom: 3, oitava: -1 })], { harm: thirdBelow(eb), vel: 0.5 });
+    drum(cl, 32.25, 1, GANCHO.palmas, { vel: 0.9 });
+    padChord(cor, 32.25, 'Ab', 8, { low: 56, n: 4, vel: 0.55 });
+    // 66: Mi♭ e o "ting" da colher, que fica soando até o fim (67)
+    cr.note(R(66.0), 0, 0, 0.8);
+    stabs(toque, 0, 'Eb', [[R(66.0), 6]], { low: 58, n: 4 });
+    tuba.note(R(66.0), 39, 8, 1);
+    colher.note(R(66.0), 99, 6, 1);
     return S;
 }

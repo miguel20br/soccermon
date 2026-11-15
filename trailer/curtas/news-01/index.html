@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  Soccermon News #1 v4 (9:16, 65,5 s): telejornal com falas. Roteiro em docs/marketing/news-01.md (pauta) e a linha do
+  Soccermon News #1 v5 (9:16, 67 s): telejornal com falas. Roteiro em docs/marketing/news-01.md (pauta) e a linha do
   tempo real em ROTEIRO.md. O Alakazam apresenta, o Meowth entra ao vivo da Rota (e solta o Pay Day) e o Psyduck
   (técnico do Pallet FC, ainda tostado do EP 2) é o convidado; o Voltorb aparece no banco, de colete.
   Regra de leitura: a fala vai numa caixa de diálogo dos jogos de Pokémon (nome, texto letra por letra em 0,3 s, a
@@ -11,7 +11,11 @@
   (gol.mp4, gol-pulo.mp4, recortados pra ninguém ficar cortado na borda) e o KABOOM do Vestiário EP 2 "Bola fora"
   (bola-fora.mp4: 22 a 26 s do render v7 do ep14).
   Música: scripts/musica/pecas/news-plantao.mjs (120 BPM, 33 compassos), em midia/som/news-14.wav.
-  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v4b.mp4
+  v5 (mais animado): câmera de telejornal (plano fechado de quem fala, empurrão de 4% em 3 s), quem fala dá um pulinho,
+  reações com as animações PMD (o Shoot do Alakazam no "ting", o Hop do Meowth no Pay Day, o Charge do Psyduck
+  balançando), varrida entre matérias, a manchete desliza, o microfone do Meowth num pedestal e a despedida nova (o
+  Alakazam agradece e os três gritam "Temos que chutar!" pulando na bancada).
+  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v5b.mp4
 -->
 <html lang="pt-BR">
 <head>
@@ -64,9 +68,16 @@
     repeating-linear-gradient(transparent 0 20px, #6a5a44 20px 25px), #c4b08c;
   clip-path: polygon(0 0, 100% 0, 100% 62%, 84% 76%, 70% 68%, 52% 88%, 34% 82%, 18% 100%, 0 100%); }
 .prancheta::after { content: ""; position: absolute; left: 38px; top: -16px; width: 48px; height: 26px; box-sizing: border-box; background: #6e6e78; border: 6px solid #0e1430; border-radius: 6px; }
-/* o microfone do repórter */
-.micro { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 25; }
-.micro svg { position: absolute; left: -40px; top: -60px; width: 80px; height: 220px; overflow: visible; }
+/* o estúdio é mais largo que a tela: nos planos fechados a câmera vai além das bordas */
+#cam .grade { left: -700px; right: -700px; }
+#cam .piso-n { left: -700px; width: 2480px; }
+/* o microfone do repórter, num pedestal na frente dele (filho do pé: não pula junto) */
+.pedestal { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+.pedestal svg { position: absolute; left: 0; top: -200px; width: 200px; height: 230px; overflow: visible; }
+/* a varrida entre matérias: uma faixa inclinada com o símbolo cruza a tela da direita pra esquerda */
+#varre { position: absolute; left: 0; top: -200px; width: 1700px; height: 2320px; z-index: 90; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(90deg, #0e1430 0 14px, #ffcb05 14px 84px, #0e1430 84px 98px, #e8423f 98px 150px, #0e1430 150px 164px, #2a4ea0 164px 1536px, #0e1430 1536px 1550px, #ffcb05 1550px 1620px, #0e1430 1620px); }
+#varre img { width: 380px; filter: drop-shadow(0 14px 0 #0e1430); }
 /* a porta do estúdio (o "e mais"): o vidro fosco com a silhueta do convidado */
 .porta { position: absolute; left: 300px; top: 380px; width: 480px; height: 880px; box-sizing: border-box; border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #8a5a32, #a06a3c 50%, #8a5a32);
   border: 12px solid #0e1430; box-shadow: 0 0 0 10px #3a2a20, 0 0 0 18px #0e1430; z-index: 5; }
@@ -80,6 +91,7 @@
 #manchete .selo-v { position: absolute; left: 22px; top: -46px; height: 54px; box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: #e8423f; color: #fff; font-size: 26px; letter-spacing: 2px; border: 7px solid #0e1430; border-bottom: none; border-radius: 12px 12px 0 0; white-space: nowrap; }
 #manchete .selo-v i { width: 14px; height: 14px; border-radius: 50%; background: #fff; }
 #manchete .barra { position: absolute; inset: 0; overflow: hidden; background: #10183d; border: 8px solid #0e1430; border-radius: 16px; box-shadow: inset 0 -10px 0 #ffcb05; }
+#manchete .barra > div { overflow: hidden; }
 #manchete .barra span { position: absolute; left: 24px; right: 16px; top: 0; bottom: 10px; display: flex; align-items: center; color: #fff; font-size: var(--manchete, 46px); letter-spacing: 2px; white-space: nowrap; }
 /* a caixa de diálogo dos jogos de Pokémon */
 #caixa { position: absolute; left: 28px; top: 1300px; width: 1024px; height: 230px; box-sizing: border-box; z-index: 85; opacity: 0; background: #f8f8f0; border: 10px solid #0e1430; border-radius: 24px;
@@ -169,8 +181,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="65.5">
-  <div id="cena" class="clip" data-start="0" data-duration="65.5">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="67">
+  <div id="cena" class="clip" data-start="0" data-duration="67">
     <!-- vinheta de plantão -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="faixa" id="fx1" style="top:300px;background:#e8423f"></div>
@@ -214,7 +226,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     <div id="fundo" class="cena estudio"><div class="raios" id="raios-fundo"></div></div>
     <div id="fim" class="cena palco"><div class="raios" id="raios-fim"></div><div id="fim-cena" class="camada"><div class="mesa-n" id="mesa-fim" style="left:180px;top:1240px;--w:720px"><div class="tampo"></div><div class="frente"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div></div></div>
   </div>
-  <!-- as telas do jogo -->
+  <!-- as telas do jogo, numa camada própria (a câmera dos painéis empurra) -->
+  <div id="pan" class="camada" style="z-index:20">
   <div class="moldura" id="m-rec" style="left:40px;top:330px;width:1000px;height:928px"><img src="midia/news/recompensa.png" alt="" /></div>
   <div class="destaque" id="dest-patro" style="left:693px;top:630px;width:304px;height:517px"></div>
   <div id="carta-patro"></div>
@@ -224,20 +237,22 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div class="moldura" id="m-vt" style="left:264px;top:306px;width:552px;height:963px"></div>
   <div id="fx-moedas"></div>
   <div class="carta3d" id="carta"><div class="gira" id="gira"><div class="verso"><img src="midia/logo-simbolo.svg" alt="" /></div><div class="face"></div></div></div>
+  </div>
   <div id="manchete"><div class="selo-v"><i id="ponto"></i>AO VIVO</div><div class="barra" id="barra"></div></div>
   <div id="caixa"><div class="nome" id="nome"></div><div class="seta" id="seta"></div></div>
   <div class="flash" id="flash"></div>
+  <div id="varre"><img src="midia/logo-simbolo.svg" alt="" /></div>
 
   <!-- trechos do jogo -->
   <video id="v-gol1" class="jogo" src="midia/news/gol.mp4" muted playsinline data-start="0" data-duration="1" data-media-start="1.05" style="transform:scale(1.3);transform-origin:758px 0px"></video>
   <video id="v-gol2" class="jogo" src="midia/news/gol-pulo.mp4" muted playsinline data-start="1" data-duration="1" data-media-start="0" style="transform:scale(1.0667);transform-origin:0px 0px"></video>
   <video id="v-bola" class="painel" src="midia/news/bola-fora.mp4" muted playsinline data-start="37.5" data-duration="4" data-media-start="0" style="left:276px;top:318px;width:528px;height:939px"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="65.5" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="67" data-media-start="0" data-fade-out="0.6"></audio>
 
   <script>
     const { T, div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra } = C;
-    const FIM = 65.5;
+    const FIM = 67;
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
@@ -253,12 +268,21 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       for (const p of on) tl.set(p, { opacity: 1 }, t);
     };
     const entra = (id, t, de = 0.9) => tl.fromTo(id, { scale: de }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t);
-    const MICRO = '<svg viewBox="0 0 40 110"><rect x="15" y="34" width="10" height="70" rx="4" fill="#2b3045" stroke="#0e1430" stroke-width="4"/><rect x="11" y="30" width="18" height="10" rx="3" fill="#e8423f" stroke="#0e1430" stroke-width="3"/><circle cx="20" cy="17" r="15" fill="#c8d0f0" stroke="#0e1430" stroke-width="4"/><path d="M9 12h22M8 19h24M11 26h18" stroke="#8a94b8" stroke-width="2.5"/><ellipse cx="20" cy="66" rx="13" ry="11" fill="#f8f0d0" stroke="#0e1430" stroke-width="3.5"/><path d="M10 62h20M10 69h20" stroke="#c8b890" stroke-width="2"/></svg>';
-    /** O microfone na pata do Meowth (filho do corpo: anda e pula junto); e = escala do ator / 17. */
+    const MICRO_V4 = '<svg viewBox="0 0 40 110"><rect x="15" y="34" width="10" height="70" rx="4" fill="#2b3045" stroke="#0e1430" stroke-width="4"/><rect x="11" y="30" width="18" height="10" rx="3" fill="#e8423f" stroke="#0e1430" stroke-width="3"/><circle cx="20" cy="17" r="15" fill="#c8d0f0" stroke="#0e1430" stroke-width="4"/><path d="M9 12h22M8 19h24M11 26h18" stroke="#8a94b8" stroke-width="2.5"/><ellipse cx="20" cy="66" rx="13" ry="11" fill="#f8f0d0" stroke="#0e1430" stroke-width="3.5"/><path d="M10 62h20M10 69h20" stroke="#c8b890" stroke-width="2"/></svg>';
+    /** O microfone do Meowth num pedestal na frente dele, do lado, com a cabeça do microfone na altura da boca
+     * (sem cobrir a cara): filho do pé (el), então fica no chão quando ele pula; e = escala do ator / 17. */
+    const PEDESTAL = '<svg viewBox="0 -200 200 230"><g stroke="#0e1430" stroke-linecap="round">'
+      + '<path d="M128 -6 L96 22 M128 -6 L160 22 M128 -6 L128 24" stroke-width="13"/><path d="M128 -6 L96 22 M128 -6 L160 22 M128 -6 L128 24" stroke="#2b3045" stroke-width="6"/>'
+      + '<rect x="121" y="-122" width="14" height="120" rx="5" fill="#2b3045" stroke-width="5"/>'
+      + '<rect x="117" y="-70" width="22" height="12" rx="4" fill="#e8423f" stroke-width="4"/>'
+      + '<path d="M128 -122 L112 -138" stroke-width="13"/><path d="M128 -122 L112 -138" stroke="#2b3045" stroke-width="6"/>'
+      + '<g transform="rotate(-38 104 -150)"><rect x="92" y="-160" width="24" height="34" rx="6" fill="#2b3045" stroke-width="5"/>'
+      + '<rect x="90" y="-188" width="28" height="34" rx="14" fill="#c8d0f0" stroke-width="5"/><path d="M95 -177h18M94 -169h20M96 -161h16" stroke="#8a94b8" stroke-width="3"/></g>'
+      + '</g></svg>';
     const microfone = (a, e = 1) => {
-      const m = div(a.corpo, 'micro');
-      m.innerHTML = MICRO;
-      gsap.set(m, { x: -48 * e, y: -140 * e, rotation: 20, scale: e });
+      const m = div(a.el, 'pedestal');
+      m.innerHTML = PEDESTAL;
+      gsap.set(m, { scale: e, transformOrigin: '0px 0px', zIndex: 3 });
       return m;
     };
 
@@ -266,7 +290,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // Cada fala: [início do bloco, quem, texto, manchete nova ou null, fim do bloco (se não for o início da próxima)].
     // Com manchete nova, a manchete troca no início do bloco e o texto só começa 0,3 s depois; sem, o texto começa no
     // início. O texto aparece em 0,3 s e fica inteiro até o fim do bloco (no mínimo 2,7 s).
-    const ALA = 'ALAKAZAM', MEO = 'MEOWTH', PSY = 'PSYDUCK';
+    const ALA = 'ALAKAZAM', MEO = 'MEOWTH', PSY = 'PSYDUCK', TODOS = 'TODOS';
     const ESC = 10.5; // a escalada (sumário): 4 cartelas de 2 s, sem caixa nem manchete
     const ROTEIRO = [
       [4.0, ALA, 'Boa noite! Eu sou o Alakazam, seu apresentador desta noite.', 'SOCCERMON NEWS #1'],
@@ -283,9 +307,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       [48.0, ALA, 'Um aviso: a partir de agora, sai atualização nova toda semana.', 'TODA SEMANA'],
       [51.5, ALA, 'E na sexta que vem, dia 27, abre o Time Ultimate…', 'TIME ULTIMATE · 27/11'],
       [55.0, ALA, '…o modo novo em que você abre pacotes e monta o time da temporada.'],
-      [58.5, ALA, 'Boa noite, e temos que chutar!'],
+      [58.5, ALA, 'Muito obrigado pela companhia, e boa noite!'],
+      [61.5, TODOS, 'Temos que chutar!'],
     ];
-    const FIM_FALAS = 61.5;
+    const FIM_FALAS = 64.5;
     const DIGITA = 0.3;
     const RESPIRO = 0.3;
     const CAIXA = $('caixa');
@@ -309,7 +334,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         b.sp = sp;
         tl.set(barra.children, { opacity: 0 }, b.s);
         tl.set(sp, { opacity: 1 }, b.s);
-        tl.fromTo(sp, { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.25, ease: 'power2.out', immediateRender: false }, b.s);
+        // a manchete nova entra deslizando da direita (atrás da varrida, quando tem)
+        tl.fromTo('#manchete', { x: 1100 }, { x: 0, duration: 0.35, ease: 'power3.out', immediateRender: false }, b.s + 0.04);
         tl.set(CAIXA, { opacity: 0 }, b.s);
         tl.set(CAIXA, { opacity: 1 }, b.a);
         tl.fromTo(CAIXA, { y: 24 }, { y: 0, duration: 0.12, ease: 'power2.out', immediateRender: false }, b.a);
@@ -325,16 +351,26 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#seta', { opacity: 0 }, b.z);
     }
     // a manchete com o selo: entra com a bancada, some na escalada, volta na Matéria 1, sai na tela final
-    const mancheteEntra = (t) => {
-      tl.set('#manchete', { opacity: 1 }, t);
-      tl.fromTo('#manchete', { y: -30 }, { y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, t);
-    };
+    const mancheteEntra = (t) => tl.set('#manchete', { opacity: 1 }, t);
     mancheteEntra(4.0);
     tl.set(['#manchete', CAIXA], { opacity: 0 }, ESC);
     mancheteEntra(18.5);
     for (let t = 4.0, k = 0; t < FIM_FALAS; t += 0.5, k++) tl.set('#ponto', { opacity: k % 2 ? 0.25 : 1 }, t);
     tl.set(['#manchete', CAIXA], { opacity: 0 }, FIM_FALAS);
     const B = Object.fromEntries(blocos.map((b, i) => [i + 1, b]));
+
+    // a varrida entre matérias: a faixa cobre a tela inteira no instante t (o corte de cena) e sai pela esquerda
+    gsap.set('#varre', { skewX: -12, x: 1400 });
+    const VARRIDAS = [10.5, 18.5, 28.0, 37.5, 48.0, 51.5, 58.5];
+    for (const t of VARRIDAS) {
+      tl.fromTo('#varre', { x: 1400 }, { x: -310, duration: 0.2, ease: 'power2.out', immediateRender: false }, t - 0.2);
+      tl.to('#varre', { x: -2100, duration: 0.24, ease: 'power2.in' }, t);
+    }
+    window.__varridas = VARRIDAS;
+    // a câmera dos painéis (as telas do jogo): um empurrão leve em cada fala (o topo da moldura fica parado)
+    gsap.set('#pan', { transformOrigin: '540px 330px' });
+    gsap.set('#v-bola', { transformOrigin: '264px 12px' });
+    const empurra = (t, d = 3, k = 1.04, alvos = '#pan') => tl.fromTo(alvos, { scale: 1 }, { scale: k, duration: d, ease: 'sine.out', immediateRender: false }, t);
 
     // ===================== 0–2 · o gancho: o gol em câmera lenta e o artilheiro pulando =====================
     corta(null, 0);
@@ -361,7 +397,26 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // ===================== o estúdio =====================
     const CAM = $('cam');
     gsap.set(CAM, { transformOrigin: '0px 0px' });
-    const camera = (t, s = 1, x = 0, y = 0, d = 0) => (d ? tl.to(CAM, { scale: s, x, y, duration: d, ease: 'sine.inOut' }, t) : tl.set(CAM, { scale: s, x, y }, t));
+    /**
+     * Plano de telejornal: escala s com o ponto (fx, fy) do estúdio em (sx, sy) na tela, e o empurrão de 4% em d s.
+     * Os planos (o estúdio vai de x −700 a 1780, então o fechado não mostra a borda do cenário):
+     *   ABERTO: a bancada inteira; MEDIO: o Alakazam e o telão inteiro (quando o telão importa); DOIS: o Alakazam e o
+     *   Psyduck; ALA: o Alakazam de perto (telão sem imagem, a cadeira fora); PSY: o Psyduck de perto.
+     * O Alakazam ocupa x 10 a 490 do estúdio (a folha tem ±16 px, escala 15) e o telão 74 a 1006 com a moldura: nos planos
+     * com o telão a escala para em ~1,076 e o ponto fixo fica à esquerda, senão a colher ou o telão passam da borda.
+     */
+    const PLANOS = {
+      ABERTO: [1.0, 100, 900, 100, 900],
+      MEDIO: [1.04, 507, 900, 540, 800, 1.035],
+      DOIS: [1.04, 507, 1000, 540, 860, 1.035],
+      ALA: [1.4, 250, 900, 470, 640],
+      PSY: [1.45, 830, 1050, 540, 760],
+    };
+    const plano = (t, nome, d = 3) => {
+      const [s0, fx, fy, sx, sy, k = 1.04] = PLANOS[nome];
+      const xy = (z) => ({ scale: z, x: sx - z * fx, y: sy - z * fy });
+      tl.fromTo(CAM, xy(s0), { ...xy(s0 * k), duration: d, ease: 'sine.out', immediateRender: false }, t);
+    };
     const XA = 250; // o Alakazam na bancada
     const XC = 830; // a cadeira do convidado
     const AL = ator(CAM, 65, { escala: 15, z: 20, x: XA, y: 1150 });
@@ -377,28 +432,41 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const telas = ['#t-marca', '#t-meo', '#t-cal'];
     const telao = (id, t) => {
       tl.set(telas, { opacity: 0 }, t);
+      if (!id) return; // plano fechado: o telão fica só com os raios (ele passa da borda da tela)
       tl.set(id, { opacity: 1 }, t);
       tl.fromTo(id, { scale: 0.85 }, { scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
     };
     tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 160, duration: FIM, ease: 'none', immediateRender: false }, 0);
-    /** O Alakazam fala: um aceno com a colher no começo do texto (o corpo balança de leve). */
-    const acena = (t) => tl.to(AL.corpo, { keyframes: { y: [-10, 0], rotation: [-2.5, 0] }, duration: 0.4, ease: 'sine.inOut' }, t);
+    /** Quem fala dá um pulinho no começo do texto (o corpo sobe e balança). */
+    const pulinho = (a, t, h = 18) => tl.to(a.corpo, { keyframes: { y: [-h, 0], rotation: [-3, 0] }, duration: 0.36, ease: 'sine.inOut' }, t);
+    const acena = (t) => pulinho(AL, t);
+    /** Uma animação PMD de reação (sem repetir) e a volta pro Idle. Chamar em ordem de tempo pra cada ator. */
+    const reage = (a, nome, t, dur, op = {}) => {
+      anim(tl, a, nome, 0, t, t + dur, { loop: false, ...op });
+      anim(tl, a, 'Idle', 0, t + dur, FIM, a === PS ? { vel: 0.6 } : {});
+    };
     const ting = (t) => {
       const br = div(CAM, 'brilho-n');
       gsap.set(br, { x: XA + 120, y: 760 });
       tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.6, rotation: 90, opacity: 0, duration: 0.45, ease: 'power2.out', immediateRender: false }, t);
     };
+    /** O "ting" da colher: o Shoot do Alakazam (as colheres sobem) e o brilho no alto. */
+    const tinge = (t) => {
+      reage(AL, 'Shoot', t, 0.55);
+      ting(t + 0.25);
+    };
 
     // 4–10,5 · F1 e F2: o Alakazam se apresenta (o "ting" da colher) e chama o sumário
     corta('#banc', 4.0);
     paineis(4.0);
-    camera(4.0, 1);
+    plano(4.0, 'ABERTO');
     telao('#t-marca', 4.0);
     flash(tl, 4.0, 0.6, 0.25);
     acena(B[1].a);
-    ting(B[1].a);
-    camera(B[2].s, 1, 0, 0);
-    camera(B[2].s, 1.12, -40, -110, 3.0);
+    tinge(B[1].a);
+    // "Hoje: ...": corte pro plano fechado do Alakazam
+    plano(B[2].s, 'ALA');
+    telao(null, B[2].s);
     acena(B[2].a);
 
     // ===================== 10,5–18,5 · ESCALADA (sumário) =====================
@@ -410,7 +478,6 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     {
       corta('#esc', ESC);
       paineis(ESC);
-      flash(tl, ESC, 0.5, 0.2);
       tl.fromTo('#raios-esc', { rotation: 0 }, { rotation: 50, duration: 8, ease: 'none', immediateRender: false }, ESC);
       tl.fromTo('#ex1', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, ESC);
       tl.fromTo('#ex2', { x: 1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, ESC + 0.06);
@@ -451,6 +518,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#raios-fundo', { rotation: 0 }, { rotation: 40, duration: 9.5, ease: 'none', immediateRender: false }, B[3].s);
     paineis(B[3].s, '#m-rec');
     entra('#m-rec', B[3].s);
+    empurra(B[3].s);
+    empurra(B[4].s);
+    empurra(B[5].s, 3.2);
     // F4: a moldura dourada no Patrocínio (no sino)
     const TPATRO = B[4].s + 0.5;
     tl.set('#dest-patro', { opacity: 1 }, TPATRO);
@@ -466,7 +536,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // 28: a bancada; no telão, o Meowth ao vivo na quadra (de microfone)
     corta('#banc', B[6].s);
     paineis(B[6].s);
-    camera(B[6].s, 1);
+    plano(B[6].s, 'MEDIO');
     telao('#t-meo', B[6].s);
     const MT = ator($('t-meo'), 52, { escala: 9, z: 2, x: 450, y: 470 });
     anim(tl, MT, 'Idle', 0, 0, FIM);
@@ -486,7 +556,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     corta('#rota', B[7].s);
     paineis(B[7].s);
     flash(tl, B[7].s, 0.4, 0.2);
-    tl.fromTo(RC, { scale: 1.36 }, { scale: 1.3, duration: 3, ease: 'sine.out', immediateRender: false }, B[7].s);
+    // a câmera da Rota empurra na fala e abre um pouco no Pay Day (as moedas cabem)
+    tl.fromTo(RC, { scale: 1.3 }, { scale: 1.35, duration: 3, ease: 'sine.out', immediateRender: false }, B[7].s);
+    tl.fromTo(RC, { scale: 1.22 }, { scale: 1.27, duration: 3.2, ease: 'sine.out', immediateRender: false }, B[8].s);
+    tl.to(MR.corpo, { keyframes: { y: [-30, 0] }, duration: 0.32, ease: 'sine.inOut' }, B[7].a);
     // o Pidgey e o Rattata andam ao fundo (a Rota viva)
     anim(tl, PI, 'Walk', 2, B[7].s + 0.4, B[7].s + 2.2);
     tl.to(PI.el, { x: 400, duration: 1.8, ease: 'none' }, B[7].s + 0.4);
@@ -504,7 +577,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const MOEDAS = [];
     {
       const tp = PAYDAY;
-      tl.to(MR.corpo, { keyframes: [{ y: -70, duration: 0.18, ease: 'power2.out' }, { y: 0, duration: 0.18, ease: 'power2.in' }, { scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, tp);
+      anim(tl, MR, 'Hop', 0, tp, tp + 0.4, { loop: false });
+      anim(tl, MR, 'Idle', 0, tp + 0.4, FIM);
+      tl.to(MR.corpo, { keyframes: [{ scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, tp + 0.4);
       // a moeda da testa (o amuleto) acende
       const br = div(RC, 'brilho-n');
       gsap.set(br, { x: 540, y: 1130 - 255 });
@@ -538,12 +613,13 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#raios-fundo', { rotation: 40 }, { rotation: 60, duration: 4, ease: 'none', immediateRender: false }, B[9].s);
     paineis(B[9].s, '#m-vt');
     entra('#m-vt', B[9].s, 0.95);
+    empurra(B[9].s, 4, 1.05, ['#pan', '#v-bola']);
     tl.set('#m-vt', { opacity: 0 }, B[10].s);
     // 41,5: o Psyduck na cadeira do convidado, tostado, a prancheta queimada na mão; a fumacinha sai do alto da cabeça
     corta('#banc', B[10].s);
     paineis(B[10].s);
-    camera(B[10].s, 1);
-        telao('#t-marca', B[10].s);
+    plano(B[10].s, 'DOIS', 3.3);
+    telao('#t-marca', B[10].s);
     tl.set(PS.el, { opacity: 1 }, B[10].s);
     acena(B[10].a);
     for (let k = 0; k < 3; k++) {
@@ -559,6 +635,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.to(PS.corpo, { rotation: 0, duration: 0.3, ease: 'sine.inOut' }, B[10].z - 0.3);
     tl.to(prancheta, { rotation: 8, y: -250, duration: 0.3, ease: 'sine.inOut' }, B[10].z - 0.3);
     // 44,8: "Agora ele é reserva.": corte pro banco do Pallet FC; o Voltorb sentado, de colete, pisca duas vezes
+    const TPSY = 46.6; // o corte do banco pro Psyduck
     const VT = ator($('bc-cam'), 100, { escala: 15, z: 20, x: 540, y: 1158, sombra: false });
     {
       const t0 = B[11].s;
@@ -589,7 +666,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       gsap.set(palp, { opacity: 0 });
       window.__colete = col;
       corta('#banco-c', t0);
-      tl.fromTo('#bc-cam', { scale: 1 }, { scale: 1.08, duration: 3.2, ease: 'sine.inOut', immediateRender: false }, t0);
+      tl.fromTo('#bc-cam', { scale: 1 }, { scale: 1.05, duration: 1.8, ease: 'sine.out', immediateRender: false }, t0);
+      // o Voltorb respira (nunca fica congelado): o corpo inteiro, com o colete e as pálpebras
+      tl.fromTo(VT.corpo, { scaleY: 1, scaleX: 1 }, { scaleY: 1.035, scaleX: 0.985, duration: 0.45, ease: 'sine.inOut', repeat: 3, yoyo: true, immediateRender: false }, t0);
       gsap.set('#bc-cam', { transformOrigin: '540px 1000px' });
       quadro(tl, VT, 'Idle', 0, 0, 0);
       const pisca = (t) => {
@@ -598,6 +677,17 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       };
       pisca(t0 + 1.0);
       pisca(t0 + 1.35);
+      // 46,6: corte pro Psyduck de perto, balançando (o Charge do PMD, a mão na cabeça) e a fumacinha
+      const t1 = TPSY;
+      corta('#banc', t1);
+      plano(t1, 'PSY', 1.4);
+      telao(null, t1);
+      anim(tl, PS, 'Charge', 0, t1, B[12].s - 0.05, { vel: 0.45 });
+      anim(tl, PS, 'Idle', 0, B[12].s - 0.05, FIM, { vel: 0.6 });
+      tl.to(PS.corpo, { keyframes: { rotation: [0, 7, -6, 6, -4, 0] }, duration: 1.35, ease: 'sine.inOut' }, t1);
+      const f = div(PS.corpo, 'fumaca');
+      tl.fromTo(f, { x: -6, y: -300, scale: 0.3, opacity: 0 }, { x: 4, y: -350, scale: 0.8, opacity: 0.85, duration: 0.7, ease: 'sine.out', immediateRender: false }, t1 + 0.2);
+      tl.to(f, { opacity: 0, y: -365, duration: 0.3 }, t1 + 0.9);
     }
 
     // ===================== AVISO · TODA SEMANA (48–51,5) =====================
@@ -608,9 +698,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     {
       const t0 = B[12].s;
       corta('#banc', t0);
-      camera(t0, 1);
+      plano(t0, 'MEDIO', 3.5);
       telao('#t-cal', t0);
-      acena(B[12].a);
+      tinge(B[12].a);
       const bs = [...document.querySelectorAll('#dias .bolinha')];
       SEXTAS.forEach((t, i) => {
         tl.set(bs[i], { opacity: 1 }, t - 0.16);
@@ -625,6 +715,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#raios-fundo', { rotation: 60 }, { rotation: 100, duration: 7, ease: 'none', immediateRender: false }, B[13].s);
     paineis(B[13].s, '#m-menu');
     entra('#m-menu', B[13].s);
+    empurra(B[13].s, 3.5);
+    empurra(B[14].s, 3.5);
     tl.set('#dest-ut', { opacity: 1 }, TUT);
     tl.fromTo('#dest-ut', { scale: 1.15 }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, TUT);
     tl.to('#dest-ut', { scale: 1.03, duration: 0.4, ease: 'sine.inOut', repeat: 4, yoyo: true }, TUT + 0.25);
@@ -642,18 +734,27 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#carta', { opacity: 0 }, B[15].s);
     }
 
-    // ===================== 58,5 · "Boa noite": a bancada com os três =====================
+    // ===================== 58,5 · a despedida: o Alakazam agradece; 61,5 · os três: "Temos que chutar!" =====================
     corta('#banc', B[15].s);
     paineis(B[15].s);
-    camera(B[15].s, 1);
-    telao('#t-marca', B[15].s);
-    tl.set(ME.el, { opacity: 1 }, B[15].s);
+    plano(B[15].s, 'ALA');
+    telao(null, B[15].s);
     acena(B[15].a);
-    anim(tl, ME, 'Pose', 0, B[15].s + 1.5, B[15].s + 2.3, { loop: false });
-    anim(tl, ME, 'Idle', 0, B[15].s + 2.3, FIM);
-    tl.to(PS.corpo, { keyframes: { y: [0, -24, 0] }, duration: 0.4, ease: 'sine.inOut' }, B[15].s + 1.7);
+    tinge(B[15].s + 0.8); // o "ting" no "boa noite"
+    // 61,5: corte pro plano aberto, os três na bancada; pulam juntos no grito (61,8) e no "TAR" (62,3)
+    plano(B[16].s, 'ABERTO');
+    telao('#t-marca', B[16].s);
+    tl.set(ME.el, { opacity: 1 }, B[16].s);
+    // (o Hop do PMD sobe ~40 px da folha: nessa escala eles voavam por cima do telão; aqui o pulo é à mão, de 70 px)
+    for (const a of [AL, ME, PS])
+      for (const t of [61.8, 62.3])
+        tl.to(a.corpo, { keyframes: [{ y: -70, scaleY: 1.06, duration: 0.15, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.15, ease: 'power2.in' }, { scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.1, ease: 'back.out(3)' }] }, t);
+    // e fecham numa pose: o Meowth e o Psyduck no Pose do PMD, o Alakazam com as colheres pra cima
+    reage(ME, 'Pose', 62.8, 0.37);
+    reage(PS, 'Pose', 62.8, 0.37);
+    reage(AL, 'Shoot', 62.8, 0.55);
 
-    // ===================== 61,5 · TELA FINAL: logo (SOC-CER-MON), Temos que chutar!, o site, os três pulando no MON =====================
+    // ===================== 64,5 · TELA FINAL: logo (SOC-CER-MON), Temos que chutar!, o site, os três pulando no MON =====================
     {
       const t0 = FIM_FALAS;
       const fim = $('fim');
@@ -664,9 +765,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
       piscada(tl, [t0, t0 + 0.375, t0 + 0.75]);
-      tl.set('#tag', { opacity: 1 }, t0 + 1.0);
-      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 1.0);
-      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 1.6);
+      tl.set('#tag', { opacity: 1 }, t0 + 0.9);
+      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 0.9);
+      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 1.2);
       const a = ator(FC, 65, { escala: 10, z: 20, x: 330, y: 1330 });
       const m = ator(FC, 52, { escala: 10, z: 20, x: 540, y: 1300 });
       const p = ator(FC, 54, { escala: 10, z: 20, x: 750, y: 1300 });
@@ -675,10 +776,10 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         anim(tl, x, 'Idle', 0, t0, FIM);
         tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, t0 + 0.75);
       }
-      // o "ting" da colher no fim
+      // o "ting" da colher no fim (66 s, o Mi♭)
       const br = div(FC, 'brilho-n');
       gsap.set(br, { x: 420, y: 1060 });
-      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.8, rotation: 90, opacity: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, t0 + 2.0);
+      tl.fromTo(br, { opacity: 1, scale: 0.4, rotation: 0 }, { scale: 1.8, rotation: 90, opacity: 0, duration: 0.5, ease: 'power2.out', immediateRender: false }, t0 + 1.5);
     }
 
     tl.set({}, {}, FIM);

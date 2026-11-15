@@ -514,3 +514,32 @@ export const psy = voz(
     },
     { solta: 0.12 },
 );
+/** O "blip" da caixa de diálogo (News #1 v5): uma letra digitando, como nos RPGs de 8 bits. Quadrada curtinha (40 ms)
+ * com um degrau de oitava no ataque e queda rápida. Bateria: `pitch` em semitons a partir de Lá 5 (880 Hz). */
+export const blip = som(
+    0.045,
+    (p) => {
+        let ph = 0;
+        const f = 880 * k12(p);
+        return (t) => {
+            ph += (f * (t < 0.006 ? 2 : 1)) / SR;
+            return (ph % 1 < 0.5 ? 1 : -1) * Math.min(1, t / 0.002) * Math.exp(-t / 0.014);
+        };
+    },
+    { pk: 0.45, corte: 5000 },
+);
+/** A varrida entre matérias (News #1 v5): ruído num passa-faixa que sobe e desce em 0,45 s, o "fuuuh" da faixa
+ * cruzando a tela; o pico (o meio da varrida, o corte de cena) cai em 0,2 s. */
+export const varrida = som(
+    0.5,
+    (p, r) => {
+        const fl = svf(0.6);
+        return (t) => {
+            const x = t / 0.45;
+            const env = x < 1 ? Math.sin(Math.PI * Math.min(1, x / 0.9)) ** 1.5 : 0;
+            const fc = 300 + 2600 * k12(p) * Math.sin(Math.PI * Math.min(1, x)) ** 2;
+            return fl(r() * 2 - 1, fc) * env;
+        };
+    },
+    { pk: 0.4 },
+);
