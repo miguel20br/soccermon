@@ -1,0 +1,33 @@
+// Foto parada da dupla do News #1 (15/11): o Raichu (terno do gravata.mjs) e o Machoke (terno.mjs) na bancada.
+// Monta news-01/render/teste-machoke (fora do git): o estúdio do index.html, sem vídeo nem som, e a cena.js no lugar da
+// linha do tempo; a cor do terno e a direção do Machoke saem do ?cor=<azul|grafite>&dir=<0|7>.
+//   node trailer/curtas/news-01/teste-machoke/montar.mjs && scripts/pesado.sh node trailer/curtas/news-01/teste-machoke/foto.mjs <png>
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { vestir as vestirRaichu } from '../teste-gravata/gravata.mjs';
+import { ANIM, CORES, FOLHA, LINHA, TAM, vestir } from './terno.mjs';
+
+const D = new URL('./', import.meta.url).pathname;
+const OUT = `${D}../render/teste-machoke/`;
+const M = `${D}../../midia/`;
+rmSync(OUT, { recursive: true, force: true });
+for (const f of ['sprites.js', 'som/news.js', 'sp/26.png', 'logo-simbolo.svg', 'Galmuri11-Bold.woff2', 'news/recompensa.png', 'news/ultimate-fatia.png', 'news/cartas/95.png']) {
+  mkdirSync(dirname(`${OUT}midia/${f}`), { recursive: true });
+  copyFileSync(M + f, `${OUT}midia/${f}`);
+}
+copyFileSync(`${D}../../comum.js`, `${OUT}comum.js`);
+await vestirRaichu(26, '-', `${M}sp/26.png`, `${OUT}midia/sp/26.png`);
+const folhas = {};
+for (const cor of Object.keys(CORES)) {
+  folhas[cor] = `midia/sp/67-${cor}.png`;
+  await vestir(FOLHA, `${OUT}${folhas[cor]}`, cor);
+}
+let h = readFileSync(`${D}../index.html`, 'utf8');
+h = h.replace(/\n\s*<video [^\n]*<\/video>/g, '').replace(/\n\s*<audio [^\n]*<\/audio>/g, '');
+const ini = h.indexOf('<script>\n    const { T, div, ator');
+const fim = h.indexOf('</script>', ini);
+if (ini < 0 || fim < 0) throw new Error('não achei a linha do tempo no index.html');
+const MACH = { ...ANIM, tam: TAM, linha: LINHA, folhas };
+h = `${h.slice(0, ini)}<script>window.MACH = ${JSON.stringify(MACH)};</script>\n  <script>\n${readFileSync(`${D}cena.js`, 'utf8')}  ${h.slice(fim)}`;
+writeFileSync(`${OUT}index.html`, h);
+console.log(`ok: ${OUT}`);
