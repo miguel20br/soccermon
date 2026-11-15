@@ -580,6 +580,29 @@ export const blip = som(
     },
     { pk: 0.45, corte: 5000 },
 );
+/** O "tic" do texto dos jogos de Pokémon (News #1, dupla Raichu e Golduck, 15/11): uma letra, baixinho, sem voz.
+ * Triangular com um fio do seno da oitava, 2 ms de ataque e queda exponencial curta que zera no fim; nada de
+ * saturação (o Miguel achou as vozes `raichu`/`machamp` agressivas). Bateria: `pitch` em semitons a partir de `f0`. */
+const tic = (f0, cai) =>
+    som(
+        0.08,
+        (p) => {
+            let ph = 0;
+            const f = f0 * k12(p);
+            return (t) => {
+                ph += f / SR;
+                const tri = 4 * Math.abs((ph % 1) - 0.5) - 1;
+                return (
+                    (tri + 0.15 * Math.sin(TAU * 2 * ph)) * Math.min(1, t / 0.002) * Math.exp(-t / cai) * (1 - t / 0.08)
+                );
+            };
+        },
+        { pk: 0.3 },
+    );
+/** O blip do Raichu: agudo e curtinho (Dó 6). */
+export const blipRaichu = tic(1046.5, 0.012);
+/** O blip do Golduck: grave e calmo (Lá 4), um pouco mais longo. */
+export const blipGolduck = tic(440, 0.022);
 /** A varrida entre matérias (News #1 v5): ruído num passa-faixa que sobe e desce em 0,45 s, o "fuuuh" da faixa
  * cruzando a tela; o pico (o meio da varrida, o corte de cena) cai em 0,2 s. */
 export const varrida = som(

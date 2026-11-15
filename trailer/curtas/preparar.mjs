@@ -14,8 +14,8 @@ const A = `${JOGO}/public/assets`;
 // torcida (de costas, embaixo da tela)
 // EP 2: 129 Magikarp (e a roleta usa os retratos) · EP 3: 95 Onix (a 3ª tentativa do Ditto)
 // EP 2 do Vestiário: 100 Voltorb (a bola que não é bola) · Soccermon News: 65 Alakazam, 52 Meowth (torcida) e 137 Porygon
-// News #1 (testes de apresentador, 15/11): 26 Raichu (o Machamp, 68, já estava)
-const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26];
+// News #1 (testes de apresentador, 15/11): 26 Raichu (o Machamp, 68, já estava) e 55 Golduck
+const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
 const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
     // A foto: os closes falando (o Psyduck gritando, o Pikachu, o Magikarp gritando, o Squirtle marrento)
@@ -23,7 +23,9 @@ const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129'
     // o EP inteiro: o Ditto (EU TAMBÉM!) e o Jigglypuff (DEIXA QUE EU ANIMO)
     '132-joyous', '39-inspired',
     // Saco de bolas: o Voltorb
-    '100', '100-angry'];
+    '100', '100-angry',
+    // News #1: a dupla Raichu e Golduck, os retratos na caixa de fala
+    '26-happy', '26-joyous', '26-determined', '55', '55-happy', '55-determined'];
 
 mkdirSync(`${OUT}/sp`, { recursive: true });
 mkdirSync(`${OUT}/som`, { recursive: true });
