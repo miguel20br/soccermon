@@ -80,16 +80,16 @@ antes de 20/11 (Miguel, 15/11).
 ## Legenda do post
 
 **TikTok**
-> [A APROVAR, v8] O Voltorb virou reserva e o Soccermon tem novidade ⚽ Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt
+> Estreia do Soccermon News 📺⚽ Raichu e Machoke trazem as novidades do jogo de futsal com os Pokémon de Kanto. Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt
 > #pokemon #futsal #soccermon #meowth #psyduck
 
 **Instagram (Reels)**
-> [A APROVAR, v8] O Voltorb virou reserva e o Soccermon tem novidade ⚽ Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/ig (link na bio)
+> Estreia do Soccermon News 📺⚽ Raichu e Machoke trazem as novidades do jogo de futsal com os Pokémon de Kanto. Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/ig (link na bio)
 > Fan game sem fins lucrativos. Música original: Soccermon.
 > #pokemon #futsal #soccermon #meowth
 
 **YouTube Shorts**
-> Título: [A APROVAR] O Voltorb virou reserva | Soccermon News #1 #shorts
+> Título: O Voltorb virou reserva | Soccermon News #1 #shorts
 > Descrição: Qual novidade você vai testar primeiro? Joga grátis: soccermon.com/yt
 > Fan game sem fins lucrativos. Música original: Soccermon.
 
