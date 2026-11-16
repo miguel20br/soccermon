@@ -479,3 +479,19 @@ Analytics.
 
 - `game_events` ocupa **54 MB**, com 218.511 linhas desde 16/10; o banco inteiro tem 71 MB. Nesse ritmo, 12 meses dariam uns 650 MB, acima dos 500 MB do plano grátis, então 180 dias é o certo.
 - As 47 sessões que o placar conta como "android" têm referrer `com.google.android.googlequicksearchbox`, o app do Google (busca), não do YouTube. A hipótese do YouTube caiu: essas sessões são Google e deviam entrar no canal Google, que então é ainda maior.
+
+## Decidido com o Miguel (16/11/2026)
+
+Todas as 10 decisões aprovadas, cada uma com a recomendação:
+1. Fazer em 2 etapas.
+2. O id do aparelho fica fora do save.
+3. Respeitar o GPC.
+4. País pelo `cf-ipcountry`, testado antes num projeto de rascunho.
+5. Pergunta "como conheceu?" depois da 1ª partida, com o visual mostrado a ele antes.
+6. `/tt` e `/yt` na tela final dos vídeos.
+7. Guardar 180 dias.
+8. Alerta diário depois do UT.
+9. Sem Sentry por enquanto.
+10. Placar de segunda com 10 linhas e metas.
+
+A etapa 1 entra na 0.9.53 (segunda, 23/11).
