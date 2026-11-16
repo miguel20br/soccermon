@@ -439,3 +439,4 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 11. YouTube só com o Topic e uma playlist no nosso canal, sem monetização: **sim**.
 12. Sem single antes: **concordo**.
 - **Atualização (16/11):** a DistroKid custa US$ 24,99 por ano (não é grátis) e não parcela. O Miguel topa se sair por ~R$ 70 com o **desconto de estudante (50% no 1º ano)**. Ele mesmo faz a conta e o pagamento. O **YouTube sai em 27/11 de qualquer jeito**, numa playlist no nosso canal sem monetização, com um vídeo por faixa (capa + nome). O Spotify sai no mesmo dia se a DistroKid for fechada até sex 20/11; se não, entra em dezembro.
+- **Atualização (16/11, depois da rodada 1):** o álbum passou pra **sexta 04/12**, com Spotify e YouTube juntos. O motivo é a rodada 2 de retrabalho (punch, gênero próprio por faixa, teoria, Beatles como inspiração, faixa nova do chefão, medley encurtado). O upload na DistroKid fica até **sexta 27/11**, já que ela leva de 2 a 5 dias úteis.
