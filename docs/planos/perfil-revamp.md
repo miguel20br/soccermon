@@ -337,3 +337,17 @@ Pra o Miguel julgar (headless, 390 e 1440 salvo dito outra coisa). Nenhum foi ti
   [trocar o escudo no FC 26](https://www.magicgameworld.com/ea-fc-26-how-to-change-club-badge-in-ultimate-team/).
 - Steam, % de conquistas: [o que as porcentagens querem dizer](https://www.cloudspress.com/what-steam-achievement-rarity-percentages-mean-and-how-theyre-calculated/),
   [exemplo de página de estatísticas globais](https://steamcommunity.com/stats/1125710/achievements).
+
+## Decidido com o Miguel (16/11/2026)
+
+1. Em fases. A fase 1 (sistema de efeitos com o gelo, galeria `?lab=titulos` e seletor novo) vai na versão de Natal de 30/11. A fase 2 fica até 14/12.
+2. O seletor segue o modelo do de Treinadores: prévia do cartão em cima e salva no toque.
+3. O efeito de gelo é só do "Natal 2026".
+4. **Raridades: Comum, Raro, Épico, Lendário e Especial.** Sai "Platina" e entra "Épico". A % real vem quando houver dados.
+5. O "Natal 2026" sai pelos dois caminhos: Copa de Natal nos dois dias ou 2º degrau do desafio.
+6. O "Campeão T1" vira título de verdade.
+7. O Legado do UT vai pro Perfil.
+8. O nível do treinador aparece no seu cartão e no do amigo.
+9. O título no ranking fica pra decidir em dezembro, porque precisa de migração.
+10. Sem floco ao lado do título de gelo por enquanto; ele vê na galeria.
+11. Os efeitos são aprovados na galeria antes de espalhar.
