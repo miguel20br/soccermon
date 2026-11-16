@@ -96,7 +96,7 @@ if (main) {
     const nomes = args.filter((a, i) => !a.startsWith('--') && i !== outIdx + 1);
     const dir = new URL('./album/', import.meta.url);
     const todas = readdirSync(dir)
-        .filter((f) => /^\d\d-.*\.mjs$/.test(f))
+        .filter((f) => /^\d\d[a-z]?-.*\.mjs$/.test(f))
         .map((f) => f.replace(/\.mjs$/, ''));
     mkdirSync(OUT, { recursive: true });
     for (const alvo of nomes.length ? nomes : todas) {

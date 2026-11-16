@@ -5,18 +5,25 @@
 // tema que sai), e a ponte do tema que entra (`public/music/ponte-tema-*`, 1 compasso no tom e no andamento dele, com
 // riser e prato). O Giovanni, o mais pesado, fecha com o A' (o chefe e a turma da Rocket juntos) e um final em Sol
 // menor. Vem colado no "Curto-circuito".
+// Rodada 2 (16/11/2026): "uma obra de arte", mas "ideias ótimas afundadas em muito tempo de música" (4:45). Agora fica
+// o melhor de cada um, à moda do medley do Abbey Road: o motivo (2 compassos do A), a história do ginásio inteira (o
+// B, 8) e o motivo de novo já no tom de cima (2 do A'), costurados pela virada da casa (o SOC-CER-MON de caixa e clap,
+// o fio que volta em toda costura) e pela ponte do próximo. O Blaine fecha com o SOC-CER-MON da plateia e o "cha-cha"
+// final em Ré menor. O Giovanni saiu (ganhou faixa própria, "Sala do chefe"): no fim sobra a SOMBRA dele, a tuba
+// tocando o motivo do chefe em cima do chão que ronca, sem resolver, e a faixa emenda na sala dele. ~3:15.
 import { execFileSync } from 'node:child_process';
 import blaine from '../pecas/lider-blaine.mjs';
 import erika from '../pecas/lider-erika.mjs';
-import giovanni from '../pecas/lider-giovanni.mjs';
+import { MOTIVO as GIOVANNI, tremor } from '../pecas/lider-giovanni.mjs';
 import koga from '../pecas/lider-koga.mjs';
 import sabrina from '../pecas/lider-sabrina.mjs';
 import brock from '../pecas/tema-brock.mjs';
 import misty from '../pecas/tema-misty.mjs';
-import { bass, drum, I, mel, padChord, SR, stabs } from '../synth.mjs';
+import { bass, drum, I, mel, padChord, Song, SR, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
+import { bumbo, clapMolhado, orgao, tuba } from './kit.mjs';
 
-export const meta = { titulo: 'Sete rivais', faixa: 12, apara: false };
+export const meta = { titulo: 'Sete rivais', faixa: 12, apara: false, emenda: true };
 
 const MUSIC = new URL('../../../public/music/', import.meta.url).pathname;
 const ALVO = 0.1; // RMS de cada tema antes do master (o master acerta o integrado do medley inteiro)
@@ -83,47 +90,106 @@ function ponte(id, depois) {
     return { L, R, fim: barra / SR };
 }
 
+/** A sombra do Giovanni (3 compassos a 96 BPM, o andamento da "Sala do chefe"): a tuba toca o motivo do chefe em
+ * cima do órgão grave e do chão roncando, um clap molhado no 3, e para no Dó#7 sem resolver. */
+function sombra() {
+    const S = new Song({ bpm: 96, bars: 3, tail: 5 });
+    const tu = tuba(S, 'tuba', { gain: 1, rev: 0.25 });
+    const og = orgao(S, 'orgao', { gain: 0.45, rev: 0.4 });
+    const tr = S.part('tremor', tremor, { drum: true, gain: 0.8 });
+    const cl = S.part('claps', clapMolhado, { drum: true, gain: 1.3, rev: 0.3 });
+    const k = S.part('bumbo', bumbo, { drum: true, gain: 0.8 });
+    mel(tu, 0, GIOVANNI.mel, { shift: -24 });
+    padChord(og, 0, 'F#m', 16, { low: 42, n: 3, vel: 0.6 });
+    padChord(og, 1, 'C#7', 32, { low: 41, n: 4, vel: 0.6 });
+    drum(k, 0, 2, 'X.........x.....');
+    drum(cl, 1, 1, '........X.......');
+    tr.note(16 + 8, 0, 0, 1);
+    const [L, R] = S.render();
+    let e = 0;
+    for (let i = 0; i < L.length; i++) e += L[i] * L[i] + R[i] * R[i];
+    const g = (0.8 * ALVO) / Math.sqrt(e / (2 * L.length));
+    for (let i = 0; i < L.length; i++) {
+        L[i] *= g;
+        R[i] *= g;
+    }
+    return { L, R, fim: S.timeOfBar(3) };
+}
+
 export default function seteRivais() {
-    const ordem = [
-        ['tema-brock', brock, [[2, 18]]],
-        ['tema-misty', misty, [[2, 18]]],
-        ['tema-erika', erika, [[2, 18]]],
-        ['tema-koga', koga, [[2, 18]]],
-        ['tema-sabrina', sabrina, [[2, 18]]],
-        ['tema-blaine', blaine, [[2, 18]]],
+    // de cada um: o motivo (2 do A), a história (o B, 8) e o motivo no tom de cima (2 do A')
+    const MELHOR = [
+        [2, 4],
+        [10, 20],
     ];
-    const temas = ordem.map(([id, p, t]) => ({ id, ...tema(p, t) }));
-    // o Giovanni: A, B (as setas e a revelação), A' com a Rocket junto, e o final em Sol menor
+    const ordem = [
+        ['tema-brock', brock],
+        ['tema-misty', misty],
+        ['tema-erika', erika],
+        ['tema-koga', koga],
+        ['tema-sabrina', sabrina],
+    ];
+    const temas = ordem.map(([id, p]) => ({ id, ...tema(p, MELHOR) }));
+    // o Blaine fecha: o SOC-CER-MON da plateia (o compasso 25 do A') e o "cha-cha" em Ré menor
     temas.push({
-        id: 'tema-giovanni',
-        ...tema(giovanni, [[2, 26]], {
+        id: 'tema-blaine',
+        ...tema(blaine, [...MELHOR, [25, 26]], {
             fim: 3,
             final: (_S, P, n) => {
                 stabs(
-                    P('trio'),
+                    P('metais'),
                     n,
-                    'D7b9',
+                    'A7b9',
                     [
-                        [0, 1],
-                        [2, 1],
-                        [4, 2],
+                        [0, 2],
+                        [3, 2],
+                        [6, 2],
+                        [10, 1],
+                        [12, 2],
                     ],
-                    { low: 59, n: 4 },
+                    { low: 57, n: 4 },
                 );
-                mel(P('metais'), n, ['r:8 D4:3 Bb3:3 G3:2']);
-                mel(P('tuba'), n, ['r:8 D3:3 Bb2:3 G2:2']);
-                drum(P('caixa'), n, 1, '........xxXxXXXX', { vel: 0.8 });
-                bass(P('baixo'), n, 'D7b9', '0:8 r:8');
-                mel(P('metais'), n + 1, ['G4:16']);
-                mel(P('terças'), n + 1, ['D4:16']);
-                mel(P('tuba'), n + 1, ['G1:16']);
-                padChord(P('cordas'), n + 1, 'Gm', 16, { low: 55, n: 4 });
-                padChord(P('orgao'), n + 1, 'Gm', 16, { low: 43, n: 4, vel: 0.8 });
-                bass(P('baixo'), n + 1, 'Gm', '0:16');
-                drum(P('prato'), n + 1, 1, 'X...............');
-                drum(P('bumbo'), n + 1, 1, 'X...............');
-                drum(P('timpano'), n + 1, 1, 'X...............', { pitch: -8 });
-                P('tremor').note((n + 1) * 16, 0, 0, 1);
+                stabs(
+                    P('montuno'),
+                    n,
+                    'A7b9',
+                    [
+                        [0, 2],
+                        [3, 2],
+                        [6, 2],
+                        [10, 1],
+                        [12, 2],
+                    ],
+                    { low: 57, n: 4 },
+                );
+                bass(P('baixo'), n, 'A7b9', '0:3 0:3 0:4 0:2 0:4');
+                drum(P('timbal'), n, 1, '........xxxxXXXX', { pitch: 5 });
+                drum(P('bumbo'), n, 1, 'X..X..X...X.X...');
+                stabs(
+                    P('metais'),
+                    n + 1,
+                    'Dm',
+                    [
+                        [0, 2],
+                        [3, 10],
+                    ],
+                    { low: 57, n: 4 },
+                );
+                stabs(
+                    P('montuno'),
+                    n + 1,
+                    'Dm',
+                    [
+                        [0, 2],
+                        [3, 10],
+                    ],
+                    { low: 57, n: 4 },
+                );
+                mel(P('lead'), n + 1, ['A5:2 r:1 D6:13']);
+                bass(P('baixo'), n + 1, 'Dm', '0:2 r:1 0:13');
+                drum(P('prato'), n + 1, 1, '...X............');
+                drum(P('bumbo'), n + 1, 1, 'X..X............');
+                drum(P('palmas'), n + 1, 1, 'X..X............');
             },
         }),
     });
@@ -139,6 +205,7 @@ export default function seteRivais() {
         pedacos.push([t, p]);
         t += p.fim;
     });
+    pedacos.push([t, sombra()]);
     const total = Math.ceil(Math.max(...pedacos.map(([a, x]) => a * SR + x.L.length)));
     const L = new Float32Array(total);
     const R = new Float32Array(total);

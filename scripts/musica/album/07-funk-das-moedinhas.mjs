@@ -1,9 +1,14 @@
 // Faixa 7, "Funk das moedinhas" (Mercado funk, `mercado-funk`). Duas voltas e o fim: o SOC-CER-MON nos metais com as
 // palmas, e a caixa registradora fechando: as moedas caem todas, a gaveta bate (tom grave e bloco), o "plim" no agudo
 // e o Si♭ menor com nona.
+// Rodada 2 (16/11/2026): "uma obra de arte", "o acorde final é belíssimo", o mais importante é o groove; poucos
+// ajustes. Mudou só a bateria: o bumbo e a caixa com corpo do kit (os fantasmas da caixa continuam) num barramento
+// comprimido, e as palmas da torcida (I.palmas a +10 dB) viraram o clap 808 macio. Notas, groove e final iguais.
+// O nome muda (não é funk brasileiro): propostas na página de escuta.
 import mercado from '../pecas/mercado-funk.mjs';
 import { bass, drum, GANCHO, I, mel, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
+import { BATERIA, bumbo, caixa, clapMacio } from './kit.mjs';
 
 export const meta = { titulo: 'Funk das moedinhas', faixa: 7 };
 
@@ -14,7 +19,16 @@ export default function funkDasMoedinhas() {
             [0, 24],
             [0, 24],
         ],
-        { fim: 3 },
+        {
+            fim: 3,
+            barramentos: { bateria: BATERIA },
+            bus: { kick: 'bateria', snare: 'bateria', tom: 'bateria' },
+            troca: {
+                kick: { inst: bumbo, gain: 0.9 },
+                snare: { inst: caixa, gain: 0.8 },
+                palmas: { inst: clapMacio, gain: 1.4 },
+            },
+        },
     );
     const cr = S.part('prato', I.crash, { drum: true, gain: 0.45, pan: 0.2 });
     const gaveta = S.part('gaveta', I.block, { drum: true, gain: 1.1, pan: -0.1 });

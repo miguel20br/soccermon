@@ -7,11 +7,17 @@ import { Song } from '../synth.mjs';
 /**
  * @param {() => Song} peca a função da peça do jogo
  * @param {([number, number] | number)[]} trechos compassos da peça, na ordem do álbum (número = compassos vazios)
- * @param {{ fim?: number, tail?: number, bpmFim?: number }} o
+ * @param {{ fim?: number, tail?: number, bpmFim?: number, barramentos?: object, bus?: Record<string, string>,
+ *   troca?: Record<string, { inst: unknown, gain?: number }> }} o `barramentos` e `bus` (faixa → barramento) põem a
+ *   bateria no compressor; `troca` troca o timbre de uma faixa (o bumbo do ZzFX pelo bumbo com corpo do kit, rodada 2).
  * @returns {{ S: Song, P: (nome: string) => object, n: number, inicio: number[] }} `P` acha a faixa pelo nome; `n` =
  *   compassos antes do final (o final começa no compasso `n`); `inicio` = compasso novo onde começa cada trecho.
  */
-export function estender(peca, trechos, { fim = 3, tail = 4, bpmFim = null } = {}) {
+export function estender(
+    peca,
+    trechos,
+    { fim = 3, tail = 4, bpmFim = null, barramentos = null, bus = {}, troca = {} } = {},
+) {
     const rec = Song.recording;
     Song.recording = true;
     const S = peca();
@@ -48,15 +54,18 @@ export function estender(peca, trechos, { fim = 3, tail = 4, bpmFim = null } = {
         tail,
         bpmAt,
         masterAt: S.masterAt ? (t) => S.masterAt(tempoOrig(t)) : null,
+        barramentos,
     });
     const L = S.barLen;
     const partes = new Map();
     for (const p of S.parts) {
         const { pan, gain, echo, rev, drum, corte } = p;
         const ga = p.gainAt;
-        const p2 = S2.part(p.name, p.inst, {
+        const tr = troca[p.name];
+        const p2 = S2.part(p.name, tr?.inst ?? p.inst, {
             pan,
-            gain,
+            gain: tr?.gain ?? gain,
+            bus: bus[p.name] ?? null,
             echo,
             rev,
             drum,
