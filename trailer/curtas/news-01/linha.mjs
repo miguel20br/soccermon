@@ -122,7 +122,7 @@ const f14 = fala('f14', 'psyduck', '54-sigh', 'Agora ele é reserva.');
 beat('bVoltorb', 1.45, 'o Voltorb sozinho no banco, de colete: pisca, se encolhe, solta uma faísca e olha pros lados');
 bloco('vemai', 'VEM AÍ');
 const f15 = fala('f15', 'raichu', '26-inspired', 'A partir de agora, sai atualização nova toda semana.', { manchete: true });
-const f16 = fala('f16', 'machoke', '67-joyous', 'E na sexta que vem, dia 27, abre o Time Ultimate…');
+const f16 = fala('f16', 'machoke', '67-joyous', 'E na sexta, dia 27, abre o Time Ultimate…');
 const f17 = fala('f17', 'raichu', '26-joyous', ['…o modo novo em que você abre pacotes', 'e monta o time da temporada.']);
 beat('bRola', 1.0, 'o estúdio aberto: o Voltorb entra rolando no telão e para');
 bloco('fecha', 'PRA FECHAR');

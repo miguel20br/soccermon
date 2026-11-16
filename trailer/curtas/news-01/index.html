@@ -266,17 +266,17 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 /* o calendário (VEM AÍ): as quatro sextas, uma bola em cada; o 27/11 vira Time Ultimate */
 .cal { position: absolute; left: 70px; top: 470px; width: 940px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
 .cal .topo { width: 940px; height: 96px; border-radius: 20px; background: #e8423f; border: 10px solid #0e1430; display: flex; align-items: center; justify-content: center; box-sizing: border-box; color: #fff; font-size: 50px; letter-spacing: 6px; box-shadow: 0 12px 0 rgb(0 0 0 / 45%); }
-.cal .dias { display: flex; gap: 24px; }
-.cal .dia { position: relative; width: 217px; height: 400px; perspective: 1200px; }
+.cal .dias { display: flex; gap: 20px; }
+.cal .dia { position: relative; width: 172px; height: 400px; perspective: 1200px; }
 .cal .dia .gira { position: absolute; inset: 0; transform-style: preserve-3d; }
 .cal .dia .f, .cal .dia .v { position: absolute; inset: 0; box-sizing: border-box; border-radius: 22px; border: 10px solid #0e1430; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; padding-top: 24px; gap: 28px; box-shadow: 0 14px 0 rgb(0 0 0 / 45%); }
 .cal .dia .f { background: #f8f8f0; }
-.cal .dia .f span { font-size: 58px; color: #0e1430; letter-spacing: 2px; }
-.cal .dia .f small { font-size: 36px; color: #2a3a7a; letter-spacing: 2px; margin-top: -22px; }
-.cal .dia .f .bolinha { width: 150px; height: 150px; opacity: 0; }
+.cal .dia .f span { font-size: 42px; color: #0e1430; letter-spacing: 2px; }
+.cal .dia .f small { font-size: 24px; color: #2a3a7a; letter-spacing: 2px; margin-top: -22px; }
+.cal .dia .f .bolinha { width: 120px; height: 120px; opacity: 0; }
 .cal .dia .v { background: radial-gradient(circle at 50% 40%, #ffe680, #ffcb05 60%, #d99a00); transform: rotateY(180deg); justify-content: center; padding-top: 0; gap: 18px; }
-.cal .dia .v img { width: 150px; filter: drop-shadow(0 8px 0 rgb(0 0 0 / 35%)); }
-.cal .dia .v b { font-size: 34px; line-height: 1.1; color: #fff; text-align: center; -webkit-text-stroke: 9px #0e1430; paint-order: stroke fill; }
+.cal .dia .v img { width: 120px; filter: drop-shadow(0 8px 0 rgb(0 0 0 / 35%)); }
+.cal .dia .v b { font-size: 22px; line-height: 1.1; color: #fff; text-align: center; -webkit-text-stroke: 7px #0e1430; paint-order: stroke fill; }
 /* o pacote e a escalação de 5 */
 .pacote { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 40; }
 .pacote > div { position: absolute; left: -165px; top: -227px; width: 330px; height: 454px; background-size: 100% 100%; filter: drop-shadow(0 0 30px rgb(255 203 5 / 55%)); }
@@ -390,7 +390,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div class="painel-n" id="p-barras"><img class="carta-pk" src="midia/news/cartas/95.png" alt="" />
     <div class="barras" id="barras"></div></div>
   <div class="painel-n" id="p-rota"><div class="pr" id="pr"><div class="rs"><div class="moeda">₽</div><b class="num-g" id="rs-n">0</b></div></div></div>
-  <div class="painel-n" id="p-cal"><div class="cal"><div class="topo">TODA SEXTA</div><div class="dias" id="dias"></div></div></div>
+  <div class="painel-n" id="p-cal"><div class="cal"><div class="topo">TODA SEGUNDA</div><div class="dias" id="dias"></div></div></div>
   <div class="painel-n" id="p-pacote"><div class="campo-ut" id="campo-ut"></div></div>
   <div class="moldura" id="m-vt" style="left:264px;top:306px;width:552px;height:963px"></div>
   </div>
@@ -1315,9 +1315,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     }
     // ===================== VEM AÍ: o calendário e o Time Ultimate =====================
     // f15 · as quatro sextas, uma bola em cada; f16 · o quadradinho do 27/11 vira Time Ultimate
-    const DIAS = ['20/11', '27/11', '04/12', '11/12'];
+    const DIAS = [['23/11', 'SEGUNDA'], ['27/11', 'SEXTA'], ['30/11', 'SEGUNDA'], ['07/12', 'SEGUNDA'], ['14/12', 'SEGUNDA']];
     const bolinhaSVG = () => BOLA.replace('<svg ', '<svg class="bolinha" ');
-    $('dias').innerHTML = DIAS.map((d) => `<div class="dia"><div class="gira"><div class="f"><span>${d}</span><small>SEXTA</small>${bolinhaSVG()}</div><div class="v"><img src="midia/news/cartas/pack.png" alt="" /><b>TIME<br>ULTIMATE</b></div></div></div>`).join('');
+    $('dias').innerHTML = DIAS.map(([d, w]) => `<div class="dia"><div class="gira"><div class="f"><span>${d}</span><small>${w}</small>${bolinhaSVG()}</div><div class="v"><img src="midia/news/cartas/pack.png" alt="" /><b>TIME<br>ULTIMATE</b></div></div></div>`).join('');
     corta('#fundo', M.vemai, { seco: true });
     paineis(M.vemai, '#p-cal');
     empurra(M.vemai, F.f16.z - M.vemai, 1.03);
@@ -1325,17 +1325,17 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       const dias = [...document.querySelectorAll('#dias .dia')];
       dias.forEach((d, i) => tl.fromTo(d, { y: 600, rotation: 6 }, { y: 0, rotation: 0, duration: 0.3, ease: 'back.out(1.5)', immediateRender: false }, M.vemai + 0.1 + i * 0.08));
       tl.fromTo('#p-cal .topo', { y: -300 }, { y: 0, duration: 0.3, ease: 'back.out(1.5)', immediateRender: false }, M.vemai);
-      const bs = dias.map((d) => d.querySelector('.bolinha'));
+      const bs = dias.filter((d, i) => i !== 1).map((d) => d.querySelector('.bolinha'));
       M.sextas.forEach((t, i) => {
         tl.set(bs[i], { opacity: 1 }, t - 0.16);
         tl.fromTo(bs[i], { y: -300, scaleY: 1 }, { keyframes: [{ y: 0, duration: 0.16, ease: 'power2.in' }, { scaleY: 0.7, scaleX: 1.2, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }], immediateRender: false }, t - 0.16);
       });
-      const ut = dias[1];
+      const ut = dias[1]; // o card extra: sexta 27/11 entre as segundas
       gsap.set(ut, { zIndex: 2 });
       tl.fromTo(ut.querySelector('.gira'), { rotationY: 0 }, { rotationY: 180, duration: 0.35, ease: 'power2.inOut', immediateRender: false }, M.ultimate - 0.15);
       tl.fromTo(ut, { scale: 1 }, { keyframes: [{ scale: 1.22, duration: 0.2, ease: 'power2.out' }, { scale: 1.12, duration: 0.2, ease: 'power2.in' }], immediateRender: false }, M.ultimate);
-      estouro(tl, $('p-cal'), 70 + 217 + 24 + 108, 470 + 126 + 200, M.ultimate + 0.15, { tam: 460, dur: 0.35 });
-      tl.to([dias[0], dias[2], dias[3]], { opacity: 0.45, duration: 0.3 }, M.ultimate + 0.2);
+      estouro(tl, $('p-cal'), 540, 470 + 126 + 200, M.ultimate + 0.15, { tam: 460, dur: 0.35 });
+      tl.to([dias[0], dias[2], dias[3], dias[4]], { opacity: 0.45, duration: 0.3 }, M.ultimate + 0.2);
       for (let t = M.ultimate + 0.75; t < F.f16.z - 0.3; t += 0.5) tl.fromTo(ut.querySelector('.v img'), { scale: 1.08 }, { scale: 1, duration: 0.22, ease: 'power2.out', immediateRender: false }, t);
     }
     // f17 · um pacote abre e as cartas caem numa escalação de 5; o Mewtwo 93 vira por último e vem pro meio, grande
