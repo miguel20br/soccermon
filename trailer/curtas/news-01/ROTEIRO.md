@@ -1,10 +1,11 @@
 ---
-description: Soccermon News #1 v10 (85,7 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; ritmo "texto, coisinha, texto" com 7 beats sem texto, uma manchete por vez, o Psyduck de volta à bancada, o Voltorb no banco e 3 vinhetas pro Miguel escolher; linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
+description: Soccermon News #1 v10 (85,7 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; ritmo "texto, coisinha, texto" com 7 beats sem texto, uma manchete por vez, o Psyduck de volta à bancada, o Voltorb no banco, a vinheta C e a trilha jazz-fusion da bancada (música C); linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
 ---
 
 # Soccermon News #1 v10 (85,7 s, 16/11/2026)
 
-Composição pronta, **sem render**: a música vai ser trocada. Prévia em quadros parados: `previa.mjs` (abaixo).
+Renderizada com a **música C** (a bancada jazz-fusion) e a **vinheta C** (a cartinha girando e virando o logo), as duas
+escolhidas pelo Miguel. Prévia em quadros parados: `previa.mjs` (abaixo).
 
 Da v9 pra v10, o que o Miguel pediu:
 
@@ -36,14 +37,13 @@ Da v9 pra v10, o que o Miguel pediu:
     faixas finas ficam atrás do logo e a placa entra de lado;
   - **C**: a cartinha da marca (a das transições) gira no eixo Y cada vez mais rápido e, de lado, vira a placa do logo.
 
-  A escolha é a constante `VINHETA` no `index.html` (ou `?vinheta=a|b|c` na prévia). Está em A só por ser a primeira:
-  **falta o Miguel escolher**.
+  A escolha é a constante `VINHETA` no `index.html` (ou `?vinheta=a|b|c` na prévia): **o Miguel escolheu a C**.
 
 Fica da v9: a dupla de terno, os retratos, os blips suaves, a digitação a 25 ms, as falas (sem o Magikarp e sem o
 atraso), PRA FECHAR, as reações do Voltorb (o pavio no gancho e no PRA FECHAR), sem relógio, o Growlithe escondido.
 As notas da v9 (as animações acertadas quadro a quadro) estão no commit 29885b2d.
 
-**Pra música nova** (o `linha.mjs` mudou): os instantes mudaram todos depois de 14 s. `M.voltorbReage[1]` agora é o
+**Os instantes da v10** (o `linha.mjs` mudou): os instantes mudaram todos depois de 14 s. `M.voltorbReage[1]` agora é o
 começo do beat do Voltorb no banco (57,55), com a gag em `M.gag` (pisca, encolhe, faísca, olha, volta); `M.payFim` é o
 beat das moedas (1,35 s); os beats estão em `BEATS` (`nome`, `s`, `z`) e cada um tem a sua chave em `M`. `M.perdendo`
 continua existindo, mas o PERDENDO saiu da tela. `CORTES` tem os cortes novos.
@@ -95,16 +95,38 @@ saem do `linha.mjs` (a cena lê `midia/som/news-falas.js`).
 | 79,4–82,5 | | Todos (os 4) | Temos que chutar! (79,5) | o Meowth e o Psyduck no telão; todos pulam (79,8 e 80) |
 | 82,5–85,7 | — | — | — | tela final: logo, Temos que chutar!, soccermon.com e a turma (3,2 s) |
 
-## Música (a da v9: vai ser trocada; o compositor lê os instantes novos do linha.mjs)
+## Música: a bancada jazz-fusion (a C, escolhida pelo Miguel)
 
-`scripts/musica/pecas/news-plantao.mjs` (120 BPM, Dó dórico) importa o `linha.mjs`: a cama de cada bloco começa no corte
-dele (o groove do estúdio na abertura, no vestiário e no PRA FECHAR; o funk leve nas matérias; sobe pra Ré no Time
-Ultimate e vai pra Mi♭ depois do Mewtwo). O gancho tem a batida de plantão e o fusível do Voltorb; a vinheta, o pulso de
-sintetizador subindo, o tímpano e o acorde dos metais no logo; a escalada abre com a mesma batida e cada cartela é uma
-batida; um toque (metais, sino e prato) em cada manchete; a varrida nas 2 transições e um whoosh curto nas outras trocas;
-palmas da torcida no corte pra Rota. Os sons das animações caem nos mesmos instantes do `linha.mjs`. A banda só para na
-reação sem graça do Raichu. No "Temos que chutar!" os metais tocam o ritmo do grito; na tela final o SOC-CER-MON e o fecho
-em Mi♭. Os blips ficam em `news-voz.wav`.
+`scripts/musica/pecas/news-bancada.mjs` (o `trailer/curtas/musica.mjs` usa ela; a da v9, `news-plantao.mjs`, fica de
+registro), sobre o esboço C aprovado (`news-esboco-c.mjs`, de onde vêm o `TEMA` e o `telefone`). Mi♭ maior, 120 BPM,
+swing 0,06, no jeito do Sonic Mania: acordes com 7ª e 9ª, slap andando, piano elétrico, lead de metal quente dobrado por
+um pulso. Lê o `linha.mjs`: cada cama entra na 1ª batida do bloco e para no beat seguinte. O telefone da redação é a
+pergunta, a bancada responde com o tema.
+
+| Trecho | O que a música faz |
+|---|---|
+| gancho 0–2 | golpe grave em Si♭7sus4, o baixo pulsando no pedal, o chimbal chiando como pavio, os plins do pavio do Voltorb (0,45) e o tímpano crescendo; corta seco no 2 |
+| vinheta C 2–4,5 | o telefone toca (2,0); um tom em cada meia volta da cartinha (2,7 · 2,91 · 3,07 · 3,2) e a caixa rufando; no logo (3,28) prato, bumbo, tímpano e Mi♭maj7, e a cabeça do tema sobe até o Mi♭ agudo no #1 (3,85); o baixo puxa pra bancada |
+| abertura | o groove da bancada (Mi♭maj7 · Dó m9 · Lá♭maj7 · Si♭7sus4); o telefone toca no vão depois da f1, o lead atende no vão depois da f2; o selo da versão com tom e sino |
+| escalada | prato e metais na vinheta curta; em cada cartela bumbo, tímpano, acorde e a cabeça do tema um degrau acima; na 4ª as cordas abrem e o lead pergunta |
+| plantão | o mesmo groove em Lá♭maj7 · Si♭7sus4 · Sol m7 · Dó m9; as 3 opções (bwoop), o holofote, os 4 troféus, o Patrocínio; o lead responde no vão da f5 |
+| AO VIVO | a cor de rua: Dó m7 · Fá7, partido-alto no chimbal, clavinete no contratempo, agogô; o lick de rua (o arpejo do tema em Dó menor) no vão da f8; a torcida bate palma no corte pra Rota; ka-ching em cada vitória, metais no Pay Day e as 14 moedas descendo |
+| VESTIÁRIO | magro e cômico: tuba no tempo, pizzicato e o tique de relógio; o chute e o KABOOM; na reação do Raichu tudo para (o plim da gota e a tuba "uá-uá"); de volta à bancada com o Psyduck, a tuba murcha no "reserva" |
+| VEM AÍ | o groove em Mi♭ (Mi♭maj7 · Lá♭maj7 · Fá m9 · Si♭7sus4), um sino por sexta, o Time Ultimate com prato e Si♭7sus4; quando a f16 acaba de digitar (64,25) o baixo sobe pelo cromático (Si♭ → Mi), o telefone toca, a caixa rufa e o riser leva tudo pra Fá maior em 66,0: bumbo reto, chimbal aberto, shaker, clap do 808; o pacote (cai, treme, rasga, as cartas saem); o SOC-CER-MON no vão das páginas (67,0) com as palmas respondendo em 68,5 e no Mewtwo (68,75), que entra com prato e o tema inteiro em Fá com segunda voz |
+| PRA FECHAR | o groove em Fá (Fá maj7 · Ré m9 · Si♭maj7 · Dó7sus4), o pavio do Voltorb e o plim no "bem"; depois do "boa noite" o tema volta inteiro (77,5); no grito, um golpe no pulo (79,8) e o "TAR" no Fá com prato (80,0); riser e rufo até a tela final |
+| tela final | o SOC-CER-MON em Fá no ritmo das piscadas do logo (82,5 · 82,875 · 83,25), as palmas, o acorde de Fá maj7 na faísca (84,0) e o telefone toca uma última vez (84,6), a piada (`TELEFONE_NO_FIM = false` fecha só no acorde) |
+
+**Os beats sem texto**: a bateria sai e cada um ganha o seu acento. bDupla: dois "tum" (piano, metais, baixo) nos acenos
+(14,47 e 14,77). bCartas: cada carta que cai é um baque e uma nota do piano, subindo pelo Mi♭ (20,92 · 21,04 · 21,16).
+bRua: o chiado do telão em 6 degraus (31,75), o plim quando abre na Rota (32,15), o agogô e o slap escorregando pra rua.
+payFim: as moedas assentam no 3-3-2 com as palmas e o baixo (45,65 · 46,03 · 46,4). bVoltorb: um som pequeno por gesto
+(pisca: sino agudo; encolhe: "fiuu" descendo; faísca: zap; olha pros lados: bloco à esquerda e à direita; volta:
+bwoop). bRola: toms em giro que freiam enquanto ele rola, o "tum" quando para (71,6) e a piscada. bRisada: três "ha"
+dos metais descendo no balanço da dupla (75,59 · 75,82 · 76,06) e a piscada do Voltorb.
+
+**Mistura**: a banda abaixa 3 dB enquanto a caixa digita (como na v9) e mais 2 dB debaixo das falas inteiras, menos onde
+o tema toca (o groove C é mais cheio que o da v9; assim os beats e os temas sobressaem). Lead, baixo ~58% do lead
+(rms ativo), percussão entre 9% e 33% do lead, clap do 808 da receita 7b. Os blips ficam em `news-voz.wav`.
 
 ## Gerar
 

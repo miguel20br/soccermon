@@ -13,7 +13,7 @@ import atrasado from '../../scripts/musica/pecas/livre-atrasado.mjs';
 import foto from '../../scripts/musica/pecas/livre-foto.mjs';
 import paredao from '../../scripts/musica/pecas/livre-paredao.mjs';
 import bolas from '../../scripts/musica/pecas/livre-bolas.mjs';
-import news from '../../scripts/musica/pecas/news-plantao.mjs';
+import news from '../../scripts/musica/pecas/news-bancada.mjs';
 import { SR, Song, writeWav } from '../../scripts/musica/synth.mjs';
 
 // compassos da peça original, na ordem do curta

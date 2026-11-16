@@ -13,7 +13,7 @@
   Só 2 transições com a cartinha (a varrida: escalada e VEM AÍ).
   v10: "texto, coisinha, texto": entre os blocos de fala, um beat sem texto (BEATS do linha.mjs: a caixa fecha e a
   manchete sai); texto só na caixa e numa manchete por vez (saíram as tarjas GC, os preços, as placas e os rótulos);
-  uma ação de fundo por vez; o Psyduck de volta à ponta da bancada; 3 vinhetas pro Miguel escolher (?vinheta=a|b|c,
+  uma ação de fundo por vez; o Psyduck de volta à ponta da bancada; 3 vinhetas, o Miguel escolheu a C (?vinheta=a|b|c,
   ou a constante VINHETA).
   Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v10.mp4
 -->
@@ -360,7 +360,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
     const { M, FALAS, BLOCOS, BEATS, FIM, CARTELAS, VARRIDAS, DT, SAIDA } = window.LINHA;
     // a vinheta de abertura: o Miguel escolhe entre A, B e C (a A é o padrão só por ser a primeira; ?vinheta=b troca)
-    const VINHETA = new URLSearchParams(location.search).get('vinheta') ?? 'a';
+    const VINHETA = new URLSearchParams(location.search).get('vinheta') ?? 'c';
     const F = Object.fromEntries(FALAS.map((f) => [f.id, f]));
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
