@@ -6,7 +6,8 @@ import { Song } from '../synth.mjs';
 
 /**
  * @param {() => Song} peca a função da peça do jogo
- * @param {([number, number] | number)[]} trechos compassos da peça, na ordem do álbum (número = compassos vazios)
+ * @param {([number, number] | [number, number, number] | number)[]} trechos compassos da peça, na ordem do álbum
+ *   (número = compassos vazios); o 3º número sobe o trecho em semitons (a bateria não muda): modulação de graça
  * @param {{ fim?: number, tail?: number, bpmFim?: number, barramentos?: object, bus?: Record<string, string>,
  *   troca?: Record<string, { inst: unknown, gain?: number }> }} o `barramentos` e `bus` (faixa → barramento) põem a
  *   bateria no compressor; `troca` troca o timbre de uma faixa (o bumbo do ZzFX pelo bumbo com corpo do kit, rodada 2).
@@ -24,10 +25,19 @@ export function estender(
     Song.recording = rec;
     const inicio = [];
     const mapa = [];
+    const desloc = [];
     for (const x of trechos) {
         inicio.push(mapa.length);
-        if (typeof x === 'number') for (let i = 0; i < x; i++) mapa.push(null);
-        else for (let b = x[0]; b < x[1]; b++) mapa.push(b);
+        if (typeof x === 'number')
+            for (let i = 0; i < x; i++) {
+                mapa.push(null);
+                desloc.push(0);
+            }
+        else
+            for (let b = x[0]; b < x[1]; b++) {
+                mapa.push(b);
+                desloc.push(x[2] ?? 0);
+            }
     }
     const n = mapa.length;
     // compasso vazio segue o último compasso tocado antes dele (andamento, camadas, volume)
@@ -80,7 +90,7 @@ export function estender(
             mapa.forEach((b, j) => {
                 if (b !== ob) return;
                 sinc?.(t, m, len, vel);
-                p2.note(t + (j - ob) * L, m, len, vel);
+                p2.note(t + (j - ob) * L, drum ? m : m + desloc[j], len, vel);
             });
         }
     }
