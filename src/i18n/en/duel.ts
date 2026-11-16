@@ -219,7 +219,7 @@ export const duel: typeof pt = {
         rematch: 'Rematch',
         rematchWait: 'Waiting for {name} to accept the rematch…',
         rematchAsk: '{name} wants a rematch',
-        cupInvite: 'Build your own team and play the Lightning Cup.',
+        cupInvite: 'Pick 1 of 3 Pokémon and build your own team.',
         cupInviteBtn: 'Build my team',
         rivalLeft: '{name} left the room',
         h2hLabel: 'Head-to-head',

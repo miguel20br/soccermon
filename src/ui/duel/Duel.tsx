@@ -773,11 +773,14 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
     // embaixo da Revanche, no placar: visível sem rolar
     const [invite] = useState(() => cupInviteShown(role, !nextUp, useGame.getState()));
     const cupInvite = invite && !nextUp && (
-        <div className="duel-cup-invite" data-testid="duel-cup-invite">
-            <p>{t('duel.result.cupInvite')}</p>
+        <div className="duel-cup-invite bc-stripe" data-testid="duel-cup-invite">
+            <div className="duel-cup-invite-txt">
+                <span className="bc-tag">{t('home.playTag')}</span>
+                <p>{t('duel.result.cupInvite')}</p>
+            </div>
             <button
                 type="button"
-                className="btn confirm"
+                className="btn"
                 data-testid="duel-cup-start"
                 onClick={() => {
                     trackNav('cta', 'copa', 'duelo_convidado', { mode: s.mode });

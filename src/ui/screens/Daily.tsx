@@ -86,9 +86,10 @@ export function useDailyBegin() {
 }
 
 /** "dd/mm" e o dia da semana, no idioma da tela (a data é a de Brasília, sem fuso no meio). */
-const dayLabel = (day: string, lang: string) =>
+// "16 de novembro" / "November 16": o dia da semana fica no letreiro e na fileira da semana
+const dayLabel = (day: string, lang: string, weekday?: 'long') =>
     new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'pt-BR', {
-        weekday: 'long',
+        weekday,
         day: 'numeric',
         month: 'long',
         timeZone: 'UTC',
@@ -228,7 +229,7 @@ export function Daily() {
             scene={
                 <EstadioBackdrop
                     mon={{ id: sticker }}
-                    led={`${t('liga.daily.number', { n: num })} · ${date}`.toUpperCase()}
+                    led={`${t('liga.daily.number', { n: num })} · ${dayLabel(today, lang, 'long')}`.toUpperCase()}
                 />
             }
             action={
@@ -243,7 +244,12 @@ export function Daily() {
                         {playing ? t('liga.daily.continue') : t('liga.daily.play')}
                     </button>
                 ) : entry.results.length > 0 ? (
-                    <button type="button" className="btn primary big" data-testid="daily-share" onClick={share}>
+                    <button
+                        type="button"
+                        className="btn primary big daily-share-btn"
+                        data-testid="daily-share"
+                        onClick={share}
+                    >
                         <HudIcon kind="upload" />
                         {shared ? t('liga.daily.copied') : t('liga.daily.shareN', { n: num })}
                     </button>
@@ -251,14 +257,15 @@ export function Daily() {
             }
         >
             <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go(backTarget('daily') ?? 'home')} />
-            <Coach id="dia" targets={['.dy-panel .lg-date', '[data-testid="daily-play"]']} when={!entry} />
+            <Coach id="dia" targets={['.dy-panel .dy-when', '[data-testid="daily-play"]']} when={!entry} />
             {/* o vão: a torcida, o letreiro com o dia e o Pokémon da figurinha no meio da quadra */}
             <i className="k-stage-gap" aria-hidden />
             <section className="panel lg-hero dy-panel bc-surface bc-stripe">
                 <div className="dy-top">
-                    <span className="lg-date">
-                        {/* o "#" tira a maiúscula do ::first-letter: a data sobe a primeira letra aqui */}#{num} ·{' '}
-                        {date.charAt(0).toUpperCase() + date.slice(1)}
+                    {/* o número do dia num selo próprio e a data curta do lado: uma linha só até em 320 */}
+                    <span className="dy-when">
+                        <b className="k-seal dy-num">#{num}</b>
+                        <span className="lg-date">{date}</span>
                     </span>
                     {rules}
                 </div>

@@ -179,7 +179,7 @@ export function Result() {
     );
     const thumb = (
         // fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado
-        <div className="bc-thumbbar">
+        <div className={`bc-thumbbar${dailyEnd ? ' res-daily-bar' : ''}`}>
             {dailyEnd ? (
                 <>
                     <button type="button" className="btn ghost" onClick={advance}>
@@ -187,12 +187,22 @@ export function Result() {
                     </button>
                     <button
                         type="button"
-                        className="btn primary big res-daily-share"
+                        className="btn primary big daily-share-btn"
                         data-testid="daily-share"
                         onClick={shareDay}
                     >
                         <HudIcon kind="upload" />
                         {t('liga.daily.shareN', { n: dailyNumber(run.daily!) })}
+                    </button>
+                    {/* "Nova copa" continua a 1 toque, como link: o gordo da barra é o Compartilhar */}
+                    <button
+                        type="button"
+                        className="link-btn res-newcup"
+                        data-testid="daily-new-cup"
+                        onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                    >
+                        {t('result.newCup')}
+                        <HudIcon kind="next" />
                     </button>
                 </>
             ) : eliminated || champion ? (

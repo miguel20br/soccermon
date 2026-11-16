@@ -219,7 +219,7 @@ export const duel = {
         rematch: 'Revanche',
         rematchWait: 'Esperando {name} aceitar a revanche…',
         rematchAsk: '{name} quer revanche',
-        cupInvite: 'Monte seu próprio time e jogue a Copa Relâmpago.',
+        cupInvite: 'Escolha 1 de 3 Pokémon e monte seu próprio time.',
         cupInviteBtn: 'Montar meu time',
         rivalLeft: '{name} saiu da sala',
         h2hLabel: 'Placar geral',

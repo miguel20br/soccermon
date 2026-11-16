@@ -5193,13 +5193,58 @@ button,
 .res-icons {
     margin-inline: auto;
 }
-/* Copa do Dia: "Compartilhar #29" numa linha só; no celular estreito o ícone sai pra caber */
-.res-daily-share {
+/* Copa do Dia: "Compartilhar #29" numa linha só; o ícone no tamanho das letras de 18 px e na altura delas (o de 18 px
+   ficava miúdo e 2 px abaixo); no celular estreito, ao lado do Menu, o ícone sai pra caber */
+.daily-share-btn {
     white-space: nowrap;
 }
+.daily-share-btn .hud-icon {
+    width: 22px;
+    height: 22px;
+    translate: 0 -2px;
+}
 @media (max-width: 359px) {
-    .res-daily-share .hud-icon {
+    .res-daily-bar .daily-share-btn .hud-icon {
         display: none;
+    }
+    /* 320: o texto de 18 px encostava na borda do botão; 16 px e menos respiro do lado */
+    .bc-thumbbar.res-daily-bar > .btn.daily-share-btn {
+        padding-inline: 10px;
+        font-size: 16px;
+    }
+}
+/* fim da Copa do Dia: "Nova copa" como link ao lado (desktop e deitado) ou numa linha fina em cima (celular em pé) */
+.res-newcup {
+    font-size: 13px;
+}
+.res-newcup .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+@media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
+    .res-daily-bar > .res-newcup {
+        flex: 0 0 auto;
+        min-height: 44px;
+        padding-inline: 4px;
+    }
+}
+@media (max-width: 700px) and (orientation: portrait) {
+    .bc-thumbbar.res-daily-bar {
+        flex-wrap: wrap;
+        row-gap: 0;
+        padding-top: 2px;
+    }
+    .res-daily-bar > .res-newcup {
+        order: -1;
+        flex: 1 0 100%;
+        min-height: 32px;
+        justify-content: center;
+    }
+    .app:has(.res-daily-bar) {
+        padding-bottom: calc(var(--bc-thumb-h) + 48px);
+    }
+    html:has(.res-daily-bar) {
+        scroll-padding-bottom: calc(var(--bc-thumb-h) + 48px);
     }
 }
 .cupgoal-lbl {
