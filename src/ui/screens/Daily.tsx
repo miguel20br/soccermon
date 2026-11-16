@@ -1,5 +1,5 @@
 import { type CSSProperties, useEffect, useState } from 'react';
-import { noteDailyOrigin } from '../../analytics/track';
+import { noteDailyOrigin, track } from '../../analytics/track';
 import { useCloud } from '../../cloud/cloud';
 import { CUP_STAGES } from '../../engine/cup';
 import { SPECIES_BY_ID, species } from '../../engine/data';
@@ -197,8 +197,10 @@ export function Daily() {
     const share = async () => {
         if (!entry) return;
         const tx = dict(lang).liga.daily.shareText;
-        const text = dailyShareText(entry, streak, tx, (n) => clubName(n, lang), `${SITE_URL}/?utm_source=share`);
+        // utm_source=daily: quem chega pelo resultado da Copa do Dia não se mistura com o desafio (share)
+        const text = dailyShareText(entry, streak, tx, (n) => clubName(n, lang), `${SITE_URL}/?utm_source=daily`);
         const res = await shareText(text);
+        track('share', { kind: 'daily', result: res, wins: winsOf(entry) });
         if (res !== 'failed') {
             setShared(true);
             window.setTimeout(() => setShared(false), 2000);

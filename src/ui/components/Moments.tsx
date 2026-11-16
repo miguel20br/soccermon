@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { track } from '../../analytics/track';
 import { ENGINE_VERSION } from '../../engine/config';
 import { clubLeader } from '../../engine/cup';
 import type { LeaderId } from '../../engine/rival-coach';
@@ -121,11 +122,18 @@ export function Moments({
             recorder.current = rec;
             rec.start().then(
                 (blob) => {
+                    track('share', {
+                        kind: 'clip',
+                        fmt: clipExt(mime),
+                        ok: true,
+                        secs: Math.round((c.to - c.from) / 20),
+                    });
                     setClip({ blob, url: URL.createObjectURL(blob) });
                     setProgress(1);
                     setMode('clip');
                 },
                 () => {
+                    track('share', { kind: 'clip', fmt: clipExt(mime), ok: false });
                     setError(t('moments.failed'));
                     setMode('watch');
                 },

@@ -5,12 +5,16 @@ import { currentNode, isLong } from '../store/long-cup';
 import { skipTagOf } from '../store/long-events';
 import { seenCount } from '../store/profile';
 import { casaOf, houseOf } from '../store/rota-map';
+import { standalone } from '../ui/install';
 import { lineupAverage } from '../ui/rating';
+import { deviceVisit, forgetDevice, localDay, localStore } from './device-id';
 
 /**
  * Estatísticas anônimas do jogo, gravadas na tabela `game_events` do Supabase (só inserir; ninguém lê
- * pela API). Sem conta, sem e-mail, sem cookie: cada evento leva só um id de sessão aleatório que vive
- * enquanto a aba está aberta. Desliga em Configurações (`settings.stats`) e no `npm run dev`.
+ * pela API). Sem conta, sem e-mail, sem cookie: cada evento leva um id de sessão aleatório que vive
+ * enquanto a aba está aberta, e o `session_start` leva o id sorteado do aparelho (`device-id.ts`, fora do save).
+ * Desliga em Configurações (`settings.stats`). No `npm run dev` nada sai: os eventos ficam em
+ * `window.__soccermonStats` pra conferir no console.
  * Os eventos saem da observação do save (useGame.subscribe), sem espalhar chamadas pelas telas.
  */
 
@@ -37,6 +41,8 @@ export const isBot = (nav: { webdriver?: boolean; userAgent?: string }) =>
 
 /** Só no site oficial: prévias da Vercel, staging e o endereço antigo não sujam as estatísticas. Robô também não. */
 const ENABLED = import.meta.env.PROD && !!cloudApi && window.location.hostname === 'soccermon.com' && !isBot(navigator);
+/** Dev: os eventos vão pra `window.__soccermonStats` (conferir sem mandar nada). */
+const DEBUG = import.meta.env.DEV && typeof window !== 'undefined';
 const FLUSH_MS = 8000;
 
 /**
@@ -205,8 +211,16 @@ export function screenProps(s: Pick<GameState, 'screen' | 'run'>, prev: Pick<Gam
 
 export function track(name: EventName, props: Props = {}) {
     // antes de o save carregar, `stats` ainda é o padrão (pode ser de quem desligou)
-    if (!ENABLED || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats) return;
-    queue.push({ session, name, props, app_version: __APP_VERSION__, device: device() });
+    if (!(ENABLED || DEBUG) || !sendable(name) || !useGame.persist.hasHydrated() || !useGame.getState().settings.stats)
+        return;
+    const row = { session, name, props, app_version: __APP_VERSION__, device: device() };
+    if (!ENABLED) {
+        const w = window as unknown as { __soccermonStats?: Row[] };
+        w.__soccermonStats ??= [];
+        w.__soccermonStats.push(row);
+        return;
+    }
+    queue.push(row);
     if (queue.length >= MAX_QUEUE) flush();
     else timer ??= setTimeout(() => flush(), FLUSH_MS);
 }
@@ -394,6 +408,77 @@ const errorText = (e: unknown) =>
         .slice(0, 160);
 
 /**
+ * O evento `error`: `kind` (react = tela de crash, window, promise), `type` (TypeError...), a tela, a mensagem e o
+ * começo da stack (`at`: os 2 primeiros quadros só como `arquivo:linha:coluna`, sem endereço). `message` é o texto do
+ * `window.onerror`, quando a mensagem vem separada do erro.
+ */
+export function errorProps(kind: string, err: unknown, screen: string, message?: string): Props {
+    const e = err as { name?: unknown; stack?: unknown } | null;
+    const stack = typeof e?.stack === 'string' ? e.stack : '';
+    const at = [...stack.matchAll(/([\w.-]+\.m?[jt]sx?)(?:\?[^:\s)]*)?:(\d+):(\d+)/g)]
+        .slice(0, 2)
+        .map((m) => `${m[1].slice(-40)}:${m[2]}:${m[3]}`)
+        .join(' ');
+    return {
+        kind,
+        type: err instanceof Error || typeof e?.name === 'string' ? String(e?.name).slice(0, 30) : null,
+        screen: screen.slice(0, 30),
+        msg: errorText(message ?? err),
+        at: at || null,
+    };
+}
+
+const errorOnce = errorGate();
+/** Manda um erro (tela de crash, `window.onerror`, promessa sem `catch`) com o teto por sessão do `errorGate`. */
+export function reportError(kind: string, err: unknown, message?: string) {
+    const p = errorProps(kind, err, useGame.getState().screen, message);
+    if (!errorOnce(`${p.kind}|${p.msg}`)) return;
+    // erro antes de o save carregar (a tela que quebra já no 1º desenho): espera saber se as estatísticas estão ligadas
+    if (useGame.persist.hasHydrated()) track('error', p);
+    else useGame.persist.onFinishHydration(() => track('error', p));
+}
+
+/** Navegador de dentro de um app (quem toca no link da legenda ou da bio), pelo user agent. */
+export function inAppOf(ua: string): string | null {
+    if (/musical_ly|BytedanceWebview|trill_/i.test(ua)) return 'tiktok';
+    if (/Instagram/.test(ua)) return 'instagram';
+    if (/FBAN|FBAV|FB_IAB/.test(ua)) return 'facebook';
+    return null;
+}
+
+/** Porta de entrada pelo link: convite do Duelo, desafio (seed), Copa do Dia ou a Home. */
+export function entryOf(search: string): string {
+    const q = new URLSearchParams(search);
+    if (q.has('duelo')) return 'duelo';
+    if (q.has('seed')) return 'seed';
+    if (q.get('utm_source') === 'daily') return 'daily';
+    return 'home';
+}
+
+/** O link com que a aba abriu (o Duelo limpa o `?duelo=` da barra depois). */
+const ENTRY_SEARCH = typeof location !== 'undefined' ? location.search : '';
+const round10 = (n: number) => Math.round(n / 10) * 10;
+
+/** Contexto do `session_start`: idioma, fuso, tela (arredondada, pra não virar pista de fingerprint), PWA, app, porta. */
+export function contextProps(env: {
+    ua: string;
+    language: string;
+    tz: string;
+    screen: { width: number; height: number };
+    pwa: boolean;
+    search: string;
+}): Props {
+    return {
+        lang: env.language.slice(0, 8) || null,
+        tz: env.tz.slice(0, 40) || null,
+        scr: `${round10(env.screen.width)}x${round10(env.screen.height)}`,
+        pwa: env.pwa,
+        inapp: inAppOf(env.ua),
+        entry: entryOf(env.search),
+    };
+}
+
+/**
  * Teto de erros por sessão: um laço que repete o erro a cada quadro mandava dezenas de milhares de linhas (69 mil em 3
  * sessões da 0.9.10). A mesma mensagem vai no máximo `same` vezes, e no total `total`; o resto da sessão fica de fora.
  */
@@ -411,19 +496,52 @@ export function errorGate(same = 3, total = 30) {
 
 /** Liga as estatísticas (uma vez, no início do app). */
 export function startAnalytics() {
-    if (!ENABLED) return;
+    if (!ENABLED && !DEBUG) return;
     const begin = () => {
         const g = useGame.getState();
         const lab = new URLSearchParams(location.search).get('lab')?.slice(0, 40) ?? null;
+        const returning = g.onboarded || g.records.cups > 0;
+        const nav = navigator as Navigator & { globalPrivacyControl?: boolean };
+        // o id do aparelho só nasce com as estatísticas ligadas; desligadas, some (e o track não manda nada)
+        if (!g.settings.stats) forgetDevice(localStore());
+        const visit = g.settings.stats
+            ? deviceVisit({
+                  store: localStore(),
+                  today: localDay(),
+                  hadSave: returning,
+                  gpc: !!nav.globalPrivacyControl,
+              })
+            : null;
+        let tz = '';
+        try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+        } catch {
+            // navegador sem Intl completo: vai sem fuso
+        }
         track('session_start', {
-            returning: g.onboarded || g.records.cups > 0,
+            returning,
             ref: referrer(),
             device: device(),
             lab,
             cups: g.records.cups,
             dex_seen: seenCount(g.dex),
+            ...visit,
+            ...contextProps({
+                ua: navigator.userAgent,
+                language: navigator.language ?? '',
+                tz,
+                screen: window.screen,
+                pwa: standalone(),
+                search: ENTRY_SEARCH,
+            }),
+            ui_lang: g.settings.lang,
+            // ms do início da página até o save carregar (o jogo pronto pra tocar)
+            load_ms: Math.round(performance.now()),
         });
         useGame.subscribe(onChange);
+        useGame.subscribe((s, prev) => {
+            if (prev.settings.stats && !s.settings.stats) forgetDevice(localStore());
+        });
         // saída antes da 1ª partida: uma vez por sessão (quem volta e joga aparece no match_end depois)
         let left = false;
         const leave = () => {
@@ -444,13 +562,13 @@ export function startAnalytics() {
         // merged = o progresso do aparelho foi junto para a conta; choice = qual copa continuou (se houve escolha)
         if (s.lastLink && s.lastLink !== prev.lastLink && takeLoginPending()) track('login', { ...s.lastLink });
     });
-    const gate = errorGate();
-    const report = (e: unknown) => {
-        const msg = errorText(e);
-        if (gate(msg)) track('error', { msg });
-    };
-    window.addEventListener('error', (e) => report(e.message ?? e.error));
-    window.addEventListener('unhandledrejection', (e) => report(e.reason));
+    window.addEventListener('error', (e) => {
+        // aviso benigno do navegador (ver main.tsx), não erro do jogo
+        if (!e.error && /^ResizeObserver loop/.test(e.message)) return;
+        reportError('window', e.error, e.message || undefined);
+    });
+    window.addEventListener('unhandledrejection', (e) => reportError('promise', e.reason));
+    if (DEBUG) return;
     document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush(true));
 }
 
