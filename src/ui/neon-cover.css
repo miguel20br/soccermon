@@ -157,19 +157,17 @@
     border: 3px solid #000;
     border-bottom: 0;
 }
+/* óculos na grade do retrato: o SVG cobre só a área da imagem (dentro da borda preta), 1 unidade = 1 pixel PMD */
 .nc-shades {
     position: absolute;
-    filter: drop-shadow(0 2px 0 rgb(0 0 0 / 45%));
+    top: var(--nc-bd, 3px);
+    left: var(--nc-bd, 3px);
+    width: calc(100% - 2 * var(--nc-bd, 3px));
+    height: calc(100% - var(--nc-bd, 3px));
+    pointer-events: none;
 }
-.nc-shades.pika {
-    left: 21%;
-    top: 40%;
-    width: 58%;
-}
-.nc-shades.squirtle {
-    left: 20%;
-    top: 34%;
-    width: 60%;
+.nc-shades.c {
+    filter: drop-shadow(0 0 2px rgb(255 79 154 / 70%));
 }
 .nc-ride {
     position: absolute;
@@ -185,6 +183,7 @@
     width: 100%;
 }
 .nc-face.driver {
+    --nc-bd: 2px;
     left: 36%;
     bottom: 48%;
     width: 34%;

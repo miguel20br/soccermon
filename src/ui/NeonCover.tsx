@@ -23,15 +23,114 @@ const FIRST = (() => {
     return true;
 })();
 
-/** Óculos escuros de pixel, com o reflexo rosa. */
-function Shades({ className }: { className: string }) {
+/**
+ * Óculos escuros desenhados na grade do retrato PMD (40×40): cada letra é um pixel do retrato e `.` é transparente.
+ * Cada linha é `haste + lente esquerda (10) + ponte + lente direita (10) + haste`; haste e ponte são a letra da cor
+ * (esticada até a orelha ou pelo vão entre as lentes), ou espaço e `_` quando não tem.
+ */
+type Oculos = 'a' | 'b' | 'c';
+const OCULOS: Record<Oculos, { rows: string[]; pal: Record<string, string> }> = {
+    // A: wayfarer preto, aro grosso em cima com brilho, dois reflexos na diagonal
+    a: {
+        rows: [
+            ' kgggkkkkkkkkgggkkkkkk ',
+            'kkkkkkkkkkkkkkkkkkkkkkk',
+            ' kaaaawawak_kaaaawawak ',
+            ' .kbbwbwbbk_kbbbwbwbk. ',
+            ' .kcwcccck._.kcwcccck. ',
+            ' ..kkkkkk.._..kkkkkk.. ',
+        ],
+        pal: { k: '#0a0a10', g: '#6a6680', a: '#3a3150', b: '#221c33', c: '#110e1b', w: '#ffffff' },
+    },
+    // B: aviador espelhado, barra dourada em cima e o pôr do sol refletido (céu, rosa, sol na linha do mar)
+    b: {
+        rows: [
+            ' .kgggggggkgkgggggggk. ',
+            'kkvvwvvvvvk_kvvwvvvvvkk',
+            ' kmwmmmmmmkkkmwmmmmmmk ',
+            ' kppppyyppk_kppppyyppk ',
+            ' .kooyyyook_kooyyyook. ',
+            ' ..kssppssk_kssppssk.. ',
+            ' ...kkkkkk._.kkkkkk... ',
+        ],
+        pal: {
+            k: '#120c1c',
+            g: '#ffd36b',
+            v: '#3d1466',
+            m: '#b0307f',
+            p: '#ff4f9a',
+            o: '#ff8a4c',
+            y: '#fff27a',
+            s: '#12062a',
+            w: '#ffffff',
+        },
+    },
+    // C: neon rosa do conversível, lente roxa com a linha ciano do horizonte
+    c: {
+        rows: [
+            ' .FFFFFFFF._.FFFFFFFF. ',
+            'ffaaaawaaafffaaaawaaaff',
+            ' fbbbwbwbbf_fbbbwbwbbf ',
+            ' fbbwbwbbbf_fbbwbwbbbf ',
+            ' fnnnnnnnnf_fnnnnnnnnf ',
+            ' .dddddddd._.dddddddd. ',
+        ],
+        pal: { F: '#ffb8dc', f: '#ff4f9a', d: '#b8246a', a: '#3d1466', b: '#1a0b3d', n: '#4fd8ff', w: '#ffffff' },
+    },
+};
+/** Onde a lente esquerda começa no retrato, largura do vão entre as lentes e até onde vão as hastes. */
+const FIT = {
+    pika: { x: 12, y: 12, gap: 2, earL: 7, earR: 35 },
+    squirtle: { x: 13, y: 15, gap: 4, earL: 8, earR: 37 },
+};
+type Fit = (typeof FIT)['pika'];
+// ?oculos=a|b|c só no dev e nas prévias, até o Miguel escolher
+const OCULOS_KIND: Oculos = (() => {
+    const q = __SMOKE__ ? new URLSearchParams(window.location.search).get('oculos') : null;
+    return q === 'b' || q === 'c' ? q : 'a';
+})();
+
+/** Pixels dos óculos no retrato (x, y, largura e letra da cor), a partir do desenho e do encaixe no rosto. */
+function shadesPixels(rows: readonly string[], fit: Fit) {
+    const out: { x: number; y: number; w: number; c: string }[] = [];
+    const xr = fit.x + 10 + fit.gap;
+    rows.forEach((row, dy) => {
+        const y = fit.y + dy;
+        const lens = (s: string, x0: number) => {
+            for (let i = 0; i < 10; i++) if (s[i] !== '.') out.push({ x: x0 + i, y, w: 1, c: s[i] });
+        };
+        const left = row.slice(1, 11);
+        const right = row.slice(12, 22);
+        lens(left, fit.x);
+        lens(right, xr);
+        if (row[0] !== ' ') out.push({ x: fit.earL, y, w: fit.x - fit.earL, c: row[0] });
+        if (row[11] !== '_') out.push({ x: fit.x + 10, y, w: fit.gap, c: row[11] });
+        if (row[22] !== ' ') out.push({ x: xr + 10, y, w: fit.earR - xr - 10, c: row[22] });
+    });
+    return out;
+}
+
+function Shades({ who }: { who: keyof typeof FIT }) {
+    const kind = OCULOS_KIND;
+    const px = shadesPixels(OCULOS[kind].rows, FIT[who]);
+    const pal = OCULOS[kind].pal;
     return (
-        <svg className={`nc-shades ${className}`} viewBox="0 0 22 6" shapeRendering="crispEdges" aria-hidden>
-            <rect x="0" y="0" width="22" height="1" fill="#111" />
-            <rect x="1" y="1" width="8" height="4" fill="#111" />
-            <rect x="13" y="1" width="8" height="4" fill="#111" />
-            <rect x="2" y="1" width="3" height="1" fill="#ff7fc8" />
-            <rect x="14" y="1" width="3" height="1" fill="#ff7fc8" />
+        <svg
+            className={`nc-shades ${kind}`}
+            viewBox="0 0 40 40"
+            preserveAspectRatio="none"
+            shapeRendering="crispEdges"
+            aria-hidden
+        >
+            {/* sombra no rosto, um pixel abaixo da armação */}
+            <g transform="translate(0 1)" fill="rgb(40 0 30 / 35%)">
+                {px.map((p) => (
+                    <rect key={`s${p.x},${p.y}`} x={p.x} y={p.y} width={p.w} height="1" />
+                ))}
+            </g>
+            {px.map((p) => (
+                <rect key={`${p.x},${p.y}`} x={p.x} y={p.y} width={p.w} height="1" fill={pal[p.c]} />
+            ))}
         </svg>
     );
 }
@@ -113,14 +212,14 @@ export function NeonCover() {
                 <i className="nc-sun" />
                 <span className="nc-face">
                     <img className="pixel" src={portraitSrc(25, ['happy'])} alt="" width="40" height="40" />
-                    <Shades className="pika" />
+                    <Shades who="pika" />
                 </span>
             </Panel>
             <Panel k="car" r={1.2}>
                 <span className="nc-ride">
                     <span className="nc-face driver">
                         <img className="pixel" src={portraitSrc(7, ['happy'])} alt="" width="40" height="40" />
-                        <Shades className="squirtle" />
+                        <Shades who="squirtle" />
                     </span>
                     <Car />
                 </span>
