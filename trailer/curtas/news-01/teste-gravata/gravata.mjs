@@ -186,6 +186,9 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola, desce) {
     [ox, oy, carimbo] = [L - 3, bt - 2 + desce, RAICHU[dir]];
     // o terno: o tronco e os braços (o rabo e as bochechas de fora), pelo brilho de antes; `desce` baixa a gola
     terno = { top: oy, i0: L - 7, i1: L + (dir === 0 ? 7 : 6), barreira: ['#dfb700', '#fff700'], claro: 225, medio: 170 };
+    // v9: em 3/4 o paletó cobre também as costas e o quadril (o pelo à esquerda de L - 7 aparecia: "a bunda"). O pano
+    // se espalha a partir do terno pelo pelo ligado a ele, sem atravessar o contorno preto (o rabo fica de fora)
+    if (dir === 1) terno.costas = L - 13;
   } else {
     const bico = maior(px, w, h, ['#ffe79f', '#dfaf67', '#bf7727']);
     const bb = Math.max(...bico.map(([, j]) => j));
@@ -199,14 +202,25 @@ function quadro(id, variante, dir, b, W, fx, fy, w, h, tecido, gola, desce) {
         ? { top: oy - 1, i0: ox - 3, i1: ox + 11, barreira: ['#ffe79f', '#dfaf67', '#bf7727', '#ffffff', '#ff875f'], claro: 150, medio: 90 }
         : { top: oy - 1, i0: ox - 4, i1: ox + 5, barreira: ['#ffe79f', '#dfaf67', '#bf7727', '#ffffff', '#ff875f'], claro: 150, medio: 90 };
   }
-  if (terno)
-    for (let j = terno.top; j <= fundo; j++)
-      for (let i = terno.i0; i <= terno.i1; i++) {
-        const c = px(i, j);
-        if (!c || c === '#000000' || terno.barreira.includes(c)) continue;
-        const l = lum(c);
-        put(i, j, l > terno.claro ? G.S : l > terno.medio ? G.s : G.z);
-      }
+  if (terno) {
+    const veste = [];
+    const pode = (i, j) => { const c = px(i, j); return c && c !== '#000000' && !terno.barreira.includes(c); };
+    for (let j = terno.top; j <= fundo; j++) for (let i = terno.i0; i <= terno.i1; i++) if (pode(i, j)) veste.push([i, j, px(i, j)]);
+    if (terno.costas !== undefined) {
+      const visto = new Set(veste.map(([i, j]) => j * w + i));
+      for (let k = 0; k < veste.length; k++)
+        for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const [i, j] = [veste[k][0] + di, veste[k][1] + dj];
+          if (i < terno.costas || i > terno.i1 || j < terno.top || j > fundo || visto.has(j * w + i) || !pode(i, j)) continue;
+          visto.add(j * w + i);
+          veste.push([i, j, px(i, j)]);
+        }
+    }
+    for (const [i, j, c] of veste) {
+      const l = lum(c);
+      put(i, j, l > terno.claro ? G.S : l > terno.medio ? G.s : G.z);
+    }
+  }
   carimbo.forEach((linha, dj) => [...linha].forEach((k, di) => { if (k !== '.') put(ox + di, oy + dj, G[k]); }));
   if (id === 26 && gola) {
     const roupa = [G.L, G.S, G.s, G.z, G.W, G.w, G.K].map((c) => cor(c, 0));
