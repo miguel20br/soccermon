@@ -81,7 +81,7 @@ npm run lint     # Biome
 npm test         # Vitest (~1 min; o teste de evolução é o mais lento)
 npm run build    # tsc + Vite
 npm run calibrate -- --n 200 [--formations|--tactics]   # equilíbrio headless (n 400 só no número final)
-npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
+npm run stats [-- --dias 7 | --md | --placar]   # placar do jogo no ar (--placar: as 10 linhas de segunda)
 npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das fontes acusar caractere novo
 ```
 
