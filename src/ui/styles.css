@@ -5203,6 +5203,15 @@ button,
 .res-icons {
     margin-inline: auto;
 }
+/* Copa do Dia: "Compartilhar #29" numa linha só; no celular estreito o ícone sai pra caber */
+.res-daily-share {
+    white-space: nowrap;
+}
+@media (max-width: 359px) {
+    .res-daily-share .hud-icon {
+        display: none;
+    }
+}
 .cupgoal-lbl {
     display: inline-flex;
     align-items: center;
