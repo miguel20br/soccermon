@@ -4106,8 +4106,9 @@ button.pc2.pc2-fx:hover {
 
 /* ---------- Semana Fora da Lei (ui/tema.ts, NEON_SPECIES): fundo de pôr do sol neon, só visual ----------
    Céu rosa, roxo e laranja, sol listrado, palmeiras em silhueta e chão escuro com grade (onde ficam os atributos, que
-   continuam brancos e legíveis); borda rosa com o contorno azul. A nota e os números não mudam. */
-.pc2-metal.pc2-neon.pr {
+   continuam brancos e legíveis); borda rosa com o contorno azul. A nota e os números não mudam. `:root` na frente: ganha
+   do foil das cartas brilhantes (`.m-brilhante:not(...)`). */
+:root .pc2-metal.pc2-neon.pr {
     --ink: #ffffff;
     --ink-soft: rgba(255, 255, 255, 0.82);
     --edge: #ff7fc8;
@@ -4124,11 +4125,11 @@ button.pc2.pc2-fx:hover {
     text-shadow: 0 0.07em 0 rgba(0, 0, 0, 0.6);
 }
 /* o desenho do tipo do Evento e a marca d'água saem: o fundo já é o desenho */
-.pc2-metal.pc2-neon.pr .pr-ev,
-.pc2-metal.pc2-neon.pr .m-mark {
+:root .pc2-metal.pc2-neon.pr .pr-ev,
+:root .pc2-metal.pc2-neon.pr .m-mark {
     display: none;
 }
-.pc2-metal.pc2-neon.pr .m-tag {
+:root .pc2-metal.pc2-neon.pr .m-tag {
     background: #12062a;
     box-shadow: inset 0 0 0 0.12em #ff7fc8;
 }
