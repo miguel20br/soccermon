@@ -68,6 +68,8 @@ export const result = {
         runnerUp: 'Vice-campeão da Copa de Kanto',
         eliminated: 'Eliminado {stage}',
         aria: 'Resultado da partida',
+        /** Noite Neon: as estrelas da goleada (ui/tema.ts). */
+        wanted: 'Goleada: {n} de 5 estrelas',
         pens: 'Pênaltis {a} x {b}',
         star: 'craque',
         /** Fase curta no caminho da copa. */

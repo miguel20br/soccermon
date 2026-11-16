@@ -66,6 +66,7 @@ export const home = {
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
         ledDaily: 'COPA DO DIA NOVA',
         ledChamp: 'CAMPEÕES DA {cup} · {club}',
+        ledNeon: 'NOITE NEON',
         ledLiga: 'LIGA ABRE EM {d} DIAS',
         labTitle: 'Laboratório do Carvalho',
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */

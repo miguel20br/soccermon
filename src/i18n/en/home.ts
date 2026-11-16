@@ -64,6 +64,7 @@ export const home: typeof pt = {
         skip: 'Tap to skip',
         ledDaily: 'NEW DAILY CUP',
         ledChamp: '{cup} CHAMPIONS · {club}',
+        ledNeon: 'NEON NIGHTS',
         ledLiga: 'LEAGUE OPENS IN {d} DAYS',
         labTitle: "Oak's Lab",
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */

@@ -17,6 +17,7 @@ import { startInstall } from './ui/install';
 import { startMusicSync } from './ui/music-sync';
 import { startSettingsSync } from './ui/settings-sync';
 import { startTabSlide } from './ui/tab-slide';
+import { startTema } from './ui/tema';
 import { startThumbbarSpace } from './ui/thumbbar-space';
 import { startScreenTransitions } from './ui/view-transition';
 import './ui/styles.css';
@@ -44,6 +45,8 @@ void moveToNewDomain();
 void importFromOldDomain();
 
 startScreenTransitions();
+// Noite Neon (19 a 22/11, ui/tema.ts): o tema do <html> antes da 1ª tela
+startTema();
 startTabSlide();
 startThumbbarSpace();
 startExitMotion();

@@ -19,6 +19,7 @@ import { rivalColor } from '../../store/profile';
 import { useCascade } from '../kit/Cascade';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
+import { neonFull } from '../tema';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
 import { HudIcon } from './MatchHud';
@@ -163,6 +164,9 @@ export function ResultHero({
               gain[k] > 0 ? [`${t(`shop.earned.${k}`)} +${gain[k]}`] : [],
           )
         : [];
+    // Noite Neon (direção B): goleada de 3 ou mais acende uma estrela por gol de diferença, até 5
+    const margin = match.score[side] - match.score[1 - side];
+    const stars = neonFull && margin >= 3 ? Math.min(5, margin) : 0;
     const squad = match.finalRoster.filter((p) => p.team === side);
     // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
     const sadCaptain =
@@ -237,6 +241,15 @@ export function ResultHero({
             </div>
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
+            )}
+            {stars > 0 && (
+                <div className="rh-wanted" role="img" aria-label={t('result.hero.wanted', { n: stars })}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                        <span key={n} className={n <= stars ? 'on' : ''} style={{ '--i': n } as CSSProperties}>
+                            <HudIcon kind="star" />
+                        </span>
+                    ))}
+                </div>
             )}
             {links}
 

@@ -4756,6 +4756,36 @@ button,
     font-size: 14px;
     color: var(--yellow);
 }
+/* Noite Neon (ui/tema.ts): as estrelas da goleada acendem uma a uma, rosa neon; as apagadas ficam só no contorno */
+.rh-wanted {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+.rh-wanted span {
+    display: grid;
+    color: rgb(255 255 255 / 25%);
+}
+.rh-wanted .hud-icon {
+    width: 26px;
+    height: 26px;
+}
+.rh-wanted .on {
+    color: #ff7fc8;
+    filter: drop-shadow(0 0 4px rgb(255 80 170 / 80%));
+    animation: rh-wanted 260ms var(--ease-pop) both;
+    animation-delay: calc(900ms + var(--i) * 140ms);
+}
+@keyframes rh-wanted {
+    from {
+        opacity: 0;
+        transform: scale(1.8);
+    }
+}
+:root[data-reduce-motion="true"] .rh-wanted .on {
+    animation: none;
+}
 .rh-squad {
     display: flex;
     justify-content: center;
