@@ -238,13 +238,18 @@
     stroke-linejoin: round;
 }
 .nc-logo-img {
+    display: block;
     width: min(260px, 70%);
+}
+.nc-logo-img img {
+    display: block;
+    width: 100%;
     height: auto;
-    image-rendering: auto;
 }
 .nc-title {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 20px;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
     letter-spacing: 2px;
     color: #ffd2ea;
     text-shadow:

@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../i18n/react';
+import { Logo } from './components/LogoHits';
 import { portraitSrc } from './portrait';
 import { useTimeLeft } from './tema';
 import './neon-cover.css';
@@ -10,7 +11,9 @@ const KEY = 'soccermon-neon-capa';
 const SHOW_MS = 4500;
 const EXIT_MS = 250;
 /** Lido uma vez quando o pedaço carrega (fora do render: o StrictMode chama o useState duas vezes). */
+// robô do navegador (a fumaça do CI, prints) não vê a capa por cima da Home, salvo com `?capa=1`
 const FIRST = (() => {
+    if (navigator.webdriver && !new URLSearchParams(window.location.search).has('capa')) return false;
     try {
         if (sessionStorage.getItem(KEY)) return false;
         sessionStorage.setItem(KEY, '1');
@@ -143,7 +146,7 @@ export function NeonCover() {
                 </span>
             </Panel>
             <Panel k="logo" r={0}>
-                <img className="nc-logo-img" src="assets/ui/logo.svg" alt="Soccermon" />
+                <Logo className="nc-logo-img" alt="Soccermon" idle />
                 <b className="nc-title">{t('home.amb.ledNeon')}</b>
                 {left && <small className="nc-left">{t('home.amb.neonEndsShort', { left })}</small>}
                 <small className="nc-tap">{t('home.amb.neonCoverTap')}</small>
