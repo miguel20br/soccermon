@@ -9,6 +9,36 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53',
+        date: '2026-11-23',
+        title: 'Copa do Dia numerada',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar',
+                    'Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado',
+                    'Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: ['Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa'],
+            },
+            {
+                title: 'Privacidade',
+                lines: ['Estatísticas anônimas por aparelho; política de privacidade atualizada'],
+            },
+            {
+                title: 'Consertos',
+                lines: [
+                    'Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)',
+                    'Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.52',
         date: '2026-11-13',
         title: 'Descrições mais diretas',
@@ -2936,6 +2966,36 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53',
+        date: '2026-11-23',
+        title: 'Numbered Daily Cup',
+        sections: [
+            {
+                title: 'Daily Cup',
+                lines: [
+                    'Numbered Daily Cup (#36), on the screen, the stadium board and the share text',
+                    'Bigger share button at the end of the Daily Cup; New cup stays as a link next to it',
+                    'Narrow phones: the shootout score no longer spills over the next match',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: ["Invite to build your own team at the end of a Duel, for players who haven't played a cup yet"],
+            },
+            {
+                title: 'Privacy',
+                lines: ['Anonymous stats per device; privacy policy updated'],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'Vibration only after the first tap on the page (the browser refused it before and threw an error)',
+                    'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.52',
         date: '2026-11-13',
