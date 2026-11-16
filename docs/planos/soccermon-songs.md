@@ -427,7 +427,7 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 ## Decidido com o Miguel (16/11/2026)
 
 1. Conceito "Temporada 1" (primeiro treino → título, quadra vazia depois dos créditos): **sim**.
-2. Nome: **não curtiu** "Soccermon: Temporada 1 (Original Soundtrack)". Ainda em aberto.
+2. Nome: **"Soccermon (Original Soundtrack)"**. Escolhido em 16/11, depois de recusar o "Temporada 1" no nome.
 3. Títulos em PT, com EN na descrição: **sim**.
 4. Lista de faixas: **ok** como está.
 5. Nomes novos: **ok por enquanto**. Ele avisa se algum não agradar.
