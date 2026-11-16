@@ -14,7 +14,7 @@ import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { reduceMotionOn } from '../settings-sync';
-import { neonFull, tema } from '../tema';
+import { neonOn, tema, useTimeLeft } from '../tema';
 import '../animacoes.css';
 import './neon.css';
 import { ParkedRuns } from '../components/ParkedRuns';
@@ -120,7 +120,7 @@ export function Floodlight({ side }: { side: 'l' | 'r' }) {
     );
 }
 
-/** Palmeira em silhueta (Noite Neon, direção B): tronco torto e as folhas caídas. */
+/** Palmeira em silhueta (Noite Neon): tronco torto e as folhas caídas. */
 function Palm({ side }: { side: 'l' | 'r' }) {
     return (
         <svg className={`nn-palm ${side}`} viewBox="0 0 32 48" shapeRendering="crispEdges" aria-hidden>
@@ -138,9 +138,9 @@ function Palm({ side }: { side: 'l' | 'r' }) {
     );
 }
 
-/** O céu da Noite Neon completa (direção B): o sol listrado nascendo atrás da arquibancada e as palmeiras. */
+/** O céu da Noite Neon: o sol listrado nascendo atrás da arquibancada e as palmeiras. */
 export function NeonSky() {
-    if (!neonFull) return null;
+    if (!neonOn) return null;
     return (
         <>
             <i className="nn-sun" />
@@ -198,12 +198,13 @@ export function Stands({
 }) {
     const { t } = useT();
     const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
+    const left = useTimeLeft();
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
     // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
     const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));
     const liga = ligaTeaser();
     const news = [
-        tema && t('home.amb.ledNeon'),
+        left && t('home.amb.neonEnds', { left }).toUpperCase(),
         week,
         !playedToday && t('home.amb.ledDaily'),
         liga && t('home.amb.ledLiga', { d: liga.d }),
@@ -249,8 +250,13 @@ export function Stands({
                     />
                 ))}
                 <span className="es-banner">{clubName}</span>
-                {/* Noite Neon (ui/tema.ts): o letreiro pendurado na cobertura, nas duas direções */}
-                {tema && <b className="nn-sign">{t('home.amb.ledNeon')}</b>}
+                {/* Noite Neon (ui/tema.ts): o letreiro pendurado na cobertura */}
+                {tema && (
+                    <b className="nn-sign">
+                        {t('home.amb.ledNeon')}
+                        {left && <small>{t('home.amb.neonEndsShort', { left })}</small>}
+                    </b>
+                )}
                 {children}
             </div>
             <div className="es-led">

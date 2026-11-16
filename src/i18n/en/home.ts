@@ -65,6 +65,9 @@ export const home: typeof pt = {
         ledDaily: 'NEW DAILY CUP',
         ledChamp: '{cup} CHAMPIONS · {club}',
         ledNeon: 'NEON NIGHTS',
+        neonEnds: 'NEON NIGHTS · ends in {left}',
+        neonEndsShort: 'ends in {left}',
+        neonCoverTap: 'Tap to continue',
         ledLiga: 'LEAGUE OPENS IN {d} DAYS',
         labTitle: "Oak's Lab",
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */

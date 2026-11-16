@@ -44,6 +44,7 @@ import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
+import { neonOn } from './ui/tema';
 import { tvCut } from './ui/tv';
 import { readUltimate } from './ui/ultimate/flag';
 
@@ -63,6 +64,8 @@ const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ defa
 // walkout final (?lab=walkout, ut-walkout.md): só dev e prévias, a cena do Phaser vem por import dinâmico
 const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ default: m.WalkoutLab })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
+// Noite Neon (ui/tema.ts): a capa em painéis, pedaço à parte (só baixa na semana do tema)
+const NeonCover = lazy(() => import('./ui/NeonCover'));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
 const ModeMenuLab = lazy(() => import('./ui/screens/ModeMenuLab').then((m) => ({ default: m.ModeMenuLab })));
 // a Home (navegação por ambientes, src/ui/ambientes): pedaço à parte, baixa junto com o save
@@ -319,6 +322,11 @@ export default function App() {
 
     return (
         <div className="app">
+            {neonOn && screen === 'home' && (
+                <Suspense fallback={null}>
+                    <NeonCover />
+                </Suspense>
+            )}
             {screen !== 'home' && (
                 <header className={`topbar${MENU_SCREENS.includes(screen) ? ' topbar-menu' : ''}`}>
                     {/* copa acabada (Eliminado, Campeão): volta o logo, é a festa */}

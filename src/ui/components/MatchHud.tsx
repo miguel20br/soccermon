@@ -186,6 +186,22 @@ export function Scoreboard({
 }
 
 /**
+ * Estrelas de procurado (Noite Neon, ui/tema.ts): 5 contornos, `n` acesas. O resultado acende uma a uma; o placar da
+ * partida pisca com as 5.
+ */
+export function WantedStars({ n, className, label }: { n: number; className: string; label?: string }) {
+    return (
+        <div className={`wanted ${className}${n >= 5 ? ' max' : ''}`} role="img" aria-label={label}>
+            {[1, 2, 3, 4, 5].map((i) => (
+                <span key={i} className={i <= n ? 'on' : ''} style={{ '--i': i } as CSSProperties}>
+                    <HudIcon kind="star" />
+                </span>
+            ))}
+        </div>
+    );
+}
+
+/**
  * Barra de pressão embaixo do placar (estilo "attack momentum"): o perigo de cada time a cada 2', o da esquerda
  * pra cima e o da direita pra baixo. Só até o minuto da tela: o que ainda não passou fica vazio.
  */

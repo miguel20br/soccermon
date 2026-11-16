@@ -14,7 +14,7 @@ nesse dia é o que vai ao ar.**
 
 | Quando (Brasília) | O quê | Onde muda a data |
 |---|---|---|
-| qui 19/11 00:00 a dom 22/11/2026 23:59 | Noite Neon (semana do GTA 6): céu de pôr do sol neon, letreiro e, na direção B, palmeiras, neon na quadra e estrelas da goleada. Prévia: `?tema=neon` (`neon-a`/`neon-b`/`off`) | `NEON_FROM`/`NEON_TO`/`NEON_DIR` em `src/ui/tema.ts` |
+| qui 19/11 00:00 a dom 22/11/2026 23:59 | Noite Neon (semana do GTA 6): céu neon, palmeiras, capa em painéis, estrelas de procurado, MISSÃO CUMPRIDA / PERDEU. Prévia: `?tema=neon` (`off` desliga) | `NEON_FROM`/`NEON_TO` em `src/ui/tema.ts` |
 | sex 27/11/2026 00:00 | Time Ultimate abre pra todo mundo, Temporada 1 começa | `ULTIMATE_OPENS_AT` em `src/ui/ultimate/flag.ts` |
 | ter 12/01/2027 00:00 | Liga abre (adiada em 07/11; era 01/12) | `LIGA_OPENS_AT` em `src/league/rules.ts` |
 | ter 15/12/2026 a 05/01/2027 | Evento de Natal do Time Ultimate (cartas Evento de Gelo, objetivos, enfeite) | `EVENTS` em `src/store/ultimate/rules.ts` |

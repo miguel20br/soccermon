@@ -1,9 +1,9 @@
-/* Noite Neon (ui/tema.ts): `data-tema` no <html>. A = o céu de pôr do sol e o letreiro; B = tudo (sol, palmeiras,
-   neon na arquibancada, reflexo molhado na quadra, a Arena e a Rota no mesmo céu). Homenagem de clima: nada de marca,
-   fonte ou nome de outro jogo. As regras de céu vêm com `.es-scene` a mais pra ganhar do céu da hora (dia/tarde). */
+/* Noite Neon (ui/tema.ts): `data-tema` no <html>. Céu de pôr do sol, sol, palmeiras, neon na arquibancada e no túnel,
+   reflexo molhado na quadra, a Arena e a Rota no mesmo céu. Paródia de clima: nada de logo, nome, cidade ou personagem
+   de outro jogo. As regras de céu vêm com `.es-scene` a mais pra ganhar do céu da hora (dia/tarde). */
 
-/* ---------- A e B: o céu e o letreiro ---------- */
-:root[data-tema^="neon"] .es-scene .es-sky {
+/* ---------- o céu e o letreiro ---------- */
+:root[data-tema="neon"] .es-scene .es-sky {
     /* o pôr do sol inteiro cabe na faixa de céu que aparece (até a cobertura da arquibancada) */
     background: linear-gradient(
         180deg,
@@ -15,22 +15,22 @@
         #ffc46b 100%
     );
 }
-:root[data-tema^="neon"] .es-scene .es-stars {
+:root[data-tema="neon"] .es-scene .es-stars {
     display: block;
     opacity: 0.55;
 }
-:root[data-tema^="neon"] .es-scene .es-beam {
+:root[data-tema="neon"] .es-scene .es-beam {
     opacity: 0.08;
 }
-:root[data-tema^="neon"] .es-led {
+:root[data-tema="neon"] .es-led {
     background: #12062a;
 }
-:root[data-tema^="neon"] .es-led span {
+:root[data-tema="neon"] .es-led span {
     color: #ff7fc8;
     text-shadow: 0 0 6px rgb(255 80 170 / 70%);
 }
 
-/* ---------- B: o sol listrado, as palmeiras e o letreiro de neon ---------- */
+/* ---------- o sol listrado, as palmeiras e o letreiro de neon ---------- */
 .nn-sun {
     position: absolute;
     /* fora do meio: no meio fica o logo */
@@ -70,7 +70,7 @@
     right: 21%;
     scale: -1 1;
 }
-/* o letreiro de neon pendurado na cobertura (A e B): rosa com contorno azul, piscando de leve de vez em quando. Fica
+/* o letreiro de neon pendurado na cobertura: rosa com contorno azul, piscando de leve de vez em quando. Fica
    em cima da torcida porque no celular o céu mora atrás do logo */
 .nn-sign {
     position: absolute;
@@ -84,11 +84,13 @@
     box-shadow:
         0 0 calc(var(--px) * 3) rgb(79 216 255 / 60%),
         inset 0 0 calc(var(--px) * 2) rgb(79 216 255 / 35%);
+    display: grid;
+    justify-items: center;
     color: #ffd2ea;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: calc(var(--px) * 5);
-    font-size: var(--gfs, calc(var(--px) * 5));
-    line-height: 1.2;
+    --gs: calc(var(--px) * 8);
+    font-size: var(--gfs, calc(var(--px) * 8));
+    line-height: 1.1;
     letter-spacing: 2px;
     white-space: nowrap;
     text-shadow:
@@ -96,6 +98,15 @@
         0 0 10px rgb(255 80 160 / 70%);
     transform: translateX(-50%);
     animation: nn-flicker 7s steps(1) infinite;
+}
+/* o cronômetro embaixo do nome, em azul e sem piscar */
+.nn-sign small {
+    font-family: "Galmuri11", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #c9f6ff;
+    text-shadow: 0 0 4px #4fd8ff;
 }
 @keyframes nn-flicker {
     91% {
@@ -126,7 +137,7 @@
 }
 
 /* a cobertura da arquibancada vira tubo de neon (rosa e azul) e o degrau de baixo brilha */
-:root[data-tema="neon-b"] .es-stand::before {
+:root[data-tema="neon"] .es-stand::before {
     background:
         repeating-linear-gradient(
             90deg,
@@ -140,21 +151,21 @@
         #12062a;
     box-shadow: 0 0 calc(var(--px) * 3) rgb(255 95 168 / 45%);
 }
-:root[data-tema="neon-b"] .es-stand::after {
+:root[data-tema="neon"] .es-stand::after {
     background: #2a1650;
     border-top-color: #ff5fa8;
     box-shadow: 0 calc(var(--px) * -1) calc(var(--px) * 3) rgb(255 95 168 / 55%);
 }
-:root[data-tema="neon-b"] .es-flood.l .es-beam {
+:root[data-tema="neon"] .es-flood.l .es-beam {
     fill: #ff7fc8;
     opacity: 0.12;
 }
-:root[data-tema="neon-b"] .es-flood.r .es-beam {
+:root[data-tema="neon"] .es-flood.r .es-beam {
     fill: #7fe6ff;
     opacity: 0.12;
 }
 /* o piso molhado: o neon da cobertura e do letreiro refletido nas tábuas */
-:root[data-tema="neon-b"] .es-court::after {
+:root[data-tema="neon"] .es-court::after {
     background:
         linear-gradient(180deg, rgb(255 80 170 / 32%), transparent 22%),
         repeating-linear-gradient(
@@ -167,12 +178,12 @@
         ),
         linear-gradient(180deg, rgb(40 10 70 / 40%), transparent 40%, transparent 60%, rgb(20 6 40 / 60%));
 }
-:root[data-tema="neon-b"] .es-spot {
+:root[data-tema="neon"] .es-spot {
     background: radial-gradient(closest-side, rgb(255 140 210 / 22%), transparent);
 }
 
 /* a Arena (sempre à noite) ganha o mesmo céu; a Rota, o filtro de pôr do sol */
-:root[data-tema="neon-b"] .ar-sky {
+:root[data-tema="neon"] .ar-sky {
     background: linear-gradient(
         180deg,
         #1a0b3d 0%,
@@ -181,7 +192,7 @@
         #ff8a4c 100%
     );
 }
-:root[data-tema="neon-b"] .amb .rt-world::after {
+:root[data-tema="neon"] .amb .rt-world::after {
     content: "";
     position: absolute;
     z-index: 1;
@@ -192,21 +203,38 @@
 
 /* a boca do túnel ganha um tubo de neon de cada lado (rosa e azul) e a lâmpada fica rosa: no celular é o que mais
    aparece, porque o céu fica atrás do logo */
-:root[data-tema="neon-b"] .es-wall.l {
+:root[data-tema="neon"] .es-wall.l {
     border-right-color: #ff5fa8;
     box-shadow: calc(var(--px) * 1) 0 calc(var(--px) * 4) rgb(255 95 168 / 70%);
 }
-:root[data-tema="neon-b"] .es-wall.r {
+:root[data-tema="neon"] .es-wall.r {
     border-left-color: #4fd8ff;
     box-shadow: calc(var(--px) * -1) 0 calc(var(--px) * 4) rgb(79 216 255 / 70%);
 }
-:root[data-tema="neon-b"] .es-lintel {
+:root[data-tema="neon"] .es-lintel {
     border-bottom-color: #ff5fa8;
     box-shadow: 0 0 calc(var(--px) * 4) rgb(255 95 168 / 60%);
 }
-:root[data-tema="neon-b"] .es-lamp {
+:root[data-tema="neon"] .es-lamp {
     background: #ffc2e4;
 }
-:root[data-tema="neon-b"] .es-lamp::after {
+:root[data-tema="neon"] .es-lamp::after {
     background: linear-gradient(180deg, rgb(255 120 200 / 20%), transparent);
+}
+
+/* o celular quase não vê o céu: a barra de baixo ganha a borda de neon e o quadro do logo brilha rosa e azul (o logo
+   em si fica intacto) */
+:root[data-tema="neon"] .amb-bar {
+    border-top-color: #ff5fa8;
+    box-shadow:
+        0 -2px 10px rgb(255 95 168 / 55%),
+        0 -3px 0 rgb(0 0 0 / 25%);
+}
+:root[data-tema="neon"] .es-top {
+    border-color: #ff5fa8;
+    box-shadow:
+        0 0 0 3px #4fd8ff,
+        0 0 14px 4px rgb(255 95 168 / 55%),
+        0 0 26px 8px rgb(79 216 255 / 30%),
+        0 7px 0 3px var(--bc-edge);
 }

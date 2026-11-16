@@ -67,6 +67,10 @@ export const home = {
         ledDaily: 'COPA DO DIA NOVA',
         ledChamp: 'CAMPEÕES DA {cup} · {club}',
         ledNeon: 'NOITE NEON',
+        /** Cronômetro da Noite Neon (ui/tema.ts): `left` = "2d 14h", "5h 32min". */
+        neonEnds: 'NOITE NEON · termina em {left}',
+        neonEndsShort: 'termina em {left}',
+        neonCoverTap: 'Toque pra continuar',
         ledLiga: 'LIGA ABRE EM {d} DIAS',
         labTitle: 'Laboratório do Carvalho',
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */
