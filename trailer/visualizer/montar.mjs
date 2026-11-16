@@ -154,7 +154,7 @@ function visual({ nn, nome, dur, cena, eq, letreiro }) {
 #vz-num { position: absolute; left: 860px; top: 300px; font-size: 30px; color: #a6aed6; letter-spacing: 6px; }
 #vz-nome { position: absolute; left: 860px; top: 345px; width: 910px; font-family: 'Galmuri11B', monospace; font-size: 68px;
   line-height: 1.1; color: #ffcb05; text-shadow: 6px 6px 0 #2a4ea0; }
-#vz-album { position: absolute; left: 860px; top: 440px; font-size: 26px; color: #a6aed6; }
+#vz-album { position: absolute; left: 860px; top: 440px; font-size: 30px; color: #a6aed6; }
 #vz-cena { position: absolute; left: 860px; top: 500px; width: 910px; height: 300px; border: 4px solid #4b5a9a;
   background: #0e1430; overflow: hidden; }
 #vz-cena svg { position: absolute; inset: 0; width: 100%; height: 100%; shape-rendering: crispEdges; }
@@ -165,7 +165,7 @@ function visual({ nn, nome, dur, cena, eq, letreiro }) {
 .vz-poste { width: 8px; height: 10px; background: #4b5a9a; }
 #vz-barra { position: absolute; left: 150px; top: 990px; width: 1620px; height: 6px; background: #1c2447; }
 #vz-barra-fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: #ffcb05; transform-origin: 0 50%; transform: scaleX(0); }
-#vz-dur { position: absolute; left: 1670px; top: 1005px; width: 100px; text-align: right; font-size: 22px; color: #a6aed6; }
+#vz-dur { position: absolute; left: 1650px; top: 1004px; width: 120px; text-align: right; font-size: 28px; color: #a6aed6; }
 #vz-logo { position: absolute; left: 150px; top: 1002px; height: 40px; }
 ${cena.css ?? ''}
 </style>

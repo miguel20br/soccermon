@@ -33,6 +33,7 @@ export const CENAS = {
             [160, 18, 2, 2],
         ];
         const pedras = tetos.map(([x, y, w, h]) => px(x, y, w, h, '#1c2447')).join('');
+        const paredes = `${px(0, 6, 8, 46, '#141a33')}${px(8, 20, 4, 30, '#141a33')}${px(174, 6, 8, 44, '#141a33')}${px(170, 24, 4, 26, '#141a33')}${px(30, 30, 14, 22, '#10173a')}${px(126, 34, 18, 18, '#10173a')}`;
         const chao = `${px(0, 52, 182, 8, '#1c2447')}${px(0, 50, 30, 2, '#1c2447')}${px(150, 49, 32, 3, '#1c2447')}`;
         const poca = `${px(40, 51, 100, 2, '#2a4ea0')}${px(46, 53, 88, 1, '#2a4ea0')}`;
         const cristais = [
@@ -53,18 +54,19 @@ export const CENAS = {
         // cada gota cai em 3 batidas e bate na poça; a ordem passeia pelas 4 estalactites
         const js = `
 const BAR = ${BAR};
+const GOTAS = [${GOTAS.join(', ')}];
 for (let k = 0; k * BAR + BAR < ${dur}; k++) {
   const i = [0, 2, 1, 3][k % 4];
   const t = k * BAR;
   tl.fromTo('#vz-gota' + i, { attr: { y: 19 }, opacity: 1 }, { attr: { y: 49 }, duration: BAR * 0.75, ease: 'power2.in', immediateRender: false }, t);
   tl.to('#vz-gota' + i, { opacity: 0, duration: 0.05 }, t + BAR * 0.75);
-  tl.fromTo('#vz-anel' + i, { attr: { x: ${'GOTAS'}[i] - 3, width: 7 }, opacity: 0.9 },
-    { attr: { x: ${'GOTAS'}[i] - 12, width: 25 }, opacity: 0, duration: BAR * 0.9, ease: 'power1.out', immediateRender: false }, t + BAR * 0.75);
+  tl.fromTo('#vz-anel' + i, { attr: { x: GOTAS[i] - 3, width: 7 }, opacity: 0.9 },
+    { attr: { x: GOTAS[i] - 12, width: 25 }, opacity: 0, duration: BAR * 0.9, ease: 'power1.out', immediateRender: false }, t + BAR * 0.75);
 }
 for (let i = 0; i < 5; i++)
   tl.fromTo('#vz-cr' + i, { opacity: 0.35 }, { opacity: 1, duration: BAR * (1 + i * 0.37), ease: 'sine.inOut', yoyo: true, repeat: Math.floor(${dur} / (BAR * (1 + i * 0.37))) - 1 }, i * 0.3);
-`.replaceAll("${'GOTAS'}", `[${GOTAS.join(',')}]`);
-        return { svg: svg(`${px(0, 0, 182, 60, '#0b1024')}${pedras}${chao}${poca}${cristais}${gotas}${bola('vz-bola', 146, 43)}`), js };
+`;
+        return { svg: svg(`${px(0, 0, 182, 60, '#0b1024')}${paredes}${pedras}${chao}${poca}${cristais}${gotas}${bola('vz-bola', 146, 43)}`), js };
     },
 
     // 8 · O plano infalível (112 BPM, 1 compasso = 2,143 s): a prancheta do plano na parede (X, O e as setas se
@@ -85,7 +87,7 @@ for (let i = 0; i < 5; i++)
         const estrela = `<g id="vz-bonk" opacity="0">${px(4, 0, 1, 9, '#ffcb05')}${px(0, 4, 9, 1, '#ffcb05')}${px(2, 2, 5, 5, '#fff3a0')}</g>`;
         const fundo = `${px(0, 0, 182, 60, '#0b1024')}${px(0, 55, 182, 5, '#1c2447')}${px(120, 6, 40, 22, '#141a33')}${px(122, 8, 36, 18, '#1c2447')}${px(139, 8, 2, 18, '#141a33')}`;
         const js = `
-const BAR = ${BAR}, BEAT = ${BEAT}, TROPECO = ${TROPECO}, DUR = ${dur};
+const BAR = ${BAR}, BEAT = ${BEAT}, TROPECO = ${TROPECO};
 const ALT = [0, 4, 9];
 // o plano se desenha a cada 4 compassos
 for (let t = 0; t + 4 * BAR <= DUR; t += 4 * BAR) {
