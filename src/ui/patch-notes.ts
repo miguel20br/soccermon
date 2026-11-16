@@ -9,6 +9,24 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.52.1',
+        date: '2026-11-16',
+        title: 'Semana Fora da Lei',
+        sections: [
+            {
+                title: 'Semana Fora da Lei (16 a 22/11)',
+                lines: [
+                    'Semana Fora da Lei, de 16 a 22/11: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) podem sair como carta Evento, com fundo de pôr do sol',
+                    'Nesta semana a carta Evento sai só desses 14; a semana do tipo volta em 23/11',
+                    'Fim de jogo com "Missão cumprida" e "Perdeu" durante a semana',
+                    'Estrelas de procurado na partida: uma por gol de vantagem',
+                    'Contagem regressiva do evento na tela inicial',
+                    'Estádio e quadra com pôr do sol, palmeiras e neon, e capa nova ao abrir o jogo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.52',
         date: '2026-11-13',
         title: 'Descrições mais diretas',
@@ -2936,6 +2954,24 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.52.1',
+        date: '2026-11-16',
+        title: 'Outlaw Week',
+        sections: [
+            {
+                title: 'Outlaw Week (Nov 16 to 22)',
+                lines: [
+                    'Outlaw Week, Nov 16 to 22: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) can turn up as Event cards, with a sunset background',
+                    'This week Event cards come only from these 14; the type week returns on Nov 23',
+                    'End of match shows "Mission complete" and "Wrecked" during the week',
+                    'Wanted stars during the match: one per goal of lead',
+                    'Event countdown on the home screen',
+                    'Stadium and court with a sunset, palm trees and neon, and a new cover when the game opens',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.52',
         date: '2026-11-13',

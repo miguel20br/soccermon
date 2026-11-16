@@ -1,5 +1,15 @@
 # Novidades
 
+## 0.9.52.1 · Semana Fora da Lei (2026-11-16)
+
+### Semana Fora da Lei (16 a 22/11)
+- Semana Fora da Lei, de 16 a 22/11: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) podem sair como carta Evento, com fundo de pôr do sol
+- Nesta semana a carta Evento sai só desses 14; a semana do tipo volta em 23/11
+- Fim de jogo com "Missão cumprida" e "Perdeu" durante a semana
+- Estrelas de procurado na partida: uma por gol de vantagem
+- Contagem regressiva do evento na tela inicial
+- Estádio e quadra com pôr do sol, palmeiras e neon, e capa nova ao abrir o jogo
+
 ## 0.9.52 · Descrições mais diretas (2026-11-13)
 
 ### Aviso
