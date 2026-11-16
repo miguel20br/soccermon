@@ -1,7 +1,8 @@
 // Curtas promocionais: monta trailer/curtas/midia/ (fora do git) com o que as duas cenas usam, tudo tirado do jogo:
 // folhas PMD da quadra (public/assets/field) + sprites.js (quadros, durações do AnimData e o pé de cada animação),
 // retratos, logo, fonte, a bola, e a música de cada curta (musica.mjs) já em −14 LUFS.
-//   [JOGO=<checkout da main>] node trailer/curtas/preparar.mjs   (da raiz do repo; pela fila: scripts/pesado.sh na frente)
+//   [JOGO=<checkout da main>] node trailer/curtas/preparar.mjs [música ...]   (da raiz do repo; pela fila: scripts/pesado.sh na frente)
+// Com nomes (ex.: `news`), só refaz essas músicas; os sprites, retratos e o resto saem sempre.
 // JOGO: de onde vêm os assets (o atlas extra com o Sleep só existe da 0.9.x em diante; padrão: este checkout).
 import { execFileSync, spawnSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -26,7 +27,10 @@ const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129'
     // Saco de bolas: o Voltorb
     '100', '100-angry',
     // News #1: a dupla Raichu e Golduck, os retratos na caixa de fala
-    '26-happy', '26-joyous', '26-determined', '55', '55-happy', '55-determined', '67', '67-happy', '67-determined'];
+    '26-happy', '26-joyous', '26-determined', '55', '55-happy', '55-determined', '67', '67-happy', '67-determined',
+    // News #1 v8: o retrato com expressão em toda fala (Raichu, Machoke, Meowth, Psyduck e Magikarp)
+    '26', '26-inspired', '26-sigh', '67-surprised', '67-joyous', '52-surprised', '52-happy', '52-joyous', '54-sigh', '54-joyous'];
+const SO = process.argv.slice(2); // só estas músicas (vazio = todas)
 
 mkdirSync(`${OUT}/sp`, { recursive: true });
 mkdirSync(`${OUT}/som`, { recursive: true });
@@ -82,8 +86,9 @@ copyFileSync(`${A}/ui/simbolo.svg`, `${OUT}/logo-simbolo.svg`);
 copyFileSync(`${JOGO}/public/fonts/Galmuri11-Bold.woff2`, `${OUT}/Galmuri11-Bold.woff2`);
 
 // música: a peça editada na partitura, normalizada pra −14 LUFS (2 passadas do loudnorm, ganho linear)
-execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`], { stdio: 'inherit' });
+execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`, ...SO], { stdio: 'inherit' });
 for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado', 'foto', 'paredao', 'bolas', 'news']) {
+    if (SO.length && !SO.includes(nome)) continue;
     const wav = `${OUT}/som/${nome}.wav`;
     const err = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'], {
         encoding: 'utf8',
@@ -92,6 +97,15 @@ for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atras
     const ln = `loudnorm=I=-14:TP=-1:LRA=11:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', wav, '-af', `${ln},aresample=48000`, `${OUT}/som/${nome}-14.wav`]);
     console.log(nome, `medido ${m.input_i} LUFS → −14`);
+}
+// News #1 v8: a dupla de terno (o Raichu com a gola 1 linha mais baixa e o Machoke, os dois no marinho do Machoke) e a
+// linha do tempo com os blips (news-falas.js e news-voz.wav)
+{
+    const { vestir: vestirRaichu } = await import('./news-01/teste-gravata/gravata.mjs');
+    const { CORES, FOLHA, vestir } = await import('./news-01/teste-machoke/terno.mjs');
+    await vestirRaichu(26, '-', `${OUT}/sp/26.png`, `${OUT}/sp/26-terno.png`, CORES.marinho, null, 1);
+    await vestir(FOLHA, `${OUT}/sp/67-terno.png`, 'marinho');
+    execFileSync('node', ['trailer/curtas/news-01/linha.mjs', `${OUT}/som`], { stdio: 'inherit' });
 }
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ apontando pra cá
 for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'vestiario-atrasado', 'vestiario-foto', 'confessionario-paredao', 'vestiario-bolas', 'news-01']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);

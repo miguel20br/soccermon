@@ -603,6 +603,15 @@ const tic = (f0, cai) =>
 export const blipRaichu = tic(1046.5, 0.012);
 /** O blip do Golduck: grave e calmo (Lá 4), um pouco mais longo. */
 export const blipGolduck = tic(440, 0.022);
+// News #1 v8 (15/11): um tic por personagem, todos no molde do blipRaichu (triangular, sem saturação)
+/** O blip do Machoke: o mais grave e calmo da dupla (Dó 4), queda longa. */
+export const blipMachoke = tic(261.6, 0.028);
+/** O blip do Meowth: agudo e esperto (Sol 5), curtinho. */
+export const blipMeowth = tic(784, 0.011);
+/** O blip do Psyduck: médio-grave e mole (Mi 4), um pouco mais longo. */
+export const blipPsyduck = tic(329.6, 0.03);
+/** O blip do Magikarp: médio (Ré 5), curto, entre o Meowth e o Psyduck. */
+export const blipMagikarp = tic(587.3, 0.016);
 /** A varrida entre matérias (News #1 v5): ruído num passa-faixa que sobe e desce em 0,45 s, o "fuuuh" da faixa
  * cruzando a tela; o pico (o meio da varrida, o corte de cena) cai em 0,2 s. */
 export const varrida = som(
