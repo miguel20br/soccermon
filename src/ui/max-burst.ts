@@ -1,6 +1,7 @@
 import type { MaxGrade } from '../engine/state';
 import { t } from '../i18n';
 import { useGame } from '../store/game-store';
+import { canBuzz } from './feedback';
 import { reduceMotionOn } from './reduce-motion';
 import { uiZoom } from './ui-zoom';
 
@@ -158,7 +159,7 @@ export function maxBurst(q: MaxGrade, from?: HTMLElement) {
             );
         }
     }
-    if (useGame.getState().settings.haptics !== false && look.buzz.length && 'vibrate' in navigator) {
+    if (useGame.getState().settings.haptics !== false && look.buzz.length && canBuzz(navigator)) {
         try {
             navigator.vibrate(look.buzz);
         } catch {
