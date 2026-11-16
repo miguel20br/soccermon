@@ -423,3 +423,18 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 - No repo: `.claude/skills/soccermon-musica/SKILL.md`, `docs/planos/pesquisas/musica.md`, as peças em
   `scripts/musica/pecas/` (e na worktree `news1`), os mapas `public/music/*.json` (durações), `docs/marca/brand-guide.md`,
   `docs/adr/0006-sem-dinheiro-nenhum.md`, `docs/planos/calendario.md`.
+
+## Decidido com o Miguel (16/11/2026)
+
+1. Conceito "Temporada 1" (primeiro treino → título, quadra vazia depois dos créditos): **sim**.
+2. Nome: **não curtiu** "Soccermon: Temporada 1 (Original Soundtrack)". Ainda em aberto.
+3. Títulos em PT, com EN na descrição: **sim**.
+4. Lista de faixas: **ok** como está.
+5. Nomes novos: **ok por enquanto**. Ele avisa se algum não agradar.
+6. Esboço da faixa-título "Soc-cer-MON!": **pode fazer**.
+7. Data: **27/11 completo**, junto com o Time Ultimate. Pra isso o upload tem que sair até sexta 20/11, com as aprovações dele até quinta 19/11.
+8. Distribuidora: **DistroKid**.
+9. Declarar a IA: **sim, com ênfase na parte humana**. Texto: "Composta, dirigida e aprovada faixa a faixa por Miguel Cunha; as notas foram escritas em código com assistência de IA num sequenciador próprio; nenhum áudio gerado por IA."
+10. Direitos reservados na gravação: **sim**.
+11. YouTube só com o Topic e uma playlist no nosso canal, sem monetização: **sim**.
+12. Sem single antes: **concordo**.
