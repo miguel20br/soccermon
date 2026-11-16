@@ -1,4 +1,4 @@
-// Soccermon News #1 v9 (16/11): a linha do tempo inteira sai daqui. O index.html lê o news-falas.js (window.LINHA) e a
+// Soccermon News #1 v10 (16/11): a linha do tempo inteira sai daqui. O index.html lê o news-falas.js (window.LINHA) e a
 // música (scripts/musica/pecas/news-plantao.mjs) importa este módulo, então a cena, os blips e a trilha não desencontram.
 //   node trailer/curtas/news-01/linha.mjs <pasta>   → <pasta>/news-falas.js e <pasta>/news-voz.wav (os blips)
 // Regra de leitura (v9): a caixa digita 1 letra a cada 25 ms (2x a v8) e segura 0,15 s depois de pontuação no meio da
@@ -6,6 +6,8 @@
 // caixa tem a largura toda (~55 letras em 2 linhas), então quase toda fala é 1 página só (a que não cabe vira 2: a de
 // antes fica inteira 1,2 s). Cada bloco novo (manchete nova) começa na batida (0,5 s, 120 BPM) e o texto entra 0,3 s
 // depois da manchete.
+// v10, a regra de ritmo do Miguel: "texto, coisinha, texto". Entre os blocos de fala entra um beat visual (BEATS) de 0,8 a
+// 1,5 s sem texto nenhum: a caixa fecha, a manchete sai e só fica a imagem (uma reação, uma gag ou a transição).
 import { readFileSync, writeFileSync } from 'node:fs';
 
 export const DT = 0.025;
@@ -23,11 +25,18 @@ let t = 0;
 export const M = {};
 /** Os blocos: { nome, manchete, s }. */
 export const BLOCOS = [];
+/** Os beats sem texto: { nome, s, z, oque }. */
+export const BEATS = [];
 /** As falas: { id, quem, rostos: [[t, rosto]], s, a, z, paginas: [{ texto, ini, chars, fim, ate }] }. */
 export const FALAS = [];
 
+const fechaBeat = () => {
+    const b = BEATS.at(-1);
+    if (b && b.z == null) b.z = r3(t);
+};
 function bloco(nome, manchete) {
     t = Math.ceil(t / BATIDA - 1e-6) * BATIDA;
+    fechaBeat();
     BLOCOS.push({ nome, manchete, s: r3(t) });
     M[nome] = r3(t);
 }
@@ -43,6 +52,7 @@ function digita(texto, t0) {
 }
 /** Uma fala: `rosto` é o retrato do PMD, ou [[rosto, letra], ...] pra trocar a expressão no meio (na letra n da 1ª página). */
 function fala(id, quem, rosto, texto, { manchete = false } = {}) {
+    fechaBeat();
     const s = t;
     let a = s + (manchete ? RESPIRO : TROCA);
     const pgs = [texto].flat();
@@ -64,6 +74,12 @@ const pausa = (nome, d) => {
     M[nome] = r3(t);
     t += d;
 };
+/** Um beat sem texto de `d` s (o bloco seguinte ainda pode esticar até a batida). */
+const beat = (nome, d, oque) => {
+    BEATS.push({ nome, s: r3(t), z: null, oque });
+    M[nome] = r3(t);
+    t += d;
+};
 /** Quando aparece a 1ª letra de `trecho` na fala (procura em todas as páginas). */
 export const letra = (f, trecho) => {
     for (const p of f.paginas) {
@@ -81,34 +97,41 @@ bloco('abertura', 'SOCCERMON NEWS #1');
 const f1 = fala('f1', 'raichu', '26-happy', 'Boa noite, Kanto! Eu sou o Raichu…', { manchete: true });
 const f2 = fala('f2', 'machoke', '67-happy', '…e eu sou o Machoke. Este é o Soccermon News!');
 const f3 = fala('f3', 'raichu', '26-determined', 'Hoje: as novidades da semana, e mais.');
+beat('bDupla', 0.95, 'a dupla se olha e acena; a câmera abre na bancada');
 bloco('escalada', 'HOJE NO SOCCERMON NEWS');
 export const CARTELAS = [0, 1, 2, 3].map((k) => r3(t + 0.5 + 1.25 * k)); // a vinheta curta abre (0,5 s), 4 batidas de 1,25 s
 t += 5.5;
+beat('bCartas', 1.0, 'de volta ao estúdio: 3 cartas viradas caem no telão e a câmera chega perto');
 bloco('plantao', 'PLANTÃO');
 const f4 = fala('f4', 'raichu', '26', 'Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou.', { manchete: true });
 const f5 = fala('f5', 'machoke', '67-determined', 'Em 4 de cada 10 vitórias, uma das opções é um Patrocínio…');
 const f6 = fala('f6', 'raichu', '26-joyous', '…um bônus forte que vale pro time inteiro.');
+beat('bRua', 1.0, 'a câmera vai pra rua: o telão chia e abre na Rota, o Meowth acena');
 bloco('aovivo', 'AO VIVO');
 const f8 = fala('f8', 'raichu', '26', 'Agora, ao vivo da Rota Índigo, nosso repórter Meowth.', { manchete: true });
 const f9 = fala('f9', 'meowth', '52-happy', 'Boa noite! Aqui na Rota, cada jogo vencido');
 const f10 = fala('f10', 'meowth', '52-happy', 'agora paga ₽3 pra gastar no Mercado.');
 const f11 = fala('f11', 'meowth', '52-joyous', 'Três vitórias, ₽9. Pay Day!');
-pausa('payFim', 0.4); // as moedas assentam e o Meowth faz a pose
+beat('payFim', 1.0, 'as moedas assentam e o Meowth faz a pose');
 bloco('vestiario', 'VESTIÁRIO');
 const f12 = fala('f12', 'machoke', '67-surprised', 'No Vestiário do Pallet FC, uma bola explodiu no treino.', { manchete: true });
 pausa('reacao', 1.0); // o Raichu sem graça (o Pikachu do clipe é a pré-evolução dele), sem fala
-const f13 = fala('f13', 'raichu', '26-determined', 'Psyduck, o que vocês fizeram com o Voltorb?');
+const f13 = fala('f13', 'raichu', '26-determined', 'Psyduck, o que vocês fizeram com o Voltorb?'); // v10: de volta à bancada
 const f14 = fala('f14', 'psyduck', '54-sigh', 'Agora ele é reserva.');
+beat('bVoltorb', 1.45, 'o Voltorb sozinho no banco, de colete: pisca, se encolhe, solta uma faísca e olha pros lados');
 bloco('vemai', 'VEM AÍ');
 const f15 = fala('f15', 'raichu', '26-inspired', 'A partir de agora, sai atualização nova toda semana.', { manchete: true });
 const f16 = fala('f16', 'machoke', '67-joyous', 'E na sexta que vem, dia 27, abre o Time Ultimate…');
 const f17 = fala('f17', 'raichu', '26-joyous', ['…o modo novo em que você abre pacotes', 'e monta o time da temporada.']);
+beat('bRola', 1.0, 'o estúdio aberto: o Voltorb entra rolando no telão e para');
 bloco('fecha', 'PRA FECHAR');
 const f18 = fala('f18', 'machoke', '67-happy', 'E o Voltorb pediu pra avisar: ele tá bem.', { manchete: true });
+beat('bRisada', 1.0, 'a dupla se olha e ri; o Voltorb pisca no telão');
 const f19 = fala('f19', 'raichu', '26-happy', 'Muito obrigado pela companhia, e boa noite!');
 const f20 = fala('f20', 'todos', 'todos', 'Temos que chutar!');
 bloco('final', null);
 t += 3.2;
+fechaBeat();
 export const FIM = r3(t);
 
 // ===================== os instantes de cada animação (a cena e a música usam os mesmos) =====================
@@ -127,9 +150,10 @@ M.payday = letra(f11, 'Pay');
 M.moedas = Array.from({ length: 14 }, (_, k) => r3(M.payday + 0.6 + k * 0.09)); // cada moeda chegando no chão
 M.kaboom = letra(f12, 'explodiu');
 export const KABOOM_NO_CLIPE = 3.5; // midia/news/bola-fora-longa.mp4
-M.vestCena = f13.s; // o corte pro vestiário: o Psyduck de pé, o Voltorb no banco atrás
-/** O Voltorb reage quando falam dele: no gancho, no vestiário e no PRA FECHAR. */
-M.voltorbReage = [0.45, letra(f13, 'Voltorb'), letra(f18, 'Voltorb')];
+M.vestCena = f13.s; // v10: o plano da bancada com o Psyduck na cadeira de convidado
+/** O Voltorb: reage (o pavio) no gancho e no PRA FECHAR; no meio, a gag dele sozinho no banco (o beat bVoltorb). */
+M.voltorbReage = [0.45, M.bVoltorb, letra(f18, 'Voltorb')];
+M.gag = { pisca: r3(M.bVoltorb + 0.15), encolhe: r3(M.bVoltorb + 0.35), faisca: r3(M.bVoltorb + 0.6), olha: [r3(M.bVoltorb + 0.85), r3(M.bVoltorb + 1.1)], volta: r3(M.bVoltorb + 1.32) };
 M.sextas = [0, 1, 2, 3].map((k) => r3(f15.paginas.at(-1).fim + 0.15 + 0.4 * k));
 M.ultimate = letra(f16, 'Time');
 M.pacote = { cai: r3(f17.s + 0.2), treme: r3(f17.s + 0.45), rasga: letra(f17, 'abre') };
@@ -141,11 +165,11 @@ M.bem = letra(f18, 'bem');
 M.boaNoite = letra(f19, 'boa noite');
 M.grito = [r3(f20.a + 0.3), r3(letra(f20, 'chutar') + 0.25)];
 export const VARRIDAS = [M.escalada, M.vemai]; // as 2 transições com a cartinha; o resto é troca rápida com whoosh
-export const CORTES = [M.vinheta, M.abertura, M.plantao, M.vt1, M.aovivo, M.cheia, M.vestiario, M.reacao, M.vestCena, M.fecha, M.final];
+export const CORTES = [M.vinheta, M.abertura, M.bCartas, M.vt1, M.bRua, M.cheia, M.vestiario, M.reacao, M.bVoltorb, M.bRola, M.final];
 
 /** As trocas de cena e os painéis levam 0,25 s (o clipe do EP 2 fica no ar até a troca terminar). */
 export const SAIDA = 0.25;
-export const LINHA = { FIM, M, BLOCOS, FALAS, CARTELAS, VARRIDAS, CORTES, DT, SAIDA };
+export const LINHA = { FIM, M, BLOCOS, BEATS, FALAS, CARTELAS, VARRIDAS, CORTES, DT, SAIDA };
 
 // ===================== os blips (um por letra, baixinhos, um tom por personagem) =====================
 if (import.meta.url === `file://${process.argv[1]}`) {
@@ -195,6 +219,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
     writeFileSync(`${OUT}news-voz.wav`, wav);
     for (const b of BLOCOS) console.log(String(b.s).padStart(7), b.nome, b.manchete ?? '');
+    for (const b of BEATS) console.log(String(b.s).padStart(7), 'beat', b.nome.padEnd(9), `${b.s}–${b.z} (${(b.z - b.s).toFixed(2)} s)`, b.oque);
     for (const f of FALAS) console.log(String(f.s).padStart(7), f.id.padEnd(4), f.quem.padEnd(8), `${f.a}–${f.z}`, f.paginas.map((p) => `[${p.fim}]`).join(''));
     console.log('FIM', FIM);
 }
