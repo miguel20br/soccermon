@@ -35,6 +35,8 @@ export const liga: typeof pt = {
         unrankedNote: "Today's cup is not ranked.",
         next: 'Next Daily Cup in {h}h{m}',
         share: 'Share',
+        shareN: 'Share #{n}',
+        number: 'Daily Cup #{n}',
         copied: 'Copied!',
         week: '{n} of 7 days this week',
         total: '1 day played in total|{n} days played in total',
@@ -57,7 +59,7 @@ export const liga: typeof pt = {
         playing: 'playing',
         goalDiff: 'GD',
         shareText: {
-            title: 'Soccermon · Daily Cup {m}/{d}',
+            title: 'Soccermon · Daily Cup #{n} · {m}/{d}',
             champion: 'Champion!',
             out: '{n}/4',
             week: '{n}/7 days this week',

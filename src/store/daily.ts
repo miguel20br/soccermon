@@ -24,6 +24,12 @@ export const dailyDay = (now: Date = new Date()): string => dayFmt.format(now);
 export const dailySeed = (day: string): string => `dia-${day.replace(/-/g, '')}`;
 export const isDailySeed = (seed: string): boolean => /^dia-\d{8}$/.test(seed);
 
+/** Primeira Copa do Dia no ar (0.8.8.1): a Copa do Dia #1. */
+export const DAILY_FIRST_DAY = '2026-10-19';
+
+/** Número da Copa do Dia, como o do Wordle: #1 em 19/10/2026, +1 a cada dia de Brasília. */
+export const dailyNumber = (day: string): number => Math.round((utc(day) - utc(DAILY_FIRST_DAY)) / 86400000) + 1;
+
 /** Tipo em evento da Copa do Dia: o da semana do dia (meio-dia local, pra data não escorregar de fuso). */
 export const dailyEventType = (day: string): string => weeklyEventType(new Date(`${day}T12:00:00`));
 
@@ -109,11 +115,12 @@ export function dailyShareText(
     const fill = (s: string, v: Record<string, string | number>) =>
         s.replace(/\{(\w+)\}/g, (m, k) => String(v[k] ?? m));
     const [, mm, dd] = e.day.split('-');
+    const n = dailyNumber(e.day);
     // só as partidas jogadas, como as linhas do Wordle (quadrado preto ficaria fora do subset das fontes)
     const squares = e.results.map((r) => (r.won ? '🟩' : '🟥')).join('');
     const wins = winsOf(e);
     return [
-        fill(tx.title, { d: dd, m: mm }),
+        fill(tx.title, { d: dd, m: mm, n }),
         `${squares} ${e.champion ? tx.champion : fill(tx.out, { n: wins })}`,
         ...e.results.map(
             (r) =>

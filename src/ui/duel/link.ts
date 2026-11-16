@@ -25,3 +25,20 @@ export const entryCoach = (code: string | null) => (code ? null : ('duelo' as co
  * Revanche e Voltar ao início (com a linha eram três jeitos de sair).
  */
 export const roomBarShown = (step: string) => step !== 'done';
+
+/**
+ * Convite pra montar o próprio time no fim do Duelo: só pro convidado que nunca jogou uma copa (nenhuma copa no save,
+ * aberta, guardada ou terminada, nem Copa do Dia), e só com a série acabada (no meio do melhor de 3, o próximo jogo vem
+ * primeiro). Das 48 sessões novas que chegaram por convite até 16/11/2026, só 5 começaram uma copa.
+ */
+export const cupInviteShown = (
+    role: string,
+    seriesOver: boolean,
+    save: { run: unknown; parkedRuns: readonly unknown[]; records: { cups: number }; daily: readonly unknown[] },
+) =>
+    role === 'guest' &&
+    seriesOver &&
+    !save.run &&
+    save.parkedRuns.length === 0 &&
+    !save.records.cups &&
+    save.daily.length === 0;

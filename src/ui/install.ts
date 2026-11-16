@@ -15,7 +15,8 @@ export const useInstall = create<{ prompt: InstallPrompt | null; installed: bool
     installed: false,
 }));
 
-const standalone = () =>
+/** Aberto como app instalado (PWA). */
+export const standalone = () =>
     window.matchMedia?.('(display-mode: standalone)').matches ||
     (navigator as Navigator & { standalone?: boolean }).standalone === true;
 

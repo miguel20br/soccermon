@@ -219,6 +219,8 @@ export const duel: typeof pt = {
         rematch: 'Rematch',
         rematchWait: 'Waiting for {name} to accept the rematch…',
         rematchAsk: '{name} wants a rematch',
+        cupInvite: 'Build your own team and play the Lightning Cup.',
+        cupInviteBtn: 'Build my team',
         rivalLeft: '{name} left the room',
         h2hLabel: 'Head-to-head',
         h2h: 'You {w} x {l} {name}',

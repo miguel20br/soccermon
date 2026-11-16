@@ -28,11 +28,18 @@ const SOUND: Record<FeedbackKind, [SfxName, number]> = {
 /** Vibração (ms) por tipo; só onde o toque pesa. */
 const BUZZ: Partial<Record<FeedbackKind, number | number[]>> = { go: 8, leave: [12, 40, 12], danger: 18 };
 
+/**
+ * Dá pra vibrar: o navegador tem vibração e a pessoa já tocou na página. Sem o toque, o Chrome recusa e solta um
+ * `console.error` ("Blocked call to navigator.vibrate"), como no som de eliminado que toca ao abrir o resultado.
+ */
+export const canBuzz = (nav: { vibrate?: unknown; userActivation?: { hasBeenActive: boolean } }) =>
+    typeof nav.vibrate === 'function' && nav.userActivation?.hasBeenActive !== false;
+
 export function feedback(kind: FeedbackKind) {
     const [name, pitch] = SOUND[kind];
     playSfx(name, pitch);
     const ms = BUZZ[kind];
-    if (ms && useGame.getState().settings.haptics !== false && 'vibrate' in navigator) {
+    if (ms && useGame.getState().settings.haptics !== false && canBuzz(navigator)) {
         try {
             navigator.vibrate(ms);
         } catch {

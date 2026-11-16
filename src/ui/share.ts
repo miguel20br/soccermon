@@ -1,5 +1,7 @@
+import { track } from '../analytics/track';
 import { viewInstance } from '../engine/instance';
 import { clubName, dict, fmt, getLang, type Lang } from '../i18n';
+import { type DailyEntry, dailyShareText, dailyStreak, winsOf } from '../store/daily';
 import { isPerfectCup, type RunState } from '../store/game-store';
 import { isFinalStage, isLong } from '../store/long-cup';
 
@@ -37,10 +39,36 @@ export function buildShareText(run: RunState, lang: Lang = getLang()): string {
     ].join('\n');
 }
 
-/** Link do desafio: marca a origem (utm_source=share) e leva a seed no fim, como a Ajuda explica. */
+/**
+ * Origem dos links de Compartilhar (o `utm_source` vira o canal no `npm run stats`): `share` é o desafio (a seed) e
+ * `daily` a Copa do Dia (até a 0.9.52 os dois eram `share`; link antigo segue abrindo igual).
+ */
+export const SHARE_UTM = { seed: 'share', daily: 'daily' } as const;
+
+/** Link do desafio: marca a origem e leva a seed no fim, como a Ajuda explica. */
 export function challengeUrl(seed: string): string {
-    const params = new URLSearchParams({ utm_source: 'share', seed });
+    const params = new URLSearchParams({ utm_source: SHARE_UTM.seed, seed });
     return `${SITE_URL}/?${params}`;
+}
+
+/** Link da Copa do Dia no texto de Compartilhar. */
+export const DAILY_SHARE_URL = `${SITE_URL}/?utm_source=${SHARE_UTM.daily}`;
+
+/** Texto da Copa do Dia (número do dia, quadradinhos, placares, semana e link), no idioma do jogo. */
+export const buildDailyShareText = (e: DailyEntry, list: DailyEntry[], lang: Lang = getLang()) =>
+    dailyShareText(
+        e,
+        dailyStreak(list, e.day),
+        dict(lang).liga.daily.shareText,
+        (n) => clubName(n, lang),
+        DAILY_SHARE_URL,
+    );
+
+/** Compartilha a Copa do Dia e conta no `share` (`from`: a tela do dia ou o resultado da última partida). */
+export async function shareDaily(e: DailyEntry, list: DailyEntry[], from: 'tela' | 'resultado') {
+    const res = await shareText(buildDailyShareText(e, list));
+    track('share', { kind: 'daily', result: res, champion: e.champion, wins: winsOf(e), from });
+    return res;
 }
 
 /**

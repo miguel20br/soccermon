@@ -19,7 +19,10 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
 import { comemoracaoOf } from '../game/walkout-plan';
+import { newShared } from '../net/duel-state';
+import { duel, makePeer, useDuel } from '../net/session';
 import { type BinderCard, binderAdd } from '../store/binder';
+import { dailyDay } from '../store/daily';
 import { playerTeam, useGame } from '../store/game-store';
 import { longRound } from '../store/long-cup';
 import { type EventId, gambleWon, rollEvent } from '../store/long-events';
@@ -133,7 +136,8 @@ export function runDevDemo() {
         demo !== 'final' &&
         demo !== 'rota-titulo' &&
         demo !== 'insignia' &&
-        demo !== 'estadio-campeao'
+        demo !== 'estadio-campeao' &&
+        demo !== 'duelo-fim'
     )
         return;
     started = true;
@@ -155,6 +159,12 @@ export function runDevDemo() {
     }
     if (demo === 'novidades') {
         demoNews();
+        return;
+    }
+    // ?demo=duelo-fim[&jogou=1]: o fim do Duelo do lado do convidado; sem copa no save aparece o convite pra montar o
+    // time (`&jogou=1`: com uma copa no save, sem o convite)
+    if (demo === 'duelo-fim') {
+        demoDuelEnd(q0Of().get('jogou') === '1');
         return;
     }
     if (demo === 'sala') {
@@ -661,8 +671,10 @@ export function runDevDemo() {
         demo === 'eliminado'
     ) {
         const lose = demo === 'eliminado';
+        // `&dia=1`: a mesma copa como Copa do Dia de hoje (o fim com o Compartilhar da Copa do Dia)
+        const dia = q0Of().get('dia') === '1' ? dailyDay() : undefined;
         for (let k = 0; k < 40; k++) {
-            store.newRun('Demo FC', `camp${k}`);
+            store.newRun('Demo FC', `camp${k}`, dia);
             const run = useGame.getState().run!;
             const rng = new Rng(`camp${k}`, 'demo');
             // goleiro Snorlax, fixo Machamp, alas Mew e Aerodactyl, pivô Mewtwo; banco Dragonite e Pikachu
@@ -1727,5 +1739,64 @@ function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean
             status: 'map',
         },
         screen: 'map',
+    });
+}
+
+/** Fim do Duelo (convidado) sem sala de verdade: dois times, a partida simulada e o estado `done` no `useDuel`. */
+function demoDuelEnd(played: boolean) {
+    const rng = new Rng('duelo-fim', 'demo');
+    const team = (name: string, ids: number[], color: number) => {
+        const lineup = ids.map((id) => createInstance(id, rng));
+        return {
+            name,
+            lineup,
+            bench: [],
+            tactic: 'balanced' as const,
+            color,
+            formation: '1-2-1' as const,
+            captainUid: lineup[4].uid,
+        };
+    };
+    const host = team('Pallet Rival', [143, 68, 149, 142, 6], 0x8e44ad);
+    const guest = team('Cerulean FC', [131, 9, 121, 55, 134], 0x3a7bd5);
+    const m = runMatch(FUTSAL_5, host, guest, 'duelo-fim');
+    const peer = (id: string, name: string, clubName: string, clubColor: number) =>
+        makePeer({
+            id,
+            name,
+            avatar: '',
+            avatarGoogle: false,
+            trainer: '',
+            title: '',
+            clubName,
+            clubTag: '',
+            clubColor,
+        });
+    const base = newShared('DEMO42', peer('h', 'Gary', host.name, host.color), 'ready', 1, 'duelo-fim');
+    const [a, b] = m.shootout ?? m.score;
+    const winner = a === b ? null : a > b ? 'host' : 'guest';
+    duel.result = m;
+    useGame.setState({
+        run: null,
+        parkedRuns: [],
+        daily: [],
+        records: { ...useGame.getState().records, cups: played ? 1 : 0 },
+        screen: 'duel',
+    });
+    useDuel.setState({
+        status: 'live',
+        room: 'DEMO42',
+        local: true,
+        role: 'guest',
+        online: { host: true, guest: true },
+        shared: {
+            ...base,
+            // jogo 0: a tela já abre no resultado (o `seen` começa em 0), sem a partida antes
+            game: 0,
+            phase: 'done',
+            peers: { host: base.peers.host, guest: peer('g', 'Miguel', guest.name, guest.color) },
+            teams: { host, guest },
+            result: { score: [m.score[0], m.score[1]], shootout: m.shootout ?? null, winner },
+        },
     });
 }

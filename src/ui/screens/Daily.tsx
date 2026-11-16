@@ -7,18 +7,19 @@ import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo, squadOf } from '../../league/api';
-import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
+import { dailyDay, dailyNumber, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
 import { EstadioBackdrop } from '../kit/backdrop';
 import { InfoSheet, SheetRow } from '../kit/controls';
 import { Stage } from '../kit/Stage';
 import { TrainerName } from '../profile/TrainerName';
-import { SITE_URL, shareText } from '../share';
+import { shareDaily } from '../share';
 import '../liga.css';
 import { backTarget } from '../back-nav';
 
@@ -196,9 +197,7 @@ export function Daily() {
 
     const share = async () => {
         if (!entry) return;
-        const tx = dict(lang).liga.daily.shareText;
-        const text = dailyShareText(entry, streak, tx, (n) => clubName(n, lang), `${SITE_URL}/?utm_source=share`);
-        const res = await shareText(text);
+        const res = await shareDaily(entry, daily, 'tela');
         if (res !== 'failed') {
             setShared(true);
             window.setTimeout(() => setShared(false), 2000);
@@ -208,6 +207,7 @@ export function Daily() {
     // já jogou hoje (acabou, ou largou e a copa aberta é outra): o resultado no lugar do convite
     const done = !!entry && (entry.done || !playing);
     const date = dayLabel(today, lang);
+    const num = dailyNumber(today);
     const sticker = dailySticker(today);
     const myRow = Array.isArray(rows) ? rows.find((r) => r.me) : undefined;
     // a regra inteira mora no "?" (na tela, no máximo ~12 palavras por texto)
@@ -225,7 +225,12 @@ export function Daily() {
     return (
         <Stage
             className="k-stage-place lg-stage dy-stage lg"
-            scene={<EstadioBackdrop mon={{ id: sticker }} led={`${t('liga.daily.tag')} · ${date}`.toUpperCase()} />}
+            scene={
+                <EstadioBackdrop
+                    mon={{ id: sticker }}
+                    led={`${t('liga.daily.number', { n: num })} · ${date}`.toUpperCase()}
+                />
+            }
             action={
                 !done ? (
                     <button
@@ -238,8 +243,9 @@ export function Daily() {
                         {playing ? t('liga.daily.continue') : t('liga.daily.play')}
                     </button>
                 ) : entry.results.length > 0 ? (
-                    <button type="button" className="btn big" onClick={share}>
-                        {shared ? t('liga.daily.copied') : t('liga.daily.share')}
+                    <button type="button" className="btn primary big" data-testid="daily-share" onClick={share}>
+                        <HudIcon kind="upload" />
+                        {shared ? t('liga.daily.copied') : t('liga.daily.shareN', { n: num })}
                     </button>
                 ) : undefined
             }
@@ -250,7 +256,10 @@ export function Daily() {
             <i className="k-stage-gap" aria-hidden />
             <section className="panel lg-hero dy-panel bc-surface bc-stripe">
                 <div className="dy-top">
-                    <span className="lg-date">{date}</span>
+                    <span className="lg-date">
+                        {/* o "#" tira a maiúscula do ::first-letter: a data sobe a primeira letra aqui */}#{num} ·{' '}
+                        {date.charAt(0).toUpperCase() + date.slice(1)}
+                    </span>
                     {rules}
                 </div>
                 {done ? (
