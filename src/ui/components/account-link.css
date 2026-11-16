@@ -159,16 +159,44 @@
 }
 
 /* copa guardada (tela inicial) */
-.parked-row {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: 6px 8px;
+/* a caixa vale pra linha e pra confirmação (Retomar/Descartar): sem ela o texto fica solto sobre a quadra */
+.parked-box {
     padding: 8px 10px;
     border-radius: 10px;
     border: 2px dashed var(--line);
     background: var(--bg-2);
     font-size: 13px;
+    animation: parked-in 220ms var(--ease-out);
+}
+@keyframes parked-in {
+    from {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .parked-box {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .parked-box {
+    animation: none;
+}
+.parked-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 6px 8px;
+}
+.parked-confirm {
+    display: grid;
+    gap: 8px;
+    text-align: center;
+}
+.parked-confirm p {
+    margin: 0;
+}
+.parked-confirm .row {
+    justify-content: center;
 }
 .parked-row .pr-text {
     display: grid;
