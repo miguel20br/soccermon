@@ -289,3 +289,15 @@ Retenção e comunidade:
 Sem dado: regras atuais do r/WebGames, r/pokemon e r/pokerogue (o Reddit bloqueia leitura automática); política de
 fan game do Newgrounds; número de jogadores do Daily Red e do Squirdle; como o PokéRogue ganhou os primeiros
 jogadores.
+
+## Decidido com o Miguel (16/11/2026)
+
+- **Plano B.**
+- **Creators:** mandar os e-mails do kit esta semana, com o Time Ultimate de gancho. Ideia nova dele: streamers BR que fazem live com Pix/LivePix e leem mensagens na tela; a gente manda o jogo por ali. Antes de fazer, ver o ADR 0006 (um Pix pago pra aparecer é divulgação paga).
+- **Imprensa BR no 27/11:** sim.
+- **Itens 4 a 8:** sim. Número do dia e Compartilhar grande na Copa do Dia, prévia de link no WhatsApp depois do 27, notificação opcional no Natal, Discord só com a Liga em 12/01, um teste no r/WebGames em dezembro.
+- **Desafio da semana:** sim, mas o prêmio **cai na conta do jogador**, não por código de título.
+- **Google Search Console:** sim. Ele quer também **bem mais métricas e observabilidade**.
+- **Live no 27/11:** não.
+- **Voltar ao "Escalaram um X no gol":** só se o vídeo ficar muito bom.
+- **Medir pessoas (idioma, país aproximado, contador anônimo por aparelho, D1/D7):** sim.
