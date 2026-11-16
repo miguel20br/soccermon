@@ -5,6 +5,7 @@ export const home: typeof pt = {
     choosingReward: 'Choosing the reward',
     atMarket: 'At the Market',
     eventWeek: '{type}-type week',
+    eventEspecial: 'Outlaw Week',
     helpAria: 'Help: how each mode works and the rules',
     helpTitle: 'How to play',
     live: 'LIVE',

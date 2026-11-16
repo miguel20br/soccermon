@@ -8,15 +8,17 @@ import { Rng } from './rng';
  * +1 junto de outra edição (sozinho é +2), MVP +1 por nível (o 1º MVP de uma carta comum é o próprio Destaque).
  * Sem teto: o único limite é o atributo não passar de 99 (`withBonus`). O máximo hoje é +6 (shiny Ícone MVP 3).
  * - Ícone: Pokémon da lista curada, 1 em 80 quando aparece no draft ou na recompensa.
- * - Evento: tipo da semana, 1 em 8 para cartas desse tipo.
+ * - Evento: tipo da semana, 1 em 8 para cartas desse tipo (na semana especial, 1 em 8 para as espécies da lista).
  * - Destaque: o craque do seu time na partida (dado pelo resultado, não sorteado).
  */
 export type SpecialKind = 'icone' | 'evento' | 'destaque';
 
 export interface Special {
     kind: SpecialKind;
-    /** Evento: o tipo da semana. */
+    /** Evento: o tipo da semana (cartas Evento de tipo, inclusive as antigas). */
     type?: string;
+    /** Evento de lista (semana especial): a chave do evento, sem `type`. A carta usa o fundo do tema. */
+    event?: typeof ESPECIAL_EVENT;
     /** Ícone: título temático ("Pikachu do Ash"). */
     title?: string;
     /**
@@ -33,6 +35,14 @@ export const SPECIAL_BONUS = 2;
 /** Ícone tem que ser raro de verdade: os 20 da lista já são os mais famosos, então saem muito no draft. */
 export const ICON_CHANCE = 1 / 80;
 export const EVENT_CHANCE = 1 / 8;
+
+/**
+ * Semana Fora da Lei (chave interna `especial`, 16 a 22/11/2026, aprovada pelo Miguel): o evento deixa de ser o tipo da semana e passa a ser esta
+ * lista, com a mesma chance e o mesmo bônus. O motor só recebe a chave (`eventType`); a data fica em
+ * `src/store/daily.ts` (`weekEvent`). Os textos estão no i18n (`home.eventEspecial`, `common.eventName`).
+ */
+export const ESPECIAL_EVENT = 'especial';
+export const ESPECIAL_SPECIES: readonly number[] = [107, 106, 68, 9, 53, 52, 24, 110, 101, 78, 130, 123, 99, 57];
 
 /** Ícones: espécie → título da carta. */
 export const ICONS: Record<number, string> = {
@@ -131,7 +141,10 @@ export function rollSpecial(inst: PokemonInstance, eventType: string | null): Po
     const rng = new Rng(inst.uid, 'special');
     const icon = ICONS[inst.speciesId];
     if (icon && rng.chance(ICON_CHANCE)) return { ...inst, special: { kind: 'icone', title: icon } };
-    if (eventType && species(inst.speciesId).types.includes(eventType) && rng.chance(EVENT_CHANCE)) {
+    if (eventType === ESPECIAL_EVENT) {
+        if (ESPECIAL_SPECIES.includes(inst.speciesId) && rng.chance(EVENT_CHANCE))
+            return { ...inst, special: { kind: 'evento', event: ESPECIAL_EVENT } };
+    } else if (eventType && species(inst.speciesId).types.includes(eventType) && rng.chance(EVENT_CHANCE)) {
         return { ...inst, special: { kind: 'evento', type: eventType } };
     }
     return inst;

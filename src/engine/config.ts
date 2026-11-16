@@ -92,8 +92,10 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 29 = Linha de 3 arma pelo fixo (bug report 10/11/2026): o ala no nosso campo, quando passa, prefere o fixo
  *     (`FormationStyle.fixoPass`, só reordena os passes).
  * 30 = o Losango também arma pelo fixo (`fixoPass` 0,2, mais fraco que o 0,3 da 3-1; Miguel, 11/11/2026).
+ * 31 = semana especial (16 a 22/11/2026): Evento por lista de espécies (`ESPECIAL_SPECIES`, carta `event: 'especial'`)
+ *     no lugar do tipo da semana; o Duelo e a Liga aceitam a carta nova.
  */
-export const ENGINE_VERSION = 30;
+export const ENGINE_VERSION = 31;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',

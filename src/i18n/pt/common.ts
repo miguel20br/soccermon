@@ -109,6 +109,8 @@ export const common = {
     metal: { bronze: 'Bronze', prata: 'Prata', ouro: 'Ouro' },
     finish: { fosco: 'Comum', brilhante: 'Raro', lendario: 'Lendário' },
     edition: { shiny: 'Shiny', destaque: 'Destaque', icone: 'Ícone', evento: 'Evento' },
+    /** Nome do evento de lista na carta ("Evento · Fora da Lei"). */
+    eventName: { especial: 'Fora da Lei' } as Record<string, string>,
     /** Tipos (o motor usa os nomes oficiais em inglês como id). */
     type: {
         Normal: 'Normal',

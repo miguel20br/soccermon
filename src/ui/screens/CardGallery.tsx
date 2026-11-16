@@ -137,6 +137,7 @@ const COMBOS: { label: string; inst: PokemonInstance }[] = [
     { label: 'Shiny Ícone', inst: card(25, true, ico(25)) },
     { label: 'Evento', inst: card(59, false, evt('Fire')) },
     { label: 'Shiny Evento', inst: card(59, true, evt('Fire')) },
+    { label: 'Evento Fora da Lei', inst: card(68, false, { kind: 'evento', event: 'especial' }) },
     ...[1, 2, 3].map((n) => ({ label: `Destaque ${n}`, inst: card(68, false, dest(n)) })),
     { label: 'Shiny Destaque 1', inst: card(6, true, dest()) },
     { label: 'Shiny Destaque 3', inst: card(6, true, dest(3)) },

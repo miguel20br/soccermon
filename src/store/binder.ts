@@ -98,9 +98,12 @@ export function betterCard(
 
 /** O combo da carta: Shiny, edição base, tipo do Evento e nível do selo MVP ("s.icone..2"). */
 export const versionKey = (card: Pick<PokemonInstance, 'shiny' | 'special'>) =>
-    [card.shiny ? 's' : '', card.special?.kind ?? '', card.special?.type ?? '', mvpLevel(card as PokemonInstance)].join(
-        '.',
-    );
+    [
+        card.shiny ? 's' : '',
+        card.special?.kind ?? '',
+        card.special?.type ?? card.special?.event ?? '',
+        mvpLevel(card as PokemonInstance),
+    ].join('.');
 
 const toVersion = (c: BinderVersion): BinderVersion => ({
     uid: c.uid,

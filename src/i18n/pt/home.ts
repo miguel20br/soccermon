@@ -4,6 +4,8 @@ export const home = {
     choosingReward: 'Escolhendo a recompensa',
     atMarket: 'No Mercado',
     eventWeek: 'Semana do tipo {type}',
+    /** Semana Fora da Lei (16 a 22/11/2026): o nome também está em `common.eventName` e `team.card.tipEspecial`. */
+    eventEspecial: 'Semana Fora da Lei',
     helpAria: 'Ajuda: como funciona cada modo e as regras',
     helpTitle: 'Como jogar',
     /** Selo da quadra animada do topo (enfeite de transmissão). */

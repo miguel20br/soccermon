@@ -1,8 +1,9 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { SPECIES } from '../../engine/data';
+import { SPECIES, species } from '../../engine/data';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
+import { ESPECIAL_EVENT } from '../../engine/specials';
 import { plural } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
@@ -156,15 +157,23 @@ function Art({ art, s, type = 'normal' }: { art: NewsArt; s: number; type?: stri
             </div>
         );
     if (art === 'evento') {
-        // o evento da semana: a cor e o ícone do tipo e três Pokémon dele (o primeiro, o do meio e o último da Dex)
-        const of = SPECIES.filter((sp) => sp.types.includes(type));
+        // o evento da semana: a cor e o ícone do tipo e três Pokémon dele (o primeiro, o do meio e o último da Dex);
+        // na Semana Fora da Lei, três da lista (Hitmonchan, Machamp e Gyarados), sem ícone de tipo
+        const list = type === ESPECIAL_EVENT;
+        const of = list ? [107, 68, 130].map(species) : SPECIES.filter((sp) => sp.types.includes(type));
         const trio = [of[0], of[of.length >> 1], of[of.length - 1]];
         return (
-            <div className="mm-sc nf-evento" style={{ '--tc': TYPE_COLOR[type] } as CSSProperties} aria-hidden>
+            <div
+                className="mm-sc nf-evento"
+                style={{ '--tc': TYPE_COLOR[list ? 'Fighting' : type] } as CSSProperties}
+                aria-hidden
+            >
                 <i className="mm-rays" />
-                <span className="nf-type">
-                    <TypeIcon type={type} size={64} />
-                </span>
+                {!list && (
+                    <span className="nf-type">
+                        <TypeIcon type={type} size={64} />
+                    </span>
+                )}
                 <div className="mm-stage">
                     {trio.map((sp, i) => (
                         <span
