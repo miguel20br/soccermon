@@ -3,10 +3,12 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
 import { buildCupOpponents } from '../engine/cup';
+import { ESPECIAL_EVENT, EVENT_TYPES, weeklyEventType } from '../engine/specials';
 import {
     bestDailyStreak,
     type DailyEntry,
     dailyDay,
+    dailyEventType,
     dailySeed,
     dailyShareText,
     dailySticker,
@@ -14,6 +16,7 @@ import {
     dailyStreak,
     daysInARow,
     mergeDaily,
+    weekEvent,
     weekOf,
 } from './daily';
 import { dailyAfter, migrateSave, type RunState, SAVE_VERSION, savePart, seedFromUrl, useGame } from './game-store';
@@ -24,6 +27,27 @@ const entry = (day: string, patch: Partial<DailyEntry> = {}): DailyEntry => ({
     done: false,
     champion: false,
     ...patch,
+});
+
+describe('Semana Fora da Lei (16 a 22/11/2026, Brasília)', () => {
+    it('começa à 00:00 de segunda e acaba à 23:59 de domingo em Brasília (já é segunda em UTC)', () => {
+        expect(weekEvent(new Date('2026-11-16T02:59:00Z'))).not.toBe(ESPECIAL_EVENT); // domingo 15, 23:59
+        expect(weekEvent(new Date('2026-11-16T03:00:00Z'))).toBe(ESPECIAL_EVENT);
+        expect(weekEvent(new Date('2026-11-23T02:59:00Z'))).toBe(ESPECIAL_EVENT); // domingo 22, 23:59 (segunda UTC)
+        expect(weekEvent(new Date('2026-11-23T03:00:00Z'))).not.toBe(ESPECIAL_EVENT);
+    });
+
+    it('fora do período volta a Semana do tipo; a Copa do Dia usa o mesmo evento', () => {
+        const antes = new Date('2026-11-12T15:00:00Z');
+        const depois = new Date('2026-11-25T15:00:00Z');
+        expect(weekEvent(antes)).toBe(weeklyEventType(antes));
+        expect(weekEvent(depois)).toBe(weeklyEventType(depois));
+        expect(EVENT_TYPES).toContain(weekEvent(depois));
+        expect(dailyEventType('2026-11-15')).not.toBe(ESPECIAL_EVENT);
+        expect(dailyEventType('2026-11-16')).toBe(ESPECIAL_EVENT);
+        expect(dailyEventType('2026-11-22')).toBe(ESPECIAL_EVENT);
+        expect(dailyEventType('2026-11-23')).toBe(weeklyEventType(new Date('2026-11-23T12:00:00')));
+    });
 });
 
 describe('Copa do Dia: o dia', () => {

@@ -41,7 +41,6 @@ import {
     mvpOpen,
     rollSpecial as roll,
     SPECIALS_LIVE,
-    weeklyEventType,
 } from '../engine/specials';
 import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
@@ -57,6 +56,7 @@ import {
     isDailySeed,
     mergeDaily,
     putDaily,
+    weekEvent,
 } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import {
@@ -1532,7 +1532,7 @@ export const useGame = create<GameStore>()(
                         rewards: [],
                         lockedTeam: null,
                         live: null,
-                        eventType: daily ? dailyEventType(daily) : weeklyEventType(new Date()),
+                        eventType: daily ? dailyEventType(daily) : weekEvent(),
                         startedAt: Date.now(),
                         ...(daily && { daily }),
                         ...(mode && !daily && newLongFields(runSeed)),

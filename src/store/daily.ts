@@ -1,7 +1,7 @@
 import { SPECIES, species } from '../engine/data';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
-import { weeklyEventType } from '../engine/specials';
+import { ESPECIAL_EVENT, weeklyEventType } from '../engine/specials';
 
 /**
  * Copa do Dia: a mesma copa (draft e rivais) pra todo mundo no dia, 1 tentativa, estilo Wordle. O dia vira à meia-noite
@@ -24,8 +24,22 @@ export const dailyDay = (now: Date = new Date()): string => dayFmt.format(now);
 export const dailySeed = (day: string): string => `dia-${day.replace(/-/g, '')}`;
 export const isDailySeed = (seed: string): boolean => /^dia-\d{8}$/.test(seed);
 
-/** Tipo em evento da Copa do Dia: o da semana do dia (meio-dia local, pra data não escorregar de fuso). */
-export const dailyEventType = (day: string): string => weeklyEventType(new Date(`${day}T12:00:00`));
+/** Semana especial (dias de Brasília, inclusive): o evento é a lista `ESPECIAL_SPECIES` no lugar do tipo da semana. */
+export const ESPECIAL_WEEK = { from: '2026-11-16', to: '2026-11-22' };
+const inEspecial = (day: string) => day >= ESPECIAL_WEEK.from && day <= ESPECIAL_WEEK.to;
+
+/**
+ * Evento da Copa do Dia: o da semana do dia (meio-dia local, pra data não escorregar de fuso), ou a semana especial.
+ */
+export const dailyEventType = (day: string): string =>
+    inEspecial(day) ? ESPECIAL_EVENT : weeklyEventType(new Date(`${day}T12:00:00`));
+
+/**
+ * Evento de agora (draft, Mercado, letreiro, notícia): a semana especial pelo relógio de Brasília (domingo 23:59 de
+ * Brasília já é segunda em UTC), senão o tipo da semana como sempre.
+ */
+export const weekEvent = (now: Date = new Date()): string =>
+    inEspecial(dailyDay(now)) ? ESPECIAL_EVENT : weeklyEventType(now);
 
 /** Uma Copa do Dia jogada (só no save; o ranking do dia fica no banco). */
 export interface DailyEntry {

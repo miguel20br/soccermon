@@ -1,6 +1,7 @@
-import { weeklyEventType } from '../engine/specials';
-import { typeName } from '../i18n';
+import { ESPECIAL_EVENT, ESPECIAL_SPECIES } from '../engine/specials';
+import { dict, typeName } from '../i18n';
 import type { Lang } from '../i18n/lang';
+import { weekEvent } from '../store/daily';
 import { utNow } from '../store/ultimate/clock';
 
 /**
@@ -81,24 +82,32 @@ const ymd = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /**
- * O evento da semana (`weeklyEventType`, a mesma regra do letreiro e do draft): segunda a domingo, id por semana (o
+ * O evento da semana (`weekEvent`, a mesma regra do letreiro e do draft; na Semana Fora da Lei, a lista): segunda a domingo, id por semana (o
  * pontinho acende a cada evento novo).
  */
 export function weekCard(now = utNow()): NewsCard {
     const d = new Date(now);
-    const type = weeklyEventType(d);
+    const type = weekEvent(d);
     const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
     const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
     const [dd, mm] = [String(sun.getDate()).padStart(2, '0'), String(sun.getMonth() + 1).padStart(2, '0')];
+    const list = type === ESPECIAL_EVENT;
     return {
         id: `evento-${ymd(mon)}`,
         date: ymd(mon),
         until: ymd(sun),
-        title: { pt: `Semana do tipo ${typeName(type, 'pt')}`, en: `${typeName(type, 'en')}-type week` },
-        text: {
-            pt: `Cartas Evento de ${typeName(type, 'pt')} podem sair no draft, até domingo (${dd}/${mm})`,
-            en: `${typeName(type, 'en')} Event cards can turn up in the draft, until Sunday (${mm}/${dd})`,
-        },
+        title: list
+            ? { pt: dict('pt').home.eventEspecial, en: dict('en').home.eventEspecial }
+            : { pt: `Semana do tipo ${typeName(type, 'pt')}`, en: `${typeName(type, 'en')}-type week` },
+        text: list
+            ? {
+                  pt: `Cartas Evento de ${ESPECIAL_SPECIES.length} Pokémon fora da lei podem sair no draft, até domingo (${dd}/${mm})`,
+                  en: `Event cards of ${ESPECIAL_SPECIES.length} outlaw Pokémon can turn up in the draft, until Sunday (${mm}/${dd})`,
+              }
+            : {
+                  pt: `Cartas Evento de ${typeName(type, 'pt')} podem sair no draft, até domingo (${dd}/${mm})`,
+                  en: `${typeName(type, 'en')} Event cards can turn up in the draft, until Sunday (${mm}/${dd})`,
+              },
         art: 'evento',
         type,
         to: 'estadio',

@@ -19,7 +19,7 @@ import {
     walkTier,
 } from '../../game/walkout-plan';
 import { wkSound } from '../../game/walkout-sound';
-import { typeName } from '../../i18n';
+import { eventName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { FutCard } from '../components/FutCard';
@@ -220,7 +220,7 @@ export function WalkoutStage({
     const [l1, l2] = lightKey ? LIGHT[lightKey] : [typeColor, '#ffffff'];
     const plateText =
         edition === 'evento'
-            ? `${editionLabel('evento')} · ${typeName(inst.special?.type ?? type)}`
+            ? `${editionLabel('evento')} · ${inst.special?.event ? eventName(inst.special) : typeName(inst.special?.type ?? type)}`
             : edition
               ? editionLabel(edition)
               : d.common.metal.ouro;

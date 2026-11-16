@@ -117,6 +117,7 @@ export const team = {
         tipShinyOn: 'Shiny por cima: +1 em tudo.',
         tipIcone: 'Ícone: 1 em {odds} quando ele sai no draft. +2 em tudo.',
         tipEvento: 'Evento da semana do tipo {type}. +2 em tudo.',
+        tipEspecial: 'Evento da Semana Fora da Lei. +2 em tudo.',
         tipDestaque: 'Destaque: o craque de uma vitória. +2 em tudo.',
         tipMvpOne: 'MVP 1: craque da partida 1 vez. +{bonus} em tudo.',
         tipMvp: 'MVP {n}: craque da partida {n} vezes. +{bonus} em tudo.',

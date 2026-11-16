@@ -1,10 +1,10 @@
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react';
-import { weeklyEventType } from '../../engine/specials';
+import { ESPECIAL_EVENT } from '../../engine/specials';
 import { typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { ligaTeaser } from '../../league/rules';
 import { isFirstVisit } from '../../store/coach';
-import { dailyDay } from '../../store/daily';
+import { dailyDay, weekEvent } from '../../store/daily';
 import { resumeScreenOf, seedFromUrl, useGame } from '../../store/game-store';
 import type { CupMode } from '../../store/long-cup';
 import { bannerInk, clubColorHex } from '../../store/profile';
@@ -165,7 +165,10 @@ export function Stands({
     children?: ReactNode;
 }) {
     const { t } = useT();
-    const week = t('home.eventWeek', { type: typeName(weeklyEventType(new Date())) }).toUpperCase();
+    const ev = weekEvent();
+    const week = (
+        ev === ESPECIAL_EVENT ? t('home.eventEspecial') : t('home.eventWeek', { type: typeName(ev) })
+    ).toUpperCase();
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
     // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
     const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));

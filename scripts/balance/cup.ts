@@ -31,7 +31,8 @@ const evoScore = (o: PokemonInstance, role: Position | 'ANY') => {
     return t === null ? r : Math.max(r, ratingAt(evolveInstance(o, t), role).rating);
 };
 const REROLL_BELOW = 68;
-const EVENT = weeklyEventType(new Date('2026-10-17T12:00:00Z'));
+// EVENT=especial: a Semana Fora da Lei (lista de espécies); EVENT=Fire: a semana de um tipo
+const EVENT = process.env.EVENT ?? weeklyEventType(new Date('2026-10-17T12:00:00Z'));
 const metal = (r: number) => (r >= 75 ? 'gold' : r >= 65 ? 'silver' : 'bronze');
 
 interface RoundRec {
@@ -332,7 +333,12 @@ function cup(seed: string, formation: FormationId) {
         evolvers: picks.filter((p) => evolutionTarget(p.speciesId, p.uid) !== null).length,
         destaques,
         // cartas no fim da copa (combos de edição)
-        cards: picks.map((p) => ({ shiny: p.shiny, kind: p.special?.kind ?? null, level: p.special?.level ?? 0 })),
+        cards: picks.map((p) => ({
+            id: p.speciesId,
+            shiny: p.shiny,
+            kind: p.special?.kind ?? null,
+            level: p.special?.level ?? 0,
+        })),
         captain: cap.speciesId,
         rounds,
         stages,

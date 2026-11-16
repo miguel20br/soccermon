@@ -130,6 +130,10 @@ export function abilityDesc(id: string, lang: Lang = current): string {
 /** Tipo: "Fogo" / "Fire". */
 export const typeName = (type: string, lang: Lang = current): string => DICTS[lang].common.type[type] ?? type;
 
+/** O que vai depois de "Evento · " na carta: o tipo ("Fogo") ou o nome do evento de lista ("Fora da Lei"). */
+export const eventName = (s: { type?: string; event?: string } | null | undefined, lang: Lang = current): string =>
+    s?.event ? (DICTS[lang].common.eventName[s.event] ?? s.event) : typeName(s?.type ?? '', lang);
+
 /** Status pelo nome do motor ('par', 'brn'...) ou pelo código do snapshot (1..7). */
 export function statusName(s: string | number, lang: Lang = current): string {
     const c = DICTS[lang].common;

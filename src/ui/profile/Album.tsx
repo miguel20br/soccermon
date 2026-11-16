@@ -14,7 +14,7 @@ import {
 import { SPECIES, type Species, species } from '../../engine/data';
 import { type DuelMonRecipe, monRecipe } from '../../engine/duel-validate';
 import type { PokemonInstance } from '../../engine/instance';
-import { typeName } from '../../i18n';
+import { eventName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
     type BinderCard,
@@ -79,7 +79,7 @@ export function useComboName() {
         const parts = p.shiny ? ['Shiny'] : [];
         if (s) {
             parts.push(d.common.edition[s.kind]);
-            if (s.kind === 'evento' && s.type) parts.push(typeName(s.type, lang));
+            if (s.kind === 'evento' && (s.type || s.event)) parts.push(eventName(s, lang));
             if (s.kind === 'destaque') parts.push(['I', 'II', 'III'][(s.level ?? 1) - 1] ?? '');
             else if (s.level) parts.push(s.level > 1 ? `MVP ${s.level}` : 'MVP');
         }
