@@ -19,3 +19,12 @@ Nada de doações, anúncios, loja real ou qualquer cobrança. O código é AGPL
 - Sem receita: custos ficam nos planos gratuitos (Supabase pausa após 7 dias sem uso).
 - Mecânicas de retenção precisam ser sem perda e sem dinheiro (ex.: sequência de dias).
 - Divulgação sem apelo comercial; o repo é público, então nenhum segredo nele.
+
+## Exceção: a trilha sonora (16/11/2026)
+
+O Miguel decidiu que o álbum **"Soccermon Songs"** (a OST do jogo mais músicas extras) pode sair em streaming pago por play, como o Spotify, e que os royalties ficam com ele. A trilha é composição original dele com a marca Soccermon: sem melodia de jogo Pokémon (regra da skill `soccermon-musica`) e sem material licenciado de ninguém.
+
+O jogo continua sem dinheiro nenhum, e a exceção vale só pra música. Pra o risco não voltar pro jogo:
+- o álbum não menciona Pokémon em nada: nome das faixas, capa, descrição e tags;
+- o Content ID da distribuidora fica desligado, pra não gerar reclamação contra quem usar a trilha em vídeo;
+- o jogo não vende o álbum nem põe link de compra. Ele pode citar onde ouvir, sem apelo comercial.
