@@ -16,72 +16,80 @@ A v1 e a v2 (35 s, sem falas) foram reprovadas: "frenético", "vago, infos jogad
 gostou do Psyduck repetindo a fala do episódio (o callback em si agradou), achou estranho o "Que moedas?" e a
 escalada parecia notícia dada rápido: na v4 ela vira sumário com cartelas.
 
-## Roteiro
+## Formato fixo (Miguel, 15/11, a partir da v8)
 
-**Abertura**
-| Imagem | Fala | Manchete |
-|---|---|---|
-| Gol em câmera lenta, o artilheiro amassa ao cair; vinheta de plantão | — | SOCCERMON NEWS #1 |
-| Bancada | **Alakazam:** Boa noite! Eu sou o Alakazam, seu apresentador desta noite. | |
-| Bancada | **Alakazam:** Hoje: as novidades da versão 0.9.51, e mais. | |
+- **Dupla de âncoras de terno azul-marinho:** Raichu (gravata vermelha, gola −1) e Machoke (gravata dourada). Os
+  ternos são pintados no tronco do próprio sprite, sem redesenhar o corpo (`teste-gravata/gravata.mjs`,
+  `teste-machoke/terno.mjs` no worktree `news1`). Testes reprovados: Alakazam, Pikachu provisório, Machamp de 4
+  braços, Golduck ("horroroso") e terno cinza no Machoke ("da cor da pele").
+- **Retrato PMD com expressão** ao lado da caixa de fala; **blip suave** por personagem (as vozes de antes eram
+  "super agressivas").
+- **Bordões:** abre com "Boa noite, Kanto!" e fecha com "Temos que chutar!".
+- **Blocos com nome fixo na manchete, nessa ordem:** PLANTÃO, AO VIVO, VESTIÁRIO, VEM AÍ, NOTA PÉ.
+- **Gancho:** a manchete mais absurda antes da vinheta, paga mais tarde no programa.
+- A informação vem inteira antes da piada. Tarja que comenta a cena, no máximo 1 ou 2 por edição.
+- **Caixa de fala:** até 2 linhas, ≥2,7 s cheia. Só 2 transições de cartinha por vídeo. ~60 s.
 
-**Escalada** (v4: cartelas de destaque, não matéria). Banner fixo HOJE NO SOCCERMON NEWS; sem caixa de fala; cada
-destaque é uma cartela grande com imagem pequena, 2 s cada, com uma batida da vinheta em cada troca. Fica claro que é
-o sumário, não a notícia.
-| Imagem | Cartela |
-|---|---|
-| A recompensa 1 de 3 com o Patrocínio | 1 · RECOMPENSA NOVA NA COPA DO DIA |
-| Meowth de microfone | 2 · AO VIVO DA ROTA ÍNDIGO |
-| A fatia do Time Ultimate | 3 · A DATA DO TIME ULTIMATE |
-| Silhueta do Psyduck atrás da porta do estúdio | E MAIS: O TÉCNICO DO PALLET FC NO ESTÚDIO |
+## Roteiro (v8, aprovado em 15/11)
 
-**Matéria 1: Copa do Dia**
-| Imagem | Fala | Manchete |
-|---|---|---|
-| Recompensa 1 de 3 | **Alakazam:** Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou. | RECOMPENSA NOVA |
-| A carta do Patrocínio | **Alakazam:** Em 4 de cada 10 vitórias, uma das opções é um Patrocínio… | |
-| A carta ampliada ("+4 em tudo enquanto o time perde") | **Alakazam:** …um bônus forte que vale pro time inteiro. | |
+**Gancho:** o Voltorb no banco, de colete, piscando. Manchete PLANTÃO · VOLTORB VIRA RESERVA. Depois, a vinheta.
 
-**Matéria 2: ao vivo da Rota**
-| Imagem | Fala | Manchete |
-|---|---|---|
-| Bancada | **Alakazam:** Agora, ao vivo da Rota Índigo, nosso repórter Meowth. | AO VIVO · ROTA ÍNDIGO |
-| Meowth na quadra, com o microfone num pedestal na frente dele (sem mãozinha) | **Meowth:** Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado. | |
-| Chovem moedas em volta do Meowth (o golpe dele) | **Meowth:** Três vitórias, ₽9. Pay Day! | |
+**Abertura** (selo 0.9.51 + 0.9.52)
+- **Raichu:** Boa noite, Kanto! Eu sou o Raichu…
+- **Machoke:** …e eu sou o Machoke. Este é o Soccermon News!
+- **Raichu:** Hoje: as novidades da semana, e mais.
 
-**Quadro: Vestiário do Pallet FC**
-| Imagem | Fala | Manchete |
-|---|---|---|
-| Trecho do ep. 2 "Bola fora": o Voltorb explode no chute do Pikachu | **Alakazam:** No Vestiário do Pallet FC, uma bola explodiu no treino. | VESTIÁRIO DO PALLET FC |
-| Psyduck na cadeira do convidado, ainda tostado, prancheta queimada | **Alakazam:** Psyduck, o que vocês fizeram com o Voltorb? | PSYDUCK · TÉCNICO |
-| Corte pro banco do Pallet FC: o Voltorb sentado no banco, de colete, pisca | **Psyduck:** Agora ele é reserva. | |
+**Escalada:** cartelas de 1,5 s.
+- 1 · RECOMPENSA NOVA NA COPA DO DIA
+- 2 · AO VIVO DA ROTA ÍNDIGO
+- 3 · A DATA DO TIME ULTIMATE
+- E MAIS: O TÉCNICO DO PALLET FC NO ESTÚDIO
 
-**Aviso e Time Ultimate**
-| Imagem | Fala | Manchete |
-|---|---|---|
-| Calendário com uma bola em cada semana | **Alakazam:** Um aviso: a partir de agora, sai atualização nova toda semana. | TODA SEMANA |
-| Tela do Time Ultimate | **Alakazam:** E na sexta que vem, dia 27, abre o Time Ultimate… | TIME ULTIMATE · 27/11 |
-| A carta ouro virando | **Alakazam:** …o modo novo em que você abre pacotes e monta o time da temporada. | |
-| Bancada | **Alakazam:** Muito obrigado pela companhia, e boa noite! | |
-| Os três na bancada, pulando juntos | **Todos:** Temos que chutar! | |
-| Tela final | — | Temos que chutar! · soccermon.com |
+**PLANTÃO**
+- **Raichu** (telão, depois VT): Na Copa do Dia e na Relâmpago, a recompensa da vitória mudou.
+- **Machoke** (troféus 4/10): Em 4 de cada 10 vitórias, uma das opções é um Patrocínio…
+- **Raichu** (barras +4, 0×1 PERDENDO): …um bônus forte que vale pro time inteiro.
+- **Magikarp** (sonora): A gente perdia. A charanga tocou e o time ficou mais forte.
 
-Fora desta edição: sprites nítidos (conserto), barra de golpe, a bola amassando, Seus duelos (o Duelo saindo do BETA
-pode abrir o #2).
+**AO VIVO**
+- **Raichu** (tela dividida): Agora, ao vivo da Rota Índigo, nosso repórter Meowth. Boa noite, Meowth.
+- O Meowth fica 1 s parado, com a tarja ATRASO NO SINAL. **Meowth:** Boa noite, Raichu!
+- **Meowth** (com a partida rolando atrás): Aqui na Rota, cada jogo vencido agora paga ₽3 pra gastar no Mercado.
+- **Meowth:** Três vitórias, ₽9. Pay Day!
+
+**VESTIÁRIO**
+- **Machoke** (clipe do ep. 2): No Vestiário do Pallet FC, uma bola explodiu no treino.
+- O Raichu reage sem graça (o Pikachu é a pré-evolução dele).
+- **Raichu:** Psyduck, o que vocês fizeram com o Voltorb?
+- **Psyduck:** Agora ele é reserva. Corte pro banco com a tarja VOLTORB · RESERVA.
+
+**VEM AÍ**
+- **Raichu** (calendário): A partir de agora, sai atualização nova toda semana.
+- **Machoke** (27/11 vira Time Ultimate): E na sexta que vem, dia 27, abre o Time Ultimate…
+- **Raichu** (pacote, Mewtwo 93): …o modo novo em que você abre pacotes e monta o time da temporada.
+
+**NOTA PÉ**
+- **Machoke:** E o Voltorb pediu pra avisar: ele tá bem.
+- **Raichu:** Muito obrigado pela companhia, e boa noite!
+- **Todos:** Temos que chutar! (o Meowth e o Psyduck no telão)
+- Tela final.
+
+Fora desta edição: sprites nítidos (conserto), barra de golpe, a bola amassando e Seus duelos. A 0.9.53 não sobe
+antes de 20/11 (Miguel, 15/11).
 
 ## Legenda do post
 
 **TikTok**
-> Chegou a 0.9.51 do Soccermon! ⚽ Qual novidade você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt
+> [A APROVAR, v8] O Voltorb virou reserva e o Soccermon tem novidade ⚽ Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/tt
 > #pokemon #futsal #soccermon #meowth #psyduck
 
 **Instagram (Reels)**
-> Chegou a 0.9.51 do Soccermon! ⚽ Qual novidade você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/ig (link na bio)
+> [A APROVAR, v8] O Voltorb virou reserva e o Soccermon tem novidade ⚽ Qual você vai testar primeiro? Soccermon News #1. Joga grátis: soccermon.com/ig (link na bio)
 > Fan game sem fins lucrativos. Música original: Soccermon.
 > #pokemon #futsal #soccermon #meowth
 
 **YouTube Shorts**
-> Título: Chegou a 0.9.51 | Soccermon News #1 #shorts
+> Título: [A APROVAR] O Voltorb virou reserva | Soccermon News #1 #shorts
 > Descrição: Qual novidade você vai testar primeiro? Joga grátis: soccermon.com/yt
 > Fan game sem fins lucrativos. Música original: Soccermon.
 
