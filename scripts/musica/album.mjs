@@ -35,7 +35,10 @@ export function medir(wav) {
 export function masterizar(bruto, saida, { lufs = -14, respira = 1.5, emenda = false, apara = true } = {}) {
     const corta = [
         ...(apara ? ['silenceremove=start_periods=1:start_threshold=-70dB'] : []),
-        ...(emenda ? [] : ['areverse', 'silenceremove=start_periods=1:start_threshold=-66dB', 'areverse']),
+        // o rabo vai até −66 dB; na emenda, até −60 dB e sem silêncio depois (a próxima faixa entra colada)
+        'areverse',
+        `silenceremove=start_periods=1:start_threshold=${emenda ? -60 : -66}dB`,
+        'areverse',
     ];
     const limpo = `${saida}.limpo.wav`;
     execFileSync('ffmpeg', [
