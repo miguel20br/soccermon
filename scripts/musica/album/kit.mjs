@@ -86,18 +86,21 @@ export const clapMolhado = I.clap808.com({ ganho: 0.5, corte: 6200, sala: 0.6, t
 
 /**
  * Bombeio (sidechain): devolve um `gainAt` que abaixa `prof` (0 a 1) a cada nota do bumbo e volta em `solta` s.
- * Chame ANTES de escrever as notas do bumbo: ele anota os tempos.
+ * Chame ANTES de escrever as notas do bumbo (ele anota os tempos), ou numa faixa que grava as notas (`estender`).
  */
 export function bombeio(S, P, { prof = 0.3, solta = 0.14 } = {}) {
     const t = [];
-    const note = P.note;
-    P.note = (row, m, len, vel) => {
-        if (vel > 0.5) t.push(S.sec(row));
-        note(row, m, len, vel);
-    };
+    // faixa que já grava as notas (as do `estender`): os tempos saem dali; senão, anota as que vierem
+    if (!P.rec) {
+        const note = P.note;
+        P.note = (row, m, len, vel) => {
+            if (vel > 0.5) t.push(S.sec(row));
+            note(row, m, len, vel);
+        };
+    }
     let ord = null;
     return (s) => {
-        if (!ord) ord = Float64Array.from(t).sort();
+        if (!ord) ord = Float64Array.from(P.rec ? P.rec.filter((x) => x[3] > 0.5).map((x) => S.sec(x[0])) : t).sort();
         let lo = 0;
         let hi = ord.length - 1;
         if (hi < 0 || s < ord[0]) return 1;
@@ -243,3 +246,23 @@ export const celesta = (S, nome, o = {}) =>
         o,
         { pk: 0.4, solta: 0.3 },
     );
+
+/**
+ * As opções do `estender` pra dar punch numa peça do jogo sem reescrever: o bumbo e a caixa do kit no barramento
+ * comprimido, e a palma (qualquer uma) trocada pelo clap 808 macio. `{ bumbo: 'kick', caixa: 'snare', palmas: 'palmas' }`
+ * = os nomes das faixas na peça; `g*` = ganho de cada uma.
+ */
+export function soco({ bumbo: kb, caixa: cx, palmas: pl, gBumbo = 0.85, gCaixa = 0.7, gPalmas = 1 } = {}) {
+    const bus = {};
+    const troca = {};
+    if (kb) {
+        bus[kb] = 'bateria';
+        troca[kb] = { inst: bumbo, gain: gBumbo };
+    }
+    if (cx) {
+        bus[cx] = 'bateria';
+        troca[cx] = { inst: caixa, gain: gCaixa };
+    }
+    if (pl) troca[pl] = { inst: clapMacio, gain: gPalmas };
+    return { barramentos: { bateria: BATERIA }, bus, troca };
+}

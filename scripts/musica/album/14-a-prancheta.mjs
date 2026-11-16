@@ -2,9 +2,11 @@
 // A' em Fá menor, sem a virada). É o intervalo da final: no fim da 2ª volta o tique do relógio vai ficando mais alto
 // (o tempo do intervalo acabando), a banda para, sobra só o relógio, e o treinador bate a última peça magnética na
 // prancheta. Emenda sem pausa no Segundo tempo.
+// Rodada 2: o bumbo com corpo num barramento comprimido (o clap já é o 808 macio).
 import escalacao from '../pecas/escalacao.mjs';
 import { bass, drum, mel, padChord, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
+import { soco } from './kit.mjs';
 
 export const meta = { titulo: 'A prancheta (intervalo)', faixa: 14, emenda: true, apara: false };
 
@@ -15,7 +17,7 @@ export default function aPrancheta() {
             [0, 35],
             [2, 34],
         ],
-        { fim: 3, tail: 1.5 },
+        { fim: 3, tail: 1.5, ...soco({ bumbo: 'bumbo', gBumbo: 0.7 }) },
     );
     // o relógio crescendo nos últimos 6 compassos
     for (let i = 0; i < 6; i++) drum(P('relógio'), n - 6 + i, 1, 'x.x.x.x.x.x.x.x.', { vel: 0.2 + 0.12 * i });

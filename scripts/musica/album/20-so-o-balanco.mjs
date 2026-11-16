@@ -1,9 +1,11 @@
 // Faixa 20 (bônus), "Só o balanço" (`menu-balanco`, a Home de hoje). Introdução, duas voltas (a 2ª termina no G3, um
 // tom acima, em Si dórico, sem o Mi7 de volta) e o final no Si dórico: a bola quica, o último SOC-CER-MON com o clap
 // de leve, o vibrafone responde, e o Si menor com nona fica soando no órgão.
+// Rodada 2: bumbo e caixa com corpo num barramento comprimido.
 import balanco from '../pecas/menu-balanco.mjs';
 import { bass, drum, GANCHO, MAJOR, mel, padChord, stabs, thirdBelow } from '../synth.mjs';
 import { estender } from './estender.mjs';
+import { soco } from './kit.mjs';
 
 export const meta = { titulo: 'Só o balanço', faixa: 20 };
 
@@ -14,7 +16,7 @@ export default function soOBalanco() {
             [0, 34],
             [2, 33],
         ],
-        { fim: 3, tail: 4 },
+        { fim: 3, tail: 4, ...soco({ bumbo: 'bumbo', caixa: 'caixa' }) },
     );
     const SLAP = '0:2 8:1~ r:1 0:2 r:2 5:2 s:2 8:2 5:2';
     drum(P('bola'), n - 1, 1, '......X....x..xo', { pitch: 9 });

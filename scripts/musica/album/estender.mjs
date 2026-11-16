@@ -68,6 +68,8 @@ export function estender(
     });
     const L = S.barLen;
     const partes = new Map();
+    // as faixas novas gravam as notas (o `bombeio` do kit lê os tempos do bumbo daqui)
+    Song.recording = true;
     for (const p of S.parts) {
         const { pan, gain, echo, rev, drum, corte } = p;
         const ga = p.gainAt;
@@ -94,6 +96,7 @@ export function estender(
             });
         }
     }
+    Song.recording = rec;
     const P = (nome) => {
         const p = partes.get(nome);
         if (!p) throw new Error(`faixa ${nome} não existe (tem: ${[...partes.keys()].join(', ')})`);

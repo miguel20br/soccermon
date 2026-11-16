@@ -1,9 +1,11 @@
 // Faixa 17, "Sala dos troféus" (`extra-sala`, Sala v3, jazz). Duas voltas (tema, os dois choruses de improviso de 4
 // em 4, o tema meio tom acima) e um final de jazz: o Ré7b9 resolve no Sol menor, o vibrafone cita o SOC-CER-MON em
 // Sol menor, a "tag" Mi♭7 → Ré7b9 com a flauta descendo, e o Sol menor com sexta e nona parado na condução.
+// Rodada 2: o bumbo com corpo, baixinho (jazz: só pra sustentar o baixo).
 import sala from '../pecas/extra-sala.mjs';
 import { bass, drum, GANCHO, mel, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
+import { soco } from './kit.mjs';
 
 export const meta = { titulo: 'Sala dos troféus', faixa: 17 };
 
@@ -14,7 +16,7 @@ export default function salaDosTrofeus() {
             [0, 41],
             [0, 41],
         ],
-        { fim: 3, tail: 5 },
+        { fim: 3, tail: 5, ...soco({ bumbo: 'bumbo', gBumbo: 0.55 }) },
     );
     const charleston = (b, c) =>
         stabs(
