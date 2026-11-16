@@ -227,3 +227,19 @@ Não reabri todas hoje; conferir antes de citar.
 - Clash Royale, notícias das temporadas: https://supercell.com/en/games/clashroyale/
 - Rocket League, eventos sazonais (Frosty Fest): https://www.rocketleague.com/news
 - Balatro (referência de identidade de UI): https://www.playbalatro.com
+
+## Decidido com o Miguel (16/11/2026)
+
+- **Opções A, B e C juntas.** "Amo o Natal e quero fazer isso acontecer."
+- **Versão de Natal perto de 30/11**, a segunda depois da estreia do Time Ultimate, pra cobrir dezembro inteiro. Proposta: decoração de 30/11 a 06/01. As datas de dentro continuam: desafio, Copa de Natal em 24 e 25/12 e evento do UT.
+- **O título "Natal 2026" tem efeito de gelo.**
+- **Itens 3 a 9 aprovados:**
+  - gorro só na Home e no pódio;
+  - desafio com 3 degraus e a tabela nova no Supabase de produção;
+  - meta calibrada e mostrada antes de valer;
+  - Copa de Natal com o Snorlax de capitão e rivais de gelo;
+  - "Noite Feliz" no menu e a nossa na Sala;
+  - logo com gorrinho (entra, pela opção C);
+  - push em 15, 24 e 25/12.
+- **Antes do Álbum "Natal 2026"** o Miguel quer lançar o "Soccermon Songs vol. 1". Falta confirmar se é álbum de músicas ou de figurinhas.
+- **Pedido junto:** revamp do Perfil do jogador. O seletor de título está "super primitivo", e há outras features atrasadas.
