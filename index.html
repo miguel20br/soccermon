@@ -16,7 +16,7 @@
     <!-- as Galmuri da Home (subset de ~9 KB, npm run fonts) já pedidas junto com o JS: sem piscar a fonte do sistema -->
     <link rel="preload" href="/fonts/Galmuri11.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/Galmuri14.woff2" as="font" type="font/woff2" crossorigin />
-    <meta name="description" content="Fan game sem fins lucrativos: draft dos 151 Pokémon de Kanto + copa de futsal 5v5 simulado. Jogue no navegador." />
+    <meta name="description" content="Jogo grátis de navegador: escolha 1 de 3 Pokémon de Kanto, monte seu time e dispute uma copa de futsal 5 contra 5. Sem instalar, em português e inglês. Fan game." />
     <meta name="theme-color" content="#141a33" />
     <link rel="canonical" href="https://soccermon.com/" />
     <!-- prévia do link (X, Discord, WhatsApp...) -->
@@ -41,11 +41,44 @@
         .boot img { width: 120px; height: auto; animation: boot-flut 1.6s ease-in-out infinite alternate; }
         @keyframes boot-flut { to { translate: 0 -10px; } }
         @media (prefers-reduced-motion: reduce) { .boot img { animation: none; } }
+        /* o que é o jogo (Google e leitor de tela): fica no HTML de verdade, fora do #root, sem ocupar a tela */
+        .sobre { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     </style>
 </head>
 <body>
     <!-- some quando o React monta (createRoot troca o conteúdo do #root) -->
     <div id="root"><div class="boot"><img src="/assets/ui/simbolo.svg" alt="Soccermon" width="120" height="152" /></div></div>
+    <!-- SEO: fora do #root de propósito. O Google indexa a página depois de rodar o JS; texto dentro do #root sumiria
+         quando o React monta, e o <noscript> o Google ignora com JS ligado. Fica no DOM, escondido da tela como o
+         .sr-only, e o leitor de tela também lê. -->
+    <section class="sobre" id="sobre" lang="pt-BR" aria-labelledby="sobre-pt">
+        <h2 id="sobre-pt">Soccermon: draft de Pokémon e copa de futsal</h2>
+        <p>Soccermon é um jogo grátis de navegador, feito por fã e sem fins lucrativos. Você monta um time com os 151
+            Pokémon de Kanto e disputa uma copa de futsal 5 contra 5 contra os líderes de ginásio.</p>
+        <h3>Como se joga</h3>
+        <ol>
+            <li>Em cada rodada do draft, escolha 1 de 3 Pokémon e defina o capitão.</li>
+            <li>Escolha a formação, a escalação e a tática.</li>
+            <li>Acompanhe a partida simulada e mexa no time durante o jogo: troque jogadores e a tática.</li>
+            <li>Passe pelas oitavas, quartas e semifinal e vença a final para ser campeão.</li>
+        </ol>
+        <p>Tem também a Copa do Dia, a Rota Índigo, o Duelo contra amigos e a Pokédex. Funciona no celular e no
+            computador, em português e inglês, sem instalar e sem cadastro.</p>
+    </section>
+    <section class="sobre" lang="en" aria-labelledby="sobre-en">
+        <h2 id="sobre-en">Soccermon: Pokémon draft and futsal cup</h2>
+        <p>Soccermon is a free, non-profit browser fan game. Build a team with the 151 Kanto Pokémon and play a 5v5
+            futsal cup against the Gym Leaders.</p>
+        <h3>How to play</h3>
+        <ol>
+            <li>In each draft round, pick 1 of 3 Pokémon and choose your captain.</li>
+            <li>Set your formation, lineup and tactic.</li>
+            <li>Watch the simulated match and manage your team as it plays: make subs and change tactics.</li>
+            <li>Get through the round of 16, quarter-finals and semi-final, then win the final to be champion.</li>
+        </ol>
+        <p>There's also the Daily Cup, the Indigo Road, Duels against friends and the Pokédex. Works on phone and
+            desktop, in Portuguese and English, with no install and no sign-up.</p>
+    </section>
     <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>
