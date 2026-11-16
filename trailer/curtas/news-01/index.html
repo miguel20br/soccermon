@@ -1,18 +1,17 @@
 <!doctype html>
 <!--
-  Soccermon News #1 v8 (9:16, 129 s): telejornal com a dupla Raichu e Machoke de terno na bancada. A linha do tempo
+  Soccermon News #1 v9 (9:16, ~80 s): telejornal com a dupla Raichu e Machoke de terno na bancada. A linha do tempo
   inteira sai de linha.mjs (midia/som/news-falas.js: window.LINHA), a mesma que a música e os blips usam; ROTEIRO.md
   tem a tabela.
-  Regra de leitura (teste do Golduck): a fala vai numa caixa de diálogo com o retrato PMD de quem fala ao lado (a
-  expressão muda por fala), 1 letra a cada 50 ms, no máximo 2 linhas (a que não cabe vira 2 páginas) e inteira no mínimo
-  2,7 s. A manchete fica parada em cima com o nome do bloco; o selo 19:00 · AO VIVO no canto vira 19:01 na metade.
-  Só 2 transições com a cartinha (a varrida: escalada e VEM AÍ); as outras trocas são corte seco com um whoosh curto.
-  Fica da v7: a recompensa com as outras opções borradas e o holofote na Charanga, os troféus 4/10, as barras +4 com a
-  carta do Onix, o painel ₽3 → ₽6 → ₽9, as moedas do Pay Day caindo de cima, o calendário, o pacote com o Mewtwo 93 e a
-  tela final. Novo: o Voltorb de colete no gancho, a dupla (sprites vestidos por news-01/teste-gravata/gravata.mjs e
-  teste-machoke/terno.mjs, no preparar.mjs), o Psyduck na cadeira de convidado na ponta da bancada, a tarja ATRASO NO
-  SINAL, a partida rolando atrás do Meowth e o 27/11 do calendário virando Time Ultimate.
-  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v8.mp4
+  Regra de leitura (v9): a caixa de diálogo tem a largura toda e o retrato PMD fica em cima dela, à esquerda; 1 letra a
+  cada 25 ms, cada fala no mínimo 2,7 s na tela e 1,8 s inteira depois de digitar.
+  v9: a vinheta de abertura nova (a bola girando como globo, faixas de luz e o logo montando em camadas com o brilho),
+  sem relógio (o selo do canal; o AO VIVO só no link da Rota), sem a sonora do Magikarp e sem o atraso no sinal, a Rota
+  com a barraca do Mercado, a torcida e os holofotes, a entrevista com o Psyduck no vestiário do Pallet FC (o Voltorb de
+  colete no banco atrás), o Voltorb reagindo quando falam dele, PRA FECHAR no lugar de NOTA PÉ, e toda troca de cena,
+  painel, caixa, retrato e tela do telão com easing de 200 a 300 ms.
+  Só 2 transições com a cartinha (a varrida: escalada e VEM AÍ).
+  Render (de trailer/curtas): ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v9.mp4
 -->
 <html lang="pt-BR">
 <head>
@@ -78,19 +77,19 @@
 #manchete { position: absolute; left: 40px; top: 214px; width: 1000px; height: 100px; z-index: 85; opacity: 0; filter: drop-shadow(0 10px 0 rgb(0 0 0 / 40%)); }
 #manchete .barra { position: absolute; inset: 0; overflow: hidden; background: #10183d; border: 8px solid #0e1430; border-radius: 16px; box-shadow: inset 0 -10px 0 #ffcb05; }
 #manchete .barra span { position: absolute; left: 24px; right: 16px; top: 0; bottom: 10px; display: flex; align-items: center; color: #fff; font-size: 46px; letter-spacing: 2px; white-space: nowrap; }
-/* a caixa de diálogo e o retrato PMD ao lado (o do teste do Golduck; termina em 946, fora da faixa dos botões) */
-#caixa { position: absolute; left: 266px; top: 1300px; width: 680px; height: 230px; box-sizing: border-box; z-index: 85; opacity: 0; background: #f8f8f0; border: 10px solid #0e1430; border-radius: 24px;
+/* a caixa de diálogo na largura toda (termina em 946, fora da faixa dos botões) e o retrato PMD em cima dela, à esquerda */
+#caixa { position: absolute; left: 28px; top: 1318px; width: 918px; height: 212px; box-sizing: border-box; z-index: 85; opacity: 0; background: #f8f8f0; border: 10px solid #0e1430; border-radius: 24px;
   box-shadow: inset 0 0 0 7px #f8f8f0, inset 0 0 0 13px #4a6ac8, 0 14px 0 rgb(0 0 0 / 45%); }
-#caixa .nome { position: absolute; left: 34px; top: -62px; height: 62px; padding: 0 26px; box-sizing: border-box; display: flex; align-items: center; background: #10183d; color: #ffcb05;
+#caixa .nome { position: absolute; left: 226px; top: -60px; height: 60px; padding: 0 26px; box-sizing: border-box; display: flex; align-items: center; background: #10183d; color: #ffcb05;
   border: 8px solid #0e1430; border-bottom: none; border-radius: 16px 16px 0 0; font-size: 36px; letter-spacing: 3px; }
-#caixa .txt { position: absolute; left: 30px; right: 16px; top: 34px; bottom: 28px; color: #1c2238; font-size: 43px; line-height: 1.32; letter-spacing: 0; opacity: 0; }
+#caixa .txt { position: absolute; left: 32px; right: 30px; top: 32px; bottom: 24px; color: #1c2238; font-size: 43px; line-height: 1.32; letter-spacing: 0; opacity: 0; }
 #caixa .txt b { font-weight: 700; white-space: nowrap; }
 #caixa .txt s { text-decoration: none; visibility: hidden; }
-#caixa .seta { position: absolute; right: 22px; bottom: 26px; width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 22px solid #e8423f; opacity: 0; }
-#retrato { position: absolute; left: 28px; top: 1300px; width: 230px; height: 230px; box-sizing: border-box; z-index: 85; opacity: 0; overflow: hidden;
+#caixa .seta { position: absolute; right: 22px; bottom: 22px; width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 22px solid #e8423f; opacity: 0; }
+#retrato { position: absolute; left: 28px; top: 1100px; width: 210px; height: 210px; box-sizing: border-box; z-index: 86; opacity: 0; overflow: hidden;
   background: #f8f8f0; border: 10px solid #0e1430; border-radius: 24px; box-shadow: inset 0 0 0 7px #f8f8f0, inset 0 0 0 13px #4a6ac8, 0 14px 0 rgb(0 0 0 / 45%); }
-#retrato img { position: absolute; left: 25px; top: 25px; width: 160px; height: 160px; image-rendering: pixelated; border-radius: 6px; opacity: 0; }
-#retrato .todos { position: absolute; left: 25px; top: 25px; width: 160px; height: 160px; opacity: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+#retrato img { position: absolute; left: 15px; top: 15px; width: 160px; height: 160px; image-rendering: pixelated; border-radius: 6px; opacity: 0; }
+#retrato .todos { position: absolute; left: 15px; top: 15px; width: 160px; height: 160px; opacity: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 #retrato .todos img { position: static; width: 80px; height: 80px; border-radius: 0; opacity: 1; }
 /* as telas do jogo num painel com moldura */
 .moldura { position: absolute; z-index: 20; box-sizing: border-box; border-radius: 22px; border: 12px solid #0e1430; background: #0e1430; overflow: hidden;
@@ -103,17 +102,32 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .brilho-n { position: absolute; left: 0; top: 0; width: 60px; height: 60px; margin: -30px 0 0 -30px; background: #fff; z-index: 45; opacity: 0;
   clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
 .brilho-n.faisca { background: #ffe14a; }
-/* a vinheta de plantão */
-.vinheta-n { background: radial-gradient(circle at 50% 45%, #2a3a7a, #070a18 72%); }
+/* a vinheta de abertura (v9): a bola do jogo girando como globo, faixas de luz varrendo e o logo montando em camadas */
+.vinheta-n { background: radial-gradient(circle at 50% 40%, #233a8c, #0a1030 55%, #04060f 85%); }
+.vinheta-n .grade-v { position: absolute; inset: -200px; background-image: linear-gradient(90deg, rgb(120 160 255 / 9%) 2px, transparent 2px), linear-gradient(rgb(120 160 255 / 9%) 2px, transparent 2px); background-size: 60px 60px; }
+.luz-v { position: absolute; left: -500px; top: -400px; width: 360px; height: 2800px; transform: rotate(24deg); mix-blend-mode: screen; filter: blur(18px);
+  background: linear-gradient(90deg, transparent, rgb(140 190 255 / 32%) 35%, rgb(255 255 255 / 55%) 50%, rgb(140 190 255 / 32%) 65%, transparent); }
+.linha-v { position: absolute; left: 0; height: 8px; width: 900px; border-radius: 4px; background: linear-gradient(90deg, transparent, #ffcb05 30%, #fff 50%, #ffcb05 70%, transparent); box-shadow: 0 0 18px 4px rgb(255 203 5 / 45%); }
+.linha-v.azul { background: linear-gradient(90deg, transparent, #4a8cff 30%, #cfe0ff 50%, #4a8cff 70%, transparent); box-shadow: 0 0 18px 4px rgb(74 140 255 / 45%); height: 5px; }
+.globo-v { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 4; }
+.globo-v .halo, .globo-v .anel-o, .globo-v .disco, .globo-v .sombra-g { position: absolute; box-sizing: border-box; border-radius: 50%; }
+.globo-v .halo { background: radial-gradient(circle, rgb(120 170 255 / 45%), rgb(60 100 220 / 12%) 50%, transparent 70%); }
+.globo-v .anel-o { border: 6px solid rgb(255 203 5 / 70%); border-left-color: transparent; border-right-color: transparent; }
+.globo-v .disco { border: 12px solid #0e1430; background: radial-gradient(circle at 38% 32%, #ffffff, #eef1f8 40%, #c4cbe0 78%, #9aa3c4); }
+.globo-v .tilt { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.globo-v .gira3 { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; }
+.globo-v .p3 { position: absolute; backface-visibility: hidden; }
+.globo-v .sombra-g { background: radial-gradient(circle at 36% 30%, transparent 45%, rgb(14 20 48 / 28%) 75%, rgb(14 20 48 / 55%)); }
+.logo-v { position: absolute; left: 60px; top: 1010px; width: 960px; height: 400px; z-index: 6; }
+.logo-v .placa { position: absolute; inset: 0; overflow: hidden; border-radius: 40px; background: linear-gradient(#18245a, #0e1640); border: 14px solid #0e1430; box-shadow: inset 0 0 0 10px #ffcb05, inset 0 0 0 20px #10183d, inset 0 0 0 26px #2a4ea0, 0 26px 0 rgb(0 0 0 / 45%); }
+.logo-v .faixa-r { position: absolute; left: 26px; right: 26px; top: 230px; height: 120px; background: #e8423f; box-shadow: inset 0 -12px 0 #b02a2a, inset 0 10px 0 #ff6a5c; }
+.logo-v .l1 { position: absolute; left: 0; width: 960px; top: 50px; display: flex; justify-content: center; font-size: 132px; letter-spacing: 4px; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #ff8a1c, 0 16px 0 #0e1430; }
+.logo-v .l1 span { display: inline-block; }
+.logo-v .l2 { position: absolute; left: 0; width: 960px; top: 232px; text-align: center; font-size: 108px; letter-spacing: 40px; text-indent: 40px; color: #fff; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; }
+.logo-v .brilho-v { position: absolute; top: -40px; left: 0; width: 180px; height: 480px; transform: skewX(-20deg); background: linear-gradient(90deg, transparent, rgb(255 255 255 / 70%), transparent); mix-blend-mode: screen; }
+.logo-v .n1 { position: absolute; left: 800px; top: -70px; width: 190px; height: 130px; display: flex; align-items: center; justify-content: center; border-radius: 26px; z-index: 3;
+  background: #e8423f; border: 12px solid #0e1430; box-shadow: 0 14px 0 #8c1d1b; font-size: 84px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; transform: rotate(6deg); opacity: 0; }
 .faixa { position: absolute; left: -100px; width: 1280px; height: 120px; transform: rotate(-8deg); border-top: 10px solid #0e1430; border-bottom: 10px solid #0e1430; }
-.placa-n { position: absolute; left: 70px; top: 640px; width: 940px; height: 470px; z-index: 5; }
-.placa-n .fundo { position: absolute; inset: 0; border-radius: 44px; background: #10183d; border: 14px solid #0e1430; box-shadow: inset 0 0 0 12px #ffcb05, inset 0 0 0 24px #10183d, inset 0 0 0 30px #2a4ea0, 0 26px 0 rgb(0 0 0 / 45%); }
-.placa-n .l1 { position: absolute; left: 0; width: 940px; top: 70px; text-align: center; font-size: 130px; letter-spacing: 6px; color: #ffcb05; -webkit-text-stroke: 20px #0e1430; paint-order: stroke fill; text-shadow: 0 8px 0 #ff8a1c, 0 16px 0 #2a4ea0, 0 24px 0 #0e1430; }
-.placa-n .l2 { position: absolute; left: 0; width: 940px; top: 250px; text-align: center; font-size: 120px; letter-spacing: 26px; color: #f8f8f0; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 14px 0 #0e1430; }
-.n1 { position: absolute; left: 740px; top: 1040px; width: 230px; height: 150px; z-index: 6; display: flex; align-items: center; justify-content: center; border-radius: 26px;
-  background: #e8423f; border: 12px solid #0e1430; box-shadow: 0 16px 0 #8c1d1b; font-size: 100px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; transform: rotate(6deg); opacity: 0; }
-.globo { position: absolute; left: 540px; top: 470px; width: 0; height: 0; z-index: 4; }
-.globo svg { position: absolute; left: -130px; top: -130px; width: 260px; height: 260px; overflow: visible; }
 /* a fumacinha do Psyduck */
 .fumaca { position: absolute; left: 0; top: 0; width: 70px; height: 52px; margin: -26px 0 0 -35px; z-index: 6; border-radius: 50%; background: #b8b4ae; border: 6px solid #0e1430; opacity: 0; }
 /* ESCALADA */
@@ -175,27 +189,27 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .trofeu .aceso { opacity: 0; }
 .selo-p { position: absolute; right: -14px; top: -18px; width: 84px; height: 84px; box-sizing: border-box; border-radius: 50%; background: #7a4a2a; border: 7px solid #0e1430; box-shadow: 0 6px 0 rgb(0 0 0 / 45%); opacity: 0; display: flex; align-items: center; justify-content: center; }
 .selo-p svg { width: 54px; height: 54px; }
-#conta-t { position: absolute; left: 70px; top: 860px; width: 470px; height: 300px; display: flex; align-items: baseline; justify-content: center; }
+#conta-t { position: absolute; left: 70px; top: 770px; width: 470px; height: 300px; display: flex; align-items: baseline; justify-content: center; }
 #conta-t b { font-size: 300px; }
 #conta-t span { font-size: 150px; color: #f8f8f0; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; text-shadow: 0 10px 0 #0e1430; }
-#patro-mini { position: absolute; left: 650px; top: 830px; width: 247px; height: 434px; border-radius: 22px; background: url(midia/news/recompensa.png) -567px -259px / 849px 786px no-repeat;
+#patro-mini { position: absolute; left: 650px; top: 760px; width: 247px; height: 434px; border-radius: 22px; background: url(midia/news/recompensa.png) -567px -259px / 849px 786px no-repeat;
   box-shadow: 0 0 0 9px #ffcb05, 0 0 0 16px #0e1430, 0 22px 0 10px rgb(0 0 0 / 45%); opacity: 0; }
 /* o bônus: a carta do Onix (um pouco maior), o placar perdendo, o bumbo da Charanga e as barras */
-.carta-pk { position: absolute; left: 40px; top: 345px; width: 385px; height: 539px; filter: drop-shadow(0 18px 0 rgb(0 0 0 / 45%)); }
-.placar { position: absolute; left: 455px; top: 360px; width: 585px; height: 330px; box-sizing: border-box; border-radius: 30px; background: #10183d; border: 12px solid #0e1430;
+.carta-pk { position: absolute; left: 40px; top: 330px; width: 330px; height: 462px; filter: drop-shadow(0 18px 0 rgb(0 0 0 / 45%)); }
+.placar { position: absolute; left: 400px; top: 340px; width: 640px; height: 300px; box-sizing: border-box; border-radius: 30px; background: #10183d; border: 12px solid #0e1430;
   box-shadow: inset 0 0 0 8px #2a4ea0, 0 20px 0 rgb(0 0 0 / 45%); }
-.placar .gols { position: absolute; left: 0; right: 0; top: 18px; display: flex; justify-content: center; align-items: center; gap: 36px; font-size: 170px; }
+.placar .gols { position: absolute; left: 0; right: 0; top: 12px; display: flex; justify-content: center; align-items: center; gap: 36px; font-size: 156px; }
 .placar .gols b { color: #f8f8f0; -webkit-text-stroke: 16px #0e1430; paint-order: stroke fill; line-height: 1; }
 .placar .gols i { font-style: normal; font-size: 110px; color: #5a6aa8; }
 .placar .perdendo { position: absolute; left: 50%; bottom: -38px; translate: -50% 0; padding: 8px 30px; border-radius: 16px; background: #e8423f; border: 9px solid #0e1430; color: #fff; font-size: 62px; letter-spacing: 4px; box-shadow: 0 10px 0 #8c1d1b; white-space: nowrap; }
 .bumbo { position: absolute; left: 0; top: 0; width: 0; height: 0; }
 .bumbo svg { position: absolute; left: -90px; top: -80px; width: 180px; height: 160px; overflow: visible; }
-.barras { position: absolute; left: 40px; top: 920px; width: 1000px; height: 360px; display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(3, 1fr); column-gap: 50px; }
+.barras { position: absolute; left: 40px; top: 805px; width: 1000px; height: 288px; display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(3, 1fr); column-gap: 50px; }
 .barra-a { position: relative; }
-.barra-a .rot { position: absolute; left: 0; top: 0; font-size: 58px; color: #f8f8f0; letter-spacing: 3px; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; }
-.barra-a .val { position: absolute; right: 0; top: -6px; font-size: 70px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
-.barra-a .mais { position: absolute; right: 118px; top: 0; padding: 0 12px; height: 58px; box-sizing: border-box; border-radius: 12px; background: #58c26b; border: 6px solid #0e1430; color: #fff; font-size: 40px; display: flex; align-items: center; opacity: 0; -webkit-text-stroke: 6px #0e1430; paint-order: stroke fill; }
-.barra-a .trilho { position: absolute; left: 0; right: 0; top: 76px; height: 36px; box-sizing: border-box; border-radius: 18px; background: #0e1430; border: 6px solid #0e1430; box-shadow: 0 0 0 4px #2a4ea0; overflow: hidden; }
+.barra-a .rot { position: absolute; left: 0; top: 0; font-size: 50px; color: #f8f8f0; letter-spacing: 3px; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; }
+.barra-a .val { position: absolute; right: 0; top: -6px; font-size: 60px; color: #fff; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; }
+.barra-a .mais { position: absolute; right: 104px; top: 0; padding: 0 12px; height: 52px; box-sizing: border-box; border-radius: 12px; background: #58c26b; border: 6px solid #0e1430; color: #fff; font-size: 40px; display: flex; align-items: center; opacity: 0; -webkit-text-stroke: 6px #0e1430; paint-order: stroke fill; }
+.barra-a .trilho { position: absolute; left: 0; right: 0; top: 62px; height: 30px; box-sizing: border-box; border-radius: 18px; background: #0e1430; border: 6px solid #0e1430; box-shadow: 0 0 0 4px #2a4ea0; overflow: hidden; }
 .barra-a .trilho i { display: block; height: 100%; width: 0; border-radius: 12px; }
 /* o ₽ da Rota */
 #p-rota .pr { position: absolute; left: 40px; top: 345px; width: 1000px; height: 200px; box-sizing: border-box; border-radius: 34px; background: #10183d; border: 12px solid #0e1430;
@@ -233,13 +247,13 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .vaga .face { background-size: 100% 100%; transform: rotateY(180deg); }
 .vaga .verso { box-sizing: border-box; background: radial-gradient(circle at 50% 45%, #2a4ea0, #10183d 70%); border: 8px solid #ffcb05; box-shadow: inset 0 0 0 5px #0e1430, 0 12px 0 rgb(0 0 0 / 40%); display: flex; align-items: center; justify-content: center; }
 .vaga .verso img { width: 120px; }
-.campo-ut { position: absolute; left: 60px; top: 340px; width: 960px; height: 940px; box-sizing: border-box; border-radius: 30px; border: 8px solid rgb(255 255 255 / 30%);
+.campo-ut { position: absolute; left: 60px; top: 330px; width: 960px; height: 780px; box-sizing: border-box; border-radius: 30px; border: 8px solid rgb(255 255 255 / 30%);
   background: radial-gradient(circle at 50% 50%, transparent 0 110px, rgb(255 255 255 / 30%) 110px 118px, transparent 118px), linear-gradient(transparent calc(50% - 4px), rgb(255 255 255 / 30%) calc(50% - 4px) calc(50% + 4px), transparent calc(50% + 4px)), repeating-linear-gradient(#2f7a3a 0 94px, #2a6e34 94px 188px); opacity: 0; }
-/* o selo do canal: o logo, o relógio (19:00 → 19:01) e o AO VIVO */
+/* o selo do canal (v9: sem relógio); o AO VIVO só no link da Rota */
 #bug { position: absolute; left: 40px; top: 96px; height: 70px; z-index: 86; display: flex; align-items: center; opacity: 0; filter: drop-shadow(0 7px 0 rgb(0 0 0 / 40%)); }
 #bug img { position: relative; z-index: 2; width: 76px; height: 76px; margin-right: -14px; filter: drop-shadow(0 4px 0 #0e1430); }
-#bug .hora { height: 54px; box-sizing: border-box; padding: 0 16px 0 24px; display: flex; align-items: center; background: #10183d; border: 6px solid #0e1430; color: #fff; font-size: 32px; letter-spacing: 2px; }
-#bug .vivo { height: 54px; box-sizing: border-box; padding: 0 16px; display: flex; align-items: center; gap: 10px; background: #e8423f; border: 6px solid #0e1430; border-left: none; border-radius: 0 14px 14px 0; color: #fff; font-size: 28px; letter-spacing: 2px; }
+#bug .canal { height: 54px; box-sizing: border-box; padding: 0 18px 0 26px; display: flex; align-items: center; background: #10183d; border: 6px solid #0e1430; border-radius: 0 14px 14px 0; color: #ffcb05; font-size: 30px; letter-spacing: 3px; }
+#bug .vivo { height: 54px; box-sizing: border-box; margin-left: 12px; padding: 0 16px; display: flex; align-items: center; gap: 10px; background: #e8423f; border: 6px solid #0e1430; border-radius: 14px; color: #fff; font-size: 28px; letter-spacing: 2px; opacity: 0; }
 #bug .vivo i { width: 14px; height: 14px; border-radius: 50%; background: #fff; }
 /* a tarja de nome (GC) */
 .gc { position: absolute; z-index: 86; display: flex; flex-direction: column; align-items: flex-start; opacity: 0; filter: drop-shadow(0 9px 0 rgb(0 0 0 / 40%)); }
@@ -247,13 +261,41 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .gc .c { height: 52px; box-sizing: border-box; margin-top: -8px; padding: 0 22px 0 36px; display: flex; align-items: center; background: #10183d; border: 8px solid #0e1430; border-radius: 0 0 14px 0; color: #fff; font-size: 32px; letter-spacing: 2px; white-space: nowrap; }
 .gc.p .n { height: 58px; font-size: 38px; border-left-width: 18px; padding: 0 20px 0 16px; }
 .gc.p .c { height: 46px; font-size: 26px; padding: 0 16px 0 30px; }
-/* a tarja de aviso do link: ATRASO NO SINAL */
-#atraso { position: absolute; left: 580px; top: 380px; z-index: 86; height: 64px; box-sizing: border-box; padding: 0 20px; display: flex; align-items: center; gap: 12px; background: #e8423f; border: 8px solid #0e1430; border-radius: 12px;
-  color: #fff; font-size: 32px; letter-spacing: 2px; white-space: nowrap; opacity: 0; box-shadow: 0 8px 0 rgb(0 0 0 / 40%); }
-#atraso i { width: 18px; height: 18px; border-radius: 50%; background: #fff; }
-/* a tela dividida */
-.split-box { position: absolute; top: 345px; width: 490px; height: 895px; box-sizing: border-box; border: 12px solid #0e1430; border-radius: 22px; box-shadow: 0 0 0 7px #ffcb05, 0 0 0 14px #0e1430, 0 22px 0 12px rgb(0 0 0 / 40%); }
-#banc, #rota { z-index: 2; }
+/* a Rota Índigo (v9): a arquibancada com a torcida, a faixa, os holofotes e a barraca do Mercado */
+.arquib { position: absolute; left: 0; top: 0; width: 1080px; height: 700px; z-index: 2;
+  background: linear-gradient(#070b1e 0 300px, transparent 300px), repeating-linear-gradient(#24306a 0 70px, #1a2452 70px 90px, #0e1430 90px 96px); }
+.arquib::after { content: ""; position: absolute; left: 0; right: 0; top: 650px; height: 50px; background: #0e1430; box-shadow: inset 0 8px 0 #3a5bb0; }
+.faixa-rota { position: absolute; left: 380px; top: 598px; width: 660px; height: 76px; z-index: 6; box-sizing: border-box; border: 8px solid #0e1430; border-radius: 10px; background: #3b2a8a;
+  box-shadow: inset 0 -8px 0 #241a5c; display: flex; align-items: center; justify-content: center; color: #ffcb05; font-size: 46px; letter-spacing: 8px; -webkit-text-stroke: 8px #0e1430; paint-order: stroke fill; transform-origin: 50% 0; }
+.holo-r { position: absolute; top: -60px; width: 320px; height: 1000px; z-index: 7; mix-blend-mode: screen; transform-origin: 50% 0; clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%);
+  background: linear-gradient(rgb(255 246 200 / 50%), rgb(255 246 200 / 6%)); }
+.lampada { position: absolute; top: 300px; width: 84px; height: 52px; z-index: 8; box-sizing: border-box; border-radius: 10px; background: #2b3045; border: 7px solid #0e1430; }
+.lampada::after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 4px; height: 18px; border-radius: 6px; background: #fff6c8; box-shadow: 0 0 30px 12px rgb(255 246 200 / 60%); }
+.mercado { position: absolute; left: 24px; top: 360px; width: 350px; height: 600px; z-index: 9; }
+.mercado .placa-m { position: absolute; left: 30px; top: 0; width: 290px; height: 84px; box-sizing: border-box; border-radius: 14px; background: #10183d; border: 8px solid #0e1430; box-shadow: inset 0 0 0 5px #ffcb05;
+  display: flex; align-items: center; justify-content: center; color: #ffcb05; font-size: 44px; letter-spacing: 5px; }
+.mercado .poste { position: absolute; top: 80px; width: 20px; height: 520px; background: #7a4a2a; border: 6px solid #0e1430; }
+.mercado .toldo { position: absolute; left: -6px; top: 120px; width: 362px; height: 92px; box-sizing: border-box; border: 8px solid #0e1430; border-radius: 12px 12px 4px 4px;
+  background: repeating-linear-gradient(90deg, #e8423f 0 45px, #f8f8f0 45px 90px); }
+.mercado .franja { position: absolute; left: -6px; top: 204px; width: 362px; height: 34px; background: radial-gradient(circle at 22px 0, #e8423f 0 20px, #0e1430 20px 25px, transparent 25px) 0 0 / 45px 34px repeat-x; }
+.mercado .balcao { position: absolute; left: 0; top: 420px; width: 350px; height: 150px; box-sizing: border-box; border: 8px solid #0e1430; border-radius: 10px; background: #c98a4f; box-shadow: inset 0 14px 0 #e0a468, inset 0 -14px 0 #7a4a2a; }
+.mercado .preco { position: absolute; top: 250px; width: 96px; height: 120px; box-sizing: border-box; border: 6px solid #0e1430; border-radius: 10px; background: #f8f8f0; transform-origin: 50% -30px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 6px; color: #0e1430; font-size: 34px; }
+.mercado .preco::before { content: ""; position: absolute; left: 42px; top: -36px; width: 0; height: 30px; border-left: 4px solid #0e1430; }
+.mercado .preco i { position: absolute; top: 8px; left: 50%; translate: -50% 0; }
+/* o ₽ da Rota, compacto no canto de cima (v9: a arquibancada e a barraca aparecem) */
+#p-rota .pr { left: 470px; top: 340px; width: 570px; height: 170px; }
+#p-rota .trofeu { width: 96px; height: 108px; top: 22px; }
+#p-rota .rs { left: 330px; top: 4px; width: 220px; height: 150px; gap: 10px; }
+#p-rota .rs .moeda { width: 84px; height: 84px; font-size: 44px; border-width: 7px; }
+#p-rota .rs b { font-size: 120px; min-width: 80px; }
+/* o vestiário do Pallet FC (v9): a janelinha do estúdio no canto, de onde o Raichu chama */
+.janela { position: absolute; left: 650px; top: 345px; width: 390px; height: 290px; z-index: 84; box-sizing: border-box; overflow: hidden; border-radius: 20px; border: 10px solid #0e1430;
+  box-shadow: 0 0 0 6px #ffcb05, 0 0 0 12px #0e1430, 0 16px 0 8px rgb(0 0 0 / 40%); background: radial-gradient(circle at 50% 38%, #2a3a7a, #070a18 78%); opacity: 0; }
+.janela .tampo-j { position: absolute; left: -10px; right: -10px; top: 214px; height: 80px; background: #10183d; border-top: 14px solid #ffcb05; box-shadow: 0 -6px 0 #0e1430; z-index: 30; }
+.janela .rot { position: absolute; left: 12px; top: 12px; z-index: 31; padding: 4px 12px; border-radius: 8px; background: #e8423f; border: 5px solid #0e1430; color: #fff; font-size: 24px; letter-spacing: 2px; }
+/* o Voltorb quase explodindo (a reação quando falam dele) */
+.aura-v { position: absolute; left: -170px; top: -330px; width: 340px; height: 340px; border-radius: 50%; z-index: 1; opacity: 0; background: radial-gradient(circle, rgb(255 80 40 / 75%), rgb(255 60 30 / 30%) 45%, transparent 70%); }
 /* a gota de suor do Raichu sem graça */
 .gota { position: absolute; left: 0; top: 0; width: 48px; height: 48px; margin: -24px 0 0 -24px; z-index: 6; box-sizing: border-box; background: #8fd3ff; border: 6px solid #0e1430; border-radius: 0 50% 50% 50%; transform-origin: 50% 50%; rotate: 45deg; opacity: 0; }
 /* a medalha do capitão Magikarp */
@@ -267,16 +309,14 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="136.5">
-  <div id="cena" class="clip" data-start="0" data-duration="136.5">
-    <!-- vinheta de plantão -->
-    <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
-      <div class="faixa" id="fx1" style="top:300px;background:#e8423f"></div>
-      <div class="faixa" id="fx2" style="top:1260px;background:#3a7bd5"></div>
-      <div class="faixa" id="fx3" style="top:1420px;background:#ffcb05;height:60px"></div>
-      <div class="globo" id="globo"></div>
-      <div class="placa-n" id="placa"><div class="fundo"></div><div class="l1">SOCCERMON</div><div class="l2">NEWS</div></div>
-      <div class="n1" id="n1">#1</div>
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="79.7">
+  <div id="cena" class="clip" data-start="0" data-duration="79.7">
+    <!-- a vinheta de abertura (v9): a bola-globo, as faixas de luz e o logo montando -->
+    <div id="vin" class="cena vinheta-n"><div class="grade-v" id="grade-v"></div>
+      <div class="luz-v" id="luz1"></div><div class="luz-v" id="luz2"></div><div class="luz-v" id="luz3"></div>
+      <div class="linha-v" id="lv1" style="top:250px"></div><div class="linha-v azul" id="lv2" style="top:330px"></div><div class="linha-v" id="lv3" style="top:1500px"></div><div class="linha-v azul" id="lv4" style="top:1580px"></div>
+      <div class="globo-v" id="globo-v" style="left:540px;top:650px"></div>
+      <div class="logo-v" id="logo-v"><div class="placa" id="placa-v"><div class="faixa-r" id="faixa-v"></div><div class="l1" id="l1-v"></div><div class="l2" id="l2-v">NEWS</div><div class="brilho-v" id="brilho-v"></div></div><div class="n1" id="n1">#1</div></div>
     </div>
     <!-- o estúdio: o telão, a bancada da dupla e a ponta do convidado à esquerda -->
     <div id="banc" class="cena estudio"><div id="cam" class="camada"><div class="grade"></div><div class="piso-n"></div>
@@ -288,15 +328,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         <div class="tela" id="t-volt"><div class="tv" id="tv-volt"></div></div>
         <div class="tela" id="t-turma"><div class="tv" id="tv-turma"></div></div>
       </div>
-      <div class="cadeira" id="cad-psy" style="transform:translate(-250px,1250px)"><div class="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
       <div class="cadeira" id="cad-r" style="transform:translate(262px,1200px)"><div class="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
       <div class="cadeira" id="cad-m" style="transform:translate(740px,1215px) scale(1.1)"><div class="encosto"></div><div class="pe"></div><div class="base"></div><div class="assento"></div></div>
       <div class="mesa-n" style="left:-560px;--w:1600px"><div class="tampo"></div><div class="frente" style="justify-content:flex-start;padding-left:898px"><i></i><img src="midia/logo-simbolo.svg" alt="" /><i></i></div></div>
     </div></div>
     <!-- ao vivo da Rota: a quadra, a partida rolando e o Meowth de microfone -->
     <div id="rota" class="cena"><div id="rota-cam" class="camada"></div></div>
-    <!-- a sonora do Magikarp, na quadra do Pallet FC -->
-    <div id="sonora" class="cena"><div id="so-cam" class="camada"></div></div>
     <!-- ESCALADA: HOJE NO SOCCERMON NEWS e 4 cartelas de 1,5 s -->
     <div id="esc" class="cena esc-bg"><div class="raios" id="raios-esc"></div>
       <div class="faixa" id="ex1" style="top:40px;background:#3a7bd5;height:80px"></div>
@@ -305,11 +342,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       <div class="cartela" id="c1"><div class="num">1</div><div class="img rec-so"><img class="rec-borrada" src="midia/news/recompensa.png" alt="" /><div class="rec-charanga" style="scale:0.92"></div></div><div class="txt">RECOMPENSA NOVA NA COPA DO DIA</div></div>
       <div class="cartela" id="c2"><div class="num">2</div><div class="img" id="c2-img" style="background:repeating-linear-gradient(#cf9358 0 60px, #c68649 60px 120px)"></div><div class="txt">AO VIVO DA ROTA ÍNDIGO</div></div>
       <div class="cartela" id="c3"><div class="num">3</div><div class="img"><img src="midia/news/ultimate-fatia.png" alt="" /></div><div class="txt">A DATA DO TIME ULTIMATE</div></div>
-      <div class="cartela" id="c4"><div class="num">+</div><div class="img estudio"><div class="grade"></div>
-        <div class="porta" style="left:60px;top:150px;transform:scale(0.8);transform-origin:50% 0"><div class="luz"></div><div class="vidro" id="vidro"></div><div class="macaneta"></div></div></div>
-        <div class="txt"><span><em>E MAIS:</em> O TÉCNICO DO PALLET FC NO ESTÚDIO</span></div></div>
+      <div class="cartela" id="c4"><div class="num">+</div><div class="img set" id="c4-img"><div class="parede"></div>
+        <div class="armario" style="left:20px;top:150px;height:330px"></div><div class="armario" style="left:225px;top:150px;height:330px"></div><div class="armario" style="left:430px;top:150px;height:330px"></div>
+        <div class="banco-v" style="left:-10px;top:420px;width:620px;height:44px"></div></div>
+        <div class="txt"><span><em>E MAIS:</em> O VESTIÁRIO DO PALLET FC</span></div></div>
     </div>
-    <!-- o banco do Pallet FC: o Voltorb de colete (o gancho e o "Agora ele é reserva.") -->
+    <!-- o vestiário do Pallet FC: o Voltorb de colete no banco (o gancho) e a entrevista com o Psyduck (v9) -->
     <div id="banco-c" class="cena set"><div id="bc-cam" class="camada"><div class="parede"></div>
       <div class="armario" style="left:30px"></div><div class="armario" style="left:200px"></div><div class="armario" style="left:370px"></div>
       <div class="armario" style="left:540px"></div><div class="armario" style="left:710px"></div><div class="armario" style="left:880px"></div>
@@ -320,51 +358,69 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   </div>
   <!-- as telas do jogo, numa camada própria (a câmera dos painéis empurra) -->
   <div id="pan" class="camada" style="z-index:20">
-  <div class="moldura" id="m-rec" style="left:40px;top:330px;width:1000px;height:928px"><div class="rec-fundo"><div class="raios"></div></div></div>
+  <div class="moldura" id="m-rec" style="left:135px;top:330px;width:810px;height:752px"><div class="rec-fundo"><div class="raios"></div></div></div>
   <div class="painel-n" id="p-trof"><div id="trofeus"></div><div id="conta-t"><b class="num-g" id="conta-n">0</b><span>/10</span></div><div id="patro-mini"></div></div>
   <div class="painel-n" id="p-barras"><img class="carta-pk" src="midia/news/cartas/95.png" alt="" />
     <div class="placar"><div class="gols"><b>0</b><i>×</i><b>1</b></div><div class="perdendo" id="perdendo">PERDENDO</div></div>
-    <div class="bumbo" id="bumbo" style="transform:translate(745px,810px)"></div><div class="barras" id="barras"></div></div>
+    <div class="bumbo" id="bumbo" style="transform:translate(720px,725px)"></div><div class="barras" id="barras"></div></div>
   <div class="painel-n" id="p-rota"><div class="pr" id="pr"><div class="rs"><div class="moeda">₽</div><b class="num-g" id="rs-n">0</b></div></div></div>
   <div class="painel-n" id="p-cal"><div class="cal"><div class="topo">TODA SEXTA</div><div class="dias" id="dias"></div></div></div>
   <div class="painel-n" id="p-pacote"><div class="campo-ut" id="campo-ut"></div></div>
   <div class="moldura" id="m-vt" style="left:264px;top:306px;width:552px;height:963px"></div>
-  <div class="painel-n" id="p-split"><div class="split-box" id="split-e" style="left:34px"></div><div class="split-box" id="split-d" style="left:556px"></div></div>
   </div>
   <div id="manchete"><div class="barra" id="barra"></div></div>
-  <div id="bug"><img src="midia/logo-simbolo.svg" alt="" /><div class="hora">19<span id="dois">:</span><span style="position:relative"><span id="m00">00</span><span id="m01" style="position:absolute;left:0;top:0;opacity:0">01</span></span></div><div class="vivo"><i id="ponto"></i>AO VIVO</div></div>
-  <div id="atraso"><i id="atraso-p"></i>ATRASO NO SINAL</div>
+  <div id="bug"><img src="midia/logo-simbolo.svg" alt="" /><div class="canal">SOCCERMON NEWS</div><div class="vivo" id="vivo"><i id="ponto"></i>AO VIVO</div></div>
+  <div class="janela" id="janela"></div>
   <div id="retrato"></div>
   <div id="caixa"><div class="nome" id="nome"></div><div class="seta" id="seta"></div></div>
   <div class="flash" id="flash"></div>
   <div id="varre"><img src="midia/logo-simbolo.svg" alt="" /></div>
 
   <!-- o KABOOM do Vestiário EP 2 (20,5 a 28 s do render v7 do ep14; o KABOOM em 3,5 s do arquivo); os tempos saem do linha.mjs -->
-  <video id="v-bola" class="painel" src="midia/news/bola-fora-longa.mp4" muted playsinline data-start="79" data-duration="7" data-media-start="0.15" style="left:276px;top:318px;width:528px;height:939px;object-fit:cover"></video>
+  <video id="v-bola" class="painel" src="midia/news/bola-fora-longa.mp4" muted playsinline data-start="44" data-duration="3.88" data-media-start="2.15" style="left:276px;top:318px;width:528px;height:939px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="136.5" data-media-start="0" data-fade-out="0.6"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/news-voz.wav" data-start="0" data-duration="136.5" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news-14.wav" data-start="0" data-duration="79.7" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/news-voz.wav" data-start="0" data-duration="79.7" data-media-start="0"></audio>
 
   <script>
-    const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme } = C;
-    const { M, FALAS, BLOCOS, FIM, CARTELAS, VARRIDAS, CORTES, DT } = window.LINHA;
+    const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
+    const { M, FALAS, BLOCOS, FIM, CARTELAS, VARRIDAS, DT, SAIDA } = window.LINHA;
     const F = Object.fromEntries(FALAS.map((f) => [f.id, f]));
     const tl = gsap.timeline({ paused: true });
     const $ = (id) => document.getElementById(id);
     const ver = (els, t, on = true) => tl.set(els, { autoAlpha: on ? 1 : 0 }, t);
-    const CENAS = ['#vin', '#banc', '#rota', '#sonora', '#esc', '#banco-c', '#fundo', '#fim'];
-    /** Só estas cenas no ar a partir de t (a tela dividida mostra o estúdio e a Rota juntos). */
-    const corta = (ids, t) => {
-      const on = [ids ?? []].flat();
-      ver(CENAS, t, false);
-      if (on.length) ver(on, t);
-    };
-    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#p-rota', '#p-cal', '#p-pacote', '#m-vt', '#p-split'];
-    const paineis = (t, ...on) => {
-      tl.set(PAINEIS.filter((p) => !on.includes(p)), { opacity: 0 }, t);
-      for (const p of on) tl.set(p, { opacity: 1 }, t);
-    };
-    const entra = (id, t, de = 0.9) => tl.fromTo(id, { scale: de }, { scale: 1, duration: 0.25, ease: 'back.out(2)', immediateRender: false }, t);
+    const CENAS = ['#vin', '#banc', '#rota', '#esc', '#banco-c', '#fundo', '#fim'];
+    // v9, nada teleporta: as trocas de cena e de painel são juntadas aqui e resolvidas no fim (resolveTrocas), em ordem de
+    // tempo. A cena nova entra por cima num fade de 0,25 s (e um leve recuo da câmera); a que sai some depois. Corte
+    // `seco` só onde a varrida da cartinha cobre a tela.
+    const TROCAS = [];
+    const corta = (ids, t, { seco = false } = {}) => TROCAS.push({ t, on: [ids ?? []].flat(), seco });
+    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#p-rota', '#p-cal', '#p-pacote', '#m-vt'];
+    const TROCAS_P = [];
+    const paineis = (t, ...on) => TROCAS_P.push({ t, on });
+    function resolveTrocas() {
+      let z = 1;
+      let antes = [];
+      for (const { t, on, seco } of TROCAS.sort((a, b) => a.t - b.t)) {
+        const off = CENAS.filter((c) => !on.includes(c));
+        for (const c of on) {
+          tl.set(c, { autoAlpha: 1, zIndex: ++z }, t);
+          if (!seco && t > 0 && !antes.includes(c)) tl.fromTo(c, { opacity: 0, scale: 1.03 }, { opacity: 1, scale: 1, duration: SAIDA, ease: 'power2.out', immediateRender: false }, t);
+        }
+        ver(off, seco || t === 0 ? t : t + SAIDA, false);
+        antes = on;
+      }
+      antes = [];
+      for (const { t, on } of TROCAS_P.sort((a, b) => a.t - b.t)) {
+        for (const p of PAINEIS.filter((p) => !on.includes(p) && antes.includes(p))) {
+          tl.to(p, { opacity: 0, duration: 0.2, ease: 'power2.in' }, t);
+        }
+        for (const p of PAINEIS.filter((p) => !on.includes(p) && !antes.includes(p))) tl.set(p, { opacity: 0 }, t);
+        for (const p of on) if (!antes.includes(p)) tl.fromTo(p, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: SAIDA, ease: 'power3.out', immediateRender: false }, t);
+        antes = on;
+      }
+    }
+    const entra = (id, t, de = 0.9) => tl.fromTo(id, { scale: de }, { scale: 1, duration: 0.28, ease: 'back.out(1.6)', immediateRender: false }, t);
     const PEDESTAL = '<svg viewBox="0 -200 200 230"><g stroke="#0e1430" stroke-linecap="round">'
       + '<path d="M128 -6 L96 22 M128 -6 L160 22 M128 -6 L128 24" stroke-width="13"/><path d="M128 -6 L96 22 M128 -6 L160 22 M128 -6 L128 24" stroke="#2b3045" stroke-width="6"/>'
       + '<rect x="121" y="-122" width="14" height="120" rx="5" fill="#2b3045" stroke-width="5"/>'
@@ -384,14 +440,19 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       return m;
     };
     /** A tarja de nome (GC): entra de lado em t0 e sai em t1 (lado -1 = pela esquerda); `p` = a pequena. */
-    const gc = (nome, cargo, t0, t1, { x = 28, y = 1098, lado = -1, p = false } = {}) => {
+    const gc = (nome, cargo, t0, t1, { x = 248, y = 1196, lado = -1, p = false } = {}) => {
       const g = div($('root'), p ? 'gc p' : 'gc', `left:${x}px;top:${y}px`);
       g.innerHTML = `<div class="n">${nome}</div><div class="c">${cargo}</div>`;
       tl.set(g, { opacity: 1 }, t0);
-      tl.fromTo(g, { x: lado * 1000 }, { x: 0, duration: 0.32, ease: 'power3.out', immediateRender: false }, t0);
-      tl.fromTo(g.querySelector('.c'), { x: lado * 420, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.12);
+      tl.fromTo(g, { x: lado * 1000 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0);
+      tl.fromTo(g.querySelector('.c'), { x: lado * 420, opacity: 0 }, { x: 0, opacity: 1, duration: 0.28, ease: 'power3.out', immediateRender: false }, t0 + 0.12);
       tl.to(g, { x: lado * 1100, duration: 0.25, ease: 'power2.in' }, t1);
       tl.set(g, { opacity: 0 }, t1 + 0.25);
+      // no lugar da aba de nome da caixa: a aba some enquanto a tarja está no ar
+      if (y === 1196) {
+        tl.to('#nome', { opacity: 0, duration: 0.15, ease: 'power2.in' }, t0);
+        tl.to('#nome', { opacity: 1, duration: 0.2, ease: 'power2.out' }, t1 + 0.2);
+      }
       return g;
     };
     const TROFEU = (aceso) => {
@@ -412,12 +473,45 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const BOLA = `<svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="8" fill="#fff"/><polygon points="${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5; return `${9 + Math.cos(a) * 3.2},${9 + Math.sin(a) * 3.2}`; }).join(' ')}" fill="#1d1d1d"/>${Array.from({ length: 5 }, (_, i) => { const a = -Math.PI / 2 + Math.PI / 5 + (i * 2 * Math.PI) / 5; return `<circle cx="${9 + Math.cos(a) * 7.2}" cy="${9 + Math.sin(a) * 7.2}" r="1.8" fill="#1d1d1d"/>`; }).join('')}<circle cx="9" cy="9" r="8" fill="none" stroke="#0e1430" stroke-width="1.6"/></svg>`;
     const poe = (el, txt, t, de = 1.5) => {
       tl.set(el, { textContent: txt }, t);
-      tl.fromTo(el, { scale: de }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, t);
+      tl.fromTo(el, { scale: de }, { scale: 1, duration: 0.22, ease: 'back.out(2.5)', immediateRender: false }, t);
     };
     const faisca = (pai, x, y, t, tam = 1) => {
       const br = div(pai, 'brilho-n faisca');
       gsap.set(br, { x, y });
       tl.fromTo(br, { opacity: 1, scale: 0.4 * tam, rotation: 0 }, { scale: 1.5 * tam, rotation: 90, opacity: 0, duration: 0.45, ease: 'power2.out', immediateRender: false }, t);
+    };
+    /**
+     * A bola do jogo como globo (v9): um disco branco, e por cima uma esfera em CSS 3D girando no eixo Y, com os 12
+     * gomos pretos da bola (os vértices do icosaedro) e a grade de latitude e longitude em traços. Cada peça tem
+     * backface-visibility: hidden, então o lado de trás some sozinho. Devolve o elemento que gira (rotationY).
+     */
+    const fazGlobo = (el, R, { passo = 10, cor = 'rgb(58 110 230 / 85%)', equador = '#ffcb05' } = {}) => {
+      const c = (cls, d, st = '') => div(el, cls, `left:${-d / 2}px;top:${-d / 2}px;width:${d}px;height:${d}px;${st}`);
+      c('halo', R * 3);
+      const anel = c('anel-o', R * 2.64);
+      c('disco', R * 2 + 24, `border-width:${Math.max(5, R * 0.048)}px`);
+      const tilt = div(el, 'tilt');
+      tilt.style.transform = 'perspective(2000px) rotateX(-16deg) rotateZ(14deg)';
+      const gira = div(tilt, 'gira3');
+      const p3 = (w, h, lon, lat, z, st) => {
+        const d = div(gira, 'p3', `left:${-w / 2}px;top:${-h / 2}px;width:${w}px;height:${h}px;${st}`);
+        d.style.transform = `rotateY(${lon}deg) rotateX(${lat}deg) translateZ(${z}px)`;
+      };
+      const g = Math.PI / 180;
+      const seg = R * passo * g * 0.62;
+      const lw = Math.max(2, R * 0.016);
+      for (let lon = 0; lon < 360; lon += 30) for (let lat = -80; lat <= 80; lat += passo) p3(lw, seg, lon, lat, R + 1, `background:${cor}`);
+      for (const lat of [-60, -30, 0, 30, 60]) for (let lon = 0; lon < 360; lon += passo) p3(seg * Math.cos(lat * g), lat ? lw : lw * 1.6, lon, lat, R + 1, `background:${lat ? cor : equador}`);
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const V = [];
+      for (const a of [-1, 1]) for (const b of [-1, 1]) V.push([0, a, b * phi], [a, b * phi, 0], [b * phi, 0, a]);
+      const pent = 'clip-path:polygon(50% 0,98% 35%,79% 92%,21% 92%,2% 35%);background:#1d1d1d';
+      for (const [x, y, z] of V) {
+        const n = Math.hypot(x, y, z);
+        p3(R * 0.46, R * 0.46, Math.atan2(x, z) / g, Math.asin(y / n) / g, R + 2, pent);
+      }
+      c('sombra-g', R * 2 + 24);
+      return { gira, anel };
     };
     /** O colete de treino do Voltorb, em pixel na grade da folha (Idle, quadro 0, de frente), e os olhos fechados. */
     const vestirVoltorb = (V) => {
@@ -445,10 +539,35 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       palp.innerHTML = `<svg ${caixa}>${olho(7)}${olho(13)}</svg>`;
       gsap.set(palp, { opacity: 0 });
       quadro(tl, V, 'Idle', 0, 0, 0);
-      return (t) => {
+      // o Voltorb reage quando falam dele: pisca vermelho e brilha como um pavio (3 pulsos acelerando, a aura cresce),
+      // treme, sua uma gota, fecha os olhos de alívio e volta ao normal (sem explosão)
+      const aura = document.createElement('div');
+      aura.className = 'aura-v';
+      V.el.insertBefore(aura, V.corpo);
+      gsap.set(aura, { scale: V.escala / 15, y: (-120 * V.escala) / 15 + 120 });
+      const gota = div(V.corpo, 'gota');
+      const PAZ = 'brightness(1) sepia(0) saturate(1) hue-rotate(0deg) drop-shadow(0px 0px 0px rgb(255 60 30 / 0%))';
+      const QUENTE = 'brightness(1.2) sepia(0.7) saturate(3.2) hue-rotate(-28deg) drop-shadow(0px 0px 26px rgb(255 60 30 / 90%))';
+      gsap.set(V.corpo, { filter: PAZ });
+      const pisca = (t) => {
         tl.set(palp, { opacity: 1 }, t);
         tl.set(palp, { opacity: 0 }, t + 0.14);
       };
+      const reage = (t) => {
+        const e = V.escala / 15;
+        [0, 0.3, 0.52, 0.68].forEach((d, k) => {
+          tl.fromTo(V.corpo, { filter: PAZ }, { filter: QUENTE, duration: 0.07, ease: 'power2.out', immediateRender: false }, t + d);
+          tl.fromTo(V.corpo, { filter: QUENTE }, { filter: PAZ, duration: k === 3 ? 0.3 : 0.12, ease: 'power2.in', immediateRender: false }, t + d + 0.07);
+          tl.fromTo(aura, { opacity: 0.95, scale: e * (0.7 + 0.15 * k) }, { opacity: 0, scale: e * (1.05 + 0.2 * k), duration: 0.24, ease: 'power2.out', immediateRender: false }, t + d);
+        });
+        tl.to(V.corpo, { keyframes: { x: [-5, 5, -6, 6, -7, 7, -6, 6, -3, 0] }, duration: 0.85, ease: 'none' }, t + 0.1);
+        tl.to(V.corpo, { keyframes: { scaleX: [1, 1.06, 1.1, 1], scaleY: [1, 1.05, 1.08, 1] }, duration: 0.95, ease: 'sine.inOut' }, t);
+        tl.fromTo(gota, { x: 120 * e, y: -215 * e, opacity: 0, scale: e }, { y: -190 * e, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, t + 0.95);
+        tl.to(gota, { y: -120 * e, opacity: 0, duration: 0.45, ease: 'power2.in' }, t + 1.35);
+        pisca(t + 1.05);
+        pisca(t + 1.5);
+      };
+      return { pisca, reage };
     };
 
     // ===================== a manchete, o selo do canal, a caixa e o retrato =====================
@@ -458,22 +577,23 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       sp.appendChild(document.createElement('span')).textContent = txt;
       tl.set(barra.children, { opacity: 0 }, t);
       tl.set(sp, { opacity: 1 }, t);
-      tl.fromTo('#manchete', { x: 1100 }, { x: 0, duration: 0.35, ease: 'power3.out', immediateRender: false }, t + 0.04);
+      tl.fromTo('#manchete', { x: 1100 }, { x: 0, duration: 0.32, ease: 'power3.out', immediateRender: false }, t + 0.04);
     };
     for (const b of BLOCOS) if (b.manchete && b.nome !== 'escalada') mancheteNova(b.manchete, b.s);
-    // a manchete e o selo: no ar o vídeo todo, menos na vinheta, na escalada (o banner HOJE NO SOCCERMON NEWS) e no fim
+    // a manchete e o selo do canal: no ar o vídeo todo, menos na vinheta, na escalada (o banner HOJE NO SOCCERMON NEWS) e
+    // no fim; entram e saem em fade
     for (const [a, z] of [[0, M.vinheta], [M.abertura, M.escalada], [M.plantao, M.final]]) {
-      tl.set(['#manchete', '#bug'], { opacity: 1 }, a);
-      tl.set(['#manchete', '#bug'], { opacity: 0 }, z);
+      tl.fromTo(['#manchete', '#bug'], { opacity: a ? 0 : 1 }, { opacity: 1, duration: a ? 0.25 : 0, ease: 'power2.out', immediateRender: false }, a);
+      tl.to(['#manchete', '#bug'], { opacity: 0, duration: 0.2, ease: 'power2.in' }, z - 0.2);
     }
-    for (let t = 0, k = 0; t < M.final; t += 0.5, k++) tl.set(['#ponto', '#dois'], { opacity: k % 2 ? 0.25 : 1 }, t);
-    // o relógio vira 19:01 na metade (o corte pro Meowth em tela cheia)
-    tl.to('#m00', { y: 30, opacity: 0, duration: 0.15, ease: 'power2.in' }, M.relogio);
-    tl.fromTo('#m01', { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, M.relogio + 0.1);
+    // o AO VIVO só no link de rua (o Meowth na Rota)
+    tl.fromTo('#vivo', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.25, ease: 'power3.out', immediateRender: false }, M.cheia + 0.1);
+    tl.to('#vivo', { opacity: 0, duration: 0.2, ease: 'power2.in' }, M.vestiario - 0.2);
+    for (let t = M.cheia + 0.6, k = 0; t < M.vestiario - 0.2; t += 0.5, k++) tl.set('#ponto', { opacity: k % 2 ? 1 : 0.25 }, t);
 
     const CAIXA = $('caixa');
     const RET = $('retrato');
-    const NOMES = { raichu: 'RAICHU', machoke: 'MACHOKE', meowth: 'MEOWTH', psyduck: 'PSYDUCK', magikarp: 'MAGIKARP', todos: 'TODOS' };
+    const NOMES = { raichu: 'RAICHU', machoke: 'MACHOKE', meowth: 'MEOWTH', psyduck: 'PSYDUCK', todos: 'TODOS' };
     const ROSTO = {};
     const rosto = (r) => {
       if (ROSTO[r]) return ROSTO[r];
@@ -487,22 +607,28 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       }
       return ROSTO[r];
     };
-    rosto('26-sigh');
-    const mostraRosto = (r, t) => {
-      tl.set(Object.values(ROSTO), { opacity: 0 }, t);
-      tl.set(rosto(r), { opacity: 1 }, t);
-      tl.set(rosto(r), { y: -8 }, t);
-      tl.set(rosto(r), { y: 0 }, t + 1 / 30);
-    };
-    const abre = (els, t) => tl.fromTo(els, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.18, ease: 'power2.out', stagger: 0.04, immediateRender: false }, t);
-    const fecha = (els, t) => tl.set(els, { opacity: 0 }, t);
+    // o retrato troca em crossfade (0,2 s), com um leve pulo de escala; resolvidos em ordem de tempo no fim
+    const ROSTOS = [];
+    const mostraRosto = (r, t) => ROSTOS.push([t, rosto(r)]);
+    function resolveRostos() {
+      let atual = null;
+      for (const [t, el] of ROSTOS.sort((a, b) => a[0] - b[0])) {
+        if (el === atual) continue;
+        if (atual) tl.fromTo(atual, { opacity: 1 }, { opacity: 0, duration: 0.16, ease: 'power2.in', immediateRender: false }, t);
+        tl.fromTo(el, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
+        atual = el;
+      }
+    }
+    const abre = (els, t) => tl.fromTo(els, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.24, ease: 'power3.out', stagger: 0.04, immediateRender: false }, t);
+    const fecha = (els, t) => tl.fromTo(els, { opacity: 1, y: 0 }, { opacity: 0, y: 24, duration: 0.2, ease: 'power2.in', immediateRender: false }, t);
     tl.set([CAIXA, RET], { opacity: 0 }, 0);
     FALAS.forEach((f, k) => {
       const ant = FALAS[k - 1];
       const prox = FALAS[k + 1];
       const troca = f.a - 0.1;
-      if (!ant || ant.z < troca - 0.01) abre([RET, CAIXA], troca);
-      if (!prox || prox.a - 0.1 > f.z + 0.01) fecha([RET, CAIXA], f.z);
+      // o retrato fica aberto do KABOOM até o vestiário (a reação sem graça do Raichu no meio)
+      if (!ant || ant.z < troca - 0.01) abre(f.id === 'f13' ? CAIXA : [RET, CAIXA], troca);
+      if (!prox || prox.a - 0.1 > f.z + 0.01) fecha(f.id === 'f12' ? CAIXA : [RET, CAIXA], f.z);
       tl.set('#nome', { textContent: NOMES[f.quem] }, troca);
       for (const [t, r] of f.rostos) mostraRosto(r, t === f.a ? troca : t);
       f.paginas.forEach((p, n) => {
@@ -522,11 +648,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.set('#seta', { opacity: 0 }, ini);
         for (let t = p.fim + 0.1, j = 0; t < p.ate - 0.05; t += 0.3, j++) tl.set('#seta', { opacity: j % 2 ? 0 : 1 }, t);
         tl.set('#seta', { opacity: 0 }, p.ate);
-        if (!prox && n === f.paginas.length - 1) tl.set(tx, { opacity: 0 }, f.z);
       });
     });
-    // a reação do Raichu ao clipe: só o retrato, sem graça, sem fala
-    abre(RET, M.reacao);
+    // a reação do Raichu ao clipe: o retrato sem graça, sem fala (a caixa fechada)
     mostraRosto('26-sigh', M.reacao);
     window.__falas = FALAS.map((f) => ({ id: f.id, quem: f.quem, s: f.s, a: f.a, z: f.z, paginas: f.paginas.map((p) => ({ texto: p.texto, ini: p.ini, fim: p.fim, ate: p.ate, inteira: +(p.ate - p.fim).toFixed(2) })) }));
 
@@ -538,41 +662,66 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     }
     gsap.set('#pan', { transformOrigin: '540px 330px' });
     gsap.set('#v-bola', { transformOrigin: '264px 12px' });
+    tl.set('#v-bola', { opacity: 0 }, 0);
     const empurra = (t, d = 3, k = 1.04, alvos = '#pan') => tl.fromTo(alvos, { scale: 1 }, { scale: k, duration: d, ease: 'sine.out', immediateRender: false }, t);
-
-    // ===================== o banco do Pallet FC: o Voltorb de colete (o gancho, e o "Agora ele é reserva.") =====================
-    const VT = ator($('bc-cam'), 100, { escala: 15, z: 20, x: 540, y: 1158, sombra: false });
-    const piscaVT = vestirVoltorb(VT);
-    gsap.set('#bc-cam', { transformOrigin: '540px 1000px' });
-    const banco = (t0, d) => {
-      corta('#banco-c', t0);
-      paineis(t0);
-      tl.fromTo('#bc-cam', { scale: 1 }, { scale: 1.06, duration: d, ease: 'sine.out', immediateRender: false }, t0);
-      tl.fromTo(VT.corpo, { scaleY: 1, scaleX: 1 }, { scaleY: 1.035, scaleX: 0.985, duration: 0.4, ease: 'sine.inOut', repeat: Math.floor(d / 0.4) - 1, yoyo: true, immediateRender: false }, t0);
+    /** Quem fala: um pulinho só no começo da fala e um balanço leve do corpo (a partir do pé) enquanto a caixa digita. */
+    const pulinho = (a, t, h = 12) => tl.to(a.corpo, { keyframes: { y: [0, -h, 0] }, duration: 0.3, ease: 'sine.inOut' }, t);
+    const fala = (a, f, h) => {
+      pulinho(a, f.a - 0.05, h);
+      for (const p of f.paginas) tl.to(a.el, { keyframes: { rotation: [0, 1.4, -1.1, 0.9, 0] }, duration: Math.max(0.6, p.fim - p.ini + 0.3), ease: 'sine.inOut' }, p.ini);
     };
-    // 0–2 · o gancho: o Voltorb sentado no banco, de colete, piscando (PLANTÃO · VOLTORB VIRA RESERVA)
-    banco(0, 2);
-    piscaVT(0.75);
-    piscaVT(1.1);
+
+    // ===================== o vestiário do Pallet FC: o Voltorb de colete no banco (o gancho) =====================
+    gsap.set('#bc-cam', { transformOrigin: '540px 1000px' });
+    const VT = ator($('bc-cam'), 100, { escala: 15, z: 20, x: 540, y: 1158, sombra: false });
+    const VTx = vestirVoltorb(VT);
+    tl.fromTo(VT.el, { scaleY: 1 }, { scaleY: 1.025, duration: 0.4, ease: 'sine.inOut', repeat: 4, yoyo: true, immediateRender: false }, 0);
+    // 0–2 · o gancho: o Voltorb sentado no banco, de colete (PLANTÃO · VOLTORB VIRA RESERVA): ele quase explode de nervoso
+    corta('#banco-c', 0);
+    paineis(0);
+    tl.fromTo('#bc-cam', { scale: 1 }, { scale: 1.06, duration: 2, ease: 'sine.out', immediateRender: false }, 0);
+    VTx.reage(M.voltorbReage[0]);
     flash(tl, 0, 0.6, 0.25);
 
-    // ===================== 2–4 · VINHETA DE PLANTÃO =====================
+    // ===================== 2–4,5 · VINHETA DE ABERTURA (v9) =====================
+    // a bola do jogo gira como um globo com a grade de latitude e longitude; faixas de luz e linhas varrem a tela; o logo
+    // monta em camadas (a placa abre, a faixa vermelha corre, as letras caem uma a uma, o NEWS fecha o espaçamento), o
+    // brilho passa e o #1 carimba. A música: o pulso de sintetizador, o tímpano e o acorde dos metais no logo.
     {
       const t0 = M.vinheta;
+      const d = M.abertura - t0;
       corta('#vin', t0);
-      flash(tl, t0, 0.9, 0.3);
-      tl.fromTo('#raios-vin', { rotation: 0 }, { rotation: 80, duration: 2, ease: 'none', immediateRender: false }, t0);
-      tl.fromTo('#fx1', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0);
-      tl.fromTo('#fx2', { x: 1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.08);
-      tl.fromTo('#fx3', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.16);
-      tl.fromTo('#placa', { scale: 0.3, rotation: -6 }, { scale: 1, rotation: 0, duration: 0.35, ease: 'back.out(2.4)', immediateRender: false }, t0);
-      $('globo').innerHTML = BOLA.replace('<svg ', '<svg id="globo-g" ');
-      gsap.set('#globo-g', { transformOrigin: '50% 50%' });
-      tl.fromTo('#globo', { y: -500 }, { y: 0, duration: 0.35, ease: 'bounce.out', immediateRender: false }, t0 + 0.05);
-      tl.fromTo('#globo-g', { rotation: 0 }, { rotation: 600, duration: 2, ease: 'power1.out', immediateRender: false }, t0);
-      tl.set('#n1', { opacity: 1 }, t0 + 1);
-      tl.fromTo('#n1', { scale: 2.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, t0 + 1);
-      estouro(tl, $('vin'), 855, 1115, t0 + 1, { tam: 260 });
+      flash(tl, t0, 0.7, 0.3);
+      const G = fazGlobo($('globo-v'), 250);
+      tl.fromTo('#globo-v', { scale: 0.15, opacity: 0, rotation: -25 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: 'back.out(1.5)', immediateRender: false }, t0);
+      tl.fromTo(G.gira, { rotationY: 0 }, { rotationY: -300, duration: d, ease: 'power1.out', immediateRender: false }, t0);
+      tl.fromTo(G.anel, { rotation: 0, scale: 0.8 }, { rotation: 220, scale: 1.05, duration: d, ease: 'power2.out', immediateRender: false }, t0);
+      tl.fromTo('#globo-v', { y: 0 }, { y: -40, duration: d, ease: 'sine.inOut', immediateRender: false }, t0);
+      tl.fromTo('#grade-v', { y: 0, opacity: 0 }, { y: 120, opacity: 1, duration: d, ease: 'none', immediateRender: false }, t0);
+      [['#luz1', 0], ['#luz2', 0.3], ['#luz3', 1.55]].forEach(([id, dt]) =>
+        tl.fromTo(id, { x: -200 }, { x: 1900, duration: 0.9, ease: 'power1.inOut', immediateRender: false }, t0 + dt));
+      [['#lv1', 0.05, 1], ['#lv2', 0.15, -1], ['#lv3', 0.1, 1], ['#lv4', 0.22, -1], ['#lv1', 1.5, -1], ['#lv3', 1.58, -1]].forEach(([id, dt, s]) =>
+        tl.fromTo(id, { x: s > 0 ? -950 : 1130 }, { x: s > 0 ? 1130 : -950, duration: 0.5, ease: 'power2.inOut', immediateRender: false }, t0 + dt));
+      tl.set('#globo-v', { scale: 0.15, opacity: 0 }, 0);
+      tl.set('#placa-v', { scaleX: 0, scaleY: 0.2, opacity: 0 }, 0);
+      tl.set('#faixa-v', { scaleX: 0 }, 0);
+      tl.set('#l2-v', { opacity: 0 }, 0);
+      tl.set('#n1', { opacity: 0 }, 0);
+      gsap.set('#placa-v', { transformOrigin: '50% 50%' });
+      tl.fromTo('#placa-v', { scaleX: 0, scaleY: 0.2, opacity: 0 }, { keyframes: [{ scaleX: 1, opacity: 1, duration: 0.24, ease: 'power3.out' }, { scaleY: 1, duration: 0.18, ease: 'back.out(2)' }], immediateRender: false }, t0 + 0.5);
+      gsap.set('#faixa-v', { transformOrigin: '0 50%' });
+      tl.fromTo('#faixa-v', { scaleX: 0 }, { scaleX: 1, duration: 0.25, ease: 'power3.out', immediateRender: false }, t0 + 0.78);
+      $('l1-v').innerHTML = [...'SOCCERMON'].map((c) => `<span>${c}</span>`).join('');
+      tl.set('#l1-v span', { opacity: 0 }, 0);
+      tl.fromTo('#l1-v span', { y: -140, opacity: 0, scale: 1.4 }, { y: 0, opacity: 1, scale: 1, duration: 0.24, ease: 'back.out(2.2)', stagger: 0.04, immediateRender: false }, t0 + 0.82);
+      tl.fromTo('#l2-v', { letterSpacing: '120px', opacity: 0 }, { letterSpacing: '40px', opacity: 1, duration: 0.28, ease: 'power3.out', immediateRender: false }, t0 + 1.22);
+      tl.fromTo('#brilho-v', { x: -320 }, { x: 1180, duration: 0.45, ease: 'power2.inOut', immediateRender: false }, t0 + 1.55);
+      flash(tl, t0 + 1.5, 0.35, 0.3);
+      tl.set('#n1', { opacity: 1 }, t0 + 1.85);
+      tl.fromTo('#n1', { scale: 2.4, rotation: -20 }, { scale: 1, rotation: 6, duration: 0.22, ease: 'back.out(2.5)', immediateRender: false }, t0 + 1.85);
+      estouro(tl, $('logo-v'), 895, -5, t0 + 1.88, { tam: 240 });
+      tl.fromTo('#logo-v', { scale: 1 }, { scale: 1.03, duration: d - 0.5, ease: 'sine.out', immediateRender: false }, t0 + 0.5);
+      for (const k of [0, 1, 2, 3]) tl.fromTo('#globo-v .halo', { scale: 1.12 }, { scale: 1, duration: 0.25, ease: 'power2.out', immediateRender: false }, t0 + 0.5 * k);
     }
 
     // ===================== o estúdio: a dupla de terno na bancada =====================
@@ -584,17 +733,18 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       RAICHU: [1.0, 262, 950, 262, 950, 1.035], // a bancada inteira, o empurrão pro Raichu
       MACHOKE: [1.0, 750, 950, 750, 950, 1.035],
       REACAO: [1.5, 262, 900, 540, 780, 1.05], // o Raichu de perto, sem graça
-      CONVIDADO: [1.0, 16, 950, 540, 950, 1.03], // o Raichu e o Psyduck na ponta da bancada
-      SPLIT: [1.1, 262, 950, 279, 860, 1.04], // o Raichu no meio da metade esquerda
     };
     const xyDe = (nome, z) => {
       const [s0, fx, fy, sx, sy] = PLANOS[nome];
       const s = z ?? s0;
       return { scale: s, x: sx - s * fx, y: sy - s * fy };
     };
-    const plano = (t, nome, d = 3) => {
+    /** O plano a partir de t; `segue` = a câmera já está no estúdio: em vez de pular, ela desliza 0,5 s até o plano novo. */
+    const plano = (t, nome, d = 3, segue = false) => {
       const [s0, , , , , k = 1.03] = PLANOS[nome];
-      tl.fromTo(CAM, xyDe(nome, s0), { ...xyDe(nome, s0 * k), duration: d, ease: 'sine.out', immediateRender: false }, t);
+      if (!segue) return tl.fromTo(CAM, xyDe(nome, s0), { ...xyDe(nome, s0 * k), duration: d, ease: 'sine.out', immediateRender: false }, t);
+      tl.to(CAM, { ...xyDe(nome, s0), duration: 0.5, ease: 'power2.inOut' }, t);
+      tl.to(CAM, { ...xyDe(nome, s0 * k), duration: Math.max(0.5, d - 0.5), ease: 'sine.out' }, t + 0.5);
     };
     const MESA = 1080;
     SPR['26t'] = { ...SPR[26], folha: 'midia/sp/26-terno.png' };
@@ -606,15 +756,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     };
     const RX = 262;
     const MX = 750;
-    const PX = -250; // o Psyduck na cadeira de convidado
     const RA = naMesa(CAM, '26t', RX, 13, 28);
     const MA = naMesa(CAM, '67t', MX, 15, 22);
-    const PS = ator(CAM, 54, { escala: 14, z: 12, x: PX, y: 1150, sombra: false });
     const TOSTADO = 'brightness(0.66) sepia(0.65) saturate(1.3)';
-    gsap.set(PS.spr, { filter: TOSTADO });
-    const prancheta = div(PS.corpo, 'prancheta');
-    gsap.set(prancheta, { x: 36, y: -250, rotation: 8, scale: 0.85, filter: 'brightness(0.85)' });
-    anim(tl, PS, 'Idle', 0, 0, FIM, { vel: 0.6 });
     // as canecas na bancada: a amarela do Raichu e a azul do Machoke, com o vapor subindo
     const pix = (linhas, pal, e) => {
       let r = '';
@@ -632,66 +776,60 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
           tl.fromTo(v, { y: 0, x: 0, opacity: 0 }, { keyframes: { y: [0, -E, -E * 2, -E * 3], x: [0, E, 0, E], opacity: [0, 0.4, 0.25, 0] }, duration: 1.6, ease: 'none', immediateRender: false }, Math.max(0, t));
       }
     }
-    // o Idle o tempo todo, de frente; quem escuta vira pro parceiro (3/4) e volta antes de falar. O Raichu olha pro
-    // Psyduck (à esquerda) espelhando o 3/4
+    // o Raichu no Idle do jogo, de frente; quem escuta vira pro parceiro (3/4) e volta antes de falar. O Machoke fica no
+    // quadro 0 de cada direção (v9: os quadros da flexão do Idle, em 3/4, deixavam ele corcunda) e respira devagar. Cada
+    // virada tem um leve achatamento de 0,2 s (não pula seco)
     const VIRA = { [RA.id]: [], [MA.id]: [] };
     for (const f of FALAS) {
       if (f.quem === 'machoke') VIRA[RA.id].push([1, false, f.a + 0.6, f.z - 0.35]);
       if (f.quem === 'raichu' && f.id !== 'f13') VIRA[MA.id].push([7, false, f.a + 0.6, f.z - 0.35]);
     }
-    VIRA[RA.id].push([1, true, M.reacao + 0.1, M.reacao + 1.0]); // sem graça, olha pro outro lado
-    VIRA[RA.id].push([1, true, F.f13.a + 0.5, F.f14.z]); // pergunta e escuta o Psyduck
-    VIRA[MA.id].push([7, false, F.f13.a + 0.6, F.f14.z]);
+    VIRA[RA.id].push([1, true, M.reacao + 0.1, M.reacao + 0.95]); // sem graça, olha pro outro lado
+    const vira = (a, t) => tl.fromTo(a.corpo, { scaleX: 0.92 }, { scaleX: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, t);
     for (const a of [RA, MA]) {
       let t = 0;
+      const pose = (dir, de, ate, op) => (a === MA ? quadro(tl, a, 'Idle', dir, 0, de, op) : anim(tl, a, 'Idle', dir, de, ate, op));
       for (const [dir, flip, de, ate] of VIRA[a.id].sort((x, y) => x[2] - y[2])) {
-        anim(tl, a, 'Idle', 0, t, de);
-        anim(tl, a, 'Idle', dir, de, ate, { flip });
+        pose(0, t, de);
+        pose(dir, de, ate, { flip });
+        vira(a, de);
+        vira(a, ate);
         t = ate;
       }
-      anim(tl, a, 'Idle', 0, t, FIM);
+      pose(0, t, FIM);
     }
-    // quem fala: um pulinho no começo e um balanço leve em cada palavra
-    const pulinho = (a, t, h = 16) => tl.to(a.corpo, { keyframes: { y: [0, -h, 0] }, duration: 0.28, ease: 'sine.inOut' }, t);
-    for (const f of FALAS) {
-      const a = { raichu: RA, machoke: MA, psyduck: PS }[f.quem];
-      if (!a) continue;
-      pulinho(a, f.a - 0.05);
-      for (const p of f.paginas) {
-        let ult = p.ini + 0.1;
-        Array.from(p.texto).forEach((c, i, cs) => {
-          if (cs[i - 1] !== ' ' || p.chars[i] < ult + 0.2) return;
-          ult = p.chars[i];
-          tl.to(a.corpo, { keyframes: { y: [0, -5, 0] }, duration: 0.14, ease: 'sine.inOut' }, ult);
-        });
-      }
-    }
+    tl.fromTo(MA.el, { scaleY: 1 }, { scaleY: 1.014, duration: 0.9, ease: 'sine.inOut', repeat: Math.floor(FIM / 0.9), yoyo: true, immediateRender: false }, 0);
+    for (const f of FALAS) if (f.quem === 'raichu' && f.id !== 'f13') fala(RA, f);
+    for (const f of FALAS) if (f.quem === 'machoke') fala(MA, f);
     const telas = ['#t-marca', '#t-meo', '#t-ver', '#t-rec', '#t-volt', '#t-turma'];
+    let telaAtual = null;
+    /** A tela do telão troca em crossfade (a nova cresce de 0,9 com um respiro). */
     const telao = (id, t) => {
-      tl.set(telas, { opacity: 0 }, t);
+      if (id === telaAtual) return;
+      if (telaAtual) tl.to(telaAtual, { opacity: 0, duration: 0.2, ease: 'power2.in' }, t);
+      else tl.set(telas, { opacity: 0 }, t);
+      telaAtual = id;
       if (!id) return;
-      tl.set(id, { opacity: 1 }, t);
-      tl.fromTo(id, { scale: 0.85 }, { scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t);
+      tl.fromTo(id, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.26, ease: 'back.out(1.8)', immediateRender: false }, t);
     };
     tl.fromTo('#raios-tel', { rotation: 0 }, { rotation: 260, duration: FIM, ease: 'none', immediateRender: false }, 0);
     /** O estúdio a partir de t: o plano, o telão e o empurrão até o fim do trecho. */
-    const estudio = (t, nome, tela, d) => {
+    const estudio = (t, nome, tela, d, segue = false) => {
       corta('#banc', t);
       paineis(t);
-      plano(t, nome, d);
+      plano(t, nome, d, segue);
       if (tela !== undefined) telao(tela, t);
     };
 
     // ===================== ABERTURA (SOCCERMON NEWS #1): a dupla se apresenta e chama o sumário =====================
     estudio(M.abertura, 'RAICHU', '#t-marca', F.f1.z - M.abertura);
-    flash(tl, M.abertura, 0.6, 0.25);
     faisca(CAM, RX - 80, 900, F.f1.a + 0.1);
     faisca(CAM, RX + 90, 900, F.f1.a + 0.18);
     gc('RAICHU', 'APRESENTADOR', F.f1.a + 0.4, F.f1.z - 0.4);
-    plano(F.f2.s, 'MACHOKE', F.f2.z - F.f2.s);
-    gc('MACHOKE', 'APRESENTADOR', F.f2.a + 0.4, F.f2.z - 0.4, { x: 560, y: 1098, lado: 1 });
+    plano(F.f2.s, 'MACHOKE', F.f2.z - F.f2.s, true);
+    gc('MACHOKE', 'APRESENTADOR', F.f2.a + 0.4, F.f2.z - 0.4);
     // "Hoje": o selo VERSÃO NOVA com o 0.9.51 carimbado no H e o + 0.9.52 nas "novidades"
-    plano(F.f3.s, 'RAICHU', M.escalada - F.f3.s);
+    plano(F.f3.s, 'RAICHU', M.escalada - F.f3.s, true);
     telao('#t-ver', F.f3.s);
     for (const [id, t] of [['#v51', M.ver51], ['#v52', M.ver52]]) {
       tl.set(id, { opacity: 0 }, F.f3.s);
@@ -701,37 +839,50 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     }
     for (let t = M.ver52 + 0.5; t < M.escalada - 0.3; t += 0.5) tl.fromTo('#t-ver em', { scale: 1.06 }, { scale: 1, duration: 0.22, ease: 'power2.out', immediateRender: false }, t);
 
-    // ===================== ESCALADA (HOJE NO SOCCERMON NEWS): 4 cartelas de 1,5 s, uma batida cada =====================
+    // ===================== ESCALADA (HOJE NO SOCCERMON NEWS): a vinheta curta e 4 cartelas, uma batida cada =====================
     {
       const ESC = M.escalada;
       const ESC_FIM = M.plantao;
-      corta('#esc', ESC);
+      corta('#esc', ESC, { seco: true });
       paineis(ESC);
-      tl.fromTo('#raios-esc', { rotation: 0 }, { rotation: 40, duration: 6, ease: 'none', immediateRender: false }, ESC);
+      tl.fromTo('#raios-esc', { rotation: 0 }, { rotation: 40, duration: ESC_FIM - ESC, ease: 'none', immediateRender: false }, ESC);
       tl.fromTo('#ex1', { x: -1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, ESC);
       tl.fromTo('#ex2', { x: 1400 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, ESC + 0.06);
       tl.fromTo('#hoje', { y: -260 }, { y: 0, duration: 0.3, ease: 'back.out(1.8)', immediateRender: false }, ESC);
+      // a vinheta curta: a bola-globo pequena gira no banner e as linhas de luz varrem em cada batida
+      const gm = div($('esc'), 'globo-v', 'left:120px;top:235px;z-index:61');
+      const GM = fazGlobo(gm, 62, { passo: 20 });
+      tl.fromTo(gm, { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.3, ease: 'back.out(2)', immediateRender: false }, ESC + 0.1);
+      tl.fromTo(GM.gira, { rotationY: 0 }, { rotationY: -720, duration: ESC_FIM - ESC, ease: 'none', immediateRender: false }, ESC);
+      tl.set(gm.querySelector('.halo'), { opacity: 0 });
+      const linhas = [0, 1].map((k) => div($('esc'), k ? 'linha-v azul' : 'linha-v', `top:${k ? 1640 : 352}px;z-index:55`));
+      [ESC, ...CARTELAS].forEach((t, k) => {
+        tl.fromTo(linhas[0], { x: k % 2 ? 1130 : -950 }, { x: k % 2 ? -950 : 1130, duration: 0.45, ease: 'power2.inOut', immediateRender: false }, t);
+        tl.fromTo(linhas[1], { x: k % 2 ? -950 : 1130 }, { x: k % 2 ? 1130 : -950, duration: 0.45, ease: 'power2.inOut', immediateRender: false }, t + 0.05);
+        tl.fromTo(gm, { scale: 1.2 }, { scale: 1, duration: 0.22, ease: 'power2.out', immediateRender: false }, t + 0.4);
+      });
       ['#c1', '#c2', '#c3', '#c4'].forEach((c, i) => {
         const t = CARTELAS[i];
         tl.set(c, { opacity: 1 }, t);
-        tl.fromTo(c, { x: 1100, rotation: 4 }, { x: 0, rotation: 0, duration: 0.25, ease: 'back.out(1.5)', immediateRender: false }, t);
+        tl.fromTo(c, { x: 1100, rotation: 4 }, { x: 0, rotation: 0, duration: 0.26, ease: 'back.out(1.4)', immediateRender: false }, t);
         tl.fromTo(`${c} .num`, { scale: 2.2 }, { scale: 1, duration: 0.2, ease: 'back.out(2.5)', immediateRender: false }, t + 0.15);
         if (i < 3) {
-          tl.to(c, { x: -1100, rotation: -4, duration: 0.2, ease: 'power2.in' }, CARTELAS[i + 1] - 0.16);
+          tl.to(c, { x: -1100, rotation: -4, duration: 0.22, ease: 'power2.in' }, CARTELAS[i + 1] - 0.18);
           tl.set(c, { opacity: 0 }, CARTELAS[i + 1] + 0.04);
         }
       });
-      const MC = ator($('c2-img'), 52, { escala: 17, z: 2, x: 300, y: 470 });
+      const MC = ator($('c2-img'), 52, { escala: 17, z: 2, x: 300, y: 470, sombra: false });
       anim(tl, MC, 'Idle', 0, 0, FIM);
       microfone(MC);
       anim(tl, MC, 'Pose', 0, CARTELAS[1] + 0.4, CARTELAS[1] + 1.0, { loop: false });
       anim(tl, MC, 'Idle', 0, CARTELAS[1] + 1.0, FIM);
-      const SIL = ator($('vidro'), 54, { escala: 12, z: 2, x: 168, y: 470, sombra: false });
+      // o "E mais": o vestiário do Pallet FC, com a sombra do Psyduck entrando
+      const SIL = ator($('c4-img'), 54, { escala: 12, z: 2, x: 330, y: 500, sombra: false });
       gsap.set(SIL.spr, { filter: 'brightness(0) blur(3px)', opacity: 0.78 });
       anim(tl, SIL, 'Idle', 0, 0, FIM, { vel: 0.6 });
-      tl.fromTo(SIL.el, { x: 60 }, { x: 168, duration: 0.6, ease: 'sine.out', immediateRender: false }, CARTELAS[3] + 0.1);
+      tl.fromTo(SIL.el, { x: 140 }, { x: 330, duration: 0.6, ease: 'sine.out', immediateRender: false }, CARTELAS[3] + 0.1);
       tl.to(SIL.corpo, { keyframes: { rotation: [0, -14, -14, 0] }, duration: 0.8, ease: 'sine.inOut' }, CARTELAS[3] + 0.6);
-      tl.to(['#c4', '#hoje'], { opacity: 0, duration: 0.12 }, ESC_FIM - 0.12);
+      tl.to(['#c4', '#hoje', gm], { opacity: 0, duration: 0.2, ease: 'power2.in' }, ESC_FIM - 0.2);
     }
 
     // ===================== PLANTÃO: a recompensa nova da Copa do Dia =====================
@@ -744,7 +895,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     empurra(M.vt1, F.f4.z - M.vt1, 1.04);
     tl.fromTo('#m-rec .raios', { rotation: 0 }, { rotation: 30, duration: 4, ease: 'none', immediateRender: false }, M.vt1);
     {
-      const FR = 976 / 1080;
+      const FR = (810 - 24) / 1080; // v9: o painel menor, acima do retrato
       const PECAS = [[30, 0, 1020, 150], [38, 322, 328, 592], [378, 322, 324, 540], [716, 322, 328, 652]].map(([x, y, w, h]) =>
         div($('m-rec'), 'rec-peca', `left:${x * FR}px;top:${y * FR}px;width:${w * FR}px;height:${h * FR}px;background-size:${1080 * FR}px ${1000 * FR}px;background-position:${-x * FR}px ${-y * FR}px`));
       gsap.set([PECAS[1], PECAS[2]], { filter: 'blur(10px) brightness(0.32) saturate(0.4)' });
@@ -776,7 +927,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       const caixaT = $('trofeus');
       const ACESOS = [1, 3, 6, 8];
       const trs = Array.from({ length: 10 }, (_, i) => {
-        const t = div(caixaT, 'trofeu', `left:${65 + (i % 5) * 195}px;top:${i < 5 ? 370 : 600}px`);
+        const t = div(caixaT, 'trofeu', `left:${65 + (i % 5) * 195}px;top:${i < 5 ? 345 : 550}px`);
         t.innerHTML = `${TROFEU(false)}<div class="aceso" style="position:absolute;inset:0">${TROFEU(true)}</div><div class="selo-p">${BUMBO()}</div>`;
         tl.fromTo(t, { scale: 0 }, { scale: 1, duration: 0.2, ease: 'back.out(2.4)', immediateRender: false }, F.f5.s + 0.02 + i * 0.03);
         return t;
@@ -789,7 +940,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         tl.fromTo(tr, { scale: 1.4, rotation: -8 }, { scale: 1, rotation: 0, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, t);
         tl.set(tr.querySelector('.selo-p'), { opacity: 1 }, t + 0.08);
         tl.fromTo(tr.querySelector('.selo-p'), { scale: 0, rotation: -40 }, { scale: 1, rotation: 0, duration: 0.22, ease: 'back.out(2.6)', immediateRender: false }, t + 0.08);
-        estouro(tl, caixaT, 65 + (i % 5) * 195 + 85, (i < 5 ? 370 : 600) + 90, t, { tam: 230, dur: 0.3 });
+        estouro(tl, caixaT, 65 + (i % 5) * 195 + 85, (i < 5 ? 345 : 550) + 90, t, { tam: 230, dur: 0.3 });
         poe('#conta-n', String(k + 1), t);
       });
       tl.set('#patro-mini', { opacity: 1 }, M.patro);
@@ -832,96 +983,82 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       });
     }
 
-    // f7 · a sonora: o Magikarp na quadra do Pallet FC, de medalha e microfone; o Snorlax dorme no gol
-    {
-      const SC = $('so-cam');
-      quadra(SC, 'madeira', { K: 95, gy: 560 });
-      gsap.set(SC, { transformOrigin: '540px 1150px' });
-      const MG = ator(SC, 129, { escala: 21, z: 20, x: 470, y: 1150 });
-      microfone(MG, 1.15, 130);
-      const medalha = div(MG.corpo, 'medalha');
-      gsap.set(medalha, { x: -10, y: -170 });
-      const SN = ator(SC, 143, { escala: 6, z: 8, x: 560, y: 610, sombra: false });
-      anim(tl, MG, 'Idle', 0, 0, FIM);
-      anim(tl, SN, 'Sleep', 0, 0, FIM, { id: '143x' });
-      const t0 = F.f7.s;
-      corta('#sonora', t0);
-      paineis(t0);
-      tl.fromTo(SC, { scale: 1.0 }, { scale: 1.05, duration: F.f7.z - t0, ease: 'sine.out', immediateRender: false }, t0);
-      pulinho(MG, F.f7.a, 24);
-      gc('MAGIKARP', 'JOGADOR DO PALLET FC', F.f7.a + 0.4, F.f7.a + 2.6);
-      tl.to(MG.corpo, { keyframes: [{ y: -60, scaleY: 1.06, duration: 0.15, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.15, ease: 'power2.in' }, { scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.1, ease: 'back.out(3)' }] }, M.charanga);
-      faisca(MG.corpo, -10, -170, M.charanga + 0.1, 0.8);
-    }
 
     // ===================== AO VIVO: a Rota Índigo =====================
-    // o Raichu chama com o Meowth esperando no telão; na "Rota" a tela divide (o estúdio à esquerda, a Rota à direita)
-    estudio(M.aovivo, 'RAICHU', '#t-meo', M.split - M.aovivo);
+    // o Raichu chama com o Meowth esperando no telão; na fala do Meowth, o corte direto pra Rota em tela cheia
+    estudio(M.aovivo, 'RAICHU', '#t-meo', M.cheia - M.aovivo);
     const TVM = $('tv-meo');
     quadra(TVM, 'madeira', { K: 95, gy: 420 });
     gsap.set(TVM, { scale: 0.62, x: 438 - 540 * 0.62, y: 340 - 1130 * 0.62 });
-    const MT = ator(TVM, 52, { escala: 17, z: 20, x: 540, y: 1130 });
+    const MT = ator(TVM, 52, { escala: 17, z: 20, x: 540, y: 1130, sombra: false });
     anim(tl, MT, 'Idle', 0, 0, FIM);
     microfone(MT);
-    // a Rota: a quadra, o Meowth de perto e uma partida rolando atrás dele
+    // a Rota (v9): a arquibancada com a torcida, a faixa ROTA ÍNDIGO, os holofotes, a barraca do Mercado com os preços
+    // em ₽, a partida rolando atrás e o Meowth de microfone no pedestal
     const RC = $('rota-cam');
-    quadra(RC, 'madeira', { K: 95, gy: 420 });
-    gsap.set(RC, { transformOrigin: '540px 1130px', scale: 1.3 });
-    const MR = ator(RC, 52, { escala: 17, z: 20, x: 540, y: 1130 });
-    microfone(MR);
+    const MRX = 640;
+    const MRY = 1200;
+    quadra(RC, 'madeira', { K: 80, gy: 770 });
+    div(RC, 'arquib');
+    const fila = window.TORCIDA.map((id, i) => {
+      const linha = i % 2;
+      return ator(RC, id, { escala: 5, z: 3 + linha, sombra: false, x: 30 + (Math.floor(i / 2) + 0.5) * 146 + (linha ? 60 : 0), y: linha ? 660 : 588 });
+    });
+    torcidaAnim(tl, fila, 'Idle', 0, FIM, { dir: 0 });
+    const faixa = div(RC, 'faixa-rota');
+    faixa.textContent = 'ROTA ÍNDIGO';
+    const holos = [[-40, 20], [800, -20]].map(([x, r]) => {
+      const h = div(RC, 'holo-r', `left:${x}px`);
+      gsap.set(h, { rotation: r });
+      return h;
+    });
+    for (const x of [20, 976]) div(RC, 'lampada', `left:${x}px`);
+    const merc = div(RC, 'mercado', 'top:400px');
+    merc.innerHTML = '<div class="poste" style="left:6px"></div><div class="poste" style="left:318px"></div><div class="placa-m">MERCADO</div><div class="toldo"></div><div class="franja"></div><div class="balcao"></div>';
+    const ICONE = {
+      bola: BOLA.replace('<svg ', '<svg width="44" height="44" '),
+      bandana: '<svg width="48" height="40" viewBox="0 0 12 10"><path d="M1 2 L11 2 L6 9 Z" fill="#e8423f" stroke="#0e1430" stroke-width="1.2" stroke-linejoin="round"/><circle cx="4" cy="4" r="0.8" fill="#fff"/><circle cx="7.5" cy="3.6" r="0.8" fill="#fff"/></svg>',
+      carta: '<svg width="36" height="48" viewBox="0 0 9 12"><rect x="0.6" y="0.6" width="7.8" height="10.8" rx="1.2" fill="#ffcb05" stroke="#0e1430" stroke-width="1.2"/><circle cx="4.5" cy="5" r="1.6" fill="#e8423f" stroke="#0e1430" stroke-width="0.8"/></svg>',
+    };
+    const precos = [['bola', '₽3'], ['bandana', '₽6'], ['carta', '₽9']].map(([ic, p], k) => {
+      const tg = div(merc, 'preco', `left:${22 + k * 108}px`);
+      tg.innerHTML = `<i>${ICONE[ic]}</i>${p}`;
+      return tg;
+    });
+    const MR = ator(RC, 52, { escala: 19, z: 20, x: MRX, y: MRY });
+    microfone(MR, 1.12);
     anim(tl, MR, 'Idle', 0, 0, FIM);
+    gsap.set(RC, { transformOrigin: `${MRX}px ${MRY}px` });
     {
-      const t = M.split;
-      const ate = M.cheia;
-      corta(['#fundo', '#banc', '#rota'], t);
-      paineis(t, '#p-split');
-      tl.set('#pan', { scale: 1 }, t);
-      tl.set('#banc', { clipPath: 'inset(345px 556px 680px 34px round 22px)' }, t);
-      tl.set('#rota', { clipPath: 'inset(345px 34px 680px 556px round 22px)' }, t);
-      plano(t, 'SPLIT', ate - t);
-      telao('#t-marca', t);
-      tl.set(RC, { scale: 1.08, x: 257, y: -50 }, t);
-      tl.fromTo(['#banc', '#split-e'], { x: -580 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t);
-      tl.fromTo(['#rota', '#split-d'], { x: 580 }, { x: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t);
-      gc('MEOWTH', 'REPÓRTER · ROTA ÍNDIGO', t + 0.35, ate - 0.25, { x: 568, y: 1128, lado: 1, p: true });
-      // o atraso do satélite: o quadro do Meowth congela, a imagem treme e a tarja ATRASO NO SINAL pisca; o Raichu
-      // inclina a cabeça, sem graça; o Meowth acorda no susto na fala dele
-      const [a0, a1] = M.atraso;
-      quadro(tl, MR, 'Idle', 0, 0, a0);
-      for (const u of [a0 + 0.25, a0 + 0.75]) tl.to('#rota', { keyframes: { x: [7, -6, 3, 0] }, duration: 0.14, ease: 'none' }, u);
-      tl.set('#atraso', { opacity: 1 }, a0);
-      tl.fromTo('#atraso', { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.2, ease: 'power3.out', immediateRender: false }, a0);
-      for (let u = a0 + 0.25, k = 0; u < a1; u += 0.25, k++) tl.set('#atraso-p', { opacity: k % 2 ? 1 : 0.2 }, u);
-      tl.set('#atraso', { opacity: 0 }, a1);
-      tl.to(RA.corpo, { rotation: -7, duration: 0.25, ease: 'sine.inOut' }, a0 + 0.3);
-      tl.to(RA.corpo, { rotation: 0, duration: 0.2, ease: 'sine.inOut' }, a1);
-      anim(tl, MR, 'Pose', 0, F.f9.a, F.f9.a + 0.6, { loop: false });
-      anim(tl, MR, 'Idle', 0, F.f9.a + 0.6, FIM);
-      tl.to(MR.corpo, { keyframes: { y: [-40, 0] }, duration: 0.32, ease: 'sine.inOut' }, F.f9.a);
-      tl.set(['#banc', '#rota'], { clipPath: 'none', x: 0 }, ate);
-      tl.set(RC, { x: 0, y: 0 }, ate);
+      const t0 = M.cheia;
+      const t1 = M.vestiario;
+      corta('#rota', t0);
+      paineis(t0, '#p-rota');
+      tl.fromTo(RC, { scale: 1 }, { scale: 1.035, duration: t1 - t0, ease: 'sine.out', immediateRender: false }, t0);
+      gc('MEOWTH', 'REPÓRTER · ROTA ÍNDIGO', t0 + 0.4, t0 + 2.9);
+      holos.forEach((h, k) => tl.fromTo(h, { rotation: k ? -20 : 20 }, { keyframes: { rotation: k ? [-20, -8, -24, -20] : [20, 30, 12, 20] }, duration: t1 - t0, ease: 'sine.inOut', immediateRender: false }, t0));
+      precos.forEach((p, k) => tl.fromTo(p, { rotation: 0 }, { keyframes: { rotation: [0, 5, -4, 3, 0] }, duration: 2.4, ease: 'sine.inOut', repeat: 4, immediateRender: false }, t0 + 0.3 * k));
+      tl.fromTo(faixa, { scaleY: 1 }, { scaleY: 1.06, duration: 0.6, ease: 'sine.inOut', repeat: Math.floor((t1 - t0) / 0.6) - 1, yoyo: true, immediateRender: false }, t0);
+      // a torcida: um pulinho a cada batida, e o pulo grande nas vitórias e no Pay Day
+      const grandes = [...M.vitorias, M.payday];
+      for (let t = t0 + 0.5; t < t1 - 0.4; t += 1) if (grandes.every((g) => Math.abs(g - t) > 0.55)) torcidaPulo(tl, fila, t, { h: 14, d: 0.26 });
+      for (const t of grandes) torcidaPulo(tl, fila, t + 0.05, { h: 34, d: 0.32 });
     }
-    // f10 · o Meowth em tela cheia, com a partida rolando atrás; o painel do ₽ (3 → 6 → 9) e o Pay Day
-    corta('#rota', M.cheia);
-    paineis(M.cheia, '#p-rota');
-    tl.set('#pan', { scale: 1 }, M.cheia);
-    tl.fromTo(RC, { scale: 1.15 }, { scale: 1.19, duration: F.f11.z - M.cheia, ease: 'sine.out', immediateRender: false }, M.cheia);
-    tl.to(MR.corpo, { keyframes: { y: [-30, 0] }, duration: 0.32, ease: 'sine.inOut' }, F.f10.a);
-    anim(tl, MR, 'Pose', 0, F.f10.paginas[1].ini, F.f10.paginas[1].ini + 0.6, { loop: false });
-    anim(tl, MR, 'Idle', 0, F.f10.paginas[1].ini + 0.6, FIM);
+    for (const f of [F.f9, F.f10, F.f11]) pulinho(MR, f.a - 0.05, 22);
+    anim(tl, MR, 'Pose', 0, F.f10.a, F.f10.a + 0.6, { loop: false });
+    anim(tl, MR, 'Idle', 0, F.f10.a + 0.6, FIM);
     {
       // a partida: 4 jogadores pequenos correm na faixa acima da cabeça do Meowth e a bola vai e volta entre eles
       const t0 = M.cheia;
-      const t1 = F.f11.z;
-      const Y = 765;
-      const JOG = [[7, 170, 2], [4, 400, 6], [1, 650, 2], [16, 900, 6]].map(([id, x, dir]) => {
-        const j = ator(RC, id, { escala: 5, z: 8, x, y: Y + (id === 16 ? -10 : 0) });
+      const t1 = M.vestiario;
+      const Y = 840;
+      const JOG = [[7, 450, 2], [4, 620, 6], [1, 800, 2], [16, 980, 6]].map(([id, x, dir]) => {
+        const j = ator(RC, id, { escala: 4.5, z: 8, x, y: Y + (id === 16 ? -10 : 0) });
         anim(tl, j, 'Idle', dir, 0, FIM);
         return { j, x, dir };
       });
       const bola = div(RC, 'bolinha-m');
       bola.innerHTML = BOLA;
-      // quem tem a bola corre pro lado e passa; os outros dão um passo pra receber
       const PASSES = [[0, 1], [1, 2], [2, 3], [3, 2], [2, 0], [0, 1], [1, 3], [3, 1], [1, 2], [2, 0], [0, 3]];
       const dt = (t1 - t0 - 0.4) / PASSES.length;
       const pos = JOG.map((p) => p.x);
@@ -929,16 +1066,16 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       PASSES.forEach(([de, para], k) => {
         const t = t0 + 0.2 + k * dt;
         const J = JOG[de];
-        const dx = (para > de ? 1 : -1) * 60;
-        const x1 = Math.max(120, Math.min(960, pos[de] + dx));
+        const dx = (para > de ? 1 : -1) * 50;
+        const x1 = Math.max(420, Math.min(1010, pos[de] + dx));
         anim(tl, J.j, 'Walk', dx > 0 ? 2 : 6, t, t + dt * 0.45);
         anim(tl, J.j, 'Idle', dx > 0 ? 2 : 6, t + dt * 0.45, FIM);
-        tl.to(J.j.el, { x: x1, duration: dt * 0.45, ease: 'none' }, t);
-        tl.to(bola, { x: x1 + (dx > 0 ? 30 : -30), duration: dt * 0.45, ease: 'none' }, t);
+        tl.to(J.j.el, { x: x1, duration: dt * 0.45, ease: 'sine.inOut' }, t);
+        tl.to(bola, { x: x1 + (dx > 0 ? 26 : -26), duration: dt * 0.45, ease: 'sine.inOut' }, t);
         pos[de] = x1;
-        const alvo = pos[para] + (para > de ? -30 : 30);
+        const alvo = pos[para] + (para > de ? -26 : 26);
         tl.to(bola, { x: alvo, duration: dt * 0.45, ease: 'power1.out' }, t + dt * 0.5);
-        tl.to(bola, { keyframes: { y: [Y - 40, Y - 4] }, duration: dt * 0.45, ease: 'sine.inOut' }, t + dt * 0.5);
+        tl.to(bola, { keyframes: { y: [Y - 36, Y - 4] }, duration: dt * 0.45, ease: 'sine.inOut' }, t + dt * 0.5);
         tl.to(bola.querySelector('svg'), { rotation: `+=${dx > 0 ? 360 : -360}`, duration: dt * 0.9, ease: 'none' }, t);
         anim(tl, JOG[para].j, 'Idle', para > de ? 6 : 2, t + dt * 0.5, FIM);
       });
@@ -946,18 +1083,19 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     {
       const pr = $('pr');
       const vs = [0, 1, 2].map((i) => {
-        const t = div(pr, 'trofeu', `left:${40 + i * 165}px;top:18px`);
+        const t = div(pr, 'trofeu', `left:${20 + i * 104}px;top:22px`);
         t.innerHTML = `${TROFEU(false)}<div class="aceso" style="position:absolute;inset:0">${TROFEU(true)}</div>`;
         return t;
       });
-      tl.fromTo(pr, { y: -420 }, { y: 0, duration: 0.3, ease: 'back.out(1.5)', immediateRender: false }, M.cheia + 0.15);
+      tl.fromTo(pr, { y: -300 }, { y: 0, duration: 0.3, ease: 'back.out(1.5)', immediateRender: false }, M.cheia + 0.15);
       poe('#rs-n', '0', M.cheia, 1);
       M.vitorias.forEach((t, i) => {
         tl.set(vs[i].querySelector('.aceso'), { opacity: 1 }, t);
-        tl.fromTo(vs[i], { y: 140, scale: 0.4 }, { y: 0, scale: 1, duration: 0.25, ease: 'back.out(2.2)', immediateRender: false }, t);
+        tl.fromTo(vs[i], { y: 120, scale: 0.4 }, { y: 0, scale: 1, duration: 0.25, ease: 'back.out(2.2)', immediateRender: false }, t);
         poe('#rs-n', String(3 * (i + 1)), t + 0.05, 1.8);
         tl.fromTo('#p-rota .rs .moeda', { rotationY: 0 }, { rotationY: 360, duration: 0.3, ease: 'power2.out', immediateRender: false }, t);
-        estouro(tl, pr, 740, 100, t + 0.05, { tam: 200, dur: 0.28 });
+        estouro(tl, pr, 440, 85, t + 0.05, { tam: 180, dur: 0.28 });
+        tl.fromTo(precos[i], { scale: 1.25 }, { scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, t);
       });
     }
     // f11 · "Pay Day!": o Meowth pula, o amuleto brilha e 14 moedas caem do alto e quicam em volta dele
@@ -966,24 +1104,23 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.to(MR.corpo, { keyframes: [{ y: -170, scaleY: 1.08, scaleX: 0.95, duration: 0.2, ease: 'power2.out' }, { y: 0, scaleY: 1, scaleX: 1, duration: 0.2, ease: 'power2.in' }] }, tp);
       tl.to(MR.corpo, { keyframes: [{ scaleY: 0.9, scaleX: 1.08, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, tp + 0.4);
       const br = div(RC, 'brilho-n');
-      gsap.set(br, { x: 540, y: 1130 - 255 });
+      gsap.set(br, { x: MRX, y: MRY - 285 });
       tl.fromTo(br, { opacity: 1, scale: 0.5, rotation: 0 }, { scale: 2.2, rotation: 90, opacity: 0, duration: 0.4, ease: 'power2.out', immediateRender: false }, tp + 0.12);
       M.moedas.forEach((chao, k) => {
         const t = chao - 0.5;
         const lado = k % 2 ? 1 : -1;
-        const xf = 540 + lado * (170 + ((k * 97) % 130));
-        const yf = 1100 + ((k * 53) % 90);
+        const xf = MRX + lado * (180 + ((k * 97) % 120));
+        const yf = MRY - 40 + ((k * 53) % 90);
         const x0 = xf - lado * (20 + ((k * 31) % 40));
-        const m = div(RC, 'moeda', `z-index:${yf > 1130 ? 30 : 15}`);
+        const m = div(RC, 'moeda', `z-index:${yf > MRY ? 30 : 15}`);
         m.textContent = '₽';
         tl.set(m, { opacity: 1 }, t);
         tl.fromTo(m, { x: x0, y: 90 }, { x: xf, y: yf, duration: 0.5, ease: 'power2.in', immediateRender: false }, t);
         tl.fromTo(m, { rotation: 0 }, { rotation: lado * (300 + k * 20), duration: 0.5, ease: 'none', immediateRender: false }, t);
         tl.to(m, { keyframes: { y: [yf - 34, yf] }, duration: 0.18, ease: 'sine.inOut' }, chao);
-        tl.set(m, { opacity: 0 }, M.vestiario);
       });
-      anim(tl, MR, 'Pose', 0, tp + 1.9, tp + 2.45, { loop: false });
-      anim(tl, MR, 'Idle', 0, tp + 2.45, FIM);
+      anim(tl, MR, 'Pose', 0, M.payFim - 0.15, M.payFim + 0.4, { loop: false });
+      anim(tl, MR, 'Idle', 0, M.payFim + 0.4, FIM);
     }
 
     // ===================== VESTIÁRIO =====================
@@ -992,49 +1129,76 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#raios-fundo', { rotation: 40 }, { rotation: 60, duration: 6, ease: 'none', immediateRender: false }, M.vestiario);
     paineis(M.vestiario, '#m-vt');
     entra('#m-vt', M.vestiario, 0.95);
+    tl.fromTo('#v-bola', { opacity: 0 }, { opacity: 1, duration: SAIDA, ease: 'power2.out', immediateRender: false }, M.vestiario);
+    tl.to('#v-bola', { opacity: 0, duration: SAIDA, ease: 'power2.in' }, M.reacao);
     empurra(M.vestiario, M.reacao - M.vestiario, 1.05, ['#pan', '#v-bola']);
     // a reação: o Raichu de perto, sem graça (olha pro outro lado, gota de suor), só o retrato
-    estudio(M.reacao, 'REACAO', null, F.f13.s - M.reacao);
+    estudio(M.reacao, 'REACAO', null, M.vestCena - M.reacao);
     {
       const t0 = M.reacao;
       const gota = div(RA.corpo, 'gota');
-      tl.fromTo(gota, { x: 110, y: -330, opacity: 0 }, { y: -300, opacity: 1, duration: 0.18, ease: 'power2.out', immediateRender: false }, t0 + 0.15);
-      tl.to(gota, { y: -250, opacity: 0, duration: 0.3, ease: 'power2.in' }, t0 + 0.85);
+      tl.fromTo(gota, { x: 110, y: -330, opacity: 0 }, { y: -300, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, t0 + 0.15);
+      tl.to(gota, { y: -250, opacity: 0, duration: 0.3, ease: 'power2.in' }, t0 + 0.75);
       tl.to(RA.corpo, { keyframes: { scaleY: [1, 0.94, 1] }, duration: 0.3, ease: 'sine.inOut' }, t0 + 0.1);
     }
-    // f13 e f14 · o Raichu e o Psyduck (a cadeira do convidado na ponta da bancada)
-    estudio(F.f13.s, 'CONVIDADO', '#t-marca', M.voltorb - F.f13.s);
-    gc('PSYDUCK', 'TÉCNICO DO PALLET FC', F.f13.a + 0.3, F.f13.a + 2.6);
-    tl.to(RA.corpo, { rotation: -5, duration: 0.3, ease: 'sine.inOut' }, F.f13.a + 0.6);
-    tl.to(RA.corpo, { rotation: 0, duration: 0.3, ease: 'sine.inOut' }, F.f13.z - 0.4);
-    for (let k = 0; k < 3; k++) {
-      const f = div(PS.corpo, 'fumaca');
-      const t = F.f13.s + 0.3 + 1.4 * k;
-      const x = -14 + 26 * (k % 2);
-      tl.fromTo(f, { x, y: -300, scale: 0.3, opacity: 0 }, { x: x + 8, y: -350, scale: 0.8, opacity: 0.85, duration: 0.8, ease: 'sine.out', immediateRender: false }, t);
-      tl.to(f, { opacity: 0, y: -365, duration: 0.3 }, t + 0.8);
+    // f13 e f14 · no vestiário do Pallet FC: o Psyduck de pé, o Voltorb de colete sentado no banco atrás dele; o Raichu
+    // chama do estúdio (a janelinha no canto)
+    const VT2 = ator($('bc-cam'), 100, { escala: 12, z: 18, x: 330, y: 1156, sombra: false });
+    const VT2x = vestirVoltorb(VT2);
+    const PS = ator($('bc-cam'), 54, { escala: 13, z: 20, x: 720, y: 1290 });
+    gsap.set(PS.spr, { filter: TOSTADO });
+    const prancheta = div(PS.corpo, 'prancheta');
+    gsap.set(prancheta, { x: 34, y: -232, rotation: 8, scale: 0.8, filter: 'brightness(0.85)' });
+    anim(tl, PS, 'Idle', 0, 0, FIM, { vel: 0.6 });
+    tl.set([VT2.el, PS.el], { opacity: 0 }, 0);
+    {
+      const t0 = M.vestCena;
+      const t1 = M.vemai;
+      corta('#banco-c', t0);
+      paineis(t0);
+      tl.set(VT.el, { opacity: 0 }, t0);
+      tl.set([VT2.el, PS.el], { opacity: 1 }, t0);
+      // a câmera mais perto e mais alta que no gancho: o banco sobe pra y 960 e o Psyduck fica inteiro acima da caixa
+      tl.fromTo('#bc-cam', { scale: 1.2, y: -220 }, { scale: 1.24, y: -232, duration: t1 - t0, ease: 'sine.out', immediateRender: false }, t0);
+      tl.fromTo(VT2.el, { scaleY: 1 }, { scaleY: 1.025, duration: 0.45, ease: 'sine.inOut', repeat: Math.floor((t1 - t0) / 0.45) - 1, yoyo: true, immediateRender: false }, t0);
+      gc('PSYDUCK', 'TÉCNICO DO PALLET FC', t0 + 0.35, F.f13.z - 0.3, { x: 28, y: 352 });
+      // a janelinha do estúdio: o Raichu de terno na bancada, chamando
+      const J = $('janela');
+      J.innerHTML = '<div class="tampo-j"></div><div class="rot">ESTÚDIO</div>';
+      const RJ = naMesa(J, '26t', 190, 6, 28, 214);
+      anim(tl, RJ, 'Idle', 0, 0, FIM);
+      tl.fromTo(J, { opacity: 0, scale: 0.85, x: 60 }, { opacity: 1, scale: 1, x: 0, duration: 0.28, ease: 'back.out(1.6)', immediateRender: false }, t0 + 0.15);
+      tl.to(J, { opacity: 0, scale: 0.9, x: 40, duration: 0.22, ease: 'power2.in' }, F.f13.z - 0.1);
+      fala(RJ, F.f13, 6);
+      // o Psyduck: fumacinha da prancheta, coça a cabeça na pergunta e balança no "reserva" (o Charge do PMD)
+      for (let k = 0; k < 2; k++) {
+        const f = div(PS.corpo, 'fumaca');
+        const t = t0 + 0.4 + 1.3 * k;
+        const x = 40 + 22 * k;
+        tl.fromTo(f, { x, y: -280, scale: 0.3, opacity: 0 }, { x: x + 8, y: -335, scale: 0.75, opacity: 0.85, duration: 0.8, ease: 'sine.out', immediateRender: false }, t);
+        tl.to(f, { opacity: 0, y: -350, duration: 0.3, ease: 'power2.in' }, t + 0.8);
+      }
+      tl.to(prancheta, { rotation: -6, y: -250, duration: 0.3, ease: 'sine.inOut' }, F.f13.a + 1.4);
+      tl.to(PS.corpo, { rotation: 6, scaleY: 0.96, duration: 0.3, ease: 'sine.inOut' }, F.f13.a + 1.4);
+      tl.to(PS.corpo, { rotation: 0, scaleY: 1, duration: 0.3, ease: 'sine.inOut' }, F.f13.z - 0.3);
+      tl.to(prancheta, { rotation: 8, y: -232, duration: 0.3, ease: 'sine.inOut' }, F.f13.z - 0.3);
+      pulinho(PS, F.f14.a - 0.05, 10);
+      anim(tl, PS, 'Charge', 0, F.f14.a, F.f14.z, { vel: 0.45 });
+      anim(tl, PS, 'Idle', 0, F.f14.z, FIM, { vel: 0.6 });
+      tl.to(PS.corpo, { keyframes: { rotation: [0, 7, -6, 6, -4, 0] }, duration: 1.35, ease: 'sine.inOut' }, F.f14.a + 0.3);
+      // o Voltorb reage no nome dele; no "reserva" ele murcha e fecha os olhos
+      VT2x.reage(M.voltorbReage[1]);
+      const res = letra(F.f14, 'reserva');
+      tl.to(VT2.corpo, { keyframes: { y: [0, 10, 10, 0], scaleY: [1, 0.92, 0.92, 1] }, duration: 1.2, ease: 'sine.inOut' }, res);
+      VT2x.pisca(res + 0.15);
+      VT2x.pisca(res + 0.6);
     }
-    tl.to(prancheta, { rotation: -6, y: -270, duration: 0.3, ease: 'sine.inOut' }, F.f13.a + 1.4);
-    tl.to(PS.corpo, { rotation: 6, scaleY: 0.95, duration: 0.3, ease: 'sine.inOut' }, F.f13.a + 1.4);
-    tl.to(PS.corpo, { rotation: 0, scaleY: 1, duration: 0.3, ease: 'sine.inOut' }, F.f13.z - 0.3);
-    tl.to(prancheta, { rotation: 8, y: -250, duration: 0.3, ease: 'sine.inOut' }, F.f13.z - 0.3);
-    // "Agora ele é reserva.": o Psyduck balança, a mão na cabeça (o Charge do PMD)
-    anim(tl, PS, 'Charge', 0, F.f14.a, M.voltorb, { vel: 0.45 });
-    anim(tl, PS, 'Idle', 0, M.voltorb, FIM, { vel: 0.6 });
-    tl.to(PS.corpo, { keyframes: { rotation: [0, 7, -6, 6, -4, 0] }, duration: 1.35, ease: 'sine.inOut' }, F.f14.a);
-    // o corte pro banco: o Voltorb de colete (o mesmo plano do gancho), com a tarja VOLTORB · RESERVA
-    banco(M.voltorb, M.vemai - M.voltorb);
-    piscaVT(M.voltorb + 0.6);
-    piscaVT(M.voltorb + 0.95);
-    piscaVT(M.voltorb + 2.4);
-    gc('VOLTORB', 'RESERVA', M.voltorb + 0.25, M.vemai - 0.3);
-
     // ===================== VEM AÍ: o calendário e o Time Ultimate =====================
     // f15 · as quatro sextas, uma bola em cada; f16 · o quadradinho do 27/11 vira Time Ultimate
     const DIAS = ['20/11', '27/11', '04/12', '11/12'];
     const bolinhaSVG = () => BOLA.replace('<svg ', '<svg class="bolinha" ');
     $('dias').innerHTML = DIAS.map((d) => `<div class="dia"><div class="gira"><div class="f"><span>${d}</span><small>SEXTA</small>${bolinhaSVG()}</div><div class="v"><img src="midia/news/cartas/pack.png" alt="" /><b>TIME<br>ULTIMATE</b></div></div></div>`).join('');
-    corta('#fundo', M.vemai);
+    corta('#fundo', M.vemai, { seco: true });
     tl.fromTo('#raios-fundo', { rotation: 60 }, { rotation: 110, duration: F.f16.z - M.vemai, ease: 'none', immediateRender: false }, M.vemai);
     paineis(M.vemai, '#p-cal');
     empurra(M.vemai, F.f16.z - M.vemai, 1.03);
@@ -1063,7 +1227,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       empurra(t0, F.f17.z - t0, 1.03);
       const P = $('p-pacote');
       tl.fromTo('#campo-ut', { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, t0);
-      const PX0 = 540, PY0 = 790;
+      const PX0 = 540, PY0 = 720;
       const pac = div(P, 'pacote', `transform:translate(${PX0}px,${PY0}px)`);
       pac.innerHTML = '<div class="corpo-p" style="background-image:url(midia/news/cartas/pack-aberto.png)"></div><div class="tampa" style="background-image:url(midia/news/cartas/pack.png)"></div><div class="luz"></div>';
       const frente = div(pac, '', 'background-image:url(midia/news/cartas/pack.png)');
@@ -1074,7 +1238,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.fromTo(pac.querySelector('.luz'), { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1.3, duration: 0.2, ease: 'power2.out', immediateRender: false }, TP.rasga);
       tl.to(pac.querySelector('.luz'), { opacity: 0, duration: 0.4 }, TP.rasga + 0.5);
       tl.to(pac, { scale: 0.5, opacity: 0, duration: 0.25, ease: 'power2.in' }, TP.sai.at(-1) + 0.15);
-      const VAGAS = [[540, 1125, 143], [540, 830, 95], [215, 700, 26], [540, 490, 130], [865, 700, 150]];
+      const VAGAS = [[540, 1000, 143], [540, 760, 95], [215, 640, 26], [540, 480, 130], [865, 640, 150]];
       const outras = [];
       VAGAS.forEach(([x, y, id], k) => {
         const v = div(P, 'vaga');
@@ -1098,32 +1262,33 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         estouro(tl, P, x, y, tv, { tam: 480, dur: 0.45 });
         gsap.set(v, { zIndex: 35 });
         tl.to(v, { scale: 1.45, x: x - 40, duration: 0.25, ease: 'back.out(2)' }, tv);
-        tl.to(v, { scale: 2.3, x: 540, y: 800, duration: 0.4, ease: 'power3.inOut' }, TP.foco);
+        tl.to(v, { scale: 2.25, x: 540, y: 740, duration: 0.4, ease: 'power3.inOut' }, TP.foco);
         tl.to(g, { keyframes: { y: [-8, 0] }, duration: 0.9, ease: 'sine.inOut', repeat: 2 }, TP.foco + 0.4);
       });
       tl.to(outras, { opacity: 0.25, duration: 0.3 }, TP.foco);
       tl.to('#campo-ut', { opacity: 0.45, duration: 0.3 }, TP.foco);
     }
 
-    // ===================== NOTA PÉ e o fechamento =====================
-    // f18 · o Machoke: o Voltorb tá bem (ele no telão, de colete, piscando)
-    estudio(M.notape, 'MACHOKE', '#t-volt', F.f18.z - M.notape);
+    // ===================== PRA FECHAR e o fechamento =====================
+    // f18 · o Machoke: o Voltorb tá bem (ele no telão, de colete): reage no nome dele e pula no "bem"
+    estudio(M.fecha, 'MACHOKE', '#t-volt', F.f18.z - M.fecha);
     {
       const TV = $('tv-volt');
       gsap.set(TV, { scale: 0.85, x: 438 - 540 * 0.85, y: 360 - 1158 * 0.85 });
       const V2 = ator(TV, 100, { escala: 15, z: 20, x: 540, y: 1158, sombra: false });
-      const pisca2 = vestirVoltorb(V2);
-      for (const t of [F.f18.a + 1.2, F.f18.a + 1.55, letra(F.f18, 'bem')]) pisca2(t);
-      tl.fromTo(V2.corpo, { y: 0 }, { keyframes: { y: [0, -40, 0, -24, 0] }, duration: 0.7, ease: 'sine.inOut', immediateRender: false }, letra(F.f18, 'bem'));
+      const V2x = vestirVoltorb(V2);
+      V2x.reage(M.voltorbReage[2]);
+      tl.fromTo(V2.corpo, { y: 0 }, { keyframes: { y: [0, -40, 0, -24, 0] }, duration: 0.7, ease: 'sine.inOut', immediateRender: false }, M.bem + 0.1);
+      V2x.pisca(M.bem + 0.9);
     }
     // f19 · o Raichu agradece: as faíscas no "boa noite" e uma reverência
-    estudio(F.f19.s, 'RAICHU', '#t-marca', F.f19.z - F.f19.s);
+    estudio(F.f19.s, 'RAICHU', '#t-marca', F.f19.z - F.f19.s, true);
     faisca(CAM, RX - 80, 900, M.boaNoite);
     faisca(CAM, RX + 90, 900, M.boaNoite + 0.08);
     faisca(CAM, RX + 10, 760, M.boaNoite + 0.16, 0.7);
     tl.to(RA.corpo, { keyframes: [{ y: 22, scaleY: 0.9, rotation: 4, duration: 0.25, ease: 'power2.out' }, { y: 22, scaleY: 0.9, rotation: 4, duration: 0.35 }, { y: 0, scaleY: 1, rotation: 0, duration: 0.25, ease: 'back.out(2)' }] }, F.f19.paginas[0].fim + 0.3);
     // f20 · "Temos que chutar!": a dupla e, no telão, o Meowth e o Psyduck; pulam no grito e no "TAR"
-    estudio(F.f20.s, 'ABERTO', '#t-turma', M.final - F.f20.s);
+    estudio(F.f20.s, 'ABERTO', '#t-turma', M.final - F.f20.s, true);
     {
       const TT = $('tv-turma');
       const TM = ator(TT, 52, { escala: 11, z: 2, x: 300, y: 330, sombra: false });
@@ -1152,9 +1317,9 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.set('#logo', { opacity: 1 }, t0);
       tl.fromTo('#logo', { scale: 0.7 }, { scale: 1, duration: 0.3, ease: 'back.out(3)', immediateRender: false }, t0);
       piscada(tl, [t0, t0 + 0.375, t0 + 0.75]);
-      tl.set('#tag', { opacity: 1 }, t0 + 0.35);
-      tl.fromTo('#tag', { scale: 1.4 }, { scale: 1, duration: 0.2, ease: 'back.out(2)', immediateRender: false }, t0 + 0.35);
-      tl.to('#site', { opacity: 1, duration: 0.2 }, t0 + 0.5);
+      tl.fromTo('#tag', { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.22, ease: 'back.out(2)', immediateRender: false }, t0 + 0.35);
+      tl.fromTo('#site', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out', immediateRender: false }, t0 + 0.5);
+      tl.fromTo('#mesa-fim', { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0 + 0.05);
       const MESA_F = 1240;
       const turma = [
         ator(FC, 52, { escala: 9, z: 20, x: 230, y: 1225, sombra: false }),
@@ -1164,12 +1329,17 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       ];
       gsap.set(turma[3].spr, { filter: TOSTADO });
       turma.forEach((x, k) => {
-        anim(tl, x, 'Idle', 0, 0, FIM, k === 3 ? { vel: 0.6 } : {});
+        if (k === 2) quadro(tl, x, 'Idle', 0, 0, 0);
+        else anim(tl, x, 'Idle', 0, 0, FIM, k === 3 ? { vel: 0.6 } : {});
+        tl.fromTo(x.el, { opacity: 0 }, { opacity: 1, duration: 0.22, ease: 'power2.out', immediateRender: false }, t0 + 0.12 + k * 0.06);
+        tl.fromTo(x.corpo, { y: 90 }, { y: 0, duration: 0.3, ease: 'back.out(1.8)', immediateRender: false }, t0 + 0.12 + k * 0.06);
         tl.to(x.corpo, { keyframes: [{ y: -50, scaleY: 1.08, duration: 0.14, ease: 'power2.out' }, { y: 0, scaleY: 1, duration: 0.14, ease: 'power2.in' }, { scaleY: 0.88, scaleX: 1.1, duration: 0.05 }, { scaleY: 1, scaleX: 1, duration: 0.12, ease: 'back.out(3)' }] }, t0 + 0.75 + k * 0.05);
       });
       faisca(FC, 420, 1050, t0 + 1.5, 1.1);
     }
 
+    resolveTrocas();
+    resolveRostos();
     tl.set({}, {}, FIM);
     window.__timelines = window.__timelines || {};
     window.__timelines.root = tl;
@@ -1187,7 +1357,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       const erros = [];
       if (Math.abs(d - L.FIM) > 0.01) erros.push(`data-duration ${d} ≠ FIM ${L.FIM}`);
       if (Math.abs(Number(v.start) - L.M.vestiario) > 0.01) erros.push(`v-bola data-start ${v.start} ≠ ${L.M.vestiario}`);
-      if (Math.abs(Number(v.duration) - (L.M.reacao - L.M.vestiario)) > 0.01) erros.push(`v-bola data-duration ${v.duration} ≠ ${(L.M.reacao - L.M.vestiario).toFixed(2)}`);
+      if (Math.abs(Number(v.duration) - (L.M.reacao - L.M.vestiario + L.SAIDA)) > 0.01) erros.push(`v-bola data-duration ${v.duration} ≠ ${(L.M.reacao - L.M.vestiario + L.SAIDA).toFixed(2)}`);
       if (Math.abs(Number(v.mediaStart) - (3.5 - (L.M.kaboom - L.M.vestiario))) > 0.01) erros.push(`v-bola data-media-start ${v.mediaStart} ≠ ${(3.5 - (L.M.kaboom - L.M.vestiario)).toFixed(2)}`);
       if (erros.length) setTimeout(() => { throw new Error(`linha do tempo desatualizada: ${erros.join('; ')}`); });
     }

@@ -1,4 +1,7 @@
 // Soccermon News #1 (pauta 21, 20/11/2026; roteiro em trailer/curtas/news-01/ROTEIRO.md).
+// v9 (16/11): a vinheta de abertura nova (o pulso de sintetizador subindo, o tímpano na batida e o acorde dos metais no
+// logo, com o brilho), a escalada aberta pela mesma batida, o fusível do Voltorb quando falam dele, sem a sonora do
+// Magikarp nem o atraso do satélite; a banda só para na reação sem graça do Raichu.
 // v8 (15/11): a dupla Raichu e Machoke apresenta e a linha do tempo inteira sai de trailer/curtas/news-01/linha.mjs (a
 // cena e os blips usam a mesma). Saíram as vozes cantadas (`pika`, `miau`, `psy`, o PLOF e as de "HA": o Miguel achou
 // agressivas); a fala agora é só o blip suave de cada personagem, num arquivo à parte (news-voz.wav, gerado pelo
@@ -21,9 +24,8 @@ const F = Object.fromEntries(FALAS.map((f) => [f.id, f]));
 export const MOTIVO = 'C5:2 C5:1 G5:3 F5:1 Eb5:1 F5:2 r:2 Bb4:2 C5:2';
 /** Segundo do vídeo → linha da peça. */
 const R = (s) => Math.round(s * 8);
-/** A banda (bateria, baixo, acordes) sai nestes trechos (s): o atraso do satélite, a reação sem graça do Raichu e o
- * Voltorb no banco (o fim do Vestiário). */
-export const BREQUES = [M.atraso, [M.reacao, F.f13.s], [M.voltorb, M.vemai]];
+/** A banda (bateria, baixo, acordes) sai nestes trechos (s): a reação sem graça do Raichu. */
+export const BREQUES = [[M.reacao, M.vestCena]];
 
 export default function news() {
     const S = new Song({ bpm: 120, bars: Math.ceil(FIM / 2) + 1, swing: 0.1, tail: 2.5 });
@@ -119,40 +121,63 @@ export default function news() {
         cr.note(R(s), 0, 0, 0.55);
     };
 
-    // 0–2 · o gancho: o Voltorb no banco, de colete. A batida da vinheta (prato, bumbo, tímpano e a cabeça do motivo)
-    // e o "plim-plim" em cada piscada; a tuba ri baixinho e o riser puxa a vinheta
+    /** O fusível do Voltorb (quando falam dele): 4 "plins" subindo e acelerando, como um pavio, e a gota caindo. */
+    const fusivel = (t) => {
+        for (const [k, d] of [0, 0.3, 0.52, 0.68].entries()) plim.note(R(t + d), 96 + 3 * k, 1, 0.45 + 0.1 * k);
+        tm.note(R(t + 0.68), 7, 0, 0.35);
+        sino.note(R(t + 0.95), 84, 2, 0.4);
+        sino.note(R(t + 1.05), 79, 2, 0.35);
+    };
+    // 0–2 · o gancho: o Voltorb no banco, de colete, quase explodindo de nervoso. A batida de plantão (prato, bumbo,
+    // tímpano e a cabeça do motivo), o fusível e a tuba rindo baixinho; o riser puxa a vinheta
     cr.note(0, 0, 0, 0.8);
     kk.note(0, 0, 0, 1);
     tp.note(0, 0, 0, 0.9);
     mel(met, 0, ['C5:1 C5:1 G5:2 r:12'], { vel: 0.85 });
     mel(met2, 0, ['C5:1 C5:1 G5:2 r:12'], { shift: -12, harm: thirdBelow(bb), vel: 0.7 });
     padChord(cor, 0, 'Fm9', 16, { low: 55, n: 4, vel: 0.35 });
-    plim.note(R(0.75), 100, 1, 0.8);
-    plim.note(R(1.1), 105, 2, 0.8);
-    tuba.note(R(0.5), 36, 2, 0.45);
-    tuba.note(R(0.75), 31, 3, 0.4);
+    fusivel(M.voltorbReage[0]);
+    tuba.note(R(1.5), 36, 2, 0.4);
+    tuba.note(R(1.7), 31, 3, 0.35);
     ris.note(0, 0, 0, 0.7);
     drum(tp, 0, 1, '..........x.xxXX', { vel: 0.6 });
-    // 2–4 · VINHETA: prato, o motivo inteiro nos metais em terças, tímpano; o baixo puxa pra bancada
-    drum(cr, 1, 1, 'X...............');
-    drum(kk, 1, 1, 'X.....X.X.......');
-    drum(tp, 1, 1, 'X.....X.........', { vel: 0.8 });
-    mel(met, 1, [MOTIVO]);
-    mel(met2, 1, [MOTIVO], { shift: -12, harm: thirdBelow(bb), vel: 0.8 });
-    drum(hh, 1, 1, '........x.x.x.x.', { vel: 0.6 });
-    bass(bs, 1, 'Cm7', 'r:8 0:3 r:3 5:2', { vel: 0.8 });
+    // 2–4,5 · A VINHETA DE ABERTURA: o pulso de sintetizador em semicolcheia subindo (Dó → Mi♭ → Sol), o tímpano em cada
+    // batida enquanto a bola-globo gira, o rufo até o logo; no brilho do logo (+1,5) o acorde dos metais com prato e
+    // bumbo; o #1 carimba (+1,85) com tímpano e o motivo curto; o baixo puxa pra bancada
+    {
+        const v = M.vinheta;
+        cr.note(R(v), 0, 0, 0.9);
+        kk.note(R(v), 0, 0, 1);
+        for (const k of [0, 1, 2]) tp.note(R(v + 0.5 * k), 0, 0, 0.75 + 0.1 * k);
+        for (let i = 0; i < 12; i++) pulso.note(R(v) + i, [60, 63, 67][Math.floor(i / 4)] + (i % 2 ? 12 : 0), 0.9, 0.35 + 0.03 * i);
+        drum(tp, v / 2, 1, '........xxxx....', { vel: 0.55 });
+        drum(hh, v / 2, 1, 'x.x.x.x.x.x.....', { vel: 0.5 });
+        const logo = v + 1.5;
+        cr.note(R(logo), 0, 0, 1);
+        kk.note(R(logo), 0, 0, 1);
+        tp.note(R(logo), 0, 0, 1);
+        stabs(toque, 0, 'Cm9', [[R(logo), 3]], { low: 60, n: 4, vel: 0.9 });
+        mel(met, logo / 2, ['G5:1 Bb5:1 C6:4 r:10'], { vel: 0.9 });
+        mel(met2, logo / 2, ['G5:1 Bb5:1 C6:4 r:10'], { shift: -12, harm: thirdBelow(bb), vel: 0.75 });
+        colher.note(R(logo + 0.05), 103, 4, 0.6);
+        padChord(cor, 0, 'Cm9', 10, { low: 55, n: 4, vel: 0.45, at: R(logo) });
+        tp.note(R(v + 1.85), 0, 0, 0.9);
+        sn.note(R(v + 1.85), 0, 0, 0.7);
+        drum(sn, (v + 2) / 2, 1, 'xx..............', { vel: 0.5 });
+        bass(bs, (v + 2) / 2, 'Cm7', 'r:1 0:1 5:1 7:1 r:12', { vel: 0.8 });
+    }
 
     // ===================== a cama por bloco =====================
     cama(M.abertura, M.escalada, ar, ['Cm7', 'F7']);
     cama(CARTELAS[0], CARTELAS[3], leve, ['Cm7', 'F7']);
     cama(M.plantao, M.aovivo, leve, ['Cm7', 'F7']);
     cama(M.aovivo, M.vestiario, leve, ['F7', 'Cm7']);
-    cama(F.f13.s, M.voltorb, ar, ['Ab', 'Cm7']);
+    cama(M.vestCena, M.vemai, ar, ['Ab', 'Cm7']);
     cama(M.vemai, F.f16.s, leve, ['Cm7', 'F7']);
     cama(F.f16.s, F.f17.s, leve, ['Cm7', 'F7'], 2); // o Time Ultimate sobe pra Ré
     cama(F.f17.s, M.pacote.mewtwo, leve, ['Bb7']);
-    cama(M.pacote.mewtwo, M.notape, ar, ['Ebmaj7', 'Ab']);
-    cama(M.notape, F.f20.s, ar, ['Ebmaj7', 'Ab', 'Bb7']);
+    cama(M.pacote.mewtwo, M.fecha, ar, ['Ebmaj7', 'Ab']);
+    cama(M.fecha, F.f20.s, ar, ['Ebmaj7', 'Ab', 'Bb7']);
 
     // as 2 varridas com a cartinha (o pico do "fuuuh" no corte) e o whoosh curto nos outros cortes
     for (const s of VARRIDAS) vr.note((s - 0.2) * 8, 0, 0, 1);
@@ -163,7 +188,7 @@ export default function news() {
     manchete(M.aovivo, 'F9', 93);
     manchete(M.vestiario, 'Abmaj7', 91);
     manchete(M.vemai, 'Cm9', 94);
-    manchete(M.notape, 'Ebmaj7', 91);
+    manchete(M.fecha, 'Ebmaj7', 91);
 
     // ABERTURA: as faíscas do Raichu (o sino da colher) no "Boa noite"
     colher.note(R(F.f1.a + 0.1), 98, 4, 0.7);
@@ -174,15 +199,22 @@ export default function news() {
         sino.note(R(t), 96 + k * 3, 2, 0.4);
     }
 
-    // ESCALADA: uma batida da vinheta em cada cartela (bumbo, tímpano e a cabeça do motivo, uma terça acima a cada uma);
-    // na 4ª ("E mais") a banda segura, as cordas abrem e o pulso pergunta
+    // ESCALADA: a vinheta curta abre (o pulso subindo e o tímpano, a bola-globo no banner) e cada cartela é uma batida no
+    // mesmo estilo (bumbo, tímpano, o pulso e a cabeça do motivo nos metais, uma terça acima a cada uma); na 4ª ("E
+    // mais") a banda segura, as cordas abrem e o pulso pergunta
+    {
+        const e = M.escalada;
+        cr.note(R(e), 0, 0, 0.8);
+        for (let i = 0; i < 4; i++) pulso.note(R(e) + i, [60, 63, 67, 72][i], 0.9, 0.45);
+        tp.note(R(e), 0, 0, 0.8);
+    }
     CARTELAS.forEach((s, k) => {
         kk.note(R(s), 0, 0, 1);
         tp.note(R(s), 0, 0, 0.9);
+        for (let i = 0; i < 2; i++) pulso.note(R(s) + i, [67, 70, 72, 67][k] + 12 * i, 0.9, 0.4);
         mel(met, s / 2, ['C5:1 C5:1 G5:2 r:12'], { shift: [0, 3, 5, 0][k], vel: 0.85 });
         mel(met2, s / 2, ['C5:1 C5:1 G5:2 r:12'], { shift: [0, 3, 5, 0][k] - 12, harm: thirdBelow(bb), vel: 0.7 });
     });
-    cr.note(R(CARTELAS[0]), 0, 0, 0.7);
     padChord(cor, 0, 'Abmaj7', 12, { low: 55, n: 4, vel: 0.5, at: R(CARTELAS[3]) });
     for (const d of [0.4, 0.8]) pulso.note(R(CARTELAS[3] + d), 67, 2, 0.5);
     ris.note(R(M.plantao - 2), 0, 0, 0.5);
@@ -205,18 +237,11 @@ export default function news() {
         pulso.note(s * 8, m, 0.9, 0.6);
         pulso.note(s * 8 + 0.9, m + 12, 0.9, 0.55);
     });
-    // a sonora do Magikarp: o tom no corte; um brilho no "charanga"
-    tm.note(R(F.f7.s), 2, 0, 0.5);
-    sino.note(M.charanga * 8, 103, 2, 0.5);
 
-    // AO VIVO: o motivo inteiro; a tela divide (o "bwoop" das tarjas)
+    // AO VIVO: o motivo inteiro; o corte pra Rota (a torcida: palmas)
     mel(toque, M.aovivo / 2, [MOTIVO], { vel: 0.8 });
-    ap.note((M.split + 0.35) * 8, 6, 0, 0.45);
-    // o atraso do satélite: a banda para; as cordas e dois bips de satélite; o Meowth acorda no prato
-    padChord(cor, 0, 'Fm9', 12, { low: 55, n: 4, vel: 0.3, at: R(M.atraso[0]) });
-    pulso.note(R(M.atraso[0] + 0.25), 96, 1, 0.35);
-    pulso.note(R(M.atraso[0] + 0.75), 96, 1, 0.35);
-    cr.note(R(F.f9.a), 0, 0, 0.5);
+    ap.note((M.cheia + 0.4) * 8, 6, 0, 0.45);
+    drum(cl, M.cheia / 2, 1, '....x.......x.x.', { vel: 0.5 });
     // o ₽ da Rota: cada vitória é um "ka-ching" e o contador sobe 3 → 6 → 9
     for (const [k, s] of M.vitorias.entries()) {
         moeda.note(s * 8, 24 + k * 2, 0, 0.6);
@@ -238,17 +263,12 @@ export default function news() {
     plim.note(R(M.reacao + 0.15), 96, 1, 0.55);
     tuba.note(R(M.reacao + 0.3), 38, 1, 0.35);
     tuba.note(R(M.reacao + 0.5), 36, 2, 0.3);
-    // o banco: a banda para; o Voltorb pisca no "plim-plim" e a tuba ri baixinho
-    padChord(cor, 0, 'Fm9', 24, { low: 55, n: 4, vel: 0.3, at: R(M.voltorb) });
-    tuba.note(R(M.voltorb), 36, 2, 0.5);
-    tuba.note(R(M.voltorb + 0.25), 31, 3, 0.45);
-    for (const [d, m] of [
-        [0.6, 100],
-        [0.95, 105],
-        [2.4, 100],
-    ])
-        plim.note(R(M.voltorb + d), m, 1, 0.75);
-    ap.note((M.voltorb + 0.25) * 8, 3, 0, 0.4);
+    // o vestiário: o Voltorb no banco treme no nome dele (o fusível); no "reserva" a tuba murcha
+    fusivel(M.voltorbReage[1]);
+    ap.note((M.vestCena + 0.15) * 8, 3, 0, 0.4);
+    const res = F.f14.paginas[0].chars[F.f14.paginas[0].texto.indexOf('reserva')];
+    tuba.note(R(res), 36, 2, 0.45);
+    tuba.note(R(res + 0.25), 31, 3, 0.4);
 
     // VEM AÍ: uma nota de sino por sexta do calendário; o 27/11 vira Time Ultimate (bumbo, prato e sino, em Ré)
     for (const [k, s] of M.sextas.entries()) sino.note(s * 8, [86, 89, 93, 98][k], 2, 0.75);
@@ -269,10 +289,10 @@ export default function news() {
     mel(met, P.mewtwo / 2, ['Eb5:2 G5:2 Bb5:4 r:8'], { harm: thirdBelow(eb) });
     stabs(toque, 0, 'Ebmaj7', [[R(P.mewtwo), 8]], { low: 58, n: 4, vel: 0.6 });
 
-    // NOTA PÉ: o Voltorb pula no telão ("ele tá bem"); o "ting" no "boa noite" do Raichu
-    const bem = F.f18.paginas[0].chars[F.f18.paginas[0].texto.indexOf('bem')];
-    plim.note(R(bem), 100, 1, 0.6);
-    plim.note(R(bem + 0.35), 105, 2, 0.6);
+    // PRA FECHAR: o fusível do Voltorb no telão e o pulo no "ele tá bem"; o "ting" no "boa noite" do Raichu
+    fusivel(M.voltorbReage[2]);
+    plim.note(R(M.bem + 0.1), 100, 1, 0.6);
+    plim.note(R(M.bem + 0.45), 105, 2, 0.6);
     colher.note(R(M.boaNoite), 98, 4, 0.75);
     // "TEMOS QUE CHUTAR!": os metais no ritmo do grito (Te-mos-que-chu-TAR), bumbo no grito e prato no "TAR"
     const GRITO = 'G5:1 G5:1 G5:1 Bb5:1 C6:5 r:7';
