@@ -1,5 +1,5 @@
 ---
-description: Soccermon News #1 v11 (86,2 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; v11 com o gancho de 2,5 s, a cena 12% maior dentro das safe zones, o colete amarelo do Voltorb, as faixas diagonais no lugar da cartinha, o estúdio novo, os closes com o quadro gráfico, os papéis na mesa e o plim de jornal; linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
+description: Soccermon News #1 v11 (86,2 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; v11 com o gancho de 2,5 s, a cena 12% maior dentro das safe zones, o colete amarelo do Voltorb (na metade de baixo, com o 12), as faixas diagonais no lugar da cartinha, o estúdio novo, os closes com o quadro gráfico, os papéis na mesa e o plim de jornal; linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
 ---
 
 # Soccermon News #1 v11 (86,2 s, 16/11/2026, sem render)
@@ -9,8 +9,10 @@ Da v10 pra v11, o que o Miguel aprovou (a prévia em quadros: `previa.mjs`; o re
 - **Meowth e Psyduck na bancada** no "Temos que chutar!": os quatro sentados, da cintura pra cima (plano `TODOS`; o
   Meowth tem cadeira na ponta direita e o Psyduck chega pra perto do Raichu no corte). O telão saiu da cena (`t-turma`).
   O Voltorb do telão agora rola no chão do vestiário (parede e piso), não solto;
-- **o colete do Voltorb**: uma regata de treino amarela (alças finas, a frente na metade de cima, um R pequeno), sem a
-  volta por baixo: a metade branca aparece. Nas 4 aparições (gancho, banco, telão e o quadro gráfico);
+- **o colete do Voltorb** (v11b): a regata com R na metade de cima parecia capacete de obra (o rosto fica no meio da bola,
+  tudo em cima vira chapéu). Agora é um colete de treino amarelo de malha na metade de baixo, como o corpo dele, folgado
+  (as cavas sobem dos lados até a linha dos olhos, a gola em âmbar escuro, a barra 1 px abaixo da bola), com um 12
+  pequeno; a metade vermelha de cima fica livre. Nas 4 aparições (gancho, banco, telão e o quadro gráfico);
 - **o terço de baixo**: o estúdio, a Rota e o vestiário 12% maiores e mais baixos (os planos do estúdio e o `.zoom`), a
   caixa em 1380 (termina em 1592) e o retrato em 1162; os painéis descem 50 px. Safe zones (1080 x 1920, valores
   conservadores de TikTok, Reels e Shorts): 120 px em cima, 320 embaixo, 130 à direita de y 640 pra baixo
@@ -18,7 +20,8 @@ Da v10 pra v11, o que o Miguel aprovou (a prévia em quadros: `previa.mjs`; o re
 - **a cartinha só na vinheta**: as 2 varridas (escalada e VEM AÍ) são faixas diagonais vermelhas e amarelas em 0,5 s
   (`#varre`); o som da varrida já caía no corte;
 - **a capa**: o gancho com a manchete grande (`?capa=1`, `news-01-v11-capa.png`); no Buffer, `CAPA_MS=2300` (o
-  mesmo quadro, com a manchete de cima);
+  mesmo quadro, com a manchete de cima). v11b: a manchete da capa ganhou uma placa azul (`#10183d`), porque o texto
+  branco e amarelo sem fundo próprio cruzava o banco e o piso (o verificador do impeccable acusava 2 contrastes baixos);
 - **a Rota sem a barraca**; o **gancho com 2,5 s** e a manchete maior (50 px, a barra de 118 px). Tudo depois do gancho
   anda +0,5 s (a tabela da v10 abaixo, somando 0,5 s depois de 2 s); nenhuma fala nem pausa mudou;
 - **cara de telejornal**:
@@ -171,7 +174,7 @@ scripts/pesado.sh node trailer/curtas/preparar.mjs news
 #  as durações fixas do index.html; depois a música: o preparar.mjs news)
 # o terno do Raichu (v9: cobre as costas e o quadril em 3/4) sai do teste-gravata/gravata.mjs, no preparar.mjs
 node trailer/qa-quadros.mjs trailer/curtas/news-01                      # 0 problema(s)
-# prévia sem render (v11): news-v11-previa.png, -safezones, -voltorb, -estudio e a capa news-01-v11-capa.png
+# prévia sem render (v11): news-v11-previa.png, -safezones, -voltorb2, -estudio e a capa news-01-v11-capa.png
 scripts/pesado.sh node trailer/curtas/news-01/previa.mjs ~/Vídeos/soccermon-postar/pauta-16-22
 cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v11.mp4
 scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v11.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v11

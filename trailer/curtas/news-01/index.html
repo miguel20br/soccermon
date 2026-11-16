@@ -16,7 +16,8 @@
   uma ação de fundo por vez; o Psyduck de volta à ponta da bancada; 3 vinhetas, o Miguel escolheu a C (?vinheta=a|b|c,
   ou a constante VINHETA).
   v11: o gancho com 2,5 s e a manchete maior; tudo 12% maior e mais baixo (a caixa em 1380, fora das safe zones: 120 px
-  em cima, 320 embaixo, 130 à direita de 640 pra baixo); o colete do Voltorb virou uma regata amarela com R; as 2
+  em cima, 320 embaixo, 130 à direita de 640 pra baixo); o colete do Voltorb virou um colete amarelo de malha na metade de baixo, com um 12 (v11b; a regata com R em cima
+  parecia capacete); as 2
   varridas viraram faixas diagonais vermelhas e amarelas (a cartinha só na vinheta); a Rota sem a barraca; e a cara de
   telejornal: o estúdio novo (pilhas de monitores, o telão em 6 telas, latas de luz, o logo na bancada, o reflexo), o
   close de quem chama a matéria com o quadro gráfico ao lado (OTS: f3, f4, f8, f18), os papéis batendo na mesa no
@@ -112,9 +113,10 @@
 .ots .ver em { font-style: normal; font-size: 52px; letter-spacing: 2px; -webkit-text-stroke-width: 10px; }
 .ots .rec-charanga { margin-top: 14px; transform: scale(0.43); transform-origin: 50% 0; }
 /* a capa (?capa=1): a manchete grande, dentro do recorte 3:4 do perfil */
-#capa { position: absolute; left: 50px; top: 1290px; width: 980px; z-index: 95; display: none; flex-direction: column; align-items: flex-start; gap: 14px; }
+#capa { position: absolute; left: 50px; top: 1250px; width: 980px; z-index: 95; display: none; flex-direction: column; align-items: flex-start; gap: 14px; }
 #capa small { padding: 6px 26px; border-radius: 14px; background: #e8423f; border: 8px solid #0e1430; color: #fff; font-size: 54px; letter-spacing: 6px; }
-#capa b { font-size: 102px; line-height: 1.08; color: #fff; letter-spacing: 2px; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; }
+/* a placa azul (v11b) segura o contraste da manchete sobre o banco e o piso, qualquer que seja o recorte */
+#capa b { padding: 6px 30px 16px; border-radius: 18px; background: #10183d; border: 8px solid #0e1430; box-shadow: 0 12px 0 rgb(0 0 0 / 45%); font-size: 102px; line-height: 1.08; color: #fff; letter-spacing: 2px; -webkit-text-stroke: 18px #0e1430; paint-order: stroke fill; text-shadow: 0 12px 0 #0e1430; }
 #capa b em { font-style: normal; color: #ffcb05; }
 /* a porta do estúdio (o "e mais" da escalada) */
 .porta { position: absolute; left: 300px; top: 380px; width: 480px; height: 880px; box-sizing: border-box; border-radius: 18px 18px 0 0; background: linear-gradient(90deg, #8a5a32, #a06a3c 50%, #8a5a32);
@@ -492,28 +494,37 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       gsap.set(br, { x, y });
       tl.fromTo(br, { opacity: 1, scale: 0.4 * tam, rotation: 0 }, { scale: 1.5 * tam, rotation: 90, opacity: 0, duration: 0.45, ease: 'power2.out', immediateRender: false }, t);
     };
-    /** O colete de treino do Voltorb (v11: amarelo, curto, só na metade de cima; a metade branca de baixo aparece e o
-     *  "R" de reserva fica na frente), em pixel na grade da folha (Idle, quadro 0, de frente), e os olhos fechados. */
+    /** O colete de treino do Voltorb (v11b: amarelo, na metade branca de baixo, como o corpo dele; a metade vermelha de
+     *  cima fica livre, sem nada na cabeça; um 12 pequeno na frente), em pixel na grade da folha (Idle, quadro 0, de
+     *  frente), e os olhos fechados. */
     const vestirVoltorb = (V) => {
       const PX = V.escala;
       const X0 = -12 * PX;
       const Y0 = -0.656 * 32 * PX;
-      // uma regata de treino: as alças finas sobem pelo topo (linhas 6 a 8) e a frente cobre o meio de cima (9 a 12), com
-      // as cavas dos lados de fora; o rosto e a metade branca de baixo ficam de fora
-      const L = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
-      const COL = { 6: [10, 13], 7: [9, 10, 13, 14], 8: [8, 9, 10, 13, 14, 15], 9: L(8, 15), 10: L(7, 16), 11: L(6, 17), 12: L(6, 17) };
-      const tem = (r, c) => COL[r]?.includes(c);
+      // o colete de malha, um pouco mais largo que a bola (folgado): as cavas sobem dos lados até a linha 16 (fora dos
+      // olhos, que vão até a 16 nas colunas 7 a 15), a gola reta na 17 e a barra na 21. O = contorno, Y = malha, S = sombra
+      // (do lado direito e embaixo, como o vermelho escuro da folha), N = a gola e as cavas (âmbar escuro: em preto, a
+      // gola virava uma faixa preta debaixo dos olhos)
+      const MAPA = {
+        16: '....OOON........NOOO....',
+        17: '....OYYYNNNNNNNNYYSO....',
+        18: '....OYYYYYYYYYYYYYSO....',
+        19: '.....OYYYYYYYYYYYSO.....',
+        20: '......OOYYYYYYYSOO......',
+        21: '........OOOOOOOO........',
+      };
+      const COR = { O: '#000', S: '#c98a00', N: '#8a4a00' };
       const rects = [];
-      for (const [r, cs] of Object.entries(COL))
-        for (const c of cs) {
-          const borda = [[0, 1], [0, -1], [1, 0], [-1, 0]].some(([dr, dc]) => !tem(+r + dr, c + dc));
-          const cor = borda ? '#9a5200' : (+r + c) % 2 ? '#ffd52e' : '#ffe680';
+      for (const [r, l] of Object.entries(MAPA))
+        [...l].forEach((ch, c) => {
+          if (ch === '.') return;
+          const cor = COR[ch] ?? ((+r + c) % 2 ? '#ffd52e' : '#ffe680');
           rects.push(`<rect x="${X0 + c * PX}" y="${Y0 + r * PX}" width="${PX}" height="${PX}" fill="${cor}"/>`);
-        }
-      // o R de reserva, pequeno, no meio da frente
+        });
+      // o 12, pequeno, no meio da frente (3 x 5 por algarismo)
       const h = PX * 0.42;
-      ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'].forEach((l, j) =>
-        [...l].forEach((ch, i) => { if (ch === '#') rects.push(`<rect x="${X0 + 10.95 * PX + i * h}" y="${Y0 + 9.55 * PX + j * h}" width="${h}" height="${h}" fill="#0e1430"/>`); }));
+      ['.#.###', '##...#', '.#.###', '.#.#..', '######'].forEach((l, j) =>
+        [...l].forEach((ch, i) => { if (ch === '#') rects.push(`<rect x="${X0 + 12 * PX - 3.5 * h + (i >= 3 ? i + 1 : i) * h}" y="${Y0 + 18.35 * PX + j * h}" width="${h}" height="${h}" fill="#0e1430"/>`); }));
       const W = 27 * PX;
       const caixa = `viewBox="${-W} ${-W} ${W} ${W}" style="left:${-W}px;top:${-W}px;width:${W}px;height:${W}px" shape-rendering="crispEdges"`;
       div(V.corpo, 'colete').innerHTML = `<svg ${caixa}>${rects.join('')}</svg>`;

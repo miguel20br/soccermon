@@ -3,7 +3,7 @@
 //   scripts/pesado.sh node trailer/curtas/news-01/previa.mjs <pasta de saída>
 //   → <pasta>/news-v11-previa.png    (um quadro de cada bloco, de cada beat sem texto, dos planos novos e dos papéis)
 //     <pasta>/news-v11-safezones.png (6 quadros típicos com as safe zones de TikTok, Reels e Shorts por cima)
-//     <pasta>/news-v11-voltorb.png   (o colete novo: no tamanho do celular e de perto, nas 4 aparições)
+//     <pasta>/news-v11-voltorb2.png   (o colete na metade de baixo, com o 12: no tamanho do celular e de perto, nas 4 aparições)
 //     <pasta>/news-v11-estudio.png   (o cenário novo inteiro e o plano aberto)
 //     <pasta>/news-01-v11-capa.png   (a capa: o gancho com a manchete grande; CAPA_MS no Buffer = o mesmo quadro)
 import { createRequire } from 'node:module';
@@ -127,8 +127,8 @@ const perto = [
     const y = G + Math.floor(k / 2) * (340 + 44 + G);
     camadas.push({ input: img, left: x, top: y }, { input: txt(rot, 340), left: x, top: y + 340 });
   });
-  await sharp({ create: { width: G * 4 + 405 + 680, height: G * 2 + 764, channels: 4, background: '#0e1430' } }).composite(camadas).png().toFile(`${SAIDA}/news-v11-voltorb.png`);
-  console.log(`ok: ${SAIDA}/news-v11-voltorb.png`);
+  await sharp({ create: { width: G * 4 + 405 + 680, height: G * 2 + 764, channels: 4, background: '#0e1430' } }).composite(camadas).png().toFile(`${SAIDA}/news-v11-voltorb2.png`);
+  console.log(`ok: ${SAIDA}/news-v11-voltorb2.png`);
 }
 await folha([['o estúdio inteiro (a câmera afastada)', await pequena(estInteiro, 540)], ['o plano aberto (beat bDupla)', await pequena(estAberto, 540)]], 2, `${SAIDA}/news-v11-estudio.png`, 540, 960);
 await sharp(capa).png().toFile(`${SAIDA}/news-01-v11-capa.png`);
