@@ -1,8 +1,40 @@
 ---
-description: Soccermon News #1 v10 (85,7 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; ritmo "texto, coisinha, texto" com 7 beats sem texto, uma manchete por vez, o Psyduck de volta à bancada, o Voltorb no banco, a vinheta C e a trilha jazz-fusion da bancada (música C); linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
+description: Soccermon News #1 v11 (86,2 s, 9:16), telejornal com a dupla Raichu e Machoke de terno; v11 com o gancho de 2,5 s, a cena 12% maior dentro das safe zones, o colete amarelo do Voltorb, as faixas diagonais no lugar da cartinha, o estúdio novo, os closes com o quadro gráfico, os papéis na mesa e o plim de jornal; linha do tempo real (gerada por linha.mjs), regra de leitura, música e como gerar.
 ---
 
-# Soccermon News #1 v10 (85,7 s, 16/11/2026)
+# Soccermon News #1 v11 (86,2 s, 16/11/2026, sem render)
+
+Da v10 pra v11, o que o Miguel aprovou (a prévia em quadros: `previa.mjs`; o render final só depois do ok):
+
+- **Meowth e Psyduck na bancada** no "Temos que chutar!": os quatro sentados, da cintura pra cima (plano `TODOS`; o
+  Meowth tem cadeira na ponta direita e o Psyduck chega pra perto do Raichu no corte). O telão saiu da cena (`t-turma`).
+  O Voltorb do telão agora rola no chão do vestiário (parede e piso), não solto;
+- **o colete do Voltorb**: uma regata de treino amarela (alças finas, a frente na metade de cima, um R pequeno), sem a
+  volta por baixo: a metade branca aparece. Nas 4 aparições (gancho, banco, telão e o quadro gráfico);
+- **o terço de baixo**: o estúdio, a Rota e o vestiário 12% maiores e mais baixos (os planos do estúdio e o `.zoom`), a
+  caixa em 1380 (termina em 1592) e o retrato em 1162; os painéis descem 50 px. Safe zones (1080 x 1920, valores
+  conservadores de TikTok, Reels e Shorts): 120 px em cima, 320 embaixo, 130 à direita de y 640 pra baixo
+  (`news-v11-safezones.png`); a manchete fica em 214–332 e o selo em 130;
+- **a cartinha só na vinheta**: as 2 varridas (escalada e VEM AÍ) são faixas diagonais vermelhas e amarelas em 0,5 s
+  (`#varre`); o som da varrida já caía no corte;
+- **a capa**: o gancho com a manchete grande (`?capa=1`, `news-01-v11-capa.png`); no Buffer, `CAPA_MS=2300` (o
+  mesmo quadro, com a manchete de cima);
+- **a Rota sem a barraca**; o **gancho com 2,5 s** e a manchete maior (50 px, a barra de 118 px). Tudo depois do gancho
+  anda +0,5 s (a tabela da v10 abaixo, somando 0,5 s depois de 2 s); nenhuma fala nem pausa mudou;
+- **cara de telejornal**:
+  - **planos**: o aberto na abertura e no fim; o **close de quem chama a matéria** com o quadro gráfico ao lado
+    (`#ots`: f3 a versão nova, f4 a recompensa, f8 o Meowth ao vivo, f18 o Voltorb), o Raichu à esquerda e o Machoke à
+    direita; corte seco ou empurrão de 0,25 s entre os planos;
+  - **o estúdio**: a parede escura com as pilhas de monitores, o telão dividido em 6 telas, latas de luz com facho
+    parado, o logo do programa na frente da bancada e o reflexo amarelo no piso; só um monitor pisca, devagar. O fundo
+    dos painéis é o mesmo estúdio desfocado (saíram os raios);
+  - **gestos**: papéis na mesa na frente de cada um; depois do "boa noite" os dois batem os papéis na mesa pra alinhar
+    (`M.papeis`, com o tema subindo) e o Raichu faz a reverência;
+  - **o plim de jornal** em cada bloco (PLANTÃO, AO VIVO, VESTIÁRIO, VEM AÍ, PRA FECHAR): um "tan-tan" no sino (Si♭ →
+    Mi♭ com a 5ª) e o tímpano, junto com a manchete (`plimJornal` na `news-bancada.mjs`); os papéis batendo têm o tapa e
+    o tok de madeira. No `--rms` o plim soma ~1 a 1,7 dB no começo de cada bloco.
+
+## A v10 (85,7 s, 16/11/2026)
 
 Renderizada com a **música C** (a bancada jazz-fusion) e a **vinheta C** (a cartinha girando e virando o logo), as duas
 escolhidas pelo Miguel. Prévia em quadros parados: `previa.mjs` (abaixo).
@@ -139,10 +171,10 @@ scripts/pesado.sh node trailer/curtas/preparar.mjs news
 #  as durações fixas do index.html; depois a música: o preparar.mjs news)
 # o terno do Raichu (v9: cobre as costas e o quadril em 3/4) sai do teste-gravata/gravata.mjs, no preparar.mjs
 node trailer/qa-quadros.mjs trailer/curtas/news-01                      # 0 problema(s)
-# prévia sem render: um quadro por bloco e por beat, e as 3 vinhetas (news-v10-previa.png, news-v10-vinhetas.png)
+# prévia sem render (v11): news-v11-previa.png, -safezones, -voltorb, -estudio e a capa news-01-v11-capa.png
 scripts/pesado.sh node trailer/curtas/news-01/previa.mjs ~/Vídeos/soccermon-postar/pauta-16-22
-cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v10.mp4
-scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v10.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v10
+cd trailer/curtas && ../../scripts/pesado.sh npx hyperframes render news-01 -q high -w 1 --no-browser-gpu -o news-01/render/v11.mp4
+scripts/pesado.sh trailer/curtas/finalizar.sh trailer/curtas/news-01/render/v11.mp4 ~/Vídeos/soccermon-postar/pauta-16-22/news-01-v11
 ```
 
 As cartas e o pacote (v6): `BASE_URL=http://localhost:<p> node trailer/curtas/news-01/cartas.mjs trailer/curtas/midia/news/cartas 25 143 95 26 130 150 pack`.

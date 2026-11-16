@@ -8,6 +8,7 @@
 // depois da manchete.
 // v10, a regra de ritmo do Miguel: "texto, coisinha, texto". Entre os blocos de fala entra um beat visual (BEATS) de 0,8 a
 // 1,5 s sem texto nenhum: a caixa fecha, a manchete sai e só fica a imagem (uma reação, uma gag ou a transição).
+// v11: o gancho passa de 2 s pra 2,5 s (a manchete maior); todo o resto anda junto +0,5 s, sem cortar fala nem pausa.
 import { readFileSync, writeFileSync } from 'node:fs';
 
 export const DT = 0.025;
@@ -90,7 +91,7 @@ export const letra = (f, trecho) => {
 
 // ===================== o roteiro aprovado (falas exatas) =====================
 bloco('gancho', 'PLANTÃO · VOLTORB VIRA RESERVA');
-t += 2;
+t += 2.5;
 bloco('vinheta', null);
 t += 2.5; // a vinheta de abertura: a bola-globo, as faixas de luz e o logo montando
 bloco('abertura', 'SOCCERMON NEWS #1');
@@ -164,7 +165,9 @@ M.pacote.foco = r3(M.pacote.mewtwo + 0.3);
 M.bem = letra(f18, 'bem');
 M.boaNoite = letra(f19, 'boa noite');
 M.grito = [r3(f20.a + 0.3), r3(letra(f20, 'chutar') + 0.25)];
-export const VARRIDAS = [M.escalada, M.vemai]; // as 2 transições com a cartinha; o resto é troca rápida com whoosh
+/** v11: as 2 batidas dos papéis na mesa (a dupla alinha os papéis depois do "boa noite", com o tema subindo). */
+M.papeis = [r3(f19.paginas[0].fim + 0.45), r3(f19.paginas[0].fim + 0.75)];
+export const VARRIDAS = [M.escalada, M.vemai]; // v11: as 2 transições de faixas diagonais (vermelho e amarelo); o resto é troca rápida com whoosh
 export const CORTES = [M.vinheta, M.abertura, M.bCartas, M.vt1, M.bRua, M.cheia, M.vestiario, M.reacao, M.bVoltorb, M.bRola, M.final];
 
 /** As trocas de cena e os painéis levam 0,25 s (o clipe do EP 2 fica no ar até a troca terminar). */

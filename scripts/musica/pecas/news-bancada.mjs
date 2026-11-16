@@ -1,10 +1,11 @@
-// Soccermon News #1 v10 (16/11/2026): a trilha inteira, sobre o esboço C aprovado (news-esboco-c.mjs, "bancada
+// Soccermon News #1 v11 (16/11/2026; o gancho de 2,5 s, o plim de jornal em cada bloco e os papéis batendo na mesa no
+// encerramento): a trilha inteira, sobre o esboço C aprovado (news-esboco-c.mjs, "bancada
 // jazz-fusion" no jeito do Sonic Mania). O Miguel escolheu a música C e a vinheta C (a cartinha girando e virando o
 // logo). Lê a linha do tempo de trailer/curtas/news-01/linha.mjs: cada bloco, fala e beat sem texto cai no mesmo
 // instante da cena.
 // Mi♭ maior, 120 BPM, compasso = 2 s (linha = 1/8 s), swing leve (0,06). O telefone da redação é a pergunta, a bancada
 // responde com o tema. A história:
-//   gancho (0–2): tensão no pedal de Si♭ com o pavio do Voltorb (plins subindo, chimbal chiando, tímpano);
+//   gancho (0–2,5): tensão no pedal de Si♭ com o pavio do Voltorb (plins subindo, chimbal chiando, tímpano);
 //   vinheta C (2–4,5): o telefone toca, toms acompanham os giros da cartinha, o logo monta no impacto (3,28) e o tema
 //     sobe até o Mi♭ agudo no #1 (3,85);
 //   abertura: o groove de bancada (I–vi–IV–V com extensões, slap andando, piano elétrico), telefone num vão, o lead
@@ -192,6 +193,16 @@ export default function bancada() {
         N(pr, s, 0, 0, 0.55);
         N(kk, s, 0, 0, 0.9);
         stabs(met, 0, sym, [[R(s), 2]], { low: 60, n: 4, vel: 0.6 });
+        plimJornal(s);
+    };
+    /** v11: o plim do jornal, a assinatura da casa (~0,5 s) junto com a manchete de cada bloco: um "tan-tan" no sino
+     *  (Si♭ → Mi♭, com a 5ª em cima) e o tímpano embaixo, na família do telefone da redação. */
+    const plimJornal = (s) => {
+        N(sino, s, 82, 1, 0.55);
+        N(tp, s, 0, 0, 0.6);
+        N(sino, s + 0.19, 87, 3, 0.7);
+        N(sino, s + 0.19, 94, 3, 0.35);
+        N(tp, s + 0.19, 0, 0, 0.85);
     };
     /** O pavio do Voltorb: 4 plins subindo e acelerando, a gota caindo. */
     const pavio = (t) => {
@@ -201,17 +212,18 @@ export default function bancada() {
         N(sino, t + 1.05, 79, 2, 0.25);
     };
 
-    // ===================== 0–2 · GANCHO: tensão no pedal de Si♭ =====================
+    // ===================== 0–2,5 · GANCHO: tensão no pedal de Si♭ =====================
     // o Voltorb de colete no banco; um golpe grave no 0, o baixo pulsando, o chimbal chiando como pavio e o tímpano
-    // crescendo até cortar seco no 2 (o telefone)
+    // crescendo até cortar seco na vinheta (o telefone). v11: o gancho tem 2,5 s (20 linhas)
+    const G = R(M.vinheta);
     N(pr, 0, 0, 0, 0.7);
     N(kk, 0, 0, 0, 1);
     stabs(met, 0, 'Bb7sus4', [[0, 3]], { low: 46, n: 4, vel: 0.7 });
-    for (let i = 0; i < 16; i += 2) bs.note(i, 34, 1, 0.45 + 0.02 * i);
-    padChord(cor, 0, 'Bb7sus4', 15, { low: 58, n: 4, vel: 0.35 });
-    for (let i = 4; i < 16; i++) hh.note(i, 0, 0, 0.12 + 0.025 * i);
+    for (let i = 0; i < G; i += 2) bs.note(i, 34, 1, 0.45 + (0.32 * i) / G);
+    padChord(cor, 0, 'Bb7sus4', G - 1, { low: 58, n: 4, vel: 0.35 });
+    for (let i = 4; i < G; i++) hh.note(i, 0, 0, 0.12 + (0.4 * i) / G);
     pavio(M.voltorbReage[0]);
-    drum(tp, 0, 1, '..........x.xxXX', { vel: 0.55 });
+    drum(tp, (M.vinheta - 2) / 2, 1, '..........x.xxXX', { vel: 0.55 });
 
     // ===================== 2–4,5 · VINHETA C: o telefone toca, a cartinha gira, o logo monta =====================
     {
@@ -473,6 +485,12 @@ export default function bancada() {
         mel(lead, t / 2, [TEMA], { shift: 2, vel: 0.9 });
         mel(leadP, t / 2, [TEMA], { shift: 2, vel: 0.8 });
         mel(met, t / 2, [TEMA], { shift: 2, harm: fa, vel: 0.5 });
+    }
+    // v11: os papéis batendo na mesa pra alinhar (as 2 batidas de M.papeis): um tapa seco de papel e o tok da madeira
+    for (const [k, h] of M.papeis.entries()) {
+        N(sn, h, 0, 0, 0.55);
+        N(k ? tokD : tokE, h, 67, 0.5, 0.9);
+        N(tm, h, -7, 0, 0.18);
     }
     // "TEMOS QUE CHUTAR!": um golpe no pulo (Dó) e o "TAR" no Fá com prato
     N(kk, M.grito[0], 0, 0, 0.9);
