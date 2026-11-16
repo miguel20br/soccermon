@@ -20,7 +20,7 @@ export function ParkedRuns() {
     if (!parked.length) return null;
     if (ask && target)
         return (
-            <div className="confirm-new">
+            <div className="parked-box parked-confirm">
                 <p>
                     {ask.kind === 'swap'
                         ? rich(t('account.confirmSwap'), {
@@ -29,7 +29,7 @@ export function ParkedRuns() {
                           })
                         : rich(t('account.confirmDiscard'), { team: <b>{target.teamName}</b> })}
                 </p>
-                <div className="row" style={{ justifyContent: 'center' }}>
+                <div className="row">
                     <button
                         type="button"
                         className="btn confirm"
@@ -48,7 +48,7 @@ export function ParkedRuns() {
             </div>
         );
     return parked.map((p) => (
-        <div key={p.seed} className="parked-row">
+        <div key={p.seed} className="parked-box parked-row">
             <span className="pr-text">
                 <span className="pr-label">{t('account.parkedLabel')}</span>
                 <span>

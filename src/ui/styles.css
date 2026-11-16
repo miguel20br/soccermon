@@ -3318,16 +3318,6 @@ button,
     animation: none;
 }
 
-.confirm-new {
-    display: grid;
-    align-content: center;
-    gap: 10px;
-    text-align: center;
-}
-.confirm-new p {
-    margin: 0;
-}
-
 .mh-out {
     width: clamp(34px, calc(5 * var(--vw)), 56px);
     opacity: 0.7;
