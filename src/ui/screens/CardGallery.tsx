@@ -241,7 +241,7 @@ const EVENT_SPECIES: Record<string, number> = {
 };
 const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIES[type] ?? 143, false, evt(type)) }));
 
-/** Semana Neon (ui/tema.ts, `NEON_SPECIES`): a mesma carta normal e com o fundo neon, lado a lado. */
+/** Semana Fora da Lei (ui/tema.ts, `NEON_SPECIES`): a mesma carta normal e com o fundo neon, lado a lado. */
 const NEON_SAMPLES = [
     { label: 'Hitmonchan', inst: card(107, false, null) },
     { label: 'Hitmonchan Evento', inst: card(107, false, evt('Fighting')) },
@@ -464,7 +464,7 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     <Ladder steps={ARROW_CARDS} />
                 </section>
                 <section className="panel" id="semana-neon">
-                    <h2>Semana Neon (fundo de pôr do sol, só visual)</h2>
+                    <h2>Semana Fora da Lei (fundo de pôr do sol, só visual)</h2>
                     <p className="muted">
                         Com o tema ligado, as espécies da lista (NEON_SPECIES em ui/tema.ts) ganham este fundo. Nota e
                         atributos não mudam.

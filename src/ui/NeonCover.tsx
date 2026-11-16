@@ -80,7 +80,7 @@ const Panel = ({ k, r, children }: { k: string; r: number; children: ReactNode }
 
 /**
  * A capa: colagem de painéis tortos no estilo das capas de jogo de mundo aberto (paródia de linguagem visual, com os
- * Pokémon do jogo): o Pikachu de óculos, o Squirtle no conversível e os "da rua" da Semana Neon (Hitmonlee
+ * Pokémon do jogo): o Pikachu de óculos, o Squirtle no conversível e os "da rua" da Semana Fora da Lei (Hitmonlee
  * e Hitmonchan no neon, o Blastoise no pôr do sol, o Machamp procurado) e o logo com o cronômetro.
  */
 export function NeonCover() {

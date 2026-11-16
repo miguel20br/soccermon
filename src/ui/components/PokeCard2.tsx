@@ -74,7 +74,7 @@ const TIER_SYMBOL: Record<Tier, string> = {
 
 interface PokeCard2Props {
     inst: PokemonInstance;
-    /** Força o fundo da Semana Neon (galeria); sem ele, vale `NEON_SPECIES` com o tema ligado (ui/tema.ts). */
+    /** Força o fundo da Semana Fora da Lei (galeria); sem ele, vale `NEON_SPECIES` com o tema ligado (ui/tema.ts). */
     neon?: boolean;
     variant: CardVariant;
     /** Posição para a nota (padrão: a principal). */

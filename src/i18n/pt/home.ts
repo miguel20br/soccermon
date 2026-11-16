@@ -66,9 +66,9 @@ export const home = {
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
         ledDaily: 'COPA DO DIA NOVA',
         ledChamp: 'CAMPEÕES DA {cup} · {club}',
-        ledNeon: 'SEMANA NEON',
+        ledNeon: 'SEMANA FORA DA LEI',
         /** Cronômetro da Noite Neon (ui/tema.ts): `left` = "2d 14h", "5h 32min". */
-        neonEnds: 'SEMANA NEON · termina em {left}',
+        neonEnds: 'SEMANA FORA DA LEI · termina em {left}',
         neonEndsShort: 'termina em {left}',
         neonCoverTap: 'Toque pra continuar',
         ledLiga: 'LIGA ABRE EM {d} DIAS',

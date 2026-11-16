@@ -88,8 +88,9 @@
     justify-items: center;
     color: #ffd2ea;
     font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: calc(var(--px) * 8);
-    font-size: var(--gfs, calc(var(--px) * 8));
+    --gs: calc(var(--px) * 6);
+    font-size: var(--gfs, calc(var(--px) * 6));
+    max-width: 94%;
     line-height: 1.1;
     letter-spacing: 2px;
     white-space: nowrap;

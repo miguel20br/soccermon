@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Noite Neon: decoração da semana do GTA 6 (paródia de clima e de linguagem visual, sem logo, nome, cidade ou
+ * Semana Fora da Lei (o tema "Noite Neon" do código): decoração da semana do GTA 6 (paródia de clima e de linguagem visual, sem logo, nome, cidade ou
  * personagem de lá): céu de pôr do sol neon, palmeiras, neon na quadra, capa em painéis, estrelas de procurado na
  * goleada e o fim de jogo "MISSÃO CUMPRIDA" / "PERDEU". Vale de 16/11/2026 00:00 (no ar assim que subir) a domingo
- * 22/11/2026 23:59 (Brasília) e some. Na tela, "SEMANA NEON". Os "da rua" (Hitmonlee, Hitmonchan, Machamp e Blastoise)
+ * 22/11/2026 23:59 (Brasília) e some. Na tela, "SEMANA FORA DA LEI". Os "da rua" (Hitmonlee, Hitmonchan, Machamp e Blastoise)
  * andam pelo Estádio e estão na capa. Só enfeite: nada no motor. `?tema=neon` liga na hora e `?tema=off` desliga. O CSS lê `data-tema` no `<html>`.
  */
 export const NEON_FROM = Date.parse('2026-11-16T00:00:00-03:00');
@@ -28,8 +28,9 @@ export const tema: Tema =
 /** Os "da rua" da Noite Neon (cosmético): andam pelo Estádio e estão na capa. */
 export const NEON_STREET = [106, 107, 68, 9] as const;
 /**
+ * Na integração com a branch `semana-especial`, aponta pra mesma lista (`ESPECIAL_SPECIES`).
  * Espécies cuja carta ganha o fundo de pôr do sol neon enquanto o tema vale (só visual: nota e atributos iguais). A
- * lista sai com o ok do Miguel; vazia, nenhuma carta muda. Galeria: `?cards=1`, seção "Semana Neon".
+ * lista sai com o ok do Miguel; vazia, nenhuma carta muda. Galeria: `?cards=1`, seção "Semana Fora da Lei".
  */
 export const NEON_SPECIES: ReadonlySet<number> = new Set<number>([]);
 export const neonOn = tema === 'neon';
