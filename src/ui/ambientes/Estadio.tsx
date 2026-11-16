@@ -14,7 +14,9 @@ import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { reduceMotionOn } from '../settings-sync';
+import { neonOn, tema, useTimeLeft } from '../tema';
 import '../animacoes.css';
+import './neon.css';
 import { ParkedRuns } from '../components/ParkedRuns';
 import { ConfirmSheet } from '../kit/Sheet';
 import { FriendChallenge } from '../profile/FriendsTab';
@@ -118,6 +120,36 @@ export function Floodlight({ side }: { side: 'l' | 'r' }) {
     );
 }
 
+/** Palmeira em silhueta (Noite Neon): tronco torto e as folhas caídas. */
+function Palm({ side }: { side: 'l' | 'r' }) {
+    return (
+        <svg className={`nn-palm ${side}`} viewBox="0 0 32 48" shapeRendering="crispEdges" aria-hidden>
+            <rect x="16" y="11" width="2" height="9" />
+            <rect x="15" y="20" width="2" height="9" />
+            <rect x="15" y="29" width="3" height="9" />
+            <rect x="14" y="38" width="3" height="10" />
+            <polygon points="16,11 3,8 0,14 8,11" />
+            <polygon points="17,11 29,8 32,14 24,11" />
+            <polygon points="16,11 7,2 3,4" />
+            <polygon points="17,11 25,2 29,4" />
+            <polygon points="16,11 11,22 8,20" />
+            <polygon points="17,11 22,22 25,20" />
+        </svg>
+    );
+}
+
+/** O céu da Noite Neon: o sol listrado nascendo atrás da arquibancada e as palmeiras. */
+export function NeonSky() {
+    if (!neonOn) return null;
+    return (
+        <>
+            <i className="nn-sun" />
+            <Palm side="l" />
+            <Palm side="r" />
+        </>
+    );
+}
+
 /** O piso da quadra: tábuas em perspectiva e as linhas (o Estádio e o herói do menu de modos). */
 export function CourtFloor() {
     return (
@@ -166,8 +198,14 @@ export function Stands({
 }) {
     const { t } = useT();
     const ev = weekEvent();
+    const left = useTimeLeft();
+    // Semana Fora da Lei: o nome com o cronômetro numa entrada só (a semana do tipo fica desligada nela, `weekEvent`)
     const week = (
-        ev === ESPECIAL_EVENT ? t('home.eventEspecial') : t('home.eventWeek', { type: typeName(ev) })
+        ev === ESPECIAL_EVENT
+            ? left
+                ? t('home.amb.neonEnds', { left })
+                : t('home.eventEspecial')
+            : t('home.eventWeek', { type: typeName(ev) })
     ).toUpperCase();
     // `led`: o letreiro de outra tela (a Copa do Dia escreve o dia nele)
     // notícia, não a lista de modos: a Copa do Dia de hoje ainda não jogada e a Liga que está pra abrir
@@ -215,6 +253,13 @@ export function Stands({
                     />
                 ))}
                 <span className="es-banner">{clubName}</span>
+                {/* Noite Neon (ui/tema.ts): o letreiro pendurado na cobertura */}
+                {tema && (
+                    <b className="nn-sign">
+                        {t('home.amb.ledNeon')}
+                        {left && <small>{t('home.amb.neonEndsShort', { left })}</small>}
+                    </b>
+                )}
                 {children}
             </div>
             <div className="es-led">
@@ -488,6 +533,7 @@ export function Estadio({
                 <div className="amb-layer es-sky" style={{ '--depth': 0.6 } as CSSProperties}>
                     <i className="es-stars" />
                     <i className="es-stars s2" />
+                    <NeonSky />
                     <Floodlight side="l" />
                     <Floodlight side="r" />
                 </div>

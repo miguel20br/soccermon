@@ -58,6 +58,7 @@ import {
     useCoachFold,
     useCoachTab,
     useFinalHold,
+    WantedStars,
 } from '../components/MatchHud';
 import { captainPlan, MaxLegend, MaxLevelCue } from '../components/MaxSpecial';
 import { PlayerInspect } from '../components/PlayerInspect';
@@ -99,6 +100,7 @@ import { matchMusic, penaltyMusic } from '../music-sync';
 import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
+import { neonOn } from '../tema';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
@@ -867,6 +869,13 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                     <div className={`pitch-wrap${hud ? ' hud-follow' : ''}`} ref={pitchRef}>
                         {/* quadra inteira no celular em pé (4x, 8x): a torcida nas bandas em cima e embaixo */}
                         {hud && <CourtStands names={teamNames} colors={colors} />}
+                        {/* Noite Neon: estrelas de procurado no canto, uma por gol de vantagem (fora do Time Ultimate) */}
+                        {neonOn && !ultimate && (
+                            <WantedStars
+                                n={Math.max(0, Math.min(5, clock.score[0] - clock.score[1]))}
+                                className="wanted-hud"
+                            />
+                        )}
                         {fontsReady ? (
                             <PhaserGame key={`${match.seed}-${sceneKey}`} data={sceneData} />
                         ) : (

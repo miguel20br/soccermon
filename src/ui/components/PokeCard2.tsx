@@ -9,6 +9,7 @@ import { moveProfile } from '../../engine/moves';
 import {
     cardTypeOf,
     type Edition,
+    ESPECIAL_EVENT,
     editionOf,
     ICON_CHANCE,
     mvpLevel,
@@ -25,6 +26,7 @@ import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
 import { cardSprite } from './PokeCard';
 import './pokecard2.css';
+import { NEON_SPECIES, neonOn } from '../tema';
 import { TaughtMark } from './TaughtMark';
 import { Tip } from './Tip';
 import { TypeIcons } from './TypeIcon';
@@ -74,6 +76,8 @@ const TIER_SYMBOL: Record<Tier, string> = {
 
 interface PokeCard2Props {
     inst: PokemonInstance;
+    /** Força o fundo da Semana Fora da Lei (galeria); sem ele, a carta Evento Fora da Lei e `NEON_SPECIES` com o tema ligado (ui/tema.ts). */
+    neon?: boolean;
     variant: CardVariant;
     /** Posição para a nota (padrão: a principal). */
     position?: Position;
@@ -175,6 +179,7 @@ export const PokeCard2 = memo(function PokeCard2({
     tipFocus,
     bare,
     art,
+    neon,
 }: PokeCard2Props) {
     const tr = useT();
     const d = cardData(inst, tr, position);
@@ -216,6 +221,9 @@ export const PokeCard2 = memo(function PokeCard2({
         if (edition === 'destaque') classes.push(`pr-d${inst.special?.level ?? 1}`);
         if (edition === 'evento')
             classes.push(`pr-ev-${(inst.special?.event ?? inst.special?.type ?? '').toLowerCase()}`);
+        // fundo de pôr do sol: a carta Evento Fora da Lei sempre; as espécies da lista enquanto o tema vale
+        if (neon ?? (inst.special?.event === ESPECIAL_EVENT || (neonOn && NEON_SPECIES.has(inst.speciesId))))
+            classes.push('pc2-neon');
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)

@@ -9,6 +9,7 @@ import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { TopActions } from '../components/TopActions';
 import { feedback } from '../feedback';
 import { reduceMotionOn } from '../settings-sync';
+import { NEON_STREET, neonOn } from '../tema';
 import { Arena } from './Arena';
 import { Estadio } from './Estadio';
 import { SpriteNearCtx } from './FieldSprite';
@@ -18,7 +19,7 @@ import { Rota } from './Rota';
 import { Sede } from './Sede';
 import { TopBar } from './TopBar';
 import { installTabBack } from './tab-back';
-import { clubWild, rollAll, type Wild, wildQuota } from './wild';
+import { clubWild, rollAll, streetWild, type Wild, wildQuota } from './wild';
 import './ambientes.css';
 import { openPage } from '../doors';
 import { playMoment, randomArt, WIPE_IN_MS } from '../kit/MomentWipe';
@@ -76,7 +77,9 @@ export function Ambientes({ onModes }: { onModes?: () => void }) {
     // os Pokémon ambiente: sorteio novo a cada abertura, puxando pra quem você já viu na Pokédex
     const [rolled] = useState(() => {
         const dex = useGame.getState().dex;
-        return rollAll((id) => !!dex[id]);
+        const r = rollAll((id) => !!dex[id]);
+        // Noite Neon: os "da rua" na beira do Estádio
+        return neonOn ? { ...r, estadio: streetWild(r.estadio, NEON_STREET) } : r;
     });
     // na Sede andam os mais usados do clube (sem partida jogada, o sorteio de sempre)
     const dex = useGame((s) => s.dex);

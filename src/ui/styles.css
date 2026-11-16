@@ -4756,6 +4756,79 @@ button,
     font-size: 14px;
     color: var(--yellow);
 }
+/* Noite Neon (ui/tema.ts): estrelas de procurado (WantedStars). Brancas de contorno preto, como no HUD de mundo
+   aberto; as apagadas ficam só no contorno */
+.wanted {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+.wanted span {
+    display: grid;
+    color: rgb(255 255 255 / 30%);
+    filter: drop-shadow(1px 1px 0 #000) drop-shadow(-1px -1px 0 #000);
+}
+.wanted .on {
+    color: #fff;
+}
+.wanted .on .hud-icon {
+    fill: #fff;
+}
+.rh-wanted {
+    margin-top: 4px;
+}
+.rh-wanted .hud-icon {
+    width: 28px;
+    height: 28px;
+}
+.rh-wanted .on {
+    animation: rh-wanted 260ms var(--ease-pop) both;
+    animation-delay: calc(900ms + var(--i) * 140ms);
+}
+@keyframes rh-wanted {
+    from {
+        opacity: 0;
+        transform: scale(1.8);
+    }
+}
+/* na partida: canto de cima à direita da quadra; some sem vantagem, acende estrela a estrela e pisca com as 5 */
+.wanted-hud {
+    position: absolute;
+    z-index: 6;
+    top: 6px;
+    right: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 250ms var(--ease-out);
+}
+.wanted-hud:has(.on) {
+    opacity: 1;
+}
+.wanted-hud .hud-icon {
+    width: 20px;
+    height: 20px;
+}
+.wanted-hud span {
+    transition: color 250ms var(--ease-out);
+}
+.wanted-hud.max .on {
+    animation: wanted-blink 0.8s steps(1) infinite;
+}
+@keyframes wanted-blink {
+    50% {
+        color: #ff4f9a;
+    }
+}
+@media (min-width: 900px) {
+    .wanted-hud .hud-icon {
+        width: 26px;
+        height: 26px;
+    }
+}
+:root[data-reduce-motion="true"] .wanted-hud.max .on,
+:root[data-reduce-motion="true"] .rh-wanted .on {
+    animation: none;
+}
 .rh-squad {
     display: flex;
     justify-content: center;
@@ -8031,4 +8104,77 @@ body {
 .cl-num.on {
     color: var(--yellow);
     font-weight: 700;
+}
+
+/* ---------- Noite Neon (ui/tema.ts): o fim de jogo vira tela de missão ---------- */
+/* letra gorda de contorno preto grosso, sombra dura e inclinada (imitação de estilo na Galmuri, sem fonte de fora) */
+.rh-gta .rh-title {
+    --gs: clamp(34px, calc(7.5 * var(--vw)), 76px);
+    font-size: var(--gfs, clamp(34px, calc(7.5 * var(--vw)), 76px));
+    color: #ffcf3a;
+    -webkit-text-stroke: 0.14em #000;
+    text-shadow:
+        0.06em 0.06em 0 #000,
+        0.1em 0.1em 0 #000;
+    transform: skewX(-8deg);
+    letter-spacing: 0.02em;
+}
+.rh-respect {
+    margin-top: -4px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 21px;
+    font-size: var(--gfs, 21px);
+    font-weight: 700;
+    color: #fff;
+    -webkit-text-stroke: 4px #000;
+    paint-order: stroke fill;
+    text-shadow: 2px 2px 0 #000;
+    transform: skewX(-8deg);
+    animation: rh-respect 300ms 900ms var(--ease-pop) both;
+}
+@keyframes rh-respect {
+    from {
+        opacity: 0;
+        transform: skewX(-8deg) scale(1.6);
+    }
+}
+/* PERDEU: vermelho, maior, torto; a tela desbota pra cinza e a câmera aproxima devagar, e só então a palavra cai */
+.rh-gta.rh-loss .rh-title {
+    --gs: clamp(48px, calc(11 * var(--vw)), 110px);
+    font-size: var(--gfs, clamp(48px, calc(11 * var(--vw)), 110px));
+    color: #e0141e;
+    transform: rotate(-4deg) skewX(-6deg);
+}
+.rh-gta.rh-loss .rh-title span {
+    animation: rh-wasted 220ms calc(1100ms + var(--i) * 0.03s) var(--ease-out) both;
+}
+@keyframes rh-wasted {
+    from {
+        opacity: 0;
+        transform: scale(1.8);
+    }
+}
+/* sem filtro nem transform no painel nem nos botões: o polegar é fixo no celular e se perderia dentro deles */
+.rh-gta.rh-loss > :not(.rh-title, .rh-actions) {
+    animation:
+        rh-gray 1.2s var(--ease-out) both,
+        rh-zoom 6s var(--ease-out) both;
+}
+@keyframes rh-gray {
+    to {
+        filter: grayscale(1) brightness(0.85);
+    }
+}
+@keyframes rh-zoom {
+    to {
+        scale: 1.04;
+    }
+}
+:root[data-reduce-motion="true"] .rh-gta.rh-loss > :not(.rh-title, .rh-actions) {
+    animation: none;
+    filter: grayscale(1) brightness(0.85);
+}
+:root[data-reduce-motion="true"] .rh-gta.rh-loss .rh-title span,
+:root[data-reduce-motion="true"] .rh-respect {
+    animation: none;
 }
