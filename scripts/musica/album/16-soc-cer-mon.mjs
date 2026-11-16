@@ -16,7 +16,7 @@ import { MOTIVO as SURGE } from '../pecas/livre-lt-surge.mjs';
 import { MOTIVO as BROCK } from '../pecas/tema-brock.mjs';
 import { MOTIVO as MISTY } from '../pecas/tema-misty.mjs';
 import { MOTIVO as ROCKET } from '../pecas/tema-rocket.mjs';
-import { bass, drum, GANCHO, I, MAJOR, mel, midi, padChord, Song, stabs, thirdBelow } from '../synth.mjs';
+import { bass, drum, GANCHO, I, MAJOR, MINOR, mel, midi, padChord, Song, stabs, thirdBelow } from '../synth.mjs';
 
 export const meta = { titulo: 'Soc-cer-MON!', faixa: 16 };
 
@@ -177,9 +177,9 @@ function rival(B, r, t0, ate) {
     }
 }
 
-/** Esboço de 15 s: fanfarra (1), os nove rivais em meio compasso cada (4,5), a virada (½), o gancho em Ré (1). */
+/** Esboço (~29 s, 2ª versão): fanfarra (1), os nove rivais um compasso cada (9), a virada (1), o gancho em Ré (1). */
 export function esboco() {
-    const S = new Song({ bpm: 100, bars: 7, swing: 0.1, tail: 3 });
+    const S = new Song({ bpm: 100, bars: 12, swing: 0.1, tail: 3 });
     const B = banda(S);
     const C = MAJOR(0);
     // 0 · o apito final e a fanfarra do Campeão ("pam pam-pam PAAM"), com o rufar
@@ -194,41 +194,35 @@ export function esboco() {
     padChord(B.pad, 0, 'G', 8, { low: 55, at: 8 });
     bass(B.tuba, 0, 'C', '0:4 5:4 r:8');
     bass(B.tuba, 0, 'G', 'r:8 0:4 5:4');
-    // 1 a 5 · a temporada passa: a base e um rival a cada meio compasso
+    // 1 a 9 · a temporada passa: um rival por compasso, sobre a base
     RIVAIS.forEach((r, i) => {
-        const t0 = 16 + i * 8;
-        rival(B, r, t0, 8);
+        const b = 1 + i;
+        base(B, b, r.ac[0], r.ac[0]);
+        rival(B, r, b * 16, 16);
+        if (i % 3 === 0) drum(B.cr, b, 1, 'X...............', { vel: 0.7 });
     });
-    for (let b = 1; b <= 5; b++) {
-        const i = (b - 1) * 2;
-        const c1 = RIVAIS[i].ac[0];
-        const c2 = RIVAIS[i + 1]?.ac[0] ?? 'A7';
-        if (b < 5) base(B, b, c1, c2);
-    }
-    drum(B.cr, 1, 1, 'X...............', { vel: 0.7 });
-    // 5 · Giovanni na 1ª metade; na 2ª, a virada em Lá7 (o V de Ré), a caixa e o apito subindo
-    bass(B.bs, 5, 'Cm', '0:3 0:3 8:2 r:8');
-    drum(B.k, 5, 1, 'X.....x.X.X.X.X.');
-    drum(B.sn, 5, 1, '........xxXxXXXX', { vel: 0.9 });
-    bass(B.bs, 5, 'A7', 'r:8 0:2 0:2 3:2 5:2');
-    stabs(B.br, 5, 'A7', [8, 10, [12, 4]], { low: 61, n: 3, vel: 0.8 });
-    B.apito.note(5 * 16 + 12, 0, 0, 0.7);
-    // 6 · o gancho em Ré com tudo, e o "hey hey" dobrado de torcida
+    // 10 · a virada em Lá7 (o V de Ré), a caixa e o apito subindo
+    bass(B.bs, 10, 'A7', '0:2 0:2 3:2 5:2 0:2 0:2 3:2 5:2');
+    stabs(B.br, 10, 'A7', [0, 3, 6, [8, 2], 10, [12, 4]], { low: 61, n: 3, vel: 0.8 });
+    drum(B.k, 10, 1, 'X...X...X.X.X.X.');
+    drum(B.sn, 10, 1, 'x...x...xxXxXXXX', { vel: 0.9 });
+    B.apito.note(10 * 16 + 12, 0, 0, 0.7);
+    // 11 · o gancho em Ré com tudo, e o "hey hey" dobrado de torcida
     const D = MAJOR(2);
-    drum(B.cr, 6, 1, 'X...............');
-    drum(B.k, 6, 1, 'X.....x...x.....');
-    drum(B.ti, 6, 1, 'X...............');
-    B.torcida.note(6 * 16, 2, 0, 1.2);
-    mel(B.br, 6, [GANCHO.em({ tom: 2 })]);
-    mel(B.br2, 6, [GANCHO.em({ tom: 2 })], { harm: thirdBelow(D) });
-    mel(B.lead, 6, [GANCHO.em({ tom: 2 })]);
-    for (const g of [B.cl, B.cl2]) drum(g, 6, 1, 'X..X..X.....X.X.');
-    bass(B.bs, 6, 'D', '0:3 0:3 8:2 r:8');
-    bass(B.tuba, 6, 'D', 'r:12 0:4');
-    padChord(B.pad, 6, 'Dadd9', 16, { low: 62 });
-    stabs(B.gt, 6, 'D', [2, 6], { low: 60, n: 3 });
-    drum(B.cr, 6, 1, '............X...', { vel: 0.8 });
-    arp(B, 6);
+    drum(B.cr, 11, 1, 'X...............');
+    drum(B.k, 11, 1, 'X.....x...x.....');
+    drum(B.ti, 11, 1, 'X...............');
+    B.torcida.note(11 * 16, 2, 0, 1.2);
+    mel(B.br, 11, [GANCHO.em({ tom: 2 })]);
+    mel(B.br2, 11, [GANCHO.em({ tom: 2 })], { harm: thirdBelow(D) });
+    mel(B.lead, 11, [GANCHO.em({ tom: 2 })]);
+    for (const g of [B.cl, B.cl2]) drum(g, 11, 1, 'X..X..X.....X.X.');
+    bass(B.bs, 11, 'D', '0:3 0:3 8:2 r:8');
+    bass(B.tuba, 11, 'D', 'r:12 0:4');
+    padChord(B.pad, 11, 'Dadd9', 16, { low: 62 });
+    stabs(B.gt, 11, 'D', [2, 6], { low: 60, n: 3 });
+    drum(B.cr, 11, 1, '............X...', { vel: 0.8 });
+    arp(B, 11);
     return S;
 }
 
@@ -239,19 +233,19 @@ function arp(B, b) {
 }
 
 /**
- * A faixa inteira (~2:10, 52 compassos a 100 BPM):
+ * A faixa inteira (~2:26, 61 compassos a 100 BPM; 2ª versão: três compassos por rival, pedido do Miguel em 16/11):
  *   0-3   · o apito final (curto, curto, longo), a torcida explode, a fanfarra do Campeão e a torcida responde
  *   4-11  · a festa: o funk com o SOC-CER-MON no baixo; os metais cantam a fanfarra, a torcida responde com o gancho
- *   12-29 · a temporada passando: os nove rivais, dois compassos cada, no timbre e com a assinatura de cada um, sobre
- *           a base; a torcida grita "hey hey" entre um bloco de três e o outro
- *   30-31 · a sombra do Giovanni: o chão treme, a banda some, sobra a torcida batendo o 3-3-2 sozinha, crescendo
- *   32    · a virada: Lá7, caixa e o apito subindo
- *   33-48 · sobe um tom (Ré): o gancho com tudo, o "hey hey" dobrado; na 2ª metade, a fanfarra em Ré e cada rival
+ *   12-38 · a temporada passando: os nove rivais, três compassos cada (o motivo em 2, no timbre e com a assinatura
+ *           de cada um, sobre a base; e 1 de resposta da torcida ou dos metais)
+ *   39-40 · a sombra do Giovanni: o chão treme, a banda some, sobra a torcida batendo o 3-3-2 sozinha, crescendo
+ *   41    · a virada: Lá7, caixa e o apito subindo
+ *   42-57 · sobe um tom (Ré): o gancho com tudo, o "hey hey" dobrado; na 2ª metade, a fanfarra em Ré e cada rival
  *           volta só com o som de assinatura dele, um por compasso, como quem cumprimenta o campeão
- *   49-51 · o fim do Campeão: o Ré com nona nos metais, o arpejo, prato e tímpano, e a torcida
+ *   58-60 · o fim do Campeão: o Ré com nona nos metais, o arpejo, prato e tímpano, e a torcida
  */
 export default function socCerMon() {
-    const S = new Song({ bpm: 100, bars: 52, swing: 0.1, tail: 4 });
+    const S = new Song({ bpm: 100, bars: 61, swing: 0.1, tail: 4 });
     const B = banda(S);
     const C = MAJOR(0);
     const D = MAJOR(2);
@@ -303,30 +297,45 @@ export default function socCerMon() {
     mel(B.br2, 8, ['C5:2 C5:1 C5:1 A5:4 G5:2 F5:1 G5:1 A5:4', 'B5:2 B5:1 B5:1 G5:2 G5:1 G5:1 D5:8']);
     mel(B.lead, 10, [GANCHO.em({ grau: 1 }), GANCHO.em({ grau: 4, oitava: -1 })]);
     for (const b of [4, 8]) drum(B.cr, b, 1, 'X...............', { vel: 0.7 });
-    // 12-29 · os nove rivais, dois compassos cada, sobre a base
+    // 12-38 · os nove rivais, três compassos cada: o motivo inteiro (2) e uma resposta curta (1) pro próximo
+    // entrar respirando. A resposta alterna: a torcida canta o SOC-CER-MON (no modo do rival), ou os metais repetem o
+    // começo do motivo dele, como quem comenta; no fim dela, Sol7 e a caixa levam pro próximo.
     RIVAIS.forEach((r, i) => {
-        const b = 12 + 2 * i;
+        const b = 12 + 3 * i;
+        const menor = !['erika', 'sabrina'].includes(r.nome);
+        const ton = menor ? 'Cm' : 'C';
         base(B, b, r.ac[0], r.ac[0], { palmas: false });
-        base(B, b + 1, r.ac[1], r.ac[1], { palmas: i % 3 === 2 });
+        base(B, b + 1, r.ac[1], r.ac[1], { palmas: false });
+        base(B, b + 2, ton, 'G7', { palmas: false });
         rival(B, r, b * 16, 32);
+        if (i % 2 === 0) {
+            const g = GANCHO.em({ menor });
+            mel(B.br, b + 2, [g], { vel: 0.8 });
+            mel(B.br2, b + 2, [g], { harm: thirdBelow(menor ? MINOR(0) : C), vel: 0.6 });
+            palmas(b + 2, GANCHO.palmas, 0.9);
+        } else {
+            frase(B.br2, (b + 2) * 16, r.m[0], { shift: r.s - 12, k: r.k ?? 1, ate: 8 / (r.k ?? 1), vel: 0.8 });
+            palmas(b + 2, '............x.x.', 0.7);
+        }
+        drum(B.sn, b + 2, 1, '............ooxX', { vel: 0.6 });
         if (i % 3 === 0) drum(B.cr, b, 1, 'X...............', { vel: 0.6 });
     });
-    // 30-31 · a sombra do Giovanni: o chão treme, sobra a torcida no 3-3-2, crescendo
-    B.tremor.note(30 * 16, 0, 0, 1);
-    bass(B.tuba, 30, 'Cm', '0:16', { vel: 0.8 });
-    bass(B.bs, 30, 'Cm', '0:3 0:3 8:2 r:8', { vel: 0.7 });
-    bass(B.bs, 31, 'Cm', '0:3 0:3 8:2 0:3 0:3 8:2');
-    palmas(30, 'X..X..X.........', 0.6);
-    palmas(31, 'X..X..X.X..X..X.', 0.9);
-    B.torcida.note(31 * 16, 0, 0, 0.9);
-    drum(B.k, 31, 1, 'X..X..X.X..X..X.');
-    // 32 · a virada: Lá7 (o V de Ré), caixa e o apito subindo
-    bass(B.bs, 32, 'A7', '0:2 0:2 3:2 5:2 0:2 0:2 3:2 5:2');
-    stabs(B.br, 32, 'A7', [0, 3, 6, [8, 2], 10, [12, 4]], { low: 61, n: 3, vel: 0.8 });
-    drum(B.sn, 32, 1, 'x...x...xxXxXXXX', { vel: 0.9 });
-    drum(B.k, 32, 1, 'X...X...X.X.X.X.');
-    B.apito.note(32 * 16 + 12, 0, 0, 0.8);
-    // 33-48 · Ré: o gancho com tudo
+    // 39-40 · a sombra do Giovanni: o chão treme, sobra a torcida no 3-3-2, crescendo
+    B.tremor.note(39 * 16, 0, 0, 1);
+    bass(B.tuba, 39, 'Cm', '0:16', { vel: 0.8 });
+    bass(B.bs, 39, 'Cm', '0:3 0:3 8:2 r:8', { vel: 0.7 });
+    bass(B.bs, 40, 'Cm', '0:3 0:3 8:2 0:3 0:3 8:2');
+    palmas(39, 'X..X..X.........', 0.6);
+    palmas(40, 'X..X..X.X..X..X.', 0.9);
+    B.torcida.note(40 * 16, 0, 0, 0.9);
+    drum(B.k, 40, 1, 'X..X..X.X..X..X.');
+    // 41 · a virada: Lá7 (o V de Ré), caixa e o apito subindo
+    bass(B.bs, 41, 'A7', '0:2 0:2 3:2 5:2 0:2 0:2 3:2 5:2');
+    stabs(B.br, 41, 'A7', [0, 3, 6, [8, 2], 10, [12, 4]], { low: 61, n: 3, vel: 0.8 });
+    drum(B.sn, 41, 1, 'x...x...xxXxXXXX', { vel: 0.9 });
+    drum(B.k, 41, 1, 'X...X...X.X.X.X.');
+    B.apito.note(41 * 16 + 12, 0, 0, 0.8);
+    // 42-57 · Ré: o gancho com tudo
     const RE = [
         ['D', 'D'],
         ['Bm7', 'Bm7'],
@@ -334,7 +343,7 @@ export default function socCerMon() {
         ['D', 'A7'],
     ];
     for (let i = 0; i < 16; i++) {
-        const b = 33 + i;
+        const b = 42 + i;
         const [c1, c2] = RE[i % 4];
         base(B, b, c1, c2, { palmas: false });
         padChord(B.pad, b, c1, 16, { low: 57, vel: 0.6 });
@@ -353,8 +362,8 @@ export default function socCerMon() {
     }
     // 2ª metade: a fanfarra em Ré nas respostas, e cada rival cumprimenta com a assinatura dele
     const M2 = ['D5:2 D5:1 D5:1 A5:4 G5:2 F#5:1 G5:1 A5:4', 'B5:2 B5:1 B5:1 C#6:2 C#6:1 C#6:1 D6:8'];
-    for (const b of [42, 46]) mel(B.lead, b, [M2[(b - 42) / 4]], { vel: 0.8 });
-    mel(B.br, 34, ['r:8 F#5:2 A5:2 D6:4']);
+    for (const b of [51, 55]) mel(B.lead, b, [M2[(b - 51) / 4]], { vel: 0.8 });
+    mel(B.br, 43, ['r:8 F#5:2 A5:2 D6:4']);
     const ASSIN = [
         [B.pedra, -5],
         [B.bolhas, 7],
@@ -366,29 +375,29 @@ export default function socCerMon() {
         [B.fogo, 0],
     ];
     ASSIN.forEach(([P, p], i) => {
-        const t = (41 + i) * 16 + 14;
+        const t = (50 + i) * 16 + 14;
         if (p == null) for (const m of [62, 66, 69, 72]) P.note(t, m, 1, 0.7);
         else P.note(t, p, 0, 0.8);
     });
-    // 49-51 · o fim do Campeão, em Ré
-    mel(B.br, 49, ['D6:16', 'D6:12 r:4']);
-    mel(B.br2, 49, ['A5:16', 'A5:12 r:4']);
-    mel(B.lead, 49, ['r:8 F#6:2 A6:2 D7:4', GANCHO.em({ tom: 2 })]);
-    palmas(50, 'X..X..X.....X.X.', 1.2);
-    bass(B.tuba, 49, 'D', '0:16');
-    bass(B.bs, 49, 'D', '0:3 0:3 8:2 r:8');
-    padChord(B.pad, 49, 'Dadd9', 48, { low: 62 });
-    drum(B.cr, 49, 1, 'X.......X.......');
-    drum(B.ti, 49, 1, 'X...............');
-    drum(B.k, 49, 1, 'X...............');
-    B.torcida.note(49 * 16, 2, 0, 1.2);
-    for (const b of [49, 50]) {
+    // 58-60 · o fim do Campeão, em Ré
+    mel(B.br, 58, ['D6:16', 'D6:12 r:4']);
+    mel(B.br2, 58, ['A5:16', 'A5:12 r:4']);
+    mel(B.lead, 58, ['r:8 F#6:2 A6:2 D7:4', GANCHO.em({ tom: 2 })]);
+    palmas(59, 'X..X..X.....X.X.', 1.2);
+    bass(B.tuba, 58, 'D', '0:16');
+    bass(B.bs, 58, 'D', '0:3 0:3 8:2 r:8');
+    padChord(B.pad, 58, 'Dadd9', 48, { low: 62 });
+    drum(B.cr, 58, 1, 'X.......X.......');
+    drum(B.ti, 58, 1, 'X...............');
+    drum(B.k, 58, 1, 'X...............');
+    B.torcida.note(58 * 16, 2, 0, 1.2);
+    for (const b of [58, 59]) {
         const notas = [74, 76, 78, 81, 86, 88, 90, 93];
-        for (let r = 0; r < 16; r++) B.ar.note(b * 16 + r, notas[r % 8], 1, b === 49 ? 0.8 : 0.5);
+        for (let r = 0; r < 16; r++) B.ar.note(b * 16 + r, notas[r % 8], 1, b === 58 ? 0.8 : 0.5);
     }
-    drum(B.cr, 51, 1, 'X...............');
-    drum(B.ti, 51, 1, 'X...............');
-    bass(B.tuba, 51, 'D', '0:16');
-    stabs(B.br, 51, 'D', [[0, 8]], { low: 62, n: 3 });
+    drum(B.cr, 60, 1, 'X...............');
+    drum(B.ti, 60, 1, 'X...............');
+    bass(B.tuba, 60, 'D', '0:16');
+    stabs(B.br, 60, 'D', [[0, 8]], { low: 62, n: 3 });
     return S;
 }
