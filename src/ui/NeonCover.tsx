@@ -9,6 +9,16 @@ const KEY = 'soccermon-neon-capa';
 /** Some sozinha depois disso (um toque fecha antes). */
 const SHOW_MS = 4500;
 const EXIT_MS = 250;
+/** Lido uma vez quando o pedaço carrega (fora do render: o StrictMode chama o useState duas vezes). */
+const FIRST = (() => {
+    try {
+        if (sessionStorage.getItem(KEY)) return false;
+        sessionStorage.setItem(KEY, '1');
+    } catch {
+        // sem storage: mostra a cada abertura
+    }
+    return true;
+})();
 
 /** Óculos escuros de pixel, com o reflexo rosa. */
 function Shades({ className }: { className: string }) {
@@ -70,21 +80,13 @@ const Panel = ({ k, r, children }: { k: string; r: number; children: ReactNode }
 
 /**
  * A capa: colagem de painéis tortos no estilo das capas de jogo de mundo aberto (paródia de linguagem visual, com os
- * Pokémon do jogo): o Pikachu de óculos, o Squirtle no conversível, o Gengar no neon, o Lapras no pôr do sol, o Meowth
- * procurado e o logo com o cronômetro do evento.
+ * Pokémon do jogo): o Pikachu de óculos, o Squirtle no conversível e os "da rua" da Semana Neon (Hitmonlee
+ * e Hitmonchan no neon, o Blastoise no pôr do sol, o Machamp procurado) e o logo com o cronômetro.
  */
 export function NeonCover() {
     const { t } = useT();
     const left = useTimeLeft();
-    const [state, setState] = useState<'on' | 'out' | 'off'>(() => {
-        try {
-            if (sessionStorage.getItem(KEY)) return 'off';
-            sessionStorage.setItem(KEY, '1');
-        } catch {
-            // sem storage: mostra a cada abertura
-        }
-        return 'on';
-    });
+    const [state, setState] = useState<'on' | 'out' | 'off'>(FIRST ? 'on' : 'off');
     const close = () => setState((s) => (s === 'on' ? 'out' : s));
     useEffect(() => {
         if (state === 'on') {
@@ -121,16 +123,17 @@ export function NeonCover() {
                 </span>
             </Panel>
             <Panel k="gengar" r={-1}>
-                <img className="nc-mon pixel" src="assets/cards/94.gif" alt="" />
+                <img className="nc-mon pixel duo l" src="assets/cards/106.gif" alt="" />
+                <img className="nc-mon pixel duo r" src="assets/cards/107.gif" alt="" />
             </Panel>
             <Panel k="lapras" r={1.6}>
                 <i className="nc-sun low" />
                 <i className="nc-sea" />
                 <Palm />
-                <img className="nc-mon pixel" src="assets/cards/131.gif" alt="" />
+                <img className="nc-mon pixel" src="assets/cards/9.gif" alt="" />
             </Panel>
             <Panel k="meowth" r={-1.8}>
-                <img className="nc-mon pixel" src="assets/cards/52.gif" alt="" />
+                <img className="nc-mon pixel" src="assets/cards/68.gif" alt="" />
                 <span className="nc-stars" aria-hidden>
                     {[0, 1, 2, 3, 4].map((i) => (
                         <svg key={i} viewBox="0 0 24 24" aria-hidden>

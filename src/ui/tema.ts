@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 /**
  * Noite Neon: decoração da semana do GTA 6 (paródia de clima e de linguagem visual, sem logo, nome, cidade ou
  * personagem de lá): céu de pôr do sol neon, palmeiras, neon na quadra, capa em painéis, estrelas de procurado na
- * goleada e o fim de jogo "MISSÃO CUMPRIDA" / "PERDEU". Liga sozinha de quinta 19/11/2026 00:00 a domingo 22/11/2026
- * 23:59 (Brasília) e some. `?tema=neon` liga na hora e `?tema=off` desliga. O CSS lê `data-tema` no `<html>`.
+ * goleada e o fim de jogo "MISSÃO CUMPRIDA" / "PERDEU". Vale de 16/11/2026 00:00 (no ar assim que subir) a domingo
+ * 22/11/2026 23:59 (Brasília) e some. Na tela, "SEMANA NEON". Os "da rua" (Hitmonlee, Hitmonchan, Machamp e Blastoise)
+ * andam pelo Estádio e estão na capa. Só enfeite: nada no motor. `?tema=neon` liga na hora e `?tema=off` desliga. O CSS lê `data-tema` no `<html>`.
  */
-export const NEON_FROM = Date.parse('2026-11-19T00:00:00-03:00');
+export const NEON_FROM = Date.parse('2026-11-16T00:00:00-03:00');
 export const NEON_TO = Date.parse('2026-11-23T00:00:00-03:00');
 
 export type Tema = 'neon' | null;
@@ -19,7 +20,18 @@ export function temaOf(search: string, now: number): Tema {
 }
 
 // ponytail: lido uma vez ao abrir; quem deixar a aba aberta na virada de domingo fica com o tema até recarregar
-export const tema: Tema = typeof window === 'undefined' ? null : temaOf(window.location.search, Date.now());
+// nos testes fica desligado (senão a semana do tema mudaria o resultado deles)
+export const tema: Tema =
+    typeof window === 'undefined' || import.meta.env.MODE === 'test'
+        ? null
+        : temaOf(window.location.search, Date.now());
+/** Os "da rua" da Noite Neon (cosmético): andam pelo Estádio e estão na capa. */
+export const NEON_STREET = [106, 107, 68, 9] as const;
+/**
+ * Espécies cuja carta ganha o fundo de pôr do sol neon enquanto o tema vale (só visual: nota e atributos iguais). A
+ * lista sai com o ok do Miguel; vazia, nenhuma carta muda. Galeria: `?cards=1`, seção "Semana Neon".
+ */
+export const NEON_SPECIES: ReadonlySet<number> = new Set<number>([]);
 export const neonOn = tema === 'neon';
 
 export function startTema() {

@@ -4,10 +4,10 @@ import { NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
 const at = (iso: string) => Date.parse(iso);
 
 describe('Noite Neon', () => {
-    it('liga na quinta 19/11 00:00 de Brasília e não antes', () => {
-        expect(NEON_FROM).toBe(Date.UTC(2026, 10, 19, 3));
-        expect(temaOf('', at('2026-11-18T23:59:59-03:00'))).toBe(null);
-        expect(temaOf('', at('2026-11-19T00:00:00-03:00'))).toBe('neon');
+    it('liga na segunda 16/11 00:00 de Brasília e não antes', () => {
+        expect(NEON_FROM).toBe(Date.UTC(2026, 10, 16, 3));
+        expect(temaOf('', at('2026-11-15T23:59:59-03:00'))).toBe(null);
+        expect(temaOf('', at('2026-11-16T00:00:00-03:00'))).toBe('neon');
     });
     it('vale até domingo 22/11 23:59 de Brasília e some na segunda', () => {
         expect(NEON_TO).toBe(Date.UTC(2026, 10, 23, 3));
@@ -17,9 +17,9 @@ describe('Noite Neon', () => {
         expect(temaOf('', at('2026-11-23T02:30:00Z'))).toBe('neon');
     });
     it('o atalho liga ou desliga', () => {
-        expect(temaOf('?tema=neon', at('2026-11-16T12:00:00-03:00'))).toBe('neon');
+        expect(temaOf('?tema=neon', at('2026-11-10T12:00:00-03:00'))).toBe('neon');
         expect(temaOf('?tema=off', at('2026-11-20T12:00:00-03:00'))).toBe(null);
-        expect(temaOf('?tema=xyz', at('2026-11-16T12:00:00-03:00'))).toBe(null);
+        expect(temaOf('?tema=xyz', at('2026-11-10T12:00:00-03:00'))).toBe(null);
     });
 });
 
@@ -27,7 +27,7 @@ describe('cronômetro da Noite Neon', () => {
     const end = NEON_TO;
     const until = (ms: number) => timeLeft(end - ms);
     it('dias e horas, depois horas e minutos, depois só minutos', () => {
-        expect(timeLeft(NEON_FROM)).toBe('4d 0h');
+        expect(timeLeft(NEON_FROM)).toBe('7d 0h');
         expect(until((2 * 24 + 14) * 3_600_000)).toBe('2d 14h');
         expect(until((5 * 60 + 32) * 60_000)).toBe('5h 32min');
         expect(until(24 * 3_600_000 - 60_000)).toBe('23h 59min');

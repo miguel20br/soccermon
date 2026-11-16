@@ -23,6 +23,8 @@ import {
     rollWild,
     spawn,
     step,
+    streetWild,
+    type Wild,
     wildQuota,
 } from './wild';
 
@@ -507,5 +509,19 @@ describe('clubWild (Sede: os mais usados do clube)', () => {
         const a = spawn(w, area, () => 0.5);
         poke(a, 0);
         expect(a.emote).toBe('goal');
+    });
+});
+
+describe('Noite Neon: os da rua no Estádio', () => {
+    it('troca só a beira por dois da rua, sem repetir, e mantém o resto', () => {
+        const list: Wild[] = [
+            { key: 'estadio-0', id: 143, zone: 'stand', mood: 'sleepy' },
+            { key: 'estadio-1', id: 58, zone: 'ball', mood: 'busy' },
+            { key: 'estadio-2', id: 25, zone: 'edge', mood: 'calm' },
+        ];
+        const out = streetWild(list, [106, 107, 68, 9], () => 0);
+        expect(out.slice(0, 2)).toEqual(list.slice(0, 2));
+        const edge = out.filter((w) => w.zone === 'edge').map((w) => w.id);
+        expect(edge).toEqual([106, 107]);
     });
 });

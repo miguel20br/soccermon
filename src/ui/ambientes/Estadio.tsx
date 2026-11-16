@@ -204,6 +204,7 @@ export function Stands({
     const playedToday = useGame((s) => s.daily.some((e) => e.day === dailyDay()));
     const liga = ligaTeaser();
     const news = [
+        // Semana Neon: o nome e o cronômetro numa entrada só
         left && t('home.amb.neonEnds', { left }).toUpperCase(),
         week,
         !playedToday && t('home.amb.ledDaily'),

@@ -4103,3 +4103,32 @@ button.pc2.pc2-fx:hover {
     height: 100%;
     filter: drop-shadow(0 0.06em 0 rgba(0, 0, 0, 0.5));
 }
+
+/* ---------- Semana Neon (ui/tema.ts, NEON_SPECIES): fundo de pôr do sol neon, só visual ----------
+   Céu rosa, roxo e laranja, sol listrado, palmeiras em silhueta e chão escuro com grade (onde ficam os atributos, que
+   continuam brancos e legíveis); borda rosa com o contorno azul. A nota e os números não mudam. */
+.pc2-metal.pc2-neon.pr {
+    --ink: #ffffff;
+    --ink-soft: rgba(255, 255, 255, 0.82);
+    --edge: #ff7fc8;
+    --line: rgba(255, 255, 255, 0.3);
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='xMidYMid slice' shape-rendering='crispEdges'%3E%3Cg fill='%23ffb347'%3E%3Ccircle cx='50' cy='70' r='24'/%3E%3C/g%3E%3Cg fill='%23ff6a8e'%3E%3Crect x='20' y='72' width='60' height='3'/%3E%3Crect x='20' y='78' width='60' height='4'/%3E%3C/g%3E%3Cg fill='%23ff4f9a' opacity='.9'%3E%3Crect x='20' y='62' width='60' height='2'/%3E%3C/g%3E%3Cg fill='%231c0a2e'%3E%3Crect x='11' y='48' width='2' height='38'/%3E%3Cpolygon points='12,48 0,46 -2,52 5,49'/%3E%3Cpolygon points='12,48 24,45 27,51 19,49'/%3E%3Cpolygon points='12,48 5,39 2,41'/%3E%3Cpolygon points='12,48 20,39 23,41'/%3E%3Crect x='88' y='54' width='2' height='32'/%3E%3Cpolygon points='89,54 77,52 75,58 82,55'/%3E%3Cpolygon points='89,54 101,51 104,57 96,55'/%3E%3Cpolygon points='89,54 82,45 79,47'/%3E%3Cpolygon points='89,54 97,45 100,47'/%3E%3Crect x='0' y='84' width='100' height='56'/%3E%3C/g%3E%3Cg stroke='%23ff5fa8' stroke-width='.5' opacity='.55'%3E%3Cline x1='0' y1='90' x2='100' y2='90'/%3E%3Cline x1='0' y1='99' x2='100' y2='99'/%3E%3Cline x1='0' y1='112' x2='100' y2='112'/%3E%3Cline x1='0' y1='128' x2='100' y2='128'/%3E%3Cline x1='50' y1='84' x2='50' y2='140'/%3E%3Cline x1='35' y1='84' x2='10' y2='140'/%3E%3Cline x1='65' y1='84' x2='90' y2='140'/%3E%3Cline x1='20' y1='84' x2='-30' y2='140'/%3E%3Cline x1='80' y1='84' x2='130' y2='140'/%3E%3C/g%3E%3C/svg%3E")
+        center / cover no-repeat,
+        linear-gradient(180deg, #1a0b3d 0%, #5a1a78 25%, #b0307f 45%, #ff8a4c 60%, #12062a 60.5%);
+    box-shadow:
+        0 0.25em 0 rgba(0, 0, 0, 0.35),
+        inset 0 0 0 0.12em var(--edge),
+        0 0 0 0.08em #4fd8ff,
+        0 0 0.6em rgba(255, 95, 168, 0.6);
+    text-shadow: 0 0.07em 0 rgba(0, 0, 0, 0.6);
+}
+/* o desenho do tipo do Evento e a marca d'água saem: o fundo já é o desenho */
+.pc2-metal.pc2-neon.pr .pr-ev,
+.pc2-metal.pc2-neon.pr .m-mark {
+    display: none;
+}
+.pc2-metal.pc2-neon.pr .m-tag {
+    background: #12062a;
+    box-shadow: inset 0 0 0 0.12em #ff7fc8;
+}
