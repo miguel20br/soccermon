@@ -1,0 +1,187 @@
+// Kit das faixas NOVAS da rodada 3 do álbum (17/11/2026): os timbres que o `kit.mjs` não tem (ele fica intocado).
+// FM de 2 operadores no jeito do Mega Drive (lead, metal e baixo de slap: o "Sonic Mania"), o golpe de orquestra, o
+// steel pan e o sub de 808 do dancehall, e os sons de assinatura das faixas novas (a bola caindo no mar, as ondas, o
+// flash dos fotógrafos, as travas da chuteira no concreto do túnel).
+import { voz } from '../pecas/lider-koga.mjs';
+import { k12, som } from '../pecas/livre-ginasio.mjs';
+import { midi, SR } from '../synth.mjs';
+
+const TAU = Math.PI * 2;
+
+/** FM de 2 operadores: o índice vai de `i0` a `i1` em `cai` s (cai = brilho no ataque; sobe = metal que abre). */
+const fm =
+    ({ razao = 1, i0 = 2.5, i1 = 0.8, cai = 0.12, vib = 0.005, abre = 0.004, decai = 0 }) =>
+    (f) => {
+        let pc = 0;
+        let pm = 0;
+        return (t) => {
+            const v = 1 + vib * Math.sin(TAU * 5.5 * t) * Math.min(1, Math.max(0, (t - 0.25) / 0.3));
+            pm += (TAU * f * razao * v) / SR;
+            pc += (TAU * f * v) / SR;
+            const idx = i1 + (i0 - i1) * Math.exp(-t / cai);
+            return Math.sin(pc + idx * Math.sin(pm)) * Math.min(1, t / abre) * (decai ? Math.exp(-t / decai) : 1);
+        };
+    };
+
+/** Lead FM: o "tine" brilhante no ataque que assenta num timbre de palheta. */
+export const fmLead = (S, nome, o = {}) =>
+    voz(S, nome, fm({ razao: 1, i0: 3, i1: 1.1, cai: 0.15 }), o, { pk: 0.4, solta: 0.08 });
+/** Metal FM: o índice SOBE no ataque (o sopro abrindo), como o naipe sintetizado dos 16 bits. */
+export const fmMetal = (S, nome, o = {}) =>
+    voz(S, nome, fm({ razao: 1, i0: 0.2, i1: 1.9, cai: 0.05, abre: 0.02 }), o, { pk: 0.4, solta: 0.09 });
+/** Sino FM (razão 3,5, inarmônico): o arpejo de cristal. */
+export const fmSino = (S, nome, o = {}) =>
+    voz(S, nome, fm({ razao: 3.5, i0: 2.2, i1: 0.2, cai: 0.25, decai: 0.7, vib: 0 }), o, { pk: 0.35, solta: 0.2 });
+
+/** Baixo de slap em FM: o estalo (índice alto que despenca) em cima de uma fundamental redonda. */
+export const fmBaixo = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => {
+            const g = fm({ razao: 1, i0: 4, i1: 0.6, cai: 0.035, decai: 0.6, vib: 0 })(f);
+            return (t) => Math.tanh(1.4 * (g(t) + 0.6 * Math.sin(TAU * f * t) * Math.exp(-t / 0.8)));
+        },
+        o,
+        { pk: 0.55, solta: 0.04 },
+    );
+
+/** Sub de 808 do dancehall: senoide com o "tum" no ataque e um tico de drive, segura a nota. */
+export const sub808 = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => {
+            let ph = 0;
+            return (t) => {
+                ph += (TAU * f * (1 + 0.5 * Math.exp(-t / 0.015))) / SR;
+                return Math.tanh(1.8 * Math.sin(ph)) * Math.min(1, t / 0.003) * Math.exp(-t / 1.4);
+            };
+        },
+        o,
+        { pk: 0.6, solta: 0.06 },
+    );
+
+/** Steel pan: a fundamental, a oitava forte que some, a 3ª parcial um tico desafinada (o tambor de lata). */
+export const steelPan = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => (t) =>
+            (Math.sin(TAU * f * t) +
+                0.55 * Math.sin(TAU * 2 * f * t) * Math.exp(-t / 0.35) +
+                0.22 * Math.sin(TAU * 3.02 * f * t) * Math.exp(-t / 0.12) +
+                0.1 * Math.sin(TAU * 4.2 * f * t) * Math.exp(-t / 0.04)) *
+            Math.exp(-t / 0.9) *
+            Math.min(1, t / 0.003),
+        o,
+        { pk: 0.4, solta: 0.12 },
+    );
+
+/** Golpe de orquestra (power chord: tônica, quinta, oitava e duas oitavas, mais o ruído do arco); `p` = semitons de Lá2. */
+export const orquestra = som(
+    0.7,
+    (p, r) => {
+        const f = 110 * k12(p);
+        const fs = [1, 1.5, 2, 3, 4];
+        const ph = fs.map(() => 0);
+        let v = 0;
+        return (t) => {
+            let y = 0;
+            fs.forEach((m, i) => {
+                ph[i] += (TAU * f * m) / SR;
+                y += (((ph[i] / TAU) % 1) * 2 - 1) / (1 + 0.4 * i);
+            });
+            v += 0.3 * (r() * 2 - 1 - v);
+            return (0.5 * y + 0.4 * v * Math.exp(-t / 0.03)) * Math.min(1, t / 0.003) * Math.exp(-t / 0.16);
+        };
+    },
+    { pk: 0.5, corte: 5000 },
+);
+
+/** A bola caindo no mar: o "ploc" que despenca e o borrifo da água. */
+export const mergulho = som(
+    1.3,
+    (p, r) => {
+        let ph = 0;
+        let v = 0;
+        let w = 0;
+        return (t) => {
+            ph += (TAU * k12(p) * (140 + 650 * Math.exp(-t / 0.05))) / SR;
+            const ploc = Math.sin(ph) * Math.exp(-t / 0.12);
+            const n = r() * 2 - 1;
+            v += 0.25 * (n - v);
+            w += 0.02 * (v - w);
+            const borrifo = (v - w) * Math.min(1, t / 0.02) * Math.exp(-t / 0.35);
+            return ploc + 1.2 * borrifo;
+        };
+    },
+    { pk: 0.5, corte: 6000 },
+);
+
+/** Onda do mar: ruído grave que cresce, quebra e espuma (3,5 s). */
+export const onda = som(
+    3.5,
+    (_p, r) => {
+        let a = 0;
+        let b = 0;
+        return (t) => {
+            const x = t / 3.5;
+            const c = 0.02 + 0.06 * Math.sin(Math.PI * Math.min(1, x * 1.6));
+            a += c * (r() * 2 - 1 - a);
+            b += 0.004 * (a - b);
+            return (a - b) * Math.sin(Math.PI * x) ** 1.5;
+        };
+    },
+    { pk: 0.4 },
+);
+
+/** O flash do fotógrafo: o estalo e o "fiiii" do flash recarregando, subindo. */
+export const flash = som(
+    1,
+    (p, r) => {
+        let ph = 0;
+        let v = 0;
+        return (t) => {
+            v += 0.5 * (r() * 2 - 1 - v);
+            const estalo = v * Math.exp(-t / 0.006) + Math.sin(TAU * 2400 * t) * Math.exp(-t / 0.01) * 0.5;
+            const u = Math.max(0, t - 0.08);
+            ph += (TAU * k12(p) * (1500 + 3200 * Math.min(1, u / 0.8))) / SR;
+            const fiii = u > 0 ? 0.12 * Math.sin(ph) * Math.min(1, u / 0.1) * Math.min(1, (1 - t) / 0.15) : 0;
+            return estalo + fiii;
+        };
+    },
+    { pk: 0.4, corte: 7000 },
+);
+
+/** As travas da chuteira no concreto: dois estalos (a frente e o calcanhar) com o "tic" do alumínio. */
+export const trava = som(
+    0.09,
+    (p, r) => {
+        let v = 0;
+        return (t) => {
+            v += 0.6 * (r() * 2 - 1 - v);
+            const a = Math.exp(-t / 0.0025);
+            const t2 = t - 0.028;
+            const b = t2 > 0 ? 0.6 * Math.exp(-t2 / 0.0025) : 0;
+            const tic = Math.sin(TAU * 3100 * k12(p) * t) * (a + b);
+            return v * (a + b) + 0.5 * tic;
+        };
+    },
+    { pk: 0.4, corte: 8000 },
+);
+
+/**
+ * Frase solta a partir da linha `row0`, sem conferir o compasso, com as durações × `escala` (2 = aumentação: a
+ * melodia em câmera lenta). Mesmo formato do `mel` ("E5:2 r:2 C5+E5:4").
+ */
+export function frase(P, row0, strs, { shift = 0, vel = 1, escala = 1 } = {}) {
+    let t = row0;
+    for (const tok of strs.join(' ').trim().split(/\s+/)) {
+        const [n, l] = tok.split(':');
+        const len = Number(l) * escala;
+        if (n !== 'r') for (const x of n.split('+')) P.note(t, midi(x) + shift, len, vel);
+        t += len;
+    }
+    return t;
+}
