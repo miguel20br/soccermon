@@ -75,8 +75,7 @@ export const ultimate: typeof pt = {
         openOne: 'Open 1',
         openAll: 'Open all ({n})',
         many: '{n} × {kind}',
-        summary: 'From {n} packs',
-        skipAll: 'Skip to summary',
+        goOn: 'Continue',
         sumFresh: '{n} new in your Club|{n} new in your Club',
         sumRepeat: '{n} duplicate|{n} duplicates',
         sumFichas: '+{n} Coins',
@@ -201,7 +200,6 @@ export const ultimate: typeof pt = {
         cards: '{n} card in the club|{n} cards in the club',
         evosReady: '{n} evolution ready|{n} evolutions ready',
         change: 'Level',
-        vs: '{mode} · vs {club}',
     },
     club: {
         squad: 'Squad',

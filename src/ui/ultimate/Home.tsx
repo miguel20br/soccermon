@@ -42,7 +42,7 @@ import { reduceMotionOn } from '../reduce-motion';
 import { hms, useNow } from './clock';
 import { useReward } from './Goals';
 import { usePickName } from './PickMoment';
-import { useBattle, useKick } from './Play';
+import { useBattle } from './Play';
 
 /** Celular baixo em pé (SE): a quadra do prêmio encolhe (ultimate.css). */
 const SHORT = '(max-height: 640px) and (orientation: portrait)';
@@ -52,8 +52,8 @@ export type UtTab = 'home' | 'play' | 'club' | 'shop' | 'goals';
 
 /**
  * Início do Time Ultimate: a quadra do Estádio com os seus 5 titulares andando nela (decisão do Miguel, 17/11: o modo
- * mora no mesmo estádio do Clássico) e o JOGAR dourado fixo embaixo, que já joga a Batalha de Treinador. Clube, Loja e
- * Metas ficam em blocos menores embaixo da quadra; Pendentes e o destaque depois. Sem time ainda, a quadra fica vazia e
+ * mora no mesmo estádio do Clássico) e o JOGAR dourado fixo embaixo, que leva pra aba Jogar (retorno de 17/11: a
+ * partida começa lá, onde se escolhe nível e líder). Clube, Loja e Metas ficam em blocos menores embaixo da quadra; Pendentes e o destaque depois. Sem time ainda, a quadra fica vazia e
  * o lugar do JOGAR convida a abrir o pacote. Voltando da partida, o prêmio vem antes de tudo.
  */
 export function Home({
@@ -69,7 +69,6 @@ export function Home({
     const now = useNow();
     const name = usePickName();
     const { u, home, ready, rival, level, paid } = useBattle();
-    const { busy, error, kick } = useKick();
     const scale = sceneScale(useMq(SMALL), useMq(BIG));
 
     const last = u.last && !u.last.seen ? u.last : null;
@@ -124,14 +123,6 @@ export function Home({
         mood: 'busy',
         ...(c.shiny && { shiny: true }),
     }));
-    const play = () => {
-        if (!u.live) {
-            if (!rival) return;
-            useGame.getState().ultimateStart({ n: u.played, level: paid(level), home, rival });
-        }
-        void kick();
-    };
-
     return (
         <div className="ut-home">
             <UtCourt team={team} led={led} scale={scale} />
@@ -196,13 +187,9 @@ export function Home({
                             id: 'quick',
                             title: '',
                             icon: 'play',
-                            verb: busy ? t('ultimate.play.warming') : u.live ? t('home.resume') : t('ultimate.play.go'),
-                            sub: t('ultimate.home.vs', {
-                                mode: t('ultimate.modes.battles.name'),
-                                club: clubName(versus.name, lang),
-                            }),
-                            busy,
-                            go: play,
+                            verb: u.live ? t('home.resume') : t('ultimate.play.go'),
+                            sub: t('ultimate.home.modes'),
+                            go: () => onTab('play'),
                         }}
                         sheet={[]}
                         onPick={() => undefined}
@@ -218,7 +205,6 @@ export function Home({
                         </button>
                     </div>
                 )}
-                {error && <p className="error-text">{error}</p>}
             </div>
         </div>
     );

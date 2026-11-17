@@ -76,8 +76,7 @@ export const ultimate = {
         openOne: 'Abrir 1',
         openAll: 'Abrir todos ({n})',
         many: '{n} × {kind}',
-        summary: 'Saiu de {n} pacotes',
-        skipAll: 'Pular pro resumo',
+        goOn: 'Continuar',
         sumFresh: '{n} nova no Clube|{n} novas no Clube',
         sumRepeat: '{n} repetida|{n} repetidas',
         sumFichas: '+{n} Fichas',
@@ -204,7 +203,6 @@ export const ultimate = {
         cards: '{n} carta no clube|{n} cartas no clube',
         evosReady: '{n} evolução pronta|{n} evoluções prontas',
         change: 'Nível',
-        vs: '{mode} · vs {club}',
     },
     club: {
         squad: 'Elenco',
