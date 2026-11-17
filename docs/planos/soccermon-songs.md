@@ -452,3 +452,11 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 - O resto ficou sem queixa. Destaque pra **O plano infalível nova**, "super legal".
 - **Quer mais faixas como O plano infalível:** mais **eletrônicas no jeito Sonic Mania**, animadas e divertidas. Estilo pra experimentar: **dancehall**.
 - **Pedido extra (16/11):** o Miguel acha que eu tenho talento pra faixas **mais emocionantes ou pesadas** e quer ouvir mais coisas **parecidas com "Quem manda aqui"**, a faixa do Giovanni ("gostei demais"). Na rodada 3, ou como faixa nova, entra pelo menos uma peça emocionante e uma pesada nessa linha: groove lento e ameaçador, clap molhado, metais graves, órgão e solo.
+
+## Retorno do Miguel na rodada 3 (17/11)
+
+- **Volta olímpica** (soul gospel, 72 BPM, faixa nova do Ato 4): "simplesmente perfeita, incrível, super emocionante". Aprovada.
+- **O túnel** (a pesada): "interessante", mas "muito lenta e chata". Refazendo com mais andamento e menos tempo parado (rodada 3b, duas versões).
+- **Altinha** (dancehall): "nada dancehall, meio reggae". Saiu do álbum; não tentar dancehall de novo sem ele pedir.
+- **Contra-ataque** (Sonic Mania): não gostou. Saiu do álbum.
+- Sem retorno ainda: os retrabalhos 02, 07, 10 e 12 e o nome do Funk das moedinhas.
