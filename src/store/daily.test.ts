@@ -48,6 +48,18 @@ describe('Semana Fora da Lei (16 a 22/11/2026, Brasília)', () => {
         expect(dailyEventType('2026-11-22')).toBe(ESPECIAL_EVENT);
         expect(dailyEventType('2026-11-23')).toBe(weeklyEventType(new Date('2026-11-23T12:00:00')));
     });
+
+    it('a oeste de Brasília (Los Angeles): segunda em Brasília já é a semana nova, não volta o tipo da semana passada', () => {
+        const tz = process.env.TZ;
+        process.env.TZ = 'America/Los_Angeles';
+        try {
+            const now = new Date('2026-11-23T03:00:00Z'); // domingo 22, 19h em LA; segunda 23, 00h em Brasília
+            expect(weekEvent(now)).toBe(weeklyEventType(new Date('2026-11-23T12:00:00')));
+            expect(weekEvent(now)).not.toBe(weeklyEventType(new Date('2026-11-09T12:00:00')));
+        } finally {
+            process.env.TZ = tz;
+        }
+    });
 });
 
 describe('Copa do Dia: o dia', () => {

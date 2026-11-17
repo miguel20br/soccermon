@@ -1,7 +1,7 @@
 import { ESPECIAL_EVENT, ESPECIAL_SPECIES } from '../engine/specials';
 import { dict, typeName } from '../i18n';
 import type { Lang } from '../i18n/lang';
-import { weekEvent } from '../store/daily';
+import { dailyDay, weekEvent } from '../store/daily';
 import { utNow } from '../store/ultimate/clock';
 
 /**
@@ -86,14 +86,16 @@ const ymd = (d: Date) =>
  * pontinho acende a cada evento novo).
  */
 export function weekCard(now = utNow()): NewsCard {
-    const d = new Date(now);
-    const type = weekEvent(d);
+    const type = weekEvent(new Date(now));
+    // segunda e domingo do dia de Brasília (meio-dia local: a data não escorrega no fuso do aparelho)
+    const d = new Date(`${dailyDay(new Date(now))}T12:00:00`);
     const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
     const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
     const [dd, mm] = [String(sun.getDate()).padStart(2, '0'), String(sun.getMonth() + 1).padStart(2, '0')];
     const list = type === ESPECIAL_EVENT;
     return {
-        id: `evento-${ymd(mon)}`,
+        // a semana especial tem id próprio: quem viu o cartão do tipo hoje vê o pontinho acender de novo
+        id: `${list ? 'evento-especial' : 'evento'}-${ymd(mon)}`,
         date: ymd(mon),
         until: ymd(sun),
         title: list

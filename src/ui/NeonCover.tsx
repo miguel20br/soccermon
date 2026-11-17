@@ -156,12 +156,7 @@ export function NeonCover() {
     }, [state]);
     if (state === 'off') return null;
     return (
-        <button
-            type="button"
-            className={`nc${state === 'out' ? ' out' : ''}`}
-            onClick={close}
-            aria-label={t('home.amb.neonCoverTap')}
-        >
+        <button type="button" className={`nc${state === 'out' ? ' out' : ''}`} onClick={close}>
             <Panel k="pika" r={-1.5}>
                 <i className="nc-sun" />
                 <span className="nc-face">

@@ -45,7 +45,7 @@ void moveToNewDomain();
 void importFromOldDomain();
 
 startScreenTransitions();
-// Noite Neon (19 a 22/11, ui/tema.ts): o tema do <html> antes da 1ª tela
+// Semana Fora da Lei (16 a 22/11, ui/tema.ts): o tema do <html> antes da 1ª tela
 startTema();
 startTabSlide();
 startThumbbarSpace();

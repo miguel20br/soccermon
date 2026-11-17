@@ -16,10 +16,10 @@ export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN 
  * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem `res` px por px do jogo
  * (`courtRes`: o dobro no mínimo, pros zooms dos lances, até 1.6, continuarem nítidos; 3 com o canvas a 3).
  */
-export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2) {
+export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2, neon = neonOn) {
     const key = 'court-baked';
     const bake = () => {
-        const g = courtGraphics(scene, theme).setScale(res);
+        const g = courtGraphics(scene, theme, neon).setScale(res);
         if (scene.textures.exists(key)) scene.textures.remove(key);
         scene.textures
             .addDynamicTexture(key, GAME_W * res, GAME_H * res)
@@ -53,7 +53,7 @@ export const courtRes = (res: number) => Math.max(2, Math.ceil(res - 0.05));
  * ou a do ginásio (`COURTS` em court-themes.ts). Um Graphics só (o lab de quadras tira foto dele; a partida usa
  * `drawCourt`).
  */
-export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD, neon = neonOn) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
     const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
@@ -64,7 +64,7 @@ export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         drawFloor(g, theme.floor, { x: tl.x, y: tl.y, w: L * PPM, h: W * PPM });
     }
     theme.decor?.(g, box, { w: GAME_W, h: GAME_H });
-    if (neonOn) neonTubes(g, box);
+    if (neon) neonTubes(g, box);
     g.fillStyle(theme.area, theme.areaAlpha);
     areaPath(g, 0, true);
     areaPath(g, 1, true);

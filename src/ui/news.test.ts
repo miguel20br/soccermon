@@ -57,6 +57,32 @@ describe('evento da semana', () => {
         expect(c.title.en).toBe('Outlaw Week');
         expect(c.text.pt).toContain('fora da lei');
     });
+
+    it('a semana especial tem id próprio (o pontinho acende pra quem viu o cartão do tipo no mesmo dia)', () => {
+        const c = weekCard(at('2026-11-18T15:00:00Z'));
+        expect(c.id).toBe('evento-especial-2026-11-16');
+        expect(weekCard(at('2026-11-25T15:00:00Z')).id).toBe('evento-2026-11-23');
+    });
+
+    it('segunda e domingo saem do dia de Brasília, em qualquer fuso', () => {
+        const tz = process.env.TZ;
+        try {
+            // Tóquio: segunda 23, 12h lá ainda é domingo 22 em Brasília
+            process.env.TZ = 'Asia/Tokyo';
+            const leste = weekCard(at('2026-11-23T02:00:00Z'));
+            expect([leste.date, leste.until, leste.id]).toEqual([
+                '2026-11-16',
+                '2026-11-22',
+                'evento-especial-2026-11-16',
+            ]);
+            // Los Angeles: domingo 22, 19h lá já é segunda 23 em Brasília
+            process.env.TZ = 'America/Los_Angeles';
+            const oeste = weekCard(at('2026-11-23T03:00:00Z'));
+            expect([oeste.date, oeste.until, oeste.id]).toEqual(['2026-11-23', '2026-11-29', 'evento-2026-11-23']);
+        } finally {
+            process.env.TZ = tz;
+        }
+    });
 });
 
 describe('quando o cartão aparece (dia de Brasília)', () => {

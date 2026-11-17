@@ -69,8 +69,8 @@ export const result: typeof pt = {
         gtaWin: 'MISSION COMPLETE!',
         gtaRespect: 'RESPECT +',
         gtaLoss: 'WRECKED',
-        /** Neon Nights: the rout stars (ui/tema.ts). */
-        wanted: 'Rout: {n} of 5 stars',
+        /** Neon Nights: the lead stars on the scoreboard (ui/tema.ts). */
+        wanted: 'Lead: {n} goal|Lead: {n} goals',
         pens: 'Penalties {a} x {b}',
         star: 'star',
         stageShort: ['R16', 'QF', 'SF', 'Final'],

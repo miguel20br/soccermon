@@ -191,7 +191,11 @@ export function Scoreboard({
  */
 export function WantedStars({ n, className, label }: { n: number; className: string; label?: string }) {
     return (
-        <div className={`wanted ${className}${n >= 5 ? ' max' : ''}`} role="img" aria-label={label}>
+        <div
+            className={`wanted ${className}${n >= 5 ? ' max' : ''}`}
+            // sem rótulo (o placar da partida), o leitor de tela pula: a vantagem já está no placar
+            {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}
+        >
             {[1, 2, 3, 4, 5].map((i) => (
                 <span key={i} className={i <= n ? 'on' : ''} style={{ '--i': i } as CSSProperties}>
                     <HudIcon kind="star" />

@@ -105,15 +105,16 @@ export function ResultHero({
     const mvpOn = step >= lines;
     const side = duel?.side ?? 0;
     const won = match.winner === side;
-    const { t, d } = useT();
+    const { t, tn, d } = useT();
     const champion = run?.status === 'champion';
     // Rota Índigo: acabou o grupo fora dos 2 primeiros (ganhando ou perdendo a última rodada): a Final não vem
     const groupOut = !!run && isLong(run) && run.status === 'eliminated' && isGroupStage(run.stage);
     const mood = champion ? 'champ' : won && !groupOut ? 'win' : 'loss';
     // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
     const alive = !won && (run?.status === 'map' || run?.status === 'group');
-    // Noite Neon (ui/tema.ts): o fim de jogo vira tela de missão (MISSÃO CUMPRIDA / PERDEU); o título da copa sai
-    const gta = neonOn && mood !== 'champ';
+    // Noite Neon (ui/tema.ts): o fim de jogo vira tela de missão (MISSÃO CUMPRIDA / PERDEU); o título da copa sai.
+    // Empate (Duelo) e vitória que não leva à Final (fora no grupo da Rota) ficam com o título de sempre
+    const gta = neonOn && mood !== 'champ' && match.winner !== null && !(groupOut && won);
     const title = gta
         ? t(mood === 'win' ? 'result.hero.gtaWin' : 'result.hero.gtaLoss')
         : (duel?.title ??
@@ -167,9 +168,9 @@ export function ResultHero({
               gain[k] > 0 ? [`${t(`shop.earned.${k}`)} +${gain[k]}`] : [],
           )
         : [];
-    // Noite Neon: goleada de 3 ou mais acende uma estrela por gol de diferença, até 5
+    // Noite Neon: como no placar da partida, uma estrela por gol de vantagem, até 5
     const margin = match.score[side] - match.score[1 - side];
-    const stars = neonOn && margin >= 3 ? Math.min(5, margin) : 0;
+    const stars = neonOn ? Math.max(0, Math.min(5, margin)) : 0;
     const squad = match.finalRoster.filter((p) => p.team === side);
     // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
     const sadCaptain =
@@ -251,7 +252,7 @@ export function ResultHero({
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
-            {stars > 0 && <WantedStars n={stars} className="rh-wanted" label={t('result.hero.wanted', { n: stars })} />}
+            {stars > 0 && <WantedStars n={stars} className="rh-wanted" label={tn('result.hero.wanted', stars)} />}
             {links}
 
             {gain && (

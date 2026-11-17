@@ -874,7 +874,7 @@ export function runDevDemo() {
         }
         return;
     }
-    // ?demo=fim&res=vitoria|derrota|empate: a 3 s do apito final (empate = vai pros pênaltis); o time reage no FIM DE JOGO
+    // ?demo=fim&res=vitoria|derrota|empate[&gols=N]: a 3 s do apito final (empate = vai pros pênaltis); o time reage no FIM DE JOGO
     if (demo === 'fim') {
         const res = new URLSearchParams(window.location.search).get('res') ?? 'vitoria';
         for (let k = 0; k < 120; k++) {
@@ -898,7 +898,11 @@ export function runDevDemo() {
             const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
                 snapshots: false,
             });
-            const ok = res === 'empate' ? !!r.shootout : !r.shootout && r.winner === (res === 'derrota' ? 1 : 0);
+            // `&gols=N`: só um placar com N gols de diferença (as estrelas da Semana Fora da Lei)
+            const gols = Number(new URLSearchParams(window.location.search).get('gols'));
+            const ok =
+                (res === 'empate' ? !!r.shootout : !r.shootout && r.winner === (res === 'derrota' ? 1 : 0)) &&
+                (!gols || Math.abs(r.score[0] - r.score[1]) === gols);
             const end = r.events.find((e) => e.type === 'fulltime');
             if (!ok || !end) continue;
             const live = { stage: 0, orders: [], tick: end.tick - 60, engine: ENGINE_VERSION };

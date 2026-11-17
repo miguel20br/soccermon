@@ -84,6 +84,7 @@ import {
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui/showdown-lines';
+import { neonOn } from '../../ui/tema';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -246,6 +247,8 @@ export interface MatchSceneData {
     replay?: { clips: ReplayClip[] };
     /** Quadra do ginásio do rival (Copa; src/game/court-themes.ts). Sem ela, a madeira de sempre. */
     court?: LeaderId;
+    /** Sem o neon da Semana Fora da Lei na quadra (Time Ultimate, como as estrelas do placar). */
+    noNeon?: boolean;
     /** Os dois times como entraram: a carta de quem dribla dá nome ao drible (`namedDribblesOf`). Sem eles, nenhum. */
     setups?: [TeamSetup, TeamSetup];
     /**
@@ -1021,7 +1024,7 @@ export class MatchScene extends Phaser.Scene {
             this.frameLocked() || this.cer ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
         cam.pan = (x, y, ...rest) => (this.frameLocked() || this.cer ? cam : pan(x, y, ...rest));
 
-        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
+        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, 2, neonOn && !this.md.noNeon);
         for (const team of [0, 1] as const) {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
@@ -1535,7 +1538,12 @@ export class MatchScene extends Phaser.Scene {
             if (courtRes(res) !== this.courtRes) {
                 this.courtRes = courtRes(res);
                 this.court.destroy();
-                this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, this.courtRes);
+                this.court = drawCourt(
+                    this,
+                    this.md.court ? COURTS[this.md.court] : undefined,
+                    this.courtRes,
+                    neonOn && !this.md.noNeon,
+                );
             }
         }
         const cam = this.cameras.main;

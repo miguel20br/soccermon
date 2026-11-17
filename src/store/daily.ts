@@ -35,11 +35,10 @@ export const dailyEventType = (day: string): string =>
     inEspecial(day) ? ESPECIAL_EVENT : weeklyEventType(new Date(`${day}T12:00:00`));
 
 /**
- * Evento de agora (draft, Mercado, letreiro, notícia): a semana especial pelo relógio de Brasília (domingo 23:59 de
- * Brasília já é segunda em UTC), senão o tipo da semana como sempre.
+ * Evento de agora (draft, Mercado, letreiro, notícia): o mesmo do dia de Brasília (`dailyEventType`), em qualquer fuso.
+ * Pelo fuso do aparelho, Manaus ou os EUA voltavam pro tipo da semana passada no domingo à noite.
  */
-export const weekEvent = (now: Date = new Date()): string =>
-    inEspecial(dailyDay(now)) ? ESPECIAL_EVENT : weeklyEventType(now);
+export const weekEvent = (now: Date = new Date()): string => dailyEventType(dailyDay(now));
 
 /** Uma Copa do Dia jogada (só no save; o ranking do dia fica no banco). */
 export interface DailyEntry {

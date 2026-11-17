@@ -72,8 +72,8 @@ export const result = {
         gtaWin: 'MISSÃO CUMPRIDA!',
         gtaRespect: 'RESPEITO +',
         gtaLoss: 'PERDEU',
-        /** Noite Neon: as estrelas da goleada (ui/tema.ts). */
-        wanted: 'Goleada: {n} de 5 estrelas',
+        /** Noite Neon: as estrelas da vantagem no placar (ui/tema.ts). */
+        wanted: 'Vantagem: {n} gol|Vantagem: {n} gols',
         pens: 'Pênaltis {a} x {b}',
         star: 'craque',
         /** Fase curta no caminho da copa. */

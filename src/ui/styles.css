@@ -4757,7 +4757,7 @@ button,
     color: var(--yellow);
 }
 /* Noite Neon (ui/tema.ts): estrelas de procurado (WantedStars). Brancas de contorno preto, como no HUD de mundo
-   aberto; as apagadas ficam só no contorno */
+   aberto; as apagadas ficam no contorno, com miolo escuro translúcido (aparecem no piso claro da quadra) */
 .wanted {
     display: flex;
     justify-content: center;
@@ -4767,6 +4767,9 @@ button,
     display: grid;
     color: rgb(255 255 255 / 30%);
     filter: drop-shadow(1px 1px 0 #000) drop-shadow(-1px -1px 0 #000);
+}
+.wanted .hud-icon {
+    fill: rgb(0 0 0 / 35%);
 }
 .wanted .on {
     color: #fff;
@@ -8155,7 +8158,7 @@ body {
     }
 }
 /* sem filtro nem transform no painel nem nos botões: o polegar é fixo no celular e se perderia dentro deles */
-.rh-gta.rh-loss > :not(.rh-title, .rh-actions) {
+.rh-gta.rh-loss > :not(.rh-title, .rh-actions, .foul) {
     animation:
         rh-gray 1.2s var(--ease-out) both,
         rh-zoom 6s var(--ease-out) both;
@@ -8170,7 +8173,7 @@ body {
         scale: 1.04;
     }
 }
-:root[data-reduce-motion="true"] .rh-gta.rh-loss > :not(.rh-title, .rh-actions) {
+:root[data-reduce-motion="true"] .rh-gta.rh-loss > :not(.rh-title, .rh-actions, .foul) {
     animation: none;
     filter: grayscale(1) brightness(0.85);
 }
