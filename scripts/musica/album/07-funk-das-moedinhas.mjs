@@ -5,12 +5,18 @@
 // ajustes. Mudou só a bateria: o bumbo e a caixa com corpo do kit (os fantasmas da caixa continuam) num barramento
 // comprimido, e as palmas da torcida (I.palmas a +10 dB) viraram o clap 808 macio. Notas, groove e final iguais.
 // O nome muda (não é funk brasileiro): propostas na página de escuta.
+// Rodada 3 (17/11/2026): "curti a versão nova", mas a bateria pode ser mais leve. O bumbo cai pra ~60% (era o mais
+// pesado da mistura depois do lead), a caixa e o tom um pouco, e o barramento comprime menos (o corpo fica, o soco
+// sai). Notas, groove e final continuam iguais.
 import mercado from '../pecas/mercado-funk.mjs';
 import { bass, drum, GANCHO, I, mel, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
 import { BATERIA, bumbo, caixa, clapMacio } from './kit.mjs';
 
 export const meta = { titulo: 'Funk das moedinhas', faixa: 7 };
+
+/** O barramento da casa, mais leve: menos ganho e menos sinal comprimido por baixo. */
+const LEVE = { ...BATERIA, ganho: 2, paralelo: 0.35 };
 
 export default function funkDasMoedinhas() {
     const { S, P, n } = estender(
@@ -21,11 +27,12 @@ export default function funkDasMoedinhas() {
         ],
         {
             fim: 3,
-            barramentos: { bateria: BATERIA },
+            barramentos: { bateria: LEVE },
             bus: { kick: 'bateria', snare: 'bateria', tom: 'bateria' },
             troca: {
-                kick: { inst: bumbo, gain: 0.9 },
-                snare: { inst: caixa, gain: 0.8 },
+                kick: { inst: bumbo, gain: 0.55 },
+                snare: { inst: caixa, gain: 0.65 },
+                tom: { inst: I.tom, gain: 0.7 },
                 palmas: { inst: clapMacio, gain: 1.4 },
             },
         },

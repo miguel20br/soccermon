@@ -11,6 +11,10 @@
 // o fio que volta em toda costura) e pela ponte do próximo. O Blaine fecha com o SOC-CER-MON da plateia e o "cha-cha"
 // final em Ré menor. O Giovanni saiu (ganhou faixa própria, "Sala do chefe"): no fim sobra a SOMBRA dele, a tuba
 // tocando o motivo do chefe em cima do chão que ronca, sem resolver, e a faixa emenda na sala dele. ~3:15.
+// Rodada 3 (17/11/2026): "curti", só o começo pode ser menos agudo. O Brock (os primeiros ~30 s) era o trecho mais
+// brilhante do medley de longe (a banda acima de 4 kHz a −12 dB do total, contra −18 a −23 no resto): o trompete e a
+// trompa descem uma oitava (o motivo da pedra fica no registro do trombone), o passa-baixa entra nos metais, no prato, na
+// guitarra, no pizzicato e nas cordas, e o chimbal e a caixa ficam mais baixos e abafados. Notas e forma iguais.
 import { execFileSync } from 'node:child_process';
 import blaine from '../pecas/lider-blaine.mjs';
 import erika from '../pecas/lider-erika.mjs';
@@ -28,6 +32,26 @@ export const meta = { titulo: 'Sete rivais', faixa: 12, apara: false, emenda: tr
 const MUSIC = new URL('../../../public/music/', import.meta.url).pathname;
 const ALVO = 0.1; // RMS de cada tema antes do master (o master acerta o integrado do medley inteiro)
 
+/** O começo (Brock) menos agudo: os metais uma oitava abaixo, passa-baixa no que brilha, chimbal e caixa mais baixos. */
+const BROCK_GRAVE = {
+    transp: { trompete: -12, trompa: -12 },
+    corte: {
+        trompete: 2600,
+        trompa: 2400,
+        guitarra: 2200,
+        arpejo: 2800,
+        cordas: 3000,
+        chimbal: 5000,
+        caixa: 4500,
+        crash: 4000,
+    },
+    troca: {
+        chimbal: { inst: I.hat, gain: 0.6 },
+        caixa: { inst: I.snare, gain: 0.75 },
+        crash: { inst: I.crash, gain: 0.5 },
+    },
+};
+
 /** A virada da casa num compasso: toms descendo e o SOC-CER-MON (3-3-2) de caixa e clap. */
 function virada(S, b) {
     const L = S.barLen;
@@ -44,8 +68,8 @@ function virada(S, b) {
 }
 
 /** O render de um tema como [L, R], no RMS do alvo, e onde acaba a virada (segundos). */
-function tema(peca, trechos, { final = null, fim = 1 } = {}) {
-    const { S, P, n } = estender(peca, trechos, { fim, tail: 4 });
+function tema(peca, trechos, { final = null, fim = 1, opcoes = {} } = {}) {
+    const { S, P, n } = estender(peca, trechos, { fim, tail: 4, ...opcoes });
     if (final) final(S, P, n);
     else virada(S, n);
     const [L, R] = S.render();
@@ -129,7 +153,10 @@ export default function seteRivais() {
         ['tema-koga', koga],
         ['tema-sabrina', sabrina],
     ];
-    const temas = ordem.map(([id, p]) => ({ id, ...tema(p, MELHOR) }));
+    const temas = ordem.map(([id, p]) => ({
+        id,
+        ...tema(p, MELHOR, { opcoes: id === 'tema-brock' ? BROCK_GRAVE : {} }),
+    }));
     // o Blaine fecha: o SOC-CER-MON da plateia (o compasso 25 do A') e o "cha-cha" em Ré menor
     temas.push({
         id: 'tema-blaine',

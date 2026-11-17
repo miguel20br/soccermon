@@ -16,6 +16,13 @@
 // o último vira Lá7 (o V de Ré) | refrão em Ré (8, sobe um tom) com o Fá#7 (dominante secundária, a 9ª aumentada no
 // lead) | A final em Ré (8) com tudo | etiqueta (4) | final: o SOC-CER-MON da banda inteira em Si♭–Dó–Ré (♭VI–♭VII–I)
 // e o Ré com nona. ~2:35.
+// Rodada 3 (17/11/2026): "tá ótima", mas falta UM elemento que a destaque. Entrou O APITO DO MESTRE DE BATERIA (o
+// apito de juiz da "Quadra vazia", com a bolinha trinando, afinado em Dó e Mi): ele chama a banda na introdução,
+// comanda a batucada, e antes da subida de tom faz a PARADINHA de escola de samba (4 compassos novos no Lá7, o V do
+// Ré): o mestre apita, a bateria responde no SOC-CER-MON, o apito de novo, a bateria dobra, a banda inteira some por
+// meio compasso com o apito longo sozinho, e o SOC-CER-MON da banda joga o refrão em Ré. No fim, o apito fecha o
+// desfile. O resto ficou como estava (só desceu 4 compassos). ~2:42.
+import { apito } from '../pecas/livre-ginasio.mjs';
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 import {
     aro,
@@ -103,7 +110,7 @@ const GROOVE = '0:2 8:1~ 0:1 r:1 5:1 8:2 0:1 r:1 8:1~ s:2 5:1 3:2';
 const STAB = [3, 6, [10, 2], 14];
 
 export default function temaDeAbertura() {
-    const S = new Song({ bpm: 136, bars: 86, swing: 0.15, tail: 4, barramentos: { bateria: BATERIA } });
+    const S = new Song({ bpm: 136, bars: 90, swing: 0.15, tail: 4, barramentos: { bateria: BATERIA } });
     const k = S.part('bumbo', bumbo, { drum: true, bus: 'bateria', gain: 0.95 });
     const duck = bombeio(S, k, { prof: 0.28 });
     const sn = S.part('caixa', caixa, { drum: true, bus: 'bateria', gain: 0.75, rev: 0.06 });
@@ -128,6 +135,9 @@ export default function temaDeAbertura() {
     const tam = S.part('tamborim', tamborim, { drum: true, pan: 0.4, gain: 0.5 });
     const cr = S.part('prato', I.crash, { drum: true, pan: 0.2, gain: 0.75 });
     const cl = S.part('clap', clapMacio, { drum: true, pan: 0.1, gain: 0.9, rev: 0.1 });
+    // o apito do mestre (pitch 0 = Mi7; −4 = Dó7, −3 = Dó#7): curto e longo
+    const fi = S.part('apito', apito(0.07), { drum: true, pan: 0.3, gain: 0.5, rev: 0.25 });
+    const fiii = S.part('apitoLongo', apito(0.5), { drum: true, pan: 0.3, gain: 0.42, rev: 0.25 });
 
     const KICK = 'X.....x.X..x....';
     const SNARE = '.o..X..o.o.oX.oo';
@@ -168,6 +178,9 @@ export default function temaDeAbertura() {
     // o baixo entra subindo cromático (Mi, Fá, Fá#, Sol) pro A
     mel(bs, 3, ['G2:2 r:6 E2:2 F2:2 F#2:2 G2:2']);
     virada(3);
+    // o mestre chama a banda: fi, fi, fiii (o 3-3-2 do SOC-CER-MON)
+    drum(fi, 3, 1, 'X..X............', { pitch: -4 });
+    drum(fiii, 3, 1, '......X.........');
     mel(lead, 3, ['r:8 G4:2 A4:2 B4:2 D5:2']);
 
     // ---------- A (4-11): seco, aro no lugar da caixa; A' (12-19): o baixo canta, contracanto e arpejo ----------
@@ -195,13 +208,13 @@ export default function temaDeAbertura() {
     drum(sh, 11, 1, 'xoxoxoxoxoxoxoxo');
     virada(11, { forte: false });
     // respostas dos metais nas pausas da melodia (o trompete em cima, o trombone uma oitava abaixo)
-    for (const b0 of [12, 72]) {
+    for (const b0 of [12, 76]) {
         for (const [P, o] of [
             [tp, 0],
             [tb, -12],
         ]) {
-            mel(P, b0 + 3, ['r:6 B5:1 D6:1 r:8'], { shift: o + (b0 === 72 ? 2 : 0) });
-            mel(P, b0 + 7, ['r:12 G5:1 E5:1 C6:2'], { shift: o + (b0 === 72 ? 2 : 0) });
+            mel(P, b0 + 3, ['r:6 B5:1 D6:1 r:8'], { shift: o + (b0 === 76 ? 2 : 0) });
+            mel(P, b0 + 7, ['r:12 G5:1 E5:1 C6:2'], { shift: o + (b0 === 76 ? 2 : 0) });
         }
     }
     // fim do A': corte seco no 4 (a banda inteira bate e para), só a caixa fala
@@ -333,6 +346,11 @@ export default function temaDeAbertura() {
         bass(bs, b, 'G7', i < 2 ? '0:6 0:2 r:8' : '0:3 0:3 0:2 5:2 8:2 5:2 s:2', { vel: 0.8 });
     }
     padChord(cordas, 54, 'G7', 32, { low: 53, n: 4, vel: 0.6 });
+    // o mestre comanda a batucada: o apito longo abre, o curto conta a entrada de cada naipe
+    drum(fiii, 52, 1, 'X...............', { pitch: -4 });
+    drum(fi, 53, 1, '........X.X.X...', { pitch: -4 });
+    drum(fi, 54, 1, 'X..X..X.........');
+    drum(fiii, 55, 1, 'X...............');
     mel(lead, 55, ['r:8 G4:2 A4:2 B4:2 D5:2']);
     virada(55);
 
@@ -368,27 +386,65 @@ export default function temaDeAbertura() {
     virada(63);
     drum(cr, 63, 1, '............X...');
 
-    // ---------- refrão em Ré (64-71), sobe um tom; A final em Ré (72-79) com tudo ----------
-    refrao(64, 2);
-    A_CH.forEach((c, i) => {
-        harmonia(72 + i, transpose(c, 2), { arpejo: true, low: 66 });
-    });
-    mel(lead, 72, A_MEL.slice(0, 4), { shift: 2 });
-    mel(lead, 76, A_MEL.slice(4), { shift: 14 });
-    mel(harm, 76, A_MEL.slice(4), { shift: 2, vel: 0.7 });
-    mel(counter, 72, A_COUNTER, { shift: 2 });
-    mel(bs, 72, A_BAIXO, { shift: 2 });
-    mel(cordas, 72, ['F#5:16', 'F#5:16', 'F#5:16', 'E5:16', 'F#5:16', 'D5:16', 'G5:16', 'G5:8 E5:8'], { vel: 0.6 });
-    groove(72, 7);
-    drum(oh, 72, 8, '......x.......x.');
-    drum(cr, 72, 1, 'X...............');
-    drum(cr, 76, 1, 'X...............');
-    virada(79);
+    // ---------- PARADINHA (64-67), no Lá7 (o V do Ré): o mestre apita, a bateria responde ----------
+    // 64: a banda bate o Lá7 e para; o apito longo e o SOC-CER-MON no apito
+    stabs(st, 64, 'A7', [[0, 2]], { vel: 1.2 });
+    stabs(tp, 64, 'A7', [[0, 2]], { low: 61, n: 3 });
+    stabs(tb, 64, 'A7', [[0, 2]], { low: 45, n: 3 });
+    bs.note(64 * 16, 33, 2, 1.1);
+    drum(k, 64, 1, 'X...............');
+    drum(cr, 64, 1, 'X...............');
+    drum(fiii, 64, 1, '....X...........');
+    drum(fi, 64, 1, '........X..X..X.', { pitch: -3 });
+    // 65: a bateria responde no SOC-CER-MON (surdo, caixa, tamborim e o clap), e o apito pede de novo, mais rápido
+    drum(su, 65, 1, 'X..X..X.........');
+    drum(sn, 65, 1, 'X..X..X.........');
+    drum(tam, 65, 1, 'X..X..X.........');
+    drum(cl, 65, 1, 'x..x..x.........', { vel: 0.8 });
+    bs.note(65 * 16, 33, 1, 1);
+    bs.note(65 * 16 + 3, 33, 1, 1);
+    bs.note(65 * 16 + 6, 45, 1, 1);
+    drum(fi, 65, 1, '........X.X.X.X.', { pitch: -3 });
+    // 66: a bateria dobra (tamborim e caixa em semicolcheias, o surdo marcando), as cordas e o trombone crescem no Lá7
+    drum(su, 66, 1, 'X...X...........');
+    drum(tam, 66, 1, 'x.xXx.xX........');
+    drum(sn, 66, 1, '..o...o.xxxxXXXX', { vel: 0.8 });
+    drum(ag, 66, 1, 'x.x.x.x.........');
+    padChord(cordas, 66, 'A7', 24, { low: 55, n: 4, vel: 0.5, at: 8 });
+    mel(tb, 66, ['r:8 A3:8'], { vel: 0.6 });
+    // 67: a banda some por meio compasso, só o apito longo; o SOC-CER-MON da banda inteira joga o refrão em Ré
+    drum(fiii, 67, 1, 'X...............');
+    for (const r of [8, 11, 14]) {
+        stabs(st, 67, 'A7', [[r, 1]], { vel: 1.2 });
+        stabs(tp, 67, 'A7', [[r, 1]], { low: 64, n: 3 });
+        bs.note(67 * 16 + r, r === 14 ? 45 : 33, 1, 1.1);
+    }
+    drum(k, 67, 1, '........X..X..X.');
+    drum(sn, 67, 1, '........X..X..XX');
+    drum(tm, 67, 1, '........x..x..x.', { pitch: 3 });
+    drum(cl, 67, 1, '........x..x..x.', { vel: 0.9 });
 
-    // ---------- etiqueta em Ré (80-83): o gancho subindo, a torcida no clap ----------
+    // ---------- refrão em Ré (68-75), sobe um tom; A final em Ré (76-83) com tudo ----------
+    refrao(68, 2);
+    A_CH.forEach((c, i) => {
+        harmonia(76 + i, transpose(c, 2), { arpejo: true, low: 66 });
+    });
+    mel(lead, 76, A_MEL.slice(0, 4), { shift: 2 });
+    mel(lead, 80, A_MEL.slice(4), { shift: 14 });
+    mel(harm, 80, A_MEL.slice(4), { shift: 2, vel: 0.7 });
+    mel(counter, 76, A_COUNTER, { shift: 2 });
+    mel(bs, 76, A_BAIXO, { shift: 2 });
+    mel(cordas, 76, ['F#5:16', 'F#5:16', 'F#5:16', 'E5:16', 'F#5:16', 'D5:16', 'G5:16', 'G5:8 E5:8'], { vel: 0.6 });
+    groove(76, 7);
+    drum(oh, 76, 8, '......x.......x.');
+    drum(cr, 76, 1, 'X...............');
+    drum(cr, 80, 1, 'X...............');
+    virada(83);
+
+    // ---------- etiqueta em Ré (84-87): o gancho subindo, a torcida no clap ----------
     const TAG_D = ['D', 'Em7', 'F#m7', 'A7'];
     TAG_D.forEach((c, i) => {
-        const b = 80 + i;
+        const b = 84 + i;
         bass(bs, b, c, GROOVE);
         stabs(st, b, c, STAB);
         padChord(pad, b, c, 16, { vel: 0.5 });
@@ -400,16 +456,16 @@ export default function temaDeAbertura() {
             drum(cl, b, 1, GANCHO.palmas, { vel: 0.85 });
         }
     });
-    groove(80, 3);
-    drum(cr, 80, 1, 'X...............');
-    mel(lead, 83, ['C#6:3 E6:3 A6:2 G6:8']);
-    mel(tp, 83, ['A5:3 C#6:3 E6:2 E6:8']);
-    mel(tb, 83, ['E4:3 G4:3 A4:2 C#4:8']);
-    drum(k, 83, 1, 'X.....x.X.......');
-    drum(sn, 83, 1, '........X.xxXXXX');
-    drum(tm, 83, 1, '..........x.x.x.', { pitch: 4 });
+    groove(84, 3);
+    drum(cr, 84, 1, 'X...............');
+    mel(lead, 87, ['C#6:3 E6:3 A6:2 G6:8']);
+    mel(tp, 87, ['A5:3 C#6:3 E6:2 E6:8']);
+    mel(tb, 87, ['E4:3 G4:3 A4:2 C#4:8']);
+    drum(k, 87, 1, 'X.....x.X.......');
+    drum(sn, 87, 1, '........X.xxXXXX');
+    drum(tm, 87, 1, '..........x.x.x.', { pitch: 4 });
 
-    // ---------- final (84-85): o SOC-CER-MON da banda inteira em Si♭–Dó–Ré (♭VI–♭VII–I) e o Ré com nona ----------
+    // ---------- final (88-89): o SOC-CER-MON da banda inteira em Si♭–Dó–Ré (♭VI–♭VII–I) e o Ré com nona ----------
     const FIM = [
         ['Bb', 0, 'D6', 'F5'],
         ['C', 3, 'E6', 'G5'],
@@ -417,21 +473,24 @@ export default function temaDeAbertura() {
     ];
     for (const [c, r, top, mid] of FIM) {
         const len = r === 6 ? 10 : 3;
-        stabs(st, 84, c, [[r, len]], { n: 4, vel: 1.2 });
-        stabs(tp, 84, c, [[r, len]], { low: 62, n: 3 });
-        stabs(tb, 84, c, [[r, len]], { low: 46, n: 3 });
-        mel(lead, 84, [`${r ? `r:${r} ` : ''}${top}:${len}${r === 6 ? '' : ` r:${16 - r - len}`}`]);
-        mel(harm, 84, [`${r ? `r:${r} ` : ''}${mid}:${len}${r === 6 ? '' : ` r:${16 - r - len}`}`]);
-        bs.note(84 * 16 + r, r === 6 ? 38 : r === 3 ? 36 : 34, len, 1.1);
+        stabs(st, 88, c, [[r, len]], { n: 4, vel: 1.2 });
+        stabs(tp, 88, c, [[r, len]], { low: 62, n: 3 });
+        stabs(tb, 88, c, [[r, len]], { low: 46, n: 3 });
+        mel(lead, 88, [`${r ? `r:${r} ` : ''}${top}:${len}${r === 6 ? '' : ` r:${16 - r - len}`}`]);
+        mel(harm, 88, [`${r ? `r:${r} ` : ''}${mid}:${len}${r === 6 ? '' : ` r:${16 - r - len}`}`]);
+        bs.note(88 * 16 + r, r === 6 ? 38 : r === 3 ? 36 : 34, len, 1.1);
     }
-    drum(k, 84, 1, 'X..X..X.........');
-    drum(sn, 84, 1, 'X..X..X.........');
-    drum(cr, 84, 1, '......X.........');
-    drum(cl, 84, 1, '............x.x.', { vel: 0.9 });
-    padChord(rh, 85, 'D', 16, { low: 54, n: 4, vel: 0.9 });
-    mel(lead, 85, ['E6:16']);
-    mel(cordas, 85, ['D5+F#5+A5+E6:16']);
-    bs.note(85 * 16, 38, 16, 0.9);
-    drum(su, 85, 1, 'X...............', { vel: 0.6 });
+    drum(k, 88, 1, 'X..X..X.........');
+    drum(sn, 88, 1, 'X..X..X.........');
+    drum(cr, 88, 1, '......X.........');
+    drum(cl, 88, 1, '............x.x.', { vel: 0.9 });
+    padChord(rh, 89, 'D', 16, { low: 54, n: 4, vel: 0.9 });
+    mel(lead, 89, ['E6:16']);
+    mel(cordas, 89, ['D5+F#5+A5+E6:16']);
+    bs.note(89 * 16, 38, 16, 0.9);
+    drum(su, 89, 1, 'X...............', { vel: 0.6 });
+    // o mestre fecha o desfile
+    drum(fi, 89, 1, '........X..X....', { pitch: -4, vel: 0.8 });
+    drum(fiii, 89, 1, '..............X.', { vel: 0.8 });
     return S;
 }

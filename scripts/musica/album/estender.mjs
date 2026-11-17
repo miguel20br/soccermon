@@ -9,15 +9,27 @@ import { Song } from '../synth.mjs';
  * @param {([number, number] | [number, number, number] | number)[]} trechos compassos da peça, na ordem do álbum
  *   (número = compassos vazios); o 3º número sobe o trecho em semitons (a bateria não muda): modulação de graça
  * @param {{ fim?: number, tail?: number, bpmFim?: number, barramentos?: object, bus?: Record<string, string>,
- *   troca?: Record<string, { inst: unknown, gain?: number }> }} o `barramentos` e `bus` (faixa → barramento) põem a
- *   bateria no compressor; `troca` troca o timbre de uma faixa (o bumbo do ZzFX pelo bumbo com corpo do kit, rodada 2).
+ *   troca?: Record<string, { inst: unknown, gain?: number }>, transp?: Record<string, number>,
+ *   corte?: Record<string, number> }} o `barramentos` e `bus` (faixa → barramento) põem a
+ *   bateria no compressor; `troca` troca o timbre de uma faixa (o bumbo do ZzFX pelo bumbo com corpo do kit, rodada 2);
+ *   `transp` muda uma faixa de altura (semitons) e `corte` põe (ou troca) o passa-baixa dela (rodada 3: o começo de
+ *   "Sete rivais" menos agudo).
  * @returns {{ S: Song, P: (nome: string) => object, n: number, inicio: number[] }} `P` acha a faixa pelo nome; `n` =
  *   compassos antes do final (o final começa no compasso `n`); `inicio` = compasso novo onde começa cada trecho.
  */
 export function estender(
     peca,
     trechos,
-    { fim = 3, tail = 4, bpmFim = null, barramentos = null, bus = {}, troca = {} } = {},
+    {
+        fim = 3,
+        tail = 4,
+        bpmFim = null,
+        barramentos = null,
+        bus = {},
+        troca = {},
+        transp = {},
+        corte: cortes = {},
+    } = {},
 ) {
     const rec = Song.recording;
     Song.recording = true;
@@ -81,18 +93,19 @@ export function estender(
             echo,
             rev,
             drum,
-            corte,
+            corte: cortes[p.name] ?? corte,
             gainAt: ga ? (t) => ga(tempoOrig(t)) : null,
         });
         partes.set(p.name, p2);
         // a `voz` (Koga, Sabrina) guarda a duração da nota fora dela: tocar na faixa original antes acerta a duração
         const sinc = typeof p.inst === 'function' ? p.note : null;
+        const tr8 = drum ? 0 : (transp[p.name] ?? 0);
         for (const [t, m, len, vel] of [...p.rec]) {
             const ob = Math.floor(t / L);
             mapa.forEach((b, j) => {
                 if (b !== ob) return;
                 sinc?.(t, m, len, vel);
-                p2.note(t + (j - ob) * L, drum ? m : m + desloc[j], len, vel);
+                p2.note(t + (j - ob) * L, drum ? m : m + desloc[j] + tr8, len, vel);
             });
         }
     }
