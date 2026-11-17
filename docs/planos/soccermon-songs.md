@@ -440,3 +440,14 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 12. Sem single antes: **concordo**.
 - **Atualização (16/11):** a DistroKid custa US$ 24,99 por ano (não é grátis) e não parcela. O Miguel topa se sair por ~R$ 70 com o **desconto de estudante (50% no 1º ano)**. Ele mesmo faz a conta e o pagamento. O **YouTube sai em 27/11 de qualquer jeito**, numa playlist no nosso canal sem monetização, com um vídeo por faixa (capa + nome). O Spotify sai no mesmo dia se a DistroKid for fechada até sex 20/11; se não, entra em dezembro.
 - **Atualização (16/11, depois da rodada 1):** o álbum passou pra **sexta 04/12**, com Spotify e YouTube juntos. O motivo é a rodada 2 de retrabalho (punch, gênero próprio por faixa, teoria, Beatles como inspiração, faixa nova do chefão, medley encurtado). O upload na DistroKid fica até **sexta 27/11**, já que ela leva de 2 a 5 dias úteis.
+
+## Retorno do Miguel na rodada 2 (16/11, à noite): é o roteiro da rodada 3
+
+- **Tema de abertura:** "tá ótima", mas falta um elemento que destaque ela um pouco mais.
+- **Ladeira acima:** não curtiu. Parece "batendo num cabo de aço" e não combina; quer no nível das outras. Gostou do **break**.
+- **Faixa do Giovanni = "Quem manda aqui"** (nome escolhido). "De longe uma das minhas favoritas, bem ameaçadora, uma obra de arte. **É isso que você precisa buscar.**" O solo de órgão é "sublime".
+- **Barco e gaivota:** ótima, e o 6/8 é "charmoso demais".
+- **Sete rivais:** curtiu. Só o **começo pode ser menos agudo**.
+- **Funk das moedinhas:** curtiu a versão nova, mas a **bateria pode ser mais leve**. Nenhum dos nomes novos combinou; quer **mais sugestões**. Gosta de "Funk das moedinhas", porque é engraçado.
+- O resto ficou sem queixa. Destaque pra **O plano infalível nova**, "super legal".
+- **Quer mais faixas como O plano infalível:** mais **eletrônicas no jeito Sonic Mania**, animadas e divertidas. Estilo pra experimentar: **dancehall**.
