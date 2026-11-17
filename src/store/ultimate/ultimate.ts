@@ -123,6 +123,10 @@ export interface UltimateLast {
     ornament?: string;
     /** Primeiros passos cumpridos nesta partida (a 1ª partida, a 1ª vitória). */
     firsts?: FirstStepId[];
+    /** O craque do seu time na partida (o sprite grande do prêmio). Save de antes da 0.9.53 não tem. */
+    star?: { speciesId: number; shiny: boolean; name: string };
+    /** A cor do rival (a faixa dele no placar do prêmio). */
+    rivalColor?: number;
 }
 
 /** O que fica de uma temporada que acabou (no Perfil, nunca zera). */
@@ -1134,6 +1138,8 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
             level: u.live.level,
             fichas,
             rival: u.live.rival.name,
+            rivalColor: u.live.rival.color,
+            ...(mvp && { star: { speciesId: mvp.speciesId, shiny: mvp.shiny, name: mvp.name } }),
             seen: false,
             objectives: obj.completed.map((o) => o.id),
             ...(gym && { gym, badge }),

@@ -268,6 +268,28 @@ function runEvo(u: UltimateSave, uid: string): UltimateSave {
     return u;
 }
 
+describe('prêmio da partida', () => {
+    it('guarda o craque do seu time (sprite grande do prêmio) e a cor do rival (faixa do placar)', () => {
+        const u = ready();
+        const lv = live(u);
+        const out = finishMatch(
+            lv,
+            {
+                score: [2, 1],
+                shootout: null,
+                finalRoster: [
+                    { ...line('a'), speciesId: 25, name: 'Pikachu' },
+                    { ...line('b', { goals: 2 }), speciesId: 6, shiny: true, name: 'Charizard' },
+                    { ...line('c', { goals: 5 }), team: 1, speciesId: 150, name: 'Mewtwo' },
+                ],
+            },
+            MON,
+        );
+        expect(out.last?.star).toEqual({ speciesId: 6, shiny: true, name: 'Charizard' });
+        expect(out.last?.rivalColor).toBe(lv.live?.rival.color);
+    });
+});
+
 describe('Evoluções com prévia', () => {
     const withCard = (c: PokemonInstance) => {
         const u = ready();
