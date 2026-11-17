@@ -1824,6 +1824,14 @@ button,
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* Titular azul e Banco cinza (Clube do UT): vermelho é só perigo */
+.fut-ribbon.is-blue {
+    background: var(--blue-c);
+}
+.fut-ribbon.is-grey {
+    background: var(--muted);
+    color: var(--cb-ink);
+}
 .fut-action {
     width: var(--fut-w);
 }

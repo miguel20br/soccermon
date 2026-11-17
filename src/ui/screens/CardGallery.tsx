@@ -88,6 +88,13 @@ const METAL_ROWS: { key: string; label: string; inst: PokemonInstance }[] = (
     const label = f === 'lendario' ? 'Lendário' : `${METAL[m].label} · ${FINISH_LABEL[f]}`;
     return inst ? [{ key: `${m}-${f}`, label, inst }] : [];
 });
+/** A fita da carta: Titular e Banco no Clube do UT (azul e cinza, decisão 3a), Trancada, e a do prêmio do Clássico. */
+const RIBBONS: { label: string; tone?: 'blue' | 'grey'; note: string; inst: PokemonInstance }[] = [
+    { label: 'Titular', tone: 'blue', note: 'Titular (UT)', inst: METAL_ROWS[5]?.inst ?? sample(6) },
+    { label: 'Banco', tone: 'grey', note: 'Banco (UT)', inst: METAL_ROWS[3]?.inst ?? sample(9) },
+    { label: 'Trancada', note: 'Trancada (UT), fica vermelha', inst: METAL_ROWS[1]?.inst ?? sample(25) },
+    { label: 'do Pewter', note: 'Prêmio do Clássico, fica vermelha', inst: METAL_ROWS[4]?.inst ?? sample(95) },
+];
 /** Nível da edição: Destaque II/III (craque de novo) ou Ícone que levou MVP (selo "MVP n"). */
 const withMvp = (inst: PokemonInstance, level: number): PokemonInstance =>
     inst.special ? { ...inst, special: { ...inst.special, level } } : inst;
@@ -522,6 +529,17 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                                     }}
                                 />
                                 <figcaption className="muted">{s.label}</figcaption>
+                            </figure>
+                        ))}
+                    </div>
+                </section>
+                <section className="panel" id="fita">
+                    <h2>Fita da carta</h2>
+                    <div className="cg-row">
+                        {RIBBONS.map((r) => (
+                            <figure key={r.label} className="cg-item">
+                                <FutCard inst={r.inst} size="sm" ribbon={r.label} ribbonTone={r.tone} />
+                                <figcaption className="muted">{r.note}</figcaption>
                             </figure>
                         ))}
                     </div>
