@@ -204,6 +204,7 @@ export const ultimate = {
         cards: '{n} carta no clube|{n} cartas no clube',
         evosReady: '{n} evolução pronta|{n} evoluções prontas',
         change: 'Nível',
+        vs: '{mode} · vs {club}',
     },
     club: {
         squad: 'Elenco',

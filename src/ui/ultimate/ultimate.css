@@ -314,15 +314,6 @@
     justify-items: center;
     text-align: center;
 }
-.ut-verdict {
-    font-size: 28px;
-}
-.ut-prize.is-win .ut-verdict {
-    color: var(--green);
-}
-.ut-prize.is-loss .ut-verdict {
-    color: var(--red);
-}
 .ut-gain {
     display: flex;
     align-items: center;
@@ -1218,40 +1209,6 @@
     grid-row: 1 / span 2;
     pointer-events: none;
 }
-/* a quadrinha do Elenco: os 5 titulares de pé, a vaga embaixo */
-.ut-b-court {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
-    padding: 8px 4px 4px;
-    border-radius: 8px;
-    background: repeating-linear-gradient(90deg, rgb(255 255 255 / 4%) 0 18px, transparent 18px 36px), var(--bc-ink-3);
-}
-.ut-b-court > span {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    min-width: 0;
-}
-.ut-b-court img,
-.ut-b-court i {
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-}
-.ut-b-court i {
-    border: 2px dashed var(--line);
-    border-radius: 8px;
-}
-.ut-b-court small {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--muted);
-}
-.ut-b-court .cap small {
-    color: var(--yellow);
-}
 .ut-b-badges {
     display: flex;
     flex-wrap: wrap;
@@ -1918,23 +1875,35 @@
     }
 }
 
-/* ---------- 09/11 (retorno do Miguel): o Início em blocos de pesos diferentes, a aba Jogar e o Pick de costas ---------- */
-/* celular em pé: 2 colunas, o JOGAR na largura toda e alto; o Clube alto à esquerda, Loja e Metas à direita */
+/* ---------- 17/11: o Início vira cena (a quadra do Estádio com o time andando), o JOGAR fixo embaixo ---------- */
+/* o Início e o prêmio entram com fade (Continuar no prêmio troca um pelo outro: nada teleporta) */
+.ut-home,
+.ut-prize {
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) backwards;
+}
+[data-reduce-motion="true"] :is(.ut-home, .ut-prize) {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) :is(.ut-home, .ut-prize) {
+        animation: none;
+    }
+}
+/* celular em pé: a quadra na largura toda, Clube, Loja e Metas em 3 blocos pequenos, Pendentes e o destaque, e o
+   JOGAR grudado no pé da tela (em cima da barra de abas) */
 .ut-home {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-        "pend pend"
-        "play play"
-        "club shop"
-        "club goals"
-        "hl hl";
+        "court court court"
+        "club shop goals"
+        "pend pend pend"
+        "hl hl hl"
+        "go go go";
     align-items: stretch;
+    gap: 8px;
 }
-.ut-b-pending {
-    grid-area: pend;
-}
-.ut-b-jogar {
-    grid-area: play;
+.ut-court {
+    grid-area: court;
 }
 .ut-b-club {
     grid-area: club;
@@ -1945,96 +1914,47 @@
 .ut-b-goals {
     grid-area: goals;
 }
+.ut-b-pending {
+    grid-area: pend;
+}
 .ut-home > .ut-hl {
     grid-area: hl;
 }
-/* Jogar · Modos de jogo (retorno de 09/11: "não com textura de botão"): um painel como os outros, com a faixa dourada,
-   a arte do modo liberado (o rival da vez) e as miniaturas apagadas dos que vêm depois */
-.ut-b-jogar {
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    align-content: stretch;
-}
-.ut-b-modes {
+.ut-home-go {
+    grid-area: go;
+    position: sticky;
+    z-index: 5;
+    bottom: calc(var(--ut-nav-h) + 8px + env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
-    min-height: 0;
 }
-.ut-b-modes > .ut-mode-art {
-    height: 64px;
-}
-.ut-b-modes .ut-mode-team img {
-    width: 48px;
-    height: 48px;
-}
-.ut-b-modes > .ut-mode-art .ut-mode-vs img {
-    width: 56px;
-    height: 56px;
-}
-.ut-b-soon {
-    display: grid;
-    grid-template-columns: repeat(2, 52px);
-    grid-auto-rows: minmax(0, 1fr);
+.ut-home .ut-block {
+    padding: 8px 10px;
     gap: 4px;
 }
-.ut-b-soon > .ut-mode-art {
-    height: auto;
-    min-height: 0;
-    border-radius: 6px;
-    filter: grayscale(1);
-    opacity: 0.6;
+.ut-home .ut-b-head b {
+    font-size: 13px;
 }
-.ut-b-soon .ut-mode-vs {
-    gap: 2px;
+.ut-home .ut-block > b {
+    font-size: 12px;
 }
-.ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-    width: 26px;
-    height: 26px;
+.ut-home .ut-block > small,
+.ut-home .ut-timer {
+    font-size: 11px;
 }
-.ut-b-soon .ut-mode-four img + img {
-    margin-left: -14px;
+.ut-b-ovr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 6px;
 }
-.ut-b-soon .ut-mode-backs .ut-cardback {
-    width: 14px;
-    border-width: 1px;
-    border-radius: 3px;
-    box-shadow: none;
-}
-.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(1) {
-    translate: 2px 1px;
-}
-.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(3) {
-    translate: -2px 1px;
-}
-.ut-b-soon .ut-mode-slots {
-    grid-template-columns: repeat(3, 7px);
-    gap: 2px;
-}
-.ut-b-soon .ut-mode-slots i {
-    border-width: 1px;
-    border-radius: 2px;
-}
-.ut-b-soon .ut-mode-slots i:nth-child(n + 4) {
-    translate: 4.5px 0;
-}
-/* Clube: o cartão do time (a nota grande, a química e os 5 titulares em 3 + 2) */
 .ut-b-club .ut-b-ovr > b {
-    font-size: 32px;
+    font-size: 28px;
+    line-height: 1;
 }
 .ut-b-club .ut-b-ovr small {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
-}
-.ut-b-club .ut-b-court {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    row-gap: 6px;
-}
-.ut-b-club .ut-b-court img,
-.ut-b-club .ut-b-court i {
-    width: 100%;
-    max-width: 48px;
-    height: auto;
-    aspect-ratio: 1;
 }
 .ut-block > .ut-b-pick {
     display: flex;
@@ -2050,77 +1970,296 @@
 .ut-b-goals > small + .ut-bar {
     margin-top: -2px;
 }
-/* deitado e PC: mosaico (o JOGAR 2 x 2, o Clube alto, Loja e Metas empilhadas, o destaque largo embaixo) */
+/* 320: o nome do bloco com o número não cabe em 3 colunas; o número fica só na aba de baixo */
+@media (max-width: 360px) {
+    .ut-home {
+        gap: 6px;
+    }
+    .ut-home .ut-block {
+        padding: 6px 7px;
+    }
+    .ut-home .ut-b-head .hud-icon {
+        display: none;
+    }
+}
+
+/* a quadra do Estádio (UtCourt): o fundo de palco dos ambientes numa caixa, com a arquibancada cortada em cima (as
+   fileiras de baixo, a faixa e o letreiro) e o piso em perspectiva até o pé da caixa */
+.ut-court.amb-bd {
+    position: relative;
+    inset: auto;
+    height: clamp(190px, calc(36 * var(--vh)), 360px);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--bc-edge);
+    background: #070b1e;
+}
+.ut-court.amb-bd .es-scene {
+    --stand-top: calc(var(--px) * -14);
+}
+/* o capitão do Estádio no meio do círculo; aqui é o craque do prêmio, com o selo embaixo do pé */
+.ut-court .ut-star {
+    top: 52%;
+}
+.ut-star-seal {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    translate: -50% 0;
+    white-space: nowrap;
+}
+.ut-court .rh-confetti {
+    z-index: 20;
+}
+
+/* o JOGAR do Estádio (PlayBar, ambientes.css); no celular grudado no pé da tela, com o fundo apagando por baixo */
+.ut-home-go::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -14px -16px -8px;
+    background: linear-gradient(180deg, transparent, var(--bg) 22px);
+    pointer-events: none;
+}
+.ut-home-go .es-play {
+    width: 100%;
+}
+.ut-home-go .error-text {
+    margin: 0;
+    text-align: center;
+}
+/* o convite do 1º pacote: o mesmo botão gordo, em verde (abrir é confirmar, não jogar), com a frase numa linha */
+.ut-home-go .es-play.cb-green .es-play-verb {
+    --ol: #06330d;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+    white-space: nowrap;
+}
+@media (max-width: 360px) {
+    .ut-home-go .es-play.cb-green .es-play-verb {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+/* 3 colunas no celular: o Pick fica no destaque (aqui o nome dele quebrava em 3 linhas) */
+.ut-home .ut-b-pick {
+    display: none;
+}
+
+/* deitado e PC: a quadra grande à esquerda com o JOGAR embaixo dela; Clube, Loja e Metas empilhados à direita */
 @media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
     .ut-home {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         grid-template-areas:
-            "pend pend pend pend"
-            "play play club shop"
-            "play play club goals"
-            "hl hl hl hl";
+            "court club"
+            "court shop"
+            "court goals"
+            "go pend"
+            "hl hl";
+        gap: 10px;
     }
-    .ut-b-modes > .ut-mode-art {
+    .ut-home .ut-b-pick {
+        display: flex;
+    }
+    .ut-home-go::before {
+        content: none;
+    }
+    .ut-home .ut-block {
+        padding: 10px 12px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-court.amb-bd {
         height: auto;
-        min-height: 64px;
+        min-height: 200px;
     }
-    /* o 2 x 2 é alto: o time do rival em 3 + 2, maior */
-    .ut-b-modes .ut-mode-team {
-        --sp: 48px;
-        flex-wrap: wrap;
-        align-content: center;
-        max-width: calc(3 * var(--sp));
+
+    .ut-home {
+        gap: 6px;
     }
-    .ut-b-modes .ut-mode-team img {
-        flex: none;
-        width: var(--sp);
-        height: var(--sp);
+    .ut-home .ut-block {
+        padding: 6px 10px;
     }
-    .ut-b-soon {
-        grid-template-columns: repeat(2, 64px);
+    .ut-b-club .ut-b-ovr > b {
+        font-size: 22px;
     }
-    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-        width: 32px;
-        height: 32px;
+    .ut-home .ut-block > .ut-timer,
+    .ut-home .ut-b-goals > small {
+        display: none;
     }
-    .ut-b-soon .ut-mode-backs .ut-cardback {
-        width: 18px;
+}
+@media (min-width: 900px) {
+    /* a quadra enche a altura que sobra e o JOGAR cabe embaixo dela, sem rolar */
+    .ut-court.amb-bd {
+        height: auto;
+        min-height: max(300px, calc(100 * var(--vh) - 430px));
+    }
+    .ut-home .ut-b-head b {
+        font-size: 15px;
+    }
+    .ut-home .ut-block > b {
+        font-size: 14px;
+    }
+    .ut-home .ut-block > small,
+    .ut-home .ut-timer {
+        font-size: 13px;
+    }
+    .ut-b-club .ut-b-ovr > b {
+        font-size: 34px;
+    }
+    .ut-home .ut-block {
+        gap: 3px;
     }
 }
 @media (min-width: 1100px) and (min-height: 720px) {
-    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home, .ut-modes) {
+    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home, .ut-modes, .ut-prize) {
         width: min(1240px, 100%);
     }
-    .ut-panel:not(:has(.ut-home, .ut-modes)) {
+    .ut-panel:not(:has(.ut-home, .ut-modes, .ut-prize)) {
         width: min(760px, 100%);
         margin: 0 auto;
     }
-    .ut-b-jogar {
-        gap: 8px;
-        padding: 14px 16px 14px 22px;
+}
+
+/* o título do modo no adesivo do cartão do menu de modos (.mm-plate e .mm-s-ultimate, mode-menu.css): placa roxa
+   inclinada, letra gorda com contorno; a carteira ao lado. O placar azul em volta sai */
+.ut-hub {
+    --mc: #a56bff;
+    --mc2: #5b22c9;
+}
+.ut-hub > .menu-head.bc-screenhead {
+    padding: 4px 2px 6px 6px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+.ut-hub > .menu-head h1 {
+    position: relative;
+    z-index: 0;
+    margin: 4px 0 6px 4px;
+    padding: 3px 12px 5px;
+    rotate: -3deg;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: var(--k-out-2);
+    -webkit-text-stroke: calc(1em / 14) #fff;
+    white-space: nowrap;
+}
+.ut-hub > .menu-head h1::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(180deg, var(--mc) 0 50%, var(--mc2) 50% 100%);
+    border: 3px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow:
+        inset 0 3px 0 rgb(255 255 255 / 35%),
+        4px 4px 0 var(--cb-ink);
+    transform: skewX(-14deg);
+}
+/* a etiqueta PRÉVIA fica em cima da placa, sem a moldura do placar */
+.ut-hub > .menu-head > .bc-tag {
+    top: 0;
+    left: 10px;
+}
+@media (max-width: 400px) {
+    .ut-hub > .menu-head h1 {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
-    .ut-b-jogar > b {
-        font-size: 15px;
+}
+
+/* prêmio pós-jogo em tela cheia: a quadra com o craque, VITÓRIA e o placar do jogo, e a cascata do que a partida deu */
+.ut-prize {
+    gap: 10px;
+    justify-items: stretch;
+    min-height: calc(100 * var(--vh) - 230px);
+}
+.ut-prize .ut-court.amb-bd {
+    grid-area: auto;
+    height: clamp(170px, calc(32 * var(--vh)), 380px);
+}
+/* Resgatar e Continuar grudados no pé da tela (em cima da barra de abas), como o JOGAR do Início */
+.ut-prize .ut-prize-actions {
+    position: sticky;
+    z-index: 5;
+    bottom: calc(var(--ut-nav-h) + 8px + env(safe-area-inset-bottom));
+    margin-top: 4px;
+}
+.ut-prize .ut-prize-actions::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -14px -16px -8px;
+    background: linear-gradient(180deg, transparent, var(--bg) 18px);
+    pointer-events: none;
+}
+.ut-prize-body {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    align-content: start;
+}
+.ut-prize .k-moment-title {
+    --k-title-max: 56px;
+}
+.ut-score {
+    width: min(560px, 100%);
+}
+/* o nome inteiro em até 2 linhas, nunca "Palle…" (como o placar do Resultado no celular) */
+.ut-score .rh-team span {
+    overflow: visible;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: normal;
+    line-height: 1.15;
+}
+.ut-prize .ut-score b {
+    --gs: clamp(36px, calc(9 * var(--vw)), 48px);
+    font-size: var(--gfs, clamp(36px, calc(9 * var(--vw)), 48px));
+}
+.ut-score .rh-team {
+    min-width: auto;
+    overflow: visible;
+    font-size: clamp(12px, calc(1.6 * var(--vw)), 17px);
+}
+/* deitado e PC: a quadra à esquerda, o placar e o prêmio à direita */
+@media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
+    .ut-prize {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: start;
+        gap: 16px;
     }
-    .ut-b-modes .ut-mode-team {
-        --sp: 64px;
+    .ut-prize .ut-court.amb-bd {
+        height: calc(100 * var(--vh) - 300px);
+        min-height: 220px;
+        max-height: 560px;
     }
-    .ut-b-soon {
-        grid-template-columns: repeat(2, 84px);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-prize {
+        min-height: 0;
     }
-    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-        width: 40px;
-        height: 40px;
+    .ut-prize .ut-court.amb-bd {
+        height: calc(100 * var(--vh) - 150px);
+        min-height: 200px;
     }
-    .ut-b-soon .ut-mode-four img + img {
-        margin-left: -20px;
+    .ut-prize-body {
+        gap: 4px;
     }
-    .ut-b-soon .ut-mode-backs .ut-cardback {
-        width: 22px;
+    .ut-prize .k-moment-title {
+        --k-title-max: 30px;
     }
-    .ut-b-club .ut-b-court img,
-    .ut-b-club .ut-b-court i {
-        max-width: 64px;
+    .ut-prize .ut-score b {
+        font-size: 28px;
     }
 }
 
@@ -2403,5 +2542,67 @@
     }
     .ut-pick-face.up > .ut-pick-back {
         opacity: 0;
+    }
+}
+
+/* deitado (fim do arquivo: vence as regras de cima). A barra de abas fica do lado: o JOGAR sobe pro alto da coluna
+   da direita (a quadra fica livre pros Pokémon) e os botões do prêmio grudam no pé da tela; a placa do título encolhe */
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-home {
+        grid-template-areas:
+            "court go"
+            "court club"
+            "court shop"
+            "court goals"
+            "pend pend"
+            "hl hl";
+    }
+    .ut-home-go {
+        position: static;
+    }
+    .ut-home-go .es-play {
+        min-height: 60px;
+    }
+    /* a coluna da direita é estreita: o convite quebra em 2 linhas em vez de vazar do botão */
+    .ut-home-go .es-play.cb-green .es-play-verb {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+        white-space: normal;
+        text-wrap: balance;
+    }
+    /* a quadra na altura da tela (a coluna da direita pode passar dela) */
+    .ut-home > .ut-court.amb-bd {
+        align-self: start;
+        height: calc(100 * var(--vh) - 150px);
+    }
+    .ut-court.amb-bd .es-scene {
+        --stand-top: calc(var(--px) * -22);
+    }
+    .ut-prize .ut-prize-actions {
+        bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+    .ut-hub > .menu-head h1 {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+/* celular baixo em pé (SE): a quadra do prêmio encolhe e as Fichas aparecem acima dos botões */
+@media (max-height: 640px) and (orientation: portrait) {
+    .ut-prize,
+    .ut-prize-body {
+        gap: 4px;
+    }
+    .ut-prize .ut-court.amb-bd {
+        height: 130px;
+    }
+    /* só a faixa e o letreiro da arquibancada: o selo do craque cabe embaixo do pé */
+    .ut-prize .ut-court.amb-bd .es-scene {
+        --stand-top: calc(var(--px) * -30);
+    }
+    .ut-court .ut-star {
+        top: 40%;
+    }
+    .ut-prize .ut-score b {
+        font-size: 30px;
     }
 }

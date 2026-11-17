@@ -126,8 +126,8 @@ export function Ultimate() {
     return (
         <div className="menu-screen ut ut-hub">
             <MenuHead
+                // o nome no adesivo do cartão do menu de modos (ultimate.css), sem o ícone
                 title={t('ultimate.title')}
-                hud="cards"
                 onBack={() => go(backTarget('ultimate') ?? 'home')}
                 // "Prévia" só antes da estreia (dev e prévias); depois de 27/11 o modo é de verdade
                 tag={utNow() < ULTIMATE_OPENS_AT ? t('ultimate.preview') : undefined}

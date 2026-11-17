@@ -201,6 +201,7 @@ export const ultimate: typeof pt = {
         cards: '{n} card in the club|{n} cards in the club',
         evosReady: '{n} evolution ready|{n} evolutions ready',
         change: 'Level',
+        vs: '{mode} · vs {club}',
     },
     club: {
         squad: 'Squad',
