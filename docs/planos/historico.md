@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.52.3 · Música e transições da Semana Fora da Lei (17/11/2026)
+
+Motor 31 (sem mudança de partida). Só com `neonOn`: música `menu-neon` (a Conversível, `scripts/musica/pecas/menu-neon.mjs`, 108 BPM, buzina no 3-3-2) no lugar de `menu-balanco` (`trackOf` em src/ui/music-sync.ts); corte de tela neon A (faixa) e B (painéis) se revezando (`cutKind` em src/ui/tv.ts, `?transicao=a|b` só em dev/prévia; estilo em src/ui/tv-cut.css, que antes morava no tv.css carregado só com o menu de modos e deixava o corte invisível); `slowmoExit` na saída da partida (dessaturar, zoom, `match:slowmo` freia a MatchScene de 1x a 0,25x em 850 ms) na Copa, Liga e Duelo (Duelo: só no "Ver resultado", o fim vai pra sala no apito). CountUp sem número negativo na montagem.
+
 ## 0.9.52.2 · Copa do Dia de 17/11 (17/11/2026)
 
 Motor 31 (sem mudança de partida). `DailyEntry.engine` guarda o `ENGINE_VERSION` (carimbado em `putDaily`). `DAILY_ANULADAS` em src/store/daily.ts: a entrada de 17/11 sem motor ou com motor < 31 sai em `mergeDaily` e `dropAnnulledDaily` (no `migrateSave`, que a nuvem também passa, e no `merge` do persist, que o save local da versão atual usa), junto com a copa do dia anulado em andamento. A linha do ranking (`daily_runs`) foi apagada à mão.

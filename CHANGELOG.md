@@ -1,5 +1,16 @@
 # Novidades
 
+## 0.9.52.3 · Música e transições da Semana Fora da Lei (2026-11-17)
+
+### Semana Fora da Lei (até 22/11)
+- Adicionada música nova no menu durante a semana
+- Adicionadas duas transições de tela novas durante a semana, que se revezam
+- No fim da partida a quadra entra em câmera lenta e perde a cor antes do resultado (Copa, Rota, Liga e Duelo)
+
+### Correções
+- A transição de tela não aparecia antes de abrir o menu de modos
+- O placar do resultado podia mostrar número negativo por um instante
+
 ## 0.9.52.2 · Copa do Dia de 17/11 (2026-11-17)
 
 ### Copa do Dia

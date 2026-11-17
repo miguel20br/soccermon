@@ -9,6 +9,28 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.52.3',
+        date: '2026-11-17',
+        title: 'Música e transições da Semana Fora da Lei',
+        sections: [
+            {
+                title: 'Semana Fora da Lei (até 22/11)',
+                lines: [
+                    'Adicionada música nova no menu durante a semana',
+                    'Adicionadas duas transições de tela novas durante a semana, que se revezam',
+                    'No fim da partida a quadra entra em câmera lenta e perde a cor antes do resultado (Copa, Rota, Liga e Duelo)',
+                ],
+            },
+            {
+                title: 'Correções',
+                lines: [
+                    'A transição de tela não aparecia antes de abrir o menu de modos',
+                    'O placar do resultado podia mostrar número negativo por um instante',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.52.2',
         date: '2026-11-17',
         title: 'Copa do Dia de 17/11',
@@ -2965,6 +2987,28 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.52.3',
+        date: '2026-11-17',
+        title: 'Outlaw Week music and transitions',
+        sections: [
+            {
+                title: 'Outlaw Week (until Nov 22)',
+                lines: [
+                    'Added new menu music during the week',
+                    'Added two new screen transitions during the week, which take turns',
+                    'At the end of a match the court goes into slow motion and loses its color before the result (Cup, Route, League and Duel)',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'The screen transition did not show before the modes menu was opened',
+                    'The result scoreboard could show a negative number for a moment',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.52.2',
         date: '2026-11-17',
