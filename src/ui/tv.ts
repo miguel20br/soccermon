@@ -1,4 +1,5 @@
 import { flushSync } from 'react-dom';
+import { EventBus } from '../game/EventBus';
 import { reduceMotionOn } from './reduce-motion';
 import { neonOn } from './tema';
 import { uiZoom } from './ui-zoom';
@@ -25,13 +26,18 @@ export function cutGeometry(w: number, h: number) {
 /**
  * Semana Fora da Lei (ui/tema.ts): o corte vira neon. A = a mesma faixa em rosa e ciano com brilho e listras de
  * velocidade; B = 3 painéis inclinados (a capa em painéis) que entram e saem escalonados, de cima e de baixo. Fora do
- * tema é o corte de sempre. Até o Miguel escolher, o tema usa A; `?transicao=b` (dev e prévias) mostra o B.
+ * tema é o corte de sempre. No tema as duas se revezam (o Miguel, 17/11): a `n`-ésima troca é A nas pares e B nas
+ * ímpares; `?transicao=a|b` (dev e prévias) prende numa.
  */
 export type CutKind = 'tv' | 'a' | 'b';
-export function cutKind(neon: boolean, search: string, smoke: boolean): CutKind {
+export function cutKind(neon: boolean, search: string, smoke: boolean, n: number): CutKind {
     if (!neon) return 'tv';
-    return smoke && new URLSearchParams(search).get('transicao') === 'b' ? 'b' : 'a';
+    const q = smoke ? new URLSearchParams(search).get('transicao') : null;
+    if (q === 'a' || q === 'b') return q;
+    return n % 2 ? 'b' : 'a';
 }
+/** Quantos cortes já houve nesta aba (o revezamento A, B, A…). */
+let cuts = 0;
 
 /** Painéis (B): o intervalo entre um e outro, a entrada e a saída de cada. Inteiro: 295 ms (ADR 0004). */
 export const PANEL_STAGGER_MS = 25;
@@ -69,7 +75,7 @@ export function tvCut(apply: () => void): boolean {
         typeof document.body.animate !== 'function'
     )
         return false;
-    const kind = cutKind(neonOn, window.location.search, __SMOKE__);
+    const kind = cutKind(neonOn, window.location.search, __SMOKE__, cuts++);
     const z = uiZoom();
     const w = window.innerWidth / z;
     const h = window.innerHeight / z;
@@ -157,10 +163,19 @@ export const SLOWMO_MS = 850;
 export const SLOWMO_OUT_MS = 250;
 let exiting = false;
 
+/** Câmera lenta da quadra na saída: a velocidade da cena `elapsed` ms depois do começo, de 1x a 0,25x (freia rápido). */
+export const SLOWMO_FLOOR = 0.25;
+export function slowmoScale(elapsed: number, ms = SLOWMO_MS): number {
+    const k = Math.min(1, Math.max(0, elapsed / ms));
+    return 1 - (1 - SLOWMO_FLOOR) * (1 - (1 - k) ** 2);
+}
+
 /**
- * Do apito final pro MISSÃO CUMPRIDA / PERDEU na Semana Fora da Lei: a tela inteira perde a cor, aproxima e desfoca
+ * Do apito final pro resultado (copa, Liga e Duelo) na Semana Fora da Lei: a tela inteira perde a cor, aproxima e desfoca
  * de leve (850 ms; momento raro, ADR 0004 deixa passar dos 300), um véu escuro cobre o fim, a troca acontece por baixo
- * e o véu sai (250 ms). Reduzir movimento: só a cor some e o véu (sem zoom nem desfoque). Fora do tema: troca direto.
+ * e o véu sai (250 ms). A quadra freia junto (`match:slowmo`: a MatchScene vai a `slowmoScale`; só a reprodução, o
+ * motor não sabe). Reduzir movimento: só a cor some e o véu (sem zoom, desfoque nem câmera lenta). Fora do tema:
+ * troca direto.
  */
 export function slowmoExit(apply: () => void) {
     if (exiting) return;
@@ -176,6 +191,7 @@ export function slowmoExit(apply: () => void) {
     exiting = true;
     const calm = reduceMotionOn();
     const ms = calm ? 400 : SLOWMO_MS;
+    if (!calm) EventBus.emit('match:slowmo', ms);
     const veil = document.createElement('div');
     veil.setAttribute('aria-hidden', 'true');
     // estilo aqui: a partida pode abrir direto (retomada) sem o tv.css carregado; o véu segura toques durante a saída
@@ -200,11 +216,12 @@ export function slowmoExit(apply: () => void) {
     const swap = () => {
         if (done) return;
         done = true;
-        flushSync(apply);
-        for (const l of looks) l.cancel();
+        // libera antes: se a troca falhar (a tela já saiu, no Duelo), a próxima saída não fica presa
         exiting = false;
         const out = veil.animate([{ opacity: 1 }, { opacity: 0 }], { duration: SLOWMO_OUT_MS, fill: 'forwards' });
         out.onfinish = out.oncancel = () => veil.remove();
+        for (const l of looks) l.cancel();
+        flushSync(apply);
     };
     dark.onfinish = dark.oncancel = swap;
     // aba pro fundo no meio: troca assim mesmo

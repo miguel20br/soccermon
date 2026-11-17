@@ -1151,10 +1151,10 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                 // título: o troféu cobre a quadra e a festa aparece embaixo
                                 !solo && useGame.getState().run?.status === 'champion'
                                     ? playMoment('trofeu', () => go('result'))
-                                    : liga || ultimate
-                                      ? go(liga ? 'liga' : 'ultimate')
-                                      : // Semana Fora da Lei: câmera lenta e a cor some antes do MISSÃO CUMPRIDA / PERDEU
-                                        slowmoExit(() => go('result'))
+                                    : ultimate
+                                      ? go('ultimate')
+                                      : // Semana Fora da Lei: câmera lenta e a cor some antes do MISSÃO CUMPRIDA / PERDEU (copa e Liga)
+                                        slowmoExit(() => go(liga ? 'liga' : 'result'))
                             }
                         />
                     )}

@@ -99,6 +99,7 @@ import { bannerText, peerAvatar, peerTitle } from '../profile/club';
 import { peerInfo, usePlayerCard } from '../profile/PlayerCard';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
+import { slowmoExit } from '../tv';
 import { EmoteBar, EmoteBubbles } from './Emotes';
 import { ReadyBar } from './ReadyBar';
 
@@ -856,7 +857,9 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
                             colors={colors}
                             liga={false}
                             duel={{ side, match, label: t('duel.match.seeResult') }}
-                            onGo={onSeeResult}
+                            // Semana Fora da Lei: a mesma saída em câmera lenta, só na minha tela (o fim já foi
+                            // pra sala no `match:ended`; daqui pra frente é só a troca local pro resultado)
+                            onGo={() => slowmoExit(onSeeResult)}
                         />
                     )}
                     {wide ? (

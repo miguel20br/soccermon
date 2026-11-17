@@ -10,7 +10,10 @@ import {
     PANEL_STAGGER_MS,
     PANELS,
     panelGeometry,
+    SLOWMO_FLOOR,
+    SLOWMO_MS,
     slowmoExit,
+    slowmoScale,
 } from './tv';
 
 describe('corte de TV', () => {
@@ -35,14 +38,15 @@ describe('corte de TV', () => {
 });
 
 describe('corte da Semana Fora da Lei', () => {
-    it('fora do tema é a faixa de sempre (nem `?transicao` muda); no tema é a neon A, e B só com o atalho no dev', () => {
-        expect(cutKind(false, '', true)).toBe('tv');
-        expect(cutKind(false, '?transicao=b', true)).toBe('tv');
-        expect(cutKind(true, '', false)).toBe('a');
-        expect(cutKind(true, '?transicao=a', true)).toBe('a');
-        expect(cutKind(true, '?transicao=b', true)).toBe('b');
-        // produção: o atalho não vale
-        expect(cutKind(true, '?transicao=b', false)).toBe('a');
+    it('fora do tema é a faixa de sempre (nem `?transicao` muda); no tema A e B se revezam, e o atalho prende numa', () => {
+        expect(cutKind(false, '', true, 1)).toBe('tv');
+        expect(cutKind(false, '?transicao=b', true, 0)).toBe('tv');
+        expect([0, 1, 2, 3].map((n) => cutKind(true, '', false, n))).toEqual(['a', 'b', 'a', 'b']);
+        expect(cutKind(true, '?transicao=a', true, 1)).toBe('a');
+        expect(cutKind(true, '?transicao=b', true, 0)).toBe('b');
+        // produção: o atalho não vale, segue o revezamento
+        expect(cutKind(true, '?transicao=b', false, 0)).toBe('a');
+        expect(cutKind(true, '?transicao=a', false, 1)).toBe('b');
     });
     it('os painéis duram 200–300 ms e, parados, cobrem a tela inteira', () => {
         const total = 2 * (PANELS - 1) * PANEL_STAGGER_MS + PANEL_IN_MS + PANEL_OUT_MS;
@@ -61,6 +65,13 @@ describe('corte da Semana Fora da Lei', () => {
             expect(g.left(PANELS - 1) + g.width - g.s).toBeGreaterThanOrEqual(w);
             for (let i = 1; i < PANELS; i++) expect(g.left(i)).toBeLessThanOrEqual(g.left(i - 1) + g.width - g.s);
         }
+    });
+    it('a quadra freia de 1x a 0,25x durante a saída e fica lá', () => {
+        expect(slowmoScale(0)).toBe(1);
+        expect(slowmoScale(SLOWMO_MS / 2)).toBeLessThan(0.5);
+        expect(slowmoScale(SLOWMO_MS)).toBeCloseTo(SLOWMO_FLOOR);
+        expect(slowmoScale(SLOWMO_MS * 3)).toBeCloseTo(SLOWMO_FLOOR);
+        for (let t = 0; t < SLOWMO_MS; t += 50) expect(slowmoScale(t + 50)).toBeLessThan(slowmoScale(t));
     });
     it('a saída em câmera lenta só existe no tema: fora dele troca na hora', () => {
         let n = 0;
