@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ESPECIAL_SPECIES } from '../engine/specials';
-import { NEON_FROM, NEON_SPECIES, NEON_TO, temaOf, timeLeft } from './tema';
+import { NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
 
 const at = (iso: string) => Date.parse(iso);
 
@@ -39,11 +38,5 @@ describe('cronômetro da Noite Neon', () => {
         expect(until(1)).toBe('1min');
         expect(timeLeft(end)).toBe(null);
         expect(timeLeft(end + 60_000)).toBe(null);
-    });
-});
-
-describe('cartas neon', () => {
-    it('as espécies do fundo neon são as do Evento da semana no motor', () => {
-        expect([...NEON_SPECIES]).toEqual([...ESPECIAL_SPECIES]);
     });
 });

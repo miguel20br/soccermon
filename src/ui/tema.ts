@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { ESPECIAL_SPECIES } from '../engine/specials';
 
 /**
  * Semana Fora da Lei (o tema "Noite Neon" do código): decoração da semana do GTA 6 (paródia de clima e de linguagem visual, sem logo, nome, cidade ou
@@ -28,12 +27,6 @@ export const tema: Tema =
         : temaOf(window.location.search, Date.now());
 /** Os "da rua" da Noite Neon (cosmético): andam pelo Estádio e estão na capa. */
 export const NEON_STREET = [106, 107, 68, 9] as const;
-/**
- * Espécies cuja carta ganha o fundo de pôr do sol neon enquanto o tema vale (só visual: nota e atributos iguais): a
- * mesma lista do Evento da semana no motor (`ESPECIAL_SPECIES`). A carta Evento Fora da Lei tem esse fundo sempre.
- * Galeria: `?cards=1`, seção "Semana Fora da Lei".
- */
-export const NEON_SPECIES: ReadonlySet<number> = new Set(ESPECIAL_SPECIES);
 export const neonOn = tema === 'neon';
 
 export function startTema() {

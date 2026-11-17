@@ -242,13 +242,15 @@ const EVENT_SPECIES: Record<string, number> = {
 };
 const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIES[type] ?? 143, false, evt(type)) }));
 
-/** Semana Fora da Lei (ui/tema.ts, `NEON_SPECIES`): a mesma carta normal e com o fundo neon, lado a lado. */
+/** Semana Fora da Lei: só a carta Evento Fora da Lei tem o fundo neon; a comum e a Evento de tipo da mesma espécie, do lado. */
+const FDL = { kind: 'evento', event: 'especial' } as const;
 const NEON_SAMPLES = [
     { label: 'Hitmonchan', inst: card(107, false, null) },
-    { label: 'Hitmonchan Evento Fora da Lei', inst: card(107, false, { kind: 'evento', event: 'especial' }) },
+    { label: 'Hitmonchan Evento Fora da Lei', inst: card(107, false, FDL) },
     { label: 'Hitmonchan Evento Lutador', inst: card(107, false, evt('Fighting')) },
     { label: 'Blastoise', inst: card(9, false, null) },
-    { label: 'Blastoise shiny', inst: card(9, true, null) },
+    { label: 'Blastoise Evento Fora da Lei', inst: card(9, false, FDL) },
+    { label: 'Blastoise shiny Evento Fora da Lei', inst: card(9, true, FDL) },
 ];
 
 const ICON_SAMPLES = Object.keys(ICONS).map((id) => withEdition(sample(Number(id)), 'icone'));
@@ -468,18 +470,17 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                 <section className="panel" id="semana-neon">
                     <h2>Semana Fora da Lei (fundo de pôr do sol, só visual)</h2>
                     <p className="muted">
-                        A carta Evento Fora da Lei tem este fundo sempre; com o tema ligado, as outras cartas das 14
-                        espécies da lista (ESPECIAL_SPECIES no motor) também. Nota e atributos não mudam.
+                        Só a carta Evento Fora da Lei tem este fundo. As cartas comuns das 14 espécies da lista ficam
+                        bronze, prata ou ouro, mesmo durante a semana. O selo da edição fica à direita da nota, sem
+                        encostar nela. Nota e atributos não mudam.
                     </p>
                     <div className="cg-row">
-                        {NEON_SAMPLES.flatMap(({ label, inst }) =>
-                            [false, true].map((neon) => (
-                                <figure key={`${label}-${neon}`} className="cg-item">
-                                    <PokeCard2 inst={inst} variant="metal" neon={neon} tipFocus />
-                                    <figcaption className="muted">{neon ? `${label} · Neon` : label}</figcaption>
-                                </figure>
-                            )),
-                        )}
+                        {NEON_SAMPLES.map(({ label, inst }) => (
+                            <figure key={label} className="cg-item">
+                                <PokeCard2 inst={inst} variant="metal" tipFocus />
+                                <figcaption className="muted">{label}</figcaption>
+                            </figure>
+                        ))}
                     </div>
                 </section>
                 <section className="panel" id="evento-tipos">

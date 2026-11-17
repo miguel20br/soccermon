@@ -24,59 +24,20 @@ const FIRST = (() => {
 })();
 
 /**
- * Óculos escuros desenhados na grade do retrato PMD (40×40): cada letra é um pixel do retrato e `.` é transparente.
- * Cada linha é `haste + lente esquerda (10) + ponte + lente direita (10) + haste`; haste e ponte são a letra da cor
- * (esticada até a orelha ou pelo vão entre as lentes), ou espaço e `_` quando não tem.
+ * Óculos escuros (wayfarer preto com reflexo) desenhados na grade do retrato PMD (40×40): cada letra é um pixel do
+ * retrato e `.` é transparente. Cada linha é `haste + lente esquerda (10) + ponte + lente direita (10) + haste`; haste e
+ * ponte são a letra da cor (esticada até a orelha ou pelo vão entre as lentes), ou espaço e `_` quando não tem.
  */
-type Oculos = 'a' | 'b' | 'c';
-const OCULOS: Record<Oculos, { rows: string[]; pal: Record<string, string> }> = {
-    // A: wayfarer preto, aro grosso em cima com brilho, dois reflexos na diagonal
-    a: {
-        rows: [
-            ' kgggkkkkkkkkgggkkkkkk ',
-            'kkkkkkkkkkkkkkkkkkkkkkk',
-            ' kaaaawawak_kaaaawawak ',
-            ' .kbbwbwbbk_kbbbwbwbk. ',
-            ' .kcwcccck._.kcwcccck. ',
-            ' ..kkkkkk.._..kkkkkk.. ',
-        ],
-        pal: { k: '#0a0a10', g: '#6a6680', a: '#3a3150', b: '#221c33', c: '#110e1b', w: '#ffffff' },
-    },
-    // B: aviador espelhado, barra dourada em cima e o pôr do sol refletido (céu, rosa, sol na linha do mar)
-    b: {
-        rows: [
-            ' .kgggggggkgkgggggggk. ',
-            'kkvvwvvvvvk_kvvwvvvvvkk',
-            ' kmwmmmmmmkkkmwmmmmmmk ',
-            ' kppppyyppk_kppppyyppk ',
-            ' .kooyyyook_kooyyyook. ',
-            ' ..kssppssk_kssppssk.. ',
-            ' ...kkkkkk._.kkkkkk... ',
-        ],
-        pal: {
-            k: '#120c1c',
-            g: '#ffd36b',
-            v: '#3d1466',
-            m: '#b0307f',
-            p: '#ff4f9a',
-            o: '#ff8a4c',
-            y: '#fff27a',
-            s: '#12062a',
-            w: '#ffffff',
-        },
-    },
-    // C: neon rosa do conversível, lente roxa com a linha ciano do horizonte
-    c: {
-        rows: [
-            ' .FFFFFFFF._.FFFFFFFF. ',
-            'ffaaaawaaafffaaaawaaaff',
-            ' fbbbwbwbbf_fbbbwbwbbf ',
-            ' fbbwbwbbbf_fbbwbwbbbf ',
-            ' fnnnnnnnnf_fnnnnnnnnf ',
-            ' .dddddddd._.dddddddd. ',
-        ],
-        pal: { F: '#ffb8dc', f: '#ff4f9a', d: '#b8246a', a: '#3d1466', b: '#1a0b3d', n: '#4fd8ff', w: '#ffffff' },
-    },
+const OCULOS: { rows: string[]; pal: Record<string, string> } = {
+    rows: [
+        ' kgggkkkkkkkkgggkkkkkk ',
+        'kkkkkkkkkkkkkkkkkkkkkkk',
+        ' kaaaawawak_kaaaawawak ',
+        ' .kbbwbwbbk_kbbbwbwbk. ',
+        ' .kcwcccck._.kcwcccck. ',
+        ' ..kkkkkk.._..kkkkkk.. ',
+    ],
+    pal: { k: '#0a0a10', g: '#6a6680', a: '#3a3150', b: '#221c33', c: '#110e1b', w: '#ffffff' },
 };
 /** Onde a lente esquerda começa no retrato, largura do vão entre as lentes e até onde vão as hastes. */
 const FIT = {
@@ -84,12 +45,6 @@ const FIT = {
     squirtle: { x: 13, y: 15, gap: 4, earL: 8, earR: 37 },
 };
 type Fit = (typeof FIT)['pika'];
-// ?oculos=a|b|c só no dev e nas prévias, até o Miguel escolher
-const OCULOS_KIND: Oculos = (() => {
-    const q = __SMOKE__ ? new URLSearchParams(window.location.search).get('oculos') : null;
-    return q === 'b' || q === 'c' ? q : 'a';
-})();
-
 /** Pixels dos óculos no retrato (x, y, largura e letra da cor), a partir do desenho e do encaixe no rosto. */
 function shadesPixels(rows: readonly string[], fit: Fit) {
     const out: { x: number; y: number; w: number; c: string }[] = [];
@@ -111,12 +66,11 @@ function shadesPixels(rows: readonly string[], fit: Fit) {
 }
 
 function Shades({ who }: { who: keyof typeof FIT }) {
-    const kind = OCULOS_KIND;
-    const px = shadesPixels(OCULOS[kind].rows, FIT[who]);
-    const pal = OCULOS[kind].pal;
+    const px = shadesPixels(OCULOS.rows, FIT[who]);
+    const pal = OCULOS.pal;
     return (
         <svg
-            className={`nc-shades ${kind}`}
+            className="nc-shades"
             viewBox="0 0 40 40"
             preserveAspectRatio="none"
             shapeRendering="crispEdges"

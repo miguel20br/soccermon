@@ -3390,20 +3390,24 @@ button.pc2.pc2-fx:hover {
     height: 1.7em;
     filter: drop-shadow(0 0.08em 0 rgba(0, 0, 0, 0.45));
 }
+/* selo da edição: centrado na faixa entre a nota (`.m-ovr` vai até ~27% da largura) e o selo MVP (`.pr-stamp-tip`, os
+   últimos 23%), com folga. Em % pra não depender da fonte do selo; se o texto não couber, ele vaza pra direita, nunca pra nota. */
 .m-tag {
     position: absolute;
-    left: 50%;
+    left: 29%;
+    right: 23.5%;
     top: -0.35em;
     z-index: 4;
-    transform: translateX(-50%);
-    padding: 0.1em 0.6em;
+    width: fit-content;
+    margin-inline: auto;
+    padding: 0.1em 0.45em;
     border-radius: 1em;
     background: rgba(0, 0, 0, 0.75);
     color: #fff;
     font-family: "Galmuri14", monospace;
-    --gs: 0.55em;
-    font-size: var(--gfs, 0.55em);
-    letter-spacing: 0.1em;
+    --gs: 0.5em;
+    font-size: var(--gfs, 0.5em);
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     white-space: nowrap;
 }
@@ -4104,7 +4108,7 @@ button.pc2.pc2-fx:hover {
     filter: drop-shadow(0 0.06em 0 rgba(0, 0, 0, 0.5));
 }
 
-/* ---------- Semana Fora da Lei (ui/tema.ts, NEON_SPECIES): fundo de pôr do sol neon, só visual ----------
+/* ---------- Semana Fora da Lei: fundo de pôr do sol neon, só na carta Evento Fora da Lei (só visual) ----------
    Céu rosa, roxo e laranja, sol listrado, palmeiras em silhueta e chão escuro com grade (onde ficam os atributos, que
    continuam brancos e legíveis); borda rosa com o contorno azul. A nota e os números não mudam. `:root` na frente: ganha
    do foil das cartas brilhantes (`.m-brilhante:not(...)`). */
