@@ -34,6 +34,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                 lines: [
                     'Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)',
                     'Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais',
+                    'Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo',
                 ],
             },
         ],
@@ -3043,6 +3044,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Vibration only after the first tap on the page (the browser refused it before and threw an error)',
                     'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
+                    'Phone in landscape: the Start the 2nd half button no longer goes off screen at half-time',
                 ],
             },
         ],

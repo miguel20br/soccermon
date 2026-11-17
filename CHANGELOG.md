@@ -1,5 +1,23 @@
 # Novidades
 
+## 0.9.53 · Copa do Dia numerada (2026-11-23)
+
+### Copa do Dia
+- Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar
+- Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado
+- Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado
+
+### Duelo
+- Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa
+
+### Privacidade
+- Estatísticas anônimas por aparelho; política de privacidade atualizada
+
+### Consertos
+- Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)
+- Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais
+- Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo
+
 ## 0.9.52.3 · Música e transições da Semana Fora da Lei (2026-11-17)
 
 ### Semana Fora da Lei (até 22/11)
