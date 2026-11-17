@@ -451,3 +451,4 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 - **Funk das moedinhas:** curtiu a versão nova, mas a **bateria pode ser mais leve**. Nenhum dos nomes novos combinou; quer **mais sugestões**. Gosta de "Funk das moedinhas", porque é engraçado.
 - O resto ficou sem queixa. Destaque pra **O plano infalível nova**, "super legal".
 - **Quer mais faixas como O plano infalível:** mais **eletrônicas no jeito Sonic Mania**, animadas e divertidas. Estilo pra experimentar: **dancehall**.
+- **Pedido extra (16/11):** o Miguel acha que eu tenho talento pra faixas **mais emocionantes ou pesadas** e quer ouvir mais coisas **parecidas com "Quem manda aqui"**, a faixa do Giovanni ("gostei demais"). Na rodada 3, ou como faixa nova, entra pelo menos uma peça emocionante e uma pesada nessa linha: groove lento e ameaçador, clap molhado, metais graves, órgão e solo.
