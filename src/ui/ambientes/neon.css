@@ -132,6 +132,25 @@
         display: none;
     }
 }
+/* a placa do Estádio vem no fluxo, logo abaixo do telão (a altura do telão muda na 1ª visita, com a frase); a de trás some */
+.es-scene .nn-sign {
+    display: none;
+}
+.nn-sign.nn-flow {
+    position: relative;
+    left: auto;
+    top: auto;
+    order: 1;
+    flex: none;
+    transform: none;
+    animation: nn-flicker 7s steps(1) infinite;
+}
+@media (max-height: 700px) {
+    .es-scene .nn-sign,
+    .nn-sign.nn-flow {
+        display: none;
+    }
+}
 /* nas bandas da torcida da partida (celular em pé) o letreiro não cabe */
 .bc-stands .nn-sign {
     display: none;

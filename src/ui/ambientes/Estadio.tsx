@@ -254,12 +254,8 @@ export function Stands({
                 ))}
                 <span className="es-banner">{clubName}</span>
                 {/* Noite Neon (ui/tema.ts): o letreiro pendurado na cobertura */}
-                {tema && (
-                    <b className="nn-sign">
-                        {t('home.amb.ledNeon')}
-                        {left && <small>{t('home.amb.neonEndsShort', { left })}</small>}
-                    </b>
-                )}
+                {/* o do Estádio mora no fluxo da tela (`NeonSign` abaixo do telão): aqui o logo cobria */}
+                {tema && <NeonSign />}
                 {children}
             </div>
             <div className="es-led">
@@ -269,6 +265,18 @@ export function Stands({
                 </span>
             </div>
         </>
+    );
+}
+
+/** O letreiro da Semana Fora da Lei (pendurado na cobertura; no Estádio, `flow`, vem logo abaixo do telão). */
+export function NeonSign({ flow }: { flow?: boolean }) {
+    const { t } = useT();
+    const left = useTimeLeft();
+    return (
+        <b className={`nn-sign${flow ? ' nn-flow' : ''}`}>
+            {t('home.amb.ledNeon')}
+            {left && <small>{t('home.amb.neonEndsShort', { left })}</small>}
+        </b>
     );
 }
 
@@ -596,6 +604,7 @@ export function Estadio({
                     </h1>
                     {hydrated && firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>}
                 </div>
+                {tema && <NeonSign flow />}
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />

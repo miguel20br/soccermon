@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.52.4 · Placa da Semana Fora da Lei (2026-11-17)
+
+### Correções
+- A placa da Semana Fora da Lei ficava escondida atrás do logo na primeira visita
+
 ## 0.9.52.3 · Música e transições da Semana Fora da Lei (2026-11-17)
 
 ### Semana Fora da Lei (até 22/11)
