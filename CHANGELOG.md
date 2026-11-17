@@ -1,5 +1,10 @@
 # Novidades
 
+## 0.9.52.2 · Copa do Dia de 17/11 (2026-11-17)
+
+### Copa do Dia
+- Copa do Dia de 17/11: quem jogou antes da Semana Fora da Lei pode jogar de novo
+
 ## 0.9.52.1 · Semana Fora da Lei (2026-11-16)
 
 ### Semana Fora da Lei (16 a 22/11)

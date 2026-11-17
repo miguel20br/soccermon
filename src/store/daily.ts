@@ -1,3 +1,4 @@
+import { ENGINE_VERSION } from '../engine/config';
 import { SPECIES, species } from '../engine/data';
 import { createInstance, type PokemonInstance } from '../engine/instance';
 import { Rng } from '../engine/rng';
@@ -52,6 +53,35 @@ export interface DailyEntry {
     ranked?: boolean;
     /** Quantas partidas o servidor já recebeu. */
     reported?: number;
+    /** `ENGINE_VERSION` em que foi jogada (sem = antes da 0.9.52.2). */
+    engine?: number;
+}
+
+/**
+ * Copas do Dia anuladas: o dia em que um motor novo subiu no meio do dia. Quem jogou antes desse motor pode jogar de
+ * novo com as regras novas (a linha do ranking no banco, `daily_runs`, é apagada à mão). A entrada velha sai do save ao
+ * carregar e ao juntar com a nuvem (`mergeDaily`, `dropAnnulledDaily`), então o dia fica livre e o save que sobe pra
+ * nuvem já vai sem ela.
+ * - 17/11/2026: a Semana Fora da Lei (0.9.52.1, motor 31) subiu depois de gente jogar o dia no motor 30.
+ */
+export const DAILY_ANULADAS: { day: string; antesDoMotor: number }[] = [{ day: '2026-11-17', antesDoMotor: 31 }];
+
+export const dailyAnulada = (e: Pick<DailyEntry, 'day' | 'engine'>): boolean =>
+    DAILY_ANULADAS.some((a) => a.day === e.day && (e.engine ?? 0) < a.antesDoMotor);
+
+/**
+ * Tira do save as Copas do Dia anuladas e a copa do dia anulado em andamento (sem entrada que sobreviveu, ela é a do
+ * motor velho: a copa nova sempre nasce com a entrada carimbada, em `startDaily`).
+ */
+export function dropAnnulledDaily<R extends { daily?: string }>(s: {
+    daily: DailyEntry[];
+    run: R | null;
+    parkedRuns: R[];
+}): { daily: DailyEntry[]; run: R | null; parkedRuns: R[] } {
+    const daily = mergeDaily(s.daily);
+    const old = (r: R | null) =>
+        !!r?.daily && DAILY_ANULADAS.some((a) => a.day === r.daily) && !daily.some((e) => e.day === r.daily);
+    return { daily, run: old(s.run) ? null : s.run, parkedRuns: s.parkedRuns.filter((r) => !old(r)) };
 }
 
 /** Dias guardados no save (dá pra sequência e pro histórico curto). */
@@ -59,16 +89,21 @@ export const MAX_DAILY = 60;
 
 export const winsOf = (e: Pick<DailyEntry, 'results'>) => e.results.filter((r) => r.won).length;
 
-/** Entrada nova (ou trocada) no topo, do dia mais recente ao mais antigo. */
+/** Entrada nova (ou trocada) no topo, do dia mais recente ao mais antigo, carimbada com o motor de agora. */
 export const putDaily = (list: DailyEntry[], e: DailyEntry): DailyEntry[] =>
-    [e, ...list.filter((x) => x.day !== e.day)].sort((a, b) => (a.day < b.day ? 1 : -1)).slice(0, MAX_DAILY);
+    [{ ...e, engine: ENGINE_VERSION }, ...list.filter((x) => x.day !== e.day)]
+        .sort((a, b) => (a.day < b.day ? 1 : -1))
+        .slice(0, MAX_DAILY);
 
-/** Junta o histórico da nuvem com o do aparelho: por dia, fica o que andou mais (acabou > mais partidas). */
+/**
+ * Junta o histórico da nuvem com o do aparelho: por dia, fica o que andou mais (acabou > mais partidas). As anuladas
+ * (`DAILY_ANULADAS`) ficam de fora dos dois lados.
+ */
 export function mergeDaily(a: DailyEntry[] = [], b: DailyEntry[] = []): DailyEntry[] {
     const byDay = new Map<string, DailyEntry>();
     const score = (e: DailyEntry) => (e.done ? 100 : 0) + e.results.length;
     for (const e of [...a, ...b]) {
-        if (!e || typeof e.day !== 'string' || !Array.isArray(e.results)) continue;
+        if (!e || typeof e.day !== 'string' || !Array.isArray(e.results) || dailyAnulada(e)) continue;
         const cur = byDay.get(e.day);
         if (!cur || score(e) > score(cur)) byDay.set(e.day, e);
     }

@@ -9,6 +9,17 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.52.2',
+        date: '2026-11-17',
+        title: 'Copa do Dia de 17/11',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: ['Copa do Dia de 17/11: quem jogou antes da Semana Fora da Lei pode jogar de novo'],
+            },
+        ],
+    },
+    {
         version: '0.9.52.1',
         date: '2026-11-16',
         title: 'Semana Fora da Lei',
@@ -2954,6 +2965,17 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.52.2',
+        date: '2026-11-17',
+        title: 'Daily Cup of Nov 17',
+        sections: [
+            {
+                title: 'Daily Cup',
+                lines: ['Daily Cup of Nov 17: if you played before Outlaw Week started, you can play it again'],
+            },
+        ],
+    },
     {
         version: '0.9.52.1',
         date: '2026-11-16',

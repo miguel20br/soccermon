@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.52.2 · Copa do Dia de 17/11 (17/11/2026)
+
+Motor 31 (sem mudança de partida). `DailyEntry.engine` guarda o `ENGINE_VERSION` (carimbado em `putDaily`). `DAILY_ANULADAS` em src/store/daily.ts: a entrada de 17/11 sem motor ou com motor < 31 sai em `mergeDaily` e `dropAnnulledDaily` (no `migrateSave`, que a nuvem também passa, e no `merge` do persist, que o save local da versão atual usa), junto com a copa do dia anulado em andamento. A linha do ranking (`daily_runs`) foi apagada à mão.
+
 ## 0.9.52.1 · Semana Fora da Lei (16/11/2026)
 
 Motor 31: na semana de 16 a 22/11 (`ESPECIAL_WEEK` em src/store/daily.ts, `weekEvent`) o Evento é a lista `ESPECIAL_SPECIES` (14 espécies, carta `{ kind: 'evento', event: 'especial' }`) no lugar do tipo da semana; Duelo e Liga aceitam a carta nova. Visual em src/ui/tema.ts (`NEON_FROM`/`NEON_TO`, `?tema=neon|off`): pôr do sol e palmeiras no Estádio, neon na quadra, capa em painéis, MISSÃO CUMPRIDA/PERDEU, estrelas de procurado e cronômetro no letreiro (a semana do tipo some nele). Fundo neon só na carta Evento Fora da Lei (as cartas comuns das 14 espécies ficam bronze, prata ou ouro).

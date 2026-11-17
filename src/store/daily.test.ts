@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 
+import { ENGINE_VERSION } from '../engine/config';
 import { buildCupOpponents } from '../engine/cup';
 import { ESPECIAL_EVENT, EVENT_TYPES, weeklyEventType } from '../engine/specials';
 import {
@@ -16,10 +18,20 @@ import {
     dailyStreak,
     daysInARow,
     mergeDaily,
+    putDaily,
     weekEvent,
     weekOf,
 } from './daily';
-import { dailyAfter, migrateSave, type RunState, SAVE_VERSION, savePart, seedFromUrl, useGame } from './game-store';
+import {
+    dailyAfter,
+    migrateSave,
+    type PersistedSave,
+    type RunState,
+    SAVE_VERSION,
+    savePart,
+    seedFromUrl,
+    useGame,
+} from './game-store';
 
 const entry = (day: string, patch: Partial<DailyEntry> = {}): DailyEntry => ({
     day,
@@ -211,5 +223,63 @@ describe('dias seguidos e figurinha do dia', () => {
         expect(bestDailyStreak(list)).toBe(3);
         expect(dailySticker('2026-10-21')).toBe(dailySticker('2026-10-21'));
         expect(dailyStickerCard('2026-10-21').special?.kind).toBe('evento');
+    });
+});
+
+describe('Copa do Dia anulada: 17/11/2026 jogada antes do motor 31 (Semana Fora da Lei)', () => {
+    const jogo = { score: [2, 1] as [number, number], shootout: null, won: true, opponent: 'Pewter Rochedo' };
+    const velha = entry('2026-11-17', { done: true, ranked: true, reported: 1, results: [jogo] });
+    const outra = entry('2026-11-16', { done: true, ranked: true, results: [jogo] });
+    afterEach(() => vi.useRealTimers());
+
+    it('sem `engine` sai do save (backup antigo carrega) e o dia fica jogável', () => {
+        const backup = JSON.parse(readFileSync('scripts/fixtures/backup-v6-pt.json', 'utf8'));
+        const save = migrateSave({ ...backup.save, daily: [velha, outra] }, backup.version);
+        expect(save.daily).toEqual([outra]);
+        expect(save.hall.length).toBeGreaterThan(0);
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(new Date('2026-11-17T15:00:00Z'));
+        useGame.setState({ ...save, run: null });
+        useGame.getState().startDaily(true);
+        expect(useGame.getState().run?.seed).toBe('dia-20261117');
+        expect(useGame.getState().daily[0]).toMatchObject({ day: '2026-11-17', done: false, engine: ENGINE_VERSION });
+    });
+
+    it('com `engine: 31` fica; outros dias (com ou sem motor) não mudam', () => {
+        const nova = { ...velha, engine: 31 };
+        const antiga = entry('2026-11-10', { done: true, engine: 30 });
+        expect(mergeDaily([nova, outra, antiga])).toEqual([nova, outra, antiga]);
+        expect(migrateSave({ daily: [nova, outra] }, SAVE_VERSION).daily).toEqual([nova, outra]);
+    });
+
+    it('a nuvem trazendo a entrada velha não ressuscita (nem sozinha, nem contra a nova)', () => {
+        expect(mergeDaily([outra], [velha])).toEqual([outra]);
+        const nova = entry('2026-11-17', { engine: ENGINE_VERSION });
+        expect(mergeDaily([nova], [velha])).toEqual([nova]);
+        // a nuvem passa pelo migrateSave antes de juntar (src/cloud/cloud.ts)
+        expect(migrateSave({ daily: [velha] }, SAVE_VERSION).daily).toEqual([]);
+    });
+
+    it('ao abrir o jogo (save do aparelho na versão atual, sem `migrate`) sai a entrada e a copa velha em andamento', () => {
+        const run = { seed: 'dia-20261117', daily: '2026-11-17', status: 'lineup', results: [] } as unknown as RunState;
+        const saved = { ...migrateSave({}, SAVE_VERSION), daily: [velha, outra], run } as PersistedSave;
+        const merge = useGame.persist.getOptions().merge;
+        const out = merge?.(saved, useGame.getState()) as PersistedSave;
+        expect(out.daily).toEqual([outra]);
+        expect(out.run).toBeNull();
+        // e o que sobe pra nuvem já vai sem ela
+        useGame.setState(out);
+        expect(savePart(useGame.getState()).daily).toEqual([outra]);
+    });
+
+    it('a copa de 17/11 do motor novo em andamento continua', () => {
+        const run = { seed: 'dia-20261117', daily: '2026-11-17', status: 'lineup', results: [] } as unknown as RunState;
+        const nova = entry('2026-11-17', { engine: 31 });
+        const save = migrateSave({ daily: [nova], run }, SAVE_VERSION);
+        expect(save.run?.seed).toBe('dia-20261117');
+    });
+
+    it('entrada nova sai com o motor de agora', () => {
+        expect(putDaily([], entry('2026-11-18'))[0].engine).toBe(ENGINE_VERSION);
     });
 });
