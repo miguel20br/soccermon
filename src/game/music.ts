@@ -10,6 +10,7 @@ import { type BuildSamples, mixVirada, wavMono } from './virada';
 export type TrackId =
     | 'abertura-gancho'
     | 'menu-balanco'
+    | 'menu-neon'
     | 'mercado-funk'
     | 'estrada-da-vitoria'
     | 'planalto-indigo'
@@ -157,6 +158,7 @@ export const PONTES: ReadonlySet<TrackId> = new Set<TrackId>([
 const SWING: Partial<Record<TrackId, number>> = {
     'abertura-gancho': 0.15,
     'menu-balanco': 0.1,
+    'menu-neon': 0.06,
     draft: 0.1,
     recompensa: 0.1,
     'mercado-funk': 0.14,
