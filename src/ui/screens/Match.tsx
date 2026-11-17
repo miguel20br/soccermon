@@ -101,6 +101,7 @@ import { bannerText, useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../settings-sync';
 import { simulateMatch } from '../sim-client';
 import { neonOn } from '../tema';
+import { slowmoExit } from '../tv';
 
 /** Velocidades (o rótulo de 'highlights' vem do dicionário: "Lances"). */
 const SPEEDS: { value: PlaybackSpeed; label: string }[] = [
@@ -1150,7 +1151,10 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                                 // título: o troféu cobre a quadra e a festa aparece embaixo
                                 !solo && useGame.getState().run?.status === 'champion'
                                     ? playMoment('trofeu', () => go('result'))
-                                    : go(liga ? 'liga' : ultimate ? 'ultimate' : 'result')
+                                    : liga || ultimate
+                                      ? go(liga ? 'liga' : 'ultimate')
+                                      : // Semana Fora da Lei: câmera lenta e a cor some antes do MISSÃO CUMPRIDA / PERDEU
+                                        slowmoExit(() => go('result'))
                             }
                         />
                     )}

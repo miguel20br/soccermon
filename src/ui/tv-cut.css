@@ -1,0 +1,82 @@
+/* O corte de TV (src/ui/tv.ts). Carregado junto com o tv.ts: no tv.css (só do menu de modos, carregado depois) a faixa
+   ficava sem estilo, invisível, em toda troca de tela antes de abrir o menu. */
+
+/* ---------- o corte: a faixa diagonal na tinta do placar, com o filete amarelo nas duas bordas ---------- */
+.tv-cut {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    overflow: hidden;
+    pointer-events: none;
+}
+.tv-cut-band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--yellow);
+    clip-path: polygon(var(--s) 0, 100% 0, calc(100% - var(--s)) 100%, 0 100%);
+    transform: translateX(100vw);
+    will-change: transform;
+}
+.tv-cut-band::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bc-ink);
+    clip-path: polygon(calc(var(--s) + 12px) 0, calc(100% - 12px) 0, calc(100% - var(--s) - 12px) 100%, 12px 100%);
+}
+
+/* ---------- Semana Fora da Lei (tema.ts, tv.ts `cutKind`): o corte em neon ---------- */
+/* A: a faixa com a borda da frente rosa e a de trás ciano, brilho em volta e listras de velocidade no miolo */
+.tv-cut.neon-a {
+    filter: drop-shadow(0 0 10px rgb(255 95 168 / 80%));
+}
+.neon-a .tv-cut-band {
+    background: linear-gradient(90deg, #ff5fa8 50%, #3ff3ff 50%);
+}
+.neon-a .tv-cut-band::before {
+    clip-path: polygon(calc(var(--s) + 8px) 0, calc(100% - 8px) 0, calc(100% - var(--s) - 8px) 100%, 8px 100%);
+    background:
+        linear-gradient(90deg, transparent, rgb(255 255 255 / 70%), transparent) 22% 16% / 42% 2px no-repeat,
+        linear-gradient(90deg, transparent, rgb(63 243 255 / 80%), transparent) 72% 31% / 30% 3px no-repeat,
+        linear-gradient(90deg, transparent, rgb(255 95 168 / 85%), transparent) 38% 49% / 55% 2px no-repeat,
+        linear-gradient(90deg, transparent, rgb(255 255 255 / 60%), transparent) 84% 64% / 26% 2px no-repeat,
+        linear-gradient(90deg, transparent, rgb(63 243 255 / 75%), transparent) 12% 79% / 40% 3px no-repeat,
+        linear-gradient(90deg, transparent, rgb(255 95 168 / 70%), transparent) 60% 91% / 34% 2px no-repeat,
+        linear-gradient(90deg, #3d1466, #12062a 55%, #1a0b3d);
+}
+/* o tubo de neon: o filete branco no meio da borda rosa */
+.neon-a .tv-cut-band::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    clip-path: polygon(calc(var(--s) + 3px) 0, calc(var(--s) + 5px) 0, 5px 100%, 3px 100%);
+}
+/* B: painéis inclinados com a calha preta, cada um com um céu da capa */
+.nb-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: #0a0612;
+    clip-path: polygon(var(--s) 0, 100% 0, calc(100% - var(--s)) 100%, 0 100%);
+    transform: translateY(-100%);
+    will-change: transform;
+}
+.nb-panel::before {
+    content: "";
+    position: absolute;
+    inset: 6px 0;
+    background: var(--sky);
+    clip-path: polygon(calc(var(--s) + 6px) 0, calc(100% - 6px) 0, calc(100% - var(--s) - 6px) 100%, 6px 100%);
+}
+.nb-panel:nth-child(1) {
+    --sky: linear-gradient(180deg, #1a0b3d, #8a2a8c 55%, #ff8a4c);
+}
+.nb-panel:nth-child(2) {
+    --sky: linear-gradient(180deg, #ff4f9a, #3d1466 70%, #12062a);
+}
+.nb-panel:nth-child(3) {
+    --sky: linear-gradient(180deg, #12062a, #2a1650 50%, #3ff3ff);
+}
