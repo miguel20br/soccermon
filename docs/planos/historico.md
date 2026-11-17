@@ -6,6 +6,10 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.52.4 · Placa da Semana Fora da Lei (17/11/2026)
+
+Motor 31 (sem mudança de partida). A placa `nn-sign` do Estádio ficava na arquibancada, atrás do telão do logo, que cresce na 1ª visita (frase): agora é `NeonSign flow` no fluxo da UI, logo abaixo do `es-top` (`order: 1`, src/ui/ambientes/Estadio.tsx e neon.css); a de trás some no Estádio (`.es-scene .nn-sign`) e as duas somem com altura <= 700 px. Teste: src/ui/ambientes/neon-sign.test.ts. Pendência vista: no menu de modos (`ModeMenu`) a placa da arquibancada cobre a linha "Copa Relâmpago · Rota Índigo · Duelo".
+
 ## 0.9.52.3 · Música e transições da Semana Fora da Lei (17/11/2026)
 
 Motor 31 (sem mudança de partida). Só com `neonOn`: música `menu-neon` (a Conversível, `scripts/musica/pecas/menu-neon.mjs`, 108 BPM, buzina no 3-3-2) no lugar de `menu-balanco` (`trackOf` em src/ui/music-sync.ts); corte de tela neon A (faixa) e B (painéis) se revezando (`cutKind` em src/ui/tv.ts, `?transicao=a|b` só em dev/prévia; estilo em src/ui/tv-cut.css, que antes morava no tv.css carregado só com o menu de modos e deixava o corte invisível); `slowmoExit` na saída da partida (dessaturar, zoom, `match:slowmo` freia a MatchScene de 1x a 0,25x em 850 ms) na Copa, Liga e Duelo (Duelo: só no "Ver resultado", o fim vai pra sala no apito). CountUp sem número negativo na montagem.

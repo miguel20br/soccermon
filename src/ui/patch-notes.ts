@@ -40,6 +40,17 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
     {
+        version: '0.9.52.4',
+        date: '2026-11-17',
+        title: 'Placa da Semana Fora da Lei',
+        sections: [
+            {
+                title: 'Correções',
+                lines: ['A placa da Semana Fora da Lei ficava escondida atrás do logo na primeira visita'],
+            },
+        ],
+    },
+    {
         version: '0.9.52.3',
         date: '2026-11-17',
         title: 'Música e transições da Semana Fora da Lei',
@@ -3046,6 +3057,17 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
                     'Phone in landscape: the Start the 2nd half button no longer goes off screen at half-time',
                 ],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.4',
+        date: '2026-11-17',
+        title: 'Outlaw Week sign',
+        sections: [
+            {
+                title: 'Fixes',
+                lines: ['The Outlaw Week sign was hidden behind the logo on the first visit'],
             },
         ],
     },
