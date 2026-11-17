@@ -1,4 +1,5 @@
-// Menu neon B: Conversível (17/11/2026, esboço). O pedido: música do menu só da Semana Fora da Lei (tema neon,
+// Menu neon: Conversível (17/11/2026; era a B dos esboços, aprovada pelo Miguel e no jogo como `menu-neon`).
+// O pedido: música do menu só da Semana Fora da Lei (tema neon,
 // 16 a 22/11), no lugar do `menu-balanco` enquanto o tema estiver ligado. Clima de synthwave anos 80 com o carro
 // conversível na avenida da praia; inspirado no clima, sem melodia nem progressão de música existente.
 // Esta é a outrun com funk (a casa): Sol dórico a 108 BPM, baixo em oitavas de semicolcheia, caixa com reverb gated
@@ -12,7 +13,7 @@
 import { buzina, caixaGated } from '../neon-sons.mjs';
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 
-export const meta = { titulo: 'Menu neon B: Conversível (outrun com funk)', tela: 'Home (Semana Fora da Lei)' };
+export const meta = { titulo: 'Menu neon: Conversível (outrun com funk)', tela: 'Home (Semana Fora da Lei)' };
 
 /** Pulso com média fora do zero: passa-alta do ZzFX em ~80 Hz (como no menu-balanco). */
 const semDC = (inst) => [...inst.slice(0, -1), 40];
