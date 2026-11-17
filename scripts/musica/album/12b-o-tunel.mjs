@@ -468,7 +468,7 @@ function tunel(v) {
     return S;
 }
 
-/** A: 100 BPM, groove inteiro (a que entra no álbum se ele não escolher a B). */
-export default () => tunel('A');
-/** B: 108 BPM, meio-tempo com percussão em dobro e o riff do 3-3-2 (`node scripts/musica/album.mjs 12b-o-tunel:B`). */
-export const B = () => tunel('B');
+/** B (escolhida pelo Miguel em 17/11): 108 BPM, meio-tempo com percussão em dobro e o riff do 3-3-2. */
+export default () => tunel('B');
+/** A: 100 BPM, groove inteiro (`node scripts/musica/album.mjs 12b-o-tunel:A`). */
+export const A = () => tunel('A');
