@@ -98,7 +98,7 @@ já têm fim (as livres, os jingles e "A última partida") entram como estão.
 | 4 | Pé na estrada | `extra-rota-1` (Rota 1 v3) | 2:30 | 2 voltas. A 2ª volta já termina meio tom acima, e o final fica nesse tom |
 | 5 | Gotas na caverna | `extra-mt-moon` (Mt. Moon v2) | 1:55 | 2 voltas. Fim: as gotas sozinhas e o eco sumindo, como na introdução |
 | 6 | Barco e gaivota | `extra-cerulean` (Cerulean v2) | 2:15 | 2 voltas. Fim em Mi♭ lídio, com a gaivota e as bolhas |
-| 7 | Funk das moedinhas | `mercado-funk` | 2:00 | 2 voltas. Fim com a caixa registradora fechando ("plim" e moedas) |
+| 7 | Fiado só amanhã | `mercado-funk` | 2:00 | 2 voltas. Fim com a caixa registradora fechando ("plim" e moedas) |
 | 8 | **O plano infalível** ★ | `tema-rocket` (a régua) | 3:00 | Versão estendida (veja os extras) |
 | 9 | Na ponta do pé | `extra-cutscene-boba` (v2, "genial") | 2:30 | 2 voltas. O B do tropeço e do "bonk" fica nas duas voltas, e o final é um último passinho e silêncio |
 | 10 | Ladeira acima | `estrada-da-vitoria` | 2:20 | 3 voltas, porque a peça já sobe um tom por volta (Mi → Fá# → Sol#). Fim em Sol# no topo da ladeira |
@@ -459,4 +459,5 @@ teste do Natal. Só 1 agente pesado por vez, e o de música mal pesa.
 - **O túnel** (a pesada): "interessante", mas "muito lenta e chata". Refazendo com mais andamento e menos tempo parado (rodada 3b, duas versões).
 - **Altinha** (dancehall): "nada dancehall, meio reggae". Saiu do álbum; não tentar dancehall de novo sem ele pedir.
 - **Contra-ataque** (Sonic Mania): não gostou. Saiu do álbum.
-- Sem retorno ainda: os retrabalhos 02, 07, 10 e 12 e o nome do Funk das moedinhas.
+- **Retrabalhos 02, 07, 10 e 12:** aprovados ("curti os 4").
+- **Faixa 7:** nome escolhido "Fiado só amanhã" (EN "No Credit Till Tomorrow").
