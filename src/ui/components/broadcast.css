@@ -945,7 +945,9 @@
     .bc .ht-panel .duel-ht {
         order: 1;
     }
-    .bc .ht-panel .ht-subs {
+    /* as listas de trocas vão pra baixo dos botões; a do rival vem dentro do .ht-subs-beat (a entrada em cascata), que
+       é quem fica na coluna: sem ele o "O rival trocou" ficava em cima e o Começar o 2º tempo caía pra fora (667x375) */
+    .bc .ht-panel :is(.ht-subs, .ht-subs-beat) {
         order: 2;
     }
     /* duelo deitado: a dica sai pra caber o pronto (quem está pronto e o botão) */
