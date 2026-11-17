@@ -4,7 +4,7 @@ import { viewInstance } from '../../engine/instance';
 import { useT } from '../../i18n/react';
 import type { SlotRef } from '../../store/game-store';
 import { useGame } from '../../store/game-store';
-import { chemistry } from '../../store/ultimate/chemistry';
+import { chemistry, chemTotal, diamondsOf } from '../../store/ultimate/chemistry';
 import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
 import { homeTeam, orderIndex, teamAverage, teamStrength, type UltimateSave } from '../../store/ultimate/ultimate';
 import { HudIcon } from '../components/MatchHud';
@@ -12,7 +12,7 @@ import { MonIcon } from '../components/MonIcon';
 import { SheetRow } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { LineupEditor } from '../screens/Lineup';
-import { Chemistry } from './Chemistry';
+import { Chemistry, Diamonds } from './Chemistry';
 import { clubPos, Diff, fitOf, ratingAtSlot } from './Club';
 
 /** Cartão do time em cima da prancheta (como o do FC): a nota do time grande, a química e a força. */
@@ -20,13 +20,13 @@ function TeamCard({ u }: { u: UltimateSave }) {
     const { t } = useT();
     const home = homeTeam(u, '', 0);
     const avg = teamAverage(home);
-    const chem = Math.round((chemistry(home.lineup, FORMATIONS[u.team.formation].slots, [], home.bench).avg - 1) * 100);
+    const chem = chemTotal(chemistry(home.lineup, FORMATIONS[u.team.formation].slots, [], home.bench));
     return (
         <section className="panel bc-surface bc-stripe ut-teamcard" aria-live="polite">
             <b className="ut-teamcard-ovr cb-num">{avg}</b>
             <span>
                 <span className="bc-lbl">{t('ultimate.teamcard.ovr')}</span>
-                <b>{t('ultimate.home.chem', { c: chem })}</b>
+                <b>{t('ultimate.home.chem', { n: chem, max: STARTERS * 3 })}</b>
             </span>
             <span className="ut-teamcard-str">
                 <span className="bc-lbl">{t('ultimate.teamcard.str')}</span>
@@ -61,6 +61,14 @@ export function Squad({ onPacks, onClub }: { onPacks: () => void; onClub: () => 
             </section>
         );
     const name = (uid: string) => viewInstance(byUid.get(uid)!).displayName;
+    const lineup = order.slice(0, STARTERS).flatMap((uid) => byUid.get(uid) ?? []);
+    const ch = chemistry(
+        lineup,
+        FORMATIONS[u.team.formation].slots,
+        [],
+        order.slice(STARTERS).flatMap((uid) => byUid.get(uid) ?? []),
+    );
+    const dia = new Map(ch.players.map((p) => [p.uid, diamondsOf(p.chem)]));
     return (
         <>
             <TeamCard u={u} />
@@ -75,6 +83,7 @@ export function Squad({ onPacks, onClub }: { onPacks: () => void; onClub: () => 
                 cornerPlan={u.team.corner}
                 cornerTakerUid={u.team.cornerTakerUid}
                 locked={!!u.live}
+                badgeOf={(inst) => dia.has(inst.uid) && <Diamonds n={dia.get(inst.uid)!} />}
                 onFormation={(formation) => setTeam({ formation })}
                 onSwap={(a, b) => setMember(orderIndex(a.zone, a.index), order[orderIndex(b.zone, b.index)])}
                 onSlotTap={(ref: SlotRef) => setSlot(orderIndex(ref.zone, ref.index))}

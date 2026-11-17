@@ -15,6 +15,7 @@ import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
+import { FormationBoard } from '../components/FormationBoard';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
 import { PokeCard2 } from '../components/PokeCard2';
@@ -22,6 +23,8 @@ import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 import { TYPE_PT } from '../type-colors';
+import { Diamonds } from '../ultimate/Chemistry';
+import '../ultimate/ultimate.css';
 
 /**
  * Galeria de cartas (?cards=1, só no dev): só a carta do jogo (metal). Os estilos antigos ficam no arquivo
@@ -251,6 +254,11 @@ const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIE
 
 /** Semana Fora da Lei: só a carta Evento Fora da Lei tem o fundo neon; a comum e a Evento de tipo da mesma espécie, do lado. */
 const FDL = { kind: 'evento', event: 'especial' } as const;
+/** Losangos de química do Time Ultimate: uma quadra com 0, 1, 2 e 3 (o Gengar sem ligação nenhuma). */
+const DIA_TEAM = [25, 6, 131, 143, 94].map((id) => sample(id));
+const DIA_N = new Map(DIA_TEAM.map((p, i) => [p.uid, [2, 3, 1, 2, 0][i]]));
+const DIA_BY = new Map(DIA_TEAM.map((p) => [p.uid, p]));
+
 const NEON_SAMPLES = [
     { label: 'Hitmonchan', inst: card(107, false, null) },
     { label: 'Hitmonchan Evento Fora da Lei', inst: card(107, false, FDL) },
@@ -465,6 +473,35 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         Magikarp e o selo de evolução
                     </h3>
                     <Ladder steps={MAGIKARP} />
+                </section>
+                <section className="panel" id="losangos">
+                    <h2>Losangos de química (Time Ultimate) · proposta pro ok do Miguel</h2>
+                    <p className="muted cb-intro">
+                        Cada titular mostra 0 a 3 losangos embaixo da vaga, convertidos do bônus de hoje (0% = 0, até
+                        +3% = 1, até +6% = 2, acima = 3). No topo, o total do time (8/15); o "+N%" fica só no painel de
+                        química. Fórmula e números iguais.
+                    </p>
+                    <div className="cg-row" style={{ alignItems: 'center' }}>
+                        <div style={{ width: 380 }} className="vt">
+                            <FormationBoard
+                                formation="1-2-1"
+                                lineup={DIA_TEAM.map((p) => p.uid)}
+                                bench={[]}
+                                byUid={DIA_BY}
+                                badgeOf={(p) => <Diamonds n={DIA_N.get(p.uid) ?? 0} />}
+                            />
+                        </div>
+                        <div className="panel bc-surface" style={{ display: 'grid', gap: 10 }}>
+                            {[0, 1, 2, 3].map((n) => (
+                                <span key={n} className="row" style={{ gap: 10 }}>
+                                    <Diamonds n={n} />
+                                    <small className="muted">
+                                        {['0% (nenhuma ligação)', 'até +3%', 'até +6%', 'acima de +6%'][n]}
+                                    </small>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </section>
                 <section className="panel" id="seta">
                     <h2>O ▲ da carta</h2>

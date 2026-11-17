@@ -473,7 +473,9 @@
 }
 .ut-chem-players li {
     display: grid;
-    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto;
+    /* posição, ícone, nome, fora da vaga, losangos e o bônus: as colunas da direita alinham entre as linhas */
+    grid-template-columns: 30px 28px minmax(0, 1fr) 36px auto 38px;
+    padding-right: 2px;
     align-items: center;
     gap: 6px;
     font-size: 13px;
@@ -486,6 +488,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.ut-chem-players li > :is(b, em) {
+    text-align: right;
 }
 .ut-chem-players li > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
@@ -1886,10 +1891,7 @@
     animation: none;
 }
 
-/* losangos de química (rascunho atrás de ?losangos=1, Chemistry.tsx) */
-.ut-chem-players li:has(.ut-dia) {
-    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto auto;
-}
+/* losangos de química 0–3 (Chemistry.tsx): no painel, na vaga da quadra e no X/15 */
 .ut-dia {
     display: inline-flex;
     gap: 3px;
@@ -1899,11 +1901,29 @@
     height: 9px;
     border: 2px solid var(--line);
     transform: rotate(45deg);
-    transition: background-color 220ms var(--ease-out);
+    transition:
+        background-color 220ms var(--ease-out),
+        border-color 220ms var(--ease-out);
 }
 .ut-dia i.on {
     border-color: var(--green);
     background: var(--green);
+}
+/* na vaga: pendurados embaixo da carta, numa plaquinha escura (não cobrem nome nem nota) */
+.slot > .ut-dia {
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    translate: -50% 0;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    box-shadow: 0 0 0 2px var(--cb-ink);
+}
+.slot > .ut-dia i {
+    width: 7px;
+    height: 7px;
 }
 /* o número do bloco nunca sai pra fora: no 320 ele fica só na aba Loja */
 .ut-b-head .ut-count {

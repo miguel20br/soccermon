@@ -68,3 +68,16 @@ export function chemistry(
     });
     return { players, avg, types, links, nearTypes, nearLinks };
 }
+
+const pct = (f: number) => Math.round((f - 1) * 100);
+
+/**
+ * Losangos de química 0–3 por titular (como os do FC), convertidos do bônus que já existe. Degraus aprovados pelo
+ * Miguel (09/11): 0% = 0, até +3% = 1, até +6% = 2, acima = 3.
+ */
+export const diamondsOf = (chem: number) => {
+    const p = pct(chem);
+    return p <= 0 ? 0 : p <= 3 ? 1 : p <= 6 ? 2 : 3;
+};
+/** O "X/15" do time: a soma dos losangos dos titulares. */
+export const chemTotal = (ch: Chemistry) => ch.players.reduce((s, p) => s + diamondsOf(p.chem), 0);

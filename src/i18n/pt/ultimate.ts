@@ -182,7 +182,7 @@ export const ultimate = {
         modes: 'Modos de jogo',
         squad: 'Elenco',
         squadState: 'Média {n} · química +{c}%',
-        chem: 'química +{c}%',
+        chem: 'química {n}/{max}',
         squadNeed: 'Faltam {n} cartas pro time|Faltam {n} cartas pro time',
         shop: 'Loja',
         packsReady: '{n} pacote pra abrir|{n} pacotes pra abrir',
@@ -355,7 +355,6 @@ export const ultimate = {
     },
     chem: {
         title: 'Química',
-        avg: 'Média +{n}%',
         none: 'Nenhuma sinergia ligada ainda',
         active: 'Ligadas',
         near: 'Falta pouco',

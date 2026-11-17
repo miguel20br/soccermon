@@ -5,7 +5,7 @@ import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
 import { clubColorHex, rivalColor } from '../../store/profile';
-import { chemistry } from '../../store/ultimate/chemistry';
+import { chemistry, chemTotal } from '../../store/ultimate/chemistry';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
 import { eventAhead, objectiveById } from '../../store/ultimate/objectives';
@@ -79,15 +79,13 @@ export function Home({
     const roles = FORMATIONS[u.team.formation].slots;
     const avg = ready ? teamAverage(home) : 0;
     const chem = ready
-        ? Math.round(
-              (chemistry(
+        ? chemTotal(
+              chemistry(
                   lineup,
                   roles,
-                  u.cards.filter((c) => !lineup.includes(c)),
+                  [],
                   u.team.order.slice(STARTERS).flatMap((x) => byUid.get(x) ?? []),
-              ).avg -
-                  1) *
-                  100,
+              ),
           )
         : 0;
     const packs = stackCount(u, now);
@@ -132,7 +130,7 @@ export function Home({
                     // o cartão do time: a nota grande e a química (como o FC)
                     <span className="ut-b-ovr">
                         <b className="cb-num">{avg}</b>
-                        <small>{t('ultimate.home.chem', { c: chem })}</small>
+                        <small>{t('ultimate.home.chem', { n: chem, max: STARTERS * 3 })}</small>
                     </span>
                 ) : (
                     <small>{need}</small>

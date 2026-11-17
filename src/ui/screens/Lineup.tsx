@@ -341,6 +341,7 @@ export function LineupEditor({
     sponsors,
     rivalFormation,
     outOf,
+    badgeOf,
 }: {
     title: string;
     formation: FormationId;
@@ -372,6 +373,8 @@ export function LineupEditor({
     rivalFormation?: FormationId;
     /** Rota Índigo: quem está fora (lesão, Creche) e por quantas partidas. No banco fica travado. */
     outOf?: (uid: string) => { why: OutWhy | 'fora'; n: number } | null;
+    /** Selo a mais na vaga (os losangos de química do Time Ultimate). */
+    badgeOf?: (inst: PokemonInstance) => ReactNode;
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -529,7 +532,16 @@ export function LineupEditor({
                                     : 'idle'
                         }
                         onSlot={onSlot}
-                        badgeOf={outOf && ((inst) => <OutBadge out={outOf(inst.uid)} />)}
+                        badgeOf={
+                            outOf || badgeOf
+                                ? (inst) => (
+                                      <>
+                                          {outOf && <OutBadge out={outOf(inst.uid)} />}
+                                          {badgeOf?.(inst)}
+                                      </>
+                                  )
+                                : undefined
+                        }
                         footer={
                             firstCup && (
                                 <p className="muted center" style={{ fontSize: 11, marginBottom: 0 }}>

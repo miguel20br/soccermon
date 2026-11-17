@@ -179,7 +179,7 @@ export const ultimate: typeof pt = {
         modes: 'Game modes',
         squad: 'Squad',
         squadState: 'Average {n} · chemistry +{c}%',
-        chem: 'chemistry +{c}%',
+        chem: 'chemistry {n}/{max}',
         squadNeed: '{n} more card for the team|{n} more cards for the team',
         shop: 'Store',
         packsReady: '{n} pack to open|{n} packs to open',
@@ -352,7 +352,6 @@ export const ultimate: typeof pt = {
     },
     chem: {
         title: 'Chemistry',
-        avg: 'Average +{n}%',
         none: 'No synergy on yet',
         active: 'On',
         near: 'Almost there',
