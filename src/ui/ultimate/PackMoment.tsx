@@ -62,7 +62,12 @@ export type UtOpened = { packs: PackOpen[]; kind: PackKind; full: boolean };
  * rodam, Continuar (o próximo pacote) ou Guardar (o último). Retorno do Miguel (17/11): cada pacote tem a sua abertura
  * e o seu resumo; o próximo só abre quando você toca em Continuar (antes, todos rasgavam sozinhos num resumão).
  */
-export function packActs(at: number, n: number, revealed: boolean, walking: boolean): 'hint' | 'wait' | 'next' | 'keep' {
+export function packActs(
+    at: number,
+    n: number,
+    revealed: boolean,
+    walking: boolean,
+): 'hint' | 'wait' | 'next' | 'keep' {
     if (!revealed) return at === 0 ? 'hint' : 'wait';
     if (walking) return 'wait';
     return at < n - 1 ? 'next' : 'keep';

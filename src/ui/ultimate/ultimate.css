@@ -1279,7 +1279,19 @@
 }
 /* Clube */
 .ut-club-seg > button {
+    position: relative;
     flex: 1 1 0;
+}
+/* celular estreito: cada aba do tamanho do nome ("Pendentes · 5" encostava na borda e o ponto saía da barra) */
+@media (max-width: 380px) {
+    .ut-club-seg > button {
+        flex: 1 1 auto;
+        padding-inline: 6px;
+    }
+    .ut-club-seg .ut-dot {
+        top: 3px;
+        right: 3px;
+    }
 }
 .ut-undo {
     display: flex;
@@ -1316,6 +1328,10 @@
 }
 .ut-cards {
     animation: ut-in 220ms var(--ease-out) both;
+}
+/* o selo Nova passa da carta: a linha de baixo ganha o espaço dele */
+.ut-cards:has(.ut-new) {
+    row-gap: 16px;
 }
 .ut-filters {
     display: grid;
@@ -1451,6 +1467,15 @@
 }
 .ut-pend .fut-wrap {
     --fut-w: 84px;
+}
+/* 320: Vender e Trocar na mesma linha (o Trocar caía sozinho embaixo e cada repetida ficava de uma altura) */
+@media (max-width: 360px) {
+    .ut-pend .fut-wrap {
+        --fut-w: 70px;
+    }
+    .ut-pend {
+        column-gap: 8px;
+    }
 }
 .ut-pend-prize .cpack {
     width: 56px;
@@ -1840,7 +1865,8 @@
 .ut-new {
     position: absolute;
     left: 50%;
-    bottom: -6px;
+    /* em cima da borda de baixo da carta: com -6 px o selo tampava a última linha de atributos */
+    bottom: -13px;
     translate: -50% 0;
     padding: 2px 8px;
     border: 2px solid var(--bc-edge);

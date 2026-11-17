@@ -6,7 +6,10 @@ vi.mock('zzfx', () => ({ zzfx: () => undefined, ZZFX: {} }));
 vi.mock('phaser', () => ({ default: {} }));
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 // o momento do pacote abre num portal (precisa do document): aqui ele desenha no lugar
-vi.mock('react-dom', async (orig) => ({ ...(await orig<typeof import('react-dom')>()), createPortal: (n: unknown) => n }));
+vi.mock('react-dom', async (orig) => ({
+    ...(await orig<typeof import('react-dom')>()),
+    createPortal: (n: unknown) => n,
+}));
 
 import { useGame } from '../../store/game-store';
 import { newUltimate } from '../../store/ultimate/ultimate';
@@ -82,4 +85,3 @@ describe('Abrir todos: um pacote de cada vez', () => {
         expect(html).toContain('ut-tear-hint');
     });
 });
-
