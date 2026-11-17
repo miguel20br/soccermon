@@ -9,6 +9,7 @@ import { STARTERS, TEAM_SIZE } from '../../store/ultimate/rules';
 import { homeTeam, orderIndex, teamAverage, teamStrength, type UltimateSave } from '../../store/ultimate/ultimate';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
+import { SheetRow } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { LineupEditor } from '../screens/Lineup';
 import { Chemistry } from './Chemistry';
@@ -48,6 +49,7 @@ export function Squad({ onPacks, onClub }: { onPacks: () => void; onClub: () => 
     const byUid = useMemo(() => new Map(u.cards.map((c) => [c.uid, c])), [u.cards]);
     const [slot, setSlot] = useState<number | null>(null);
     const order = u.team.order;
+    const cap = u.team.captainUid ? byUid.get(u.team.captainUid) : undefined;
     if (order.length < STARTERS)
         return (
             <section className="panel ut-empty">
@@ -86,25 +88,45 @@ export function Squad({ onPacks, onClub }: { onPacks: () => void; onClub: () => 
                 side={
                     <>
                         <Chemistry u={u} />
-                        <section className="panel bc-surface ut-captain-box">
-                            <label className="corner-taker ut-captain">
-                                <h3>
-                                    <HudIcon kind="armband" />
-                                    {t('ultimate.team.captain')}
-                                </h3>
-                                <select
-                                    value={u.team.captainUid ?? ''}
-                                    disabled={!!u.live}
-                                    onChange={(e) => setTeam({ captainUid: e.target.value || null })}
-                                >
-                                    {!u.team.captainUid && <option value="">{t('ultimate.team.captainNone')}</option>}
-                                    {order.slice(0, STARTERS).map((uid) => (
-                                        <option key={uid} value={uid}>
-                                            {name(uid)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                        {/* o capitão numa linha que abre a folha com os 5 titulares, como Tática e Formação logo
+                            abaixo (sem o select do sistema) */}
+                        <section className="panel bc-surface vt-plan ut-captain-box">
+                            <SheetRow
+                                className="vt-row"
+                                icon="armband"
+                                label={
+                                    cap
+                                        ? `${t('ultimate.team.captain')}: ${name(cap.uid)}`
+                                        : t('ultimate.team.captainNone')
+                                }
+                                title={t('ultimate.team.captain')}
+                            >
+                                <ul className="ut-slot-list">
+                                    {order.slice(0, STARTERS).map((uid, i) => {
+                                        const c = byUid.get(uid)!;
+                                        const on = uid === u.team.captainUid;
+                                        return (
+                                            <li key={uid}>
+                                                <button
+                                                    type="button"
+                                                    className={`ut-slot-row ut-cap-pick${on ? ' on' : ''}`}
+                                                    aria-pressed={on}
+                                                    disabled={!!u.live}
+                                                    onClick={() => setTeam({ captainUid: uid })}
+                                                >
+                                                    <MonIcon id={c.speciesId} shiny={c.shiny} />
+                                                    <span>{name(uid)}</span>
+                                                    <small className="ut-slot-pos">
+                                                        {d.common.posShort[FORMATIONS[u.team.formation].slots[i]]}
+                                                    </small>
+                                                    <b className="cb-num">{viewInstance(c).overall}</b>
+                                                    {on ? <HudIcon kind="armband" /> : <i aria-hidden />}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </SheetRow>
                         </section>
                     </>
                 }

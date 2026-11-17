@@ -93,6 +93,9 @@ export function UtPackMoment({
         if (best) void preloadWalkout().catch(() => undefined);
     }, [best]);
     const [revealed, setRevealed] = useState(false);
+    // rasgou: a dica de rasgar apaga na hora (o leque ainda está abrindo, o revealed vem depois)
+    const [torn, setTorn] = useState(false);
+    const hint = <p className={`ut-tear-hint${torn ? ' is-gone' : ''}`}>{t('ultimate.packs.tear')}</p>;
     /** Abrir todos: todos os pacotes abertos, no resumo. */
     const [sum, setSum] = useState(false);
     // Abrir todos: leque (e walkout, no pacote dele) acabou, o próximo pacote rasga sozinho
@@ -163,6 +166,7 @@ export function UtPackMoment({
                     look={packLookOf(pack.cards)}
                     label={one}
                     revealKey={pack.cards.map((c) => c.uid).join()}
+                    onOpen={() => setTorn(true)}
                     onRevealed={() => {
                         setRevealed(true);
                         if (walkHere >= 0) setWalk((w) => (w === 'wait' ? 'on' : w));
@@ -189,7 +193,7 @@ export function UtPackMoment({
             </div>
             {many ? (
                 <div className="ut-pack-acts">
-                    {at === 0 && !revealed && <p className="ut-tear-hint">{t('ultimate.packs.tear')}</p>}
+                    {at === 0 && !revealed && hint}
                     <button type="button" className="btn ghost small" onClick={skip}>
                         {t('ultimate.stack.skipAll')}
                     </button>
@@ -202,7 +206,7 @@ export function UtPackMoment({
                     </button>
                 </div>
             ) : (
-                <p className="ut-tear-hint">{t('ultimate.packs.tear')}</p>
+                hint
             )}
             {walk === 'on' && best && <Walkout inst={best} onDone={() => setWalk('done')} />}
         </MomentStage>

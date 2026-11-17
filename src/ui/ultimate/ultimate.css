@@ -52,6 +52,11 @@
 .ut-wallet .k-res {
     height: 32px;
 }
+/* a Ficha é amarela em todo lugar (prêmio, Loja): o disco dourado do dinheiro do Clássico (.k-res-coin), não o azul */
+.ut-wallet .k-res .hud-icon {
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    color: var(--gold-ol);
+}
 @media (max-width: 400px) {
     .ut-hub .menu-head h1 {
         font-size: 18px;
@@ -251,14 +256,21 @@
 .ut-chip b {
     font-family: "Galmuri14", "Galmuri11", monospace;
 }
-.ut-captain h3 {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+/* na folha: o capitão de agora em azul (escolhido = azul) */
+.ut-slot-row.ut-cap-pick {
+    transition: background-color 220ms var(--ease-out);
 }
-.ut-captain .hud-icon {
-    width: 16px;
-    height: 16px;
+.ut-slot-row.ut-cap-pick.on {
+    background: var(--pick-fill);
+    color: #fff;
+}
+.ut-slot-row.ut-cap-pick.on .ut-slot-pos {
+    color: #fff;
+}
+.ut-slot-row.ut-cap-pick > .hud-icon {
+    width: 18px;
+    height: 18px;
+    justify-self: end;
 }
 
 /* jogar */
@@ -895,6 +907,10 @@
     font-size: 13px;
     color: var(--muted);
     text-align: center;
+    transition: opacity 220ms var(--ease-out);
+}
+.ut-tear-hint.is-gone {
+    opacity: 0;
 }
 /* o Grande (5 cartas) quebra em 3 + 2 no celular em pé; deitado e no desktop, uma fileira só */
 .ut-pick {
@@ -1645,6 +1661,23 @@
 .ut-pick-moment .ut-pick-all {
     min-width: 180px;
 }
+/* "Toque numa carta": dica em texto, na altura do botão gordo que nasce no lugar dela (a tela não pula) */
+.ut-pick-hint {
+    display: grid;
+    place-items: center;
+    min-height: var(--ut-pick-go-h, 58px);
+    margin: 0;
+    font:
+        700 15px / 1.2 "Galmuri11",
+        monospace;
+    color: var(--text);
+}
+/* escolhida: o chip vira azul cheio (escolhido = azul, kit.css --pick-fill); verde é confirmar */
+.ut-pick-opt.on .btn.fut-action {
+    border-color: var(--blue-hi);
+    background: var(--pick-fill);
+    color: #fff;
+}
 /* Pick com Fichas (Comprar) */
 .ut-pick-buy > .btn {
     flex: 1 1 0;
@@ -1889,16 +1922,17 @@
         animation: none;
     }
 }
-/* celular em pé: a quadra na largura toda, Clube, Loja e Metas em 3 blocos pequenos, Pendentes e o destaque, e o
-   JOGAR grudado no pé da tela (em cima da barra de abas) */
+/* celular em pé: a quadra na largura toda com o JOGAR logo embaixo (como no Estádio), depois Clube, Loja e Metas em 3
+   blocos pequenos, Pendentes e o destaque. O JOGAR fica no fluxo: nada rola por baixo dele (fixo no pé, ele cobria o
+   destaque e os blocos); em tela baixa demais pra ele aparecer, o sticky segura no pé até a rolagem chegar nele */
 .ut-home {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
         "court court court"
+        "go go go"
         "club shop goals"
         "pend pend pend"
-        "hl hl hl"
-        "go go go";
+        "hl hl hl";
     align-items: stretch;
     gap: 8px;
 }
@@ -2012,15 +2046,7 @@
     z-index: 20;
 }
 
-/* o JOGAR do Estádio (PlayBar, ambientes.css); no celular grudado no pé da tela, com o fundo apagando por baixo */
-.ut-home-go::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset: -14px -16px -8px;
-    background: linear-gradient(180deg, transparent, var(--bg) 22px);
-    pointer-events: none;
-}
+/* o JOGAR do Estádio (PlayBar, ambientes.css) */
 .ut-home-go .es-play {
     width: 100%;
 }
@@ -2060,9 +2086,6 @@
     }
     .ut-home .ut-b-pick {
         display: flex;
-    }
-    .ut-home-go::before {
-        content: none;
     }
     .ut-home .ut-block {
         padding: 10px 12px;
@@ -2524,9 +2547,9 @@
     display: grid;
     justify-items: center;
 }
-.ut-pick-opt.on .fut-card {
-    outline: 3px solid var(--blue);
-    outline-offset: 2px;
+/* a escolhida brilha em azul (escolhido = azul; o brilho dourado do .selected é do Clássico) */
+.ut-pick-opt.on .fut-wrap.selected .fut-card2 {
+    filter: drop-shadow(0 0 4px var(--blue-hi)) drop-shadow(0 0 10px var(--blue-c));
 }
 [data-reduce-motion="true"] .ut-pick-face.up > *,
 [data-reduce-motion="true"] .ut-pick-face.up .fut-wrap {
@@ -2604,5 +2627,19 @@
     }
     .ut-prize .ut-score b {
         font-size: 30px;
+    }
+}
+/* tela baixa (SE em pé, celular deitado): o prêmio não cabe numa tela. Resgatar e Continuar sobem pra logo depois das
+   Fichas, no fluxo, e o passe, os objetivos e os pacotes vêm embaixo: nada fica atrás dos botões */
+@media (max-height: 640px) and (orientation: portrait), (orientation: landscape) and (max-height: 520px) {
+    .ut-prize-body > .ut-gain ~ * {
+        order: 2;
+    }
+    .ut-prize .ut-prize-body > .ut-prize-actions {
+        order: 1;
+        position: static;
+    }
+    .ut-prize .ut-prize-actions::before {
+        content: none;
     }
 }

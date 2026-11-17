@@ -44,6 +44,8 @@ import { useReward } from './Goals';
 import { usePickName } from './PickMoment';
 import { useBattle, useKick } from './Play';
 
+/** Celular baixo em pé (SE): a quadra do prêmio encolhe (ultimate.css). */
+const SHORT = '(max-height: 640px) and (orientation: portrait)';
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 export type UtTab = 'home' | 'play' | 'club' | 'shop' | 'goals';
@@ -460,8 +462,9 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
     const star = last.star ?? (cap && { speciesId: cap.speciesId, shiny: !!cap.shiny, name: '' });
     const homeName = useGame((s) => s.profile.clubName || 'Pallet FC');
     const homeColor = useClubColor();
-    // o craque um degrau acima da escala da cena (está sozinho na quadra)
-    const scale = sceneScale(useMq(SMALL), useMq(BIG)) + 1;
+    // o craque um degrau acima da escala da cena (está sozinho na quadra); no celular baixo em pé a quadra tem 130 px e
+    // o degrau a mais subia a cabeça pro letreiro
+    const scale = sceneScale(useMq(SMALL), useMq(BIG)) + (useMq(SHORT) ? 0 : 1);
     const seen = () => useGame.getState().ultimateSeen();
     const objectives = (last.objectives ?? []).flatMap((id) => objectiveById(id) ?? []);
     const firsts = (last.firsts ?? []).flatMap((id) => FIRST_STEPS.find((f) => f.id === id) ?? []);

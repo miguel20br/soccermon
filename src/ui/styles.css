@@ -2213,6 +2213,19 @@ button,
     gap: 8px;
     width: 100%;
 }
+/* uma ação principal (gorda, a linha toda) e as outras em chips embaixo dela */
+.modal-actions.has-main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 8px;
+}
+.modal-actions.has-main > .btn.confirm {
+    flex: 1 1 100%;
+}
+.modal-actions.has-main > .k-chip {
+    margin-top: 0;
+}
 .pos-table {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

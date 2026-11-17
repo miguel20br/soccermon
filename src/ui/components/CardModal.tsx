@@ -163,6 +163,7 @@ function CardBody({
     const { t, tn, d, lang } = useT();
     const view = viewInstance(inst);
     const sp = view.species;
+    const main = actions.some((a) => a.primary);
     const evoTarget = peek ? null : evolutionTarget(inst.speciesId, inst.uid);
     const evoPct = Math.max(0, Math.min(100, Math.round(((inst.evo ?? 0) / evoThreshold(run?.sponsors)) * 100)));
     const abilityWorks = Object.keys(abilityEffect(inst.ability)).length > 0;
@@ -227,12 +228,13 @@ function CardBody({
                 )}
                 {note && <div className="card-note">{note}</div>}
                 {actions.length > 0 && (
-                    <div className="modal-actions">
+                    // um botão gordo por tela: com uma ação principal (Escalar), as outras viram chips numa fileira
+                    <div className={`modal-actions${main ? ' has-main' : ''}`}>
                         {actions.map((a) => (
                             <button
                                 key={a.label}
                                 type="button"
-                                className={`btn${a.primary ? ' confirm' : ''}`}
+                                className={a.primary ? 'btn confirm' : main ? 'btn small k-chip' : 'btn'}
                                 onClick={() => {
                                     close();
                                     a.onClick();
