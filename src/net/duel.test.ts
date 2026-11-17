@@ -198,6 +198,10 @@ describe('validarTimeDuelo (time pronto)', () => {
         expect(combo({ kind: 'evento', type: 'Fire', level: '2' }).join()).toContain('edição');
         expect(combo({ kind: 'evento', type: 'Dark', level: 1 }).join()).toContain('edição');
         expect(combo({ kind: 'mega' }).join()).toContain('edição');
+        // Semana Fora da Lei: a carta de lista passa; evento inventado ou misturado com tipo, não
+        expect(combo({ kind: 'evento', event: 'especial', level: 2 })).toEqual([]);
+        expect(combo({ kind: 'evento', event: 'natal' }).join()).toContain('edição');
+        expect(combo({ kind: 'evento', event: 'especial', type: 'Fire' }).join()).toContain('edição');
     });
 
     it('save editado não passa: espécie, golpe, habilidade, item, edição, repetido, elenco', () => {

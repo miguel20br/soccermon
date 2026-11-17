@@ -137,6 +137,7 @@ const COMBOS: { label: string; inst: PokemonInstance }[] = [
     { label: 'Shiny Ícone', inst: card(25, true, ico(25)) },
     { label: 'Evento', inst: card(59, false, evt('Fire')) },
     { label: 'Shiny Evento', inst: card(59, true, evt('Fire')) },
+    { label: 'Evento Fora da Lei', inst: card(68, false, { kind: 'evento', event: 'especial' }) },
     ...[1, 2, 3].map((n) => ({ label: `Destaque ${n}`, inst: card(68, false, dest(n)) })),
     { label: 'Shiny Destaque 1', inst: card(6, true, dest()) },
     { label: 'Shiny Destaque 3', inst: card(6, true, dest(3)) },
@@ -240,6 +241,17 @@ const EVENT_SPECIES: Record<string, number> = {
     Water: 130,
 };
 const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIES[type] ?? 143, false, evt(type)) }));
+
+/** Semana Fora da Lei: só a carta Evento Fora da Lei tem o fundo neon; a comum e a Evento de tipo da mesma espécie, do lado. */
+const FDL = { kind: 'evento', event: 'especial' } as const;
+const NEON_SAMPLES = [
+    { label: 'Hitmonchan', inst: card(107, false, null) },
+    { label: 'Hitmonchan Evento Fora da Lei', inst: card(107, false, FDL) },
+    { label: 'Hitmonchan Evento Lutador', inst: card(107, false, evt('Fighting')) },
+    { label: 'Blastoise', inst: card(9, false, null) },
+    { label: 'Blastoise Evento Fora da Lei', inst: card(9, false, FDL) },
+    { label: 'Blastoise shiny Evento Fora da Lei', inst: card(9, true, FDL) },
+];
 
 const ICON_SAMPLES = Object.keys(ICONS).map((id) => withEdition(sample(Number(id)), 'icone'));
 
@@ -454,6 +466,22 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                         quanto desse número é bônus. A nota grande não muda.
                     </p>
                     <Ladder steps={ARROW_CARDS} />
+                </section>
+                <section className="panel" id="semana-neon">
+                    <h2>Semana Fora da Lei (fundo de pôr do sol, só visual)</h2>
+                    <p className="muted">
+                        Só a carta Evento Fora da Lei tem este fundo. As cartas comuns das 14 espécies da lista ficam
+                        bronze, prata ou ouro, mesmo durante a semana. O selo da edição fica à direita da nota, sem
+                        encostar nela. Nota e atributos não mudam.
+                    </p>
+                    <div className="cg-row">
+                        {NEON_SAMPLES.map(({ label, inst }) => (
+                            <figure key={label} className="cg-item">
+                                <PokeCard2 inst={inst} variant="metal" tipFocus />
+                                <figcaption className="muted">{label}</figcaption>
+                            </figure>
+                        ))}
+                    </div>
                 </section>
                 <section className="panel" id="evento-tipos">
                     <h2>Evento por tipo</h2>

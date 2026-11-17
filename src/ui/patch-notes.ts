@@ -39,6 +39,57 @@ export const PATCH_NOTES: PatchNotes[] = [
         ],
     },
     {
+        version: '0.9.52.3',
+        date: '2026-11-17',
+        title: 'Música e transições da Semana Fora da Lei',
+        sections: [
+            {
+                title: 'Semana Fora da Lei (até 22/11)',
+                lines: [
+                    'Adicionada música nova no menu durante a semana',
+                    'Adicionadas duas transições de tela novas durante a semana, que se revezam',
+                    'No fim da partida a quadra entra em câmera lenta e perde a cor antes do resultado (Copa, Rota, Liga e Duelo)',
+                ],
+            },
+            {
+                title: 'Correções',
+                lines: [
+                    'A transição de tela não aparecia antes de abrir o menu de modos',
+                    'O placar do resultado podia mostrar número negativo por um instante',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.2',
+        date: '2026-11-17',
+        title: 'Copa do Dia de 17/11',
+        sections: [
+            {
+                title: 'Copa do Dia',
+                lines: ['Copa do Dia de 17/11: quem jogou antes da Semana Fora da Lei pode jogar de novo'],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.1',
+        date: '2026-11-16',
+        title: 'Semana Fora da Lei',
+        sections: [
+            {
+                title: 'Semana Fora da Lei (16 a 22/11)',
+                lines: [
+                    'Semana Fora da Lei, de 16 a 22/11: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) podem sair como carta Evento, com fundo de pôr do sol',
+                    'Nesta semana a carta Evento sai só desses 14; a semana do tipo volta em 23/11',
+                    'Fim de jogo com "Missão cumprida" e "Perdeu" durante a semana',
+                    'Estrelas de procurado na partida: uma por gol de vantagem',
+                    'Contagem regressiva do evento na tela inicial',
+                    'Estádio e quadra com pôr do sol, palmeiras e neon, e capa nova ao abrir o jogo',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.52',
         date: '2026-11-13',
         title: 'Descrições mais diretas',
@@ -2992,6 +3043,57 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                 lines: [
                     'Vibration only after the first tap on the page (the browser refused it before and threw an error)',
                     'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.3',
+        date: '2026-11-17',
+        title: 'Outlaw Week music and transitions',
+        sections: [
+            {
+                title: 'Outlaw Week (until Nov 22)',
+                lines: [
+                    'Added new menu music during the week',
+                    'Added two new screen transitions during the week, which take turns',
+                    'At the end of a match the court goes into slow motion and loses its color before the result (Cup, Route, League and Duel)',
+                ],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'The screen transition did not show before the modes menu was opened',
+                    'The result scoreboard could show a negative number for a moment',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.2',
+        date: '2026-11-17',
+        title: 'Daily Cup of Nov 17',
+        sections: [
+            {
+                title: 'Daily Cup',
+                lines: ['Daily Cup of Nov 17: if you played before Outlaw Week started, you can play it again'],
+            },
+        ],
+    },
+    {
+        version: '0.9.52.1',
+        date: '2026-11-16',
+        title: 'Outlaw Week',
+        sections: [
+            {
+                title: 'Outlaw Week (Nov 16 to 22)',
+                lines: [
+                    'Outlaw Week, Nov 16 to 22: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) can turn up as Event cards, with a sunset background',
+                    'This week Event cards come only from these 14; the type week returns on Nov 23',
+                    'End of match shows "Mission complete" and "Wrecked" during the week',
+                    'Wanted stars during the match: one per goal of lead',
+                    'Event countdown on the home screen',
+                    'Stadium and court with a sunset, palm trees and neon, and a new cover when the game opens',
                 ],
             },
         ],

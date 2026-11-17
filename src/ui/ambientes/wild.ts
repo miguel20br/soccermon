@@ -88,6 +88,18 @@ export function rollAll(seen: (id: number) => boolean, rand: Rand = Math.random)
     return Object.fromEntries(TABS.map((t) => [t, rollWild(t, seen, rand)])) as Record<Tab, Wild[]>;
 }
 
+/**
+ * Noite Neon (ui/tema.ts): os torcedores da beira do Estádio viram dois dos "da rua" (sorteados entre `street`); o
+ * dorminhoco e o gandula ficam.
+ */
+export function streetWild(list: Wild[], street: readonly number[], rand: Rand = Math.random): Wild[] {
+    const pool = [...street];
+    const pick = () => pool.splice(Math.floor(rand() * pool.length), 1)[0];
+    const rest = list.filter((w) => w.zone !== 'edge');
+    const edge = (i: number): Wild => ({ key: `estadio-rua-${i}`, id: pick(), zone: 'edge', mood: 'busy' });
+    return [...rest, edge(0), edge(1)];
+}
+
 /** Pokémon do clube na Sede: no máximo esse tanto (o celular mostra menos, `Sede.tsx`). */
 export const CLUB_MAX = 6;
 

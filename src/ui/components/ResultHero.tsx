@@ -19,9 +19,10 @@ import { rivalColor } from '../../store/profile';
 import { useCascade } from '../kit/Cascade';
 import { portraitSrc } from '../portrait';
 import { useClubColor } from '../profile/club';
+import { neonOn } from '../tema';
 import { CountUp } from './CountUp';
 import { LeaderQuote } from './LeaderQuote';
-import { HudIcon } from './MatchHud';
+import { HudIcon, WantedStars } from './MatchHud';
 import { PmdSprite, useRowScale } from './PmdSprite';
 import { cardSprite } from './PokeCard';
 
@@ -104,27 +105,31 @@ export function ResultHero({
     const mvpOn = step >= lines;
     const side = duel?.side ?? 0;
     const won = match.winner === side;
-    const { t, d } = useT();
+    const { t, tn, d } = useT();
     const champion = run?.status === 'champion';
     // Rota Índigo: acabou o grupo fora dos 2 primeiros (ganhando ou perdendo a última rodada): a Final não vem
     const groupOut = !!run && isLong(run) && run.status === 'eliminated' && isGroupStage(run.stage);
     const mood = champion ? 'champ' : won && !groupOut ? 'win' : 'loss';
     // Rota Índigo: perder com o cartão amarelo (volta pro mapa) ou no grupo não é o fim da linha
     const alive = !won && (run?.status === 'map' || run?.status === 'group');
-    const title =
-        duel?.title ??
-        (champion
-            ? t('result.hero.champions')
-            : groupOut
-              ? t('longCup.groupOut')
-              : won
-                ? t('result.hero.win')
-                : alive
-                  ? t('result.hero.lossAlive')
-                  : run && isLong(run) && run.status === 'eliminated'
-                    ? // Rota: a Final perdida é VICE; o segundo amarelo é o vermelho (não "fim da linha" nos dois)
-                      t(isFinalStage(run) ? 'longCup.runnerUpTitle' : 'longCup.redCardTitle')
-                    : t('result.hero.loss'));
+    // Noite Neon (ui/tema.ts): o fim de jogo vira tela de missão (MISSÃO CUMPRIDA / PERDEU); o título da copa sai.
+    // Empate (Duelo) e vitória que não leva à Final (fora no grupo da Rota) ficam com o título de sempre
+    const gta = neonOn && mood !== 'champ' && match.winner !== null && !(groupOut && won);
+    const title = gta
+        ? t(mood === 'win' ? 'result.hero.gtaWin' : 'result.hero.gtaLoss')
+        : (duel?.title ??
+          (champion
+              ? t('result.hero.champions')
+              : groupOut
+                ? t('longCup.groupOut')
+                : won
+                  ? t('result.hero.win')
+                  : alive
+                    ? t('result.hero.lossAlive')
+                    : run && isLong(run) && run.status === 'eliminated'
+                      ? // Rota: a Final perdida é VICE; o segundo amarelo é o vermelho (não "fim da linha" nos dois)
+                        t(isFinalStage(run) ? 'longCup.runnerUpTitle' : 'longCup.redCardTitle')
+                      : t('result.hero.loss')));
     const sub =
         duel?.sub ??
         (!run
@@ -163,6 +168,9 @@ export function ResultHero({
               gain[k] > 0 ? [`${t(`shop.earned.${k}`)} +${gain[k]}`] : [],
           )
         : [];
+    // Noite Neon: como no placar da partida, uma estrela por gol de vantagem, até 5
+    const margin = match.score[side] - match.score[1 - side];
+    const stars = neonOn ? Math.max(0, Math.min(5, margin)) : 0;
     const squad = match.finalRoster.filter((p) => p.team === side);
     // eliminado: o capitão aparece com lágrima (retrato PMD Teary-Eyed; sem ele, triste ou chorando)
     const sadCaptain =
@@ -180,7 +188,12 @@ export function ResultHero({
 
     return (
         // biome-ignore lint/a11y/useKeyWithClickEvents: toque pra pular a contagem; o teclado chega aos botões, que também completam
-        <section className={`panel rh rh-${mood}`} style={style} aria-label={t('result.hero.aria')} onClick={finish}>
+        <section
+            className={`panel rh rh-${mood}${gta ? ' rh-gta' : ''}`}
+            style={style}
+            aria-label={t('result.hero.aria')}
+            onClick={finish}
+        >
             {mood !== 'loss' && <Confetti count={mood === 'champ' ? 60 : 36} />}
             {/* copa: a fase está na barra da copa (e no Eliminado, na linha de baixo); a etiqueta fica no Duelo e no título */}
             {(duel || champion) && (
@@ -215,6 +228,7 @@ export function ResultHero({
                     );
                 })}
             </h1>
+            {gta && mood === 'win' && <div className="rh-respect">{t('result.hero.gtaRespect')}</div>}
             {/* não repete a fase que a etiqueta ou a barra da copa já dizem */}
             {!subRepeats && <div className="rh-sub">{sub}</div>}
 
@@ -238,6 +252,7 @@ export function ResultHero({
             {match.shootout && (
                 <div className="rh-pens">{t('result.hero.pens', { a: match.shootout[0], b: match.shootout[1] })}</div>
             )}
+            {stars > 0 && <WantedStars n={stars} className="rh-wanted" label={tn('result.hero.wanted', stars)} />}
             {links}
 
             {gain && (

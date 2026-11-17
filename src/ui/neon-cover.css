@@ -1,0 +1,280 @@
+/* Capa em painéis da Noite Neon (NeonCover.tsx): tela cheia por cima da Home, painéis tortos com junta preta grossa,
+   cada um com o seu fundo de pôr do sol ou neon. Em pé: 2 colunas; deitado e no PC: 3 colunas e o logo embaixo. */
+.nc {
+    all: unset;
+    position: fixed;
+    z-index: 900;
+    inset: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1.3fr 1fr 1fr auto;
+    grid-template-areas:
+        "pika pika"
+        "car gengar"
+        "lapras meowth"
+        "logo logo";
+    gap: 8px;
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+    background: #000;
+    cursor: pointer;
+    animation: nc-in 250ms var(--ease-out) both;
+}
+.nc.out {
+    opacity: 0;
+    transition: opacity 250ms var(--ease-out);
+}
+@keyframes nc-in {
+    from {
+        opacity: 0;
+    }
+}
+@media (orientation: landscape) {
+    .nc {
+        grid-template-columns: 1.3fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr auto;
+        grid-template-areas:
+            "pika car gengar"
+            "pika lapras meowth"
+            "logo logo logo";
+    }
+}
+.nc-p {
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    border: 3px solid #fff;
+    outline: 3px solid #000;
+    transform: rotate(var(--r));
+    image-rendering: pixelated;
+    animation: nc-panel 300ms var(--ease-out) both;
+}
+.nc-p:nth-child(2) {
+    animation-delay: 60ms;
+}
+.nc-p:nth-child(3) {
+    animation-delay: 120ms;
+}
+.nc-p:nth-child(4) {
+    animation-delay: 180ms;
+}
+.nc-p:nth-child(5) {
+    animation-delay: 240ms;
+}
+@keyframes nc-panel {
+    from {
+        opacity: 0;
+        transform: rotate(var(--r)) scale(1.08);
+    }
+}
+:root[data-reduce-motion="true"] .nc,
+:root[data-reduce-motion="true"] .nc-p {
+    animation: none;
+}
+.nc-pika {
+    grid-area: pika;
+    background: linear-gradient(180deg, #3d1466 0%, #b0307f 50%, #ff8a4c 85%, #ffc46b 100%);
+}
+.nc-car {
+    grid-area: car;
+    background:
+        linear-gradient(180deg, transparent 70%, #2a1650 70% 74%, #12062a 74%),
+        linear-gradient(180deg, #1a0b3d, #e0457b);
+}
+.nc-gengar {
+    grid-area: gengar;
+    background:
+        repeating-linear-gradient(90deg, transparent 0 14px, rgb(79 216 255 / 18%) 14px 16px),
+        linear-gradient(180deg, #12062a, #3d1466);
+}
+.nc-lapras {
+    grid-area: lapras;
+    background: linear-gradient(180deg, #5a1a78 0%, #e0457b 55%, #ff9a4c 70%);
+}
+.nc-meowth {
+    grid-area: meowth;
+    background:
+        radial-gradient(circle at 50% 60%, rgb(255 207 58 / 35%), transparent 60%),
+        linear-gradient(180deg, #ff4f9a, #8a2a8c);
+}
+.nc-p.nc-logo {
+    grid-area: logo;
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    padding: 10px 12px 8px;
+    background: #12062a;
+    border-color: #ff5fa8;
+    box-shadow: 0 0 14px rgb(255 95 168 / 55%);
+}
+.nc-p img {
+    image-rendering: pixelated;
+}
+/* sol listrado (o mesmo do Estádio) */
+.nc-sun {
+    position: absolute;
+    left: 50%;
+    bottom: 8%;
+    width: min(70%, 260px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #fff27a 0%, #ffb347 45%, #ff4f9a 100%);
+    mask: linear-gradient(
+        180deg,
+        #000 0 50%,
+        transparent 50% 54%,
+        #000 54% 62%,
+        transparent 62% 67%,
+        #000 67% 74%,
+        transparent 74% 80%,
+        #000 80%
+    );
+    transform: translateX(-50%);
+}
+.nc-sun.low {
+    bottom: 22%;
+    width: 60%;
+}
+.nc-sea {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30%;
+    background: repeating-linear-gradient(180deg, #2a1650 0 6px, #5a1a78 6px 8px);
+}
+/* rosto PMD grande com os óculos por cima (posição dos olhos acertada por espécie) */
+.nc-face {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: min(48%, 30vh);
+    aspect-ratio: 1;
+    transform: translateX(-50%);
+}
+.nc-face img {
+    width: 100%;
+    height: 100%;
+    border: 3px solid #000;
+    border-bottom: 0;
+}
+/* óculos na grade do retrato: o SVG cobre só a área da imagem (dentro da borda preta), 1 unidade = 1 pixel PMD */
+.nc-shades {
+    position: absolute;
+    top: var(--nc-bd, 3px);
+    left: var(--nc-bd, 3px);
+    width: calc(100% - 2 * var(--nc-bd, 3px));
+    height: calc(100% - var(--nc-bd, 3px));
+    pointer-events: none;
+}
+.nc-ride {
+    position: absolute;
+    left: 50%;
+    bottom: 12%;
+    width: 92%;
+    transform: translateX(-50%);
+}
+.nc-auto {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+}
+.nc-face.driver {
+    --nc-bd: 2px;
+    left: 36%;
+    bottom: 48%;
+    width: 34%;
+}
+.nc-face.driver img {
+    border: 2px solid #000;
+}
+.nc-mon {
+    position: absolute;
+    left: 50%;
+    bottom: 6%;
+    width: auto;
+    height: 70%;
+    transform: translateX(-50%);
+}
+.nc-mon.duo {
+    height: 62%;
+}
+.nc-mon.duo.l {
+    left: 30%;
+}
+.nc-mon.duo.r {
+    left: 70%;
+}
+.nc-palm {
+    position: absolute;
+    left: 4%;
+    bottom: 18%;
+    height: 70%;
+    fill: #1c0a2e;
+}
+.nc-lapras .nc-mon {
+    left: 62%;
+    bottom: 8%;
+    height: 55%;
+}
+.nc-stars {
+    position: absolute;
+    left: 50%;
+    top: 6%;
+    display: flex;
+    gap: 2px;
+    transform: translateX(-50%);
+}
+.nc-stars svg {
+    width: clamp(16px, 4vh, 34px);
+    height: clamp(16px, 4vh, 34px);
+    fill: #fff;
+    stroke: #000;
+    stroke-width: 2.4;
+    stroke-linejoin: round;
+}
+.nc-logo-img {
+    display: block;
+    width: min(260px, 70%);
+}
+.nc-logo-img img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.nc-title {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 20px;
+    font-size: var(--gfs, 20px);
+    letter-spacing: 2px;
+    color: #ffd2ea;
+    text-shadow:
+        0 0 4px #ff5fa8,
+        0 0 10px rgb(255 80 160 / 70%);
+}
+.nc-left {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c9f6ff;
+    text-shadow: 0 0 4px #4fd8ff;
+}
+.nc-tap {
+    font-size: 11px;
+    color: rgb(255 255 255 / 60%);
+}
+/* deitado, o painel do Pikachu é alto: o rosto cresce */
+@media (orientation: landscape) {
+    .nc-pika .nc-face {
+        width: min(72%, 50vh);
+    }
+}
+@media (max-height: 420px) {
+    .nc-p.nc-logo {
+        grid-auto-flow: column;
+        align-items: center;
+        padding: 4px 10px;
+    }
+    .nc-logo-img {
+        width: 140px;
+    }
+}

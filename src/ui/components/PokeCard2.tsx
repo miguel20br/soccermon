@@ -7,7 +7,9 @@ import { itemSprite } from '../../engine/items';
 import { cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import {
+    cardTypeOf,
     type Edition,
+    ESPECIAL_EVENT,
     editionOf,
     ICON_CHANCE,
     mvpLevel,
@@ -15,7 +17,7 @@ import {
     themeOfTypes,
     themeTypeOf,
 } from '../../engine/specials';
-import { abilityName, iconTitle, itemName, moveName, typeName } from '../../i18n';
+import { abilityName, eventName, iconTitle, itemName, moveName, typeName } from '../../i18n';
 import { type Translator, useT } from '../../i18n/react';
 import type { CareerSeal } from '../../store/profile';
 import { CareerSealIcon, ShinySpark } from '../profile/icons';
@@ -213,7 +215,10 @@ export const PokeCard2 = memo(function PokeCard2({
         classes.push('pr');
         if (inst.shiny) classes.push('pr-shiny');
         if (edition === 'destaque') classes.push(`pr-d${inst.special?.level ?? 1}`);
-        if (edition === 'evento') classes.push(`pr-ev-${(inst.special?.type ?? '').toLowerCase()}`);
+        if (edition === 'evento')
+            classes.push(`pr-ev-${(inst.special?.event ?? inst.special?.type ?? '').toLowerCase()}`);
+        // fundo de pôr do sol: só a carta Evento Fora da Lei; as cartas comuns das espécies da lista ficam normais
+        if (inst.special?.event === ESPECIAL_EVENT) classes.push('pc2-neon');
     }
     if (fig) {
         // tema do fundo: o 1º tipo, mas Normal cede pro 2º (Pidgey/Normal-Voador ganha o céu)
@@ -304,7 +309,7 @@ export const PokeCard2 = memo(function PokeCard2({
 /** Evento: a cor é a do tipo do evento (não a do 1º tipo do Pokémon). */
 const metalStyle = (inst: PokemonInstance, d: Data, metal: boolean, edition: Edition | null) =>
     metal && edition === 'evento'
-        ? ({ ...d.style, '--t1': TYPE_COLOR[inst.special?.type ?? ''] ?? '#888' } as CSSProperties)
+        ? ({ ...d.style, '--t1': TYPE_COLOR[cardTypeOf(inst)] ?? '#888' } as CSSProperties)
         : d.style;
 
 function Types({ types, tr }: { types: string[]; tr: Translator }) {
@@ -332,7 +337,7 @@ const metalLabel = (tr: Translator, m: keyof typeof METAL, f: keyof typeof FINIS
 
 /** Etiqueta da edição especial ("Evento · Fogo", "Ícone", "Destaque II"...). */
 function editionTag(tr: Translator, inst: PokemonInstance, edition: Edition | null) {
-    if (edition === 'evento') return tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) });
+    if (edition === 'evento') return tr.t('team.card.event', { type: eventName(inst.special, tr.lang) });
     if (!edition) return null;
     // Ícone que levou MVP: selo "MVP n" (a carta continua Ícone, com o fundo de galáxia)
     if (edition === 'icone' && inst.special?.level)
@@ -448,7 +453,7 @@ function layerTag(tr: Translator, inst: PokemonInstance, edition: Edition | null
     if (!edition) return null;
     const name =
         edition === 'evento'
-            ? tr.t('team.card.event', { type: typeName(inst.special?.type ?? '', tr.lang) })
+            ? tr.t('team.card.event', { type: eventName(inst.special, tr.lang) })
             : tr.d.common.edition[edition];
     return (
         <>
@@ -472,7 +477,9 @@ function editionTip(tr: Translator, inst: PokemonInstance, edition: Edition | nu
         edition === 'icone'
             ? tr.t('team.card.tipIcone', { odds: Math.round(1 / ICON_CHANCE) })
             : edition === 'evento'
-              ? tr.t('team.card.tipEvento', { type: typeName(inst.special?.type ?? '', tr.lang) })
+              ? inst.special?.event
+                  ? tr.t('team.card.tipEspecial')
+                  : tr.t('team.card.tipEvento', { type: typeName(inst.special?.type ?? '', tr.lang) })
               : edition === 'destaque'
                 ? tr.t('team.card.tipDestaque')
                 : tr.t('team.card.tipShiny');

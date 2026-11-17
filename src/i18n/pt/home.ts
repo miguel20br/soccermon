@@ -4,6 +4,8 @@ export const home = {
     choosingReward: 'Escolhendo a recompensa',
     atMarket: 'No Mercado',
     eventWeek: 'Semana do tipo {type}',
+    /** Semana Fora da Lei (16 a 22/11/2026): o nome também está em `common.eventName` e `team.card.tipEspecial`. */
+    eventEspecial: 'Semana Fora da Lei',
     helpAria: 'Ajuda: como funciona cada modo e as regras',
     helpTitle: 'Como jogar',
     /** Selo da quadra animada do topo (enfeite de transmissão). */
@@ -66,6 +68,11 @@ export const home = {
         /** Letreiro de LED do Estádio, rolando sem parar (o fim emenda no começo). */
         ledDaily: 'COPA DO DIA NOVA',
         ledChamp: 'CAMPEÕES DA {cup} · {club}',
+        ledNeon: 'SEMANA FORA DA LEI',
+        /** Cronômetro da Noite Neon (ui/tema.ts): `left` = "2d 14h", "5h 32min". */
+        neonEnds: 'SEMANA FORA DA LEI · termina em {left}',
+        neonEndsShort: 'termina em {left}',
+        neonCoverTap: 'Toque pra continuar',
         ledLiga: 'LIGA ABRE EM {d} DIAS',
         labTitle: 'Laboratório do Carvalho',
         /** No celular deitado e estreito o nome inteiro não cabe numa linha. */

@@ -41,7 +41,6 @@ import {
     mvpOpen,
     rollSpecial as roll,
     SPECIALS_LIVE,
-    weeklyEventType,
 } from '../engine/specials';
 import { MAX_SPONSORS } from '../engine/sponsors';
 import { teachMove } from '../engine/tm';
@@ -54,9 +53,10 @@ import {
     dailyEventType,
     dailySeed,
     dailyStickerCard,
+    dropAnnulledDaily,
     isDailySeed,
-    mergeDaily,
     putDaily,
+    weekEvent,
 } from './daily';
 import { addDuel, type DuelRecord, duelWins, MAX_DUELS } from './duels';
 import {
@@ -1243,8 +1243,10 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
                   .map((r) => ({ ...r, lockedTeam: r.lockedTeam ?? null }))
                   .slice(0, MAX_PARKED);
     if (version < 9) dex = backfillEditions(dex, hall, [run, ...parkedRuns]);
+    // Copa do Dia anulada (`DAILY_ANULADAS`): sai a entrada e a copa em andamento daquele dia (save e nuvem passam aqui)
+    const dia = dropAnnulledDaily({ daily: Array.isArray(old.daily) ? old.daily : [], run, parkedRuns });
     return withUnlocks({
-        run,
+        run: dia.run,
         settings,
         records,
         profile,
@@ -1253,7 +1255,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
         career: { ...EMPTY_CAREER, ...old.career },
         onboarded: old.onboarded ?? (version < 5 && (records.cups > 0 || !!run)),
         // campo opcional (saves e versões anteriores não têm): copas guardadas válidas, no máximo MAX_PARKED
-        parkedRuns,
+        parkedRuns: dia.parkedRuns,
         // v6: Hall da Fama
         hall,
         // v8: histórico dos duelos amistosos
@@ -1261,7 +1263,7 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
             ? old.duels.filter((x) => x && typeof x.id === 'string').slice(0, MAX_DUELS)
             : [],
         // Copa do Dia (campo novo, opcional: saves antigos não têm)
-        daily: mergeDaily(Array.isArray(old.daily) ? old.daily : []),
+        daily: dia.daily,
         // Álbum de cartas (opcional): o fichário da 0.8.8 vira álbum; save de antes dele nasce das copas e do Hall
         binder: binderOf({ ...old, run, parkedRuns, hall }),
         // v10: Time Ultimate (fatia própria; save de antes nasce com a fatia vazia e os 2 pacotes de boas-vindas)
@@ -1532,7 +1534,7 @@ export const useGame = create<GameStore>()(
                         rewards: [],
                         lockedTeam: null,
                         live: null,
-                        eventType: daily ? dailyEventType(daily) : weeklyEventType(new Date()),
+                        eventType: daily ? dailyEventType(daily) : weekEvent(),
                         startedAt: Date.now(),
                         ...(daily && { daily }),
                         ...(mode && !daily && newLongFields(runSeed)),
@@ -2431,6 +2433,12 @@ export const useGame = create<GameStore>()(
                           parkedRuns: (saved.parkedRuns ?? []).map(withKnownEvents),
                       }
                     : saved;
+                // Copa do Dia anulada (`DAILY_ANULADAS`): o save do aparelho é da versão atual e não passa pelo `migrate`
+                if (p)
+                    Object.assign(
+                        p,
+                        dropAnnulledDaily({ daily: p.daily ?? [], run: p.run ?? null, parkedRuns: p.parkedRuns ?? [] }),
+                    );
                 if (!p?.profile) return { ...current, ...p };
                 const runs = [p.run, ...(p.parkedRuns ?? [])];
                 // figurinhas de edição das copas guardadas (quem jogou 1+ minuto) e do Hall: sempre, não só na v9

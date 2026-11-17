@@ -3,7 +3,7 @@ import { useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { ArenaScene, RIVALS } from './Arena';
 import { ClockCtx, useSceneClock } from './clock';
-import { CourtFloor, clubVars, Floodlight, Stands } from './Estadio';
+import { CourtFloor, clubVars, Floodlight, NeonSky, Stands } from './Estadio';
 import { FieldSprite } from './FieldSprite';
 import { type Mon, myMon } from './metas';
 import { BIG, estadioScale, useMq, useSceneScale } from './sprite-scale';
@@ -54,6 +54,7 @@ export function EstadioBackdrop({ mon, led }: { mon: Mon; led: string }) {
                     <div className="amb-layer es-sky">
                         <i className="es-stars" />
                         <i className="es-stars s2" />
+                        <NeonSky />
                         <Floodlight side="l" />
                         <Floodlight side="r" />
                     </div>

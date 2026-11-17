@@ -68,6 +68,12 @@ export const result = {
         runnerUp: 'Vice-campeão da Copa de Kanto',
         eliminated: 'Eliminado {stage}',
         aria: 'Resultado da partida',
+        /** Noite Neon: o fim de jogo de missão (ui/tema.ts). */
+        gtaWin: 'MISSÃO CUMPRIDA!',
+        gtaRespect: 'RESPEITO +',
+        gtaLoss: 'PERDEU',
+        /** Noite Neon: as estrelas da vantagem no placar (ui/tema.ts). */
+        wanted: 'Vantagem: {n} gol|Vantagem: {n} gols',
         pens: 'Pênaltis {a} x {b}',
         star: 'craque',
         /** Fase curta no caminho da copa. */

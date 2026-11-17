@@ -84,6 +84,8 @@ import {
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui/showdown-lines';
+import { neonOn } from '../../ui/tema';
+import { slowmoScale } from '../../ui/tv';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
     animForAction,
@@ -246,6 +248,8 @@ export interface MatchSceneData {
     replay?: { clips: ReplayClip[] };
     /** Quadra do ginásio do rival (Copa; src/game/court-themes.ts). Sem ela, a madeira de sempre. */
     court?: LeaderId;
+    /** Sem o neon da Semana Fora da Lei na quadra (Time Ultimate, como as estrelas do placar). */
+    noNeon?: boolean;
     /** Os dois times como entraram: a carta de quem dribla dá nome ao drible (`namedDribblesOf`). Sem eles, nenhum. */
     setups?: [TeamSetup, TeamSetup];
     /**
@@ -732,6 +736,8 @@ export class MatchScene extends Phaser.Scene {
     /** Duelo: correção do relógio do convidado (0,9–1,1; 0 = espera o host). */
     private rate = 1;
     private speed: PlaybackSpeed = 1;
+    /** Saída em câmera lenta (Semana Fora da Lei, ui/tv.ts): quando começou (`time` do update) e quanto dura a freada. */
+    private slowmo: { t0: number; ms: number } | null = null;
     private get mine(): 0 | 1 {
         return this.md.mine ?? 0;
     }
@@ -1021,7 +1027,7 @@ export class MatchScene extends Phaser.Scene {
             this.frameLocked() || this.cer ? cam : zoomTo(1 + (zoom - 1) * this.zoomDamp, ...rest);
         cam.pan = (x, y, ...rest) => (this.frameLocked() || this.cer ? cam : pan(x, y, ...rest));
 
-        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined);
+        this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, 2, neonOn && !this.md.noNeon);
         for (const team of [0, 1] as const) {
             const text = this.md.banners?.[team];
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
@@ -1073,7 +1079,14 @@ export class MatchScene extends Phaser.Scene {
         EventBus.on('match:captain-pose', this.onCaptainPose, this);
         this.maxWait = false;
         EventBus.on('match:max-wait', this.onMaxWait, this);
+        this.slowmo = null;
+        EventBus.on('match:slowmo', this.onSlowmo, this);
         this.unbind = () => {
+            EventBus.off('match:slowmo', this.onSlowmo, this);
+            // a velocidade das animações é do jogo inteiro: não deixa a próxima cena em câmera lenta
+            this.anims.globalTimeScale = 1;
+            this.time.timeScale = 1;
+            this.tweens.timeScale = 1;
             EventBus.off('match:max-wait', this.onMaxWait, this);
             EventBus.off('replay:next', this.nextClip, this);
             EventBus.off('match:captain-pose', this.onCaptainPose, this);
@@ -1341,6 +1354,20 @@ export class MatchScene extends Phaser.Scene {
         view.pose = this.time.now;
     }
 
+    private onSlowmo(ms: number) {
+        this.slowmo = { t0: -1, ms }; // conta do próximo quadro (o mesmo relógio do update)
+    }
+
+    /** A quadra freia (só a reprodução: o resultado já saiu do motor): relógio, tweens e animações dos sprites. */
+    private slowmoStep(time: number) {
+        if (!this.slowmo) return;
+        if (this.slowmo.t0 < 0) this.slowmo.t0 = time;
+        const k = slowmoScale(time - this.slowmo.t0, this.slowmo.ms);
+        this.time.timeScale = k;
+        this.tweens.timeScale = k;
+        this.anims.globalTimeScale = k;
+    }
+
     private onSpeed(speed: PlaybackSpeed) {
         this.speed = speed;
     }
@@ -1535,7 +1562,12 @@ export class MatchScene extends Phaser.Scene {
             if (courtRes(res) !== this.courtRes) {
                 this.courtRes = courtRes(res);
                 this.court.destroy();
-                this.court = drawCourt(this, this.md.court ? COURTS[this.md.court] : undefined, this.courtRes);
+                this.court = drawCourt(
+                    this,
+                    this.md.court ? COURTS[this.md.court] : undefined,
+                    this.courtRes,
+                    neonOn && !this.md.noNeon,
+                );
             }
         }
         const cam = this.cameras.main;
@@ -1884,6 +1916,7 @@ export class MatchScene extends Phaser.Scene {
 
     // ------------------------------------------------------------------ playback
     update(time: number, delta: number) {
+        if (this.slowmo) this.slowmoStep(time);
         if (this.cer) this.ceremonyStep();
         if (this.ended || !this.snaps.length || this.paused || this.inspecting) return;
         const clip = this.md.replay?.clips[this.clip];

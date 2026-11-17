@@ -63,6 +63,7 @@ export function ganchosDe(song, { notas = false } = {}) {
 export const FAIXAS = {
     'abertura-gancho': ['abertura-gancho'],
     'menu-balanco': ['menu-balanco'],
+    'menu-neon': ['menu-neon'],
     campeao: ['campeao'],
     cerulean: ['extra-cerulean'],
     derrota: ['derrota'],

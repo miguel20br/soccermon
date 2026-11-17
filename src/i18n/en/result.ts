@@ -65,6 +65,12 @@ export const result: typeof pt = {
         runnerUp: 'Kanto Cup runners-up',
         eliminated: 'Knocked out {stage}',
         aria: 'Match result',
+        /** Neon Nights: the mission-style end screen (ui/tema.ts). */
+        gtaWin: 'MISSION COMPLETE!',
+        gtaRespect: 'RESPECT +',
+        gtaLoss: 'WRECKED',
+        /** Neon Nights: the lead stars on the scoreboard (ui/tema.ts). */
+        wanted: 'Lead: {n} goal|Lead: {n} goals',
         pens: 'Penalties {a} x {b}',
         star: 'star',
         stageShort: ['R16', 'QF', 'SF', 'Final'],

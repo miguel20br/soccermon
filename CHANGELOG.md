@@ -1,5 +1,31 @@
 # Novidades
 
+## 0.9.52.3 · Música e transições da Semana Fora da Lei (2026-11-17)
+
+### Semana Fora da Lei (até 22/11)
+- Adicionada música nova no menu durante a semana
+- Adicionadas duas transições de tela novas durante a semana, que se revezam
+- No fim da partida a quadra entra em câmera lenta e perde a cor antes do resultado (Copa, Rota, Liga e Duelo)
+
+### Correções
+- A transição de tela não aparecia antes de abrir o menu de modos
+- O placar do resultado podia mostrar número negativo por um instante
+
+## 0.9.52.2 · Copa do Dia de 17/11 (2026-11-17)
+
+### Copa do Dia
+- Copa do Dia de 17/11: quem jogou antes da Semana Fora da Lei pode jogar de novo
+
+## 0.9.52.1 · Semana Fora da Lei (2026-11-16)
+
+### Semana Fora da Lei (16 a 22/11)
+- Semana Fora da Lei, de 16 a 22/11: 14 Pokémon (Hitmonchan, Hitmonlee, Machamp, Blastoise, Persian, Meowth, Arbok, Weezing, Electrode, Rapidash, Gyarados, Scyther, Kingler, Primeape) podem sair como carta Evento, com fundo de pôr do sol
+- Nesta semana a carta Evento sai só desses 14; a semana do tipo volta em 23/11
+- Fim de jogo com "Missão cumprida" e "Perdeu" durante a semana
+- Estrelas de procurado na partida: uma por gol de vantagem
+- Contagem regressiva do evento na tela inicial
+- Estádio e quadra com pôr do sol, palmeiras e neon, e capa nova ao abrir o jogo
+
 ## 0.9.52 · Descrições mais diretas (2026-11-13)
 
 ### Aviso

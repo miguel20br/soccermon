@@ -6,6 +6,18 @@ description: Histórico por versão (0.8.0 a 0.9.x) que saiu do CLAUDE.md.
 
 Histórico por versão (0.8.0 a 0.9.x), tirado do CLAUDE.md em 21/10/2026 para enxugá-lo. Texto copiado fiel.
 
+## 0.9.52.3 · Música e transições da Semana Fora da Lei (17/11/2026)
+
+Motor 31 (sem mudança de partida). Só com `neonOn`: música `menu-neon` (a Conversível, `scripts/musica/pecas/menu-neon.mjs`, 108 BPM, buzina no 3-3-2) no lugar de `menu-balanco` (`trackOf` em src/ui/music-sync.ts); corte de tela neon A (faixa) e B (painéis) se revezando (`cutKind` em src/ui/tv.ts, `?transicao=a|b` só em dev/prévia; estilo em src/ui/tv-cut.css, que antes morava no tv.css carregado só com o menu de modos e deixava o corte invisível); `slowmoExit` na saída da partida (dessaturar, zoom, `match:slowmo` freia a MatchScene de 1x a 0,25x em 850 ms) na Copa, Liga e Duelo (Duelo: só no "Ver resultado", o fim vai pra sala no apito). CountUp sem número negativo na montagem.
+
+## 0.9.52.2 · Copa do Dia de 17/11 (17/11/2026)
+
+Motor 31 (sem mudança de partida). `DailyEntry.engine` guarda o `ENGINE_VERSION` (carimbado em `putDaily`). `DAILY_ANULADAS` em src/store/daily.ts: a entrada de 17/11 sem motor ou com motor < 31 sai em `mergeDaily` e `dropAnnulledDaily` (no `migrateSave`, que a nuvem também passa, e no `merge` do persist, que o save local da versão atual usa), junto com a copa do dia anulado em andamento. A linha do ranking (`daily_runs`) foi apagada à mão.
+
+## 0.9.52.1 · Semana Fora da Lei (16/11/2026)
+
+Motor 31: na semana de 16 a 22/11 (`ESPECIAL_WEEK` em src/store/daily.ts, `weekEvent`) o Evento é a lista `ESPECIAL_SPECIES` (14 espécies, carta `{ kind: 'evento', event: 'especial' }`) no lugar do tipo da semana; Duelo e Liga aceitam a carta nova. Visual em src/ui/tema.ts (`NEON_FROM`/`NEON_TO`, `?tema=neon|off`): pôr do sol e palmeiras no Estádio, neon na quadra, capa em painéis, MISSÃO CUMPRIDA/PERDEU, estrelas de procurado e cronômetro no letreiro (a semana do tipo some nele). Fundo neon só na carta Evento Fora da Lei (as cartas comuns das 14 espécies ficam bronze, prata ou ouro).
+
 ## 0.9.52 · Descrições mais diretas (13/11/2026)
 
 Motor 30 (só texto em src/engine/moves.ts e items.ts, partida igual). ~100 descrições de mecânica em PT e EN reescritas com o efeito e o número do motor (golpes, verbo do N1 do golpe máximo, itens, táticas, Ajuda, Rota); 11 que não batiam com o código corrigidas. 3-1: `down` −Passe pra frente (`fwdPass` 0,9). Última versão fora do ritmo; daqui pra frente, 1 por semana.

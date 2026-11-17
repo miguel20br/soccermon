@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { FUTSAL_5 } from '../engine/config';
+import { neonOn } from '../ui/tema';
 import { type CourtTheme, drawFloor, WOOD } from './court-themes';
 
 export const PPM = 22; // pixels por metro
@@ -15,10 +16,10 @@ export const toPx = (x: number, y: number) => ({ x: MARGIN + x * PPM, y: MARGIN 
  * Phaser refazia a malha dele em todo quadro (~30% da thread com CPU 4x). A textura tem `res` px por px do jogo
  * (`courtRes`: o dobro no mínimo, pros zooms dos lances, até 1.6, continuarem nítidos; 3 com o canvas a 3).
  */
-export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2) {
+export function drawCourt(scene: Phaser.Scene, theme: CourtTheme = WOOD, res = 2, neon = neonOn) {
     const key = 'court-baked';
     const bake = () => {
-        const g = courtGraphics(scene, theme).setScale(res);
+        const g = courtGraphics(scene, theme, neon).setScale(res);
         if (scene.textures.exists(key)) scene.textures.remove(key);
         scene.textures
             .addDynamicTexture(key, GAME_W * res, GAME_H * res)
@@ -52,7 +53,7 @@ export const courtRes = (res: number) => Math.max(2, Math.ceil(res - 0.05));
  * ou a do ginásio (`COURTS` em court-themes.ts). Um Graphics só (o lab de quadras tira foto dele; a partida usa
  * `drawCourt`).
  */
-export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
+export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD, neon = neonOn) {
     const g = scene.add.graphics();
     const tl = toPx(0, 0);
     const box = { x: tl.x - 14, y: tl.y - 14, w: L * PPM + 28, h: W * PPM + 28 };
@@ -63,6 +64,7 @@ export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         drawFloor(g, theme.floor, { x: tl.x, y: tl.y, w: L * PPM, h: W * PPM });
     }
     theme.decor?.(g, box, { w: GAME_W, h: GAME_H });
+    if (neon) neonTubes(g, box);
     g.fillStyle(theme.area, theme.areaAlpha);
     areaPath(g, 0, true);
     areaPath(g, 1, true);
@@ -100,6 +102,26 @@ export function courtGraphics(scene: Phaser.Scene, theme: CourtTheme = WOOD) {
         g.lineStyle(3, 0xffffff, 1).strokeRect(top.x, top.y, PPM, GW * PPM);
     }
     return g;
+}
+
+/**
+ * Noite Neon (ui/tema.ts): tubo de neon em volta do piso, rosa nas laterais e azul nos fundos. Fica na
+ * borda do piso (a borda do canvas some no zoom da câmera) e é assado junto com a textura, sem custo por quadro.
+ */
+function neonTubes(g: Phaser.GameObjects.Graphics, b: { x: number; y: number; w: number; h: number }) {
+    const r = b.x + b.w;
+    const d = b.y + b.h;
+    for (const [w, a] of [
+        [16, 0.22],
+        [9, 0.45],
+        [4, 1],
+    ] as const) {
+        const core = w === 4;
+        g.lineStyle(w, core ? 0xffc4e6 : 0xff4fa0, a);
+        g.lineBetween(b.x, b.y, r, b.y).lineBetween(b.x, d, r, d);
+        g.lineStyle(w, core ? 0xd2f6ff : 0x3fd0ff, a);
+        g.lineBetween(b.x, b.y + 6, b.x, d - 6).lineBetween(r, b.y + 6, r, d - 6);
+    }
 }
 
 /**

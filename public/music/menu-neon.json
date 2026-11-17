@@ -1,0 +1,75 @@
+{
+ "faixa": "menu-neon",
+ "titulo": "Menu neon: Conversível (outrun com funk)",
+ "tela": "Home (Semana Fora da Lei)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 75.555556,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.444444,
+   "amostras": [
+    0,
+    196000
+   ],
+   "bpm": 108,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.444444,
+   "fim": 75.555556,
+   "amostras": [
+    196000,
+    3332000
+   ],
+   "bpm": 108,
+   "compassos": 32
+  }
+ ],
+ "swing": 0.06,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    2.222,
+    2.647,
+    3.056
+   ],
+   [
+    17.778,
+    18.203,
+    18.611
+   ],
+   [
+    22.222,
+    22.647,
+    23.056
+   ],
+   [
+    35.556,
+    35.981,
+    36.389
+   ],
+   [
+    40,
+    40.425,
+    40.833
+   ],
+   [
+    57.778,
+    58.203,
+    58.611
+   ],
+   [
+    71.111,
+    71.536,
+    71.944
+   ]
+  ]
+ }
+}

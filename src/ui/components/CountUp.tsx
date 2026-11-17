@@ -9,6 +9,16 @@ export const easeOutBack = (p: number) => {
 };
 
 /**
+ * O número `elapsed` ms depois de começar a rolar. Antes do começo é `start`: a troca de tela feita dentro do fim de
+ * uma animação (o corte de TV, a saída em câmera lenta) monta a tela com o carimbo do quadro já no passado, e o
+ * overshoot de um progresso negativo mostrava o placar "-3 x -1" por um quadro.
+ */
+export function countValue(start: number, to: number, elapsed: number, ms: number) {
+    const p = Math.max(0, Math.min(1, elapsed / ms));
+    return p < 1 ? start + (to - start) * easeOutBack(p) : to;
+}
+
+/**
  * Número que rola até `to` (~400 ms, ease-out com leve overshoot). `from` vale só na montagem; depois, cada
  * mudança de `to` rola do valor da tela até o novo. `skip` mostra o final na hora (toque pra pular).
  * Reduzir movimento: o final aparece direto e acende na cor de destaque (`.cu-hl`) por um instante.
@@ -46,10 +56,9 @@ export function CountUp({
         const t0 = performance.now();
         let raf = 0;
         const step = (now: number) => {
-            const p = Math.min(1, (now - t0) / ms);
-            cur.current = p < 1 ? start + (to - start) * easeOutBack(p) : to;
+            cur.current = countValue(start, to, now - t0, ms);
             setShown(cur.current);
-            if (p < 1) raf = requestAnimationFrame(step);
+            if (cur.current !== to) raf = requestAnimationFrame(step);
         };
         raf = requestAnimationFrame(step);
         return () => cancelAnimationFrame(raf);

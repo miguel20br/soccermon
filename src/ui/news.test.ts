@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { weeklyEventType } from '../engine/specials';
+import { ESPECIAL_EVENT, weeklyEventType } from '../engine/specials';
 import { mergeProfileUnlocks } from '../store/missions';
 import { DEFAULT_PROFILE } from '../store/profile';
 import { activeNews, NEWS, NEXT_NEWS, type NewsCard, unseenNews, weekCard, withSeen } from './news';
@@ -40,14 +40,48 @@ describe('lista das Notícias', () => {
 
 describe('evento da semana', () => {
     it('o mesmo tipo do letreiro, de segunda a domingo, na frente do feed', () => {
-        const qua = at('2026-11-18T15:00:00Z');
+        const qua = at('2026-11-25T15:00:00Z');
         const c = weekCard(qua);
         expect(c.type).toBe(weeklyEventType(new Date(qua)));
-        expect([c.date, c.until]).toEqual(['2026-11-16', '2026-11-22']);
+        expect([c.date, c.until]).toEqual(['2026-11-23', '2026-11-29']);
         expect(activeNews(qua)[0].id).toBe(c.id);
         // semana nova, evento novo: outro id (o pontinho acende de novo)
-        expect(weekCard(at('2026-11-24T15:00:00Z')).id).not.toBe(c.id);
-        expect(weekCard(at('2026-11-22T15:00:00Z')).id).toBe(c.id);
+        expect(weekCard(at('2026-12-01T15:00:00Z')).id).not.toBe(c.id);
+        expect(weekCard(at('2026-11-29T15:00:00Z')).id).toBe(c.id);
+    });
+
+    it('Semana Fora da Lei (16 a 22/11/2026): o cartão fala da lista, não de um tipo', () => {
+        const c = weekCard(at('2026-11-18T15:00:00Z'));
+        expect(c.type).toBe(ESPECIAL_EVENT);
+        expect(c.title.pt).toBe('Semana Fora da Lei');
+        expect(c.title.en).toBe('Outlaw Week');
+        expect(c.text.pt).toContain('fora da lei');
+    });
+
+    it('a semana especial tem id próprio (o pontinho acende pra quem viu o cartão do tipo no mesmo dia)', () => {
+        const c = weekCard(at('2026-11-18T15:00:00Z'));
+        expect(c.id).toBe('evento-especial-2026-11-16');
+        expect(weekCard(at('2026-11-25T15:00:00Z')).id).toBe('evento-2026-11-23');
+    });
+
+    it('segunda e domingo saem do dia de Brasília, em qualquer fuso', () => {
+        const tz = process.env.TZ;
+        try {
+            // Tóquio: segunda 23, 12h lá ainda é domingo 22 em Brasília
+            process.env.TZ = 'Asia/Tokyo';
+            const leste = weekCard(at('2026-11-23T02:00:00Z'));
+            expect([leste.date, leste.until, leste.id]).toEqual([
+                '2026-11-16',
+                '2026-11-22',
+                'evento-especial-2026-11-16',
+            ]);
+            // Los Angeles: domingo 22, 19h lá já é segunda 23 em Brasília
+            process.env.TZ = 'America/Los_Angeles';
+            const oeste = weekCard(at('2026-11-23T03:00:00Z'));
+            expect([oeste.date, oeste.until, oeste.id]).toEqual(['2026-11-23', '2026-11-29', 'evento-2026-11-23']);
+        } finally {
+            process.env.TZ = tz;
+        }
     });
 });
 

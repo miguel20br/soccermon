@@ -67,6 +67,15 @@ describe('música por tela', () => {
         expect(trackOf(st('credits', {}))).toBe('ultima-partida');
     });
 
+    it('Semana Fora da Lei: o menu toca a menu-neon; fora do tema, a menu-balanco; o resto não muda', () => {
+        expect(trackOf(st('home', {}), true)).toBe('menu-neon');
+        expect(trackOf(st('settings', {}), true)).toBe('menu-neon');
+        expect(trackOf(st('home', {}), false)).toBe('menu-balanco');
+        expect(trackOf(st('home', {}))).toBe('menu-balanco'); // nos testes o tema fica desligado
+        expect(trackOf(st('draft', {}), true)).toBe('draft');
+        expect(trackOf(st('trophies', {}), true)).toBe('sala');
+    });
+
     it('Pressão final: começou, fica até o apito mesmo com o placar empatado', () => {
         music.played.length = 0;
         const brock = { opponent: 'Pewter Rochedo', half: 2 }; // o clube do Brock
