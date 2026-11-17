@@ -1,4 +1,4 @@
-// Faixa 7, "Funk das moedinhas" (Mercado funk, `mercado-funk`). Duas voltas e o fim: o SOC-CER-MON nos metais com as
+// Faixa 7, "Fiado só amanhã" (EN "No Credit Till Tomorrow"; era "Funk das moedinhas") (Mercado funk, `mercado-funk`). Duas voltas e o fim: o SOC-CER-MON nos metais com as
 // palmas, e a caixa registradora fechando: as moedas caem todas, a gaveta bate (tom grave e bloco), o "plim" no agudo
 // e o Si♭ menor com nona.
 // Rodada 2 (16/11/2026): "uma obra de arte", "o acorde final é belíssimo", o mais importante é o groove; poucos
@@ -13,7 +13,7 @@ import { bass, drum, GANCHO, I, mel, stabs } from '../synth.mjs';
 import { estender } from './estender.mjs';
 import { BATERIA, bumbo, caixa, clapMacio } from './kit.mjs';
 
-export const meta = { titulo: 'Funk das moedinhas', faixa: 7 };
+export const meta = { titulo: 'Fiado só amanhã', faixa: 7 };
 
 /** O barramento da casa, mais leve: menos ganho e menos sinal comprimido por baixo. */
 const LEVE = { ...BATERIA, ganho: 2, paralelo: 0.35 };
