@@ -14,7 +14,7 @@ export interface Synergy {
     mono?: number;
 }
 
-const TYPE_BONUS: Record<number, number> = { 2: 1.03, 3: 1.06, 4: 1.08 };
+export const TYPE_BONUS: Record<number, number> = { 2: 1.03, 3: 1.06, 4: 1.08 };
 export const MONO_BONUS: Record<number, number> = { 5: 1.12, 6: 1.16, 7: 1.22 };
 
 /** `rest`: o resto do elenco (reservas e quem já saiu), que só conta para o monotipo. */

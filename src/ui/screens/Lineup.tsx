@@ -342,6 +342,12 @@ export function LineupEditor({
     rivalFormation,
     outOf,
     badgeOf,
+    lead,
+    aside,
+    focusUid,
+    dimOf,
+    noSynergies,
+    lying,
 }: {
     title: string;
     formation: FormationId;
@@ -375,6 +381,17 @@ export function LineupEditor({
     outOf?: (uid: string) => { why: OutWhy | 'fora'; n: number } | null;
     /** Selo a mais na vaga (os losangos de química do Time Ultimate). */
     badgeOf?: (inst: PokemonInstance) => ReactNode;
+    /** Coluna da esquerda no PC (no celular, embaixo da quadra): o painel de química do Time Ultimate. */
+    lead?: ReactNode;
+    /** No lugar da carta do PC (coluna da direita): o painel do titular tocado, no Time Ultimate. */
+    aside?: ReactNode;
+    /** Vaga em destaque (o titular tocado) e as apagadas (quem não liga com ele). */
+    focusUid?: string | null;
+    dimOf?: (inst: PokemonInstance) => boolean;
+    /** Sem o painel de sinergias (o Time Ultimate já mostra no painel de química). */
+    noSynergies?: boolean;
+    /** Quadra deitada também fora do celular deitado (o PC do Time Ultimate: a quadra larga no meio). */
+    lying?: boolean;
 }) {
     const [selected, setSelected] = useState<SlotRef | null>(null);
     const [detail, setDetail] = useState<string | null>(null);
@@ -490,7 +507,7 @@ export function LineupEditor({
     );
 
     return (
-        <div className="lineup-grid vt">
+        <div className={`lineup-grid vt${lead ? ' vt-has-lead' : ''}`}>
             <div className="vt-room" ref={boardRef}>
                 {/* a parede: o cartaz do rival (na copa); tática e formação ficam abertas no painel ao lado/embaixo */}
                 {wall && <div className="vt-wall">{wall}</div>}
@@ -501,7 +518,7 @@ export function LineupEditor({
                         </button>
                     )}
                     {captainBenched && <p className="error-text">{t('team.lineup.captainBenched')}</p>}
-                    {(givingItem || firstCup) && (
+                    {(givingItem || (firstCup && !onSlotTap)) && (
                         <p className={`muted vt-hint${givingItem ? '' : ' vt-swaphint'}`}>
                             {givingItem
                                 ? t('team.lineup.giveHint', { item: itemName(givingItem) })
@@ -509,7 +526,7 @@ export function LineupEditor({
                         </p>
                     )}
                     <FormationBoard
-                        horizontal={deitado}
+                        horizontal={deitado || lying}
                         formation={formation}
                         lineup={lineup}
                         bench={bench}
@@ -527,11 +544,13 @@ export function LineupEditor({
                                   ? uid === giving
                                       ? 'selected'
                                       : 'target'
-                                  : selected?.zone === ref.zone && selected.index === ref.index
+                                  : (selected?.zone === ref.zone && selected.index === ref.index) ||
+                                      (!!focusUid && uid === focusUid)
                                     ? 'selected'
                                     : 'idle'
                         }
                         onSlot={onSlot}
+                        dimOf={dimOf}
                         badgeOf={
                             outOf || badgeOf
                                 ? (inst) => (
@@ -552,6 +571,8 @@ export function LineupEditor({
                     />
                 </section>
             </div>
+
+            {lead && <div className="vt-lead">{lead}</div>}
 
             <div className="side-stack">
                 {side}
@@ -687,7 +708,7 @@ export function LineupEditor({
 
                 {/* capitão (à vista: escolha de toda partida) e as sinergias, logo embaixo das linhas-resumo. Sem os dois
                     (o Duelo sem sinergia), o painel não aparece: ficava uma caixa vazia no PC */}
-                {(onCaptain || synergies.length + links.length > 0) && (
+                {(onCaptain || (!noSynergies && synergies.length + links.length > 0)) && (
                     <section className="panel vt-team">
                         {onCaptain && (
                             <section>
@@ -715,7 +736,7 @@ export function LineupEditor({
                         )}
                         {/* sinergias de tipo (o selo do monotipo incluso) e de história numa linha de chips; sem
                         nenhuma, a seção some */}
-                        {synergies.length + links.length > 0 && (
+                        {!noSynergies && synergies.length + links.length > 0 && (
                             <section>
                                 <h3 className="bc-lbl">{t('team.lineup.synergies')}</h3>
                                 <div className="row vt-syn">
@@ -730,18 +751,19 @@ export function LineupEditor({
                 )}
 
                 <div className="vt-aside">
-                    {wide && detailInst && (detail !== null || foldOpenByDefault()) && (
-                        <>
-                            <Fold
-                                label={viewInstance(detailInst).displayName}
-                                summary={t('team.lineup.cardFold')}
-                                defaultOpen
-                            >
-                                {detailCard}
-                            </Fold>
-                            {itemMove}
-                        </>
-                    )}
+                    {aside ??
+                        (wide && detailInst && (detail !== null || foldOpenByDefault()) && (
+                            <>
+                                <Fold
+                                    label={viewInstance(detailInst).displayName}
+                                    summary={t('team.lineup.cardFold')}
+                                    defaultOpen
+                                >
+                                    {detailCard}
+                                </Fold>
+                                {itemMove}
+                            </>
+                        ))}
                 </div>
 
                 {footer}

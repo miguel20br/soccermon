@@ -473,9 +473,8 @@
 }
 .ut-chem-players li {
     display: grid;
-    /* posição, ícone, nome, fora da vaga, losangos e o bônus: as colunas da direita alinham entre as linhas */
-    grid-template-columns: 30px 28px minmax(0, 1fr) 36px auto 38px;
-    padding-right: 2px;
+    /* ícone, nome, losangos e o bônus: as colunas da direita alinham entre as linhas */
+    grid-template-columns: 28px minmax(0, 1fr) auto 38px;
     align-items: center;
     gap: 6px;
     font-size: 13px;
@@ -489,7 +488,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.ut-chem-players li > :is(b, em) {
+.ut-chem-players li > b {
     text-align: right;
 }
 .ut-chem-players li > b {
@@ -2668,5 +2667,191 @@
     }
     .ut-prize .ut-prize-actions::before {
         content: none;
+    }
+}
+
+/* ---------- Elenco: química à vista (FC 26, opção B sem fórmula nova) ---------- */
+/* tocar num titular: os parceiros ficam acesos, o resto apaga (a vaga já anda com left/top; opacidade junto) */
+.ut .formation-board .slot {
+    transition:
+        left 0.28s var(--ease-out),
+        top 0.28s var(--ease-out),
+        opacity 240ms var(--ease-out),
+        border-color var(--dur-ui),
+        box-shadow 240ms var(--ease-out),
+        scale var(--dur-solta) var(--ease-pop);
+}
+.ut .formation-board .slot.dim {
+    opacity: 0.35;
+}
+/* Ligadas e Falta pouco: as duas listas com o mesmo recuo (chip ou título em cima, a linha pequena embaixo) */
+.ut-chem-near li {
+    justify-items: start;
+}
+.ut-chem-types {
+    gap: 4px;
+    min-width: 0;
+}
+.ut-chem-more {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--muted);
+    font-size: 11px;
+}
+/* o "por que" do titular (painel da direita no PC, folha no celular) */
+.ut-why {
+    display: grid;
+    gap: 10px;
+    animation: ut-in var(--dur-tela, 260ms) var(--ease-out) backwards;
+}
+.ut-why > .fut-wrap,
+.ut-why > .fut-card2 {
+    justify-self: center;
+}
+.ut-why-total {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.ut-why-total .ut-dia i {
+    width: 11px;
+    height: 11px;
+}
+.ut-why-total b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    color: var(--muted);
+}
+.ut-why-total small {
+    margin-left: auto;
+}
+.ut-why-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-why-list li {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.ut-why-list .bc-lbl {
+    margin: 0;
+    padding-top: 2px;
+}
+.ut-why-what {
+    display: grid;
+    justify-items: start;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12px;
+}
+.ut-why-what small {
+    font-size: 12px;
+    line-height: 1.25;
+}
+.ut-why-list li > b,
+.ut-why-total b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 13px;
+    color: var(--muted);
+}
+.ut-why .up {
+    color: var(--green);
+}
+.ut-why .down {
+    color: var(--red);
+}
+.ut-why-acts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+.ut-why-acts .btn {
+    justify-content: center;
+    gap: 4px;
+    padding-inline: 4px;
+}
+.k-sheet.ut-why-sheet {
+    width: min(460px, 100%);
+}
+/* a folha do titular deixa a quadra à vista (fundo mais leve): dá pra ver quem acendeu */
+.k-sheet-back:has(> .ut-why-sheet) {
+    background: rgba(8, 10, 24, 0.28);
+    backdrop-filter: none;
+}
+
+/* PC: química à esquerda, a quadra grande no meio e o titular tocado à direita. As três colunas passam da largura das
+   abas (860) até 1080, centradas; o cabeçalho e as abas não mudam de tamanho */
+@media (min-width: 1051px) {
+    .ut .lineup-grid.vt-has-lead {
+        --ut-bw: min(1040px, calc(100 * var(--vw) - 48px));
+        width: var(--ut-bw);
+        margin-inline: calc((100% - var(--ut-bw)) / 2);
+        grid-template-columns: minmax(0, 248px) minmax(0, 1fr) minmax(0, 256px);
+        grid-template-areas: "lead room side";
+        align-items: start;
+    }
+    .ut .vt-has-lead > .vt-room {
+        grid-area: room;
+    }
+    .ut .vt-has-lead > .vt-lead {
+        grid-area: lead;
+        display: grid;
+        gap: var(--gap);
+        min-width: 0;
+    }
+    .ut .vt-has-lead > .side-stack {
+        grid-area: side;
+    }
+    /* o titular em cima, as linhas (capitão, tática, formação) embaixo */
+    .ut .vt-has-lead .side-stack > .vt-aside {
+        order: -1;
+    }
+    /* a quadra deitada na coluna do meio (larga): o gol à esquerda, o ataque à direita, o banco embaixo */
+    .ut .vt-has-lead .formation-board {
+        max-width: none;
+    }
+    .ut .vt-has-lead .formation-board .court {
+        max-height: none;
+    }
+    .ut .vt-has-lead .formation-board .slot {
+        width: 100px;
+        padding: 4px 3px 7px;
+    }
+    .ut .vt-has-lead .formation-board .slot img {
+        height: 34px;
+    }
+    .ut .vt-has-lead .ut-teamcard {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+    .ut .vt-has-lead .ut-teamcard b {
+        white-space: nowrap;
+    }
+    .ut-focus .fut-wrap {
+        --fut-w: 150px;
+    }
+    .ut-focus .ut-why-acts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ut-focus .ut-why-acts > :last-child {
+        grid-column: 1 / -1;
+    }
+    /* coluna estreita: o rótulo e o número em cima, o porquê embaixo */
+    .ut-focus .ut-why-list li {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .ut-focus .ut-why-what {
+        grid-column: 1 / -1;
+        grid-row: 2;
     }
 }
