@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  Fecho do trailer v2 (plano 7 do roteiro-v2.md), 1080x1920 (360x640 a 3x). Quadro a quadro: window.quadro(ms) desenha o
+  instante ms (fecho.mjs tira o print de cada um). Logo no 1º quadro; TIME ULTIMATE · 27/11 na batida 3 (0,88 s);
+  soccermon.com na batida 7 (2,65 s). O Dratini e o Dragonite (folhas Walk do menu, as mesmas da quadra do Início) entram
+  andando pela esquerda e param embaixo do logo, virados pra câmera.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: G11; src: url("../../../../public/fonts/Galmuri11-Bold.woff2") format("woff2"); }
+:root { --ink: #070a18; --yellow: #ffd23f; }
+* { margin: 0; box-sizing: border-box; }
+html, body { width: 360px; height: 640px; overflow: hidden; background: #070a18; }
+body { font-family: G11, monospace; color: #fff; }
+.bg { position: absolute; inset: 0;
+  background: repeating-conic-gradient(from 0deg at 50% 40%, rgba(255,255,255,.05) 0 7.5deg, transparent 7.5deg 15deg),
+    radial-gradient(circle at 50% 40%, #2a3a7a 0%, #070a18 72%); }
+.logo { position: absolute; left: 30px; top: 168px; width: 300px; transform-origin: 50% 50%; }
+.t { position: absolute; left: 0; right: 0; text-align: center; opacity: 0;
+  text-shadow: 0 3px 0 var(--ink), 2px 0 0 var(--ink), -2px 0 0 var(--ink), 0 -2px 0 var(--ink); }
+.modo { top: 262px; font-size: 30px; color: var(--yellow); }
+.data { top: 304px; font-size: 46px; }
+.url { top: 376px; font-size: 18px; color: #c9d3ff; }
+canvas { position: absolute; left: 0; top: 0; width: 360px; height: 640px; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<img class="logo" src="../../../../public/assets/ui/logo.svg" alt="">
+<div class="t modo">TIME ULTIMATE</div>
+<div class="t data">27/11</div>
+<div class="t url">soccermon.com</div>
+<canvas width="360" height="640"></canvas>
+<script>
+const B = 60000 / 136; // batida
+const load = (s) => new Promise((r) => { const i = new Image(); i.onload = () => r(i); i.src = s; });
+const ease = (x) => 1 - (1 - Math.min(1, Math.max(0, x))) ** 3;
+// folhas Walk (pe = altura do pé no quadro, src/data/sprite-feet.json): quadro w x h, n quadros, durações em 1/60 s; fileira 2 = andando pra direita, 0 = de frente
+const MONS = [
+  { id: 147, w: 32, h: 40, n: 5, dur: [10, 8, 8, 8, 8], pe: 0.675, x: 130, chega: 2.0 * B * 2 },
+  { id: 149, w: 40, h: 56, n: 4, dur: [8, 12, 8, 12], pe: 0.607, x: 232, chega: 2.0 * B * 2 + 120 },
+];
+const ready = Promise.all([...MONS.map((m) => load(`../../../../public/assets/field/menu/${m.id}.png`).then((i) => (m.img = i))), document.fonts.ready]);
+const ctx = document.querySelector('canvas').getContext('2d');
+ctx.imageSmoothingEnabled = false;
+const CHAO = 520; // os pés
+const ESC = 2.5;
+window.quadro = async (t) => {
+  await ready;
+  const logo = document.querySelector('.logo');
+  const p = ease(t / 220);
+  logo.style.transform = `scale(${0.6 + 0.4 * p + 0.06 * Math.sin(Math.min(1, t / 220) * Math.PI)})`;
+  logo.style.opacity = p;
+  const show = (sel, at) => { const e = document.querySelector(sel); const q = ease((t - at) / 160); e.style.opacity = q; e.style.transform = `translateY(${(1 - q) * 8}px)`; };
+  show('.modo', 2 * B); show('.data', 2 * B); show('.url', 6 * B);
+  ctx.clearRect(0, 0, 360, 640);
+  for (const m of MONS) {
+    const k = Math.min(1, t / m.chega);
+    const x = -40 + (m.x + 40) * k;
+    const row = k < 1 ? 2 : 0;
+    const tot = m.dur.reduce((a, b) => a + b, 0) * 1000 / 60;
+    let r = t % tot, f = 0;
+    while (f < m.n - 1 && r >= m.dur[f] * 1000 / 60) r -= m.dur[f++] * 1000 / 60;
+    const w = m.w * ESC, h = m.h * ESC;
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.beginPath(); ctx.ellipse(x, CHAO - 2, w * 0.28, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(m.img, f * m.w, row * m.h, m.w, m.h, Math.round(x - w / 2), Math.round(CHAO - h * m.pe), w, h);
+  }
+};
+</script>
+</body>
+</html>

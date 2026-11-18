@@ -1,0 +1,148 @@
+// Trailer do Time Ultimate, "Do zero ao time" (esboço de 15 s, 18/11/2026). O pedido: música própria da peça, que conte
+// a história do roteiro-v2 (~/Vídeos/soccermon-postar/trailer-ut/roteiro-v2.md). Deriva do "Só o balanço"
+// (menu-balanco, a música do UT hoje): o vamp Lá dórico (Am9–D9), o baixo slap, a guitarra no contratempo e a bola
+// quicando, aqui a 136 BPM (o andamento da Abertura com gancho, em que o roteiro foi medido). Compasso = 1,765 s.
+// Personagem com voz: o Dratini (bronze 48) tem um motivo de 4 notas num pícolo magrinho; o Dragonair responde uma terça
+// acima no vibrafone (a química vira harmonia). Na versão inteira o mesmo motivo volta nos metais graves no walkout do
+// Dragonite. Sons de assinatura: o rasgo do pacote (chocalho que cresce), as 3 cartas virando (bloco de madeira subindo)
+// e as moedas da trilha das Metas (as do Mercado funk).
+// Forma, compasso a compasso (o plano do roteiro entre parênteses):
+//   0 (pacote): SOC-CER-MON, rasgo, as 3 cartas · 1 (Dratini de perto | Clube): o motivo no pícolo; tudo some e o
+//   toque no Dratini dá um "ting" que o Dragonair responde · 2 (química): o motivo em terças no vibrafone; virada de caixa
+//   · 3-4 (partida): o balanço inteiro; o Slam é um "bonk" grave, o drible é a melodia, cordas sobem pro gol ·
+//   5 (GOL): prato, SOC-CER-MON nos metais com a torcida batendo palma · 6-7 (Metas): as moedas sobem a cada ponto,
+//   o marco acende e o pacote cai num "plim" · 8 (Abrir todos): sobe pelo cromático e corta pro silêncio (o estádio
+//   apaga pro walkout).
+import { bass, drum, GANCHO, I, mel, padChord, Song, stabs } from '../synth.mjs';
+
+export const meta = { titulo: 'Trailer UT: Do zero ao time (esboço)', tela: 'Trailer do Time Ultimate' };
+
+const semDC = (inst) => [...inst.slice(0, -1), 40];
+
+export default function trailerUt() {
+    const S = new Song({ bpm: 136, bars: 9, swing: 0.1, tail: 1.5 });
+    const lead = S.part('synth', semDC(I.pulse), {
+        pan: -0.1,
+        gain: 1.3,
+        echo: { rows: 3, fb: 0.25, mix: 0.2 },
+        rev: 0.2,
+        corte: 2800,
+    });
+    const pic = S.part('pícolo (Dratini)', I.piccolo, {
+        pan: 0.1,
+        gain: 1.6,
+        echo: { rows: 3, fb: 0.3, mix: 0.25 },
+        rev: 0.25,
+    });
+    const vib = S.part('vibrafone (Dragonair)', I.bell, {
+        pan: 0.3,
+        gain: 2.1,
+        echo: { rows: 3, fb: 0.2, mix: 0.2 },
+        rev: 0.35,
+    });
+    const metais = S.part('metais', I.brass, { gain: 0.9, rev: 0.2 });
+    const clav = S.part('clavinete', semDC(I.clav), { pan: 0.3, gain: 0.8, corte: 2200 });
+    const gt = S.part('guitarra', I.chank, { pan: -0.35, gain: 0.9 });
+    const org = S.part('órgão', semDC(I.organ), { gain: 0.4, corte: 1800, rev: 0.2 });
+    const cordas = S.part('cordas', I.strings, { gain: 1.1, rev: 0.25 });
+    const bs = S.part('baixo', I.slap, { gain: 0.4, corte: 1100 });
+    const k = S.part('bumbo', I.kick, { drum: true, gain: 0.5 });
+    const sn = S.part('caixa', I.snare, { drum: true, gain: 0.35 });
+    const hh = S.part('chimbal', I.hat, { drum: true, pan: 0.35, gain: 0.45 });
+    const cl = S.part('clap', I.clap808.com({ ganho: 0.5, corte: 6500, sala: 0.25 }), { drum: true, gain: 0.8 });
+    const torcida = S.part('torcida', I.palmas, { drum: true, gain: 0.7, rev: 0.2 });
+    const prato = S.part('prato', I.crash, { drum: true, gain: 0.5 });
+    const bonk = S.part('bonk', I.timp, { drum: true, gain: 0.4 });
+    const bola = S.part('bola', I.tom, { drum: true, pan: -0.2, gain: 0.45 });
+    const rasgo = S.part('rasgo', I.shaker, { drum: true, pan: 0.15, gain: 2.4 });
+    const carta = S.part('cartas', I.block, { drum: true, pan: 0.2, gain: 0.9 });
+    const coin = S.part('moedas', I.coin, { drum: true, pan: -0.3, gain: 1.2, rev: 0.15 });
+    const plim = S.part('plim', I.bell, { pan: 0.2, gain: 2.2, rev: 0.4 });
+
+    const HATS = 'x.xx.x.xx.xx.x.x'.replace(/\./g, 'o');
+    const SLAP = '0:2 8:1~ r:1 0:2 r:2 5:2 s:2 8:2 5:2';
+    const groove = (b, c, { clap = false, leve = false } = {}) => {
+        bass(bs, b, c, SLAP);
+        stabs(gt, b, c, [2, 6, 10, 14], { low: 60, n: 3 });
+        stabs(
+            clav,
+            b,
+            c,
+            [
+                [3, 1],
+                [7, 1],
+                [11, 2],
+            ],
+            { low: 60, n: 3, vel: 0.7 },
+        );
+        drum(k, b, 1, 'X.....x...x.....');
+        drum(sn, b, 1, leve ? '....x.......x...' : '....X..o....X.o.');
+        drum(hh, b, 1, HATS, { vel: leve ? 0.7 : 1 });
+        if (clap) drum(cl, b, 1, '............x...');
+    };
+    // o motivo do Dratini: 4 notas, sobe em arpejo e cai um degrau (pequeno, de bronze)
+    const MOTIVO = 'A5:2 C6:1 E6:1 D6:4';
+
+    // 0 · pacote: SOC-CER-MON no 1º quadro, o rasgo cresce, as 3 cartas viram subindo
+    mel(lead, 0, [GANCHO.em({ grau: -2 })]);
+    drum(cl, 0, 1, GANCHO.palmas, { vel: 0.7 });
+    bass(bs, 0, 'Am9', '0:2 8:1~ r:13', { vel: 0.8 });
+    padChord(org, 0, 'Am9', 16, { low: 55, n: 4, vel: 0.5 });
+    drum(hh, 0, 1, HATS, { vel: 0.5 });
+    drum(rasgo, 0, 1, '...oooxxxX......');
+    drum(carta, 0, 1, '.........x......', { pitch: 0 });
+    drum(carta, 0, 1, '...........x....', { pitch: 4 });
+    drum(carta, 0, 1, '.............x..', { pitch: 7 });
+
+    // 1 · o Dratini de perto: o motivo no pícolo; no Clube tudo some e o toque dá o "ting" (o Dragonair responde)
+    mel(pic, 1, [`${MOTIVO} r:8`]);
+    bass(bs, 1, 'Am9', '0:2 8:1~ r:1 5:2 s:2 r:8', { vel: 0.8 });
+    stabs(gt, 1, 'Am9', [2, 6], { low: 60, n: 3, vel: 0.8 });
+    drum(k, 1, 1, 'X.....x.........');
+    drum(hh, 1, 1, 'x.xx.x.x........', { vel: 0.7 });
+    mel(vib, 1, ['r:12 A5:2 C6:2']);
+
+    // 2 · química: o motivo em terças no vibrafone (os dois juntos); a caixa vira pra partida
+    mel(vib, 2, ['A5+C6:2 C6+E6:1 E6+G6:1 D6+F#6:4 r:8'], { vel: 0.9 });
+    padChord(org, 2, 'Am9', 8, { low: 55, n: 4, vel: 0.4 });
+    padChord(org, 2, 'D9', 8, { low: 55, n: 4, vel: 0.5, at: 8 });
+    drum(sn, 2, 1, '........x.x.xxxX', { vel: 0.8 });
+    drum(bola, 2, 1, '......X....x..xo', { pitch: 9 });
+
+    // 3-4 · partida: o balanço inteiro; Slam = bonk grave no 1; o drible é a melodia, o vibrafone responde
+    groove(3, 'Am9');
+    groove(4, 'D9', { clap: true });
+    drum(bonk, 3, 1, 'X...............', { pitch: -5 });
+    mel(lead, 3, ['A5:3 G5:2 E5:3 r:2 D5:2 E5:2 G5:2']);
+    mel(vib, 3, ['r:12 C6:2 A5:2']);
+    mel(lead, 4, ['C6:3 B5:2 A5:3 r:8']);
+    // a defesa da Chansey (meio do 4) e o rebote: cordas sobem pelo cromático até o gol
+    mel(cordas, 4, ['r:8 E5:1 F5:1 F#5:1 G5:1 G#5:1 A5:1 A#5:1 B5:1']);
+    drum(sn, 4, 1, '............xxXX', { vel: 0.6 });
+
+    // 5 · GOL: prato, SOC-CER-MON nos metais (uma oitava abaixo do lead) e a torcida batendo palma
+    groove(5, 'Am9', { clap: false });
+    drum(prato, 5, 1, 'X...............');
+    mel(metais, 5, [GANCHO.em({ grau: -2, oitava: -1 })]);
+    mel(lead, 5, [GANCHO.em({ grau: -2 })], { vel: 0.8 });
+    drum(torcida, 5, 1, GANCHO.palmas);
+    padChord(org, 5, 'Am9', 16, { low: 55, n: 4, vel: 0.7 });
+
+    // 6-7 · Metas: as moedas sobem a cada ponto da trilha; o marco acende (7, no 1), o toque em Resgatar (7, linha 8)
+    // e o pacote cai em Meus pacotes num "plim"
+    groove(6, 'D9', { leve: true });
+    groove(7, 'Am9', { leve: true, clap: true });
+    padChord(org, 6, 'D9', 16, { low: 55, n: 4, vel: 0.5 });
+    mel(lead, 6, ['E6:4 D6:2 C6:2 A5:8'], { vel: 0.8 });
+    for (const [j, p] of [0, 2, 3, 5, 7, 9, 10, 12].entries()) coin.note(6 * 16 + 8 + j, p, 0, 0.6 + j * 0.05);
+    mel(plim, 7, ['A6+E7:4 r:8 A7:4']);
+    drum(coin, 7, 1, '........x.x.....', { pitch: 12, vel: 0.8 });
+
+    // 8 · Abrir todos: sobe pelo cromático (cordas e caixa) e corta pro silêncio na metade do compasso (o walkout)
+    mel(cordas, 8, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8']);
+    mel(pic, 8, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8'], { vel: 0.7 });
+    drum(sn, 8, 1, 'x.x.xxxxXXXX....', { vel: 0.7 });
+    drum(k, 8, 1, 'X.......X.......');
+    bass(bs, 8, 'E7', '0:1 0:1 0:1 0:1 3:1 3:1 5:1 5:1 r:8', { vel: 0.8 });
+    return S;
+}
