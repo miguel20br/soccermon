@@ -10,6 +10,9 @@ const html = pathToFileURL(new URL('../cartelas.html', import.meta.url).pathname
 const LEGENDAS = {
     'leg-pacote': 'Seu primeiro <b>pacote</b>',
     'leg-quimica': 'Química entre <b>parceiros</b>',
+    'leg-metas': 'Metas dão <b>pacotes</b>',
+    'leg-time': 'Monte seu <b>time</b>',
+    'leg-capa': 'Time Ultimate · <b>27/11</b>',
 };
 const pecas = [
     ...Object.entries(LEGENDAS).map(([f, t]) => [f, `c=legenda&y=46&t=${encodeURIComponent(t)}`, true]),

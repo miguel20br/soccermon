@@ -1,26 +1,29 @@
-// Trailer do Time Ultimate, "Do zero ao time" (esboço de 15 s, 18/11/2026). O pedido: música própria da peça, que conte
-// a história do roteiro-v2 (~/Vídeos/soccermon-postar/trailer-ut/roteiro-v2.md). Deriva do "Só o balanço"
-// (menu-balanco, a música do UT hoje): o vamp Lá dórico (Am9–D9), o baixo slap, a guitarra no contratempo e a bola
-// quicando, aqui a 136 BPM (o andamento da Abertura com gancho, em que o roteiro foi medido). Compasso = 1,765 s.
+// Trailer do Time Ultimate, "Do zero ao time" (18/11/2026; o esboço de 15 s foi aprovado: "achei bem bem legal").
+// Música própria da peça, que conta a história do roteiro-v2 (~/Vídeos/soccermon-postar/trailer-ut/roteiro-v2.md).
+// Deriva do "Só o balanço" (menu-balanco, a música do UT hoje): o vamp Lá dórico (Am9–D9), o baixo slap, a guitarra no
+// contratempo e a bola quicando, aqui a 136 BPM. Compasso = 1,765 s; 18 compassos = 31,8 s (o vídeo).
 // Personagem com voz: o Dratini (bronze 48) tem um motivo de 4 notas num pícolo magrinho; o Dragonair responde uma terça
-// acima no vibrafone (a química vira harmonia). Na versão inteira o mesmo motivo volta nos metais graves no walkout do
-// Dragonite. Sons de assinatura: o rasgo do pacote (chocalho que cresce), as 3 cartas virando (bloco de madeira subindo)
-// e as moedas da trilha das Metas (as do Mercado funk).
+// acima no vibrafone (a química vira harmonia); no walkout do Dragonite (ouro 89) o mesmo motivo volta aumentado nos
+// metais graves, 1 tom acima (Si dórico). Sons de assinatura: o rasgo do pacote (chocalho que cresce), as 3 cartas
+// virando (bloco de madeira subindo) e as moedas da trilha das Metas (as do Mercado funk).
 // Forma, compasso a compasso (o plano do roteiro entre parênteses):
 //   0 (pacote): SOC-CER-MON, rasgo, as 3 cartas · 1 (Dratini de perto | Clube): o motivo no pícolo; tudo some e o
 //   toque no Dratini dá um "ting" que o Dragonair responde · 2 (química): o motivo em terças no vibrafone; virada de caixa
 //   · 3-4 (partida): o balanço inteiro; o Slam é um "bonk" grave, o drible é a melodia, cordas sobem pro gol ·
-//   5 (GOL): prato, SOC-CER-MON nos metais com a torcida batendo palma · 6-7 (Metas): as moedas sobem a cada ponto,
-//   o marco acende e o pacote cai num "plim" · 8 (Abrir todos): sobe pelo cromático e corta pro silêncio (o estádio
-//   apaga pro walkout).
+//   5 (GOL e pós-jogo): prato, SOC-CER-MON nos metais com a torcida batendo palma · 6-7 (Metas): as moedas sobem pela
+//   trilha e o Pegar cai num "plim" · 8-9½ (Abrir todos): o groove leve e, no 2º pacote, sobe pelo cromático e corta pro
+//   silêncio (o estádio apaga: a placa OURO e o walkout têm som próprio) · 12 (o Dragonite bate na carta): prato, Si
+//   dórico, o motivo do Dratini nos metais graves · 13 (a carta 89; na metade, o 2º Dratini, Repetida): a banda para e o
+//   pícolo diz o motivo baixinho · 14-15 (Início, o time andando): o balanço em Si · 16-17 (fecho): SOC-CER-MON com o
+//   "hey hey" e o acorde final em Si maior (o bronze virou ouro).
 import { bass, drum, GANCHO, I, mel, padChord, Song, stabs } from '../synth.mjs';
 
-export const meta = { titulo: 'Trailer UT: Do zero ao time (esboço)', tela: 'Trailer do Time Ultimate' };
+export const meta = { titulo: 'Trailer UT: Do zero ao time', tela: 'Trailer do Time Ultimate' };
 
 const semDC = (inst) => [...inst.slice(0, -1), 40];
 
 export default function trailerUt() {
-    const S = new Song({ bpm: 136, bars: 9, swing: 0.1, tail: 1.5 });
+    const S = new Song({ bpm: 136, bars: 18, swing: 0.1, tail: 2.5 });
     const lead = S.part('synth', semDC(I.pulse), {
         pan: -0.1,
         gain: 1.3,
@@ -40,7 +43,8 @@ export default function trailerUt() {
         echo: { rows: 3, fb: 0.2, mix: 0.2 },
         rev: 0.35,
     });
-    const metais = S.part('metais', I.brass, { gain: 0.9, rev: 0.2 });
+    const metais = S.part('metais', I.brass, { gain: 0.75, rev: 0.2 });
+    const tuba = S.part('tuba', I.tuba, { gain: 0.55, corte: 900 });
     const clav = S.part('clavinete', semDC(I.clav), { pan: 0.3, gain: 0.8, corte: 2200 });
     const gt = S.part('guitarra', I.chank, { pan: -0.35, gain: 0.9 });
     const org = S.part('órgão', semDC(I.organ), { gain: 0.4, corte: 1800, rev: 0.2 });
@@ -128,21 +132,73 @@ export default function trailerUt() {
     drum(torcida, 5, 1, GANCHO.palmas);
     padChord(org, 5, 'Am9', 16, { low: 55, n: 4, vel: 0.7 });
 
-    // 6-7 · Metas: as moedas sobem a cada ponto da trilha; o marco acende (7, no 1), o toque em Resgatar (7, linha 8)
-    // e o pacote cai em Meus pacotes num "plim"
+    // 6-7 · Metas: o fim do pós-jogo no groove; as moedas sobem pela trilha e o Pegar (6, linha 12) cai num "plim"
     groove(6, 'D9', { leve: true });
     groove(7, 'Am9', { leve: true, clap: true });
     padChord(org, 6, 'D9', 16, { low: 55, n: 4, vel: 0.5 });
-    mel(lead, 6, ['E6:4 D6:2 C6:2 A5:8'], { vel: 0.8 });
-    for (const [j, p] of [0, 2, 3, 5, 7, 9, 10, 12].entries()) coin.note(6 * 16 + 8 + j, p, 0, 0.6 + j * 0.05);
-    mel(plim, 7, ['A6+E7:4 r:8 A7:4']);
-    drum(coin, 7, 1, '........x.x.....', { pitch: 12, vel: 0.8 });
+    mel(lead, 6, ['E6:4 D6:2 C6:2 r:8'], { vel: 0.8 });
+    for (const [j, p] of [0, 2, 3, 5].entries()) coin.note(6 * 16 + 8 + j, p, 0, 0.6 + j * 0.05);
+    mel(plim, 6, ['r:12 A6+E7:4']);
+    mel(lead, 7, ['A5:3 C6:2 E6:3 r:2 D6:2 C6:2 A5:2'], { vel: 0.7 });
+    drum(coin, 7, 1, '..x.x...........', { pitch: 12, vel: 0.6 });
 
-    // 8 · Abrir todos: sobe pelo cromático (cordas e caixa) e corta pro silêncio na metade do compasso (o walkout)
-    mel(cordas, 8, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8']);
-    mel(pic, 8, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8'], { vel: 0.7 });
-    drum(sn, 8, 1, 'x.x.xxxxXXXX....', { vel: 0.7 });
-    drum(k, 8, 1, 'X.......X.......');
-    bass(bs, 8, 'E7', '0:1 0:1 0:1 0:1 3:1 3:1 5:1 5:1 r:8', { vel: 0.8 });
+    // 8-9 · Abrir todos: o groove leve com as cartas (madeira); no 2º pacote sobe pelo cromático e corta pro silêncio
+    // na metade do 9 (a placa OURO: daqui até o 12 só o som do walkout)
+    groove(8, 'D9', { leve: true });
+    drum(carta, 8, 1, '......x.x.x.....', { vel: 0.8 });
+    mel(cordas, 9, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8']);
+    mel(pic, 9, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8'], { vel: 0.7 });
+    drum(sn, 9, 1, 'x.x.xxxxXXXX....', { vel: 0.7 });
+    drum(k, 9, 1, 'X.......X.......');
+    bass(bs, 9, 'E7', '0:1 0:1 0:1 0:1 3:1 3:1 5:1 5:1 r:8', { vel: 0.8 });
+
+    // 12 · o Dragonite bate na carta (89): prato, 1 tom acima (Si dórico) e o motivo do Dratini aumentado nos metais
+    // graves (o bronze virou ouro), com a tuba e o balanço inteiro
+    drum(prato, 12, 1, 'X...............');
+    drum(bonk, 12, 1, 'X...............', { pitch: 2 });
+    groove(12, 'Bm9', { clap: true });
+    mel(metais, 12, ['B4:4 D5:2 F#5:2 E5:8']);
+    mel(tuba, 12, ['B2:4 D3:2 F#3:2 E3:8']);
+    padChord(org, 12, 'Bm9', 16, { low: 57, n: 4, vel: 0.8 });
+    padChord(cordas, 12, 'Bm9', 16, { low: 62, n: 3, vel: 0.6 });
+
+    // 13 · a carta 89 na tela (meio compasso de banda); na metade, o 2º Dratini (Repetida): a banda para e o pícolo diz
+    // o motivo baixinho, a bola quica e o balanço volta pro Início
+    bass(bs, 13, 'E9', '0:2 8:1~ r:1 5:2 s:2 r:8');
+    stabs(gt, 13, 'E9', [2, 6], { low: 60, n: 3 });
+    drum(k, 13, 1, 'X.....x.........');
+    drum(sn, 13, 1, '....X...........');
+    drum(hh, 13, 1, 'x.xx.x.x........');
+    padChord(org, 13, 'E9', 8, { low: 57, n: 4, vel: 0.6 });
+    mel(pic, 13, ['r:8 B5:2 D6:1 F#6:1 E6:4'], { vel: 0.8 });
+    drum(bola, 13, 1, '............X..x', { pitch: 11 });
+
+    // 14-15 · Início: o time andando na quadra, o balanço em Si, a melodia do drible 1 tom acima e o vibrafone responde
+    groove(14, 'Bm9', { clap: true });
+    groove(15, 'E9', { clap: true });
+    padChord(org, 14, 'Bm9', 16, { low: 57, n: 4, vel: 0.6 });
+    padChord(org, 15, 'E9', 16, { low: 57, n: 4, vel: 0.6 });
+    mel(lead, 14, ['B5:3 A5:2 F#5:3 r:2 E5:2 F#5:2 A5:2']);
+    mel(vib, 15, ['r:4 G#5:2 B5:2 D6:4 B5:4']);
+    drum(bola, 15, 1, '......X....x..xo', { pitch: 11 });
+
+    // 16-17 · fecho: SOC-CER-MON em Si (lead e metais) com o "hey hey" da torcida; o acorde final em Si maior
+    groove(16, 'E9');
+    drum(prato, 16, 1, 'X...............');
+    mel(lead, 16, [GANCHO.em({ grau: -2, tom: 2 })]);
+    mel(metais, 16, [GANCHO.em({ grau: -2, tom: 2, oitava: -1 })]);
+    drum(torcida, 16, 1, GANCHO.palmas);
+    drum(cl, 16, 1, GANCHO.palmas, { vel: 0.8 });
+    padChord(org, 16, 'E9', 16, { low: 57, n: 4, vel: 0.7 });
+    drum(prato, 17, 1, 'X...............');
+    drum(k, 17, 1, 'X...............');
+    drum(bonk, 17, 1, 'X...............', { pitch: 2 });
+    mel(metais, 17, ['B4+D#5+F#5:16']);
+    mel(tuba, 17, ['B2:16']);
+    mel(lead, 17, ['B5+D#6:16'], { vel: 0.8 });
+    mel(vib, 17, ['F#6:2 D#6:2 B5:12']);
+    padChord(org, 17, 'B', 16, { low: 59, n: 4, vel: 0.8 });
+    padChord(cordas, 17, 'Badd9', 16, { low: 62, n: 4, vel: 0.7 });
+    bass(bs, 17, 'B', '0:16');
     return S;
 }
