@@ -435,7 +435,8 @@
 }
 .ut-tile-info > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 15px;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
     line-height: 1.2;
 }
 .ut-tile-info > small {
@@ -2828,7 +2829,8 @@
 .ut-why-list li > b,
 .ut-why-total b {
     font-family: "Galmuri14", "Galmuri11", monospace;
-    font-size: 13px;
+    --gs: 13px;
+    font-size: var(--gfs, 13px);
     color: var(--muted);
 }
 .ut-why .up {
