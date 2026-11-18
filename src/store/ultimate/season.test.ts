@@ -24,7 +24,7 @@ import {
     PASS_STEP,
     SEASONS,
 } from './rules';
-import { gymOk, newPass, passGain, seasonN } from './season';
+import { gymOk, newPass, passFocus, passGain, passTrail, seasonN } from './season';
 import {
     cupBridge,
     finishMatch,
@@ -223,6 +223,32 @@ describe('passe grátis da temporada', () => {
         expect(got.extraPacks).toBeGreaterThan(one.extraPacks);
         expect(got.bigPacks).toBeGreaterThan(one.bigPacks);
         expect(all.cards.filter((c) => c.speciesId === PASS_CARD && c.uid === passCardUid(1))).toHaveLength(1);
+    });
+
+    it('a trilha: pegos, esperando o Pegar (pelo uid do Pendente), o da vez e os que faltam; abre no da vez', () => {
+        const u = { ...ready(), season: 1 };
+        // 7 marcos pagos, nenhum pego: o 1 (carta) e o 5 (só crescer) não têm prêmio no Pendente
+        const paid = payPass({ ...u, pass: { ...u.pass, pts: 7 * PASS_STEP + 10 } });
+        const uids = paid.pending.flatMap((p) => (p.kind === 'prize' ? [p.uid] : []));
+        const trail = passTrail(paid.pass.marks, 1, uids);
+        expect(trail).toHaveLength(PASS_MARKS);
+        expect(trail.slice(0, 9)).toEqual(['got', 'ready', 'ready', 'ready', 'got', 'ready', 'ready', 'now', 'locked']);
+        // pegou o 6: vira pego; o uid de outra temporada não conta
+        const got6 = redeem(
+            paid,
+            uids.find((x) => x.endsWith('-6')),
+        );
+        const after = passTrail(
+            got6.pass.marks,
+            1,
+            got6.pending.flatMap((p) => (p.kind === 'prize' ? [p.uid] : [])),
+        );
+        expect(after[5]).toBe('got');
+        expect(passTrail(7, 2, uids)[5]).toBe('got');
+        expect(passFocus(0)).toBe(1);
+        expect(passFocus(7)).toBe(8);
+        expect(passFocus(PASS_MARKS)).toBe(PASS_MARKS);
+        expect(passTrail(PASS_MARKS, 1, []).every((m) => m === 'got')).toBe(true);
     });
 
     it('o apito final soma os pontos e paga os marcos que alcançou', () => {

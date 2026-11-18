@@ -41,7 +41,16 @@ const PAGES = [
     // Capitão (Sheet); o Início por último (a quadra e o JOGAR)
     [
         '/?lab=ultimate&motion=1',
-        ['.ut-tab', '.bc-seg button', '#ut-tab-club', '.slot', '.ut-captain-box .k-sheetrow', '#ut-tab-home'],
+        [
+            '.ut-tab',
+            '.bc-seg button',
+            '#ut-tab-goals',
+            '.ut-grp-head',
+            '#ut-tab-club',
+            '.slot',
+            '.ut-captain-box .k-sheetrow',
+            '#ut-tab-home',
+        ],
         'ut',
     ],
 ];

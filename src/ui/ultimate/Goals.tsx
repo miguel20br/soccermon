@@ -23,6 +23,7 @@ import {
     type Objective,
     TRAIN_STEPS,
 } from '../../store/ultimate/rules';
+import { pendingUid } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
@@ -95,6 +96,10 @@ export function useReward() {
             .join(' · ');
 }
 
+/** Grupo fechado no celular em pé (o cabeçalho já diz quanto falta); aberto no PC e deitado. */
+const startOpen = () =>
+    typeof matchMedia !== 'function' || !matchMedia('(max-width: 640px) and (orientation: portrait)').matches;
+
 function Objectives({ period }: { period: Objective['period'] }) {
     const { t, tn, d } = useT();
     const now = useNow();
@@ -102,47 +107,90 @@ function Objectives({ period }: { period: Objective['period'] }) {
         useGame((s) => s.ultimate.objectives),
         now,
     );
+    const pending = useGame((s) => s.ultimate.pending);
+    const redeem = useGame((s) => s.ultimateRedeem);
     const ornament = useGame((s) => s.ultimate.legacy.ornaments);
     const reward = useReward();
+    const [open, setOpen] = useState(startOpen);
     const event = eventAt(now);
     if (period === 'event' && !event) return null;
     const list = event && period === 'event' ? event.objectives : OBJECTIVES.filter((o) => o.period === period);
+    const doneN = list.filter((o) => g.done.includes(o.id)).length;
+    // o prêmio do objetivo feito que espera o Resgatar (o Pegar fica na linha)
+    const prizeOf = (id: string) => pending.find((x) => x.kind === 'prize' && x.from === 'objective' && x.ref === id);
+    const toGet = list.some((o) => prizeOf(o.id));
+    const fold = `ut-grp-${period}`;
     return (
-        <section className={`panel ut-goals bc-surface${period === 'event' ? ' ut-event bc-stripe' : ''}`}>
-            <h2 className="bc-caption">
+        <section
+            className={`panel ut-goals ut-grp bc-surface${open ? ' open' : ''}${period === 'event' ? ' ut-event bc-stripe' : ''}`}
+        >
+            <button
+                type="button"
+                className="ut-grp-head"
+                aria-expanded={open}
+                aria-controls={fold}
+                onClick={() => setOpen((x) => !x)}
+            >
                 <HudIcon kind={period === 'day' ? 'stopwatch' : period === 'week' ? 'medal' : 'sparkle'} />
-                {event && period === 'event'
-                    ? t('ultimate.event.title', { name: d.ultimate.events[event.id] ?? event.id })
-                    : period === 'day'
-                      ? t('ultimate.goals.daily')
-                      : t('ultimate.goals.weekly')}
+                <b>
+                    {event && period === 'event'
+                        ? t('ultimate.event.title', { name: d.ultimate.events[event.id] ?? event.id })
+                        : period === 'day'
+                          ? t('ultimate.goals.daily')
+                          : t('ultimate.goals.weekly')}
+                </b>
+                {toGet && <i className="ut-grp-dot" aria-hidden />}
+                <small className="ut-grp-n">
+                    {doneN}/{list.length}
+                </small>
+                <HudIcon kind="down" />
+                <span className="ut-grp-bar" style={{ '--p': doneN / list.length } as CSSProperties}>
+                    <i aria-hidden />
+                </span>
                 <small className="ut-reset">
                     {event && period === 'event'
                         ? t('ultimate.event.ends', { time: hms(event.end - now) })
                         : t('ultimate.goals.reset', { time: hms(nextReset(now, period as 'day' | 'week') - now) })}
                 </small>
-            </h2>
-            {event && period === 'event' && (
-                <small className={ornament.includes(event.id) ? 'ut-pass-done' : 'muted'}>
-                    {ornament.includes(event.id) ? t('ultimate.event.ornament') : t('ultimate.event.hint')}
-                </small>
-            )}
-            <ul className="ut-goal-list">
-                {list.map((o) => {
-                    const done = g.done.includes(o.id);
-                    const n = Math.min(o.goal, g.prog[o.id] ?? 0);
-                    return (
-                        <li key={o.id} className={done ? 'done' : undefined}>
-                            <span>
-                                <b>{tn(`ultimate.goals.text.${o.kind}`, o.goal)}</b>
-                                <small>{done ? t('ultimate.goals.done') : reward(o)}</small>
-                            </span>
-                            <Bar n={n} of={o.goal} />
-                            {done && <HudIcon kind="check" />}
-                        </li>
-                    );
-                })}
-            </ul>
+            </button>
+            <div className="bc-fold" id={fold} inert={!open}>
+                <div>
+                    {event && period === 'event' && (
+                        <small className={ornament.includes(event.id) ? 'ut-pass-done' : 'muted'}>
+                            {ornament.includes(event.id) ? t('ultimate.event.ornament') : t('ultimate.event.hint')}
+                        </small>
+                    )}
+                    <ul className="ut-goal-list">
+                        {list.map((o) => {
+                            const done = g.done.includes(o.id);
+                            const n = Math.min(o.goal, g.prog[o.id] ?? 0);
+                            const prize = prizeOf(o.id);
+                            return (
+                                <li key={o.id} className={done ? 'done' : undefined}>
+                                    <span>
+                                        <b>{tn(`ultimate.goals.text.${o.kind}`, o.goal)}</b>
+                                        <small>
+                                            {done && <HudIcon kind="check" />}
+                                            {done ? t('ultimate.goals.done') : reward(o)}
+                                        </small>
+                                    </span>
+                                    {prize ? (
+                                        <button
+                                            type="button"
+                                            className="btn confirm ut-goal-get"
+                                            onClick={() => redeem(pendingUid(prize))}
+                                        >
+                                            {t('ultimate.goals.claim')}
+                                        </button>
+                                    ) : (
+                                        <Bar n={n} of={o.goal} />
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
+            </div>
         </section>
     );
 }

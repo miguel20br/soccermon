@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { type CSSProperties, useLayoutEffect, useRef, useState } from 'react';
 import { clubName, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { dailyDay } from '../../store/daily';
@@ -11,6 +11,7 @@ import {
     GYM_LEVEL,
     GYMS,
     type Gym,
+    PASS_CARD,
     PASS_DAY_MAX,
     PASS_GROW_EVERY,
     PASS_MARKS,
@@ -19,13 +20,15 @@ import {
     type PassReward,
     passReward,
 } from '../../store/ultimate/rules';
-import { gymCount, nextSeason, seasonAt } from '../../store/ultimate/season';
-import { gymReady, passCardUid, type UltimateSave } from '../../store/ultimate/ultimate';
+import { gymCount, nextSeason, passFocus, passPrizeUid, passTrail, seasonAt } from '../../store/ultimate/season';
+import { gymReady, passCardUid, prizePacks, type UltimateSave, type UtPrize } from '../../store/ultimate/ultimate';
 import { KantoBadge } from '../components/BadgeCase';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
+import { MonIcon } from '../components/MonIcon';
 import { metalLabel } from '../rarity';
 import { hms, useNow } from './clock';
+import { PackImg } from './pack-art';
 
 /**
  * Temporada do Time Ultimate (0.9.33): a faixa com a contagem até o fim (e o evento no ar), o passe grátis, os
@@ -40,23 +43,27 @@ export function SeasonBar() {
     const next = nextSeason(now);
     const event = eventAt(now);
     const ended = !!season && now >= season.end && !next;
+    // na prévia, a temporada que vem (o PRÉVIA já está no letreiro)
+    const shown = season ?? next;
     return (
-        <section className="panel ut-season bc-surface bc-stripe">
-            <span className="ut-season-main">
+        <section className="panel ut-season bc-surface">
+            <h2 className="bc-caption">
                 <HudIcon kind="crown" />
-                <b>{season ? t('ultimate.season.title', { n: season.n }) : t('ultimate.season.previewTag')}</b>
-                {season && <small>{d.ultimate.season.theme[season.theme]}</small>}
+                {shown && t('ultimate.season.title', { n: shown.n })}
+            </h2>
+            <span className="ut-season-sub">
+                {shown && <small className="muted">{d.ultimate.season.theme[shown.theme]}</small>}
+                <small className="ut-timer">
+                    <HudIcon kind="stopwatch" />
+                    {season
+                        ? ended
+                            ? t('ultimate.season.ended')
+                            : t('ultimate.season.ends', {
+                                  time: hms(Math.min(season.end, next?.start ?? season.end) - now),
+                              })
+                        : next && t('ultimate.season.preview', { time: hms(next.start - now) })}
+                </small>
             </span>
-            <small className="ut-timer">
-                <HudIcon kind="stopwatch" />
-                {season
-                    ? ended
-                        ? t('ultimate.season.ended')
-                        : t('ultimate.season.ends', {
-                              time: hms(Math.min(season.end, next?.start ?? season.end) - now),
-                          })
-                    : next && t('ultimate.season.preview', { time: hms(next.start - now) })}
-            </small>
             {event && (
                 <small className="ut-season-event">
                     <HudIcon kind="sparkle" />
@@ -84,25 +91,32 @@ export function useMarkText() {
             .join(' · ');
 }
 
-/** Passe grátis da temporada: pontos, marco, teto do dia, a carta de abertura e os próximos marcos. */
+/** Passe grátis da temporada: o marco, os pontos até o próximo, a carta de abertura e a trilha dos 40 marcos. */
 export function Pass() {
-    const { t } = useT();
+    const { t, tn } = useT();
     const u = useGame((s) => s.ultimate);
     const now = useNow();
-    const text = useMarkText();
     const p = u.pass;
     const day = dailyDay(new Date(now));
     const today = p.day === day ? p.today : 0;
     const done = p.marks >= PASS_MARKS;
     const into = p.pts - p.marks * PASS_STEP;
     const card = u.cards.find((c) => c.uid === passCardUid(u.season));
-    const upcoming = Array.from({ length: 3 }, (_, i) => p.marks + 1 + i).filter((k) => k <= PASS_MARKS);
+    // resgatou na trilha: o destino à vista, como nos Pendentes
+    const [got, setGot] = useState(0);
+    const claim = (k: number) => {
+        const uid = passPrizeUid(u.season, k);
+        const prize = u.pending.find((x): x is UtPrize => x.kind === 'prize' && x.uid === uid);
+        if (!prize) return;
+        useGame.getState().ultimateRedeem(uid);
+        const n = prizePacks(prize);
+        if (n) setGot((g) => g + n);
+    };
     return (
         <section className="panel ut-pass bc-surface">
             <h2 className="bc-caption">
                 <HudIcon kind="crown" />
                 {t('ultimate.pass.title')}
-                <small className="ut-reset">{t('ultimate.pass.today', { n: today, max: PASS_DAY_MAX })}</small>
             </h2>
             <div className="ut-pass-head">
                 <div className="ut-pass-card">
@@ -116,8 +130,11 @@ export function Pass() {
                     )}
                 </div>
                 <div className="ut-pass-info">
-                    <b className="cb-num">{t('ultimate.pass.mark', { a: p.marks, b: PASS_MARKS })}</b>
-                    <small className="muted">{t('ultimate.pass.pts', { n: p.pts })}</small>
+                    <span className="ut-pass-mark">
+                        <small>{t('ultimate.pass.markLbl')}</small>
+                        <b className="cb-num">{p.marks}</b>
+                        <small>{t('ultimate.pass.of', { n: PASS_MARKS })}</small>
+                    </span>
                     {done ? (
                         <small className="ut-pass-done">
                             <HudIcon kind="check" />
@@ -134,26 +151,106 @@ export function Pass() {
                             <small className="muted">{t('ultimate.pass.next', { n: PASS_STEP - into })}</small>
                         </>
                     )}
+                    {!done && (
+                        <small className="ut-pass-today">
+                            {t('ultimate.pass.today', { n: today, max: PASS_DAY_MAX })}
+                        </small>
+                    )}
                     <small className="muted">{t('ultimate.pass.cardHint', { n: PASS_GROW_EVERY })}</small>
                 </div>
             </div>
-            {!!upcoming.length && (
-                <>
-                    <span className="bc-lbl">{t('ultimate.pass.upcoming')}</span>
-                    <ul className="ut-marks">
-                        {upcoming.map((k) => (
-                            <li key={k}>
-                                <b className="cb-num">{k}</b>
-                                <span>{text(passReward(k))}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </>
+            <PassTrail onClaim={claim} />
+            {got > 0 && (
+                <small key={got} className="ut-got-line">
+                    <HudIcon kind="bag" />
+                    {tn('ultimate.stack.gotN', got)}
+                </small>
             )}
             <small className="muted">
                 {t('ultimate.pass.perMatch', { w: PASS_POINTS.win, d: PASS_POINTS.draw, l: PASS_POINTS.loss })}
             </small>
         </section>
+    );
+}
+
+/** O desenho do prêmio do marco (a arte do pacote, a Ficha ou a carta de abertura) e o rótulo curto. */
+function MarkArt({ r }: { r: PassReward }) {
+    const { d } = useT();
+    const short = d.ultimate.pass.short;
+    const [art, label] = r.pick
+        ? [<PackImg key="a" art="ouro" />, short.pick]
+        : r.big
+          ? [<PackImg key="a" art="grande" />, short.big]
+          : r.packs
+            ? [<PackImg key="a" art="mini" />, short.mini]
+            : r.fichas
+              ? [<HudIcon key="a" kind="coin" />, String(r.fichas)]
+              : [<MonIcon key="a" id={PASS_CARD} />, r.card === 'grow' ? short.grow : short.card];
+    return (
+        <>
+            <span className={`ut-mk-art${r.fichas ? ' coin' : ''}`} aria-hidden>
+                {art}
+                {r.card === 'grow' && (r.pick || r.big) ? <HudIcon kind="up" /> : null}
+            </span>
+            <small className="ut-mk-lbl">{label}</small>
+        </>
+    );
+}
+
+/**
+ * A trilha do passe (como o Season Pass do FC): os 40 marcos numa fileira que rola de lado, com o prêmio desenhado;
+ * os pegos preenchidos, o da vez em destaque e o Pegar no próprio marco. Abre centrada no marco da vez.
+ */
+function PassTrail({ onClaim }: { onClaim: (k: number) => void }) {
+    const { t } = useT();
+    const text = useMarkText();
+    const u = useGame((s) => s.ultimate);
+    const p = u.pass;
+    const states = passTrail(
+        p.marks,
+        u.season,
+        u.pending.flatMap((x) => (x.kind === 'prize' ? [x.uid] : [])),
+    );
+    const focus = passFocus(p.marks);
+    const into = Math.max(0, p.pts - p.marks * PASS_STEP);
+    const ref = useRef<HTMLOListElement>(null);
+    // abre já no marco da vez (sem rolar na frente do jogador)
+    useLayoutEffect(() => {
+        const ol = ref.current;
+        const li = ol?.children[focus - 1] as HTMLElement | undefined;
+        if (!ol || !li) return;
+        // pelos retângulos da tela: no PC a tela tem `zoom` e o offsetLeft não bate com o scrollLeft
+        const a = ol.getBoundingClientRect();
+        const b = li.getBoundingClientRect();
+        ol.scrollLeft += (b.left + b.width / 2 - (a.left + a.width / 2)) / (a.width / ol.offsetWidth || 1);
+    }, [focus]);
+    return (
+        <ol className="ut-trail" ref={ref} aria-label={t('ultimate.pass.trail')}>
+            {states.map((st, i) => {
+                const k = i + 1;
+                const r = passReward(k);
+                return (
+                    <li
+                        key={k}
+                        className={`ut-mk ${st}${k % PASS_GROW_EVERY === 0 ? ' big' : ''}`}
+                        aria-current={st === 'now' ? 'step' : undefined}
+                        title={`${t('ultimate.pass.markN', { n: k })}: ${text(r)}`}
+                    >
+                        <b className="ut-mk-n">{k}</b>
+                        <MarkArt r={r} />
+                        {st === 'ready' ? (
+                            <button type="button" className="btn confirm ut-mk-get" onClick={() => onClaim(k)}>
+                                {t('ultimate.pass.claim')}
+                            </button>
+                        ) : st === 'got' ? (
+                            <HudIcon kind="check" />
+                        ) : st === 'now' ? (
+                            <span className="ut-mk-bar" style={{ '--p': into / PASS_STEP } as CSSProperties} />
+                        ) : null}
+                    </li>
+                );
+            })}
+        </ol>
     );
 }
 

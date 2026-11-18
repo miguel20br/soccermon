@@ -70,7 +70,7 @@ import {
     TEAM_SIZE,
     type UtEvent,
 } from './rules';
-import { gymOk, newPass, type PassState, passGain, passMarksOf, seasonN } from './season';
+import { gymOk, newPass, type PassState, passGain, passMarksOf, passPrizeUid, seasonN } from './season';
 
 /**
  * Time Ultimate (docs/planos/ultimate-team.md, 0.9.31): a fatia do save e as regras puras (pacote, relógio de 12 h,
@@ -1363,7 +1363,7 @@ export function payPass(u: UltimateSave): UltimateSave {
     let out = u;
     for (let k = u.pass.marks + 1; k <= reach; k++) {
         const r = passReward(k);
-        const prize = prizeOf('pass', String(k), r, `pass-${u.season}-${k}`);
+        const prize = prizeOf('pass', String(k), r, passPrizeUid(u.season, k));
         if (prize) out = { ...out, pending: [...out.pending, prize] };
         const uid = passCardUid(u.season);
         if (r.card === 'card' && !out.cards.some((c) => c.uid === uid)) {

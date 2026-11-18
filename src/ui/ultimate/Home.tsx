@@ -164,7 +164,7 @@ export function Home({
                 ) : (
                     <small>{t('ultimate.home.goalsDone')}</small>
                 )}
-                <small>{t('ultimate.pass.mark', { a: u.pass.marks, b: PASS_MARKS })}</small>
+                <small>{t('ultimate.pass.title')}</small>
                 <BlockBar n={u.pass.marks} of={PASS_MARKS} />
                 {evos > 0 && <small className="ut-b-hot">{tn('ultimate.home.evosReady', evos)}</small>}
             </button>
