@@ -55,6 +55,7 @@ if (c === 'metais')
 if (c === 'edicoes')
   h = `<div class="bg"></div>${leg('Edições <b>especiais</b>')}<div class="grid">${['icone', 'destaque', 'evento', 'shiny'].map((x, i) => img(`carta-${x}.png`, i + 1)).join('')}</div>`;
 if (c === 'clube') h = `<div class="bg"></div>${leg('Monte seu <b>time</b>')}<div class="tela"><img src="${m}/clube.png"></div>`;
+if (c === 'fundo') h = '<div class="bg"></div>';
 if (c === 'final')
   h = `<div class="bg"></div><img class="logo" src="../../../public/assets/ui/logo.svg">` +
     (n >= 2 ? '<div class="modo">TIME ULTIMATE</div><div class="data">27/11</div>' : '') +
