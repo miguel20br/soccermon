@@ -129,9 +129,17 @@ function useFitBoard(ref: RefObject<HTMLDivElement | null>, key: unknown, min = 
             inner.style.setProperty('--fit', String(fit));
         };
         refit();
-        const ro = new ResizeObserver(refit);
+        // no quadro seguinte: o zoom mexe no tamanho dentro da entrega e o navegador acusava "ResizeObserver loop"
+        let frame = 0;
+        const ro = new ResizeObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(refit);
+        });
         ro.observe(wrap);
-        return () => ro.disconnect();
+        return () => {
+            cancelAnimationFrame(frame);
+            ro.disconnect();
+        };
     }, [ref, key, min]);
 }
 

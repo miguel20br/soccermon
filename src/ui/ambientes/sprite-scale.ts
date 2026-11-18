@@ -104,9 +104,18 @@ export function usePixelFit(ref: RefObject<HTMLElement | null>) {
         if (!el) return;
         const fit = () => fitPixelSprites(el);
         el.addEventListener('load', fit, true);
-        const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit);
+        // mede no quadro seguinte: redimensionar o sprite dentro da entrega dava "ResizeObserver loop" (o erro mais visto)
+        let frame = 0;
+        const ro =
+            typeof ResizeObserver === 'undefined'
+                ? null
+                : new ResizeObserver(() => {
+                      cancelAnimationFrame(frame);
+                      frame = requestAnimationFrame(fit);
+                  });
         ro?.observe(el);
         return () => {
+            cancelAnimationFrame(frame);
             el.removeEventListener('load', fit, true);
             ro?.disconnect();
         };
