@@ -340,8 +340,6 @@ export const ultimate = {
     },
     shop: {
         title: 'Loja',
-        pack: 'Pacote Mini extra',
-        packPrice: '{n} Fichas',
         buy: 'Comprar',
         pick: 'Escolher carta',
         pickHint: 'A carta Normal da espécie que você quiser. Ícone e Evento só saem nos pacotes.',

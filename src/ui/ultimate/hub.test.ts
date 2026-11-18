@@ -11,10 +11,13 @@ vi.mock('react-dom', async (orig) => ({
     createPortal: (n: unknown) => n,
 }));
 
+import { existsSync } from 'node:fs';
 import { useGame } from '../../store/game-store';
-import { newUltimate } from '../../store/ultimate/ultimate';
+import { EVENTS, FIRST_PICK, GOLD_PICK, GYMS } from '../../store/ultimate/rules';
+import { newUltimate, type UtPick } from '../../store/ultimate/ultimate';
 import { packActs, UtPackMoment } from './PackMoment';
 import { Play } from './Play';
+import { packArt } from './pack-art';
 import { Ultimate } from './Ultimate';
 
 /** A aba que nasce acesa na barra de baixo. */
@@ -83,5 +86,49 @@ describe('Abrir todos: um pacote de cada vez', () => {
         // sem o botão de pular pro resumo de todos: antes de rasgar, só a dica
         expect(html).not.toContain('btn ghost small');
         expect(html).toContain('ut-tear-hint');
+    });
+});
+
+describe('Loja: a arte de cada pacote', () => {
+    it('todo pacote e todo Pick que pode aparecer tem o PNG em PT e EN', () => {
+        const pick = (p: Partial<UtPick>): UtPick => ({ n: 3, min: 'prata', uid: 'x', from: 'shop', ref: '', ...p });
+        const all = [
+            packArt('mini'),
+            packArt('big'),
+            ...(['bronze', 'prata', 'ouro'] as const).map((m) => packArt(pick({ min: m, exact: true }))),
+            packArt(pick({ ...FIRST_PICK, from: 'start' })),
+            packArt(pick({ ...GOLD_PICK, from: 'pass' })),
+            ...GYMS.map((g) =>
+                packArt(pick({ from: 'gym', ref: g.id, type: g.rule.kind === 'type' ? g.rule.type : undefined })),
+            ),
+            ...EVENTS.flatMap((e) => (e.pick ? [packArt(pick({ ...e.pick, from: 'event', ref: e.id }))] : [])),
+        ];
+        const missing = ['pt', 'en'].flatMap((l) =>
+            all.filter((a) => !existsSync(`public/assets/ui/pacotes/${l}/${a}.png`)).map((a) => `${l}/${a}`),
+        );
+        expect(missing).toEqual([]);
+    });
+
+    it('Abrir todos com Grande e Mini: cada pacote com o nome dele, não "N × Mini"', () => {
+        useGame.setState({ ultimate: { ...newUltimate('teste', Date.UTC(2026, 10, 9, 15)), bigPacks: 1 } });
+        const big = useGame
+            .getState()
+            .ultimateOpenMany('big')!
+            .packs.map((p) => ({ ...p, kind: 'big' as const }));
+        const mini = useGame
+            .getState()
+            .ultimateOpenMany('mini', 2)!
+            .packs.map((p) => ({ ...p, kind: 'mini' as const }));
+        vi.stubGlobal('document', { body: null });
+        const html = renderToStaticMarkup(
+            createElement(UtPackMoment, {
+                open: { packs: [...big, ...mini], kind: 'mini', full: false },
+                onClose: () => undefined,
+                onPending: () => undefined,
+            }),
+        );
+        vi.unstubAllGlobals();
+        expect(html).toContain('1/3');
+        expect(html).not.toContain('3 ×');
     });
 });

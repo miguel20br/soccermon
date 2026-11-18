@@ -156,15 +156,6 @@
     display: grid;
     gap: 8px;
 }
-.ut-odds .bc-caption {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.ut-odds .bc-caption .hud-icon {
-    width: 18px;
-    height: 18px;
-}
 .ut-metals {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -403,30 +394,117 @@
     display: grid;
     gap: 8px;
 }
-.ut-shop-pack {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: var(--panel-2);
+/* a arte do pacote (public/assets/ui/pacotes, 1x): escala inteira e pixel duro; reduzida, suave (marca) */
+.ut-packimg {
+    display: block;
+    width: 126px;
+    height: 174px;
+    image-rendering: pixelated;
 }
-.ut-shop-pack > span {
+.ut-odds-link {
+    margin-left: auto;
+    min-height: 32px;
+    padding: 4px 10px;
+    gap: 6px;
+    font-size: 12px;
+}
+.ut-shop .bc-caption .ut-odds-link .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+/* a vitrine (17/11): cada pacote com a arte, o nome, o que vem dentro, o preço e Comprar */
+.ut-vitrine {
     display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+.ut-tile {
+    display: grid;
+    /* arte, texto, Comprar: o botão no pé, na mesma linha em todos da grade */
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+}
+.ut-tile-info {
+    display: grid;
+    align-content: start;
+    justify-items: center;
     gap: 2px;
     min-width: 0;
 }
-.ut-shop-pack small {
+.ut-tile-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    font-size: 15px;
+    line-height: 1.2;
+}
+.ut-tile-info > small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-tile-info > .ut-tile-price {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 12px;
     color: var(--yellow);
 }
-.ut-shop-pack .hud-icon {
+.ut-tile-price .hud-icon {
     width: 14px;
     height: 14px;
+}
+.ut-tile > .btn {
+    width: 100%;
+    min-height: 40px;
+}
+/* a prateleira dos Picks: rola de lado, um pacote por parada */
+.ut-shelf {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 140px;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+}
+.ut-shelf > .ut-tile {
+    scroll-snap-align: start;
+}
+@media (max-width: 719px) {
+    /* celular: o Mini em destaque, a arte do lado do texto e do Comprar */
+    .ut-vitrine-hero > .ut-tile {
+        grid-template-columns: 126px minmax(0, 1fr);
+        align-items: center;
+        justify-items: start;
+        grid-template-rows: none;
+        column-gap: 14px;
+        text-align: left;
+    }
+    .ut-vitrine-hero .ut-packimg {
+        grid-row: span 2;
+    }
+    .ut-vitrine-hero .ut-tile-info {
+        justify-items: start;
+        align-self: end;
+    }
+    .ut-vitrine-hero .ut-tile > .btn {
+        align-self: start;
+    }
+}
+@media (min-width: 720px) {
+    /* PC e deitado: a vitrine em grade, os quatro lado a lado */
+    .ut-vitrine {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .ut-vitrine-hero,
+    .ut-shelf {
+        display: contents;
+    }
+    .ut-vitrine > .ut-vitrine-lbl {
+        display: none;
+    }
 }
 .ut-seg > button {
     flex: 1 1 0;
@@ -1553,38 +1631,35 @@
 }
 .ut-stack-row {
     display: grid;
-    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-columns: 69px minmax(0, 1fr);
     align-items: center;
-    gap: 6px 14px;
+    gap: 6px 10px;
     padding: 12px 0;
     animation: ut-in 220ms var(--ease-out) both;
 }
 .ut-stack-row + .ut-stack-row {
     border-top: 2px solid var(--line);
 }
-/* a pilha: o de trás aparece torto atrás do da frente */
+/* a pilha: a arte na metade (suave), o de trás aparece torto atrás do da frente */
 .ut-stack-art {
     position: relative;
     display: grid;
     grid-row: span 2;
-    padding: 6px 8px 0 0;
+    padding: 4px 6px 0 0;
+    isolation: isolate;
 }
-.ut-stack-art > .cpack {
-    position: relative;
-    inset: auto;
-    transform: none;
-    width: 64px;
+.ut-stack-art > .ut-packimg {
+    width: 63px;
+    height: 87px;
+    image-rendering: auto;
 }
-.ut-stack-art > .cpack + .cpack {
+.ut-stack-art > .ut-packimg + .ut-packimg {
     position: absolute;
     top: 0;
     left: 8px;
     z-index: -1;
     transform: rotate(7deg);
     opacity: 0.75;
-}
-.ut-stack-art {
-    isolation: isolate;
 }
 .ut-stack-info {
     display: grid;
@@ -1624,13 +1699,11 @@
 }
 @media (min-width: 720px) {
     .ut-stack-row {
-        grid-template-columns: 96px minmax(0, 1fr) auto;
+        grid-template-columns: 69px minmax(0, 1fr) auto;
+        column-gap: 14px;
     }
     .ut-stack-art {
         grid-row: auto;
-    }
-    .ut-stack-art > .cpack {
-        width: 84px;
     }
     .ut-stack-acts > .btn {
         flex: none;
@@ -1688,21 +1761,15 @@
     background: var(--pick-fill);
     color: #fff;
 }
-/* Pick com Fichas (Comprar) */
-.ut-pick-buy > .btn {
-    flex: 1 1 0;
-    min-width: 0;
-    justify-content: center;
-    /* metal em cima, o preço embaixo (como o seletor do Escolher carta): "Prata · 125 Fichas" não cabia em 390 */
-    flex-direction: column;
-    gap: 0;
-    line-height: 1.15;
-    height: auto;
-    padding-block: 6px;
+/* Abrir todos: o botão gordo de Meus pacotes */
+.ut-open-all {
+    width: 100%;
 }
-.ut-pick-buy > .btn small {
-    font-size: 0.8em;
-    opacity: 0.85;
+@media (min-width: 720px) {
+    .ut-open-all {
+        justify-self: center;
+        max-width: 420px;
+    }
 }
 .ut-got-line {
     padding: 8px 10px;

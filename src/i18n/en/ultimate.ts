@@ -337,8 +337,6 @@ export const ultimate: typeof pt = {
     },
     shop: {
         title: 'Shop',
-        pack: 'Extra Mini Pack',
-        packPrice: '{n} Coins',
         buy: 'Buy',
         pick: 'Pick a card',
         pickHint: 'The Normal card of any species you want. Icon and Event only come in packs.',

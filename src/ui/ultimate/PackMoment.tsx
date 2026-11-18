@@ -54,8 +54,11 @@ export function useTear() {
     };
 }
 
-/** O que a Loja abriu: um pacote, ou vários do mesmo tipo (Abrir todos); `full` = parou nos Pendentes cheios. */
-export type UtOpened = { packs: PackOpen[]; kind: PackKind; full: boolean };
+/**
+ * O que a Loja abriu: um pacote, vários do mesmo tipo, ou o Abrir todos (cada pacote com o seu `kind`, Grandes e Mini
+ * juntos); `full` = parou nos Pendentes cheios.
+ */
+export type UtOpened = { packs: (PackOpen & { kind?: PackKind })[]; kind: PackKind; full: boolean };
 
 /**
  * O que fica embaixo do leque do pacote `at` de `n`: a dica de rasgar (só no 1º), nada enquanto o leque ou o walkout
@@ -91,11 +94,15 @@ export function UtPackMoment({
 }) {
     const { t, tn } = useT();
     const many = open.packs.length > 1;
-    const one = open.kind === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini');
-    const label = many ? t('ultimate.stack.many', { n: open.packs.length, kind: one }) : one;
+    const name = (k: PackKind) => (k === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini'));
+    const kindOf = (p: UtOpened['packs'][number]) => p.kind ?? open.kind;
+    const mixed = open.packs.some((p) => kindOf(p) !== kindOf(open.packs[0]));
     const { packs, best } = walkoutLast(open.packs);
     const [at, setAt] = useState(0);
     const pack = packs[at];
+    const one = name(kindOf(pack));
+    // misturado (Abrir todos com Grande e Mini): o nome do pacote da vez, com o "2/5" do lado
+    const label = many && !mixed ? t('ultimate.stack.many', { n: open.packs.length, kind: one }) : one;
     const cards = pack.cards.map((c, i) => ({ c, repeat: pack.repeat[i] }));
     const walkHere = best ? pack.cards.indexOf(best) : -1;
     // 'wait' = guardada até o leque do pacote dela acabar; 'on' = o walkout tocando; 'done' = já na mesa
