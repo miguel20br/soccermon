@@ -132,20 +132,20 @@ export default function trailerUt() {
     drum(torcida, 5, 1, GANCHO.palmas);
     padChord(org, 5, 'Am9', 16, { low: 55, n: 4, vel: 0.7 });
 
-    // 6-7 · Metas: o fim do pós-jogo no groove; as moedas sobem pela trilha e o Pegar (6, linha 12) cai num "plim"
+    // 6-7 · Metas (v3: o pós-jogo encurtou 2 batidas): as moedas sobem pela trilha e o Pegar (6, linha 4) cai num "plim"
     groove(6, 'D9', { leve: true });
     groove(7, 'Am9', { leve: true, clap: true });
     padChord(org, 6, 'D9', 16, { low: 55, n: 4, vel: 0.5 });
     mel(lead, 6, ['E6:4 D6:2 C6:2 r:8'], { vel: 0.8 });
-    for (const [j, p] of [0, 2, 3, 5].entries()) coin.note(6 * 16 + 8 + j, p, 0, 0.6 + j * 0.05);
-    mel(plim, 6, ['r:12 A6+E7:4']);
+    for (const [j, p] of [0, 2, 3, 5].entries()) coin.note(6 * 16 + j, p, 0, 0.6 + j * 0.05);
+    mel(plim, 6, ['r:4 A6+E7:4 r:8']);
     mel(lead, 7, ['A5:3 C6:2 E6:3 r:2 D6:2 C6:2 A5:2'], { vel: 0.7 });
     drum(coin, 7, 1, '..x.x...........', { pitch: 12, vel: 0.6 });
 
-    // 8-9 · Abrir todos: o groove leve com as cartas (madeira); no 2º pacote sobe pelo cromático e corta pro silêncio
+    // 7½-9 · Abrir todos: o groove leve com as cartas do 1º pacote (madeira, 8 linha 2); no 2º pacote sobe pelo cromático e corta pro silêncio
     // na metade do 9 (a placa OURO: daqui até o 12 só o som do walkout)
     groove(8, 'D9', { leve: true });
-    drum(carta, 8, 1, '......x.x.x.....', { vel: 0.8 });
+    drum(carta, 8, 1, '..x.x.x.........', { vel: 0.8 });
     mel(cordas, 9, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8']);
     mel(pic, 9, ['A5:1 A#5:1 B5:1 C6:1 C#6:1 D6:1 D#6:1 E6:1 r:8'], { vel: 0.7 });
     drum(sn, 9, 1, 'x.x.xxxxXXXX....', { vel: 0.7 });

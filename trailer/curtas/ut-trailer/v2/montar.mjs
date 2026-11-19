@@ -34,14 +34,16 @@ const P = [
     ['clube5', '%04d.png', 45, 40, 'inset'],
     // 3 · partida (12): o Slam, o drible, a defesa e o GOL na batida 20; (22) o pós-jogo, VITÓRIA 4 x 1
     ['partida-n', '%05d.png', 33, 132, ''],
-    ['fluxo', '%04d.png', 10, 53, empurra(1.04, 52)],
+    // (v3: 2 batidas, o tempo foi pras cartas do 1º pacote)
+    ['fluxo', '%04d.png', 20, 26, empurra(1.04, 25)],
     // 4 · Metas (26): o Pegar no marco 2 e o "+1 em Meus pacotes"
     ['fluxo', '%04d.png', 100, 80, `trim=end_frame=75,tpad=stop_mode=clone:stop=5,crop=864:1536:108:300,scale=1080:1920:flags=lanczos,${empurra(1.05, 79)}`],
     // 5 · Abrir todos (32): o toque, o 1º pacote rasgado, o 2º abrindo sozinho; (38) a placa OURO; (40) o walkout do
     // Dragonite de uma vez: entra, chuta, a carta bate na batida 48 e fica até a 89 assentar
     ['fluxo', '%04d.png', 180, 13, ''],
     ['fluxo', '%04d.png', 205, 20, ''],
-    ['fluxo', '%04d.png', 255, 19, ''],
+    // as cartas do 1º pacote 1,5 s (o leque já assentado, aproximando devagar)
+    ['fluxo', '%04d.png', 255, 46, `trim=end_frame=34,tpad=stop_mode=clone:stop=12,${empurra(1.12, 45)}`],
     ['fluxo', '%04d.png', 290, 27, ''],
     ['fluxo', '%04d.png', 355, 26, ''],
     // (o Continuar do walkout aparece nos últimos 6 quadros: fica o quadro de antes)
@@ -49,7 +51,8 @@ const P = [
     // (54) o 2º Dratini, Repetida (o respiro)
     ['fluxo', '%04d.png', 705, 26, `crop=540:960:607:292,scale=1080:1920:flags=lanczos,${empurra(1.06, 25)}`],
     // 6 · Início (56): o time andando na quadra e o toque no Dratini
-    ['fluxo', '%04d.png', 760, 106, 'crop=864:1536:108:330,scale=1080:1920:flags=lanczos'],
+    // (v3: a 6x, só o piso, seguindo o Dratini e o Dragonite; a manchete fica no fundo de marca, acima)
+    ['inicio6', '%04d.png', 14, 106, 'inicio'],
     // 7 · fecho (64): logo, TIME ULTIMATE · 27/11, soccermon.com, o Dratini e o Dragonite
     ['fecho', '%04d.png', 0, 126, ''],
 ];
@@ -58,27 +61,33 @@ const total = P.reduce((s, p) => s + p[3], 0);
 const LEG = [
     ['leg-pacote.png', 3, 45],
     ['leg-quimica.png', QUADRO(9) + 4, QUADRO(12) - 1],
-    ['leg-metas.png', QUADRO(26) + 8, QUADRO(31)],
-    ['leg-time.png', QUADRO(56) + 9, QUADRO(63)],
+    ['leg-metas.png', QUADRO(24) + 8, QUADRO(29)],
+    ['leg-time2.png', QUADRO(56) + 9, QUADRO(63)],
 ];
 const s = (q) => (q / 30).toFixed(3);
 // efeitos: [arquivo, segundo, volume]
 const SONS = join(M, 'sons');
 const CRY = join(R, 'public/assets/cries/latest/147.ogg');
 const FX = [
+    [join(SONS, 'rasgo.wav'), 0.03, 0.5],
     [join(SONS, 'abrir-pacote.wav'), 0.27, 0.35],
+    [join(SONS, 'carta-vira.wav'), 0.95, 0.35],
     [join(SONS, 'carta-1.wav'), 1.0, 0.3],
+    [join(SONS, 'carta-vira.wav'), 1.3, 0.35],
     [join(SONS, 'carta-2.wav'), 1.6, 0.3],
     [CRY, 1.6, 0.35],
     [join(SONS, 'toque.wav'), s(QUADRO(6) + 6), 0.35],
     [join(R, 'public/assets/sfx/torcida-gol-1.mp3'), s(QUADRO(20)), 0.6],
-    [join(SONS, 'confirmar.wav'), s(QUADRO(26) + 15), 0.35],
-    [join(SONS, 'confirmar.wav'), s(QUADRO(32) + 5), 0.35],
-    [join(SONS, 'abrir-pacote.wav'), s(QUADRO(32) + 13 + 9), 0.35],
-    [join(SONS, 'carta-1.wav'), s(QUADRO(33) + 20), 0.3],
-    [join(SONS, 'carta-2.wav'), s(QUADRO(33) + 22), 0.3],
-    [join(SONS, 'carta-3.wav'), s(QUADRO(33) + 24), 0.3],
-    [join(SONS, 'abrir-pacote.wav'), s(QUADRO(36) + 4), 0.35],
+    [join(SONS, 'confirmar.wav'), s(QUADRO(24) + 15), 0.35],
+    [join(SONS, 'confirmar.wav'), s(QUADRO(30) + 5), 0.35],
+    [join(SONS, 'rasgo.wav'), s(QUADRO(31) + 1), 0.5],
+    [join(SONS, 'abrir-pacote.wav'), s(QUADRO(31) + 9), 0.35],
+    [join(SONS, 'carta-vira.wav'), s(QUADRO(32.5)), 0.3],
+    [join(SONS, 'carta-1.wav'), s(QUADRO(32.5) + 1), 0.3],
+    [join(SONS, 'carta-2.wav'), s(QUADRO(32.5) + 3), 0.3],
+    [join(SONS, 'carta-3.wav'), s(QUADRO(32.5) + 5), 0.3],
+    [join(SONS, 'rasgo.wav'), s(QUADRO(36)), 0.4],
+    [join(SONS, 'abrir-pacote.wav'), s(QUADRO(36) + 6), 0.35],
     [join(SONS, 'toque.wav'), s(QUADRO(56) + 41), 0.35],
     [CRY, s(QUADRO(56) + 41), 0.35],
 ];
@@ -124,7 +133,11 @@ const fc = [];
 let at = 0;
 P.forEach(([, , , n, filt], i) => {
     const base = `[${i}:v]trim=end_frame=${n},setpts=PTS-STARTPTS`;
-    if (filt === 'inset') {
+    if (filt === 'inicio') {
+        fc.push(`${base},crop=1080:938:0:562[ins${i}]`);
+        fc.push(`[${iFundo}:v]trim=end_frame=${n},setpts=PTS-STARTPTS[fb${i}]`);
+        fc.push(`[fb${i}][ins${i}]overlay=0:640,${V}[p${i}]`);
+    } else if (filt === 'inset') {
         fc.push(
             `${base},scale=w='trunc(994*(1+0.05*n/${n - 1})/2)*2':h='trunc(1767*(1+0.05*n/${n - 1})/2)*2':eval=frame:flags=lanczos[ins${i}]`,
         );

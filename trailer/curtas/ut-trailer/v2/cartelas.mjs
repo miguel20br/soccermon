@@ -13,9 +13,14 @@ const LEGENDAS = {
     'leg-metas': 'Metas dão <b>pacotes</b>',
     'leg-time': 'Monte seu <b>time</b>',
     'leg-capa': 'Time Ultimate · <b>27/11</b>',
+    // v3: a do Início fica num lugar limpo, logo acima da quadra (y em px de CSS)
+    'leg-time2': ['Monte seu <b>time</b>', 150],
 };
 const pecas = [
-    ...Object.entries(LEGENDAS).map(([f, t]) => [f, `c=legenda&y=46&t=${encodeURIComponent(t)}`, true]),
+    ...Object.entries(LEGENDAS).map(([f, t]) => {
+        const [txt, y] = Array.isArray(t) ? t : [t, 46];
+        return [f, `c=legenda&y=${y}&t=${encodeURIComponent(txt)}`, true];
+    }),
     ['fundo', 'c=fundo'],
 ];
 const browser = await chromium.launch({ headless: true, args: ['--allow-file-access-from-files'] });

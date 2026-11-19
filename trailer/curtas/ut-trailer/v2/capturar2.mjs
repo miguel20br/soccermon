@@ -27,16 +27,17 @@ const browser = await chromium.launch({
     args: ['--enable-gpu', '--ignore-gpu-blocklist', '--hide-scrollbars'],
 });
 
-async function novoSave(dpr) {
+async function novoSave(dpr, manual = true) {
     const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, deviceScaleFactor: dpr, locale: 'pt-BR' });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => console.error('erro na página:', e.message));
     // o walkout espera a gravação (sem o Pular, e a cena só anda pelo game.step) e anota os sons que pediu
-    await page.addInitScript(() => {
-        window.__wkManual = true;
-        window.__wkHold = true;
-        window.__wkSounds = [];
-    });
+    if (manual)
+        await page.addInitScript(() => {
+            window.__wkManual = true;
+            window.__wkHold = true;
+            window.__wkSounds = [];
+        });
     await page.clock.install();
     await page.goto(`${BASE}/?lab=ultimate&utnow=2026-11-28`, { timeout: 120000 });
     await page.getByText(/Time Ultimate/i).first().click({ timeout: 60000 });
@@ -386,6 +387,98 @@ if (want('fluxo')) {
     marcas.fim = n;
     writeFileSync(`${dir}/marcas.json`, JSON.stringify(marcas, null, 1));
     console.log(marcas);
+    await ctx.close();
+}
+if (want('inicio')) {
+    // o Início de perto (v3): o mesmo save (passe, vitória, marco 2, Abrir todos com o walkout pulado, o Dragonite no
+    // lugar do Voltorb), gravado a 6x só no recorte: 180 x 250 px de CSS = 1080 x 1500, nítido, seguindo o meio entre o
+    // Dratini e o Dragonite (mola), preso dentro da quadra
+    const { ctx, page } = await novoSave(6, false);
+    await store(page, (m, U) => {
+        let u = m.useGame.getState().ultimate;
+        u = U.payPass({ ...u, pass: { day: '', today: 0, pts: 150, marks: 0 } });
+        m.useGame.setState({ ultimate: { ...u, pass: { ...u.pass, pts: 260 } } });
+    });
+    await aba(page, /^\d*\s*jogar$/i).click();
+    await page.waitForTimeout(1200);
+    await page.locator('.ut-level-chip').first().click();
+    await page.waitForTimeout(600);
+    await btn(page, /^Fácil$/).first().click();
+    await page.waitForTimeout(400);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(600);
+    await page.getByRole('button', { name: /^JOGAR$/ }).first().click();
+    await page.getByRole('button', { name: /^Começar/ }).waitFor({ timeout: 60000 });
+    await store(page, (m, U) => {
+        const s = m.useGame.getState();
+        s.ultimateFinish(s.match);
+        s.ultimateRedeem(`pass-${m.useGame.getState().ultimate.season}-2`);
+        m.useGame.getState().ultimateSeen();
+        m.useGame.setState((x) => ({ ultimate: { ...x.ultimate, packAt: x.ultimate.packAt - 12 * 3600 * 1000 } }));
+        m.useGame.getState().go('ultimate');
+    });
+    await page.waitForTimeout(1500);
+    await aba(page, /^\d*\s*loja$/i).click();
+    await page.waitForTimeout(1200);
+    await btn(page, /^Abrir todos/).first().click();
+    await page.waitForTimeout(1000);
+    await page.locator('.cpack-btn').click();
+    await page.waitForTimeout(3500);
+    await btn(page, /^Continuar$/).first().click();
+    await page.waitForTimeout(5000);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(2500);
+    const go = page.locator('.wk-ph-go');
+    if (await go.count()) await go.first().click();
+    await page.waitForTimeout(1500);
+    await btn(page, /^Guardar/).first().click();
+    await page.waitForTimeout(800);
+    const time = await store(page, (m, U) => {
+        const u = m.useGame.getState().ultimate;
+        const dg = u.cards.find((c) => c.speciesId === 149);
+        const byUid = new Map(u.cards.map((c) => [c.uid, c]));
+        const i = u.team.order.findIndex((uid) => byUid.get(uid)?.speciesId === 100);
+        m.useGame.setState({ ultimate: { ...u, team: U.setMember(u.team, i, dg.uid) } });
+        return m.useGame.getState().ultimate.team.order.slice(0, 5).map((uid) => byUid.get(uid)?.speciesId);
+    });
+    console.log('titulares', time);
+    await aba(page, /^\d*\s*início$/i).click();
+    await page.waitForTimeout(2500);
+    const anda = await congela(page);
+    const quadra = await page.locator('.es-court').first().boundingBox();
+    console.log('quadra', quadra);
+    const W = 180;
+    const H = 250;
+    const y = Math.round(Math.max(0, quadra.y + quadra.height - H + 6));
+    const pos = (id) =>
+        page.evaluate((id) => {
+            const e = document.querySelector(`.ut-court .wild-mon[style*="menu/${id}.png"]`);
+            if (!e) return null;
+            const r = e.getBoundingClientRect();
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        }, id);
+    const dir = `${OUT}/inicio6`;
+    mkdirSync(dir, { recursive: true });
+    let cam = null;
+    const marcas = { quadra, y, W, H };
+    for (let i = 0; i < 130; i++) {
+        const a = await pos(147);
+        const b = await pos(149);
+        const mid = a && b ? (a.x + b.x) / 2 : (a ?? b)?.x ?? quadra.x + quadra.width / 2;
+        const alvo = Math.max(quadra.x, Math.min(quadra.x + quadra.width - W, mid - W / 2));
+        cam = cam === null ? alvo : cam + (alvo - cam) * 0.08;
+        if (i === 55 && a) {
+            marcas.toque = i;
+            await dedo(page, a.x, a.y);
+            await page.mouse.click(a.x, a.y);
+        }
+        await page.screenshot({
+            path: join(dir, `${String(i).padStart(4, '0')}.png`),
+            clip: { x: cam, y, width: W, height: H },
+        });
+        await anda(DT);
+    }
+    writeFileSync(`${dir}/marcas.json`, JSON.stringify(marcas, null, 1));
     await ctx.close();
 }
 await browser.close();
