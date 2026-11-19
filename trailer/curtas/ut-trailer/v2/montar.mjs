@@ -2,7 +2,7 @@
 // capturar*.mjs, do fecho.mjs, das cartelas.mjs, dos sons.mjs e da música "Do zero ao time" (scripts/musica/pecas/
 // trailer-ut.mjs, 136 BPM: batida = 13,235 quadros). Cada plano começa e termina numa batida (QUADRO(k)).
 //   node trailer/curtas/ut-trailer/v2/montar.mjs <pasta-da-midia-v2> <musica.wav> <saida.mp4>
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -177,10 +177,11 @@ ff([
 ]);
 // 3) volume em duas passadas: mede e aplica o ganho fixo até -14 LUFS (o loudnorm de uma passada achata o crescendo)
 const MKV = TMP.replace(/\.mp4$/, '.mkv');
-const med = execFileSync('ffmpeg', ['-hide_banner', '-i', MKV, '-af', 'ebur128=peak=true', '-f', 'null', '-'], {
+const med = spawnSync('ffmpeg', ['-hide_banner', '-i', MKV, '-af', 'ebur128=peak=true', '-f', 'null', '-'], {
     encoding: 'utf8',
-    stdio: ['ignore', 'ignore', 'pipe'],
-}).toString();
+    // o ebur128 escreve uma linha por quadro de áudio no stderr: passa do 1 MB padrão
+    maxBuffer: 256 * 1024 * 1024,
+}).stderr;
 const I = Number(/Integrated loudness:\s+I:\s+(-?[\d.]+)/.exec(med)?.[1] ?? '-14');
 const g = (-14 - I).toFixed(2);
 ff(['-i', MKV, '-c:v', 'copy', '-af', `volume=${g}dB,alimiter=limit=0.84:level=false,aresample=48000`, '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', OUT]);
