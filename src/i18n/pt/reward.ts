@@ -3,7 +3,7 @@ export const reward = {
     nextStage: 'Vitória! Próxima fase: {stage}',
     /** Fase fora da lista (não acontece na copa normal). */
     cup: 'Copa',
-    whoLeaves: 'Quem sai do banco?',
+    whoLeaves: 'Quem sai do time?',
     /** Reforço com vaga vazia no banco (um reserva saiu na Copa longa). */
     whereGoes: 'Onde ele entra?',
     whoLearns: 'Quem aprende o golpe?',
@@ -40,8 +40,8 @@ export const reward = {
     sign: 'Contratar',
     pick: 'Escolher',
     item: 'Item',
-    swapWhich: 'Trocar por qual reserva?',
-    swapOrEmpty: 'Na vaga ou no lugar de um reserva?',
+    swapWhich: 'Trocar por quem?',
+    swapOrEmpty: 'Na vaga ou no lugar de alguém?',
     giveTo: 'Entregar pra…',
     itemGoesToNew: ' ({item} vai pro reforço)',
     replacesItem: ' (troca a {item})',

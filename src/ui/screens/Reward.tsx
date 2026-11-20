@@ -387,10 +387,8 @@ export function GainTarget({
     const { lang, t, tn } = useT();
     const byUid = new Map(run.picks.map((p) => [p.uid, p]));
     const squad = [...run.lineup, ...run.bench].map((u) => byUid.get(u)!).filter(Boolean);
-    const targets =
-        reward.kind === 'pokemon'
-            ? run.bench.map((u) => byUid.get(u)!).filter((p) => p && p.uid !== run.captainUid)
-            : squad;
+    // reforço troca com reserva ou titular, nunca com o capitão
+    const targets = reward.kind === 'pokemon' ? squad.filter((p) => p.uid !== run.captainUid) : squad;
     // reforço também entra numa vaga vazia do banco (um reserva saiu na Copa longa)
     const emptyBench = reward.kind === 'pokemon' && run.bench.includes('');
     const holding = holder ? byUid.get(holder) : null;

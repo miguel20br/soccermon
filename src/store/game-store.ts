@@ -765,19 +765,22 @@ function grant(
     targetUid: string,
     forgetSlot?: number,
     passTo?: string,
-): { picks: PokemonInstance[]; bench: string[] } | null {
+): { picks: PokemonInstance[]; bench: string[]; lineup: string[] } | null {
     let picks = run.picks;
     let bench = run.bench;
+    let lineup = run.lineup;
     if (reward.kind === 'pokemon') {
         // nunca dois da mesma espécie (pacote e vitrine do Mercado podem trazer o mesmo Pokémon)
         if (run.picks.some((p) => p.speciesId === reward.inst.speciesId && p.uid !== targetUid)) return null;
-        // reforço entra no banco no lugar do reserva escolhido (nunca o capitão);
-        // o item do reserva que sai passa para o reforço
+        // reforço entra no lugar de quem o jogador escolheu, reserva ou titular (pedido do Davi, 20/11), nunca o
+        // capitão; o titular que sai deixa a vaga dele na quadra pro reforço. O item de quem sai passa pro reforço
         const benchIdx = run.bench.indexOf(targetUid);
-        if (benchIdx < 0 || targetUid === run.captainUid) return null;
+        const lineupIdx = targetUid ? run.lineup.indexOf(targetUid) : -1;
+        if ((benchIdx < 0 && lineupIdx < 0) || targetUid === run.captainUid) return null;
         const leaving = run.picks.find((p) => p.uid === targetUid);
         const incoming = { ...reward.inst, item: reward.inst.item ?? leaving?.item ?? null };
-        bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
+        if (benchIdx >= 0) bench = run.bench.map((u, i) => (i === benchIdx ? incoming.uid : u));
+        else lineup = run.lineup.map((u, i) => (i === lineupIdx ? incoming.uid : u));
         picks = [...run.picks.filter((p) => p.uid !== targetUid), incoming];
     } else if (reward.kind === 'tm') {
         // MT: o escolhido esquece um golpe (nunca a assinatura) e aprende o novo
@@ -796,7 +799,7 @@ function grant(
                   : p,
         );
     }
-    return { picks, bench };
+    return { picks, bench, lineup };
 }
 
 /** Próxima fase: escalação. */

@@ -56,7 +56,7 @@ export const liga = {
         rankingError: 'Não deu pra carregar o ranking.',
         you: 'você',
         playing: 'jogando',
-        goalDiff: 'saldo',
+        goalDiff: 'saldo de gols',
         shareText: {
             title: 'Soccermon · Copa do Dia #{n} · {d}/{m}',
             champion: 'Campeão!',

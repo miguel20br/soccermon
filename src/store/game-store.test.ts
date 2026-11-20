@@ -582,6 +582,44 @@ describe('Ícones escalados', () => {
     });
 });
 
+describe('reforço no lugar de um titular', () => {
+    const setup = () => {
+        useGame.getState().newRun('Pallet FC', 'reforco-titular');
+        const rng = new Rng('reforco-titular', 'team');
+        const team = [95, 7, 5, 25, 74, 1, 4].map((id) => createInstance(id, rng));
+        const lapras = { ...createInstance(131, rng), item: null };
+        const ready: RunState = {
+            ...(useGame.getState().run as RunState),
+            picks: team.map((p, i) => (i === 2 ? { ...p, item: 'leftovers' as const } : p)),
+            lineup: team.slice(0, 5).map((p) => p.uid),
+            bench: team.slice(5).map((p) => p.uid),
+            captainUid: team[0].uid,
+            status: 'reward',
+            rewards: [{ kind: 'pokemon', inst: lapras, from: null }],
+        };
+        useGame.setState({ run: ready });
+        return { team, lapras };
+    };
+
+    it('entra na vaga do titular escolhido, com o item dele; o banco fica igual', () => {
+        const { team, lapras } = setup();
+        useGame.getState().claimReward(0, team[2].uid);
+        const run = useGame.getState().run!;
+        expect(run.lineup[2]).toBe(lapras.uid);
+        expect(run.bench).toEqual(team.slice(5).map((p) => p.uid));
+        expect(run.picks.some((p) => p.uid === team[2].uid)).toBe(false);
+        expect(run.picks.find((p) => p.uid === lapras.uid)?.item).toBe('leftovers');
+    });
+
+    it('o capitão nunca sai', () => {
+        const { team, lapras } = setup();
+        useGame.getState().claimReward(0, team[0].uid);
+        const run = useGame.getState().run!;
+        expect(run.lineup[0]).toBe(team[0].uid);
+        expect(run.picks.some((p) => p.uid === lapras.uid)).toBe(false);
+    });
+});
+
 describe('sequência de títulos', () => {
     it('nova copa por cima de uma em andamento zera a sequência (como abandonar); depois do fim, não', () => {
         const records = { cups: 3, titles: 3, perfect: 0, streak: 3, bestStreak: 3 };
