@@ -1,13 +1,18 @@
 # Novidades
 
-## 0.9.53 · Copa do Dia numerada (2026-11-23)
+## 0.9.53 · Reforço no lugar do titular (2026-11-23)
+
+### Reforços
+- Recompensa, vitrine e pacote do Mercado: o reforço pode entrar no lugar de um titular, não só de um reserva (o capitão nunca sai)
 
 ### Copa do Dia
 - Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar
+- Ranking do dia mostra "saldo de gols" em vez de só "saldo"
 - Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado
 - Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado
 
 ### Duelo
+- Melhor de 3: a Escalação entre um jogo e outro também troca o capitão
 - Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa
 
 ### Privacidade

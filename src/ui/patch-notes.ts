@@ -11,19 +11,29 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.53',
         date: '2026-11-23',
-        title: 'Copa do Dia numerada',
+        title: 'Reforço no lugar do titular',
         sections: [
+            {
+                title: 'Reforços',
+                lines: [
+                    'Recompensa, vitrine e pacote do Mercado: o reforço pode entrar no lugar de um titular, não só de um reserva (o capitão nunca sai)',
+                ],
+            },
             {
                 title: 'Copa do Dia',
                 lines: [
                     'Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar',
+                    'Ranking do dia mostra "saldo de gols" em vez de só "saldo"',
                     'Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado',
                     'Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado',
                 ],
             },
             {
                 title: 'Duelo',
-                lines: ['Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa'],
+                lines: [
+                    'Melhor de 3: a Escalação entre um jogo e outro também troca o capitão',
+                    'Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa',
+                ],
             },
             {
                 title: 'Privacidade',
@@ -3032,8 +3042,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.53',
         date: '2026-11-23',
-        title: 'Numbered Daily Cup',
+        title: 'Signings replace starters',
         sections: [
+            {
+                title: 'Signings',
+                lines: [
+                    'Reward, Market shelf and Market pack: a new signing can replace a starter, not only a sub (never the captain)',
+                ],
+            },
             {
                 title: 'Daily Cup',
                 lines: [
@@ -3044,7 +3060,10 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             },
             {
                 title: 'Duel',
-                lines: ["Invite to build your own team at the end of a Duel, for players who haven't played a cup yet"],
+                lines: [
+                    'Best of 3: the lineup screen between games also changes the captain',
+                    "Invite to build your own team at the end of a Duel, for players who haven't played a cup yet",
+                ],
             },
             {
                 title: 'Privacy',
