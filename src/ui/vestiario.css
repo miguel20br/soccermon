@@ -59,7 +59,11 @@
 .vt-obj b {
     font-size: 13px;
 }
+/* o acento das maiúsculas da Galmuri11 (É, Ô) sobe 2/12 de em acima do ascent: com o overflow do ellipsis e a linha de
+   1.15 ele era cortado ("MEDIA 55" no cartaz do rival). A folga em cima estica o recorte sem mexer no layout */
 .vt-obj small {
+    padding-top: 0.25em;
+    margin-top: -0.25em;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
