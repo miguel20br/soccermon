@@ -12,6 +12,7 @@ import {
     acceptTakeover,
     applyPreview,
     bestFor,
+    captainSwapOk,
     clockAdjust,
     type DuelBestOf,
     type DuelDuration,
@@ -1012,7 +1013,9 @@ class DuelSession {
             if (s.phase === 'preview' && !mineOk && c.until !== undefined && now >= c.until && this.due('pv-auto')) {
                 const team = s.teams[role];
                 const draft =
-                    this.previewDraft && team && applyPreview(team, this.previewDraft) ? this.previewDraft : null;
+                    this.previewDraft && team && applyPreview(team, this.previewDraft, captainSwapOk(s))
+                        ? this.previewDraft
+                        : null;
                 const cfg =
                     draft ??
                     (team && {

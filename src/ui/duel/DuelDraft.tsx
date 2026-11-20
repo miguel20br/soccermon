@@ -9,6 +9,7 @@ import { formationText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import {
     bothSealed,
+    captainSwapOk,
     DUEL_ROUNDS,
     other,
     type PreviewCfg,
@@ -472,6 +473,8 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
         duel.previewDraft = cfg;
     }, [cfg]);
     const byUid = new Map(all.map((p) => [p.uid, p]));
+    // melhor de 3, do 2º jogo em diante: dá pra trocar o capitão entre os jogos (só entre os titulares, como na copa)
+    const canCaptain = captainSwapOk(s);
     const idxOf = (r: SlotRef) => (r.zone === 'lineup' ? r.index : 5 + r.index);
     const swap = (a: SlotRef, b: SlotRef) => {
         const order = [...cfg.order];
@@ -500,7 +503,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                 lineup={cfg.order.slice(0, 5)}
                 bench={cfg.order.slice(5)}
                 byUid={byUid}
-                captainUid={team.captainUid ?? null}
+                captainUid={cfg.captain ?? team.captainUid ?? null}
                 tactic={cfg.tactic}
                 cornerPlan={cfg.corner ?? 'mixed'}
                 cornerTakerUid={cfg.cornerTaker ?? null}
@@ -508,6 +511,7 @@ export function DuelPreview({ s, role }: { s: Shared; role: Role }) {
                 onFormation={(formation) => setCfg({ ...cfg, formation })}
                 onSwap={swap}
                 onTactic={(tactic) => setCfg({ ...cfg, tactic })}
+                onCaptain={canCaptain ? (captain) => setCfg({ ...cfg, captain }) : undefined}
                 onCorner={(p) =>
                     setCfg({
                         ...cfg,

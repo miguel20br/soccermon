@@ -15,7 +15,9 @@ Pedido do Miguel: "dar a possibilidade de fazer um modo MD3 no x1 também, com o
   de antes do jogo 1: o que evolui dentro de um jogo não passa pro seguinte (o time da sala nunca muda pela partida,
   então isso já sai de graça).
 - **Entre um jogo e outro:** a mesma Escalação lacrada de 30 s (formação, tática, escanteio, quem começa), já com o que
-  cada um usou no jogo anterior. Os dois confirmam (ou o tempo acaba) e vem o VERSUS do jogo seguinte.
+  cada um usou no jogo anterior. Os dois confirmam (ou o tempo acaba) e vem o VERSUS do jogo seguinte. Desde 20/11
+  (pedido do Davi, aprovado pelo Miguel) essa Escalação também troca o capitão, só entre os titulares
+  (`captainSwapOk`: melhor de 3 e jogo 2 em diante; no 1º jogo vale o do draft).
 - **Seed nova por jogo:** cada jogo é uma partida nova da sala (`game` + 1), com corrente de lacres nova (o pedido de
   "Próximo jogo" leva o lacre, como a revanche de um toque). A seed base é `sala-jogo` e as seeds dos trechos saem dos
   lacres novos: outro jogo, mesma partida nas duas telas.
