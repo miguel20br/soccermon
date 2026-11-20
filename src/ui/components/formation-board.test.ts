@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { createInstance } from '../../engine/instance';
 import { Rng } from '../../engine/rng';
-import { cardTypeOf } from '../../engine/specials';
+import { cardTypeOf, ESPECIAL_EVENT } from '../../engine/specials';
 import { TYPE_COLOR } from '../type-colors';
 import { FormationBoard } from './FormationBoard';
 
@@ -28,6 +28,27 @@ describe('vaga da carta Evento na prancheta', () => {
         expect(html).toContain('sc-evento');
         expect(html).toContain(`--t1:${TYPE_COLOR.Water}`);
         expect(html).not.toContain(`--t1:${TYPE_COLOR.Rock}`);
+    });
+});
+
+describe('vaga do Evento da Semana Fora da Lei', () => {
+    // o Gyarados do evento saía com a vaga azul de Água: o evento de lista não tem tipo, a vaga é neon
+    it('pinta com o neon do evento, não com a cor do tipo do Pokémon', () => {
+        const g = {
+            ...createInstance(130, new Rng('neon-vaga')),
+            uid: 'g',
+            special: { kind: 'evento' as const, event: ESPECIAL_EVENT },
+        };
+        const html = renderToStaticMarkup(
+            createElement(FormationBoard, {
+                formation: '1-2-1',
+                lineup: ['g'],
+                bench: [],
+                byUid: new Map([['g', g]]),
+                captainUid: null,
+            } as never),
+        );
+        expect(html).toContain('sc-evento sc-neon');
     });
 });
 

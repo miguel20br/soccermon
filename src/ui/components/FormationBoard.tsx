@@ -5,7 +5,7 @@ import { type FormationId, formationOf } from '../../engine/formations';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
 import { computeLinks } from '../../engine/links';
-import { cardTypeOf, editionOf } from '../../engine/specials';
+import { cardTypeOf, ESPECIAL_EVENT, editionOf } from '../../engine/specials';
 import { computeSynergies } from '../../engine/synergy';
 import { useT } from '../../i18n/react';
 import { type SlotRef, useGame } from '../../store/game-store';
@@ -61,8 +61,9 @@ export function cardLook(inst: PokemonInstance): { className: string; style: CSS
     const metal = metalOf(viewInstance(inst).overall);
     // anel na cor do metal da carta (lendário: creme e dourado)
     const ring = tier === 'legendary' ? '#f2d878' : METAL[metal].color;
+    // Evento de lista (Semana Fora da Lei) não tem tipo: a vaga usa o pôr do sol neon da carta, não a cor da espécie
     const className = edition
-        ? `sc sc-${edition}`
+        ? `sc sc-${edition}${inst.special?.event === ESPECIAL_EVENT ? ' sc-neon' : ''}`
         : tier === 'legendary'
           ? 'sc sc-lendario'
           : `sc sc-${metal}${finishOf(tier) === 'brilhante' ? ' sc-brilhante' : ''}`;

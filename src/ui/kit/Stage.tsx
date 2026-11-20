@@ -64,14 +64,16 @@ function useTwoCols(ref: RefObject<HTMLElement | null>, on: boolean) {
             } else if (stage) delete stage.dataset.gap;
         };
         refit();
-        const ro = new ResizeObserver(refit);
-        ro.observe(el.parentElement ?? el);
-        // o conteúdo troca (sala cheia, outro bloco): mede de novo no quadro seguinte (só filhos: o atributo não volta)
+        // tela e conteúdo medem no quadro seguinte: medir dentro da entrega do observador dava "ResizeObserver loop"
         let frame = 0;
-        const mo = new MutationObserver(() => {
+        const later = () => {
             cancelAnimationFrame(frame);
             frame = requestAnimationFrame(refit);
-        });
+        };
+        const ro = new ResizeObserver(later);
+        ro.observe(el.parentElement ?? el);
+        // o conteúdo troca (sala cheia, outro bloco): mede de novo no quadro seguinte (só filhos: o atributo não volta)
+        const mo = new MutationObserver(later);
         mo.observe(el, { subtree: true, childList: true });
         document.fonts?.ready.then(refit);
         return () => {
@@ -114,14 +116,16 @@ export function useFitZoom(ref: RefObject<HTMLElement | null>) {
         };
         refit();
         // olha o pai (o tamanho da tela): o corpo muda de tamanho com o próprio zoom e daria laço no observador
-        const ro = new ResizeObserver(refit);
-        ro.observe(el.parentElement ?? el);
-        // o conteúdo troca (pacote fechado → leque, batidas da cascata): mede de novo no quadro seguinte
+        // tela e conteúdo medem no quadro seguinte: medir dentro da entrega do observador dava "ResizeObserver loop"
         let frame = 0;
-        const mo = new MutationObserver(() => {
+        const later = () => {
             cancelAnimationFrame(frame);
             frame = requestAnimationFrame(refit);
-        });
+        };
+        const ro = new ResizeObserver(later);
+        ro.observe(el.parentElement ?? el);
+        // o conteúdo troca (pacote fechado → leque, batidas da cascata): mede de novo no quadro seguinte
+        const mo = new MutationObserver(later);
         mo.observe(el, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
         document.fonts?.ready.then(refit);
         return () => {
