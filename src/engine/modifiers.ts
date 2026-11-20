@@ -1,8 +1,9 @@
 import { abilityEffect } from './abilities';
 import { type Attributes, type AttrKey, type Position, positionFactor } from './attributes';
 import { ABILITIES, MOVES, species } from './data';
+import { evolutionTarget } from './evolution';
 import { evolutionBonus, instanceBase, instancePositions, type PokemonInstance } from './instance';
-import { ITEMS } from './items';
+import { EVIOLITE, ITEMS } from './items';
 import { computeLinks, linkFactor } from './links';
 import { moveProfile } from './moves';
 import { specialBonus } from './specials';
@@ -128,6 +129,14 @@ export function attributeModifiers(inst: PokemonInstance, ctx: TeamContext = {})
             factor: 1.15,
         });
     }
+    if (inst.item === 'eviolite' && evolutionTarget(inst.speciesId, inst.uid) !== null)
+        mods.push({
+            source: 'item',
+            label: `Eviolite: ${pct(EVIOLITE.factor)} em tudo`,
+            ref: 'eviolite',
+            attrs: 'all',
+            factor: EVIOLITE.factor,
+        });
     // Encanto das fadas: os poucos Fada da Gen 1 são fracos de base
     if (sp.types.includes('Fairy'))
         mods.push({ source: 'tipo', label: 'Encanto (Fada): +8%', attrs: 'all', factor: 1.08 });

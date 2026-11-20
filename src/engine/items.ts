@@ -10,6 +10,7 @@ export type ItemKind =
     | 'scopelens'
     | 'lumberry'
     | 'kingsrock'
+    | 'eviolite'
     | 'type';
 
 export interface ItemData {
@@ -95,6 +96,13 @@ export const ITEMS: Record<string, ItemData> = {
         sprite: 'kings-rock',
         desc: 'Golpes de dano que acertam têm 30% de chance de atordoar o rival por 0,7 s.',
     },
+    eviolite: {
+        id: 'eviolite',
+        name: 'Eviolite',
+        kind: 'eviolite',
+        sprite: 'eviolite',
+        desc: 'Quem ainda pode evoluir fica mais forte em tudo.',
+    },
     ...Object.fromEntries(
         TYPE_ITEMS.map(([id, name, type]) => [
             id,
@@ -110,6 +118,14 @@ export const ITEMS: Record<string, ItemData> = {
     ),
 };
 
-export const ITEM_IDS = Object.keys(ITEMS);
+/**
+ * Eviolite (pedido do Repositor Supremo, 16/11; aprovada pelo Miguel em 20/11): fator em todos os atributos de quem
+ * ainda pode evoluir. Objeto mutável só pra varredura em scripts/balance/eviolite.ts; o número vale depois do ok.
+ */
+export const EVIOLITE = { factor: 1.15 };
+
+// ponytail: a Eviolite fica fora dos sorteios (recompensa, Mercado, rivais) até o Miguel decidir de onde ela vem;
+// entrar no sorteio muda o que cada seed sorteia
+export const ITEM_IDS = Object.keys(ITEMS).filter((id) => id !== 'eviolite');
 export const TYPE_ITEM_FOR: Record<string, string> = Object.fromEntries(TYPE_ITEMS.map(([id, , type]) => [type, id]));
 export const itemSprite = (id: string) => `assets/items/${ITEMS[id]?.sprite ?? id}.png`;
