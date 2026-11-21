@@ -17,7 +17,8 @@ const A = `${JOGO}/public/assets`;
 // EP 2 do Vestiário: 100 Voltorb (a bola que não é bola) · Soccermon News: 65 Alakazam, 52 Meowth (torcida) e 137 Porygon
 // News #1 (testes de apresentador, 15/11): 26 Raichu (o Machamp, 68, já estava), 55 Golduck e 67 Machoke (o parceiro escolhido;
 // o terno sai do news-01/teste-machoke/terno.mjs)
-const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55, 67];
+// News #2: 10 Caterpie (com a Eviolite) e 12 Butterfree
+const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55, 67, 10, 12];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
 const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
     // A foto: os closes falando (o Psyduck gritando, o Pikachu, o Magikarp gritando, o Squirtle marrento)
@@ -87,7 +88,7 @@ copyFileSync(`${JOGO}/public/fonts/Galmuri11-Bold.woff2`, `${OUT}/Galmuri11-Bold
 
 // música: a peça editada na partitura, normalizada pra −14 LUFS (2 passadas do loudnorm, ganho linear)
 execFileSync('node', ['trailer/curtas/musica.mjs', `${OUT}/som`, ...SO], { stdio: 'inherit' });
-for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado', 'foto', 'paredao', 'bolas', 'news']) {
+for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atrasado', 'foto', 'paredao', 'bolas', 'news', 'news2']) {
     if (SO.length && !SO.includes(nome)) continue;
     const wav = `${OUT}/som/${nome}.wav`;
     const err = spawnSync('ffmpeg', ['-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1:LRA=11:print_format=json', '-f', 'null', '-'], {
@@ -106,6 +107,7 @@ for (const nome of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'atras
     await vestirRaichu(26, '-', `${OUT}/sp/26.png`, `${OUT}/sp/26-terno.png`, CORES.marinho, null, 1);
     await vestir(FOLHA, `${OUT}/sp/67-terno.png`, 'marinho');
     execFileSync('node', ['trailer/curtas/news-01/linha.mjs', `${OUT}/som`], { stdio: 'inherit' });
+    execFileSync('node', ['trailer/curtas/news-02/linha.mjs', `${OUT}/som`], { stdio: 'inherit' });
 }
 // cada curta é uma pasta do HyperFrames (uma composição raiz por pasta) com midia/ apontando pra cá
 for (const c of ['snorlax', 'penaltis', 'magikarp', 'ditto', 'amigos', 'vestiario-atrasado', 'vestiario-foto', 'confessionario-paredao', 'vestiario-bolas', 'news-01']) if (!existsSync(`trailer/curtas/${c}/midia`)) symlinkSync('../midia', `trailer/curtas/${c}/midia`);
