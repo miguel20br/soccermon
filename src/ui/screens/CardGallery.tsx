@@ -195,6 +195,8 @@ const ARROW_CARDS: Step[] = [
     { label: 'Gyarados que evoluiu (Swift Swim)', inst: evolveInstance(karp, 130) },
     { label: 'Gyarados do pacote', inst: sample(130) },
     { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
+    { label: 'Machoke com Eviolite (▲ roxo)', inst: sample(67, { item: 'eviolite' }) },
+    { label: 'Machoke sem item', inst: sample(67) },
 ];
 
 function Ladder({ steps }: { steps: Step[] }) {

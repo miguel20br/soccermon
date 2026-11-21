@@ -4,7 +4,7 @@ import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
-import { cardAttributes } from '../../engine/modifiers';
+import { attributeModifiers, cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import {
     cardTypeOf,
@@ -126,11 +126,14 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     // o número é o que vale em campo (evolução, edição, habilidade, item, Fada) e o ▲ quanto disso é bônus
     // em relação ao Pokémon "puro" (Miguel, 09/11/2026)
     const { field, bonus } = cardAttributes(inst);
+    // ▲ roxo: a Eviolite está valendo (Miguel, 21/11/2026)
+    const evio = attributeModifiers(inst).some((m) => m.ref === 'eviolite');
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
         label: tr.d.common.attrShort[k],
         v: field[k],
         delta: bonus[k],
+        evio,
     }));
     // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
     const evo = evoPreview(inst, position);
@@ -435,7 +438,9 @@ function Metal({
                         <b>{s.v}</b>
                         <i>{s.label}</i>
                         {s.delta !== 0 && (
-                            <em className={`m-mod ${s.delta > 0 ? 'up' : 'down'}`}>
+                            <em
+                                className={`m-mod ${s.delta > 0 ? 'up' : 'down'}${s.evio && s.delta > 0 ? ' evio' : ''}`}
+                            >
                                 {s.delta > 0 ? `▲${s.delta}` : `▼${-s.delta}`}
                             </em>
                         )}
