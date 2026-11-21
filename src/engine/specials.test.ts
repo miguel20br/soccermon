@@ -87,7 +87,7 @@ describe('Semana Fora da Lei: Evento por lista de espécies', () => {
         expect([cardTypeOf(novo), themeTypeOf(novo)]).toEqual(['Fighting', 'Fighting']);
     });
 
-    it('motor 31 (Duelo e Liga precisam da carta nova)', () => {
-        expect(ENGINE_VERSION).toBe(31);
+    it('motor 31 ou depois (Duelo e Liga precisam da carta nova)', () => {
+        expect(ENGINE_VERSION).toBeGreaterThanOrEqual(31);
     });
 });

@@ -33,6 +33,7 @@ const CASES: [string, PokemonInstance][] = [
     ['Mewtwo Shiny Ícone (edição)', sample(150, { shiny: true, special: { kind: 'icone', title: ICONS[150] } })],
     ['Clefairy com Choice Band (Fada + item)', sample(35, { item: 'choiceband' })],
     ['Rapidash com Run Away (passa de 99 em campo)', sample(78, { ability: 'runaway' })],
+    ['Bulbasaur com Eviolite (pode evoluir)', sample(1, { item: 'eviolite' })],
 ];
 
 const ATTR_OF = Object.fromEntries(
@@ -76,5 +77,14 @@ describe('a carta para em 99', () => {
         const field = applyModifiers(instanceBase(rapidash), attributeModifiers(rapidash));
         expect(Math.round(field.pace)).toBeGreaterThan(CARD_MAX);
         expect(shown(rapidash).pace?.v).toBe(CARD_MAX);
+    });
+});
+
+describe('Eviolite', () => {
+    it('+30% em tudo pra quem ainda evolui; Venusaur com ela não ganha nada', () => {
+        const bulba = sample(1, { item: 'eviolite' });
+        expect(attributeModifiers(bulba).find((m) => m.ref === 'eviolite')?.factor).toBe(1.3);
+        expect(Object.values(shown(bulba)).every((s) => s.mod > 0)).toBe(true);
+        expect(attributeModifiers(sample(3, { item: 'eviolite' })).some((m) => m.ref === 'eviolite')).toBe(false);
     });
 });

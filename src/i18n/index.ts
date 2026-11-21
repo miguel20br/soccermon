@@ -214,6 +214,7 @@ export function modLabel(m: AttrModifier, lang: Lang = current): string {
             });
         }
         case 'item':
+            if (m.ref === 'eviolite') return fmt(c.mod.eviolite, { pct: pct(f) });
             return m.ref === 'choiceband' ? c.mod.choiceBand : m.label;
         case 'tipo':
             return c.mod.fairy;

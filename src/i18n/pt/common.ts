@@ -242,6 +242,7 @@ export const common = {
         scopelens: '20% de chance de chute crítico (mais forte e preciso).',
         lumberry: 'Bloqueia o 1º status vindo do rival na partida.',
         kingsrock: 'Golpes de dano que acertam têm 30% de chance de atordoar o rival por 0,7 s.',
+        eviolite: 'Quem ainda pode evoluir ganha +30% em todos os atributos.',
     } as Record<string, string>,
     /** Itens de tipo; {type} é o nome do tipo como o motor guarda (em inglês). */
     typeItemDesc: 'Golpes do tipo {type} ficam 20% mais fortes.',
@@ -331,6 +332,7 @@ export const common = {
         evolved: 'Evoluiu: +{n} em tudo',
         ability: '{name}: {attr} {pct}',
         choiceBand: 'Choice Band: chute +15% (só o 1º golpe)',
+        eviolite: 'Eviolite: {pct} em tudo',
         fairy: 'Encanto (Fada): +8%',
         captain: 'Capitão: +3%',
         captainSame: 'Mesmo tipo do capitão: {pct}',

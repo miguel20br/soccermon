@@ -11,8 +11,14 @@ export const PATCH_NOTES: PatchNotes[] = [
     {
         version: '0.9.53',
         date: '2026-11-23',
-        title: 'Reforço no lugar do titular',
+        title: 'Eviolite e reforço no lugar do titular',
         sections: [
+            {
+                title: 'Itens',
+                lines: [
+                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (a nota da carta não muda). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
+                ],
+            },
             {
                 title: 'Reforços',
                 lines: [
@@ -3042,8 +3048,14 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
     {
         version: '0.9.53',
         date: '2026-11-23',
-        title: 'Signings replace starters',
+        title: 'Eviolite and signings that replace starters',
         sections: [
+            {
+                title: 'Items',
+                lines: [
+                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (the card rating stays the same). Found in rewards, the Market and the Casino; rivals never use it',
+                ],
+            },
             {
                 title: 'Signings',
                 lines: [
