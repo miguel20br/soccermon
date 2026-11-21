@@ -100,6 +100,7 @@ export function runDevDemo() {
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'eviolite' &&
         demo !== 'patrocinio' &&
         demo !== 'rota-vitoria' &&
         demo !== 'mercado' &&
@@ -365,6 +366,43 @@ export function runDevDemo() {
             console.info(`[demo] copa mt${k}: MT do ${opp.name}`);
             return;
         }
+        return;
+    }
+    // ?demo=eviolite: recompensa das oitavas com Eviolite, um reforço (troca com titular) e Leftovers
+    if (demo === 'eviolite') {
+        store.newRun('Demo FC', 'eviolite');
+        const run = useGame.getState().run!;
+        const rng = new Rng('eviolite', 'demo');
+        const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+        const bench = [10, 92].map((id) => createInstance(id, rng));
+        useGame.setState({
+            run: {
+                ...run,
+                formation: '1-2-1',
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[2].uid,
+                draftRound: 7,
+                status: 'reward',
+                results: [
+                    {
+                        stage: 0,
+                        opponent: run.opponents[0].name,
+                        score: [3, 1],
+                        shootout: null,
+                        won: true,
+                        destaqueUid: null,
+                    },
+                ],
+                rewards: [
+                    { kind: 'item', item: 'eviolite' },
+                    { kind: 'pokemon', inst: createInstance(133, rng), from: null },
+                    { kind: 'item', item: 'leftovers' },
+                ],
+            },
+            screen: 'reward',
+        });
         return;
     }
     // ?demo=patrocinio: a recompensa do Relâmpago depois das oitavas com um Patrocínio entre as 3 (`&vagas=2`: 2 já
