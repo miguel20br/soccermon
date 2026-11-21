@@ -371,14 +371,20 @@ export default function bancada() {
     // a reação sem graça do Raichu: tudo para; a gota (o plim) e a tuba "uá-uá" descendo
     N(pl, M.euNao + 0.15, -2, 0, 0.5);
     for (const [k, m] of [43, 42, 41, 40].entries()) N(tuba, M.euNao + 0.3 + 0.16 * k, m, k === 3 ? 3 : 1.2, 0.45);
-    // de volta à bancada com o Psyduck: o vestiário continua magro
+    // v2: as duas cartas lado a lado: o 93 do Machoke sobe (sino e metais) e o 91 do Machamp cai (a tuba)
+    N(ap, F.f6d.s + 0.05, 2, 0, 0.6);
+    N(sino, M.duelo93, 99, 3, 0.55);
+    stabs(met, 0, 'Abmaj7', [[R(M.duelo93), 2]], { low: 58, n: 4, vel: 0.5 });
+    N(tuba, M.duelo91 + 0.1, 38, 1.2, 0.45);
+    N(tuba, M.duelo91 + 0.3, 36, 2, 0.4);
+    // de volta à bancada com o Charmeleon: o vestiário continua magro
     cama(M.vestCena, M.bVoltorb, comico, ['Ab', 'G7', 'Cm', 'G7'], { cordas: 0 });
     // "Agora ele é reserva.": a tuba murcha
     const res = F.f14.paginas[0].chars[F.f14.paginas[0].texto.indexOf('jogo')];
     N(tuba, res + 0.6, 36, 2, 0.5);
     N(tuba, res + 0.85, 31, 3, 0.45);
 
-    // BEAT bVoltorb: o Voltorb sozinho no banco; cada gesto um som pequeno
+    // BEAT bVoltorb: o Charmeleon sozinho no banco; cada gesto um som pequeno (olha = o fogo diminuindo, volta = a fumaça)
     {
         const G = M.gag;
         N(sino, G.pisca, 103, 0.5, 0.35); // pisca

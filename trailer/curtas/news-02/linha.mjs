@@ -90,7 +90,7 @@ export const letra = (f, trecho) => {
 };
 
 // ===================== o roteiro (News #2, rascunho aprovado em 21/11: falas exatas) =====================
-bloco('gancho', 'CATERPIE MAIS FORTE QUE O BUTTERFREE');
+bloco('gancho', 'MACHOKE MAIS FORTE QUE O MACHAMP');
 t += 2.5;
 bloco('vinheta', null);
 t += 2.5; // a vinheta de abertura (a C: a cartinha girando e virando o logo)
@@ -109,6 +109,8 @@ const f5 = fala('f5', 'machoke', '67-determined', 'Quem ainda pode evoluir ganha
 const f6 = fala('f6', 'raichu', '26-joyous', ['A nota da carta não muda.', 'O bronze continua bronze, só joga mais.']);
 const f6b = fala('f6b', 'machoke', '67-surprised', 'Peraí… eu ainda posso evoluir.');
 const f6c = fala('f6c', 'raichu', '26-sigh', 'Eu não.');
+// v2 (21/11): o número da notícia, conferível na tela (as cartas da galeria: o Machoke com a Eviolite mostra ▲93 no gol)
+const f6d = fala('f6d', 'raichu', '26-determined', 'Com ela, o Machoke vira 93 no gol. O Machamp, 91.');
 beat('bRua', 1.0, 'a câmera vai pra rua: o telão chia e abre na Rota, o Meowth acena');
 bloco('aovivo', 'AO VIVO');
 const f8 = fala('f8', 'raichu', '26', 'Ao vivo da Rota Índigo, nosso repórter Meowth.', { manchete: true });
@@ -118,16 +120,17 @@ const f11 = fala('f11', 'meowth', '52-joyous', ['Antes, só no lugar de um reser
 beat('payFim', 1.0, 'o Meowth faz a pose');
 bloco('vestiario', 'VESTIÁRIO');
 const f12 = fala('f12', 'machoke', '67', ['No Duelo em melhor de 3, agora dá pra trocar', 'o capitão entre um jogo e outro.'], { manchete: true });
-pausa('reacao', 0.8); // o corte pra bancada: o Psyduck na cadeira de convidado, de faixa de capitão, sem fala
-const f14 = fala('f14', 'psyduck', '54-sigh', 'Fui capitão por um jogo.');
-beat('bVoltorb', 1.45, 'o Psyduck sozinho no banco do vestiário: a faixa de capitão escorrega do braço e cai');
+pausa('reacao', 0.8); // o corte pra bancada: o Charmeleon (o C saiu dele no clipe) na cadeira de convidado, de faixa, sem fala
+const f14 = fala('f14', 'charmeleon', '5-sigh', 'Fui capitão por um jogo.');
+beat('bVoltorb', 1.5, 'o Charmeleon sozinho no banco do vestiário: a faixa escorrega e cai, o fogo do rabo vira uma brasinha');
 bloco('vemai', 'VEM AÍ');
 const f15 = fala('f15', 'raichu', '26-inspired', 'Nesta sexta, dia 27, abre o Time Ultimate.', { manchete: true });
 const f16 = fala('f16', 'machoke', '67-joyous', 'Abra pacotes e monte o time da temporada.');
-beat('bRola', 1.0, 'o estúdio aberto: o Caterpie entra no telão, com a Eviolite');
+beat('bRola', 1.0, 'o estúdio aberto: o Machamp entra no telão e cruza os braços');
 bloco('fecha', 'PRA FECHAR');
-const f18 = fala('f18', 'machoke', '67-happy', 'E o Caterpie pediu pra avisar: não vai evoluir tão cedo.', { manchete: true });
-beat('bRisada', 1.0, 'a dupla se olha e ri; o Caterpie pisca no telão');
+const f18 = fala('f18', 'raichu', '26-happy', 'E aí, Machoke, vai querer ser trocado?', { manchete: true });
+const f18b = fala('f18b', 'machoke', '67-determined', 'Nem pensar.');
+beat('bRisada', 1.0, 'a dupla se olha e ri; o Machamp vira a cara no telão');
 const f19 = fala('f19', 'raichu', '26-happy', 'Obrigado pela companhia, e boa noite!');
 const f20 = fala('f20', 'todos', 'todos', 'Temos que chutar!');
 bloco('final', null);
@@ -146,16 +149,19 @@ M.patro = letra(f5, '30%'); // o selo +30%
 M.mais4 = [0, 1, 2, 3, 4, 5].map((k) => r3(letra(f5, 'todos') + 0.2 * k)); // as 6 barras crescendo 30%
 M.nota = letra(f6, 'nota'); // o aro na nota da carta
 M.bronze = letra(f6, 'bronze'); // o selo BRONZE
-M.machoke = letra(f6b, 'evoluir'); // a Eviolite voa pro Machoke
+M.machoke = letra(f6b, 'evoluir'); // o Machoke estufa e brilha
 M.euNao = f6c.a; // o Raichu de perto, sem graça
+M.duelo93 = letra(f6d, '93'); // a carta do Machoke: o ▲93 no gol
+M.duelo91 = letra(f6d, '91'); // a do Machamp: 91
 M.cheia = f9.s; // o corte pro Meowth em tela cheia, na Rota, com o clipe do reforço
 M.titular = letra(f10, 'titular'); // no clipe: o reforço entra no lugar do titular
 M.payday = letra(f11, 'capitão'); // o "Só o capitão nunca sai": o Meowth pula
 M.kaboom = letra(f12, 'capitão'); // no clipe do Duelo: o C muda de dono
-M.vestCena = f14.s; // a bancada com o Psyduck na cadeira de convidado
-/** O Caterpie brilha (a Eviolite) no gancho e no PRA FECHAR; no meio, a gag do Psyduck sozinho no banco (o beat bVoltorb). */
-M.voltorbReage = [0.45, M.bVoltorb, letra(f18, 'Caterpie')];
-M.gag = { pisca: r3(M.bVoltorb + 0.15), encolhe: r3(M.bVoltorb + 0.35), faisca: r3(M.bVoltorb + 0.6), olha: [r3(M.bVoltorb + 0.85), r3(M.bVoltorb + 1.1)], volta: r3(M.bVoltorb + 1.32) };
+M.vestCena = f14.s; // a bancada com o Charmeleon na cadeira de convidado
+/** O Machoke brilha (a Eviolite) no gancho; no PRA FECHAR o Machamp se anima no "trocado". No meio, a gag do Charmeleon (bVoltorb). */
+M.voltorbReage = [0.45, M.bVoltorb, letra(f18, 'trocado')];
+// a gag: a faixa pisca, ele murcha, a faixa cai (faisca), o fogo diminui em 2 degraus (olha) e vira brasinha com fumaça (volta)
+M.gag = { pisca: r3(M.bVoltorb + 0.15), encolhe: r3(M.bVoltorb + 0.35), faisca: r3(M.bVoltorb + 0.6), olha: [r3(M.bVoltorb + 0.9), r3(M.bVoltorb + 1.12)], volta: r3(M.bVoltorb + 1.34) };
 M.sextas = [0, 1, 2, 3].map((k) => r3(f15.a + 0.15 + 0.3 * k));
 M.ultimate = letra(f15, 'Time');
 M.pacote = { cai: r3(f16.s + 0.2), treme: r3(f16.s + 0.45), rasga: letra(f16, 'pacotes') };
@@ -163,7 +169,7 @@ M.pacote.sai = [0, 1, 2, 3, 4].map((k) => r3(M.pacote.rasga + 0.1 + 0.12 * k));
 M.pacote.vira = [0, 1, 2, 3].map((k) => r3(letra(f16, 'monte') + 0.12 * k));
 M.pacote.mewtwo = letra(f16, 'temporada');
 M.pacote.foco = r3(M.pacote.mewtwo + 0.3);
-M.bem = letra(f18, 'cedo');
+M.bem = letra(f18b, 'pensar'); // o Machoke abraça a Eviolite
 M.boaNoite = letra(f19, 'boa noite');
 M.grito = [r3(f20.a + 0.3), r3(letra(f20, 'chutar') + 0.25)];
 M.papeis = [r3(f19.paginas[0].fim + 0.45), r3(f19.paginas[0].fim + 0.75)];
@@ -191,19 +197,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     for (const [id, c] of Object.entries(CLIPES))
         h = h.replace(new RegExp(`(<video id="${id}"[^>]*?)data-start="[\\d.]+" data-duration="[\\d.]+" data-media-start="[\\d.]+"`), `$1data-start="${r2(c.s)}" data-duration="${r2(c.z - c.s + SAIDA)}" data-media-start="${r2(Math.max(0, c.noClipe - (c.marca - c.s)))}"`);
     writeFileSync(html, h);
-    const { blipMachoke, blipMeowth, blipPsyduck, blipRaichu } = await import('../../../scripts/musica/curtas.mjs');
+    const { blipCharmeleon, blipMachoke, blipMeowth, blipRaichu } = await import('../../../scripts/musica/curtas.mjs');
     const { SR, Song } = await import('../../../scripts/musica/synth.mjs');
     const S = new Song({ bpm: 120, bars: Math.ceil(FIM / 2), tail: 1 });
     const BLIP = {
         raichu: S.part('raichu', blipRaichu, { drum: true, gain: 0.32, pan: -0.1 }),
         machoke: S.part('machoke', blipMachoke, { drum: true, gain: 0.42, pan: 0.1 }),
         meowth: S.part('meowth', blipMeowth, { drum: true, gain: 0.3, pan: 0.05 }),
-        psyduck: S.part('psyduck', blipPsyduck, { drum: true, gain: 0.4, pan: -0.05 }),
+        charmeleon: S.part('charmeleon', blipCharmeleon, { drum: true, gain: 0.36, pan: -0.05 }),
     };
     // o desenho de 7 alturas (pra não virar metralhadora); no "Temos que chutar!" os cinco juntos, mais baixinhos
     const DESENHO = [0, 2, 0, -1, 2, 0, -2];
     for (const f of FALAS) {
-        const quem = f.quem === 'todos' ? ['raichu', 'machoke', 'meowth', 'psyduck'] : [f.quem];
+        const quem = f.quem === 'todos' ? ['raichu', 'machoke', 'meowth', 'charmeleon'] : [f.quem];
         for (const p of f.paginas)
             Array.from(p.texto).forEach((c, i) => {
                 if (!/[\p{L}\p{N}₽]/u.test(c)) return;

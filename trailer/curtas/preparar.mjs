@@ -17,8 +17,8 @@ const A = `${JOGO}/public/assets`;
 // EP 2 do Vestiário: 100 Voltorb (a bola que não é bola) · Soccermon News: 65 Alakazam, 52 Meowth (torcida) e 137 Porygon
 // News #1 (testes de apresentador, 15/11): 26 Raichu (o Machamp, 68, já estava), 55 Golduck e 67 Machoke (o parceiro escolhido;
 // o terno sai do news-01/teste-machoke/terno.mjs)
-// News #2: 10 Caterpie (com a Eviolite) e 12 Butterfree
-const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55, 67, 10, 12];
+// News #2: 10 Caterpie (com a Eviolite), 12 Butterfree e 5 Charmeleon (o ex-capitão; o Machamp, 68, já estava)
+const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55, 67, 10, 12, 5];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
 const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
     // A foto: os closes falando (o Psyduck gritando, o Pikachu, o Magikarp gritando, o Squirtle marrento)
@@ -30,7 +30,9 @@ const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129'
     // News #1: a dupla Raichu e Golduck, os retratos na caixa de fala
     '26-happy', '26-joyous', '26-determined', '55', '55-happy', '55-determined', '67', '67-happy', '67-determined',
     // News #1 v8: o retrato com expressão em toda fala (Raichu, Machoke, Meowth, Psyduck e Magikarp)
-    '26', '26-inspired', '26-sigh', '67-surprised', '67-joyous', '52-surprised', '52-happy', '52-joyous', '54-sigh', '54-joyous'];
+    '26', '26-inspired', '26-sigh', '67-surprised', '67-joyous', '52-surprised', '52-happy', '52-joyous', '54-sigh', '54-joyous',
+    // News #2: o Charmeleon convidado
+    '5-sigh', '5-joyous'];
 const SO = process.argv.slice(2); // só estas músicas (vazio = todas)
 
 mkdirSync(`${OUT}/sp`, { recursive: true });

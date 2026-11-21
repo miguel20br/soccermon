@@ -610,6 +610,8 @@ export const blipMachoke = tic(261.6, 0.028);
 export const blipMeowth = tic(784, 0.011);
 /** O blip do Psyduck: médio-grave e mole (Mi 4), um pouco mais longo. */
 export const blipPsyduck = tic(329.6, 0.03);
+/** O blip do Charmeleon (News #2): médio e seco (Sol 4), curto. */
+export const blipCharmeleon = tic(392, 0.018);
 /** O blip do Magikarp: médio (Ré 5), curto, entre o Meowth e o Psyduck. */
 export const blipMagikarp = tic(587.3, 0.016);
 /** A varrida entre matérias (News #1 v5): ruído num passa-faixa que sobe e desce em 0,45 s, o "fuuuh" da faixa

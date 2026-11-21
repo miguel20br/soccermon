@@ -313,12 +313,15 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 .selo-bronze { position: absolute; left: 620px; top: 300px; padding: 8px 26px; border-radius: 18px; background: #b8733a; border: 8px solid #0e1430; color: #fff; font-size: 58px; letter-spacing: 4px; -webkit-text-stroke: 10px #0e1430; paint-order: stroke fill; transform: rotate(8deg); opacity: 0; z-index: 4; }
 .selo-30 { position: absolute; left: 650px; top: 690px; padding: 6px 22px; border-radius: 18px; background: #7d4ccc; border: 8px solid #0e1430; color: #fff; font-size: 70px; -webkit-text-stroke: 12px #0e1430; paint-order: stroke fill; transform: rotate(-6deg); opacity: 0; z-index: 4; }
 .faixa-c { position: absolute; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; z-index: 6; box-sizing: border-box; border-radius: 50%; background: #ffcb05; border: 7px solid #0e1430; display: flex; align-items: center; justify-content: center; font-size: 38px; color: #0e1430; }
+.carta-duo { position: absolute; top: 400px; width: 440px; height: 616px; filter: drop-shadow(0 18px 0 rgb(0 0 0 / 45%)); }
+.duo-x { position: absolute; left: 0; right: 0; top: 1060px; text-align: center; font-size: 74px; color: #fff; -webkit-text-stroke: 14px #0e1430; paint-order: stroke fill; opacity: 0; }
+.chama { position: absolute; left: 0; top: 0; z-index: 7; }
 .aura-e { position: absolute; left: -200px; top: -380px; width: 400px; height: 400px; border-radius: 50%; z-index: 1; opacity: 0; background: radial-gradient(circle, rgb(190 120 255 / 80%), rgb(140 80 230 / 35%) 45%, transparent 70%); }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="87.2">
-  <div id="cena" class="clip" data-start="0" data-duration="87.2">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="93.7">
+  <div id="cena" class="clip" data-start="0" data-duration="93.7">
     <!-- a vinheta de abertura (v10): 3 alternativas (A, B, C) e o logo montado, o mesmo nas 3 -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="vin-alt" id="vinA"><div class="bolapx" id="bolapx"></div></div>
@@ -382,6 +385,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div class="painel-n" id="p-trof"><div id="trofeus"></div><div id="conta-t"><b class="num-g" id="conta-n">0</b><span>/10</span></div><div id="patro-mini"></div></div>
   <div class="painel-n" id="p-barras"><img class="carta-pk" src="midia/news/cartas/10.png" alt="" /><div class="aro-nota" id="aro-nota"></div><div class="selo-bronze" id="selo-bronze">BRONZE</div><div class="selo-30" id="selo-30">+30%</div>
     <div class="barras" id="barras"></div></div>
+  <div class="painel-n" id="p-duelo"><img class="carta-duo" id="duo-m" src="midia/news/cartas/67e.png" alt="" style="left:70px" /><img class="carta-duo" id="duo-c" src="midia/news/cartas/68.png" alt="" style="left:570px" />
+    <div class="aro-nota" id="aro-93" style="left:60px;top:590px;width:124px;height:62px"></div><div class="aro-nota" id="aro-91" style="left:586px;top:404px;width:112px;height:96px"></div></div>
   <div class="moldura" id="m-ref" style="left:48px;top:300px;width:444px;height:780px"></div>
   <div class="painel-n" id="p-cal"><div class="cal"><div class="topo">TODA SEGUNDA</div><div class="dias" id="dias"></div></div></div>
   <div class="painel-n" id="p-pacote"><div class="campo-ut" id="campo-ut"></div></div>
@@ -393,14 +398,14 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div id="caixa"><div class="nome" id="nome"></div><div class="seta" id="seta"></div></div>
   <div class="flash" id="flash"></div>
   <div id="varre"></div>
-  <div id="capa"><small>PLANTÃO</small><b>CATERPIE MAIS<br>FORTE QUE O<br><em>BUTTERFREE</em></b></div>
+  <div id="capa"><small>PLANTÃO</small><b>MACHOKE MAIS<br>FORTE QUE O<br><em>MACHAMP</em></b></div>
 
   <!-- os clipes do jogo (0.9.53, gravados headless); os tempos saem do linha.mjs (CLIPES) -->
-  <video id="v-duelo" class="painel" src="midia/news/duelo-capitao.mp4" muted playsinline data-start="55.5" data-duration="5.7" data-media-start="0" style="left:276px;top:368px;width:528px;height:939px;object-fit:cover"></video>
-  <video id="v-reforco" class="painel" src="midia/news/reforco-titular.mp4" muted playsinline data-start="43.4" data-duration="6.25" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
+  <video id="v-duelo" class="painel" src="midia/news/duelo-capitao.mp4" muted playsinline data-start="59" data-duration="5.7" data-media-start="0" style="left:276px;top:368px;width:528px;height:939px;object-fit:cover"></video>
+  <video id="v-reforco" class="painel" src="midia/news/reforco-titular.mp4" muted playsinline data-start="46.9" data-duration="6.25" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="87.2" data-media-start="0" data-fade-out="0.6"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="87.2" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="93.7" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="93.7" data-media-start="0"></audio>
 
   <script>
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
@@ -419,7 +424,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // `seco` só onde a varrida da cartinha cobre a tela.
     const TROCAS = [];
     const corta = (ids, t, { seco = false } = {}) => TROCAS.push({ t, on: [ids ?? []].flat(), seco });
-    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#m-ref', '#p-cal', '#p-pacote', '#m-vt'];
+    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#p-duelo', '#m-ref', '#p-cal', '#p-pacote', '#m-vt'];
     const TROCAS_P = [];
     const paineis = (t, ...on) => TROCAS_P.push({ t, on });
     function resolveTrocas() {
@@ -595,13 +600,13 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     const CAIXA = $('caixa');
     const RET = $('retrato');
     // v10: sem a tarja GC; o cargo do repórter e do convidado vai na aba de nome da caixa
-    const NOMES = { raichu: 'RAICHU', machoke: 'MACHOKE', meowth: 'MEOWTH · REPÓRTER', psyduck: 'PSYDUCK · EX-CAPITÃO', todos: 'TODOS' };
+    const NOMES = { raichu: 'RAICHU', machoke: 'MACHOKE', meowth: 'MEOWTH · REPÓRTER', charmeleon: 'CHARMELEON · EX-CAPITÃO', todos: 'TODOS' };
     const ROSTO = {};
     const rosto = (r) => {
       if (ROSTO[r]) return ROSTO[r];
       if (r === 'todos') {
         ROSTO[r] = div(RET, 'todos');
-        ROSTO[r].innerHTML = ['26-joyous', '67-joyous', '52-joyous', '54-joyous'].map((x) => `<img src="midia/${x}.png" alt="" />`).join('');
+        ROSTO[r].innerHTML = ['26-joyous', '67-joyous', '52-joyous', '5-joyous'].map((x) => `<img src="midia/${x}.png" alt="" />`).join('');
       } else {
         ROSTO[r] = document.createElement('img');
         ROSTO[r].src = `midia/${r}.png`;
@@ -705,12 +710,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       return el;
     };
 
-    // ===================== 0–2,5 · o gancho: o Caterpie com a Eviolite, o Butterfree do lado, ofendido =====================
+    // ===================== 0–2,5 · o gancho (v2): o Machoke com a Eviolite, o Machamp do lado, ofendido =====================
     gsap.set('#bc-cam', { transformOrigin: '540px 1000px' });
-    const CT = ator($('bc-cam'), 10, { escala: 16, z: 20, x: 360, y: 1158, sombra: false });
-    const BF = ator($('bc-cam'), 12, { escala: 12, z: 18, x: 770, y: 1080, sombra: false });
+    const CT = ator($('bc-cam'), 67, { escala: 13, z: 20, x: 340, y: 1158, sombra: false });
+    const BF = ator($('bc-cam'), 68, { escala: 13, z: 18, x: 770, y: 1120, sombra: false });
     const CTx = brilho(CT);
-    const EG = evioFlut($('bc-cam'), 360, 640, 140);
+    const EG = evioFlut($('bc-cam'), 340, 610, 140);
     anim(tl, CT, 'Idle', 0, 0, FIM);
     anim(tl, BF, 'Idle', 6, 0, 1.3);
     anim(tl, BF, 'Idle', 2, 1.3, FIM);
@@ -721,17 +726,18 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     faisca($('bc-cam'), 300, 720, 0.6, 1.1);
     faisca($('bc-cam'), 430, 690, 0.75, 0.8);
     {
-      // o Butterfree olha, se assusta e vira a cara (gota de suor)
+      // o Machamp olha, se assusta e vira a cara (gota de suor)
       tl.to(BF.corpo, { keyframes: { y: [0, -30, 0] }, duration: 0.3, ease: 'sine.inOut' }, 0.9);
       tl.fromTo(BF.corpo, { scaleX: 0.92 }, { scaleX: 1, duration: 0.2, immediateRender: false }, 1.3);
       const g = div(BF.corpo, 'gota');
-      tl.fromTo(g, { x: 70, y: -300, opacity: 0 }, { y: -270, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, 1.45);
-      tl.to(g, { y: -220, opacity: 0, duration: 0.35, ease: 'power2.in' }, 2.0);
+      tl.fromTo(g, { x: 90, y: -360, opacity: 0 }, { y: -330, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, 1.45);
+      tl.to(g, { y: -280, opacity: 0, duration: 0.35, ease: 'power2.in' }, 2.0);
     }
     flash(tl, 0, 0.6, 0.25);
-    // o Psyduck no banco do vestiário (o beat bVoltorb), de faixa de capitão; o Caterpie e o Butterfree só no gancho
-    const PSV = ator($('bc-cam'), 54, { escala: 17, z: 20, x: 540, y: 1158, sombra: false });
-    anim(tl, PSV, 'Idle', 0, 0, FIM, { vel: 0.6 });
+    // o Charmeleon no banco do vestiário (o beat bVoltorb), de faixa de capitão, de 3/4 (a chama do rabo à vista); o
+    // Machoke e o Machamp só no gancho
+    const PSV = ator($('bc-cam'), 5, { escala: 17, z: 20, x: 540, y: 1158, sombra: false });
+    quadro(tl, PSV, 'Idle', 1, 0, 0);
     tl.set(PSV.el, { autoAlpha: 0 }, 0);
     tl.set([CT.el, BF.el, EG], { autoAlpha: 0 }, M.vinheta + SAIDA);
     tl.set(PSV.el, { autoAlpha: 1 }, M.bVoltorb);
@@ -924,18 +930,14 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     };
     const RX = 262;
     const MX = 750;
-    const PX = -250; // v10: o Psyduck na cadeira de convidado, na ponta da bancada (como na v8)
+    const PX = -250; // v10: o convidado (v2: o Charmeleon) na cadeira da ponta da bancada (como na v8)
     const RA = naMesa(CAM, '26t', RX, 13, 28);
     const MA = naMesa(CAM, '67t', MX, 15, 22);
-    const TOSTADO = 'brightness(0.66) sepia(0.65) saturate(1.3)';
-    const PS = ator(CAM, 54, { escala: 14, z: 12, x: PX, y: 1150, sombra: false });
+    const PS = ator(CAM, 5, { escala: 14, z: 12, x: PX, y: 1150, sombra: false });
     // v11: o Meowth também senta na bancada no "Temos que chutar!" (a cadeira na ponta direita; até lá ele não está)
     const MS = ator(CAM, 52, { escala: 14, z: 12, x: 1000, y: 1150, sombra: false });
     anim(tl, MS, 'Idle', 0, 0, FIM);
     tl.set([MS.el, '#cad-meo'], { autoAlpha: 0 }, 0);
-    gsap.set(PS.spr, { filter: TOSTADO });
-    const prancheta = div(PS.corpo, 'prancheta');
-    gsap.set(prancheta, { x: 36, y: -250, rotation: 8, scale: 0.85, filter: 'brightness(0.85)' });
     anim(tl, PS, 'Idle', 0, 0, FIM, { vel: 0.6 });
     // as canecas na bancada: a amarela do Raichu e a azul do Machoke (v10: sem o vapor, uma ação de fundo por vez)
     const pix = (linhas, pal, e) => {
@@ -963,8 +965,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       if (f.quem === 'machoke') VIRA[RA.id].push([1, false, f.a + 0.6, f.z - 0.35]);
       if (f.quem === 'raichu') VIRA[MA.id].push([7, false, f.a + 0.6, f.z - 0.35]);
     }
-    VIRA[RA.id].push([1, true, M.reacao + 0.2, F.f14.z]); // escuta o Psyduck, do lado dele
-    // os beats da dupla (v10): os dois se olham (o aceno depois do "e mais" e a risada depois do "ele tá bem")
+    VIRA[RA.id].push([1, true, M.reacao + 0.2, F.f14.z]); // escuta o Charmeleon, do lado dele
+    // os beats da dupla (v10): os dois se olham (o aceno depois do "e mais" e a risada depois do "Nem pensar")
     for (const t of [M.bDupla, M.bRisada]) {
       VIRA[RA.id].push([1, false, t + 0.05, t + 0.9]);
       VIRA[MA.id].push([7, false, t + 0.05, t + 0.9]);
@@ -1068,8 +1070,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       microfone(MC);
       anim(tl, MC, 'Pose', 0, CARTELAS[1] + 0.4, CARTELAS[1] + 1.0, { loop: false });
       anim(tl, MC, 'Idle', 0, CARTELAS[1] + 1.0, FIM);
-      // o "E mais": o vestiário do Pallet FC, com a sombra do Psyduck entrando
-      const SIL = ator($('c4-img'), 54, { escala: 12, z: 2, x: 330, y: 500, sombra: false });
+      // o "E mais": o vestiário do Pallet FC, com a sombra do Charmeleon entrando
+      const SIL = ator($('c4-img'), 5, { escala: 11, z: 2, x: 330, y: 500, sombra: false });
       gsap.set(SIL.spr, { filter: 'brightness(0) blur(3px)', opacity: 0.78 });
       anim(tl, SIL, 'Idle', 0, 0, FIM, { vel: 0.6 });
       tl.fromTo(SIL.el, { x: 140 }, { x: 330, duration: 0.6, ease: 'sine.out', immediateRender: false }, CARTELAS[3] + 0.1);
@@ -1136,14 +1138,32 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     faisca(CAM, MX - 70, 880, M.machoke, 1.1);
     faisca(CAM, MX + 90, 910, M.machoke + 0.1, 0.8);
     // f6c · "Eu não.": o Raichu de perto, sem graça (já é a forma final), gota de suor
-    estudio(F.f6c.s, 'REACAO', '#t-marca', M.bRua - F.f6c.s);
+    estudio(F.f6c.s, 'REACAO', '#t-marca', F.f6c.z - F.f6c.s);
     {
       const t0 = M.euNao;
       const gota = div(RA.corpo, 'gota');
       tl.fromTo(gota, { x: 110, y: -330, opacity: 0 }, { y: -300, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, t0 + 0.15);
       tl.to(gota, { y: -250, opacity: 0, duration: 0.3, ease: 'power2.in' }, t0 + 0.9);
       tl.to(RA.corpo, { keyframes: { scaleY: [1, 0.92, 0.94] }, duration: 0.4, ease: 'sine.inOut' }, t0 + 0.1);
-      tl.to(RA.corpo, { scaleY: 1, duration: 0.25, ease: 'sine.out' }, M.bRua - 0.2);
+      tl.to(RA.corpo, { scaleY: 1, duration: 0.25, ease: 'sine.out' }, F.f6c.z - 0.2);
+    }
+    // f6d (v2) · as duas cartas da galeria lado a lado: o Machoke com a Eviolite (▲93 no gol) e o Machamp (91)
+    corta('#fundo', F.f6d.s);
+    paineis(F.f6d.s, '#p-duelo');
+    empurra(F.f6d.s, F.f6d.z - F.f6d.s, 1.03);
+    {
+      tl.fromTo('#duo-m', { x: -560, rotation: -10 }, { x: 0, rotation: -3, duration: 0.35, ease: 'back.out(1.5)', immediateRender: false }, F.f6d.s);
+      tl.fromTo('#duo-c', { x: 560, rotation: 10 }, { x: 0, rotation: 3, duration: 0.35, ease: 'back.out(1.5)', immediateRender: false }, F.f6d.s + 0.08);
+      for (const [id, t] of [['#aro-93', M.duelo93], ['#aro-91', M.duelo91]]) {
+        tl.set(id, { opacity: 0 }, 0);
+        tl.set(id, { opacity: 1 }, t);
+        tl.fromTo(id, { scale: 1.6 }, { scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false }, t);
+      }
+      // no 93 a carta do Machoke brilha roxo e cresce; no 91 a do Machamp treme e fica pra trás
+      tl.fromTo('#duo-m', { scale: 1, filter: 'drop-shadow(0 18px 0 rgb(0 0 0 / 45%)) drop-shadow(0 0 0px rgb(190 120 255 / 0%))' }, { scale: 1.08, filter: 'drop-shadow(0 18px 0 rgb(0 0 0 / 45%)) drop-shadow(0 0 30px rgb(190 120 255 / 95%))', duration: 0.25, ease: 'back.out(2)', immediateRender: false }, M.duelo93);
+      estouro(tl, $('p-duelo'), 145, 625, M.duelo93 + 0.05, { tam: 260, dur: 0.3 });
+      tl.to('#duo-c', { keyframes: { x: [-8, 8, -6, 6, 0] }, duration: 0.35, ease: 'none' }, M.duelo91 + 0.1);
+      tl.fromTo('#duo-c', { scale: 1, filter: 'drop-shadow(0 18px 0 rgb(0 0 0 / 45%)) brightness(1)' }, { scale: 0.94, filter: 'drop-shadow(0 18px 0 rgb(0 0 0 / 45%)) brightness(0.8)', duration: 0.3, immediateRender: false }, M.duelo91 + 0.45);
     }
 
     // ===================== AO VIVO: a Rota Índigo =====================
@@ -1262,12 +1282,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     tl.fromTo('#v-duelo', { opacity: 0 }, { opacity: 1, duration: SAIDA, ease: 'power2.out', immediateRender: false }, M.vestiario);
     tl.to('#v-duelo', { opacity: 0, duration: SAIDA, ease: 'power2.in' }, M.reacao);
     empurra(M.vestiario, M.reacao - M.vestiario, 1.03, ['#pan', '#v-duelo']);
-    // f14 · a bancada: o Psyduck na cadeira de convidado, de faixa de capitão no braço, suspira
+    // f14 · a bancada: o Charmeleon na cadeira de convidado, de faixa de capitão no braço, suspira
     estudio(M.reacao, 'CONVIDADO', '#t-marca', M.bVoltorb - M.reacao);
     {
       const fx = div(PS.corpo, 'faixa-c');
       fx.textContent = 'C';
-      gsap.set(fx, { x: 78, y: -190 });
+      gsap.set(fx, { x: 74, y: -170 });
       tl.set(fx, { opacity: 0 }, 0);
       tl.set(fx, { opacity: 1 }, M.reacao);
       tl.set(fx, { opacity: 0 }, M.bVoltorb + SAIDA);
@@ -1278,8 +1298,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       anim(tl, PS, 'Idle', 0, F.f14.z, FIM, { vel: 0.6 });
       tl.to(PS.corpo, { keyframes: { rotation: [0, 7, -6, 6, -4, 0] }, duration: 1.35, ease: 'sine.inOut' }, F.f14.a + 0.3);
     }
-    // beat bVoltorb (sem texto): o Psyduck sozinho no banco do vestiário; a faixa brilha, ele murcha, a faixa escorrega e
-    // cai, ele olha pros lados
+    // beat bVoltorb (sem texto): o Charmeleon sozinho no banco do vestiário; a faixa brilha, ele murcha, a faixa escorrega e
+    // cai, e o fogo do rabo diminui em 2 degraus até virar uma brasinha com fumaça
     {
       const G = M.gag;
       corta('#banco-c', M.bVoltorb);
@@ -1287,14 +1307,40 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.fromTo('#bc-cam', { scale: 1.1 }, { scale: 1.14, duration: M.vemai - M.bVoltorb, ease: 'sine.out', immediateRender: false }, M.bVoltorb);
       const fx = div(PSV.corpo, 'faixa-c');
       fx.textContent = 'C';
-      gsap.set(fx, { x: 95, y: -235, scale: 1.2 });
+      gsap.set(fx, { x: 70, y: -200, scale: 1.2 });
       tl.fromTo(fx, { scale: 1.2 }, { keyframes: { scale: [1.2, 1.5, 1.2] }, duration: 0.2, immediateRender: false }, G.pisca);
       tl.to(PSV.corpo, { keyframes: { scaleY: [1, 0.86, 0.86, 0.92] }, duration: 0.4, ease: 'sine.inOut' }, G.encolhe);
       tl.to(fx, { y: 20, rotation: 200, duration: 0.45, ease: 'power2.in' }, G.faisca);
       tl.to(fx, { keyframes: { y: [-10, 20] }, duration: 0.18, ease: 'sine.inOut' }, G.faisca + 0.45);
-      quadro(tl, PSV, 'Idle', 7, 0, G.olha[0]);
-      quadro(tl, PSV, 'Idle', 1, 0, G.olha[1]);
-      anim(tl, PSV, 'Idle', 0, G.volta, FIM, { vel: 0.6 });
+      // a chama por cima da do sprite (Idle, direção 1, quadro 0: a ponta do rabo nas colunas 8–12, linhas 13–19, o pé na
+      // linha 34): grande (o capitão), some (sobra a do sprite) e vira brasa (as mesmas casas, apagadas)
+      const PXc = PSV.escala;
+      const pixC = (mapa, r0, c0, cor) => {
+        let r = '';
+        mapa.forEach((l, j) => [...l].forEach((ch, i) => { if (cor[ch]) r += `<rect x="${(c0 + i - 16) * PXc}" y="${(r0 + j - 34) * PXc}" width="${PXc}" height="${PXc}" fill="${cor[ch]}"/>`; }));
+        const W = 40 * PXc;
+        const el = div(PSV.corpo, 'chama');
+        el.innerHTML = `<svg viewBox="${-W} ${-W} ${2 * W} ${2 * W}" style="position:absolute;left:${-W}px;top:${-W}px;width:${2 * W}px;height:${2 * W}px" shape-rendering="crispEdges">${r}</svg>`;
+        return el;
+      };
+      const FOGO = { o: '#ff875f', y: '#fff700', w: '#ffffff' };
+      const grande = pixC(['....o...', '...oo...', '...oyo..', '..oyyo.o', '..oyyoo.', '.oyywyo.', '.oyywyo.', '.oywwyo.', 'oyywwyyo', 'oyywwyyo', '.oyyyyoo', '.....yo.', '.....o..'], 7, 6, FOGO);
+      const brasa = pixC(['...dd', '..ddd', '.ddd.', '.dedd', '.d.edd', '....dd', '....d'], 13, 7, { d: '#3a2018', e: '#ff5a1f' });
+      gsap.set([grande, brasa], { transformOrigin: `${-7 * PXc}px ${-17 * PXc}px` });
+      tl.set(brasa, { opacity: 0 }, 0);
+      tl.set(grande, { opacity: 0 }, 0);
+      tl.set(grande, { opacity: 1 }, M.bVoltorb);
+      tl.fromTo(grande, { scaleY: 1 }, { scaleY: 1.12, duration: 0.12, ease: 'sine.inOut', repeat: 7, yoyo: true, immediateRender: false }, M.bVoltorb);
+      tl.to(grande, { scale: 0.5, opacity: 0, duration: 0.15, ease: 'power2.in' }, G.olha[0]);
+      tl.set(brasa, { opacity: 1 }, G.olha[1]);
+      tl.fromTo(brasa, { scale: 1.3 }, { scale: 1, duration: 0.15, ease: 'power2.out', immediateRender: false }, G.olha[1]);
+      tl.fromTo(brasa.querySelectorAll('rect[fill="#ff5a1f"]'), { opacity: 1 }, { opacity: 0.25, duration: 0.18, repeat: 3, yoyo: true, immediateRender: false }, G.olha[1] + 0.15);
+      for (const [k, d] of [0, 0.18].entries()) {
+        const fu = div(PSV.corpo, 'fumaca');
+        tl.fromTo(fu, { x: -110 + 14 * k, y: -360, opacity: 0, scale: 0.4 }, { y: -470 - 30 * k, opacity: 0.9, scale: 1, duration: 0.35, ease: 'power2.out', immediateRender: false }, G.volta + d);
+        tl.to(fu, { opacity: 0, y: -520 - 30 * k, duration: 0.3, ease: 'power2.in' }, G.volta + d + 0.35);
+      }
+      tl.to(PSV.corpo, { keyframes: { y: [0, 8, 0] }, duration: 0.4, ease: 'sine.inOut' }, G.volta);
     }
     // ===================== VEM AÍ: o calendário e o Time Ultimate =====================
     // f15 · as quatro sextas, uma bola em cada; f16 · o quadradinho do 27/11 vira Time Ultimate
@@ -1372,40 +1418,43 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     }
 
     // ===================== PRA FECHAR e o fechamento =====================
-    // beat bRola (sem texto): o estúdio aberto, o Voltorb de colete entra rolando no telão e para
+    // beat bRola (sem texto): o estúdio aberto, o Machamp entra andando no vestiário do telão e para de frente
     estudio(M.bRola, 'ABERTO', '#t-volt', M.fecha - M.bRola);
     const TV = $('tv-volt');
     // v11: o Voltorb rola no chão do vestiário (a parede e o piso), não solto no telão
     div(TV, 'parede');
     div(TV, 'piso');
     gsap.set(TV, { scale: 0.85, x: 368 - 540 * 0.85, y: 300 - 1210 * 0.85 }); // o chão acima das cabeças da dupla
-    const V2 = ator(TV, 10, { escala: 14, z: 20, x: 540, y: 1210, sombra: false });
-    const V2x = brilho(V2);
-    evioFlut(TV, 540, 760, 120);
+    const V2 = ator(TV, 68, { escala: 11, z: 20, x: 540, y: 1210, sombra: false });
     anim(tl, V2, 'Walk', 2, M.bRola + 0.2, M.bRola + 0.9);
-    anim(tl, V2, 'Idle', 0, M.bRola + 0.9, FIM);
+    anim(tl, V2, 'Idle', 0, M.bRola + 0.9, M.bRisada + 0.3);
+    anim(tl, V2, 'Idle', 2, M.bRisada + 0.3, FIM);
     tl.fromTo(V2.el, { x: -200 }, { x: 540, duration: 0.7, ease: 'power2.out', immediateRender: false }, M.bRola + 0.2);
-    V2x.pisca(M.bRola + 0.95);
-    // f18 · v11: o Machoke de perto, o Voltorb no quadro gráfico ao lado: reage no nome dele e pula no "bem"
-    estudio(M.fecha, 'CLOSE_M', '#t-marca', F.f18.z - M.fecha);
-    ots('#o-volt', M.fecha, M.bRisada, 'CLOSE_M');
+    // f18 (v2) · o Raichu de perto pergunta, o Machamp no quadro gráfico ao lado: se anima no "trocado" (pula duas vezes)
+    estudio(M.fecha, 'CLOSE_R', '#t-marca', F.f18.z - M.fecha);
+    ots('#o-volt', M.fecha, F.f18.z, 'CLOSE_R');
     {
       const OV = $('ov-volt');
       div(OV, 'parede');
       div(OV, 'piso');
       gsap.set(OV, { scale: 0.8, x: 168 - 540 * 0.8, y: 228 - 1210 * 0.8 });
-      const V3 = ator(OV, 10, { escala: 15, z: 20, x: 540, y: 1210, sombra: false });
-      const V3x = brilho(V3);
+      const V3 = ator(OV, 68, { escala: 12, z: 20, x: 540, y: 1210, sombra: false });
       anim(tl, V3, 'Idle', 0, 0, FIM);
-      evioFlut(OV, 540, 720, 130);
-      V3x.reage(M.voltorbReage[2]);
-      tl.fromTo(V3.corpo, { y: 0 }, { keyframes: { y: [0, -40, 0, -24, 0] }, duration: 0.7, ease: 'sine.inOut', immediateRender: false }, M.bem + 0.1);
-      V3x.pisca(M.bem + 0.9);
+      tl.fromTo(V3.corpo, { y: 0 }, { keyframes: { y: [0, -50, 0, -34, 0] }, duration: 0.7, ease: 'sine.inOut', immediateRender: false }, M.voltorbReage[2] + 0.1);
     }
-    // beat bRisada (sem texto): a câmera abre, a dupla se olha e ri; o Voltorb pisca no telão
+    // f18b · "Nem pensar.": o Machoke de perto, a Eviolite no quadro gráfico; ele aperta o item (estufa e brilha roxo)
+    estudio(F.f18b.s, 'CLOSE_M', '#t-marca', M.bRisada - F.f18b.s);
+    ots('#o-evo', F.f18b.s, M.bRisada, 'CLOSE_M');
+    brilho(MA).reage(M.bem);
+    faisca(CAM, MX - 70, 880, M.bem + 0.05, 1.1);
+    // beat bRisada (sem texto): a câmera abre, a dupla se olha e ri; o Machamp vira a cara no telão (gota)
     estudio(M.bRisada, 'ABERTO', '#t-volt', F.f19.s - M.bRisada);
     for (const a of [RA, MA]) tl.to(a.corpo, { keyframes: { y: [0, -14, 0, -10, 0, -6, 0] }, duration: 0.7, ease: 'sine.inOut' }, M.bRisada + 0.2);
-    V2x.pisca(M.bRisada + 0.55);
+    {
+      const g = div(V2.corpo, 'gota');
+      tl.fromTo(g, { x: 80, y: -330, opacity: 0 }, { y: -300, opacity: 1, duration: 0.2, ease: 'power2.out', immediateRender: false }, M.bRisada + 0.45);
+      tl.to(g, { y: -250, opacity: 0, duration: 0.3, ease: 'power2.in' }, M.bRisada + 0.9);
+    }
     // f19 · o Raichu agradece: as faíscas no "boa noite" e uma reverência
     estudio(F.f19.s, 'ABERTO', '#t-marca', F.f19.z - F.f19.s, true);
     faisca(CAM, RX - 80, 900, M.boaNoite);
@@ -1427,7 +1476,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       }
     }
     tl.to(RA.corpo, { keyframes: [{ y: 22, scaleY: 0.9, rotation: 4, duration: 0.2, ease: 'power2.out' }, { y: 22, scaleY: 0.9, rotation: 4, duration: 0.25 }, { y: 0, scaleY: 1, rotation: 0, duration: 0.22, ease: 'back.out(2)' }] }, M.papeis[1] + 0.3);
-    // f20 · "Temos que chutar!" (v11): os quatro sentados na bancada, da cintura pra cima (o Psyduck chega pra perto do
+    // f20 · "Temos que chutar!" (v11): os quatro sentados na bancada, da cintura pra cima (o convidado chega pra perto do
     // Raichu e o Meowth senta na ponta direita; o corte esconde a troca); pulam no grito e no "TAR"
     estudio(F.f20.s, 'TODOS', '#t-marca', M.final - F.f20.s);
     {
@@ -1461,9 +1510,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
         ator(FC, 52, { escala: 9, z: 20, x: 230, y: 1225, sombra: false }),
         naMesa(FC, '26t', 420, 9, 28, MESA_F),
         naMesa(FC, '67t', 640, 10, 22, MESA_F),
-        ator(FC, 54, { escala: 9, z: 20, x: 840, y: 1235, sombra: false }),
+        ator(FC, 5, { escala: 9, z: 20, x: 840, y: 1235, sombra: false }),
       ];
-      gsap.set(turma[3].spr, { filter: TOSTADO });
       turma.forEach((x, k) => {
         if (k === 2) quadro(tl, x, 'Idle', 0, 0, 0);
         else anim(tl, x, 'Idle', 0, 0, FIM, k === 3 ? { vel: 0.6 } : {});

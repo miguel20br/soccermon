@@ -36,7 +36,9 @@ await p.evaluate(async (ids) => {
             d.style.setProperty('--fut-w', '240px');
             createRoot(d).render(React.createElement(PackArt, { look: 'gold' }));
         } else {
-            const inst = { ...createInstance(Number(id), new Rng(`galeria-${id}`)), shiny: false, item: null };
+            // 67e = a carta com a Eviolite (News #2): o mesmo Pokémon da galeria, segurando o item
+            const n = Number.parseInt(id, 10);
+            const inst = { ...createInstance(n, new Rng(`galeria-${n}`)), shiny: false, item: id.endsWith('e') ? 'eviolite' : null };
             createRoot(d).render(React.createElement(PokeCard2, { inst, variant: 'metal' }));
         }
     }
