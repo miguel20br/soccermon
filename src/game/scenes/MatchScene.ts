@@ -40,6 +40,7 @@ import {
     DRIBBLE_PUFFS,
     type DribblePose,
     diveDust,
+    dribbleEase,
     dribblePose,
     dribbleSlowAt,
     type FacingHold,
@@ -2248,7 +2249,11 @@ export class MatchScene extends Phaser.Scene {
         }
         // drible com nome: câmera lenta curta só na 1x (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
         // Vale a mais lenta das câmeras lentas, sem multiplicar com a do gol
-        const trick = this.md.duel || this.md.reduceMotion ? 1 : dribbleSlowAt(this.named, this.playTick, this.speed);
+        // Em 2x ou mais a partida cai pra 1x em volta do drible (rampa suave, começa antes) e volta à escolhida; "não cair"
+        // (chanceSpeed 0) e a 1x sem cinematic já saem lá em cima, então também desligam isto
+        const still = this.md.duel || this.md.reduceMotion;
+        const trick = still ? 1 : dribbleSlowAt(this.named, this.playTick, this.speed);
+        if (!still && base > 1) base = 1 + (base - 1) * dribbleEase(this.named, this.playTick);
         return base * Math.min(drama, this.cine.speedFactor(now), trick);
     }
 
@@ -2761,7 +2766,7 @@ export class MatchScene extends Phaser.Scene {
 
     /**
      * O ápice do drible com nome: a faixa grande com o nome (a do golpe máximo; o texto do gol ou da defesa que vem logo
-     * depois espera ela sair), o vento e o "uuh" da torcida. Na 1x, sem Reduzir movimento e fora do duelo: hit-stop curto
+     * depois espera ela sair), o vento e o "uuh" da torcida. Sem Reduzir movimento e fora do duelo: hit-stop curto
      * e zoom no driblador (a câmera lenta vem de `dribbleSlowAt`). Golpe na tela ou câmera presa: só a faixa e o som.
      */
     private namedDribble(e: Extract<MatchEvent, { type: 'tackle' }>) {
@@ -2770,7 +2775,11 @@ export class MatchScene extends Phaser.Scene {
         if (!d || !view) return;
         const N = NAMED_DRIBBLE;
         const reduce = !!this.md.reduceMotion;
-        const big = this.speed === 1 && !reduce && !this.md.duel;
+        // em 2x+ só com a câmera lenta ligada (cinematic e sem "não cair"), senão o zoom passaria voando
+        const slows =
+            typeof this.speed === 'number' &&
+            (this.speed === 1 || (!!this.md.cinematic && !!(this.md.chanceSpeed ?? 1)));
+        const big = slows && !reduce && !this.md.duel;
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${view.speciesId}`),
             move: dict().battle.dribble[d.kind],
