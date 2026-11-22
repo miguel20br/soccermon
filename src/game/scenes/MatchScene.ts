@@ -2247,7 +2247,7 @@ export class MatchScene extends Phaser.Scene {
         if (next !== undefined && next - this.playTick <= DRAMA_LEAD) {
             drama = 0.25 + 0.75 * ((next - this.playTick) / DRAMA_LEAD);
         }
-        // drible com nome: câmera lenta curta só na 1x (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
+        // drible com nome: câmera lenta curta (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
         // Vale a mais lenta das câmeras lentas, sem multiplicar com a do gol
         // Em 2x ou mais a partida cai pra 1x em volta do drible (rampa suave, começa antes) e volta à escolhida; "não cair"
         // (chanceSpeed 0) e a 1x sem cinematic já saem lá em cima, então também desligam isto
