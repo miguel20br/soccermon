@@ -16,7 +16,7 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Itens',
                 lines: [
-                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (a nota da carta não muda). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
+                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (a nota da carta não muda; o ▲ dos atributos fica roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
                 ],
             },
             {
@@ -3053,7 +3053,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Items',
                 lines: [
-                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (the card rating stays the same). Found in rewards, the Market and the Casino; rivals never use it',
+                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (the card rating stays the same; the stat ▲ turns purple). Found in rewards, the Market and the Casino; rivals never use it',
                 ],
             },
             {
