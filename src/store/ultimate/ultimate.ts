@@ -70,7 +70,7 @@ import {
     TEAM_SIZE,
     type UtEvent,
 } from './rules';
-import { gymOk, newPass, type PassState, passGain, passMarksOf, seasonN } from './season';
+import { gymOk, newPass, type PassState, passGain, passMarksOf, passPrizeUid, seasonN } from './season';
 
 /**
  * Time Ultimate (docs/planos/ultimate-team.md, 0.9.31): a fatia do save e as regras puras (pacote, relógio de 12 h,
@@ -123,6 +123,10 @@ export interface UltimateLast {
     ornament?: string;
     /** Primeiros passos cumpridos nesta partida (a 1ª partida, a 1ª vitória). */
     firsts?: FirstStepId[];
+    /** O craque do seu time na partida (o sprite grande do prêmio). Save de antes da 0.9.53 não tem. */
+    star?: { speciesId: number; shiny: boolean; name: string };
+    /** A cor do rival (a faixa dele no placar do prêmio). */
+    rivalColor?: number;
 }
 
 /** O que fica de uma temporada que acabou (no Perfil, nunca zera). */
@@ -1134,6 +1138,8 @@ export function finishMatch(u: UltimateSave, m: UltimateMatch, now: number): Ult
             level: u.live.level,
             fichas,
             rival: u.live.rival.name,
+            rivalColor: u.live.rival.color,
+            ...(mvp && { star: { speciesId: mvp.speciesId, shiny: mvp.shiny, name: mvp.name } }),
             seen: false,
             objectives: obj.completed.map((o) => o.id),
             ...(gym && { gym, badge }),
@@ -1357,7 +1363,7 @@ export function payPass(u: UltimateSave): UltimateSave {
     let out = u;
     for (let k = u.pass.marks + 1; k <= reach; k++) {
         const r = passReward(k);
-        const prize = prizeOf('pass', String(k), r, `pass-${u.season}-${k}`);
+        const prize = prizeOf('pass', String(k), r, passPrizeUid(u.season, k));
         if (prize) out = { ...out, pending: [...out.pending, prize] };
         const uid = passCardUid(u.season);
         if (r.card === 'card' && !out.cards.some((c) => c.uid === uid)) {

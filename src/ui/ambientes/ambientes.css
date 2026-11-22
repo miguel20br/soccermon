@@ -3248,7 +3248,7 @@
 }
 
 /* ---------- o JOGAR (o "BATTLE") ---------- */
-.amb .es-play {
+:is(.amb, .ut-home) .es-play {
     width: 100%;
     min-height: 80px;
     display: grid;
@@ -3261,7 +3261,7 @@
     border-radius: 14px;
     text-align: center;
 }
-.amb .es-play:disabled {
+:is(.amb, .ut-home) .es-play:disabled {
     filter: grayscale(0.6);
 }
 .es-play-verb {
@@ -3272,7 +3272,7 @@
     letter-spacing: 1px;
     text-transform: uppercase;
 }
-.amb .es-play .es-play-verb {
+:is(.amb, .ut-home) .es-play .es-play-verb {
     --ol: #3d1c00;
     text-shadow:
         -3px -3px 0 var(--ol),
@@ -3285,7 +3285,7 @@
         -3px 0 0 var(--ol),
         0 6px 0 var(--ol);
 }
-.amb .es-play .es-play-sub {
+:is(.amb, .ut-home) .es-play .es-play-sub {
     font-size: 13px;
     line-height: 1.2;
 }
@@ -3439,7 +3439,7 @@
     margin-top: auto;
 }
 @media (max-height: 640px) {
-    .amb .es-play {
+    :is(.amb, .ut-home) .es-play {
         min-height: 66px;
     }
     .es-play-verb {
@@ -3459,7 +3459,7 @@
     }
 }
 @media (min-width: 900px) and (min-height: 700px) {
-    .amb .es-play {
+    :is(.amb, .ut-home) .es-play {
         min-height: 88px;
     }
     .es-play-verb {
@@ -3745,7 +3745,7 @@
 /* contorno de texto só de 16 px pra cima (kit B): título e subtítulo de 10 a 15 px dos botões e fichas são chapados */
 .amb .amb-tile.bc-tile b,
 .amb .amb-tile.bc-tile small,
-.amb .es-play .es-play-sub,
+:is(.amb, .ut-home) .es-play .es-play-sub,
 .amb .res-me-txt b,
 .amb .amb-tab.on .amb-tab-lbl {
     text-shadow: none;

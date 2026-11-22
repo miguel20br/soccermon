@@ -182,7 +182,6 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
                                                         sel === i
                                                             ? t('ultimate.pick.chosen')
                                                             : t('ultimate.pick.choose'),
-                                                    primary: sel === i,
                                                     onClick: () => setSel(i),
                                                 }}
                                             />
@@ -196,23 +195,22 @@ export function UtPickMoment({ pick, onClose }: { pick: UtPick; onClose: () => v
             </div>
             {open && (
                 <div className="ut-pack-acts">
-                    {all ? (
+                    {/* sem escolha, a dica em texto (um botão gordo desabilitado parecia quebrado) */}
+                    {all && !chosen ? (
+                        <p className="ut-pick-hint">{t('ultimate.pick.tapOne')}</p>
+                    ) : all && chosen ? (
                         <button
                             type="button"
-                            className="btn confirm big"
-                            disabled={!chosen}
+                            className="btn confirm big k-pop"
                             onClick={() => {
-                                if (!chosen) return;
                                 useGame.getState().ultimateChoosePick(pick.uid, chosen.uid);
                                 onClose();
                             }}
                         >
-                            {chosen
-                                ? t('ultimate.pick.keep', {
-                                      name: viewInstance(chosen).displayName,
-                                      n: viewInstance(chosen).overall,
-                                  })
-                                : t('ultimate.pick.tapOne')}
+                            {t('ultimate.pick.keep', {
+                                name: viewInstance(chosen).displayName,
+                                n: viewInstance(chosen).overall,
+                            })}
                         </button>
                     ) : (
                         <button type="button" className="btn ut-pick-all" onClick={() => flip(opts.map((_, i) => i))}>

@@ -60,7 +60,8 @@ function atRest(el: Element): boolean {
 function measure(box: HTMLElement, area: Area, sel: Blockers, actors: Actor[], els: Map<string, HTMLElement>): boolean {
     const r = box.getBoundingClientRect();
     if (r.width < 1 || r.height < 1 || !atRest(box)) return false;
-    const panel = box.closest('.amb-panel');
+    // o painel do lugar (Home) ou uma cena solta fora dos ambientes (`data-wild-panel`, o Início do Time Ultimate)
+    const panel = box.closest('.amb-panel, [data-wild-panel]');
     if (!panel) return false;
     const nx = (px: number) => (px - r.left) / r.width;
     const ny = (px: number) => (px - r.top) / r.height;

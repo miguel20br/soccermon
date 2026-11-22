@@ -4,7 +4,8 @@ import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import type { TrainerId } from '../../store/missions';
-import { chemistry } from '../../store/ultimate/chemistry';
+import { clubColorHex, rivalColor } from '../../store/profile';
+import { chemistry, chemTotal } from '../../store/ultimate/chemistry';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
 import { eventAhead, objectiveById } from '../../store/ultimate/objectives';
@@ -19,26 +20,41 @@ import {
     teamAverage,
     type UltimateLast,
 } from '../../store/ultimate/ultimate';
+import { ClockCtx, useSceneClock } from '../ambientes/clock';
+import { CourtFloor, clubVars, Stands } from '../ambientes/Estadio';
+import { FieldSprite } from '../ambientes/FieldSprite';
+import { PlayBar } from '../ambientes/PlayBar';
+import { floorZone } from '../ambientes/Room';
+import { BIG, SMALL, sceneScale, useMq } from '../ambientes/sprite-scale';
+import { useWild, WildZone } from '../ambientes/WildZone';
+import type { Wild } from '../ambientes/wild';
+import '../ambientes/ambientes.css';
 import { KantoBadge } from '../components/BadgeCase';
 import { PackArt } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
-import { cardSprite } from '../components/PokeCard';
+import { Confetti } from '../components/ResultHero';
 import { beatTimes } from '../kit/beats';
 import { Beat, useCascade } from '../kit/Cascade';
+import '../kit/stage.css';
+import { useClubColor } from '../profile/club';
 import { reduceMotionOn } from '../reduce-motion';
 import { hms, useNow } from './clock';
 import { useReward } from './Goals';
 import { usePickName } from './PickMoment';
-import { SOON, SOON_ART, trainer, useBattle } from './Play';
+import { useBattle } from './Play';
+
+/** Celular baixo em pé (SE): a quadra do prêmio encolhe (ultimate.css). */
+const SHORT = '(max-height: 640px) and (orientation: portrait)';
+const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
 export type UtTab = 'home' | 'play' | 'club' | 'shop' | 'goals';
 
 /**
- * Início do Time Ultimate (retorno do Miguel, 09/11: "uns quadrados com JOGAR, CLUBE, LOJA, OBJETIVOS, de tamanhos e
- * pesos diferentes"): o hub do FC em blocos. JOGAR é o maior e o único dourado (o próximo jogo e a meta da vez) e leva
- * pra aba Jogar; em volta, Clube (o cartão do time), Loja (Meus pacotes) e Metas (a meta e o passe); o destaque largo
- * embaixo. Pendentes em cima, só quando tem. Voltando da partida, o pós-jogo vem antes dos blocos.
+ * Início do Time Ultimate: a quadra do Estádio com os seus 5 titulares andando nela (decisão do Miguel, 17/11: o modo
+ * mora no mesmo estádio do Clássico) e o JOGAR dourado fixo embaixo, que leva pra aba Jogar (retorno de 17/11: a
+ * partida começa lá, onde se escolhe nível e líder). Clube, Loja e Metas ficam em blocos menores embaixo da quadra; Pendentes e o destaque depois. Sem time ainda, a quadra fica vazia e
+ * o lugar do JOGAR convida a abrir o pacote. Voltando da partida, o prêmio vem antes de tudo.
  */
 export function Home({
     onTab,
@@ -53,6 +69,7 @@ export function Home({
     const now = useNow();
     const name = usePickName();
     const { u, home, ready, rival, level, paid } = useBattle();
+    const scale = sceneScale(useMq(SMALL), useMq(BIG));
 
     const last = u.last && !u.last.seen ? u.last : null;
     if (last) return <PostGame last={last} onGoals={() => onTab('goals')} onPacks={() => onTab('shop')} />;
@@ -62,15 +79,13 @@ export function Home({
     const roles = FORMATIONS[u.team.formation].slots;
     const avg = ready ? teamAverage(home) : 0;
     const chem = ready
-        ? Math.round(
-              (chemistry(
+        ? chemTotal(
+              chemistry(
                   lineup,
                   roles,
-                  u.cards.filter((c) => !lineup.includes(c)),
+                  [],
                   u.team.order.slice(STARTERS).flatMap((x) => byUid.get(x) ?? []),
-              ).avg -
-                  1) *
-                  100,
+              ),
           )
         : 0;
     const packs = stackCount(u, now);
@@ -87,80 +102,39 @@ export function Home({
     const prizes = u.pending.length - repeats;
     const lastDay = lastDayPrizes(now, u.pending);
     const versus = u.live?.rival ?? rival;
-
+    const need = tn('ultimate.home.squadNeed', STARTERS - lineup.length);
+    // o letreiro da quadra: o próximo jogo (ou o que falta pro time)
+    const led = (
+        versus
+            ? t('ultimate.home.next', {
+                  club: clubName(versus.name, lang),
+                  level: d.ultimate.play.levels[u.live?.level ?? level],
+                  n: FICHAS[u.live?.level ?? paid(level)].win,
+              })
+            : (goalText ?? need)
+    ).toUpperCase();
+    // os titulares andam na quadra como os Pokémon ambiente (tocar faz pular e gritar)
+    const team: Wild[] = lineup.map((c) => ({
+        key: `ut-${c.uid}`,
+        id: c.speciesId,
+        zone: 'floor',
+        mood: 'busy',
+        ...(c.shiny && { shiny: true }),
+    }));
     return (
         <div className="ut-home">
-            {u.pending.length > 0 && (
-                <button type="button" className="panel bc-surface bc-stripe ut-block ut-b-pending" onClick={onPending}>
-                    <BlockHead icon="chest" title={`${t('ultimate.home.pending')} · ${u.pending.length}`} />
-                    <small>{t('ultimate.home.pendingState', { c: repeats, p: prizes })}</small>
-                    {lastDay > 0 && <strong className="ut-b-last">{t('ultimate.home.lastDay', { n: lastDay })}</strong>}
-                    <span className="btn small confirm ut-b-cta">{t('ultimate.home.resolve')}</span>
-                </button>
-            )}
-            {/* Jogar · Modos de jogo: o primeiro bloco (painel, não botão); a arte é a da aba Jogar, o liberado e os em breve */}
-            <button
-                type="button"
-                className="panel bc-surface bc-stripe ut-block ut-b-jogar"
-                onClick={() => onTab('play')}
-            >
-                <BlockHead icon="play" title={`${d.ultimate.tabs.play} · ${t('ultimate.home.modes')}`} />
-                <span className="ut-b-modes" aria-hidden>
-                    <span className="ut-mode-art">
-                        {versus ? (
-                            <span className="ut-mode-team">
-                                {versus.lineup.map((p) => (
-                                    <img key={p.uid} className="pixel" src={cardSprite(p)} alt="" />
-                                ))}
-                            </span>
-                        ) : (
-                            <span className="ut-mode-vs">{[trainer('red'), trainer('acetrainer')]}</span>
-                        )}
-                    </span>
-                    <span className="ut-b-soon">
-                        {SOON.map((id) => (
-                            <span key={id} className={`ut-mode-art is-${id}`}>
-                                {SOON_ART[id]}
-                            </span>
-                        ))}
-                    </span>
-                </span>
-                <b>{t('ultimate.modes.battles.name')}</b>
-                <small>
-                    {u.live
-                        ? `${t('ultimate.play.resume')} · ${clubName(u.live.rival.name, lang)}`
-                        : rival
-                          ? t('ultimate.home.next', {
-                                club: clubName(rival.name, lang),
-                                level: d.ultimate.play.levels[level],
-                                n: FICHAS[paid(level)].win,
-                            })
-                          : (goalText ?? tn('ultimate.home.squadNeed', STARTERS - lineup.length))}
-                </small>
-            </button>
+            <UtCourt team={team} led={led} scale={scale} />
             <button type="button" className="panel bc-surface ut-block ut-b-club" onClick={onSquad}>
                 <BlockHead icon="team" title={d.ultimate.tabs.club} />
                 {ready ? (
                     // o cartão do time: a nota grande e a química (como o FC)
                     <span className="ut-b-ovr">
                         <b className="cb-num">{avg}</b>
-                        <small>{t('ultimate.home.chem', { c: chem })}</small>
+                        <small>{t('ultimate.home.chem', { n: chem, max: STARTERS * 3 })}</small>
                     </span>
                 ) : (
-                    <small>{tn('ultimate.home.squadNeed', STARTERS - lineup.length)}</small>
+                    <small>{need}</small>
                 )}
-                <span className="ut-b-court">
-                    {roles.map((role, i) => {
-                        const p = lineup[i];
-                        return (
-                            // biome-ignore lint/suspicious/noArrayIndexKey: as vagas da formação são fixas
-                            <span key={i} className={p?.uid === u.team.captainUid ? 'cap' : undefined}>
-                                {p ? <img className="pixel" src={cardSprite(p)} alt="" /> : <i aria-hidden />}
-                                <small>{d.common.posShort[role]}</small>
-                            </span>
-                        );
-                    })}
-                </span>
                 <small>{tn('ultimate.home.cards', u.cards.length)}</small>
             </button>
             <button type="button" className="panel bc-surface ut-block ut-b-shop" onClick={() => onTab('shop')}>
@@ -190,12 +164,89 @@ export function Home({
                 ) : (
                     <small>{t('ultimate.home.goalsDone')}</small>
                 )}
-                <small>{t('ultimate.pass.mark', { a: u.pass.marks, b: PASS_MARKS })}</small>
+                <small>{t('ultimate.pass.title')}</small>
                 <BlockBar n={u.pass.marks} of={PASS_MARKS} />
                 {evos > 0 && <small className="ut-b-hot">{tn('ultimate.home.evosReady', evos)}</small>}
             </button>
+            {u.pending.length > 0 && (
+                <button type="button" className="panel bc-surface bc-stripe ut-block ut-b-pending" onClick={onPending}>
+                    <BlockHead icon="chest" title={`${t('ultimate.home.pending')} · ${u.pending.length}`} />
+                    <small>{t('ultimate.home.pendingState', { c: repeats, p: prizes })}</small>
+                    {lastDay > 0 && <strong className="ut-b-last">{t('ultimate.home.lastDay', { n: lastDay })}</strong>}
+                    <span className="btn small confirm ut-b-cta">{t('ultimate.home.resolve')}</span>
+                </button>
+            )}
             <Highlights onTab={onTab} />
+            {/* o JOGAR do Estádio (PlayBar), fixo embaixo; sem time, o convite pro pacote no lugar dele */}
+            <div className="ut-home-go">
+                {versus ? (
+                    <PlayBar
+                        main={{
+                            id: 'quick',
+                            title: '',
+                            icon: 'play',
+                            verb: u.live ? t('home.resume') : t('ultimate.play.go'),
+                            sub: t('ultimate.home.modes'),
+                            go: () => onTab('play'),
+                        }}
+                        sheet={[]}
+                        onPick={() => undefined}
+                    />
+                ) : (
+                    <div className="es-go">
+                        <button type="button" className="btn cb cb-green es-play" onClick={() => onTab('shop')}>
+                            <i className="cb-shine" aria-hidden />
+                            <b className="es-play-verb">
+                                {u.cards.length ? t('ultimate.play.toPacks') : d.ultimate.first.steps.pack}
+                            </b>
+                            <small className="es-play-sub">{need}</small>
+                        </button>
+                    </div>
+                )}
+            </div>
         </div>
+    );
+}
+
+/**
+ * A quadra do Estádio no Time Ultimate (decisão do Miguel, 17/11: o modo mora no mesmo estádio do Clássico): a torcida
+ * na cor do clube com a faixa, o letreiro e o piso em perspectiva. `team` anda nela como os Pokémon ambiente;
+ * `children` fica no meio da quadra (o craque do prêmio).
+ */
+function UtCourt({
+    team = [],
+    led,
+    scale,
+    children,
+}: {
+    team?: Wild[];
+    led: string;
+    scale: number;
+    children?: ReactNode;
+}) {
+    const clock = useSceneClock(true);
+    // o pé na metade de baixo do piso: a cabeça não entra no letreiro
+    const w = useWild(
+        clock,
+        team,
+        floorZone(scale, (_x, y) => y > 0.3),
+    );
+    const club = useGame((s) => clubColorHex(s.profile.clubColor));
+    const name = useGame((s) => s.profile.clubName || 'Pallet FC');
+    return (
+        <ClockCtx.Provider value={clock}>
+            <div className="amb-bd ut-court" data-wild-panel>
+                <div className="amb-scene es-scene" style={clubVars(club)}>
+                    <Stands clubName={name} led={led} />
+                    <div className="es-court">
+                        <CourtFloor />
+                        <i className="es-spot" />
+                        <WildZone wild={w} zone="floor" />
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </ClockCtx.Provider>
     );
 }
 
@@ -378,10 +429,11 @@ function BlockBar({ n, of }: { n: number; of: number }) {
 const POST_MS = { fichas: 400, pass: 450, line: 250, prize: 400, max: 3000 };
 
 /**
- * Pós-jogo em cascata (≤ 3 s; tocar pula pro fim): o placar, as Fichas contando, o passe, os objetivos e os Primeiros
- * passos batendo um por um e, por último, o que a partida deu. Prêmio espera o Resgatar (aqui ou nos Pendentes);
- * resgatado, o pacote vai pra Meus pacotes ("+2 em Meus pacotes"): Continuar é o principal e nada empurra pra abrir
- * (ultimate-fc.md, decidido em 09/11).
+ * Pós-jogo (decisão do Miguel, 17/11: tela cheia com o craque e o placar): o craque da partida grande no meio da quadra
+ * do Estádio, VITÓRIA/DERROTA e o placar no formato do jogo (o mesmo do fim de jogo e do Resultado do Clássico); depois,
+ * em cascata (≤ 3 s; tocar pula pro fim), as Fichas contando, o passe, os objetivos e os Primeiros passos batendo um por
+ * um e, por último, o que a partida deu. Prêmio espera o Resgatar (aqui ou nos Pendentes); resgatado, o pacote vai pra
+ * Meus pacotes ("+2 em Meus pacotes"): Continuar é o principal e nada empurra pra abrir (ultimate-fc.md, 09/11).
  */
 function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () => void; onPacks: () => void }) {
     const { t, tn, d, lang } = useT();
@@ -389,6 +441,14 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
     const evo = useGame((s) => s.ultimate.evos.some(evoReady));
     const prizes = useGame((s) => s.ultimate.pending.some((p) => p.kind === 'prize'));
     const stack = useGame((s) => stackCount(s.ultimate, utNow()));
+    // save de antes do craque guardado: o capitão no lugar
+    const cap = useGame((s) => s.ultimate.cards.find((c) => c.uid === s.ultimate.team.captainUid));
+    const star = last.star ?? (cap && { speciesId: cap.speciesId, shiny: !!cap.shiny, name: '' });
+    const homeName = useGame((s) => s.profile.clubName || 'Pallet FC');
+    const homeColor = useClubColor();
+    // o craque um degrau acima da escala da cena (está sozinho na quadra); no celular baixo em pé a quadra tem 130 px e
+    // o degrau a mais subia a cabeça pro letreiro
+    const scale = sceneScale(useMq(SMALL), useMq(BIG)) + (useMq(SHORT) ? 0 : 1);
     const seen = () => useGame.getState().ultimateSeen();
     const objectives = (last.objectives ?? []).flatMap((id) => objectiveById(id) ?? []);
     const firsts = (last.firsts ?? []).flatMap((id) => FIRST_STEPS.find((f) => f.id === id) ?? []);
@@ -406,149 +466,186 @@ function PostGame({ last, onGoals, onPacks }: { last: UltimateLast; onGoals: () 
     // cabe nos 3 s: as batidas encolhem na mesma proporção
     const times = beatTimes(raw, POST_MS.max);
     const c = useCascade(times.map((x, i) => x - (times[i - 1] ?? 0)));
-    // deitado (844x390) o prêmio nascia abaixo da dobra: rola até ele
-    const box = useRef<HTMLElement>(null);
-    useEffect(() => {
-        const el = box.current;
-        if (el && el.getBoundingClientRect().top > window.innerHeight / 2)
-            el.scrollIntoView({ block: 'start', behavior: reduceMotionOn() ? 'auto' : 'smooth' });
-    }, []);
+    const rival = clubName(last.rival, lang);
+    const title = t(`match.final.${last.outcome}`);
+    const level = last.gym
+        ? (d.profile.trainers[last.gym as TrainerId] ?? last.gym)
+        : d.ultimate.play.levels[last.level];
+    const colors = {
+        '--home': hex(homeColor),
+        '--away': last.rivalColor === undefined ? 'var(--line)' : hex(rivalColor(homeColor, last.rivalColor)),
+    } as CSSProperties;
     let n = 0;
     return (
-        // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: tocar pula a festa; o conteúdo já está no DOM e os botões no teclado
-        <section ref={box} className={`panel ut-prize bc-surface bc-stripe is-${last.outcome}`} onClick={c.skip}>
-            <span className="bc-tag">{t('ultimate.result.title')}</span>
-            <b className="ut-verdict cb-num k-pop">
-                {t(`ultimate.result.${last.outcome}`)} {last.score[0]}x{last.score[1]}
-            </b>
-            {last.shootout && <small>{t('ultimate.result.pens', { a: last.shootout[0], b: last.shootout[1] })}</small>}
-            <small className="muted">
-                {t('ultimate.result.vs', {
-                    club: clubName(last.rival, lang),
-                    level: last.gym
-                        ? (d.profile.trainers[last.gym as TrainerId] ?? last.gym)
-                        : d.ultimate.play.levels[last.level],
-                })}
-            </small>
-            <Beat on={c.step > n++} className="ut-gain">
-                <HudIcon kind="coin" />
-                <CountUp
-                    from={0}
-                    to={c.step >= n ? last.fichas : 0}
-                    skip={c.skipped}
-                    ms={600}
-                    format={(x) => t('ultimate.result.gain', { n: x })}
-                />
-            </Beat>
-            {last.pass !== undefined && (
-                <Beat on={c.step > n++}>
-                    <small className="ut-extra">
-                        <HudIcon kind="crown" />
-                        {last.pass ? t('ultimate.result.pass', { n: last.pass }) : t('ultimate.result.passCap')}
-                        {!!last.marks?.length &&
-                            ` · ${tn('ultimate.result.marks', last.marks.length, { n: last.marks.join(', ') })}`}
-                    </small>
-                </Beat>
-            )}
-            {(objectives.length > 0 || firsts.length > 0) && (
-                <div className="ut-prize-goals">
-                    <span className="bc-lbl">{t('ultimate.result.objectives')}</span>
-                    {objectives.map((o) => (
-                        <Beat key={o.id} on={c.step > n++}>
-                            <small>
-                                <HudIcon kind="check" />
-                                {tn(`ultimate.goals.text.${o.kind}`, o.goal)} · {reward(o)}
-                            </small>
-                        </Beat>
-                    ))}
-                    {firsts.map((f) => (
-                        <Beat key={f.id} on={c.step > n++}>
-                            <small>
-                                <HudIcon kind="flag" />
-                                {d.ultimate.first.steps[f.id]} · {t('ultimate.goals.fichas', { n: f.fichas })}
-                            </small>
-                        </Beat>
-                    ))}
-                </div>
-            )}
-            {extra && (
-                <Beat on={c.step > n++} className="ut-prize-extra">
-                    {last.badge && last.gym && (
-                        <span className="ut-gain ut-badge">
-                            <KantoBadge leader={last.gym as TrainerId} earned />
-                            {t('ultimate.result.badge', { badge: d.profile.badges.names[last.gym] ?? last.gym })}
-                        </span>
-                    )}
-                    {last.ornament && (
-                        <small className="ut-extra">
-                            <HudIcon kind="sparkle" />
-                            {t('ultimate.result.ornament', { name: d.ultimate.events[last.ornament] ?? last.ornament })}
-                        </small>
-                    )}
-                </Beat>
-            )}
-            {hasPacks && (
-                <Beat on={c.step > n++} className="ut-prize-packs">
-                    <PackArt
-                        look={packs.picks ? 'gold' : ''}
-                        label={
-                            packs.picks
-                                ? t('ultimate.pick.short')
-                                : packs.big
-                                  ? t('ultimate.packs.big')
-                                  : t('ultimate.packs.mini')
-                        }
-                    />
-                    <span>
-                        {prizes ? (
-                            <span className="bc-lbl">{t('ultimate.result.toOpen')}</span>
-                        ) : (
-                            // resgatado: o destino à vista (nada abre sozinho; a pilha espera em Meus pacotes)
-                            <b key="got" className="ut-b-hot k-pop">
-                                {t('ultimate.stack.gotN', { n: got })}
-                            </b>
+        // biome-ignore lint/a11y/useKeyWithClickEvents: tocar pula a festa; o conteúdo já está no DOM e os botões no teclado
+        <section
+            className={`ut-prize is-${last.outcome}`}
+            style={colors}
+            aria-label={t('ultimate.result.title')}
+            onClick={c.skip}
+        >
+            <UtCourt led={`${title} ${homeName} ${last.score[0]} x ${last.score[1]} ${rival} · ${level}`} scale={scale}>
+                {last.outcome === 'win' && <Confetti count={36} />}
+                {star && (
+                    <div className="es-captain ut-star">
+                        <i className="es-shadow" />
+                        <FieldSprite
+                            id={star.speciesId}
+                            shiny={star.shiny}
+                            anim={last.outcome === 'loss' ? 'Idle' : 'Pose'}
+                            dir={0}
+                            scale={scale}
+                            className="es-mon"
+                        />
+                        {star.name && (
+                            <span className="k-seal ut-star-seal">
+                                <HudIcon kind="max" />
+                                {t('match.finalCard.star')}: {star.name}
+                            </span>
                         )}
-                        {packs.mini > 0 && <small>{tn('ultimate.goals.packs', packs.mini)}</small>}
-                        {packs.big > 0 && <small>{tn('ultimate.goals.big', packs.big)}</small>}
-                        {packs.picks > 0 && <small>{tn('ultimate.result.picks', packs.picks)}</small>}
-                    </span>
+                    </div>
+                )}
+            </UtCourt>
+            <div className="ut-prize-body">
+                <h1 className={`k-moment-title k-pop ${last.outcome}`}>{title}</h1>
+                <div className="rh-score ut-score">
+                    <div className="rh-team home">
+                        <span>{homeName}</span>
+                    </div>
+                    <b className={last.score[0] > last.score[1] ? 'lead' : ''}>{last.score[0]}</b>
+                    <span className="rh-x">x</span>
+                    <b className={last.score[1] > last.score[0] ? 'lead' : ''}>{last.score[1]}</b>
+                    <div className="rh-team away">
+                        <span>{rival}</span>
+                    </div>
+                </div>
+                {last.shootout && (
+                    <small className="rh-pens">
+                        {t('ultimate.result.pens', { a: last.shootout[0], b: last.shootout[1] })}
+                    </small>
+                )}
+                <Beat on={c.step > n++} className="ut-gain">
+                    <HudIcon kind="coin" />
+                    <CountUp
+                        from={0}
+                        to={c.step >= n ? last.fichas : 0}
+                        skip={c.skipped}
+                        ms={600}
+                        format={(x) => t('ultimate.result.gain', { n: x })}
+                    />
                 </Beat>
-            )}
-            {evo && (
-                <button type="button" className="btn ghost small" onClick={onGoals}>
-                    <HudIcon kind="sprout" />
-                    {t('ultimate.result.evoReady')}
-                </button>
-            )}
-            <div className="ut-prize-actions">
-                {prizes && (
-                    <button
-                        type="button"
-                        className="btn confirm wide"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            c.skip();
-                            useGame.getState().ultimateRedeem();
-                        }}
-                    >
-                        {t('ultimate.pending.redeemAll')}
+                {last.pass !== undefined && (
+                    <Beat on={c.step > n++}>
+                        <small className="ut-extra">
+                            <HudIcon kind="crown" />
+                            {last.pass ? t('ultimate.result.pass', { n: last.pass }) : t('ultimate.result.passCap')}
+                            {!!last.marks?.length &&
+                                ` · ${tn('ultimate.result.marks', last.marks.length, { n: last.marks.join(', ') })}`}
+                        </small>
+                    </Beat>
+                )}
+                {(objectives.length > 0 || firsts.length > 0) && (
+                    <div className="ut-prize-goals">
+                        <span className="bc-lbl">{t('ultimate.result.objectives')}</span>
+                        {objectives.map((o) => (
+                            <Beat key={o.id} on={c.step > n++}>
+                                <small>
+                                    <HudIcon kind="check" />
+                                    {tn(`ultimate.goals.text.${o.kind}`, o.goal)} · {reward(o)}
+                                </small>
+                            </Beat>
+                        ))}
+                        {firsts.map((f) => (
+                            <Beat key={f.id} on={c.step > n++}>
+                                <small>
+                                    <HudIcon kind="flag" />
+                                    {d.ultimate.first.steps[f.id]} · {t('ultimate.goals.fichas', { n: f.fichas })}
+                                </small>
+                            </Beat>
+                        ))}
+                    </div>
+                )}
+                {extra && (
+                    <Beat on={c.step > n++} className="ut-prize-extra">
+                        {last.badge && last.gym && (
+                            <span className="ut-gain ut-badge">
+                                <KantoBadge leader={last.gym as TrainerId} earned />
+                                {t('ultimate.result.badge', { badge: d.profile.badges.names[last.gym] ?? last.gym })}
+                            </span>
+                        )}
+                        {last.ornament && (
+                            <small className="ut-extra">
+                                <HudIcon kind="sparkle" />
+                                {t('ultimate.result.ornament', {
+                                    name: d.ultimate.events[last.ornament] ?? last.ornament,
+                                })}
+                            </small>
+                        )}
+                    </Beat>
+                )}
+                {hasPacks && (
+                    <Beat on={c.step > n++} className="ut-prize-packs">
+                        <PackArt
+                            look={packs.picks ? 'gold' : ''}
+                            label={
+                                packs.picks
+                                    ? t('ultimate.pick.short')
+                                    : packs.big
+                                      ? t('ultimate.packs.big')
+                                      : t('ultimate.packs.mini')
+                            }
+                        />
+                        <span>
+                            {prizes ? (
+                                <span className="bc-lbl">{t('ultimate.result.toOpen')}</span>
+                            ) : (
+                                // resgatado: o destino à vista (nada abre sozinho; a pilha espera em Meus pacotes)
+                                <b key="got" className="ut-b-hot k-pop">
+                                    {t('ultimate.stack.gotN', { n: got })}
+                                </b>
+                            )}
+                            {packs.mini > 0 && <small>{tn('ultimate.goals.packs', packs.mini)}</small>}
+                            {packs.big > 0 && <small>{tn('ultimate.goals.big', packs.big)}</small>}
+                            {packs.picks > 0 && <small>{tn('ultimate.result.picks', packs.picks)}</small>}
+                        </span>
+                    </Beat>
+                )}
+                {evo && (
+                    <button type="button" className="btn ghost small" onClick={onGoals}>
+                        <HudIcon kind="sprout" />
+                        {t('ultimate.result.evoReady')}
                     </button>
                 )}
-                <button type="button" className={prizes ? 'btn' : 'btn confirm wide'} onClick={seen}>
-                    {t('ultimate.result.next')}
-                </button>
-                {!prizes && stack > 0 && (
-                    <button
-                        type="button"
-                        className="btn"
-                        onClick={() => {
-                            seen();
-                            onPacks();
-                        }}
-                    >
-                        {t('ultimate.stack.mine', { n: stack })}
+                <div className="ut-prize-actions">
+                    {prizes && (
+                        <button
+                            type="button"
+                            className="btn confirm wide"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                c.skip();
+                                useGame.getState().ultimateRedeem();
+                            }}
+                        >
+                            {t('ultimate.pending.redeemAll')}
+                        </button>
+                    )}
+                    <button type="button" className={prizes ? 'btn' : 'btn confirm wide'} onClick={seen}>
+                        {t('ultimate.result.next')}
                     </button>
-                )}
+                    {!prizes && stack > 0 && (
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={() => {
+                                seen();
+                                onPacks();
+                            }}
+                        >
+                            {t('ultimate.stack.mine', { n: stack })}
+                        </button>
+                    )}
+                </div>
             </div>
         </section>
     );
