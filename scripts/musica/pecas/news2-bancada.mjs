@@ -371,10 +371,10 @@ export default function bancada() {
     // a reação sem graça do Raichu: tudo para; a gota (o plim) e a tuba "uá-uá" descendo
     N(pl, M.euNao + 0.15, -2, 0, 0.5);
     for (const [k, m] of [43, 42, 41, 40].entries()) N(tuba, M.euNao + 0.3 + 0.16 * k, m, k === 3 ? 3 : 1.2, 0.45);
-    // v2: as duas cartas lado a lado: o 93 do Machoke sobe (sino e metais) e o 91 do Machamp cai (a tuba)
+    // v2: as duas cartas lado a lado: o 99 no gol do Machoke sobe (sino e metais) e o 91 do Machamp cai (a tuba)
     N(ap, F.f6d.s + 0.05, 2, 0, 0.6);
-    N(sino, M.duelo93, 99, 3, 0.55);
-    stabs(met, 0, 'Abmaj7', [[R(M.duelo93), 2]], { low: 58, n: 4, vel: 0.5 });
+    N(sino, M.duelo99, 99, 3, 0.55);
+    stabs(met, 0, 'Abmaj7', [[R(M.duelo99), 2]], { low: 58, n: 4, vel: 0.5 });
     N(tuba, M.duelo91 + 0.1, 38, 1.2, 0.45);
     N(tuba, M.duelo91 + 0.3, 36, 2, 0.4);
     // de volta à bancada com o Charmeleon: o vestiário continua magro

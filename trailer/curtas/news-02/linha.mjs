@@ -109,8 +109,8 @@ const f5 = fala('f5', 'machoke', '67-determined', 'Quem ainda pode evoluir ganha
 const f6 = fala('f6', 'raichu', '26-joyous', ['A nota da carta não muda.', 'O bronze continua bronze, só joga mais.']);
 const f6b = fala('f6b', 'machoke', '67-surprised', 'Peraí… eu ainda posso evoluir.');
 const f6c = fala('f6c', 'raichu', '26-sigh', 'Eu não.');
-// v2 (21/11): o número da notícia, conferível na tela (as cartas da galeria: o Machoke com a Eviolite mostra ▲93 no gol)
-const f6d = fala('f6d', 'raichu', '26-determined', 'Com ela, o Machoke vira 93 no gol. O Machamp, 91.');
+// v2 (21/11): o número da notícia, conferível na tela (as cartas da galeria: o Machoke com a Eviolite chega a 99 no gol, com o ▲ roxo; o ↑93 da carta é o selo de evolução, não a Eviolite)
+const f6d = fala('f6d', 'raichu', '26-determined', 'Com ela, o Machoke chega a 99 no gol. O Machamp, 91.');
 beat('bRua', 1.0, 'a câmera vai pra rua: o telão chia e abre na Rota, o Meowth acena');
 bloco('aovivo', 'AO VIVO');
 const f8 = fala('f8', 'raichu', '26', 'Ao vivo da Rota Índigo, nosso repórter Meowth.', { manchete: true });
@@ -151,8 +151,8 @@ M.nota = letra(f6, 'nota'); // o aro na nota da carta
 M.bronze = letra(f6, 'bronze'); // o selo BRONZE
 M.machoke = letra(f6b, 'evoluir'); // o Machoke estufa e brilha
 M.euNao = f6c.a; // o Raichu de perto, sem graça
-M.duelo93 = letra(f6d, '93'); // a carta do Machoke: o ▲93 no gol
-M.duelo91 = letra(f6d, '91'); // a do Machamp: 91
+M.duelo99 = letra(f6d, '99'); // a carta do Machoke: 99 no gol, com o ▲ roxo da Eviolite
+M.duelo91 = letra(f6d, '91'); // a do Machamp: 91 no gol
 M.cheia = f9.s; // o corte pro Meowth em tela cheia, na Rota, com o clipe do reforço
 M.titular = letra(f10, 'titular'); // no clipe: o reforço entra no lugar do titular
 M.payday = letra(f11, 'capitão'); // o "Só o capitão nunca sai": o Meowth pula

@@ -16,7 +16,9 @@ await p.evaluate(async (ids) => {
     // o mesmo React da página (a mesma ?v= do pré-empacotamento do Vite), senão os hooks quebram
     const src = await (await fetch('/src/main.tsx')).text();
     const rd = src.match(/\/node_modules\/\.vite\/deps\/react-dom_client\.js\?v=[a-z0-9]+/)[0];
-    const React = (await import(`/node_modules/.vite/deps/react.js?v=${rd.split('v=')[1]}`)).default;
+    // o react.js pode ter outra ?v= que o react-dom (o Vite reotimiza aos poucos): pega a da própria página
+    const re = src.match(/\/node_modules\/\.vite\/deps\/react\.js\?v=[a-z0-9]+/)?.[0] ?? `/node_modules/.vite/deps/react.js?v=${rd.split('v=')[1]}`;
+    const React = (await import(re)).default;
     const RD = await import(rd);
     const createRoot = RD.createRoot ?? RD.default.createRoot;
     const { PokeCard2 } = await import('/src/ui/components/PokeCard2.tsx');
