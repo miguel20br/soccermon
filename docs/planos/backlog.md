@@ -51,3 +51,18 @@ mais). "Motor" = mexe no resultado das partidas (sobe `ENGINE_VERSION`, número 
 | 17 | **Modo História**, capítulo 1 (Pallet até o Brock) | G | decisão 9 | plano em fevereiro, jogável em abril |
 | 18 | **Gen 2**: Copa Johto separada | G | decisão 10 | âncora da Temporada 2 |
 | 19 | **Modo jogável** (controlar um Pokémon ou o time, estilo FC) | G | CLAUDE.md (visão) | o motor já tem controllers plugáveis |
+
+## Ordem (o Miguel aprovou as 19 em 23/11 e deixou a ordem comigo)
+
+O que mexe no motor ou em visual de carta ainda passa pelos números ou pela galeria antes de entrar.
+
+| Quando | Versão | O que entra |
+|---|---|---|
+| até sex 27/11 | vídeos | trailer v4 do UT (frenético, um diferencial por batida) e o News especial |
+| seg 30/11 | 0.9.54 "Natal 1" | Natal 1 + **1, 2, 3 e 4** (os pequenos que deixam o combo à vista) + Perfil fase 1 (14) |
+| seg 07/12 | 0.9.55 "Natal 2" | Natal 2 + **6** (sinergias secretas, primeiro as só de tela) + Legado do UT no Perfil (14) |
+| seg 14/12 | 0.9.56 "Natal 3" | Natal 3 + **7** (animações próprias) + **15** (Caminho do treinador) |
+| janeiro | 0.9.57+ | **5** (revanche), **10** (desafios de montagem), **9** (quadras e treinadores), **8** (escolher golpes: motor), título no ranking (14) antes da Liga em 12/01 |
+| fev a abr | | **11** (Duelo com o UT), **16** (clube), plano e capítulo 1 do **17** (Modo História) |
+| 01/06/2027 | Temporada 2 | **13** (ranking), **12** (troca), **18** (Gen 2) |
+| depois | | **19** (modo jogável) |
