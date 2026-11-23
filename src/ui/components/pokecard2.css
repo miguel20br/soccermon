@@ -3609,9 +3609,13 @@ button.pc2.pc2-fx:hover {
 .m-stats .m-mod.down {
     background: #c9302c;
 }
-/* Eviolite valendo: o ▲ na cor da pedra */
+/* Eviolite valendo: o ▲, a nota e os atributos na cor da pedra */
 .m-stats .m-mod.evio {
     background: #8a4fd0;
+}
+.m-ovr.evio,
+.m-stats.evio b {
+    color: #6a2dbf;
 }
 
 /* galeria: proposta do selo de carreira na carta (só aqui; nada liga fora da ?cards=1) */
