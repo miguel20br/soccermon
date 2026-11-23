@@ -283,3 +283,102 @@ export const coro = (S, nome, o = {}) =>
 export function notas(P, row, ns, len, vel = 1) {
     for (const n of ns) P.note(row, midi(n), len, vel);
 }
+
+// ---------- rodada 5 (23/11/2026): o pandeiro e a cuíca do Tema de abertura, o rosnado do Túnel ----------
+
+/** Pandeiro: a platinela (as soalhas chacoalhando), o tapa (a mão aberta no couro) e o grave (o polegar). */
+export const pandeiro = {
+    platinela: som(
+        0.12,
+        (_p, r) => {
+            let a = 0;
+            const ph = [0, 0, 0];
+            const F = [5300, 6900, 8400];
+            return (t) => {
+                const n = r() * 2 - 1;
+                const claro = n - a; // passa-alta: o chiado das soalhas
+                a += 0.3 * (n - a);
+                let anel = 0;
+                F.forEach((f, i) => {
+                    ph[i] += (TAU * f) / SR;
+                    anel += Math.sin(ph[i]) / (i + 1);
+                });
+                return (0.7 * claro + 0.25 * anel * (r() * 0.5 + 0.5)) * Math.exp(-t / 0.035) * Math.min(1, t / 0.002);
+            };
+        },
+        { pk: 0.4, corte: 9500 },
+    ),
+    tapa: som(
+        0.15,
+        (_p, r) => {
+            let a = 0;
+            let b = 0;
+            return (t) => {
+                const n = r() * 2 - 1;
+                a += 0.35 * (n - a);
+                b += 0.06 * (a - b);
+                const estalo = (a - b) * Math.exp(-t / 0.018);
+                const couro = Math.sin(TAU * 235 * t) * Math.exp(-t / 0.05);
+                return 1.3 * estalo + 0.6 * couro;
+            };
+        },
+        { pk: 0.45, corte: 7000 },
+    ),
+};
+
+/** Cuíca: o "uí-óm" da vara esfregada (a nota sobe, raspa e cai); `p` = semitons a partir do Lá5. */
+export const cuica = som(
+    0.32,
+    (p, r) => {
+        let ph = 0;
+        let v = 0;
+        return (t) => {
+            const x = t / 0.32;
+            const f = 880 * k12(p) * (0.72 + 0.4 * Math.sin(Math.PI * Math.min(1, x * 1.4)) - 0.12 * x);
+            ph += (TAU * f) / SR;
+            v += 0.2 * (r() * 2 - 1 - v);
+            const y = Math.sin(ph) + 0.35 * Math.sin(2 * ph) + 0.12 * Math.sin(3 * ph);
+            return y * (1 + 0.5 * v) * Math.min(1, t / 0.015) * (1 - x) ** 1.2;
+        };
+    },
+    { pk: 0.4, corte: 5000 },
+);
+
+/** Baixo sujo (o rosnado): dente de serra com a sub-oitava, saturado; use com `corte` (~1,2 kHz) na faixa. */
+export const rosnado = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => {
+            let ph = 0;
+            let ps = 0;
+            return (t) => {
+                ph += f / SR;
+                ps += (0.5 * f) / SR;
+                const serra = 2 * (ph % 1) - 1;
+                return Math.tanh(2.6 * (0.7 * serra + 0.5 * Math.sin(TAU * ps))) * Math.min(1, t / 0.004);
+            };
+        },
+        o,
+        { pk: 0.5, solta: 0.05 },
+    );
+
+/** Trombone que rosna (growl): o naipe grave com a garganta vibrando a ~28 Hz e um tico de saturação. */
+export const tromboneRosna = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => {
+            let ph = 0;
+            const nh = Math.max(1, Math.min(12, Math.floor(9000 / f)));
+            return (t) => {
+                ph += (TAU * f) / SR;
+                let y = 0;
+                for (let k = 1; k <= nh; k++) y += (Math.sin(k * ph) / k) * Math.exp(-(k - 1) * 0.28);
+                const garganta = 1 + 0.45 * Math.sin(TAU * 28 * t) * Math.min(1, t / 0.08);
+                return Math.tanh(1.8 * y * garganta) * Math.min(1, t / 0.035);
+            };
+        },
+        o,
+        { pk: 0.45, solta: 0.08 },
+    );

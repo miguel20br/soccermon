@@ -14,9 +14,21 @@
 // do Ré menor com sexta (o iv menor emprestado) | solo de trompete em Fá# menor (8) | subida (4): Ré, Mi, Fá#, Ré#7,
 // surdo em 3-3-2 e caixa crescendo | A Sol# (8) | B (8) | topo (4): Mi–Fá#–Sol# MAIOR (♭VI–♭VII–I, a terça de
 // Picardia) e o sino. ~2:35.
+// Rodada 5 (23/11/2026): "linha de baixo genial presa num lead genérico", "inofensiva". O baixo fica nota por nota
+// (o do A, o do refrão, o da introdução e o do break). O que mudou foi o que estava em cima dele:
+// - o A não tem mais a melodia da Estrada no trompete. Agora é um RIFF DE NAIPE de soul (trompete e trombone em
+//   oitavas) que conversa com o baixo: o naipe fala curto na 1ª metade do compasso, o baixo responde na 2ª, e
+//   depois troca. Tem nota blue (o Si♭, a quinta diminuta do Mi menor, escorregando pro Si), o ♭9 no Si7, o
+//   SOC-CER-MON no Dó do 6º compasso e o cromático descendo até o Ré# no fim, deixando o baixo sozinho;
+// - na 2ª volta (Fá#) entra o BREQUE: a banda para dois compassos e só o baixo, o bumbo e o chimbal tocam, e o naipe
+//   volta batendo no 3º;
+// - o refrão vira CORO GOSPEL: o coro da arquibancada canta a melodia, uma 2ª voz escrita à mão por baixo, o naipe
+//   responde nas notas longas e o pandeiro (só a platinela, como pandeirola de igreja) no 2 e no 4;
+// - o coro também sobe no topo e segura o Sol# maior com o sino.
 import { k12, som } from '../pecas/livre-ginasio.mjs';
-import { bass, drum, hz, I, MINOR, mel, midi, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
+import { bass, drum, hz, I, mel, midi, padChord, Song, stabs, transpose } from '../synth.mjs';
 import { BATERIA, baixoDedo, bombeio, bumbo, caixa, orgao, rhodes, surdo, trombone, trompete } from './kit.mjs';
+import { coro, pandeiro } from './kit-novas.mjs';
 
 export const meta = { titulo: 'Ladeira acima', faixa: 10 };
 
@@ -36,15 +48,16 @@ const sino = som(
     { pk: 0.5, corte: 4500 },
 );
 
+// o naipe (trompete; o trombone dobra uma oitava abaixo): fala curto e deixa o baixo responder
 const M = [
-    'E5:4 B4:2 E5:2 G5:4 F#5:2 E5:2',
-    'G5:6 A5:2 G5:4 E5:4',
-    'F#5:4 D5:2 F#5:2 A5:4 G5:2 F#5:2',
-    'D#5:8 F#5:4 B5:4',
-    'B5:4 A5:2 G5:2 E5:4 G5:4',
-    'C6:6 B5:2 A5:4 G5:4',
-    'A5:4 C6:4 E6:4 D6:2 C6:2',
-    'B5:8 A5:2 G5:2 F#5:2 D#5:2',
+    'B4:1 D5:1 E5:2 r:1 G5:2 E5:1 r:8',
+    'r:8 G5:1 Bb5:1 B5:2 G5:2 E5:2',
+    'A5:1 F#5:1 D5:2 r:1 F#5:2 A5:1 r:8',
+    'r:6 D#5:1 F#5:1 A5:2 C6:2 B5:4',
+    'B4:1 D5:1 E5:2 r:1 G5:2 E5:1 r:2 B5:1 A5:1 G5:1 E5:1 D5:2',
+    'G5:3 E5:3 C6:2 r:2 B5:1 C6:1 D6:2 r:2',
+    'E6:2 D6:1 C6:1 A5:2 G5:1 E5:1 G5:2 A5:2 r:4',
+    'B5:1 A5:1 G5:1 F#5:1 F5:1 E5:1 D#5:2 r:8',
 ];
 const CH = ['Em', 'C', 'D', 'B7', 'Em', 'C', 'Am', 'B7'];
 // o refrão: no relativo, sobe até o Sol e volta pelo Si7sus4 → Si7
@@ -59,6 +72,28 @@ const B_MEL = [
     'D#6:12 r:4',
 ];
 const B_CH = ['C', 'D', 'G', 'Em', 'C', 'D', 'B7sus4', 'B7'];
+// a 2ª voz do coro, escrita nas notas do acorde
+const B_CORO2 = [
+    'C5:4 E5:4 G5:6 G5:2',
+    'F#5:4 D5:4 A4:8',
+    'G5:4 B5:4 D6:6 D6:2',
+    'B5:6 B5:2 G5:8',
+    'G5:4 C6:4 E6:4 C6:4',
+    'D6:6 C6:2 A5:4 F#5:4',
+    'B5:8 B5:4 A5:4',
+    'B5:12 r:4',
+];
+// o naipe responde nas notas longas do coro
+const B_NAIPE = [
+    'r:16',
+    'r:8 D5:1 F#5:1 A5:2 r:4',
+    'r:16',
+    'r:8 B4:1 E5:1 G5:2 r:4',
+    'r:16',
+    'r:8 D5:1 F#5:1 A5:2 C6:2 r:2',
+    'r:12 E5:2 F#5:2',
+    'r:16',
+];
 // o baixo no refrão: anda e responde nas notas longas
 const B_BAIXO = [
     'C2:3 C3:1 r:2 C2:2 G2:2 C2:2 E2:2 G2:2',
@@ -105,6 +140,9 @@ export default function ladeiraAcima() {
     const bs = baixoDedo(S, 'baixo', { gain: 0.38, gainAt: duck });
     const str = S.part('cordas', I.strings, { gain: 0.8, rev: 0.3, corte: 3200, gainAt: duck });
     const si = S.part('sino', sino, { drum: true, pan: 0.15, gain: 0.8, rev: 0.6 });
+    const co = coro(S, 'coro', { pan: -0.05, gain: 0.95, rev: 0.4 });
+    const co2 = coro(S, 'coro2', { pan: 0.3, gain: 0.6, rev: 0.4 });
+    const pl = S.part('pandeirola', pandeiro.platinela, { drum: true, pan: -0.35, gain: 1, rev: 0.15 });
 
     const funk = (b, n, { cheio = true } = {}) => {
         drum(k, b, n, cheio ? 'X.....x...X..x..' : 'X.......X.......');
@@ -133,25 +171,39 @@ export default function ladeiraAcima() {
     drum(sn, 3, 1, '..........xxXXXX', { vel: 0.8 });
     mel(tp, 3, ['r:12 B4:2 D#5:2'], { vel: 0.7 });
 
-    const blocoA = (b0, s) => {
-        mel(tp, b0, M, { shift: s });
-        // a 1ª volta: o trombone uma oitava abaixo (quente); depois, terças
-        if (s) mel(tb2, b0, M, { shift: s, harm: thirdBelow(MINOR((4 + s) % 12)) });
-        else mel(tb2, b0, M, { shift: -12, vel: 0.7 });
+    const blocoA = (b0, s, { breque = false } = {}) => {
+        // o naipe em oitavas: trompete em cima, os dois trombones embaixo; no breque ele entra no 3º compasso
+        const de = breque ? 2 : 0;
+        for (const [P, o, v] of [
+            [tp, 0, 1],
+            [tb2, -12, 0.85],
+            [tb, -12, 0.4],
+        ])
+            mel(P, b0 + de, M.slice(de), { shift: s + o, vel: v });
         CH.forEach((c0, i) => {
             const c = transpose(c0, s);
-            bass(bs, b0 + i, c, A_BAIXO);
+            bass(bs, b0 + i, c, A_BAIXO, { vel: breque && i < 2 ? 1.1 : 1 });
+            if (breque && i < 2) return;
             stabs(og, b0 + i, c, ORG_A, { low: 55, n: 4, vel: 0.7 });
-            stabs(rh, b0 + i, c, RH_A, { low: 52, n: 4, vel: 0.55 });
+            stabs(rh, b0 + i, c, RH_A, { low: 52, n: 4, vel: 0.4 });
         });
-        funk(b0, 7);
+        if (breque) {
+            // só o baixo, o bumbo e o chimbal; a banda volta batendo
+            drum(k, b0, 2, 'X.......X.......', { vel: 0.8 });
+            drum(hh, b0, 2, 'x.x.x.x.x.x.x.x.', { vel: 0.5 });
+            funk(b0 + 2, 5);
+            drum(cr, b0 + 2, 1, 'X...............');
+        } else funk(b0, 7);
         funk(b0 + 7, 1, { cheio: false });
         virada(b0 + 7);
-        drum(cr, b0, 1, 'X...............');
+        if (!breque) drum(cr, b0, 1, 'X...............');
     };
     const blocoB = (b0, s, perto) => {
-        mel(tp, b0, B_MEL, { shift: s - 12 });
-        mel(tb2, b0, B_MEL, { shift: s - 12, harm: thirdBelow(MINOR((4 + s) % 12)) });
+        mel(co, b0, B_MEL, { shift: s - 12 });
+        mel(co2, b0, B_CORO2, { shift: s - 12, vel: 0.85 });
+        mel(tp, b0, B_NAIPE, { shift: s, vel: 0.9 });
+        mel(tb2, b0, B_NAIPE, { shift: s - 12, vel: 0.8 });
+        drum(pl, b0, 7, 'x...X...x...X...', { vel: 0.8 });
         mel(bs, b0, B_BAIXO, { shift: s });
         B_CH.forEach((c0, i) => {
             const c = transpose(c0, s);
@@ -168,6 +220,8 @@ export default function ladeiraAcima() {
         // o fim do refrão: a banda bate junto nas colcheias e para; o Si7 fica no órgão, o sino responde e a virada chama
         const c7 = transpose('B7', s);
         stabs(og, b0 + 7, c7, [0, 2, 4, [6, 10]], { low: 52, n: 4, vel: 0.8 });
+        stabs(tp, b0 + 7, c7, [0, 2, 4, [6, 4]], { low: 63, n: 3, vel: 0.8 });
+        stabs(tb2, b0 + 7, c7, [0, 2, 4, [6, 4]], { low: 51, n: 3, vel: 0.8 });
         drum(k, b0 + 7, 1, 'X.X.X.X.........');
         drum(sn, b0 + 7, 1, 'X.X.X.X...xxXXXX');
         drum(cr, b0 + 7, 1, 'X...............');
@@ -176,7 +230,7 @@ export default function ladeiraAcima() {
 
     blocoA(4, 0);
     blocoB(12, 0, 0.2);
-    blocoA(20, 2);
+    blocoA(20, 2, { breque: true });
     blocoB(28, 2, 0.45);
 
     // ---------- break (36-43): no meio da subida, a vista. Lá maior, meio-tempo, o trombone sozinho ----------
@@ -265,6 +319,8 @@ export default function ladeiraAcima() {
         const b = 72 + i;
         mel(tp, b, [a]);
         mel(tb2, b, [h]);
+        mel(co, b, [h]);
+        mel(co2, b, [a], { shift: -12, vel: 0.8 });
         mel(bs, b, [bx]);
         stabs(og, b, c, [0, 2, [4, 4], 10, [12, 4]], { low: 52, n: 4 });
         padChord(str, b, c, 16, { low: 56, n: 4 });
@@ -281,6 +337,8 @@ export default function ladeiraAcima() {
         [tb2, 'G#4'],
         [tb, 'D#4'],
         [bs, 'G#1'],
+        [co, 'B#4'],
+        [co2, 'D#4'],
     ])
         P.note(74 * 16, midi(n), 32, 1);
     padChord(og, 74, 'G#', 32, { low: 52, n: 4 });

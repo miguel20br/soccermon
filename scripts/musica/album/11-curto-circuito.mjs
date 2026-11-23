@@ -8,6 +8,12 @@
 // - na 2ª volta o A e o A' ganham o bumbo em todos os tempos (quatro no chão) e o chimbal aberto no contratempo:
 //   dá pra dançar. O blecaute continua vazio (o contraste é o punch);
 // - a 2ª volta sobe mais meio tom (Sol → Sol# menor: a força voltou mais forte), e o fim fica em Sol# menor.
+// Rodada 5 (23/11/2026): "bem melhor, mas não perfeita": polimento de mistura, a ideia e as notas não mudam.
+// - o grave estava embolado: o baixo de chip e o sub somados passavam do lead (0,13 + 0,16 contra 0,27 de RMS); o sub
+//   desceu pra 0,3;
+// - os quatro no chão da 2ª volta empilhavam bumbo em cima do bumbo da peça (no 1 e no 3): o bumbo chegava ao nível
+//   do lead (0,25), com pico acima de 1. Agora a 2ª volta só completa o 2 e o 4, e o bumbo do kit desceu um tico;
+// - o chimbal, o sino e o prato do chip ganharam passa-baixa (7, 4,5 e 6 kHz): menos chiado em cima do lead.
 import surge from '../pecas/livre-lt-surge.mjs';
 import { arp, bass, drum, I, mel, stabs, transpose } from '../synth.mjs';
 import { estender } from './estender.mjs';
@@ -29,11 +35,12 @@ export default function curtoCircuito() {
             tail: 2.5,
             barramentos: { bateria: BATERIA },
             bus: { bumbo: 'bateria', caixa: 'bateria' },
-            troca: { bumbo: { inst: bumbo, gain: 0.7 }, caixa: { inst: caixa, gain: 0.7 } },
+            troca: { bumbo: { inst: bumbo, gain: 0.6 }, caixa: { inst: caixa, gain: 0.7 } },
+            corte: { chimbal: 7000, sino: 4500, prato: 6000 },
         },
     );
     const duck = bombeio(S, P('bumbo'), { prof: 0.4, solta: 0.12 });
-    const sub = baixoDedo(S, 'sub', { gain: 0.45, gainAt: duck });
+    const sub = baixoDedo(S, 'sub', { gain: 0.3, gainAt: duck });
     const oh = S.part('aberto', I.ohat, { drum: true, pan: 0.3, gain: 0.55 });
 
     // o sub nas partes cheias (A e A' das duas voltas): a tônica em colcheias
@@ -48,7 +55,7 @@ export default function curtoCircuito() {
     subA(v2 + 16, 2);
     // 2ª volta: quatro no chão e o chimbal aberto no contratempo nos A
     for (const b0 of [v2, v2 + 16]) {
-        drum(P('bumbo'), b0, 8, 'X...X...X...X...', { vel: 0.9 });
+        drum(P('bumbo'), b0, 8, '....X.......X...', { vel: 0.75 });
         drum(oh, b0, 8, '..x...x...x...x.', { vel: 0.7 });
     }
 

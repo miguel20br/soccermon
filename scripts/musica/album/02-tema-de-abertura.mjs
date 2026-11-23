@@ -22,6 +22,11 @@
 // Ré): o mestre apita, a bateria responde no SOC-CER-MON, o apito de novo, a bateria dobra, a banda inteira some por
 // meio compasso com o apito longo sozinho, e o SOC-CER-MON da banda joga o refrão em Ré. No fim, o apito fecha o
 // desfile. O resto ficou como estava (só desceu 4 compassos). ~2:42.
+// Rodada 5 (23/11/2026): "ficou melhor sem o clap, mas aí começou a faltar algo". O que faltava era quem segura o
+// contratempo entre a caixa e o chimbal (o clap fazia isso). Sem voltar o clap, entra a COZINHA DO SAMBA: o PANDEIRO
+// (a platinela em semicolcheias, acentuando os tempos, e o tapa no partido-alto: no 2, no "e" do 2 e no 4) em todo
+// groove, e a CUÍCA, a voz da escola, que responde "uí-óm" no fim das frases do A seco, do refrão e da etiqueta e
+// ri na paradinha. No A seco (sem caixa) o pandeiro é o que segura; na bossa ele sai.
 import { apito } from '../pecas/livre-ginasio.mjs';
 import { arp, bass, drum, GANCHO, I, MAJOR, mel, padChord, Song, stabs, thirdBelow, transpose } from '../synth.mjs';
 import {
@@ -38,6 +43,7 @@ import {
     trombone,
     trompete,
 } from './kit.mjs';
+import { cuica, pandeiro } from './kit-novas.mjs';
 
 export const meta = { titulo: 'Tema de abertura', faixa: 2 };
 
@@ -135,6 +141,19 @@ export default function temaDeAbertura() {
     const tam = S.part('tamborim', tamborim, { drum: true, pan: 0.4, gain: 0.5 });
     const cr = S.part('prato', I.crash, { drum: true, pan: 0.2, gain: 0.75 });
     const cl = S.part('clap', clapMacio, { drum: true, pan: 0.1, gain: 0.9, rev: 0.1 });
+    // a cozinha do samba (rodada 5): o pandeiro segura o contratempo, a cuíca responde
+    const pl = S.part('platinela', pandeiro.platinela, { drum: true, pan: -0.3, gain: 0.9, rev: 0.08 });
+    const tap = S.part('tapa', pandeiro.tapa, { drum: true, pan: -0.3, gain: 1, rev: 0.1 });
+    const cu = S.part('cuica', cuica, { drum: true, pan: 0.45, gain: 0.8, rev: 0.18 });
+    const pand = (b, n = 1, vel = 1) => {
+        drum(pl, b, n, 'XoxoXoxoXoxoXoxo', { vel: 0.7 * vel });
+        drum(tap, b, n, '....x..x....x...', { vel: 0.8 * vel });
+    };
+    /** A cuíca no fim do compasso: "uí-óm" (sobe e cai), na altura do acorde. */
+    const uiOm = (b, p = 0, vel = 1) => {
+        cu.note(b * 16 + 12, p + 3, 0, vel);
+        cu.note(b * 16 + 14, p - 2, 0, 0.8 * vel);
+    };
     // o apito do mestre (pitch 0 = Mi7; −4 = Dó7, −3 = Dó#7): curto e longo
     const fi = S.part('apito', apito(0.07), { drum: true, pan: 0.3, gain: 0.5, rev: 0.25 });
     const fiii = S.part('apitoLongo', apito(0.5), { drum: true, pan: 0.3, gain: 0.42, rev: 0.25 });
@@ -147,6 +166,7 @@ export default function temaDeAbertura() {
         if (caixaCheia) drum(sn, b, n, SNARE);
         else drum(ar, b, n, '....x.......x...');
         if (hats) drum(hh, b, n, HATS);
+        pand(b, n, caixaCheia ? 0.85 : 1);
         drum(sh, b, n, 'xoxoxoxoxoxoxoxo', { vel: hats ? 1 : 0.7 });
         if (agogo) {
             drum(ag, b, n, 'x...x.x.........');
@@ -200,12 +220,19 @@ export default function temaDeAbertura() {
         } else {
             for (const [i, c] of A_CH.entries()) bass(bs, b0 + i, c, GROOVE);
             groove(b0, 7, { caixaCheia: false, agogo: false });
+            for (const [i, p] of [
+                [1, 0],
+                [3, -2],
+                [5, 0],
+            ])
+                uiOm(b0 + i, p);
         }
         drum(oh, b0, 7, '..............x.');
     }
     drum(k, 11, 1, KICK);
     drum(ar, 11, 1, '....x.......x...');
     drum(sh, 11, 1, 'xoxoxoxoxoxoxoxo');
+    pand(11);
     virada(11, { forte: false });
     // respostas dos metais nas pausas da melodia (o trompete em cima, o trombone uma oitava abaixo)
     for (const b0 of [12, 76]) {
@@ -283,6 +310,8 @@ export default function temaDeAbertura() {
         });
         drum(cl, b0 + 2, 1, GANCHO.palmas, { vel: 0.8 });
         drum(cl, b0 + 6, 1, GANCHO.palmas, { vel: 0.8 });
+        uiOm(b0 + 3, s - 2, 0.8);
+        uiOm(b0 + 7, s, 0.9);
     };
     refrao(28, 0);
 
@@ -343,6 +372,8 @@ export default function temaDeAbertura() {
         drum(tam, b, 1, i < 1 ? 'x.x..x.x.x..x.x.' : 'x.xx.x.xx.xx.x.x', { vel: 0.6 + 0.12 * i });
         drum(ag, b, 1, 'x...x.x...x.x...');
         if (i >= 1) drum(sh, b, 1, 'xoxoxoxoxoxoxoxo', { vel: 0.5 + 0.15 * i });
+        if (i >= 2) pand(b, 1, 0.6 + 0.2 * (i - 2));
+        if (i === 3) uiOm(b, -2);
         bass(bs, b, 'G7', i < 2 ? '0:6 0:2 r:8' : '0:3 0:3 0:2 5:2 8:2 5:2 s:2', { vel: 0.8 });
     }
     padChord(cordas, 54, 'G7', 32, { low: 53, n: 4, vel: 0.6 });
@@ -405,6 +436,12 @@ export default function temaDeAbertura() {
     bs.note(65 * 16 + 3, 33, 1, 1);
     bs.note(65 * 16 + 6, 45, 1, 1);
     drum(fi, 65, 1, '........X.X.X.X.', { pitch: -3 });
+    for (const [r, p] of [
+        [9, 5],
+        [11, 3],
+        [13, 1],
+    ])
+        cu.note(65 * 16 + r, p, 0, 0.7);
     // 66: a bateria dobra (tamborim e caixa em semicolcheias, o surdo marcando), as cordas e o trombone crescem no Lá7
     drum(su, 66, 1, 'X...X...........');
     drum(tam, 66, 1, 'x.xXx.xX........');
@@ -457,6 +494,7 @@ export default function temaDeAbertura() {
         }
     });
     groove(84, 3);
+    uiOm(86, 2);
     drum(cr, 84, 1, 'X...............');
     mel(lead, 87, ['C#6:3 E6:3 A6:2 G6:8']);
     mel(tp, 87, ['A5:3 C#6:3 E6:2 E6:8']);

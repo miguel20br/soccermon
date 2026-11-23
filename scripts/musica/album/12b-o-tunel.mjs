@@ -18,6 +18,14 @@
 // Final: o portão abre, o riff em Ré♭, o 3-3-2 no Dó7(♭9), o Fá menor e o corte, um clap molhado, três passos.
 // Forma: túnel 4 | riff 4 | A 8 | A2 8 | o olhar 4 | solo 8 | riff na banda 4 | subida 2 | A' Fá menor 8 | final 4
 // = 54 compassos (A ~2:13, B ~2:03).
+// Rodada 5 (23/11/2026): "muito boa, meio ameaçadora, mas ainda inofensiva": mais dentes. A forma e as notas ficam;
+// o que muda é a mordida:
+// - o ROSNADO: um baixo de dente de serra com a sub-oitava, saturado e com passa-baixa, dobra o riff o tempo todo
+//   (antes o riff era só baixo de dedo e tuba, redondos demais);
+// - o rival ROSNA: a partir do A2, um trombone com growl (a garganta vibrando a 28 Hz, saturado) dobra a fala dele;
+// - as FACADAS: no Si7(♭9) de cada A, o naipe que rosna bate o cluster (Si, Dó, Ré#, Lá) no trio;
+// - no riff da banda inteira, o rosnado sobe uma oitava junto, e os toms graves pisam o 3-3-2 (o time descendo a
+//   escada); na subida e no final, o 3-3-2 também rosna.
 import { deslize, torcida } from '../pecas/livre-ginasio.mjs';
 import {
     bass,
@@ -35,7 +43,7 @@ import {
     transpose,
 } from '../synth.mjs';
 import { BATERIA, baixoDedo, bombeio, bumbo, caixa, clapMolhado, orgao, trombone, trompete, tuba } from './kit.mjs';
-import { trava } from './kit-novas.mjs';
+import { rosnado, trava, tromboneRosna } from './kit-novas.mjs';
 
 export const meta = { titulo: 'O túnel', faixa: '12b' };
 
@@ -206,6 +214,9 @@ function tunel(v) {
     const ogS = orgao(S, 'orgaoSolo', { pan: -0.15, gain: 2, rev: 0.2, echo: { rows: 3, fb: 0.2, mix: 0.15 } });
     const str = S.part('cordas', I.strings, { gain: 0.8, rev: 0.3 });
     const bs = baixoDedo(S, 'baixo', { gain: 0.42, gainAt: duck });
+    const bsx = rosnado(S, 'rosnado', { gain: 0.3, corte: 1300, gainAt: duck });
+    const gr = tromboneRosna(S, 'rosna', { pan: 0.15, gain: 0.5, rev: 0.15, corte: 3200 });
+    const tg = S.part('tomGrave', I.tom, { drum: true, bus: 'bateria', gain: 0.55, rev: 0.15 });
 
     const R = RIFFS[v];
     /** Tônica do acorde no registro do baixo (Si1 a Lá#2). */
@@ -228,9 +239,13 @@ function tunel(v) {
     const riffBar = (b, c, { virada = false, banda = false, vel = 1 } = {}) => {
         riff(bs, b, c, { virada, vel });
         riff(tu, b, c, { virada, vel: vel * 0.8 });
+        riff(bsx, b, c, { virada, vel: vel * 0.9 });
         if (banda) {
             riff(tb, b, c, { virada, oit: 1, vel: 1.1 });
             riff(og, b, c, { virada, oit: 2, vel: 0.9 });
+            riff(bsx, b, c, { virada, oit: 1, vel: 0.7 });
+            riff(gr, b, c, { virada, oit: 1, vel: 0.8 });
+            drum(tg, b, 1, 'X..X..X.........', { pitch: -6 });
         }
     };
     /** A torcida lá em cima: o SOC-CER-MON no 3-3-2. `p` grave = abafada pela parede. */
@@ -272,6 +287,9 @@ function tunel(v) {
     const blocoA = (b0, s, { dois = false, nosso = false } = {}) => {
         mel(tb, b0, TB, { shift: s });
         if (dois) mel(tb2, b0, TB, { shift: s, harm: thirdBelow(MINOR((4 + s) % 12)) });
+        if (dois || nosso) mel(gr, b0, TB, { shift: s, vel: 0.75 });
+        // a facada no Si7(♭9): o cluster (Si, Dó, Ré#, Lá) rosnando no trio
+        for (const [r, l] of TRIO) for (const m of [47, 48, 51, 57]) gr.note((b0 + 7) * 16 + r, m + s, l, 0.5);
         if (nosso) {
             const g = GANCHO.em({ menor: true, tom: 4 + s, oitava: -1 });
             for (const i of [2, 6]) {
@@ -406,6 +424,7 @@ function tunel(v) {
         [og, { low: 55, n: 4 }],
     ])
         stabs(P, 40, 'Am', [0, 3, [6, 2]], o);
+    stabs(gr, 40, 'Am', [0, 3, [6, 2]], { low: 45, n: 3 });
     bass(bs, 40, 'Am', '0:3 0:3 0:2 r:8');
     tu.note(40 * 16, midi('A1'), 3, 1);
     tu.note(40 * 16 + 3, midi('A1'), 3, 1);
@@ -442,6 +461,7 @@ function tunel(v) {
         [og, { low: 55, n: 4 }],
     ])
         stabs(P, 51, 'C7b9', [0, 3, [6, 2]], o);
+    stabs(gr, 51, 'C7b9', [0, 3, [6, 2]], { low: 46, n: 4 });
     mel(tpA, 51, [GANCHO.em({ menor: true, tom: 5, oitava: -1 })]);
     bass(bs, 51, 'C7b9', '0:3 0:3 0:2 r:8');
     tu.note(51 * 16, midi('C2'), 3, 1);
@@ -457,6 +477,8 @@ function tunel(v) {
         [tu, 'F1'],
         [bs, 'F1'],
         [tpA, 'C5'],
+        [gr, 'F2'],
+        [bsx, 'F1'],
     ])
         P.note(52 * 16, midi(n), 3, 1);
     drum(k, 52, 1, 'X...............');
