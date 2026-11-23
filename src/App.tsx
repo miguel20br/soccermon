@@ -65,6 +65,8 @@ const StoryLab = lazy(() => import('./ui/screens/StoryLab').then((m) => ({ defau
 const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ default: m.Ultimate })));
 // walkout final (?lab=walkout, ut-walkout.md): só dev e prévias, a cena do Phaser vem por import dinâmico
 const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ default: m.WalkoutLab })));
+// modo jogável, prévia (?lab=jogavel, só dev e prévias): o Phaser vem por import dinâmico
+const PlayLab = lazy(() => import('./ui/screens/PlayLab').then((m) => ({ default: m.PlayLab })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // galeria dos títulos (?lab=titulos, perfil-revamp.md): o gelo do "Natal 2026" e o seletor com tudo ganho
 const TitleLab = lazy(() => import('./ui/profile/TitleLab').then((m) => ({ default: m.TitleLab })));
@@ -149,7 +151,7 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const q = params.get('lab');
         if (q === 'golpes' || q === 'emotes' || q === 'quadras') return q;
-        if (__SMOKE__ && q === 'walkout') return 'walkout';
+        if (__SMOKE__ && (q === 'walkout' || q === 'jogavel')) return q;
         if (
             __SMOKE__ &&
             (q === 'versus' ||
@@ -299,6 +301,7 @@ export default function App() {
                 lab === 'cenas' ||
                 lab === 'kit' ||
                 lab === 'walkout' ||
+                lab === 'jogavel' ||
                 lab === 'menu-modos' ||
                 lab === 'titulos' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
@@ -318,6 +321,8 @@ export default function App() {
                             <KitLab onExit={exit} />
                         ) : lab === 'walkout' ? (
                             <WalkoutLab onExit={exit} />
+                        ) : lab === 'jogavel' ? (
+                            <PlayLab onExit={exit} />
                         ) : lab === 'menu-modos' ? (
                             <ModeMenuLab onExit={exit} />
                         ) : lab === 'titulos' ? (
