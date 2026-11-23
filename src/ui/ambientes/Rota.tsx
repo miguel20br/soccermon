@@ -9,6 +9,7 @@ import { KantoBadge } from '../components/BadgeCase';
 import { HudIcon } from '../components/MatchHud';
 import { ConfirmSheet } from '../kit/Sheet';
 import { reduceMotionOn } from '../settings-sync';
+import { trainerSrc } from '../tema';
 import { uiZoom } from '../ui-zoom';
 import { ClockCtx, useSceneClock } from './clock';
 import { FieldSprite } from './FieldSprite';
@@ -511,13 +512,7 @@ export function Rota({
                 {talk && (
                     <div className="rt-talk">
                         <span className="rt-talk-face">
-                            <img
-                                className="pixel"
-                                src={`assets/trainers/${WHO[stop]}.png`}
-                                alt=""
-                                width="80"
-                                height="80"
-                            />
+                            <img className="pixel" src={trainerSrc(WHO[stop])} alt="" width="80" height="80" />
                         </span>
                         <p>
                             <b>{story.who}</b> {story.text}

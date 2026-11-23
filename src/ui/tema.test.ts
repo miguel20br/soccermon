@@ -1,4 +1,6 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { TRAINERS } from '../store/missions';
 import { NATAL_FROM, NATAL_TO, NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
 
 const at = (iso: string) => Date.parse(iso);
@@ -64,5 +66,11 @@ describe('cronômetro da Noite Neon', () => {
         expect(until(1)).toBe('1min');
         expect(timeLeft(end)).toBe(null);
         expect(timeLeft(end + 60_000)).toBe(null);
+    });
+});
+
+describe('Natal: treinadores de gorro', () => {
+    it('todo treinador tem a cópia de gorro (rode scripts/build-natal-trainers.ts ao criar um)', () => {
+        for (const id of TRAINERS) expect(existsSync(`public/assets/trainers/natal/${id}.png`), id).toBe(true);
     });
 });

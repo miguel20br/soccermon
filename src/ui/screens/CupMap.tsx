@@ -72,6 +72,7 @@ import { Beat, useCascade } from '../kit/Cascade';
 import { InfoSheet, SeeAll } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
+import { trainerSrc } from '../tema';
 
 const ICON: Record<House, HudIconKind> = {
     jogo: 'players',
@@ -313,7 +314,7 @@ export function CupMap() {
     );
     const story = untold && !chosen && (
         <div key={untold.id} className={`cm-story who-${untold.who}`}>
-            <img className="cm-story-who" src={`assets/trainers/${untold.who}.png`} alt="" />
+            <img className="cm-story-who" src={trainerSrc(untold.who)} alt="" />
             <RoomDialog
                 text={`${d.longCup.story[untold.id].who}: ${d.longCup.story[untold.id].text}`}
                 action={{ label: t('longCup.storyNext'), run: () => tell(untold.id) }}
@@ -634,7 +635,7 @@ function NodeSheet({
         >
             <div className="cm-sheet-head">
                 {trainer ? (
-                    <img className="cm-sheet-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
+                    <img className="cm-sheet-trainer" src={trainerSrc(trainer)} alt="" />
                 ) : (
                     <span className="cm-sheet-icon">
                         <HudIcon kind={ICON[house]} />
@@ -1162,7 +1163,7 @@ export function EventScreen() {
                         <CenterFront />
                     </>
                 ) : (
-                    <img className="ev-who" src={`assets/trainers/${txt.who}.png`} alt="" />
+                    <img className="ev-who" src={trainerSrc(txt.who)} alt="" />
                 )}
                 {ev.id === 'carrinho' && !!ev.uids?.length && (
                     <span className="cm-event-faces">
@@ -1488,9 +1489,7 @@ export function GroupScreen() {
                                 <span className="gp-name away">{short(md + 1)}</span>
                                 <span className="gp-crest-wrap">
                                     <Crest look={lookOf(md + 1)} className="crest gp-crest" />
-                                    {trainer && (
-                                        <img className="gp-trainer" src={`assets/trainers/${trainer}.png`} alt="" />
-                                    )}
+                                    {trainer && <img className="gp-trainer" src={trainerSrc(trainer)} alt="" />}
                                 </span>
                                 {mine?.shootout && <small className="gp-pen">{t('longCup.pens')}</small>}
                             </span>
@@ -1507,7 +1506,7 @@ export function GroupScreen() {
             {untold &&
                 createPortal(
                     <div className="cm-story who-lance">
-                        <img className="cm-story-who" src="assets/trainers/lance.png" alt="" />
+                        <img className="cm-story-who" src={trainerSrc('lance')} alt="" />
                         <RoomDialog
                             text={`${d.longCup.story.planalto.who}: ${d.longCup.story.planalto.text}`}
                             action={{ label: t('longCup.storyNext'), run: () => tell('planalto') }}

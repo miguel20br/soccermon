@@ -32,6 +32,7 @@ import '../ambientes/ambientes.css';
 import '../components/badges.css';
 import './mode-menu.css';
 import '../tv.css';
+import { trainerSrc } from '../tema';
 
 /*
  * Menu de modos: a tela que vem ANTES da Home dos ambientes pra quem já jogou (regra em `modeMenuDue`, store/coach.ts).
@@ -217,7 +218,7 @@ function Blue({ style }: { style?: CSSProperties }) {
     const { t } = useT();
     return (
         <span className="mm-blue" style={style}>
-            <img className="pixel" src="assets/trainers/blue.png" alt="" />
+            <img className="pixel" src={trainerSrc('blue')} alt="" />
             <span className="mm-say">{t('home.modes.rival')}</span>
         </span>
     );

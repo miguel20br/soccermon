@@ -19,6 +19,7 @@ import {
 import { reduceMotionOn } from '../settings-sync';
 import { uiZoom } from '../ui-zoom';
 import '../rota-reveal.css';
+import { trainerSrc } from '../tema';
 import { pixelArt } from './EventSet';
 import { FutCard } from './FutCard';
 import { HudIcon } from './MatchHud';
@@ -494,7 +495,7 @@ export function CenterJoy() {
         <span ref={ref} className="ev-joy">
             <img
                 className="pixel"
-                src="assets/trainers/nurse.png"
+                src={trainerSrc('nurse')}
                 alt=""
                 style={{ width: 80 * r.css, height: 80 * r.css, zoom: r.zoom === 1 ? undefined : r.zoom }}
             />

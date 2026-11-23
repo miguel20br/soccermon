@@ -21,6 +21,7 @@ import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { Sheet } from '../kit/Sheet';
 import { simulateMatch } from '../sim-client';
+import { trainerSrc } from '../tema';
 import { Challenges } from './Challenges';
 import { CardBack } from './PickMoment';
 import { Gyms } from './Season';
@@ -86,7 +87,7 @@ export function useKick() {
 export const SOON = ['rivals', 'elite', 'draft'] as const;
 type SoonMode = (typeof SOON)[number];
 
-export const trainer = (id: string) => <img key={id} className="pixel" src={`assets/trainers/${id}.png`} alt="" />;
+export const trainer = (id: string) => <img key={id} className="pixel" src={trainerSrc(id)} alt="" />;
 export const SOON_ART: Record<SoonMode, ReactNode> = {
     rivals: <span className="ut-mode-vs">{[trainer('red'), trainer('blue')]}</span>,
     elite: <span className="ut-mode-four">{['lorelei', 'bruno', 'agatha', 'lance'].map(trainer)}</span>,
