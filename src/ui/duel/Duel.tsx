@@ -35,6 +35,7 @@ import { duel, localId, makePeer, useDuel } from '../../net/session';
 import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-store';
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
+import { canPlay } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead, useMenuBackOf } from '../components/MenuHead';
@@ -55,6 +56,7 @@ import {
     duelLink,
     entryCoach,
     isLocalDuel,
+    readDuelUt,
     roomBarShown,
     roomLooksClosed,
 } from './link';
@@ -239,6 +241,11 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
     const { t, d } = useT();
     const startSpeed = useGame((s) => s.settings.speed);
     const hasTeam = useHasReadyTeam();
+    // Duelo com o time do UT: atrás da bandeira (ADR 0005) e só pra quem tem os 5 titulares
+    const [utLab] = useState(readDuelUt);
+    const utTeam = useGame((g) => canPlay(g.ultimate));
+    const utShown = utLab && utTeam;
+    const [ut, setUt] = useState(false);
     // Disputa é o padrão: ninguém precisa ter time pra jogar
     const [mode, setMode] = useState<DuelMode>('disputa');
     const [speed, setSpeed] = useState<PlaybackSpeed>(startSpeed === 8 ? 4 : startSpeed);
@@ -251,7 +258,9 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
     const challenging = useFriends((s) => s.challenging);
     const create = async () => {
         setBusy(true);
-        const code = await duel.create(peer, mode, speed, local, specialLimit, duration, true, bestOf);
+        const code = ut
+            ? await duel.create(peer, 'ready', speed, local, null, duration, true, bestOf, true)
+            : await duel.create(peer, mode, speed, local, specialLimit, duration, true, bestOf);
         setUrl(code, local);
         void sendPendingChallenge(code);
     };
@@ -265,6 +274,12 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                     {m === 'ready' && !hasTeam && <p className="muted">{t('duel.noTeam')}</p>}
                 </div>
             ))}
+            {utShown && (
+                <div>
+                    <h3>{d.duel.ut.name}</h3>
+                    <p>{d.duel.ut.rule}</p>
+                </div>
+            )}
         </InfoSheet>
     );
     const rules = [speedLabel(speed, t('match.highlights')), d.duel.durations[duration], d.duel.bestOf[bestOf]];
@@ -288,7 +303,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
             {challenging && (
                 <p className="panel fr-challenging">{t('friends.challengingNote', { name: challenging.trainer })}</p>
             )}
-            <fieldset className="duel-modes">
+            <fieldset className={`duel-modes${utShown ? ' four' : ''}`}>
                 <legend className="sr-only">{t('duel.modeLabel')}</legend>
                 {DUEL_MODES.map((m) => (
                     <div key={m} className="duel-mode" data-mode={m}>
@@ -296,16 +311,24 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                             icon={MODE_ICON[m]}
                             label={d.duel.modes[m][0]}
                             sub={m === 'ready' && !hasTeam ? t('duel.noTeamShort') : undefined}
-                            selected={mode === m}
+                            selected={!ut && mode === m}
                             disabled={m === 'ready' && !hasTeam}
-                            onClick={() => setMode(m)}
+                            onClick={() => {
+                                setMode(m);
+                                setUt(false);
+                            }}
                         />
                     </div>
                 ))}
+                {utShown && (
+                    <div className="duel-mode" data-mode="ut">
+                        <OptionTile icon="star" label={d.duel.ut.name} selected={ut} onClick={() => setUt(true)} />
+                    </div>
+                )}
             </fieldset>
             {/* a regra do modo escolhido, sem precisar abrir o "?" */}
             <p className="muted small duel-mode-rule" data-testid="duel-mode-rule" aria-live="polite">
-                {d.duel.modes[mode][1]}
+                {ut ? d.duel.ut.rule : d.duel.modes[mode][1]}
             </p>
             <SheetRow
                 className="duel-rules"
@@ -315,7 +338,7 @@ function CreateRoom({ peer, local, head }: { peer: Peer; local: boolean; head: R
                 title={t('duel.rules')}
             >
                 <div className="duel-rules-sheet">
-                    {mode === 'ready' && (
+                    {mode === 'ready' && !ut && (
                         <fieldset className="duel-speeds">
                             <legend className="bc-lbl">{t('duel.specials.label')}</legend>
                             <div className="bc-seg segmented">
@@ -583,14 +606,15 @@ function Lobby({ head }: { head: ReactElement<{ title?: string; tag?: string }> 
     const sent = useFriends((f) => f.challengeSent);
     // Time pronto sem time pra levar (quem entrou pelo link num save novo): o Pronto travaria a sala na escolha do time
     const hasTeam = useHasReadyTeam();
-    const noTeam = s.mode === 'ready' && !hasTeam;
+    const utTeam = useGame((g) => canPlay(g.ultimate));
+    const noTeam = s.ut ? !utTeam : s.mode === 'ready' && !hasTeam;
     // o título da sala e as regras na placa de cima (soltos em cima da quadra, sem placa, ficavam perdidos)
     const rules = [
-        d.duel.modes[s.mode][0],
+        s.ut ? d.duel.ut.name : d.duel.modes[s.mode][0],
         speedLabel(s.speed, t('match.highlights')),
         durationOf(s) === 'short' && d.duel.durations.short,
         bestOfOf(s) === 3 && d.duel.bestOf[3],
-        s.mode === 'ready' && specialRuleText(specialLimitOf(s), t),
+        s.mode === 'ready' && !s.ut && specialRuleText(specialLimitOf(s), t),
     ];
     return (
         <DuelStage
@@ -630,7 +654,7 @@ function Lobby({ head }: { head: ReactElement<{ title?: string; tag?: string }> 
                 ))}
             </div>
             <VersionBanner s={s} />
-            {noTeam && <p className="error-text small">{t('duel.noTeam')}</p>}
+            {noTeam && <p className="error-text small">{s.ut ? t('duel.ut.noTeam') : t('duel.noTeam')}</p>}
             {local && <p className="muted small duel-local">{t('duel.lobby.local')}</p>}
         </DuelStage>
     );

@@ -55,6 +55,12 @@ export const duel: typeof pt = {
     room: 'Room {code}',
     noTeam: 'Play a cup or pick Snake draft or Own packs.',
     noTeamShort: 'no team',
+    ut: {
+        name: 'Team Ultimate',
+        rule: 'Each player brings their Team Ultimate squad: starters, bench, formation and captain. Friendly, no rewards.',
+        team: 'Your Team Ultimate squad',
+        noTeam: 'Pick your 5 starters in Team Ultimate to play this mode.',
+    },
     join: { label: 'Got a room code?', go: 'Join' },
     entry: {
         kicker: 'Room {code}',

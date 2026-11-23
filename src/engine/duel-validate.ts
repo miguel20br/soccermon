@@ -98,8 +98,11 @@ export function teamRecipe(t: TeamSetup): DuelTeamRecipe {
 
 const isStr = (v: unknown, max = 40): v is string => typeof v === 'string' && v.length <= max;
 
-/** Problemas de uma carta (receita) que veio de fora: vazio = é uma carta que uma copa poderia dar. */
-export function monProblems(m: DuelMonRecipe, where: string): string[] {
+/**
+ * Problemas de uma carta (receita) que veio de fora: vazio = é uma carta que uma copa poderia dar. `extraEvolved`:
+ * evoluções a mais que o modo deixa além das da linha (o Treino do Time Ultimate, que evolui sem mudar a espécie).
+ */
+export function monProblems(m: DuelMonRecipe, where: string, extraEvolved = 0): string[] {
     const out: string[] = [];
     const bad = (what: string) => out.push(`${where}: ${what}`);
     if (!m || typeof m !== 'object') return [`${where}: vazio`];
@@ -164,8 +167,8 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
         !(Array.isArray(m.inherited) && m.inherited.length <= 3 && m.inherited.every((x) => POSITIONS.includes(x)))
     )
         bad('posição herdada');
-    // evoluiu no máximo quantas vezes a linha dela deixa (Charizard: 2, Charmander: 0)
-    const depth = ancestors.length;
+    // evoluiu no máximo quantas vezes a linha dela deixa (Charizard: 2, Charmander: 0), mais o Treino do UT
+    const depth = ancestors.length + extraEvolved;
     if (m.evolved !== undefined && !(Number.isInteger(m.evolved) && m.evolved >= 0 && m.evolved <= depth))
         bad('evoluções');
     if (m.nickname != null && !isStr(m.nickname, 20)) bad('apelido');
@@ -177,7 +180,7 @@ export function monProblems(m: DuelMonRecipe, where: string): string[] {
  * repetir, nível padrão, habilidade da espécie, golpes do moveset dela ou de MT que ela aprende, item que existe e
  * edições possíveis, dentro do limite de cartas especiais da sala. Devolve a lista de problemas (vazia = válido).
  */
-export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null): string[] {
+export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null, extraEvolved = 0): string[] {
     const t = r as DuelTeamRecipe;
     if (!t || typeof t !== 'object') return ['time vazio'];
     const out: string[] = [];
@@ -189,7 +192,7 @@ export function validarTimeDuelo(r: unknown, specialLimit: SpecialLimit = null):
     if (!Array.isArray(t.bench) || t.bench.length > 2) return [...out, 'banco'];
     const all = [...t.lineup, ...t.bench];
     all.forEach((m, i) => {
-        out.push(...monProblems(m, `#${i + 1}`));
+        out.push(...monProblems(m, `#${i + 1}`, extraEvolved));
     });
     // o draft não repete espécie, mas a evolução repete (Charmander que vira o Charmeleon que já estava no time):
     // a cópia a mais tem que ter evoluído

@@ -21,6 +21,7 @@ import { UnlockNotice } from './ui/components/UnlockNotice';
 import { runDevDemo } from './ui/dev-demo';
 import { openPage } from './ui/doors';
 import { Duel, duelCodeFromUrl } from './ui/duel/Duel';
+import { readDuelUt } from './ui/duel/link';
 import { readHud } from './ui/hud-lab';
 import { DoorLayer } from './ui/kit/DoorWipe';
 import { MomentLayer } from './ui/kit/MomentWipe';
@@ -211,6 +212,8 @@ export default function App() {
     }, [screen]);
     // ?lab=hud (partida nova, revamp-ui §3.5): guarda na aba já na entrada, a partida lê depois
     useState(readHud);
+    // ?lab=duelo-ut (Duelo com o time do UT, só dev e prévias): guarda na aba antes de a sala trocar a URL
+    useState(readDuelUt);
     const [cards, setCards] = useState(
         () => __SMOKE__ && new URLSearchParams(window.location.search).get('cards') === '1',
     );

@@ -292,6 +292,7 @@ class DuelSession {
         duration: DuelDuration = 'normal',
         agency = false,
         bestOf: DuelBestOf = 1,
+        ut = false,
     ): Promise<string> {
         const room = roomCode((n) => {
             const b = new Uint32Array(1);
@@ -308,6 +309,7 @@ class DuelSession {
             duration,
             agency,
             bestOf,
+            ut,
         );
         this.kept = { role: 'host', shared, tops: {} };
         writeKept(room, peer.id, this.kept);

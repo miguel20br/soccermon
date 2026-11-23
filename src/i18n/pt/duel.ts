@@ -55,6 +55,13 @@ export const duel = {
     room: 'Sala {code}',
     noTeam: 'Jogue uma copa ou escolha Disputa ou Pacotes.',
     noTeamShort: 'sem time',
+    /** Duelo com o time do Time Ultimate (atrás de ?lab=duelo-ut). */
+    ut: {
+        name: 'Time Ultimate',
+        rule: 'Cada um entra com o time do Time Ultimate: titulares, banco, formação e capitão. Amistoso, sem prêmio.',
+        team: 'Seu time do Time Ultimate',
+        noTeam: 'Escale os 5 titulares no Time Ultimate pra jogar este modo.',
+    },
     join: { label: 'Tem um código de sala?', go: 'Entrar' },
     entry: {
         kicker: 'Sala {code}',
