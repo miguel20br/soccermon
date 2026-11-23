@@ -128,6 +128,7 @@ import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { safeStorage } from './save-health';
 import { screenTransition } from './screen-transition';
 import { dailyTitlesOf } from './trophies';
+import { sbcDeliver, sbcPlace, sbcRemove } from './ultimate/challenges';
 import { utNow } from './ultimate/clock';
 import {
     bridgePays,
@@ -521,6 +522,10 @@ export interface GameStore {
     /** Sem `uid`, resgata todos os prêmios. */
     ultimateRedeem(uid?: string): void;
     ultimateLock(uid: string): void;
+    /** Desafios de Montagem (src/store/ultimate/challenges.ts): pôr, tirar e entregar. */
+    ultimateSbcPlace(id: string, uid: string): void;
+    ultimateSbcRemove(id: string, uid: string): void;
+    ultimateSbcDeliver(id: string): void;
     /** Duelos amistosos (só no save), do mais recente ao mais antigo. */
     duels: DuelRecord[];
     recordDuel(rec: DuelRecord): void;
@@ -1465,6 +1470,9 @@ export const useGame = create<GameStore>()(
                 ultimateSwap: (uid) => setState({ ultimate: swapPending(getState().ultimate, uid) }),
                 ultimateRedeem: (uid) => setState({ ultimate: redeem(getState().ultimate, uid) }),
                 ultimateLock: (uid) => setState({ ultimate: toggleLock(getState().ultimate, uid) }),
+                ultimateSbcPlace: (id, uid) => setState({ ultimate: sbcPlace(getState().ultimate, id, uid) }),
+                ultimateSbcRemove: (id, uid) => setState({ ultimate: sbcRemove(getState().ultimate, id, uid) }),
+                ultimateSbcDeliver: (id) => setState({ ultimate: sbcDeliver(getState().ultimate, id) }),
                 ultimateSeen: () => {
                     const u = getState().ultimate;
                     if (u.last && !u.last.seen) setState({ ultimate: { ...u, last: { ...u.last, seen: true } } });

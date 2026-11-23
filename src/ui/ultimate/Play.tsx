@@ -21,6 +21,7 @@ import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { Sheet } from '../kit/Sheet';
 import { simulateMatch } from '../sim-client';
+import { Challenges } from './Challenges';
 import { CardBack } from './PickMoment';
 import { Gyms } from './Season';
 
@@ -81,8 +82,8 @@ export function useKick() {
     return { busy, error, kick };
 }
 
-/** Os modos que ainda não chegaram (equivalentes do FC: Rivals, Champions, Draft, SBC), na ordem da aba. */
-export const SOON = ['rivals', 'elite', 'draft', 'sbc'] as const;
+/** Os modos que ainda não chegaram (equivalentes do FC: Rivals, Champions, Draft), na ordem da aba. */
+export const SOON = ['rivals', 'elite', 'draft'] as const;
 type SoonMode = (typeof SOON)[number];
 
 export const trainer = (id: string) => <img key={id} className="pixel" src={`assets/trainers/${id}.png`} alt="" />;
@@ -96,14 +97,14 @@ export const SOON_ART: Record<SoonMode, ReactNode> = {
             ))}
         </span>
     ),
-    sbc: (
-        <span className="ut-mode-slots">
-            {[0, 1, 2, 3, 4].map((i) => (
-                <i key={i} />
-            ))}
-        </span>
-    ),
 };
+const SBC_ART = (
+    <span className="ut-mode-slots">
+        {[0, 1, 2, 3, 4].map((i) => (
+            <i key={i} />
+        ))}
+    </span>
+);
 
 /**
  * Aba Jogar (retorno do Miguel, 09/11: "a aba JOGAR, com todos os modos de jogo"): um cartão por modo, como o Jogar do
@@ -114,6 +115,7 @@ export function Play({ onPacks }: { onPacks: () => void }) {
     const { t, d, lang } = useT();
     const { u, home, ready, strength, rival, level, setLevel, paid } = useBattle();
     const [sheet, setSheet] = useState<'level' | 'gyms' | null>(null);
+    const [sbc, setSbc] = useState(false);
     const { busy, error, kick } = useKick();
     const start = () => {
         if (!rival) return;
@@ -129,6 +131,7 @@ export function Play({ onPacks }: { onPacks: () => void }) {
         void kick();
     };
     const art = u.live?.rival ?? rival;
+    if (sbc) return <Challenges onBack={() => setSbc(false)} />;
 
     return (
         <div className="ut-modes">
@@ -208,6 +211,20 @@ export function Play({ onPacks }: { onPacks: () => void }) {
                             <KantoBadge key={g.id} leader={g.id as TrainerId} earned={u.gyms.includes(g.id)} />
                         ))}
                     </span>
+                </button>
+            </section>
+            <section className="panel bc-surface ut-mode is-sbc">
+                <span className="ut-mode-art">{SBC_ART}</span>
+                <span className="ut-mode-text">
+                    <b className="ut-mode-name">{t('ultimate.modes.sbc.name')}</b>
+                    <small>{t('ultimate.modes.sbc.line')}</small>
+                    <span className="ut-mode-gives">
+                        <HudIcon kind="chest" />
+                        {t('ultimate.modes.sbc.gives')}
+                    </span>
+                </span>
+                <button type="button" className="btn wide" onClick={() => setSbc(true)}>
+                    {t('ultimate.sbc.open')}
                 </button>
             </section>
             {SOON.map((id) => (

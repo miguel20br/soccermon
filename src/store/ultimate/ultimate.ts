@@ -14,6 +14,7 @@ import { type Metal, metalOf } from '../../ui/rarity';
 import { lineupAverage } from '../../ui/rating';
 import { dailyDay } from '../daily';
 import type { RunState } from '../game-store';
+import { newSbc, sbcOf, sbcPlaced, type UtSbc } from './challenges';
 import { chemistry } from './chemistry';
 import { countEvos, evoPaths, evoReady, evoStep, evoSteps, evosOf, newEvo, type UtEvo } from './evolutions';
 import {
@@ -237,6 +238,8 @@ export interface UltimateSave {
     picks: UtPick[];
     /** Picks escolhidos (conta no progresso da nuvem x aparelho). */
     picked: number;
+    /** Desafios de Montagem: o que já foi posto em cada um e os entregues. */
+    sbc: UtSbc;
 }
 
 export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36), now = Date.now()): UltimateSave => ({
@@ -279,6 +282,7 @@ export const newUltimate = (salt = Math.floor(Math.random() * 1e9).toString(36),
     // o dia 1 termina num Pick 1 de 5, como no FC ("Seu primeiro craque")
     picks: [{ ...FIRST_PICK, uid: 'start', from: 'start', ref: '' }],
     picked: 0,
+    sbc: newSbc(),
 });
 
 const num = (v: unknown, max = Number.MAX_SAFE_INTEGER) =>
@@ -394,8 +398,14 @@ export function ultimateOf(raw: unknown): UltimateSave {
         // campo novo (09/11): sem ele (fatia da 0.9.43) nasce com o "Seu primeiro craque", como o save novo
         picks: Array.isArray(raw.picks) ? picksOf(raw.picks) : base.picks,
         picked: num(raw.picked),
+        // campo novo (0.9.54): a carta posta precisa existir no Clube ou nos Pendentes
+        sbc: sbcOf(raw.sbc, new Set([...uids, ...pendingUids(raw.pending)])),
     };
 }
+
+/** Uids das repetidas pendentes do save bruto. */
+const pendingUids = (raw: unknown) =>
+    Array.isArray(raw) ? raw.flatMap((p) => (isObj(p) && p.kind === 'card' && cardOk(p.card) ? [p.card.uid] : [])) : [];
 
 const PICK_FROM = ['start', 'gym', 'pass', 'shop', 'event'] as const;
 const METAL_IDS: readonly string[] = ['bronze', 'prata', 'ouro'];
@@ -1205,6 +1215,7 @@ export const sellFichas = (c: PokemonInstance) => REPEAT_FICHAS[metalOf(viewInst
 
 /** A carta `uid` pode ir na venda rápida: repetida dos Pendentes, ou do Clube fora do time, destrancada e sem Evolução. */
 export function canSell(u: UltimateSave, uid: string): boolean {
+    if (sbcPlaced(u).has(uid)) return false;
     if (u.pending.some((p) => p.kind === 'card' && p.card.uid === uid)) return true;
     return (
         u.cards.some((c) => c.uid === uid) &&

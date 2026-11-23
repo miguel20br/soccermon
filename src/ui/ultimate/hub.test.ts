@@ -40,14 +40,16 @@ describe('Time Ultimate abre no Início', () => {
 });
 
 describe('aba Jogar', () => {
-    it('Batalhas de Treinador liberado; Rivais, Elite dos Quatro, Draft e Montagem trancados e sem botão', () => {
+    it('Batalhas de Treinador liberado; Montagem liberada; Rivais, Elite dos Quatro e Draft trancados e sem botão', () => {
         useGame.setState({ ultimate: newUltimate('teste', Date.UTC(2026, 10, 9, 15)) });
         const html = renderToStaticMarkup(createElement(Play, { onPacks: () => undefined }));
         const cards = html.split('<section').slice(1);
         expect(cards).toHaveLength(5);
         expect(cards[0]).toContain('is-battles');
         expect(cards[0]).toContain('<button');
-        for (const c of cards.slice(1)) {
+        expect(cards[1]).toContain('is-sbc');
+        expect(cards[1]).toContain('<button');
+        for (const c of cards.slice(2)) {
             expect(c).toContain('is-locked');
             expect(c.split('</section>')[0]).not.toContain('<button');
         }
