@@ -130,7 +130,7 @@ export const abilityAfterEvolution = (ability: string, into: number) =>
 export function evolveInstance(inst: PokemonInstance, into: number, role?: Position): PokemonInstance {
     const sp = species(into);
     const ability = abilityAfterEvolution(inst.ability, into);
-    const { moves, taught } = movesAfterEvolution(inst, sp);
+    const { moves, taught, picked } = movesAfterEvolution(inst, sp);
     const out: PokemonInstance = {
         ...inst,
         speciesId: into,
@@ -141,6 +141,8 @@ export function evolveInstance(inst: PokemonInstance, into: number, role?: Posit
     };
     if (taught.length) out.taught = taught;
     else delete out.taught;
+    if (picked.length) out.picked = picked;
+    else delete out.picked;
     if (role && !inst.inherited?.includes(role)) out.inherited = [...(inst.inherited ?? []), role];
     return out;
 }

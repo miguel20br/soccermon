@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { Position } from '../engine/attributes';
+import { chooseMoves as chooseMovesOf } from '../engine/choose-moves';
 import { buildCupOpponents } from '../engine/cup';
 import {
     FINAL_MATCH,
@@ -586,6 +587,8 @@ export interface GameStore {
     setTactic(t: Tactic): void;
     setCorner(patch: { cornerPlan?: CornerPlan; cornerTakerUid?: string | null }): void;
     moveItem(fromUid: string, toUid: string): void;
+    /** Escolher os golpes (`?lab=golpes-escolher`): só na escalação, antes de travar o time. */
+    chooseMoves(uid: string, moves: string[]): void;
     /**
      * Troca o capitão por outro titular, só na escalação antes da partida (no meio dela o motor não troca: a barra do
      * golpe máximo é do time e passaria cheia pro outro). A proteção do capitão (não sai do banco por reforço) vai junto.
@@ -1757,6 +1760,14 @@ export const useGame = create<GameStore>()(
                         return p;
                     });
                     updateRun({ picks });
+                },
+
+                chooseMoves: (uid, moves) => {
+                    const run = getState().run;
+                    if (run?.status !== 'lineup' || run.lockedTeam) return;
+                    const mon = run.picks.find((p) => p.uid === uid);
+                    const next = mon && chooseMovesOf(mon, moves);
+                    if (next) updateRun({ picks: run.picks.map((p) => (p.uid === uid ? next : p)) });
                 },
 
                 setCaptain: (uid) => {

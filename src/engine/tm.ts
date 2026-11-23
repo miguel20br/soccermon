@@ -140,10 +140,15 @@ export function teachMove(inst: PokemonInstance, move: string, slot: number): Po
  * Golpes depois de evoluir: o moveset padrão da forma nova, mantendo o que foi ensinado por MT (se a forma
  * nova aprende), de preferência na mesma vaga, nunca no lugar da assinatura.
  */
-export function movesAfterEvolution(inst: PokemonInstance, sp: Species): { moves: string[]; taught: string[] } {
+export function movesAfterEvolution(
+    inst: PokemonInstance,
+    sp: Species,
+): { moves: string[]; taught: string[]; picked: string[] } {
     const moves = defaultMoveset(sp).slice();
     const sig = SIGNATURE[sp.id];
-    const taught = (inst.taught ?? []).filter((m) => inst.moves.includes(m) && sp.learnset.includes(m));
+    const taught = [...(inst.taught ?? []), ...(inst.picked ?? [])].filter(
+        (m) => inst.moves.includes(m) && sp.learnset.includes(m),
+    );
     const locked = new Set<number>();
     const kept: string[] = [];
     for (const m of taught) {
@@ -167,7 +172,8 @@ export function movesAfterEvolution(inst: PokemonInstance, sp: Species): { moves
         locked.add(idx);
         kept.push(m);
     }
-    return { moves, taught: kept };
+    const isPicked = (m: string) => (inst.picked ?? []).includes(m);
+    return { moves, taught: kept.filter((m) => !isPicked(m)), picked: kept.filter(isPicked) };
 }
 
 /** MT oferecida na recompensa: a do ginásio vencido, se alguém aprende; senão uma do baú raro. */

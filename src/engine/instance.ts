@@ -36,6 +36,11 @@ export interface PokemonInstance {
      */
     taught?: string[];
     /**
+     * Golpes escolhidos pelo jogador (src/engine/choose-moves.ts, atrás de `?lab=golpes-escolher`), que também estão
+     * em `moves`; não são do moveset padrão nem de MT. Sobrevivem à evolução. Saves antigos não têm o campo.
+     */
+    picked?: string[];
+    /**
      * Barra de evolução acumulada na copa (pontos de `evoScore`): sobe a cada partida e zera quando ele evolui.
      * Só o seu time acumula; o rival começa do zero a cada jogo. Saves antigos não têm o campo.
      */

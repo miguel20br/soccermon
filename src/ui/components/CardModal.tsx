@@ -33,6 +33,7 @@ import {
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { type CardAction, useCardModal } from '../card-modal';
+import { escolherGolpesOn } from '../escolher-golpes-lab';
 import { Sheet } from '../kit/Sheet';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -41,6 +42,7 @@ import { FutCard } from './FutCard';
 import { LinkChip } from './LinkChips';
 import { HudIcon } from './MatchHud';
 import { MaxSpecialSection } from './MaxSpecial';
+import { MovePicker } from './MovePicker';
 import { TypeBadge } from './PokeCard';
 import { TaughtMark } from './TaughtMark';
 
@@ -136,7 +138,7 @@ export function CardModal() {
  * ações, que são da carta de baixo).
  */
 function CardBody({
-    inst,
+    inst: shown,
     position,
     captain,
     note,
@@ -160,6 +162,10 @@ function CardBody({
 }) {
     const run = useGame((s) => s.run);
     const dex = useGame((s) => s.dex);
+    // escolher golpes (?lab=golpes-escolher): a ficha segue a carta do time, que muda ao trocar de golpe
+    const canPick = !peek && escolherGolpesOn() && run?.status === 'lineup' && !run.lockedTeam;
+    const mine = canPick ? run?.picks.find((p) => p.uid === shown.uid) : undefined;
+    const inst = mine ?? shown;
     const { t, tn, d, lang } = useT();
     const view = viewInstance(inst);
     const sp = view.species;
@@ -409,6 +415,7 @@ function CardBody({
                     })}
                 </div>
 
+                {mine && <MovePicker inst={mine} />}
                 <MaxSpecialSection moves={inst.moves} speciesId={inst.speciesId} gk={ovrRole === 'GK'} />
 
                 <h3>{t('team.modal.ability')}</h3>
