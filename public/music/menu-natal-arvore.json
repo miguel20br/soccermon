@@ -1,0 +1,38 @@
+{
+ "faixa": "menu-natal-arvore",
+ "titulo": "Menu de Natal: Luzes da árvore (Deck the Halls em soul-jazz)",
+ "tela": "Home (Natal, 30/11 a 06/01)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 130,
+ "secoes": [
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 0,
+   "fim": 130,
+   "amostras": [
+    0,
+    5733000
+   ],
+   "bpm": 96,
+   "compassos": 52
+  }
+ ],
+ "swing": 0.3,
+ "swingEm": 8,
+ "gancho": {
+  "hits": [
+   [
+    115,
+    115.469,
+    116.031
+   ],
+   [
+    120,
+    120.469,
+    121.031
+   ]
+  ]
+ }
+}

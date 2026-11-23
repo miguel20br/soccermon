@@ -32,7 +32,7 @@ export function ganchosDe(song, { notas = false } = {}) {
     const fileSec = arquivo(song);
     const starts = new Map();
     for (const p of song.parts) {
-        if (p.drum || typeof p.inst === 'function' || !p.rec) continue;
+        if (p.drum || (typeof p.inst === 'function' && !p.melodica) || !p.rec) continue;
         // linha → { nota: duração }
         const at = new Map();
         for (const [t, m, len] of p.rec) {
@@ -65,6 +65,8 @@ export const FAIXAS = {
     'menu-balanco': ['menu-balanco'],
     'menu-neon': ['menu-neon'],
     'menu-natal': ['menu-natal'],
+    'menu-natal-treno': ['menu-natal-treno'],
+    'menu-natal-arvore': ['menu-natal-arvore'],
     campeao: ['campeao'],
     cerulean: ['extra-cerulean'],
     derrota: ['derrota'],
@@ -80,6 +82,8 @@ export const FAIXAS = {
     'partida-brock-2t': ['partida-brock', '2t'],
     'partida-misty-1t': ['partida-misty', '1t'],
     'partida-misty-2t': ['partida-misty', '2t'],
+    'partida-natal-1t': ['partida-natal', '1t'],
+    'partida-natal-2t': ['partida-natal', '2t'],
     'partida-rocket-1t': ['partida-rocket', '1t'],
     'partida-rocket-2t': ['partida-rocket', '2t'],
     'penaltis-espera': ['penaltis', 'espera'],

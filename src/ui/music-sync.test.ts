@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { buildCupMap } from '../engine/cup-map';
 import type { MatchEvent } from '../engine/state';
 import type { useGame } from '../store/game-store';
-import { matchMusic, moveOf, penaltyMusic, trackOf } from './music-sync';
+import { matchMusic, menuNatalOf, moveOf, penaltyMusic, trackOf } from './music-sync';
 
 const music = vi.hoisted(() => ({ played: [] as [string | null, string | undefined][] }));
 vi.mock('../game/music', async (orig) => ({
@@ -76,11 +76,37 @@ describe('música por tela', () => {
         expect(trackOf(st('trophies', {}), 'neon')).toBe('sala');
     });
 
-    it('Natal: o menu toca a Noite Feliz (menu-natal); o resto não muda', () => {
-        expect(trackOf(st('home', {}), 'natal')).toBe('menu-natal');
-        expect(trackOf(st('profile', {}), 'natal')).toBe('menu-natal');
-        expect(trackOf(st('draft', {}), 'natal')).toBe('draft');
+    it('Natal: o menu toca a faixa de Natal da sessão (rodízio das 3); o resto não muda', () => {
+        expect(trackOf(st('home', {}), 'natal')).toBe('menu-natal'); // nos testes o contador não roda: a 1ª
+        expect(trackOf(st('profile', {}), 'natal', 'menu-natal-treno')).toBe('menu-natal-treno');
+        expect(trackOf(st('home', {}), 'natal', 'menu-natal-arvore')).toBe('menu-natal-arvore');
+        expect(trackOf(st('draft', {}), 'natal', 'menu-natal-treno')).toBe('draft');
         expect(trackOf(st('trophies', {}), 'natal')).toBe('sala');
+        // fora do Natal a faixa da sessão não vale
+        expect(trackOf(st('home', {}), null, 'menu-natal-treno')).toBe('menu-balanco');
+        expect(trackOf(st('home', {}), 'neon', 'menu-natal-treno')).toBe('menu-neon');
+        expect([0, 1, 2, 3, 4].map(menuNatalOf)).toEqual([
+            'menu-natal',
+            'menu-natal-treno',
+            'menu-natal-arvore',
+            'menu-natal',
+            'menu-natal-treno',
+        ]);
+    });
+
+    it('Natal: a partida padrão vira a de Natal (mesmos trechos); líderes e fora do Natal não mudam', () => {
+        music.played.length = 0;
+        const rival = { opponent: 'Vermilion Voltagem', half: 1, minute: 0, pressure: false };
+        matchMusic(rival, 'natal');
+        matchMusic({ ...rival, half: 2, minute: 18, pressure: true }, 'natal');
+        matchMusic({ ...rival, opponent: 'Pewter Rochedo' }, 'natal');
+        matchMusic(rival, null);
+        expect(music.played).toEqual([
+            ['partida-natal-1t', 'nivel1'],
+            ['partida-natal-2t', 'pressao'],
+            ['partida-brock-1t', 'nivel1'],
+            ['partida-1t', 'nivel1'],
+        ]);
     });
 
     it('Pressão final: começou, fica até o apito mesmo com o placar empatado', () => {

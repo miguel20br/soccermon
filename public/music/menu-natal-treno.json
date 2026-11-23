@@ -1,0 +1,45 @@
+{
+ "faixa": "menu-natal-treno",
+ "titulo": "Menu de Natal: Trenó (Jingle Bells em funk)",
+ "tela": "Home (Natal, 30/11 a 06/01)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 16,
+ "duracao": 120,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4.285714,
+   "amostras": [
+    0,
+    189000
+   ],
+   "bpm": 112,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4.285714,
+   "fim": 120,
+   "amostras": [
+    189000,
+    5292000
+   ],
+   "bpm": 112,
+   "compassos": 54
+  }
+ ],
+ "swing": 0.1,
+ "swingEm": 16,
+ "gancho": {
+  "hits": [
+   [
+    115.714,
+    116.129,
+    116.518
+   ]
+  ]
+ }
+}

@@ -2,6 +2,8 @@ import { afterAll, describe, expect, it } from 'vitest';
 // @ts-expect-error módulo .mjs sem tipos
 import { ganchosDe, ritmoDe } from './ganchos.mjs';
 // @ts-expect-error módulo .mjs sem tipos
+import { voz } from './pecas/lider-koga.mjs';
+// @ts-expect-error módulo .mjs sem tipos
 import { GANCHO, I, MAJOR, mel, Song, thirdBelow } from './synth.mjs';
 
 Song.recording = true;
@@ -49,5 +51,17 @@ describe('mapa do SOC-CER-MON (ganchos.mjs)', () => {
                 [8, 120],
             ],
         });
+    });
+
+    it('acha o gancho nas vozes feitas à mão (trombone e trompete do kit), e não nas amostras', () => {
+        const S = new Song({ bpm: 120, bars: 1 });
+        const tb = voz(S, 'trombone', (f: number) => (t: number) => Math.sin(6.283 * f * t));
+        mel(tb, 0, [GANCHO.em({ tom: -1 })]);
+        mel(
+            S.part('amostra', () => new Float32Array(10)),
+            0,
+            [GANCHO.bar],
+        );
+        expect(ganchosDe(S)).toEqual([[0, 0.375, 0.75]]);
     });
 });

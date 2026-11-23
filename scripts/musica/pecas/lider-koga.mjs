@@ -51,6 +51,7 @@ export function voz(S, nome, faz, opts = {}, { pk = 0.5, solta = 0.15 } = {}) {
         },
         opts,
     );
+    P.melodica = true; // o `ganchos.mjs` procura o SOC-CER-MON nela (as outras faixas de função são amostras)
     const note = P.note;
     P.note = (t, m, len = 1, v = 1) => {
         seg = len * S.rowAt(Math.floor(t / S.barLen));

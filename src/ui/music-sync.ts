@@ -3,6 +3,7 @@ import { type MapRegion, nodeById, regionOfRow, rivalTrainer } from '../engine/c
 import type { MatchEvent } from '../engine/state';
 import { type Move, playMusic, startMusicLifecycle, type TrackId } from '../game/music';
 import { type Screen, useGame } from '../store/game-store';
+import { readCount, writeCount } from './local-count';
 import { type Tema, tema } from './tema';
 
 /** Faixa de cada tela (sem entrada = silêncio). A partida escolhe a dela por `matchMusic`. */
@@ -78,18 +79,38 @@ export function penaltyMusic(events: readonly MatchEvent[], tick: number): 'espe
 let pressaoFica = false;
 
 /**
- * Partida: faixa do rival e do tempo, trecho pela intensidade (cada tempo acelera até o fim; 2º tempo tem Pressão final).
- * Na apresentação (VERSUS) toca o tema do líder, se tiver; no apito final, o trecho `fim`.
+ * Menu do Natal (30/11 a 06/01): três faixas, uma por sessão, em rodízio (a próxima cada vez que o jogo abre, contada
+ * só neste navegador): a Noite Feliz (balada 6/8), o Trenó (Jingle Bells em funk de metais) e as Luzes da árvore (Deck
+ * the Halls em soul-jazz de órgão).
  */
-export function matchMusic(m: {
-    half: number;
-    minute: number;
-    pressure: boolean;
-    opponent?: string;
-    intro?: boolean;
-    ended?: boolean;
-    penaltis?: 'espera' | 'ganhou' | 'perdeu' | null;
-}) {
+export const MENU_NATAL = ['menu-natal', 'menu-natal-treno', 'menu-natal-arvore'] as const satisfies readonly TrackId[];
+export const menuNatalOf = (sessao: number): TrackId => MENU_NATAL[sessao % MENU_NATAL.length];
+const SESSAO_NATAL = 'soccermon-menu-natal';
+function proximaSessaoNatal() {
+    const n = readCount(SESSAO_NATAL) ?? 0;
+    writeCount(SESSAO_NATAL, n + 1);
+    return n;
+}
+// lido uma vez ao abrir (só no Natal: fora dele o contador nem é tocado)
+const menuNatal = tema === 'natal' ? menuNatalOf(proximaSessaoNatal()) : MENU_NATAL[0];
+
+/**
+ * Partida: faixa do rival e do tempo, trecho pela intensidade (cada tempo acelera até o fim; 2º tempo tem Pressão final).
+ * Na apresentação (VERSUS) toca o tema do líder, se tiver; no apito final, o trecho `fim`. No Natal, a partida padrão
+ * vira a de Natal (mesmos trechos e andamentos).
+ */
+export function matchMusic(
+    m: {
+        half: number;
+        minute: number;
+        pressure: boolean;
+        opponent?: string;
+        intro?: boolean;
+        ended?: boolean;
+        penaltis?: 'espera' | 'ganhou' | 'perdeu' | null;
+    },
+    theme: Tema = tema,
+) {
     const move = entrada;
     entrada = undefined;
     if (m.penaltis) return playMusic(`penaltis-${m.penaltis}`, undefined, move);
@@ -100,16 +121,22 @@ export function matchMusic(m: {
     const h = FUTSAL_5.displayHalfMinutes;
     const k = (m.minute - (m.half - 1) * h) / h;
     const nivel = k < 1 / 3 ? 'nivel1' : k < 2 / 3 ? 'nivel2' : 'nivel3';
-    const id = `partida-${own ? `${own}-` : ''}${m.half === 2 ? '2t' : '1t'}` as TrackId;
+    // no Natal a partida padrão toca a de Natal (guizos, sinos, caixinha); as dos líderes não mudam
+    const quem = own ? `${own}-` : theme === 'natal' ? 'natal-' : '';
+    const id = `partida-${quem}${m.half === 2 ? '2t' : '1t'}` as TrackId;
     playMusic(id, m.ended ? 'fim' : pressaoFica ? 'pressao' : nivel, move);
 }
 
 /**
  * Faixa da tela. Resultado: campeão, eliminado da copa, ou a vinheta da vitória ou da derrota da partida. Mapa da Rota
  * (e as paradas dele): a região da próxima linha no mapa, a da casa atual no Evento e no Treino. No tema neon
- * (`neon`, a Semana Fora da Lei), o menu toca a `menu-neon`; no Natal, a `menu-natal` ("Noite Feliz").
+ * (`neon`, a Semana Fora da Lei), o menu toca a `menu-neon`; no Natal, a do rodízio da sessão (`MENU_NATAL`).
  */
-export function trackOf(s: ReturnType<typeof useGame.getState>, theme: Tema = tema): TrackId | null {
+export function trackOf(
+    s: ReturnType<typeof useGame.getState>,
+    theme: Tema = tema,
+    natal: TrackId = menuNatal,
+): TrackId | null {
     const run = s.run;
     if (s.screen === 'result') {
         if (run?.status === 'champion') return 'campeao';
@@ -124,9 +151,9 @@ export function trackOf(s: ReturnType<typeof useGame.getState>, theme: Tema = te
         return REGION_TRACK[regionOfRow(row).id] ?? 'estrada-da-vitoria';
     }
     const t = TRACK[s.screen] ?? null;
-    // Semana Fora da Lei: o menu toca a Conversível (aprovada em 17/11) no lugar do Só o balanço; no Natal, a Noite Feliz
+    // Semana Fora da Lei: o menu toca a Conversível (aprovada em 17/11) no lugar do Só o balanço; no Natal, a da sessão
     if (t !== 'menu-balanco' || !theme) return t;
-    return theme === 'neon' ? 'menu-neon' : 'menu-natal';
+    return theme === 'neon' ? 'menu-neon' : natal;
 }
 
 /** Liga a música às telas (uma vez, no início do app). A partida (`Match.tsx`) cuida da própria faixa. */
