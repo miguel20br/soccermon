@@ -45,7 +45,7 @@ function shown(inst: PokemonInstance) {
     const html = renderToStaticMarkup(createElement(PokeCard2, { inst, variant: 'metal' })).replace(/<!-- -->/g, '');
     const stats = html.slice(html.indexOf('m-stats'));
     const out: Partial<Record<AttrKey, { v: number; mod: number }>> = {};
-    for (const m of stats.matchAll(/<b>(\d+)<\/b><i>([^<]+)<\/i>(?:<em[^>]*>([▲▼])(\d+)<\/em>)?/g)) {
+    for (const m of stats.matchAll(/<b[^>]*>(\d+)<\/b><i>([^<]+)<\/i>(?:<em[^>]*>([▲▼])(\d+)<\/em>)?/g)) {
         out[ATTR_OF[m[2]]] = { v: Number(m[1]), mod: m[3] ? (m[3] === '▲' ? 1 : -1) * Number(m[4]) : 0 };
     }
     return out;
@@ -86,5 +86,15 @@ describe('Eviolite', () => {
         expect(attributeModifiers(bulba).find((m) => m.ref === 'eviolite')?.factor).toBe(1.3);
         expect(Object.values(shown(bulba)).every((s) => s.mod > 0)).toBe(true);
         expect(attributeModifiers(sample(3, { item: 'eviolite' })).some((m) => m.ref === 'eviolite')).toBe(false);
+    });
+    it('a nota da carta já conta a pedra e o selo de evolução some (Miguel, 23/11)', () => {
+        const ovr = (inst: PokemonInstance) => {
+            const html = renderToStaticMarkup(createElement(PokeCard2, { inst, variant: 'metal' }));
+            return { n: Number(html.match(/m-ovr[^>]*>(\d+)</)?.[1]), evo: html.includes('m-evo') };
+        };
+        const sem = ovr(sample(67));
+        const com = ovr(sample(67, { item: 'eviolite' }));
+        expect(com.n).toBeGreaterThan(sem.n);
+        expect([sem.evo, com.evo]).toEqual([true, false]);
     });
 });
