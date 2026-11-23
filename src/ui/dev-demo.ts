@@ -76,6 +76,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
+ * `?demo=comemoracao&sp=54|143|129|94|25` abre na escalação a 3 s de um gol dessa espécie (a comemoração própria).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
  * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
  * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
@@ -132,6 +133,7 @@ export function runDevDemo() {
         demo !== 'maximo' &&
         demo !== 'bicuda' &&
         demo !== 'virada' &&
+        demo !== 'comemoracao' &&
         demo !== 'charanga' &&
         demo !== 'sala' &&
         demo !== 'final' &&
@@ -1186,6 +1188,45 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: goal.tick - 80, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: o rival abre o placar no tick ${goal.tick}`);
+            return;
+        }
+        return;
+    }
+    // ?demo=comemoracao&sp=54|143|129|94|25[&shiny=1]: a escalação a 3 s de um gol dessa espécie (a comemoração própria:
+    // Psyduck, Snorlax, Magikarp, Gengar, Pikachu). Ela joga nas 3 vagas de linha da frente (o Magikarp quase não marca).
+    if (demo === 'comemoracao') {
+        const q = new URLSearchParams(window.location.search);
+        const sp = Number(q.get('sp') ?? 54);
+        const shiny = q.get('shiny') === '1';
+        for (let k = 0; k < 400; k++) {
+            store.newRun('Demo FC', `com${sp}-${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`com${sp}-${k}`, 'demo');
+            const lineup = [95, 68, sp, sp, sp].map((id) => ({
+                ...createInstance(id, rng),
+                ...(shiny ? { shiny } : {}),
+            }));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const goal = r.events.find(
+                (e) => e.type === 'goal' && e.team === 0 && !e.ownGoal && r.roster[e.by]?.speciesId === sp,
+            );
+            if (!goal) continue;
+            const live = { stage: 0, orders: [], tick: Math.max(1, goal.tick - 60), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] comemoração ${sp}: gol no tick ${goal.tick} (${run.seed})`);
             return;
         }
         return;
