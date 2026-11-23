@@ -1,5 +1,17 @@
 # Novidades
 
+## 0.9.53.1 · Comemorações próprias e cut-in de dupla (2026-11-23)
+
+### Partida
+- Comemoração de gol própria pra 5 espécies: Psyduck, Snorlax, Magikarp, Gengar e Pikachu
+- Combo de sinergia com cut-in de dupla: os retratos dos dois entram de lados opostos e se cruzam
+- Drible com nome em câmera lenta e com zoom também em 2x, 4x e 8x (antes só na 1x)
+
+### Time Ultimate (abre em 27/11)
+- Loja com a arte dos pacotes; Abrir todos é o botão principal
+- Metas numa trilha de marcos, com grupos que fecham
+- Elenco com a química à vista: tocar num Pokémon destaca os parceiros e mostra o porquê
+
 ## 0.9.53 · Eviolite e reforço no lugar do titular (2026-11-23)
 
 ### Itens

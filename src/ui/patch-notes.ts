@@ -9,6 +9,29 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.1',
+        date: '2026-11-23',
+        title: 'Comemorações próprias e cut-in de dupla',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Comemoração de gol própria pra 5 espécies: Psyduck, Snorlax, Magikarp, Gengar e Pikachu',
+                    'Combo de sinergia com cut-in de dupla: os retratos dos dois entram de lados opostos e se cruzam',
+                    'Drible com nome em câmera lenta e com zoom também em 2x, 4x e 8x (antes só na 1x)',
+                ],
+            },
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'Loja com a arte dos pacotes; Abrir todos é o botão principal',
+                    'Metas numa trilha de marcos, com grupos que fecham',
+                    'Elenco com a química à vista: tocar num Pokémon destaca os parceiros e mostra o porquê',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.53',
         date: '2026-11-23',
         title: 'Eviolite e reforço no lugar do titular',
@@ -3045,6 +3068,29 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.1',
+        date: '2026-11-23',
+        title: 'Signature celebrations and duo cut-ins',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Signature goal celebrations for 5 species: Psyduck, Snorlax, Magikarp, Gengar and Pikachu',
+                    'Synergy combos get a duo cut-in: both portraits slide in from opposite sides and cross',
+                    'Named dribbles in slow motion with zoom at 2x, 4x and 8x too (before, only at 1x)',
+                ],
+            },
+            {
+                title: 'Team Ultimate (opens Nov 27)',
+                lines: [
+                    'Shop shows the pack art; Open all is the main button',
+                    'Goals on a milestone track, with groups that close',
+                    'Squad with chemistry in sight: tap a Pokémon to highlight its partners and see why',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.53',
         date: '2026-11-23',
