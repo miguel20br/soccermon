@@ -285,6 +285,30 @@ export function comemoracaoOf(speciesId: number): Comemoracao {
     return 'pulo';
 }
 
+/**
+ * Comemoração própria de 5 espécies (docs/planos/pesquisas/sinergias-e-animacoes.md, item 9): passa por cima do jeito
+ * da forma só no gol da quadra. Vale pra shiny e edições (sai da espécie).
+ */
+export type ComemoracaoEspecie = 'psyduck' | 'snorlax' | 'magikarp' | 'gengar' | 'pikachu';
+const DA_ESPECIE: Record<number, ComemoracaoEspecie> = {
+    25: 'pikachu',
+    54: 'psyduck',
+    94: 'gengar',
+    129: 'magikarp',
+    143: 'snorlax',
+};
+export const golCelebOf = (speciesId: number): Comemoracao | ComemoracaoEspecie =>
+    DA_ESPECIE[speciesId] ?? comemoracaoOf(speciesId);
+
+/** Snorlax: deita (gira o corpo no pé, como o tombo) e levanta antes do motor soltar. */
+export const SNORLAX = { down: 280, lie: 760, up: 2020, stand: 2380, rot: 1.45 } as const;
+/** Magikarp: 4 pulos no lugar, virando de lado a cada um (o Splash). */
+const MAGIKARP = { hops: 4, h: 22, air: 330 } as const;
+/** Gengar: afunda no chão, fica embaixo e volta esticando; depois ri pulando. */
+export const GENGAR = { sink: 760, under: 1150, rise: 1450 } as const;
+/** Pikachu: junta carga até `zap` (ms) e solta o raio pro céu (o raio é desenhado pela cena). */
+export const PIKA_ZAP = 420;
+
 /** Quanto dura a comemoração do gol (o `Action.Celebrate` de 2,5 s do motor). */
 export const GOAL_CELEB_MS = 2500;
 /** Giro: 2 voltas inteiras (16 passos de direção) que aceleram e freiam, e depois pula de frente. */
@@ -303,6 +327,8 @@ interface CelebBody {
     sy: number;
     /** Altura do corpo acima do chão (px; a sombra fica no chão). */
     lift: number;
+    /** Giro do corpo no pé (rad; só as comemorações da espécie: o Snorlax deita, o Psyduck balança). */
+    rot?: number;
 }
 
 const bump = (u: number) => (u <= 0 || u >= 1 ? 0 : Math.sin(Math.PI * u));
@@ -335,13 +361,67 @@ const squashOf = (k: number) => ({ sx: 1 + 0.15 * k, sy: 1 - 0.2 * k });
  * stretch do corpo (1 = normal); `lift` = altura do pulo (px).
  */
 export function goalCelebPose(
-    kind: Comemoracao,
+    kind: Comemoracao | ComemoracaoEspecie,
     ms: number,
     facing: number,
 ): { anim: string; facing: number } & CelebBody {
     const t = Math.max(0, ms);
     const H = CELEB_HOP;
     const still = { sx: 1, sy: 1, lift: 0 };
+    const easeOut = (u: number) => 1 - (1 - Math.min(1, Math.max(0, u))) ** 3;
+    if (kind === 'psyduck') {
+        // segura a cabeça (Hurt em loop, a cena repete) balançando de um lado pro outro; o "?" é da cena
+        return {
+            anim: 'Hurt',
+            facing: 0,
+            ...still,
+            rot: 0.16 * Math.max(0, Math.min(1, t / 250, (GOAL_CELEB_MS - t) / 250)) * Math.sin(t / 140),
+        };
+    }
+    if (kind === 'snorlax') {
+        const S = SNORLAX;
+        if (t < S.down)
+            return { anim: 'Idle', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / S.down))) };
+        // tomba de lado, assenta (amassa) no chão e levanta no fim
+        const k = t < S.up ? easeOut((t - S.down) / (S.lie - S.down)) : 1 - easeOut((t - S.up) / (S.stand - S.up));
+        const land = bump((t - S.lie) / 200);
+        return { anim: 'Idle', facing: 0, sx: 1 + 0.12 * land, sy: 1 - 0.1 * land, lift: 0, rot: S.rot * k };
+    }
+    if (kind === 'magikarp') {
+        const per = MAGIKARP.air + H.land;
+        const n = Math.floor(t / per);
+        const body = n < MAGIKARP.hops ? hop(t, n * per, MAGIKARP.h, MAGIKARP.air, H.squash) : null;
+        return { anim: 'Hop', facing: n % 2 ? 6 : 2, ...(body ?? still) };
+    }
+    if (kind === 'gengar') {
+        const G = GENGAR;
+        if (t < POP_MS) return { anim: 'Idle', facing: 0, ...(crouch(t, POP_MS, POP_MS) ?? still) };
+        // afunda: encolhe pro pé e alarga (a sombra fica, como um buraco)
+        if (t < G.under) {
+            const k = Math.min(1, (t - POP_MS) / (G.sink - POP_MS)) ** 2;
+            return { anim: 'Idle', facing: 0, sx: 1 + 0.35 * k, sy: Math.max(0.02, 1 - k), lift: 0 };
+        }
+        // volta esticando (passa um pouco do tamanho) e ri pulando
+        if (t < G.rise) {
+            const u = (t - G.under) / (G.rise - G.under);
+            return {
+                anim: 'Pose',
+                facing: 0,
+                sx: 1.35 - 0.35 * easeOut(u),
+                sy: 0.02 + 0.98 * easeOut(u) + 0.15 * bump(u),
+                lift: 0,
+            };
+        }
+        const body =
+            hop(t, G.rise + 40, 16, 260, H.squash2) ?? hop(t, G.rise + 40 + 260 + H.land + 30, 12, 230, H.squash2);
+        return { anim: 'Pose', facing: 0, ...(body ?? still) };
+    }
+    if (kind === 'pikachu') {
+        if (t < PIKA_ZAP)
+            return { anim: 'Charge', facing: 0, lift: 0, ...squashOf(Math.sin((Math.PI / 2) * (t / PIKA_ZAP))) };
+        const body = hop(t, PIKA_ZAP, 14, 260, H.squash);
+        return { anim: 'Pose', facing: 0, ...(body ?? still) };
+    }
     if (kind === 'giro') {
         const u = Math.min(1, t / GIRO_MS);
         // ease in-out (seno): os passos ficam mais juntos no meio da volta

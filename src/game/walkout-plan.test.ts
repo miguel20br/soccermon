@@ -9,6 +9,7 @@ import {
     FX_TYPES,
     GOAL_CELEB_MS,
     goalCelebPose,
+    golCelebOf,
     JOGADAS,
     jogadaOf,
     planBeats,
@@ -201,6 +202,29 @@ describe('plano do walkout', () => {
             expect(high, kind).toBeGreaterThan(12);
             // amassa na aterrissagem (~35%, o reforço)
             expect(flat, kind).toBeLessThan(0.7);
+        }
+    });
+
+    it('comemoração própria de 5 espécies (vale pra shiny: sai da espécie); o resto segue o jeito da forma', () => {
+        expect([25, 54, 94, 129, 143].map(golCelebOf)).toEqual(['pikachu', 'psyduck', 'gengar', 'magikarp', 'snorlax']);
+        expect(golCelebOf(150)).toBe('pose');
+        // Psyduck segura a cabeça; Snorlax deitado no meio e de pé no fim; Magikarp pula virando de lado
+        expect(goalCelebPose('psyduck', 1000, 3).anim).toBe('Hurt');
+        expect(goalCelebPose('snorlax', 1400, 3).rot).toBeGreaterThan(1.3);
+        expect(goalCelebPose('snorlax', GOAL_CELEB_MS - 1, 3).rot).toBe(0);
+        const karp = Array.from({ length: 40 }, (_, i) => goalCelebPose('magikarp', i * 50, 0));
+        expect(Math.max(...karp.map((p) => p.lift))).toBeGreaterThan(12);
+        expect(new Set(karp.map((p) => p.facing))).toEqual(new Set([2, 6]));
+        // Gengar some no chão e volta inteiro; Pikachu solta o raio na Pose
+        expect(goalCelebPose('gengar', 1000, 0).sy).toBeLessThan(0.05);
+        expect(goalCelebPose('gengar', GOAL_CELEB_MS - 1, 0).sy).toBe(1);
+        expect(goalCelebPose('pikachu', 100, 0).anim).toBe('Charge');
+        expect(goalCelebPose('pikachu', 900, 0).anim).toBe('Pose');
+        // todas terminam em pé, sem giro, antes do motor soltar
+        for (const k of ['psyduck', 'snorlax', 'magikarp', 'gengar', 'pikachu'] as const) {
+            const end = goalCelebPose(k, GOAL_CELEB_MS - 1, 0);
+            expect([end.sx, end.sy, end.lift], k).toEqual([1, 1, 0]);
+            expect(Math.abs(end.rot ?? 0), k).toBeLessThan(0.2);
         }
     });
 });
