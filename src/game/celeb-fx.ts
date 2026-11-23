@@ -66,8 +66,8 @@ export const COINS = 8;
 export function coinAt(n: number, ms: number, s: number, floor: number): (Pt & { rest: boolean }) | null {
     const t0 = PAYDAY.toss + n * 45;
     if (ms < t0) return null;
-    const vx = (n % 2 ? 1 : -1) * (34 + 20 * (n >> 1)) * s; // px/s
-    const vy = (200 - 16 * (n >> 1)) * s;
+    const vx = (n % 2 ? 1 : -1) * (22 + 13 * (n >> 1)) * s; // px/s
+    const vy = (175 - 12 * (n >> 1)) * s;
     const grav = 640 * s;
     let u = (ms - t0) / 1000;
     const land = (vy + Math.sqrt(vy * vy + 2 * grav * floor)) / grav;
@@ -197,11 +197,15 @@ export function drawCeleb(c: CelebDraw) {
         case 'slowpoke': {
             const S = SLOWPOKE;
             if (ms < S.notice) {
-                const dots = S.dots.filter((d) => ms >= d).length;
-                if (dots)
-                    c.mark(0, '.'.repeat(dots), 16)
-                        .setPosition(head.x + 4 * s, head.y - 2 * s)
-                        .setAlpha(fade);
+                // os três pontinhos aparecem um a um do lado da cabeça (cada um com um quiquezinho)
+                S.dots.forEach((d, n) => {
+                    if (ms < d) return;
+                    const k = reduce ? 1 : backOut((ms - d) / 180);
+                    const x = head.x + (9 + 7 * n) * s;
+                    const y = head.y - (3 + 3 * n) * s;
+                    g.fillStyle(INK, 0.8 * fade).fillCircle(x, y, 3.3 * s * k);
+                    g.fillStyle(0xffffff, fade).fillCircle(x, y, 2.2 * s * k);
+                });
             } else if (ms < S.jump + 520) {
                 const k = reduce ? 1 : backOut((ms - S.notice) / 200);
                 c.mark(0, '!', 26, '#ffe14d')
@@ -214,7 +218,7 @@ export function drawCeleb(c: CelebDraw) {
         case 'meowth': {
             for (let n = 0; n < COINS; n++) {
                 // o chão de cada moeda: perto do pé, espalhado na profundidade
-                const floor = foot.y - head.y + ((n % 3) * 5 - 3) * s;
+                const floor = foot.y - head.y + ((n % 3) * 6 - 5) * s;
                 const p = coinAt(n, reduce ? 9000 : ms, s, floor);
                 const t0 = PAYDAY.toss + n * 45;
                 if (!p || ms < t0) continue;

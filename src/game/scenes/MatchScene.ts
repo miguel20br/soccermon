@@ -2986,13 +2986,15 @@ export class MatchScene extends Phaser.Scene {
             const t = ms - PIKA_ZAP;
             const flash = reduce ? (t < 700 ? 0 : -1) : t < 280 ? 0 : t >= 380 && t < 640 ? 1 : -1;
             if (flash >= 0) this.drawBolt(hx, hy - 2, flash, s);
-        } else
+        } else {
+            const bh = bodyHeight(view.skin) * sp.scaleY;
             drawCeleb({
                 kind,
                 ms,
-                head: { x: hx, y: hy },
+                // a altura do Idle (o quadro do Hop/Attack é maior e a cabeça pularia de lugar)
+                head: { x: sp.x + Math.sin(view.tilt) * bh, y: sp.y - Math.cos(view.tilt) * bh },
                 foot: { x: sp.x, y: sp.y },
-                hh,
+                hh: bh,
                 depth: sp.depth,
                 s,
                 reduce,
@@ -3006,6 +3008,7 @@ export class MatchScene extends Phaser.Scene {
                 },
                 rivals: () => this.headsNear(view, 2),
             });
+        }
     }
 
     /** As cabeças dos `max` rivais mais perto de `view` (até ~4 m), a mais perto primeiro (o rabisco da Jigglypuff). */
@@ -3017,9 +3020,8 @@ export class MatchScene extends Phaser.Scene {
             .sort((a, b) => a.d - b.d)
             .slice(0, max)
             .map(({ o }) => {
-                const sp = o.sprite;
-                const hh = (sp.originY - headTop(o.skin)) * sp.frame.realHeight * sp.scaleY;
-                return { head: { x: sp.x, y: sp.y - hh }, hh };
+                const hh = bodyHeight(o.skin) * o.sprite.scaleY;
+                return { head: { x: o.sprite.x, y: o.sprite.y - hh }, hh };
             });
     }
 

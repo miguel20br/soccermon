@@ -8,7 +8,7 @@ describe('enfeites das comemorações da 0.9.54', () => {
         for (let n = 0; n < COINS; n++) {
             expect(coinAt(n, PAYDAY.toss - 1, 1, floor)).toBeNull();
             const ys = Array.from({ length: 30 }, (_, i) => coinAt(n, PAYDAY.toss + n * 45 + i * 20, 1, floor)?.y ?? 0);
-            expect(Math.min(...ys), `${n}`).toBeLessThan(-15);
+            expect(Math.min(...ys), `${n}`).toBeLessThan(-10);
             const end = coinAt(n, 2400, 1, floor);
             expect(end?.rest, `${n}`).toBe(true);
             expect(end?.y).toBeCloseTo(floor);

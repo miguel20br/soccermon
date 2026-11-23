@@ -488,7 +488,7 @@ export function goalCelebPose(
         const body =
             hop(t, J.puff + 80, 10, 200, H.squash2) ?? hop(t, J.puff + 80 + 200 + H.land + 40, 8, 180, H.squash2);
         const b = body ?? still;
-        return { anim: 'Attack', facing: 0, sx: b.sx * (1 + 0.28 * k), sy: b.sy * (1 + 0.22 * k), lift: b.lift };
+        return { anim: 'Idle', facing: 0, sx: b.sx * (1 + 0.28 * k), sy: b.sy * (1 + 0.22 * k), lift: b.lift };
     }
     if (kind === 'slowpoke') {
         const S = SLOWPOKE;
