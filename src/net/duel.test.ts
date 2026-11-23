@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { FUTSAL_5 } from '../engine/config';
+import { SPECIES_BY_ID } from '../engine/data';
 import { aiDraftTeam, DRAFT_PICKS } from '../engine/draft';
 import {
     countSpecials,
@@ -10,10 +11,13 @@ import {
 } from '../engine/duel-validate';
 import { EVO_THRESHOLD, evolutionTarget } from '../engine/evolution';
 import { createInstance, viewInstance } from '../engine/instance';
+import { defaultMoveset } from '../engine/moves';
 import { Rng } from '../engine/rng';
 import { runMatch } from '../engine/runners/batch-runner';
 import type { TeamSetup } from '../engine/state';
 import { duel as enDuel } from '../i18n/en/duel';
+import { TRAIN_STEPS } from '../store/ultimate/rules';
+import { canPlay, homeTeam, NO_MID_EVO, newUltimate, openPack } from '../store/ultimate/ultimate';
 import {
     acceptTakeover,
     applyPreview,
@@ -46,8 +50,10 @@ import {
     type Shared,
     seriesOf,
     tagTeam,
+    teamProblems,
     tickTimers,
     trainerNames,
+    utRecipe,
     WO_WAIT_MS,
 } from './duel-state';
 import { applyPatch, diff } from './patch';
@@ -1464,5 +1470,82 @@ describe('melhor de 3', () => {
         // série inventada (o convidado "ganhou" o jogo 1)
         const forged = { ...legit, series: [{ ...cur.result!, winner: 'guest' as const }] };
         expect(acceptTakeover(cur, forged, 2000)).toBe(false);
+    });
+});
+
+describe('Duelo com o time do Time Ultimate', () => {
+    const T0 = 1_800_000_000_000;
+    /** Um save do UT com o time escalado pelos pacotes (o mesmo caminho de quem joga). */
+    const utSave = (salt: string) => {
+        let u = { ...newUltimate(salt, T0), extraPacks: 4, bigPacks: 2 };
+        for (const kind of ['mini', 'mini', 'big', 'mini', 'big', 'mini'] as const) u = openPack(u, T0, kind)?.u ?? u;
+        return u;
+    };
+    const UT = { ut: true as const, specialLimit: null };
+    const utLobby = () => {
+        let s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'x', null, 'normal', false, 1, true);
+        s = reduce(s, { k: 'join', peer: peer('bia') }, 'guest', ctx());
+        s = reduce(s, { k: 'ready', ready: true, commit: H('a'), specialLimit: null }, 'host', ctx());
+        s = reduce(s, { k: 'ready', ready: true, commit: H('b'), specialLimit: null }, 'guest', ctx());
+        s = reduce(s, { k: 'choiceSeal', seal: H('1') }, 'host', ctx());
+        return reduce(s, { k: 'choiceSeal', seal: H('2') }, 'guest', ctx());
+    };
+
+    it('fica no modo "ready" (a versão antiga mostra o Time pronto e o aviso de versão, sem quebrar o lobby)', () => {
+        const s = newShared('ABCDEF', peer('ana'), 'ready', 4, 'x', null, 'normal', false, 1, true);
+        expect(s.ut).toBe(true);
+        expect(enDuel.modes[s.mode]).toBeDefined();
+        expect(newShared('ABCDEF', peer('ana'), 'ready', 4, 'x').ut).toBeUndefined();
+    });
+
+    it('todo time do UT montado pelos pacotes vale na sala do UT', () => {
+        for (const salt of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']) {
+            const u = utSave(salt);
+            expect(canPlay(u)).toBe(true);
+            expect(teamProblems(UT, utRecipe(homeTeam(u, 'Pallet FC', 0xff0000)))).toEqual([]);
+        }
+    });
+
+    it('aceita o Treino (evoluções além da linha) e especiais à vontade; sem evolução no meio da partida', () => {
+        const r = utRecipe(homeTeam(utSave('treino'), 'Pallet FC', 0xff0000));
+        const sp = SPECIES_BY_ID.get(128)!;
+        const tauros = {
+            speciesId: 128,
+            ability: sp.abilities[0],
+            moves: defaultMoveset(sp),
+            shiny: false,
+            evolved: TRAIN_STEPS,
+        };
+        const lineup = [tauros, ...r.lineup.slice(1).filter((m) => m.speciesId !== 128)];
+        const team: DuelTeamRecipe = {
+            ...r,
+            lineup: lineup.map((m) => ({ ...m, special: { kind: 'destaque' as const, level: 1 } })),
+        };
+        // no Time pronto não vale (nenhuma copa dá isso); na sala do UT vale, e um Treino a mais não
+        expect(validarTimeDuelo(team, null).join()).toContain('evoluções');
+        expect(teamProblems(UT, team)).toEqual([]);
+        const over = { ...team, lineup: [{ ...tauros, evolved: TRAIN_STEPS + 1 }, ...team.lineup.slice(1)] };
+        expect(teamProblems(UT, over).join()).toContain('evoluções');
+        let s = utLobby();
+        expect(reduce(s, { k: 'choiceOpen', value: over, salt: 'x' }, 'host', ctx())).toBe(s);
+        s = reduce(s, { k: 'choiceOpen', value: team, salt: 'x' }, 'host', ctx());
+        expect(s.choice?.opened.host).toBe(true);
+        expect([...s.teams.host!.lineup, ...s.teams.host!.bench].every((p) => p.evo === NO_MID_EVO)).toBe(true);
+        s = reduce(s, { k: 'choiceOpen', value: r, salt: 'y' }, 'guest', ctx());
+        expect(s.phase).toBe('preview');
+    });
+
+    it('a revanche continua na sala do UT', () => {
+        const done: Shared = {
+            ...inMatch(),
+            ut: true,
+            phase: 'done',
+            result: { score: [1, 0], shootout: null, winner: 'host' },
+        };
+        let r = reduce(done, { k: 'rematch', commit: H('c') }, 'host', ctx(0, { newSeed: 'n' }));
+        r = reduce(r, { k: 'rematch', commit: H('d') }, 'guest', ctx(0, { newSeed: 'n' }));
+        expect(r.game).toBe(done.game + 1);
+        expect(r.ut).toBe(true);
+        expect(r.phase).toBe('team');
     });
 });

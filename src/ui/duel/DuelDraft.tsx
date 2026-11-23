@@ -17,10 +17,13 @@ import {
     type Role,
     type Shared,
     specialLimitOf,
+    teamProblems,
+    utRecipe,
 } from '../../net/duel-state';
 import { duel, useDuel } from '../../net/session';
 import { isDraftComplete, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { clubColorHex, type HallEntry } from '../../store/profile';
+import { canPlay, homeTeam } from '../../store/ultimate/ultimate';
 import { useCardModal } from '../card-modal';
 import { CardPack, isBigCard, packLookOf } from '../components/CardPack';
 import { FormationBoard } from '../components/FormationBoard';
@@ -92,13 +95,26 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
     const run = useGame((g) => g.run);
     const hall = useGame((g) => g.hall);
     const color = useGame((g) => clubColorHex(g.profile.clubColor));
+    const clubName = useGame((g) => g.profile.clubName);
+    const ultimate = useGame((g) => g.ultimate);
     const sealed = useDuel((v) => v.choiceSealed);
     const rival = s.peers[other(role)]?.name ?? '';
     const [chosen, setChosen] = useState<TeamSetup | null>(null);
     const options: { key: string; label: string; team: TeamSetup }[] = [];
-    if (run && isDraftComplete(run) && run.lineup.length)
-        options.push({ key: 'run', label: t('duel.team.current'), team: playerTeam(run, color) });
-    for (const h of hall) options.push({ key: h.id, label: t('duel.team.hall', { n: h.titleNo }), team: hallTeam(h) });
+    if (s.ut) {
+        // sala do Time Ultimate: só o time do UT, do jeito que está escalado lá
+        if (canPlay(ultimate))
+            options.push({
+                key: 'ut',
+                label: t('duel.ut.team'),
+                team: homeTeam(ultimate, (clubName || 'Pallet FC').slice(0, 30), color),
+            });
+    } else {
+        if (run && isDraftComplete(run) && run.lineup.length)
+            options.push({ key: 'run', label: t('duel.team.current'), team: playerTeam(run, color) });
+        for (const h of hall)
+            options.push({ key: h.id, label: t('duel.team.hall', { n: h.titleNo }), team: hallTeam(h) });
+    }
     // escolhido: o time fica à vista com o pronto (e o "Mudar algo" volta pra lista enquanto o rival não escolheu)
     if (sealed || bothSealed(s)) {
         return (
@@ -123,7 +139,7 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                 <span className="bc-tag">{t('duel.title')}</span>
                 <h1>{t('duel.team.title')}</h1>
             </header>
-            <p className="muted">{specialRuleText(specialLimitOf(s), t)}</p>
+            <p className="muted">{s.ut ? t('duel.ut.rule') : specialRuleText(specialLimitOf(s), t)}</p>
             {s.choice?.seal[other(role)] && (
                 <p className="ready-chip on" data-testid="ready-rival">
                     <b>{rival}</b>
@@ -133,13 +149,13 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                     </span>
                 </p>
             )}
-            {options.length === 0 && <p className="panel muted">{t('duel.team.none')}</p>}
+            {options.length === 0 && <p className="panel muted">{s.ut ? t('duel.ut.noTeam') : t('duel.team.none')}</p>}
             <div className="duel-team-list">
                 {options.map((o) => {
                     // só a receita vai pela rede, e só se for um time que uma copa poderia dar
-                    const recipe = teamRecipe(o.team);
-                    const limit = specialLimitOf(s);
-                    const problems = validarTimeDuelo(recipe);
+                    const recipe = s.ut ? utRecipe(o.team) : teamRecipe(o.team);
+                    const limit = s.ut ? null : specialLimitOf(s);
+                    const problems = s.ut ? teamProblems(s, recipe) : validarTimeDuelo(recipe);
                     const specials = countSpecials(recipe);
                     const tooMany = limit !== null && specials > limit;
                     return (
@@ -176,7 +192,7 @@ export function TeamPick({ s, role }: { s: Shared; role: Role }) {
                     );
                 })}
             </div>
-            {hall.length > 0 && <p className="muted small">{t('duel.team.hallNote')}</p>}
+            {hall.length > 0 && !s.ut && <p className="muted small">{t('duel.team.hallNote')}</p>}
         </div>
     );
 }

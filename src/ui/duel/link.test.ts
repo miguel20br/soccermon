@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { pt } from '../../i18n/pt';
-import { CONNECT_GIVEUP_MS, cupInviteShown, entryCoach, roomBarShown, roomLooksClosed } from './link';
+import { CONNECT_GIVEUP_MS, cupInviteShown, duelUtOn, entryCoach, roomBarShown, roomLooksClosed } from './link';
+
+describe('duelUtOn', () => {
+    it('produção nunca liga; prévia liga com ?lab=duelo-ut e lembra na aba', () => {
+        expect(duelUtOn(false, '?lab=duelo-ut', '1')).toBe(false);
+        expect(duelUtOn(true, '', null)).toBe(false);
+        expect(duelUtOn(true, '?lab=duelo-ut', null)).toBe(true);
+        expect(duelUtOn(true, '?duelo=ABC', '1')).toBe(true);
+        expect(duelUtOn(true, '?lab=duelo-ut-off', '1')).toBe(false);
+    });
+});
 
 describe('roomLooksClosed', () => {
     it('espera o anfitrião até o limite e só então oferece a saída', () => {

@@ -7,6 +7,7 @@ import {
     SPECIAL_LIMITS,
     type SpecialLimit,
     teamFromRecipe,
+    teamRecipe,
     validarTimeDuelo,
 } from '../engine/duel-validate';
 import { DEFAULT_FORMATION, FORMATIONS, type FormationId, formationOf } from '../engine/formations';
@@ -29,6 +30,8 @@ import {
 import { dict } from '../i18n';
 import type { PlaybackSpeed } from '../store/game-store';
 import { tagFromName } from '../store/profile';
+import { TRAIN_STEPS } from '../store/ultimate/rules';
+import { NO_MID_EVO } from '../store/ultimate/ultimate';
 import { openedSegments } from './seal';
 
 /**
@@ -179,6 +182,12 @@ export interface Shared {
     series?: DuelResult[];
     /** Beira da quadra (agência do técnico, experimento): a do host, pros dois. Sem o campo = desligado. */
     agency?: boolean;
+    /**
+     * Com o time do Time Ultimate (`mode: 'ready'` + este campo): cada um leva o time do UT do próprio save, sem limite
+     * de especiais e sem evolução no meio da partida. Fica no 'ready' pra versão antiga ver um Time pronto com o aviso
+     * de versão (um modo novo quebrava o lobby dela). Sem servidor conferindo as cartas nesta fase (só a receita).
+     */
+    ut?: true;
     /** Seed pública da sala (só decide quem abre a Disputa); os pacotes saem das seeds das rodadas. */
     seed: string;
     phase: 'lobby' | 'team' | 'draft' | 'preview' | 'match' | 'done';
@@ -223,6 +232,7 @@ export function newShared(
     duration: DuelDuration = 'normal',
     agency = false,
     bestOf: DuelBestOf = 1,
+    ut = false,
 ): Shared {
     return {
         rev: 1,
@@ -234,6 +244,7 @@ export function newShared(
         duration: durationOf({ duration }),
         ...(bestOf === 3 ? { bestOf: 3 as const } : {}),
         ...(agency ? { agency: true } : {}),
+        ...(ut ? { ut: true as const } : {}),
         seed,
         phase: 'lobby',
         peers: { host },
@@ -752,7 +763,18 @@ export function duelOutcome(s: Pick<Shared, 'bestOf' | 'series' | 'result' | 'ph
 /** Próximo jogo da série: partida nova (lacres novos), os mesmos times e direto pra escalação lacrada. */
 function nextSeriesGame(s: Shared, commits: Record<Role, string>, now: number): Shared {
     return {
-        ...newShared(s.room, s.peers.host!, s.mode, s.speed, s.seed, specialLimitOf(s), durationOf(s), !!s.agency, 3),
+        ...newShared(
+            s.room,
+            s.peers.host!,
+            s.mode,
+            s.speed,
+            s.seed,
+            specialLimitOf(s),
+            durationOf(s),
+            !!s.agency,
+            3,
+            !!s.ut,
+        ),
         peers: s.peers,
         game: s.game + 1,
         series: [...(s.series ?? []), s.result!],
@@ -763,6 +785,19 @@ function nextSeriesGame(s: Shared, commits: Record<Role, string>, now: number): 
         choice: emptyChoice(now + PREVIEW_MS),
     };
 }
+
+/** Problemas do time que chegou na escolha (vazio = vale): o do UT tem o Treino e não tem limite de especiais. */
+export const teamProblems = (s: Pick<Shared, 'ut' | 'specialLimit'>, value: unknown) =>
+    s.ut ? validarTimeDuelo(value, null, TRAIN_STEPS) : validarTimeDuelo(value, specialLimitOf(s));
+
+/** Receita do time do UT pro Duelo: a barra de evolução fica de fora (quem recebe zera, como no UT). */
+export const utRecipe = (t: TeamSetup): DuelTeamRecipe => {
+    const r = teamRecipe(t);
+    const strip = (m: DuelMonRecipe): DuelMonRecipe => ({ ...m, evo: undefined });
+    return { ...r, lineup: r.lineup.map(strip), bench: r.bench.map(strip) };
+};
+
+const noMidEvo = (ps: PokemonInstance[]) => ps.map((p) => ({ ...p, evo: NO_MID_EVO }));
 
 /** Os dois deram pronto na escolha (time pronto / escalação): a fase já vai andar, não dá mais pra desfazer. */
 export const bothSealed = (s: Pick<Shared, 'choice'>) => !!s.choice && ROLES.every((r) => s.choice!.seal[r]);
@@ -829,8 +864,9 @@ function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
     if (!c || c.opened[by] || !c.seal[by] || c.seal[by] === '-' || !ROLES.every((r) => c.seal[r])) return s;
     let team: TeamSetup | null = null;
     if (s.phase === 'team') {
-        if (validarTimeDuelo(value, specialLimitOf(s)).length) return s;
+        if (teamProblems(s, value).length) return s;
         team = teamFromRecipe(value as DuelTeamRecipe, '');
+        if (s.ut) team = { ...team, lineup: noMidEvo(team.lineup), bench: noMidEvo(team.bench) };
     } else if (s.phase === 'preview' && s.teams[by])
         team = applyPreview(s.teams[by]!, value as PreviewCfg, captainSwapOk(s));
     if (!team) return s;
@@ -1037,6 +1073,7 @@ function apply(s: Shared, i: Intent, by: Role, ctx: Ctx): Shared {
                     durationOf(s),
                     !!s.agency,
                     bestOfOf(s),
+                    !!s.ut,
                 ),
                 peers: s.peers,
                 game: s.game + 1,
