@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { track } from '../../analytics/track';
 import { FUTSAL_5 } from '../../engine/config';
 import { clubLeader, cupRival } from '../../engine/cup';
+import { rivalTrainer } from '../../engine/cup-map';
 import { species } from '../../engine/data';
 import { viewInstance } from '../../engine/instance';
 import { cardAttributes } from '../../engine/modifiers';
@@ -31,6 +32,7 @@ import { fieldKit, lookOfCupClub, lookOfProfile, matchLooks } from '../../store/
 import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
+import { activeTrainer } from '../../store/missions';
 import { rivalColor, tagFromName } from '../../store/profile';
 import { matchSecrets } from '../../store/secret-links';
 import { ultimateRun } from '../../store/ultimate/ultimate';
@@ -274,6 +276,10 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
                       agency: true,
                       // o rival joga em casa: a quadra do ginásio dele
                       court: opponent ? clubLeader(opponent.name) : undefined,
+                      // os treinadores na beira da quadra (o seu e o do rival)
+                      coaches: solo
+                          ? undefined
+                          : [activeTrainer(profileClub), (opponent && rivalTrainer(opponent.name)) || null],
                       noNeon: ultimate || undefined,
                       // a faixa da torcida é só a sua (o rival da copa não tem torcida organizada)
                       banners: [bannerText(profileClub.banner, run?.teamName || profileClub.clubName), null],
