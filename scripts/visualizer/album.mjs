@@ -6,6 +6,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
+import { renderClipe } from './clipe.mjs';
 import { renderFaixa } from './render.mjs';
 
 const [lista, ...r] = process.argv.slice(2);
@@ -22,7 +23,8 @@ const caps = [];
 let t = 0;
 for (const [i, f] of cfg.faixas.entries()) {
     const n = i + 1, out = `${saida}/faixas/${String(n).padStart(2, '0')}-${f.arquivo.replace(/\.wav$/, '')}.mp4`;
-    if (!existsSync(out)) await renderFaixa({ wav: `${dir}/${f.arquivo}`, titulo: f.titulo, n, saida: out, inicio: Number(o('inicio', 0)), dur: Number(o('dur', 0)) });
+    if (!existsSync(out) && f.cena) await renderClipe({ wav: `${dir}/${f.arquivo}`, cena: f.cena, bpm: f.bpm, titulo: f.titulo, n, saida: out, trechos: o('trechos', '') });
+    else if (!existsSync(out)) await renderFaixa({ wav: `${dir}/${f.arquivo}`, titulo: f.titulo, n, saida: out, inicio: Number(o('inicio', 0)), dur: Number(o('dur', 0)) });
     arqs.push(out);
     caps.push(`${mmss(t)} ${f.titulo}`);
     t += dur(out);
