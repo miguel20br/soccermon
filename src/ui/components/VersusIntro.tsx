@@ -18,7 +18,7 @@ import { tagFromName } from '../../store/profile';
 import { NatalCapa } from '../ambientes/Neve';
 import { usePixelFit } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
-import { useClubColor } from '../profile/club';
+import { mascotSrc, useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
@@ -182,6 +182,7 @@ function Side({
     coach,
     look,
     quote,
+    mascot,
 }: {
     team: TeamSetup;
     side: 'home' | 'away';
@@ -193,6 +194,8 @@ function Side({
     coach?: VsCoach;
     /** Fala do treinador antes do jogo (líder do clube na Copa). */
     quote?: string;
+    /** Mascote do clube (só o seu lado). */
+    mascot?: string | null;
 }) {
     const { t, d } = useT();
     const avg = lineupAverage(team.lineup, team.formation);
@@ -201,7 +204,10 @@ function Side({
             <div className="vsp-half" style={{ '--kit': kitOverlay(look.color2, look.pattern) } as CSSProperties} />
             <div className="vsp-team">
                 <div className="vsp-head">
-                    <Crest look={look} className="crest vsp-crest" title={tag} />
+                    <span className="vsp-crestwrap">
+                        <Crest look={look} className="crest vsp-crest" title={tag} />
+                        {mascot && <img className="pixel vsp-mascot" src={mascot} alt="" />}
+                    </span>
                     <div className="vsp-info">
                         <div className="vsp-who">{label}</div>
                         <div className="vsp-name">{name}</div>
@@ -425,6 +431,7 @@ export function VersusIntro({
                     look={looks.home}
                     tag={home.name === profile.clubName ? profile.clubTag : tagFromName(home.name)}
                     label={t('match.vs.yourTeam')}
+                    mascot={home.name === profile.clubName ? mascotSrc(profile) : null}
                 />
                 {/* a linha de luz: traços sobrepostos do largo/transparente ao fino/branco (brilho sem filtro) */}
                 <svg className="vsp-beam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>

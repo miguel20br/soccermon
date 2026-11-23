@@ -165,3 +165,18 @@
     width: 20px;
     height: 22px;
 }
+
+.pf-mascot-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+.pf-av-none {
+    font-size: 11px;
+    line-height: 1.1;
+    color: var(--muted, inherit);
+    padding: 4px;
+    text-align: center;
+}

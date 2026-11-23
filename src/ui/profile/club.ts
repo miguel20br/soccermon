@@ -59,6 +59,10 @@ export function avatarImage(avatar: Avatar, googlePhoto: string | null | undefin
     return { src: pk ? avatarGif(avatar.speciesId, avatar.shiny === true) : avatarGif(25), google: false };
 }
 
+/** Sprite do mascote do clube (id fora das espécies ou sem o campo = sem mascote). */
+export const mascotSrc = (p: { mascot?: number }): string | null =>
+    SPECIES.some((sp) => sp.id === p.mascot) ? avatarGif(p.mascot as number) : null;
+
 const SPRITE_SRC = /^assets\/(?:cards|avatars)\/(shiny\/)?(\d{1,3})\.gif$/;
 
 /** O avatar como vai pro rival do Duelo: o caminho do sprite da carta (o que as versões anteriores aceitam). */

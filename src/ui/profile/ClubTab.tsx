@@ -337,6 +337,33 @@ export function ClubTab({ part }: { part: 'trainer' | 'club' }) {
 
                     <KitEditor save={save} />
 
+                    <fieldset className="pf-field pf-mascot">
+                        <legend>{t('profile.club.mascot')}</legend>
+                        <div className="pf-avatars">
+                            <button
+                                type="button"
+                                className={`pf-av pf-av-none${profile.mascot === undefined ? ' active' : ''}`}
+                                aria-pressed={profile.mascot === undefined}
+                                onClick={() => save({ mascot: undefined })}
+                            >
+                                {t('profile.club.mascotNone')}
+                            </button>
+                            {avatarOptions(dex, { from: 1, to: 151 }).map(({ speciesId: id }) => (
+                                <button
+                                    type="button"
+                                    key={id}
+                                    className={`pf-av${profile.mascot === id ? ' active' : ''}`}
+                                    aria-pressed={profile.mascot === id}
+                                    title={species(id).name}
+                                    onClick={() => save({ mascot: id })}
+                                >
+                                    <img className="pixel" src={avatarGif(id)} alt={species(id).name} loading="lazy" />
+                                </button>
+                            ))}
+                        </div>
+                        <small className="muted">{t('profile.club.mascotHelp')}</small>
+                    </fieldset>
+
                     <div className="pf-field">
                         <span id="pf-banner-label">{t('profile.club.banner')}</span>
                         <Stepper

@@ -106,6 +106,9 @@ export const profile: typeof pt = {
         unlockCollection: 'Unlocks with the {name} collection',
         unlockMedal: 'Unlocks with the {name} medal ({tier})',
         crestAria: '{club} crest',
+        mascot: 'Mascot',
+        mascotNone: 'No mascot',
+        mascotHelp: 'A Pokémon from your album that stands next to your crest, on the Profile and the VERSUS.',
         banner: 'Fan banner',
         bannerHelp: 'Shows at the side of the court, by your team.',
         banners: [

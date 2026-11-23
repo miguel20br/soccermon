@@ -76,6 +76,8 @@ export interface Profile {
     kitPattern?: string;
     crestShape?: string;
     crestSymbol?: string;
+    /** Mascote: espécie (do álbum) que aparece ao lado do escudo no Perfil e no VERSUS. Sem o campo = sem mascote. */
+    mascot?: number;
     /** Vitrine: até 3 destaques escolhidos (medals.ts: `m:<medalha>`, `c:<coleção>`, `s:<espécie>`). */
     showcase?: string[];
     /** Vitrine de cartas: até 3 cartas do fichário (binder.ts: id da carta). */
