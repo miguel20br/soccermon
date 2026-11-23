@@ -185,3 +185,101 @@ export function frase(P, row0, strs, { shift = 0, vel = 1, escala = 1 } = {}) {
     }
     return t;
 }
+
+// ---------- rodada 4 (23/11/2026): o viajante da "A Rota" e o estádio do "Soc-cer-MON!" ----------
+
+/** Ocarina (a voz do viajante na "A Rota"): seno redondo, a nota entra um tico abaixo e assenta, o sopro no ataque. */
+export const ocarina = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f, _s, r) => {
+            let ph = 0;
+            let n = 0;
+            return (t) => {
+                const vib = 1 + 0.006 * Math.sin(TAU * 5.2 * t) * Math.min(1, Math.max(0, (t - 0.25) / 0.3));
+                ph += (TAU * f * vib * (1 - 0.012 * Math.exp(-t / 0.03))) / SR;
+                n += 0.08 * (r() * 2 - 1 - n);
+                const sopro = n * (0.6 * Math.exp(-t / 0.05) + 0.1);
+                return (
+                    (Math.sin(ph) + 0.2 * Math.sin(2 * ph) + 0.08 * Math.sin(3 * ph) + sopro) * Math.min(1, t / 0.025)
+                );
+            };
+        },
+        o,
+        { pk: 0.45, solta: 0.08 },
+    );
+
+/** Gota caindo na poça: o "plic" cuja nota sobe e assenta; afinada (`p` = semitons a partir do Ré6). */
+export const gota = som(
+    0.35,
+    (p) => {
+        let ph = 0;
+        return (t) => {
+            const f = 1174.66 * k12(p) * (0.55 + 0.45 * (1 - Math.exp(-t / 0.008)));
+            ph += (TAU * f) / SR;
+            return (
+                Math.sin(ph) * Math.exp(-t / 0.05) * Math.min(1, t / 0.0008) +
+                0.15 * Math.sin(2.01 * ph) * Math.exp(-t / 0.015)
+            );
+        };
+    },
+    { pk: 0.45, corte: 5000 },
+);
+
+/** O grito da gaivota ("kiá"): sobe, raspa e cai. */
+export const gaivota = som(
+    0.5,
+    (p, r) => {
+        let ph = 0;
+        let v = 0;
+        return (t) => {
+            const x = Math.min(1, t / 0.45);
+            ph += (TAU * 1250 * k12(p) * (1 + 0.35 * Math.sin(Math.PI * Math.min(1, x * 2.2)) - 0.25 * x)) / SR;
+            v += 0.3 * (r() * 2 - 1 - v);
+            const y = Math.sin(ph) + 0.5 * Math.sin(2 * ph) + 0.25 * Math.sin(3 * ph) + 0.35 * v;
+            return y * Math.min(1, t / 0.03) * (1 - x) ** 1.5;
+        };
+    },
+    { pk: 0.4, corte: 5000 },
+);
+
+/**
+ * Coro da arquibancada: a vogal "ó" (formantes em 550, 950 e 2450 Hz) cantada por três vozes um tico desafinadas, cada
+ * uma com o seu vibrato. É o estádio cantando, quente, sem o agudo do chip.
+ */
+export const coro = (S, nome, o = {}) =>
+    voz(
+        S,
+        nome,
+        (f) => {
+            const FORM = [
+                [550, 170, 1],
+                [950, 210, 0.6],
+                [2450, 320, 0.12],
+            ];
+            const nh = Math.max(1, Math.min(30, Math.floor(4500 / f)));
+            const amp = [0];
+            for (let k = 1; k <= nh; k++)
+                amp.push(FORM.reduce((a, [F, bw, g]) => a + g * Math.exp(-(((k * f - F) / bw) ** 2)), 0.05 / k));
+            const norma = amp.reduce((a, b) => a + b, 0) * 0.6;
+            const DET = [-0.0058, 0, 0.0049];
+            const ph = [0, 0, 0];
+            return (t) => {
+                let y = 0;
+                for (let v = 0; v < 3; v++) {
+                    const vib = 1 + 0.005 * Math.sin(TAU * (4.6 + 0.4 * v) * t + 2.1 * v) * Math.min(1, t / 0.3);
+                    ph[v] += (TAU * f * (1 + DET[v]) * vib) / SR;
+                    for (let k = 1; k <= nh; k++) y += amp[k] * Math.sin(k * ph[v]);
+                }
+                return (y / 3 / norma) * Math.min(1, t / 0.07);
+            };
+        },
+        o,
+        { pk: 0.5, solta: 0.16 },
+    );
+
+/** Acorde por notas (pros acordes que o `chord` não conhece: maj7♯11, maj7♯5, 7♯9…): `['D3', 'A3', 'C#4']`. */
+export function notas(P, row, ns, len, vel = 1) {
+    for (const n of ns) P.note(row, midi(n), len, vel);
+}
