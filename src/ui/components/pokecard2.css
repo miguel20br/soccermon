@@ -3615,22 +3615,42 @@ button.pc2.pc2-fx:hover {
 }
 .m-ovr.evio,
 .m-stats.evio b {
-    animation: evio-glow 2.4s ease-in-out infinite;
+    position: relative;
+    color: #2b1745;
+    filter: drop-shadow(0 0 0.12em rgb(160 90 255 / 45%));
 }
-@keyframes evio-glow {
+/* a faixa de luz numa cópia do número por cima (`data-v`): o número de baixo fica com a fonte e a espessura de sempre */
+.m-ovr.evio::after,
+.m-stats.evio b::after {
+    content: attr(data-v);
+    position: absolute;
+    inset: 0;
+    text-align: inherit;
+    color: transparent;
+    text-shadow: none;
+    background: linear-gradient(105deg, transparent 40%, #b98cff 46%, #f6efff 50%, #b98cff 54%, transparent 60%)
+        no-repeat;
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: evio-luz 4.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes evio-luz {
     0%,
-    100% {
-        filter: drop-shadow(0 0 0.05em #c08bff) drop-shadow(0 0 0.18em #8f3dff);
+    30% {
+        background-position: 100% 0;
     }
-    50% {
-        filter: drop-shadow(0 0 0.07em #d9b8ff) drop-shadow(0 0 0.36em #9a4dff);
+    70%,
+    100% {
+        background-position: 0 0;
     }
 }
 @media (prefers-reduced-motion: reduce) {
-    .m-ovr.evio,
-    .m-stats.evio b {
+    .m-ovr.evio::after,
+    .m-stats.evio b::after {
         animation: none;
-        filter: drop-shadow(0 0 0.06em #c08bff) drop-shadow(0 0 0.26em #8f3dff);
+        background: none;
     }
 }
 

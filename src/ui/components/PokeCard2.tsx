@@ -402,7 +402,9 @@ function Metal({
                     style={{ '--type-icon': `url(/assets/types/${theme.toLowerCase()}.png)` } as CSSProperties}
                 />
                 <span className="m-left">
-                    <b className={`m-ovr${d.evio ? ' evio' : ''}`}>{d.display}</b>
+                    <b className={`m-ovr${d.evio ? ' evio' : ''}`} data-v={d.display}>
+                        {d.display}
+                    </b>
                     <span className="m-pos">{d.tr.d.common.posShort[d.pos]}</span>
                     <span className="m-types">
                         <TypeIcons types={d.sp.types} />
@@ -442,7 +444,7 @@ function Metal({
             <span className={`m-stats${d.evio ? ' evio' : ''}`}>
                 {d.stats.map((s) => (
                     <span key={s.k}>
-                        <b>{s.v}</b>
+                        <b data-v={s.v}>{s.v}</b>
                         <i>{s.label}</i>
                         {s.delta !== 0 && (
                             <em
