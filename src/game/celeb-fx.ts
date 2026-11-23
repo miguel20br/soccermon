@@ -242,7 +242,7 @@ export function drawCeleb(c: CelebDraw) {
             const C = CHARIZARD;
             if (ms < C.from || ms > C.to + 260) break;
             const top = c.top - 10;
-            const base = head.y + hh * 0.12;
+            const base = head.y + hh * 0.3;
             const reach = easeOut((ms - C.from) / 260);
             // no fim a base solta e sobe atrás da ponta
             const cut = ms > C.to ? easeOut((ms - C.to) / 260) : 0;
@@ -286,10 +286,10 @@ export function drawCeleb(c: CelebDraw) {
             const u = clamp01((ms - Q.drop) / (Q.land - Q.drop));
             const drop = reduce ? 0 : (1 - bounceOut(u)) * 46 * s;
             const tilt = reduce ? 0 : (1 - u) * 0.5 * Math.sin(u * 9);
-            const lw = Math.max(5 * s, hh * 0.2);
+            const lw = Math.max(5 * s, hh * 0.18);
             const lh = lw * 0.7;
             const ex = head.x;
-            const ey = head.y + hh * 0.36 - drop;
+            const ey = head.y + hh * 0.27 - drop;
             const a = fade * (reduce ? clamp01(u * 3) : 1);
             const rot = (px: number, py: number) => ({
                 x: ex + px * Math.cos(tilt) - py * Math.sin(tilt),
