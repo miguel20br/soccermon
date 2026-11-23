@@ -341,43 +341,38 @@ export default function bancada() {
     stabs(clav, 0, 'Cm7', [[R(M.aovivo - 0.25), 1]], { low: 60, n: 3, vel: 0.6 });
 
     // ===================== AO VIVO com o Meowth (falas 8–11): a cor de rua =====================
-    cama(M.aovivo, M.payFim, rua, ['Cm7', 'F7'], { cordas: 0 });
+    cama(M.aovivo, M.bRaio, rua, ['Cm7', 'F7'], { cordas: 0 });
     manchete(M.aovivo, 'Cm9');
     // o lick de rua (o arpejo do tema em Dó menor) no vão da f8
     mel(clav, (F.f8.paginas[0].fim + 0.575) / 2, ['C5:1 Eb5:1 G5:1 Bb5:2 G5:1 r:10'], { vel: 0.7 });
     mel(lead, (F.f8.paginas[0].fim + 0.575) / 2, ['C5:1 Eb5:1 G5:1 Bb5:2 G5:1 r:10'], { vel: 0.5 });
     // o corte pra Rota em tela cheia: a torcida bate palma
     drum(torc, M.cheia / 2, 1, '....x.......x.x.', { vel: 0.6 });
-    // cada vitória é um ka-ching e o contador sobe 3 → 6 → 9
-    // o reforço entra no lugar do titular (no clipe): um ka-ching
-    N(moeda, M.titular, 24, 0, 0.55);
-    N(moeda, M.titular + 0.125, 31, 0, 0.55);
-    // PAY DAY: os metais no pulo; as 14 moedas descem a escala
-    stabs(met, 0, 'F7', [[R(M.payday), 2]], { low: 58, n: 4, vel: 0.7 });
-    N(sino, M.payday + 0.15, 99, 2, 0.5);
-    // BEAT payFim: as moedas assentam e respondem no 3-3-2 (com as palmas), e o ka-ching na pose
-    for (const [k, d] of [0, 0.375, 0.75].entries()) {
-        N(cl, M.payFim + d, 0, 0, 0.45);
-        N(bs, M.payFim + d, [36, 39, 43][k], 1, 0.55);
+    // v5: o "Mas nada aconteceu!" do Magikarp: a gota e a tuba
+    N(pl, M.karp + 0.1, -2, 0, 0.5);
+    N(tuba, M.karp + 0.3, 40, 1.2, 0.4);
+    // BEAT bRaio: a bateria sai; o gol do Pikachu (prato) e o raio que acerta o Meowth (o zap, o sino lá em cima e os metais)
+    N(pr, M.bRaio + 0.1, 0, 0, 0.6);
+    N(zp, M.raio, 4, 0, 0.9);
+    N(sino, M.raio + 0.02, 106, 1, 0.4);
+    stabs(met, 0, 'F7', [[R(M.raio + 0.05), 2]], { low: 58, n: 4, vel: 0.7 });
+    // f11 e o tostado: tudo para; a tuba "uá-uá" descendo e o chiado da fumaça (sininhos baixos)
+    for (const [k, m] of [41, 40, 39, 38].entries()) N(tuba, F.f11.a + 0.2 + 0.16 * k, m, k === 3 ? 3 : 1.2, 0.4);
+    for (let k = 0; k < 3; k++) N(sino, M.raio + 0.4 + 0.7 * k, 96 - 3 * k, 0.5, 0.2);
+
+    // ===================== E MAIS (v5): a cama do estúdio e o SOC-CER-MON com as palmas, uma linha por batida =====================
+    cama(M.emais, M.vemai, estudio, ['Ebmaj7', 'Abmaj7', 'Fm9', 'Bb7sus4']);
+    manchete(M.emais, 'Ebmaj7');
+    for (const [k, s] of M.emaisL.entries()) N(sino, s, [87, 89, 91, 94][k], 1, 0.4);
+    {
+        const gb = Math.ceil(M.emais * 2) / 2 / 2 + 0.5;
+        const g = GANCHO.em({ tom: 3 });
+        mel(lead, gb, [g], { vel: 0.8 });
+        mel(leadP, gb, [g], { vel: 0.7 });
+        drum(cl, gb, 1, GANCHO.palmas, { vel: 0.8 });
     }
-    stabs(clav, 0, 'Cm7', [[R(M.payFim + 0.75), 2]], { low: 60, n: 3, vel: 0.6 });
 
-    // ===================== EM CAMPO (v4): a cama do estúdio de volta, sobre os clipes =====================
-    cama(M.emcampo, M.vestiario, estudio, ['Ebmaj7', 'Bb7sus4', 'Cm7', 'Abmaj7']);
-    manchete(M.emcampo, 'Ebmaj7');
-    // o raio do Pikachu: o sino lá em cima e os metais
-    N(sino, M.raio, 99, 3, 0.55);
-    stabs(met, 0, 'Bb7sus4', [[R(M.raio), 2]], { low: 58, n: 4, vel: 0.55 });
-    // "Eu evoluí pra quê?": a tuba descendo, como no "Eu não."
-    N(tuba, M.praQue + 0.1, 38, 1.2, 0.45);
-    N(tuba, M.praQue + 0.3, 36, 2, 0.4);
-
-    // ===================== VESTIÁRIO: cômico, menos instrumentos =====================
-    cama(M.vestiario, M.reacao, comico, ['Cm', 'G7'], { cordas: 0 });
-    manchete(M.vestiario, 'Cm7');
-    // o C muda de dono no clipe do Duelo: o plim e um acorde
-    plimJornal(M.kaboom);
-    stabs(met, 0, 'Abmaj7', [[R(M.kaboom + 0.2), 2]], { low: 58, n: 4, vel: 0.45 });
+    // ===================== PLANTÃO (fim) =====================
     // a reação sem graça do Raichu: tudo para; a gota (o plim) e a tuba "uá-uá" descendo
     N(pl, M.euNao + 0.15, -2, 0, 0.5);
     for (const [k, m] of [43, 42, 41, 40].entries()) N(tuba, M.euNao + 0.3 + 0.16 * k, m, k === 3 ? 3 : 1.2, 0.45);
@@ -387,30 +382,9 @@ export default function bancada() {
     stabs(met, 0, 'Abmaj7', [[R(M.duelo99), 2]], { low: 58, n: 4, vel: 0.5 });
     N(tuba, M.duelo91 + 0.1, 38, 1.2, 0.45);
     N(tuba, M.duelo91 + 0.3, 36, 2, 0.4);
-    // de volta à bancada com o Charmeleon: o vestiário continua magro
-    cama(M.vestCena, M.bVoltorb, comico, ['Ab', 'G7', 'Cm', 'G7'], { cordas: 0 });
-    // "Agora ele é reserva.": a tuba murcha
-    const res = F.f14.paginas[0].chars[F.f14.paginas[0].texto.indexOf('jogo')];
-    N(tuba, res + 0.6, 36, 2, 0.5);
-    N(tuba, res + 0.85, 31, 3, 0.45);
-
-    // BEAT bVoltorb: o Charmeleon sozinho no banco; cada gesto um som pequeno (olha = o fogo diminuindo, volta = a fumaça)
-    {
-        const G = M.gag;
-        N(sino, G.pisca, 103, 0.5, 0.35); // pisca
-        N(sino, G.pisca + 0.1, 103, 0.5, 0.25);
-        N(enc, G.encolhe, 0, 0, 0.8); // se encolhe
-        N(zp, G.faisca, 4, 0, 0.7); // a faísca
-        N(sino, G.faisca + 0.05, 106, 1, 0.25);
-        N(tokE, G.olha[0], 72, 1, 0.6); // olha pra um lado...
-        N(tokD, G.olha[1], 77, 1, 0.6); // ...e pro outro
-        N(ap, G.volta, -3, 0, 0.45); // volta
-        N(pz, G.volta + 0.25, 63, 1, 0.4);
-    }
-
     // ===================== VEM AÍ (falas 15–17): a subida de tom =====================
-    const SOBE = F.f15.paginas[0].fim + 0.075; // a caixa terminou de digitar a f16: a subida começa
-    const UP = Math.ceil(F.f16.s * 2) / 2; // o tom novo, na batida da f17
+    const SOBE = F.f15.paginas[0].fim + 0.075; // v5: a 1ª página da f15 terminou: a subida começa na 2ª ("pois finalmente…")
+    const UP = Math.ceil(F.f15.z * 2) / 2; // o tom novo, na batida depois da f15
     cama(M.vemai, SOBE, estudio, ['Ebmaj7', 'Abmaj7', 'Fm9', 'Bb7sus4']);
     manchete(M.vemai, 'Ebmaj7');
     // uma nota de sino por sexta do calendário
@@ -442,29 +416,8 @@ export default function bancada() {
         for (let s = t + 0.5; s < UP - 0.01; s += 0.0625) N(sn, s, 0, 0, 0.15 + 0.5 * ((s - t) / (UP - t)) ** 2);
         for (const [k, p] of [7, 4, 2, 0].entries()) N(tm, UP - 0.25 + 0.0625 * k, p, 0, 0.55);
     }
-    // f17 em Fá maior, bumbo reto
-    cama(UP, B.bRola.s, reto, ['Bbmaj7', 'C7sus4', 'Dm7', 'C7sus4'], { cordas: 0.28 });
+    // o tom novo (Fá) chega no bRola
     N(pr, UP, 0, 0, 1);
-    // o pacote: cai, treme, rasga e as cartas saem
-    const P = M.pacote;
-    N(tm, P.cai + 0.125, 0, 0, 0.45);
-    for (let k = 0; k < 4; k++) N(sk, P.treme + k * 0.06, 0, 0, 0.5);
-    N(rs, P.rasga, 0, 0, 0.7);
-    for (const [k, s] of P.sai.entries()) N(ap, s, 2 + k, 0, 0.35);
-    // o SOC-CER-MON com as palmas no vão entre as páginas: as palmas respondem no 68,5 e no Mewtwo (68,75)
-    const gancho = GANCHO.em({ tom: 5 });
-    const gb = F.f16.paginas[0].fim / 2;
-    mel(lead, gb, [gancho], { vel: 0.95 });
-    mel(leadP, gb, [gancho], { vel: 0.8 });
-    mel(met, gb, [gancho], { harm: fa, vel: 0.6 });
-    drum(cl, gb, 1, GANCHO.palmas, { vel: 0.9 });
-    // as cartas viram (Fá Lá Dó Fá) e o Mewtwo: prato e o tema inteiro em Fá, com segunda voz
-    for (const [k, s] of P.vira.entries()) N(sino, s, [77, 81, 84, 89][k], 1, 0.5);
-    N(pr, P.mewtwo, 0, 0, 1);
-    N(kk, P.mewtwo, 0, 0, 1);
-    mel(lead, P.mewtwo / 2, [TEMA], { shift: 2, vel: 0.95 });
-    mel(leadP, P.mewtwo / 2, [TEMA], { shift: 2, vel: 0.85 });
-    mel(met, P.mewtwo / 2, [TEMA], { shift: 2, harm: fa, vel: 0.55 });
 
     // BEAT bRola: a bateria sai; o Voltorb entra rolando (toms em giro que freiam), o "tum" quando para e a piscada
     {
@@ -480,7 +433,7 @@ export default function bancada() {
     // ===================== PRA FECHAR (falas 18–20), em Fá =====================
     cama(M.fecha, B.bRisada.s, estudio, ['Fmaj7', 'Dm9', 'Bbmaj7', 'C7sus4']);
     manchete(M.fecha, 'Fmaj7');
-    pavio(M.voltorbReage[2]);
+    pavio(M.voltorbReage[1]);
     N(pl, M.bem + 0.1, 5, 0, 0.45);
     // BEAT bRisada: a dupla ri (três "ha" dos metais descendo, no balanço dos dois) e o Voltorb pisca
     for (const [k, d] of [0.31, 0.545, 0.785].entries()) {
@@ -519,6 +472,7 @@ export default function bancada() {
     // ===================== TELA FINAL: o SOC-CER-MON, o acorde e o telefone =====================
     {
         const t0 = M.final;
+        const gancho = GANCHO.em({ tom: 5 }); // em Fá, o tom do PRA FECHAR
         N(pr, t0, 0, 0, 0.9);
         N(kk, t0, 0, 0, 1);
         mel(lead, t0 / 2, [gancho], { vel: 1 });
@@ -550,12 +504,12 @@ export default function bancada() {
 
     // a banda abaixa 3 dB enquanto a caixa digita (os blips ficam audíveis por cima, baixinhos) e mais 2 dB debaixo das
     // falas inteiras (o groove é mais cheio que o da v9; assim os beats sem texto e os temas sobressaem), menos onde o
-    // tema toca: o SOC-CER-MON e o Mewtwo na f17 e o tema inteiro na f19
+    // tema toca: o SOC-CER-MON no E MAIS e o tema inteiro na f19
     const janela = (t, a, z, sobe, desce) =>
         Math.min(1, Math.max(0, (t - a) / sobe)) * Math.min(1, Math.max(0, (z - t) / desce));
     const DIGITANDO = FALAS.flatMap((f) => f.paginas.map((p) => [p.ini - 0.05, p.fim + 0.1]));
     const TEMAS = [
-        [gb * 2, P.mewtwo + 2],
+        [M.emais, M.vemai], // v5: o SOC-CER-MON do E MAIS (sem fala)
         [TEMA_FIM, TEMA_FIM + 2],
     ];
     const DK = Float32Array.from({ length: Math.ceil(FIM * 1000) + 3000 }, (_, i) => {

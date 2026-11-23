@@ -113,26 +113,18 @@ const f6c = fala('f6c', 'raichu', '26-sigh', 'Eu não.');
 const f6d = fala('f6d', 'raichu', '26-determined', 'Com ela, o Machoke chega a 99 no gol. O Machamp, 91.');
 beat('bRua', 1.0, 'a câmera vai pra rua: o telão chia e abre na Rota, o Meowth acena');
 bloco('aovivo', 'AO VIVO');
-const f8 = fala('f8', 'raichu', '26', 'Ao vivo da Rota Índigo, nosso repórter Meowth.', { manchete: true });
-const f9 = fala('f9', 'meowth', '52-happy', 'Boa noite! Agora o reforço que você pega');
-const f10 = fala('f10', 'meowth', '52-happy', 'pode entrar direto no lugar de um titular.');
-const f11 = fala('f11', 'meowth', '52-joyous', ['Antes, só no lugar de um reserva.', 'Só o capitão nunca sai.']);
-beat('payFim', 1.0, 'o Meowth faz a pose');
-// v4 (23/11): o que entra na 0.9.53.1, sobre os clipes do jogo (comemorações, cut-in de dupla e drible em 8x)
-bloco('emcampo', 'EM CAMPO');
-const f13a = fala('f13a', 'raichu', '26-happy', 'Em campo, cinco Pokémon ganharam comemoração própria.', { manchete: true });
-const f13b = fala('f13b', 'machoke', '67-happy', 'O Pikachu ganhou até um raio.');
-const f13c = fala('f13c', 'raichu', '26-sigh', 'Eu evoluí pra quê?');
-const f13d = fala('f13d', 'machoke', '67-determined', 'E combo de sinergia agora tem cut-in de dupla.');
-const f13e = fala('f13e', 'raichu', '26-determined', 'E o drible com nome fica em câmera lenta até no 8x.');
-bloco('vestiario', 'VESTIÁRIO');
-const f12 = fala('f12', 'machoke', '67', ['No Duelo em melhor de 3, agora dá pra trocar', 'o capitão entre um jogo e outro.'], { manchete: true });
-pausa('reacao', 0.8); // o corte pra bancada: o Charmeleon (o C saiu dele no clipe) na cadeira de convidado, de faixa, sem fala
-const f14 = fala('f14', 'charmeleon', '5-sigh', 'Fui capitão por um jogo.');
-beat('bVoltorb', 1.5, 'o Charmeleon sozinho no banco do vestiário: a faixa escorrega e cai, o fogo do rabo vira uma brasinha');
+// v5 (23/11): a matéria da quadra, contada como história: o Meowth apresenta as comemorações e o raio do Pikachu acerta ele
+const f8 = fala('f8', 'raichu', '26', 'Ao vivo da quadra, nosso repórter Meowth.', { manchete: true });
+const f9 = fala('f9', 'meowth', '52-happy', 'Boa noite! Cinco Pokémon ganharam comemoração de gol própria.');
+const f10 = fala('f10', 'meowth', '52-joyous', 'Esse é o Magikarp.');
+beat('bRaio', 1.6, 'o clipe do Pikachu: gol, o raio pro céu, e o raio sai do clipe e acerta o Meowth');
+const f11 = fala('f11', 'meowth', '52-dizzy', '…e esse é o Pikachu.');
+beat('bTostado', 0.8, 'o Meowth tostado, o microfone soltando fumaça');
+// E MAIS: as outras novidades numa cartela, sem fala (uma linha por batida)
+bloco('emais', 'E MAIS');
+t += 4.6;
 bloco('vemai', 'VEM AÍ');
-const f15 = fala('f15', 'raichu', '26-inspired', 'Nesta sexta, dia 27, abre o Time Ultimate.', { manchete: true });
-const f16 = fala('f16', 'machoke', '67-joyous', 'Abra pacotes e monte o time da temporada.');
+const f15 = fala('f15', 'raichu', '26-inspired', ['Na sexta teremos um programa especial,', 'pois finalmente o novo modo Time Ultimate irá abrir.'], { manchete: true });
 beat('bRola', 1.0, 'o estúdio aberto: o Machamp entra no telão e cruza os braços');
 bloco('fecha', 'PRA FECHAR');
 const f18 = fala('f18', 'raichu', '26-happy', 'E aí, Machoke, vai querer ser trocado?', { manchete: true });
@@ -160,36 +152,24 @@ M.machoke = letra(f6b, 'evoluir'); // o Machoke estufa e brilha
 M.euNao = f6c.a; // o Raichu de perto, sem graça
 M.duelo99 = letra(f6d, '99'); // a carta do Machoke: 99 no gol, com o ▲ roxo da Eviolite
 M.duelo91 = letra(f6d, '91'); // a do Machamp: 91 no gol
-M.cheia = f9.s; // o corte pro Meowth em tela cheia, na Rota, com o clipe do reforço
-M.titular = letra(f10, 'titular'); // no clipe: o reforço entra no lugar do titular
-M.payday = letra(f11, 'capitão'); // o "Só o capitão nunca sai": o Meowth pula
-M.kaboom = letra(f12, 'capitão'); // no clipe do Duelo: o C muda de dono
-M.vestCena = f14.s; // a bancada com o Charmeleon na cadeira de convidado
-/** O Machoke brilha (a Eviolite) no gancho; no PRA FECHAR o Machamp se anima no "trocado". No meio, a gag do Charmeleon (bVoltorb). */
-M.voltorbReage = [0.45, M.bVoltorb, letra(f18, 'trocado')];
-// a gag: a faixa pisca, ele murcha, a faixa cai (faisca), o fogo diminui em 2 degraus (olha) e vira brasinha com fumaça (volta)
-M.gag = { pisca: r3(M.bVoltorb + 0.15), encolhe: r3(M.bVoltorb + 0.35), faisca: r3(M.bVoltorb + 0.6), olha: [r3(M.bVoltorb + 0.9), r3(M.bVoltorb + 1.12)], volta: r3(M.bVoltorb + 1.34) };
+M.cheia = f9.s; // o corte pro Meowth em tela cheia, na quadra, com o clipe das comemorações
+M.karp = letra(f10, 'Magikarp'); // no clipe: o "Mas nada aconteceu!"
+M.raio = r3(M.bRaio + 1.0); // o raio do Pikachu no clipe: sai do quadro e acerta o Meowth
+/** O Machoke brilha (a Eviolite) no gancho; no PRA FECHAR o Machamp se anima no "trocado". */
+M.voltorbReage = [0.45, letra(f18, 'trocado')];
+M.emaisL = [0, 1, 2, 3].map((k) => r3(M.emais + 0.45 + 0.85 * k)); // as 4 linhas do E MAIS
 M.sextas = [0, 1, 2, 3].map((k) => r3(f15.a + 0.15 + 0.3 * k));
 M.ultimate = letra(f15, 'Time');
-M.pacote = { cai: r3(f16.s + 0.2), treme: r3(f16.s + 0.45), rasga: letra(f16, 'pacotes') };
-M.pacote.sai = [0, 1, 2, 3, 4].map((k) => r3(M.pacote.rasga + 0.1 + 0.12 * k));
-M.pacote.vira = [0, 1, 2, 3].map((k) => r3(letra(f16, 'monte') + 0.12 * k));
-M.pacote.mewtwo = letra(f16, 'temporada');
-M.pacote.foco = r3(M.pacote.mewtwo + 0.3);
 M.bem = letra(f18b, 'pensar'); // o Machoke abraça a Eviolite
 M.boaNoite = letra(f19, 'boa noite');
-M.raio = letra(f13b, 'raio'); // o raio do Pikachu no clipe
-M.praQue = letra(f13c, 'pra quê'); // o Raichu sem graça
-M.campo = [f13a.s, f13b.s, f13c.s, f13d.s, f13e.s, f13e.z]; // os cortes da montagem dos clipes (em-campo.mp4)
 M.grito = [r3(f20.a + 0.3), r3(letra(f20, 'chutar') + 0.25)];
 M.papeis = [r3(f19.paginas[0].fim + 0.45), r3(f19.paginas[0].fim + 0.75)];
 export const VARRIDAS = [M.escalada, M.vemai];
-export const CORTES = [M.vinheta, M.abertura, M.bCartas, M.vt1, M.bRua, M.cheia, M.vestiario, M.reacao, M.bVoltorb, M.bRola, M.final];
+export const CORTES = [M.vinheta, M.abertura, M.bCartas, M.vt1, M.bRua, M.cheia, M.emais, M.bRola, M.final];
 /** Os clipes do jogo (gravados headless da 0.9.53): o instante, dentro de cada arquivo, do momento que a fala marca. */
 export const CLIPES = {
-    'v-duelo': { arq: 'midia/news/duelo-capitao.mp4', s: M.vestiario, z: M.reacao, marca: M.kaboom, noClipe: 2.9 }, // 405,5 s da gravação do anfitrião: o toque no Squirtle em 2,9
-    'v-campo': { arq: 'midia/news/em-campo.mp4', s: M.emcampo, z: M.vestiario, marca: M.emcampo, noClipe: 0 }, // a montagem nos cortes de M.campo
-    'v-reforco': { arq: 'midia/news/reforco-titular.mp4', s: M.cheia, z: f10.z, marca: M.titular, noClipe: 4.0 }, // 5,2 s da gravação: o toque no Geodude em 4,0
+    // v5: o Magikarp do f9 ao bRaio, o Pikachu daí até o E MAIS (o raio no M.raio); ao-vivo.mp4 é montado nesses cortes
+    'v-aovivo': { arq: 'midia/news/ao-vivo.mp4', s: M.cheia, z: M.emais, marca: M.cheia, noClipe: 0 },
 };
 
 /** As trocas de cena e os painéis levam 0,25 s (o clipe do EP 2 fica no ar até a troca terminar). */
@@ -208,19 +188,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     for (const [id, c] of Object.entries(CLIPES))
         h = h.replace(new RegExp(`(<video id="${id}"[^>]*?)data-start="[\\d.]+" data-duration="[\\d.]+" data-media-start="[\\d.]+"`), `$1data-start="${r2(c.s)}" data-duration="${r2(c.z - c.s + SAIDA)}" data-media-start="${r2(Math.max(0, c.noClipe - (c.marca - c.s)))}"`);
     writeFileSync(html, h);
-    const { blipCharmeleon, blipMachoke, blipMeowth, blipRaichu } = await import('../../../scripts/musica/curtas.mjs');
+    const { blipMachoke, blipMeowth, blipRaichu } = await import('../../../scripts/musica/curtas.mjs');
     const { SR, Song } = await import('../../../scripts/musica/synth.mjs');
     const S = new Song({ bpm: 120, bars: Math.ceil(FIM / 2), tail: 1 });
     const BLIP = {
         raichu: S.part('raichu', blipRaichu, { drum: true, gain: 0.32, pan: -0.1 }),
         machoke: S.part('machoke', blipMachoke, { drum: true, gain: 0.42, pan: 0.1 }),
         meowth: S.part('meowth', blipMeowth, { drum: true, gain: 0.3, pan: 0.05 }),
-        charmeleon: S.part('charmeleon', blipCharmeleon, { drum: true, gain: 0.36, pan: -0.05 }),
     };
     // o desenho de 7 alturas (pra não virar metralhadora); no "Temos que chutar!" os cinco juntos, mais baixinhos
     const DESENHO = [0, 2, 0, -1, 2, 0, -2];
     for (const f of FALAS) {
-        const quem = f.quem === 'todos' ? ['raichu', 'machoke', 'meowth', 'charmeleon'] : [f.quem];
+        const quem = f.quem === 'todos' ? ['raichu', 'machoke', 'meowth'] : [f.quem];
         for (const p of f.paginas)
             Array.from(p.texto).forEach((c, i) => {
                 if (!/[\p{L}\p{N}₽]/u.test(c)) return;

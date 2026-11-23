@@ -20,7 +20,7 @@ const A = `${JOGO}/public/assets`;
 // News #2: 10 Caterpie (com a Eviolite), 12 Butterfree e 5 Charmeleon (o ex-capitão; o Machamp, 68, já estava)
 const ESPECIES = [143, 25, 6, 7, 54, 1, 107, 94, 68, 65, 124, 150, 76, 129, 132, 4, 95, 100, 137, 26, 55, 67, 10, 12, 5];
 export const TORCIDA = [39, 52, 133, 35, 79, 4, 104, 37, 16, 43, 60, 113, 132, 19];
-const RETRATOS = ['143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
+const RETRATOS = ['52-dizzy', '143-surprised', '143', '25', '25-joyous', '150', '107', '129', '129-joyous', '129-surprised', '6', '7', '94', '1', '39', '54', '113', '132', '95', '79', '129-crying', '129-determined', '143-determined', '143-happy', '150-determined', '25-happy',
     // A foto: os closes falando (o Psyduck gritando, o Pikachu, o Magikarp gritando, o Squirtle marrento)
     '54-shouting', '25-shouting', '129-shouting', '7-determined',
     // o EP inteiro: o Ditto (EU TAMBÉM!) e o Jigglypuff (DEIXA QUE EU ANIMO)
