@@ -25,7 +25,7 @@ import { Stage } from '../kit/Stage';
 import { useCardShowcase } from '../profile/Album';
 import { ClubTab } from '../profile/ClubTab';
 import { Crest } from '../profile/Crest';
-import { clubVars, hexCss, mascotSrc, titleName, trainerLabel, useAvatar } from '../profile/club';
+import { clubVars, hexCss, titleName, trainerLabel, useAvatar } from '../profile/club';
 import { FriendsTab } from '../profile/FriendsTab';
 import { PencilIcon } from '../profile/icons';
 import { frameClass, ShowcaseRow, useShowcase } from '../profile/Medals';
@@ -207,9 +207,6 @@ export function Profile() {
                     </span>
                     <span className="pf-clubline">
                         <Crest look={look} className="crest pf-crest" />
-                        {mascotSrc(profile) && (
-                            <img className="pixel pf-mascot-img" src={mascotSrc(profile) ?? ''} alt="" />
-                        )}
                         {profile.clubName || 'Pallet FC'} · <b>{profile.clubTag}</b>
                     </span>
                     <ShowcaseRow items={showcase.items} className="pf-showcase" />

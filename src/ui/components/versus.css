@@ -116,28 +116,8 @@
 .vsp-info {
     display: contents;
 }
-.vsp-crestwrap {
+.vsp-crest {
     grid-area: crest;
-    display: inline-flex;
-    align-items: flex-end;
-    gap: 4px;
-}
-.vsp-mascot {
-    width: clamp(32px, 8vmin, 56px);
-    height: clamp(32px, 8vmin, 56px);
-    object-fit: contain;
-    animation: vsp-mascot-in 280ms ease-out both;
-}
-@keyframes vsp-mascot-in {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .vsp-mascot {
-        animation: none;
-    }
 }
 .vsp-avg {
     grid-area: avg;

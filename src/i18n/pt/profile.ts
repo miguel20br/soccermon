@@ -106,9 +106,6 @@ export const profile = {
         unlockCollection: 'Libera com a coleção {name}',
         unlockMedal: 'Libera com a medalha {name} ({tier})',
         crestAria: 'Escudo do {club}',
-        mascot: 'Mascote',
-        mascotNone: 'Sem mascote',
-        mascotHelp: 'Um Pokémon do seu álbum que fica do lado do escudo, no Perfil e no VERSUS.',
         banner: 'Faixa da torcida',
         bannerHelp: 'Aparece na beira da quadra, do lado do seu time.',
         /** Frases da faixa (lista fechada; a ordem é o número guardado no perfil: não mude, só acrescente). */
