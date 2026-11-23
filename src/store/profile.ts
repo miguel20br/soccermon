@@ -87,7 +87,7 @@ export interface Profile {
     title: string;
     /** Missões cumpridas: liberam treinadores e títulos. */
     missionsDone: string[];
-    /** Títulos resgatados com código (title-codes.ts). */
+    /** Títulos que não vêm de missão: os de código e os de evento, como o "Natal 2026" (title-codes.ts). */
     redeemedTitles: string[];
     /** Selo NOVO (news.ts): o que já foi visto. Sem o campo = save de antes dele (o que já tinha conta como visto). */
     seen?: string[];

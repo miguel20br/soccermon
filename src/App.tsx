@@ -64,6 +64,8 @@ const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ defa
 // walkout final (?lab=walkout, ut-walkout.md): só dev e prévias, a cena do Phaser vem por import dinâmico
 const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ default: m.WalkoutLab })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
+// galeria dos títulos (?lab=titulos, perfil-revamp.md): o gelo do "Natal 2026" e o seletor com tudo ganho
+const TitleLab = lazy(() => import('./ui/profile/TitleLab').then((m) => ({ default: m.TitleLab })));
 // Noite Neon (ui/tema.ts): a capa em painéis, pedaço à parte (só baixa na semana do tema)
 const NeonCover = lazy(() => import('./ui/NeonCover'));
 // conceitos do menu de modos (antes da Home), só no dev e nas prévias
@@ -139,7 +141,7 @@ export default function App() {
         throw new Error('Teste do aviso de erro (?demo=crash)');
     }
     // laboratórios: ?lab=golpes (animação de todos os golpes, público), ?lab=emotes (emotes do Duelo sem sala, público),
-    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes, ?lab=icones, ?lab=cenas, ?lab=kit e ?cards=1 só no dev e nas prévias (__SMOKE__), menos
+    // ?lab=quadras (treinadores, falas e a quadra de cada ginásio, público); ?lab=posicoes, ?lab=icones, ?lab=cenas, ?lab=kit, ?lab=titulos e ?cards=1 só no dev e nas prévias (__SMOKE__), menos
     // a revisão dos suspeitos de posição (?lab=posicoes&revisao=1), que o Miguel abre no celular
     const [lab, setLab] = useState(() => {
         const params = new URLSearchParams(window.location.search);
@@ -148,7 +150,13 @@ export default function App() {
         if (__SMOKE__ && q === 'walkout') return 'walkout';
         if (
             __SMOKE__ &&
-            (q === 'versus' || q === 'sala' || q === 'icones' || q === 'cenas' || q === 'kit' || q === 'menu-modos')
+            (q === 'versus' ||
+                q === 'sala' ||
+                q === 'icones' ||
+                q === 'cenas' ||
+                q === 'kit' ||
+                q === 'menu-modos' ||
+                q === 'titulos')
         )
             return q;
         return (__SMOKE__ || params.has('revisao')) && q === 'posicoes' ? q : null;
@@ -287,7 +295,8 @@ export default function App() {
                 lab === 'cenas' ||
                 lab === 'kit' ||
                 lab === 'walkout' ||
-                lab === 'menu-modos' ? (
+                lab === 'menu-modos' ||
+                lab === 'titulos' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
                             <MoveLab onExit={exit} />
@@ -307,6 +316,8 @@ export default function App() {
                             <WalkoutLab onExit={exit} />
                         ) : lab === 'menu-modos' ? (
                             <ModeMenuLab onExit={exit} />
+                        ) : lab === 'titulos' ? (
+                            <TitleLab onExit={exit} />
                         ) : (
                             <VersusLab onExit={exit} />
                         )}

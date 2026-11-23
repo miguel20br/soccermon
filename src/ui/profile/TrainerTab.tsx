@@ -17,7 +17,6 @@ import {
     type Platinum,
     platinumItems,
     type SaveView,
-    TITLE_IDS,
     TRAINERS,
     type TrainerId,
     trainerFx,
@@ -27,7 +26,17 @@ import {
 import { newsKey } from '../../store/news';
 import { markPlayed, type Profile } from '../../store/profile';
 import { redeemCardCode, redeemCode, redeemDexCode, titleClass } from '../../store/title-codes';
-import { missionOfTitle, missionText, titleHow, titleName, trainerHow, trainerName } from './club';
+import {
+    missionOfTitle,
+    missionText,
+    pickerTitles,
+    titleHow,
+    titleName,
+    titleRarity,
+    trainerHow,
+    trainerName,
+    useTrainerLabel,
+} from './club';
 import { CheckIcon, LockIcon } from './icons';
 import { NewBadge } from './news';
 
@@ -133,55 +142,89 @@ export function TrainerPicker({ save }: { save: (patch: Partial<Profile>) => voi
     );
 }
 
-/** Título embaixo do nome: os ganhos pra escolher e os bloqueados com a missão de cada um. */
-export function TitlePicker({ save }: { save: (patch: Partial<Profile>) => void }) {
-    const profile = useGame((s) => s.profile);
-    const { t } = useT();
+/** Tocar num título: o ganho vira o seu (salva na hora); o bloqueado não muda nada. */
+export const pickTitle = (id: string, earned: readonly string[]): Pick<Profile, 'title'> | null =>
+    earned.includes(id) ? { title: id } : null;
+
+/**
+ * Título embaixo do nome, no molde dos treinadores (perfil-revamp.md §4.2): a prévia do cartão em cima (o título com o
+ * visual vivo, a raridade e como se ganha) e a grade por grupo embaixo, parada, os raros primeiro. Tocar num ganho já
+ * salva; num bloqueado mostra a missão na prévia. `profile` troca o do save (galeria `?lab=titulos`).
+ */
+export function TitlePicker({ save, profile: fake }: { save: (patch: Partial<Profile>) => void; profile?: Profile }) {
+    const real = useGame((s) => s.profile);
+    const profile = fake ?? real;
+    const { t, d } = useT();
     const view = useSaveView();
-    const titles = earnedTitles(profile);
-    const title = activeTitle(profile);
-    const lockedTitles = TITLE_IDS.filter((id) => !titles.includes(id));
+    const name = useTrainerLabel();
+    const earned = earnedTitles(profile);
+    const current = activeTitle(profile);
+    const [pick, setPick] = useState(current);
+    const open = earned.includes(pick);
+    const mission = missionOfTitle(pick);
+    const look = (id: string) => titleClass(id).trim() || undefined;
     return (
-        <div className="pf-card">
-            <ul className="pf-titles">
-                {titles.map((id) => (
-                    <li key={id}>
-                        <button
-                            type="button"
-                            aria-pressed={id === title}
-                            className={`pf-chip pf-title-chip${id === title ? ' active' : ''}`}
-                            onClick={() => save({ title: id })}
-                        >
-                            <span className={titleClass(id).trim() || undefined}>{titleName(id)}</span>
-                            <small className="pf-how">{titleHow(id)}</small>
-                            <NewBadge k={newsKey.title(id)} className="corner" />
-                        </button>
-                    </li>
-                ))}
-            </ul>
-            {lockedTitles.length > 0 && (
-                <>
-                    <h3 className="bc-lbl">{t('profile.picker.lockedTitles', { n: lockedTitles.length })}</h3>
-                    <ul className="pf-titles">
-                        {lockedTitles.map((id) => {
-                            const m = missionOfTitle(id);
+        <div className="pf-figs pf-tpick">
+            <div className={`pf-fig-card pf-tprev${open ? '' : ' locked'}`} aria-live="polite">
+                <TrainerSprite id={activeTrainer(profile)} />
+                <div key={pick} className="pf-tprev-body">
+                    <span className={`pf-trarity r-${titleRarity(pick)}`}>
+                        {d.profile.picker.rarity[titleRarity(pick)]}
+                        {open && pick === current && ` · ${t('profile.picker.using')}`}
+                    </span>
+                    <b className="pf-tprev-name">{name}</b>
+                    <span className="pf-tprev-title">
+                        {!open && <LockIcon />}
+                        <span className={look(pick)}>{titleName(pick)}</span>
+                    </span>
+                    {!open && mission ? (
+                        <MissionHow m={mission} view={view} />
+                    ) : (
+                        <small className="pf-how">{titleHow(pick)}</small>
+                    )}
+                </div>
+            </div>
+            {pickerTitles(earned).map((g) => (
+                <section key={g.group} className="pf-tgroup">
+                    <h3 className="bc-lbl">{d.profile.missions.groups[g.group]}</h3>
+                    <ul className="pf-tgrid">
+                        {g.ids.map((id) => {
+                            const free = earned.includes(id);
                             return (
-                                <li key={id} className="pf-chip pf-title-chip locked">
-                                    <span>
-                                        <LockIcon /> {titleName(id)}
-                                    </span>
-                                    {m && <MissionHow m={m} view={view} />}
+                                <li key={id}>
+                                    <button
+                                        type="button"
+                                        aria-pressed={free ? id === current : undefined}
+                                        aria-label={
+                                            free
+                                                ? titleName(id)
+                                                : t('profile.picker.lockedAria', {
+                                                      name: titleName(id),
+                                                      mission: titleHow(id),
+                                                  })
+                                        }
+                                        className={`pf-tcell${free && id === current ? ' active' : ''}${free ? '' : ' locked'}${id === pick ? ' picked' : ''}`}
+                                        onClick={() => {
+                                            setPick(id);
+                                            const patch = pickTitle(id, earned);
+                                            if (patch) save(patch);
+                                        }}
+                                    >
+                                        {!free && <LockIcon />}
+                                        <span className={look(id)}>{titleName(id)}</span>
+                                        {free && <NewBadge k={newsKey.title(id)} className="corner" />}
+                                    </button>
                                 </li>
                             );
                         })}
                     </ul>
-                </>
-            )}
+                </section>
+            ))}
         </div>
     );
 }
 
-/** Resgatar código (título, Pokédex corrigida ou carta devolvida). Mora nas Configurações. */
+/** Resgatar código (título, Pokédex corrigida ou carta devolvida). Mora na folha do Título. */
 export function RedeemCode() {
     const profile = useGame((s) => s.profile);
     const updateProfile = useGame((s) => s.updateProfile);

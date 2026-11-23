@@ -345,6 +345,186 @@
     flex: 1;
     min-width: 0;
 }
+/* o prêmio da meta: o treinador (sprite) ou o título (coroa) */
+.pf-near-prize {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--yellow);
+}
+.pf-near-prize .trainer-sprite {
+    width: 32px;
+    height: 32px;
+}
+.pf-near-prize .hud-icon {
+    width: 18px;
+    height: 18px;
+}
+.pf-near-prize small {
+    font-weight: 400;
+}
+
+/* Caminho do treinador (Metas): a estrada de prêmios de lado; amarelo até você, o próximo maior e com a etiqueta */
+.tp {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.tp-road {
+    display: flex;
+    margin: 0;
+    padding: 14px 4px 8px;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+.tp-step {
+    position: relative;
+    flex: 0 0 84px;
+    display: grid;
+    scroll-snap-align: center;
+}
+.tp-step::before {
+    content: "";
+    position: absolute;
+    top: 28px;
+    left: -50%;
+    right: 50%;
+    height: 4px;
+    background: var(--bc-ink-3);
+}
+.tp-step:first-child::before {
+    display: none;
+}
+.tp-step.done::before {
+    background: var(--yellow);
+}
+.tp-step.next::before {
+    background: linear-gradient(90deg, var(--yellow) 50%, var(--bc-ink-3) 50%);
+}
+.tp-step button {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-rows: 60px auto auto;
+    justify-items: center;
+    gap: 3px;
+    width: 100%;
+    padding: 0 2px;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+}
+.tp-ic {
+    align-self: center;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 10px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    transition:
+        transform 0.12s var(--ease-out),
+        outline-color var(--dur-ui) var(--ease-out);
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+.tp-ic .trainer-sprite {
+    width: 44px;
+    height: 44px;
+}
+.tp-ic svg {
+    width: 28px;
+    height: 28px;
+}
+.tp-step.done .tp-ic {
+    background: var(--bg-2);
+}
+.tp-step.next .tp-ic {
+    width: 60px;
+    height: 60px;
+    border-color: var(--yellow);
+}
+.tp-step button.picked .tp-ic {
+    outline-color: var(--blue);
+}
+.tp-step button:active .tp-ic {
+    transform: scale(0.94);
+}
+.tp-step button:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+.tp-step b {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.tp-step small {
+    font-size: 10px;
+    color: var(--muted);
+}
+.tp-step.done small {
+    color: var(--green);
+}
+.tp-step small .hud-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+}
+.tp-tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    z-index: 2;
+    transform: translateX(-50%);
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--yellow);
+    color: var(--bc-ink);
+    font-size: 9px;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.tp-detail {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 3px solid var(--bc-ink);
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: 0 3px 0 var(--bc-ink);
+    animation: pf-tprev-in var(--dur-ui) var(--ease-out) both;
+}
+.tp-detail > b {
+    font-size: 15px;
+}
+.tp-plus {
+    font-size: 12px;
+    color: var(--muted);
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .tp-detail {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .tp-detail {
+    animation: none;
+}
 
 /* figurinhas dos treinadores: a ficha do tocado em cima, a grade embaixo */
 .pf-figs {
@@ -601,4 +781,130 @@
     .pf-modes {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+/* seletor de título no molde dos treinadores: a prévia do cartão em cima, a grade por grupo embaixo (parada) */
+.pf-tprev-body {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    animation: pf-tprev-in var(--dur-ui) var(--ease-out) both;
+}
+@keyframes pf-tprev-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+.pf-tprev-name {
+    font-size: 15px;
+    color: var(--text);
+}
+.pf-tprev-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+.pf-tprev.locked .pf-tprev-title > span,
+.pf-tcell.locked > span {
+    opacity: 0.6;
+}
+.pf-trarity {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.pf-trarity.r-raro {
+    color: var(--blue);
+}
+.pf-trarity.r-epico {
+    color: #d7a6ff;
+}
+.pf-trarity.r-lendario {
+    color: var(--yellow);
+}
+.pf-trarity.r-especial {
+    color: #9fdcff;
+}
+.pf-tgroup {
+    display: grid;
+    gap: 6px;
+}
+.pf-tgroup .bc-lbl {
+    margin: 4px 0 0;
+}
+.pf-tgrid {
+    /* 2 colunas a 390, 1 a 320 (cabe "Torcida do Farmando Dungeons"), mais no desktop */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pf-tgrid li {
+    display: grid;
+    min-width: 0;
+}
+.pf-tcell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 10px;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 0.12s var(--ease-out),
+        background-color var(--dur-ui) var(--ease-out),
+        border-color var(--dur-ui) var(--ease-out);
+}
+.pf-tcell > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.pf-tcell:active {
+    transform: scale(0.95);
+}
+.pf-tgrid .pf-tcell.active {
+    border-color: var(--pick-fill);
+    background: var(--pick-fill);
+    color: #fff;
+}
+.pf-tcell.locked {
+    border-style: dashed;
+    background: transparent;
+    color: var(--muted);
+}
+.pf-tcell.picked {
+    outline: 2px solid var(--yellow);
+    outline-offset: 1px;
+}
+.pf-tcell:focus-visible {
+    outline: 3px solid var(--yellow);
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .pf-tprev-body {
+        animation: none;
+    }
+}
+:root[data-reduce-motion="true"] .pf-tprev-body {
+    animation: none;
 }

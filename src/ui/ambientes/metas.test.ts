@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Mission, SaveView } from '../../store/missions';
-import { avatarMon, closestMissions, countAt, myMon, nextBelt, routeTeam, trainerLevel } from './metas';
+import { avatarMon, closestMissions, countAt, myMon, nextBelt, routeTeam, trainerLevel, trainerPath } from './metas';
 
 const view = (done: string[] = []) => ({ done: new Set(done) }) as unknown as SaveView;
 const counter = (id: string, goal: number, n: number): Mission => ({ id, group: 'feitos', goal, count: () => n });
@@ -30,6 +30,38 @@ describe('closestMissions', () => {
     });
     it('contador passando da meta não estoura a barra', () => {
         expect(closestMissions(view(), 1, [counter('a', 5, 9)])[0].n).toBe(5);
+    });
+});
+
+describe('trainerPath (Caminho do treinador)', () => {
+    const prize = (m: Mission, extra: Partial<Mission>): Mission => ({ ...m, ...extra });
+    const list: Mission[] = [
+        prize(counter('ace', 5, 3), { trainer: 'acetrainer', title: 'mestre' }),
+        prize(feat('ash'), { trainer: 'ash' }),
+        prize(counter('dex', 151, 30), { title: 'colecionador' }),
+        counter('semPremio', 2, 1),
+        prize(feat('brock'), { trainer: 'brock' }),
+    ];
+    const label = (s: { prize: { kind: string; m?: Mission; metal?: string; level?: string } }) =>
+        s.prize.kind === 'mission' ? s.prize.m?.id : `${s.prize.kind}:${s.prize.metal ?? s.prize.level}`;
+
+    it('o próximo é o prêmio mais perto de sair, depois dos ganhos; missão sem prêmio fica fora', () => {
+        const { steps, next } = trainerPath(view(['brock']), ['brock'], 0, 0, 3, 8, list);
+        expect(steps.map(label)).toEqual(['brock', 'ace', 'dex', 'ash', 'room:clube', 'belt:bronze']);
+        expect(next).toBe(1);
+        expect(steps[next]).toMatchObject({ n: 3, goal: 5, done: false });
+        expect(steps[0].done).toBe(true);
+    });
+    it('cinturão e sala entram pela fração: 9 de 10 vitórias passa na frente das missões', () => {
+        const { steps, next } = trainerPath(view(), [], 9, 0, 3, 8, list);
+        expect(label(steps[next])).toBe('belt:bronze');
+        expect(steps[next]).toMatchObject({ n: 9, goal: 10 });
+    });
+    it('ganhos à esquerda (os últimos), sem próximo com tudo ganho', () => {
+        const all = list.map((m) => m.id);
+        const { steps, next } = trainerPath(view(all), all, 100, 25, 3, 8, list);
+        expect(next).toBe(-1);
+        expect(steps.map(label)).toEqual(['ash', 'dex', 'brock']);
     });
 });
 

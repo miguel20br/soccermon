@@ -4,7 +4,7 @@
  */
 import { MISSIONS, type Mission, missionCount, type SaveView } from '../../store/missions';
 import type { Avatar } from '../../store/profile';
-import { BELTS } from '../../store/trophies';
+import { BELTS, ROOM_LEVELS, type RoomLevel } from '../../store/trophies';
 
 export interface Goal {
     m: Mission;
@@ -55,6 +55,92 @@ export function trainerLevel(done: number): { level: number; n: number; goal: nu
 export function nextBelt(wins: number): { metal: (typeof BELTS)[number]['metal']; n: number; goal: number } | null {
     const b = BELTS.find((x) => wins < x.wins);
     return b ? { metal: b.metal, n: wins, goal: b.wins } : null;
+}
+
+/** Prêmio de um passo do Caminho do treinador: treinador e/ou título (missão), cinturão do Duelo ou nível da sala. */
+export type PathPrize =
+    | { kind: 'mission'; m: Mission }
+    | { kind: 'belt'; metal: (typeof BELTS)[number]['metal'] }
+    | { kind: 'room'; level: RoomLevel };
+export interface PathStep {
+    id: string;
+    prize: PathPrize;
+    n: number;
+    goal: number;
+    done: boolean;
+}
+
+/**
+ * Caminho do treinador (revamp-ui.md, decisão 7): os últimos `past` prêmios ganhos à esquerda e os `ahead` próximos à
+ * direita, o mais perto de sair primeiro (a mesma regra das Metas: maior fração feita, depois a meta menor). Só entra
+ * missão que dá treinador ou título. `next` é o índice do próximo prêmio (-1 com tudo ganho).
+ * `doneOrder` = `profile.missionsDone`, na ordem em que saíram.
+ */
+export function trainerPath(
+    view: SaveView,
+    doneOrder: readonly string[],
+    wins: number,
+    titles: number,
+    past = 3,
+    ahead = 8,
+    list: readonly Mission[] = MISSIONS,
+): { steps: PathStep[]; next: number } {
+    const prized = (m: Mission) => !!(m.trainer || m.title);
+    const byId = new Map(list.map((m) => [m.id, m]));
+    const rooms = ROOM_LEVELS.filter((l) => l.titles > 0);
+    const done: PathStep[] = [
+        ...rooms
+            .filter((l) => titles >= l.titles)
+            .map(
+                (l): PathStep => ({
+                    id: `room:${l.id}`,
+                    prize: { kind: 'room', level: l.id },
+                    n: l.titles,
+                    goal: l.titles,
+                    done: true,
+                }),
+            ),
+        ...BELTS.filter((b) => wins >= b.wins).map(
+            (b): PathStep => ({
+                id: `belt:${b.metal}`,
+                prize: { kind: 'belt', metal: b.metal },
+                n: b.wins,
+                goal: b.wins,
+                done: true,
+            }),
+        ),
+        ...doneOrder.flatMap((id) => {
+            const m = byId.get(id);
+            return m && prized(m)
+                ? [{ id, prize: { kind: 'mission', m } as const, n: m.goal ?? 1, goal: m.goal ?? 1, done: true }]
+                : [];
+        }),
+    ].slice(-past);
+    const open: PathStep[] = closestMissions(view, list.length, list)
+        .filter((g) => prized(g.m))
+        .map((g) => ({ id: g.m.id, prize: { kind: 'mission', m: g.m }, n: g.n, goal: g.goal, done: false }));
+    const room = rooms.find((l) => titles < l.titles);
+    if (room)
+        open.push({
+            id: `room:${room.id}`,
+            prize: { kind: 'room', level: room.id },
+            n: titles,
+            goal: room.titles,
+            done: false,
+        });
+    const belt = nextBelt(wins);
+    if (belt)
+        open.push({
+            id: `belt:${belt.metal}`,
+            prize: { kind: 'belt', metal: belt.metal },
+            n: wins,
+            goal: belt.goal,
+            done: false,
+        });
+    // ordenação estável: as missões já vêm na ordem das Metas, o cinturão e a sala entram no lugar da fração deles
+    open.sort((a, b) => b.n / b.goal - a.n / a.goal || a.goal - b.goal);
+    const steps = [...done, ...open.slice(0, ahead)];
+    return { steps, next: open.length ? done.length : -1 };
 }
 
 /** Um Pokémon desenhado num ambiente: a espécie e a folha (shiny ou normal). */

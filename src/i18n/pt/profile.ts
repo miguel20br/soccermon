@@ -375,6 +375,7 @@ export const profile = {
             colecoes: 'Coleções temáticas',
             lendas: 'Lendárias',
             platina: 'Platina',
+            especial: 'Especiais',
         } as Record<string, string>,
         collectionHelp: 'Vale quem jogou pelo seu time (pelo menos 1 minuto em quadra).',
         platinum: {
@@ -613,6 +614,23 @@ export const profile = {
         fromStart: 'Desde o começo',
         byCode: 'Código',
         lockedTitles: 'Bloqueados ({n})',
+        rarity: { comum: 'Comum', raro: 'Raro', epico: 'Épico', lendario: 'Lendário', especial: 'Especial' },
+        locked: 'Bloqueado',
+        using: 'Em uso',
+    },
+    /** Caminho do treinador (Metas, na Sede): os prêmios em fila, o próximo em destaque. */
+    path: {
+        title: 'Caminho do treinador',
+        next: 'Próximo',
+        done: 'Ganho',
+        trainer: 'Treinador',
+        titleKind: 'Título',
+        belt: 'Cinturão',
+        room: 'Sala',
+        roomHow: 'Seja campeão {n} vezes. Você tem {have}.',
+        plusTitle: '+ título',
+        allDone: 'Todos os prêmios ganhos.',
+        prize: 'Prêmio',
     },
     unlocked: {
         trainer: 'Treinador novo desbloqueado: {name}',
