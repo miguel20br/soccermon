@@ -3609,13 +3609,29 @@ button.pc2.pc2-fx:hover {
 .m-stats .m-mod.down {
     background: #c9302c;
 }
-/* Eviolite valendo: o ▲, a nota e os atributos na cor da pedra */
+/* Eviolite valendo: o ▲ na cor da pedra e a nota e os atributos com o brilho dela (Miguel, 23/11: glow, não cor chapada) */
 .m-stats .m-mod.evio {
     background: #8a4fd0;
 }
 .m-ovr.evio,
 .m-stats.evio b {
-    color: #6a2dbf;
+    animation: evio-glow 2.4s ease-in-out infinite;
+}
+@keyframes evio-glow {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 0.05em #c08bff) drop-shadow(0 0 0.18em #8f3dff);
+    }
+    50% {
+        filter: drop-shadow(0 0 0.07em #d9b8ff) drop-shadow(0 0 0.36em #9a4dff);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .m-ovr.evio,
+    .m-stats.evio b {
+        animation: none;
+        filter: drop-shadow(0 0 0.06em #c08bff) drop-shadow(0 0 0.26em #8f3dff);
+    }
 }
 
 /* galeria: proposta do selo de carreira na carta (só aqui; nada liga fora da ?cards=1) */

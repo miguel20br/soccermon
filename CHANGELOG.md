@@ -3,7 +3,7 @@
 ## 0.9.53 · Eviolite e reforço no lugar do titular (2026-11-23)
 
 ### Itens
-- Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (a nota da carta não muda; o ▲ dos atributos fica roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam
+- Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (na carta, a nota e os atributos já contam a Eviolite e brilham em roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam
 
 ### Reforços
 - Recompensa, vitrine e pacote do Mercado: o reforço pode entrar no lugar de um titular, não só de um reserva (o capitão nunca sai)
@@ -25,6 +25,7 @@
 - Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)
 - Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais
 - Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo
+- Prancheta: o ícone do item não fica mais esticado por cima do nome
 
 ## 0.9.52.4 · Placa da Semana Fora da Lei (2026-11-17)
 

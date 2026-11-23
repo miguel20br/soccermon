@@ -16,7 +16,7 @@ export const PATCH_NOTES: PatchNotes[] = [
             {
                 title: 'Itens',
                 lines: [
-                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (a nota da carta não muda; o ▲ dos atributos fica roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
+                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (na carta, a nota e os atributos já contam a Eviolite e brilham em roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
                 ],
             },
             {
@@ -51,6 +51,7 @@ export const PATCH_NOTES: PatchNotes[] = [
                     'Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)',
                     'Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais',
                     'Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo',
+                    'Prancheta: o ícone do item não fica mais esticado por cima do nome',
                 ],
             },
         ],
@@ -3053,7 +3054,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
             {
                 title: 'Items',
                 lines: [
-                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (the card rating stays the same; the stat ▲ turns purple). Found in rewards, the Market and the Casino; rivals never use it',
+                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (on the card, the rating and stats already include the Eviolite and glow purple). Found in rewards, the Market and the Casino; rivals never use it',
                 ],
             },
             {
@@ -3087,6 +3088,7 @@ export const PATCH_NOTES_EN: PatchNotes[] = [
                     'Vibration only after the first tap on the page (the browser refused it before and threw an error)',
                     'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
                     'Phone in landscape: the Start the 2nd half button no longer goes off screen at half-time',
+                    'Lineup board: the item icon is no longer stretched over the name',
                 ],
             },
         ],
