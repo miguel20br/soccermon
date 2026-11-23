@@ -3419,8 +3419,7 @@ export class MatchScene extends Phaser.Scene {
             });
         }
         if (this.textures.exists('gorro'))
-            for (const a of actors)
-                if (!a.rival) a.hat = this.add.image(0, 0, 'gorro').setOrigin(6.5 / 17, 11.5 / 12);
+            for (const a of actors) if (!a.rival) a.hat = this.add.image(0, 0, 'gorro').setOrigin(6.5 / 17, 11.5 / 12);
         const cam = this.cameras.main;
         // a cerimônia manda na câmera: os panos e zooms que ainda andavam (o drama do FIM DE JOGO) param aqui
         cam.panEffect.reset();
