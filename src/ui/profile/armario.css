@@ -384,7 +384,7 @@
 }
 .tp-step {
     position: relative;
-    flex: 0 0 84px;
+    flex: 0 0 90px;
     display: grid;
     scroll-snap-align: center;
 }

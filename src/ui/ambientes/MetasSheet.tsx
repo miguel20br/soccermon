@@ -38,7 +38,7 @@ function usePrizeName() {
  * com o prêmio de cada passo à vista e o próximo em destaque. Tocar num passo mostra embaixo como chegar nele.
  */
 function TrainerPath() {
-    const { t } = useT();
+    const { t, d } = useT();
     const view = useSaveView();
     const order = useGame((s) => s.profile.missionsDone);
     const wins = useGame((s) => duelWins(s.records, s.duels));
@@ -86,7 +86,8 @@ function TrainerPath() {
                                     <HudIcon kind="building" />
                                 )}
                             </span>
-                            <b>{prizeName(x)}</b>
+                            {/* na estrada o cinturão vai só com o metal (o desenho já diz o que é) */}
+                            <b>{x.prize.kind === 'belt' ? d.common.metal[x.prize.metal] : prizeName(x)}</b>
                             <small className="k-num">{x.done ? <HudIcon kind="check" /> : `${x.n}/${x.goal}`}</small>
                         </button>
                     </li>
