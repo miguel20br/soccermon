@@ -1279,13 +1279,15 @@ export function runDevDemo() {
         }
         return;
     }
-    // ?demo=comemoracao&sp=54|143|129|94|25[&shiny=1]: a escalação a 3 s de um gol dessa espécie (a comemoração própria:
+    // ?demo=comemoracao&sp=54|143|129|94|25[&shiny=1][&k=N]: a escalação a 3 s de um gol dessa espécie (a comemoração própria:
     // Psyduck, Snorlax, Magikarp, Gengar, Pikachu; e as da 0.9.54: 39, 79, 52, 6, 7, 104, 100, 64). Ela joga nas 3 vagas de linha da frente (o Magikarp quase não marca).
     if (demo === 'comemoracao') {
         const q = new URLSearchParams(window.location.search);
         const sp = Number(q.get('sp') ?? 54);
         const shiny = q.get('shiny') === '1';
-        for (let k = 0; k < 400; k++) {
+        // &k=N: começa a busca na semente N (outro gol, quando o primeiro sai embolado)
+        const k0 = Number(q.get('k') ?? 0);
+        for (let k = k0; k < k0 + 400; k++) {
             store.newRun('Demo FC', `com${sp}-${k}`);
             const base = useGame.getState().run!;
             const rng = new Rng(`com${sp}-${k}`, 'demo');
