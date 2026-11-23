@@ -261,8 +261,6 @@ export interface MatchSceneData {
     replay?: { clips: ReplayClip[] };
     /** Quadra do ginásio do rival (Copa; src/game/court-themes.ts). Sem ela, a madeira de sempre. */
     court?: LeaderId;
-    /** Treinador de cada time na beira de baixo da quadra (id de assets/trainers; null = ninguém). Pula no gol do time dele. */
-    coaches?: [string | null, string | null];
     /** Sem o neon da Semana Fora da Lei na quadra (Time Ultimate, como as estrelas do placar). */
     noNeon?: boolean;
     /** Os dois times como entraram: a carta de quem dribla dá nome ao drible (`namedDribblesOf`). Sem eles, nenhum. */
@@ -963,8 +961,6 @@ export class MatchScene extends Phaser.Scene {
     /** Já parou pra escolher a ordem dos pênaltis (uma vez por partida). */
     private penPicked = false;
     private flySpans: AgencySpan[] = [];
-    /** Treinadores na beira (`md.coaches`), por time. */
-    private coachViews: (Phaser.GameObjects.Image | undefined)[] = [];
     private agencyG?: Phaser.GameObjects.Graphics;
     private linePos = new Map<number, { x: number; y: number }>();
     private viewPos = new Map<number, { x: number; y: number }>();
@@ -1003,9 +999,6 @@ export class MatchScene extends Phaser.Scene {
         // o Sit de quem perdeu (fim de jogo): o atlas extra, como a Sala (~3 KB cada)
         for (const p of this.md.result.finalRoster) preloadExtra(this, skinOf(p.speciesId, p.shiny));
         preloadMoveFx(this);
-        this.md.coaches?.forEach((id) => {
-            if (id && !this.textures.exists(`coach-${id}`)) this.load.image(`coach-${id}`, `assets/trainers/${id}.png`);
-        });
         // retrato PMD dos capitães (e da forma evoluída) pra faixa do especial N3
         for (const p of [...this.md.result.roster, ...this.md.result.finalRoster]) {
             if (!p.captain) continue;
@@ -1078,17 +1071,6 @@ export class MatchScene extends Phaser.Scene {
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
         }
         if (this.md.boards?.length) drawBoards(this, this.md.boards);
-        this.md.coaches?.forEach((id, team) => {
-            if (!id || !this.textures.exists(`coach-${id}`)) return;
-            // beira de baixo, perto do banco do time; o seu olha pra direita, o do rival pra esquerda
-            const img = this.add
-                .image(GAME_W / 2 + (team === 0 ? -150 : 150), GAME_H - 1, `coach-${id}`)
-                .setOrigin(0.5, 1)
-                .setScale(1.1)
-                .setFlipX(team === 1)
-                .setDepth(-900);
-            this.coachViews[team] = img;
-        });
         ensureBallTexture(this);
         for (const p of result.roster) {
             createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));
@@ -4149,17 +4131,6 @@ export class MatchScene extends Phaser.Scene {
                 break;
             }
             case 'goal': {
-                // o treinador de quem marcou pula na beira (sem pulo com movimento reduzido)
-                const coach = this.coachViews[e.team];
-                if (coach && !this.md.reduceMotion)
-                    this.tweens.add({
-                        targets: coach,
-                        y: coach.y - 12,
-                        duration: 150,
-                        yoyo: true,
-                        repeat: 2,
-                        ease: 'Sine.easeOut',
-                    });
                 // seu gol: sobe um semitom a cada gol no jogo (o 3º soa mais alto que o 1º)
                 playSfx('goal', e.team === this.mine ? 2 ** ((e.score[this.mine] - 1) / 12) : 0.9);
                 playCrowd(e.team === this.mine ? 'gol' : 'vaia');
