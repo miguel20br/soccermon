@@ -46,7 +46,9 @@ export function natal(S, { secs, chords }) {
         [...pat].forEach((c, r) => {
             if (c === '.') return;
             const vel = (c === 'X' ? 1 : c === 'x' ? 0.7 : 0.45) * forca;
-            CACHOS[r % 2].forEach((n, k) => tl.note(b * 16 + r, n, 1, vel * (1 - 0.15 * k)));
+            CACHOS[r % 2].forEach((n, k) => {
+                tl.note(b * 16 + r, n, 1, vel * (1 - 0.15 * k));
+            });
         });
     };
     const sino = S.part('sinos', I.bell, { pan: -0.3, gain: 1.6, rev: 0.35 });
@@ -97,6 +99,9 @@ export default function partidaNatal() {
     return partidaBase({
         cita: JINGLE,
         extra: natal,
-        inst: { arp: I.bell, perc: ins({ vol: 0.16, freq: 2100, a: 0.001, r: 0.3, shape: 0, mod: 0.12, sv: 0.2, d: 0.02 }) },
+        inst: {
+            arp: I.bell,
+            perc: ins({ vol: 0.16, freq: 2100, a: 0.001, r: 0.3, shape: 0, mod: 0.12, sv: 0.2, d: 0.02 }),
+        },
     });
 }
