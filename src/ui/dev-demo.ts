@@ -74,6 +74,7 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
+ * `?demo=combo` abre na escalação o time do `ditto` a 3 s do primeiro combo seu (o cut-in de dupla da sinergia).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
@@ -133,6 +134,7 @@ export function runDevDemo() {
         demo !== 'bicuda' &&
         demo !== 'virada' &&
         demo !== 'charanga' &&
+        demo !== 'combo' &&
         demo !== 'sala' &&
         demo !== 'final' &&
         demo !== 'rota-titulo' &&
@@ -1155,6 +1157,37 @@ export function runDevDemo() {
             console.info(
                 `[demo] bicuda: ${species(gkId).name} no gol x ${species(atkId).name}, duelo no tick ${duel?.tick ?? '-'}`,
             );
+            return;
+        }
+        return;
+    }
+    if (demo === 'combo') {
+        // o time do `ditto` (Mew + Mewtwo, sinergia Gênese), já a 3 s do primeiro combo seu (o cut-in de dupla)
+        for (let k = 0; k < 80; k++) {
+            store.newRun('Demo FC', `combo${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`combo${k}`, 'demo');
+            const lineup = [143, 68, 151, 132, 150].map((id) => createInstance(id, rng));
+            const bench = [4, 25].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const combo = r.events.find((e) => e.type === 'combo' && r.roster[e.by].team === 0);
+            if (!combo) continue;
+            const live = { stage: 0, orders: [], tick: Math.max(0, combo.tick - 60), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: combo no tick ${combo.tick}`);
             return;
         }
         return;

@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { t } from '../i18n';
 import { screenToWorld } from './cine';
+import { COMBO_BAND_H, comboBandsY } from './combo-cutin';
 import { GAME_H, GAME_W } from './court';
 import { claimOverlay, onOverlayClaim, PRIO_GOAL, PRIO_MOVE } from './overlay-slot';
 
@@ -35,6 +36,8 @@ export class Cinematics {
      * dentro dela (menores), senão a faixa do golpe e a caixa de narração ficavam cortadas.
      */
     crop: { x: number; w: number } | null = null;
+    /** As faixas do cut-in de dupla na tela (`duoCutIn`). */
+    private duo: Phaser.GameObjects.Container[] = [];
     /** Feixe atacante → alvo e mira no alvo, redesenhados a cada quadro durante o holofote. */
     private readonly beam: Phaser.GameObjects.Graphics;
     private pair: { attacker: number; target: number | null; color: number } | null = null;
@@ -888,12 +891,16 @@ export class Cinematics {
         depth: number;
         /** Altura na tela (fração; padrão 0,27). */
         y?: number;
+        /** Altura da faixa (px do jogo; padrão 104, o do N3). */
+        h?: number;
+        /** Inclinação da faixa (rad; padrão 0,06). */
+        tilt?: number;
     }) {
         const scene = this.scene;
-        if (!opts.portrait || !scene.textures.exists(opts.portrait)) return;
+        if (!opts.portrait || !scene.textures.exists(opts.portrait)) return null;
         const s = Math.min(this.uiScale, 1.6);
         const W = (GAME_W * 1.6) / s;
-        const h = 104;
+        const h = opts.h ?? 104;
         const band = scene.add.graphics();
         band.fillStyle(0x0d1024, 0.96).fillRect(-W / 2, -h / 2 - 8, W, h + 16);
         band.fillStyle(opts.color, 1).fillRect(-W / 2, -h / 2 - 8, W, 6);
@@ -919,7 +926,7 @@ export class Cinematics {
         const img = scene.add.image(0, 0, opts.portrait).setScale(scale).setFlipX(opts.fromRight);
         const glow = scene.add.graphics();
         glow.fillStyle(opts.color, 0.3).fillCircle(0, 0, h * 0.62);
-        const inner = scene.add.container(0, 0, [band, glow, ...ghosts, img]).setRotation(0.06);
+        const inner = scene.add.container(0, 0, [band, glow, ...ghosts, img]).setRotation(opts.tilt ?? 0.06);
         const holder = scene.add.container(0, 0, [inner]).setDepth(opts.depth);
         this.pin(holder, GAME_W / 2, GAME_H * (opts.y ?? 0.27), s);
         const dir = opts.fromRight ? 1 : -1;
@@ -929,7 +936,7 @@ export class Cinematics {
             inner.setAlpha(0);
             scene.tweens.add({ targets: inner, alpha: 1, duration: 160 });
             scene.tweens.add({ targets: inner, alpha: 0, delay: stay, duration: 160, onComplete: out });
-            return;
+            return holder;
         }
         // entra rápido, desliza devagar (o "olhar" atravessando) e sai pro outro lado
         inner.x = -dir * (W / 2);
@@ -945,6 +952,37 @@ export class Cinematics {
             ease: 'Cubic.easeIn',
             onComplete: out,
         });
+        return holder;
+    }
+
+    /**
+     * Cut-in de dupla do combo de sinergia (`combo-cutin.ts`): os retratos dos dois em faixas finas por cima e por baixo
+     * do letreiro (`box`, o que o `drama` devolve), cada um na cor do tipo, entrando de lados opostos e se cruzando.
+     */
+    duoCutIn(
+        box: { top: number; bottom: number },
+        sides: { portrait: string | null; color: number; fromRight: boolean }[],
+        opts: { ms: number; reduce: boolean; depth: number },
+    ) {
+        const u = Math.min(this.uiScale, 1.6) * (this.crop ? CROP_TEXT_SCALE : 1);
+        const y = comboBandsY(box, (COMBO_BAND_H / 2 + 8) * u);
+        sides.forEach((side, i) => {
+            // inclinadas ao contrário uma da outra (um V aberto em volta do nome) e menos que a do N3: cobrem menos a quadra
+            const at = i ? { y: y.bottom / GAME_H, tilt: -0.03 } : { y: y.top / GAME_H, tilt: 0.03 };
+            const band = this.superCutIn({ ...side, ...opts, ...at, h: COMBO_BAND_H });
+            if (band) this.duo.push(band);
+        });
+    }
+
+    /** Outro letreiro chegou (a defesa ou o gol do próprio chute): as faixas do combo saem logo, sem ficar sob ele. */
+    private dropDuo() {
+        for (const band of this.duo) {
+            if (!band.active) continue;
+            const inner = band.list[0] as Phaser.GameObjects.Container;
+            this.scene.tweens.killTweensOf([inner, ...inner.list]);
+            this.scene.tweens.add({ targets: band, alpha: 0, duration: 120, onComplete: () => band.destroy() });
+        }
+        this.duo = [];
     }
 
     /** Texto grande de drama no alto da tela (a câmera centraliza o lance; o texto não o cobre). */
@@ -965,7 +1003,7 @@ export class Cinematics {
             /** Quanto ele fica parado antes de sumir (ms; padrão 1,25 s, `short` 0,7 s): o duelo da bicuda segura mais. */
             hold?: number;
         },
-    ) {
+    ): { top: number; bottom: number } | null {
         const now = this.scene.time.now;
         if (this.dramaTop && !opts.top && now < this.dramaTextUntil) {
             this.dramaWait?.remove();
@@ -973,7 +1011,7 @@ export class Cinematics {
                 this.dramaWait = null;
                 this.drama(text, opts);
             });
-            return;
+            return null;
         }
         // texto comum entra agora: o que esperava é mais velho e some (o que espera uma assinatura nova continua)
         if (!opts.top) {
@@ -981,6 +1019,7 @@ export class Cinematics {
             this.dramaWait = null;
         }
         this.dramaTop = !!opts.top;
+        this.dropDuo();
         if (this.tagTop < DRAMA_BOTTOM) this.dropTag();
         const fadeAt = opts.hold ?? (opts.short ? 700 : 1250);
         claimOverlay('drama', PRIO_GOAL, fadeAt + 330);
@@ -1013,6 +1052,7 @@ export class Cinematics {
             .setScale(0.2)
             .setResolution(2);
         const children: Phaser.GameObjects.GameObject[] = [t];
+        let below = t.height / 2;
         if (opts.sub) {
             const sub = this.scene.add
                 .text(0, 40 * s, opts.sub, {
@@ -1027,6 +1067,7 @@ export class Cinematics {
                 .setResolution(2);
             this.scene.tweens.add({ targets: sub, alpha: 1, delay: 180, duration: 200 });
             children.push(sub);
+            below = 40 * s + sub.height / 2;
         }
         // um texto de drama por vez: o novo substitui o anterior
         if (this.dramaHolder) {
@@ -1051,6 +1092,9 @@ export class Cinematics {
             duration: 330,
             onComplete: () => holder.destroy(),
         });
+        // o alto do nome e a base da linha de baixo, em px da tela (o cut-in de dupla encosta nelas)
+        const k = fit * (this.crop ? CROP_TEXT_SCALE : 1);
+        return { top: GAME_H * 0.17 - (t.height / 2) * k, bottom: GAME_H * 0.17 + below * k };
     }
 }
 
