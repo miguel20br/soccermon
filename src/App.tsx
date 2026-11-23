@@ -67,6 +67,9 @@ const Ultimate = lazy(() => import('./ui/ultimate/Ultimate').then((m) => ({ defa
 const WalkoutLab = lazy(() => import('./ui/screens/WalkoutLab').then((m) => ({ default: m.WalkoutLab })));
 // modo jogável, prévia (?lab=jogavel, só dev e prévias): o Phaser vem por import dinâmico
 const PlayLab = lazy(() => import('./ui/screens/PlayLab').then((m) => ({ default: m.PlayLab })));
+// troca de cartas e ranking do UT (?lab=troca, ?lab=ranking-ut; troca-e-ranking.md): só dev e prévias, nada no ar
+const TradeLab = lazy(() => import('./ui/ultimate/OnlineLab').then((m) => ({ default: m.TradeLab })));
+const RankLab = lazy(() => import('./ui/ultimate/OnlineLab').then((m) => ({ default: m.RankLab })));
 const KitLab = lazy(() => import('./ui/kit/KitLab').then((m) => ({ default: m.KitLab })));
 // galeria dos títulos (?lab=titulos, perfil-revamp.md): o gelo do "Natal 2026" e o seletor com tudo ganho
 const TitleLab = lazy(() => import('./ui/profile/TitleLab').then((m) => ({ default: m.TitleLab })));
@@ -160,6 +163,8 @@ export default function App() {
                 q === 'cenas' ||
                 q === 'kit' ||
                 q === 'menu-modos' ||
+                q === 'troca' ||
+                q === 'ranking-ut' ||
                 q === 'titulos')
         )
             return q;
@@ -303,6 +308,8 @@ export default function App() {
                 lab === 'walkout' ||
                 lab === 'jogavel' ||
                 lab === 'menu-modos' ||
+                lab === 'troca' ||
+                lab === 'ranking-ut' ||
                 lab === 'titulos' ? (
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         {lab === 'golpes' ? (
@@ -325,6 +332,10 @@ export default function App() {
                             <PlayLab onExit={exit} />
                         ) : lab === 'menu-modos' ? (
                             <ModeMenuLab onExit={exit} />
+                        ) : lab === 'troca' ? (
+                            <TradeLab onExit={exit} />
+                        ) : lab === 'ranking-ut' ? (
+                            <RankLab onExit={exit} />
                         ) : lab === 'titulos' ? (
                             <TitleLab onExit={exit} />
                         ) : (
