@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+  Manchetes do trailer v4 (roteiro-v4.md): ?t=<texto> (caixa alta; <b> = amarelo). Abre a 3x; o cartelas4.mjs tira o
+  print só do texto (fundo transparente) e a montagem faz o slam (escala 1,6 → 1 em 0,1 s) por cima do plano.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: G11; src: url("../../../../public/fonts/Galmuri11-Bold.woff2") format("woff2"); }
+:root { --ink: #070a18; --yellow: #ffd23f; }
+* { margin: 0; box-sizing: border-box; }
+html, body { width: 360px; height: 640px; background: transparent; }
+body { font-family: G11, monospace; color: #fff; display: flex; justify-content: center; align-items: flex-start; padding-top: 40px; }
+.leg {
+  display: inline-block; max-width: 330px; padding: 6px 8px; text-align: center; font-size: 31px; line-height: 1.15;
+  text-wrap: balance; letter-spacing: .5px; text-transform: uppercase;
+  text-shadow: 0 4px 0 var(--ink), 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 -3px 0 var(--ink), 3px 3px 0 var(--ink),
+    -3px 3px 0 var(--ink), 3px -3px 0 var(--ink), -3px -3px 0 var(--ink);
+}
+.leg b { color: var(--yellow); font-weight: inherit; }
+</style>
+</head>
+<body>
+<div class="leg"></div>
+<script>document.querySelector('.leg').innerHTML = new URLSearchParams(location.search).get('t');</script>
+</body>
+</html>
