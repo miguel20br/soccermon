@@ -3026,7 +3026,10 @@ export class MatchScene extends Phaser.Scene {
             .slice(0, max)
             .map(({ o }) => {
                 const hh = bodyHeight(o.skin) * o.sprite.scaleY;
-                return { head: { x: o.sprite.x, y: o.sprite.y - hh }, hh };
+                // o lado sai da animação tocando (`skin/anim/direção`): 1–3 direita, 5–7 esquerda
+                const dir = Number(o.currentKey.split('/')[2]);
+                const side = dir >= 1 && dir <= 3 ? 1 : dir >= 5 && dir <= 7 ? -1 : 0;
+                return { head: { x: o.sprite.x, y: o.sprite.y - hh }, hh, side };
             });
     }
 

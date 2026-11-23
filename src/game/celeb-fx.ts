@@ -44,8 +44,11 @@ export interface CelebDraw {
     mark: (n: number, text: string, size: number, color?: string) => Phaser.GameObjects.Text;
     /** Imagem reaproveitada (n = qual) com a textura `key`. */
     img: (n: number, key: string) => Phaser.GameObjects.Image;
-    /** As cabeças dos rivais perto (no máximo 2, a mais perto primeiro): a Jigglypuff rabisca. */
-    rivals: () => { head: Pt; hh: number }[];
+    /**
+     * As cabeças dos rivais perto (no máximo 2, a mais perto primeiro): a Jigglypuff rabisca. `side` = pra que lado
+     * ele olha (-1, 0, 1): de perfil o rosto fica pro lado, não no meio do corpo.
+     */
+    rivals: () => { head: Pt; hh: number; side: number }[];
 }
 
 const INK = 0x1a1020;
@@ -171,14 +174,14 @@ export function drawCeleb(c: CelebDraw) {
                 c.rivals().forEach((r, n) => {
                     const done = reduce ? 1 : scribbleDone(ms, n);
                     if (done <= 0) return;
-                    const w = Math.max(7 * s, Math.min(16 * s, r.hh * 0.32));
-                    const cx = r.head.x;
+                    const w = Math.max(9 * s, Math.min(18 * s, r.hh * 0.42));
+                    const cx = r.head.x + r.side * r.hh * 0.38;
                     const cy = r.head.y + r.hh * 0.34;
                     const last = Math.max(1, Math.round(done * (SCRIBBLE.length - 1)));
                     const pts = SCRIBBLE.slice(0, last + 1).map((p) => ({ x: cx + p.x * w, y: cy + p.y * w }));
                     for (const [lw, col, a] of [
-                        [3.2, 0xffffff, 0.5],
-                        [1.7, INK, 0.95],
+                        [4.2, 0xffffff, 0.6],
+                        [2.2, INK, 0.95],
                     ] as const) {
                         g.lineStyle(lw * s, col, a * fade).beginPath();
                         g.moveTo(pts[0].x, pts[0].y);
@@ -209,7 +212,7 @@ export function drawCeleb(c: CelebDraw) {
             } else if (ms < S.jump + 520) {
                 const k = reduce ? 1 : backOut((ms - S.notice) / 200);
                 c.mark(0, '!', 26, '#ffe14d')
-                    .setPosition(head.x, head.y - 2 * s)
+                    .setPosition(head.x + 11 * s, head.y - 2 * s)
                     .setScale(k)
                     .setAlpha(fade * Math.min(1, (S.jump + 520 - ms) / 160));
             }
