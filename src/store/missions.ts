@@ -23,7 +23,7 @@ import {
     playedCount,
     seenCount,
 } from './profile';
-import { CODE_TITLES } from './title-codes';
+import { CODE_TITLES, EVENT_TITLES } from './title-codes';
 
 export { DEFAULT_TITLE, DEFAULT_TRAINER };
 
@@ -696,11 +696,11 @@ export const unlockedTrainers = (p: Pick<Profile, 'missionsDone'>): TrainerId[] 
     ...p.missionsDone.flatMap((id) => missionById(id)?.trainer ?? []),
 ];
 
-/** Títulos ganhos: o de Pallet, os das missões e os de código. */
+/** Títulos ganhos: o de Pallet, os das missões, os de código e os de evento (estes dois em `redeemedTitles`). */
 export const earnedTitles = (p: Pick<Profile, 'missionsDone' | 'redeemedTitles'>): string[] => [
     DEFAULT_TITLE,
     ...p.missionsDone.flatMap((id) => missionById(id)?.title ?? []),
-    ...p.redeemedTitles.filter((id) => Object.values(CODE_TITLES).includes(id)),
+    ...p.redeemedTitles.filter((id) => Object.values(CODE_TITLES).includes(id) || EVENT_TITLES.includes(id)),
 ];
 
 /** Treinador que aparece: o escolhido, se está liberado neste save (senão o Red). */

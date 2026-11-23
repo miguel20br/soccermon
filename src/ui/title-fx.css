@@ -1,0 +1,161 @@
+/*
+ * Visual dos títulos (titleLook em src/store/title-codes.ts): dourado (shine), holográfico (holo) e gelo (ice, só o
+ * "Natal 2026"). Vale em todo lugar que mostra o título (Perfil, cartão do treinador, Duelo, Hall da Fama). Na grade do
+ * seletor (.pf-tgrid) fica parado: só a prévia em cima se mexe.
+ */
+
+/* dourado com um brilho passando: as lendárias e alguns códigos */
+.title-shine {
+    background:
+        linear-gradient(100deg, #b8860b 0%, #ffd84a 35%, #fff6c8 50%, #ffd84a 65%, #b8860b 100%) 0 0 / 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 4px rgb(255 203 5 / 45%));
+    animation: title-shine 2.6s linear infinite;
+}
+/* holográfico (as cores da carta Shiny/edição especial correndo): o do criador e os da platina */
+.title-holo {
+    background: linear-gradient(90deg, #ff9ad5, #9ae6ff, #b6ffa0, #fff29a, #d7a6ff, #ff9ad5) 0 0 / 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 5px rgb(215 166 255 / 55%));
+    animation: title-holo 4s linear infinite;
+}
+/*
+ * gelo: azul-gelo de cima pra baixo (branco, céu, azul fundo) com sombra dura azul-noite de 1 px (lê no claro e no
+ * escuro); um brilho branco estreito passa a cada ~4 s e 2 faíscas de pixel acendem e apagam (transform/opacity)
+ */
+.title-ice {
+    position: relative;
+    background:
+        linear-gradient(100deg, transparent 42%, rgb(255 255 255 / 95%) 50%, transparent 58%) 100% 0 / 250% 100%
+        no-repeat,
+        linear-gradient(180deg, #f4fbff 0%, #c6eaff 38%, #7ccaf6 68%, #3a8fd6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(1px 0 0 #17325e) drop-shadow(0 1px 0 #17325e);
+    animation: title-ice 4.2s linear infinite;
+}
+.title-ice::before,
+.title-ice::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: #fff;
+    /* faísca de 4 pontas em pixel (cruz de 3 x 3) */
+    clip-path: polygon(
+        33% 0,
+        67% 0,
+        67% 33%,
+        100% 33%,
+        100% 67%,
+        67% 67%,
+        67% 100%,
+        33% 100%,
+        33% 67%,
+        0 67%,
+        0 33%,
+        33% 33%
+    );
+    opacity: 0;
+    pointer-events: none;
+    animation: title-ice-spark 4.2s var(--ease-out) infinite;
+}
+.title-ice::before {
+    top: -5px;
+    right: -7px;
+}
+.title-ice::after {
+    bottom: -3px;
+    left: 18%;
+    width: 6px;
+    height: 6px;
+    animation-delay: -2.4s;
+}
+
+/* a moldura de quem mostra o título (pílula, sala e placar do Duelo, VERSUS) na cor do visual */
+:is(.pf-chip, .pf-tcell, .duel-title, .sb-title, .vsp-coach small):has(> .title-shine) {
+    border-color: #ffd84a;
+}
+:is(.pf-chip, .pf-tcell, .duel-title, .sb-title, .vsp-coach small):has(> .title-holo) {
+    border-color: #d7a6ff;
+    box-shadow: 0 0 10px rgb(154 230 255 / 35%);
+}
+:is(.pf-chip, .pf-tcell, .duel-title, .sb-title, .vsp-coach small):has(> .title-ice) {
+    border-color: #9fdcff;
+    border-bottom-color: #2a6bb0;
+}
+
+@keyframes title-holo {
+    to {
+        background-position: 300% 0;
+    }
+}
+@keyframes title-shine {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: -150% 0;
+    }
+}
+/* o brilho fica fora do texto por ~2,6 s e atravessa em ~1,6 s (pausa longa, não um loop nervoso) */
+@keyframes title-ice {
+    0%,
+    62% {
+        background-position:
+            100% 0,
+            0 0;
+    }
+    100% {
+        background-position:
+            0% 0,
+            0 0;
+    }
+}
+@keyframes title-ice-spark {
+    0%,
+    50%,
+    100% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    76% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+}
+
+/* parado (grade do seletor, reduzir movimento): o visual fica, o movimento sai; o gelo guarda uma faísca acesa */
+.pf-tgrid :is(.title-shine, .title-holo, .title-ice, .title-ice::before, .title-ice::after) {
+    animation: none;
+}
+.pf-tgrid .title-ice::before {
+    opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"])
+        :is(.title-shine, .title-holo, .title-ice, .title-ice::before, .title-ice::after) {
+        animation: none;
+    }
+    :root:not([data-reduce-motion="false"]) .title-ice::before {
+        opacity: 1;
+    }
+}
+:root[data-reduce-motion="true"] :is(.title-shine, .title-holo, .title-ice, .title-ice::before, .title-ice::after) {
+    animation: none;
+}
+:root[data-reduce-motion="true"] .title-ice::before {
+    opacity: 1;
+}

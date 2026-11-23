@@ -9,8 +9,8 @@ import type { Special } from '../engine/specials';
  *   1. Escolha o código (o jogo ignora espaços nas pontas e maiúsculas/minúsculas: guarde em MAIÚSCULAS).
  *   2. Gere o hash:  node -e "console.log(require('crypto').createHash('sha256').update('MEU-CODIGO').digest('hex'))"
  *   3. Ponha `'<hash>': '<id do título>'` em CODE_TITLES e o nome do título em CUSTOM_TITLES (pt e en).
- * Vários códigos podem dar o mesmo título. `look` dá um visual próprio: 'shine' (dourado brilhando) ou 'holo'
- * (holográfico: o do criador e os da platina).
+ * Vários códigos podem dar o mesmo título. `look` dá um visual próprio: 'shine' (dourado brilhando), 'holo'
+ * (holográfico: o do criador e os da platina) ou 'ice' (gelo: só o "Natal 2026").
  * ========================================================================================================
  */
 export const CODE_TITLES: Readonly<Record<string, string>> = {
@@ -69,8 +69,16 @@ export const CODE_CARDS: Readonly<Record<string, CardGift>> = {
     },
 };
 
-/** Nome dos títulos de código (o resto dos títulos fica no dicionário: profile.titles). */
-export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; look?: 'shine' | 'holo' }>> = {
+/** Visual próprio do título: dourado brilhando, holográfico ou gelo (só o "Natal 2026"). */
+export type TitleLook = 'shine' | 'holo' | 'ice';
+
+/**
+ * Nome dos títulos que não vêm de missão (código ou evento); o resto fica no dicionário: profile.titles. `how` = como
+ * se ganha (os de evento; os de código dizem "Código").
+ */
+export const CUSTOM_TITLES: Readonly<
+    Record<string, { pt: string; en: string; look?: TitleLook; how?: { pt: string; en: string } }>
+> = {
     gametester: { pt: 'Gametester', en: 'Gametester' },
     goat: { pt: 'GOAT', en: 'GOAT', look: 'shine' },
     kfc1: { pt: '1º KFC', en: '1st KFC', look: 'shine' },
@@ -80,9 +88,24 @@ export const CUSTOM_TITLES: Readonly<Record<string, { pt: string; en: string; lo
     torcidaFarmando: { pt: 'Torcida do Farmando Dungeons', en: 'Farmando Dungeons Supporter' },
     torcidaBreno: { pt: 'Torcida do Breno Menezes', en: 'Breno Menezes Supporter' },
     torcidaLeeGengar: { pt: 'Torcida do LeeGengar', en: 'LeeGengar Supporter' },
+    // Natal (natal.md): sai a partir de 15/12 pelo 2º degrau do desafio ou pela Copa de Natal nos dois dias
+    natal2026: {
+        pt: 'Natal 2026',
+        en: 'Christmas 2026',
+        look: 'ice',
+        how: {
+            pt: 'Copa de Natal (24 e 25/12) ou desafio de Natal',
+            en: 'Christmas Cup (Dec 24 and 25) or the Christmas challenge',
+        },
+    },
 };
 
-/** Classe do título na tela: os especiais têm visual próprio (dourado ou holográfico). */
+/**
+ * Títulos de evento: entram em `profile.redeemedTitles` quando o evento dá (sem campo novo no save) e aparecem
+ * bloqueados no seletor até lá. Os de código ficam escondidos até alguém resgatar.
+ */
+export const EVENT_TITLES: readonly string[] = ['natal2026'];
+
 /** Títulos das missões lendárias: dourados brilhando, como o GOAT. */
 const LEGEND_TITLES = new Set([
     'copaPerfeita',
@@ -99,9 +122,13 @@ const LEGEND_TITLES = new Set([
 /** Títulos da platina (100% de uma geração): holográficos, como o treinador que vem junto. */
 const PLATINUM_TITLES = new Set(['diplomaKanto']);
 
+/** O visual do título (um mapa só: código/evento, platina, lendárias), ou nada. */
+export const titleLook = (id: string): TitleLook | undefined =>
+    CUSTOM_TITLES[id]?.look ?? (PLATINUM_TITLES.has(id) ? 'holo' : LEGEND_TITLES.has(id) ? 'shine' : undefined);
+
+/** Classe do título na tela (` title-<look>` ou vazio). O CSS mora em src/ui/title-fx.css. */
 export const titleClass = (id: string) => {
-    const look =
-        CUSTOM_TITLES[id]?.look ?? (PLATINUM_TITLES.has(id) ? 'holo' : LEGEND_TITLES.has(id) ? 'shine' : undefined);
+    const look = titleLook(id);
     return look ? ` title-${look}` : '';
 };
 

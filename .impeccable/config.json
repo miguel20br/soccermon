@@ -146,6 +146,15 @@
         ],
         "createdAt": "2026-11-09T18:16:32.812Z",
         "reason": "falso positivo: L51 é o X redondo do kit (borda de 3px em volta toda, sem lado); o arquivo não tem borda de um lado só"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "src/ui/title-fx.css"
+        ],
+        "createdAt": "2026-11-23T14:46:59.935Z",
+        "reason": "plano perfil-revamp.md aprovado pelo Miguel (16/11): efeitos de título são texto em degradê (shine/holo já existiam, gelo novo)"
       }
     ]
   }

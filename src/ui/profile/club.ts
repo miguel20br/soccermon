@@ -3,10 +3,19 @@ import { useCloud } from '../../cloud/cloud';
 import { SPECIES } from '../../engine/data';
 import { dict, fmt, getLang, t } from '../../i18n';
 import { useGame } from '../../store/game-store';
-import { DEFAULT_TITLE, MISSIONS, type Mission, missionOfTrainer, type TrainerId } from '../../store/missions';
+import {
+    DEFAULT_TITLE,
+    MISSIONS,
+    type Mission,
+    type MissionGroup,
+    missionOfTrainer,
+    TITLE_IDS,
+    type TrainerId,
+} from '../../store/missions';
 import { type Avatar, bannerOf, clubColorHex, type Profile, rivalColor, trainerNameOf } from '../../store/profile';
-import { CUSTOM_TITLES, titleClass } from '../../store/title-codes';
+import { CUSTOM_TITLES, EVENT_TITLES, titleClass } from '../../store/title-codes';
 import './club.css';
+import '../title-fx.css';
 
 export const hexCss = (n: number) => `#${n.toString(16).padStart(6, '0')}`;
 
@@ -109,9 +118,53 @@ export function trainerHow(id: TrainerId): string {
     return m ? missionText(m) : t('profile.picker.fromStart');
 }
 
-/** Como se ganha o título: a tarefa da missão, "Desde o começo" (Pallet) ou "Código". */
+/** Como se ganha o título: a tarefa da missão, "Desde o começo" (Pallet), o evento ou "Código". */
 export function titleHow(id: string): string {
     if (id === DEFAULT_TITLE) return t('profile.picker.fromStart');
     const m = missionOfTitle(id);
-    return m ? missionText(m) : t('profile.picker.byCode');
+    return m ? missionText(m) : (CUSTOM_TITLES[id]?.how?.[getLang()] ?? t('profile.picker.byCode'));
+}
+
+/** Grupo do título no seletor: o da missão, "Especiais" (código e evento); o de Pallet vai com as classes. */
+export type TitleGroup = MissionGroup | 'especial';
+/** Ordem dos grupos no seletor: os raros primeiro. */
+export const TITLE_GROUPS: TitleGroup[] = [
+    'especial',
+    'platina',
+    'lendas',
+    'elite',
+    'colecoes',
+    'colecao',
+    'ginasios',
+    'feitos',
+    'classes',
+];
+export const titleGroup = (id: string): TitleGroup =>
+    missionOfTitle(id)?.group ?? (id === DEFAULT_TITLE ? 'classes' : 'especial');
+
+/** Raridade por categoria (perfil-revamp.md, decisão 4): sem dado de jogador, só pelo grupo. */
+export type TitleRarity = 'comum' | 'raro' | 'epico' | 'lendario' | 'especial';
+const RARITY: Record<TitleGroup, TitleRarity> = {
+    especial: 'especial',
+    platina: 'epico',
+    lendas: 'lendario',
+    elite: 'raro',
+    colecoes: 'raro',
+    colecao: 'raro',
+    ginasios: 'comum',
+    feitos: 'comum',
+    classes: 'comum',
+};
+export const titleRarity = (id: string): TitleRarity => RARITY[titleGroup(id)];
+
+/**
+ * Os títulos do seletor por grupo: os ganhos (na ordem em que chegaram, o mais novo primeiro) e depois os bloqueados
+ * de missão e de evento. Título de código só aparece depois de resgatado.
+ */
+export function pickerTitles(earned: readonly string[]): { group: TitleGroup; ids: string[] }[] {
+    const have = new Set(earned);
+    const all = [...[...earned].reverse(), ...[...TITLE_IDS, ...EVENT_TITLES].filter((id) => !have.has(id))];
+    return TITLE_GROUPS.map((group) => ({ group, ids: all.filter((id) => titleGroup(id) === group) })).filter(
+        (g) => g.ids.length > 0,
+    );
 }

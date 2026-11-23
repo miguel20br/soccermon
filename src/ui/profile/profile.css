@@ -1441,58 +1441,6 @@ fieldset.pf-field,
     transition: none;
 }
 
-/* título especial (código de gametester): dourado com um brilho passando */
-.title-shine {
-    background:
-        linear-gradient(100deg, #b8860b 0%, #ffd84a 35%, #fff6c8 50%, #ffd84a 65%, #b8860b 100%) 0 0 / 250% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: none;
-    filter: drop-shadow(0 0 4px rgb(255 203 5 / 45%));
-    animation: title-shine 2.6s linear infinite;
-}
-.pf-chip:has(> .title-shine) {
-    border-color: #ffd84a;
-}
-/* título holográfico (as cores da carta Shiny/edição especial correndo): o do criador e os da platina */
-.title-holo {
-    background: linear-gradient(90deg, #ff9ad5, #9ae6ff, #b6ffa0, #fff29a, #d7a6ff, #ff9ad5) 0 0 / 300% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: none;
-    filter: drop-shadow(0 0 5px rgb(215 166 255 / 55%));
-    animation: title-holo 4s linear infinite;
-}
-.pf-chip:has(> .title-holo) {
-    border-color: #d7a6ff;
-    box-shadow: 0 0 10px rgb(154 230 255 / 35%);
-}
-@keyframes title-holo {
-    to {
-        background-position: 300% 0;
-    }
-}
-@keyframes title-shine {
-    from {
-        background-position: 100% 0;
-    }
-    to {
-        background-position: -150% 0;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .title-shine,
-    .title-holo {
-        animation: none;
-    }
-}
-:root[data-reduce-motion="true"] .title-shine,
-:root[data-reduce-motion="true"] .title-holo {
-    animation: none;
-}
-
 /* coleções temáticas: quem já jogou aparece, quem falta fica em silhueta */
 .pf-collection {
     list-style: none;
