@@ -68,12 +68,19 @@ describe('música por tela', () => {
     });
 
     it('Semana Fora da Lei: o menu toca a menu-neon; fora do tema, a menu-balanco; o resto não muda', () => {
-        expect(trackOf(st('home', {}), true)).toBe('menu-neon');
-        expect(trackOf(st('settings', {}), true)).toBe('menu-neon');
-        expect(trackOf(st('home', {}), false)).toBe('menu-balanco');
+        expect(trackOf(st('home', {}), 'neon')).toBe('menu-neon');
+        expect(trackOf(st('settings', {}), 'neon')).toBe('menu-neon');
+        expect(trackOf(st('home', {}), null)).toBe('menu-balanco');
         expect(trackOf(st('home', {}))).toBe('menu-balanco'); // nos testes o tema fica desligado
-        expect(trackOf(st('draft', {}), true)).toBe('draft');
-        expect(trackOf(st('trophies', {}), true)).toBe('sala');
+        expect(trackOf(st('draft', {}), 'neon')).toBe('draft');
+        expect(trackOf(st('trophies', {}), 'neon')).toBe('sala');
+    });
+
+    it('Natal: o menu toca a Noite Feliz (menu-natal); o resto não muda', () => {
+        expect(trackOf(st('home', {}), 'natal')).toBe('menu-natal');
+        expect(trackOf(st('profile', {}), 'natal')).toBe('menu-natal');
+        expect(trackOf(st('draft', {}), 'natal')).toBe('draft');
+        expect(trackOf(st('trophies', {}), 'natal')).toBe('sala');
     });
 
     it('Pressão final: começou, fica até o apito mesmo com o placar empatado', () => {

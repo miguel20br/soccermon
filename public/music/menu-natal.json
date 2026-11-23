@@ -1,0 +1,53 @@
+{
+ "faixa": "menu-natal",
+ "titulo": "Menu de Natal: Noite Feliz (balada em 6/8)",
+ "tela": "Home (Natal, 30/11 a 06/01)",
+ "sampleRate": 44100,
+ "linhasPorCompasso": 12,
+ "duracao": 86,
+ "secoes": [
+  {
+   "nome": "intro",
+   "loop": false,
+   "inicio": 0,
+   "fim": 4,
+   "amostras": [
+    0,
+    176400
+   ],
+   "bpm": 90,
+   "compassos": 2
+  },
+  {
+   "nome": "loop",
+   "loop": true,
+   "inicio": 4,
+   "fim": 86,
+   "amostras": [
+    176400,
+    3792600
+   ],
+   "bpm": 90,
+   "compassos": 41
+  }
+ ],
+ "gancho": {
+  "hits": [
+   [
+    0,
+    0.5,
+    1
+   ],
+   [
+    52,
+    52.5,
+    53
+   ],
+   [
+    56,
+    56.5,
+    57
+   ]
+  ]
+ }
+}

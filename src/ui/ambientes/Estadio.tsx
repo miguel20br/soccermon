@@ -14,7 +14,7 @@ import { Logo } from '../components/LogoHits';
 import { HudIcon } from '../components/MatchHud';
 import { PixelTrophy } from '../components/PixelTrophy';
 import { reduceMotionOn } from '../settings-sync';
-import { neonOn, tema, useTimeLeft } from '../tema';
+import { neonOn, useTimeLeft } from '../tema';
 import '../animacoes.css';
 import './neon.css';
 import { ParkedRuns } from '../components/ParkedRuns';
@@ -255,7 +255,7 @@ export function Stands({
                 <span className="es-banner">{clubName}</span>
                 {/* Noite Neon (ui/tema.ts): o letreiro pendurado na cobertura */}
                 {/* o do Estádio mora no fluxo da tela (`NeonSign` abaixo do telão): aqui o logo cobria */}
-                {tema && <NeonSign />}
+                {neonOn && <NeonSign />}
                 {children}
             </div>
             <div className="es-led">
@@ -604,7 +604,7 @@ export function Estadio({
                     </h1>
                     {hydrated && firstVisit && !challenge && <p className="es-tagline">{t('home.tagline')}</p>}
                 </div>
-                {tema && <NeonSign flow />}
+                {neonOn && <NeonSign flow />}
                 <div className="es-actions">
                     {/* "Fulano te chamou pro Duelo" (na Home o aviso por cima não aparece: fica aqui, onde todo mundo chega) */}
                     <FriendChallenge />
