@@ -744,5 +744,8 @@ export function mergeProfileUnlocks(keep: Profile, other: Partial<Profile> | und
         coach: keep.coach || other?.coach ? union(keep.coach ?? [], other?.coach) : undefined,
         // cartões das Notícias: visto em qualquer lado conta
         newsSeen: keep.newsSeen || other?.newsSeen ? union(keep.newsSeen ?? [], other?.newsSeen) : undefined,
+        // sinergia secreta descoberta em qualquer lado conta
+        combosFound:
+            keep.combosFound || other?.combosFound ? union(keep.combosFound ?? [], other?.combosFound) : undefined,
     };
 }

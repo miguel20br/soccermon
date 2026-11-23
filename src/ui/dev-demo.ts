@@ -29,6 +29,7 @@ import { type EventId, gambleWon, rollEvent } from '../store/long-events';
 import { earnedKeys, medalViewOf } from '../store/news';
 import { EDITION_BIT, editionBits } from '../store/profile';
 import { type House, houseOf } from '../store/rota-map';
+import { matchSecrets } from '../store/secret-links';
 import { namedDribblesOf } from './match-view';
 import { isTrailerScene, trailerPicks } from './trailer-scenes';
 
@@ -75,6 +76,9 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
  * `?demo=combo` abre na escalação o time do `ditto` a 3 s do primeiro combo seu (o cut-in de dupla da sinergia).
+ * `?demo=secreta&id=vermilion|aberturaRG|aberturaYellow|meowth|clone|classicoVersao` abre na escalação (com o "???"
+ * da sinergia secreta com o rival) uma partida que, ao começar, está a 3 s do lance em que ela se revela. `&visto=1`:
+ * ela já foi descoberta (o chip com o nome e a revelação curta). `&sinergias=1`: abre no Registro de Sinergias.
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
  * `?demo=comemoracao&sp=54|143|129|94|25` abre na escalação a 3 s de um gol dessa espécie (a comemoração própria).
@@ -137,6 +141,7 @@ export function runDevDemo() {
         demo !== 'comemoracao' &&
         demo !== 'charanga' &&
         demo !== 'combo' &&
+        demo !== 'secreta' &&
         demo !== 'sala' &&
         demo !== 'final' &&
         demo !== 'rota-titulo' &&
@@ -1190,6 +1195,53 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: Math.max(0, combo.tick - 60), engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: combo no tick ${combo.tick}`);
+            return;
+        }
+        return;
+    }
+    if (demo === 'secreta') {
+        const q = new URLSearchParams(window.location.search);
+        const PAIR: Record<string, [number, number]> = {
+            vermilion: [25, 26],
+            aberturaRG: [94, 33],
+            aberturaYellow: [25, 39],
+            meowth: [25, 52],
+            clone: [6, 6],
+            classicoVersao: [123, 127],
+        };
+        const id = q.get('id') ?? 'vermilion';
+        const [mine, theirs] = PAIR[id] ?? PAIR.vermilion;
+        if (q.get('visto') === '1') useGame.setState({ profile: { ...store.profile, combosFound: [id] } });
+        if (q.get('sinergias') === '1') {
+            useGame.setState({ screen: 'collection' });
+            return;
+        }
+        for (let k = 0; k < 80; k++) {
+            store.newRun('Demo FC', `sec${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`sec${k}`, 'demo');
+            const lineup = [143, 68, mine, 132, 150].map((n) => createInstance(n, rng));
+            const bench = [4, 25].map((n) => createInstance(n, rng));
+            const rival = base.opponents[0];
+            const opp = { ...rival, lineup: rival.lineup.map((p, i) => (i === 2 ? createInstance(theirs, rng) : p)) };
+            const run = {
+                ...base,
+                opponents: [opp, ...base.opponents.slice(1)],
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(opp, true), `${run.seed}-stage-0`, { snapshots: false });
+            const hit = matchSecrets(r).find((h) => h.id === id);
+            if (!hit) continue;
+            const live = { stage: 0, orders: [], tick: Math.max(0, hit.event.tick - 60), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: ${id} no tick ${hit.event.tick}`);
             return;
         }
         return;

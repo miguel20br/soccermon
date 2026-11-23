@@ -13,6 +13,7 @@ import {
     seenCount,
     topSeal,
 } from './profile';
+import { combosFoundOf, SECRET_LINKS } from './secret-links';
 
 /**
  * Medalhas com degraus (bronze, prata, ouro, platina), padrão Pokémon GO. Só cosmético e 100% retroativo: cada
@@ -29,6 +30,8 @@ export interface MedalView extends SaveView {
     career: Career;
     records: Records;
     duels: DuelRecord[];
+    /** Sinergias secretas descobertas (`profile.combosFound`; sem o campo = nenhuma). */
+    combos?: readonly string[];
 }
 
 export interface Medal {
@@ -82,6 +85,12 @@ export const MEDALS: Medal[] = [
     { id: 'colecoes', steps: [1, 3, 6, 9], value: (v) => COLLECTION_IDS.filter((id) => v.done.has(id)).length },
     { id: 'missoes', steps: [10, 20, 35, MISSIONS.length], value: (v) => v.done.size },
     { id: 'duelista', steps: [1, 10, 50, 200], value: (v) => duelWins(v.records, v.duels) },
+    // sinergias secretas (PROPOSTA, 0.9.54): degraus pelas 6 rivalidades de agora; a platina é achar todas
+    {
+        id: 'sinergias',
+        steps: [1, 2, 4, SECRET_LINKS.length],
+        value: (v) => combosFoundOf({ combosFound: v.combos }).length,
+    },
 ];
 
 const BY_ID = new Map(MEDALS.map((m) => [m.id, m]));

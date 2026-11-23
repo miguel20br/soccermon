@@ -8,14 +8,15 @@ import { MenuHead } from '../components/MenuHead';
 import { DOOR_TABS, type DoorTab, initialTab } from '../doors';
 import { DexTab } from '../profile/DexTab';
 import { NewDot, newsCount, useNews } from '../profile/news';
+import { SynergyLog } from '../profile/SynergyLog';
 import '../profile/profile.css';
 
 const MoveLab = lazy(() => import('./MoveLab').then((m) => ({ default: m.MoveLab })));
 
 type Tab = DoorTab<'collection'>;
-const TAB_ICON: Record<Tab, HudIconKind> = { dex: 'dex', album: 'cards', golpedex: 'max' };
+const TAB_ICON: Record<Tab, HudIconKind> = { dex: 'dex', album: 'cards', sinergias: 'sparkle', golpedex: 'max' };
 
-/** Coleção = o que eu coleciono (docs/planos/menus-e-sala.md): Pokédex, Álbum de figurinhas e Golpedex. */
+/** Coleção = o que eu coleciono (docs/planos/menus-e-sala.md): Pokédex, Álbum de figurinhas, Sinergias e Golpedex. */
 export function Collection() {
     const go = useGame((s) => s.go);
     const [tab, setTab] = useState<Tab>(() => initialTab('collection'));
@@ -50,7 +51,7 @@ export function Collection() {
                     >
                         <HudIcon kind={TAB_ICON[id]} />
                         <span>{d.profile.tabs[id]}</span>
-                        <NewDot on={id !== 'golpedex' && newsCount(news, id) > 0} />
+                        <NewDot on={(id === 'dex' || id === 'album') && newsCount(news, id) > 0} />
                     </button>
                 ))}
             </div>
@@ -59,6 +60,8 @@ export function Collection() {
                     <Suspense fallback={<p className="muted">{t('common.ui.loading')}</p>}>
                         <MoveLab bare onExit={() => go(backTarget('collection') ?? 'home')} />
                     </Suspense>
+                ) : tab === 'sinergias' ? (
+                    <SynergyLog />
                 ) : (
                     <DexTab view={tab} onView={setTab} />
                 )}

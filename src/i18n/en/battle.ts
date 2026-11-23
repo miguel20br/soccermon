@@ -70,6 +70,7 @@ export const battle: typeof pt = {
     comboPop: 'COMBO!',
     combo: '{link} combo: {a} + {b}!',
     comboSub: '{link} combo: {a} + {b}',
+    secretSub: '{a} vs {b}',
     substitutePop: 'SUBSTITUTE!',
     decoy: 'The substitute took damage for {x}!',
     cleared: 'cleared!',

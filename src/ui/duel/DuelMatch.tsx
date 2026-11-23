@@ -251,6 +251,7 @@ export function DuelMatch({ onSeeResult }: { onSeeResult: () => void }) {
             match
                 ? {
                       result: match,
+                      combosFound: useGame.getState().profile.combosFound,
                       colors,
                       cries: settings.cries,
                       speed: s.speed,

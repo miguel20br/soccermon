@@ -14,6 +14,7 @@ import { useT } from '../../i18n/react';
 import { lookOfCupClub } from '../../store/club-kit';
 import { liveOf, playerTeam, type SlotRef, useGame } from '../../store/game-store';
 import { cupLength, isFinalStage, isLong, isOut, type OutWhy, outOf } from '../../store/long-cup';
+import { combosFoundOf, rivalSecrets } from '../../store/secret-links';
 import { useCardModal } from '../card-modal';
 import { Coach } from '../coach/Coach';
 import { Bracket, bracketRivals, bracketYou } from '../components/Bracket';
@@ -22,7 +23,7 @@ import { FormationBoard } from '../components/FormationBoard';
 import { FormationDiagram } from '../components/FormationCarousel';
 import { EdgeMark, FormationIdentity } from '../components/FormationIdentity';
 import { FutCard } from '../components/FutCard';
-import { LinkChips, SynergyChip } from '../components/LinkChips';
+import { LinkChips, SecretChip, SynergyChip } from '../components/LinkChips';
 import { HudIcon } from '../components/MatchHud';
 import { cardSprite } from '../components/PokeCard';
 import { useMedia, WIDE } from '../components/Prancheta';
@@ -131,6 +132,7 @@ export function Lineup() {
                 onCaptain={setCaptain}
                 sponsors={run.sponsors}
                 rivalFormation={opponent.formation ?? '1-2-1'}
+                rivalLineup={opponent.lineup}
                 outOf={(u) => outOf(run, u)}
                 wall={
                     // o cartaz do rival na parede: escudo, nome, média e os 5 dele; abre a chave (com o rival e o Abandonar)
@@ -340,6 +342,7 @@ export function LineupEditor({
     footer,
     sponsors,
     rivalFormation,
+    rivalLineup,
     outOf,
     badgeOf,
     lead,
@@ -377,6 +380,8 @@ export function LineupEditor({
     sponsors?: readonly string[];
     /** Formação do rival, quando se sabe (selo "Vantagem tática" se a sua encaixa). */
     rivalFormation?: FormationId;
+    /** Titulares do rival, quando se sabe: as sinergias secretas com ele aparecem como "???" (secret-links.ts). */
+    rivalLineup?: readonly PokemonInstance[];
     /** Rota Índigo: quem está fora (lesão, Creche) e por quantas partidas. No banco fica travado. */
     outOf?: (uid: string) => { why: OutWhy | 'fora'; n: number } | null;
     /** Selo a mais na vaga (os losangos de química do Time Ultimate). */
@@ -414,6 +419,14 @@ export function LineupEditor({
         benchNow,
     );
     const links = computeLinks(lineup.map((u) => byUid.get(u)!));
+    const combosFound = useGame((s) => s.profile.combosFound);
+    const secrets = rivalLineup
+        ? rivalSecrets(
+              lineup.map((u) => byUid.get(u)!.speciesId),
+              rivalLineup.map((p) => p.speciesId),
+          )
+        : [];
+    const known = new Set(combosFoundOf({ combosFound }));
     const slotsNow = FORMATIONS[formation].slots;
     const positionOf = (uid: string) => {
         const i = lineup.indexOf(uid);
@@ -736,7 +749,7 @@ export function LineupEditor({
                         )}
                         {/* sinergias de tipo (o selo do monotipo incluso) e de história numa linha de chips; sem
                         nenhuma, a seção some */}
-                        {!noSynergies && synergies.length + links.length > 0 && (
+                        {!noSynergies && synergies.length + links.length + secrets.length > 0 && (
                             <section>
                                 <h3 className="bc-lbl">{t('team.lineup.synergies')}</h3>
                                 <div className="row vt-syn">
@@ -744,6 +757,9 @@ export function LineupEditor({
                                         <SynergyChip key={s.type} s={s} />
                                     ))}
                                     <LinkChips links={links} />
+                                    {secrets.map((id) => (
+                                        <SecretChip key={id} id={id} known={known.has(id)} />
+                                    ))}
                                 </div>
                             </section>
                         )}

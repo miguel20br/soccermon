@@ -2915,6 +2915,42 @@ button,
         box-shadow: 0 0 10px #b48cff;
     }
 }
+/* sinergia secreta com o rival: "???" escuro com borda tracejada, entra num fade curto (nada teleporta) */
+.link-chip.secret-chip {
+    background: linear-gradient(135deg, #1a1430, #2c1f4a);
+    border: 1px dashed #b48cff;
+    letter-spacing: 1px;
+    animation: secret-chip-in 240ms ease-out both;
+}
+.link-chip.secret-chip.known {
+    border-style: solid;
+    letter-spacing: 0;
+}
+@keyframes secret-chip-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .link-chip.secret-chip {
+        animation-duration: 1ms;
+    }
+}
+/* "Sinergia descoberta: X" no resultado, em cima do botão */
+.res-secret {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin: 4px 0 8px;
+}
+.res-secret .link-chip {
+    font-size: 13px;
+    padding: 4px 12px;
+    white-space: normal;
+    text-align: center;
+}
 .option-links {
     display: flex;
     flex-wrap: wrap;

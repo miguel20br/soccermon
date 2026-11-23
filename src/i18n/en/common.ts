@@ -229,6 +229,52 @@ export const common: typeof pt = {
         },
         fofos: { name: 'Lullaby', desc: 'Clefairy and Jigglypuff (or their evolutions).', combo: 'Lunar Duet' },
     },
+    secretLink: {
+        aberturaRG: {
+            name: 'Red and Green Opening',
+            desc: 'Gengar against Nidorino, one on each team.',
+            riddle: 'The first battle everyone saw on the Game Boy.',
+        },
+        aberturaYellow: {
+            name: 'Yellow Opening',
+            desc: 'Pikachu against Jigglypuff, one on each team.',
+            riddle: 'In the yellow version, the opening swaps the pair.',
+        },
+        vermilion: {
+            name: 'Vermilion Rematch',
+            desc: 'Pikachu against Raichu, one on each team.',
+            riddle: 'One refused to evolve. The other belongs to the lieutenant.',
+        },
+        meowth: {
+            name: "Meowth's Envy",
+            desc: 'Meowth against Pikachu, one on each team.',
+            riddle: 'He wanted to be the mascot and always gets shocked.',
+        },
+        clone: {
+            name: 'The Clone Strikes Back',
+            desc: 'The same species on both teams.',
+            riddle: 'The original meets the copy.',
+        },
+        classicoVersao: {
+            name: 'Version Classic',
+            desc: 'Red and Blue exclusives, one on each team: Scyther and Pinsir, Ekans and Sandshrew, Oddish and Bellsprout, Growlithe and Vulpix, Mankey and Meowth.',
+            riddle: 'Each one only showed up in one of the versions.',
+        },
+    },
+    secretUi: {
+        chip: '???',
+        chipTitle: 'Secret synergy with the rival: the name shows up when the two meet on the court.',
+        rival: 'Against the rival',
+        banner: 'SECRET SYNERGY',
+        line: 'Secret synergy: {name} ({a} vs {b})!',
+        found: 'Synergy discovered: {name}',
+        title: 'Synergy Log',
+        count: '{n} of {total} discovered',
+        story: 'Story',
+        secret: 'Secret',
+        bonus: '+{n}% to everything',
+        screenOnly: 'Court only, no bonus.',
+    },
     itemDesc: {
         leftovers: 'Restores 0.15% stamina per second.',
         choiceband: 'Shooting +15%, but only the first move can be used.',

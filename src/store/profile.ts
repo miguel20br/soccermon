@@ -97,6 +97,8 @@ export interface Profile {
     newsSeen?: string[];
     /** Abas dos ambientes que já acenderam (coach.ts, `ambLit`). Sem o campo = save de antes delas. */
     ambLit?: string[];
+    /** Sinergias secretas já descobertas em campo (secret-links.ts). Sem o campo = nenhuma (save de antes delas). */
+    combosFound?: string[];
 }
 
 /**

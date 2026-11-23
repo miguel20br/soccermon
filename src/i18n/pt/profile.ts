@@ -5,6 +5,7 @@ export const profile = {
     tabs: {
         treinador: 'Treinador',
         album: 'Álbum',
+        sinergias: 'Sinergias',
         golpedex: 'Golpedex',
         clube: 'Clube',
         dex: 'Pokédex',
@@ -570,6 +571,7 @@ export const profile = {
             colecoes: 'Coleções',
             missoes: 'Missões',
             duelista: 'Duelista',
+            sinergias: 'Sinergias secretas',
         } as Record<string, string>,
         text: {
             pokedex: 'Espécies vistas na Pokédex',
@@ -592,6 +594,7 @@ export const profile = {
             colecoes: 'Coleções temáticas completas',
             missoes: 'Missões cumpridas',
             duelista: 'Vitórias no Duelo',
+            sinergias: 'Sinergias secretas descobertas',
         } as Record<string, string>,
     },
     picker: {

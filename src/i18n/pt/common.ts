@@ -233,6 +233,56 @@ export const common = {
         },
         fofos: { name: 'Canção de Ninar', desc: 'Clefairy e Jigglypuff (ou evoluções).', combo: 'Dueto Lunar' },
     } as Record<string, { name: string; desc: string; combo: string }>,
+    /**
+     * Sinergias secretas (src/store/secret-links.ts): nome com flavor, descrição direta e a charada do Registro (que
+     * aparece antes de descobrir; o nome e a descrição só depois).
+     */
+    secretLink: {
+        aberturaRG: {
+            name: 'Abertura de Red e Green',
+            desc: 'Gengar contra Nidorino, um em cada time.',
+            riddle: 'A primeira luta que todo mundo viu no Game Boy.',
+        },
+        aberturaYellow: {
+            name: 'Abertura do Yellow',
+            desc: 'Pikachu contra Jigglypuff, um em cada time.',
+            riddle: 'Na versão amarela, a abertura troca de dupla.',
+        },
+        vermilion: {
+            name: 'Revanche de Vermilion',
+            desc: 'Pikachu contra Raichu, um em cada time.',
+            riddle: 'Um não quis evoluir. O outro é do tenente.',
+        },
+        meowth: {
+            name: 'Inveja do Meowth',
+            desc: 'Meowth contra Pikachu, um em cada time.',
+            riddle: 'Ele queria ser o mascote e sempre leva choque.',
+        },
+        clone: {
+            name: 'Clone Contra-Ataca',
+            desc: 'A mesma espécie nos dois times.',
+            riddle: 'O original encontra a cópia.',
+        },
+        classicoVersao: {
+            name: 'Clássico de Versão',
+            desc: 'Exclusivos de Red e Blue, um em cada time: Scyther e Pinsir, Ekans e Sandshrew, Oddish e Bellsprout, Growlithe e Vulpix, Mankey e Meowth.',
+            riddle: 'Cada um só aparecia numa das versões.',
+        },
+    } as Record<string, { name: string; desc: string; riddle: string }>,
+    secretUi: {
+        chip: '???',
+        chipTitle: 'Sinergia secreta com o rival: o nome aparece quando os dois se cruzarem em quadra.',
+        rival: 'Contra o rival',
+        banner: 'SINERGIA SECRETA',
+        line: 'Sinergia secreta: {name} ({a} x {b})!',
+        found: 'Sinergia descoberta: {name}',
+        title: 'Registro de Sinergias',
+        count: '{n} de {total} descobertas',
+        story: 'De história',
+        secret: 'Secretas',
+        bonus: '+{n}% em tudo',
+        screenOnly: 'Só em quadra, sem bônus.',
+    },
     /** Descrição dos itens (o nome é o oficial em inglês, igual nas duas línguas). */
     itemDesc: {
         leftovers: 'Recupera 0,15% de fôlego por segundo.',

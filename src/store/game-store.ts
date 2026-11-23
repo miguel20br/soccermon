@@ -127,6 +127,7 @@ import {
 import { ACE_ROUND_UP, casaOf } from './rota-map';
 import { safeStorage } from './save-health';
 import { screenTransition } from './screen-transition';
+import { combosFoundOf, freshCombos } from './secret-links';
 import { dailyTitlesOf } from './trophies';
 import { utNow } from './ultimate/clock';
 import {
@@ -541,6 +542,13 @@ export interface GameStore {
     unlockQueue: string[];
     /** O aviso do primeiro da fila já passou. */
     shiftUnlock(): void;
+    /**
+     * Sinergias secretas descobertas na partida que acabou (secret-links.ts): guarda no perfil as novas e deixa elas em
+     * `combosFresh` pra tela de resultado ("Sinergia descoberta: X").
+     */
+    discoverCombos(ids: readonly string[]): void;
+    /** As descobertas da última partida (não persistida: o aviso é só na tela de resultado). */
+    combosFresh: string[];
     go(screen: Screen): void;
     newRun(teamName?: string, seed?: string, daily?: string, mode?: CupMode, rematchOf?: RunState): void;
     /** Revanche: copa Relâmpago nova (chave e seed novas) com o elenco, a formação e o capitão da que caiu, sem draft. */
@@ -1219,6 +1227,8 @@ export function migrateSave(old: Partial<PersistedSave>, version: number): Persi
     // v7: treinador e títulos (saves e nuvem antigos não têm; listas estragadas viram vazias)
     if (!Array.isArray(profile.missionsDone)) profile.missionsDone = [];
     if (!Array.isArray(profile.redeemedTitles)) profile.redeemedTitles = [];
+    // sinergias secretas (0.9.54): campo opcional; lista estragada ou id que não existe sai
+    if (profile.combosFound !== undefined) profile.combosFound = combosFoundOf(profile);
     let dex: Dex = old.dex ?? {};
     if (version < 5 && run) {
         dex = markSeen(
@@ -1509,6 +1519,7 @@ export const useGame = create<GameStore>()(
                 },
                 match: null,
                 unlockQueue: [],
+                combosFresh: [],
 
                 go: (screen) => setState({ screen }),
 
@@ -2417,6 +2428,15 @@ export const useGame = create<GameStore>()(
                 updateProfile: (patch) => setState({ profile: { ...getState().profile, ...patch } }),
                 setOnboarded: (onboarded) => setState({ onboarded }),
                 shiftUnlock: () => setState({ unlockQueue: getState().unlockQueue.slice(1) }),
+                discoverCombos: (ids) => {
+                    const profile = getState().profile;
+                    const found = combosFoundOf(profile);
+                    const fresh = freshCombos(found, ids);
+                    setState({
+                        combosFresh: fresh,
+                        ...(fresh.length && { profile: { ...profile, combosFound: [...found, ...fresh] } }),
+                    });
+                },
 
                 resumeParked: (seed) => {
                     const { run, parkedRuns } = getState();
