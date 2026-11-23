@@ -59,9 +59,9 @@ const empty = (): MedalView => ({
 });
 
 describe('medalhas', () => {
-    it('20 medalhas, ids únicos, degraus crescentes', () => {
-        expect(MEDALS).toHaveLength(20);
-        expect(new Set(MEDALS.map((m) => m.id)).size).toBe(20);
+    it('21 medalhas, ids únicos, degraus crescentes', () => {
+        expect(MEDALS).toHaveLength(21);
+        expect(new Set(MEDALS.map((m) => m.id)).size).toBe(21);
         for (const m of MEDALS) for (let i = 1; i < 4; i++) expect(m.steps[i]).toBeGreaterThan(m.steps[i - 1]);
     });
 

@@ -59,6 +59,7 @@ import {
     roomLooksClosed,
 } from './link';
 import './duel.css';
+import { matchSecrets } from '../../store/secret-links';
 import { backTarget } from '../back-nav';
 import { ArenaBackdrop } from '../kit/backdrop';
 import { InfoSheet, OptionTile, SheetRow } from '../kit/controls';
@@ -980,7 +981,11 @@ export function Duel() {
         const mine = SIDE[role];
         const r = s.result;
         // Pokédex: quem jogou pelo seu lado vira "jogou", em cada jogo da série (partida anulada ou W.O. não conta)
-        if (duel.markRecorded(s.game) && duel.result && !r.desync && !r.wo) recordDuelDex(duel.result, mine);
+        if (duel.markRecorded(s.game) && duel.result && !r.desync && !r.wo) {
+            recordDuelDex(duel.result, mine);
+            // sinergia secreta: descobre no Duelo também (o lance é o mesmo nas duas telas)
+            useGame.getState().discoverCombos(matchSecrets(duel.result).map((h) => h.id));
+        }
         // histórico: o jogo; no melhor de 3, a série inteira quando ela acaba (uma série = um duelo)
         if (!seriesOf(s).over || !duel.markRecorded(`duelo-${s.game}`)) return;
         const rival = s.peers[other(role)];

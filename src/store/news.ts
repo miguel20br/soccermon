@@ -84,6 +84,7 @@ export const medalViewOf = (s: PersistedSave): MedalView => ({
     runs: [s.run, ...(s.parkedRuns ?? [])],
     done: new Set(s.profile.missionsDone),
     duels: s.duels ?? [],
+    combos: s.profile.combosFound,
 });
 
 /** Save sem `seen` (de antes do selo NOVO): o que ele já ganhou conta como visto. */

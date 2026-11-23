@@ -10,7 +10,7 @@ export type Door = Extract<Screen, 'profile' | 'collection' | 'trophies'>;
 
 export const DOOR_TABS = {
     profile: ['treinador', 'clube', 'amigos'],
-    collection: ['dex', 'album', 'golpedex'],
+    collection: ['dex', 'album', 'sinergias', 'golpedex'],
     trophies: ['trofeus', 'medalhas', 'numeros'],
 } as const satisfies Record<Door, readonly string[]>;
 export type DoorTab<D extends Door> = (typeof DOOR_TABS)[D][number];

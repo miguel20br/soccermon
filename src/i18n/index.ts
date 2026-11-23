@@ -179,6 +179,10 @@ export const formationText = (id: string, lang: Lang = current) =>
 export const linkText = (id: string, lang: Lang = current) =>
     DICTS[lang].common.link[id] ?? { name: id, desc: '', combo: '' };
 
+/** Sinergia secreta (src/store/secret-links.ts): nome, descrição e charada. */
+export const secretText = (id: string, lang: Lang = current) =>
+    DICTS[lang].common.secretLink[id] ?? { name: id, desc: '', riddle: '' };
+
 /** "+5%" / "−3%" (mesmo formato das linhas de bônus do motor). */
 export const pct = (f: number) => `${f >= 1 ? '+' : '−'}${Math.round(Math.abs(f - 1) * 100)}%`;
 

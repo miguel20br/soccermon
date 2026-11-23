@@ -32,6 +32,7 @@ import { coachSeen, relampagoJogoDue } from '../../store/coach';
 import { liveOf, type PlaybackSpeed, playerTeam, useGame } from '../../store/game-store';
 import { isFinalStage, isLong, titleCeremony } from '../../store/long-cup';
 import { rivalColor, tagFromName } from '../../store/profile';
+import { matchSecrets } from '../../store/secret-links';
 import { ultimateRun } from '../../store/ultimate/ultimate';
 import { Coach } from '../coach/Coach';
 import { countStrongFixos, pickHalftimeCoach } from '../coach-tips';
@@ -252,6 +253,7 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             match
                 ? {
                       result: match,
+                      combosFound: useGame.getState().profile.combosFound,
                       colors,
                       cries: settings.cries,
                       speed: settings.speed,
@@ -313,6 +315,8 @@ export function Match({ liga = false, ultimate = false }: { liga?: boolean; ulti
             if (!recorded.current && latest.current) {
                 recorded.current = true;
                 recordResult(latest.current);
+                // sinergias secretas: as que aconteceram nesta partida (a tela de resultado mostra as novas)
+                useGame.getState().discoverCombos(matchSecrets(latest.current).map((h) => h.id));
             }
         };
         EventBus.on('match:ended', record);

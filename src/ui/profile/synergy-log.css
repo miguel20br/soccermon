@@ -1,0 +1,102 @@
+/* ---------- Registro de Sinergias (Coleção) ---------- */
+.sl-h {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+}
+.sl-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 8px;
+}
+.sl-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b2a6b, #5a3a8a);
+    border: 1px solid #b48cff;
+    color: #f4eaff;
+    min-width: 0;
+    animation: sl-in 240ms ease-out both;
+}
+.sl-card.secret {
+    background: linear-gradient(135deg, #1a1430, #2c1f4a);
+    border-style: dashed;
+}
+.sl-card.secret.found {
+    border-style: solid;
+    background: linear-gradient(135deg, #2c1f4a, #4a2a78);
+}
+.sl-faces {
+    display: flex;
+    flex: none;
+}
+.sl-faces img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.sl-faces img + img {
+    margin-left: -10px;
+}
+.sl-shadow {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #0d0a1a;
+    border: 1px dashed #6d5a99;
+    color: #8d7bb8;
+    font-style: normal;
+    font-weight: bold;
+}
+.sl-shadow + .sl-shadow {
+    margin-left: -6px;
+}
+.sl-txt {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.sl-txt b {
+    font-size: 14px;
+}
+.sl-tag {
+    justify-self: start;
+    background: none;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--yellow);
+    font-size: 11px;
+}
+.sl-tag .hud-icon {
+    width: 12px;
+    height: 12px;
+}
+.sl-desc {
+    font-size: 12px;
+    color: #d8c8f2;
+    overflow-wrap: anywhere;
+}
+.sl-card.secret:not(.found) .sl-desc {
+    font-style: italic;
+}
+@keyframes sl-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .sl-card {
+        animation-duration: 1ms;
+    }
+}

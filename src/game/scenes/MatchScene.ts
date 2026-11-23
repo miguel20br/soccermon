@@ -28,9 +28,10 @@ import {
     type TraitFx,
 } from '../../engine/state';
 import { dir8 } from '../../engine/vec';
-import { dict, linkText, t as tr, typeName } from '../../i18n';
+import { dict, linkText, secretText, t as tr, typeName } from '../../i18n';
 import type { ArrowSize, ChanceSpeed, CryStyle, NamesOnField, PlaybackSpeed } from '../../store/game-store';
 import { bannerInk } from '../../store/profile';
+import { longReveal, matchSecrets, type SecretHit } from '../../store/secret-links';
 import { readCount, writeCount } from '../../ui/local-count';
 import {
     type BodyLean,
@@ -271,6 +272,8 @@ export interface MatchSceneData {
     ceremony?: CeremonyKind;
     /** Nome do seu time no letreiro da invasão. */
     teamName?: string;
+    /** Sinergias secretas já descobertas (perfil): a revelação longa é só pras outras (secret-links.ts). */
+    combosFound?: readonly string[];
 }
 
 /** Trecho do replay (ticks): toca [from, to] e fica em câmera lenta em [slowFrom, slowTo]. */
@@ -325,6 +328,9 @@ const ARROW_SCALE: Record<ArrowSize, number> = { small: 1, medium: 1.45, large: 
 /** Catmull-Rom: passa por p1 (t=0) e p2 (t=1) usando os vizinhos para a curva. */
 const catmull = (p0: number, p1: number, p2: number, p3: number, t: number) =>
     0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
+
+/** Sinergia secreta descoberta: quanto o aviso "SINERGIA SECRETA" fica antes do nome entrar. */
+const SECRET_TEASE_MS = 800;
 
 /** Ticks antes de um gol em que a partida cai para no máximo 1x (o gol é assistido em qualquer velocidade). */
 const GOAL_LEAD = 16;
@@ -736,6 +742,8 @@ export class MatchScene extends Phaser.Scene {
     private md!: MatchSceneData;
     private snaps: MatchSnapshot[] = [];
     private matchEvents: MatchEvent[] = [];
+    /** Sinergias secretas da partida: o lance (o mesmo objeto do evento) em que cada uma acontece pela 1ª vez. */
+    private secretHits = new Map<MatchEvent, SecretHit>();
     private eventCursor = 0;
     private playTick = 0;
     private lastEventTick = 0;
@@ -1020,6 +1028,12 @@ export class MatchScene extends Phaser.Scene {
                         this.load.image(key, portraitSrc(id, ['determined']));
                 }
         }
+        // sinergia secreta: a revelação mostra o retrato dos dois que se cruzaram
+        for (const h of matchSecrets(this.md.result))
+            for (const id of h.species) {
+                const key = `portrait-${id}`;
+                if (id <= 151 && !this.textures.exists(key)) this.load.image(key, portraitSrc(id, ['determined']));
+            }
         // duelo da bicuda: os rostos dos painéis de mangá (quem chutou com dor ou espantado, o goleiro decidido)
         const sd = this.md.result.events.find((x) => x.type === 'showdown');
         if (sd?.type === 'showdown')
@@ -1081,6 +1095,7 @@ export class MatchScene extends Phaser.Scene {
         for (const e of this.md.result.events)
             if (e.type === 'combo')
                 for (const idx of [e.by, e.partner]) this.cutPortrait(`portrait-${result.roster[idx]?.speciesId}`);
+        for (const h of matchSecrets(this.md.result)) for (const id of h.species) this.cutPortrait(`portrait-${id}`);
         prewarmImpactFrame(this, !!this.md.reduceMotion);
 
         const onResize = () => this.updateUiScale();
@@ -1188,6 +1203,7 @@ export class MatchScene extends Phaser.Scene {
     private setTimeline(result: MatchResult) {
         this.snaps = result.snapshots;
         this.matchEvents = result.events;
+        this.secretHits = new Map(matchSecrets(result).map((h) => [h.event, h]));
         this.lastEventTick = this.matchEvents.at(-1)?.tick ?? 0;
         this.dramaTicks = this.matchEvents.filter((e) => DRAMA.has(e.type)).map((e) => e.tick);
         // gol, trave e defesa desaceleram igual: a câmera lenta não pode entregar que vai ser gol
@@ -3779,6 +3795,58 @@ export class MatchScene extends Phaser.Scene {
     }
 
     // ------------------------------------------------------------------ eventos
+    /**
+     * Sinergia secreta em quadra (docs/planos/pesquisas/sinergias-e-animacoes.md, §5): na 1ª vez de sempre, o letreiro
+     * "SINERGIA SECRETA" com o nome embaixo e os dois retratos se cruzando, segurando mais; depois, só o nome, curto.
+     * Entra logo depois do lance (o texto do lance sai antes) e vence os outros letreiros enquanto está na tela.
+     */
+    private secretReveal(hit: SecretHit, cinematic: boolean) {
+        const a = this.players[hit.a];
+        const b = this.players[hit.b];
+        if (!a || !b) return;
+        const first = longReveal(hit.id, this.md.combosFound, !!this.md.replay);
+        const text = secretText(hit.id);
+        this.battleBox.push(tr('common.secretUi.line', { name: text.name, a: a.name, b: b.name }));
+        this.time.delayedCall(300, () => {
+            playSfx('move');
+            if (!cinematic) {
+                this.popText(hit.a, text.name, '#d9b8ff');
+                return;
+            }
+            const at = { x: (a.sprite.x + b.sprite.x) / 2, y: (a.sprite.y + b.sprite.y) / 2 };
+            const style = { color: '#e2c8ff', stroke: '#1a0b33', at };
+            if (!first) {
+                this.cine.drama(text.name.toUpperCase(), { ...style, short: true });
+                return;
+            }
+            // 1º o aviso ("SINERGIA SECRETA"), depois o nome grande com os dois retratos se cruzando
+            playCry(a.speciesId, this.md.cries, 0.7);
+            this.cine.drama(tr('common.secretUi.banner'), { ...style, top: true, hold: SECRET_TEASE_MS });
+            this.time.delayedCall(SECRET_TEASE_MS + 330, () => {
+                playSfx('move');
+                playCry(b.speciesId, this.md.cries, 0.7);
+                const box = this.cine.drama(text.name.toUpperCase(), {
+                    ...style,
+                    sub: tr('battle.secretSub', { a: a.name, b: b.name }),
+                    top: true,
+                    hold: 1600,
+                });
+                if (!box || this.frameLocked() || this.cine.spotlightActive) return;
+                const plan = comboCutIn(a.team, !!this.md.duel || this.speed !== 1);
+                const side = (v: PlayerView, fromRight: boolean) => ({
+                    portrait: this.cutPortrait(`portrait-${v.speciesId}`),
+                    color: hexToNumber(TYPE_COLOR[species(v.speciesId).types[0]] ?? '#b48cff'),
+                    fromRight,
+                });
+                this.cine.duoCutIn(box, [side(a, plan.passerFromRight), side(b, plan.finisherFromRight)], {
+                    ms: plan.ms,
+                    reduce: !!this.md.reduceMotion,
+                    depth: REACT_DEPTH + 2,
+                });
+            });
+        });
+    }
+
     private handleEvent(e: MatchEvent, silent: boolean) {
         EventBus.emit('match:event', e);
         if (e.type === 'sub') {
@@ -3851,6 +3919,8 @@ export class MatchScene extends Phaser.Scene {
         }
         const cries = this.md.cries;
         const cinematic = this.md.cinematic;
+        const secret = this.secretHits.get(e);
+        if (secret) this.secretReveal(secret, cinematic);
         const reaction = reactionFor(e, this.reactCtx);
         if (reaction) {
             const show = () =>

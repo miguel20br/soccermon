@@ -51,6 +51,7 @@ export const MEDAL_GLYPH: Record<string, CrestSymbol> = {
     colecoes: 'folha',
     missoes: 'coroa',
     duelista: 'espadas',
+    sinergias: 'espiral',
 };
 /** Coleção na vitrine: o símbolo de escudo que ela libera. */
 const COLLECTION_GLYPH = Object.fromEntries(
@@ -63,7 +64,8 @@ export function useMedalView(): MedalView {
     const career = useGame((s) => s.career);
     const records = useGame((s) => s.records);
     const duels = useGame((s) => s.duels);
-    return useMemo(() => ({ ...base, career, records, duels }), [base, career, records, duels]);
+    const combos = useGame((s) => s.profile.combosFound);
+    return useMemo(() => ({ ...base, career, records, duels, combos }), [base, career, records, duels, combos]);
 }
 
 /** Sua vitrine (resolvida pelo save) e o degrau da moldura do avatar. */

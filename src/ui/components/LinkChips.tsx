@@ -3,7 +3,7 @@ import { species } from '../../engine/data';
 import type { PokemonInstance } from '../../engine/instance';
 import { type ActiveLink, computeLinks, type LinkDef } from '../../engine/links';
 import { computeSynergies, type Synergy } from '../../engine/synergy';
-import { linkText, typeName } from '../../i18n';
+import { linkText, secretText, typeName } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { TYPE_COLOR } from '../type-colors';
 import { HudIcon } from './MatchHud';
@@ -29,6 +29,24 @@ export function LinkChip({
             title={t('team.linkTitle', { desc: txt.desc, combo: txt.combo })}
         >
             <HudIcon kind="max" /> {txt.name} <b>+{Math.round((bonus - 1) * 100)}%</b>
+        </span>
+    );
+}
+
+/**
+ * Selo de uma sinergia secreta com o rival (src/store/secret-links.ts): "???" até ela acontecer em quadra; descoberta,
+ * mostra o nome. Só tela: não tem bônus, então não tem número.
+ */
+export function SecretChip({ id, known }: { id: string; known: boolean }) {
+    const { t, lang } = useT();
+    const txt = secretText(id, lang);
+    return (
+        <span
+            className={`link-chip secret-chip${known ? ' known' : ''}`}
+            title={known ? `${txt.desc} ${t('common.secretUi.screenOnly')}` : t('common.secretUi.chipTitle')}
+            data-secret={known ? id : undefined}
+        >
+            <HudIcon kind="max" /> {known ? txt.name : t('common.secretUi.chip')}
         </span>
     );
 }

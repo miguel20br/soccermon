@@ -81,6 +81,7 @@ export const battle = {
     comboPop: 'COMBO!',
     combo: 'Combo {link}: {a} + {b}!',
     comboSub: 'Combo {link}: {a} + {b}',
+    secretSub: '{a} x {b}',
     substitutePop: 'SUBSTITUTE!',
     decoy: 'O boneco de {x} aguentou o golpe!',
     cleared: 'limpo!',

@@ -6,6 +6,7 @@ export const profile: typeof pt = {
     tabs: {
         treinador: 'Trainer',
         album: 'Album',
+        sinergias: 'Synergies',
         golpedex: 'Movedex',
         clube: 'Club',
         dex: 'Pokédex',
@@ -565,6 +566,7 @@ export const profile: typeof pt = {
             colecoes: 'Collections',
             missoes: 'Missions',
             duelista: 'Duelist',
+            sinergias: 'Secret synergies',
         } as Record<string, string>,
         text: {
             pokedex: 'Species seen in the Pokédex',
@@ -587,6 +589,7 @@ export const profile: typeof pt = {
             colecoes: 'Themed collections completed',
             missoes: 'Missions completed',
             duelista: 'Duel wins',
+            sinergias: 'Secret synergies discovered',
         } as Record<string, string>,
     },
     picker: {

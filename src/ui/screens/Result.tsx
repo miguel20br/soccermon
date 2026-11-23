@@ -14,7 +14,7 @@ import {
 import { matchMvp } from '../../engine/mvp';
 import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
-import { clubName } from '../../i18n';
+import { clubName, secretText } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { dailyNumber } from '../../store/daily';
 import { lineupPosition, useGame } from '../../store/game-store';
@@ -65,6 +65,22 @@ type Part = 'destaques' | 'stats';
 const PARTS: Part[] = ['destaques', 'stats'];
 const PART_ICON: Record<Part, HudIconKind> = { destaques: 'max', stats: 'chart' };
 const pctOf = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
+
+/** "Sinergia descoberta: X": as secretas que apareceram pela 1ª vez na partida que acabou (secret-links.ts). */
+export function SecretFound() {
+    const fresh = useGame((s) => s.combosFresh);
+    const { t, lang } = useT();
+    if (!fresh.length) return null;
+    return (
+        <div className="res-secret" role="status">
+            {fresh.map((id) => (
+                <span key={id} className="link-chip secret-chip known" data-secret={id}>
+                    <HudIcon kind="max" /> {t('common.secretUi.found', { name: secretText(id, lang).name })}
+                </span>
+            ))}
+        </div>
+    );
+}
 
 /** Copa em que o som de eliminado já tocou (voltar pro resultado não toca de novo). */
 let sadSeed: string | null = null;
@@ -277,6 +293,7 @@ export function Result() {
     );
     const actions = (
         <>
+            <SecretFound />
             {eliminated && <NearMiss run={run} />}
             {thumb}
         </>
@@ -293,6 +310,7 @@ export function Result() {
                     goal={<CupGoalCard run={run} match={match} />}
                     extra={
                         <>
+                            <SecretFound />
                             {run.champ?.utBridge && (
                                 <p className="res-ut-bridge">
                                     <HudIcon kind="bag" />
