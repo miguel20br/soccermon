@@ -154,6 +154,7 @@ import {
     worldToScreen,
 } from '../cine';
 import { Cinematics, CROP_TEXT_SCALE, FOCUS_DEPTH } from '../cinematics';
+import { comboCutIn } from '../combo-cutin';
 import {
     courtRes,
     drawBanner,
@@ -1009,6 +1010,16 @@ export class MatchScene extends Phaser.Scene {
                         this.load.image(key, portraitSrc(id, ['determined']));
                 }
             }
+        // combo de sinergia: o cut-in de dupla mostra o retrato de quem passou e de quem chutou
+        for (const e of this.md.result.events) {
+            if (e.type !== 'combo') continue;
+            for (const idx of [e.by, e.partner])
+                for (const id of [this.md.result.roster[idx]?.speciesId, this.md.result.finalRoster[idx]?.speciesId]) {
+                    const key = `portrait-${id}`;
+                    if (id && id <= 151 && !this.textures.exists(key))
+                        this.load.image(key, portraitSrc(id, ['determined']));
+                }
+        }
         // duelo da bicuda: os rostos dos painéis de mangá (quem chutou com dor ou espantado, o goleiro decidido)
         const sd = this.md.result.events.find((x) => x.type === 'showdown');
         if (sd?.type === 'showdown')
@@ -1067,6 +1078,9 @@ export class MatchScene extends Phaser.Scene {
         // o retrato sem fundo dos capitães e o filtro do quadro de impacto já prontos na abertura: feitos na hora do
         // golpe, cada um era um quadro de ~20 ms no meio do lance (o letreiro do N2 e a bicuda, o chute)
         for (const p of this.md.result.roster) if (p.captain) this.cutPortrait(`portrait-${p.speciesId}`);
+        for (const e of this.md.result.events)
+            if (e.type === 'combo')
+                for (const idx of [e.by, e.partner]) this.cutPortrait(`portrait-${result.roster[idx]?.speciesId}`);
         prewarmImpactFrame(this, !!this.md.reduceMotion);
 
         const onResize = () => this.updateUiScale();
@@ -4307,12 +4321,27 @@ export class MatchScene extends Phaser.Scene {
                     const names = { link: text.name, a: a.name, b: b.name };
                     this.battleBox.push(tr('battle.combo', names));
                     if (cinematic) {
-                        this.cine.drama(text.combo.toUpperCase(), {
+                        const box = this.cine.drama(text.combo.toUpperCase(), {
                             color: '#ffd447',
                             stroke: '#4a2a00',
                             at: { x: b.sprite.x, y: b.sprite.y },
                             sub: tr('battle.comboSub', names),
                         });
+                        // cut-in de dupla (Inazuma): os dois retratos se cruzam em volta do nome, dentro do tempo dele
+                        if (box && !this.frameLocked() && !this.cine.spotlightActive) {
+                            const reduce = !!this.md.reduceMotion;
+                            const plan = comboCutIn(a.team, !!this.md.duel || this.speed !== 1);
+                            const side = (v: PlayerView, fromRight: boolean) => ({
+                                portrait: this.cutPortrait(`portrait-${v.speciesId}`),
+                                color: hexToNumber(TYPE_COLOR[species(v.speciesId).types[0]] ?? '#ffd447'),
+                                fromRight,
+                            });
+                            this.cine.duoCutIn(box, [side(a, plan.passerFromRight), side(b, plan.finisherFromRight)], {
+                                ms: plan.ms,
+                                reduce,
+                                depth: REACT_DEPTH + 2,
+                            });
+                        }
                     }
                 }
                 break;
