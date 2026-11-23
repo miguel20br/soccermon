@@ -1,0 +1,128 @@
+/* Natal (ui/tema.ts): `data-tema="natal"` no <html>, de 30/11 a 06/01. A neve (Neve.tsx) e o cordão de luzes nas
+   placas dos ambientes. Só `transform` e `background-position`; com "Reduzir movimento" a neve some e as luzes param
+   acesas (a regra geral dos ambientes já tira as animações). */
+
+/* ---------- a neve: flocos de pixel por cima do cenário, embaixo das placas de toque ---------- */
+.neve {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    overflow: hidden;
+    pointer-events: none;
+    animation: neve-in 300ms var(--ease-out) both;
+}
+.neve i {
+    position: absolute;
+    top: 0;
+    left: var(--x);
+    width: var(--px);
+    height: var(--px);
+    background: #fff;
+    opacity: 0.75;
+    transform: translate3d(0, -12px, 0);
+    animation: neve-cai var(--d) linear var(--t) infinite;
+    will-change: transform;
+}
+/* o floco grande: uma cruz de 3x3 pixels */
+.neve i.g {
+    width: calc(var(--px) * 3);
+    height: calc(var(--px) * 3);
+    background:
+        linear-gradient(#fff, #fff) center / var(--px) 100% no-repeat,
+        linear-gradient(#fff, #fff) center / 100% var(--px) no-repeat;
+    opacity: 0.85;
+}
+/* celular: 24 flocos */
+@media (max-width: 600px) {
+    .neve i:nth-child(n + 25) {
+        display: none;
+    }
+}
+@keyframes neve-cai {
+    to {
+        transform: translate3d(var(--dx), calc(100vh + 24px), 0);
+    }
+}
+@keyframes neve-in {
+    from {
+        opacity: 0;
+    }
+}
+:root[data-reduce-motion="true"] .neve {
+    display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) .neve {
+        display: none;
+    }
+}
+
+/* ---------- o cordão de luzes: fio escuro no alto da placa, lâmpadas de pixel nas 4 cores correndo ---------- */
+:root[data-tema="natal"] :is(.rm-head, .rt-head) {
+    position: relative;
+}
+:root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before {
+    --lw: 5px;
+    --lp: 16px;
+    content: "";
+    position: absolute;
+    z-index: 1;
+    top: -6px;
+    left: 8px;
+    right: 8px;
+    height: 11px;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            90deg,
+            var(--red) 0 var(--lw),
+            transparent 0 var(--lp),
+            var(--yellow) 0 calc(var(--lp) + var(--lw)),
+            transparent 0 calc(var(--lp) * 2),
+            var(--green) 0 calc(var(--lp) * 2 + var(--lw)),
+            transparent 0 calc(var(--lp) * 3),
+            var(--blue) 0 calc(var(--lp) * 3 + var(--lw)),
+            transparent 0 calc(var(--lp) * 4)
+        )
+        0 3px / calc(var(--lp) * 4) 8px repeat-x,
+        linear-gradient(#05081a, #05081a) 0 1px / 100% 2px no-repeat;
+    filter: drop-shadow(0 0 2px rgb(255 236 170 / 55%));
+    animation: luzes 2.4s infinite;
+}
+/* o telão do Estádio tem moldura grossa: o fio passa por cima dela */
+:root[data-tema="natal"] .es-top::before {
+    top: -10px;
+}
+@media (min-width: 900px) and (min-height: 700px) {
+    :root[data-tema="natal"] :is(.rm-head, .rt-head, .es-top)::before {
+        --lw: 6px;
+        --lp: 22px;
+    }
+}
+/* cada lâmpada pula pra cor da vizinha: as cores correm pelo fio */
+@keyframes luzes {
+    0%,
+    24.9% {
+        background-position:
+            0 3px,
+            0 1px;
+    }
+    25%,
+    49.9% {
+        background-position:
+            var(--lp) 3px,
+            0 1px;
+    }
+    50%,
+    74.9% {
+        background-position:
+            calc(var(--lp) * 2) 3px,
+            0 1px;
+    }
+    75%,
+    100% {
+        background-position:
+            calc(var(--lp) * 3) 3px,
+            0 1px;
+    }
+}

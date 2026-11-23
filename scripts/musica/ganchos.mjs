@@ -64,6 +64,7 @@ export const FAIXAS = {
     'abertura-gancho': ['abertura-gancho'],
     'menu-balanco': ['menu-balanco'],
     'menu-neon': ['menu-neon'],
+    'menu-natal': ['menu-natal'],
     campeao: ['campeao'],
     cerulean: ['extra-cerulean'],
     derrota: ['derrota'],

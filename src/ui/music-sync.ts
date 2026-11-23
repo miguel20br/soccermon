@@ -3,7 +3,7 @@ import { type MapRegion, nodeById, regionOfRow, rivalTrainer } from '../engine/c
 import type { MatchEvent } from '../engine/state';
 import { type Move, playMusic, startMusicLifecycle, type TrackId } from '../game/music';
 import { type Screen, useGame } from '../store/game-store';
-import { neonOn } from './tema';
+import { type Tema, tema } from './tema';
 
 /** Faixa de cada tela (sem entrada = silêncio). A partida escolhe a dela por `matchMusic`. */
 const TRACK: Partial<Record<Screen, TrackId>> = {
@@ -107,9 +107,9 @@ export function matchMusic(m: {
 /**
  * Faixa da tela. Resultado: campeão, eliminado da copa, ou a vinheta da vitória ou da derrota da partida. Mapa da Rota
  * (e as paradas dele): a região da próxima linha no mapa, a da casa atual no Evento e no Treino. No tema neon
- * (`neon`, a Semana Fora da Lei), o menu toca a `menu-neon`.
+ * (`neon`, a Semana Fora da Lei), o menu toca a `menu-neon`; no Natal, a `menu-natal` ("Noite Feliz").
  */
-export function trackOf(s: ReturnType<typeof useGame.getState>, neon = neonOn): TrackId | null {
+export function trackOf(s: ReturnType<typeof useGame.getState>, theme: Tema = tema): TrackId | null {
     const run = s.run;
     if (s.screen === 'result') {
         if (run?.status === 'champion') return 'campeao';
@@ -124,8 +124,9 @@ export function trackOf(s: ReturnType<typeof useGame.getState>, neon = neonOn): 
         return REGION_TRACK[regionOfRow(row).id] ?? 'estrada-da-vitoria';
     }
     const t = TRACK[s.screen] ?? null;
-    // Semana Fora da Lei: o menu toca a Conversível (aprovada em 17/11) no lugar do Só o balanço
-    return neon && t === 'menu-balanco' ? 'menu-neon' : t;
+    // Semana Fora da Lei: o menu toca a Conversível (aprovada em 17/11) no lugar do Só o balanço; no Natal, a Noite Feliz
+    if (t !== 'menu-balanco' || !theme) return t;
+    return theme === 'neon' ? 'menu-neon' : 'menu-natal';
 }
 
 /** Liga a música às telas (uma vez, no início do app). A partida (`Match.tsx`) cuida da própria faixa. */

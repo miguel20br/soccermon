@@ -11,6 +11,7 @@ export type TrackId =
     | 'abertura-gancho'
     | 'menu-balanco'
     | 'menu-neon'
+    | 'menu-natal'
     | 'mercado-funk'
     | 'estrada-da-vitoria'
     | 'planalto-indigo'

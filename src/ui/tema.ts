@@ -10,13 +10,25 @@ import { useEffect, useState } from 'react';
 export const NEON_FROM = Date.parse('2026-11-16T00:00:00-03:00');
 export const NEON_TO = Date.parse('2026-11-23T00:00:00-03:00');
 
-export type Tema = 'neon' | null;
+/**
+ * Natal (docs/planos/natal.md): neve e luzes nos ambientes e "Noite Feliz" no menu, de segunda 30/11/2026 00:00 a
+ * quarta 06/01/2027 23:59 (Brasília, Dia de Reis). Só enfeite: nada no motor. No dev e nas prévias (`__SMOKE__`),
+ * `?natal=1` liga e `?natal=0` desliga; em produção vale só a data.
+ */
+export const NATAL_FROM = Date.parse('2026-11-30T00:00:00-03:00');
+export const NATAL_TO = Date.parse('2027-01-07T00:00:00-03:00');
 
-export function temaOf(search: string, now: number): Tema {
-    const q = new URLSearchParams(search).get('tema');
+export type Tema = 'neon' | 'natal' | null;
+
+export function temaOf(search: string, now: number, smoke = false): Tema {
+    const p = new URLSearchParams(search);
+    const q = p.get('tema');
     if (q === 'off') return null;
     if (q === 'neon' || (now >= NEON_FROM && now < NEON_TO)) return 'neon';
-    return null;
+    const natal = smoke ? p.get('natal') : null;
+    if (natal === '1') return 'natal';
+    if (natal === '0') return null;
+    return now >= NATAL_FROM && now < NATAL_TO ? 'natal' : null;
 }
 
 // ponytail: lido uma vez ao abrir; quem deixar a aba aberta na virada de domingo fica com o tema até recarregar
@@ -24,10 +36,11 @@ export function temaOf(search: string, now: number): Tema {
 export const tema: Tema =
     typeof window === 'undefined' || import.meta.env.MODE === 'test'
         ? null
-        : temaOf(window.location.search, Date.now());
+        : temaOf(window.location.search, Date.now(), __SMOKE__);
 /** Os "da rua" da Noite Neon (cosmético): andam pelo Estádio e estão na capa. */
 export const NEON_STREET = [106, 107, 68, 9] as const;
 export const neonOn = tema === 'neon';
+export const natalOn = tema === 'natal';
 
 export function startTema() {
     if (tema) document.documentElement.dataset.tema = tema;

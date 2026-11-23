@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
+import { NATAL_FROM, NATAL_TO, NEON_FROM, NEON_TO, temaOf, timeLeft } from './tema';
 
 const at = (iso: string) => Date.parse(iso);
 
@@ -20,6 +20,32 @@ describe('Noite Neon', () => {
         expect(temaOf('?tema=neon', at('2026-11-10T12:00:00-03:00'))).toBe('neon');
         expect(temaOf('?tema=off', at('2026-11-20T12:00:00-03:00'))).toBe(null);
         expect(temaOf('?tema=xyz', at('2026-11-10T12:00:00-03:00'))).toBe(null);
+    });
+});
+
+describe('Natal', () => {
+    it('liga na segunda 30/11/2026 00:00 de Brasília e não antes', () => {
+        expect(NATAL_FROM).toBe(Date.UTC(2026, 10, 30, 3));
+        expect(temaOf('', at('2026-11-29T23:59:59-03:00'))).toBe(null);
+        expect(temaOf('', at('2026-11-30T00:00:00-03:00'))).toBe('natal');
+        expect(temaOf('', at('2026-12-25T12:00:00-03:00'))).toBe('natal');
+    });
+    it('vale até 06/01/2027 23:59 de Brasília (Dia de Reis) e some no dia 7', () => {
+        expect(NATAL_TO).toBe(Date.UTC(2027, 0, 7, 3));
+        expect(temaOf('', at('2027-01-06T23:59:59-03:00'))).toBe('natal');
+        // 23:30 do dia 6 em Brasília já é dia 7 em UTC: ainda vale
+        expect(temaOf('', at('2027-01-07T02:30:00Z'))).toBe('natal');
+        expect(temaOf('', at('2027-01-07T00:00:00-03:00'))).toBe(null);
+    });
+    it('?natal=1 e ?natal=0 só no dev e nas prévias', () => {
+        const antes = at('2026-11-24T12:00:00-03:00');
+        const durante = at('2026-12-10T12:00:00-03:00');
+        expect(temaOf('?natal=1', antes, true)).toBe('natal');
+        expect(temaOf('?natal=0', durante, true)).toBe(null);
+        // em produção o atalho não faz nada
+        expect(temaOf('?natal=1', antes)).toBe(null);
+        expect(temaOf('?natal=0', durante)).toBe('natal');
+        expect(temaOf('?tema=off', durante)).toBe(null);
     });
 });
 
