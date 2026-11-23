@@ -71,3 +71,10 @@ O que mexe no motor ou em visual de carta ainda passa pelos números ou pela gal
 
 - **Natal em tudo:** decorar por cima o que já existe (quadra da partida, VERSUS, pódio, Rota, UT, menus), não só o Estádio; treinadores com sprite ganham versão temática (gorro, cachecol); **3 músicas de menu de Natal** (a "Noite Feliz" aprovada + 2) e **músicas de batalha de Natal**. Tudo liga sozinho de 30/11 a 06/01.
 - **Álbuns só no YouTube, com visualizers:** o vol. 1 (23 masters prontos) e um **álbum de Natal** feito das trilhas de Natal do jogo. Sem menção a Pokémon.
+
+## Revisão do Miguel (23/11, noite)
+
+- **Aprovados pra 0.9.54:** 1 a 10, 12 (escolher golpes, ligado, motor 33), 13 (Duelo com o UT, ligado), 14 e 15 (Natal e músicas).
+- **Saiu:** mascote do clube (o avatar já faz o papel).
+- **19, modo jogável:** prévia feita (branch `feat-modo-jogavel`, `?lab=jogavel`), fora da 0.9.54. O Miguel viu "MUITO potencial"; pra seguir: mais dribles e chutes, partida mais curta, mais complexidade.
+- **12 e 13 do backlog (troca e ranking):** plano e código atrás de bandeira na branch `feat-troca-ranking` (`docs/planos/troca-e-ranking.md`), migração e Edge Function `ut` NÃO aplicadas. Recomendação: ligar na Temporada 2 (01/06/2027).
