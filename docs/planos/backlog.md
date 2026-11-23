@@ -66,3 +66,8 @@ O que mexe no motor ou em visual de carta ainda passa pelos números ou pela gal
 | fev a abr | | **11** (Duelo com o UT), **16** (clube), plano e capítulo 1 do **17** (Modo História) |
 | 01/06/2027 | Temporada 2 | **13** (ranking), **12** (troca), **18** (Gen 2) |
 | depois | | **19** (modo jogável) |
+
+## Pedidos de 23/11 (tarde)
+
+- **Natal em tudo:** decorar por cima o que já existe (quadra da partida, VERSUS, pódio, Rota, UT, menus), não só o Estádio; treinadores com sprite ganham versão temática (gorro, cachecol); **3 músicas de menu de Natal** (a "Noite Feliz" aprovada + 2) e **músicas de batalha de Natal**. Tudo liga sozinho de 30/11 a 06/01.
+- **Álbuns só no YouTube, com visualizers:** o vol. 1 (23 masters prontos) e um **álbum de Natal** feito das trilhas de Natal do jogo. Sem menção a Pokémon.
