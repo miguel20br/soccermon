@@ -33,6 +33,8 @@ export const reward = {
     tipSponsor: 'Pegue um Pokémon do rival, um item ou o Patrocínio.',
     sponsorHint: 'Vale até o fim da copa e ocupa uma das 3 vagas.',
     sponsorSign: 'Assinar contrato',
+    gainsTitle: 'Nota em campo no seu time',
+    gainsMore: 'e mais {n}',
     fromClub: 'Do {club}',
     fromClubF: 'Da {club}',
     reinforcement: 'Reforço',

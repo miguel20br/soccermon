@@ -2107,6 +2107,29 @@ button,
 .reward-sheet-desc {
     margin-top: 0;
 }
+.reward-gains {
+    list-style: none;
+    margin: 0 0 10px;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+    font-size: 13px;
+}
+.reward-gains li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    animation: row-in var(--dur-tela) var(--ease-out) both;
+}
+.reward-gains li:nth-child(2) {
+    animation-delay: 60ms;
+}
+.reward-gains li:nth-child(3) {
+    animation-delay: 120ms;
+}
+.reward-gain-num strong {
+    color: var(--good, #5ee08a);
+}
 @media (max-width: 520px), (max-height: 520px) {
     .reward-pick3 .tm-card .pos-chip {
         display: none;

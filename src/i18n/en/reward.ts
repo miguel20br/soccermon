@@ -28,6 +28,8 @@ export const reward: typeof pt = {
     tipSponsor: 'Take a rival Pokémon, an item or the Sponsor.',
     sponsorHint: 'Lasts until the end of the cup and takes one of the 3 slots.',
     sponsorSign: 'Sign the contract',
+    gainsTitle: 'Rating on the pitch for your team',
+    gainsMore: 'and {n} more',
     fromClub: 'From {club}',
     fromClubF: 'From {club}',
     reinforcement: 'Reinforcement',

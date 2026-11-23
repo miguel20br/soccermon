@@ -27,6 +27,7 @@ import { SheetRow } from '../kit/controls';
 import { Sheet } from '../kit/Sheet';
 import { Stage } from '../kit/Stage';
 import { readCount, writeCount } from '../local-count';
+import { rewardGains } from '../reward-gain';
 import { useHeld } from '../use-held';
 
 /** Quantas telas de recompensa a pessoa já abriu (neste navegador): da 7ª em diante, a abertura é rápida. */
@@ -92,6 +93,7 @@ export function Reward() {
     const fitItem = reward?.kind === 'item' ? reward.item : null;
     const fitOf = (p: PokemonInstance) => (fitItem ? itemFit(fitItem, p) : null);
     const sampleFit = fitItem && squad[0] ? fitOf(squad[0]) : null;
+    const gains = rewardGains(run, reward);
     const slots = formationOf(run.formation).slots;
     const openCard = useCardModal.getState().open;
     const title = reward
@@ -295,6 +297,21 @@ export function Reward() {
                 className="reward-sheet"
             >
                 {chosenDesc && <p className="reward-sheet-desc">{chosenDesc}</p>}
+                {gains.length > 0 && (
+                    <ul className="reward-gains" aria-label={t('reward.gainsTitle')}>
+                        {gains.slice(0, 3).map((g) => (
+                            <li key={g.uid}>
+                                <b>{g.name}</b>
+                                <span className="reward-gain-num">
+                                    {g.before} → <strong>{g.after}</strong>
+                                </span>
+                            </li>
+                        ))}
+                        {gains.length > 3 && (
+                            <li className="muted">{t('reward.gainsMore', { n: gains.length - 3 })}</li>
+                        )}
+                    </ul>
+                )}
                 {fitItem && sampleFit && (
                     <p className="reward-fit-legend">
                         <FitBadge fit={{ ...sampleFit, count: 1 }} item={fitItem} text="" />
