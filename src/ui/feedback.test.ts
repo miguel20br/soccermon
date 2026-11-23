@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('idb-keyval', () => ({ get: async () => undefined, set: async () => {}, del: async () => {} }));
 vi.mock('../game/audio', () => ({ playSfx: () => {} }));
 
-import { kindOf } from './feedback';
+import { canBuzz, kindOf } from './feedback';
 
 /** Botão de mentira: só classes e data-fx (o teste roda sem DOM). */
 const btn = (cls: string, fx?: string) =>
@@ -26,5 +26,16 @@ describe('retorno de toque: o tipo vem da classe do botão', () => {
     it('data-fx manda (e "none" cala, pra quem toca o próprio som)', () => {
         expect(kindOf(btn('btn primary', 'none'))).toBeNull();
         expect(kindOf(btn('btn', 'danger'))).toBe('danger');
+    });
+});
+
+describe('canBuzz', () => {
+    const vibrate = () => true;
+    it('só vibra depois do primeiro toque na página (antes o Chrome recusa com console.error)', () => {
+        expect(canBuzz({ vibrate, userActivation: { hasBeenActive: false } })).toBe(false);
+        expect(canBuzz({ vibrate, userActivation: { hasBeenActive: true } })).toBe(true);
+        // navegador sem userActivation (Safari antigo): segue vibrando como antes
+        expect(canBuzz({ vibrate })).toBe(true);
+        expect(canBuzz({})).toBe(false);
     });
 });

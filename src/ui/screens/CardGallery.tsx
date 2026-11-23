@@ -15,6 +15,7 @@ import { isProtectedMove, teachMove } from '../../engine/tm';
 import { useT } from '../../i18n/react';
 import { type CareerSeal, type DexEntry, EMPTY_ENTRY } from '../../store/profile';
 import { PackArt } from '../components/CardPack';
+import { FormationBoard } from '../components/FormationBoard';
 import { FoulCard } from '../components/FoulCard';
 import { FutCard } from '../components/FutCard';
 import { PokeCard2 } from '../components/PokeCard2';
@@ -22,6 +23,8 @@ import { SponsorCard, SponsorSlots } from '../components/SponsorCard';
 import { sealTip } from '../profile/seal-tip';
 import { EDITION, FINISH_LABEL, finishOf, METAL, type Metal, metalOf } from '../rarity';
 import { TYPE_PT } from '../type-colors';
+import { Diamonds } from '../ultimate/Chemistry';
+import '../ultimate/ultimate.css';
 
 /**
  * Galeria de cartas (?cards=1, só no dev): só a carta do jogo (metal). Os estilos antigos ficam no arquivo
@@ -88,6 +91,13 @@ const METAL_ROWS: { key: string; label: string; inst: PokemonInstance }[] = (
     const label = f === 'lendario' ? 'Lendário' : `${METAL[m].label} · ${FINISH_LABEL[f]}`;
     return inst ? [{ key: `${m}-${f}`, label, inst }] : [];
 });
+/** A fita da carta: Titular e Banco no Clube do UT (azul e cinza, decisão 3a), Trancada, e a do prêmio do Clássico. */
+const RIBBONS: { label: string; tone?: 'blue' | 'grey'; note: string; inst: PokemonInstance }[] = [
+    { label: 'Titular', tone: 'blue', note: 'Titular (UT)', inst: METAL_ROWS[5]?.inst ?? sample(6) },
+    { label: 'Banco', tone: 'grey', note: 'Banco (UT)', inst: METAL_ROWS[3]?.inst ?? sample(9) },
+    { label: 'Trancada', note: 'Trancada (UT), fica vermelha', inst: METAL_ROWS[1]?.inst ?? sample(25) },
+    { label: 'do Pewter', note: 'Prêmio do Clássico, fica vermelha', inst: METAL_ROWS[4]?.inst ?? sample(95) },
+];
 /** Nível da edição: Destaque II/III (craque de novo) ou Ícone que levou MVP (selo "MVP n"). */
 const withMvp = (inst: PokemonInstance, level: number): PokemonInstance =>
     inst.special ? { ...inst, special: { ...inst.special, level } } : inst;
@@ -195,6 +205,8 @@ const ARROW_CARDS: Step[] = [
     { label: 'Gyarados que evoluiu (Swift Swim)', inst: evolveInstance(karp, 130) },
     { label: 'Gyarados do pacote', inst: sample(130) },
     { label: 'Mewtwo Shiny Ícone', inst: card(150, true, ico(150)) },
+    { label: 'Machoke com Eviolite (nota e atributos roxos)', inst: sample(67, { item: 'eviolite' }) },
+    { label: 'Machoke sem item', inst: sample(67) },
 ];
 
 function Ladder({ steps }: { steps: Step[] }) {
@@ -244,6 +256,11 @@ const EVENT_SAMPLES = EVENT_TYPES.map((type) => ({ type, inst: card(EVENT_SPECIE
 
 /** Semana Fora da Lei: só a carta Evento Fora da Lei tem o fundo neon; a comum e a Evento de tipo da mesma espécie, do lado. */
 const FDL = { kind: 'evento', event: 'especial' } as const;
+/** Losangos de química do Time Ultimate: uma quadra com 0, 1, 2 e 3 (o Gengar sem ligação nenhuma). */
+const DIA_TEAM = [25, 6, 131, 143, 94].map((id) => sample(id));
+const DIA_N = new Map(DIA_TEAM.map((p, i) => [p.uid, [2, 3, 1, 2, 0][i]]));
+const DIA_BY = new Map(DIA_TEAM.map((p) => [p.uid, p]));
+
 const NEON_SAMPLES = [
     { label: 'Hitmonchan', inst: card(107, false, null) },
     { label: 'Hitmonchan Evento Fora da Lei', inst: card(107, false, FDL) },
@@ -459,11 +476,41 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                     </h3>
                     <Ladder steps={MAGIKARP} />
                 </section>
+                <section className="panel" id="losangos">
+                    <h2>Losangos de química (Time Ultimate) · proposta pro ok do Miguel</h2>
+                    <p className="muted cb-intro">
+                        Cada titular mostra 0 a 3 losangos embaixo da vaga, convertidos do bônus de hoje (0% = 0, até
+                        +3% = 1, até +6% = 2, acima = 3). No topo, o total do time (8/15); o "+N%" fica só no painel de
+                        química. Fórmula e números iguais.
+                    </p>
+                    <div className="cg-row" style={{ alignItems: 'center' }}>
+                        <div style={{ width: 380 }} className="vt">
+                            <FormationBoard
+                                formation="1-2-1"
+                                lineup={DIA_TEAM.map((p) => p.uid)}
+                                bench={[]}
+                                byUid={DIA_BY}
+                                badgeOf={(p) => <Diamonds n={DIA_N.get(p.uid) ?? 0} />}
+                            />
+                        </div>
+                        <div className="panel bc-surface" style={{ display: 'grid', gap: 10 }}>
+                            {[0, 1, 2, 3].map((n) => (
+                                <span key={n} className="row" style={{ gap: 10 }}>
+                                    <Diamonds n={n} />
+                                    <small className="muted">
+                                        {['0% (nenhuma ligação)', 'até +3%', 'até +6%', 'acima de +6%'][n]}
+                                    </small>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </section>
                 <section className="panel" id="seta">
                     <h2>O ▲ da carta</h2>
                     <p className="muted cb-intro">
                         O número é sempre o que vale em campo (evolução, edição, habilidade, item e Fada). O ▲ diz
-                        quanto desse número é bônus. A nota grande não muda.
+                        quanto desse número é bônus. A nota grande não muda, menos com a Eviolite: aí nota e atributos
+                        ficam roxos, já com a pedra.
                     </p>
                     <Ladder steps={ARROW_CARDS} />
                 </section>
@@ -522,6 +569,17 @@ function CurrentCards({ onExit }: { onExit: () => void }) {
                                     }}
                                 />
                                 <figcaption className="muted">{s.label}</figcaption>
+                            </figure>
+                        ))}
+                    </div>
+                </section>
+                <section className="panel" id="fita">
+                    <h2>Fita da carta</h2>
+                    <div className="cg-row">
+                        {RIBBONS.map((r) => (
+                            <figure key={r.label} className="cg-item">
+                                <FutCard inst={r.inst} size="sm" ribbon={r.label} ribbonTone={r.tone} />
+                                <figcaption className="muted">{r.note}</figcaption>
                             </figure>
                         ))}
                     </div>

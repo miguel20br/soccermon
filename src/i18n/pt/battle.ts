@@ -68,6 +68,8 @@ export const battle = {
     goalBanner: 'GOL!',
     used: '{x} usou {m}!',
     nothing: 'Mas nada aconteceu!',
+    /** A risada do Gengar quando volta do chão na comemoração do gol. */
+    gengarLaugh: 'Hehehe!',
     /** `{x}` = quem usou (o inglês oficial cita o nome). */
     missed: 'Mas errou!',
     superEffective: 'É super efetivo!',

@@ -11,6 +11,7 @@ import {
     type DailyEntry,
     dailyDay,
     dailyEventType,
+    dailyNumber,
     dailySeed,
     dailyShareText,
     dailySticker,
@@ -96,7 +97,25 @@ describe('Copa do Dia: o dia', () => {
         expect(seedFromUrl()).toBeNull();
         vi.stubGlobal('window', { location: { search: '?seed=abc123' } });
         expect(seedFromUrl()).toBe('abc123');
+        // o link de desafio (utm_source=share, igual ao de antes) abre o desafio
+        vi.stubGlobal('window', { location: { search: '?utm_source=share&seed=abc123' } });
+        expect(seedFromUrl()).toBe('abc123');
         vi.unstubAllGlobals();
+    });
+});
+
+describe('Copa do Dia: número do dia (como o do Wordle)', () => {
+    it('#1 na estreia (19/10/2026), +1 por dia, atravessando mês e ano', () => {
+        expect(dailyNumber('2026-10-19')).toBe(1);
+        expect(dailyNumber('2026-10-20')).toBe(2);
+        expect(dailyNumber('2026-11-01')).toBe(14);
+        expect(dailyNumber('2026-11-23')).toBe(36);
+        expect(dailyNumber('2027-01-01')).toBe(75);
+    });
+
+    it('segue o dia de Brasília: 23h de domingo no Brasil ainda é o número de domingo', () => {
+        expect(dailyNumber(dailyDay(new Date('2026-11-23T02:30:00Z')))).toBe(35);
+        expect(dailyNumber(dailyDay(new Date('2026-11-23T03:00:00Z')))).toBe(36);
     });
 });
 
@@ -182,7 +201,7 @@ describe('Copa do Dia: sequência e compartilhar', () => {
             e,
             { weekCount: 4 },
             {
-                title: 'Soccermon · Copa do Dia {d}/{m}',
+                title: 'Soccermon · Copa do Dia #{n} · {d}/{m}',
                 champion: 'Campeão!',
                 out: '{n}/4',
                 week: '{n}/7 dias na semana',
@@ -192,7 +211,7 @@ describe('Copa do Dia: sequência e compartilhar', () => {
             'soccermon.com',
         );
         expect(text.split('\n')).toEqual([
-            'Soccermon · Copa do Dia 19/10',
+            'Soccermon · Copa do Dia #1 · 19/10',
             '🟩🟥 1/4',
             '3x1 Pewter Rochedo',
             '2x2 (pên. 3x4) Cerulean Cascata',

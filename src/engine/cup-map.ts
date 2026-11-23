@@ -3,7 +3,7 @@ import { species } from './data';
 import { aiDraftTeam } from './draft';
 import { type Stone, stoneUsers } from './evolution';
 import { createInstance, viewInstance } from './instance';
-import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
+import { ITEMS, RIVAL_ITEM_IDS, TYPE_ITEM_FOR } from './items';
 import { Rng } from './rng';
 import type { TeamSetup } from './state';
 import { equipRivalTms, RIVAL_GYM_TM_MAX } from './tm';
@@ -405,7 +405,7 @@ export function longOpponent(
     const items = LONG_ITEMS[Math.min(match, LONG_ITEMS.length - 1)] + (kind === 'ginasio' ? 1 : 0);
     for (const h of rng.shuffle([...d.lineup]).slice(0, items)) {
         const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);
-        h.item = rng.pick([...ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
+        h.item = rng.pick([...RIVAL_ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
     }
     // o pássaro lendário entra no lugar do titular mais fraco (nunca o goleiro nem o capitão)
     if (boss !== undefined) {

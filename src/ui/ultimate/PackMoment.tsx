@@ -1,5 +1,4 @@
 import { type CSSProperties, type PointerEvent, useEffect, useRef, useState } from 'react';
-import { viewInstance } from '../../engine/instance';
 import { walkoutLast } from '../../game/walkout-plan';
 import { useT } from '../../i18n/react';
 import { OPEN_FICHAS } from '../../store/ultimate/rules';
@@ -55,18 +54,34 @@ export function useTear() {
     };
 }
 
-/** O que a Loja abriu: um pacote, ou vários do mesmo tipo (Abrir todos); `full` = parou nos Pendentes cheios. */
-export type UtOpened = { packs: PackOpen[]; kind: PackKind; full: boolean };
+/**
+ * O que a Loja abriu: um pacote, vários do mesmo tipo, ou o Abrir todos (cada pacote com o seu `kind`, Grandes e Mini
+ * juntos); `full` = parou nos Pendentes cheios.
+ */
+export type UtOpened = { packs: (PackOpen & { kind?: PackKind })[]; kind: PackKind; full: boolean };
 
-/** Abrir todos: a pausa entre um pacote e o próximo (ms); o rasgo e o leque de cada um são os de sempre. */
-const PACK_GAP = 450;
+/**
+ * O que fica embaixo do leque do pacote `at` de `n`: a dica de rasgar (só no 1º), nada enquanto o leque ou o walkout
+ * rodam, Continuar (o próximo pacote) ou Guardar (o último). Retorno do Miguel (17/11): cada pacote tem a sua abertura
+ * e o seu resumo; o próximo só abre quando você toca em Continuar (antes, todos rasgavam sozinhos num resumão).
+ */
+export function packActs(
+    at: number,
+    n: number,
+    revealed: boolean,
+    walking: boolean,
+): 'hint' | 'wait' | 'next' | 'keep' {
+    if (!revealed) return at === 0 ? 'hint' : 'wait';
+    if (walking) return 'wait';
+    return at < n - 1 ? 'next' : 'keep';
+}
 
 /**
  * Pacote do Time Ultimate em tela cheia: rasga (arrasto ou toque), as cartas saem em leque e a melhor, se for ouro
  * (75+) ou edição, fica guardada pro walkout do nível dela depois do leque (com Pular). As novas já estão no Clube e
- * as repetidas nos Pendentes (openPack); "Guardar" só fecha. Abrir todos (retorno de 09/11: "as animações
- * originais"): o mesmo pacote de sempre, um depois do outro. Você rasga o 1º, os outros rasgam sozinhos com o leque
- * inteiro; o walkout toca uma vez, pra melhor de todas, no pacote dela (que fica por último). Depois, o resumo pela nota.
+ * as repetidas nos Pendentes (openPack); "Guardar" só fecha. Abrir todos: um pacote depois do outro, cada um com o
+ * leque e a linha do que saiu dele; Continuar abre o próximo (que rasga sozinho). O walkout toca uma vez, pra melhor
+ * de todas, no pacote dela (que fica por último).
  */
 export function UtPackMoment({
     open,
@@ -79,12 +94,15 @@ export function UtPackMoment({
 }) {
     const { t, tn } = useT();
     const many = open.packs.length > 1;
-    const one = open.kind === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini');
-    const label = many ? t('ultimate.stack.many', { n: open.packs.length, kind: one }) : one;
-    const all = open.packs.flatMap((p) => p.cards.map((c, i) => ({ c, repeat: p.repeat[i] })));
+    const name = (k: PackKind) => (k === 'big' ? t('ultimate.packs.big') : t('ultimate.packs.mini'));
+    const kindOf = (p: UtOpened['packs'][number]) => p.kind ?? open.kind;
+    const mixed = open.packs.some((p) => kindOf(p) !== kindOf(open.packs[0]));
     const { packs, best } = walkoutLast(open.packs);
     const [at, setAt] = useState(0);
     const pack = packs[at];
+    const one = name(kindOf(pack));
+    // misturado (Abrir todos com Grande e Mini): o nome do pacote da vez, com o "2/5" do lado
+    const label = many && !mixed ? t('ultimate.stack.many', { n: open.packs.length, kind: one }) : one;
     const cards = pack.cards.map((c, i) => ({ c, repeat: pack.repeat[i] }));
     const walkHere = best ? pack.cards.indexOf(best) : -1;
     // 'wait' = guardada até o leque do pacote dela acabar; 'on' = o walkout tocando; 'done' = já na mesa
@@ -93,62 +111,12 @@ export function UtPackMoment({
         if (best) void preloadWalkout().catch(() => undefined);
     }, [best]);
     const [revealed, setRevealed] = useState(false);
-    /** Abrir todos: todos os pacotes abertos, no resumo. */
-    const [sum, setSum] = useState(false);
-    // Abrir todos: leque (e walkout, no pacote dele) acabou, o próximo pacote rasga sozinho
-    useEffect(() => {
-        if (!many || sum || !revealed || (walkHere >= 0 && walk !== 'done')) return;
-        const id = window.setTimeout(() => {
-            if (at < packs.length - 1) {
-                setAt(at + 1);
-                setRevealed(false);
-            } else setSum(true);
-        }, PACK_GAP);
-        return () => clearTimeout(id);
-    }, [many, sum, revealed, walk, walkHere, at, packs.length]);
-    const skip = () => {
-        setSum(true);
-        setWalk((w) => (w === 'wait' ? 'on' : w));
-    };
+    // rasgou: a dica de rasgar apaga na hora (o leque ainda está abrindo, o revealed vem depois)
+    const [torn, setTorn] = useState(false);
     const tear = useTear();
-    const sorted = [...all].sort((a, b) => viewInstance(b.c).overall - viewInstance(a.c).overall);
-    const repeats = all.filter((x) => x.repeat).length;
-    if (sum)
-        return (
-            <MomentStage label={label} className="ut-pack-moment is-many">
-                <h2 className="k-moment-title ut-pack-title">
-                    {t('ultimate.stack.summary', { n: open.packs.length })}
-                </h2>
-                <p className="ut-sum-line k-pop">
-                    <HudIcon kind="sparkle" />
-                    {tn('ultimate.stack.sumFresh', all.length - repeats)}
-                    {repeats > 0 && ` · ${tn('ultimate.stack.sumRepeat', repeats)}`}
-                    {` · ${t('ultimate.stack.sumFichas', { n: open.packs.length * OPEN_FICHAS })}`}
-                </p>
-                <div className="k-pick3 ut-sum">
-                    {sorted.map(({ c, repeat }) => (
-                        <div key={c.uid} className="cpack-card">
-                            <FutCard
-                                inst={c}
-                                ribbon={repeat ? t('ultimate.packs.repeat') : t('ultimate.packs.fresh')}
-                            />
-                        </div>
-                    ))}
-                </div>
-                {open.full && <p className="ut-sum-full">{t('ultimate.stack.full')}</p>}
-                <div className="ut-pack-acts">
-                    <button type="button" className="btn confirm big ut-pack-keep" onClick={onClose}>
-                        {t('ultimate.packs.keep')}
-                    </button>
-                    {repeats > 0 && (
-                        <button type="button" className="btn ghost" onClick={onPending}>
-                            {t('ultimate.stack.toPending', { n: repeats })}
-                        </button>
-                    )}
-                </div>
-                {walk === 'on' && best && <Walkout inst={best} onDone={() => setWalk('done')} />}
-            </MomentStage>
-        );
+    const acts = packActs(at, packs.length, revealed, walkHere >= 0 && walk !== 'done');
+    const fresh = pack.repeat.filter((r) => !r).length;
+    const repeats = open.packs.reduce((n, p) => n + p.repeat.filter(Boolean).length, 0);
     return (
         <MomentStage label={label} className="ut-pack-moment">
             <h2 className="k-moment-title ut-pack-title">
@@ -163,6 +131,7 @@ export function UtPackMoment({
                     look={packLookOf(pack.cards)}
                     label={one}
                     revealKey={pack.cards.map((c) => c.uid).join()}
+                    onOpen={() => setTorn(true)}
                     onRevealed={() => {
                         setRevealed(true);
                         if (walkHere >= 0) setWalk((w) => (w === 'wait' ? 'on' : w));
@@ -187,22 +156,42 @@ export function UtPackMoment({
                     </div>
                 </CardPack>
             </div>
-            {many ? (
-                <div className="ut-pack-acts">
-                    {at === 0 && !revealed && <p className="ut-tear-hint">{t('ultimate.packs.tear')}</p>}
-                    <button type="button" className="btn ghost small" onClick={skip}>
-                        {t('ultimate.stack.skipAll')}
-                    </button>
+            {acts === 'hint' ? (
+                <p className={`ut-tear-hint${torn ? ' is-gone' : ''}`}>{t('ultimate.packs.tear')}</p>
+            ) : acts === 'wait' ? null : (
+                // o resumo deste pacote: o que saiu dele e o próximo passo
+                <div className="ut-pack-acts" key={at}>
+                    <p className="ut-sum-line k-pop">
+                        <HudIcon kind="sparkle" />
+                        {tn('ultimate.stack.sumFresh', fresh)}
+                        {fresh < pack.cards.length && ` · ${tn('ultimate.stack.sumRepeat', pack.cards.length - fresh)}`}
+                        {` · ${t('ultimate.stack.sumFichas', { n: OPEN_FICHAS })}`}
+                    </p>
+                    {acts === 'next' ? (
+                        <button
+                            type="button"
+                            className="btn confirm big ut-pack-keep"
+                            onClick={() => {
+                                setAt(at + 1);
+                                setRevealed(false);
+                            }}
+                        >
+                            {t('ultimate.stack.goOn')}
+                        </button>
+                    ) : (
+                        <>
+                            {open.full && <p className="ut-sum-full">{t('ultimate.stack.full')}</p>}
+                            <button type="button" className="btn confirm big ut-pack-keep" onClick={onClose}>
+                                {t('ultimate.packs.keep')}
+                            </button>
+                            {repeats > 0 && (
+                                <button type="button" className="btn ghost" onClick={onPending}>
+                                    {t('ultimate.stack.toPending', { n: repeats })}
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
-            ) : revealed ? (
-                <div className="ut-pack-acts">
-                    {open.full && <p className="ut-sum-full">{t('ultimate.stack.full')}</p>}
-                    <button type="button" className="btn confirm big ut-pack-keep" onClick={onClose}>
-                        {t('ultimate.packs.keep')}
-                    </button>
-                </div>
-            ) : (
-                <p className="ut-tear-hint">{t('ultimate.packs.tear')}</p>
             )}
             {walk === 'on' && best && <Walkout inst={best} onDone={() => setWalk('done')} />}
         </MomentStage>

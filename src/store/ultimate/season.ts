@@ -43,6 +43,21 @@ export const newPass = (): PassState => ({ day: '', today: 0, pts: 0, marks: 0 }
 /** Marcos alcançados com `pts` pontos (até PASS_MARKS). */
 export const passMarksOf = (pts: number) => Math.min(PASS_MARKS, Math.floor(pts / PASS_STEP));
 
+/** uid do prêmio do marco `k` nos Pendentes (o Pegar da trilha acha ele por aqui). */
+export const passPrizeUid = (season: number, k: number) => `pass-${season}-${k}`;
+
+/** Um marco na trilha do passe: pago e pego, esperando o Pegar, o da vez (o próximo) ou ainda longe. */
+export type MarkState = 'got' | 'ready' | 'now' | 'locked';
+/** Os PASS_MARKS marcos da trilha (índice 0 = marco 1); `pending` são os uids dos prêmios que esperam o Resgatar. */
+export function passTrail(marks: number, season: number, pending: readonly string[]): MarkState[] {
+    const wait = new Set(pending);
+    return Array.from({ length: PASS_MARKS }, (_, i) =>
+        i < marks ? (wait.has(passPrizeUid(season, i + 1)) ? 'ready' : 'got') : i === marks ? 'now' : 'locked',
+    );
+}
+/** O marco em que a trilha abre centrada: o da vez; com o passe completo, o último. */
+export const passFocus = (marks: number) => Math.min(Math.max(marks, 0) + 1, PASS_MARKS);
+
 /** Soma os pontos da partida respeitando o teto do dia (o dia vira à meia-noite de Brasília). */
 export function passGain(
     p: PassState,

@@ -78,7 +78,7 @@
             <span class="lang-switch"><a href="privacidade.html" hreflang="pt-BR" lang="pt-BR">Português</a> | <b>English</b></span>
         </div>
         <h1>Privacy and terms</h1>
-        <p class="muted">Last updated: October 19, 2026</p>
+        <p class="muted">Last updated: November 23, 2026</p>
 
         <section>
             <h2>Summary</h2>
@@ -87,8 +87,8 @@
                     the anonymous statistics described below (you can turn them off).</li>
                 <li>If you sign in with Google, we store your name, photo and game save so you can continue on any device.</li>
                 <li>We don't sell data, don't show ads and don't use tracking cookies. We count visits and matches
-                    anonymously (no account, no cookie) to know whether the game is working; you can turn this off in
-                    Settings.</li>
+                    anonymously (no account and no cookie, with a random code per device) to know whether the game is
+                    working and how many people come back; you can turn this off in Settings.</li>
                 <li>Daily Cup and League rankings: only signed-in players appear, and the public only sees the trainer and
                     club names you chose in the game, never your Google name, email or photo.</li>
                 <li>Friends: only when signed in, and there's no chat. Nobody can find you by name: only someone with
@@ -119,11 +119,21 @@
                     and doesn't identify you.</li>
                 <li><b>Game events</b>: things like "cup started", "match ended 3–1 in the quarter-finals", "Pokémon
                     picked in the draft", "screen opened", "setting changed" (including the language), "club color
-                    chosen", "signed in with Google" and errors (without addresses or emails). At the start of the
-                    session we also send the site you came from (only the domain, like linkedin.com, or the link's
-                    utm_source), how many cups you've played and how many Pokémon you've seen. Each event carries only
-                    a random session code (it disappears when you close the tab), the game version and the device
-                    type. They never carry your name, email, account or IP.</li>
+                    chosen", "signed in with Google" and errors (the type, the screen and the part of the code where it happened, without addresses or
+                    emails). At the end of each match we also send how smooth the screen was (frames per second). At
+                    the start of the session we send the site you came from (only the domain, like linkedin.com, or the
+                    link's utm_source), how many cups you've played, how many Pokémon you've seen, the browser's
+                    language and time zone, the screen size (rounded), whether the game is installed, whether the link
+                    was opened inside an app (TikTok, Instagram or Facebook), which link you came in through (Duel
+                    invite, challenge or Daily Cup) and how long the game took to load. Each event carries a random tab
+                    code (it disappears when you close the tab), the game version and the device type.</li>
+                <li><b>Device code</b>: the start of each session also carries a random device code, the day it was
+                    created, how many days ago that was and on how many different days you've played. The code is
+                    drawn at random, not computed from your browser, is stored only in this browser until you clear the
+                    site's data or turn statistics off, and is used to count how many people come back the next day and
+                    the next week. It isn't part of the save, the backup or your account, and it isn't sent to anyone
+                    else. If your browser sends the <b>Global Privacy Control</b> (GPC) signal, the code isn't created.</li>
+                <li>Events never carry your name, email, account or IP.</li>
             </ul>
             <p>To stop sending game events, turn off <b>Settings → Your data → Anonymous statistics</b>.</p>
             <p><b>Save backup:</b> the file from <b>Settings → Download backup</b> is generated and downloaded on your
@@ -187,8 +197,8 @@
                 immediately. Unanswered friend requests are removed after 30 days and Duel invites after 1 day; your friends
                 list stays while the account exists. The Daily Cup stays in the ranking for 12 months (each match's team and orders are removed
                 after 30 days) and League matches for 3 months (the season's Elo stays). Deleting your account removes you
-                from the rankings right away. Anonymous game events are deleted automatically after 12 months; since they aren't linked
-                to you, there's no way to tell which ones are yours.</p>
+                from the rankings right away. Anonymous game events are deleted automatically after 180 days; since they aren't linked
+                to your account, there's no way to tell which ones are yours.</p>
 
             <h2>Your rights (LGPD, Brazil's data protection law)</h2>
             <p>
@@ -201,7 +211,8 @@
             <h2>Cookies</h2>
             <p>
                 We don't use tracking or advertising cookies. The browser stores only the game save, the random
-                session code (only while the tab is open) and, if you sign in, the sign-in session.
+                tab code (only while the tab is open) and device code (removed when you turn statistics off or clear
+                the site's data) and, if you sign in, the sign-in session.
             </p>
         </section>
 

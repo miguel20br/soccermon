@@ -15,6 +15,7 @@ import type { MatchResult } from '../../engine/runners/batch-runner';
 import { specialBonus } from '../../engine/specials';
 import { clubName } from '../../i18n';
 import { useT } from '../../i18n/react';
+import { dailyNumber } from '../../store/daily';
 import { lineupPosition, useGame } from '../../store/game-store';
 import { cupLength, foulOf, isLong, nextCupMode } from '../../store/long-cup';
 import { rivalColor } from '../../store/profile';
@@ -37,7 +38,7 @@ import { Toast } from '../kit/Toast';
 import { FEEDBACK_URL } from '../links';
 import { useClubColor } from '../profile/club';
 import { editionLabel } from '../rarity';
-import { shareRun } from '../share';
+import { shareDaily, shareRun } from '../share';
 import { type CardFormat, downloadBlob, shareCardBlob } from '../share-card';
 import { CupStats } from '../stats/CupStats';
 import { PlayerTable } from '../stats/PlayerTable';
@@ -137,6 +138,20 @@ export function Result() {
         // aviso em pílula que some sozinho (antes ficava como texto cinza para sempre)
         window.setTimeout(() => setShared(null), 2200);
     };
+    // Copa do Dia: o Compartilhar estilo Wordle (número do dia, quadradinhos e link) é a ação gorda do fim
+    const dailyEnd = !!run.daily && (eliminated || champion);
+    const shareDay = async () => {
+        const g = useGame.getState();
+        const entry = g.daily.find((e) => e.day === run.daily);
+        if (!entry) return;
+        const res = await shareDaily(entry, g.daily, 'resultado');
+        setShared({
+            text:
+                res === 'copied' ? t('result.copied') : res === 'shared' ? t('result.shared') : t('result.shareFailed'),
+            ok: res !== 'failed',
+        });
+        window.setTimeout(() => setShared(null), 2200);
+    };
     const download = async (format: CardFormat) => {
         const blob = await shareCardBlob(run, format, clubColor);
         downloadBlob(blob, `soccermon-${format === 'story' ? '9x16' : '1x1'}.png`);
@@ -164,8 +179,33 @@ export function Result() {
     );
     const thumb = (
         // fim da copa: "Nova copa" em 1 toque na barra do polegar, "Menu" fantasma do lado
-        <div className="bc-thumbbar">
-            {eliminated || champion ? (
+        <div className={`bc-thumbbar${dailyEnd ? ' res-daily-bar' : ''}`}>
+            {dailyEnd ? (
+                <>
+                    <button type="button" className="btn ghost" onClick={advance}>
+                        {t('result.menu')}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn primary big daily-share-btn"
+                        data-testid="daily-share"
+                        onClick={shareDay}
+                    >
+                        <HudIcon kind="upload" />
+                        {t('liga.daily.shareN', { n: dailyNumber(run.daily!) })}
+                    </button>
+                    {/* "Nova copa" continua a 1 toque, como link: o gordo da barra é o Compartilhar */}
+                    <button
+                        type="button"
+                        className="link-btn res-newcup"
+                        data-testid="daily-new-cup"
+                        onClick={() => newRun(run.teamName, undefined, undefined, nextCupMode(run))}
+                    >
+                        {t('result.newCup')}
+                        <HudIcon kind="next" />
+                    </button>
+                </>
+            ) : eliminated || champion ? (
                 <>
                     <button type="button" className="btn ghost" onClick={advance}>
                         {t('result.menu')}

@@ -29,6 +29,8 @@ interface FutCardProps {
     size?: 'md' | 'sm';
     /** Faixa no topo (ex.: "Do adversário"). */
     ribbon?: string;
+    /** Cor da fita (sem: vermelha). Titular azul e Banco cinza no Clube do UT (decisão do Miguel, 3a). */
+    ribbonTone?: 'blue' | 'grey';
     /** Botão de ação rápida embaixo da carta (ex.: "Escolher"). */
     action?: CardAction;
     /** Ações extras mostradas na carta completa. */
@@ -71,6 +73,7 @@ export function FutCard({
     selected,
     size = 'md',
     ribbon,
+    ribbonTone,
     action,
     modalActions,
     modalNote,
@@ -162,7 +165,7 @@ export function FutCard({
             >
                 {/* sem vaga, a carta usa a posição principal; o selo de evolução projeta na principal da forma nova */}
                 <PokeCard2 inst={inst} variant="metal" position={position} captain={captain} />
-                {ribbon && <span className="fut-ribbon">{ribbon}</span>}
+                {ribbon && <span className={`fut-ribbon${ribbonTone ? ` is-${ribbonTone}` : ''}`}>{ribbon}</span>}
 
                 {peek && (
                     <span className="fut-peek" aria-hidden>

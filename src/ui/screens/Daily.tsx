@@ -7,18 +7,19 @@ import { useFriends } from '../../friends/api';
 import { clubName, dict } from '../../i18n';
 import { useT } from '../../i18n/react';
 import { type DailyRow, isError, league, leagueOnline, publicInfo, squadOf } from '../../league/api';
-import { dailyDay, dailyShareText, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
+import { dailyDay, dailyNumber, dailySticker, dailyStreak, daysInARow, putDaily, winsOf } from '../../store/daily';
 import { isCupInProgress, useGame } from '../../store/game-store';
 import { clubColorHex } from '../../store/profile';
 import { Coach } from '../coach/Coach';
 import { AccountBar } from '../components/AccountBar';
+import { HudIcon } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { MonIcon } from '../components/MonIcon';
 import { EstadioBackdrop } from '../kit/backdrop';
 import { InfoSheet, SheetRow } from '../kit/controls';
 import { Stage } from '../kit/Stage';
 import { TrainerName } from '../profile/TrainerName';
-import { SITE_URL, shareText } from '../share';
+import { shareDaily } from '../share';
 import '../liga.css';
 import { backTarget } from '../back-nav';
 
@@ -85,9 +86,10 @@ export function useDailyBegin() {
 }
 
 /** "dd/mm" e o dia da semana, no idioma da tela (a data é a de Brasília, sem fuso no meio). */
-const dayLabel = (day: string, lang: string) =>
+// "16 de novembro" / "November 16": o dia da semana fica no letreiro e na fileira da semana
+const dayLabel = (day: string, lang: string, weekday?: 'long') =>
     new Intl.DateTimeFormat(lang === 'en' ? 'en-US' : 'pt-BR', {
-        weekday: 'long',
+        weekday,
         day: 'numeric',
         month: 'long',
         timeZone: 'UTC',
@@ -196,9 +198,7 @@ export function Daily() {
 
     const share = async () => {
         if (!entry) return;
-        const tx = dict(lang).liga.daily.shareText;
-        const text = dailyShareText(entry, streak, tx, (n) => clubName(n, lang), `${SITE_URL}/?utm_source=share`);
-        const res = await shareText(text);
+        const res = await shareDaily(entry, daily, 'tela');
         if (res !== 'failed') {
             setShared(true);
             window.setTimeout(() => setShared(false), 2000);
@@ -208,6 +208,7 @@ export function Daily() {
     // já jogou hoje (acabou, ou largou e a copa aberta é outra): o resultado no lugar do convite
     const done = !!entry && (entry.done || !playing);
     const date = dayLabel(today, lang);
+    const num = dailyNumber(today);
     const sticker = dailySticker(today);
     const myRow = Array.isArray(rows) ? rows.find((r) => r.me) : undefined;
     // a regra inteira mora no "?" (na tela, no máximo ~12 palavras por texto)
@@ -225,7 +226,12 @@ export function Daily() {
     return (
         <Stage
             className="k-stage-place lg-stage dy-stage lg"
-            scene={<EstadioBackdrop mon={{ id: sticker }} led={`${t('liga.daily.tag')} · ${date}`.toUpperCase()} />}
+            scene={
+                <EstadioBackdrop
+                    mon={{ id: sticker }}
+                    led={`${t('liga.daily.number', { n: num })} · ${dayLabel(today, lang, 'long')}`.toUpperCase()}
+                />
+            }
             action={
                 !done ? (
                     <button
@@ -238,19 +244,29 @@ export function Daily() {
                         {playing ? t('liga.daily.continue') : t('liga.daily.play')}
                     </button>
                 ) : entry.results.length > 0 ? (
-                    <button type="button" className="btn big" onClick={share}>
-                        {shared ? t('liga.daily.copied') : t('liga.daily.share')}
+                    <button
+                        type="button"
+                        className="btn primary big daily-share-btn"
+                        data-testid="daily-share"
+                        onClick={share}
+                    >
+                        <HudIcon kind="upload" />
+                        {shared ? t('liga.daily.copied') : t('liga.daily.shareN', { n: num })}
                     </button>
                 ) : undefined
             }
         >
             <MenuHead title={t('liga.daily.tag')} icon="daily" onBack={() => go(backTarget('daily') ?? 'home')} />
-            <Coach id="dia" targets={['.dy-panel .lg-date', '[data-testid="daily-play"]']} when={!entry} />
+            <Coach id="dia" targets={['.dy-panel .dy-when', '[data-testid="daily-play"]']} when={!entry} />
             {/* o vão: a torcida, o letreiro com o dia e o Pokémon da figurinha no meio da quadra */}
             <i className="k-stage-gap" aria-hidden />
             <section className="panel lg-hero dy-panel bc-surface bc-stripe">
                 <div className="dy-top">
-                    <span className="lg-date">{date}</span>
+                    {/* o número do dia num selo próprio e a data curta do lado: uma linha só até em 320 */}
+                    <span className="dy-when">
+                        <b className="k-seal dy-num">#{num}</b>
+                        <span className="lg-date">{date}</span>
+                    </span>
                     {rules}
                 </div>
                 {done ? (

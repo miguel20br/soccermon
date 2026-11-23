@@ -670,9 +670,12 @@ export function namedDribblesOf(m: MatchResult, setups: [TeamSetup, TeamSetup]):
     );
 }
 
-/** Câmera lenta do drible com nome no tick: só na 1x (em 2x pra cima, nunca); 1 = sem. */
+/**
+ * Câmera lenta do drible com nome no tick; 1 = sem. Vale em qualquer velocidade numérica (2x a 64x: a partida cai pra
+ * 1x em volta do drible, `dribbleEase`, e esta lenta multiplica); em "Lances" não.
+ */
 export function dribbleSlowAt(list: readonly NamedDribble[], tick: number, speed: number | string): number {
-    if (speed !== 1) return 1;
+    if (typeof speed !== 'number') return 1;
     const N = NAMED_DRIBBLE;
     let f = 1;
     for (const d of list) {
@@ -682,6 +685,24 @@ export function dribbleSlowAt(list: readonly NamedDribble[], tick: number, speed
         f = Math.min(f, N.slow + (1 - N.slow) * out);
     }
     return f;
+}
+
+/**
+ * Quanto da velocidade escolhida vale no tick (1 = toda, 0 = cai a 1x): zera na janela do drible, com rampa de
+ * `inTicks` ticks antes (em 8x o drible chega rápido: precisa começar antes) e `outTicks` depois, sem tranco.
+ */
+export const DRIBBLE_EASE = { inTicks: 30, outTicks: 12 } as const;
+export function dribbleEase(list: readonly NamedDribble[], tick: number): number {
+    const N = NAMED_DRIBBLE;
+    let k = 1;
+    for (const d of list) {
+        const t = tick - d.tick;
+        const a = -N.slowFrom - N.ramp;
+        const b = N.slowTo + N.ramp;
+        const out = t < a ? (a - t) / DRIBBLE_EASE.inTicks : t > b ? (t - b) / DRIBBLE_EASE.outTicks : 0;
+        k = Math.min(k, Math.min(1, out));
+    }
+    return k;
 }
 
 /** Enfeite do drible na tela (px): corpo e bola saem do snapshot e voltam pra ele no fim da janela. */

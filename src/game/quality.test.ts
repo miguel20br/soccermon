@@ -135,13 +135,22 @@ describe('telemetria', () => {
         const st = new QualityStats();
         for (let i = 0; i < 90; i++) st.frame(1000 / 60);
         for (let i = 0; i < 10; i++) st.frame(1000 / 20);
-        expect(st.summary()).toEqual({ fps: 50, fpsP10: 20 });
+        expect(st.summary()).toMatchObject({ fps: 50, fpsP10: 20 });
+        // mínimo = pior janela de 1 s: 1 s a 50 fps e 1 s a 20 fps
+        const slow = new QualityStats();
+        for (let i = 0; i < 50; i++) slow.frame(20);
+        for (let i = 0; i < 20; i++) slow.frame(50);
+        expect(slow.summary()).toEqual({ fps: 35, fpsP10: 20, fpsMin: 20 });
         expect(new QualityStats().summary()).toBeNull();
+        // menos de 1 s de quadros: sem mínimo
+        const short = new QualityStats();
+        short.frame(1000 / 60);
+        expect(short.summary()?.fpsMin).toBeNull();
     });
 
     it('o match_end lê uma vez', () => {
-        setMatchQualitySource(() => ({ fps: 58, fps_p10: 50, dpr: 3, res_level: 1 }));
-        expect(takeMatchQuality()).toEqual({ fps: 58, fps_p10: 50, dpr: 3, res_level: 1 });
+        setMatchQualitySource(() => ({ fps: 58, fps_p10: 50, fps_min: 41, dpr: 3, res_level: 1 }));
+        expect(takeMatchQuality()).toEqual({ fps: 58, fps_p10: 50, fps_min: 41, dpr: 3, res_level: 1 });
         expect(takeMatchQuality()).toEqual({});
     });
 });

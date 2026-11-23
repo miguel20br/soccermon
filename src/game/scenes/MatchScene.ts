@@ -40,6 +40,7 @@ import {
     DRIBBLE_PUFFS,
     type DribblePose,
     diveDust,
+    dribbleEase,
     dribblePose,
     dribbleSlowAt,
     type FacingHold,
@@ -153,6 +154,7 @@ import {
     worldToScreen,
 } from '../cine';
 import { Cinematics, CROP_TEXT_SCALE, FOCUS_DEPTH } from '../cinematics';
+import { comboCutIn } from '../combo-cutin';
 import {
     courtRes,
     drawBanner,
@@ -194,7 +196,17 @@ import { cutPortraitBg } from '../portrait-cut';
 import { BASE_SPRITE_SCALE, gridShift, pixelFont, spriteScaleFor } from '../quality';
 import { paintCup } from '../room-art';
 import type { Quality } from '../sharp-canvas';
-import { type Comemoracao, comemoracaoOf, GOAL_CELEB_MS, goalCelebPose } from '../walkout-plan';
+import {
+    type Comemoracao,
+    type ComemoracaoEspecie,
+    comemoracaoOf,
+    GENGAR,
+    GOAL_CELEB_MS,
+    goalCelebPose,
+    golCelebOf,
+    PIKA_ZAP,
+    SNORLAX,
+} from '../walkout-plan';
 
 export { GAME_H, GAME_W } from '../court';
 
@@ -898,6 +910,8 @@ export class MatchScene extends Phaser.Scene {
     private ghostAt = 0;
     /** O "?" em cima de quem levou o drible e o tick do quadro anterior (a poeirinha sai ao cruzar o tick dela). */
     private huh: Phaser.GameObjects.Text | null = null;
+    /** Os textos da comemoração da espécie (o "?" do Psyduck, os 3 "Z" do Snorlax...): um gol por vez, reaproveitados. */
+    private celebMarks: Phaser.GameObjects.Text[] = [];
     private trickTick = 0;
     /** Os squash & stretch já contados no `?squashdebug=1`. */
     private sqSeen = new Set<string>();
@@ -996,6 +1010,16 @@ export class MatchScene extends Phaser.Scene {
                         this.load.image(key, portraitSrc(id, ['determined']));
                 }
             }
+        // combo de sinergia: o cut-in de dupla mostra o retrato de quem passou e de quem chutou
+        for (const e of this.md.result.events) {
+            if (e.type !== 'combo') continue;
+            for (const idx of [e.by, e.partner])
+                for (const id of [this.md.result.roster[idx]?.speciesId, this.md.result.finalRoster[idx]?.speciesId]) {
+                    const key = `portrait-${id}`;
+                    if (id && id <= 151 && !this.textures.exists(key))
+                        this.load.image(key, portraitSrc(id, ['determined']));
+                }
+        }
         // duelo da bicuda: os rostos dos painéis de mangá (quem chutou com dor ou espantado, o goleiro decidido)
         const sd = this.md.result.events.find((x) => x.type === 'showdown');
         if (sd?.type === 'showdown')
@@ -1054,6 +1078,9 @@ export class MatchScene extends Phaser.Scene {
         // o retrato sem fundo dos capitães e o filtro do quadro de impacto já prontos na abertura: feitos na hora do
         // golpe, cada um era um quadro de ~20 ms no meio do lance (o letreiro do N2 e a bicuda, o chute)
         for (const p of this.md.result.roster) if (p.captain) this.cutPortrait(`portrait-${p.speciesId}`);
+        for (const e of this.md.result.events)
+            if (e.type === 'combo')
+                for (const idx of [e.by, e.partner]) this.cutPortrait(`portrait-${result.roster[idx]?.speciesId}`);
         prewarmImpactFrame(this, !!this.md.reduceMotion);
 
         const onResize = () => this.updateUiScale();
@@ -2246,9 +2273,13 @@ export class MatchScene extends Phaser.Scene {
         if (next !== undefined && next - this.playTick <= DRAMA_LEAD) {
             drama = 0.25 + 0.75 * ((next - this.playTick) / DRAMA_LEAD);
         }
-        // drible com nome: câmera lenta curta só na 1x (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
+        // drible com nome: câmera lenta curta (no duelo as duas telas seguem juntas; Reduzir movimento, nada).
         // Vale a mais lenta das câmeras lentas, sem multiplicar com a do gol
-        const trick = this.md.duel || this.md.reduceMotion ? 1 : dribbleSlowAt(this.named, this.playTick, this.speed);
+        // Em 2x ou mais a partida cai pra 1x em volta do drible (rampa suave, começa antes) e volta à escolhida; "não cair"
+        // (chanceSpeed 0) e a 1x sem cinematic já saem lá em cima, então também desligam isto
+        const still = this.md.duel || this.md.reduceMotion;
+        const trick = still ? 1 : dribbleSlowAt(this.named, this.playTick, this.speed);
+        if (!still && base > 1) base = 1 + (base - 1) * dribbleEase(this.named, this.playTick);
         return base * Math.min(drama, this.cine.speedFactor(now), trick);
     }
 
@@ -2282,6 +2313,7 @@ export class MatchScene extends Phaser.Scene {
         const next = this.snaps[Math.min(index + 2, this.snaps.length - 1)];
         const smooth = lerpOk && prev.phase === a.phase && next.phase === b.phase;
         this.reactG.clear();
+        for (const m of this.celebMarks) m.setVisible(false);
         const trick = this.trickNow();
         for (let i = 0; i < this.players.length; i++) {
             const view = this.players[i];
@@ -2455,6 +2487,12 @@ export class MatchScene extends Phaser.Scene {
             if (dive && entering === null && !view.evolving) this.holdBody(view);
             // e o pulo dela sai do chão (a sombra fica)
             if (celebLean && entering === null && !view.evolving) view.sprite.y -= celeb?.lift ?? 0;
+            if (celeb && entering === null && !view.evolving) {
+                // a da espécie: o corpo gira no pé (Snorlax deita, Psyduck balança) e o Hurt do Psyduck repete
+                if (celeb.rot !== undefined && !this.md.reduceMotion) view.tilt = celeb.rot;
+                if (celeb.kind === 'psyduck' && !view.sprite.anims.isPlaying) view.sprite.anims.restart();
+                this.drawCelebMark(view, celeb.kind, celeb.ms);
+            }
             const dx = (b.p[o] - a.p[o]) * PPM;
             const dy = (b.p[o + 1] - a.p[o + 1]) * PPM;
             const pxPerTick = Math.hypot(dx, dy) / Math.max(1, b.tick - a.tick);
@@ -2761,7 +2799,7 @@ export class MatchScene extends Phaser.Scene {
 
     /**
      * O ápice do drible com nome: a faixa grande com o nome (a do golpe máximo; o texto do gol ou da defesa que vem logo
-     * depois espera ela sair), o vento e o "uuh" da torcida. Na 1x, sem Reduzir movimento e fora do duelo: hit-stop curto
+     * depois espera ela sair), o vento e o "uuh" da torcida. Sem Reduzir movimento e fora do duelo: hit-stop curto
      * e zoom no driblador (a câmera lenta vem de `dribbleSlowAt`). Golpe na tela ou câmera presa: só a faixa e o som.
      */
     private namedDribble(e: Extract<MatchEvent, { type: 'tackle' }>) {
@@ -2770,7 +2808,11 @@ export class MatchScene extends Phaser.Scene {
         if (!d || !view) return;
         const N = NAMED_DRIBBLE;
         const reduce = !!this.md.reduceMotion;
-        const big = this.speed === 1 && !reduce && !this.md.duel;
+        // em 2x+ só com a câmera lenta ligada (cinematic e sem "não cair"), senão o zoom passaria voando
+        const slows =
+            typeof this.speed === 'number' &&
+            (this.speed === 1 || (!!this.md.cinematic && !!(this.md.chanceSpeed ?? 1)));
+        const big = slows && !reduce && !this.md.duel;
         this.cine.superBanner({
             portrait: this.cutPortrait(`portrait-${view.speciesId}`),
             move: dict().battle.dribble[d.kind],
@@ -2828,18 +2870,123 @@ export class MatchScene extends Phaser.Scene {
     }
 
     /** Comemoração do gol em andamento pro jogador i (o motor segura o Celebrate por 2,5 s), ou null. */
-    private goalCeleb(i: number, facing: number): ReturnType<typeof goalCelebPose> | null {
+    private goalCeleb(
+        i: number,
+        facing: number,
+    ): (ReturnType<typeof goalCelebPose> & { kind: Comemoracao | ComemoracaoEspecie; ms: number }) | null {
         for (let g = this.goalsBy.length - 1; g >= 0; g--) {
             const { by, tick } = this.goalsBy[g];
             if (tick > this.playTick) continue;
             const ms = ((this.playTick - tick) / TICK_RATE) * 1000;
             if (ms > GOAL_CELEB_MS + 200) return null;
             if (by !== i) continue;
-            const pose = goalCelebPose(comemoracaoOf(this.players[i].speciesId), ms, facing);
+            const kind = golCelebOf(this.players[i].speciesId);
+            const pose = goalCelebPose(kind, ms, facing);
             if (pose.lift > 0 || pose.sy !== 1) this.sqDebug('gol', `${i}:${tick}`, this.players[i].sprite);
-            return pose;
+            return { ...pose, kind, ms };
         }
         return null;
+    }
+
+    /** Texto da comemoração reaproveitado (n = qual), na fonte do jogo. */
+    private celebMark(n: number, text: string, size: number, color = '#ffffff') {
+        const s = Math.min(this.uiScale, 2);
+        this.celebMarks[n] ??= this.add
+            .text(0, 0, '', {
+                fontFamily: 'Galmuri11, monospace',
+                fontStyle: 'bold',
+                stroke: '#000000',
+                strokeThickness: 4,
+            })
+            .setOrigin(0.5, 1)
+            .setResolution(2)
+            .setDepth(REACT_DEPTH + 1);
+        const m = this.celebMarks[n];
+        if (m.text !== text) m.setText(text);
+        m.setFontSize(Math.round(size * s))
+            .setColor(color)
+            .setVisible(true)
+            .setAlpha(1)
+            .setScale(1)
+            .setAngle(0);
+        return m;
+    }
+
+    /**
+     * O enfeite da comemoração da espécie, tudo pelo tempo do gol (replay e salto mostram igual): "?" do Psyduck, "Z"
+     * subindo do Snorlax deitado, "Mas nada aconteceu!" do Magikarp, a risada do Gengar e o raio do Pikachu pro céu.
+     * Reduzir movimento: os textos parados e o raio aceso sem piscar.
+     */
+    private drawCelebMark(view: PlayerView, kind: Comemoracao | ComemoracaoEspecie, ms: number) {
+        const reduce = !!this.md.reduceMotion;
+        const sp = view.sprite;
+        const s = Math.min(this.uiScale, 2);
+        // a cabeça, girando com o corpo (o Snorlax deitado tem a cabeça do lado)
+        const hh = (sp.originY - headTop(view.skin)) * sp.frame.realHeight * sp.scaleY;
+        const hx = sp.x + Math.sin(view.tilt) * hh;
+        const hy = sp.y - Math.cos(view.tilt) * hh;
+        const fade = Math.min(1, (GOAL_CELEB_MS - ms) / 200);
+        if (fade <= 0) return;
+        if (kind === 'psyduck' && ms > 120) {
+            const k = reduce ? 1 : Math.min(1, (ms - 120) / 180);
+            this.celebMark(0, '?', 26)
+                .setPosition(hx, hy - 4 - (reduce ? 0 : 3 * Math.sin(ms / 160)))
+                .setScale(reduce ? 1 : Phaser.Math.Easing.Back.Out(k))
+                .setAlpha(fade)
+                .setAngle(reduce ? 0 : 12 * Math.sin(ms / 140));
+        } else if (kind === 'snorlax' && ms > SNORLAX.lie - 100 && ms < SNORLAX.up) {
+            for (let n = 0; n < 3; n++) {
+                // os 3 "Z" sobem em fila, crescendo e sumindo; parados no Reduzir movimento
+                let u = reduce ? 0.25 + 0.3 * n : (ms - SNORLAX.lie + 100) / 900 - n / 3;
+                if (u < 0) continue;
+                u %= 1;
+                this.celebMark(n, n === 1 ? 'z' : 'Z', 14 + 8 * u, '#dfe8ff')
+                    .setPosition(hx + (6 + 16 * u) * s, hy - (2 + 26 * u) * s)
+                    .setAlpha(fade * (reduce ? 1 : Math.min(1, Math.sin(Math.PI * u) * 1.6)));
+            }
+        } else if (kind === 'magikarp' && ms > 600) {
+            const m = this.celebMark(0, tr('battle.nothing'), 13)
+                .setPosition(sp.x, hy - 22 * s)
+                .setAlpha(fade * Math.min(1, (ms - 600) / 160));
+            const v = this.cameras.main.worldView;
+            const half = m.displayWidth / 2 + 4;
+            if (v.width > 2 * half) m.x = Phaser.Math.Clamp(m.x, v.x + half, v.right - half);
+        } else if (kind === 'gengar' && ms > GENGAR.rise) {
+            this.celebMark(0, tr('battle.gengarLaugh'), 13, '#d6b8ff')
+                .setPosition(hx, hy - (6 + (reduce ? 0 : 8 * Math.min(1, (ms - GENGAR.rise) / 600))) * s)
+                .setAlpha(fade * Math.min(1, (ms - GENGAR.rise) / 140));
+        } else if (kind === 'pikachu' && ms >= PIKA_ZAP) {
+            // dois estalos (aceso, apaga, aceso); no Reduzir movimento um só, parado
+            const t = ms - PIKA_ZAP;
+            const flash = reduce ? (t < 700 ? 0 : -1) : t < 280 ? 0 : t >= 380 && t < 640 ? 1 : -1;
+            if (flash >= 0) this.drawBolt(hx, hy - 2, flash, s);
+        }
+    }
+
+    /** Raio do Pikachu da cabeça até o alto da tela: zigue-zague fixo (sem sorteio), brilho, amarelo e miolo branco. */
+    private drawBolt(x: number, y: number, flash: number, s: number) {
+        const g = this.reactG;
+        const top = this.cameras.main.worldView.y - 10;
+        const zig = [0, 9, -7, 11, -5, 8, -10, 4];
+        const side = flash ? -1 : 1;
+        const pts = zig.map((dx, n) => ({ x: x + side * dx * s, y: y + ((top - y) * n) / (zig.length - 1) }));
+        for (const [w, color, alpha] of [
+            [13, 0xffe14d, 0.3],
+            [5, 0xffe14d, 1],
+            [2, 0xffffff, 1],
+        ] as const) {
+            g.lineStyle(w * s, color, alpha).beginPath();
+            g.moveTo(pts[0].x, pts[0].y);
+            for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+            g.strokePath();
+        }
+        // faíscas na cabeça
+        g.lineStyle(2.5 * s, 0xffe14d, 1);
+        for (let n = 0; n < 6; n++) {
+            const c = Math.cos((n / 6) * Math.PI * 2 + flash * 0.5) * s;
+            const d = Math.sin((n / 6) * Math.PI * 2 + flash * 0.5) * s;
+            g.lineBetween(x + c * 8, y + d * 8, x + c * 16, y + d * 16);
+        }
     }
 
     /**
@@ -4174,12 +4321,27 @@ export class MatchScene extends Phaser.Scene {
                     const names = { link: text.name, a: a.name, b: b.name };
                     this.battleBox.push(tr('battle.combo', names));
                     if (cinematic) {
-                        this.cine.drama(text.combo.toUpperCase(), {
+                        const box = this.cine.drama(text.combo.toUpperCase(), {
                             color: '#ffd447',
                             stroke: '#4a2a00',
                             at: { x: b.sprite.x, y: b.sprite.y },
                             sub: tr('battle.comboSub', names),
                         });
+                        // cut-in de dupla (Inazuma): os dois retratos se cruzam em volta do nome, dentro do tempo dele
+                        if (box && !this.frameLocked() && !this.cine.spotlightActive) {
+                            const reduce = !!this.md.reduceMotion;
+                            const plan = comboCutIn(a.team, !!this.md.duel || this.speed !== 1);
+                            const side = (v: PlayerView, fromRight: boolean) => ({
+                                portrait: this.cutPortrait(`portrait-${v.speciesId}`),
+                                color: hexToNumber(TYPE_COLOR[species(v.speciesId).types[0]] ?? '#ffd447'),
+                                fromRight,
+                            });
+                            this.cine.duoCutIn(box, [side(a, plan.passerFromRight), side(b, plan.finisherFromRight)], {
+                                ms: plan.ms,
+                                reduce,
+                                depth: REACT_DEPTH + 2,
+                            });
+                        }
                     }
                 }
                 break;

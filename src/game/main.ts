@@ -39,7 +39,15 @@ export default function startGame(parent: HTMLElement, data: MatchSceneData): Ph
                 if (q)
                     setMatchQualitySource(() => {
                         const s = q.stats.summary();
-                        return s && { fps: s.fps, fps_p10: s.fpsP10, dpr: q.dpr, res_level: q.gov.level };
+                        return (
+                            s && {
+                                fps: s.fps,
+                                fps_p10: s.fpsP10,
+                                fps_min: s.fpsMin,
+                                dpr: q.dpr,
+                                res_level: q.gov.level,
+                            }
+                        );
                     });
             },
         },

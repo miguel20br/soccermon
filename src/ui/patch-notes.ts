@@ -9,6 +9,77 @@ export interface PatchNotes {
 
 export const PATCH_NOTES: PatchNotes[] = [
     {
+        version: '0.9.53.1',
+        date: '2026-11-23',
+        title: 'Comemorações próprias e cut-in de dupla',
+        sections: [
+            {
+                title: 'Partida',
+                lines: [
+                    'Comemoração de gol própria pra 5 espécies: Psyduck, Snorlax, Magikarp, Gengar e Pikachu',
+                    'Combo de sinergia com cut-in de dupla: os retratos dos dois entram de lados opostos e se cruzam',
+                    'Drible com nome em câmera lenta e com zoom também em 2x, 4x e 8x (antes só na 1x)',
+                ],
+            },
+            {
+                title: 'Time Ultimate (abre em 27/11)',
+                lines: [
+                    'Loja com a arte dos pacotes; Abrir todos é o botão principal',
+                    'Metas numa trilha de marcos, com grupos que fecham',
+                    'Elenco com a química à vista: tocar num Pokémon destaca os parceiros e mostra o porquê',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53',
+        date: '2026-11-23',
+        title: 'Eviolite e reforço no lugar do titular',
+        sections: [
+            {
+                title: 'Itens',
+                lines: [
+                    'Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (na carta, a nota e os atributos já contam a Eviolite e brilham em roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam',
+                ],
+            },
+            {
+                title: 'Reforços',
+                lines: [
+                    'Recompensa, vitrine e pacote do Mercado: o reforço pode entrar no lugar de um titular, não só de um reserva (o capitão nunca sai)',
+                ],
+            },
+            {
+                title: 'Copa do Dia',
+                lines: [
+                    'Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar',
+                    'Ranking do dia mostra "saldo de gols" em vez de só "saldo"',
+                    'Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado',
+                    'Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado',
+                ],
+            },
+            {
+                title: 'Duelo',
+                lines: [
+                    'Melhor de 3: a Escalação entre um jogo e outro também troca o capitão',
+                    'Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa',
+                ],
+            },
+            {
+                title: 'Privacidade',
+                lines: ['Estatísticas anônimas por aparelho; política de privacidade atualizada'],
+            },
+            {
+                title: 'Consertos',
+                lines: [
+                    'Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)',
+                    'Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais',
+                    'Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo',
+                    'Prancheta: o ícone do item não fica mais esticado por cima do nome',
+                ],
+            },
+        ],
+    },
+    {
         version: '0.9.52.4',
         date: '2026-11-17',
         title: 'Placa da Semana Fora da Lei',
@@ -2998,6 +3069,76 @@ export const PATCH_NOTES: PatchNotes[] = [
 
 /** Notes in English (same versions; a version missing here falls back to Portuguese). */
 export const PATCH_NOTES_EN: PatchNotes[] = [
+    {
+        version: '0.9.53.1',
+        date: '2026-11-23',
+        title: 'Signature celebrations and duo cut-ins',
+        sections: [
+            {
+                title: 'Match',
+                lines: [
+                    'Signature goal celebrations for 5 species: Psyduck, Snorlax, Magikarp, Gengar and Pikachu',
+                    'Synergy combos get a duo cut-in: both portraits slide in from opposite sides and cross',
+                    'Named dribbles in slow motion with zoom at 2x, 4x and 8x too (before, only at 1x)',
+                ],
+            },
+            {
+                title: 'Team Ultimate (opens Nov 27)',
+                lines: [
+                    'Shop shows the pack art; Open all is the main button',
+                    'Goals on a milestone track, with groups that close',
+                    'Squad with chemistry in sight: tap a Pokémon to highlight its partners and see why',
+                ],
+            },
+        ],
+    },
+    {
+        version: '0.9.53',
+        date: '2026-11-23',
+        title: 'Eviolite and signings that replace starters',
+        sections: [
+            {
+                title: 'Items',
+                lines: [
+                    'New item: Eviolite. Pokémon that can still evolve get +30% to every stat (on the card, the rating and stats already include the Eviolite and glow purple). Found in rewards, the Market and the Casino; rivals never use it',
+                ],
+            },
+            {
+                title: 'Signings',
+                lines: [
+                    'Reward, Market shelf and Market pack: a new signing can replace a starter, not only a sub (never the captain)',
+                ],
+            },
+            {
+                title: 'Daily Cup',
+                lines: [
+                    'Numbered Daily Cup (#36), on the screen, the stadium board and the share text',
+                    'Bigger share button at the end of the Daily Cup; New cup stays as a link next to it',
+                    'Narrow phones: the shootout score no longer spills over the next match',
+                ],
+            },
+            {
+                title: 'Duel',
+                lines: [
+                    'Best of 3: the lineup screen between games also changes the captain',
+                    "Invite to build your own team at the end of a Duel, for players who haven't played a cup yet",
+                ],
+            },
+            {
+                title: 'Privacy',
+                lines: ['Anonymous stats per device; privacy policy updated'],
+            },
+            {
+                title: 'Fixes',
+                lines: [
+                    'Vibration only after the first tap on the page (the browser refused it before and threw an error)',
+                    'Phone: tapping Discard on a saved cup no longer makes the box around it disappear',
+                    'Phone in landscape: the Start the 2nd half button no longer goes off screen at half-time',
+                    'Lineup board: the item icon is no longer stretched over the name',
+                ],
+            },
+        ],
+    },
     {
         version: '0.9.52.4',
         date: '2026-11-17',

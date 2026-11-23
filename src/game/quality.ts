@@ -148,21 +148,32 @@ export class FpsGovernor {
     }
 }
 
-/** fps de cada quadro num histograma (0 a 240) pro médio e o p10 da partida, sem guardar lista. */
+/**
+ * fps de cada quadro num histograma (0 a 240) pro médio e o p10 da partida, sem guardar lista; e o mínimo, que é a pior
+ * janela de 1 s (um quadro solto lento não é "mínimo": o p10 já pega os engasgos).
+ */
 export class QualityStats {
     private readonly hist = new Uint32Array(241);
     private frames = 0;
     private ms = 0;
+    private win = { ms: 0, n: 0 };
+    private min = Number.POSITIVE_INFINITY;
 
     frame(dt: number) {
         if (!(dt > 0) || dt > MAX_DT) return;
         this.hist[Math.min(240, Math.round(1000 / dt))]++;
         this.frames++;
         this.ms += dt;
+        this.win.ms += dt;
+        this.win.n++;
+        if (this.win.ms >= 1000) {
+            this.min = Math.min(this.min, (this.win.n * 1000) / this.win.ms);
+            this.win = { ms: 0, n: 0 };
+        }
     }
 
-    /** fps médio (quadros / tempo) e o fps que 90% dos quadros superam; null sem quadros. */
-    summary(): { fps: number; fpsP10: number } | null {
+    /** fps médio (quadros / tempo), o fps que 90% dos quadros superam e a pior janela de 1 s; null sem quadros. */
+    summary(): { fps: number; fpsP10: number; fpsMin: number | null } | null {
         if (!this.frames) return null;
         let need = Math.ceil(this.frames * 0.1);
         let p10 = 0;
@@ -173,13 +184,19 @@ export class QualityStats {
                 break;
             }
         }
-        return { fps: Math.round((this.frames * 1000) / this.ms), fpsP10: p10 };
+        return {
+            fps: Math.round((this.frames * 1000) / this.ms),
+            fpsP10: p10,
+            fpsMin: Number.isFinite(this.min) ? Math.round(this.min) : null,
+        };
     }
 }
 
 export interface MatchQuality {
     fps: number;
     fps_p10: number;
+    /** pior janela de 1 s da partida (null: partida mais curta que 1 s de quadros) */
+    fps_min: number | null;
     dpr: number;
     res_level: number;
 }

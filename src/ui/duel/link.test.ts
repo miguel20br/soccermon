@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { pt } from '../../i18n/pt';
-import { CONNECT_GIVEUP_MS, entryCoach, roomBarShown, roomLooksClosed } from './link';
+import { CONNECT_GIVEUP_MS, cupInviteShown, entryCoach, roomBarShown, roomLooksClosed } from './link';
 
 describe('roomLooksClosed', () => {
     it('espera o anfitrião até o limite e só então oferece a saída', () => {
@@ -34,5 +34,22 @@ describe('nome dos modos do Duelo', () => {
         expect(pt.duel.modes.pacotes[0]).toBe('Pacotes');
         expect(JSON.stringify(pt.duel)).not.toContain('Cada um com seus pacotes');
         expect('modeShort' in pt.duel).toBe(false);
+    });
+});
+
+describe('cupInviteShown (convite pra montar o time no fim do Duelo)', () => {
+    const novo = { run: null, parkedRuns: [], records: { cups: 0 }, daily: [] };
+    it('aparece pro convidado que nunca jogou uma copa, com a série acabada', () => {
+        expect(cupInviteShown('guest', true, novo)).toBe(true);
+    });
+    it('não aparece pro anfitrião nem no meio do melhor de 3', () => {
+        expect(cupInviteShown('host', true, novo)).toBe(false);
+        expect(cupInviteShown('guest', false, novo)).toBe(false);
+    });
+    it('não aparece pra quem já tem copa no save: aberta, guardada, terminada ou Copa do Dia', () => {
+        expect(cupInviteShown('guest', true, { ...novo, run: {} })).toBe(false);
+        expect(cupInviteShown('guest', true, { ...novo, parkedRuns: [{}] })).toBe(false);
+        expect(cupInviteShown('guest', true, { ...novo, records: { cups: 1 } })).toBe(false);
+        expect(cupInviteShown('guest', true, { ...novo, daily: [{}] })).toBe(false);
     });
 });

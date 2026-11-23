@@ -4,17 +4,8 @@ import { dailyDay } from '../../store/daily';
 import { useGame } from '../../store/game-store';
 import { utNow } from '../../store/ultimate/clock';
 import { evoReady } from '../../store/ultimate/evolutions';
-import { eventAhead, eventAt } from '../../store/ultimate/objectives';
-import {
-    BIG_FLOOR_N,
-    FLOOR_METAL,
-    ICON_ODDS,
-    METAL_ODDS,
-    OPEN_FICHAS,
-    PACK_MAX,
-    REPEAT_FICHAS,
-    SHINY_ODDS,
-} from '../../store/ultimate/rules';
+import { eventAhead } from '../../store/ultimate/objectives';
+import { BIG_FLOOR_N, FLOOR_METAL, PACK_MAX } from '../../store/ultimate/rules';
 import { lastDayPrizes, seasonN } from '../../store/ultimate/season';
 import {
     nextPackIn,
@@ -24,13 +15,12 @@ import {
     stackCount,
     type UtPick,
 } from '../../store/ultimate/ultimate';
-import { PackArt } from '../components/CardPack';
 import { CountUp } from '../components/CountUp';
 import { EvolutionOverlay } from '../components/EvolutionOverlay';
 import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead } from '../components/MenuHead';
 import { ConfirmSheet } from '../kit/Sheet';
-import { METAL, type Metal, metalLabel } from '../rarity';
+import { metalLabel } from '../rarity';
 import { Club, type ClubSeg } from './Club';
 import { hms, useNow } from './clock';
 import { ULTIMATE_OPENS_AT } from './flag';
@@ -39,6 +29,7 @@ import { Home, type UtTab } from './Home';
 import { type UtOpened, UtPackMoment } from './PackMoment';
 import { UtPickMoment, usePickName } from './PickMoment';
 import { Play } from './Play';
+import { PackImg, packArt } from './pack-art';
 import { SeasonBar } from './Season';
 import { Shop } from './Shop';
 import './ultimate.css';
@@ -52,9 +43,6 @@ const TAB_ICON: Record<UtTab, HudIconKind> = {
     shop: 'bag',
     goals: 'medal',
 };
-const METALS: Metal[] = ['bronze', 'prata', 'ouro'];
-const pct = (p: number, lang: string) =>
-    `${(Math.round(p * 1000) / 10).toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US')}%`;
 
 /**
  * Time Ultimate (atrás de `?lab=ultimate`), no esqueleto do UT do FC (ut-menus-e-pendentes.md, opção B; ultimate-fc.md,
@@ -85,14 +73,24 @@ export function Ultimate() {
     const [pack, setPack] = useState<UtOpened | null>(null);
     const [pick, setPick] = useState<UtPick | null>(null);
     const [full, setFull] = useState(false);
-    /** Abre `n` pacotes do tipo (sem `n` = Abrir todos). */
-    const openKind = (kind: PackKind, n?: number) => {
+    /** Abre `n` pacotes do tipo (sem `n` = todos dele); sem tipo = Abrir todos (os Grandes e depois os Mini). */
+    const openKind = (kind?: PackKind, n?: number) => {
         if (pendingFull(useGame.getState().ultimate)) {
             setFull(true);
             return;
         }
-        const r = openMany(kind, n);
-        setPack(r && { ...r, kind });
+        if (kind) {
+            const r = openMany(kind, n);
+            setPack(r && { ...r, kind });
+            return;
+        }
+        // cada pacote leva o seu tipo: o PackMoment abre um de cada vez com a arte e o nome dele
+        const packs = (['big', 'mini'] as const).flatMap((k) =>
+            (openMany(k)?.packs ?? []).map((p) => ({ ...p, kind: k })),
+        );
+        const after = useGame.getState().ultimate;
+        const left = packsReady(after, utNow()) + after.bigPacks;
+        setPack(packs.length ? { packs, kind: 'mini', full: left > 0 && pendingFull(after) } : null);
     };
     const toClub = (s: ClubSeg) => {
         setSeg(s);
@@ -126,8 +124,8 @@ export function Ultimate() {
     return (
         <div className="menu-screen ut ut-hub">
             <MenuHead
+                // o nome no adesivo do cartão do menu de modos (ultimate.css), sem o ícone
                 title={t('ultimate.title')}
-                hud="cards"
                 onBack={() => go(backTarget('ultimate') ?? 'home')}
                 // "Prévia" só antes da estreia (dev e prévias); depois de 27/11 o modo é de verdade
                 tag={utNow() < ULTIMATE_OPENS_AT ? t('ultimate.preview') : undefined}
@@ -236,7 +234,7 @@ export type ShopSeg = 'mine' | 'buy';
  * Abrir 1 / Abrir todos, o relógio do grátis) e o outro segmento é **Comprar** (Mini, Pick e escolher carta, tudo com
  * Fichas, as chances). Nada abre sozinho: o pacote ganho espera aqui até a temporada virar.
  */
-function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => void; onPick: (p: UtPick) => void }) {
+function Packs({ onOpen, onPick }: { onOpen: (kind?: PackKind, n?: number) => void; onPick: (p: UtPick) => void }) {
     const { t, d, lang } = useT();
     const u = useGame((s) => s.ultimate);
     const now = useNow();
@@ -244,6 +242,7 @@ function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => voi
     const n = stackCount(u, now);
     const next = nextPackIn(u, now);
     const mini = packsReady(u, now);
+    const packN = mini + u.bigPacks;
     const ahead = eventAhead(now);
     return (
         <>
@@ -278,40 +277,53 @@ function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => voi
                                 </button>
                             </section>
                         ) : (
-                            <ul className="panel bc-surface ut-stack">
-                                {/* os Picks primeiro (é o mais gostoso), o mesmo tipo junto com "x2" */}
-                                {pickGroups(u.picks).map((g) => (
-                                    <PickRow key={g[0].uid} picks={g} onPick={onPick} />
-                                ))}
-                                {mini > 0 && (
-                                    <StackRow
-                                        kind="mini"
-                                        n={mini}
-                                        title={t('ultimate.packs.mini')}
-                                        hint={t('ultimate.stack.miniHint', { metal: metalLabel(FLOOR_METAL) })}
-                                        onOpen={onOpen}
+                            <>
+                                {/* o botão principal: todos os pacotes, um de cada vez com o resumo de cada (os Picks
+                                são escolha, ficam na linha deles) */}
+                                {packN > 1 && (
+                                    <button
+                                        type="button"
+                                        className="btn confirm big ut-open-all"
+                                        onClick={() => onOpen()}
                                     >
-                                        <small className="ut-timer">
-                                            <HudIcon kind="stopwatch" />
-                                            {next === null
-                                                ? t('ultimate.packs.full', { max: PACK_MAX })
-                                                : t('ultimate.stack.next', { time: hms(next), max: PACK_MAX })}
-                                        </small>
-                                    </StackRow>
+                                        {t('ultimate.stack.openAll', { n: packN })}
+                                    </button>
                                 )}
-                                {u.bigPacks > 0 && (
-                                    <StackRow
-                                        kind="big"
-                                        n={u.bigPacks}
-                                        title={t('ultimate.packs.big')}
-                                        hint={t('ultimate.stack.bigHint', {
-                                            n: BIG_FLOOR_N,
-                                            metal: metalLabel(FLOOR_METAL),
-                                        })}
-                                        onOpen={onOpen}
-                                    />
-                                )}
-                            </ul>
+                                <ul className="panel bc-surface ut-stack">
+                                    {/* os Picks primeiro (é o mais gostoso), o mesmo tipo junto com "x2" */}
+                                    {pickGroups(u.picks).map((g) => (
+                                        <PickRow key={g[0].uid} picks={g} onPick={onPick} />
+                                    ))}
+                                    {mini > 0 && (
+                                        <StackRow
+                                            kind="mini"
+                                            n={mini}
+                                            title={t('ultimate.packs.mini')}
+                                            hint={t('ultimate.stack.miniHint', { metal: metalLabel(FLOOR_METAL) })}
+                                            onOpen={onOpen}
+                                        >
+                                            <small className="ut-timer">
+                                                <HudIcon kind="stopwatch" />
+                                                {next === null
+                                                    ? t('ultimate.packs.full', { max: PACK_MAX })
+                                                    : t('ultimate.stack.next', { time: hms(next), max: PACK_MAX })}
+                                            </small>
+                                        </StackRow>
+                                    )}
+                                    {u.bigPacks > 0 && (
+                                        <StackRow
+                                            kind="big"
+                                            n={u.bigPacks}
+                                            title={t('ultimate.packs.big')}
+                                            hint={t('ultimate.stack.bigHint', {
+                                                n: BIG_FLOOR_N,
+                                                metal: metalLabel(FLOOR_METAL),
+                                            })}
+                                            onOpen={onOpen}
+                                        />
+                                    )}
+                                </ul>
+                            </>
                         )}
                         {ahead && (
                             <p className="ut-rule ut-rule-event ut-stack-event">
@@ -332,17 +344,14 @@ function Packs({ onOpen, onPick }: { onOpen: (kind: PackKind, n?: number) => voi
                         )}
                     </>
                 ) : (
-                    <>
-                        <Shop />
-                        <Odds />
-                    </>
+                    <Shop />
                 )}
             </div>
         </>
     );
 }
 
-/** Uma linha de Meus pacotes: a arte, o nome com "x2", o que vem dentro e Abrir 1 / Abrir todos. */
+/** Uma linha de Meus pacotes: a arte (a pilha, se tiver mais de um), o nome com "x2", o que vem dentro e Abrir. */
 function StackRow({
     kind,
     n,
@@ -361,32 +370,30 @@ function StackRow({
     const { t } = useT();
     return (
         <li className={`ut-stack-row is-${kind}`}>
-            <span className="ut-stack-art">
-                <PackArt look="" label={title} />
-                {n > 1 && <PackArt look="" />}
-            </span>
+            <StackArt art={packArt(kind)} n={n} />
             <span className="ut-stack-info">
                 <b>
-                    {title} <span className="ut-stack-x cb-num">x{n}</span>
+                    {title} {n > 1 && <span className="ut-stack-x cb-num">x{n}</span>}
                 </b>
                 <small>{hint}</small>
                 {children}
             </span>
             <span className="ut-stack-acts">
-                {n > 1 && (
-                    <button type="button" className="btn" onClick={() => onOpen(kind, 1)}>
-                        {t('ultimate.stack.openOne')}
-                    </button>
-                )}
-                <button
-                    type="button"
-                    className={`btn confirm${n > 1 ? ' ut-open-all' : ''}`}
-                    onClick={() => onOpen(kind, n > 1 ? undefined : 1)}
-                >
-                    {n > 1 ? t('ultimate.stack.openAll', { n }) : t('ultimate.stack.open')}
+                <button type="button" className="btn confirm" onClick={() => onOpen(kind, 1)}>
+                    {t('ultimate.stack.open')}
                 </button>
             </span>
         </li>
+    );
+}
+
+/** A arte do pacote; com mais de um, o de trás aparece torto atrás do da frente. */
+function StackArt({ art, n }: { art: string; n: number }) {
+    return (
+        <span className="ut-stack-art">
+            <PackImg art={art} />
+            {n > 1 && <PackImg art={art} />}
+        </span>
     );
 }
 
@@ -407,14 +414,7 @@ function PickRow({ picks, onPick }: { picks: UtPick[]; onPick: (p: UtPick) => vo
     const p = picks[0];
     return (
         <li className={`ut-stack-row is-pick from-${p.from}`}>
-            <span className="ut-stack-art">
-                <PackArt
-                    look={p.event ? 'special' : p.min === 'ouro' ? 'gold' : ''}
-                    label={t('ultimate.pick.short')}
-                    type={p.type}
-                />
-                {picks.length > 1 && <PackArt look="" type={p.type} />}
-            </span>
+            <StackArt art={packArt(p)} n={picks.length} />
             <span className="ut-stack-info">
                 <b>
                     {name.title} {picks.length > 1 && <span className="ut-stack-x cb-num">x{picks.length}</span>}
@@ -436,57 +436,3 @@ const dayMonth = (at: number, lang: string) => {
     const [dd, mm] = [d.getUTCDate(), d.getUTCMonth() + 1].map((x) => String(x).padStart(2, '0'));
     return lang === 'en' ? `${mm}/${dd}` : `${dd}/${mm}`;
 };
-
-/** As chances do pacote, sempre à vista (é o contrário do pacote do FUT). */
-function Odds() {
-    const { t, d, lang } = useT();
-    const event = eventAt(useNow());
-    return (
-        <section className="panel ut-odds bc-surface">
-            <h2 className="bc-caption">
-                <HudIcon kind="dice" />
-                {t('ultimate.packs.odds')}
-            </h2>
-            <span className="bc-lbl">{t('ultimate.packs.perCard')}</span>
-            <ul className="ut-metals">
-                {METALS.map((m) => (
-                    <li key={m} style={{ '--mc': METAL[m].color } as CSSProperties}>
-                        <i aria-hidden />
-                        <span>{metalLabel(m)}</span>
-                        <b>{pct(METAL_ODDS[m], lang)}</b>
-                    </li>
-                ))}
-            </ul>
-            <p className="ut-rule">
-                <HudIcon kind="check" />
-                {t('ultimate.packs.floor', { metal: metalLabel(FLOOR_METAL) })}
-            </p>
-            <p className="ut-rule">
-                <HudIcon kind="sparkle" />
-                {t('ultimate.packs.editions', { shiny: pct(SHINY_ODDS, lang), icon: pct(ICON_ODDS, lang) })}
-            </p>
-            <p className="ut-rule">
-                <HudIcon kind="reroll" />
-                {t('ultimate.packs.repeatRule')}:{' '}
-                {METALS.map((m) => `${metalLabel(m)} ${REPEAT_FICHAS[m]}`).join(' · ')}
-            </p>
-            <p className="ut-rule">
-                <HudIcon kind="sparkle" />
-                {t('ultimate.packs.openRule', { n: OPEN_FICHAS })}
-            </p>
-            <p className="ut-rule">
-                <HudIcon kind="cards" />
-                {t('ultimate.packs.bigRule', { n: BIG_FLOOR_N, metal: metalLabel(FLOOR_METAL) })}
-            </p>
-            {event && (
-                <p className="ut-rule ut-rule-event">
-                    <HudIcon kind="sparkle" />
-                    {t('ultimate.packs.eventRule', {
-                        name: d.ultimate.events[event.id] ?? event.id,
-                        pct: pct(event.cardOdds, lang),
-                    })}
-                </p>
-            )}
-        </section>
-    );
-}

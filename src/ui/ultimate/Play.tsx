@@ -49,6 +49,38 @@ export function useBattle() {
     return { u, home, ready, strength, rival, level, setLevel, paid };
 }
 
+/**
+ * Simula e abre a quadra (a mesma seed e as ordens guardadas dão a mesma partida): o JOGAR do Início e o da aba Jogar.
+ */
+export function useKick() {
+    const { t } = useT();
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const kick = async () => {
+        const s = useGame.getState();
+        const live = s.ultimate.live;
+        if (!live) return;
+        setBusy(true);
+        setError(null);
+        try {
+            const m = await simulateMatch(
+                live.home,
+                cupRival(live.rival, true),
+                `${ultimateSeed(s.ultimate.salt, live.n)}-stage-0`,
+                live.orders,
+            );
+            if (useGame.getState().screen !== 'ultimate') return;
+            s.setMatch(m);
+            s.go('ultimate-match');
+        } catch {
+            setError(t('ultimate.play.simError'));
+        } finally {
+            setBusy(false);
+        }
+    };
+    return { busy, error, kick };
+}
+
 /** Os modos que ainda não chegaram (equivalentes do FC: Rivals, Champions, Draft, SBC), na ordem da aba. */
 export const SOON = ['rivals', 'elite', 'draft', 'sbc'] as const;
 type SoonMode = (typeof SOON)[number];
@@ -82,32 +114,7 @@ export function Play({ onPacks }: { onPacks: () => void }) {
     const { t, d, lang } = useT();
     const { u, home, ready, strength, rival, level, setLevel, paid } = useBattle();
     const [sheet, setSheet] = useState<'level' | 'gyms' | null>(null);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    /** Simula (a mesma seed e as ordens guardadas dão a mesma partida) e abre a quadra. */
-    const kick = async () => {
-        const s = useGame.getState();
-        const live = s.ultimate.live;
-        if (!live) return;
-        setBusy(true);
-        setError(null);
-        try {
-            const m = await simulateMatch(
-                live.home,
-                cupRival(live.rival, true),
-                `${ultimateSeed(s.ultimate.salt, live.n)}-stage-0`,
-                live.orders,
-            );
-            if (useGame.getState().screen !== 'ultimate') return;
-            s.setMatch(m);
-            s.go('ultimate-match');
-        } catch {
-            setError(t('ultimate.play.simError'));
-        } finally {
-            setBusy(false);
-        }
-    };
+    const { busy, error, kick } = useKick();
     const start = () => {
         if (!rival) return;
         useGame.getState().ultimateStart({ n: u.played, level: paid(level), home, rival });

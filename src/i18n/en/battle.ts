@@ -59,6 +59,7 @@ export const battle: typeof pt = {
     goalBanner: 'GOAL!',
     used: '{x} used {m}!',
     nothing: 'But nothing happened!',
+    gengarLaugh: 'Heh heh heh!',
     missed: "{x}'s attack missed!",
     superEffective: "It's super effective!",
     superPop: 'SUPER EFFECTIVE!',

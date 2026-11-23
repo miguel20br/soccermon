@@ -446,6 +446,54 @@ button.sb-title:hover {
     width: min(640px, 100%);
     margin: 0 auto;
 }
+/* convidado que nunca jogou uma copa: o convite pra montar o próprio time, embaixo da Revanche. Placa do kit com a
+   etiqueta do modo, solto sobre o painel (sem caixa dentro de caixa); o botão é azul (leva a um lugar: o dourado
+   da tela é a Revanche) */
+.duel-cup-invite {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 14px;
+    width: min(460px, 100%);
+    margin: 8px auto 0;
+    padding: 12px 14px 12px 20px;
+    text-align: left;
+    animation: duel-invite-in 260ms var(--ease-out) 120ms both;
+}
+.duel-cup-invite-txt {
+    display: grid;
+    justify-items: start;
+    gap: 6px;
+    min-width: 0;
+}
+.duel-cup-invite p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+@keyframes duel-invite-in {
+    from {
+        opacity: 0;
+        translate: 0 6px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .duel-cup-invite {
+        animation-name: tb-hint-fade;
+    }
+}
+:root[data-reduce-motion="true"] .duel-cup-invite {
+    animation-name: tb-hint-fade;
+}
+/* celular estreito: o botão desce e ocupa a largura */
+@media (max-width: 420px) {
+    .duel-cup-invite {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .duel-cup-invite .btn {
+        width: 100%;
+    }
+}
 .duel-final {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);

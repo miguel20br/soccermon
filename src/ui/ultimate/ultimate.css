@@ -2,9 +2,10 @@
 .menu-screen.ut:has(.lineup-grid) {
     width: min(1180px, 100%);
 }
-/* PC: o Início do Time Ultimate cresce com a tela (como a Coleção, styles.css) em vez de ficar numa coluna de 720 px */
+/* PC: o Time Ultimate cresce com a tela (como a Coleção, styles.css) em vez de ficar numa coluna de 720 px. O Elenco
+   cresce junto (retorno de 17/11: sem o zoom, o cabeçalho e as abas mudavam de tamanho entre Elenco e Cartas) */
 @media (min-width: 1100px) and (min-height: 720px) {
-    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) {
+    .menu-screen.ut.ut-hub {
         width: min(860px, 100%);
         zoom: var(--k-big, 1);
         --gz: calc(var(--ui-zoom, 1) * var(--k-big, 1));
@@ -12,10 +13,19 @@
         --vh: calc(1vh / var(--ui-zoom, 1) / var(--k-big, 1));
     }
     /* a barra fixa de baixo não herda o zoom da tela (descentralizava ~20 px): volta ao tamanho de antes */
-    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)) .ut-nav {
+    .menu-screen.ut.ut-hub .ut-nav {
         zoom: calc(1 / var(--k-big, 1));
         --gz: var(--ui-zoom, 1);
     }
+}
+/* o Elenco na coluna das outras abas: a coluna da direita (química, capitão, tática, carta) numa pilha só; a carta ao
+   lado das linhas (vestiario.css, PC) espremia Tática e Formação em ~130 px e cobria os botões */
+.ut .vt .side-stack {
+    grid-template-columns: minmax(0, 1fr);
+}
+.ut .vt .side-stack > * {
+    grid-column: 1;
+    grid-row: auto;
 }
 .ut-panel {
     display: grid;
@@ -51,6 +61,11 @@
 }
 .ut-wallet .k-res {
     height: 32px;
+}
+/* a Ficha é amarela em todo lugar (prêmio, Loja): o disco dourado do dinheiro do Clássico (.k-res-coin), não o azul */
+.ut-wallet .k-res .hud-icon {
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    color: var(--gold-ol);
 }
 @media (max-width: 400px) {
     .ut-hub .menu-head h1 {
@@ -140,15 +155,6 @@
 .ut-odds {
     display: grid;
     gap: 8px;
-}
-.ut-odds .bc-caption {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.ut-odds .bc-caption .hud-icon {
-    width: 18px;
-    height: 18px;
 }
 .ut-metals {
     display: grid;
@@ -251,14 +257,21 @@
 .ut-chip b {
     font-family: "Galmuri14", "Galmuri11", monospace;
 }
-.ut-captain h3 {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+/* na folha: o capitão de agora em azul (escolhido = azul) */
+.ut-slot-row.ut-cap-pick {
+    transition: background-color 220ms var(--ease-out);
 }
-.ut-captain .hud-icon {
-    width: 16px;
-    height: 16px;
+.ut-slot-row.ut-cap-pick.on {
+    background: var(--pick-fill);
+    color: #fff;
+}
+.ut-slot-row.ut-cap-pick.on .ut-slot-pos {
+    color: #fff;
+}
+.ut-slot-row.ut-cap-pick > .hud-icon {
+    width: 18px;
+    height: 18px;
+    justify-self: end;
 }
 
 /* jogar */
@@ -313,15 +326,6 @@
     gap: 8px;
     justify-items: center;
     text-align: center;
-}
-.ut-verdict {
-    font-size: 28px;
-}
-.ut-prize.is-win .ut-verdict {
-    color: var(--green);
-}
-.ut-prize.is-loss .ut-verdict {
-    color: var(--red);
 }
 .ut-gain {
     display: flex;
@@ -390,30 +394,118 @@
     display: grid;
     gap: 8px;
 }
-.ut-shop-pack {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: var(--panel-2);
+/* a arte do pacote (public/assets/ui/pacotes, 1x): escala inteira e pixel duro; reduzida, suave (marca) */
+.ut-packimg {
+    display: block;
+    width: 126px;
+    height: 174px;
+    image-rendering: pixelated;
 }
-.ut-shop-pack > span {
+.ut-odds-link {
+    margin-left: auto;
+    min-height: 32px;
+    padding: 4px 10px;
+    gap: 6px;
+    font-size: 12px;
+}
+.ut-shop .bc-caption .ut-odds-link .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+/* a vitrine (17/11): cada pacote com a arte, o nome, o que vem dentro, o preço e Comprar */
+.ut-vitrine {
     display: grid;
+    gap: 10px;
+    min-width: 0;
+}
+.ut-tile {
+    display: grid;
+    /* arte, texto, Comprar: o botão no pé, na mesma linha em todos da grade */
+    grid-template-rows: auto 1fr auto;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+}
+.ut-tile-info {
+    display: grid;
+    align-content: start;
+    justify-items: center;
     gap: 2px;
     min-width: 0;
 }
-.ut-shop-pack small {
+.ut-tile-info > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
+    line-height: 1.2;
+}
+.ut-tile-info > small {
+    font-size: 12px;
+    color: var(--muted);
+}
+.ut-tile-info > .ut-tile-price {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 12px;
     color: var(--yellow);
 }
-.ut-shop-pack .hud-icon {
+.ut-tile-price .hud-icon {
     width: 14px;
     height: 14px;
+}
+.ut-tile > .btn {
+    width: 100%;
+    min-height: 40px;
+}
+/* a prateleira dos Picks: rola de lado, um pacote por parada */
+.ut-shelf {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 140px;
+    gap: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    padding-bottom: 8px;
+}
+.ut-shelf > .ut-tile {
+    scroll-snap-align: start;
+}
+@media (max-width: 719px) {
+    /* celular: o Mini em destaque, a arte do lado do texto e do Comprar */
+    .ut-vitrine-hero > .ut-tile {
+        grid-template-columns: 126px minmax(0, 1fr);
+        align-items: center;
+        justify-items: start;
+        grid-template-rows: none;
+        column-gap: 14px;
+        text-align: left;
+    }
+    .ut-vitrine-hero .ut-packimg {
+        grid-row: span 2;
+    }
+    .ut-vitrine-hero .ut-tile-info {
+        justify-items: start;
+        align-self: end;
+    }
+    .ut-vitrine-hero .ut-tile > .btn {
+        align-self: start;
+    }
+}
+@media (min-width: 720px) {
+    /* PC e deitado: a vitrine em grade, os quatro lado a lado */
+    .ut-vitrine {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+    .ut-vitrine-hero,
+    .ut-shelf {
+        display: contents;
+    }
+    .ut-vitrine > .ut-vitrine-lbl {
+        display: none;
+    }
 }
 .ut-seg > button {
     flex: 1 1 0;
@@ -460,7 +552,8 @@
 }
 .ut-chem-players li {
     display: grid;
-    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto;
+    /* ícone, nome, losangos e o bônus: as colunas da direita alinham entre as linhas */
+    grid-template-columns: 28px minmax(0, 1fr) auto 38px;
     align-items: center;
     gap: 6px;
     font-size: 13px;
@@ -473,6 +566,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.ut-chem-players li > b {
+    text-align: right;
 }
 .ut-chem-players li > b {
     font-family: "Galmuri14", "Galmuri11", monospace;
@@ -525,13 +621,37 @@
 }
 .ut-goal-list li {
     display: grid;
+    /* o texto e, à direita, sempre a mesma coluna: a barra ou o Pegar (17/11: as linhas tinham alturas diferentes) */
     grid-template-columns: minmax(0, 1fr) 96px;
     align-items: center;
     gap: 10px;
+    min-height: 58px;
     padding: 8px 10px;
     border-radius: 6px;
     background: var(--panel-2);
     transition: opacity 240ms var(--ease-out);
+}
+/* todas as linhas da lista na altura da maior; no celular em pé, a altura de 2 linhas de texto em todos os grupos */
+.ut-goals:not(.ut-first) .ut-goal-list {
+    grid-auto-rows: 1fr;
+}
+@media (max-width: 640px) and (orientation: portrait) {
+    .ut-grp .ut-goal-list li {
+        min-height: 72px;
+    }
+}
+/* 320: a coluna da barra encolhe e o prêmio comprido ("+100 Fichas · +1 Pacote Grande") pode ir pra 2ª linha */
+@media (max-width: 360px) {
+    .ut-goal-list li {
+        grid-template-columns: minmax(0, 1fr) 76px;
+        gap: 8px;
+    }
+    .ut-grp .ut-goal-list li {
+        min-height: 88px;
+    }
+    .btn.ut-goal-get {
+        width: 76px;
+    }
 }
 .ut-goal-list li > span:first-child {
     display: grid;
@@ -542,20 +662,133 @@
     font-size: 13px;
 }
 .ut-goal-list small {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-size: 11px;
     color: var(--yellow);
 }
 .ut-goal-list li.done {
-    grid-template-columns: minmax(0, 1fr) 96px 18px;
     opacity: 0.7;
+}
+.ut-goal-list li.done:has(.ut-goal-get) {
+    opacity: 1;
 }
 .ut-goal-list li.done small {
     color: var(--green);
 }
+.ut-goal-list small > .hud-icon,
 .ut-goal-list li > .hud-icon {
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     color: var(--green);
+}
+.btn.ut-goal-get {
+    width: 96px;
+    min-height: 0;
+    height: 34px;
+    padding: 0 6px;
+    font-size: 12px;
+    animation: row-in var(--dur-ui, 200ms) var(--ease-out) both;
+}
+
+/* grupos de objetivos (do dia, da semana, do evento): o cabeçalho é o botão de abrir e já mostra o progresso */
+.ut-grp {
+    gap: 0;
+}
+.ut-grp-head {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto auto 16px;
+    grid-template-areas:
+        "ic title dot n chev"
+        "bar bar bar bar bar"
+        "reset reset reset reset reset";
+    align-items: center;
+    gap: 6px 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.ut-grp-head > .hud-icon:first-child {
+    grid-area: ic;
+    width: 16px;
+    height: 16px;
+}
+.ut-grp.ut-event .ut-grp-head > .hud-icon:first-child {
+    color: var(--yellow);
+}
+.ut-grp-head > b {
+    grid-area: title;
+    min-width: 0;
+    overflow: hidden;
+    font-family: "Galmuri11", monospace;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    padding-block: 0.2em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-grp-n {
+    grid-area: n;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+}
+.ut-grp-dot {
+    grid-area: dot;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--yellow) 30%, transparent);
+}
+.ut-grp-head > .hud-icon:last-of-type {
+    grid-area: chev;
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+    transition: rotate 240ms var(--ease-out);
+}
+.ut-grp.open .ut-grp-head > .hud-icon:last-of-type {
+    rotate: 180deg;
+}
+.ut-grp-bar {
+    grid-area: bar;
+    position: relative;
+    display: block;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bc-ink-2, #0e1430);
+    overflow: hidden;
+}
+.ut-grp-bar > i {
+    position: absolute;
+    inset: 0;
+    background: var(--green);
+    transform: scaleX(var(--p));
+    transform-origin: left;
+    transition: transform 280ms var(--ease-out);
+}
+.ut-grp-head > .ut-reset {
+    grid-area: reset;
+    margin: 0;
+}
+.ut-grp:not(.open) .bc-fold {
+    grid-template-rows: 0fr;
+}
+.ut-grp .bc-fold > div {
+    display: grid;
+    gap: 8px;
+}
+.ut-grp .bc-fold > div > :first-child {
+    margin-top: 10px;
 }
 .ut-bar {
     position: relative;
@@ -684,26 +917,39 @@
 
 /* 0.9.33: temporada, passe, Pacote Grande, evento e líderes */
 .ut-season {
+    display: grid;
+    gap: 6px;
+}
+.ut-season .bc-caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.ut-season > small,
+.ut-season-sub > small {
+    font-size: 12px;
+}
+.ut-season-sub {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 14px;
-    padding: 8px 12px;
+    justify-content: space-between;
+    gap: 4px 12px;
 }
-.ut-season-main {
+.ut-pass-today {
+    color: var(--yellow);
+}
+.ut-season .ut-timer {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 0;
-}
-.ut-season-main b {
-    font-family: "Galmuri14", "Galmuri11", monospace;
-    --gs: 15px;
-    font-size: var(--gfs, 15px);
-}
-.ut-season-main small {
-    font-size: 12px;
+    flex: none;
     color: var(--muted);
+    align-items: center;
+    gap: 5px;
+}
+.ut-season .ut-timer .hud-icon {
+    width: 13px;
+    height: 13px;
 }
 .ut-season .hud-icon,
 .ut-pass .bc-caption .hud-icon,
@@ -713,12 +959,6 @@
     width: 16px;
     height: 16px;
     color: var(--yellow);
-}
-.ut-season-main .hud-icon {
-    align-self: center;
-}
-.ut-season .ut-timer {
-    margin-left: auto;
 }
 .ut-season-event {
     display: flex;
@@ -769,8 +1009,22 @@
     gap: 6px;
     min-width: 0;
 }
-.ut-pass-info > b {
-    font-size: 16px;
+/* o marco: o número grande e o "de 40" (uma vez só) */
+.ut-pass-mark {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.ut-pass-mark > b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 29px;
+    font-size: var(--gfs, 29px);
+    line-height: 1;
+    color: var(--yellow);
+}
+.ut-pass-mark > small {
+    font-size: 13px;
+    color: var(--muted);
 }
 .ut-pass-info small {
     font-size: 11px;
@@ -786,28 +1040,169 @@
     width: 14px;
     height: 14px;
 }
-.ut-marks,
-.ut-gym-list {
-    display: grid;
-    gap: 6px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-.ut-marks li {
-    display: grid;
-    grid-template-columns: 30px minmax(0, 1fr);
+.ut-pass .ut-got-line {
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: var(--panel-2);
+    gap: 6px;
+    padding: 0;
     font-size: 12px;
+    color: var(--green);
+    animation: row-in var(--dur-ui, 200ms) var(--ease-out) both;
 }
-.ut-marks li b {
+.ut-pass .ut-got-line .hud-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* a trilha do passe (17/11, como o Season Pass do FC): 40 casinhas que rolam de lado, centrada no marco da vez */
+.ut-trail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 64px;
+    gap: 6px;
+    margin: 2px -16px 0;
+    padding: 4px 16px 8px;
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+    /* as pontas somem em degradê: dá pra ver que a trilha continua */
+    mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}
+.ut-mk {
+    position: relative;
+    display: grid;
+    grid-template-rows: 14px 44px 14px 28px;
+    justify-items: center;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 2px 4px;
+    border-radius: 8px;
+    background: var(--panel-2);
+    box-shadow: inset 0 0 0 1px var(--line);
+    scroll-snap-align: center;
+    transition:
+        background-color 240ms var(--ease-out),
+        box-shadow 240ms var(--ease-out),
+        opacity 240ms var(--ease-out);
+}
+.ut-mk-n {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 12px;
+    font-size: var(--gfs, 12px);
+    line-height: 14px;
+    color: var(--muted);
+}
+.ut-mk-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+}
+/* a arte do pacote reduzida (1x é 126x174): suave, como manda a marca */
+.ut-mk-art .ut-packimg {
+    width: 32px;
+    height: 44px;
+    image-rendering: auto;
+}
+.ut-mk-art .mon-icon,
+.ut-mk-art img:not(.ut-packimg) {
+    max-width: 40px;
+    max-height: 40px;
+}
+.ut-mk-art.coin > .hud-icon {
+    width: 26px;
+    height: 26px;
+    padding: 4px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--gold-hi) 0 45%, var(--yellow) 45%);
+    color: var(--gold-ol);
+}
+/* o marco que também faz a carta crescer: a setinha no canto */
+.ut-mk-art > .hud-icon + .hud-icon,
+.ut-mk-art > img + .hud-icon {
+    position: absolute;
+    right: -4px;
+    bottom: 0;
+    width: 16px;
+    height: 16px;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--green);
+    color: #fff;
+}
+.ut-mk-lbl {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 14px;
+    color: var(--text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ut-mk > .hud-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--green);
+    animation: row-in var(--dur-ui, 200ms) var(--ease-out) both;
+}
+.ut-mk .btn.ut-mk-get {
+    width: 58px;
+    min-height: 0;
+    height: 26px;
+    padding: 0 4px;
+    font-size: 11px;
+}
+/* a barrinha do marco da vez (os pontos até ele) */
+.ut-mk-bar {
+    position: relative;
+    width: 46px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bc-ink-2, #0e1430);
+    overflow: hidden;
+}
+.ut-mk-bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--yellow);
+    transform: scaleX(var(--p));
+    transform-origin: left;
+    transition: transform 280ms var(--ease-out);
+}
+.ut-mk.got {
+    background: color-mix(in srgb, var(--green) 22%, var(--panel-2));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--green) 55%, transparent);
+}
+.ut-mk.got .ut-mk-n {
+    color: var(--green);
+}
+.ut-mk.ready {
+    box-shadow: inset 0 0 0 2px var(--yellow);
+}
+.ut-mk.ready .ut-mk-n,
+.ut-mk.now .ut-mk-n {
     color: var(--yellow);
-    text-align: center;
 }
+.ut-mk.now {
+    box-shadow:
+        inset 0 0 0 2px var(--yellow),
+        0 0 0 2px color-mix(in srgb, var(--yellow) 30%, transparent);
+}
+.ut-mk.locked .ut-mk-art,
+.ut-mk.locked .ut-mk-lbl {
+    opacity: 0.55;
+}
+/* os marcos de 5 em 5 (a carta cresce): a casinha com a borda dourada mesmo longe */
+.ut-mk.big.locked {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--yellow) 45%, transparent);
+}
+
 .ut-gym-list li {
     display: grid;
     grid-template-columns: 32px minmax(0, 1fr) auto;
@@ -904,6 +1299,10 @@
     font-size: 13px;
     color: var(--muted);
     text-align: center;
+    transition: opacity 220ms var(--ease-out);
+}
+.ut-tear-hint.is-gone {
+    opacity: 0;
 }
 /* o Grande (5 cartas) quebra em 3 + 2 no celular em pé; deitado e no desktop, uma fileira só */
 .ut-pick {
@@ -1218,40 +1617,6 @@
     grid-row: 1 / span 2;
     pointer-events: none;
 }
-/* a quadrinha do Elenco: os 5 titulares de pé, a vaga embaixo */
-.ut-b-court {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
-    padding: 8px 4px 4px;
-    border-radius: 8px;
-    background: repeating-linear-gradient(90deg, rgb(255 255 255 / 4%) 0 18px, transparent 18px 36px), var(--bc-ink-3);
-}
-.ut-b-court > span {
-    display: grid;
-    justify-items: center;
-    gap: 2px;
-    min-width: 0;
-}
-.ut-b-court img,
-.ut-b-court i {
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-}
-.ut-b-court i {
-    border: 2px dashed var(--line);
-    border-radius: 8px;
-}
-.ut-b-court small {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--muted);
-}
-.ut-b-court .cap small {
-    color: var(--yellow);
-}
 .ut-b-badges {
     display: flex;
     flex-wrap: wrap;
@@ -1296,7 +1661,19 @@
 }
 /* Clube */
 .ut-club-seg > button {
+    position: relative;
     flex: 1 1 0;
+}
+/* celular estreito: cada aba do tamanho do nome ("Pendentes · 5" encostava na borda e o ponto saía da barra) */
+@media (max-width: 380px) {
+    .ut-club-seg > button {
+        flex: 1 1 auto;
+        padding-inline: 6px;
+    }
+    .ut-club-seg .ut-dot {
+        top: 3px;
+        right: 3px;
+    }
 }
 .ut-undo {
     display: flex;
@@ -1333,6 +1710,10 @@
 }
 .ut-cards {
     animation: ut-in 220ms var(--ease-out) both;
+}
+/* o selo Nova passa da carta: a linha de baixo ganha o espaço dele */
+.ut-cards:has(.ut-new) {
+    row-gap: 16px;
 }
 .ut-filters {
     display: grid;
@@ -1469,6 +1850,15 @@
 .ut-pend .fut-wrap {
     --fut-w: 84px;
 }
+/* 320: Vender e Trocar na mesma linha (o Trocar caía sozinho embaixo e cada repetida ficava de uma altura) */
+@media (max-width: 360px) {
+    .ut-pend .fut-wrap {
+        --fut-w: 70px;
+    }
+    .ut-pend {
+        column-gap: 8px;
+    }
+}
 .ut-pend-prize .cpack {
     width: 56px;
 }
@@ -1541,38 +1931,35 @@
 }
 .ut-stack-row {
     display: grid;
-    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-columns: 69px minmax(0, 1fr);
     align-items: center;
-    gap: 6px 14px;
+    gap: 6px 10px;
     padding: 12px 0;
     animation: ut-in 220ms var(--ease-out) both;
 }
 .ut-stack-row + .ut-stack-row {
     border-top: 2px solid var(--line);
 }
-/* a pilha: o de trás aparece torto atrás do da frente */
+/* a pilha: a arte na metade (suave), o de trás aparece torto atrás do da frente */
 .ut-stack-art {
     position: relative;
     display: grid;
     grid-row: span 2;
-    padding: 6px 8px 0 0;
+    padding: 4px 6px 0 0;
+    isolation: isolate;
 }
-.ut-stack-art > .cpack {
-    position: relative;
-    inset: auto;
-    transform: none;
-    width: 64px;
+.ut-stack-art > .ut-packimg {
+    width: 63px;
+    height: 87px;
+    image-rendering: auto;
 }
-.ut-stack-art > .cpack + .cpack {
+.ut-stack-art > .ut-packimg + .ut-packimg {
     position: absolute;
     top: 0;
     left: 8px;
     z-index: -1;
     transform: rotate(7deg);
     opacity: 0.75;
-}
-.ut-stack-art {
-    isolation: isolate;
 }
 .ut-stack-info {
     display: grid;
@@ -1612,13 +1999,11 @@
 }
 @media (min-width: 720px) {
     .ut-stack-row {
-        grid-template-columns: 96px minmax(0, 1fr) auto;
+        grid-template-columns: 69px minmax(0, 1fr) auto;
+        column-gap: 14px;
     }
     .ut-stack-art {
         grid-row: auto;
-    }
-    .ut-stack-art > .cpack {
-        width: 84px;
     }
     .ut-stack-acts > .btn {
         flex: none;
@@ -1626,35 +2011,6 @@
     }
 }
 
-/* Abrir todos: o resumo (todas as cartas pela nota, como a lista de itens do FC) */
-.ut-sum {
-    --k-cols: 4;
-    --k-card-w: min(
-        120px,
-        calc((min(calc(100 * var(--vw)), 860px) - 32px - (var(--k-cols) - 1) * var(--k-gap)) / var(--k-cols))
-    );
-    grid-template-columns: repeat(auto-fill, var(--k-card-w));
-    max-height: calc(100 * var(--vh) - 250px);
-    overflow-y: auto;
-    padding: 4px 2px;
-}
-@media (orientation: landscape) {
-    .ut-sum {
-        --k-cols: 6;
-    }
-}
-@media (min-width: 900px) {
-    .ut-sum {
-        --k-cols: 6;
-    }
-}
-.ut-pack-moment.is-many .k-moment-body {
-    width: min(100%, 860px);
-}
-/* o resumo entra (os pacotes já saíram um por um, com o leque de sempre) */
-.ut-sum {
-    animation: ut-in 260ms var(--ease-out) both;
-}
 .ut-pack-count {
     font-size: 0.6em;
     color: var(--muted);
@@ -1688,21 +2044,32 @@
 .ut-pick-moment .ut-pick-all {
     min-width: 180px;
 }
-/* Pick com Fichas (Comprar) */
-.ut-pick-buy > .btn {
-    flex: 1 1 0;
-    min-width: 0;
-    justify-content: center;
-    /* metal em cima, o preço embaixo (como o seletor do Escolher carta): "Prata · 125 Fichas" não cabia em 390 */
-    flex-direction: column;
-    gap: 0;
-    line-height: 1.15;
-    height: auto;
-    padding-block: 6px;
+/* "Toque numa carta": dica em texto, na altura do botão gordo que nasce no lugar dela (a tela não pula) */
+.ut-pick-hint {
+    display: grid;
+    place-items: center;
+    min-height: var(--ut-pick-go-h, 58px);
+    margin: 0;
+    font:
+        700 15px / 1.2 "Galmuri11",
+        monospace;
+    color: var(--text);
 }
-.ut-pick-buy > .btn small {
-    font-size: 0.8em;
-    opacity: 0.85;
+/* escolhida: o chip vira azul cheio (escolhido = azul, kit.css --pick-fill); verde é confirmar */
+.ut-pick-opt.on .btn.fut-action {
+    border-color: var(--blue-hi);
+    background: var(--pick-fill);
+    color: #fff;
+}
+/* Abrir todos: o botão gordo de Meus pacotes */
+.ut-open-all {
+    width: 100%;
+}
+@media (min-width: 720px) {
+    .ut-open-all {
+        justify-self: center;
+        max-width: 420px;
+    }
 }
 .ut-got-line {
     padding: 8px 10px;
@@ -1869,7 +2236,8 @@
 .ut-new {
     position: absolute;
     left: 50%;
-    bottom: -6px;
+    /* em cima da borda de baixo da carta: com -6 px o selo tampava a última linha de atributos */
+    bottom: -13px;
     translate: -50% 0;
     padding: 2px 8px;
     border: 2px solid var(--bc-edge);
@@ -1889,10 +2257,7 @@
     animation: none;
 }
 
-/* losangos de química (rascunho atrás de ?losangos=1, Chemistry.tsx) */
-.ut-chem-players li:has(.ut-dia) {
-    grid-template-columns: 30px 28px minmax(0, 1fr) auto auto auto;
-}
+/* losangos de química 0–3 (Chemistry.tsx): no painel, na vaga da quadra e no X/15 */
 .ut-dia {
     display: inline-flex;
     gap: 3px;
@@ -1902,11 +2267,29 @@
     height: 9px;
     border: 2px solid var(--line);
     transform: rotate(45deg);
-    transition: background-color 220ms var(--ease-out);
+    transition:
+        background-color 220ms var(--ease-out),
+        border-color 220ms var(--ease-out);
 }
 .ut-dia i.on {
     border-color: var(--green);
     background: var(--green);
+}
+/* na vaga: pendurados embaixo da carta, numa plaquinha escura (não cobrem nome nem nota) */
+.slot > .ut-dia {
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+    translate: -50% 0;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    box-shadow: 0 0 0 2px var(--cb-ink);
+}
+.slot > .ut-dia i {
+    width: 7px;
+    height: 7px;
 }
 /* o número do bloco nunca sai pra fora: no 320 ele fica só na aba Loja */
 .ut-b-head .ut-count {
@@ -1918,23 +2301,36 @@
     }
 }
 
-/* ---------- 09/11 (retorno do Miguel): o Início em blocos de pesos diferentes, a aba Jogar e o Pick de costas ---------- */
-/* celular em pé: 2 colunas, o JOGAR na largura toda e alto; o Clube alto à esquerda, Loja e Metas à direita */
+/* ---------- 17/11: o Início vira cena (a quadra do Estádio com o time andando), o JOGAR fixo embaixo ---------- */
+/* o Início e o prêmio entram com fade (Continuar no prêmio troca um pelo outro: nada teleporta) */
+.ut-home,
+.ut-prize {
+    animation: ut-in var(--dur-tela, 280ms) var(--ease-out) backwards;
+}
+[data-reduce-motion="true"] :is(.ut-home, .ut-prize) {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:not([data-reduce-motion="false"]) :is(.ut-home, .ut-prize) {
+        animation: none;
+    }
+}
+/* celular em pé: a quadra na largura toda com o JOGAR logo embaixo (como no Estádio), depois Clube, Loja e Metas em 3
+   blocos pequenos, Pendentes e o destaque. O JOGAR fica no fluxo: nada rola por baixo dele (fixo no pé, ele cobria o
+   destaque e os blocos); em tela baixa demais pra ele aparecer, o sticky segura no pé até a rolagem chegar nele */
 .ut-home {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-        "pend pend"
-        "play play"
-        "club shop"
-        "club goals"
-        "hl hl";
+        "court court court"
+        "go go go"
+        "club shop goals"
+        "pend pend pend"
+        "hl hl hl";
     align-items: stretch;
+    gap: 8px;
 }
-.ut-b-pending {
-    grid-area: pend;
-}
-.ut-b-jogar {
-    grid-area: play;
+.ut-court {
+    grid-area: court;
 }
 .ut-b-club {
     grid-area: club;
@@ -1945,96 +2341,47 @@
 .ut-b-goals {
     grid-area: goals;
 }
+.ut-b-pending {
+    grid-area: pend;
+}
 .ut-home > .ut-hl {
     grid-area: hl;
 }
-/* Jogar · Modos de jogo (retorno de 09/11: "não com textura de botão"): um painel como os outros, com a faixa dourada,
-   a arte do modo liberado (o rival da vez) e as miniaturas apagadas dos que vêm depois */
-.ut-b-jogar {
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    align-content: stretch;
-}
-.ut-b-modes {
+.ut-home-go {
+    grid-area: go;
+    position: sticky;
+    z-index: 5;
+    bottom: calc(var(--ut-nav-h) + 8px + env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
-    min-height: 0;
 }
-.ut-b-modes > .ut-mode-art {
-    height: 64px;
-}
-.ut-b-modes .ut-mode-team img {
-    width: 48px;
-    height: 48px;
-}
-.ut-b-modes > .ut-mode-art .ut-mode-vs img {
-    width: 56px;
-    height: 56px;
-}
-.ut-b-soon {
-    display: grid;
-    grid-template-columns: repeat(2, 52px);
-    grid-auto-rows: minmax(0, 1fr);
+.ut-home .ut-block {
+    padding: 8px 10px;
     gap: 4px;
 }
-.ut-b-soon > .ut-mode-art {
-    height: auto;
-    min-height: 0;
-    border-radius: 6px;
-    filter: grayscale(1);
-    opacity: 0.6;
+.ut-home .ut-b-head b {
+    font-size: 13px;
 }
-.ut-b-soon .ut-mode-vs {
-    gap: 2px;
+.ut-home .ut-block > b {
+    font-size: 12px;
 }
-.ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-    width: 26px;
-    height: 26px;
+.ut-home .ut-block > small,
+.ut-home .ut-timer {
+    font-size: 11px;
 }
-.ut-b-soon .ut-mode-four img + img {
-    margin-left: -14px;
+.ut-b-ovr {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 6px;
 }
-.ut-b-soon .ut-mode-backs .ut-cardback {
-    width: 14px;
-    border-width: 1px;
-    border-radius: 3px;
-    box-shadow: none;
-}
-.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(1) {
-    translate: 2px 1px;
-}
-.ut-b-soon .ut-mode-backs .ut-cardback:nth-child(3) {
-    translate: -2px 1px;
-}
-.ut-b-soon .ut-mode-slots {
-    grid-template-columns: repeat(3, 7px);
-    gap: 2px;
-}
-.ut-b-soon .ut-mode-slots i {
-    border-width: 1px;
-    border-radius: 2px;
-}
-.ut-b-soon .ut-mode-slots i:nth-child(n + 4) {
-    translate: 4.5px 0;
-}
-/* Clube: o cartão do time (a nota grande, a química e os 5 titulares em 3 + 2) */
 .ut-b-club .ut-b-ovr > b {
-    font-size: 32px;
+    font-size: 28px;
+    line-height: 1;
 }
 .ut-b-club .ut-b-ovr small {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
-}
-.ut-b-club .ut-b-court {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    row-gap: 6px;
-}
-.ut-b-club .ut-b-court img,
-.ut-b-club .ut-b-court i {
-    width: 100%;
-    max-width: 48px;
-    height: auto;
-    aspect-ratio: 1;
 }
 .ut-block > .ut-b-pick {
     display: flex;
@@ -2050,77 +2397,285 @@
 .ut-b-goals > small + .ut-bar {
     margin-top: -2px;
 }
-/* deitado e PC: mosaico (o JOGAR 2 x 2, o Clube alto, Loja e Metas empilhadas, o destaque largo embaixo) */
+/* 320: o nome do bloco com o número não cabe em 3 colunas; o número fica só na aba de baixo */
+@media (max-width: 360px) {
+    .ut-home {
+        gap: 6px;
+    }
+    .ut-home .ut-block {
+        padding: 6px 7px;
+    }
+    .ut-home .ut-b-head .hud-icon {
+        display: none;
+    }
+}
+
+/* a quadra do Estádio (UtCourt): o fundo de palco dos ambientes numa caixa, com a arquibancada cortada em cima (as
+   fileiras de baixo, a faixa e o letreiro) e o piso em perspectiva até o pé da caixa */
+.ut-court.amb-bd {
+    position: relative;
+    inset: auto;
+    height: clamp(190px, calc(36 * var(--vh)), 360px);
+    border: 3px solid var(--bc-edge);
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--bc-edge);
+    background: #070b1e;
+}
+.ut-court.amb-bd .es-scene {
+    --stand-top: calc(var(--px) * -14);
+}
+/* o capitão do Estádio no meio do círculo; aqui é o craque do prêmio, com o selo embaixo do pé */
+.ut-court .ut-star {
+    top: 52%;
+}
+.ut-star-seal {
+    position: absolute;
+    left: 0;
+    top: 10px;
+    translate: -50% 0;
+    white-space: nowrap;
+}
+.ut-court .rh-confetti {
+    z-index: 20;
+}
+
+/* o JOGAR do Estádio (PlayBar, ambientes.css) */
+.ut-home-go .es-play {
+    width: 100%;
+}
+.ut-home-go .error-text {
+    margin: 0;
+    text-align: center;
+}
+/* o convite do 1º pacote: o mesmo botão gordo, em verde (abrir é confirmar, não jogar), com a frase numa linha */
+.ut-home-go .es-play.cb-green .es-play-verb {
+    --ol: #06330d;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+    white-space: nowrap;
+}
+@media (max-width: 360px) {
+    .ut-home-go .es-play.cb-green .es-play-verb {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+/* 3 colunas no celular: o Pick fica no destaque (aqui o nome dele quebrava em 3 linhas) */
+.ut-home .ut-b-pick {
+    display: none;
+}
+
+/* deitado e PC: a quadra grande à esquerda com o JOGAR embaixo dela; Clube, Loja e Metas empilhados à direita */
 @media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
     .ut-home {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
         grid-template-areas:
-            "pend pend pend pend"
-            "play play club shop"
-            "play play club goals"
-            "hl hl hl hl";
+            "court club"
+            "court shop"
+            "court goals"
+            "go pend"
+            "hl hl";
+        gap: 10px;
     }
-    .ut-b-modes > .ut-mode-art {
+    .ut-home .ut-b-pick {
+        display: flex;
+    }
+    .ut-home .ut-block {
+        padding: 10px 12px;
+    }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-court.amb-bd {
         height: auto;
-        min-height: 64px;
+        min-height: 200px;
     }
-    /* o 2 x 2 é alto: o time do rival em 3 + 2, maior */
-    .ut-b-modes .ut-mode-team {
-        --sp: 48px;
-        flex-wrap: wrap;
-        align-content: center;
-        max-width: calc(3 * var(--sp));
+
+    .ut-home {
+        gap: 6px;
     }
-    .ut-b-modes .ut-mode-team img {
-        flex: none;
-        width: var(--sp);
-        height: var(--sp);
+    .ut-home .ut-block {
+        padding: 6px 10px;
     }
-    .ut-b-soon {
-        grid-template-columns: repeat(2, 64px);
+    .ut-b-club .ut-b-ovr > b {
+        font-size: 22px;
     }
-    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-        width: 32px;
-        height: 32px;
+    .ut-home .ut-block > .ut-timer,
+    .ut-home .ut-b-goals > small {
+        display: none;
     }
-    .ut-b-soon .ut-mode-backs .ut-cardback {
-        width: 18px;
+}
+@media (min-width: 900px) {
+    /* a quadra enche a altura que sobra e o JOGAR cabe embaixo dela, sem rolar */
+    .ut-court.amb-bd {
+        height: auto;
+        min-height: max(300px, calc(100 * var(--vh) - 430px));
+    }
+    .ut-home .ut-b-head b {
+        font-size: 15px;
+    }
+    .ut-home .ut-block > b {
+        font-size: 14px;
+    }
+    .ut-home .ut-block > small,
+    .ut-home .ut-timer {
+        font-size: 13px;
+    }
+    .ut-b-club .ut-b-ovr > b {
+        font-size: 34px;
+    }
+    .ut-home .ut-block {
+        gap: 3px;
     }
 }
 @media (min-width: 1100px) and (min-height: 720px) {
-    .menu-screen.ut.ut-hub:not(:has(.lineup-grid)):has(.ut-home, .ut-modes) {
+    .menu-screen.ut.ut-hub:has(.ut-home, .ut-modes, .ut-prize) {
         width: min(1240px, 100%);
     }
-    .ut-panel:not(:has(.ut-home, .ut-modes)) {
+    .ut-panel:not(:has(.ut-home, .ut-modes, .ut-prize)) {
         width: min(760px, 100%);
         margin: 0 auto;
     }
-    .ut-b-jogar {
-        gap: 8px;
-        padding: 14px 16px 14px 22px;
+}
+
+/* o título do modo no adesivo do cartão do menu de modos (.mm-plate e .mm-s-ultimate, mode-menu.css): placa roxa
+   inclinada, letra gorda com contorno; a carteira ao lado. O placar azul em volta sai */
+.ut-hub {
+    --mc: #a56bff;
+    --mc2: #5b22c9;
+}
+.ut-hub > .menu-head.bc-screenhead {
+    padding: 4px 2px 6px 6px;
+    background: none;
+    border: 0;
+    box-shadow: none;
+}
+.ut-hub > .menu-head h1 {
+    position: relative;
+    z-index: 0;
+    margin: 4px 0 6px 4px;
+    padding: 3px 12px 5px;
+    rotate: -3deg;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 27px;
+    font-size: var(--gfs, 27px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: var(--k-out-2);
+    -webkit-text-stroke: calc(1em / 14) #fff;
+    white-space: nowrap;
+}
+.ut-hub > .menu-head h1::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(180deg, var(--mc) 0 50%, var(--mc2) 50% 100%);
+    border: 3px solid var(--cb-ink);
+    border-radius: 4px;
+    box-shadow:
+        inset 0 3px 0 rgb(255 255 255 / 35%),
+        4px 4px 0 var(--cb-ink);
+    transform: skewX(-14deg);
+}
+/* a etiqueta PRÉVIA fica em cima da placa, sem a moldura do placar */
+.ut-hub > .menu-head > .bc-tag {
+    top: 0;
+    left: 10px;
+}
+@media (max-width: 400px) {
+    .ut-hub > .menu-head h1 {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
     }
-    .ut-b-jogar > b {
-        font-size: 15px;
+}
+
+/* prêmio pós-jogo em tela cheia: a quadra com o craque, VITÓRIA e o placar do jogo, e a cascata do que a partida deu */
+.ut-prize {
+    gap: 10px;
+    justify-items: stretch;
+    min-height: calc(100 * var(--vh) - 230px);
+}
+.ut-prize .ut-court.amb-bd {
+    grid-area: auto;
+    height: clamp(170px, calc(32 * var(--vh)), 380px);
+}
+/* Resgatar e Continuar grudados no pé da tela (em cima da barra de abas), como o JOGAR do Início */
+.ut-prize .ut-prize-actions {
+    position: sticky;
+    z-index: 5;
+    bottom: calc(var(--ut-nav-h) + 8px + env(safe-area-inset-bottom));
+    margin-top: 4px;
+}
+.ut-prize .ut-prize-actions::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -14px -16px -8px;
+    background: linear-gradient(180deg, transparent, var(--bg) 18px);
+    pointer-events: none;
+}
+.ut-prize-body {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
+    align-content: start;
+}
+.ut-prize .k-moment-title {
+    --k-title-max: 56px;
+}
+.ut-score {
+    width: min(560px, 100%);
+}
+/* o nome inteiro em até 2 linhas, nunca "Palle…" (como o placar do Resultado no celular) */
+.ut-score .rh-team span {
+    overflow: visible;
+    text-align: center;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: normal;
+    line-height: 1.15;
+}
+.ut-prize .ut-score b {
+    --gs: clamp(36px, calc(9 * var(--vw)), 48px);
+    font-size: var(--gfs, clamp(36px, calc(9 * var(--vw)), 48px));
+}
+.ut-score .rh-team {
+    min-width: auto;
+    overflow: visible;
+    font-size: clamp(12px, calc(1.6 * var(--vw)), 17px);
+}
+/* deitado e PC: a quadra à esquerda, o placar e o prêmio à direita */
+@media (orientation: landscape) and (max-height: 520px), (min-width: 900px) {
+    .ut-prize {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        align-items: start;
+        gap: 16px;
     }
-    .ut-b-modes .ut-mode-team {
-        --sp: 64px;
+    .ut-prize .ut-court.amb-bd {
+        height: calc(100 * var(--vh) - 300px);
+        min-height: 220px;
+        max-height: 560px;
     }
-    .ut-b-soon {
-        grid-template-columns: repeat(2, 84px);
+}
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-prize {
+        min-height: 0;
     }
-    .ut-b-soon :is(.ut-mode-vs, .ut-mode-four) img {
-        width: 40px;
-        height: 40px;
+    .ut-prize .ut-court.amb-bd {
+        height: calc(100 * var(--vh) - 150px);
+        min-height: 200px;
     }
-    .ut-b-soon .ut-mode-four img + img {
-        margin-left: -20px;
+    .ut-prize-body {
+        gap: 4px;
     }
-    .ut-b-soon .ut-mode-backs .ut-cardback {
-        width: 22px;
+    .ut-prize .k-moment-title {
+        --k-title-max: 30px;
     }
-    .ut-b-club .ut-b-court img,
-    .ut-b-club .ut-b-court i {
-        max-width: 64px;
+    .ut-prize .ut-score b {
+        font-size: 28px;
     }
 }
 
@@ -2385,9 +2940,9 @@
     display: grid;
     justify-items: center;
 }
-.ut-pick-opt.on .fut-card {
-    outline: 3px solid var(--blue);
-    outline-offset: 2px;
+/* a escolhida brilha em azul (escolhido = azul; o brilho dourado do .selected é do Clássico) */
+.ut-pick-opt.on .fut-wrap.selected .fut-card2 {
+    filter: drop-shadow(0 0 4px var(--blue-hi)) drop-shadow(0 0 10px var(--blue-c));
 }
 [data-reduce-motion="true"] .ut-pick-face.up > *,
 [data-reduce-motion="true"] .ut-pick-face.up .fut-wrap {
@@ -2403,5 +2958,268 @@
     }
     .ut-pick-face.up > .ut-pick-back {
         opacity: 0;
+    }
+}
+
+/* deitado (fim do arquivo: vence as regras de cima). A barra de abas fica do lado: o JOGAR sobe pro alto da coluna
+   da direita (a quadra fica livre pros Pokémon) e os botões do prêmio grudam no pé da tela; a placa do título encolhe */
+@media (orientation: landscape) and (max-height: 520px) {
+    .ut-home {
+        grid-template-areas:
+            "court go"
+            "court club"
+            "court shop"
+            "court goals"
+            "pend pend"
+            "hl hl";
+    }
+    .ut-home-go {
+        position: static;
+    }
+    .ut-home-go .es-play {
+        min-height: 60px;
+    }
+    /* a coluna da direita é estreita: o convite quebra em 2 linhas em vez de vazar do botão */
+    .ut-home-go .es-play.cb-green .es-play-verb {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+        white-space: normal;
+        text-wrap: balance;
+    }
+    /* a quadra na altura da tela (a coluna da direita pode passar dela) */
+    .ut-home > .ut-court.amb-bd {
+        align-self: start;
+        height: calc(100 * var(--vh) - 150px);
+    }
+    .ut-court.amb-bd .es-scene {
+        --stand-top: calc(var(--px) * -22);
+    }
+    .ut-prize .ut-prize-actions {
+        bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+    .ut-hub > .menu-head h1 {
+        --gs: 21px;
+        font-size: var(--gfs, 21px);
+    }
+}
+/* celular baixo em pé (SE): a quadra do prêmio encolhe e as Fichas aparecem acima dos botões */
+@media (max-height: 640px) and (orientation: portrait) {
+    .ut-prize,
+    .ut-prize-body {
+        gap: 4px;
+    }
+    .ut-prize .ut-court.amb-bd {
+        height: 130px;
+    }
+    /* só a faixa e o letreiro da arquibancada: o selo do craque cabe embaixo do pé */
+    .ut-prize .ut-court.amb-bd .es-scene {
+        --stand-top: calc(var(--px) * -30);
+    }
+    .ut-court .ut-star {
+        top: 40%;
+    }
+    .ut-prize .ut-score b {
+        font-size: 30px;
+    }
+}
+/* tela baixa (SE em pé, celular deitado): o prêmio não cabe numa tela. Resgatar e Continuar sobem pra logo depois das
+   Fichas, no fluxo, e o passe, os objetivos e os pacotes vêm embaixo: nada fica atrás dos botões */
+@media (max-height: 640px) and (orientation: portrait), (orientation: landscape) and (max-height: 520px) {
+    .ut-prize-body > .ut-gain ~ * {
+        order: 2;
+    }
+    .ut-prize .ut-prize-body > .ut-prize-actions {
+        order: 1;
+        position: static;
+    }
+    .ut-prize .ut-prize-actions::before {
+        content: none;
+    }
+}
+
+/* ---------- Elenco: química à vista (FC 26, opção B sem fórmula nova) ---------- */
+/* tocar num titular: os parceiros ficam acesos, o resto apaga (a vaga já anda com left/top; opacidade junto) */
+.ut .formation-board .slot {
+    transition:
+        left 0.28s var(--ease-out),
+        top 0.28s var(--ease-out),
+        opacity 240ms var(--ease-out),
+        border-color var(--dur-ui),
+        box-shadow 240ms var(--ease-out),
+        scale var(--dur-solta) var(--ease-pop);
+}
+.ut .formation-board .slot.dim {
+    opacity: 0.35;
+}
+/* Ligadas e Falta pouco: as duas listas com o mesmo recuo (chip ou título em cima, a linha pequena embaixo) */
+.ut-chem-near li {
+    justify-items: start;
+}
+.ut-chem-types {
+    gap: 4px;
+    min-width: 0;
+}
+.ut-chem-more {
+    flex: none;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bc-ink);
+    color: var(--muted);
+    font-size: 11px;
+}
+/* o "por que" do titular (painel da direita no PC, folha no celular) */
+.ut-why {
+    display: grid;
+    gap: 10px;
+    animation: ut-in var(--dur-tela, 260ms) var(--ease-out) backwards;
+}
+.ut-why > .fut-wrap,
+.ut-why > .fut-card2 {
+    justify-self: center;
+}
+.ut-why-total {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.ut-why-total .ut-dia i {
+    width: 11px;
+    height: 11px;
+}
+.ut-why-total b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    color: var(--muted);
+}
+.ut-why-total small {
+    margin-left: auto;
+}
+.ut-why-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.ut-why-list li {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    background: var(--panel-2);
+}
+.ut-why-list .bc-lbl {
+    margin: 0;
+    padding-top: 2px;
+}
+.ut-why-what {
+    display: grid;
+    justify-items: start;
+    gap: 3px;
+    min-width: 0;
+    font-size: 12px;
+}
+.ut-why-what small {
+    font-size: 12px;
+    line-height: 1.25;
+}
+.ut-why-list li > b,
+.ut-why-total b {
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 13px;
+    font-size: var(--gfs, 13px);
+    color: var(--muted);
+}
+.ut-why .up {
+    color: var(--green);
+}
+.ut-why .down {
+    color: var(--red);
+}
+.ut-why-acts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+}
+.ut-why-acts .btn {
+    justify-content: center;
+    gap: 4px;
+    padding-inline: 4px;
+}
+.k-sheet.ut-why-sheet {
+    width: min(460px, 100%);
+}
+/* a folha do titular deixa a quadra à vista (fundo mais leve): dá pra ver quem acendeu */
+.k-sheet-back:has(> .ut-why-sheet) {
+    background: rgba(8, 10, 24, 0.28);
+    backdrop-filter: none;
+}
+
+/* PC: química à esquerda, a quadra grande no meio e o titular tocado à direita. As três colunas passam da largura das
+   abas (860) até 1080, centradas; o cabeçalho e as abas não mudam de tamanho */
+@media (min-width: 1051px) {
+    .ut .lineup-grid.vt-has-lead {
+        --ut-bw: min(1040px, calc(100 * var(--vw) - 48px));
+        width: var(--ut-bw);
+        margin-inline: calc((100% - var(--ut-bw)) / 2);
+        grid-template-columns: minmax(0, 248px) minmax(0, 1fr) minmax(0, 256px);
+        grid-template-areas: "lead room side";
+        align-items: start;
+    }
+    .ut .vt-has-lead > .vt-room {
+        grid-area: room;
+    }
+    .ut .vt-has-lead > .vt-lead {
+        grid-area: lead;
+        display: grid;
+        gap: var(--gap);
+        min-width: 0;
+    }
+    .ut .vt-has-lead > .side-stack {
+        grid-area: side;
+    }
+    /* o titular em cima, as linhas (capitão, tática, formação) embaixo */
+    .ut .vt-has-lead .side-stack > .vt-aside {
+        order: -1;
+    }
+    /* a quadra deitada na coluna do meio (larga): o gol à esquerda, o ataque à direita, o banco embaixo */
+    .ut .vt-has-lead .formation-board {
+        max-width: none;
+    }
+    .ut .vt-has-lead .formation-board .court {
+        max-height: none;
+    }
+    .ut .vt-has-lead .formation-board .slot {
+        width: 100px;
+        padding: 4px 3px 7px;
+    }
+    .ut .vt-has-lead .formation-board .slot img {
+        height: 34px;
+    }
+    .ut .vt-has-lead .ut-teamcard {
+        gap: 10px;
+        padding: 10px 12px;
+    }
+    .ut .vt-has-lead .ut-teamcard b {
+        white-space: nowrap;
+    }
+    .ut-focus .fut-wrap {
+        --fut-w: 150px;
+    }
+    .ut-focus .ut-why-acts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ut-focus .ut-why-acts > :last-child {
+        grid-column: 1 / -1;
+    }
+    /* coluna estreita: o rótulo e o número em cima, o porquê embaixo */
+    .ut-focus .ut-why-list li {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .ut-focus .ut-why-what {
+        grid-column: 1 / -1;
+        grid-row: 2;
     }
 }

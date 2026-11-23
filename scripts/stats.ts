@@ -2,11 +2,13 @@
  * Placar semanal do jogo no ar: lê os eventos anônimos (`public.game_events`, ver
  * supabase/migrations/20261015150000_estatisticas.sql e src/analytics/track.ts) e imprime um resumo.
  *
- * Uso: npm run stats [-- --dias 7 | --desde 2026-10-15] [--canal reddit] [--md]
+ * Uso: npm run stats [-- --dias 7 | --desde 2026-10-15] [--canal reddit] [--md] [--placar]
+ *      --placar: só o placar de segunda (10 linhas com meta); no --md ele vem no topo do relatório
  *      npm run stats -- --raridade   (grava public/data/raridade.json para a tela do título; commitar)
  * Conexão: POSTGRES_URL_NON_POOLING do .env.local (nunca é impresso).
  */
 import { readFileSync, writeFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import pg from 'pg';
 import pokemon from '../src/data/pokemon.json' with { type: 'json' };
 import { ehMaratona, ehVersaoAntiga, MAX_COPAS, VERSOES_RECENTES, versoesRecentes } from './funil-criterio';
@@ -19,6 +21,7 @@ const opt = (k: string) => {
     return i >= 0 ? args[i + 1] : undefined;
 };
 const MD = args.includes('--md');
+const PLACAR = args.includes('--placar');
 const DIAS = Math.max(1, Number(opt('--dias')) || 7);
 const DESDE = opt('--desde');
 const CANAL = opt('--canal')?.toLowerCase();
@@ -62,7 +65,32 @@ interface Ev {
     device: string | null;
 }
 
-async function load(): Promise<{ evs: Ev[]; starts: Map<string, Ev> }> {
+/** Uma sessão com o id do aparelho (0.9.53+): `session_start` com `did`, `first_day` e `day_n` (src/analytics/device-id.ts). */
+export interface Visita {
+    at: Date;
+    session: string;
+    did: string;
+    first: string;
+    n: number;
+    legacy: boolean;
+    props: Props;
+}
+export function visitaDe(e: Pick<Ev, 'created_at' | 'session' | 'props'>): Visita | null {
+    const p = e.props;
+    if (typeof p.did !== 'string' || typeof p.first_day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(p.first_day))
+        return null;
+    return {
+        at: e.created_at,
+        session: e.session,
+        did: p.did,
+        first: p.first_day,
+        n: Number(p.day_n) || 0,
+        legacy: p.legacy === true || p.legacy === 'true',
+        props: p,
+    };
+}
+
+async function load(): Promise<{ evs: Ev[]; starts: Map<string, Ev>; visitas: Visita[] }> {
     const client = new pg.Client({ connectionString: dbUrl(), ssl: { rejectUnauthorized: false } });
     await client.connect();
     try {
@@ -84,7 +112,12 @@ async function load(): Promise<{ evs: Ev[]; starts: Map<string, Ev> }> {
         const starts = new Map<string, Ev>();
         for (const e of [...old, ...rows])
             if (e.name === 'session_start' && !starts.has(e.session)) starts.set(e.session, e);
-        return { evs: rows, starts };
+        // coortes: toda sessão com id de aparelho até o fim do período (são poucas: uma por aba)
+        const { rows: comId } = await client.query<Ev>(
+            `select created_at, session, props from public.game_events where name = 'session_start' and props ? 'did' and created_at <= $1 order by created_at`,
+            [fim],
+        );
+        return { evs: rows, starts, visitas: comId.flatMap((e) => visitaDe(e) ?? []) };
     } finally {
         await client.end();
     }
@@ -100,14 +133,35 @@ const TATICAS: Record<string, string> = {
     defensive: 'defensiva',
     counter: 'contra-ataque',
 };
-const ALIAS: Record<string, string> = { t: 'x', twitter: 'x', lnkd: 'linkedin', youtu: 'youtube', fb: 'facebook' };
+const ALIAS: Record<string, string> = {
+    t: 'x',
+    twitter: 'x',
+    lnkd: 'linkedin',
+    youtu: 'youtube',
+    fb: 'facebook',
+    // apps do Android (o nome que sobra do id do app)
+    googlequicksearchbox: 'google',
+    gm: 'gmail',
+    zhiliaoapp: 'tiktok',
+    ss: 'tiktok',
+    katana: 'facebook',
+};
+/** Começo de id de app do Android (o referrer `android-app://com.google.android.youtube/` vira esse "domínio"). */
+const APP_ID = new Set(['com', 'org', 'net', 'br', 'io']);
 
-/** "old.reddit.com", "reddit.com" e utm_source=reddit viram o mesmo canal: "reddit". */
-function canal(ref: unknown): string {
+/**
+ * "old.reddit.com", "reddit.com" e utm_source=reddit viram o mesmo canal: "reddit". App do Android pelo nome do app:
+ * `com.google.android.googlequicksearchbox` (o app do Google) é "google", `com.google.android.youtube` é "youtube".
+ */
+export function canal(ref: unknown): string {
     if (typeof ref !== 'string' || !ref) return 'direto';
     // endereço antigo e prévias (soccermon.vercel.app etc.)
     if (ref.toLowerCase().endsWith('vercel.app')) return 'vercel.app';
     const parts = ref.toLowerCase().split('.').filter(Boolean);
+    if (parts.length >= 2 && APP_ID.has(parts[0])) {
+        const app = parts[1] === 'google' && parts[2] === 'android' && parts[3] ? parts[3] : parts[1];
+        return ALIAS[app] ?? app;
+    }
     let name = parts[0];
     if (parts.length >= 2) {
         const sld = parts.at(-2) ?? '';
@@ -142,6 +196,60 @@ function count<T>(items: T[], key: (t: T) => string): [string, number][] {
         m.set(k, (m.get(k) ?? 0) + 1);
     }
     return [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+
+/** Percentil `p` (0 a 1) de uma lista, ou null vazia. */
+const pctl = (xs: number[], p: number) => {
+    if (!xs.length) return null;
+    const s = [...xs].sort((a, b) => a - b);
+    return s[Math.min(s.length - 1, Math.floor(p * s.length))];
+};
+const addDias = (d: string, n: number) =>
+    new Date(Date.parse(`${d}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
+/** Segunda-feira da semana de `d` (AAAA-MM-DD). */
+export const segundaDe = (d: string) => addDias(d, -((new Date(`${d}T00:00:00Z`).getUTCDay() + 6) % 7));
+const hojeSP = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+
+export interface Taxa {
+    n: number;
+    de: number;
+    /** a janela ainda não fechou pra toda a coorte (o número ainda pode subir) */
+    parcial: boolean;
+}
+export interface Coorte {
+    semana: string;
+    novos: number;
+    d1: Taxa | null;
+    d7: Taxa | null;
+    d30: Taxa | null;
+}
+
+/**
+ * Coortes semanais (pela segunda-feira do 1º dia do aparelho, sem os `legacy`): D1 = voltou no dia seguinte; D7 e D30
+ * "na janela" = voltou em algum dia entre 7–13 e 30–36. Null enquanto nem o 1º dia da coorte chegou na janela.
+ */
+export function coortes(vs: Visita[], hoje: string): Coorte[] {
+    const por = new Map<string, Map<string, Set<number>>>();
+    for (const v of vs) {
+        if (v.legacy) continue;
+        const w = segundaDe(v.first);
+        const devs = por.get(w) ?? new Map<string, Set<number>>();
+        devs.set(v.did, (devs.get(v.did) ?? new Set()).add(v.n));
+        por.set(w, devs);
+    }
+    return [...por]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([semana, devs]) => {
+            const taxa = (lo: number, hi: number): Taxa | null =>
+                addDias(semana, lo) > hoje
+                    ? null
+                    : {
+                          n: [...devs.values()].filter((ns) => [...ns].some((x) => x >= lo && x <= hi)).length,
+                          de: devs.size,
+                          parcial: addDias(semana, 6 + hi) >= hoje,
+                      };
+            return { semana, novos: devs.size, d1: taxa(1, 1), d7: taxa(7, 13), d30: taxa(30, 36) };
+        });
 }
 
 // ---------- saída (terminal ou Markdown) ----------
@@ -191,7 +299,7 @@ function tabela(head: string[], rows: (string | number)[][]) {
 
 const RUN = new Set(['run_start', 'formation', 'pick', 'match_end', 'run_end', 'reward', 'run_abandon']);
 
-function relatorio(all: Ev[], starts: Map<string, Ev>) {
+function relatorio(all: Ev[], starts: Map<string, Ev>, todasVisitas: Visita[]) {
     const canalDe = (s: string) => canal(starts.get(s)?.props.ref);
     const alvo = CANAL ? canal(CANAL) : '';
     const evs = CANAL ? all.filter((e) => [alvo, CANAL].some((c) => canalDe(e.session).startsWith(c))) : all;
@@ -199,6 +307,7 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     const by = (name: string) => evs.filter((e) => e.name === name);
 
     line(MD ? `# Placar do Soccermon` : bold('PLACAR DO SOCCERMON'));
+    const taxaTxt = (t: Taxa | null) => (!t ? '–' : `${pct(t.n, t.de)}${t.parcial ? '*' : ''}`);
 
     // 1. Período e versões
     titulo('1. Período');
@@ -219,6 +328,7 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         return vs.at(-1) ?? '?';
     });
     item('Versões ativas', versoes.map(([v, n]) => `${v} (${pct(n, sessions.length)} das sessões)`).join(', '));
+    const posPlacar = out.length;
 
     // 2. Gente
     titulo('2. Gente');
@@ -247,6 +357,36 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         aparelhos.map(([a, n]) => [a, n, pct(n, sessions.length)]),
     );
 
+    // 2b. Pessoas: o id do aparelho (0.9.53+); sessões de antes ou com GPC/estatística desligada vão sem id
+    const diaInicio = inicio.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+    const naJanela = (v: Visita) => v.at >= inicio && v.at <= fim;
+    const visitas = todasVisitas.filter((v) => naJanela(v) && (!CANAL || evs.some((e) => e.session === v.session)));
+    const didDe = new Map(visitas.map((v) => [v.session, v.did]));
+    const dids = new Set(visitas.map((v) => v.did));
+    const legacy = new Set(visitas.filter((v) => v.legacy).map((v) => v.did));
+    const novosDids = new Set(visitas.filter((v) => !v.legacy && v.first >= diaInicio).map((v) => v.did));
+    const recorrentes = [...dids].filter((d) => !legacy.has(d) && !novosDids.has(d));
+    titulo('2b. Pessoas (por aparelho)');
+    item(
+        'Aparelhos',
+        dids.size
+            ? `${fmt(dids.size)} · ${fmt(novosDids.size)} novos · ${fmt(recorrentes.length)} recorrentes · ${fmt(legacy.size)} que já jogavam antes do id (fora das coortes)`
+            : '0 (o id do aparelho chegou na 0.9.53)',
+    );
+    if (dids.size) {
+        const semId = sessions.filter((s) => starts.has(s) && !didDe.has(s)).length;
+        item(
+            'Sessões por aparelho',
+            `${dec(visitas.length / dids.size)} · ${fmt(semId)} sessões sem id (versão antiga, GPC ou sem armazenamento)`,
+        );
+        const diasPorDid = new Map<string, number>();
+        for (const v of visitas) diasPorDid.set(v.did, Math.max(diasPorDid.get(v.did) ?? 0, num(v.props.days)));
+        item(
+            'Dias com jogo (média por aparelho, desde o 1º dia)',
+            dec([...diasPorDid.values()].reduce((a, b) => a + b, 0) / dids.size),
+        );
+    }
+
     // 3. Funil (cada etapa conta quem chegou nela ou além, então nunca cresce)
     const nomesPorSessao = new Map<string, Set<string>>();
     for (const e of evs) {
@@ -270,8 +410,12 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
     const primeiraTela = (s: string) => str(evs.find((e) => e.session === s && e.name === 'screen')?.props.screen);
     const grupo = (s: string): string => {
         if (starts.get(s)?.props.lab) return 'lab';
-        if (/^duel/.test(primeiraTela(s))) return 'convite do Duelo';
-        if (['tiktok', 'instagram'].includes(canalDe(s))) return 'TikTok/Instagram';
+        if (/^duel/.test(primeiraTela(s)) || starts.get(s)?.props.entry === 'duelo') return 'convite do Duelo';
+        if (
+            ['tiktok', 'instagram'].includes(canalDe(s)) ||
+            ['tiktok', 'instagram'].includes(str(starts.get(s)?.props.inapp))
+        )
+            return 'TikTok/Instagram';
         return '';
     };
     const foraDoFunil = sessions.filter((s) => grupo(s) && novas.includes(s));
@@ -426,6 +570,39 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
                 .map(([p, n]) => `${p} ${n}`)
                 .join(' · ')}`,
         );
+    }
+
+    // 3b. Contexto (0.9.53+): idioma, fuso, navegador de dentro do app, porta de entrada e PWA, com o funil de cada um
+    const comCampo = sessions.filter((s) => starts.get(s)?.props.lang !== undefined);
+    if (comCampo.length) {
+        titulo('3b. Contexto (sessões)');
+        const recorte = (nome: string, key: (p: Props) => string, max = 8) => {
+            line();
+            line(MD ? `**${nome}**` : `  ${nome}`);
+            const de = (s: string) => key(starts.get(s)?.props ?? {}) || '?';
+            tabela(
+                [nome, 'Sessões', 'Novas', 'Começa copa', 'Chega ao apito'],
+                count(comCampo, de)
+                    .slice(0, max)
+                    .map(([k]) => {
+                        const ss = comCampo.filter((s) => de(s) === k);
+                        const f = funil(ss);
+                        return [
+                            k,
+                            ss.length,
+                            ss.filter((s) => novas.includes(s)).length,
+                            pct(f[1], f[0]),
+                            pct(f[2], f[0]),
+                        ];
+                    }),
+            );
+        };
+        recorte('Idioma do navegador', (p) => str(p.lang));
+        recorte('Idioma do jogo', (p) => str(p.ui_lang));
+        recorte('Fuso', (p) => str(p.tz));
+        recorte('Dentro do app', (p) => str(p.inapp) || 'não');
+        recorte('Porta de entrada', (p) => str(p.entry));
+        recorte('Instalado (PWA)', (p) => (bool(p.pwa) ? 'sim' : 'não'));
     }
 
     // 4. Canais
@@ -648,25 +825,89 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
             ? `${fmt(erros.length)} em ${fmt(new Set(erros.map((e) => e.session)).size)} sessões (${fmt(new Set(erros.map((e) => str(e.props.msg))).size)} mensagens diferentes)`
             : '0',
     );
+    // agrupados por tipo, tela e mensagem sem números (desde a 0.9.53: kind, type, screen e at)
+    const grupoErro = (e: Ev) =>
+        [str(e.props.kind) || '?', str(e.props.screen) || '?', str(e.props.msg).replace(/\d+/g, '#').slice(0, 90)].join(
+            '|',
+        );
+    const grupos = new Map<string, Ev[]>();
+    for (const e of erros) grupos.set(grupoErro(e), [...(grupos.get(grupoErro(e)) ?? []), e]);
     tabela(
-        ['Quando', 'Versão', 'Aparelho', 'Mensagem'],
-        erros
-            .slice(-10)
-            .reverse()
-            .map((e) => [
-                dataHoraSP(e.created_at),
-                e.app_version ?? '?',
-                e.device ?? '?',
-                str(e.props.msg).slice(0, 90),
-            ]),
+        ['Vezes', 'Sessões', 'Aparelhos', 'Tipo', 'Tela', 'Versões', 'Última', 'Mensagem (e onde)'],
+        [...grupos.values()]
+            .sort(
+                (a, b) =>
+                    new Set(b.map((e) => e.session)).size - new Set(a.map((e) => e.session)).size ||
+                    b.length - a.length,
+            )
+            .slice(0, 12)
+            .map((es) => {
+                const e = es.at(-1) as Ev;
+                return [
+                    es.length,
+                    new Set(es.map((x) => x.session)).size,
+                    new Set(es.flatMap((x) => didDe.get(x.session) ?? [])).size,
+                    [str(e.props.kind), str(e.props.type)].filter(Boolean).join(' ') || '?',
+                    str(e.props.screen) || '?',
+                    [...new Set(es.map((x) => x.app_version ?? '?'))].slice(-3).join(', '),
+                    dataHoraSP(e.created_at),
+                    `${str(e.props.msg).slice(0, 80)}${e.props.at ? ` @ ${str(e.props.at).split(' ')[0]}` : ''}`,
+                ];
+            }),
     );
+
+    // 6b. Desempenho: fps da partida (fora do motor, src/game/quality.ts) e o tempo até o jogo ficar pronto
+    const comFps = partidas.filter((e) => e.props.fps !== undefined);
+    const comLoad = sessions.flatMap((s) => {
+        const p = starts.get(s)?.props;
+        return p?.load_ms !== undefined ? [{ s, ms: num(p.load_ms) }] : [];
+    });
+    if (comFps.length || comLoad.length) {
+        titulo('6b. Desempenho');
+        const tipoEv = (e: Ev) => (str(e.device).startsWith('mobile') ? 'celular' : str(e.device) || '?');
+        const minDe = (e: Ev) => (e.props.fps_min != null ? num(e.props.fps_min) : num(e.props.fps_p10));
+        tabela(
+            [
+                'Aparelho',
+                'Partidas',
+                'fps médio',
+                'fps p10',
+                'fps mínimo',
+                'Mínimo < 30',
+                'Carregar p50',
+                'Carregar p75',
+            ],
+            count([...comFps.map(tipoEv), ...comLoad.map(({ s }) => tipo(s))], (t) => t).map(([t]) => {
+                const ps = comFps.filter((e) => tipoEv(e) === t);
+                const ms = comLoad.filter(({ s }) => tipo(s) === t).map((x) => x.ms);
+                const md = (xs: number[]) => pctl(xs, 0.5)?.toString() ?? '–';
+                const sec = (v: number | null) => (v === null ? '–' : `${dec(v / 1000)} s`);
+                return [
+                    t,
+                    ps.length,
+                    md(ps.map((e) => num(e.props.fps))),
+                    md(ps.map((e) => num(e.props.fps_p10))),
+                    md(ps.map(minDe)),
+                    pct(ps.filter((e) => minDe(e) < 30).length, ps.length),
+                    sec(pctl(ms, 0.5)),
+                    sec(pctl(ms, 0.75)),
+                ];
+            }),
+        );
+        nota(
+            'fps: mediana das partidas. Mínimo = pior janela de 1 s (antes da 0.9.53, o p10). Carregar = da página até o save pronto.',
+        );
+    }
 
     // 7. Retenção
     titulo('7. Retenção');
-    const dias = new Map<string, { s: Set<string>; novas: number; voltando: number }>();
+    const dias = new Map<
+        string,
+        { s: Set<string>; novas: number; voltando: number; dids: Set<string>; nov: Set<string> }
+    >();
     for (const e of evs) {
         const d = diaSP(e.created_at);
-        const r = dias.get(d) ?? { s: new Set(), novas: 0, voltando: 0 };
+        const r = dias.get(d) ?? { s: new Set(), novas: 0, voltando: 0, dids: new Set(), nov: new Set() };
         if (!r.s.has(e.session)) {
             r.s.add(e.session);
             if (novas.includes(e.session)) r.novas++;
@@ -674,12 +915,176 @@ function relatorio(all: Ev[], starts: Map<string, Ev>) {
         }
         dias.set(d, r);
     }
+    for (const v of visitas) {
+        const r = dias.get(diaSP(v.at));
+        r?.dids.add(v.did);
+        if (r && !v.legacy && v.n === 0) r.nov.add(v.did);
+    }
     tabela(
-        ['Dia', 'Sessões', 'Novas', 'Voltando', '% voltando'],
-        [...dias].map(([d, r]) => [d, r.s.size, r.novas, r.voltando, pct(r.voltando, r.s.size)]),
+        ['Dia', 'Sessões', 'Novas', 'Voltando', '% voltando', 'Aparelhos', 'Aparelhos novos'],
+        [...dias].map(([d, r]) => [
+            d,
+            r.s.size,
+            r.novas,
+            r.voltando,
+            pct(r.voltando, r.s.size),
+            r.dids.size,
+            r.nov.size,
+        ]),
     );
-    nota('Sem id de pessoa (só sessão da aba), não dá D1/D7 por jogador. "Voltando" = o aparelho já tinha save');
-    nota('(passou das boas-vindas ou tem copa), então é o sinal de retorno por aparelho/navegador.');
+    nota('"Novas/Voltando" é por aba (o aparelho já tinha save); "Aparelhos" conta o id do aparelho (0.9.53+).');
+    line();
+    line(
+        MD
+            ? '**Coortes semanais (aparelhos novos, pela semana do 1º dia)**'
+            : '  Coortes semanais (aparelhos novos, pela semana do 1º dia)',
+    );
+    const hoje = hojeSP();
+    tabela(
+        ['Semana de', 'Novos', 'D1', 'D7 (7–13)', 'D30 (30–36)'],
+        coortes(todasVisitas, hoje).map((c) => [
+            c.semana.slice(5).split('-').reverse().join('/'),
+            c.novos,
+            taxaTxt(c.d1),
+            taxaTxt(c.d7),
+            taxaTxt(c.d30),
+        ]),
+    );
+    nota(
+        '* = a janela ainda não fechou pra coorte inteira (o número ainda pode subir). Coorte = aparelhos sem save de antes do id.',
+    );
+
+    // Placar de segunda (metricas-observabilidade.md, §7): 10 linhas com meta
+    const iniPlacar = out.length;
+    {
+        const sessDe = new Map<string, string[]>();
+        for (const v of visitas) sessDe.set(v.did, [...(sessDe.get(v.did) ?? []), v.session]);
+        // antes do id do aparelho (até a 0.9.52) as linhas 1, 3, 4 e 9 caem nas sessões novas, marcadas "(sessões)"
+        const porSessao = !dids.size;
+        const etapaDid = porSessao ? etapa : (d: string) => Math.max(0, ...(sessDe.get(d) ?? []).map(etapa));
+        const primeira = (d: string): Props =>
+            porSessao ? (starts.get(d)?.props ?? {}) : (visitas.find((v) => v.did === d)?.props ?? {});
+        const novosL = porSessao ? novas : [...novosDids];
+        const sufixo = porSessao ? ' (sessões)' : '';
+        const ini7 = new Date(inicio.getTime() - (fim.getTime() - inicio.getTime()));
+        const antes = new Set(todasVisitas.filter((v) => v.at >= ini7 && v.at < inicio).map((v) => v.did));
+        const cs = coortes(todasVisitas, hoje);
+        const coorte = (dias: number) => cs.find((c) => c.semana === segundaDe(addDias(hoje, -dias)));
+        const c1 = coorte(7)?.d1 ?? null;
+        const c7 = coorte(14)?.d7 ?? null;
+        const comecou = novosL.filter((d) => etapaDid(d) >= 1).length;
+        const jogou = novosL.filter((d) => etapaDid(d) >= 2).length;
+        const convidados = novosL.filter((d) =>
+            porSessao ? grupo(d) === 'convite do Duelo' : str(primeira(d).entry) === 'duelo',
+        );
+        const conhecida = novosL.filter((d) => {
+            const p = primeira(d);
+            return canal(p.ref) !== 'direto' || !!p.inapp || (!!p.entry && p.entry !== 'home');
+        });
+        const fins = by('run_end').length;
+        const shares = by('share').length;
+        const comErro = new Set(by('error').map((e) => e.session)).size;
+        const fpsCel = pctl(
+            partidas
+                .filter((e) => str(e.device).startsWith('mobile') && e.props.fps !== undefined)
+                .map((e) => (e.props.fps_min != null ? num(e.props.fps_min) : num(e.props.fps_p10))),
+            0.5,
+        );
+        const load75 = pctl(
+            sessions.flatMap((s) =>
+                starts.get(s)?.props.load_ms !== undefined ? [num(starts.get(s)?.props.load_ms)] : [],
+            ),
+            0.75,
+        );
+        const r = (a: number, b: number) => (b ? a / b : null);
+        const st = (v: number | null, ok: boolean) => (v === null ? 'sem dado' : ok ? 'ok' : 'abaixo');
+        const errMil = sessions.length ? (comErro / sessions.length) * 1000 : null;
+        const tx = (t: Taxa | null) => (t ? r(t.n, t.de) : null);
+        const linhas: [string, string, string, string][] = [
+            [
+                'Pessoas novas na semana (aparelhos)',
+                fmt(novosL.length) + sufixo,
+                '100',
+                st(novosL.length, novosL.length >= 100),
+            ],
+            [
+                'Pessoas ativas na semana (WAU)',
+                `${fmt(dids.size)}${antes.size ? ` (antes ${fmt(antes.size)}, ${dids.size >= antes.size ? '+' : ''}${pct(dids.size - antes.size, antes.size)})` : ''}`,
+                '+10%/semana',
+                st(antes.size ? dids.size : null, dids.size >= antes.size * 1.1),
+            ],
+            [
+                '% de novos que começam copa',
+                pct(comecou, novosL.length) + sufixo,
+                '65%',
+                st(r(comecou, novosL.length), (r(comecou, novosL.length) ?? 0) >= 0.65),
+            ],
+            [
+                '% de novos que chegam ao apito da 1ª',
+                pct(jogou, novosL.length) + sufixo,
+                '45%',
+                st(r(jogou, novosL.length), (r(jogou, novosL.length) ?? 0) >= 0.45),
+            ],
+            [
+                `D1 da coorte de ${segundaDe(addDias(hoje, -7)).slice(5).split('-').reverse().join('/')}`,
+                taxaTxt(c1),
+                '25%',
+                st(tx(c1), (tx(c1) ?? 0) >= 0.25),
+            ],
+            [
+                `D7 da coorte de ${segundaDe(addDias(hoje, -14)).slice(5).split('-').reverse().join('/')}`,
+                taxaTxt(c7),
+                '10%',
+                st(tx(c7), (tx(c7) ?? 0) >= 0.1),
+            ],
+            [
+                'Compartilhamentos a cada 100 copas terminadas',
+                fins ? dec((shares / fins) * 100) : '–',
+                '5',
+                st(fins ? shares : null, (shares / Math.max(1, fins)) * 100 >= 5),
+            ],
+            [
+                '% de convidados do Duelo que começam copa',
+                `${pct(convidados.filter((d) => etapaDid(d) >= 1).length, convidados.length)} (${fmt(convidados.length)})`,
+                '25%',
+                st(
+                    convidados.length || null,
+                    (r(convidados.filter((d) => etapaDid(d) >= 1).length, convidados.length) ?? 0) >= 0.25,
+                ),
+            ],
+            [
+                '% de novos com origem conhecida',
+                pct(conhecida.length, novosL.length) + sufixo,
+                '70%',
+                st(r(conhecida.length, novosL.length), (r(conhecida.length, novosL.length) ?? 0) >= 0.7),
+            ],
+            [
+                'Saúde: sessões com erro a cada 1.000 · fps mínimo no celular · carregar p75',
+                `${errMil === null ? '–' : dec(errMil)} · ${fpsCel ?? '–'} · ${load75 === null ? '–' : `${dec(load75 / 1000)} s`}`,
+                '< 5 · ≥ 30 · < 3 s',
+                st(
+                    errMil,
+                    (errMil ?? 0) < 5 && (fpsCel === null || fpsCel >= 30) && (load75 === null || load75 < 3000),
+                ),
+            ],
+        ];
+        titulo('Placar de segunda');
+        tabela(
+            ['#', 'Métrica', 'Semana', 'Meta', 'Status'],
+            linhas.map((l, i) => [`${i + 1}`, ...l]),
+        );
+        nota(
+            'Semana = o período acima. Metas da proposta de 16/11 (revisar depois de 2 semanas de dado). Search Console: no painel do Google.',
+        );
+    }
+    const placar = out.splice(iniPlacar);
+    if (PLACAR) {
+        // só o placar: o título e o período, e as 10 linhas
+        out.splice(posPlacar);
+        out.push(...placar);
+        return;
+    }
+    if (MD) out.splice(posPlacar, 0, ...placar);
 
     // 8. Foco da semana
     titulo('8. Foco da semana');
@@ -728,9 +1133,12 @@ async function raridade() {
     }
 }
 
-if (args.includes('--raridade')) await raridade();
-else {
-    const { evs, starts } = await load();
-    relatorio(evs, starts);
-    console.log(out.join('\n'));
+// importado pelo teste, não roda
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+    if (args.includes('--raridade')) await raridade();
+    else {
+        const { evs, starts, visitas } = await load();
+        relatorio(evs, starts, visitas);
+        console.log(out.join('\n'));
+    }
 }

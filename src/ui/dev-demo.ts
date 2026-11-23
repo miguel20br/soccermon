@@ -19,7 +19,10 @@ import { EVENT_TYPES, ICONS, type Special } from '../engine/specials';
 import type { MatchOrder } from '../engine/state';
 import { EventBus } from '../game/EventBus';
 import { comemoracaoOf } from '../game/walkout-plan';
+import { newShared } from '../net/duel-state';
+import { duel, makePeer, useDuel } from '../net/session';
 import { type BinderCard, binderAdd } from '../store/binder';
+import { dailyDay } from '../store/daily';
 import { playerTeam, useGame } from '../store/game-store';
 import { longRound } from '../store/long-cup';
 import { type EventId, gambleWon, rollEvent } from '../store/long-events';
@@ -71,8 +74,10 @@ import { isTrailerScene, trailerPicks } from './trailer-scenes';
  * `?demo=bicuda` abre na escalação uma partida que, ao começar, está a 3 s do duelo da bicuda (motor 21): o capitão
  * rival solta o N3 e o seu goleiro capitão segura (a cutscene com as falas e o gol). `&gk=` e `&atk=` escolhem o par
  * (nome ou número da Pokédex; padrão Charmander no gol e Charizard chutando), ex. `&gk=weedle&atk=wartortle`.
+ * `?demo=combo` abre na escalação o time do `ditto` a 3 s do primeiro combo seu (o cut-in de dupla da sinergia).
  * `?demo=charanga` abre na escalação uma partida com a Charanga de Pewter em que, ao começar, o rival está a 4 s de
  * abrir o placar (o aviso "A CHARANGA ENTROU" vem logo depois do gol).
+ * `?demo=comemoracao&sp=54|143|129|94|25` abre na escalação a 3 s de um gol dessa espécie (a comemoração própria).
  * `?demo=virada` abre na escalação uma partida que, ao começar, está a 4 s do gol que põe o seu time na frente no
  * 2º tempo. `&clube=<id>` (brock, misty, rocket…): contra o clube desse treinador (a música dele); `&pressao=1`: a
  * virada vem depois de o seu time entrar na Pressão final, e a partida abre 2 s antes dela (a música entra no trecho
@@ -97,6 +102,7 @@ export function runDevDemo() {
         demo !== 'momentos' &&
         demo !== 'trailer' &&
         demo !== 'mt' &&
+        demo !== 'eviolite' &&
         demo !== 'patrocinio' &&
         demo !== 'rota-vitoria' &&
         demo !== 'mercado' &&
@@ -128,12 +134,15 @@ export function runDevDemo() {
         demo !== 'maximo' &&
         demo !== 'bicuda' &&
         demo !== 'virada' &&
+        demo !== 'comemoracao' &&
         demo !== 'charanga' &&
+        demo !== 'combo' &&
         demo !== 'sala' &&
         demo !== 'final' &&
         demo !== 'rota-titulo' &&
         demo !== 'insignia' &&
-        demo !== 'estadio-campeao'
+        demo !== 'estadio-campeao' &&
+        demo !== 'duelo-fim'
     )
         return;
     started = true;
@@ -155,6 +164,12 @@ export function runDevDemo() {
     }
     if (demo === 'novidades') {
         demoNews();
+        return;
+    }
+    // ?demo=duelo-fim[&jogou=1]: o fim do Duelo do lado do convidado; sem copa no save aparece o convite pra montar o
+    // time (`&jogou=1`: com uma copa no save, sem o convite)
+    if (demo === 'duelo-fim') {
+        demoDuelEnd(q0Of().get('jogou') === '1');
         return;
     }
     if (demo === 'sala') {
@@ -355,6 +370,43 @@ export function runDevDemo() {
             console.info(`[demo] copa mt${k}: MT do ${opp.name}`);
             return;
         }
+        return;
+    }
+    // ?demo=eviolite: recompensa das oitavas com Eviolite, um reforço (troca com titular) e Leftovers
+    if (demo === 'eviolite') {
+        store.newRun('Demo FC', 'eviolite');
+        const run = useGame.getState().run!;
+        const rng = new Rng('eviolite', 'demo');
+        const lineup = [95, 7, 5, 25, 74].map((id) => createInstance(id, rng));
+        const bench = [10, 92].map((id) => createInstance(id, rng));
+        useGame.setState({
+            run: {
+                ...run,
+                formation: '1-2-1',
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[2].uid,
+                draftRound: 7,
+                status: 'reward',
+                results: [
+                    {
+                        stage: 0,
+                        opponent: run.opponents[0].name,
+                        score: [3, 1],
+                        shootout: null,
+                        won: true,
+                        destaqueUid: null,
+                    },
+                ],
+                rewards: [
+                    { kind: 'item', item: 'eviolite' },
+                    { kind: 'pokemon', inst: createInstance(133, rng), from: null },
+                    { kind: 'item', item: 'leftovers' },
+                ],
+            },
+            screen: 'reward',
+        });
         return;
     }
     // ?demo=patrocinio: a recompensa do Relâmpago depois das oitavas com um Patrocínio entre as 3 (`&vagas=2`: 2 já
@@ -661,8 +713,10 @@ export function runDevDemo() {
         demo === 'eliminado'
     ) {
         const lose = demo === 'eliminado';
+        // `&dia=1`: a mesma copa como Copa do Dia de hoje (o fim com o Compartilhar da Copa do Dia)
+        const dia = q0Of().get('dia') === '1' ? dailyDay() : undefined;
         for (let k = 0; k < 40; k++) {
-            store.newRun('Demo FC', `camp${k}`);
+            store.newRun('Demo FC', `camp${k}`, dia);
             const run = useGame.getState().run!;
             const rng = new Rng(`camp${k}`, 'demo');
             // goleiro Snorlax, fixo Machamp, alas Mew e Aerodactyl, pivô Mewtwo; banco Dragonite e Pikachu
@@ -1109,6 +1163,37 @@ export function runDevDemo() {
         }
         return;
     }
+    if (demo === 'combo') {
+        // o time do `ditto` (Mew + Mewtwo, sinergia Gênese), já a 3 s do primeiro combo seu (o cut-in de dupla)
+        for (let k = 0; k < 80; k++) {
+            store.newRun('Demo FC', `combo${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`combo${k}`, 'demo');
+            const lineup = [143, 68, 151, 132, 150].map((id) => createInstance(id, rng));
+            const bench = [4, 25].map((id) => createInstance(id, rng));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: [...lineup, ...bench],
+                lineup: lineup.map((p) => p.uid),
+                bench: bench.map((p) => p.uid),
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const combo = r.events.find((e) => e.type === 'combo' && r.roster[e.by].team === 0);
+            if (!combo) continue;
+            const live = { stage: 0, orders: [], tick: Math.max(0, combo.tick - 60), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] copa ${run.seed}: combo no tick ${combo.tick}`);
+            return;
+        }
+        return;
+    }
     if (demo === 'charanga') {
         for (let k = 0; k < 200; k++) {
             store.newRun('Demo FC', `cha${k}`);
@@ -1136,6 +1221,45 @@ export function runDevDemo() {
             const live = { stage: 0, orders: [], tick: goal.tick - 80, engine: ENGINE_VERSION };
             useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
             console.info(`[demo] copa ${run.seed}: o rival abre o placar no tick ${goal.tick}`);
+            return;
+        }
+        return;
+    }
+    // ?demo=comemoracao&sp=54|143|129|94|25[&shiny=1]: a escalação a 3 s de um gol dessa espécie (a comemoração própria:
+    // Psyduck, Snorlax, Magikarp, Gengar, Pikachu). Ela joga nas 3 vagas de linha da frente (o Magikarp quase não marca).
+    if (demo === 'comemoracao') {
+        const q = new URLSearchParams(window.location.search);
+        const sp = Number(q.get('sp') ?? 54);
+        const shiny = q.get('shiny') === '1';
+        for (let k = 0; k < 400; k++) {
+            store.newRun('Demo FC', `com${sp}-${k}`);
+            const base = useGame.getState().run!;
+            const rng = new Rng(`com${sp}-${k}`, 'demo');
+            const lineup = [95, 68, sp, sp, sp].map((id) => ({
+                ...createInstance(id, rng),
+                ...(shiny ? { shiny } : {}),
+            }));
+            const run = {
+                ...base,
+                formation: '1-2-1' as const,
+                picks: lineup,
+                lineup: lineup.map((p) => p.uid),
+                bench: [],
+                captainUid: lineup[4].uid,
+                draftRound: 7,
+                status: 'lineup' as const,
+            };
+            const team = { ...playerTeam(run), manualSubs: true };
+            const r = runMatch(FUTSAL_5, team, cupRival(run.opponents[0], true), `${run.seed}-stage-0`, {
+                snapshots: false,
+            });
+            const goal = r.events.find(
+                (e) => e.type === 'goal' && e.team === 0 && !e.ownGoal && r.roster[e.by]?.speciesId === sp,
+            );
+            if (!goal) continue;
+            const live = { stage: 0, orders: [], tick: Math.max(1, goal.tick - 60), engine: ENGINE_VERSION };
+            useGame.setState({ run: { ...run, lockedTeam: team, live }, screen: 'lineup' });
+            console.info(`[demo] comemoração ${sp}: gol no tick ${goal.tick} (${run.seed})`);
             return;
         }
         return;
@@ -1731,5 +1855,64 @@ function demoLongMap(store: ReturnType<typeof useGame.getState>, middle: boolean
             status: 'map',
         },
         screen: 'map',
+    });
+}
+
+/** Fim do Duelo (convidado) sem sala de verdade: dois times, a partida simulada e o estado `done` no `useDuel`. */
+function demoDuelEnd(played: boolean) {
+    const rng = new Rng('duelo-fim', 'demo');
+    const team = (name: string, ids: number[], color: number) => {
+        const lineup = ids.map((id) => createInstance(id, rng));
+        return {
+            name,
+            lineup,
+            bench: [],
+            tactic: 'balanced' as const,
+            color,
+            formation: '1-2-1' as const,
+            captainUid: lineup[4].uid,
+        };
+    };
+    const host = team('Pallet Rival', [143, 68, 149, 142, 6], 0x8e44ad);
+    const guest = team('Cerulean FC', [131, 9, 121, 55, 134], 0x3a7bd5);
+    const m = runMatch(FUTSAL_5, host, guest, 'duelo-fim');
+    const peer = (id: string, name: string, clubName: string, clubColor: number) =>
+        makePeer({
+            id,
+            name,
+            avatar: '',
+            avatarGoogle: false,
+            trainer: '',
+            title: '',
+            clubName,
+            clubTag: '',
+            clubColor,
+        });
+    const base = newShared('DEMO42', peer('h', 'Gary', host.name, host.color), 'ready', 1, 'duelo-fim');
+    const [a, b] = m.shootout ?? m.score;
+    const winner = a === b ? null : a > b ? 'host' : 'guest';
+    duel.result = m;
+    useGame.setState({
+        run: null,
+        parkedRuns: [],
+        daily: [],
+        records: { ...useGame.getState().records, cups: played ? 1 : 0 },
+        screen: 'duel',
+    });
+    useDuel.setState({
+        status: 'live',
+        room: 'DEMO42',
+        local: true,
+        role: 'guest',
+        online: { host: true, guest: true },
+        shared: {
+            ...base,
+            // jogo 0: a tela já abre no resultado (o `seen` começa em 0), sem a partida antes
+            game: 0,
+            phase: 'done',
+            peers: { host: base.peers.host, guest: peer('g', 'Miguel', guest.name, guest.color) },
+            teams: { host, guest },
+            result: { score: [m.score[0], m.score[1]], shootout: m.shootout ?? null, winner },
+        },
     });
 }

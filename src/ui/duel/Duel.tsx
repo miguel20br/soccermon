@@ -1,5 +1,5 @@
 import { cloneElement, type ReactElement, type ReactNode, useEffect, useState } from 'react';
-import { track } from '../../analytics/track';
+import { track, trackNav } from '../../analytics/track';
 import { duelUserId, signInAnon, signInWithGoogle, useCloud } from '../../cloud/cloud';
 import { ENGINE_VERSION } from '../../engine/config';
 import { DEFAULT_SPECIAL_LIMIT, SPECIAL_LIMITS, type SpecialLimit } from '../../engine/duel-validate';
@@ -36,7 +36,7 @@ import { isDraftComplete, type PlaybackSpeed, useGame } from '../../store/game-s
 import { trainerFrame, trainerFx, trainerSrc } from '../../store/missions';
 import { rivalColor } from '../../store/profile';
 import { Coach } from '../coach/Coach';
-import type { HudIconKind } from '../components/MatchHud';
+import { HudIcon, type HudIconKind } from '../components/MatchHud';
 import { MenuHead, useMenuBackOf } from '../components/MenuHead';
 import { ResultHero } from '../components/ResultHero';
 import { leaveWith } from '../feedback';
@@ -49,7 +49,15 @@ import { setChartColors } from '../stats/StatsCharts';
 import { DuelDraft, DuelPreview, specialRuleText, TeamPick } from './DuelDraft';
 import { DuelHistory } from './DuelHistory';
 import { DuelMatch, useCountdown } from './DuelMatch';
-import { CONNECT_GIVEUP_MS, duelLink, entryCoach, isLocalDuel, roomBarShown, roomLooksClosed } from './link';
+import {
+    CONNECT_GIVEUP_MS,
+    cupInviteShown,
+    duelLink,
+    entryCoach,
+    isLocalDuel,
+    roomBarShown,
+    roomLooksClosed,
+} from './link';
 import './duel.css';
 import { backTarget } from '../back-nav';
 import { ArenaBackdrop } from '../kit/backdrop';
@@ -761,39 +769,67 @@ function DuelResultView({ onHome }: { onHome: () => void }) {
                     : r.winner
                       ? t('duel.result.lost', { name: rival })
                       : t('duel.result.draw');
-    const actions = (
-        <div className="row duel-share">
-            {rivalGone && (
-                <p className="duel-left-note" role="status" data-testid="duel-rival-left">
-                    {t('duel.result.rivalLeft', { name: rival })}
-                </p>
-            )}
+    // convidado que nunca jogou uma copa: o convite pra montar o próprio time (lido na hora em que a tela abre),
+    // embaixo da Revanche, no placar: visível sem rolar
+    const [invite] = useState(() => cupInviteShown(role, !nextUp, useGame.getState()));
+    const cupInvite = invite && !nextUp && (
+        <div className="duel-cup-invite bc-stripe" data-testid="duel-cup-invite">
+            <div className="duel-cup-invite-txt">
+                <span className="bc-tag">{t('home.playTag')}</span>
+                <p>{t('duel.result.cupInvite')}</p>
+            </div>
             <button
                 type="button"
-                className="btn primary big"
-                data-testid="duel-rematch"
-                // na série, quem ficou pede o próximo jogo mesmo com o rival fora: a espera do W.O. começa aí
-                disabled={s.rematch[role] || (rivalGone && !nextUp)}
+                className="btn"
+                data-testid="duel-cup-start"
                 onClick={() => {
-                    void duel.rematch();
+                    trackNav('cta', 'copa', 'duelo_convidado', { mode: s.mode });
+                    duel.leave(true);
+                    setUrl(null, false);
+                    useGame.getState().newRun(useGame.getState().profile.clubName || 'Pallet FC');
                 }}
             >
-                {(rivalGone && !nextUp) || (!s.rematch[role] && (!s.rematch[other(role)] || rivalGone))
-                    ? nextUp
-                        ? r.desync
-                            ? t('duel.series.replayBtn')
-                            : t('duel.series.next')
-                        : md3
-                          ? t('duel.series.rematch')
-                          : t('duel.result.rematch')
-                    : s.rematch[role]
-                      ? t(nextUp ? 'duel.series.nextWait' : 'duel.result.rematchWait', { name: rival })
-                      : t(nextUp ? 'duel.series.nextAsk' : 'duel.result.rematchAsk', { name: rival })}
-            </button>
-            <button type="button" className="btn ghost" onClick={onHome}>
-                {t('common.ui.backHome')}
+                {t('duel.result.cupInviteBtn')}
+                <HudIcon kind="next" />
             </button>
         </div>
+    );
+    const actions = (
+        <>
+            <div className="row duel-share">
+                {rivalGone && (
+                    <p className="duel-left-note" role="status" data-testid="duel-rival-left">
+                        {t('duel.result.rivalLeft', { name: rival })}
+                    </p>
+                )}
+                <button
+                    type="button"
+                    className="btn primary big"
+                    data-testid="duel-rematch"
+                    // na série, quem ficou pede o próximo jogo mesmo com o rival fora: a espera do W.O. começa aí
+                    disabled={s.rematch[role] || (rivalGone && !nextUp)}
+                    onClick={() => {
+                        void duel.rematch();
+                    }}
+                >
+                    {(rivalGone && !nextUp) || (!s.rematch[role] && (!s.rematch[other(role)] || rivalGone))
+                        ? nextUp
+                            ? r.desync
+                                ? t('duel.series.replayBtn')
+                                : t('duel.series.next')
+                            : md3
+                              ? t('duel.series.rematch')
+                              : t('duel.result.rematch')
+                        : s.rematch[role]
+                          ? t(nextUp ? 'duel.series.nextWait' : 'duel.result.rematchWait', { name: rival })
+                          : t(nextUp ? 'duel.series.nextAsk' : 'duel.result.rematchAsk', { name: rival })}
+                </button>
+                <button type="button" className="btn ghost" onClick={onHome}>
+                    {t('common.ui.backHome')}
+                </button>
+            </div>
+            {cupInvite}
+        </>
     );
     // clubes com o mesmo nome: o nome do treinador
     const names = duelNames(s);

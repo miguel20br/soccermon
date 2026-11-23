@@ -23,6 +23,7 @@ import {
     type Ctx,
     canClaimWO,
     canUnorder,
+    captainSwapOk,
     clockAdjust,
     disputaOptions,
     duelNames,
@@ -232,6 +233,22 @@ describe('validarTimeDuelo (time pronto)', () => {
         const applied = applyPreview(back, { formation: back.formation ?? '1-2-1', tactic: 'balanced', order });
         expect(applied?.captainUid).toBe(back.bench[0].uid);
         expect(edit((x) => (x.captain = 7)).length).toBeGreaterThan(0);
+    });
+
+    it('melhor de 3: capitão novo só do 2º jogo em diante (pedido do Davi)', () => {
+        const t = tagTeam(team('capitao-md3'), 'host');
+        const order = [...t.lineup, ...t.bench].map((p) => p.uid);
+        const cfg = { formation: t.formation ?? '1-2-1', tactic: 'balanced' as const, order, captain: t.lineup[3].uid };
+        // 1 jogo, ou o 1º jogo da série: o capitão é o do draft
+        expect(captainSwapOk({ bestOf: undefined, series: undefined })).toBe(false);
+        expect(captainSwapOk({ bestOf: 3, series: [] })).toBe(false);
+        expect(applyPreview(t, cfg, false)).toBeNull();
+        // 2º jogo: troca; sem o campo fica o de antes; uid de fora do time não passa
+        const g2 = captainSwapOk({ bestOf: 3, series: [{} as never] });
+        expect(g2).toBe(true);
+        expect(applyPreview(t, cfg, g2)?.captainUid).toBe(t.lineup[3].uid);
+        expect(applyPreview(t, { ...cfg, captain: undefined }, g2)?.captainUid).toBe(t.captainUid);
+        expect(applyPreview(t, { ...cfg, captain: 'nao-existe' }, g2)).toBeNull();
     });
 
     it('carta que evoluiu na copa leva o bônus de evolução pro duelo (carta = campo)', () => {

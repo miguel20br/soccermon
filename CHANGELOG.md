@@ -1,5 +1,44 @@
 # Novidades
 
+## 0.9.53.1 · Comemorações próprias e cut-in de dupla (2026-11-23)
+
+### Partida
+- Comemoração de gol própria pra 5 espécies: Psyduck, Snorlax, Magikarp, Gengar e Pikachu
+- Combo de sinergia com cut-in de dupla: os retratos dos dois entram de lados opostos e se cruzam
+- Drible com nome em câmera lenta e com zoom também em 2x, 4x e 8x (antes só na 1x)
+
+### Time Ultimate (abre em 27/11)
+- Loja com a arte dos pacotes; Abrir todos é o botão principal
+- Metas numa trilha de marcos, com grupos que fecham
+- Elenco com a química à vista: tocar num Pokémon destaca os parceiros e mostra o porquê
+
+## 0.9.53 · Eviolite e reforço no lugar do titular (2026-11-23)
+
+### Itens
+- Item novo: Eviolite. Quem ainda pode evoluir ganha +30% em todos os atributos (na carta, a nota e os atributos já contam a Eviolite e brilham em roxo). Sai na recompensa, no Mercado e no Cassino; os rivais não usam
+
+### Reforços
+- Recompensa, vitrine e pacote do Mercado: o reforço pode entrar no lugar de um titular, não só de um reserva (o capitão nunca sai)
+
+### Copa do Dia
+- Copa do Dia numerada (#36), na tela, no letreiro e no texto de compartilhar
+- Ranking do dia mostra "saldo de gols" em vez de só "saldo"
+- Botão de compartilhar maior no fim da Copa do Dia; Nova copa fica como link do lado
+- Celular estreito: o placar dos pênaltis não passa mais por cima do jogo do lado
+
+### Duelo
+- Melhor de 3: a Escalação entre um jogo e outro também troca o capitão
+- Convite pra montar o time no fim do Duelo, pra quem ainda não jogou uma copa
+
+### Privacidade
+- Estatísticas anônimas por aparelho; política de privacidade atualizada
+
+### Consertos
+- Vibração só depois do primeiro toque na página (antes o navegador recusava e dava erro)
+- Celular: ao tocar em Descartar numa copa guardada, a caixa em volta não some mais
+- Celular deitado: o botão Começar o 2º tempo não sai mais da tela no intervalo
+- Prancheta: o ícone do item não fica mais esticado por cima do nome
+
 ## 0.9.52.4 · Placa da Semana Fora da Lei (2026-11-17)
 
 ### Correções

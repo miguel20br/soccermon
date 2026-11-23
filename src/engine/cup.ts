@@ -1,7 +1,7 @@
 import { species } from './data';
 import { aiDraftTeam } from './draft';
 import type { FormationId } from './formations';
-import { ITEM_IDS, ITEMS, TYPE_ITEM_FOR } from './items';
+import { ITEMS, RIVAL_ITEM_IDS, TYPE_ITEM_FOR } from './items';
 import type { LeaderId } from './rival-coach';
 import { Rng } from './rng';
 import type { Tactic, TeamSetup } from './state';
@@ -141,7 +141,7 @@ export function buildCupOpponents(seed: number | string): TeamSetup[] {
         // item que serve: um geral ou o do tipo dele (antes saía Metal Coat, de tipo que nem existe na Gen 1)
         for (const h of holders) {
             const own = species(h.speciesId).types.flatMap((t) => TYPE_ITEM_FOR[t] ?? []);
-            h.item = rng.pick([...ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
+            h.item = rng.pick([...RIVAL_ITEM_IDS.filter((id) => ITEMS[id].kind !== 'type'), ...own]);
         }
         const tmRng = new Rng(seed, `cup-tm-${stage}`);
         const gymTms = { left: RIVAL_GYM_TM_MAX };

@@ -600,6 +600,25 @@
     justify-content: space-between;
     gap: 8px;
 }
+/* "#29" num selo dourado e a data curta do lado ("16 de novembro"), numa linha só */
+.dy-when {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.dy-num {
+    flex: none;
+    padding-inline: 8px;
+    font-family: "Galmuri14", "Galmuri11", monospace;
+    --gs: 15px;
+    font-size: var(--gfs, 15px);
+    font-weight: 400;
+}
+.dy-when .lg-date {
+    min-width: 0;
+    line-height: 1.2;
+}
 .dy-done {
     display: flex;
     flex-wrap: wrap;
@@ -610,6 +629,7 @@
     display: flex;
     gap: 6px;
     width: 100%;
+    container-type: inline-size;
 }
 .dy-scores li {
     flex: 1 1 0;
@@ -619,6 +639,14 @@
     background: var(--bc-ink-2);
     text-align: center;
     white-space: nowrap;
+}
+/* fileira estreita (320 e deitado): os pênaltis "(4x3)" vazavam pro quadrado do lado; descem pra baixo do placar */
+@container (max-width: 320px) {
+    .dy-scores small {
+        display: block;
+        font-size: 10px;
+        line-height: 1.1;
+    }
 }
 .dy-week {
     display: flex;

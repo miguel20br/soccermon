@@ -1,10 +1,10 @@
 import { type CSSProperties, memo, useRef } from 'react';
-import type { AttrKey, Position } from '../../engine/attributes';
+import { type AttrKey, type Position, positionFactor, positionRating } from '../../engine/attributes';
 import { MOVES, SPECIES, type Tier } from '../../engine/data';
 import { evoPreview } from '../../engine/evolution';
 import { type PokemonInstance, viewInstance } from '../../engine/instance';
 import { itemSprite } from '../../engine/items';
-import { cardAttributes } from '../../engine/modifiers';
+import { attributeModifiers, cardAttributes } from '../../engine/modifiers';
 import { moveProfile } from '../../engine/moves';
 import {
     cardTypeOf,
@@ -122,18 +122,27 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
     const view = viewInstance(inst);
     const sp = view.species;
     const pos = position ?? view.naturalPosition;
-    const { rating, display, fit } = ratingAt(inst, pos);
+    const slot = ratingAt(inst, pos);
     // o número é o que vale em campo (evolução, edição, habilidade, item, Fada) e o ▲ quanto disso é bônus
     // em relação ao Pokémon "puro" (Miguel, 09/11/2026)
     const { field, bonus } = cardAttributes(inst);
+    // Eviolite valendo: nota e atributos roxos, a nota já com a pedra e sem o selo de evolução, que dizia que evoluir
+    // melhorava (Miguel, 23/11/2026)
+    const evio = attributeModifiers(inst).some((m) => m.ref === 'eviolite');
+    const rating = evio
+        ? Math.round(positionRating(field, pos) * positionFactor(view.positions, pos, field))
+        : slot.rating;
+    const display = evio ? String(rating) : slot.display;
+    const fit = slot.fit;
     const stats = (pos === 'GK' ? GK_STATS : FIELD_STATS).map((k) => ({
         k,
         label: tr.d.common.attrShort[k],
         v: field[k],
         delta: bonus[k],
+        evio,
     }));
     // selo de evolução: na vaga, a nota que ele vira nela; fora, a da posição principal da forma nova (carta = campo)
-    const evo = evoPreview(inst, position);
+    const evo = evio ? null : evoPreview(inst, position);
     const t1 = TYPE_COLOR[sp.types[0]] ?? '#888';
     const t2 = TYPE_COLOR[sp.types[1] ?? sp.types[0]] ?? t1;
     return {
@@ -145,6 +154,7 @@ function cardData(inst: PokemonInstance, tr: Translator, position?: Position) {
         fit,
         stats,
         evo,
+        evio,
         dex: String(sp.id).padStart(3, '0'),
         tr,
         item: inst.item ? { id: inst.item, name: itemName(inst.item) } : null,
@@ -392,7 +402,9 @@ function Metal({
                     style={{ '--type-icon': `url(/assets/types/${theme.toLowerCase()}.png)` } as CSSProperties}
                 />
                 <span className="m-left">
-                    <b className="m-ovr">{d.display}</b>
+                    <b className={`m-ovr${d.evio ? ' evio' : ''}`} data-v={d.display}>
+                        {d.display}
+                    </b>
                     <span className="m-pos">{d.tr.d.common.posShort[d.pos]}</span>
                     <span className="m-types">
                         <TypeIcons types={d.sp.types} />
@@ -429,13 +441,15 @@ function Metal({
                     </Tip>
                 )}
             </span>
-            <span className="m-stats">
+            <span className={`m-stats${d.evio ? ' evio' : ''}`}>
                 {d.stats.map((s) => (
                     <span key={s.k}>
-                        <b>{s.v}</b>
+                        <b data-v={s.v}>{s.v}</b>
                         <i>{s.label}</i>
                         {s.delta !== 0 && (
-                            <em className={`m-mod ${s.delta > 0 ? 'up' : 'down'}`}>
+                            <em
+                                className={`m-mod ${s.delta > 0 ? 'up' : 'down'}${s.evio && s.delta > 0 ? ' evio' : ''}`}
+                            >
                                 {s.delta > 0 ? `▲${s.delta}` : `▼${-s.delta}`}
                             </em>
                         )}

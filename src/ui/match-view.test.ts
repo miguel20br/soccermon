@@ -12,6 +12,7 @@ import {
     captainAt,
     DRIBBLE_KINDS,
     diveDust,
+    dribbleEase,
     dribblePose,
     dribbleSlowAt,
     FACE_HOLD_MS,
@@ -510,7 +511,7 @@ describe('dribles com nome (só tela)', () => {
         expect(NAMED_DRIBBLE.bannerInMs + NAMED_DRIBBLE.bannerMs + NAMED_DRIBBLE.bannerOutMs).toBeGreaterThan(1600);
     });
 
-    it('câmera lenta de 1 a 1,25 s de tela só na 1x; em 2x pra cima nunca', () => {
+    it('câmera lenta de 1 a 1,25 s de tela e em 2x pra cima a partida cai a 1x em volta dela, com rampa', () => {
         const d = { tick: 400 } as NamedDribble;
         // tempo de tela da janela lenta: 1 tick = 50 ms na 1x
         let ms = 0;
@@ -523,8 +524,20 @@ describe('dribles com nome (só tela)', () => {
         expect(ms).toBeLessThan(1250);
         expect(dribbleSlowAt([d], 400, 1)).toBe(NAMED_DRIBBLE.slow);
         expect(dribbleSlowAt([d], 300, 1)).toBe(1);
-        for (const speed of [2, 4, 8, 16, 64, 'highlights'])
-            for (let t = 390; t < 410; t += 0.5) expect(dribbleSlowAt([d], t, speed)).toBe(1);
+        for (const speed of [2, 4, 8, 16, 64]) expect(dribbleSlowAt([d], 400, speed)).toBe(NAMED_DRIBBLE.slow);
+        expect(dribbleSlowAt([d], 400, 'highlights')).toBe(1);
+        // a velocidade escolhida cai a 1x na janela, antes dela (rampa sem salto) e volta depois
+        expect(dribbleEase([d], 400)).toBe(0);
+        expect(dribbleEase([d], 300)).toBe(1);
+        expect(dribbleEase([d], 500)).toBe(1);
+        let prev = 1;
+        for (let t = 340; t <= 440; t += 0.25) {
+            const k = dribbleEase([d], t);
+            expect(Math.abs(k - prev)).toBeLessThan(0.1);
+            prev = k;
+        }
+        // 8x chega com a rampa já descendo antes do ápice da câmera lenta
+        expect(dribbleEase([d], 400 - NAMED_DRIBBLE.slowFrom - NAMED_DRIBBLE.ramp - 10)).toBeLessThan(0.7);
     });
 
     it('a animação só enfeita: sai e volta pro snapshot, e com Reduzir movimento é só o nome', () => {

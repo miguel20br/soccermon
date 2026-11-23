@@ -257,6 +257,8 @@ export interface PreviewCfg {
     /** Instrução de escanteio e cobrador (null = o automático do motor). */
     corner?: CornerPlan;
     cornerTaker?: string | null;
+    /** Capitão novo: só do 2º jogo em diante do melhor de 3 (`captainSwapOk`); sem o campo fica o do draft. */
+    captain?: string | null;
 }
 
 export type OrderBody =
@@ -474,8 +476,14 @@ export function tagTeam(team: TeamSetup, role: Role): TeamSetup {
 
 const TACTICS: Tactic[] = ['balanced', 'offensive', 'defensive', 'counter'];
 
+/**
+ * Melhor de 3, do 2º jogo em diante: a Escalação entre os jogos também troca o capitão (pedido do Davi, 20/11). No 1º
+ * jogo e no duelo de 1 jogo o capitão é o do draft (ou do Meu time).
+ */
+export const captainSwapOk = (s: Pick<Shared, 'bestOf' | 'series'>) => bestOfOf(s) === 3 && (s.series?.length ?? 0) > 0;
+
 /** Aplica a prévia aberta (mesmo elenco, formação e tática válidas; o capitão pode começar no banco, como na copa). */
-export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null {
+export function applyPreview(team: TeamSetup, cfg: PreviewCfg, captainOk = false): TeamSetup | null {
     if (!cfg || !FORMATIONS[cfg.formation] || !TACTICS.includes(cfg.tactic)) return null;
     const all = [...team.lineup, ...team.bench];
     if (!Array.isArray(cfg.order) || cfg.order.length !== all.length || new Set(cfg.order).size !== all.length)
@@ -486,6 +494,7 @@ export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null
     const lineup = order.slice(0, 5) as PokemonInstance[];
     if (cfg.corner !== undefined && !CORNER_PLANS.includes(cfg.corner)) return null;
     if (cfg.cornerTaker != null && !byUid.has(cfg.cornerTaker)) return null;
+    if (cfg.captain != null && (!captainOk || !byUid.has(cfg.captain))) return null;
     return {
         ...team,
         formation: cfg.formation,
@@ -494,6 +503,7 @@ export function applyPreview(team: TeamSetup, cfg: PreviewCfg): TeamSetup | null
         bench: order.slice(5) as PokemonInstance[],
         corner: cfg.corner ?? team.corner ?? 'mixed',
         cornerTakerUid: cfg.cornerTaker ?? null,
+        captainUid: cfg.captain ?? team.captainUid,
     };
 }
 
@@ -821,7 +831,8 @@ function applyChoice(s: Shared, by: Role, value: unknown, now: number): Shared {
     if (s.phase === 'team') {
         if (validarTimeDuelo(value, specialLimitOf(s)).length) return s;
         team = teamFromRecipe(value as DuelTeamRecipe, '');
-    } else if (s.phase === 'preview' && s.teams[by]) team = applyPreview(s.teams[by]!, value as PreviewCfg);
+    } else if (s.phase === 'preview' && s.teams[by])
+        team = applyPreview(s.teams[by]!, value as PreviewCfg, captainSwapOk(s));
     if (!team) return s;
     const choice = { ...c, opened: { ...c.opened, [by]: true } };
     const next = { ...s, choice, teams: { ...s.teams, [by]: team } };

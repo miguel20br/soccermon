@@ -2,9 +2,13 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
     COACH_EVENTS,
+    contextProps,
     EVENT_NAMES,
+    entryOf,
     errorGate,
+    errorProps,
     firstLeave,
+    inAppOf,
     isBot,
     navProps,
     pickedReward,
@@ -217,5 +221,98 @@ describe('nav', () => {
 
     it('não sai quando não saiu do lugar (toque na aba em que já está)', () => {
         expect(navProps('tab', 'rota', 'rota')).toBeNull();
+    });
+});
+
+describe('erro com tipo, tela e começo da stack', () => {
+    it('leva kind, type, tela e os 2 primeiros quadros como arquivo:linha:coluna, sem endereço', () => {
+        const e = new TypeError("Cannot read properties of undefined (reading 'zoom')");
+        e.stack = [
+            "TypeError: Cannot read properties of undefined (reading 'zoom')",
+            '    at Xe (https://soccermon.com/bundle/index-B1x2.js:12:3456)',
+            '    at https://soccermon.com/bundle/Match-Zz9.js?v=1:3:77',
+            '    at f (https://soccermon.com/bundle/index-B1x2.js:1:2)',
+        ].join('\n');
+        expect(errorProps('react', e, 'match')).toEqual({
+            kind: 'react',
+            type: 'TypeError',
+            screen: 'match',
+            msg: "TypeError: Cannot read properties of undefined (reading 'zoom')",
+            at: 'index-B1x2.js:12:3456 Match-Zz9.js:3:77',
+        });
+        // Firefox/Safari (função@url:linha:coluna) e a mensagem separada do window.onerror
+        const ff = { name: 'Error', stack: 'g@https://soccermon.com/bundle/index-a.js:5:6\n' };
+        expect(errorProps('window', ff, 'home', 'Uncaught Error: x at https://x.com/?t=1')).toMatchObject({
+            type: 'Error',
+            msg: 'Uncaught Error: x at <url>',
+            at: 'index-a.js:5:6',
+        });
+        // promessa rejeitada com texto solto: sem tipo nem stack
+        expect(errorProps('promise', 'falhou: a@b.com', 'draft')).toMatchObject({
+            type: null,
+            at: null,
+            msg: 'falhou: <email>',
+        });
+    });
+
+    it('o pior caso cabe nos 512 bytes do props', () => {
+        const e = new Error('x'.repeat(400));
+        e.stack = `Error\n    at a (https://s.com/${'a'.repeat(80)}.js:99999:99999)\n    at b (https://s.com/${'b'.repeat(80)}.js:99999:99999)`;
+        expect(JSON.stringify(errorProps('promise', e, 'y'.repeat(80))).length).toBeLessThanOrEqual(512);
+    });
+});
+
+describe('contexto do session_start', () => {
+    const ua = {
+        tiktok: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 musical_ly_35.1.0 JsSdk/2.0 BytedanceWebview/d8a21c6',
+        instagram:
+            'Mozilla/5.0 (Linux; Android 14; wv) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36 Instagram 356.0.0.41.101 Android',
+        facebook: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0.0.0]',
+        chrome: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36',
+    };
+
+    it('navegador dentro do TikTok, Instagram e Facebook; fora deles, null', () => {
+        expect(inAppOf(ua.tiktok)).toBe('tiktok');
+        expect(inAppOf(ua.instagram)).toBe('instagram');
+        expect(inAppOf(ua.facebook)).toBe('facebook');
+        expect(inAppOf(ua.chrome)).toBeNull();
+    });
+
+    it('porta de entrada: Duelo, desafio, Copa do Dia ou Home', () => {
+        expect(entryOf('?duelo=K7M2QX')).toBe('duelo');
+        expect(entryOf('?utm_source=share&seed=abc')).toBe('seed');
+        expect(entryOf('?utm_source=daily')).toBe('daily');
+        expect(entryOf('?utm_source=tiktok')).toBe('home');
+        expect(entryOf('')).toBe('home');
+    });
+
+    it('tela arredondada de 10 em 10 e, com o id do aparelho, o session_start inteiro cabe nos 512 bytes', () => {
+        const ctx = contextProps({
+            ua: ua.tiktok,
+            language: 'pt-BR-x-muito-longo',
+            tz: 'America/Argentina/ComodRivadavia-e-mais-um-pouco',
+            screen: { width: 393, height: 852 },
+            pwa: false,
+            search: '?duelo=K7M2QX',
+        });
+        expect(ctx).toMatchObject({ lang: 'pt-BR-x-', scr: '390x850', inapp: 'tiktok', entry: 'duelo' });
+        const start = {
+            returning: false,
+            ref: 'x'.repeat(40),
+            device: 'mobile-land',
+            lab: 'y'.repeat(40),
+            cups: 9999,
+            dex_seen: 151,
+            did: '123e4567-e89b-12d3-a456-426614174000',
+            first_day: '2026-11-23',
+            day_n: 9999,
+            days: 9999,
+            new_day: true,
+            legacy: false,
+            ...ctx,
+            ui_lang: 'pt',
+            load_ms: 123456,
+        };
+        expect(JSON.stringify(start).length).toBeLessThanOrEqual(512);
     });
 });

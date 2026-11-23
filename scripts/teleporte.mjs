@@ -37,7 +37,38 @@ const PAGES = [
     // a partida (vestiário: o intervalo chega 2 s depois do Jogar): as 4 sheets da barra, o placar do intervalo
     // entrando e saindo no "Começar o 2º tempo"
     ['/?demo=vestiario&motion=1', ['.btn.primary.wide', '.bc-hudbtn', '.ht-panel .btn.primary']],
+    // Time Ultimate (só no dev: a entrada monta um time pelo store): as abas, os segmentos e, no Clube, as vagas e o
+    // Capitão (Sheet); o Início por último (a quadra e o JOGAR)
+    [
+        '/?lab=ultimate&motion=1',
+        [
+            '.ut-tab',
+            '.bc-seg button',
+            '#ut-tab-goals',
+            '.ut-grp-head',
+            '#ut-tab-club',
+            '.slot',
+            '.ut-captain-box .k-sheetrow',
+            '#ut-tab-home',
+        ],
+        'ut',
+    ],
 ];
+
+/** Preparos que a URL não faz: entra no Time Ultimate com 7 cartas (dev server: importa o store pelo /src). */
+const SETUP = {
+    ut: async () => {
+        const src = (p) =>
+            performance
+                .getEntriesByType('resource')
+                .map((e) => e.name)
+                .find((n) => n.includes(`${p}?`) || n.endsWith(p)) ?? p;
+        const g = await import(src('/src/store/game-store.ts'));
+        g.useGame.setState({ ultimate: { ...g.useGame.getState().ultimate, fichas: 99999 } });
+        for (const id of [25, 6, 131, 143, 94, 9, 65]) g.useGame.getState().ultimateBuyCard(id);
+        g.useGame.getState().go('ultimate');
+    },
+};
 
 /** Roda dentro da página: vigia o que aparece, some e pula. */
 function watch() {
@@ -113,11 +144,15 @@ function watch() {
 
 const browser = await pw.chromium.launch({ headless: true });
 const found = [];
-for (const [url, sels] of PAGES) {
+for (const [url, sels, setup] of PAGES) {
     const page = await browser.newPage({ viewport: { width: W, height: H }, locale: 'pt-BR' });
     await page.addInitScript(() => localStorage.setItem('soccermon-onboarded', '1'));
     await page.goto(base + url, { waitUntil: 'networkidle' });
     await page.waitForTimeout(800);
+    if (setup) {
+        await page.evaluate(SETUP[setup]);
+        await page.waitForTimeout(1200);
+    }
     await page.evaluate(watch);
     for (const sel of sels) {
         const n = await page.locator(sel).count();

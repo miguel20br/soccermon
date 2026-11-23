@@ -4,13 +4,29 @@ import { createInstance, type PokemonInstance, viewInstance } from '../../engine
 import { Rng } from '../../engine/rng';
 import { useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
-import { FICHAS_PACK_PRICE, PICK_BUY_N, PICK_FICHAS, PICK_PRICE } from '../../store/ultimate/rules';
+import { eventAt } from '../../store/ultimate/objectives';
+import {
+    BIG_FLOOR_N,
+    FICHAS_PACK_PRICE,
+    FLOOR_METAL,
+    ICON_ODDS,
+    METAL_ODDS,
+    OPEN_FICHAS,
+    PICK_BUY_N,
+    PICK_FICHAS,
+    PICK_PRICE,
+    REPEAT_FICHAS,
+    SHINY_ODDS,
+} from '../../store/ultimate/rules';
 import { pickable } from '../../store/ultimate/ultimate';
 import { FutCard } from '../components/FutCard';
 import { HudIcon } from '../components/MatchHud';
 import { MonIcon } from '../components/MonIcon';
+import { Sheet } from '../kit/Sheet';
 import { METAL, type Metal, metalLabel } from '../rarity';
+import { useNow } from './clock';
 import { usePickWarn } from './PickMoment';
+import { PackImg, packArt } from './pack-art';
 
 const METALS: Metal[] = ['bronze', 'prata', 'ouro'];
 
@@ -36,48 +52,61 @@ export function Shop() {
     const price = PICK_PRICE[metal];
     const short = price - u.fichas;
     const warn = usePickWarn();
+    const [odds, setOdds] = useState(false);
+    const tile = (art: string, title: string, hint: string, cost: number, buy: () => void) => (
+        <article key={art} className="ut-tile">
+            <PackImg art={art} />
+            <span className="ut-tile-info">
+                <b>{title}</b>
+                <small>{hint}</small>
+                <small className="ut-tile-price">
+                    <HudIcon kind="coin" />
+                    {t('ultimate.shop.price', { n: cost })}
+                </small>
+            </span>
+            <button type="button" className="btn confirm" disabled={u.fichas < cost} onClick={buy}>
+                {t('ultimate.shop.buy')}
+            </button>
+        </article>
+    );
     return (
         <section className="panel ut-shop bc-surface">
             <h2 className="bc-caption">
                 <HudIcon kind="bag" />
                 {t('ultimate.shop.title')}
-            </h2>
-            <div className="ut-shop-pack">
-                <span>
-                    <b>{t('ultimate.shop.pack')}</b>
-                    <small>
-                        <HudIcon kind="coin" />
-                        {t('ultimate.shop.packPrice', { n: FICHAS_PACK_PRICE })}
-                    </small>
-                </span>
-                <button
-                    type="button"
-                    className="btn confirm"
-                    disabled={u.fichas < FICHAS_PACK_PRICE}
-                    onClick={() => buyPack()}
-                >
-                    {t('ultimate.shop.buy')}
+                <button type="button" className="btn ghost ut-odds-link" onClick={() => setOdds(true)}>
+                    <HudIcon kind="dice" />
+                    {t('ultimate.packs.odds')}
                 </button>
+            </h2>
+            {/* a vitrine: no celular o Mini em destaque e os Picks numa prateleira de lado; no PC, a grade */}
+            <div className="ut-vitrine">
+                <div className="ut-vitrine-hero">
+                    {tile(
+                        packArt('mini'),
+                        t('ultimate.packs.mini'),
+                        t('ultimate.stack.miniHint', { metal: metalLabel(FLOOR_METAL) }),
+                        FICHAS_PACK_PRICE,
+                        () => buyPack(),
+                    )}
+                </div>
+                <span className="bc-lbl ut-vitrine-lbl">
+                    <HudIcon kind="cards" />
+                    {t('ultimate.pick.buy')}
+                </span>
+                <div className="ut-shelf">
+                    {METALS.map((m) =>
+                        tile(
+                            packArt(m),
+                            t('ultimate.pick.metal', { metal: metalLabel(m) }),
+                            `${t('ultimate.pick.of', { n: PICK_BUY_N })} · ${metalLabel(m)}`,
+                            PICK_FICHAS[m],
+                            () => buyPick(m) && setBoughtPick(m),
+                        ),
+                    )}
+                </div>
             </div>
-            <span className="bc-lbl">
-                <HudIcon kind="cards" />
-                {t('ultimate.pick.buy')}
-            </span>
             <small className="muted">{t('ultimate.pick.buyHint')}</small>
-            <div className="ut-chips ut-pick-buy">
-                {METALS.map((m) => (
-                    <button
-                        type="button"
-                        key={m}
-                        className="btn k-chip ut-chip"
-                        style={{ '--mc': METAL[m].color } as CSSProperties}
-                        disabled={u.fichas < PICK_FICHAS[m]}
-                        onClick={() => buyPick(m) && setBoughtPick(m)}
-                    >
-                        {metalLabel(m)} <small>{t('ultimate.shop.price', { n: PICK_FICHAS[m] })}</small>
-                    </button>
-                ))}
-            </div>
             {METALS.map((m) => warn(m, PICK_BUY_N))
                 .filter(Boolean)
                 .map((w) => (
@@ -161,6 +190,67 @@ export function Shop() {
                     </button>
                 </>
             )}
+            <Sheet
+                open={odds}
+                onClose={() => setOdds(false)}
+                title={t('ultimate.packs.odds')}
+                className="ut-odds-sheet"
+            >
+                <Odds />
+            </Sheet>
         </section>
+    );
+}
+
+const pct = (p: number, lang: string) =>
+    `${(Math.round(p * 1000) / 10).toLocaleString(lang === 'pt' ? 'pt-BR' : 'en-US')}%`;
+
+/** As chances do pacote, abertas (é o contrário do pacote do FUT): na folha do link Chances da vitrine. */
+function Odds() {
+    const { t, d, lang } = useT();
+    const event = eventAt(useNow());
+    return (
+        <div className="ut-odds">
+            <span className="bc-lbl">{t('ultimate.packs.perCard')}</span>
+            <ul className="ut-metals">
+                {METALS.map((m) => (
+                    <li key={m} style={{ '--mc': METAL[m].color } as CSSProperties}>
+                        <i aria-hidden />
+                        <span>{metalLabel(m)}</span>
+                        <b>{pct(METAL_ODDS[m], lang)}</b>
+                    </li>
+                ))}
+            </ul>
+            <p className="ut-rule">
+                <HudIcon kind="check" />
+                {t('ultimate.packs.floor', { metal: metalLabel(FLOOR_METAL) })}
+            </p>
+            <p className="ut-rule">
+                <HudIcon kind="sparkle" />
+                {t('ultimate.packs.editions', { shiny: pct(SHINY_ODDS, lang), icon: pct(ICON_ODDS, lang) })}
+            </p>
+            <p className="ut-rule">
+                <HudIcon kind="reroll" />
+                {t('ultimate.packs.repeatRule')}:{' '}
+                {METALS.map((m) => `${metalLabel(m)} ${REPEAT_FICHAS[m]}`).join(' · ')}
+            </p>
+            <p className="ut-rule">
+                <HudIcon kind="sparkle" />
+                {t('ultimate.packs.openRule', { n: OPEN_FICHAS })}
+            </p>
+            <p className="ut-rule">
+                <HudIcon kind="cards" />
+                {t('ultimate.packs.bigRule', { n: BIG_FLOOR_N, metal: metalLabel(FLOOR_METAL) })}
+            </p>
+            {event && (
+                <p className="ut-rule ut-rule-event">
+                    <HudIcon kind="sparkle" />
+                    {t('ultimate.packs.eventRule', {
+                        name: d.ultimate.events[event.id] ?? event.id,
+                        pct: pct(event.cardOdds, lang),
+                    })}
+                </p>
+            )}
+        </div>
     );
 }

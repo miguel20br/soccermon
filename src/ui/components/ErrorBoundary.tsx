@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportError } from '../../analytics/track';
 import { t } from '../../i18n';
 import { useGame } from '../../store/game-store';
 import { FEEDBACK_URL } from '../links';
@@ -55,6 +56,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, CrashState
 
     componentDidCatch(error: Error, info: ErrorInfo) {
         console.error('[Soccermon] a tela quebrou', error, info.componentStack);
+        // a tela de crash é o pior caso: antes só ia pro console e não aparecia no `npm run stats`
+        reportError('react', error);
         this.setState({ stack: info.componentStack ?? null });
     }
 

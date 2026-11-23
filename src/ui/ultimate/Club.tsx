@@ -264,6 +264,7 @@ function Cards({ onSquad }: { onSquad: () => void }) {
                                           ? t('ultimate.club.locked')
                                           : undefined
                                 }
+                                ribbonTone={i < 0 ? undefined : i < STARTERS ? 'blue' : 'grey'}
                             />
                         );
                         // selo Nova: chegou desde a última visita ao Clube (o "NEW" do FC); some na próxima

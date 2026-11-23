@@ -81,7 +81,7 @@ npm run lint     # Biome
 npm test         # Vitest (~1 min; o teste de evolução é o mais lento)
 npm run build    # tsc + Vite
 npm run calibrate -- --n 200 [--formations|--tactics]   # equilíbrio headless (n 400 só no número final)
-npm run stats [-- --dias 7 | --md]   # placar do jogo no ar
+npm run stats [-- --dias 7 | --md | --placar]   # placar do jogo no ar
 npm run fonts    # refaz o subset das Galmuri (public/fonts) quando o teste das fontes acusar caractere novo
 ```
 
@@ -143,9 +143,9 @@ Aprovadas pelo Miguel ("1a a 9a"); **cada tarefa é avaliada por si**, não é a
   rascunhos no scratchpad, nunca no repo. Código ou segredo de título nunca no repo (é público).
 - Bug achado no teste: conserte a causa no lugar por onde todos passam e deixe um teste que falharia sem o conserto.
 
-## Estado atual (17/11/2026, v0.9.52.4)
+## Estado atual (23/11/2026, v0.9.53.1)
 
-No ar: 0.9.52.4. UT abre em 27/11. Motor 31 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
+No ar: 0.9.53 (23/11). UT abre em 27/11. Motor 32 (`liga` também). Liga fechada até `LIGA_OPENS_AT`. Tela grande: `calc(N * var(--vw))` e `uiZoom()`. Histórico: [historico.md](docs/planos/historico.md); índice: `node scripts/indice.mjs`.
 ## Armadilhas (o porquê de cada uma)
 
 - **Motor sem `Math.random()`/`Date`:** quebra o Duelo, a Liga e os replays (mesma seed tem que dar a mesma partida). Use o `Rng` do estado. Resultado mudou? Suba `ENGINE_VERSION`.

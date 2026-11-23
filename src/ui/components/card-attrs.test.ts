@@ -33,6 +33,7 @@ const CASES: [string, PokemonInstance][] = [
     ['Mewtwo Shiny Ícone (edição)', sample(150, { shiny: true, special: { kind: 'icone', title: ICONS[150] } })],
     ['Clefairy com Choice Band (Fada + item)', sample(35, { item: 'choiceband' })],
     ['Rapidash com Run Away (passa de 99 em campo)', sample(78, { ability: 'runaway' })],
+    ['Bulbasaur com Eviolite (pode evoluir)', sample(1, { item: 'eviolite' })],
 ];
 
 const ATTR_OF = Object.fromEntries(
@@ -44,7 +45,7 @@ function shown(inst: PokemonInstance) {
     const html = renderToStaticMarkup(createElement(PokeCard2, { inst, variant: 'metal' })).replace(/<!-- -->/g, '');
     const stats = html.slice(html.indexOf('m-stats'));
     const out: Partial<Record<AttrKey, { v: number; mod: number }>> = {};
-    for (const m of stats.matchAll(/<b>(\d+)<\/b><i>([^<]+)<\/i>(?:<em[^>]*>([▲▼])(\d+)<\/em>)?/g)) {
+    for (const m of stats.matchAll(/<b[^>]*>(\d+)<\/b><i>([^<]+)<\/i>(?:<em[^>]*>([▲▼])(\d+)<\/em>)?/g)) {
         out[ATTR_OF[m[2]]] = { v: Number(m[1]), mod: m[3] ? (m[3] === '▲' ? 1 : -1) * Number(m[4]) : 0 };
     }
     return out;
@@ -76,5 +77,24 @@ describe('a carta para em 99', () => {
         const field = applyModifiers(instanceBase(rapidash), attributeModifiers(rapidash));
         expect(Math.round(field.pace)).toBeGreaterThan(CARD_MAX);
         expect(shown(rapidash).pace?.v).toBe(CARD_MAX);
+    });
+});
+
+describe('Eviolite', () => {
+    it('+30% em tudo pra quem ainda evolui; Venusaur com ela não ganha nada', () => {
+        const bulba = sample(1, { item: 'eviolite' });
+        expect(attributeModifiers(bulba).find((m) => m.ref === 'eviolite')?.factor).toBe(1.3);
+        expect(Object.values(shown(bulba)).every((s) => s.mod > 0)).toBe(true);
+        expect(attributeModifiers(sample(3, { item: 'eviolite' })).some((m) => m.ref === 'eviolite')).toBe(false);
+    });
+    it('a nota da carta já conta a pedra e o selo de evolução some (Miguel, 23/11)', () => {
+        const ovr = (inst: PokemonInstance) => {
+            const html = renderToStaticMarkup(createElement(PokeCard2, { inst, variant: 'metal' }));
+            return { n: Number(html.match(/m-ovr[^>]*>(\d+)</)?.[1]), evo: html.includes('m-evo') };
+        };
+        const sem = ovr(sample(67));
+        const com = ovr(sample(67, { item: 'eviolite' }));
+        expect(com.n).toBeGreaterThan(sem.n);
+        expect([sem.evo, com.evo]).toEqual([true, false]);
     });
 });
