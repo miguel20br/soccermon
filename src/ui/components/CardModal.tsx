@@ -33,7 +33,6 @@ import {
 import { rich, useT } from '../../i18n/react';
 import { useGame } from '../../store/game-store';
 import { type CardAction, useCardModal } from '../card-modal';
-import { escolherGolpesOn } from '../escolher-golpes-lab';
 import { Sheet } from '../kit/Sheet';
 import { ratingAt } from '../rating';
 import { TYPE_COLOR } from '../type-colors';
@@ -163,7 +162,7 @@ function CardBody({
     const run = useGame((s) => s.run);
     const dex = useGame((s) => s.dex);
     // escolher golpes (?lab=golpes-escolher): a ficha segue a carta do time, que muda ao trocar de golpe
-    const canPick = !peek && escolherGolpesOn() && run?.status === 'lineup' && !run.lockedTeam;
+    const canPick = !peek && run?.status === 'lineup' && !run.lockedTeam;
     const mine = canPick ? run?.picks.find((p) => p.uid === shown.uid) : undefined;
     const inst = mine ?? shown;
     const { t, tn, d, lang } = useT();

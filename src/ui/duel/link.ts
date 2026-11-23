@@ -44,16 +44,13 @@ export const cupInviteShown = (
     save.daily.length === 0;
 
 /**
- * Bandeira do Duelo com o time do Time Ultimate (ADR 0005): só no dev e nas prévias (`smoke`), `?lab=duelo-ut` liga
- * na aba até fechar e `?lab=duelo-ut-off` desliga. Em produção fica escondido até o Miguel jogar. A bandeira só
- * esconde o criar sala: quem entra numa sala do UT pelo convite joga com o time dele.
+ * Duelo com o time do Time Ultimate: ligado pra todo mundo desde a 0.9.54 (o Miguel aprovou em 23/11). Nas prévias,
+ * `?lab=duelo-ut-off` esconde o modo na aba até fechar (pra ver a tela antiga).
  */
 export function duelUtOn(smoke: boolean, search: string, stored: string | null): boolean {
-    if (!smoke) return false;
-    const q = new URLSearchParams(search).get('lab');
-    if (q === 'duelo-ut') return true;
-    if (q === 'duelo-ut-off') return false;
-    return stored === '1';
+    if (!smoke) return true;
+    if (new URLSearchParams(search).get('lab') === 'duelo-ut-off') return false;
+    return stored !== '0';
 }
 
 const UT_KEY = 'soccermon-lab-duelo-ut';

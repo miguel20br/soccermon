@@ -3,9 +3,9 @@ import { pt } from '../../i18n/pt';
 import { CONNECT_GIVEUP_MS, cupInviteShown, duelUtOn, entryCoach, roomBarShown, roomLooksClosed } from './link';
 
 describe('duelUtOn', () => {
-    it('produção nunca liga; prévia liga com ?lab=duelo-ut e lembra na aba', () => {
-        expect(duelUtOn(false, '?lab=duelo-ut', '1')).toBe(false);
-        expect(duelUtOn(true, '', null)).toBe(false);
+    it('liga pra todo mundo; na prévia ?lab=duelo-ut-off esconde na aba', () => {
+        expect(duelUtOn(false, '', null)).toBe(true);
+        expect(duelUtOn(true, '', null)).toBe(true);
         expect(duelUtOn(true, '?lab=duelo-ut', null)).toBe(true);
         expect(duelUtOn(true, '?duelo=ABC', '1')).toBe(true);
         expect(duelUtOn(true, '?lab=duelo-ut-off', '1')).toBe(false);

@@ -95,8 +95,9 @@ export const STOPPAGE = { min: 1, max: 3 };
  * 31 = semana especial (16 a 22/11/2026): Evento por lista de espécies (`ESPECIAL_SPECIES`, carta `event: 'especial'`)
  *     no lugar do tipo da semana; o Duelo e a Liga aceitam a carta nova.
  * 32 = Eviolite (+30% em tudo pra quem ainda pode evoluir; Miguel, 21/11/2026), no sorteio do jogador e fora dos rivais.
+ * 33 = escolher os golpes na escalação (`picked`, `chooseMoves`; Miguel aprovou em 23/11/2026, docs/planos/escolher-golpes.md).
  */
-export const ENGINE_VERSION = 32;
+export const ENGINE_VERSION = 33;
 
 export const FUTSAL_5: MatchConfig = {
     preset: 'futsal5',
