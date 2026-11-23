@@ -118,6 +118,13 @@ const f9 = fala('f9', 'meowth', '52-happy', 'Boa noite! Agora o reforço que voc
 const f10 = fala('f10', 'meowth', '52-happy', 'pode entrar direto no lugar de um titular.');
 const f11 = fala('f11', 'meowth', '52-joyous', ['Antes, só no lugar de um reserva.', 'Só o capitão nunca sai.']);
 beat('payFim', 1.0, 'o Meowth faz a pose');
+// v4 (23/11): o que entra na 0.9.53.1, sobre os clipes do jogo (comemorações, cut-in de dupla e drible em 8x)
+bloco('emcampo', 'EM CAMPO');
+const f13a = fala('f13a', 'raichu', '26-happy', 'Em campo, cinco Pokémon ganharam comemoração própria.', { manchete: true });
+const f13b = fala('f13b', 'machoke', '67-happy', 'O Pikachu ganhou até um raio.');
+const f13c = fala('f13c', 'raichu', '26-sigh', 'Eu evoluí pra quê?');
+const f13d = fala('f13d', 'machoke', '67-determined', 'E combo de sinergia agora tem cut-in de dupla.');
+const f13e = fala('f13e', 'raichu', '26-determined', 'E o drible com nome fica em câmera lenta até no 8x.');
 bloco('vestiario', 'VESTIÁRIO');
 const f12 = fala('f12', 'machoke', '67', ['No Duelo em melhor de 3, agora dá pra trocar', 'o capitão entre um jogo e outro.'], { manchete: true });
 pausa('reacao', 0.8); // o corte pra bancada: o Charmeleon (o C saiu dele no clipe) na cadeira de convidado, de faixa, sem fala
@@ -171,6 +178,9 @@ M.pacote.mewtwo = letra(f16, 'temporada');
 M.pacote.foco = r3(M.pacote.mewtwo + 0.3);
 M.bem = letra(f18b, 'pensar'); // o Machoke abraça a Eviolite
 M.boaNoite = letra(f19, 'boa noite');
+M.raio = letra(f13b, 'raio'); // o raio do Pikachu no clipe
+M.praQue = letra(f13c, 'pra quê'); // o Raichu sem graça
+M.campo = [f13a.s, f13b.s, f13c.s, f13d.s, f13e.s, f13e.z]; // os cortes da montagem dos clipes (em-campo.mp4)
 M.grito = [r3(f20.a + 0.3), r3(letra(f20, 'chutar') + 0.25)];
 M.papeis = [r3(f19.paginas[0].fim + 0.45), r3(f19.paginas[0].fim + 0.75)];
 export const VARRIDAS = [M.escalada, M.vemai];
@@ -178,6 +188,7 @@ export const CORTES = [M.vinheta, M.abertura, M.bCartas, M.vt1, M.bRua, M.cheia,
 /** Os clipes do jogo (gravados headless da 0.9.53): o instante, dentro de cada arquivo, do momento que a fala marca. */
 export const CLIPES = {
     'v-duelo': { arq: 'midia/news/duelo-capitao.mp4', s: M.vestiario, z: M.reacao, marca: M.kaboom, noClipe: 2.9 }, // 405,5 s da gravação do anfitrião: o toque no Squirtle em 2,9
+    'v-campo': { arq: 'midia/news/em-campo.mp4', s: M.emcampo, z: M.vestiario, marca: M.emcampo, noClipe: 0 }, // a montagem nos cortes de M.campo
     'v-reforco': { arq: 'midia/news/reforco-titular.mp4', s: M.cheia, z: f10.z, marca: M.titular, noClipe: 4.0 }, // 5,2 s da gravação: o toque no Geodude em 4,0
 };
 

@@ -362,6 +362,16 @@ export default function bancada() {
     }
     stabs(clav, 0, 'Cm7', [[R(M.payFim + 0.75), 2]], { low: 60, n: 3, vel: 0.6 });
 
+    // ===================== EM CAMPO (v4): a cama do estúdio de volta, sobre os clipes =====================
+    cama(M.emcampo, M.vestiario, estudio, ['Ebmaj7', 'Bb7sus4', 'Cm7', 'Abmaj7']);
+    manchete(M.emcampo, 'Ebmaj7');
+    // o raio do Pikachu: o sino lá em cima e os metais
+    N(sino, M.raio, 99, 3, 0.55);
+    stabs(met, 0, 'Bb7sus4', [[R(M.raio), 2]], { low: 58, n: 4, vel: 0.55 });
+    // "Eu evoluí pra quê?": a tuba descendo, como no "Eu não."
+    N(tuba, M.praQue + 0.1, 38, 1.2, 0.45);
+    N(tuba, M.praQue + 0.3, 36, 2, 0.4);
+
     // ===================== VESTIÁRIO: cômico, menos instrumentos =====================
     cama(M.vestiario, M.reacao, comico, ['Cm', 'G7'], { cordas: 0 });
     manchete(M.vestiario, 'Cm7');

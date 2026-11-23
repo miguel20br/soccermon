@@ -320,8 +320,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
 </style>
 </head>
 <body>
-<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="94.2">
-  <div id="cena" class="clip" data-start="0" data-duration="94.2">
+<div id="root" data-composition-id="root" data-width="1080" data-height="1920" data-start="0" data-duration="109.7">
+  <div id="cena" class="clip" data-start="0" data-duration="109.7">
     <!-- a vinheta de abertura (v10): 3 alternativas (A, B, C) e o logo montado, o mesmo nas 3 -->
     <div id="vin" class="cena vinheta-n"><div class="raios" id="raios-vin"></div>
       <div class="vin-alt" id="vinA"><div class="bolapx" id="bolapx"></div></div>
@@ -391,6 +391,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div class="painel-n" id="p-cal"><div class="cal"><div class="topo">TODA SEGUNDA</div><div class="dias" id="dias"></div></div></div>
   <div class="painel-n" id="p-pacote"><div class="campo-ut" id="campo-ut"></div></div>
   <div class="moldura" id="m-vt" style="left:264px;top:306px;width:552px;height:963px"></div>
+  <div class="moldura" id="m-ec" style="left:264px;top:306px;width:552px;height:963px"></div>
   </div>
   <div id="manchete"><div class="barra" id="barra"></div></div>
   <div id="bug"><img src="midia/logo-simbolo.svg" alt="" /></div>
@@ -401,11 +402,12 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
   <div id="capa"><small>PLANTÃO</small><b>MACHOKE MAIS<br>FORTE QUE O<br><em>MACHAMP</em></b></div>
 
   <!-- os clipes do jogo (0.9.53, gravados headless); os tempos saem do linha.mjs (CLIPES) -->
-  <video id="v-duelo" class="painel" src="midia/news/duelo-capitao.mp4" muted playsinline data-start="59.5" data-duration="5.7" data-media-start="0" style="left:276px;top:368px;width:528px;height:939px;object-fit:cover"></video>
+  <video id="v-duelo" class="painel" src="midia/news/duelo-capitao.mp4" muted playsinline data-start="75" data-duration="5.7" data-media-start="0" style="left:276px;top:368px;width:528px;height:939px;object-fit:cover"></video>
+  <video id="v-campo" class="painel" src="midia/news/em-campo.mp4" muted playsinline data-start="59.5" data-duration="15.75" data-media-start="0" style="left:276px;top:368px;width:528px;height:939px;object-fit:cover"></video>
   <video id="v-reforco" class="painel" src="midia/news/reforco-titular.mp4" muted playsinline data-start="47.4" data-duration="6.25" data-media-start="0" style="left:60px;top:362px;width:420px;height:756px;object-fit:cover"></video>
 
-  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="94.2" data-media-start="0" data-fade-out="0.6"></audio>
-  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="94.2" data-media-start="0"></audio>
+  <audio id="a-musica" class="clip" src="midia/som/news2-14.wav" data-start="0" data-duration="109.7" data-media-start="0" data-fade-out="0.6"></audio>
+  <audio id="a-voz" class="clip" src="midia/som/news2-voz.wav" data-start="0" data-duration="109.7" data-media-start="0"></audio>
 
   <script>
     const { div, ator, anim, quadro, flash, estouro, telaFinal, piscada, quadra, treme, torcida, torcidaPulo, torcidaAnim } = C;
@@ -424,7 +426,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     // `seco` só onde a varrida da cartinha cobre a tela.
     const TROCAS = [];
     const corta = (ids, t, { seco = false } = {}) => TROCAS.push({ t, on: [ids ?? []].flat(), seco });
-    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#p-duelo', '#m-ref', '#p-cal', '#p-pacote', '#m-vt'];
+    const PAINEIS = ['#m-rec', '#p-trof', '#p-barras', '#p-duelo', '#m-ref', '#p-cal', '#p-pacote', '#m-vt', '#m-ec'];
     const TROCAS_P = [];
     const paineis = (t, ...on) => TROCAS_P.push({ t, on });
     function resolveTrocas() {
@@ -670,8 +672,8 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       tl.to('#varre', { x: -2700, duration: 0.26, ease: 'power2.in' }, t);
     }
     gsap.set('#pan', { transformOrigin: '540px 330px', y: 50 }); // v11: os painéis descem junto com a caixa
-    gsap.set('#v-duelo', { transformOrigin: '264px 12px' });
-    tl.set(['#v-duelo', '#v-reforco'], { opacity: 0 }, 0);
+    gsap.set(['#v-duelo', '#v-campo'], { transformOrigin: '264px 12px' });
+    tl.set(['#v-duelo', '#v-reforco', '#v-campo'], { opacity: 0 }, 0);
     const empurra = (t, d = 3, k = 1.04, alvos = '#pan') => tl.fromTo(alvos, { scale: 1 }, { scale: k, duration: d, ease: 'sine.out', immediateRender: false }, t);
     /** Quem fala: um pulinho só no começo da fala e um balanço leve do corpo (a partir do pé) enquanto a caixa digita. */
     const pulinho = (a, t, h = 12) => tl.to(a.corpo, { keyframes: { y: [0, -h, 0] }, duration: 0.3, ease: 'sine.inOut' }, t);
@@ -1215,7 +1217,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     gsap.set(RC, { transformOrigin: `${MRX}px ${MRY}px` });
     {
       const t0 = M.cheia;
-      const t1 = M.vestiario;
+      const t1 = M.emcampo;
       corta('#rota', t0);
       paineis(t0, '#m-ref');
       paineis(F.f10.z);
@@ -1232,7 +1234,7 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
     {
       // a partida: 4 jogadores pequenos correm na faixa acima da cabeça do Meowth e a bola vai e volta entre eles
       const t0 = M.cheia;
-      const t1 = M.vestiario;
+      const t1 = M.emcampo;
       const Y = 840;
       const JOG = [[7, 450, 2], [4, 620, 6], [1, 800, 2], [16, 980, 6]].map(([id, x, dir]) => {
         const j = ator(RC, id, { escala: 4.5, z: 8, x, y: Y + (id === 16 ? -10 : 0) });
@@ -1273,6 +1275,15 @@ video.painel { position: absolute; z-index: 21; border-radius: 10px; }
       anim(tl, MR, 'Pose', 0, M.payFim - 0.15, M.payFim + 0.4, { loop: false });
       anim(tl, MR, 'Idle', 0, M.payFim + 0.4, FIM);
     }
+
+    // ===================== EM CAMPO (v4) =====================
+    // f13a–f13e · a montagem dos clipes da 0.9.53.1 (comemorações, o raio do Pikachu, o cut-in de dupla e o drible em 8x)
+    corta('#fundo', M.emcampo);
+    paineis(M.emcampo, '#m-ec');
+    entra('#m-ec', M.emcampo, 0.95);
+    tl.fromTo('#v-campo', { opacity: 0 }, { opacity: 1, duration: SAIDA, ease: 'power2.out', immediateRender: false }, M.emcampo);
+    tl.to('#v-campo', { opacity: 0, duration: SAIDA, ease: 'power2.in' }, M.vestiario);
+    empurra(M.emcampo, M.vestiario - M.emcampo, 1.03, ['#pan', '#v-campo']);
 
     // ===================== VESTIÁRIO =====================
     // f12 · o Machoke sobre o clipe do Duelo (Escalação do jogo 2: o C passa do Charmeleon pro Squirtle no "capitão")
