@@ -15,12 +15,14 @@ import { useGame } from '../../store/game-store';
 import type { ShowItem, Tier } from '../../store/medals';
 import { activeTrainer, type TrainerId, trainerFx, trainerSrc } from '../../store/missions';
 import { tagFromName } from '../../store/profile';
+import { NatalCapa } from '../ambientes/Neve';
 import { usePixelFit } from '../ambientes/sprite-scale';
 import { Crest, kitOverlay } from '../profile/Crest';
 import { useClubColor } from '../profile/club';
 import { frameClass, ShowcaseRow } from '../profile/Medals';
 import { lineupAverage } from '../rating';
 import { reduceMotionOn } from '../settings-sync';
+import { natalOn } from '../tema';
 import { cardSprite } from './PokeCard';
 import './versus.css';
 
@@ -445,6 +447,7 @@ export function VersusIntro({
                 </div>
                 <div className="vs-stage vsp-stage">{final ? t('match.vs.final') : stage}</div>
             </div>
+            {natalOn && <NatalCapa />}
             <div className="vsp-flash" />
             <VsStartButton ready={canStart} slow={slow} startsIn={startsIn} onStart={onDone} onRetry={retry} />
             {ready && startsIn === undefined && (

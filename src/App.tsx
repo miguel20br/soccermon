@@ -6,6 +6,7 @@ import { prefetchGame, preloadGame } from './PhaserGame';
 import { modeMenuDue, whenHydrated } from './store/coach';
 import { type Screen, useGame } from './store/game-store';
 import { useSaveHealth } from './store/save-health';
+import { NatalCapa } from './ui/ambientes/Neve';
 import { onGoTab } from './ui/ambientes/nav';
 import { TopBar } from './ui/ambientes/TopBar';
 import { backTarget, installBackNav, MENU_SCREENS } from './ui/back-nav';
@@ -44,7 +45,7 @@ import { Reward } from './ui/screens/Reward';
 import { Settings } from './ui/screens/Settings';
 import { Shop } from './ui/screens/Shop';
 import { TrophyRoom } from './ui/screens/TrophyRoom';
-import { neonOn } from './ui/tema';
+import { natalOn, neonOn } from './ui/tema';
 import { tvCut } from './ui/tv';
 import { readUltimate } from './ui/ultimate/flag';
 
@@ -416,6 +417,11 @@ export default function App() {
             {screen === 'ultimate-match' && <Match ultimate />}
             {screen === 'trophies' && <TrophyRoom />}
             {screen === 'collection' && <Collection />}
+            {/* Natal (ui/tema.ts): neve e festão por cima de toda tela; os ambientes têm os seus e a partida, a neve da quadra */}
+            {natalOn &&
+                (screen === 'home' ? menu === 'on' : !['match', 'liga-match', 'ultimate-match'].includes(screen)) && (
+                    <NatalCapa />
+                )}
             <PlayerCardModal />
             <MomentLayer />
             <DoorLayer />

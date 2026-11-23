@@ -42,6 +42,9 @@ export const NEON_STREET = [106, 107, 68, 9] as const;
 export const neonOn = tema === 'neon';
 export const natalOn = tema === 'natal';
 
+/** Sprite do treinador; no Natal, a cópia de gorro (scripts/build-natal-trainers.ts). */
+export const trainerSrc = (id: string) => `assets/trainers/${natalOn ? 'natal/' : ''}${id}.png`;
+
 export function startTema() {
     if (tema) document.documentElement.dataset.tema = tema;
 }

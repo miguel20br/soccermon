@@ -86,7 +86,7 @@ export const TRAINERS = [
 export type TrainerId = (typeof TRAINERS)[number];
 
 export const FREE_TRAINERS: readonly TrainerId[] = ['red', 'leaf', 'youngster', 'lass'];
-export const trainerSrc = (id: TrainerId) => `assets/trainers/${id}.png`;
+export { trainerSrc } from '../ui/tema';
 
 /** Treinador de origem → versão dourada (sprite gerado por scripts/build-gold-trainers.ts). */
 export const GOLD_TRAINERS = {

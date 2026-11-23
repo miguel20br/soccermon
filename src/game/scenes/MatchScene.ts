@@ -86,7 +86,7 @@ import {
 import { MAX_BEAT, maxRing } from '../../ui/max-beat';
 import { portraitSrc } from '../../ui/portrait';
 import { lineAt, SHOWDOWN_MS, type ShowdownLine, showdownScript } from '../../ui/showdown-lines';
-import { neonOn } from '../../ui/tema';
+import { natalOn, neonOn } from '../../ui/tema';
 import { slowmoScale } from '../../ui/tv';
 import { hexToNumber, TYPE_COLOR } from '../../ui/type-colors';
 import {
@@ -1002,6 +1002,8 @@ export class MatchScene extends Phaser.Scene {
     preload() {
         this.md = this.registry.get('matchData') as MatchSceneData;
         for (const id of [...this.allSpecies(), ...this.ceremonySpecies()]) preloadSpecies(this, id);
+        // Natal: o gorro (o mesmo dos treinadores e do logo) no time campeão, na foto do título
+        if (natalOn && this.md.ceremony) this.load.image('gorro', 'assets/ui/gorro.png');
         // o Sit de quem perdeu (fim de jogo): o atlas extra, como a Sala (~3 KB cada)
         for (const p of this.md.result.finalRoster) preloadExtra(this, skinOf(p.speciesId, p.shiny));
         preloadMoveFx(this);
@@ -1052,6 +1054,39 @@ export class MatchScene extends Phaser.Scene {
             }
     }
 
+    /**
+     * Natal (ui/tema.ts): neve leve caindo na quadra, embaixo dos Pokémon e da bola (só desenho: nada do motor, o
+     * sorteio é o Math.random das partículas). Teto de 40 flocos (24 em tela estreita); com Reduzir movimento, nada.
+     */
+    private snowfall() {
+        if (!this.textures.exists('neve')) {
+            // o floco grande dos menus (natal.css): uma cruz de 3x3
+            const t = this.textures.createCanvas('neve', 3, 3);
+            const ctx = t?.getContext();
+            if (!t || !ctx) return;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(1, 0, 1, 3);
+            ctx.fillRect(0, 1, 3, 1);
+            t.refresh();
+        }
+        const cap = Math.min(window.innerWidth, window.innerHeight) < 500 ? 24 : 40;
+        const life = 9000;
+        this.add
+            .particles(0, 0, 'neve', {
+                x: { min: 0, max: GAME_W },
+                y: { min: -20, max: GAME_H - 40 },
+                lifespan: { min: life * 0.7, max: life },
+                speedY: { min: 14, max: 28 },
+                speedX: { min: -6, max: 6 },
+                scale: { random: [1.2, 2] },
+                alpha: { values: [0, 0.8, 0.8, 0] },
+                frequency: life / cap,
+                maxAliveParticles: cap,
+                advance: life,
+            })
+            .setDepth(-900);
+    }
+
     create() {
         const { result } = this.md;
         this.speed = this.md.speed;
@@ -1077,6 +1112,7 @@ export class MatchScene extends Phaser.Scene {
             if (text) drawBanner(this, team, text, this.md.colors[team], bannerInk(this.md.colors[team]));
         }
         if (this.md.boards?.length) drawBoards(this, this.md.boards);
+        if (natalOn && !this.md.reduceMotion) this.snowfall();
         ensureBallTexture(this);
         for (const p of result.roster) {
             createSpeciesAnims(this, skinOf(p.speciesId, p.shiny));
@@ -3311,6 +3347,8 @@ export class MatchScene extends Phaser.Scene {
             celeb: Comemoracao;
             captain: boolean;
             rival: boolean;
+            /** Natal: o gorro na cabeça (o time campeão; o capitão tem a taça). */
+            hat?: Phaser.GameObjects.Image;
         }[];
         fans: { img: Phaser.GameObjects.Image; f: Fan; key: string; shadow: Phaser.GameObjects.Ellipse }[];
         wild: {
@@ -3434,6 +3472,9 @@ export class MatchScene extends Phaser.Scene {
                 wild.push({ sp, shadow, from, to, fly: w.fly, late: w.late, skin });
             });
         }
+        if (this.textures.exists('gorro'))
+            for (const a of actors)
+                if (!a.rival && !a.captain) a.hat = this.add.image(0, 0, 'gorro').setOrigin(6.5 / 17, 11.5 / 12);
         const cam = this.cameras.main;
         // a cerimônia manda na câmera: os panos e zooms que ainda andavam (o drama do FIM DE JOGO) param aqui
         cam.panEffect.reset();
@@ -3581,6 +3622,16 @@ export class MatchScene extends Phaser.Scene {
                 .setDepth(at.y)
                 .setAlpha(alpha)
                 .setScale(this.ssNow * (c.reduce ? 1 : sx), this.ssNow * (c.reduce ? 1 : sy));
+            if (a.hat) {
+                // a aba logo abaixo do topo da cabeça (headTop), de frente pra câmera
+                const sp = v.sprite;
+                const top = sp.y - (sp.originY - headTop(v.skin)) * sp.frame.realHeight * sp.scaleY;
+                a.hat
+                    .setPosition(sp.x, top + this.ssNow)
+                    .setScale(this.ssNow * 0.75)
+                    .setDepth(at.y + 0.5)
+                    .setAlpha(alpha);
+            }
             v.shadow
                 .setPosition(at.x, at.y + 1)
                 .setDepth(at.y - 2)

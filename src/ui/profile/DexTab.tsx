@@ -9,6 +9,7 @@ import { HudIcon } from '../components/MatchHud';
 import { Tip } from '../components/Tip';
 import { TypeIcon } from '../components/TypeIcon';
 import { Stepper } from '../kit/controls';
+import { trainerSrc } from '../tema';
 import { UltimateLegacy } from '../ultimate/Legacy';
 import { AlbumView } from './Album';
 import { speciesGif } from './club';
@@ -103,7 +104,7 @@ export function DexTab({ view, onView }: { view: DexView; onView: (v: DexView) =
                 // Pokédex vazia: o Carvalho diz quanto falta (no lugar da barra zerada e dos filtros sem nada)
                 <div className="rt-talk pf-oak">
                     <span className="rt-talk-face">
-                        <img className="pixel" src="assets/trainers/oak.png" alt="" width="80" height="80" />
+                        <img className="pixel" src={trainerSrc('oak')} alt="" width="80" height="80" />
                     </span>
                     <p>
                         <b>{d.longCup.story.rota1.who}</b> {t('home.amb.labTalk', { n: TOTAL })}

@@ -4,6 +4,7 @@ import { useGame } from '../../store/game-store';
 import { albumCount, gameMoveIds, movesFound, seenCount } from '../../store/profile';
 import { HudIcon } from '../components/MatchHud';
 import { openDoor } from '../doors';
+import { trainerSrc } from '../tema';
 import { ClockCtx, useSceneClock } from './clock';
 import { floorZone, Mi, ROOM, useTalkOnce } from './Room';
 import { SceneHotspot } from './SceneHotspot';
@@ -92,7 +93,7 @@ export function Lab({ active, wild, near }: { active: boolean; wild: Wild[]; nea
                 {talk && (
                     <div className="rt-talk rm-talk">
                         <span className="rt-talk-face">
-                            <img className="pixel" src="assets/trainers/oak.png" alt="" width="80" height="80" />
+                            <img className="pixel" src={trainerSrc('oak')} alt="" width="80" height="80" />
                         </span>
                         <p>
                             <b>{d.longCup.story.rota1.who}</b>{' '}
