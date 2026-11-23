@@ -113,7 +113,13 @@ semanas da proposta de 20/10). **Decidido em 01/11: semestral.**
 
 - **Rodadas da temporada** (contra times-fantasma de outros jogadores, assíncrono, como a Liga): o modo principal.
 - **Copa da temporada** (fim de semana): chave de 8 com os times do UT.
-- **Duelo com o time do UT** (amigo ao vivo): um 4º modo no Duelo.
+- **Duelo com o time do UT** (amigo ao vivo): um 4º modo no Duelo. Feito na 0.9.54 atrás de `?lab=duelo-ut` (só dev e
+  prévias): a sala é `mode: 'ready'` + `ut: true` (a versão antiga vê um Time pronto com o aviso de versão, sem
+  quebrar), cada um manda a receita do time do UT do próprio save (`utRecipe`), sem limite de especiais, com o Treino
+  aceito (`teamProblems`) e sem evolução no meio da partida (`NO_MID_EVO`). Amistoso: não dá Fichas nem pacote.
+  **Fase 1 sem servidor conferindo as cartas** (como o Time pronto): a receita só é checada como "carta possível"; quem
+  editar o save no DevTools pode entrar com cartas que não tem. Fase 2, junto com o ranking da Temporada 2: o servidor
+  confere a receita contra o save na nuvem antes de valer ranking ou prêmio.
 - Contra a IA (líderes de ginásio com time de UT) pra quem não quer ranking.
 
 ## Opções de escopo
