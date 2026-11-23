@@ -199,6 +199,7 @@ import { BASE_SPRITE_SCALE, gridShift, pixelFont, spriteScaleFor } from '../qual
 import { paintCup } from '../room-art';
 import type { Quality } from '../sharp-canvas';
 import {
+    BOOM_BLINK,
     type Comemoracao,
     type ComemoracaoEspecie,
     comemoracaoOf,
@@ -2515,7 +2516,11 @@ export class MatchScene extends Phaser.Scene {
                 if (celeb.kind === 'psyduck' && !view.sprite.anims.isPlaying) view.sprite.anims.restart();
                 this.drawCelebMark(view, celeb.kind, celeb.ms);
             }
-            if (celeb?.tint !== undefined && entering === null) {
+            if (
+                celeb?.tint !== undefined &&
+                entering === null &&
+                !(this.md.reduceMotion && celeb.tint === BOOM_BLINK)
+            ) {
                 view.sprite.setTint(celeb.tint);
                 this.celebTinted.add(view);
             } else if (this.celebTinted.delete(view)) this.refreshTint(view);

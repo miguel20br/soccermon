@@ -348,6 +348,8 @@ export const SQUAD = { drop: 300, land: 720, glint: 1000 } as const;
 export const BONE = { toss: 380, back: 1650 } as const;
 /** Voltorb: pisca e incha até `boom`, explode, fica tostado até `clean` e se sacode. */
 export const BOOM = { boom: 1050, clean: 1950 } as const;
+/** O vermelho que o Voltorb pisca antes de estourar (no Reduzir movimento a cena não pisca). */
+export const BOOM_BLINK = 0xff5040;
 /** Kadabra: a colher sobe em `rise` e entorta entre `bend` e `bent`. */
 export const SPOON = { rise: 300, bend: 950, bent: 1450 } as const;
 
@@ -569,7 +571,7 @@ export function goalCelebPose(
                 sx: 1 + 0.22 * k,
                 sy: 1 + 0.18 * k,
                 lift: 0,
-                tint: blink ? 0xff5040 : undefined,
+                tint: blink ? BOOM_BLINK : undefined,
             };
         }
         if (t < V.clean) {
